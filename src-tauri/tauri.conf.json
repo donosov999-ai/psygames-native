@@ -25,7 +25,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["app"],
+    "targets": "all",
     "category": "Education",
     "shortDescription": "Cognitive training games",
     "longDescription": "PsyGames — 47 cognitive training games across memory, attention, logic, control, math and speed categories. Native macOS build.",

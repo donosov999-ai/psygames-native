@@ -236,12 +236,13 @@ jobs:
             find gen/android -name "build.gradle*" -type f
             exit 1
           fi
+          # Use absolute path from env var (avoids fragile relative resolution).
           cat >> "$GRADLE" <<'EOF'
 
           android {
               signingConfigs {
                   create("release") {
-                      storeFile = file("../../keys/psygames-release.jks")
+                      storeFile = file(System.getenv("ANDROID_KEYSTORE_PATH"))
                       storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
                       keyAlias = System.getenv("ANDROID_KEY_ALIAS")
                       keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
@@ -259,10 +260,14 @@ jobs:
       - name: Build signed APK
         working-directory: src-tauri
         env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/src-tauri/keys/psygames-release.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: cargo tauri android build --apk
+        run: |
+          echo "Using keystore at: $ANDROID_KEYSTORE_PATH"
+          ls -la "$ANDROID_KEYSTORE_PATH"
+          cargo tauri android build --apk
 
       - name: Locate APK
         working-directory: src-tauri
