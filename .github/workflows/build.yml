@@ -285,6 +285,75 @@ jobs:
           path: src-tauri/out/PsyGames-android.apk
           retention-days: 30
 
+  # ─── Web deploy → psygames-web GH Pages repo ──────────────────────────
+  # Builds the web bundle WITH baseUrl="/psygames-web" and pushes the
+  # contents of dist/ into donosov999-ai/psygames-web (main branch).
+  # GH Pages picks it up automatically. Same source = same content across
+  # web + native builds.
+  web-deploy:
+    name: Web → psygames-web GH Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [macos-arm]   # gate on at least one platform build succeeding
+    if: github.ref == 'refs/heads/main'  # only main branch deploys
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web (with /psygames-web baseUrl)
+        working-directory: frontend
+        run: |
+          # app.json already has baseUrl=/psygames-web in committed state
+          grep baseUrl app.json
+          npx expo export -p web
+          ls -la dist/
+
+      - name: Checkout psygames-web target repo
+        uses: actions/checkout@v4
+        with:
+          repository: donosov999-ai/psygames-web
+          token: ${{ secrets.PSYGAMES_WEB_DEPLOY_TOKEN }}
+          path: psygames-web-target
+
+      - name: Sync dist → psygames-web (preserve .git, .nojekyll, README)
+        run: |
+          cd psygames-web-target
+          # Preserve git metadata + GH-Pages flag + README
+          find . -maxdepth 1 ! -name '.git' ! -name '.nojekyll' ! -name 'README.md' ! -name '.' -exec rm -rf {} +
+          cp -R ../frontend/dist/* .
+          # Re-add .nojekyll in case it was missing
+          touch .nojekyll
+          echo "--- new state ---"
+          ls -la | head -20
+
+      - name: Commit + push to psygames-web
+        working-directory: psygames-web-target
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes — psygames-web already up to date"
+            exit 0
+          fi
+          git commit -m "Auto-deploy from psygames-native@${{ github.sha }}
+
+Synced from https://github.com/donosov999-ai/psygames-native/commit/${{ github.sha }}
+
+Triggered by: ${{ github.event_name }}
+Workflow run: ${{ github.run_id }}"
+          git push
+
   # ─── Create GitHub Release if tagged (vX.Y.Z) ─────────────────────────
   release:
     needs: [macos-arm, windows-x64, android]
