@@ -44,7 +44,7 @@ jobs:
           key: ${{ runner.os }}-arm-cargo-${{ hashFiles('src-tauri/Cargo.toml') }}
 
       - name: Install Tauri CLI
-        run: cargo install tauri-cli --version "^2.0" --locked
+        run: cargo install tauri-cli --version "^2.0" --locked --force
 
       - name: Install frontend deps
         working-directory: frontend
@@ -112,7 +112,7 @@ jobs:
           key: ${{ runner.os }}-win-cargo-${{ hashFiles('src-tauri/Cargo.toml') }}
 
       - name: Install Tauri CLI
-        run: cargo install tauri-cli --version "^2.0" --locked
+        run: cargo install tauri-cli --version "^2.0" --locked --force
 
       - name: Install frontend deps
         working-directory: frontend
@@ -198,7 +198,7 @@ jobs:
           key: ${{ runner.os }}-android-cargo-${{ hashFiles('src-tauri/Cargo.toml') }}
 
       - name: Install Tauri CLI
-        run: cargo install tauri-cli --version "^2.0" --locked
+        run: cargo install tauri-cli --version "^2.0" --locked --force
 
       - name: Install frontend deps
         working-directory: frontend
