@@ -1,0 +1,266 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLanguage } from '@/src/contexts/LanguageContext';
+import { saveSession } from '@/src/services/api';
+import GameResult from '@/src/components/GameResult';
+import GameIntro from '@/src/components/GameIntro';
+
+const GRADIENT = ['#fc4a1a', '#f7b733'];
+const MATH_BENEFITS = [
+  { icon: 'calculator-outline', textKey: 'benefitMath1' },
+  { icon: 'cash-outline', textKey: 'benefitMath2' },
+  { icon: 'flash-outline', textKey: 'benefitMath3' },
+];
+
+type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type Difficulty = 'easy' | 'medium' | 'hard';
+type Op = '+' | '-' | '*';
+
+interface Problem {
+  a: number;
+  b: number;
+  op: Op;
+  answer: number;
+}
+
+function generateProblem(difficulty: Difficulty): Problem {
+  const ops: Op[] = difficulty === 'easy' ? ['+', '-'] : difficulty === 'medium' ? ['+', '-', '*'] : ['+', '-', '*'];
+  const op = ops[Math.floor(Math.random() * ops.length)];
+  let a: number, b: number;
+  if (op === '*') {
+    if (difficulty === 'easy') { a = 2 + Math.floor(Math.random() * 8); b = 2 + Math.floor(Math.random() * 8); }
+    else if (difficulty === 'medium') { a = 3 + Math.floor(Math.random() * 10); b = 3 + Math.floor(Math.random() * 9); }
+    else { a = 5 + Math.floor(Math.random() * 16); b = 5 + Math.floor(Math.random() * 12); }
+  } else {
+    const range = difficulty === 'easy' ? 20 : difficulty === 'medium' ? 50 : 100;
+    a = 5 + Math.floor(Math.random() * range);
+    b = 1 + Math.floor(Math.random() * range);
+    if (op === '-' && b > a) { [a, b] = [b, a]; }
+  }
+  const answer = op === '+' ? a + b : op === '-' ? a - b : a * b;
+  return { a, b, op, answer };
+}
+
+export default function MathSprintGame() {
+  const { colors } = useTheme();
+  const { t } = useLanguage();
+  const router = useRouter();
+
+  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [duration, setDuration] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [problem, setProblem] = useState<Problem | null>(null);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [correct, setCorrect] = useState(0);
+  const [errors, setErrors] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [score, setScore] = useState(0);
+  const [startTime, setStartTime] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => () => { if (tickRef.current) clearInterval(tickRef.current); }, []);
+
+  const startGame = () => {
+    setCorrect(0); setErrors(0); setStreak(0); setBestStreak(0); setScore(0);
+    setUserAnswer('');
+    setFeedback(null);
+    setTimeLeft(duration);
+    setProblem(generateProblem(difficulty));
+    setPhase('playing');
+    const start = Date.now();
+    setStartTime(start);
+    tickRef.current = setInterval(() => {
+      const elapsed = (Date.now() - start) / 1000;
+      setElapsedTime(elapsed);
+      const remaining = Math.max(0, duration - elapsed);
+      setTimeLeft(remaining);
+      if (remaining <= 0) finishGame();
+    }, 100);
+  };
+
+  const finishGame = async () => {
+    if (tickRef.current) clearInterval(tickRef.current);
+    setPhase('result');
+    try {
+      await saveSession({
+        game_type: 'math_sprint',
+        score,
+        time_seconds: duration,
+        difficulty,
+        mode: `${duration}s`,
+        errors,
+        details: { correct, bestStreak },
+      });
+    } catch (e) { console.error(e); }
+  };
+
+  const submit = () => {
+    if (!problem || userAnswer === '') return;
+    const ans = parseInt(userAnswer, 10);
+    if (ans === problem.answer) {
+      const newStreak = streak + 1;
+      const newCorrect = correct + 1;
+      const points = 10 + Math.min(newStreak * 2, 30);
+      setCorrect(newCorrect);
+      setStreak(newStreak);
+      setBestStreak(Math.max(bestStreak, newStreak));
+      setScore((s) => s + points);
+      setFeedback('correct');
+    } else {
+      setErrors((e) => e + 1);
+      setStreak(0);
+      setScore((s) => Math.max(0, s - 5));
+      setFeedback('wrong');
+    }
+    setUserAnswer('');
+    setTimeout(() => {
+      setProblem(generateProblem(difficulty));
+      setFeedback(null);
+    }, 250);
+  };
+
+  const renderConfig = () => (
+    <View style={styles.configContainer}>
+      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+        <Ionicons name="calculator" size={48} color="#FFF" />
+        <Text style={styles.configTitle}>{t('mathSprint')}</Text>
+        <Text style={styles.configDesc}>{t('mathSprintDesc')}</Text>
+      </LinearGradient>
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
+        <View style={styles.optionButtons}>
+          {(['easy','medium','hard'] as Difficulty[]).map((d) => (
+            <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
+              ? { backgroundColor: GRADIENT[0] }
+              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+              onPress={() => setDifficulty(d)}>
+              <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
+                {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('durationLabel')}</Text>
+        <View style={styles.optionButtons}>
+          {[30, 60, 120].map((n) => (
+            <TouchableOpacity key={n} style={[styles.modeButton, duration === n
+              ? { backgroundColor: GRADIENT[0] }
+              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+              onPress={() => setDuration(n)}>
+              <Text style={[styles.modeButtonText, { color: duration === n ? '#FFF' : colors.text }]}>{n}с</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+          <Text style={styles.startBtnText}>{t('start')}</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderPlaying = () => (
+    <View style={styles.playArea}>
+      <View style={styles.statsRow}>
+        <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}с</Text>
+        <Text style={[styles.statText, { color: GRADIENT[0] }]}>★ {score}</Text>
+        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
+        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+        {streak >= 3 && <Text style={[styles.statText, { color: '#fbbf24' }]}>🔥{streak}</Text>}
+      </View>
+      <View style={[styles.problemArea, {
+        backgroundColor: feedback === 'correct' ? 'rgba(34,197,94,0.15)' : feedback === 'wrong' ? 'rgba(244,63,94,0.15)' : 'transparent',
+      }]}>
+        {problem && (
+          <Text style={[styles.problemText, { color: colors.text }]}>
+            {problem.a} {problem.op === '*' ? '×' : problem.op} {problem.b} = ?
+          </Text>
+        )}
+      </View>
+      <TextInput
+        value={userAnswer}
+        onChangeText={(s) => setUserAnswer(s.replace(/[^-0-9]/g, ''))}
+        onSubmitEditing={submit}
+        autoFocus
+        keyboardType="numeric"
+        placeholder="?"
+        placeholderTextColor={colors.textSecondary}
+        style={[styles.input, {
+          color: colors.text, borderColor: colors.border, backgroundColor: colors.surface,
+        }]}
+      />
+      <TouchableOpacity onPress={submit} style={[styles.submitBtn, { backgroundColor: GRADIENT[0] }]}>
+        <Text style={styles.submitText}>{t('check')}</Text>
+      </TouchableOpacity>
+      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mathHint')}</Text>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.header}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: colors.text }]}>{t('mathSprint')}</Text>
+        <View style={{ width: 40 }} />
+      </View>
+      {phase === 'intro' && (
+        <GameIntro nameKey="mathSprint" icon="calculator" gradient={GRADIENT as [string, string]}
+          skillKey="skillMath" descriptionKey="mathSprintIntroDesc"
+          benefits={MATH_BENEFITS} onStart={() => setPhase('config')} onBack={() => router.back()} />
+      )}
+      {phase === 'config' && renderConfig()}
+      {phase === 'playing' && renderPlaying()}
+      {phase === 'result' && (
+        <GameResult score={score} time={duration} errors={errors}
+          onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
+          gradient={GRADIENT as [string, string]} />
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
+  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  title: { fontSize: 20, fontWeight: '700' },
+  configContainer: { padding: 16, gap: 14 },
+  configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
+  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
+  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  optionCard: { padding: 16, borderRadius: 12, gap: 10 },
+  optionLabel: { fontSize: 14, fontWeight: '600' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  modeButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
+  modeButtonText: { fontSize: 13, fontWeight: '600' },
+  startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
+  startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
+  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  playArea: { flex: 1, padding: 24, gap: 16, alignItems: 'center', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
+  statText: { fontSize: 16, fontWeight: '700' },
+  problemArea: { paddingVertical: 32, paddingHorizontal: 28, borderRadius: 14, minWidth: 240, alignItems: 'center' },
+  problemText: { fontSize: 48, fontWeight: '900' },
+  input: {
+    fontSize: 36, fontWeight: '700', textAlign: 'center', letterSpacing: 4,
+    paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12, borderWidth: 2,
+    minWidth: 180,
+  },
+  submitBtn: { paddingVertical: 14, paddingHorizontal: 48, borderRadius: 10 },
+  submitText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  hintText: { fontSize: 12, textAlign: 'center' },
+});

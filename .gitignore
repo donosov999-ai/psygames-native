@@ -1,0 +1,35 @@
+# Node
+node_modules/
+.expo/
+.metro-cache/
+npm-debug.log*
+yarn-debug.log*
+
+# Build outputs
+dist/
+src-tauri/dist/
+src-tauri/target/
+src-tauri/gen/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Secrets — NEVER commit
+*.jks
+*.keystore
+key.properties
+google-services.json
+.env
+.env.local
+
+# Backups
+*.bak
+*.orig

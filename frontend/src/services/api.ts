@@ -1,0 +1,385 @@
+/**
+ * Local-storage replacement for the original axios-based API client.
+ * Replicates `/sessions` and `/sessions/stats/{type}` entirely on the client
+ * via AsyncStorage (which on web is `localStorage`). All public function
+ * signatures match the original `api.ts`, so callers don't need changes.
+ */
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GAMES } from '@/src/constants/games';
+import { getSupabase, SUPABASE_TABLE } from '@/src/services/supabase';
+
+const STORAGE_KEY = 'psygames_sessions';
+const MIGRATION_FLAG_KEY = 'psygames_supabase_migrated';
+
+export interface GameSession {
+  id?: string;
+  game_type: string;
+  score: number;
+  time_seconds: number;
+  difficulty?: string;
+  mode?: string;
+  errors?: number;
+  details?: Record<string, any>;
+  timestamp?: string;
+
+  // Supabase sync metadata (added in F2 integration).
+  // session_tag: 'warmup' | 'peak' | 'baseline' | 'pre_roll' | 'episodic' | 'training' | 'manual'
+  session_tag?: string;
+  weekday?: number;             // 0-6 (Sun-Sat)
+  duration_preset?: number;     // 5 / 10 / 15 (for warmup sessions)
+  warmup_id?: string;           // shared UUID across all games in one warmup series
+  stack_active?: boolean;       // NZT stack active at time of session (Денис will toggle in settings later)
+  person?: string;              // 'Денис' / 'Алекс' / 'Валя' / 'Юлия' / 'Гость' (for E1)
+}
+
+export interface GameStats {
+  game_type: string;
+  total_sessions: number;
+  total_time: number;
+  average_time: number;
+  best_results: GameSession[];
+  total_score: number;
+  average_score: number;
+}
+
+// Build the canonical list of game IDs from the GAMES catalog so any new game
+// auto-appears in stats. Also union with whatever's actually been stored, so
+// legacy/renamed sessions still show up.
+async function listGameTypes(): Promise<string[]> {
+  const fromCatalog = GAMES.map((g) => g.id);
+  const stored = await readAll();
+  const fromStored = Array.from(new Set(stored.map((s) => s.game_type)));
+  // Union, catalog order first, then any extras from storage
+  const seen = new Set(fromCatalog);
+  const extras = fromStored.filter((id) => !seen.has(id));
+  return [...fromCatalog, ...extras];
+}
+
+function makeId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+// Legacy game_type aliases — old sessions are auto-mapped on read.
+// (mnemonics used to write 'word_mnemonics' / 'number_mnemonics' as separate game_types.)
+const LEGACY_GAME_TYPE_MAP: Record<string, string> = {
+  word_mnemonics: 'mnemonics',
+  number_mnemonics: 'mnemonics',
+};
+
+function migrateSession(s: GameSession): GameSession {
+  if (s.game_type && LEGACY_GAME_TYPE_MAP[s.game_type]) {
+    return {
+      ...s,
+      game_type: LEGACY_GAME_TYPE_MAP[s.game_type],
+      mode: s.mode || (s.game_type === 'word_mnemonics' ? 'words' : 'numbers'),
+    };
+  }
+  return s;
+}
+
+async function readAll(): Promise<GameSession[]> {
+  try {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return (parsed as GameSession[]).map(migrateSession);
+  } catch (err) {
+    console.warn('Failed to read sessions from storage:', err);
+    return [];
+  }
+}
+
+async function writeAll(sessions: GameSession[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  } catch (err) {
+    console.warn('Failed to persist sessions to storage:', err);
+  }
+}
+
+// External hook for Warmup flow — set by WarmupContext at mount time.
+// When set, every saveSession() also fires this callback so the warmup
+// context can record the result and advance to the next game without
+// any per-game patching.
+type SessionListener = (s: GameSession) => Promise<void> | void;
+let _sessionListener: SessionListener | null = null;
+export function setSessionListener(fn: SessionListener | null) {
+  _sessionListener = fn;
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// Session schema runtime validation — non-blocking, console.warn only.
+// Catches contract drift if a game starts writing wrong types into details.
+
+type FieldType = 'number' | 'string' | 'array' | 'optional_number' | 'optional_string';
+
+const DETAILS_SCHEMAS: Record<string, Record<string, FieldType>> = {
+  // Round 6 — biomarker games
+  flanker:           { mean_rt: 'number', flanker_effect_ms: 'number' },
+  switching_task:    { mean_rt: 'number', switch_cost_ms: 'number' },
+  posner:            { mean_rt: 'number', validity_effect_ms: 'number' },
+  ant:               { mean_rt: 'number', alerting_ms: 'number', orienting_ms: 'number', executive_ms: 'number' },
+  iowa:              { adv_minus_disadv: 'number', last_block_adv: 'number', final_bank: 'number' },
+  bart:              { adj_avg_pumps: 'number', total_balloons: 'number', popped_count: 'number' },
+  wcst:              { perseverative: 'number' },
+  corsi:             { span: 'number' },
+  spatial_span:      { span: 'number' },
+  digit_span:        { maxSpan: 'optional_number' },
+  ospan:             { math_hits: 'number', math_errors: 'number' },
+  reading_span:      { recalled: 'number' },
+  tower_london:      { extra_moves: 'number', optimal_moves: 'number' },
+  sdmt:              { rate_per_min: 'number' },
+  stop_signal:       { hits: 'number', correct_stops: 'number', mean_rt: 'number' },
+  stroop_emotional:  { mean_rt: 'number', interference_threat_ms: 'number', interference_positive_ms: 'number' },
+  visual_search:     { mean_rt: 'number', n_distractors: 'number' },
+  go_no_go:          { hits: 'number', misses: 'number', falseAlarms: 'number', correctRej: 'number' },
+  picture_pairs:     { moves: 'number', optimal: 'number' },
+  hanoi:             { moves: 'number', optimal: 'number' },
+  memory_matrix:     { finalRound: 'number' },
+  math_sprint:       { correct: 'number', bestStreak: 'number' },
+  choice_rt:         { hits: 'number', mean_rt: 'number' },
+
+  // Round 7 (pakeg A) — newly biomarker'd games
+  stroop:            { hits: 'number', errors: 'number', mean_rt_congruent: 'number', mean_rt_incongruent: 'number', interference_ms: 'number' },
+  schulte_table:     { hits: 'number', errors: 'number', total_cells: 'number', mean_rt_per_cell: 'number' },
+  n_back:            { hits: 'number', misses: 'number', falseAlarms: 'number', correctRejections: 'number', d_prime: 'number', hit_rate: 'number', false_alarm_rate: 'number' },
+  targets:           { hits: 'number', mean_rt: 'number', std_rt: 'number' },
+  mental_rotation:   { hits: 'number', errors: 'number', mean_rt: 'number', angle_response_slope: 'number' },
+
+  // Round 7 / C1 — CPT (Conners Not-X)
+  cpt: {
+    hits: 'number', omission_errors: 'number', commission_errors: 'number',
+    n_targets: 'number', n_nontargets: 'number',
+    mean_rt: 'number', rt_std: 'number', rt_variability: 'number',
+    vigilance_decrement: 'number',
+  },
+
+  // Round 7 / C3 — PRL (Probabilistic Reversal Learning)
+  prl: {
+    hits: 'number', errors: 'number', n_trials: 'number', n_reversals: 'number',
+    reversal_errors: 'number', perseverative_errors: 'number',
+    win_stay_rate: 'number', lose_shift_rate: 'number',
+    mean_post_reversal_acc: 'number', accuracy: 'number', final_bank: 'number',
+  },
+
+  // Round 7 / C2 — Phonemic Fluency (COWAT)
+  phonemic_fluency: {
+    word_count: 'number', repetitions: 'number',
+    wrong_letter: 'number', too_short: 'number',
+    mean_inter_word_sec: 'number',
+    first_half_count: 'number', second_half_count: 'number',
+    letter: 'string',
+  },
+
+  // Round 7 / C4 — Story Recall (Wechsler Logical Memory)
+  story_recall: {
+    n_keywords: 'number',
+    immediate_recall_count: 'number', delayed_recall_count: 'number',
+    immediate_recall_pct: 'number', delayed_recall_pct: 'number',
+    retention_rate: 'number',
+    distractor_score: 'number',
+  },
+
+  // Round 7 / C5 — RMET (Reading the Mind in the Eyes)
+  rmet: {
+    hits: 'number', errors: 'number', n_trials: 'number',
+    accuracy: 'number', mean_rt: 'number',
+  },
+
+  // Pakeg A — score-only games now have hits/errors breakdown
+  mnemonics:         { hits: 'optional_number', errors: 'optional_number' },
+  anagrams:          { hits: 'number', errors: 'number' },
+  counter:           { hits: 'number', errors: 'number' },
+  find_differences:  { hits: 'number', errors: 'number' },
+  number_bonds:      { hits: 'number', errors: 'number' },
+  pattern:           { hits: 'number', errors: 'number' },
+  proofreading:      { hits: 'number', errors: 'number' },
+  set_game:          { hits: 'number', errors: 'number' },
+  sudoku:            { errors: 'number' },
+  trail_making:      { hits: 'number', errors: 'number' },
+  word_pairs:        { hits: 'number', errors: 'number' },
+};
+
+function validateSession(s: GameSession): void {
+  if (!s.game_type) {
+    console.warn('saveSession: missing game_type');
+    return;
+  }
+  const schema = DETAILS_SCHEMAS[s.game_type];
+  if (!schema) return;       // no schema = no validation, fine
+  if (!s.details) {
+    console.warn(`saveSession[${s.game_type}]: schema requires details but none provided`);
+    return;
+  }
+  for (const [key, expected] of Object.entries(schema)) {
+    const v = (s.details as any)[key];
+    const isOptional = expected.startsWith('optional_');
+    const expectedType = expected.replace('optional_', '');
+    if (v === undefined) {
+      if (!isOptional) console.warn(`saveSession[${s.game_type}]: missing details.${key} (expected ${expectedType})`);
+      continue;
+    }
+    if (expectedType === 'array') {
+      if (!Array.isArray(v)) console.warn(`saveSession[${s.game_type}]: details.${key} expected array, got ${typeof v}`);
+    } else {
+      if (typeof v !== expectedType) console.warn(`saveSession[${s.game_type}]: details.${key} expected ${expectedType}, got ${typeof v}`);
+    }
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// F2 — Cloud sync to Supabase cognitive_sessions
+// Fire-and-forget: localStorage is source of truth for offline UX,
+// Supabase is long-term storage. Failed inserts log warning but don't block UI.
+
+function buildCloudRow(s: GameSession): Record<string, any> {
+  // Pull active person from global (set by ProfileContext on every profile change).
+  // Falls back to session field, then to 'Денис' as ultimate default.
+  const activePerson = (globalThis as any).__psygames_active_person as string | undefined;
+  return {
+    id: s.id,                                           // PK; ON CONFLICT DO NOTHING avoids duplicates
+    person: s.person || activePerson || 'Денис',        // E1: from active profile
+    game_type: s.game_type,
+    score: s.score,
+    time_seconds: s.time_seconds,
+    difficulty: s.difficulty || null,
+    mode: s.mode || null,
+    errors: s.errors ?? 0,
+    details: s.details ?? {},
+    session_tag: s.session_tag || 'manual',
+    weekday: s.weekday ?? null,
+    duration_preset: s.duration_preset ?? null,
+    warmup_id: s.warmup_id ?? null,
+    stack_active: s.stack_active ?? null,
+    client_timestamp: s.timestamp,
+  };
+}
+
+async function pushToCloud(s: GameSession): Promise<void> {
+  try {
+    const supabase = getSupabase();
+    const row = buildCloudRow(s);
+    const { error } = await supabase
+      .from(SUPABASE_TABLE)
+      .upsert(row, { onConflict: 'id', ignoreDuplicates: true });
+    if (error) console.warn('[F2] Supabase insert failed:', error.message);
+  } catch (e: any) {
+    console.warn('[F2] Supabase sync error:', e?.message || e);
+  }
+}
+
+// One-shot migration: on first load after F2 deploy, backfill existing
+// localStorage sessions to cloud. Sets a flag so it only runs once.
+async function maybeMigrateLegacy(): Promise<void> {
+  try {
+    const flag = await AsyncStorage.getItem(MIGRATION_FLAG_KEY);
+    if (flag === 'done') return;
+    const all = await readAll();
+    if (all.length === 0) {
+      await AsyncStorage.setItem(MIGRATION_FLAG_KEY, 'done');
+      return;
+    }
+    const supabase = getSupabase();
+    const rows = all.map(buildCloudRow);
+    // Upsert in batches of 100 to avoid request size limits
+    for (let i = 0; i < rows.length; i += 100) {
+      const batch = rows.slice(i, i + 100);
+      const { error } = await supabase
+        .from(SUPABASE_TABLE)
+        .upsert(batch, { onConflict: 'id', ignoreDuplicates: true });
+      if (error) {
+        console.warn(`[F2] Migration batch ${i / 100} failed:`, error.message);
+        return;  // stop on error, retry next time
+      }
+    }
+    await AsyncStorage.setItem(MIGRATION_FLAG_KEY, 'done');
+    console.log(`[F2] Migrated ${rows.length} legacy sessions to Supabase`);
+  } catch (e: any) {
+    console.warn('[F2] Migration error:', e?.message || e);
+  }
+}
+
+// Trigger migration on module load — runs once per session, async, non-blocking
+maybeMigrateLegacy();
+
+export const saveSession = async (session: GameSession): Promise<GameSession> => {
+  const stored: GameSession = {
+    ...session,
+    id: session.id || makeId(),
+    timestamp: session.timestamp || new Date().toISOString(),
+  };
+  validateSession(stored);   // non-blocking schema check (warnings only)
+  const all = await readAll();
+  all.push(stored);
+  await writeAll(all);
+  // Notify warmup context FIRST so it enriches the session with metadata,
+  // then push to cloud with the enriched version.
+  if (_sessionListener) {
+    try { await _sessionListener(stored); }
+    catch (e) { console.warn('Session listener failed:', e); }
+  }
+  // Fire-and-forget cloud sync (intentionally not awaited)
+  pushToCloud(stored);
+  return stored;
+};
+
+export const getSessions = async (): Promise<GameSession[]> => readAll();
+
+export const getBestResults = async (gameType: string): Promise<GameSession | null> => {
+  const all = await readAll();
+  const filtered = all.filter((s) => s.game_type === gameType);
+  if (!filtered.length) return null;
+  filtered.sort((a, b) => a.time_seconds - b.time_seconds);
+  return filtered[0];
+};
+
+export const getStats = async (gameType: string): Promise<GameStats> => {
+  const all = await readAll();
+  const sessions = all.filter((s) => s.game_type === gameType);
+
+  if (!sessions.length) {
+    return {
+      game_type: gameType,
+      total_sessions: 0,
+      total_time: 0,
+      average_time: 0,
+      best_results: [],
+      total_score: 0,
+      average_score: 0,
+    };
+  }
+
+  const total_sessions = sessions.length;
+  const total_time = sessions.reduce((sum, s) => sum + (s.time_seconds || 0), 0);
+  const total_score = sessions.reduce((sum, s) => sum + (s.score || 0), 0);
+  const sorted = [...sessions].sort((a, b) => a.time_seconds - b.time_seconds);
+
+  return {
+    game_type: gameType,
+    total_sessions,
+    total_time,
+    average_time: total_sessions > 0 ? total_time / total_sessions : 0,
+    best_results: sorted.slice(0, 5),
+    total_score,
+    average_score: total_sessions > 0 ? total_score / total_sessions : 0,
+  };
+};
+
+export const getAllStats = async (): Promise<GameStats[]> => {
+  const types = await listGameTypes();
+  return Promise.all(types.map((type) => getStats(type)));
+};
+
+export default {
+  saveSession,
+  getSessions,
+  getBestResults,
+  getStats,
+  getAllStats,
+};

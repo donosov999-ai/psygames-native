@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "PsyGames",
+  "version": "1.0.0",
+  "identifier": "com.odv999.psygames",
+  "build": {
+    "frontendDist": "./dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "PsyGames — когнитивные тренировки",
+        "width": 1200,
+        "height": 850,
+        "minWidth": 720,
+        "minHeight": 560,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app"],
+    "category": "Education",
+    "shortDescription": "Cognitive training games",
+    "longDescription": "PsyGames — 47 cognitive training games across memory, attention, logic, control, math and speed categories. Native macOS build.",
+    "icon": [
+      "icons/icon.png",
+      "icons/icon.icns"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    }
+  }
+}

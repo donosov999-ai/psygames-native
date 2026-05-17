@@ -1,0 +1,93 @@
+# PsyGames Native
+
+Native standalone builds of PsyGames (cognitive training app) via [Tauri 2](https://tauri.app/).
+
+**Targets:**
+- 🍎 macOS Apple Silicon (`.app`)
+- 🪟 Windows x86_64 (`.exe` portable + `.msi` installer)
+- 🤖 Android (signed `.apk`, arm64 + armv7)
+
+Web build of the same app lives at [donosov999-ai/psygames-web](https://github.com/donosov999-ai/psygames-web).
+
+## How to download a build
+
+1. Go to **[Actions](https://github.com/donosov999-ai/psygames-native/actions)**
+2. Click latest successful run on `main`
+3. Scroll to **Artifacts** at the bottom
+4. Download what you need
+
+Or — for tagged releases (`vX.Y.Z`) — grab from [Releases](https://github.com/donosov999-ai/psygames-native/releases).
+
+## How to install
+
+### macOS arm64
+1. Extract `PsyGames-macos-arm64.tar.gz`
+2. Right-click `PsyGames.app` → **Open** (first time, to bypass Gatekeeper)
+3. Drag to Applications + Dock if you want
+
+### Windows
+1. Run `PsyGames_<version>_x64-setup.exe` (NSIS installer) — or use the `.msi` if you prefer Windows Installer format
+2. Windows SmartScreen may warn — **More info → Run anyway** (unsigned)
+3. Find PsyGames in Start menu
+
+### Android
+1. Enable **Install from unknown sources** for your browser/file manager
+2. Download `PsyGames-android.apk` to phone
+3. Tap to install
+4. Open from launcher
+
+Min Android version: 7.0 (API 24)
+
+## How to trigger a new build
+
+- **Auto:** any push to `main` rebuilds all 3 platforms
+- **Manual:** Actions → "Build native bundles..." → **Run workflow**
+- **Release:** push a `vX.Y.Z` tag → creates a GitHub Release with artifacts attached
+  ```bash
+  git tag v1.0.1 && git push --tags
+  ```
+
+## Architecture
+
+```
+psygames-native/
+├── frontend/           # Expo Router 5 sources (copied from psygames/frontend)
+├── src-tauri/          # Tauri 2 wrapper
+│   ├── Cargo.toml
+│   ├── tauri.conf.json
+│   ├── src/main.rs     # Rust entry point — just hands off to webview
+│   └── icons/          # Generated from frontend/assets/images/icon.png
+├── .github/workflows/
+│   └── build.yml       # 3 jobs (macOS arm + Windows + Android) + release job
+└── .gitignore
+```
+
+Each build:
+1. Installs Node + Rust + (Android SDK on Android job)
+2. Runs `expo export -p web` (with `baseUrl=""` patched in for Tauri local file:// loading)
+3. Moves `frontend/dist` → `src-tauri/dist`
+4. Runs `cargo tauri build` for the target platform
+5. Uploads artifact
+
+## Signing — Android
+
+Keystore: `psygames-release.jks` (RSA 4096, valid until ~2126).
+- ⚠ The actual `.jks` file is **NOT in this repo** — only base64-encoded in GitHub Secrets
+- Backup of the file is kept in `~/Downloads/psygames-keys/psygames-release.jks` on the build machine
+- **Same keystore must be reused for all future versions** — otherwise Android won't accept the update (signature mismatch)
+
+GitHub Secrets used by Android job:
+- `ANDROID_KEYSTORE_BASE64` — the `.jks` file, base64 encoded
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_PASSWORD`
+- `ANDROID_KEY_ALIAS` (= `psygames`)
+
+## Signing — macOS / Windows
+
+Not signed (no Apple Developer / Microsoft cert). Users see Gatekeeper / SmartScreen warning on first launch — needs to be bypassed manually. Acceptable for personal/internal use.
+
+For App Store / Microsoft Store distribution, signing would need to be added to the workflow.
+
+## License
+
+Personal use, ODV999.
