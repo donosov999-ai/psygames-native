@@ -346,12 +346,7 @@ jobs:
             echo "No changes — psygames-web already up to date"
             exit 0
           fi
-          git commit -m "Auto-deploy from psygames-native@${{ github.sha }}
-
-Synced from https://github.com/donosov999-ai/psygames-native/commit/${{ github.sha }}
-
-Triggered by: ${{ github.event_name }}
-Workflow run: ${{ github.run_id }}"
+          git commit -m "Auto-deploy from psygames-native@${{ github.sha }} (run ${{ github.run_id }}, event ${{ github.event_name }})"
           git push
 
   # ─── Create GitHub Release if tagged (vX.Y.Z) ─────────────────────────
