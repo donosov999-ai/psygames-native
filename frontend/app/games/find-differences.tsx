@@ -25,18 +25,51 @@ const PALETTE = ['#ef4444','#3b82f6','#22c55e','#fbbf24','#a855f7','#06b6d4','#f
 
 function rand(a: number, b: number) { return a + Math.random() * (b - a); }
 
+/**
+ * Distance between two shape centers below which they would visually
+ * overlap and one would block taps on the other. Using sum of half-sizes
+ * + padding (so even after a size-change diff, they still don't collide).
+ */
+function tooClose(a: Shape, b: Shape, padding = 12): boolean {
+  const minDist = (a.size + b.size) / 2 + padding;
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return (dx * dx + dy * dy) < (minDist * minDist);
+}
+
 function generateScene(width: number, height: number, count: number): Shape[] {
   const shapes: Shape[] = [];
+  const kinds: Shape['kind'][] = ['circle','rect','tri'];
+  const MAX_ATTEMPTS_PER_SHAPE = 60;
+
   for (let i = 0; i < count; i++) {
-    const kinds: Shape['kind'][] = ['circle','rect','tri'];
-    shapes.push({
-      kind: kinds[Math.floor(Math.random()*3)],
-      x: rand(20, width - 40),
-      y: rand(20, height - 40),
-      size: rand(14, 30),
-      color: PALETTE[Math.floor(Math.random()*PALETTE.length)],
-      rot: Math.random() * 360,
-    });
+    let placed: Shape | null = null;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_SHAPE; attempt++) {
+      const candidate: Shape = {
+        kind: kinds[Math.floor(Math.random() * 3)],
+        x: rand(24, width - 24),
+        y: rand(24, height - 24),
+        size: rand(14, 28),
+        color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
+        rot: Math.random() * 360,
+      };
+      // Reject if overlaps any already-placed shape
+      const collides = shapes.some(s => tooClose(candidate, s));
+      if (!collides) { placed = candidate; break; }
+    }
+    // Fallback: if we couldn't find a non-colliding spot in 60 tries,
+    // accept the last candidate anyway (rare with reasonable density).
+    if (!placed) {
+      placed = {
+        kind: kinds[Math.floor(Math.random() * 3)],
+        x: rand(24, width - 24),
+        y: rand(24, height - 24),
+        size: rand(14, 20),   // smaller fallback
+        color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
+        rot: Math.random() * 360,
+      };
+    }
+    shapes.push(placed);
   }
   return shapes;
 }
@@ -50,21 +83,35 @@ function withDifference(scene: Shape[], diffCount: number): { altered: Shape[]; 
   }
   const diffIdx = indices.slice(0, diffCount);
   for (const i of diffIdx) {
-    const change = Math.floor(Math.random() * 3);
-    if (change === 0) {
-      // change color
-      let c;
-      do { c = PALETTE[Math.floor(Math.random() * PALETTE.length)]; } while (c === altered[i].color);
-      altered[i].color = c;
-    } else if (change === 1) {
-      // change size
-      altered[i].size = altered[i].size > 22 ? altered[i].size - 8 : altered[i].size + 10;
-    } else {
-      // change kind
-      const kinds: Shape['kind'][] = ['circle','rect','tri'];
-      let k;
-      do { k = kinds[Math.floor(Math.random()*3)]; } while (k === altered[i].kind);
-      altered[i].kind = k;
+    // Try size change first only if it stays safe (won't overlap neighbors).
+    // Otherwise fall through to color or kind change.
+    const tryChanges = [Math.floor(Math.random() * 3), 0, 1, 2];   // randomized first attempt, plus all fallbacks
+    let applied = false;
+    for (const change of tryChanges) {
+      if (applied) break;
+      if (change === 0) {
+        // change color
+        let c;
+        do { c = PALETTE[Math.floor(Math.random() * PALETTE.length)]; } while (c === altered[i].color);
+        altered[i].color = c;
+        applied = true;
+      } else if (change === 1) {
+        // change size — only if grown size still doesn't overlap others
+        const candidate = { ...altered[i] };
+        candidate.size = candidate.size > 22 ? candidate.size - 8 : candidate.size + 10;
+        const overlaps = altered.some((other, oi) => oi !== i && tooClose(candidate, other, 10));
+        if (!overlaps) {
+          altered[i].size = candidate.size;
+          applied = true;
+        }
+      } else {
+        // change kind
+        const kinds: Shape['kind'][] = ['circle','rect','tri'];
+        let k;
+        do { k = kinds[Math.floor(Math.random() * 3)]; } while (k === altered[i].kind);
+        altered[i].kind = k;
+        applied = true;
+      }
     }
   }
   return { altered, diffIdx };
@@ -90,8 +137,9 @@ export default function FindDifferencesGame() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const sceneW = Math.min(width - 24, 400);
-  const sceneH = Math.min(280, sceneW * 0.7);
+  // Larger scene area = more room to avoid overlaps (was 280, now ~340)
+  const sceneW = Math.min(width - 24, 440);
+  const sceneH = Math.min(340, sceneW * 0.8);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 

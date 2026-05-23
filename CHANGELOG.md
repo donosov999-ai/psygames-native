@@ -14,6 +14,19 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.1.2] — 2026-05-23
+
+### Fixed
+- **Find Differences: shapes overlap** — random scene generation had no
+  collision check, so two shapes could be drawn on top of each other.
+  In SVG `onPress` only fires on the topmost element → the bottom shape
+  was un-tappable, even if it was the actual diff. Fixed with rejection
+  sampling (60 attempts per shape with min-distance check). Also enlarged
+  scene area (280 → 340px height) and protected size-change diffs from
+  introducing new overlaps.
+
+---
+
 ## [1.1.1] — 2026-05-23
 
 ### Fixed
