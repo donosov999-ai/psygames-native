@@ -61,8 +61,10 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
           У каждого профиля свой набор игр, свой плейлист зарядки и своя история.
         </Text>
+        {/* Personal profiles */}
+        <Text style={[styles.groupLabel, { color: colors.textSecondary }]}>👥 Личные</Text>
         <View style={styles.profileGrid}>
-          {allProfiles.map((p) => {
+          {allProfiles.filter(p => !p.group || p.group === 'personal').map((p) => {
             const active = p.id === profile.id;
             return (
               <TouchableOpacity
@@ -86,6 +88,40 @@ export default function SettingsScreen() {
             );
           })}
         </View>
+
+        {/* Themed (commercial) profiles */}
+        {allProfiles.some(p => p.group === 'themed') && (
+          <>
+            <Text style={[styles.groupLabel, { color: colors.textSecondary, marginTop: 16 }]}>
+              🎯 Тематические (9 игр каждый)
+            </Text>
+            <View style={styles.profileGrid}>
+              {allProfiles.filter(p => p.group === 'themed').map((p) => {
+                const active = p.id === profile.id;
+                return (
+                  <TouchableOpacity
+                    key={p.id}
+                    style={[styles.profileCard, {
+                      backgroundColor: active ? p.color : colors.card,
+                      borderColor: active ? p.color : colors.border,
+                      borderWidth: 2,
+                    }]}
+                    onPress={() => switchProfile(p.id)}
+                  >
+                    <Text style={styles.profileEmoji}>{p.emoji}</Text>
+                    <Text style={[styles.profileName, { color: active ? '#000' : colors.text }]}>
+                      {p.display_name}
+                    </Text>
+                    <Text style={[styles.profileDesc, { color: active ? 'rgba(0,0,0,0.7)' : colors.textSecondary }]}
+                      numberOfLines={2}>
+                      {p.description}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </>
+        )}
       </View>
 
       {/* Settings List */}
@@ -290,6 +326,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
     marginBottom: 8,
+  },
+  groupLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+    marginTop: 4,
   },
   profileGrid: {
     flexDirection: 'row',

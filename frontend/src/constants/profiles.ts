@@ -14,7 +14,12 @@
 import { GAMES } from '@/src/constants/games';
 import type { PlaylistStep, Weekday } from '@/src/services/warmup';
 
-export type ProfileId = 'denis' | 'alex' | 'valya' | 'yulya' | 'guest';
+export type ProfileId =
+  | 'denis' | 'alex' | 'valya' | 'yulya' | 'guest'       // personal (existing)
+  | 'chess' | 'kids' | 'vasilyeva' | 'nzt48' | 'free';   // themed (2026-05-17 commercial)
+
+/** UI grouping for Settings screen */
+export type ProfileGroup = 'personal' | 'themed';
 
 export interface ProfileDef {
   id: ProfileId;
@@ -23,6 +28,7 @@ export interface ProfileDef {
   emoji: string;
   color: string;
   description: string;
+  group?: ProfileGroup;       // default 'personal' if undefined (back-compat)
   allowed_games: 'all' | string[];   // 'all' = no filter, otherwise whitelist of game_ids
   custom_playlists?: Partial<Record<Weekday, PlaylistStep[]>>;
   warmup_enabled: boolean;
@@ -207,11 +213,162 @@ const GUEST: ProfileDef = {
   assessment_enabled: false,
 };
 
-export const PROFILES: ProfileDef[] = [DENIS, ALEX, VALYA, YULYA, GUEST];
+// ─── THEMED COMMERCIAL PROFILES (2026-05-17) ────────────────────────────
+// Каждый = 9 игр под целевую аудиторию. По правилу: ровно 9 чтобы интерфейс
+// не перегружал. Доступны под флагом group='themed' (UI группирует отдельно
+// от личных Денис/Алекс/Валя/Юля).
+
+// ─── 🏆 CHESS — Шахматисты ──────────────────────────────────────────────
+// Расчёт ходов, spatial reasoning, sustained attention на длинных партиях.
+const CHESS: ProfileDef = {
+  id: 'chess',
+  person: 'Шахматист',
+  display_name: 'Шахматист',
+  emoji: '♟',
+  color: '#1f2937',
+  description: '9 игр под шахматы: spatial + WM + planning + sustained attention',
+  group: 'themed',
+  allowed_games: [
+    'mental_rotation',   // spatial представление позиций
+    'n_back',            // удержание варианта расчёта (DUAL mode внутри)
+    'tower_london',      // планирование 5+ ходов
+    'pattern',           // тактические паттерны
+    'set_game',          // многомерные признаки
+    'sudoku',            // логическая дедукция
+    'schulte_table',     // сканирование доски (Schulte-Gorbov mixed внутри)
+    'corsi',             // spatial WM forward
+    'cpt',               // sustained attention 4-12 мин = партия без блюндеров
+  ],
+  warmup_enabled: true,
+  financial_brain_day_enabled: false,
+  assessment_enabled: true,
+};
+
+// ─── 👶 KIDS — Дети 7-12 лет ────────────────────────────────────────────
+// Короткие сессии 3-5 мин, позитивное подкрепление, без сложных абстракций.
+const KIDS: ProfileDef = {
+  id: 'kids',
+  person: 'Ребёнок',
+  display_name: 'Дети 7-12',
+  emoji: '🧒',
+  color: '#10b981',
+  description: '9 игр для детей: память + внимание + счёт без сложных абстракций',
+  group: 'themed',
+  allowed_games: [
+    'picture_pairs',     // классика памяти для детей
+    'memory_matrix',     // зрительная память
+    'schulte_table',     // рекорды мотивируют
+    'find_differences',  // внимание, весело
+    'hanoi',             // логика наглядно
+    'counter',           // устный счёт
+    'math_sprint',       // арифметика-гонка
+    'targets',           // реакция
+    'anagrams',          // буквенные пазлы
+  ],
+  warmup_enabled: true,
+  financial_brain_day_enabled: false,
+  assessment_enabled: false,
+};
+
+// ─── 📖 VASILYEVA — Школа скорочтения Васильевой (Екб) ──────────────────
+// Расширение поля зрения, скорость глаз, удержание прочитанного.
+const VASILYEVA: ProfileDef = {
+  id: 'vasilyeva',
+  person: 'Скорочтение',
+  display_name: 'Скорочтение',
+  emoji: '📖',
+  color: '#0ea5e9',
+  description: '9 игр под школу скорочтения Васильевой (Екб): поле зрения + WM при чтении',
+  group: 'themed',
+  allowed_games: [
+    'schulte_table',     // классика школ скорочтения
+    'visual_search',     // быстрый scan
+    'reading_span',      // WM при чтении
+    'proofreading',      // внимание к буквам
+    'story_recall',      // понимание + удержание контекста
+    'word_pairs',        // вербальная ассоциативная память
+    'phonemic_fluency',  // беглость речи
+    'find_differences',  // визуальная различительность
+    'anagrams',          // быстрая работа с буквами
+  ],
+  warmup_enabled: true,
+  financial_brain_day_enabled: false,
+  assessment_enabled: true,
+};
+
+// ─── 💊 NZT-48 — Полный когнитивный режим ────────────────────────────────
+// Публичный аналог личной программы Дениса. Префронтальная батарея.
+const NZT48: ProfileDef = {
+  id: 'nzt48',
+  person: 'NZT-48',
+  display_name: 'NZT-48 (полный)',
+  emoji: '💊',
+  color: '#a855f7',
+  description: 'Полная батарея префронталки: WM + attention + flexibility + risk',
+  group: 'themed',
+  allowed_games: [
+    'n_back',                // working memory (DUAL внутри)
+    'cpt',                   // sustained attention
+    'mental_rotation',       // spatial
+    'attention_conflict',    // Stroop/Flanker (group card)
+    'switching_task',        // cognitive flexibility
+    'tower_london',          // planning
+    'sdmt',                  // processing speed
+    'bart',                  // risk/decision
+    'phonemic_fluency',      // verbal fluency
+  ],
+  warmup_enabled: true,
+  financial_brain_day_enabled: true,
+  assessment_enabled: true,
+};
+
+// ─── 🎁 FREE — Бесплатные/легкие игры (без подписки, без кода) ──────────
+// Funnel-tier: показывает по 1 игре из каждой категории чтобы человек
+// попробовал ценность. Премиум игры (CPT, Iowa, MR-3D, N-back DUAL) —
+// под подпиской/кодом.
+const FREE: ProfileDef = {
+  id: 'free',
+  person: 'Гость',           // shared with GUEST для совместимости со statistics
+  display_name: 'Free (без подписки)',
+  emoji: '🎁',
+  color: '#f59e0b',
+  description: '9 легких игр без подписки и кода · по одной из каждой категории',
+  group: 'themed',
+  allowed_games: [
+    'schulte_table',     // attention (классика)
+    'picture_pairs',     // memory visual (узнаваемая)
+    'targets',           // speed/reaction (fun)
+    'math_sprint',       // math (интуитивна)
+    'find_differences',  // attention (простая)
+    'counter',           // math basic
+    'anagrams',          // verbal/logic
+    'hanoi',             // logic classic
+    'n_back',            // WM teaser → DUAL premium
+  ],
+  warmup_enabled: false,           // без зарядки в FREE — это hook на подписку
+  financial_brain_day_enabled: false,
+  assessment_enabled: false,
+};
+
+// ─── Export ─────────────────────────────────────────────────────────────
+
+export const PROFILES: ProfileDef[] = [
+  // Personal (existing)
+  DENIS, ALEX, VALYA, YULYA, GUEST,
+  // Themed (commercial, 2026-05-17)
+  CHESS, KIDS, VASILYEVA, NZT48, FREE,
+];
+
 export const PROFILE_BY_ID: Record<ProfileId, ProfileDef> = PROFILES.reduce((acc, p) => {
   acc[p.id] = p;
   return acc;
 }, {} as Record<ProfileId, ProfileDef>);
+
+/** Profiles grouped for Settings UI */
+export const PROFILES_BY_GROUP = {
+  personal: PROFILES.filter(p => !p.group || p.group === 'personal'),
+  themed:   PROFILES.filter(p => p.group === 'themed'),
+};
 
 export function isGameAllowed(profile: ProfileDef, gameId: string): boolean {
   if (profile.allowed_games === 'all') return true;
