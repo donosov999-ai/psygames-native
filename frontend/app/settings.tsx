@@ -152,6 +152,11 @@ export default function SettingsScreen() {
                       numberOfLines={2}>
                       {p.description}
                     </Text>
+                    {p.session_minutes && (
+                      <Text style={{ fontSize: 9, color: active ? 'rgba(0,0,0,0.55)' : colors.textSecondary, marginTop: 2, fontFamily: 'monospace' }}>
+                        ⏱ {p.session_minutes}
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 );
               })}

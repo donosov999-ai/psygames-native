@@ -20,28 +20,45 @@ interface ProfileCtx {
   resetUnlocks: () => Promise<void>;
   /** Is this profile available to switch to right now? */
   isAccessible: (id: ProfileId) => boolean;
+
+  /** True on the very first app launch (no saved profile, no flag). */
+  isFirstRun: boolean;
+  /** Mark first run as completed (dismiss welcome). */
+  completeFirstRun: () => Promise<void>;
 }
 
 const Ctx = createContext<ProfileCtx | null>(null);
 
+const FIRST_RUN_KEY = 'psygames_first_run_done';
+
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
-  const [profile, setProfile] = useState<ProfileDef>(PROFILE_BY_ID.denis);
+  // Default = FREE for unknown devices (commercial-friendly).
+  // ProfileContext load below will switch to Denis if a saved profile exists.
+  const [profile, setProfile] = useState<ProfileDef>(PROFILE_BY_ID.free ?? PROFILE_BY_ID.denis);
   const [ready, setReady] = useState(false);
   const [unlockedThemed, setUnlockedThemed] = useState<Set<ProfileId>>(new Set());
+  const [isFirstRun, setIsFirstRun] = useState(false);
 
   // Load on mount
   useEffect(() => {
     (async () => {
       try {
-        const [savedProfile, savedUnlocks] = await Promise.all([
+        const [savedProfile, savedUnlocks, firstRunDone] = await Promise.all([
           AsyncStorage.getItem(ACTIVE_PROFILE_KEY),
           AsyncStorage.getItem(UNLOCKED_THEMED_KEY),
+          AsyncStorage.getItem(FIRST_RUN_KEY),
         ]);
 
         const unlocks = new Set<ProfileId>(
           savedUnlocks ? (JSON.parse(savedUnlocks) as ProfileId[]) : []
         );
         setUnlockedThemed(unlocks);
+
+        // First-run detection: no saved profile AND no firstRunDone flag
+        if (!savedProfile && !firstRunDone) {
+          setIsFirstRun(true);
+          // Profile stays as FREE (default) until user picks via welcome modal
+        }
 
         if (savedProfile && savedProfile in PROFILE_BY_ID) {
           const candidate = PROFILE_BY_ID[savedProfile as ProfileId];
@@ -59,6 +76,12 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         setReady(true);
       }
     })();
+  }, []);
+
+  // Mark first run completed (called when welcome modal is dismissed)
+  const completeFirstRun = useCallback(async () => {
+    setIsFirstRun(false);
+    try { await AsyncStorage.setItem(FIRST_RUN_KEY, '1'); } catch {}
   }, []);
 
   const persistUnlocks = useCallback(async (next: Set<ProfileId>) => {
@@ -128,6 +151,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     <Ctx.Provider value={{
       profile, switchProfile, ready, allProfiles: PROFILES,
       unlockedThemed, redeemCode, resetUnlocks, isAccessible,
+      isFirstRun, completeFirstRun,
     }}>
       {children}
     </Ctx.Provider>

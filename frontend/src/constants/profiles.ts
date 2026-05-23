@@ -28,7 +28,14 @@ export interface ProfileDef {
   display_name: string;
   emoji: string;
   color: string;
+  /** One-line description for the profile card (visible in Settings). */
   description: string;
+  /** Full description shown in Welcome modal and profile detail. Optional. */
+  long_description?: string;
+  /** "Кому подходит" badge — 1-2 words. */
+  audience?: string;
+  /** Typical session length. */
+  session_minutes?: string;
   group?: ProfileGroup;       // default 'personal' if undefined (back-compat)
   allowed_games: 'all' | string[];   // 'all' = no filter, otherwise whitelist of game_ids
   custom_playlists?: Partial<Record<Weekday, PlaylistStep[]>>;
@@ -227,7 +234,10 @@ const CHESS: ProfileDef = {
   display_name: 'Шахматист',
   emoji: '♟',
   color: '#1f2937',
-  description: '9 игр под шахматы: spatial + WM + planning + sustained attention',
+  description: 'Расчёт ходов · spatial · sustained attention',
+  long_description: 'Тренировка ключевых для шахмат когнитивных функций: пространственное представление позиций (Mental Rotation), планирование ходов вперёд (Tower of London), удержание варианта расчёта (N-back), внимание на длинных партиях (CPT 4-12 мин). Подходит для турнирных шахматистов от 1500 ELO и тренеров.',
+  audience: 'Шахматисты, тренеры, шахматные школы',
+  session_minutes: '10-25 мин',
   group: 'themed',
   allowed_games: [
     'mental_rotation',   // spatial представление позиций
@@ -253,7 +263,10 @@ const KIDS: ProfileDef = {
   display_name: 'Дети 7-12',
   emoji: '🧒',
   color: '#10b981',
-  description: '9 игр для детей: память + внимание + счёт без сложных абстракций',
+  description: 'Память · счёт · реакция · без сложных абстракций',
+  long_description: 'Девять игр, которые ребёнок 7-12 лет понимает без объяснений: парные картинки, поиск отличий, Ханойская башня, устный счёт, Шульте, реакция на мишени, анаграммы. Сессии короткие (3-5 мин), с позитивным подкреплением и рекордами. Подходит для родителей, развивающих центров, начальной школы.',
+  audience: 'Дети 7-12 лет, родители',
+  session_minutes: '3-5 мин',
   group: 'themed',
   allowed_games: [
     'picture_pairs',     // классика памяти для детей
@@ -279,7 +292,10 @@ const VASILYEVA: ProfileDef = {
   display_name: 'Скорочтение',
   emoji: '📖',
   color: '#0ea5e9',
-  description: '9 игр под школу скорочтения Васильевой (Екб): поле зрения + WM при чтении',
+  description: 'Поле зрения · скорость глаз · удержание текста',
+  long_description: 'Игры под методику школы скорочтения Васильевой (Екатеринбург). Расширение поля зрения (таблицы Шульте), быстрый scan (Visual Search), внимание к буквам (Proofreading, Anagrams), удержание прочитанного (Reading Span, Story Recall), беглость речи (Phonemic Fluency). Дополнение к курсу — не замена.',
+  audience: 'Ученики курсов скорочтения, репетиторы',
+  session_minutes: '8-12 мин',
   group: 'themed',
   allowed_games: [
     'schulte_table',     // классика школ скорочтения
@@ -305,7 +321,10 @@ const NZT48: ProfileDef = {
   display_name: 'NZT-48 (полный)',
   emoji: '💊',
   color: '#a855f7',
-  description: 'Полная батарея префронталки: WM + attention + flexibility + risk',
+  description: 'Полная батарея префронталки · максимум',
+  long_description: 'Публичный аналог личной программы Дениса. Девять самых научно-обоснованных тренажёров: Dual N-back (WM), CPT (sustained attention), Mental Rotation 3D (spatial), Stroop/Flanker (inhibition), Switching (flexibility), Tower of London (planning), SDMT (speed), BART (risk), Phonemic Fluency (verbal). Программа на 25-40 мин. Включает Financial Brain Day каждые 2 недели.',
+  audience: 'Биохакеры, серьёзный когнитивный тренинг',
+  session_minutes: '25-40 мин',
   group: 'themed',
   allowed_games: [
     'n_back',                // working memory (DUAL внутри)
@@ -333,7 +352,10 @@ const FREE: ProfileDef = {
   display_name: 'Free (без подписки)',
   emoji: '🎁',
   color: '#f59e0b',
-  description: '9 легких игр без подписки и кода · по одной из каждой категории',
+  description: '9 базовых игр бесплатно · попробуй и реши',
+  long_description: 'Стартовый набор без подписки и кода. По одной игре из каждой категории: Шульте (внимание), Парные картинки (память), Мишени (реакция), Математический спринт + Считалка, Поиск отличий, Анаграммы, Ханойская башня, N-back (рабочая память — облегчённая). Если зайдёт — попроси код у владельца программы для тематического профиля.',
+  audience: 'Все · знакомство с приложением',
+  session_minutes: '3-10 мин',
   group: 'themed',
   allowed_games: [
     'schulte_table',     // attention (классика)
@@ -359,7 +381,10 @@ const DRIVERS: ProfileDef = {
   display_name: 'Водители',
   emoji: '🚗',
   color: '#3b82f6',
-  description: '9 игр для автошкол/таксопарков: внимание + реакция + peripheral',
+  description: 'Внимание · реакция · peripheral · скан',
+  long_description: 'Тренировка ключевых для вождения функций: длительное внимание (CPT), быстрый scan (Visual Search, Find Differences), реакция выбора (Choice RT, Targets), торможение импульса (Attention Conflict), переключение между объектами (Trail Making), удержание контекста (N-back). Для автошкол, корпоративных программ для водителей, таксопарков.',
+  audience: 'Автошколы, корпоративные программы, таксопарки',
+  session_minutes: '12-15 мин',
   group: 'themed',
   allowed_games: [
     'cpt',                // sustained attention (vigilance на длинном маршруте)
@@ -385,7 +410,10 @@ const SENIORS: ProfileDef = {
   display_name: '50+ профилактика',
   emoji: '👴',
   color: '#8b5cf6',
-  description: '9 игр для 50+: память + processing speed + замедление старения',
+  description: 'Память · processing speed · замедление старения',
+  long_description: 'Программа замедления когнитивного старения. Память (Picture Pairs, Memory Matrix, Word Pairs, Mnemonics), скорость обработки (SDMT — золотой стандарт), executive function (Trail Making A+B), внимание (Schulte), счёт в быту (Counter, Anagrams). Без сложных WM-под-нагрузкой. Подходит для самостоятельных занятий и медцентров.',
+  audience: 'Люди 50-75+, медцентры, программы active aging',
+  session_minutes: '10-15 мин',
   group: 'themed',
   allowed_games: [
     'picture_pairs',     // память на образы
@@ -411,7 +439,10 @@ const EXECS: ProfileDef = {
   display_name: 'Предприниматели',
   emoji: '💼',
   color: '#0f766e',
-  description: '9 игр для решений под давлением: risk + WM + planning + flexibility',
+  description: 'Решения под давлением · risk · WM · flexibility',
+  long_description: 'Тренировка качеств для бизнеса: оценка риска (BART, Iowa, PRL — три классические парадигмы), WM под нагрузкой (N-back DUAL), длительное внимание (CPT), торможение импульсов (Stroop/Flanker), multitasking (Switching), стратегическое планирование (Tower of London), распознавание трендов (Pattern). Включает Financial Brain Day каждые 2 недели.',
+  audience: 'CEO, владельцы бизнеса, executive coaching',
+  session_minutes: '15-25 мин',
   group: 'themed',
   allowed_games: [
     'bart',              // risk decision-making
@@ -437,7 +468,10 @@ const STUDENTS: ProfileDef = {
   display_name: 'Студенты ЕГЭ',
   emoji: '🎓',
   color: '#f97316',
-  description: '9 игр для подготовки к ЕГЭ/ОГЭ: фокус + память + скорость',
+  description: 'Фокус · память · скорость · ЕГЭ/ОГЭ',
+  long_description: 'Подготовка мозга к долгим экзаменам. Арифметика на скорость (Math Sprint, Counter), WM при чтении (Reading Span), удержание информации (Story Recall), концентрация (Schulte, N-back), распознавание паттернов (Pattern), вербальная гибкость (Anagrams), зрительная память (Memory Matrix). Подходит для самостоятельной подготовки и репетиторских центров.',
+  audience: 'Школьники 10-11 классов, репетиторы',
+  session_minutes: '10-15 мин',
   group: 'themed',
   allowed_games: [
     'math_sprint',       // арифметика

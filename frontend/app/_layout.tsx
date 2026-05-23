@@ -8,6 +8,7 @@ import { ProfileProvider } from '@/src/contexts/ProfileContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import UnlockToast from '@/src/components/UnlockToast';
+import WelcomeModal from '@/src/components/WelcomeModal';
 
 function RootLayoutNav() {
   const { isDark, colors } = useTheme();
@@ -24,6 +25,8 @@ function RootLayoutNav() {
       />
       {/* Global level-unlock toast (themed profiles only) */}
       <UnlockToast />
+      {/* First-run welcome modal (FREE vs Code choice) */}
+      <WelcomeModal />
     </>
   );
 }
