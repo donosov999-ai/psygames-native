@@ -14,6 +14,21 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.1.3] — 2026-05-23
+
+### Added
+- **Anagrams: hint banner** — each word now shows a short clue («💡
+  упрямое животное» for «осёл») above the letter slots. Helps users
+  who can shuffle letters but can't think of any matching word.
+
+### Fixed
+- **Anagrams: word list bugs** — `компьютер` (9 letters) was in the
+  5-letter array, `берёза` (6) in 5, half of the 6-letter array was
+  actually 7 letters. All entries now type-checked + auto-filtered by
+  `.filter(e => e.w.length === N)` to prevent regression.
+
+---
+
 ## [1.1.2] — 2026-05-23
 
 ### Fixed

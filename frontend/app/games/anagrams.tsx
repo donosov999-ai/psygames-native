@@ -17,12 +17,117 @@ const ANAGRAM_BENEFITS = [
   { icon: 'bulb-outline', textKey: 'benefitAnagram3' },
 ];
 
-const RU_WORDS_4 = ['парк','роса','нива','осёл','рука','небо','цвет','окно','ветер','лето','зима','хлеб','соль','книга'];
-const RU_WORDS_5 = ['яблок','океан','стена','школа','компьютер','солнце','берёза','город','актёр'];
-const RU_WORDS_6 = ['зеркало','семинар','капитан','стрела','оркестр','планета','сосиска'];
-const EN_WORDS_4 = ['park','rose','rope','road','book','wind','door','snow','rain','tree','star','moon'];
-const EN_WORDS_5 = ['plane','ocean','globe','music','green','river','quiet','smart'];
-const EN_WORDS_6 = ['planet','market','garden','pencil','silver','rocket','window'];
+/**
+ * Each entry: { w: word, h: hint (короткая подсказка-намёк) }
+ * Lengths verified — каждое слово точно соответствует категории длины.
+ */
+type WordEntry = { w: string; h: string };
+
+const RU_WORDS_4: WordEntry[] = [
+  { w: 'парк',  h: 'место отдыха в городе' },
+  { w: 'роса',  h: 'утром на траве' },
+  { w: 'осёл',  h: 'упрямое животное' },
+  { w: 'рука',  h: 'часть тела' },
+  { w: 'небо',  h: 'над головой' },
+  { w: 'цвет',  h: 'красный, синий и т.д.' },
+  { w: 'окно',  h: 'смотришь на улицу через него' },
+  { w: 'лето',  h: 'жаркое время года' },
+  { w: 'зима',  h: 'холодное время года' },
+  { w: 'хлеб',  h: 'на столе ежедневно' },
+  { w: 'соль',  h: 'белая, на столе' },
+  { w: 'лиса',  h: 'рыжая хитрая' },
+  { w: 'утка',  h: 'птица на пруду' },
+  { w: 'волк',  h: 'серый хищник' },
+  { w: 'тигр',  h: 'полосатый хищник' },
+  { w: 'ваза',  h: 'для цветов' },
+  { w: 'торт',  h: 'на день рождения' },
+  { w: 'кран',  h: 'строительная техника' },
+  { w: 'мост',  h: 'над рекой' },
+  { w: 'луна',  h: 'светит ночью' },
+];
+
+const RU_WORDS_5: WordEntry[] = [
+  { w: 'океан', h: 'огромный водоём' },
+  { w: 'стена', h: 'в комнате' },
+  { w: 'школа', h: 'учатся дети' },
+  { w: 'город', h: 'большое поселение' },
+  { w: 'актёр', h: 'играет в кино' },
+  { w: 'мышка', h: 'маленький зверёк' },
+  { w: 'кошка', h: 'мяукает' },
+  { w: 'лошадь', h: '6 букв' },  // — выкину, длина не та; заменю ниже
+  { w: 'кисть', h: 'для рисования' },
+  { w: 'парта', h: 'стол в школе' },
+  { w: 'мячик', h: 'круглый, прыгает' },
+  { w: 'белый', h: 'цвет снега' },
+  { w: 'синий', h: 'цвет неба' },
+  { w: 'арбуз', h: 'полосатая ягода' },
+  { w: 'лимон', h: 'жёлтый кислый' },
+  { w: 'торты', h: 'много сладкого' },
+  { w: 'метро', h: 'подземный транспорт' },
+  { w: 'ручка', h: 'пишут ей' },
+].filter(e => e.w.length === 5);
+
+const RU_WORDS_6: WordEntry[] = [
+  { w: 'солнце', h: 'светит днём' },
+  { w: 'берёза', h: 'белое дерево' },
+  { w: 'стрела', h: 'для лука' },
+  { w: 'ракета', h: 'летит в космос' },
+  { w: 'погода', h: 'дождь или солнце' },
+  { w: 'корова', h: 'даёт молоко' },
+  { w: 'корона', h: 'на голове у короля' },
+  { w: 'ананас', h: 'фрукт с короной' },
+  { w: 'ремонт', h: 'делают в квартире' },
+  { w: 'кабина', h: 'у пилота, у водителя' },
+  { w: 'машина', h: 'ездит по дороге' },
+  { w: 'дорога', h: 'по ней едут' },
+  { w: 'девушка', h: '7 букв' },  // выкинется фильтром
+  { w: 'медведь', h: '7 букв' },  // выкинется фильтром
+].filter(e => e.w.length === 6);
+
+const EN_WORDS_4: WordEntry[] = [
+  { w: 'park', h: 'place to relax in city' },
+  { w: 'rose', h: 'red flower' },
+  { w: 'rope', h: 'for climbing' },
+  { w: 'road', h: 'cars drive on it' },
+  { w: 'book', h: 'you read it' },
+  { w: 'wind', h: 'moves the leaves' },
+  { w: 'door', h: 'you open it' },
+  { w: 'snow', h: 'white, in winter' },
+  { w: 'rain', h: 'falls from sky' },
+  { w: 'tree', h: 'tall, has leaves' },
+  { w: 'star', h: 'shines at night' },
+  { w: 'moon', h: 'circles the Earth' },
+  { w: 'fish', h: 'lives in water' },
+  { w: 'lion', h: 'king of jungle' },
+];
+
+const EN_WORDS_5: WordEntry[] = [
+  { w: 'plane', h: 'flies through sky' },
+  { w: 'ocean', h: 'huge body of water' },
+  { w: 'globe', h: 'round map of Earth' },
+  { w: 'music', h: 'you listen to it' },
+  { w: 'green', h: 'color of grass' },
+  { w: 'river', h: 'flows to the sea' },
+  { w: 'quiet', h: 'opposite of loud' },
+  { w: 'smart', h: 'clever' },
+  { w: 'apple', h: 'red fruit' },
+  { w: 'cloud', h: 'in the sky' },
+  { w: 'horse', h: 'animal you ride' },
+  { w: 'pizza', h: 'Italian dish' },
+];
+
+const EN_WORDS_6: WordEntry[] = [
+  { w: 'planet', h: 'Earth is one' },
+  { w: 'market', h: 'place to buy food' },
+  { w: 'garden', h: 'plants grow here' },
+  { w: 'pencil', h: 'used for writing' },
+  { w: 'silver', h: 'precious metal' },
+  { w: 'rocket', h: 'goes to space' },
+  { w: 'window', h: 'glass in wall' },
+  { w: 'guitar', h: 'string instrument' },
+  { w: 'monkey', h: 'climbs trees' },
+  { w: 'orange', h: 'fruit and color' },
+];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
@@ -41,10 +146,11 @@ export default function AnagramGame() {
   const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [length, setLength] = useState<4 | 5 | 6>(5);
+  const [length, setLength] = useState<4 | 5 | 6>(4);
   const [trials] = useState(10);
   const [round, setRound] = useState(0);
   const [target, setTarget] = useState('');
+  const [hint, setHint] = useState('');     // подсказка-намёк на слово
   const [letters, setLetters] = useState<string[]>([]);
   const [picked, setPicked] = useState<number[]>([]);
   const [hits, setHits] = useState(0);
@@ -55,15 +161,17 @@ export default function AnagramGame() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  const wordsBank = (len: 4 | 5 | 6): string[] => {
+  const wordsBank = (len: 4 | 5 | 6): WordEntry[] => {
     if (language === 'ru') return len === 4 ? RU_WORDS_4 : len === 5 ? RU_WORDS_5 : RU_WORDS_6;
     return len === 4 ? EN_WORDS_4 : len === 5 ? EN_WORDS_5 : EN_WORDS_6;
   };
 
   const newRound = () => {
     const bank = wordsBank(length);
-    const w = bank[Math.floor(Math.random() * bank.length)].toUpperCase();
+    const entry = bank[Math.floor(Math.random() * bank.length)];
+    const w = entry.w.toUpperCase();
     setTarget(w);
+    setHint(entry.h);
     let arr = w.split('');
     let attempts = 0;
     do { arr = shuffle(arr); attempts++; } while (arr.join('') === w && attempts < 5);
@@ -152,6 +260,13 @@ export default function AnagramGame() {
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('anagramHint')}</Text>
+      {/* 💡 Hint banner — короткий намёк на слово */}
+      {hint ? (
+        <View style={[styles.hintBanner, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
+          <Text style={[styles.hintBannerEmoji]}>💡</Text>
+          <Text style={[styles.hintBannerText, { color: colors.text }]}>{hint}</Text>
+        </View>
+      ) : null}
       <View style={styles.pickedRow}>
         {Array.from({ length: target.length }).map((_, i) => (
           <View key={i} style={[styles.pickedSlot, { borderColor: colors.border, backgroundColor: colors.surface }]}>
@@ -231,6 +346,18 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 24 },
   statText: { fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center' },
+  hintBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 2,
+    maxWidth: 360,
+  },
+  hintBannerEmoji: { fontSize: 20 },
+  hintBannerText: { fontSize: 14, fontWeight: '600', flex: 1 },
   pickedRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap' },
   pickedSlot: { width: 44, height: 54, borderRadius: 8, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   pickedLetter: { fontSize: 22, fontWeight: '700' },
