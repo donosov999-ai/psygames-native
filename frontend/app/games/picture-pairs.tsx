@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 
@@ -43,7 +44,8 @@ export default function PicturePairsGame() {
   const { width } = useWindowDimensions();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [pairsCount, setPairsCount] = useState(8);
+  const gate = useLevelGate('picture_pairs');
+  const [pairsCount, setPairsCount] = useState(6);
   const [photoMemoryMode, setPhotoMemoryMode] = useState(true);   // ON by default — фото-память тренинг
   const [previewMs, setPreviewMs] = useState<500 | 1500 | 3000>(500);
   const [previewActive, setPreviewActive] = useState(false);       // true while showing all cards face-up
@@ -187,15 +189,28 @@ export default function PicturePairsGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('pairsCount')}</Text>
         <View style={styles.optionButtons}>
-          {[6, 8, 10, 12].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, pairsCount === n
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setPairsCount(n)}>
-              <Text style={[styles.modeButtonText, { color: pairsCount === n ? '#FFF' : colors.text }]}>{n}</Text>
+          {[6, 8, 10, 12].map((n) => {
+            // manifest uses keys '6 pairs'/'8 pairs'/'12 pairs' (10 not in manifest, allowed)
+            const levelKey = `${n} pairs`;
+            const locked = gate.isLocked(levelKey);
+            return (
+            <TouchableOpacity key={n} disabled={locked}
+              style={[styles.modeButton, pairsCount === n && !locked
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 }]}
+              onPress={() => !locked && setPairsCount(n)}>
+              <Text style={[styles.modeButtonText, { color: pairsCount === n && !locked ? '#FFF' : colors.text }]}>
+                {n}{locked ? ' 🔒' : ''}
+              </Text>
             </TouchableOpacity>
-          ))}
+            );
+          })}
         </View>
+        {gate.nextHint && (
+          <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, marginTop: 8, fontStyle: 'italic' }}>
+            {gate.nextHint}
+          </Text>
+        )}
       </View>
 
       {/* Photo-memory toggle */}

@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 
@@ -45,8 +46,9 @@ export default function NBackGame() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const gate = useLevelGate('n_back');
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [nLevel, setNLevel] = useState(2);
+  const [nLevel, setNLevel] = useState(1);
   const [trials, setTrials] = useState(20);
   const [modality, setModality] = useState<Modality>('single');
   const [history, setHistory] = useState<number[]>([]);
@@ -242,23 +244,32 @@ export default function NBackGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('nLevelLabel')}</Text>
         <View style={styles.optionButtons}>
-          {[1, 2, 3, 4].map((n) => (
+          {[1, 2, 3, 4].map((n) => {
+            const locked = gate.isLocked(`${n}-back`);
+            return (
             <TouchableOpacity
               key={n}
+              disabled={locked}
               style={[
                 styles.modeButton,
-                nLevel === n
+                nLevel === n && !locked
                   ? { backgroundColor: GRADIENT[0] }
-                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 },
               ]}
-              onPress={() => setNLevel(n)}
+              onPress={() => !locked && setNLevel(n)}
             >
-              <Text style={[styles.modeButtonText, { color: nLevel === n ? '#FFF' : colors.text }]}>
-                {n}-back
+              <Text style={[styles.modeButtonText, { color: nLevel === n && !locked ? '#FFF' : colors.text }]}>
+                {n}-back{locked ? ' 🔒' : ''}
               </Text>
             </TouchableOpacity>
-          ))}
+            );
+          })}
         </View>
+        {gate.nextHint && (
+          <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, marginTop: 8, fontStyle: 'italic' }}>
+            {gate.nextHint}
+          </Text>
+        )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>Modality</Text>

@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 
@@ -38,6 +39,7 @@ export default function CorsiGame() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const gate = useLevelGate('corsi');
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [mode, setMode] = useState<Mode>('forward');
   const [startLen, setStartLen] = useState(3);
@@ -149,17 +151,26 @@ export default function CorsiGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
         <View style={styles.optionButtons}>
-          {(['forward','backward'] as Mode[]).map((m) => (
-            <TouchableOpacity key={m} style={[styles.modeButton, mode === m
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setMode(m)}>
-              <Text style={[styles.modeButtonText, { color: mode === m ? '#FFF' : colors.text }]}>
-                {m === 'forward' ? t('forward') : t('backward')}
+          {(['forward','backward'] as Mode[]).map((m) => {
+            const locked = gate.isLocked(m);
+            return (
+            <TouchableOpacity key={m} disabled={locked}
+              style={[styles.modeButton, mode === m && !locked
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 }]}
+              onPress={() => !locked && setMode(m)}>
+              <Text style={[styles.modeButtonText, { color: mode === m && !locked ? '#FFF' : colors.text }]}>
+                {m === 'forward' ? t('forward') : t('backward')}{locked ? ' 🔒' : ''}
               </Text>
             </TouchableOpacity>
-          ))}
+            );
+          })}
         </View>
+        {gate.nextHint && (
+          <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, marginTop: 8, fontStyle: 'italic' }}>
+            {gate.nextHint}
+          </Text>
+        )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('startLength')}</Text>

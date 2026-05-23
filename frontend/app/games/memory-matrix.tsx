@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 
@@ -26,8 +27,9 @@ export default function MemoryMatrixGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
+  const gate = useLevelGate('memory_matrix');
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [gridSize, setGridSize] = useState(4);
+  const [gridSize, setGridSize] = useState(3);
   const [matrixMode, setMatrixMode] = useState<MatrixMode>('static');
   const [litCells, setLitCells] = useState<Set<number>>(new Set());
   const [litSequence, setLitSequence] = useState<number[]>([]);     // order for sequential mode
@@ -154,23 +156,33 @@ export default function MemoryMatrixGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('gridSize')}</Text>
         <View style={styles.optionButtons}>
-          {[3, 4, 5].map((n) => (
+          {[3, 4, 5, 6].map((n) => {
+            const levelKey = `${n}x${n}`;
+            const locked = gate.isLocked(levelKey);
+            return (
             <TouchableOpacity
               key={n}
+              disabled={locked}
               style={[
                 styles.modeButton,
-                gridSize === n
+                gridSize === n && !locked
                   ? { backgroundColor: GRADIENT[0] }
-                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 },
               ]}
-              onPress={() => setGridSize(n)}
+              onPress={() => !locked && setGridSize(n)}
             >
-              <Text style={[styles.modeButtonText, { color: gridSize === n ? '#FFF' : colors.text }]}>
-                {n}×{n}
+              <Text style={[styles.modeButtonText, { color: gridSize === n && !locked ? '#FFF' : colors.text }]}>
+                {n}×{n}{locked ? ' 🔒' : ''}
               </Text>
             </TouchableOpacity>
-          ))}
+            );
+          })}
         </View>
+        {gate.nextHint && (
+          <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, marginTop: 8, fontStyle: 'italic' }}>
+            {gate.nextHint}
+          </Text>
+        )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>Режим</Text>
