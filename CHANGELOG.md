@@ -14,6 +14,16 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.1.1] — 2026-05-23
+
+### Fixed
+- **Picture Pairs «10 пар»** was always locked for themed profiles because
+  the level manifest only had 6/8/12, while UI had 6/8/10/12 buttons.
+  Added '10 pairs' as a 3rd step (unlock at 8 pairs ≤75s), and adjusted
+  12 pairs to require '10 pairs ≤100s × 2'.
+
+---
+
 ## [1.1.0] — 2026-05-17
 
 Commercial profiles + level progression + onboarding UX.

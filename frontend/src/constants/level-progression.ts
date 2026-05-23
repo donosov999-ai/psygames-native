@@ -119,7 +119,8 @@ export const LEVEL_PROGRESSION: GameLevels[] = [
     levels: [
       { key: '6 pairs', label: '6 пар (старт)' },
       { key: '8 pairs', label: '8 пар', unlock: { metric: 'time_seconds_max', threshold: 60, human_hint: 'Пройди 6 пар за ≤60 сек' } },
-      { key: '12 pairs', label: '12 пар', unlock: { metric: 'time_seconds_max', threshold: 90, consecutive: 2, human_hint: 'Пройди 8 пар за ≤90 сек два раза' } },
+      { key: '10 pairs', label: '10 пар', unlock: { metric: 'time_seconds_max', threshold: 75, human_hint: 'Пройди 8 пар за ≤75 сек' } },
+      { key: '12 pairs', label: '12 пар', unlock: { metric: 'time_seconds_max', threshold: 100, consecutive: 2, human_hint: 'Пройди 10 пар за ≤100 сек два раза подряд' } },
     ],
   },
 
