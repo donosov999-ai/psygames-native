@@ -149,172 +149,133 @@ export default function HomeScreen() {
         contentContainerStyle={styles.gamesContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* === BIG WARMUP BLOCK === (gated by profile) */}
-        {profile.warmup_enabled && (
-        <LinearGradient
-          colors={isMeasurement ? ['#ee0979', '#ff6a00'] : isRest ? ['#475569', '#64748b'] : ['#fbbf24', '#f59e0b']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={styles.warmupBlock}
-        >
-          <View style={styles.warmupHeader}>
-            <View style={styles.warmupTitleRow}>
-              <Ionicons name="flash" size={28} color="#000" />
-              <Text style={styles.warmupTitle}>УТРЕННЯЯ ЗАРЯДКА</Text>
-            </View>
-            {streak > 0 && (
-              <View style={styles.streakChip}>
-                <Text style={styles.streakChipText}>🔥 {streak}</Text>
+        {/* === 3 HERO CARDS in a row (compact) === (each gated by profile) */}
+        {(profile.warmup_enabled || profile.assessment_enabled || profile.financial_brain_day_enabled) && (
+        <View style={styles.heroRow}>
+
+          {/* CARD 1: Утренняя зарядка */}
+          {profile.warmup_enabled && (
+          <TouchableOpacity
+            style={styles.heroCardWrap}
+            onPress={isRest ? undefined : startWarmup}
+            disabled={isRest}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={isMeasurement ? ['#ee0979', '#ff6a00'] : isRest ? ['#475569', '#64748b'] : ['#fbbf24', '#f59e0b']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={styles.heroCard}
+            >
+              <View style={styles.heroTopRow}>
+                <Ionicons name="flash" size={22} color={isRest ? '#FFF' : '#000'} />
+                {streak > 0 && (
+                  <View style={styles.heroChipMini}>
+                    <Text style={styles.heroChipMiniText}>🔥{streak}</Text>
+                  </View>
+                )}
               </View>
-            )}
-          </View>
-
-          {isRest ? (
-            <Text style={styles.warmupDesc}>
-              Сегодня СРЕДА — Brain Workshop день. PsyGames-зарядка пропущена.
-            </Text>
-          ) : (
-            <Text style={styles.warmupDesc}>
-              {todayPreview.weekday_name} · {todayPreview.steps.length} {todayPreview.steps.length === 1 ? 'игра' : 'игр'} · ~{Math.round(todayPreview.est_total_sec / 60)} мин · {todayPreview.track_label}
-            </Text>
-          )}
-
-          {!isRest && (
-            <>
-              {/* Duration buttons */}
-              <View style={styles.durationRow}>
-                {([5, 10, 15] as const).map((d) => {
-                  const active = duration === d;
-                  const disabled = isMeasurement && d !== 10; // measurement is fixed ~10
-                  return (
-                    <TouchableOpacity
-                      key={d}
-                      disabled={disabled}
-                      style={[styles.durationBtn, {
-                        backgroundColor: active ? '#000' : 'rgba(0,0,0,0.15)',
-                        opacity: disabled ? 0.4 : 1,
-                      }]}
-                      onPress={() => setDuration(d)}
-                    >
-                      <Text style={[styles.durationText, { color: active ? '#fbbf24' : '#000' }]}>{d} мин</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              {/* Start button */}
-              <TouchableOpacity style={styles.startBtn} onPress={startWarmup}>
-                <View style={styles.startBtnInner}>
-                  <Ionicons name="play" size={22} color="#fbbf24" />
-                  <Text style={styles.startBtnText}>СТАРТ</Text>
-                </View>
-              </TouchableOpacity>
-
-              {/* Stats line */}
-              {(lastScore > 0 || bestScore > 0) && (
-                <View style={styles.statsLine}>
-                  {lastScore > 0 && <Text style={styles.statsText}>Last: <Text style={styles.statsBold}>{lastScore}</Text></Text>}
-                  {bestScore > 0 && <Text style={styles.statsText}>Best: <Text style={styles.statsBold}>{bestScore}</Text></Text>}
+              <Text style={[styles.heroTitle, { color: isRest ? '#FFF' : '#000' }]}>ЗАРЯДКА</Text>
+              <Text style={[styles.heroSub, { color: isRest ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)' }]} numberOfLines={2}>
+                {isRest
+                  ? 'Brain Workshop день'
+                  : `${todayPreview.steps.length} ${todayPreview.steps.length === 1 ? 'игра' : 'игр'} · ~${Math.round(todayPreview.est_total_sec / 60)} мин`}
+              </Text>
+              {!isRest && (
+                <View style={styles.heroCta}>
+                  <Ionicons name="play" size={14} color="#fbbf24" />
+                  <Text style={styles.heroCtaText}>СТАРТ</Text>
                 </View>
               )}
-            </>
-          )}
-        </LinearGradient>
-        )}
-
-        {/* === ASSESSMENT (G1) === (gated by profile) */}
-        {profile.assessment_enabled && (
-        <LinearGradient
-          colors={['#7c3aed', '#ec4899']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={styles.warmupBlock}
-        >
-          <View style={styles.warmupHeader}>
-            <View style={styles.warmupTitleRow}>
-              <Ionicons name="locate" size={26} color="#FFF" />
-              <Text style={[styles.warmupTitle, { color: '#FFF' }]}>ОЦЕНИТЬ ПРОФИЛЬ</Text>
-            </View>
-            {assessStatus.hasAssessment ? (
-              <View style={[styles.streakChip, { backgroundColor: 'rgba(0,0,0,0.25)' }]}>
-                <Text style={[styles.streakChipText, { color: '#FFF' }]}>
-                  {assessStatus.daysSince === 0 ? 'сегодня' : `${assessStatus.daysSince} дн назад`}
-                </Text>
-              </View>
-            ) : (
-              <View style={[styles.streakChip, { backgroundColor: '#fbbf24' }]}>
-                <Text style={[styles.streakChipText, { color: '#000' }]}>★ НОВОЕ</Text>
-              </View>
-            )}
-          </View>
-          <Text style={[styles.warmupDesc, { color: 'rgba(255,255,255,0.9)' }]}>
-            12 коротких тестов · ~12 мин · radar chart сильных/слабых доменов
-          </Text>
-          <TouchableOpacity style={[styles.startBtn, { backgroundColor: '#000' }]} onPress={() => warmup.startAssessment()}>
-            <View style={styles.startBtnInner}>
-              <Ionicons name="play" size={20} color="#ec4899" />
-              <Text style={[styles.startBtnText, { color: '#ec4899' }]}>
-                {assessStatus.hasAssessment ? 'ПОВТОРИТЬ' : 'НАЧАТЬ'}
-              </Text>
-            </View>
+            </LinearGradient>
           </TouchableOpacity>
-          {assessStatus.hasAssessment && assessStatus.daysSince !== null && assessStatus.daysSince >= 90 && (
-            <Text style={[styles.statsText, { color: 'rgba(255,255,255,0.85)', textAlign: 'center' }]}>
-              💡 Прошло 3+ мес — пора повторить чтобы увидеть прогресс
-            </Text>
           )}
-        </LinearGradient>
-        )}
 
-        {/* === FINANCIAL BRAIN DAY === (gated by profile) */}
-        {profile.financial_brain_day_enabled && (
-        <LinearGradient
-          colors={finCooldown.ready ? ['#22c55e', '#0d9488'] : ['#475569', '#64748b']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={styles.warmupBlock}
-        >
-          <View style={styles.warmupHeader}>
-            <View style={styles.warmupTitleRow}>
-              <Ionicons name="cash" size={26} color="#FFF" />
-              <Text style={[styles.warmupTitle, { color: '#FFF' }]}>FINANCIAL BRAIN DAY</Text>
-            </View>
-            {finCooldown.ready ? (
-              <View style={[styles.streakChip, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
-                <Text style={[styles.streakChipText, { color: '#FFF' }]}>🟢 готов</Text>
+          {/* CARD 2: Assessment (профиль) */}
+          {profile.assessment_enabled && (
+          <TouchableOpacity
+            style={styles.heroCardWrap}
+            onPress={() => warmup.startAssessment()}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={['#7c3aed', '#ec4899']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={styles.heroCard}
+            >
+              <View style={styles.heroTopRow}>
+                <Ionicons name="locate" size={22} color="#FFF" />
+                {assessStatus.hasAssessment ? (
+                  <View style={[styles.heroChipMini, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
+                    <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>
+                      {assessStatus.daysSince === 0 ? '✓' : `${assessStatus.daysSince}д`}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={[styles.heroChipMini, { backgroundColor: '#fbbf24' }]}>
+                    <Text style={[styles.heroChipMiniText, { color: '#000' }]}>★</Text>
+                  </View>
+                )}
               </View>
-            ) : (
-              <View style={[styles.streakChip, { backgroundColor: 'rgba(0,0,0,0.25)' }]}>
-                <Text style={[styles.streakChipText, { color: '#FFF' }]}>⏳ {finCooldown.daysLeft} дн</Text>
-              </View>
-            )}
-          </View>
-
-          <Text style={[styles.warmupDesc, { color: 'rgba(255,255,255,0.9)' }]}>
-            Iowa → BART → PRL · ~25 мин · vmPFC чекап раз в 2 нед
-          </Text>
-
-          {finCooldown.ready ? (
-            <TouchableOpacity style={[styles.startBtn, { backgroundColor: '#000' }]} onPress={() => warmup.startFinancialBattery()}>
-              <View style={styles.startBtnInner}>
-                <Ionicons name="play" size={20} color="#22c55e" />
-                <Text style={[styles.startBtnText, { color: '#22c55e' }]}>СТАРТ</Text>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <View style={[styles.startBtn, { backgroundColor: 'rgba(0,0,0,0.4)' }]}>
-              <View style={styles.startBtnInner}>
-                <Ionicons name="time" size={18} color="rgba(255,255,255,0.6)" />
-                <Text style={[styles.startBtnText, { color: 'rgba(255,255,255,0.7)', fontSize: 14 }]}>
-                  ВЕРНИСЬ ЧЕРЕЗ {finCooldown.daysLeft} {finCooldown.daysLeft === 1 ? 'ДЕНЬ' : 'ДН'}
+              <Text style={[styles.heroTitle, { color: '#FFF' }]}>ПРОФИЛЬ</Text>
+              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
+                12 тестов · ~12 мин
+              </Text>
+              <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
+                <Ionicons name="play" size={14} color="#ec4899" />
+                <Text style={[styles.heroCtaText, { color: '#ec4899' }]}>
+                  {assessStatus.hasAssessment ? 'ПОВТОР' : 'СТАРТ'}
                 </Text>
               </View>
-            </View>
+            </LinearGradient>
+          </TouchableOpacity>
           )}
 
-          {finCooldown.lastDate && (
-            <Text style={[styles.statsText, { color: 'rgba(255,255,255,0.7)', textAlign: 'center' }]}>
-              Last: {finCooldown.lastDate} · cooldown {FINANCIAL_COOLDOWN_DAYS} дней
-            </Text>
+          {/* CARD 3: Financial Brain Day */}
+          {profile.financial_brain_day_enabled && (
+          <TouchableOpacity
+            style={styles.heroCardWrap}
+            onPress={finCooldown.ready ? () => warmup.startFinancialBattery() : undefined}
+            disabled={!finCooldown.ready}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={finCooldown.ready ? ['#22c55e', '#0d9488'] : ['#475569', '#64748b']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={styles.heroCard}
+            >
+              <View style={styles.heroTopRow}>
+                <Ionicons name="cash" size={22} color="#FFF" />
+                {finCooldown.ready ? (
+                  <View style={[styles.heroChipMini, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
+                    <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>🟢</Text>
+                  </View>
+                ) : (
+                  <View style={[styles.heroChipMini, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
+                    <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>⏳{finCooldown.daysLeft}д</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]}>FIN BRAIN</Text>
+              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
+                Iowa→BART→PRL · ~25 мин
+              </Text>
+              {finCooldown.ready ? (
+                <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
+                  <Ionicons name="play" size={14} color="#22c55e" />
+                  <Text style={[styles.heroCtaText, { color: '#22c55e' }]}>СТАРТ</Text>
+                </View>
+              ) : (
+                <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.4)' }]}>
+                  <Text style={[styles.heroCtaText, { color: 'rgba(255,255,255,0.75)' }]}>
+                    ЖДЁМ
+                  </Text>
+                </View>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
           )}
-        </LinearGradient>
+
+        </View>
         )}
 
         {/* === Manual category sections === */}
@@ -382,7 +343,50 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  // Warmup block
+  // Compact 3-hero-card row (2026-05-17)
+  heroRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 22,
+    alignItems: 'stretch',
+  },
+  heroCardWrap: {
+    flex: 1,
+    minWidth: 0,   // allow shrinking on narrow screens
+  },
+  heroCard: {
+    padding: 12,
+    borderRadius: 14,
+    gap: 6,
+    minHeight: 130,
+    justifyContent: 'space-between',
+  },
+  heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  heroChipMini: {
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    minWidth: 22,
+    alignItems: 'center',
+  },
+  heroChipMiniText: { color: '#000', fontWeight: '900', fontSize: 10 },
+  heroTitle: { fontSize: 14, fontWeight: '900', letterSpacing: 1 },
+  heroSub: { fontSize: 11, fontWeight: '600', lineHeight: 14 },
+  heroCta: {
+    backgroundColor: '#000',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  heroCtaText: { color: '#fbbf24', fontWeight: '900', fontSize: 11, letterSpacing: 1 },
+
+  // Warmup block (LEGACY — used by other places, keep)
   warmupBlock: {
     padding: 20,
     borderRadius: 18,
