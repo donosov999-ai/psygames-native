@@ -239,16 +239,19 @@ const CHESS: ProfileDef = {
   audience: 'Шахматисты, тренеры, шахматные школы',
   session_minutes: '10-25 мин',
   group: 'themed',
+  // v1.2.0 «1+1+1+1 + 5 темовых»: covers all 4 categories with 5-game bias on logic
   allowed_games: [
+    // Base (1 per category)
+    'corsi',             // memory — spatial WM forward (точнее для шахмат чем N-back)
+    'cpt',               // attention — sustained на длинной партии
+    'tower_london',      // logic — планирование 5+ ходов
+    'choice_rt',         // action — скорость выбора между альтернативами
+    // +5 темовых (bias на reasoning/spatial)
     'mental_rotation',   // spatial представление позиций
-    'n_back',            // удержание варианта расчёта (DUAL mode внутри)
-    'tower_london',      // планирование 5+ ходов
     'pattern',           // тактические паттерны
     'set_game',          // многомерные признаки
     'sudoku',            // логическая дедукция
-    'schulte_table',     // сканирование доски (Schulte-Gorbov mixed внутри)
-    'corsi',             // spatial WM forward
-    'cpt',               // sustained attention 4-12 мин = партия без блюндеров
+    'schulte_table',     // сканирование доски
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
@@ -268,16 +271,19 @@ const KIDS: ProfileDef = {
   audience: 'Дети 7-12 лет, родители',
   session_minutes: '3-5 мин',
   group: 'themed',
+  // v1.2.0 «1+1+1+1 + 5 темовых»: covers all 4 cats with 5-game bias on action (speed/math) for fun
   allowed_games: [
-    'picture_pairs',     // классика памяти для детей
-    'memory_matrix',     // зрительная память
-    'schulte_table',     // рекорды мотивируют
-    'find_differences',  // внимание, весело
-    'hanoi',             // логика наглядно
-    'counter',           // устный счёт
-    'math_sprint',       // арифметика-гонка
-    'targets',           // реакция
-    'anagrams',          // буквенные пазлы
+    // Base
+    'picture_pairs',     // memory — классика
+    'find_differences',  // attention — весело
+    'hanoi',             // logic — наглядно
+    'targets',           // action — реакция
+    // +5 темовых (bias на счёт/реакцию — игровое)
+    'memory_matrix',     // ещё память (visual)
+    'schulte_table',     // ещё внимание (рекорды!)
+    'anagrams',          // ещё логика (буквенные пазлы)
+    'math_sprint',       // ещё action — счёт-гонка
+    'counter',           // ещё action — устный счёт
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
@@ -297,16 +303,19 @@ const VASILYEVA: ProfileDef = {
   audience: 'Ученики курсов скорочтения, репетиторы',
   session_minutes: '8-12 мин',
   group: 'themed',
+  // v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention/speed для скорочтения
   allowed_games: [
-    'schulte_table',     // классика школ скорочтения
-    'visual_search',     // быстрый scan
-    'reading_span',      // WM при чтении
-    'proofreading',      // внимание к буквам
-    'story_recall',      // понимание + удержание контекста
-    'word_pairs',        // вербальная ассоциативная память
-    'phonemic_fluency',  // беглость речи
-    'find_differences',  // визуальная различительность
-    'anagrams',          // быстрая работа с буквами
+    // Base
+    'reading_span',      // memory — WM при чтении
+    'schulte_table',     // attention — классика школ скорочтения
+    'anagrams',          // logic — работа с буквами
+    'sdmt',              // action — скорость обработки (символ→цифра)
+    // +5 темовых (bias на attention + verbal)
+    'visual_search',     // ещё внимание — быстрый scan
+    'proofreading',      // ещё внимание — фокус на буквы
+    'find_differences',  // ещё внимание — визуальная различительность
+    'story_recall',      // ещё память — понимание текста
+    'phonemic_fluency',  // ещё логика — беглость речи
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
@@ -326,16 +335,19 @@ const NZT48: ProfileDef = {
   audience: 'Биохакеры, серьёзный когнитивный тренинг',
   session_minutes: '25-40 мин',
   group: 'themed',
+  // v1.2.0 «1+1+1+1 + 5 темовых»: balanced full battery
   allowed_games: [
-    'n_back',                // working memory (DUAL внутри)
-    'cpt',                   // sustained attention
-    'mental_rotation',       // spatial
-    'attention_conflict',    // Stroop/Flanker (group card)
-    'switching_task',        // cognitive flexibility
-    'tower_london',          // planning
-    'sdmt',                  // processing speed
-    'bart',                  // risk/decision
-    'phonemic_fluency',      // verbal fluency
+    // Base
+    'n_back',                // memory — working memory (DUAL внутри)
+    'cpt',                   // attention — sustained
+    'tower_london',          // logic — planning
+    'attention_conflict',    // action — inhibition (Stroop+Flanker hub)
+    // +5 темовых (full prefrontal cortex battery)
+    'mental_rotation',       // ещё logic — spatial
+    'switching_task',        // ещё logic — cognitive flexibility
+    'bart',                  // ещё logic — risk/decision
+    'sdmt',                  // ещё action — processing speed
+    'phonemic_fluency',      // ещё logic — verbal fluency
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: true,
@@ -357,16 +369,19 @@ const FREE: ProfileDef = {
   audience: 'Все · знакомство с приложением',
   session_minutes: '3-10 мин',
   group: 'themed',
+  // v1.2.0 «1+1+1+1 + 5 темовых»: one game per category + funnel teasers
   allowed_games: [
-    'schulte_table',     // attention (классика)
-    'picture_pairs',     // memory visual (узнаваемая)
-    'targets',           // speed/reaction (fun)
-    'math_sprint',       // math (интуитивна)
-    'find_differences',  // attention (простая)
-    'counter',           // math basic
-    'anagrams',          // verbal/logic
-    'hanoi',             // logic classic
-    'n_back',            // WM teaser → DUAL premium
+    // Base
+    'picture_pairs',     // memory — узнаваемая визуально
+    'schulte_table',     // attention — классика
+    'hanoi',             // logic — наглядная
+    'math_sprint',       // action — счёт интуитивный
+    // +5 темовых (по 1 ещё в каждой категории + 1 attention)
+    'n_back',            // ещё memory — teaser для DUAL premium
+    'find_differences',  // ещё attention — простая
+    'anagrams',          // ещё logic — буквенные пазлы
+    'counter',           // ещё action — устный счёт
+    'targets',           // ещё action — реакция
   ],
   warmup_enabled: false,           // без зарядки в FREE — это hook на подписку
   financial_brain_day_enabled: false,
@@ -386,16 +401,19 @@ const DRIVERS: ProfileDef = {
   audience: 'Автошколы, корпоративные программы, таксопарки',
   session_minutes: '12-15 мин',
   group: 'themed',
+  // v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention + reaction
   allowed_games: [
-    'cpt',                // sustained attention (vigilance на длинном маршруте)
-    'schulte_table',      // сканирование дороги
-    'trail_making',       // переключение внимания между объектами
-    'visual_search',      // быстрый scan
-    'targets',            // реакция
-    'choice_rt',          // выбор направления реакции
-    'attention_conflict', // Flanker/Stroop (тормозим импульс)
-    'n_back',             // удержание контекста (что в зеркалах)
-    'find_differences',   // микро-различия на дороге
+    // Base
+    'n_back',             // memory — удержание контекста (зеркала, скорость)
+    'cpt',                // attention — sustained на длинном маршруте
+    'trail_making',       // logic — переключение между объектами
+    'choice_rt',          // action — выбор направления реакции
+    // +5 темовых (bias на attention + reaction = езда)
+    'schulte_table',      // ещё attention — сканирование
+    'visual_search',      // ещё attention — быстрый scan
+    'find_differences',   // ещё attention — микро-различия
+    'targets',            // ещё action — реакция на объекты
+    'attention_conflict', // ещё action — тормозим импульс (опасность)
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
@@ -415,16 +433,19 @@ const SENIORS: ProfileDef = {
   audience: 'Люди 50-75+, медцентры, программы active aging',
   session_minutes: '10-15 мин',
   group: 'themed',
+  // v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory (профилактика деменции)
   allowed_games: [
-    'picture_pairs',     // память на образы
-    'memory_matrix',     // зрительная память
-    'sdmt',              // processing speed (золотой стандарт для возраста)
-    'trail_making',      // executive + speed
-    'schulte_table',     // attention
-    'word_pairs',        // вербальная память
-    'mnemonics',         // sequence memory
-    'counter',           // устный счёт (бытовой)
-    'anagrams',          // буквы (когда читали — vocab остаётся)
+    // Base
+    'picture_pairs',     // memory — образная
+    'schulte_table',     // attention — концентрация
+    'mnemonics',         // logic — sequence memory (мнемоника = logic+memory)
+    'sdmt',              // action — processing speed (золотой стандарт возраста)
+    // +5 темовых (bias на память + executive — критично для 50+)
+    'memory_matrix',     // ещё memory — visual
+    'word_pairs',        // ещё memory — вербальная
+    'trail_making',      // ещё logic — executive function
+    'counter',           // ещё action — устный счёт (бытовой)
+    'anagrams',          // ещё logic — vocab (когда много читали)
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
@@ -444,16 +465,19 @@ const EXECS: ProfileDef = {
   audience: 'CEO, владельцы бизнеса, executive coaching',
   session_minutes: '15-25 мин',
   group: 'themed',
+  // v1.2.0 «1+1+1+1 + 5 темовых»: bias on logic (decisions + risk)
   allowed_games: [
-    'bart',              // risk decision-making
-    'iowa',              // long-term strategy под неопределённостью
-    'prl',               // reversal learning (когда правила меняются)
-    'n_back',            // WM под нагрузкой (DUAL внутри)
-    'cpt',               // sustained attention на длинных созвонах
-    'attention_conflict',// inhibition (тормозить импульсивные решения)
-    'switching_task',    // multitasking
-    'tower_london',      // strategic planning
-    'pattern',           // распознавание трендов
+    // Base
+    'n_back',            // memory — WM под нагрузкой (DUAL внутри)
+    'cpt',               // attention — sustained на длинных созвонах
+    'tower_london',      // logic — strategic planning
+    'attention_conflict',// action — тормозить импульсивные решения
+    // +5 темовых (bias на risk/decisions + flexibility)
+    'bart',              // ещё logic — risk decision-making
+    'iowa',              // ещё logic — long-term strategy
+    'prl',               // ещё logic — reversal learning (меняющиеся правила)
+    'switching_task',    // ещё logic — multitasking
+    'math_sprint',       // ещё action — быстро считать в уме
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: true,   // их домен
@@ -473,16 +497,19 @@ const STUDENTS: ProfileDef = {
   audience: 'Школьники 10-11 классов, репетиторы',
   session_minutes: '10-15 мин',
   group: 'themed',
+  // v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory + action (скорость на экзамене)
   allowed_games: [
-    'math_sprint',       // арифметика
-    'reading_span',      // WM при чтении (понимание текста)
-    'story_recall',      // удержание информации
-    'schulte_table',     // концентрация
-    'n_back',            // WM (формулы в голове)
-    'pattern',           // паттерны в задачах
-    'counter',           // устный счёт
-    'anagrams',          // вербальная гибкость
-    'memory_matrix',     // зрительная память (карты, схемы)
+    // Base
+    'reading_span',      // memory — WM при чтении (понимание текста)
+    'schulte_table',     // attention — концентрация на длинном экзамене
+    'pattern',           // logic — распознавание паттернов в задачах
+    'math_sprint',       // action — быстрая арифметика
+    // +5 темовых (bias на учебу: память + счёт)
+    'n_back',            // ещё memory — WM формулы в голове
+    'story_recall',      // ещё memory — удержание прочитанного
+    'memory_matrix',     // ещё memory — зрительная (карты, схемы)
+    'anagrams',          // ещё logic — вербальная гибкость
+    'counter',           // ещё action — устный счёт
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,

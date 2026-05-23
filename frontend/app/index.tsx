@@ -83,7 +83,7 @@ export default function HomeScreen() {
 
   const grouped = useMemo(() => {
     const map: Record<GameCategory, GameConfig[]> = {
-      memory: [], attention: [], logic: [], control: [], math: [], speed: [],
+      memory: [], attention: [], logic: [], action: [],
     };
     for (const g of visibleGames) map[g.category].push(g);
     return map;

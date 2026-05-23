@@ -332,12 +332,15 @@ const translations: Translations = {
   seconds: { ru: 'сек', en: 'sec' },
 
   // Categories
-  catMemory:    { ru: 'Память',                en: 'Memory' },
-  catAttention: { ru: 'Внимание',              en: 'Attention' },
-  catLogic:     { ru: 'Логика и мышление',     en: 'Logic & Reasoning' },
-  catControl:   { ru: 'Контроль и торможение', en: 'Control & Inhibition' },
-  catMath:      { ru: 'Счёт',                  en: 'Mental Math' },
-  catSpeed:     { ru: 'Скорость и реакция',    en: 'Speed & Reaction' },
+  // 4 categories (v1.2.0 Lumosity-style)
+  catMemory:    { ru: 'Память',                          en: 'Memory' },
+  catAttention: { ru: 'Внимание',                        en: 'Attention' },
+  catLogic:     { ru: 'Логика и принятие решений',       en: 'Logic & Decisions' },
+  catAction:    { ru: 'Скорость и торможение',           en: 'Speed & Control' },
+  // Legacy keys (kept for back-compat with anything that still references them)
+  catControl:   { ru: 'Скорость и торможение',           en: 'Speed & Control' },
+  catMath:      { ru: 'Скорость и торможение',           en: 'Speed & Control' },
+  catSpeed:     { ru: 'Скорость и торможение',           en: 'Speed & Control' },
 
   // Round-3 games — names
   pattern:    { ru: 'Паттерны: мышление',         en: 'Patterns: Reasoning' },

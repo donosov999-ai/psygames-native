@@ -14,6 +14,50 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.2.0] — 2026-05-23
+
+Big refactor: 4 categories + balanced themed profiles.
+
+### Changed
+- **6 categories → 4** (Lumosity-style for simpler discovery):
+  - 🧠 Память (12) — без изменений
+  - 👁 Внимание (7) — только pure attention
+  - 🧩 Логика и принятие решений (14) — was Logic (8) + Switching (3) + Risk (3)
+  - ⚡ Скорость и торможение (14) — was Inhibition (7) + Speed (3) + Math (3) + Social (1)
+  - Category sizes now 12/7/14/14 (was 12/7/8/14/3/3, разрыв 4.7× → 2.0×)
+- **All 9 themed profiles rebuilt by «1+1+1+1 base + 5 themed» formula**.
+  Every profile now covers ALL 4 categories with bias on its target audience.
+  Previously many profiles had 0 games in 2-3 categories.
+
+### New profile layouts (9 themed, 9 games each, all 4 cats covered)
+- ♟ Шахматист: Corsi+CPT+ToL+ChoiceRT + 5 logic-bias (MR/Pattern/SET/Sudoku/Schulte)
+- 🧒 Дети: Picture Pairs+Find Diff+Hanoi+Targets + 5 fun-bias
+- 📖 Скорочтение: Reading Span+Schulte+Anagrams+SDMT + 5 attention-bias
+- 💊 NZT-48: N-back+CPT+ToL+Conflict + 5 full-prefrontal-bias
+- 🚗 Водители: N-back+CPT+Trail+ChoiceRT + 5 attention/reaction-bias
+- 👴 50+: Picture Pairs+Schulte+Mnemonics+SDMT + 5 memory-bias
+- 💼 Предприниматели: N-back+CPT+ToL+Conflict + 5 risk/decision-bias (BART/Iowa/PRL)
+- 🎓 Студенты ЕГЭ: Reading Span+Schulte+Pattern+Math Sprint + 5 memory-bias
+- 🎁 FREE: Picture Pairs+Schulte+Hanoi+Math Sprint + 5 funnel-teaser-bias
+
+### Why
+- Old profiles had 0 control for 5 themed (Шах, Дети, Скоро, Студенты, FREE) —
+  bug: pure inhibition is one of the most trainable functions, can't omit it
+- NZT-48 had only 1 memory game (contradicts the «WM is the base» concept)
+- Шахматист had 5/9 in logic (too lopsided)
+- Уровень категорий теперь равный для всех ЦА
+
+### Technical
+- `GameCategory` type: removed 'control', 'math', 'speed'; added 'action'
+- `CATEGORY_ORDER` reduced from 6 to 4 entries
+- `CATEGORY_META.action` added with flash-outline icon (same as ex-speed)
+- 14 games re-categorised in `games.ts`: 6 → 'logic' (Trail/Switching/WCST/BART/Iowa/PRL), 14 → 'action' (Stroop/Flanker/GoNoGo/StopSignal/Counter/MathSprint/NumberBonds/ChoiceRT/Targets/SDMT/RMET/2 hubs)
+- `LanguageContext.tsx`: new `catAction` key; legacy `catControl`/`catMath`/`catSpeed`
+  point to «Скорость и торможение» for back-compat with any old code paths
+- `app/index.tsx`: `grouped` Record narrowed to 4-category type
+
+---
+
 ## [1.1.3] — 2026-05-23
 
 ### Added

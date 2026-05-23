@@ -1,10 +1,24 @@
+/**
+ * 4 categories (v1.2.0, Lumosity-style).
+ * Was 6 (memory/attention/logic/control/math/speed); collapsed to 4 for
+ * simpler discovery + more balanced category sizes (12/7/14/14 instead of
+ * lopsided 12/7/8/14/3/3).
+ *
+ * - 'memory'    — все memory games (12) — без изменений
+ * - 'attention' — только pure attention (7) — без изменений
+ * - 'logic'     — обдумать перед действием: logic + switching + risk (14)
+ *                  was 'logic' (8) + Trail/Switching/WCST (3) + BART/Iowa/PRL (3)
+ * - 'action'    — быстро и точно: inhibition + speed + math + social (14)
+ *                  was 'control' inhibition (7) + 'speed' (3) + 'math' (3) + RMET (1)
+ *
+ * Legacy categories 'control', 'math', 'speed' are removed; their games
+ * have been re-categorised to 'logic' or 'action' below.
+ */
 export type GameCategory =
   | 'memory'
   | 'attention'
   | 'logic'
-  | 'control'
-  | 'math'
-  | 'speed';
+  | 'action';
 
 export interface GameConfig {
   id: string;
@@ -23,18 +37,14 @@ export const CATEGORY_ORDER: GameCategory[] = [
   'memory',
   'attention',
   'logic',
-  'control',
-  'math',
-  'speed',
+  'action',
 ];
 
 export const CATEGORY_META: Record<GameCategory, { titleKey: string; icon: string; color: string }> = {
   memory:    { titleKey: 'catMemory',    icon: 'library-outline',         color: '#f093fb' },
   attention: { titleKey: 'catAttention', icon: 'eye-outline',             color: '#667eea' },
   logic:     { titleKey: 'catLogic',     icon: 'extension-puzzle-outline',color: '#a8c0ff' },
-  control:   { titleKey: 'catControl',   icon: 'hand-left-outline',       color: '#fc466b' },
-  math:      { titleKey: 'catMath',      icon: 'calculator-outline',      color: '#fa709a' },
-  speed:     { titleKey: 'catSpeed',     icon: 'flash-outline',           color: '#ff0844' },
+  action:    { titleKey: 'catAction',    icon: 'flash-outline',           color: '#fc466b' },
 };
 
 export const GAMES: GameConfig[] = [
@@ -268,7 +278,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#7c3aed', '#ec4899'],
     icon: 'layers',
     route: '/games/attention-conflict',
-    category: 'control',
+    category: 'action',
   },
   // Group card: Go/No-Go + Stop-Signal (action restraint vs cancellation)
   {
@@ -279,7 +289,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#11998e', '#ee0979'],
     icon: 'hand-left',
     route: '/games/inhibition',
-    category: 'control',
+    category: 'action',
   },
   {
     id: 'stroop',
@@ -289,7 +299,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#fc466b', '#3f5efb'],
     icon: 'eye',
     route: '/games/stroop',
-    category: 'control',
+    category: 'action',
     hideFromMenu: true, // merged into 'attention_conflict'
   },
   {
@@ -300,7 +310,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#11998e', '#38ef7d'],
     icon: 'pause-circle',
     route: '/games/go-no-go',
-    category: 'control',
+    category: 'action',
     hideFromMenu: true, // merged into 'inhibition'
   },
   {
@@ -311,7 +321,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#ee0979', '#ff6a00'],
     icon: 'hand-left',
     route: '/games/stop-signal',
-    category: 'control',
+    category: 'action',
     hideFromMenu: true, // merged into 'inhibition'
   },
   {
@@ -322,7 +332,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#fc6076', '#ff9a44'],
     icon: 'swap-horizontal',
     route: '/games/trail-making',
-    category: 'control',
+    category: 'logic',
   },
   {
     id: 'switching_task',
@@ -332,7 +342,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#7873f5', '#ff6ec4'],
     icon: 'swap-horizontal',
     route: '/games/switching-task',
-    category: 'control',
+    category: 'logic',
   },
   {
     id: 'wcst',
@@ -342,7 +352,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#834d9b', '#d04ed6'],
     icon: 'shuffle',
     route: '/games/wcst',
-    category: 'control',
+    category: 'logic',
   },
   {
     id: 'flanker',
@@ -352,7 +362,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#16222a', '#3a6073'],
     icon: 'flash',
     route: '/games/flanker',
-    category: 'control',
+    category: 'action',
     hideFromMenu: true, // merged into 'attention_conflict'
   },
   {
@@ -363,7 +373,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#8E2DE2', '#4A00E0'],
     icon: 'heart-dislike',
     route: '/games/stroop-emotional',
-    category: 'control',
+    category: 'action',
     hideFromMenu: true, // merged into 'attention_conflict'
   },
   {
@@ -374,7 +384,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#ff5e62', '#ff9966'],
     icon: 'warning',
     route: '/games/bart',
-    category: 'control',
+    category: 'logic',
   },
   {
     id: 'iowa',
@@ -384,7 +394,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#0F2027', '#2C5364'],
     icon: 'cash',
     route: '/games/iowa',
-    category: 'control',
+    category: 'logic',
   },
   {
     id: 'prl',
@@ -394,7 +404,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#1e3c72', '#2a5298'],
     icon: 'trending-up',
     route: '/games/prl',
-    category: 'control',
+    category: 'logic',
   },
 
   // MATH
@@ -406,7 +416,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#fa709a', '#fee140'],
     icon: 'add-circle',
     route: '/games/counter',
-    category: 'math',
+    category: 'action',
   },
   {
     id: 'math_sprint',
@@ -416,7 +426,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#fc4a1a', '#f7b733'],
     icon: 'calculator',
     route: '/games/math-sprint',
-    category: 'math',
+    category: 'action',
   },
   {
     id: 'number_bonds',
@@ -426,7 +436,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#36d1dc', '#5b86e5'],
     icon: 'git-merge',
     route: '/games/number-bonds',
-    category: 'math',
+    category: 'action',
   },
 
   // SPEED / REACTION
@@ -438,7 +448,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#ff0844', '#ffb199'],
     icon: 'disc',
     route: '/games/targets',
-    category: 'speed',
+    category: 'action',
   },
   {
     id: 'choice_rt',
@@ -448,7 +458,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#fdc830', '#f37335'],
     icon: 'arrow-forward-circle',
     route: '/games/choice-rt',
-    category: 'speed',
+    category: 'action',
   },
   {
     id: 'visual_search',
@@ -468,7 +478,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#0f2027', '#2c5364'],
     icon: 'apps',
     route: '/games/sdmt',
-    category: 'speed',
+    category: 'action',
   },
   {
     id: 'posner',
@@ -528,7 +538,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#fc466b', '#a445b2'],
     icon: 'eye',
     route: '/games/rmet',
-    category: 'control',
+    category: 'action',
   },
 ];
 
