@@ -118,9 +118,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     return unlockedThemed.has(id);
   }, [unlockedThemed]);
 
-  // Push current person to global on every change (for api.ts)
+  // Push current person + themed-flag to globals on every change (for api.ts level-unlocks)
   useEffect(() => {
     (globalThis as any).__psygames_active_person = profile.person;
+    (globalThis as any).__psygames_active_themed = profile.group === 'themed';
   }, [profile]);
 
   return (

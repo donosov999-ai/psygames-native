@@ -7,6 +7,7 @@ import { WarmupProvider } from '@/src/contexts/WarmupContext';
 import { ProfileProvider } from '@/src/contexts/ProfileContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import UnlockToast from '@/src/components/UnlockToast';
 
 function RootLayoutNav() {
   const { isDark, colors } = useTheme();
@@ -21,6 +22,8 @@ function RootLayoutNav() {
           animation: 'slide_from_right',
         }}
       />
+      {/* Global level-unlock toast (themed profiles only) */}
+      <UnlockToast />
     </>
   );
 }

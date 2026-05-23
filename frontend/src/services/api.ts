@@ -326,6 +326,23 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
   }
   // Fire-and-forget cloud sync (intentionally not awaited)
   pushToCloud(stored);
+
+  // Level progression check (themed profiles only).
+  // Globals are set by ProfileContext on every profile switch.
+  try {
+    const person = (globalThis as any).__psygames_active_person as string | undefined;
+    const isThemed = (globalThis as any).__psygames_active_themed as boolean | undefined;
+    if (person && isThemed) {
+      // Lazy import to avoid circular dep
+      const { checkAndMaybeUnlock } = await import('@/src/services/level-unlocks');
+      checkAndMaybeUnlock(person, true, stored).catch((e) =>
+        console.warn('level-unlock check failed:', e)
+      );
+    }
+  } catch (e) {
+    console.warn('level-unlock dispatch failed:', e);
+  }
+
   return stored;
 };
 

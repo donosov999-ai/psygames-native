@@ -14,6 +14,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { getUnlockedLevels, getNextLockedLevel } from '@/src/services/level-unlocks';
+import { LEVELS_BY_GAME } from '@/src/constants/level-progression';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 
@@ -38,11 +41,34 @@ export default function SchulteGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
   const windowDimensions = useWindowDimensions();
+  const { profile } = useProfile();
+  const isThemed = profile.group === 'themed';
 
   // Game configuration
   const [gridSize, setGridSize] = useState(5);
   const [colorMode, setColorMode] = useState(false);
   const [contentMode, setContentMode] = useState<ContentMode>('numbers');
+
+  // Level-progression: which grid sizes are unlocked for this themed profile?
+  // Personal profiles get an empty array meaning "no gating".
+  const [unlockedSet, setUnlockedSet] = useState<Set<string>>(new Set());
+  const [nextHint, setNextHint] = useState<string | null>(null);
+  useEffect(() => {
+    (async () => {
+      if (!isThemed) { setUnlockedSet(new Set()); setNextHint(null); return; }
+      const unlocked = await getUnlockedLevels(profile.person, true, 'schulte_table');
+      setUnlockedSet(new Set(unlocked));
+      const next = await getNextLockedLevel(profile.person, true, 'schulte_table');
+      if (next) {
+        const dot = next.consecutiveDone > 0
+          ? ` · прогресс ${next.consecutiveDone}/${next.condition.consecutive ?? 1}`
+          : '';
+        setNextHint(`🔒 Следующий ${next.level.label}: ${next.condition.human_hint}${dot}`);
+      } else {
+        setNextHint(null);
+      }
+    })();
+  }, [isThemed, profile.person]);
 
   // Game state
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -279,8 +305,12 @@ export default function SchulteGame() {
             // Limit max size for letters mode based on alphabet length
             const maxLetters = language === 'ru' ? 29 : 26;
             const maxSize = contentMode === 'letters' ? Math.floor(Math.sqrt(maxLetters)) : 10;
-            const isDisabled = size > maxSize;
-            
+            const modeDisabled = size > maxSize;
+            // Level-progression lock (themed profiles only)
+            const sizeKey = `${size}x${size}`;
+            const levelLocked = isThemed && unlockedSet.size > 0 && !unlockedSet.has(sizeKey);
+            const isDisabled = modeDisabled || levelLocked;
+
             return (
               <TouchableOpacity
                 key={size}
@@ -299,12 +329,17 @@ export default function SchulteGame() {
                     { color: gridSize === size && !isDisabled ? '#FFFFFF' : colors.text },
                   ]}
                 >
-                  {size}x{size}
+                  {size}x{size}{levelLocked ? ' 🔒' : ''}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </View>
+        {nextHint && (
+          <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, marginTop: 8, fontStyle: 'italic' }}>
+            {nextHint}
+          </Text>
+        )}
       </View>
 
       {/* Color Mode Selection */}
