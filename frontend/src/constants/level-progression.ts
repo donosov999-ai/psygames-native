@@ -67,54 +67,55 @@ export const LEVEL_PROGRESSION: GameLevels[] = [
     ],
   },
 
-  // N-back: уровень N
+  // N-back: уровень N. Игра сохраняет difficulty='1-back'/'2-back'/'3-back'.
   {
     game_id: 'n_back',
     match_by: 'difficulty',
     levels: [
-      { key: 'easy', label: '1-back (старт)' },
-      { key: 'medium', label: '2-back', unlock: { metric: 'd_prime_min', threshold: 1.5, human_hint: 'Достигни d′ ≥ 1.5 на 1-back' } },
-      { key: 'hard', label: '3-back', unlock: { metric: 'd_prime_min', threshold: 1.5, consecutive: 2, human_hint: 'Достигни d′ ≥ 1.5 на 2-back два раза подряд' } },
+      { key: '1-back', label: '1-back (старт)' },
+      { key: '2-back', label: '2-back', unlock: { metric: 'd_prime_min', threshold: 1.5, human_hint: 'Достигни d′ ≥ 1.5 на 1-back' } },
+      { key: '3-back', label: '3-back', unlock: { metric: 'd_prime_min', threshold: 1.5, consecutive: 2, human_hint: 'Достигни d′ ≥ 1.5 на 2-back два раза подряд' } },
+      { key: '4-back', label: '4-back (продвинутый)', unlock: { metric: 'd_prime_min', threshold: 1.5, consecutive: 2, human_hint: 'Достигни d′ ≥ 1.5 на 3-back два раза подряд' } },
     ],
   },
 
-  // Digit span: max_span достижение
+  // Digit span: направление (forward → backward, последний харднее).
+  // Игра сохраняет difficulty=direction = 'forward'/'backward'.
   {
     game_id: 'digit_span',
     match_by: 'difficulty',
     levels: [
-      { key: 'easy', label: 'Длина 3-5 (старт)' },
-      { key: 'medium', label: 'Длина 4-7', unlock: { metric: 'max_span_min', threshold: 5, human_hint: 'Достигни span ≥ 5 на лёгком' } },
-      { key: 'hard', label: 'Длина 5-9 (backward)', unlock: { metric: 'max_span_min', threshold: 6, consecutive: 2, human_hint: 'Достигни span ≥ 6 два раза подряд на medium' } },
+      { key: 'forward', label: 'Forward (старт)' },
+      { key: 'backward', label: 'Backward', unlock: { metric: 'max_span_min', threshold: 5, human_hint: 'Достигни span ≥ 5 на forward' } },
     ],
   },
 
-  // Corsi blocks (Spatial Span forward)
+  // Corsi blocks. Игра сохраняет difficulty=mode.
   {
     game_id: 'corsi',
     match_by: 'difficulty',
     levels: [
-      { key: 'easy', label: '3-5 блоков (старт)' },
-      { key: 'medium', label: '4-7 блоков', unlock: { metric: 'max_span_min', threshold: 4, human_hint: 'Достигни Corsi span ≥ 4 на лёгком' } },
-      { key: 'hard', label: '5-9 блоков', unlock: { metric: 'max_span_min', threshold: 5, consecutive: 2, human_hint: 'Достигни Corsi span ≥ 5 два раза подряд' } },
+      { key: 'forward', label: 'Forward (старт)' },
+      { key: 'backward', label: 'Backward', unlock: { metric: 'max_span_min', threshold: 4, human_hint: 'Достигни Corsi span ≥ 4 на forward' } },
     ],
   },
 
-  // Memory Matrix: размер сетки
+  // Memory Matrix: размер сетки. Игра сохраняет difficulty='3x3'/'4x4'/...
   {
     game_id: 'memory_matrix',
-    match_by: 'mode',
+    match_by: 'difficulty',
     levels: [
       { key: '3x3', label: '3×3 (старт)' },
       { key: '4x4', label: '4×4', unlock: { metric: 'hits_min', threshold: 8, human_hint: '8 правильных подряд на 3×3' } },
-      { key: '5x5', label: '5×5', unlock: { metric: 'hits_min', threshold: 6, consecutive: 2, human_hint: '6 правильных подряд на 4×4 два раза' } },
+      { key: '5x5', label: '5×5', unlock: { metric: 'hits_min', threshold: 6, consecutive: 2, human_hint: '6 правильных на 4×4 два раза' } },
+      { key: '6x6', label: '6×6', unlock: { metric: 'hits_min', threshold: 6, consecutive: 2, human_hint: '6 правильных на 5×5 два раза' } },
     ],
   },
 
-  // Picture Pairs: число пар
+  // Picture Pairs: число пар. Игра сохраняет difficulty='${N} pairs'.
   {
     game_id: 'picture_pairs',
-    match_by: 'mode',
+    match_by: 'difficulty',
     levels: [
       { key: '6 pairs', label: '6 пар (старт)' },
       { key: '8 pairs', label: '8 пар', unlock: { metric: 'time_seconds_max', threshold: 60, human_hint: 'Пройди 6 пар за ≤60 сек' } },

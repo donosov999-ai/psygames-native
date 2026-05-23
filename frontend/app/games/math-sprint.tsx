@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 
@@ -50,9 +51,10 @@ export default function MathSprintGame() {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
+  const gate = useLevelGate('math_sprint');
 
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [duration, setDuration] = useState(60);
   const [timeLeft, setTimeLeft] = useState(60);
   const [problem, setProblem] = useState<Problem | null>(null);
@@ -138,17 +140,26 @@ export default function MathSprintGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
         <View style={styles.optionButtons}>
-          {(['easy','medium','hard'] as Difficulty[]).map((d) => (
-            <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setDifficulty(d)}>
-              <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
-                {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')}
+          {(['easy','medium','hard'] as Difficulty[]).map((d) => {
+            const locked = gate.isLocked(d);
+            return (
+            <TouchableOpacity key={d} disabled={locked}
+              style={[styles.modeButton, difficulty === d && !locked
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 }]}
+              onPress={() => !locked && setDifficulty(d)}>
+              <Text style={[styles.modeButtonText, { color: difficulty === d && !locked ? '#FFF' : colors.text }]}>
+                {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')}{locked ? ' 🔒' : ''}
               </Text>
             </TouchableOpacity>
-          ))}
+            );
+          })}
         </View>
+        {gate.nextHint && (
+          <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, marginTop: 8, fontStyle: 'italic' }}>
+            {gate.nextHint}
+          </Text>
+        )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('durationLabel')}</Text>

@@ -31,6 +31,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 
@@ -312,12 +313,13 @@ export default function MentalRotationGame() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const gate = useLevelGate('mental_rotation');
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [trials, setTrials] = useState(10);
 
   const [round, setRound] = useState(0);
-  const [trial, setTrial] = useState(() => makeTrial('medium'));
+  const [trial, setTrial] = useState(() => makeTrial('easy'));
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [feedback, setFeedback] = useState<{ idx: number; ok: boolean } | null>(null);
@@ -418,18 +420,25 @@ export default function MentalRotationGame() {
           {(['easy','medium','hard'] as Difficulty[]).map((d) => {
             const cfg = CUBES_BY_DIFF[d];
             const axesN = AXES_BY_DIFF[d].length;
+            const locked = gate.isLocked(d);
             return (
-              <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
-                ? { backgroundColor: GRADIENT[0] }
-                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-                onPress={() => setDifficulty(d)}>
-                <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
-                  {t(d)} ({cfg[0]}-{cfg[1]} cubes · {axesN}D)
+              <TouchableOpacity key={d} disabled={locked}
+                style={[styles.modeButton, difficulty === d && !locked
+                  ? { backgroundColor: GRADIENT[0] }
+                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 }]}
+                onPress={() => !locked && setDifficulty(d)}>
+                <Text style={[styles.modeButtonText, { color: difficulty === d && !locked ? '#FFF' : colors.text }]}>
+                  {t(d)} ({cfg[0]}-{cfg[1]} cubes · {axesN}D){locked ? ' 🔒' : ''}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </View>
+        {gate.nextHint && (
+          <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, marginTop: 8, fontStyle: 'italic' }}>
+            {gate.nextHint}
+          </Text>
+        )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
