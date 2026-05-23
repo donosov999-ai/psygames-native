@@ -5,6 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Switch,
+  Modal,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -21,8 +24,26 @@ import {
 export default function SettingsScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
   const { t, language, setLanguage } = useLanguage();
-  const { profile, switchProfile, allProfiles } = useProfile();
+  const {
+    profile, switchProfile, allProfiles,
+    unlockedThemed, redeemCode, resetUnlocks, isAccessible,
+  } = useProfile();
   const router = useRouter();
+  // Unlock-code modal state
+  const [codeModalOpen, setCodeModalOpen] = React.useState(false);
+  const [codeInput, setCodeInput] = React.useState('');
+  const [codeError, setCodeError] = React.useState<string | null>(null);
+
+  const tryRedeem = async () => {
+    setCodeError(null);
+    const id = await redeemCode(codeInput);
+    if (id) {
+      setCodeModalOpen(false);
+      setCodeInput('');
+    } else {
+      setCodeError('Неверный код. Проверь и попробуй ещё раз.');
+    }
+  };
   const [soundOn, setSoundOn] = React.useState(true);
   const [hapticOn, setHapticOn] = React.useState(true);
   React.useEffect(() => {
@@ -92,23 +113,38 @@ export default function SettingsScreen() {
         {/* Themed (commercial) profiles */}
         {allProfiles.some(p => p.group === 'themed') && (
           <>
-            <Text style={[styles.groupLabel, { color: colors.textSecondary, marginTop: 16 }]}>
-              🎯 Тематические (9 игр каждый)
-            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, marginBottom: 4 }}>
+              <Text style={[styles.groupLabel, { color: colors.textSecondary, marginTop: 0, marginBottom: 0 }]}>
+                🎯 Тематические (9 игр каждый)
+              </Text>
+              <TouchableOpacity onPress={() => setCodeModalOpen(true)} style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text }}>🔑 Ввести код</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.profileGrid}>
               {allProfiles.filter(p => p.group === 'themed').map((p) => {
                 const active = p.id === profile.id;
+                const accessible = isAccessible(p.id);   // FREE is always accessible; others need unlock
+                const locked = !accessible;
                 return (
                   <TouchableOpacity
                     key={p.id}
+                    disabled={locked}
                     style={[styles.profileCard, {
                       backgroundColor: active ? p.color : colors.card,
                       borderColor: active ? p.color : colors.border,
                       borderWidth: 2,
+                      opacity: locked ? 0.55 : 1,
                     }]}
-                    onPress={() => switchProfile(p.id)}
+                    onPress={() => {
+                      if (locked) {
+                        setCodeModalOpen(true);
+                      } else {
+                        switchProfile(p.id);
+                      }
+                    }}
                   >
-                    <Text style={styles.profileEmoji}>{p.emoji}</Text>
+                    <Text style={styles.profileEmoji}>{p.emoji}{locked && '🔒'}</Text>
                     <Text style={[styles.profileName, { color: active ? '#000' : colors.text }]}>
                       {p.display_name}
                     </Text>
@@ -120,9 +156,66 @@ export default function SettingsScreen() {
                 );
               })}
             </View>
+            {unlockedThemed.size > 0 && (
+              <TouchableOpacity onPress={() => {
+                Alert.alert(
+                  'Сбросить разблокировки?',
+                  'Все ранее введённые коды забудутся. Чтобы вернуть профили — нужно будет снова ввести коды.',
+                  [
+                    { text: 'Отмена', style: 'cancel' },
+                    { text: 'Сбросить', style: 'destructive', onPress: () => resetUnlocks() },
+                  ]
+                );
+              }} style={{ marginTop: 8, alignSelf: 'flex-end' }}>
+                <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                  Разблокировано: {unlockedThemed.size} · 🗑 Сбросить
+                </Text>
+              </TouchableOpacity>
+            )}
           </>
         )}
       </View>
+
+      {/* Unlock-code modal */}
+      <Modal visible={codeModalOpen} animationType="fade" transparent onRequestClose={() => setCodeModalOpen(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 22, gap: 14 }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 Код доступа</Text>
+            <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
+              Введите код чтобы разблокировать тематический профиль (Шахматист, Дети, Скорочтение, NZT-48, Водители, 50+, Предприниматели, Студенты ЕГЭ).
+            </Text>
+            <TextInput
+              value={codeInput}
+              onChangeText={(t) => { setCodeInput(t); setCodeError(null); }}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              placeholder="например, CHESS-NZT-2026"
+              placeholderTextColor={colors.textSecondary}
+              style={{
+                borderWidth: 1,
+                borderColor: codeError ? '#ef4444' : colors.border,
+                borderRadius: 10,
+                padding: 12,
+                fontSize: 16,
+                color: colors.text,
+                fontFamily: 'monospace',
+              }}
+              onSubmitEditing={tryRedeem}
+            />
+            {codeError && <Text style={{ fontSize: 12, color: '#ef4444' }}>{codeError}</Text>}
+            <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'flex-end' }}>
+              <TouchableOpacity onPress={() => { setCodeModalOpen(false); setCodeInput(''); setCodeError(null); }}
+                style={{ paddingVertical: 10, paddingHorizontal: 16 }}>
+                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>Отмена</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={tryRedeem}
+                style={{ paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#10b981', borderRadius: 8 }}>
+                <Text style={{ color: '#fff', fontWeight: '700' }}>Разблокировать</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Settings List */}
       <View style={styles.settingsList}>

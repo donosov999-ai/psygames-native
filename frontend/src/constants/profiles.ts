@@ -16,7 +16,8 @@ import type { PlaylistStep, Weekday } from '@/src/services/warmup';
 
 export type ProfileId =
   | 'denis' | 'alex' | 'valya' | 'yulya' | 'guest'       // personal (existing)
-  | 'chess' | 'kids' | 'vasilyeva' | 'nzt48' | 'free';   // themed (2026-05-17 commercial)
+  | 'chess' | 'kids' | 'vasilyeva' | 'nzt48' | 'free'    // themed (2026-05-17 commercial, batch 1)
+  | 'drivers' | 'seniors' | 'execs' | 'students';        // themed batch 2 (commercial)
 
 /** UI grouping for Settings screen */
 export type ProfileGroup = 'personal' | 'themed';
@@ -350,13 +351,119 @@ const FREE: ProfileDef = {
   assessment_enabled: false,
 };
 
+// ─── 🚗 DRIVERS — Водители / таксопарки ────────────────────────────────
+// Sustained attention + reaction + peripheral processing.
+const DRIVERS: ProfileDef = {
+  id: 'drivers',
+  person: 'Водитель',
+  display_name: 'Водители',
+  emoji: '🚗',
+  color: '#3b82f6',
+  description: '9 игр для автошкол/таксопарков: внимание + реакция + peripheral',
+  group: 'themed',
+  allowed_games: [
+    'cpt',                // sustained attention (vigilance на длинном маршруте)
+    'schulte_table',      // сканирование дороги
+    'trail_making',       // переключение внимания между объектами
+    'visual_search',      // быстрый scan
+    'targets',            // реакция
+    'choice_rt',          // выбор направления реакции
+    'attention_conflict', // Flanker/Stroop (тормозим импульс)
+    'n_back',             // удержание контекста (что в зеркалах)
+    'find_differences',   // микро-различия на дороге
+  ],
+  warmup_enabled: true,
+  financial_brain_day_enabled: false,
+  assessment_enabled: true,
+};
+
+// ─── 👴 SENIORS — 50+ / профилактика деменции ──────────────────────────
+// Память + processing speed + active aging. Без сложных WM-под-нагрузкой.
+const SENIORS: ProfileDef = {
+  id: 'seniors',
+  person: '50+',
+  display_name: '50+ профилактика',
+  emoji: '👴',
+  color: '#8b5cf6',
+  description: '9 игр для 50+: память + processing speed + замедление старения',
+  group: 'themed',
+  allowed_games: [
+    'picture_pairs',     // память на образы
+    'memory_matrix',     // зрительная память
+    'sdmt',              // processing speed (золотой стандарт для возраста)
+    'trail_making',      // executive + speed
+    'schulte_table',     // attention
+    'word_pairs',        // вербальная память
+    'mnemonics',         // sequence memory
+    'counter',           // устный счёт (бытовой)
+    'anagrams',          // буквы (когда читали — vocab остаётся)
+  ],
+  warmup_enabled: true,
+  financial_brain_day_enabled: false,
+  assessment_enabled: true,
+};
+
+// ─── 💼 EXECS — Предприниматели / решения под давлением ────────────────
+// Risk + multitasking + executive function под давлением.
+const EXECS: ProfileDef = {
+  id: 'execs',
+  person: 'Предприниматель',
+  display_name: 'Предприниматели',
+  emoji: '💼',
+  color: '#0f766e',
+  description: '9 игр для решений под давлением: risk + WM + planning + flexibility',
+  group: 'themed',
+  allowed_games: [
+    'bart',              // risk decision-making
+    'iowa',              // long-term strategy под неопределённостью
+    'prl',               // reversal learning (когда правила меняются)
+    'n_back',            // WM под нагрузкой (DUAL внутри)
+    'cpt',               // sustained attention на длинных созвонах
+    'attention_conflict',// inhibition (тормозить импульсивные решения)
+    'switching_task',    // multitasking
+    'tower_london',      // strategic planning
+    'pattern',           // распознавание трендов
+  ],
+  warmup_enabled: true,
+  financial_brain_day_enabled: true,   // их домен
+  assessment_enabled: true,
+};
+
+// ─── 🎓 STUDENTS — Студенты ЕГЭ/ОГЭ ────────────────────────────────────
+// Фокус + память + скорость. Под подготовку к долгим экзаменам.
+const STUDENTS: ProfileDef = {
+  id: 'students',
+  person: 'Студент',
+  display_name: 'Студенты ЕГЭ',
+  emoji: '🎓',
+  color: '#f97316',
+  description: '9 игр для подготовки к ЕГЭ/ОГЭ: фокус + память + скорость',
+  group: 'themed',
+  allowed_games: [
+    'math_sprint',       // арифметика
+    'reading_span',      // WM при чтении (понимание текста)
+    'story_recall',      // удержание информации
+    'schulte_table',     // концентрация
+    'n_back',            // WM (формулы в голове)
+    'pattern',           // паттерны в задачах
+    'counter',           // устный счёт
+    'anagrams',          // вербальная гибкость
+    'memory_matrix',     // зрительная память (карты, схемы)
+  ],
+  warmup_enabled: true,
+  financial_brain_day_enabled: false,
+  assessment_enabled: true,
+};
+
 // ─── Export ─────────────────────────────────────────────────────────────
 
 export const PROFILES: ProfileDef[] = [
   // Personal (existing)
   DENIS, ALEX, VALYA, YULYA, GUEST,
-  // Themed (commercial, 2026-05-17)
+  // Themed batch 1 (commercial, 2026-05-17)
   CHESS, KIDS, VASILYEVA, NZT48, FREE,
+  // Themed batch 2 (commercial, 2026-05-17)
+  DRIVERS, SENIORS, EXECS, STUDENTS,
 ];
 
 export const PROFILE_BY_ID: Record<ProfileId, ProfileDef> = PROFILES.reduce((acc, p) => {
