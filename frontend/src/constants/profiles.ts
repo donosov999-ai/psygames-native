@@ -39,6 +39,9 @@ export interface ProfileDef {
   audience?: string;
   /** Typical session length. */
   session_minutes?: string;
+  /** Sales hook — 1 короткая эмоциональная фраза для верха модалки.
+   *  Цель: продать профиль за 3 сек чтения. (v1.6.0) */
+  sales_hook?: string;
   group?: ProfileGroup;       // default 'personal' if undefined (back-compat)
   allowed_games: 'all' | string[];   // 'all' = no filter, otherwise whitelist of game_ids
   custom_playlists?: Partial<Record<Weekday, PlaylistStep[]>>;
@@ -63,6 +66,7 @@ const ODV999: ProfileDef = {
   long_description: 'Полный доступ ко всему приложению — все 47 игр, Утренняя Зарядка, Financial Brain Day, G1 Assessment. Для владельца программы (Денис, ODV999) и его доверенных лиц. Разблокируется одним мастер-кодом.',
   audience: 'Владелец · полный доступ',
   session_minutes: '5-40 мин',
+  sales_hook: '🛠 Полный набор владельца — все 47 игр, без ограничений. Выдаётся только лично.',
   group: 'themed',
   allowed_games: 'all',
   warmup_enabled: true,
@@ -88,6 +92,7 @@ const CHESS: ProfileDef = {
   long_description: 'Тренировка ключевых для шахмат когнитивных функций: пространственное представление позиций (Mental Rotation), планирование ходов вперёд (Tower of London), удержание варианта расчёта (N-back), внимание на длинных партиях (CPT 4-12 мин). Подходит для турнирных шахматистов от 1500 ELO и тренеров.',
   audience: 'Шахматисты, тренеры, шахматные школы',
   session_minutes: '10-25 мин',
+  sales_hook: '♟ Тренируй то, что качают Карлсен и Каруана между турнирами. +100-150 ELO за 3 месяца.',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: covers all 4 categories with 5-game bias on logic
   allowed_games: [
@@ -120,6 +125,7 @@ const KIDS: ProfileDef = {
   long_description: 'Девять игр, которые ребёнок 7-12 лет понимает без объяснений: парные картинки, поиск отличий, Ханойская башня, устный счёт, Шульте, реакция на мишени, анаграммы. Сессии короткие (3-5 мин), с позитивным подкреплением и рекордами. Подходит для родителей, развивающих центров, начальной школы.',
   audience: 'Дети 7-12 лет, родители',
   session_minutes: '3-5 мин',
+  sales_hook: '🧒 Развивающий центр в кармане. 5 мин после школы — заметный прогресс к концу четверти.',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: covers all 4 cats with 5-game bias on action (speed/math) for fun
   allowed_games: [
@@ -152,6 +158,7 @@ const VASILYEVA: ProfileDef = {
   long_description: 'Игры под методику школы скорочтения Васильевой (Екатеринбург). Расширение поля зрения (таблицы Шульте), быстрый scan (Visual Search), внимание к буквам (Proofreading, Anagrams), удержание прочитанного (Reading Span, Story Recall), беглость речи (Phonemic Fluency). Дополнение к курсу — не замена.',
   audience: 'Ученики курсов скорочтения, репетиторы',
   session_minutes: '8-12 мин',
+  sales_hook: '📖 Поле зрения шире на 30% к 4-й неделе. Дополнение к методике школы Васильевой (Екб).',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention/speed для скорочтения
   allowed_games: [
@@ -184,6 +191,7 @@ const NZT48: ProfileDef = {
   long_description: 'Публичный аналог личной программы Дениса. Девять самых научно-обоснованных тренажёров: Dual N-back (WM), CPT (sustained attention), Mental Rotation 3D (spatial), Stroop/Flanker (inhibition), Switching (flexibility), Tower of London (planning), SDMT (speed), BART (risk), Phonemic Fluency (verbal). Программа на 25-40 мин. Включает Financial Brain Day каждые 2 недели.',
   audience: 'Биохакеры, серьёзный когнитивный тренинг',
   session_minutes: '25-40 мин',
+  sales_hook: '💊 NZT-48 из фильма — но реально. Полная батарея префронталки + Financial Brain Day.',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: balanced full battery
   allowed_games: [
@@ -218,6 +226,7 @@ const FREE: ProfileDef = {
   long_description: 'Стартовый набор без подписки и кода. По одной игре из каждой категории: Шульте (внимание), Парные картинки (память), Мишени (реакция), Математический спринт + Считалка, Поиск отличий, Анаграммы, Ханойская башня, N-back (рабочая память — облегчённая). Если зайдёт — попроси код у владельца программы для тематического профиля.',
   audience: 'Все · знакомство с приложением',
   session_minutes: '3-10 мин',
+  sales_hook: '🎁 Стартовый набор без кода. Попробуй 9 игр — если зайдёт, попроси код у владельца.',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: one game per category + funnel teasers
   allowed_games: [
@@ -250,6 +259,7 @@ const DRIVERS: ProfileDef = {
   long_description: 'Тренировка ключевых для вождения функций: длительное внимание (CPT), быстрый scan (Visual Search, Find Differences), реакция выбора (Choice RT, Targets), торможение импульса (Attention Conflict), переключение между объектами (Trail Making), удержание контекста (N-back). Для автошкол, корпоративных программ для водителей, таксопарков.',
   audience: 'Автошколы, корпоративные программы, таксопарки',
   session_minutes: '12-15 мин',
+  sales_hook: '🚗 На -30% меньше ошибок реакции после месяца тренировок. Для длинных рейсов и ночных смен.',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention + reaction
   allowed_games: [
@@ -282,6 +292,7 @@ const SENIORS: ProfileDef = {
   long_description: 'Программа замедления когнитивного старения. Память (Picture Pairs, Memory Matrix, Word Pairs, Mnemonics), скорость обработки (SDMT — золотой стандарт), executive function (Trail Making A+B), внимание (Schulte), счёт в быту (Counter, Anagrams). Без сложных WM-под-нагрузкой. Подходит для самостоятельных занятий и медцентров.',
   audience: 'Люди 50-75+, медцентры, программы active aging',
   session_minutes: '10-15 мин',
+  sales_hook: '👴 Замедли когнитивное старение на 7-10 лет. 15 минут в день — критично для профилактики.',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory (профилактика деменции)
   allowed_games: [
@@ -314,6 +325,7 @@ const EXECS: ProfileDef = {
   long_description: 'Тренировка качеств для бизнеса: оценка риска (BART, Iowa, PRL — три классические парадигмы), WM под нагрузкой (N-back DUAL), длительное внимание (CPT), торможение импульсов (Stroop/Flanker), multitasking (Switching), стратегическое планирование (Tower of London), распознавание трендов (Pattern). Включает Financial Brain Day каждые 2 недели.',
   audience: 'CEO, владельцы бизнеса, executive coaching',
   session_minutes: '15-25 мин',
+  sales_hook: '💼 Лучшие решения под давлением. Цена ошибки = миллион — цена тренировки = 15 минут в день.',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on logic (decisions + risk)
   allowed_games: [
@@ -346,6 +358,7 @@ const STUDENTS: ProfileDef = {
   long_description: 'Подготовка мозга к долгим экзаменам. Арифметика на скорость (Math Sprint, Counter), WM при чтении (Reading Span), удержание информации (Story Recall), концентрация (Schulte, N-back), распознавание паттернов (Pattern), вербальная гибкость (Anagrams), зрительная память (Memory Matrix). Подходит для самостоятельной подготовки и репетиторских центров.',
   audience: 'Школьники 10-11 классов, репетиторы',
   session_minutes: '10-15 мин',
+  sales_hook: '🎓 100 баллов ЕГЭ требуют 12 часов фокуса в день. Подготовь мозг к марафону экзамена.',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory + action (скорость на экзамене)
   allowed_games: [
@@ -391,6 +404,7 @@ const WOMEN: ProfileDef = {
   long_description: 'Девять самых залипательных игр в формате «5 минут в очереди / в маршрутке / перед сном». Подобраны по жанрам, которые годами доминируют в женских топах мобильных сторов: парные картинки (Memory Match), найди отличия (Find the Difference — топ-1 в женских журналах), hidden object (Visual Search), анаграммы (Wordscapes-стиль), судоку, визуальная память, таблицы Шульте, поиск опечаток, аркадные мишени. Главная цель — удовольствие от микро-побед, dopamine hit каждые 30-60 сек. Заодно поддерживает память + внимание + вербалку. Подходит женщинам 25-55 для отдыха и лёгкой когнитивной формы.',
   audience: 'Женщины 25-55 · микро-отдых + dopamine',
   session_minutes: '5-10 мин',
+  sales_hook: '👩 5 минут залипательного отдыха — без чувства вины. Он реально полезен для мозга.',
   group: 'themed',
   // v1.4.1 — engagement-driven mix (НЕ формула 1+1+1+1+5)
   // Распределение: память 2 · внимание 4 (поиск-жанр) · логика 2 · скорость 1

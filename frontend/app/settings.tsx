@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   Alert,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -20,6 +21,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getSoundEnabled, getHapticEnabled, setSoundEnabled, setHapticEnabled,
 } from '@/src/services/feedback';
+import type { ProfileDef } from '@/src/constants/profiles';
+import { GAMES } from '@/src/constants/games';
+
+// Telegram-аккаунт владельца для запроса кодов разблокировки.
+const OWNER_TG = 'Denis_On999';
+
+/** Emoji-mapping для категории игры (для модалки деталей профиля). */
+const CATEGORY_EMOJI: Record<string, string> = {
+  memory: '🧠',
+  attention: '🎯',
+  logic: '🧩',
+  action: '⚡',
+};
 
 export default function SettingsScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
@@ -33,6 +47,19 @@ export default function SettingsScreen() {
   const [codeModalOpen, setCodeModalOpen] = React.useState(false);
   const [codeInput, setCodeInput] = React.useState('');
   const [codeError, setCodeError] = React.useState<string | null>(null);
+  // Profile detail modal state (v1.6.0) — открывается при клике на locked профиль
+  const [detailProfile, setDetailProfile] = React.useState<ProfileDef | null>(null);
+
+  /** Открыть Telegram с pre-filled сообщением для запроса кода. */
+  const requestCodeViaTelegram = (p: ProfileDef) => {
+    const msg = encodeURIComponent(
+      `Привет, Денис! Хочу получить код доступа к профилю «${p.display_name}» (${p.emoji}) в PsyGames. Это для меня / для (укажи кому, если в подарок).`
+    );
+    const url = `https://t.me/${OWNER_TG}?text=${msg}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Не удалось открыть Telegram', `Напиши вручную: @${OWNER_TG}`);
+    });
+  };
 
   const tryRedeem = async () => {
     setCodeError(null);
@@ -134,7 +161,8 @@ export default function SettingsScreen() {
                 return (
                   <TouchableOpacity
                     key={p.id}
-                    disabled={locked}
+                    // v1.6.0: убрали disabled — теперь locked-карточки кликабельные
+                    // и открывают modal с описанием/хуком/инструкцией как получить код
                     style={[styles.profileCard, {
                       backgroundColor: active ? p.color : colors.card,
                       borderColor: active ? p.color : colors.border,
@@ -143,10 +171,16 @@ export default function SettingsScreen() {
                     }]}
                     onPress={() => {
                       if (locked) {
-                        setCodeModalOpen(true);
+                        // v1.6.0: клик по locked → показать детальную модалку
+                        // (с описанием, хуком, играми, кнопками «ввести код» / «получить в TG»)
+                        setDetailProfile(p);
                       } else {
                         switchProfile(p.id);
                       }
+                    }}
+                    onLongPress={() => {
+                      // Long press на любой карточке (locked или unlocked) → детали
+                      setDetailProfile(p);
                     }}
                   >
                     <Text style={styles.profileEmoji}>{p.emoji}{locked && '🔒'}</Text>
@@ -223,6 +257,141 @@ export default function SettingsScreen() {
                 <Text style={{ color: '#fff', fontWeight: '700' }}>Разблокировать</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Profile Detail Modal (v1.6.0) — описание, хук, список игр + кнопки */}
+      <Modal visible={detailProfile !== null} animationType="slide" transparent onRequestClose={() => setDetailProfile(null)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' }}>
+            {detailProfile && (
+              <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 30 }}>
+                {/* Header */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                    <Text style={{ fontSize: 38 }}>{detailProfile.emoji}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text }}>{detailProfile.display_name}</Text>
+                      {detailProfile.audience && (
+                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>👥 {detailProfile.audience}</Text>
+                      )}
+                    </View>
+                  </View>
+                  <TouchableOpacity onPress={() => setDetailProfile(null)} style={{ padding: 4 }}>
+                    <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Sales hook */}
+                {detailProfile.sales_hook && (
+                  <View style={{
+                    backgroundColor: detailProfile.color + '22',
+                    borderLeftWidth: 4,
+                    borderLeftColor: detailProfile.color,
+                    paddingVertical: 10, paddingHorizontal: 12,
+                    borderRadius: 8,
+                    marginTop: 8, marginBottom: 14,
+                  }}>
+                    <Text style={{ fontSize: 14, color: colors.text, lineHeight: 19, fontWeight: '600' }}>
+                      {detailProfile.sales_hook}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Long description */}
+                {detailProfile.long_description && (
+                  <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 19, marginBottom: 14 }}>
+                    {detailProfile.long_description}
+                  </Text>
+                )}
+
+                {/* Metadata row */}
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                  {detailProfile.session_minutes && (
+                    <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
+                      <Text style={{ fontSize: 11, color: colors.text }}>⏱ {detailProfile.session_minutes}</Text>
+                    </View>
+                  )}
+                  {detailProfile.warmup_enabled && (
+                    <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
+                      <Text style={{ fontSize: 11, color: colors.text }}>☀️ Утренняя Зарядка</Text>
+                    </View>
+                  )}
+                  {detailProfile.financial_brain_day_enabled && (
+                    <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
+                      <Text style={{ fontSize: 11, color: colors.text }}>💰 Financial Brain Day</Text>
+                    </View>
+                  )}
+                  {detailProfile.assessment_enabled && (
+                    <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
+                      <Text style={{ fontSize: 11, color: colors.text }}>📊 G1 Assessment</Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Games list */}
+                <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 10 }}>
+                  🎮 {detailProfile.allowed_games === 'all' ? 'Все 47 игр' : `${(detailProfile.allowed_games as string[]).length} игр в этом профиле`}
+                </Text>
+                {detailProfile.allowed_games !== 'all' && (
+                  <View style={{ gap: 6, marginBottom: 18 }}>
+                    {(detailProfile.allowed_games as string[]).map(gameId => {
+                      const game = GAMES.find(g => g.id === gameId);
+                      if (!game) return null;
+                      return (
+                        <View key={gameId} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}>
+                          <Text style={{ fontSize: 16 }}>{CATEGORY_EMOJI[game.category] || '•'}</Text>
+                          <Text style={{ fontSize: 13, color: colors.text, flex: 1 }}>{t(game.nameKey)}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                )}
+                {detailProfile.allowed_games === 'all' && (
+                  <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 18, fontStyle: 'italic' }}>
+                    Полная библиотека: 12 памяти · 7 внимания · 14 логики · 14 скорости/торможения. Все 47 — без ограничений.
+                  </Text>
+                )}
+
+                {/* Action buttons */}
+                {!isAccessible(detailProfile.id) && (
+                  <View style={{ gap: 10 }}>
+                    <TouchableOpacity
+                      onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
+                      style={{ backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
+                    >
+                      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>🔑 У меня уже есть код — ввести</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => requestCodeViaTelegram(detailProfile)}
+                      style={{ backgroundColor: '#0088cc', paddingVertical: 14, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+                    >
+                      <Ionicons name="paper-plane" size={18} color="#fff" />
+                      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>Запросить код у @{OWNER_TG}</Text>
+                    </TouchableOpacity>
+                    <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
+                      Напиши Денису в Telegram — он выдаст персональный код доступа{'\n'}за 5 минут (рабочие часы Мск).
+                    </Text>
+                  </View>
+                )}
+
+                {/* Если уже разблокирован — кнопка «Активировать» */}
+                {!!isAccessible(detailProfile.id) && detailProfile.id !== profile.id && (
+                  <TouchableOpacity
+                    onPress={() => { switchProfile(detailProfile.id); setDetailProfile(null); }}
+                    style={{ backgroundColor: detailProfile.color, paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
+                  >
+                    <Text style={{ color: '#000', fontWeight: '800', fontSize: 15 }}>✓ Переключиться на этот профиль</Text>
+                  </TouchableOpacity>
+                )}
+                {detailProfile.id === profile.id && (
+                  <View style={{ backgroundColor: detailProfile.color + '33', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}>
+                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>✓ Это твой текущий профиль</Text>
+                  </View>
+                )}
+              </ScrollView>
+            )}
           </View>
         </View>
       </Modal>
@@ -333,8 +502,8 @@ export default function SettingsScreen() {
 
       {/* App Info */}
       <View style={styles.appInfo}>
-        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.5.0 · {profile.emoji} {profile.display_name}</Text>
-        <Text style={[styles.appVersion, { color: colors.textSecondary }]}>11 профилей · keygen с динамическими кодами</Text>
+        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.6.0 · {profile.emoji} {profile.display_name}</Text>
+        <Text style={[styles.appVersion, { color: colors.textSecondary }]}>Клик по профилю → детали + запрос кода в Telegram</Text>
       </View>
       </ScrollView>
     </SafeAreaView>
