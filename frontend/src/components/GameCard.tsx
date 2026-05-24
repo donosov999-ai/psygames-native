@@ -28,24 +28,31 @@ export default function GameCard({
   const cardWidth = width ?? Math.min((winWidth - 48) / 2, 180);
   const cardHeight = height ?? cardWidth * 1.2;
 
+  // CRITICAL: dimensions on outer TouchableOpacity (not inner LinearGradient).
+  // Otherwise wrap-row flex layout in RN Web measures rows independently and
+  // shorter rows collapse (row 1 vs row 2 mismatch).
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={{ width: cardWidth }}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      style={{ width: cardWidth, height: cardHeight }}
+    >
       <LinearGradient
         colors={gradient as [string, string]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.card, { width: cardWidth, height: cardHeight }]}
+        style={styles.card}
       >
         {/* Icon — top, fixed position */}
         <View style={styles.iconContainer}>
           <Ionicons name={icon as any} size={28} color="#FFFFFF" />
         </View>
-        {/* Title + desc — middle, fixed offset from icon (not space-between!) */}
+        {/* Title + desc — middle, flex:1 fills available space */}
         <View style={styles.textContainer}>
           <Text style={styles.title} numberOfLines={2}>{t(nameKey)}</Text>
           <Text style={styles.description} numberOfLines={2}>{t(descKey)}</Text>
         </View>
-        {/* Badge — bottom, pinned via marginTop:auto */}
+        {/* Badge — pinned to bottom (after flex:1 textContainer) */}
         <View style={styles.skillBadge}>
           <Ionicons name="fitness-outline" size={12} color="rgba(255,255,255,0.9)" />
           <Text style={styles.skillText} numberOfLines={1}>{t(skillKey)}</Text>
@@ -57,10 +64,10 @@ export default function GameCard({
 
 const styles = StyleSheet.create({
   card: {
+    flex: 1,                       // fill TouchableOpacity (cardWidth × cardHeight)
     borderRadius: 20,
     padding: 14,
-    // No justifyContent: items stack from top with explicit margins below.
-    // Removed `space-between` to avoid empty-gap shifting when desc is short.
+    flexDirection: 'column',
   },
   iconContainer: {
     width: 48,
@@ -71,8 +78,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   textContainer: {
+    flex: 1,                       // fills space between icon and badge
     marginTop: 12,
     gap: 4,
+    justifyContent: 'flex-start',
   },
   title: {
     fontSize: 15,
@@ -93,7 +102,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignSelf: 'flex-start',
     maxWidth: '100%',
-    marginTop: 'auto',   // pin to bottom of card regardless of desc length
+    // No marginTop:auto: textContainer flex:1 already pushes badge to bottom.
   },
   skillText: {
     fontSize: 10,

@@ -14,6 +14,21 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.2.2] — 2026-05-24
+
+### Fixed
+- **GameCard: row heights still differed between rows** (row 1 was taller
+  than row 2 visually). v1.2.1 didn't fully fix it because dimensions
+  were set on inner LinearGradient, not outer TouchableOpacity. RN Web
+  wrap-flex measures each row's cross-size independently, so shorter
+  rows could collapse to the natural content height.
+- Moved `{width, height}` to outer TouchableOpacity (forces explicit
+  layout dimensions per card). LinearGradient now uses `flex: 1` to
+  fill its parent. TextContainer uses `flex: 1` to push badge to bottom.
+  All cards on all rows now perfectly equal.
+
+---
+
 ## [1.2.1] — 2026-05-24
 
 ### Fixed
