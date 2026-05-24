@@ -14,6 +14,22 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.2.4] — 2026-05-24
+
+### Fixed
+- **GameCard sizes differed BETWEEN sections** (Память cards taller +
+  narrower than Внимание cards on same page). Sections with fewer cards
+  had cards rendered with different dimensions because RN Web's
+  `flexBasis` + `width` combination on TouchableOpacity wasn't reliably
+  honored — flex distribution still leaked through.
+- Wrapped GameCard contents in an outer plain `<View style={{width:X, height:Y}}>`.
+  In RN Web a plain View with inline width/height renders as `<div style="width:Xpx;height:Ypx">`,
+  which is rock-solid against any flex math. TouchableOpacity + LinearGradient
+  inside use `flex:1` to fill it exactly.
+- Every game card on every section is now EXACTLY cardWidth × cardHeight.
+
+---
+
 ## [1.2.3] — 2026-05-24
 
 ### Fixed

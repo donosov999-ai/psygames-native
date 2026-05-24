@@ -28,27 +28,27 @@ export default function GameCard({
   const cardWidth = width ?? Math.min((winWidth - 48) / 2, 180);
   const cardHeight = height ?? cardWidth * 1.2;
 
-  // CRITICAL: dimensions on outer TouchableOpacity (not inner LinearGradient).
-  // Otherwise wrap-row flex layout in RN Web measures rows independently and
-  // shorter rows collapse (row 1 vs row 2 mismatch).
+  // CRITICAL: outer <View> with FIXED width+height (renders as <div style="width:Xpx;height:Ypx">
+  // in RN Web — rock-solid, ignored by flex distribution). TouchableOpacity and LinearGradient
+  // inside use flex:1 to fill exactly. flexBasis/flexShrink alone are unreliable in RN Web.
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.8}
-      style={{
-        width: cardWidth,
-        height: cardHeight,
-        flexShrink: 0,   // prevent RN Web flex-wrap from shrinking
-        flexGrow: 0,     // prevent stretching to fill row
-        flexBasis: cardWidth,   // hard-pin basis to avoid auto-calc
-      }}
-    >
-      <LinearGradient
-        colors={gradient as [string, string]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
+    <View style={{
+      width: cardWidth,
+      height: cardHeight,
+      flexShrink: 0,
+      flexGrow: 0,
+    }}>
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.8}
+        style={{ flex: 1 }}
       >
+        <LinearGradient
+          colors={gradient as [string, string]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.card}
+        >
         {/* Icon — top, fixed position */}
         <View style={styles.iconContainer}>
           <Ionicons name={icon as any} size={28} color="#FFFFFF" />
@@ -63,8 +63,9 @@ export default function GameCard({
           <Ionicons name="fitness-outline" size={12} color="rgba(255,255,255,0.9)" />
           <Text style={styles.skillText} numberOfLines={1}>{t(skillKey)}</Text>
         </View>
-      </LinearGradient>
-    </TouchableOpacity>
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
   );
 }
 
