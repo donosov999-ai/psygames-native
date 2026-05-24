@@ -366,35 +366,48 @@ const STUDENTS: ProfileDef = {
   assessment_enabled: true,
 };
 
-// ─── 👩 WOMEN — Женщины (multitasking + соцкогниция + verbal) ──────────
-// v1.4.0: профиль под "мама + работа + быт". Не gender-locked по сути
-// (HR/медики/учителя обоих полов тоже выигрывают), но название явное —
-// чтобы целевая аудитория сразу узнавала "это про меня". Bias: RMET
-// (чтение эмоций), Switching (multitasking), verbal fluency.
+// ─── 👩 WOMEN — Женщины (engagement-driven, не evidence-based) ─────────
+// v1.4.1: РЕФАКТОР по запросу Дениса — взять не «полезные», а «залипательные».
+// Профиль идёт по логике женских казуальных мобильных игр (Candy Crush,
+// Wordscapes, Hidden Object, Sudoku — топы App Store/Google Play в женской
+// аудитории ru/en годами). Принцип: быстрая победа → dopamine hit → желание
+// продолжить. Тренировка — побочный приятный эффект, не главная цель.
+//
+// ⚠ ОСОЗНАННОЕ НАРУШЕНИЕ правила «1+1+1+1+5»: перекос в attention (4 из 9 —
+// жанр «найди/собери») потому что женские казуалки исторически = поиск/
+// сопоставление, а не префронтальный тренинг. Если профиль не «зайдёт» по
+// retention — поправить на сбалансированный набор за 30 сек.
+//
+// Что убрано из v1.4.0 ради залипательности: RMET (тест, не игра),
+// switching_task / trail_making (утомляют), phonemic_fluency / word_pairs
+// (заставляют напрягаться), math_sprint (счёт под давлением).
 const WOMEN: ProfileDef = {
   id: 'women',
   person: 'Женщина',
   display_name: 'Женщины',
   emoji: '👩',
   color: '#ec4899',
-  description: 'Multitasking · чтение эмоций · вербалка · бодрость ума',
-  long_description: 'Девять игр под повседневные когнитивные нагрузки женщины: чтение эмоций по выражению глаз (RMET), мультитаскинг (мама+работа+быт через Switching, Trail Making), память на имена и списки (Word Pairs, Picture Pairs), внимание к деталям (Find Differences, Schulte), вербальная гибкость (Phonemic Fluency), бытовой счёт. Подходит женщинам 25-55, мамам, а также HR-специалистам, медсёстрам, учителям, продажникам — любым ролям где важна эмпатия + переключение задач.',
-  audience: 'Женщины 25-55, мамы · HR/медики/учителя',
-  session_minutes: '10-15 мин',
+  description: 'Залипательные казуалки: парные картинки, отличия, hidden object, судоку, анаграммы',
+  long_description: 'Девять самых залипательных игр в формате «5 минут в очереди / в маршрутке / перед сном». Подобраны по жанрам, которые годами доминируют в женских топах мобильных сторов: парные картинки (Memory Match), найди отличия (Find the Difference — топ-1 в женских журналах), hidden object (Visual Search), анаграммы (Wordscapes-стиль), судоку, визуальная память, таблицы Шульте, поиск опечаток, аркадные мишени. Главная цель — удовольствие от микро-побед, dopamine hit каждые 30-60 сек. Заодно поддерживает память + внимание + вербалку. Подходит женщинам 25-55 для отдыха и лёгкой когнитивной формы.',
+  audience: 'Женщины 25-55 · микро-отдых + dopamine',
+  session_minutes: '5-10 мин',
   group: 'themed',
-  // v1.2.0 «1+1+1+1 + 5 темовых»: bias на multitasking + soft skills
+  // v1.4.1 — engagement-driven mix (НЕ формула 1+1+1+1+5)
+  // Распределение: память 2 · внимание 4 (поиск-жанр) · логика 2 · скорость 1
   allowed_games: [
-    // Base
-    'word_pairs',         // memory — имена, списки, чужие даты
-    'find_differences',   // attention — внимание к деталям (классика)
-    'rmet',               // logic — социальная когниция (Reading Mind in Eyes)
-    'switching_task',     // action — мультитаскинг (мама+работа+быт)
-    // +5 темовых (bias на multitasking + verbal + соцкогниция)
-    'picture_pairs',      // ещё memory — визуальная
-    'schulte_table',      // ещё attention — фокус среди шума
-    'trail_making',       // ещё logic — executive multitasking (A+B)
-    'phonemic_fluency',   // ещё logic — verbal fluency (женщины обычно сильнее)
-    'math_sprint',        // ещё action — бытовой счёт
+    // 🧠 Память (2) — match-жанр, женский фаворит
+    'picture_pairs',     // Memory Match — топовая казуалка
+    'memory_matrix',     // визуальная память, эстетично
+    // 🎯 Внимание (4) — «найди» жанр, доминирует в женских казуалках
+    'find_differences',  // топ-1 в женских журналах ВСЕГДА
+    'visual_search',     // Hidden Object — June's Journey style
+    'schulte_table',     // brain training-классика, узнаваема
+    'proofreading',      // «найди опечатку» — приятный поиск
+    // 🧩 Логика (2) — wordscape + sudoku, оба = top-charts у женщин 30+
+    'anagrams',          // буквенные пазлы — Wordscapes-стиль
+    'sudoku',            // массовая классика, печаталась в журналах
+    // ⚡ Скорость (1) — лёгкая аркада для dopamine
+    'targets',           // быстрые мишени, fast wins
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,

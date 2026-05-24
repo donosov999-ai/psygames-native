@@ -14,6 +14,29 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.4.1] — 2026-05-24
+
+### Changed
+- **👩 Женщины — engagement refactor.** По запросу Дениса заменил
+  evidence-based набор (RMET, Switching, Trail Making, Phonemic Fluency,
+  Word Pairs, Math Sprint) на залипательный казуальный mix:
+  - 🧠 Память: Picture Pairs + Memory Matrix (Memory Match-жанр)
+  - 🎯 Внимание (×4): Find Differences + Visual Search + Schulte + Proofreading
+  - 🧩 Логика: Anagrams (Wordscapes) + Sudoku
+  - ⚡ Скорость: Targets (лёгкая аркада)
+- Description: «Multitasking · чтение эмоций · вербалка» →
+  «Залипательные казуалки: парные картинки, отличия, hidden object, судоку, анаграммы».
+- Длительность: «10-15 мин» → «5-10 мин» (формат микро-отдыха).
+- ⚠ **Осознанно нарушено правило «1+1+1+1+5»** — перекос в attention (4/9)
+  потому что женские казуалки = поиск/сопоставление, а не префронтальная
+  батарея. Если retention не подтвердит — можно вернуть сбалансированный mix.
+
+### Note
+- Master code остаётся прежний: `WOMEN-NZT-2026`. Хеш не менялся.
+- Никто из других 10 профилей не затронут.
+
+---
+
 ## [1.4.0] — 2026-05-24
 
 ### Added
