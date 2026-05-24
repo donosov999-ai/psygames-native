@@ -27,6 +27,7 @@ import { getAssessmentStatus } from '@/src/services/assessment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUnlocked } from '@/src/services/achievements';
 import { ACHIEVEMENTS } from '@/src/services/achievements';
+import ProfileSwitcherModal from '@/src/components/ProfileSwitcherModal';
 
 const MAX_CONTAINER_WIDTH = 1100;
 const CONTAINER_PADDING = 16;
@@ -46,6 +47,8 @@ export default function HomeScreen() {
   const [assessStatus, setAssessStatus] = useState<{ hasAssessment: boolean; daysSince: number | null; lastDate: string | null }>({ hasAssessment: false, daysSince: null, lastDate: null });
 
   const [achievementsCount, setAchievementsCount] = useState(0);
+  // v1.7.0: ProfileSwitcherModal — открывается из шапки (профиль-чип или 👤 кнопка)
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -120,21 +123,51 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
+      {/* Header — v1.7.0: профиль-чип теперь кликабельный (открывает switcher) */}
       <View style={styles.header}>
-        <View>
-          <Text style={[styles.title, { color: colors.text }]}>
-            PsyGames
-            <Text style={{ color: profile.color, fontSize: 16 }}>  {profile.emoji} {profile.display_name}</Text>
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {t('trainYourBrain')}
+        <View style={{ flex: 1, gap: 6 }}>
+          <Text style={[styles.title, { color: colors.text }]}>PsyGames</Text>
+          {/* Клик-чип "Сменить профиль" — заметный, с chevron ▾ */}
+          <TouchableOpacity
+            onPress={() => setSwitcherOpen(true)}
+            activeOpacity={0.7}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              alignSelf: 'flex-start',
+              backgroundColor: profile.color + '22',
+              borderWidth: 1.5,
+              borderColor: profile.color + '88',
+              paddingVertical: 5,
+              paddingHorizontal: 10,
+              borderRadius: 100,
+              marginTop: 2,
+            }}
+          >
+            <Text style={{ fontSize: 14 }}>{profile.emoji}</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>
+              {profile.display_name}
+            </Text>
+            <Ionicons name="chevron-down" size={14} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.subtitle, { color: colors.textSecondary, marginTop: 4 }]}>
+            {t('trainYourBrain')} · нажми на чип чтобы сменить профиль
           </Text>
         </View>
         <View style={styles.headerButtons}>
+          {/* 👤 Profile switcher — отдельная заметная кнопка (дублирует чип) */}
+          <TouchableOpacity
+            style={[styles.iconButton, { backgroundColor: profile.color + '22', borderWidth: 1.5, borderColor: profile.color + '88' }]}
+            onPress={() => setSwitcherOpen(true)}
+            accessibilityLabel="Сменить профиль"
+          >
+            <Ionicons name="person-circle" size={26} color={profile.color} />
+          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/achievements' as any)}
+            accessibilityLabel="Достижения"
           >
             <Ionicons name="trophy" size={20} color="#fbbf24" />
             {achievementsCount > 0 && (
@@ -146,17 +179,22 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/statistics')}
+            accessibilityLabel="Статистика"
           >
             <Ionicons name="stats-chart" size={22} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/settings')}
+            accessibilityLabel="Настройки"
           >
             <Ionicons name="settings-outline" size={22} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Profile switcher modal — открывается чипом или 👤 кнопкой */}
+      <ProfileSwitcherModal visible={switcherOpen} onClose={() => setSwitcherOpen(false)} />
 
       <ScrollView
         style={styles.scrollView}
