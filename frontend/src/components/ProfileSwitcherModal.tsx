@@ -88,7 +88,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
   /** v1.8.0: Покупка пакета «Все 9 тематических» — топовый CTA в switcher. */
   const buyBundleViaTelegram = () => {
     const msg = encodeURIComponent(
-      `Привет, Денис! Хочу пакет «Все 9 тематических профилей» PsyGames за ${formatPrice(BUNDLE_ALL_THEMED_PRICE)}/год.\n\nЭто Шахматист + Дети + Скорочтение + NZT-48 + Водители + 50+ + Предприниматели + Студенты + Женщины — на 365 дней.\n\nПодскажи как оплатить.`
+      `Привет, Денис! Хочу пакет «Все 9 тематических профилей» PsyGames за ${formatPrice(BUNDLE_ALL_THEMED_PRICE)}/год.\n\nЭто Шахматист + Дети + Скорочтение + NZT-48 + Реакция ПРО + 50+ + Предприниматели + Студенты + Женщины — на 365 дней.\n\nПодскажи как оплатить.`
     );
     const url = `https://t.me/${OWNER_TG}?text=${msg}`;
     Linking.openURL(url).catch(() => {
@@ -207,11 +207,11 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   📦 Все 9 тематических
                 </Text>
                 <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.7)', textAlign: 'center', marginBottom: 4 }}>
-                  Шахматист · Дети · Скорочтение · NZT-48 · Водители · 50+ · Execs · Студенты · Женщины
+                  Шахматист · Дети · Скорочтение · NZT-48 · Реакция ПРО · 50+ · Execs · Студенты · Женщины
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginBottom: 12 }}>
                   <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.5)', textDecorationLine: 'line-through' }}>
-                    {formatPrice(490+490+490+690+690+790+990+990+990)}
+                    {formatPrice(490+490+490+690+690+990+990+990+990)}
                   </Text>
                   <Text style={{ fontSize: 24, fontWeight: '900', color: '#1a1a1a' }}>
                     {formatPrice(BUNDLE_ALL_THEMED_PRICE)}
