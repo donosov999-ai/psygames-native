@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   useWindowDimensions,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -69,15 +70,24 @@ export default function HomeScreen() {
     })();
   }, []);
 
-  // Container width sizing.
-  // Per-card marginRight (10px, see GameCard) instead of grid `gap` (RN Web buggy).
-  // So each "slot" = cardWidth + 10, and N slots fit in containerWidth+10
-  // (last card's trailing marginRight is just empty space at row end, fine).
+  // v1.6.1 — Container/card width strategy:
+  //
+  // WEB: используем CSS Grid через style-passthrough (RN Web поддерживает с 0.18+).
+  //      grid-template-columns: repeat(auto-fill, minmax(MIN_CARD_W, 1fr)) — браузер
+  //      сам рассчитает сколько карточек влезет, ширина гарантированно одинаковая
+  //      между секциями (это была главная проблема flex+wrap'а).
+  //      GameCard в web-режиме = width 100%, заполняет grid-ячейку.
+  //
+  // NATIVE (iOS/Android RN): grid не поддерживается, fallback на flex+wrap с
+  //      явной cardWidth в пикселях (как было). На native flex стабильно работает.
+  const MIN_CARD_WIDTH = 170;   // Минимум px для одной карточки на web grid
   const containerWidth = Math.min(winWidth, MAX_CONTAINER_WIDTH) - CONTAINER_PADDING * 2;
+  // Native-fallback расчёт (web игнорирует, использует grid auto-fill)
   const cols = containerWidth >= 880 ? 5 : containerWidth >= 700 ? 4 : containerWidth >= 520 ? 3 : 2;
   const CARD_MARGIN = 10;
   const cardWidth = Math.floor((containerWidth - CARD_MARGIN * cols) / cols);
   const cardHeight = Math.round(cardWidth * 1.2);
+  const isWeb = Platform.OS === 'web';
 
   // E1: filter games by active profile + hide games merged into group cards
   const visibleGames = useMemo(
@@ -299,11 +309,18 @@ export default function HomeScreen() {
                   {games.length}
                 </Text>
               </View>
-              {/* No `gap` (RN Web bug with flex-wrap distributing gap unevenly).
-                  Each card gets explicit marginRight + marginBottom via the
-                  `margin` prop below. */}
-              <View style={styles.gamesGrid}>
-                {games.map((game, idx) => (
+              {/* v1.6.1 — Web: CSS Grid (одинаковая ширина между секциями).
+                  Native: старая flex-wrap + per-card margin. */}
+              <View
+                style={isWeb ? ({
+                  // @ts-expect-error — RN Web style passthrough для CSS Grid
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(auto-fill, minmax(${MIN_CARD_WIDTH}px, 1fr))`,
+                  gap: 10,
+                  width: '100%',
+                } as any) : styles.gamesGrid}
+              >
+                {games.map((game) => (
                   <GameCard
                     key={game.id}
                     nameKey={game.nameKey}
@@ -311,8 +328,10 @@ export default function HomeScreen() {
                     skillKey={game.skillKey}
                     gradient={game.gradient}
                     icon={game.icon}
-                    width={cardWidth}
-                    height={cardHeight}
+                    // На web ширина = '100%' (заполнит ячейку grid).
+                    // На native — фикс. cardWidth в px.
+                    width={isWeb ? '100%' as any : cardWidth}
+                    height={isWeb ? undefined : cardHeight}
                     onPress={() => router.push(game.route as any)}
                   />
                 ))}

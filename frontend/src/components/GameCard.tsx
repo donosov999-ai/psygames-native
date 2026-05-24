@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -12,8 +12,13 @@ interface GameCardProps {
   gradient: string[];
   icon: string;
   onPress: () => void;
-  width?: number;   // explicit width from parent grid; falls back to fluid
-  height?: number;  // explicit height
+  /**
+   * v1.6.1: width теперь может быть number (px, для native) или string ('100%' для web grid).
+   * Если string → используется как есть. Если number → fixed px width.
+   */
+  width?: number | string;
+  /** Только number (на web используется aspectRatio вместо явной height). */
+  height?: number;
 }
 
 export default function GameCard({
@@ -22,30 +27,43 @@ export default function GameCard({
   useTheme();
   const { t } = useLanguage();
   const { width: winWidth } = useWindowDimensions();
+  const isWeb = Platform.OS === 'web';
 
-  // If no explicit width provided, fall back to a fluid 2-column layout (used when
-  // GameCard is placed somewhere outside the grouped grid).
-  const cardWidth = width ?? Math.min((winWidth - 48) / 2, 180);
-  const cardHeight = height ?? cardWidth * 1.2;
+  // Fallback (когда GameCard используется ВНЕ index.tsx grid) — 2 столбца fluid
+  const fallbackWidth = Math.min((winWidth - 48) / 2, 180);
+  const cardWidth = width ?? fallbackWidth;
+  // На web используем aspectRatio (1.2 = высота / ширина) — высота сама подгонится
+  // под фактическую ширину grid-ячейки. На native — явная height в px.
+  const cardHeight = height ?? (typeof cardWidth === 'number' ? cardWidth * 1.2 : undefined);
 
-  // CRITICAL: outer <View> with FIXED width+height (renders as <div style="width:Xpx;height:Ypx">
-  // in RN Web — rock-solid, ignored by flex distribution). TouchableOpacity and LinearGradient
-  // inside use flex:1 to fill exactly. flexBasis/flexShrink alone are unreliable in RN Web.
+  // ─── WEB: контейнер с width:100% (или переданная %) + aspectRatio ──────
+  // Это рендерится как <div style="width:100%;aspect-ratio:1/1.2"> в HTML.
+  // Grid parent (gridTemplateColumns: repeat(auto-fill, minmax(170px, 1fr)))
+  // гарантирует одинаковую ширину между секциями.
+  //
+  // ─── NATIVE: фиксированные пиксельные width+height ────────────────────
+  // Для iOS/Android RN, flex-wrap parent. На native flex стабилен.
+  const wrapperStyle: any = isWeb
+    ? {
+        width: cardWidth,            // обычно '100%' от index.tsx
+        aspectRatio: 1 / 1.2,        // высота автоматом по ширине
+      }
+    : {
+        width: cardWidth,
+        height: cardHeight,
+        minWidth: cardWidth,
+        maxWidth: cardWidth,
+        minHeight: cardHeight,
+        maxHeight: cardHeight,
+        flexShrink: 0,
+        flexGrow: 0,
+        flexBasis: cardWidth,
+        marginRight: 10,
+        marginBottom: 10,
+      };
+
   return (
-    <View style={{
-      width: cardWidth,
-      height: cardHeight,
-      minWidth: cardWidth,
-      maxWidth: cardWidth,
-      minHeight: cardHeight,
-      maxHeight: cardHeight,
-      flexShrink: 0,
-      flexGrow: 0,
-      flexBasis: cardWidth,
-      // Per-card margin instead of parent's `gap` (RN Web bug with flex-wrap)
-      marginRight: 10,
-      marginBottom: 10,
-    }}>
+    <View style={wrapperStyle}>
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.8}
@@ -79,7 +97,7 @@ export default function GameCard({
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,                       // fill TouchableOpacity (cardWidth × cardHeight)
+    flex: 1,                       // fill wrapper
     borderRadius: 20,
     padding: 14,
     flexDirection: 'column',
@@ -117,7 +135,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignSelf: 'flex-start',
     maxWidth: '100%',
-    // No marginTop:auto: textContainer flex:1 already pushes badge to bottom.
   },
   skillText: {
     fontSize: 10,

@@ -14,6 +14,32 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.6.1] — 2026-05-24
+
+### Fixed
+- **GameCard ширина РЕАЛЬНО фиксирована между секциями на Web.** Прошлые
+  попытки через flex+wrap+gap+margin+belt-and-braces width/maxWidth/flexBasis
+  не давали стабильного результата в RN Web — браузер всё равно перераспределял
+  свободное место между карточками когда их в секции было мало (2 вместо
+  потенциальных 5). Память выглядела с широкими карточками, Внимание узкими.
+- Переход на **CSS Grid** через style-passthrough (RN Web 0.18+):
+  ```ts
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+  gap: 10,
+  ```
+  Браузер сам считает кол-во колонок и каждая карточка получает ОДИНАКОВУЮ
+  ширину независимо от того сколько их в секции.
+- GameCard на web рендерится с `width: '100%'` (заполняет grid-cell) +
+  `aspectRatio: 1/1.2` (высота автоматом по ширине).
+- На **native (iOS/Android RN)** — fallback на старый flex+wrap с фикс. cardWidth.
+
+### Technical
+- Новое поле в GameCardProps: `width` теперь `number | string` (для `'100%'` на web).
+- `Platform.OS === 'web'` гейтит выбор стратегии (grid vs flex).
+
+---
+
 ## [1.6.0] — 2026-05-24
 
 ### Added — Profile Detail Modal
