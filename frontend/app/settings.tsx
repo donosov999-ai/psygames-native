@@ -328,7 +328,7 @@ export default function SettingsScreen() {
 
       {/* App Info */}
       <View style={styles.appInfo}>
-        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.2.4 · {profile.emoji} {profile.display_name}</Text>
+        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.2.5 · {profile.emoji} {profile.display_name}</Text>
         <Text style={[styles.appVersion, { color: colors.textSecondary }]}>v1.1.0 · 5 профилей</Text>
       </View>
       </ScrollView>

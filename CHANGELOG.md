@@ -14,6 +14,19 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.2.5] — 2026-05-24
+
+### Fixed
+- **macOS Tauri WebView** (WebKit) sometimes ignored plain `width` on
+  flex-wrap children, letting cards stretch in sections with fewer items.
+  Plain `width: cardWidth` worked in Chrome (Web build) but not always
+  in macOS native app. Added belt-and-braces sizing on outer View:
+  `width + minWidth + maxWidth + flexBasis + flexShrink:0 + flexGrow:0`.
+  Same for height. This forces WebKit to honor exact dimensions
+  regardless of flex parent layout decisions.
+
+---
+
 ## [1.2.4] — 2026-05-24
 
 ### Fixed
