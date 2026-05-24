@@ -325,11 +325,11 @@ jobs:
           token: ${{ secrets.PSYGAMES_WEB_DEPLOY_TOKEN }}
           path: psygames-web-target
 
-      - name: Sync dist → psygames-web (preserve .git, .nojekyll, README, download.html)
+      - name: Sync dist → psygames-web (preserve .git, .nojekyll, README, download.html, profiles.html)
         run: |
           cd psygames-web-target
-          # Preserve git metadata + GH-Pages flag + README + landing page
-          find . -maxdepth 1 ! -name '.git' ! -name '.nojekyll' ! -name 'README.md' ! -name 'download.html' ! -name '.' -exec rm -rf {} +
+          # Preserve git metadata + GH-Pages flag + README + landing pages
+          find . -maxdepth 1 ! -name '.git' ! -name '.nojekyll' ! -name 'README.md' ! -name 'download.html' ! -name 'profiles.html' ! -name '.' -exec rm -rf {} +
           cp -R ../frontend/dist/* .
           # Re-add .nojekyll in case it was missing
           touch .nojekyll
