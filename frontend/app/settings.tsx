@@ -192,7 +192,7 @@ export default function SettingsScreen() {
           <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 22, gap: 14 }}>
             <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 Код доступа</Text>
             <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
-              Введите код чтобы разблокировать тематический профиль (ODV999, Шахматист, Дети, Скорочтение, NZT-48, Водители, 50+, Предприниматели, Студенты ЕГЭ).
+              Введите код чтобы разблокировать тематический профиль (ODV999, Шахматист, Дети, Скорочтение, NZT-48, Водители, 50+, Предприниматели, Студенты ЕГЭ, Женщины).
             </Text>
             <TextInput
               value={codeInput}
@@ -333,8 +333,8 @@ export default function SettingsScreen() {
 
       {/* App Info */}
       <View style={styles.appInfo}>
-        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.3.0 · {profile.emoji} {profile.display_name}</Text>
-        <Text style={[styles.appVersion, { color: colors.textSecondary }]}>10 профилей · 1 бесплатный + 9 тематических</Text>
+        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.4.0 · {profile.emoji} {profile.display_name}</Text>
+        <Text style={[styles.appVersion, { color: colors.textSecondary }]}>11 профилей · 1 бесплатный + 10 тематических</Text>
       </View>
       </ScrollView>
     </SafeAreaView>

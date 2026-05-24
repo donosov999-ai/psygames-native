@@ -14,6 +14,33 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.4.0] — 2026-05-24
+
+### Added
+- **👩 Женщины** — 11-й тематический профиль. Аудитория: женщины 25-55,
+  мамы, а также HR-специалисты, медсёстры, учителя, продажники обоих полов.
+  9 игр под мультитаскинг (Switching, Trail Making), социальную когницию
+  (RMET — Reading Mind in Eyes), вербалку (Phonemic Fluency), память на
+  имена/списки (Word Pairs, Picture Pairs), внимание к деталям (Find
+  Differences, Schulte) + бытовой счёт (Math Sprint).
+- Master code: `WOMEN-NZT-2026` (hash `ccdc487...`).
+- Цвет профиля: `#ec4899` (розовый), эмодзи: 👩.
+- Длительность сессии: 10-15 мин. Warmup ✅, Assessment ✅, Financial ❌.
+
+### Changed
+- Settings UI label: «10 профилей» → «11 профилей · 1 бесплатный + 10 тематических».
+- Onboarding слайд: «10 профилей под цель» → «11 профилей под цель».
+- Unlock modal: добавлено упоминание профиля Женщины в список тематических.
+
+### Critical note (от Claude)
+- Gender-locked название «Женщины» отсекает мужскую B2B-аудиторию (HR,
+  медучреждения) — это решение Дениса. По сути игр там нет ничего женского,
+  они просто bias-нуты под soft skills + multitasking. Если продажи покажут
+  что профиль покупают и мужчины тоже — переименовать в «Soft skills /
+  Эмпатия» за один патч (только display_name + description).
+
+---
+
 ## [1.3.0] — 2026-05-24
 
 ### Changed (BREAKING for personal users)

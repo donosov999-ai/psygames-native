@@ -19,7 +19,8 @@ import type { PlaylistStep, Weekday } from '@/src/services/warmup';
 export type ProfileId =
   | 'odv999'                                              // owner (Денис, full access, locked by master code)
   | 'chess' | 'kids' | 'vasilyeva' | 'nzt48' | 'free'    // themed batch 1 (commercial)
-  | 'drivers' | 'seniors' | 'execs' | 'students';        // themed batch 2 (commercial)
+  | 'drivers' | 'seniors' | 'execs' | 'students'         // themed batch 2 (commercial)
+  | 'women';                                              // themed batch 3 (v1.4.0)
 
 /** UI grouping for Settings screen. All profiles are 'themed' since v1.3.0. */
 export type ProfileGroup = 'personal' | 'themed';
@@ -365,6 +366,41 @@ const STUDENTS: ProfileDef = {
   assessment_enabled: true,
 };
 
+// ─── 👩 WOMEN — Женщины (multitasking + соцкогниция + verbal) ──────────
+// v1.4.0: профиль под "мама + работа + быт". Не gender-locked по сути
+// (HR/медики/учителя обоих полов тоже выигрывают), но название явное —
+// чтобы целевая аудитория сразу узнавала "это про меня". Bias: RMET
+// (чтение эмоций), Switching (multitasking), verbal fluency.
+const WOMEN: ProfileDef = {
+  id: 'women',
+  person: 'Женщина',
+  display_name: 'Женщины',
+  emoji: '👩',
+  color: '#ec4899',
+  description: 'Multitasking · чтение эмоций · вербалка · бодрость ума',
+  long_description: 'Девять игр под повседневные когнитивные нагрузки женщины: чтение эмоций по выражению глаз (RMET), мультитаскинг (мама+работа+быт через Switching, Trail Making), память на имена и списки (Word Pairs, Picture Pairs), внимание к деталям (Find Differences, Schulte), вербальная гибкость (Phonemic Fluency), бытовой счёт. Подходит женщинам 25-55, мамам, а также HR-специалистам, медсёстрам, учителям, продажникам — любым ролям где важна эмпатия + переключение задач.',
+  audience: 'Женщины 25-55, мамы · HR/медики/учителя',
+  session_minutes: '10-15 мин',
+  group: 'themed',
+  // v1.2.0 «1+1+1+1 + 5 темовых»: bias на multitasking + soft skills
+  allowed_games: [
+    // Base
+    'word_pairs',         // memory — имена, списки, чужие даты
+    'find_differences',   // attention — внимание к деталям (классика)
+    'rmet',               // logic — социальная когниция (Reading Mind in Eyes)
+    'switching_task',     // action — мультитаскинг (мама+работа+быт)
+    // +5 темовых (bias на multitasking + verbal + соцкогниция)
+    'picture_pairs',      // ещё memory — визуальная
+    'schulte_table',      // ещё attention — фокус среди шума
+    'trail_making',       // ещё logic — executive multitasking (A+B)
+    'phonemic_fluency',   // ещё logic — verbal fluency (женщины обычно сильнее)
+    'math_sprint',        // ещё action — бытовой счёт
+  ],
+  warmup_enabled: true,
+  financial_brain_day_enabled: false,
+  assessment_enabled: true,
+};
+
 // ─── Export ─────────────────────────────────────────────────────────────
 
 export const PROFILES: ProfileDef[] = [
@@ -374,6 +410,8 @@ export const PROFILES: ProfileDef[] = [
   CHESS, KIDS, VASILYEVA, NZT48, FREE,
   // Themed batch 2 (commercial)
   DRIVERS, SENIORS, EXECS, STUDENTS,
+  // Themed batch 3 (v1.4.0)
+  WOMEN,
 ];
 
 export const PROFILE_BY_ID: Record<ProfileId, ProfileDef> = PROFILES.reduce((acc, p) => {

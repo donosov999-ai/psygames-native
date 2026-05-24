@@ -36,6 +36,8 @@ const HASH_TO_PROFILE: Record<string, ProfileId> = {
   '5935509a20fa445bfb8fe49c49025b985597723df5d52e5650a3908526ca7706': 'students',
   // ODV999 (owner, full access). Same password as NZT staticrypt.
   '259a6084c97548c093d7b305d5ede0d9b2d40457d8eb89bd198bf0465f04ac17': 'odv999',
+  // WOMEN (v1.4.0). Code: WOMEN-NZT-2026.
+  'ccdc487f4f2f01448d35f68cfe09982cb41c1016b9f1d486b42314a22bd3ad58': 'women',
 };
 
 /** Themed profiles that REQUIRE an unlock code. FREE is reachable without. */
@@ -43,6 +45,7 @@ export const THEMED_PROFILES_LOCKED: ProfileId[] = [
   'odv999',
   'chess', 'kids', 'vasilyeva', 'nzt48',
   'drivers', 'seniors', 'execs', 'students',
+  'women',
 ];
 
 /**
