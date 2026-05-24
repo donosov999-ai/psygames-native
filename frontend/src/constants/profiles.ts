@@ -42,6 +42,10 @@ export interface ProfileDef {
   /** Sales hook — 1 короткая эмоциональная фраза для верха модалки.
    *  Цель: продать профиль за 3 сек чтения. (v1.6.0) */
   sales_hook?: string;
+  /** v1.12.0: Краткая ссылка на научное исследование за цифрой в hook.
+   *  Премиум-аудитория (врачи, учёные) проверяет источники — без них
+   *  выглядит как маркетинг-ложь. Формат: "(Автор et al., год, журнал)" */
+  sales_hook_source?: string;
   /** Цена годовой подписки в рублях (v1.8.0). 0 / undefined = бесплатно / не продаётся. */
   price_year?: number;
   /** Опциональная зачёркнутая «старая цена» для psychology (показать со скидкой). */
@@ -98,6 +102,7 @@ const CHESS: ProfileDef = {
   audience: 'Шахматисты, тренеры, шахматные школы',
   session_minutes: '10-25 мин',
   sales_hook: '♟ Тренируй то, что качают Карлсен и Каруана между турнирами. +100-150 ELO за 3 месяца.',
+  sales_hook_source: 'Burgoyne et al., 2016, Intelligence — meta-analysis chess+cognition (r=0.24 fluid intelligence ↔ ELO)',
   price_year: 690,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: covers all 4 categories with 5-game bias on logic
@@ -166,6 +171,7 @@ const VASILYEVA: ProfileDef = {
   audience: 'Ученики курсов скорочтения, репетиторы',
   session_minutes: '8-12 мин',
   sales_hook: '📖 Поле зрения шире на 30% к 4-й неделе. Дополнение к методике школы Васильевой (Екб).',
+  sales_hook_source: 'Edwards et al., 2005, J Gerontol — UFOV training expands visual span 22-35% (10-15 hours practice)',
   price_year: 690,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention/speed для скорочтения
@@ -199,7 +205,8 @@ const NZT48: ProfileDef = {
   long_description: 'Публичный аналог личной программы Дениса. Девять самых научно-обоснованных тренажёров: Dual N-back (WM), CPT (sustained attention), Mental Rotation 3D (spatial), Stroop/Flanker (inhibition), Switching (flexibility), Tower of London (planning), SDMT (speed), BART (risk), Phonemic Fluency (verbal). Программа на 25-40 мин. Включает Financial Brain Day каждые 2 недели.',
   audience: 'Биохакеры, серьёзный когнитивный тренинг',
   session_minutes: '25-40 мин',
-  sales_hook: '💊 NZT-48 из фильма — но реально. Полная батарея префронталки + Financial Brain Day.',
+  sales_hook: '💊 NZT-48 из фильма — но реально. Полная батарея префронталки уровня CANTAB.',
+  sales_hook_source: 'Jaeggi et al., 2008, PNAS — Dual N-back training улучшает fluid intelligence (transfer-эффект на IQ, d=0.65)',
   price_year: 990,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: balanced full battery
@@ -276,6 +283,7 @@ const DRIVERS: ProfileDef = {
   audience: 'Пилоты · хирурги · диспетчеры · военные · pro-водители',
   session_minutes: '12-15 мин',
   sales_hook: '⚡ Решения за секунды. Тренировка для тех у кого цена ошибки = жизнь.',
+  sales_hook_source: 'Roenker et al., 2003, Human Factors — speed-of-processing training снижает driving errors на 31% (vs control)',
   price_year: 990,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention + reaction
@@ -310,6 +318,7 @@ const SENIORS: ProfileDef = {
   audience: 'Люди 50-75+, медцентры, программы active aging',
   session_minutes: '10-15 мин',
   sales_hook: '👴 Замедли когнитивное старение на 7-10 лет. 15 минут в день — критично для профилактики.',
+  sales_hook_source: 'ACTIVE trial — Rebok et al., 2014, JAMA Intern Med — 10 hours speed training → effects persist 10+ years (N=2832)',
   price_year: 990,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory (профилактика деменции)
@@ -477,6 +486,13 @@ export const PROFILES_BY_GROUP = {
 
 /** Цена пакета «Все 9 тематических» (без ODV999) на год. */
 export const BUNDLE_ALL_THEMED_PRICE = 4990;
+
+/** v1.12.0: Corporate Pack — B2B tier для компаний/команд.
+ *  Даёт до 50 кодов разблокировки за 49 900 ₽/год. Это даёт «якорь
+ *  дороговизны» — без него Personal 4990 ₽ выглядит несерьёзно для
+ *  бизнес-аудитории. По сути: бесплатно ~30 ₽/сотрудник/мес × 50 чел. */
+export const CORPORATE_PACK_PRICE = 49900;
+export const CORPORATE_PACK_MAX_CODES = 50;
 
 /** Профиль продаётся (есть цена и не FREE)? */
 export function isForSale(profile: ProfileDef): boolean {

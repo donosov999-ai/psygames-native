@@ -107,7 +107,7 @@ export default function SettingsScreen() {
           👤 Профиль
         </Text>
         <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
-          У каждого профиля свой набор игр, свой плейлист зарядки и своя история.
+          У каждого профиля свой набор тренажёров, свой плейлист зарядки и своя история.
         </Text>
         {/* Personal profiles (v1.3.0: section hidden when no personal profiles exist;
             kept as conditional render in case personal profiles return in the future) */}
@@ -147,7 +147,7 @@ export default function SettingsScreen() {
           <>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, marginBottom: 4 }}>
               <Text style={[styles.groupLabel, { color: colors.textSecondary, marginTop: 0, marginBottom: 0 }]}>
-                🎯 Тематические (9 игр каждый · ODV999 = все 48)
+                🎯 Тематические (9 тренажёров каждый · ODV999 = все 48)
               </Text>
               <TouchableOpacity onPress={() => setCodeModalOpen(true)} style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
                 <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text }}>🔑 Ввести код</Text>
@@ -332,7 +332,7 @@ export default function SettingsScreen() {
 
                 {/* Games list */}
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 10 }}>
-                  🎮 {detailProfile.allowed_games === 'all' ? 'Все 48 игр' : `${(detailProfile.allowed_games as string[]).length} игр в этом профиле`}
+                  🎮 {detailProfile.allowed_games === 'all' ? 'Все 48 тренажёров' : `${(detailProfile.allowed_games as string[]).length} тренажёров в этом профиле`}
                 </Text>
                 {detailProfile.allowed_games !== 'all' && (
                   <View style={{ gap: 6, marginBottom: 18 }}>
@@ -502,7 +502,7 @@ export default function SettingsScreen() {
 
       {/* App Info */}
       <View style={styles.appInfo}>
-        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.11.0 · {profile.emoji} {profile.display_name} · 48+ игр</Text>
+        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.12.0 · {profile.emoji} {profile.display_name} · 48+ тренажёров</Text>
         <Text style={[styles.appVersion, { color: colors.textSecondary }]}>Клик по профилю → детали + запрос кода в Telegram</Text>
       </View>
       </ScrollView>

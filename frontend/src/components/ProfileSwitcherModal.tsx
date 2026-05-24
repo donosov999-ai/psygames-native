@@ -20,7 +20,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import type { ProfileDef } from '@/src/constants/profiles';
-import { BUNDLE_ALL_THEMED_PRICE, isForSale, formatPrice } from '@/src/constants/profiles';
+import { BUNDLE_ALL_THEMED_PRICE, CORPORATE_PACK_PRICE, CORPORATE_PACK_MAX_CODES, isForSale, formatPrice } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 
 const OWNER_TG = 'Denis_On999';
@@ -85,6 +85,17 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
     });
   };
 
+  /** v1.12.0: Corporate Pack — B2B-tier для компаний (50 кодов / 49 900 ₽/год). */
+  const buyCorporateViaTelegram = () => {
+    const msg = encodeURIComponent(
+      `Привет, Денис! Хочу 🏢 Corporate Pack PsyGames за ${formatPrice(CORPORATE_PACK_PRICE)}/год.\n\nЭто до ${CORPORATE_PACK_MAX_CODES} кодов разблокировки для команды/компании.\n\nКомпания: (укажи название)\nКол-во сотрудников: (укажи)\nКакие профили нужны: (NZT-48 / Execs / Реакция ПРО / любая комбинация)\n\nПодскажи как оплатить (б/н, договор, инвойс) и формат поставки кодов.`
+    );
+    const url = `https://t.me/${OWNER_TG}?text=${msg}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Не удалось открыть Telegram', `Напиши вручную: @${OWNER_TG}`);
+    });
+  };
+
   /** v1.8.0: Покупка пакета «Все 9 тематических» — топовый CTA в switcher. */
   const buyBundleViaTelegram = () => {
     const msg = encodeURIComponent(
@@ -127,7 +138,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 </TouchableOpacity>
               </View>
               <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18, marginBottom: 18 }}>
-                У каждого профиля свой набор игр и плейлист зарядки. Тематические открываются мастер-кодом — нажми на закрытый профиль чтобы узнать детали и получить код в Telegram.
+                У каждого профиля свой набор тренажёров и плейлист зарядки. Тематические открываются мастер-кодом — нажми на закрытый профиль чтобы узнать детали и получить код в Telegram.
               </Text>
 
               {/* Grid */}
@@ -227,6 +238,38 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 </TouchableOpacity>
               </View>
 
+              {/* v1.12.0: 🏢 Corporate Pack — B2B-tier (премиум-якорь) */}
+              <View style={{
+                marginTop: 12,
+                backgroundColor: '#1f2937',
+                borderWidth: 2,
+                borderColor: '#475569',
+                borderRadius: 14,
+                padding: 16,
+                alignItems: 'center',
+              }}>
+                <Text style={{ fontSize: 12, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, fontWeight: '700', marginBottom: 6 }}>
+                  🏢 B2B · Corporate
+                </Text>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#fff', marginBottom: 4, textAlign: 'center' }}>
+                  Пакет для команды / компании
+                </Text>
+                <Text style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginBottom: 10, lineHeight: 15 }}>
+                  До {CORPORATE_PACK_MAX_CODES} кодов разблокировки · любые профили · б/н · договор · инвойс
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginBottom: 10 }}>
+                  <Text style={{ fontSize: 22, fontWeight: '900', color: '#fbbf24' }}>{formatPrice(CORPORATE_PACK_PRICE)}</Text>
+                  <Text style={{ fontSize: 12, color: '#94a3b8' }}>/год · ≈ {Math.round(CORPORATE_PACK_PRICE / CORPORATE_PACK_MAX_CODES)} ₽/сотрудник</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={buyCorporateViaTelegram}
+                  style={{ backgroundColor: '#fbbf24', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                >
+                  <Ionicons name="business" size={14} color="#1a1a1a" />
+                  <Text style={{ color: '#1a1a1a', fontWeight: '800', fontSize: 13 }}>Запросить корп-предложение</Text>
+                </TouchableOpacity>
+              </View>
+
               {/* Inline code button at bottom */}
               <TouchableOpacity
                 onPress={() => setCodeModalOpen(true)}
@@ -270,6 +313,13 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                     <Text style={{ fontSize: 14, color: colors.text, lineHeight: 19, fontWeight: '600' }}>
                       {detailProfile.sales_hook}
                     </Text>
+                    {/* v1.12.0: научный источник под цифрой в хуке —
+                        обязательно для критичной аудитории (врачи, учёные) */}
+                    {detailProfile.sales_hook_source && (
+                      <Text style={{ fontSize: 10, color: colors.textSecondary, marginTop: 6, fontStyle: 'italic', lineHeight: 14 }}>
+                        📚 {detailProfile.sales_hook_source}
+                      </Text>
+                    )}
                   </View>
                 )}
 
@@ -303,7 +353,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 </View>
 
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 10 }}>
-                  🎮 {detailProfile.allowed_games === 'all' ? 'Все 48 игр' : `${(detailProfile.allowed_games as string[]).length} игр в этом профиле`}
+                  🎮 {detailProfile.allowed_games === 'all' ? 'Все 48 тренажёров' : `${(detailProfile.allowed_games as string[]).length} тренажёров в этом профиле`}
                 </Text>
                 {detailProfile.allowed_games !== 'all' && (
                   <View style={{ gap: 6, marginBottom: 18 }}>
@@ -364,7 +414,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                       style={{ backgroundColor: '#0088cc', paddingVertical: 12, borderRadius: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
                     >
                       <Ionicons name="chatbubble-ellipses" size={16} color="#fff" />
-                      <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Задать вопрос в Telegram</Text>
+                      <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Получить консультацию в Telegram</Text>
                     </TouchableOpacity>
                     <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
                       Оплата картой / СБП / крипто · код выдаётся за 5-30 мин (рабочие часы Мск)

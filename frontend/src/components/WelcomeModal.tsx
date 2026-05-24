@@ -67,7 +67,7 @@ export default function WelcomeModal() {
                   <Text style={styles.optionEmoji}>🎁</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.optionTitle, { color: colors.text }]}>FREE (без подписки)</Text>
-                    <Text style={[styles.optionSub, { color: colors.textSecondary }]}>9 базовых игр · по одной из каждой категории</Text>
+                    <Text style={[styles.optionSub, { color: colors.textSecondary }]}>9 базовых тренажёров · по одному из каждой категории</Text>
                   </View>
                   <Ionicons name="arrow-forward" size={22} color={colors.text} />
                 </View>
@@ -85,7 +85,7 @@ export default function WelcomeModal() {
                   <Text style={styles.optionEmoji}>🔑</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.optionTitle, { color: colors.text }]}>У меня есть код доступа</Text>
-                    <Text style={[styles.optionSub, { color: colors.textSecondary }]}>Разблокирует тематический профиль (9 специальных игр)</Text>
+                    <Text style={[styles.optionSub, { color: colors.textSecondary }]}>Разблокирует тематический профиль (9 специальных тренажёров)</Text>
                   </View>
                   <Ionicons name="arrow-forward" size={22} color={colors.text} />
                 </View>
