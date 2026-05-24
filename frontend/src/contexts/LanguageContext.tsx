@@ -42,9 +42,9 @@ const translations: Translations = {
   trainingLabel: { ru: 'Что тренируем', en: 'What we train' },
   
   // Game Intro - detailed descriptions
-  schulteIntroDesc: { 
-    ru: 'Находите числа или буквы по порядку как можно быстрее. Это упражнение расширяет периферическое зрение и учит глаза быстро сканировать информацию.', 
-    en: 'Find numbers or letters in order as fast as possible. This exercise expands peripheral vision and trains your eyes to quickly scan information.' 
+  schulteIntroDesc: {
+    ru: 'Находите символы по порядку как можно быстрее. 5 модификаций под уровень нагрузки:\n\n• 🔢 Цифры 1→25 (классика, легче всего)\n• 🔢 Цифры 25→1 (обратный — сложнее)\n• 🔤 Буквы А→Я (тот же принцип на алфавите)\n• 🔤 Буквы Я→А (обратный алфавит — сложнее)\n• 🔀 1-А-2-Б-3-В (Шульте-Горбов: переключение между двумя последовательностями параллельно)\n\nЦветной режим добавляет визуальный шум для повышенной сложности. Упражнение расширяет периферическое зрение, ускоряет сканирование информации и тренирует устойчивое внимание.',
+    en: 'Find symbols in order as fast as possible. 5 modifications for different challenge levels:\n\n• 🔢 Numbers 1→25 (classic, easiest)\n• 🔢 Numbers 25→1 (backward — harder)\n• 🔤 Letters A→Z (same principle, alphabet)\n• 🔤 Letters Z→A (backward alphabet — harder)\n• 🔀 1-A-2-B-3-C (Schulte-Gorbov: switching between two sequences in parallel)\n\nColor mode adds visual noise for extra challenge. Expands peripheral vision, speeds up information scanning, and trains sustained attention.'
   },
   wordPairsIntroDesc: { 
     ru: 'Запомните связи между словами, а затем восстановите пары. Тренирует ассоциативную память — способность связывать информацию между собой.', 
@@ -95,16 +95,16 @@ const translations: Translations = {
   // ───── New cognitive games ─────
   // N-back
   nBack: { ru: 'N-back: оперативная память', en: 'N-back: Working memory' },
-  nBackDesc: { ru: 'Совпадает ли стимул с N шагов назад?', en: 'Does the stimulus match N steps back?' },
+  nBackDesc: { ru: 'Совпадает ли позиция вспышки с той, что была N шагов назад?', en: 'Does flash position match one from N steps back?' },
   nBackIntroDesc: {
-    ru: 'Запоминайте последовательность вспышек на сетке. Когда текущая вспышка совпадает с той, что была N шагов назад, нажмите MATCH. Единственный научно валидированный тренажёр оперативной памяти.',
-    en: 'Watch the flashing grid. When the current flash matches one N steps back, press MATCH. The only scientifically validated working-memory trainer.',
+    ru: '🧠 Самый эффективный тренажёр рабочей памяти (Jaeggi et al., 2008 — единственная парадигма с подтверждённым transfer-эффектом на IQ).\n\n📋 КАК ИГРАТЬ:\n• На сетке поочерёдно вспыхивают клетки\n• Запоминай где была вспышка N шагов назад\n• Когда текущая вспышка СОВПАДАЕТ по позиции с той что была N шагов назад → жми MATCH\n• Если не совпадает — ничего не жми, жди следующую\n\n🎯 ПРИМЕР при N=2 (запоминай позиции за 2 шага):\nШаг 1: вспышка слева-вверху  → жди\nШаг 2: вспышка справа        → жди\nШаг 3: вспышка слева-внизу   → СРАВНИ с шагом 1 (слева-вверху). НЕ совпадает → не жми\nШаг 4: вспышка справа        → СРАВНИ с шагом 2 (справа). СОВПАДАЕТ! → MATCH ✓\n\n💡 СТРАТЕГИЯ для новичков:\n• Начни с N=1 (запоминать только предыдущую вспышку) пока не освоишь ритм\n• Потом N=2, потом N=3. Выше N=4 — уже спорт высоких достижений\n• Не пытайся "вспомнить все шаги" — мозг ведёт скользящее окно автоматически\n• 15-20 минут в день, 3-4 недели → заметный прирост рабочей памяти',
+    en: '🧠 Most effective working memory trainer (Jaeggi et al., 2008 — the only paradigm with proven IQ transfer effect).\n\n📋 HOW TO PLAY:\n• Cells flash on the grid one at a time\n• Remember the position N steps ago\n• When current flash MATCHES the position from N steps back → press MATCH\n• If it doesn\'t match — don\'t press, wait for next\n\n🎯 EXAMPLE for N=2 (track positions 2 steps back):\nStep 1: flash top-left   → wait\nStep 2: flash right      → wait\nStep 3: flash bottom-left → COMPARE with step 1 (top-left). Doesn\'t match → don\'t press\nStep 4: flash right      → COMPARE with step 2 (right). MATCH! → press ✓\n\n💡 STRATEGY for beginners:\n• Start with N=1 (track just the previous flash) until rhythm clicks\n• Then N=2, then N=3. Above N=4 is elite-level\n• Don\'t try to "remember all steps" — your brain runs a sliding window automatically\n• 15-20 min/day for 3-4 weeks → noticeable WM gains',
   },
   nLevelLabel: { ru: 'Глубина (N)', en: 'Depth (N)' },
   trialsLabel: { ru: 'Количество', en: 'Trials' },
   match: { ru: 'СОВПАДЕНИЕ', en: 'MATCH' },
   warmup: { ru: 'Запоминаем…', en: 'Warming up…' },
-  nBackHint: { ru: 'Сравнивайте текущую вспышку с той, что была N шагов назад', en: 'Compare current flash with one N steps ago' },
+  nBackHint: { ru: 'Сравните текущую вспышку с той, что была N шагов назад — если совпадает → MATCH', en: 'Compare current flash with one N steps ago — if same position → MATCH' },
   benefitNback1: { ru: 'Быстрее держать в голове несколько мыслей', en: 'Hold multiple thoughts in mind faster' },
   benefitNback2: { ru: 'Лучше учиться сложным навыкам', en: 'Learn complex skills better' },
   benefitNback3: { ru: 'Точнее принимать решения под нагрузкой', en: 'Decide more accurately under load' },

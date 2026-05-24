@@ -35,6 +35,9 @@ const SCHULTE_BENEFITS = [
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 type ContentMode = 'numbers' | 'letters' | 'mixed';
+/** v1.10.0: направление поиска. 'forward' = 1→25 / А→Я, 'backward' = 25→1 / Я→А.
+ *  Для mixed (Шульте-Горбов) backward не применяется (нелогично). */
+type Direction = 'forward' | 'backward';
 
 export default function SchulteGame() {
   const { colors } = useTheme();
@@ -48,6 +51,14 @@ export default function SchulteGame() {
   const [gridSize, setGridSize] = useState(5);
   const [colorMode, setColorMode] = useState(false);
   const [contentMode, setContentMode] = useState<ContentMode>('numbers');
+  const [direction, setDirection] = useState<Direction>('forward');
+
+  // При смене на mixed — direction всегда forward (backward бессмыслен)
+  useEffect(() => {
+    if (contentMode === 'mixed' && direction !== 'forward') {
+      setDirection('forward');
+    }
+  }, [contentMode]);
 
   // Level-progression: which grid sizes are unlocked for this themed profile?
   // Personal profiles get an empty array meaning "no gating".
@@ -97,13 +108,13 @@ export default function SchulteGame() {
     const totalCells = gridSize * gridSize;
     let items: (number | string)[];
     let orderedSequence: (number | string)[];
-    
+
     if (contentMode === 'numbers') {
-      // Numbers mode: 1 to N
+      // Numbers mode: 1 to N (forward) или N to 1 (backward)
       items = Array.from({ length: totalCells }, (_, i) => i + 1);
       orderedSequence = [...items];
     } else if (contentMode === 'letters') {
-      // Letters mode: A to N (based on language)
+      // Letters mode: A to N (based on language) → forward, либо Я to А → backward
       const alphabet = language === 'ru' ? RUSSIAN_LETTERS : ENGLISH_LETTERS;
       items = alphabet.slice(0, totalCells).split('');
       orderedSequence = [...items];
@@ -111,6 +122,7 @@ export default function SchulteGame() {
       // Mixed mode (Schulte-Gorbov): chase 1, A, 2, B, 3, C, ...
       // Половина чисел + половина букв, чередуются в правильной последовательности.
       // Это самый сильный вариант для тренировки переключения внимания.
+      // backward для mixed не применяется (всегда forward).
       const half = Math.ceil(totalCells / 2);
       const numbers = Array.from({ length: half }, (_, i) => i + 1);
       const alphabet = language === 'ru' ? RUSSIAN_LETTERS : ENGLISH_LETTERS;
@@ -124,20 +136,26 @@ export default function SchulteGame() {
       orderedSequence = orderedSequence.slice(0, totalCells);
       items = [...orderedSequence];
     }
-    
-    // Fisher-Yates shuffle
+
+    // v1.10.0: Backward direction — переворачиваем правильную последовательность
+    // (только для numbers и letters; mixed всегда forward)
+    if (direction === 'backward' && contentMode !== 'mixed') {
+      orderedSequence = [...orderedSequence].reverse();
+    }
+
+    // Fisher-Yates shuffle (для items — что отображается на сетке, в случайном порядке)
     for (let i = items.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [items[i], items[j]] = [items[j], items[i]];
     }
-    
+
     // Generate random colors for color mode
     const colors = items.map(() => COLORS[Math.floor(Math.random() * COLORS.length)]);
-    
+
     setGrid(items);
     setCellColors(colors);
     setSequence(orderedSequence);
-  }, [gridSize, contentMode, language]);
+  }, [gridSize, contentMode, language, direction]);
 
   const startGame = () => {
     generateGrid();
@@ -173,7 +191,7 @@ export default function SchulteGame() {
             score: totalCells - errors,
             time_seconds: finalTime,
             difficulty: `${gridSize}x${gridSize}`,
-            mode: `${contentMode}_${colorMode ? 'color' : 'bw'}`,
+            mode: `${contentMode}_${direction}_${colorMode ? 'color' : 'bw'}`,
             errors: errors,
             details: {
               hits: totalCells - errors,
@@ -296,6 +314,61 @@ export default function SchulteGame() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* v1.10.0: Direction toggle — forward (1→25 / А→Я) или backward.
+          Скрыт для mixed-режима (там всегда forward). */}
+      {contentMode !== 'mixed' && (
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>
+            {language === 'ru' ? 'Направление' : 'Direction'}
+          </Text>
+          <View style={styles.optionButtons}>
+            <TouchableOpacity
+              style={[
+                styles.modeButton,
+                direction === 'forward' && { backgroundColor: GRADIENT[0] },
+                direction !== 'forward' && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+              ]}
+              onPress={() => setDirection('forward')}
+            >
+              <Ionicons
+                name="arrow-forward-outline"
+                size={20}
+                color={direction === 'forward' ? '#FFFFFF' : colors.text}
+              />
+              <Text style={[styles.modeButtonText, { color: direction === 'forward' ? '#FFFFFF' : colors.text }]}>
+                {language === 'ru'
+                  ? (contentMode === 'numbers' ? '1 → 25' : 'А → Я')
+                  : (contentMode === 'numbers' ? '1 → 25' : 'A → Z')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.modeButton,
+                direction === 'backward' && { backgroundColor: GRADIENT[0] },
+                direction !== 'backward' && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+              ]}
+              onPress={() => setDirection('backward')}
+            >
+              <Ionicons
+                name="arrow-back-outline"
+                size={20}
+                color={direction === 'backward' ? '#FFFFFF' : colors.text}
+              />
+              <Text style={[styles.modeButtonText, { color: direction === 'backward' ? '#FFFFFF' : colors.text }]}>
+                {language === 'ru'
+                  ? (contentMode === 'numbers' ? '25 → 1' : 'Я → А')
+                  : (contentMode === 'numbers' ? '25 → 1' : 'Z → A')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
+            {language === 'ru'
+              ? 'Обратный режим сложнее — мозг привычно ищет по возрастанию.'
+              : 'Backward is harder — brain naturally searches ascending.'}
+          </Text>
+        </View>
+      )}
 
       {/* Size Selection */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
