@@ -20,6 +20,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import type { ProfileDef } from '@/src/constants/profiles';
+import { BUNDLE_ALL_THEMED_PRICE, isForSale, formatPrice } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 
 const OWNER_TG = 'Denis_On999';
@@ -65,6 +66,29 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
   const requestCodeViaTelegram = (p: ProfileDef) => {
     const msg = encodeURIComponent(
       `Привет, Денис! Хочу получить код доступа к профилю «${p.display_name}» (${p.emoji}) в PsyGames. Это для меня / для (укажи кому, если в подарок).`
+    );
+    const url = `https://t.me/${OWNER_TG}?text=${msg}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Не удалось открыть Telegram', `Напиши вручную: @${OWNER_TG}`);
+    });
+  };
+
+  /** v1.8.0: Покупка профиля — pre-filled заявка с ценой и сроком. */
+  const buyProfileViaTelegram = (p: ProfileDef) => {
+    const price = p.price_year ? formatPrice(p.price_year) : 'договорно';
+    const msg = encodeURIComponent(
+      `Привет, Денис! Хочу оформить годовую подписку на профиль «${p.display_name}» (${p.emoji}) за ${price}/год.\n\nПодскажи как оплатить (карта / СБП / крипта).\n\nКод нужен для: меня / для (укажи кому если в подарок).`
+    );
+    const url = `https://t.me/${OWNER_TG}?text=${msg}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Не удалось открыть Telegram', `Напиши вручную: @${OWNER_TG}`);
+    });
+  };
+
+  /** v1.8.0: Покупка пакета «Все 9 тематических» — топовый CTA в switcher. */
+  const buyBundleViaTelegram = () => {
+    const msg = encodeURIComponent(
+      `Привет, Денис! Хочу пакет «Все 9 тематических профилей» PsyGames за ${formatPrice(BUNDLE_ALL_THEMED_PRICE)}/год.\n\nЭто Шахматист + Дети + Скорочтение + NZT-48 + Водители + 50+ + Предприниматели + Студенты + Женщины — на 365 дней.\n\nПодскажи как оплатить.`
     );
     const url = `https://t.me/${OWNER_TG}?text=${msg}`;
     Linking.openURL(url).catch(() => {
@@ -138,15 +162,75 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                           ⏱ {p.session_minutes}
                         </Text>
                       )}
+                      {/* v1.8.0: Ценник на каждой locked-карточке */}
+                      {locked && p.price_year && (
+                        <View style={{
+                          marginTop: 6,
+                          backgroundColor: '#10b981',
+                          paddingVertical: 3,
+                          paddingHorizontal: 8,
+                          borderRadius: 100,
+                        }}>
+                          <Text style={{ fontSize: 11, color: '#fff', fontWeight: '800' }}>
+                            {formatPrice(p.price_year)}/год
+                          </Text>
+                        </View>
+                      )}
+                      {p.id === 'free' && (
+                        <View style={{
+                          marginTop: 6,
+                          backgroundColor: '#f59e0b',
+                          paddingVertical: 3,
+                          paddingHorizontal: 8,
+                          borderRadius: 100,
+                        }}>
+                          <Text style={{ fontSize: 11, color: '#000', fontWeight: '800' }}>
+                            бесплатно
+                          </Text>
+                        </View>
+                      )}
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
+              {/* v1.8.0: Bundle CTA — "Все 9 за 4990₽" */}
+              <View style={{
+                marginTop: 22,
+                background: 'linear-gradient(135deg, #fbbf24 0%, #f97316 100%)',
+                backgroundColor: '#fbbf24',
+                borderRadius: 14,
+                padding: 18,
+                alignItems: 'center',
+              }}>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#1a1a1a', marginBottom: 4 }}>
+                  📦 Все 9 тематических
+                </Text>
+                <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.7)', textAlign: 'center', marginBottom: 4 }}>
+                  Шахматист · Дети · Скорочтение · NZT-48 · Водители · 50+ · Execs · Студенты · Женщины
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginBottom: 12 }}>
+                  <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.5)', textDecorationLine: 'line-through' }}>
+                    {formatPrice(490+490+490+690+690+790+990+990+990)}
+                  </Text>
+                  <Text style={{ fontSize: 24, fontWeight: '900', color: '#1a1a1a' }}>
+                    {formatPrice(BUNDLE_ALL_THEMED_PRICE)}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.7)' }}>/год</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={buyBundleViaTelegram}
+                  style={{ backgroundColor: '#1a1a1a', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}
+                >
+                  <Ionicons name="cart" size={16} color="#fff" />
+                  <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>Оформить пакет в Telegram</Text>
+                </TouchableOpacity>
+              </View>
+
               {/* Inline code button at bottom */}
               <TouchableOpacity
                 onPress={() => setCodeModalOpen(true)}
-                style={{ marginTop: 18, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}
+                style={{ marginTop: 14, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}
               >
                 <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>🔑 У меня уже есть код — ввести</Text>
               </TouchableOpacity>
@@ -238,21 +322,52 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
 
                 {!isAccessible(detailProfile.id) && (
                   <View style={{ gap: 10 }}>
+                    {/* v1.8.0: БОЛЬШОЙ ценник + кнопка «Купить» — главный CTA */}
+                    {isForSale(detailProfile) && detailProfile.price_year && (
+                      <View style={{
+                        backgroundColor: '#10b981' + '18',
+                        borderWidth: 2,
+                        borderColor: '#10b981',
+                        borderRadius: 14,
+                        padding: 16,
+                        alignItems: 'center',
+                        marginBottom: 4,
+                      }}>
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1, fontWeight: '700' }}>Годовая подписка</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4, marginBottom: 12 }}>
+                          <Text style={{ fontSize: 32, fontWeight: '900', color: colors.text }}>
+                            {formatPrice(detailProfile.price_year)}
+                          </Text>
+                          <Text style={{ fontSize: 14, color: colors.textSecondary }}>/год</Text>
+                        </View>
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginBottom: 12 }}>
+                          ≈ {Math.round(detailProfile.price_year / 12)}₽/мес · код на 365 дней
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => buyProfileViaTelegram(detailProfile)}
+                          style={{ backgroundColor: '#10b981', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}
+                        >
+                          <Ionicons name="cart" size={18} color="#fff" />
+                          <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>Оформить за {formatPrice(detailProfile.price_year)}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+
                     <TouchableOpacity
                       onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
-                      style={{ backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
+                      style={{ borderWidth: 1.5, borderColor: colors.border, paddingVertical: 12, borderRadius: 10, alignItems: 'center' }}
                     >
-                      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>🔑 У меня уже есть код — ввести</Text>
+                      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>🔑 У меня уже есть код — ввести</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => requestCodeViaTelegram(detailProfile)}
-                      style={{ backgroundColor: '#0088cc', paddingVertical: 14, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+                      style={{ backgroundColor: '#0088cc', paddingVertical: 12, borderRadius: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
                     >
-                      <Ionicons name="paper-plane" size={18} color="#fff" />
-                      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>Запросить код у @{OWNER_TG}</Text>
+                      <Ionicons name="chatbubble-ellipses" size={16} color="#fff" />
+                      <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Задать вопрос в Telegram</Text>
                     </TouchableOpacity>
                     <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
-                      Напиши Денису в Telegram — он выдаст персональный код доступа{'\n'}за 5 минут (рабочие часы Мск).
+                      Оплата картой / СБП / крипто · код выдаётся за 5-30 мин (рабочие часы Мск)
                     </Text>
                   </View>
                 )}

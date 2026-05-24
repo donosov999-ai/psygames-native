@@ -42,6 +42,10 @@ export interface ProfileDef {
   /** Sales hook — 1 короткая эмоциональная фраза для верха модалки.
    *  Цель: продать профиль за 3 сек чтения. (v1.6.0) */
   sales_hook?: string;
+  /** Цена годовой подписки в рублях (v1.8.0). 0 / undefined = бесплатно / не продаётся. */
+  price_year?: number;
+  /** Опциональная зачёркнутая «старая цена» для psychology (показать со скидкой). */
+  price_year_old?: number;
   group?: ProfileGroup;       // default 'personal' if undefined (back-compat)
   allowed_games: 'all' | string[];   // 'all' = no filter, otherwise whitelist of game_ids
   custom_playlists?: Partial<Record<Weekday, PlaylistStep[]>>;
@@ -67,6 +71,7 @@ const ODV999: ProfileDef = {
   audience: 'Владелец · полный доступ',
   session_minutes: '5-40 мин',
   sales_hook: '🛠 Полный набор владельца — все 47 игр, без ограничений. Выдаётся только лично.',
+  // price_year не задан → "не продаётся" (см. helper isForSale)
   group: 'themed',
   allowed_games: 'all',
   warmup_enabled: true,
@@ -93,6 +98,7 @@ const CHESS: ProfileDef = {
   audience: 'Шахматисты, тренеры, шахматные школы',
   session_minutes: '10-25 мин',
   sales_hook: '♟ Тренируй то, что качают Карлсен и Каруана между турнирами. +100-150 ELO за 3 месяца.',
+  price_year: 690,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: covers all 4 categories with 5-game bias on logic
   allowed_games: [
@@ -126,6 +132,7 @@ const KIDS: ProfileDef = {
   audience: 'Дети 7-12 лет, родители',
   session_minutes: '3-5 мин',
   sales_hook: '🧒 Развивающий центр в кармане. 5 мин после школы — заметный прогресс к концу четверти.',
+  price_year: 490,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: covers all 4 cats with 5-game bias on action (speed/math) for fun
   allowed_games: [
@@ -159,6 +166,7 @@ const VASILYEVA: ProfileDef = {
   audience: 'Ученики курсов скорочтения, репетиторы',
   session_minutes: '8-12 мин',
   sales_hook: '📖 Поле зрения шире на 30% к 4-й неделе. Дополнение к методике школы Васильевой (Екб).',
+  price_year: 690,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention/speed для скорочтения
   allowed_games: [
@@ -192,6 +200,7 @@ const NZT48: ProfileDef = {
   audience: 'Биохакеры, серьёзный когнитивный тренинг',
   session_minutes: '25-40 мин',
   sales_hook: '💊 NZT-48 из фильма — но реально. Полная батарея префронталки + Financial Brain Day.',
+  price_year: 990,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: balanced full battery
   allowed_games: [
@@ -260,6 +269,7 @@ const DRIVERS: ProfileDef = {
   audience: 'Автошколы, корпоративные программы, таксопарки',
   session_minutes: '12-15 мин',
   sales_hook: '🚗 На -30% меньше ошибок реакции после месяца тренировок. Для длинных рейсов и ночных смен.',
+  price_year: 790,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention + reaction
   allowed_games: [
@@ -293,6 +303,7 @@ const SENIORS: ProfileDef = {
   audience: 'Люди 50-75+, медцентры, программы active aging',
   session_minutes: '10-15 мин',
   sales_hook: '👴 Замедли когнитивное старение на 7-10 лет. 15 минут в день — критично для профилактики.',
+  price_year: 990,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory (профилактика деменции)
   allowed_games: [
@@ -326,6 +337,7 @@ const EXECS: ProfileDef = {
   audience: 'CEO, владельцы бизнеса, executive coaching',
   session_minutes: '15-25 мин',
   sales_hook: '💼 Лучшие решения под давлением. Цена ошибки = миллион — цена тренировки = 15 минут в день.',
+  price_year: 990,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on logic (decisions + risk)
   allowed_games: [
@@ -359,6 +371,7 @@ const STUDENTS: ProfileDef = {
   audience: 'Школьники 10-11 классов, репетиторы',
   session_minutes: '10-15 мин',
   sales_hook: '🎓 100 баллов ЕГЭ требуют 12 часов фокуса в день. Подготовь мозг к марафону экзамена.',
+  price_year: 490,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory + action (скорость на экзамене)
   allowed_games: [
@@ -405,6 +418,7 @@ const WOMEN: ProfileDef = {
   audience: 'Женщины 25-55 · микро-отдых + dopamine',
   session_minutes: '5-10 мин',
   sales_hook: '👩 5 минут залипательного отдыха — без чувства вины. Он реально полезен для мозга.',
+  price_year: 490,
   group: 'themed',
   // v1.4.1 — engagement-driven mix (НЕ формула 1+1+1+1+5)
   // Распределение: память 2 · внимание 4 (поиск-жанр) · логика 2 · скорость 1
@@ -451,6 +465,21 @@ export const PROFILES_BY_GROUP = {
   personal: PROFILES.filter(p => !p.group || p.group === 'personal'),
   themed:   PROFILES.filter(p => p.group === 'themed'),
 };
+
+// ─── Pricing (v1.8.0) ───────────────────────────────────────────────────
+
+/** Цена пакета «Все 9 тематических» (без ODV999) на год. */
+export const BUNDLE_ALL_THEMED_PRICE = 4990;
+
+/** Профиль продаётся (есть цена и не FREE)? */
+export function isForSale(profile: ProfileDef): boolean {
+  return !!profile.price_year && profile.id !== 'free';
+}
+
+/** Форматировать цену в "490 ₽". */
+export function formatPrice(rub: number): string {
+  return `${rub.toLocaleString('ru-RU')} ₽`;
+}
 
 export function isGameAllowed(profile: ProfileDef, gameId: string): boolean {
   if (profile.allowed_games === 'all') return true;

@@ -502,7 +502,7 @@ export default function SettingsScreen() {
 
       {/* App Info */}
       <View style={styles.appInfo}>
-        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.7.0 · {profile.emoji} {profile.display_name}</Text>
+        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.8.0 · {profile.emoji} {profile.display_name}</Text>
         <Text style={[styles.appVersion, { color: colors.textSecondary }]}>Клик по профилю → детали + запрос кода в Telegram</Text>
       </View>
       </ScrollView>
