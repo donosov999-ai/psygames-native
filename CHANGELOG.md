@@ -14,6 +14,47 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.5.0] — 2026-05-24
+
+### Added — Dynamic Keygen System
+- **`frontend/scripts/keygen.mjs`** — CLI для генерации динамических кодов
+  разблокировки профилей. Запуск: `yarn keygen --profile execs --days 90`
+  или интерактивно `yarn keygen:interactive`.
+- **Формат кода:** `XXX-YYMMDD-SSSS-CCCCCC` (21 символ)
+  - XXX = 3-char profile prefix (ODV/CHE/KID/RED/NZT/DRV/SEN/EXC/STD/WOM)
+  - YYMMDD = expiry date UTC
+  - SSSS = 4-char serial для учёта «кому выдан»
+  - CCCCCC = HMAC-SHA256 checksum от секретного ключа
+- **`unlock.ts`** теперь проверяет ОБА формата параллельно:
+  1. Сначала статический master-код (SHA-256 lookup) — backward compat
+  2. Если не нашёлся → проверка как динамический (HMAC + expiry)
+- **Auto-increment serial** при `--count > 1`: для serial=BIZ1 + count=5
+  выдаст BIZ1, BIZ2, BIZ3, BIZ4, BIZ5.
+- **NPM scripts:** `yarn keygen` и `yarn keygen:interactive`.
+
+### Преимущества над статическими master-кодами
+- Каждый код может иметь свой срок действия
+- Можно генерить пачкой (100 уникальных кодов для промо-акции)
+- Учёт «кому выдан» через serial (4 chars)
+- Не нужен новый релиз приложения для выдачи кода
+- Работает offline (HMAC проверяется встроенным ключом)
+
+### Известные ограничения
+- Отзыв ОДНОГО кода = только сменой ключа (отзовутся все динамические).
+  Гранулярный отзыв = нужна revocation list через Supabase Edge Function
+  (отложено — пока не критично).
+- Serial = просто метка, не проверяется криптографически. Реальный учёт
+  ведётся в `~/Downloads/PSYGAMES_UNLOCK_CODES.md`.
+
+### Безопасность
+- HMAC секрет вшит в JS bundle → reverse-engineer возможен. Для small
+  commercial — достаточно. При утечке: `openssl rand -hex 32` →
+  обновить в keygen.mjs + unlock.ts → push → CI rebuild → все динамические
+  коды моментально инвалидируются.
+- Статические master-коды (CHESS-NZT-2026, etc.) не затрагиваются.
+
+---
+
 ## [1.4.1] — 2026-05-24
 
 ### Changed

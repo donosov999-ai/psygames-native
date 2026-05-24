@@ -1,29 +1,41 @@
 /**
- * Unlock-code service for themed profiles.
+ * Unlock-code service для themed profiles.
  *
- * Themed profiles (Chess / Kids / Vasilyeva / NZT-48 / Drivers / Seniors /
- * Execs / Students) require a unique master-code to activate. FREE profile
- * is the default — accessible without any code.
+ * Поддерживает ДВА формата кодов одновременно (v1.5.0+):
  *
- * Each code maps to exactly one profile_id. Hash is SHA-256 of UPPERCASE
- * trimmed code string. Codes live in this file (hashes, not plaintext).
+ * 1️⃣ **СТАТИЧЕСКИЕ master-коды** (legacy, v1.0.0+)
+ *    - Один код = бессрочно = неограниченные активации
+ *    - Хранятся как SHA-256 хеши в HASH_TO_PROFILE
+ *    - При утечке → новый релиз приложения с новым хешем
+ *    - Примеры: CHESS-NZT-2026, NZT48-FULL-2026, 963Alex963!@#$%^&*() (ODV999)
  *
- * For Денис: list of plaintext codes lives separately in:
- *   /Users/denisonosov/Downloads/Code claude/psygames/UNLOCK_CODES.md
- * (gitignored — never commit plaintext codes).
+ * 2️⃣ **ДИНАМИЧЕСКИЕ HMAC-коды** (v1.5.0+) — формат `XXX-YYMMDD-SSSS-CCCCCC`
+ *    - Генерируются на лету через `scripts/keygen.mjs`
+ *    - Встроенный срок действия (YYMMDD)
+ *    - Serial 4 chars для учёта «кому выдан»
+ *    - 6 chars HMAC-checksum от секретного ключа
+ *    - Пример: EXC-261201-A4F2-1B8C3D — execs до 2026-12-01
  *
- * If a code leaks → generate a new one + new release:
+ * Денису: список выданных кодов трекай руками в:
+ *   /Users/denisonosov/Downloads/PSYGAMES_UNLOCK_CODES.md
+ * (gitignored — никогда не коммить плейнтекст-коды).
+ *
+ * Если SECRET утёк → ВСЕ динамические коды разом инвалидируются.
+ * Если статический хеш утёк → только один код. Чтобы заменить:
  *   1. Run: echo -n "NEW-CODE-2026" | shasum -a 256
- *   2. Replace the old hash in HASH_TO_PROFILE with the new one
- *   3. Push → CI rebuilds → old code stops working
- *   4. Distribute new code to customers via your channel
+ *   2. Заменить старый хеш в HASH_TO_PROFILE новым
+ *   3. Push → CI rebuild → старый код перестаёт работать
  */
 
 import type { ProfileId } from '@/src/constants/profiles';
 
+// ═══════════════════════════════════════════════════════════════════════
+// 1️⃣ СТАТИЧЕСКИЕ master-коды (SHA-256 lookup)
+// ═══════════════════════════════════════════════════════════════════════
+
 /**
- * Pre-computed SHA-256 hashes of master codes → profile id.
- * To find which plaintext maps here: see UNLOCK_CODES.md (local, not in git).
+ * Pre-computed SHA-256 hashes мастер-кодов → profile id.
+ * Чтобы найти плейнтекст: см. ~/Downloads/PSYGAMES_UNLOCK_CODES.md
  */
 const HASH_TO_PROFILE: Record<string, ProfileId> = {
   '181a5f1b4ae0e79700a224b4a6770ca98fae05a39f20fbcbdfed3cd9164299e0': 'chess',
@@ -48,10 +60,39 @@ export const THEMED_PROFILES_LOCKED: ProfileId[] = [
   'women',
 ];
 
+// ═══════════════════════════════════════════════════════════════════════
+// 2️⃣ ДИНАМИЧЕСКИЕ HMAC-коды (v1.5.0+)
+// ═══════════════════════════════════════════════════════════════════════
+
 /**
- * SHA-256 implementation using Web Crypto API (works in browser, RN web,
- * Tauri WebView). Returns lowercase hex.
+ * ⚠ ВАЖНО: SECRET ДОЛЖЕН точно совпадать с `KEYGEN_SECRET` в
+ * `frontend/scripts/keygen.mjs`. При изменении одного — поменять оба
+ * и пересобрать CI, иначе ранее выданные динамические коды не пройдут проверку.
+ *
+ * Этот секрет вшит в JS bundle → теоретически достать reverse-engineerom.
+ * Для small commercial — достаточно. Если нужна более серьёзная защита —
+ * переходить на серверную валидацию через Supabase Edge Function.
  */
+const KEYGEN_SECRET = '01ec6f43615b0a9ba400f1812130ad8b108db3f5485f990ab7c591de10047ab8';
+
+/** 3-char prefix → ProfileId. Sync с PROFILE_CODES в keygen.mjs. */
+const PROFILE_CODE_MAP: Record<string, ProfileId> = {
+  ODV: 'odv999',
+  CHE: 'chess',
+  KID: 'kids',
+  RED: 'vasilyeva',
+  NZT: 'nzt48',
+  DRV: 'drivers',
+  SEN: 'seniors',
+  EXC: 'execs',
+  STD: 'students',
+  WOM: 'women',
+  FRE: 'free',
+};
+
+// ─── SHARED CRYPTO HELPERS ──────────────────────────────────────────────
+
+/** SHA-256 (lowercase hex) через Web Crypto API. */
 async function sha256Hex(input: string): Promise<string> {
   const enc = new TextEncoder();
   const buf = await crypto.subtle.digest('SHA-256', enc.encode(input));
@@ -60,15 +101,102 @@ async function sha256Hex(input: string): Promise<string> {
     .join('');
 }
 
+/** HMAC-SHA256 hex (lowercase), первые N символов. */
+async function hmacSha256Hex(secret: string, message: string, length = 6): Promise<string> {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+  const hex = Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  return hex.slice(0, length).toUpperCase();
+}
+
+// ─── DYNAMIC CODE VERIFIER ──────────────────────────────────────────────
+
+interface ParsedDynamicCode {
+  profile: ProfileId;
+  expiry: Date;
+  prefix: string;
+  dateStr: string;
+  serial: string;
+  providedChecksum: string;
+}
+
+/** Распарсить динамический код. Возвращает null если формат не подходит. */
+function parseDynamicCode(raw: string): ParsedDynamicCode | null {
+  const parts = raw.split('-');
+  if (parts.length !== 4) return null;
+
+  const [prefix, dateStr, serial, providedChecksum] = parts;
+  if (prefix.length !== 3) return null;
+  if (dateStr.length !== 6 || !/^\d{6}$/.test(dateStr)) return null;
+  if (serial.length !== 4 || !/^[A-Z0-9]{4}$/.test(serial)) return null;
+  if (providedChecksum.length !== 6 || !/^[A-F0-9]{6}$/.test(providedChecksum)) return null;
+
+  const profile = PROFILE_CODE_MAP[prefix];
+  if (!profile) return null;
+
+  const yy = parseInt(dateStr.slice(0, 2), 10);
+  const mm = parseInt(dateStr.slice(2, 4), 10);
+  const dd = parseInt(dateStr.slice(4, 6), 10);
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+
+  // UTC date — конец дня истечения (00:00 следующего дня)
+  const expiry = new Date(Date.UTC(2000 + yy, mm - 1, dd + 1, 0, 0, 0));
+
+  return { profile, expiry, prefix, dateStr, serial, providedChecksum };
+}
+
 /**
- * Try to unlock a profile with a code. Returns the profile id if the code
- * is valid, otherwise null.
+ * Проверить динамический код. Возвращает ProfileId если код валиден и не истёк,
+ * иначе null. Возможные причины null:
+ *   - Неправильный формат
+ *   - Неизвестный prefix
+ *   - HMAC checksum не совпадает (подделан / опечатка)
+ *   - Код истёк
+ */
+async function verifyDynamicCode(raw: string): Promise<ProfileId | null> {
+  const parsed = parseDynamicCode(raw);
+  if (!parsed) return null;
+
+  // Проверка срока действия
+  if (Date.now() >= parsed.expiry.getTime()) return null;
+
+  // Пересчёт HMAC
+  const payload = `${parsed.prefix}-${parsed.dateStr}-${parsed.serial}`;
+  const expectedChecksum = await hmacSha256Hex(KEYGEN_SECRET, payload, 6);
+
+  return parsed.providedChecksum === expectedChecksum ? parsed.profile : null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// 🚪 ENTRY POINT
+// ═══════════════════════════════════════════════════════════════════════
+
+/**
+ * Попытаться разблокировать профиль кодом. Сначала проверяется как
+ * статический master-код (SHA-256 lookup), потом как динамический HMAC-код.
+ * Возвращает ProfileId если код валиден, иначе null.
  */
 export async function tryUnlock(rawCode: string): Promise<ProfileId | null> {
   const normalized = rawCode.trim().toUpperCase();
   if (normalized.length < 4) return null;
+
+  // 1️⃣ Статический master-код?
   const hash = await sha256Hex(normalized);
-  return HASH_TO_PROFILE[hash] ?? null;
+  if (HASH_TO_PROFILE[hash]) {
+    return HASH_TO_PROFILE[hash];
+  }
+
+  // 2️⃣ Динамический HMAC-код?
+  return await verifyDynamicCode(normalized);
 }
 
 /** Check if a profile id is in the themed (locked) set. */

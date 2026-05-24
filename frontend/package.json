@@ -1,14 +1,16 @@
 {
   "name": "frontend",
   "main": "expo-router/entry",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "keygen": "node scripts/keygen.mjs",
+    "keygen:interactive": "node scripts/keygen.mjs --interactive"
   },
   "dependencies": {
     "@expo/ngrok": "^4.1.3",
