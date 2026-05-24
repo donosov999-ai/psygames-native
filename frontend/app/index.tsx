@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     gap: 6,
-    minHeight: 130,
+    height: 150,   // FIXED (was minHeight) — иначе карточки разной высоты при разной длине subtitle
     justifyContent: 'space-between',
   },
   heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },

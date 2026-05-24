@@ -14,6 +14,22 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.2.1] — 2026-05-24
+
+### Fixed
+- **Hero cards (Зарядка / Профиль / FIN BRAIN)** had different heights
+  because `minHeight: 130` allowed cards with longer subtitles (e.g.
+  «12 тестов · ~12 мин» + ★ badge) to stretch past 130 while neighbours
+  stayed shorter. Fixed: `height: 150` (fixed), all 3 always equal.
+- **Game cards** had varying internal layout: cards with short
+  description had big empty gap between icon and text (because
+  `justifyContent: 'space-between'` distributed remaining space).
+  Fixed: removed `space-between` from card style; explicit `marginTop: 12`
+  between icon and text, `marginTop: 'auto'` on badge to pin it to
+  bottom. Result: identical visual structure regardless of desc length.
+
+---
+
 ## [1.2.0] — 2026-05-23
 
 Big refactor: 4 categories + balanced themed profiles.
