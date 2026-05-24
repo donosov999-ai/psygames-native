@@ -14,6 +14,44 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.9.1] — 2026-05-24
+
+### Refactor — Simon merged into attention_conflict hub
+- По замечанию Дениса: у нас в коде уже есть **`attention_conflict.tsx`** —
+  агрегатор для парадигм interference resolution (Stroop + Stroop-Emotional
+  + Flanker). Simon — концептуально 4-я парадигма того же кластера
+  (пространственный конфликт). Создавать ему ОТДЕЛЬНУЮ карточку в основном
+  меню = плодить дубли.
+- **Изменения:**
+  - `games.ts`: Simon получил `hideFromMenu: true`
+  - `attention-conflict.tsx`: добавлен Simon как 4-я sub-game-карточка
+    (Цвет vs Слово / vs Эмоция / vs Бока / **vs Позиция**)
+  - Файл `simon.tsx` остался — игра запускается через переход из hub
+  - Counts остаются: **48 игр в каталоге** (физически), 40 видимых в меню
+    (было 39 + simon в hub).
+- Симметрия с другими merge-парадигмами (`inhibition` объединяет go_no_go
+  + stop_signal, `span_group` — corsi/spatial_span/digit_span).
+
+### Added — Quick i18n RU/EN for profiles.html via Google Translate widget
+- profiles.html был 0% i18n (download.html был с нативным data-i18n).
+  Это плохо для не-русскоязычных посетителей.
+- Решение: динамический load Google Translate widget + кнопки RU/EN
+  в шапке (sticky). Качество ~90% от ручного перевода, но включается
+  **за 5 минут** вместо «неделя ручной локализации 1000 строк».
+- **Поведение:**
+  - Browser language ≠ ru → автоматически предлагает EN при первом заходе
+  - localStorage запоминает выбор пользователя
+  - URL ?lang=en — форсирует EN (полезно для расшаривания ссылки)
+  - Хардкодим список языков: en, es, fr, de, zh-CN, ja, ko, ar, tr, pl, uk
+  - Прячем navigation banner от Google (визуальный шум)
+- TODO для будущего: переписать на нативный data-i18n + dict
+  (как download.html) если будет ~1000+ EN-посетителей/мес.
+
+### Settings UI
+- Footer: `PsyGames v1.9.1 · 48 игр`
+
+---
+
 ## [1.9.0] — 2026-05-24
 
 ### Added — 48-я игра: Simon Task 🎉

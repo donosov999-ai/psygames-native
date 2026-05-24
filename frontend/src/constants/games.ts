@@ -554,6 +554,8 @@ export const GAMES: GameConfig[] = [
     icon: 'flash',
     route: '/games/simon',
     category: 'action',
+    hideFromMenu: true, // v1.9.1 — merged into 'attention_conflict' (4-я парадигма
+                        // interference resolution рядом со Stroop/Flanker)
   },
 ];
 
