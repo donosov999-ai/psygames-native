@@ -35,8 +35,6 @@ export default function GameCard({
     <View style={{
       width: cardWidth,
       height: cardHeight,
-      // Triple-belt for macOS WebKit (Tauri) which sometimes ignores plain width
-      // when parent is flex-wrap: min+max+width force exact dimensions.
       minWidth: cardWidth,
       maxWidth: cardWidth,
       minHeight: cardHeight,
@@ -44,6 +42,9 @@ export default function GameCard({
       flexShrink: 0,
       flexGrow: 0,
       flexBasis: cardWidth,
+      // Per-card margin instead of parent's `gap` (RN Web bug with flex-wrap)
+      marginRight: 10,
+      marginBottom: 10,
     }}>
       <TouchableOpacity
         onPress={onPress}

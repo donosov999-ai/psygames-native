@@ -69,10 +69,14 @@ export default function HomeScreen() {
     })();
   }, []);
 
-  // Container width sizing
+  // Container width sizing.
+  // Per-card marginRight (10px, see GameCard) instead of grid `gap` (RN Web buggy).
+  // So each "slot" = cardWidth + 10, and N slots fit in containerWidth+10
+  // (last card's trailing marginRight is just empty space at row end, fine).
   const containerWidth = Math.min(winWidth, MAX_CONTAINER_WIDTH) - CONTAINER_PADDING * 2;
   const cols = containerWidth >= 880 ? 5 : containerWidth >= 700 ? 4 : containerWidth >= 520 ? 3 : 2;
-  const cardWidth = Math.floor((containerWidth - GRID_GAP * (cols - 1)) / cols);
+  const CARD_MARGIN = 10;
+  const cardWidth = Math.floor((containerWidth - CARD_MARGIN * cols) / cols);
   const cardHeight = Math.round(cardWidth * 1.2);
 
   // E1: filter games by active profile + hide games merged into group cards
@@ -295,8 +299,11 @@ export default function HomeScreen() {
                   {games.length}
                 </Text>
               </View>
-              <View style={[styles.gamesGrid, { gap: GRID_GAP }]}>
-                {games.map((game) => (
+              {/* No `gap` (RN Web bug with flex-wrap distributing gap unevenly).
+                  Each card gets explicit marginRight + marginBottom via the
+                  `margin` prop below. */}
+              <View style={styles.gamesGrid}>
+                {games.map((game, idx) => (
                   <GameCard
                     key={game.id}
                     nameKey={game.nameKey}

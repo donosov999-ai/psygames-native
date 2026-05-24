@@ -14,6 +14,19 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.2.6] — 2026-05-24
+
+### Fixed
+- **GameCard widths still drifted on Web** even with v1.2.5's CSS belt.
+  Root cause: `gap` in flex-wrap is a known RN Web bug — it distributes
+  the gap unevenly across items in rows with different item counts.
+- Replaced parent `gap: GRID_GAP` (12px) with per-card `marginRight: 10,
+  marginBottom: 10` directly on the outer View inside GameCard.
+- Recomputed `cardWidth` formula to account for trailing per-card margin
+  (so N cards + N margins fit containerWidth, not N + (N-1) gaps).
+
+---
+
 ## [1.2.5] — 2026-05-24
 
 ### Fixed
