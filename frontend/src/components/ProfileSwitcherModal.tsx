@@ -88,7 +88,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
   /** v1.12.0: Corporate Pack — B2B-tier для компаний (50 кодов / 49 900 ₽/год). */
   const buyCorporateViaTelegram = () => {
     const msg = encodeURIComponent(
-      `Привет, Денис! Хочу 🏢 Corporate Pack PsyGames за ${formatPrice(CORPORATE_PACK_PRICE)}/год.\n\nЭто до ${CORPORATE_PACK_MAX_CODES} кодов разблокировки для команды/компании.\n\nКомпания: (укажи название)\nКол-во сотрудников: (укажи)\nКакие профили нужны: (NZT-48 / Execs / Реакция ПРО / любая комбинация)\n\nПодскажи как оплатить (б/н, договор, инвойс) и формат поставки кодов.`
+      `Добрый день, Денис.\n\nИнтересует Corporate Pack PsyGames — ${formatPrice(CORPORATE_PACK_PRICE)}/год за до ${CORPORATE_PACK_MAX_CODES} кодов разблокировки для команды.\n\nКомпания: (укажите название)\nКоличество сотрудников: (укажите)\nЦелевые профили: (NZT-48 / Execs / Реакция ПРО / комбинация)\nКонтакт для договора: (email)\n\nПрошу прислать коммерческое предложение с реквизитами и условиями поставки кодов.`
     );
     const url = `https://t.me/${OWNER_TG}?text=${msg}`;
     Linking.openURL(url).catch(() => {
@@ -187,16 +187,34 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                           </Text>
                         </View>
                       )}
-                      {p.id === 'free' && (
+                      {/* v1.13.0: tier-based бейдж — отделяет TRIAL / OWNER от paid */}
+                      {p.tier === 'trial' && (
                         <View style={{
                           marginTop: 6,
-                          backgroundColor: '#f59e0b',
+                          backgroundColor: '#22c55e',
                           paddingVertical: 3,
                           paddingHorizontal: 8,
                           borderRadius: 100,
+                          flexDirection: 'row', alignItems: 'center', gap: 4,
                         }}>
-                          <Text style={{ fontSize: 11, color: '#000', fontWeight: '800' }}>
-                            бесплатно
+                          <Ionicons name="gift" size={10} color="#fff" />
+                          <Text style={{ fontSize: 10, color: '#fff', fontWeight: '900', letterSpacing: 1 }}>
+                            TRIAL · FREE
+                          </Text>
+                        </View>
+                      )}
+                      {p.tier === 'owner' && (
+                        <View style={{
+                          marginTop: 6,
+                          backgroundColor: '#6b7280',
+                          paddingVertical: 3,
+                          paddingHorizontal: 8,
+                          borderRadius: 100,
+                          flexDirection: 'row', alignItems: 'center', gap: 4,
+                        }}>
+                          <Ionicons name="lock-closed" size={10} color="#fff" />
+                          <Text style={{ fontSize: 10, color: '#fff', fontWeight: '900', letterSpacing: 1 }}>
+                            OWNER · ЛИЧНО
                           </Text>
                         </View>
                       )}
@@ -238,7 +256,8 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 </TouchableOpacity>
               </View>
 
-              {/* v1.12.0: 🏢 Corporate Pack — B2B-tier (премиум-якорь) */}
+              {/* v1.13.0: Corporate Pack — формальный B2B-блок (минимум эмодзи,
+                  деловой язык, премиум-якорь × 10 от Bundle). */}
               <View style={{
                 marginTop: 12,
                 backgroundColor: '#1f2937',
@@ -248,14 +267,14 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 padding: 16,
                 alignItems: 'center',
               }}>
-                <Text style={{ fontSize: 12, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, fontWeight: '700', marginBottom: 6 }}>
-                  🏢 B2B · Corporate
+                <Text style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: '700', marginBottom: 6 }}>
+                  Corporate / B2B
                 </Text>
                 <Text style={{ fontSize: 16, fontWeight: '800', color: '#fff', marginBottom: 4, textAlign: 'center' }}>
-                  Пакет для команды / компании
+                  Корпоративная подписка
                 </Text>
                 <Text style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginBottom: 10, lineHeight: 15 }}>
-                  До {CORPORATE_PACK_MAX_CODES} кодов разблокировки · любые профили · б/н · договор · инвойс
+                  До {CORPORATE_PACK_MAX_CODES} кодов · 48 валидированных парадигм · безналичная оплата · договор · закрывающие документы
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginBottom: 10 }}>
                   <Text style={{ fontSize: 22, fontWeight: '900', color: '#fbbf24' }}>{formatPrice(CORPORATE_PACK_PRICE)}</Text>
@@ -266,7 +285,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   style={{ backgroundColor: '#fbbf24', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}
                 >
                   <Ionicons name="business" size={14} color="#1a1a1a" />
-                  <Text style={{ color: '#1a1a1a', fontWeight: '800', fontSize: 13 }}>Запросить корп-предложение</Text>
+                  <Text style={{ color: '#1a1a1a', fontWeight: '800', fontSize: 13 }}>Запросить коммерческое предложение</Text>
                 </TouchableOpacity>
               </View>
 
