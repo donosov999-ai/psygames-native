@@ -415,5 +415,13 @@ const styles = StyleSheet.create({
   sectionDot: { width: 4, height: 18, borderRadius: 2 },
   sectionTitle: { fontSize: 17, fontWeight: '700', flex: 1 },
   sectionCount: { fontSize: 13, fontWeight: '600' },
-  gamesGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start' },
+  // RN Web flex-wrap with `gap` distributes leftover inconsistently across rows.
+  // Use alignContent + alignItems flex-start to keep rows tight + no stretching.
+  gamesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    alignContent: 'flex-start',
+    alignItems: 'flex-start',
+  },
 });

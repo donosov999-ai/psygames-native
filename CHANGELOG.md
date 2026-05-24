@@ -14,6 +14,20 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.2.3] — 2026-05-24
+
+### Fixed
+- **GameCard width now stable** across rows. After v1.2.2 fix for height,
+  width started varying within rows (Парные ≈200px, Span ≈240px on the
+  same row). RN Web's flex-wrap was still letting cards stretch/shrink
+  to fill leftover space inconsistently.
+- TouchableOpacity now has `flexShrink: 0, flexGrow: 0, flexBasis: cardWidth`
+  — hard-pins each card to exactly cardWidth, no flex distribution.
+- `gamesGrid` got `alignContent: flex-start` and `alignItems: flex-start`
+  to prevent any row-level stretching.
+
+---
+
 ## [1.2.2] — 2026-05-24
 
 ### Fixed

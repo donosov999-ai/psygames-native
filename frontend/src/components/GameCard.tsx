@@ -35,7 +35,13 @@ export default function GameCard({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
-      style={{ width: cardWidth, height: cardHeight }}
+      style={{
+        width: cardWidth,
+        height: cardHeight,
+        flexShrink: 0,   // prevent RN Web flex-wrap from shrinking
+        flexGrow: 0,     // prevent stretching to fill row
+        flexBasis: cardWidth,   // hard-pin basis to avoid auto-calc
+      }}
     >
       <LinearGradient
         colors={gradient as [string, string]}
