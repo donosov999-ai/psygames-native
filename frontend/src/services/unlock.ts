@@ -34,10 +34,13 @@ const HASH_TO_PROFILE: Record<string, ProfileId> = {
   '27399770c0312c74dc7e287a201cf026b3dde1d72c3ff31099a7153d1c2f49fa': 'seniors',
   '2bda5949b24ad3b3d833fe9ef49ee5d2667c11f0809369f263cc4bd274cbb061': 'execs',
   '5935509a20fa445bfb8fe49c49025b985597723df5d52e5650a3908526ca7706': 'students',
+  // ODV999 (owner, full access). Same password as NZT staticrypt.
+  '259a6084c97548c093d7b305d5ede0d9b2d40457d8eb89bd198bf0465f04ac17': 'odv999',
 };
 
 /** Themed profiles that REQUIRE an unlock code. FREE is reachable without. */
 export const THEMED_PROFILES_LOCKED: ProfileId[] = [
+  'odv999',
   'chess', 'kids', 'vasilyeva', 'nzt48',
   'drivers', 'seniors', 'execs', 'students',
 ];

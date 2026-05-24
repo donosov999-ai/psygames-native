@@ -6,6 +6,13 @@ import { tryUnlock, requiresUnlock } from '@/src/services/unlock';
 const ACTIVE_PROFILE_KEY = 'psygames_active_profile';
 const UNLOCKED_THEMED_KEY = 'psygames_unlocked_themed';   // string[] of profile ids
 
+/**
+ * Profile IDs that existed pre-v1.3.0 (personal: Денис/Алекс/Валя/Юля/Гость).
+ * When an old install loads with one of these saved, we silently fall back
+ * to FREE — they no longer exist in PROFILE_BY_ID.
+ */
+const LEGACY_REMOVED_IDS = new Set(['denis', 'alex', 'valya', 'yulya', 'guest']);
+
 interface ProfileCtx {
   profile: ProfileDef;
   switchProfile: (id: ProfileId) => Promise<void>;
@@ -33,8 +40,8 @@ const FIRST_RUN_KEY = 'psygames_first_run_done';
 
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   // Default = FREE for unknown devices (commercial-friendly).
-  // ProfileContext load below will switch to Denis if a saved profile exists.
-  const [profile, setProfile] = useState<ProfileDef>(PROFILE_BY_ID.free ?? PROFILE_BY_ID.denis);
+  // Load effect below restores a saved profile (if it still exists post-v1.3.0).
+  const [profile, setProfile] = useState<ProfileDef>(PROFILE_BY_ID.free);
   const [ready, setReady] = useState(false);
   const [unlockedThemed, setUnlockedThemed] = useState<Set<ProfileId>>(new Set());
   const [isFirstRun, setIsFirstRun] = useState(false);
@@ -60,14 +67,20 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
           // Profile stays as FREE (default) until user picks via welcome modal
         }
 
-        if (savedProfile && savedProfile in PROFILE_BY_ID) {
-          const candidate = PROFILE_BY_ID[savedProfile as ProfileId];
-          // If saved is a themed-locked profile and unlock was cleared → fall back to FREE
-          if (requiresUnlock(candidate.id) && !unlocks.has(candidate.id)) {
-            const fallback = PROFILE_BY_ID.free ?? PROFILE_BY_ID.denis;
-            setProfile(fallback);
-          } else {
-            setProfile(candidate);
+        if (savedProfile) {
+          // Legacy install: saved profile was Денис/Алекс/Валя/Юля/Гость → silently
+          // fall back to FREE (v1.3.0 removed personal profiles from the public app).
+          if (LEGACY_REMOVED_IDS.has(savedProfile)) {
+            setProfile(PROFILE_BY_ID.free);
+            try { await AsyncStorage.setItem(ACTIVE_PROFILE_KEY, 'free'); } catch {}
+          } else if (savedProfile in PROFILE_BY_ID) {
+            const candidate = PROFILE_BY_ID[savedProfile as ProfileId];
+            // If saved is a themed-locked profile and unlock was cleared → fall back to FREE
+            if (requiresUnlock(candidate.id) && !unlocks.has(candidate.id)) {
+              setProfile(PROFILE_BY_ID.free);
+            } else {
+              setProfile(candidate);
+            }
           }
         }
       } catch (e) {
@@ -130,7 +143,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     }
     // If current profile was a locked themed → fall back to FREE
     if (requiresUnlock(profile.id)) {
-      const fallback = PROFILE_BY_ID.free ?? PROFILE_BY_ID.denis;
+      const fallback = PROFILE_BY_ID.free;
       setProfile(fallback);
       try { await AsyncStorage.setItem(ACTIVE_PROFILE_KEY, fallback.id); } catch {}
     }

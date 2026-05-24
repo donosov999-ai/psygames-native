@@ -82,40 +82,45 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
           У каждого профиля свой набор игр, свой плейлист зарядки и своя история.
         </Text>
-        {/* Personal profiles */}
-        <Text style={[styles.groupLabel, { color: colors.textSecondary }]}>👥 Личные</Text>
-        <View style={styles.profileGrid}>
-          {allProfiles.filter(p => !p.group || p.group === 'personal').map((p) => {
-            const active = p.id === profile.id;
-            return (
-              <TouchableOpacity
-                key={p.id}
-                style={[styles.profileCard, {
-                  backgroundColor: active ? p.color : colors.card,
-                  borderColor: active ? p.color : colors.border,
-                  borderWidth: 2,
-                }]}
-                onPress={() => switchProfile(p.id)}
-              >
-                <Text style={styles.profileEmoji}>{p.emoji}</Text>
-                <Text style={[styles.profileName, { color: active ? '#000' : colors.text }]}>
-                  {p.display_name}
-                </Text>
-                <Text style={[styles.profileDesc, { color: active ? 'rgba(0,0,0,0.7)' : colors.textSecondary }]}
-                  numberOfLines={2}>
-                  {p.description}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {/* Personal profiles (v1.3.0: section hidden when no personal profiles exist;
+            kept as conditional render in case personal profiles return in the future) */}
+        {allProfiles.some(p => !p.group || p.group === 'personal') && (
+          <>
+            <Text style={[styles.groupLabel, { color: colors.textSecondary }]}>👥 Личные</Text>
+            <View style={styles.profileGrid}>
+              {allProfiles.filter(p => !p.group || p.group === 'personal').map((p) => {
+                const active = p.id === profile.id;
+                return (
+                  <TouchableOpacity
+                    key={p.id}
+                    style={[styles.profileCard, {
+                      backgroundColor: active ? p.color : colors.card,
+                      borderColor: active ? p.color : colors.border,
+                      borderWidth: 2,
+                    }]}
+                    onPress={() => switchProfile(p.id)}
+                  >
+                    <Text style={styles.profileEmoji}>{p.emoji}</Text>
+                    <Text style={[styles.profileName, { color: active ? '#000' : colors.text }]}>
+                      {p.display_name}
+                    </Text>
+                    <Text style={[styles.profileDesc, { color: active ? 'rgba(0,0,0,0.7)' : colors.textSecondary }]}
+                      numberOfLines={2}>
+                      {p.description}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </>
+        )}
 
         {/* Themed (commercial) profiles */}
         {allProfiles.some(p => p.group === 'themed') && (
           <>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, marginBottom: 4 }}>
               <Text style={[styles.groupLabel, { color: colors.textSecondary, marginTop: 0, marginBottom: 0 }]}>
-                🎯 Тематические (9 игр каждый)
+                🎯 Тематические (9 игр каждый · ODV999 = все 47)
               </Text>
               <TouchableOpacity onPress={() => setCodeModalOpen(true)} style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
                 <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text }}>🔑 Ввести код</Text>
@@ -187,7 +192,7 @@ export default function SettingsScreen() {
           <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 22, gap: 14 }}>
             <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 Код доступа</Text>
             <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
-              Введите код чтобы разблокировать тематический профиль (Шахматист, Дети, Скорочтение, NZT-48, Водители, 50+, Предприниматели, Студенты ЕГЭ).
+              Введите код чтобы разблокировать тематический профиль (ODV999, Шахматист, Дети, Скорочтение, NZT-48, Водители, 50+, Предприниматели, Студенты ЕГЭ).
             </Text>
             <TextInput
               value={codeInput}
@@ -328,8 +333,8 @@ export default function SettingsScreen() {
 
       {/* App Info */}
       <View style={styles.appInfo}>
-        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.2.6 · {profile.emoji} {profile.display_name}</Text>
-        <Text style={[styles.appVersion, { color: colors.textSecondary }]}>v1.1.0 · 5 профилей</Text>
+        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.3.0 · {profile.emoji} {profile.display_name}</Text>
+        <Text style={[styles.appVersion, { color: colors.textSecondary }]}>10 профилей · 1 бесплатный + 9 тематических</Text>
       </View>
       </ScrollView>
     </SafeAreaView>

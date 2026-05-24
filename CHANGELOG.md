@@ -14,6 +14,29 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.3.0] — 2026-05-24
+
+### Changed (BREAKING for personal users)
+- **Removed all 5 personal profiles** (Денис / Алекс / Валя / Юля / Гость) from
+  the public app. Семейные имена больше не светятся в коммерческой сборке.
+- Бывший profile «Денис» (полный доступ ко всем 47 играм + Зарядка + Financial
+  Brain Day + Assessment) пересоздан как тематический профиль **ODV999** под
+  отдельным мастер-кодом. Тот же код, что и staticrypt-пароль NZT-сайта.
+- `ProfileId` теперь: `odv999 | chess | kids | vasilyeva | nzt48 | free |
+  drivers | seniors | execs | students` (10 штук, было 14).
+- Раздел «👥 Личные» в Settings теперь не рендерится, если личных профилей нет.
+- Onboarding-слайд «5 профилей» заменён на «10 профилей под цель» с упоминанием
+  тематических батарей.
+- Legacy migration: установки с сохранённым `denis/alex/valya/yulya/guest`
+  тихо переключаются на FREE при первом запуске v1.3.0 (никаких ошибок,
+  никаких потерь данных — `cognitive_sessions.person` остаётся как было).
+
+### Added
+- ODV999 themed profile + master code лежит в локальном `UNLOCK_CODES.md`
+  (не в git). Чтобы войти — Settings → 🔑 Ввести код → ввести мастер-код.
+
+---
+
 ## [1.2.6] — 2026-05-24
 
 ### Fixed
