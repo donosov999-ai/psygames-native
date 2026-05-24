@@ -303,7 +303,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 </View>
 
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 10 }}>
-                  🎮 {detailProfile.allowed_games === 'all' ? 'Все 47 игр' : `${(detailProfile.allowed_games as string[]).length} игр в этом профиле`}
+                  🎮 {detailProfile.allowed_games === 'all' ? 'Все 48 игр' : `${(detailProfile.allowed_games as string[]).length} игр в этом профиле`}
                 </Text>
                 {detailProfile.allowed_games !== 'all' && (
                   <View style={{ gap: 6, marginBottom: 18 }}>

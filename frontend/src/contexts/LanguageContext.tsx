@@ -491,6 +491,10 @@ const translations: Translations = {
   wcst:        { ru: 'WCST: правила',      en: 'WCST: Rules' },
   flanker:     { ru: 'Фланкер: стрелки',   en: 'Flanker: Arrows' },
   ospan:       { ru: 'OSpan: счёт+память', en: 'OSpan: Math+Memory' },
+  simon:       { ru: 'Simon: цвет vs позиция', en: 'Simon: Color vs Position' },
+  simonRule:   { ru: 'Правило',            en: 'Rule' },
+  simonLeftBtn:  { ru: 'Левая',            en: 'Left' },
+  simonRightBtn: { ru: 'Правая',           en: 'Right' },
 
   // Round-5 — descriptions
   towerLondonDesc: { ru: 'Переставьте шары за минимум ходов',         en: 'Rearrange balls in minimum moves' },
@@ -498,6 +502,7 @@ const translations: Translations = {
   wcstDesc:        { ru: 'Найдите скрытое правило сортировки',        en: 'Find the hidden sorting rule' },
   flankerDesc:     { ru: 'Реагируйте на центральную стрелку',         en: 'React to the central arrow' },
   ospanDesc:       { ru: 'Решайте уравнения и помните буквы',         en: 'Solve equations, remember letters' },
+  simonDesc:       { ru: 'Цвет говорит куда жать, позиция сбивает',   en: 'Color tells which button; position distracts' },
 
   // Round-5 — intro descriptions
   towerLondonIntroDesc: {
@@ -520,6 +525,10 @@ const translations: Translations = {
     ru: 'Чередуйте: уравнение «верно?» → запомнить букву → уравнение → буква → ... После N итераций впишите буквы в ПРАВИЛЬНОМ ПОРЯДКЕ. Двойная нагрузка: счёт + хранение. Operation Span — золотой стандарт измерения рабочей памяти под нагрузкой.',
     en: 'Alternate: equation "is it correct?" → remember a letter → equation → letter → ... After N iterations type the letters IN ORDER. Dual load: arithmetic + storage. Operation Span — the gold standard for working memory under load.'
   },
+  simonIntroDesc: {
+    ru: 'Цветной квадрат появляется СЛЕВА или СПРАВА от центра. Жми ЛЕВУЮ кнопку если СИНИЙ, ПРАВУЮ если КРАСНЫЙ (по ЦВЕТУ, не по позиции). Когда позиция стимула совпадает с правильной стороной ответа — легко. Когда не совпадает (incongruent) — медленнее. Simon Effect = разница RT. Классика измерения inhibitory control (Simon, 1969).',
+    en: 'A colored square appears LEFT or RIGHT of center. Press LEFT button if BLUE, RIGHT if RED (by COLOR, not position). When stimulus position matches the correct response side, it\'s easy. When it doesn\'t (incongruent), slower. Simon Effect = RT difference. Classic measure of inhibitory control (Simon, 1969).'
+  },
 
   // Round-5 — benefits
   benefitTol1:   { ru: 'Планирование действий',     en: 'Action planning' },
@@ -534,6 +543,9 @@ const translations: Translations = {
   benefitFl1:    { ru: 'Селективное внимание',        en: 'Selective attention' },
   benefitFl2:    { ru: 'Подавление помех',             en: 'Distractor suppression' },
   benefitFl3:    { ru: 'Конфликт-резолюция',           en: 'Conflict resolution' },
+  benefitSi1:    { ru: 'Торможение импульса',          en: 'Impulse inhibition' },
+  benefitSi2:    { ru: 'Пространственный конфликт',    en: 'Spatial conflict' },
+  benefitSi3:    { ru: 'Скорость + точность',          en: 'Speed + accuracy' },
   benefitOs1:    { ru: 'Рабочая память',               en: 'Working memory' },
   benefitOs2:    { ru: 'Многозадачность',              en: 'Multitasking' },
   benefitOs3:    { ru: 'Защита от помех',              en: 'Interference protection' },

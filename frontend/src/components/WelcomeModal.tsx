@@ -53,7 +53,7 @@ export default function WelcomeModal() {
           >
             <Text style={styles.heroEmoji}>🧠</Text>
             <Text style={styles.heroTitle}>Добро пожаловать в PsyGames</Text>
-            <Text style={styles.heroSub}>47 когнитивных тренажёров под цели</Text>
+            <Text style={styles.heroSub}>48 когнитивных тренажёров под цели (NZT-48!)</Text>
           </LinearGradient>
 
           {view === 'choice' && (

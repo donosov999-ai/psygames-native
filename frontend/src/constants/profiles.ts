@@ -4,7 +4,7 @@
  * Personal profiles (Денис/Алекс/Валя/Юля/Гость) REMOVED from public app
  * per Денис: семья не должна светиться в коммерческой версии.
  *
- * The original Денис profile (full access to all 47 games) is preserved
+ * The original Денис profile (full access to all 48 games) is preserved
  * as a themed profile under the alias **ODV999** — unlocked with a
  * master code (same one as NZT staticrypt: `963Alex963!@#$%^&*()`).
  *
@@ -66,11 +66,11 @@ const ODV999: ProfileDef = {
   display_name: 'ODV999',
   emoji: '🛠',
   color: '#fbbf24',
-  description: 'Все 47 игр · Зарядка · Financial · Assessment',
-  long_description: 'Полный доступ ко всему приложению — все 47 игр, Утренняя Зарядка, Financial Brain Day, G1 Assessment. Для владельца программы (Денис, ODV999) и его доверенных лиц. Разблокируется одним мастер-кодом.',
+  description: 'Все 48 игр · Зарядка · Financial · Assessment',
+  long_description: 'Полный доступ ко всему приложению — все 48 игр, Утренняя Зарядка, Financial Brain Day, G1 Assessment. Для владельца программы (Денис, ODV999) и его доверенных лиц. Разблокируется одним мастер-кодом.',
   audience: 'Владелец · полный доступ',
   session_minutes: '5-40 мин',
-  sales_hook: '🛠 Полный набор владельца — все 47 игр, без ограничений. Выдаётся только лично.',
+  sales_hook: '🛠 Полный набор владельца — все 48 игр, без ограничений. Выдаётся только лично.',
   // price_year не задан → "не продаётся" (см. helper isForSale)
   group: 'themed',
   allowed_games: 'all',

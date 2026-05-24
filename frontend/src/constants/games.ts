@@ -540,6 +540,21 @@ export const GAMES: GameConfig[] = [
     route: '/games/rmet',
     category: 'action',
   },
+  // ─── 48-я игра (v1.9.0): Simon Task ─────────────────────────────────
+  // Классика inhibitory control: цветной квадрат появляется слева/справа,
+  // правильная сторона ответа определяется ЦВЕТОМ (синий→левая, красный→
+  // правая), но позиция стимула сбивает реакцию. Simon Effect = разница
+  // RT incongruent − congruent.
+  {
+    id: 'simon',
+    nameKey: 'simon',
+    descKey: 'simonDesc',
+    skillKey: 'skillInhibition',
+    gradient: ['#1e3a8a', '#7f1d1d'],
+    icon: 'flash',
+    route: '/games/simon',
+    category: 'action',
+  },
 ];
 
 // Russian words for word games
