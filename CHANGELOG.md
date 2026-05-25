@@ -14,6 +14,36 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.13.4] — 2026-05-25
+
+### Fixed
+- **Statistics — лишние пустые карточки** для всех 48 игр. Денис:
+  «выводит все 48+ упражнения, надо только пройденные».
+  Fix: `stats.filter(s => s.total_sessions > 0).map(...)`. Empty-state логика
+  не сломана — если ни одной игры не сыграно, показывается всё то же
+  «Сыграйте несколько игр».
+
+### Landing — «14 → 11 готовых программ»
+Устаревшая цифра. Сейчас 11 профилей (10 публичных + ODV999):
+- `download.html` hero_desc (ru+en)
+- `download.html` prof_title (ru+en)
+- `download.html` meta description + og:description (en)
+- Все упоминания «14 ready programs» / «14 готовых программ» → «11»
+
+### Notes (НЕ требует изменения кода)
+- **Windows крестика не было** — уже починено в v1.13.3 (`decorations: true`
+  + `maximized: true`). Денис на старой сборке, нужен переустанов из
+  GitHub Release v1.13.4+.
+- **«Правки не потеряются при апдейте»** — localStorage в Tauri/WebView2
+  привязан к bundle ID (`com.odv999.psygames`), не к версии. Reinstall
+  сохраняет: прогресс игр, master-коды, настройки, streak, history.
+  Bundle ID не менялся с релиза v1.0.0 — данные стабильны.
+
+### Settings UI
+- Footer: `PsyGames v1.13.4 · 48 валидированных парадигм`
+
+---
+
 ## [1.13.3] — 2026-05-25
 
 ### Fixed — Windows: окно не разворачивалось + Schulte кнопка «Старт» недостижима

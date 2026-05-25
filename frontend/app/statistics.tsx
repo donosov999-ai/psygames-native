@@ -81,7 +81,10 @@ export default function StatisticsScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {stats.map((stat) => {
+          {/* v1.13.4: фильтр — показывать только реально пройденные игры,
+              а не пустые карточки для всех 48+. Денис: «лишняя инфа».
+              Раньше .map() рендерил все 48 stats включая нулевые. */}
+          {stats.filter(s => s.total_sessions > 0).map((stat) => {
             const gameConfig = getGameConfig(stat.game_type);
             if (!gameConfig) return null;
 
