@@ -186,17 +186,30 @@ async function verifyDynamicCode(raw: string): Promise<ProfileId | null> {
  * Возвращает ProfileId если код валиден, иначе null.
  */
 export async function tryUnlock(rawCode: string): Promise<ProfileId | null> {
-  const normalized = rawCode.trim().toUpperCase();
-  if (normalized.length < 4) return null;
+  const trimmed = rawCode.trim();
+  if (trimmed.length < 4) return null;
+  const upper = trimmed.toUpperCase();
 
-  // 1️⃣ Статический master-код?
-  const hash = await sha256Hex(normalized);
-  if (HASH_TO_PROFILE[hash]) {
-    return HASH_TO_PROFILE[hash];
+  // 1️⃣ Статический master-код — UPPERCASE-хеш (legacy: CHESS-NZT-2026 формат
+  //     где user мог ввести в любом регистре, всё приводится к UPPERCASE).
+  const upperHash = await sha256Hex(upper);
+  if (HASH_TO_PROFILE[upperHash]) {
+    return HASH_TO_PROFILE[upperHash];
   }
 
-  // 2️⃣ Динамический HMAC-код?
-  return await verifyDynamicCode(normalized);
+  // 1.5️⃣ Статический master-код — case-sensitive хеш (v1.13.1 fix).
+  //      Для паролей с lowercase символами (типа 963Alex963!@#$%^&*())
+  //      где UPPERCASE-приведение ломает хеш. Если код реально mixed-case —
+  //      пользователь должен ввести точно как есть.
+  if (trimmed !== upper) {
+    const rawHash = await sha256Hex(trimmed);
+    if (HASH_TO_PROFILE[rawHash]) {
+      return HASH_TO_PROFILE[rawHash];
+    }
+  }
+
+  // 2️⃣ Динамический HMAC-код (формат XXX-YYMMDD-SSSS-CCCCCC, всё uppercase)
+  return await verifyDynamicCode(upper);
 }
 
 /** Check if a profile id is in the themed (locked) set. */
