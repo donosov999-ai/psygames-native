@@ -14,6 +14,44 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.13.3] — 2026-05-25
+
+### Fixed — Windows: окно не разворачивалось + Schulte кнопка «Старт» недостижима
+Денис на Windows: «не разворачивается на весь экран и не дает посмотреть
+что внизу, в частности в таблицах Шульте кнопка старт внизу — добраться
+не дает».
+
+**Два бага одним коммитом:**
+
+#### 1. Tauri окно стартует не-maximized
+- `tauri.conf.json` → добавлены `"maximized": true` + `"maximizable": true`
+- Стартовый размер увеличен 1200×850 → 1280×900
+- Явно прописаны `decorations`, `minimizable`, `closable` (Windows-specific)
+- Теперь на Windows и macOS окно открывается уже развёрнутым на полный экран
+
+#### 2. Schulte config — `<View>` вместо `<ScrollView>`
+- 4+ optionCard (Тип / Направление / Цвет / Размер) + hero gradient + кнопка
+  «Старт» — суммарно >700-800px высоты
+- На Windows-окнах с taskbar usable-area часто <700px → кнопка уходила за
+  viewport, прокрутки не было
+- Fix: `renderConfig` теперь `<ScrollView contentContainerStyle={configContainer}>`
+
+### Известно (НЕ исправлено в этом релизе)
+Та же проблема (`<View>` вместо `<ScrollView>`) есть в **25+ других играх**:
+anagrams, ant, bart, choice-rt, corsi, cpt, digit-span, find-differences,
+flanker, go-no-go, hanoi, inhibition, iowa, math-sprint, memory-matrix,
+mental-rotation, n-back, number-bonds, ospan, pattern, picture-pairs,
+posner, prl, reading-span, rmet, и др.
+
+Maximized window fix v1.13.3 даст 1280×900 → решит большинство случаев.
+Если ещё где «кнопка не достать» — пиши, починю точечно либо сделаю
+batch-refactor (общий `<GameConfigScreen>` обёрткой) в отдельном релизе.
+
+### Settings UI
+- Footer: `PsyGames v1.13.3 · 48 валидированных парадигм`
+
+---
+
 ## [1.13.2] — 2026-05-25
 
 ### Fixed — критический: «Сессия не найдена» после прохождения зарядки

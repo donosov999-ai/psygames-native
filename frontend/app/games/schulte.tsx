@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -226,8 +227,11 @@ export default function SchulteGame() {
     60
   );
 
+  // v1.13.3: ScrollView вокруг configContainer — на Windows / маленьких экранах
+  // кнопка «Старт» уходила за viewport, не достать. Schulte имеет 4+ optionCard
+  // (Тип/Направление/Цвет/Размер) + hero + кнопка → больше чем 720px высоты часто.
   const renderConfig = () => (
-    <View style={styles.configContainer}>
+    <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient
         colors={GRADIENT as [string, string]}
         start={{ x: 0, y: 0 }}
@@ -477,7 +481,7 @@ export default function SchulteGame() {
           <Text style={styles.startButtonText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 
   const renderGame = () => {
