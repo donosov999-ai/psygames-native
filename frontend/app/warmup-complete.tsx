@@ -10,7 +10,9 @@ import { useWarmup } from '@/src/contexts/WarmupContext';
 import { GAMES } from '@/src/constants/games';
 import {
   loadWarmupHistory, computeStreak, brainTodayVerdict, WarmupHistoryEntry,
+  PlaylistMeta,
 } from '@/src/services/warmup';
+import type { StepResult } from '@/src/contexts/WarmupContext';
 
 const GRADIENT_GOLD = ['#fbbf24', '#f59e0b'];
 const GRADIENT_GREEN = ['#22c55e', '#0d9488'];
@@ -25,10 +27,24 @@ export default function WarmupComplete() {
   const [verdict, setVerdict] = useState<{ delta_pct: number; message: string } | null>(null);
   const [persisted, setPersisted] = useState(false);
 
-  const meta = warmup.meta;
-  const results = warmup.results;
+  // v1.13.2 fix: snapshot meta/results/startTime СРАЗУ при mount.
+  // stopWarmup() в useEffect занулит warmup.meta=null в WarmupContext →
+  // re-render бы показал «Сессия не найдена», даже если зарядка ОК завершена.
+  // Snapshot держит данные стабильно для всего жизненного цикла экрана.
+  const [snap] = useState<{
+    meta: PlaylistMeta | null;
+    results: StepResult[];
+    startTime: number;
+  }>(() => ({
+    meta: warmup.meta,
+    results: warmup.results,
+    startTime: warmup.startTime,
+  }));
+
+  const meta = snap.meta;
+  const results = snap.results;
   const totalScore = results.reduce((a, b) => a + (b.score || 0), 0);
-  const elapsedSec = warmup.startTime > 0 ? (Date.now() - warmup.startTime) / 1000 : 0;
+  const elapsedSec = snap.startTime > 0 ? (Date.now() - snap.startTime) / 1000 : 0;
   const elapsedMin = Math.floor(elapsedSec / 60);
   const elapsedSecRem = Math.floor(elapsedSec % 60);
   const completed = meta ? results.length >= meta.steps.length : false;

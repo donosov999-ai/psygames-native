@@ -14,6 +14,39 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.13.2] — 2026-05-25
+
+### Fixed — критический: «Сессия не найдена» после прохождения зарядки
+Денис: «делал зарядку в NZT-48, прошёл всю но в конце «сессия не найдена»».
+
+**Корень — race condition:**
+1. Зарядка завершена → router push на `/warmup-complete`
+2. First render: `meta = warmup.meta` ещё заполнен → показывает результаты ✅
+3. `useEffect` → `await stopWarmup(completed)` → **в WarmupContext setState({meta: null})**
+4. Re-render: `meta = warmup.meta` теперь null → показывает «Сессия не найдена» ❌
+
+Баг существовал с начала проекта. Денис только сейчас наткнулся
+(возможно потому что раньше зарядку до конца не проходил, или прерывал).
+
+**Fix — snapshot pattern:** в `WarmupComplete` сразу при mount делаем
+снимок `{meta, results, startTime}` в локальный `useState`. После snapshot
+`stopWarmup()` может безопасно зануляйть WarmupContext — экран использует
+свой стабильный snapshot до выхода.
+
+```ts
+const [snap] = useState(() => ({
+  meta: warmup.meta,
+  results: warmup.results,
+  startTime: warmup.startTime,
+}));
+const meta = snap.meta;  // не из warmup. — стабильно
+```
+
+### Settings UI
+- Footer: `PsyGames v1.13.2 · 48 валидированных парадигм`
+
+---
+
 ## [1.13.1] — 2026-05-25
 
 ### Fixed — критический баг: ODV999 master-код не работал
