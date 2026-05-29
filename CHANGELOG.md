@@ -14,6 +14,31 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.14.0] — 2026-05-26
+
+### Fixed — Batch refactor: 25 игр config-экранов получили ScrollView
+v1.13.3 фиксил Schulte по жалобе Дениса. Сегодня — закрыли весь системный
+баг, чтобы не наткнуться больше. Все 25 игр где config-экран был
+`<View style={styles.configContainer}>` → теперь `<ScrollView contentContainerStyle={...}>`.
+
+**Игры**: anagrams, ant, bart, choice-rt, corsi, cpt, digit-span,
+find-differences, flanker, go-no-go, hanoi, inhibition, iowa, math-sprint,
+memory-matrix, mental-rotation, n-back, number-bonds, ospan, pattern,
+picture-pairs, posner, prl, reading-span, rmet.
+
+**Каждой игре**:
+- `ScrollView` добавлен в react-native import
+- `<View style={styles.configContainer}>` → `<ScrollView contentContainerStyle={...} showsVerticalScrollIndicator={false}>`
+- Соответствующий `</View>` → `</ScrollView>` (баланс tags проверен JSX-парсером)
+
+Refactor сделан Python-скриптом `batch_refactor.py` с балансировкой
+JSX-тегов. Sanity check на anagrams.tsx пройден (импорт + open + close все на месте).
+
+### Settings UI
+- Footer: `PsyGames v1.14.0 · 48 валидированных парадигм`
+
+---
+
 ## [1.13.4] — 2026-05-25
 
 ### Fixed

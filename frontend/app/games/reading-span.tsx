@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity, TextInput,
+  ScrollView
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -159,7 +162,7 @@ export default function ReadingSpanGame() {
   };
 
   const renderConfig = () => (
-    <View style={styles.configContainer}>
+    <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="book" size={48} color="#FFF" />
         <Text style={styles.configTitle}>{t('readingSpan')}</Text>
@@ -183,7 +186,7 @@ export default function ReadingSpanGame() {
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 
   const renderPlaying = () => {

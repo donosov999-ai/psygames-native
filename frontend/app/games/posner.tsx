@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity,
+  ScrollView
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -145,7 +148,7 @@ export default function PosnerGame() {
   })();
 
   const renderConfig = () => (
-    <View style={styles.configContainer}>
+    <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="navigate" size={48} color="#FFF" />
         <Text style={styles.configTitle}>{t('posner')}</Text>
@@ -182,7 +185,7 @@ export default function PosnerGame() {
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 
   const renderPlaying = () => (

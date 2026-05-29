@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -235,7 +236,7 @@ export default function NBackGame() {
   };
 
   const renderConfig = () => (
-    <View style={styles.configContainer}>
+    <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="analytics" size={48} color="#FFF" />
         <Text style={styles.configTitle}>{t('nBack')}</Text>
@@ -310,7 +311,7 @@ export default function NBackGame() {
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 
   const renderPlaying = () => (

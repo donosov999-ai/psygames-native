@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity, TextInput,
+  ScrollView
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -131,7 +134,7 @@ export default function MathSprintGame() {
   };
 
   const renderConfig = () => (
-    <View style={styles.configContainer}>
+    <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="calculator" size={48} color="#FFF" />
         <Text style={styles.configTitle}>{t('mathSprint')}</Text>
@@ -179,7 +182,7 @@ export default function MathSprintGame() {
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 
   const renderPlaying = () => (

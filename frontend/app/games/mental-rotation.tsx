@@ -22,7 +22,10 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity,
+  ScrollView
+} from 'react-native';
 import Svg, { Polygon, G } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -405,7 +408,7 @@ export default function MentalRotationGame() {
   };
 
   const renderConfig = () => (
-    <View style={styles.configContainer}>
+    <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="cube" size={48} color="#FFF" />
         <Text style={styles.configTitle}>{t('mentalRotation')}</Text>
@@ -458,7 +461,7 @@ export default function MentalRotationGame() {
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 
   const renderPlaying = () => {
