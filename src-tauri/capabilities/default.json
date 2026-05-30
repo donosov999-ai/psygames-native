@@ -1,0 +1,11 @@
+{
+  "identifier": "default",
+  "description": "Desktop auto-update: updater check/install + relaunch. Desktop-only (updater не поддерживает Android/iOS).",
+  "platforms": ["macOS", "windows", "linux"],
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "updater:default",
+    "process:allow-restart"
+  ]
+}

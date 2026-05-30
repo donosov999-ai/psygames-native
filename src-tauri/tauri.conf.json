@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "PsyGames",
-  "version": "1.16.0",
+  "version": "1.17.0",
   "identifier": "com.odv999.psygames",
   "build": {
     "frontendDist": "./dist"
@@ -30,6 +30,7 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
     "category": "Education",
     "shortDescription": "Cognitive training games",
@@ -41,6 +42,14 @@
     ],
     "macOS": {
       "minimumSystemVersion": "11.0"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM1MzY2MzMwMDgyODBDMTgKUldRWURDZ0lNR00yeFZwNkUzTnBsbC9leFdZUitaRXlXbFJ1SStuMzgzeTcyZGR5eTllbGhBSXkK",
+      "endpoints": [
+        "https://github.com/donosov999-ai/psygames-native/releases/latest/download/latest.json"
+      ]
     }
   }
 }

@@ -14,6 +14,45 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.17.0] — 2026-05-30
+
+### Added — Desktop авто-апдейтер (Tauri updater) 🔄
+Денис: «обновление более нативное» → штатный Tauri updater для Mac/Win.
+Больше не нужно вручную качать + переустанавливать десктоп каждый релиз.
+
+- **`tauri.conf.json`**: `bundle.createUpdaterArtifacts: true` + `plugins.updater`
+  (pubkey minisign `C536633008280C18`, endpoint
+  `https://github.com/donosov999-ai/psygames-native/releases/latest/download/latest.json`).
+- **Rust** (`Cargo.toml` + `src/lib.rs`): `tauri-plugin-updater` + `tauri-plugin-process`
+  как **desktop-only** (target-gate `cfg(not(any(android, ios)))` + `#[cfg(desktop)]`).
+  Updater НЕ поддерживает мобайл (офиц. Tauri docs) → Android-сборка их не компилит.
+- **`src-tauri/capabilities/default.json`** (новый): `core:default` + `updater:default`
+  + `process:allow-restart`; `platforms: [macOS, windows, linux]` (desktop-only —
+  иначе Android упал бы на отсутствующем `updater:default`).
+- **Frontend**: `src/components/UpdateGate.tsx` — на запуске в Tauri-desktop проверяет
+  latest.json и предлагает скачать + установить + перезапуститься. Гард по
+  `__TAURI_INTERNALS__` + dynamic import → на web (GH Pages) и Android тихо no-op.
+  Смонтирован в `app/_layout.tsx`. Deps: `@tauri-apps/plugin-updater@^2`,
+  `@tauri-apps/plugin-process@^2`.
+- **CI** (`.github/workflows/build.yml`): подпись (`TAURI_SIGNING_PRIVATE_KEY` из
+  секрета, пустой пароль) в mac+win сборках; выгрузка `PsyGames.app.tar.gz`+`.sig`
+  (mac) и `*-setup.exe.sig` (win); release-job генерит `latest.json` из `.sig` и
+  вешает на GitHub Release вместе с артефактами.
+- **Ключ подписи**: minisign keypair сгенерирован локально; приватный → GitHub Secret
+  `TAURI_SIGNING_PRIVATE_KEY` (пароль пустой), публичный → `tauri.conf.json`.
+
+**Охват:**
+- ✅ **Win + Mac** — авто-апдейт. Условие: ПЕРВУЮ установку этого билда доставить
+  вручную (старые сборки без updater), дальше обновления приходят сами.
+- ⚠️ **Android — НЕ покрыто** (Tauri updater desktop-only). Ручная установка APK
+  остаётся; авто-апдейт Android = отдельный заход (Google Play или кастомный
+  self-update через PackageInstaller).
+- 🍎 **macOS**: updater подписан minisign'ом Tauri (НЕ Apple notarization). Первый
+  запуск всё равно через `xattr -cr`; ожидается, что апдейты этого не требуют
+  (файлы пишет само приложение) — ⚠️ проверить на одном цикле.
+
+---
+
 ## [1.16.0] — 2026-05-30
 
 ### Changed — Free-trial: открыты 5 массовых профилей вместо всех

@@ -65,6 +65,9 @@ jobs:
 
       - name: Build .app (arm64)
         working-directory: src-tauri
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: cargo tauri build --target aarch64-apple-darwin
 
       - name: Package .app → tar.gz
@@ -79,6 +82,17 @@ jobs:
           name: PsyGames-macos-arm64
           path: src-tauri/target/aarch64-apple-darwin/release/bundle/macos/PsyGames-macos-arm64.tar.gz
           retention-days: 30
+
+      # v1.17.0: Tauri updater artifacts (подписанный .app.tar.gz + .sig)
+      - name: Upload macOS updater artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PsyGames-macos-updater
+          path: |
+            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/PsyGames.app.tar.gz
+            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/PsyGames.app.tar.gz.sig
+          retention-days: 30
+        continue-on-error: true
 
   # ─── Windows x86_64 ────────────────────────────────────────────────────
   windows-x64:
@@ -135,6 +149,9 @@ jobs:
 
       - name: Build .exe + .msi
         working-directory: src-tauri
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: cargo tauri build --target x86_64-pc-windows-msvc
 
       - name: Upload .exe artifact
@@ -149,6 +166,15 @@ jobs:
         with:
           name: PsyGames-windows-x64-msi
           path: src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+          retention-days: 30
+        continue-on-error: true
+
+      # v1.17.0: Tauri updater signature для NSIS -setup.exe
+      - name: Upload Windows updater .sig
+        uses: actions/upload-artifact@v4
+        with:
+          name: PsyGames-windows-updater-sig
+          path: src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.sig
           retention-days: 30
         continue-on-error: true
 
@@ -362,12 +388,47 @@ jobs:
           path: artifacts/
       - name: Show artifacts
         run: find artifacts -type f
+
+      # v1.17.0: собрать latest.json для Tauri-updater (desktop: mac arm64 + win x64).
+      # .sig — содержимое подписи Tauri-updater (single-line base64). URL'ы ведут
+      # на ассеты ЭТОГО релиза; endpoint в приложении — releases/latest/download/latest.json.
+      - name: Generate latest.json (Tauri updater manifest)
+        run: |
+          set -e
+          TAG="${GITHUB_REF_NAME}"
+          VER="${TAG#v}"
+          BASE="https://github.com/donosov999-ai/psygames-native/releases/download/${TAG}"
+          MAC_SIG_FILE="artifacts/PsyGames-macos-updater/PsyGames.app.tar.gz.sig"
+          WIN_EXE_PATH=$(ls artifacts/PsyGames-windows-x64-exe/*-setup.exe 2>/dev/null | head -1 || ls artifacts/PsyGames-windows-x64-exe/*.exe 2>/dev/null | head -1)
+          WIN_SIG_FILE=$(ls artifacts/PsyGames-windows-updater-sig/*.sig 2>/dev/null | head -1)
+          PLATFORMS=""
+          if [ -f "$MAC_SIG_FILE" ]; then
+            MAC_SIG=$(tr -d '\n\r' < "$MAC_SIG_FILE")
+            PLATFORMS="\"darwin-aarch64\":{\"signature\":\"${MAC_SIG}\",\"url\":\"${BASE}/PsyGames.app.tar.gz\"}"
+          else
+            echo "WARN: mac updater .sig not found — darwin omitted from latest.json"
+          fi
+          if [ -n "$WIN_SIG_FILE" ] && [ -f "$WIN_SIG_FILE" ] && [ -n "$WIN_EXE_PATH" ]; then
+            WIN_EXE=$(basename "$WIN_EXE_PATH")
+            WIN_SIG=$(tr -d '\n\r' < "$WIN_SIG_FILE")
+            [ -n "$PLATFORMS" ] && PLATFORMS="${PLATFORMS},"
+            PLATFORMS="${PLATFORMS}\"windows-x86_64\":{\"signature\":\"${WIN_SIG}\",\"url\":\"${BASE}/${WIN_EXE}\"}"
+          else
+            echo "WARN: win updater .sig/.exe not found — windows omitted from latest.json"
+          fi
+          PUB_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          printf '{\n  "version": "%s",\n  "pub_date": "%s",\n  "platforms": {%s}\n}\n' "$VER" "$PUB_DATE" "$PLATFORMS" > latest.json
+          echo "--- latest.json ---"
+          cat latest.json
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             artifacts/PsyGames-macos-arm64/PsyGames-macos-arm64.tar.gz
+            artifacts/PsyGames-macos-updater/PsyGames.app.tar.gz
             artifacts/PsyGames-windows-x64-exe/*.exe
             artifacts/PsyGames-windows-x64-msi/*.msi
             artifacts/PsyGames-android-apk/PsyGames-android.apk
+            latest.json
           generate_release_notes: true

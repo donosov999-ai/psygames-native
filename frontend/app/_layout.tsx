@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import UnlockToast from '@/src/components/UnlockToast';
 import WelcomeModal from '@/src/components/WelcomeModal';
+import UpdateGate from '@/src/components/UpdateGate';
 
 function RootLayoutNav() {
   const { isDark, colors } = useTheme();
@@ -27,6 +28,8 @@ function RootLayoutNav() {
       <UnlockToast />
       {/* First-run welcome modal (FREE vs Code choice) */}
       <WelcomeModal />
+      {/* Desktop-only авто-апдейтер (Tauri). На web/Android — no-op. */}
+      <UpdateGate />
     </>
   );
 }
