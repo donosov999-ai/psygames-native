@@ -15,6 +15,8 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { getAllStats, GameStats } from '@/src/services/api';
 import { GAMES } from '@/src/constants/games';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { isGameAllowed } from '@/src/constants/profiles';
 
 export default function StatisticsScreen() {
   const { colors } = useTheme();
@@ -71,6 +73,28 @@ export default function StatisticsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* v1.15.0: scope toggle — статистика этого профиля vs все игры */}
+      <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginBottom: 10 }}>
+        <TouchableOpacity
+          onPress={() => setScopeAll(false)}
+          style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center',
+            backgroundColor: !scopeAll ? colors.primary : colors.surface,
+            borderWidth: 1, borderColor: !scopeAll ? colors.primary : colors.border }}>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: !scopeAll ? '#fff' : colors.text }}>
+            {profile.emoji} {profile.display_name}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setScopeAll(true)}
+          style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center',
+            backgroundColor: scopeAll ? colors.primary : colors.surface,
+            borderWidth: 1, borderColor: scopeAll ? colors.primary : colors.border }}>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: scopeAll ? '#fff' : colors.text }}>
+            Все игры
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -84,7 +108,7 @@ export default function StatisticsScreen() {
           {/* v1.13.4: фильтр — показывать только реально пройденные игры,
               а не пустые карточки для всех 48+. Денис: «лишняя инфа».
               Раньше .map() рендерил все 48 stats включая нулевые. */}
-          {stats.filter(s => s.total_sessions > 0).map((stat) => {
+          {stats.filter(s => s.total_sessions > 0 && (scopeAll || isGameAllowed(profile, s.game_type))).map((stat) => {
             const gameConfig = getGameConfig(stat.game_type);
             if (!gameConfig) return null;
 

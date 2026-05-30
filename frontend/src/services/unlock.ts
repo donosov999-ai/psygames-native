@@ -212,7 +212,22 @@ export async function tryUnlock(rawCode: string): Promise<ProfileId | null> {
   return await verifyDynamicCode(upper);
 }
 
-/** Check if a profile id is in the themed (locked) set. */
+/**
+ * v1.15.0: ГЛОБАЛЬНЫЙ ФЛАГ запроса кодов.
+ *
+ * false = ВСЕ профили открыты без кода (этап отладки процессов до монетизации).
+ * true  = коммерческий режим — themed-профили требуют master-код.
+ *
+ * Чтобы включить платный доступ обратно — поменять на `true` + пересобрать.
+ * Вся инфраструктура (хеши, keygen, HMAC) сохранена и сразу заработает.
+ * UI код-кнопок («🔑 Ввести код», 🔒-замки, pricing, Corporate Pack) тоже
+ * гейтится этим флагом — при false они скрыты.
+ */
+export const UNLOCK_CODES_ENABLED = false;
+
+/** Check if a profile id is in the themed (locked) set.
+ *  При UNLOCK_CODES_ENABLED=false — всегда false (все профили доступны). */
 export function requiresUnlock(profileId: ProfileId): boolean {
+  if (!UNLOCK_CODES_ENABLED) return false;
   return THEMED_PROFILES_LOCKED.includes(profileId);
 }

@@ -86,6 +86,39 @@ export default function SettingsScreen() {
     router.push('/onboarding' as any);
   };
 
+  // v1.15.0: Backup / Restore прогресса
+  const handleExportBackup = async () => {
+    try {
+      await downloadBackup('1.15.0');
+    } catch (e: any) {
+      if (e?.message === 'NATIVE_NO_DOWNLOAD') {
+        // Native fallback — показать JSON чтобы скопировать вручную
+        const json = await buildBackupJSON('1.15.0');
+        Alert.alert(
+          'Бэкап (скопируй текст)',
+          json.length > 800 ? json.slice(0, 800) + '\n…(обрезано)' : json
+        );
+      } else {
+        Alert.alert('Ошибка экспорта', e?.message || 'Не удалось создать бэкап');
+      }
+    }
+  };
+  const handleImportBackup = async () => {
+    try {
+      const { restored } = await pickAndRestoreBackup();
+      Alert.alert(
+        'Бэкап восстановлен ✓',
+        `Восстановлено ${restored} записей. Перезапусти приложение чтобы данные применились.`
+      );
+    } catch (e: any) {
+      if (e?.message === 'NATIVE_NO_FILEPICKER') {
+        Alert.alert('Импорт', 'На этой платформе пока только через web-версию. Открой PsyGames в браузере для импорта.');
+      } else {
+        Alert.alert('Ошибка импорта', e?.message || 'Не удалось восстановить');
+      }
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
@@ -147,11 +180,16 @@ export default function SettingsScreen() {
           <>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, marginBottom: 4 }}>
               <Text style={[styles.groupLabel, { color: colors.textSecondary, marginTop: 0, marginBottom: 0 }]}>
-                🎯 Тематические (9 тренажёров каждый · ODV999 = все 48)
+                {UNLOCK_CODES_ENABLED
+                  ? '🎯 Тематические (9 тренажёров каждый · ODV999 = все 48)'
+                  : '🎯 Тематические (открыты — этап тестирования)'}
               </Text>
-              <TouchableOpacity onPress={() => setCodeModalOpen(true)} style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
-                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text }}>🔑 Ввести код</Text>
-              </TouchableOpacity>
+              {/* v1.15.0: «Ввести код» скрыт пока UNLOCK_CODES_ENABLED=false */}
+              {UNLOCK_CODES_ENABLED && (
+                <TouchableOpacity onPress={() => setCodeModalOpen(true)} style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text }}>🔑 Ввести код</Text>
+                </TouchableOpacity>
+              )}
             </View>
             <View style={styles.profileGrid}>
               {allProfiles.filter(p => p.group === 'themed').map((p) => {
@@ -498,11 +536,27 @@ export default function SettingsScreen() {
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
+
+        {/* v1.15.0: Backup / Restore прогресса */}
+        <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={handleExportBackup}>
+          <View style={styles.settingInfo}>
+            <Ionicons name="cloud-download-outline" size={24} color="#22c55e" />
+            <Text style={[styles.settingLabel, { color: colors.text }]}>Сохранить бэкап прогресса</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={handleImportBackup}>
+          <View style={styles.settingInfo}>
+            <Ionicons name="cloud-upload-outline" size={24} color="#3b82f6" />
+            <Text style={[styles.settingLabel, { color: colors.text }]}>Восстановить из бэкапа</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
       </View>
 
       {/* App Info */}
       <View style={styles.appInfo}>
-        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.14.0 · {profile.emoji} {profile.display_name} · 48 валидированных парадигм</Text>
+        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.15.0 · {profile.emoji} {profile.display_name} · 48 валидированных парадигм</Text>
         <Text style={[styles.appVersion, { color: colors.textSecondary }]}>Клик по профилю → детали + запрос кода в Telegram</Text>
       </View>
       </ScrollView>

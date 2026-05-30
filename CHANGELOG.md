@@ -14,6 +14,49 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.15.0] — 2026-05-26
+
+### Changed — Коды разблокировки ВРЕМЕННО отключены (этап отладки до монетизации)
+Денис: «убери пока коды — отточим процессы до того как делать платно».
+- Новый флаг `UNLOCK_CODES_ENABLED = false` в `unlock.ts`
+- `requiresUnlock()` → всегда `false` пока флаг выключен → ВСЕ профили (включая
+  ODV999, NZT-48, Execs) открыты без кода
+- В Settings скрыта кнопка «🔑 Ввести код», заголовок секции → «🎯 Тематические
+  (открыты — этап тестирования)»
+- **Инфраструктура сохранена полностью** — хеши, keygen, HMAC, динамические
+  коды. Включить платный режим обратно = поменять флаг на `true` + пересборка.
+  Один символ.
+
+### Added — Backup / Restore прогресса (Settings)
+Денис: «чтобы правки не потерялись при апдейте».
+- Новый сервис `src/services/backup.ts`:
+  - `buildBackupJSON()` — собирает все ключи `psygames_*` (история игр, зарядка,
+    achievements, assessment, настройки) в JSON
+  - `restoreBackupJSON()` — применяет обратно с валидацией формата
+  - `downloadBackup()` — web/Tauri: Blob-download файла `psygames-backup-ДАТА.json`
+  - `pickAndRestoreBackup()` — web/Tauri: file-picker → restore
+- Settings → 2 новые кнопки:
+  - 💾 «Сохранить бэкап прогресса» (зелёная)
+  - ☁️ «Восстановить из бэкапа» (синяя)
+- Native (iOS/Android) пока fallback: export через Alert-копирование, import
+  только через web. Полноценный native Share/DocumentPicker — отдельный спринт.
+
+### Added — Statistics: фильтр по активному профилю
+Денис: «статистика показывает все 48 упражнений, надо только пройденное».
+- v1.13.4 уже фильтровал нулевые (`total_sessions > 0`)
+- v1.15.0: + toggle «{профиль} / Все игры» в шапке
+- По умолчанию показывает только игры АКТИВНОГО профиля (через `isGameAllowed`)
+- ODV999 (allowed_games:'all') → все пройденные; тематические → только их 9 игр
+- Toggle «Все игры» — для общего обзора
+
+### Fixed
+- `statistics.tsx` — дублированная строка `const [loading, setLoading]` (redeclaration)
+
+### Settings UI
+- Footer: `PsyGames v1.15.0 · 48 валидированных парадигм`
+
+---
+
 ## [1.14.0] — 2026-05-26
 
 ### Fixed — Batch refactor: 25 игр config-экранов получили ScrollView
