@@ -23,6 +23,9 @@ import {
 } from '@/src/services/feedback';
 import type { ProfileDef } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
+// v1.16.0: флаг монетизации + helper «скоро» (раньше UNLOCK_CODES_ENABLED
+// использовался без импорта → был undefined → вёл себя как false случайно).
+import { UNLOCK_CODES_ENABLED, isComingSoon } from '@/src/services/unlock';
 
 // Telegram-аккаунт владельца для запроса кодов разблокировки.
 const OWNER_TG = 'Denis_On999';
@@ -182,7 +185,7 @@ export default function SettingsScreen() {
               <Text style={[styles.groupLabel, { color: colors.textSecondary, marginTop: 0, marginBottom: 0 }]}>
                 {UNLOCK_CODES_ENABLED
                   ? '🎯 Тематические (9 тренажёров каждый · ODV999 = все 48)'
-                  : '🎯 Тематические (открыты — этап тестирования)'}
+                  : '🎯 Тематические · 5 открыты бесплатно, остальные скоро'}
               </Text>
               {/* v1.15.0: «Ввести код» скрыт пока UNLOCK_CODES_ENABLED=false */}
               {UNLOCK_CODES_ENABLED && (
@@ -394,24 +397,35 @@ export default function SettingsScreen() {
 
                 {/* Action buttons */}
                 {!isAccessible(detailProfile.id) && (
-                  <View style={{ gap: 10 }}>
-                    <TouchableOpacity
-                      onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
-                      style={{ backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
-                    >
-                      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>🔑 У меня уже есть код — ввести</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => requestCodeViaTelegram(detailProfile)}
-                      style={{ backgroundColor: '#0088cc', paddingVertical: 14, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
-                    >
-                      <Ionicons name="paper-plane" size={18} color="#fff" />
-                      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>Запросить код у @{OWNER_TG}</Text>
-                    </TouchableOpacity>
-                    <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
-                      Напиши Денису в Telegram — он выдаст персональный код доступа{'\n'}за 5 минут (рабочие часы Мск).
-                    </Text>
-                  </View>
+                  isComingSoon(detailProfile.id) ? (
+                    /* v1.16.0: free-trial этап — кодов нет, профиль откроется после запуска.
+                       НЕ показываем код-кнопки (тупик), показываем «Скоро» + что доступно сейчас. */
+                    <View style={{ gap: 8, backgroundColor: colors.card, borderRadius: 12, padding: 16 }}>
+                      <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text, textAlign: 'center' }}>🔒 Скоро</Text>
+                      <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center', lineHeight: 17 }}>
+                        Этот профиль откроется после запуска. Сейчас бесплатно доступны:{'\n'}💊 NZT-48 · 🌸 Микро-релакс · 🧒 Дети · 👴 50+ · 🎓 Студенты{'\n'}— выбери любой из них.
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={{ gap: 10 }}>
+                      <TouchableOpacity
+                        onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
+                        style={{ backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
+                      >
+                        <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>🔑 У меня уже есть код — ввести</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => requestCodeViaTelegram(detailProfile)}
+                        style={{ backgroundColor: '#0088cc', paddingVertical: 14, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+                      >
+                        <Ionicons name="paper-plane" size={18} color="#fff" />
+                        <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>Запросить код у @{OWNER_TG}</Text>
+                      </TouchableOpacity>
+                      <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
+                        Напиши Денису в Telegram — он выдаст персональный код доступа{'\n'}за 5 минут (рабочие часы Мск).
+                      </Text>
+                    </View>
+                  )
                 )}
 
                 {/* Если уже разблокирован — кнопка «Активировать» */}

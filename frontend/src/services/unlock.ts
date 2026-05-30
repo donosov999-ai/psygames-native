@@ -225,9 +225,51 @@ export async function tryUnlock(rawCode: string): Promise<ProfileId | null> {
  */
 export const UNLOCK_CODES_ENABLED = false;
 
-/** Check if a profile id is in the themed (locked) set.
- *  При UNLOCK_CODES_ENABLED=false — всегда false (все профили доступны). */
+/**
+ * v1.16.0: профили, ОТКРЫТЫЕ без кода на этапе free-trial (до монетизации).
+ *
+ * Денис 30.05.2026: «открой не все, а 3-5 самых востребованных, чтобы
+ * могли оценить больше» → выбран набор «5 массовых» (самые широкие
+ * аудитории + флагман-namesake). Аналитики использования ещё нет —
+ * набор по размеру рынка/позиционированию.
+ *
+ * Остальные themed-профили (chess/vasilyeva/drivers/execs) и ODV999
+ * показываются под замком «скоро» (без код-входа, т.к. UNLOCK_CODES_ENABLED=false).
+ * ODV999 (владелец, все 48 игр) под замком намеренно — не светить полный
+ * доступ в публичной trial-сборке.
+ *
+ * Когда включим монетизацию (UNLOCK_CODES_ENABLED=true) — этот список
+ * перестаёт влиять: гейтинг возвращается к THEMED_PROFILES_LOCKED + коды.
+ */
+export const TRIAL_OPEN_PROFILES: ProfileId[] = [
+  'nzt48',     // 💊 флагман — namesake всего каталога
+  'women',     // 🌸 Микро-релакс — макс. retention (казуал)
+  'kids',      // 🧒 Дети 7-12 — масс-маркет (родители)
+  'seniors',   // 👴 50+ профилактика — большой растущий сегмент
+  'students',  // 🎓 Студенты PRO — большой международный (ЕГЭ/GMAT/GRE)
+];
+
+/**
+ * Профиль требует разблокировки (показывается под замком)?
+ *
+ * - FREE — всегда открыт (no-code sampler).
+ * - Этап free-trial (UNLOCK_CODES_ENABLED=false): открыты только
+ *   TRIAL_OPEN_PROFILES, остальные themed (включая ODV999) — под замок.
+ * - Коммерческий режим (UNLOCK_CODES_ENABLED=true): все themed требуют код.
+ */
 export function requiresUnlock(profileId: ProfileId): boolean {
-  if (!UNLOCK_CODES_ENABLED) return false;
+  if (profileId === 'free') return false;
+  if (!UNLOCK_CODES_ENABLED) {
+    return !TRIAL_OPEN_PROFILES.includes(profileId);
+  }
   return THEMED_PROFILES_LOCKED.includes(profileId);
+}
+
+/**
+ * Профиль закрыт именно как «скоро / после запуска» (а не «введите код»)?
+ * true только на этапе free-trial для не-trial профилей — UI должен показать
+ * нейтральный замок без поля ввода кода (кодов сейчас нет).
+ */
+export function isComingSoon(profileId: ProfileId): boolean {
+  return !UNLOCK_CODES_ENABLED && requiresUnlock(profileId);
 }
