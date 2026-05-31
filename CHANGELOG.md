@@ -14,6 +14,23 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.19.0] — 2026-05-30
+
+### Fixed — Windows updater указывал на СТАРЫЙ установщик (stale CI cache)
+Live-тест v1.17→v1.18 выявил баг: в `latest.json` v1.18.0 windows-ссылка вела на
+`PsyGames_1.17.0_x64-setup.exe` (предыдущая версия), хотя `version`=1.18.0.
+
+- **Причина**: CI кэширует `src-tauri/target/` по хэшу `Cargo.toml` (не менялся
+  1.17→1.18) → в `bundle/nsis/` оставался .exe прошлой версии → glob `*.exe` +
+  `head -1` хватал старый. macOS не задело (имя `.app.tar.gz` статичное).
+- **Fix 1**: шаги «Clean stale bundle» перед mac+win сборкой
+  (`rm -rf target/<triple>/release/bundle`, win — через `shell: bash`).
+- **Fix 2**: генератор `latest.json` берёт версионное имя
+  `PsyGames_${VER}_x64-setup.exe` + его `.sig`, а не `head -1` glob.
+- Footer Settings → v1.19.0.
+
+---
+
 ## [1.18.0] — 2026-05-30
 
 ### Changed — Live-тест авто-апдейтера + footer-версия

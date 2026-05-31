@@ -63,6 +63,10 @@ jobs:
           rm -rf src-tauri/dist
           mv frontend/dist src-tauri/dist
 
+      - name: Clean stale bundle (mac, cached target)
+        working-directory: src-tauri
+        run: rm -rf target/aarch64-apple-darwin/release/bundle
+
       - name: Build .app (arm64)
         working-directory: src-tauri
         env:
@@ -146,6 +150,11 @@ jobs:
         run: |
           rm -rf src-tauri/dist
           mv frontend/dist src-tauri/dist
+
+      - name: Clean stale bundle (win, cached target)
+        working-directory: src-tauri
+        shell: bash
+        run: rm -rf target/x86_64-pc-windows-msvc/release/bundle
 
       - name: Build .exe + .msi
         working-directory: src-tauri
@@ -399,8 +408,10 @@ jobs:
           VER="${TAG#v}"
           BASE="https://github.com/donosov999-ai/psygames-native/releases/download/${TAG}"
           MAC_SIG_FILE="artifacts/PsyGames-macos-updater/PsyGames.app.tar.gz.sig"
-          WIN_EXE_PATH=$(ls artifacts/PsyGames-windows-x64-exe/*-setup.exe 2>/dev/null | head -1 || ls artifacts/PsyGames-windows-x64-exe/*.exe 2>/dev/null | head -1)
-          WIN_SIG_FILE=$(ls artifacts/PsyGames-windows-updater-sig/*.sig 2>/dev/null | head -1)
+          # версионные имена — НЕ head -1: кэш CI может оставить .exe прошлой версии
+          WIN_EXE="PsyGames_${VER}_x64-setup.exe"
+          WIN_EXE_PATH="artifacts/PsyGames-windows-x64-exe/${WIN_EXE}"
+          WIN_SIG_FILE="artifacts/PsyGames-windows-updater-sig/${WIN_EXE}.sig"
           PLATFORMS=""
           if [ -f "$MAC_SIG_FILE" ]; then
             MAC_SIG=$(tr -d '\n\r' < "$MAC_SIG_FILE")
@@ -408,8 +419,7 @@ jobs:
           else
             echo "WARN: mac updater .sig not found — darwin omitted from latest.json"
           fi
-          if [ -n "$WIN_SIG_FILE" ] && [ -f "$WIN_SIG_FILE" ] && [ -n "$WIN_EXE_PATH" ]; then
-            WIN_EXE=$(basename "$WIN_EXE_PATH")
+          if [ -f "$WIN_SIG_FILE" ] && [ -f "$WIN_EXE_PATH" ]; then
             WIN_SIG=$(tr -d '\n\r' < "$WIN_SIG_FILE")
             [ -n "$PLATFORMS" ] && PLATFORMS="${PLATFORMS},"
             PLATFORMS="${PLATFORMS}\"windows-x86_64\":{\"signature\":\"${WIN_SIG}\",\"url\":\"${BASE}/${WIN_EXE}\"}"
