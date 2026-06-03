@@ -1,12 +1,43 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import esT from './translations/es';
+import ptT from './translations/pt';
+import hiT from './translations/hi';
+import zhT from './translations/zh';
+import deT from './translations/de';
 
-type Language = 'ru' | 'en';
+type Language = 'ru' | 'en' | 'es' | 'de' | 'zh' | 'hi' | 'pt';
+
+/** v1.22.0: 6 базовых языков. Ключи, переведённые только на ru/en, в t()
+ *  падают на EN → приложение работает на всех 6, наполнение es/de/zh/hi
+ *  доезжает отдельными проходами. */
+export const LANGUAGES: { code: Language; name: string }[] = [
+  { code: 'en', name: 'English' },   // БАЗА (источник). Остальное — переводы.
+  { code: 'es', name: 'Español' },   // крупный рынок
+  { code: 'pt', name: 'Português' }, // Бразилия — топ-3 рынок Play по объёму
+  { code: 'hi', name: 'हिन्दी' },      // India — #1 рынок Google Play по объёму
+  { code: 'zh', name: '中文' },
+  { code: 'de', name: 'Deutsch' },
+  { code: 'ru', name: 'Русский' },
+];
+const LANG_CODES = LANGUAGES.map((l) => l.code) as string[];
+
+/** Машинные переводы контента (493 ключа на язык), сгенерированы воркфлоу
+ *  translate-psygames-i18n. en/ru — инлайн в translations ниже; es/pt/hi/zh/de
+ *  — здесь. t() смотрит: инлайн → overlay → EN → RU → key. */
+const OVERLAYS: Partial<Record<Language, Record<string, string>>> = {
+  es: esT, pt: ptT, hi: hiT, zh: zhT, de: deT,
+};
 
 interface Translations {
   [key: string]: {
     ru: string;
     en: string;
+    es?: string;
+    de?: string;
+    zh?: string;
+    hi?: string;
+    pt?: string;
   };
 }
 
@@ -783,7 +814,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('ru');
+  const [language, setLanguageState] = useState<Language>('en'); // база — English
 
   useEffect(() => {
     loadLanguage();
@@ -792,8 +823,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const loadLanguage = async () => {
     try {
       const savedLang = await AsyncStorage.getItem('language');
-      if (savedLang === 'ru' || savedLang === 'en') {
-        setLanguageState(savedLang);
+      if (savedLang && LANG_CODES.includes(savedLang)) {
+        setLanguageState(savedLang as Language);
+      } else {
+        // v1.22.0: нет сохранённого → определяем язык системы (база — EN).
+        const sys = (typeof navigator !== 'undefined' && navigator.language
+          ? navigator.language : 'en').slice(0, 2).toLowerCase();
+        setLanguageState((LANG_CODES.includes(sys) ? sys : 'en') as Language);
       }
     } catch (error) {
       console.error('Error loading language:', error);
@@ -812,9 +848,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const t = (key: string): string => {
     const translation = translations[key];
     if (translation) {
-      return translation[language];
+      return translation[language] ?? OVERLAYS[language]?.[key] ?? translation.en ?? translation.ru ?? key;
     }
-    return key;
+    return OVERLAYS[language]?.[key] ?? key;
   };
 
   return (

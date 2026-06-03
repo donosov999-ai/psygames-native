@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
-import { useLanguage } from '@/src/contexts/LanguageContext';
+import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -495,41 +495,26 @@ export default function SettingsScreen() {
               {t('language')}
             </Text>
           </View>
-          <View style={styles.languageButtons}>
-            <TouchableOpacity
-              style={[
-                styles.langButton,
-                language === 'ru' && { backgroundColor: colors.primary },
-                language !== 'ru' && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-              ]}
-              onPress={() => setLanguage('ru')}
-            >
-              <Text
-                style={[
-                  styles.langButtonText,
-                  { color: language === 'ru' ? '#FFFFFF' : colors.text },
-                ]}
-              >
-                RU
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.langButton,
-                language === 'en' && { backgroundColor: colors.primary },
-                language !== 'en' && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-              ]}
-              onPress={() => setLanguage('en')}
-            >
-              <Text
-                style={[
-                  styles.langButtonText,
-                  { color: language === 'en' ? '#FFFFFF' : colors.text },
-                ]}
-              >
-                EN
-              </Text>
-            </TouchableOpacity>
+          <View style={[styles.languageButtons, { flexWrap: 'wrap', justifyContent: 'flex-end' }]}>
+            {LANGUAGES.map((l) => {
+              const active = language === l.code;
+              return (
+                <TouchableOpacity
+                  key={l.code}
+                  style={[
+                    styles.langButton,
+                    active
+                      ? { backgroundColor: colors.primary }
+                      : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                  ]}
+                  onPress={() => setLanguage(l.code)}
+                >
+                  <Text style={[styles.langButtonText, { color: active ? '#FFFFFF' : colors.text }]}>
+                    {l.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
       </View>
@@ -570,7 +555,7 @@ export default function SettingsScreen() {
 
       {/* App Info */}
       <View style={styles.appInfo}>
-        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.21.0 · {profile.emoji} {profile.display_name} · 48 валидированных парадигм</Text>
+        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.22.0 · {profile.emoji} {profile.display_name} · 48 валидированных парадигм</Text>
         <Text style={[styles.appVersion, { color: colors.textSecondary }]}>Клик по профилю → детали + запрос кода в Telegram</Text>
       </View>
       </ScrollView>
