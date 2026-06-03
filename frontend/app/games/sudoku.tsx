@@ -204,11 +204,12 @@ export default function SudokuGame() {
           const isSel = selected?.r === r && selected?.c === c;
           const sameRow = selected?.r === r || selected?.c === c;
           const sameVal = v !== 0 && selected && grid[selected.r][selected.c] === v;
+          const wrongVal = v !== 0 && solution[r] && solution[r][c] !== v;
           let bg = colors.surface;
-          if (isSel) bg = GRADIENT[0];
+          if (wrongVal) bg = isSel ? '#ef4444' : '#fecaca';  // ошибка: яркий красный если выделена, светло-красный иначе
+          else if (isSel) bg = GRADIENT[0];
           else if (sameVal) bg = colors.card;
           else if (sameRow) bg = colors.card;
-          const wrongVal = v !== 0 && solution[r] && solution[r][c] !== v;
           return (
             <TouchableOpacity
               key={`${r}-${c}`}
@@ -228,8 +229,8 @@ export default function SudokuGame() {
                 <Text style={[
                   styles.cellText,
                   {
-                    color: isSel ? '#FFF' : given[r][c] ? colors.text : wrongVal ? '#f43f5e' : GRADIENT[0],
-                    fontWeight: given[r][c] ? '700' : '500',
+                    color: isSel ? '#FFF' : wrongVal ? '#b91c1c' : given[r][c] ? colors.text : GRADIENT[0],
+                    fontWeight: given[r][c] || wrongVal ? '700' : '500',
                   },
                 ]}>
                   {v}
