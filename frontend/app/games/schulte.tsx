@@ -642,7 +642,11 @@ const styles = StyleSheet.create({
     width: 44,
   },
   configContainer: {
-    flex: 1,
+    // v1.20.0 fix: было flex:1 — в contentContainerStyle ScrollView это пиннит
+    // контент к высоте экрана → скролл мёртв, кнопка «Старт» (marginTop:auto)
+    // уезжает в неинтерактивную зону → тап не срабатывал (Android). flexGrow:1
+    // даёт и заполнение когда контент короткий, и скролл + тач когда длинный.
+    flexGrow: 1,
     paddingHorizontal: 20,
     marginBottom: 16,
   },

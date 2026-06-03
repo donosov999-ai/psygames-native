@@ -14,6 +14,23 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.20.0] — 2026-06-02
+
+### Fixed — Schulte: кнопка «Старт» не запускала игру (Android)
+Денис: «в Шульте при нажатии Старт остаётся в настройках (проверял на Android)».
+- **Причина**: `configContainer` имел `flex: 1`, а с v1.13.3 он используется как
+  `contentContainerStyle` у ScrollView. `flex:1` в contentContainerStyle —
+  антипаттерн RN: пиннит контент к высоте экрана → скролл не работает, а кнопка
+  «Старт» (`marginTop:'auto'`) уезжает в зону переполнения, где тач не
+  регистрируется (заметно на маленьких экранах / Android).
+- **Fix**: `flex: 1` → `flexGrow: 1` в `configContainer` (schulte.tsx). Теперь
+  ScrollView скроллится, кнопка достижима и кликабельна на всех размерах.
+- **Проверено везде**: из 26 игр с config-ScrollView `flex:1` был ТОЛЬКО в Schulte
+  (его чинили вручную в v1.13.3 и оставили старый стиль; пакетный рефактор 25 игр
+  в v1.14.0 сделал configContainer без flex — они не затронуты).
+
+---
+
 ## [1.19.0] — 2026-05-30
 
 ### Fixed — Windows updater указывал на СТАРЫЙ установщик (stale CI cache)
