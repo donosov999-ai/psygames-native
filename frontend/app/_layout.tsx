@@ -38,15 +38,15 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ThemeProvider>
-          <LanguageProvider>
-            <ProfileProvider>
+        <ProfileProvider>
+          <ThemeProvider>
+            <LanguageProvider>
               <WarmupProvider>
                 <RootLayoutNav />
               </WarmupProvider>
-            </ProfileProvider>
-          </LanguageProvider>
-        </ThemeProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </ProfileProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

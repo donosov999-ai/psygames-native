@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useProfile } from './ProfileContext';
+import type { ProfileId } from '@/src/constants/profiles';
 
 interface ThemeColors {
   background: string;
@@ -19,7 +20,7 @@ const lightTheme: ThemeColors = {
   surface: '#FFFFFF',
   card: '#FFFFFF',
   text: '#1C1C1E',
-  textSecondary: '#8E8E93',
+  textSecondary: '#6E6E73',
   primary: '#007AFF',
   border: '#E5E5EA',
   success: '#34C759',
@@ -40,46 +41,56 @@ const darkTheme: ThemeColors = {
   warning: '#FF9F0A',
 };
 
+/**
+ * v1.21.0: тема под профиль.
+ * mood = база (тёмная для биохакеров/профи, светлая для масс-аудитории),
+ * accent = курированный акцент (НЕ profile.color напрямую — у части профилей
+ * color это тёмный UI-цвет, невидимый как accent, напр. Шахматист #1f2937).
+ */
+const PROFILE_THEME: Record<ProfileId, { mood: 'dark' | 'light'; accent: string }> = {
+  nzt48:     { mood: 'dark',  accent: '#a855f7' }, // фиолетовый
+  execs:     { mood: 'dark',  accent: '#14b8a6' }, // teal (ярче для видимости)
+  drivers:   { mood: 'dark',  accent: '#f97316' }, // оранжевый
+  chess:     { mood: 'dark',  accent: '#eab308' }, // золото (а не тёмный графит)
+  odv999:    { mood: 'dark',  accent: '#fbbf24' }, // янтарь (владелец)
+  women:     { mood: 'light', accent: '#ec4899' }, // роза — мягкий светлый
+  kids:      { mood: 'light', accent: '#10b981' }, // сочный зелёный — игровой
+  seniors:   { mood: 'light', accent: '#7c3aed' }, // спокойный фиолет, высокий контраст
+  students:  { mood: 'light', accent: '#f97316' }, // свежий оранж
+  vasilyeva: { mood: 'light', accent: '#0ea5e9' }, // небесно-синий
+  free:      { mood: 'light', accent: '#f59e0b' }, // приветливый янтарь
+};
+
 interface ThemeContextType {
   isDark: boolean;
   toggleTheme: () => void;
   colors: ThemeColors;
+  /** true = текущая тема задана профилем (нет ручного override). */
+  themeFromProfile: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [isDark, setIsDark] = useState(true);
+  const { profile } = useProfile();
+  // Ручной override темы (на сессию). null = тему задаёт профиль.
+  const [override, setOverride] = useState<null | 'dark' | 'light'>(null);
 
+  // При смене профиля сбрасываем override — профиль снова задаёт цвет.
   useEffect(() => {
-    loadTheme();
-  }, []);
+    setOverride(null);
+  }, [profile.id]);
 
-  const loadTheme = async () => {
-    try {
-      const savedTheme = await AsyncStorage.getItem('theme');
-      if (savedTheme !== null) {
-        setIsDark(savedTheme === 'dark');
-      }
-    } catch (error) {
-      console.error('Error loading theme:', error);
-    }
-  };
+  const pt = PROFILE_THEME[profile.id] ?? { mood: 'dark' as const, accent: '#0A84FF' };
+  const mood = override ?? pt.mood;
+  const isDark = mood === 'dark';
+  const base = isDark ? darkTheme : lightTheme;
+  const colors: ThemeColors = { ...base, primary: pt.accent };
 
-  const toggleTheme = async () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    try {
-      await AsyncStorage.setItem('theme', newTheme ? 'dark' : 'light');
-    } catch (error) {
-      console.error('Error saving theme:', error);
-    }
-  };
-
-  const colors = isDark ? darkTheme : lightTheme;
+  const toggleTheme = () => setOverride(isDark ? 'light' : 'dark');
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme, colors }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme, colors, themeFromProfile: override === null }}>
       {children}
     </ThemeContext.Provider>
   );
