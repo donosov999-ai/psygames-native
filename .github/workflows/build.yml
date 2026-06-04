@@ -442,3 +442,29 @@ jobs:
             artifacts/PsyGames-android-apk/PsyGames-android.apk
             latest.json
           generate_release_notes: true
+
+      # Sync release binaries → Contabo psy-games.pro/downloads/ под СТАБИЛЬНЫМИ
+      # именами (кнопки на download/ постоянны). continue-on-error: GitHub Release —
+      # источник истины; если Contabo SFTP флапнул — фолбэк ./deploy-downloads.sh.
+      - name: Sync binaries to Contabo /downloads
+        continue-on-error: true
+        env:
+          CONTABO_SSH_HOST: ${{ secrets.CONTABO_SSH_HOST }}
+          CONTABO_SSH_USER: ${{ secrets.CONTABO_SSH_USER }}
+          CONTABO_SSH_PASS: ${{ secrets.CONTABO_SSH_PASS }}
+          CONTABO_REMOTE_DIR: ${{ secrets.CONTABO_REMOTE_DIR }}
+        run: |
+          set -e
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          mkdir -p dl
+          cp artifacts/PsyGames-macos-arm64/PsyGames-macos-arm64.tar.gz dl/
+          cp artifacts/PsyGames-android-apk/PsyGames-android.apk dl/
+          cp artifacts/PsyGames-windows-x64-exe/*-setup.exe dl/PsyGames-windows-x64-setup.exe
+          cp artifacts/PsyGames-windows-x64-msi/*.msi dl/PsyGames-windows-x64.msi || true
+          echo "--- uploading to /downloads ---"; ls -lh dl/
+          lftp -u "$CONTABO_SSH_USER","$CONTABO_SSH_PASS" "sftp://$CONTABO_SSH_HOST" -e "
+            set sftp:auto-confirm yes; set net:timeout 60; set net:max-retries 3; set net:connection-limit 1;
+            mkdir -f $CONTABO_REMOTE_DIR/downloads;
+            mirror -R --no-perms dl/ $CONTABO_REMOTE_DIR/downloads/;
+            bye"
+          echo "✓ synced → https://psy-games.pro/downloads/"
