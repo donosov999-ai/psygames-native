@@ -158,9 +158,11 @@ export default function AnagramGame() {
   const [picked, setPicked] = useState<number[]>([]);
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
+  const [hintUses, setHintUses] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const usedRef = useRef<Set<string>>(new Set());   // показанные в сессии слова — без повторов
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
@@ -171,7 +173,10 @@ export default function AnagramGame() {
 
   const newRound = () => {
     const bank = wordsBank(length);
-    const entry = bank[Math.floor(Math.random() * bank.length)];
+    let avail = bank.filter((e) => !usedRef.current.has(e.w));
+    if (avail.length === 0) { usedRef.current.clear(); avail = bank; }   // банк исчерпан → сброс
+    const entry = avail[Math.floor(Math.random() * avail.length)];
+    usedRef.current.add(entry.w);
     const w = entry.w.toUpperCase();
     setTarget(w);
     setHint(entry.h);
@@ -183,7 +188,7 @@ export default function AnagramGame() {
   };
 
   const startGame = () => {
-    setHits(0); setErrors(0); setRound(1);
+    setHits(0); setErrors(0); setRound(1); setHintUses(0); usedRef.current.clear();
     newRound();
     setPhase('playing');
     const start = Date.now();
@@ -255,6 +260,14 @@ export default function AnagramGame() {
     </ScrollView>
   );
 
+  // Подсказка: автоматически открыть следующую правильную букву
+  const revealHint = () => {
+    const nextChar = target[picked.length];
+    if (nextChar === undefined) return;
+    const idx = letters.findIndex((ch, i) => ch === nextChar && !picked.includes(i));
+    if (idx >= 0) { setHintUses((h) => h + 1); handleLetterPress(idx); }
+  };
+
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
@@ -297,9 +310,14 @@ export default function AnagramGame() {
           </TouchableOpacity>
         ))}
       </View>
-      <TouchableOpacity onPress={() => setPicked([])} style={[styles.clearBtn, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.clearText, { color: colors.text }]}>{t('clear')}</Text>
-      </TouchableOpacity>
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
+        <TouchableOpacity onPress={revealHint} style={[styles.clearBtn, { flex: 1, backgroundColor: '#fbbf24' }]}>
+          <Text style={[styles.clearText, { color: '#1a1a1a' }]}>💡 {language === 'ru' ? 'Подсказка' : 'Hint'}{hintUses > 0 ? ` (${hintUses})` : ''}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setPicked([])} style={[styles.clearBtn, { flex: 1, backgroundColor: colors.surface }]}>
+          <Text style={[styles.clearText, { color: colors.text }]}>{t('clear')}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 

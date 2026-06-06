@@ -24,6 +24,8 @@ export default function StatisticsScreen() {
   const router = useRouter();
   const [stats, setStats] = useState<GameStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const { profile } = useProfile();
+  const [scopeAll, setScopeAll] = useState(false);  // false = текущий профиль, true = все игры
 
   useEffect(() => {
     loadStats();

@@ -135,12 +135,12 @@ export default function GameIntro({
       <View style={styles.bottomContainer}>
         <View style={styles.btnRow}>
           <TouchableOpacity
-            style={[styles.helpBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={[styles.helpBtn, { backgroundColor: '#fbbf24' }]}
             onPress={() => setHelpOpen(true)}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
-            <Ionicons name="help-circle" size={22} color={colors.text} />
-            <Text style={[styles.helpBtnText, { color: colors.text }]}>
+            <Ionicons name="help-circle" size={22} color="#1a1a1a" />
+            <Text style={[styles.helpBtnText, { color: '#1a1a1a' }]}>
               {language === 'ru' ? 'Справка' : 'Help'}
             </Text>
           </TouchableOpacity>
@@ -347,13 +347,12 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
   },
   helpBtn: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingHorizontal: 18,
     borderRadius: 16,
-    borderWidth: 1,
   },
   helpBtnText: { fontSize: 16, fontWeight: '700' },
   startButton: {

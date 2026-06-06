@@ -468,3 +468,44 @@ jobs:
             mirror -R --no-perms dl/ $CONTABO_REMOTE_DIR/downloads/;
             bye"
           echo "✓ synced → https://psy-games.pro/downloads/"
+
+  # ─── Web → Contabo psy-games.pro/play (на тегах) ──────────────────────
+  # Билдит web с baseUrl=/play и заливает на Contabo /play по SFTP.
+  # Закрывает дырку: /downloads авто (release job), а /play раньше был руками.
+  play-deploy:
+    name: Web → Contabo /play
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: startsWith(github.ref, 'refs/tags/v')
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+      - name: Build web (baseUrl=/play)
+        working-directory: frontend
+        run: |
+          sed -i 's|"baseUrl": "/psygames-web"|"baseUrl": "/play"|' app.json
+          npx expo export -p web
+          ls -la dist/ | head
+      - name: SFTP dist → Contabo /play
+        env:
+          CONTABO_SSH_HOST: ${{ secrets.CONTABO_SSH_HOST }}
+          CONTABO_SSH_USER: ${{ secrets.CONTABO_SSH_USER }}
+          CONTABO_SSH_PASS: ${{ secrets.CONTABO_SSH_PASS }}
+          CONTABO_REMOTE_DIR: ${{ secrets.CONTABO_REMOTE_DIR }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          lftp -u "$CONTABO_SSH_USER","$CONTABO_SSH_PASS" "sftp://$CONTABO_SSH_HOST" -e "
+            set sftp:auto-confirm yes; set net:timeout 60; set net:max-retries 3; set net:connection-limit 1;
+            mkdir -f $CONTABO_REMOTE_DIR/play;
+            mirror -R --delete --no-perms frontend/dist/ $CONTABO_REMOTE_DIR/play/;
+            bye"
+          echo "✓ /play synced → https://psy-games.pro/play/"

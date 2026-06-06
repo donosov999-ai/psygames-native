@@ -20,11 +20,11 @@ const VS_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
 
-interface Item { x: number; y: number; rot: number; isTarget: boolean; }
+interface Item { x: number; y: number; rot: number; isTarget: boolean; shape: 'T' | 'L' | 'G' | 'plus'; }
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-const COUNTS: Record<Difficulty, number> = { easy: 16, medium: 30, hard: 48 };
+const COUNTS: Record<Difficulty, number> = { easy: 24, medium: 48, hard: 72 };
 
 function makeBoard(diff: Difficulty, w: number, h: number): Item[] {
   const n = COUNTS[diff];
@@ -39,12 +39,14 @@ function makeBoard(diff: Difficulty, w: number, h: number): Item[] {
       slots.push({ cx: c * cellW + cellW / 2, cy: r * cellH + cellH / 2 });
   const picked = shuffle(slots).slice(0, n);
   const targetIdx = Math.floor(Math.random() * n);
+  const DISTRACT: Item['shape'][] = ['L', 'G', 'plus'];
   return picked.map((s, i) => ({
     x: s.cx + (Math.random() - 0.5) * cellW * 0.3,
     y: s.cy + (Math.random() - 0.5) * cellH * 0.3,
-    // distractors L are randomly rotated; target T also rotated to make it hard
     rot: [0, 90, 180, 270][Math.floor(Math.random() * 4)],
     isTarget: i === targetIdx,
+    // цель — T; дистракторы РАЗНЫЕ (L / Г / +) → гетерогенный поиск, труднее
+    shape: (i === targetIdx ? 'T' : DISTRACT[Math.floor(Math.random() * DISTRACT.length)]),
   }));
 }
 
@@ -168,23 +170,17 @@ export default function VisualSearchGame() {
   );
 
   // Render letter-shaped target/distractors using SVG-like primitives via Views
-  const renderLetter = (item: Item, isT: boolean) => {
-    // T = horizontal bar on top + vertical stem; L = vertical stem + bottom bar
-    const stroke = '#fff';
-    const sw = 3;
+  const renderLetter = (item: Item) => {
+    const stroke = '#fff', sw = 3;
+    const s = item.shape;
+    const centerStem = s === 'T' || s === 'plus';   // T и + — стебель по центру; L и Г — слева
     return (
       <View style={{ width: 26, height: 26, position: 'relative' }}>
-        {isT ? (
-          <>
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: sw, backgroundColor: stroke }} />
-            <View style={{ position: 'absolute', top: 0, left: 11, width: sw, bottom: 0, backgroundColor: stroke }} />
-          </>
-        ) : (
-          <>
-            <View style={{ position: 'absolute', top: 0, left: 5, width: sw, bottom: 0, backgroundColor: stroke }} />
-            <View style={{ position: 'absolute', bottom: 0, left: 5, right: 0, height: sw, backgroundColor: stroke }} />
-          </>
-        )}
+        <View style={{ position: 'absolute', top: 0, bottom: 0, left: centerStem ? 11 : 5, width: sw, backgroundColor: stroke }} />
+        {s === 'T' && <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: sw, backgroundColor: stroke }} />}
+        {s === 'plus' && <View style={{ position: 'absolute', top: 11, left: 0, right: 0, height: sw, backgroundColor: stroke }} />}
+        {s === 'L' && <View style={{ position: 'absolute', bottom: 0, left: 5, right: 0, height: sw, backgroundColor: stroke }} />}
+        {s === 'G' && <View style={{ position: 'absolute', top: 0, left: 5, right: 0, height: sw, backgroundColor: stroke }} />}
       </View>
     );
   };
@@ -213,7 +209,7 @@ export default function VisualSearchGame() {
               transform: [{ rotate: `${it.rot}deg` }],
             }}
           >
-            {renderLetter(it, it.isTarget)}
+            {renderLetter(it)}
           </TouchableOpacity>
         ))}
       </View>

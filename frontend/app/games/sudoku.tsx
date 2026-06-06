@@ -20,26 +20,28 @@ const SUDOKU_BENEFITS = [
 type Cell = number; // 0 = empty
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
-// 6x6 Sudoku with 2x3 blocks (rows × cols inside block: 2 rows, 3 cols)
-const N = 6, BR = 2, BC = 3;
+// Sudoku: 6×6 (блоки 2×3) для easy/medium; 9×9 (блоки 3×3) для hard — настоящая сложность.
+function dimsFor(diff: 'easy' | 'medium' | 'hard') {
+  return diff === 'hard' ? { N: 9, BR: 3, BC: 3 } : { N: 6, BR: 2, BC: 3 };
+}
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-function isValid(grid: Cell[][], r: number, c: number, val: number): boolean {
+function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
   const br = Math.floor(r / BR) * BR, bc = Math.floor(c / BC) * BC;
   for (let i = 0; i < BR; i++) for (let j = 0; j < BC; j++) if (grid[br + i][bc + j] === val) return false;
   return true;
 }
 
-function solve(grid: Cell[][]): boolean {
+function solve(grid: Cell[][], N: number, BR: number, BC: number): boolean {
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
     if (grid[r][c] === 0) {
-      const nums = shuffle([1,2,3,4,5,6]);
+      const nums = shuffle(Array.from({ length: N }, (_, i) => i + 1));
       for (const n of nums) {
-        if (isValid(grid, r, c, n)) {
+        if (isValid(grid, r, c, n, N, BR, BC)) {
           grid[r][c] = n;
-          if (solve(grid)) return true;
+          if (solve(grid, N, BR, BC)) return true;
           grid[r][c] = 0;
         }
       }
@@ -49,9 +51,9 @@ function solve(grid: Cell[][]): boolean {
   return true;
 }
 
-function generatePuzzle(blanks: number): { puzzle: Cell[][]; solution: Cell[][] } {
+function generatePuzzle(blanks: number, N: number, BR: number, BC: number): { puzzle: Cell[][]; solution: Cell[][] } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
-  solve(sol);
+  solve(sol, N, BR, BC);
   const puzzle: Cell[][] = sol.map((row) => [...row]);
   const positions = shuffle(Array.from({ length: N * N }, (_, i) => i));
   for (let i = 0; i < blanks; i++) {
@@ -69,6 +71,7 @@ export default function SudokuGame() {
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
   const [grid, setGrid] = useState<Cell[][]>([]);
@@ -80,12 +83,16 @@ export default function SudokuGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { N, BR, BC } = dims;   // размеры сетки текущей партии (6×6 или 9×9)
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const startGame = () => {
-    const blanks = difficulty === 'easy' ? 14 : difficulty === 'medium' ? 20 : 26;
-    const { puzzle: p, solution: s } = generatePuzzle(blanks);
+    const d = dimsFor(difficulty);
+    setDims(d);
+    // 6×6: easy 14 / medium 20 пустых; 9×9 hard: 50 пустых (≈31 подсказка) — настоящая сложность
+    const blanks = difficulty === 'easy' ? 14 : difficulty === 'medium' ? 20 : 50;
+    const { puzzle: p, solution: s } = generatePuzzle(blanks, d.N, d.BR, d.BC);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
     setGiven(p.map((r) => r.map((v) => v !== 0)));
@@ -241,7 +248,7 @@ export default function SudokuGame() {
         }))}
       </View>
       <View style={styles.numPad}>
-        {[1,2,3,4,5,6].map((n) => (
+        {Array.from({ length: N }, (_, i) => i + 1).map((n) => (
           <TouchableOpacity
             key={n}
             onPress={() => handleNumPress(n)}
