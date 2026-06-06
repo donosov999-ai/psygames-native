@@ -303,7 +303,7 @@ export default function RMETGame() {
       {phase === 'result' && (
         <GameResult
           score={hits * 50}
-          time={0} errors={errors}
+          time={undefined} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
           gradient={GRADIENT as [string, string]} />
       )}

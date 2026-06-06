@@ -21,6 +21,20 @@ interface GameCardProps {
   height?: number;
 }
 
+/** Перцептивная яркость градиента: светлый → тёмный текст, тёмный → белый.
+ *  Фикс читаемости карточек со светлыми градиентами (корректура/анаграммы/счёт/
+ *  мишени и т.п.) — особенно заметно на светлых темах профилей. */
+function gradientIsLight(grad: string[]): boolean {
+  const lum = (hex: string) => {
+    const h = (hex || '').replace('#', '');
+    if (h.length < 6) return 0.5;
+    const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  };
+  const avg = grad.reduce((s, c) => s + lum(c), 0) / Math.max(1, grad.length);
+  return avg > 0.62;
+}
+
 export default function GameCard({
   nameKey, descKey, skillKey, gradient, icon, onPress, width, height,
 }: GameCardProps) {
@@ -28,6 +42,14 @@ export default function GameCard({
   const { t } = useLanguage();
   const { width: winWidth } = useWindowDimensions();
   const isWeb = Platform.OS === 'web';
+
+  // Адаптивный контраст контента под яркость градиента карточки.
+  const light = gradientIsLight(gradient);
+  const fg = light ? '#1a1a1a' : '#FFFFFF';
+  const fgSoft = light ? 'rgba(0,0,0,0.62)' : 'rgba(255,255,255,0.8)';
+  const iconBg = light ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.2)';
+  const badgeBg = light ? 'rgba(0,0,0,0.10)' : 'rgba(0,0,0,0.2)';
+  const badgeFg = light ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.9)';
 
   // Fallback (когда GameCard используется ВНЕ index.tsx grid) — 2 столбца fluid
   const fallbackWidth = Math.min((winWidth - 48) / 2, 180);
@@ -76,18 +98,18 @@ export default function GameCard({
           style={styles.card}
         >
         {/* Icon — top, fixed position */}
-        <View style={styles.iconContainer}>
-          <Ionicons name={icon as any} size={28} color="#FFFFFF" />
+        <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
+          <Ionicons name={icon as any} size={28} color={fg} />
         </View>
         {/* Title + desc — middle, flex:1 fills available space */}
         <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={2}>{t(nameKey)}</Text>
-          <Text style={styles.description} numberOfLines={2}>{t(descKey)}</Text>
+          <Text style={[styles.title, { color: fg }]} numberOfLines={2}>{t(nameKey)}</Text>
+          <Text style={[styles.description, { color: fgSoft }]} numberOfLines={2}>{t(descKey)}</Text>
         </View>
         {/* Badge — pinned to bottom (after flex:1 textContainer) */}
-        <View style={styles.skillBadge}>
-          <Ionicons name="fitness-outline" size={12} color="rgba(255,255,255,0.9)" />
-          <Text style={styles.skillText} numberOfLines={1}>{t(skillKey)}</Text>
+        <View style={[styles.skillBadge, { backgroundColor: badgeBg }]}>
+          <Ionicons name="fitness-outline" size={12} color={badgeFg} />
+          <Text style={[styles.skillText, { color: badgeFg }]} numberOfLines={1}>{t(skillKey)}</Text>
         </View>
         </LinearGradient>
       </TouchableOpacity>

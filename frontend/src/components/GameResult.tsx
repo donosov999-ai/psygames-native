@@ -6,7 +6,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 
 interface GameResultProps {
-  time: number;
+  time?: number;
   score?: number;
   errors?: number;
   gradient: string[];
@@ -47,11 +47,13 @@ export default function GameResult({
         <Text style={styles.title}>{t('complete')}</Text>
 
         <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Ionicons name="time-outline" size={24} color="#FFFFFF" />
-            <Text style={styles.statLabel}>{t('yourTime')}</Text>
-            <Text style={styles.statValue}>{formatTime(time)}</Text>
-          </View>
+          {time !== undefined && (
+            <View style={styles.statItem}>
+              <Ionicons name="time-outline" size={24} color="#FFFFFF" />
+              <Text style={styles.statLabel}>{t('yourTime')}</Text>
+              <Text style={styles.statValue}>{formatTime(time)}</Text>
+            </View>
+          )}
 
           {score !== undefined && (
             <View style={styles.statItem}>

@@ -270,7 +270,7 @@ export default function BARTGame() {
       {phase === 'result' && (
         <GameResult
           score={bank}
-          time={0} errors={popCount}
+          time={undefined} errors={popCount}
           onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
           gradient={GRADIENT as [string, string]} />
       )}

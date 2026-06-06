@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import UnlockToast from '@/src/components/UnlockToast';
 import WelcomeModal from '@/src/components/WelcomeModal';
 import UpdateGate from '@/src/components/UpdateGate';
+import GameHelpOverlay from '@/src/components/GameHelpOverlay';
 
 function RootLayoutNav() {
   const { isDark, colors } = useTheme();
@@ -30,6 +31,8 @@ function RootLayoutNav() {
       <WelcomeModal />
       {/* Desktop-only авто-апдейтер (Tauri). На web/Android — no-op. */}
       <UpdateGate />
+      {/* Глобальная «?»-справка игр (сама прячется вне /games/* через HELP_MAP) */}
+      <GameHelpOverlay />
     </>
   );
 }

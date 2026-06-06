@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,6 +40,7 @@ export default function GameIntro({
 }: GameIntroProps) {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const [helpOpen, setHelpOpen] = React.useState(false);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -129,22 +131,58 @@ export default function GameIntro({
         </View>
       </ScrollView>
 
-      {/* Start Button */}
+      {/* Bottom: Справка + Старт (две кнопки в ряд) */}
       <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.startButton} onPress={onStart}>
-          <LinearGradient
-            colors={gradient as [string, string]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.startButtonGradient}
+        <View style={styles.btnRow}>
+          <TouchableOpacity
+            style={[styles.helpBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            onPress={() => setHelpOpen(true)}
+            activeOpacity={0.8}
           >
-            <Ionicons name="play" size={24} color="#FFFFFF" style={styles.startButtonIcon} />
-            <Text style={styles.startButtonText}>
-              {language === 'ru' ? 'Начать тренировку' : 'Start Training'}
+            <Ionicons name="help-circle" size={22} color={colors.text} />
+            <Text style={[styles.helpBtnText, { color: colors.text }]}>
+              {language === 'ru' ? 'Справка' : 'Help'}
             </Text>
-          </LinearGradient>
-        </TouchableOpacity>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.startButton} onPress={onStart} activeOpacity={0.85}>
+            <LinearGradient
+              colors={gradient as [string, string]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.startButtonGradient}
+            >
+              <Ionicons name="play" size={22} color="#FFFFFF" style={styles.startButtonIcon} />
+              <Text style={styles.startButtonText}>
+                {language === 'ru' ? 'Начать' : 'Start'}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Help modal (структурная справка — как играть + что тренирует) */}
+      <Modal visible={helpOpen} transparent animationType="fade" onRequestClose={() => setHelpOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalSheet, { backgroundColor: colors.background, borderColor: colors.border }]}>
+            <View style={styles.modalHead}>
+              <Text style={[styles.modalTitle, { color: colors.text }]} numberOfLines={2}>{t(nameKey)}</Text>
+              <TouchableOpacity onPress={() => setHelpOpen(false)} style={[styles.modalClose, { backgroundColor: colors.surface }]}>
+                <Ionicons name="close" size={20} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            <View style={[styles.modalSkill, { backgroundColor: gradient[0] + '22' }]}>
+              <Ionicons name="fitness-outline" size={14} color={gradient[0]} />
+              <Text style={[styles.modalSkillText, { color: gradient[0] }]}>{t(skillKey)}</Text>
+            </View>
+            <ScrollView style={{ marginTop: 14 }} showsVerticalScrollIndicator={false}>
+              <Text style={[styles.modalBody, { color: colors.text }]}>{t(descriptionKey)}</Text>
+            </ScrollView>
+            <TouchableOpacity onPress={() => setHelpOpen(false)} style={[styles.modalOk, { backgroundColor: gradient[0] }]}>
+              <Text style={styles.modalOkText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -303,7 +341,23 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     paddingTop: 12,
   },
+  btnRow: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'stretch',
+  },
+  helpBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  helpBtnText: { fontSize: 16, fontWeight: '700' },
   startButton: {
+    flex: 1,
     borderRadius: 16,
     overflow: 'hidden',
   },
@@ -321,4 +375,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center', padding: 18 },
+  modalSheet: { width: '100%', maxWidth: 520, maxHeight: '82%', borderRadius: 20, borderWidth: 1, padding: 20 },
+  modalHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  modalTitle: { flex: 1, fontSize: 22, fontWeight: '800' },
+  modalClose: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center' },
+  modalSkill: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginTop: 12 },
+  modalSkillText: { fontSize: 13, fontWeight: '700' },
+  modalBody: { fontSize: 16.5, lineHeight: 25 },
+  modalOk: { marginTop: 14, paddingVertical: 13, borderRadius: 12, alignItems: 'center' },
+  modalOkText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

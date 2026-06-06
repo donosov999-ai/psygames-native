@@ -198,7 +198,7 @@ export default function IowaGame() {
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, bank)}
-          time={0} errors={disCount}
+          time={undefined} errors={disCount}
           onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
           gradient={GRADIENT as [string, string]} />
       )}

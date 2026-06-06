@@ -35,8 +35,10 @@ export default function ProofreadingGame() {
   const { width, height } = useWindowDimensions();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [rows, setRows] = useState(10);
-  const [cols, setCols] = useState(8);
+  const [rows, setRows] = useState(14);
+  const [cols, setCols] = useState(12);
+  const [mode, setMode] = useState<'latin' | 'cyrillic' | 'digits'>(language === 'ru' ? 'cyrillic' : 'latin');
+  const [wrongFlash, setWrongFlash] = useState<number | null>(null);
   const [grid, setGrid] = useState<string[]>([]);
   const [targetLetters, setTargetLetters] = useState<string[]>([]);
   const [foundIndices, setFoundIndices] = useState<Set<number>>(new Set());
@@ -53,7 +55,7 @@ export default function ProofreadingGame() {
   }, []);
 
   const generateGrid = () => {
-    const alphabet = language === 'ru' ? RUSSIAN_ALPHABET : ENGLISH_ALPHABET;
+    const alphabet = mode === 'digits' ? '0123456789' : mode === 'cyrillic' ? RUSSIAN_ALPHABET : ENGLISH_ALPHABET;
     const totalCells = rows * cols;
     
     // Generate random letters
@@ -126,17 +128,22 @@ export default function ProofreadingGame() {
       }
     } else {
       setErrors(prev => prev + 1);
+      setWrongFlash(index);
+      setTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);
     }
   };
 
   // Calculate cell size — fit within both width AND height to avoid overflow
   // Reserve ~280px for header/HUD/target-letters above the grid + safe area
-  const reservedHeight = 280;
+  // Компромисс: сетка ВСЕГДА влезает (cell = min по ширине И высоте, без overflow),
+  // но не мельчит — выше потолок контейнера/клетки и меньше резерв сверху → на
+  // просторных экранах клетки крупные, на узких — ужимаются ровно до помещения.
+  const reservedHeight = 210;
   const availableHeight = Math.max(200, height - reservedHeight);
-  const containerW = Math.min(width - 32, 540);   // cap container at 540 desktop
+  const containerW = Math.min(width - 24, 760);
   const widthBased = Math.floor(containerW / cols);
   const heightBased = Math.floor(availableHeight / rows);
-  const cellSize = Math.max(20, Math.min(widthBased, heightBased, 56));   // clamp 20-56px
+  const cellSize = Math.max(22, Math.min(widthBased, heightBased, 72));   // clamp 22-72px
   const gridWidth = cellSize * cols;
 
   const renderConfig = () => (
@@ -156,10 +163,36 @@ export default function ProofreadingGame() {
         <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            {language === 'ru' 
-              ? 'Найдите все вхождения двух заданных букв в таблице'
-              : 'Find all occurrences of two given letters in the table'}
+            {language === 'ru'
+              ? 'Найдите все вхождения двух заданных символов в таблице'
+              : 'Find all occurrences of two given symbols in the table'}
           </Text>
+        </View>
+
+        {/* Mode: letters / digits (как в старом app — Режим буквы/цифры) */}
+        <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>
+            {language === 'ru' ? 'Режим' : 'Mode'}
+          </Text>
+          <View style={styles.optionButtons}>
+            {(['latin', 'cyrillic', 'digits'] as const).map((m) => (
+              <TouchableOpacity
+                key={m}
+                style={[
+                  styles.sizeButton,
+                  mode === m && { backgroundColor: GRADIENT[0] },
+                  mode !== m && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                ]}
+                onPress={() => setMode(m)}
+              >
+                <Text style={[styles.sizeButtonText, { color: mode === m ? '#333' : colors.text }]}>
+                  {m === 'latin' ? (language === 'ru' ? 'Латиница' : 'Latin')
+                    : m === 'cyrillic' ? (language === 'ru' ? 'Кириллица' : 'Cyrillic')
+                    : (language === 'ru' ? 'Цифры' : 'Digits')}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* Rows Selection */}
@@ -168,7 +201,7 @@ export default function ProofreadingGame() {
             {language === 'ru' ? 'Строки' : 'Rows'}
           </Text>
           <View style={styles.optionButtons}>
-            {[8, 10, 12, 15].map((r) => (
+            {[10, 12, 15, 18].map((r) => (
               <TouchableOpacity
                 key={r}
                 style={[
@@ -192,7 +225,7 @@ export default function ProofreadingGame() {
             {language === 'ru' ? 'Столбцы' : 'Columns'}
           </Text>
           <View style={styles.optionButtons}>
-            {[6, 8, 10, 12].map((c) => (
+            {[8, 10, 12, 16].map((c) => (
               <TouchableOpacity
                 key={c}
                 style={[
@@ -229,10 +262,15 @@ export default function ProofreadingGame() {
     <View style={styles.gameContainer}>
       {/* Game Header */}
       <View style={styles.gameHeader}>
-        <View style={[styles.targetBox, { backgroundColor: GRADIENT[0] }]}>
-          <Text style={styles.targetLabel}>{t('find')}:</Text>
-          <Text style={styles.targetLetters}>
-            {targetLetters.join(' ')} ({foundIndices.size}/{targetIndices.size})
+        <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.targetLabel, { color: colors.text }]}>{t('find')}:</Text>
+          {targetLetters.map((tl, i) => (
+            <View key={i} style={[styles.targetChip, { backgroundColor: i === 0 ? '#34d399' : '#fbbf24' }]}>
+              <Text style={styles.targetChipText}>{tl}</Text>
+            </View>
+          ))}
+          <Text style={[styles.targetCount, { color: colors.textSecondary }]}>
+            {foundIndices.size}/{targetIndices.size}
           </Text>
         </View>
         <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
@@ -262,7 +300,7 @@ export default function ProofreadingGame() {
                   {
                     width: cellSize - 2,
                     height: cellSize - 2,
-                    backgroundColor: isFound ? GRADIENT[0] : colors.surface,
+                    backgroundColor: isFound ? GRADIENT[0] : wrongFlash === index ? '#f43f5e' : colors.surface,
                   },
                 ]}
                 onPress={() => handleCellPress(index)}
@@ -273,8 +311,8 @@ export default function ProofreadingGame() {
                     styles.cellText,
                     {
                       fontSize: Math.min(cellSize * 0.5, 24),
-                      color: isFound ? '#333' : colors.text,
-                      fontWeight: isFound ? '700' : '500',
+                      color: isFound ? '#333' : wrongFlash === index ? '#fff' : colors.text,
+                      fontWeight: isFound || wrongFlash === index ? '700' : '500',
                     },
                   ]}
                 >
@@ -402,12 +440,22 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
     padding: 12,
     borderRadius: 12,
     marginBottom: 8,
   },
-  targetLabel: { fontSize: 14, color: '#333' },
-  targetLetters: { fontSize: 18, fontWeight: '700', color: '#333' },
+  targetLabel: { fontSize: 14 },
+  targetChip: {
+    minWidth: 34,
+    height: 34,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  targetChipText: { fontSize: 20, fontWeight: '800', color: '#1a1a1a' },
+  targetCount: { fontSize: 15, fontWeight: '600', marginLeft: 'auto' },
   statBox: {
     flexDirection: 'row',
     alignItems: 'center',

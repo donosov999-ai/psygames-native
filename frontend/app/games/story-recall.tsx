@@ -428,7 +428,7 @@ export default function StoryRecallGame() {
       {phase === 'result' && (
         <GameResult
           score={(recall1Hits + recall2Hits) * 50}
-          time={0} errors={(language === 'en' ? story.keywords_en.length : story.keywords_ru.length) - recall2Hits}
+          time={undefined} errors={(language === 'en' ? story.keywords_en.length : story.keywords_ru.length) - recall2Hits}
           onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
           gradient={GRADIENT as [string, string]} />
       )}
