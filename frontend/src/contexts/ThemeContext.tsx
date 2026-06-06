@@ -59,6 +59,7 @@ const PROFILE_THEME: Record<ProfileId, { mood: 'dark' | 'light'; accent: string 
   students:  { mood: 'light', accent: '#f97316' }, // свежий оранж
   vasilyeva: { mood: 'light', accent: '#0ea5e9' }, // небесно-синий
   free:      { mood: 'light', accent: '#f59e0b' }, // приветливый янтарь
+  polyglot:  { mood: 'light', accent: '#6366f1' }, // индиго — изучающие языки
 };
 
 interface ThemeContextType {

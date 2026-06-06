@@ -20,7 +20,8 @@ export type ProfileId =
   | 'odv999'                                              // owner (Денис, full access, locked by master code)
   | 'chess' | 'kids' | 'vasilyeva' | 'nzt48' | 'free'    // themed batch 1 (commercial)
   | 'drivers' | 'seniors' | 'execs' | 'students'         // themed batch 2 (commercial)
-  | 'women';                                              // themed batch 3 (v1.4.0)
+  | 'women'                                               // themed batch 3 (v1.4.0)
+  | 'polyglot';                                           // themed batch 4 — изучающие языки
 
 /** UI grouping for Settings screen. All profiles are 'themed' since v1.3.0. */
 export type ProfileGroup = 'personal' | 'themed';
@@ -476,6 +477,44 @@ const WOMEN: ProfileDef = {
   assessment_enabled: true,
 };
 
+// ─── 🗣 ПОЛИГЛОТ — изучающие языки ──────────────────────────────────────
+// Когнитивная база языкового обучения: вербальная рабочая память (предсказывает
+// усвоение словаря), ассоциации слово↔значение, беглость извлечения, узнавание
+// скрипта L2, переключение (билингвальный контроль).
+// ⚠ НЕ замена Duolingo/Anki — тренирует системы, на которые опирается язык.
+const POLYGLOT: ProfileDef = {
+  id: 'polyglot',
+  person: 'Полиглот',
+  display_name: 'Языки / Полиглот',
+  emoji: '🗣',
+  color: '#6366f1',
+  description: 'Под языки: вербальная память · ассоциации · беглость · скрипты',
+  long_description: 'Когнитивная база изучения иностранных языков. Вербальная рабочая память (Reading Span, OSPAN, N-back — предсказывает скорость усвоения словаря), ассоциативная память слово↔значение (Word Pairs), беглость извлечения слов (Phonemic Fluency), орфография и работа с буквами (Anagrams), узнавание незнакомого скрипта — латиница/кириллица (Proofreading с выбором алфавита), переключение между системами / билингвальный контроль (Switching). НЕ заменяет Duolingo/Anki — тренирует когнитивные системы, на которые опирается изучение языка. Подходит изучающим языки, полиглотам, языковым курсам.',
+  audience: 'Изучающие языки · полиглоты · языковые курсы',
+  session_minutes: '10-15 мин',
+  sales_hook: '🗣 Прокачай вербальную память и беглость, на которые опирается изучение языков. Мозг под язык — в дополнение к Duolingo, не вместо.',
+  sales_hook_source: 'Gathercole & Baddeley, 1990, J Memory & Language — фонологическая рабочая память предсказывает усвоение словаря (foundational)',
+  price_year: 490,
+  group: 'themed',
+  // «1+1+1+1 + 5 темовых», bias на вербальную/рабочую память + скрипт
+  allowed_games: [
+    // Base (по категориям)
+    'word_pairs',        // memory — ассоциации слово↔значение (ядро вокаба)
+    'proofreading',      // attention — скан букв/скрипта (выбор алфавита!)
+    'anagrams',          // logic — орфография/работа с буквами
+    'sdmt',              // action — скорость обработки (быстрый доступ к лексикону)
+    // +5 темовых (verbal / WM / скрипт)
+    'reading_span',      // ещё memory — вербальная WM при чтении
+    'ospan',             // ещё memory — вербальная WM под нагрузкой
+    'n_back',            // ещё memory — WM (предсказывает усвоение словаря)
+    'phonemic_fluency',  // ещё logic — беглость извлечения слов
+    'switching_task',    // ещё logic — переключение/билингвальный контроль
+  ],
+  warmup_enabled: true,
+  financial_brain_day_enabled: false,
+  assessment_enabled: true,
+};
+
 // ─── Export ─────────────────────────────────────────────────────────────
 
 export const PROFILES: ProfileDef[] = [
@@ -487,6 +526,8 @@ export const PROFILES: ProfileDef[] = [
   DRIVERS, SENIORS, EXECS, STUDENTS,
   // Themed batch 3 (v1.4.0)
   WOMEN,
+  // Themed batch 4 — изучающие языки
+  POLYGLOT,
 ];
 
 export const PROFILE_BY_ID: Record<ProfileId, ProfileDef> = PROFILES.reduce((acc, p) => {
