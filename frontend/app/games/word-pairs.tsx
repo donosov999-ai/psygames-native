@@ -12,11 +12,12 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
-import { useLanguage } from '@/src/contexts/LanguageContext';
+import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
+import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 
 const GRADIENT = ['#f093fb', '#f5576c'];
 const PENALTY_SECONDS = 15;
@@ -51,6 +52,8 @@ export default function WordPairsGame() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [errors, setErrors] = useState(0);
   const [pairCount, setPairCount] = useState(10);
+  const [mode, setMode] = useState<'random' | 'translation'>('random');
+  const [targetLang, setTargetLang] = useState<string>(language === 'en' ? 'es' : 'en');
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -60,6 +63,23 @@ export default function WordPairsGame() {
   }, []);
 
   const generatePairs = () => {
+    if (mode === 'translation') {
+      const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+      const vocab = [...TRANSLATION_VOCAB];
+      for (let i = vocab.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [vocab[i], vocab[j]] = [vocab[j], vocab[i]];
+      }
+      const transPairs: WordPair[] = [];
+      for (let i = 0; i < pairCount && i < vocab.length; i++) {
+        transPairs.push({
+          id: i,
+          word1: vocab[i][language] || vocab[i].en,
+          word2: vocab[i][tgt] || vocab[i].en,
+        });
+      }
+      return transPairs;
+    }
     const words = language === 'ru' ? [...RUSSIAN_WORDS] : [...ENGLISH_WORDS];
     // Shuffle words
     for (let i = words.length - 1; i > 0; i--) {
@@ -145,9 +165,9 @@ export default function WordPairsGame() {
             game_type: 'word_pairs',
             score: pairs.length - errors,
             time_seconds: finalTime,
-            difficulty: `${pairCount} pairs`,
+            difficulty: mode === 'translation' ? `${pairCount} pairs · ${language}→${targetLang}` : `${pairCount} pairs`,
             errors: errors,
-            details: { hits: pairs.length - errors, errors, pair_count: pairCount },
+            details: { hits: pairs.length - errors, errors, pair_count: pairCount, mode, ...(mode === 'translation' ? { base_lang: language, target_lang: targetLang } : {}) },
           });
         } catch (error) {
           console.error('Error saving session:', error);
@@ -182,6 +202,57 @@ export default function WordPairsGame() {
             ? 'Запомните пары слов, затем восстановите связи. Штраф за ошибку: 15 сек.'
             : 'Memorize word pairs, then restore connections. Penalty: 15 sec per error.'}
         </Text>
+      </View>
+
+      <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>
+          {language === 'ru' ? 'Режим' : 'Mode'}
+        </Text>
+        <View style={styles.modeRow}>
+          {([['random', language === 'ru' ? 'Случайные пары' : 'Random pairs'],
+             ['translation', language === 'ru' ? 'Перевод' : 'Translation']] as const).map(([m, label]) => (
+            <TouchableOpacity
+              key={m}
+              style={[
+                styles.modeButton,
+                mode === m
+                  ? { backgroundColor: GRADIENT[0] }
+                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+              ]}
+              onPress={() => setMode(m)}
+            >
+              <Text style={[styles.modeButtonText, { color: mode === m ? '#FFFFFF' : colors.text }]}>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {mode === 'translation' && (
+          <>
+            <Text style={[styles.optionLabel, { color: colors.text, marginTop: 16 }]}>
+              {(language === 'ru' ? 'Перевод' : 'Translate')}: {LANGUAGES.find(l => l.code === language)?.name} →
+            </Text>
+            <View style={styles.optionButtons}>
+              {LANGUAGES.filter(l => l.code !== language).map(l => (
+                <TouchableOpacity
+                  key={l.code}
+                  style={[
+                    styles.langButton,
+                    targetLang === l.code
+                      ? { backgroundColor: GRADIENT[0] }
+                      : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                  ]}
+                  onPress={() => setTargetLang(l.code)}
+                >
+                  <Text style={[styles.langButtonText, { color: targetLang === l.code ? '#FFFFFF' : colors.text }]}>
+                    {l.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
       </View>
 
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -236,7 +307,9 @@ export default function WordPairsGame() {
       </View>
       
       <Text style={[styles.phaseTitle, { color: colors.text }]}>
-        {language === 'ru' ? 'Запомните пары слов' : 'Memorize word pairs'}
+        {mode === 'translation'
+          ? `${LANGUAGES.find(l => l.code === language)?.name} → ${LANGUAGES.find(l => l.code === targetLang)?.name}`
+          : (language === 'ru' ? 'Запомните пары слов' : 'Memorize word pairs')}
       </Text>
       
       <ScrollView style={styles.pairsList} showsVerticalScrollIndicator={false}>
@@ -444,6 +517,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sizeButtonText: { fontSize: 16, fontWeight: '600' },
+  modeRow: { flexDirection: 'row', gap: 8, marginTop: 6 },
+  modeButton: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
+  modeButtonText: { fontSize: 14, fontWeight: '600' },
+  langButton: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, marginRight: 6, marginTop: 8 },
+  langButtonText: { fontSize: 14, fontWeight: '600' },
   startButton: { marginTop: 'auto', marginBottom: 20 },
   startButtonGradient: {
     flexDirection: 'row',

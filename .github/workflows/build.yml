@@ -8,6 +8,12 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  # Cargo network hardening — крейты с crates.io иногда падают на
+  # "curl [16] HTTP2 framing layer" (флейки HTTP/2). Отключаем мультиплексинг
+  # (→ HTTP/1.1) + ретраи. Глобально: macOS/Windows/Android все дёргают cargo.
+  CARGO_NET_RETRY: "10"
+  CARGO_HTTP_MULTIPLEXING: "false"
+  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
   NODE_VERSION: '22'
   RUST_VERSION: 'stable'
 

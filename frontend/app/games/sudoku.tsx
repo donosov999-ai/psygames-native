@@ -168,7 +168,7 @@ export default function SudokuGame() {
     }
   };
 
-  const cellSize = Math.min((Math.min(width, 420) - 50) / N, 56);
+  const cellSize = Math.floor(Math.min((Math.min(width, 420) - 50) / N, 56));
 
   const renderConfig = () => (
     <View style={styles.configContainer}>
@@ -206,7 +206,7 @@ export default function SudokuGame() {
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
       </View>
-      <View style={[styles.gridArea, { backgroundColor: colors.text }]}>
+      <View style={[styles.gridArea, { width: cellSize * N + 4, backgroundColor: colors.text }]}>
         {grid.map((row, r) => row.map((v, c) => {
           const isSel = selected?.r === r && selected?.c === c;
           const sameRow = selected?.r === r || selected?.c === c;
@@ -284,7 +284,7 @@ export default function SudokuGame() {
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('sudoku')}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('sudoku').replace(/\s*\d+\s*[×xX]\s*\d+\s*$/, '') + (phase === 'playing' ? ` ${N}×${N}` : '')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'intro' && (
