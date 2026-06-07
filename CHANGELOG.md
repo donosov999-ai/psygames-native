@@ -14,6 +14,17 @@ to a GitHub Release automatically.
 
 ---
 
+## [Unreleased]
+
+### Added — F1 «Комплексы» (пайплайн пресетов + полиглот end-to-end)
+- **Инъекция настроек в игры из зарядки/комплекса.** `PlaylistStep.settings` (произвольный пресет) + `stepToParams()` → URL-params; новый хук `useGamePreset()` + `useAutostart()`: игра читает пресет, применяет конфиг и **авто-стартует** (пропуск экрана настроек). Побочно чинит утреннюю зарядку — раньше `mode/difficulty/trials` шага не применялись. Разведены 7 игр: word_pairs, n_back, sdmt, phonemic_fluency, reading_span, anagrams, mnemonics.
+- **Вечерний комплекс «Перед сном»** — `slot: 'morning'|'evening'`, `buildFixedPlaylist()`, `WarmupContext.startEvening()`, карточка «ПЕРЕД СНОМ» (индиго) на главной, slot-aware шапка bridge (🌙). Per-profile `morning_playlist`/`evening_playlist` в ProfileDef.
+- **Полиглот** (демо end-to-end): утро = Пары слов(перевод) + N-back(2) + SDMT + Беглость; вечер = Пары слов(перевод, повтор) + Reading Span + Анаграммы + Мнемоника.
+- **`GAMES_REFERENCE.md`** — справочник по 48 играм (описания + исследования + операционная матрица + вечерние комплексы).
+- ⏳ F2 (остальные профили + ~20 игр) и F3 (полиш/тёмная тема/kids-off) — следующие. Версия (1.23.0) поднимется при релизе.
+
+---
+
 ## [1.22.5] — 2026-06-06
 
 ### Added

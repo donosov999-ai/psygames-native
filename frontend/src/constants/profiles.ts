@@ -61,6 +61,10 @@ export interface ProfileDef {
   group?: ProfileGroup;       // default 'personal' if undefined (back-compat)
   allowed_games: 'all' | string[];   // 'all' = no filter, otherwise whitelist of game_ids
   custom_playlists?: Partial<Record<Weekday, PlaylistStep[]>>;
+  /** v1.23 «Комплексы»: фиксированный УТРЕННИЙ набор (если задан — заменяет weekday-логику для этого профиля). */
+  morning_playlist?: PlaylistStep[];
+  /** v1.23 «Комплексы»: ВЕЧЕРНИЙ набор (перед сном) — спокойные игры, консолидация. Если не задан — вечерней зарядки у профиля нет. */
+  evening_playlist?: PlaylistStep[];
   warmup_enabled: boolean;
   financial_brain_day_enabled: boolean;
   assessment_enabled: boolean;
@@ -509,6 +513,20 @@ const POLYGLOT: ProfileDef = {
     'n_back',            // ещё memory — WM (предсказывает усвоение словаря)
     'phonemic_fluency',  // ещё logic — беглость извлечения слов
     'switching_task',    // ещё logic — переключение/билингвальный контроль
+  ],
+  // v1.23 «Комплексы» — фиксированные утро/вечер (F1, end-to-end demo на полиглоте).
+  // targetLang='en' дефолт; если UI=en, игра сама переключит цель (фолбэк в word-pairs).
+  morning_playlist: [
+    { game_id: 'word_pairs',       game_route: '/games/word-pairs',       difficulty: 'easy',   mode: 'translation', settings: { targetLang: 'en', pairCount: 15 }, est_duration_sec: 150 },
+    { game_id: 'n_back',           game_route: '/games/n-back',           difficulty: 'medium', settings: { nLevel: 2, modality: 'single', trials: 20 },               est_duration_sec: 90 },
+    { game_id: 'sdmt',             game_route: '/games/sdmt',             difficulty: 'medium', settings: { duration: 60 },                                            est_duration_sec: 65 },
+    { game_id: 'phonemic_fluency', game_route: '/games/phonemic-fluency', difficulty: 'medium', settings: { duration: 60 },                                            est_duration_sec: 65 },
+  ],
+  evening_playlist: [
+    { game_id: 'word_pairs',   game_route: '/games/word-pairs',   difficulty: 'easy',   mode: 'translation', settings: { targetLang: 'en', pairCount: 10 }, est_duration_sec: 110 },
+    { game_id: 'reading_span', game_route: '/games/reading-span', difficulty: 'easy',   settings: { setSize: 3 },                                       est_duration_sec: 90 },
+    { game_id: 'anagrams',     game_route: '/games/anagrams',     difficulty: 'medium', settings: { length: 5 },                                        est_duration_sec: 100 },
+    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy',   mode: 'words', settings: { itemCount: 10 },                       est_duration_sec: 90 },
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,

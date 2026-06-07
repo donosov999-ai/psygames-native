@@ -21,6 +21,7 @@ export interface PlaylistStep {
   difficulty: Difficulty;
   trials?: number;        // override default trials count
   mode?: string;          // override default mode (game-specific)
+  settings?: Record<string, string | number>;  // arbitrary preset для игры (напр. {targetLang:'en', pairCount:10, modality:'single'}) — передаётся в URL-params, игра применяет через useGamePreset
   est_duration_sec: number;
   is_fixed_baseline?: boolean; // marker for ЧТ peak / ВС baseline trials
 }
@@ -33,6 +34,44 @@ export interface PlaylistMeta {
   track_label: string;
   steps: PlaylistStep[];
   est_total_sec: number;
+  slot?: 'morning' | 'evening';   // утренняя зарядка vs вечерний комплекс (перед сном)
+}
+
+/**
+ * Конвертирует шаг плейлиста в URL-params для маршрута игры.
+ * Игры с хуком useGamePreset() применяют их (конфиг + авто-старт); остальные игнорят.
+ * `wu:'1'` — флаг «запущено из зарядки/комплекса».
+ */
+export function stepToParams(step: PlaylistStep): Record<string, string> {
+  const p: Record<string, string> = { wu: '1', diff: step.difficulty };
+  if (step.trials != null) p.trials = String(step.trials);
+  if (step.mode) p.mode = step.mode;
+  if (step.settings) {
+    for (const k of Object.keys(step.settings)) p[k] = String(step.settings[k]);
+  }
+  return p;
+}
+
+/**
+ * Строит PlaylistMeta из фиксированного набора шагов (для per-profile утро/вечер,
+ * где порядок задан в profiles.ts, а не вычисляется по дню недели).
+ */
+export function buildFixedPlaylist(
+  steps: PlaylistStep[],
+  slot: 'morning' | 'evening',
+  weekday: Weekday,
+): PlaylistMeta {
+  const total = steps.reduce((s, x) => s + x.est_duration_sec, 0);
+  return {
+    duration_min: Math.max(1, Math.round(total / 60)),
+    weekday,
+    weekday_name: WEEKDAY_NAMES[weekday],
+    track: 'training',
+    track_label: slot === 'evening' ? 'перед сном' : 'тренировка',
+    steps: steps.map((s) => ({ ...s })),
+    est_total_sec: total,
+    slot,
+  };
 }
 
 const WEEKDAY_NAMES = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
@@ -172,6 +211,7 @@ export function buildMorningWarmupPlaylist(opts: {
     track_label: TRACK_LABEL[track],
     steps,
     est_total_sec: sumDuration(steps),
+    slot: 'morning',
   };
 }
 

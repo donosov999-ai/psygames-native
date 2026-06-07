@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { GAMES } from '@/src/constants/games';
+import { stepToParams } from '@/src/services/warmup';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 
 const GRADIENT = ['#fbbf24', '#f59e0b'];
@@ -28,6 +29,8 @@ export default function WarmupBridge() {
   const justCompletedResult = warmup.results[warmup.results.length - 1];
   const completedGame = justCompleted ? GAMES.find((g) => g.id === justCompleted.game_id) : null;
   const nextGame = next ? GAMES.find((g) => g.id === next.game_id) : null;
+  const isEvening = meta?.slot === 'evening';
+  const accent = isEvening ? '#818cf8' : '#fbbf24';
 
   useEffect(() => {
     if (!warmup.active || !next) {
@@ -38,7 +41,7 @@ export default function WarmupBridge() {
       setCountdown((c) => {
         if (c <= 1) {
           if (intervalRef.current) clearInterval(intervalRef.current);
-          router.replace(next.game_route as any);
+          router.replace({ pathname: next.game_route, params: stepToParams(next) } as any);
           return 0;
         }
         return c - 1;
@@ -51,7 +54,7 @@ export default function WarmupBridge() {
 
   const startNow = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (next) router.replace(next.game_route as any);
+    if (next) router.replace({ pathname: next.game_route, params: stepToParams(next) } as any);
   };
 
   const skip = () => {
@@ -62,7 +65,8 @@ export default function WarmupBridge() {
     // Simpler: just navigate to whatever the new currentStep is after skip.
     setTimeout(() => {
       if (warmup.meta && warmup.currentIdx + 1 < warmup.meta.steps.length) {
-        router.replace(warmup.meta.steps[warmup.currentIdx + 1].game_route as any);
+        const ns = warmup.meta.steps[warmup.currentIdx + 1];
+        router.replace({ pathname: ns.game_route, params: stepToParams(ns) } as any);
       } else {
         router.replace('/warmup-complete' as any);
       }
@@ -86,11 +90,11 @@ export default function WarmupBridge() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.hud}>
-        <Text style={[styles.hudText, { color: '#fbbf24' }]}>
-          ⚡ ЗАРЯДКА · {warmup.currentIdx}/{meta?.steps.length}
+        <Text style={[styles.hudText, { color: accent }]}>
+          {isEvening ? '🌙 ПЕРЕД СНОМ' : '⚡ ЗАРЯДКА'} · {warmup.currentIdx}/{meta?.steps.length}
         </Text>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${(warmup.currentIdx / (meta?.steps.length || 1)) * 100}%` }]} />
+          <View style={[styles.progressFill, { width: `${(warmup.currentIdx / (meta?.steps.length || 1)) * 100}%`, backgroundColor: accent }]} />
         </View>
       </View>
 
@@ -123,7 +127,7 @@ export default function WarmupBridge() {
         )}
 
         {/* Countdown */}
-        <Text style={[styles.countdown, { color: '#fbbf24' }]}>
+        <Text style={[styles.countdown, { color: accent }]}>
           ⏱ Старт через {countdown}...
         </Text>
 

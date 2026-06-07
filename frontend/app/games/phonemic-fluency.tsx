@@ -32,6 +32,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#16a085', '#f4d03f'];
 const FLU_BENEFITS = [
@@ -50,8 +51,10 @@ export default function PhonemicFluencyGame() {
   const { t, language } = useLanguage() as any;
   const router = useRouter();
 
+  const { isPreset, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [duration, setDuration] = useState<60 | 90 | 120>(60);
+  const [duration, setDuration] = useState<60 | 90 | 120>(() => (num('duration', 60) as 60 | 90 | 120));
   const [letter, setLetter] = useState<string>('');
   const [autoPickLetter, setAutoPickLetter] = useState(true);
 

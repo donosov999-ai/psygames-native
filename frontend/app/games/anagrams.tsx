@@ -12,6 +12,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#ee9ca7', '#ffdde1'];
 const ANAGRAM_BENEFITS = [
@@ -148,8 +149,10 @@ export default function AnagramGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
+  const { isPreset, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [length, setLength] = useState<4 | 5 | 6>(4);
+  const [length, setLength] = useState<4 | 5 | 6>(() => (num('length', 4) as 4 | 5 | 6));
   const [trials] = useState(10);
   const [round, setRound] = useState(0);
   const [target, setTarget] = useState('');

@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import {
   PlaylistMeta, PlaylistStep,
   buildMorningWarmupPlaylist, buildFinancialBatteryPlaylist, buildAssessmentPlaylist,
+  buildFixedPlaylist, stepToParams,
   getCurrentWeekday, todayDateKey,
   saveWarmupHistory, WarmupHistoryEntry, Weekday,
 } from '@/src/services/warmup';
@@ -34,6 +35,7 @@ interface WarmupState {
 interface WarmupCtx extends WarmupState {
   currentStep: PlaylistStep | null;
   startWarmup: (duration: 5 | 10 | 15) => void;
+  startEvening: () => void;              // v1.23 — вечерний комплекс (перед сном)
   startFinancialBattery: () => void;     // D1 — Iowa+BART+PRL session
   startAssessment: () => void;            // G1 — 12-domain skill assessment
   recordResult: (r: StepResult) => Promise<void>;
@@ -77,11 +79,14 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
 
   const startWarmup = useCallback((duration: 5 | 10 | 15) => {
     const wd = getCurrentWeekday();
-    const meta = buildMorningWarmupPlaylist({
-      duration,
-      weekday: wd,
-      profilePlaylists: profile.custom_playlists,    // E1: per-profile override
-    });
+    // Если у профиля задан фиксированный утренний набор — используем его (минуя weekday-логику).
+    const meta = profile.morning_playlist && profile.morning_playlist.length > 0
+      ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd)
+      : buildMorningWarmupPlaylist({
+          duration,
+          weekday: wd,
+          profilePlaylists: profile.custom_playlists,    // E1: per-profile override
+        });
     const warmupId = genUUID();
     const sessionTag = trackToTag(meta.track);
     setState({
@@ -92,7 +97,24 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       // rest day — open completion immediately
       router.replace('/warmup-complete' as any);
     } else {
-      router.replace(meta.steps[0].game_route as any);
+      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0]) } as any);
+    }
+  }, [router, profile]);
+
+  // v1.23 «Комплексы» — вечерний комплекс (перед сном): спокойные игры из profile.evening_playlist.
+  const startEvening = useCallback(() => {
+    const wd = getCurrentWeekday();
+    const steps = profile.evening_playlist || [];
+    const meta = buildFixedPlaylist(steps, 'evening', wd);
+    const warmupId = genUUID();
+    setState({
+      active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],
+      warmupId, sessionTag: 'warmup',
+    });
+    if (meta.steps.length === 0) {
+      router.replace('/warmup-complete' as any);
+    } else {
+      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0]) } as any);
     }
   }, [router, profile]);
 
@@ -231,7 +253,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   }, [recordResult, advanceToNext]);
 
   return (
-    <Ctx.Provider value={{ ...state, currentStep, startWarmup, startFinancialBattery, startAssessment, recordResult, advanceToNext, skipCurrent, stopWarmup }}>
+    <Ctx.Provider value={{ ...state, currentStep, startWarmup, startEvening, startFinancialBattery, startAssessment, recordResult, advanceToNext, skipCurrent, stopWarmup }}>
       {children}
     </Ctx.Provider>
   );

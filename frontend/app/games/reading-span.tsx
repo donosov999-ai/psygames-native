@@ -12,6 +12,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#1f4037', '#99f2c8'];
 const RS_BENEFITS = [
@@ -98,8 +99,10 @@ export default function ReadingSpanGame() {
   const { t, language } = useLanguage() as any;
   const router = useRouter();
 
+  const { isPreset, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [setSize, setSetSize] = useState(4); // sentences per recall set
+  const [setSize, setSetSize] = useState(() => num('setSize', 4)); // sentences per recall set
   const [seq, setSeq] = useState<SentenceItem[]>([]);
   const [stepIdx, setStepIdx] = useState(0);
   const [judgments, setJudgments] = useState<boolean[]>([]); // user's true/false answers

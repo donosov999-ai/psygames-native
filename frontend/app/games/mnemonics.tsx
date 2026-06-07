@@ -16,6 +16,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 
 const GRADIENT = ['#4facfe', '#00f2fe'];
@@ -36,9 +37,11 @@ export default function MnemonicsGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [mode, setMode] = useState<GameMode>('words');
-  const [itemCount, setItemCount] = useState(10);
+  const [mode, setMode] = useState<GameMode>(() => (str('mode', 'words') as GameMode));
+  const [itemCount, setItemCount] = useState(() => num('itemCount', 10));
   const [items, setItems] = useState<string[]>([]);
   const [shuffledItems, setShuffledItems] = useState<string[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<string[]>([]);

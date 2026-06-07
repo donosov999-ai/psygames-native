@@ -16,6 +16,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#5b86e5', '#36d1dc'];
 const N_BACK_BENEFITS = [
@@ -48,10 +49,12 @@ export default function NBackGame() {
   const router = useRouter();
 
   const gate = useLevelGate('n_back');
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [nLevel, setNLevel] = useState(1);
-  const [trials, setTrials] = useState(20);
-  const [modality, setModality] = useState<Modality>('single');
+  const [nLevel, setNLevel] = useState(() => num('nLevel', 1));
+  const [trials, setTrials] = useState(() => num('trials', 20));
+  const [modality, setModality] = useState<Modality>(() => (str('modality', 'single') as Modality));
   const [history, setHistory] = useState<number[]>([]);
   const [audioHistory, setAudioHistory] = useState<string[]>([]);
   const [currentIdx, setCurrentIdx] = useState(-1);

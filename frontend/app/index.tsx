@@ -242,6 +242,33 @@ export default function HomeScreen() {
           </TouchableOpacity>
           )}
 
+          {/* CARD 1b: Вечерний комплекс (перед сном) — v1.23 */}
+          {profile.warmup_enabled && (profile.evening_playlist?.length ?? 0) > 0 && (
+          <TouchableOpacity
+            style={styles.heroCardWrap}
+            onPress={() => warmup.startEvening()}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={['#6366f1', '#4338ca']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={styles.heroCard}
+            >
+              <View style={styles.heroTopRow}>
+                <Ionicons name="moon" size={22} color="#FFF" />
+              </View>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]}>ПЕРЕД СНОМ</Text>
+              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
+                {profile.evening_playlist!.length} игр · ~{Math.round(profile.evening_playlist!.reduce((s, x) => s + x.est_duration_sec, 0) / 60)} мин · спокойно
+              </Text>
+              <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
+                <Ionicons name="play" size={14} color="#818cf8" />
+                <Text style={[styles.heroCtaText, { color: '#818cf8' }]}>СТАРТ</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+          )}
+
           {/* CARD 2: Assessment (профиль) */}
           {profile.assessment_enabled && (
           <TouchableOpacity

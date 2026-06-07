@@ -9,6 +9,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#0f2027', '#2c5364'];
 const SDMT_BENEFITS = [
@@ -33,8 +34,10 @@ export default function SdmtGame() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const { isPreset, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [duration, setDuration] = useState(60); // seconds
+  const [duration, setDuration] = useState(() => num('duration', 60)); // seconds
 
   const [keymap, setKeymap] = useState<KeyMap[]>([]);
   const [stim, setStim] = useState<string>('star');

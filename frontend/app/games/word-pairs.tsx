@@ -18,6 +18,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
+import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#f093fb', '#f5576c'];
 const PENALTY_SECONDS = 15;
@@ -41,6 +42,7 @@ export default function WordPairsGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
+  const { isPreset, str, num } = useGamePreset();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [pairs, setPairs] = useState<WordPair[]>([]);
@@ -51,9 +53,9 @@ export default function WordPairsGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [errors, setErrors] = useState(0);
-  const [pairCount, setPairCount] = useState(10);
-  const [mode, setMode] = useState<'random' | 'translation'>('random');
-  const [targetLang, setTargetLang] = useState<string>(language === 'en' ? 'es' : 'en');
+  const [pairCount, setPairCount] = useState(() => num('pairCount', 10));
+  const [mode, setMode] = useState<'random' | 'translation'>(() => (str('mode', 'random') as 'random' | 'translation'));
+  const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -113,6 +115,8 @@ export default function WordPairsGame() {
       setElapsedTime((Date.now() - start) / 1000);
     }, 100);
   };
+
+  useAutostart(isPreset, startGame);
 
   const startCheck = () => {
     // Shuffle right column words
