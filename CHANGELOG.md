@@ -14,7 +14,7 @@ to a GitHub Release automatically.
 
 ---
 
-## [Unreleased]
+## [1.23.0] — 2026-06-07
 
 ### Added — F1 «Комплексы» (пайплайн пресетов + полиглот end-to-end)
 - **Инъекция настроек в игры из зарядки/комплекса.** `PlaylistStep.settings` (произвольный пресет) + `stepToParams()` → URL-params; новый хук `useGamePreset()` + `useAutostart()`: игра читает пресет, применяет конфиг и **авто-стартует** (пропуск экрана настроек). Побочно чинит утреннюю зарядку — раньше `mode/difficulty/trials` шага не применялись. Разведены 7 игр: word_pairs, n_back, sdmt, phonemic_fluency, reading_span, anagrams, mnemonics.
