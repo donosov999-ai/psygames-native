@@ -299,7 +299,7 @@ export default function HomeScreen() {
                   </View>
                 )}
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]}>ПРОФИЛЬ</Text>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]}>ОЦЕНКА</Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
                 12 тестов · ~12 мин
               </Text>
