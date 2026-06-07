@@ -20,6 +20,7 @@ import { getUnlockedLevels, getNextLockedLevel } from '@/src/services/level-unlo
 import { LEVELS_BY_GAME } from '@/src/constants/level-progression';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#667eea', '#764ba2'];
 
@@ -49,7 +50,9 @@ export default function SchulteGame() {
   const isThemed = profile.group === 'themed';
 
   // Game configuration
-  const [gridSize, setGridSize] = useState(5);
+  const { isPreset, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const [gridSize, setGridSize] = useState(() => num('size', 5));
   const [colorMode, setColorMode] = useState(false);
   const [contentMode, setContentMode] = useState<ContentMode>('numbers');
   const [direction, setDirection] = useState<Direction>('forward');

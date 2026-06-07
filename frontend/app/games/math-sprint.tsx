@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#fc4a1a', '#f7b733'];
 const MATH_BENEFITS = [
@@ -56,9 +57,11 @@ export default function MathSprintGame() {
   const router = useRouter();
   const gate = useLevelGate('math_sprint');
 
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
-  const [duration, setDuration] = useState(60);
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'easy') as Difficulty));
+  const [duration, setDuration] = useState(() => num('duration', 60));
   const [timeLeft, setTimeLeft] = useState(60);
   const [problem, setProblem] = useState<Problem | null>(null);
   const [userAnswer, setUserAnswer] = useState('');

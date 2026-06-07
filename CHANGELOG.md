@@ -14,6 +14,17 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.24.0] — 2026-06-07
+
+### Added — F2 «Комплексы»: масштаб на все профили + все игры
+- **Все 29 игр комплексов** разведены под пресет-авто-старт (F1 было 7, F2 +22): запускаются из зарядки/комплекса сразу с нужными настройками, без экрана конфига. Список: picture_pairs, sudoku, hanoi, memory_matrix, digit_span, corsi, find_differences, number_bonds, pattern, set_game, tower_london, switching_task, flanker, visual_search, choice_rt, math_sprint, go_no_go, trail_making, proofreading, targets, schulte, mental_rotation.
+- **Комплексы утро+вечер у 11 профилей**: polyglot, chess, vasilyeva, seniors, execs, students, drivers, women + odv999/nzt48 (только вечер) + kids (только утро). free — без зарядки. kids-вечер выкл по умолчанию (экран ребёнку перед сном).
+- **Fix:** превью карточки ЗАРЯДКА берёт `morning_playlist` профиля (был рассинхрон — показывал дефолтный weekday вместо реального набора).
+- Статический аудит: все ключи `settings` плейлистов сверены с `num/str` в играх — пресеты применяются, не теряются.
+- F3 (тёмная вечерняя тема, time-aware главная, стрики по slot) — следующая фаза.
+
+---
+
 ## [1.23.0] — 2026-06-07
 
 ### Added — F1 «Комплексы» (пайплайн пресетов + полиглот end-to-end)

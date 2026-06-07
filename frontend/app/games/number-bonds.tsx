@@ -12,6 +12,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#36d1dc', '#5b86e5'];
 const NB_BENEFITS = [
@@ -62,9 +63,11 @@ export default function NumberBondsGame() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [trials, setTrials] = useState(8);
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
+  const [trials, setTrials] = useState(() => num('trials', 8));
 
   const [round, setRound] = useState(0);
   const [puzzle, setPuzzle] = useState<Puzzle>({ target: 0, chips: [] });

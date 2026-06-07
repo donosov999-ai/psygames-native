@@ -12,6 +12,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#fdc830', '#f37335'];
 const CHOICE_BENEFITS = [
@@ -34,9 +35,11 @@ export default function ChoiceRtGame() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [mode, setMode] = useState<Mode>('4dir');
-  const [trials, setTrials] = useState(20);
+  const [mode, setMode] = useState<Mode>(() => (str('mode', '4dir') as Mode));
+  const [trials, setTrials] = useState(() => num('trials', 20));
 
   const [round, setRound] = useState(0);
   const [stim, setStim] = useState<Direction>('left');

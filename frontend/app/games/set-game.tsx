@@ -9,6 +9,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#43cea2', '#185a9d'];
 const SET_BENEFITS = [
@@ -95,8 +96,10 @@ export default function SetGame() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const { isPreset, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [trials, setTrials] = useState(6);
+  const [trials, setTrials] = useState(() => num('trials', 6));
   const [round, setRound] = useState(0);
   const [board, setBoard] = useState<Card[]>([]);
   const [picked, setPicked] = useState<number[]>([]);

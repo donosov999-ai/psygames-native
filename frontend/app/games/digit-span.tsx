@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#11998e', '#38ef7d'];
 const DIGIT_BENEFITS = [
@@ -30,9 +31,11 @@ export default function DigitSpanGame() {
   const router = useRouter();
 
   const gate = useLevelGate('digit_span');
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [direction, setDirection] = useState<Direction>('forward');
-  const [seqLen, setSeqLen] = useState(4);
+  const [direction, setDirection] = useState<Direction>(() => (str('mode', 'forward') as Direction));
+  const [seqLen, setSeqLen] = useState(() => num('startLen', 4));
   const [sequence, setSequence] = useState<number[]>([]);
   const [showIdx, setShowIdx] = useState(-1);
   const [userInput, setUserInput] = useState('');

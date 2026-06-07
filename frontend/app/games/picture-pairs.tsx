@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#f857a6', '#ff5858'];
 const PAIRS_BENEFITS = [
@@ -46,11 +47,13 @@ export default function PicturePairsGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
+  const { isPreset, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const gate = useLevelGate('picture_pairs');
-  const [pairsCount, setPairsCount] = useState(6);
+  const [pairsCount, setPairsCount] = useState(() => num('pairsCount', 6));
   const [photoMemoryMode, setPhotoMemoryMode] = useState(true);   // ON by default — фото-память тренинг
-  const [previewMs, setPreviewMs] = useState<500 | 1500 | 3000>(500);
+  const [previewMs, setPreviewMs] = useState<500 | 1500 | 3000>(() => (num('previewMs', 500) as 500 | 1500 | 3000));
   const [previewActive, setPreviewActive] = useState(false);       // true while showing all cards face-up
   const [cards, setCards] = useState<Card[]>([]);
   const [openIdx, setOpenIdx] = useState<number[]>([]);

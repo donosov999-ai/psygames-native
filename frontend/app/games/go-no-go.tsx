@@ -12,6 +12,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#11998e', '#38ef7d'];
 const GO_BENEFITS = [
@@ -27,8 +28,10 @@ export default function GoNoGoGame() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const { isPreset, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [trials, setTrials] = useState(30);
+  const [trials, setTrials] = useState(() => num('trials', 30));
   const [round, setRound] = useState(0);
   const [stimulus, setStimulus] = useState<'go' | 'nogo' | null>(null);
   const [stimulusTime, setStimulusTime] = useState(0);

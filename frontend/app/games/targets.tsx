@@ -16,6 +16,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#ff0844', '#ffb199'];
 
@@ -39,9 +40,11 @@ export default function TargetsGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [mode, setMode] = useState<GameMode>('field');
-  const [level, setLevel] = useState(1);
+  const [mode, setMode] = useState<GameMode>(() => (str('mode', 'field') as GameMode));
+  const [level, setLevel] = useState(() => num('level', 1));
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [round, setRound] = useState(0);

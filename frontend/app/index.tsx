@@ -20,7 +20,7 @@ import GameCard from '@/src/components/GameCard';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import {
-  buildMorningWarmupPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
+  buildMorningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
   getFinancialCooldown, FINANCIAL_COOLDOWN_DAYS,
 } from '@/src/services/warmup';
 import { getAssessmentStatus } from '@/src/services/assessment';
@@ -108,8 +108,12 @@ export default function HomeScreen() {
 
   // Preview the playlist for current weekday
   const todayPreview = useMemo(() => {
-    return buildMorningWarmupPlaylist({ duration, weekday: getCurrentWeekday() });
-  }, [duration]);
+    // Фиксированный утренний набор профиля (полиглот и др.) — иначе превью врёт (показывает дефолтный weekday).
+    if (profile.morning_playlist && profile.morning_playlist.length > 0) {
+      return buildFixedPlaylist(profile.morning_playlist, 'morning', getCurrentWeekday());
+    }
+    return buildMorningWarmupPlaylist({ duration, weekday: getCurrentWeekday(), profilePlaylists: profile.custom_playlists });
+  }, [duration, profile]);
 
   const lastScore = history.length > 0 ? history[history.length - 1].total_score : 0;
   const bestScore = history.length > 0 ? Math.max(...history.map((h) => h.total_score)) : 0;

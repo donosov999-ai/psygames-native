@@ -12,6 +12,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#a8c0ff', '#3f2b96'];
 const HANOI_BENEFITS = [
@@ -28,8 +29,10 @@ export default function HanoiGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
+  const { isPreset, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [discs, setDiscs] = useState(4);
+  const [discs, setDiscs] = useState(() => num('discs', 4));
   const [pegs, setPegs] = useState<number[][]>([[], [], []]);
   const [selected, setSelected] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);

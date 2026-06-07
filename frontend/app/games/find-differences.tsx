@@ -13,6 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#34e89e', '#0f3443'];
 const FIND_BENEFITS = [
@@ -126,8 +127,10 @@ export default function FindDifferencesGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
+  const { isPreset, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [diffCount, setDiffCount] = useState(3);
+  const [diffCount, setDiffCount] = useState(() => num('diffCount', 3));
   const [trials] = useState(8);
   const [round, setRound] = useState(0);
   const [scene, setScene] = useState<Shape[]>([]);

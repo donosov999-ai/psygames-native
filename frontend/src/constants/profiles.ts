@@ -91,6 +91,13 @@ const ODV999: ProfileDef = {
   tier: 'owner',
   group: 'themed',
   allowed_games: 'all',
+  // custom_playlists undefined → утро = дефолтный weekday-плейлист (Денис-era). v1.23 — добавлен вечер.
+  evening_playlist: [
+    { game_id: 'mnemonics',     game_route: '/games/mnemonics',     difficulty: 'easy',   mode: 'words', settings: { itemCount: 10 }, est_duration_sec: 90 },
+    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy',   settings: { pairsCount: 8 }, est_duration_sec: 120 },
+    { game_id: 'sudoku',        game_route: '/games/sudoku',        difficulty: 'easy',   est_duration_sec: 120 },
+    { game_id: 'hanoi',         game_route: '/games/hanoi',         difficulty: 'medium', settings: { discs: 4 }, est_duration_sec: 120 },
+  ],
   warmup_enabled: true,
   financial_brain_day_enabled: true,
   assessment_enabled: true,
@@ -132,6 +139,17 @@ const CHESS: ProfileDef = {
     'sudoku',            // логическая дедукция
     'schulte_table',     // сканирование доски
   ],
+  morning_playlist: [
+    { game_id: 'mental_rotation', game_route: '/games/mental-rotation', difficulty: 'medium', settings: { trials: 10 }, est_duration_sec: 120 },
+    { game_id: 'pattern',         game_route: '/games/pattern',         difficulty: 'medium', settings: { trials: 10 }, est_duration_sec: 120 },
+    { game_id: 'tower_london',    game_route: '/games/tower-london',    difficulty: 'medium', settings: { trials: 5 },  est_duration_sec: 150 },
+    { game_id: 'set_game',        game_route: '/games/set-game',        difficulty: 'medium', settings: { trials: 6 },  est_duration_sec: 120 },
+  ],
+  evening_playlist: [
+    { game_id: 'sudoku',        game_route: '/games/sudoku',        difficulty: 'easy',   est_duration_sec: 120 },
+    { game_id: 'hanoi',         game_route: '/games/hanoi',         difficulty: 'medium', settings: { discs: 5 }, est_duration_sec: 150 },
+    { game_id: 'memory_matrix', game_route: '/games/memory-matrix', difficulty: 'medium', mode: 'static', settings: { size: 4 }, est_duration_sec: 120 },
+  ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: true,
@@ -165,6 +183,13 @@ const KIDS: ProfileDef = {
     'anagrams',          // ещё логика (буквенные пазлы)
     'math_sprint',       // ещё action — счёт-гонка
     'counter',           // ещё action — устный счёт
+  ],
+  // kids: только утро. Вечер (экран перед сном ребёнку) намеренно ВЫКЛ — добавить по решению Дениса.
+  morning_playlist: [
+    { game_id: 'schulte_table',    game_route: '/games/schulte',          difficulty: 'easy', settings: { size: 5 }, est_duration_sec: 60 },
+    { game_id: 'find_differences', game_route: '/games/find-differences', difficulty: 'easy', settings: { diffCount: 3 }, est_duration_sec: 100 },
+    { game_id: 'number_bonds',     game_route: '/games/number-bonds',     difficulty: 'easy', settings: { trials: 8 }, est_duration_sec: 80 },
+    { game_id: 'pattern',          game_route: '/games/pattern',          difficulty: 'easy', settings: { trials: 5 }, est_duration_sec: 90 },
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
@@ -205,6 +230,17 @@ const VASILYEVA: ProfileDef = {
     'story_recall',      // ещё память — понимание текста
     'phonemic_fluency',  // ещё логика — беглость речи
   ],
+  morning_playlist: [
+    { game_id: 'schulte_table', game_route: '/games/schulte',       difficulty: 'medium', settings: { size: 6 }, est_duration_sec: 90 },
+    { game_id: 'visual_search', game_route: '/games/visual-search', difficulty: 'medium', settings: { trials: 8 }, est_duration_sec: 90 },
+    { game_id: 'sdmt',          game_route: '/games/sdmt',          difficulty: 'medium', settings: { duration: 60 }, est_duration_sec: 65 },
+    { game_id: 'proofreading',  game_route: '/games/proofreading',  difficulty: 'medium', mode: 'cyrillic', settings: { rows: 12, cols: 10 }, est_duration_sec: 120 },
+  ],
+  evening_playlist: [
+    { game_id: 'reading_span',  game_route: '/games/reading-span',  difficulty: 'medium', settings: { setSize: 4 }, est_duration_sec: 100 },
+    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy',   settings: { pairsCount: 8 }, est_duration_sec: 120 },
+    { game_id: 'anagrams',      game_route: '/games/anagrams',      difficulty: 'medium', settings: { length: 6 }, est_duration_sec: 110 },
+  ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: true,
@@ -239,6 +275,13 @@ const NZT48: ProfileDef = {
     'bart',                  // ещё logic — risk/decision
     'sdmt',                  // ещё action — processing speed
     'phonemic_fluency',      // ещё logic — verbal fluency
+  ],
+  // nzt48: утро = дефолтный weekday-плейлист (полная батарея). v1.23 — добавлен вечер.
+  evening_playlist: [
+    { game_id: 'mnemonics',     game_route: '/games/mnemonics',     difficulty: 'easy',   mode: 'words', settings: { itemCount: 20 }, est_duration_sec: 120 },
+    { game_id: 'sudoku',        game_route: '/games/sudoku',        difficulty: 'medium', est_duration_sec: 150 },
+    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy',   settings: { pairsCount: 10 }, est_duration_sec: 140 },
+    { game_id: 'reading_span',  game_route: '/games/reading-span',  difficulty: 'medium', settings: { setSize: 4 }, est_duration_sec: 100 },
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: true,
@@ -319,6 +362,17 @@ const DRIVERS: ProfileDef = {
     'targets',            // ещё action — реакция на объекты
     'attention_conflict', // ещё action — тормозим импульс (опасность)
   ],
+  morning_playlist: [
+    { game_id: 'choice_rt', game_route: '/games/choice-rt', difficulty: 'medium', mode: '4dir', settings: { trials: 20 }, est_duration_sec: 70 },
+    { game_id: 'go_no_go',  game_route: '/games/go-no-go',  difficulty: 'medium', settings: { trials: 30 }, est_duration_sec: 80 },
+    { game_id: 'flanker',   game_route: '/games/flanker',   difficulty: 'medium', settings: { trials: 20 }, est_duration_sec: 90 },
+    { game_id: 'targets',   game_route: '/games/targets',   difficulty: 'medium', settings: { level: 3 }, est_duration_sec: 90 },
+  ],
+  evening_playlist: [
+    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy', settings: { pairsCount: 8 }, est_duration_sec: 120 },
+    { game_id: 'sudoku',        game_route: '/games/sudoku',        difficulty: 'easy', est_duration_sec: 120 },
+    { game_id: 'corsi',         game_route: '/games/corsi',         difficulty: 'easy', mode: 'forward', settings: { startLen: 3 }, est_duration_sec: 90 },
+  ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: true,
@@ -354,6 +408,18 @@ const SENIORS: ProfileDef = {
     'counter',           // ещё action — устный счёт (бытовой)
     'anagrams',          // ещё logic — vocab (когда много читали)
   ],
+  morning_playlist: [
+    { game_id: 'schulte_table', game_route: '/games/schulte',       difficulty: 'medium', settings: { size: 5 }, est_duration_sec: 60 },
+    { game_id: 'digit_span',    game_route: '/games/digit-span',    difficulty: 'easy',   mode: 'forward', settings: { startLen: 4 }, est_duration_sec: 90 },
+    { game_id: 'trail_making',  game_route: '/games/trail-making',  difficulty: 'easy',   mode: 'A', settings: { count: 8 }, est_duration_sec: 80 },
+    { game_id: 'number_bonds',  game_route: '/games/number-bonds',  difficulty: 'easy',   settings: { trials: 8 }, est_duration_sec: 80 },
+  ],
+  evening_playlist: [
+    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy',   settings: { pairsCount: 8 }, est_duration_sec: 120 },
+    { game_id: 'mnemonics',     game_route: '/games/mnemonics',     difficulty: 'easy',   mode: 'words', settings: { itemCount: 10 }, est_duration_sec: 90 },
+    { game_id: 'memory_matrix', game_route: '/games/memory-matrix', difficulty: 'medium', mode: 'static', settings: { size: 4 }, est_duration_sec: 120 },
+    { game_id: 'digit_span',    game_route: '/games/digit-span',    difficulty: 'easy',   mode: 'forward', settings: { startLen: 4 }, est_duration_sec: 90 },
+  ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: true,
@@ -387,6 +453,17 @@ const EXECS: ProfileDef = {
     'prl',               // ещё logic — reversal learning (меняющиеся правила)
     'switching_task',    // ещё logic — multitasking
     'math_sprint',       // ещё action — быстро считать в уме
+  ],
+  morning_playlist: [
+    { game_id: 'switching_task', game_route: '/games/switching-task', difficulty: 'medium', settings: { trials: 20 }, est_duration_sec: 120 },
+    { game_id: 'flanker',        game_route: '/games/flanker',        difficulty: 'medium', settings: { trials: 20 }, est_duration_sec: 90 },
+    { game_id: 'n_back',         game_route: '/games/n-back',         difficulty: 'medium', settings: { nLevel: 2, modality: 'single', trials: 20 }, est_duration_sec: 90 },
+    { game_id: 'math_sprint',    game_route: '/games/math-sprint',    difficulty: 'medium', settings: { duration: 60 }, est_duration_sec: 65 },
+  ],
+  evening_playlist: [
+    { game_id: 'tower_london', game_route: '/games/tower-london', difficulty: 'medium', settings: { trials: 5 }, est_duration_sec: 150 },
+    { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
+    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy',   mode: 'words', settings: { itemCount: 10 }, est_duration_sec: 90 },
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: true,   // их домен
@@ -425,6 +502,18 @@ const STUDENTS: ProfileDef = {
     'memory_matrix',     // ещё memory — зрительная (карты, схемы)
     'anagrams',          // ещё logic — вербальная гибкость
     'counter',           // ещё action — устный счёт
+  ],
+  morning_playlist: [
+    { game_id: 'n_back',         game_route: '/games/n-back',         difficulty: 'medium', settings: { nLevel: 2, modality: 'single', trials: 20 }, est_duration_sec: 90 },
+    { game_id: 'reading_span',   game_route: '/games/reading-span',   difficulty: 'medium', settings: { setSize: 4 }, est_duration_sec: 100 },
+    { game_id: 'sdmt',           game_route: '/games/sdmt',           difficulty: 'medium', settings: { duration: 60 }, est_duration_sec: 65 },
+    { game_id: 'switching_task', game_route: '/games/switching-task', difficulty: 'medium', settings: { trials: 20 }, est_duration_sec: 120 },
+  ],
+  evening_playlist: [
+    { game_id: 'reading_span', game_route: '/games/reading-span', difficulty: 'medium', settings: { setSize: 4 }, est_duration_sec: 100 },
+    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy',   mode: 'words', settings: { itemCount: 20 }, est_duration_sec: 120 },
+    { game_id: 'anagrams',     game_route: '/games/anagrams',     difficulty: 'medium', settings: { length: 5 }, est_duration_sec: 100 },
+    { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
@@ -475,6 +564,16 @@ const WOMEN: ProfileDef = {
     'sudoku',            // массовая классика, печаталась в журналах
     // ⚡ Скорость (1) — лёгкая аркада для dopamine
     'targets',           // быстрые мишени, fast wins
+  ],
+  morning_playlist: [
+    { game_id: 'find_differences', game_route: '/games/find-differences', difficulty: 'easy', settings: { diffCount: 3 }, est_duration_sec: 100 },
+    { game_id: 'picture_pairs',    game_route: '/games/picture-pairs',    difficulty: 'easy', settings: { pairsCount: 6 }, est_duration_sec: 100 },
+    { game_id: 'pattern',          game_route: '/games/pattern',          difficulty: 'easy', settings: { trials: 5 }, est_duration_sec: 90 },
+  ],
+  evening_playlist: [
+    { game_id: 'find_differences', game_route: '/games/find-differences', difficulty: 'easy',   settings: { diffCount: 2 }, est_duration_sec: 90 },
+    { game_id: 'memory_matrix',    game_route: '/games/memory-matrix',    difficulty: 'medium', mode: 'static', settings: { size: 3 }, est_duration_sec: 100 },
+    { game_id: 'picture_pairs',    game_route: '/games/picture-pairs',    difficulty: 'easy',   settings: { pairsCount: 6 }, est_duration_sec: 100 },
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,

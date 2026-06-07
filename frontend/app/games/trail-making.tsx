@@ -10,6 +10,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#fc6076', '#ff9a44'];
 const TRAIL_BENEFITS = [
@@ -69,9 +70,11 @@ export default function TrailMakingGame() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [mode, setMode] = useState<Mode>('B');
-  const [count, setCount] = useState(8);
+  const [mode, setMode] = useState<Mode>(() => (str('mode', 'B') as Mode));
+  const [count, setCount] = useState(() => num('count', 8));
   const [nodes, setNodes] = useState<Node[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [errors, setErrors] = useState(0);

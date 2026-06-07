@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#7028e4', '#e5b2ca'];
 const PATTERN_BENEFITS = [
@@ -106,9 +107,11 @@ export default function PatternGame() {
   const router = useRouter();
 
   const gate = useLevelGate('pattern');
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
-  const [trials, setTrials] = useState(10);
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'easy') as Difficulty));
+  const [trials, setTrials] = useState(() => num('trials', 10));
   const [round, setRound] = useState(0);
   const [seq, setSeq] = useState<Sequence>({ items: [], answer: 0, rule: '' });
   const [options, setOptions] = useState<number[]>([]);

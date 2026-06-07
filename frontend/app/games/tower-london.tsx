@@ -9,6 +9,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#3a1c71', '#d76d77'];
 const TOL_BENEFITS = [
@@ -98,9 +99,11 @@ export default function TowerLondonGame() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [trials, setTrials] = useState(5);
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
+  const [trials, setTrials] = useState(() => num('trials', 5));
 
   const [round, setRound] = useState(0);
   const [puzzle, setPuzzle] = useState(() => makePuzzle('medium'));

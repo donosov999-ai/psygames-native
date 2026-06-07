@@ -16,6 +16,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { RUSSIAN_ALPHABET, ENGLISH_ALPHABET } from '@/src/constants/games';
 
 const GRADIENT = ['#a8edea', '#fed6e3'];
@@ -34,10 +35,12 @@ export default function ProofreadingGame() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [rows, setRows] = useState(14);
-  const [cols, setCols] = useState(12);
-  const [mode, setMode] = useState<'latin' | 'cyrillic' | 'digits'>(language === 'ru' ? 'cyrillic' : 'latin');
+  const [rows, setRows] = useState(() => num('rows', 14));
+  const [cols, setCols] = useState(() => num('cols', 12));
+  const [mode, setMode] = useState<'latin' | 'cyrillic' | 'digits'>(() => (str('mode', language === 'ru' ? 'cyrillic' : 'latin') as 'latin' | 'cyrillic' | 'digits'));
   const [wrongFlash, setWrongFlash] = useState<number | null>(null);
   const [grid, setGrid] = useState<string[]>([]);
   const [targetLetters, setTargetLetters] = useState<string[]>([]);

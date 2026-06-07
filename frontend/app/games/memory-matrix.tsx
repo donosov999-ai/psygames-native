@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#8e2de2', '#4a00e0'];
 const MATRIX_BENEFITS = [
@@ -31,9 +32,11 @@ export default function MemoryMatrixGame() {
   const { width } = useWindowDimensions();
 
   const gate = useLevelGate('memory_matrix');
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [gridSize, setGridSize] = useState(3);
-  const [matrixMode, setMatrixMode] = useState<MatrixMode>('static');
+  const [gridSize, setGridSize] = useState(() => num('size', 3));
+  const [matrixMode, setMatrixMode] = useState<MatrixMode>(() => (str('mode', 'static') as MatrixMode));
   const [litCells, setLitCells] = useState<Set<number>>(new Set());
   const [litSequence, setLitSequence] = useState<number[]>([]);     // order for sequential mode
   const [activeIdx, setActiveIdx] = useState<number>(-1);            // current flashing cell in sequential

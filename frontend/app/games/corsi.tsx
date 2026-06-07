@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#0083B0', '#00B4DB'];
 const CORSI_BENEFITS = [
@@ -43,9 +44,11 @@ export default function CorsiGame() {
   const router = useRouter();
 
   const gate = useLevelGate('corsi');
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [mode, setMode] = useState<Mode>('forward');
-  const [startLen, setStartLen] = useState(3);
+  const [mode, setMode] = useState<Mode>(() => (str('mode', 'forward') as Mode));
+  const [startLen, setStartLen] = useState(() => num('startLen', 3));
 
   const [seq, setSeq] = useState<number[]>([]);
   const [showIdx, setShowIdx] = useState(-1);     // currently lit during show phase

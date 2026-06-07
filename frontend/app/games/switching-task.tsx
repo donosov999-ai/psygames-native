@@ -9,6 +9,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#7873f5', '#ff6ec4'];
 const SW_BENEFITS = [
@@ -40,9 +41,11 @@ export default function SwitchingTaskGame() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const { isPreset, str, num } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [trials, setTrials] = useState(20);
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
+  const [trials, setTrials] = useState(() => num('trials', 20));
 
   const [round, setRound] = useState(0);
   const [trial, setTrial] = useState<Trial>({ stim: '', task: 'NUMBER', correctLeft: true });
