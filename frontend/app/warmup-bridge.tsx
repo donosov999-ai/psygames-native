@@ -18,7 +18,7 @@ export default function WarmupBridge() {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const warmup = useWarmup();
-  const [countdown, setCountdown] = useState(AUTOSTART_SEC);
+  const [countdown, setCountdown] = useState(() => (warmup.meta?.slot === 'evening' ? 8 : 5));
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // The just-completed step is the previous one; current step is the next one.

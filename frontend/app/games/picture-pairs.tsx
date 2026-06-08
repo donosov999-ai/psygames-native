@@ -53,7 +53,7 @@ export default function PicturePairsGame() {
   const gate = useLevelGate('picture_pairs');
   const [pairsCount, setPairsCount] = useState(() => num('pairsCount', 6));
   const [photoMemoryMode, setPhotoMemoryMode] = useState(true);   // ON by default — фото-память тренинг
-  const [previewMs, setPreviewMs] = useState<500 | 1500 | 3000>(() => (num('previewMs', 500) as 500 | 1500 | 3000));
+  const [previewMs, setPreviewMs] = useState<500 | 1500 | 3000>(() => (num('previewMs', isPreset ? 3000 : 500) as 500 | 1500 | 3000));
   const [previewActive, setPreviewActive] = useState(false);       // true while showing all cards face-up
   const [cards, setCards] = useState<Card[]>([]);
   const [openIdx, setOpenIdx] = useState<number[]>([]);

@@ -138,7 +138,7 @@ const t: Record<string, string> = {
   "findDiffDesc": "找出两个场景之间的差异",
   "findDiffIntroDesc": "找出两个场景之间的每一处差异。训练细节注意力和视觉比较。",
   "diffsCount": "每回合差异数",
-  "findHint": "在右侧场景中点击差异处",
+  "findHint": "在下方场景中点击差异处",
   "benefitFind1": "留意重要细节",
   "benefitFind2": "更擅长校对",
   "benefitFind3": "提升观察能力",

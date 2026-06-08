@@ -256,7 +256,7 @@ const translations: Translations = {
     en: 'Find every difference between the two scenes. Trains detail attention and visual comparison.',
   },
   diffsCount: { ru: 'Отличий за раунд', en: 'Differences per round' },
-  findHint: { ru: 'Нажимайте на отличия в правой картинке', en: 'Tap the differences on the right scene' },
+  findHint: { ru: 'Нажимайте на отличия на нижней картинке', en: 'Tap the differences on the lower scene' },
   benefitFind1: { ru: 'Замечать важные детали', en: 'Notice important details' },
   benefitFind2: { ru: 'Лучше вычитывать тексты', en: 'Better at proofreading' },
   benefitFind3: { ru: 'Тренировать наблюдательность', en: 'Sharpen observation skills' },

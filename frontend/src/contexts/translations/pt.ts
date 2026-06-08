@@ -138,7 +138,7 @@ const t: Record<string, string> = {
   "findDiffDesc": "Descubra o que difere entre duas cenas",
   "findDiffIntroDesc": "Encontre todas as diferenças entre as duas cenas. Treina a atenção aos detalhes e a comparação visual.",
   "diffsCount": "Diferenças por rodada",
-  "findHint": "Toque nas diferenças da cena à direita",
+  "findHint": "Toque nas diferenças da cena de baixo",
   "benefitFind1": "Perceba detalhes importantes",
   "benefitFind2": "Melhor na revisão de textos",
   "benefitFind3": "Aguce a capacidade de observação",

@@ -246,7 +246,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       } catch {}
       // small delay so the game's own result UI can render briefly,
       // then auto-navigate to bridge / complete
-      setTimeout(() => advanceToNext(), 1200);
+      setTimeout(() => advanceToNext(), cur.meta.slot === 'evening' ? 3500 : 2000);
     };
     setSessionListener(listener);
     return () => setSessionListener(null);
