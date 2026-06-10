@@ -14,6 +14,22 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.24.3] — 2026-06-10
+
+### Fixed (нативный iOS — prep)
+- **Event-bus → RN `DeviceEventEmitter`** вместо `window.addEventListener`/`dispatchEvent`/`CustomEvent` (тосты разблокировки уровней + ачивки комплексов). Web-событийный API крашил нативный iOS/Android — теперь кросс-платформенно (натив + web/Tauri).
+- **Unlock-коды (`crypto.subtle`)** — гард в `tryUnlock`: на нативе (нет Web Crypto) graceful `null` вместо краша. Коды сейчас выключены, инфраструктура хешей/HMAC цела.
+- **Настройки → бэкап** — `downloadBackup`/`buildBackupJSON`/`pickAndRestoreBackup` использовались без импорта → ReferenceError при тапе «Экспорт/Импорт бэкапа». Добавлен импорт (баг тянулся с v1.22.x).
+
+### Changed
+- **Free-этап: открыты все профили** (`requiresUnlock` → false). Возврат монетизации включит гейтинг обратно.
+- **Профиль владельца `odv999` скрыт** из публичного переключателя профилей (фильтр `tier !== 'owner'`).
+
+### Added
+- `APPSTORE_LISTING.md` — комплект для App Store Connect (Сергею): описания EN/RU, ключевики, privacy-ответы, спека скринов, review notes.
+
+---
+
 ## [1.24.2] — 2026-06-07
 
 ### Changed / Fixed

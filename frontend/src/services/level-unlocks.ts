@@ -14,6 +14,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DeviceEventEmitter } from 'react-native';
 import {
   LEVELS_BY_GAME, LevelDef, UnlockCondition, hasLevelProgression,
 } from '@/src/constants/level-progression';
@@ -237,12 +238,11 @@ export async function checkAndMaybeUnlock(
   set.add(entryKey(played.gameId, nextLvl.key));
   await saveUnlockSet(person, set);
 
-  // Emit global event for UI toast
+  // Emit global event for UI toast (cross-platform: RN DeviceEventEmitter — native + web/Tauri)
   try {
-    const event = new CustomEvent('psygames:level-unlocked', {
-      detail: { gameId: played.gameId, levelKey: nextLvl.key, label: nextLvl.label },
+    DeviceEventEmitter.emit('psygames:level-unlocked', {
+      gameId: played.gameId, levelKey: nextLvl.key, label: nextLvl.label,
     });
-    if (typeof window !== 'undefined') window.dispatchEvent(event);
   } catch {}
 
   return { unlocked: nextLvl };

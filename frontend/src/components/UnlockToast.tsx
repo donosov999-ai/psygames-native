@@ -10,7 +10,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, Animated, StyleSheet } from 'react-native';
+import { View, Text, Animated, StyleSheet, DeviceEventEmitter } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface UnlockEventDetail {
@@ -26,12 +26,9 @@ export default function UnlockToast() {
   const translateY = React.useRef(new Animated.Value(-50)).current;
 
   useEffect(() => {
-    // Only on web/Tauri (window-based CustomEvent). Native RN would need a different bus.
-    if (typeof window === 'undefined') return;
-
-    const handler = (e: Event) => {
-      const ce = e as CustomEvent<UnlockEventDetail>;
-      setDetail(ce.detail);
+    // Cross-platform event bus (RN DeviceEventEmitter — native iOS/Android + web/Tauri).
+    const handler = (d: UnlockEventDetail) => {
+      setDetail(d);
       setVisible(true);
       Animated.parallel([
         Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
@@ -49,8 +46,8 @@ export default function UnlockToast() {
       }, 4500);
     };
 
-    window.addEventListener('psygames:level-unlocked', handler);
-    return () => window.removeEventListener('psygames:level-unlocked', handler);
+    const sub = DeviceEventEmitter.addListener('psygames:level-unlocked', handler);
+    return () => sub.remove();
   }, [opacity, translateY]);
 
   if (!visible || !detail) return null;

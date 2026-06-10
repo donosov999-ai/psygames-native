@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { DeviceEventEmitter } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   PlaylistMeta, PlaylistStep,
@@ -241,7 +242,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
           fbAchievement();
           // Toast via global event — main screen can subscribe
           (globalThis as any).__psygames_new_achievement = newly[0];
-          window.dispatchEvent?.(new CustomEvent('psygames:achievement', { detail: newly[0] }));
+          DeviceEventEmitter.emit('psygames:achievement', newly[0]);
         }
       } catch {}
       // small delay so the game's own result UI can render briefly,

@@ -143,7 +143,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
 
               {/* Grid */}
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' }}>
-                {allProfiles.map((p) => {
+                {allProfiles.filter((p) => p.tier !== 'owner').map((p) => {
                   const active = p.id === profile.id;
                   const accessible = isAccessible(p.id);
                   const locked = !accessible;

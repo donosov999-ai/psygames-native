@@ -188,6 +188,10 @@ async function verifyDynamicCode(raw: string): Promise<ProfileId | null> {
 export async function tryUnlock(rawCode: string): Promise<ProfileId | null> {
   const trimmed = rawCode.trim();
   if (trimmed.length < 4) return null;
+  // Native-safe: Web Crypto (crypto.subtle) отсутствует на нативном RN (iOS/Android).
+  // Коды сейчас выключены (UNLOCK_CODES_ENABLED=false); при возврате монетизации
+  // на нативе понадобится expo-crypto. Пока — graceful null вместо краша.
+  if (typeof crypto === 'undefined' || !crypto.subtle) return null;
   const upper = trimmed.toUpperCase();
 
   // 1️⃣ Статический master-код — UPPERCASE-хеш (legacy: CHESS-NZT-2026 формат
@@ -261,7 +265,10 @@ export const TRIAL_OPEN_PROFILES: ProfileId[] = [
 export function requiresUnlock(profileId: ProfileId): boolean {
   if (profileId === 'free') return false;
   if (!UNLOCK_CODES_ENABLED) {
-    return !TRIAL_OPEN_PROFILES.includes(profileId);
+    // Free-фаза (v1, путь A): открыты ВСЕ профили, замков нет (Apple 2.1 — без «скоро»-тупиков).
+    // Монетизация позже через Apple IAP → вернуть гейтинг:
+    //   return !TRIAL_OPEN_PROFILES.includes(profileId);  // или THEMED_PROFILES_LOCKED
+    return false;
   }
   return THEMED_PROFILES_LOCKED.includes(profileId);
 }

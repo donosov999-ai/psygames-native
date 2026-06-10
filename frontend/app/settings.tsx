@@ -26,6 +26,9 @@ import { GAMES } from '@/src/constants/games';
 // v1.16.0: флаг монетизации + helper «скоро» (раньше UNLOCK_CODES_ENABLED
 // использовался без импорта → был undefined → вёл себя как false случайно).
 import { UNLOCK_CODES_ENABLED, isComingSoon } from '@/src/services/unlock';
+// v1.24.3 fix: функции бэкапа использовались без импорта → ReferenceError при тапе
+// на «Экспорт/Импорт бэкапа» (тот же класс бага, что был с UNLOCK_CODES_ENABLED выше).
+import { buildBackupJSON, downloadBackup, pickAndRestoreBackup } from '@/src/services/backup';
 
 // Telegram-аккаунт владельца для запроса кодов разблокировки.
 const OWNER_TG = 'Denis_On999';
