@@ -103,6 +103,12 @@ const EN_WORDS_4: WordEntry[] = [
   { w: 'moon', h: 'circles the Earth' },
   { w: 'fish', h: 'lives in water' },
   { w: 'lion', h: 'king of jungle' },
+  { w: 'cake', h: 'for a birthday' },
+  { w: 'lamp', h: 'gives light' },
+  { w: 'bird', h: 'flies and sings' },
+  { w: 'leaf', h: 'grows on a tree' },
+  { w: 'salt', h: 'white, on the table' },
+  { w: 'gold', h: 'precious metal' },
 ];
 
 const EN_WORDS_5: WordEntry[] = [
@@ -118,6 +124,11 @@ const EN_WORDS_5: WordEntry[] = [
   { w: 'cloud', h: 'in the sky' },
   { w: 'horse', h: 'animal you ride' },
   { w: 'pizza', h: 'Italian dish' },
+  { w: 'lemon', h: 'yellow and sour' },
+  { w: 'house', h: 'people live in it' },
+  { w: 'table', h: 'you eat at it' },
+  { w: 'light', h: 'opposite of dark' },
+  { w: 'water', h: 'you drink it' },
 ];
 
 const EN_WORDS_6: WordEntry[] = [
@@ -131,6 +142,8 @@ const EN_WORDS_6: WordEntry[] = [
   { w: 'guitar', h: 'string instrument' },
   { w: 'monkey', h: 'climbs trees' },
   { w: 'orange', h: 'fruit and color' },
+  { w: 'flower', h: 'grows in a garden' },
+  { w: 'bridge', h: 'crosses a river' },
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';

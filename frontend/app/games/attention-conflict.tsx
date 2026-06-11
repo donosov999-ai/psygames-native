@@ -32,21 +32,24 @@ const SUB_GAMES = [
     icon: 'color-palette' as const,
     nameKey: 'stroop' as const,
     descKey: 'stroopDesc' as const,
-    typeLabel: 'Цвет vs Слово',
+    typeLabelRu: 'Цвет vs Слово',
+    typeLabelEn: 'Color vs Word',
   },
   {
     route: '/games/stroop-emotional',
     icon: 'heart' as const,
     nameKey: 'stroopEmotional' as const,
     descKey: 'stroopEmotionalDesc' as const,
-    typeLabel: 'Цвет vs Эмоция',
+    typeLabelRu: 'Цвет vs Эмоция',
+    typeLabelEn: 'Color vs Emotion',
   },
   {
     route: '/games/flanker',
     icon: 'arrow-forward' as const,
     nameKey: 'flanker' as const,
     descKey: 'flankerDesc' as const,
-    typeLabel: 'Центр vs Бока',
+    typeLabelRu: 'Центр vs Бока',
+    typeLabelEn: 'Center vs Flankers',
   },
   // v1.9.1 — Simon Task: 4-я парадигма interference resolution
   {
@@ -54,13 +57,14 @@ const SUB_GAMES = [
     icon: 'flash' as const,
     nameKey: 'simon' as const,
     descKey: 'simonDesc' as const,
-    typeLabel: 'Цвет vs Позиция',
+    typeLabelRu: 'Цвет vs Позиция',
+    typeLabelEn: 'Color vs Position',
   },
 ];
 
 export default function AttentionConflictGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   return (
@@ -94,7 +98,7 @@ export default function AttentionConflictGame() {
             <View style={styles.cardBody}>
               <Text style={[styles.cardName, { color: colors.text }]}>{t(g.nameKey)}</Text>
               <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{t(g.descKey)}</Text>
-              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{g.typeLabel}</Text>
+              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{language === 'ru' ? g.typeLabelRu : g.typeLabelEn}</Text>
             </View>
             <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
           </TouchableOpacity>

@@ -66,7 +66,7 @@ function generatePuzzle(blanks: number, N: number, BR: number, BC: number): { pu
 
 export default function SudokuGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
 
@@ -207,7 +207,7 @@ export default function SudokuGame() {
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
       </View>
       <View style={[styles.gridArea, { width: cellSize * N + 4, backgroundColor: colors.text }]}>
         {grid.map((row, r) => row.map((v, c) => {
@@ -272,7 +272,7 @@ export default function SudokuGame() {
           style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: selected ? 1 : 0.4 }]}
         >
           <Ionicons name="bulb" size={16} color="#000" />
-          <Text style={styles.hintBtnText}>Подсказка ({hintUses})</Text>
+          <Text style={styles.hintBtnText}>{language === 'ru' ? 'Подсказка' : 'Hint'} ({hintUses})</Text>
         </TouchableOpacity>
         <Text style={[styles.metaText, { color: colors.textSecondary }]}>
           ↻ {backtrackCount}

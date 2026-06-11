@@ -60,7 +60,7 @@ function makePuzzle(diff: Difficulty): Puzzle {
 
 export default function NumberBondsGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const { isPreset, str, num } = useGamePreset();
@@ -189,7 +189,7 @@ export default function NumberBondsGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('numberBondsHint')}</Text>
       <View style={[styles.targetBox, {

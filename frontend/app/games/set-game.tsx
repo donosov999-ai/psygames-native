@@ -93,7 +93,7 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
 export default function SetGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const { isPreset, num } = useGamePreset();
@@ -245,28 +245,28 @@ export default function SetGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('setHint')}</Text>
       {hintBreakdown && feedback === 'wrong' && (
         <View style={[styles.hintBox, { backgroundColor: '#f43f5e22', borderColor: '#f43f5e' }]}>
-          <Text style={[styles.hintTitle, { color: '#f43f5e' }]}>Не SET — разбор по признакам:</Text>
+          <Text style={[styles.hintTitle, { color: '#f43f5e' }]}>{language === 'ru' ? 'Не SET — разбор по признакам:' : 'Not a SET — attribute breakdown:'}</Text>
           <View style={styles.hintRow}>
             <Text style={[styles.hintItem, { color: hintBreakdown.shape ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.shape ? '✓' : '✗'} Форма
+              {hintBreakdown.shape ? '✓' : '✗'} {language === 'ru' ? 'Форма' : 'Shape'}
             </Text>
             <Text style={[styles.hintItem, { color: hintBreakdown.color ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.color ? '✓' : '✗'} Цвет
+              {hintBreakdown.color ? '✓' : '✗'} {language === 'ru' ? 'Цвет' : 'Color'}
             </Text>
             <Text style={[styles.hintItem, { color: hintBreakdown.fill ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.fill ? '✓' : '✗'} Штрих
+              {hintBreakdown.fill ? '✓' : '✗'} {language === 'ru' ? 'Штрих' : 'Fill'}
             </Text>
             <Text style={[styles.hintItem, { color: hintBreakdown.count ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.count ? '✓' : '✗'} Кол-во
+              {hintBreakdown.count ? '✓' : '✗'} {language === 'ru' ? 'Кол-во' : 'Count'}
             </Text>
           </View>
           <Text style={[styles.hintRule, { color: colors.textSecondary }]}>
-            Каждый признак должен быть либо ОДИНАКОВ на всех 3, либо РАЗНЫЙ на всех 3
+            {language === 'ru' ? 'Каждый признак должен быть либо ОДИНАКОВ на всех 3, либо РАЗНЫЙ на всех 3' : 'Each attribute must be either ALL SAME across the 3 or ALL DIFFERENT across the 3'}
           </Text>
         </View>
       )}

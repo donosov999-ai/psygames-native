@@ -46,7 +46,7 @@ function makeTrial(diff: Difficulty): Trial {
 
 export default function PosnerGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -194,7 +194,7 @@ export default function PosnerGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}мс</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
         <Text style={[styles.statText, { color: GRADIENT[0] }]}>VE {validityEffect}</Text>
       </View>
       <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>

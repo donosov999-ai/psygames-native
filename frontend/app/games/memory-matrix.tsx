@@ -27,7 +27,7 @@ type MatrixMode = 'static' | 'sequential';   // static = pattern flashes once; s
 
 export default function MemoryMatrixGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
 
@@ -191,7 +191,7 @@ export default function MemoryMatrixGame() {
         )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>Режим</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
         <View style={styles.optionButtons}>
           {(['static', 'sequential'] as MatrixMode[]).map((m) => (
             <TouchableOpacity
@@ -205,7 +205,9 @@ export default function MemoryMatrixGame() {
               onPress={() => setMatrixMode(m)}
             >
               <Text style={[styles.modeButtonText, { color: matrixMode === m ? '#FFF' : colors.text, fontSize: 12 }]}>
-                {m === 'static' ? '🔲 Static (паттерн)' : '➡️ Sequential (порядок)'}
+                {m === 'static'
+                  ? (language === 'ru' ? '🔲 Static (паттерн)' : '🔲 Static (pattern)')
+                  : (language === 'ru' ? '➡️ Sequential (порядок)' : '➡️ Sequential (order)')}
               </Text>
             </TouchableOpacity>
           ))}

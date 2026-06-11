@@ -7,6 +7,8 @@
  *
  * After either flow, the modal dismisses and won't show again on this
  * device (psygames_first_run_done flag in AsyncStorage).
+ *
+ * Все тексты — через t() (i18n), чтобы экран был на языке приложения (EN primary).
  */
 
 import React, { useState } from 'react';
@@ -15,10 +17,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLanguage } from '@/src/contexts/LanguageContext';
 
 export default function WelcomeModal() {
   const { isFirstRun, completeFirstRun, switchProfile, redeemCode } = useProfile();
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [view, setView] = useState<'choice' | 'code'>('choice');
   const [codeInput, setCodeInput] = useState('');
   const [codeError, setCodeError] = useState<string | null>(null);
@@ -36,7 +40,7 @@ export default function WelcomeModal() {
       setView('choice');
       setCodeInput('');
     } else {
-      setCodeError('Неверный код. Проверь и попробуй ещё раз, или начни с FREE.');
+      setCodeError(t('welcomeCodeInvalid'));
     }
   };
 
@@ -52,13 +56,13 @@ export default function WelcomeModal() {
             style={styles.hero}
           >
             <Text style={styles.heroEmoji}>🧠</Text>
-            <Text style={styles.heroTitle}>Добро пожаловать в PsyGames</Text>
-            <Text style={styles.heroSub}>48+ когнитивных тренажёров (NZT-48 · десятки модификаций)</Text>
+            <Text style={styles.heroTitle}>{t('welcomeTitle')}</Text>
+            <Text style={styles.heroSub}>{t('welcomeSub')}</Text>
           </LinearGradient>
 
           {view === 'choice' && (
             <View style={styles.content}>
-              <Text style={[styles.h2, { color: colors.text }]}>С чего начать?</Text>
+              <Text style={[styles.h2, { color: colors.text }]}>{t('welcomeStart')}</Text>
 
               {/* FREE option */}
               <TouchableOpacity style={[styles.optionCard, { backgroundColor: colors.surface, borderColor: '#f59e0b' }]}
@@ -66,14 +70,14 @@ export default function WelcomeModal() {
                 <View style={styles.optionHeader}>
                   <Text style={styles.optionEmoji}>🎁</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.optionTitle, { color: colors.text }]}>FREE (без подписки)</Text>
-                    <Text style={[styles.optionSub, { color: colors.textSecondary }]}>9 базовых тренажёров · по одному из каждой категории</Text>
+                    <Text style={[styles.optionTitle, { color: colors.text }]}>{t('welcomeFreeTitle')}</Text>
+                    <Text style={[styles.optionSub, { color: colors.textSecondary }]}>{t('welcomeFreeSub')}</Text>
                   </View>
                   <Ionicons name="arrow-forward" size={22} color={colors.text} />
                 </View>
                 <View style={styles.optionList}>
                   <Text style={[styles.optionListText, { color: colors.textSecondary }]}>
-                    Шульте · Парные картинки · Мишени · Math Sprint · Поиск отличий · Считалка · Анаграммы · Ханой · N-back
+                    {t('welcomeFreeList')}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -84,20 +88,20 @@ export default function WelcomeModal() {
                 <View style={styles.optionHeader}>
                   <Text style={styles.optionEmoji}>🔑</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.optionTitle, { color: colors.text }]}>У меня есть код доступа</Text>
-                    <Text style={[styles.optionSub, { color: colors.textSecondary }]}>Разблокирует тематический профиль (9 специальных тренажёров)</Text>
+                    <Text style={[styles.optionTitle, { color: colors.text }]}>{t('welcomeCodeTitle')}</Text>
+                    <Text style={[styles.optionSub, { color: colors.textSecondary }]}>{t('welcomeCodeSub')}</Text>
                   </View>
                   <Ionicons name="arrow-forward" size={22} color={colors.text} />
                 </View>
                 <View style={styles.optionList}>
                   <Text style={[styles.optionListText, { color: colors.textSecondary }]}>
-                    ♟ Шахматист · 🧒 Дети · 📖 Скорочтение · 💊 NZT-48 · 🚗 Водители · 👴 50+ · 💼 Предприниматели · 🎓 ЕГЭ
+                    {t('welcomeCodeList')}
                   </Text>
                 </View>
               </TouchableOpacity>
 
               <Text style={[styles.footer, { color: colors.textSecondary }]}>
-                Можно изменить позже в Settings → Профиль. Прогресс хранится локально на устройстве.
+                {t('welcomeFooter')}
               </Text>
             </View>
           )}
@@ -106,21 +110,21 @@ export default function WelcomeModal() {
             <View style={styles.content}>
               <TouchableOpacity onPress={() => { setView('choice'); setCodeInput(''); setCodeError(null); }} style={styles.backBtn}>
                 <Ionicons name="arrow-back" size={20} color={colors.text} />
-                <Text style={[styles.backBtnText, { color: colors.text }]}>назад</Text>
+                <Text style={[styles.backBtnText, { color: colors.text }]}>{t('welcomeBack')}</Text>
               </TouchableOpacity>
 
-              <Text style={[styles.h2, { color: colors.text }]}>🔑 Введите код доступа</Text>
+              <Text style={[styles.h2, { color: colors.text }]}>{t('welcomeCodeEntryTitle')}</Text>
               <Text style={[styles.codeDesc, { color: colors.textSecondary }]}>
-                Код выдаётся владельцем программы (твоим тренером / преподавателем / организацией). Регистр и пробелы не важны.
+                {t('welcomeCodeDesc')}
               </Text>
 
               <TextInput
                 value={codeInput}
-                onChangeText={(t) => { setCodeInput(t); setCodeError(null); }}
+                onChangeText={(v) => { setCodeInput(v); setCodeError(null); }}
                 autoCapitalize="characters"
                 autoCorrect={false}
                 autoFocus
-                placeholder="например, CHESS-NZT-2026"
+                placeholder={t('welcomeCodePlaceholder')}
                 placeholderTextColor={colors.textSecondary}
                 style={[styles.codeInput, {
                   borderColor: codeError ? '#ef4444' : colors.border,
@@ -133,12 +137,12 @@ export default function WelcomeModal() {
 
               <TouchableOpacity onPress={tryCode} style={styles.unlockBtn} activeOpacity={0.85}>
                 <Ionicons name="lock-open" size={18} color="#FFF" />
-                <Text style={styles.unlockBtnText}>Разблокировать</Text>
+                <Text style={styles.unlockBtnText}>{t('welcomeUnlock')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={pickFree} style={styles.skipBtn}>
                 <Text style={[styles.skipBtnText, { color: colors.textSecondary }]}>
-                  Кода нет → начать с FREE
+                  {t('welcomeNoCode')}
                 </Text>
               </TouchableOpacity>
             </View>

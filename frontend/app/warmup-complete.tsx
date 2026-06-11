@@ -20,7 +20,7 @@ const GRADIENT_GREEN = ['#22c55e', '#0d9488'];
 export default function WarmupComplete() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const warmup = useWarmup();
   const [history, setHistory] = useState<WarmupHistoryEntry[]>([]);
   const [streak, setStreak] = useState(0);
@@ -72,9 +72,9 @@ export default function WarmupComplete() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.empty}>
-          <Text style={{ color: colors.text }}>Сессия не найдена</Text>
+          <Text style={{ color: colors.text }}>{language === 'ru' ? 'Сессия не найдена' : 'Session not found'}</Text>
           <TouchableOpacity style={[styles.btn, { backgroundColor: '#fbbf24' }]} onPress={goHome}>
-            <Text style={[styles.btnText, { color: '#000' }]}>На главную</Text>
+            <Text style={[styles.btnText, { color: '#000' }]}>{language === 'ru' ? 'На главную' : 'Home'}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -99,21 +99,21 @@ export default function WarmupComplete() {
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={styles.hero}>
           <Text style={styles.heroEmoji}>{completed ? '🎉' : '⏸'}</Text>
-          <Text style={styles.heroTitle}>{completed ? 'ЗАРЯДКА ЗАВЕРШЕНА' : 'ЗАРЯДКА ОСТАНОВЛЕНА'}</Text>
+          <Text style={styles.heroTitle}>{completed ? (language === 'ru' ? 'ЗАРЯДКА ЗАВЕРШЕНА' : 'WARM-UP COMPLETE') : (language === 'ru' ? 'ЗАРЯДКА ОСТАНОВЛЕНА' : 'WARM-UP STOPPED')}</Text>
           <Text style={styles.heroSubtitle}>
             {meta.weekday_name} · {meta.track_label} · {elapsedMin}:{elapsedSecRem.toString().padStart(2, '0')}
           </Text>
           {isPersonalBest && completed && (
             <View style={styles.pbBadge}>
               <Ionicons name="trophy" size={16} color="#fbbf24" />
-              <Text style={styles.pbText}>Личный рекорд</Text>
+              <Text style={styles.pbText}>{language === 'ru' ? 'Личный рекорд' : 'Personal best'}</Text>
             </View>
           )}
         </LinearGradient>
 
         {/* Per-game breakdown */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Результаты</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{language === 'ru' ? 'Результаты' : 'Results'}</Text>
           {results.map((r, i) => {
             const game = GAMES.find((g) => g.id === r.game_type);
             return (
@@ -125,7 +125,7 @@ export default function WarmupComplete() {
                   </Text>
                   <View style={styles.rowMetrics}>
                     <Text style={[styles.metric, { color: '#22c55e' }]}>+{r.score}</Text>
-                    <Text style={[styles.metric, { color: colors.textSecondary }]}>{r.time_seconds.toFixed(1)}с</Text>
+                    <Text style={[styles.metric, { color: colors.textSecondary }]}>{r.time_seconds.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
                     {r.errors > 0 && <Text style={[styles.metric, { color: '#f43f5e' }]}>✗{r.errors}</Text>}
                   </View>
                 </View>
@@ -135,18 +135,18 @@ export default function WarmupComplete() {
           })}
           {meta.steps.length > results.length && (
             <Text style={[styles.skipped, { color: colors.textSecondary }]}>
-              Пропущено: {meta.steps.length - results.length} игр
+              {language === 'ru' ? 'Пропущено: ' : 'Skipped: '}{meta.steps.length - results.length}{language === 'ru' ? ' игр' : ' games'}
             </Text>
           )}
         </View>
 
         {/* Total */}
         <View style={[styles.totalCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>Общий счёт</Text>
+          <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>{language === 'ru' ? 'Общий счёт' : 'Total score'}</Text>
           <Text style={[styles.totalValue, { color: '#fbbf24' }]}>{totalScore}</Text>
           {sameKindBest > 0 && (
             <Text style={[styles.totalCompare, { color: colors.textSecondary }]}>
-              {isPersonalBest ? '👑 Лучший в этой категории' : `Лучший: ${sameKindBest}`}
+              {isPersonalBest ? (language === 'ru' ? '👑 Лучший в этой категории' : '👑 Best in this category') : (language === 'ru' ? `Лучший: ${sameKindBest}` : `Best: ${sameKindBest}`)}
             </Text>
           )}
         </View>
@@ -156,8 +156,8 @@ export default function WarmupComplete() {
           <LinearGradient colors={GRADIENT_GREEN as [string, string]} style={styles.streakCard}>
             <Text style={styles.streakEmoji}>🔥</Text>
             <View>
-              <Text style={styles.streakValue}>{streak} {streak === 1 ? 'день' : 'дней'} подряд</Text>
-              <Text style={styles.streakLabel}>Не сломай серию</Text>
+              <Text style={styles.streakValue}>{language === 'ru' ? `${streak} ${streak === 1 ? 'день' : 'дней'} подряд` : `${streak} ${streak === 1 ? 'day' : 'days'} in a row`}</Text>
+              <Text style={styles.streakLabel}>{language === 'ru' ? 'Не сломай серию' : "Don't break the streak"}</Text>
             </View>
           </LinearGradient>
         )}
@@ -168,7 +168,7 @@ export default function WarmupComplete() {
             backgroundColor: colors.surface,
             borderLeftColor: verdict.delta_pct > 5 ? '#22c55e' : verdict.delta_pct < -5 ? '#f43f5e' : '#fbbf24',
           }]}>
-            <Text style={[styles.verdictTitle, { color: colors.textSecondary }]}>🧠 МОЗГ СЕГОДНЯ</Text>
+            <Text style={[styles.verdictTitle, { color: colors.textSecondary }]}>{language === 'ru' ? '🧠 МОЗГ СЕГОДНЯ' : '🧠 BRAIN TODAY'}</Text>
             <Text style={[styles.verdictMsg, { color: colors.text }]}>{verdict.message}</Text>
           </View>
         )}
@@ -178,11 +178,11 @@ export default function WarmupComplete() {
           <TouchableOpacity style={styles.btn} onPress={playAgain}>
             <LinearGradient colors={GRADIENT_GOLD as [string, string]} style={styles.btnGrad}>
               <Ionicons name="refresh" size={18} color="#000" />
-              <Text style={[styles.btnText, { color: '#000' }]}>ЕЩЁ РАЗ</Text>
+              <Text style={[styles.btnText, { color: '#000' }]}>{language === 'ru' ? 'ЕЩЁ РАЗ' : 'AGAIN'}</Text>
             </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]} onPress={goHome}>
-            <Text style={[styles.btnText, { color: colors.text }]}>На главную</Text>
+            <Text style={[styles.btnText, { color: colors.text }]}>{language === 'ru' ? 'На главную' : 'Home'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

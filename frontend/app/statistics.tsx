@@ -20,7 +20,7 @@ import { isGameAllowed } from '@/src/constants/profiles';
 
 export default function StatisticsScreen() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const [stats, setStats] = useState<GameStats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +83,7 @@ export default function StatisticsScreen() {
             backgroundColor: !scopeAll ? colors.primary : colors.surface,
             borderWidth: 1, borderColor: !scopeAll ? colors.primary : colors.border }}>
           <Text style={{ fontSize: 12, fontWeight: '700', color: !scopeAll ? '#fff' : colors.text }}>
-            {profile.emoji} {profile.display_name}
+            {profile.emoji} {t('profileName_' + profile.id)}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -92,7 +92,7 @@ export default function StatisticsScreen() {
             backgroundColor: scopeAll ? colors.primary : colors.surface,
             borderWidth: 1, borderColor: scopeAll ? colors.primary : colors.border }}>
           <Text style={{ fontSize: 12, fontWeight: '700', color: scopeAll ? '#fff' : colors.text }}>
-            Все игры
+            {language === 'ru' ? 'Все игры' : 'All games'}
           </Text>
         </TouchableOpacity>
       </View>

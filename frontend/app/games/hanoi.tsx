@@ -25,7 +25,7 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
 export default function HanoiGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
 
@@ -139,7 +139,7 @@ export default function HanoiGame() {
       <View style={styles.statsRow}>
         <Text style={[styles.statText, { color: colors.text }]}>{moves} / {optimal(discs)}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
       </View>
       <View style={styles.pegsArea}>
         {pegs.map((peg, idx) => (

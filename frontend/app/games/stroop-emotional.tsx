@@ -181,7 +181,7 @@ export default function StroopEmotionalGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}мс</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
         <Text style={[styles.statText, { color: '#ef4444' }]}>IT {interfThreat}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('stroop2Hint')}</Text>

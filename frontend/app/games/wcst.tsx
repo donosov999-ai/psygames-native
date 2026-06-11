@@ -59,7 +59,7 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
 export default function WcstGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -240,7 +240,7 @@ export default function WcstGame() {
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>↻{perseverative}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('wcstHint')}</Text>
       <View style={styles.refRow}>

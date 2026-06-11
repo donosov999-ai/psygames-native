@@ -132,13 +132,13 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
             <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 30 }}>
               {/* Header */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <Text style={{ fontSize: 19, fontWeight: '800', color: colors.text }}>👤 Сменить профиль</Text>
+                <Text style={{ fontSize: 19, fontWeight: '800', color: colors.text }}>👤 {t('a11ySwitchProfile')}</Text>
                 <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
                   <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
               <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18, marginBottom: 18 }}>
-                У каждого профиля свой набор тренажёров и плейлист зарядки. Тематические открываются мастер-кодом — нажми на закрытый профиль чтобы узнать детали и получить код в Telegram.
+                {t('switcherIntro')}
               </Text>
 
               {/* Grid */}
@@ -163,14 +163,14 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                     >
                       <Text style={{ fontSize: 32 }}>{p.emoji}{locked && '🔒'}</Text>
                       <Text style={{ fontSize: 14, fontWeight: '700', color: active ? '#000' : colors.text, marginTop: 4, textAlign: 'center' }}>
-                        {p.display_name}
+                        {t('profileName_' + p.id)}
                       </Text>
                       <Text numberOfLines={2} style={{ fontSize: 10, color: active ? 'rgba(0,0,0,0.7)' : colors.textSecondary, textAlign: 'center', marginTop: 2, lineHeight: 13 }}>
-                        {p.description}
+                        {t('profileDesc_' + p.id)}
                       </Text>
                       {p.session_minutes && (
                         <Text style={{ fontSize: 9, color: active ? 'rgba(0,0,0,0.55)' : colors.textSecondary, marginTop: 2, fontFamily: 'monospace' }}>
-                          ⏱ {p.session_minutes}
+                          ⏱ {p.session_minutes.replace('мин', t('unitMin'))}
                         </Text>
                       )}
                       {/* v1.8.0: Ценник на каждой locked-карточке */}

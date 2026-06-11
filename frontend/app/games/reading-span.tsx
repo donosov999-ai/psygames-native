@@ -139,7 +139,7 @@ export default function ReadingSpanGame() {
   };
 
   const handleRecallSubmit = async () => {
-    const expected = seq.map(s => language === 'en' ? s.lastEn : s.lastRu).map(x => x.toLowerCase().trim());
+    const expected = seq.map(s => language !== 'ru' ? s.lastEn : s.lastRu).map(x => x.toLowerCase().trim());
     const given = recallInput.toLowerCase().split(/[\s,;]+/).filter(Boolean).map(x => x.trim());
     let h = 0, e = 0;
     for (let i = 0; i < expected.length; i++) {
@@ -194,8 +194,8 @@ export default function ReadingSpanGame() {
 
   const renderPlaying = () => {
     const cur = seq[stepIdx];
-    const sentence = language === 'en' ? cur.en : cur.ru;
-    const lastWord = language === 'en' ? cur.lastEn : cur.lastRu;
+    const sentence = language !== 'ru' ? cur.en : cur.ru;
+    const lastWord = language !== 'ru' ? cur.lastEn : cur.lastRu;
     return (
       <View style={styles.playArea}>
         <View style={styles.statsRow}>

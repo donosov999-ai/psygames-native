@@ -96,7 +96,7 @@ function makePuzzle(diff: Difficulty): { start: State; goal: State; minMoves: nu
 
 export default function TowerLondonGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const { isPreset, str, num } = useGamePreset();
@@ -255,7 +255,7 @@ export default function TowerLondonGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{solved}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>{moves}/{puzzle.minMoves}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
       </View>
       <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('goalState')}</Text>
       <View style={styles.pegRow}>

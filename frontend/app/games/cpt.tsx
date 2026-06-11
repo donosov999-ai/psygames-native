@@ -55,7 +55,7 @@ interface TrialRecord {
 
 export default function CPTGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -281,7 +281,7 @@ export default function CPTGame() {
               ? { backgroundColor: GRADIENT[1] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setDuration(d)}>
-              <Text style={[styles.modeButtonText, { color: duration === d ? '#FFF' : colors.text }]}>{d} мин</Text>
+              <Text style={[styles.modeButtonText, { color: duration === d ? '#FFF' : colors.text }]}>{d} {language === 'ru' ? 'мин' : 'min'}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -335,7 +335,7 @@ export default function CPTGame() {
           {!letterVisible && <Text style={[styles.fixCross, { color: colors.textSecondary }]}>+</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={[styles.stopBtn, { borderColor: '#f43f5e' }]} onPress={stop}>
-          <Text style={[styles.stopBtnText, { color: '#f43f5e' }]}>СТОП</Text>
+          <Text style={[styles.stopBtnText, { color: '#f43f5e' }]}>{language === 'ru' ? 'СТОП' : 'STOP'}</Text>
         </TouchableOpacity>
       </View>
     );

@@ -30,7 +30,7 @@ const DIFF: Record<Difficulty, DifficultyCfg> = {
 
 export default function StopSignalGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -205,7 +205,7 @@ export default function StopSignalGame() {
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#3b82f6' }]}>✋{correctStops}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{meanRt}мс</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('stopHint')}</Text>
       <View style={[styles.stimulusBox, { backgroundColor: stimColor + '33', borderColor: stimColor }]}>

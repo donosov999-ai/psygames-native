@@ -11,43 +11,60 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLanguage } from '@/src/contexts/LanguageContext';
 
 const SLIDES = [
   {
     emoji: '🧠',
     gradient: ['#7c3aed', '#ec4899'],
-    title: 'Добро пожаловать в PsyGames',
-    body: '44 когнитивные игры — память, внимание, логика, контроль, счёт, скорость. Каждая измеряет конкретный психометрический биомаркер.',
+    title: { ru: 'Добро пожаловать в PsyGames', en: 'Welcome to PsyGames' },
+    body: {
+      ru: '44 когнитивные игры — память, внимание, логика, контроль, счёт, скорость. Каждая измеряет конкретный психометрический биомаркер.',
+      en: '44 cognitive games — memory, attention, logic, control, math, speed. Each one measures a specific psychometric biomarker.',
+    },
   },
   {
     emoji: '⚡',
     gradient: ['#fbbf24', '#f59e0b'],
-    title: 'Утренняя Зарядка',
-    body: '5–15 минут утром. Программа подбирается под день недели. ВТ — внимание, СР — отдых, СБ — логика. Streak считается по дням.',
+    title: { ru: 'Утренняя Зарядка', en: 'Morning Warm-up' },
+    body: {
+      ru: '5–15 минут утром. Программа подбирается под день недели. ВТ — внимание, СР — отдых, СБ — логика. Streak считается по дням.',
+      en: '5–15 minutes in the morning. The program adapts to the weekday. Tue — attention, Wed — rest, Sat — logic. Streak is counted by day.',
+    },
   },
   {
     emoji: '🎯',
     gradient: ['#7c3aed', '#ec4899'],
-    title: 'Оцени свой профиль',
-    body: '12 коротких тестов (≈12 минут) → radar chart твоих сильных и слабых сторон + персональные рекомендации игр. Повторяй раз в 3 месяца чтобы видеть прогресс.',
+    title: { ru: 'Оцени свой профиль', en: 'Assess your profile' },
+    body: {
+      ru: '12 коротких тестов (≈12 минут) → radar chart твоих сильных и слабых сторон + персональные рекомендации игр. Повторяй раз в 3 месяца чтобы видеть прогресс.',
+      en: '12 short tests (≈12 minutes) → a radar chart of your strengths and weaknesses + personal game recommendations. Repeat every 3 months to track progress.',
+    },
   },
   {
     emoji: '👤',
     gradient: ['#22c55e', '#0d9488'],
-    title: '11 профилей под цель',
-    body: 'FREE — попробовать бесплатно, без кода. 10 тематических (Шахматы, Дети, Скорочтение, NZT-48, Водители, 50+, Предприниматели, Студенты ЕГЭ, Женщины, ODV999) — каждый со своим набором игр и плейлистом. Тематические открываются мастер-кодом в Settings.',
+    title: { ru: '11 профилей под цель', en: '11 goal-based profiles' },
+    body: {
+      ru: 'FREE — попробовать бесплатно, без кода. 10 тематических (Шахматы, Дети, Скорочтение, NZT-48, Водители, 50+, Предприниматели, Студенты ЕГЭ, Женщины, ODV999) — каждый со своим набором игр и плейлистом. Тематические открываются мастер-кодом в Settings.',
+      en: 'FREE — try it free, no code. 10 themed (Chess, Kids, Speed reading, NZT-48, Drivers, 50+, Entrepreneurs, Exam students, Women, ODV999) — each with its own set of games and playlist. Themed profiles unlock with a master code in Settings.',
+    },
   },
   {
     emoji: '☁️',
     gradient: ['#3b82f6', '#1e40af'],
-    title: 'Данные надёжны',
-    body: 'Каждая сессия сохраняется и локально, и в облаке. Очистка кэша браузера = не страшно. История за месяцы и годы — твоя.',
+    title: { ru: 'Данные надёжны', en: 'Your data is safe' },
+    body: {
+      ru: 'Каждая сессия сохраняется и локально, и в облаке. Очистка кэша браузера = не страшно. История за месяцы и годы — твоя.',
+      en: 'Every session is saved both locally and in the cloud. Clearing your browser cache is no problem. Months and years of history are yours.',
+    },
   },
 ];
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { language } = useLanguage();
   const { width } = useWindowDimensions();
   const [step, setStep] = useState(0);
 
@@ -75,7 +92,7 @@ export default function OnboardingScreen() {
         </Text>
         {!isLast && (
           <TouchableOpacity onPress={skip}>
-            <Text style={[styles.skipBtn, { color: colors.textSecondary }]}>Пропустить</Text>
+            <Text style={[styles.skipBtn, { color: colors.textSecondary }]}>{language === 'ru' ? 'Пропустить' : 'Skip'}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -83,8 +100,8 @@ export default function OnboardingScreen() {
       <LinearGradient colors={slide.gradient as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}}
         style={[styles.slideCard, { width: containerW }]}>
         <Text style={styles.emoji}>{slide.emoji}</Text>
-        <Text style={styles.title}>{slide.title}</Text>
-        <Text style={styles.body}>{slide.body}</Text>
+        <Text style={styles.title}>{language === 'ru' ? slide.title.ru : slide.title.en}</Text>
+        <Text style={styles.body}>{language === 'ru' ? slide.body.ru : slide.body.en}</Text>
       </LinearGradient>
 
       {/* Dots */}
@@ -99,7 +116,7 @@ export default function OnboardingScreen() {
 
       <TouchableOpacity style={[styles.nextBtn, { width: containerW }]} onPress={next}>
         <LinearGradient colors={slide.gradient as [string, string]} style={styles.nextBtnGrad}>
-          <Text style={styles.nextBtnText}>{isLast ? 'НАЧАТЬ' : 'ДАЛЬШЕ'}</Text>
+          <Text style={styles.nextBtnText}>{isLast ? (language === 'ru' ? 'НАЧАТЬ' : 'START') : (language === 'ru' ? 'ДАЛЬШЕ' : 'NEXT')}</Text>
           <Ionicons name="arrow-forward" size={18} color="#FFF" />
         </LinearGradient>
       </TouchableOpacity>

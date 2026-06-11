@@ -16,7 +16,7 @@ const AUTOSTART_SEC = 3;
 export default function WarmupBridge() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const warmup = useWarmup();
   const [countdown, setCountdown] = useState(() => (warmup.meta?.slot === 'evening' ? 8 : 5));
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -91,7 +91,7 @@ export default function WarmupBridge() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.hud}>
         <Text style={[styles.hudText, { color: accent }]}>
-          {isEvening ? '🌙 ПЕРЕД СНОМ' : '⚡ ЗАРЯДКА'} · {warmup.currentIdx}/{meta?.steps.length}
+          {isEvening ? (language === 'ru' ? '🌙 ПЕРЕД СНОМ' : '🌙 BEFORE SLEEP') : (language === 'ru' ? '⚡ ЗАРЯДКА' : '⚡ WARM-UP')} · {warmup.currentIdx}/{meta?.steps.length}
         </Text>
         <View style={styles.progressBar}>
           <View style={[styles.progressFill, { width: `${(warmup.currentIdx / (meta?.steps.length || 1)) * 100}%`, backgroundColor: accent }]} />
@@ -109,7 +109,7 @@ export default function WarmupBridge() {
             {justCompletedResult && (
               <View style={styles.statsLine}>
                 <Text style={[styles.statBadge, { color: '#22c55e' }]}>+{justCompletedResult.score}</Text>
-                <Text style={[styles.statBadge, { color: colors.textSecondary }]}>{justCompletedResult.time_seconds.toFixed(1)}с</Text>
+                <Text style={[styles.statBadge, { color: colors.textSecondary }]}>{justCompletedResult.time_seconds.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
                 {justCompletedResult.errors > 0 && <Text style={[styles.statBadge, { color: '#f43f5e' }]}>✗{justCompletedResult.errors}</Text>}
               </View>
             )}
@@ -119,7 +119,7 @@ export default function WarmupBridge() {
         {/* Next game preview */}
         {nextGame && (
           <LinearGradient colors={nextGame.gradient as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.nextCard}>
-            <Text style={styles.nextLabel}>ДАЛЬШЕ:</Text>
+            <Text style={styles.nextLabel}>{language === 'ru' ? 'ДАЛЬШЕ:' : 'NEXT:'}</Text>
             <Ionicons name={nextGame.icon as any} size={56} color="#FFF" />
             <Text style={styles.nextTitle}>{t(nextGame.nameKey)}</Text>
             <Text style={styles.nextSkill}>{t(nextGame.skillKey)}</Text>
@@ -128,13 +128,13 @@ export default function WarmupBridge() {
 
         {/* Countdown */}
         <Text style={[styles.countdown, { color: accent }]}>
-          ⏱ Старт через {countdown}...
+          {language === 'ru' ? '⏱ Старт через ' : '⏱ Starting in '}{countdown}...
         </Text>
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.actionPrimary} onPress={startNow}>
             <LinearGradient colors={GRADIENT as [string, string]} style={styles.actionPrimaryGrad}>
-              <Text style={styles.actionPrimaryText}>СТАРТ СЕЙЧАС</Text>
+              <Text style={styles.actionPrimaryText}>{language === 'ru' ? 'СТАРТ СЕЙЧАС' : 'START NOW'}</Text>
             </LinearGradient>
           </TouchableOpacity>
           <View style={styles.actionsRow}>

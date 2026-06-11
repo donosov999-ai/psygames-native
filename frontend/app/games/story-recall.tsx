@@ -250,7 +250,7 @@ export default function StoryRecallGame() {
   };
 
   const submitRecall1 = () => {
-    const kws = language === 'en' ? story.keywords_en : story.keywords_ru;
+    const kws = language === 'ru' ? story.keywords_ru : story.keywords_en;
     const hits = countMatches(recall1Text, kws);
     setRecall1Hits(hits);
     startDistractor2(hits);
@@ -272,7 +272,7 @@ export default function StoryRecallGame() {
   };
 
   const submitRecall2 = async () => {
-    const kws = language === 'en' ? story.keywords_en : story.keywords_ru;
+    const kws = language === 'ru' ? story.keywords_ru : story.keywords_en;
     const hits = countMatches(recall2Text, kws);
     setRecall2Hits(hits);
     setPhase('result');
@@ -331,7 +331,7 @@ export default function StoryRecallGame() {
       </View>
       <View style={[styles.storyBox, { backgroundColor: colors.surface }]}>
         <Text style={[styles.storyText, { color: colors.text }]}>
-          {language === 'en' ? story.en : story.ru}
+          {language === 'ru' ? story.ru : story.en}
         </Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('storyReadHint')}</Text>
@@ -428,7 +428,7 @@ export default function StoryRecallGame() {
       {phase === 'result' && (
         <GameResult
           score={(recall1Hits + recall2Hits) * 50}
-          time={undefined} errors={(language === 'en' ? story.keywords_en.length : story.keywords_ru.length) - recall2Hits}
+          time={undefined} errors={(language === 'ru' ? story.keywords_ru.length : story.keywords_en.length) - recall2Hits}
           onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
           gradient={GRADIENT as [string, string]} />
       )}

@@ -40,7 +40,7 @@ export default function AchievementsScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>
-          🏆 Достижения {unlocked.length}/{ACHIEVEMENTS.length}
+          🏆 {language === 'en' ? 'Achievements' : 'Достижения'} {unlocked.length}/{ACHIEVEMENTS.length}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -78,7 +78,9 @@ export default function AchievementsScreen() {
           </View>
         ))}
         <Text style={[styles.footer, { color: colors.textSecondary }]}>
-          Достижения проверяются после каждой игры. {ACHIEVEMENTS.length - unlocked.length} осталось.
+          {language === 'en'
+            ? `Achievements are checked after each game. ${ACHIEVEMENTS.length - unlocked.length} left.`
+            : `Достижения проверяются после каждой игры. ${ACHIEVEMENTS.length - unlocked.length} осталось.`}
         </Text>
       </ScrollView>
     </SafeAreaView>

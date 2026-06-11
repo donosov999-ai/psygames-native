@@ -43,7 +43,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 export default function PicturePairsGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
 
@@ -225,9 +225,9 @@ export default function PicturePairsGame() {
           style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Ionicons name={photoMemoryMode ? 'checkbox' : 'square-outline'} size={24} color={GRADIENT[0]} />
           <View style={{ flex: 1 }}>
-            <Text style={[styles.optionLabel, { color: colors.text }]}>📸 Фото-память</Text>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? '📸 Фото-память' : '📸 Photo memory'}</Text>
             <Text style={[{ color: colors.textSecondary, fontSize: 11, marginTop: 2 }]}>
-              Все карты на миг откроются — запомни и собери пары
+              {language === 'ru' ? 'Все карты на миг откроются — запомни и собери пары' : 'All cards flash for an instant — memorize them and match the pairs'}
             </Text>
           </View>
         </TouchableOpacity>
@@ -239,7 +239,9 @@ export default function PicturePairsGame() {
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setPreviewMs(ms)}>
                 <Text style={[styles.modeButtonText, { color: previewMs === ms ? '#FFF' : colors.text }]}>
-                  {ms === 500 ? '0.5с (хард)' : ms === 1500 ? '1.5с (норма)' : '3с (легко)'}
+                  {language === 'ru'
+                    ? (ms === 500 ? '0.5с (хард)' : ms === 1500 ? '1.5с (норма)' : '3с (легко)')
+                    : (ms === 500 ? '0.5s (hard)' : ms === 1500 ? '1.5s (normal)' : '3s (easy)')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -260,10 +262,12 @@ export default function PicturePairsGame() {
       {previewActive ? (
         <View style={{ alignItems: 'center', gap: 4, paddingVertical: 8 }}>
           <Text style={{ color: GRADIENT[0], fontSize: 22, fontWeight: '900', letterSpacing: 2 }}>
-            📸 ЗАПОМИНАЙ
+            {language === 'ru' ? '📸 ЗАПОМИНАЙ' : '📸 MEMORIZE'}
           </Text>
           <Text style={{ color: '#666', fontSize: 12 }}>
-            {(previewMs / 1000).toFixed(1)}с — потом карты закроются
+            {language === 'ru'
+              ? `${(previewMs / 1000).toFixed(1)}с — потом карты закроются`
+              : `${(previewMs / 1000).toFixed(1)}s — then the cards flip back`}
           </Text>
         </View>
       ) : (
@@ -271,7 +275,7 @@ export default function PicturePairsGame() {
           <Text style={[styles.statText, { color: colors.text }]}>{matched}/{pairsCount}</Text>
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>{moves} {t('movesShort')}</Text>
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-          <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
+          <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
         </View>
       )}
       <View style={[styles.cardsArea, { width: containerW }]}>

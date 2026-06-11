@@ -71,7 +71,7 @@ function makeTrial(diff: Difficulty): Trial {
 
 export default function SimonGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -174,18 +174,18 @@ export default function SimonGame() {
 
       {/* Правила игры — статический rule reminder */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text, marginBottom: 8 }]}>{t('simonRule') || 'Правило'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text, marginBottom: 8 }]}>{t('simonRule') || (language === 'ru' ? 'Правило' : 'Rule')}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, justifyContent: 'center' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <View style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: COLOR_BLUE }} />
             <Ionicons name="arrow-back" size={20} color={colors.textSecondary} />
-            <Text style={{ color: colors.text, fontWeight: '700' }}>{t('simonLeftBtn') || 'Левая'}</Text>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>{t('simonLeftBtn') || (language === 'ru' ? 'Левая' : 'Left')}</Text>
           </View>
           <Text style={{ color: colors.textSecondary }}>·</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <View style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: COLOR_RED }} />
             <Ionicons name="arrow-forward" size={20} color={colors.textSecondary} />
-            <Text style={{ color: colors.text, fontWeight: '700' }}>{t('simonRightBtn') || 'Правая'}</Text>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>{t('simonRightBtn') || (language === 'ru' ? 'Правая' : 'Right')}</Text>
           </View>
         </View>
       </View>
@@ -236,7 +236,7 @@ export default function SimonGame() {
           <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
           <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-          <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}мс</Text>
+          <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
         </View>
         {/* Stim area — широкая, квадрат появляется слева или справа от центра */}
         <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
@@ -255,7 +255,7 @@ export default function SimonGame() {
         </View>
         {/* Подсказка правила (для конфига и для playing) */}
         <Text style={{ color: colors.textSecondary, fontSize: 11, textAlign: 'center', maxWidth: 320 }}>
-          🔵 → ⬅️ левая  ·  🔴 → ➡️ правая  (по цвету, не по позиции)
+          {language === 'ru' ? '🔵 → ⬅️ левая  ·  🔴 → ➡️ правая  (по цвету, не по позиции)' : '🔵 → ⬅️ left  ·  🔴 → ➡️ right  (by color, not by position)'}
         </Text>
         <View style={styles.choiceRow}>
           <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: COLOR_BLUE }]} onPress={() => handleAnswer('left')}>

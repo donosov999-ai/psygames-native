@@ -53,7 +53,7 @@ function generateProblem(difficulty: Difficulty): Problem {
 
 export default function MathSprintGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const gate = useLevelGate('math_sprint');
 
@@ -175,7 +175,7 @@ export default function MathSprintGame() {
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setDuration(n)}>
-              <Text style={[styles.modeButtonText, { color: duration === n ? '#FFF' : colors.text }]}>{n}с</Text>
+              <Text style={[styles.modeButtonText, { color: duration === n ? '#FFF' : colors.text }]}>{n}{language === 'ru' ? 'с' : 's'}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -191,7 +191,7 @@ export default function MathSprintGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}с</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
         <Text style={[styles.statText, { color: GRADIENT[0] }]}>★ {score}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>

@@ -187,7 +187,7 @@ export default function TrailMakingGame() {
       <View style={styles.statsRow}>
         <Text style={[styles.statText, { color: colors.text }]}>{currentIdx}/{nodes.length}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>
         {currentIdx < nodes.length ? `${t('nextLabel')}: ${nodes[currentIdx].label}` : t('done')}

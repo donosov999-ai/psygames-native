@@ -32,7 +32,7 @@ const MAX_BURST_BY_DIFF: Record<Difficulty, number> = { easy: 64, medium: 32, ha
 
 export default function BARTGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -175,7 +175,7 @@ export default function BARTGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>Шар {round}/{balloons}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{language === 'ru' ? 'Шар' : 'Balloon'} {round}/{balloons}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>💰{bank}¢</Text>
         <Text style={[styles.statText, { color: '#fbbf24' }]}>⏳{pending}¢</Text>
         <Text style={[styles.statText, { color: '#ef4444' }]}>💥{popCount}</Text>
@@ -210,7 +210,7 @@ export default function BARTGame() {
         return (
           <View style={styles.riskMeter}>
             <View style={styles.riskHeader}>
-              <Text style={[styles.riskLabel, { color: colors.textSecondary }]}>Риск взрыва на след. pump</Text>
+              <Text style={[styles.riskLabel, { color: colors.textSecondary }]}>{language === 'ru' ? 'Риск взрыва на след. pump' : 'Burst risk on next pump'}</Text>
               <Text style={[styles.riskValue, { color: riskColor }]}>{riskPct}%</Text>
             </View>
             <View style={[styles.riskBar, { backgroundColor: colors.surface }]}>
@@ -222,10 +222,15 @@ export default function BARTGame() {
               }} />
             </View>
             <Text style={[styles.riskHint, { color: colors.textSecondary }]}>
-              {nextRisk < 0.10 ? '🟢 Безопасно — копи дальше' :
-               nextRisk < 0.25 ? '🟡 Внимание — pending растёт' :
-               nextRisk < 0.50 ? '🟠 Рискованно — может стоит cash?' :
-               '🔴 Очень опасно — почти гарантированный взрыв'}
+              {language === 'ru'
+                ? (nextRisk < 0.10 ? '🟢 Безопасно — копи дальше' :
+                   nextRisk < 0.25 ? '🟡 Внимание — pending растёт' :
+                   nextRisk < 0.50 ? '🟠 Рискованно — может стоит cash?' :
+                   '🔴 Очень опасно — почти гарантированный взрыв')
+                : (nextRisk < 0.10 ? '🟢 Safe — keep banking' :
+                   nextRisk < 0.25 ? '🟡 Caution — pending is growing' :
+                   nextRisk < 0.50 ? '🟠 Risky — maybe cash out?' :
+                   '🔴 Very dangerous — burst almost guaranteed')}
             </Text>
           </View>
         );

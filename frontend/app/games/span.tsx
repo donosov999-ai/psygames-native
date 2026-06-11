@@ -48,7 +48,7 @@ const SUB_GAMES = [
 
 export default function SpanGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   return (
@@ -82,7 +82,7 @@ export default function SpanGame() {
             <View style={styles.cardBody}>
               <Text style={[styles.cardName, { color: colors.text }]}>{t(g.nameKey)}</Text>
               <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{t(g.descKey)}</Text>
-              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{g.typeLabel}</Text>
+              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{language === 'ru' ? g.typeLabel : g.typeLabel.replace('Цифры', 'Digits').replace('Пространство', 'Spatial')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
           </TouchableOpacity>

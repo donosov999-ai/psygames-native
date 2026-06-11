@@ -151,12 +151,12 @@ export default function HomeScreen() {
           >
             <Text style={{ fontSize: 14 }}>{profile.emoji}</Text>
             <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>
-              {profile.display_name}
+              {t('profileName_' + profile.id)}
             </Text>
             <Ionicons name="chevron-down" size={14} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.subtitle, { color: colors.textSecondary, marginTop: 4 }]}>
-            {t('trainYourBrain')} · нажми на чип чтобы сменить профиль
+            {t('trainYourBrain')} · {t('homeSwitchHint')}
           </Text>
         </View>
         <View style={styles.headerButtons}>
@@ -164,14 +164,14 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: profile.color + '22', borderWidth: 1.5, borderColor: profile.color + '88' }]}
             onPress={() => setSwitcherOpen(true)}
-            accessibilityLabel="Сменить профиль"
+            accessibilityLabel={t('a11ySwitchProfile')}
           >
             <Ionicons name="person-circle" size={26} color={profile.color} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/achievements' as any)}
-            accessibilityLabel="Достижения"
+            accessibilityLabel={t('a11yAchievements')}
           >
             <Ionicons name="trophy" size={20} color="#fbbf24" />
             {achievementsCount > 0 && (
@@ -183,14 +183,14 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/statistics')}
-            accessibilityLabel="Статистика"
+            accessibilityLabel={t('statistics')}
           >
             <Ionicons name="stats-chart" size={22} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/settings')}
-            accessibilityLabel="Настройки"
+            accessibilityLabel={t('settings')}
           >
             <Ionicons name="settings-outline" size={22} color={colors.text} />
           </TouchableOpacity>
@@ -230,16 +230,16 @@ export default function HomeScreen() {
                   </View>
                 )}
               </View>
-              <Text style={[styles.heroTitle, { color: isRest ? '#FFF' : '#000' }]}>ЗАРЯДКА</Text>
+              <Text style={[styles.heroTitle, { color: isRest ? '#FFF' : '#000' }]}>{t('complexWarmup')}</Text>
               <Text style={[styles.heroSub, { color: isRest ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)' }]} numberOfLines={2}>
                 {isRest
-                  ? 'Brain Workshop день'
-                  : `${todayPreview.steps.length} ${todayPreview.steps.length === 1 ? 'игра' : 'игр'} · ~${Math.round(todayPreview.est_total_sec / 60)} мин`}
+                  ? t('restDay')
+                  : `${todayPreview.steps.length} ${todayPreview.steps.length === 1 ? t('unitGame') : t('unitGames')} · ~${Math.round(todayPreview.est_total_sec / 60)} ${t('unitMin')}`}
               </Text>
               {!isRest && (
                 <View style={styles.heroCta}>
                   <Ionicons name="play" size={14} color="#fbbf24" />
-                  <Text style={styles.heroCtaText}>СТАРТ</Text>
+                  <Text style={styles.heroCtaText}>{t('ctaStart')}</Text>
                 </View>
               )}
             </LinearGradient>
@@ -261,13 +261,13 @@ export default function HomeScreen() {
               <View style={styles.heroTopRow}>
                 <Ionicons name="moon" size={22} color="#FFF" />
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]}>ПЕРЕД СНОМ</Text>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]}>{t('complexEvening')}</Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
-                {profile.evening_playlist!.length} игр · ~{Math.round(profile.evening_playlist!.reduce((s, x) => s + x.est_duration_sec, 0) / 60)} мин · спокойно
+                {profile.evening_playlist!.length} {t('unitGames')} · ~{Math.round(profile.evening_playlist!.reduce((s, x) => s + x.est_duration_sec, 0) / 60)} {t('unitMin')} · {t('calm')}
               </Text>
               <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
                 <Ionicons name="play" size={14} color="#818cf8" />
-                <Text style={[styles.heroCtaText, { color: '#818cf8' }]}>СТАРТ</Text>
+                <Text style={[styles.heroCtaText, { color: '#818cf8' }]}>{t('ctaStart')}</Text>
               </View>
             </LinearGradient>
           </TouchableOpacity>
@@ -290,7 +290,7 @@ export default function HomeScreen() {
                 {assessStatus.hasAssessment ? (
                   <View style={[styles.heroChipMini, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
                     <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>
-                      {assessStatus.daysSince === 0 ? '✓' : `${assessStatus.daysSince}д`}
+                      {assessStatus.daysSince === 0 ? '✓' : `${assessStatus.daysSince}${t('unitDayShort')}`}
                     </Text>
                   </View>
                 ) : (
@@ -299,14 +299,14 @@ export default function HomeScreen() {
                   </View>
                 )}
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]}>ОЦЕНКА</Text>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]}>{t('complexAssessment')}</Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
-                12 тестов · ~12 мин
+                {t('assessmentMeta')}
               </Text>
               <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
                 <Ionicons name="play" size={14} color="#ec4899" />
                 <Text style={[styles.heroCtaText, { color: '#ec4899' }]}>
-                  {assessStatus.hasAssessment ? 'ПОВТОР' : 'СТАРТ'}
+                  {assessStatus.hasAssessment ? t('ctaRepeat') : t('ctaStart')}
                 </Text>
               </View>
             </LinearGradient>
@@ -334,23 +334,23 @@ export default function HomeScreen() {
                   </View>
                 ) : (
                   <View style={[styles.heroChipMini, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
-                    <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>⏳{finCooldown.daysLeft}д</Text>
+                    <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>⏳{finCooldown.daysLeft}{t('unitDayShort')}</Text>
                   </View>
                 )}
               </View>
               <Text style={[styles.heroTitle, { color: '#FFF' }]}>FIN BRAIN</Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
-                Iowa→BART→PRL · ~25 мин
+                {t('finBrainMeta')}
               </Text>
               {finCooldown.ready ? (
                 <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
                   <Ionicons name="play" size={14} color="#22c55e" />
-                  <Text style={[styles.heroCtaText, { color: '#22c55e' }]}>СТАРТ</Text>
+                  <Text style={[styles.heroCtaText, { color: '#22c55e' }]}>{t('ctaStart')}</Text>
                 </View>
               ) : (
                 <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.4)' }]}>
                   <Text style={[styles.heroCtaText, { color: 'rgba(255,255,255,0.75)' }]}>
-                    ЖДЁМ
+                    {t('ctaWait')}
                   </Text>
                 </View>
               )}

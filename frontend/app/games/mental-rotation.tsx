@@ -314,7 +314,7 @@ function shadeColor(hex: string, percent: number): string {
 
 export default function MentalRotationGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const gate = useLevelGate('mental_rotation');
@@ -476,12 +476,12 @@ export default function MentalRotationGame() {
           <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
           <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-          <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
+          <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
         </View>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mentalRotationHint')}</Text>
         <View style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
           {renderShape(trial.base, baseSize, GRADIENT[0])}
-          <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>эталон</Text>
+          <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>{language === 'ru' ? 'эталон' : 'reference'}</Text>
         </View>
         <View style={styles.optionsRow}>
           {trial.options.map((opt, i) => {

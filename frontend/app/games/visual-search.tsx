@@ -53,7 +53,7 @@ function makeBoard(diff: Difficulty, w: number, h: number): Item[] {
 
 export default function VisualSearchGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
 
@@ -194,7 +194,7 @@ export default function VisualSearchGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{meanRt}мс</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('visualSearchHint')}</Text>
       <View style={[styles.boardArea, { width: boardW, height: boardH, backgroundColor: '#1f2937', borderColor: colors.border }]}>

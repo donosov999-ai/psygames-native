@@ -45,7 +45,7 @@ function speakLetter(letter: string) {
 
 export default function NBackGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const gate = useLevelGate('n_back');
@@ -379,7 +379,9 @@ export default function NBackGame() {
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>
         {modality === 'dual'
-          ? `Жми Position если позиция повторяет ${nLevel} назад. Жми Sound если буква повторяет ${nLevel} назад. Можно жать оба`
+          ? (language === 'ru'
+              ? `Жми Position если позиция повторяет ${nLevel} назад. Жми Sound если буква повторяет ${nLevel} назад. Можно жать оба`
+              : `Tap Position if the position repeats ${nLevel} back. Tap Sound if the letter repeats ${nLevel} back. You can tap both`)
           : t('nBackHint')}
       </Text>
     </View>

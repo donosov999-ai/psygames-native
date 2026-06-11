@@ -63,7 +63,7 @@ interface TrialRecord {
 
 export default function PRLGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -305,7 +305,7 @@ export default function PRLGame() {
         {renderStimulus('B', '#f59e0b')}
       </View>
       <TouchableOpacity style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
-        <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>СТОП</Text>
+        <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{language === 'ru' ? 'СТОП' : 'STOP'}</Text>
       </TouchableOpacity>
     </View>
   );

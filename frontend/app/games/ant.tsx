@@ -52,7 +52,7 @@ function makeTrial(): Trial {
 
 export default function ANTGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -194,7 +194,7 @@ export default function ANTGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{m.meanRt}мс</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{m.meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
       </View>
       <View style={[styles.networkRow]}>
         <Text style={[styles.netText, { color: '#22c55e' }]}>A {m.alerting}</Text>

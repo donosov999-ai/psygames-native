@@ -85,7 +85,7 @@ export default function AssessmentResultScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.empty}>
-          <Text style={{ color: colors.text }}>Считаем результаты...</Text>
+          <Text style={{ color: colors.text }}>{language === 'ru' ? 'Считаем результаты...' : 'Calculating results...'}</Text>
         </View>
       </SafeAreaView>
     );
@@ -96,8 +96,8 @@ export default function AssessmentResultScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.hero}>
           <Text style={styles.heroEmoji}>🎯</Text>
-          <Text style={styles.heroTitle}>ТВОЙ КОГНИТИВНЫЙ ПРОФИЛЬ</Text>
-          <Text style={styles.heroSubtitle}>{result.date} · 12 доменов</Text>
+          <Text style={styles.heroTitle}>{language === 'ru' ? 'ТВОЙ КОГНИТИВНЫЙ ПРОФИЛЬ' : 'YOUR COGNITIVE PROFILE'}</Text>
+          <Text style={styles.heroSubtitle}>{result.date} · {language === 'ru' ? '12 доменов' : '12 domains'}</Text>
         </LinearGradient>
 
         {/* Radar chart */}
@@ -107,7 +107,7 @@ export default function AssessmentResultScreen() {
 
         {/* Per-domain list */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>По доменам</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{language === 'ru' ? 'По доменам' : 'By domain'}</Text>
           {result.scores.map((s) => {
             const dom = DOMAINS.find(d => d.id === s.domain)!;
             const color = s.level === 'weak' ? '#f43f5e' : s.level === 'strong' ? '#22c55e' : '#fbbf24';
@@ -119,12 +119,14 @@ export default function AssessmentResultScreen() {
                     {language === 'en' ? dom.label_en : dom.label_ru}
                   </Text>
                   <Text style={[styles.rowMeta, { color: colors.textSecondary }]}>
-                    z = {s.z_score >= 0 ? '+' : ''}{s.z_score.toFixed(1)} · {s.percentile}-й перцентиль
+                    z = {s.z_score >= 0 ? '+' : ''}{s.z_score.toFixed(1)} · {language === 'ru' ? `${s.percentile}-й перцентиль` : `${s.percentile}th percentile`}
                   </Text>
                 </View>
                 <View style={[styles.levelBadge, { backgroundColor: color }]}>
                   <Text style={styles.levelText}>
-                    {s.level === 'weak' ? 'СЛАБО' : s.level === 'strong' ? 'СИЛЬНО' : 'СРЕД'}
+                    {language === 'ru'
+                      ? (s.level === 'weak' ? 'СЛАБО' : s.level === 'strong' ? 'СИЛЬНО' : 'СРЕД')
+                      : (s.level === 'weak' ? 'WEAK' : s.level === 'strong' ? 'STRONG' : 'AVG')}
                   </Text>
                 </View>
               </View>
@@ -136,7 +138,7 @@ export default function AssessmentResultScreen() {
         {recommendations.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              💡 Рекомендованные игры (для слабых доменов)
+              💡 {language === 'ru' ? 'Рекомендованные игры (для слабых доменов)' : 'Recommended games (for weak domains)'}
             </Text>
             <View style={styles.recsRow}>
               {recommendations.map((gameId) => {
@@ -159,24 +161,26 @@ export default function AssessmentResultScreen() {
             <TouchableOpacity style={styles.btn} onPress={applyToProfile}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.btnGrad}>
                 <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                <Text style={styles.btnText}>СОХРАНИТЬ ПРОФИЛЬ</Text>
+                <Text style={styles.btnText}>{language === 'ru' ? 'СОХРАНИТЬ ПРОФИЛЬ' : 'SAVE PROFILE'}</Text>
               </LinearGradient>
             </TouchableOpacity>
           ) : (
             <View style={[styles.btn, { backgroundColor: '#22c55e' }]}>
               <View style={styles.btnGrad}>
                 <Ionicons name="checkmark" size={20} color="#FFF" />
-                <Text style={styles.btnText}>ПРОФИЛЬ СОХРАНЁН ✓</Text>
+                <Text style={styles.btnText}>{language === 'ru' ? 'ПРОФИЛЬ СОХРАНЁН ✓' : 'PROFILE SAVED ✓'}</Text>
               </View>
             </View>
           )}
           <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]} onPress={goHome}>
-            <Text style={[styles.btnTextSecondary, { color: colors.text }]}>На главную</Text>
+            <Text style={[styles.btnTextSecondary, { color: colors.text }]}>{language === 'ru' ? 'На главную' : 'Home'}</Text>
           </TouchableOpacity>
         </View>
 
         <Text style={[styles.footnote, { color: colors.textSecondary }]}>
-          Повторный прогон через 3 месяца покажет реальный прогресс по каждому домену.
+          {language === 'ru'
+            ? 'Повторный прогон через 3 месяца покажет реальный прогресс по каждому домену.'
+            : 'A repeat run in 3 months will show real progress in each domain.'}
         </Text>
       </ScrollView>
     </SafeAreaView>

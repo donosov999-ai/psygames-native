@@ -38,7 +38,7 @@ function isVowel(l: string): boolean { return VOWELS.has(l); }
 
 export default function SwitchingTaskGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const { isPreset, str, num } = useGamePreset();
@@ -195,7 +195,7 @@ export default function SwitchingTaskGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{meanRt}мс</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
       </View>
       <View style={[styles.cueBadge, { backgroundColor: cueColor }]}>
         <Ionicons name={trial.task === 'NUMBER' ? 'calculator' : 'text'} size={16} color="#FFF" />
