@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   Linking,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -29,6 +30,8 @@ import { UNLOCK_CODES_ENABLED, isComingSoon } from '@/src/services/unlock';
 // v1.24.3 fix: функции бэкапа использовались без импорта → ReferenceError при тапе
 // на «Экспорт/Импорт бэкапа» (тот же класс бага, что был с UNLOCK_CODES_ENABLED выше).
 import { buildBackupJSON, downloadBackup, pickAndRestoreBackup } from '@/src/services/backup';
+// v1.26.0: локальные напоминания (зарядка/перед сном) — натив-only.
+import { loadReminderSettings, saveReminderSettings, applyReminders, requestReminderPermission, ReminderSettings, DEFAULT_REMINDERS } from '@/src/services/reminders';
 
 // Telegram-аккаунт владельца для запроса кодов разблокировки.
 const OWNER_TG = 'Denis_On999';
@@ -92,6 +95,25 @@ export default function SettingsScreen() {
   }, []);
   const toggleSound = async () => { const v = !soundOn; setSoundOn(v); await setSoundEnabled(v); };
   const toggleHaptic = async () => { const v = !hapticOn; setHapticOn(v); await setHapticEnabled(v); };
+  // v1.26.0: локальные напоминания
+  const [reminders, setReminders] = React.useState<ReminderSettings>(DEFAULT_REMINDERS);
+  React.useEffect(() => { loadReminderSettings().then(setReminders); }, []);
+  const applyAndSaveReminders = async (next: ReminderSettings) => {
+    setReminders(next); await saveReminderSettings(next); await applyReminders(next, language);
+  };
+  const toggleReminder = async (slot: 'morning' | 'evening') => {
+    const turningOn = !reminders[slot];
+    if (turningOn && !(await requestReminderPermission())) {
+      Alert.alert(
+        language === 'ru' ? 'Нужно разрешение' : 'Permission needed',
+        language === 'ru' ? 'Разреши уведомления в настройках устройства, чтобы получать напоминания.' : 'Allow notifications in your device settings to receive reminders.'
+      );
+      return;
+    }
+    await applyAndSaveReminders({ ...reminders, [slot]: turningOn });
+  };
+  const setReminderHour = (slot: 'morning' | 'evening', hour: number) =>
+    applyAndSaveReminders({ ...reminders, [slot === 'morning' ? 'morningHour' : 'eveningHour']: hour });
   const replayOnboarding = async () => {
     try { await AsyncStorage.removeItem('psygames_onboarded'); } catch {}
     router.push('/onboarding' as any);
@@ -527,6 +549,42 @@ export default function SettingsScreen() {
           </View>
           <Switch value={hapticOn} onValueChange={toggleHaptic} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
+
+        {/* Reminders — local notifications (native only; web/Tauri can't schedule) */}
+        {Platform.OS !== 'web' && (
+          <View style={[styles.settingItem, { backgroundColor: colors.surface, flexDirection: 'column', alignItems: 'stretch', gap: 12 }]}>
+            <View style={styles.settingInfo}>
+              <Ionicons name="notifications-outline" size={24} color={colors.primary} />
+              <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Напоминания' : 'Reminders'}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ color: colors.text, fontSize: 15 }}>{language === 'ru' ? '🧠 Зарядка' : '🧠 Warm-up'}</Text>
+              <Switch value={reminders.morning} onValueChange={() => toggleReminder('morning')} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+            </View>
+            {reminders.morning && (
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {[7, 8, 9, 10].map((h) => (
+                  <TouchableOpacity key={h} onPress={() => setReminderHour('morning', h)} style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, backgroundColor: reminders.morningHour === h ? colors.primary : colors.background, borderWidth: 1, borderColor: colors.border }}>
+                    <Text style={{ color: reminders.morningHour === h ? '#FFF' : colors.text, fontWeight: '700' }}>{('0' + h).slice(-2)}:00</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ color: colors.text, fontSize: 15 }}>{language === 'ru' ? '🌙 Перед сном' : '🌙 Before sleep'}</Text>
+              <Switch value={reminders.evening} onValueChange={() => toggleReminder('evening')} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+            </View>
+            {reminders.evening && (
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {[21, 22, 23].map((h) => (
+                  <TouchableOpacity key={h} onPress={() => setReminderHour('evening', h)} style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, backgroundColor: reminders.eveningHour === h ? colors.primary : colors.background, borderWidth: 1, borderColor: colors.border }}>
+                    <Text style={{ color: reminders.eveningHour === h ? '#FFF' : colors.text, fontWeight: '700' }}>{h}:00</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Language */}
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
