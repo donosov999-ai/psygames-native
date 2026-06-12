@@ -20,7 +20,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import type { ProfileDef } from '@/src/constants/profiles';
-import { BUNDLE_ALL_THEMED_PRICE, CORPORATE_PACK_PRICE, CORPORATE_PACK_MAX_CODES, isForSale, formatPrice } from '@/src/constants/profiles';
+import { BUNDLE_ALL_THEMED_PRICE, CORPORATE_PACK_PRICE, CORPORATE_PACK_MAX_CODES, isForSale, formatPrice, MONETIZATION_ENABLED } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 
 const OWNER_TG = 'Denis_On999';
@@ -223,7 +223,8 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 })}
               </View>
 
-              {/* v1.8.0: Bundle CTA — "Все 9 за 4990₽" */}
+              {/* v1.8.0: Bundle CTA — "Все 9 за 4990₽". v1.30.2: скрыто в App-Store-режиме (MONETIZATION_ENABLED). */}
+              {MONETIZATION_ENABLED && (
               <View style={{
                 marginTop: 22,
                 background: 'linear-gradient(135deg, #fbbf24 0%, #f97316 100%)',
@@ -255,9 +256,11 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>Оформить пакет в Telegram</Text>
                 </TouchableOpacity>
               </View>
+              )}
 
               {/* v1.13.0: Corporate Pack — формальный B2B-блок (минимум эмодзи,
-                  деловой язык, премиум-якорь × 10 от Bundle). */}
+                  деловой язык, премиум-якорь × 10 от Bundle). v1.30.2: скрыто в App-Store-режиме. */}
+              {MONETIZATION_ENABLED && (
               <View style={{
                 marginTop: 12,
                 backgroundColor: '#1f2937',
@@ -288,6 +291,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   <Text style={{ color: '#1a1a1a', fontWeight: '800', fontSize: 13 }}>Запросить коммерческое предложение</Text>
                 </TouchableOpacity>
               </View>
+              )}
 
               {/* Inline code button at bottom */}
               <TouchableOpacity
@@ -391,8 +395,8 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
 
                 {!isAccessible(detailProfile.id) && (
                   <View style={{ gap: 10 }}>
-                    {/* v1.8.0: БОЛЬШОЙ ценник + кнопка «Купить» — главный CTA */}
-                    {isForSale(detailProfile) && detailProfile.price_year && (
+                    {/* v1.8.0: БОЛЬШОЙ ценник + кнопка «Купить» — главный CTA. v1.30.2: скрыто в App-Store-режиме. */}
+                    {MONETIZATION_ENABLED && isForSale(detailProfile) && detailProfile.price_year && (
                       <View style={{
                         backgroundColor: '#10b981' + '18',
                         borderWidth: 2,
@@ -428,16 +432,21 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                     >
                       <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>🔑 У меня уже есть код — ввести</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => requestCodeViaTelegram(detailProfile)}
-                      style={{ backgroundColor: '#0088cc', paddingVertical: 12, borderRadius: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
-                    >
-                      <Ionicons name="chatbubble-ellipses" size={16} color="#fff" />
-                      <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Получить консультацию в Telegram</Text>
-                    </TouchableOpacity>
-                    <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
-                      Оплата картой / СБП / крипто · код выдаётся за 5-30 мин (рабочие часы Мск)
-                    </Text>
+                    {/* v1.30.2: консультация/оплата в Telegram скрыты в App-Store-режиме (anti-steering). */}
+                    {MONETIZATION_ENABLED && (
+                      <>
+                        <TouchableOpacity
+                          onPress={() => requestCodeViaTelegram(detailProfile)}
+                          style={{ backgroundColor: '#0088cc', paddingVertical: 12, borderRadius: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+                        >
+                          <Ionicons name="chatbubble-ellipses" size={16} color="#fff" />
+                          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Получить консультацию в Telegram</Text>
+                        </TouchableOpacity>
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
+                          Оплата картой / СБП / крипто · код выдаётся за 5-30 мин (рабочие часы Мск)
+                        </Text>
+                      </>
+                    )}
                   </View>
                 )}
                 {isAccessible(detailProfile.id) && detailProfile.id !== profile.id && (

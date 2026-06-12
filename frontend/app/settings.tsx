@@ -23,6 +23,7 @@ import {
   getSoundEnabled, getHapticEnabled, setSoundEnabled, setHapticEnabled,
 } from '@/src/services/feedback';
 import type { ProfileDef } from '@/src/constants/profiles';
+import { MONETIZATION_ENABLED } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 // v1.16.0: флаг монетизации + helper «скоро» (раньше UNLOCK_CODES_ENABLED
 // использовался без импорта → был undefined → вёл себя как false случайно).
@@ -475,18 +476,23 @@ export default function SettingsScreen() {
                       >
                         <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>🔑 {language === 'ru' ? 'У меня уже есть код — ввести' : 'I already have a code — enter it'}</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => requestCodeViaTelegram(detailProfile)}
-                        style={{ backgroundColor: '#0088cc', paddingVertical: 14, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
-                      >
-                        <Ionicons name="paper-plane" size={18} color="#fff" />
-                        <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>{language === 'ru' ? `Запросить код у @${OWNER_TG}` : `Request a code from @${OWNER_TG}`}</Text>
-                      </TouchableOpacity>
-                      <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
-                        {language === 'ru'
-                          ? <>Напиши Денису в Telegram — он выдаст персональный код доступа{'\n'}за 5 минут (рабочие часы Мск).</>
-                          : <>Message Denis on Telegram — he'll issue a personal access code{'\n'}within 5 minutes (Moscow business hours).</>}
-                      </Text>
+                      {/* v1.30.2: запрос кода в Telegram скрыт в App-Store-режиме (anti-steering). */}
+                      {MONETIZATION_ENABLED && (
+                        <>
+                          <TouchableOpacity
+                            onPress={() => requestCodeViaTelegram(detailProfile)}
+                            style={{ backgroundColor: '#0088cc', paddingVertical: 14, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+                          >
+                            <Ionicons name="paper-plane" size={18} color="#fff" />
+                            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>{language === 'ru' ? `Запросить код у @${OWNER_TG}` : `Request a code from @${OWNER_TG}`}</Text>
+                          </TouchableOpacity>
+                          <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
+                            {language === 'ru'
+                              ? <>Напиши Денису в Telegram — он выдаст персональный код доступа{'\n'}за 5 минут (рабочие часы Мск).</>
+                              : <>Message Denis on Telegram — he'll issue a personal access code{'\n'}within 5 minutes (Moscow business hours).</>}
+                          </Text>
+                        </>
+                      )}
                     </View>
                   )
                 )}
@@ -655,7 +661,9 @@ export default function SettingsScreen() {
       {/* App Info */}
       <View style={styles.appInfo}>
         <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.22.4 · {profile.emoji} {t('profileName_' + profile.id)} · {language === 'ru' ? '48 валидированных парадигм' : '48 validated paradigms'}</Text>
-        <Text style={[styles.appVersion, { color: colors.textSecondary }]}>{language === 'ru' ? 'Клик по профилю → детали + запрос кода в Telegram' : 'Tap a profile → details + request a code on Telegram'}</Text>
+        <Text style={[styles.appVersion, { color: colors.textSecondary }]}>{MONETIZATION_ENABLED
+          ? (language === 'ru' ? 'Клик по профилю → детали + запрос кода в Telegram' : 'Tap a profile → details + request a code on Telegram')
+          : (language === 'ru' ? 'Клик по профилю → детали и разблокировка кодом' : 'Tap a profile → details and unlock with a code')}</Text>
       </View>
       </ScrollView>
     </SafeAreaView>
