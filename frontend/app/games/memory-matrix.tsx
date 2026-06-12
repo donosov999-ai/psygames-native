@@ -29,7 +29,7 @@ export default function MemoryMatrixGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
 
   const gate = useLevelGate('memory_matrix');
   const { isPreset, str, num } = useGamePreset();
@@ -150,7 +150,13 @@ export default function MemoryMatrixGame() {
     }
   };
 
-  const cellSize = Math.min((Math.min(width, 420) - 60 - (gridSize - 1) * 6) / gridSize, 70);
+  // v1.29.1 (мобайл): full-width сетка — зажим 420px + потолок 70 делали её мелкой по центру.
+  // Высотный лимит (хедер+статус ≈ 280) держит ландшафт/десктоп; 110 — потолок больших окон.
+  const cellSize = Math.min(
+    (width - 32 - (gridSize - 1) * 6) / gridSize,
+    (height - 280 - (gridSize - 1) * 6) / gridSize,
+    110
+  );
 
   const renderConfig = () => (
     <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>

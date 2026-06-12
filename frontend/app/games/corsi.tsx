@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView
+  ScrollView, useWindowDimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -42,6 +42,10 @@ export default function CorsiGame() {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
+  // v1.29.1 (мобайл): доска 400×420 фикс ВЫЛЕЗАЛА за экран 390px — теперь скейлится
+  // под ширину (и растёт на больших экранах до ×1.5); позиции и блоки умножаются на scale
+  const { width, height } = useWindowDimensions();
+  const boardScale = Math.min((width - 24) / BOARD_W, (height - 300) / BOARD_H, 1.5);
 
   const gate = useLevelGate('corsi');
   const { isPreset, str, num } = useGamePreset();
@@ -199,31 +203,34 @@ export default function CorsiGame() {
     </ScrollView>
   );
 
-  const renderBoard = () => (
-    <View style={[styles.board, { width: BOARD_W, height: BOARD_H, backgroundColor: colors.surface, borderColor: colors.border }]}>
-      {POS.map((p, i) => {
-        const lit = phase === 'show' && showIdx === i;
-        const tapped = userSeq.includes(i);
-        const lastTapped = userSeq[userSeq.length - 1] === i;
-        const fbColor = feedback === 'right' && lastTapped ? '#22c55e' :
-                        feedback === 'wrong' && lastTapped ? '#f43f5e' :
-                        null;
-        return (
-          <TouchableOpacity key={i}
-            disabled={phase !== 'recall' || feedback !== null}
-            onPress={() => handleTap(i)}
-            style={{
-              position: 'absolute',
-              left: p.x - 30, top: p.y - 30,
-              width: 60, height: 60, borderRadius: 8,
-              backgroundColor: fbColor || (lit ? GRADIENT[1] : tapped ? GRADIENT[0] : '#444'),
-              borderWidth: 2, borderColor: lit ? '#fff' : 'transparent',
-            }}
-          />
-        );
-      })}
-    </View>
-  );
+  const renderBoard = () => {
+    const block = 60 * boardScale;
+    return (
+      <View style={[styles.board, { width: BOARD_W * boardScale, height: BOARD_H * boardScale, backgroundColor: colors.surface, borderColor: colors.border }]}>
+        {POS.map((p, i) => {
+          const lit = phase === 'show' && showIdx === i;
+          const tapped = userSeq.includes(i);
+          const lastTapped = userSeq[userSeq.length - 1] === i;
+          const fbColor = feedback === 'right' && lastTapped ? '#22c55e' :
+                          feedback === 'wrong' && lastTapped ? '#f43f5e' :
+                          null;
+          return (
+            <TouchableOpacity key={i}
+              disabled={phase !== 'recall' || feedback !== null}
+              onPress={() => handleTap(i)}
+              style={{
+                position: 'absolute',
+                left: p.x * boardScale - block / 2, top: p.y * boardScale - block / 2,
+                width: block, height: block, borderRadius: 8,
+                backgroundColor: fbColor || (lit ? GRADIENT[1] : tapped ? GRADIENT[0] : '#444'),
+                borderWidth: 2, borderColor: lit ? '#fff' : 'transparent',
+              }}
+            />
+          );
+        })}
+      </View>
+    );
+  };
 
   const renderShow = () => (
     <View style={styles.playArea}>

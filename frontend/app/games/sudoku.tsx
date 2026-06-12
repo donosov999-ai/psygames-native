@@ -68,7 +68,7 @@ export default function SudokuGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
 
   const { isPreset, str } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
@@ -171,7 +171,9 @@ export default function SudokuGame() {
     }
   };
 
-  const cellSize = Math.floor(Math.min((Math.min(width, 420) - 50) / N, 56));
+  // v1.29.1 (мобайл): full-width поле — зажим 420px + потолок 56 делали его мелким по центру.
+  // Высотный лимит учитывает цифровую панель снизу (~330); 92 — потолок больших окон.
+  const cellSize = Math.floor(Math.min((width - 28) / N, (height - 330) / N, 92));
 
   const renderConfig = () => (
     <View style={styles.configContainer}>

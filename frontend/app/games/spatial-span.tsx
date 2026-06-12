@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,12 +22,14 @@ const SS_BENEFITS = [
 
 type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'result';
 
-const GRID_W = 320;
-
 export default function SpatialSpanGame() {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
+  // v1.29.1 (мобайл): фикс 320px делал сетку узкой по центру — теперь full-width,
+  // высотный лимит держит ландшафт/десктоп, 520 — потолок больших окон
+  const { width, height } = useWindowDimensions();
+  const gridW = Math.min(width - 32, height - 300, 520);
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [gridSize, setGridSize] = useState(4); // 4x4 (16 cells, classic CANTAB)
@@ -138,7 +140,7 @@ export default function SpatialSpanGame() {
     }
   };
 
-  const cellSize = (GRID_W - (gridSize - 1) * 6) / gridSize;
+  const cellSize = (gridW - (gridSize - 1) * 6) / gridSize;
 
   const renderConfig = () => (
     <View style={styles.configContainer}>
@@ -182,7 +184,7 @@ export default function SpatialSpanGame() {
   );
 
   const renderGrid = () => (
-    <View style={[styles.grid, { width: GRID_W }]}>
+    <View style={[styles.grid, { width: gridW }]}>
       {Array.from({ length: cellCount }).map((_, i) => {
         const lit = phase === 'show' && showIdx === i;
         const tapped = userSeq.includes(i);

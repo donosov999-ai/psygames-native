@@ -238,9 +238,13 @@ export default function SchulteGame() {
     return `${secs}.${ms}`;
   };
 
+  // v1.29.1 (мобайл): сетка тянется на ВСЮ ширину экрана — потолок 60px делал её
+  // мелкой по центру (390px телефон, 5×5: было 316px). Лимит по высоте (хедер+HUD ≈ 230)
+  // не даёт вылезти в ландшафте/десктопе; 120 — мягкий потолок для больших окон.
   const cellSize = Math.min(
-    (windowDimensions.width - 40 - (gridSize - 1) * 4) / gridSize,
-    60
+    (windowDimensions.width - 32 - (gridSize - 1) * 4) / gridSize,
+    (windowDimensions.height - 230 - (gridSize - 1) * 4) / gridSize,
+    120
   );
 
   // v1.13.3: ScrollView вокруг configContainer — на Windows / маленьких экранах
