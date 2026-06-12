@@ -563,6 +563,28 @@ const t: Record<string, string> = {
   "scriptDevanagari": "Devanágari",
   "scriptHiragana": "Hiragana",
   "scriptHanzi": "Hanzi",
-  "scriptDigits": "Dígitos"
+  "scriptDigits": "Dígitos",
+  // v1.28.0: Vocab SRS (Polyglot)
+  "vocabSrs": "Vocabulário SRS",
+  "vocabSrsDesc": "Aprenda palavras com repetição espaçada",
+  "vocabSrsIntroDesc": "O núcleo do aprendizado de vocabulário: repetição espaçada (SM-2, estilo Anki). Um quiz: palavra → 4 opções de tradução. Se errar, o cartão volta hoje mesmo; se acertar, ele se afasta 1 → 3 → 7+ dias, bem antes de você esquecer. A avaliação é automática: uma resposta correta e rápida estende mais o intervalo. Adicione suas próprias palavras do curso no formato «palavra = tradução». O progresso é salvo por par de idiomas.",
+  "benefitVocab1": "O vocabulário cresce todo dia",
+  "benefitVocab2": "Revisões logo antes de esquecer",
+  "benefitVocab3": "Suas próprias listas de palavras",
+  "skillVocabulary": "Treina: vocabulário",
+  "srsNewPerSession": "Novas por sessão",
+  "srsDirection": "Direção",
+  "srsRecognize": "Reconhecimento",
+  "srsRecall": "Evocação",
+  "srsMyWords": "Minhas palavras",
+  "srsAddWordsHint": "Um par por linha: palavra = tradução",
+  "srsAdded": "Adicionadas",
+  "srsAddBtn": "Adicionar",
+  "srsLearnedLabel": "Aprendidas",
+  "srsDueLabel": "Para revisar",
+  "srsOwnLabel": "Próprias",
+  "srsAllDone": "Tudo feito por hoje!",
+  "srsNextDue": "Próxima revisão",
+  "srsNew": "nova"
 };
 export default t;

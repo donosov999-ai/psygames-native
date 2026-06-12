@@ -563,6 +563,28 @@ const t: Record<string, string> = {
   "scriptDevanagari": "देवनागरी",
   "scriptHiragana": "हिरागाना",
   "scriptHanzi": "चीनी अक्षर",
-  "scriptDigits": "अंक"
+  "scriptDigits": "अंक",
+  // v1.28.0: Vocab SRS (Polyglot)
+  "vocabSrs": "शब्दावली SRS",
+  "vocabSrsDesc": "अंतराल दोहराव से शब्द सीखें",
+  "vocabSrsIntroDesc": "शब्दावली सीखने का मूल तरीक़ा — अंतराल दोहराव (SM-2, Anki-शैली)। क्विज़: शब्द → अनुवाद के 4 विकल्प। ग़लती हुई — कार्ड आज ही वापस आएगा; सही उत्तर — कार्ड 1 → 3 → 7+ दिन आगे चला जाएगा, ठीक भूलने से पहले। मूल्यांकन स्वचालित है: तेज़ सही उत्तर अंतराल को और बढ़ाता है। अपने कोर्स के शब्द «शब्द = अनुवाद» प्रारूप में जोड़ें। प्रगति हर भाषा-जोड़ी के लिए अलग सहेजी जाती है।",
+  "benefitVocab1": "शब्दावली हर दिन बढ़ती है",
+  "benefitVocab2": "भूलने से ठीक पहले दोहराव",
+  "benefitVocab3": "अपने कोर्स के लिए अपनी शब्द सूचियाँ",
+  "skillVocabulary": "अभ्यास: शब्दावली",
+  "srsNewPerSession": "प्रति सत्र नए शब्द",
+  "srsDirection": "दिशा",
+  "srsRecognize": "पहचान",
+  "srsRecall": "स्मरण",
+  "srsMyWords": "मेरे शब्द",
+  "srsAddWordsHint": "प्रति पंक्ति एक जोड़ी: शब्द = अनुवाद",
+  "srsAdded": "जोड़े गए",
+  "srsAddBtn": "जोड़ें",
+  "srsLearnedLabel": "सीखे गए",
+  "srsDueLabel": "दोहराव बाक़ी",
+  "srsOwnLabel": "अपने",
+  "srsAllDone": "आज के लिए बस!",
+  "srsNextDue": "अगला दोहराव",
+  "srsNew": "नया"
 };
 export default t;

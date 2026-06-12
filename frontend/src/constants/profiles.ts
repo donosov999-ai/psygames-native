@@ -651,6 +651,7 @@ const POLYGLOT: ProfileDef = {
   allowed_games: [
     // Base (по категориям)
     'word_pairs',        // memory — ассоциации слово↔значение (ядро вокаба)
+    'vocab_srs',         // memory — SRS-словарь SM-2 (v1.28.0, TIER1 п.1: ядро заучивания)
     'proofreading',      // attention — скан букв/скрипта (выбор алфавита!)
     'anagrams',          // logic — орфография/работа с буквами
     'sdmt',              // action — скорость обработки (быстрый доступ к лексикону)

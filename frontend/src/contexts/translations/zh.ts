@@ -563,6 +563,28 @@ const t: Record<string, string> = {
   "scriptDevanagari": "天城文",
   "scriptHiragana": "平假名",
   "scriptHanzi": "汉字",
-  "scriptDigits": "数字"
+  "scriptDigits": "数字",
+  // v1.28.0: Vocab SRS (Polyglot)
+  "vocabSrs": "词汇 SRS",
+  "vocabSrsDesc": "用间隔重复法背单词",
+  "vocabSrsIntroDesc": "背单词的核心方法——间隔重复（SM-2，Anki 同款算法）。测验形式：给出单词 → 4 个翻译选项。答错——卡片今天就会再次出现；答对——间隔延长到 1 → 3 → 7+ 天，正好在你即将遗忘之前复习。评分自动完成：快速答对会更大幅地延长间隔。还可以按「单词 = 翻译」的格式添加自己课程的词表。每个语言对的进度单独保存。",
+  "benefitVocab1": "词汇量每天增长",
+  "benefitVocab2": "在遗忘前精准复习",
+  "benefitVocab3": "自定义词表配合你的课程",
+  "skillVocabulary": "训练：词汇量",
+  "srsNewPerSession": "每次新词数",
+  "srsDirection": "方向",
+  "srsRecognize": "认读",
+  "srsRecall": "回忆",
+  "srsMyWords": "我的单词",
+  "srsAddWordsHint": "每行一对：单词 = 翻译",
+  "srsAdded": "已添加",
+  "srsAddBtn": "添加",
+  "srsLearnedLabel": "已学",
+  "srsDueLabel": "待复习",
+  "srsOwnLabel": "自定义",
+  "srsAllDone": "今天的任务完成了！",
+  "srsNextDue": "下次复习",
+  "srsNew": "新"
 };
 export default t;

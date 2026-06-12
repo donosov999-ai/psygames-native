@@ -563,6 +563,28 @@ const t: Record<string, string> = {
   "scriptDevanagari": "Devanagari",
   "scriptHiragana": "Hiragana",
   "scriptHanzi": "Hanzi",
-  "scriptDigits": "Ziffern"
+  "scriptDigits": "Ziffern",
+  // v1.28.0: Vocab SRS (Polyglot)
+  "vocabSrs": "Vokabeln SRS",
+  "vocabSrsDesc": "Wörter lernen mit Spaced Repetition",
+  "vocabSrsIntroDesc": "Der Kern des Vokabellernens: Spaced Repetition (SM-2, Anki-Stil). Ein Quiz: Wort → 4 Übersetzungsoptionen. Bei einem Fehler kommt die Karte noch heute zurück; bei richtiger Antwort rückt sie 1 → 3 → 7+ Tage weiter — genau bevor du sie vergisst. Die Bewertung erfolgt automatisch: Eine schnelle richtige Antwort verlängert das Intervall stärker. Füge eigene Kurswörter im Format „Wort = Übersetzung“ hinzu. Der Fortschritt wird pro Sprachpaar gespeichert.",
+  "benefitVocab1": "Der Wortschatz wächst jeden Tag",
+  "benefitVocab2": "Wiederholungen kurz vor dem Vergessen",
+  "benefitVocab3": "Eigene Wortlisten für deinen Kurs",
+  "skillVocabulary": "Trainiert: Wortschatz",
+  "srsNewPerSession": "Neue pro Sitzung",
+  "srsDirection": "Richtung",
+  "srsRecognize": "Erkennen",
+  "srsRecall": "Abrufen",
+  "srsMyWords": "Meine Wörter",
+  "srsAddWordsHint": "Ein Paar pro Zeile: Wort = Übersetzung",
+  "srsAdded": "Hinzugefügt",
+  "srsAddBtn": "Hinzufügen",
+  "srsLearnedLabel": "Gelernt",
+  "srsDueLabel": "Fällig",
+  "srsOwnLabel": "Eigene",
+  "srsAllDone": "Für heute alles geschafft!",
+  "srsNextDue": "Nächste Wiederholung",
+  "srsNew": "neu"
 };
 export default t;

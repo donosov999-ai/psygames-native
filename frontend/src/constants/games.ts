@@ -91,6 +91,17 @@ export const GAMES: GameConfig[] = [
     route: '/games/word-pairs',
     category: 'memory',
   },
+  // v1.28.0 (Полиглот TIER 1 п.1): SRS-словарь — интервальные повторы SM-2
+  {
+    id: 'vocab_srs',
+    nameKey: 'vocabSrs',
+    descKey: 'vocabSrsDesc',
+    skillKey: 'skillVocabulary',
+    gradient: ['#6366f1', '#8b5cf6'],
+    icon: 'school',
+    route: '/games/vocab-srs',
+    category: 'memory',
+  },
   {
     id: 'mnemonics',
     nameKey: 'mnemonics',
