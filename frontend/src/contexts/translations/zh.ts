@@ -1,6 +1,6 @@
 // AUTO-GENERATED translation overlay (zh). Источник: workflow translate-psygames-i18n.
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
-// zh/hi — машинное качество, нужна вычитка нативом до сторов.
+// Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
   "home": "首页",
   "statistics": "统计",
@@ -17,11 +17,11 @@ const t: Record<string, string> = {
   "counterDesc": "凑出 X+Y=Z",
   "proofreadingDesc": "找出指定的字母",
   "targetsDesc": "对彩色物体做出反应",
-  "skillAttention": "训练：专注力",
+  "skillAttention": "训练：注意力",
   "skillMemory": "训练：记忆力",
-  "skillSequence": "训练：记忆能力",
+  "skillSequence": "训练：序列记忆",
   "skillMath": "训练：心算",
-  "skillFocus": "训练：注意力",
+  "skillFocus": "训练：专注力",
   "skillReaction": "训练：反应速度",
   "trainingLabel": "训练内容",
   "schulteIntroDesc": "尽可能快地按顺序找出符号。5 种变体对应不同难度：\n\n• 🔢 数字 1→25（经典，最简单）\n• 🔢 数字 25→1（倒序——更难）\n• 🔤 字母 A→Z（原理相同，字母表）\n• 🔤 字母 Z→A（倒序字母表——更难）\n• 🔀 1-A-2-B-3-C（Schulte-Gorbov：在两个序列之间并行切换）\n\n彩色模式增加视觉干扰，挑战更大。拓展周边视野，加快信息扫描，并训练持续注意力。",
@@ -554,6 +554,15 @@ const t: Record<string, string> = {
   "profileDesc_women": "适合碎片休息的解压休闲游戏：图片配对、找不同、隐藏物品、数独",
   "profileName_polyglot": "语言 / 多语者",
   "profileDesc_polyglot": "面向语言学习：言语记忆 · 联想 · 流畅性 · 文字系统",
-  "switcherIntro": "每个档案都有自己的游戏组合和热身清单。主题档案需用主码解锁——点击已锁定的档案查看详情，并在 Telegram 获取代码。"
+  "switcherIntro": "每个档案都有自己的游戏组合和热身清单。主题档案需用主访问码解锁——点击已锁定的档案查看详情，并在 Telegram 获取代码。",
+  // v1.27.0: script modes (Polyglot)
+  "scriptLabel": "文字",
+  "scriptLatin": "拉丁字母",
+  "scriptCyrillic": "西里尔字母",
+  "scriptGreek": "希腊字母",
+  "scriptDevanagari": "天城文",
+  "scriptHiragana": "平假名",
+  "scriptHanzi": "汉字",
+  "scriptDigits": "数字"
 };
 export default t;

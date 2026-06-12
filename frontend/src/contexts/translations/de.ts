@@ -554,6 +554,15 @@ const t: Record<string, string> = {
   "profileDesc_women": "Fesselnde Casual-Spiele für Mikropausen: Paare, Unterschiede, Wimmelbild, Sudoku",
   "profileName_polyglot": "Sprachen / Polyglott",
   "profileDesc_polyglot": "Für Sprachen: verbales Gedächtnis · Assoziationen · Flüssigkeit · Schriften",
-  "switcherIntro": "Jedes Profil hat seinen eigenen Spielesatz und seine Warm-up-Playlist. Themenprofile werden mit einem Master-Code freigeschaltet — tippe auf ein gesperrtes Profil, um Details zu sehen und einen Code über Telegram zu erhalten."
+  "switcherIntro": "Jedes Profil hat seinen eigenen Spielesatz und seine Warm-up-Playlist. Themenprofile werden mit einem Master-Code freigeschaltet — tippe auf ein gesperrtes Profil, um Details zu sehen und einen Code über Telegram zu erhalten.",
+  // v1.27.0: script modes (Polyglot)
+  "scriptLabel": "Schrift",
+  "scriptLatin": "Lateinisch",
+  "scriptCyrillic": "Kyrillisch",
+  "scriptGreek": "Griechisch",
+  "scriptDevanagari": "Devanagari",
+  "scriptHiragana": "Hiragana",
+  "scriptHanzi": "Hanzi",
+  "scriptDigits": "Ziffern"
 };
 export default t;

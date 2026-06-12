@@ -17,7 +17,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
-import { RUSSIAN_ALPHABET, ENGLISH_ALPHABET } from '@/src/constants/games';
+import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 
 const GRADIENT = ['#a8edea', '#fed6e3'];
 
@@ -40,7 +40,7 @@ export default function ProofreadingGame() {
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [rows, setRows] = useState(() => num('rows', 14));
   const [cols, setCols] = useState(() => num('cols', 12));
-  const [mode, setMode] = useState<'latin' | 'cyrillic' | 'digits'>(() => (str('mode', language === 'ru' ? 'cyrillic' : 'latin') as 'latin' | 'cyrillic' | 'digits'));
+  const [mode, setMode] = useState<ScriptId | 'digits'>(() => (str('mode', language === 'ru' ? 'cyrillic' : 'latin') as ScriptId | 'digits'));
   const [wrongFlash, setWrongFlash] = useState<number | null>(null);
   const [grid, setGrid] = useState<string[]>([]);
   const [targetLetters, setTargetLetters] = useState<string[]>([]);
@@ -58,7 +58,7 @@ export default function ProofreadingGame() {
   }, []);
 
   const generateGrid = () => {
-    const alphabet = mode === 'digits' ? '0123456789' : mode === 'cyrillic' ? RUSSIAN_ALPHABET : ENGLISH_ALPHABET;
+    const alphabet = mode === 'digits' ? '0123456789' : SCRIPTS[mode].chars;
     const totalCells = rows * cols;
     
     // Generate random letters
@@ -172,13 +172,13 @@ export default function ProofreadingGame() {
           </Text>
         </View>
 
-        {/* Mode: letters / digits (как в старом app — Режим буквы/цифры) */}
+        {/* Скрипт-режимы (Полиглот v1.27.0): 6 письменностей + цифры */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {language === 'ru' ? 'Режим' : 'Mode'}
+            {t('scriptLabel')}
           </Text>
           <View style={styles.optionButtons}>
-            {(['latin', 'cyrillic', 'digits'] as const).map((m) => (
+            {([...SCRIPT_IDS, 'digits'] as const).map((m) => (
               <TouchableOpacity
                 key={m}
                 style={[
@@ -189,9 +189,7 @@ export default function ProofreadingGame() {
                 onPress={() => setMode(m)}
               >
                 <Text style={[styles.sizeButtonText, { color: mode === m ? '#333' : colors.text }]}>
-                  {m === 'latin' ? (language === 'ru' ? 'Латиница' : 'Latin')
-                    : m === 'cyrillic' ? (language === 'ru' ? 'Кириллица' : 'Cyrillic')
-                    : (language === 'ru' ? 'Цифры' : 'Digits')}
+                  {t(m === 'digits' ? 'scriptDigits' : SCRIPTS[m].labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}

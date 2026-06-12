@@ -21,12 +21,9 @@ import { LEVELS_BY_GAME } from '@/src/constants/level-progression';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 
 const GRADIENT = ['#667eea', '#764ba2'];
-
-// Russian and English alphabets for letter mode
-const RUSSIAN_LETTERS = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ';
-const ENGLISH_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 // Benefits for intro screen
 const SCHULTE_BENEFITS = [
@@ -56,6 +53,8 @@ export default function SchulteGame() {
   const [colorMode, setColorMode] = useState(false);
   const [contentMode, setContentMode] = useState<ContentMode>('numbers');
   const [direction, setDirection] = useState<Direction>('forward');
+  // v1.27.0 (Полиглот): письменность для letters/mixed — латиница/кириллица/греческий/деванагари/кана/иероглифы
+  const [script, setScript] = useState<ScriptId>(language === 'ru' ? 'cyrillic' : 'latin');
 
   // При смене на mixed — direction всегда forward (backward бессмыслен)
   useEffect(() => {
@@ -63,6 +62,15 @@ export default function SchulteGame() {
       setDirection('forward');
     }
   }, [contentMode]);
+
+  // letters: сетка не может быть больше алфавита (greek 24 < 5×5 — скрыт фильтром чипов);
+  // кламп защищает и старый кейс «выбрал 8×8, потом переключился на буквы»
+  const lettersMaxSize = Math.floor(Math.sqrt(SCRIPTS[script].chars.length));
+  useEffect(() => {
+    if (contentMode === 'letters' && gridSize > lettersMaxSize) {
+      setGridSize(lettersMaxSize);
+    }
+  }, [contentMode, script]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Level-progression: which grid sizes are unlocked for this themed profile?
   // Personal profiles get an empty array meaning "no gating".
@@ -122,8 +130,8 @@ export default function SchulteGame() {
       items = Array.from({ length: totalCells }, (_, i) => i + 1);
       orderedSequence = [...items];
     } else if (contentMode === 'letters') {
-      // Letters mode: A to N (based on language) → forward, либо Я to А → backward
-      const alphabet = language === 'ru' ? RUSSIAN_LETTERS : ENGLISH_LETTERS;
+      // Letters mode: первые N символов выбранной письменности → forward, либо реверс
+      const alphabet = SCRIPTS[script].chars;
       items = alphabet.slice(0, totalCells).split('');
       orderedSequence = [...items];
     } else {
@@ -133,7 +141,7 @@ export default function SchulteGame() {
       // backward для mixed не применяется (всегда forward).
       const half = Math.ceil(totalCells / 2);
       const numbers = Array.from({ length: half }, (_, i) => i + 1);
-      const alphabet = language === 'ru' ? RUSSIAN_LETTERS : ENGLISH_LETTERS;
+      const alphabet = SCRIPTS[script].chars;
       const letters = alphabet.slice(0, totalCells - half).split('');
       // interleave: 1, А, 2, Б, 3, В, ...
       orderedSequence = [];
@@ -163,7 +171,7 @@ export default function SchulteGame() {
     setGrid(items);
     setCellColors(colors);
     setSequence(orderedSequence);
-  }, [gridSize, contentMode, language, direction]);
+  }, [gridSize, contentMode, script, direction]);
 
   const startGame = () => {
     generateGrid();
@@ -206,6 +214,7 @@ export default function SchulteGame() {
               errors,
               total_cells: totalCells,
               mean_rt_per_cell: totalCells > 0 ? finalTime / totalCells : 0,
+              ...(contentMode !== 'numbers' ? { script } : {}),
             },
           });
         } catch (error) {
@@ -326,6 +335,33 @@ export default function SchulteGame() {
         </View>
       </View>
 
+      {/* v1.27.0 (Полиглот): выбор письменности для letters/mixed.
+          Для letters скрыты алфавиты короче 25 символов (greek 24 < 5×5). */}
+      {contentMode !== 'numbers' && (
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('scriptLabel')}</Text>
+          <View style={styles.optionButtons}>
+            {SCRIPT_IDS
+              .filter((id) => contentMode === 'mixed' || SCRIPTS[id].chars.length >= 25)
+              .map((id) => (
+                <TouchableOpacity
+                  key={id}
+                  style={[
+                    styles.sizeButton,
+                    script === id && { backgroundColor: GRADIENT[0] },
+                    script !== id && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                  ]}
+                  onPress={() => setScript(id)}
+                >
+                  <Text style={[styles.sizeButtonText, { color: script === id ? '#FFFFFF' : colors.text }]}>
+                    {t(SCRIPTS[id].labelKey)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+          </View>
+        </View>
+      )}
+
       {/* v1.10.0: Direction toggle — forward (1→25 / А→Я) или backward.
           Скрыт для mixed-режима (там всегда forward). */}
       {contentMode !== 'mixed' && (
@@ -348,9 +384,9 @@ export default function SchulteGame() {
                 color={direction === 'forward' ? '#FFFFFF' : colors.text}
               />
               <Text style={[styles.modeButtonText, { color: direction === 'forward' ? '#FFFFFF' : colors.text }]}>
-                {language === 'ru'
-                  ? (contentMode === 'numbers' ? '1 → 25' : 'А → Я')
-                  : (contentMode === 'numbers' ? '1 → 25' : 'A → Z')}
+                {contentMode === 'numbers'
+                  ? '1 → 25'
+                  : `${SCRIPTS[script].chars[0]} → ${SCRIPTS[script].chars[SCRIPTS[script].chars.length - 1]}`}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -367,9 +403,9 @@ export default function SchulteGame() {
                 color={direction === 'backward' ? '#FFFFFF' : colors.text}
               />
               <Text style={[styles.modeButtonText, { color: direction === 'backward' ? '#FFFFFF' : colors.text }]}>
-                {language === 'ru'
-                  ? (contentMode === 'numbers' ? '25 → 1' : 'Я → А')
-                  : (contentMode === 'numbers' ? '25 → 1' : 'Z → A')}
+                {contentMode === 'numbers'
+                  ? '25 → 1'
+                  : `${SCRIPTS[script].chars[SCRIPTS[script].chars.length - 1]} → ${SCRIPTS[script].chars[0]}`}
               </Text>
             </TouchableOpacity>
           </View>
@@ -386,9 +422,8 @@ export default function SchulteGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('size')}</Text>
         <View style={styles.optionButtons}>
           {[5, 6, 7, 8, 9, 10].map((size) => {
-            // Limit max size for letters mode based on alphabet length
-            const maxLetters = language === 'ru' ? 29 : 26;
-            const maxSize = contentMode === 'letters' ? Math.floor(Math.sqrt(maxLetters)) : 10;
+            // Limit max size for letters mode based on selected script length
+            const maxSize = contentMode === 'letters' ? lettersMaxSize : 10;
             const modeDisabled = size > maxSize;
             // Level-progression lock (themed profiles only)
             const sizeKey = `${size}x${size}`;

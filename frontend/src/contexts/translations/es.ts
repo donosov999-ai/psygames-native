@@ -554,6 +554,15 @@ const t: Record<string, string> = {
   "profileDesc_women": "Juegos casuales adictivos para microdescansos: parejas, diferencias, objetos ocultos, sudoku",
   "profileName_polyglot": "Idiomas / Políglota",
   "profileDesc_polyglot": "Para idiomas: memoria verbal · asociaciones · fluidez · alfabetos",
-  "switcherIntro": "Cada perfil tiene su propio conjunto de juegos y su playlist de calentamiento. Los temáticos se desbloquean con un código maestro: toca un perfil bloqueado para ver los detalles y conseguir un código por Telegram."
+  "switcherIntro": "Cada perfil tiene su propio conjunto de juegos y su playlist de calentamiento. Los temáticos se desbloquean con un código maestro: toca un perfil bloqueado para ver los detalles y conseguir un código por Telegram.",
+  // v1.27.0: script modes (Polyglot)
+  "scriptLabel": "Alfabeto",
+  "scriptLatin": "Latino",
+  "scriptCyrillic": "Cirílico",
+  "scriptGreek": "Griego",
+  "scriptDevanagari": "Devanagari",
+  "scriptHiragana": "Hiragana",
+  "scriptHanzi": "Hanzi",
+  "scriptDigits": "Dígitos"
 };
 export default t;
