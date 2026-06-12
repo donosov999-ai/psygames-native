@@ -5,7 +5,8 @@
  *   - isLocked(levelKey): true if this level is gated for the active profile
  *     (false for personal profiles, false for first level, false if already unlocked)
  *   - nextHint: human-readable string "🔒 Следующий 6×6: пройди 5×5 за ≤25 сек · прогресс 0/1"
- *     (or null if profile is personal / all unlocked / no progression configured)
+ *     (or null if profile is personal / all unlocked / no progression configured;
+ *     EN UI builds "🔒 Next 6×6: … · progress 0/1" via label_en/human_hint_en)
  *   - isThemed: convenience flag if the active profile is a themed (locked) one
  *
  * Usage:
@@ -16,6 +17,7 @@
 
 import { useEffect, useState } from 'react';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { useLanguage } from '@/src/contexts/LanguageContext';
 import { getUnlockedLevels, getNextLockedLevel } from '@/src/services/level-unlocks';
 
 export interface LevelGate {
@@ -27,6 +29,7 @@ export interface LevelGate {
 
 export function useLevelGate(gameId: string): LevelGate {
   const { profile } = useProfile();
+  const { language } = useLanguage();
   const isThemed = profile.group === 'themed';
   const [unlockedSet, setUnlockedSet] = useState<Set<string>>(new Set());
   const [nextHint, setNextHint] = useState<string | null>(null);
@@ -47,15 +50,19 @@ export function useLevelGate(gameId: string): LevelGate {
       setUnlockedSet(new Set(unlocked));
       if (next) {
         const progressTail = next.consecutiveDone > 0
-          ? ` · прогресс ${next.consecutiveDone}/${next.condition.consecutive ?? 1}`
+          ? (language === 'ru'
+            ? ` · прогресс ${next.consecutiveDone}/${next.condition.consecutive ?? 1}`
+            : ` · progress ${next.consecutiveDone}/${next.condition.consecutive ?? 1}`)
           : '';
-        setNextHint(`🔒 Следующий ${next.level.label}: ${next.condition.human_hint}${progressTail}`);
+        setNextHint(language === 'ru'
+          ? `🔒 Следующий ${next.level.label}: ${next.condition.human_hint}${progressTail}`
+          : `🔒 Next ${next.level.label_en ?? next.level.label}: ${next.condition.human_hint_en ?? next.condition.human_hint}${progressTail}`);
       } else {
         setNextHint(null);
       }
     })();
     return () => { cancelled = true; };
-  }, [isThemed, profile.person, gameId]);
+  }, [isThemed, profile.person, gameId, language]);
 
   const isLocked = (levelKey: string): boolean => {
     // Personal profiles never gate

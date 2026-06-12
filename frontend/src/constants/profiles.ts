@@ -36,17 +36,26 @@ export interface ProfileDef {
   description: string;
   /** Full description shown in Welcome modal and profile detail. Optional. */
   long_description?: string;
+  /** EN-перевод long_description (показывается при UI language = en). RU — источник истины. */
+  long_description_en?: string;
   /** "Кому подходит" badge — 1-2 words. */
   audience?: string;
+  /** EN-перевод audience badge. */
+  audience_en?: string;
   /** Typical session length. */
   session_minutes?: string;
   /** Sales hook — 1 короткая эмоциональная фраза для верха модалки.
    *  Цель: продать профиль за 3 сек чтения. (v1.6.0) */
   sales_hook?: string;
+  /** EN-перевод sales_hook. */
+  sales_hook_en?: string;
   /** v1.12.0: Краткая ссылка на научное исследование за цифрой в hook.
    *  Премиум-аудитория (врачи, учёные) проверяет источники — без них
    *  выглядит как маркетинг-ложь. Формат: "(Автор et al., год, журнал)" */
   sales_hook_source?: string;
+  /** EN-перевод sales_hook_source — только там, где в RU-варианте есть русская
+   *  проза (чисто латинские цитаты не дублируем — fallback на RU-поле). */
+  sales_hook_source_en?: string;
   /** v1.13.0: Tier визуального отделения профиля.
    *  - 'trial' = FREE-profile, funnel-tier (выделять зелёным "TRIAL" бейджем)
    *  - 'owner' = ODV999, не для продажи (выделять серым)
@@ -84,9 +93,12 @@ const ODV999: ProfileDef = {
   color: '#fbbf24',
   description: 'Все 48 игр · Зарядка · Financial · Assessment',
   long_description: 'Полный доступ ко всему приложению — все 48 игр, Утренняя Зарядка, Financial Brain Day, G1 Assessment. Для владельца программы (Денис, ODV999) и его доверенных лиц. Разблокируется одним мастер-кодом.',
+  long_description_en: 'Full access to the entire app — all 48 games, Morning Warm-up, Financial Brain Day, G1 Assessment. For the program owner (Denis, ODV999) and his trusted circle. Unlocked with a single master code.',
   audience: 'Владелец · полный доступ',
+  audience_en: 'Owner · full access',
   session_minutes: '5-40 мин',
   sales_hook: '🛠 Полный набор владельца — все 48 тренажёров, без ограничений. Выдаётся только лично.',
+  sales_hook_en: '🛠 The full owner kit — all 48 trainers, no limits. Granted in person only.',
   // price_year не задан → "не продаётся" (см. helper isForSale)
   tier: 'owner',
   group: 'themed',
@@ -119,9 +131,12 @@ const CHESS: ProfileDef = {
   color: '#1f2937',
   description: 'Расчёт ходов · spatial · sustained attention',
   long_description: 'Тренировка ключевых для шахмат когнитивных функций: пространственное представление позиций (Mental Rotation), планирование ходов вперёд (Tower of London), удержание варианта расчёта (N-back), внимание на длинных партиях (CPT 4-12 мин). Подходит для турнирных шахматистов от 1500 ELO и тренеров.',
+  long_description_en: 'Trains the cognitive functions that matter most in chess: spatial visualization of positions (Mental Rotation), planning moves ahead (Tower of London), holding a calculation line in mind (N-back), sustained attention through long games (CPT, 4-12 min). Suited for tournament players rated 1500+ ELO and for coaches.',
   audience: 'Шахматисты, тренеры, шахматные школы',
+  audience_en: 'Chess players, coaches, chess schools',
   session_minutes: '10-25 мин',
   sales_hook: '♟ Тренируй то, что качают Карлсен и Каруана между турнирами. +100-150 ELO за 3 месяца.',
+  sales_hook_en: '♟ Train what Carlsen and Caruana work on between tournaments. +100-150 ELO in 3 months.',
   sales_hook_source: 'Burgoyne et al., 2016, Intelligence — meta-analysis chess+cognition (r=0.24 fluid intelligence ↔ ELO)',
   price_year: 690,
   group: 'themed',
@@ -165,9 +180,12 @@ const KIDS: ProfileDef = {
   color: '#10b981',
   description: 'Память · счёт · реакция · без сложных абстракций',
   long_description: 'Девять игр, которые ребёнок 7-12 лет понимает без объяснений: парные картинки, поиск отличий, Ханойская башня, устный счёт, Шульте, реакция на мишени, анаграммы. Сессии короткие (3-5 мин), с позитивным подкреплением и рекордами. Подходит для родителей, развивающих центров, начальной школы.',
+  long_description_en: 'Nine games a 7-12 year old understands with no explanation needed: picture pairs, spot the difference, Tower of Hanoi, mental math, Schulte tables, target reaction, anagrams. Sessions are short (3-5 min), with positive reinforcement and personal records. Great for parents, learning centers, and elementary school.',
   audience: 'Дети 7-12 лет, родители',
+  audience_en: 'Kids 7-12, parents',
   session_minutes: '3-5 мин',
   sales_hook: '🧒 Развивающий центр в кармане. 5 мин после школы — заметный прогресс к концу четверти.',
+  sales_hook_en: '🧒 A learning center in your pocket. 5 minutes after school — visible progress by the end of the term.',
   price_year: 490,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: covers all 4 cats with 5-game bias on action (speed/math) for fun
@@ -210,9 +228,12 @@ const VASILYEVA: ProfileDef = {
   color: '#0ea5e9',
   description: 'Поле зрения · скорость глаз · удержание текста',
   long_description: 'Универсальный профиль для всех курсов скорочтения. Расширение поля зрения (таблицы Шульте), быстрый scan (Visual Search), внимание к буквам (Proofreading, Anagrams), удержание прочитанного (Reading Span, Story Recall), беглость речи (Phonemic Fluency). Применяется в школах скорочтения, репетиторских центрах, корпоративных программах ускоренного чтения для топ-менеджеров. Среди клиентов — Школа скорочтения Васильевой (Екатеринбург), репетиторские центры, частные тренеры.',
+  long_description_en: 'A universal profile for any speed-reading course. Visual span expansion (Schulte tables), rapid scanning (Visual Search), letter-level attention (Proofreading, Anagrams), retention of what you read (Reading Span, Story Recall), verbal fluency (Phonemic Fluency). Used in speed-reading schools, tutoring centers, and corporate fast-reading programs for executives. Clients include the Vasilyeva Speed Reading School (Yekaterinburg), tutoring centers, and private coaches.',
   audience: 'Школы скорочтения · репетиторы · топ-менеджеры',
+  audience_en: 'Speed-reading schools · tutors · executives',
   session_minutes: '8-12 мин',
   sales_hook: '📖 Поле зрения шире на 30% к 4-й неделе. Удержание прочитанного +40%.',
+  sales_hook_en: '📖 Visual span 30% wider by week 4. Retention of what you read +40%.',
   sales_hook_source: 'Edwards et al., 2005, J Gerontol — UFOV training expands visual span 22-35% (10-15 hours practice)',
   price_year: 690,
   group: 'themed',
@@ -256,10 +277,14 @@ const NZT48: ProfileDef = {
   color: '#a855f7',
   description: 'Полная батарея префронталки · максимум',
   long_description: 'Публичный аналог личной программы Дениса. Девять самых научно-обоснованных тренажёров: Dual N-back (WM), CPT (sustained attention), Mental Rotation 3D (spatial), Stroop/Flanker (inhibition), Switching (flexibility), Tower of London (planning), SDMT (speed), BART (risk), Phonemic Fluency (verbal). Программа на 25-40 мин. Включает Financial Brain Day каждые 2 недели.',
+  long_description_en: 'The public counterpart of the personal program built by Denis. Nine of the most science-backed trainers: Dual N-back (WM), CPT (sustained attention), Mental Rotation 3D (spatial), Stroop/Flanker (inhibition), Switching (flexibility), Tower of London (planning), SDMT (speed), BART (risk), Phonemic Fluency (verbal). A 25-40 minute program. Includes Financial Brain Day every 2 weeks.',
   audience: 'Биохакеры, серьёзный когнитивный тренинг',
+  audience_en: 'Biohackers, serious cognitive training',
   session_minutes: '25-40 мин',
   sales_hook: '💊 NZT-48 из фильма — но реально. Полная батарея префронталки уровня CANTAB.',
+  sales_hook_en: '💊 NZT-48 from the movie — but real. A full CANTAB-grade prefrontal battery.',
   sales_hook_source: 'Jaeggi et al., 2008, PNAS — Dual N-back training улучшает fluid intelligence (transfer-эффект на IQ, d=0.65)',
+  sales_hook_source_en: 'Jaeggi et al., 2008, PNAS — Dual N-back training improves fluid intelligence (transfer effect on IQ, d=0.65)',
   price_year: 990,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: balanced full battery
@@ -301,9 +326,12 @@ const FREE: ProfileDef = {
   color: '#f59e0b',
   description: '9 тренажёров бесплатно · попробуй и оцени',
   long_description: 'Стартовый TRIAL без кода. По одному тренажёру из каждой категории: Шульте (внимание), Парные картинки (память), Мишени (реакция), Математический спринт + Считалка, Поиск отличий, Анаграммы, Ханойская башня, N-back (рабочая память — облегчённая). Если зайдёт — получи код у владельца для тематического профиля (см. секцию "Профили + цены").',
+  long_description_en: 'A starter TRIAL — no code needed. One trainer from each category: Schulte tables (attention), Picture Pairs (memory), Targets (reaction), Math Sprint + Counter, Spot the Difference, Anagrams, Tower of Hanoi, N-back (working memory — light version). If you like it, get a code from the owner for a themed profile (see the "Profiles + pricing" section).',
   audience: 'Trial · знакомство с приложением',
+  audience_en: 'Trial · first look at the app',
   session_minutes: '3-10 мин',
   sales_hook: '🎁 TRIAL без кода. Попробуй 9 тренажёров — если зайдёт, получи код для тематического.',
+  sales_hook_en: '🎁 TRIAL with no code. Try 9 trainers — if you like it, get a code for a themed profile.',
   tier: 'trial',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: one game per category + funnel teasers
@@ -342,10 +370,14 @@ const DRIVERS: ProfileDef = {
   color: '#f97316',
   description: 'Решения за секунды · для тех у кого цена ошибки = жизнь',
   long_description: 'Программа для профессий с высокой нагрузкой на реакцию: пилоты, хирурги, диспетчеры авиа/жд, военные, реаниматологи, профессиональные водители (включая F1, ралли, VIP). Те же когнитивные парадигмы, которые научно показаны как ключевые для секундной точности под стрессом: длительное внимание (CPT), реакция выбора (Choice RT, Targets), быстрый scan периферии (Visual Search, Find Differences), торможение импульса (Attention Conflict), executive переключение (Trail Making), удержание контекста (N-back). Используется в медицинских и авиа-тренингах.',
+  long_description_en: 'A program for professions where reaction is mission-critical: pilots, surgeons, air and rail traffic controllers, military personnel, critical care physicians, professional drivers (including F1, rally, VIP). The same cognitive paradigms research links to split-second accuracy under stress: sustained attention (CPT), choice reaction (Choice RT, Targets), rapid peripheral scanning (Visual Search, Find Differences), impulse inhibition (Attention Conflict), executive switching (Trail Making), context retention (N-back). Used in medical and aviation training.',
   audience: 'Пилоты · хирурги · диспетчеры · военные · pro-водители',
+  audience_en: 'Pilots · surgeons · controllers · military · pro drivers',
   session_minutes: '12-15 мин',
   sales_hook: '⚡ Решения за секунды. Тренировка для тех у кого цена ошибки = жизнь.',
+  sales_hook_en: '⚡ Decisions in seconds. Training for those whose cost of error = a life.',
   sales_hook_source: 'Roenker et al., 2003, Human Factors — speed-of-processing training снижает driving errors на 31% (vs control)',
+  sales_hook_source_en: 'Roenker et al., 2003, Human Factors — speed-of-processing training cuts driving errors by 31% (vs control)',
   price_year: 990,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention + reaction
@@ -388,9 +420,12 @@ const SENIORS: ProfileDef = {
   color: '#8b5cf6',
   description: 'Память · processing speed · замедление старения',
   long_description: 'Программа замедления когнитивного старения. Память (Picture Pairs, Memory Matrix, Word Pairs, Mnemonics), скорость обработки (SDMT — золотой стандарт), executive function (Trail Making A+B), внимание (Schulte), счёт в быту (Counter, Anagrams). Без сложных WM-под-нагрузкой. Подходит для самостоятельных занятий и медцентров.',
+  long_description_en: 'A program designed to slow cognitive aging. Memory (Picture Pairs, Memory Matrix, Word Pairs, Mnemonics), processing speed (SDMT — the gold standard), executive function (Trail Making A+B), attention (Schulte tables), everyday arithmetic (Counter, Anagrams). No heavy working-memory-under-load tasks. Suited for self-guided practice and medical centers.',
   audience: 'Люди 50-75+, медцентры, программы active aging',
+  audience_en: 'Adults 50-75+, medical centers, active-aging programs',
   session_minutes: '10-15 мин',
   sales_hook: '👴 Замедли когнитивное старение на 7-10 лет. 15 минут в день — критично для профилактики.',
+  sales_hook_en: '👴 Slow cognitive aging by 7-10 years. 15 minutes a day — critical for prevention.',
   sales_hook_source: 'ACTIVE trial — Rebok et al., 2014, JAMA Intern Med — 10 hours speed training → effects persist 10+ years (N=2832)',
   price_year: 990,
   group: 'themed',
@@ -435,9 +470,12 @@ const EXECS: ProfileDef = {
   color: '#0f766e',
   description: 'Решения под давлением · risk · WM · flexibility',
   long_description: 'Тренировка качеств для бизнеса: оценка риска (BART, Iowa, PRL — три классические парадигмы), WM под нагрузкой (N-back DUAL), длительное внимание (CPT), торможение импульсов (Stroop/Flanker), multitasking (Switching), стратегическое планирование (Tower of London), распознавание трендов (Pattern). Включает Financial Brain Day каждые 2 недели.',
+  long_description_en: 'Trains the skills business runs on: risk assessment (BART, Iowa, PRL — three classic paradigms), working memory under load (Dual N-back), sustained attention (CPT), impulse control (Stroop/Flanker), multitasking (Switching), strategic planning (Tower of London), trend recognition (Pattern). Includes Financial Brain Day every 2 weeks.',
   audience: 'CEO, владельцы бизнеса, executive coaching',
+  audience_en: 'CEOs, business owners, executive coaching',
   session_minutes: '15-25 мин',
   sales_hook: '💼 Лучшие решения под давлением. Цена ошибки = миллион — цена тренировки = 15 минут в день.',
+  sales_hook_en: '💼 Better decisions under pressure. A mistake costs a million — training costs 15 minutes a day.',
   price_year: 990,
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: bias on logic (decisions + risk)
@@ -483,9 +521,12 @@ const STUDENTS: ProfileDef = {
   color: '#f97316',
   description: 'Фокус · память · скорость · ЕГЭ / GMAT / GRE / IELTS',
   long_description: 'Подготовка мозга к МАРАФОНСКИМ экзаменам — российским (ЕГЭ/ОГЭ) и международным (GMAT 3.5 ч, GRE 3.7 ч, IELTS 2.8 ч, TOEFL 3 ч, SAT 3.0 ч). Арифметика на скорость (Math Sprint, Counter — критично для quant section GMAT/GRE), WM при чтении (Reading Span — для длинных passages в reading comp), удержание информации (Story Recall), концентрация на длинной дистанции (Schulte, N-back), распознавание паттернов (Pattern — Quantitative Reasoning), вербальная гибкость (Anagrams — verbal section), зрительная память (Memory Matrix — diagrams/charts). Подходит для самостоятельной подготовки, репетиторских центров, MBA-prep школ.',
+  long_description_en: 'Gets your brain ready for MARATHON exams — Russian state exams (EGE/OGE) and international ones (GMAT 3.5 h, GRE 3.7 h, IELTS 2.8 h, TOEFL 3 h, SAT 3.0 h). Speed arithmetic (Math Sprint, Counter — critical for the GMAT/GRE quant section), working memory while reading (Reading Span — for long passages in reading comp), information retention (Story Recall), long-haul concentration (Schulte tables, N-back), pattern recognition (Pattern — Quantitative Reasoning), verbal flexibility (Anagrams — verbal section), visual memory (Memory Matrix — diagrams/charts). Suited for self-study, tutoring centers, and MBA-prep schools.',
   audience: 'Школьники · студенты GMAT/GRE/IELTS/TOEFL · MBA-prep',
+  audience_en: 'High schoolers · GMAT/GRE/IELTS/TOEFL candidates · MBA prep',
   session_minutes: '10-15 мин',
   sales_hook: '🎓 GMAT 3.5 часа без падения концентрации. ЕГЭ 100 баллов. Подготовь мозг к марафону.',
+  sales_hook_en: '🎓 3.5 hours of GMAT without focus fading. A perfect score on high-stakes exams. Get your brain marathon-ready.',
   sales_hook_source: 'Sala & Gobet, 2017, Educational Research Review — cognitive training improves academic outcomes (d=0.30 transfer effect)',
   price_year: 490,
   group: 'themed',
@@ -543,9 +584,12 @@ const WOMEN: ProfileDef = {
   color: '#ec4899',
   description: 'Залипательные казуалки для микро-отдыха: парные картинки, отличия, hidden object, судоку',
   long_description: 'Девять самых залипательных игр в формате «5 минут в очереди / в маршрутке / перед сном». Жанры из топов мобильных сторов — Memory Match, Find the Difference, Hidden Object (Visual Search), Wordscapes-стиль, судоку, визуальная память, Шульте, поиск опечаток, аркадные мишени. Цель — удовольствие от микро-побед, dopamine hit каждые 30-60 сек. Заодно поддерживает память, внимание, вербалку. Подходит всем кто хочет лёгкого когнитивного отдыха в перерывах — особенно женщинам 25-55, мамам, HR/педагогам, медсёстрам, продажникам.',
+  long_description_en: 'Nine of the most binge-worthy games in a "5 minutes in line / on the bus / before bed" format. Genres straight from the top mobile charts — Memory Match, Find the Difference, Hidden Object (Visual Search), Wordscapes-style word puzzles, sudoku, visual memory, Schulte tables, typo hunting, arcade targets. The goal is the joy of micro-wins — a dopamine hit every 30-60 seconds. Along the way it keeps memory, attention, and verbal skills in shape. For anyone who wants light cognitive downtime on a break — especially women 25-55, moms, HR and teachers, nurses, sales pros.',
   audience: 'Все · микро-отдых + dopamine (преим. женская аудитория)',
+  audience_en: 'Everyone · micro-breaks + dopamine (mostly female audience)',
   session_minutes: '5-10 мин',
   sales_hook: '🌸 5 минут залипательного отдыха — без чувства вины. Реально тренирует память.',
+  sales_hook_en: '🌸 5 minutes of delightfully addictive downtime — guilt-free. And it genuinely trains memory.',
   price_year: 490,
   group: 'themed',
   // v1.4.1 — engagement-driven mix (НЕ формула 1+1+1+1+5)
@@ -593,10 +637,14 @@ const POLYGLOT: ProfileDef = {
   color: '#6366f1',
   description: 'Под языки: вербальная память · ассоциации · беглость · скрипты',
   long_description: 'Когнитивная база изучения иностранных языков. Вербальная рабочая память (Reading Span, OSPAN, N-back — предсказывает скорость усвоения словаря), ассоциативная память слово↔значение (Word Pairs), беглость извлечения слов (Phonemic Fluency), орфография и работа с буквами (Anagrams), узнавание незнакомого скрипта — латиница/кириллица (Proofreading с выбором алфавита), переключение между системами / билингвальный контроль (Switching). НЕ заменяет Duolingo/Anki — тренирует когнитивные системы, на которые опирается изучение языка. Подходит изучающим языки, полиглотам, языковым курсам.',
+  long_description_en: 'The cognitive foundation of language learning. Verbal working memory (Reading Span, OSPAN, N-back — a known predictor of how fast vocabulary is absorbed), word↔meaning associative memory (Word Pairs), word retrieval fluency (Phonemic Fluency), spelling and letter work (Anagrams), recognizing an unfamiliar script — Latin/Cyrillic (Proofreading with alphabet choice), switching between systems / bilingual control (Switching). NOT a replacement for Duolingo/Anki — it trains the cognitive systems language learning relies on. For language learners, polyglots, and language schools.',
   audience: 'Изучающие языки · полиглоты · языковые курсы',
+  audience_en: 'Language learners · polyglots · language courses',
   session_minutes: '10-15 мин',
   sales_hook: '🗣 Прокачай вербальную память и беглость, на которые опирается изучение языков. Мозг под язык — в дополнение к Duolingo, не вместо.',
+  sales_hook_en: '🗣 Build the verbal memory and fluency that language learning stands on. A brain primed for languages — alongside Duolingo, not instead of it.',
   sales_hook_source: 'Gathercole & Baddeley, 1990, J Memory & Language — фонологическая рабочая память предсказывает усвоение словаря (foundational)',
+  sales_hook_source_en: 'Gathercole & Baddeley, 1990, J Memory & Language — phonological working memory predicts vocabulary acquisition (foundational)',
   price_year: 490,
   group: 'themed',
   // «1+1+1+1 + 5 темовых», bias на вербальную/рабочую память + скрипт

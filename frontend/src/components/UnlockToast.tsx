@@ -12,14 +12,17 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Animated, StyleSheet, DeviceEventEmitter } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '@/src/contexts/LanguageContext';
 
 interface UnlockEventDetail {
   gameId: string;
   levelKey: string;
   label: string;
+  labelEn?: string;
 }
 
 export default function UnlockToast() {
+  const { language } = useLanguage();
   const [visible, setVisible] = useState(false);
   const [detail, setDetail] = useState<UnlockEventDetail | null>(null);
   const opacity = React.useRef(new Animated.Value(0)).current;
@@ -58,8 +61,8 @@ export default function UnlockToast() {
     }]}>
       <Ionicons name="trophy" size={20} color="#fbbf24" />
       <View style={{ flex: 1 }}>
-        <Text style={styles.toastTitle}>🎉 Новый уровень разблокирован!</Text>
-        <Text style={styles.toastSub}>{detail.label}</Text>
+        <Text style={styles.toastTitle}>{language === 'ru' ? '🎉 Новый уровень разблокирован!' : '🎉 New level unlocked!'}</Text>
+        <Text style={styles.toastSub}>{language === 'ru' ? detail.label : (detail.labelEn ?? detail.label)}</Text>
       </View>
     </Animated.View>
   );

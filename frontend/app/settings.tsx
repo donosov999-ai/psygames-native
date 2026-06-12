@@ -368,7 +368,7 @@ export default function SettingsScreen() {
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text }}>{t('profileName_' + detailProfile.id)}</Text>
                       {detailProfile.audience && (
-                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>👥 {detailProfile.audience}</Text>
+                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>👥 {language === 'ru' ? detailProfile.audience : (detailProfile.audience_en ?? detailProfile.audience)}</Text>
                       )}
                     </View>
                   </View>
@@ -388,7 +388,7 @@ export default function SettingsScreen() {
                     marginTop: 8, marginBottom: 14,
                   }}>
                     <Text style={{ fontSize: 14, color: colors.text, lineHeight: 19, fontWeight: '600' }}>
-                      {detailProfile.sales_hook}
+                      {language === 'ru' ? detailProfile.sales_hook : (detailProfile.sales_hook_en ?? detailProfile.sales_hook)}
                     </Text>
                   </View>
                 )}
@@ -396,7 +396,7 @@ export default function SettingsScreen() {
                 {/* Long description */}
                 {detailProfile.long_description && (
                   <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 19, marginBottom: 14 }}>
-                    {detailProfile.long_description}
+                    {language === 'ru' ? detailProfile.long_description : (detailProfile.long_description_en ?? detailProfile.long_description)}
                   </Text>
                 )}
 
@@ -404,7 +404,7 @@ export default function SettingsScreen() {
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
                   {detailProfile.session_minutes && (
                     <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
-                      <Text style={{ fontSize: 11, color: colors.text }}>⏱ {detailProfile.session_minutes}</Text>
+                      <Text style={{ fontSize: 11, color: colors.text }}>⏱ {language === 'ru' ? detailProfile.session_minutes : detailProfile.session_minutes.replace('мин', 'min')}</Text>
                     </View>
                   )}
                   {detailProfile.warmup_enabled && (

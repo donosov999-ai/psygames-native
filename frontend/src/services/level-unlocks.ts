@@ -241,7 +241,7 @@ export async function checkAndMaybeUnlock(
   // Emit global event for UI toast (cross-platform: RN DeviceEventEmitter — native + web/Tauri)
   try {
     DeviceEventEmitter.emit('psygames:level-unlocked', {
-      gameId: played.gameId, levelKey: nextLvl.key, label: nextLvl.label,
+      gameId: played.gameId, levelKey: nextLvl.key, label: nextLvl.label, labelEn: nextLvl.label_en,
     });
   } catch {}
 

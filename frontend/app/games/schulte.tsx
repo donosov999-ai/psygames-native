@@ -76,14 +76,18 @@ export default function SchulteGame() {
       const next = await getNextLockedLevel(profile.person, true, 'schulte_table');
       if (next) {
         const dot = next.consecutiveDone > 0
-          ? ` · прогресс ${next.consecutiveDone}/${next.condition.consecutive ?? 1}`
+          ? (language === 'ru'
+            ? ` · прогресс ${next.consecutiveDone}/${next.condition.consecutive ?? 1}`
+            : ` · progress ${next.consecutiveDone}/${next.condition.consecutive ?? 1}`)
           : '';
-        setNextHint(`🔒 Следующий ${next.level.label}: ${next.condition.human_hint}${dot}`);
+        setNextHint(language === 'ru'
+          ? `🔒 Следующий ${next.level.label}: ${next.condition.human_hint}${dot}`
+          : `🔒 Next ${next.level.label_en ?? next.level.label}: ${next.condition.human_hint_en ?? next.condition.human_hint}${dot}`);
       } else {
         setNextHint(null);
       }
     })();
-  }, [isThemed, profile.person]);
+  }, [isThemed, profile.person, language]);
 
   // Game state
   const [phase, setPhase] = useState<GamePhase>('intro');
