@@ -209,6 +209,13 @@ const KIDS: ProfileDef = {
     { game_id: 'number_bonds',     game_route: '/games/number-bonds',     difficulty: 'easy', settings: { trials: 8 }, est_duration_sec: 80 },
     { game_id: 'pattern',          game_route: '/games/pattern',          difficulty: 'easy', settings: { trials: 5 }, est_duration_sec: 90 },
   ],
+  // v1.30.0 — вечерний комплекс для детей: спокойные игры перед сном, без гонок на время
+  // (НЕ targets/math_sprint/counter — возбуждают). Дольше preview в парах (детям нужно время).
+  evening_playlist: [
+    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy', settings: { pairsCount: 6, previewMs: 3000 }, est_duration_sec: 100 },
+    { game_id: 'memory_matrix', game_route: '/games/memory-matrix', difficulty: 'easy', settings: { size: 3 }, est_duration_sec: 80 },
+    { game_id: 'hanoi',         game_route: '/games/hanoi',         difficulty: 'easy', settings: { discs: 3 }, est_duration_sec: 80 },
+  ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: false,
