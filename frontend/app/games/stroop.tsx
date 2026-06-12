@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 20, gap: 20, alignItems: 'center' },
+  playArea: { flex: 1, justifyContent: 'center', padding: 20, gap: 20, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 24 },
   statText: { fontSize: 16, fontWeight: '700' },
   wordArea: { flex: 1, justifyContent: 'center', alignItems: 'center' },

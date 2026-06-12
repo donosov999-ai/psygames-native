@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 12, gap: 14, alignItems: 'center' },
+  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 14, alignItems: 'center' },
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 14, flexWrap: 'wrap' },
   statText: { fontSize: 14, fontWeight: '700' },
   cardsArea: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' },

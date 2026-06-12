@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 16, gap: 18, alignItems: 'center', maxWidth: 480, alignSelf: 'center', width: '100%' },
+  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 18, alignItems: 'center', maxWidth: 480, alignSelf: 'center', width: '100%' },
   statsRow: { flexDirection: 'row', gap: 18 },
   statText: { fontSize: 14, fontWeight: '700' },
   eyeBox: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 12, width: '100%' },

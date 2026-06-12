@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   startButtonText: { fontSize: 18, fontWeight: '700' },
-  gameContainer: { flex: 1, paddingHorizontal: 16 },
+  gameContainer: { flex: 1, justifyContent: 'center', paddingHorizontal: 16 },
   hudRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
   hudText: { fontSize: 15, fontWeight: '600' },
   promptCard: {

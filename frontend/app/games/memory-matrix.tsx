@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 16, alignItems: 'center', gap: 14 },
+  playArea: { flex: 1, justifyContent: 'center', padding: 16, alignItems: 'center', gap: 14 },
   statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center' },
   statText: { fontSize: 15, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', minHeight: 18 },

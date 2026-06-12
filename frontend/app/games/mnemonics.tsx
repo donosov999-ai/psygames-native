@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   startButtonText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
-  gameContainer: { flex: 1, paddingHorizontal: 16 },
+  gameContainer: { flex: 1, justifyContent: 'center', paddingHorizontal: 16 },
   gameHeader: {
     flexDirection: 'row',
     justifyContent: 'center',
