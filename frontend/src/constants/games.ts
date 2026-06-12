@@ -102,6 +102,39 @@ export const GAMES: GameConfig[] = [
     route: '/games/vocab-srs',
     category: 'memory',
   },
+  // v1.29.0 (Полиглот TIER 1 п.5): семантическая сортировка слов по категориям
+  {
+    id: 'semantic_sort',
+    nameKey: 'semanticSort',
+    descKey: 'semanticSortDesc',
+    skillKey: 'skillVocabulary',
+    gradient: ['#10b981', '#6366f1'],
+    icon: 'albums',
+    route: '/games/semantic-sort',
+    category: 'memory',
+  },
+  // v1.29.0 (Полиглот TIER 1 п.4): Cloze — пропущенное слово во фразе
+  {
+    id: 'cloze',
+    nameKey: 'cloze',
+    descKey: 'clozeDesc',
+    skillKey: 'skillVocabulary',
+    gradient: ['#f59e0b', '#ef4444'],
+    icon: 'create',
+    route: '/games/cloze',
+    category: 'logic',
+  },
+  // v1.29.0 (Полиглот TIER 1 п.2): лексическое решение — слово/не-слово
+  {
+    id: 'lexical_decision',
+    nameKey: 'lexicalDecision',
+    descKey: 'lexicalDecisionDesc',
+    skillKey: 'skillVocabulary',
+    gradient: ['#0ea5e9', '#6366f1'],
+    icon: 'flash',
+    route: '/games/lexical-decision',
+    category: 'action',
+  },
   {
     id: 'mnemonics',
     nameKey: 'mnemonics',

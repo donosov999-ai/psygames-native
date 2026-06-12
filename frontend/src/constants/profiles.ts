@@ -652,6 +652,9 @@ const POLYGLOT: ProfileDef = {
     // Base (по категориям)
     'word_pairs',        // memory — ассоциации слово↔значение (ядро вокаба)
     'vocab_srs',         // memory — SRS-словарь SM-2 (v1.28.0, TIER1 п.1: ядро заучивания)
+    'semantic_sort',     // memory — сортировка слов по категориям (v1.29.0, TIER1 п.5)
+    'cloze',             // logic — пропущенное слово во фразе (v1.29.0, TIER1 п.4)
+    'lexical_decision',  // action — слово/не-слово, доступ к лексикону (v1.29.0, TIER1 п.2)
     'proofreading',      // attention — скан букв/скрипта (выбор алфавита!)
     'anagrams',          // logic — орфография/работа с буквами
     'sdmt',              // action — скорость обработки (быстрый доступ к лексикону)
