@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,6 +32,13 @@ interface KeyMap { sym: string; digit: number; }
 export default function SdmtGame() {
   const { colors } = useTheme();
   const { t } = useLanguage();
+  // v1.29.3 (мобайл): таблица символ→цифра и поле НЕ растягивались (maxWidth 460/240 +
+  // фикс stimBox 140). Теперь всё от ширины экрана: легенда во всю ширину (9 ячеек в ряд),
+  // пад-кнопки и стимул крупнее.
+  const { width } = useWindowDimensions();
+  const sdmtW = Math.min(width - 24, 460);
+  const sdmtPad = Math.min((sdmtW - 2 * 8) / 3, 96); // 3 кнопки в ряд
+  const sdmtStim = Math.min(sdmtW * 0.42, 180);
   const router = useRouter();
 
   const { isPreset, num } = useGamePreset();
@@ -143,26 +150,27 @@ export default function SdmtGame() {
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
       </View>
-      <View style={[styles.legend, { backgroundColor: colors.surface }]}>
+      <View style={[styles.legend, { backgroundColor: colors.surface, width: sdmtW }]}>
         {keymap.map((k, i) => (
-          <View key={i} style={[styles.legendCell, { borderColor: colors.border }]}>
-            <Ionicons name={k.sym as any} size={20} color={GRADIENT[1]} />
+          <View key={i} style={[styles.legendCell, { borderColor: colors.border, flex: 1 }]}>
+            <Ionicons name={k.sym as any} size={Math.min(sdmtW / 18, 22)} color={GRADIENT[1]} />
             <Text style={[styles.legendDigit, { color: colors.text }]}>{k.digit}</Text>
           </View>
         ))}
       </View>
       <View style={[styles.stimBox, {
+        width: sdmtStim, height: sdmtStim,
         backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
         borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border,
       }]}>
-        <Ionicons name={stim as any} size={88} color={GRADIENT[1]} />
+        <Ionicons name={stim as any} size={sdmtStim * 0.6} color={GRADIENT[1]} />
       </View>
-      <View style={styles.padGrid}>
+      <View style={[styles.padGrid, { width: sdmtPad * 3 + 16 }]}>
         {[1,2,3,4,5,6,7,8,9].map((d) => (
           <TouchableOpacity key={d}
-            style={[styles.padBtn, { backgroundColor: GRADIENT[0] }]}
+            style={[styles.padBtn, { width: sdmtPad, height: sdmtPad, backgroundColor: GRADIENT[0] }]}
             onPress={() => handleAnswer(d)}>
-            <Text style={styles.padText}>{d}</Text>
+            <Text style={[styles.padText, { fontSize: sdmtPad * 0.38 }]}>{d}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -216,11 +224,11 @@ const styles = StyleSheet.create({
   playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 12, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 18 },
   statText: { fontSize: 16, fontWeight: '800' },
-  legend: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 4, padding: 8, borderRadius: 10, maxWidth: 460 },
-  legendCell: { alignItems: 'center', borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, gap: 2, minWidth: 42 },
-  legendDigit: { fontSize: 16, fontWeight: '800' },
-  stimBox: { width: 140, height: 140, borderRadius: 20, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
-  padGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 240 },
-  padBtn: { width: 64, height: 64, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  legend: { flexDirection: 'row', justifyContent: 'center', gap: 3, padding: 8, borderRadius: 10 },
+  legendCell: { alignItems: 'center', borderWidth: 1, borderRadius: 6, paddingVertical: 4, gap: 2 },
+  legendDigit: { fontSize: 15, fontWeight: '800' },
+  stimBox: { borderRadius: 20, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
+  padGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+  padBtn: { borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   padText: { color: '#FFF', fontSize: 24, fontWeight: '900' },
 });

@@ -225,7 +225,7 @@ export default function ReadingSpanGame() {
   };
 
   const renderRecall = () => (
-    <View style={styles.playArea}>
+    <View style={styles.recallArea}>
       <Text style={[styles.recallTitle, { color: colors.text }]}>{t('recallNow')}</Text>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('recallHint')}</Text>
       <TextInput
@@ -291,7 +291,9 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 18, gap: 18, alignItems: 'center' },
+  playArea: { flex: 1, justifyContent: 'center', padding: 18, gap: 18, alignItems: 'center' },
+  // фаза ввода слов — сверху (не центр), чтобы клавиатура не закрыла поле и кнопку
+  recallArea: { flex: 1, paddingTop: 40, paddingHorizontal: 18, gap: 18, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 18 },
   statText: { fontSize: 14, fontWeight: '700' },
   sentenceBox: { padding: 22, borderRadius: 16, gap: 16, maxWidth: 480, alignItems: 'center' },

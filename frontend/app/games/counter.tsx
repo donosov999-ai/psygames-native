@@ -36,7 +36,7 @@ export default function CounterGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [gridSize, setGridSize] = useState(3);
@@ -150,9 +150,12 @@ export default function CounterGame() {
     }
   };
 
+  // v1.29.3 (мобайл): потолок 90px делал сетку мелкой по центру (3×3 = 76% ширины).
+  // Теперь тянется на всю ширину; высотный лимит держит ландшафт/десктоп.
   const cellSize = Math.min(
-    (width - 40 - (gridSize - 1) * 8) / gridSize,
-    90
+    (width - 28 - (gridSize - 1) * 8) / gridSize,
+    (height - 320 - (gridSize - 1) * 8) / gridSize,
+    140
   );
 
   const renderConfig = () => (

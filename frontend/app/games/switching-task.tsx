@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,6 +39,9 @@ function isVowel(l: string): boolean { return VOWELS.has(l); }
 export default function SwitchingTaskGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  // v1.29.3 (мобайл): стимул-бокс был фикс 200×200 — теперь во всю ширину, кнопки тоже
+  const { width } = useWindowDimensions();
+  const stStim = Math.min(width - 36, 320);
   const router = useRouter();
 
   const { isPreset, str, num } = useGamePreset();
@@ -205,16 +208,17 @@ export default function SwitchingTaskGame() {
         </Text>
       </View>
       <View style={[styles.stimBox, {
+        width: stStim, height: stStim,
         backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
         borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border,
       }]}>
-        <Text style={[styles.stimText, { color: colors.text }]}>{showStim ? trial.stim : '•'}</Text>
+        <Text style={[styles.stimText, { color: colors.text, fontSize: stStim * 0.4 }]}>{showStim ? trial.stim : '•'}</Text>
       </View>
-      <View style={styles.choiceRow}>
-        <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer(true)}>
+      <View style={[styles.choiceRow, { width: stStim }]}>
+        <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0], flex: 1 }]} onPress={() => handleAnswer(true)}>
           <Text style={styles.choiceTextSmall}>← {leftLabel}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer(false)}>
+        <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1], flex: 1 }]} onPress={() => handleAnswer(false)}>
           <Text style={styles.choiceTextSmall}>{rightLabel} →</Text>
         </TouchableOpacity>
       </View>
@@ -270,9 +274,9 @@ const styles = StyleSheet.create({
   statText: { fontSize: 14, fontWeight: '700' },
   cueBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
   cueText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
-  stimBox: { width: 200, height: 200, borderRadius: 24, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
-  stimText: { fontSize: 80, fontWeight: '900' },
+  stimBox: { borderRadius: 24, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
+  stimText: { fontWeight: '900' },
   choiceRow: { flexDirection: 'row', gap: 16 },
-  choiceBtn: { paddingVertical: 16, paddingHorizontal: 22, borderRadius: 12, minWidth: 130, alignItems: 'center' },
+  choiceBtn: { paddingVertical: 16, paddingHorizontal: 22, borderRadius: 12, alignItems: 'center' },
   choiceTextSmall: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });

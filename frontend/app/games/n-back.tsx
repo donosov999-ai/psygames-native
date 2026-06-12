@@ -4,7 +4,8 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView
+  ScrollView,
+  useWindowDimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -46,6 +47,11 @@ function speakLetter(letter: string) {
 export default function NBackGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  // v1.29.3 (мобайл): сетка 3×3 была фикс 240×240 — мелкая по центру. Теперь тянется
+  // на ~80% ширины (потолок 132px/ячейка для планшетов), но не выше доступной высоты.
+  const { width, height } = useWindowDimensions();
+  const nbGridSide = Math.min(width - 48, height - 360, 420);
+  const nbCell = (nbGridSide - 2 * 6) / 3; // 3 ячейки, 2 зазора по 6
   const router = useRouter();
 
   const gate = useLevelGate('n_back');
@@ -325,13 +331,15 @@ export default function NBackGame() {
         <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
       </View>
       <View style={styles.gridArea}>
-        <View style={styles.grid3x3}>
+        <View style={[styles.grid3x3, { width: nbGridSide, height: nbGridSide }]}>
           {Array.from({ length: 9 }).map((_, i) => (
             <View
               key={i}
               style={[
                 styles.gridCell,
                 {
+                  width: nbCell,
+                  height: nbCell,
                   backgroundColor: activeCell === i && showWindow ? GRADIENT[0] : colors.surface,
                   borderColor: colors.border,
                 },
