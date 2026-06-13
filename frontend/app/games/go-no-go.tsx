@@ -44,6 +44,7 @@ export default function GoNoGoGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startTimeRef = useRef(0);   // надёжный старт: useState startTime ловился в stale-замыкании finish → time=Date.now()/1000 (29659410:47)
 
   useEffect(() => () => { if (showTimerRef.current) clearTimeout(showTimerRef.current); }, []);
 
@@ -51,6 +52,7 @@ export default function GoNoGoGame() {
     setHits(0); setMisses(0); setFalseAlarms(0); setCorrectRej(0);
     setReactionTimes([]); setRound(0);
     setPhase('playing');
+    startTimeRef.current = Date.now();
     setStartTime(Date.now());
     setTimeout(() => runRound(0, [], 0, 0, 0, 0), 800);
   };
@@ -106,7 +108,7 @@ export default function GoNoGoGame() {
   }, [stimulus]);
 
   const finish = async (h: number, m: number, fa: number, cr: number, rts: number[]) => {
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (Date.now() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     setHits(h); setMisses(m); setFalseAlarms(fa); setCorrectRej(cr);
     setPhase('result');

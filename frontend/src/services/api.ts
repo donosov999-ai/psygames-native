@@ -373,15 +373,18 @@ export const getStats = async (gameType: string): Promise<GameStats> => {
   }
 
   const total_sessions = sessions.length;
-  const total_time = sessions.reduce((sum, s) => sum + (s.time_seconds || 0), 0);
+  // время считаем ТОЛЬКО по валидным сессиям: исключаем мусор (таймстамп-баг time_seconds≈1.78e9, NaN, <0, >24ч),
+  // чтобы одна битая сессия не ломала best/average навсегда. Счётчик игр и очки — по всем.
+  const validTime = sessions.filter((s) => isFinite(s.time_seconds) && s.time_seconds > 0 && s.time_seconds <= 86400);
+  const total_time = validTime.reduce((sum, s) => sum + s.time_seconds, 0);
   const total_score = sessions.reduce((sum, s) => sum + (s.score || 0), 0);
-  const sorted = [...sessions].sort((a, b) => a.time_seconds - b.time_seconds);
+  const sorted = [...validTime].sort((a, b) => a.time_seconds - b.time_seconds);
 
   return {
     game_type: gameType,
     total_sessions,
     total_time,
-    average_time: total_sessions > 0 ? total_time / total_sessions : 0,
+    average_time: validTime.length > 0 ? total_time / validTime.length : 0,
     best_results: sorted.slice(0, 5),
     total_score,
     average_score: total_sessions > 0 ? total_score / total_sessions : 0,

@@ -43,7 +43,10 @@ export default function StatisticsScreen() {
   };
 
   const formatTime = (seconds: number): string => {
-    if (seconds === 0) return '-';
+    // защита от мусора: таймстамп-баг (startTime=0 → Date.now()/1000 ≈ 1.78e9), NaN, отрицательное, >24ч
+    if (seconds == null || !isFinite(seconds) || seconds < 0 || seconds > 86400) return '—';
+    if (seconds === 0) return '—';
+    if (seconds < 1) return `${seconds.toFixed(1)}s`;   // реакционные игры — доли секунды (было «0s»)
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     if (mins > 0) {
