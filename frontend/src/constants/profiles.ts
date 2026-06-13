@@ -294,20 +294,11 @@ const NZT48: ProfileDef = {
   sales_hook_source_en: 'Jaeggi et al., 2008, PNAS — Dual N-back training improves fluid intelligence (transfer effect on IQ, d=0.65)',
   price_year: 990,
   group: 'themed',
-  // v1.2.0 «1+1+1+1 + 5 темовых»: balanced full battery
-  allowed_games: [
-    // Base
-    'n_back',                // memory — working memory (DUAL внутри)
-    'cpt',                   // attention — sustained
-    'tower_london',          // logic — planning
-    'attention_conflict',    // action — inhibition (Stroop+Flanker hub)
-    // +5 темовых (full prefrontal cortex battery)
-    'mental_rotation',       // ещё logic — spatial
-    'switching_task',        // ещё logic — cognitive flexibility
-    'bart',                  // ещё logic — risk/decision
-    'sdmt',                  // ещё action — processing speed
-    'phonemic_fluency',      // ещё logic — verbal fluency
-  ],
+  // v1.x (13.06): NZT-48 = ПОЛНЫЙ доступ ко всем тренажёрам, как у ODV999 (решение Дениса).
+  // Курированная программа остаётся в weekday/evening playlists; 'all' открывает весь каталог
+  // (была батарея из 9 — n_back/cpt/tower_london/attention_conflict/mental_rotation/
+  //  switching_task/bart/sdmt/phonemic_fluency; теперь доступны все 48).
+  allowed_games: 'all',
   // nzt48: утро = дефолтный weekday-плейлист (полная батарея). v1.23 — добавлен вечер.
   evening_playlist: [
     { game_id: 'mnemonics',     game_route: '/games/mnemonics',     difficulty: 'easy',   mode: 'words', settings: { itemCount: 20 }, est_duration_sec: 120 },

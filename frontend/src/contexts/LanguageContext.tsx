@@ -656,7 +656,7 @@ const translations: Translations = {
   recallHint:     { ru: 'Введите последние слова через пробел в правильном порядке', en: 'Type the last words separated by spaces in the correct order' },
   recallPlaceholder: { ru: 'слово слово слово ...', en: 'word word word ...' },
   readingSpanJudge:  { ru: 'Это предложение имеет смысл?', en: 'Does this sentence make sense?' },
-  visualSearchHint:  { ru: 'Найдите букву T среди L и нажмите её', en: 'Find the T among Ls and tap it' },
+  visualSearchHint:  { ru: 'Найди и нажми букву Т (повёрнута случайно):', en: 'Find and tap the letter T (randomly rotated):' },
   mentalRotationHint:{ ru: 'Какой из вариантов — это та же фигура (просто повёрнутая)?', en: 'Which option is the same shape (just rotated)?' },
   taskNumber:     { ru: 'ЦИФРА', en: 'DIGIT' },
   taskLetter:     { ru: 'БУКВА', en: 'LETTER' },

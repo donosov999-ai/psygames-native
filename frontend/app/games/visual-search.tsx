@@ -71,9 +71,16 @@ export default function VisualSearchGame() {
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [stimAt, setStimAt] = useState(0);
   const [startTime, setStartTime] = useState(0);
+  const [now, setNow] = useState(0);   // живой таймер текущей пробы
 
   const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (fbTimerRef.current) clearTimeout(fbTimerRef.current); }, []);
+  // живой таймер: тикаем пока идёт игра (раньше в шапке показывался прыгающий средний RT — «кривой»)
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    const id = setInterval(() => setNow(Date.now()), 100);
+    return () => clearInterval(id);
+  }, [phase]);
 
   const boardW = Math.min(width - 32, 480);
   const boardH = Math.round(boardW * 1.0);
@@ -194,9 +201,12 @@ export default function VisualSearchGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
+        <Text style={[styles.statText, { color: colors.primary }]}>⏱ {Math.max(0, (now - stimAt) / 1000).toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
       </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('visualSearchHint')}</Text>
+      <View style={styles.hintRow}>
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('visualSearchHint')}</Text>
+        <View style={styles.targetRef}>{renderLetter({ shape: 'T', rot: 0, x: 0, y: 0, isTarget: true })}</View>
+      </View>
       <View style={[styles.boardArea, { width: boardW, height: boardH, backgroundColor: '#1f2937', borderColor: colors.border }]}>
         {items.map((it, i) => (
           <TouchableOpacity key={i}
@@ -266,6 +276,8 @@ const styles = StyleSheet.create({
   playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 12, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
-  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 280 },
+  hintRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 2 },
+  targetRef: { width: 38, height: 38, borderRadius: 8, backgroundColor: '#1f2937', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#3b82f6' },
   boardArea: { borderRadius: 12, borderWidth: 1, position: 'relative', overflow: 'hidden' },
 });

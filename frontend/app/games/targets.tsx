@@ -109,10 +109,11 @@ export default function TargetsGame() {
     
     // Auto-advance after delay
     const delay = LEVEL_DELAYS[level - 1];
+    // Передаём СВЕЖИЙ target в таймаут: handleMiss из этого замыкания читал бы stale isTarget
+    // (значение ПРОШЛОГО раунда — setIsTarget ещё не применился) → снимал жизнь на НЕ-мишени,
+    // если прошлый раунд был мишенью. Теперь решение по факту текущего раунда.
     timerRef.current = setTimeout(() => {
-      if (!gameOver) {
-        handleMiss();
-      }
+      handleMiss(target);
     }, delay);
   };
 
@@ -172,10 +173,10 @@ export default function TargetsGame() {
     }, 300);
   };
 
-  const handleMiss = () => {
+  const handleMiss = (wasTarget: boolean) => {
     if (gameOver) return;
-    
-    if (isTarget) {
+
+    if (wasTarget) {
       // Missed a target
       setFeedback('miss');
       const newLives = lives - 1;
