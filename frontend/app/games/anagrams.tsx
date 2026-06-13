@@ -13,6 +13,10 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
+
+// только буквы (кириллица/латиница с диакритикой) — без пробелов/дефисов/иероглифов
+const LETTER_ONLY = /^[\p{L}]+$/u;
 
 const GRADIENT = ['#ee9ca7', '#ffdde1'];
 const ANAGRAM_BENEFITS = [
@@ -339,8 +343,26 @@ export default function AnagramGame() {
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const wordsBank = (len: 4 | 5 | 6): WordEntry[] => {
-    if (language === 'ru') return len === 4 ? RU_WORDS_4 : len === 5 ? RU_WORDS_5 : RU_WORDS_6;
-    return len === 4 ? EN_WORDS_4 : len === 5 ? EN_WORDS_5 : EN_WORDS_6;
+    const isRu = language === 'ru';
+    // курированные банки (с осмысленными подсказками); не-ru/en → английский набор (латиница анаграммится, иероглифы/деванагари — нет)
+    const curated: WordEntry[] = isRu
+      ? (len === 4 ? RU_WORDS_4 : len === 5 ? RU_WORDS_5 : RU_WORDS_6)
+      : (len === 4 ? EN_WORDS_4 : len === 5 ? EN_WORDS_5 : EN_WORDS_6);
+    // + большой корпус TRANSLATION_VOCAB (~180 слов ×7 яз): слово на языке игрока,
+    // подсказка = перевод (словарная анаграмма — на тему полиглот-игры). Дедуп с курированными.
+    const cl = isRu ? 'ru' : 'en';       // язык слова
+    const hl = isRu ? 'en' : 'ru';       // язык подсказки-перевода
+    const seen = new Set(curated.map((e) => e.w.toLowerCase()));
+    const corpus: WordEntry[] = [];
+    for (const e of TRANSLATION_VOCAB) {
+      const w = e[cl];
+      if (!w || [...w].length !== len || !LETTER_ONLY.test(w)) continue;
+      const k = w.toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k);
+      corpus.push({ w, h: e[hl] || e.en || w });
+    }
+    return [...curated, ...corpus];
   };
 
   const newRound = () => {
