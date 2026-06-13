@@ -268,6 +268,20 @@ jobs:
         working-directory: src-tauri
         run: cargo tauri android init
 
+      - name: Lock portrait orientation (Android manifest)
+        working-directory: src-tauri
+        run: |
+          # Tauri-Android не читает app.json orientation:portrait → телефон крутится,
+          # сетки игр (судоку 9×9) в landscape схлопываются. Жёстко лочим активити в портрет.
+          # Не падаем при ином формате — OrientationGuard (webview) подстрахует.
+          MANIFEST=gen/android/app/src/main/AndroidManifest.xml
+          if [ -f "$MANIFEST" ]; then
+            sed -i 's#android:name=".MainActivity"#android:name=".MainActivity" android:screenOrientation="portrait"#' "$MANIFEST"
+            echo "— portrait lock applied —"; grep -n "screenOrientation\|MainActivity" "$MANIFEST" || true
+          else
+            echo "WARN: $MANIFEST не найден — пропускаю (OrientationGuard в webview покрывает)"; find gen/android -name AndroidManifest.xml -type f || true
+          fi
+
       - name: Patch build.gradle.kts with signing config
         working-directory: src-tauri
         run: |

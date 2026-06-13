@@ -13,6 +13,7 @@ import UnlockToast from '@/src/components/UnlockToast';
 import WelcomeModal from '@/src/components/WelcomeModal';
 import UpdateGate from '@/src/components/UpdateGate';
 import GameHelpOverlay from '@/src/components/GameHelpOverlay';
+import OrientationGuard from '@/src/components/OrientationGuard';
 
 /** Тап по локальному напоминанию → запуск комплекса (натив-only). */
 function NotificationTapHandler() {
@@ -62,6 +63,8 @@ function RootLayoutNav() {
       <GameHelpOverlay />
       {/* Тап по локальному напоминанию → запуск зарядки/вечернего комплекса */}
       <NotificationTapHandler />
+      {/* Портретный лок: в телефонном landscape сетки игр (судоку 9×9 и др.) схлопываются → просим повернуть */}
+      <OrientationGuard />
     </>
   );
 }

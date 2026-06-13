@@ -14,6 +14,13 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.30.4] — 2026-06-13
+
+### Fixed
+- **Судоку 9×9 в landscape (особенно Android):** в горизонтали телефона сетка схлопывалась в невидимые ячейки. Причина — высота-зависимый размер ячейки + Tauri-Android не читает `app.json orientation:portrait`. Фикс: глобальный `OrientationGuard` (в телефонном landscape показывает «поверни телефон»; десктоп не трогает) + нативный лок `android:screenOrientation="portrait"` в Android-манифесте (CI-патч) + защитный `Math.max(14,…)` на размер ячейки.
+
+---
+
 ## [1.30.3] — 2026-06-13
 
 ### Fixed / Improved

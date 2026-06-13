@@ -173,7 +173,9 @@ export default function SudokuGame() {
 
   // v1.29.1 (мобайл): full-width поле — зажим 420px + потолок 56 делали его мелким по центру.
   // Высотный лимит учитывает цифровую панель снизу (~330); 92 — потолок больших окон.
-  const cellSize = Math.floor(Math.min((width - 28) / N, (height - 330) / N, 92));
+  // Math.max(14, …) — страховка: в узком landscape (height−330 уходит в ~0/минус) ячейки не схлопываются
+  // в невидимые (основной фикс — OrientationGuard просит повернуть телефон в портрет).
+  const cellSize = Math.max(14, Math.floor(Math.min((width - 28) / N, (height - 330) / N, 92)));
 
   const renderConfig = () => (
     <View style={styles.configContainer}>
