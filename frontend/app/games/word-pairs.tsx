@@ -450,7 +450,7 @@ export default function WordPairsGame() {
       <View style={styles.header}>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.surface }]}
-          onPress={() => phase === 'config' ? setPhase('intro') : router.back()}
+          onPress={() => router.back()}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

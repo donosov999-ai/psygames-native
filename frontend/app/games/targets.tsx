@@ -59,6 +59,17 @@ export default function TargetsGame() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const roundsPerLevel = 10;
 
+  // Рефы для значений, читаемых из таймерных колбэков (фикс stale-closure).
+  // generateRound/nextRound/handleMiss вызываются из setTimeout со СТАРЫМ замыканием,
+  // поэтому level/round «застревали» и потом скакали (2→9). Источник истины — рефы,
+  // state (setLevel/setRound/...) остаётся только для рендера HUD.
+  const levelRef = useRef(level);
+  const roundRef = useRef(0);
+  const livesRef = useRef(3);
+  const gameOverRef = useRef(false);
+  const isTargetRef = useRef(false);
+  const prevColorRef = useRef<string | null>(null);
+
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -72,8 +83,8 @@ export default function TargetsGame() {
   };
 
   const generateRound = () => {
-    if (gameOver) return;
-    
+    if (gameOverRef.current) return;
+
     const newShapes: { type: 'circle' | 'square'; color: string }[] = [];
     
     // Generate circle
@@ -97,18 +108,20 @@ export default function TargetsGame() {
       }
     } else {
       // Joker mode: target if previous circle color matches current square color
-      if (prevCircleColor && (prevCircleColor === sq1Color || prevCircleColor === sq2Color)) {
+      if (prevColorRef.current && (prevColorRef.current === sq1Color || prevColorRef.current === sq2Color)) {
         target = true;
       }
     }
     
+    prevColorRef.current = circleColor;
+    isTargetRef.current = target;
     setPrevCircleColor(circleColor);
     setShapes(newShapes);
     setIsTarget(target);
     setShowTime(Date.now());
-    
-    // Auto-advance after delay
-    const delay = LEVEL_DELAYS[level - 1];
+
+    // Auto-advance after delay (по СВЕЖЕМУ уровню из рефа, не из stale-замыкания)
+    const delay = LEVEL_DELAYS[levelRef.current - 1];
     // Передаём СВЕЖИЙ target в таймаут: handleMiss из этого замыкания читал бы stale isTarget
     // (значение ПРОШЛОГО раунда — setIsTarget ещё не применился) → снимал жизнь на НЕ-мишени,
     // если прошлый раунд был мишенью. Теперь решение по факту текущего раунда.
@@ -119,8 +132,14 @@ export default function TargetsGame() {
 
   const startGame = () => {
     setScore(0);
-    setLives(3 + getLifeBonus(level));
+    livesRef.current = 3 + getLifeBonus(level);
+    setLives(livesRef.current);
+    roundRef.current = 0;
     setRound(0);
+    levelRef.current = level;        // стартовый уровень из конфига
+    gameOverRef.current = false;
+    isTargetRef.current = false;
+    prevColorRef.current = null;
     setReactionTimes([]);
     setPrevCircleColor(null);
     setGameOver(false);
@@ -137,26 +156,27 @@ export default function TargetsGame() {
 
   const handleClick = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (gameOver) return;
-    
+    if (gameOverRef.current) return;
+
     const reactionTime = Date.now() - showTime;
-    
-    if (isTarget) {
+
+    if (isTargetRef.current) {
       // Correct hit!
       setFeedback('hit');
       setReactionTimes(prev => [...prev, reactionTime]);
-      
+
       // Calculate points
-      const delay = LEVEL_DELAYS[level - 1];
-      const points = Math.floor((level * level) * Math.max(0, delay - reactionTime) / 100);
+      const delay = LEVEL_DELAYS[levelRef.current - 1];
+      const points = Math.floor((levelRef.current * levelRef.current) * Math.max(0, delay - reactionTime) / 100);
       setScore(prev => prev + points);
     } else {
       // Wrong click
       setFeedback('wrong');
-      const newLives = lives - 1;
-      setLives(newLives);
-      
-      if (newLives <= 0) {
+      livesRef.current -= 1;
+      setLives(livesRef.current);
+
+      if (livesRef.current <= 0) {
+        gameOverRef.current = true;
         setGameOver(true);
         setTimeout(() => {
           endGame();
@@ -164,32 +184,33 @@ export default function TargetsGame() {
         return;
       }
     }
-    
+
     setTimeout(() => {
       setFeedback(null);
-      if (!gameOver) {
+      if (!gameOverRef.current) {
         nextRound();
       }
     }, 300);
   };
 
   const handleMiss = (wasTarget: boolean) => {
-    if (gameOver) return;
+    if (gameOverRef.current) return;
 
     if (wasTarget) {
       // Missed a target
       setFeedback('miss');
-      const newLives = lives - 1;
-      setLives(newLives);
-      
-      if (newLives <= 0) {
+      livesRef.current -= 1;
+      setLives(livesRef.current);
+
+      if (livesRef.current <= 0) {
+        gameOverRef.current = true;
         setGameOver(true);
         setTimeout(() => {
           endGame();
         }, 500);
         return;
       }
-      
+
       setTimeout(() => {
         setFeedback(null);
         nextRound();
@@ -201,27 +222,32 @@ export default function TargetsGame() {
   };
 
   const nextRound = () => {
-    if (gameOver) return;
-    
-    const newRound = round + 1;
-    setRound(newRound);
-    
-    if (newRound >= roundsPerLevel) {
-      // Level complete - advance to next
-      if (level < 10) {
-        setLevel(prev => prev + 1);
-        setLives(prev => prev + getLifeBonus(level + 1));
+    if (gameOverRef.current) return;
+
+    roundRef.current += 1;
+
+    if (roundRef.current >= roundsPerLevel) {
+      // Уровень пройден — следующий (равномерно, каждые 10 раундов)
+      if (levelRef.current < 10) {
+        levelRef.current += 1;
+        roundRef.current = 0;
+        livesRef.current += getLifeBonus(levelRef.current);
+        setLevel(levelRef.current);
+        setLives(livesRef.current);
         setRound(0);
       } else {
-        // Completed all levels
+        // Все уровни пройдены
+        gameOverRef.current = true;
         setGameOver(true);
         endGame();
         return;
       }
+    } else {
+      setRound(roundRef.current);
     }
-    
+
     setTimeout(() => {
-      if (!gameOver) {
+      if (!gameOverRef.current) {
         generateRound();
       }
     }, 200);
@@ -244,7 +270,7 @@ export default function TargetsGame() {
         game_type: 'targets',
         score: score,
         time_seconds: avgReaction / 1000,
-        difficulty: `Level ${level}`,
+        difficulty: `Level ${levelRef.current}`,
         mode: mode,
         errors: 0,
         details: {
@@ -507,7 +533,7 @@ export default function TargetsGame() {
       <View style={styles.header}>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.surface }]}
-          onPress={() => phase === 'config' ? setPhase('intro') : router.back()}
+          onPress={() => router.back()}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

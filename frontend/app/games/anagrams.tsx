@@ -123,6 +123,18 @@ const RU_WORDS_5: WordEntry[] = [
   { w: 'весна', h: 'время после зимы' },
   { w: 'белка', h: 'рыжая, на дереве' },
   { w: 'зебра', h: 'полосатая лошадка' },
+  { w: 'тучка', h: 'маленькое облако' },
+  { w: 'кефир', h: 'кисломолочный напиток' },
+  { w: 'паста', h: 'макароны' },
+  { w: 'перец', h: 'острый овощ' },
+  { w: 'редис', h: 'красный корнеплод' },
+  { w: 'тыква', h: 'оранжевая, к Хэллоуину' },
+  { w: 'слива', h: 'синий фрукт с косточкой' },
+  { w: 'вишня', h: 'красная ягода на черешке' },
+  { w: 'груша', h: 'сладкий фрукт' },
+  { w: 'баран', h: 'самец овцы' },
+  { w: 'сосна', h: 'хвойное дерево' },
+  { w: 'крыша', h: 'верх дома' },
 ].filter(e => e.w.length === 5);
 
 const RU_WORDS_6: WordEntry[] = [
@@ -163,6 +175,18 @@ const RU_WORDS_6: WordEntry[] = [
   { w: 'малина', h: 'красная ягода' },
   { w: 'рябина', h: 'дерево с красными ягодами' },
   { w: 'поляна', h: 'место в лесу' },
+  { w: 'лошадь', h: 'на ней ездят верхом' },
+  { w: 'павлин', h: 'птица с роскошным хвостом' },
+  { w: 'клубок', h: 'шарик ниток' },
+  { w: 'зонтик', h: 'от дождя' },
+  { w: 'бублик', h: 'круглая выпечка с дыркой' },
+  { w: 'кувшин', h: 'сосуд для воды или молока' },
+  { w: 'балкон', h: 'выступ на фасаде дома' },
+  { w: 'чердак', h: 'помещение под крышей' },
+  { w: 'подвал', h: 'помещение под домом' },
+  { w: 'паркет', h: 'деревянный пол' },
+  { w: 'стакан', h: 'из него пьют' },
+  { w: 'лопата', h: 'ею копают' },
 ].filter(e => e.w.length === 6);
 
 const EN_WORDS_4: WordEntry[] = [
@@ -259,6 +283,18 @@ const EN_WORDS_5: WordEntry[] = [
   { w: 'knife', h: 'used for cutting' },
   { w: 'spoon', h: 'for soup' },
   { w: 'money', h: 'you pay with it' },
+  { w: 'bench', h: 'seat in a park' },
+  { w: 'cabin', h: 'small wooden house' },
+  { w: 'candy', h: 'sweet treat' },
+  { w: 'daisy', h: 'white flower, yellow center' },
+  { w: 'field', h: 'open land for crops' },
+  { w: 'flame', h: 'tongue of fire' },
+  { w: 'goose', h: 'large water bird' },
+  { w: 'koala', h: 'eats eucalyptus, Australia' },
+  { w: 'mango', h: 'sweet tropical fruit' },
+  { w: 'olive', h: 'small fruit for oil' },
+  { w: 'panda', h: 'black-and-white bear' },
+  { w: 'piano', h: 'keyboard instrument' },
 ].filter(e => e.w.length === 5);
 
 const EN_WORDS_6: WordEntry[] = [
@@ -304,7 +340,120 @@ const EN_WORDS_6: WordEntry[] = [
   { w: 'animal', h: 'a living creature' },
   { w: 'yellow', h: 'color of the sun' },
   { w: 'purple', h: 'mix of red and blue' },
+  { w: 'basket', h: 'woven, holds things' },
+  { w: 'closet', h: 'where clothes hang' },
+  { w: 'dinner', h: 'evening meal' },
+  { w: 'engine', h: 'powers a car' },
+  { w: 'helmet', h: 'protects your head' },
+  { w: 'jacket', h: 'light coat' },
+  { w: 'kettle', h: 'boils water' },
+  { w: 'ladder', h: 'you climb it' },
+  { w: 'needle', h: 'used for sewing' },
+  { w: 'pillow', h: 'you sleep on it' },
+  { w: 'tunnel', h: 'road under the ground' },
+  { w: 'violin', h: 'small string instrument with a bow' },
 ].filter(e => e.w.length === 6);
+
+const RU_WORDS_7: WordEntry[] = [
+  { w: 'автобус', h: 'городской транспорт' },
+  { w: 'бабочка', h: 'летает, красивые крылья' },
+  { w: 'бутылка', h: 'в ней напиток' },
+  { w: 'зеркало', h: 'показывает отражение' },
+  { w: 'капуста', h: 'овощ-кочан' },
+  { w: 'картина', h: 'висит на стене' },
+  { w: 'корзина', h: 'плетёная, для грибов' },
+  { w: 'лимонад', h: 'сладкий напиток' },
+  { w: 'молоток', h: 'забивает гвозди' },
+  { w: 'морковь', h: 'оранжевый корнеплод' },
+  { w: 'помидор', h: 'красный овощ' },
+  { w: 'природа', h: 'леса, реки, поля' },
+  { w: 'самолёт', h: 'летает по небу' },
+  { w: 'тарелка', h: 'из неё едят' },
+  { w: 'корабль', h: 'плывёт по морю' },
+  { w: 'комната', h: 'часть квартиры' },
+  { w: 'конверт', h: 'для письма' },
+  { w: 'скрипка', h: 'струнный, со смычком' },
+  { w: 'колодец', h: 'источник воды во дворе' },
+  { w: 'пингвин', h: 'птица Антарктиды' },
+  { w: 'дельфин', h: 'умное морское животное' },
+  { w: 'журавль', h: 'птица с длинной шеей' },
+  { w: 'воробей', h: 'маленькая городская птица' },
+  { w: 'ромашка', h: 'белый цветок с жёлтой серединкой' },
+  { w: 'сметана', h: 'густой молочный продукт' },
+].filter(e => e.w.length === 7);
+
+const RU_WORDS_8: WordEntry[] = [
+  { w: 'черепаха', h: 'медлительная, с панцирем' },
+  { w: 'крокодил', h: 'зубастый из реки' },
+  { w: 'скамейка', h: 'на ней сидят в парке' },
+  { w: 'карандаш', h: 'им рисуют' },
+  { w: 'ласточка', h: 'птица, вестник весны' },
+  { w: 'виноград', h: 'гроздь ягод для вина' },
+  { w: 'апельсин', h: 'оранжевый цитрус' },
+  { w: 'мандарин', h: 'новогодний цитрус' },
+  { w: 'кукуруза', h: 'жёлтый початок' },
+  { w: 'баклажан', h: 'фиолетовый овощ' },
+  { w: 'тропинка', h: 'узкая дорожка' },
+  { w: 'больница', h: 'в ней лечат людей' },
+  { w: 'художник', h: 'пишет картины' },
+  { w: 'садовник', h: 'ухаживает за садом' },
+  { w: 'грузовик', h: 'возит грузы' },
+  { w: 'вертолёт', h: 'летает с винтом' },
+  { w: 'снеговик', h: 'лепят зимой' },
+  { w: 'цыплёнок', h: 'детёныш курицы' },
+  { w: 'осьминог', h: 'морской, восемь щупалец' },
+  { w: 'крепость', h: 'укреплённое сооружение' },
+].filter(e => e.w.length === 8);
+
+const EN_WORDS_7: WordEntry[] = [
+  { w: 'balloon', h: 'floats, filled with air' },
+  { w: 'bicycle', h: 'two wheels, you pedal' },
+  { w: 'brother', h: 'your parents’ son' },
+  { w: 'chicken', h: 'farm bird, lays eggs' },
+  { w: 'dolphin', h: 'smart sea mammal' },
+  { w: 'giraffe', h: 'tallest animal, long neck' },
+  { w: 'kitchen', h: 'room where you cook' },
+  { w: 'leopard', h: 'spotted big cat' },
+  { w: 'machine', h: 'a device that does work' },
+  { w: 'morning', h: 'start of the day' },
+  { w: 'penguin', h: "bird that can't fly, Antarctica" },
+  { w: 'picture', h: 'hangs on a wall' },
+  { w: 'rainbow', h: 'colors after rain' },
+  { w: 'village', h: 'small countryside settlement' },
+  { w: 'weather', h: 'sun or rain' },
+  { w: 'captain', h: 'leads a ship' },
+  { w: 'diamond', h: 'hard precious gem' },
+  { w: 'evening', h: 'end of the day' },
+  { w: 'factory', h: 'where goods are made' },
+  { w: 'gorilla', h: 'large ape' },
+  { w: 'hamster', h: 'small pet rodent' },
+  { w: 'octopus', h: 'sea animal, eight arms' },
+  { w: 'pumpkin', h: 'orange, for Halloween' },
+  { w: 'bedroom', h: 'room where you sleep' },
+].filter(e => e.w.length === 7);
+
+const EN_WORDS_8: WordEntry[] = [
+  { w: 'elephant', h: 'huge, has a trunk' },
+  { w: 'dinosaur', h: 'extinct giant reptile' },
+  { w: 'mosquito', h: 'biting insect' },
+  { w: 'squirrel', h: 'bushy tail, loves nuts' },
+  { w: 'kangaroo', h: 'hops, has a pouch' },
+  { w: 'mountain', h: 'very high peak' },
+  { w: 'hospital', h: 'treats the sick' },
+  { w: 'airplane', h: 'flies in the sky' },
+  { w: 'triangle', h: 'shape with three sides' },
+  { w: 'umbrella', h: 'keeps the rain off you' },
+  { w: 'sandwich', h: 'food between two slices of bread' },
+  { w: 'starfish', h: 'five-armed sea creature' },
+  { w: 'football', h: 'popular ball sport' },
+  { w: 'daughter', h: "parents' female child" },
+  { w: 'mushroom', h: 'grows in the forest, has a cap' },
+  { w: 'scissors', h: 'used for cutting paper' },
+  { w: 'computer', h: 'you work on it' },
+  { w: 'mandarin', h: 'small citrus fruit' },
+  { w: 'doorbell', h: 'you ring it at the door' },
+  { w: 'pancakes', h: 'breakfast, with syrup' },
+].filter(e => e.w.length === 8);
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
@@ -325,7 +474,7 @@ export default function AnagramGame() {
   const { isPreset, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [length, setLength] = useState<4 | 5 | 6>(() => (num('length', 4) as 4 | 5 | 6));
+  const [length, setLength] = useState<4 | 5 | 6 | 7 | 8>(() => (num('length', 4) as 4 | 5 | 6 | 7 | 8));
   const [trials] = useState(10);
   const [round, setRound] = useState(0);
   const [target, setTarget] = useState('');
@@ -342,16 +491,16 @@ export default function AnagramGame() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  const wordsBank = (len: 4 | 5 | 6): WordEntry[] => {
+  const wordsBank = (len: 4 | 5 | 6 | 7 | 8): WordEntry[] => {
     const isRu = language === 'ru';
-    // курированные банки (с осмысленными подсказками); не-ru/en → английский набор (латиница анаграммится, иероглифы/деванагари — нет)
+    // курированные банки (с осмысленными подсказками-определениями); не-ru/en → английский набор
     const curated: WordEntry[] = isRu
-      ? (len === 4 ? RU_WORDS_4 : len === 5 ? RU_WORDS_5 : RU_WORDS_6)
-      : (len === 4 ? EN_WORDS_4 : len === 5 ? EN_WORDS_5 : EN_WORDS_6);
-    // + большой корпус TRANSLATION_VOCAB (~180 слов ×7 яз): слово на языке игрока,
-    // подсказка = перевод (словарная анаграмма — на тему полиглот-игры). Дедуп с курированными.
+      ? (len === 4 ? RU_WORDS_4 : len === 5 ? RU_WORDS_5 : len === 6 ? RU_WORDS_6 : len === 7 ? RU_WORDS_7 : RU_WORDS_8)
+      : (len === 4 ? EN_WORDS_4 : len === 5 ? EN_WORDS_5 : len === 6 ? EN_WORDS_6 : len === 7 ? EN_WORDS_7 : EN_WORDS_8);
+    // + корпус TRANSLATION_VOCAB (слово на языке игрока). Подсказка = КАТЕГОРИЯ слова, НЕ перевод:
+    // перевод выдавал ответ напрямую (жалоба «слишком легко — просто перевод пишешь»). Категория
+    // («Животные», «Еда») задаёт тему, но не раскрывает слово. Дедуп с курированными банками.
     const cl = isRu ? 'ru' : 'en';       // язык слова
-    const hl = isRu ? 'en' : 'ru';       // язык подсказки-перевода
     const seen = new Set(curated.map((e) => e.w.toLowerCase()));
     const corpus: WordEntry[] = [];
     for (const e of TRANSLATION_VOCAB) {
@@ -360,7 +509,8 @@ export default function AnagramGame() {
       const k = w.toLowerCase();
       if (seen.has(k)) continue;
       seen.add(k);
-      corpus.push({ w, h: e[hl] || e.en || w });
+      const catLabel = e.cat ? t(`catVocab_${e.cat}` as any) : '';
+      corpus.push({ w, h: catLabel || '' });
     }
     return [...curated, ...corpus];
   };
@@ -436,7 +586,7 @@ export default function AnagramGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('lettersInWord')}</Text>
         <View style={styles.optionButtons}>
-          {([4, 5, 6] as const).map((n) => (
+          {([4, 5, 6, 7, 8] as const).map((n) => (
             <TouchableOpacity key={n} style={[styles.modeButton, length === n
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}

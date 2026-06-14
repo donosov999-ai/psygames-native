@@ -129,8 +129,10 @@ export default function HomeScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header — v1.7.0: профиль-чип теперь кликабельный (открывает switcher) */}
       <View style={styles.header}>
+        {/* v1.30.6: заголовок — на ОТДЕЛЬНОЙ строке во всю ширину (раньше делил ряд с иконками → на Android «PsyGames» переносился/обрезался) */}
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1} allowFontScaling={false}>PsyGames</Text>
+        <View style={styles.headerRow}>
         <View style={{ flex: 1, gap: 6 }}>
-          <Text style={[styles.title, { color: colors.text }]}>PsyGames</Text>
           {/* Клик-чип "Сменить профиль" — заметный, с chevron ▾ */}
           <TouchableOpacity
             onPress={() => setSwitcherOpen(true)}
@@ -194,6 +196,7 @@ export default function HomeScreen() {
           >
             <Ionicons name="settings-outline" size={22} color={colors.text} />
           </TouchableOpacity>
+        </View>
         </View>
       </View>
 
@@ -416,14 +419,18 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
     maxWidth: MAX_CONTAINER_WIDTH,
     width: '100%',
     alignSelf: 'center',
+    gap: 8,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
   },
   title: { fontSize: 32, fontWeight: '800' },
   subtitle: { fontSize: 14, marginTop: 4 },

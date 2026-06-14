@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { DeviceEventEmitter } from 'react-native';
+import { DeviceEventEmitter, BackHandler, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   PlaylistMeta, PlaylistStep,
@@ -252,6 +252,23 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     setSessionListener(listener);
     return () => setSessionListener(null);
   }, [recordResult, advanceToNext]);
+
+  // Android: системная кнопка «Назад» (◁) во время зарядки/комплекса. Навигация warmup идёт
+  // через router.replace (без бэк-стека) → ◁ ничего не делал. Перехватываем: выходим из зарядки домой.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const onBack = () => {
+      const cur = stateRef.current;
+      if (cur.active && cur.meta) {
+        stopWarmup(false);
+        router.replace('/' as any);
+        return true;   // обработали — приложение не закрывается
+      }
+      return false;    // не в зарядке → дефолтное поведение
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
+    return () => sub.remove();
+  }, [stopWarmup, router]);
 
   return (
     <Ctx.Provider value={{ ...state, currentStep, startWarmup, startEvening, startFinancialBattery, startAssessment, recordResult, advanceToNext, skipCurrent, stopWarmup }}>

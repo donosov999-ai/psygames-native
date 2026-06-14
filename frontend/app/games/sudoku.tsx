@@ -171,11 +171,12 @@ export default function SudokuGame() {
     }
   };
 
-  // v1.29.1 (мобайл): full-width поле — зажим 420px + потолок 56 делали его мелким по центру.
-  // Высотный лимит учитывает цифровую панель снизу (~330); 92 — потолок больших окон.
-  // Math.max(14, …) — страховка: в узком landscape (height−330 уходит в ~0/минус) ячейки не схлопываются
-  // в невидимые (основной фикс — OrientationGuard просит повернуть телефон в портрет).
-  const cellSize = Math.max(14, Math.floor(Math.min((width - 28) / N, (height - 330) / N, 92)));
+  // v1.30.6: рабочий landscape — сетка слева, панель цифр справа. В landscape размер ячейки
+  // считаем по ВЫСОТЕ (она ограничивает), оставляя справа ~210px под цифры. Портрет — как был.
+  const landscape = width > height;
+  const cellSize = landscape
+    ? Math.max(16, Math.floor(Math.min((height - 96) / N, (width - 210) / N, 92)))
+    : Math.max(14, Math.floor(Math.min((width - 28) / N, (height - 330) / N, 92)));
 
   const renderConfig = () => (
     <View style={styles.configContainer}>
@@ -207,12 +208,14 @@ export default function SudokuGame() {
     </View>
   );
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
+  const renderPlaying = () => {
+    const statsEl = (
       <View style={styles.statsRow}>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
       </View>
+    );
+    const gridEl = (
       <View style={[styles.gridArea, { width: cellSize * N + 4, backgroundColor: colors.text }]}>
         {grid.map((row, r) => row.map((v, c) => {
           const isSel = selected?.r === r && selected?.c === c;
@@ -254,7 +257,9 @@ export default function SudokuGame() {
           );
         }))}
       </View>
-      <View style={styles.numPad}>
+    );
+    const padEl = (
+      <View style={[styles.numPad, landscape && styles.numPadLand]}>
         {Array.from({ length: N }, (_, i) => i + 1).map((n) => (
           <TouchableOpacity
             key={n}
@@ -268,7 +273,9 @@ export default function SudokuGame() {
           <Ionicons name="backspace-outline" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
-      {/* Hint button + biomarker counters */}
+    );
+    {/* Hint button + biomarker counters */}
+    const hintEl = (
       <View style={styles.hintRow}>
         <TouchableOpacity
           onPress={handleHint}
@@ -282,8 +289,24 @@ export default function SudokuGame() {
           ↻ {backtrackCount}
         </Text>
       </View>
-    </View>
-  );
+    );
+    if (landscape) {
+      return (
+        <View style={[styles.playArea, styles.playAreaLand]}>
+          {gridEl}
+          <View style={styles.landControls}>{statsEl}{padEl}{hintEl}</View>
+        </View>
+      );
+    }
+    return (
+      <View style={styles.playArea}>
+        {statsEl}
+        {gridEl}
+        {padEl}
+        {hintEl}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -329,6 +352,9 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 14, alignItems: 'center' },
+  playAreaLand: { flexDirection: 'row', gap: 22 },                 // landscape: сетка | цифры
+  landControls: { gap: 14, alignItems: 'center', justifyContent: 'center' },
+  numPadLand: { maxWidth: 56 * 3 },                                // 3 столбца цифр справа
   statsRow: { flexDirection: 'row', gap: 18 },
   statText: { fontSize: 14, fontWeight: '700' },
   gridArea: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 2, borderRadius: 4 },

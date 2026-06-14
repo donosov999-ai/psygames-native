@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { usePathname } from 'expo-router';
 
 // Приложение спроектировано под ПОРТРЕТ (app.json orientation:portrait — натив залочен).
 // На web/webview браузер крутится свободно → сетки игр (судоку 9×9, шульте и др.), у которых
@@ -19,11 +20,17 @@ const TXT: Record<string, [string, string]> = {
   hi: ['फ़ोन को लंबवत घुमाएँ', 'ऐप पोर्ट्रेट मोड में चलता है'],
 };
 
+// игры/экраны с собственным рабочим landscape-режимом — оверлей НЕ показываем
+const LANDSCAPE_OK = ['/games/sudoku'];
+
 export default function OrientationGuard() {
   const { width, height } = useWindowDimensions();
   const { colors } = useTheme();
   const { language } = useLanguage();
+  const pathname = usePathname();
 
+  // у этого экрана свой landscape-режим → не перехватываем
+  if (LANDSCAPE_OK.some((r) => pathname?.startsWith(r))) return null;
   // телефон в горизонтали: ширина > высоты И высота мала (десктоп/планшет шире → не блокируем)
   const isPhoneLandscape = width > height && height < 480;
   if (!isPhoneLandscape) return null;
