@@ -481,7 +481,7 @@ export default function MentalRotationGame() {
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mentalRotationHint')}</Text>
         <View style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
           {renderShape(trial.base, baseSize, GRADIENT[0])}
-          <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>{language === 'ru' ? 'эталон' : 'reference'}</Text>
+          <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>{t('label_reference')}</Text>
         </View>
         <View style={styles.optionsRow}>
           {trial.options.map((opt, i) => {

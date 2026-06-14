@@ -250,23 +250,23 @@ export default function SetGame() {
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('setHint')}</Text>
       {hintBreakdown && feedback === 'wrong' && (
         <View style={[styles.hintBox, { backgroundColor: '#f43f5e22', borderColor: '#f43f5e' }]}>
-          <Text style={[styles.hintTitle, { color: '#f43f5e' }]}>{language === 'ru' ? 'Не SET — разбор по признакам:' : 'Not a SET — attribute breakdown:'}</Text>
+          <Text style={[styles.hintTitle, { color: '#f43f5e' }]}>{t('label_not_set')}</Text>
           <View style={styles.hintRow}>
             <Text style={[styles.hintItem, { color: hintBreakdown.shape ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.shape ? '✓' : '✗'} {language === 'ru' ? 'Форма' : 'Shape'}
+              {hintBreakdown.shape ? '✓' : '✗'} {t('label_shape')}
             </Text>
             <Text style={[styles.hintItem, { color: hintBreakdown.color ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.color ? '✓' : '✗'} {language === 'ru' ? 'Цвет' : 'Color'}
+              {hintBreakdown.color ? '✓' : '✗'} {t('label_color')}
             </Text>
             <Text style={[styles.hintItem, { color: hintBreakdown.fill ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.fill ? '✓' : '✗'} {language === 'ru' ? 'Штрих' : 'Fill'}
+              {hintBreakdown.fill ? '✓' : '✗'} {t('label_fill')}
             </Text>
             <Text style={[styles.hintItem, { color: hintBreakdown.count ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.count ? '✓' : '✗'} {language === 'ru' ? 'Кол-во' : 'Count'}
+              {hintBreakdown.count ? '✓' : '✗'} {t('label_count_short')}
             </Text>
           </View>
           <Text style={[styles.hintRule, { color: colors.textSecondary }]}>
-            {language === 'ru' ? 'Каждый признак должен быть либо ОДИНАКОВ на всех 3, либо РАЗНЫЙ на всех 3' : 'Each attribute must be either ALL SAME across the 3 or ALL DIFFERENT across the 3'}
+            {t('hint_set_rule')}
           </Text>
         </View>
       )}

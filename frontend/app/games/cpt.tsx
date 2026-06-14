@@ -335,7 +335,7 @@ export default function CPTGame() {
           {!letterVisible && <Text style={[styles.fixCross, { color: colors.textSecondary }]}>+</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={[styles.stopBtn, { borderColor: '#f43f5e' }]} onPress={stop}>
-          <Text style={[styles.stopBtnText, { color: '#f43f5e' }]}>{language === 'ru' ? 'СТОП' : 'STOP'}</Text>
+          <Text style={[styles.stopBtnText, { color: '#f43f5e' }]}>{t('btn_stop')}</Text>
         </TouchableOpacity>
       </View>
     );

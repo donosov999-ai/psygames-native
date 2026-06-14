@@ -174,18 +174,18 @@ export default function SimonGame() {
 
       {/* Правила игры — статический rule reminder */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text, marginBottom: 8 }]}>{t('simonRule') || (language === 'ru' ? 'Правило' : 'Rule')}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text, marginBottom: 8 }]}>{t('simonRule')}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, justifyContent: 'center' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <View style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: COLOR_BLUE }} />
             <Ionicons name="arrow-back" size={20} color={colors.textSecondary} />
-            <Text style={{ color: colors.text, fontWeight: '700' }}>{t('simonLeftBtn') || (language === 'ru' ? 'Левая' : 'Left')}</Text>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>{t('simonLeftBtn')}</Text>
           </View>
           <Text style={{ color: colors.textSecondary }}>·</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <View style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: COLOR_RED }} />
             <Ionicons name="arrow-forward" size={20} color={colors.textSecondary} />
-            <Text style={{ color: colors.text, fontWeight: '700' }}>{t('simonRightBtn') || (language === 'ru' ? 'Правая' : 'Right')}</Text>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>{t('simonRightBtn')}</Text>
           </View>
         </View>
       </View>
@@ -255,7 +255,7 @@ export default function SimonGame() {
         </View>
         {/* Подсказка правила (для конфига и для playing) */}
         <Text style={{ color: colors.textSecondary, fontSize: 11, textAlign: 'center', maxWidth: 320 }}>
-          {language === 'ru' ? '🔵 → ⬅️ левая  ·  🔴 → ➡️ правая  (по цвету, не по позиции)' : '🔵 → ⬅️ left  ·  🔴 → ➡️ right  (by color, not by position)'}
+          {t('hint_simon_color_rule')}
         </Text>
         <View style={styles.choiceRow}>
           <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: COLOR_BLUE }]} onPress={() => handleAnswer('left')}>

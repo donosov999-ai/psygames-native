@@ -249,18 +249,18 @@ export default function DigitSpanGame() {
       {/* Status badge (replaces manual Check button — auto-submit happens on last digit) */}
       {lastFeedback === null ? (
         <Text style={{ color: colors.textSecondary, fontSize: 12, fontStyle: 'italic' }}>
-          {userInput.length}/{seqLen} — {language === 'ru' ? 'авто-проверка после ввода' : 'auto-check after input'}
+          {userInput.length}/{seqLen} — {t('hint_autocheck')}
         </Text>
       ) : lastFeedback === 'right' ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
-          <Text style={{ color: '#22c55e', fontSize: 18, fontWeight: '800' }}>{language === 'ru' ? 'Правильно! +1 уровень' : 'Correct! +1 level'}</Text>
+          <Text style={{ color: '#22c55e', fontSize: 18, fontWeight: '800' }}>{t('msg_correct_level_up')}</Text>
         </View>
       ) : (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
           <Ionicons name="close-circle" size={28} color="#f43f5e" />
           <Text style={{ color: '#f43f5e', fontSize: 16, fontWeight: '700' }}>
-            {language === 'ru' ? 'Было' : 'Was'}: {(direction === 'forward' ? sequence : [...sequence].reverse()).join('')}
+            {t('label_was')}: {(direction === 'forward' ? sequence : [...sequence].reverse()).join('')}
           </Text>
         </View>
       )}

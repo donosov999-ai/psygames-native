@@ -455,6 +455,48 @@ const EN_WORDS_8: WordEntry[] = [
   { w: 'pancakes', h: 'breakfast, with syrup' },
 ].filter(e => e.w.length === 8);
 
+const RU_WORDS_9: WordEntry[] = [
+  { w: 'велосипед', h: 'двухколёсный, крутишь педали' },
+  { w: 'дирижабль', h: 'воздушное судно-«сигара»' },
+  { w: 'земляника', h: 'мелкая лесная ягода' },
+  { w: 'подсолнух', h: 'жёлтый цветок за солнцем' },
+  { w: 'сковорода', h: 'на ней жарят' },
+  { w: 'телевизор', h: 'показывает передачи' },
+  { w: 'компьютер', h: 'на нём работают' },
+  { w: 'остановка', h: 'на ней ждут автобус' },
+  { w: 'созвездие', h: 'группа звёзд' },
+  { w: 'мороженое', h: 'холодное сладкое лакомство' },
+  { w: 'шоколадка', h: 'сладкая плитка' },
+  { w: 'бутерброд', h: 'хлеб с начинкой' },
+  { w: 'незабудка', h: 'мелкий голубой цветок' },
+  { w: 'одуванчик', h: 'жёлтый, потом пушистый шарик' },
+  { w: 'крыжовник', h: 'кисло-сладкая ягода в колючках' },
+  { w: 'паровозик', h: 'маленький поезд' },
+  { w: 'футболист', h: 'игрок в футбол' },
+  { w: 'художница', h: 'женщина, пишущая картины' },
+].filter(e => e.w.length === 9);
+
+const EN_WORDS_9: WordEntry[] = [
+  { w: 'crocodile', h: 'big river reptile' },
+  { w: 'butterfly', h: 'colorful winged insect' },
+  { w: 'ambulance', h: 'emergency vehicle' },
+  { w: 'chocolate', h: 'sweet brown treat' },
+  { w: 'dangerous', h: 'not safe' },
+  { w: 'adventure', h: 'an exciting journey' },
+  { w: 'telephone', h: 'you call with it' },
+  { w: 'pineapple', h: 'tropical fruit with a crown' },
+  { w: 'orchestra', h: 'large group of musicians' },
+  { w: 'waterfall', h: 'water dropping off a cliff' },
+  { w: 'furniture', h: 'tables, chairs and such' },
+  { w: 'chemistry', h: 'science of substances' },
+  { w: 'alligator', h: 'large reptile, like a croc' },
+  { w: 'detective', h: 'solves crimes' },
+  { w: 'centipede', h: 'many-legged bug' },
+  { w: 'saxophone', h: 'brass wind instrument' },
+  { w: 'jellyfish', h: 'sea creature that stings' },
+  { w: 'submarine', h: 'underwater boat' },
+].filter(e => e.w.length === 9);
+
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
 function shuffle<T>(arr: T[]): T[] {
@@ -474,11 +516,12 @@ export default function AnagramGame() {
   const { isPreset, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [length, setLength] = useState<4 | 5 | 6 | 7 | 8>(() => (num('length', 4) as 4 | 5 | 6 | 7 | 8));
+  const [length, setLength] = useState<4 | 5 | 6 | 7 | 8 | 9>(() => (num('length', 4) as 4 | 5 | 6 | 7 | 8 | 9));
   const [trials] = useState(10);
   const [round, setRound] = useState(0);
   const [target, setTarget] = useState('');
   const [hint, setHint] = useState('');     // подсказка-намёк на слово
+  const [hintsOn, setHintsOn] = useState(true);   // тумблер подсказки (выкл = хардкор, только буквы)
   const [letters, setLetters] = useState<string[]>([]);
   const [picked, setPicked] = useState<number[]>([]);
   const [hits, setHits] = useState(0);
@@ -491,12 +534,12 @@ export default function AnagramGame() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  const wordsBank = (len: 4 | 5 | 6 | 7 | 8): WordEntry[] => {
+  const wordsBank = (len: 4 | 5 | 6 | 7 | 8 | 9): WordEntry[] => {
     const isRu = language === 'ru';
     // курированные банки (с осмысленными подсказками-определениями); не-ru/en → английский набор
     const curated: WordEntry[] = isRu
-      ? (len === 4 ? RU_WORDS_4 : len === 5 ? RU_WORDS_5 : len === 6 ? RU_WORDS_6 : len === 7 ? RU_WORDS_7 : RU_WORDS_8)
-      : (len === 4 ? EN_WORDS_4 : len === 5 ? EN_WORDS_5 : len === 6 ? EN_WORDS_6 : len === 7 ? EN_WORDS_7 : EN_WORDS_8);
+      ? (len === 4 ? RU_WORDS_4 : len === 5 ? RU_WORDS_5 : len === 6 ? RU_WORDS_6 : len === 7 ? RU_WORDS_7 : len === 8 ? RU_WORDS_8 : RU_WORDS_9)
+      : (len === 4 ? EN_WORDS_4 : len === 5 ? EN_WORDS_5 : len === 6 ? EN_WORDS_6 : len === 7 ? EN_WORDS_7 : len === 8 ? EN_WORDS_8 : EN_WORDS_9);
     // + корпус TRANSLATION_VOCAB (слово на языке игрока). Подсказка = КАТЕГОРИЯ слова, НЕ перевод:
     // перевод выдавал ответ напрямую (жалоба «слишком легко — просто перевод пишешь»). Категория
     // («Животные», «Еда») задаёт тему, но не раскрывает слово. Дедуп с курированными банками.
@@ -523,7 +566,7 @@ export default function AnagramGame() {
     usedRef.current.add(entry.w);
     const w = entry.w.toUpperCase();
     setTarget(w);
-    setHint(entry.h);
+    setHint(hintsOn ? entry.h : '');
     let arr = w.split('');
     let attempts = 0;
     do { arr = shuffle(arr); attempts++; } while (arr.join('') === w && attempts < 5);
@@ -586,12 +629,27 @@ export default function AnagramGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('lettersInWord')}</Text>
         <View style={styles.optionButtons}>
-          {([4, 5, 6, 7, 8] as const).map((n) => (
+          {([4, 5, 6, 7, 8, 9] as const).map((n) => (
             <TouchableOpacity key={n} style={[styles.modeButton, length === n
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setLength(n)}>
               <Text style={[styles.modeButtonText, { color: length === n ? '#FFF' : colors.text }]}>{n}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('btn_hint')}</Text>
+        <View style={styles.optionButtons}>
+          {([true, false] as const).map((on) => (
+            <TouchableOpacity key={String(on)} style={[styles.modeButton, hintsOn === on
+              ? { backgroundColor: GRADIENT[0] }
+              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+              onPress={() => setHintsOn(on)}>
+              <Text style={[styles.modeButtonText, { color: hintsOn === on ? '#FFF' : colors.text }]}>
+                {on ? t('label_on') : t('label_off')}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -656,7 +714,7 @@ export default function AnagramGame() {
       </View>
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
         <TouchableOpacity onPress={revealHint} style={[styles.clearBtn, { flex: 1, backgroundColor: '#fbbf24' }]}>
-          <Text style={[styles.clearText, { color: '#1a1a1a' }]}>💡 {language === 'ru' ? 'Подсказка' : 'Hint'}{hintUses > 0 ? ` (${hintUses})` : ''}</Text>
+          <Text style={[styles.clearText, { color: '#1a1a1a' }]}>💡 {t('btn_hint')}{hintUses > 0 ? ` (${hintUses})` : ''}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setPicked([])} style={[styles.clearBtn, { flex: 1, backgroundColor: colors.surface }]}>
           <Text style={[styles.clearText, { color: colors.text }]}>{t('clear')}</Text>

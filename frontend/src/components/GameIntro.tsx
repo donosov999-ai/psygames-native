@@ -53,7 +53,7 @@ export default function GameIntro({
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {language === 'ru' ? 'Об игре' : 'About Game'}
+          {t('title_about_game')}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -85,7 +85,7 @@ export default function GameIntro({
           <View style={styles.descriptionHeader}>
             <Ionicons name="information-circle" size={24} color={gradient[0]} style={styles.descriptionIcon} />
             <Text style={[styles.descriptionTitle, { color: colors.text }]}>
-              {language === 'ru' ? 'Как это работает' : 'How it works'}
+              {t('title_how_it_works')}
             </Text>
           </View>
           <Text style={[styles.descriptionText, { color: colors.textSecondary }]}>
@@ -98,7 +98,7 @@ export default function GameIntro({
           <View style={styles.benefitsHeader}>
             <Ionicons name="star" size={24} color={gradient[0]} style={styles.benefitsIcon} />
             <Text style={[styles.benefitsTitle, { color: colors.text }]}>
-              {language === 'ru' ? 'Польза в жизни' : 'Real-life benefits'}
+              {t('title_real_life_benefits')}
             </Text>
           </View>
           <View style={styles.benefitsList}>
@@ -120,13 +120,11 @@ export default function GameIntro({
           <View style={styles.tipsHeader}>
             <Ionicons name="bulb" size={24} color={gradient[0]} style={styles.tipsIcon} />
             <Text style={[styles.tipsTitle, { color: colors.text }]}>
-              {language === 'ru' ? 'Совет' : 'Tip'}
+              {t('title_tip')}
             </Text>
           </View>
           <Text style={[styles.tipsText, { color: colors.textSecondary }]}>
-            {language === 'ru' 
-              ? 'Регулярные тренировки по 5-10 минут в день дают лучший результат, чем редкие длинные сессии.'
-              : 'Regular 5-10 minute daily sessions give better results than occasional long sessions.'}
+            {t('desc_regular_training_tip')}
           </Text>
         </View>
       </ScrollView>
@@ -141,7 +139,7 @@ export default function GameIntro({
           >
             <Ionicons name="help-circle" size={22} color="#1a1a1a" />
             <Text style={[styles.helpBtnText, { color: '#1a1a1a' }]}>
-              {language === 'ru' ? 'Справка' : 'Help'}
+              {t('btn_help')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.startButton} onPress={onStart} activeOpacity={0.85}>
@@ -153,7 +151,7 @@ export default function GameIntro({
             >
               <Ionicons name="play" size={22} color="#FFFFFF" style={styles.startButtonIcon} />
               <Text style={styles.startButtonText}>
-                {language === 'ru' ? 'Начать' : 'Start'}
+                {t('start')}
               </Text>
             </LinearGradient>
           </TouchableOpacity>

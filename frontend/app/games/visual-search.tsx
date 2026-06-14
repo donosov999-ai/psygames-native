@@ -253,7 +253,7 @@ export default function VisualSearchGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{language === 'ru' ? 'Ур.' : 'Lvl'} {round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{t('label_level_short')} {round}/{trials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         {targetCount > 1 && (

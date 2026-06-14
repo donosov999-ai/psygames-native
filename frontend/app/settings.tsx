@@ -70,7 +70,7 @@ export default function SettingsScreen() {
     const url = `https://t.me/${OWNER_TG}?text=${msg}`;
     Linking.openURL(url).catch(() => {
       Alert.alert(
-        language === 'ru' ? 'Не удалось открыть Telegram' : 'Could not open Telegram',
+        t('alert_telegram_open_failed'),
         language === 'ru' ? `Напиши вручную: @${OWNER_TG}` : `Message manually: @${OWNER_TG}`
       );
     });
@@ -83,7 +83,7 @@ export default function SettingsScreen() {
       setCodeModalOpen(false);
       setCodeInput('');
     } else {
-      setCodeError(language === 'ru' ? 'Неверный код. Проверь и попробуй ещё раз.' : 'Invalid code. Check it and try again.');
+      setCodeError(t('msg_invalid_code'));
     }
   };
   const [soundOn, setSoundOn] = React.useState(true);
@@ -106,8 +106,8 @@ export default function SettingsScreen() {
     const turningOn = !reminders[slot];
     if (turningOn && !(await requestReminderPermission())) {
       Alert.alert(
-        language === 'ru' ? 'Нужно разрешение' : 'Permission needed',
-        language === 'ru' ? 'Разреши уведомления в настройках устройства, чтобы получать напоминания.' : 'Allow notifications in your device settings to receive reminders.'
+        t('alert_permission_needed'),
+        t('msg_allow_notifications')
       );
       return;
     }
@@ -140,24 +140,22 @@ export default function SettingsScreen() {
         }
       } catch {}
       Alert.alert(
-        copied ? (language === 'ru' ? 'Бэкап скопирован ✓' : 'Backup copied ✓')
-               : (language === 'ru' ? 'Бэкап' : 'Backup'),
+        copied ? t('alert_backup_copied')
+               : t('alert_backup'),
         copied
-          ? (language === 'ru'
-              ? 'Весь бэкап скопирован в буфер обмена. Вставь его в заметки или файл и сохрани. Для восстановления — скопируй этот текст и нажми «Восстановить из бэкапа».'
-              : 'The full backup is copied to the clipboard. Paste it into notes or a file and keep it safe. To restore — copy that text and tap “Restore from backup”.')
-          : (language === 'ru' ? 'Не удалось скопировать в буфер обмена.' : 'Could not copy to clipboard.')
+          ? t('msg_backup_copied_full')
+          : t('msg_clipboard_copy_failed')
       );
     } catch (e: any) {
       Alert.alert(
-        language === 'ru' ? 'Ошибка экспорта' : 'Export error',
-        e?.message || (language === 'ru' ? 'Не удалось создать бэкап' : 'Failed to create backup')
+        t('alert_export_error'),
+        e?.message || t('msg_backup_create_failed')
       );
     }
   };
   const handleImportBackup = async () => {
     const okMsg = (restored: number) => Alert.alert(
-      language === 'ru' ? 'Бэкап восстановлен ✓' : 'Backup restored ✓',
+      t('alert_backup_restored'),
       language === 'ru'
         ? `Восстановлено ${restored} записей. Перезапусти приложение чтобы данные применились.`
         : `Restored ${restored} records. Restart the app to apply the data.`
@@ -175,10 +173,8 @@ export default function SettingsScreen() {
       } catch {}
       if (!text || !text.trim()) {
         Alert.alert(
-          language === 'ru' ? 'Восстановление из буфера' : 'Restore from clipboard',
-          language === 'ru'
-            ? 'Скопируй текст бэкапа (JSON) в буфер обмена и снова нажми «Восстановить из бэкапа».'
-            : 'Copy the backup text (JSON) to the clipboard, then tap “Restore from backup” again.'
+          t('alert_restore_from_clipboard'),
+          t('msg_paste_backup_json')
         );
         return;
       }
@@ -186,8 +182,8 @@ export default function SettingsScreen() {
       okMsg(restored);
     } catch (e: any) {
       Alert.alert(
-        language === 'ru' ? 'Ошибка импорта' : 'Import error',
-        e?.message || (language === 'ru' ? 'Не удалось восстановить' : 'Failed to restore')
+        t('alert_import_error'),
+        e?.message || t('msg_restore_failed')
       );
     }
   };
@@ -210,18 +206,16 @@ export default function SettingsScreen() {
       {/* Profile Selector (E1) */}
       <View style={[styles.profileSection, { backgroundColor: colors.surface }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          👤 {language === 'ru' ? 'Профиль' : 'Profile'}
+          👤 {t('label_profile')}
         </Text>
         <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
-          {language === 'ru'
-            ? 'У каждого профиля свой набор тренажёров, свой плейлист зарядки и своя история.'
-            : 'Each profile has its own set of exercises, its own warm-up playlist and its own history.'}
+          {t('desc_profile_section')}
         </Text>
         {/* Personal profiles (v1.3.0: section hidden when no personal profiles exist;
             kept as conditional render in case personal profiles return in the future) */}
         {allProfiles.some(p => !p.group || p.group === 'personal') && (
           <>
-            <Text style={[styles.groupLabel, { color: colors.textSecondary }]}>👥 {language === 'ru' ? 'Личные' : 'Personal'}</Text>
+            <Text style={[styles.groupLabel, { color: colors.textSecondary }]}>👥 {t('label_personal')}</Text>
             <View style={styles.profileGrid}>
               {allProfiles.filter(p => !p.group || p.group === 'personal').map((p) => {
                 const active = p.id === profile.id;
@@ -256,17 +250,13 @@ export default function SettingsScreen() {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, marginBottom: 4 }}>
               <Text style={[styles.groupLabel, { color: colors.textSecondary, marginTop: 0, marginBottom: 0 }]}>
                 {UNLOCK_CODES_ENABLED
-                  ? (language === 'ru'
-                      ? '🎯 Тематические (9 тренажёров каждый · ODV999 = все 48)'
-                      : '🎯 Themed (9 exercises each · ODV999 = all 48)')
-                  : (language === 'ru'
-                      ? '🎯 Тематические · 5 открыты бесплатно, остальные скоро'
-                      : '🎯 Themed · 5 free now, the rest coming soon')}
+                  ? t('label_themed_codes_on')
+                  : t('label_themed_codes_off')}
               </Text>
               {/* v1.15.0: «Ввести код» скрыт пока UNLOCK_CODES_ENABLED=false */}
               {UNLOCK_CODES_ENABLED && (
                 <TouchableOpacity onPress={() => setCodeModalOpen(true)} style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text }}>🔑 {language === 'ru' ? 'Ввести код' : 'Enter code'}</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text }}>🔑 {t('btn_enter_code')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -320,18 +310,16 @@ export default function SettingsScreen() {
             {unlockedThemed.size > 0 && (
               <TouchableOpacity onPress={() => {
                 Alert.alert(
-                  language === 'ru' ? 'Сбросить разблокировки?' : 'Reset unlocks?',
-                  language === 'ru'
-                    ? 'Все ранее введённые коды забудутся. Чтобы вернуть профили — нужно будет снова ввести коды.'
-                    : 'All previously entered codes will be forgotten. To restore the profiles you will need to enter the codes again.',
+                  t('alert_reset_unlocks'),
+                  t('msg_reset_unlocks_confirm'),
                   [
-                    { text: language === 'ru' ? 'Отмена' : 'Cancel', style: 'cancel' },
-                    { text: language === 'ru' ? 'Сбросить' : 'Reset', style: 'destructive', onPress: () => resetUnlocks() },
+                    { text: t('btn_cancel'), style: 'cancel' },
+                    { text: t('btn_reset'), style: 'destructive', onPress: () => resetUnlocks() },
                   ]
                 );
               }} style={{ marginTop: 8, alignSelf: 'flex-end' }}>
                 <Text style={{ fontSize: 11, color: colors.textSecondary }}>
-                  {language === 'ru' ? 'Разблокировано' : 'Unlocked'}: {unlockedThemed.size} · 🗑 {language === 'ru' ? 'Сбросить' : 'Reset'}
+                  {t('label_unlocked')}: {unlockedThemed.size} · 🗑 {t('btn_reset')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -343,18 +331,16 @@ export default function SettingsScreen() {
       <Modal visible={codeModalOpen} animationType="fade" transparent onRequestClose={() => setCodeModalOpen(false)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 20 }}>
           <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 22, gap: 14 }}>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 {language === 'ru' ? 'Код доступа' : 'Access code'}</Text>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 {t('title_access_code')}</Text>
             <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
-              {language === 'ru'
-                ? 'Введите код чтобы разблокировать тематический профиль (ODV999, Шахматист, Дети, Скорочтение, NZT-48, Водители, 50+, Предприниматели, Студенты ЕГЭ, Женщины).'
-                : 'Enter a code to unlock a themed profile (ODV999, Chess Player, Kids, Speed Reading, NZT-48, Drivers, 50+, Entrepreneurs, Exam Students, Women).'}
+              {t('desc_enter_code')}
             </Text>
             <TextInput
               value={codeInput}
               onChangeText={(t) => { setCodeInput(t); setCodeError(null); }}
               autoCapitalize="characters"
               autoCorrect={false}
-              placeholder={language === 'ru' ? 'например, CHESS-NZT-2026' : 'e.g. CHESS-NZT-2026'}
+              placeholder={t('ph_code_example')}
               placeholderTextColor={colors.textSecondary}
               style={{
                 borderWidth: 1,
@@ -371,11 +357,11 @@ export default function SettingsScreen() {
             <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'flex-end' }}>
               <TouchableOpacity onPress={() => { setCodeModalOpen(false); setCodeInput(''); setCodeError(null); }}
                 style={{ paddingVertical: 10, paddingHorizontal: 16 }}>
-                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{language === 'ru' ? 'Отмена' : 'Cancel'}</Text>
+                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('btn_cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={tryRedeem}
                 style={{ paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#10b981', borderRadius: 8 }}>
-                <Text style={{ color: '#fff', fontWeight: '700' }}>{language === 'ru' ? 'Разблокировать' : 'Unlock'}</Text>
+                <Text style={{ color: '#fff', fontWeight: '700' }}>{t('welcomeUnlock')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -436,7 +422,7 @@ export default function SettingsScreen() {
                   )}
                   {detailProfile.warmup_enabled && (
                     <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
-                      <Text style={{ fontSize: 11, color: colors.text }}>☀️ {language === 'ru' ? 'Утренняя Зарядка' : 'Morning Warm-up'}</Text>
+                      <Text style={{ fontSize: 11, color: colors.text }}>☀️ {t('badge_morning_warmup')}</Text>
                     </View>
                   )}
                   {detailProfile.financial_brain_day_enabled && (
@@ -454,7 +440,7 @@ export default function SettingsScreen() {
                 {/* Games list */}
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 10 }}>
                   🎮 {detailProfile.allowed_games === 'all'
-                    ? (language === 'ru' ? 'Все 48 тренажёров' : 'All 48 exercises')
+                    ? t('label_all_48_games')
                     : (language === 'ru'
                         ? `${(detailProfile.allowed_games as string[]).length} тренажёров в этом профиле`
                         : `${(detailProfile.allowed_games as string[]).length} exercises in this profile`)}
@@ -475,9 +461,7 @@ export default function SettingsScreen() {
                 )}
                 {detailProfile.allowed_games === 'all' && (
                   <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 18, fontStyle: 'italic' }}>
-                    {language === 'ru'
-                      ? 'Полная библиотека: 12 памяти · 7 внимания · 14 логики · 15 скорости/торможения. Все 48 — без ограничений.'
-                      : 'Full library: 12 memory · 7 attention · 14 logic · 15 speed/inhibition. All 48 — no limits.'}
+                    {t('desc_full_library')}
                   </Text>
                 )}
 
@@ -487,7 +471,7 @@ export default function SettingsScreen() {
                     /* v1.16.0: free-trial этап — кодов нет, профиль откроется после запуска.
                        НЕ показываем код-кнопки (тупик), показываем «Скоро» + что доступно сейчас. */
                     <View style={{ gap: 8, backgroundColor: colors.card, borderRadius: 12, padding: 16 }}>
-                      <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text, textAlign: 'center' }}>🔒 {language === 'ru' ? 'Скоро' : 'Coming soon'}</Text>
+                      <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text, textAlign: 'center' }}>🔒 {t('label_coming_soon')}</Text>
                       <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center', lineHeight: 17 }}>
                         {language === 'ru'
                           ? <>Этот профиль откроется после запуска. Сейчас бесплатно доступны:{'\n'}💊 NZT-48 · 🌸 Микро-релакс · 🧒 Дети · 👴 50+ · 🎓 Студенты{'\n'}— выбери любой из них.</>
@@ -500,7 +484,7 @@ export default function SettingsScreen() {
                         onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
                         style={{ backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
                       >
-                        <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>🔑 {language === 'ru' ? 'У меня уже есть код — ввести' : 'I already have a code — enter it'}</Text>
+                        <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>🔑 {t('btn_already_have_code')}</Text>
                       </TouchableOpacity>
                       {/* v1.30.2: запрос кода в Telegram скрыт в App-Store-режиме (anti-steering). */}
                       {MONETIZATION_ENABLED && (
@@ -529,12 +513,12 @@ export default function SettingsScreen() {
                     onPress={() => { switchProfile(detailProfile.id); setDetailProfile(null); }}
                     style={{ backgroundColor: detailProfile.color, paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
                   >
-                    <Text style={{ color: '#000', fontWeight: '800', fontSize: 15 }}>✓ {language === 'ru' ? 'Переключиться на этот профиль' : 'Switch to this profile'}</Text>
+                    <Text style={{ color: '#000', fontWeight: '800', fontSize: 15 }}>✓ {t('btn_switch_to_profile')}</Text>
                   </TouchableOpacity>
                 )}
                 {detailProfile.id === profile.id && (
                   <View style={{ backgroundColor: detailProfile.color + '33', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}>
-                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>✓ {language === 'ru' ? 'Это твой текущий профиль' : 'This is your current profile'}</Text>
+                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>✓ {t('label_current_profile')}</Text>
                   </View>
                 )}
               </ScrollView>
@@ -569,7 +553,7 @@ export default function SettingsScreen() {
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
           <View style={styles.settingInfo}>
             <Ionicons name={soundOn ? 'volume-high' : 'volume-mute'} size={24} color={colors.primary} />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Звук' : 'Sound'}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('label_sound')}</Text>
           </View>
           <Switch value={soundOn} onValueChange={toggleSound} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
@@ -577,7 +561,7 @@ export default function SettingsScreen() {
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
           <View style={styles.settingInfo}>
             <Ionicons name="phone-portrait-outline" size={24} color={colors.primary} />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Вибрация' : 'Vibration'}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('label_vibration')}</Text>
           </View>
           <Switch value={hapticOn} onValueChange={toggleHaptic} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
@@ -587,10 +571,10 @@ export default function SettingsScreen() {
           <View style={[styles.settingItem, { backgroundColor: colors.surface, flexDirection: 'column', alignItems: 'stretch', gap: 12 }]}>
             <View style={styles.settingInfo}>
               <Ionicons name="notifications-outline" size={24} color={colors.primary} />
-              <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Напоминания' : 'Reminders'}</Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>{t('label_reminders')}</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ color: colors.text, fontSize: 15 }}>{language === 'ru' ? '🧠 Зарядка' : '🧠 Warm-up'}</Text>
+              <Text style={{ color: colors.text, fontSize: 15 }}>{t('label_reminder_warmup')}</Text>
               <Switch value={reminders.morning} onValueChange={() => toggleReminder('morning')} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
             </View>
             {reminders.morning && (
@@ -603,7 +587,7 @@ export default function SettingsScreen() {
               </View>
             )}
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ color: colors.text, fontSize: 15 }}>{language === 'ru' ? '🌙 Перед сном' : '🌙 Before sleep'}</Text>
+              <Text style={{ color: colors.text, fontSize: 15 }}>{t('label_reminder_sleep')}</Text>
               <Switch value={reminders.evening} onValueChange={() => toggleReminder('evening')} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
             </View>
             {reminders.evening && (
@@ -655,14 +639,14 @@ export default function SettingsScreen() {
         <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={() => router.push('/achievements' as any)}>
           <View style={styles.settingInfo}>
             <Ionicons name="trophy" size={24} color="#fbbf24" />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Достижения' : 'Achievements'}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('a11yAchievements')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
         <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={replayOnboarding}>
           <View style={styles.settingInfo}>
             <Ionicons name="play-circle-outline" size={24} color={colors.primary} />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Показать туториал заново' : 'Replay the tutorial'}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('btn_replay_tutorial')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -671,14 +655,14 @@ export default function SettingsScreen() {
         <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={handleExportBackup}>
           <View style={styles.settingInfo}>
             <Ionicons name="cloud-download-outline" size={24} color="#22c55e" />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Сохранить бэкап прогресса' : 'Save progress backup'}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('btn_save_backup')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
         <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={handleImportBackup}>
           <View style={styles.settingInfo}>
             <Ionicons name="cloud-upload-outline" size={24} color="#3b82f6" />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Восстановить из бэкапа' : 'Restore from backup'}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('btn_restore_backup')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -686,10 +670,10 @@ export default function SettingsScreen() {
 
       {/* App Info */}
       <View style={styles.appInfo}>
-        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.22.4 · {profile.emoji} {t('profileName_' + profile.id)} · {language === 'ru' ? '48 валидированных парадигм' : '48 validated paradigms'}</Text>
+        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.22.4 · {profile.emoji} {t('profileName_' + profile.id)} · {t('label_validated_paradigms')}</Text>
         <Text style={[styles.appVersion, { color: colors.textSecondary }]}>{MONETIZATION_ENABLED
-          ? (language === 'ru' ? 'Клик по профилю → детали + запрос кода в Telegram' : 'Tap a profile → details + request a code on Telegram')
-          : (language === 'ru' ? 'Клик по профилю → детали и разблокировка кодом' : 'Tap a profile → details and unlock with a code')}</Text>
+          ? t('hint_profile_tap_telegram')
+          : t('hint_profile_tap_unlock')}</Text>
       </View>
       </ScrollView>
     </SafeAreaView>

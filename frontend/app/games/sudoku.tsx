@@ -283,7 +283,7 @@ export default function SudokuGame() {
           style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: selected ? 1 : 0.4 }]}
         >
           <Ionicons name="bulb" size={16} color="#000" />
-          <Text style={styles.hintBtnText}>{language === 'ru' ? 'Подсказка' : 'Hint'} ({hintUses})</Text>
+          <Text style={styles.hintBtnText}>{t('btn_hint')} ({hintUses})</Text>
         </TouchableOpacity>
         <Text style={[styles.metaText, { color: colors.textSecondary }]}>
           ↻ {backtrackCount}

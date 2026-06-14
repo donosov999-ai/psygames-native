@@ -305,7 +305,7 @@ export default function PRLGame() {
         {renderStimulus('B', '#f59e0b')}
       </View>
       <TouchableOpacity style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
-        <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{language === 'ru' ? 'СТОП' : 'STOP'}</Text>
+        <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{t('btn_stop')}</Text>
       </TouchableOpacity>
     </View>
   );

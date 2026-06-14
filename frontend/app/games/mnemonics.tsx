@@ -176,28 +176,24 @@ export default function MnemonicsGame() {
         >
           <Ionicons name="bulb" size={48} color="#FFFFFF" />
           <Text style={styles.configTitle}>
-            {language === 'ru' ? 'Мнемоника' : 'Mnemonics'}
+            {t('label_mnemonics')}
           </Text>
           <Text style={styles.configDesc}>
-            {language === 'ru' 
-              ? 'Запоминание слов или чисел в порядке'
-              : 'Memorize words or numbers in order'}
+            {t('desc_mnemonics_short')}
           </Text>
         </LinearGradient>
 
         <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            {language === 'ru' 
-              ? 'Запомните порядок, затем отмечайте элементы сверху вниз, слева направо. Штраф: 15 сек.'
-              : 'Memorize the order, then select items top-to-bottom, left-to-right. Penalty: 15 sec.'}
+            {t('desc_mnemonics_rules')}
           </Text>
         </View>
 
         {/* Mode Selection */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {language === 'ru' ? 'Режим' : 'Mode'}
+            {t('mode')}
           </Text>
           <View style={styles.optionButtons}>
             <TouchableOpacity
@@ -214,7 +210,7 @@ export default function MnemonicsGame() {
                 color={mode === 'words' ? '#FFFFFF' : colors.text}
               />
               <Text style={[styles.modeButtonText, { color: mode === 'words' ? '#FFFFFF' : colors.text }]}>
-                {language === 'ru' ? 'Слова' : 'Words'}
+                {t('label_words')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -231,7 +227,7 @@ export default function MnemonicsGame() {
                 color={mode === 'numbers' ? '#FFFFFF' : colors.text}
               />
               <Text style={[styles.modeButtonText, { color: mode === 'numbers' ? '#FFFFFF' : colors.text }]}>
-                {language === 'ru' ? 'Числа' : 'Numbers'}
+                {t('catVocab_numbers')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -240,7 +236,7 @@ export default function MnemonicsGame() {
         {/* Count Selection */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {language === 'ru' ? 'Количество' : 'Count'}
+            {t('label_count')}
           </Text>
           <View style={styles.optionButtons}>
             {[10, 20, 30].map((count) => (
@@ -330,7 +326,7 @@ export default function MnemonicsGame() {
         >
           <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
           <Text style={styles.startButtonText}>
-            {language === 'ru' ? 'Проверка' : 'Check'}
+            {t('btn_check')}
           </Text>
         </LinearGradient>
       </TouchableOpacity>
@@ -352,7 +348,7 @@ export default function MnemonicsGame() {
         </View>
         <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            {language === 'ru' ? 'Выбрано' : 'Selected'}
+            {t('label_selected')}
           </Text>
           <Text style={[styles.statValue, { color: colors.success }]}>
             {selectedOrder.length}/{items.length}
@@ -361,10 +357,10 @@ export default function MnemonicsGame() {
       </View>
       
       <Text style={[styles.phaseTitle, { color: colors.text }]}>
-        {language === 'ru' ? 'Восстановите порядок' : 'Restore the order'}
+        {t('label_restore_order')}
       </Text>
       <Text style={[styles.phaseSubtitle, { color: colors.textSecondary }]}>
-        {language === 'ru' ? 'Сверху вниз, слева направо' : 'Top to bottom, left to right'}
+        {t('hint_top_to_bottom')}
       </Text>
       
       <ScrollView style={styles.itemsContainer} showsVerticalScrollIndicator={false}>
@@ -434,7 +430,7 @@ export default function MnemonicsGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>
-          {language === 'ru' ? 'Мнемоника' : 'Mnemonics'}
+          {t('label_mnemonics')}
         </Text>
         <View style={styles.placeholder} />
       </View>

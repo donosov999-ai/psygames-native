@@ -209,19 +209,17 @@ export default function WordPairsGame() {
       <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
         <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
         <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-          {language === 'ru' 
-            ? 'Запомните пары слов, затем восстановите связи. Штраф за ошибку: 15 сек.'
-            : 'Memorize word pairs, then restore connections. Penalty: 15 sec per error.'}
+          {t('desc_word_pairs_rules')}
         </Text>
       </View>
 
       <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>
-          {language === 'ru' ? 'Режим' : 'Mode'}
+          {t('mode')}
         </Text>
         <View style={styles.modeRow}>
-          {([['random', language === 'ru' ? 'Случайные пары' : 'Random pairs'],
-             ['translation', language === 'ru' ? 'Перевод' : 'Translation']] as const).map(([m, label]) => (
+          {([['random', t('label_random_pairs')],
+             ['translation', t('label_translation')]] as const).map(([m, label]) => (
             <TouchableOpacity
               key={m}
               style={[
@@ -242,7 +240,7 @@ export default function WordPairsGame() {
         {mode === 'translation' && (
           <>
             <Text style={[styles.optionLabel, { color: colors.text, marginTop: 16 }]}>
-              {(language === 'ru' ? 'Перевод' : 'Translate')}: {LANGUAGES.find(l => l.code === language)?.name} →
+              {t('label_translate')}: {LANGUAGES.find(l => l.code === language)?.name} →
             </Text>
             <View style={styles.optionButtons}>
               {LANGUAGES.filter(l => l.code !== language).map(l => (
@@ -268,7 +266,7 @@ export default function WordPairsGame() {
 
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>
-          {language === 'ru' ? 'Количество пар' : 'Number of pairs'}
+          {t('label_pairs_count')}
         </Text>
         <View style={styles.optionButtons}>
           {[5, 10, 15, 20].map((count) => (
@@ -320,7 +318,7 @@ export default function WordPairsGame() {
       <Text style={[styles.phaseTitle, { color: colors.text }]}>
         {mode === 'translation'
           ? `${LANGUAGES.find(l => l.code === language)?.name} → ${LANGUAGES.find(l => l.code === targetLang)?.name}`
-          : (language === 'ru' ? 'Запомните пары слов' : 'Memorize word pairs')}
+          : t('label_memorize_word_pairs')}
       </Text>
       
       <ScrollView style={styles.pairsList} showsVerticalScrollIndicator={false}>
@@ -342,7 +340,7 @@ export default function WordPairsGame() {
         >
           <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
           <Text style={styles.startButtonText}>
-            {language === 'ru' ? 'Проверка' : 'Check'}
+            {t('btn_check')}
           </Text>
         </LinearGradient>
       </TouchableOpacity>
@@ -364,7 +362,7 @@ export default function WordPairsGame() {
         </View>
         <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            {language === 'ru' ? 'Найдено' : 'Found'}
+            {t('label_found')}
           </Text>
           <Text style={[styles.statValue, { color: colors.success }]}>
             {matchedPairs.size}/{pairs.length}
@@ -373,7 +371,7 @@ export default function WordPairsGame() {
       </View>
       
       <Text style={[styles.phaseTitle, { color: colors.text }]}>
-        {language === 'ru' ? 'Восстановите пары' : 'Restore pairs'}
+        {t('label_restore_pairs')}
       </Text>
       
       <ScrollView style={styles.checkContainer} showsVerticalScrollIndicator={false}>

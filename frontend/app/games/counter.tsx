@@ -177,9 +177,7 @@ export default function CounterGame() {
         <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            {language === 'ru' 
-              ? 'Выберите числа, сумма которых равна целевому числу. Если сумма превысит цель - ошибка!'
-              : 'Select numbers that sum to the target. If sum exceeds target - error!'}
+            {t('desc_counter_rules')}
           </Text>
         </View>
 
@@ -229,7 +227,7 @@ export default function CounterGame() {
       {/* Target Sum - Big and Clear */}
       <View style={[styles.targetContainer, { backgroundColor: showSuccess ? colors.success : GRADIENT[0] }]}>
         <Text style={styles.targetLabel}>
-          {language === 'ru' ? 'НАЙДИТЕ СУММУ' : 'FIND SUM'}
+          {t('label_find_sum')}
         </Text>
         <Text style={styles.targetValue}>{targetSum}</Text>
       </View>
@@ -237,7 +235,7 @@ export default function CounterGame() {
       {/* Current Sum Display */}
       <View style={[styles.sumDisplay, { backgroundColor: colors.surface }]}>
         <Text style={[styles.sumLabel, { color: colors.textSecondary }]}>
-          {language === 'ru' ? 'Ваша сумма:' : 'Your sum:'}
+          {t('label_your_sum')}
         </Text>
         <Text style={[
           styles.sumValue, 
@@ -249,7 +247,7 @@ export default function CounterGame() {
           <View style={[styles.successBadge, { backgroundColor: colors.success }]}>
             <Ionicons name="checkmark" size={24} color="#FFFFFF" />
             <Text style={styles.successText}>
-              {language === 'ru' ? 'ВЕРНО!' : 'CORRECT!'}
+              {t('label_correct_excl')}
             </Text>
           </View>
         )}
@@ -259,7 +257,7 @@ export default function CounterGame() {
       <View style={styles.statsRow}>
         <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            {language === 'ru' ? 'Раунд' : 'Round'}
+            {t('round')}
           </Text>
           <Text style={[styles.statValue, { color: colors.text }]}>{round}/{totalRounds}</Text>
         </View>

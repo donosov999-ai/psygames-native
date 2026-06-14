@@ -304,9 +304,7 @@ export default function TargetsGame() {
         <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            {language === 'ru' 
-              ? 'Два объекта одинакового цвета = мишень. Нажмите на кнопку, когда видите мишень.'
-              : 'Two objects of same color = target. Click when you see a target.'}
+            {t('desc_targets')}
           </Text>
         </View>
 
@@ -351,9 +349,9 @@ export default function TargetsGame() {
           </View>
           
           <Text style={[styles.modeHint, { color: colors.textSecondary }]}>
-            {mode === 'field' 
-              ? (language === 'ru' ? 'Поле: 2 из 3 фигур одного цвета' : 'Field: 2 of 3 shapes same color')
-              : (language === 'ru' ? 'Джокер: цвет предыдущего круга = цвет квадрата' : 'Joker: prev circle color = square color')
+            {mode === 'field'
+              ? t('hint_targets_field')
+              : t('hint_targets_joker')
             }
           </Text>
         </View>
@@ -403,12 +401,10 @@ export default function TargetsGame() {
   const renderReady = () => (
     <View style={styles.readyContainer}>
       <Text style={[styles.readyTitle, { color: colors.text }]}>
-        {language === 'ru' ? 'Готовы?' : 'Ready?'}
+        {t('label_ready')}
       </Text>
       <Text style={[styles.readyHint, { color: colors.textSecondary }]}>
-        {language === 'ru' 
-          ? 'Нажмите МИШЕНЬ!, когда увидите два объекта одинакового цвета'
-          : 'Click TARGET! when you see two objects of the same color'}
+        {t('hint_targets_press')}
       </Text>
       
       <TouchableOpacity style={styles.startButton} onPress={beginRounds}>
@@ -419,7 +415,7 @@ export default function TargetsGame() {
           style={styles.startButtonGradient}
         >
           <Text style={styles.startButtonText}>
-            {language === 'ru' ? 'НАЧАТЬ' : 'START'}
+            {t('btn_start_caps')}
           </Text>
         </LinearGradient>
       </TouchableOpacity>
@@ -440,7 +436,7 @@ export default function TargetsGame() {
         </View>
         <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            {language === 'ru' ? 'Жизни' : 'Lives'}
+            {t('label_lives')}
           </Text>
           <Text style={[styles.statValue, { color: lives <= 2 ? colors.error : colors.text }]}>
             {lives}
@@ -478,7 +474,7 @@ export default function TargetsGame() {
         {mode === 'joker' && prevCircleColor && (
           <View style={styles.prevCircleHint}>
             <Text style={[styles.prevCircleLabel, { color: colors.textSecondary }]}>
-              {language === 'ru' ? 'Пред. круг:' : 'Prev circle:'}
+              {t('label_prev_circle')}
             </Text>
             <View style={[styles.miniCircle, { backgroundColor: prevCircleColor }]} />
           </View>
@@ -498,15 +494,13 @@ export default function TargetsGame() {
           style={styles.clickButtonGradient}
         >
           <Text style={styles.clickButtonText}>
-            {language === 'ru' ? 'МИШЕНЬ!' : 'TARGET!'}
+            {t('label_target_excl')}
           </Text>
         </LinearGradient>
       </TouchableOpacity>
 
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-        {language === 'ru' 
-          ? 'Нажмите, если видите мишень (2 одинаковых цвета)'
-          : 'Click if you see a target (2 same colors)'}
+        {t('hint_targets_tap_if')}
       </Text>
     </View>
   );

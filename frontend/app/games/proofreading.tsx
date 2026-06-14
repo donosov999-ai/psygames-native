@@ -166,9 +166,7 @@ export default function ProofreadingGame() {
         <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            {language === 'ru'
-              ? 'Найдите все вхождения двух заданных символов в таблице'
-              : 'Find all occurrences of two given symbols in the table'}
+            {t('desc_proofreading')}
           </Text>
         </View>
 
@@ -199,7 +197,7 @@ export default function ProofreadingGame() {
         {/* Rows Selection */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {language === 'ru' ? 'Строки' : 'Rows'}
+            {t('label_rows')}
           </Text>
           <View style={styles.optionButtons}>
             {[10, 12, 15, 18].map((r) => (
@@ -223,7 +221,7 @@ export default function ProofreadingGame() {
         {/* Columns Selection */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {language === 'ru' ? 'Столбцы' : 'Columns'}
+            {t('label_columns')}
           </Text>
           <View style={styles.optionButtons}>
             {[8, 10, 12, 16].map((c) => (

@@ -266,7 +266,7 @@ export default function SchulteGame() {
       {/* Content Mode Selection (Numbers/Letters) */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>
-          {language === 'ru' ? 'Тип' : 'Type'}
+          {t('label_type')}
         </Text>
         <View style={styles.optionButtons}>
           <TouchableOpacity
@@ -288,7 +288,7 @@ export default function SchulteGame() {
                 { color: contentMode === 'numbers' ? '#FFFFFF' : colors.text },
               ]}
             >
-              {language === 'ru' ? 'Цифры' : 'Numbers'}
+              {t('label_digits_numbers')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -310,7 +310,7 @@ export default function SchulteGame() {
                 { color: contentMode === 'letters' ? '#FFFFFF' : colors.text },
               ]}
             >
-              {language === 'ru' ? 'Буквы' : 'Letters'}
+              {t('label_letters')}
             </Text>
           </TouchableOpacity>
           {/* Schulte-Gorbov: chase 1, A, 2, B, 3, C... — самый сильный вариант */}
@@ -333,7 +333,7 @@ export default function SchulteGame() {
                 { color: contentMode === 'mixed' ? '#FFFFFF' : colors.text },
               ]}
             >
-              {language === 'ru' ? '1-А-2-Б' : '1-A-2-B'}
+              {t('label_mixed_1a2b')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -371,7 +371,7 @@ export default function SchulteGame() {
       {contentMode !== 'mixed' && (
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {language === 'ru' ? 'Направление' : 'Direction'}
+            {t('srsDirection')}
           </Text>
           <View style={styles.optionButtons}>
             <TouchableOpacity
@@ -414,9 +414,7 @@ export default function SchulteGame() {
             </TouchableOpacity>
           </View>
           <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
-            {language === 'ru'
-              ? 'Обратный режим сложнее — мозг привычно ищет по возрастанию.'
-              : 'Backward is harder — brain naturally searches ascending.'}
+            {t('hint_backward_harder')}
           </Text>
         </View>
       )}

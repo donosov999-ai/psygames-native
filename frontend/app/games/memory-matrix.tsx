@@ -202,7 +202,7 @@ export default function MemoryMatrixGame() {
         )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
         <View style={styles.optionButtons}>
           {(['static', 'sequential'] as MatrixMode[]).map((m) => (
             <TouchableOpacity
@@ -217,8 +217,8 @@ export default function MemoryMatrixGame() {
             >
               <Text style={[styles.modeButtonText, { color: matrixMode === m ? '#FFF' : colors.text, fontSize: 12 }]}>
                 {m === 'static'
-                  ? (language === 'ru' ? '🔲 Static (паттерн)' : '🔲 Static (pattern)')
-                  : (language === 'ru' ? '➡️ Sequential (порядок)' : '➡️ Sequential (order)')}
+                  ? t('label_mode_static')
+                  : t('label_mode_sequential')}
               </Text>
             </TouchableOpacity>
           ))}

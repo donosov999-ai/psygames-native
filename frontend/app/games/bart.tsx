@@ -175,7 +175,7 @@ export default function BARTGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{language === 'ru' ? 'Шар' : 'Balloon'} {round}/{balloons}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{t('label_balloon')} {round}/{balloons}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>💰{bank}¢</Text>
         <Text style={[styles.statText, { color: '#fbbf24' }]}>⏳{pending}¢</Text>
         <Text style={[styles.statText, { color: '#ef4444' }]}>💥{popCount}</Text>
@@ -210,7 +210,7 @@ export default function BARTGame() {
         return (
           <View style={styles.riskMeter}>
             <View style={styles.riskHeader}>
-              <Text style={[styles.riskLabel, { color: colors.textSecondary }]}>{language === 'ru' ? 'Риск взрыва на след. pump' : 'Burst risk on next pump'}</Text>
+              <Text style={[styles.riskLabel, { color: colors.textSecondary }]}>{t('label_burst_risk')}</Text>
               <Text style={[styles.riskValue, { color: riskColor }]}>{riskPct}%</Text>
             </View>
             <View style={[styles.riskBar, { backgroundColor: colors.surface }]}>

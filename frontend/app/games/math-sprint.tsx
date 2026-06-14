@@ -203,7 +203,7 @@ export default function MathSprintGame() {
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         {streak >= 3 && <Text style={[styles.statText, { color: '#fbbf24' }]}>🔥{streak}</Text>}
-        {Math.floor(correct / 5) > 0 && <Text style={[styles.statText, { color: '#3b82f6' }]}>📈{language === 'ru' ? 'ур.' : 'lv'}{Math.min(Math.floor(correct / 5), 5) + 1}</Text>}
+        {Math.floor(correct / 5) > 0 && <Text style={[styles.statText, { color: '#3b82f6' }]}>📈{t('label_level_short_lower')}{Math.min(Math.floor(correct / 5), 5) + 1}</Text>}
       </View>
       <View style={[styles.problemArea, {
         backgroundColor: feedback === 'correct' ? 'rgba(34,197,94,0.15)' : feedback === 'wrong' ? 'rgba(244,63,94,0.15)' : 'transparent',

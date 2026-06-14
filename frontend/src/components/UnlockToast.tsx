@@ -22,7 +22,7 @@ interface UnlockEventDetail {
 }
 
 export default function UnlockToast() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [visible, setVisible] = useState(false);
   const [detail, setDetail] = useState<UnlockEventDetail | null>(null);
   const opacity = React.useRef(new Animated.Value(0)).current;
@@ -61,7 +61,7 @@ export default function UnlockToast() {
     }]}>
       <Ionicons name="trophy" size={20} color="#fbbf24" />
       <View style={{ flex: 1 }}>
-        <Text style={styles.toastTitle}>{language === 'ru' ? '🎉 Новый уровень разблокирован!' : '🎉 New level unlocked!'}</Text>
+        <Text style={styles.toastTitle}>{t('toast_new_level_unlocked')}</Text>
         <Text style={styles.toastSub}>{language === 'ru' ? detail.label : (detail.labelEn ?? detail.label)}</Text>
       </View>
     </Animated.View>
