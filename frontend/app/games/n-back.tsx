@@ -83,6 +83,9 @@ export default function NBackGame() {
   const trialTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const answeredRef = useRef(false);
   const aAnsweredRef = useRef(false);
+  // Зеркало счётчиков в реф: finishGame вызывается из таймера runTrial и читал бы их из
+  // устаревшего замыкания → сохранённые d'/accuracy/score недосчитывали последние пробы.
+  const statsRef = useRef({ hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0, aHits: 0, aMisses: 0, aFalseAlarms: 0, aCorrectRejections: 0 });
 
   useEffect(() => {
     return () => {
@@ -93,6 +96,7 @@ export default function NBackGame() {
   const startGame = () => {
     setHits(0); setMisses(0); setFalseAlarms(0); setCorrectRejections(0);
     setAHits(0); setAMisses(0); setAFalseAlarms(0); setACorrectRejections(0);
+    statsRef.current = { hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0, aHits: 0, aMisses: 0, aFalseAlarms: 0, aCorrectRejections: 0 };
     setHistory([]); setAudioHistory([]); setCurrentIdx(-1); setActiveCell(null); setActiveLetter('');
     setPhase('playing');
     setStartTime(Date.now());
@@ -149,13 +153,13 @@ export default function NBackGame() {
         if (canMatch) {
           if (!answeredRef.current) {
             const isMatch = vStim === vHist[newIdx - nLevel];
-            if (isMatch) setMisses((m) => m + 1);
-            else setCorrectRejections((c) => c + 1);
+            if (isMatch) { statsRef.current.misses++; setMisses((m) => m + 1); }
+            else { statsRef.current.correctRejections++; setCorrectRejections((c) => c + 1); }
           }
           if (modality === 'dual' && !aAnsweredRef.current) {
             const isMatch = aStim === aHist[newIdx - nLevel];
-            if (isMatch) setAMisses((m) => m + 1);
-            else setACorrectRejections((c) => c + 1);
+            if (isMatch) { statsRef.current.aMisses++; setAMisses((m) => m + 1); }
+            else { statsRef.current.aCorrectRejections++; setACorrectRejections((c) => c + 1); }
           }
         }
         runTrial(newVHist, newAHist, newIdx);
@@ -168,8 +172,8 @@ export default function NBackGame() {
     answeredRef.current = true;
     const stimulus = history[currentIdx];
     const target = history[currentIdx - nLevel];
-    if (stimulus === target) setHits((h) => h + 1);
-    else setFalseAlarms((f) => f + 1);
+    if (stimulus === target) { statsRef.current.hits++; setHits((h) => h + 1); }
+    else { statsRef.current.falseAlarms++; setFalseAlarms((f) => f + 1); }
   };
 
   const handleAudioMatchPress = () => {
@@ -177,12 +181,14 @@ export default function NBackGame() {
     aAnsweredRef.current = true;
     const stimulus = audioHistory[currentIdx];
     const target = audioHistory[currentIdx - nLevel];
-    if (stimulus === target) setAHits((h) => h + 1);
-    else setAFalseAlarms((f) => f + 1);
+    if (stimulus === target) { statsRef.current.aHits++; setAHits((h) => h + 1); }
+    else { statsRef.current.aFalseAlarms++; setAFalseAlarms((f) => f + 1); }
   };
 
   const finishGame = async (vHist: number[], aHist: string[]) => {
     if (trialTimerRef.current) clearTimeout(trialTimerRef.current);
+    // Финальные счётчики берём из рефа, не из устаревшего замыкания таймера (иначе d'/accuracy кривые).
+    const { hits, misses, falseAlarms, correctRejections, aHits, aMisses, aFalseAlarms, aCorrectRejections } = statsRef.current;
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
     setPhase('result');

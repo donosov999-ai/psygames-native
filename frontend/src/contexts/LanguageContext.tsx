@@ -197,7 +197,6 @@ const translations: Translations = {
     en: '🧠 Most effective working memory trainer (Jaeggi et al., 2008 — the only paradigm with proven IQ transfer effect).\n\n📋 HOW TO PLAY:\n• Cells flash on the grid one at a time\n• Remember the position N steps ago\n• When current flash MATCHES the position from N steps back → press MATCH\n• If it doesn\'t match — don\'t press, wait for next\n\n🎯 EXAMPLE for N=2 (track positions 2 steps back):\nStep 1: flash top-left   → wait\nStep 2: flash right      → wait\nStep 3: flash bottom-left → COMPARE with step 1 (top-left). Doesn\'t match → don\'t press\nStep 4: flash right      → COMPARE with step 2 (right). MATCH! → press ✓\n\n💡 STRATEGY for beginners:\n• Start with N=1 (track just the previous flash) until rhythm clicks\n• Then N=2, then N=3. Above N=4 is elite-level\n• Don\'t try to "remember all steps" — your brain runs a sliding window automatically\n• 15-20 min/day for 3-4 weeks → noticeable WM gains',
   },
   nLevelLabel: { ru: 'Глубина (N)', en: 'Depth (N)' },
-  trialsLabel: { ru: 'Количество', en: 'Trials' },
   match: { ru: 'СОВПАДЕНИЕ', en: 'MATCH' },
   warmup: { ru: 'Запоминаем…', en: 'Warming up…' },
   nBackHint: { ru: 'Сравните текущую вспышку с той, что была N шагов назад — если совпадает → MATCH', en: 'Compare current flash with one N steps ago — if same position → MATCH' },
@@ -600,7 +599,7 @@ const translations: Translations = {
   mentalRotationDesc: { ru: 'Найдите повёрнутую копию фигуры',     en: 'Find the rotated copy of a shape' },
   readingSpanDesc:    { ru: 'Оцените смысл и запомните слова',     en: 'Judge sense, recall last words' },
   switchingTaskDesc:  { ru: 'Чередуйте правила числа/буквы',        en: 'Alternate number/letter rules' },
-  visualSearchDesc:   { ru: 'Найдите T среди множества L',          en: 'Find T among many Ls' },
+  visualSearchDesc:   { ru: 'Найди все заданные фигуры среди похожих', en: 'Find all the target shapes among similar ones' },
   sdmtDesc:           { ru: 'Кодируйте символы цифрами по таблице', en: 'Encode symbols by lookup table' },
 
   // Round-4 — intro descriptions
@@ -617,8 +616,8 @@ const translations: Translations = {
     en: 'You see a digit+letter pair, e.g. "3A". A coloured cue tells you the task: NUMBER — is the digit odd or even? LETTER — is the letter a vowel or consonant? The task switches randomly. Trains cognitive flexibility and measures switch cost.'
   },
   visualSearchIntroDesc: {
-    ru: 'На поле много букв L под разными углами. Спрятана одна буква T — нажмите на неё. Чем больше дистракторов, тем дольше поиск. Классическая парадигма селективного внимания.',
-    en: 'A field is filled with rotated Ls. A single T is hidden — tap it. The more distractors, the longer the search. A classic selective-attention paradigm.'
+    ru: 'Поле заполнено похожими фигурами под разными углами. Найди все заданные — образец показан рядом. Искомая фигура меняется каждый раунд, а с уровнями объектов и целей становится больше. Классическая парадигма селективного внимания.',
+    en: 'The field is filled with similar shapes at various angles. Find all the target shapes — the reference is shown alongside. The target changes every round, and as levels rise there are more objects and targets. A classic selective-attention paradigm.'
   },
   sdmtIntroDesc: {
     ru: 'В таблице: 9 символов ↔ 9 цифр (привязка случайная для каждой игры). Появляется символ — нажмите соответствующую цифру. За отведённое время делайте максимум правильных ответов. Чувствительный показатель скорости обработки информации.',
@@ -862,7 +861,6 @@ const translations: Translations = {
   color_green:    { ru: 'Зелёный', en: 'Green' },
   color_blue:     { ru: 'Синий',   en: 'Blue' },
   color_yellow:   { ru: 'Жёлтый',  en: 'Yellow' },
-  gridSize:       { ru: 'Размер сетки', en: 'Grid size' },
 
   // Round 7 — CPT
   cpt:            { ru: 'CPT: устойчивое внимание', en: 'CPT: Sustained Attention' },

@@ -540,7 +540,6 @@ const styles = StyleSheet.create({
   statsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
     marginBottom: 8,
   },
   statBox: {

@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "main": "expo-router/entry",
-  "version": "1.30.6",
+  "version": "1.30.7",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "keygen": "node scripts/keygen.mjs",
-    "keygen:interactive": "node scripts/keygen.mjs --interactive"
+    "keygen:interactive": "node scripts/keygen.mjs --interactive",
+    "smoke": "node scripts/smoke-games.mjs"
   },
   "dependencies": {
     "@expo/ngrok": "^4.1.3",

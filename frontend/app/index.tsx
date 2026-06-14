@@ -385,7 +385,7 @@ export default function HomeScreen() {
                   Native: старая flex-wrap + per-card margin. */}
               <View
                 style={isWeb ? ({
-                  // @ts-expect-error — RN Web style passthrough для CSS Grid
+                  // @ts-ignore — RN Web style passthrough для CSS Grid (тип ViewStyle не знает grid)
                   display: 'grid',
                   gridTemplateColumns: `repeat(auto-fill, minmax(${MIN_CARD_WIDTH}px, 1fr))`,
                   gap: 10,

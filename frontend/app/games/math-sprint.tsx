@@ -33,16 +33,20 @@ interface Problem {
   answer: number;
 }
 
-function generateProblem(difficulty: Difficulty): Problem {
+// tier — внутрисессионный рамп: с ростом числа верных ответов задачи становятся крупнее.
+// Выбранная сложность задаёт БАЗУ (диапазон/набор операций), tier масштабирует величину чисел.
+function generateProblem(difficulty: Difficulty, tier = 0): Problem {
   const ops: Op[] = difficulty === 'easy' ? ['+', '-'] : difficulty === 'medium' ? ['+', '-', '*'] : ['+', '-', '*'];
   const op = ops[Math.floor(Math.random() * ops.length)];
+  const t = Math.min(tier, 5);   // потолок рампа, чтобы числа не разрослись до абсурда
   let a: number, b: number;
   if (op === '*') {
-    if (difficulty === 'easy') { a = 2 + Math.floor(Math.random() * 8); b = 2 + Math.floor(Math.random() * 8); }
-    else if (difficulty === 'medium') { a = 3 + Math.floor(Math.random() * 10); b = 3 + Math.floor(Math.random() * 9); }
-    else { a = 5 + Math.floor(Math.random() * 16); b = 5 + Math.floor(Math.random() * 12); }
+    if (difficulty === 'easy') { a = 2 + Math.floor(Math.random() * (8 + t * 2)); b = 2 + Math.floor(Math.random() * (8 + t)); }
+    else if (difficulty === 'medium') { a = 3 + Math.floor(Math.random() * (10 + t * 3)); b = 3 + Math.floor(Math.random() * (9 + t * 2)); }
+    else { a = 5 + Math.floor(Math.random() * (16 + t * 4)); b = 5 + Math.floor(Math.random() * (12 + t * 2)); }
   } else {
-    const range = difficulty === 'easy' ? 20 : difficulty === 'medium' ? 50 : 100;
+    const baseRange = difficulty === 'easy' ? 20 : difficulty === 'medium' ? 50 : 100;
+    const range = Math.round(baseRange * (1 + t * 0.4));
     a = 5 + Math.floor(Math.random() * range);
     b = 1 + Math.floor(Math.random() * range);
     if (op === '-' && b > a) { [a, b] = [b, a]; }
@@ -82,7 +86,7 @@ export default function MathSprintGame() {
     setUserAnswer('');
     setFeedback(null);
     setTimeLeft(duration);
-    setProblem(generateProblem(difficulty));
+    setProblem(generateProblem(difficulty, 0));
     setPhase('playing');
     const start = Date.now();
     setStartTime(start);
@@ -114,11 +118,12 @@ export default function MathSprintGame() {
   const submit = () => {
     if (!problem || userAnswer === '') return;
     const ans = parseInt(userAnswer, 10);
+    let nextCorrect = correct;
     if (ans === problem.answer) {
       const newStreak = streak + 1;
-      const newCorrect = correct + 1;
+      nextCorrect = correct + 1;
       const points = 10 + Math.min(newStreak * 2, 30);
-      setCorrect(newCorrect);
+      setCorrect(nextCorrect);
       setStreak(newStreak);
       setBestStreak(Math.max(bestStreak, newStreak));
       setScore((s) => s + points);
@@ -130,8 +135,10 @@ export default function MathSprintGame() {
       setFeedback('wrong');
     }
     setUserAnswer('');
+    // Рамп: каждые 5 верных → tier+1 → следующая задача крупнее (свежий nextCorrect, не stale state).
+    const nextTier = Math.floor(nextCorrect / 5);
     setTimeout(() => {
-      setProblem(generateProblem(difficulty));
+      setProblem(generateProblem(difficulty, nextTier));
       setFeedback(null);
     }, 250);
   };
@@ -196,6 +203,7 @@ export default function MathSprintGame() {
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         {streak >= 3 && <Text style={[styles.statText, { color: '#fbbf24' }]}>🔥{streak}</Text>}
+        {Math.floor(correct / 5) > 0 && <Text style={[styles.statText, { color: '#3b82f6' }]}>📈{language === 'ru' ? 'ур.' : 'lv'}{Math.min(Math.floor(correct / 5), 5) + 1}</Text>}
       </View>
       <View style={[styles.problemArea, {
         backgroundColor: feedback === 'correct' ? 'rgba(34,197,94,0.15)' : feedback === 'wrong' ? 'rgba(244,63,94,0.15)' : 'transparent',

@@ -113,6 +113,11 @@ export default function MemoryMatrixGame() {
       setErrors((e) => e + 1);
       setScore((s) => Math.max(0, s - 5));
     }
+    // Финальные значения для saveSession: замыкание score/hits/errors не учитывает ТЕКУЩИЙ тап
+    // (setState функциональный, но сохранение ниже читает старое замыкание) → считаем явно.
+    const fHits = hits + (isHit ? 1 : 0);
+    const fErrors = errors + (isHit ? 0 : 1);
+    const fScore = isHit ? score + 10 : Math.max(0, score - 5);
 
     // All lit cells found OR a wrong cell — end round
     const allFound = matrixMode === 'static'
@@ -131,12 +136,12 @@ export default function MemoryMatrixGame() {
           try {
             await saveSession({
               game_type: 'memory_matrix',
-              score,
+              score: fScore,
               time_seconds: finalTime,
               difficulty: `${gridSize}x${gridSize}`,
               mode: `${totalRounds}r`,
-              errors,
-              details: { hits, finalRound: round },
+              errors: fErrors,
+              details: { hits: fHits, finalRound: round },
             });
           } catch (e) { console.error(e); }
         } else {

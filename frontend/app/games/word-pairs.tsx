@@ -64,6 +64,13 @@ export default function WordPairsGame() {
     };
   }, []);
 
+  // Цель перевода НЕ должна совпадать с языком интерфейса. Иначе (напр. сменили RU→EN, а
+  // сохранённый target остался 'en') подпись показывала «English → English», а колонка молча
+  // падала на испанский (fallback в generatePairs) — расхождение подписи и данных. Держим target ≠ язык.
+  useEffect(() => {
+    setTargetLang((cur) => (cur === language ? (language === 'en' ? 'es' : 'en') : cur));
+  }, [language]);
+
   const generatePairs = () => {
     if (mode === 'translation') {
       const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
@@ -540,7 +547,6 @@ const styles = StyleSheet.create({
   gameHeader: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 16,
     marginBottom: 8,
   },
   timerBox: {
@@ -567,7 +573,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 14,
     borderRadius: 12,
-    marginBottom: 8,
     marginBottom: 12,
   },
   pairWord: { fontSize: 15, flex: 1 },

@@ -30,7 +30,7 @@ import { GAMES } from '@/src/constants/games';
 import { UNLOCK_CODES_ENABLED, isComingSoon } from '@/src/services/unlock';
 // v1.24.3 fix: функции бэкапа использовались без импорта → ReferenceError при тапе
 // на «Экспорт/Импорт бэкапа» (тот же класс бага, что был с UNLOCK_CODES_ENABLED выше).
-import { buildBackupJSON, downloadBackup, pickAndRestoreBackup } from '@/src/services/backup';
+import { buildBackupJSON, restoreBackupJSON, downloadBackup, pickAndRestoreBackup } from '@/src/services/backup';
 // v1.26.0: локальные напоминания (зарядка/перед сном) — натив-only.
 import { loadReminderSettings, saveReminderSettings, applyReminders, requestReminderPermission, ReminderSettings, DEFAULT_REMINDERS } from '@/src/services/reminders';
 
@@ -120,49 +120,75 @@ export default function SettingsScreen() {
     router.push('/onboarding' as any);
   };
 
-  // v1.15.0: Backup / Restore прогресса
+  // v1.15.0: Backup / Restore прогресса.
+  // v1.30.7: в Tauri-webview (Android/Mac/Win) blob-скачивание и <input type=file> молча НЕ
+  // работают (вебвью без download-менеджера → кнопка «ничего не делает»). Там идём через
+  // буфер обмена: экспорт = копируем весь JSON, импорт = читаем из буфера. Браузер — как раньше.
+  const inTauri = typeof window !== 'undefined' && !!(window as any).__TAURI_INTERNALS__;
   const handleExportBackup = async () => {
     try {
-      await downloadBackup('1.15.0');
-    } catch (e: any) {
-      if (e?.message === 'NATIVE_NO_DOWNLOAD') {
-        // Native fallback — показать JSON чтобы скопировать вручную
-        const json = await buildBackupJSON('1.15.0');
-        Alert.alert(
-          language === 'ru' ? 'Бэкап (скопируй текст)' : 'Backup (copy the text)',
-          json.length > 800 ? json.slice(0, 800) + (language === 'ru' ? '\n…(обрезано)' : '\n…(truncated)') : json
-        );
-      } else {
-        Alert.alert(
-          language === 'ru' ? 'Ошибка экспорта' : 'Export error',
-          e?.message || (language === 'ru' ? 'Не удалось создать бэкап' : 'Failed to create backup')
-        );
+      if (Platform.OS === 'web' && !inTauri) {
+        await downloadBackup('1.15.0');   // обычный браузер → файл .json
+        return;
       }
+      const json = await buildBackupJSON('1.15.0');
+      let copied = false;
+      try {
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+          await navigator.clipboard.writeText(json);
+          copied = true;
+        }
+      } catch {}
+      Alert.alert(
+        copied ? (language === 'ru' ? 'Бэкап скопирован ✓' : 'Backup copied ✓')
+               : (language === 'ru' ? 'Бэкап' : 'Backup'),
+        copied
+          ? (language === 'ru'
+              ? 'Весь бэкап скопирован в буфер обмена. Вставь его в заметки или файл и сохрани. Для восстановления — скопируй этот текст и нажми «Восстановить из бэкапа».'
+              : 'The full backup is copied to the clipboard. Paste it into notes or a file and keep it safe. To restore — copy that text and tap “Restore from backup”.')
+          : (language === 'ru' ? 'Не удалось скопировать в буфер обмена.' : 'Could not copy to clipboard.')
+      );
+    } catch (e: any) {
+      Alert.alert(
+        language === 'ru' ? 'Ошибка экспорта' : 'Export error',
+        e?.message || (language === 'ru' ? 'Не удалось создать бэкап' : 'Failed to create backup')
+      );
     }
   };
   const handleImportBackup = async () => {
+    const okMsg = (restored: number) => Alert.alert(
+      language === 'ru' ? 'Бэкап восстановлен ✓' : 'Backup restored ✓',
+      language === 'ru'
+        ? `Восстановлено ${restored} записей. Перезапусти приложение чтобы данные применились.`
+        : `Restored ${restored} records. Restart the app to apply the data.`
+    );
     try {
-      const { restored } = await pickAndRestoreBackup();
-      Alert.alert(
-        language === 'ru' ? 'Бэкап восстановлен ✓' : 'Backup restored ✓',
-        language === 'ru'
-          ? `Восстановлено ${restored} записей. Перезапусти приложение чтобы данные применились.`
-          : `Restored ${restored} records. Restart the app to apply the data.`
-      );
-    } catch (e: any) {
-      if (e?.message === 'NATIVE_NO_FILEPICKER') {
-        Alert.alert(
-          language === 'ru' ? 'Импорт' : 'Import',
-          language === 'ru'
-            ? 'На этой платформе пока только через web-версию. Открой PsyGames в браузере для импорта.'
-            : 'On this platform import is only available via the web version. Open PsyGames in a browser to import.'
-        );
-      } else {
-        Alert.alert(
-          language === 'ru' ? 'Ошибка импорта' : 'Import error',
-          e?.message || (language === 'ru' ? 'Не удалось восстановить' : 'Failed to restore')
-        );
+      if (Platform.OS === 'web' && !inTauri) {
+        const { restored } = await pickAndRestoreBackup();
+        okMsg(restored);
+        return;
       }
+      // Tauri/native → восстановление из буфера обмена (парно к экспорту-в-буфер)
+      let text = '';
+      try {
+        if (typeof navigator !== 'undefined' && navigator.clipboard) text = await navigator.clipboard.readText();
+      } catch {}
+      if (!text || !text.trim()) {
+        Alert.alert(
+          language === 'ru' ? 'Восстановление из буфера' : 'Restore from clipboard',
+          language === 'ru'
+            ? 'Скопируй текст бэкапа (JSON) в буфер обмена и снова нажми «Восстановить из бэкапа».'
+            : 'Copy the backup text (JSON) to the clipboard, then tap “Restore from backup” again.'
+        );
+        return;
+      }
+      const { restored } = await restoreBackupJSON(text);
+      okMsg(restored);
+    } catch (e: any) {
+      Alert.alert(
+        language === 'ru' ? 'Ошибка импорта' : 'Import error',
+        e?.message || (language === 'ru' ? 'Не удалось восстановить' : 'Failed to restore')
+      );
     }
   };
 
@@ -284,7 +310,7 @@ export default function SettingsScreen() {
                     </Text>
                     {p.session_minutes && (
                       <Text style={{ fontSize: 9, color: active ? 'rgba(0,0,0,0.55)' : colors.textSecondary, marginTop: 2, fontFamily: 'monospace' }}>
-                        ⏱ {p.session_minutes}
+                        ⏱ {p.session_minutes.replace('мин', t('unitMin'))}
                       </Text>
                     )}
                   </TouchableOpacity>
@@ -593,14 +619,14 @@ export default function SettingsScreen() {
         )}
 
         {/* Language */}
-        <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
+        <View style={[styles.settingItem, { backgroundColor: colors.surface, flexDirection: 'column', alignItems: 'stretch' }]}>
           <View style={styles.settingInfo}>
             <Ionicons name="language" size={24} color={colors.primary} />
             <Text style={[styles.settingLabel, { color: colors.text }]}>
               {t('language')}
             </Text>
           </View>
-          <View style={[styles.languageButtons, { flexWrap: 'wrap', justifyContent: 'flex-end' }]}>
+          <View style={[styles.languageButtons, { flexWrap: 'wrap', gap: 8 }]}>
             {LANGUAGES.map((l) => {
               const active = language === l.code;
               return (

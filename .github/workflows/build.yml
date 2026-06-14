@@ -18,6 +18,30 @@ env:
   RUST_VERSION: 'stable'
 
 jobs:
+  # ─── TypeScript gate ──────────────────────────────────────────────────
+  # Падает при любой ошибке tsc → блокирует web-deploy и release (ничего не публикуется).
+  typecheck:
+    name: TypeScript (tsc --noEmit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Typecheck (gate)
+        working-directory: frontend
+        run: npx tsc --noEmit
+
   # ─── macOS Apple Silicon ──────────────────────────────────────────────
   macos-arm:
     name: macOS arm64 (.app)
@@ -349,7 +373,7 @@ jobs:
     name: Web → psygames-web GH Pages
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [macos-arm]   # gate on at least one platform build succeeding
+    needs: [macos-arm, typecheck]   # gate on a platform build + tsc passing
     if: github.ref == 'refs/heads/main'  # only main branch deploys
     steps:
       - uses: actions/checkout@v6
@@ -406,7 +430,7 @@ jobs:
 
   # ─── Create GitHub Release if tagged (vX.Y.Z) ─────────────────────────
   release:
-    needs: [macos-arm, windows-x64, android]
+    needs: [macos-arm, windows-x64, android, typecheck]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:

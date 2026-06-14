@@ -227,7 +227,6 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
               {MONETIZATION_ENABLED && (
               <View style={{
                 marginTop: 22,
-                background: 'linear-gradient(135deg, #fbbf24 0%, #f97316 100%)',
                 backgroundColor: '#fbbf24',
                 borderRadius: 14,
                 padding: 18,

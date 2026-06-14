@@ -108,11 +108,13 @@ export default function CounterGame() {
     if (sum === targetSum) {
       // Correct! Show success feedback
       setShowSuccess(true);
-      setScore(prev => prev + 1);
-      
-      // Wait to show success, then next round
+      const newScore = score + 1;
+      setScore(newScore);
+
+      // Wait to show success, then next round. Передаём СВЕЖИЙ счёт: nextRound вызывается из
+      // таймера и читал бы score из устаревшего замыкания → сохранённый счёт терял последний раунд.
       setTimeout(() => {
-        nextRound();
+        nextRound(newScore);
       }, 800);
     } else if (sum > targetSum) {
       // Wrong, reset selection
@@ -124,7 +126,7 @@ export default function CounterGame() {
     }
   };
 
-  const nextRound = async () => {
+  const nextRound = async (finalScore: number) => {
     if (round >= totalRounds) {
       // Game complete
       if (timerRef.current) clearInterval(timerRef.current);
@@ -135,11 +137,11 @@ export default function CounterGame() {
       try {
         await saveSession({
           game_type: 'counter',
-          score: score,
+          score: finalScore,
           time_seconds: finalTime,
           difficulty: `${gridSize}x${gridSize}`,
           errors: errors,
-          details: { hits: score, errors, grid_size: gridSize },
+          details: { hits: finalScore, errors, grid_size: gridSize },
         });
       } catch (error) {
         console.error('Error saving session:', error);
@@ -438,7 +440,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-    marginBottom: 12,
   },
   sumLabel: {
     fontSize: 16,
@@ -463,7 +464,6 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    marginBottom: 8,
     marginBottom: 16,
   },
   statBox: {

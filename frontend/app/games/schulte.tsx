@@ -774,7 +774,6 @@ const styles = StyleSheet.create({
   gameHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
     marginBottom: 8,
   },
   statBox: {

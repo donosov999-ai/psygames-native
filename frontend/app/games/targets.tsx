@@ -640,7 +640,6 @@ const styles = StyleSheet.create({
   gameHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
     marginBottom: 8,
   },
   statBox: {
