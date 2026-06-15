@@ -292,16 +292,16 @@ jobs:
         working-directory: src-tauri
         run: cargo tauri android init
 
-      - name: Lock portrait orientation (Android manifest)
+      - name: Allow rotation (Android manifest) — sudoku landscape; OrientationGuard enforces portrait elsewhere
         working-directory: src-tauri
         run: |
-          # Tauri-Android не читает app.json orientation:portrait → телефон крутится,
-          # сетки игр (судоку 9×9) в landscape схлопываются. Жёстко лочим активити в портрет.
-          # Не падаем при ином формате — OrientationGuard (webview) подстрахует.
+          # v1.30.10: разрешаем поворот (sensor). У судоку есть landscape-раскладка
+          # (сетка слева, цифры справа). Экраны БЕЗ landscape прикрывает OrientationGuard
+          # (webview): в телефонном landscape показывает «поверни в портрет», кроме LANDSCAPE_OK.
           MANIFEST=gen/android/app/src/main/AndroidManifest.xml
           if [ -f "$MANIFEST" ]; then
-            sed -i 's#android:name=".MainActivity"#android:name=".MainActivity" android:screenOrientation="portrait"#' "$MANIFEST"
-            echo "— portrait lock applied —"; grep -n "screenOrientation\|MainActivity" "$MANIFEST" || true
+            sed -i 's#android:name=".MainActivity"#android:name=".MainActivity" android:screenOrientation="sensor"#' "$MANIFEST"
+            echo "— rotation (sensor) applied —"; grep -n "screenOrientation\|MainActivity" "$MANIFEST" || true
           else
             echo "WARN: $MANIFEST не найден — пропускаю (OrientationGuard в webview покрывает)"; find gen/android -name AndroidManifest.xml -type f || true
           fi

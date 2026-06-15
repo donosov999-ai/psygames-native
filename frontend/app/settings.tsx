@@ -10,6 +10,7 @@ import {
   Alert,
   Linking,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -54,6 +55,9 @@ export default function SettingsScreen() {
     unlockedThemed, redeemCode, resetUnlocks, isAccessible,
   } = useProfile();
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  // Адаптивная сетка профилей: узкий экран (телефон) → 2 колонки, широкий (планшет/web/desktop) → 3.
+  const profileCardWidth = width >= 520 ? '31%' : '48%';
   // Unlock-code modal state
   const [codeModalOpen, setCodeModalOpen] = React.useState(false);
   const [codeInput, setCodeInput] = React.useState('');
@@ -237,6 +241,7 @@ export default function SettingsScreen() {
                   <TouchableOpacity
                     key={p.id}
                     style={[styles.profileCard, {
+                      width: profileCardWidth,
                       backgroundColor: active ? p.color : colors.card,
                       borderColor: active ? p.color : colors.border,
                       borderWidth: 2,
@@ -285,6 +290,7 @@ export default function SettingsScreen() {
                     // v1.6.0: убрали disabled — теперь locked-карточки кликабельные
                     // и открывают modal с описанием/хуком/инструкцией как получить код
                     style={[styles.profileCard, {
+                      width: profileCardWidth,
                       backgroundColor: active ? p.color : colors.card,
                       borderColor: active ? p.color : colors.border,
                       borderWidth: 2,
@@ -797,9 +803,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   profileCard: {
-    width: '47%',
-    flexGrow: 1,
-    maxWidth: 320,
     padding: 12,
     borderRadius: 12,
     alignItems: 'center',

@@ -5,11 +5,10 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { usePathname } from 'expo-router';
 
-// Приложение спроектировано под ПОРТРЕТ (app.json orientation:portrait — натив залочен).
-// На web/webview браузер крутится свободно → сетки игр (судоку 9×9, шульте и др.), у которых
-// размер привязан к высоте, в landscape схлопываются (ячейки 0–3px, «не видно полей»).
-// Этот оверлей в ТЕЛЕФОННОМ landscape (узкая высота) просит повернуть устройство.
-// Десктоп (Mac/Win/браузер) НЕ трогаем: там landscape нормален → условие height < 480.
+// Приложение в ОСНОВНОМ портретное. С v1.30.10 Android-манифест = sensor (телефон крутится),
+// поэтому этот оверлей — ОСНОВНОЙ «портретный» сторож: в телефонном landscape (узкая высота)
+// просит повернуть обратно, КРОМЕ экранов из LANDSCAPE_OK (у них своя landscape-раскладка:
+// судоку — сетка слева, цифры справа). Десктоп/планшет (height ≥ 480) НЕ трогаем — landscape там ок.
 const TXT: Record<string, [string, string]> = {
   ru: ['Поверни телефон вертикально', 'Приложение работает в портретном режиме'],
   en: ['Rotate your phone to portrait', 'The app works in portrait mode'],
