@@ -18,6 +18,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { ScrollView } from 'react-native';
+import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getSoundEnabled, getHapticEnabled, setSoundEnabled, setHapticEnabled,
@@ -127,11 +128,24 @@ export default function SettingsScreen() {
   const inTauri = typeof window !== 'undefined' && !!(window as any).__TAURI_INTERNALS__;
   const handleExportBackup = async () => {
     try {
-      if (Platform.OS === 'web' && !inTauri) {
-        await downloadBackup('1.15.0');   // обычный браузер → файл .json
+      const json = await buildBackupJSON('1.15.0');
+      const nav: any = typeof navigator !== 'undefined' ? navigator : null;
+      // 1. Web Share с файлом — надёжно на Android (системный «Поделиться» → Файлы/Drive/почта).
+      //    Именно поэтому кнопка «молчала» на телефоне: blob-скачивание в Android-вебвью не срабатывает.
+      try {
+        const file = new File([json], 'psygames-backup.json', { type: 'application/json' });
+        if (nav?.canShare && nav.canShare({ files: [file] })) {
+          await nav.share({ files: [file], title: 'PsyGames backup' });
+          return;
+        }
+      } catch (e: any) { if (e?.name === 'AbortError') return; }   // юзер закрыл шит — это ок
+      // 2. Десктоп-браузер — скачивание файла .json (как раньше).
+      const isMobileUA = /Android|iPhone|iPad|iPod/i.test(nav?.userAgent || '');
+      if (Platform.OS === 'web' && !inTauri && !isMobileUA) {
+        await downloadBackup('1.15.0');
         return;
       }
-      const json = await buildBackupJSON('1.15.0');
+      // 3. Резерв — буфер обмена.
       let copied = false;
       try {
         if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -670,7 +684,7 @@ export default function SettingsScreen() {
 
       {/* App Info */}
       <View style={styles.appInfo}>
-        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v1.22.4 · {profile.emoji} {t('profileName_' + profile.id)} · {t('label_validated_paradigms')}</Text>
+        <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v{Constants.expoConfig?.version ?? ''} · {profile.emoji} {t('profileName_' + profile.id)} · {t('label_validated_paradigms')}</Text>
         <Text style={[styles.appVersion, { color: colors.textSecondary }]}>{MONETIZATION_ENABLED
           ? t('hint_profile_tap_telegram')
           : t('hint_profile_tap_unlock')}</Text>
@@ -739,11 +753,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   appInfo: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
     alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 28,
+    paddingHorizontal: 20,
   },
   appName: {
     fontSize: 16,
@@ -784,8 +797,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   profileCard: {
-    width: '31%',
-    minWidth: 100,
+    width: '47%',
+    flexGrow: 1,
+    maxWidth: 320,
     padding: 12,
     borderRadius: 12,
     alignItems: 'center',

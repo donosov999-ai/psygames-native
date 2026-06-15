@@ -31,7 +31,7 @@ export default function GameHelpOverlay() {
   return (
     <>
       <TouchableOpacity
-        accessibilityLabel="help"
+        accessibilityLabel={helpLabel}
         onPress={() => setOpen(true)}
         activeOpacity={0.85}
         style={[
@@ -39,8 +39,7 @@ export default function GameHelpOverlay() {
           { top: insets.top + 12, backgroundColor: colors.primary || '#a855f7' },
         ]}
       >
-        <Ionicons name="help-circle" size={20} color="#fff" />
-        <Text style={styles.fabLabel}>{helpLabel}</Text>
+        <Ionicons name="help-circle" size={24} color="#fff" />
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
@@ -76,13 +75,11 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 14,
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 13,
-    height: 38,
-    borderRadius: 19,
     justifyContent: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     zIndex: 100,
     shadowColor: '#000',
     shadowOpacity: 0.28,
