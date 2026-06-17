@@ -326,6 +326,32 @@ const translations: Translations = {
   benefitFind3: { ru: 'Тренировать наблюдательность', en: 'Sharpen observation skills' },
   skillDetailAttention: { ru: 'Тренируем: детальное внимание', en: 'Training: detail attention' },
 
+  // Eye Gymnastics (гимнастика для глаз)
+  eyeGym: { ru: 'Гимнастика для глаз', en: 'Eye Gymnastics' },
+  eyeGymDesc: { ru: 'Разминка и разгрузка глаз от экрана', en: 'Warm up and unstrain your eyes from the screen' },
+  eyeGymIntroDesc: {
+    ru: 'Набор упражнений: слежение за движущейся точкой, перевод фокуса вдаль и сведение взгляда. Снимает усталость глаз от экрана. Следи за точкой глазами, не двигая головой.',
+    en: 'A set of exercises: follow the moving dot, shift focus into the distance and converge your gaze. Relieves screen eye-strain. Follow the dot with your eyes, without moving your head.',
+  },
+  skillEyeRelax: { ru: 'Снимаем: усталость глаз', en: 'Relieving: eye strain' },
+  benefitEye1: { ru: 'Меньше усталости и сухости глаз от экрана', en: 'Less eye fatigue and dryness from screens' },
+  benefitEye2: { ru: 'Расслабление глазных мышц после долгой работы', en: 'Relaxes eye muscles after long screen time' },
+  benefitEye3: { ru: 'Привычка делать перерывы для глаз', en: 'Builds a habit of taking eye breaks' },
+  eyeInstrWarmup: { ru: 'Веди взгляд за точкой по направлениям', en: 'Follow the dot in each direction' },
+  eyeInstrPursuit: { ru: 'Следи за точкой глазами, голову не двигай', en: 'Follow the dot with your eyes, keep your head still' },
+  eyeInstrFocusFar: { ru: 'Оторвись от экрана — посмотри вдаль (в окно, ~6 м)', en: 'Look away — focus far into the distance (a window, ~6 m)' },
+  eyeInstrConverge: { ru: 'Сведи взгляд на приближающейся точке', en: 'Keep both eyes on the approaching dot' },
+  eyeInstrPalming: { ru: 'Закрой глаза ладонями, расслабься и моргай', en: 'Cover your eyes with your palms, relax and blink' },
+  eyeDurationLabel: { ru: 'Длительность', en: 'Duration' },
+  eye3min: { ru: '~3 мин', en: '~3 min' },
+  eye5min: { ru: '~5 мин', en: '~5 min' },
+  eyeDisclaimer: { ru: 'Снимает усталость глаз от экрана. Не лечит зрение и не заменяет осмотр офтальмолога.', en: 'Relieves screen eye-strain. It does not cure vision or replace an eye exam.' },
+  eyePalmBlink: { ru: 'Расслабь глаза и медленно моргай', en: 'Relax your eyes and blink slowly' },
+  eyeFocusSub: { ru: 'Смотри на дальний объект, не на экран', en: 'Look at a distant object, not the screen' },
+  eyeDoneTitle: { ru: 'Глаза отдохнули', en: 'Eyes refreshed' },
+  eyeDoneSub: { ru: 'Полезно повторять каждые 1–2 часа за экраном', en: 'Worth repeating every 1–2 hours of screen time' },
+  secShort: { ru: 'с', en: 's' },
+
   // Sudoku
   sudoku: { ru: 'Судоку 6×6', en: 'Sudoku 6×6' },
   sudokuDesc: { ru: 'Цифры 1–6 в каждой строке, столбце и блоке', en: 'Digits 1–6 in each row, column and block' },

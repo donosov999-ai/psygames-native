@@ -79,6 +79,16 @@ export const GAMES: GameConfig[] = [
     route: '/games/find-differences',
     category: 'attention',
   },
+  {
+    id: 'eye_gym',
+    nameKey: 'eyeGym',
+    descKey: 'eyeGymDesc',
+    skillKey: 'skillEyeRelax',
+    gradient: ['#43cea2', '#185a9d'],
+    icon: 'eye',
+    route: '/games/eye-gym',
+    category: 'attention',
+  },
 
   // MEMORY
   {

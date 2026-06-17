@@ -17,6 +17,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillDetailAttention",
     "introKey": "findDiffIntroDesc"
   },
+  "/games/eye-gym": {
+    "nameKey": "eyeGym",
+    "skillKey": "skillEyeRelax",
+    "introKey": "eyeGymIntroDesc"
+  },
   "/games/word-pairs": {
     "nameKey": "wordPairs",
     "skillKey": "skillMemory",
