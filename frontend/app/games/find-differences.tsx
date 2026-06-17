@@ -25,10 +25,11 @@ const FIND_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'playing' | 'feedback' | 'result';
 type Shape = { kind: 'circle' | 'rect' | 'tri'; x: number; y: number; size: number; color: string; rot?: number };
 
-// 5 максимально различимых цвета (мин. попарная RGB-дистанция ~144). Убраны
-// близкие пары, на которые жаловался Денис: красный↔фуксия (#ef4444/#ec4899 ≈85),
-// красный↔оранжевый, синий↔циан. Красный / зелёный / синий / жёлтый / маджента.
-const PALETTE = ['#ef4444','#22c55e','#3b82f6','#facc15','#d946ef'];
+// Радуга из 7 различимых цветов (R-O-Y-G-C-B-M). Убрана только фуксия #ec4899 —
+// она отстояла от красного всего на ~85 RGB («не отличить»), заменена чистой мадджентой #d946ef.
+// Контраст самого ОТЛИЧИЯ гарантирует farColor (берёт дальнюю половину палитры),
+// поэтому богатая палитра не мешает игре: разница в цвете всегда заметна.
+const PALETTE = ['#ef4444','#f97316','#facc15','#22c55e','#06b6d4','#3b82f6','#d946ef'];
 
 function rand(a: number, b: number) { return a + Math.random() * (b - a); }
 
@@ -343,6 +344,8 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 16 },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 12, textAlign: 'center' },
-  scenesArea: { gap: 8 },
-  sceneBox: { borderRadius: 8, overflow: 'hidden' },
+  scenesArea: { gap: 18 },
+  // Чёткая рамка вокруг каждой сцены — видна и на тёмной, и на светлой теме
+  // (#94a3b8 — средне-серый, контрастит и с чёрным, и с белым фоном).
+  sceneBox: { borderRadius: 10, overflow: 'hidden', borderWidth: 2, borderColor: '#94a3b8' },
 });
