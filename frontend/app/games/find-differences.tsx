@@ -25,9 +25,27 @@ const FIND_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'playing' | 'feedback' | 'result';
 type Shape = { kind: 'circle' | 'rect' | 'tri'; x: number; y: number; size: number; color: string; rot?: number };
 
-const PALETTE = ['#ef4444','#3b82f6','#22c55e','#fbbf24','#a855f7','#06b6d4','#f97316','#ec4899'];
+// 5 максимально различимых цвета (мин. попарная RGB-дистанция ~144). Убраны
+// близкие пары, на которые жаловался Денис: красный↔фуксия (#ef4444/#ec4899 ≈85),
+// красный↔оранжевый, синий↔циан. Красный / зелёный / синий / жёлтый / маджента.
+const PALETTE = ['#ef4444','#22c55e','#3b82f6','#facc15','#d946ef'];
 
 function rand(a: number, b: number) { return a + Math.random() * (b - a); }
+
+function hexToRgb(h: string): [number, number, number] {
+  const n = parseInt(h.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function colorDist(a: string, b: string): number {
+  const [r1, g1, b1] = hexToRgb(a), [r2, g2, b2] = hexToRgb(b);
+  return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+}
+// Цвет для diff'а — из самой дальней половины палитры, чтобы разница была контрастной и заметной.
+function farColor(current: string): string {
+  const others = PALETTE.filter((c) => c !== current).sort((x, y) => colorDist(current, y) - colorDist(current, x));
+  const top = others.slice(0, Math.max(2, Math.ceil(others.length / 2)));
+  return top[Math.floor(Math.random() * top.length)];
+}
 
 /**
  * Distance between two shape centers below which they would visually
@@ -53,7 +71,7 @@ function generateScene(width: number, height: number, count: number): Shape[] {
         kind: kinds[Math.floor(Math.random() * 3)],
         x: rand(24, width - 24),
         y: rand(24, height - 24),
-        size: rand(14, 28),
+        size: rand(24, 44),
         color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
         rot: Math.random() * 360,
       };
@@ -68,7 +86,7 @@ function generateScene(width: number, height: number, count: number): Shape[] {
         kind: kinds[Math.floor(Math.random() * 3)],
         x: rand(24, width - 24),
         y: rand(24, height - 24),
-        size: rand(14, 20),   // smaller fallback
+        size: rand(20, 30),   // smaller fallback
         color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
         rot: Math.random() * 360,
       };
@@ -94,15 +112,13 @@ function withDifference(scene: Shape[], diffCount: number): { altered: Shape[]; 
     for (const change of tryChanges) {
       if (applied) break;
       if (change === 0) {
-        // change color
-        let c;
-        do { c = PALETTE[Math.floor(Math.random() * PALETTE.length)]; } while (c === altered[i].color);
-        altered[i].color = c;
+        // change color — берём контрастный (farColor), чтобы разница была хорошо видна
+        altered[i].color = farColor(altered[i].color);
         applied = true;
       } else if (change === 1) {
         // change size — only if grown size still doesn't overlap others
         const candidate = { ...altered[i] };
-        candidate.size = candidate.size > 22 ? candidate.size - 8 : candidate.size + 10;
+        candidate.size = candidate.size > 32 ? candidate.size - 14 : candidate.size + 16;
         const overlaps = altered.some((other, oi) => oi !== i && tooClose(candidate, other, 10));
         if (!overlaps) {
           altered[i].size = candidate.size;
@@ -150,7 +166,7 @@ export default function FindDifferencesGame() {
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const newRound = () => {
-    const sc = generateScene(sceneW, sceneH, 12);
+    const sc = generateScene(sceneW, sceneH, 10);
     const { altered: alt, diffIdx: idx } = withDifference(sc, diffCount);
     setScene(sc);
     setAltered(alt);
