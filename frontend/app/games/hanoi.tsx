@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -181,7 +182,7 @@ export default function HanoiGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('hanoi')}</Text>
@@ -190,7 +191,7 @@ export default function HanoiGame() {
       {phase === 'intro' && (
         <GameIntro nameKey="hanoi" icon="extension-puzzle" gradient={GRADIENT as [string, string]}
           skillKey="skillProblemSolving" descriptionKey="hanoiIntroDesc"
-          benefits={HANOI_BENEFITS} onStart={() => setPhase('config')} onBack={() => router.back()} />
+          benefits={HANOI_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
@@ -198,7 +199,7 @@ export default function HanoiGame() {
         <GameResult
           score={Math.max(0, Math.round(1000 - (moves - optimal(discs)) * 50 - elapsedTime))}
           time={elapsedTime} errors={errors}
-          onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
+          onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>

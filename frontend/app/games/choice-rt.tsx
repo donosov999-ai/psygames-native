@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -224,7 +225,7 @@ export default function ChoiceRtGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('choiceRt')}</Text>
@@ -233,7 +234,7 @@ export default function ChoiceRtGame() {
       {phase === 'intro' && (
         <GameIntro nameKey="choiceRt" icon="arrow-forward-circle" gradient={GRADIENT as [string, string]}
           skillKey="skillReaction" descriptionKey="choiceRtIntroDesc"
-          benefits={CHOICE_BENEFITS} onStart={() => setPhase('config')} onBack={() => router.back()} />
+          benefits={CHOICE_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
@@ -241,7 +242,7 @@ export default function ChoiceRtGame() {
         <GameResult
           score={Math.max(0, Math.round(hits * 100 - errors * 50 - meanRt * 0.1))}
           time={meanRt / 1000} errors={errors}
-          onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
+          onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>

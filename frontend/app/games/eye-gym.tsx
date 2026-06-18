@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -265,7 +266,7 @@ export default function EyeGymGame() {
           <Text style={styles.startBtnText}>{t('playAgain') !== 'playAgain' ? t('playAgain') : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.homeBtn, { borderColor: colors.border }]} onPress={() => router.back()}>
+      <TouchableOpacity style={[styles.homeBtn, { borderColor: colors.border }]} onPress={() => goBackOrHome()}>
         <Text style={[styles.homeBtnText, { color: colors.text }]}>{t('goHome') !== 'goHome' ? t('goHome') : 'OK'}</Text>
       </TouchableOpacity>
     </View>
@@ -274,7 +275,7 @@ export default function EyeGymGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('eyeGym')}</Text>
@@ -283,7 +284,7 @@ export default function EyeGymGame() {
       {phase === 'intro' && (
         <GameIntro nameKey="eyeGym" icon="eye" gradient={GRADIENT as [string, string]}
           skillKey="skillEyeRelax" descriptionKey="eyeGymIntroDesc"
-          benefits={EYE_BENEFITS} onStart={() => setPhase('config')} onBack={() => router.back()} />
+          benefits={EYE_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'exercise' && renderExercise()}

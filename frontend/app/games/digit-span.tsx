@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -270,7 +271,7 @@ export default function DigitSpanGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('digitSpan')}</Text>
@@ -285,7 +286,7 @@ export default function DigitSpanGame() {
           descriptionKey="digitSpanIntroDesc"
           benefits={DIGIT_BENEFITS}
           onStart={() => setPhase('config')}
-          onBack={() => router.back()}
+          onBack={() => goBackOrHome()}
         />
       )}
       {phase === 'config' && renderConfig()}
@@ -293,7 +294,7 @@ export default function DigitSpanGame() {
       {phase === 'input' && renderInput()}
       {phase === 'result' && (
         <GameResult score={maxSpan * 10} time={elapsedTime} errors={errors}
-          onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
+          onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>

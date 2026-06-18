@@ -25,6 +25,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -314,7 +315,7 @@ export default function PRLGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
-          onPress={() => { respondLockRef.current = true; router.back(); }}>
+          onPress={() => { respondLockRef.current = true; goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('prl')}</Text>
@@ -323,7 +324,7 @@ export default function PRLGame() {
       {phase === 'intro' && (
         <GameIntro nameKey="prl" icon="trending-up" gradient={GRADIENT as [string, string]}
           skillKey="skillRisk" descriptionKey="prlIntroDesc"
-          benefits={PRL_BENEFITS} onStart={() => setPhase('config')} onBack={() => router.back()} />
+          benefits={PRL_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
@@ -332,7 +333,7 @@ export default function PRLGame() {
           score={Math.max(0, bank)}
           time={(Date.now() - startTimeRef.current) / 1000}
           errors={trialsRef.current.filter(t => t.isError).length}
-          onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
+          onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>

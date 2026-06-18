@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -385,7 +386,7 @@ export default function InhibitionGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
-          onPress={() => { clearAllTimers(); router.back(); }}>
+          onPress={() => { clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('inhibition')}</Text>
@@ -394,7 +395,7 @@ export default function InhibitionGame() {
       {phase === 'intro' && (
         <GameIntro nameKey="inhibition" icon="hand-left" gradient={GRADIENT as [string, string]}
           skillKey="skillInhibition" descriptionKey="inhibitionIntroDesc"
-          benefits={BENEFITS} onStart={() => setPhase('config')} onBack={() => router.back()} />
+          benefits={BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
@@ -402,7 +403,7 @@ export default function InhibitionGame() {
         <GameResult
           score={hits * 10 + correctRej * 5 - falseAlarms * 12 - misses * 5}
           time={elapsedTime} errors={misses + falseAlarms}
-          onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
+          onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>

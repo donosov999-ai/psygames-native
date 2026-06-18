@@ -6,6 +6,7 @@ import {
 import Svg, { Circle, Rect, Polygon } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -320,7 +321,7 @@ export default function FindDifferencesGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('findDiff')}</Text>
@@ -329,13 +330,13 @@ export default function FindDifferencesGame() {
       {phase === 'intro' && (
         <GameIntro nameKey="findDiff" icon="search" gradient={GRADIENT as [string, string]}
           skillKey="skillDetailAttention" descriptionKey="findDiffIntroDesc"
-          benefits={FIND_BENEFITS} onStart={() => setPhase('config')} onBack={() => router.back()} />
+          benefits={FIND_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
       {(phase === 'playing' || phase === 'feedback') && renderPlaying()}
       {phase === 'result' && (
         <GameResult score={Math.max(0, hits * 50 - errors * 10)} time={elapsedTime} errors={errors}
-          onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
+          onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>

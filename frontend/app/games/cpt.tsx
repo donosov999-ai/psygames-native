@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -345,7 +346,7 @@ export default function CPTGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
-          onPress={() => { stoppedRef.current = true; clearAllTimers(); router.back(); }}>
+          onPress={() => { stoppedRef.current = true; clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('cpt')}</Text>
@@ -354,7 +355,7 @@ export default function CPTGame() {
       {phase === 'intro' && (
         <GameIntro nameKey="cpt" icon="time" gradient={GRADIENT as [string, string]}
           skillKey="skillSustainedAttention" descriptionKey="cptIntroDesc"
-          benefits={CPT_BENEFITS} onStart={() => setPhase('config')} onBack={() => router.back()} />
+          benefits={CPT_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
@@ -362,7 +363,7 @@ export default function CPTGame() {
         <GameResult
           score={Math.max(0, hits * 5 - commissions * 20 - omissions * 10)}
           time={duration * 60} errors={omissions + commissions}
-          onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
+          onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>

@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -307,7 +308,7 @@ export default function PicturePairsGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('picturePairs')}</Text>
@@ -316,7 +317,7 @@ export default function PicturePairsGame() {
       {phase === 'intro' && (
         <GameIntro nameKey="picturePairs" icon="heart" gradient={GRADIENT as [string, string]}
           skillKey="skillVisualMemory" descriptionKey="picturePairsIntroDesc"
-          benefits={PAIRS_BENEFITS} onStart={() => setPhase('config')} onBack={() => router.back()} />
+          benefits={PAIRS_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
@@ -324,7 +325,7 @@ export default function PicturePairsGame() {
         <GameResult
           score={Math.max(0, Math.round(2000 - (moves - pairsCount) * 30 - elapsedTime))}
           time={elapsedTime} errors={errors}
-          onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
+          onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>

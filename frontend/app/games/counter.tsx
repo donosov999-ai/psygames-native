@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -321,7 +322,7 @@ export default function CounterGame() {
           descriptionKey="counterIntroDesc"
           benefits={COUNTER_BENEFITS}
           onStart={() => setPhase('config')}
-          onBack={() => router.back()}
+          onBack={() => goBackOrHome()}
         />
       </SafeAreaView>
     );
@@ -332,7 +333,7 @@ export default function CounterGame() {
       <View style={styles.header}>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.surface }]}
-          onPress={() => router.back()}
+          onPress={() => goBackOrHome()}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -232,7 +233,7 @@ export default function FlankerGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('flanker')}</Text>
@@ -241,7 +242,7 @@ export default function FlankerGame() {
       {phase === 'intro' && (
         <GameIntro nameKey="flanker" icon="flash" gradient={GRADIENT as [string, string]}
           skillKey="skillInhibition" descriptionKey="flankerIntroDesc"
-          benefits={FL_BENEFITS} onStart={() => setPhase('config')} onBack={() => router.back()} />
+          benefits={FL_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
@@ -249,7 +250,7 @@ export default function FlankerGame() {
         <GameResult
           score={Math.max(0, Math.round(hits * 80 - errors * 60 - meanRtAll * 0.05))}
           time={meanRtAll / 1000} errors={errors}
-          onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
+          onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>
