@@ -208,6 +208,21 @@ export default function HomeScreen() {
         contentContainerStyle={styles.gamesContainer}
         showsVerticalScrollIndicator={false}
       >
+        {/* 👁 Быстрый перерыв для глаз — вынесен в самый верх (один тап, чтобы не искать) */}
+        <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/games/eye-gym' as any)} style={styles.eyeQuick}>
+          <LinearGradient colors={['#43cea2', '#185a9d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.eyeQuickGrad}>
+            <View style={styles.eyeQuickIcon}><Ionicons name="eye" size={24} color="#fff" /></View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.eyeQuickTitle}>{t('eyeGym')}</Text>
+              <Text style={styles.eyeQuickSub} numberOfLines={1}>{t('eyeGymDesc')}</Text>
+            </View>
+            <View style={styles.eyeQuickCta}>
+              <Ionicons name="play" size={13} color="#185a9d" />
+              <Text style={styles.eyeQuickCtaText}>{t('ctaStart')}</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+
         {/* === 3 HERO CARDS in a row (compact) === (each gated by profile) */}
         {(profile.warmup_enabled || profile.assessment_enabled || profile.financial_brain_day_enabled) && (
         <View style={styles.heroRow}>
@@ -436,6 +451,13 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, marginTop: 4 },
   headerButtons: { flexDirection: 'row', gap: 8 },
   iconButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+  eyeQuick: { marginBottom: 14, borderRadius: 16, overflow: 'hidden' },
+  eyeQuickGrad: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 16 },
+  eyeQuickIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
+  eyeQuickTitle: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  eyeQuickSub: { color: 'rgba(255,255,255,0.9)', fontSize: 12, fontWeight: '600', marginTop: 2 },
+  eyeQuickCta: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#fff', paddingHorizontal: 13, paddingVertical: 8, borderRadius: 20 },
+  eyeQuickCtaText: { color: '#185a9d', fontSize: 13, fontWeight: '800' },
   scrollView: { flex: 1 },
   gamesContainer: {
     paddingHorizontal: CONTAINER_PADDING,
