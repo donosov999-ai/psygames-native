@@ -81,7 +81,9 @@ export default function SudokuGame() {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [given, setGiven] = useState<boolean[][]>([]);
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
+  const LIVES = 3, HINT_MAX = 3;   // игровая динамика: 3 жизни + 3 подсказки до перезапуска
   const [errors, setErrors] = useState(0);
+  const [over, setOver] = useState(false);   // жизни кончились (3 ошибки) → game over + рестарт
   const [hintUses, setHintUses] = useState(0);
   const [backtrackCount, setBacktrackCount] = useState(0);
   const [startTime, setStartTime] = useState(0);
@@ -102,6 +104,7 @@ export default function SudokuGame() {
     setGiven(p.map((r) => r.map((v) => v !== 0)));
     setSelected(null);
     setErrors(0);
+    setOver(false);
     setHintUses(0);
     setBacktrackCount(0);
     setPhase('playing');
@@ -123,7 +126,14 @@ export default function SudokuGame() {
     const ng = grid.map((row) => [...row]);
     ng[r][c] = n;
     setGrid(ng);
-    if (n !== 0 && solution[r][c] !== n) setErrors((e) => e + 1);
+    if (n !== 0 && solution[r][c] !== n) {
+      const ne = errors + 1;
+      setErrors(ne);
+      if (ne >= LIVES) {                              // жизни кончились → game over
+        if (timerRef.current) clearInterval(timerRef.current);
+        setOver(true);
+      }
+    }
     // Backtrack detection: if user previously placed a non-zero value and now changes/clears it
     // (proxy для "решил неуверенно — пришлось переделывать")
     if (previousValue !== 0 && previousValue !== n) {
@@ -160,7 +170,7 @@ export default function SudokuGame() {
 
   // Hint: fill the selected cell with the correct value (penalizes biomarker)
   const handleHint = () => {
-    if (!selected) return;
+    if (!selected || hintUses >= HINT_MAX) return;
     const { r, c } = selected;
     if (given[r][c]) return;
     const ng = grid.map((row) => [...row]);
@@ -212,7 +222,7 @@ export default function SudokuGame() {
   const renderPlaying = () => {
     const statsEl = (
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+        <Text style={[styles.statText, { color: '#f43f5e' }]}>{'❤️'.repeat(Math.max(0, LIVES - errors))}{'🤍'.repeat(Math.min(errors, LIVES))}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
       </View>
     );
@@ -280,11 +290,11 @@ export default function SudokuGame() {
       <View style={styles.hintRow}>
         <TouchableOpacity
           onPress={handleHint}
-          disabled={!selected}
-          style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: selected ? 1 : 0.4 }]}
+          disabled={!selected || hintUses >= HINT_MAX}
+          style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: (selected && hintUses < HINT_MAX) ? 1 : 0.4 }]}
         >
           <Ionicons name="bulb" size={16} color="#000" />
-          <Text style={styles.hintBtnText}>{t('btn_hint')} ({hintUses})</Text>
+          <Text style={styles.hintBtnText}>{t('btn_hint')} ({hintUses}/{HINT_MAX})</Text>
         </TouchableOpacity>
         <Text style={[styles.metaText, { color: colors.textSecondary }]}>
           ↻ {backtrackCount}
@@ -325,6 +335,23 @@ export default function SudokuGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'playing' && over && (
+        <View style={styles.overWrap}>
+          <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
+            <Text style={styles.overEmoji}>💔</Text>
+            <Text style={[styles.overTitle, { color: colors.text }]}>{language === 'ru' ? 'Жизни закончились' : 'Out of lives'}</Text>
+            <Text style={[styles.overSub, { color: colors.textSecondary }]}>{language === 'ru' ? '3 ошибки. Сыграй заново — поле новое.' : '3 mistakes. Play again — fresh board.'}</Text>
+            <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                <Text style={styles.startBtnText}>{language === 'ru' ? 'Заново' : 'Restart'}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => goBackOrHome()} style={{ marginTop: 10 }}>
+              <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{language === 'ru' ? 'На главную' : 'Home'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
       {phase === 'result' && (
         <GameResult score={Math.max(0, Math.round(2000 - errors * 50 - elapsedTime * 2))}
           time={elapsedTime} errors={errors}
@@ -365,6 +392,11 @@ const styles = StyleSheet.create({
   numBtn: { width: 50, height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   numText: { color: '#FFF', fontSize: 22, fontWeight: '700' },
   hintRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8 },
+  overWrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.55)', padding: 24, zIndex: 100 },
+  overCard: { width: '100%', maxWidth: 340, borderRadius: 20, padding: 24, alignItems: 'center', gap: 6 },
+  overEmoji: { fontSize: 46 },
+  overTitle: { fontSize: 20, fontWeight: '800' },
+  overSub: { fontSize: 14, textAlign: 'center', marginBottom: 10 },
   hintBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   hintBtnText: { color: '#000', fontSize: 13, fontWeight: '700' },
   metaText: { fontSize: 12, fontWeight: '700' },

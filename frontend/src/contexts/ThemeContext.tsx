@@ -48,7 +48,7 @@ const darkTheme: ThemeColors = {
  * color это тёмный UI-цвет, невидимый как accent, напр. Шахматист #1f2937).
  */
 const PROFILE_THEME: Record<ProfileId, { mood: 'dark' | 'light'; accent: string }> = {
-  nzt48:     { mood: 'dark',  accent: '#a855f7' }, // фиолетовый
+  nzt48:     { mood: 'light', accent: '#a855f7' }, // фиолетовый (светлая тема — по запросу Дениса)
   execs:     { mood: 'dark',  accent: '#14b8a6' }, // teal (ярче для видимости)
   drivers:   { mood: 'dark',  accent: '#f97316' }, // оранжевый
   chess:     { mood: 'dark',  accent: '#eab308' }, // золото (а не тёмный графит)
