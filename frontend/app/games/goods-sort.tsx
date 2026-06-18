@@ -64,7 +64,7 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
 function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-const SLOTS = 6;   // 2 полки × 3 слота; каждый слот — СТОПКА (видно передний)
+const SLOTS = 9;   // 3 полки × 3 слота; каждый слот — СТОПКА (видно передний). 9 даёт простор для манёвра.
 
 // Раздать товары (каждый тип ×3) по слотам-стопкам. Передний = последний в массиве.
 function generate(nTypes: number): number[][] {
@@ -184,7 +184,6 @@ export default function GoodsSortGame() {
   // ── вёрстка ──────────────────────────────────────────────────────────
   const boardW = Math.min(width - 24, 420);
   const cell = Math.floor((boardW - 10 * 2 - 14 * 2) / 3);
-  const peek = Math.round(cell * 0.16);             // сдвиг «теневых» товаров вглубь
 
   const renderConfig = () => (
     <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
@@ -228,17 +227,11 @@ export default function GoodsSortGame() {
           borderColor: sel ? GRADIENT[0] : 'rgba(255,255,255,0.18)',
           borderWidth: sel ? 3 : 1,
         }]}>
-        {/* теневые товары вглубь (видно, что что-то есть, но не что) */}
-        {stack.map((g, k) => {
-          const depth = top - k;                 // 0 = передний
-          if (depth > 2) return null;            // глубже 2 не рисуем
-          const isTop = depth === 0;
-          return (
-            <View key={k} style={{ position: 'absolute', left: depth * peek, top: depth * peek }}>
-              <GoodIcon type={g} size={cell - 14} dim={!isTop} />
-            </View>
-          );
-        })}
+        {/* «в тени»: за передним есть ещё товары — тёмный силуэт, тип не раскрываем (память/планирование) */}
+        {stack.length > 1 && (
+          <View style={{ position: 'absolute', right: 7, bottom: 7, width: cell * 0.58, height: cell * 0.58, borderRadius: 8, backgroundColor: '#0b1220', opacity: 0.5 }} />
+        )}
+        {stack.length > 0 && <GoodIcon type={stack[top]} size={cell - 16} />}
         {stack.length > 0 && (
           <View style={styles.countBadge}><Text style={styles.countText}>{stack.length}</Text></View>
         )}
@@ -255,8 +248,8 @@ export default function GoodsSortGame() {
         <Text style={[styles.statText, { color: colors.textSecondary }]}>{elapsed.toFixed(0)}s</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
-      <View style={{ alignItems: 'center', gap: 12, marginTop: 6 }}>
-        {[0, 1].map((row) => (
+      <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }}>
+        {[0, 1, 2].map((row) => (
           <View key={row} style={[styles.shelf, { width: boardW }]}>
             {[0, 1, 2].map((col) => renderStack(row * 3 + col))}
           </View>
