@@ -22,6 +22,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillEyeRelax",
     "introKey": "eyeGymIntroDesc"
   },
+  "/games/goods-sort": {
+    "nameKey": "goodsSort",
+    "skillKey": "skillPlanningWM",
+    "introKey": "goodsSortIntroDesc"
+  },
   "/games/word-pairs": {
     "nameKey": "wordPairs",
     "skillKey": "skillMemory",

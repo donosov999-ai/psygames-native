@@ -89,6 +89,16 @@ export const GAMES: GameConfig[] = [
     route: '/games/eye-gym',
     category: 'attention',
   },
+  {
+    id: 'goods_sort',
+    nameKey: 'goodsSort',
+    descKey: 'goodsSortDesc',
+    skillKey: 'skillPlanningWM',
+    gradient: ['#f7971e', '#ffd200'],
+    icon: 'basket',
+    route: '/games/goods-sort',
+    category: 'logic',
+  },
 
   // MEMORY
   {
