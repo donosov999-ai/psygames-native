@@ -39,33 +39,33 @@ const DIRECTIONS = [
   [0, 1], [-0.85, 0.85], [-1, 0], [-0.85, -0.85],
 ];
 
-function dotFor(pattern: Pattern, local: number, localSec: number, A: number, R: number) {
-  const c = A / 2;
+// Размах раздельный: RX по горизонтали (во всю ширину экрана = макс угол хода глаз), RY по вертикали.
+function dotFor(pattern: Pattern, local: number, localSec: number, RX: number, RY: number, cx: number, cy: number) {
   const TAU = Math.PI * 2;
   switch (pattern) {
     case 'directions': {
       const idx = Math.floor(localSec / 2.6) % DIRECTIONS.length;
       const [dx, dy] = DIRECTIONS[idx];
-      return { x: c + dx * R, y: c + dy * R, size: 30, big: true };
+      return { x: cx + dx * RX, y: cy + dy * RY, size: 30, big: true };
     }
     case 'horizontal':
-      return { x: c + R * Math.sin(TAU * 3 * local), y: c, size: 26, big: false };
+      return { x: cx + RX * Math.sin(TAU * 3 * local), y: cy, size: 26, big: false };
     case 'vertical':
-      return { x: c, y: c + R * Math.sin(TAU * 3 * local), size: 26, big: false };
+      return { x: cx, y: cy + RY * Math.sin(TAU * 3 * local), size: 26, big: false };
     case 'circle': {
       const a = TAU * 3 * local;
-      return { x: c + R * Math.cos(a), y: c + R * Math.sin(a), size: 26, big: false };
+      return { x: cx + RX * Math.cos(a), y: cy + RY * Math.sin(a), size: 26, big: false };  // эллипс во всю ширину
     }
     case 'figure8': {
-      const a = TAU * 2 * local;             // лемниската Жероно → восьмёрка
-      return { x: c + R * Math.sin(a), y: c + R * Math.sin(a) * Math.cos(a), size: 26, big: false };
+      const a = TAU * 2 * local;             // лемниската Жероно → восьмёрка (растянута по ширине)
+      return { x: cx + RX * Math.sin(a), y: cy + RY * Math.sin(a) * Math.cos(a), size: 26, big: false };
     }
     case 'converge': {
       const rep = (localSec % 5) / 5;        // 0..1 каждые 5 сек: далеко→близко
-      return { x: c, y: c - R + rep * R, size: 14 + rep * 40, big: false };
+      return { x: cx, y: cy - RY + rep * RY, size: 14 + rep * 40, big: false };
     }
     default:
-      return { x: c, y: c, size: 26, big: false };
+      return { x: cx, y: cy, size: 26, big: false };
   }
 }
 
@@ -82,8 +82,12 @@ export default function EyeGymGame() {
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const A = Math.min(width - 32, height - 280, 360);    // квадратная зона
-  const R = A / 2 - 34;
+  // Зона во ВСЮ доступную ширину/высоту (без квадрат-капа) — макс размах для глаз на любом устройстве/режиме.
+  const boardW = width - 12;
+  const boardH = Math.max(220, height - 240);
+  const cx = boardW / 2, cy = boardH / 2;
+  const RX = Math.max(40, boardW / 2 - 24);            // горизонтальный размах = почти вся ширина
+  const RY = Math.max(40, boardH / 2 - 24);            // вертикальный размах
 
   const steps = SEQUENCE.map((s) => ({ ...s, dur: Math.round(s.dur * scale) }));
   const totalDur = steps.reduce((acc, s) => acc + s.dur, 0);
@@ -165,7 +169,7 @@ export default function EyeGymGame() {
   const renderExercise = () => {
     const isPalming = step.pattern === 'palming';
     const isFocus = step.pattern === 'focus';
-    const dot = (!isPalming && !isFocus) ? dotFor(step.pattern, local, localSec, A, R) : null;
+    const dot = (!isPalming && !isFocus) ? dotFor(step.pattern, local, localSec, RX, RY, cx, cy) : null;
     return (
       <View style={styles.exArea}>
         <View style={styles.exHead}>
@@ -178,18 +182,18 @@ export default function EyeGymGame() {
         <Text style={[styles.instr, { color: colors.text }]}>{t(step.instrKey)}</Text>
 
         {isPalming ? (
-          <View style={[styles.stage, { width: A, height: A, backgroundColor: '#000', borderColor: colors.border }]}>
+          <View style={[styles.stage, { width: boardW, height: boardH, backgroundColor: '#000', borderColor: colors.border }]}>
             <Ionicons name="hand-left-outline" size={64} color="#1f2937" />
             <Text style={styles.palmHint}>{t('eyePalmBlink')}</Text>
           </View>
         ) : isFocus ? (
-          <View style={[styles.stage, { width: A, height: A, backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.stage, { width: boardW, height: boardH, backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Ionicons name="telescope-outline" size={56} color={GRADIENT[0]} />
             <Text style={[styles.focusBig, { color: colors.text }]}>{Math.max(0, Math.ceil(step.dur - localSec))}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
             <Text style={[styles.focusSub, { color: colors.textSecondary }]}>{t('eyeFocusSub')}</Text>
           </View>
         ) : (
-          <View style={[styles.stage, { width: A, height: A, backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.stage, { width: boardW, height: boardH, backgroundColor: colors.surface, borderColor: colors.border }]}>
             {dot && (
               <View style={{
                 position: 'absolute',
@@ -267,7 +271,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  exArea: { flex: 1, alignItems: 'center', padding: 12, gap: 12 },
+  exArea: { flex: 1, alignItems: 'center', paddingHorizontal: 6, paddingVertical: 10, gap: 10 },
   exHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingHorizontal: 4 },
   exStep: { fontSize: 14, fontWeight: '700' },
   exTimer: { fontSize: 16, fontWeight: '800' },
