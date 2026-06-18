@@ -591,7 +591,7 @@ const WOMEN: ProfileDef = {
   price_year: 490,
   group: 'themed',
   // v1.4.1 — engagement-driven mix (НЕ формула 1+1+1+1+5)
-  // Распределение: память 2 · внимание 4 (поиск-жанр) · логика 2 · скорость 1
+  // Распределение: память 2 · внимание 4 (поиск) + Goods Sort (сортировка) · логика 2 · скорость 1 = 10
   allowed_games: [
     // 🧠 Память (2) — match-жанр, женский фаворит
     'picture_pairs',     // Memory Match — топовая казуалка
@@ -601,6 +601,7 @@ const WOMEN: ProfileDef = {
     'visual_search',     // Hidden Object — June's Journey style
     'schulte_table',     // brain training-классика, узнаваема
     'proofreading',      // «найди опечатку» — приятный поиск
+    'goods_sort',        // Сортировка товаров — match/collect казуалка с магазинными продуктами (женский фаворит-жанр)
     // 🧩 Логика (2) — wordscape + sudoku, оба = top-charts у женщин 30+
     'anagrams',          // буквенные пазлы — Wordscapes-стиль
     'sudoku',            // массовая классика, печаталась в журналах
