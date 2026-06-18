@@ -88,6 +88,7 @@ export const GAMES: GameConfig[] = [
     icon: 'eye',
     route: '/games/eye-gym',
     category: 'attention',
+    hideFromMenu: true,   // вход — заметная карточка вверху главной (во ВСЕХ профилях); в сетке не дублируем
   },
   {
     id: 'goods_sort',
