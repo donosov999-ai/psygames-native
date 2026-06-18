@@ -980,8 +980,8 @@ const translations: Translations = {
     ru: 'Reading the Mind in the Eyes Test (Baron-Cohen 2001) — классический тест cognitive empathy / Theory of Mind. Видишь выражение глаз и краткое описание, выбираешь одну эмоцию из 4. Норма для оригинального 36-trial: 22-30 правильных. Биомаркер accuracy. Критично для переговоров и публичной коммуникации — мера декодирования эмоционального состояния собеседника.',
     en: 'Reading the Mind in the Eyes Test (Baron-Cohen 2001) — classic cognitive empathy / Theory of Mind test. See eye expression + brief context, pick one emotion from 4. Normal range for original 36-trial: 22-30 correct. Biomarker: accuracy. Critical for negotiations and public communication — measures decoding of partner emotional state.'
   },
-  rmetNote:        { ru: 'Замена для оригинала с фотографиями: emoji + микро-контекст. Психометрически направление верное, точные нормы могут отличаться.',
-                    en: 'Substitute for original photo set: emoji + micro-context. Psychometric direction valid; exact norms may differ.' },
+  rmetNote:        { ru: 'Замена для оригинала с фотографиями: схематичные рисованные глаза. Психометрически направление верное, точные нормы могут отличаться.',
+                    en: 'Substitute for the original photo set: schematic drawn eyes. Psychometric direction valid; exact norms may differ.' },
   rmetHint:        { ru: 'Какая эмоция? Выбери одну', en: 'Which emotion? Pick one' },
   benefitRmet1:    { ru: 'Cognitive empathy',         en: 'Cognitive empathy' },
   benefitRmet2:    { ru: 'Theory of Mind',            en: 'Theory of Mind' },

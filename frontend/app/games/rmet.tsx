@@ -24,6 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Ellipse, Circle, Path, Rect, G } from 'react-native-svg';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -134,6 +135,72 @@ function shuffle<T>(arr: T[]): T[] {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+// Параметры выражения глаз по эмоции (ключ = correct_en). brow: -1 хмурый(внутр.вниз) .. +1 тревожный(внутр.вверх);
+// browLift: подъём брови; open: раскрытие; lower: подъём нижнего века (прищур/тепло); gaze: направление взгляда; asym: асимметрия (одна бровь выше).
+type EyeP = { brow: number; browLift: number; open: number; lower: number; gazeX: number; gazeY: number; asym?: number };
+const EYE_PARAMS: Record<string, EyeP> = {
+  playful:      { brow: 0,    browLift: 0.35, open: 0.7,  lower: 0.35, gazeX: 0.35, gazeY: 0,    asym: 0.5 },
+  worried:      { brow: 0.85, browLift: 0.25, open: 0.7,  lower: 0,    gazeX: 0,    gazeY: 0 },
+  reflective:   { brow: 0.15, browLift: 0.15, open: 0.6,  lower: 0.2,  gazeX: 0.7,  gazeY: -0.35 },
+  desolate:     { brow: 0.7,  browLift: 0,    open: 0.45, lower: 0.1,  gazeX: 0,    gazeY: 0.4 },
+  amazed:       { brow: 0.25, browLift: 1,    open: 1,    lower: 0,    gazeX: 0,    gazeY: 0 },
+  skeptical:    { brow: -0.15,browLift: 0.2,  open: 0.5,  lower: 0.35, gazeX: 0,    gazeY: 0,    asym: 0.9 },
+  pleading:     { brow: 0.9,  browLift: 0.35, open: 0.9,  lower: 0,    gazeX: 0,    gazeY: -0.25 },
+  confident:    { brow: -0.1, browLift: 0.05, open: 0.65, lower: 0.2,  gazeX: 0,    gazeY: 0 },
+  fearful:      { brow: 0.5,  browLift: 0.95, open: 1,    lower: 0,    gazeX: 0,    gazeY: 0 },
+  'in love':    { brow: 0.15, browLift: 0.05, open: 0.6,  lower: 0.45, gazeX: 0,    gazeY: 0.05 },
+  irritated:    { brow: -0.85,browLift: 0,    open: 0.55, lower: 0.2,  gazeX: 0,    gazeY: 0 },
+  awkward:      { brow: 0.2,  browLift: 0.2,  open: 0.5,  lower: 0.3,  gazeX: -0.45,gazeY: 0.2,  asym: 0.5 },
+  disdainful:   { brow: -0.1, browLift: 0.35, open: 0.4,  lower: 0.1,  gazeX: 0,    gazeY: -0.6 },
+  relieved:     { brow: 0.1,  browLift: 0,    open: 0.4,  lower: 0.35, gazeX: 0,    gazeY: 0.1 },
+  incredulous:  { brow: -0.2, browLift: 0.35, open: 0.6,  lower: 0.2,  gazeX: 0,    gazeY: 0,    asym: 1 },
+  disappointed: { brow: 0.4,  browLift: 0,    open: 0.45, lower: 0.1,  gazeX: 0,    gazeY: 0.5 },
+  tender:       { brow: 0.2,  browLift: 0.1,  open: 0.55, lower: 0.5,  gazeX: 0,    gazeY: 0 },
+  mischievous:  { brow: -0.1, browLift: 0.25, open: 0.5,  lower: 0.4,  gazeX: 0.4,  gazeY: 0,    asym: 0.5 },
+};
+
+function Eyes({ emotion }: { emotion: string }) {
+  const p = EYE_PARAMS[emotion] || { brow: 0, browLift: 0.2, open: 0.7, lower: 0.2, gazeX: 0, gazeY: 0 };
+  const skin = '#f0c9a4', white = '#fdfdfd', iris = '#6b4423', dark = '#262626';
+  const eye = (cx: number, inner: 1 | -1) => {
+    const cy = 80;
+    const gx = cx + p.gazeX * 12, gy = cy + p.gazeY * 9;
+    const upY = cy - 26 * p.open;                       // верхнее веко (выше = шире глаз)
+    const loY = cy + 24 - 24 * (p.lower * 0.75);        // нижнее веко (выше = прищур)
+    const browBase = cy - 36;
+    const lift = p.browLift * 15;
+    const asym = inner === -1 ? (p.asym || 0) * 13 : 0; // правый глаз чуть выше при асимметрии
+    const innerX = cx + inner * 30, outerX = cx - inner * 30;
+    const innerY = browBase - lift - p.brow * 13 - asym;
+    const outerY = browBase - lift + p.brow * 3 - asym;
+    const cpY = Math.min(innerY, outerY) - 6;
+    return (
+      <G key={cx}>
+        <Ellipse cx={cx} cy={cy} rx={33} ry={25} fill={white} />
+        <Circle cx={gx} cy={gy} r={14} fill={iris} />
+        <Circle cx={gx} cy={gy} r={6.5} fill={dark} />
+        <Circle cx={gx - 3} cy={gy - 3} r={2.4} fill="#ffffff" />
+        {/* верхнее веко (кожа) — прикрывает сверху до upY, край-дуга */}
+        <Path d={`M ${cx - 42} ${cy - 34} L ${cx + 42} ${cy - 34} L ${cx + 42} ${upY} Q ${cx} ${upY - 11} ${cx - 42} ${upY} Z`} fill={skin} />
+        {/* нижнее веко */}
+        <Path d={`M ${cx - 42} ${cy + 34} L ${cx + 42} ${cy + 34} L ${cx + 42} ${loY} Q ${cx} ${loY + 11} ${cx - 42} ${loY} Z`} fill={skin} />
+        {/* линия верхнего века */}
+        <Path d={`M ${cx - 31} ${cy - 3} Q ${cx} ${upY + 13} ${cx + 31} ${cy - 3}`} stroke="#9a6b45" strokeWidth={2.5} fill="none" strokeLinecap="round" />
+        {/* бровь */}
+        <Path d={`M ${innerX} ${innerY} Q ${cx} ${cpY} ${outerX} ${outerY}`} stroke="#5a3b22" strokeWidth={8} fill="none" strokeLinecap="round" />
+      </G>
+    );
+  };
+  return (
+    <Svg width={244} height={150} viewBox="0 0 244 150">
+      <Rect x={2} y={24} width={240} height={112} rx={22} fill={skin} />
+      {eye(74, 1)}
+      {eye(170, -1)}
+      <Path d="M 122 62 Q 117 95 122 116" stroke="#dca97c" strokeWidth={3} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
 }
 
 export default function RMETGame() {
@@ -250,7 +317,6 @@ export default function RMETGame() {
     const it = items[round];
     if (!it) return null;
     const correctWord = language === 'en' ? it.correct_en : it.correct_ru;
-    const hint = language === 'en' ? it.hint_en : it.hint_ru;
     return (
       <View style={styles.playArea}>
         <View style={styles.statsRow}>
@@ -259,8 +325,7 @@ export default function RMETGame() {
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         </View>
         <View style={[styles.eyeBox, { backgroundColor: colors.surface }]}>
-          <Text style={styles.eyeEmoji}>{it.emoji}</Text>
-          <Text style={[styles.eyeHint, { color: colors.textSecondary }]}>{hint}</Text>
+          <Eyes emotion={it.correct_en} />
         </View>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('rmetHint')}</Text>
         <View style={styles.optsGrid}>
