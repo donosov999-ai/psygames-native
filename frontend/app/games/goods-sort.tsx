@@ -75,6 +75,7 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 const SLOTS = 9;   // 3 полки × 3 слота; каждый слот — СТОПКА (видно передний). 9 даёт простор для манёвра.
+const COMBO_WINDOW = 3000;   // мс — окно таймед-комбо (как в оригинале RackSort): успей собрать ещё → ×2,×3…
 
 // Раздать товары (каждый тип ×3) по слотам-стопкам. Передний = последний в массиве.
 function generate(nTypes: number): number[][] {
@@ -123,6 +124,9 @@ export default function GoodsSortGame() {
   const ghostXY = useRef(new Animated.ValueXY()).current;
   const [flash, setFlash] = useState<{ combo: number; pts: number } | null>(null);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const comboRef = useRef(0);
+  const comboDeadlineRef = useRef(0);
+  const [comboBar, setComboBar] = useState(0);   // 0..1 — остаток окна комбо
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); if (flashTimer.current) clearTimeout(flashTimer.current); }, []);
 
@@ -132,11 +136,18 @@ export default function GoodsSortGame() {
     const nt = typesFor(difficulty);
     setNTypes(nt); setStacks(generate(nt));
     setSelected(null); setCombo(0); setCleared(0); setMoves(0); setScore(0);
-    scoreRef.current = 0; movesRef.current = 0;
+    scoreRef.current = 0; movesRef.current = 0; comboRef.current = 0; comboDeadlineRef.current = 0; setComboBar(0);
     setPhase('playing');
     const start = Date.now(); setStartTime(start); setElapsed(0);
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setElapsed((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => {
+      setElapsed((Date.now() - start) / 1000);
+      const dl = comboDeadlineRef.current;
+      if (dl) {
+        if (Date.now() >= dl) { comboRef.current = 0; comboDeadlineRef.current = 0; setCombo(0); setComboBar(0); }
+        else setComboBar((dl - Date.now()) / COMBO_WINDOW);
+      }
+    }, 100);
   };
 
   const finishGame = async (nt: number) => {
@@ -165,8 +176,8 @@ export default function GoodsSortGame() {
     ns[to].push(good);
     movesRef.current += 1; setMoves(movesRef.current);
 
-    // каскад сбора: пока на верхушке любого слота 3 одинаковых — убрать, начислить комбо
-    let localCombo = combo;
+    // каскад сбора: пока на верхушке любого слота 3 одинаковых — убрать. Комбо НЕ за ход, а ПО ВРЕМЕНИ
+    // (как в RackSort): каждый сбор продлевает окно ~3с; успел собрать ещё → ×2,×3…; пауза = сброс (по таймеру).
     let clearedNow = 0;
     const scoreBefore = scoreRef.current;
     let again = true;
@@ -175,20 +186,21 @@ export default function GoodsSortGame() {
       for (let i = 0; i < SLOTS; i++) {
         if (topThreeSame(ns[i])) {
           ns[i].splice(ns[i].length - 3, 3);
-          localCombo += 1; clearedNow += 1;
-          scoreRef.current += 100 * localCombo;
+          comboRef.current += 1; clearedNow += 1;
+          scoreRef.current += 100 * comboRef.current;
           again = true;
         }
       }
     }
-    if (clearedNow === 0) localCombo = 0;   // ход без сбора обнуляет комбо
     setStacks(ns);
     setSelected(null);
-    setCombo(localCombo);
     setScore(scoreRef.current);
     if (clearedNow > 0) {
+      comboDeadlineRef.current = Date.now() + COMBO_WINDOW;   // окно на следующий сбор
+      setCombo(comboRef.current);
+      setComboBar(1);
       setCleared((c) => c + clearedNow);
-      setFlash({ combo: localCombo, pts: scoreRef.current - scoreBefore });
+      setFlash({ combo: comboRef.current, pts: scoreRef.current - scoreBefore });
       if (flashTimer.current) clearTimeout(flashTimer.current);
       flashTimer.current = setTimeout(() => setFlash(null), 850);
     }
@@ -313,10 +325,15 @@ export default function GoodsSortGame() {
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
         <Text style={[styles.statText, { color: '#22c55e' }]}>⭐ {score}</Text>
-        {combo > 1 && <Text style={[styles.statText, { color: '#f59e0b' }]}>🔥 Комбо ×{combo}</Text>}
         <Text style={[styles.statText, { color: colors.text }]}>↔ {moves}</Text>
         <Text style={[styles.statText, { color: colors.textSecondary }]}>{elapsed.toFixed(0)}s</Text>
       </View>
+      {combo > 1 && (
+        <View style={styles.comboWrap}>
+          <Text style={styles.comboBig}>🔥 ×{combo}</Text>
+          <View style={styles.comboTrack}><View style={[styles.comboFill, { width: `${Math.round(comboBar * 100)}%` }]} /></View>
+        </View>
+      )}
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
       <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }} {...pan.panHandlers}>
         {[0, 1, 2].map((row) => (
@@ -390,4 +407,8 @@ const styles = StyleSheet.create({
   countText: { color: '#fff', fontSize: 11, fontWeight: '800' },
   flashBanner: { position: 'absolute', top: '40%', alignSelf: 'center', backgroundColor: 'rgba(34,197,94,0.95)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 16 },
   flashText: { color: '#fff', fontSize: 22, fontWeight: '900' },
+  comboWrap: { alignItems: 'center', gap: 4 },
+  comboBig: { fontSize: 24, fontWeight: '900', color: '#f59e0b' },
+  comboTrack: { width: 130, height: 6, borderRadius: 3, backgroundColor: 'rgba(245,158,11,0.25)', overflow: 'hidden' },
+  comboFill: { height: 6, borderRadius: 3, backgroundColor: '#f59e0b' },
 });
