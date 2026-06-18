@@ -40,28 +40,29 @@ const DIRECTIONS = [
 ];
 
 // Размах раздельный: RX по горизонтали (во всю ширину экрана = макс угол хода глаз), RY по вертикали.
-function dotFor(pattern: Pattern, local: number, localSec: number, RX: number, RY: number, cx: number, cy: number) {
+function dotFor(pattern: Pattern, local: number, localSec: number, RX: number, RY: number, cx: number, cy: number, speed: number) {
   const TAU = Math.PI * 2;
+  const l = local * speed, ls = localSec * speed;   // speed: 0.7 медл / 1 норма / 1.4 быстро
   switch (pattern) {
     case 'directions': {
-      const idx = Math.floor(localSec / 2.6) % DIRECTIONS.length;
+      const idx = Math.floor(ls / 2.6) % DIRECTIONS.length;
       const [dx, dy] = DIRECTIONS[idx];
       return { x: cx + dx * RX, y: cy + dy * RY, size: 30, big: true };
     }
     case 'horizontal':
-      return { x: cx + RX * Math.sin(TAU * 3 * local), y: cy, size: 26, big: false };
+      return { x: cx + RX * Math.sin(TAU * 3 * l), y: cy, size: 26, big: false };
     case 'vertical':
-      return { x: cx, y: cy + RY * Math.sin(TAU * 3 * local), size: 26, big: false };
+      return { x: cx, y: cy + RY * Math.sin(TAU * 3 * l), size: 26, big: false };
     case 'circle': {
-      const a = TAU * 3 * local;
+      const a = TAU * 3 * l;
       return { x: cx + RX * Math.cos(a), y: cy + RY * Math.sin(a), size: 26, big: false };  // эллипс во всю ширину
     }
     case 'figure8': {
-      const a = TAU * 2 * local;             // лемниската Жероно → восьмёрка (растянута по ширине)
+      const a = TAU * 2 * l;                 // лемниската Жероно → восьмёрка (растянута по ширине)
       return { x: cx + RX * Math.sin(a), y: cy + RY * Math.sin(a) * Math.cos(a), size: 26, big: false };
     }
     case 'converge': {
-      const rep = (localSec % 5) / 5;        // 0..1 каждые 5 сек: далеко→близко
+      const rep = (ls % 5) / 5;              // 0..1 каждые 5 сек: далеко→близко
       return { x: cx, y: cy - RY + rep * RY, size: 14 + rep * 40, big: false };
     }
     default:
@@ -78,7 +79,9 @@ export default function EyeGymGame() {
   const { isPreset } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [scale, setScale] = useState(1);               // 1 = ~3 мин, 1.7 = ~5 мин
+  const [scale, setScale] = useState(1);               // 0.4 = ~1 мин, 1 = ~3, 1.7 = ~5
+  const [speed, setSpeed] = useState(1);               // скорость точки: 0.7 медл / 1 норма / 1.4 быстро
+  const [mode, setMode] = useState<'full' | 'pursuit' | 'focus' | 'relax'>('full');
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -89,7 +92,17 @@ export default function EyeGymGame() {
   const RX = Math.max(40, boardW / 2 - 24);            // горизонтальный размах = почти вся ширина
   const RY = Math.max(40, boardH / 2 - 24);            // вертикальный размах
 
-  const steps = SEQUENCE.map((s) => ({ ...s, dur: Math.round(s.dur * scale) }));
+  // мини-режим: полный / только слежение / только фокус вдаль / только пальминг (отдых)
+  const MODE_PHASES: Record<string, string[] | null> = {
+    full: null,
+    pursuit: ['warmup', 'pursuitH', 'pursuitV', 'circle', 'figure8'],
+    focus: ['focusFar', 'converge'],
+    relax: ['palming'],
+  };
+  const sel = MODE_PHASES[mode];
+  const modeMul = mode === 'relax' ? 4 : mode === 'focus' ? 2.5 : 1;   // короткие режимы — длиннее, чтобы был смысл
+  const steps = (sel ? SEQUENCE.filter((s) => sel.includes(s.key)) : SEQUENCE)
+    .map((s) => ({ ...s, dur: Math.max(8, Math.round(s.dur * scale * modeMul)) }));
   const totalDur = steps.reduce((acc, s) => acc + s.dur, 0);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
@@ -147,12 +160,38 @@ export default function EyeGymGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('eyeDurationLabel')}</Text>
         <View style={styles.optionButtons}>
-          {[{ s: 1, k: 'eye3min' }, { s: 1.7, k: 'eye5min' }].map((o) => (
+          {[{ s: 0.4, k: 'eye1min' }, { s: 1, k: 'eye3min' }, { s: 1.7, k: 'eye5min' }].map((o) => (
             <TouchableOpacity key={o.k} style={[styles.modeButton, scale === o.s
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setScale(o.s)}>
               <Text style={[styles.modeButtonText, { color: scale === o.s ? '#FFF' : colors.text }]}>{t(o.k)}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('eyeSpeedLabel')}</Text>
+        <View style={styles.optionButtons}>
+          {[{ v: 0.7, k: 'eyeSlow' }, { v: 1, k: 'eyeNorm' }, { v: 1.4, k: 'eyeFast' }].map((o) => (
+            <TouchableOpacity key={o.k} style={[styles.modeButton, speed === o.v
+              ? { backgroundColor: GRADIENT[0] }
+              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+              onPress={() => setSpeed(o.v)}>
+              <Text style={[styles.modeButtonText, { color: speed === o.v ? '#FFF' : colors.text }]}>{t(o.k)}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('eyeModeLabel')}</Text>
+        <View style={styles.optionButtons}>
+          {([['full', 'eyeModeFull'], ['pursuit', 'eyeModePursuit'], ['focus', 'eyeModeFocus'], ['relax', 'eyeModeRelax']] as const).map(([m, k]) => (
+            <TouchableOpacity key={m} style={[styles.modeButton, mode === m
+              ? { backgroundColor: GRADIENT[0] }
+              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+              onPress={() => setMode(m)}>
+              <Text style={[styles.modeButtonText, { color: mode === m ? '#FFF' : colors.text }]}>{t(k)}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -169,7 +208,7 @@ export default function EyeGymGame() {
   const renderExercise = () => {
     const isPalming = step.pattern === 'palming';
     const isFocus = step.pattern === 'focus';
-    const dot = (!isPalming && !isFocus) ? dotFor(step.pattern, local, localSec, RX, RY, cx, cy) : null;
+    const dot = (!isPalming && !isFocus) ? dotFor(step.pattern, local, localSec, RX, RY, cx, cy, speed) : null;
     return (
       <View style={styles.exArea}>
         <View style={styles.exHead}>
