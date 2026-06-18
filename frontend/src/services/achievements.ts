@@ -11,6 +11,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { GameSession } from '@/src/services/api';
+import { localDateKey } from '@/src/services/warmup';
 
 export interface Achievement {
   id: string;
@@ -133,7 +134,7 @@ export async function checkNewAchievements(ctx: Context): Promise<Achievement[]>
     }
     if (pass) {
       newly.push(a);
-      unlocked.push({ id: a.id, date: new Date().toISOString().slice(0, 10) });
+      unlocked.push({ id: a.id, date: localDateKey(new Date()) });
     }
   }
   if (newly.length > 0) await saveUnlocked(unlocked);

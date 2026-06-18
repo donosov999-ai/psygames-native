@@ -13,7 +13,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { PlaylistStep } from '@/src/services/warmup';
+import { type PlaylistStep, localDateKey } from '@/src/services/warmup';
 import type { GameSession } from '@/src/services/api';
 
 export type Domain =
@@ -135,7 +135,7 @@ export function scoreSessions(sessions: GameSession[]): AssessmentResult {
   const weak = scores.filter(s => s.level === 'weak').map(s => s.domain);
   const strong = scores.filter(s => s.level === 'strong').map(s => s.domain);
   return {
-    date: new Date().toISOString().slice(0, 10),
+    date: localDateKey(new Date()),
     timestamp: new Date().toISOString(),
     scores,
     weak,

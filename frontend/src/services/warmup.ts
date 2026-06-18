@@ -369,7 +369,7 @@ export function computeStreak(history: WarmupHistoryEntry[]): number {
   for (let i = 0; i < 365; i++) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
+    const key = localDateKey(d);
     if (dates.has(key)) {
       streak++;
       // Reset grace when day is hit — grace only saves a single isolated miss
@@ -392,13 +392,16 @@ export function getCurrentWeekday(): Weekday {
   return new Date().getDay() as Weekday;
 }
 
-export function todayDateKey(): string {
-  // ЛОКАЛЬНАЯ дата, НЕ UTC. toISOString() возвращает UTC → у UTC+5 (Екб) вечерние/ночные
-  // сессии «уезжали» в соседний день и ломали стрик и счёт «сегодня» («вечер не считает»).
-  const d = new Date();
+// ЛОКАЛЬНАЯ дата (НЕ UTC). toISOString() возвращает UTC → у UTC+5 (Екб) ночные сессии
+// «уезжали» в соседний день и ломали стрик и счёт «сегодня» («вечер не считает»).
+// Один форматтер для todayDateKey И computeStreak — иначе ключи рассинхронятся (баг стрика).
+export function localDateKey(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${d.getFullYear()}-${m}-${day}`;
+}
+export function todayDateKey(): string {
+  return localDateKey(new Date());
 }
 
 /**
