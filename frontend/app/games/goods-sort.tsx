@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, PanResponder, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,42 +19,50 @@ const GOODS_BENEFITS = [
   { icon: 'albums-outline', textKey: 'benefitGoods3' },
 ];
 
-// 6 «нарисованных» товаров (SVG, не эмодзи). Каждый — узнаваемый силуэт + свой цвет.
-const GOOD_COLOR = ['#3b82f6', '#ef4444', '#f97316', '#7c4a23', '#22c55e', '#a855f7'];
+// 6 мультяшных товаров (SVG): свой цвет + мягкий контур + блик-шайн + крышка/этикетка.
+const GOOD_COLOR = ['#3b82f6', '#ef4444', '#f59e0b', '#7c4a23', '#22c55e', '#a855f7'];
+const GOOD_DARK = ['#1d4ed8', '#b91c1c', '#b45309', '#4a2c12', '#15803d', '#7e22ce'];
 function GoodIcon({ type, size, dim }: { type: number; size: number; dim?: boolean }) {
   const c = GOOD_COLOR[type % 6];
+  const d = GOOD_DARK[type % 6];
   const o = dim ? 0.28 : 1;
+  const stroke = 'rgba(0,0,0,0.38)', sw = 3;
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100" opacity={o}>
       {type === 0 && (<>{/* бутылка воды */}
-        <Rect x="40" y="8" width="20" height="12" rx="3" fill="#94a3b8" />
-        <Rect x="34" y="20" width="32" height="72" rx="12" fill={c} />
-        <Rect x="34" y="46" width="32" height="14" fill="#ffffff" opacity={0.85} />
+        <Rect x="42" y="6" width="16" height="15" rx="3" fill={d} stroke={stroke} strokeWidth={sw} />
+        <Rect x="33" y="20" width="34" height="74" rx="15" fill={c} stroke={stroke} strokeWidth={sw} />
+        <Rect x="33" y="48" width="34" height="16" fill="#ffffff" opacity={0.9} />
+        <Rect x="39" y="28" width="6" height="58" rx="3" fill="#ffffff" opacity={0.45} />
       </>)}
       {type === 1 && (<>{/* банка газировки */}
-        <Rect x="30" y="16" width="40" height="70" rx="8" fill={c} />
-        <Ellipse cx="50" cy="18" rx="20" ry="6" fill="#cbd5e1" />
-        <Rect x="44" y="40" width="12" height="26" rx="2" fill="#ffffff" opacity={0.85} />
+        <Rect x="30" y="16" width="40" height="72" rx="11" fill={c} stroke={stroke} strokeWidth={sw} />
+        <Ellipse cx="50" cy="17" rx="20" ry="6" fill={d} stroke={stroke} strokeWidth={sw} />
+        <Rect x="34" y="42" width="32" height="20" rx="4" fill="#ffffff" opacity={0.9} />
+        <Rect x="36" y="22" width="5" height="58" rx="2.5" fill="#ffffff" opacity={0.42} />
       </>)}
       {type === 2 && (<>{/* пакет сока + трубочка */}
-        <Rect x="32" y="22" width="36" height="64" rx="3" fill={c} />
-        <Line x1="60" y1="22" x2="72" y2="6" stroke="#e11d48" strokeWidth="5" strokeLinecap="round" />
-        <Rect x="38" y="40" width="24" height="18" rx="2" fill="#ffffff" opacity={0.85} />
+        <Rect x="31" y="22" width="38" height="66" rx="6" fill={c} stroke={stroke} strokeWidth={sw} />
+        <Line x1="60" y1="24" x2="73" y2="5" stroke={d} strokeWidth="6" strokeLinecap="round" />
+        <Rect x="37" y="40" width="26" height="22" rx="3" fill="#ffffff" opacity={0.9} />
+        <Rect x="35" y="28" width="5" height="52" rx="2.5" fill="#ffffff" opacity={0.42} />
       </>)}
       {type === 3 && (<>{/* стакан кофе с крышкой */}
-        <Path d="M34 32 L66 32 L60 90 L40 90 Z" fill={c} />
-        <Rect x="30" y="24" width="40" height="10" rx="4" fill="#5b3a1e" />
-        <Rect x="46" y="12" width="8" height="12" rx="2" fill="#5b3a1e" />
+        <Path d="M33 34 L67 34 L60 92 L40 92 Z" fill={c} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />
+        <Rect x="29" y="23" width="42" height="13" rx="5" fill={d} stroke={stroke} strokeWidth={sw} />
+        <Rect x="45" y="9" width="10" height="15" rx="3" fill={d} stroke={stroke} strokeWidth={sw} />
+        <Rect x="38" y="40" width="6" height="44" rx="3" fill="#ffffff" opacity={0.42} />
       </>)}
       {type === 4 && (<>{/* пакет молока (gable) */}
-        <Path d="M30 34 L50 14 L70 34 L70 90 L30 90 Z" fill={c} />
-        <Path d="M30 34 L50 14 L70 34 Z" fill="#ffffff" opacity={0.5} />
-        <Rect x="40" y="50" width="20" height="22" rx="2" fill="#ffffff" opacity={0.85} />
+        <Path d="M30 36 L50 14 L70 36 L70 92 L30 92 Z" fill={c} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />
+        <Rect x="40" y="52" width="20" height="24" rx="3" fill="#ffffff" opacity={0.9} />
+        <Rect x="34" y="40" width="5" height="48" rx="2.5" fill="#ffffff" opacity={0.42} />
       </>)}
       {type === 5 && (<>{/* банка варенья */}
-        <Rect x="32" y="30" width="36" height="58" rx="8" fill={c} />
-        <Rect x="36" y="16" width="28" height="16" rx="3" fill="#fbbf24" />
-        <Ellipse cx="50" cy="58" rx="13" ry="9" fill="#ffffff" opacity={0.85} />
+        <Rect x="31" y="30" width="38" height="60" rx="11" fill={c} stroke={stroke} strokeWidth={sw} />
+        <Rect x="35" y="14" width="30" height="18" rx="4" fill={d} stroke={stroke} strokeWidth={sw} />
+        <Ellipse cx="50" cy="60" rx="14" ry="10" fill="#ffffff" opacity={0.9} />
+        <Rect x="36" y="38" width="5" height="44" rx="2.5" fill="#ffffff" opacity={0.42} />
       </>)}
     </Svg>
   );
@@ -104,6 +112,13 @@ export default function GoodsSortGame() {
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const scoreRef = useRef(0); const movesRef = useRef(0);
+  // drag-перетаскивание
+  const slotEls = useRef<Array<any>>(Array(SLOTS).fill(null));
+  const slotRects = useRef<Array<{ x: number; y: number; w: number; h: number } | null>>(Array(SLOTS).fill(null));
+  const dragFromRef = useRef<number | null>(null);
+  const dragTypeRef = useRef(0);
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const ghostXY = useRef(new Animated.ValueXY()).current;
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
@@ -184,6 +199,45 @@ export default function GoodsSortGame() {
   // ── вёрстка ──────────────────────────────────────────────────────────
   const boardW = Math.min(width - 24, 420);
   const cell = Math.floor((boardW - 10 * 2 - 14 * 2) / 3);
+  const ghostSize = cell - 16;
+
+  const slotAt = (px: number, py: number) => {
+    for (let i = 0; i < SLOTS; i++) {
+      const r = slotRects.current[i];
+      if (r && px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) return i;
+    }
+    return -1;
+  };
+  const measureSlot = (i: number) => {
+    const el = slotEls.current[i];
+    if (el && el.measureInWindow) el.measureInWindow((x: number, y: number, w: number, h: number) => { slotRects.current[i] = { x, y, w, h }; });
+  };
+  // Перетаскивание: тап (без движения) → handleSlotTap; движение >8px → захватываем и тащим верхний товар.
+  const pan = PanResponder.create({
+    onStartShouldSetPanResponder: () => false,
+    onMoveShouldSetPanResponderCapture: (_e, g) => phase === 'playing' && (Math.abs(g.dx) > 8 || Math.abs(g.dy) > 8),
+    onPanResponderGrant: (_e, g) => {
+      const from = slotAt(g.x0, g.y0);
+      if (from >= 0 && stacks[from].length > 0) {
+        dragFromRef.current = from;
+        dragTypeRef.current = stacks[from][stacks[from].length - 1];
+        ghostXY.setValue({ x: g.x0 - ghostSize / 2, y: g.y0 - ghostSize / 2 });
+        setSelected(null);
+        setDragFrom(from);
+      }
+    },
+    onPanResponderMove: (_e, g) => { ghostXY.setValue({ x: g.moveX - ghostSize / 2, y: g.moveY - ghostSize / 2 }); },
+    onPanResponderRelease: (_e, g) => {
+      const from = dragFromRef.current;
+      if (from !== null) {
+        const to = slotAt(g.moveX, g.moveY);
+        if (to >= 0 && to !== from) moveTop(from, to);
+      }
+      dragFromRef.current = null;
+      setDragFrom(null);
+    },
+    onPanResponderTerminate: () => { dragFromRef.current = null; setDragFrom(null); },
+  });
 
   const renderConfig = () => (
     <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
@@ -216,11 +270,14 @@ export default function GoodsSortGame() {
   );
 
   const renderStack = (i: number) => {
-    const stack = stacks[i];
+    const full = stacks[i];
+    const stack = dragFrom === i ? full.slice(0, -1) : full;   // верхний товар «в руке» при перетаскивании
     const sel = selected === i;
     const top = stack.length - 1;
     return (
       <TouchableOpacity key={i} activeOpacity={0.8} onPress={() => handleSlotTap(i)}
+        ref={(el) => { slotEls.current[i] = el; }}
+        onLayout={() => measureSlot(i)}
         style={[styles.slot, {
           width: cell, height: cell,
           backgroundColor: sel ? '#fff7d6' : 'rgba(0,0,0,0.18)',
@@ -248,7 +305,7 @@ export default function GoodsSortGame() {
         <Text style={[styles.statText, { color: colors.textSecondary }]}>{elapsed.toFixed(0)}s</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
-      <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }}>
+      <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }} {...pan.panHandlers}>
         {[0, 1, 2].map((row) => (
           <View key={row} style={[styles.shelf, { width: boardW }]}>
             {[0, 1, 2].map((col) => renderStack(row * 3 + col))}
@@ -274,6 +331,11 @@ export default function GoodsSortGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'playing' && dragFrom !== null && (
+        <Animated.View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, zIndex: 50, transform: ghostXY.getTranslateTransform() }}>
+          <GoodIcon type={dragTypeRef.current} size={ghostSize} />
+        </Animated.View>
+      )}
       {phase === 'result' && (
         <GameResult score={score} time={elapsed} errors={0}
           onPlayAgain={() => setPhase('config')} onGoHome={() => router.back()}
