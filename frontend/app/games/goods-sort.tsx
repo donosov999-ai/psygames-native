@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, PanResponder, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, PanResponder, Animated, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Rect, Path, Ellipse, Line } from 'react-native-svg';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -19,54 +18,23 @@ const GOODS_BENEFITS = [
   { icon: 'albums-outline', textKey: 'benefitGoods3' },
 ];
 
-// 6 мультяшных товаров (SVG): свой цвет + мягкий контур + блик-шайн + крышка/этикетка.
-const GOOD_COLOR = ['#38bdf8', '#fb7185', '#fb923c', '#b45309', '#34d399', '#c084fc'];
-const GOOD_DARK = ['#0284c7', '#e11d48', '#ea580c', '#7c2d12', '#059669', '#9333ea'];
+// 6 реалистичных магазинных товаров (сгенерены Nano Banana 2, оригинальные generic-этикетки —
+// COLA/LIME/KEFIR/MILK/JUICE/YOGURT, НЕ реальные бренды). Прозрачные PNG, фон вычищен.
+const GOOD_SPRITES = [
+  require('../../assets/images/goods/good0.png'), // кола
+  require('../../assets/images/goods/good1.png'), // лимонад
+  require('../../assets/images/goods/good2.png'), // кефир
+  require('../../assets/images/goods/good3.png'), // молоко
+  require('../../assets/images/goods/good4.png'), // сок
+  require('../../assets/images/goods/good5.png'), // йогурт
+];
 function GoodIcon({ type, size, dim }: { type: number; size: number; dim?: boolean }) {
-  const c = GOOD_COLOR[type % 6];
-  const d = GOOD_DARK[type % 6];
-  const o = dim ? 0.28 : 1;
-  const stroke = 'rgba(0,0,0,0.5)', sw = 4.5;   // толстый «стикерный» контур для мультяшности
   return (
-    <Svg width={size} height={size} viewBox="0 0 100 100" opacity={o}>
-      {type === 0 && (<>{/* бутылка воды */}
-        <Rect x="42" y="6" width="16" height="15" rx="3" fill={d} stroke={stroke} strokeWidth={sw} />
-        <Rect x="33" y="20" width="34" height="74" rx="15" fill={c} stroke={stroke} strokeWidth={sw} />
-        <Rect x="33" y="48" width="34" height="16" fill="#ffffff" opacity={0.9} />
-        <Rect x="39" y="28" width="6" height="58" rx="3" fill="#ffffff" opacity={0.45} />
-      </>)}
-      {type === 1 && (<>{/* банка газировки */}
-        <Rect x="30" y="16" width="40" height="72" rx="11" fill={c} stroke={stroke} strokeWidth={sw} />
-        <Ellipse cx="50" cy="17" rx="20" ry="6" fill={d} stroke={stroke} strokeWidth={sw} />
-        <Rect x="34" y="42" width="32" height="20" rx="4" fill="#ffffff" opacity={0.9} />
-        <Rect x="36" y="22" width="5" height="58" rx="2.5" fill="#ffffff" opacity={0.42} />
-      </>)}
-      {type === 2 && (<>{/* пакет сока + трубочка */}
-        <Rect x="31" y="22" width="38" height="66" rx="6" fill={c} stroke={stroke} strokeWidth={sw} />
-        <Line x1="60" y1="24" x2="73" y2="5" stroke={d} strokeWidth="6" strokeLinecap="round" />
-        <Rect x="37" y="40" width="26" height="22" rx="3" fill="#ffffff" opacity={0.9} />
-        <Rect x="35" y="28" width="5" height="52" rx="2.5" fill="#ffffff" opacity={0.42} />
-      </>)}
-      {type === 3 && (<>{/* стакан кофе с крышкой */}
-        <Path d="M33 34 L67 34 L60 92 L40 92 Z" fill={c} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />
-        <Rect x="29" y="23" width="42" height="13" rx="5" fill={d} stroke={stroke} strokeWidth={sw} />
-        <Rect x="45" y="9" width="10" height="15" rx="3" fill={d} stroke={stroke} strokeWidth={sw} />
-        <Rect x="38" y="40" width="6" height="44" rx="3" fill="#ffffff" opacity={0.42} />
-      </>)}
-      {type === 4 && (<>{/* пакет молока (gable) */}
-        <Path d="M30 36 L50 14 L70 36 L70 92 L30 92 Z" fill={c} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />
-        <Rect x="40" y="52" width="20" height="24" rx="3" fill="#ffffff" opacity={0.9} />
-        <Rect x="34" y="40" width="5" height="48" rx="2.5" fill="#ffffff" opacity={0.42} />
-      </>)}
-      {type === 5 && (<>{/* банка варенья */}
-        <Rect x="31" y="30" width="38" height="60" rx="11" fill={c} stroke={stroke} strokeWidth={sw} />
-        <Rect x="35" y="14" width="30" height="18" rx="4" fill={d} stroke={stroke} strokeWidth={sw} />
-        <Ellipse cx="50" cy="60" rx="14" ry="10" fill="#ffffff" opacity={0.9} />
-        <Rect x="36" y="38" width="5" height="44" rx="2.5" fill="#ffffff" opacity={0.42} />
-      </>)}
-      {/* глянцевый блик поверх любого товара — мультяшный объём */}
-      <Ellipse cx="38" cy="30" rx="12" ry="18" fill="#ffffff" opacity={0.3} />
-    </Svg>
+    <Image
+      source={GOOD_SPRITES[type % 6]}
+      style={{ width: size, height: size, opacity: dim ? 0.32 : 1 }}
+      resizeMode="contain"
+    />
   );
 }
 
