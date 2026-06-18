@@ -20,13 +20,13 @@ const GOODS_BENEFITS = [
 ];
 
 // 6 мультяшных товаров (SVG): свой цвет + мягкий контур + блик-шайн + крышка/этикетка.
-const GOOD_COLOR = ['#3b82f6', '#ef4444', '#f59e0b', '#7c4a23', '#22c55e', '#a855f7'];
-const GOOD_DARK = ['#1d4ed8', '#b91c1c', '#b45309', '#4a2c12', '#15803d', '#7e22ce'];
+const GOOD_COLOR = ['#38bdf8', '#fb7185', '#fb923c', '#b45309', '#34d399', '#c084fc'];
+const GOOD_DARK = ['#0284c7', '#e11d48', '#ea580c', '#7c2d12', '#059669', '#9333ea'];
 function GoodIcon({ type, size, dim }: { type: number; size: number; dim?: boolean }) {
   const c = GOOD_COLOR[type % 6];
   const d = GOOD_DARK[type % 6];
   const o = dim ? 0.28 : 1;
-  const stroke = 'rgba(0,0,0,0.38)', sw = 3;
+  const stroke = 'rgba(0,0,0,0.5)', sw = 4.5;   // толстый «стикерный» контур для мультяшности
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100" opacity={o}>
       {type === 0 && (<>{/* бутылка воды */}
@@ -64,6 +64,8 @@ function GoodIcon({ type, size, dim }: { type: number; size: number; dim?: boole
         <Ellipse cx="50" cy="60" rx="14" ry="10" fill="#ffffff" opacity={0.9} />
         <Rect x="36" y="38" width="5" height="44" rx="2.5" fill="#ffffff" opacity={0.42} />
       </>)}
+      {/* глянцевый блик поверх любого товара — мультяшный объём */}
+      <Ellipse cx="38" cy="30" rx="12" ry="18" fill="#ffffff" opacity={0.3} />
     </Svg>
   );
 }
@@ -119,8 +121,10 @@ export default function GoodsSortGame() {
   const dragTypeRef = useRef(0);
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const ghostXY = useRef(new Animated.ValueXY()).current;
+  const [flash, setFlash] = useState<{ combo: number; pts: number } | null>(null);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); if (flashTimer.current) clearTimeout(flashTimer.current); }, []);
 
   const typesFor = (d: 'easy' | 'medium' | 'hard') => (d === 'easy' ? 4 : d === 'medium' ? 5 : 6);
 
@@ -164,6 +168,7 @@ export default function GoodsSortGame() {
     // каскад сбора: пока на верхушке любого слота 3 одинаковых — убрать, начислить комбо
     let localCombo = combo;
     let clearedNow = 0;
+    const scoreBefore = scoreRef.current;
     let again = true;
     while (again) {
       again = false;
@@ -181,7 +186,12 @@ export default function GoodsSortGame() {
     setSelected(null);
     setCombo(localCombo);
     setScore(scoreRef.current);
-    if (clearedNow > 0) setCleared((c) => c + clearedNow);
+    if (clearedNow > 0) {
+      setCleared((c) => c + clearedNow);
+      setFlash({ combo: localCombo, pts: scoreRef.current - scoreBefore });
+      if (flashTimer.current) clearTimeout(flashTimer.current);
+      flashTimer.current = setTimeout(() => setFlash(null), 850);
+    }
 
     const totalGoods = ns.reduce((sum, s) => sum + s.length, 0);
     if (totalGoods === 0) setTimeout(() => finishGame(nTypes), 350);
@@ -274,6 +284,9 @@ export default function GoodsSortGame() {
     const stack = dragFrom === i ? full.slice(0, -1) : full;   // верхний товар «в руке» при перетаскивании
     const sel = selected === i;
     const top = stack.length - 1;
+    const tp = stack.length ? stack[top] : -1;
+    let topRun = 0; for (let k = top; k >= 0 && stack[k] === tp; k--) topRun++;
+    const close = topRun === 2;   // 2 одинаковых сверху → положи ещё один такой = сбор
     return (
       <TouchableOpacity key={i} activeOpacity={0.8} onPress={() => handleSlotTap(i)}
         ref={(el) => { slotEls.current[i] = el; }}
@@ -281,16 +294,16 @@ export default function GoodsSortGame() {
         style={[styles.slot, {
           width: cell, height: cell,
           backgroundColor: sel ? '#fff7d6' : 'rgba(0,0,0,0.18)',
-          borderColor: sel ? GRADIENT[0] : 'rgba(255,255,255,0.18)',
-          borderWidth: sel ? 3 : 1,
+          borderColor: sel ? GRADIENT[0] : close ? '#22c55e' : 'rgba(255,255,255,0.18)',
+          borderWidth: sel || close ? 3 : 1,
         }]}>
         {/* «в тени»: за передним есть ещё товары — тёмный силуэт, тип не раскрываем (память/планирование) */}
         {stack.length > 1 && (
           <View style={{ position: 'absolute', right: 7, bottom: 7, width: cell * 0.58, height: cell * 0.58, borderRadius: 8, backgroundColor: '#0b1220', opacity: 0.5 }} />
         )}
         {stack.length > 0 && <GoodIcon type={stack[top]} size={cell - 16} />}
-        {stack.length > 0 && (
-          <View style={styles.countBadge}><Text style={styles.countText}>{stack.length}</Text></View>
+        {close && (
+          <View style={[styles.countBadge, { backgroundColor: '#22c55e' }]}><Text style={styles.countText}>{topRun}</Text></View>
         )}
       </TouchableOpacity>
     );
@@ -312,6 +325,11 @@ export default function GoodsSortGame() {
           </View>
         ))}
       </View>
+      {flash && (
+        <View style={styles.flashBanner} pointerEvents="none">
+          <Text style={styles.flashText}>✨ +{flash.pts}{flash.combo > 1 ? `  ×${flash.combo}` : ''}</Text>
+        </View>
+      )}
     </View>
   );
 
@@ -370,4 +388,6 @@ const styles = StyleSheet.create({
   slot: { borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   countBadge: { position: 'absolute', bottom: -5, right: -5, minWidth: 20, height: 20, paddingHorizontal: 5, borderRadius: 10, backgroundColor: '#1f2937', justifyContent: 'center', alignItems: 'center' },
   countText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  flashBanner: { position: 'absolute', top: '40%', alignSelf: 'center', backgroundColor: 'rgba(34,197,94,0.95)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 16 },
+  flashText: { color: '#fff', fontSize: 22, fontWeight: '900' },
 });

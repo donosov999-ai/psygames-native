@@ -348,7 +348,7 @@ const translations: Translations = {
   benefitGoods1: { ru: 'Зрительная рабочая память: что где спрятано', en: 'Visual working memory: what is hidden where' },
   benefitGoods2: { ru: 'Планирование последовательности ходов', en: 'Planning a sequence of moves' },
   benefitGoods3: { ru: 'Концентрация и системность', en: 'Focus and systematic thinking' },
-  goodsSortHint: { ru: 'Тапни стопку → другую: верхний товар переложится. 3 одинаковых сверху → сгорают (комбо ×2…).', en: 'Tap a stack → another: the top good moves over. 3 identical on top → they clear (combo ×2…).' },
+  goodsSortHint: { ru: 'Перетащи (или тап→тап) верхний товар на другую стопку. 3 ОДИНАКОВЫХ наверху → сгорают (комбо). Зелёная рамка = почти собрал.', en: 'Drag (or tap→tap) the top good onto another stack. 3 IDENTICAL on top → they clear (combo). Green frame = almost there.' },
   eyeInstrWarmup: { ru: 'Веди взгляд за точкой по направлениям', en: 'Follow the dot in each direction' },
   eyeInstrPursuit: { ru: 'Следи за точкой глазами, голову не двигай', en: 'Follow the dot with your eyes, keep your head still' },
   eyeInstrFocusFar: { ru: 'Оторвись от экрана — посмотри вдаль (в окно, ~6 м)', en: 'Look away — focus far into the distance (a window, ~6 m)' },
