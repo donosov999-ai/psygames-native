@@ -207,6 +207,21 @@ export default function FindDifferencesGame() {
     }
   };
 
+  // Тап по координате → ближайшая фигура в радиусе (а не по точному SVG-контуру).
+  // Раньше onPress висел на самой фигуре: мелкий треугольник = крошечная зона, легко промахнуться.
+  const handleSceneTap = (x: number, y: number) => {
+    let best = -1, bestD = Infinity;
+    for (let i = 0; i < altered.length; i++) {
+      const s = altered[i];
+      if (!s) continue;
+      const dx = s.x - x, dy = s.y - y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      const tol = Math.max(s.size / 2 + 16, 28);   // прощаем промах до ~края+16px (мин 28)
+      if (d <= tol && d < bestD) { bestD = d; best = i; }
+    }
+    if (best >= 0) handleShapePress(best);
+  };
+
   const finish = async () => {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
@@ -229,21 +244,21 @@ export default function FindDifferencesGame() {
     const isFound = side === 'R' && foundIdx.has(idx);
     const stroke = isFound ? '#fbbf24' : 'transparent';
     const strokeWidth = isFound ? 3 : 0;
-    const handler = side === 'R' ? () => handleShapePress(idx) : undefined;
     const shape = side === 'L' ? scene[idx] : altered[idx];
     if (!shape) return null;
+    // Тапы ловит контейнер сцены (handleSceneTap по координате) — у самих фигур onPress нет.
     if (shape.kind === 'circle') {
       return <Circle key={idx} cx={shape.x} cy={shape.y} r={shape.size / 2}
-        fill={shape.color} stroke={stroke} strokeWidth={strokeWidth} onPress={handler} />;
+        fill={shape.color} stroke={stroke} strokeWidth={strokeWidth} />;
     } else if (shape.kind === 'rect') {
       return <Rect key={idx} x={shape.x - shape.size / 2} y={shape.y - shape.size / 2}
         width={shape.size} height={shape.size} fill={shape.color}
-        stroke={stroke} strokeWidth={strokeWidth} onPress={handler} />;
+        stroke={stroke} strokeWidth={strokeWidth} />;
     } else {
       const s = shape.size;
       const points = `${shape.x},${shape.y - s/2} ${shape.x + s/2},${shape.y + s/2} ${shape.x - s/2},${shape.y + s/2}`;
       return <Polygon key={idx} points={points} fill={shape.color}
-        stroke={stroke} strokeWidth={strokeWidth} onPress={handler} />;
+        stroke={stroke} strokeWidth={strokeWidth} />;
     }
   };
 
@@ -289,8 +304,12 @@ export default function FindDifferencesGame() {
             {scene.map((_, i) => renderShape(scene[i], i, 'L'))}
           </Svg>
         </View>
-        <View style={[styles.sceneBox, { backgroundColor: colors.surface }]}>
-          <Svg width={sceneW} height={sceneH}>
+        <View
+          style={[styles.sceneBox, { backgroundColor: colors.surface }]}
+          onStartShouldSetResponder={() => true}
+          onResponderRelease={(e) => handleSceneTap(e.nativeEvent.locationX, e.nativeEvent.locationY)}
+        >
+          <Svg width={sceneW} height={sceneH} pointerEvents="none">
             {altered.map((_, i) => renderShape(altered[i], i, 'R'))}
           </Svg>
         </View>

@@ -100,6 +100,17 @@ export default function StatisticsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Истинный total по всем играм (не зависит от фильтра профиля) — чтобы было видно
+          реальное число сыгранного, а не только игры текущего профиля. Считаются ЗАВЕРШЁННЫЕ
+          сессии (брошенные на середине не сохраняются). */}
+      {!loading && (
+        <Text style={{ textAlign: 'center', color: colors.textSecondary, fontSize: 12, marginBottom: 10 }}>
+          {language === 'ru' ? 'Всего сыграно: ' : 'Total played: '}
+          {stats.reduce((sum, s) => sum + s.total_sessions, 0)}
+          {language === 'ru' ? ' игр (завершённых)' : ' games (completed)'}
+        </Text>
+      )}
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />

@@ -14,6 +14,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
+import ANAGRAM_DICT from '@/src/constants/anagramWords.json';
 
 // только буквы (кириллица/латиница с диакритикой) — без пробелов/дефисов/иероглифов
 const LETTER_ONLY = /^[\p{L}]+$/u;
@@ -29,7 +30,17 @@ const ANAGRAM_BENEFITS = [
  * Each entry: { w: word, h: hint (короткая подсказка-намёк) }
  * Lengths verified — каждое слово точно соответствует категории длины.
  */
-type WordEntry = { w: string; h: string };
+type WordEntry = { w: string; h: string; t?: string };   // t = тема (animals/food/nature/home/transport)
+
+// Темы для выбора. Источник тематических слов — словарь Дениса (anagramWords.json, 1038 слов).
+const ANAGRAM_THEMES: { k: string; emoji: string; ru: string; en: string }[] = [
+  { k: 'all', emoji: '🎲', ru: 'Все', en: 'All' },
+  { k: 'animals', emoji: '🐾', ru: 'Животные', en: 'Animals' },
+  { k: 'food', emoji: '🍎', ru: 'Еда', en: 'Food' },
+  { k: 'nature', emoji: '🌿', ru: 'Природа', en: 'Nature' },
+  { k: 'home', emoji: '🏠', ru: 'Предметы', en: 'Objects' },
+  { k: 'transport', emoji: '🚗', ru: 'Транспорт', en: 'Transport' },
+];
 
 const RU_WORDS_4: WordEntry[] = [
   { w: 'парк',  h: 'место отдыха в городе' },
@@ -1604,6 +1615,7 @@ export default function AnagramGame() {
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [length, setLength] = useState<4 | 5 | 6 | 7 | 8 | 9>(() => (num('length', 4) as 4 | 5 | 6 | 7 | 8 | 9));
+  const [theme, setTheme] = useState<string>('all');   // выбранная тема слов (all = без фильтра)
   const [trials] = useState(10);
   const [round, setRound] = useState(0);
   const [target, setTarget] = useState('');
@@ -1621,32 +1633,35 @@ export default function AnagramGame() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  const wordsBank = (len: 4 | 5 | 6 | 7 | 8 | 9): WordEntry[] => {
+  const wordsBank = (len: 4 | 5 | 6 | 7 | 8 | 9, th: string): WordEntry[] => {
     const isRu = language === 'ru';
+    const cl = isRu ? 'ru' : 'en';       // язык слова
     // курированные банки (с осмысленными подсказками-определениями); не-ru/en → английский набор
     const curated: WordEntry[] = isRu
       ? (len === 4 ? RU_WORDS_4 : len === 5 ? RU_WORDS_5 : len === 6 ? RU_WORDS_6 : len === 7 ? RU_WORDS_7 : len === 8 ? RU_WORDS_8 : RU_WORDS_9)
       : (len === 4 ? EN_WORDS_4 : len === 5 ? EN_WORDS_5 : len === 6 ? EN_WORDS_6 : len === 7 ? EN_WORDS_7 : len === 8 ? EN_WORDS_8 : EN_WORDS_9);
-    // + корпус TRANSLATION_VOCAB (слово на языке игрока). Подсказка = КАТЕГОРИЯ слова, НЕ перевод:
-    // перевод выдавал ответ напрямую (жалоба «слишком легко — просто перевод пишешь»). Категория
-    // («Животные», «Еда») задаёт тему, но не раскрывает слово. Дедуп с курированными банками.
-    const cl = isRu ? 'ru' : 'en';       // язык слова
-    const seen = new Set(curated.map((e) => e.w.toLowerCase()));
-    const corpus: WordEntry[] = [];
+    // Мерж: курированный банк + словарь Дениса (anagramWords.json, с темами) + корпус TRANSLATION_VOCAB.
+    // Дедуп по слову; запись из словаря (с темой) приоритетнее. Подсказка корпуса = КАТЕГОРИЯ, не перевод.
+    const map = new Map<string, WordEntry>();
+    for (const e of curated) map.set(e.w.toLowerCase(), { w: e.w, h: e.h });
+    const dict = (((ANAGRAM_DICT as any)[cl] || {})[String(len)] as WordEntry[]) || [];
+    for (const e of dict) map.set(e.w.toLowerCase(), { w: e.w, h: e.h, t: e.t });
     for (const e of TRANSLATION_VOCAB) {
-      const w = e[cl];
+      const w = (e as any)[cl];
       if (!w || [...w].length !== len || !LETTER_ONLY.test(w)) continue;
       const k = w.toLowerCase();
-      if (seen.has(k)) continue;
-      seen.add(k);
-      const catLabel = e.cat ? t(`catVocab_${e.cat}` as any) : '';
-      corpus.push({ w, h: catLabel || '' });
+      if (map.has(k)) continue;
+      const catLabel = (e as any).cat ? t(`catVocab_${(e as any).cat}` as any) : '';
+      map.set(k, { w, h: catLabel || '' });
     }
-    return [...curated, ...corpus];
+    let all = [...map.values()];
+    if (th && th !== 'all') all = all.filter((e) => e.t === th);   // тема → только размеченные слова словаря
+    return all;
   };
 
   const newRound = () => {
-    const bank = wordsBank(length);
+    let bank = wordsBank(length, theme);
+    if (bank.length < 4) bank = wordsBank(length, 'all');   // мало слов этой темы на этой длине → вся длина
     let avail = bank.filter((e) => !usedRef.current.has(e.w));
     if (avail.length === 0) { usedRef.current.clear(); avail = bank; }   // банк исчерпан → сброс
     const entry = avail[Math.floor(Math.random() * avail.length)];
@@ -1722,6 +1737,21 @@ export default function AnagramGame() {
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setLength(n)}>
               <Text style={[styles.modeButtonText, { color: length === n ? '#FFF' : colors.text }]}>{n}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Тема' : 'Theme'}</Text>
+        <View style={styles.optionButtons}>
+          {ANAGRAM_THEMES.map((th) => (
+            <TouchableOpacity key={th.k} style={[styles.modeButton, theme === th.k
+              ? { backgroundColor: GRADIENT[0] }
+              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+              onPress={() => setTheme(th.k)}>
+              <Text style={[styles.modeButtonText, { color: theme === th.k ? '#3f2b96' : colors.text }]}>
+                {th.emoji} {language === 'ru' ? th.ru : th.en}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>

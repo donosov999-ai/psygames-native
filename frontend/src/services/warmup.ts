@@ -393,7 +393,12 @@ export function getCurrentWeekday(): Weekday {
 }
 
 export function todayDateKey(): string {
-  return new Date().toISOString().slice(0, 10);
+  // ЛОКАЛЬНАЯ дата, НЕ UTC. toISOString() возвращает UTC → у UTC+5 (Екб) вечерние/ночные
+  // сессии «уезжали» в соседний день и ломали стрик и счёт «сегодня» («вечер не считает»).
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
 }
 
 /**

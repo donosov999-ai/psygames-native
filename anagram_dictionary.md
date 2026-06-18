@@ -1,0 +1,1083 @@
+# Словарь для игры «Анаграммы» (PsyGames)
+
+*Автор: Denis Onosov (ODV999) · ⚠️ Информация конфиденциальная*
+
+**Всего слов: 1038** — RU: 549, EN: 489. Длины 4–9 букв. Формат: `слово — подсказка`.
+
+## Русский
+
+### 4 буквы (104)
+
+- арфа — струнный инструмент
+- бант — завязывают из ленты
+- барс — снежный хищник
+- бинт — для перевязки раны
+- блин — пекут на масленицу
+- бобр — строит плотину
+- болт — крепёж с гайкой
+- боль — неприятное ощущение
+- брат — сын твоих родителей
+- ваза — для цветов
+- весы — измеряют массу
+- винт — закручивают отвёрткой
+- волк — серый хищник
+- враг — противник
+- гора — высокая вершина
+- гусь — домашняя птица
+- дача — домик за городом
+- день — светлое время суток
+- джем — густое варенье
+- друг — близкий человек
+- духи — ароматная жидкость
+- дыня — сладкая, жёлтая
+- звук — его слышат ухом
+- зима — холодное время года
+- зонт — спасает от дождя
+- зубр — дикий лесной бык
+- каша — завтрак из крупы
+- кино — смотрят на экране
+- клён — дерево с резным листом
+- коза — даёт молоко, с рогами
+- кора — покрывает ствол
+- краб — морское с клешнями
+- кран — строительная техника
+- крем — для лица или торта
+- крот — роет под землёй
+- круг — ровная фигура
+- куст — низкое растение
+- лама — родственник верблюда
+- лапа — нога у зверя
+- лето — жаркое время года
+- лиса — рыжая хитрая
+- лист — на дереве или бумаги
+- лось — крупный лесной зверь
+- лужа — после дождя
+- луна — светит ночью
+- лыжи — катаются зимой
+- марш — военная музыка
+- море — большая солёная вода
+- мост — над рекой
+- мука — из неё пекут хлеб
+- муха — надоедливое насекомое
+- мышь — серый грызун
+- небо — над головой
+- нога — на ней ходишь
+- нота — знак в музыке
+- ночь — тёмное время суток
+- овёс — корм для лошадей
+- окно — смотришь на улицу через него
+- осёл — упрямое животное
+- парк — место отдыха в городе
+- паук — плетёт паутину
+- пень — остаток от дерева
+- плот — брёвна для сплава
+- поле — засеяно пшеницей
+- порт — гавань для кораблей
+- поэт — пишет стихи
+- пума — американская кошка
+- река — течёт к морю
+- репа — жёлтый корнеплод
+- рога — на голове оленя
+- рожь — злак для чёрного хлеба
+- роза — колючий цветок
+- роль — что играет актёр
+- роса — утром на траве
+- рота — военное подразделение
+- рука — часть тела
+- руль — им управляют машиной
+- рыба — плавает и молчит
+- рысь — дикая кошка с кисточками
+- сено — сухая трава
+- сила — мощь, крепость
+- слон — большой, с хоботом
+- сова — ночная птица
+- соль — белая, на столе
+- сорт — разновидность товара
+- стая — группа птиц
+- стог — куча сена
+- стол — за ним едят
+- стул — на нём сидят
+- тигр — полосатый хищник
+- торт — на день рождения
+- трап — лесенка у самолёта
+- угол — где сходятся стены
+- узел — затянутая верёвка
+- утка — птица на пруду
+- факт — достоверные данные
+- фара — фонарь у машины
+- хлеб — на столе ежедневно
+- цвет — красный, синий и т.д.
+- цель — к чему стремишься
+- шина — резина на колесе
+- шуба — тёплая зимой
+- щука — хищная речная рыба
+- ёжик — колючий зверёк
+
+### 5 букв (116)
+
+- актёр — играет в кино
+- арбуз — полосатая ягода
+- атлас — сборник карт
+- банан — жёлтый, изогнутый
+- баран — самец овцы
+- батон — длинный белый хлеб
+- белка — рыжая, на дереве
+- белый — цвет снега
+- берег — край реки или моря
+- билет — нужен на поезд
+- блюдо — большая тарелка
+- бочка — для солений
+- вагон — часть поезда
+- ведро — носят воду
+- весна — время после зимы
+- ветер — качает деревья
+- ветка — часть дерева
+- вилка — ей накалывают еду
+- вишня — красная ягода на черешке
+- ворон — чёрная умная птица
+- выдра — речной зверёк
+- газон — подстриженная трава
+- город — большое поселение
+- грибы — растут в лесу
+- гроза — гром и молния
+- груша — сладкий фрукт
+- диван — на нём отдыхают
+- дождь — падает из тучи
+- драже — мелкие конфеты
+- дятел — стучит по дереву
+- жираф — самый высокий зверь
+- забор — ограда вокруг дома
+- замок — жильё короля
+- зебра — полосатая лошадка
+- земля — наша планета
+- индюк — крупная домашняя птица
+- инжир — южная ягода
+- кабан — дикая свинья
+- камин — очаг в стене
+- катер — быстрая лодка
+- кефир — кисломолочный напиток
+- кешью — изогнутый орех
+- кисть — для рисования
+- книга — её читают
+- ковёр — лежит на полу
+- комар — пьёт кровь, пищит
+- кошка — мяукает
+- крыса — крупный грызун
+- крыша — верх дома
+- лампа — даёт свет
+- ласка — мелкий хищник
+- лимон — жёлтый кислый
+- ложка — ей едят суп
+- манго — тропический плод
+- марка — клеят на конверт
+- метла — ей метут двор
+- метро — подземный транспорт
+- мечта — заветное желание
+- мопед — лёгкий мотоцикл
+- мороз — сильный холод
+- мышка — маленький зверёк
+- мячик — круглый, прыгает
+- норка — пушной зверёк
+- огонь — горит и греет
+- океан — огромный водоём
+- олень — лесной зверь с рогами
+- пазлы — собирают из кусочков
+- панда — ест бамбук
+- парта — стол в школе
+- паста — макароны
+- пенал — для ручек и карандашей
+- перец — острый овощ
+- песня — её поют
+- песок — на пляже
+- петух — будит утром криком
+- печка — греет избу
+- пилот — управляет самолётом
+- пирог — печёное с начинкой
+- повар — готовит еду
+- поезд — едет по рельсам
+- полка — для книг на стене
+- пчела — делает мёд
+- редис — красный корнеплод
+- ручей — маленькая речка
+- ручка — пишут ей
+- рыбак — ловит рыбу
+- салат — из овощей
+- салон — внутри автомобиля
+- сахар — сладкий, белый
+- свеча — горит и тает
+- синий — цвет неба
+- слива — синий фрукт с косточкой
+- совок — сгребают мусор
+- сокол — ловчая птица
+- сосна — хвойное дерево
+- стена — в комнате
+- сурок — спит в норе зимой
+- тачка — возят землю на стройке
+- томат — другое имя помидора
+- трава — зелёная на лугу
+- труба — дым идёт из неё
+- туман — густая дымка
+- тучка — маленькое облако
+- тыква — оранжевая, к Хэллоуину
+- фасад — передняя стена дома
+- филин — большая сова
+- финик — сладкий плод пальмы
+- халва — восточная сладость
+- чайка — морская птица
+- чашка — из неё пьют чай
+- школа — учатся дети
+- шмель — большая мохнатая пчела
+- штора — закрывает окно
+- шуруп — винт по дереву
+- щётка — чистят ей зубы
+- ягода — малина или клубника
+
+### 6 букв (83)
+
+- ананас — фрукт с короной
+- аптека — продают лекарства
+- балкон — выступ на фасаде дома
+- берёза — белое дерево
+- бублик — круглая выпечка с дыркой
+- ворона — чёрная птица
+- ворота — большой вход во двор
+- газета — свежие новости
+- гвоздь — забивают молотком
+- гитара — струнный инструмент
+- глобус — модель Земли
+- грабли — сгребают листву
+- градус — единица температуры
+- дворец — жильё короля
+- дерево — с листьями и корнями
+- долина — низина меж гор
+- домино — игра с костяшками
+- дорога — по ней едут
+- журнал — читают и листают
+- здание — большой дом
+- зонтик — от дождя
+- кабина — у пилота, у водителя
+- камень — твёрдый, тяжёлый
+- кисель — густой сладкий напиток
+- клубок — шарик ниток
+- клумба — грядка с цветами
+- колено — сустав на ноге
+- колесо — круглое у машины
+- компас — показывает стороны света
+- компот — напиток из фруктов
+- коньки — катаются по льду
+- корова — даёт молоко
+- корона — на голове у короля
+- краска — ей красят стены
+- кролик — ушастый, прыгает
+- крошка — кусочек хлеба
+- кувшин — сосуд для воды или молока
+- курица — несёт яйца
+- ладонь — внутренняя часть руки
+- ледник — медленная река льда
+- лисица — рыжая хитрая
+- лопата — ею копают
+- лошадь — на ней ездят верхом
+- малина — красная ягода
+- машина — ездит по дороге
+- молоко — белое, от коровы
+- огурец — зелёный овощ
+- одеяло — укрываются ночью
+- окошко — маленькое окно
+- оливье — новогодний салат
+- павлин — птица с роскошным хвостом
+- паркет — деревянный пол
+- педаль — нажимают ногой
+- перила — держатся на лестнице
+- пинцет — захватывает мелкое
+- письмо — шлют по почте
+- погода — дождь или солнце
+- подвал — помещение под домом
+- поляна — место в лесу
+- пряник — печатный сладкий
+- радуга — семь цветов после дождя
+- ракета — летит в космос
+- ремонт — делают в квартире
+- ролики — катятся на колёсиках
+- рябина — дерево с красными ягодами
+- синица — жёлтая птичка
+- скутер — сидячий мотороллер
+- собака — друг человека, лает
+- солнце — светит днём
+- сорока — птица-воровка
+- стакан — из него пьют
+- статуя — каменная фигура
+- стрела — для лука
+- сундук — старинный ларь
+- термос — хранит тепло напитка
+- фиалка — фиолетовый цветок
+- фонарь — светит на улице
+- фонтан — бьёт водой
+- цветок — растёт в саду
+- чайник — кипятит воду
+- чердак — помещение под крышей
+- эскимо — мороженое на палочке
+- яблоко — красное или зелёное
+
+### 7 букв (97)
+
+- автобус — городской транспорт
+- акробат — гибкий артист цирка
+- аптечка — набор лекарств
+- бабочка — летает, красивые крылья
+- барабан — по нему бьют
+- баранка — сушка к чаю
+- баранки — сушки к чаю
+- бегемот — толстый речной зверь
+- бинокль — смотрят вдаль
+- блинчик — тонкий блин
+- ботинок — закрытая обувь
+- бульвар — улица с аллеей
+- бутылка — в ней напиток
+- варежка — зимняя рукавица
+- вареник — тесто с начинкой
+- варенье — сладкая заготовка
+- вентиль — кран на трубе
+- веранда — открытая пристройка
+- витамин — полезное вещество
+- водолаз — работает под водой
+- воробей — маленькая городская птица
+- галерея — зал с картинами
+- гимнаст — спортсмен на брусьях
+- голубцы — фарш в капусте
+- дельфин — умное морское животное
+- дуршлаг — сито для макарон
+- жонглёр — ловит много мячей
+- журавль — птица с длинной шеей
+- зарядка — заряжает телефон
+- зеркало — показывает отражение
+- игрушка — ею играют дети
+- капитал — крупная сумма денег
+- капитан — главный на корабле
+- капуста — овощ-кочан
+- капюшон — часть куртки на голове
+- картина — висит на стене
+- кенгуру — прыгает с сумкой
+- кларнет — деревянный духовой
+- колбаса — мясной продукт
+- колодец — источник воды во дворе
+- колокол — большой звонкий
+- колонка — из неё идёт звук
+- комбайн — убирает урожай
+- комната — часть квартиры
+- конверт — для письма
+- конфета — сладость в обёртке
+- корабль — плывёт по морю
+- корзина — плетёная, для грибов
+- котелок — варят пищу в походе
+- котлета — жареный фарш
+- коттедж — загородный дом
+- кошелёк — для денег
+- леденец — конфета на палочке
+- ледоход — движение льда по реке
+- лимонад — сладкий напиток
+- маятник — качается в часах
+- мозаика — картина из кусочков
+- молоток — забивает гвозди
+- монитор — экран компьютера
+- морковь — оранжевый корнеплод
+- носорог — зверь с рогом на носу
+- носочки — на ноги
+- ноутбук — переносной компьютер
+- палатка — жильё туриста
+- палитра — на ней мешают краски
+- печенье — к чаю
+- пианино — клавишный инструмент
+- пингвин — птица Антарктиды
+- пирожок — печёный с начинкой
+- планшет — плоский гаджет
+- подушка — под голову
+- помидор — красный овощ
+- принтер — печатает на бумаге
+- природа — леса, реки, поля
+- розетка — в неё включают вилку
+- ромашка — белый цветок с жёлтой серединкой
+- рубанок — строгает дерево
+- самокат — катятся стоя
+- самолёт — летает по небу
+- селёдка — солёная рыба
+- скрипка — струнный, со смычком
+- сметана — густой молочный продукт
+- спальня — комната для сна
+- стадион — арена для спорта
+- стрелка — показывает на часах
+- сувенир — вещь на память
+- сырники — жареные творожные
+- тарелка — из неё едят
+- телефон — для звонков
+- торнадо — вихрь-воронка
+- трактор — пашет поле
+- тротуар — дорожка для пешеходов
+- фонарик — светит в темноте
+- хоровод — танцуют по кругу
+- чемодан — берут в дорогу
+- шоколад — сладкая плитка
+- штурман — прокладывает курс
+
+### 8 букв (93)
+
+- автограф — подпись знаменитости
+- акварель — краска для рисования
+- аквариум — дом для рыбок
+- апельсин — оранжевый цитрус
+- баклажан — фиолетовый овощ
+- балерина — танцует в пачке
+- барометр — предсказывает погоду
+- блинчики — тонкие блины
+- больница — в ней лечат людей
+- вареники — тесто с начинкой
+- ватрушка — булочка с творогом
+- вафелька — хрустящая к чаю
+- вертолёт — летает с винтом
+- виноград — гроздь ягод для вина
+- воланчик — для бадминтона
+- гирлянда — огоньки на ёлке
+- гитарист — играет на гитаре
+- гостиная — комната для гостей
+- грузовик — возит грузы
+- гусеница — станет бабочкой
+- карамель — твёрдая конфета
+- карандаш — им рисуют
+- карнавал — шумный праздник с масками
+- карусель — крутится на площадке
+- кастрюля — в ней варят суп
+- кладовка — комнатка для вещей
+- консерва — еда в банке
+- кораблик — маленькое судно
+- креветка — морской деликатес
+- крепость — укреплённое сооружение
+- крокодил — зубастый из реки
+- кузнечик — стрекочет в траве
+- кукуруза — жёлтый початок
+- лабиринт — запутанные ходы
+- ласточка — птица, вестник весны
+- лестница — ведёт на этаж выше
+- листопад — осеннее падение листьев
+- мандарин — новогодний цитрус
+- мансарда — комната под крышей
+- мармелад — желейная сладость
+- маскарад — бал с переодеванием
+- микстура — жидкое лекарство
+- мольберт — подставка для холста
+- мостовая — булыжная дорога
+- мотоцикл — двухколёсный с мотором
+- музыкант — играет на инструменте
+- наушники — надевают на уши
+- обезьяна — ловкий примат
+- оползень — сход земли со склона
+- осьминог — морской, восемь щупалец
+- отвёртка — крутит винты
+- открытка — поздравление по почте
+- памятник — фигура в честь кого-то
+- паутинка — сеть паука
+- пельмени — мясо в тесте
+- пельмень — мясо в тесте
+- перчатки — надевают на руки
+- пирожное — сладкое к чаю
+- писатель — пишет книги
+- площадка — ровное место для игр
+- пожарный — тушит огонь
+- половник — большая разливная ложка
+- прихожая — входная комната
+- продавец — стоит за прилавком
+- проспект — широкая улица
+- садовник — ухаживает за садом
+- саксофон — изогнутый духовой
+- салфетка — вытирают рот за столом
+- самосвал — сваливает кузовом
+- сандалии — лёгкая летняя обувь
+- светофор — три цветных огня
+- сгущёнка — сладкое молоко
+- скакалка — прыгают через неё
+- скамейка — на ней сидят в парке
+- скатерть — застилают стол
+- снеговик — лепят зимой
+- снегопад — сильный падающий снег
+- снегоход — ездит по снегу
+- снежинка — узор из снега
+- сосулька — висит и капает
+- спальник — спальный мешок
+- стрекоза — летает у пруда
+- телескоп — смотрят на звёзды
+- теплоход — речное судно
+- тропинка — узкая дорожка
+- турникет — проход по билету
+- фокусник — показывает трюки
+- фонарики — светят в темноте
+- художник — пишет картины
+- цистерна — бак для жидкости
+- цыплёнок — детёныш курицы
+- черепаха — медлительная, с панцирем
+- электрик — чинит проводку
+
+### 9 букв (56)
+
+- акробатка — гибкая артистка
+- астронавт — западный космонавт
+- будильник — звонит по утрам
+- бульдозер — сдвигает грунт отвалом
+- бутерброд — хлеб с начинкой
+- велосипед — двухколёсный, крутишь педали
+- ветеринар — лечит животных
+- воробушек — маленькая птичка
+- гимнастка — спортсменка на брусьях
+- дирижабль — воздушное судно-«сигара»
+- земляника — мелкая лесная ягода
+- испытание — проверка на прочность
+- компьютер — на нём работают
+- космонавт — летает в космос
+- кофемолка — мелет кофе
+- крокодилы — зубастые из реки
+- кроссовки — спортивная обувь
+- крыжовник — кисло-сладкая ягода в колючках
+- микроскоп — видит очень мелкое
+- молотилка — машина обмолота
+- мороженое — холодное сладкое лакомство
+- мясорубка — перекручивает мясо
+- незабудка — мелкий голубой цветок
+- носорожек — малыш носорога
+- одуванчик — жёлтый, потом пушистый шарик
+- остановка — на ней ждут автобус
+- памятники — фигуры в честь кого-то
+- паровозик — маленький поезд
+- песочница — дети играют в песке
+- пианистка — играет на пианино
+- пирамидка — детская из колец
+- платформа — перрон у поезда
+- подсолнух — жёлтый цветок за солнцем
+- половодье — разлив реки весной
+- почтальон — разносит письма
+- самолётик — игрушечный самолёт
+- самосвалы — сваливают кузовом
+- светлячок — светится в темноте
+- сковорода — на ней жарят
+- скрипачка — играет на скрипке
+- снеговики — фигуры из снега
+- созвездие — группа звёзд
+- табуретка — табурет без спинки
+- телевизор — показывает передачи
+- термометр — измеряет температуру
+- транспорт — перевозит людей
+- фейерверк — яркий праздничный салют
+- фургончик — крытый кузов на колёсах
+- футболист — игрок в футбол
+- хронометр — точные часы
+- художница — женщина, пишущая картины
+- циферблат — лицо часов с цифрами
+- черепашка — малыш с панцирем
+- шоколадка — сладкая плитка
+- экскурсия — поездка с гидом
+- эскалатор — движущаяся лестница
+
+## English
+
+### 4 letters (111)
+
+- acid — sour chemical
+- atom — tiny piece of matter
+- ball — round, you kick it
+- barn — building for farm animals
+- bean — small edible seed
+- bear — big, loves honey
+- bell — rings to make sound
+- belt — holds up trousers
+- bird — flies and sings
+- boat — floats on water
+- bone — a dog loves it
+- book — you read it
+- boot — tall shoe
+- bowl — round dish for soup
+- cake — for a birthday
+- card — used in many games
+- cell — basic unit of life
+- chef — cooks in a restaurant
+- coat — warm outer clothing
+- coin — round metal money
+- corn — yellow cob
+- crab — has claws, walks sideways
+- crow — black noisy bird
+- deck — floor of a ship
+- deer — forest animal with antlers
+- desk — table for working
+- dice — cubes for games
+- dish — you eat from it
+- dock — where boats tie up
+- doll — toy figure of a person
+- door — you open it
+- dove — symbol of peace
+- drum — you beat it
+- duck — bird on a pond
+- east — where the sun rises
+- fire — hot, burns
+- fish — lives in water
+- fork — tool for eating
+- frog — green, jumps, croaks
+- gale — very strong wind
+- gate — entrance in a fence
+- gene — unit of heredity
+- gift — you give it on a holiday
+- goat — has horns, gives milk
+- gold — precious metal
+- hair — grows on the head
+- hawk — sharp-eyed hunter bird
+- hero — brave admired person
+- horn — brass instrument
+- iron — strong grey metal
+- king — male ruler
+- kite — flies on a string
+- kiwi — fuzzy brown fruit
+- knee — joint in the leg
+- lake — water surrounded by land
+- lamp — gives light
+- lane — narrow road
+- leaf — grows on a tree
+- lily — white garden flower
+- lime — small green citrus
+- lion — king of jungle
+- loan — borrowed money
+- mask — covers the face
+- mast — tall pole on a ship
+- maze — puzzle of paths
+- mile — unit of distance
+- milk — white drink from a cow
+- mill — grinds grain
+- mist — light fog
+- moon — circles the Earth
+- moth — night-flying insect
+- nail — at the tip of a finger
+- nest — where a bird lives
+- page — one side of paper
+- park — place to relax in city
+- pear — sweet fruit, green
+- poem — short piece of verse
+- pond — small still water
+- raft — flat floating platform
+- rain — falls from sky
+- reef — underwater rocks
+- rice — white grain, side dish
+- ring — worn on a finger
+- road — cars drive on it
+- rock — hard, heavy stone
+- roof — top of a house
+- root — underground part of a plant
+- rope — for climbing
+- rose — red flower
+- sail — catches the wind
+- salt — white, on the table
+- sand — on the beach
+- seal — sea animal that barks
+- ship — big sea vessel
+- shoe — worn on the foot
+- snow — white, in winter
+- sock — worn on the foot
+- sofa — soft long seat
+- star — shines at night
+- swan — white graceful bird
+- tale — a short story
+- tide — rise and fall of the sea
+- tree — tall, has leaves
+- wasp — stinging insect
+- wave — rolls on the sea
+- west — where the sun sets
+- wind — moves the leaves
+- wing — a bird flies with it
+- wolf — wild gray hunter
+- word — unit of language
+- zinc — bluish metal
+
+### 5 letters (94)
+
+- apple — red fruit
+- atlas — book of maps
+- baker — makes bread
+- beach — sand by the sea
+- bench — seat in a park
+- berry — small soft fruit
+- bison — large wild ox
+- brake — stops a vehicle
+- bread — baked from flour
+- brook — tiny stream
+- brush — used for painting
+- cabin — small wooden house
+- camel — desert animal with humps
+- candy — sweet treat
+- canoe — narrow paddle boat
+- chair — you sit on it
+- clock — shows the time
+- cloud — in the sky
+- coast — land beside the sea
+- comet — icy tail in the sky
+- creek — small stream
+- crown — worn by a king
+- daisy — white flower, yellow center
+- eagle — large bird of prey
+- fence — encloses a yard
+- ferry — carries cars over water
+- field — open land for crops
+- finch — small singing bird
+- flame — tongue of fire
+- flood — too much water on land
+- flute — you blow into it
+- frost — thin layer of ice
+- globe — round map of Earth
+- goose — large water bird
+- grape — small fruit in bunches
+- grass — green on the lawn
+- green — color of grass
+- honey — sweet, from bees
+- horse — animal you ride
+- house — people live in it
+- juice — drink from fruit
+- knife — used for cutting
+- koala — eats eucalyptus, Australia
+- lemon — yellow and sour
+- light — opposite of dark
+- mango — sweet tropical fruit
+- money — you pay with it
+- moose — huge antlered animal
+- mouse — small, squeaks
+- music — you listen to it
+- nurse — helps the doctor
+- ocean — huge body of water
+- olive — small fruit for oil
+- onion — makes you cry
+- otter — playful river animal
+- paint — colors a wall
+- panda — black-and-white bear
+- paper — you write on it
+- peach — soft fuzzy fruit
+- phone — you call with it
+- piano — keyboard instrument
+- pilot — flies an airplane
+- pizza — Italian dish
+- plane — flies through sky
+- plant — grows in soil
+- plate — food sits on it
+- puppy — baby dog
+- queen — king’s wife
+- quiet — opposite of loud
+- river — flows to the sea
+- robin — bird with red breast
+- ruler — measures straight lines
+- screw — twisted with a driver
+- shark — sea predator with fins
+- sheep — gives wool
+- shore — edge of the sea
+- smart — clever
+- snake — long, no legs
+- spoon — for soup
+- stone — hard piece of rock
+- storm — wind, rain, thunder
+- sugar — sweet white grains
+- table — you eat at it
+- tiger — big striped cat
+- tower — tall narrow building
+- train — runs on rails
+- truck — big goods vehicle
+- watch — clock on the wrist
+- water — you drink it
+- whale — giant sea mammal
+- wheat — grain for bread
+- wheel — round, turns on a car
+- yacht — fancy sailing boat
+- zebra — striped like a horse
+
+### 6 letters (85)
+
+- anchor — holds a ship in place
+- animal — a living creature
+- artist — creates art
+- banana — long yellow fruit
+- basket — woven, holds things
+- beetle — hard-shelled insect
+- bottle — holds a drink
+- bridge — crosses a river
+- bucket — carries water
+- butter — spread on bread
+- camera — takes photographs
+- candle — gives light with a flame
+- canvas — artist paints on it
+- canyon — deep narrow gorge
+- carpet — covers the floor
+- carrot — orange root veg
+- castle — where a king lives
+- cheese — made from milk
+- cherry — small red fruit
+- closet — where clothes hang
+- coffee — morning drink
+- cymbal — clashing metal disc
+- dancer — moves to music
+- desert — hot and sandy
+- dinner — evening meal
+- doctor — treats the sick
+- dragon — mythical fire beast
+- driver — operates a vehicle
+- engine — powers a car
+- eraser — rubs out pencil
+- farmer — grows crops
+- flower — grows in a garden
+- forest — many trees
+- friend — a close person
+- galaxy — huge group of stars
+- garage — where the car is kept
+- garden — plants grow here
+- guitar — string instrument
+- hammer — drives in nails
+- harbor — shelter for ships
+- helmet — protects your head
+- hunter — tracks wild animals
+- island — land in the sea
+- jacket — light coat
+- jungle — dense tropical forest
+- kettle — boils water
+- kitten — baby cat
+- ladder — you climb it
+- magnet — attracts iron
+- market — place to buy food
+- mirror — shows your reflection
+- monkey — climbs trees
+- museum — displays old things
+- napkin — wipes your mouth
+- needle — used for sewing
+- orange — fruit and color
+- parrot — colorful talking bird
+- pencil — used for writing
+- pillow — you sleep on it
+- planet — Earth is one
+- pliers — grip and bend wire
+- potato — grows underground
+- purple — mix of red and blue
+- rabbit — long ears, hops
+- rocket — goes to space
+- sailor — works on a ship
+- school — children learn here
+- shovel — digs the ground
+- silver — precious metal
+- singer — sings songs
+- spider — spins a web
+- spring — season after winter
+- statue — carved stone figure
+- teapot — pours tea
+- tomato — red, in a salad
+- tunnel — road under the ground
+- turtle — slow, has a shell
+- valley — low land between hills
+- violin — small string instrument with a bow
+- walrus — tusked sea mammal
+- window — glass in wall
+- winter — coldest season
+- wrench — turns nuts and bolts
+- writer — writes stories
+- yellow — color of the sun
+
+### 7 letters (95)
+
+- airport — where planes take off
+- antenna — receives signals
+- apricot — small orange fruit
+- avocado — green creamy fruit
+- balcony — ledge outside a window
+- balloon — floats, filled with air
+- battery — stores power
+- bedroom — room where you sleep
+- bicycle — two wheels, you pedal
+- biscuit — crunchy baked snack
+- blanket — keeps you warm in bed
+- brother — your parents’ son
+- brownie — chocolate square
+- buffalo — big wild ox
+- cabinet — cupboard with shelves
+- captain — leads a ship
+- caravan — home on wheels
+- ceiling — top of a room
+- charger — powers a device
+- cheetah — fastest land animal
+- chicken — farm bird, lays eggs
+- chimney — smoke goes up it
+- compass — points north
+- cottage — small country house
+- country — a whole nation
+- cricket — chirping insect
+- crystal — clear shiny mineral
+- curtain — hangs over a window
+- cushion — soft seat pad
+- custard — sweet egg cream
+- diamond — hard precious gem
+- dolphin — smart sea mammal
+- dresser — chest of drawers
+- emerald — green precious stone
+- evening — end of the day
+- factory — where goods are made
+- gallery — room of art
+- giraffe — tallest animal, long neck
+- glacier — slow river of ice
+- gorilla — large ape
+- hamster — small pet rodent
+- iceberg — floating mountain of ice
+- ketchup — red tomato sauce
+- kitchen — room where you cook
+- ladybug — red spotted beetle
+- lantern — portable lamp
+- leopard — spotted big cat
+- lettuce — crisp salad leaf
+- library — place full of books
+- lobster — clawed sea creature
+- machine — a device that does work
+- monitor — computer screen
+- monsoon — heavy rainy season
+- morning — start of the day
+- mustard — yellow spicy sauce
+- noodles — long thin pasta
+- oatmeal — cooked oats breakfast
+- octopus — sea animal, eight arms
+- ostrich — huge bird that runs
+- painter — paints walls or pictures
+- pancake — flat fried batter
+- panther — sleek black cat
+- peacock — bird with a fancy tail
+- pelican — bird with a big beak
+- penguin — bird that cannot fly
+- picture — hangs on a wall
+- popcorn — puffed corn snack
+- prairie — wide grassy plain
+- printer — prints documents
+- pudding — soft sweet dessert
+- pumpkin — orange, for Halloween
+- raccoon — masked night animal
+- rainbow — colors after rain
+- sausage — seasoned meat in casing
+- scooter — ride standing or sitting
+- seagull — bird at the beach
+- soldier — serves in the army
+- sparrow — tiny brown bird
+- speaker — plays sound
+- spinach — dark leafy green
+- stadium — large sports arena
+- station — where trains stop
+- tadpole — baby frog
+- teacher — works at a school
+- termite — wood-eating insect
+- theater — stage for plays
+- thunder — loud sound after lightning
+- tornado — spinning column of wind
+- trailer — towed behind a truck
+- trolley — cart on wheels
+- trumpet — loud brass instrument
+- village — small countryside settlement
+- volcano — mountain that erupts
+- vulture — bird that eats carrion
+- weather — sun or rain
+
+### 8 letters (55)
+
+- aircraft — flying machine
+- airplane — flies in the sky
+- antelope — swift horned grazer
+- aquarium — tank for fish
+- armchair — chair with armrests
+- backpack — carried on the back
+- basement — floor below ground
+- blizzard — heavy snowstorm
+- bookcase — shelves for books
+- broccoli — green tree-like veg
+- calendar — shows the days
+- computer — you work on it
+- corridor — long narrow passage
+- cucumber — long green salad veg
+- cupboard — cabinet for dishes
+- dinosaur — extinct giant reptile
+- doorbell — you ring it at the door
+- doughnut — ring-shaped sweet
+- eggplant — purple vegetable
+- elephant — huge, has a trunk
+- elevator — lifts you between floors
+- envelope — holds a letter
+- flamingo — pink wading bird
+- football — popular ball sport
+- hedgehog — spiny little animal
+- hospital — treats the sick
+- kangaroo — hops, has a pouch
+- keyboard — has many keys
+- macaroni — short curved pasta
+- magazine — glossy reading
+- mandarin — small citrus fruit
+- monument — memorial structure
+- mosquito — biting insect
+- mountain — very high peak
+- mushroom — grows in the forest, has a cap
+- notebook — for writing notes
+- pancakes — breakfast, with syrup
+- pavement — paved walking path
+- platform — where you board a train
+- postcard — mailed greeting
+- reindeer — pulls Santa's sleigh
+- sailboat — boat with a sail
+- sandwich — food between two slices of bread
+- scissors — used for cutting paper
+- scorpion — stings with its tail
+- seahorse — fish shaped like a horse
+- squirrel — bushy tail, loves nuts
+- starfish — five-armed sea creature
+- suitcase — packed for travel
+- tortoise — slow shelled animal
+- treasure — hidden riches
+- triangle — shape with three sides
+- umbrella — keeps the rain off you
+- wardrobe — closet for clothes
+- windmill — turns in the wind
+
+### 9 letters (49)
+
+- accordion — squeezebox instrument
+- adventure — an exciting journey
+- albatross — huge ocean bird
+- alligator — large reptile, like a croc
+- ambulance — emergency vehicle
+- apartment — flat in a building
+- artichoke — leafy edible bud
+- asparagus — green spear vegetable
+- astronaut — traveler in space
+- badminton — game with a shuttlecock
+- blueberry — small blue berry
+- briefcase — case for documents
+- butterfly — colorful winged insect
+- centipede — many-legged bug
+- chemistry — science of substances
+- chocolate — sweet brown treat
+- classroom — where lessons happen
+- crocodile — big river reptile
+- croissant — flaky French pastry
+- dangerous — not safe
+- detective — solves crimes
+- dragonfly — darting pond insect
+- dumplings — dough with filling
+- furniture — tables, chairs and such
+- generator — makes electricity
+- gymnasium — hall for exercise
+- hurricane — huge spinning storm
+- jellyfish — sea creature that stings
+- motorbike — two-wheeled motor vehicle
+- orangutan — red tree ape
+- orchestra — large group of musicians
+- parachute — slows your fall
+- peninsula — land almost surrounded by water
+- pineapple — tropical fruit with a crown
+- pistachio — green split nut
+- porcupine — animal with quills
+- racehorse — horse bred for speed
+- raspberry — small red berry
+- saxophone — brass wind instrument
+- scarecrow — scares birds from crops
+- spaceship — travels in space
+- staircase — set of steps
+- submarine — underwater boat
+- tangerine — easy-peel citrus
+- tarantula — large hairy spider
+- telephone — you call with it
+- telescope — views the stars
+- waterfall — water dropping off a cliff
+- xylophone — struck wooden bars
