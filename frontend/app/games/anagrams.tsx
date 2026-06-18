@@ -1830,9 +1830,12 @@ export default function AnagramGame() {
         ))}
       </View>
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
-        <TouchableOpacity onPress={revealHint} style={[styles.clearBtn, { flex: 1, backgroundColor: '#fbbf24' }]}>
-          <Text style={[styles.clearText, { color: '#1a1a1a' }]}>💡 {t('btn_hint')}{hintUses > 0 ? ` (${hintUses})` : ''}</Text>
-        </TouchableOpacity>
+        {/* 💡 кнопка-подсказка только когда тумблер ВКЛ — иначе «хардкор» подсказку не выключал */}
+        {hintsOn && (
+          <TouchableOpacity onPress={revealHint} style={[styles.clearBtn, { flex: 1, backgroundColor: '#fbbf24' }]}>
+            <Text style={[styles.clearText, { color: '#1a1a1a' }]}>💡 {t('btn_hint')}{hintUses > 0 ? ` (${hintUses})` : ''}</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity onPress={() => setPicked([])} style={[styles.clearBtn, { flex: 1, backgroundColor: colors.surface }]}>
           <Text style={[styles.clearText, { color: colors.text }]}>{t('clear')}</Text>
         </TouchableOpacity>
