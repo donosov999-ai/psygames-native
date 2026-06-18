@@ -513,6 +513,56 @@ jobs:
             bye"
           echo "✓ synced → https://psy-games.pro/downloads/"
 
+      # Поднять видимый номер версии (бейдж class="ver") на 7 страницах /download.
+      # CI льёт бинари под стабильными именами, но номер версии раньше правился руками
+      # по SSH каждый релиз (18.06: 1.30.17→1.30.19 вручную). Тот же sftp-транспорт что
+      # и синк бинарей: get → sed локально → put. ВАЖНО: greedy .*, НЕ [^0-9]* — в
+      # data-i18n="ver" есть цифры (18) и [^0-9]* останавливается на них. Идемпотентно.
+      # continue-on-error: GitHub Release — источник истины, бейдж вторичен.
+      - name: Bump version badge on /download pages
+        continue-on-error: true
+        env:
+          CONTABO_SSH_HOST: ${{ secrets.CONTABO_SSH_HOST }}
+          CONTABO_SSH_USER: ${{ secrets.CONTABO_SSH_USER }}
+          CONTABO_SSH_PASS: ${{ secrets.CONTABO_SSH_PASS }}
+          CONTABO_REMOTE_DIR: ${{ secrets.CONTABO_REMOTE_DIR }}
+        run: |
+          set -e
+          command -v lftp >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq lftp; }
+          VER="${GITHUB_REF_NAME#v}"
+          echo "Target version: $VER"
+          D="$CONTABO_REMOTE_DIR"
+          mkdir -p verbump
+          lftp -u "$CONTABO_SSH_USER","$CONTABO_SSH_PASS" "sftp://$CONTABO_SSH_HOST" -e "
+            set sftp:auto-confirm yes; set net:timeout 60; set net:max-retries 3; set net:connection-limit 1;
+            get $D/download/index.html    -o verbump/en.html;
+            get $D/ru/download/index.html -o verbump/ru.html;
+            get $D/es/download/index.html -o verbump/es.html;
+            get $D/pt/download/index.html -o verbump/pt.html;
+            get $D/de/download/index.html -o verbump/de.html;
+            get $D/zh/download/index.html -o verbump/zh.html;
+            get $D/hi/download/index.html -o verbump/hi.html;
+            bye"
+          BAD=0
+          for f in verbump/*.html; do
+            [ -s "$f" ] || { echo "$f ✗ пустой/не скачался"; BAD=1; continue; }
+            sed -i -E "s#(class=\"ver\">.*)[0-9]+\.[0-9]+\.[0-9]+#\1${VER}#" "$f"
+            if grep -qE "class=\"ver\">.*${VER//./\\.}" "$f"; then echo "$f ✓ $VER"; else echo "$f ✗ бейдж не найден после sed"; BAD=1; fi
+          done
+          # Гейт: НЕ заливаем, если хоть одна страница не прошла валидацию (живой сайт не корраптим)
+          [ "$BAD" = 0 ] || { echo "Валидация бейджа не прошла — аплоад отменён"; exit 1; }
+          lftp -u "$CONTABO_SSH_USER","$CONTABO_SSH_PASS" "sftp://$CONTABO_SSH_HOST" -e "
+            set sftp:auto-confirm yes; set net:timeout 60; set net:max-retries 3; set net:connection-limit 1;
+            put verbump/en.html -o $D/download/index.html;
+            put verbump/ru.html -o $D/ru/download/index.html;
+            put verbump/es.html -o $D/es/download/index.html;
+            put verbump/pt.html -o $D/pt/download/index.html;
+            put verbump/de.html -o $D/de/download/index.html;
+            put verbump/zh.html -o $D/zh/download/index.html;
+            put verbump/hi.html -o $D/hi/download/index.html;
+            bye"
+          echo "✓ version badge → $VER on 7 /download pages"
+
   # ─── Web → Contabo psy-games.pro/play (на тегах) ──────────────────────
   # Билдит web с baseUrl=/play и заливает на Contabo /play по SFTP.
   # Закрывает дырку: /downloads авто (release job), а /play раньше был руками.
