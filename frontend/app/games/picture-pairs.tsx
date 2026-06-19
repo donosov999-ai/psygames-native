@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
-  ScrollView
+  ScrollView, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -23,12 +23,26 @@ const PAIRS_BENEFITS = [
   { icon: 'time-outline', textKey: 'benefitPairs3' },
 ];
 
-const SYMBOLS = ['🎯','🌟','🎵','⚡','🌈','🍀','🔮','🎭','🌺','🦋','🍎','🚀','⛵','🎁','🌙','☀️','🍕','🎨','🎲','🏆','💎','🎪'];
+// 12 рисованных карточек-зверят (Nano Banana 2, прозрачный PNG) вместо эмодзи
+const PAIR_SPRITES = [
+  require('../../assets/images/pairs/pair0.png'),
+  require('../../assets/images/pairs/pair1.png'),
+  require('../../assets/images/pairs/pair2.png'),
+  require('../../assets/images/pairs/pair3.png'),
+  require('../../assets/images/pairs/pair4.png'),
+  require('../../assets/images/pairs/pair5.png'),
+  require('../../assets/images/pairs/pair6.png'),
+  require('../../assets/images/pairs/pair7.png'),
+  require('../../assets/images/pairs/pair8.png'),
+  require('../../assets/images/pairs/pair9.png'),
+  require('../../assets/images/pairs/pair10.png'),
+  require('../../assets/images/pairs/pair11.png'),
+];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 interface Card {
   id: number;
-  symbol: string;
+  symbol: number;   // индекс карточки в PAIR_SPRITES (пара = одинаковый индекс)
   flipped: boolean;
   matched: boolean;
 }
@@ -73,7 +87,7 @@ export default function PicturePairsGame() {
   }, []);
 
   const buildDeck = (n: number) => {
-    const symbols = shuffle(SYMBOLS).slice(0, n);
+    const symbols = shuffle(PAIR_SPRITES.map((_, i) => i)).slice(0, n);
     const deck: Card[] = [];
     symbols.forEach((s, i) => {
       deck.push({ id: i * 2, symbol: s, flipped: false, matched: false });
@@ -296,9 +310,9 @@ export default function PicturePairsGame() {
               },
             ]}
           >
-            <Text style={[styles.cardText, { fontSize: cardSize * 0.5 }]}>
-              {card.flipped || card.matched ? card.symbol : ''}
-            </Text>
+            {(card.flipped || card.matched) && (
+              <Image source={PAIR_SPRITES[card.symbol]} style={{ width: cardSize * 0.82, height: cardSize * 0.82 }} resizeMode="contain" />
+            )}
           </TouchableOpacity>
         ))}
       </View>
