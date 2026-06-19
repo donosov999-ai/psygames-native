@@ -14,6 +14,8 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { pairSpritesForProfile, SPRITE_COUNT } from '@/src/constants/pairThemes';
 
 const GRADIENT = ['#34e89e', '#0f3443'];
 const FIND_BENEFITS = [
@@ -25,21 +27,10 @@ const FIND_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'playing' | 'feedback' | 'result';
 type Shape = { sprite: number; x: number; y: number; size: number; rot: number };
 
-// Переиспользуем 12 спрайтов-зверят из Парных картинок как объекты сцены (генерация не нужна).
-const SCENE_SPRITES = [
-  require('../../assets/images/pairs/pair0.png'),
-  require('../../assets/images/pairs/pair1.png'),
-  require('../../assets/images/pairs/pair2.png'),
-  require('../../assets/images/pairs/pair3.png'),
-  require('../../assets/images/pairs/pair4.png'),
-  require('../../assets/images/pairs/pair5.png'),
-  require('../../assets/images/pairs/pair6.png'),
-  require('../../assets/images/pairs/pair7.png'),
-  require('../../assets/images/pairs/pair8.png'),
-  require('../../assets/images/pairs/pair9.png'),
-  require('../../assets/images/pairs/pair10.png'),
-  require('../../assets/images/pairs/pair11.png'),
-];
+// Объекты сцены — те же тематические спрайты, что и в «Парных картинках»,
+// набор зависит от активного профиля (см. src/constants/pairThemes.ts).
+// Логике сцены нужен только их КОЛИЧЕСТВО (SPRITE_COUNT=12), сам спрайт
+// подставляется в renderShape из набора профиля.
 
 // Радуга из 7 различимых цветов (R-O-Y-G-C-B-M). Убрана только фуксия #ec4899 —
 // она отстояла от красного всего на ~85 RGB («не отличить»), заменена чистой мадджентой #d946ef.
@@ -85,7 +76,7 @@ function generateScene(width: number, height: number, count: number): Shape[] {
     for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_SHAPE; attempt++) {
       const size = rand(48, 64);   // КРУПНЫЕ объекты — зверята различимы (мелкие нечитаемы)
       const candidate: Shape = {
-        sprite: Math.floor(Math.random() * SCENE_SPRITES.length),
+        sprite: Math.floor(Math.random() * SPRITE_COUNT),
         x: rand(size / 2 + 6, width - size / 2 - 6),
         y: rand(size / 2 + 6, height - size / 2 - 6),
         size,
@@ -97,7 +88,7 @@ function generateScene(width: number, height: number, count: number): Shape[] {
     if (!placed) {
       const size = rand(40, 50);   // smaller fallback
       placed = {
-        sprite: Math.floor(Math.random() * SCENE_SPRITES.length),
+        sprite: Math.floor(Math.random() * SPRITE_COUNT),
         x: rand(size / 2 + 6, width - size / 2 - 6),
         y: rand(size / 2 + 6, height - size / 2 - 6),
         size,
@@ -127,7 +118,7 @@ function withDifference(scene: Shape[], diffCount: number): { altered: Shape[]; 
       if (change === 0) {
         // подмена объекта на ДРУГОГО зверя — самое заметное отличие
         let sp = altered[i].sprite;
-        do { sp = Math.floor(Math.random() * SCENE_SPRITES.length); } while (sp === altered[i].sprite);
+        do { sp = Math.floor(Math.random() * SPRITE_COUNT); } while (sp === altered[i].sprite);
         altered[i].sprite = sp;
         applied = true;
       } else if (change === 1) {
@@ -152,8 +143,10 @@ function withDifference(scene: Shape[], diffCount: number): { altered: Shape[]; 
 export default function FindDifferencesGame() {
   const { colors } = useTheme();
   const { t } = useLanguage();
+  const { profile } = useProfile();
   const router = useRouter();
   const { width } = useWindowDimensions();
+  const sprites = pairSpritesForProfile(profile?.id);
 
   const { isPreset, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
@@ -259,7 +252,7 @@ export default function FindDifferencesGame() {
     return (
       <Image
         key={idx}
-        source={SCENE_SPRITES[shape.sprite]}
+        source={sprites[shape.sprite]}
         resizeMode="contain"
         style={{
           position: 'absolute',

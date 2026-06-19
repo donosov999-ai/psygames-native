@@ -15,6 +15,8 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { pairSpritesForProfile } from '@/src/constants/pairThemes';
 
 const GRADIENT = ['#f857a6', '#ff5858'];
 const PAIRS_BENEFITS = [
@@ -23,21 +25,8 @@ const PAIRS_BENEFITS = [
   { icon: 'time-outline', textKey: 'benefitPairs3' },
 ];
 
-// 12 рисованных карточек-зверят (Nano Banana 2, прозрачный PNG) вместо эмодзи
-const PAIR_SPRITES = [
-  require('../../assets/images/pairs/pair0.png'),
-  require('../../assets/images/pairs/pair1.png'),
-  require('../../assets/images/pairs/pair2.png'),
-  require('../../assets/images/pairs/pair3.png'),
-  require('../../assets/images/pairs/pair4.png'),
-  require('../../assets/images/pairs/pair5.png'),
-  require('../../assets/images/pairs/pair6.png'),
-  require('../../assets/images/pairs/pair7.png'),
-  require('../../assets/images/pairs/pair8.png'),
-  require('../../assets/images/pairs/pair9.png'),
-  require('../../assets/images/pairs/pair10.png'),
-  require('../../assets/images/pairs/pair11.png'),
-];
+// Спрайты карточек подбираются под активный профиль (зверята / шахматы / биохак / …),
+// см. src/constants/pairThemes.ts. Любой набор = ровно 12 объектов.
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 interface Card {
@@ -59,8 +48,10 @@ function shuffle<T>(arr: T[]): T[] {
 export default function PicturePairsGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const { profile } = useProfile();
   const router = useRouter();
   const { width } = useWindowDimensions();
+  const sprites = pairSpritesForProfile(profile?.id);
 
   const { isPreset, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
@@ -87,7 +78,7 @@ export default function PicturePairsGame() {
   }, []);
 
   const buildDeck = (n: number) => {
-    const symbols = shuffle(PAIR_SPRITES.map((_, i) => i)).slice(0, n);
+    const symbols = shuffle(sprites.map((_, i) => i)).slice(0, n);
     const deck: Card[] = [];
     symbols.forEach((s, i) => {
       deck.push({ id: i * 2, symbol: s, flipped: false, matched: false });
@@ -311,7 +302,7 @@ export default function PicturePairsGame() {
             ]}
           >
             {(card.flipped || card.matched) && (
-              <Image source={PAIR_SPRITES[card.symbol]} style={{ width: cardSize * 0.82, height: cardSize * 0.82 }} resizeMode="contain" />
+              <Image source={sprites[card.symbol]} style={{ width: cardSize * 0.82, height: cardSize * 0.82 }} resizeMode="contain" />
             )}
           </TouchableOpacity>
         ))}
