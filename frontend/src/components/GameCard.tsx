@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { gameIcon } from '@/src/constants/gameIcons';
 
 interface GameCardProps {
+  id?: string;
   nameKey: string;
   descKey: string;
   skillKey: string;
@@ -36,9 +38,10 @@ function gradientIsLight(grad: string[]): boolean {
 }
 
 export default function GameCard({
-  nameKey, descKey, skillKey, gradient, icon, onPress, width, height,
+  id, nameKey, descKey, skillKey, gradient, icon, onPress, width, height,
 }: GameCardProps) {
   useTheme();
+  const gameImg = gameIcon(id);
   const { t } = useLanguage();
   const { width: winWidth } = useWindowDimensions();
   const isWeb = Platform.OS === 'web';
@@ -98,9 +101,13 @@ export default function GameCard({
           style={styles.card}
         >
         {/* Icon — top, fixed position */}
-        <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
-          <Ionicons name={icon as any} size={28} color={fg} />
-        </View>
+        {gameImg ? (
+          <Image source={gameImg} style={styles.iconImage} resizeMode="cover" />
+        ) : (
+          <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
+            <Ionicons name={icon as any} size={28} color={fg} />
+          </View>
+        )}
         {/* Title + desc — middle, flex:1 fills available space */}
         <View style={styles.textContainer}>
           <Text style={[styles.title, { color: fg }]} numberOfLines={2}>{t(nameKey)}</Text>
@@ -124,6 +131,7 @@ const styles = StyleSheet.create({
     padding: 14,
     flexDirection: 'column',
   },
+  iconImage: { width: 52, height: 52, borderRadius: 14 },
   iconContainer: {
     width: 48,
     height: 48,

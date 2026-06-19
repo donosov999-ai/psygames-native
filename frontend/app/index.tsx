@@ -410,6 +410,7 @@ export default function HomeScreen() {
                 {games.map((game) => (
                   <GameCard
                     key={game.id}
+                    id={game.id}
                     nameKey={game.nameKey}
                     descKey={game.descKey}
                     skillKey={game.skillKey}
