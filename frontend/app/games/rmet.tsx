@@ -18,7 +18,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView
+  ScrollView, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -128,6 +128,28 @@ const ITEMS: EyeItem[] = [
     options_ru: ['озорной','испуганный','грустный','равнодушный'],
     options_en: ['mischievous','frightened','sad','indifferent'] },
 ];
+
+// 18 фотореалистичных снимков глаз (Nano Banana 2) по эмоции — RMET-стиль (горизонтальный кроп глаз).
+const EYE_IMG: Record<string, any> = {
+  'playful': require('../../assets/images/rmet/rmet0.jpg'),
+  'worried': require('../../assets/images/rmet/rmet1.jpg'),
+  'reflective': require('../../assets/images/rmet/rmet2.jpg'),
+  'desolate': require('../../assets/images/rmet/rmet3.jpg'),
+  'amazed': require('../../assets/images/rmet/rmet4.jpg'),
+  'skeptical': require('../../assets/images/rmet/rmet5.jpg'),
+  'pleading': require('../../assets/images/rmet/rmet6.jpg'),
+  'confident': require('../../assets/images/rmet/rmet7.jpg'),
+  'fearful': require('../../assets/images/rmet/rmet8.jpg'),
+  'in love': require('../../assets/images/rmet/rmet9.jpg'),
+  'irritated': require('../../assets/images/rmet/rmet10.jpg'),
+  'awkward': require('../../assets/images/rmet/rmet11.jpg'),
+  'disdainful': require('../../assets/images/rmet/rmet12.jpg'),
+  'relieved': require('../../assets/images/rmet/rmet13.jpg'),
+  'incredulous': require('../../assets/images/rmet/rmet14.jpg'),
+  'disappointed': require('../../assets/images/rmet/rmet15.jpg'),
+  'tender': require('../../assets/images/rmet/rmet16.jpg'),
+  'mischievous': require('../../assets/images/rmet/rmet17.jpg'),
+};
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -326,7 +348,7 @@ export default function RMETGame() {
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         </View>
         <View style={[styles.eyeBox, { backgroundColor: colors.surface }]}>
-          <Eyes emotion={it.correct_en} />
+          <Image source={EYE_IMG[it.correct_en]} style={styles.eyeImg} resizeMode="cover" />
         </View>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('rmetHint')}</Text>
         <View style={styles.optsGrid}>
@@ -399,6 +421,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 18 },
   statText: { fontSize: 14, fontWeight: '700' },
   eyeBox: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 12, width: '100%' },
+  eyeImg: { width: '100%', aspectRatio: 1.5, borderRadius: 14, backgroundColor: '#000' },
   eyeEmoji: { fontSize: 96 },
   eyeHint: { fontSize: 13, fontStyle: 'italic', textAlign: 'center' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
