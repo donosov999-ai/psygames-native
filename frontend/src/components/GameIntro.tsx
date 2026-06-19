@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { JuicyButton } from '@/src/components/juice';
+import { gameIconByNameKey } from '@/src/constants/gameIcons';
 
 interface Benefit {
   icon: string;
@@ -42,6 +44,7 @@ export default function GameIntro({
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const [helpOpen, setHelpOpen] = React.useState(false);
+  const heroImg = gameIconByNameKey(nameKey);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -71,9 +74,13 @@ export default function GameIntro({
           end={{ x: 1, y: 1 }}
           style={styles.heroCard}
         >
-          <View style={styles.iconContainer}>
-            <Ionicons name={icon as any} size={48} color="#FFFFFF" />
-          </View>
+          {heroImg ? (
+            <Image source={heroImg} style={styles.heroImage} />
+          ) : (
+            <View style={styles.iconContainer}>
+              <Ionicons name={icon as any} size={48} color="#FFFFFF" />
+            </View>
+          )}
           <Text style={styles.gameName}>{t(nameKey)}</Text>
           <View style={styles.skillBadge}>
             <Ionicons name="fitness-outline" size={16} color="#FFFFFF" style={styles.skillIcon} />
@@ -203,6 +210,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  heroImage: { width: 88, height: 88, borderRadius: 22, marginBottom: 12 },
   iconContainer: {
     width: 80,
     height: 80,

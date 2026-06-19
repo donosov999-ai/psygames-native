@@ -62,3 +62,19 @@ export const GAME_ICONS: Record<string, any> = {
 export function gameIcon(id?: string) {
   return id ? GAME_ICONS[id] : undefined;
 }
+
+// Иконка по nameKey (для GameIntro, который не знает id игры). Карта nameKey→id
+// строится ЛЕНИВО через require('./games') — без top-level импорта, чтобы исключить
+// риск циклической зависимости/порядка инициализации модулей.
+let _byNameKey: Record<string, string> | null = null;
+export function gameIconByNameKey(nameKey?: string) {
+  if (!nameKey) return undefined;
+  if (!_byNameKey) {
+    _byNameKey = {};
+    try {
+      const { GAMES } = require('./games');
+      (GAMES as any[]).forEach((g) => { if (g?.nameKey && g?.id) _byNameKey![g.nameKey] = g.id; });
+    } catch { /* no-op */ }
+  }
+  return gameIcon(_byNameKey[nameKey]);
+}
