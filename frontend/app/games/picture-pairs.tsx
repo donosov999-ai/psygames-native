@@ -17,7 +17,7 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile } from '@/src/constants/pairThemes';
-import { FlipCard, HudBadge, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
+import { FlipCard, HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#f857a6', '#ff5858'];
 const PAIRS_BENEFITS = [
@@ -42,8 +42,11 @@ interface Card {
 //  • уровни 1-9 — растёт число пар 4→12 (классическая память, без флеша);
 //  • с 10-го — пар 12 + фото-память с убывающим флешем 3000→500мс (память под нагрузкой).
 function levelCfg(L: number): { pairs: number; photo: boolean; previewMs: number } {
-  if (L <= 9) return { pairs: Math.min(12, 3 + L), photo: false, previewMs: 0 };
-  return { pairs: 12, photo: true, previewMs: Math.max(500, 3000 - (L - 10) * 500) };
+  // Фото-память ВСЕГДА (это и есть суть «карытыша»): флеш БЫСТРЫЙ по умолчанию и
+  // ещё короче с уровнем. Сложность растёт = меньше времени показа + больше пар.
+  const pairs = Math.min(12, 3 + L);                   // 4 → 12
+  const previewMs = Math.max(300, 700 - (L - 1) * 40); // 700 → 300мс (всегда быстро)
+  return { pairs, photo: true, previewMs };
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -349,11 +352,9 @@ export default function PicturePairsGame() {
         </>
       )}
 
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{mode === 'game' ? (language === 'ru' ? `Играть — уровень ${level}` : `Play — level ${level}`) : t('start')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+      <JuicyButton
+        label={mode === 'game' ? (language === 'ru' ? `Играть — уровень ${level}` : `Play — level ${level}`) : t('start')}
+        icon="play" colors={GRADIENT as [string, string]} onPress={startGame} style={{ marginTop: 8 }} />
     </ScrollView>
     );
   };

@@ -11,7 +11,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
-import { HudBadge, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
+import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
 
 const GRADIENT = ['#f7971e', '#ffd200'];
 const GOODS_BENEFITS = [
@@ -256,11 +256,7 @@ export default function GoodsSortGame() {
           </TouchableOpacity>
         )}
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={[styles.startBtnText, { color: '#3f2b00' }]}>{t('start')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+      <JuicyButton label={t('start')} icon="play" colors={GRADIENT as [string, string]} tint="#3f2b00" onPress={startGame} style={{ marginTop: 8 }} />
     </ScrollView>
   );
 

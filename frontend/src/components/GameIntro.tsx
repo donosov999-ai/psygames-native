@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { JuicyButton } from '@/src/components/juice';
 
 interface Benefit {
   icon: string;
@@ -132,29 +133,8 @@ export default function GameIntro({
       {/* Bottom: Справка + Старт (две кнопки в ряд) */}
       <View style={styles.bottomContainer}>
         <View style={styles.btnRow}>
-          <TouchableOpacity
-            style={[styles.helpBtn, { backgroundColor: '#fbbf24' }]}
-            onPress={() => setHelpOpen(true)}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="help-circle" size={22} color="#1a1a1a" />
-            <Text style={[styles.helpBtnText, { color: '#1a1a1a' }]}>
-              {t('btn_help')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.startButton} onPress={onStart} activeOpacity={0.85}>
-            <LinearGradient
-              colors={gradient as [string, string]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.startButtonGradient}
-            >
-              <Ionicons name="play" size={22} color="#FFFFFF" style={styles.startButtonIcon} />
-              <Text style={styles.startButtonText}>
-                {t('start')}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          <JuicyButton label={t('btn_help')} icon="help-circle" colors={['#fde047', '#f59e0b']} tint="#1a1a1a" onPress={() => setHelpOpen(true)} style={{ flex: 1 }} />
+          <JuicyButton label={t('start')} icon="play" colors={gradient as [string, string]} onPress={onStart} style={{ flex: 1 }} />
         </View>
       </View>
 
