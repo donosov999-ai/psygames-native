@@ -49,6 +49,7 @@ interface EyeItem {
   correct_en: string;
   options_ru: string[];
   options_en: string[];
+  _vi?: number;   // выбранный вариант фото (жен/муж/реб) на эту попытку
 }
 
 // 18 standardized items (subset of Baron-Cohen 2001 + adapted for self-contained format)
@@ -129,26 +130,27 @@ const ITEMS: EyeItem[] = [
     options_en: ['mischievous','frightened','sad','indifferent'] },
 ];
 
-// 18 фотореалистичных снимков глаз (Nano Banana 2) по эмоции — RMET-стиль (горизонтальный кроп глаз).
-const EYE_IMG: Record<string, any> = {
-  'playful': require('../../assets/images/rmet/rmet0.jpg'),
-  'worried': require('../../assets/images/rmet/rmet1.jpg'),
-  'reflective': require('../../assets/images/rmet/rmet2.jpg'),
-  'desolate': require('../../assets/images/rmet/rmet3.jpg'),
-  'amazed': require('../../assets/images/rmet/rmet4.jpg'),
-  'skeptical': require('../../assets/images/rmet/rmet5.jpg'),
-  'pleading': require('../../assets/images/rmet/rmet6.jpg'),
-  'confident': require('../../assets/images/rmet/rmet7.jpg'),
-  'fearful': require('../../assets/images/rmet/rmet8.jpg'),
-  'in love': require('../../assets/images/rmet/rmet9.jpg'),
-  'irritated': require('../../assets/images/rmet/rmet10.jpg'),
-  'awkward': require('../../assets/images/rmet/rmet11.jpg'),
-  'disdainful': require('../../assets/images/rmet/rmet12.jpg'),
-  'relieved': require('../../assets/images/rmet/rmet13.jpg'),
-  'incredulous': require('../../assets/images/rmet/rmet14.jpg'),
-  'disappointed': require('../../assets/images/rmet/rmet15.jpg'),
-  'tender': require('../../assets/images/rmet/rmet16.jpg'),
-  'mischievous': require('../../assets/images/rmet/rmet17.jpg'),
+// Фотореалистичные глаза (Nano Banana 2): по 3 варианта на эмоцию (жен/муж/реб, разные этносы) — RMET-стиль.
+// Игра берёт случайный вариант на каждую попытку → разнообразие лиц, как в реальном тесте.
+const EYE_IMG: Record<string, any[]> = {
+  'playful': [require('../../assets/images/rmet/rmet_0_0.jpg'), require('../../assets/images/rmet/rmet_0_1.jpg'), require('../../assets/images/rmet/rmet_0_2.jpg')],
+  'worried': [require('../../assets/images/rmet/rmet_1_0.jpg'), require('../../assets/images/rmet/rmet_1_1.jpg'), require('../../assets/images/rmet/rmet_1_2.jpg')],
+  'reflective': [require('../../assets/images/rmet/rmet_2_0.jpg'), require('../../assets/images/rmet/rmet_2_1.jpg'), require('../../assets/images/rmet/rmet_2_2.jpg')],
+  'desolate': [require('../../assets/images/rmet/rmet_3_0.jpg'), require('../../assets/images/rmet/rmet_3_1.jpg'), require('../../assets/images/rmet/rmet_3_2.jpg')],
+  'amazed': [require('../../assets/images/rmet/rmet_4_0.jpg'), require('../../assets/images/rmet/rmet_4_1.jpg'), require('../../assets/images/rmet/rmet_4_2.jpg')],
+  'skeptical': [require('../../assets/images/rmet/rmet_5_0.jpg'), require('../../assets/images/rmet/rmet_5_1.jpg'), require('../../assets/images/rmet/rmet_5_2.jpg')],
+  'pleading': [require('../../assets/images/rmet/rmet_6_0.jpg'), require('../../assets/images/rmet/rmet_6_1.jpg'), require('../../assets/images/rmet/rmet_6_2.jpg')],
+  'confident': [require('../../assets/images/rmet/rmet_7_0.jpg'), require('../../assets/images/rmet/rmet_7_1.jpg'), require('../../assets/images/rmet/rmet_7_2.jpg')],
+  'fearful': [require('../../assets/images/rmet/rmet_8_0.jpg'), require('../../assets/images/rmet/rmet_8_1.jpg'), require('../../assets/images/rmet/rmet_8_2.jpg')],
+  'in love': [require('../../assets/images/rmet/rmet_9_0.jpg'), require('../../assets/images/rmet/rmet_9_1.jpg'), require('../../assets/images/rmet/rmet_9_2.jpg')],
+  'irritated': [require('../../assets/images/rmet/rmet_10_0.jpg'), require('../../assets/images/rmet/rmet_10_1.jpg'), require('../../assets/images/rmet/rmet_10_2.jpg')],
+  'awkward': [require('../../assets/images/rmet/rmet_11_0.jpg'), require('../../assets/images/rmet/rmet_11_1.jpg'), require('../../assets/images/rmet/rmet_11_2.jpg')],
+  'disdainful': [require('../../assets/images/rmet/rmet_12_0.jpg'), require('../../assets/images/rmet/rmet_12_1.jpg'), require('../../assets/images/rmet/rmet_12_2.jpg')],
+  'relieved': [require('../../assets/images/rmet/rmet_13_0.jpg'), require('../../assets/images/rmet/rmet_13_1.jpg'), require('../../assets/images/rmet/rmet_13_2.jpg')],
+  'incredulous': [require('../../assets/images/rmet/rmet_14_0.jpg'), require('../../assets/images/rmet/rmet_14_1.jpg'), require('../../assets/images/rmet/rmet_14_2.jpg')],
+  'disappointed': [require('../../assets/images/rmet/rmet_15_0.jpg'), require('../../assets/images/rmet/rmet_15_1.jpg'), require('../../assets/images/rmet/rmet_15_2.jpg')],
+  'tender': [require('../../assets/images/rmet/rmet_16_0.jpg'), require('../../assets/images/rmet/rmet_16_1.jpg'), require('../../assets/images/rmet/rmet_16_2.jpg')],
+  'mischievous': [require('../../assets/images/rmet/rmet_17_0.jpg'), require('../../assets/images/rmet/rmet_17_1.jpg'), require('../../assets/images/rmet/rmet_17_2.jpg')],
 };
 
 function shuffle<T>(arr: T[]): T[] {
@@ -246,7 +248,7 @@ export default function RMETGame() {
   useEffect(() => () => { if (fbTimerRef.current) clearTimeout(fbTimerRef.current); }, []);
 
   const startGame = () => {
-    const picked = shuffle(ITEMS).slice(0, trialsCount);
+    const picked = shuffle(ITEMS).slice(0, trialsCount).map((it) => ({ ...it, _vi: Math.floor(Math.random() * (EYE_IMG[it.correct_en]?.length || 1)) }));
     setItems(picked);
     setRound(0);
     setHits(0); setErrors(0); setRts([]);
@@ -348,7 +350,7 @@ export default function RMETGame() {
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         </View>
         <View style={[styles.eyeBox, { backgroundColor: colors.surface }]}>
-          <Image source={EYE_IMG[it.correct_en]} style={styles.eyeImg} resizeMode="cover" />
+          <Image source={EYE_IMG[it.correct_en][it._vi ?? 0]} style={styles.eyeImg} resizeMode="cover" />
         </View>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('rmetHint')}</Text>
         <View style={styles.optsGrid}>
