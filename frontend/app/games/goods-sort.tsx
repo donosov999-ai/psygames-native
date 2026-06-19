@@ -28,11 +28,20 @@ const GOOD_SPRITES = [
   require('../../assets/images/goods/good3.png'), // молоко
   require('../../assets/images/goods/good4.png'), // сок
   require('../../assets/images/goods/good5.png'), // йогурт
+  require('../../assets/images/goods/good6.png'), // банан
+  require('../../assets/images/goods/good7.png'), // яблоко
+  require('../../assets/images/goods/good8.png'), // шоколад
+  require('../../assets/images/goods/good9.png'), // чипсы
+  require('../../assets/images/goods/good10.png'), // хлеб
+  require('../../assets/images/goods/good11.png'), // зубная паста
+  require('../../assets/images/goods/good12.png'), // виноградный сок
+  require('../../assets/images/goods/good13.png'), // клубничный коктейль
 ];
+const GOOD_TYPES = GOOD_SPRITES.length;   // 14 типов товаров
 function GoodIcon({ type, size, dim }: { type: number; size: number; dim?: boolean }) {
   return (
     <Image
-      source={GOOD_SPRITES[type % 6]}
+      source={GOOD_SPRITES[type % GOOD_SPRITES.length]}
       style={{ width: size, height: size, opacity: dim ? 0.32 : 1 }}
       resizeMode="contain"
     />
@@ -48,8 +57,8 @@ const SLOTS = 9;            // 3×3 доска. Часть слотов — ст
 // Кривая сложности по УРОВНЮ (как в оригинале — уровни усложняются): больше типов товаров +
 // туже доска (меньше свободных слотов). Потолок типов = 6 (столько спрайтов), дальше растёт теснота.
 function levelCfg(L: number) {
-  const types = Math.min(6, 3 + Math.floor(L / 2));        // L1:3 L2:4 L4:5 L6+:6
-  const spares = Math.max(2, 5 - Math.floor((L - 1) / 3)); // 5,5,5,4,4,4,3,3,3,2 — со временем теснее
+  const types = Math.min(GOOD_TYPES, 3 + Math.floor(L / 2));  // 3→14 (по числу спрайтов): много уровней роста
+  const spares = Math.max(2, 6 - Math.floor((L - 1) / 3));    // 6→2 свободных слота — со временем теснее
   return { types, spares };
 }
 
