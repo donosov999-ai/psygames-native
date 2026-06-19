@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
-  ScrollView
+  ScrollView, Image
 } from 'react-native';
-import Svg, { Circle, Rect, Polygon } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -24,7 +23,23 @@ const FIND_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'feedback' | 'result';
-type Shape = { kind: 'circle' | 'rect' | 'tri'; x: number; y: number; size: number; color: string; rot?: number };
+type Shape = { sprite: number; x: number; y: number; size: number; rot: number };
+
+// Переиспользуем 12 спрайтов-зверят из Парных картинок как объекты сцены (генерация не нужна).
+const SCENE_SPRITES = [
+  require('../../assets/images/pairs/pair0.png'),
+  require('../../assets/images/pairs/pair1.png'),
+  require('../../assets/images/pairs/pair2.png'),
+  require('../../assets/images/pairs/pair3.png'),
+  require('../../assets/images/pairs/pair4.png'),
+  require('../../assets/images/pairs/pair5.png'),
+  require('../../assets/images/pairs/pair6.png'),
+  require('../../assets/images/pairs/pair7.png'),
+  require('../../assets/images/pairs/pair8.png'),
+  require('../../assets/images/pairs/pair9.png'),
+  require('../../assets/images/pairs/pair10.png'),
+  require('../../assets/images/pairs/pair11.png'),
+];
 
 // Радуга из 7 различимых цветов (R-O-Y-G-C-B-M). Убрана только фуксия #ec4899 —
 // она отстояла от красного всего на ~85 RGB («не отличить»), заменена чистой мадджентой #d946ef.
@@ -63,34 +78,30 @@ function tooClose(a: Shape, b: Shape, padding = 12): boolean {
 
 function generateScene(width: number, height: number, count: number): Shape[] {
   const shapes: Shape[] = [];
-  const kinds: Shape['kind'][] = ['circle','rect','tri'];
-  const MAX_ATTEMPTS_PER_SHAPE = 60;
+  const MAX_ATTEMPTS_PER_SHAPE = 90;
 
   for (let i = 0; i < count; i++) {
     let placed: Shape | null = null;
     for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_SHAPE; attempt++) {
+      const size = rand(48, 64);   // КРУПНЫЕ объекты — зверята различимы (мелкие нечитаемы)
       const candidate: Shape = {
-        kind: kinds[Math.floor(Math.random() * 3)],
-        x: rand(24, width - 24),
-        y: rand(24, height - 24),
-        size: rand(24, 44),
-        color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
-        rot: Math.random() * 360,
+        sprite: Math.floor(Math.random() * SCENE_SPRITES.length),
+        x: rand(size / 2 + 6, width - size / 2 - 6),
+        y: rand(size / 2 + 6, height - size / 2 - 6),
+        size,
+        rot: 0,
       };
-      // Reject if overlaps any already-placed shape
       const collides = shapes.some(s => tooClose(candidate, s));
       if (!collides) { placed = candidate; break; }
     }
-    // Fallback: if we couldn't find a non-colliding spot in 60 tries,
-    // accept the last candidate anyway (rare with reasonable density).
     if (!placed) {
+      const size = rand(40, 50);   // smaller fallback
       placed = {
-        kind: kinds[Math.floor(Math.random() * 3)],
-        x: rand(24, width - 24),
-        y: rand(24, height - 24),
-        size: rand(20, 30),   // smaller fallback
-        color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
-        rot: Math.random() * 360,
+        sprite: Math.floor(Math.random() * SCENE_SPRITES.length),
+        x: rand(size / 2 + 6, width - size / 2 - 6),
+        y: rand(size / 2 + 6, height - size / 2 - 6),
+        size,
+        rot: 0,
       };
     }
     shapes.push(placed);
@@ -114,24 +125,23 @@ function withDifference(scene: Shape[], diffCount: number): { altered: Shape[]; 
     for (const change of tryChanges) {
       if (applied) break;
       if (change === 0) {
-        // change color — берём контрастный (farColor), чтобы разница была хорошо видна
-        altered[i].color = farColor(altered[i].color);
+        // подмена объекта на ДРУГОГО зверя — самое заметное отличие
+        let sp = altered[i].sprite;
+        do { sp = Math.floor(Math.random() * SCENE_SPRITES.length); } while (sp === altered[i].sprite);
+        altered[i].sprite = sp;
         applied = true;
       } else if (change === 1) {
-        // change size — only if grown size still doesn't overlap others
+        // изменить размер (если увеличенный не наедет на соседей)
         const candidate = { ...altered[i] };
-        candidate.size = candidate.size > 32 ? candidate.size - 14 : candidate.size + 16;
-        const overlaps = altered.some((other, oi) => oi !== i && tooClose(candidate, other, 10));
+        candidate.size = candidate.size > 54 ? candidate.size - 16 : candidate.size + 16;
+        const overlaps = altered.some((other, oi) => oi !== i && tooClose(candidate, other, 8));
         if (!overlaps) {
           altered[i].size = candidate.size;
           applied = true;
         }
       } else {
-        // change kind
-        const kinds: Shape['kind'][] = ['circle','rect','tri'];
-        let k;
-        do { k = kinds[Math.floor(Math.random() * 3)]; } while (k === altered[i].kind);
-        altered[i].kind = k;
+        // повернуть/отразить на заметный угол
+        altered[i].rot = (altered[i].rot + (Math.random() < 0.5 ? 180 : 90)) % 360;
         applied = true;
       }
     }
@@ -168,7 +178,7 @@ export default function FindDifferencesGame() {
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const newRound = () => {
-    const sc = generateScene(sceneW, sceneH, 10);
+    const sc = generateScene(sceneW, sceneH, 8);
     const { altered: alt, diffIdx: idx } = withDifference(sc, diffCount);
     setScene(sc);
     setAltered(alt);
@@ -242,25 +252,28 @@ export default function FindDifferencesGame() {
   };
 
   const renderShape = (s: Shape, idx: number, side: 'L' | 'R') => {
-    const isFound = side === 'R' && foundIdx.has(idx);
-    const stroke = isFound ? '#fbbf24' : 'transparent';
-    const strokeWidth = isFound ? 3 : 0;
     const shape = side === 'L' ? scene[idx] : altered[idx];
     if (!shape) return null;
-    // Тапы ловит контейнер сцены (handleSceneTap по координате) — у самих фигур onPress нет.
-    if (shape.kind === 'circle') {
-      return <Circle key={idx} cx={shape.x} cy={shape.y} r={shape.size / 2}
-        fill={shape.color} stroke={stroke} strokeWidth={strokeWidth} />;
-    } else if (shape.kind === 'rect') {
-      return <Rect key={idx} x={shape.x - shape.size / 2} y={shape.y - shape.size / 2}
-        width={shape.size} height={shape.size} fill={shape.color}
-        stroke={stroke} strokeWidth={strokeWidth} />;
-    } else {
-      const s = shape.size;
-      const points = `${shape.x},${shape.y - s/2} ${shape.x + s/2},${shape.y + s/2} ${shape.x - s/2},${shape.y + s/2}`;
-      return <Polygon key={idx} points={points} fill={shape.color}
-        stroke={stroke} strokeWidth={strokeWidth} />;
-    }
+    const isFound = side === 'R' && foundIdx.has(idx);
+    // Тапы ловит контейнер сцены (handleSceneTap по координате) — у объектов onPress нет.
+    return (
+      <Image
+        key={idx}
+        source={SCENE_SPRITES[shape.sprite]}
+        resizeMode="contain"
+        style={{
+          position: 'absolute',
+          left: shape.x - shape.size / 2,
+          top: shape.y - shape.size / 2,
+          width: shape.size,
+          height: shape.size,
+          transform: [{ rotate: `${shape.rot}deg` }],
+          borderWidth: isFound ? 3 : 0,
+          borderColor: '#fbbf24',
+          borderRadius: isFound ? 10 : 0,
+        }}
+      />
+    );
   };
 
   const renderConfig = () => (
@@ -301,18 +314,18 @@ export default function FindDifferencesGame() {
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('findHint')}</Text>
       <View style={[styles.scenesArea, { width: sceneW }]}>
         <View style={[styles.sceneBox, { backgroundColor: colors.surface }]}>
-          <Svg width={sceneW} height={sceneH}>
+          <View style={{ width: sceneW, height: sceneH }} pointerEvents="none">
             {scene.map((_, i) => renderShape(scene[i], i, 'L'))}
-          </Svg>
+          </View>
         </View>
         <View
           style={[styles.sceneBox, { backgroundColor: colors.surface }]}
           onStartShouldSetResponder={() => true}
           onResponderRelease={(e) => handleSceneTap(e.nativeEvent.locationX, e.nativeEvent.locationY)}
         >
-          <Svg width={sceneW} height={sceneH} pointerEvents="none">
+          <View style={{ width: sceneW, height: sceneH }} pointerEvents="none">
             {altered.map((_, i) => renderShape(altered[i], i, 'R'))}
-          </Svg>
+          </View>
         </View>
       </View>
     </View>
