@@ -43,21 +43,27 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
 function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-const SLOTS = 9;            // 3×3 доска. Часть слотов — ГЛУБОКИЕ стопки, часть пустые = место для манёвра.
-const TARGET_DEPTH = 4;     // целевая глубина стопки (как в оригинале RackSort: задние товары скрыты — копай и планируй)
+const SLOTS = 9;            // 3×3 доска. Часть слотов — стопки, часть пустые = место для манёвра.
 
-// Раздать товары (каждый тип ×3) в НЕМНОГО глубоких стопок; остальные слоты пустые (манёвр).
-// Передний = последний в массиве; задние СКРЫТЫ (тип не виден) — в этом весь геймплей оригинала.
-function generate(nTypes: number): number[][] {
-  const used = Math.max(3, Math.min(SLOTS - 2, Math.ceil((nTypes * 3) / TARGET_DEPTH)));
+// Кривая сложности по УРОВНЮ (как в оригинале — уровни усложняются): больше типов товаров +
+// туже доска (меньше свободных слотов). Потолок типов = 6 (столько спрайтов), дальше растёт теснота.
+function levelCfg(L: number) {
+  const types = Math.min(6, 3 + Math.floor(L / 2));        // L1:3 L2:4 L4:5 L6+:6
+  const spares = Math.max(2, 5 - Math.floor((L - 1) / 3)); // 5,5,5,4,4,4,3,3,3,2 — со временем теснее
+  return { types, spares };
+}
+
+// Раздать товары (каждый тип ×3) в (SLOTS−spares) слотов-стопок; остальные пустые (манёвр).
+// Передний виден, задние СКРЫТЫ (тип не виден) — суть оригинала: раскопай и собери всё.
+function generate(types: number, spares: number): number[][] {
+  const used = Math.min(SLOTS - 2, SLOTS - spares);
   let stacks: number[][];
   do {
     const goods: number[] = [];
-    for (let t = 0; t < nTypes; t++) for (let k = 0; k < 3; k++) goods.push(t);
+    for (let t = 0; t < types; t++) for (let k = 0; k < 3; k++) goods.push(t);
     const sh = shuffle(goods);
     const filled = Array.from({ length: used }, () => [] as number[]);
     sh.forEach((g, i) => filled[i % used].push(g));
-    // дополнить пустыми до 9 и перемешать порядок слотов (пустые разбросаны по доске)
     stacks = shuffle([...filled, ...Array.from({ length: SLOTS - used }, () => [] as number[])]);
   } while (stacks.some(topThreeSame));   // не начинать с готовой тройки наверху
   return stacks;
@@ -76,7 +82,8 @@ export default function GoodsSortGame() {
   const { isPreset, str } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(() => (str('diff', 'medium') as 'easy' | 'medium' | 'hard'));
+  const [level, setLevel] = useState(1);
+  const [levelBanner, setLevelBanner] = useState<number | null>(null);   // «Уровень N пройден!» оверлей
   const [stacks, setStacks] = useState<number[][]>([]);
   const [nTypes, setNTypes] = useState(4);
   const [selected, setSelected] = useState<number | null>(null);   // выбранный слот (берём передний товар)
@@ -99,32 +106,36 @@ export default function GoodsSortGame() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); if (flashTimer.current) clearTimeout(flashTimer.current); }, []);
 
-  const typesFor = (d: 'easy' | 'medium' | 'hard') => (d === 'easy' ? 4 : d === 'medium' ? 5 : 6);
+  const loadLevel = (L: number) => {
+    const cfg = levelCfg(L);
+    setNTypes(cfg.types);
+    setStacks(generate(cfg.types, cfg.spares));
+    setSelected(null); setMoves(0); movesRef.current = 0;
+    setStartTime(Date.now()); setElapsed(0);
+  };
 
   const startGame = () => {
-    const nt = typesFor(difficulty);
-    setNTypes(nt); setStacks(generate(nt));
-    setSelected(null); setCleared(0); setMoves(0); setScore(0);
-    scoreRef.current = 0; movesRef.current = 0;
+    setCleared(0); setScore(0); scoreRef.current = 0; setLevelBanner(null);
+    loadLevel(level);
     setPhase('playing');
-    setStartTime(Date.now()); setElapsed(0);
     // БЕЗ таймера — спокойный режим «собери всё» (как в оригинале RackSort, давления времени нет)
   };
 
-  const finishGame = async (nt: number) => {
+  // Уровень пройден (всё собрано) → бонус, сохранить, СЛЕДУЮЩИЙ уровень (сложнее). Счёт копится за сессию.
+  const advanceLevel = () => {
+    const done = level;
     const finalTime = (Date.now() - startTime) / 1000;
-    setElapsed(finalTime);
-    // без таймера: счёт = бонус за сборку − штраф за лишние ходы (эффективность), НЕ за время
-    const finalScore = Math.max(0, scoreRef.current + 800 - movesRef.current * 8);
-    scoreRef.current = finalScore; setScore(finalScore);
-    setPhase('result');
-    try {
-      await saveSession({
-        game_type: 'goods_sort', score: finalScore, time_seconds: finalTime,
-        difficulty, mode: `${nt}types`, errors: 0,
-        details: { moves: movesRef.current, types: nt, cleared: nt },
-      });
-    } catch (e) { console.error(e); }
+    scoreRef.current += Math.max(50, 300 - movesRef.current * 4);   // бонус за прохождение (эффективность ходов)
+    setScore(scoreRef.current);
+    saveSession({
+      game_type: 'goods_sort', score: scoreRef.current, time_seconds: finalTime,
+      difficulty: done < 5 ? 'easy' : done < 10 ? 'medium' : 'hard', mode: `lvl${done}`, errors: 0,
+      details: { moves: movesRef.current, level: done },
+    }).catch((e) => console.error(e));
+    const next = done + 1;
+    setLevel(next);
+    setLevelBanner(done);                                  // «🎉 Уровень done пройден!»
+    setTimeout(() => { setLevelBanner(null); loadLevel(next); }, 1400);
   };
 
   // переместить передний товар слота from на стопку to; затем собрать тройки сверху
@@ -163,7 +174,7 @@ export default function GoodsSortGame() {
     }
 
     const totalGoods = ns.reduce((sum, s) => sum + s.length, 0);
-    if (totalGoods === 0) setTimeout(() => finishGame(nTypes), 350);
+    if (totalGoods === 0) setTimeout(advanceLevel, 350);
   };
 
   const handleSlotTap = (i: number) => {
@@ -225,20 +236,16 @@ export default function GoodsSortGame() {
         <Text style={styles.configTitle}>{t('goodsSort')}</Text>
         <Text style={styles.configDesc}>{t('goodsSortDesc')}</Text>
       </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {(['easy', 'medium', 'hard'] as const).map((d) => (
-            <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setDifficulty(d)}>
-              <Text style={[styles.modeButtonText, { color: difficulty === d ? '#3f2b00' : colors.text }]}>
-                {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')} · {typesFor(d)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('goodsLevel')} {level}</Text>
+        <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+          🛒 {levelCfg(level).types}   ·   📦 {SLOTS - levelCfg(level).spares}
+        </Text>
+        {level > 1 && (
+          <TouchableOpacity onPress={() => setLevel(1)} style={{ marginTop: 6 }}>
+            <Text style={{ color: GRADIENT[0], fontWeight: '700' }}>↺ 1</Text>
+          </TouchableOpacity>
+        )}
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
@@ -286,6 +293,7 @@ export default function GoodsSortGame() {
     return (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
+        <Text style={[styles.statText, { color: GRADIENT[0] }]}>🏷 {t('goodsLevel')} {level}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>⭐ {score}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>↔ {moves}</Text>
         <Text style={[styles.statText, { color: colors.textSecondary }]}>📦 {remaining}</Text>
@@ -301,6 +309,12 @@ export default function GoodsSortGame() {
       {flash && (
         <View style={styles.flashBanner} pointerEvents="none">
           <Text style={styles.flashText}>✨ +{flash.pts}</Text>
+        </View>
+      )}
+      {levelBanner !== null && (
+        <View style={styles.levelBanner} pointerEvents="none">
+          <Text style={styles.levelBannerText}>🎉 {t('goodsLevel')} {levelBanner} ✓</Text>
+          <Text style={styles.levelBannerSub}>→ {t('goodsLevel')} {levelBanner + 1}</Text>
         </View>
       )}
     </View>
@@ -366,4 +380,7 @@ const styles = StyleSheet.create({
   countText: { color: '#fff', fontSize: 11, fontWeight: '800' },
   flashBanner: { position: 'absolute', top: '40%', alignSelf: 'center', backgroundColor: 'rgba(34,197,94,0.95)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 16 },
   flashText: { color: '#fff', fontSize: 22, fontWeight: '900' },
+  levelBanner: { position: 'absolute', top: '38%', alignSelf: 'center', backgroundColor: 'rgba(247,151,30,0.97)', paddingHorizontal: 30, paddingVertical: 18, borderRadius: 18, alignItems: 'center', gap: 4 },
+  levelBannerText: { color: '#3f2b00', fontSize: 24, fontWeight: '900' },
+  levelBannerSub: { color: '#3f2b00', fontSize: 15, fontWeight: '700', opacity: 0.85 },
 });

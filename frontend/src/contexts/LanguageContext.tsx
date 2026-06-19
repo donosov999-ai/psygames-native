@@ -349,6 +349,7 @@ const translations: Translations = {
   benefitGoods2: { ru: 'Планирование последовательности ходов', en: 'Planning a sequence of moves' },
   benefitGoods3: { ru: 'Концентрация и системность', en: 'Focus and systematic thinking' },
   goodsSortHint: { ru: 'Перетащи верхний товар на другую стопку. 3 ОДИНАКОВЫХ наверху — исчезают. Задние товары скрыты — раскапывай. Цель: убрать всё.', en: 'Drag the top good onto another stack. 3 IDENTICAL on top — they vanish. Back goods are hidden — dig them out. Goal: clear everything.' },
+  goodsLevel: { ru: 'Уровень', en: 'Level' },
   eyeInstrWarmup: { ru: 'Веди взгляд за точкой по направлениям', en: 'Follow the dot in each direction' },
   eyeInstrPursuit: { ru: 'Следи за точкой глазами, голову не двигай', en: 'Follow the dot with your eyes, keep your head still' },
   eyeInstrFocusFar: { ru: 'Оторвись от экрана — посмотри вдаль (в окно, ~6 м)', en: 'Look away — focus far into the distance (a window, ~6 m)' },
