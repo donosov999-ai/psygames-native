@@ -206,7 +206,7 @@ export default function ReadingSpanGame() {
         </View>
         <View style={[styles.sentenceBox, { backgroundColor: colors.surface }]}>
           <Text style={[styles.sentenceText, { color: colors.text }]}>{sentence}</Text>
-          <Text style={[styles.lastWordHint, { color: GRADIENT[0] }]}>
+          <Text style={[styles.lastWordHint, { color: colors.text }]}>
             {t('rememberLast')}: <Text style={styles.lastWordBold}>{lastWord}</Text>
           </Text>
         </View>

@@ -252,7 +252,7 @@ export default function GoodsSortGame() {
         </Text>
         {level > 1 && (
           <TouchableOpacity onPress={() => setLevel(1)} style={{ marginTop: 6 }}>
-            <Text style={{ color: GRADIENT[0], fontWeight: '700' }}>↺ 1</Text>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
           </TouchableOpacity>
         )}
       </View>

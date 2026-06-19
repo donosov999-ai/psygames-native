@@ -180,7 +180,7 @@ export default function BARTGame() {
         <Text style={[styles.statText, { color: '#22c55e' }]}>💰{bank}¢</Text>
         <Text style={[styles.statText, { color: '#fbbf24' }]}>⏳{pending}¢</Text>
         <Text style={[styles.statText, { color: '#ef4444' }]}>💥{popCount}</Text>
-        <Text style={[styles.statText, { color: GRADIENT[0] }]}>μ{adjAvg}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>μ{adjAvg}</Text>
       </View>
       <View style={styles.balloonArea}>
         <Animated.View style={{

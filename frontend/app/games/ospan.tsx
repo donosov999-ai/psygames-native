@@ -200,7 +200,7 @@ export default function OSpanGame() {
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('ospanRememberLetter')}</Text>
       <View style={[styles.letterBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
-        <Text style={[styles.bigLetter, { color: GRADIENT[0] }]}>{letter}</Text>
+        <Text style={[styles.bigLetter, { color: colors.text }]}>{letter}</Text>
       </View>
     </View>
   );

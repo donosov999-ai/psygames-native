@@ -16,7 +16,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useProfile } from '@/src/contexts/ProfileContext';
-import { pairSpritesForProfile } from '@/src/constants/pairThemes';
+import { pairSpritesForProfile, pairBackForProfile } from '@/src/constants/pairThemes';
 import { FlipCard, HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#f857a6', '#ff5858'];
@@ -65,6 +65,7 @@ export default function PicturePairsGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const sprites = pairSpritesForProfile(profile?.id);
+  const cardBack = pairBackForProfile(profile?.id);
   const { popups, spawn } = useScorePopups();
 
   const { isPreset, num } = useGamePreset();
@@ -289,7 +290,7 @@ export default function PicturePairsGame() {
           </Text>
           {level > 1 && (
             <TouchableOpacity onPress={() => setLevel(1)} style={{ marginTop: 6 }}>
-              <Text style={{ color: GRADIENT[0], fontWeight: '700' }}>↺ 1</Text>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -363,7 +364,7 @@ export default function PicturePairsGame() {
     <View style={styles.playArea}>
       {previewActive ? (
         <View style={{ alignItems: 'center', gap: 4, paddingVertical: 8 }}>
-          <Text style={{ color: GRADIENT[0], fontSize: 22, fontWeight: '900', letterSpacing: 2 }}>
+          <Text style={{ color: colors.text, fontSize: 22, fontWeight: '900', letterSpacing: 2 }}>
             {t('label_memorize')}
           </Text>
           <Text style={{ color: '#666', fontSize: 12 }}>
@@ -396,8 +397,8 @@ export default function PicturePairsGame() {
             disabled={card.matched || card.flipped || locked}
             onPress={() => handleCardPress(i)}
             back={
-              <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: GRADIENT[0], justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
-                <Ionicons name="heart" size={cardSize * 0.3} color="rgba(255,255,255,0.5)" />
+              <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: cardBack.color, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
+                <Ionicons name={cardBack.icon as any} size={cardSize * 0.32} color="rgba(255,255,255,0.6)" />
               </View>
             }
             front={

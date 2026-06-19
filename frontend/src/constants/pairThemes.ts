@@ -170,3 +170,21 @@ export function pairSpritesForProfile(profileId?: string) {
   const theme = (profileId && PROFILE_PAIR_THEME[profileId]) || 'animals';
   return PAIR_THEMES[theme];
 }
+
+// Рубашка закрытой карты — СВОЯ по теме: цвет + неброский мотив (не общее розовое сердечко).
+export const PAIR_BACKS: Record<PairTheme, { color: string; icon: string }> = {
+  animals: { color: '#34d399', icon: 'paw' },
+  chess:   { color: '#7c5e3c', icon: 'trophy' },
+  bio:     { color: '#06b6d4', icon: 'pulse' },
+  biz:     { color: '#3b82f6', icon: 'briefcase' },
+  car:     { color: '#ef4444', icon: 'car-sport' },
+  edu:     { color: '#14b8a6', icon: 'school' },
+  geo:     { color: '#2563eb', icon: 'earth' },
+  coz:     { color: '#ec4899', icon: 'flower' },
+};
+
+/** Цвет+иконка рубашки карты под активный профиль (дефолт — зелёная «лапка»). */
+export function pairBackForProfile(profileId?: string): { color: string; icon: string } {
+  const theme = (profileId && PROFILE_PAIR_THEME[profileId]) || 'animals';
+  return PAIR_BACKS[theme];
+}

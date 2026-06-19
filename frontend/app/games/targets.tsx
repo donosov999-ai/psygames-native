@@ -433,7 +433,7 @@ export default function TargetsGame() {
         </View>
         <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('score')}</Text>
-          <Text style={[styles.statValue, { color: GRADIENT[0] }]}>{score}</Text>
+          <Text style={[styles.statValue, { color: colors.text }]}>{score}</Text>
         </View>
         <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>

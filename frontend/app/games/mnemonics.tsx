@@ -307,7 +307,7 @@ export default function MnemonicsGame() {
                 }
               ]}
             >
-              <Text style={[styles.itemNumber, { color: GRADIENT[0] }]}>
+              <Text style={[styles.itemNumber, { color: colors.text }]}>
                 {index + 1}
               </Text>
               <Text style={[styles.itemText, { color: colors.text, fontSize: mode === 'numbers' ? 32 : 24 }]}>

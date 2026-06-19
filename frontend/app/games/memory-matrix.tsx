@@ -239,7 +239,7 @@ export default function MemoryMatrixGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalRounds}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: GRADIENT[0] }]}>{score}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{score}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>
         {phase === 'showing' ? t('matrixMemorize') : phase === 'input' ? t('matrixRecall') : feedbackMsg}

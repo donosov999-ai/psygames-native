@@ -328,7 +328,7 @@ export default function StoryRecallGame() {
   const renderReading = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: GRADIENT[0], fontSize: 20 }]}>{t('storyReadPhase')} · {readRemaining}s</Text>
+        <Text style={[styles.statText, { color: colors.text, fontSize: 20 }]}>{t('storyReadPhase')} · {readRemaining}s</Text>
       </View>
       <View style={[styles.storyBox, { backgroundColor: colors.surface }]}>
         <Text style={[styles.storyText, { color: colors.text }]}>
@@ -349,7 +349,7 @@ export default function StoryRecallGame() {
   const renderDistractor = (phaseLabel: string) => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: GRADIENT[0] }]}>{phaseLabel} · {distractorRemaining}s</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{phaseLabel} · {distractorRemaining}s</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{distractorScore}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('storyDistractorHint')}</Text>

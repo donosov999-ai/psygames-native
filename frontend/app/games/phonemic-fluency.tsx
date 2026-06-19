@@ -226,10 +226,10 @@ export default function PhonemicFluencyGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: GRADIENT[0], fontSize: 24 }]}>{remaining}s</Text>
+        <Text style={[styles.statText, { color: colors.text, fontSize: 24 }]}>{remaining}s</Text>
         <Text style={[styles.statText, { color: '#22c55e', fontSize: 24 }]}>{validCount}</Text>
         <View style={[styles.letterBox, { borderColor: GRADIENT[0] }]}>
-          <Text style={[styles.letterBig, { color: GRADIENT[0] }]}>{letter}</Text>
+          <Text style={[styles.letterBig, { color: colors.text }]}>{letter}</Text>
         </View>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>

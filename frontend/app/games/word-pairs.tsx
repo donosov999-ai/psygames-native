@@ -326,8 +326,8 @@ export default function WordPairsGame() {
         {pairs.map((pair, index) => (
           <View key={index} style={[styles.pairRow, { backgroundColor: colors.surface }]}>
             <Text style={[styles.pairWord, { color: colors.text }]}>{pair.word1}</Text>
-            <Ionicons name="arrow-forward" size={20} color={GRADIENT[0]} />
-            <Text style={[styles.pairWord, { color: GRADIENT[0], fontWeight: '700' }]}>{pair.word2}</Text>
+            <Ionicons name="arrow-forward" size={20} color={colors.textSecondary} />
+            <Text style={[styles.pairWord, { color: colors.text, fontWeight: '700' }]}>{pair.word2}</Text>
           </View>
         ))}
       </ScrollView>
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 12,
   },
-  pairWord: { fontSize: 15, flex: 1 },
+  pairWord: { fontSize: 17, flex: 1, fontWeight: '600' },
   checkButton: { marginBottom: 20 },
   checkContainer: { flex: 1 },
   columnsContainer: {

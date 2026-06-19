@@ -79,6 +79,7 @@ export default function MathSprintGame() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const inputRef = useRef<TextInput>(null);
 
   useEffect(() => () => { if (tickRef.current) clearInterval(tickRef.current); }, []);
 
@@ -141,6 +142,7 @@ export default function MathSprintGame() {
     setTimeout(() => {
       setProblem(generateProblem(difficulty, nextTier));
       setFeedback(null);
+      inputRef.current?.focus();   // десктоп: вернуть фокус в поле, чтобы печатать дальше без клика мышью
     }, 250);
   };
 
@@ -200,7 +202,7 @@ export default function MathSprintGame() {
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
         <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
-        <Text style={[styles.statText, { color: GRADIENT[0] }]}>★ {score}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>★ {score}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         {streak >= 3 && <Text style={[styles.statText, { color: '#fbbf24' }]}>🔥{streak}</Text>}
@@ -216,6 +218,7 @@ export default function MathSprintGame() {
         )}
       </View>
       <TextInput
+        ref={inputRef}
         value={userAnswer}
         onChangeText={(s) => setUserAnswer(s.replace(/[^-0-9]/g, ''))}
         onSubmitEditing={submit}

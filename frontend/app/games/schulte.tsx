@@ -538,7 +538,7 @@ export default function SchulteGame() {
         <View style={styles.gameHeader}>
           <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('find')}</Text>
-            <Text style={[styles.statValue, { color: GRADIENT[0] }]}>{currentTarget}</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{currentTarget}</Text>
           </View>
           <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>

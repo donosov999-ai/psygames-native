@@ -216,7 +216,7 @@ export default function DigitSpanGame() {
     <View style={styles.playArea}>
       <Text style={[styles.statText, { color: colors.textSecondary }]}>{t('memorize')} ({seqLen})</Text>
       <View style={styles.digitArea}>
-        <Text style={[styles.bigDigit, { color: GRADIENT[0] }]}>
+        <Text style={[styles.bigDigit, { color: colors.text }]}>
           {showIdx >= 0 && showIdx < sequence.length ? sequence[showIdx] : ' '}
         </Text>
       </View>
