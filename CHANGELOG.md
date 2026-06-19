@@ -14,6 +14,14 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.32.1] — 2026-06-20
+
+### Changed — Брендовая иконка приложения (вместо плейсхолдера)
+- Заменён дефолт-плейсхолдер («e» на чертёжной сетке) на **брендовую иконку PsyGames** — цветной мозг из пазлов (orange→magenta), Nano Banana 2.
+- Полный набор перегенерён `cargo tauri icon`: macOS `.icns` (нативный сквиркл с полями), Windows `.ico` + Square-логотипы, Android mipmap (legacy + adaptive + round), плюс Expo-ассеты (icon / adaptive-icon / favicon, full-bleed).
+
+---
+
 ## [1.32.0] — 2026-06-20
 
 ### Added — «Сок»: juice-kit + объёмные Goods Sort и Парные картинки
