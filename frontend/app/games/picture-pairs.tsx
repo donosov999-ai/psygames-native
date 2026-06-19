@@ -17,6 +17,7 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile } from '@/src/constants/pairThemes';
+import { FlipCard, HudBadge, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#f857a6', '#ff5858'];
 const PAIRS_BENEFITS = [
@@ -52,6 +53,7 @@ export default function PicturePairsGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const sprites = pairSpritesForProfile(profile?.id);
+  const { popups, spawn } = useScorePopups();
 
   const { isPreset, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
@@ -144,6 +146,8 @@ export default function PicturePairsGame() {
           const newMatched = matched + 1;
           setMatched(newMatched);
           setOpenIdx([]);
+          hapticSuccess();
+          spawn(width / 2 - 16, 120, '+1', '#fbbf24');
           if (newMatched >= pairsCount) {
             if (timerRef.current) clearInterval(timerRef.current);
             const finalTime = (Date.now() - startTime) / 1000;
@@ -174,6 +178,7 @@ export default function PicturePairsGame() {
         // mismatch
         setLocked(true);
         setErrors((e) => e + 1);
+        hapticError();
         setTimeout(() => {
           setCards((cs) => cs.map((c, i) =>
             i === a || i === b ? { ...c, flipped: false } : c
@@ -278,35 +283,36 @@ export default function PicturePairsGame() {
         </View>
       ) : (
         <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{matched}/{pairsCount}</Text>
-          <Text style={[styles.statText, { color: GRADIENT[0] }]}>{moves} {t('movesShort')}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-          <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+          <HudBadge icon="checkmark-done" value={`${matched}/${pairsCount}`} colors={['#34d399', '#059669']} pop />
+          <HudBadge icon="swap-horizontal" value={moves} colors={['#fb7185', '#e11d48']} />
+          <HudBadge icon="close" value={errors} colors={['#94a3b8', '#475569']} />
+          <HudBadge icon="time" value={`${elapsedTime.toFixed(1)}${language === 'ru' ? 'с' : 's'}`} colors={['#60a5fa', '#2563eb']} />
         </View>
       )}
       <View style={[styles.cardsArea, { width: containerW }]}>
         {cards.map((card, i) => (
-          <TouchableOpacity
+          <FlipCard
             key={i}
-            activeOpacity={0.8}
-            onPress={() => handleCardPress(i)}
+            size={cardSize}
+            radius={10}
+            flipped={card.flipped || card.matched}
+            matched={card.matched}
             disabled={card.matched || card.flipped || locked}
-            style={[
-              styles.card,
-              {
-                width: cardSize,
-                height: cardSize,
-                backgroundColor: card.matched ? '#22c55e' : card.flipped ? colors.surface : GRADIENT[0],
-                opacity: card.matched ? 0.6 : 1,
-              },
-            ]}
-          >
-            {(card.flipped || card.matched) && (
-              <Image source={sprites[card.symbol]} style={{ width: cardSize * 0.82, height: cardSize * 0.82 }} resizeMode="contain" />
-            )}
-          </TouchableOpacity>
+            onPress={() => handleCardPress(i)}
+            back={
+              <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: GRADIENT[0], justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
+                <Ionicons name="heart" size={cardSize * 0.3} color="rgba(255,255,255,0.5)" />
+              </View>
+            }
+            front={
+              <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: card.matched ? '#22c55e' : colors.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }}>
+                <Image source={sprites[card.symbol]} style={{ width: cardSize * 0.82, height: cardSize * 0.82 }} resizeMode="contain" />
+              </View>
+            }
+          />
         ))}
       </View>
+      <ScorePopupLayer popups={popups} />
     </View>
   );
 

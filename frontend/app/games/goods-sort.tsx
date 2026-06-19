@@ -11,6 +11,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { HudBadge, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
 
 const GRADIENT = ['#f7971e', '#ffd200'];
 const GOODS_BENEFITS = [
@@ -42,7 +43,7 @@ function GoodIcon({ type, size, dim }: { type: number; size: number; dim?: boole
   return (
     <Image
       source={GOOD_SPRITES[type % GOOD_SPRITES.length]}
-      style={{ width: size, height: size, opacity: dim ? 0.32 : 1 }}
+      style={{ width: size, height: size, opacity: dim ? 0.32 : 1, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 3, shadowOffset: { width: 0, height: 2 } }}
       resizeMode="contain"
     />
   );
@@ -110,10 +111,9 @@ export default function GoodsSortGame() {
   const dragTypeRef = useRef(0);
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const ghostXY = useRef(new Animated.ValueXY()).current;
-  const [flash, setFlash] = useState<{ pts: number } | null>(null);
-  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { popups, spawn } = useScorePopups();
 
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); if (flashTimer.current) clearTimeout(flashTimer.current); }, []);
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const loadLevel = (L: number) => {
     const cfg = levelCfg(L);
@@ -132,6 +132,7 @@ export default function GoodsSortGame() {
 
   // Уровень пройден (всё собрано) → бонус, сохранить, СЛЕДУЮЩИЙ уровень (сложнее). Счёт копится за сессию.
   const advanceLevel = () => {
+    hapticSuccess();
     const done = level;
     const finalTime = (Date.now() - startTime) / 1000;
     scoreRef.current += Math.max(50, 300 - movesRef.current * 4);   // бонус за прохождение (эффективность ходов)
@@ -177,9 +178,8 @@ export default function GoodsSortGame() {
     setScore(scoreRef.current);
     if (clearedNow > 0) {
       setCleared((c) => c + clearedNow);
-      setFlash({ pts: clearedNow * 50 });
-      if (flashTimer.current) clearTimeout(flashTimer.current);
-      flashTimer.current = setTimeout(() => setFlash(null), 700);
+      hapticSuccess();
+      spawn(width / 2 - 24, 150, '+' + clearedNow * 50, '#fde047');
     }
 
     const totalGoods = ns.reduce((sum, s) => sum + s.length, 0);
@@ -189,7 +189,7 @@ export default function GoodsSortGame() {
   const handleSlotTap = (i: number) => {
     if (phase !== 'playing') return;
     if (selected === null) {
-      if (stacks[i].length > 0) setSelected(i);     // берём передний товар
+      if (stacks[i].length > 0) { setSelected(i); hapticTap(); }     // берём передний товар
       return;
     }
     moveTop(selected, i);                            // кладём на этот слот (или отмена если тот же)
@@ -302,10 +302,10 @@ export default function GoodsSortGame() {
     return (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: GRADIENT[0] }]}>🏷 {t('goodsLevel')} {level}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>⭐ {score}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>↔ {moves}</Text>
-        <Text style={[styles.statText, { color: colors.textSecondary }]}>📦 {remaining}</Text>
+        <HudBadge icon="pricetag" label={t('goodsLevel')} value={level} colors={['#fbbf24', '#d97706']} tint="#3f2b00" />
+        <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
+        <HudBadge icon="swap-horizontal" value={moves} colors={['#94a3b8', '#475569']} />
+        <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
       <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }} {...pan.panHandlers}>
@@ -315,11 +315,7 @@ export default function GoodsSortGame() {
           </View>
         ))}
       </View>
-      {flash && (
-        <View style={styles.flashBanner} pointerEvents="none">
-          <Text style={styles.flashText}>✨ +{flash.pts}</Text>
-        </View>
-      )}
+      <ScorePopupLayer popups={popups} />
       {levelBanner !== null && (
         <View style={styles.levelBanner} pointerEvents="none">
           <Text style={styles.levelBannerText}>🎉 {t('goodsLevel')} {levelBanner} ✓</Text>
