@@ -14,6 +14,13 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.60.0] — 2026-06-20
+
+### Hardened — Звук детерминированный в Tauri macOS (WKWebView)
+- Добавлен «разогрев» AudioContext пустым буфером на первом жесте окна. В WKWebView (Safari/Tauri) одного `resume()` мало для гарантированного звука — теперь звук стабилен от первого клика, а не «повезёт с resume()». Урок из TypeRIGHTing, применён и здесь.
+
+---
+
 ## [1.59.0] — 2026-06-20
 
 ### Fixed — Звуки не играли (AudioContext не просыпался)

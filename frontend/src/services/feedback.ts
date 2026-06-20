@@ -66,7 +66,14 @@ function getAudioCtx(): any {
 if (typeof window !== 'undefined' && (window as any).addEventListener) {
   const _unlock = () => {
     const c = getAudioCtx();
-    if (c && c.state === 'running') {
+    if (!c) return;
+    // WKWebView (Safari/Tauri macOS) требует «разогрев» пустым буфером от жеста — одного resume() мало (урок TypeRIGHTing).
+    try {
+      const buf = c.createBuffer(1, 1, 22050);
+      const src = c.createBufferSource();
+      src.buffer = buf; src.connect(c.destination); src.start(0);
+    } catch { /* no-op */ }
+    if (c.state === 'running') {
       ['pointerdown', 'keydown', 'touchend'].forEach((e) => (window as any).removeEventListener(e, _unlock));
     }
   };
