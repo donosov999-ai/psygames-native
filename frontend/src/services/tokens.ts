@@ -50,3 +50,33 @@ export function levelInfo(tokens: number): LevelInfo {
   const progress = span ? Math.min(1, intoLevel / span) : 1;
   return { level: lvl, titleRu: LEVEL_TITLE_RU[lvl], titleEn: LEVEL_TITLE_EN[lvl], intoLevel, span, progress };
 }
+
+// ── Дневной стрик (T2): заходи каждый день → бонус токенов + 🔥. Per-profile. ──
+const STREAK_KEY = 'psygames_streak_v1';
+function dayStr(d: Date): string { return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
+
+/** Отметка дня: идемпотентно за сутки. Возвращает стрик + начисленный бонус (0 если уже заходил сегодня). */
+export async function dailyCheckIn(profileId: string): Promise<{ streak: number; awarded: number; isNew: boolean }> {
+  try {
+    const raw = await AsyncStorage.getItem(STREAK_KEY);
+    const data: Record<string, { last: string; streak: number }> = raw ? JSON.parse(raw) : {};
+    const rec = data[profileId] || { last: '', streak: 0 };
+    const today = dayStr(new Date());
+    if (rec.last === today) return { streak: rec.streak, awarded: 0, isNew: false };
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    const streak = rec.last === dayStr(y) ? rec.streak + 1 : 1;   // вчера → продолжаем, иначе сброс
+    const awarded = 10 + Math.min(streak, 7) * 5;                 // бонус растёт со стриком (cap на 7 дне)
+    data[profileId] = { last: today, streak };
+    AsyncStorage.setItem(STREAK_KEY, JSON.stringify(data)).catch(() => {});
+    await addTokens(profileId, awarded);
+    return { streak, awarded, isNew: true };
+  } catch { return { streak: 0, awarded: 0, isNew: false }; }
+}
+
+export async function getStreak(profileId: string): Promise<number> {
+  try {
+    const raw = await AsyncStorage.getItem(STREAK_KEY);
+    const data = raw ? JSON.parse(raw) : {};
+    return (data[profileId]?.streak) || 0;
+  } catch { return 0; }
+}

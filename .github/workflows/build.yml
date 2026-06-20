@@ -42,6 +42,46 @@ jobs:
         working-directory: frontend
         run: npx tsc --noEmit
 
+  # ─── Smoke games (НЕ блокирует релиз) — ловит mount-краши/ошибки консоли ──
+  # R1: НЕ в release needs + continue-on-error → сигнал «игра упала на маунте»,
+  # но НЕ блокирует доставку рабочих бинарей (урок #7: флак-джоб не рушит релиз).
+  # Только на тегах (на релизах, когда важно), чтобы не жечь минуты на каждый main.
+  smoke:
+    name: Smoke games (non-gating)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: startsWith(github.ref, 'refs/tags/v')
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+      - name: Build web (baseUrl="")
+        working-directory: frontend
+        run: |
+          cp app.json app.json.bak
+          sed -i 's|"baseUrl": "/psygames-web"|"baseUrl": ""|' app.json
+          npx expo export -p web
+          mv app.json.bak app.json
+      - name: Install Playwright chromium
+        working-directory: frontend
+        run: |
+          npm i -D playwright
+          npx playwright install --with-deps chromium
+      - name: Serve dist + run smoke
+        working-directory: frontend
+        run: |
+          npx serve dist -l 8081 >/tmp/serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:8081 >/dev/null 2>&1 && break; sleep 2; done
+          BASE=http://localhost:8081 GAMES_DIR=./app/games node scripts/smoke-games.mjs
+
   # ─── macOS Apple Silicon ──────────────────────────────────────────────
   macos-arm:
     name: macOS arm64 (.app)

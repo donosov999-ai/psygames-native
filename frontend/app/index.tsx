@@ -21,7 +21,7 @@ import GameCard from '@/src/components/GameCard';
 import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { logoForProfile } from '@/src/constants/profileLogos';
-import { getTokens, levelInfo } from '@/src/services/tokens';
+import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
 import { sndToken, sndWin } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
@@ -59,19 +59,25 @@ export default function HomeScreen() {
   // Общие очки-токены ЦЕНТРА (копятся со всех игр; перечит на фокусе главного после игры)
   const [tokens, setTokens] = useState(0);
   const [levelUp, setLevelUp] = useState<number | null>(null);   // оверлей «Уровень N!» при повышении
+  const [streakDays, setStreakDays] = useState(0);
+  const [streakToast, setStreakToast] = useState<number | null>(null);   // тост «🔥 +N за стрик»
   const prevTokensRef = useRef<number | null>(null);
   const prevLevelRef = useRef<number | null>(null);
   useFocusEffect(useCallback(() => {
     if (!profile?.id) return;
-    getTokens(profile.id).then((v) => {
-      if (prevTokensRef.current !== null && v > prevTokensRef.current) sndToken();   // звон когда вернулся с игры и очки выросли
+    (async () => {
+      const ci = await dailyCheckIn(profile.id);   // T2: отметка дня + бонус токенов (раз в сутки)
+      setStreakDays(ci.streak);
+      if (ci.isNew && ci.awarded > 0) { setStreakToast(ci.awarded); setTimeout(() => setStreakToast(null), 2600); }
+      const v = await getTokens(profile.id);
+      if (prevTokensRef.current !== null && v > prevTokensRef.current) sndToken();   // звон когда очки выросли
       const lv = levelInfo(v).level;
       if (prevLevelRef.current !== null && lv > prevLevelRef.current) {   // повысился уровень
         setLevelUp(lv); sndWin(); setTimeout(() => setLevelUp(null), 2200);
       }
       prevTokensRef.current = v; prevLevelRef.current = lv;
       setTokens(v);
-    });
+    })();
   }, [profile?.id]));
   const lvl = levelInfo(tokens);
 
@@ -154,6 +160,14 @@ export default function HomeScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Стилизация профиля: лёгкий акцент-фон сверху под цвет активного профиля */}
       <LinearGradient colors={[colors.primary + '26', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 260 }} pointerEvents="none" />
+      {streakToast !== null && (
+        <View style={{ position: 'absolute', top: 76, left: 0, right: 0, alignItems: 'center', zIndex: 150 }} pointerEvents="none">
+          <View style={{ backgroundColor: '#ef4444', paddingHorizontal: 18, paddingVertical: 9, borderRadius: 100, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={{ fontSize: 16 }}>🔥</Text>
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>{language === 'ru' ? 'Стрик' : 'Streak'} {streakDays} · +{streakToast} ⭐</Text>
+          </View>
+        </View>
+      )}
       {levelUp !== null && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', zIndex: 200 }} pointerEvents="none">
           <View style={{ backgroundColor: '#f59e0b', paddingHorizontal: 34, paddingVertical: 22, borderRadius: 22, alignItems: 'center', gap: 4 }}>
@@ -176,6 +190,7 @@ export default function HomeScreen() {
               <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>{tokens}</Text>
               <View style={{ width: 1, height: 12, backgroundColor: '#f59e0b88' }} />
               <Text style={{ color: '#b45309', fontWeight: '800', fontSize: 12 }}>Lv {lvl.level}</Text>
+              {streakDays > 0 && <Text style={{ fontSize: 13 }}>🔥{streakDays}</Text>}
             </View>
             {lvl.span !== null && (
               <View style={{ width: 104, height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden' }}>
