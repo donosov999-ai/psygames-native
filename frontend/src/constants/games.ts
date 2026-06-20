@@ -18,6 +18,7 @@ export type GameCategory =
   | 'memory'
   | 'attention'
   | 'logic'
+  | 'intuition'
   | 'action';
 
 export interface GameConfig {
@@ -37,6 +38,7 @@ export const CATEGORY_ORDER: GameCategory[] = [
   'memory',
   'attention',
   'logic',
+  'intuition',
   'action',
 ];
 
@@ -44,6 +46,7 @@ export const CATEGORY_META: Record<GameCategory, { titleKey: string; icon: strin
   memory:    { titleKey: 'catMemory',    icon: 'library-outline',         color: '#f093fb' },
   attention: { titleKey: 'catAttention', icon: 'eye-outline',             color: '#667eea' },
   logic:     { titleKey: 'catLogic',     icon: 'extension-puzzle-outline',color: '#a8c0ff' },
+  intuition: { titleKey: 'catIntuition', icon: 'sparkles-outline',        color: '#a855f7' },
   action:    { titleKey: 'catAction',    icon: 'flash-outline',           color: '#fc466b' },
 };
 
@@ -417,7 +420,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#834d9b', '#d04ed6'],
     icon: 'shuffle',
     route: '/games/wcst',
-    category: 'logic',
+    category: 'intuition',
   },
   {
     id: 'flanker',
@@ -449,7 +452,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#ff5e62', '#ff9966'],
     icon: 'warning',
     route: '/games/bart',
-    category: 'logic',
+    category: 'intuition',
   },
   {
     id: 'iowa',
@@ -459,7 +462,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#0F2027', '#2C5364'],
     icon: 'cash',
     route: '/games/iowa',
-    category: 'logic',
+    category: 'intuition',
   },
   {
     id: 'prl',
@@ -469,7 +472,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#1e3c72', '#2a5298'],
     icon: 'trending-up',
     route: '/games/prl',
-    category: 'logic',
+    category: 'intuition',
   },
 
   // MATH

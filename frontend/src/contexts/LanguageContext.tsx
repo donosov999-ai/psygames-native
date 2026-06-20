@@ -565,6 +565,7 @@ const translations: Translations = {
   catAttention: { ru: 'Внимание',                        en: 'Attention' },
   catLogic:     { ru: 'Логика и принятие решений',       en: 'Logic & Decisions' },
   catAction:    { ru: 'Скорость и торможение',           en: 'Speed & Control' },
+  catIntuition: { ru: 'Интуиция и риск',                 en: 'Intuition & Risk' },
   // Legacy keys (kept for back-compat with anything that still references them)
   catControl:   { ru: 'Скорость и торможение',           en: 'Speed & Control' },
   catMath:      { ru: 'Скорость и торможение',           en: 'Speed & Control' },
