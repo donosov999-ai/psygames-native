@@ -19,28 +19,71 @@ const SW_BENEFITS = [
   { icon: 'shuffle-outline',         textKey: 'benefitSw3' },
 ];
 
-// Stimulus = digit + letter pair, e.g. "3A". Cue tells which task:
-// NUMBER: is the digit odd (left) or even (right)?
-// LETTER: is the letter a vowel (left) or consonant (right)?
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
-type CueTask = 'NUMBER' | 'LETTER';
+// Режим стимула (выбор в настройках). У каждого — ДВА задания, между которыми идёт переключение.
+type StimMode = 'mix' | 'num2' | 'num3' | 'letters';
 
-const DIGITS = ['2','3','4','5','6','7','8','9'];
-const LETTERS = ['A','E','I','U','B','D','F','G','K','M','N','P','R','S','T'];
-const VOWELS = new Set(['A','E','I','U']);
+const DIGITS = ['2', '3', '4', '5', '6', '7', '8', '9'];
+const LETTERS = ['A', 'E', 'I', 'U', 'B', 'D', 'F', 'G', 'K', 'M', 'N', 'P', 'R', 'S', 'T'];
+const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
 
-interface Trial { stim: string; task: CueTask; correctLeft: boolean; }
+const MODES: { key: StimMode; ru: string; en: string }[] = [
+  { key: 'mix', ru: 'Цифра+буква', en: 'Digit+letter' },
+  { key: 'num2', ru: 'Двузначные', en: '2-digit' },
+  { key: 'num3', ru: 'Трёхзначные', en: '3-digit' },
+  { key: 'letters', ru: 'Только буквы', en: 'Letters' },
+];
+
+function midFor(mode: StimMode): number { return mode === 'num3' ? 500 : 50; }
+
+// Метаданные задания (cue + подписи кнопок + что подсветить) по режиму и индексу задания (0/1).
+function taskMeta(mode: StimMode, idx: number, lang: string) {
+  const ru = lang === 'ru';
+  if (mode === 'mix') {
+    return idx === 0
+      ? { cue: ru ? 'ЧИСЛО' : 'NUMBER', left: ru ? 'нечёт' : 'odd', right: ru ? 'чёт' : 'even', icon: 'calculator' as const, color: '#3b82f6', emph: 'num' as const }
+      : { cue: ru ? 'БУКВА' : 'LETTER', left: ru ? 'гласная' : 'vowel', right: ru ? 'согласная' : 'conson.', icon: 'text' as const, color: '#f59e0b', emph: 'letter' as const };
+  }
+  if (mode === 'num2' || mode === 'num3') {
+    const mid = midFor(mode);
+    return idx === 0
+      ? { cue: ru ? 'ЧЁТНОСТЬ' : 'PARITY', left: ru ? 'нечёт' : 'odd', right: ru ? 'чёт' : 'even', icon: 'calculator' as const, color: '#3b82f6', emph: 'num' as const }
+      : { cue: ru ? 'РАЗМЕР' : 'SIZE', left: `< ${mid}`, right: `≥ ${mid}`, icon: 'resize' as const, color: '#10b981', emph: 'num' as const };
+  }
+  // letters
+  return idx === 0
+    ? { cue: ru ? 'ГЛАСНАЯ?' : 'VOWEL?', left: ru ? 'гласная' : 'vowel', right: ru ? 'согласная' : 'conson.', icon: 'text' as const, color: '#f59e0b', emph: 'letter' as const }
+    : { cue: ru ? 'ПОЛОВИНА' : 'HALF', left: 'A–M', right: 'N–Z', icon: 'swap-horizontal' as const, color: '#8b5cf6', emph: 'letter' as const };
+}
+
+function modeHint(mode: StimMode, lang: string): string {
+  const ru = lang === 'ru';
+  const a = taskMeta(mode, 0, lang), b = taskMeta(mode, 1, lang);
+  return `${a.cue} → ${a.left}/${a.right}  ·  ${b.cue} → ${b.left}/${b.right}`;
+}
+
+interface Trial { taskIdx: number; num: number; letter: string; full: string; correctLeft: boolean; }
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
-function isOdd(d: string): boolean { return parseInt(d, 10) % 2 === 1; }
-function isVowel(l: string): boolean { return VOWELS.has(l); }
+function genStim(mode: StimMode): { num: number; letter: string; full: string } {
+  if (mode === 'mix') { const num = parseInt(rndItem(DIGITS), 10); const letter = rndItem(LETTERS); return { num, letter, full: `${num}${letter}` }; }
+  if (mode === 'num2') { const num = 10 + Math.floor(Math.random() * 90); return { num, letter: '', full: String(num) }; }
+  if (mode === 'num3') { const num = 100 + Math.floor(Math.random() * 900); return { num, letter: '', full: String(num) }; }
+  const letter = rndItem(ALL_LETTERS); return { num: 0, letter, full: letter };
+}
+
+function judgeLeft(mode: StimMode, idx: number, num: number, letter: string): boolean {
+  if (mode === 'mix') return idx === 0 ? num % 2 === 1 : VOWELS.has(letter);
+  if (mode === 'num2' || mode === 'num3') return idx === 0 ? num % 2 === 1 : num < midFor(mode);
+  return idx === 0 ? VOWELS.has(letter) : letter <= 'M';
+}
 
 export default function SwitchingTaskGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  // v1.29.3 (мобайл): стимул-бокс был фикс 200×200 — теперь во всю ширину, кнопки тоже
   const { width } = useWindowDimensions();
   const stStim = Math.min(width - 36, 320);
   const router = useRouter();
@@ -48,11 +91,12 @@ export default function SwitchingTaskGame() {
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [mode, setMode] = useState<StimMode>(() => (str('stimMode', 'mix') as StimMode));
   const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
   const [trials, setTrials] = useState(() => num('trials', 20));
 
   const [round, setRound] = useState(0);
-  const [trial, setTrial] = useState<Trial>({ stim: '', task: 'NUMBER', correctLeft: true });
+  const [trial, setTrial] = useState<Trial>({ taskIdx: 0, num: 0, letter: '', full: '', correctLeft: true });
   const [showStim, setShowStim] = useState(false);
   const [stimAt, setStimAt] = useState(0);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
@@ -60,10 +104,12 @@ export default function SwitchingTaskGame() {
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [rts, setRts] = useState<number[]>([]);
-  const [switchRts, setSwitchRts] = useState<number[]>([]); // RT only on switch trials
+  const [switchRts, setSwitchRts] = useState<number[]>([]);
   const [startTime, setStartTime] = useState(0);
 
-  const lastTaskRef = useRef<CueTask | null>(null);
+  const lastTaskRef = useRef<number | null>(null);
+  const modeRef = useRef<StimMode>(mode);
+  useEffect(() => { modeRef.current = mode; }, [mode]);
   const stimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -75,26 +121,20 @@ export default function SwitchingTaskGame() {
   const switchProb = (d: Difficulty) => d === 'easy' ? 0.30 : d === 'medium' ? 0.50 : 0.70;
 
   const makeTrial = (): Trial => {
-    let task: CueTask;
-    if (lastTaskRef.current === null) task = Math.random() < 0.5 ? 'NUMBER' : 'LETTER';
-    else if (Math.random() < switchProb(difficulty)) task = lastTaskRef.current === 'NUMBER' ? 'LETTER' : 'NUMBER';
-    else task = lastTaskRef.current;
-    const digit = rndItem(DIGITS);
-    const letter = rndItem(LETTERS);
-    const stim = digit + letter;
-    const correctLeft = task === 'NUMBER' ? isOdd(digit) : isVowel(letter);
-    return { stim, task, correctLeft };
+    const m = modeRef.current;
+    let taskIdx: number;
+    if (lastTaskRef.current === null) taskIdx = Math.random() < 0.5 ? 0 : 1;
+    else if (Math.random() < switchProb(difficulty)) taskIdx = lastTaskRef.current === 0 ? 1 : 0;
+    else taskIdx = lastTaskRef.current;
+    const { num: n, letter, full } = genStim(m);
+    return { taskIdx, num: n, letter, full, correctLeft: judgeLeft(m, taskIdx, n, letter) };
   };
 
   const newTrial = () => {
     setShowStim(false);
     setFeedback(null);
-    const tr = makeTrial();
-    setTrial(tr);
-    stimTimerRef.current = setTimeout(() => {
-      setShowStim(true);
-      setStimAt(Date.now());
-    }, 500);
+    setTrial(makeTrial());
+    stimTimerRef.current = setTimeout(() => { setShowStim(true); setStimAt(Date.now()); }, 500);
   };
 
   const startGame = () => {
@@ -116,7 +156,7 @@ export default function SwitchingTaskGame() {
         score: Math.max(0, Math.round(h * 80 - e * 50 - meanRt * 0.05)),
         time_seconds: totalTime,
         difficulty,
-        mode: `${trials}t`,
+        mode: `${mode}·${trials}t`,
         errors: e,
         details: { mean_rt: Math.round(meanRt), switch_cost_ms: Math.round(swMean - meanRt) },
       });
@@ -127,18 +167,13 @@ export default function SwitchingTaskGame() {
     if (!showStim || feedback !== null) return;
     const rt = Date.now() - stimAt;
     const ok = left === trial.correctLeft;
-    const isSwitch = lastTaskRef.current !== null && lastTaskRef.current !== trial.task;
+    const isSwitch = lastTaskRef.current !== null && lastTaskRef.current !== trial.taskIdx;
     let nextHits = hits, nextErrors = errors, nextRts = rts, nextSwRts = switchRts;
-    if (ok) {
-      nextHits = hits + 1;
-      nextRts = [...rts, rt];
-      if (isSwitch) nextSwRts = [...switchRts, rt];
-    } else {
-      nextErrors = errors + 1;
-    }
+    if (ok) { nextHits = hits + 1; nextRts = [...rts, rt]; if (isSwitch) nextSwRts = [...switchRts, rt]; }
+    else { nextErrors = errors + 1; }
     setHits(nextHits); setErrors(nextErrors); setRts(nextRts); setSwitchRts(nextSwRts);
     setFeedback(ok ? 'right' : 'wrong');
-    lastTaskRef.current = trial.task;
+    lastTaskRef.current = trial.taskIdx;
     fbTimerRef.current = setTimeout(() => {
       if (round >= trials) finish(nextHits, nextErrors, nextRts, nextSwRts);
       else { setRound(r => r + 1); newTrial(); }
@@ -146,19 +181,42 @@ export default function SwitchingTaskGame() {
   };
 
   const meanRt = rts.length ? Math.round(rts.reduce((a, b) => a + b, 0) / rts.length) : 0;
-  const isSwitchTrial = lastTaskRef.current !== null && lastTaskRef.current !== trial.task;
+  const isSwitchTrial = lastTaskRef.current !== null && lastTaskRef.current !== trial.taskIdx;
+  const meta = taskMeta(mode, trial.taskIdx, language);
 
   const renderConfig = () => (
     <View style={styles.configContainer}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+      <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
         <Ionicons name="swap-horizontal" size={48} color="#FFF" />
         <Text style={styles.configTitle}>{t('switchingTask')}</Text>
         <Text style={styles.configDesc}>{t('switchingTaskDesc')}</Text>
       </LinearGradient>
+
+      {/* Режим стимула + ПРАВИЛА (что оценивать) — снимает путаницу */}
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Что показывать' : 'Stimulus'}</Text>
+        <View style={styles.optionButtons}>
+          {MODES.map((m) => (
+            <TouchableOpacity key={m.key} style={[styles.modeButton, mode === m.key
+              ? { backgroundColor: GRADIENT[0] }
+              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+              onPress={() => setMode(m.key)}>
+              <Text style={[styles.modeButtonText, { color: mode === m.key ? '#FFF' : colors.text }]}>{language === 'ru' ? m.ru : m.en}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={[styles.rulesBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.rulesText, { color: colors.text }]}>{language === 'ru' ? 'Правила:' : 'Rules:'} {modeHint(mode, language)}</Text>
+          <Text style={[styles.rulesSub, { color: colors.textSecondary }]}>
+            {language === 'ru' ? 'Плашка сверху скажет, ЧТО оценивать сейчас. Левая кнопка / правая кнопка.' : 'The top badge tells WHAT to judge now. Left / right button.'}
+          </Text>
+        </View>
+      </View>
+
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
         <View style={styles.optionButtons}>
-          {(['easy','medium','hard'] as Difficulty[]).map((d) => (
+          {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
             <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
@@ -189,9 +247,19 @@ export default function SwitchingTaskGame() {
     </View>
   );
 
-  const cueColor = trial.task === 'NUMBER' ? '#3b82f6' : '#f59e0b';
-  const leftLabel = trial.task === 'NUMBER' ? t('odd') : t('vowel');
-  const rightLabel = trial.task === 'NUMBER' ? t('even') : t('consonant');
+  const renderStim = () => {
+    if (!showStim) return <Text style={[styles.stimText, { fontSize: stStim * 0.4, color: colors.textSecondary }]}>•</Text>;
+    if (mode === 'mix') {
+      const numOn = meta.emph === 'num';
+      return (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={[styles.stimText, { fontSize: stStim * 0.42, color: numOn ? meta.color : colors.textSecondary, opacity: numOn ? 1 : 0.3 }]}>{trial.num}</Text>
+          <Text style={[styles.stimText, { fontSize: stStim * 0.42, color: !numOn ? meta.color : colors.textSecondary, opacity: !numOn ? 1 : 0.3 }]}>{trial.letter}</Text>
+        </View>
+      );
+    }
+    return <Text style={[styles.stimText, { fontSize: stStim * (mode === 'num3' ? 0.3 : 0.36), color: meta.color }]}>{trial.full}</Text>;
+  };
 
   const renderPlaying = () => (
     <View style={styles.playArea}>
@@ -201,26 +269,25 @@ export default function SwitchingTaskGame() {
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
       </View>
-      <View style={[styles.cueBadge, { backgroundColor: cueColor }]}>
-        <Ionicons name={trial.task === 'NUMBER' ? 'calculator' : 'text'} size={16} color="#FFF" />
-        <Text style={styles.cueText}>
-          {trial.task === 'NUMBER' ? t('taskNumber') : t('taskLetter')}
-          {isSwitchTrial && showStim && '  ↻'}
-        </Text>
+      {/* Крупная заметная плашка: ЧТО оценивать сейчас (+ ↻ если задание сменилось) */}
+      <View style={[styles.cueBadge, { backgroundColor: meta.color }]}>
+        <Ionicons name={meta.icon} size={20} color="#FFF" />
+        <Text style={styles.cueText}>{language === 'ru' ? 'ОЦЕНИ' : 'JUDGE'}: {meta.cue}</Text>
+        {isSwitchTrial && showStim && <Text style={styles.cueSwitch}>↻</Text>}
       </View>
       <View style={[styles.stimBox, {
         width: stStim, height: stStim,
         backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
-        borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border,
+        borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.textSecondary,
       }]}>
-        <Text style={[styles.stimText, { color: colors.text, fontSize: stStim * 0.4 }]}>{showStim ? trial.stim : '•'}</Text>
+        {renderStim()}
       </View>
       <View style={[styles.choiceRow, { width: stStim }]}>
         <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0], flex: 1 }]} onPress={() => handleAnswer(true)}>
-          <Text style={styles.choiceTextSmall}>← {leftLabel}</Text>
+          <Text style={styles.choiceTextSmall}>← {meta.left}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1], flex: 1 }]} onPress={() => handleAnswer(false)}>
-          <Text style={styles.choiceTextSmall}>{rightLabel} →</Text>
+          <Text style={styles.choiceTextSmall}>{meta.right} →</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -265,16 +332,20 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  modeButton: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 8 },
+  modeButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
+  rulesBox: { borderRadius: 10, borderWidth: 1, padding: 10, gap: 4 },
+  rulesText: { fontSize: 13, fontWeight: '700' },
+  rulesSub: { fontSize: 12, lineHeight: 16 },
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   playArea: { flex: 1, justifyContent: 'center', padding: 18, gap: 18, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
-  cueBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  cueText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  cueBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 11, borderRadius: 22 },
+  cueText: { color: '#FFF', fontSize: 17, fontWeight: '800', letterSpacing: 0.3 },
+  cueSwitch: { color: '#FFF', fontSize: 18, fontWeight: '900' },
   stimBox: { borderRadius: 24, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   stimText: { fontWeight: '900' },
   choiceRow: { flexDirection: 'row', gap: 16 },

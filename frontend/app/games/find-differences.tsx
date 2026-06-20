@@ -74,7 +74,7 @@ function generateScene(width: number, height: number, count: number): Shape[] {
   for (let i = 0; i < count; i++) {
     let placed: Shape | null = null;
     for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_SHAPE; attempt++) {
-      const size = rand(48, 64);   // КРУПНЫЕ объекты — зверята различимы (мелкие нечитаемы)
+      const size = rand(44, 58);   // КРУПНЫЕ объекты различимы; чуть меньше — чтобы вместить больше (14)
       const candidate: Shape = {
         sprite: Math.floor(Math.random() * SPRITE_COUNT),
         x: rand(size / 2 + 6, width - size / 2 - 6),
@@ -86,7 +86,7 @@ function generateScene(width: number, height: number, count: number): Shape[] {
       if (!collides) { placed = candidate; break; }
     }
     if (!placed) {
-      const size = rand(40, 50);   // smaller fallback
+      const size = rand(36, 46);   // smaller fallback
       placed = {
         sprite: Math.floor(Math.random() * SPRITE_COUNT),
         x: rand(size / 2 + 6, width - size / 2 - 6),
@@ -171,7 +171,7 @@ export default function FindDifferencesGame() {
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const newRound = () => {
-    const sc = generateScene(sceneW, sceneH, 8);
+    const sc = generateScene(sceneW, sceneH, 14);   // больше объектов = плотнее сцена, искать отличия сложнее
     const { altered: alt, diffIdx: idx } = withDifference(sc, diffCount);
     setScene(sc);
     setAltered(alt);
