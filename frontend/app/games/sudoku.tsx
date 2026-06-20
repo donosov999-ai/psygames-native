@@ -27,9 +27,13 @@ const SUDOKU_BENEFITS = [
 type Cell = number; // 0 = empty
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
-// Sudoku: 6×6 (блоки 2×3) для easy/medium; 9×9 (блоки 3×3) для hard — настоящая сложность.
-function dimsFor(diff: 'easy' | 'medium' | 'hard') {
-  return diff === 'hard' ? { N: 9, BR: 3, BC: 3 } : { N: 6, BR: 2, BC: 3 };
+// C2: размер РАЗВЯЗАН от сложности — селектор 6×6 / 9×9; сложность = плотность пустых клеток.
+function dimsForSize(size: 6 | 9) {
+  return size === 9 ? { N: 9, BR: 3, BC: 3 } : { N: 6, BR: 2, BC: 3 };
+}
+function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
+  if (size === 9) return diff === 'easy' ? 36 : diff === 'medium' ? 46 : 54;   // из 81
+  return diff === 'easy' ? 12 : diff === 'medium' ? 18 : 24;                    // из 36
 }
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
@@ -83,6 +87,7 @@ export default function SudokuGame() {
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(() => (str('diff', 'medium') as 'easy' | 'medium' | 'hard'));
+  const [size, setSize] = useState<6 | 9>(6);   // C2: явный размер поля
   const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
@@ -102,10 +107,9 @@ export default function SudokuGame() {
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const startGame = () => {
-    const d = dimsFor(difficulty);
+    const d = dimsForSize(size);
     setDims(d);
-    // 6×6: easy 14 / medium 20 пустых; 9×9 hard: 50 пустых (≈31 подсказка) — настоящая сложность
-    const blanks = difficulty === 'easy' ? 14 : difficulty === 'medium' ? 20 : 50;
+    const blanks = blanksFor(size, difficulty);
     const { puzzle: p, solution: s } = generatePuzzle(blanks, d.N, d.BR, d.BC);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
@@ -165,7 +169,7 @@ export default function SudokuGame() {
           score: Math.max(0, Math.round(2000 - errors * 50 - finalTime * 2 - hintUses * 50)),
           time_seconds: finalTime,
           difficulty,
-          mode: '6x6',
+          mode: `${N}x${N}`,
           errors,
           details: {
             errors, completed: true,
@@ -205,6 +209,19 @@ export default function SudokuGame() {
         <Text style={styles.configTitle}>{t('sudoku')}</Text>
         <Text style={styles.configDesc}>{t('sudokuDesc')}</Text>
       </LinearGradient>
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Размер поля' : 'Board size'}</Text>
+        <View style={styles.optionButtons}>
+          {([6, 9] as const).map((s) => (
+            <TouchableOpacity key={s} style={[styles.modeButton, size === s
+              ? { backgroundColor: GRADIENT[0] }
+              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+              onPress={() => setSize(s)}>
+              <Text style={[styles.modeButtonText, { color: size === s ? '#FFF' : colors.text }]}>{s}×{s}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
         <View style={styles.optionButtons}>
