@@ -15,6 +15,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/constants/digitThemes';
 import type { DigitStyle } from '@/src/constants/digitThemes';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
 // Рисованные цифры — набор под активный профиль (см. src/constants/digitThemes.ts).
@@ -36,23 +37,42 @@ function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
   return diff === 'easy' ? 12 : diff === 'medium' ? 18 : 24;                    // из 36
 }
 
+// SUDOKU-LVL: уровневая прогрессия. Кривая: 1–4 = 6×6 (пропуски растут), 5+ = 9×9 (растут),
+// с 9-го уровня включается ВАРИАНТ «диагональ» (числа уникальны и по двум диагоналям), подсказок меньше.
+interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; diagonal: boolean; hintMax: number; }
+function levelConfig(level: number): LevelCfg {
+  const lv = Math.max(1, level);
+  const size: 6 | 9 = lv <= 4 ? 6 : 9;
+  const { N, BR, BC } = dimsForSize(size);
+  const diagonal = lv >= 9;
+  const blanks = size === 6
+    ? Math.min(24, 8 + lv * 3)                  // L1..4 → 11,14,17,20
+    : Math.min(58, 34 + (lv - 5) * 3);          // L5+ → 34,37,40,… cap 58
+  const hintMax = lv <= 4 ? 3 : lv <= 8 ? 2 : 1;
+  return { size, N, BR, BC, blanks, diagonal, hintMax };
+}
+
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number): boolean {
+function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, diagonal = false): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
   const br = Math.floor(r / BR) * BR, bc = Math.floor(c / BC) * BC;
   for (let i = 0; i < BR; i++) for (let j = 0; j < BC; j++) if (grid[br + i][bc + j] === val) return false;
+  if (diagonal) {
+    if (r === c) { for (let i = 0; i < N; i++) if (grid[i][i] === val) return false; }                 // главная диагональ
+    if (r + c === N - 1) { for (let i = 0; i < N; i++) if (grid[i][N - 1 - i] === val) return false; }  // побочная
+  }
   return true;
 }
 
-function solve(grid: Cell[][], N: number, BR: number, BC: number): boolean {
+function solve(grid: Cell[][], N: number, BR: number, BC: number, diagonal = false): boolean {
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
     if (grid[r][c] === 0) {
       const nums = shuffle(Array.from({ length: N }, (_, i) => i + 1));
       for (const n of nums) {
-        if (isValid(grid, r, c, n, N, BR, BC)) {
+        if (isValid(grid, r, c, n, N, BR, BC, diagonal)) {
           grid[r][c] = n;
-          if (solve(grid, N, BR, BC)) return true;
+          if (solve(grid, N, BR, BC, diagonal)) return true;
           grid[r][c] = 0;
         }
       }
@@ -62,9 +82,9 @@ function solve(grid: Cell[][], N: number, BR: number, BC: number): boolean {
   return true;
 }
 
-function generatePuzzle(blanks: number, N: number, BR: number, BC: number): { puzzle: Cell[][]; solution: Cell[][] } {
+function generatePuzzle(blanks: number, N: number, BR: number, BC: number, diagonal = false): { puzzle: Cell[][]; solution: Cell[][] } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
-  solve(sol, N, BR, BC);
+  solve(sol, N, BR, BC, diagonal);
   const puzzle: Cell[][] = sol.map((row) => [...row]);
   const positions = shuffle(Array.from({ length: N * N }, (_, i) => i));
   for (let i = 0; i < blanks; i++) {
@@ -87,14 +107,18 @@ export default function SudokuGame() {
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(() => (str('diff', 'medium') as 'easy' | 'medium' | 'hard'));
-  const [size, setSize] = useState<6 | 9>(6);   // C2: явный размер поля
+  const [size, setSize] = useState<6 | 9>(6);   // C2: явный размер поля (свободный режим)
+  const [mode, setMode] = useState<'levels' | 'free'>('levels');   // SUDOKU-LVL: уровни (дефолт) или свободно
+  const [level, setLevel] = useState(1);
+  const [diagonal, setDiagonal] = useState(false);   // вариант «диагональ» активен в текущей партии
   const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [given, setGiven] = useState<boolean[][]>([]);
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
-  const LIVES = 3, HINT_MAX = 3;   // игровая динамика: 3 жизни + 3 подсказки до перезапуска
+  const LIVES = 3;   // 3 жизни до перезапуска
+  const [hintMax, setHintMax] = useState(3);   // лимит подсказок (меньше на высоких уровнях)
   const [errors, setErrors] = useState(0);
   const [over, setOver] = useState(false);   // жизни кончились (3 ошибки) → game over + рестарт
   const [hintUses, setHintUses] = useState(0);
@@ -106,11 +130,28 @@ export default function SudokuGame() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  const startGame = () => {
-    const d = dimsForSize(size);
+  // SUDOKU-LVL: подтянуть сохранённый уровень профиля
+  useEffect(() => {
+    const pid = profile?.id;
+    if (!pid) return;
+    AsyncStorage.getItem(`psygames_sudoku_level_${pid}`).then((v) => { const n = parseInt(v || '1', 10); if (n >= 1) setLevel(n); }).catch(() => {});
+  }, [profile?.id]);
+
+  const startGame = (lvlOverride?: number) => {
+    let d: { N: number; BR: number; BC: number };
+    let blanks: number, diag = false, hMax = 3;
+    if (mode === 'levels') {
+      const cfg = levelConfig(lvlOverride ?? level);
+      d = { N: cfg.N, BR: cfg.BR, BC: cfg.BC };
+      blanks = cfg.blanks; diag = cfg.diagonal; hMax = cfg.hintMax;
+    } else {
+      d = dimsForSize(size);
+      blanks = blanksFor(size, difficulty);
+    }
     setDims(d);
-    const blanks = blanksFor(size, difficulty);
-    const { puzzle: p, solution: s } = generatePuzzle(blanks, d.N, d.BR, d.BC);
+    setDiagonal(diag);
+    setHintMax(hMax);
+    const { puzzle: p, solution: s } = generatePuzzle(blanks, d.N, d.BR, d.BC, diag);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
     setGiven(p.map((r) => r.map((v) => v !== 0)));
@@ -162,19 +203,26 @@ export default function SudokuGame() {
       const finalTime = (Date.now() - startTime) / 1000;
       setElapsedTime(finalTime);
       setPhase('result');
+      // SUDOKU-LVL: уровни — сохранить прогресс на следующий уровень (счёт растёт с уровнем)
+      if (mode === 'levels') {
+        const pid = profile?.id;
+        if (pid) AsyncStorage.setItem(`psygames_sudoku_level_${pid}`, String(level + 1)).catch(() => {});
+      }
+      const baseScore = mode === 'levels' ? 1500 + level * 150 : 2000;
       try {
         await saveSession({
           game_type: 'sudoku',
           // hint_uses penalize score lightly (each hint = -50 pts), backtracks already implicit in errors
-          score: Math.max(0, Math.round(2000 - errors * 50 - finalTime * 2 - hintUses * 50)),
+          score: Math.max(0, Math.round(baseScore - errors * 50 - finalTime * 2 - hintUses * 50)),
           time_seconds: finalTime,
-          difficulty,
-          mode: `${N}x${N}`,
+          difficulty: mode === 'levels' ? (level <= 4 ? 'easy' : level <= 9 ? 'medium' : 'hard') : difficulty,
+          mode: mode === 'levels' ? `level-${level}${diagonal ? '-diag' : ''}` : `${N}x${N}`,
           errors,
           details: {
             errors, completed: true,
             hint_uses: hintUses,
             backtrack_count: backtrackCount,
+            ...(mode === 'levels' ? { level, diagonal } : {}),
           },
         });
       } catch (e) { console.error(e); }
@@ -183,7 +231,7 @@ export default function SudokuGame() {
 
   // Hint: fill the selected cell with the correct value (penalizes biomarker)
   const handleHint = () => {
-    if (!selected || hintUses >= HINT_MAX) return;
+    if (!selected || hintUses >= hintMax) return;
     const { r, c } = selected;
     if (given[r][c]) return;
     const ng = grid.map((row) => [...row]);
@@ -209,34 +257,68 @@ export default function SudokuGame() {
         <Text style={styles.configTitle}>{t('sudoku')}</Text>
         <Text style={styles.configDesc}>{t('sudokuDesc')}</Text>
       </LinearGradient>
+      {/* SUDOKU-LVL: режим — уровни (прогрессия) или свободно (селекторы) */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Размер поля' : 'Board size'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
         <View style={styles.optionButtons}>
-          {([6, 9] as const).map((s) => (
-            <TouchableOpacity key={s} style={[styles.modeButton, size === s
+          {([['levels', language === 'ru' ? 'Уровни' : 'Levels'], ['free', language === 'ru' ? 'Свободно' : 'Free']] as const).map(([m, lbl]) => (
+            <TouchableOpacity key={m} style={[styles.modeButton, mode === m
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setSize(s)}>
-              <Text style={[styles.modeButtonText, { color: size === s ? '#FFF' : colors.text }]}>{s}×{s}</Text>
+              onPress={() => setMode(m as 'levels' | 'free')}>
+              <Text style={[styles.modeButtonText, { color: mode === m ? '#FFF' : colors.text }]}>{lbl}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {(['easy','medium','hard'] as const).map((d) => (
-            <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setDifficulty(d)}>
-              <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
-                {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+
+      {mode === 'levels' && (() => {
+        const cfg = levelConfig(level);
+        return (
+          <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? `Уровень ${level}` : `Level ${level}`}</Text>
+            <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
+              {cfg.N}×{cfg.N}{` · ${language === 'ru' ? 'пусто' : 'blanks'} ${cfg.blanks} · ${language === 'ru' ? 'подсказок' : 'hints'} ${cfg.hintMax}`}{cfg.diagonal ? (language === 'ru' ? ' · ⟍ диагональ' : ' · ⟍ diagonal') : ''}
+            </Text>
+            <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
+              {language === 'ru' ? 'Прошёл — откроется следующий, сложнее.' : 'Beat it — the next unlocks, harder.'}
+            </Text>
+          </View>
+        );
+      })()}
+
+      {mode === 'free' && (
+        <>
+          <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Размер поля' : 'Board size'}</Text>
+            <View style={styles.optionButtons}>
+              {([6, 9] as const).map((s) => (
+                <TouchableOpacity key={s} style={[styles.modeButton, size === s
+                  ? { backgroundColor: GRADIENT[0] }
+                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                  onPress={() => setSize(s)}>
+                  <Text style={[styles.modeButtonText, { color: size === s ? '#FFF' : colors.text }]}>{s}×{s}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+          <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
+            <View style={styles.optionButtons}>
+              {(['easy','medium','hard'] as const).map((d) => (
+                <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
+                  ? { backgroundColor: GRADIENT[0] }
+                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                  onPress={() => setDifficulty(d)}>
+                  <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
+                    {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </>
+      )}
       {/* Выбор стиля цифр — кому авто-цвет под профиль не зашёл */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Стиль цифр' : 'Digit style'}</Text>
@@ -251,9 +333,9 @@ export default function SudokuGame() {
           ))}
         </View>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
+          <Text style={styles.startBtnText}>{mode === 'levels' ? (language === 'ru' ? `Уровень ${level} — играть` : `Play level ${level}`) : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>
@@ -262,8 +344,10 @@ export default function SudokuGame() {
   const renderPlaying = () => {
     const statsEl = (
       <View style={styles.statsRow}>
+        {mode === 'levels' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{language === 'ru' ? `Ур.${level}` : `Lv${level}`}</Text>}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{'❤️'.repeat(Math.max(0, LIVES - errors))}{'🤍'.repeat(Math.min(errors, LIVES))}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+        {diagonal && <Text style={[styles.statText, { color: GRADIENT[0] }]}>⟍</Text>}
       </View>
     );
     const gridEl = (
@@ -278,6 +362,7 @@ export default function SudokuGame() {
           else if (isSel) bg = GRADIENT[0];
           else if (sameVal) bg = colors.card;
           else if (sameRow) bg = colors.card;
+          else if (diagonal && (r === c || r + c === N - 1)) bg = GRADIENT[0] + '22';   // подсветка диагоналей (вариант)
           return (
             <TouchableOpacity
               key={`${r}-${c}`}
@@ -326,11 +411,11 @@ export default function SudokuGame() {
       <View style={styles.hintRow}>
         <TouchableOpacity
           onPress={handleHint}
-          disabled={!selected || hintUses >= HINT_MAX}
-          style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: (selected && hintUses < HINT_MAX) ? 1 : 0.4 }]}
+          disabled={!selected || hintUses >= hintMax}
+          style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: (selected && hintUses < hintMax) ? 1 : 0.4 }]}
         >
           <Ionicons name="bulb" size={16} color="#000" />
-          <Text style={styles.hintBtnText}>{t('btn_hint')} ({hintUses}/{HINT_MAX})</Text>
+          <Text style={styles.hintBtnText}>{t('btn_hint')} ({hintUses}/{hintMax})</Text>
         </TouchableOpacity>
         <Text style={[styles.metaText, { color: colors.textSecondary }]}>
           ↻ {backtrackCount}
@@ -377,7 +462,7 @@ export default function SudokuGame() {
             <Text style={styles.overEmoji}>💔</Text>
             <Text style={[styles.overTitle, { color: colors.text }]}>{language === 'ru' ? 'Жизни закончились' : 'Out of lives'}</Text>
             <Text style={[styles.overSub, { color: colors.textSecondary }]}>{language === 'ru' ? '3 ошибки. Сыграй заново — поле новое.' : '3 mistakes. Play again — fresh board.'}</Text>
-            <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+            <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
                 <Text style={styles.startBtnText}>{language === 'ru' ? 'Заново' : 'Restart'}</Text>
               </LinearGradient>
@@ -388,11 +473,30 @@ export default function SudokuGame() {
           </View>
         </View>
       )}
-      {phase === 'result' && (
+      {phase === 'result' && mode === 'free' && (
         <GameResult score={Math.max(0, Math.round(2000 - errors * 50 - elapsedTime * 2))}
           time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
+      )}
+      {phase === 'result' && mode === 'levels' && (
+        <View style={styles.overWrap}>
+          <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
+            <Text style={styles.overEmoji}>🎉</Text>
+            <Text style={[styles.overTitle, { color: colors.text }]}>{language === 'ru' ? `Уровень ${level} пройден!` : `Level ${level} done!`}</Text>
+            <Text style={[styles.overSub, { color: colors.textSecondary }]}>
+              {language === 'ru' ? `Время ${elapsedTime.toFixed(1)}с · ошибок ${errors}` : `Time ${elapsedTime.toFixed(1)}s · errors ${errors}`}
+            </Text>
+            <TouchableOpacity style={styles.startBtn} onPress={() => { const nx = level + 1; setLevel(nx); startGame(nx); }}>
+              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                <Text style={styles.startBtnText}>{language === 'ru' ? `Уровень ${level + 1} →` : `Level ${level + 1} →`}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setPhase('config')} style={{ marginTop: 10 }}>
+              <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{language === 'ru' ? 'Меню судоку' : 'Sudoku menu'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );
