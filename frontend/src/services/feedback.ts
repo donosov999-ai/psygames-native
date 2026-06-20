@@ -90,6 +90,7 @@ if (typeof window !== 'undefined' && (window as any).addEventListener) {
   ['pointerdown', 'keydown', 'touchend'].forEach((e) => (window as any).addEventListener(e, _unlock, { passive: true }));
 }
 
+const MASTER_GAIN = 0.8;   // R: общее смягчение громкости (приятнее/ровнее). Слайдер громкости V — отдельной задачей.
 function beep(frequency: number, duration_ms: number, volume: number = 0.1) {
   const ctx = getAudioCtx();
   if (!ctx) return;
@@ -98,13 +99,17 @@ function beep(frequency: number, duration_ms: number, volume: number = 0.1) {
     const gain = ctx.createGain();
     osc.type = 'sine';
     osc.frequency.value = frequency;
-    gain.gain.value = volume;
+    const t0 = ctx.currentTime;
+    const dur = Math.max(0.05, duration_ms / 1000);
+    const v = Math.max(0.0001, volume * MASTER_GAIN);
+    // R-ребаланс: мягкая атака (0→v за 12 мс) убирает щелчок/резкость; плавный экспон. спад в конце.
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(v, t0 + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.start();
-    // smooth fade out to avoid click
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration_ms / 1000);
-    osc.stop(ctx.currentTime + duration_ms / 1000 + 0.05);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.05);
   } catch {}
 }
 
@@ -169,24 +174,32 @@ export function sndCombo(n: number) { if (_soundEnabled) { const f = 520 + Math.
 export function sndFlip()    { if (_soundEnabled) beep(470, 55, 0.05); }   // свуш переворота
 export function sndMatch()   { if (_soundEnabled) { beep(784, 80, 0.09); setTimeout(() => beep(1047, 110, 0.08), 60); } }
 export function sndPlace()   { if (_soundEnabled) beep(523, 45, 0.06); }   // мягкий тик
+// G-геймификация: раздельные звуки (отличны от обычной победы sndWin).
+export function sndLevelUp() { if (_soundEnabled) { beep(523, 90, 0.1); setTimeout(() => beep(659, 90, 0.1), 90); setTimeout(() => beep(784, 100, 0.1), 180); setTimeout(() => beep(1047, 130, 0.11), 280); setTimeout(() => beep(1319, 280, 0.11), 410); } } // 5-нот восходящая фанфара уровня
+export function sndStreak()  { if (_soundEnabled) { beep(880, 70, 0.09); setTimeout(() => beep(1175, 150, 0.09), 70); } } // быстрый яркий чайм стрика
 
-// ── Фоновая музыка меню (S1) — мягкое синтез-арпеджио, OPT-IN, очень тихо. ──
+// ── Фоновая музыка меню (S1) — мягкое синтез-арпеджио, OPT-IN, очень тихо. F: плавное затухание через мастер-гейн. ──
 let _musicTimer: any = null;
 let _musicIdx = 0;
+let _musicGain: any = null;
 const MUSIC_NOTES = [261.63, 329.63, 392.0, 523.25, 392.0, 329.63];   // C-E-G-C-G-E
 export function startMusic(): void {
   if (!_musicOn || _musicTimer) return;
+  const ac = getAudioCtx(); if (!ac) return;
+  _musicGain = ac.createGain();
+  _musicGain.gain.value = 1;
+  _musicGain.connect(ac.destination);
   const playNote = () => {
-    const ac = getAudioCtx(); if (!ac) return;
+    const c = getAudioCtx(); if (!c || !_musicGain) return;
     const f = MUSIC_NOTES[_musicIdx % MUSIC_NOTES.length]; _musicIdx++;
     try {
-      const t0 = ac.currentTime;
-      const osc = ac.createOscillator(); const g = ac.createGain();
+      const t0 = c.currentTime;
+      const osc = c.createOscillator(); const g = c.createGain();
       osc.type = 'sine'; osc.frequency.value = f;
       g.gain.setValueAtTime(0.0001, t0);
       g.gain.linearRampToValueAtTime(0.03, t0 + 0.4);     // тихо (0.03)
       g.gain.linearRampToValueAtTime(0.0001, t0 + 1.7);
-      osc.connect(g); g.connect(ac.destination);
+      osc.connect(g); g.connect(_musicGain);              // через мастер-гейн музыки → можно плавно гасить
       osc.start(t0); osc.stop(t0 + 1.8);
     } catch { /* no-op */ }
   };
@@ -195,4 +208,12 @@ export function startMusic(): void {
 }
 export function stopMusic(): void {
   if (_musicTimer) { clearInterval(_musicTimer); _musicTimer = null; }
+  const g = _musicGain; _musicGain = null;
+  if (!g) return;
+  // F: плавное затухание 0.5с вместо резкого обрыва, затем отключаем узел.
+  try {
+    const c = getAudioCtx();
+    if (c) { const t = c.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0.0001, t + 0.5); }
+    setTimeout(() => { try { g.disconnect(); } catch { /* no-op */ } }, 700);
+  } catch { try { g.disconnect(); } catch { /* no-op */ } }
 }

@@ -22,7 +22,7 @@ import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { logoForProfile } from '@/src/constants/profileLogos';
 import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
-import { sndToken, sndWin, startMusic, stopMusic } from '@/src/services/feedback';
+import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
@@ -68,12 +68,12 @@ export default function HomeScreen() {
     (async () => {
       const ci = await dailyCheckIn(profile.id);   // T2: отметка дня + бонус токенов (раз в сутки)
       setStreakDays(ci.streak);
-      if (ci.isNew && ci.awarded > 0) { setStreakToast(ci.awarded); setTimeout(() => setStreakToast(null), 2600); }
+      if (ci.isNew && ci.awarded > 0) { setStreakToast(ci.awarded); sndStreak(); setTimeout(() => setStreakToast(null), 2600); }
       const v = await getTokens(profile.id);
       if (prevTokensRef.current !== null && v > prevTokensRef.current) sndToken();   // звон когда очки выросли
       const lv = levelInfo(v).level;
       if (prevLevelRef.current !== null && lv > prevLevelRef.current) {   // повысился уровень
-        setLevelUp(lv); sndWin(); setTimeout(() => setLevelUp(null), 2200);
+        setLevelUp(lv); sndLevelUp(); setTimeout(() => setLevelUp(null), 2200);
       }
       prevTokensRef.current = v; prevLevelRef.current = lv;
       setTokens(v);
