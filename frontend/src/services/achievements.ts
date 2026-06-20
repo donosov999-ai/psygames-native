@@ -53,6 +53,11 @@ export const ACHIEVEMENTS: Achievement[] = [
 
 const UNLOCKED_KEY = 'psygames_achievements_unlocked';
 
+// A2: награда токенами за разблокировку бейджа — по категории (редкое/сложное → больше).
+const ACHIEVEMENT_REWARD: Record<Achievement['category'], number> = {
+  volume: 50, breadth: 75, milestone: 60, streak: 100, quality: 100,
+};
+
 export interface UnlockedRecord { id: string; date: string; }
 
 export async function getUnlocked(): Promise<UnlockedRecord[]> {
@@ -137,6 +142,20 @@ export async function checkNewAchievements(ctx: Context): Promise<Achievement[]>
       unlocked.push({ id: a.id, date: localDateKey(new Date()) });
     }
   }
-  if (newly.length > 0) await saveUnlocked(unlocked);
+  if (newly.length > 0) {
+    await saveUnlocked(unlocked);
+    // A2: начислить токены за каждый новый бейдж — ИДЕМПОТЕНТНО: newly даёт бейдж лишь однажды
+    // (дальше он в UNLOCKED_KEY и исключается на след. проверках). Профиль — тот же глобал, что в api.ts.
+    try {
+      const pid = (globalThis as any).__psygames_active_profile_id as string | undefined;
+      if (pid) {
+        const reward = newly.reduce((sum, a) => sum + (ACHIEVEMENT_REWARD[a.category] ?? 50), 0);
+        if (reward > 0) {
+          const { addTokens } = await import('@/src/services/tokens');
+          await addTokens(pid, reward);
+        }
+      }
+    } catch { /* токены некритичны */ }
+  }
   return newly;
 }
