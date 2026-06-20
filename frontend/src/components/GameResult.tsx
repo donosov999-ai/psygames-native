@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { sndWin } from '@/src/services/feedback';
+import { tokenDelta } from '@/src/services/tokens';
 
 interface GameResultProps {
   time?: number;
@@ -37,10 +38,12 @@ export default function GameResult({
   onGoHome,
 }: GameResultProps) {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const light = gradientIsLight(gradient);
   const fg = light ? '#1a1a1a' : '#FFFFFF';
   const fgSoft = light ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)';
+  // T1: видимый заработок токенов — ТОТ ЖЕ tokenDelta, что начисляет saveSession (совпадает 1:1)
+  const earned = score !== undefined ? tokenDelta(score, errors ?? 0) : 0;
   useEffect(() => { sndWin(); }, []);   // фанфары при показе экрана результата (завершение)
 
   const formatTime = (seconds: number): string => {
@@ -89,6 +92,14 @@ export default function GameResult({
             </View>
           )}
         </View>
+
+        {earned > 0 && (
+          <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: light ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.18)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999 }}>
+            <Text style={{ fontSize: 22 }}>⭐</Text>
+            <Text style={{ color: fg, fontSize: 20, fontWeight: '900' }}>+{earned}</Text>
+            <Text style={{ color: fgSoft, fontSize: 13, fontWeight: '600' }}>{language === 'ru' ? 'заработано' : 'earned'}</Text>
+          </View>
+        )}
       </LinearGradient>
 
       <View style={styles.buttonsContainer}>
