@@ -15,33 +15,30 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const SOUND_KEY = 'psygames_sound_enabled';
 const HAPTIC_KEY = 'psygames_haptic_enabled';
 
-let _soundEnabled: boolean | null = null;
-let _hapticEnabled: boolean | null = null;
+let _soundEnabled = true;     // дефолт ON; loadPrefs перезапишет из хранилища
+let _hapticEnabled = true;
+let _prefsLoaded = false;
 let _audioCtx: any = null;
 
 async function loadPrefs() {
+  if (_prefsLoaded) return;
   try {
-    if (_soundEnabled === null) {
-      const v = await AsyncStorage.getItem(SOUND_KEY);
-      _soundEnabled = v === null ? true : v === 'true';
-    }
-    if (_hapticEnabled === null) {
-      const v = await AsyncStorage.getItem(HAPTIC_KEY);
-      _hapticEnabled = v === null ? true : v === 'true';
-    }
-  } catch {
-    _soundEnabled = true; _hapticEnabled = true;
-  }
+    const v = await AsyncStorage.getItem(SOUND_KEY);
+    _soundEnabled = v === null ? true : v === 'true';
+    const h = await AsyncStorage.getItem(HAPTIC_KEY);
+    _hapticEnabled = h === null ? true : h === 'true';
+  } catch { /* оставляем дефолты ON */ }
+  _prefsLoaded = true;
 }
 loadPrefs();
 
 export async function getSoundEnabled(): Promise<boolean> {
   await loadPrefs();
-  return _soundEnabled ?? true;
+  return _soundEnabled;
 }
 export async function getHapticEnabled(): Promise<boolean> {
   await loadPrefs();
-  return _hapticEnabled ?? true;
+  return _hapticEnabled;
 }
 export async function setSoundEnabled(v: boolean) {
   _soundEnabled = v;
@@ -54,12 +51,26 @@ export async function setHapticEnabled(v: boolean) {
 
 function getAudioCtx(): any {
   if (typeof window === 'undefined') return null;
-  if (_audioCtx) return _audioCtx;
   const W = window as any;
-  const Ctor = W.AudioContext || W.webkitAudioContext;
-  if (!Ctor) return null;
-  try { _audioCtx = new Ctor(); } catch { return null; }
+  if (!_audioCtx) {
+    const Ctor = W.AudioContext || W.webkitAudioContext;
+    if (!Ctor) return null;
+    try { _audioCtx = new Ctor(); } catch { return null; }
+  }
+  // Браузер/WKWebView (Tauri) держат AudioContext в 'suspended' до жеста — будим, иначе beep молчит.
+  try { if (_audioCtx.state === 'suspended') _audioCtx.resume(); } catch {}
   return _audioCtx;
+}
+
+// Разблокировка аудио по первому жесту окна (на случай если первый beep пришёл не прямо из тап-обработчика).
+if (typeof window !== 'undefined' && (window as any).addEventListener) {
+  const _unlock = () => {
+    const c = getAudioCtx();
+    if (c && c.state === 'running') {
+      ['pointerdown', 'keydown', 'touchend'].forEach((e) => (window as any).removeEventListener(e, _unlock));
+    }
+  };
+  ['pointerdown', 'keydown', 'touchend'].forEach((e) => (window as any).addEventListener(e, _unlock, { passive: true }));
 }
 
 function beep(frequency: number, duration_ms: number, volume: number = 0.1) {
