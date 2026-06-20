@@ -364,7 +364,9 @@ export default function RMETGame() {
               <TouchableOpacity key={opt}
                 disabled={feedback !== null}
                 onPress={() => handleAnswer(opt)}
+                activeOpacity={0.85}
                 style={[styles.optBtn, { backgroundColor: bg }]}>
+                <View style={styles.optShine} pointerEvents="none" />
                 <Text style={styles.optText}>{opt}</Text>
               </TouchableOpacity>
             );
@@ -428,6 +430,7 @@ const styles = StyleSheet.create({
   eyeHint: { fontSize: 13, fontStyle: 'italic', textAlign: 'center' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
   optsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
-  optBtn: { paddingVertical: 14, paddingHorizontal: 18, borderRadius: 10, minWidth: 130, alignItems: 'center' },
+  optBtn: { paddingVertical: 13, paddingHorizontal: 24, borderRadius: 999, minWidth: 132, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 5, shadowOffset: { width: 0, height: 3 }, elevation: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
+  optShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: 'rgba(255,255,255,0.18)' },
   optText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
 });

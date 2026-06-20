@@ -202,7 +202,7 @@ export default function TrailMakingGame() {
               <Line
                 key={i}
                 x1={prev.x} y1={prev.y} x2={n.x} y2={n.y}
-                stroke={GRADIENT[0]} strokeWidth={3}
+                stroke={GRADIENT[0]} strokeWidth={4}
               />
             );
           })}
@@ -300,6 +300,7 @@ const styles = StyleSheet.create({
   node: {
     position: 'absolute', width: 44, height: 44, borderRadius: 22,
     justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 3,
   },
   nodeLabel: { fontSize: 15, fontWeight: '700' },
 });
