@@ -318,6 +318,14 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
   const all = await readAll();
   all.push(stored);
   await writeAll(all);
+  // Геймификация: начислить токены в ЦЕНТР (победы +, ошибки −), per-profile.
+  try {
+    const pid = (globalThis as any).__psygames_active_profile_id as string | undefined;
+    if (pid) {
+      const { addTokens, tokenDelta } = await import('@/src/services/tokens');
+      addTokens(pid, tokenDelta(stored.score, stored.errors ?? 0)).catch(() => {});
+    }
+  } catch { /* токены некритичны */ }
   // Notify warmup context FIRST so it enriches the session with metadata,
   // then push to cloud with the enriched version.
   if (_sessionListener) {

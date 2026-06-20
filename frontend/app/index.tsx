@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,8 @@ import GameCard from '@/src/components/GameCard';
 import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { logoForProfile } from '@/src/constants/profileLogos';
+import { getTokens } from '@/src/services/tokens';
+import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import {
@@ -53,6 +55,9 @@ export default function HomeScreen() {
   const [achievementsCount, setAchievementsCount] = useState(0);
   // v1.7.0: ProfileSwitcherModal — открывается из шапки (профиль-чип или 👤 кнопка)
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  // Общие очки-токены ЦЕНТРА (копятся со всех игр; перечит на фокусе главного после игры)
+  const [tokens, setTokens] = useState(0);
+  useFocusEffect(useCallback(() => { if (profile?.id) getTokens(profile.id).then(setTokens); }, [profile?.id]));
 
   useEffect(() => {
     (async () => {
@@ -137,8 +142,13 @@ export default function HomeScreen() {
       <View style={styles.header}>
         {/* v1.30.6: заголовок — на ОТДЕЛЬНОЙ строке во всю ширину (раньше делил ряд с иконками → на Android «PsyGames» переносился/обрезался) */}
         {/* Лого-вордмарк под профиль (9 вариантов, «пока в каждом режиме свой») вместо текста PsyGames */}
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Image source={logoForProfile(profile?.id)} style={{ height: 44, width: 210 }} resizeMode="contain" />
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Image source={logoForProfile(profile?.id)} style={{ height: 44, width: 190 }} resizeMode="contain" />
+          {/* Общие очки-токены центра (⭐) — игровой счёт, копится со всех упражнений */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#fbbf2422', borderWidth: 1.5, borderColor: '#f59e0b', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 100 }}>
+            <Text style={{ fontSize: 15 }}>⭐</Text>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>{tokens}</Text>
+          </View>
         </View>
         <View style={styles.headerRow}>
         <View style={{ flex: 1, gap: 6 }}>

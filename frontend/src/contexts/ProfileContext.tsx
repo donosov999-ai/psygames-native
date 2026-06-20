@@ -117,6 +117,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     try {
       await AsyncStorage.setItem(ACTIVE_PROFILE_KEY, id);
       (globalThis as any).__psygames_active_person = next.person;
+      (globalThis as any).__psygames_active_profile_id = next.id;
     } catch (e) {
       console.warn('ProfileContext save failed:', e);
     }
@@ -158,6 +159,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (globalThis as any).__psygames_active_person = profile.person;
     (globalThis as any).__psygames_active_themed = profile.group === 'themed';
+    (globalThis as any).__psygames_active_profile_id = profile.id;
   }, [profile]);
 
   return (

@@ -742,12 +742,16 @@ export function formatPrice(rub: number): string {
   return `${rub.toLocaleString('ru-RU')} ₽`;
 }
 
+// Доступны во ВСЕХ профилях независимо от whitelist (Денис: парные картинки везде, как goods_sort).
+const ALWAYS_ALLOWED = new Set<string>(['picture_pairs']);
+
 export function isGameAllowed(profile: ProfileDef, gameId: string): boolean {
   if (profile.allowed_games === 'all') return true;
+  if (ALWAYS_ALLOWED.has(gameId)) return true;
   return profile.allowed_games.includes(gameId);
 }
 
 export function filterAllowedGames(profile: ProfileDef) {
   if (profile.allowed_games === 'all') return GAMES;
-  return GAMES.filter(g => (profile.allowed_games as string[]).includes(g.id));
+  return GAMES.filter(g => ALWAYS_ALLOWED.has(g.id) || (profile.allowed_games as string[]).includes(g.id));
 }
