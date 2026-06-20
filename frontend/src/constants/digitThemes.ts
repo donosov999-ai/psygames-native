@@ -34,7 +34,7 @@ const RAINBOW: any[] = [
   require('../../assets/images/digits_rainbow/d7.png'), require('../../assets/images/digits_rainbow/d8.png'), require('../../assets/images/digits_rainbow/d9.png'),
 ];
 
-type DigitStyle = 'candy' | 'elegant' | 'neon' | 'pastel' | 'rainbow';
+export type DigitStyle = 'candy' | 'elegant' | 'neon' | 'pastel' | 'rainbow';
 const SETS: Record<DigitStyle, any[]> = { candy: CANDY, elegant: ELEGANT, neon: NEON, pastel: PASTEL, rainbow: RAINBOW };
 
 const PROFILE_DIGIT_STYLE: Record<string, DigitStyle> = {
@@ -48,4 +48,11 @@ const PROFILE_DIGIT_STYLE: Record<string, DigitStyle> = {
 export function digitsForProfile(profileId?: string): any[] {
   const style = (profileId && PROFILE_DIGIT_STYLE[profileId]) || 'candy';
   return SETS[style];
+}
+
+// Явный выбор стиля (селектор в настройках Судоку — кому авто-цвет не зашёл).
+export const DIGIT_STYLES: DigitStyle[] = ['candy', 'rainbow', 'pastel', 'neon', 'elegant'];
+export function digitsForStyle(style: DigitStyle): any[] { return SETS[style] || CANDY; }
+export function defaultStyleForProfile(profileId?: string): DigitStyle {
+  return (profileId && PROFILE_DIGIT_STYLE[profileId]) || 'candy';
 }

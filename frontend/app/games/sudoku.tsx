@@ -12,7 +12,8 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useProfile } from '@/src/contexts/ProfileContext';
-import { digitsForProfile } from '@/src/constants/digitThemes';
+import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/constants/digitThemes';
+import type { DigitStyle } from '@/src/constants/digitThemes';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
 // Рисованные цифры — набор под активный профиль (см. src/constants/digitThemes.ts).
@@ -72,7 +73,8 @@ export default function SudokuGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const { profile } = useProfile();
-  const DIGIT_IMG = digitsForProfile(profile?.id);
+  const [digitStyle, setDigitStyle] = useState<DigitStyle>(() => defaultStyleForProfile(profile?.id));
+  const DIGIT_IMG = digitsForStyle(digitStyle);
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
@@ -212,6 +214,20 @@ export default function SudokuGame() {
               <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
                 {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')}
               </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+      {/* Выбор стиля цифр — кому авто-цвет под профиль не зашёл */}
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Стиль цифр' : 'Digit style'}</Text>
+        <View style={styles.optionButtons}>
+          {DIGIT_STYLES.map((st) => (
+            <TouchableOpacity key={st} onPress={() => setDigitStyle(st)}
+              style={[styles.modeButton, { paddingVertical: 6, paddingHorizontal: 10 }, digitStyle === st
+                ? { backgroundColor: GRADIENT[0], borderWidth: 2, borderColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border }]}>
+              <Image source={digitsForStyle(st)[5]} style={{ width: 30, height: 30 }} resizeMode="contain" />
             </TouchableOpacity>
           ))}
         </View>
