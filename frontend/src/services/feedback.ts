@@ -177,6 +177,9 @@ export function sndPlace()   { if (_soundEnabled) beep(523, 45, 0.06); }   // м
 // G-геймификация: раздельные звуки (отличны от обычной победы sndWin).
 export function sndLevelUp() { if (_soundEnabled) { beep(523, 90, 0.1); setTimeout(() => beep(659, 90, 0.1), 90); setTimeout(() => beep(784, 100, 0.1), 180); setTimeout(() => beep(1047, 130, 0.11), 280); setTimeout(() => beep(1319, 280, 0.11), 410); } } // 5-нот восходящая фанфара уровня
 export function sndStreak()  { if (_soundEnabled) { beep(880, 70, 0.09); setTimeout(() => beep(1175, 150, 0.09), 70); } } // быстрый яркий чайм стрика
+// SND-T: таймер в играх на время — тихий тик последних 5 секунд + сигнал «время вышло».
+export function sndTimerTick() { if (_soundEnabled) beep(1000, 45, 0.045); }
+export function sndTimerEnd()  { if (_soundEnabled) { beep(523, 130, 0.09); setTimeout(() => beep(392, 230, 0.09), 130); } }
 
 // ── Фоновая музыка меню (S1) — мягкое синтез-арпеджио, OPT-IN, очень тихо. F: плавное затухание через мастер-гейн. ──
 let _musicTimer: any = null;

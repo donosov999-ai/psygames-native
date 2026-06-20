@@ -14,6 +14,13 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.80.0] — 2026-06-21
+
+### Added — SND-T: звук таймера в играх на время
+- math-sprint / sdmt / phonemic-fluency: тихий тик в последние 5 секунд + сигнал «время вышло». Раньше время было немое. (CPT не трогал — длинный sustained-тест, звук помешал бы чистоте стимула.)
+
+---
+
 ## [1.79.0] — 2026-06-21
 
 ### Fixed — Goods Sort высота + Find Differences наложения

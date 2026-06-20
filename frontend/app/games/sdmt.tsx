@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -80,15 +81,18 @@ export default function SdmtGame() {
     newStim(km);
     setPhase('playing');
     startTimeRef.current = Date.now();
+    let lastSec = duration;
     intervalRef.current = setInterval(() => {
       const left = duration - Math.floor((Date.now() - startTimeRef.current) / 1000);
       setRemaining(left);
+      if (left !== lastSec) { lastSec = left; if (left > 0 && left <= 5) sndTimerTick(); }   // SND-T: тик последних 5с
       if (left <= 0) finish(km);
     }, 200);
   };
 
   const finish = async (km: KeyMap[]) => {
     if (intervalRef.current) clearInterval(intervalRef.current);
+    sndTimerEnd();   // SND-T: «время вышло»
     setRemaining(0);
     setPhase('result');
     try {

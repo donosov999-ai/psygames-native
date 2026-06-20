@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
@@ -92,17 +93,21 @@ export default function MathSprintGame() {
     setPhase('playing');
     const start = Date.now();
     setStartTime(start);
+    let lastSec = Math.ceil(duration);
     tickRef.current = setInterval(() => {
       const elapsed = (Date.now() - start) / 1000;
       setElapsedTime(elapsed);
       const remaining = Math.max(0, duration - elapsed);
       setTimeLeft(remaining);
+      const s = Math.ceil(remaining);
+      if (s !== lastSec) { lastSec = s; if (s > 0 && s <= 5) sndTimerTick(); }   // SND-T: тик последних 5с
       if (remaining <= 0) finishGame();
     }, 100);
   };
 
   const finishGame = async () => {
     if (tickRef.current) clearInterval(tickRef.current);
+    sndTimerEnd();   // SND-T: «время вышло»
     setPhase('result');
     try {
       await saveSession({
