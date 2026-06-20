@@ -17,9 +17,14 @@ interface Props {
 // пружина нажатия + хаптик. Замена плоским «архаичным» кнопкам в меню игр.
 export default function JuicyButton({ label, onPress, colors = ['#f857a6', '#ff5858'], icon, tint = '#fff', style }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
+  const hov = useRef(false);   // десктоп: ховер-подъём при наведении
   const spring = (to: number) => Animated.spring(scale, { toValue: to, friction: 6, tension: 220, useNativeDriver: true }).start();
   return (
-    <Pressable style={style} onPressIn={() => spring(0.95)} onPressOut={() => spring(1)} onPress={() => { hapticTap(); onPress(); }}>
+    <Pressable style={style}
+      onHoverIn={() => { hov.current = true; spring(1.04); }}
+      onHoverOut={() => { hov.current = false; spring(1); }}
+      onPressIn={() => spring(0.95)} onPressOut={() => spring(hov.current ? 1.04 : 1)}
+      onPress={() => { hapticTap(); onPress(); }}>
       <Animated.View style={[styles.shadow, { transform: [{ scale }] }]}>
         <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.face}>
           <View style={styles.highlight} pointerEvents="none" />

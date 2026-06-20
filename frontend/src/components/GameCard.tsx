@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform, Image } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, Animated, useWindowDimensions, Platform, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -42,6 +42,8 @@ export default function GameCard({
 }: GameCardProps) {
   useTheme();
   const gameImg = gameIcon(id);
+  const scale = useRef(new Animated.Value(1)).current;
+  const spring = (to: number) => Animated.spring(scale, { toValue: to, friction: 7, useNativeDriver: true }).start();
   const { t } = useLanguage();
   const { width: winWidth } = useWindowDimensions();
   const isWeb = Platform.OS === 'web';
@@ -89,11 +91,13 @@ export default function GameCard({
 
   return (
     <View style={wrapperStyle}>
-      <TouchableOpacity
+      <Pressable
         onPress={onPress}
-        activeOpacity={0.8}
+        onHoverIn={() => spring(1.03)}
+        onHoverOut={() => spring(1)}
         style={{ flex: 1 }}
       >
+        <Animated.View style={{ flex: 1, transform: [{ scale }] }}>
         <LinearGradient
           colors={gradient as [string, string]}
           start={{ x: 0, y: 0 }}
@@ -119,7 +123,8 @@ export default function GameCard({
           <Text style={[styles.skillText, { color: badgeFg }]} numberOfLines={1}>{t(skillKey)}</Text>
         </View>
         </LinearGradient>
-      </TouchableOpacity>
+        </Animated.View>
+      </Pressable>
     </View>
   );
 }

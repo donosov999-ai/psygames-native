@@ -12,12 +12,15 @@ interface Props extends Omit<PressableProps, 'style'> {
 // Нажимается «вкусно»: лёгкое вдавливание пружиной + хаптик. Обёртка над Pressable.
 export default function JuicyPressable({ style, haptic = true, scaleTo = 0.92, onPress, disabled, children, ...rest }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
+  const hov = useRef(false);   // десктоп: ховер-подъём
   const spring = (to: number) => Animated.spring(scale, { toValue: to, friction: 6, tension: 220, useNativeDriver: true }).start();
   return (
     <Pressable
       disabled={disabled}
+      onHoverIn={() => { hov.current = true; spring(1.03); }}
+      onHoverOut={() => { hov.current = false; spring(1); }}
       onPressIn={() => spring(scaleTo)}
-      onPressOut={() => spring(1)}
+      onPressOut={() => spring(hov.current ? 1.03 : 1)}
       onPress={(e: GestureResponderEvent) => { if (!disabled) { if (haptic) hapticTap(); onPress?.(e); } }}
       {...rest}
     >
