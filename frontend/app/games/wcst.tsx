@@ -25,6 +25,8 @@ type Count = 1 | 2 | 3 | 4;
 type Rule = 'color' | 'shape' | 'count';
 
 const COLOR_HEX: Record<Color, string> = { R: '#ef4444', G: '#22c55e', B: '#3b82f6', Y: '#eab308' };
+// A1 колор-блайнд — Okabe-Ito (вермильон/бирюз-зелёный/синий/жёлтый, различимы при дальтонизме).
+const COLOR_HEX_CB: Record<Color, string> = { R: '#d55e00', G: '#009e73', B: '#0072b2', Y: '#f0e442' };
 const COLORS: Color[] = ['R','G','B','Y'];
 const SHAPES: Shape[] = ['circle','triangle','square','star'];
 const COUNTS: Count[] = [1,2,3,4];
@@ -59,7 +61,8 @@ function matchByRule(target: Card, ref: Card, rule: Rule): boolean {
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
 export default function WcstGame() {
-  const { colors } = useTheme();
+  const { colors, colorblind } = useTheme();
+  const HEX = colorblind ? COLOR_HEX_CB : COLOR_HEX;
   const { t, language } = useLanguage();
   const router = useRouter();
 
@@ -180,7 +183,7 @@ export default function WcstGame() {
         <View style={styles.shapeRow}>
           {Array.from({ length: card.count }).map((_, i) => (
             <View key={i} style={{ marginHorizontal: 3, shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }}>
-              {renderShape(card.shape, COLOR_HEX[card.color], isRef ? 18 : 28)}
+              {renderShape(card.shape, HEX[card.color], isRef ? 18 : 28)}
             </View>
           ))}
         </View>

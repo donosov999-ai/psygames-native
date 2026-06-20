@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useProfile } from './ProfileContext';
 import type { ProfileId } from '@/src/constants/profiles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ThemeColors {
   background: string;
@@ -68,6 +69,9 @@ interface ThemeContextType {
   colors: ThemeColors;
   /** true = текущая тема задана профилем (нет ручного override). */
   themeFromProfile: boolean;
+  /** A1: колор-блайнд режим — игры с цвет-идентичностью (WCST, Башня) берут Okabe-Ito палитру. */
+  colorblind: boolean;
+  setColorblind: (v: boolean) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -76,6 +80,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { profile } = useProfile();
   // Ручной override темы (на сессию). null = тему задаёт профиль.
   const [override, setOverride] = useState<null | 'dark' | 'light'>(null);
+  const [colorblind, setColorblindState] = useState(false);
+  useEffect(() => { AsyncStorage.getItem('psygames_colorblind').then((v) => { if (v !== null) setColorblindState(v === 'true'); }).catch(() => {}); }, []);
+  const setColorblind = (v: boolean) => { setColorblindState(v); AsyncStorage.setItem('psygames_colorblind', String(v)).catch(() => {}); };
 
   // При смене профиля сбрасываем override — профиль снова задаёт цвет.
   useEffect(() => {
@@ -91,7 +98,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = () => setOverride(isDark ? 'light' : 'dark');
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme, colors, themeFromProfile: override === null }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme, colors, themeFromProfile: override === null, colorblind, setColorblind }}>
       {children}
     </ThemeContext.Provider>
   );

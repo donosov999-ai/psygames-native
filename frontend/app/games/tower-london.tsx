@@ -24,6 +24,10 @@ type Ball = 'R' | 'G' | 'B';
 const BALL_GRADIENTS: Record<Ball, [string, string]> = {
   R: ['#fca5a5', '#dc2626'], G: ['#86efac', '#16a34a'], B: ['#93c5fd', '#2563eb'],
 };
+// A1 колор-блайнд — Okabe-Ito (вермильон/бирюз-зелёный/синий, различимы при дальтонизме).
+const BALL_GRADIENTS_CB: Record<Ball, [string, string]> = {
+  R: ['#f0a07a', '#c44d00'], G: ['#7fd9bf', '#007a59'], B: ['#7fb8e0', '#005a8c'],
+};
 const PEG_CAPS = [3, 2, 1];
 
 type State = Ball[][]; // 3 arrays bottom→top
@@ -98,7 +102,8 @@ function makePuzzle(diff: Difficulty): { start: State; goal: State; minMoves: nu
 }
 
 export default function TowerLondonGame() {
-  const { colors } = useTheme();
+  const { colors, colorblind } = useTheme();
+  const BG = colorblind ? BALL_GRADIENTS_CB : BALL_GRADIENTS;
   const { t, language } = useLanguage();
   const router = useRouter();
 
@@ -203,7 +208,7 @@ export default function TowerLondonGame() {
         {/* balls bottom to top */}
         <View style={styles.pegStack}>
           {balls.map((b, i) => (
-            <LinearGradient key={i} colors={BALL_GRADIENTS[b]} start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }} style={styles.ball}>
+            <LinearGradient key={i} colors={BG[b]} start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }} style={styles.ball}>
               <View style={styles.ballShine} pointerEvents="none" />
             </LinearGradient>
           ))}

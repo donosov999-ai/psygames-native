@@ -50,7 +50,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
 };
 
 export default function SettingsScreen() {
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { colors, isDark, toggleTheme, colorblind, setColorblind } = useTheme();
   const { t, language, setLanguage } = useLanguage();
   const {
     profile, switchProfile, allProfiles,
@@ -597,6 +597,14 @@ export default function SettingsScreen() {
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('label_vibration')}</Text>
           </View>
           <Switch value={hapticOn} onValueChange={toggleHaptic} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+        </View>
+        {/* A1: колор-блайнд режим — игры с цвет-идентичностью берут различимую палитру */}
+        <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
+          <View style={styles.settingInfo}>
+            <Ionicons name="eye-outline" size={24} color={colors.primary} />
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Без цвета (дальтонизм)' : 'Colorblind mode'}</Text>
+          </View>
+          <Switch value={colorblind} onValueChange={setColorblind} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
 
         {/* Reminders — local notifications (native only; web/Tauri can't schedule) */}
