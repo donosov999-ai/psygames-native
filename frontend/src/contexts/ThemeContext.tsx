@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useProfile } from './ProfileContext';
 import type { ProfileId } from '@/src/constants/profiles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getEquippedAccent } from '@/src/services/cosmetics';
 
 interface ThemeColors {
   background: string;
@@ -72,6 +73,9 @@ interface ThemeContextType {
   /** A1: колор-блайнд режим — игры с цвет-идентичностью (WCST, Башня) берут Okabe-Ito палитру. */
   colorblind: boolean;
   setColorblind: (v: boolean) => void;
+  /** Косметика: hex надетого акцента (override профильного), null = профильный. */
+  cosmeticAccent: string | null;
+  refreshCosmeticAccent: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -84,6 +88,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { AsyncStorage.getItem('psygames_colorblind').then((v) => { if (v !== null) setColorblindState(v === 'true'); }).catch(() => {}); }, []);
   const setColorblind = (v: boolean) => { setColorblindState(v); AsyncStorage.setItem('psygames_colorblind', String(v)).catch(() => {}); };
 
+  // Косметика: надетый акцент (override профильного). refreshCosmeticAccent зовёт магазин после equip.
+  const [cosmeticAccent, setCosmeticAccent] = useState<string | null>(null);
+  const refreshCosmeticAccent = useCallback(() => {
+    const pid = (profile as any)?.id;
+    if (pid) getEquippedAccent(pid).then(setCosmeticAccent).catch(() => {});
+    else setCosmeticAccent(null);
+  }, [profile?.id]);
+  useEffect(() => { refreshCosmeticAccent(); }, [refreshCosmeticAccent]);
+
   // При смене профиля сбрасываем override — профиль снова задаёт цвет.
   useEffect(() => {
     setOverride(null);
@@ -93,12 +106,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const mood = override ?? pt.mood;
   const isDark = mood === 'dark';
   const base = isDark ? darkTheme : lightTheme;
-  const colors: ThemeColors = { ...base, primary: pt.accent };
+  const colors: ThemeColors = { ...base, primary: cosmeticAccent ?? pt.accent };
 
   const toggleTheme = () => setOverride(isDark ? 'light' : 'dark');
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme, colors, themeFromProfile: override === null, colorblind, setColorblind }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme, colors, themeFromProfile: override === null, colorblind, setColorblind, cosmeticAccent, refreshCosmeticAccent }}>
       {children}
     </ThemeContext.Provider>
   );

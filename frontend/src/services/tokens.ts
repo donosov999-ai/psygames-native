@@ -33,6 +33,15 @@ export function tokenDelta(score: number, errors: number): number {
   return Math.round((score || 0) / 20) - (errors || 0);
 }
 
+// Потратить токены (покупка косметики). false если не хватает — баланс НЕ уходит в минус.
+export async function spendTokens(profileId: string, cost: number): Promise<boolean> {
+  if (!profileId || cost <= 0) return true;
+  const cur = await getTokens(profileId);
+  if (cur < cost) return false;
+  await addTokens(profileId, -cost);
+  return true;
+}
+
 // ── Уровень профиля от накопленных токенов (геймификация T1) — токены теперь ЧТО-ТО дают ──
 const LEVEL_THRESH = [0, 80, 200, 400, 700, 1100, 1700, 2500, 3600, 5000, 7000];
 const LEVEL_TITLE_RU = ['Новичок', 'Ученик', 'Игрок', 'Боец', 'Эксперт', 'Мастер', 'Гроссмейстер', 'Виртуоз', 'Гуру', 'Легенда', 'Кибермозг'];

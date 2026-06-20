@@ -186,20 +186,21 @@ export default function HomeScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Image source={logoForProfile(profile?.id)} style={{ height: 44, width: 190 }} resizeMode="contain" />
           {/* Очки-токены центра (⭐) + уровень профиля от накопленных токенов (T1 геймификация) */}
-          <View style={{ alignItems: 'flex-end', gap: 3 }}>
+          <TouchableOpacity activeOpacity={0.8} onPress={() => router.push('/shop' as any)} style={{ alignItems: 'flex-end', gap: 3 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fbbf2422', borderWidth: 1.5, borderColor: '#f59e0b', paddingVertical: 4, paddingHorizontal: 11, borderRadius: 100 }}>
               <Text style={{ fontSize: 14 }}>⭐</Text>
               <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>{tokens}</Text>
               <View style={{ width: 1, height: 12, backgroundColor: '#f59e0b88' }} />
               <Text style={{ color: '#b45309', fontWeight: '800', fontSize: 12 }}>Lv {lvl.level}</Text>
               {streakDays > 0 && <Text style={{ fontSize: 13 }}>🔥{streakDays}</Text>}
+              <Text style={{ fontSize: 12 }}>🛍️</Text>
             </View>
             {lvl.span !== null && (
               <View style={{ width: 104, height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden' }}>
                 <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 4, backgroundColor: '#f59e0b' }} />
               </View>
             )}
-          </View>
+          </TouchableOpacity>
         </View>
         <View style={styles.headerRow}>
         <View style={{ flex: 1, gap: 6 }}>
