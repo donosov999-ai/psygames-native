@@ -217,14 +217,20 @@ export default function StatisticsScreen() {
                       </Text>
                     </View>
                   </View>
-                  {(sessionsByGame[stat.game_type]?.length ?? 0) >= 2 && (
-                    <View>
-                      <Text style={[styles.statLabel, { color: colors.textSecondary, marginTop: 12 }]}>
-                        {language === 'ru' ? 'Очки — последние игры' : 'Score — recent games'}
-                      </Text>
-                      <Sparkline data={sessionsByGame[stat.game_type].slice(-12)} color={(gameConfig.gradient as string[])[1]} />
-                    </View>
-                  )}
+                  {(sessionsByGame[stat.game_type]?.length ?? 0) >= 2 && (() => {
+                    const arr = sessionsByGame[stat.game_type];
+                    const best = Math.max(...arr);
+                    const avg = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
+                    const caption = best > 0
+                      ? (language === 'ru' ? `Очки — рекорд ${best} · ⌀ ${avg}` : `Score — best ${best} · avg ${avg}`)
+                      : (language === 'ru' ? 'Динамика — последние игры' : 'Trend — recent games');
+                    return (
+                      <View>
+                        <Text style={[styles.statLabel, { color: colors.textSecondary, marginTop: 12 }]}>{caption}</Text>
+                        <Sparkline data={arr.slice(-12)} color={(gameConfig.gradient as string[])[1]} />
+                      </View>
+                    );
+                  })()}
                 </View>
               </View>
             );
