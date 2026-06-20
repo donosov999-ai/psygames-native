@@ -251,7 +251,7 @@ export default function MemoryMatrixGame() {
           const isLit = matrixMode === 'static' ? litCells.has(i) : (activeIdx === i);
           const isPicked = pickedCells.has(i);
           let bg = colors.surface;
-          let border = colors.border;
+          let border = colors.textSecondary;   // заметная рамка (было colors.border — бледная, поля не видно на светлой теме)
           if (phase === 'showing' && isLit) bg = GRADIENT[0];
           else if (phase === 'input' && isPicked) bg = isLit ? '#22c55e' : '#f43f5e';
           else if (phase === 'feedback') {
@@ -266,7 +266,7 @@ export default function MemoryMatrixGame() {
               onPress={() => handleCellPress(i)}
               style={[
                 styles.cell,
-                { width: cellSize, height: cellSize, backgroundColor: bg, borderColor: border },
+                { width: cellSize, height: cellSize, backgroundColor: bg, borderColor: border, borderWidth: 2 },
               ]}
             />
           );

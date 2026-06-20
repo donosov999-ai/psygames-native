@@ -14,8 +14,14 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useProfile } from '@/src/contexts/ProfileContext';
 
 const GRADIENT = ['#a8c0ff', '#3f2b96'];
+// Базовый тон дисков под профиль — каждый профиль = своя цветовая семья (монохром-стек).
+const DISC_HUE: Record<string, number> = {
+  chess: 42, odv999: 45, free: 40, nzt48: 270, seniors: 265, polyglot: 232,
+  women: 330, kids: 145, drivers: 22, execs: 175, students: 30, vasilyeva: 200,
+};
 const HANOI_BENEFITS = [
   { icon: 'extension-puzzle-outline', textKey: 'benefitHanoi1' },
   { icon: 'analytics-outline', textKey: 'benefitHanoi2' },
@@ -26,6 +32,7 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
 export default function HanoiGame() {
   const { colors } = useTheme();
+  const { profile } = useProfile();
   const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -103,6 +110,7 @@ export default function HanoiGame() {
   const pegW = Math.min(width / 4, 110);
   const discBaseW = pegW * 0.35;
   const discStep = (pegW - discBaseW) / Math.max(discs, 2);
+  const baseHue = DISC_HUE[profile?.id ?? ''] ?? 215;
 
   const renderConfig = () => (
     <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
@@ -158,16 +166,17 @@ export default function HanoiGame() {
           >
             <View style={styles.pegStack}>
               {peg.map((size, i) => (
-                <View
+                <LinearGradient
                   key={i}
-                  style={[
-                    styles.disc,
-                    {
-                      width: discBaseW + size * discStep,
-                      backgroundColor: `hsl(${(size * 360) / discs}, 70%, 60%)`,
-                    },
+                  colors={[
+                    `hsl(${baseHue}, 68%, ${Math.min(82, 55 + (size / discs) * 28)}%)`,
+                    `hsl(${baseHue}, 74%, ${Math.max(34, 42 + (size / discs) * 18)}%)`,
                   ]}
-                />
+                  start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+                  style={[styles.disc, { width: discBaseW + size * discStep }]}
+                >
+                  <View style={styles.discShine} pointerEvents="none" />
+                </LinearGradient>
               ))}
               <View style={[styles.pole, { backgroundColor: colors.text }]} />
               <View style={[styles.pegBase, { backgroundColor: colors.text, width: pegW - 12 }]} />
@@ -232,6 +241,7 @@ const styles = StyleSheet.create({
   pegStack: { alignItems: 'center', justifyContent: 'flex-end', position: 'relative', minHeight: 220 },
   pole: { position: 'absolute', width: 6, height: 200, bottom: 4, borderRadius: 3, opacity: 0.3 },
   pegBase: { height: 8, borderRadius: 4 },
-  disc: { height: 22, marginTop: 2, borderRadius: 4 },
+  disc: { height: 22, marginTop: 2, borderRadius: 7, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  discShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%', backgroundColor: 'rgba(255,255,255,0.28)' },
   hintText: { fontSize: 12, textAlign: 'center' },
 });
