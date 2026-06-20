@@ -20,6 +20,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import GameCard from '@/src/components/GameCard';
 import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
+import { logoForProfile } from '@/src/constants/profileLogos';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import {
@@ -135,9 +136,9 @@ export default function HomeScreen() {
       {/* Header — v1.7.0: профиль-чип теперь кликабельный (открывает switcher) */}
       <View style={styles.header}>
         {/* v1.30.6: заголовок — на ОТДЕЛЬНОЙ строке во всю ширину (раньше делил ряд с иконками → на Android «PsyGames» переносился/обрезался) */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Image source={FEATURE_ICONS.brainmark} style={{ width: 36, height: 36 }} resizeMode="contain" />
-          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1} allowFontScaling={false}>PsyGames</Text>
+        {/* Лого-вордмарк под профиль (9 вариантов, «пока в каждом режиме свой») вместо текста PsyGames */}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Image source={logoForProfile(profile?.id)} style={{ height: 44, width: 210 }} resizeMode="contain" />
         </View>
         <View style={styles.headerRow}>
         <View style={{ flex: 1, gap: 6 }}>

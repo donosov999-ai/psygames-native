@@ -247,6 +247,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(128,128,128,0.4)',   // заметная рамка — карточка не сливается со светлым фоном
   },
   descriptionHeader: {
     flexDirection: 'row',
@@ -268,6 +270,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(128,128,128,0.4)',
   },
   benefitsHeader: {
     flexDirection: 'row',
@@ -305,6 +309,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(128,128,128,0.4)',
   },
   tipsHeader: {
     flexDirection: 'row',

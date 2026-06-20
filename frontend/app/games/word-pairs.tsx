@@ -589,6 +589,8 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 10,
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(128,128,128,0.4)',
   },
   wordButtonText: {
     fontSize: 14,

@@ -224,7 +224,7 @@ export default function ClozeGame() {
                 key={o}
                 style={[
                   styles.answerButton,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  { backgroundColor: colors.surface, borderColor: colors.textSecondary },
                   isRight && { backgroundColor: '#34d399', borderColor: '#34d399' },
                   isWrongPick && { backgroundColor: '#f43f5e', borderColor: '#f43f5e' },
                 ]}
@@ -328,13 +328,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     alignItems: 'center',
     marginBottom: 14,
+    borderWidth: 1.5,
+    borderColor: 'rgba(128,128,128,0.3)',
   },
   promptPhrase: { fontSize: 24, fontWeight: '700', textAlign: 'center', lineHeight: 34 },
   hint: { fontSize: 13, textAlign: 'center', marginBottom: 14 },
   optionsWrap: { gap: 10 },
   answerButton: {
     borderRadius: 14,
-    borderWidth: 1,
+    borderWidth: 1.5,
     paddingVertical: 16,
     paddingHorizontal: 16,
     alignItems: 'center',

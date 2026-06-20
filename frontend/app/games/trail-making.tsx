@@ -209,12 +209,11 @@ export default function TrailMakingGame() {
         </Svg>
         {nodes.map((n, i) => {
           const done = i < currentIdx;
-          const isNext = i === currentIdx;
           let bg = colors.card;
           let textColor = colors.text;
-          let borderColor = colors.border;
+          let borderColor = colors.textSecondary;   // все невыполненные узлы — одинаковая заметная рамка
+          // следующий узел НЕ подсвечиваем: искать его по последовательности и есть суть игры (было: оранжевая рамка выдавала ГДЕ он)
           if (done) { bg = GRADIENT[0]; textColor = '#FFF'; borderColor = GRADIENT[0]; }
-          else if (isNext) { borderColor = GRADIENT[1]; }
           return (
             <TouchableOpacity
               key={i}
@@ -227,7 +226,7 @@ export default function TrailMakingGame() {
                   top: n.y - 22,
                   backgroundColor: bg,
                   borderColor,
-                  borderWidth: isNext ? 3 : 2,
+                  borderWidth: 2,
                 },
               ]}
             >
