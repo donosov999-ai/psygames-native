@@ -13,7 +13,7 @@ import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { getAllStats, GameStats } from '@/src/services/api';
+import { getAllStats, GameStats, getSessions } from '@/src/services/api';
 import { getTokens, levelInfo, getStreak } from '@/src/services/tokens';
 import { GAMES } from '@/src/constants/games';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,6 +30,7 @@ export default function StatisticsScreen() {
   const [scopeAll, setScopeAll] = useState(false);  // false = текущий профиль, true = все игры
   const [tokens, setTokens] = useState(0);          // D1: токены/уровень/стрик в герое
   const [streakDays, setStreakDays] = useState(0);
+  const [sessionsByGame, setSessionsByGame] = useState<Record<string, number[]>>({});  // D1.2: тренды очков
 
   useEffect(() => {
     loadStats();
@@ -40,6 +41,14 @@ export default function StatisticsScreen() {
       const allStats = await getAllStats();
       setStats(allStats);
       if (profile?.id) { setTokens(await getTokens(profile.id)); setStreakDays(await getStreak(profile.id)); }
+      // D1.2: сгруппировать очки по играм в хронологии для спарклайнов
+      const allSessions = await getSessions();
+      const byGame: Record<string, number[]> = {};
+      for (const s of allSessions) {
+        if (!s.game_type) continue;
+        (byGame[s.game_type] ||= []).push(typeof s.score === 'number' && isFinite(s.score) ? s.score : 0);
+      }
+      setSessionsByGame(byGame);
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {
@@ -208,6 +217,14 @@ export default function StatisticsScreen() {
                       </Text>
                     </View>
                   </View>
+                  {(sessionsByGame[stat.game_type]?.length ?? 0) >= 2 && (
+                    <View>
+                      <Text style={[styles.statLabel, { color: colors.textSecondary, marginTop: 12 }]}>
+                        {language === 'ru' ? 'Очки — последние игры' : 'Score — recent games'}
+                      </Text>
+                      <Sparkline data={sessionsByGame[stat.game_type].slice(-12)} color={(gameConfig.gradient as string[])[1]} />
+                    </View>
+                  )}
                 </View>
               </View>
             );
@@ -226,6 +243,23 @@ export default function StatisticsScreen() {
         </ScrollView>
       )}
     </SafeAreaView>
+  );
+}
+
+// D1.2: мини-спарклайн тренда очков (бары; нормализация min..max; ramp прозрачности старое→свежее)
+function Sparkline({ data, color }: { data: number[]; color: string }) {
+  if (data.length < 2) return null;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const span = max - min || 1;
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 26, gap: 2, marginTop: 6 }}>
+      {data.map((v, i) => {
+        const h = 5 + Math.round(((v - min) / span) * 19);
+        const op = 0.35 + 0.65 * (i / (data.length - 1));
+        return <View key={i} style={{ flex: 1, height: h, backgroundColor: color, borderRadius: 2, opacity: op }} />;
+      })}
+    </View>
   );
 }
 
