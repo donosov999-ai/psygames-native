@@ -81,8 +81,9 @@ export default function ShopScreen() {
               <View style={[styles.swatch, { backgroundColor: c.value }]} />
               <View style={{ flex: 1 }}>
                 <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{ru ? c.nameRu : c.nameEn}</Text>
-                <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
-                  {owned ? (ru ? 'Куплено' : 'Owned') : `${c.cost} ⭐`}
+                <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 16 }}>{ru ? c.descRu : c.descEn}</Text>
+                <Text style={{ color: owned ? colors.textSecondary : colors.text, fontSize: 13, fontWeight: '700', marginTop: 3 }}>
+                  {owned ? (ru ? '✓ Куплено' : '✓ Owned') : `${c.cost} ⭐`}
                 </Text>
               </View>
               {owned ? (
