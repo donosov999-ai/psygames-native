@@ -259,6 +259,13 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
+            onPress={() => router.push('/shop' as any)}
+            accessibilityLabel={language === 'ru' ? 'Магазин' : 'Shop'}
+          >
+            <Ionicons name="bag-handle" size={21} color={colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/statistics')}
             accessibilityLabel={t('statistics')}
           >
