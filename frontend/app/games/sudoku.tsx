@@ -11,21 +11,11 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { digitsForProfile } from '@/src/constants/digitThemes';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
-// Рисованные цифры (Nano Banana 2, глянец-3D, прозрачный PNG). Индекс = цифра (1..9).
-const DIGIT_IMG: any[] = [
-  null,
-  require('../../assets/images/digits/d1.png'),
-  require('../../assets/images/digits/d2.png'),
-  require('../../assets/images/digits/d3.png'),
-  require('../../assets/images/digits/d4.png'),
-  require('../../assets/images/digits/d5.png'),
-  require('../../assets/images/digits/d6.png'),
-  require('../../assets/images/digits/d7.png'),
-  require('../../assets/images/digits/d8.png'),
-  require('../../assets/images/digits/d9.png'),
-];
+// Рисованные цифры — набор под активный профиль (см. src/constants/digitThemes.ts).
 const SUDOKU_BENEFITS = [
   { icon: 'extension-puzzle-outline', textKey: 'benefitSudoku1' },
   { icon: 'analytics-outline', textKey: 'benefitSudoku2' },
@@ -81,6 +71,8 @@ function generatePuzzle(blanks: number, N: number, BR: number, BC: number): { pu
 export default function SudokuGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const { profile } = useProfile();
+  const DIGIT_IMG = digitsForProfile(profile?.id);
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
