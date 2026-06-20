@@ -128,3 +128,16 @@ export function fbAchievement() {
   }
   if (_hapticEnabled) vibrate([0, 40, 20, 40, 20, 40, 20, 100]);
 }
+
+// ─── ЗВУК-ОНЛИ (хаптик в juice/haptics отдельно) + новые события (v1.58) ──
+// Подключены к существующему флагу psygames_sound_enabled (тумблер «Звук» в настройках).
+export function sndTap()     { if (_soundEnabled) beep(660, 45, 0.05); }
+export function sndCorrect() { if (_soundEnabled) beep(880, 85, 0.09); }
+export function sndWrong()   { if (_soundEnabled) beep(220, 180, 0.11); }
+export function sndWin()     { if (_soundEnabled) { beep(523, 110, 0.1); setTimeout(() => beep(659, 110, 0.1), 100); setTimeout(() => beep(784, 180, 0.1), 200); setTimeout(() => beep(1047, 220, 0.1), 300); } }   // фанфары до-ми-соль-до
+export function sndLose()    { if (_soundEnabled) { beep(392, 170, 0.1); setTimeout(() => beep(330, 170, 0.1), 140); setTimeout(() => beep(262, 230, 0.1), 280); } } // нисходящее
+export function sndToken()   { if (_soundEnabled) { beep(1175, 70, 0.09); setTimeout(() => beep(1568, 120, 0.08), 60); } } // звонкая монетка
+export function sndCombo(n: number) { if (_soundEnabled) { const f = 520 + Math.min(Math.max(n, 0), 8) * 55; beep(f, 90, 0.08); setTimeout(() => beep(Math.round(f * 1.5), 90, 0.07), 50); } }
+export function sndFlip()    { if (_soundEnabled) beep(470, 55, 0.05); }   // свуш переворота
+export function sndMatch()   { if (_soundEnabled) { beep(784, 80, 0.09); setTimeout(() => beep(1047, 110, 0.08), 60); } }
+export function sndPlace()   { if (_soundEnabled) beep(523, 45, 0.06); }   // мягкий тик

@@ -12,6 +12,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
+import { sndCombo } from '@/src/services/feedback';
 
 const GRADIENT = ['#f7971e', '#ffd200'];
 const GOODS_BENEFITS = [
@@ -177,7 +178,7 @@ export default function GoodsSortGame() {
       }
     }
     setCells(ns); setSel(null); setScore(scoreRef.current);
-    if (clearedNow > 0) { setCleared((c) => c + clearedNow); hapticSuccess(); spawn(width / 2 - 24, 150, '+' + clearedNow * 50, '#fde047'); }
+    if (clearedNow > 0) { setCleared((c) => c + clearedNow); hapticSuccess(); if (clearedNow > 1) sndCombo(clearedNow); spawn(width / 2 - 24, 150, '+' + clearedNow * 50, '#fde047'); }
     else hapticTap();
     if (ns.every((c) => c.length === 0)) setTimeout(advanceLevel, 350);
   };

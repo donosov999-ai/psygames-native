@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, ViewStyle } from 'react-native';
 import { hapticTap } from './haptics';
+import { sndFlip } from '@/src/services/feedback';
 
 interface Props {
   size: number;
@@ -19,8 +20,11 @@ interface Props {
 export default function FlipCard({ size, flipped, matched, onPress, disabled, back, front, radius = 12, style }: Props) {
   const flip = useRef(new Animated.Value(flipped ? 1 : 0)).current;
   const hov = useRef(new Animated.Value(1)).current;   // десктоп: ховер-подъём карты
+  const mounted = useRef(false);
   useEffect(() => {
     Animated.spring(flip, { toValue: flipped ? 1 : 0, friction: 8, tension: 90, useNativeDriver: true }).start();
+    if (mounted.current) sndFlip();   // свуш при перевороте (не на первом монтировании)
+    mounted.current = true;
   }, [flipped, flip]);
   const backRotate = flip.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
   const frontRotate = flip.interpolate({ inputRange: [0, 1], outputRange: ['180deg', '360deg'] });

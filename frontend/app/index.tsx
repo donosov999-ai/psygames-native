@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { logoForProfile } from '@/src/constants/profileLogos';
 import { getTokens } from '@/src/services/tokens';
+import { sndToken } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
@@ -57,7 +58,15 @@ export default function HomeScreen() {
   const [switcherOpen, setSwitcherOpen] = useState(false);
   // Общие очки-токены ЦЕНТРА (копятся со всех игр; перечит на фокусе главного после игры)
   const [tokens, setTokens] = useState(0);
-  useFocusEffect(useCallback(() => { if (profile?.id) getTokens(profile.id).then(setTokens); }, [profile?.id]));
+  const prevTokensRef = useRef<number | null>(null);
+  useFocusEffect(useCallback(() => {
+    if (!profile?.id) return;
+    getTokens(profile.id).then((v) => {
+      if (prevTokensRef.current !== null && v > prevTokensRef.current) sndToken();   // звон когда вернулся с игры и очки выросли
+      prevTokensRef.current = v;
+      setTokens(v);
+    });
+  }, [profile?.id]));
 
   useEffect(() => {
     (async () => {

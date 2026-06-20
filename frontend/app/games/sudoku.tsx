@@ -14,6 +14,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/constants/digitThemes';
 import type { DigitStyle } from '@/src/constants/digitThemes';
+import { sndPlace, sndWrong } from '@/src/services/feedback';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
 // Рисованные цифры — набор под активный профиль (см. src/constants/digitThemes.ts).
@@ -133,6 +134,7 @@ export default function SudokuGame() {
     const ng = grid.map((row) => [...row]);
     ng[r][c] = n;
     setGrid(ng);
+    if (n !== 0) { (solution[r][c] === n) ? sndPlace() : sndWrong(); }   // тик при верной цифре, бузз при неверной
     if (n !== 0 && solution[r][c] !== n) {
       const ne = errors + 1;
       setErrors(ne);

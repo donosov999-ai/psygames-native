@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { sndWin } from '@/src/services/feedback';
 
 interface GameResultProps {
   time?: number;
@@ -40,6 +41,7 @@ export default function GameResult({
   const light = gradientIsLight(gradient);
   const fg = light ? '#1a1a1a' : '#FFFFFF';
   const fgSoft = light ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)';
+  useEffect(() => { sndWin(); }, []);   // фанфары при показе экрана результата (завершение)
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);

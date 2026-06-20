@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { sndPlace } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -1688,6 +1689,7 @@ export default function AnagramGame() {
 
   const handleLetterPress = async (idx: number) => {
     if (picked.includes(idx)) return;
+    sndPlace();
     const newPicked = [...picked, idx];
     setPicked(newPicked);
     if (newPicked.length === target.length) {
