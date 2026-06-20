@@ -15,10 +15,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const SOUND_KEY = 'psygames_sound_enabled';
 const HAPTIC_KEY = 'psygames_haptic_enabled';
 const MUSIC_KEY = 'psygames_music_on';   // S1: фоновая музыка меню (OPT-IN, дефолт off)
+const SOUNDPACK_KEY = 'psygames_sound_pack';   // SND-P: звук-пак (форма волны), глобально
 
 let _soundEnabled = true;     // дефолт ON; loadPrefs перезапишет из хранилища
 let _hapticEnabled = true;
 let _musicOn = false;         // S1: музыка OPT-IN (дефолт off)
+let _soundPack: string | null = null;   // SND-P: 'square'|'triangle'|'sawtooth', null=sine (дефолт)
 let _prefsLoaded = false;
 let _audioCtx: any = null;
 
@@ -31,6 +33,8 @@ async function loadPrefs() {
     _hapticEnabled = h === null ? true : h === 'true';
     const m = await AsyncStorage.getItem(MUSIC_KEY);
     _musicOn = m === 'true';
+    const sp = await AsyncStorage.getItem(SOUNDPACK_KEY);
+    _soundPack = sp || null;
   } catch { /* оставляем дефолты ON */ }
   _prefsLoaded = true;
 }
@@ -57,6 +61,12 @@ export async function setMusicEnabled(v: boolean) {
   _musicOn = v;
   try { await AsyncStorage.setItem(MUSIC_KEY, String(v)); } catch {}
   if (v) startMusic(); else stopMusic();
+}
+// SND-P: глобальный звук-пак (форма волны игровых звуков). null = дефолтный sine.
+export async function getSoundPack(): Promise<string | null> { await loadPrefs(); return _soundPack; }
+export async function setSoundPack(wave: string | null) {
+  _soundPack = wave || null;
+  try { await AsyncStorage.setItem(SOUNDPACK_KEY, wave || ''); } catch {}
 }
 
 function getAudioCtx(): any {
@@ -97,7 +107,7 @@ function beep(frequency: number, duration_ms: number, volume: number = 0.1) {
   try {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = 'sine';
+    osc.type = (_soundPack || 'sine') as OscillatorType;   // SND-P: форма волны по звук-паку
     osc.frequency.value = frequency;
     const t0 = ctx.currentTime;
     const dur = Math.max(0.05, duration_ms / 1000);

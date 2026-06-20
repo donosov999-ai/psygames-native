@@ -11,7 +11,7 @@ import { getTokens, spendTokens } from '@/src/services/tokens';
 import {
   COSMETICS, Cosmetic, getUnlocked, unlockCosmetic, getEquipped, equipCosmetic, unequipCosmetic,
 } from '@/src/services/cosmetics';
-import { sndToken, sndTap, sndWrong } from '@/src/services/feedback';
+import { sndToken, sndTap, sndWrong, sndCorrect, getSoundPack, setSoundPack as applySoundPack } from '@/src/services/feedback';
 
 export default function ShopScreen() {
   const { colors, refreshCosmeticAccent } = useTheme();
@@ -22,6 +22,7 @@ export default function ShopScreen() {
   const [balance, setBalance] = useState(0);
   const [unlocked, setUnlocked] = useState<string[]>([]);
   const [equipped, setEquipped] = useState<Record<string, string>>({});
+  const [soundPack, setSoundPackState] = useState<string | null>(null);   // SND-P: текущий звук-пак (глобально)
 
   const reload = useCallback(async () => {
     const pid = profile?.id;
@@ -29,6 +30,7 @@ export default function ShopScreen() {
     setBalance(await getTokens(pid));
     setUnlocked(await getUnlocked(pid));
     setEquipped(await getEquipped(pid));
+    setSoundPackState(await getSoundPack());
   }, [profile?.id]);
 
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
@@ -53,6 +55,55 @@ export default function ShopScreen() {
     refreshCosmeticAccent();   // мгновенно перекрасить интерфейс под новый акцент
   };
 
+  // SND-P: звук-пак — глобальный (форма волны), надевание сразу слышно.
+  const toggleSound = async (c: Cosmetic) => {
+    const next = soundPack === c.value ? null : c.value;
+    await applySoundPack(next);
+    setSoundPackState(next);
+    if (next) sndCorrect(); else sndTap();
+  };
+
+  const renderItem = (c: Cosmetic) => {
+    const owned = unlocked.includes(c.id);
+    const isSound = c.type === 'sound';
+    const on = isSound ? soundPack === c.value : equipped[c.type] === c.id;
+    const canAfford = balance >= c.cost;
+    const accent = isSound ? colors.primary : c.value;
+    return (
+      <View key={c.id} style={[styles.row, { backgroundColor: colors.surface, borderColor: on ? accent : colors.border, borderWidth: on ? 2 : 1 }]}>
+        {isSound ? (
+          <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+            <Ionicons name="musical-notes" size={22} color={accent} />
+          </View>
+        ) : (
+          <View style={[styles.swatch, { backgroundColor: c.value }]} />
+        )}
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{ru ? c.nameRu : c.nameEn}</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 16 }}>{ru ? c.descRu : c.descEn}</Text>
+          <Text style={{ color: owned ? colors.textSecondary : colors.text, fontSize: 13, fontWeight: '700', marginTop: 3 }}>
+            {owned ? (ru ? '✓ Куплено' : '✓ Owned') : `${c.cost} ⭐`}
+          </Text>
+        </View>
+        {owned ? (
+          <TouchableOpacity onPress={() => (isSound ? toggleSound(c) : toggleEquip(c))}
+            style={[styles.btn, { backgroundColor: on ? accent : 'transparent', borderColor: accent, borderWidth: 1.5 }]}>
+            <Text style={{ color: on ? '#fff' : accent, fontWeight: '800', fontSize: 13 }}>
+              {on ? (ru ? 'Надето' : 'Equipped') : (ru ? 'Надеть' : 'Equip')}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={() => buy(c)} disabled={!canAfford}
+            style={[styles.btn, { backgroundColor: canAfford ? colors.primary : colors.border, opacity: canAfford ? 1 : 0.6 }]}>
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>
+              {canAfford ? (ru ? 'Купить' : 'Buy') : (ru ? 'Мало очков' : 'Need more')}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -71,42 +122,13 @@ export default function ShopScreen() {
           {ru ? 'Акцентные темы — меняют цвет интерфейса. Купи за очки, надень бесплатно.'
               : 'Accent themes — recolor the UI. Buy with tokens, equip for free.'}
         </Text>
+        {COSMETICS.filter((c) => c.type === 'accent').map(renderItem)}
 
-        {COSMETICS.map((c) => {
-          const owned = unlocked.includes(c.id);
-          const on = equipped[c.type] === c.id;
-          const canAfford = balance >= c.cost;
-          return (
-            <View key={c.id} style={[styles.row, { backgroundColor: colors.surface, borderColor: on ? c.value : colors.border, borderWidth: on ? 2 : 1 }]}>
-              <View style={[styles.swatch, { backgroundColor: c.value }]} />
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{ru ? c.nameRu : c.nameEn}</Text>
-                <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 16 }}>{ru ? c.descRu : c.descEn}</Text>
-                <Text style={{ color: owned ? colors.textSecondary : colors.text, fontSize: 13, fontWeight: '700', marginTop: 3 }}>
-                  {owned ? (ru ? '✓ Куплено' : '✓ Owned') : `${c.cost} ⭐`}
-                </Text>
-              </View>
-              {owned ? (
-                <TouchableOpacity
-                  onPress={() => toggleEquip(c)}
-                  style={[styles.btn, { backgroundColor: on ? c.value : 'transparent', borderColor: c.value, borderWidth: 1.5 }]}>
-                  <Text style={{ color: on ? '#fff' : c.value, fontWeight: '800', fontSize: 13 }}>
-                    {on ? (ru ? 'Надето' : 'Equipped') : (ru ? 'Надеть' : 'Equip')}
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  onPress={() => buy(c)}
-                  disabled={!canAfford}
-                  style={[styles.btn, { backgroundColor: canAfford ? colors.primary : colors.border, opacity: canAfford ? 1 : 0.6 }]}>
-                  <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>
-                    {canAfford ? (ru ? 'Купить' : 'Buy') : (ru ? 'Мало очков' : 'Need more')}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          );
-        })}
+        <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
+          {ru ? '🎵 Звуковые паки — меняют характер игровых звуков. Тапни «Надеть» — сразу слышно.'
+              : '🎵 Sound packs — change the game sound character. Tap Equip to hear it.'}
+        </Text>
+        {COSMETICS.filter((c) => c.type === 'sound').map(renderItem)}
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>
           {ru ? 'Очки копятся за игры, стрики и ачивки. Скоро — рамки карточек, титулы и аватары.'
