@@ -21,7 +21,9 @@ const TOL_BENEFITS = [
 
 // 3 pegs of capacity [3, 2, 1]. Balls labeled R/G/B, max 3 balls total.
 type Ball = 'R' | 'G' | 'B';
-const BALL_COLORS: Record<Ball, string> = { R: '#ef4444', G: '#22c55e', B: '#3b82f6' };
+const BALL_GRADIENTS: Record<Ball, [string, string]> = {
+  R: ['#fca5a5', '#dc2626'], G: ['#86efac', '#16a34a'], B: ['#93c5fd', '#2563eb'],
+};
 const PEG_CAPS = [3, 2, 1];
 
 type State = Ball[][]; // 3 arrays bottom→top
@@ -201,7 +203,9 @@ export default function TowerLondonGame() {
         {/* balls bottom to top */}
         <View style={styles.pegStack}>
           {balls.map((b, i) => (
-            <View key={i} style={[styles.ball, { backgroundColor: BALL_COLORS[b] }]} />
+            <LinearGradient key={i} colors={BALL_GRADIENTS[b]} start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }} style={styles.ball}>
+              <View style={styles.ballShine} pointerEvents="none" />
+            </LinearGradient>
           ))}
         </View>
         <View style={[styles.pegBase, { backgroundColor: colors.text }]} />
@@ -322,6 +326,7 @@ const styles = StyleSheet.create({
   peg: { width: 70, justifyContent: 'flex-end', alignItems: 'center', borderRadius: 8 },
   pegStack: { gap: 2, paddingBottom: 4 },
   pegBase: { width: 64, height: 4, borderRadius: 2 },
-  ball: { width: 32, height: 32, borderRadius: 16 },
+  ball: { width: 32, height: 32, borderRadius: 16, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 4 },
+  ballShine: { position: 'absolute', top: 4, left: 6, width: 11, height: 8, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.55)' },
   hintText: { fontSize: 12, textAlign: 'center', color: '#888', marginTop: 8 },
 });

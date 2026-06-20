@@ -179,8 +179,8 @@ export default function WcstGame() {
       <>
         <View style={styles.shapeRow}>
           {Array.from({ length: card.count }).map((_, i) => (
-            <View key={i} style={{ marginHorizontal: 2 }}>
-              {renderShape(card.shape, COLOR_HEX[card.color], isRef ? 14 : 22)}
+            <View key={i} style={{ marginHorizontal: 3, shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }}>
+              {renderShape(card.shape, COLOR_HEX[card.color], isRef ? 18 : 28)}
             </View>
           ))}
         </View>
@@ -200,9 +200,9 @@ export default function WcstGame() {
       );
     }
     return (
-      <View style={[styles.targetCard, { backgroundColor: colors.surface, borderColor: GRADIENT[1] }]}>
+      <LinearGradient colors={[colors.surface, GRADIENT[1] + '18']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.targetCard, { borderColor: GRADIENT[1] }]}>
         {inner}
-      </View>
+      </LinearGradient>
     );
   };
 
@@ -304,8 +304,8 @@ const styles = StyleSheet.create({
   statText: { fontSize: 13, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
   refRow: { flexDirection: 'row', gap: 8 },
-  refCard: { width: 76, height: 90, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  targetWrap: { marginTop: 24 },
-  targetCard: { width: 130, height: 120, borderRadius: 12, borderWidth: 3, justifyContent: 'center', alignItems: 'center' },
+  refCard: { width: 80, height: 102, borderRadius: 16, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
+  targetWrap: { marginTop: 26 },
+  targetCard: { width: 138, height: 128, borderRadius: 22, borderWidth: 3, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 6 },
   shapeRow: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '90%' },
 });
