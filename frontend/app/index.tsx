@@ -22,7 +22,7 @@ import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { logoForProfile } from '@/src/constants/profileLogos';
 import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
-import { sndToken, sndWin } from '@/src/services/feedback';
+import { sndToken, sndWin, startMusic, stopMusic } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
@@ -80,6 +80,8 @@ export default function HomeScreen() {
     })();
   }, [profile?.id]));
   const lvl = levelInfo(tokens);
+  // S1: фоновая музыка меню — играет на главной (если включена в настройках), стоп при уходе в игру
+  useFocusEffect(useCallback(() => { startMusic(); return () => stopMusic(); }, []));
 
   useEffect(() => {
     (async () => {

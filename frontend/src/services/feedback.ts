@@ -14,9 +14,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SOUND_KEY = 'psygames_sound_enabled';
 const HAPTIC_KEY = 'psygames_haptic_enabled';
+const MUSIC_KEY = 'psygames_music_on';   // S1: фоновая музыка меню (OPT-IN, дефолт off)
 
 let _soundEnabled = true;     // дефолт ON; loadPrefs перезапишет из хранилища
 let _hapticEnabled = true;
+let _musicOn = false;         // S1: музыка OPT-IN (дефолт off)
 let _prefsLoaded = false;
 let _audioCtx: any = null;
 
@@ -27,6 +29,8 @@ async function loadPrefs() {
     _soundEnabled = v === null ? true : v === 'true';
     const h = await AsyncStorage.getItem(HAPTIC_KEY);
     _hapticEnabled = h === null ? true : h === 'true';
+    const m = await AsyncStorage.getItem(MUSIC_KEY);
+    _musicOn = m === 'true';
   } catch { /* оставляем дефолты ON */ }
   _prefsLoaded = true;
 }
@@ -47,6 +51,12 @@ export async function setSoundEnabled(v: boolean) {
 export async function setHapticEnabled(v: boolean) {
   _hapticEnabled = v;
   try { await AsyncStorage.setItem(HAPTIC_KEY, String(v)); } catch {}
+}
+export async function getMusicEnabled(): Promise<boolean> { await loadPrefs(); return _musicOn; }
+export async function setMusicEnabled(v: boolean) {
+  _musicOn = v;
+  try { await AsyncStorage.setItem(MUSIC_KEY, String(v)); } catch {}
+  if (v) startMusic(); else stopMusic();
 }
 
 function getAudioCtx(): any {
@@ -159,3 +169,30 @@ export function sndCombo(n: number) { if (_soundEnabled) { const f = 520 + Math.
 export function sndFlip()    { if (_soundEnabled) beep(470, 55, 0.05); }   // свуш переворота
 export function sndMatch()   { if (_soundEnabled) { beep(784, 80, 0.09); setTimeout(() => beep(1047, 110, 0.08), 60); } }
 export function sndPlace()   { if (_soundEnabled) beep(523, 45, 0.06); }   // мягкий тик
+
+// ── Фоновая музыка меню (S1) — мягкое синтез-арпеджио, OPT-IN, очень тихо. ──
+let _musicTimer: any = null;
+let _musicIdx = 0;
+const MUSIC_NOTES = [261.63, 329.63, 392.0, 523.25, 392.0, 329.63];   // C-E-G-C-G-E
+export function startMusic(): void {
+  if (!_musicOn || _musicTimer) return;
+  const playNote = () => {
+    const ac = getAudioCtx(); if (!ac) return;
+    const f = MUSIC_NOTES[_musicIdx % MUSIC_NOTES.length]; _musicIdx++;
+    try {
+      const t0 = ac.currentTime;
+      const osc = ac.createOscillator(); const g = ac.createGain();
+      osc.type = 'sine'; osc.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(0.03, t0 + 0.4);     // тихо (0.03)
+      g.gain.linearRampToValueAtTime(0.0001, t0 + 1.7);
+      osc.connect(g); g.connect(ac.destination);
+      osc.start(t0); osc.stop(t0 + 1.8);
+    } catch { /* no-op */ }
+  };
+  playNote();
+  _musicTimer = setInterval(playNote, 1600);
+}
+export function stopMusic(): void {
+  if (_musicTimer) { clearInterval(_musicTimer); _musicTimer = null; }
+}

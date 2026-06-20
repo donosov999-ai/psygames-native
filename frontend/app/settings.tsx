@@ -24,6 +24,7 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getSoundEnabled, getHapticEnabled, setSoundEnabled, setHapticEnabled,
+  getMusicEnabled, setMusicEnabled,
 } from '@/src/services/feedback';
 import type { ProfileDef } from '@/src/constants/profiles';
 import { MONETIZATION_ENABLED } from '@/src/constants/profiles';
@@ -94,14 +95,17 @@ export default function SettingsScreen() {
   };
   const [soundOn, setSoundOn] = React.useState(true);
   const [hapticOn, setHapticOn] = React.useState(true);
+  const [musicOn, setMusicOnState] = React.useState(false);
   React.useEffect(() => {
     (async () => {
       setSoundOn(await getSoundEnabled());
       setHapticOn(await getHapticEnabled());
+      setMusicOnState(await getMusicEnabled());
     })();
   }, []);
   const toggleSound = async () => { const v = !soundOn; setSoundOn(v); await setSoundEnabled(v); };
   const toggleHaptic = async () => { const v = !hapticOn; setHapticOn(v); await setHapticEnabled(v); };
+  const toggleMusic = async () => { const v = !musicOn; setMusicOnState(v); await setMusicEnabled(v); };
   // v1.26.0: локальные напоминания
   const [reminders, setReminders] = React.useState<ReminderSettings>(DEFAULT_REMINDERS);
   React.useEffect(() => { loadReminderSettings().then(setReminders); }, []);
@@ -577,6 +581,14 @@ export default function SettingsScreen() {
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('label_sound')}</Text>
           </View>
           <Switch value={soundOn} onValueChange={toggleSound} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+        </View>
+        {/* Music (S1) — мягкая фоновая музыка меню, opt-in */}
+        <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
+          <View style={styles.settingInfo}>
+            <Ionicons name={musicOn ? 'musical-notes' : 'musical-notes-outline'} size={24} color={colors.primary} />
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Музыка' : 'Music'}</Text>
+          </View>
+          <Switch value={musicOn} onValueChange={toggleMusic} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
         {/* Haptic */}
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
