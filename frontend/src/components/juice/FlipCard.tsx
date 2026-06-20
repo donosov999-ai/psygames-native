@@ -18,6 +18,7 @@ interface Props {
 // Две грани с backfaceVisibility:hidden — видна только обращённая к зрителю.
 export default function FlipCard({ size, flipped, matched, onPress, disabled, back, front, radius = 12, style }: Props) {
   const flip = useRef(new Animated.Value(flipped ? 1 : 0)).current;
+  const hov = useRef(new Animated.Value(1)).current;   // десктоп: ховер-подъём карты
   useEffect(() => {
     Animated.spring(flip, { toValue: flipped ? 1 : 0, friction: 8, tension: 90, useNativeDriver: true }).start();
   }, [flipped, flip]);
@@ -28,9 +29,12 @@ export default function FlipCard({ size, flipped, matched, onPress, disabled, ba
     justifyContent: 'center', alignItems: 'center', backfaceVisibility: 'hidden', overflow: 'hidden',
   };
   return (
-    <Pressable disabled={disabled} onPress={() => { if (!disabled) { hapticTap(); onPress?.(); } }} style={[{ width: size, height: size }, style]}>
-      <Animated.View style={[faceBase, { opacity: matched ? 0.55 : 1, transform: [{ perspective: 800 }, { rotateY: backRotate }] }]}>{back}</Animated.View>
-      <Animated.View style={[faceBase, { opacity: matched ? 0.55 : 1, transform: [{ perspective: 800 }, { rotateY: frontRotate }] }]}>{front}</Animated.View>
+    <Pressable disabled={disabled}
+      onHoverIn={() => Animated.spring(hov, { toValue: 1.06, friction: 7, useNativeDriver: true }).start()}
+      onHoverOut={() => Animated.spring(hov, { toValue: 1, friction: 7, useNativeDriver: true }).start()}
+      onPress={() => { if (!disabled) { hapticTap(); onPress?.(); } }} style={[{ width: size, height: size }, style]}>
+      <Animated.View style={[faceBase, { opacity: matched ? 0.55 : 1, transform: [{ perspective: 800 }, { rotateY: backRotate }, { scale: hov }] }]}>{back}</Animated.View>
+      <Animated.View style={[faceBase, { opacity: matched ? 0.55 : 1, transform: [{ perspective: 800 }, { rotateY: frontRotate }, { scale: hov }] }]}>{front}</Animated.View>
     </Pressable>
   );
 }

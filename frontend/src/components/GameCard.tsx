@@ -114,7 +114,7 @@ export default function GameCard({
         )}
         {/* Title + desc — middle, flex:1 fills available space */}
         <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: fg }]} numberOfLines={2}>{t(nameKey)}</Text>
+          <Text style={[styles.title, { color: fg, textShadowColor: light ? 'transparent' : 'rgba(0,0,0,0.3)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }]} numberOfLines={2}>{t(nameKey)}</Text>
           <Text style={[styles.description, { color: fgSoft }]} numberOfLines={2}>{t(descKey)}</Text>
         </View>
         {/* Badge — pinned to bottom (after flex:1 textContainer) */}
@@ -152,8 +152,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   title: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.2,
     color: '#FFFFFF',
   },
   description: {
