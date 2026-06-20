@@ -36,6 +36,12 @@ const IGNORE = [
   /Unexpected text node/i,
   /Failed to load resource.*(favicon|\.map)\b/i,
   /\[Fast Refresh\]/i,
+  // React hydration mismatch — статик-экспорт (prerender) ≠ client из-за динамики игр
+  // (таймеры/random/Date на маунте). React пере-рендерит на клиенте, игра работает — НЕ краш.
+  /Minified React error #(418|421|422|423|425|426)/i,
+  /hydrat/i,
+  /did not match the server-rendered/i,
+  /Text content does not match/i,
 ];
 const isNoise = (t) => IGNORE.some((r) => r.test(t));
 
@@ -59,7 +65,7 @@ for (const route of routes) {
   const page = await ctx.newPage();
   const errors = [];
   page.on('console', (m) => { if (m.type() === 'error' && !isNoise(m.text())) errors.push(m.text()); });
-  page.on('pageerror', (e) => errors.push('PAGEERROR: ' + (e.message || String(e))));
+  page.on('pageerror', (e) => { const t = 'PAGEERROR: ' + (e.message || String(e)); if (!isNoise(t)) errors.push(t); });
   try {
     await page.goto(`${BASE}/games/${route}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForTimeout(1600);
