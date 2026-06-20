@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -13,6 +13,19 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
+// Рисованные цифры (Nano Banana 2, глянец-3D, прозрачный PNG). Индекс = цифра (1..9).
+const DIGIT_IMG: any[] = [
+  null,
+  require('../../assets/images/digits/d1.png'),
+  require('../../assets/images/digits/d2.png'),
+  require('../../assets/images/digits/d3.png'),
+  require('../../assets/images/digits/d4.png'),
+  require('../../assets/images/digits/d5.png'),
+  require('../../assets/images/digits/d6.png'),
+  require('../../assets/images/digits/d7.png'),
+  require('../../assets/images/digits/d8.png'),
+  require('../../assets/images/digits/d9.png'),
+];
 const SUDOKU_BENEFITS = [
   { icon: 'extension-puzzle-outline', textKey: 'benefitSudoku1' },
   { icon: 'analytics-outline', textKey: 'benefitSudoku2' },
@@ -254,15 +267,11 @@ export default function SudokuGame() {
               ]}
             >
               {v !== 0 && (
-                <Text style={[
-                  styles.cellText,
-                  {
-                    color: isSel ? '#FFF' : wrongVal ? '#b91c1c' : given[r][c] ? colors.text : GRADIENT[0],
-                    fontWeight: given[r][c] || wrongVal ? '800' : '600',
-                  },
-                ]}>
-                  {v}
-                </Text>
+                (isSel || wrongVal) ? (
+                  <Text style={[styles.cellText, { color: isSel ? '#FFF' : '#b91c1c', fontWeight: '800' }]}>{v}</Text>
+                ) : (
+                  <Image source={DIGIT_IMG[v]} style={{ width: cellSize * 0.72, height: cellSize * 0.72 }} resizeMode="contain" />
+                )
               )}
             </TouchableOpacity>
           );
@@ -275,9 +284,9 @@ export default function SudokuGame() {
           <TouchableOpacity
             key={n}
             onPress={() => handleNumPress(n)}
-            style={[styles.numBtn, { backgroundColor: GRADIENT[0] }]}
+            style={[styles.numBtn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
           >
-            <Text style={styles.numText}>{n}</Text>
+            <Image source={DIGIT_IMG[n]} style={{ width: 36, height: 36 }} resizeMode="contain" />
           </TouchableOpacity>
         ))}
         <TouchableOpacity onPress={() => handleNumPress(0)} style={[styles.numBtn, { backgroundColor: colors.surface }]}>
