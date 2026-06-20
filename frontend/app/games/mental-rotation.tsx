@@ -258,9 +258,9 @@ function renderShape(shape: Shape, size: number, baseColor: string) {
 
   // Color shading
   const colorTop = baseColor;
-  const colorFront = shadeColor(baseColor, -0.18);
-  const colorRight = shadeColor(baseColor, -0.35);
-  const stroke = shadeColor(baseColor, -0.55);
+  const colorFront = shadeColor(baseColor, -0.24);
+  const colorRight = shadeColor(baseColor, -0.44);
+  const stroke = shadeColor(baseColor, -0.62);
 
   return (
     <Svg width={size} height={size}>
@@ -288,9 +288,9 @@ function renderShape(shape: Shape, size: number, baseColor: string) {
           const rightPts= [p[1], p[5], p[6], p[2]].map(q => `${q.sx},${q.sy}`).join(' ');
           return (
             <G key={i}>
-              <Polygon points={frontPts} fill={colorFront} stroke={stroke} strokeWidth={1} />
-              <Polygon points={rightPts} fill={colorRight} stroke={stroke} strokeWidth={1} />
-              <Polygon points={topPts}   fill={colorTop}   stroke={stroke} strokeWidth={1} />
+              <Polygon points={frontPts} fill={colorFront} stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" />
+              <Polygon points={rightPts} fill={colorRight} stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" />
+              <Polygon points={topPts}   fill={colorTop}   stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" />
             </G>
           );
         })}

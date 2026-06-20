@@ -1805,7 +1805,7 @@ export default function AnagramGame() {
       ) : null}
       <View style={styles.pickedRow}>
         {Array.from({ length: target.length }).map((_, i) => (
-          <View key={i} style={[styles.pickedSlot, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+          <View key={i} style={[styles.pickedSlot, { borderColor: colors.textSecondary, backgroundColor: colors.surface }]}>
             <Text style={[styles.pickedLetter, { color: colors.text }]}>
               {picked[i] !== undefined ? letters[picked[i]] : ''}
             </Text>
@@ -1818,6 +1818,7 @@ export default function AnagramGame() {
             key={i}
             disabled={picked.includes(i)}
             onPress={() => handleLetterPress(i)}
+            activeOpacity={0.8}
             style={[
               styles.letterBtn,
               {
@@ -1826,6 +1827,7 @@ export default function AnagramGame() {
               },
             ]}
           >
+            <View style={styles.tileShine} pointerEvents="none" />
             <Text style={[styles.letterText, { color: '#3f2b96' }]}>{l}</Text>
           </TouchableOpacity>
         ))}
@@ -1906,8 +1908,9 @@ const styles = StyleSheet.create({
   pickedSlot: { width: 44, height: 54, borderRadius: 8, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   pickedLetter: { fontSize: 22, fontWeight: '700' },
   lettersRow: { flexDirection: 'row', gap: 10, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 360 },
-  letterBtn: { width: 56, height: 56, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  letterBtn: { width: 56, height: 56, borderRadius: 14, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  tileShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '46%', backgroundColor: 'rgba(255,255,255,0.28)' },
   letterText: { fontSize: 24, fontWeight: '800' },
-  clearBtn: { paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginTop: 8 },
+  clearBtn: { paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginTop: 8, borderWidth: 1.5, borderColor: 'rgba(128,128,128,0.4)' },
   clearText: { fontSize: 13, fontWeight: '600' },
 });
