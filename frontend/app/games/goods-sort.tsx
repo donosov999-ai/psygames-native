@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, PanResponder, Animated, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -20,122 +20,132 @@ const GOODS_BENEFITS = [
   { icon: 'albums-outline', textKey: 'benefitGoods3' },
 ];
 
-// 6 реалистичных магазинных товаров (сгенерены Nano Banana 2, оригинальные generic-этикетки —
-// COLA/LIME/KEFIR/MILK/JUICE/YOGURT, НЕ реальные бренды). Прозрачные PNG, фон вычищен.
+// Товары (сгенерены Nano Banana 2, generic-этикетки — НЕ реальные бренды). Прозрачные PNG.
 const GOOD_SPRITES = [
-  require('../../assets/images/goods/good0.png'), // кола
-  require('../../assets/images/goods/good1.png'), // лимонад
-  require('../../assets/images/goods/good2.png'), // кефир
-  require('../../assets/images/goods/good3.png'), // молоко
-  require('../../assets/images/goods/good4.png'), // сок
-  require('../../assets/images/goods/good5.png'), // йогурт
-  require('../../assets/images/goods/good6.png'), // банан
-  require('../../assets/images/goods/good7.png'), // яблоко
-  require('../../assets/images/goods/good8.png'), // шоколад
-  require('../../assets/images/goods/good9.png'), // чипсы
+  require('../../assets/images/goods/good0.png'),  // кола
+  require('../../assets/images/goods/good1.png'),  // лимонад
+  require('../../assets/images/goods/good2.png'),  // кефир
+  require('../../assets/images/goods/good3.png'),  // молоко
+  require('../../assets/images/goods/good4.png'),  // сок
+  require('../../assets/images/goods/good5.png'),  // йогурт
+  require('../../assets/images/goods/good6.png'),  // банан
+  require('../../assets/images/goods/good7.png'),  // яблоко
+  require('../../assets/images/goods/good8.png'),  // шоколад
+  require('../../assets/images/goods/good9.png'),  // чипсы
   require('../../assets/images/goods/good10.png'), // хлеб
   require('../../assets/images/goods/good11.png'), // зубная паста
   require('../../assets/images/goods/good12.png'), // виноградный сок
   require('../../assets/images/goods/good13.png'), // клубничный коктейль
 ];
-const GOOD_TYPES = GOOD_SPRITES.length;   // 14 типов товаров
-function GoodIcon({ type, size, dim }: { type: number; size: number; dim?: boolean }) {
+
+// Наборы товаров — ВЫБОР В МЕНЮ (как в оригинале). Каждый набор = пул индексов спрайтов.
+const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: number[] }[] = [
+  { key: 'drinks', ru: 'Напитки', en: 'Drinks', icon: 'wine', pool: [0, 1, 4, 12, 13, 2, 5, 3] },
+  { key: 'food', ru: 'Еда', en: 'Food', icon: 'fast-food', pool: [6, 7, 8, 9, 10, 11] },
+  { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] },
+];
+
+function GoodIcon({ type, size }: { type: number; size: number }) {
   return (
     <Image
       source={GOOD_SPRITES[type % GOOD_SPRITES.length]}
-      style={{ width: size, height: size, opacity: dim ? 0.32 : 1, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 3, shadowOffset: { width: 0, height: 2 } }}
+      style={{ width: size, height: size, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }}
       resizeMode="contain"
     />
   );
 }
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type Sel = { cell: number; idx: number } | null;
 
 function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-const SLOTS = 9;            // 3×3 доска. Часть слотов — стопки, часть пустые = место для манёвра.
+const SLOTS = 9;   // 3×3 доска ячеек-полок
+const CAP = 3;     // вместимость ячейки — 3 товара ВИДИМЫ (суть оригинала)
 
-// Кривая сложности по УРОВНЮ (как в оригинале — уровни усложняются): больше типов товаров +
-// туже доска (меньше свободных слотов). Потолок типов = 6 (столько спрайтов), дальше растёт теснота.
-function levelCfg(L: number) {
-  const types = Math.min(GOOD_TYPES, 3 + Math.floor(L / 2));  // 3→14 (по числу спрайтов): много уровней роста
-  const spares = Math.max(2, 6 - Math.floor((L - 1) / 3));    // 6→2 свободных слота — со временем теснее
+// Сложность по уровню: больше типов + теснее (меньше пустых ячеек для манёвра).
+// Потолок типов = 7: 9 ячеек × cap 3 минус ≥2 пустых = влезает ровно 7×3 товаров.
+function levelCfg(L: number, poolSize: number) {
+  const types = Math.min(poolSize, 7, 3 + Math.floor(L / 2));   // 3 → 7
+  let spares = Math.max(2, 6 - Math.floor((L - 1) / 3));        // 6 → 2 пустых ячеек
+  spares = Math.max(2, Math.min(spares, SLOTS - types));        // влезть + ≥2 пустых → всегда решаемо
   return { types, spares };
 }
 
-// Раздать товары (каждый тип ×3) в (SLOTS−spares) слотов-стопок; остальные пустые (манёвр).
-// Передний виден, задние СКРЫТЫ (тип не виден) — суть оригинала: раскопай и собери всё.
-function generate(types: number, spares: number): number[][] {
-  const used = Math.min(SLOTS - 2, SLOTS - spares);
-  let stacks: number[][];
-  do {
-    const goods: number[] = [];
-    for (let t = 0; t < types; t++) for (let k = 0; k < 3; k++) goods.push(t);
-    const sh = shuffle(goods);
-    const filled = Array.from({ length: used }, () => [] as number[]);
-    sh.forEach((g, i) => filled[i % used].push(g));
-    stacks = shuffle([...filled, ...Array.from({ length: SLOTS - used }, () => [] as number[])]);
-  } while (stacks.some(topThreeSame));   // не начинать с готовой тройки наверху
-  return stacks;
+function threeSame(cell: number[]): boolean { return cell.length === 3 && cell[0] === cell[1] && cell[1] === cell[2]; }
+function hasPair(cell: number[]): boolean {
+  const c: Record<number, number> = {}; for (const t of cell) { c[t] = (c[t] || 0) + 1; if (c[t] === 2) return true; }
+  return false;
 }
-function topThreeSame(stack: number[]): boolean {
-  const n = stack.length;
-  return n >= 3 && stack[n - 1] === stack[n - 2] && stack[n - 2] === stack[n - 3];
+
+// Раздать по 3 каждого выбранного типа в (SLOTS−spares) ячеек, ≤3 в ячейке, без готовых троек.
+// Всё ВИДИМО — full-information сортировка (не скрытые стопки).
+function generate(pool: number[], types: number, spares: number): number[][] {
+  const chosen = shuffle(pool).slice(0, types);
+  const items: number[] = [];
+  chosen.forEach((tp) => { for (let k = 0; k < CAP; k++) items.push(tp); });
+  const used = Math.max(types, SLOTS - spares);
+  let cells: number[][];
+  let guard = 0;
+  do {
+    const sh = shuffle(items);
+    cells = Array.from({ length: SLOTS }, () => [] as number[]);
+    let ci = 0;
+    for (const it of sh) {
+      for (let tries = 0; tries < used; tries++) {
+        const c = ci % used; ci++;
+        if (cells[c].length < CAP) { cells[c].push(it); break; }
+      }
+    }
+    cells = shuffle(cells);
+    guard++;
+  } while (cells.some(threeSame) && guard < 80);
+  return cells;
 }
 
 export default function GoodsSortGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
 
-  const { isPreset, str } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset } = useGamePreset();
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [setKey, setSetKey] = useState('drinks');
+  const poolRef = useRef<number[]>(GOOD_SETS[0].pool);
+  useEffect(() => { poolRef.current = (GOOD_SETS.find((s) => s.key === setKey) || GOOD_SETS[0]).pool; }, [setKey]);
+
   const [level, setLevel] = useState(1);
-  const [levelBanner, setLevelBanner] = useState<number | null>(null);   // «Уровень N пройден!» оверлей
-  const [stacks, setStacks] = useState<number[][]>([]);
-  const [nTypes, setNTypes] = useState(4);
-  const [selected, setSelected] = useState<number | null>(null);   // выбранный слот (берём передний товар)
+  const [levelBanner, setLevelBanner] = useState<number | null>(null);
+  const [cells, setCells] = useState<number[][]>([]);
+  const [sel, setSel] = useState<Sel>(null);
   const [cleared, setCleared] = useState(0);
   const [moves, setMoves] = useState(0);
   const [score, setScore] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [elapsed, setElapsed] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const scoreRef = useRef(0); const movesRef = useRef(0);
-  // drag-перетаскивание
-  const slotEls = useRef<Array<any>>(Array(SLOTS).fill(null));
-  const slotRects = useRef<Array<{ x: number; y: number; w: number; h: number } | null>>(Array(SLOTS).fill(null));
-  const dragFromRef = useRef<number | null>(null);
-  const dragTypeRef = useRef(0);
-  const [dragFrom, setDragFrom] = useState<number | null>(null);
-  const ghostXY = useRef(new Animated.ValueXY()).current;
   const { popups, spawn } = useScorePopups();
 
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
-
   const loadLevel = (L: number) => {
-    const cfg = levelCfg(L);
-    setNTypes(cfg.types);
-    setStacks(generate(cfg.types, cfg.spares));
-    setSelected(null); setMoves(0); movesRef.current = 0;
+    const cfg = levelCfg(L, poolRef.current.length);
+    setCells(generate(poolRef.current, cfg.types, cfg.spares));
+    setSel(null); setMoves(0); movesRef.current = 0;
     setStartTime(Date.now()); setElapsed(0);
   };
 
   const startGame = () => {
     setCleared(0); setScore(0); scoreRef.current = 0; setLevelBanner(null);
     loadLevel(level);
-    setPhase('playing');
-    // БЕЗ таймера — спокойный режим «собери всё» (как в оригинале RackSort, давления времени нет)
+    setPhase('playing');   // спокойный режим — без таймера (как в оригинале «собери всё»)
   };
 
-  // Уровень пройден (всё собрано) → бонус, сохранить, СЛЕДУЮЩИЙ уровень (сложнее). Счёт копится за сессию.
   const advanceLevel = () => {
     hapticSuccess();
     const done = level;
     const finalTime = (Date.now() - startTime) / 1000;
-    scoreRef.current += Math.max(50, 300 - movesRef.current * 4);   // бонус за прохождение (эффективность ходов)
+    scoreRef.current += Math.max(50, 300 - movesRef.current * 4);
     setScore(scoreRef.current);
     saveSession({
       game_type: 'goods_sort', score: scoreRef.current, time_seconds: finalTime,
@@ -144,99 +154,96 @@ export default function GoodsSortGame() {
     }).catch((e) => console.error(e));
     const next = done + 1;
     setLevel(next);
-    setLevelBanner(done);                                  // «🎉 Уровень done пройден!»
+    setLevelBanner(done);
     setTimeout(() => { setLevelBanner(null); loadLevel(next); }, 1400);
   };
 
-  // переместить передний товар слота from на стопку to; затем собрать тройки сверху
-  const moveTop = (from: number, to: number) => {
-    if (from === to) { setSelected(null); return; }
-    const src = stacks[from];
-    if (src.length === 0) { setSelected(null); return; }
-    const ns = stacks.map((s) => [...s]);
-    const good = ns[from].pop()!;
-    ns[to].push(good);
+  // Переместить КОНКРЕТНЫЙ товар (fromCell, fromIdx) в toCell, если там есть место; затем собрать тройки.
+  const moveItem = (fromCell: number, fromIdx: number, toCell: number) => {
+    if (fromCell === toCell) { setSel(null); return; }
+    const src = cells[fromCell];
+    if (!src || fromIdx < 0 || fromIdx >= src.length) { setSel(null); return; }
+    if (cells[toCell].length >= CAP) { setSel(null); return; }   // нет места
+    const ns = cells.map((c) => [...c]);
+    const [item] = ns[fromCell].splice(fromIdx, 1);
+    ns[toCell].push(item);
     movesRef.current += 1; setMoves(movesRef.current);
-
-    // каскад сбора: пока на верхушке любого слота 3 одинаковых — убрать (раскрывает скрытые задние слои).
-    // БЕЗ таймед-комбо — спокойный пазл как в оригинале; +50 за каждую собранную тройку.
-    let clearedNow = 0;
-    let again = true;
+    // каскад: любая ячейка с 3 одинаковыми → собрать (+50). Спокойно, без таймед-комбо.
+    let clearedNow = 0; let again = true;
     while (again) {
       again = false;
       for (let i = 0; i < SLOTS; i++) {
-        if (topThreeSame(ns[i])) {
-          ns[i].splice(ns[i].length - 3, 3);
-          clearedNow += 1;
-          scoreRef.current += 50;
-          again = true;
-        }
+        if (threeSame(ns[i])) { ns[i] = []; clearedNow += 1; scoreRef.current += 50; again = true; }
       }
     }
-    setStacks(ns);
-    setSelected(null);
-    setScore(scoreRef.current);
-    if (clearedNow > 0) {
-      setCleared((c) => c + clearedNow);
-      hapticSuccess();
-      spawn(width / 2 - 24, 150, '+' + clearedNow * 50, '#fde047');
-    }
-
-    const totalGoods = ns.reduce((sum, s) => sum + s.length, 0);
-    if (totalGoods === 0) setTimeout(advanceLevel, 350);
+    setCells(ns); setSel(null); setScore(scoreRef.current);
+    if (clearedNow > 0) { setCleared((c) => c + clearedNow); hapticSuccess(); spawn(width / 2 - 24, 150, '+' + clearedNow * 50, '#fde047'); }
+    else hapticTap();
+    if (ns.every((c) => c.length === 0)) setTimeout(advanceLevel, 350);
   };
 
-  const handleSlotTap = (i: number) => {
+  const handleItemTap = (cellI: number, idx: number) => {
     if (phase !== 'playing') return;
-    if (selected === null) {
-      if (stacks[i].length > 0) { setSelected(i); hapticTap(); }     // берём передний товар
-      return;
-    }
-    moveTop(selected, i);                            // кладём на этот слот (или отмена если тот же)
+    if (!sel) { setSel({ cell: cellI, idx }); hapticTap(); return; }
+    if (sel.cell === cellI) { setSel(sel.idx === idx ? null : { cell: cellI, idx }); return; }   // отмена / перевыбор
+    moveItem(sel.cell, sel.idx, cellI);
+  };
+  const handleCellTap = (cellI: number) => {   // тап по свободному месту ячейки = переложить выбранное сюда
+    if (phase !== 'playing' || !sel) return;
+    if (sel.cell === cellI) { setSel(null); return; }
+    moveItem(sel.cell, sel.idx, cellI);
+  };
+
+  // Бустер «перемешать» (как в оригинале) — переразложить оставшиеся товары, подстраховка от тупика.
+  const reshuffle = () => {
+    const items = cells.flat();
+    if (items.length === 0) return;
+    const used = Math.min(SLOTS - 2, Math.max(1, Math.ceil(items.length / CAP)));
+    let ns: number[][]; let guard = 0;
+    do {
+      const sh = shuffle(items);
+      ns = Array.from({ length: SLOTS }, () => [] as number[]);
+      let ci = 0;
+      for (const it of sh) { for (let tr = 0; tr < used; tr++) { const c = ci % used; ci++; if (ns[c].length < CAP) { ns[c].push(it); break; } } }
+      ns = shuffle(ns);
+      guard++;
+    } while (ns.some(threeSame) && guard < 60);
+    setCells(ns); setSel(null); hapticTap();
   };
 
   // ── вёрстка ──────────────────────────────────────────────────────────
-  const boardW = Math.min(width - 24, 420);
-  const cell = Math.floor((boardW - 10 * 2 - 14 * 2) / 3);
-  const ghostSize = cell - 16;
+  const boardW = Math.min(width - 18, 440);
+  const cellW = Math.floor((boardW - 10 * 2 - 8 * 2) / 3);   // 3 ячейки в ряд
+  const itemSize = Math.floor((cellW - 12) / 3) - 2;          // 3 товара в ячейке
 
-  const slotAt = (px: number, py: number) => {
-    for (let i = 0; i < SLOTS; i++) {
-      const r = slotRects.current[i];
-      if (r && px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) return i;
-    }
-    return -1;
+  const renderCell = (i: number) => {
+    const cell = cells[i] || [];
+    const isSelCell = sel?.cell === i;
+    const close = hasPair(cell);   // 2 одинаковых → подсказка «положи третий»
+    const canDrop = !!sel && sel.cell !== i && cell.length < CAP;
+    return (
+      <TouchableOpacity key={i} activeOpacity={0.9} onPress={() => handleCellTap(i)}
+        style={[styles.cell, {
+          width: cellW, height: itemSize + 22,
+          borderColor: canDrop ? '#fbbf24' : close ? '#22c55e' : '#8a5a2b',
+          borderWidth: canDrop || close ? 3 : 2,
+        }]}>
+        <View style={styles.cellRow}>
+          {Array.from({ length: CAP }).map((_, s) => {
+            const has = s < cell.length;
+            const selected = isSelCell && sel?.idx === s;
+            if (!has) return <View key={s} style={[styles.itemSlot, { width: itemSize, height: itemSize }]} />;
+            return (
+              <TouchableOpacity key={s} activeOpacity={0.7} onPress={() => handleItemTap(i, s)}
+                style={[styles.itemSlot, { width: itemSize, height: itemSize }, selected && styles.itemSel]}>
+                <GoodIcon type={cell[s]} size={itemSize - 4} />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </TouchableOpacity>
+    );
   };
-  const measureSlot = (i: number) => {
-    const el = slotEls.current[i];
-    if (el && el.measureInWindow) el.measureInWindow((x: number, y: number, w: number, h: number) => { slotRects.current[i] = { x, y, w, h }; });
-  };
-  // Перетаскивание: тап (без движения) → handleSlotTap; движение >8px → захватываем и тащим верхний товар.
-  const pan = PanResponder.create({
-    onStartShouldSetPanResponder: () => false,
-    onMoveShouldSetPanResponderCapture: (_e, g) => phase === 'playing' && (Math.abs(g.dx) > 8 || Math.abs(g.dy) > 8),
-    onPanResponderGrant: (_e, g) => {
-      const from = slotAt(g.x0, g.y0);
-      if (from >= 0 && stacks[from].length > 0) {
-        dragFromRef.current = from;
-        dragTypeRef.current = stacks[from][stacks[from].length - 1];
-        ghostXY.setValue({ x: g.x0 - ghostSize / 2, y: g.y0 - ghostSize / 2 });
-        setSelected(null);
-        setDragFrom(from);
-      }
-    },
-    onPanResponderMove: (_e, g) => { ghostXY.setValue({ x: g.moveX - ghostSize / 2, y: g.moveY - ghostSize / 2 }); },
-    onPanResponderRelease: (_e, g) => {
-      const from = dragFromRef.current;
-      if (from !== null) {
-        const to = slotAt(g.moveX, g.moveY);
-        if (to >= 0 && to !== from) moveTop(from, to);
-      }
-      dragFromRef.current = null;
-      setDragFrom(null);
-    },
-    onPanResponderTerminate: () => { dragFromRef.current = null; setDragFrom(null); },
-  });
 
   const renderConfig = () => (
     <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
@@ -245,10 +252,31 @@ export default function GoodsSortGame() {
         <Text style={styles.configTitle}>{t('goodsSort')}</Text>
         <Text style={styles.configDesc}>{t('goodsSortDesc')}</Text>
       </LinearGradient>
+
+      {/* ВЫБОР ТОВАРОВ — как в оригинале */}
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? '🛒 Товары' : '🛒 Goods'}</Text>
+        <View style={styles.setRow}>
+          {GOOD_SETS.map((s) => {
+            const on = setKey === s.key;
+            return (
+              <TouchableOpacity key={s.key} activeOpacity={0.85} onPress={() => { setSetKey(s.key); hapticTap(); }}
+                style={[styles.setBtn, { borderColor: on ? GRADIENT[0] : colors.border, backgroundColor: on ? '#fff7e0' : colors.card }]}>
+                <Ionicons name={s.icon} size={22} color={on ? '#d97706' : colors.textSecondary} />
+                <Text style={[styles.setBtnText, { color: on ? '#92600a' : colors.textSecondary }]}>{language === 'ru' ? s.ru : s.en}</Text>
+                <View style={styles.setPreview}>
+                  {s.pool.slice(0, 4).map((p) => <GoodIcon key={p} type={p} size={18} />)}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('goodsLevel')} {level}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-          🛒 {levelCfg(level).types}   ·   📦 {SLOTS - levelCfg(level).spares}
+          🛒 {levelCfg(level, poolRef.current.length).types}   ·   📦 {SLOTS - levelCfg(level, poolRef.current.length).spares}
         </Text>
         {level > 1 && (
           <TouchableOpacity onPress={() => setLevel(1)} style={{ marginTop: 6 }}>
@@ -260,65 +288,36 @@ export default function GoodsSortGame() {
     </ScrollView>
   );
 
-  const renderStack = (i: number) => {
-    const full = stacks[i];
-    const stack = dragFrom === i ? full.slice(0, -1) : full;   // верхний товар «в руке» при перетаскивании
-    const sel = selected === i;
-    const top = stack.length - 1;
-    const tp = stack.length ? stack[top] : -1;
-    let topRun = 0; for (let k = top; k >= 0 && stack[k] === tp; k--) topRun++;
-    const close = topRun === 2;   // 2 одинаковых сверху → положи ещё один такой = сбор
-    return (
-      <TouchableOpacity key={i} activeOpacity={0.8} onPress={() => handleSlotTap(i)}
-        ref={(el) => { slotEls.current[i] = el; }}
-        onLayout={() => measureSlot(i)}
-        style={[styles.slot, {
-          width: cell, height: cell,
-          backgroundColor: sel ? '#fff7d6' : 'rgba(0,0,0,0.18)',
-          borderColor: sel ? GRADIENT[0] : close ? '#22c55e' : 'rgba(255,255,255,0.18)',
-          borderWidth: sel || close ? 3 : 1,
-        }]}>
-        {/* «в тени»: за передним ещё товары — силуэт + счётчик скрытых, тип НЕ раскрываем (планирование) */}
-        {stack.length > 1 && (
-          <>
-            <View style={{ position: 'absolute', right: 7, bottom: 7, width: cell * 0.5, height: cell * 0.5, borderRadius: 8, backgroundColor: '#0b1220', opacity: 0.45 }} />
-            <View style={styles.hiddenBadge}><Text style={styles.hiddenText}>+{stack.length - 1}</Text></View>
-          </>
-        )}
-        {stack.length > 0 && <GoodIcon type={stack[top]} size={cell - 16} />}
-        {close && (
-          <View style={[styles.countBadge, { backgroundColor: '#22c55e' }]}><Text style={styles.countText}>{topRun}</Text></View>
-        )}
-      </TouchableOpacity>
-    );
-  };
-
   const renderPlaying = () => {
-    const remaining = stacks.reduce((s, st) => s + st.length, 0);
+    const remaining = cells.reduce((s, c) => s + c.length, 0);
     return (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <HudBadge icon="pricetag" label={t('goodsLevel')} value={level} colors={['#fbbf24', '#d97706']} tint="#3f2b00" />
-        <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
-        <HudBadge icon="swap-horizontal" value={moves} colors={['#94a3b8', '#475569']} />
-        <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
-      <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }} {...pan.panHandlers}>
-        {[0, 1, 2].map((row) => (
-          <View key={row} style={[styles.shelf, { width: boardW }]}>
-            {[0, 1, 2].map((col) => renderStack(row * 3 + col))}
-          </View>
-        ))}
-      </View>
-      <ScorePopupLayer popups={popups} />
-      {levelBanner !== null && (
-        <View style={styles.levelBanner} pointerEvents="none">
-          <Text style={styles.levelBannerText}>🎉 {t('goodsLevel')} {levelBanner} ✓</Text>
-          <Text style={styles.levelBannerSub}>→ {t('goodsLevel')} {levelBanner + 1}</Text>
+      <View style={styles.playArea}>
+        <View style={styles.statsRow}>
+          <HudBadge icon="pricetag" label={t('goodsLevel')} value={level} colors={['#fbbf24', '#d97706']} tint="#3f2b00" />
+          <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
+          <HudBadge icon="swap-horizontal" value={moves} colors={['#94a3b8', '#475569']} />
+          <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
         </View>
-      )}
-    </View>
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
+        <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }}>
+          {[0, 1, 2].map((row) => (
+            <LinearGradient key={row} colors={['#6b4423', '#4a2e16']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.shelf, { width: boardW }]}>
+              {[0, 1, 2].map((col) => renderCell(row * 3 + col))}
+            </LinearGradient>
+          ))}
+        </View>
+        <TouchableOpacity onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Ionicons name="shuffle" size={18} color="#d97706" />
+          <Text style={[styles.shuffleText, { color: colors.text }]}>{language === 'ru' ? 'Перемешать' : 'Shuffle'}</Text>
+        </TouchableOpacity>
+        <ScorePopupLayer popups={popups} />
+        {levelBanner !== null && (
+          <View style={styles.levelBanner} pointerEvents="none">
+            <Text style={styles.levelBannerText}>🎉 {t('goodsLevel')} {levelBanner} ✓</Text>
+            <Text style={styles.levelBannerSub}>→ {t('goodsLevel')} {levelBanner + 1}</Text>
+          </View>
+        )}
+      </View>
     );
   };
 
@@ -338,11 +337,6 @@ export default function GoodsSortGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
-      {phase === 'playing' && dragFrom !== null && (
-        <Animated.View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, zIndex: 50, transform: ghostXY.getTranslateTransform() }}>
-          <GoodIcon type={dragTypeRef.current} size={ghostSize} />
-        </Animated.View>
-      )}
       {phase === 'result' && (
         <GameResult score={score} time={elapsed} errors={0}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
@@ -354,8 +348,6 @@ export default function GoodsSortGame() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  hiddenBadge: { position: 'absolute', left: 5, top: 5, backgroundColor: 'rgba(11,18,32,0.82)', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1 },
-  hiddenText: { color: '#cbd5e1', fontSize: 11, fontWeight: '700' },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
@@ -365,22 +357,20 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: '#3f2b00', opacity: 0.85, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  modeButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
-  modeButtonText: { fontSize: 13, fontWeight: '600' },
-  startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
-  startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { fontSize: 16, fontWeight: '700' },
+  setRow: { flexDirection: 'row', gap: 8 },
+  setBtn: { flex: 1, borderRadius: 12, borderWidth: 2, paddingVertical: 10, paddingHorizontal: 6, alignItems: 'center', gap: 4 },
+  setBtnText: { fontSize: 12, fontWeight: '700' },
+  setPreview: { flexDirection: 'row', gap: 1, marginTop: 2 },
   playArea: { flex: 1, padding: 12, gap: 8, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
-  statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 12, textAlign: 'center' },
-  shelf: { flexDirection: 'row', justifyContent: 'center', gap: 10, padding: 14, borderRadius: 12, backgroundColor: '#5b3a1e', borderBottomWidth: 5, borderBottomColor: 'rgba(0,0,0,0.35)' },
-  slot: { borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  countBadge: { position: 'absolute', bottom: -5, right: -5, minWidth: 20, height: 20, paddingHorizontal: 5, borderRadius: 10, backgroundColor: '#1f2937', justifyContent: 'center', alignItems: 'center' },
-  countText: { color: '#fff', fontSize: 11, fontWeight: '800' },
-  flashBanner: { position: 'absolute', top: '40%', alignSelf: 'center', backgroundColor: 'rgba(34,197,94,0.95)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 16 },
-  flashText: { color: '#fff', fontSize: 22, fontWeight: '900' },
+  shuffleBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 22, borderWidth: 1.5, marginTop: 6 },
+  shuffleText: { fontSize: 14, fontWeight: '700' },
+  shelf: { flexDirection: 'row', justifyContent: 'center', gap: 8, padding: 10, borderRadius: 12, borderBottomWidth: 6, borderBottomColor: 'rgba(0,0,0,0.4)' },
+  cell: { borderRadius: 8, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5e7cf' },
+  cellRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1 },
+  itemSlot: { justifyContent: 'center', alignItems: 'center', borderRadius: 6 },
+  itemSel: { backgroundColor: '#fff2c2', borderWidth: 2, borderColor: '#f7971e', transform: [{ translateY: -4 }] },
   levelBanner: { position: 'absolute', top: '38%', alignSelf: 'center', backgroundColor: 'rgba(247,151,30,0.97)', paddingHorizontal: 30, paddingVertical: 18, borderRadius: 18, alignItems: 'center', gap: 4 },
   levelBannerText: { color: '#3f2b00', fontSize: 24, fontWeight: '900' },
   levelBannerSub: { color: '#3f2b00', fontSize: 15, fontWeight: '700', opacity: 0.85 },
