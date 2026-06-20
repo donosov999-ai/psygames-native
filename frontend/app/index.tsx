@@ -19,6 +19,7 @@ import { useWarmup } from '@/src/contexts/WarmupContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import GameCard from '@/src/components/GameCard';
 import { FEATURE_ICONS } from '@/src/constants/featureIcons';
+import { profileBadge } from '@/src/constants/profileBadges';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import {
@@ -158,7 +159,11 @@ export default function HomeScreen() {
               marginTop: 2,
             }}
           >
-            <Text style={{ fontSize: 14 }}>{profile.emoji}</Text>
+            {profileBadge(profile.id) ? (
+              <Image source={profileBadge(profile.id)} style={{ width: 20, height: 20, borderRadius: 6 }} />
+            ) : (
+              <Text style={{ fontSize: 14 }}>{profile.emoji}</Text>
+            )}
             <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>
               {t('profileName_' + profile.id)}
             </Text>

@@ -13,7 +13,7 @@
 
 import React from 'react';
 import {
-  View, Text, Modal, TouchableOpacity, ScrollView, Alert, Linking, TextInput,
+  View, Text, Modal, TouchableOpacity, ScrollView, Alert, Linking, TextInput, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -22,6 +22,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import type { ProfileDef } from '@/src/constants/profiles';
 import { BUNDLE_ALL_THEMED_PRICE, CORPORATE_PACK_PRICE, CORPORATE_PACK_MAX_CODES, isForSale, formatPrice, MONETIZATION_ENABLED } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
+import { profileBadge } from '@/src/constants/profileBadges';
 
 const OWNER_TG = 'Denis_On999';
 
@@ -161,7 +162,14 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                       }}
                       onPress={() => handleProfileClick(p)}
                     >
-                      <Text style={{ fontSize: 32 }}>{p.emoji}{locked && '🔒'}</Text>
+                      {profileBadge(p.id) ? (
+                  <View>
+                    <Image source={profileBadge(p.id)} style={{ width: 46, height: 46, borderRadius: 13, opacity: locked ? 0.5 : 1 }} />
+                    {locked && <Text style={{ position: 'absolute', right: -3, bottom: -3, fontSize: 15 }}>🔒</Text>}
+                  </View>
+                ) : (
+                  <Text style={{ fontSize: 32 }}>{p.emoji}{locked && '🔒'}</Text>
+                )}
                       <Text style={{ fontSize: 14, fontWeight: '700', color: active ? '#000' : colors.text, marginTop: 4, textAlign: 'center' }}>
                         {t('profileName_' + p.id)}
                       </Text>
