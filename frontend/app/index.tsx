@@ -21,8 +21,8 @@ import GameCard from '@/src/components/GameCard';
 import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { logoForProfile } from '@/src/constants/profileLogos';
-import { getTokens } from '@/src/services/tokens';
-import { sndToken } from '@/src/services/feedback';
+import { getTokens, levelInfo } from '@/src/services/tokens';
+import { sndToken, sndWin } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
@@ -42,7 +42,7 @@ const GRID_GAP = 12;
 
 export default function HomeScreen() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const warmup = useWarmup();
   const { profile } = useProfile();
@@ -58,15 +58,22 @@ export default function HomeScreen() {
   const [switcherOpen, setSwitcherOpen] = useState(false);
   // Общие очки-токены ЦЕНТРА (копятся со всех игр; перечит на фокусе главного после игры)
   const [tokens, setTokens] = useState(0);
+  const [levelUp, setLevelUp] = useState<number | null>(null);   // оверлей «Уровень N!» при повышении
   const prevTokensRef = useRef<number | null>(null);
+  const prevLevelRef = useRef<number | null>(null);
   useFocusEffect(useCallback(() => {
     if (!profile?.id) return;
     getTokens(profile.id).then((v) => {
       if (prevTokensRef.current !== null && v > prevTokensRef.current) sndToken();   // звон когда вернулся с игры и очки выросли
-      prevTokensRef.current = v;
+      const lv = levelInfo(v).level;
+      if (prevLevelRef.current !== null && lv > prevLevelRef.current) {   // повысился уровень
+        setLevelUp(lv); sndWin(); setTimeout(() => setLevelUp(null), 2200);
+      }
+      prevTokensRef.current = v; prevLevelRef.current = lv;
       setTokens(v);
     });
   }, [profile?.id]));
+  const lvl = levelInfo(tokens);
 
   useEffect(() => {
     (async () => {
@@ -147,16 +154,34 @@ export default function HomeScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Стилизация профиля: лёгкий акцент-фон сверху под цвет активного профиля */}
       <LinearGradient colors={[colors.primary + '26', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 260 }} pointerEvents="none" />
+      {levelUp !== null && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', zIndex: 200 }} pointerEvents="none">
+          <View style={{ backgroundColor: '#f59e0b', paddingHorizontal: 34, paddingVertical: 22, borderRadius: 22, alignItems: 'center', gap: 4 }}>
+            <Text style={{ fontSize: 40 }}>⭐</Text>
+            <Text style={{ color: '#3f2b00', fontWeight: '900', fontSize: 24 }}>{language === 'ru' ? 'Уровень' : 'Level'} {levelUp}!</Text>
+            <Text style={{ color: '#3f2b00', fontWeight: '800', fontSize: 15 }}>{language === 'ru' ? lvl.titleRu : lvl.titleEn}</Text>
+          </View>
+        </View>
+      )}
       {/* Header — v1.7.0: профиль-чип теперь кликабельный (открывает switcher) */}
       <View style={styles.header}>
         {/* v1.30.6: заголовок — на ОТДЕЛЬНОЙ строке во всю ширину (раньше делил ряд с иконками → на Android «PsyGames» переносился/обрезался) */}
         {/* Лого-вордмарк под профиль (9 вариантов, «пока в каждом режиме свой») вместо текста PsyGames */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Image source={logoForProfile(profile?.id)} style={{ height: 44, width: 190 }} resizeMode="contain" />
-          {/* Общие очки-токены центра (⭐) — игровой счёт, копится со всех упражнений */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#fbbf2422', borderWidth: 1.5, borderColor: '#f59e0b', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 100 }}>
-            <Text style={{ fontSize: 15 }}>⭐</Text>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>{tokens}</Text>
+          {/* Очки-токены центра (⭐) + уровень профиля от накопленных токенов (T1 геймификация) */}
+          <View style={{ alignItems: 'flex-end', gap: 3 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fbbf2422', borderWidth: 1.5, borderColor: '#f59e0b', paddingVertical: 4, paddingHorizontal: 11, borderRadius: 100 }}>
+              <Text style={{ fontSize: 14 }}>⭐</Text>
+              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>{tokens}</Text>
+              <View style={{ width: 1, height: 12, backgroundColor: '#f59e0b88' }} />
+              <Text style={{ color: '#b45309', fontWeight: '800', fontSize: 12 }}>Lv {lvl.level}</Text>
+            </View>
+            {lvl.span !== null && (
+              <View style={{ width: 104, height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden' }}>
+                <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 4, backgroundColor: '#f59e0b' }} />
+              </View>
+            )}
           </View>
         </View>
         <View style={styles.headerRow}>
