@@ -258,7 +258,7 @@ export default function SudokuGame() {
                   styles.cellText,
                   {
                     color: isSel ? '#FFF' : wrongVal ? '#b91c1c' : given[r][c] ? colors.text : GRADIENT[0],
-                    fontWeight: given[r][c] || wrongVal ? '700' : '500',
+                    fontWeight: given[r][c] || wrongVal ? '800' : '600',
                   },
                 ]}>
                   {v}
@@ -387,10 +387,10 @@ const styles = StyleSheet.create({
   statText: { fontSize: 14, fontWeight: '700' },
   gridArea: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 2, borderRadius: 4 },
   cell: { justifyContent: 'center', alignItems: 'center' },
-  cellText: { fontSize: 22 },
+  cellText: { fontSize: 28, fontWeight: '600' },
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center' },
   numBtn: { width: 50, height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  numText: { color: '#FFF', fontSize: 22, fontWeight: '700' },
+  numText: { color: '#FFF', fontSize: 26, fontWeight: '800' },
   hintRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8 },
   overWrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.55)', padding: 24, zIndex: 100 },
   overCard: { width: '100%', maxWidth: 340, borderRadius: 20, padding: 24, alignItems: 'center', gap: 6 },
