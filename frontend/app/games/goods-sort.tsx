@@ -118,7 +118,7 @@ export default function GoodsSortGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
 
   const { isPreset } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -223,9 +223,12 @@ export default function GoodsSortGame() {
   };
 
   // ── вёрстка ──────────────────────────────────────────────────────────
-  const boardW = Math.min(width - 24, 660);   // шире на десктопе → товары крупнее (было 440 = мелко)
+  const boardW = Math.min(width - 24, 900);   // шире → товары крупнее на десктопе
   const cellW = Math.floor((boardW - 10 * 2 - 8 * 2) / 3);          // 3 ячейки-полки в ряд
-  const itemSize = Math.min(74, Math.floor((cellW - 14) / 3));      // 3 товара в ячейке, крупно
+  // Размер товара ограничен И шириной (3 в ряд), И доступной высотой (3 полки) — тянемся по высоте экрана,
+  // чтобы поле не было «приплюснутым», а товары — крупными и видимыми.
+  const availH = Math.max(180, height - 360);
+  const itemSize = Math.max(46, Math.min(112, Math.floor((cellW - 10) / 3), Math.floor(availH / 3) - 30));
 
   const renderCell = (i: number) => {
     const cell = cells[i] || [];

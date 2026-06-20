@@ -68,34 +68,30 @@ function tooClose(a: Shape, b: Shape, padding = 12): boolean {
 }
 
 function generateScene(width: number, height: number, count: number): Shape[] {
+  // Сеточная раскладка: каждый объект — в своей ячейке сетки + лёгкий джиттер внутри неё.
+  // Объект гарантированно остаётся внутри ячейки с зазором ≥6px → НАЛОЖЕНИЯ НЕВОЗМОЖНЫ.
+  const cols = Math.max(1, Math.round(Math.sqrt(count * width / Math.max(1, height))));
+  const rows = Math.ceil(count / cols);
+  const cw = width / cols, ch = height / rows;
+  const cellMin = Math.min(cw, ch);
+  const size = Math.max(30, Math.min(56, cellMin - 16));
+  const jitter = Math.max(0, (cellMin - size) / 2 - 6);
+  const cellIdx = Array.from({ length: cols * rows }, (_, i) => i);
+  for (let i = cellIdx.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cellIdx[i], cellIdx[j]] = [cellIdx[j], cellIdx[i]];
+  }
   const shapes: Shape[] = [];
-  const MAX_ATTEMPTS_PER_SHAPE = 90;
-
-  for (let i = 0; i < count; i++) {
-    let placed: Shape | null = null;
-    for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_SHAPE; attempt++) {
-      const size = rand(44, 58);   // КРУПНЫЕ объекты различимы; чуть меньше — чтобы вместить больше (14)
-      const candidate: Shape = {
-        sprite: Math.floor(Math.random() * SPRITE_COUNT),
-        x: rand(size / 2 + 6, width - size / 2 - 6),
-        y: rand(size / 2 + 6, height - size / 2 - 6),
-        size,
-        rot: 0,
-      };
-      const collides = shapes.some(s => tooClose(candidate, s));
-      if (!collides) { placed = candidate; break; }
-    }
-    if (!placed) {
-      const size = rand(36, 46);   // smaller fallback
-      placed = {
-        sprite: Math.floor(Math.random() * SPRITE_COUNT),
-        x: rand(size / 2 + 6, width - size / 2 - 6),
-        y: rand(size / 2 + 6, height - size / 2 - 6),
-        size,
-        rot: 0,
-      };
-    }
-    shapes.push(placed);
+  for (let n = 0; n < Math.min(count, cols * rows); n++) {
+    const ci = cellIdx[n];
+    const gr = Math.floor(ci / cols), gc = ci % cols;
+    shapes.push({
+      sprite: Math.floor(Math.random() * SPRITE_COUNT),
+      x: gc * cw + cw / 2 + rand(-jitter, jitter),
+      y: gr * ch + ch / 2 + rand(-jitter, jitter),
+      size,
+      rot: 0,
+    });
   }
   return shapes;
 }
