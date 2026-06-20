@@ -37,13 +37,23 @@ const GOOD_SPRITES = [
   require('../../assets/images/goods/good11.png'), // зубная паста
   require('../../assets/images/goods/good12.png'), // виноградный сок
   require('../../assets/images/goods/good13.png'), // клубничный коктейль
+  require('../../assets/images/goods/good14.png'), // мишка
+  require('../../assets/images/goods/good15.png'), // кактус
+  require('../../assets/images/goods/good16.png'), // цветок
+  require('../../assets/images/goods/good17.png'), // зайка
+  require('../../assets/images/goods/good18.png'), // цыплёнок
+  require('../../assets/images/goods/good19.png'), // коала
+  require('../../assets/images/goods/good20.png'), // растение
+  require('../../assets/images/goods/good21.png'), // пингвин
+  require('../../assets/images/goods/good22.png'), // лиса
 ];
 
 // Наборы товаров — ВЫБОР В МЕНЮ (как в оригинале). Каждый набор = пул индексов спрайтов.
 const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: number[] }[] = [
   { key: 'drinks', ru: 'Напитки', en: 'Drinks', icon: 'wine', pool: [0, 1, 4, 12, 13, 2, 5, 3] },
   { key: 'food', ru: 'Еда', en: 'Food', icon: 'fast-food', pool: [6, 7, 8, 9, 10, 11] },
-  { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] },
+  { key: 'toys', ru: 'Игрушки', en: 'Toys', icon: 'happy', pool: [14, 15, 16, 17, 18, 19, 20, 21, 22] },
+  { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22] },
 ];
 
 function GoodIcon({ type, size }: { type: number; size: number }) {

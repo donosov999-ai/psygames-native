@@ -73,7 +73,7 @@ jobs:
       - name: Install Playwright chromium
         working-directory: frontend
         run: |
-          npm i -D playwright
+          npm i -D playwright --legacy-peer-deps
           npx playwright install --with-deps chromium
       - name: Serve dist + run smoke
         working-directory: frontend
