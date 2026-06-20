@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   Platform,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -17,6 +18,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import GameCard from '@/src/components/GameCard';
+import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import {
@@ -130,7 +132,10 @@ export default function HomeScreen() {
       {/* Header — v1.7.0: профиль-чип теперь кликабельный (открывает switcher) */}
       <View style={styles.header}>
         {/* v1.30.6: заголовок — на ОТДЕЛЬНОЙ строке во всю ширину (раньше делил ряд с иконками → на Android «PsyGames» переносился/обрезался) */}
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1} allowFontScaling={false}>PsyGames</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Image source={FEATURE_ICONS.brainmark} style={{ width: 36, height: 36 }} resizeMode="contain" />
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1} allowFontScaling={false}>PsyGames</Text>
+        </View>
         <View style={styles.headerRow}>
         <View style={{ flex: 1, gap: 6 }}>
           {/* Клик-чип "Сменить профиль" — заметный, с chevron ▾ */}
@@ -211,7 +216,7 @@ export default function HomeScreen() {
         {/* 👁 Быстрый перерыв для глаз — вынесен в самый верх (один тап, чтобы не искать) */}
         <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/games/eye-gym' as any)} style={styles.eyeQuick}>
           <LinearGradient colors={['#43cea2', '#185a9d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.eyeQuickGrad}>
-            <View style={styles.eyeQuickIcon}><Ionicons name="eye" size={24} color="#fff" /></View>
+            <Image source={FEATURE_ICONS.eyegym} style={{ width: 46, height: 46, borderRadius: 13, marginRight: 12 }} />
             <View style={{ flex: 1 }}>
               <Text style={styles.eyeQuickTitle}>{t('eyeGym')}</Text>
               <Text style={styles.eyeQuickSub} numberOfLines={1}>{t('eyeGymDesc')}</Text>
@@ -241,7 +246,7 @@ export default function HomeScreen() {
               style={styles.heroCard}
             >
               <View style={styles.heroTopRow}>
-                <Ionicons name="flash" size={22} color={isRest ? '#FFF' : '#000'} />
+                <Image source={FEATURE_ICONS.warmup} style={{ width: 30, height: 30, borderRadius: 8 }} />
                 {streak > 0 && (
                   <View style={styles.heroChipMini}>
                     <Text style={styles.heroChipMiniText}>🔥{streak}</Text>
@@ -277,7 +282,7 @@ export default function HomeScreen() {
               style={styles.heroCard}
             >
               <View style={styles.heroTopRow}>
-                <Ionicons name="moon" size={22} color="#FFF" />
+                <Image source={FEATURE_ICONS.night} style={{ width: 30, height: 30, borderRadius: 8 }} />
               </View>
               <Text style={[styles.heroTitle, { color: '#FFF' }]}>{t('complexEvening')}</Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
@@ -304,7 +309,7 @@ export default function HomeScreen() {
               style={styles.heroCard}
             >
               <View style={styles.heroTopRow}>
-                <Ionicons name="locate" size={22} color="#FFF" />
+                <Image source={FEATURE_ICONS.assessment} style={{ width: 30, height: 30, borderRadius: 8 }} />
                 {assessStatus.hasAssessment ? (
                   <View style={[styles.heroChipMini, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
                     <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>
@@ -345,7 +350,7 @@ export default function HomeScreen() {
               style={styles.heroCard}
             >
               <View style={styles.heroTopRow}>
-                <Ionicons name="cash" size={22} color="#FFF" />
+                <Image source={FEATURE_ICONS.financial} style={{ width: 30, height: 30, borderRadius: 8 }} />
                 {finCooldown.ready ? (
                   <View style={[styles.heroChipMini, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
                     <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>🟢</Text>
