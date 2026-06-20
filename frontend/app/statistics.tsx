@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { getAllStats, GameStats } from '@/src/services/api';
+import { getTokens, levelInfo, getStreak } from '@/src/services/tokens';
 import { GAMES } from '@/src/constants/games';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -27,6 +28,8 @@ export default function StatisticsScreen() {
   const [loading, setLoading] = useState(true);
   const { profile } = useProfile();
   const [scopeAll, setScopeAll] = useState(false);  // false = текущий профиль, true = все игры
+  const [tokens, setTokens] = useState(0);          // D1: токены/уровень/стрик в герое
+  const [streakDays, setStreakDays] = useState(0);
 
   useEffect(() => {
     loadStats();
@@ -36,6 +39,7 @@ export default function StatisticsScreen() {
     try {
       const allStats = await getAllStats();
       setStats(allStats);
+      if (profile?.id) { setTokens(await getTokens(profile.id)); setStreakDays(await getStreak(profile.id)); }
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {
@@ -59,6 +63,12 @@ export default function StatisticsScreen() {
   const getGameConfig = (gameType: string) => {
     return GAMES.find((g) => g.id === gameType);
   };
+
+  // D1: агрегаты прогресса для героя
+  const lvl = levelInfo(tokens);
+  const totalGames = stats.reduce((s, x) => s + x.total_sessions, 0);
+  const totalTime = stats.reduce((s, x) => s + (isFinite(x.total_time) && x.total_time > 0 && x.total_time <= 86400 * 365 ? x.total_time : 0), 0);
+  const formatTotal = (s: number) => s >= 3600 ? `${(s / 3600).toFixed(1)}${language === 'ru' ? 'ч' : 'h'}` : `${Math.round(s / 60)}${language === 'ru' ? 'м' : 'm'}`;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -122,6 +132,35 @@ export default function StatisticsScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* D1: Прогресс-герой — токены/уровень/стрик + итоги (связь с геймификацией T1/T2) */}
+          <LinearGradient colors={[colors.primary, colors.primary + 'bb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={{ borderRadius: 18, padding: 16, marginBottom: 14 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-start' }}>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 20 }}>⭐</Text>
+                <Text style={{ color: '#fff', fontWeight: '900', fontSize: 18 }}>{tokens}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11 }}>{language === 'ru' ? 'Очки' : 'Tokens'}</Text>
+              </View>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ color: '#fff', fontWeight: '900', fontSize: 22, marginTop: 2 }}>Lv {lvl.level}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12, fontWeight: '700' }}>{language === 'ru' ? lvl.titleRu : lvl.titleEn}</Text>
+              </View>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 20 }}>🔥</Text>
+                <Text style={{ color: '#fff', fontWeight: '900', fontSize: 18 }}>{streakDays}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11 }}>{language === 'ru' ? 'Стрик' : 'Streak'}</Text>
+              </View>
+            </View>
+            {lvl.span !== null && (
+              <View style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.25)', marginTop: 12, overflow: 'hidden' }}>
+                <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 6, backgroundColor: '#fff' }} />
+              </View>
+            )}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 12 }}>
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{totalGames} {language === 'ru' ? 'игр сыграно' : 'games played'}</Text>
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{formatTotal(totalTime)} {language === 'ru' ? 'в игре' : 'in game'}</Text>
+            </View>
+          </LinearGradient>
           {/* v1.13.4: фильтр — показывать только реально пройденные игры,
               а не пустые карточки для всех 48+. Денис: «лишняя инфа».
               Раньше .map() рендерил все 48 stats включая нулевые. */}
