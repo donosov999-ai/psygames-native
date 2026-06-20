@@ -348,7 +348,7 @@ const translations: Translations = {
   benefitGoods1: { ru: 'Зрительная рабочая память: что где спрятано', en: 'Visual working memory: what is hidden where' },
   benefitGoods2: { ru: 'Планирование последовательности ходов', en: 'Planning a sequence of moves' },
   benefitGoods3: { ru: 'Концентрация и системность', en: 'Focus and systematic thinking' },
-  goodsSortHint: { ru: 'Перетащи верхний товар на другую стопку. 3 ОДИНАКОВЫХ наверху — исчезают. Задние товары скрыты — раскапывай. Цель: убрать всё.', en: 'Drag the top good onto another stack. 3 IDENTICAL on top — they vanish. Back goods are hidden — dig them out. Goal: clear everything.' },
+  goodsSortHint: { ru: 'Тапни товар, потом ячейку — переложить. Собери 3 ОДИНАКОВЫХ в одной ячейке — исчезнут. Убери всё.', en: 'Tap a good, then a cell — to move it. Gather 3 IDENTICAL in one cell — they vanish. Clear everything.' },
   goodsLevel: { ru: 'Уровень', en: 'Level' },
   eyeInstrWarmup: { ru: 'Веди взгляд за точкой по направлениям', en: 'Follow the dot in each direction' },
   eyeInstrPursuit: { ru: 'Следи за точкой глазами, голову не двигай', en: 'Follow the dot with your eyes, keep your head still' },

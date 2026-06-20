@@ -212,9 +212,9 @@ export default function GoodsSortGame() {
   };
 
   // ── вёрстка ──────────────────────────────────────────────────────────
-  const boardW = Math.min(width - 18, 440);
-  const cellW = Math.floor((boardW - 10 * 2 - 8 * 2) / 3);   // 3 ячейки в ряд
-  const itemSize = Math.floor((cellW - 12) / 3) - 2;          // 3 товара в ячейке
+  const boardW = Math.min(width - 24, 660);   // шире на десктопе → товары крупнее (было 440 = мелко)
+  const cellW = Math.floor((boardW - 10 * 2 - 8 * 2) / 3);          // 3 ячейки-полки в ряд
+  const itemSize = Math.min(74, Math.floor((cellW - 14) / 3));      // 3 товара в ячейке, крупно
 
   const renderCell = (i: number) => {
     const cell = cells[i] || [];
@@ -228,15 +228,14 @@ export default function GoodsSortGame() {
           borderColor: canDrop ? '#fbbf24' : close ? '#22c55e' : '#8a5a2b',
           borderWidth: canDrop || close ? 3 : 2,
         }]}>
+        {/* Рисуем ТОЛЬКО реальные товары (по центру) — без пустых боксов; пустое место ячейки = куда класть */}
         <View style={styles.cellRow}>
-          {Array.from({ length: CAP }).map((_, s) => {
-            const has = s < cell.length;
+          {cell.map((tp, s) => {
             const selected = isSelCell && sel?.idx === s;
-            if (!has) return <View key={s} style={[styles.itemSlot, { width: itemSize, height: itemSize }]} />;
             return (
               <TouchableOpacity key={s} activeOpacity={0.7} onPress={() => handleItemTap(i, s)}
                 style={[styles.itemSlot, { width: itemSize, height: itemSize }, selected && styles.itemSel]}>
-                <GoodIcon type={cell[s]} size={itemSize - 4} />
+                <GoodIcon type={tp} size={itemSize - 2} />
               </TouchableOpacity>
             );
           })}
@@ -367,8 +366,8 @@ const styles = StyleSheet.create({
   shuffleBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 22, borderWidth: 1.5, marginTop: 6 },
   shuffleText: { fontSize: 14, fontWeight: '700' },
   shelf: { flexDirection: 'row', justifyContent: 'center', gap: 8, padding: 10, borderRadius: 12, borderBottomWidth: 6, borderBottomColor: 'rgba(0,0,0,0.4)' },
-  cell: { borderRadius: 8, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5e7cf' },
-  cellRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1 },
+  cell: { borderRadius: 10, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5e7cf', shadowColor: '#3a230f', shadowOpacity: 0.18, shadowRadius: 3, shadowOffset: { width: 0, height: 2 } },
+  cellRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
   itemSlot: { justifyContent: 'center', alignItems: 'center', borderRadius: 6 },
   itemSel: { backgroundColor: '#fff2c2', borderWidth: 2, borderColor: '#f7971e', transform: [{ translateY: -4 }] },
   levelBanner: { position: 'absolute', top: '38%', alignSelf: 'center', backgroundColor: 'rgba(247,151,30,0.97)', paddingHorizontal: 30, paddingVertical: 18, borderRadius: 18, alignItems: 'center', gap: 4 },
