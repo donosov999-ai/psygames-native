@@ -100,6 +100,10 @@ export default function SudokuGame() {
   const { profile } = useProfile();
   const [digitStyle, setDigitStyle] = useState<DigitStyle>(() => defaultStyleForProfile(profile?.id));
   const DIGIT_IMG = digitsForStyle(digitStyle);
+  // Тип цифр: 'plain' = обычный чёткий текст (дефолт — ровный размер, по центру, без тени), 'drawn' = рисованные наборы.
+  const [digitMode, setDigitMode] = useState<'plain' | 'drawn'>('plain');
+  useEffect(() => { AsyncStorage.getItem('psygames_sudoku_digitmode').then((v) => { if (v === 'plain' || v === 'drawn') setDigitMode(v); }).catch(() => {}); }, []);
+  const changeDigitMode = (m: 'plain' | 'drawn') => { setDigitMode(m); AsyncStorage.setItem('psygames_sudoku_digitmode', m).catch(() => {}); };
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
@@ -319,20 +323,36 @@ export default function SudokuGame() {
           </View>
         </>
       )}
-      {/* Выбор стиля цифр — кому авто-цвет под профиль не зашёл */}
+      {/* Тип цифр: обычные (чёткий текст) или рисованные */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Стиль цифр' : 'Digit style'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Цифры' : 'Digits'}</Text>
         <View style={styles.optionButtons}>
-          {DIGIT_STYLES.map((st) => (
-            <TouchableOpacity key={st} onPress={() => setDigitStyle(st)}
-              style={[styles.modeButton, { paddingVertical: 6, paddingHorizontal: 10 }, digitStyle === st
-                ? { backgroundColor: GRADIENT[0], borderWidth: 2, borderColor: GRADIENT[0] }
-                : { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border }]}>
-              <Image source={digitsForStyle(st)[5]} style={{ width: 30, height: 30 }} resizeMode="contain" />
+          {([['plain', language === 'ru' ? 'Обычные' : 'Plain'], ['drawn', language === 'ru' ? 'Рисованные' : 'Drawn']] as const).map(([m, lbl]) => (
+            <TouchableOpacity key={m} onPress={() => changeDigitMode(m as 'plain' | 'drawn')}
+              style={[styles.modeButton, digitMode === m
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}>
+              <Text style={[styles.modeButtonText, { color: digitMode === m ? '#FFF' : colors.text }]}>{lbl}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
+      {/* Стиль рисованных цифр — только в режиме «Рисованные» */}
+      {digitMode === 'drawn' && (
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Стиль цифр' : 'Digit style'}</Text>
+          <View style={styles.optionButtons}>
+            {DIGIT_STYLES.map((st) => (
+              <TouchableOpacity key={st} onPress={() => setDigitStyle(st)}
+                style={[styles.modeButton, { paddingVertical: 6, paddingHorizontal: 10 }, digitStyle === st
+                  ? { backgroundColor: GRADIENT[0], borderWidth: 2, borderColor: GRADIENT[0] }
+                  : { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border }]}>
+                <Image source={digitsForStyle(st)[5]} style={{ width: 30, height: 30 }} resizeMode="contain" />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
       <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{mode === 'levels' ? (language === 'ru' ? `Уровень ${level} — играть` : `Play level ${level}`) : t('start')}</Text>
@@ -379,8 +399,8 @@ export default function SudokuGame() {
               ]}
             >
               {v !== 0 && (
-                (isSel || wrongVal) ? (
-                  <Text style={[styles.cellText, { color: isSel ? '#FFF' : '#b91c1c', fontWeight: '800' }]}>{v}</Text>
+                (isSel || wrongVal || digitMode === 'plain') ? (
+                  <Text style={{ color: isSel ? '#FFF' : wrongVal ? '#b91c1c' : colors.text, fontWeight: '700', fontSize: Math.round(cellSize * 0.52) }}>{v}</Text>
                 ) : (
                   <Image source={DIGIT_IMG[v]} style={{ width: cellSize * 0.72, height: cellSize * 0.72 }} resizeMode="contain" />
                 )
@@ -398,7 +418,9 @@ export default function SudokuGame() {
             onPress={() => handleNumPress(n)}
             style={[styles.numBtn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
           >
-            <Image source={DIGIT_IMG[n]} style={{ width: 36, height: 36 }} resizeMode="contain" />
+            {digitMode === 'plain'
+              ? <Text style={{ fontSize: 24, fontWeight: '800', color: colors.text }}>{n}</Text>
+              : <Image source={DIGIT_IMG[n]} style={{ width: 36, height: 36 }} resizeMode="contain" />}
           </TouchableOpacity>
         ))}
         <TouchableOpacity onPress={() => handleNumPress(0)} style={[styles.numBtn, { backgroundColor: colors.surface }]}>
