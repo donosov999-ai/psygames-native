@@ -40,7 +40,7 @@ function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
 // SUDOKU-VARIANTS: правила-варианты на сетке 9×9. Применяются ТОЛЬКО при генерации решения
 // (solve уважает правило → решение легально под вариантом). В игре механика «впиши решение»,
 // поэтому вариант не энфорсится в рантайме — он задаёт характер решения + показывается игроку.
-type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec';
+type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw';
 const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
 const ORTHO = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
@@ -54,6 +54,7 @@ function variantLabel(v: Variant, ru: boolean): string {
     case 'antiknight': return ru ? '♞ ход коня' : '♞ anti-knight';
     case 'hyper': return ru ? '⊞ доп. зоны' : '⊞ hyper';
     case 'nonconsec': return ru ? '≠ не подряд' : '≠ non-consecutive';
+    case 'jigsaw': return ru ? '⧉ кривые блоки' : '⧉ jigsaw';
     default: return '';
   }
 }
@@ -63,8 +64,39 @@ function variantRule(v: Variant, ru: boolean): string {
     case 'antiknight': return ru ? 'Одинаковые цифры не стоят на расстоянии хода коня.' : 'Equal digits cannot be a knight’s move apart.';
     case 'hyper': return ru ? 'Четыре доп. зоны 3×3 тоже содержат 1–9 без повторов.' : 'Four extra 3×3 regions also hold 1–9 with no repeats.';
     case 'nonconsec': return ru ? 'Соседние по стороне клетки не отличаются на 1.' : 'Orthogonally adjacent cells cannot differ by 1.';
+    case 'jigsaw': return ru ? 'Блоки кривые, а не квадраты — в каждом тоже 1–9 без повторов.' : 'Blocks are irregular, not squares — each still holds 1–9.';
     default: return '';
   }
+}
+
+// Jigsaw: 9 связных регионов по 9 клеток. Region-growing «расти меньший растущий», рестарт при тупике.
+function generateRegions(N: number): number[][] {
+  for (let attempt = 0; attempt < 400; attempt++) {
+    const reg: number[][] = Array.from({ length: N }, () => Array(N).fill(-1));
+    const sizes = Array(N).fill(0);
+    shuffle(Array.from({ length: N * N }, (_, i) => i)).slice(0, N).forEach((p, id) => { reg[Math.floor(p / N)][p % N] = id; sizes[id] = 1; });
+    let filled = N, stuck = false;
+    while (filled < N * N) {
+      // анти-orphan: назначаем самую «угловую» неназначенную клетку (мин. свободных соседей),
+      // у которой есть растущий сосед-регион, её НАИМЕНЬШЕМУ соседнему региону → карманы не остаются.
+      let target = -1, tFree = 99, tReg = -1;
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (reg[r][c] === -1) {
+        let free = 0; const adj: number[] = [];
+        for (const [dr, dc] of ORTHO) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N) { const v = reg[nr][nc]; if (v === -1) free++; else if (sizes[v] < N) adj.push(v); } }
+        if (!adj.length) continue;
+        if (free < tFree) { tFree = free; target = r * N + c; tReg = adj.sort((a, b) => sizes[a] - sizes[b])[0]; }
+      }
+      if (target < 0) { stuck = true; break; }
+      reg[Math.floor(target / N)][target % N] = tReg; sizes[tReg]++; filled++;
+    }
+    if (!stuck && filled === N * N && sizes.every((s) => s === N)) return reg;
+  }
+  // фолбэк: квадратные блоки
+  const { BR, BC } = dimsForSize(N as 6 | 9);
+  const perRow = Math.floor(N / BC);
+  const reg: number[][] = Array.from({ length: N }, () => Array(N).fill(0));
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) reg[r][c] = Math.floor(r / BR) * perRow + Math.floor(c / BC);
+  return reg;
 }
 
 // SUDOKU-LVL: уровневая прогрессия. 1–4 = 6×6, 5–8 = 9×9, 9–13 = диагональ, далее фазы-варианты:
@@ -78,7 +110,8 @@ function levelConfig(level: number): LevelCfg {
   if (lv >= 9 && lv <= 13) variant = 'diagonal';
   else if (lv >= 14 && lv <= 17) variant = 'antiknight';
   else if (lv >= 18 && lv <= 21) variant = 'hyper';
-  else if (lv >= 22) variant = 'nonconsec';
+  else if (lv >= 22 && lv <= 25) variant = 'nonconsec';
+  else if (lv >= 26) variant = 'jigsaw';
   const blanks = size === 6
     ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
     : (variant === 'none' || variant === 'diagonal')
@@ -90,10 +123,15 @@ function levelConfig(level: number): LevelCfg {
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none'): boolean {
+function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][]): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
-  const br = Math.floor(r / BR) * BR, bc = Math.floor(c / BC) * BC;
-  for (let i = 0; i < BR; i++) for (let j = 0; j < BC; j++) if (grid[br + i][bc + j] === val) return false;
+  if (variant === 'jigsaw' && regions) {
+    const reg = regions[r][c];
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) if (regions[i][j] === reg && grid[i][j] === val) return false;   // бокс заменён регионом
+  } else {
+    const br = Math.floor(r / BR) * BR, bc = Math.floor(c / BC) * BC;
+    for (let i = 0; i < BR; i++) for (let j = 0; j < BC; j++) if (grid[br + i][bc + j] === val) return false;
+  }
   if (variant === 'diagonal') {
     if (r === c) { for (let i = 0; i < N; i++) if (grid[i][i] === val) return false; }                 // главная диагональ
     if (r + c === N - 1) { for (let i = 0; i < N; i++) if (grid[i][N - 1 - i] === val) return false; }  // побочная
@@ -107,33 +145,37 @@ function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, B
   return true;
 }
 
-function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none'): boolean {
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
-    if (grid[r][c] === 0) {
-      const nums = shuffle(Array.from({ length: N }, (_, i) => i + 1));
-      for (const n of nums) {
-        if (isValid(grid, r, c, n, N, BR, BC, variant)) {
-          grid[r][c] = n;
-          if (solve(grid, N, BR, BC, variant)) return true;
-          grid[r][c] = 0;
-        }
-      }
-      return false;
-    }
+function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], budget?: { steps: number }): boolean {
+  // MRV: заполняем самую ОГРАНИЧЕННУЮ пустую клетку (минимум кандидатов) — почти без бэктрекинга.
+  let bR = -1, bC = -1, bCands: number[] | null = null, bCount = N + 1;
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (grid[r][c] === 0) {
+    const cands: number[] = [];
+    for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions)) cands.push(n);
+    if (cands.length < bCount) { bCount = cands.length; bR = r; bC = c; bCands = cands; if (bCount === 0) return false; }
   }
-  return true;
+  if (bR < 0) return true;   // пустых нет → решено
+  if (budget) { if (budget.steps <= 0) return false; budget.steps--; }   // лимит шагов: нерешаемую jigsaw-раскладку бросаем быстро
+  for (const n of shuffle(bCands!)) { grid[bR][bC] = n; if (solve(grid, N, BR, BC, variant, regions, budget)) return true; grid[bR][bC] = 0; }
+  return false;
 }
 
-function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][] } {
+function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][] } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
-  solve(sol, N, BR, BC, variant);
+  let regions: number[][] | undefined;
+  if (variant === 'jigsaw') {
+    let ok = false;
+    for (let t = 0; t < 60 && !ok; t++) { regions = generateRegions(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'jigsaw', regions, { steps: 1500 }); }   // budget низкий: ~90% раскладок нерешаемы, дешёвый отказ + ретрай
+    if (!ok) { regions = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }   // редкий фолбэк на классику
+  } else {
+    solve(sol, N, BR, BC, variant);
+  }
   const puzzle: Cell[][] = sol.map((row) => [...row]);
   const positions = shuffle(Array.from({ length: N * N }, (_, i) => i));
   for (let i = 0; i < blanks; i++) {
     const p = positions[i];
     puzzle[Math.floor(p / N)][p % N] = 0;
   }
-  return { puzzle, solution: sol };
+  return { puzzle, solution: sol, regions };
 }
 
 export default function SudokuGame() {
@@ -157,6 +199,7 @@ export default function SudokuGame() {
   const [mode, setMode] = useState<'levels' | 'free'>('levels');   // SUDOKU-LVL: уровни (дефолт) или свободно
   const [level, setLevel] = useState(1);
   const [variant, setVariant] = useState<Variant>('none');   // активный вариант-правило текущей партии
+  const [regions, setRegions] = useState<number[][] | null>(null);   // jigsaw: карта регионов текущей партии
   const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
@@ -197,7 +240,8 @@ export default function SudokuGame() {
     setDims(d);
     setVariant(vr);
     setHintMax(hMax);
-    const { puzzle: p, solution: s } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
+    const { puzzle: p, solution: s, regions: rg } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
+    setRegions(rg ?? null);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
     setGiven(p.map((r) => r.map((v) => v !== 0)));
@@ -440,8 +484,12 @@ export default function SudokuGame() {
                 styles.cell,
                 {
                   width: cellSize, height: cellSize, backgroundColor: bg,
-                  borderRightWidth: (c + 1) % BC === 0 && c !== N - 1 ? 2 : 0.5,
-                  borderBottomWidth: (r + 1) % BR === 0 && r !== N - 1 ? 2 : 0.5,
+                  borderRightWidth: variant === 'jigsaw' && regions
+                    ? (c !== N - 1 && regions[r][c] !== regions[r][c + 1] ? 2 : 0.5)
+                    : ((c + 1) % BC === 0 && c !== N - 1 ? 2 : 0.5),
+                  borderBottomWidth: variant === 'jigsaw' && regions
+                    ? (r !== N - 1 && regions[r][c] !== regions[r + 1][c] ? 2 : 0.5)
+                    : ((r + 1) % BR === 0 && r !== N - 1 ? 2 : 0.5),
                   borderColor: colors.text,
                 },
               ]}
