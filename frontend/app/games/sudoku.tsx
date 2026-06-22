@@ -37,42 +37,84 @@ function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
   return diff === 'easy' ? 12 : diff === 'medium' ? 18 : 24;                    // из 36
 }
 
-// SUDOKU-LVL: уровневая прогрессия. Кривая: 1–4 = 6×6 (пропуски растут), 5+ = 9×9 (растут),
-// с 9-го уровня включается ВАРИАНТ «диагональ» (числа уникальны и по двум диагоналям), подсказок меньше.
-interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; diagonal: boolean; hintMax: number; }
+// SUDOKU-VARIANTS: правила-варианты на сетке 9×9. Применяются ТОЛЬКО при генерации решения
+// (solve уважает правило → решение легально под вариантом). В игре механика «впиши решение»,
+// поэтому вариант не энфорсится в рантайме — он задаёт характер решения + показывается игроку.
+type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec';
+const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
+const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
+const ORTHO = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
+function inHyper(r: number, c: number): readonly [number, number] | null {
+  for (const [hr, hc] of HYPER_BOXES) if (r >= hr && r < hr + 3 && c >= hc && c < hc + 3) return [hr, hc];
+  return null;
+}
+function variantLabel(v: Variant, ru: boolean): string {
+  switch (v) {
+    case 'diagonal': return ru ? '⟍ диагональ' : '⟍ diagonal';
+    case 'antiknight': return ru ? '♞ ход коня' : '♞ anti-knight';
+    case 'hyper': return ru ? '⊞ доп. зоны' : '⊞ hyper';
+    case 'nonconsec': return ru ? '≠ не подряд' : '≠ non-consecutive';
+    default: return '';
+  }
+}
+function variantRule(v: Variant, ru: boolean): string {
+  switch (v) {
+    case 'diagonal': return ru ? 'Цифры уникальны ещё и по двум диагоналям.' : 'Digits are also unique along both diagonals.';
+    case 'antiknight': return ru ? 'Одинаковые цифры не стоят на расстоянии хода коня.' : 'Equal digits cannot be a knight’s move apart.';
+    case 'hyper': return ru ? 'Четыре доп. зоны 3×3 тоже содержат 1–9 без повторов.' : 'Four extra 3×3 regions also hold 1–9 with no repeats.';
+    case 'nonconsec': return ru ? 'Соседние по стороне клетки не отличаются на 1.' : 'Orthogonally adjacent cells cannot differ by 1.';
+    default: return '';
+  }
+}
+
+// SUDOKU-LVL: уровневая прогрессия. 1–4 = 6×6, 5–8 = 9×9, 9–13 = диагональ, далее фазы-варианты:
+// 14–17 anti-knight, 18–21 hyper, 22+ non-consecutive (jigsaw — следующей итерацией).
+interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; }
 function levelConfig(level: number): LevelCfg {
   const lv = Math.max(1, level);
   const size: 6 | 9 = lv <= 4 ? 6 : 9;
   const { N, BR, BC } = dimsForSize(size);
-  const diagonal = lv >= 9;
+  let variant: Variant = 'none';
+  if (lv >= 9 && lv <= 13) variant = 'diagonal';
+  else if (lv >= 14 && lv <= 17) variant = 'antiknight';
+  else if (lv >= 18 && lv <= 21) variant = 'hyper';
+  else if (lv >= 22) variant = 'nonconsec';
   const blanks = size === 6
-    ? Math.min(24, 8 + lv * 3)                  // L1..4 → 11,14,17,20
-    : Math.min(58, 34 + (lv - 5) * 3);          // L5+ → 34,37,40,… cap 58
+    ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
+    : (variant === 'none' || variant === 'diagonal')
+      ? Math.min(58, 34 + (lv - 5) * 3)                          // L5..13 классика/диагональ → 34..58
+      : Math.min(52, 44 + Math.floor((lv - 14) / 4) * 2);        // фазы-варианты → 44,46,48,50,52 (правило добавляет сложность)
   const hintMax = lv <= 4 ? 3 : lv <= 8 ? 2 : 1;
-  return { size, N, BR, BC, blanks, diagonal, hintMax };
+  return { size, N, BR, BC, blanks, variant, hintMax };
 }
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, diagonal = false): boolean {
+function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none'): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
   const br = Math.floor(r / BR) * BR, bc = Math.floor(c / BC) * BC;
   for (let i = 0; i < BR; i++) for (let j = 0; j < BC; j++) if (grid[br + i][bc + j] === val) return false;
-  if (diagonal) {
+  if (variant === 'diagonal') {
     if (r === c) { for (let i = 0; i < N; i++) if (grid[i][i] === val) return false; }                 // главная диагональ
     if (r + c === N - 1) { for (let i = 0; i < N; i++) if (grid[i][N - 1 - i] === val) return false; }  // побочная
+  } else if (variant === 'antiknight') {
+    for (const [dr, dc] of KNIGHT) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
+  } else if (variant === 'hyper') {
+    const h = inHyper(r, c); if (h) { const [hr, hc] = h; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (grid[hr + i][hc + j] === val) return false; }
+  } else if (variant === 'nonconsec') {
+    for (const [dr, dc] of ORTHO) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N) { const v = grid[nr][nc]; if (v !== 0 && Math.abs(v - val) === 1) return false; } }
   }
   return true;
 }
 
-function solve(grid: Cell[][], N: number, BR: number, BC: number, diagonal = false): boolean {
+function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none'): boolean {
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
     if (grid[r][c] === 0) {
       const nums = shuffle(Array.from({ length: N }, (_, i) => i + 1));
       for (const n of nums) {
-        if (isValid(grid, r, c, n, N, BR, BC, diagonal)) {
+        if (isValid(grid, r, c, n, N, BR, BC, variant)) {
           grid[r][c] = n;
-          if (solve(grid, N, BR, BC, diagonal)) return true;
+          if (solve(grid, N, BR, BC, variant)) return true;
           grid[r][c] = 0;
         }
       }
@@ -82,9 +124,9 @@ function solve(grid: Cell[][], N: number, BR: number, BC: number, diagonal = fal
   return true;
 }
 
-function generatePuzzle(blanks: number, N: number, BR: number, BC: number, diagonal = false): { puzzle: Cell[][]; solution: Cell[][] } {
+function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][] } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
-  solve(sol, N, BR, BC, diagonal);
+  solve(sol, N, BR, BC, variant);
   const puzzle: Cell[][] = sol.map((row) => [...row]);
   const positions = shuffle(Array.from({ length: N * N }, (_, i) => i));
   for (let i = 0; i < blanks; i++) {
@@ -114,7 +156,7 @@ export default function SudokuGame() {
   const [size, setSize] = useState<6 | 9>(6);   // C2: явный размер поля (свободный режим)
   const [mode, setMode] = useState<'levels' | 'free'>('levels');   // SUDOKU-LVL: уровни (дефолт) или свободно
   const [level, setLevel] = useState(1);
-  const [diagonal, setDiagonal] = useState(false);   // вариант «диагональ» активен в текущей партии
+  const [variant, setVariant] = useState<Variant>('none');   // активный вариант-правило текущей партии
   const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
@@ -143,19 +185,19 @@ export default function SudokuGame() {
 
   const startGame = (lvlOverride?: number) => {
     let d: { N: number; BR: number; BC: number };
-    let blanks: number, diag = false, hMax = 3;
+    let blanks: number, vr: Variant = 'none', hMax = 3;
     if (mode === 'levels') {
       const cfg = levelConfig(lvlOverride ?? level);
       d = { N: cfg.N, BR: cfg.BR, BC: cfg.BC };
-      blanks = cfg.blanks; diag = cfg.diagonal; hMax = cfg.hintMax;
+      blanks = cfg.blanks; vr = cfg.variant; hMax = cfg.hintMax;
     } else {
       d = dimsForSize(size);
       blanks = blanksFor(size, difficulty);
     }
     setDims(d);
-    setDiagonal(diag);
+    setVariant(vr);
     setHintMax(hMax);
-    const { puzzle: p, solution: s } = generatePuzzle(blanks, d.N, d.BR, d.BC, diag);
+    const { puzzle: p, solution: s } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
     setGiven(p.map((r) => r.map((v) => v !== 0)));
@@ -220,13 +262,13 @@ export default function SudokuGame() {
           score: Math.max(0, Math.round(baseScore - errors * 50 - finalTime * 2 - hintUses * 50)),
           time_seconds: finalTime,
           difficulty: mode === 'levels' ? (level <= 4 ? 'easy' : level <= 9 ? 'medium' : 'hard') : difficulty,
-          mode: mode === 'levels' ? `level-${level}${diagonal ? '-diag' : ''}` : `${N}x${N}`,
+          mode: mode === 'levels' ? `level-${level}${variant !== 'none' ? '-' + variant : ''}` : `${N}x${N}`,
           errors,
           details: {
             errors, completed: true,
             hint_uses: hintUses,
             backtrack_count: backtrackCount,
-            ...(mode === 'levels' ? { level, diagonal } : {}),
+            ...(mode === 'levels' ? { level, variant } : {}),
           },
         });
       } catch (e) { console.error(e); }
@@ -282,8 +324,13 @@ export default function SudokuGame() {
           <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
             <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? `Уровень ${level}` : `Level ${level}`}</Text>
             <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
-              {cfg.N}×{cfg.N}{` · ${language === 'ru' ? 'пусто' : 'blanks'} ${cfg.blanks} · ${language === 'ru' ? 'подсказок' : 'hints'} ${cfg.hintMax}`}{cfg.diagonal ? (language === 'ru' ? ' · ⟍ диагональ' : ' · ⟍ diagonal') : ''}
+              {cfg.N}×{cfg.N}{` · ${language === 'ru' ? 'пусто' : 'blanks'} ${cfg.blanks} · ${language === 'ru' ? 'подсказок' : 'hints'} ${cfg.hintMax}`}{cfg.variant !== 'none' ? ` · ${variantLabel(cfg.variant, language === 'ru')}` : ''}
             </Text>
+            {cfg.variant !== 'none' && (
+              <Text style={{ color: GRADIENT[0], fontSize: 12, marginTop: 3, fontWeight: '600' }}>
+                {variantRule(cfg.variant, language === 'ru')}
+              </Text>
+            )}
             <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
               {language === 'ru' ? 'Прошёл — откроется следующий, сложнее.' : 'Beat it — the next unlocks, harder.'}
             </Text>
@@ -367,7 +414,7 @@ export default function SudokuGame() {
         {mode === 'levels' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{language === 'ru' ? `Ур.${level}` : `Lv${level}`}</Text>}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{'❤️'.repeat(Math.max(0, LIVES - errors))}{'🤍'.repeat(Math.min(errors, LIVES))}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
-        {diagonal && <Text style={[styles.statText, { color: GRADIENT[0] }]}>⟍</Text>}
+        {variant !== 'none' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{variantLabel(variant, language === 'ru').split(' ')[0]}</Text>}
       </View>
     );
     const gridEl = (
@@ -382,7 +429,8 @@ export default function SudokuGame() {
           else if (isSel) bg = GRADIENT[0];
           else if (sameVal) bg = colors.card;
           else if (sameRow) bg = colors.card;
-          else if (diagonal && (r === c || r + c === N - 1)) bg = GRADIENT[0] + '22';   // подсветка диагоналей (вариант)
+          else if (variant === 'diagonal' && (r === c || r + c === N - 1)) bg = GRADIENT[0] + '22';   // подсветка диагоналей
+          else if (variant === 'hyper' && inHyper(r, c)) bg = GRADIENT[0] + '18';   // подсветка доп. зон (Windoku)
           return (
             <TouchableOpacity
               key={`${r}-${c}`}
