@@ -18,6 +18,15 @@ import { sndPlace, sndWrong } from '@/src/services/feedback';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
+// Непрозрачная подсветка: смешать base (фон темы) с over (акцент). Полупрозрачный цвет поверх
+// чёрного gridArea (colors.text) давал «чёрные» диагональные клетки в тёмной теме — баг.
+function blendHex(base: string, over: string, t: number): string {
+  const b = base.replace('#', ''), o = over.replace('#', '');
+  if (b.length !== 6 || o.length !== 6) return over;
+  const ch = (s: string, i: number) => parseInt(s.slice(i, i + 2), 16);
+  const mix = (i: number) => Math.round(ch(b, i) * (1 - t) + ch(o, i) * t).toString(16).padStart(2, '0');
+  return '#' + mix(0) + mix(2) + mix(4);
+}
 // Рисованные цифры — набор под активный профиль (см. src/constants/digitThemes.ts).
 const SUDOKU_BENEFITS = [
   { icon: 'extension-puzzle-outline', textKey: 'benefitSudoku1' },
@@ -382,7 +391,7 @@ export default function SudokuGame() {
           else if (isSel) bg = GRADIENT[0];
           else if (sameVal) bg = colors.card;
           else if (sameRow) bg = colors.card;
-          else if (diagonal && (r === c || r + c === N - 1)) bg = GRADIENT[0] + '22';   // подсветка диагоналей (вариант)
+          else if (diagonal && (r === c || r + c === N - 1)) bg = blendHex(colors.surface, GRADIENT[0], 0.20);   // непрозрачная (иначе чёрный фон сетки просвечивает → «чёрные» клетки)
           return (
             <TouchableOpacity
               key={`${r}-${c}`}
