@@ -49,9 +49,10 @@ function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
 // SUDOKU-VARIANTS: правила-варианты на сетке 9×9. Применяются ТОЛЬКО при генерации решения
 // (solve уважает правило → решение легально под вариантом). В игре механика «впиши решение»,
 // поэтому вариант не энфорсится в рантайме — он задаёт характер решения + показывается игроку.
-type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw';
+type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd';
 const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
+const KING = [[-1, -1], [-1, 1], [1, -1], [1, 1]] as const;   // anti-king: диагональные соседи (ортогональные уже закрыты строкой/столбцом)
 const ORTHO = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
 function inHyper(r: number, c: number): readonly [number, number] | null {
   for (const [hr, hc] of HYPER_BOXES) if (r >= hr && r < hr + 3 && c >= hc && c < hc + 3) return [hr, hc];
@@ -64,6 +65,8 @@ function variantLabel(v: Variant, ru: boolean): string {
     case 'hyper': return ru ? '⊞ доп. зоны' : '⊞ hyper';
     case 'nonconsec': return ru ? '≠ не подряд' : '≠ non-consecutive';
     case 'jigsaw': return ru ? '⧉ кривые блоки' : '⧉ jigsaw';
+    case 'antiking': return ru ? '♚ ход короля' : '♚ anti-king';
+    case 'evenodd': return ru ? '◩ чёт/нечёт' : '◩ even/odd';
     default: return '';
   }
 }
@@ -74,6 +77,8 @@ function variantRule(v: Variant, ru: boolean): string {
     case 'hyper': return ru ? 'Четыре доп. зоны 3×3 тоже содержат 1–9 без повторов.' : 'Four extra 3×3 regions also hold 1–9 with no repeats.';
     case 'nonconsec': return ru ? 'Соседние по стороне клетки не отличаются на 1.' : 'Orthogonally adjacent cells cannot differ by 1.';
     case 'jigsaw': return ru ? 'Блоки кривые, а не квадраты — в каждом тоже 1–9 без повторов.' : 'Blocks are irregular, not squares — each still holds 1–9.';
+    case 'antiking': return ru ? 'Одинаковые цифры не касаются даже по диагонали (ход короля).' : 'Equal digits cannot touch even diagonally (a king’s move).';
+    case 'evenodd': return ru ? '□ — чётная цифра, ○ — нечётная: форма подсказывает чётность.' : '□ even, ○ odd — the shape hints each cell’s parity.';
     default: return '';
   }
 }
@@ -169,7 +174,9 @@ function levelConfig(level: number): LevelCfg {
   else if (lv >= 14 && lv <= 17) variant = 'antiknight';
   else if (lv >= 18 && lv <= 21) variant = 'hyper';
   else if (lv >= 22 && lv <= 25) variant = 'nonconsec';
-  else if (lv >= 26) variant = 'jigsaw';
+  else if (lv >= 26 && lv <= 29) variant = 'antiking';
+  else if (lv >= 30 && lv <= 33) variant = 'evenodd';
+  else if (lv >= 34) variant = 'jigsaw';
   const blanks = size === 6
     ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
     : (variant === 'none' || variant === 'diagonal')
@@ -199,6 +206,8 @@ function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, B
     const h = inHyper(r, c); if (h) { const [hr, hc] = h; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (grid[hr + i][hc + j] === val) return false; }
   } else if (variant === 'nonconsec') {
     for (const [dr, dc] of ORTHO) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N) { const v = grid[nr][nc]; if (v !== 0 && Math.abs(v - val) === 1) return false; } }
+  } else if (variant === 'antiking') {
+    for (const [dr, dc] of KING) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
   }
   return true;
 }
@@ -217,7 +226,7 @@ function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Varia
   return false;
 }
 
-function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][] } {
+function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][] } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   if (variant === 'jigsaw') {
@@ -233,7 +242,14 @@ function generatePuzzle(blanks: number, N: number, BR: number, BC: number, varia
     const p = positions[i];
     puzzle[Math.floor(p / N)][p % N] = 0;
   }
-  return { puzzle, solution: sol, regions };
+  let parity: number[][] | undefined;
+  if (variant === 'evenodd') {   // помечаем ~55% пустых клеток их чётностью: 1 = чёт (квадрат), 2 = нечёт (круг)
+    parity = Array.from({ length: N }, () => Array(N).fill(0));
+    const blank: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (puzzle[r][c] === 0) blank.push([r, c]);
+    for (const [r, c] of shuffle(blank).slice(0, Math.round(blank.length * 0.55))) parity[r][c] = sol[r][c] % 2 === 0 ? 1 : 2;
+  }
+  return { puzzle, solution: sol, regions, parity };
 }
 
 export default function SudokuGame() {
@@ -261,6 +277,7 @@ export default function SudokuGame() {
   const [cages, setCages] = useState<number[][] | null>(null);       // killer: cageId каждой клетки
   const [cageSums, setCageSums] = useState<number[]>([]);            // killer: сумма каждой cage
   const [cageAnchors, setCageAnchors] = useState<number[]>([]);      // killer: клетка-якорь cage (метка суммы)
+  const [parityMarks, setParityMarks] = useState<number[][] | null>(null);   // evenodd: 1=чёт(квадрат), 2=нечёт(круг), 0=без метки
   const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
@@ -304,8 +321,9 @@ export default function SudokuGame() {
     setDims(d);
     setVariant(vr);
     setHintMax(hMax);
-    const { puzzle: p, solution: s, regions: rg } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
+    const { puzzle: p, solution: s, regions: rg, parity: pa } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
     setRegions(rg ?? null);
+    setParityMarks(pa ?? null);
     if (mode === 'killer') { const cg = generateCages(s, d.N); setCages(cg.cageOf); setCageSums(cg.sum); setCageAnchors(cg.anchor); } else setCages(null);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
@@ -567,6 +585,9 @@ export default function SudokuGame() {
                 },
               ]}
             >
+              {variant === 'evenodd' && parityMarks && parityMarks[r][c] !== 0 && (
+                <View style={{ position: 'absolute', width: cellSize * 0.6, height: cellSize * 0.6, borderRadius: parityMarks[r][c] === 2 ? cellSize * 0.3 : Math.max(3, Math.round(cellSize * 0.1)), backgroundColor: blendHex(colors.surface, GRADIENT[1], 0.20), borderWidth: 1, borderColor: blendHex(colors.surface, GRADIENT[1], 0.45) }} />
+              )}
               {mode === 'killer' && cages && cageAnchors[cages[r][c]] === r * N + c && (
                 <Text style={{ position: 'absolute', top: 1, left: 2, fontSize: Math.max(8, Math.round(cellSize * 0.27)), fontWeight: '800', color: colors.text }}>{cageSums[cages[r][c]]}</Text>
               )}
