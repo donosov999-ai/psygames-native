@@ -108,6 +108,55 @@ function generateRegions(N: number): number[][] {
   return reg;
 }
 
+// KILLER: отдельный режим. Подкрас cage-групп (тинт = subtle blend с фоном темы → виден и на свету, и в тьме).
+const CAGE_ACCENTS = ['#7f7fd5', '#86a8e7', '#d58a7f', '#7fd5a8', '#d5c97f', '#b07fd5'] as const;
+function killerBlanks(diff: 'easy' | 'medium' | 'hard'): number {
+  return diff === 'easy' ? 44 : diff === 'medium' ? 52 : 60;   // из 81 — cages помогают дедукции, можно больше пустых
+}
+// Разбиение решения на cages: связные группы 2–4 клеток с РАЗНЫМИ цифрами (правило Killer) + сумма каждой.
+function generateCages(sol: Cell[][], N: number): { cageOf: number[][]; sum: number[]; anchor: number[] } {
+  const cageOf: number[][] = Array.from({ length: N }, () => Array(N).fill(-1));
+  const sum: number[] = [], anchor: number[] = [];
+  let cid = 0;
+  for (const start of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
+    const sr = Math.floor(start / N), sc = start % N;
+    if (cageOf[sr][sc] !== -1) continue;
+    const target = 2 + Math.floor(Math.random() * 3);   // 2..4 клетки
+    const cells: [number, number][] = [[sr, sc]];
+    const digits = new Set<number>([sol[sr][sc]]);
+    cageOf[sr][sc] = cid;
+    while (cells.length < target) {
+      const fr: [number, number][] = [];
+      for (const [r, c] of cells) for (const [dr, dc] of ORTHO) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && cageOf[nr][nc] === -1 && !digits.has(sol[nr][nc])) fr.push([nr, nc]); }
+      if (!fr.length) break;
+      const [nr, nc] = fr[Math.floor(Math.random() * fr.length)];
+      cageOf[nr][nc] = cid; cells.push([nr, nc]); digits.add(sol[nr][nc]);
+    }
+    cid++;
+  }
+  // вливаем одиночные cage в соседний (разные цифры, цель < 5) — чтобы не было «1-клеточных» групп
+  const cellsOf = (id: number) => { const a: [number, number][] = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (cageOf[r][c] === id) a.push([r, c]); return a; };
+  for (let id = 0; id < cid; id++) {
+    const cells = cellsOf(id);
+    if (cells.length !== 1) continue;
+    const [r, c] = cells[0], d = sol[r][c];
+    for (const [dr, dc] of shuffle(ORTHO.map((x) => x))) {
+      const nr = r + dr, nc = c + dc; if (nr < 0 || nr >= N || nc < 0 || nc >= N) continue;
+      const nid = cageOf[nr][nc]; if (nid === id) continue;
+      const tgt = cellsOf(nid);
+      if (tgt.length >= 5 || tgt.some(([rr, cc]) => sol[rr][cc] === d)) continue;
+      cageOf[r][c] = nid; break;
+    }
+  }
+  // суммы + якоря по финальным cage (id могут иметь пропуски после слияния — это ок)
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    const id = cageOf[r][c];
+    sum[id] = (sum[id] || 0) + sol[r][c];
+    anchor[id] = anchor[id] === undefined ? r * N + c : Math.min(anchor[id], r * N + c);
+  }
+  return { cageOf, sum, anchor };
+}
+
 // SUDOKU-LVL: уровневая прогрессия. 1–4 = 6×6, 5–8 = 9×9, 9–13 = диагональ, далее фазы-варианты:
 // 14–17 anti-knight, 18–21 hyper, 22+ non-consecutive (jigsaw — следующей итерацией).
 interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; }
@@ -205,10 +254,13 @@ export default function SudokuGame() {
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(() => (str('diff', 'medium') as 'easy' | 'medium' | 'hard'));
   const [size, setSize] = useState<6 | 9>(6);   // C2: явный размер поля (свободный режим)
-  const [mode, setMode] = useState<'levels' | 'free'>('levels');   // SUDOKU-LVL: уровни (дефолт) или свободно
+  const [mode, setMode] = useState<'levels' | 'free' | 'killer'>('levels');   // уровни (дефолт) / свободно / killer
   const [level, setLevel] = useState(1);
   const [variant, setVariant] = useState<Variant>('none');   // активный вариант-правило текущей партии
   const [regions, setRegions] = useState<number[][] | null>(null);   // jigsaw: карта регионов текущей партии
+  const [cages, setCages] = useState<number[][] | null>(null);       // killer: cageId каждой клетки
+  const [cageSums, setCageSums] = useState<number[]>([]);            // killer: сумма каждой cage
+  const [cageAnchors, setCageAnchors] = useState<number[]>([]);      // killer: клетка-якорь cage (метка суммы)
   const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
@@ -242,6 +294,9 @@ export default function SudokuGame() {
       const cfg = levelConfig(lvlOverride ?? level);
       d = { N: cfg.N, BR: cfg.BR, BC: cfg.BC };
       blanks = cfg.blanks; vr = cfg.variant; hMax = cfg.hintMax;
+    } else if (mode === 'killer') {
+      d = dimsForSize(9);
+      blanks = killerBlanks(difficulty);
     } else {
       d = dimsForSize(size);
       blanks = blanksFor(size, difficulty);
@@ -251,6 +306,7 @@ export default function SudokuGame() {
     setHintMax(hMax);
     const { puzzle: p, solution: s, regions: rg } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
     setRegions(rg ?? null);
+    if (mode === 'killer') { const cg = generateCages(s, d.N); setCages(cg.cageOf); setCageSums(cg.sum); setCageAnchors(cg.anchor); } else setCages(null);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
     setGiven(p.map((r) => r.map((v) => v !== 0)));
@@ -315,7 +371,7 @@ export default function SudokuGame() {
           score: Math.max(0, Math.round(baseScore - errors * 50 - finalTime * 2 - hintUses * 50)),
           time_seconds: finalTime,
           difficulty: mode === 'levels' ? (level <= 4 ? 'easy' : level <= 9 ? 'medium' : 'hard') : difficulty,
-          mode: mode === 'levels' ? `level-${level}${variant !== 'none' ? '-' + variant : ''}` : `${N}x${N}`,
+          mode: mode === 'levels' ? `level-${level}${variant !== 'none' ? '-' + variant : ''}` : mode === 'killer' ? `killer-${difficulty}` : `${N}x${N}`,
           errors,
           details: {
             errors, completed: true,
@@ -360,11 +416,11 @@ export default function SudokuGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
         <View style={styles.optionButtons}>
-          {([['levels', language === 'ru' ? 'Уровни' : 'Levels'], ['free', language === 'ru' ? 'Свободно' : 'Free']] as const).map(([m, lbl]) => (
+          {([['levels', language === 'ru' ? 'Уровни' : 'Levels'], ['free', language === 'ru' ? 'Свободно' : 'Free'], ['killer', 'Killer']] as const).map(([m, lbl]) => (
             <TouchableOpacity key={m} style={[styles.modeButton, mode === m
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setMode(m as 'levels' | 'free')}>
+              onPress={() => setMode(m as 'levels' | 'free' | 'killer')}>
               <Text style={[styles.modeButtonText, { color: mode === m ? '#FFF' : colors.text }]}>{lbl}</Text>
             </TouchableOpacity>
           ))}
@@ -391,37 +447,45 @@ export default function SudokuGame() {
         );
       })()}
 
+      {mode === 'killer' && (
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>Killer Sudoku</Text>
+          <Text style={{ color: GRADIENT[0], fontSize: 12, marginTop: 2, fontWeight: '600', lineHeight: 17 }}>
+            {language === 'ru' ? 'Цифры в каждой цветной группе в сумме дают число в её углу и не повторяются.' : 'Digits in each coloured cage add up to the number in its corner and never repeat.'}
+          </Text>
+        </View>
+      )}
       {mode === 'free' && (
-        <>
-          <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Размер поля' : 'Board size'}</Text>
-            <View style={styles.optionButtons}>
-              {([6, 9] as const).map((s) => (
-                <TouchableOpacity key={s} style={[styles.modeButton, size === s
-                  ? { backgroundColor: GRADIENT[0] }
-                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-                  onPress={() => setSize(s)}>
-                  <Text style={[styles.modeButtonText, { color: size === s ? '#FFF' : colors.text }]}>{s}×{s}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Размер поля' : 'Board size'}</Text>
+          <View style={styles.optionButtons}>
+            {([6, 9] as const).map((s) => (
+              <TouchableOpacity key={s} style={[styles.modeButton, size === s
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                onPress={() => setSize(s)}>
+                <Text style={[styles.modeButtonText, { color: size === s ? '#FFF' : colors.text }]}>{s}×{s}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
-          <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
-            <View style={styles.optionButtons}>
-              {(['easy','medium','hard'] as const).map((d) => (
-                <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
-                  ? { backgroundColor: GRADIENT[0] }
-                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-                  onPress={() => setDifficulty(d)}>
-                  <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
-                    {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+        </View>
+      )}
+      {(mode === 'free' || mode === 'killer') && (
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
+          <View style={styles.optionButtons}>
+            {(['easy','medium','hard'] as const).map((d) => (
+              <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                onPress={() => setDifficulty(d)}>
+                <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
+                  {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
-        </>
+        </View>
       )}
       {/* Тип цифр: обычные (чёткий текст) или рисованные */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -477,7 +541,7 @@ export default function SudokuGame() {
           const sameRow = selected?.r === r || selected?.c === c;
           const sameVal = v !== 0 && selected && grid[selected.r][selected.c] === v;
           const wrongVal = v !== 0 && solution[r] && solution[r][c] !== v;
-          let bg = colors.surface;
+          let bg = (mode === 'killer' && cages) ? blendHex(colors.surface, CAGE_ACCENTS[cages[r][c] % CAGE_ACCENTS.length], 0.16) : colors.surface;
           if (wrongVal) bg = isSel ? '#ef4444' : '#fecaca';  // ошибка: яркий красный если выделена, светло-красный иначе
           else if (isSel) bg = GRADIENT[0];
           else if (sameVal) bg = colors.card;
@@ -503,6 +567,9 @@ export default function SudokuGame() {
                 },
               ]}
             >
+              {mode === 'killer' && cages && cageAnchors[cages[r][c]] === r * N + c && (
+                <Text style={{ position: 'absolute', top: 1, left: 2, fontSize: Math.max(8, Math.round(cellSize * 0.27)), fontWeight: '800', color: colors.text }}>{cageSums[cages[r][c]]}</Text>
+              )}
               {v !== 0 && (
                 (isSel || wrongVal || digitMode === 'plain') ? (
                   <Text style={{ color: isSel ? '#FFF' : wrongVal ? '#b91c1c' : colors.text, fontWeight: '700', fontSize: Math.round(cellSize * 0.52) }}>{v}</Text>
