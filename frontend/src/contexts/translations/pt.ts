@@ -145,7 +145,7 @@ const t: Record<string, string> = {
   "skillDetailAttention": "Treino: atenção aos detalhes",
   "sudoku": "Sudoku 6×6",
   "sudokuDesc": "Dígitos 1–6 em cada linha, coluna e bloco",
-  "sudokuIntroDesc": "Preencha a grade para que os dígitos 1–6 apareçam exatamente uma vez em cada linha, coluna e bloco 2×3. O clássico quebra-cabeça lógico.",
+  "sudokuIntroDesc": "Preencha a grade para que os dígitos apareçam exatamente uma vez em cada linha, coluna e bloco. O clássico quebra-cabeça lógico.\n\n🎚 Níveis — ao avançar surgem regras-variante:\n• L9 ⟍ diagonais: os dígitos também são únicos nas duas diagonais\n• L14 ♞ anti-cavalo: dígitos iguais não a um salto de cavalo\n• L18 ⊞ hyper: mais 4 zonas 3×3 sem repetições\n• L22 ≠ não consecutivos: vizinhos de lado não diferem em 1\n• L26 ♚ anti-rei: iguais não se tocam nem na diagonal\n• L30 ◩ par/ímpar: □ célula = dígito par, ○ = ímpar\n• L34 ⧉ irregular: blocos de forma irregular\n\n👑 Killer — a grade divide-se em gaiolas: os dígitos de uma gaiola somam o número no seu canto e não se repetem.\n\n🆓 Livre — tabuleiro 6×6 ou 9×9 sem variantes, com dificuldade à escolha.",
   "difficultyLabel": "Dificuldade",
   "easy": "Fácil",
   "medium": "Médio",

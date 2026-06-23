@@ -145,7 +145,7 @@ const t: Record<string, string> = {
   "skillDetailAttention": "Training: Aufmerksamkeit für Details",
   "sudoku": "Sudoku 6×6",
   "sudokuDesc": "Ziffern 1–6 in jeder Zeile, Spalte und jedem Block",
-  "sudokuIntroDesc": "Fülle das Raster so, dass die Ziffern 1–6 in jeder Zeile, Spalte und jedem 2×3-Block genau einmal vorkommen. Das klassische Logikrätsel.",
+  "sudokuIntroDesc": "Fülle das Raster so, dass die Ziffern in jeder Zeile, Spalte und jedem Block genau einmal vorkommen. Das klassische Logikrätsel.\n\n🎚 Level — mit jedem Aufstieg kommen Varianten-Regeln dazu:\n• L9 ⟍ Diagonalen: Ziffern sind auch auf beiden Diagonalen eindeutig\n• L14 ♞ Anti-Springer: gleiche Ziffern nicht im Springerzug\n• L18 ⊞ Hyper: 4 zusätzliche 3×3-Zonen ohne Wiederholung\n• L22 ≠ nicht aufeinanderfolgend: Seiten-Nachbarn unterscheiden sich nicht um 1\n• L26 ♚ Anti-König: gleiche berühren sich nicht mal diagonal\n• L30 ◩ gerade/ungerade: □ Feld = gerade Ziffer, ○ = ungerade\n• L34 ⧉ Jigsaw: unregelmäßige Blöcke statt Quadrate\n\n👑 Killer — das Raster teilt sich in Käfige: Ziffern eines Käfigs ergeben die Summe in seiner Ecke und wiederholen sich nicht.\n\n🆓 Frei — 6×6- oder 9×9-Feld ohne Varianten, mit wählbarer Schwierigkeit.",
   "difficultyLabel": "Schwierigkeit",
   "easy": "Leicht",
   "medium": "Mittel",

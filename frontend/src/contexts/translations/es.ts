@@ -145,7 +145,7 @@ const t: Record<string, string> = {
   "skillDetailAttention": "Entrenamiento: atención al detalle",
   "sudoku": "Sudoku 6×6",
   "sudokuDesc": "Dígitos 1–6 en cada fila, columna y bloque",
-  "sudokuIntroDesc": "Rellena la cuadrícula para que los dígitos 1–6 aparezcan exactamente una vez en cada fila, columna y bloque de 2×3. El clásico rompecabezas de lógica.",
+  "sudokuIntroDesc": "Rellena la cuadrícula para que los dígitos aparezcan exactamente una vez en cada fila, columna y bloque. El clásico rompecabezas de lógica.\n\n🎚 Niveles — al subir se añaden reglas-variante:\n• L9 ⟍ diagonales: los dígitos también son únicos en ambas diagonales\n• L14 ♞ anti-caballo: dígitos iguales no a un salto de caballo\n• L18 ⊞ hyper: 4 zonas 3×3 extra sin repeticiones\n• L22 ≠ no consecutivos: vecinos de lado no difieren en 1\n• L26 ♚ anti-rey: iguales no se tocan ni en diagonal\n• L30 ◩ par/impar: □ casilla = dígito par, ○ = impar\n• L34 ⧉ irregular: bloques de forma irregular\n\n👑 Killer — la cuadrícula se divide en jaulas: los dígitos de una jaula suman el número de su esquina y no se repiten.\n\n🆓 Libre — tablero 6×6 o 9×9 sin variantes, con dificultad a elegir.",
   "difficultyLabel": "Dificultad",
   "easy": "Fácil",
   "medium": "Media",
