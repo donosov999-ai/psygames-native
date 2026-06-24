@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -98,6 +99,7 @@ function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0
 export default function ReadingSpanGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
+  const lvl = usePersistentLevel('reading_span');   // персист-уровень = setSize − 2
   const router = useRouter();
 
   const { isPreset, num } = useGamePreset();
@@ -118,7 +120,9 @@ export default function ReadingSpanGame() {
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const startGame = () => {
-    const picked = shuffle(SENTENCES).slice(0, setSize);
+    const sz = isPreset ? setSize : Math.max(setSize, Math.min(7, 2 + lvl.level));   // setSize от уровня (флор, L1=3)
+    if (!isPreset) setSetSize(sz);
+    const picked = shuffle(SENTENCES).slice(0, sz);
     setSeq(picked);
     setStepIdx(0);
     setJudgments([]);
@@ -151,6 +155,7 @@ export default function ReadingSpanGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
+    if (!isPreset && e === 0) lvl.reach(setSize - 2);   // чистый recall всех слов → уровень = setSize − 2
     setPhase('result');
     try {
       await saveSession({
@@ -173,7 +178,7 @@ export default function ReadingSpanGame() {
         <Text style={styles.configDesc}>{t('readingSpanDesc')}</Text>
       </LinearGradient>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('setSize')}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('setSize')}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <View style={styles.optionButtons}>
           {[3, 4, 5, 6].map((n) => (
             <TouchableOpacity key={n} style={[styles.modeButton, setSize === n
