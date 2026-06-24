@@ -14,6 +14,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
 
 const GRADIENT = ['#a8c0ff', '#3f2b96'];
@@ -38,6 +39,7 @@ export default function HanoiGame() {
   const { width } = useWindowDimensions();
 
   const { isPreset, num } = useGamePreset();
+  const lvl = usePersistentLevel('hanoi');   // персист-уровень = discs − 2 (L1=3 диска)
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [discs, setDiscs] = useState(() => num('discs', 4));
@@ -56,7 +58,9 @@ export default function HanoiGame() {
   }, []);
 
   const startGame = () => {
-    const initial = Array.from({ length: discs }, (_, i) => discs - i);
+    const d = isPreset ? discs : Math.max(discs, Math.min(6, 2 + lvl.level));   // discs от уровня (флор, L1=3)
+    if (!isPreset) setDiscs(d);
+    const initial = Array.from({ length: d }, (_, i) => d - i);
     setPegs([initial, [], []]);
     setSelected(null);
     setMoves(0);
@@ -88,6 +92,7 @@ export default function HanoiGame() {
         if (timerRef.current) clearInterval(timerRef.current);
         const finalTime = (Date.now() - startTime) / 1000;
         setElapsedTime(finalTime);
+        if (!isPreset) lvl.reach(discs - 2);   // решил пазл → уровень = discs − 2
         setPhase('result');
         try {
           await saveSession({
@@ -146,7 +151,7 @@ export default function HanoiGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{moves} / {optimal(discs)}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{moves} / {optimal(discs)}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
       </View>
