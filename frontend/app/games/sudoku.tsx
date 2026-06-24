@@ -49,7 +49,7 @@ function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
 // SUDOKU-VARIANTS: правила-варианты на сетке 9×9. Применяются ТОЛЬКО при генерации решения
 // (solve уважает правило → решение легально под вариантом). В игре механика «впиши решение»,
 // поэтому вариант не энфорсится в рантайме — он задаёт характер решения + показывается игроку.
-type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich';
+type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo';
 const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
 const KING = [[-1, -1], [-1, 1], [1, -1], [1, 1]] as const;   // anti-king: диагональные соседи (ортогональные уже закрыты строкой/столбцом)
@@ -69,6 +69,7 @@ function variantLabel(v: Variant, ru: boolean): string {
     case 'evenodd': return ru ? '◩ чёт/нечёт' : '◩ even/odd';
     case 'kropki': return ru ? '⦿ точки' : '⦿ kropki';
     case 'sandwich': return ru ? '🥪 сэндвич' : '🥪 sandwich';
+    case 'thermo': return ru ? '🌡 термометр' : '🌡 thermo';
     default: return '';
   }
 }
@@ -83,6 +84,7 @@ function variantRule(v: Variant, ru: boolean): string {
     case 'evenodd': return ru ? '□ — чётная цифра, ○ — нечётная: форма подсказывает чётность.' : '□ even, ○ odd — the shape hints each cell’s parity.';
     case 'kropki': return ru ? 'Белая точка между клетками — соседние ±1, чёрная — одно вдвое больше.' : 'White dot between cells: consecutive (±1). Black dot: one is double the other.';
     case 'sandwich': return ru ? 'Число у края — сумма цифр между 1 и 9 в этом ряду/столбце.' : 'Edge number = sum of digits between the 1 and the 9 in that row/column.';
+    case 'thermo': return ru ? 'Вдоль термометра цифры строго растут от колбы.' : 'Digits strictly increase along each thermometer from the bulb.';
     default: return '';
   }
 }
@@ -182,7 +184,8 @@ function levelConfig(level: number): LevelCfg {
   else if (lv >= 30 && lv <= 33) variant = 'evenodd';
   else if (lv >= 34 && lv <= 37) variant = 'kropki';
   else if (lv >= 38 && lv <= 41) variant = 'sandwich';
-  else if (lv >= 42) variant = 'jigsaw';
+  else if (lv >= 42 && lv <= 45) variant = 'thermo';
+  else if (lv >= 46) variant = 'jigsaw';
   const blanks = size === 6
     ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
     : (variant === 'none' || variant === 'diagonal')
@@ -194,7 +197,7 @@ function levelConfig(level: number): LevelCfg {
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][]): boolean {
+function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
   if (variant === 'jigsaw' && regions) {
     const reg = regions[r][c];
@@ -214,31 +217,70 @@ function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, B
     for (const [dr, dc] of ORTHO) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N) { const v = grid[nr][nc]; if (v !== 0 && Math.abs(v - val) === 1) return false; } }
   } else if (variant === 'antiking') {
     for (const [dr, dc] of KING) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
+  } else if (variant === 'thermo' && thermo) {
+    const pn = thermo[r][c];
+    if (pn) {
+      if (pn.prev) { const pv = grid[pn.prev[0]][pn.prev[1]]; if (pv !== 0 && val <= pv) return false; }   // строго больше предыдущего на термометре
+      if (pn.next) { const nv = grid[pn.next[0]][pn.next[1]]; if (nv !== 0 && val >= nv) return false; }   // строго меньше следующего
+    }
   }
   return true;
 }
 
-function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], budget?: { steps: number }): boolean {
+function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], budget?: { steps: number }, thermo?: ThermoPN): boolean {
   // MRV: заполняем самую ОГРАНИЧЕННУЮ пустую клетку (минимум кандидатов) — почти без бэктрекинга.
   let bR = -1, bC = -1, bCands: number[] | null = null, bCount = N + 1;
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (grid[r][c] === 0) {
     const cands: number[] = [];
-    for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions)) cands.push(n);
+    for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions, thermo)) cands.push(n);
     if (cands.length < bCount) { bCount = cands.length; bR = r; bC = c; bCands = cands; if (bCount === 0) return false; }
   }
   if (bR < 0) return true;   // пустых нет → решено
   if (budget) { if (budget.steps <= 0) return false; budget.steps--; }   // лимит шагов: нерешаемую jigsaw-раскладку бросаем быстро
-  for (const n of shuffle(bCands!)) { grid[bR][bC] = n; if (solve(grid, N, BR, BC, variant, regions, budget)) return true; grid[bR][bC] = 0; }
+  for (const n of shuffle(bCands!)) { grid[bR][bC] = n; if (solve(grid, N, BR, BC, variant, regions, budget, thermo)) return true; grid[bR][bC] = 0; }
   return false;
 }
 
-function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] } } {
+// THERMO: prev/next-карта на клетку (строгое возрастание вдоль пути от колбы). null = клетка не на термометре.
+type ThermoPN = ({ prev: [number, number] | null; next: [number, number] | null } | null)[][];
+function generateThermo(N: number): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const paths: [number, number][][] = [];
+  for (let attempt = 0; attempt < 40 && paths.length < 6; attempt++) {
+    const starts: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c]) starts.push([r, c]);
+    if (!starts.length) break;
+    const [sr, sc] = starts[Math.floor(Math.random() * starts.length)];
+    const len = 3 + Math.floor(Math.random() * 3);   // 3..5 (≤ N, цифры строго растут)
+    const path: [number, number][] = [[sr, sc]]; used[sr][sc] = true; let cr = sr, cc = sc;
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number]).filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]);
+      if (!nb.length) break;
+      const [nr, nc] = nb[Math.floor(Math.random() * nb.length)];
+      used[nr][nc] = true; path.push([nr, nc]); cr = nr; cc = nc;
+    }
+    if (path.length >= 3) paths.push(path);
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
+  let thermo: ThermoPN | undefined;
   if (variant === 'jigsaw') {
     let ok = false;
     for (let t = 0; t < 60 && !ok; t++) { regions = generateRegions(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'jigsaw', regions, { steps: 1500 }); }   // budget низкий: ~90% раскладок нерешаемы, дешёвый отказ + ретрай
     if (!ok) { regions = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }   // редкий фолбэк на классику
+  } else if (variant === 'thermo') {
+    let ok = false;
+    for (let t = 0; t < 60 && !ok; t++) { thermo = generateThermo(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'thermo', undefined, { steps: 2000 }, thermo); }   // ~5 ретраев, констрейн решаем
+    if (!ok) { thermo = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }
   } else {
     solve(sol, N, BR, BC, variant);
   }
@@ -279,7 +321,7 @@ function generatePuzzle(blanks: number, N: number, BR: number, BC: number, varia
     const cols = Array.from({ length: N }, (_, c) => between(sol.map((row) => row[c])));
     sandwich = { rows, cols };
   }
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich };
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo };
 }
 
 export default function SudokuGame() {
@@ -310,6 +352,7 @@ export default function SudokuGame() {
   const [parityMarks, setParityMarks] = useState<number[][] | null>(null);   // evenodd: 1=чёт(квадрат), 2=нечёт(круг), 0=без метки
   const [kropki, setKropki] = useState<{ h: number[][]; v: number[][] } | null>(null);   // kropki: точки на гранях клеток
   const [sandwich, setSandwich] = useState<{ rows: number[]; cols: number[] } | null>(null);   // sandwich: суммы у краёв рядов/столбцов
+  const [thermo, setThermo] = useState<ThermoPN | null>(null);   // thermo: prev/next-карта термометров
   const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
@@ -353,11 +396,12 @@ export default function SudokuGame() {
     setDims(d);
     setVariant(vr);
     setHintMax(hMax);
-    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
+    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
     setRegions(rg ?? null);
     setParityMarks(pa ?? null);
     setKropki(kr ?? null);
     setSandwich(sw ?? null);
+    setThermo(th ?? null);
     if (mode === 'killer') { const cg = generateCages(s, d.N); setCages(cg.cageOf); setCageSums(cg.sum); setCageAnchors(cg.anchor); } else setCages(null);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
@@ -641,6 +685,25 @@ export default function SudokuGame() {
               {variant === 'diagonal' && r + c === N - 1 && (
                 <View style={{ position: 'absolute', width: cellSize * 1.42, height: 2.5, left: cellSize / 2 - cellSize * 0.71, top: cellSize / 2 - 1.25, backgroundColor: GRADIENT[0], opacity: 0.6, transform: [{ rotate: '-45deg' }], pointerEvents: 'none' }} />
               )}
+              {variant === 'thermo' && thermo && thermo[r][c] && (() => {
+                const pn = thermo[r][c]!;
+                const thick = Math.max(3, Math.round(cellSize * 0.16));
+                const col = blendHex(colors.surface, GRADIENT[0], 0.5);
+                const seg = (cell: [number, number]) => {
+                  const dr = cell[0] - r, dc = cell[1] - c;
+                  if (dc === 1) return { left: cellSize / 2, top: cellSize / 2 - thick / 2, width: cellSize / 2, height: thick };
+                  if (dc === -1) return { left: 0, top: cellSize / 2 - thick / 2, width: cellSize / 2, height: thick };
+                  if (dr === 1) return { top: cellSize / 2, left: cellSize / 2 - thick / 2, width: thick, height: cellSize / 2 };
+                  return { top: 0, left: cellSize / 2 - thick / 2, width: thick, height: cellSize / 2 };
+                };
+                return (
+                  <>
+                    {pn.prev && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.prev) }} />}
+                    {pn.next && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.next) }} />}
+                    {!pn.prev && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', width: cellSize * 0.42, height: cellSize * 0.42, borderRadius: cellSize * 0.21, left: cellSize / 2 - cellSize * 0.21, top: cellSize / 2 - cellSize * 0.21 }} />}
+                  </>
+                );
+              })()}
               {variant === 'evenodd' && parityMarks && parityMarks[r][c] !== 0 && (
                 <View style={{ position: 'absolute', width: cellSize * 0.6, height: cellSize * 0.6, borderRadius: parityMarks[r][c] === 2 ? cellSize * 0.3 : Math.max(3, Math.round(cellSize * 0.1)), backgroundColor: blendHex(colors.surface, GRADIENT[1], 0.20), borderWidth: 1, borderColor: blendHex(colors.surface, GRADIENT[1], 0.45) }} />
               )}
