@@ -11,6 +11,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
 import { sndCombo } from '@/src/services/feedback';
 
@@ -121,6 +122,7 @@ export default function GoodsSortGame() {
   const { width, height } = useWindowDimensions();
 
   const { isPreset } = useGamePreset();
+  const lvl = usePersistentLevel('goods_sort');   // персист достигнутого уровня (раньше сбрасывался на 1)
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [setKey, setSetKey] = useState('drinks');
@@ -129,6 +131,7 @@ export default function GoodsSortGame() {
 
   const [level, setLevel] = useState(1);
   const [levelBanner, setLevelBanner] = useState<number | null>(null);
+  useEffect(() => { if (lvl.loaded && !isPreset) setLevel(lvl.level); }, [lvl.loaded]); // eslint-disable-line react-hooks/exhaustive-deps — старт с сохранённого уровня
   const [cells, setCells] = useState<number[][]>([]);
   const [sel, setSel] = useState<Sel>(null);
   const [cleared, setCleared] = useState(0);
@@ -165,6 +168,7 @@ export default function GoodsSortGame() {
     }).catch((e) => console.error(e));
     const next = done + 1;
     setLevel(next);
+    if (!isPreset) lvl.setLevel(next);   // сохранить достигнутый уровень между сессиями
     setLevelBanner(done);
     setTimeout(() => { setLevelBanner(null); loadLevel(next); }, 1400);
   };
@@ -292,7 +296,7 @@ export default function GoodsSortGame() {
           🛒 {levelCfg(level, poolRef.current.length).types}   ·   📦 {SLOTS - levelCfg(level, poolRef.current.length).spares}
         </Text>
         {level > 1 && (
-          <TouchableOpacity onPress={() => setLevel(1)} style={{ marginTop: 6 }}>
+          <TouchableOpacity onPress={() => { setLevel(1); if (!isPreset) lvl.setLevel(1); }} style={{ marginTop: 6 }}>
             <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
           </TouchableOpacity>
         )}
