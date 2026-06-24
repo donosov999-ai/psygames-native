@@ -29,6 +29,16 @@ const CORSI_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'result';
 type Mode = 'forward' | 'backward';
 
+// Уровень (1..15+): L1-6 span 3→8 · L7-9 показ быстрее · L10+ обязательный обратный порядок.
+function levelParams(level: number): { startSpan: number; tickMs: number; flashMs: number; reverse: boolean } {
+  const startSpan = Math.min(8, 2 + level);             // L1=3 → L6=8
+  const fast = Math.max(0, level - 6);
+  const tickMs = Math.max(480, 800 - fast * 45);
+  const flashMs = Math.max(280, 500 - fast * 30);
+  const reverse = level >= 10;                            // L10+ — обратный порядок
+  return { startSpan, tickMs, flashMs, reverse };
+}
+
 const POS = [
   { x: 70, y: 80 }, { x: 200, y: 50 }, { x: 320, y: 90 },
   { x: 50, y: 200 }, { x: 220, y: 180 }, { x: 340, y: 220 },
@@ -55,7 +65,6 @@ export default function CorsiGame() {
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'forward') as Mode));
-  const [startLen, setStartLen] = useState(() => num('startLen', 3));
 
   const [seq, setSeq] = useState<number[]>([]);
   const [showIdx, setShowIdx] = useState(-1);     // currently lit during show phase
@@ -69,6 +78,10 @@ export default function CorsiGame() {
   const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const levelRef = useRef(1);
+  const tickMsRef = useRef(800);
+  const flashMsRef = useRef(500);
+  const modeRef = useRef<Mode>('forward');
 
   useEffect(() => () => {
     if (tickerRef.current) clearInterval(tickerRef.current);
@@ -77,8 +90,21 @@ export default function CorsiGame() {
   }, []);
 
   const startGame = () => {
-    const startSpan = isPreset ? startLen : Math.min(8, 2 + lvl.level);   // персональная игра — старт от уровня (L1=3)
-    if (!isPreset) setStartLen(startSpan);
+    const effLevel = lvl.level;
+    const p = levelParams(effLevel);
+    levelRef.current = effLevel;
+    let startSpan: number;
+    if (isPreset) {
+      startSpan = num('startLen', 3);
+      tickMsRef.current = 800; flashMsRef.current = 500;
+      modeRef.current = mode;
+    } else {
+      // уровень рулит: span → скорость показа → обратный порядок
+      startSpan = p.startSpan;
+      tickMsRef.current = p.tickMs; flashMsRef.current = p.flashMs;
+      modeRef.current = p.reverse ? 'backward' : 'forward';
+      setMode(modeRef.current);
+    }
     setSpan(0); setErrors(0);
     setUserSeq([]);
     setPhase('show');
@@ -101,28 +127,28 @@ export default function CorsiGame() {
     tickerRef.current = setInterval(() => {
       if (i < next.length) {
         setShowIdx(next[i]);
-        setTimeout(() => setShowIdx(-1), 500);
+        setTimeout(() => setShowIdx(-1), flashMsRef.current);
         i++;
       } else {
         if (tickerRef.current) clearInterval(tickerRef.current);
         setPhase('recall');
       }
-    }, 800);
+    }, tickMsRef.current);
   };
 
   const finish = async (finalSpan: number, finalErrors: number) => {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
-    if (!isPreset) lvl.reach(finalSpan - 2);   // уровень = достигнутый span − 2 (L1=span3), сохраняется
+    if (!isPreset && finalSpan >= levelParams(levelRef.current).startSpan) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
     setPhase('result');
     try {
       await saveSession({
         game_type: 'corsi',
         score: Math.max(0, finalSpan * 200 - finalErrors * 50),
         time_seconds: finalTime,
-        difficulty: mode,
-        mode: `start-${startLen}`,
+        difficulty: modeRef.current,
+        mode: `L${levelRef.current}`,
         errors: finalErrors,
         details: { span: finalSpan },
       });
@@ -131,7 +157,7 @@ export default function CorsiGame() {
 
   const handleTap = (i: number) => {
     if (phase !== 'recall' || feedback !== null) return;
-    const expected = mode === 'forward' ? seq : [...seq].reverse();
+    const expected = modeRef.current === 'forward' ? seq : [...seq].reverse();
     const next = [...userSeq, i];
     setUserSeq(next);
     if (next[next.length - 1] !== expected[next.length - 1]) {
@@ -189,17 +215,10 @@ export default function CorsiGame() {
         )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('startLength')}</Text>
-        <View style={styles.optionButtons}>
-          {[2, 3, 4].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, startLen === n
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setStartLen(n)}>
-              <Text style={[styles.modeButtonText, { color: startLen === n ? '#FFF' : colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
+          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам (span → скорость → обратный порядок)` : `Lv ${lvl.level} — grows with results (span → speed → reverse)`}
+        </Text>
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
