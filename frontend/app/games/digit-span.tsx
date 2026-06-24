@@ -27,6 +27,17 @@ const DIGIT_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'showing' | 'input' | 'result';
 type Direction = 'forward' | 'backward';
 
+// Уровень (1..15+): L1-6 длина 4→9 · L7-10 длина 9 + показ быстрее · L11+ обязательный обратный ввод.
+// Сложность растёт ТРУДНОСТЬЮ (скорость, реверс), а не просто длиной за пределом памяти.
+function levelParams(level: number): { startLen: number; showMs: number; gapMs: number; reverse: boolean } {
+  const startLen = Math.min(9, 3 + level);              // L1=4 → L6=9, дальше держим 9
+  const fast = Math.max(0, level - 6);                   // за потолком длины (L7+) ускоряем показ
+  const showMs = Math.max(350, 700 - fast * 45);
+  const gapMs = Math.max(550, 1100 - fast * 70);
+  const reverse = level >= 11;                            // L11+ — обязательный обратный ввод
+  return { startLen, showMs, gapMs, reverse };
+}
+
 export default function DigitSpanGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -51,6 +62,10 @@ export default function DigitSpanGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const showTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const levelRef = useRef(1);
+  const showMsRef = useRef(700);
+  const gapMsRef = useRef(1100);
+  const dirRef = useRef<Direction>('forward');
 
   useEffect(() => {
     return () => { if (showTimerRef.current) clearInterval(showTimerRef.current); };
@@ -63,7 +78,15 @@ export default function DigitSpanGame() {
   };
 
   const startGame = () => {
-    const startLen = isPreset ? seqLen : Math.min(9, 3 + lvl.level);   // персональная игра — старт от уровня (L1=4)
+    // личная игра → уровень рулит (длина → скорость → reverse); пресет → выбранные стартовая длина/направление
+    const effLevel = isPreset ? 1 : lvl.level;
+    const p = levelParams(effLevel);
+    levelRef.current = effLevel;
+    showMsRef.current = isPreset ? 700 : p.showMs;
+    gapMsRef.current = isPreset ? 1100 : p.gapMs;
+    dirRef.current = isPreset ? direction : (p.reverse ? 'backward' : 'forward');
+    if (!isPreset) setDirection(dirRef.current);
+    const startLen = isPreset ? seqLen : p.startLen;
     setCorrectRounds(0); setMaxSpan(0); setRound(1); setErrors(0);
     setStartTime(Date.now());
     setSeqLen(startLen);
@@ -87,12 +110,12 @@ export default function DigitSpanGame() {
         return;
       }
       setShowIdx(i);
-      setTimeout(() => setShowIdx(-2), 700);
+      setTimeout(() => setShowIdx(-2), showMsRef.current);
       i++;
-    }, 1100);
+    }, gapMsRef.current);
     // Show first digit immediately
     setShowIdx(0);
-    setTimeout(() => setShowIdx(-2), 700);
+    setTimeout(() => setShowIdx(-2), showMsRef.current);
     i = 1;
   };
 
@@ -107,7 +130,7 @@ export default function DigitSpanGame() {
   }, [userInput, phase, seqLen]);
 
   const handleSubmit = async () => {
-    const expected = direction === 'forward' ? sequence : [...sequence].reverse();
+    const expected = dirRef.current === 'forward' ? sequence : [...sequence].reverse();
     const expectedStr = expected.join('');
     const correct = userInput === expectedStr;
     setLastFeedback(correct ? 'right' : 'wrong');
@@ -133,7 +156,7 @@ export default function DigitSpanGame() {
     if (!cont || nextLen > 12) {
       const finalTime = (Date.now() - startTime) / 1000;
       setElapsedTime(finalTime);
-      if (!isPreset) lvl.reach(updatedMax - 3);   // уровень = достигнутый span − 3 (L1=span4), сохраняется per-profile
+      if (!isPreset && updatedCorrect >= 1) lvl.reach(lvl.level + 1);   // прошёл стартовую длину уровня → +уровень (лесенка длина→скорость→reverse)
       setPhase('result');
       try {
         await saveSession({
