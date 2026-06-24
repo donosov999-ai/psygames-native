@@ -49,7 +49,7 @@ function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
 // SUDOKU-VARIANTS: правила-варианты на сетке 9×9. Применяются ТОЛЬКО при генерации решения
 // (solve уважает правило → решение легально под вариантом). В игре механика «впиши решение»,
 // поэтому вариант не энфорсится в рантайме — он задаёт характер решения + показывается игроку.
-type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki';
+type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich';
 const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
 const KING = [[-1, -1], [-1, 1], [1, -1], [1, 1]] as const;   // anti-king: диагональные соседи (ортогональные уже закрыты строкой/столбцом)
@@ -68,6 +68,7 @@ function variantLabel(v: Variant, ru: boolean): string {
     case 'antiking': return ru ? '♚ ход короля' : '♚ anti-king';
     case 'evenodd': return ru ? '◩ чёт/нечёт' : '◩ even/odd';
     case 'kropki': return ru ? '⦿ точки' : '⦿ kropki';
+    case 'sandwich': return ru ? '🥪 сэндвич' : '🥪 sandwich';
     default: return '';
   }
 }
@@ -81,6 +82,7 @@ function variantRule(v: Variant, ru: boolean): string {
     case 'antiking': return ru ? 'Одинаковые цифры не касаются даже по диагонали (ход короля).' : 'Equal digits cannot touch even diagonally (a king’s move).';
     case 'evenodd': return ru ? '□ — чётная цифра, ○ — нечётная: форма подсказывает чётность.' : '□ even, ○ odd — the shape hints each cell’s parity.';
     case 'kropki': return ru ? 'Белая точка между клетками — соседние ±1, чёрная — одно вдвое больше.' : 'White dot between cells: consecutive (±1). Black dot: one is double the other.';
+    case 'sandwich': return ru ? 'Число у края — сумма цифр между 1 и 9 в этом ряду/столбце.' : 'Edge number = sum of digits between the 1 and the 9 in that row/column.';
     default: return '';
   }
 }
@@ -179,7 +181,8 @@ function levelConfig(level: number): LevelCfg {
   else if (lv >= 26 && lv <= 29) variant = 'antiking';
   else if (lv >= 30 && lv <= 33) variant = 'evenodd';
   else if (lv >= 34 && lv <= 37) variant = 'kropki';
-  else if (lv >= 38) variant = 'jigsaw';
+  else if (lv >= 38 && lv <= 41) variant = 'sandwich';
+  else if (lv >= 42) variant = 'jigsaw';
   const blanks = size === 6
     ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
     : (variant === 'none' || variant === 'diagonal')
@@ -229,7 +232,7 @@ function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Varia
   return false;
 }
 
-function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] } } {
+function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] } } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   if (variant === 'jigsaw') {
@@ -263,7 +266,20 @@ function generatePuzzle(blanks: number, N: number, BR: number, BC: number, varia
     }
     kropki = { h, v: vrt };
   }
-  return { puzzle, solution: sol, regions, parity, kropki };
+  let sandwich: { rows: number[]; cols: number[] } | undefined;
+  if (variant === 'sandwich') {   // сумма цифр СТРОГО между позициями 1 и 9 в ряду/столбце
+    const between = (line: number[]) => {
+      const i1 = line.indexOf(1), i9 = line.indexOf(9);
+      if (i1 < 0 || i9 < 0) return 0;
+      const [a, b] = i1 < i9 ? [i1, i9] : [i9, i1];
+      let s = 0; for (let k = a + 1; k < b; k++) s += line[k];
+      return s;
+    };
+    const rows = sol.map((row) => between(row));
+    const cols = Array.from({ length: N }, (_, c) => between(sol.map((row) => row[c])));
+    sandwich = { rows, cols };
+  }
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich };
 }
 
 export default function SudokuGame() {
@@ -293,6 +309,7 @@ export default function SudokuGame() {
   const [cageAnchors, setCageAnchors] = useState<number[]>([]);      // killer: клетка-якорь cage (метка суммы)
   const [parityMarks, setParityMarks] = useState<number[][] | null>(null);   // evenodd: 1=чёт(квадрат), 2=нечёт(круг), 0=без метки
   const [kropki, setKropki] = useState<{ h: number[][]; v: number[][] } | null>(null);   // kropki: точки на гранях клеток
+  const [sandwich, setSandwich] = useState<{ rows: number[]; cols: number[] } | null>(null);   // sandwich: суммы у краёв рядов/столбцов
   const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
@@ -336,10 +353,11 @@ export default function SudokuGame() {
     setDims(d);
     setVariant(vr);
     setHintMax(hMax);
-    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
+    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
     setRegions(rg ?? null);
     setParityMarks(pa ?? null);
     setKropki(kr ?? null);
+    setSandwich(sw ?? null);
     if (mode === 'killer') { const cg = generateCages(s, d.N); setCages(cg.cageOf); setCageSums(cg.sum); setCageAnchors(cg.anchor); } else setCages(null);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
@@ -569,7 +587,23 @@ export default function SudokuGame() {
       </View>
     );
     const gridEl = (
-      <View style={[styles.gridArea, { width: cellSize * N + 4, backgroundColor: colors.text }]}>
+      <View style={{ alignSelf: 'center' }}>
+        {variant === 'sandwich' && sandwich && (
+          <View style={{ flexDirection: 'row', marginLeft: Math.round(cellSize * 0.6), marginBottom: 2 }}>
+            {sandwich.cols.map((s, c) => (
+              <Text key={`sc${c}`} style={{ width: cellSize, textAlign: 'center', fontSize: 11, fontWeight: '700', color: colors.textSecondary }}>{s}</Text>
+            ))}
+          </View>
+        )}
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+          {variant === 'sandwich' && sandwich && (
+            <View style={{ width: Math.round(cellSize * 0.6) }}>
+              {sandwich.rows.map((s, r) => (
+                <Text key={`sr${r}`} style={{ height: cellSize, lineHeight: cellSize, textAlign: 'center', fontSize: 11, fontWeight: '700', color: colors.textSecondary }}>{s}</Text>
+              ))}
+            </View>
+          )}
+          <View style={[styles.gridArea, { width: cellSize * N + 4, backgroundColor: colors.text }]}>
         {grid.map((row, r) => row.map((v, c) => {
           const isSel = selected?.r === r && selected?.c === c;
           const sameRow = selected?.r === r || selected?.c === c;
@@ -629,6 +663,8 @@ export default function SudokuGame() {
             </TouchableOpacity>
           );
         }))}
+          </View>
+        </View>
       </View>
     );
     const padEl = (
