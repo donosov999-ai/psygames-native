@@ -34,15 +34,25 @@ interface Equation { left: string; right: number; isCorrect: boolean; }
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
-function makeEquation(): Equation {
-  // a OP b = R, then offer R or R±k
-  const a = 1 + Math.floor(Math.random() * 9);
-  const b = 1 + Math.floor(Math.random() * 9);
-  const op = Math.random() < 0.5 ? '+' : '-';
-  const real = op === '+' ? a + b : a - b;
+// Уровень (1..15+): L1-7 setSize 3→9 (длиннее набор) · L6+ сложнее арифметика (×, бо́льшие числа) · L6+ показ буквы быстрее.
+function levelParams(level: number): { setSize: number; letterMs: number; hardMath: boolean } {
+  const setSize = Math.min(9, 2 + level);               // L1=3 → L7=9
+  const fast = Math.max(0, level - 5);
+  const letterMs = Math.max(600, 1100 - fast * 70);
+  const hardMath = level >= 6;
+  return { setSize, letterMs, hardMath };
+}
+
+function makeEquation(hard: boolean): Equation {
+  // a OP b = R, then offer R or R±k. hard → добавляется ×, числа крупнее.
+  const a = 1 + Math.floor(Math.random() * (hard ? 12 : 9));
+  const b = 1 + Math.floor(Math.random() * (hard ? 12 : 9));
+  const ops = hard ? ['+', '-', '*'] : ['+', '-'];
+  const op = ops[Math.floor(Math.random() * ops.length)];
+  const real = op === '+' ? a + b : op === '-' ? a - b : a * b;
   const isCorrect = Math.random() < 0.5;
   const shown = isCorrect ? real : real + (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 3));
-  return { left: `${a} ${op} ${b}`, right: shown, isCorrect: shown === real };
+  return { left: `${a} ${op === '*' ? '×' : op} ${b}`, right: shown, isCorrect: shown === real };
 }
 
 export default function OSpanGame() {
@@ -69,6 +79,9 @@ export default function OSpanGame() {
 
   const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const levelRef = useRef(1);
+  const letterMsRef = useRef(1100);
+  const hardMathRef = useRef(false);
 
   useEffect(() => () => {
     if (fbTimerRef.current) clearTimeout(fbTimerRef.current);
@@ -78,14 +91,19 @@ export default function OSpanGame() {
   const letterPool = language === 'en' ? LETTERS_EN : LETTERS_RU;
 
   const startGame = () => {
-    setSetSize((cur) => Math.max(cur, Math.min(7, 2 + lvl.level)));   // setSize от уровня (флор, L1=3)
+    // уровень рулит: размер набора → сложность счёта → скорость показа буквы
+    const p = levelParams(lvl.level);
+    levelRef.current = lvl.level;
+    letterMsRef.current = p.letterMs;
+    hardMathRef.current = p.hardMath;
+    setSetSize(p.setSize);
     setStepIdx(0);
     setLetters([]);
     setMathHits(0); setMathErrors(0);
     setRecallHits(0); setRecallErrors(0);
     setRecallInput('');
     setFeedback(null);
-    setEq(makeEquation());
+    setEq(makeEquation(p.hardMath));
     setPhase('eq');
     const start = Date.now();
     setStartTime(start);
@@ -108,10 +126,10 @@ export default function OSpanGame() {
         if (stepIdx + 1 >= setSize) setPhase('recall');
         else {
           setStepIdx(stepIdx + 1);
-          setEq(makeEquation());
+          setEq(makeEquation(hardMathRef.current));
           setPhase('eq');
         }
-      }, 1100);
+      }, letterMsRef.current);
     }, 350);
   };
 
@@ -127,7 +145,7 @@ export default function OSpanGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
-    if (e === 0) lvl.reach(setSize - 2);   // чистый recall всех букв → уровень = setSize − 2
+    if (e === 0) lvl.reach(levelRef.current + 1);   // чистый recall всех букв → +уровень
     setPhase('result');
     try {
       await saveSession({
@@ -150,17 +168,10 @@ export default function OSpanGame() {
         <Text style={styles.configDesc}>{t('ospanDesc')}</Text>
       </LinearGradient>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('setSize')}</Text>
-        <View style={styles.optionButtons}>
-          {[3, 4, 5, 6].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, setSize === n
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setSetSize(n)}>
-              <Text style={[styles.modeButtonText, { color: setSize === n ? '#FFF' : colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
+          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам (набор → сложнее счёт → быстрее показ)` : `Lv ${lvl.level} — grows with results (set size → harder math → faster)`}
+        </Text>
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
