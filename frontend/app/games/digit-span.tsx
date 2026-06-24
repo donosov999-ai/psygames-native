@@ -15,6 +15,7 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#11998e', '#38ef7d'];
 const DIGIT_BENEFITS = [
@@ -32,6 +33,7 @@ export default function DigitSpanGame() {
   const router = useRouter();
 
   const gate = useLevelGate('digit_span');
+  const lvl = usePersistentLevel('digit_span');   // персист-уровень (как у судоку): старт от достигнутого, растёт
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -61,9 +63,11 @@ export default function DigitSpanGame() {
   };
 
   const startGame = () => {
+    const startLen = isPreset ? seqLen : Math.min(9, 3 + lvl.level);   // персональная игра — старт от уровня (L1=4)
     setCorrectRounds(0); setMaxSpan(0); setRound(1); setErrors(0);
     setStartTime(Date.now());
-    showSequence(seqLen);
+    setSeqLen(startLen);
+    showSequence(startLen);
   };
 
   const showSequence = (len: number) => {
@@ -129,6 +133,7 @@ export default function DigitSpanGame() {
     if (!cont || nextLen > 12) {
       const finalTime = (Date.now() - startTime) / 1000;
       setElapsedTime(finalTime);
+      if (!isPreset) lvl.reach(updatedMax - 3);   // уровень = достигнутый span − 3 (L1=span4), сохраняется per-profile
       setPhase('result');
       try {
         await saveSession({
@@ -229,7 +234,7 @@ export default function DigitSpanGame() {
         {direction === 'forward' ? t('typeAsShown') : t('typeReversed')}
       </Text>
       <Text style={[styles.statText, { color: colors.textSecondary }]}>
-        {t('lengthLabel')}: {seqLen} · {t('round')} {round}
+        {t('lengthLabel')}: {seqLen} · {t('round')} {round}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}
       </Text>
       <TextInput
         value={userInput}
