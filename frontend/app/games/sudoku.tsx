@@ -574,6 +574,21 @@ export default function SudokuGame() {
         </View>
       </View>
 
+      {/* Вход в отдельный режим «Самурай» (5 перекрытых сеток 9×9) — открывает /games/sudoku-samurai */}
+      <TouchableOpacity
+        style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+        onPress={() => router.push('/games/sudoku-samurai' as any)}
+        activeOpacity={0.7}
+      >
+        <View style={{ flex: 1, paddingRight: 10 }}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>🎴 {language === 'ru' ? 'Самурай' : 'Samurai'}</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 17 }}>
+            {language === 'ru' ? 'Пять сеток 9×9 с общими угловыми блоками.' : 'Five overlapping 9×9 grids sharing corner blocks.'}
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
+      </TouchableOpacity>
+
       {mode === 'levels' && (() => {
         const cfg = levelConfig(level);
         return (
