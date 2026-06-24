@@ -564,8 +564,8 @@ export default function SudokuGame() {
           else if (isSel) bg = GRADIENT[0];
           else if (sameVal) bg = colors.card;
           else if (sameRow) bg = colors.card;
-          else if (variant === 'diagonal' && (r === c || r + c === N - 1)) bg = blendHex(colors.surface, GRADIENT[0], 0.20);   // непрозрачная подсветка диагоналей
           else if (variant === 'hyper' && inHyper(r, c)) bg = blendHex(colors.surface, GRADIENT[0], 0.14);   // непрозрачная подсветка доп. зон (Windoku)
+          // ДИАГОНАЛЬ: НЕ заливаем фон (залитый квадрат скрывает цифру) — рисуем тонкую линию через клетку, см. ниже
           return (
             <TouchableOpacity
               key={`${r}-${c}`}
@@ -585,6 +585,12 @@ export default function SudokuGame() {
                 },
               ]}
             >
+              {variant === 'diagonal' && r === c && (
+                <View style={{ position: 'absolute', width: cellSize * 1.42, height: 2.5, left: cellSize / 2 - cellSize * 0.71, top: cellSize / 2 - 1.25, backgroundColor: GRADIENT[0], opacity: 0.6, transform: [{ rotate: '45deg' }], pointerEvents: 'none' }} />
+              )}
+              {variant === 'diagonal' && r + c === N - 1 && (
+                <View style={{ position: 'absolute', width: cellSize * 1.42, height: 2.5, left: cellSize / 2 - cellSize * 0.71, top: cellSize / 2 - 1.25, backgroundColor: GRADIENT[0], opacity: 0.6, transform: [{ rotate: '-45deg' }], pointerEvents: 'none' }} />
+              )}
               {variant === 'evenodd' && parityMarks && parityMarks[r][c] !== 0 && (
                 <View style={{ position: 'absolute', width: cellSize * 0.6, height: cellSize * 0.6, borderRadius: parityMarks[r][c] === 2 ? cellSize * 0.3 : Math.max(3, Math.round(cellSize * 0.1)), backgroundColor: blendHex(colors.surface, GRADIENT[1], 0.20), borderWidth: 1, borderColor: blendHex(colors.surface, GRADIENT[1], 0.45) }} />
               )}
