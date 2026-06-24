@@ -11,6 +11,7 @@ interface GameResultProps {
   time?: number;
   score?: number;
   errors?: number;
+  stars?: number;   // 1–3 звезды за прохождение; не передан → выводится из errors
   gradient: string[];
   onPlayAgain: () => void;
   onGoHome: () => void;
@@ -33,6 +34,7 @@ export default function GameResult({
   time,
   score,
   errors,
+  stars,
   gradient,
   onPlayAgain,
   onGoHome,
@@ -44,6 +46,8 @@ export default function GameResult({
   const fgSoft = light ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)';
   // T1: видимый заработок токенов — ТОТ ЖЕ tokenDelta, что начисляет saveSession (совпадает 1:1)
   const earned = score !== undefined ? tokenDelta(score, errors ?? 0) : 0;
+  // Звёзды за прохождение (1–3): передан stars — рисуем его, иначе выводим из ошибок (0=3, ≤2=2, иначе 1).
+  const shownStars = stars ?? (errors !== undefined ? (errors === 0 ? 3 : errors <= 2 ? 2 : 1) : undefined);
   useEffect(() => { sndWin(); }, []);   // фанфары при показе экрана результата (завершение)
 
   const formatTime = (seconds: number): string => {
@@ -66,6 +70,14 @@ export default function GameResult({
       >
         <Ionicons name="trophy" size={64} color={fg} />
         <Text style={[styles.title, { color: fg }]}>{t('complete')}</Text>
+
+        {shownStars !== undefined && (
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
+            {[1, 2, 3].map((i) => (
+              <Ionicons key={i} name={i <= shownStars ? 'star' : 'star-outline'} size={40} color={i <= shownStars ? '#FFD93B' : fgSoft} />
+            ))}
+          </View>
+        )}
 
         <View style={styles.statsContainer}>
           {time !== undefined && (
