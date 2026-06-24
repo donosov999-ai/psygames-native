@@ -27,7 +27,7 @@ const MATH_BENEFITS = [
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
-type Op = '+' | '-' | '*';
+type Op = '+' | '-' | '*' | '/';
 
 interface Problem {
   a: number;
@@ -36,25 +36,31 @@ interface Problem {
   answer: number;
 }
 
-// tier — внутрисессионный рамп: с ростом числа верных ответов задачи становятся крупнее.
-// Выбранная сложность задаёт БАЗУ (диапазон/набор операций), tier масштабирует величину чисел.
-function generateProblem(difficulty: Difficulty, tier = 0): Problem {
-  const ops: Op[] = difficulty === 'easy' ? ['+', '-'] : difficulty === 'medium' ? ['+', '-', '*'] : ['+', '-', '*'];
+// Уровень (1..15+) задаёт набор операций И величину чисел. Сложность растёт ТРУДНОСТЬЮ задачи, не временем.
+// L1-2: + −  · L3-4: + − ×  · L5+: + − × ÷  · разрядность чисел плавно растёт. (Степени/скобки — фаза 2.)
+function generateProblem(level: number): Problem {
+  const ops: Op[] =
+    level <= 2 ? ['+', '-'] :
+    level <= 4 ? ['+', '-', '*'] :
+    ['+', '-', '*', '/'];
   const op = ops[Math.floor(Math.random() * ops.length)];
-  const t = Math.min(tier, 5);   // потолок рампа, чтобы числа не разрослись до абсурда
-  let a: number, b: number;
+  const rng = (n: number) => Math.floor(Math.random() * Math.max(1, Math.round(n)));
+  let a: number, b: number, answer: number;
   if (op === '*') {
-    if (difficulty === 'easy') { a = 2 + Math.floor(Math.random() * (8 + t * 2)); b = 2 + Math.floor(Math.random() * (8 + t)); }
-    else if (difficulty === 'medium') { a = 3 + Math.floor(Math.random() * (10 + t * 3)); b = 3 + Math.floor(Math.random() * (9 + t * 2)); }
-    else { a = 5 + Math.floor(Math.random() * (16 + t * 4)); b = 5 + Math.floor(Math.random() * (12 + t * 2)); }
+    a = 2 + rng(6 + level * 1.6);
+    b = 2 + rng(5 + level);
+    answer = a * b;
+  } else if (op === '/') {
+    b = 2 + rng(4 + level);
+    const q = 2 + rng(5 + level);
+    a = b * q; answer = q;                              // деление всегда нацело
   } else {
-    const baseRange = difficulty === 'easy' ? 20 : difficulty === 'medium' ? 50 : 100;
-    const range = Math.round(baseRange * (1 + t * 0.4));
-    a = 5 + Math.floor(Math.random() * range);
-    b = 1 + Math.floor(Math.random() * range);
+    const range = Math.round(15 * (1 + level * 0.6));    // разрядность растёт с уровнем
+    a = 5 + rng(range);
+    b = 1 + rng(range);
     if (op === '-' && b > a) { [a, b] = [b, a]; }
+    answer = op === '+' ? a + b : a - b;
   }
-  const answer = op === '+' ? a + b : op === '-' ? a - b : a * b;
   return { a, b, op, answer };
 }
 
@@ -83,6 +89,7 @@ export default function MathSprintGame() {
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inputRef = useRef<TextInput>(null);
+  const levelRef = useRef(1);            // текущий уровень партии (рулит набором операций и числами)
 
   useEffect(() => () => { if (tickRef.current) clearInterval(tickRef.current); }, []);
 
@@ -90,10 +97,11 @@ export default function MathSprintGame() {
     setCorrect(0); setErrors(0); setStreak(0); setBestStreak(0); setScore(0);
     setUserAnswer('');
     setFeedback(null);
-    const diff: Difficulty = isPreset ? difficulty : (lvl.level <= 1 ? 'easy' : lvl.level === 2 ? 'medium' : 'hard');   // тир от уровня
-    if (!isPreset) setDifficulty(diff);
+    // личная игра → уровень рулит; пресет (зарядка) → выбранный тир маппится в уровень
+    const effLevel = isPreset ? ({ easy: 2, medium: 6, hard: 11 } as Record<Difficulty, number>)[difficulty] ?? 6 : lvl.level;
+    levelRef.current = effLevel;
     setTimeLeft(duration);
-    setProblem(generateProblem(diff, 0));
+    setProblem(generateProblem(effLevel));
     setPhase('playing');
     const start = Date.now();
     setStartTime(start);
@@ -112,14 +120,14 @@ export default function MathSprintGame() {
   const finishGame = async () => {
     if (tickRef.current) clearInterval(tickRef.current);
     sndTimerEnd();   // SND-T: «время вышло»
-    if (!isPreset && correct >= 12) lvl.reach((difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3) + 1);   // ≥12 верных → +уровень/тир
+    if (!isPreset && correct >= 12) lvl.reach(lvl.level + 1);   // ≥12 верных → +уровень
     setPhase('result');
     try {
       await saveSession({
         game_type: 'math_sprint',
         score,
         time_seconds: duration,
-        difficulty,
+        difficulty: levelRef.current <= 4 ? 'easy' : levelRef.current <= 9 ? 'medium' : 'hard',
         mode: `${duration}s`,
         errors,
         details: { correct, bestStreak },
@@ -147,10 +155,8 @@ export default function MathSprintGame() {
       setFeedback('wrong');
     }
     setUserAnswer('');
-    // Рамп: каждые 5 верных → tier+1 → следующая задача крупнее (свежий nextCorrect, не stale state).
-    const nextTier = Math.floor(nextCorrect / 5);
     setTimeout(() => {
-      setProblem(generateProblem(difficulty, nextTier));
+      setProblem(generateProblem(levelRef.current));
       setFeedback(null);
       inputRef.current?.focus();   // десктоп: вернуть фокус в поле, чтобы печатать дальше без клика мышью
     }, 250);
@@ -216,14 +222,13 @@ export default function MathSprintGame() {
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         {streak >= 3 && <Text style={[styles.statText, { color: '#fbbf24' }]}>🔥{streak}</Text>}
-        {Math.floor(correct / 5) > 0 && <Text style={[styles.statText, { color: '#3b82f6' }]}>📈{t('label_level_short_lower')}{Math.min(Math.floor(correct / 5), 5) + 1}</Text>}
       </View>
       <View style={[styles.problemArea, {
         backgroundColor: feedback === 'correct' ? 'rgba(34,197,94,0.15)' : feedback === 'wrong' ? 'rgba(244,63,94,0.15)' : 'transparent',
       }]}>
         {problem && (
           <Text style={[styles.problemText, { color: colors.text }]}>
-            {problem.a} {problem.op === '*' ? '×' : problem.op} {problem.b} = ?
+            {problem.a} {problem.op === '*' ? '×' : problem.op === '/' ? '÷' : problem.op} {problem.b} = ?
           </Text>
         )}
       </View>
