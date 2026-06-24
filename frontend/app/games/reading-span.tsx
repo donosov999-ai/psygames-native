@@ -116,11 +116,14 @@ export default function ReadingSpanGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const levelRef = useRef(1);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const startGame = () => {
-    const sz = isPreset ? setSize : Math.max(setSize, Math.min(7, 2 + lvl.level));   // setSize от уровня (флор, L1=3)
+    // уровень рулит размером набора (число слов держать = реальная нагрузка памяти; растёт без жёсткого потолка)
+    const sz = isPreset ? setSize : Math.min(SENTENCES.length, 2 + lvl.level);   // L1=3, дальше +1/уровень
+    levelRef.current = lvl.level;
     if (!isPreset) setSetSize(sz);
     const picked = shuffle(SENTENCES).slice(0, sz);
     setSeq(picked);
@@ -155,7 +158,7 @@ export default function ReadingSpanGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
-    if (!isPreset && e === 0) lvl.reach(setSize - 2);   // чистый recall всех слов → уровень = setSize − 2
+    if (!isPreset && e === 0) lvl.reach(levelRef.current + 1);   // чистый recall всех слов → +уровень
     setPhase('result');
     try {
       await saveSession({
@@ -178,17 +181,10 @@ export default function ReadingSpanGame() {
         <Text style={styles.configDesc}>{t('readingSpanDesc')}</Text>
       </LinearGradient>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('setSize')}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
-        <View style={styles.optionButtons}>
-          {[3, 4, 5, 6].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, setSize === n
-              ? { backgroundColor: GRADIENT[1] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setSetSize(n)}>
-              <Text style={[styles.modeButtonText, { color: setSize === n ? '#FFF' : colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
+          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам: больше фраз в наборе (держать больше последних слов)` : `Lv ${lvl.level} — grows with results: more sentences per set`}
+        </Text>
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
