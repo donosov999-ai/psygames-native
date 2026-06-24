@@ -15,6 +15,7 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile, pairBackForProfile } from '@/src/constants/pairThemes';
 import { FlipCard, HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
@@ -69,6 +70,7 @@ export default function PicturePairsGame() {
   const { popups, spawn } = useScorePopups();
 
   const { isPreset, num } = useGamePreset();
+  const lvl = usePersistentLevel('picture_pairs');   // персист достигнутого уровня (раньше сбрасывался на 1)
   const [phase, setPhase] = useState<GamePhase>('intro');
   const gate = useLevelGate('picture_pairs');
   // Пресет (Зарядка) → одиночный раунд по фикс-настройкам; ручной запуск → игровой по умолчанию.
@@ -150,14 +152,16 @@ export default function PicturePairsGame() {
     }).catch((e) => console.error(e));
     const next = done + 1;
     setLevel(next);
+    if (!isPreset) lvl.setLevel(next);   // сохранить достигнутый уровень между сессиями
     setLevelBanner(done);
     bannerTimerRef.current = setTimeout(() => { setLevelBanner(null); loadLevel(next); }, 1400);
   };
 
   const startGame = () => {
     if (mode === 'game') {
-      scoreRef.current = 0; setScore(0); setLevel(1); setLevelBanner(null);
-      loadLevel(1);
+      const startLvl = (!isPreset && lvl.loaded) ? lvl.level : 1;   // старт с сохранённого уровня
+      scoreRef.current = 0; setScore(0); setLevel(startLvl); setLevelBanner(null);
+      loadLevel(startLvl);
     } else {
       startRound(pairsCount, photoMemoryMode, photoMemoryMode ? previewMs : 0);
     }
