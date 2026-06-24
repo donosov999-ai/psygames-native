@@ -19,6 +19,7 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#5b86e5', '#36d1dc'];
 const N_BACK_BENEFITS = [
@@ -56,6 +57,7 @@ export default function NBackGame() {
   const router = useRouter();
 
   const gate = useLevelGate('n_back');
+  const lvl = usePersistentLevel('n_back');   // персист-уровень = N (1-back=L1, 2-back=L2…)
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -95,6 +97,7 @@ export default function NBackGame() {
   }, []);
 
   const startGame = () => {
+    if (!isPreset) setNLevel((cur) => Math.min(5, Math.max(cur, lvl.level)));   // N от уровня (флор); таймер 600мс ниже даёт стейту примениться
     setHits(0); setMisses(0); setFalseAlarms(0); setCorrectRejections(0);
     setAHits(0); setAMisses(0); setAFalseAlarms(0); setACorrectRejections(0);
     statsRef.current = { hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0, aHits: 0, aMisses: 0, aFalseAlarms: 0, aCorrectRejections: 0 };
@@ -195,6 +198,7 @@ export default function NBackGame() {
     setPhase('result');
     const totalAnswered = hits + misses + falseAlarms + correctRejections;
     const accuracy = totalAnswered > 0 ? Math.round(((hits + correctRejections) / totalAnswered) * 100) : 0;
+    if (!isPreset && accuracy >= 80) lvl.reach(nLevel + 1);   // ≥80% на N-back → уровень = N+1 (растём)
     // Signal Detection Theory: d' = z(hit_rate) - z(false_alarm_rate)
     // Hit rate = hits / (hits + misses); False alarm rate = falseAlarms / (falseAlarms + correctRejections)
     // Apply log-linear correction to avoid infinity (Snodgrass & Corwin 1988): add 0.5 to numerator, 1 to denominator
@@ -333,7 +337,7 @@ export default function NBackGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{currentIdx + 1}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{nLevel}-back · {currentIdx + 1}/{trials}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
       </View>
