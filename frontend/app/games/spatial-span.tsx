@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 
@@ -25,7 +26,8 @@ type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'result';
 
 export default function SpatialSpanGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const lvl = usePersistentLevel('spatial_span');   // персист-уровень (как у судоку)
   const router = useRouter();
   // v1.29.1 (мобайл): фикс 320px делал сетку узкой по центру — теперь full-width,
   // высотный лимит держит ландшафт/десктоп, 520 — потолок больших окон
@@ -86,19 +88,21 @@ export default function SpatialSpanGame() {
   };
 
   const startGame = () => {
+    const startSpan = Math.max(startLen, Math.min(7, 1 + lvl.level));   // старт от уровня (флор), ручной выбор может выше
     setSpan(0); setErrorsAtLen(0); setTotalErrors(0);
     setUserSeq([]);
     setPhase('show');
     const start = Date.now();
     setStartTime(start);
     timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
-    showSequence(startLen);
+    showSequence(startSpan);
   };
 
   const finish = async (finalSpan: number, finalErrors: number) => {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
+    lvl.reach(finalSpan - 1);   // уровень = достигнутый span − 1 (L1=span2), сохраняется
     setPhase('result');
     try {
       await saveSession({
@@ -210,7 +214,7 @@ export default function SpatialSpanGame() {
   const renderShow = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>Span {span}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>Span {span} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>Len {seq.length}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{totalErrors}</Text>
       </View>
@@ -222,7 +226,7 @@ export default function SpatialSpanGame() {
   const renderRecall = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>Span {span}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>Span {span} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>{userSeq.length}/{seq.length}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{totalErrors}</Text>
       </View>
