@@ -24,6 +24,16 @@ const SS_BENEFITS = [
 
 type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'result';
 
+// Уровень (1..15+): L1-6 span 2→7 · L7-10 показ быстрее · L11+ сетка 5×5 (span дальше). Реверс — всегда (CANTAB backward).
+function levelParams(level: number): { startSpan: number; gridSize: number; tickMs: number; flashMs: number } {
+  const startSpan = Math.min(7, 1 + level);
+  const fast = Math.max(0, level - 6);
+  const gridSize = level >= 11 ? 5 : 4;
+  const tickMs = Math.max(450, 750 - fast * 40);
+  const flashMs = Math.max(250, 450 - fast * 25);
+  return { startSpan, gridSize, tickMs, flashMs };
+}
+
 export default function SpatialSpanGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -36,7 +46,6 @@ export default function SpatialSpanGame() {
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [gridSize, setGridSize] = useState(4); // 4x4 (16 cells, classic CANTAB)
-  const [startLen, setStartLen] = useState(2);
 
   const [seq, setSeq] = useState<number[]>([]);
   const [showIdx, setShowIdx] = useState(-1);
@@ -51,6 +60,10 @@ export default function SpatialSpanGame() {
   const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const levelRef = useRef(1);
+  const tickMsRef = useRef(750);
+  const flashMsRef = useRef(450);
+  const gridSizeRef = useRef(4);
 
   useEffect(() => () => {
     [tickerRef, timerRef, fbTimerRef].forEach(r => { if (r.current) { clearInterval(r.current as any); clearTimeout(r.current as any); } });
@@ -70,7 +83,8 @@ export default function SpatialSpanGame() {
   const showSequence = (len: number) => {
     setUserSeq([]);
     setFeedback(null);
-    const next = shuffleN(cellCount, len);
+    const cc = gridSizeRef.current * gridSizeRef.current;
+    const next = shuffleN(cc, len);
     setSeq(next);
     setPhase('show');
     setShowIdx(-1);
@@ -78,31 +92,38 @@ export default function SpatialSpanGame() {
     tickerRef.current = setInterval(() => {
       if (i < next.length) {
         setShowIdx(next[i]);
-        setTimeout(() => setShowIdx(-1), 450);
+        setTimeout(() => setShowIdx(-1), flashMsRef.current);
         i++;
       } else {
         if (tickerRef.current) clearInterval(tickerRef.current);
         setPhase('recall');
       }
-    }, 750);
+    }, tickMsRef.current);
   };
 
   const startGame = () => {
-    const startSpan = Math.max(startLen, Math.min(7, 1 + lvl.level));   // старт от уровня (флор), ручной выбор может выше
+    // уровень рулит: стартовый span → скорость показа → размер сетки
+    const effLevel = lvl.level;
+    const p = levelParams(effLevel);
+    levelRef.current = effLevel;
+    tickMsRef.current = p.tickMs;
+    flashMsRef.current = p.flashMs;
+    gridSizeRef.current = p.gridSize;
+    setGridSize(p.gridSize);
     setSpan(0); setErrorsAtLen(0); setTotalErrors(0);
     setUserSeq([]);
     setPhase('show');
     const start = Date.now();
     setStartTime(start);
     timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
-    showSequence(startSpan);
+    showSequence(p.startSpan);
   };
 
   const finish = async (finalSpan: number, finalErrors: number) => {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
-    lvl.reach(finalSpan - 1);   // уровень = достигнутый span − 1 (L1=span2), сохраняется
+    if (finalSpan >= levelParams(levelRef.current).startSpan) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
     setPhase('result');
     try {
       await saveSession({
@@ -155,30 +176,10 @@ export default function SpatialSpanGame() {
         <Text style={styles.configDesc}>{t('spatialSpanDesc')}</Text>
       </LinearGradient>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('gridSize')}</Text>
-        <View style={styles.optionButtons}>
-          {[3, 4, 5].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, gridSize === n
-              ? { backgroundColor: GRADIENT[1] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setGridSize(n)}>
-              <Text style={[styles.modeButtonText, { color: gridSize === n ? '#000' : colors.text }]}>{n}×{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('startLength')}</Text>
-        <View style={styles.optionButtons}>
-          {[2, 3, 4].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, startLen === n
-              ? { backgroundColor: GRADIENT[1] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setStartLen(n)}>
-              <Text style={[styles.modeButtonText, { color: startLen === n ? '#000' : colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
+          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам (span → скорость показа → сетка 5×5)` : `Lv ${lvl.level} — grows with results (span → show speed → 5×5 grid)`}
+        </Text>
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
