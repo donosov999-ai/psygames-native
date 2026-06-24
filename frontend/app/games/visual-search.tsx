@@ -37,14 +37,14 @@ const FIND_TXT: Record<string, string> = {
   de: 'Finde alle diese Formen', zh: '找出所有这种图形', hi: 'ये सभी आकृतियाँ खोजें',
 };
 
-// Прогрессия по раундам (= уровням, как в Мишенях): каждый следующий раунд = БОЛЬШЕ объектов,
-// а через несколько раундов — и БОЛЬШЕ целей. База/прирост/потолок целей зависят от сложности.
-function roundParams(diff: Difficulty, round: number): { count: number; targetCount: number } {
-  const base = { easy: 18, medium: 28, hard: 40 }[diff];
-  const growth = { easy: 3, medium: 5, hard: 7 }[diff];
-  const maxT = { easy: 2, medium: 3, hard: 4 }[diff];
+// Уровень (1..15+) задаёт базовую сложность; раунды внутри сессии добавляют объекты.
+// Дистракторов больше с уровнем; целей 1→2→3→4 по мере роста уровня. (Конъюнктивный поиск цвет+форма — фаза 2.)
+function levelParams(level: number, round: number): { count: number; targetCount: number } {
+  const base = Math.min(72, 14 + level * 4);                            // L1≈18 → L14≈70 объектов
+  const growth = 3 + Math.floor(level / 4);                              // прирост/раунд растёт с уровнем
   const count = Math.min(96, base + (round - 1) * growth);
-  const targetCount = Math.min(maxT, 1 + Math.floor((round - 1) / 3));
+  const maxT = level <= 3 ? 1 : level <= 7 ? 2 : level <= 11 ? 3 : 4;    // целей: 1→2→3→4 с уровнем
+  const targetCount = Math.min(maxT, 1 + Math.floor((round - 1) / 2));
   return { count, targetCount };
 }
 
@@ -82,7 +82,6 @@ export default function VisualSearchGame() {
   const lvl = usePersistentLevel('visual_search');   // уровень → тир (1=easy, 2=medium, ≥3=hard)
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
   const [trials, setTrials] = useState(() => num('trials', 8));
 
   const [round, setRound] = useState(0);
@@ -105,6 +104,7 @@ export default function VisualSearchGame() {
   const roundRef = useRef(0);
   const foundRef = useRef(0);
   const targetCountRef = useRef(1);
+  const levelRef = useRef(1);            // текущий уровень партии (рулит сложностью)
 
   const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (fbTimerRef.current) clearTimeout(fbTimerRef.current); }, []);
@@ -118,8 +118,8 @@ export default function VisualSearchGame() {
   const boardW = Math.min(width - 32, 480);
   const boardH = Math.round(boardW * 1.0);
 
-  const newRound = (r: number, d: Difficulty = difficulty) => {
-    const { count, targetCount: tc } = roundParams(d, r);
+  const newRound = (r: number) => {
+    const { count, targetCount: tc } = levelParams(levelRef.current, r);
     const shape = SHAPES_ALL[Math.floor(Math.random() * SHAPES_ALL.length)];
     roundRef.current = r;
     targetCountRef.current = tc;
@@ -134,11 +134,13 @@ export default function VisualSearchGame() {
   };
 
   const startGame = () => {
-    const diff: Difficulty = isPreset ? difficulty : (lvl.level <= 1 ? 'easy' : lvl.level === 2 ? 'medium' : 'hard');   // тир от уровня
-    if (!isPreset) setDifficulty(diff);
+    // личная игра → уровень рулит сложностью; пресет (зарядка) → тир маппится в уровень
+    const presetDiff = (str('diff', 'medium') as Difficulty);
+    const effLevel = isPreset ? ({ easy: 2, medium: 6, hard: 11 } as Record<Difficulty, number>)[presetDiff] ?? 6 : lvl.level;
+    levelRef.current = effLevel;
     hitsRef.current = 0; errorsRef.current = 0; rtsRef.current = [];
     setHits(0); setErrors(0); setRts([]);
-    newRound(1, diff);
+    newRound(1);
     setPhase('playing');
     setStartTime(Date.now());
   };
@@ -148,15 +150,15 @@ export default function VisualSearchGame() {
       const totalTime = (Date.now() - startTime) / 1000;
       const arr = rtsRef.current;
       const meanRt = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
-      const last = roundParams(difficulty, trials);
-      if (!isPreset && errorsRef.current <= 1) lvl.reach((difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3) + 1);   // прошёл серию точно → +уровень/тир
+      const last = levelParams(levelRef.current, trials);
+      if (!isPreset && errorsRef.current <= 1) lvl.reach(lvl.level + 1);   // прошёл серию точно → +уровень
       setPhase('result');
       try {
         await saveSession({
           game_type: 'visual_search',
           score: Math.max(0, Math.round(hitsRef.current * 100 - errorsRef.current * 50 - meanRt * 0.05)),
           time_seconds: totalTime,
-          difficulty,
+          difficulty: levelRef.current <= 3 ? 'easy' : levelRef.current <= 9 ? 'medium' : 'hard',
           mode: `${trials}t`,
           errors: errorsRef.current,
           details: { mean_rt: Math.round(meanRt), max_items: last.count, max_targets: last.targetCount },
@@ -205,19 +207,10 @@ export default function VisualSearchGame() {
         <Text style={styles.configDesc}>{t('visualSearchDesc')}</Text>
       </LinearGradient>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {(['easy','medium','hard'] as Difficulty[]).map((d) => (
-            <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setDifficulty(d)}>
-              <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
-                {t(d)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
+          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам по результату (объектов и целей больше)` : `Lv ${lvl.level} — grows with results (more items & targets)`}
+        </Text>
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
