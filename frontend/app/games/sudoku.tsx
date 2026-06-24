@@ -645,10 +645,10 @@ export default function SudokuGame() {
                 <View style={{ position: 'absolute', width: cellSize * 0.6, height: cellSize * 0.6, borderRadius: parityMarks[r][c] === 2 ? cellSize * 0.3 : Math.max(3, Math.round(cellSize * 0.1)), backgroundColor: blendHex(colors.surface, GRADIENT[1], 0.20), borderWidth: 1, borderColor: blendHex(colors.surface, GRADIENT[1], 0.45) }} />
               )}
               {variant === 'kropki' && kropki && c < N - 1 && kropki.h[r][c] !== 0 && (
-                <View style={{ position: 'absolute', width: cellSize * 0.2, height: cellSize * 0.2, borderRadius: cellSize * 0.1, right: -cellSize * 0.1, top: cellSize / 2 - cellSize * 0.1, backgroundColor: kropki.h[r][c] === 2 ? colors.text : colors.surface, borderWidth: 1.5, borderColor: colors.text, zIndex: 5, pointerEvents: 'none' }} />
+                <View style={{ position: 'absolute', width: cellSize * 0.2, height: cellSize * 0.2, borderRadius: cellSize * 0.1, right: -cellSize * 0.1, top: cellSize / 2 - cellSize * 0.1, backgroundColor: kropki.h[r][c] === 2 ? '#222222' : '#ffffff', borderWidth: 1.5, borderColor: '#777777', zIndex: 5, pointerEvents: 'none' }} />
               )}
               {variant === 'kropki' && kropki && r < N - 1 && kropki.v[r][c] !== 0 && (
-                <View style={{ position: 'absolute', width: cellSize * 0.2, height: cellSize * 0.2, borderRadius: cellSize * 0.1, bottom: -cellSize * 0.1, left: cellSize / 2 - cellSize * 0.1, backgroundColor: kropki.v[r][c] === 2 ? colors.text : colors.surface, borderWidth: 1.5, borderColor: colors.text, zIndex: 5, pointerEvents: 'none' }} />
+                <View style={{ position: 'absolute', width: cellSize * 0.2, height: cellSize * 0.2, borderRadius: cellSize * 0.1, bottom: -cellSize * 0.1, left: cellSize / 2 - cellSize * 0.1, backgroundColor: kropki.v[r][c] === 2 ? '#222222' : '#ffffff', borderWidth: 1.5, borderColor: '#777777', zIndex: 5, pointerEvents: 'none' }} />
               )}
               {mode === 'killer' && cages && cageAnchors[cages[r][c]] === r * N + c && (
                 <Text style={{ position: 'absolute', top: 1, left: 2, fontSize: Math.max(8, Math.round(cellSize * 0.27)), fontWeight: '800', color: colors.text }}>{cageSums[cages[r][c]]}</Text>
