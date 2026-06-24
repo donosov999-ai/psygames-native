@@ -11,6 +11,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#3a1c71', '#d76d77'];
 const TOL_BENEFITS = [
@@ -108,6 +109,7 @@ export default function TowerLondonGame() {
   const router = useRouter();
 
   const { isPreset, str, num } = useGamePreset();
+  const lvl = usePersistentLevel('tower_london');   // уровень → тир (1=easy, 2=medium, ≥3=hard)
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
@@ -128,8 +130,8 @@ export default function TowerLondonGame() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  const newRound = () => {
-    const p = makePuzzle(difficulty);
+  const newRound = (d: Difficulty = difficulty) => {
+    const p = makePuzzle(d);
     setPuzzle(p);
     setState(cloneState(p.start));
     setSelPeg(null);
@@ -138,8 +140,10 @@ export default function TowerLondonGame() {
   };
 
   const startGame = () => {
+    const diff: Difficulty = isPreset ? difficulty : (lvl.level <= 1 ? 'easy' : lvl.level === 2 ? 'medium' : 'hard');   // тир от уровня
+    if (!isPreset) setDifficulty(diff);
     setSolved(0); setExtraMoves(0); setErrors(0); setRound(1);
-    newRound();
+    newRound(diff);
     setPhase('playing');
     const start = Date.now();
     setStartTime(start);
@@ -176,6 +180,7 @@ export default function TowerLondonGame() {
           if (timerRef.current) clearInterval(timerRef.current);
           const finalTime = (Date.now() - startTime) / 1000;
           setElapsedTime(finalTime);
+          if (!isPreset && (extraMoves + extra) <= trials) lvl.reach((difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3) + 1);   // эффективно прошёл тир → +уровень
           setPhase('result');
           try {
             await saveSession({
@@ -262,7 +267,7 @@ export default function TowerLondonGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{solved}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>{moves}/{puzzle.minMoves}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
