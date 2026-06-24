@@ -11,6 +11,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#536976', '#292e49'];
 const VS_BENEFITS = [
@@ -78,6 +79,7 @@ export default function VisualSearchGame() {
   const { width } = useWindowDimensions();
 
   const { isPreset, str, num } = useGamePreset();
+  const lvl = usePersistentLevel('visual_search');   // уровень → тир (1=easy, 2=medium, ≥3=hard)
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
@@ -116,8 +118,8 @@ export default function VisualSearchGame() {
   const boardW = Math.min(width - 32, 480);
   const boardH = Math.round(boardW * 1.0);
 
-  const newRound = (r: number) => {
-    const { count, targetCount: tc } = roundParams(difficulty, r);
+  const newRound = (r: number, d: Difficulty = difficulty) => {
+    const { count, targetCount: tc } = roundParams(d, r);
     const shape = SHAPES_ALL[Math.floor(Math.random() * SHAPES_ALL.length)];
     roundRef.current = r;
     targetCountRef.current = tc;
@@ -132,9 +134,11 @@ export default function VisualSearchGame() {
   };
 
   const startGame = () => {
+    const diff: Difficulty = isPreset ? difficulty : (lvl.level <= 1 ? 'easy' : lvl.level === 2 ? 'medium' : 'hard');   // тир от уровня
+    if (!isPreset) setDifficulty(diff);
     hitsRef.current = 0; errorsRef.current = 0; rtsRef.current = [];
     setHits(0); setErrors(0); setRts([]);
-    newRound(1);
+    newRound(1, diff);
     setPhase('playing');
     setStartTime(Date.now());
   };
@@ -145,6 +149,7 @@ export default function VisualSearchGame() {
       const arr = rtsRef.current;
       const meanRt = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
       const last = roundParams(difficulty, trials);
+      if (!isPreset && errorsRef.current <= 1) lvl.reach((difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3) + 1);   // прошёл серию точно → +уровень/тир
       setPhase('result');
       try {
         await saveSession({
@@ -254,7 +259,7 @@ export default function VisualSearchGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{t('label_level_short')} {round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{t('label_level_short')} {round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         {targetCount > 1 && (
