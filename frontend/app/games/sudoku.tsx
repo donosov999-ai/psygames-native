@@ -49,7 +49,7 @@ function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
 // SUDOKU-VARIANTS: правила-варианты на сетке 9×9. Применяются ТОЛЬКО при генерации решения
 // (solve уважает правило → решение легально под вариантом). В игре механика «впиши решение»,
 // поэтому вариант не энфорсится в рантайме — он задаёт характер решения + показывается игроку.
-type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd';
+type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki';
 const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
 const KING = [[-1, -1], [-1, 1], [1, -1], [1, 1]] as const;   // anti-king: диагональные соседи (ортогональные уже закрыты строкой/столбцом)
@@ -67,6 +67,7 @@ function variantLabel(v: Variant, ru: boolean): string {
     case 'jigsaw': return ru ? '⧉ кривые блоки' : '⧉ jigsaw';
     case 'antiking': return ru ? '♚ ход короля' : '♚ anti-king';
     case 'evenodd': return ru ? '◩ чёт/нечёт' : '◩ even/odd';
+    case 'kropki': return ru ? '⦿ точки' : '⦿ kropki';
     default: return '';
   }
 }
@@ -79,6 +80,7 @@ function variantRule(v: Variant, ru: boolean): string {
     case 'jigsaw': return ru ? 'Блоки кривые, а не квадраты — в каждом тоже 1–9 без повторов.' : 'Blocks are irregular, not squares — each still holds 1–9.';
     case 'antiking': return ru ? 'Одинаковые цифры не касаются даже по диагонали (ход короля).' : 'Equal digits cannot touch even diagonally (a king’s move).';
     case 'evenodd': return ru ? '□ — чётная цифра, ○ — нечётная: форма подсказывает чётность.' : '□ even, ○ odd — the shape hints each cell’s parity.';
+    case 'kropki': return ru ? 'Белая точка между клетками — соседние ±1, чёрная — одно вдвое больше.' : 'White dot between cells: consecutive (±1). Black dot: one is double the other.';
     default: return '';
   }
 }
@@ -176,7 +178,8 @@ function levelConfig(level: number): LevelCfg {
   else if (lv >= 22 && lv <= 25) variant = 'nonconsec';
   else if (lv >= 26 && lv <= 29) variant = 'antiking';
   else if (lv >= 30 && lv <= 33) variant = 'evenodd';
-  else if (lv >= 34) variant = 'jigsaw';
+  else if (lv >= 34 && lv <= 37) variant = 'kropki';
+  else if (lv >= 38) variant = 'jigsaw';
   const blanks = size === 6
     ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
     : (variant === 'none' || variant === 'diagonal')
@@ -226,7 +229,7 @@ function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Varia
   return false;
 }
 
-function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][] } {
+function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] } } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   if (variant === 'jigsaw') {
@@ -249,7 +252,18 @@ function generatePuzzle(blanks: number, N: number, BR: number, BC: number, varia
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (puzzle[r][c] === 0) blank.push([r, c]);
     for (const [r, c] of shuffle(blank).slice(0, Math.round(blank.length * 0.55))) parity[r][c] = sol[r][c] % 2 === 0 ? 1 : 2;
   }
-  return { puzzle, solution: sol, regions, parity };
+  let kropki: { h: number[][]; v: number[][] } | undefined;
+  if (variant === 'kropki') {   // точки из решения: 2 = чёрная (одно вдвое больше), 1 = белая (±1), 0 = нет
+    const dot = (a: number, b: number) => (Math.max(a, b) === 2 * Math.min(a, b) ? 2 : Math.abs(a - b) === 1 ? 1 : 0);
+    const h = Array.from({ length: N }, () => Array(N).fill(0));   // h[r][c]: грань между (r,c) и (r,c+1)
+    const vrt = Array.from({ length: N }, () => Array(N).fill(0)); // vrt[r][c]: грань между (r,c) и (r+1,c)
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (c < N - 1) h[r][c] = dot(sol[r][c], sol[r][c + 1]);
+      if (r < N - 1) vrt[r][c] = dot(sol[r][c], sol[r + 1][c]);
+    }
+    kropki = { h, v: vrt };
+  }
+  return { puzzle, solution: sol, regions, parity, kropki };
 }
 
 export default function SudokuGame() {
@@ -278,6 +292,7 @@ export default function SudokuGame() {
   const [cageSums, setCageSums] = useState<number[]>([]);            // killer: сумма каждой cage
   const [cageAnchors, setCageAnchors] = useState<number[]>([]);      // killer: клетка-якорь cage (метка суммы)
   const [parityMarks, setParityMarks] = useState<number[][] | null>(null);   // evenodd: 1=чёт(квадрат), 2=нечёт(круг), 0=без метки
+  const [kropki, setKropki] = useState<{ h: number[][]; v: number[][] } | null>(null);   // kropki: точки на гранях клеток
   const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
@@ -321,9 +336,10 @@ export default function SudokuGame() {
     setDims(d);
     setVariant(vr);
     setHintMax(hMax);
-    const { puzzle: p, solution: s, regions: rg, parity: pa } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
+    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
     setRegions(rg ?? null);
     setParityMarks(pa ?? null);
+    setKropki(kr ?? null);
     if (mode === 'killer') { const cg = generateCages(s, d.N); setCages(cg.cageOf); setCageSums(cg.sum); setCageAnchors(cg.anchor); } else setCages(null);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
@@ -593,6 +609,12 @@ export default function SudokuGame() {
               )}
               {variant === 'evenodd' && parityMarks && parityMarks[r][c] !== 0 && (
                 <View style={{ position: 'absolute', width: cellSize * 0.6, height: cellSize * 0.6, borderRadius: parityMarks[r][c] === 2 ? cellSize * 0.3 : Math.max(3, Math.round(cellSize * 0.1)), backgroundColor: blendHex(colors.surface, GRADIENT[1], 0.20), borderWidth: 1, borderColor: blendHex(colors.surface, GRADIENT[1], 0.45) }} />
+              )}
+              {variant === 'kropki' && kropki && c < N - 1 && kropki.h[r][c] !== 0 && (
+                <View style={{ position: 'absolute', width: cellSize * 0.2, height: cellSize * 0.2, borderRadius: cellSize * 0.1, right: -cellSize * 0.1, top: cellSize / 2 - cellSize * 0.1, backgroundColor: kropki.h[r][c] === 2 ? colors.text : colors.surface, borderWidth: 1.5, borderColor: colors.text, zIndex: 5, pointerEvents: 'none' }} />
+              )}
+              {variant === 'kropki' && kropki && r < N - 1 && kropki.v[r][c] !== 0 && (
+                <View style={{ position: 'absolute', width: cellSize * 0.2, height: cellSize * 0.2, borderRadius: cellSize * 0.1, bottom: -cellSize * 0.1, left: cellSize / 2 - cellSize * 0.1, backgroundColor: kropki.v[r][c] === 2 ? colors.text : colors.surface, borderWidth: 1.5, borderColor: colors.text, zIndex: 5, pointerEvents: 'none' }} />
               )}
               {mode === 'killer' && cages && cageAnchors[cages[r][c]] === r * N + c && (
                 <Text style={{ position: 'absolute', top: 1, left: 2, fontSize: Math.max(8, Math.round(cellSize * 0.27)), fontWeight: '800', color: colors.text }}>{cageSums[cages[r][c]]}</Text>
