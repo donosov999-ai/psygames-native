@@ -27,7 +27,7 @@ import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import {
-  buildMorningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
+  buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
   getFinancialCooldown, FINANCIAL_COOLDOWN_DAYS,
 } from '@/src/services/warmup';
 import { getAssessmentStatus } from '@/src/services/assessment';
@@ -46,6 +46,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const warmup = useWarmup();
   const { profile } = useProfile();
+  const eveningMeta = buildEveningWarmupPlaylist({ weekday: getCurrentWeekday(), profileEvening: profile.evening_playlist });   // вечер: ротация по дню (или профильный фикс)
   const { width: winWidth } = useWindowDimensions();
   const [duration, setDuration] = useState<5 | 10 | 15>(5);
   const [history, setHistory] = useState<WarmupHistoryEntry[]>([]);
@@ -347,7 +348,7 @@ export default function HomeScreen() {
           )}
 
           {/* CARD 1b: Вечерний комплекс (перед сном) — v1.23 */}
-          {profile.warmup_enabled && (profile.evening_playlist?.length ?? 0) > 0 && (
+          {profile.warmup_enabled && (profile.evening_enabled || (profile.evening_playlist?.length ?? 0) > 0) && (
           <TouchableOpacity
             style={styles.heroCardWrap}
             onPress={() => warmup.startEvening()}
@@ -363,7 +364,7 @@ export default function HomeScreen() {
               </View>
               <Text style={[styles.heroTitle, { color: '#FFF' }]}>{t('complexEvening')}</Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
-                {profile.evening_playlist!.length} {t('unitGames')} · ~{Math.round(profile.evening_playlist!.reduce((s, x) => s + x.est_duration_sec, 0) / 60)} {t('unitMin')} · {t('calm')}
+                {eveningMeta.steps.length} {t('unitGames')} · ~{Math.round(eveningMeta.est_total_sec / 60)} {t('unitMin')} · {t('calm')}
               </Text>
               <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
                 <Ionicons name="play" size={14} color="#818cf8" />

@@ -74,6 +74,7 @@ export interface ProfileDef {
   morning_playlist?: PlaylistStep[];
   /** v1.23 «Комплексы»: ВЕЧЕРНИЙ набор (перед сном) — спокойные игры, консолидация. Если не задан — вечерней зарядки у профиля нет. */
   evening_playlist?: PlaylistStep[];
+  evening_enabled?: boolean;          // вечер по ротации EVENING_BY_WEEKDAY (без фикс-плейлиста)
   warmup_enabled: boolean;
   financial_brain_day_enabled: boolean;
   assessment_enabled: boolean;
@@ -103,13 +104,9 @@ const ODV999: ProfileDef = {
   tier: 'owner',
   group: 'themed',
   allowed_games: 'all',
-  // custom_playlists undefined → утро = дефолтный weekday-плейлист (Денис-era). v1.23 — добавлен вечер.
-  evening_playlist: [
-    { game_id: 'mnemonics',     game_route: '/games/mnemonics',     difficulty: 'easy',   mode: 'words', settings: { itemCount: 10 }, est_duration_sec: 90 },
-    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy',   settings: { pairsCount: 8 }, est_duration_sec: 120 },
-    { game_id: 'sudoku',        game_route: '/games/sudoku',        difficulty: 'easy',   est_duration_sec: 120 },
-    { game_id: 'hanoi',         game_route: '/games/hanoi',         difficulty: 'medium', settings: { discs: 4 }, est_duration_sec: 120 },
-  ],
+  // custom_playlists undefined → утро = дефолтный weekday-плейлист (Денис-era).
+  // evening_enabled → вечер по РОТАЦИИ EVENING_BY_WEEKDAY (7 дней, разные игры, втягивает простаивающие; дедуп утро≠вечер).
+  evening_enabled: true,
   warmup_enabled: true,
   financial_brain_day_enabled: true,
   assessment_enabled: true,

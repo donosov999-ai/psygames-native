@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import {
   PlaylistMeta, PlaylistStep,
   buildMorningWarmupPlaylist, buildFinancialBatteryPlaylist, buildAssessmentPlaylist,
-  buildFixedPlaylist, stepToParams,
+  buildFixedPlaylist, buildEveningWarmupPlaylist, stepToParams,
   getCurrentWeekday, todayDateKey,
   saveWarmupHistory, WarmupHistoryEntry, Weekday,
 } from '@/src/services/warmup';
@@ -105,8 +105,11 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   // v1.23 «Комплексы» — вечерний комплекс (перед сном): спокойные игры из profile.evening_playlist.
   const startEvening = useCallback(() => {
     const wd = getCurrentWeekday();
-    const steps = profile.evening_playlist || [];
-    const meta = buildFixedPlaylist(steps, 'evening', wd);
+    // утро сегодня → дедуп: вечер не повторяет утренние игры (утро≠вечер)
+    const morning = profile.morning_playlist && profile.morning_playlist.length > 0
+      ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd)
+      : buildMorningWarmupPlaylist({ duration: 5, weekday: wd, profilePlaylists: profile.custom_playlists });
+    const meta = buildEveningWarmupPlaylist({ weekday: wd, excludeGameIds: morning.steps.map((s) => s.game_id), profileEvening: profile.evening_playlist });
     const warmupId = genUUID();
     setState({
       active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],

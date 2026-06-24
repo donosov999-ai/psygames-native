@@ -134,6 +134,72 @@ const TRAINING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
   0: FIXED_BATTERY,
 };
 
+// ВЕЧЕРНЯЯ РОТАЦИЯ (перед сном) — 7 дней, РАЗНЫЕ каждый вечер (раньше был фикс из 4 игр).
+// Только СПОКОЙНЫЕ игры (память + мягкая логика) — НЕ реакция/торможение перед сном.
+// Намеренно втягивает ранее не использованные игры: corsi / story_recall / span /
+// reading_span / memory_matrix / spatial_span / anagrams / number_bonds.
+// По дизайну не пересекается с утром того же дня (утро = шульте/фланкер/струп/ротация/замеры).
+const EVENING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
+  0: [ // ВС
+    { game_id: 'corsi',        game_route: '/games/corsi',        difficulty: 'easy',   est_duration_sec: 90 },
+    { game_id: 'story_recall', game_route: '/games/story-recall', difficulty: 'easy',   est_duration_sec: 150 },
+    { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
+  ],
+  1: [ // ПН
+    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy', mode: 'words', settings: { itemCount: 10 }, est_duration_sec: 90 },
+    { game_id: 'digit_span',   game_route: '/games/digit-span',   difficulty: 'easy', mode: 'forward', est_duration_sec: 90 },
+    { game_id: 'hanoi',        game_route: '/games/hanoi',        difficulty: 'medium', settings: { discs: 4 }, est_duration_sec: 120 },
+  ],
+  2: [ // ВТ
+    { game_id: 'reading_span', game_route: '/games/reading-span', difficulty: 'easy',   est_duration_sec: 120 },
+    { game_id: 'memory_matrix',game_route: '/games/memory-matrix',difficulty: 'easy', mode: '4x4', est_duration_sec: 100 },
+    { game_id: 'set_game',     game_route: '/games/set-game',     difficulty: 'easy', trials: 5,    est_duration_sec: 110 },
+  ],
+  3: [ // СР
+    { game_id: 'spatial_span', game_route: '/games/spatial-span', difficulty: 'easy',   est_duration_sec: 90 },
+    { game_id: 'anagrams',     game_route: '/games/anagrams',     difficulty: 'easy',   est_duration_sec: 120 },
+    { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
+  ],
+  4: [ // ЧТ
+    { game_id: 'corsi',        game_route: '/games/corsi',        difficulty: 'easy',   est_duration_sec: 90 },
+    { game_id: 'word_pairs',   game_route: '/games/word-pairs',   difficulty: 'easy', mode: '6 pairs', est_duration_sec: 90 },
+    { game_id: 'hanoi',        game_route: '/games/hanoi',        difficulty: 'easy', settings: { discs: 3 }, est_duration_sec: 90 },
+  ],
+  5: [ // ПТ
+    { game_id: 'number_bonds', game_route: '/games/number-bonds', difficulty: 'easy',   est_duration_sec: 90 },
+    { game_id: 'picture_pairs',game_route: '/games/picture-pairs',difficulty: 'easy', settings: { pairsCount: 8 }, est_duration_sec: 120 },
+    { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
+  ],
+  6: [ // СБ
+    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy', mode: 'words', settings: { itemCount: 12 }, est_duration_sec: 100 },
+    { game_id: 'reading_span', game_route: '/games/reading-span', difficulty: 'easy',   est_duration_sec: 120 },
+    { game_id: 'spatial_span', game_route: '/games/spatial-span', difficulty: 'easy',   est_duration_sec: 90 },
+  ],
+};
+
+// Вечерний комплекс с РОТАЦИЕЙ по дню + дедуп против утра того же дня (утро≠вечер).
+// profileEvening (если профиль задал свой фикс-вечер) имеет приоритет над ротацией.
+export function buildEveningWarmupPlaylist(opts: {
+  weekday: Weekday;
+  excludeGameIds?: string[];          // id игр утреннего комплекса сегодня — не повторять вечером
+  profileEvening?: PlaylistStep[];    // профильный фикс-вечер (override)
+}): PlaylistMeta {
+  const { weekday, excludeGameIds, profileEvening } = opts;
+  const ex = new Set(excludeGameIds || []);
+  const base = (profileEvening && profileEvening.length) ? profileEvening : EVENING_BY_WEEKDAY[weekday];
+  const steps = base.filter((s) => !ex.has(s.game_id)).map((s) => ({ ...s }));
+  return {
+    duration_min: Math.max(1, Math.round(sumDuration(steps) / 60)),
+    weekday,
+    weekday_name: WEEKDAY_NAMES[weekday],
+    track: 'training',
+    track_label: 'перед сном',
+    steps,
+    est_total_sec: sumDuration(steps),
+    slot: 'evening',
+  };
+}
+
 const TRACK_LABEL: Record<string, string> = {
   training:           'тренировка',
   'measure-peak':     'ЗАМЕР · PEAK (после стека)',
