@@ -16,6 +16,7 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#fc4a1a', '#f7b733'];
 const MATH_BENEFITS = [
@@ -62,6 +63,7 @@ export default function MathSprintGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
   const gate = useLevelGate('math_sprint');
+  const lvl = usePersistentLevel('math_sprint');   // уровень → тир (1=easy, 2=medium, ≥3=hard)
 
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
@@ -88,8 +90,10 @@ export default function MathSprintGame() {
     setCorrect(0); setErrors(0); setStreak(0); setBestStreak(0); setScore(0);
     setUserAnswer('');
     setFeedback(null);
+    const diff: Difficulty = isPreset ? difficulty : (lvl.level <= 1 ? 'easy' : lvl.level === 2 ? 'medium' : 'hard');   // тир от уровня
+    if (!isPreset) setDifficulty(diff);
     setTimeLeft(duration);
-    setProblem(generateProblem(difficulty, 0));
+    setProblem(generateProblem(diff, 0));
     setPhase('playing');
     const start = Date.now();
     setStartTime(start);
@@ -108,6 +112,7 @@ export default function MathSprintGame() {
   const finishGame = async () => {
     if (tickRef.current) clearInterval(tickRef.current);
     sndTimerEnd();   // SND-T: «время вышло»
+    if (!isPreset && correct >= 12) lvl.reach((difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3) + 1);   // ≥12 верных → +уровень/тир
     setPhase('result');
     try {
       await saveSession({
@@ -206,7 +211,7 @@ export default function MathSprintGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}{language === 'ru' ? 'с' : 's'}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>★ {score}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
