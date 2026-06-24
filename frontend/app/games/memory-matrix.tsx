@@ -15,6 +15,7 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#8e2de2', '#4a00e0'];
 const MATRIX_BENEFITS = [
@@ -33,6 +34,7 @@ export default function MemoryMatrixGame() {
   const { width, height } = useWindowDimensions();
 
   const gate = useLevelGate('memory_matrix');
+  const lvl = usePersistentLevel('memory_matrix');   // персист-уровень (уровень = размер сетки − 2)
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -85,9 +87,11 @@ export default function MemoryMatrixGame() {
   };
 
   const startGame = () => {
+    const g = isPreset ? gridSize : Math.max(gridSize, Math.min(6, 2 + lvl.level));   // старт-сетка от уровня (флор, L1=3×3)
+    if (!isPreset) setGridSize(g);
     setHits(0); setErrors(0); setScore(0); setRound(1);
     setStartTime(Date.now());
-    newRound(gridSize, 1);
+    newRound(g, 1);   // g явно — setGridSize асинхронен
   };
 
   const handleCellPress = (idx: number) => {
@@ -133,6 +137,7 @@ export default function MemoryMatrixGame() {
           if (true) { /* end */ }
           const finalTime = (Date.now() - startTime) / 1000;
           setElapsedTime(finalTime);
+          if (!isPreset && fErrors <= 1) lvl.reach(gridSize - 2);   // чистый прогон сетки → уровень = gridSize − 2
           setPhase('result');
           try {
             await saveSession({
@@ -172,7 +177,7 @@ export default function MemoryMatrixGame() {
         <Text style={styles.configDesc}>{t('memoryMatrixDesc')}</Text>
       </LinearGradient>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('gridSize')}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('gridSize')}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <View style={styles.optionButtons}>
           {[3, 4, 5, 6].map((n) => {
             const levelKey = `${n}x${n}`;
