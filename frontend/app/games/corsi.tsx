@@ -15,6 +15,7 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#0083B0', '#00B4DB'];
 const CORSI_BENEFITS = [
@@ -41,7 +42,7 @@ function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0
 
 export default function CorsiGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   // v1.29.1 (мобайл): доска 400×420 фикс ВЫЛЕЗАЛА за экран 390px — теперь скейлится
   // под ширину (и растёт на больших экранах до ×1.5); позиции и блоки умножаются на scale
@@ -49,6 +50,7 @@ export default function CorsiGame() {
   const boardScale = Math.min((width - 24) / BOARD_W, (height - 300) / BOARD_H, 1.5);
 
   const gate = useLevelGate('corsi');
+  const lvl = usePersistentLevel('corsi');   // персист-уровень (как у судоку)
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -75,13 +77,15 @@ export default function CorsiGame() {
   }, []);
 
   const startGame = () => {
+    const startSpan = isPreset ? startLen : Math.min(8, 2 + lvl.level);   // персональная игра — старт от уровня (L1=3)
+    if (!isPreset) setStartLen(startSpan);
     setSpan(0); setErrors(0);
     setUserSeq([]);
     setPhase('show');
     const start = Date.now();
     setStartTime(start);
     timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
-    showSequence(startLen);
+    showSequence(startSpan);
   };
 
   const showSequence = (len: number) => {
@@ -110,6 +114,7 @@ export default function CorsiGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
+    if (!isPreset) lvl.reach(finalSpan - 2);   // уровень = достигнутый span − 2 (L1=span3), сохраняется
     setPhase('result');
     try {
       await saveSession({
@@ -236,7 +241,7 @@ export default function CorsiGame() {
   const renderShow = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>Span {span}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>Span {span}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>Len {seq.length}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('watchSequence')}</Text>
@@ -247,7 +252,7 @@ export default function CorsiGame() {
   const renderRecall = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>Span {span}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>Span {span}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>{userSeq.length}/{seq.length}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
       </View>
