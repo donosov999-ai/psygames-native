@@ -14,6 +14,18 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.86.0] — 2026-06-24
+
+### Added — Уровни-прогрессия (как у судоку) в 15 играх
+- Новый хук `usePersistentLevel(gameId)` — персист-уровень per-profile (AsyncStorage `psygames_<game>_level_<profile>`): игрок продолжает с достигнутого, видит, как растёт. Раньше уровень был только у судоку.
+- **span-семья** (уровень = длина): digit-span, corsi, spatial-span, memory-matrix, n-back (уровень = N), ospan, reading-span.
+- **логика**: hanoi (уровень = число дисков), tower-london (тир сложности), set-game (эндуранс серии).
+- **скорость**: math-sprint (тир), visual-search (тир).
+- **сохранение уровня** у игр, где он рос в сессии, но сбрасывался при выходе: goods-sort, picture-pairs, targets.
+- Уровень показывается в HUD/конфиге; preset/зарядка-прогоны используют свой пресет (не трогают персональный уровень).
+
+---
+
 ## [1.85.1] — 2026-06-24
 
 ### Fixed
