@@ -49,7 +49,7 @@ function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
 // SUDOKU-VARIANTS: правила-варианты на сетке 9×9. Применяются ТОЛЬКО при генерации решения
 // (solve уважает правило → решение легально под вариантом). В игре механика «впиши решение»,
 // поэтому вариант не энфорсится в рантайме — он задаёт характер решения + показывается игроку.
-type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo';
+type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow';
 const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
 const KING = [[-1, -1], [-1, 1], [1, -1], [1, 1]] as const;   // anti-king: диагональные соседи (ортогональные уже закрыты строкой/столбцом)
@@ -70,6 +70,7 @@ function variantLabel(v: Variant, ru: boolean): string {
     case 'kropki': return ru ? '⦿ точки' : '⦿ kropki';
     case 'sandwich': return ru ? '🥪 сэндвич' : '🥪 sandwich';
     case 'thermo': return ru ? '🌡 термометр' : '🌡 thermo';
+    case 'arrow': return ru ? '➳ стрелка' : '➳ arrow';
     default: return '';
   }
 }
@@ -85,6 +86,7 @@ function variantRule(v: Variant, ru: boolean): string {
     case 'kropki': return ru ? 'Белая точка между клетками — соседние ±1, чёрная — одно вдвое больше.' : 'White dot between cells: consecutive (±1). Black dot: one is double the other.';
     case 'sandwich': return ru ? 'Число у края — сумма цифр между 1 и 9 в этом ряду/столбце.' : 'Edge number = sum of digits between the 1 and the 9 in that row/column.';
     case 'thermo': return ru ? 'Вдоль термометра цифры строго растут от колбы.' : 'Digits strictly increase along each thermometer from the bulb.';
+    case 'arrow': return ru ? 'Цифры вдоль стрелки в сумме равны числу в кружке.' : 'Digits along the arrow sum to the number in the circle.';
     default: return '';
   }
 }
@@ -185,7 +187,8 @@ function levelConfig(level: number): LevelCfg {
   else if (lv >= 34 && lv <= 37) variant = 'kropki';
   else if (lv >= 38 && lv <= 41) variant = 'sandwich';
   else if (lv >= 42 && lv <= 45) variant = 'thermo';
-  else if (lv >= 46) variant = 'jigsaw';
+  else if (lv >= 46 && lv <= 49) variant = 'arrow';
+  else if (lv >= 50) variant = 'jigsaw';
   const blanks = size === 6
     ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
     : (variant === 'none' || variant === 'diagonal')
@@ -197,7 +200,7 @@ function levelConfig(level: number): LevelCfg {
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN): boolean {
+function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
   if (variant === 'jigsaw' && regions) {
     const reg = regions[r][c];
@@ -223,21 +226,30 @@ function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, B
       if (pn.prev) { const pv = grid[pn.prev[0]][pn.prev[1]]; if (pv !== 0 && val <= pv) return false; }   // строго больше предыдущего на термометре
       if (pn.next) { const nv = grid[pn.next[0]][pn.next[1]]; if (nv !== 0 && val >= nv) return false; }   // строго меньше следующего
     }
+  } else if (variant === 'arrow' && arrow) {
+    const m = arrow[r][c];
+    if (m) {
+      const cv = m.isCircle ? val : grid[m.circle[0]][m.circle[1]];
+      let asum = 0, empty = 0;
+      for (const [ar, ac] of m.arrows) { const v = (ar === r && ac === c) ? val : grid[ar][ac]; if (v === 0) empty++; else asum += v; }
+      if (empty === 0) { if (cv !== 0 && cv !== asum) return false; }   // стрелка заполнена → кружок = сумме
+      else { if (asum + empty > N) return false; if (cv !== 0 && asum + empty > cv) return false; }   // прун: мин-сумма ≤ кружок и ≤ N
+    }
   }
   return true;
 }
 
-function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], budget?: { steps: number }, thermo?: ThermoPN): boolean {
+function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], budget?: { steps: number }, thermo?: ThermoPN, arrow?: ArrowMap): boolean {
   // MRV: заполняем самую ОГРАНИЧЕННУЮ пустую клетку (минимум кандидатов) — почти без бэктрекинга.
   let bR = -1, bC = -1, bCands: number[] | null = null, bCount = N + 1;
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (grid[r][c] === 0) {
     const cands: number[] = [];
-    for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions, thermo)) cands.push(n);
+    for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions, thermo, arrow)) cands.push(n);
     if (cands.length < bCount) { bCount = cands.length; bR = r; bC = c; bCands = cands; if (bCount === 0) return false; }
   }
   if (bR < 0) return true;   // пустых нет → решено
   if (budget) { if (budget.steps <= 0) return false; budget.steps--; }   // лимит шагов: нерешаемую jigsaw-раскладку бросаем быстро
-  for (const n of shuffle(bCands!)) { grid[bR][bC] = n; if (solve(grid, N, BR, BC, variant, regions, budget, thermo)) return true; grid[bR][bC] = 0; }
+  for (const n of shuffle(bCands!)) { grid[bR][bC] = n; if (solve(grid, N, BR, BC, variant, regions, budget, thermo, arrow)) return true; grid[bR][bC] = 0; }
   return false;
 }
 
@@ -269,10 +281,43 @@ function generateThermo(N: number): ThermoPN {
   return pn;
 }
 
-function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN } {
+// ARROW: кружок (path[0], = сумма) + стрелка (path[1..], в сумме = кружок). Карта на клетку: группа (для суммы) + prev/next (для линии).
+type ArrowCell = { circle: [number, number]; arrows: [number, number][]; isCircle: boolean; prev: [number, number] | null; next: [number, number] | null };
+type ArrowMap = (ArrowCell | null)[][];
+function generateArrow(N: number): ArrowMap {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const groups: [number, number][][] = [];
+  for (let attempt = 0; attempt < 30 && groups.length < 6; attempt++) {
+    const starts: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c]) starts.push([r, c]);
+    if (!starts.length) break;
+    const [sr, sc] = starts[Math.floor(Math.random() * starts.length)];
+    const len = 2 + Math.floor(Math.random() * 2);   // стрелка 2-3 клетки → сумма ≤ N=9
+    const path: [number, number][] = [[sr, sc]]; used[sr][sc] = true; let cr = sr, cc = sc;
+    for (let s = 1; s <= len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number]).filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]);
+      if (!nb.length) break;
+      const [nr, nc] = nb[Math.floor(Math.random() * nb.length)];
+      used[nr][nc] = true; path.push([nr, nc]); cr = nr; cc = nc;
+    }
+    if (path.length >= 3) groups.push(path);   // кружок + ≥2 стрелки
+  }
+  const map: ArrowMap = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const g of groups) {
+    const circle = g[0], arrows = g.slice(1);
+    for (let k = 0; k < g.length; k++) {
+      const [r, c] = g[k];
+      map[r][c] = { circle, arrows, isCircle: k === 0, prev: k > 0 ? g[k - 1] : null, next: k < g.length - 1 ? g[k + 1] : null };
+    }
+  }
+  return map;
+}
+
+function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
+  let arrow: ArrowMap | undefined;
   if (variant === 'jigsaw') {
     let ok = false;
     for (let t = 0; t < 60 && !ok; t++) { regions = generateRegions(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'jigsaw', regions, { steps: 1500 }); }   // budget низкий: ~90% раскладок нерешаемы, дешёвый отказ + ретрай
@@ -281,6 +326,10 @@ function generatePuzzle(blanks: number, N: number, BR: number, BC: number, varia
     let ok = false;
     for (let t = 0; t < 60 && !ok; t++) { thermo = generateThermo(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'thermo', undefined, { steps: 2000 }, thermo); }   // ~5 ретраев, констрейн решаем
     if (!ok) { thermo = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }
+  } else if (variant === 'arrow') {
+    let ok = false;
+    for (let t = 0; t < 60 && !ok; t++) { arrow = generateArrow(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'arrow', undefined, { steps: 3000 }, undefined, arrow); }   // ~2 ретрая, констрейн-сумма решаем
+    if (!ok) { arrow = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }
   } else {
     solve(sol, N, BR, BC, variant);
   }
@@ -321,7 +370,7 @@ function generatePuzzle(blanks: number, N: number, BR: number, BC: number, varia
     const cols = Array.from({ length: N }, (_, c) => between(sol.map((row) => row[c])));
     sandwich = { rows, cols };
   }
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo };
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow };
 }
 
 export default function SudokuGame() {
@@ -353,6 +402,7 @@ export default function SudokuGame() {
   const [kropki, setKropki] = useState<{ h: number[][]; v: number[][] } | null>(null);   // kropki: точки на гранях клеток
   const [sandwich, setSandwich] = useState<{ rows: number[]; cols: number[] } | null>(null);   // sandwich: суммы у краёв рядов/столбцов
   const [thermo, setThermo] = useState<ThermoPN | null>(null);   // thermo: prev/next-карта термометров
+  const [arrow, setArrow] = useState<ArrowMap | null>(null);   // arrow: кружок (сумма) + стрелка
   const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
@@ -396,12 +446,13 @@ export default function SudokuGame() {
     setDims(d);
     setVariant(vr);
     setHintMax(hMax);
-    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
+    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
     setRegions(rg ?? null);
     setParityMarks(pa ?? null);
     setKropki(kr ?? null);
     setSandwich(sw ?? null);
     setThermo(th ?? null);
+    setArrow(ar ?? null);
     if (mode === 'killer') { const cg = generateCages(s, d.N); setCages(cg.cageOf); setCageSums(cg.sum); setCageAnchors(cg.anchor); } else setCages(null);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
@@ -701,6 +752,38 @@ export default function SudokuGame() {
                     {pn.prev && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.prev) }} />}
                     {pn.next && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.next) }} />}
                     {!pn.prev && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', width: cellSize * 0.42, height: cellSize * 0.42, borderRadius: cellSize * 0.21, left: cellSize / 2 - cellSize * 0.21, top: cellSize / 2 - cellSize * 0.21 }} />}
+                  </>
+                );
+              })()}
+              {variant === 'arrow' && arrow && arrow[r][c] && (() => {
+                const m = arrow[r][c]!;
+                const thick = Math.max(2, Math.round(cellSize * 0.07));
+                const col = blendHex(colors.surface, GRADIENT[1], 0.55);
+                const seg = (cell: [number, number]) => {
+                  const dr = cell[0] - r, dc = cell[1] - c;
+                  if (dc === 1) return { left: cellSize / 2, top: cellSize / 2 - thick / 2, width: cellSize / 2, height: thick };
+                  if (dc === -1) return { left: 0, top: cellSize / 2 - thick / 2, width: cellSize / 2, height: thick };
+                  if (dr === 1) return { top: cellSize / 2, left: cellSize / 2 - thick / 2, width: thick, height: cellSize / 2 };
+                  return { top: 0, left: cellSize / 2 - thick / 2, width: thick, height: cellSize / 2 };
+                };
+                const hs = Math.max(3, Math.round(cellSize * 0.13));
+                const head = () => {
+                  if (m.isCircle || m.next || !m.prev) return null;
+                  const dr = r - m.prev[0], dc = c - m.prev[1], off = cellSize * 0.24;
+                  let left = cellSize / 2 - hs, top = cellSize / 2 - hs * 0.75, rot = '0deg';
+                  if (dc === 1) { left += off; rot = '90deg'; }
+                  else if (dc === -1) { left -= off; rot = '270deg'; }
+                  else if (dr === 1) { top += off; rot = '180deg'; }
+                  else { top -= off; }
+                  return { left, top, rot };
+                };
+                const hd = head();
+                return (
+                  <>
+                    {m.prev && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(m.prev) }} />}
+                    {m.next && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(m.next) }} />}
+                    {m.isCircle && <View style={{ position: 'absolute', width: cellSize * 0.64, height: cellSize * 0.64, borderRadius: cellSize * 0.32, left: cellSize / 2 - cellSize * 0.32, top: cellSize / 2 - cellSize * 0.32, borderWidth: thick, borderColor: col, pointerEvents: 'none' }} />}
+                    {hd && <View style={{ position: 'absolute', width: 0, height: 0, borderLeftWidth: hs, borderRightWidth: hs, borderBottomWidth: hs * 1.5, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: col, left: hd.left, top: hd.top, transform: [{ rotate: hd.rot }], pointerEvents: 'none' }} />}
                   </>
                 );
               })()}
