@@ -18,6 +18,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#ff0844', '#ffb199'];
 
@@ -42,6 +43,7 @@ export default function TargetsGame() {
   const { width } = useWindowDimensions();
 
   const { isPreset, str, num } = useGamePreset();
+  const lvl = usePersistentLevel('targets');   // персист достигнутого уровня (раньше сбрасывался)
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [mode, setMode] = useState<GameMode>(() => (str('mode', 'field') as GameMode));
@@ -132,12 +134,14 @@ export default function TargetsGame() {
   };
 
   const startGame = () => {
+    const startLvl = isPreset ? level : Math.max(level, lvl.level);   // старт с сохранённого уровня
+    if (!isPreset) setLevel(startLvl);
     setScore(0);
-    livesRef.current = 3 + getLifeBonus(level);
+    livesRef.current = 3 + getLifeBonus(startLvl);
     setLives(livesRef.current);
     roundRef.current = 0;
     setRound(0);
-    levelRef.current = level;        // стартовый уровень из конфига
+    levelRef.current = startLvl;        // стартовый уровень (сохранённый или из конфига)
     gameOverRef.current = false;
     isTargetRef.current = false;
     prevColorRef.current = null;
@@ -234,6 +238,7 @@ export default function TargetsGame() {
         roundRef.current = 0;
         livesRef.current += getLifeBonus(levelRef.current);
         setLevel(levelRef.current);
+        if (!isPreset) lvl.reach(levelRef.current);   // сохранить достигнутый уровень между сессиями
         setLives(livesRef.current);
         setRound(0);
       } else {
