@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 
@@ -47,6 +48,7 @@ function makeEquation(): Equation {
 export default function OSpanGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
+  const lvl = usePersistentLevel('ospan');   // персист-уровень = setSize − 2
   const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -76,6 +78,7 @@ export default function OSpanGame() {
   const letterPool = language === 'en' ? LETTERS_EN : LETTERS_RU;
 
   const startGame = () => {
+    setSetSize((cur) => Math.max(cur, Math.min(7, 2 + lvl.level)));   // setSize от уровня (флор, L1=3)
     setStepIdx(0);
     setLetters([]);
     setMathHits(0); setMathErrors(0);
@@ -124,6 +127,7 @@ export default function OSpanGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
+    if (e === 0) lvl.reach(setSize - 2);   // чистый recall всех букв → уровень = setSize − 2
     setPhase('result');
     try {
       await saveSession({
@@ -171,7 +175,7 @@ export default function OSpanGame() {
     return (
       <View style={styles.playArea}>
         <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize}</Text>
+          <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
           <Text style={[styles.statText, { color: '#22c55e' }]}>✓math {mathHits}</Text>
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗math {mathErrors}</Text>
         </View>
@@ -196,7 +200,7 @@ export default function OSpanGame() {
   const renderLetter = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('ospanRememberLetter')}</Text>
       <View style={[styles.letterBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
