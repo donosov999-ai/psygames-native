@@ -11,6 +11,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#43cea2', '#185a9d'];
 const SET_BENEFITS = [
@@ -98,6 +99,7 @@ export default function SetGame() {
   const router = useRouter();
 
   const { isPreset, num } = useGamePreset();
+  const lvl = usePersistentLevel('set_game');   // персист-уровень = trials − 5 (эндуранс серии)
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [trials, setTrials] = useState(() => num('trials', 6));
@@ -117,6 +119,7 @@ export default function SetGame() {
   const newRound = () => { setBoard(buildBoard()); setPicked([]); setFeedback(null); setHintBreakdown(null); };
 
   const startGame = () => {
+    if (!isPreset) setTrials((cur) => Math.max(cur, Math.min(15, 5 + lvl.level)));   // trials от уровня (флор, L1=6)
     setHits(0); setErrors(0); setRound(1);
     newRound();
     setPhase('playing');
@@ -150,6 +153,7 @@ export default function SetGame() {
           if (timerRef.current) clearInterval(timerRef.current);
           const finalTime = (Date.now() - startTime) / 1000;
           setElapsedTime(finalTime);
+          if (!isPreset && errors <= 1) lvl.reach(trials - 5);   // серия почти без ошибок → уровень = trials − 5
           setPhase('result');
           try {
             await saveSession({
@@ -243,7 +247,7 @@ export default function SetGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
