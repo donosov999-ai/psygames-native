@@ -80,6 +80,8 @@ export default function PicturePairsGame() {
   const [mode, setMode] = useState<GameMode>(isPreset ? 'single' : 'game');
   const [level, setLevel] = useState(1);
   const [levelBanner, setLevelBanner] = useState<number | null>(null);
+  // Кнопка «Играть — уровень N» должна показывать реальный сохранённый стартовый уровень, не «1».
+  useEffect(() => { if (lvl.loaded && !isPreset && mode === 'game') setLevel(lvl.level); }, [lvl.loaded, mode]); // eslint-disable-line react-hooks/exhaustive-deps
   const [pairsCount, setPairsCount] = useState(() => num('pairsCount', 6));
   const [photoMemoryMode, setPhotoMemoryMode] = useState(true);   // одиночный: фото-память ON по умолчанию
   const [previewMs, setPreviewMs] = useState<number>(() => num('previewMs', isPreset ? 3000 : 500));
