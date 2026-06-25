@@ -27,6 +27,15 @@ const MATRIX_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'showing' | 'input' | 'feedback' | 'result';
 type MatrixMode = 'static' | 'sequential';   // static = pattern flashes once; sequential = cells light up one-by-one, reproduce in order
 
+// Уровень (1..15+): L1-4 сетка 3×3→6×6 · дальше на 6×6 растёт число вспышек + скорость показа.
+// (Фаза 2 — 2 серии цветные раздельно, L9-15; пока чистая параметрика по вспышкам/скорости.)
+function levelParams(level: number): { gridSize: number; baseFlashes: number; flashMs: number } {
+  const gridSize = Math.min(6, 2 + level);              // L1=3 → L4=6
+  const baseFlashes = 3 + Math.floor(level / 1.5);       // клеток запомнить: L1=3 → L15≈13
+  const flashMs = Math.max(500, 1500 - level * 70);      // показ быстрее с уровнем
+  return { gridSize, baseFlashes, flashMs };
+}
+
 export default function MemoryMatrixGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -53,12 +62,15 @@ export default function MemoryMatrixGame() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [feedbackMsg, setFeedbackMsg] = useState('');
   const totalRounds = 10;
+  const levelRef = useRef(1);
+  const baseFlashesRef = useRef(3);
+  const flashMsRef = useRef(1500);
 
   const numLit = (n: number) => Math.min(n * n - 1, Math.max(3, 2 + Math.floor(n / 2) + Math.floor(round / 3)));
 
   const newRound = (gs: number, r: number) => {
     const total = gs * gs;
-    const need = Math.min(total - 1, 3 + Math.floor((r - 1) / 3));
+    const need = Math.min(total - 1, baseFlashesRef.current + Math.floor((r - 1) / 3));   // число клеток от уровня + рост по раундам
     const seq: number[] = [];
     const seenSet = new Set<number>();
     while (seq.length < need) {
@@ -73,7 +85,7 @@ export default function MemoryMatrixGame() {
 
     if (matrixMode === 'static') {
       // Original behavior: show whole pattern, hide, await input
-      setTimeout(() => setPhase('input'), Math.max(900, 1500 - r * 80));
+      setTimeout(() => setPhase('input'), Math.max(500, flashMsRef.current - r * 60));   // показ быстрее с уровнем
     } else {
       // Sequential: flash cells one by one, then await ordered reproduction
       const flashMs = Math.max(400, 700 - r * 30);
@@ -87,7 +99,12 @@ export default function MemoryMatrixGame() {
   };
 
   const startGame = () => {
-    const g = isPreset ? gridSize : Math.max(gridSize, Math.min(6, 2 + lvl.level));   // старт-сетка от уровня (флор, L1=3×3)
+    // уровень рулит: сетка → число вспышек → скорость показа
+    const p = levelParams(lvl.level);
+    const g = isPreset ? gridSize : p.gridSize;
+    levelRef.current = lvl.level;
+    baseFlashesRef.current = isPreset ? 3 : p.baseFlashes;
+    flashMsRef.current = isPreset ? 1500 : p.flashMs;
     if (!isPreset) setGridSize(g);
     setHits(0); setErrors(0); setScore(0); setRound(1);
     setStartTime(Date.now());
@@ -137,7 +154,7 @@ export default function MemoryMatrixGame() {
           if (true) { /* end */ }
           const finalTime = (Date.now() - startTime) / 1000;
           setElapsedTime(finalTime);
-          if (!isPreset && fErrors <= 1) lvl.reach(gridSize - 2);   // чистый прогон сетки → уровень = gridSize − 2
+          if (!isPreset && fErrors <= 1) lvl.reach(levelRef.current + 1);   // чистый прогон → +уровень
           setPhase('result');
           try {
             await saveSession({
