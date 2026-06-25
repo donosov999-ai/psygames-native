@@ -29,6 +29,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#0f4c75', '#3282b8'];
 const CPT_BENEFITS = [
@@ -39,11 +40,32 @@ const CPT_BENEFITS = [
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
-const LETTERS_NON_X = ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','Y','Z'];
-const TARGET_RATIO = 0.80;          // 80% targets, 20% X
-const ISI_MIN = 1000;
-const ISI_MAX = 2000;
-const STIM_DURATION = 250;          // letter visible 250ms
+const LETTERS_NON_X = ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','Y','Z'];  // без X
+const CONFUSABLE = ['K','Y','V','W','N','M'];   // угловатые буквы — похожи на X при беглом взгляде
+const STIM_DURATION = 250;          // буква видна 250мс
+
+// Сложность РАСТЁТ НЕ ВРЕМЕНЕМ (длительность фикс ~90с — короткие сессии не скучают), а ТРУДНОСТЬЮ задачи:
+//   L1-5  — классический X-CPT (жми на X), ISI 1500→900 (темп растёт)
+//   L6-10 — AX-CPT (жми на X ТОЛЬКО если перед ней была A — нагрузка на рабочую память), ISI 1100→850
+//   L11-15— AX-CPT + ISI 800→500 + растущая доля похожих на X дистракторов (перцептивная нагрузка)
+function levelParams(level: number): { durationSec: number; isiMs: number; mode: 'X' | 'AX'; confusableRatio: number; targetRate: number } {
+  const durationSec = 90;
+  if (level <= 5)  return { durationSec, isiMs: Math.max(900, 1500 - (level - 1) * 150), mode: 'X',  confusableRatio: 0, targetRate: 0.28 };
+  if (level <= 10) return { durationSec, isiMs: Math.max(850, 1100 - (level - 6) * 60),  mode: 'AX', confusableRatio: 0, targetRate: 0.32 };
+  return { durationSec, isiMs: Math.max(500, 800 - (level - 11) * 75), mode: 'AX', confusableRatio: Math.min(0.5, 0.15 + (level - 11) * 0.09), targetRate: 0.32 };
+}
+
+function pickDistractor(confusableRatio: number): string {
+  if (confusableRatio > 0 && Math.random() < confusableRatio) return CONFUSABLE[Math.floor(Math.random() * CONFUSABLE.length)];
+  return LETTERS_NON_X[Math.floor(Math.random() * LETTERS_NON_X.length)];
+}
+// Continuous-AX: target X строится через предшествующую A; редкая X-без-A = ловушка (commission).
+function pickNextLetter(mode: 'X' | 'AX', confusableRatio: number, targetRate: number, prev: string): string {
+  if (mode === 'X') return Math.random() < targetRate ? 'X' : pickDistractor(confusableRatio);
+  if (Math.random() < targetRate) return prev === 'A' ? 'X' : 'A';   // строим пару A→X
+  if (prev !== 'A' && Math.random() < 0.18) return 'X';              // X без A = ловушка-commission
+  return pickDistractor(confusableRatio);
+}
 
 interface TrialRecord {
   letter: string;
@@ -59,8 +81,8 @@ export default function CPTGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
+  const lvl = usePersistentLevel('cpt');
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [duration, setDuration] = useState<4 | 8 | 12>(4);
 
   const [currentLetter, setCurrentLetter] = useState<string>('');
   const [letterVisible, setLetterVisible] = useState(false);
@@ -87,6 +109,15 @@ export default function CPTGame() {
   const remainingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stoppedRef = useRef(false);
 
+  // параметры текущего уровня (в рефах — таймеры живут вне ре-рендера)
+  const levelRef = useRef(1);
+  const isiRef = useRef(1500);
+  const modeRef = useRef<'X' | 'AX'>('X');
+  const confusableRef = useRef(0);
+  const targetRateRef = useRef(0.28);
+  const durationSecRef = useRef(90);
+  const prevLetterRef = useRef('');
+
   const clearAllTimers = () => {
     [isiTimerRef, stimTimerRef, offTimerRef, fbTimerRef].forEach(r => { if (r.current) clearTimeout(r.current); });
     if (remainingTimerRef.current) clearInterval(remainingTimerRef.current);
@@ -97,19 +128,21 @@ export default function CPTGame() {
   const scheduleNextStimulus = () => {
     if (stoppedRef.current) return;
     const elapsedSec = (Date.now() - startTimeRef.current) / 1000;
-    if (elapsedSec >= duration * 60) {
+    if (elapsedSec >= durationSecRef.current) {
       finish();
       return;
     }
-    const isi = ISI_MIN + Math.random() * (ISI_MAX - ISI_MIN);
+    const isi = isiRef.current * (0.85 + Math.random() * 0.3);   // ISI уровня ±15% дрожание
     isiTimerRef.current = setTimeout(() => {
       if (stoppedRef.current) return;
-      // pick stimulus
-      const isX = Math.random() >= TARGET_RATIO;
-      const letter = isX ? 'X' : LETTERS_NON_X[Math.floor(Math.random() * LETTERS_NON_X.length)];
+      // выбрать стимул по режиму уровня; isTarget = «нужно ли жать»
+      const prev = prevLetterRef.current;
+      const letter = pickNextLetter(modeRef.current, confusableRef.current, targetRateRef.current, prev);
+      const isTgt = modeRef.current === 'X' ? letter === 'X' : (letter === 'X' && prev === 'A');
+      prevLetterRef.current = letter;
       const trial: TrialRecord = {
         letter,
-        isTarget: !isX,
+        isTarget: isTgt,
         responded: false,
         rt: null,
         correct: false,
@@ -126,7 +159,7 @@ export default function CPTGame() {
         setLetterVisible(false);
       }, STIM_DURATION);
       // close trial window after one full ISI from onset
-      const trialWindow = ISI_MIN; // at least one full ISI to respond
+      const trialWindow = isiRef.current; // окно ответа = один ISI уровня
       stimTimerRef.current = setTimeout(() => {
         if (stoppedRef.current) return;
         // close trial: if not responded and target = omission; if not responded and non-target = correct rejection
@@ -176,6 +209,14 @@ export default function CPTGame() {
   };
 
   const startGame = () => {
+    const p = levelParams(lvl.level);
+    levelRef.current = lvl.level;
+    isiRef.current = p.isiMs;
+    modeRef.current = p.mode;
+    confusableRef.current = p.confusableRatio;
+    targetRateRef.current = p.targetRate;
+    durationSecRef.current = p.durationSec;
+    prevLetterRef.current = '';
     stoppedRef.current = false;
     trialsRef.current = [];
     currentTrialRef.current = null;
@@ -183,11 +224,11 @@ export default function CPTGame() {
     setFeedback(null);
     setLetterVisible(false);
     setCurrentLetter('');
-    setRemaining(duration * 60);
+    setRemaining(p.durationSec);
     setPhase('playing');
     startTimeRef.current = Date.now();
     remainingTimerRef.current = setInterval(() => {
-      const left = duration * 60 - Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const left = durationSecRef.current - Math.floor((Date.now() - startTimeRef.current) / 1000);
       setRemaining(Math.max(0, left));
     }, 200);
     scheduleNextStimulus();
@@ -235,6 +276,10 @@ export default function CPTGame() {
     }
 
     const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    // прохождение уровня: высокая доля hits + мало commission → следующий уровень
+    const accuracy = targets.length ? totalHits / targets.length : 0;
+    const commissionRate = nonTargets.length ? totalCommissions / nonTargets.length : 0;
+    if (accuracy >= 0.7 && commissionRate <= 0.3) lvl.reach(levelRef.current + 1);
     setPhase('result');
 
     try {
@@ -242,10 +287,12 @@ export default function CPTGame() {
         game_type: 'cpt',
         score: Math.max(0, Math.round(totalHits * 5 - totalCommissions * 20 - totalOmissions * 10)),
         time_seconds: totalTime,
-        difficulty: 'medium',
-        mode: `${duration}min`,
+        difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
+        mode: `lvl${levelRef.current}`,
         errors: totalOmissions + totalCommissions,
         details: {
+          level: levelRef.current,
+          paradigm: modeRef.current,
           hits: totalHits,
           omission_errors: totalOmissions,
           commission_errors: totalCommissions,
@@ -274,18 +321,22 @@ export default function CPTGame() {
         <Text style={styles.configTitle}>{t('cpt')}</Text>
         <Text style={styles.configDesc}>{t('cptDesc')}</Text>
       </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('cptDuration')}</Text>
-        <View style={styles.optionButtons}>
-          {([4, 8, 12] as const).map((d) => (
-            <TouchableOpacity key={d} style={[styles.modeButton, duration === d
-              ? { backgroundColor: GRADIENT[1] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setDuration(d)}>
-              <Text style={[styles.modeButtonText, { color: duration === d ? '#FFF' : colors.text }]}>{d} {language === 'ru' ? 'мин' : 'min'}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+          {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+        </Text>
+        <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+          {lvl.level <= 5
+            ? (language === 'ru' ? 'X-CPT · жми на каждую X · 90 сек' : 'X-CPT · tap every X · 90 s')
+            : lvl.level <= 10
+            ? (language === 'ru' ? 'AX-CPT · жми на X только после A · 90 сек' : 'AX-CPT · tap X only after A · 90 s')
+            : (language === 'ru' ? 'AX-CPT · X после A · быстрее + похожие буквы · 90 сек' : 'AX-CPT · X after A · faster + look-alikes · 90 s')}
+        </Text>
+        {lvl.level > 1 && (
+          <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+          </TouchableOpacity>
+        )}
       </View>
       <Text style={[styles.warning, { color: colors.textSecondary }]}>
         ⚠ {t('cptStrenuous')}
@@ -315,7 +366,9 @@ export default function CPTGame() {
           <Text style={[styles.statText, { color: colors.textSecondary }]}>{totalDoneTrials}t</Text>
         </View>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-          {t('cptHint')}
+          {modeRef.current === 'AX'
+            ? (language === 'ru' ? 'Жми только на X, если ПЕРЕД ней была A' : 'Tap X only if it followed A')
+            : (language === 'ru' ? 'Жми на каждую X. Не пропускай!' : 'Tap every X. Don\'t miss!')}
         </Text>
         <TouchableOpacity
           activeOpacity={0.7}
@@ -362,7 +415,7 @@ export default function CPTGame() {
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, hits * 5 - commissions * 20 - omissions * 10)}
-          time={duration * 60} errors={omissions + commissions}
+          time={durationSecRef.current} errors={omissions + commissions}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
