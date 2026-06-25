@@ -31,6 +31,14 @@ const HANOI_BENEFITS = [
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
+// Уровень (1..15+): L1-4 3 стержня диски 3→6 · L5-9 4 стержня диски 5→9 · L10-15 5 стержней диски 9→12.
+// Больше стержней = новый вызов (короче решение), затем растут диски.
+function levelParams(level: number): { discs: number; pegs: number } {
+  if (level <= 4) return { discs: 2 + level, pegs: 3 };
+  if (level <= 9) return { discs: Math.min(9, level), pegs: 4 };
+  return { discs: Math.min(12, level - 1), pegs: 5 };
+}
+
 export default function HanoiGame() {
   const { colors } = useTheme();
   const { profile } = useProfile();
@@ -50,6 +58,7 @@ export default function HanoiGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const levelRef = useRef(1);
 
   const optimal = (n: number) => Math.pow(2, n) - 1;
 
@@ -58,10 +67,12 @@ export default function HanoiGame() {
   }, []);
 
   const startGame = () => {
-    const d = isPreset ? discs : Math.max(discs, Math.min(6, 2 + lvl.level));   // discs от уровня (флор, L1=3)
+    const p = isPreset ? { discs, pegs: 3 } : levelParams(lvl.level);   // уровень рулит: диски + число стержней
+    const d = p.discs;
+    levelRef.current = lvl.level;
     if (!isPreset) setDiscs(d);
     const initial = Array.from({ length: d }, (_, i) => d - i);
-    setPegs([initial, [], []]);
+    setPegs([initial, ...Array.from({ length: p.pegs - 1 }, () => [] as number[])]);   // N стержней, диски на первом
     setSelected(null);
     setMoves(0);
     setErrors(0);
@@ -87,12 +98,12 @@ export default function HanoiGame() {
       setPegs(np);
       setMoves((m) => m + 1);
       setSelected(null);
-      // Check win
-      if (np[2].length === discs) {
+      // Check win — все диски на ПОСЛЕДНЕМ стержне (работает для 3/4/5 стержней)
+      if (np[np.length - 1].length === discs) {
         if (timerRef.current) clearInterval(timerRef.current);
         const finalTime = (Date.now() - startTime) / 1000;
         setElapsedTime(finalTime);
-        if (!isPreset) lvl.reach(discs - 2);   // решил пазл → уровень = discs − 2
+        if (!isPreset) lvl.reach(levelRef.current + 1);   // решил пазл → +уровень
         setPhase('result');
         try {
           await saveSession({
@@ -112,7 +123,7 @@ export default function HanoiGame() {
     }
   };
 
-  const pegW = Math.min(width / 4, 110);
+  const pegW = Math.min((width - 24) / (pegs.length + 0.5), 110);   // подгон под число стержней
   const discBaseW = pegW * 0.35;
   const discStep = (pegW - discBaseW) / Math.max(discs, 2);
   const baseHue = DISC_HUE[profile?.id ?? ''] ?? 215;
@@ -125,19 +136,9 @@ export default function HanoiGame() {
         <Text style={styles.configDesc}>{t('hanoiDesc')}</Text>
       </LinearGradient>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('discsCount')}</Text>
-        <View style={styles.optionButtons}>
-          {[3, 4, 5, 6].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, discs === n
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setDiscs(n)}>
-              <Text style={[styles.modeButtonText, { color: discs === n ? '#FFF' : colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
         <Text style={[styles.optionHint, { color: colors.textSecondary }]}>
-          {t('hanoiOptimal')}: {optimal(discs)} {t('movesLabel')}
+          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам: больше дисков, затем 4 и 5 стержней` : `Lv ${lvl.level} — grows with results: more discs, then 4 and 5 pegs`}
         </Text>
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
