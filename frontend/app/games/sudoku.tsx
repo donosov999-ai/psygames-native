@@ -9,6 +9,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
+import BossRound, { BossType } from '@/src/components/BossRound';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -35,7 +36,7 @@ const SUDOKU_BENEFITS = [
 ];
 
 type Cell = number; // 0 = empty
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'result';
 
 // C2: размер РАЗВЯЗАН от сложности — селектор 6×6 / 9×9; сложность = плотность пустых клеток.
 function dimsForSize(size: 6 | 9) {
@@ -199,6 +200,14 @@ function levelConfig(level: number): LevelCfg {
 }
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+// Босс-веха: каждые 3 уровня — короткий раунд с резко другим правилом (bag-рандом, без повторов подряд).
+const BOSS_EVERY = 3;
+const SUDOKU_BOSS_BAG: BossType[] = [];
+function nextSudokuBoss(): BossType {
+  if (SUDOKU_BOSS_BAG.length === 0) SUDOKU_BOSS_BAG.push(...shuffle(['finderror', 'lightning', 'completeline'] as BossType[]));
+  return SUDOKU_BOSS_BAG.pop()!;
+}
 
 function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
@@ -389,6 +398,8 @@ export default function SudokuGame() {
   const { isPreset, str } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
+  const bossTypeRef = useRef<BossType>('lightning');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(() => (str('diff', 'medium') as 'easy' | 'medium' | 'hard'));
   const [size, setSize] = useState<6 | 9>(6);   // C2: явный размер поля (свободный режим)
   const [mode, setMode] = useState<'levels' | 'free' | 'killer'>('levels');   // уровни (дефолт) / свободно / killer
@@ -462,6 +473,7 @@ export default function SudokuGame() {
     setOver(false);
     setHintUses(0);
     setBacktrackCount(0);
+    setBossWon(null);
     setPhase('playing');
     const start = Date.now();
     setStartTime(start);
@@ -504,7 +516,6 @@ export default function SudokuGame() {
       if (timerRef.current) clearInterval(timerRef.current);
       const finalTime = (Date.now() - startTime) / 1000;
       setElapsedTime(finalTime);
-      setPhase('result');
       // SUDOKU-LVL: уровни — сохранить прогресс на следующий уровень (счёт растёт с уровнем)
       if (mode === 'levels') {
         const pid = profile?.id;
@@ -528,6 +539,14 @@ export default function SudokuGame() {
           },
         });
       } catch (e) { console.error(e); }
+      // Веха-босс: каждые BOSS_EVERY уровней (режим levels) → битва с боссом ВМЕСТО результата.
+      if (mode === 'levels' && level % BOSS_EVERY === 0) {
+        bossTypeRef.current = nextSudokuBoss();
+        setBossWon(null);
+        setPhase('boss');
+      } else {
+        setPhase('result');
+      }
     }
   };
 
@@ -913,6 +932,14 @@ export default function SudokuGame() {
           </View>
         </View>
       )}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: bossTypeRef.current, gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={(win) => { setBossWon(win); setPhase('result'); }}
+        />
+      )}
       {phase === 'result' && mode === 'free' && (
         <GameResult score={Math.max(0, Math.round(2000 - errors * 50 - elapsedTime * 2))}
           time={elapsedTime} errors={errors}
@@ -927,6 +954,8 @@ export default function SudokuGame() {
             <Text style={[styles.overSub, { color: colors.textSecondary }]}>
               {language === 'ru' ? `Время ${elapsedTime.toFixed(1)}с · ошибок ${errors}` : `Time ${elapsedTime.toFixed(1)}s · errors ${errors}`}
             </Text>
+            {bossWon === true && <Text style={[styles.overSub, { color: '#f59e0b', fontWeight: '800' }]}>🏆 {language === 'ru' ? 'Босс повержен! +⭐' : 'Boss defeated! +⭐'}</Text>}
+            {bossWon === false && <Text style={[styles.overSub, { color: colors.textSecondary }]}>{language === 'ru' ? 'Босс устоял' : 'Boss survived'}</Text>}
             <TouchableOpacity style={styles.startBtn} onPress={() => { const nx = level + 1; setLevel(nx); startGame(nx); }}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
                 <Text style={styles.startBtnText}>{language === 'ru' ? `Уровень ${level + 1} →` : `Level ${level + 1} →`}</Text>
