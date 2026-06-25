@@ -35,7 +35,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
-import { useLevelGate } from '@/src/hooks/useLevelGate';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -128,26 +128,24 @@ const SHAPES_LIB: Shape[] = [
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
-const CUBES_BY_DIFF: Record<Difficulty, [number, number]> = {
-  easy:   [4, 5],
-  medium: [5, 6],
-  hard:   [6, 8],
-};
-const AXES_BY_DIFF: Record<Difficulty, ('x' | 'y' | 'z')[]> = {
-  easy:   ['z'],
-  medium: ['x', 'y'],
-  hard:   ['x', 'y', 'z'],
-};
+// Уровень → параметры фигуры. numCubes 4→8 плавно; оси Z→XY→XYZ; compound (косые ракурсы) на верхах.
+//   L1-5  — ось Z (плоская ротация), кубы 4→5
+//   L6-10 — +XY (наклоны), кубы 5→6
+//   L11-15— +XYZ (полная 3D), кубы 6→8 + составные повороты (косые ракурсы)
+function levelParams(level: number): { minC: number; maxC: number; axes: ('x' | 'y' | 'z')[]; optionCount: number; compound: boolean } {
+  if (level <= 5)  return { minC: 4, maxC: level <= 2 ? 4 : 5, axes: ['z'],           optionCount: 3, compound: false };
+  if (level <= 10) return { minC: 5, maxC: level <= 7 ? 5 : 6, axes: ['x', 'y'],      optionCount: 4, compound: false };
+  return { minC: 6, maxC: Math.min(8, 6 + Math.floor((level - 11) / 2)), axes: ['x', 'y', 'z'], optionCount: 4, compound: level >= 13 };
+}
 
 interface TrialOption { shape: Shape; isMatch: boolean; rotationLabel: string; angleSum: number; }
 
-function makeTrial(diff: Difficulty): { base: Shape; options: TrialOption[]; correctIdx: number } {
-  // Pick base shape with appropriate cube count
-  const [minC, maxC] = CUBES_BY_DIFF[diff];
-  const candidates = SHAPES_LIB.filter(s => s.length >= minC && s.length <= maxC);
+function makeTrial(level: number): { base: Shape; options: TrialOption[]; correctIdx: number } {
+  const p = levelParams(level);
+  const candidates = SHAPES_LIB.filter(s => s.length >= p.minC && s.length <= p.maxC);
   const base = rndItem(candidates);
-  const axes = AXES_BY_DIFF[diff];
-  const optionCount = diff === 'easy' ? 3 : 4;
+  const axes = p.axes;
+  const optionCount = p.optionCount;
 
   // Generate the CORRECT option: random rotation around allowed axes.
   // For HARD: also chain extra rotations producing effective 45°/135° equivalents
@@ -163,8 +161,8 @@ function makeTrial(diff: Difficulty): { base: Shape; options: TrialOption[]; cor
       angleSum += k * 90;
       labels.push(`${axis.toUpperCase()}${k * 90}°`);
     }
-    // HARD: add extra cross-axis rotation for compound transforms (~45°/135° effective)
-    if (diff === 'hard' && Math.random() < 0.65) {
+    // compound (L13-15): add extra cross-axis rotation for ~45°/135° effective oblique views
+    if (p.compound && Math.random() < 0.65) {
       const extraAxis = (['x','y','z'] as const)[Math.floor(Math.random() * 3)];
       const k = 1 + Math.floor(Math.random() * 2);
       for (let i = 0; i < k; i++) {
@@ -318,15 +316,15 @@ export default function MentalRotationGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const gate = useLevelGate('mental_rotation');
-  const { isPreset, str, num } = useGamePreset();
+  const lvl = usePersistentLevel('mental_rotation');
+  const { isPreset, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'easy') as Difficulty));
   const [trials, setTrials] = useState(() => num('trials', 10));
 
   const [round, setRound] = useState(0);
-  const [trial, setTrial] = useState(() => makeTrial('easy'));
+  const [trial, setTrial] = useState(() => makeTrial(1));
+  const levelRef = useRef(1);
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [feedback, setFeedback] = useState<{ idx: number; ok: boolean } | null>(null);
@@ -339,9 +337,10 @@ export default function MentalRotationGame() {
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const startGame = () => {
+    levelRef.current = lvl.level;
     setHits(0); setErrors(0); setRound(1);
     setAngleRtPairs([]);
-    setTrial(makeTrial(difficulty));
+    setTrial(makeTrial(lvl.level));
     setFeedback(null);
     setPhase('playing');
     const start = Date.now();
@@ -384,15 +383,17 @@ export default function MentalRotationGame() {
         const finalPairs = ok ? [...angleRtPairs, { angle: correctAngle, rt }] : angleRtPairs;
         const slope = Number(computeSlope(finalPairs).toFixed(2));
         const meanRt = finalPairs.length ? Math.round(finalPairs.reduce((s, p) => s + p.rt, 0) / finalPairs.length) : 0;
+        if (newHits / trials >= 0.7) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
         try {
           await saveSession({
             game_type: 'mental_rotation',
             score: Math.max(0, newHits * 100 - newErrors * 30 - Math.floor(finalTime)),
             time_seconds: finalTime,
-            difficulty,
-            mode: `${trials}t-3D`,
+            difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
+            mode: `lvl${levelRef.current}-3D`,
             errors: newErrors,
             details: {
+              level: levelRef.current,
               hits: newHits,
               errors: newErrors,
               trials,
@@ -404,7 +405,7 @@ export default function MentalRotationGame() {
         } catch (e) { console.error(e); }
       } else {
         setRound(r => r + 1);
-        setTrial(makeTrial(difficulty));
+        setTrial(makeTrial(levelRef.current));
         setFeedback(null);
         setTrialStartTime(Date.now());
       }
@@ -421,30 +422,21 @@ export default function MentalRotationGame() {
           <Text style={styles.versionText}>3D · Shepard-Metzler</Text>
         </View>
       </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {(['easy','medium','hard'] as Difficulty[]).map((d) => {
-            const cfg = CUBES_BY_DIFF[d];
-            const axesN = AXES_BY_DIFF[d].length;
-            const locked = gate.isLocked(d);
-            return (
-              <TouchableOpacity key={d} disabled={locked}
-                style={[styles.modeButton, difficulty === d && !locked
-                  ? { backgroundColor: GRADIENT[0] }
-                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 }]}
-                onPress={() => !locked && setDifficulty(d)}>
-                <Text style={[styles.modeButtonText, { color: difficulty === d && !locked ? '#FFF' : colors.text }]}>
-                  {t(d)} ({cfg[0]}-{cfg[1]} cubes · {axesN}D){locked ? ' 🔒' : ''}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        {gate.nextHint && (
-          <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, marginTop: 8, fontStyle: 'italic' }}>
-            {gate.nextHint}
-          </Text>
+      <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}</Text>
+        <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+          {(() => {
+            const p = levelParams(lvl.level);
+            const axesTxt = p.axes.length === 1 ? (language === 'ru' ? 'ось Z (плоско)' : 'Z axis')
+              : p.axes.length === 2 ? (language === 'ru' ? 'оси X+Y (наклоны)' : 'X+Y axes')
+              : (language === 'ru' ? 'оси X+Y+Z (3D)' : 'X+Y+Z axes');
+            return `${p.minC}–${p.maxC} ${language === 'ru' ? 'кубиков' : 'cubes'} · ${axesTxt}${p.compound ? (language === 'ru' ? ' · косые ракурсы' : ' · oblique') : ''}`;
+          })()}
+        </Text>
+        {lvl.level > 1 && (
+          <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+          </TouchableOpacity>
         )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
