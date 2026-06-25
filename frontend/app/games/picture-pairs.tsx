@@ -42,12 +42,15 @@ interface Card {
 // Кривая сложности «Игрового режима» (эндлесс, как в Goods Sort):
 //  • уровни 1-9 — растёт число пар 4→12 (классическая память, без флеша);
 //  • с 10-го — пар 12 + фото-память с убывающим флешем 3000→500мс (память под нагрузкой).
-function levelCfg(L: number): { pairs: number; photo: boolean; previewMs: number } {
-  // Фото-память ВСЕГДА (это и есть суть «карытыша»): флеш БЫСТРЫЙ по умолчанию и
-  // ещё короче с уровнем. Сложность растёт = меньше времени показа + больше пар.
-  const pairs = Math.min(12, 3 + L);                   // 4 → 12
-  const previewMs = Math.max(300, 700 - (L - 1) * 40); // 700 → 300мс (всегда быстро)
-  return { pairs, photo: true, previewMs };
+function levelCfg(L: number): { pairs: number; groupSize: number; photo: boolean; previewMs: number } {
+  // Сложность: L1-9 пары 4→12 · L10-12 ТРОЙКИ (3 одинаковых на символ) · L13-15 ЧЕТВЁРКИ.
+  // groupSize = сколько копий каждого символа нужно открыть. previewMs ещё короче с уровнем.
+  const groupSize = L <= 9 ? 2 : L <= 12 ? 3 : 4;
+  const pairs = L <= 9 ? Math.min(12, 3 + L)           // число ГРУПП: L1-9 пары 4→12
+              : L <= 12 ? 4 + (L - 10)                  // L10-12 троек 4,5,6 (12,15,18 карт)
+              : 4 + (L - 13);                            // L13-15 четвёрок 4,5,6 (16,20,24 карт)
+  const previewMs = Math.max(250, 800 - L * 40);        // показ быстрее с уровнем
+  return { pairs, groupSize, photo: true, previewMs };
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -94,22 +97,23 @@ export default function PicturePairsGame() {
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scoreRef = useRef(0);
+  const groupSizeRef = useRef(2);   // сколько одинаковых карт = группа (2 пара / 3 тройка / 4 четвёрка)
 
-  const buildDeck = (n: number) => {
-    const symbols = shuffle(sprites.map((_, i) => i)).slice(0, n);
+  const buildDeck = (n: number, groupSize: number) => {
+    const symbols = shuffle(sprites.map((_, i) => i)).slice(0, Math.min(n, sprites.length));
     const deck: Card[] = [];
     symbols.forEach((s, i) => {
-      deck.push({ id: i * 2, symbol: s, flipped: false, matched: false });
-      deck.push({ id: i * 2 + 1, symbol: s, flipped: false, matched: false });
+      for (let k = 0; k < groupSize; k++) deck.push({ id: i * groupSize + k, symbol: s, flipped: false, matched: false });
     });
     return shuffle(deck);
   };
 
   // Запустить один раунд с заданным конфигом (общий для обоих режимов).
-  const startRound = (pairs: number, photo: boolean, pms: number) => {
+  const startRound = (pairs: number, groupSize: number, photo: boolean, pms: number) => {
     setPairsCount(pairs);
+    groupSizeRef.current = groupSize;
     setPreviewMs(pms || previewMs);
-    const deck = buildDeck(pairs);
+    const deck = buildDeck(pairs, groupSize);
     setOpenIdx([]); setMoves(0); setMatched(0); setErrors(0); setLocked(false);
     setPhase('playing');
     if (photo) {
@@ -136,7 +140,7 @@ export default function PicturePairsGame() {
 
   const loadLevel = (L: number) => {
     const c = levelCfg(L);
-    startRound(c.pairs, c.photo, c.previewMs);
+    startRound(c.pairs, c.groupSize, c.photo, c.previewMs);
   };
 
   // Уровень пройден (все пары собраны) → бонус, сохранить, СЛЕДУЮЩИЙ уровень. Счёт копится.
@@ -163,7 +167,7 @@ export default function PicturePairsGame() {
       scoreRef.current = 0; setScore(0); setLevel(startLvl); setLevelBanner(null);
       loadLevel(startLvl);
     } else {
-      startRound(pairsCount, photoMemoryMode, photoMemoryMode ? previewMs : 0);
+      startRound(pairsCount, 2, photoMemoryMode, photoMemoryMode ? previewMs : 0);   // одиночный — всегда пары
     }
   };
 
@@ -182,14 +186,15 @@ export default function PicturePairsGame() {
     const newOpen = [...openIdx, idx];
     setOpenIdx(newOpen);
 
-    if (newOpen.length === 2) {
+    if (newOpen.length === groupSizeRef.current) {
       setMoves((m) => m + 1);
-      const [a, b] = newOpen;
-      if (newCards[a].symbol === newCards[b].symbol) {
-        // match
+      const firstSym = newCards[newOpen[0]].symbol;
+      const allSame = newOpen.every((i) => newCards[i].symbol === firstSym);
+      if (allSame) {
+        // match — все N одинаковых карт группы
         setTimeout(async () => {
           const matchedCards = newCards.map((c, i) =>
-            i === a || i === b ? { ...c, matched: true } : c
+            newOpen.includes(i) ? { ...c, matched: true } : c
           );
           setCards(matchedCards);
           const newMatched = matched + 1;
@@ -232,7 +237,7 @@ export default function PicturePairsGame() {
         hapticError();
         setTimeout(() => {
           setCards((cs) => cs.map((c, i) =>
-            i === a || i === b ? { ...c, flipped: false } : c
+            newOpen.includes(i) ? { ...c, flipped: false } : c
           ));
           setOpenIdx([]);
           setLocked(false);
