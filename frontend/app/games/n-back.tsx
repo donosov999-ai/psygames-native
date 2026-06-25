@@ -17,6 +17,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
+import BossRound from '@/src/components/BossRound';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -28,7 +29,8 @@ const N_BACK_BENEFITS = [
   { icon: 'rocket-outline', textKey: 'benefitNback3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'result';
+const BOSS_EVERY = 3;   // веха-босс каждые 3 уровня (резкая смена: рабочая память → счёт)
 type Modality = 'single' | 'dual';   // single = visual only (legacy); dual = visual + audio (Brain Workshop style)
 
 const AUDIO_LETTERS = ['B', 'D', 'F', 'H', 'K', 'L', 'M', 'Q', 'R', 'T'];   // consonants only — no confusion with positions
@@ -68,6 +70,7 @@ export default function NBackGame() {
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [nLevel, setNLevel] = useState(() => num('nLevel', 1));
   const [trials, setTrials] = useState(() => num('trials', 20));
   const [modality, setModality] = useState<Modality>(() => (str('modality', 'single') as Modality));
@@ -117,6 +120,7 @@ export default function NBackGame() {
       setModality(p.modality);
     }
     setHits(0); setMisses(0); setFalseAlarms(0); setCorrectRejections(0);
+    setBossWon(null);
     setAHits(0); setAMisses(0); setAFalseAlarms(0); setACorrectRejections(0);
     statsRef.current = { hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0, aHits: 0, aMisses: 0, aFalseAlarms: 0, aCorrectRejections: 0 };
     setHistory([]); setAudioHistory([]); setCurrentIdx(-1); setActiveCell(null); setActiveLetter('');
@@ -213,10 +217,10 @@ export default function NBackGame() {
     const { hits, misses, falseAlarms, correctRejections, aHits, aMisses, aFalseAlarms, aCorrectRejections } = statsRef.current;
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
-    setPhase('result');
     const totalAnswered = hits + misses + falseAlarms + correctRejections;
     const accuracy = totalAnswered > 0 ? Math.round(((hits + correctRejections) / totalAnswered) * 100) : 0;
-    if (!isPreset && accuracy >= 80) lvl.reach(levelRef.current + 1);   // ≥80% → +уровень (N → скорость → dual)
+    const passed = !isPreset && accuracy >= 80;
+    if (passed) lvl.reach(levelRef.current + 1);   // ≥80% → +уровень (N → скорость → dual)
     // Signal Detection Theory: d' = z(hit_rate) - z(false_alarm_rate)
     // Hit rate = hits / (hits + misses); False alarm rate = falseAlarms / (falseAlarms + correctRejections)
     // Apply log-linear correction to avoid infinity (Snodgrass & Corwin 1988): add 0.5 to numerator, 1 to denominator
@@ -271,6 +275,9 @@ export default function NBackGame() {
         },
       });
     } catch (e) { console.error(e); }
+    // веха-босс: при чистом прохождении (≥80%) каждые BOSS_EVERY уровней → битва (память → счёт)
+    if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setPhase('boss'); }
+    else setPhase('result');
   };
 
   const renderConfig = () => (
@@ -447,9 +454,15 @@ export default function NBackGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
+          language={language} colors={colors}
+          onComplete={(win) => { setBossWon(win); setPhase('result'); }} />
+      )}
       {phase === 'result' && (
         <GameResult
-          score={hits * 10 - falseAlarms * 5}
+          score={hits * 10 - falseAlarms * 5 + (bossWon ? 50 : 0)}
+          stars={bossWon === true ? 3 : undefined}
           time={elapsedTime}
           errors={misses + falseAlarms}
           onPlayAgain={() => setPhase('config')}
