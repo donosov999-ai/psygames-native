@@ -13,6 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
+import BossRound from '@/src/components/BossRound';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -26,7 +27,8 @@ const CORSI_BENEFITS = [
 
 // Classic Corsi: 9 blocks placed at fixed positions, sequence flashes one by one,
 // subject reproduces in same (or reverse) order.
-type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'result';
+type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'boss' | 'result';
+const BOSS_EVERY = 3;   // веха-босс каждые 3 уровня (резкая смена: память позиций → счёт чисел)
 type Mode = 'forward' | 'backward';
 
 // Уровень (1..15+): L1-6 span 3→8 · L7-9 показ быстрее · L10+ обязательный обратный порядок.
@@ -64,6 +66,7 @@ export default function CorsiGame() {
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'forward') as Mode));
 
   const [seq, setSeq] = useState<number[]>([]);
@@ -93,6 +96,7 @@ export default function CorsiGame() {
     const effLevel = lvl.level;
     const p = levelParams(effLevel);
     levelRef.current = effLevel;
+    setBossWon(null);
     let startSpan: number;
     if (isPreset) {
       startSpan = num('startLen', 3);
@@ -140,8 +144,8 @@ export default function CorsiGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
-    if (!isPreset && finalSpan >= levelParams(levelRef.current).startSpan) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
-    setPhase('result');
+    const passed = !isPreset && finalSpan >= levelParams(levelRef.current).startSpan;
+    if (passed) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
     try {
       await saveSession({
         game_type: 'corsi',
@@ -153,6 +157,9 @@ export default function CorsiGame() {
         details: { span: finalSpan },
       });
     } catch (e) { console.error(e); }
+    // веха-босс: при чистом прохождении каждые BOSS_EVERY уровней → битва (память → счёт)
+    if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setPhase('boss'); }
+    else setPhase('result');
   };
 
   const handleTap = (i: number) => {
@@ -299,9 +306,15 @@ export default function CorsiGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'show' && renderShow()}
       {phase === 'recall' && renderRecall()}
+      {phase === 'boss' && (
+        <BossRound config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
+          language={language} colors={colors}
+          onComplete={(win) => { setBossWon(win); setPhase('result'); }} />
+      )}
       {phase === 'result' && (
         <GameResult
-          score={Math.max(0, span * 200 - errors * 50)}
+          score={Math.max(0, span * 200 - errors * 50) + (bossWon ? 100 : 0)}
+          stars={bossWon === true ? 3 : undefined}
           time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
