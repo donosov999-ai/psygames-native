@@ -182,6 +182,7 @@ export default function HanoiGame() {
                   style={[styles.disc, { width: discBaseW + size * discStep }]}
                 >
                   <View style={styles.discShine} pointerEvents="none" />
+                  <Text style={styles.discLabel} numberOfLines={1}>{size}</Text>
                 </LinearGradient>
               ))}
               <View style={[styles.pole, { backgroundColor: colors.text }]} />
@@ -249,5 +250,6 @@ const styles = StyleSheet.create({
   pegBase: { height: 8, borderRadius: 4 },
   disc: { height: 22, marginTop: 2, borderRadius: 7, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   discShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%', backgroundColor: 'rgba(255,255,255,0.28)' },
+  discLabel: { position: 'absolute', left: 0, right: 0, top: 3, textAlign: 'center', fontSize: 12, fontWeight: '800', color: 'rgba(25,15,0,0.62)' },
   hintText: { fontSize: 12, textAlign: 'center' },
 });
