@@ -16,7 +16,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
  * Два режима задачи: 'choose' (выбрать вариант) и 'tapcell' (тапнуть клетку сетки).
  */
 
-export type BossType = 'counting' | 'lightning' | 'completeline' | 'finderror';
+export type BossType = 'counting' | 'lightning' | 'completeline' | 'finderror' | 'oddletter' | 'gonogo';
 
 export interface BossConfig {
   type: BossType;
@@ -58,7 +58,7 @@ interface BossTask {
   cols?: number;
   options?: number[];
   answer?: number;
-  grid?: number[];                                        // tapcell: сетка для тапа
+  grid?: (number | string)[];                             // tapcell: сетка для тапа (числа/буквы/эмодзи)
   gridCols?: number;
   badCells?: number[];                                    // tapcell: «нарушители» (верный тап)
 }
@@ -82,6 +82,22 @@ function makeTask(type: BossType): BossTask {
     let b = rnd(n); while (b === a) b = rnd(n);
     grid[base + b] = grid[base + a];   // в строке er теперь повтор (клетки a и b)
     return { kind: 'tapcell', intro: { ru: 'Найди ОШИБКУ — цифра повторяется в строке', en: 'Find the ERROR — a repeat in a row' }, hud: { ru: 'Тапни повтор', en: 'Tap the repeat' }, grid, gridCols: n, badCells: [base + a, base + b] };
+  }
+  if (type === 'oddletter') {
+    // 5 согласных + 1 гласная (латиница, универсально) — тапни ЛИШНЮЮ гласную.
+    const cons = 'BCDFGHJKLMNPQRSTVWXZ', vow = 'AEIOU';
+    const letters: (number | string)[] = Array.from({ length: 5 }, () => cons[rnd(cons.length)]);
+    const vIdx = rnd(6);
+    letters.splice(vIdx, 0, vow[rnd(vow.length)]);
+    return { kind: 'tapcell', intro: { ru: 'Найди ЛИШНЮЮ — гласную среди согласных', en: 'Find the ODD letter — the vowel' }, hud: { ru: 'Тапни гласную', en: 'Tap the vowel' }, grid: letters, gridCols: 3, badCells: [vIdx] };
+  }
+  if (type === 'gonogo') {
+    // 6 цветных кружков, ровно один ЗЕЛЁНЫЙ — тапни только его (подави остальные).
+    const others = ['🔴', '🔵', '🟡', '🟣', '🟠'];
+    const grid: (number | string)[] = Array.from({ length: 6 }, () => others[rnd(others.length)]);
+    const gIdx = rnd(6);
+    grid[gIdx] = '🟢';
+    return { kind: 'tapcell', intro: { ru: 'Тапни только ЗЕЛЁНЫЙ, подави остальные', en: 'Tap only GREEN' }, hud: { ru: 'Зелёный!', en: 'Green!' }, grid, gridCols: 3, badCells: [gIdx] };
   }
   // counting (Шульте)
   const nums = Array.from({ length: 6 }, () => 1 + rnd(12));
