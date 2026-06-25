@@ -81,7 +81,10 @@ function levelCfg(L: number, poolSize: number) {
   const types = Math.min(poolSize, 7, 3 + Math.floor(L / 2));   // 3 → 7
   let spares = Math.max(2, 6 - Math.floor((L - 1) / 3));        // 6 → 2 пустых ячеек
   spares = Math.max(2, Math.min(spares, SLOTS - types));        // влезть + ≥2 пустых → всегда решаемо
-  return { types, spares };
+  // За L8 (типы упёрты в 7) сложность = ЛИМИТ ХОДОВ (давление эффективности; layout >9 ячеек = фаза 2).
+  const over = Math.max(0, L - 8);
+  const moveLimit = over > 0 ? Math.max(types * 2, types * 3 - over) : 0;   // 0 = без лимита
+  return { types, spares, moveLimit };
 }
 
 function threeSame(cell: number[]): boolean { return cell.length === 3 && cell[0] === cell[1] && cell[1] === cell[2]; }
@@ -156,6 +159,13 @@ export default function GoodsSortGame() {
   };
 
   const advanceLevel = () => {
+    const cfg = levelCfg(level, poolRef.current.length);
+    if (cfg.moveLimit > 0 && movesRef.current > cfg.moveLimit) {
+      // превысил лимит ходов — уровень НЕ засчитан, тот же уровень заново
+      setLevelBanner(-1);
+      setTimeout(() => { setLevelBanner(null); loadLevel(level); }, 1200);
+      return;
+    }
     hapticSuccess();
     const done = level;
     const finalTime = (Date.now() - startTime) / 1000;
@@ -312,7 +322,7 @@ export default function GoodsSortGame() {
         <View style={styles.statsRow}>
           <HudBadge icon="pricetag" label={t('goodsLevel')} value={level} colors={['#fbbf24', '#d97706']} tint="#3f2b00" />
           <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
-          <HudBadge icon="swap-horizontal" value={moves} colors={['#94a3b8', '#475569']} />
+          <HudBadge icon="swap-horizontal" value={(() => { const ml = levelCfg(level, poolRef.current.length).moveLimit; return ml > 0 ? `${moves}/${ml}` : String(moves); })()} colors={['#94a3b8', '#475569']} />
           <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
         </View>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
@@ -330,8 +340,14 @@ export default function GoodsSortGame() {
         <ScorePopupLayer popups={popups} />
         {levelBanner !== null && (
           <View style={styles.levelBanner} pointerEvents="none">
-            <Text style={styles.levelBannerText}>🎉 {t('goodsLevel')} {levelBanner} ✓</Text>
-            <Text style={styles.levelBannerSub}>→ {t('goodsLevel')} {levelBanner + 1}</Text>
+            {levelBanner === -1 ? (
+              <Text style={styles.levelBannerText}>{language === 'ru' ? '🔁 Слишком много ходов' : '🔁 Too many moves'}</Text>
+            ) : (
+              <>
+                <Text style={styles.levelBannerText}>🎉 {t('goodsLevel')} {levelBanner} ✓</Text>
+                <Text style={styles.levelBannerSub}>→ {t('goodsLevel')} {levelBanner + 1}</Text>
+              </>
+            )}
           </View>
         )}
       </View>
