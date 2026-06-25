@@ -58,30 +58,28 @@ function levelParams(L: number): { layers: number; pairs: number; cols: number }
 // Верхний слой смещён к центру и поднят, образуя классическую «черепаху».
 // Возвращает ровно needTiles позиций (needTiles = pairs*2, всегда чётно).
 function buildPositions(layers: number, needTiles: number, cols: number): { x: number; y: number; layer: number }[] {
-  const rowsPerLayer = Math.max(2, Math.ceil(needTiles / Math.max(1, layers) / Math.max(1, cols - layers + 1)) + layers);
+  // Распределяем тайлы по слоям ПИРАМИДАЛЬНО (нижний слой больше верхних): веса layers..1.
+  // Раньше slice(0,needTiles) брал только нижний слой → раскладка выходила плоской.
+  const weights: number[] = [];
+  for (let k = 0; k < layers; k++) weights.push(layers - k);   // напр. 3,2,1
+  const wsum = weights.reduce((a, b) => a + b, 0);
   const positions: { x: number; y: number; layer: number }[] = [];
-  for (let layer = 0; layer < layers && positions.length < needTiles + 8; layer++) {
-    // Каждый слой выше — уже на 1 столбец и короче на 1 ряд с каждой стороны → пирамида.
-    const inset = layer;                        // отступ в КЛЕТКАХ от края нижнего слоя
-    const layerCols = Math.max(1, cols - inset * 2);
-    const layerRows = Math.max(1, rowsPerLayer + 2 - inset * 2);
-    for (let r = 0; r < layerRows; r++) {
-      for (let c = 0; c < layerCols; c++) {
-        positions.push({ x: (inset + c) * 2, y: (inset + r) * 2, layer });
+  for (let layer = 0; layer < layers; layer++) {
+    const target = layer === layers - 1
+      ? Math.max(2, needTiles - positions.length)              // верхний слой добирает остаток
+      : Math.max(2, Math.round((needTiles * weights[layer]) / wsum));
+    const layerCols = Math.max(2, cols - layer * 2);           // верхние слои уже → пирамида, и центрированы (inset=layer)
+    let placed = 0, r = 0;
+    while (placed < target) {
+      for (let c = 0; c < layerCols && placed < target; c++) {
+        positions.push({ x: (layer + c) * 2, y: (layer + r) * 2, layer });
+        placed++;
       }
+      r++;
     }
   }
-  // База (layer 0) должна быть достаточно большой; обрезаем по нужному числу.
-  // Берём позиции «снаружи внутрь» по слоям — низ полный, верх по остатку.
-  const byLayer: Record<number, { x: number; y: number; layer: number }[]> = {};
-  positions.forEach((p) => { (byLayer[p.layer] = byLayer[p.layer] || []).push(p); });
-  const out: { x: number; y: number; layer: number }[] = [];
-  for (let layer = 0; layer < layers; layer++) {
-    const arr = byLayer[layer] || [];
-    out.push(...arr);
-  }
-  // Если позиций мало (маленький уровень) — это ок, generate подстроится по факту.
-  return out.slice(0, Math.max(needTiles, out.length >= needTiles ? needTiles : out.length));
+  if (positions.length % 2 === 1) positions.pop();             // чётность для пар
+  return positions;
 }
 
 // «Перекрывает ли» позиция верхнего слоя позицию нижнего (тайл 2×2 в полуклетках).
