@@ -927,14 +927,14 @@ const translations: Translations = {
 
   // Round 7 — CPT
   cpt:            { ru: 'CPT: устойчивое внимание', en: 'CPT: Sustained Attention' },
-  cptDesc:        { ru: 'Реагируй на все буквы, кроме X', en: 'Respond to all letters except X' },
+  cptDesc:        { ru: 'Жми на X. На высоких уровнях — только если перед X была A', en: 'Tap X. On higher levels — only when X follows A' },
   cptIntroDesc: {
-    ru: 'Conners CPT — золотой стандарт измерения устойчивого внимания (sustained attention) и импульс-контроля. Каждые 1-2 секунды появляется буква. Тапни на ЛЮБУЮ букву кроме X (X = не реагировать). 4-12 минут непрерывной работы. Получаешь 5 биомаркеров: omission errors (внимание), commission errors (импульсивность), mean RT, RT variability (CV-RT — самый сильный ADHD-маркер), vigilance decrement (slope RT по квартилям — падает ли внимание к концу). Это критически важная игра для оценки выносливости в NZT-режиме 4-6ч.',
-    en: 'Conners CPT — gold standard for sustained attention and impulse control. Every 1-2 seconds a letter appears. Tap ANY letter except X (X = withhold response). 4-12 minutes continuous. 5 biomarkers: omission errors (attention), commission errors (impulsivity), mean RT, RT variability (CV-RT — strongest ADHD marker), vigilance decrement (slope of RT across quartiles — does attention drop?). Critical for measuring endurance in NZT 4-6h regime.'
+    ru: 'CPT — измерение устойчивого внимания и импульс-контроля. Примерно раз в секунду появляется буква. Уровни 1-5: жми на КАЖДУЮ X (классический X-CPT). Уровни 6-15: AX-CPT — жми на X ТОЛЬКО если перед ней была A (нагрузка на рабочую память); темп растёт, добавляются похожие на X буквы. Длительность фиксирована ~90 секунд — сложность растёт ТРУДНОСТЬЮ задачи, а не временем. Биомаркеры: пропуски (omission), ложные нажатия (commission), средняя реакция, вариативность реакции (CV-RT — сильный ADHD-маркер), снижение бдительности к концу сессии.',
+    en: 'CPT — measures sustained attention and impulse control. About once a second a letter appears. Levels 1-5: tap EVERY X (classic X-CPT). Levels 6-15: AX-CPT — tap X ONLY if it followed an A (working-memory load); pace rises and X-look-alike letters are added. Duration is fixed at ~90 seconds — difficulty grows by TASK difficulty, not by time. Biomarkers: omission errors, commission errors, mean RT, RT variability (CV-RT — strong ADHD marker), vigilance decrement toward the end of the session.'
   },
-  cptDuration:    { ru: 'Длительность', en: 'Duration' },
-  cptStrenuous:   { ru: 'Это утомительная задача — оптимально с утра, не вечером', en: 'This is a strenuous task — best in the morning, not evening' },
-  cptHint:        { ru: 'Тапни по экрану на ЛЮБОЙ букве, кроме X', en: 'Tap the screen on ANY letter except X' },
+  cptDuration:    { ru: 'Уровень', en: 'Level' },
+  cptStrenuous:   { ru: 'Игра на концентрацию — лучше в спокойной обстановке', en: 'A concentration task — best in a calm setting' },
+  cptHint:        { ru: 'Жми на X (на AX-уровнях — только если перед X была A)', en: 'Tap X (on AX levels — only if X followed an A)' },
 
   benefitCpt1:    { ru: 'Устойчивое внимание (vigilance)',  en: 'Sustained attention (vigilance)' },
   benefitCpt2:    { ru: 'Контроль импульса (X = stop)',      en: 'Impulse control (X = stop)' },
