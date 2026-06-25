@@ -20,16 +20,17 @@ const TOL_BENEFITS = [
   { icon: 'extension-puzzle-outline', textKey: 'benefitTol3' },
 ];
 
-// 3 pegs of capacity [3, 2, 1]. Balls labeled R/G/B, max 3 balls total.
-type Ball = 'R' | 'G' | 'B';
+// 3 pegs. Balls R/G/B (3) + Y (4-й шар на L11+). Вместимости меняются по числу шаров.
+type Ball = 'R' | 'G' | 'B' | 'Y';
 const BALL_GRADIENTS: Record<Ball, [string, string]> = {
-  R: ['#fca5a5', '#dc2626'], G: ['#86efac', '#16a34a'], B: ['#93c5fd', '#2563eb'],
+  R: ['#fca5a5', '#dc2626'], G: ['#86efac', '#16a34a'], B: ['#93c5fd', '#2563eb'], Y: ['#fde68a', '#d97706'],
 };
-// A1 колор-блайнд — Okabe-Ito (вермильон/бирюз-зелёный/синий, различимы при дальтонизме).
+// A1 колор-блайнд — Okabe-Ito (вермильон/бирюз-зелёный/синий/жёлтый, различимы при дальтонизме).
 const BALL_GRADIENTS_CB: Record<Ball, [string, string]> = {
-  R: ['#f0a07a', '#c44d00'], G: ['#7fd9bf', '#007a59'], B: ['#7fb8e0', '#005a8c'],
+  R: ['#f0a07a', '#c44d00'], G: ['#7fd9bf', '#007a59'], B: ['#7fb8e0', '#005a8c'], Y: ['#f5e79e', '#b8920a'],
 };
-const PEG_CAPS = [3, 2, 1];
+// Вместимости стержней. 3 шара → [3,2,1]; 4 шара (L11+) → [4,3,1]. makePuzzle переключает по ballCount.
+let CURRENT_CAPS = [3, 2, 1];
 
 type State = Ball[][]; // 3 arrays bottom→top
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
@@ -44,7 +45,7 @@ function legalMoves(s: State): { from: number; to: number }[] {
     if (s[from].length === 0) continue;
     for (let to = 0; to < 3; to++) {
       if (from === to) continue;
-      if (s[to].length >= PEG_CAPS[to]) continue;
+      if (s[to].length >= CURRENT_CAPS[to]) continue;
       out.push({ from, to });
     }
   }
@@ -76,11 +77,13 @@ function bfsMin(start: State, goal: State): number {
   return depth;
 }
 
-// targetMoves — целевая длина плана (minMoves). На 3 шарах реально 2..7; больше = fallback (4-5 шаров — фаза 2).
-function makePuzzle(targetMoves: number): { start: State; goal: State; minMoves: number } {
+// targetMoves — целевая длина плана (minMoves). ballCount 3 (caps[3,2,1]) или 4 на L11+ (caps[4,3,1]).
+function makePuzzle(targetMoves: number, ballCount: number = 3): { start: State; goal: State; minMoves: number } {
+  CURRENT_CAPS = ballCount >= 4 ? [4, 3, 1] : [3, 2, 1];   // вместимости под число шаров (для legalMoves/bfsMin)
+  const startBalls: Ball[] = ballCount >= 4 ? ['R', 'G', 'B', 'Y'] : ['R', 'G', 'B'];
   for (let attempt = 0; attempt < 60; attempt++) {
-    // start with all 3 balls on peg 0
-    const start: State = [['R','G','B'], [], []];
+    // start with all balls on peg 0
+    const start: State = [[...startBalls], [], []];
     // do random walk for "targetMoves * 2" steps to get a goal
     let cur = cloneState(start);
     const steps = targetMoves * 2 + Math.floor(Math.random() * 3);
@@ -97,8 +100,8 @@ function makePuzzle(targetMoves: number): { start: State; goal: State; minMoves:
     }
   }
   // fallback
-  const start: State = [['R','G','B'], [], []];
-  const goal: State = [['B'], ['R','G'], []];
+  const start: State = [[...startBalls], [], []];
+  const goal: State = ballCount >= 4 ? [['Y'], ['R', 'G'], ['B']] : [['B'], ['R', 'G'], []];
   return { start, goal, minMoves: bfsMin(start, goal) };
 }
 
@@ -129,11 +132,12 @@ export default function TowerLondonGame() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const levelRef = useRef(1);
   const targetMovesRef = useRef(5);
+  const ballsRef = useRef(3);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  const newRound = (tm: number = targetMovesRef.current) => {
-    const p = makePuzzle(tm);
+  const newRound = (tm: number = targetMovesRef.current, balls: number = ballsRef.current) => {
+    const p = makePuzzle(tm, balls);
     setPuzzle(p);
     setState(cloneState(p.start));
     setSelPeg(null);
@@ -144,10 +148,12 @@ export default function TowerLondonGame() {
   const startGame = () => {
     // уровень → длина плана (minMoves цель). 3 шара дают 2..7, дальше fallback; 4-5 шаров + лимит времени = фаза 2.
     const tm = isPreset ? (difficulty === 'easy' ? 3 : difficulty === 'medium' ? 5 : 7) : Math.min(8, 1 + lvl.level);
+    const balls = isPreset ? 3 : (lvl.level >= 11 ? 4 : 3);   // 4-й шар (жёлтый) на верхних уровнях
     levelRef.current = lvl.level;
     targetMovesRef.current = tm;
+    ballsRef.current = balls;
     setSolved(0); setExtraMoves(0); setErrors(0); setRound(1);
-    newRound(tm);
+    newRound(tm, balls);
     setPhase('playing');
     const start = Date.now();
     setStartTime(start);
@@ -163,7 +169,7 @@ export default function TowerLondonGame() {
     }
     if (selPeg === i) { setSelPeg(null); return; }
     // try move
-    if (state[i].length >= PEG_CAPS[i]) {
+    if (state[i].length >= CURRENT_CAPS[i]) {
       setErrors(e => e + 1);
       setSelPeg(null);
       return;
@@ -278,11 +284,11 @@ export default function TowerLondonGame() {
       </View>
       <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('goalState')}</Text>
       <View style={styles.pegRow}>
-        {puzzle.goal.map((balls, i) => renderPeg(i, balls, PEG_CAPS[i], true))}
+        {puzzle.goal.map((balls, i) => renderPeg(i, balls, CURRENT_CAPS[i], true))}
       </View>
       <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('currentState')}</Text>
       <View style={styles.pegRow}>
-        {state.map((balls, i) => renderPeg(i, balls, PEG_CAPS[i], false))}
+        {state.map((balls, i) => renderPeg(i, balls, CURRENT_CAPS[i], false))}
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('towerHint')}</Text>
     </View>
