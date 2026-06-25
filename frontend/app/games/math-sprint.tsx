@@ -14,6 +14,7 @@ import { saveSession } from '@/src/services/api';
 import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
+import BossRound from '@/src/components/BossRound';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -25,7 +26,8 @@ const MATH_BENEFITS = [
   { icon: 'flash-outline', textKey: 'benefitMath3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'result';
+const BOSS_EVERY = 3;   // веха-босс каждые 3 уровня (резкая смена: счёт → «дополни ряд 1-9»)
 type Difficulty = 'easy' | 'medium' | 'hard';
 type Op = '+' | '-' | '*' | '/';
 
@@ -74,6 +76,7 @@ export default function MathSprintGame() {
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'easy') as Difficulty));
   const [duration, setDuration] = useState(() => num('duration', 60));
   const [timeLeft, setTimeLeft] = useState(60);
@@ -95,6 +98,7 @@ export default function MathSprintGame() {
 
   const startGame = () => {
     setCorrect(0); setErrors(0); setStreak(0); setBestStreak(0); setScore(0);
+    setBossWon(null);
     setUserAnswer('');
     setFeedback(null);
     // личная игра → уровень рулит; пресет (зарядка) → выбранный тир маппится в уровень
@@ -120,8 +124,8 @@ export default function MathSprintGame() {
   const finishGame = async () => {
     if (tickRef.current) clearInterval(tickRef.current);
     sndTimerEnd();   // SND-T: «время вышло»
-    if (!isPreset && correct >= 12) lvl.reach(lvl.level + 1);   // ≥12 верных → +уровень
-    setPhase('result');
+    const passed = !isPreset && correct >= 12;
+    if (passed) lvl.reach(lvl.level + 1);   // ≥12 верных → +уровень
     try {
       await saveSession({
         game_type: 'math_sprint',
@@ -133,6 +137,9 @@ export default function MathSprintGame() {
         details: { correct, bestStreak },
       });
     } catch (e) { console.error(e); }
+    // веха-босс: при чистом прохождении каждые BOSS_EVERY уровней → битва с боссом (счёт → «дополни ряд»)
+    if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setPhase('boss'); }
+    else setPhase('result');
   };
 
   const submit = () => {
@@ -268,8 +275,14 @@ export default function MathSprintGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound config={{ type: 'completeline', gradient: GRADIENT as [string, string] }}
+          language={language} colors={colors}
+          onComplete={(win) => { setBossWon(win); setPhase('result'); }} />
+      )}
       {phase === 'result' && (
-        <GameResult score={score} time={duration} errors={errors}
+        <GameResult score={score + (bossWon ? 50 : 0)} time={duration} errors={errors}
+          stars={bossWon === true ? 3 : undefined}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
