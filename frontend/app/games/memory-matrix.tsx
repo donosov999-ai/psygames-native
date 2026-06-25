@@ -28,13 +28,17 @@ type GamePhase = 'intro' | 'config' | 'showing' | 'input' | 'feedback' | 'result
 type MatrixMode = 'static' | 'sequential';   // static = pattern flashes once; sequential = cells light up one-by-one, reproduce in order
 
 // Уровень (1..15+): L1-4 сетка 3×3→6×6 · дальше на 6×6 растёт число вспышек + скорость показа.
-// (Фаза 2 — 2 серии цветные раздельно, L9-15; пока чистая параметрика по вспышкам/скорости.)
-function levelParams(level: number): { gridSize: number; baseFlashes: number; flashMs: number } {
+// L11+ (static-режим): ДВЕ серии разного цвета, раздельное воспроизведение (память на 2 группы + интерференция).
+function levelParams(level: number): { gridSize: number; baseFlashes: number; flashMs: number; seriesCount: number } {
   const gridSize = Math.min(6, 2 + level);              // L1=3 → L4=6
   const baseFlashes = 3 + Math.floor(level / 1.5);       // клеток запомнить: L1=3 → L15≈13
   const flashMs = Math.max(500, 1500 - level * 70);      // показ быстрее с уровнем
-  return { gridSize, baseFlashes, flashMs };
+  const seriesCount = level >= 11 ? 2 : 1;               // L11+ две серии разного цвета
+  return { gridSize, baseFlashes, flashMs, seriesCount };
 }
+
+const SERIES1_COLOR = '#8e2de2';   // фиолетовая серия (как GRADIENT[0])
+const SERIES2_COLOR = '#ef4444';   // красная серия
 
 export default function MemoryMatrixGame() {
   const { colors } = useTheme();
@@ -54,6 +58,10 @@ export default function MemoryMatrixGame() {
   const [activeIdx, setActiveIdx] = useState<number>(-1);            // current flashing cell in sequential
   const [pickedCells, setPickedCells] = useState<Set<number>>(new Set());
   const [pickedSequence, setPickedSequence] = useState<number[]>([]);// user's tap order for sequential mode
+  const [series2, setSeries2] = useState<Set<number>>(new Set());    // 2-я серия (другой цвет), static L11+
+  const [inputSeries, setInputSeries] = useState(0);                 // какую серию воспроизводим (0=первая, 1=вторая)
+  const [showingSeries, setShowingSeries] = useState(0);             // показываемая серия в фазе showing (1/2; 0=нет)
+  const seriesCountRef = useRef(1);
   const [round, setRound] = useState(0);
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -70,24 +78,40 @@ export default function MemoryMatrixGame() {
 
   const newRound = (gs: number, r: number) => {
     const total = gs * gs;
-    const need = Math.min(total - 1, baseFlashesRef.current + Math.floor((r - 1) / 3));   // число клеток от уровня + рост по раундам
-    const seq: number[] = [];
-    const seenSet = new Set<number>();
-    while (seq.length < need) {
-      const c = Math.floor(Math.random() * total);
-      if (!seenSet.has(c)) { seq.push(c); seenSet.add(c); }
-    }
-    setLitCells(seenSet);
+    const two = seriesCountRef.current === 2 && matrixMode === 'static';   // 2 серии — только static
+    // число клеток в каждой серии (для two меньше, чтобы 2 непересекающихся набора влезли)
+    const need = Math.min(
+      two ? Math.floor((total - 1) / 2) : total - 1,
+      baseFlashesRef.current + Math.floor((r - 1) / 3),
+    );
+    // непересекающиеся наборы из перетасованного пула
+    const pool = Array.from({ length: total }, (_, i) => i);
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const set1 = new Set(pool.slice(0, need));
+    const seq = pool.slice(0, need);                       // порядок для sequential
+    const set2 = two ? new Set(pool.slice(need, need * 2)) : new Set<number>();
+
+    setLitCells(set1);
     setLitSequence(seq);
+    setSeries2(set2);
     setPickedCells(new Set());
     setPickedSequence([]);
+    setInputSeries(0);
     setPhase('showing');
 
     if (matrixMode === 'static') {
-      // Original behavior: show whole pattern, hide, await input
-      setTimeout(() => setPhase('input'), Math.max(500, flashMsRef.current - r * 60));   // показ быстрее с уровнем
+      if (two) {
+        // показать серию1 (цвет1) → серию2 (цвет2) → ввод
+        setShowingSeries(1);
+        setTimeout(() => setShowingSeries(2), flashMsRef.current);
+        setTimeout(() => { setShowingSeries(0); setPhase('input'); }, flashMsRef.current * 2);
+      } else {
+        setShowingSeries(1);
+        setTimeout(() => { setShowingSeries(0); setPhase('input'); }, Math.max(500, flashMsRef.current - r * 60));
+      }
     } else {
-      // Sequential: flash cells one by one, then await ordered reproduction
+      // Sequential: flash cells one by one, then await ordered reproduction (1 серия)
+      setShowingSeries(0);
       const flashMs = Math.max(400, 700 - r * 30);
       const gapMs = 200;
       seq.forEach((cellIdx, i) => {
@@ -105,6 +129,7 @@ export default function MemoryMatrixGame() {
     levelRef.current = lvl.level;
     baseFlashesRef.current = isPreset ? 3 : p.baseFlashes;
     flashMsRef.current = isPreset ? 1500 : p.flashMs;
+    seriesCountRef.current = isPreset ? 1 : p.seriesCount;
     if (!isPreset) setGridSize(g);
     setHits(0); setErrors(0); setScore(0); setRound(1);
     setStartTime(Date.now());
@@ -119,9 +144,12 @@ export default function MemoryMatrixGame() {
     const newSequence = [...pickedSequence, idx];
     setPickedSequence(newSequence);
 
+    const two = seriesCountRef.current === 2 && matrixMode === 'static';
+    const targetSet = two && inputSeries === 1 ? series2 : litCells;   // серия, которую вводим сейчас
+
     let isHit: boolean;
     if (matrixMode === 'static') {
-      isHit = litCells.has(idx);
+      isHit = targetSet.has(idx);
     } else {
       // sequential: must be the right cell at the right step
       const expectedIdx = litSequence[newSequence.length - 1];
@@ -141,10 +169,18 @@ export default function MemoryMatrixGame() {
     const fErrors = errors + (isHit ? 0 : 1);
     const fScore = isHit ? score + 10 : Math.max(0, score - 5);
 
-    // All lit cells found OR a wrong cell — end round
-    const allFound = matrixMode === 'static'
-      ? Array.from(litCells).every((c) => newPicked.has(c))
+    // All lit cells found OR a wrong cell — end round (для 2 серий — по ТЕКУЩЕЙ серии)
+    const allFoundCurrent = matrixMode === 'static'
+      ? Array.from(targetSet).every((c) => newPicked.has(c))
       : newSequence.length >= litSequence.length && newSequence.every((c, i) => c === litSequence[i]);
+    // static-2: серия1 собрана верно → переключаемся на ввод серии2 (раунд продолжается)
+    if (two && isHit && allFoundCurrent && inputSeries === 0) {
+      setInputSeries(1);
+      setPickedCells(new Set());
+      setPickedSequence([]);
+      return;
+    }
+    const allFound = allFoundCurrent;
     const wrongPicked = !isHit;
     if (allFound || wrongPicked) {
       setFeedbackMsg(allFound && !wrongPicked ? t('matrixGood') : t('matrixMissed'));
@@ -264,22 +300,37 @@ export default function MemoryMatrixGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{score}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-        {phase === 'showing' ? t('matrixMemorize') : phase === 'input' ? t('matrixRecall') : feedbackMsg}
+        {phase === 'showing'
+          ? (seriesCountRef.current === 2 && matrixMode === 'static'
+              ? (showingSeries === 2 ? (language === 'ru' ? '🔴 Запомни КРАСНЫЕ' : '🔴 Memorize RED') : (language === 'ru' ? '🟣 Запомни ФИОЛЕТОВЫЕ' : '🟣 Memorize PURPLE'))
+              : t('matrixMemorize'))
+          : phase === 'input'
+          ? (seriesCountRef.current === 2 && matrixMode === 'static'
+              ? (inputSeries === 1 ? (language === 'ru' ? '🔴 Теперь КРАСНЫЕ' : '🔴 Now RED') : (language === 'ru' ? '🟣 Сначала ФИОЛЕТОВЫЕ' : '🟣 Purple first'))
+              : t('matrixRecall'))
+          : feedbackMsg}
       </Text>
       <View
         style={[styles.gridArea, { width: gridSize * (cellSize + 6) - 6, height: gridSize * (cellSize + 6) - 6 }]}
       >
         {Array.from({ length: gridSize * gridSize }).map((_, i) => {
-          const isLit = matrixMode === 'static' ? litCells.has(i) : (activeIdx === i);
+          const two = seriesCountRef.current === 2 && matrixMode === 'static';
+          const inSeries1 = litCells.has(i);
+          const inSeries2 = series2.has(i);
+          const showLit = matrixMode === 'static'
+            ? ((showingSeries === 1 && inSeries1) || (showingSeries === 2 && inSeries2))
+            : (activeIdx === i);
+          const targetHas = two ? (inputSeries === 1 ? inSeries2 : inSeries1) : inSeries1;   // целевая серия ввода
           const isPicked = pickedCells.has(i);
           let bg = colors.surface;
           let border = colors.textSecondary;   // заметная рамка (было colors.border — бледная, поля не видно на светлой теме)
-          if (phase === 'showing' && isLit) bg = GRADIENT[0];
-          else if (phase === 'input' && isPicked) bg = isLit ? '#22c55e' : '#f43f5e';
+          if (phase === 'showing' && showLit) bg = showingSeries === 2 ? SERIES2_COLOR : SERIES1_COLOR;
+          else if (phase === 'input' && isPicked) bg = targetHas ? '#22c55e' : '#f43f5e';
           else if (phase === 'feedback') {
-            if (isLit && !isPicked) bg = '#fbbf24';
-            else if (isLit && isPicked) bg = '#22c55e';
-            else if (!isLit && isPicked) bg = '#f43f5e';
+            const inAny = inSeries1 || inSeries2;
+            if (inAny && !isPicked) bg = '#fbbf24';
+            else if (inAny && isPicked) bg = '#22c55e';
+            else if (!inAny && isPicked) bg = '#f43f5e';
           }
           return (
             <TouchableOpacity
