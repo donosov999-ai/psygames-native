@@ -46,6 +46,13 @@ function speakLetter(letter: string) {
   } catch {}
 }
 
+// Уровень (1..15+): L1-5 single N=1→5 · L6-8 single N=5 быстрее (ISI↓) · L9-15 DUAL (визуал+звук, классика Jaeggi) N растёт.
+function levelParams(level: number): { N: number; modality: Modality; showMs: number; gapMs: number } {
+  if (level <= 5) return { N: level, modality: 'single', showMs: 700, gapMs: 1100 };
+  if (level <= 8) { const f = level - 5; return { N: 5, modality: 'single', showMs: Math.max(450, 700 - f * 80), gapMs: Math.max(700, 1100 - f * 130) }; }
+  const dl = level - 8; return { N: Math.min(6, 1 + dl), modality: 'dual', showMs: 700, gapMs: 1100 };   // L9=2-back dual → растёт до 6
+}
+
 export default function NBackGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -89,6 +96,9 @@ export default function NBackGame() {
   // Зеркало счётчиков в реф: finishGame вызывается из таймера runTrial и читал бы их из
   // устаревшего замыкания → сохранённые d'/accuracy/score недосчитывали последние пробы.
   const statsRef = useRef({ hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0, aHits: 0, aMisses: 0, aFalseAlarms: 0, aCorrectRejections: 0 });
+  const levelRef = useRef(1);
+  const showMsRef = useRef(700);
+  const gapMsRef = useRef(1100);
 
   useEffect(() => {
     return () => {
@@ -97,7 +107,15 @@ export default function NBackGame() {
   }, []);
 
   const startGame = () => {
-    if (!isPreset) setNLevel((cur) => Math.min(5, Math.max(cur, lvl.level)));   // N от уровня (флор); таймер 600мс ниже даёт стейту примениться
+    if (!isPreset) {
+      // уровень рулит: N → скорость показа → dual-режим (визуал+звук). Таймер 600мс ниже даёт стейту примениться.
+      const p = levelParams(lvl.level);
+      levelRef.current = lvl.level;
+      showMsRef.current = p.showMs;
+      gapMsRef.current = p.gapMs;
+      setNLevel(p.N);
+      setModality(p.modality);
+    }
     setHits(0); setMisses(0); setFalseAlarms(0); setCorrectRejections(0);
     setAHits(0); setAMisses(0); setAFalseAlarms(0); setACorrectRejections(0);
     statsRef.current = { hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0, aHits: 0, aMisses: 0, aFalseAlarms: 0, aCorrectRejections: 0 };
@@ -167,8 +185,8 @@ export default function NBackGame() {
           }
         }
         runTrial(newVHist, newAHist, newIdx);
-      }, 1100);
-    }, 700);
+      }, gapMsRef.current);
+    }, showMsRef.current);
   };
 
   const handleMatchPress = () => {
@@ -198,7 +216,7 @@ export default function NBackGame() {
     setPhase('result');
     const totalAnswered = hits + misses + falseAlarms + correctRejections;
     const accuracy = totalAnswered > 0 ? Math.round(((hits + correctRejections) / totalAnswered) * 100) : 0;
-    if (!isPreset && accuracy >= 80) lvl.reach(nLevel + 1);   // ≥80% на N-back → уровень = N+1 (растём)
+    if (!isPreset && accuracy >= 80) lvl.reach(levelRef.current + 1);   // ≥80% → +уровень (N → скорость → dual)
     // Signal Detection Theory: d' = z(hit_rate) - z(false_alarm_rate)
     // Hit rate = hits / (hits + misses); False alarm rate = falseAlarms / (falseAlarms + correctRejections)
     // Apply log-linear correction to avoid infinity (Snodgrass & Corwin 1988): add 0.5 to numerator, 1 to denominator
