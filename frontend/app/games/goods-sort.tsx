@@ -72,19 +72,27 @@ type Sel = { cell: number; idx: number } | null;
 
 function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-const SLOTS = 9;   // 3×3 доска ячеек-полок
 const CAP = 3;     // вместимость ячейки — 3 товара ВИДИМЫ (суть оригинала)
 
-// Сложность по уровню: больше типов + теснее (меньше пустых ячеек для манёвра).
-// Потолок типов = 7: 9 ячеек × cap 3 минус ≥2 пустых = влезает ровно 7×3 товаров.
+// Доска РАСТЁТ с уровнем: L1-7 3×3 (9), L8-11 4×3 (12), L12+ 4×4 (16) → больше типов на верхах.
+function gridFor(L: number): { cols: number; rows: number } {
+  if (L <= 7) return { cols: 3, rows: 3 };
+  if (L <= 11) return { cols: 4, rows: 3 };
+  return { cols: 4, rows: 4 };
+}
+
+// Сложность по уровню: больше типов + теснее (меньше пустых ячеек для манёвра) + растущая доска.
 function levelCfg(L: number, poolSize: number) {
-  const types = Math.min(poolSize, 7, 3 + Math.floor(L / 2));   // 3 → 7
-  let spares = Math.max(2, 6 - Math.floor((L - 1) / 3));        // 6 → 2 пустых ячеек
-  spares = Math.max(2, Math.min(spares, SLOTS - types));        // влезть + ≥2 пустых → всегда решаемо
-  // За L8 (типы упёрты в 7) сложность = ЛИМИТ ХОДОВ (давление эффективности; layout >9 ячеек = фаза 2).
+  const { cols, rows } = gridFor(L);
+  const slots = cols * rows;
+  const typeCeiling = slots - 2;                                 // ≥2 пустых ячейки → всегда решаемо
+  const types = Math.min(poolSize, typeCeiling, 3 + Math.floor(L / 2));   // 3 → растёт, теперь выше 7 на больших досках
+  let spares = Math.max(2, 6 - Math.floor((L - 1) / 3));         // 6 → 2 пустых ячеек
+  spares = Math.max(2, Math.min(spares, slots - types));
+  // За L8 сложность ещё и ЛИМИТ ХОДОВ (давление эффективности).
   const over = Math.max(0, L - 8);
   const moveLimit = over > 0 ? Math.max(types * 2, types * 3 - over) : 0;   // 0 = без лимита
-  return { types, spares, moveLimit };
+  return { types, spares, moveLimit, cols, rows, slots };
 }
 
 function threeSame(cell: number[]): boolean { return cell.length === 3 && cell[0] === cell[1] && cell[1] === cell[2]; }
@@ -93,18 +101,18 @@ function hasPair(cell: number[]): boolean {
   return false;
 }
 
-// Раздать по 3 каждого выбранного типа в (SLOTS−spares) ячеек, ≤3 в ячейке, без готовых троек.
+// Раздать по 3 каждого выбранного типа в (slots−spares) ячеек, ≤3 в ячейке, без готовых троек.
 // Всё ВИДИМО — full-information сортировка (не скрытые стопки).
-function generate(pool: number[], types: number, spares: number): number[][] {
+function generate(pool: number[], types: number, spares: number, slots: number): number[][] {
   const chosen = shuffle(pool).slice(0, types);
   const items: number[] = [];
   chosen.forEach((tp) => { for (let k = 0; k < CAP; k++) items.push(tp); });
-  const used = Math.max(types, SLOTS - spares);
+  const used = Math.max(types, slots - spares);
   let cells: number[][];
   let guard = 0;
   do {
     const sh = shuffle(items);
-    cells = Array.from({ length: SLOTS }, () => [] as number[]);
+    cells = Array.from({ length: slots }, () => [] as number[]);
     let ci = 0;
     for (const it of sh) {
       for (let tries = 0; tries < used; tries++) {
@@ -143,11 +151,15 @@ export default function GoodsSortGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const scoreRef = useRef(0); const movesRef = useRef(0);
+  const gridRef = useRef({ cols: 3, rows: 3, slots: 9 });        // текущая доска — для логики каскада/reshuffle
+  const [gridDim, setGridDim] = useState({ cols: 3, rows: 3 });  // для рендера полок
   const { popups, spawn } = useScorePopups();
 
   const loadLevel = (L: number) => {
     const cfg = levelCfg(L, poolRef.current.length);
-    setCells(generate(poolRef.current, cfg.types, cfg.spares));
+    gridRef.current = { cols: cfg.cols, rows: cfg.rows, slots: cfg.slots };
+    setGridDim({ cols: cfg.cols, rows: cfg.rows });
+    setCells(generate(poolRef.current, cfg.types, cfg.spares, cfg.slots));
     setSel(null); setMoves(0); movesRef.current = 0;
     setStartTime(Date.now()); setElapsed(0);
   };
@@ -197,7 +209,7 @@ export default function GoodsSortGame() {
     let clearedNow = 0; let again = true;
     while (again) {
       again = false;
-      for (let i = 0; i < SLOTS; i++) {
+      for (let i = 0; i < gridRef.current.slots; i++) {
         if (threeSame(ns[i])) { ns[i] = []; clearedNow += 1; scoreRef.current += 50; again = true; }
       }
     }
@@ -223,11 +235,11 @@ export default function GoodsSortGame() {
   const reshuffle = () => {
     const items = cells.flat();
     if (items.length === 0) return;
-    const used = Math.min(SLOTS - 2, Math.max(1, Math.ceil(items.length / CAP)));
+    const used = Math.min(gridRef.current.slots - 2, Math.max(1, Math.ceil(items.length / CAP)));
     let ns: number[][]; let guard = 0;
     do {
       const sh = shuffle(items);
-      ns = Array.from({ length: SLOTS }, () => [] as number[]);
+      ns = Array.from({ length: gridRef.current.slots }, () => [] as number[]);
       let ci = 0;
       for (const it of sh) { for (let tr = 0; tr < used; tr++) { const c = ci % used; ci++; if (ns[c].length < CAP) { ns[c].push(it); break; } } }
       ns = shuffle(ns);
@@ -238,11 +250,10 @@ export default function GoodsSortGame() {
 
   // ── вёрстка ──────────────────────────────────────────────────────────
   const boardW = Math.min(width - 24, 900);   // шире → товары крупнее на десктопе
-  const cellW = Math.floor((boardW - 10 * 2 - 8 * 2) / 3);          // 3 ячейки-полки в ряд
-  // Размер товара ограничен И шириной (3 в ряд), И доступной высотой (3 полки) — тянемся по высоте экрана,
-  // чтобы поле не было «приплюснутым», а товары — крупными и видимыми.
+  const cellW = Math.floor((boardW - 10 * 2 - 8 * (gridDim.cols - 1)) / gridDim.cols);   // cols ячеек-полок в ряд
+  // Размер товара ограничен И шириной (cols в ряд), И доступной высотой (rows полок) — тянемся по высоте экрана.
   const availH = Math.max(180, height - 360);
-  const itemSize = Math.max(46, Math.min(112, Math.floor((cellW - 10) / 3), Math.floor(availH / 3) - 30));
+  const itemSize = Math.max(40, Math.min(112, Math.floor((cellW - 10) / 3), Math.floor(availH / gridDim.rows) - 26));
 
   const renderCell = (i: number) => {
     const cell = cells[i] || [];
@@ -303,7 +314,7 @@ export default function GoodsSortGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('goodsLevel')} {level}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-          🛒 {levelCfg(level, poolRef.current.length).types}   ·   📦 {SLOTS - levelCfg(level, poolRef.current.length).spares}
+          🛒 {levelCfg(level, poolRef.current.length).types}   ·   📦 {levelCfg(level, poolRef.current.length).slots - levelCfg(level, poolRef.current.length).spares}
         </Text>
         {level > 1 && (
           <TouchableOpacity onPress={() => { setLevel(1); if (!isPreset) lvl.setLevel(1); }} style={{ marginTop: 6 }}>
@@ -327,9 +338,9 @@ export default function GoodsSortGame() {
         </View>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
         <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }}>
-          {[0, 1, 2].map((row) => (
+          {Array.from({ length: gridDim.rows }).map((_, row) => (
             <LinearGradient key={row} colors={['#6b4423', '#4a2e16']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.shelf, { width: boardW }]}>
-              {[0, 1, 2].map((col) => renderCell(row * 3 + col))}
+              {Array.from({ length: gridDim.cols }).map((_, col) => renderCell(row * gridDim.cols + col))}
             </LinearGradient>
           ))}
         </View>
