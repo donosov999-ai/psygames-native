@@ -22,6 +22,7 @@ import { LEVELS_BY_GAME } from '@/src/constants/level-progression';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 
 const GRADIENT = ['#667eea', '#764ba2'];
@@ -39,6 +40,27 @@ type ContentMode = 'numbers' | 'letters' | 'mixed';
  *  Для mixed (Шульте-Горбов) backward не применяется (нелогично). */
 type Direction = 'forward' | 'backward';
 
+// Персональная лесенка 15 ступеней: размер → обратный → буквы → цвет → Горбов → Горбов+цвет.
+// Буквы держим 5×5 (рус/латиница ограничены алфавитом). Сложность растёт ТРУДНОСТЬЮ.
+function levelParams(level: number): { gridSize: number; contentMode: ContentMode; direction: Direction; colorMode: boolean } {
+  const L = level;
+  if (L <= 1) return { gridSize: 5, contentMode: 'numbers', direction: 'forward', colorMode: false };
+  if (L === 2) return { gridSize: 6, contentMode: 'numbers', direction: 'forward', colorMode: false };
+  if (L === 3) return { gridSize: 7, contentMode: 'numbers', direction: 'forward', colorMode: false };
+  if (L === 4) return { gridSize: 5, contentMode: 'numbers', direction: 'backward', colorMode: false };
+  if (L === 5) return { gridSize: 6, contentMode: 'numbers', direction: 'backward', colorMode: false };
+  if (L === 6) return { gridSize: 5, contentMode: 'letters', direction: 'forward', colorMode: false };
+  if (L === 7) return { gridSize: 5, contentMode: 'letters', direction: 'backward', colorMode: false };
+  if (L === 8) return { gridSize: 5, contentMode: 'numbers', direction: 'forward', colorMode: true };
+  if (L === 9) return { gridSize: 6, contentMode: 'numbers', direction: 'forward', colorMode: true };
+  if (L === 10) return { gridSize: 5, contentMode: 'letters', direction: 'forward', colorMode: true };
+  if (L === 11) return { gridSize: 5, contentMode: 'letters', direction: 'backward', colorMode: true };
+  if (L === 12) return { gridSize: 5, contentMode: 'mixed', direction: 'forward', colorMode: false };
+  if (L === 13) return { gridSize: 6, contentMode: 'mixed', direction: 'forward', colorMode: false };
+  if (L === 14) return { gridSize: 5, contentMode: 'mixed', direction: 'forward', colorMode: true };
+  return { gridSize: 6, contentMode: 'mixed', direction: 'forward', colorMode: true };   // L15+
+}
+
 export default function SchulteGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -49,7 +71,10 @@ export default function SchulteGame() {
 
   // Game configuration
   const { isPreset, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const lvl = usePersistentLevel('schulte_table');   // персональный уровень (лесенка); отдельно от ручного config и gating
+  const levelRef = useRef(1);
+  const useLevelRef = useRef(false);   // запущено по уровню? (для reach)
+  useEffect(() => { if (isPreset) startGame(false); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [gridSize, setGridSize] = useState(() => num('size', 5));
   const [colorMode, setColorMode] = useState(false);
   const [contentMode, setContentMode] = useState<ContentMode>('numbers');
@@ -121,30 +146,28 @@ export default function SchulteGame() {
     };
   }, []);
 
-  const generateGrid = useCallback(() => {
-    const totalCells = gridSize * gridSize;
+  const generateGrid = useCallback((gsArg?: number, cmArg?: ContentMode, dirArg?: Direction) => {
+    // явные параметры (из уровня) приоритетнее state — иначе stale при setState+generateGrid в одном тике
+    const gs = gsArg ?? gridSize;
+    const cm = cmArg ?? contentMode;
+    const dir = dirArg ?? direction;
+    const totalCells = gs * gs;
     let items: (number | string)[];
     let orderedSequence: (number | string)[];
 
-    if (contentMode === 'numbers') {
-      // Numbers mode: 1 to N (forward) или N to 1 (backward)
+    if (cm === 'numbers') {
       items = Array.from({ length: totalCells }, (_, i) => i + 1);
       orderedSequence = [...items];
-    } else if (contentMode === 'letters') {
-      // Letters mode: первые N символов выбранной письменности → forward, либо реверс
+    } else if (cm === 'letters') {
       const alphabet = SCRIPTS[script].chars;
       items = alphabet.slice(0, totalCells).split('');
       orderedSequence = [...items];
     } else {
-      // Mixed mode (Schulte-Gorbov): chase 1, A, 2, B, 3, C, ...
-      // Половина чисел + половина букв, чередуются в правильной последовательности.
-      // Это самый сильный вариант для тренировки переключения внимания.
-      // backward для mixed не применяется (всегда forward).
+      // Mixed (Schulte-Gorbov): 1, A, 2, B, 3, C, ... — backward не применяется
       const half = Math.ceil(totalCells / 2);
       const numbers = Array.from({ length: half }, (_, i) => i + 1);
       const alphabet = SCRIPTS[script].chars;
       const letters = alphabet.slice(0, totalCells - half).split('');
-      // interleave: 1, А, 2, Б, 3, В, ...
       orderedSequence = [];
       for (let i = 0; i < half; i++) {
         orderedSequence.push(numbers[i]);
@@ -154,19 +177,15 @@ export default function SchulteGame() {
       items = [...orderedSequence];
     }
 
-    // v1.10.0: Backward direction — переворачиваем правильную последовательность
-    // (только для numbers и letters; mixed всегда forward)
-    if (direction === 'backward' && contentMode !== 'mixed') {
+    if (dir === 'backward' && cm !== 'mixed') {
       orderedSequence = [...orderedSequence].reverse();
     }
 
-    // Fisher-Yates shuffle (для items — что отображается на сетке, в случайном порядке)
     for (let i = items.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [items[i], items[j]] = [items[j], items[i]];
     }
 
-    // Generate random colors for color mode
     const colors = items.map(() => COLORS[Math.floor(Math.random() * COLORS.length)]);
 
     setGrid(items);
@@ -174,8 +193,18 @@ export default function SchulteGame() {
     setSequence(orderedSequence);
   }, [gridSize, contentMode, script, direction]);
 
-  const startGame = () => {
-    generateGrid();
+  const startGame = (useLevel = false) => {
+    if (useLevel && !isPreset) {
+      // запуск ПО УРОВНЮ: параметры из лесенки (поверх ручного config, gating не трогаем)
+      const p = levelParams(lvl.level);
+      levelRef.current = lvl.level;
+      useLevelRef.current = true;
+      setGridSize(p.gridSize); setContentMode(p.contentMode); setDirection(p.direction); setColorMode(p.colorMode);
+      generateGrid(p.gridSize, p.contentMode, p.direction);
+    } else {
+      useLevelRef.current = false;
+      generateGrid();   // свободный режим / пресет — ручной выбор
+    }
     setCurrentIndex(0);
     setErrors(0);
     setElapsedTime(0);
@@ -199,6 +228,7 @@ export default function SchulteGame() {
         if (timerRef.current) clearInterval(timerRef.current);
         const finalTime = (Date.now() - startTime) / 1000;
         setElapsedTime(finalTime);
+        if (!isPreset && useLevelRef.current && errors <= 2) lvl.reach(levelRef.current + 1);   // прошёл уровень чисто → +уровень
         setPhase('result');
         
         // Save session
@@ -515,7 +545,15 @@ export default function SchulteGame() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.startButton} onPress={startGame}>
+      {!isPreset && (
+        <TouchableOpacity style={[styles.startButton, { marginTop: 'auto', marginBottom: 10 }]} onPress={() => startGame(true)}>
+          <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
+            <Ionicons name="flag" size={22} color="#FFFFFF" />
+            <Text style={styles.startButtonText}>{language === 'ru' ? `🎯 Уровень ${lvl.level} →` : `🎯 Level ${lvl.level} →`}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
+      <TouchableOpacity style={[styles.startButton, !isPreset && { marginTop: 0 }]} onPress={() => startGame(false)}>
         <LinearGradient
           colors={GRADIENT as [string, string]}
           start={{ x: 0, y: 0 }}
@@ -523,7 +561,7 @@ export default function SchulteGame() {
           style={styles.startButtonGradient}
         >
           <Ionicons name="play" size={24} color="#FFFFFF" />
-          <Text style={styles.startButtonText}>{t('start')}</Text>
+          <Text style={styles.startButtonText}>{!isPreset ? (language === 'ru' ? 'Свободно' : 'Free play') : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </ScrollView>
