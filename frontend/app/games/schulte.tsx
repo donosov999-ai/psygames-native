@@ -24,6 +24,7 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#667eea', '#764ba2'];
 
@@ -34,7 +35,9 @@ const SCHULTE_BENEFITS = [
   { icon: 'search-outline', textKey: 'benefitSchulte3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'result';
+// Синергия (пилот): каждые BOSS_EVERY уровней лесенки прошёл таблицу → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 type ContentMode = 'numbers' | 'letters' | 'mixed';
 /** v1.10.0: направление поиска. 'forward' = 1→25 / А→Я, 'backward' = 25→1 / Я→А.
  *  Для mixed (Шульте-Горбов) backward не применяется (нелогично). */
@@ -125,6 +128,7 @@ export default function SchulteGame() {
 
   // Game state
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [grid, setGrid] = useState<(number | string)[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [startTime, setStartTime] = useState<number>(0);
@@ -208,6 +212,7 @@ export default function SchulteGame() {
     setCurrentIndex(0);
     setErrors(0);
     setElapsedTime(0);
+    setBossWon(null);
     setPhase('playing');
 
     if (timerRef.current) clearInterval(timerRef.current);
@@ -229,8 +234,7 @@ export default function SchulteGame() {
         const finalTime = (Date.now() - startTime) / 1000;
         setElapsedTime(finalTime);
         if (!isPreset && useLevelRef.current && errors <= 2) lvl.reach(levelRef.current + 1);   // прошёл уровень чисто → +уровень
-        setPhase('result');
-        
+
         // Save session
         try {
           await saveSession({
@@ -250,6 +254,14 @@ export default function SchulteGame() {
           });
         } catch (error) {
           console.error('Error saving session:', error);
+        }
+
+        // Веха-босс: в лесенке каждые BOSS_EVERY уровней прошёл таблицу → битва с боссом; иначе сразу результат.
+        if (!isPreset && useLevelRef.current && levelRef.current % BOSS_EVERY === 0) {
+          setBossWon(null);
+          setPhase('boss');
+        } else {
+          setPhase('result');
         }
       } else {
         setCurrentIndex((prev) => prev + 1);
@@ -683,11 +695,20 @@ export default function SchulteGame() {
 
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderGame()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={(win) => { setBossWon(win); setPhase('result'); }}
+        />
+      )}
       {phase === 'result' && (
         <GameResult
           time={elapsedTime}
-          score={gridSize * gridSize - errors}
+          score={gridSize * gridSize - errors + (bossWon ? 5 : 0)}
           errors={errors}
+          stars={bossWon === true ? 3 : undefined}
           gradient={GRADIENT}
           onPlayAgain={() => {
             setPhase('config');
