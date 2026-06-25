@@ -33,8 +33,12 @@ type GameMode = 'field' | 'joker';
 
 const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
 
-// Level configs: delay in ms
-const LEVEL_DELAYS = [2000, 1800, 1600, 1400, 1200, 1000, 900, 800, 700, 600];
+// Уровень (1..15+): темп появления↑ (delay↓) + число квадратов↑ (труднее найти совпадение). Размер цели↓ — фаза 2.
+function levelParams(level: number): { delay: number; numSquares: number } {
+  const delay = Math.max(450, 2100 - level * 120);          // L1≈1980мс → L14≈450мс
+  const numSquares = 2 + Math.floor((level - 1) / 4);        // L1-4=2 → L5-8=3 → L9-12=4 → L13+=5
+  return { delay, numSquares };
+}
 
 export default function TargetsGame() {
   const { colors } = useTheme();
@@ -94,26 +98,20 @@ export default function TargetsGame() {
     const circleColor = COLORS[Math.floor(Math.random() * COLORS.length)];
     newShapes.push({ type: 'circle', color: circleColor });
     
-    // Generate two squares
-    const sq1Color = COLORS[Math.floor(Math.random() * COLORS.length)];
-    const sq2Color = COLORS[Math.floor(Math.random() * COLORS.length)];
-    
-    newShapes.push({ type: 'square', color: sq1Color });
-    newShapes.push({ type: 'square', color: sq2Color });
-    
+    // Generate N squares (число растёт с уровнем)
+    const ns = levelParams(levelRef.current).numSquares;
+    const squareColors = Array.from({ length: ns }, () => COLORS[Math.floor(Math.random() * COLORS.length)]);
+    squareColors.forEach((c) => newShapes.push({ type: 'square', color: c }));
+
     // Determine if this is a target
     let target = false;
-    
     if (mode === 'field') {
-      // Field mode: target if TWO of THREE shapes have same color
-      if (circleColor === sq1Color || circleColor === sq2Color || sq1Color === sq2Color) {
-        target = true;
-      }
+      // Field: target если есть ЛЮБОЕ совпадение цвета среди {круг, квадраты}
+      const all = [circleColor, ...squareColors];
+      target = new Set(all).size < all.length;
     } else {
-      // Joker mode: target if previous circle color matches current square color
-      if (prevColorRef.current && (prevColorRef.current === sq1Color || prevColorRef.current === sq2Color)) {
-        target = true;
-      }
+      // Joker: target если цвет ПРЕДЫДУЩЕГО круга встречается среди квадратов
+      target = !!prevColorRef.current && squareColors.includes(prevColorRef.current);
     }
     
     prevColorRef.current = circleColor;
@@ -124,7 +122,7 @@ export default function TargetsGame() {
     setShowTime(Date.now());
 
     // Auto-advance after delay (по СВЕЖЕМУ уровню из рефа, не из stale-замыкания)
-    const delay = LEVEL_DELAYS[levelRef.current - 1];
+    const delay = levelParams(levelRef.current).delay;
     // Передаём СВЕЖИЙ target в таймаут: handleMiss из этого замыкания читал бы stale isTarget
     // (значение ПРОШЛОГО раунда — setIsTarget ещё не применился) → снимал жизнь на НЕ-мишени,
     // если прошлый раунд был мишенью. Теперь решение по факту текущего раунда.
@@ -171,7 +169,7 @@ export default function TargetsGame() {
       setReactionTimes(prev => [...prev, reactionTime]);
 
       // Calculate points
-      const delay = LEVEL_DELAYS[levelRef.current - 1];
+      const delay = levelParams(levelRef.current).delay;
       const points = Math.floor((levelRef.current * levelRef.current) * Math.max(0, delay - reactionTime) / 100);
       setScore(prev => prev + points);
     } else {
@@ -233,7 +231,7 @@ export default function TargetsGame() {
 
     if (roundRef.current >= roundsPerLevel) {
       // Уровень пройден — следующий (равномерно, каждые 10 раундов)
-      if (levelRef.current < 10) {
+      if (levelRef.current < 15) {
         levelRef.current += 1;
         roundRef.current = 0;
         livesRef.current += getLifeBonus(levelRef.current);
@@ -669,6 +667,9 @@ const styles = StyleSheet.create({
   },
   shapesRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'center',
     marginBottom: 24,
   },
   circle: {
