@@ -57,7 +57,7 @@ function bfsMin(start: State, goal: State): number {
   const visited = new Set<string>([stateKey(start)]);
   let frontier: State[] = [start];
   let depth = 0;
-  while (frontier.length && depth < 12) {
+  while (frontier.length && depth < 16) {
     const next: State[] = [];
     for (const st of frontier) {
       for (const m of legalMoves(st)) {
@@ -76,9 +76,9 @@ function bfsMin(start: State, goal: State): number {
   return depth;
 }
 
-function makePuzzle(diff: Difficulty): { start: State; goal: State; minMoves: number } {
-  const targetMoves = diff === 'easy' ? 3 : diff === 'medium' ? 5 : 7;
-  for (let attempt = 0; attempt < 50; attempt++) {
+// targetMoves — целевая длина плана (minMoves). На 3 шарах реально 2..7; больше = fallback (4-5 шаров — фаза 2).
+function makePuzzle(targetMoves: number): { start: State; goal: State; minMoves: number } {
+  for (let attempt = 0; attempt < 60; attempt++) {
     // start with all 3 balls on peg 0
     const start: State = [['R','G','B'], [], []];
     // do random walk for "targetMoves * 2" steps to get a goal
@@ -116,7 +116,7 @@ export default function TowerLondonGame() {
   const [trials, setTrials] = useState(() => num('trials', 5));
 
   const [round, setRound] = useState(0);
-  const [puzzle, setPuzzle] = useState(() => makePuzzle('medium'));
+  const [puzzle, setPuzzle] = useState(() => makePuzzle(5));
   const [state, setState] = useState<State>([[],[],[]]);
   const [selPeg, setSelPeg] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);
@@ -127,11 +127,13 @@ export default function TowerLondonGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const levelRef = useRef(1);
+  const targetMovesRef = useRef(5);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  const newRound = (d: Difficulty = difficulty) => {
-    const p = makePuzzle(d);
+  const newRound = (tm: number = targetMovesRef.current) => {
+    const p = makePuzzle(tm);
     setPuzzle(p);
     setState(cloneState(p.start));
     setSelPeg(null);
@@ -140,10 +142,12 @@ export default function TowerLondonGame() {
   };
 
   const startGame = () => {
-    const diff: Difficulty = isPreset ? difficulty : (lvl.level <= 1 ? 'easy' : lvl.level === 2 ? 'medium' : 'hard');   // тир от уровня
-    if (!isPreset) setDifficulty(diff);
+    // уровень → длина плана (minMoves цель). 3 шара дают 2..7, дальше fallback; 4-5 шаров + лимит времени = фаза 2.
+    const tm = isPreset ? (difficulty === 'easy' ? 3 : difficulty === 'medium' ? 5 : 7) : Math.min(8, 1 + lvl.level);
+    levelRef.current = lvl.level;
+    targetMovesRef.current = tm;
     setSolved(0); setExtraMoves(0); setErrors(0); setRound(1);
-    newRound(diff);
+    newRound(tm);
     setPhase('playing');
     const start = Date.now();
     setStartTime(start);
@@ -180,7 +184,7 @@ export default function TowerLondonGame() {
           if (timerRef.current) clearInterval(timerRef.current);
           const finalTime = (Date.now() - startTime) / 1000;
           setElapsedTime(finalTime);
-          if (!isPreset && (extraMoves + extra) <= trials) lvl.reach((difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3) + 1);   // эффективно прошёл тир → +уровень
+          if (!isPreset && (extraMoves + extra) <= trials) lvl.reach(levelRef.current + 1);   // эффективно прошёл → +уровень
           setPhase('result');
           try {
             await saveSession({
