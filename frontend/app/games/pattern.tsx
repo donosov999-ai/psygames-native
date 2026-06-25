@@ -11,7 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
-import { useLevelGate } from '@/src/hooks/useLevelGate';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -26,69 +26,69 @@ const PATTERN_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
 
-interface Sequence { items: number[]; answer: number; rule: string; }
+// Каждый ряд = ОДНОЗНАЧНО продолжаемая прогрессия (правило Дениса: фрактальные/неоднозначные нельзя).
+// Подсказка 2 ступени: classRu (класс) → ruleRu (формула/правило).
+interface Sequence { items: number[]; answer: number; classRu: string; classEn: string; ruleRu: string; ruleEn: string; }
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+const rnd = (n: number) => Math.floor(Math.random() * n);
 
-function makeSequence(diff: Difficulty): Sequence {
-  // Pick rule based on difficulty
-  const easyRules = ['add', 'subtract', 'double'];
-  const medRules = ['add', 'subtract', 'double', 'square', 'arith2'];
-  const hardRules = ['add', 'double', 'square', 'arith2', 'fib', 'alternating', 'triple'];
-  const rules = diff === 'easy' ? easyRules : diff === 'medium' ? medRules : hardRules;
-  const rule = rules[Math.floor(Math.random() * rules.length)];
+function genArithmetic(): Sequence {
+  const start = 1 + rnd(9), step = 2 + rnd(6);
+  return { items: [start, start+step, start+2*step, start+3*step], answer: start+4*step,
+    classRu: 'Арифметическая прогрессия', classEn: 'Arithmetic', ruleRu: `Каждый член больше на ${step}`, ruleEn: `Each term +${step}` };
+}
+function genGeometric(): Sequence {
+  const start = 2 + rnd(3), r = 2 + rnd(2);   // ×2..×3
+  return { items: [start, start*r, start*r*r, start*r*r*r], answer: start*r*r*r*r,
+    classRu: 'Геометрическая прогрессия', classEn: 'Geometric', ruleRu: `Каждый член умножается на ${r}`, ruleEn: `Each term ×${r}` };
+}
+function genSquares(): Sequence {
+  const s = 1 + rnd(4);
+  return { items: [s*s, (s+1)*(s+1), (s+2)*(s+2), (s+3)*(s+3)], answer: (s+4)*(s+4),
+    classRu: 'Квадраты чисел', classEn: 'Squares', ruleRu: `n²: ${s}², ${s+1}², ${s+2}², …`, ruleEn: `n²: ${s}², ${s+1}², …` };
+}
+function genCubes(): Sequence {
+  const s = 1 + rnd(2);
+  return { items: [s*s*s, (s+1)*(s+1)*(s+1), (s+2)*(s+2)*(s+2)], answer: (s+3)*(s+3)*(s+3),
+    classRu: 'Кубы чисел', classEn: 'Cubes', ruleRu: `n³: ${s}³, ${s+1}³, …`, ruleEn: `n³: ${s}³, ${s+1}³, …` };
+}
+function genFibonacci(): Sequence {
+  let a = 1 + rnd(3), b = a + 1 + rnd(2);
+  const all = [a, b]; for (let i=0;i<3;i++){ const c=a+b; all.push(c); a=b; b=c; }
+  return { items: all.slice(0,4), answer: all[4],
+    classRu: 'Похоже на Фибоначчи', classEn: 'Fibonacci-like', ruleRu: 'Сумма двух предыдущих', ruleEn: 'Sum of the previous two' };
+}
+function genGrowingDiff(): Sequence {
+  const start = 1 + rnd(5), baseStep = 1 + rnd(3);
+  const items = [start]; let s = baseStep;
+  for (let i=0;i<3;i++){ items.push(items[items.length-1] + s); s++; }
+  return { items, answer: items[3] + s,
+    classRu: 'Растущая разность', classEn: 'Growing difference', ruleRu: `Разность растёт на 1 каждый шаг (${baseStep}, ${baseStep+1}, …)`, ruleEn: 'Difference grows by 1 each step' };
+}
+function genLookAndSay(): Sequence {
+  const seqs = [1, 11, 21, 1211, 111221, 312211];   // однозначный ряд «посмотри и скажи»
+  const i = rnd(2);
+  return { items: seqs.slice(i, i+4), answer: seqs[i+4],
+    classRu: '«Посмотри и скажи»', classEn: 'Look-and-say', ruleRu: 'Читай предыдущий вслух: «один 1» → 11, «два 1 один 2» …', ruleEn: 'Read the previous term aloud: "one 1" → 11' };
+}
+function genInterleaved(): Sequence {
+  const startO = 1 + rnd(4), a = 1 + rnd(3);     // нечётные позиции: +a
+  const startE = 5 + rnd(5),  b = 5 + rnd(6);     // чётные позиции: +b
+  // показываем O1,E1,O2,E2; ответ = O3 (следующая нечётная позиция)
+  return { items: [startO, startE, startO+a, startE+b], answer: startO + 2*a,
+    classRu: 'Два переплетённых ряда', classEn: 'Two interleaved series', ruleRu: `Позиции 1,3,5… растут на ${a}; позиции 2,4… на ${b}. Нужна следующая нечётная`, ruleEn: `Odd positions +${a}, even +${b}` };
+}
 
-  let items: number[] = [];
-  let answer = 0;
-
-  if (rule === 'add') {
-    const start = 1 + Math.floor(Math.random() * 9);
-    const step = 2 + Math.floor(Math.random() * 6);
-    items = [start, start + step, start + 2 * step, start + 3 * step];
-    answer = start + 4 * step;
-  } else if (rule === 'subtract') {
-    const start = 30 + Math.floor(Math.random() * 50);
-    const step = 2 + Math.floor(Math.random() * 7);
-    items = [start, start - step, start - 2 * step, start - 3 * step];
-    answer = start - 4 * step;
-  } else if (rule === 'double') {
-    const start = 1 + Math.floor(Math.random() * 4);
-    items = [start, start * 2, start * 4, start * 8];
-    answer = start * 16;
-  } else if (rule === 'triple') {
-    const start = 1 + Math.floor(Math.random() * 3);
-    items = [start, start * 3, start * 9, start * 27];
-    answer = start * 81;
-  } else if (rule === 'square') {
-    const start = 1 + Math.floor(Math.random() * 3);
-    items = [start * start, (start + 1) * (start + 1), (start + 2) * (start + 2), (start + 3) * (start + 3)];
-    answer = (start + 4) * (start + 4);
-  } else if (rule === 'arith2') {
-    // arithmetic with growing step: 1, 2, 4, 7, 11 (diff +1 each)
-    const start = 1 + Math.floor(Math.random() * 5);
-    const baseStep = 1 + Math.floor(Math.random() * 3);
-    items = [start];
-    let s = baseStep;
-    for (let i = 0; i < 3; i++) { items.push(items[items.length - 1] + s); s++; }
-    answer = items[items.length - 1] + s;
-  } else if (rule === 'fib') {
-    let a = 1 + Math.floor(Math.random() * 3);
-    let b = a + 1 + Math.floor(Math.random() * 2);
-    items = [a, b];
-    for (let i = 0; i < 3; i++) { const c = a + b; items.push(c); a = b; b = c; }
-    answer = a + b;
-    items = items.slice(0, 5);
-    answer = items[3] + items[4];
-    items = items.slice(0, 4);
-  } else if (rule === 'alternating') {
-    // 2 +5 -2 +5 -2 = e.g. 2,7,5,10,8 → next 13
-    const start = 2 + Math.floor(Math.random() * 5);
-    const a = 3 + Math.floor(Math.random() * 4);
-    const b = 1 + Math.floor(Math.random() * 3);
-    items = [start, start + a, start + a - b, start + 2 * a - b];
-    answer = start + 2 * a - 2 * b;
-  }
-  return { items, answer, rule };
+// Уровень → класс прогрессии (труднота растёт; БЕЗ лимита времени).
+function makeSequence(level: number): Sequence {
+  if (level <= 2)  return genArithmetic();
+  if (level <= 4)  return genGeometric();
+  if (level <= 6)  return rnd(2) ? genSquares() : genCubes();
+  if (level <= 8)  return genFibonacci();
+  if (level <= 10) return genGrowingDiff();
+  if (level <= 12) return genLookAndSay();
+  return genInterleaved();
 }
 
 function makeOptions(answer: number, count = 4): number[] {
@@ -104,35 +104,40 @@ function makeOptions(answer: number, count = 4): number[] {
 
 export default function PatternGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
-  const gate = useLevelGate('pattern');
-  const { isPreset, str, num } = useGamePreset();
+  const lvl = usePersistentLevel('pattern');
+  const { isPreset, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'easy') as Difficulty));
   const [trials, setTrials] = useState(() => num('trials', 10));
   const [round, setRound] = useState(0);
-  const [seq, setSeq] = useState<Sequence>({ items: [], answer: 0, rule: '' });
+  const [seq, setSeq] = useState<Sequence>({ items: [], answer: 0, classRu: '', classEn: '', ruleRu: '', ruleEn: '' });
   const [options, setOptions] = useState<number[]>([]);
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
+  const [hintStage, setHintStage] = useState(0);   // 0 нет · 1 класс · 2 правило
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const levelRef = useRef(1);
+  const hintUsedRef = useRef(false);   // подсказка хоть раз за игру → потолок 2⭐
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const newRound = () => {
-    const s = makeSequence(difficulty);
+    const s = makeSequence(levelRef.current);
     setSeq(s);
     setOptions(makeOptions(s.answer));
     setFeedback(null);
+    setHintStage(0);
   };
 
   const startGame = () => {
+    levelRef.current = lvl.level;
+    hintUsedRef.current = false;
     setHits(0); setErrors(0); setRound(1);
     newRound();
     setPhase('playing');
@@ -154,15 +159,16 @@ export default function PatternGame() {
         setElapsedTime(finalTime);
         setPhase('result');
         const newHits = correct ? hits + 1 : hits;
+        if (newHits / trials >= 0.7) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
         try {
           await saveSession({
             game_type: 'pattern',
             score: newHits * 100 - (errors + (correct ? 0 : 1)) * 25,
             time_seconds: finalTime,
-            difficulty,
-            mode: `${trials}t`,
+            difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
+            mode: `lvl${levelRef.current}`,
             errors: errors + (correct ? 0 : 1),
-            details: { hits: newHits, errors: errors + (correct ? 0 : 1), trials },
+            details: { level: levelRef.current, hits: newHits, errors: errors + (correct ? 0 : 1), trials, hint_used: hintUsedRef.current },
           });
         } catch (e) { console.error(e); }
       } else {
@@ -172,6 +178,15 @@ export default function PatternGame() {
     }, 700);
   };
 
+  const useHint = () => {
+    if (feedback !== null) return;
+    setHintStage((s) => {
+      const next = Math.min(2, s + 1);
+      if (next >= 1) hintUsedRef.current = true;   // подсказка → потолок 2⭐ за игру
+      return next;
+    });
+  };
+
   const renderConfig = () => (
     <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
@@ -179,28 +194,21 @@ export default function PatternGame() {
         <Text style={styles.configTitle}>{t('pattern')}</Text>
         <Text style={styles.configDesc}>{t('patternDesc')}</Text>
       </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {(['easy','medium','hard'] as Difficulty[]).map((d) => {
-            const locked = gate.isLocked(d);
-            return (
-            <TouchableOpacity key={d} disabled={locked}
-              style={[styles.modeButton, difficulty === d && !locked
-                ? { backgroundColor: GRADIENT[0] }
-                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 }]}
-              onPress={() => !locked && setDifficulty(d)}>
-              <Text style={[styles.modeButtonText, { color: difficulty === d && !locked ? '#FFF' : colors.text }]}>
-                {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')}{locked ? ' 🔒' : ''}
-              </Text>
-            </TouchableOpacity>
-            );
-          })}
-        </View>
-        {gate.nextHint && (
-          <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, marginTop: 8, fontStyle: 'italic' }}>
-            {gate.nextHint}
-          </Text>
+      <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}</Text>
+        <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+          {lvl.level <= 2 ? (language === 'ru' ? 'Арифметическая прогрессия' : 'Arithmetic')
+           : lvl.level <= 4 ? (language === 'ru' ? 'Геометрическая прогрессия' : 'Geometric')
+           : lvl.level <= 6 ? (language === 'ru' ? 'Квадраты и кубы' : 'Squares & cubes')
+           : lvl.level <= 8 ? (language === 'ru' ? 'Похоже на Фибоначчи' : 'Fibonacci-like')
+           : lvl.level <= 10 ? (language === 'ru' ? 'Растущая разность' : 'Growing difference')
+           : lvl.level <= 12 ? (language === 'ru' ? '«Посмотри и скажи» (нужна подсказка)' : 'Look-and-say (use hint)')
+           : (language === 'ru' ? 'Два переплетённых ряда' : 'Two interleaved series')}
+        </Text>
+        {lvl.level > 1 && (
+          <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+          </TouchableOpacity>
         )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -253,6 +261,18 @@ export default function PatternGame() {
           </TouchableOpacity>
         ))}
       </View>
+      {hintStage >= 1 && (
+        <View style={[styles.hintBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14, textAlign: 'center' }}>💡 {language === 'ru' ? seq.classRu : seq.classEn}</Text>
+          {hintStage >= 2 && <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4, textAlign: 'center' }}>{language === 'ru' ? seq.ruleRu : seq.ruleEn}</Text>}
+        </View>
+      )}
+      <TouchableOpacity onPress={useHint} disabled={hintStage >= 2 || feedback !== null}
+        style={[styles.hintBtn, { borderColor: GRADIENT[0], opacity: (hintStage >= 2 || feedback !== null) ? 0.4 : 1 }]}>
+        <Text style={{ color: GRADIENT[0], fontWeight: '700', fontSize: 14 }}>
+          💡 {hintStage === 0 ? (language === 'ru' ? 'Подсказка' : 'Hint') : hintStage === 1 ? (language === 'ru' ? 'Ещё: правило (−1⭐)' : 'More: rule (−1⭐)') : (language === 'ru' ? 'Подсказка использована' : 'Hint used')}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -272,13 +292,17 @@ export default function PatternGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
-      {phase === 'result' && (
+      {phase === 'result' && (() => {
+        const base = errors === 0 ? 3 : errors <= 2 ? 2 : 1;
+        const stars = hintUsedRef.current ? Math.min(2, base) : base;   // подсказка → потолок 2⭐
+        return (
         <GameResult
           score={Math.max(0, hits * 100 - errors * 25)}
-          time={elapsedTime} errors={errors}
+          time={elapsedTime} errors={errors} stars={stars}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
-      )}
+        );
+      })()}
     </SafeAreaView>
   );
 }
@@ -310,4 +334,6 @@ const styles = StyleSheet.create({
   optionsArea: { flexDirection: 'row', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 360 },
   optBtn: { paddingVertical: 18, paddingHorizontal: 24, borderRadius: 10, minWidth: 80, alignItems: 'center' },
   optText: { color: '#FFF', fontSize: 22, fontWeight: '800' },
+  hintBox: { padding: 12, borderRadius: 10, borderWidth: 1.5, maxWidth: 340, alignItems: 'center' },
+  hintBtn: { paddingVertical: 10, paddingHorizontal: 24, borderRadius: 22, borderWidth: 1.5 },
 });
