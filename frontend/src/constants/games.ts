@@ -210,6 +210,17 @@ export const GAMES: GameConfig[] = [
     route: '/games/picture-pairs',
     category: 'memory',
   },
+  // Маджонг-солитёр: ищи парные СВОБОДНЫЕ тайлы в псевдо-3D пирамиде, убирай всё.
+  {
+    id: 'mahjong',
+    nameKey: 'mahjong',
+    descKey: 'mahjongDesc',
+    skillKey: 'skillVisualSearch',
+    gradient: ['#2d6a4f', '#95d5b2'],
+    icon: 'grid',
+    route: '/games/mahjong',
+    category: 'memory',
+  },
   {
     id: 'reading_span',
     nameKey: 'readingSpan',

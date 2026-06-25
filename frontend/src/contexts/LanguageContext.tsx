@@ -418,6 +418,19 @@ const translations: Translations = {
   benefitPairs2: { ru: 'Тренировать зрительную память', en: 'Train visual memory' },
   benefitPairs3: { ru: 'Удерживать карты в уме', en: 'Hold cards in mind' },
 
+  // Mahjong (маджонг-солитёр)
+  mahjong: { ru: 'Маджонг', en: 'Mahjong' },
+  mahjongDesc: { ru: 'Убирай парные свободные тайлы', en: 'Remove matching free tiles' },
+  mahjongIntroDesc: {
+    ru: 'Классический маджонг-солитёр. Тайлы выложены слоями в виде пирамиды. Тайл СВОБОДЕН, если над ним ничего нет И открыта левая ИЛИ правая сторона. Тапни два свободных тайла с одинаковым символом — пара исчезает. Занятые тайлы притушены и не реагируют. Цель — убрать ВСЕ тайлы. Зашёл в тупик — кнопка «Перемешать» переразложит оставшиеся. Уровни растут: больше тайлов и слоёв.',
+    en: 'Classic mahjong solitaire. Tiles are stacked in a pyramid. A tile is FREE when nothing covers it from above AND its left OR right side is open. Tap two free tiles with the same symbol — the pair disappears. Blocked tiles are dimmed and do not respond. Goal — clear EVERY tile. Stuck? The "Shuffle" button reshuffles the remaining tiles. Levels ramp up: more tiles and more layers.',
+  },
+  mahjongHint: { ru: 'Тапни два СВОБОДНЫХ одинаковых тайла — пара уйдёт. Свободен = сверху пусто и открыт край.', en: 'Tap two FREE matching tiles — the pair clears. Free = nothing on top and a side is open.' },
+  skillVisualSearch: { ru: 'Тренируем: зрительный поиск', en: 'Training: visual search' },
+  benefitMahjong1: { ru: 'Зрительный поиск пар среди множества тайлов', en: 'Visual search for pairs among many tiles' },
+  benefitMahjong2: { ru: 'Планирование: какие тайлы открыть раньше', en: 'Planning which tiles to free up first' },
+  benefitMahjong3: { ru: 'Концентрация и внимание к деталям', en: 'Focus and attention to detail' },
+
   // Math Sprint
   mathSprint: { ru: 'Математический спринт', en: 'Mental Math Sprint' },
   mathSprintDesc: { ru: 'Реши максимум примеров за время', en: 'Solve as many problems as possible in time' },

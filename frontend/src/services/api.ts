@@ -204,6 +204,7 @@ const DETAILS_SCHEMAS: Record<string, Record<string, FieldType>> = {
   sudoku:            { errors: 'number' },
   trail_making:      { hits: 'number', errors: 'number' },
   word_pairs:        { hits: 'number', errors: 'number' },
+  mahjong:           { level: 'number', pairs: 'optional_number', layers: 'optional_number' },
 };
 
 function validateSession(s: GameSession): void {

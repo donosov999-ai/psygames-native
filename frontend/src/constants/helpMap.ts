@@ -57,6 +57,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillVisualMemory",
     "introKey": "picturePairsIntroDesc"
   },
+  "/games/mahjong": {
+    "nameKey": "mahjong",
+    "skillKey": "skillVisualSearch",
+    "introKey": "mahjongIntroDesc"
+  },
   "/games/reading-span": {
     "nameKey": "readingSpan",
     "skillKey": "skillWorkingMemory",
