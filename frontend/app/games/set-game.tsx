@@ -93,6 +93,14 @@ function buildBoard(): Card[] {
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
+// Уровень (1..15+): L1-10 trials 6→15 (выносливость) · L11-15 лимит времени на SET (давление, убывает).
+function levelParams(level: number): { trials: number; timeLimit: number } {
+  const trials = Math.min(15, 5 + level);                       // L1=6 → L10=15
+  const over = Math.max(0, level - 10);
+  const timeLimit = over > 0 ? Math.max(8, 30 - over * 4) : 0;   // 0 = без лимита; L11≈26с → L15≈10с
+  return { trials, timeLimit };
+}
+
 export default function SetGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -113,13 +121,28 @@ export default function SetGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const levelRef = useRef(1);
+  const timeLimitRef = useRef(0);
+  const roundTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); if (roundTimerRef.current) clearTimeout(roundTimerRef.current); }, []);
 
-  const newRound = () => { setBoard(buildBoard()); setPicked([]); setFeedback(null); setHintBreakdown(null); };
+  const handleTimeout = () => {
+    setErrors((e) => e + 1);   // не успел найти SET за лимит → штраф + новая доска (тот же раунд)
+    newRound();
+  };
+
+  const newRound = () => {
+    setBoard(buildBoard()); setPicked([]); setFeedback(null); setHintBreakdown(null);
+    if (roundTimerRef.current) clearTimeout(roundTimerRef.current);
+    if (timeLimitRef.current > 0) roundTimerRef.current = setTimeout(() => handleTimeout(), timeLimitRef.current * 1000);   // лимит времени на SET
+  };
 
   const startGame = () => {
-    if (!isPreset) setTrials((cur) => Math.max(cur, Math.min(15, 5 + lvl.level)));   // trials от уровня (флор, L1=6)
+    const p = isPreset ? { trials, timeLimit: 0 } : levelParams(lvl.level);   // уровень рулит: trials → лимит времени на SET
+    levelRef.current = lvl.level;
+    timeLimitRef.current = p.timeLimit;
+    if (!isPreset) setTrials(p.trials);
     setHits(0); setErrors(0); setRound(1);
     newRound();
     setPhase('playing');
@@ -138,6 +161,7 @@ export default function SetGame() {
   };
 
   const checkSet = async (sel: number[]) => {
+    if (roundTimerRef.current) clearTimeout(roundTimerRef.current);   // ответ дан — снять лимит времени
     const ok = isSet(board[sel[0]], board[sel[1]], board[sel[2]]);
     setFeedback(ok ? 'right' : 'wrong');
     if (ok) setHits((h) => h + 1); else {
@@ -153,7 +177,7 @@ export default function SetGame() {
           if (timerRef.current) clearInterval(timerRef.current);
           const finalTime = (Date.now() - startTime) / 1000;
           setElapsedTime(finalTime);
-          if (!isPreset && errors <= 1) lvl.reach(trials - 5);   // серия почти без ошибок → уровень = trials − 5
+          if (!isPreset && errors <= 1) lvl.reach(levelRef.current + 1);   // серия почти без ошибок → +уровень
           setPhase('result');
           try {
             await saveSession({
