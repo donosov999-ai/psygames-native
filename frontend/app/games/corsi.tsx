@@ -14,6 +14,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import BossRound from '@/src/components/BossRound';
+import LevelCleared from '@/src/components/LevelCleared';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -27,7 +28,7 @@ const CORSI_BENEFITS = [
 
 // Classic Corsi: 9 blocks placed at fixed positions, sequence flashes one by one,
 // subject reproduces in same (or reverse) order.
-type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'boss' | 'result';
+type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'boss' | 'cleared' | 'result';
 const BOSS_EVERY = 3;   // веха-босс каждые 3 уровня (резкая смена: память позиций → счёт чисел)
 type Mode = 'forward' | 'backward';
 
@@ -159,6 +160,7 @@ export default function CorsiGame() {
     } catch (e) { console.error(e); }
     // веха-босс: при чистом прохождении каждые BOSS_EVERY уровней → битва (память → счёт)
     if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setPhase('boss'); }
+    else if (passed) setPhase('cleared');   // авто-поток к следующему уровню
     else setPhase('result');
   };
 
@@ -309,7 +311,12 @@ export default function CorsiGame() {
       {phase === 'boss' && (
         <BossRound config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
           language={language} colors={colors}
-          onComplete={(win) => { setBossWon(win); setPhase('result'); }} />
+          onComplete={(win) => { setBossWon(win); setPhase('cleared'); }} />
+      )}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && (
         <GameResult

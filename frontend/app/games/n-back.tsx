@@ -18,6 +18,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import BossRound from '@/src/components/BossRound';
+import LevelCleared from '@/src/components/LevelCleared';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -29,7 +30,7 @@ const N_BACK_BENEFITS = [
   { icon: 'rocket-outline', textKey: 'benefitNback3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 const BOSS_EVERY = 3;   // веха-босс каждые 3 уровня (резкая смена: рабочая память → счёт)
 type Modality = 'single' | 'dual';   // single = visual only (legacy); dual = visual + audio (Brain Workshop style)
 
@@ -277,6 +278,7 @@ export default function NBackGame() {
     } catch (e) { console.error(e); }
     // веха-босс: при чистом прохождении (≥80%) каждые BOSS_EVERY уровней → битва (память → счёт)
     if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setPhase('boss'); }
+    else if (passed) setPhase('cleared');   // авто-поток к следующему уровню
     else setPhase('result');
   };
 
@@ -457,7 +459,12 @@ export default function NBackGame() {
       {phase === 'boss' && (
         <BossRound config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
           language={language} colors={colors}
-          onComplete={(win) => { setBossWon(win); setPhase('result'); }} />
+          onComplete={(win) => { setBossWon(win); setPhase('cleared'); }} />
+      )}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={bossWon === true ? 3 : ((misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1)}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && (
         <GameResult
