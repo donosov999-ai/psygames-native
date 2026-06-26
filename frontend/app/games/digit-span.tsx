@@ -16,6 +16,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
 
 const GRADIENT = ['#11998e', '#38ef7d'];
 const DIGIT_BENEFITS = [
@@ -24,7 +25,7 @@ const DIGIT_BENEFITS = [
   { icon: 'fitness-outline', textKey: 'benefitDigit3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'showing' | 'input' | 'result';
+type GamePhase = 'intro' | 'config' | 'showing' | 'input' | 'cleared' | 'result';
 type Direction = 'forward' | 'backward';
 
 // Уровень (1..15+): L1-6 длина 4→9 · L7-10 длина 9 + показ быстрее · L11+ обязательный обратный ввод.
@@ -156,8 +157,9 @@ export default function DigitSpanGame() {
     if (!cont || nextLen > 12) {
       const finalTime = (Date.now() - startTime) / 1000;
       setElapsedTime(finalTime);
-      if (!isPreset && updatedCorrect >= 1) lvl.reach(lvl.level + 1);   // прошёл стартовую длину уровня → +уровень (лесенка длина→скорость→reverse)
-      setPhase('result');
+      const passed = !isPreset && updatedCorrect >= 1;
+      if (passed) lvl.reach(lvl.level + 1);   // прошёл стартовую длину уровня → +уровень (лесенка длина→скорость→reverse)
+      setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
       try {
         await saveSession({
           game_type: 'digit_span',
@@ -320,6 +322,11 @@ export default function DigitSpanGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'showing' && renderShowing()}
       {phase === 'input' && renderInput()}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult score={maxSpan * 10} time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
