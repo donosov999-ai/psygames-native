@@ -36,6 +36,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -47,7 +48,7 @@ const MR_BENEFITS = [
   { icon: 'eye-outline', textKey: 'benefitMr3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
 type Cube = [number, number, number];   // [x, y, z]
 type Shape = Cube[];
@@ -377,13 +378,14 @@ export default function MentalRotationGame() {
         if (timerRef.current) clearInterval(timerRef.current);
         const finalTime = (Date.now() - startTime) / 1000;
         setElapsedTime(finalTime);
-        setPhase('result');
         const newHits = hits + (ok ? 1 : 0);
         const newErrors = errors + (ok ? 0 : 1);
         const finalPairs = ok ? [...angleRtPairs, { angle: correctAngle, rt }] : angleRtPairs;
         const slope = Number(computeSlope(finalPairs).toFixed(2));
         const meanRt = finalPairs.length ? Math.round(finalPairs.reduce((s, p) => s + p.rt, 0) / finalPairs.length) : 0;
-        if (newHits / trials >= 0.7) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
+        const passed = !isPreset && newHits / trials >= 0.7;
+        if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
+        setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
         try {
           await saveSession({
             game_type: 'mental_rotation',
@@ -519,6 +521,11 @@ export default function MentalRotationGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, hits * 100 - errors * 30 - Math.floor(elapsedTime))}

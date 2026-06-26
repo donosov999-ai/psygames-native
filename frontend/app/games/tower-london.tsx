@@ -12,6 +12,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
 
 const GRADIENT = ['#3a1c71', '#d76d77'];
 const TOL_BENEFITS = [
@@ -33,7 +34,7 @@ const BALL_GRADIENTS_CB: Record<Ball, [string, string]> = {
 let CURRENT_CAPS = [3, 2, 1];
 
 type State = Ball[][]; // 3 arrays bottom→top
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
 
 function cloneState(s: State): State { return s.map(p => [...p]); }
@@ -190,8 +191,9 @@ export default function TowerLondonGame() {
           if (timerRef.current) clearInterval(timerRef.current);
           const finalTime = (Date.now() - startTime) / 1000;
           setElapsedTime(finalTime);
-          if (!isPreset && (extraMoves + extra) <= trials) lvl.reach(levelRef.current + 1);   // эффективно прошёл → +уровень
-          setPhase('result');
+          const passed = !isPreset && (extraMoves + extra) <= trials;
+          if (passed) lvl.reach(levelRef.current + 1);   // эффективно прошёл → +уровень
+          setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
           try {
             await saveSession({
               game_type: 'tower_london',
@@ -310,6 +312,11 @@ export default function TowerLondonGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, solved * 200 - extraMoves * 30 - errors * 20 - Math.floor(elapsedTime))}
