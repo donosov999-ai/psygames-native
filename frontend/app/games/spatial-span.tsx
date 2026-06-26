@@ -9,6 +9,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 
@@ -22,7 +23,7 @@ const SS_BENEFITS = [
 // CANTAB-style Spatial Span: 4×4 grid (or n×n), squares flash one by one,
 // subject must reproduce in REVERSE order. Length grows; 2 fails at same length = stop.
 
-type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'result';
+type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'cleared' | 'result';
 
 // Уровень (1..15+): L1-6 span 2→7 · L7-10 показ быстрее · L11+ сетка 5×5 (span дальше). Реверс — всегда (CANTAB backward).
 function levelParams(level: number): { startSpan: number; gridSize: number; tickMs: number; flashMs: number } {
@@ -123,8 +124,9 @@ export default function SpatialSpanGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
-    if (finalSpan >= levelParams(levelRef.current).startSpan) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
-    setPhase('result');
+    const passed = finalSpan >= levelParams(levelRef.current).startSpan;
+    if (passed) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
     try {
       await saveSession({
         game_type: 'spatial_span',
@@ -253,6 +255,11 @@ export default function SpatialSpanGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'show' && renderShow()}
       {phase === 'recall' && renderRecall()}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={totalErrors === 0 ? 3 : totalErrors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, span * 250 - totalErrors * 50)}
