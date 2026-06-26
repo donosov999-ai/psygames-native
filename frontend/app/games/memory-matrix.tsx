@@ -16,6 +16,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
 
 const GRADIENT = ['#8e2de2', '#4a00e0'];
 const MATRIX_BENEFITS = [
@@ -24,7 +25,7 @@ const MATRIX_BENEFITS = [
   { icon: 'images-outline', textKey: 'benefitMatrix3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'showing' | 'input' | 'feedback' | 'result';
+type GamePhase = 'intro' | 'config' | 'showing' | 'input' | 'feedback' | 'cleared' | 'result';
 type MatrixMode = 'static' | 'sequential';   // static = pattern flashes once; sequential = cells light up one-by-one, reproduce in order
 
 // Уровень (1..15+): L1-4 сетка 3×3→6×6 · дальше на 6×6 растёт число вспышек + скорость показа.
@@ -190,8 +191,9 @@ export default function MemoryMatrixGame() {
           if (true) { /* end */ }
           const finalTime = (Date.now() - startTime) / 1000;
           setElapsedTime(finalTime);
-          if (!isPreset && fErrors <= 1) lvl.reach(levelRef.current + 1);   // чистый прогон → +уровень
-          setPhase('result');
+          const passed = !isPreset && fErrors <= 1;
+          if (passed) lvl.reach(levelRef.current + 1);   // чистый прогон → +уровень
+          setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
           try {
             await saveSession({
               game_type: 'memory_matrix',
@@ -371,6 +373,11 @@ export default function MemoryMatrixGame() {
       )}
       {phase === 'config' && renderConfig()}
       {(phase === 'showing' || phase === 'input' || phase === 'feedback') && renderGrid()}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult score={score} time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}

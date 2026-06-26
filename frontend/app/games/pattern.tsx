@@ -12,6 +12,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -23,7 +24,7 @@ const PATTERN_BENEFITS = [
   { icon: 'bulb-outline', textKey: 'benefitPattern3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
 
 // Каждый ряд = ОДНОЗНАЧНО продолжаемая прогрессия (правило Дениса: фрактальные/неоднозначные нельзя).
@@ -157,9 +158,10 @@ export default function PatternGame() {
         if (timerRef.current) clearInterval(timerRef.current);
         const finalTime = (Date.now() - startTime) / 1000;
         setElapsedTime(finalTime);
-        setPhase('result');
         const newHits = correct ? hits + 1 : hits;
-        if (newHits / trials >= 0.7) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
+        const passed = !isPreset && newHits / trials >= 0.7;
+        if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
+        setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
         try {
           await saveSession({
             game_type: 'pattern',
@@ -292,6 +294,15 @@ export default function PatternGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (() => {
+        const base = errors === 0 ? 3 : errors <= 2 ? 2 : 1;
+        const stars = hintUsedRef.current ? Math.min(2, base) : base;   // подсказка → потолок 2⭐
+        return (
+        <LevelCleared level={levelRef.current} stars={stars}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+        );
+      })()}
       {phase === 'result' && (() => {
         const base = errors === 0 ? 3 : errors <= 2 ? 2 : 1;
         const stars = hintUsedRef.current ? Math.min(2, base) : base;   // подсказка → потолок 2⭐

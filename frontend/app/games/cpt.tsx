@@ -30,6 +30,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
 
 const GRADIENT = ['#0f4c75', '#3282b8'];
 const CPT_BENEFITS = [
@@ -38,7 +39,7 @@ const CPT_BENEFITS = [
   { icon: 'shield-checkmark-outline', textKey: 'benefitCpt3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 
 const LETTERS_NON_X = ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','Y','Z'];  // без X
 const CONFUSABLE = ['K','Y','V','W','N','M'];   // угловатые буквы — похожи на X при беглом взгляде
@@ -279,8 +280,9 @@ export default function CPTGame() {
     // прохождение уровня: высокая доля hits + мало commission → следующий уровень
     const accuracy = targets.length ? totalHits / targets.length : 0;
     const commissionRate = nonTargets.length ? totalCommissions / nonTargets.length : 0;
-    if (accuracy >= 0.7 && commissionRate <= 0.3) lvl.reach(levelRef.current + 1);
-    setPhase('result');
+    const passed = accuracy >= 0.7 && commissionRate <= 0.3;
+    if (passed) lvl.reach(levelRef.current + 1);
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
 
     try {
       await saveSession({
@@ -412,6 +414,11 @@ export default function CPTGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={(omissions + commissions) === 0 ? 3 : (omissions + commissions) <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, hits * 5 - commissions * 20 - omissions * 10)}
