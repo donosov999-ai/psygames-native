@@ -19,7 +19,8 @@ export type GameCategory =
   | 'attention'
   | 'logic'
   | 'intuition'
-  | 'action';
+  | 'action'
+  | 'recovery';
 
 export interface GameConfig {
   id: string;
@@ -40,6 +41,7 @@ export const CATEGORY_ORDER: GameCategory[] = [
   'logic',
   'intuition',
   'action',
+  'recovery',
 ];
 
 export const CATEGORY_META: Record<GameCategory, { titleKey: string; icon: string; color: string }> = {
@@ -48,6 +50,7 @@ export const CATEGORY_META: Record<GameCategory, { titleKey: string; icon: strin
   logic:     { titleKey: 'catLogic',     icon: 'extension-puzzle-outline',color: '#a8c0ff' },
   intuition: { titleKey: 'catIntuition', icon: 'sparkles-outline',        color: '#a855f7' },
   action:    { titleKey: 'catAction',    icon: 'flash-outline',           color: '#fc466b' },
+  recovery:  { titleKey: 'catRecovery',  icon: 'flower-outline',          color: '#36d1dc' },
 };
 
 export const GAMES: GameConfig[] = [
@@ -635,6 +638,17 @@ export const GAMES: GameConfig[] = [
     category: 'action',
     hideFromMenu: true, // v1.9.1 — merged into 'attention_conflict' (4-я парадигма
                         // interference resolution рядом со Stroop/Flanker)
+  },
+  // RECOVERY (восстановление — не-когнитивные передышки)
+  {
+    id: 'breathing',
+    nameKey: 'breathing',
+    descKey: 'breathingDesc',
+    skillKey: 'skillRecovery',
+    gradient: ['#5b86e5', '#36d1dc'],
+    icon: 'flower-outline',
+    route: '/games/breathing',
+    category: 'recovery',
   },
 ];
 
