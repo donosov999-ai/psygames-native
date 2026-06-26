@@ -43,14 +43,11 @@ export default function LevelCleared({ level, stars = 3, gradient, language, col
   useEffect(() => {
     sndWin();
     if (isRest) {
-      // передышка для глаз: обратный отсчёт, по нулю — авто-старт следующего
-      const iv = setInterval(() => {
-        setRestLeft((s) => {
-          if (s <= 1) { clearInterval(iv); go(); return 0; }
-          return s - 1;
-        });
-      }, 1000);
-      return () => clearInterval(iv);
+      // передышка для глаз: interval только обновляет отображение, go() — отдельным
+      // таймером (не внутри setState-updater → нет setState после unmount)
+      const iv = setInterval(() => setRestLeft((s) => Math.max(0, s - 1)), 1000);
+      const to = setTimeout(go, EYE_REST_SEC * 1000);
+      return () => { clearInterval(iv); clearTimeout(to); };
     }
     const t = setTimeout(go, autoMs);
     return () => clearTimeout(t);

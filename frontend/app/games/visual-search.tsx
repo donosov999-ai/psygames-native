@@ -25,11 +25,22 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
 type Shape = 'T' | 'L' | 'G' | 'plus';
 
-interface Item { x: number; y: number; rot: number; isTarget: boolean; found: boolean; shape: Shape; }
+interface Item { x: number; y: number; rot: number; isTarget: boolean; found: boolean; shape: Shape; color: string; }
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
 const SHAPES_ALL: Shape[] = ['T', 'L', 'G', 'plus'];
+// Конъюнктивный поиск (фаза-2, высокие уровни): цель = цвет + форма. NEUTRAL — для feature-уровней (поиск по форме).
+const NEUTRAL_STROKE = '#ffffff';
+const COLORS_ALL: string[] = ['#60a5fa', '#fbbf24', '#f472b6'];   // голубой / янтарь / розовый — различимы на тёмном поле
+const CONJ_FROM_LEVEL = 8;                                        // с L8 включается конъюнкция
+
+// «Найди фигуру такого цвета и формы» (конъюнкция) — инлайн-карта языков
+const FIND_CONJ: Record<string, string> = {
+  ru: 'Найди фигуру такого цвета и формы', en: 'Find the shape with this colour and form',
+  es: 'Encuentra la figura de este color y forma', pt: 'Encontre a forma desta cor e formato',
+  de: 'Finde die Form in dieser Farbe', zh: '找出这种颜色和形状的图形', hi: 'इस रंग और आकार की आकृति खोजें',
+};
 
 // «Найди все такие фигуры» на 7 языках (инлайн-карта, как в OrientationGuard — без правки i18n)
 const FIND_TXT: Record<string, string> = {
@@ -40,16 +51,17 @@ const FIND_TXT: Record<string, string> = {
 
 // Уровень (1..15+) задаёт базовую сложность; раунды внутри сессии добавляют объекты.
 // Дистракторов больше с уровнем; целей 1→2→3→4 по мере роста уровня. (Конъюнктивный поиск цвет+форма — фаза 2.)
-function levelParams(level: number, round: number): { count: number; targetCount: number } {
+function levelParams(level: number, round: number): { count: number; targetCount: number; conjunction: boolean } {
   const base = Math.min(72, 14 + level * 4);                            // L1≈18 → L14≈70 объектов
   const growth = 3 + Math.floor(level / 4);                              // прирост/раунд растёт с уровнем
   const count = Math.min(96, base + (round - 1) * growth);
   const maxT = level <= 3 ? 1 : level <= 7 ? 2 : level <= 11 ? 3 : 4;    // целей: 1→2→3→4 с уровнем
   const targetCount = Math.min(maxT, 1 + Math.floor((round - 1) / 2));
-  return { count, targetCount };
+  const conjunction = level >= CONJ_FROM_LEVEL;                          // фаза-2: цель по 2 признакам (цвет+форма)
+  return { count, targetCount, conjunction };
 }
 
-function makeBoard(count: number, targetShape: Shape, targetCount: number, w: number, h: number): Item[] {
+function makeBoard(count: number, targetShape: Shape, targetColor: string, targetCount: number, conjunction: boolean, w: number, h: number): Item[] {
   const cols = Math.ceil(Math.sqrt(count * (w / h)));
   const rows = Math.ceil(count / cols);
   const cellW = w / cols;
@@ -61,16 +73,28 @@ function makeBoard(count: number, targetShape: Shape, targetCount: number, w: nu
   const picked = shuffle(slots).slice(0, count);
   // targetCount РАЗНЫХ ячеек назначаем целями
   const targetSet = new Set(shuffle(picked.map((_, i) => i)).slice(0, targetCount));
-  const distractors = SHAPES_ALL.filter((s) => s !== targetShape);
-  return picked.map((s, i) => ({
-    x: s.cx + (Math.random() - 0.5) * cellW * 0.3,
-    y: s.cy + (Math.random() - 0.5) * cellH * 0.3,
-    rot: [0, 90, 180, 270][Math.floor(Math.random() * 4)],
-    isTarget: targetSet.has(i),
-    found: false,
-    // цель — targetShape (меняется каждый раунд, НЕ всегда T); дистракторы — остальные 3 фигуры
-    shape: targetSet.has(i) ? targetShape : distractors[Math.floor(Math.random() * distractors.length)],
-  }));
+  const otherShapes = SHAPES_ALL.filter((s) => s !== targetShape);
+  const otherColors = COLORS_ALL.filter((c) => c !== targetColor);
+  const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
+  return picked.map((s, i) => {
+    const isT = targetSet.has(i);
+    let shape: Shape, color: string;
+    if (isT) {
+      shape = targetShape; color = conjunction ? targetColor : NEUTRAL_STROKE;
+    } else if (conjunction) {
+      // КОНЪЮНКЦИЯ: дистрактор делит РОВНО один признак с целью (нет элемента с обоими → нет pop-out, серийный поиск)
+      if (Math.random() < 0.5) { color = targetColor; shape = pick(otherShapes); }      // тот же цвет, другая форма
+      else { color = pick(otherColors); shape = targetShape; }                            // другой цвет, та же форма
+    } else {
+      shape = pick(otherShapes); color = NEUTRAL_STROKE;                                  // feature-поиск: только форма
+    }
+    return {
+      x: s.cx + (Math.random() - 0.5) * cellW * 0.3,
+      y: s.cy + (Math.random() - 0.5) * cellH * 0.3,
+      rot: [0, 90, 180, 270][Math.floor(Math.random() * 4)],
+      isTarget: isT, found: false, shape, color,
+    };
+  });
 }
 
 export default function VisualSearchGame() {
@@ -95,6 +119,8 @@ export default function VisualSearchGame() {
   const [startTime, setStartTime] = useState(0);
   const [now, setNow] = useState(0);   // живой таймер текущей пробы
   const [targetShape, setTargetShape] = useState<Shape>('T');  // искомая фигура раунда (меняется)
+  const [targetColor, setTargetColor] = useState<string>(NEUTRAL_STROKE);  // цвет цели (конъюнкция, фаза-2)
+  const conjRef = useRef(false);   // текущий раунд — конъюнктивный (цвет+форма)?
   const [targetCount, setTargetCount] = useState(1);           // сколько целей в раунде
   const [foundCount, setFoundCount] = useState(0);             // сколько уже найдено
 
@@ -120,16 +146,19 @@ export default function VisualSearchGame() {
   const boardH = Math.round(boardW * 1.0);
 
   const newRound = (r: number) => {
-    const { count, targetCount: tc } = levelParams(levelRef.current, r);
+    const { count, targetCount: tc, conjunction } = levelParams(levelRef.current, r);
     const shape = SHAPES_ALL[Math.floor(Math.random() * SHAPES_ALL.length)];
+    const color = conjunction ? COLORS_ALL[Math.floor(Math.random() * COLORS_ALL.length)] : NEUTRAL_STROKE;
     roundRef.current = r;
     targetCountRef.current = tc;
+    conjRef.current = conjunction;
     foundRef.current = 0;
     setRound(r);
     setTargetShape(shape);
+    setTargetColor(color);
     setTargetCount(tc);
     setFoundCount(0);
-    setItems(makeBoard(count, shape, tc, boardW, boardH));
+    setItems(makeBoard(count, shape, color, tc, conjunction, boardW, boardH));
     setFeedback(null);
     setStimAt(Date.now());
   };
@@ -237,7 +266,7 @@ export default function VisualSearchGame() {
 
   // Render letter-shaped target/distractors using SVG-like primitives via Views
   const renderLetter = (item: Item) => {
-    const stroke = '#fff', sw = 3;
+    const stroke = item.color || NEUTRAL_STROKE, sw = 3;
     const s = item.shape;
     const centerStem = s === 'T' || s === 'plus';   // T и + — стебель по центру; L и Г — слева
     return (
@@ -264,9 +293,9 @@ export default function VisualSearchGame() {
       </View>
       <View style={styles.hintRow}>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-          {FIND_TXT[language] || FIND_TXT.en}{targetCount > 1 ? ` ×${targetCount}` : ''}
+          {(conjRef.current ? (FIND_CONJ[language] || FIND_CONJ.en) : (FIND_TXT[language] || FIND_TXT.en))}{targetCount > 1 ? ` ×${targetCount}` : ''}
         </Text>
-        <View style={styles.targetRef}>{renderLetter({ shape: targetShape, rot: 0, x: 0, y: 0, isTarget: true, found: false })}</View>
+        <View style={styles.targetRef}>{renderLetter({ shape: targetShape, color: targetColor, rot: 0, x: 0, y: 0, isTarget: true, found: false })}</View>
       </View>
       <View style={[styles.boardArea, { width: boardW, height: boardH, backgroundColor: '#1f2937', borderColor: feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
         {items.map((it, i) => (
