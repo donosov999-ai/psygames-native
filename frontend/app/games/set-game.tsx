@@ -12,6 +12,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
 
 const GRADIENT = ['#43cea2', '#185a9d'];
 const SET_BENEFITS = [
@@ -91,7 +92,7 @@ function buildBoard(): Card[] {
   return board;
 }
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 
 // Уровень (1..15+): L1-10 trials 6→15 (выносливость) · L11-15 лимит времени на SET (давление, убывает).
 function levelParams(level: number): { trials: number; timeLimit: number } {
@@ -177,8 +178,9 @@ export default function SetGame() {
           if (timerRef.current) clearInterval(timerRef.current);
           const finalTime = (Date.now() - startTime) / 1000;
           setElapsedTime(finalTime);
-          if (!isPreset && errors <= 1) lvl.reach(levelRef.current + 1);   // серия почти без ошибок → +уровень
-          setPhase('result');
+          const passed = !isPreset && errors <= 1;
+          if (passed) lvl.reach(levelRef.current + 1);   // серия почти без ошибок → +уровень
+          setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
           try {
             await saveSession({
               game_type: 'set_game',
@@ -321,6 +323,11 @@ export default function SetGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, hits * 200 - errors * 50 - Math.floor(elapsedTime))}

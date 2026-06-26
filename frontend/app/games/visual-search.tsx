@@ -12,6 +12,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
 
 const GRADIENT = ['#536976', '#292e49'];
 const VS_BENEFITS = [
@@ -20,7 +21,7 @@ const VS_BENEFITS = [
   { icon: 'speedometer-outline',   textKey: 'benefitVs3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
 type Shape = 'T' | 'L' | 'G' | 'plus';
 
@@ -151,8 +152,9 @@ export default function VisualSearchGame() {
       const arr = rtsRef.current;
       const meanRt = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
       const last = levelParams(levelRef.current, trials);
-      if (!isPreset && errorsRef.current <= 1) lvl.reach(lvl.level + 1);   // прошёл серию точно → +уровень
-      setPhase('result');
+      const passed = !isPreset && errorsRef.current <= 1;
+      if (passed) lvl.reach(lvl.level + 1);   // прошёл серию точно → +уровень
+      setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
       try {
         await saveSession({
           game_type: 'visual_search',
@@ -304,6 +306,11 @@ export default function VisualSearchGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, Math.round(hits * 100 - errors * 50 - meanRt * 0.05))}
