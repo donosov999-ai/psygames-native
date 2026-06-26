@@ -15,6 +15,7 @@ import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import BossRound from '@/src/components/BossRound';
+import LevelCleared from '@/src/components/LevelCleared';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -26,7 +27,7 @@ const MATH_BENEFITS = [
   { icon: 'flash-outline', textKey: 'benefitMath3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 const BOSS_EVERY = 3;   // веха-босс каждые 3 уровня (резкая смена: счёт → «дополни ряд 1-9»)
 type Difficulty = 'easy' | 'medium' | 'hard';
 type Op = '+' | '-' | '*' | '/';
@@ -139,6 +140,7 @@ export default function MathSprintGame() {
     } catch (e) { console.error(e); }
     // веха-босс: при чистом прохождении каждые BOSS_EVERY уровней → битва с боссом (счёт → «дополни ряд»)
     if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setPhase('boss'); }
+    else if (passed) setPhase('cleared');   // авто-поток к следующему уровню
     else setPhase('result');
   };
 
@@ -278,7 +280,12 @@ export default function MathSprintGame() {
       {phase === 'boss' && (
         <BossRound config={{ type: 'completeline', gradient: GRADIENT as [string, string] }}
           language={language} colors={colors}
-          onComplete={(win) => { setBossWon(win); setPhase('result'); }} />
+          onComplete={(win) => { setBossWon(win); setPhase('cleared'); }} />
+      )}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && (
         <GameResult score={score + (bossWon ? 50 : 0)} time={duration} errors={errors}
