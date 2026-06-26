@@ -18,6 +18,8 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 
 const GRADIENT = ['#4facfe', '#00f2fe'];
@@ -29,8 +31,12 @@ const MNEMONICS_BENEFITS = [
   { icon: 'list-outline', textKey: 'benefitMnemonics3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'memorize' | 'check' | 'result';
+type GamePhase = 'intro' | 'config' | 'memorize' | 'check' | 'cleared' | 'result';
 type GameMode = 'words' | 'numbers';
+// Лесенка: старт 5 элементов (минимум для запоминания списка) → растёт при ЧИСТОМ воспроизведении.
+function levelParams(level: number): { itemCount: number } {
+  return { itemCount: Math.min(15, 4 + Math.max(1, level)) };   // L1=5, L2=6 … L11=15
+}
 
 export default function MnemonicsGame() {
   const { colors } = useTheme();
@@ -38,11 +44,14 @@ export default function MnemonicsGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
+  const lvl = usePersistentLevel('mnemonics');   // персональная лесенка (старт 5, растёт)
   const { isPreset, str, num } = useGamePreset();
+  const levelRef = useRef(1);
+  const useLevelRef = useRef(false);   // запущено по уровню? (для reach + авто-потока)
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [mode, setMode] = useState<GameMode>(() => (str('mode', 'words') as GameMode));
-  const [itemCount, setItemCount] = useState(() => num('itemCount', 10));
+  const [itemCount, setItemCount] = useState(() => num('itemCount', levelParams(1).itemCount));   // дефолт 5, не 10
   const [items, setItems] = useState<string[]>([]);
   const [shuffledItems, setShuffledItems] = useState<string[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<string[]>([]);
@@ -57,7 +66,7 @@ export default function MnemonicsGame() {
     };
   }, []);
 
-  const generateItems = (): string[] => {
+  const generateItems = (count: number = itemCount): string[] => {
     if (mode === 'words') {
       const words = language === 'ru' ? [...RUSSIAN_WORDS] : [...ENGLISH_WORDS];
       // Shuffle
@@ -65,12 +74,12 @@ export default function MnemonicsGame() {
         const j = Math.floor(Math.random() * (i + 1));
         [words[i], words[j]] = [words[j], words[i]];
       }
-      return words.slice(0, itemCount);
+      return words.slice(0, count);
     } else {
       // Generate random 2-digit numbers
       const numbers: string[] = [];
       const used = new Set<number>();
-      while (numbers.length < itemCount) {
+      while (numbers.length < count) {
         const num = Math.floor(Math.random() * 90) + 10; // 10-99
         if (!used.has(num)) {
           used.add(num);
@@ -81,8 +90,12 @@ export default function MnemonicsGame() {
     }
   };
 
-  const startGame = () => {
-    const newItems = generateItems();
+  const startGame = (useLevel = false) => {
+    // По уровню (не-пресет): число слов из лесенки (старт 5). Иначе — выбранное вручную / preset.
+    let ic = itemCount;
+    if (!isPreset && useLevel) { ic = levelParams(lvl.level).itemCount; levelRef.current = lvl.level; useLevelRef.current = true; setItemCount(ic); }
+    else useLevelRef.current = false;
+    const newItems = generateItems(ic);
     setItems(newItems);
     setSelectedOrder([]);
     setErrors(0);
@@ -123,8 +136,9 @@ export default function MnemonicsGame() {
       // Check if all items selected
       if (newOrder.length === items.length) {
         const finalTime = elapsedTime + (errors * PENALTY_SECONDS);
-        setPhase('result');
-        
+        const passed = !isPreset && useLevelRef.current && errors === 0;
+        if (passed) lvl.reach(levelRef.current + 1);   // чистое воспроизведение → +уровень (больше слов)
+
         try {
           await saveSession({
             game_type: 'mnemonics',
@@ -142,6 +156,7 @@ export default function MnemonicsGame() {
         } catch (error) {
           console.error('Error saving session:', error);
         }
+        setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню при чистом воспроизведении
       }
     } else {
       // Wrong - penalty
@@ -240,7 +255,7 @@ export default function MnemonicsGame() {
             {t('label_count')}
           </Text>
           <View style={styles.optionButtons}>
-            {[10, 20, 30].map((count) => (
+            {[5, 8, 12, 20].map((count) => (
               <TouchableOpacity
                 key={count}
                 style={[
@@ -263,7 +278,15 @@ export default function MnemonicsGame() {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.startButton} onPress={startGame}>
+        {!isPreset && (
+          <TouchableOpacity style={styles.startButton} onPress={() => startGame(true)}>
+            <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
+              <Ionicons name="flag" size={22} color="#FFFFFF" />
+              <Text style={styles.startButtonText}>{language === 'ru' ? `🎯 Уровень ${lvl.level} →` : `🎯 Level ${lvl.level} →`}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity style={styles.startButton} onPress={() => startGame(false)}>
           <LinearGradient
             colors={GRADIENT as [string, string]}
             start={{ x: 0, y: 0 }}
@@ -271,7 +294,7 @@ export default function MnemonicsGame() {
             style={styles.startButtonGradient}
           >
             <Ionicons name="play" size={24} color="#FFFFFF" />
-            <Text style={styles.startButtonText}>{t('start')}</Text>
+            <Text style={styles.startButtonText}>{!isPreset ? (language === 'ru' ? 'Свободно' : 'Free play') : t('start')}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -439,6 +462,11 @@ export default function MnemonicsGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'memorize' && renderMemorize()}
       {phase === 'check' && renderCheck()}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame(true)} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           time={elapsedTime + (errors * PENALTY_SECONDS)}

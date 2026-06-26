@@ -146,7 +146,7 @@ const EVENING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
     { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
   ],
   1: [ // ПН
-    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy', mode: 'words', settings: { itemCount: 10 }, est_duration_sec: 90 },
+    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy', mode: 'words', settings: { itemCount: 5 }, est_duration_sec: 70 },
     { game_id: 'digit_span',   game_route: '/games/digit-span',   difficulty: 'easy', mode: 'forward', est_duration_sec: 90 },
     { game_id: 'hanoi',        game_route: '/games/hanoi',        difficulty: 'medium', settings: { discs: 4 }, est_duration_sec: 120 },
   ],
@@ -171,7 +171,7 @@ const EVENING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
     { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
   ],
   6: [ // СБ
-    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy', mode: 'words', settings: { itemCount: 12 }, est_duration_sec: 100 },
+    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy', mode: 'words', settings: { itemCount: 6 }, est_duration_sec: 75 },
     { game_id: 'reading_span', game_route: '/games/reading-span', difficulty: 'easy',   est_duration_sec: 120 },
     { game_id: 'spatial_span', game_route: '/games/spatial-span', difficulty: 'easy',   est_duration_sec: 90 },
   ],
