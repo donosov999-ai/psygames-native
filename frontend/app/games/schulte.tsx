@@ -25,6 +25,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 import BossRound from '@/src/components/BossRound';
+import LevelCleared from '@/src/components/LevelCleared';
 
 const GRADIENT = ['#667eea', '#764ba2'];
 
@@ -35,7 +36,7 @@ const SCHULTE_BENEFITS = [
   { icon: 'search-outline', textKey: 'benefitSchulte3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 // Синергия (пилот): каждые BOSS_EVERY уровней лесенки прошёл таблицу → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 type ContentMode = 'numbers' | 'letters' | 'mixed';
@@ -233,7 +234,8 @@ export default function SchulteGame() {
         if (timerRef.current) clearInterval(timerRef.current);
         const finalTime = (Date.now() - startTime) / 1000;
         setElapsedTime(finalTime);
-        if (!isPreset && useLevelRef.current && errors <= 2) lvl.reach(levelRef.current + 1);   // прошёл уровень чисто → +уровень
+        const passed = !isPreset && useLevelRef.current && errors <= 2;
+        if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень чисто → +уровень
 
         // Save session
         try {
@@ -256,10 +258,13 @@ export default function SchulteGame() {
           console.error('Error saving session:', error);
         }
 
-        // Веха-босс: в лесенке каждые BOSS_EVERY уровней прошёл таблицу → битва с боссом; иначе сразу результат.
-        if (!isPreset && useLevelRef.current && levelRef.current % BOSS_EVERY === 0) {
+        // Авто-поток: прошёл чисто → веха-босс ИЛИ баннер «уровень пройден» (сам стартует следующий).
+        // Не прошёл чисто (errors>2 / свободный режим) → обычный экран результата (переиграть/выйти).
+        if (passed && levelRef.current % BOSS_EVERY === 0) {
           setBossWon(null);
           setPhase('boss');
+        } else if (passed) {
+          setPhase('cleared');
         } else {
           setPhase('result');
         }
@@ -700,7 +705,18 @@ export default function SchulteGame() {
           config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
           language={language}
           colors={colors}
-          onComplete={(win) => { setBossWon(win); setPhase('result'); }}
+          onComplete={(win) => { setBossWon(win); setPhase('cleared'); }}
+        />
+      )}
+      {phase === 'cleared' && (
+        <LevelCleared
+          level={levelRef.current}
+          stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
+          gradient={GRADIENT}
+          language={language}
+          colors={colors}
+          onContinue={() => startGame(true)}
+          onStop={() => setPhase('config')}
         />
       )}
       {phase === 'result' && (
