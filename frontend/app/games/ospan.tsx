@@ -13,6 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import GameResult from '@/src/components/GameResult';
+import LevelCleared from '@/src/components/LevelCleared';
 import GameIntro from '@/src/components/GameIntro';
 
 const GRADIENT = ['#cb356b', '#bdfff3'];
@@ -25,7 +26,7 @@ const OSPAN_BENEFITS = [
 // Operation Span: alternate (math equation → letter to remember) for N steps,
 // then recall letters in order. Math + storage = working memory under load.
 
-type GamePhase = 'intro' | 'config' | 'eq' | 'letter' | 'recall' | 'result';
+type GamePhase = 'intro' | 'config' | 'eq' | 'letter' | 'recall' | 'cleared' | 'result';
 
 const LETTERS_RU = ['А','Б','В','Г','Д','Е','Ж','З','К','Л','М','Н','П','Р','С','Т','Ф','Х','Ц','Ш'];
 const LETTERS_EN = ['A','B','C','D','E','F','G','H','J','K','L','M','N','P','Q','R','S','T','V','X'];
@@ -145,8 +146,9 @@ export default function OSpanGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
-    if (e === 0) lvl.reach(levelRef.current + 1);   // чистый recall всех букв → +уровень
-    setPhase('result');
+    const passed = e === 0;
+    if (passed) lvl.reach(levelRef.current + 1);   // чистый recall всех букв → +уровень
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
     try {
       await saveSession({
         game_type: 'ospan',
@@ -260,6 +262,11 @@ export default function OSpanGame() {
       {phase === 'eq' && renderEq()}
       {phase === 'letter' && renderLetter()}
       {phase === 'recall' && renderRecall()}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={recallErrors === 0 ? 3 : recallErrors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, recallHits * 100 + mathHits * 30 - recallErrors * 50 - mathErrors * 30)}

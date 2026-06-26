@@ -13,6 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import GameResult from '@/src/components/GameResult';
+import LevelCleared from '@/src/components/LevelCleared';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 
@@ -92,7 +93,7 @@ const SENTENCES: SentenceItem[] = [
   { ru: 'Кирпич плавает в воздухе над городом.',      en: 'A brick floats in the air above the city.', ok: false, lastRu: 'городом', lastEn: 'city' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'recall' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'recall' | 'cleared' | 'result';
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
@@ -158,8 +159,9 @@ export default function ReadingSpanGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
-    if (!isPreset && e === 0) lvl.reach(levelRef.current + 1);   // чистый recall всех слов → +уровень
-    setPhase('result');
+    const passed = !isPreset && e === 0;
+    if (passed) lvl.reach(levelRef.current + 1);   // чистый recall всех слов → +уровень
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
     try {
       await saveSession({
         game_type: 'reading_span',
@@ -265,6 +267,11 @@ export default function ReadingSpanGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
       {phase === 'recall' && renderRecall()}
+      {phase === 'cleared' && (
+        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, hits * 100 + judgeHits * 30 - errors * 50)}
