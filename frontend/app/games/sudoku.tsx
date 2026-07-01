@@ -17,6 +17,7 @@ import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/cons
 import type { DigitStyle } from '@/src/constants/digitThemes';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Svg, { Line } from 'react-native-svg';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
 // Непрозрачная подсветка: смешать base (фон темы) с over (акцент). Полупрозрачный цвет поверх
@@ -744,7 +745,8 @@ export default function SudokuGame() {
           else if (sameVal) bg = colors.card;
           else if (sameRow) bg = colors.card;
           else if (variant === 'hyper' && inHyper(r, c)) bg = blendHex(colors.surface, GRADIENT[0], 0.14);   // непрозрачная подсветка доп. зон (Windoku)
-          // ДИАГОНАЛЬ: НЕ заливаем фон (залитый квадрат скрывает цифру) — рисуем тонкую линию через клетку, см. ниже
+          // ДИАГОНАЛЬ: не заливаем фон и не рисуем по клеткам (границы клеток резали линию на
+          // сегменты) — единая SVG-линия через ВСЮ доску рисуется ниже, поверх сетки клеток
           return (
             <TouchableOpacity
               key={`${r}-${c}`}
@@ -764,12 +766,6 @@ export default function SudokuGame() {
                 },
               ]}
             >
-              {variant === 'diagonal' && r === c && (
-                <View style={{ position: 'absolute', width: cellSize * 1.42, height: 2.5, left: cellSize / 2 - cellSize * 0.71, top: cellSize / 2 - 1.25, backgroundColor: GRADIENT[0], opacity: 0.6, transform: [{ rotate: '45deg' }], pointerEvents: 'none' }} />
-              )}
-              {variant === 'diagonal' && r + c === N - 1 && (
-                <View style={{ position: 'absolute', width: cellSize * 1.42, height: 2.5, left: cellSize / 2 - cellSize * 0.71, top: cellSize / 2 - 1.25, backgroundColor: GRADIENT[0], opacity: 0.6, transform: [{ rotate: '-45deg' }], pointerEvents: 'none' }} />
-              )}
               {variant === 'thermo' && thermo && thermo[r][c] && (() => {
                 const pn = thermo[r][c]!;
                 const thick = Math.max(3, Math.round(cellSize * 0.16));
@@ -843,6 +839,16 @@ export default function SudokuGame() {
             </TouchableOpacity>
           );
         }))}
+        {/* Одна цельная линия через всю доску (не по клеткам — границы клеток резали её на
+            сегменты). Серый пунктир, ненавязчивый — согласовано с Денисом 2026-07-01. */}
+        {variant === 'diagonal' && (
+          <Svg width={cellSize * N} height={cellSize * N} style={{ position: 'absolute', top: 0, left: 0 }} pointerEvents="none">
+            <Line x1={0} y1={0} x2={cellSize * N} y2={cellSize * N}
+              stroke={colors.textSecondary} strokeWidth={1.5} strokeDasharray="7,6" opacity={0.6} />
+            <Line x1={cellSize * N} y1={0} x2={0} y2={cellSize * N}
+              stroke={colors.textSecondary} strokeWidth={1.5} strokeDasharray="7,6" opacity={0.6} />
+          </Svg>
+        )}
           </View>
         </View>
       </View>
@@ -994,7 +1000,7 @@ const styles = StyleSheet.create({
   numPadLand: { maxWidth: 56 * 3 },                                // 3 столбца цифр справа
   statsRow: { flexDirection: 'row', gap: 18 },
   statText: { fontSize: 14, fontWeight: '700' },
-  gridArea: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 2, borderRadius: 4 },
+  gridArea: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 2, borderRadius: 4, position: 'relative' },
   cell: { justifyContent: 'center', alignItems: 'center' },
   cellText: { fontSize: 28, fontWeight: '600' },
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center' },
