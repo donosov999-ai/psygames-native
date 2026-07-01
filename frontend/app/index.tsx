@@ -22,6 +22,7 @@ import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { logoForProfile } from '@/src/constants/profileLogos';
 import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
+import { getTodayChallenge, challengeToParams, loadChallengeStreak, markChallengeStarted, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
 import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
@@ -62,6 +63,8 @@ export default function HomeScreen() {
   const [levelUp, setLevelUp] = useState<number | null>(null);   // оверлей «Уровень N!» при повышении
   const [streakDays, setStreakDays] = useState(0);
   const [streakToast, setStreakToast] = useState<number | null>(null);   // тост «🔥 +N за стрик»
+  const [challengeStreak, setChallengeStreak] = useState<ChallengeStreak>({ streak: 0, total: 0, last: '' });
+  const todayChallenge = useMemo(() => getTodayChallenge(), []);   // ротация игр — детерминировано по дате
   const prevTokensRef = useRef<number | null>(null);
   const prevLevelRef = useRef<number | null>(null);
   useFocusEffect(useCallback(() => {
@@ -70,6 +73,7 @@ export default function HomeScreen() {
       const ci = await dailyCheckIn(profile.id);   // T2: отметка дня + бонус токенов (раз в сутки)
       setStreakDays(ci.streak);
       if (ci.isNew && ci.awarded > 0) { setStreakToast(ci.awarded); sndStreak(); setTimeout(() => setStreakToast(null), 2600); }
+      setChallengeStreak(await loadChallengeStreak(profile.id));   // ежедневный вызов — стрик обновляем на фокусе
       const v = await getTokens(profile.id);
       if (prevTokensRef.current !== null && v > prevTokensRef.current) sndToken();   // звон когда очки выросли
       const lv = levelInfo(v).level;
@@ -154,6 +158,11 @@ export default function HomeScreen() {
 
   const startWarmup = () => {
     warmup.startWarmup(duration);
+  };
+
+  const startDailyChallenge = async () => {
+    if (profile?.id) setChallengeStreak(await markChallengeStarted(profile.id));   // идемпотентно за сутки
+    router.push({ pathname: todayChallenge.game.route, params: challengeToParams(todayChallenge) } as any);
   };
 
   const isRest = todayPreview.track === 'rest';
@@ -305,6 +314,34 @@ export default function HomeScreen() {
             </View>
           </LinearGradient>
         </TouchableOpacity>
+
+        {/* 🎯 Ежедневный вызов — ротация игр, детерминировано по дате (согласовано с Денисом 2026-07-01) */}
+        <View style={styles.heroRow}>
+          <TouchableOpacity style={styles.heroCardWrap} onPress={startDailyChallenge} activeOpacity={0.85}>
+            <LinearGradient colors={todayChallenge.game.gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+              <View style={styles.heroTopRow}>
+                <Ionicons name="flash" size={26} color="#FFF" />
+                <View style={styles.heroChipMini}>
+                  <Text style={styles.heroChipMiniText}>
+                    {isChallengeDoneToday(challengeStreak) ? '✓' : '🔥' + challengeStreak.streak}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]}>
+                {language === 'ru' ? 'Вызов дня' : 'Daily challenge'}
+              </Text>
+              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
+                {t(todayChallenge.game.nameKey)} · {t(todayChallenge.difficulty)}
+              </Text>
+              <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
+                <Ionicons name="play" size={14} color="#FFF" />
+                <Text style={[styles.heroCtaText, { color: '#FFF' }]}>
+                  {isChallengeDoneToday(challengeStreak) ? t('ctaRepeat') : t('ctaStart')}
+                </Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
 
         {/* === 3 HERO CARDS in a row (compact) === (each gated by profile) */}
         {(profile.warmup_enabled || profile.assessment_enabled || profile.financial_brain_day_enabled) && (
