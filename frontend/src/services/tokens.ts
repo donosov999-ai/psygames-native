@@ -33,6 +33,31 @@ export function tokenDelta(score: number, errors: number): number {
   return Math.round((score || 0) / 20) - (errors || 0);
 }
 
+/**
+ * Комбо-множитель ×1.5 (геймификация): 3 ЧИСТЫЕ игры (errors===0) ПОДРЯД в одной
+ * сессии зарядки → бонус токенов = 0.5× сумма tokenDelta этой серии (итог за
+ * серию = base + bonus = ×1.5). Токены за КАЖДУЮ игру уже начислены отдельно
+ * (saveSession → addTokens, см. src/services/api.ts) — это ДОБАВОЧНЫЙ бонус
+ * поверх, тот же стиль, что dailyCheckIn (bonus-on-top, не мутация базовой формулы).
+ * Ищет САМУЮ ДЛИННУЮ непрерывную серию (если их несколько в сессии — считается одна).
+ */
+export function comboBonus(results: { score: number; errors: number }[]): { bonus: number; streakLen: number } {
+  let best = 0, cur = 0, bestStart = 0, curStart = 0;
+  for (let i = 0; i < results.length; i++) {
+    if (results[i].errors === 0) {
+      if (cur === 0) curStart = i;
+      cur++;
+      if (cur > best) { best = cur; bestStart = curStart; }
+    } else {
+      cur = 0;
+    }
+  }
+  if (best < 3) return { bonus: 0, streakLen: best };
+  const streakSum = results.slice(bestStart, bestStart + best)
+    .reduce((s, r) => s + tokenDelta(r.score, r.errors), 0);
+  return { bonus: Math.max(0, Math.round(streakSum * 0.5)), streakLen: best };
+}
+
 // Потратить токены (покупка косметики). false если не хватает — баланс НЕ уходит в минус.
 export async function spendTokens(profileId: string, cost: number): Promise<boolean> {
   if (!profileId || cost <= 0) return true;

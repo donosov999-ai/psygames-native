@@ -7,11 +7,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
+import { useProfile } from '@/src/contexts/ProfileContext';
 import { GAMES } from '@/src/constants/games';
 import {
   loadWarmupHistory, computeStreak, brainTodayVerdict, WarmupHistoryEntry,
   PlaylistMeta,
 } from '@/src/services/warmup';
+import { addTokens, comboBonus } from '@/src/services/tokens';
 import type { StepResult } from '@/src/contexts/WarmupContext';
 
 const GRADIENT_GOLD = ['#fbbf24', '#f59e0b'];
@@ -22,10 +24,12 @@ export default function WarmupComplete() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const warmup = useWarmup();
+  const { profile } = useProfile();
   const [history, setHistory] = useState<WarmupHistoryEntry[]>([]);
   const [streak, setStreak] = useState(0);
   const [verdict, setVerdict] = useState<{ delta_pct: number; message: string } | null>(null);
   const [persisted, setPersisted] = useState(false);
+  const [combo, setCombo] = useState<{ bonus: number; streakLen: number } | null>(null);
 
   // v1.13.2 fix: snapshot meta/results/startTime СРАЗУ при mount.
   // stopWarmup() в useEffect занулит warmup.meta=null в WarmupContext →
@@ -55,6 +59,11 @@ export default function WarmupComplete() {
       if (!persisted) {
         await warmup.stopWarmup(completed);
         setPersisted(true);
+        // Комбо-множитель ×1.5: 3 чистые игры подряд в сессии → бонус токенов сверху
+        // (каждая игра уже начислила свои токены отдельно через saveSession/addTokens).
+        const c = comboBonus(results);
+        setCombo(c);
+        if (c.bonus > 0 && profile?.id) addTokens(profile.id, c.bonus).catch(() => {});
       }
       const h = await loadWarmupHistory();
       setHistory(h);
@@ -149,6 +158,15 @@ export default function WarmupComplete() {
               {isPersonalBest ? (language === 'ru' ? '👑 Лучший в этой категории' : '👑 Best in this category') : (language === 'ru' ? `Лучший: ${sameKindBest}` : `Best: ${sameKindBest}`)}
             </Text>
           )}
+          {combo && combo.bonus > 0 && (
+            <View style={styles.comboBadge}>
+              <Text style={styles.comboText}>
+                {language === 'ru'
+                  ? `🔥 Комбо ×1.5! ${combo.streakLen} чистых подряд · +${combo.bonus}`
+                  : `🔥 Combo ×1.5! ${combo.streakLen} clean in a row · +${combo.bonus}`}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Streak */}
@@ -213,6 +231,8 @@ const styles = StyleSheet.create({
   totalLabel: { fontSize: 12, fontWeight: '600' },
   totalValue: { fontSize: 42, fontWeight: '900' },
   totalCompare: { fontSize: 12, marginTop: 4 },
+  comboBadge: { marginTop: 10, backgroundColor: '#fbbf24', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  comboText: { color: '#000', fontSize: 13, fontWeight: '800' },
   streakCard: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 14 },
   streakEmoji: { fontSize: 36 },
   streakValue: { color: '#FFF', fontSize: 18, fontWeight: '900' },
