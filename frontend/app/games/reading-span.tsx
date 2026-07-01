@@ -14,6 +14,7 @@ import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import GameResult from '@/src/components/GameResult';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 
@@ -182,6 +183,7 @@ export default function ReadingSpanGame() {
         <Text style={styles.configTitle}>{t('readingSpan')}</Text>
         <Text style={styles.configDesc}>{t('readingSpanDesc')}</Text>
       </LinearGradient>
+      <LevelProgressMap gameId="reading_span" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
@@ -268,7 +270,7 @@ export default function ReadingSpanGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'recall' && renderRecall()}
       {phase === 'cleared' && (
-        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+        <LevelCleared gameId="reading_span" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

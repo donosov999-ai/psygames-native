@@ -13,6 +13,7 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#536976', '#292e49'];
 const VS_BENEFITS = [
@@ -237,6 +238,7 @@ export default function VisualSearchGame() {
         <Text style={styles.configTitle}>{t('visualSearch')}</Text>
         <Text style={styles.configDesc}>{t('visualSearchDesc')}</Text>
       </LinearGradient>
+      <LevelProgressMap gameId="visual_search" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
@@ -336,7 +338,7 @@ export default function VisualSearchGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
-        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+        <LevelCleared gameId="visual_search" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

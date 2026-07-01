@@ -15,6 +15,7 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -199,6 +200,7 @@ export default function CorsiGame() {
         <Text style={styles.configTitle}>{t('corsi')}</Text>
         <Text style={styles.configDesc}>{t('corsiDesc')}</Text>
       </LinearGradient>
+      <LevelProgressMap gameId="corsi" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
         <View style={styles.optionButtons}>
@@ -314,7 +316,7 @@ export default function CorsiGame() {
           onComplete={(win) => { setBossWon(win); setPhase('cleared'); }} />
       )}
       {phase === 'cleared' && (
-        <LevelCleared level={levelRef.current} stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
+        <LevelCleared gameId="corsi" level={levelRef.current} stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

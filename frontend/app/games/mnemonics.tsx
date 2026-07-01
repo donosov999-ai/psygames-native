@@ -20,6 +20,7 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 
 const GRADIENT = ['#4facfe', '#00f2fe'];
@@ -198,6 +199,7 @@ export default function MnemonicsGame() {
             {t('desc_mnemonics_short')}
           </Text>
         </LinearGradient>
+      <LevelProgressMap gameId="mnemonics" currentLevel={lvl.level} colors={colors} language={language} />
 
         <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
@@ -463,7 +465,7 @@ export default function MnemonicsGame() {
       {phase === 'memorize' && renderMemorize()}
       {phase === 'check' && renderCheck()}
       {phase === 'cleared' && (
-        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+        <LevelCleared gameId="mnemonics" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame(true)} onStop={() => setPhase('config')} />
       )}

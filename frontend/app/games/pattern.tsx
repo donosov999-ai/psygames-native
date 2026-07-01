@@ -13,6 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -196,6 +197,7 @@ export default function PatternGame() {
         <Text style={styles.configTitle}>{t('pattern')}</Text>
         <Text style={styles.configDesc}>{t('patternDesc')}</Text>
       </LinearGradient>
+      <LevelProgressMap gameId="pattern" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
@@ -298,7 +300,7 @@ export default function PatternGame() {
         const base = errors === 0 ? 3 : errors <= 2 ? 2 : 1;
         const stars = hintUsedRef.current ? Math.min(2, base) : base;   // подсказка → потолок 2⭐
         return (
-        <LevelCleared level={levelRef.current} stars={stars}
+        <LevelCleared gameId="pattern" level={levelRef.current} stars={stars}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
         );

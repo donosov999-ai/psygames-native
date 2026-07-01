@@ -19,6 +19,7 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -289,6 +290,7 @@ export default function NBackGame() {
         <Text style={styles.configTitle}>{t('nBack')}</Text>
         <Text style={styles.configDesc}>{t('nBackDesc')}</Text>
       </LinearGradient>
+      <LevelProgressMap gameId="n_back" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('nLevelLabel')}</Text>
         <View style={styles.optionButtons}>
@@ -462,7 +464,7 @@ export default function NBackGame() {
           onComplete={(win) => { setBossWon(win); setPhase('cleared'); }} />
       )}
       {phase === 'cleared' && (
-        <LevelCleared level={levelRef.current} stars={bossWon === true ? 3 : ((misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1)}
+        <LevelCleared gameId="n_back" level={levelRef.current} stars={bossWon === true ? 3 : ((misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1)}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

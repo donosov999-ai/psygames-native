@@ -4,6 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { sndWin } from '@/src/services/feedback';
 import { tickLevelStreak, resetLevelStreak } from '@/src/services/eyeRestTracker';
+import { saveLevelStars } from '@/src/services/levelStars';
+import { useProfile } from '@/src/contexts/ProfileContext';
 
 /**
  * LevelCleared — короткий баннер между уровнями для АВТО-ПОТОКА (по выбору Дениса):
@@ -24,12 +26,14 @@ interface Props {
   language: string;
   colors: any;
   autoMs?: number;          // авто-старт следующего (по умолчанию 2200мс)
+  gameId?: string;          // для персиста звёзд по уровням (psygames_<gameId>_stars_<profileId>)
   onContinue: () => void;   // запустить следующий уровень
   onStop: () => void;       // выйти (config / домой)
 }
 
-export default function LevelCleared({ level, stars = 3, gradient, language, colors, autoMs = 2200, onContinue, onStop }: Props) {
+export default function LevelCleared({ level, stars = 3, gradient, language, colors, autoMs = 2200, gameId, onContinue, onStop }: Props) {
   const ru = language === 'ru';
+  const { profile } = useProfile();
   const firedRef = useRef(false);
   // вычисляем ОДНАЖДЫ при маунте: пора ли передышка для глаз (10-й уровень подряд)
   const restRef = useRef<boolean | null>(null);
@@ -42,6 +46,7 @@ export default function LevelCleared({ level, stars = 3, gradient, language, col
 
   useEffect(() => {
     sndWin();
+    if (gameId && profile?.id) saveLevelStars(gameId, profile.id, level, stars);   // лучшие звёзды за уровень
     if (isRest) {
       // передышка для глаз: interval только обновляет отображение, go() — отдельным
       // таймером (не внутри setState-updater → нет setState после unmount)

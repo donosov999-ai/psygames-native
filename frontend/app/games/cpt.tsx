@@ -31,6 +31,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#0f4c75', '#3282b8'];
 const CPT_BENEFITS = [
@@ -323,6 +324,7 @@ export default function CPTGame() {
         <Text style={styles.configTitle}>{t('cpt')}</Text>
         <Text style={styles.configDesc}>{t('cptDesc')}</Text>
       </LinearGradient>
+      <LevelProgressMap gameId="cpt" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
           {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
@@ -415,7 +417,7 @@ export default function CPTGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
-        <LevelCleared level={levelRef.current} stars={(omissions + commissions) === 0 ? 3 : (omissions + commissions) <= 2 ? 2 : 1}
+        <LevelCleared gameId="cpt" level={levelRef.current} stars={(omissions + commissions) === 0 ? 3 : (omissions + commissions) <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

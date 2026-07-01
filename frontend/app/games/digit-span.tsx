@@ -17,6 +17,7 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#11998e', '#38ef7d'];
 const DIGIT_BENEFITS = [
@@ -185,6 +186,7 @@ export default function DigitSpanGame() {
         <Text style={styles.configTitle}>{t('digitSpan')}</Text>
         <Text style={styles.configDesc}>{t('digitSpanDesc')}</Text>
       </LinearGradient>
+      <LevelProgressMap gameId="digit_span" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('directionLabel')}</Text>
         <View style={styles.optionButtons}>
@@ -323,7 +325,7 @@ export default function DigitSpanGame() {
       {phase === 'showing' && renderShowing()}
       {phase === 'input' && renderInput()}
       {phase === 'cleared' && (
-        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+        <LevelCleared gameId="digit_span" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

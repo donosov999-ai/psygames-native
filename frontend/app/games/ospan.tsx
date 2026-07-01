@@ -14,6 +14,7 @@ import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import GameResult from '@/src/components/GameResult';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
 
 const GRADIENT = ['#cb356b', '#bdfff3'];
@@ -169,6 +170,7 @@ export default function OSpanGame() {
         <Text style={styles.configTitle}>{t('ospan')}</Text>
         <Text style={styles.configDesc}>{t('ospanDesc')}</Text>
       </LinearGradient>
+      <LevelProgressMap gameId="ospan" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
@@ -263,7 +265,7 @@ export default function OSpanGame() {
       {phase === 'letter' && renderLetter()}
       {phase === 'recall' && renderRecall()}
       {phase === 'cleared' && (
-        <LevelCleared level={levelRef.current} stars={recallErrors === 0 ? 3 : recallErrors <= 2 ? 2 : 1}
+        <LevelCleared gameId="ospan" level={levelRef.current} stars={recallErrors === 0 ? 3 : recallErrors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

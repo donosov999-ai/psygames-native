@@ -17,6 +17,7 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#8e2de2', '#4a00e0'];
 const MATRIX_BENEFITS = [
@@ -231,6 +232,7 @@ export default function MemoryMatrixGame() {
         <Text style={styles.configTitle}>{t('memoryMatrix')}</Text>
         <Text style={styles.configDesc}>{t('memoryMatrixDesc')}</Text>
       </LinearGradient>
+      <LevelProgressMap gameId="memory_matrix" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('gridSize')}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <View style={styles.optionButtons}>
@@ -374,7 +376,7 @@ export default function MemoryMatrixGame() {
       {phase === 'config' && renderConfig()}
       {(phase === 'showing' || phase === 'input' || phase === 'feedback') && renderGrid()}
       {phase === 'cleared' && (
-        <LevelCleared level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+        <LevelCleared gameId="memory_matrix" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

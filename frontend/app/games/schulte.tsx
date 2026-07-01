@@ -26,6 +26,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#667eea', '#764ba2'];
 
@@ -310,6 +311,7 @@ export default function SchulteGame() {
         <Text style={styles.configTitle}>{t('schulteTable')}</Text>
         <Text style={styles.configDesc}>{t('schulteTableDesc')}</Text>
       </LinearGradient>
+      <LevelProgressMap gameId="schulte_table" currentLevel={lvl.level} colors={colors} language={language} />
 
       {/* Content Mode Selection (Numbers/Letters) */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -710,6 +712,7 @@ export default function SchulteGame() {
       )}
       {phase === 'cleared' && (
         <LevelCleared
+          gameId="schulte_table"
           level={levelRef.current}
           stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
           gradient={GRADIENT}

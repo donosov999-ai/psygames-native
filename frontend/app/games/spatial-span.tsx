@@ -10,6 +10,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 
@@ -177,6 +178,7 @@ export default function SpatialSpanGame() {
         <Text style={styles.configTitle}>{t('spatialSpan')}</Text>
         <Text style={styles.configDesc}>{t('spatialSpanDesc')}</Text>
       </LinearGradient>
+      <LevelProgressMap gameId="spatial_span" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
@@ -256,7 +258,7 @@ export default function SpatialSpanGame() {
       {phase === 'show' && renderShow()}
       {phase === 'recall' && renderRecall()}
       {phase === 'cleared' && (
-        <LevelCleared level={levelRef.current} stars={totalErrors === 0 ? 3 : totalErrors <= 2 ? 2 : 1}
+        <LevelCleared gameId="spatial_span" level={levelRef.current} stars={totalErrors === 0 ? 3 : totalErrors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
