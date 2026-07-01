@@ -299,7 +299,7 @@ export default function SchulteGame() {
   // кнопка «Старт» уходила за viewport, не достать. Schulte имеет 4+ optionCard
   // (Тип/Направление/Цвет/Размер) + hero + кнопка → больше чем 720px высоты часто.
   const renderConfig = () => (
-    <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient
         colors={GRADIENT as [string, string]}
         start={{ x: 0, y: 0 }}
@@ -761,6 +761,7 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 44,
   },
+  configScroll: { flex: 1 },
   configContainer: {
     // v1.20.0 fix: было flex:1 — в contentContainerStyle ScrollView это пиннит
     // контент к высоте экрана → скролл мёртв, кнопка «Старт» (marginTop:auto)

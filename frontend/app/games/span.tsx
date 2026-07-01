@@ -61,7 +61,7 @@ export default function SpanGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('spanGroup')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.heroCard}>
           <Ionicons name="albums" size={48} color="#FFF" />
           <Text style={styles.heroTitle}>{t('spanGroup')}</Text>

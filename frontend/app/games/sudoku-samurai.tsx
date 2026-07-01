@@ -154,7 +154,7 @@ export default function SamuraiSudokuGame() {
   const cellSize = zoom === 'fit' ? Math.max(12, fitCell) : Math.max(24, fitCell * 2);
 
   const renderConfig = () => (
-    <ScrollView contentContainerStyle={styles.configContainer}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.configContainer}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
         <Text style={{ fontSize: 44 }}>🎴</Text>
         <Text style={styles.configTitle}>{language === 'ru' ? 'Самурай' : 'Samurai'}</Text>

@@ -239,7 +239,7 @@ export default function BreathingGame() {
 
   // ─────────── РЕНДЕР ───────────
   const renderConfig = () => (
-    <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
         <Ionicons name="flower-outline" size={44} color="#FFF" />
         <Text style={styles.configTitle}>{t('breathing')}</Text>
@@ -311,7 +311,7 @@ export default function BreathingGame() {
   );
 
   const renderWarning = () => (
-    <ScrollView contentContainerStyle={styles.configContainer}>
+    <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer}>
       <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
         <Ionicons name="warning-outline" size={44} color="#FFF" />
         <Text style={styles.configTitle}>{t('brWimWarnTitle')}</Text>
@@ -449,6 +449,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
+  configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },

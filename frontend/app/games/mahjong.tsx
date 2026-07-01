@@ -335,7 +335,7 @@ export default function MahjongGame() {
   const renderConfig = () => {
     const p = levelParams(level);
     return (
-      <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
           <Ionicons name="grid" size={48} color="#04341f" />
           <Text style={styles.configTitle}>{t('mahjong')}</Text>
@@ -423,6 +423,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
+  configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: '#04341f' },
