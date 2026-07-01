@@ -263,8 +263,11 @@ export default function SamuraiSudokuGame() {
     // В режиме 'zoom' оборачиваем поле в 2D-скролл (вложенные ScrollView — работают и в вебе, и нативно).
     const boardWrap = zoom === 'zoom'
       ? (
+        // flex:1 (не фиксированный maxHeight) — доска занимает РОВНО остаток экрана
+        // после statsEl/padEl, поэтому цифровая панель ГАРАНТИРОВАННО остаётся видна,
+        // не нужно отдалять зум чтобы до неё дотянуться.
         <ScrollView horizontal style={styles.zoomScroll} contentContainerStyle={{ padding: 6 }}>
-          <ScrollView contentContainerStyle={{ padding: 0 }}>{boardEl}</ScrollView>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 0 }}>{boardEl}</ScrollView>
         </ScrollView>
       )
       : <View style={{ alignSelf: 'center' }}>{boardEl}</View>;
@@ -332,7 +335,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 16, alignItems: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   zoomBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
-  zoomScroll: { maxHeight: 460, alignSelf: 'stretch' },
+  zoomScroll: { flex: 1, alignSelf: 'stretch' },
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center' },
   numBtn: { width: 46, height: 46, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
 });
