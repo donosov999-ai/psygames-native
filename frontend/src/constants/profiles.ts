@@ -660,6 +660,10 @@ const POLYGLOT: ProfileDef = {
     'n_back',            // ещё memory — WM (предсказывает усвоение словаря)
     'phonemic_fluency',  // ещё logic — беглость извлечения слов
     'switching_task',    // ещё logic — переключение/билингвальный контроль
+    // TIER 2 (v1.104.0) — аудио через системный TTS
+    'phoneme_pairs',     // attention — различение фонем (минимальные пары на слух)
+    'pseudoword_echo',   // memory — фонологическая петля (псевдослова на слух)
+    'listening_span',    // memory — слуховой охват (слова на слух, порядок)
   ],
   // v1.23 «Комплексы» — фиксированные утро/вечер (F1, end-to-end demo на полиглоте).
   // targetLang='en' дефолт; если UI=en, игра сама переключит цель (фолбэк в word-pairs).

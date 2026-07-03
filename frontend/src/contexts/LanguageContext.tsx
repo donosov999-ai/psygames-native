@@ -564,6 +564,14 @@ const translations: Translations = {
   srsAllDone: { ru: 'На сегодня всё!', en: 'All done for today!' },
   srsNextDue: { ru: 'Следующий повтор', en: 'Next review' },
   srsNew: { ru: 'новое', en: 'new' },
+  // v1.104.0 (Полиглот TIER 2 — аудио): фонемы, псевдослова, слуховой охват
+  skillListening: { ru: 'Тренируем: восприятие на слух', en: 'Training: listening' },
+  phonemePairs: { ru: 'Фонемы: минимальные пары', en: 'Phonemes: Minimal Pairs' },
+  phonemePairsDesc: { ru: 'Услышь разницу: ship или sheep?', en: 'Hear the difference: ship or sheep?' },
+  pseudowordEcho: { ru: 'Эхо: псевдослова', en: 'Echo: Pseudowords' },
+  pseudowordEchoDesc: { ru: 'Услышал выдуманное слово — найди его написание', en: 'Hear a made-up word — pick its spelling' },
+  listeningSpan: { ru: 'Слуховой охват', en: 'Listening Span' },
+  listeningSpanDesc: { ru: 'Слова на слух — повтори порядок', en: 'Hear the words — repeat the order' },
   // v1.29.0 (Полиглот TIER 1 п.2/4/5): лексическое решение, Cloze, сортировка слов
   lexicalDecision: { ru: 'Слово или нет?', en: 'Word or Not?' },
   lexicalDecisionDesc: { ru: 'Реальное слово — или подделка?', en: 'Real word — or a fake?' },
