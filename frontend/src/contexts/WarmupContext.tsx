@@ -148,24 +148,31 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({ ...s, results: [...s.results, r] }));
   }, []);
 
+  // ⚠️ Побочные эффекты (звук, router.replace) НЕ внутри setState-updater — React вправе
+  // исполнять updater повторно/в фазе рендера → двойной инкремент шага и двойная навигация
+  // (симптом: зарядка «проскакивает» игры и обрывается раньше времени). Плюс debounce-гард:
+  // два advanceToNext ближе 800мс (напр. дубль-сейв сессии) не продвигают шаг дважды.
+  const lastAdvanceRef = useRef(0);
   const advanceToNext = useCallback(() => {
-    setState((s) => {
-      if (!s.meta) return s;
-      const next = s.currentIdx + 1;
-      if (next >= s.meta.steps.length) {
-        // all done — chime + go to appropriate complete screen based on track
-        fbComplete();
-        const completePath = s.meta.track === 'assessment'
-          ? '/assessment-result'
-          : '/warmup-complete';
-        setTimeout(() => router.replace(completePath as any), 0);
-        return { ...s, currentIdx: next };
-      }
+    const s = stateRef.current;
+    if (!s.meta) return;
+    const now = Date.now();
+    if (now - lastAdvanceRef.current < 800) return;
+    lastAdvanceRef.current = now;
+    const next = s.currentIdx + 1;
+    setState((st) => ({ ...st, currentIdx: st.currentIdx + 1 }));
+    if (next >= s.meta.steps.length) {
+      // all done — chime + go to appropriate complete screen based on track
+      fbComplete();
+      const completePath = s.meta.track === 'assessment'
+        ? '/assessment-result'
+        : '/warmup-complete';
+      setTimeout(() => router.replace(completePath as any), 0);
+    } else {
       // bridge first → next game (subtle tick)
       fbCorrect();
       setTimeout(() => router.replace('/warmup-bridge' as any), 0);
-      return { ...s, currentIdx: next };
-    });
+    }
   }, [router]);
 
   const skipCurrent = useCallback(() => {

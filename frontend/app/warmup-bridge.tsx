@@ -32,25 +32,29 @@ export default function WarmupBridge() {
   const isEvening = meta?.slot === 'evening';
   const accent = isEvening ? '#818cf8' : '#fbbf24';
 
+  // ⚠️ Навигация НЕ внутри setState-updater: updater исполняется в фазе рендера, и
+  // router.replace оттуда давал «Cannot update NavigationContainerInner while rendering
+  // WarmupBridge» — под React 18 такая навигация может теряться/дублироваться по таймингу
+  // (симптом: зарядка обрывается раньше времени). Отсчёт только меняет число; переход — в
+  // отдельном эффекте по countdown===0, с firedRef-гардом от двойного replace.
+  const navFiredRef = useRef(false);
   useEffect(() => {
     if (!warmup.active || !next) {
       router.replace('/' as any);
       return;
     }
-    intervalRef.current = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          router.replace({ pathname: next.game_route, params: stepToParams(next) } as any);
-          return 0;
-        }
-        return c - 1;
-      });
-    }, 1000);
+    intervalRef.current = setInterval(() => setCountdown((c) => Math.max(0, c - 1)), 1000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (countdown !== 0 || navFiredRef.current || !next) return;
+    navFiredRef.current = true;
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    router.replace({ pathname: next.game_route, params: stepToParams(next) } as any);
+  }, [countdown]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startNow = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
