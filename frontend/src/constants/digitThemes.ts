@@ -5,33 +5,33 @@
 // rainbow/pastel/neon — из ОДНОЙ картинки (3 ряда × 9), elegant/candy — отдельные 3×3.
 const CANDY: any[] = [
   null,
-  require('../../assets/images/digits/d1.png'), require('../../assets/images/digits/d2.png'), require('../../assets/images/digits/d3.png'),
-  require('../../assets/images/digits/d4.png'), require('../../assets/images/digits/d5.png'), require('../../assets/images/digits/d6.png'),
-  require('../../assets/images/digits/d7.png'), require('../../assets/images/digits/d8.png'), require('../../assets/images/digits/d9.png'),
+  require('../../assets/images/digits/d1.webp'), require('../../assets/images/digits/d2.webp'), require('../../assets/images/digits/d3.webp'),
+  require('../../assets/images/digits/d4.webp'), require('../../assets/images/digits/d5.webp'), require('../../assets/images/digits/d6.webp'),
+  require('../../assets/images/digits/d7.webp'), require('../../assets/images/digits/d8.webp'), require('../../assets/images/digits/d9.webp'),
 ];
 const ELEGANT: any[] = [
   null,
-  require('../../assets/images/digits_elegant/d1.png'), require('../../assets/images/digits_elegant/d2.png'), require('../../assets/images/digits_elegant/d3.png'),
-  require('../../assets/images/digits_elegant/d4.png'), require('../../assets/images/digits_elegant/d5.png'), require('../../assets/images/digits_elegant/d6.png'),
-  require('../../assets/images/digits_elegant/d7.png'), require('../../assets/images/digits_elegant/d8.png'), require('../../assets/images/digits_elegant/d9.png'),
+  require('../../assets/images/digits_elegant/d1.webp'), require('../../assets/images/digits_elegant/d2.webp'), require('../../assets/images/digits_elegant/d3.webp'),
+  require('../../assets/images/digits_elegant/d4.webp'), require('../../assets/images/digits_elegant/d5.webp'), require('../../assets/images/digits_elegant/d6.webp'),
+  require('../../assets/images/digits_elegant/d7.webp'), require('../../assets/images/digits_elegant/d8.webp'), require('../../assets/images/digits_elegant/d9.webp'),
 ];
 const NEON: any[] = [
   null,
-  require('../../assets/images/digits_neon/d1.png'), require('../../assets/images/digits_neon/d2.png'), require('../../assets/images/digits_neon/d3.png'),
-  require('../../assets/images/digits_neon/d4.png'), require('../../assets/images/digits_neon/d5.png'), require('../../assets/images/digits_neon/d6.png'),
-  require('../../assets/images/digits_neon/d7.png'), require('../../assets/images/digits_neon/d8.png'), require('../../assets/images/digits_neon/d9.png'),
+  require('../../assets/images/digits_neon/d1.webp'), require('../../assets/images/digits_neon/d2.webp'), require('../../assets/images/digits_neon/d3.webp'),
+  require('../../assets/images/digits_neon/d4.webp'), require('../../assets/images/digits_neon/d5.webp'), require('../../assets/images/digits_neon/d6.webp'),
+  require('../../assets/images/digits_neon/d7.webp'), require('../../assets/images/digits_neon/d8.webp'), require('../../assets/images/digits_neon/d9.webp'),
 ];
 const PASTEL: any[] = [
   null,
-  require('../../assets/images/digits_pastel/d1.png'), require('../../assets/images/digits_pastel/d2.png'), require('../../assets/images/digits_pastel/d3.png'),
-  require('../../assets/images/digits_pastel/d4.png'), require('../../assets/images/digits_pastel/d5.png'), require('../../assets/images/digits_pastel/d6.png'),
-  require('../../assets/images/digits_pastel/d7.png'), require('../../assets/images/digits_pastel/d8.png'), require('../../assets/images/digits_pastel/d9.png'),
+  require('../../assets/images/digits_pastel/d1.webp'), require('../../assets/images/digits_pastel/d2.webp'), require('../../assets/images/digits_pastel/d3.webp'),
+  require('../../assets/images/digits_pastel/d4.webp'), require('../../assets/images/digits_pastel/d5.webp'), require('../../assets/images/digits_pastel/d6.webp'),
+  require('../../assets/images/digits_pastel/d7.webp'), require('../../assets/images/digits_pastel/d8.webp'), require('../../assets/images/digits_pastel/d9.webp'),
 ];
 const RAINBOW: any[] = [
   null,
-  require('../../assets/images/digits_rainbow/d1.png'), require('../../assets/images/digits_rainbow/d2.png'), require('../../assets/images/digits_rainbow/d3.png'),
-  require('../../assets/images/digits_rainbow/d4.png'), require('../../assets/images/digits_rainbow/d5.png'), require('../../assets/images/digits_rainbow/d6.png'),
-  require('../../assets/images/digits_rainbow/d7.png'), require('../../assets/images/digits_rainbow/d8.png'), require('../../assets/images/digits_rainbow/d9.png'),
+  require('../../assets/images/digits_rainbow/d1.webp'), require('../../assets/images/digits_rainbow/d2.webp'), require('../../assets/images/digits_rainbow/d3.webp'),
+  require('../../assets/images/digits_rainbow/d4.webp'), require('../../assets/images/digits_rainbow/d5.webp'), require('../../assets/images/digits_rainbow/d6.webp'),
+  require('../../assets/images/digits_rainbow/d7.webp'), require('../../assets/images/digits_rainbow/d8.webp'), require('../../assets/images/digits_rainbow/d9.webp'),
 ];
 
 export type DigitStyle = 'candy' | 'elegant' | 'neon' | 'pastel' | 'rainbow';

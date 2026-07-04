@@ -24,29 +24,29 @@ const GOODS_BENEFITS = [
 
 // Товары (сгенерены Nano Banana 2, generic-этикетки — НЕ реальные бренды). Прозрачные PNG.
 const GOOD_SPRITES = [
-  require('../../assets/images/goods/good0.png'),  // кола
-  require('../../assets/images/goods/good1.png'),  // лимонад
-  require('../../assets/images/goods/good2.png'),  // кефир
-  require('../../assets/images/goods/good3.png'),  // молоко
-  require('../../assets/images/goods/good4.png'),  // сок
-  require('../../assets/images/goods/good5.png'),  // йогурт
-  require('../../assets/images/goods/good6.png'),  // банан
-  require('../../assets/images/goods/good7.png'),  // яблоко
-  require('../../assets/images/goods/good8.png'),  // шоколад
-  require('../../assets/images/goods/good9.png'),  // чипсы
-  require('../../assets/images/goods/good10.png'), // хлеб
-  require('../../assets/images/goods/good11.png'), // зубная паста
-  require('../../assets/images/goods/good12.png'), // виноградный сок
-  require('../../assets/images/goods/good13.png'), // клубничный коктейль
-  require('../../assets/images/goods/good14.png'), // мишка
-  require('../../assets/images/goods/good15.png'), // кактус
-  require('../../assets/images/goods/good16.png'), // цветок
-  require('../../assets/images/goods/good17.png'), // зайка
-  require('../../assets/images/goods/good18.png'), // цыплёнок
-  require('../../assets/images/goods/good19.png'), // коала
-  require('../../assets/images/goods/good20.png'), // растение
-  require('../../assets/images/goods/good21.png'), // пингвин
-  require('../../assets/images/goods/good22.png'), // лиса
+  require('../../assets/images/goods/good0.webp'),  // кола
+  require('../../assets/images/goods/good1.webp'),  // лимонад
+  require('../../assets/images/goods/good2.webp'),  // кефир
+  require('../../assets/images/goods/good3.webp'),  // молоко
+  require('../../assets/images/goods/good4.webp'),  // сок
+  require('../../assets/images/goods/good5.webp'),  // йогурт
+  require('../../assets/images/goods/good6.webp'),  // банан
+  require('../../assets/images/goods/good7.webp'),  // яблоко
+  require('../../assets/images/goods/good8.webp'),  // шоколад
+  require('../../assets/images/goods/good9.webp'),  // чипсы
+  require('../../assets/images/goods/good10.webp'), // хлеб
+  require('../../assets/images/goods/good11.webp'), // зубная паста
+  require('../../assets/images/goods/good12.webp'), // виноградный сок
+  require('../../assets/images/goods/good13.webp'), // клубничный коктейль
+  require('../../assets/images/goods/good14.webp'), // мишка
+  require('../../assets/images/goods/good15.webp'), // кактус
+  require('../../assets/images/goods/good16.webp'), // цветок
+  require('../../assets/images/goods/good17.webp'), // зайка
+  require('../../assets/images/goods/good18.webp'), // цыплёнок
+  require('../../assets/images/goods/good19.webp'), // коала
+  require('../../assets/images/goods/good20.webp'), // растение
+  require('../../assets/images/goods/good21.webp'), // пингвин
+  require('../../assets/images/goods/good22.webp'), // лиса
 ];
 
 // Наборы товаров — ВЫБОР В МЕНЮ (как в оригинале). Каждый набор = пул индексов спрайтов.

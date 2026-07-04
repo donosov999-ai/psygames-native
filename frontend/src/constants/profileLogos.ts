@@ -2,15 +2,15 @@
 // «Пока в каждом режиме свой» — каждый профиль показывает свой стиль надписи на главном экране.
 // Прозрачный фон (фон вычищен chroma-key при нарезке). Разные пропорции → показывать в боксе resizeMode=contain.
 const LOGOS = [
-  require('../../assets/images/logos/logo0.png'), // 0 фиолет-баблы
-  require('../../assets/images/logos/logo1.png'), // 1 неон
-  require('../../assets/images/logos/logo2.png'), // 2 золото-сериф
-  require('../../assets/images/logos/logo3.png'), // 3 радуга-конфета
-  require('../../assets/images/logos/logo4.png'), // 4 тех-градиент
-  require('../../assets/images/logos/logo5.png'), // 5 гейминг-щит
-  require('../../assets/images/logos/logo6.png'), // 6 мозг + надпись (бренд)
-  require('../../assets/images/logos/logo7.png'), // 7 минимал
-  require('../../assets/images/logos/logo8.png'), // 8 хром
+  require('../../assets/images/logos/logo0.webp'), // 0 фиолет-баблы
+  require('../../assets/images/logos/logo1.webp'), // 1 неон
+  require('../../assets/images/logos/logo2.webp'), // 2 золото-сериф
+  require('../../assets/images/logos/logo3.webp'), // 3 радуга-конфета
+  require('../../assets/images/logos/logo4.webp'), // 4 тех-градиент
+  require('../../assets/images/logos/logo5.webp'), // 5 гейминг-щит
+  require('../../assets/images/logos/logo6.webp'), // 6 мозг + надпись (бренд)
+  require('../../assets/images/logos/logo7.webp'), // 7 минимал
+  require('../../assets/images/logos/logo8.webp'), // 8 хром
 ];
 
 // Профиль → индекс варианта (можно повторять; дефолт = 6 «мозг», бренд).
