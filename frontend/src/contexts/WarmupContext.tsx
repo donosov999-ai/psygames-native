@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { DeviceEventEmitter, BackHandler, Platform } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   PlaylistMeta, PlaylistStep,
@@ -10,10 +10,7 @@ import {
 } from '@/src/services/warmup';
 import { setSessionListener, GameSession } from '@/src/services/api';
 import { useProfile } from '@/src/contexts/ProfileContext';
-import { fbCorrect, fbComplete, fbAchievement } from '@/src/services/feedback';
-import { checkNewAchievements } from '@/src/services/achievements';
-import { getSessions } from '@/src/services/api';
-import { loadAssessmentHistory } from '@/src/services/assessment';
+import { fbCorrect, fbComplete } from '@/src/services/feedback';
 
 export interface StepResult {
   game_type: string;
@@ -209,6 +206,9 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   // This avoids per-game patching across 39 game files.
   const stateRef = useRef(state);
   stateRef.current = state;
+  // Глобал для saveSession: во время зарядки серия-бонус (cleanRun) не начисляется —
+  // у зарядки свой comboBonus ×1.5 в warmup-complete, не задваиваем награду.
+  useEffect(() => { (globalThis as any).__psygames_warmup_active = state.active; }, [state.active]);
   useEffect(() => {
     const listener = async (s: GameSession) => {
       const cur = stateRef.current;
@@ -235,26 +235,8 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
         details: s.details,
       });
 
-      // Check for newly unlocked achievements (background, no blocking)
-      try {
-        const [allSessions, warmupHist, assessHist] = await Promise.all([
-          getSessions(),
-          import('@/src/services/warmup').then(m => m.loadWarmupHistory()),
-          loadAssessmentHistory(),
-        ]);
-        const newly = await checkNewAchievements({
-          sessions: allSessions,
-          warmupHistory: warmupHist,
-          assessmentHistory: assessHist,
-          currentStreak: 0, // streak computed elsewhere; pass 0 here, streak achievements re-evaluated on home open
-        });
-        if (newly.length > 0) {
-          fbAchievement();
-          // Toast via global event — main screen can subscribe
-          (globalThis as any).__psygames_new_achievement = newly[0];
-          DeviceEventEmitter.emit('psygames:achievement', newly[0]);
-        }
-      } catch {}
+      // Ачивки чекаются в saveSession (runAchievementsCheck) — единая точка для
+      // ЛЮБОГО завершённого раунда, с настоящим warmup-стриком (раньше тут был 0).
       // small delay so the game's own result UI can render briefly,
       // then auto-navigate to bridge / complete
       setTimeout(() => advanceToNext(), cur.meta.slot === 'evening' ? 3500 : 2000);

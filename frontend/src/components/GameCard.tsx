@@ -21,6 +21,8 @@ interface GameCardProps {
   width?: number | string;
   /** Только number (на web используется aspectRatio вместо явной height). */
   height?: number;
+  /** v1.108.0: прогресс уровней «⭐ X/15» (авто-поток). Нет данных → бейдж не рисуем. */
+  starsInfo?: { completed: number };
 }
 
 /** Перцептивная яркость градиента: светлый → тёмный текст, тёмный → белый.
@@ -38,7 +40,7 @@ function gradientIsLight(grad: string[]): boolean {
 }
 
 export default function GameCard({
-  id, nameKey, descKey, skillKey, gradient, icon, onPress, width, height,
+  id, nameKey, descKey, skillKey, gradient, icon, onPress, width, height, starsInfo,
 }: GameCardProps) {
   useTheme();
   const gameImg = gameIcon(id);
@@ -117,10 +119,17 @@ export default function GameCard({
           <Text style={[styles.title, { color: fg, textShadowColor: light ? 'transparent' : 'rgba(0,0,0,0.3)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }]} numberOfLines={2}>{t(nameKey)}</Text>
           <Text style={[styles.description, { color: fgSoft }]} numberOfLines={2}>{t(descKey)}</Text>
         </View>
-        {/* Badge — pinned to bottom (after flex:1 textContainer) */}
-        <View style={[styles.skillBadge, { backgroundColor: badgeBg }]}>
-          <Ionicons name="fitness-outline" size={12} color={badgeFg} />
-          <Text style={[styles.skillText, { color: badgeFg }]} numberOfLines={1}>{t(skillKey)}</Text>
+        {/* Badges — pinned to bottom (after flex:1 textContainer) */}
+        <View style={styles.badgeRow}>
+          <View style={[styles.skillBadge, { backgroundColor: badgeBg, flexShrink: 1 }]}>
+            <Ionicons name="fitness-outline" size={12} color={badgeFg} />
+            <Text style={[styles.skillText, { color: badgeFg }]} numberOfLines={1}>{t(skillKey)}</Text>
+          </View>
+          {starsInfo && starsInfo.completed > 0 && (
+            <View style={[styles.skillBadge, { backgroundColor: badgeBg }]}>
+              <Text style={[styles.skillText, { color: '#FFD93B' }]} numberOfLines={1}>⭐ {Math.min(starsInfo.completed, 15)}/15</Text>
+            </View>
+          )}
         </View>
         </LinearGradient>
         </Animated.View>
@@ -161,6 +170,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: 'rgba(255, 255, 255, 0.8)',
     lineHeight: 14,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    maxWidth: '100%',
   },
   skillBadge: {
     flexDirection: 'row',

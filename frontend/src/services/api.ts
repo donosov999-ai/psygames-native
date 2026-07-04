@@ -336,21 +336,34 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
   all.push(stored);
   await writeAll(all);
   // Геймификация: начислить токены в ЦЕНТР (победы +, ошибки −), per-profile.
+  // Плюс серия чистых раундов: с 3-го подряд errors===0 — бонус (вне зарядки,
+  // у зарядки свой comboBonus ×1.5 в warmup-complete).
   try {
     const pid = (globalThis as any).__psygames_active_profile_id as string | undefined;
     if (pid) {
       const { addTokens, tokenDelta } = await import('@/src/services/tokens');
-      addTokens(pid, tokenDelta(stored.score, stored.errors ?? 0)).catch(() => {});
+      const { tickCleanRun, cleanRunBonus } = await import('@/src/services/cleanRun');
+      const clean = (stored.errors ?? 0) === 0 && (stored.score ?? 0) > 0;
+      const run = await tickCleanRun(pid, clean);
+      const warmupActive = (globalThis as any).__psygames_warmup_active === true;
+      const bonus = clean && !warmupActive ? cleanRunBonus(run) : 0;
+      addTokens(pid, tokenDelta(stored.score, stored.errors ?? 0) + bonus).catch(() => {});
     }
   } catch { /* токены некритичны */ }
-  // Вызов дня: стрик коммитится за завершённый раунд игры вызова (pending пишет startDailyChallenge)
+  // Вызов дня: стрик коммитится за завершённый раунд игры вызова (pending пишет
+  // startDailyChallenge). Await — чтобы чек ачивок ниже видел свежий стрик.
   try {
     const pid = (globalThis as any).__psygames_active_profile_id as string | undefined;
     if (pid) {
       const { commitChallengeIfPending } = await import('@/src/services/daily-challenge');
-      commitChallengeIfPending(pid, stored.game_type).catch(() => {});
+      await commitChallengeIfPending(pid, stored.game_type);
     }
   } catch { /* стрик некритичен */ }
+  // Ачивки: единая точка проверки — любой завершённый раунд (не только зарядка).
+  try {
+    const { runAchievementsCheck } = await import('@/src/services/achievements');
+    runAchievementsCheck(all).catch(() => {});
+  } catch { /* ачивки некритичны */ }
   // Notify warmup context FIRST so it enriches the session with metadata,
   // then push to cloud with the enriched version.
   if (_sessionListener) {

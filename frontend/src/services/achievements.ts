@@ -38,7 +38,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   // BREADTH
   { id: 'all_categories', name_ru: 'Все категории',   name_en: 'All categories',desc_ru: 'Сыграй из всех 6 категорий', desc_en: 'Play from all 6 categories', emoji: '🌈', category: 'breadth' },
   { id: 'twenty_unique',  name_ru: '20 разных игр',   name_en: '20 unique games',desc_ru: 'Попробуй 20 разных игр',    desc_en: 'Try 20 different games', emoji: '🎲', category: 'breadth' },
-  { id: 'all_44_games',   name_ru: 'Все игры',        name_en: 'All games',     desc_ru: 'Хотя бы по разу — все 44',  desc_en: 'At least once — all 44', emoji: '🎖️', category: 'breadth' },
+  { id: 'all_44_games',   name_ru: 'Все игры',        name_en: 'All games',     desc_ru: 'Хотя бы по разу — весь каталог',  desc_en: 'At least once — the whole catalog', emoji: '🎖️', category: 'breadth' },
   // MILESTONE
   { id: 'first_warmup',   name_ru: 'Первая Зарядка',  name_en: 'First Warmup',  desc_ru: 'Заверши Утреннюю Зарядку',  desc_en: 'Complete Morning Warmup', emoji: '⚡', category: 'milestone' },
   { id: 'first_assessment',name_ru: 'Первый профиль', name_en: 'First Profile', desc_ru: 'Пройди оценку профиля',     desc_en: 'Complete Skill Assessment', emoji: '📊', category: 'milestone' },
@@ -49,7 +49,24 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'flanker_low',    name_ru: 'Тормоз стальной', name_en: 'Iron inhibition',desc_ru: 'flanker_effect < 30мс',     desc_en: 'flanker_effect under 30ms', emoji: '🛡️', category: 'quality' },
   { id: 'corsi_7',        name_ru: 'Span 7 Corsi',    name_en: 'Span 7 Corsi',  desc_ru: 'Достигни Corsi span = 7',   desc_en: 'Reach Corsi span 7', emoji: '🧠', category: 'quality' },
   { id: 'cpt_no_omission',name_ru: 'CPT 0 пропусков', name_en: 'CPT no misses', desc_ru: 'Заверши CPT без omission errors', desc_en: 'Complete CPT with 0 omissions', emoji: '👁️', category: 'quality' },
+  // v1.108.0 — за фичи июня-июля: вызов дня, дыхание, слепые шахматы, полиглот, чистые серии
+  { id: 'challenge_7',      name_ru: 'Неделя вызовов',    name_en: 'Challenge week',   desc_ru: '7 вызовов дня подряд',            desc_en: '7 daily challenges in a row',   emoji: '🎲', category: 'streak' },
+  { id: 'challenge_30',     name_ru: 'Месяц вызовов',     name_en: 'Challenge month',  desc_ru: '30 вызовов дня подряд',           desc_en: '30 daily challenges in a row',  emoji: '🗓️', category: 'streak' },
+  { id: 'challenge_20_total',name_ru: 'Двадцатка',        name_en: 'Twenty',           desc_ru: '20 вызовов дня всего',            desc_en: '20 daily challenges total',     emoji: '🎯', category: 'volume' },
+  { id: 'breathing_10',     name_ru: 'Дыхание ×10',       name_en: 'Breathing ×10',    desc_ru: '10 дыхательных сессий',           desc_en: '10 breathing sessions',         emoji: '🌬️', category: 'volume' },
+  { id: 'breathing_30',     name_ru: 'Дыхание ×30',       name_en: 'Breathing ×30',    desc_ru: '30 дыхательных сессий',           desc_en: '30 breathing sessions',         emoji: '🧘', category: 'volume' },
+  { id: 'breathing_streak_7',name_ru: 'Неделя дыхания',   name_en: 'Breath week',      desc_ru: '7 дней дыхания подряд',           desc_en: '7 days of breathing in a row',  emoji: '🌊', category: 'streak' },
+  { id: 'chess_blind_5',    name_ru: 'Слепой взгляд',     name_en: 'Blind eye',        desc_ru: 'Слепые шахматы: пройди уровень 5', desc_en: 'Blind chess: clear level 5',   emoji: '♟️', category: 'quality' },
+  { id: 'chess_blind_10',   name_ru: 'Гроссмейстер памяти',name_en: 'Memory grandmaster',desc_ru: 'Слепые шахматы: пройди уровень 10', desc_en: 'Blind chess: clear level 10', emoji: '👑', category: 'quality' },
+  { id: 'polyglot_100',     name_ru: 'Полиглот-сотня',    name_en: 'Polyglot century', desc_ru: '100 языковых сессий',             desc_en: '100 language sessions',         emoji: '🌍', category: 'volume' },
+  { id: 'clean_run_5',      name_ru: 'Чистая пятёрка',    name_en: 'Clean five',       desc_ru: '5 чистых раундов подряд (0 ошибок)', desc_en: '5 clean rounds in a row (0 errors)', emoji: '🔥', category: 'quality' },
 ];
+
+// Языковые игры для polyglot_100 (вербальный + аудио TIER2 стек).
+const POLYGLOT_GAMES = new Set([
+  'word_pairs', 'vocab_srs', 'semantic_sort', 'cloze', 'lexical_decision',
+  'phoneme_pairs', 'pseudoword_echo', 'listening_span', 'phonemic_fluency',
+]);
 
 const UNLOCKED_KEY = 'psygames_achievements_unlocked';
 
@@ -78,6 +95,11 @@ interface Context {
   warmupHistory: any[];
   assessmentHistory: any[];
   currentStreak: number;
+  // v1.108.0 — per-profile данные для новых ачивок (прелоад в checkNewAchievements)
+  challengeStreak?: { streak: number; total: number };
+  breathingStreak?: number;
+  chessBlindMaxLevel?: number;
+  cleanRun?: number;
 }
 
 function evalCondition(id: string, ctx: Context): boolean {
@@ -87,6 +109,16 @@ function evalCondition(id: string, ctx: Context): boolean {
   // crude: derive category from common game ids (will use GAMES catalog in real check)
   // But for now just count distinct game_types as proxy
   switch (id) {
+    case 'challenge_7':        return (ctx.challengeStreak?.streak ?? 0) >= 7;
+    case 'challenge_30':       return (ctx.challengeStreak?.streak ?? 0) >= 30;
+    case 'challenge_20_total': return (ctx.challengeStreak?.total ?? 0) >= 20;
+    case 'breathing_10':       return sessions.filter(s => s.game_type === 'breathing').length >= 10;
+    case 'breathing_30':       return sessions.filter(s => s.game_type === 'breathing').length >= 30;
+    case 'breathing_streak_7': return (ctx.breathingStreak ?? 0) >= 7;
+    case 'chess_blind_5':      return (ctx.chessBlindMaxLevel ?? 0) >= 5;
+    case 'chess_blind_10':     return (ctx.chessBlindMaxLevel ?? 0) >= 10;
+    case 'polyglot_100':       return sessions.filter(s => POLYGLOT_GAMES.has(s.game_type)).length >= 100;
+    case 'clean_run_5':        return (ctx.cleanRun ?? 0) >= 5;
     case 'first_session':       return sessions.length >= 1;
     case 'sessions_10':         return sessions.length >= 10;
     case 'sessions_50':         return sessions.length >= 50;
@@ -122,18 +154,23 @@ export async function checkNewAchievements(ctx: Context): Promise<Achievement[]>
   const unlocked = await getUnlocked();
   const unlockedIds = new Set(unlocked.map(u => u.id));
   const newly: Achievement[] = [];
-  // Special handling for 'all_categories'
+  // Special handling for 'all_categories' / 'all_44_games'
   const { GAMES, CATEGORY_ORDER } = await import('@/src/constants/games');
   const playedCategories = new Set<string>();
+  const playedIds = new Set(ctx.sessions.map(s => s.game_type));
   for (const s of ctx.sessions) {
     const g = GAMES.find(x => x.id === s.game_type);
     if (g) playedCategories.add(g.category);
   }
+  // Хабы-группы не сохраняют сессий — «весь каталог» = все остальные записи GAMES.
+  const HUBS = new Set(['span_group', 'attention_conflict']);
   for (const a of ACHIEVEMENTS) {
     if (unlockedIds.has(a.id)) continue;
     let pass = false;
     if (a.id === 'all_categories') {
       pass = CATEGORY_ORDER.every(c => playedCategories.has(c));
+    } else if (a.id === 'all_44_games') {
+      pass = GAMES.filter(g => !HUBS.has(g.id)).every(g => playedIds.has(g.id));
     } else {
       pass = evalCondition(a.id, ctx);
     }
@@ -156,6 +193,62 @@ export async function checkNewAchievements(ctx: Context): Promise<Achievement[]>
         }
       }
     } catch { /* токены некритичны */ }
+  }
+  return newly;
+}
+
+/**
+ * v1.108.0 — единая точка проверки ачивок: вызывается из saveSession на КАЖДЫЙ
+ * завершённый раунд (раньше — только из зарядки, и ачивки за вызов дня/дыхание/
+ * шахматы вне зарядки не проверялись; warmup-стрик передавался нулём).
+ * Сама собирает контекст (включая per-profile данные) и эмитит звук+тост.
+ */
+export async function runAchievementsCheck(sessions: GameSession[]): Promise<Achievement[]> {
+  const pid = (globalThis as any).__psygames_active_profile_id as string | undefined;
+  const [warmupMod, assessMod] = await Promise.all([
+    import('@/src/services/warmup'),
+    import('@/src/services/assessment'),
+  ]);
+  const warmupHistory = await warmupMod.loadWarmupHistory();
+  const assessmentHistory = await assessMod.loadAssessmentHistory();
+  const currentStreak = warmupMod.computeStreak(warmupHistory);
+
+  let challengeStreak: Context['challengeStreak'];
+  let breathingStreak = 0;
+  let chessBlindMaxLevel = 0;
+  let cleanRun = 0;
+  if (pid) {
+    try {
+      const dc = await import('@/src/services/daily-challenge');
+      challengeStreak = await dc.loadChallengeStreak(pid);
+    } catch {}
+    try {
+      const raw = await AsyncStorage.getItem(`psygames_breathing_streak_${pid}`);
+      if (raw) breathingStreak = JSON.parse(raw).streak || 0;
+    } catch {}
+    try {
+      const { getLevelStars } = await import('@/src/services/levelStars');
+      const stars = await getLevelStars('chess_blind', pid);
+      chessBlindMaxLevel = Math.max(0, ...Object.keys(stars).map(Number).filter(n => (stars as any)[n] > 0));
+    } catch {}
+    try {
+      const { getCleanRun } = await import('@/src/services/cleanRun');
+      cleanRun = await getCleanRun(pid);
+    } catch {}
+  }
+
+  const newly = await checkNewAchievements({
+    sessions, warmupHistory, assessmentHistory, currentStreak,
+    challengeStreak, breathingStreak, chessBlindMaxLevel, cleanRun,
+  });
+  if (newly.length > 0) {
+    try {
+      const { fbAchievement } = await import('@/src/services/feedback');
+      fbAchievement();
+      (globalThis as any).__psygames_new_achievement = newly[0];
+      const { DeviceEventEmitter } = await import('react-native');
+      DeviceEventEmitter.emit('psygames:achievement', newly[0]);
+    } catch {}
   }
   return newly;
 }

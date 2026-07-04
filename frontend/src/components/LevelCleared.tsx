@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { sndWin } from '@/src/services/feedback';
 import { tickLevelStreak, resetLevelStreak } from '@/src/services/eyeRestTracker';
 import { saveLevelStars } from '@/src/services/levelStars';
+import { getCleanRun, cleanRunBonus } from '@/src/services/cleanRun';
 import { useProfile } from '@/src/contexts/ProfileContext';
 
 /**
@@ -40,6 +41,7 @@ export default function LevelCleared({ level, stars = 3, gradient, language, col
   if (restRef.current === null) restRef.current = tickLevelStreak();
   const isRest = restRef.current;
   const [restLeft, setRestLeft] = useState(EYE_REST_SEC);
+  const [cleanRun, setCleanRun] = useState(0);   // серия чистых раундов (🔥), тикается в saveSession
 
   const go = () => { if (firedRef.current) return; firedRef.current = true; onContinue(); };
   const stop = () => { firedRef.current = true; resetLevelStreak(); onStop(); };
@@ -47,15 +49,24 @@ export default function LevelCleared({ level, stars = 3, gradient, language, col
   useEffect(() => {
     sndWin();
     if (gameId && profile?.id) saveLevelStars(gameId, profile.id, level, stars);   // лучшие звёзды за уровень
+    // Серия чистых: читаем с задержкой — тик идёт в saveSession, а игры ставят
+    // setPhase('cleared') ДО await saveSession (module-кэш cleanRun сгладит гонку).
+    let runTimer: ReturnType<typeof setTimeout> | null = null;
+    if (profile?.id && stars === 3) {
+      const pid = profile.id;
+      runTimer = setTimeout(async () => {
+        try { const r = await getCleanRun(pid); if (r >= 2) setCleanRun(r); } catch {}
+      }, 350);
+    }
     if (isRest) {
       // передышка для глаз: interval только обновляет отображение, go() — отдельным
       // таймером (не внутри setState-updater → нет setState после unmount)
       const iv = setInterval(() => setRestLeft((s) => Math.max(0, s - 1)), 1000);
       const to = setTimeout(go, EYE_REST_SEC * 1000);
-      return () => { clearInterval(iv); clearTimeout(to); };
+      return () => { clearInterval(iv); clearTimeout(to); if (runTimer) clearTimeout(runTimer); };
     }
     const t = setTimeout(go, autoMs);
-    return () => clearTimeout(t);
+    return () => { clearTimeout(t); if (runTimer) clearTimeout(runTimer); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── передышка для глаз (каждый 10-й уровень подряд) ───
@@ -93,6 +104,14 @@ export default function LevelCleared({ level, stars = 3, gradient, language, col
             <Ionicons key={i} name={i <= stars ? 'star' : 'star-outline'} size={36} color={i <= stars ? '#FFD93B' : 'rgba(255,255,255,0.5)'} />
           ))}
         </View>
+        {cleanRun >= 2 && (
+          <View style={styles.runBadge}>
+            <Text style={styles.runText}>
+              {ru ? `🔥 Серия ${cleanRun} чистых` : `🔥 Clean run ${cleanRun}`}
+              {cleanRunBonus(cleanRun) > 0 ? ` · +${cleanRunBonus(cleanRun)} ⭐` : ''}
+            </Text>
+          </View>
+        )}
         <Text style={styles.next}>{ru ? `Уровень ${level + 1} запускается…` : `Starting level ${level + 1}…`}</Text>
       </LinearGradient>
       <View style={styles.btns}>
@@ -116,6 +135,8 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 56 },
   title: { fontSize: 26, fontWeight: '800', color: '#FFFFFF', marginTop: 12, marginBottom: 16, textAlign: 'center' },
   stars: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  runBadge: { backgroundColor: 'rgba(0,0,0,0.25)', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, marginBottom: 12 },
+  runText: { color: '#FFD93B', fontSize: 14, fontWeight: '800' },
   next: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
   restHint: { fontSize: 15, fontWeight: '500', color: 'rgba(255,255,255,0.92)', textAlign: 'center', marginBottom: 12, lineHeight: 21 },
   restTimer: { fontSize: 52, fontWeight: '900', color: '#FFFFFF' },

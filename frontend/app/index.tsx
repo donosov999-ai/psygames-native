@@ -23,6 +23,7 @@ import { profileBadge } from '@/src/constants/profileBadges';
 import { logoForProfile } from '@/src/constants/profileLogos';
 import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
 import { getTodayChallenge, challengeToParams, loadChallengeStreak, setPendingChallenge, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
+import { useAllLevelStars } from '@/src/hooks/useAllLevelStars';
 import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
@@ -143,6 +144,10 @@ export default function HomeScreen() {
     for (const g of visibleGames) map[g.category].push(g);
     return map;
   }, [visibleGames]);
+
+  // «⭐ X/15» на карточках — сводка пройденных уровней (пишет LevelCleared), multiGet на фокусе
+  const visibleGameIds = useMemo(() => visibleGames.map((g) => g.id), [visibleGames]);
+  const levelStarsSummary = useAllLevelStars(profile?.id, visibleGameIds);
 
   // Preview the playlist for current weekday
   const todayPreview = useMemo(() => {
@@ -541,6 +546,7 @@ export default function HomeScreen() {
                     // На native — фикс. cardWidth в px.
                     width={isWeb ? '100%' as any : cardWidth}
                     height={isWeb ? undefined : cardHeight}
+                    starsInfo={levelStarsSummary[game.id]}
                     onPress={() => router.push(game.route as any)}
                   />
                 ))}
