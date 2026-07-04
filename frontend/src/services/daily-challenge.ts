@@ -9,8 +9,10 @@ import { GAMES, GameConfig } from '@/src/constants/games';
 import { stepToParams, PlaylistStep, Difficulty } from '@/src/services/warmup';
 
 // Восстановление (дыхание) — не «вызов», исключаем из ротации.
+// Хабы-группы — не игры: не сохраняют сессию (стрик не закоммитится) и не принимают сложность.
+const GROUP_HUBS = ['span_group', 'attention_conflict'];
 function eligibleGames(): GameConfig[] {
-  return GAMES.filter((g) => !g.hideFromMenu && g.category !== 'recovery');
+  return GAMES.filter((g) => !g.hideFromMenu && g.category !== 'recovery' && !GROUP_HUBS.includes(g.id));
 }
 
 function dayKey(date: Date): string {
@@ -46,10 +48,14 @@ export function challengeToParams(c: DailyChallenge): Record<string, string> {
   return stepToParams(step);
 }
 
-// ─── стрик ежедневного вызова (отдельный от общего app-open стрика — свой признак «начал вызов сегодня») ───
+// ─── стрик ежедневного вызова (отдельный от общего app-open стрика) ───
+// Засчитывается за ЗАВЕРШЕНИЕ раунда, не за старт: старт пишет pending-маркер,
+// saveSession при совпадении игры и даты коммитит день (иначе «тапнул и вышел» = день зачтён).
 const STREAK_KEY_PREFIX = 'psygames_daily_challenge_streak_';
+const PENDING_KEY_PREFIX = 'psygames_daily_challenge_pending_';
 
 export interface ChallengeStreak { streak: number; total: number; last: string }
+interface PendingChallenge { date: string; gameId: string }
 
 export async function loadChallengeStreak(profileId: string): Promise<ChallengeStreak> {
   try {
@@ -58,8 +64,31 @@ export async function loadChallengeStreak(profileId: string): Promise<ChallengeS
   } catch { return { streak: 0, total: 0, last: '' }; }
 }
 
-/** Отметить сегодняшний вызов начатым. Идемпотентно за сутки. */
-export async function markChallengeStarted(profileId: string): Promise<ChallengeStreak> {
+/** Старт вызова: запомнить «ждём завершения этой игры сегодня». Стрик здесь НЕ трогаем. */
+export async function setPendingChallenge(profileId: string, gameId: string): Promise<void> {
+  try {
+    const pending: PendingChallenge = { date: dayKey(new Date()), gameId };
+    await AsyncStorage.setItem(PENDING_KEY_PREFIX + profileId, JSON.stringify(pending));
+  } catch {}
+}
+
+/**
+ * Завершение раунда любой игры (зовётся из saveSession): если сегодняшний pending
+ * совпал с завершённой игрой — коммитим день вызова. Идемпотентно за сутки.
+ */
+export async function commitChallengeIfPending(profileId: string, gameType: string): Promise<ChallengeStreak | null> {
+  try {
+    const raw = await AsyncStorage.getItem(PENDING_KEY_PREFIX + profileId);
+    if (!raw) return null;
+    const pending = JSON.parse(raw) as PendingChallenge;
+    if (pending.date !== dayKey(new Date()) || pending.gameId !== gameType) return null;
+    await AsyncStorage.removeItem(PENDING_KEY_PREFIX + profileId);
+    return await commitChallengeDay(profileId);
+  } catch { return null; }
+}
+
+/** Засчитать сегодняшний вызов выполненным. Идемпотентно за сутки. */
+async function commitChallengeDay(profileId: string): Promise<ChallengeStreak> {
   const today = dayKey(new Date());
   const rec = await loadChallengeStreak(profileId);
   if (rec.last === today) return rec;

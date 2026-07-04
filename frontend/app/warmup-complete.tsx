@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +15,12 @@ import {
   PlaylistMeta,
 } from '@/src/services/warmup';
 import { addTokens, comboBonus } from '@/src/services/tokens';
+import { loadReminderSettings, saveReminderSettings, applyReminders, requestReminderPermission, DEFAULT_REMINDERS } from '@/src/services/reminders';
 import type { StepResult } from '@/src/contexts/WarmupContext';
+
+// Промпт «включить напоминания?» показываем после завершённой зарядки, пока
+// напоминания выключены и юзер не ответил (флаг). Только натив — на web no-op.
+const REMINDER_PROMPT_FLAG = 'psygames_reminder_prompt_dismissed';
 
 const GRADIENT_GOLD = ['#fbbf24', '#f59e0b'];
 const GRADIENT_GREEN = ['#22c55e', '#0d9488'];
@@ -30,6 +36,7 @@ export default function WarmupComplete() {
   const [verdict, setVerdict] = useState<{ delta_pct: number; message: string } | null>(null);
   const [persisted, setPersisted] = useState(false);
   const [combo, setCombo] = useState<{ bonus: number; streakLen: number } | null>(null);
+  const [reminderPrompt, setReminderPrompt] = useState<'hidden' | 'show' | 'enabled'>('hidden');
 
   // v1.13.2 fix: snapshot meta/results/startTime СРАЗУ при mount.
   // stopWarmup() в useEffect занулит warmup.meta=null в WarmupContext →
@@ -69,8 +76,36 @@ export default function WarmupComplete() {
       setHistory(h);
       setStreak(computeStreak(h));
       setVerdict(brainTodayVerdict(h));
+      // Промпт напоминаний: натив + зарядка завершена + оба напоминания выключены + не отвечал
+      if (Platform.OS !== 'web' && completed) {
+        try {
+          const dismissed = await AsyncStorage.getItem(REMINDER_PROMPT_FLAG);
+          const rs = await loadReminderSettings();
+          if (dismissed !== 'true' && !rs.morning && !rs.evening) setReminderPrompt('show');
+        } catch {}
+      }
     })();
   }, []);
+
+  const enableReminders = async () => {
+    try {
+      const granted = await requestReminderPermission();
+      await AsyncStorage.setItem(REMINDER_PROMPT_FLAG, 'true');
+      if (granted) {
+        const s = { ...DEFAULT_REMINDERS, morning: true };
+        await saveReminderSettings(s);
+        await applyReminders(s, language);
+        setReminderPrompt('enabled');
+        return;
+      }
+    } catch {}
+    setReminderPrompt('hidden');   // отказ в системном диалоге — не приставать
+  };
+
+  const dismissReminders = async () => {
+    try { await AsyncStorage.setItem(REMINDER_PROMPT_FLAG, 'true'); } catch {}
+    setReminderPrompt('hidden');
+  };
 
   const goHome = () => router.replace('/' as any);
   const playAgain = () => {
@@ -191,6 +226,37 @@ export default function WarmupComplete() {
           </View>
         )}
 
+        {/* Промпт напоминаний (натив, пока выключены) */}
+        {reminderPrompt === 'show' && (
+          <View style={[styles.reminderCard, { backgroundColor: colors.surface, borderColor: '#8b5cf6' }]}>
+            <Text style={styles.reminderEmoji}>🔔</Text>
+            <Text style={[styles.reminderTitle, { color: colors.text }]}>
+              {language === 'ru' ? 'Напомнить завтра?' : 'Remind you tomorrow?'}
+            </Text>
+            <Text style={[styles.reminderBody, { color: colors.textSecondary }]}>
+              {language === 'ru'
+                ? 'Одно мягкое напоминание утром в 9:00 — и стрик не сгорит. Время меняется в Settings.'
+                : 'One gentle reminder at 9:00 AM keeps your streak alive. Change the time in Settings.'}
+            </Text>
+            <TouchableOpacity style={styles.reminderBtn} onPress={enableReminders}>
+              <LinearGradient colors={['#8b5cf6', '#6366f1']} style={styles.btnGrad}>
+                <Ionicons name="notifications" size={18} color="#FFF" />
+                <Text style={[styles.btnText, { color: '#FFF', paddingVertical: 0 }]}>{language === 'ru' ? 'ВКЛЮЧИТЬ' : 'ENABLE'}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={dismissReminders}>
+              <Text style={[styles.reminderLater, { color: colors.textSecondary }]}>{language === 'ru' ? 'Не сейчас' : 'Not now'}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {reminderPrompt === 'enabled' && (
+          <View style={[styles.reminderCard, { backgroundColor: colors.surface, borderColor: '#22c55e' }]}>
+            <Text style={[styles.reminderTitle, { color: '#22c55e' }]}>
+              {language === 'ru' ? '✓ Напомню утром в 9:00' : '✓ Will remind you at 9:00 AM'}
+            </Text>
+          </View>
+        )}
+
         {/* Actions */}
         <View style={styles.actions}>
           <TouchableOpacity style={styles.btn} onPress={playAgain}>
@@ -240,6 +306,12 @@ const styles = StyleSheet.create({
   verdictCard: { padding: 14, borderRadius: 12, borderLeftWidth: 4, gap: 4 },
   verdictTitle: { fontSize: 11, fontWeight: '800', letterSpacing: 1 },
   verdictMsg: { fontSize: 14, fontWeight: '600', lineHeight: 20 },
+  reminderCard: { padding: 16, borderRadius: 14, borderWidth: 1, alignItems: 'center', gap: 8 },
+  reminderEmoji: { fontSize: 32 },
+  reminderTitle: { fontSize: 16, fontWeight: '800' },
+  reminderBody: { fontSize: 13, lineHeight: 19, textAlign: 'center' },
+  reminderBtn: { borderRadius: 12, overflow: 'hidden', alignSelf: 'stretch', marginTop: 4 },
+  reminderLater: { fontSize: 13, fontWeight: '600', paddingVertical: 6 },
   actions: { gap: 10, marginTop: 8 },
   btn: { borderRadius: 12, overflow: 'hidden' },
   btnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14 },

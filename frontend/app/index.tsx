@@ -22,7 +22,7 @@ import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { logoForProfile } from '@/src/constants/profileLogos';
 import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
-import { getTodayChallenge, challengeToParams, loadChallengeStreak, markChallengeStarted, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
+import { getTodayChallenge, challengeToParams, loadChallengeStreak, setPendingChallenge, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
 import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
@@ -161,7 +161,8 @@ export default function HomeScreen() {
   };
 
   const startDailyChallenge = async () => {
-    if (profile?.id) setChallengeStreak(await markChallengeStarted(profile.id));   // идемпотентно за сутки
+    // Стрик коммитится при ЗАВЕРШЕНИИ раунда (saveSession → commitChallengeIfPending), не при старте
+    if (profile?.id) await setPendingChallenge(profile.id, todayChallenge.game.id);
     router.push({ pathname: todayChallenge.game.route, params: challengeToParams(todayChallenge) } as any);
   };
 
