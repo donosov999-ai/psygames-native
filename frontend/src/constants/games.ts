@@ -193,6 +193,17 @@ export const GAMES: GameConfig[] = [
     route: '/games/listening-span',
     category: 'memory',
   },
+  // v1.105.0 «Слепые шахматы» — идея Дениса: маскированные фигуры, позиция в голове
+  {
+    id: 'chess_blind',
+    nameKey: 'chessBlind',
+    descKey: 'chessBlindDesc',
+    skillKey: 'skillVisualMemory',
+    gradient: ['#334155', '#0f172a'],
+    icon: 'grid',
+    route: '/games/chess-blind',
+    category: 'memory',
+  },
   {
     id: 'mnemonics',
     nameKey: 'mnemonics',

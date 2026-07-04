@@ -150,6 +150,7 @@ const CHESS: ProfileDef = {
     'set_game',          // многомерные признаки
     'sudoku',            // логическая дедукция
     'schulte_table',     // сканирование доски
+    'chess_blind',       // v1.105.0 — слепые шахматы: позиция в голове (идея Дениса)
   ],
   morning_playlist: [
     { game_id: 'mental_rotation', game_route: '/games/mental-rotation', difficulty: 'medium', settings: { trials: 10 }, est_duration_sec: 120 },

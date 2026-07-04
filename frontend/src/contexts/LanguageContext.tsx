@@ -564,6 +564,16 @@ const translations: Translations = {
   srsAllDone: { ru: 'На сегодня всё!', en: 'All done for today!' },
   srsNextDue: { ru: 'Следующий повтор', en: 'Next review' },
   srsNew: { ru: 'новое', en: 'new' },
+  // v1.105.0 «Слепые шахматы» — держи позицию в голове (идея Дениса, подготовка к слепой игре)
+  chessBlind: { ru: 'Слепые шахматы', en: 'Blindfold Chess' },
+  chessBlindDesc: { ru: 'Фигуры скрыты — держи позицию в голове', en: 'Pieces are hidden — hold the position in your head' },
+  chessBlindIntroDesc: {
+    ru: 'Позиция показывается на несколько секунд — запомни, какая фигура где. Потом все фигуры превращаются в одинаковые фишки, а на высоких уровнях ещё и ходят. Отвечай, что стоит на клетке, или находи фигуру вслепую. Так шахматисты тренируют расчёт вариантов и игру вслепую: позиция живёт в голове, а не на доске.',
+    en: 'A position is shown for a few seconds — memorize which piece stands where. Then every piece turns into an identical token, and at higher levels they start moving. Answer what stands on a square, or locate a piece blind. This is how chess players train calculation and blindfold play: the position lives in your head, not on the board.',
+  },
+  benefitChessBlind1: { ru: 'Расчёт вариантов без передвижения фигур', en: 'Calculate lines without moving pieces' },
+  benefitChessBlind2: { ru: 'Шаг к игре вслепую', en: 'A step toward blindfold play' },
+  benefitChessBlind3: { ru: 'Удержание картинки в уме — в любом деле', en: 'Holding a picture in your mind — in any field' },
   // v1.104.0 (Полиглот TIER 2 — аудио): фонемы, псевдослова, слуховой охват
   skillListening: { ru: 'Тренируем: восприятие на слух', en: 'Training: listening' },
   phonemePairs: { ru: 'Фонемы: минимальные пары', en: 'Phonemes: Minimal Pairs' },
