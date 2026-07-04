@@ -10,6 +10,7 @@ import { ProfileProvider } from '@/src/contexts/ProfileContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import UnlockToast from '@/src/components/UnlockToast';
+import AppErrorBoundary from '@/src/components/AppErrorBoundary';
 import WelcomeModal from '@/src/components/WelcomeModal';
 import UpdateGate from '@/src/components/UpdateGate';
 import GameHelpOverlay from '@/src/components/GameHelpOverlay';
@@ -72,17 +73,20 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ProfileProvider>
-          <ThemeProvider>
-            <LanguageProvider>
-              <WarmupProvider>
-                <RootLayoutNav />
-              </WarmupProvider>
-            </LanguageProvider>
-          </ThemeProvider>
-        </ProfileProvider>
-      </SafeAreaProvider>
+      {/* Снаружи провайдеров: ловит краши и экранов, и самих провайдеров */}
+      <AppErrorBoundary>
+        <SafeAreaProvider>
+          <ProfileProvider>
+            <ThemeProvider>
+              <LanguageProvider>
+                <WarmupProvider>
+                  <RootLayoutNav />
+                </WarmupProvider>
+              </LanguageProvider>
+            </ThemeProvider>
+          </ProfileProvider>
+        </SafeAreaProvider>
+      </AppErrorBoundary>
     </GestureHandlerRootView>
   );
 }

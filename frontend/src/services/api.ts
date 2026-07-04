@@ -273,14 +273,66 @@ function isDuplicate(error: any): boolean {
   return error?.code === '23505' || /duplicate key/i.test(error?.message || '');
 }
 
+// ─── Outbox: упавшие пуши не теряются, ретраятся при старте и следующем успехе ───
+const OUTBOX_KEY = 'psygames_sessions_outbox';
+const OUTBOX_CAP = 500;
+let outboxNonEmpty = false;   // module-флаг: не читать storage на каждый пуш
+let outboxFlushing = false;
+
+async function readOutbox(): Promise<Record<string, any>[]> {
+  try {
+    const raw = await AsyncStorage.getItem(OUTBOX_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+async function enqueueOutbox(row: Record<string, any>): Promise<void> {
+  try {
+    const list = await readOutbox();
+    if (!list.some((r) => r.id === row.id)) {
+      list.push(row);
+      while (list.length > OUTBOX_CAP) list.shift();   // старейшие жертвуем последними
+      await AsyncStorage.setItem(OUTBOX_KEY, JSON.stringify(list));
+    }
+    outboxNonEmpty = true;
+  } catch {}
+}
+
+/** Дослать накопившееся. Настоящая ошибка (не дубликат) → стоп, остаток ждёт следующего раза. */
+export async function flushOutbox(): Promise<void> {
+  if (outboxFlushing) return;
+  outboxFlushing = true;
+  try {
+    const list = await readOutbox();
+    if (list.length === 0) { outboxNonEmpty = false; return; }
+    const supabase = getSupabase();
+    const remaining = [...list];
+    for (const row of list) {
+      const { error } = await supabase.from(SUPABASE_TABLE).insert(row);
+      if (error && !isDuplicate(error)) break;   // сеть/сервер лёг — не молотим дальше
+      remaining.shift();
+    }
+    await AsyncStorage.setItem(OUTBOX_KEY, JSON.stringify(remaining));
+    outboxNonEmpty = remaining.length > 0;
+    if (list.length !== remaining.length) console.log(`[F2] Outbox: дослано ${list.length - remaining.length}, осталось ${remaining.length}`);
+  } catch {}
+  finally { outboxFlushing = false; }
+}
+
 async function pushToCloud(s: GameSession): Promise<void> {
+  const row = buildCloudRow(s);
   try {
     const supabase = getSupabase();
-    const row = buildCloudRow(s);
     const { error } = await supabase.from(SUPABASE_TABLE).insert(row);
-    if (error && !isDuplicate(error)) console.warn('[F2] Supabase insert failed:', error.message);
+    if (error && !isDuplicate(error)) {
+      console.warn('[F2] Supabase insert failed, → outbox:', error.message);
+      await enqueueOutbox(row);
+      return;
+    }
+    if (outboxNonEmpty) flushOutbox();   // связь есть — дошлём хвост
   } catch (e: any) {
-    console.warn('[F2] Supabase sync error:', e?.message || e);
+    console.warn('[F2] Supabase sync error, → outbox:', e?.message || e);
+    await enqueueOutbox(row);
   }
 }
 
@@ -324,6 +376,8 @@ async function maybeMigrateLegacy(): Promise<void> {
 
 // Trigger migration on module load — runs once per session, async, non-blocking
 maybeMigrateLegacy();
+// Дослать outbox с прошлого запуска (упавшие пуши), тоже non-blocking
+flushOutbox();
 
 export const saveSession = async (session: GameSession): Promise<GameSession> => {
   const stored: GameSession = {
