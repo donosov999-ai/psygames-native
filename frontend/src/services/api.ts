@@ -10,7 +10,11 @@ import { GAMES } from '@/src/constants/games';
 import { getSupabase, SUPABASE_TABLE } from '@/src/services/supabase';
 
 const STORAGE_KEY = 'psygames_sessions';
-const MIGRATION_FLAG_KEY = 'psygames_supabase_migrated';
+// v2 (v1.107.0): форс-ребэкфилл. Синк был мёртв ~2 месяца: клиентский upsert
+// (ON CONFLICT) под anon-ролью всегда бился об RLS — у anon нет SELECT-политики,
+// а ON CONFLICT обязан читать конфликтующую строку. Теперь plain insert
+// (23505 = дубликат = успех), и все локальные сессии заливаются заново.
+const MIGRATION_FLAG_KEY = 'psygames_supabase_migrated_v2';
 
 export interface GameSession {
   id?: string;
@@ -262,14 +266,19 @@ function buildCloudRow(s: GameSession): Record<string, any> {
   };
 }
 
+// ВАЖНО: НЕ upsert/ON CONFLICT — под anon-ролью RLS требует SELECT-политику для
+// чтения конфликтующей строки, которой нет (и не должно быть — чужие сессии приватны).
+// Дубликат первичного ключа (23505) означает «строка уже в облаке» = успех.
+function isDuplicate(error: any): boolean {
+  return error?.code === '23505' || /duplicate key/i.test(error?.message || '');
+}
+
 async function pushToCloud(s: GameSession): Promise<void> {
   try {
     const supabase = getSupabase();
     const row = buildCloudRow(s);
-    const { error } = await supabase
-      .from(SUPABASE_TABLE)
-      .upsert(row, { onConflict: 'id', ignoreDuplicates: true });
-    if (error) console.warn('[F2] Supabase insert failed:', error.message);
+    const { error } = await supabase.from(SUPABASE_TABLE).insert(row);
+    if (error && !isDuplicate(error)) console.warn('[F2] Supabase insert failed:', error.message);
   } catch (e: any) {
     console.warn('[F2] Supabase sync error:', e?.message || e);
   }
@@ -288,13 +297,20 @@ async function maybeMigrateLegacy(): Promise<void> {
     }
     const supabase = getSupabase();
     const rows = all.map(buildCloudRow);
-    // Upsert in batches of 100 to avoid request size limits
+    // Insert in batches of 100 (не upsert — см. isDuplicate). Батч с дубликатом
+    // падает целиком (23505) → доотправляем его по одной строке, глотая дубли.
     for (let i = 0; i < rows.length; i += 100) {
       const batch = rows.slice(i, i + 100);
-      const { error } = await supabase
-        .from(SUPABASE_TABLE)
-        .upsert(batch, { onConflict: 'id', ignoreDuplicates: true });
-      if (error) {
+      const { error } = await supabase.from(SUPABASE_TABLE).insert(batch);
+      if (error && isDuplicate(error)) {
+        for (const row of batch) {
+          const { error: rowErr } = await supabase.from(SUPABASE_TABLE).insert(row);
+          if (rowErr && !isDuplicate(rowErr)) {
+            console.warn('[F2] Migration row failed:', rowErr.message);
+            return;  // stop on real error, retry next time
+          }
+        }
+      } else if (error) {
         console.warn(`[F2] Migration batch ${i / 100} failed:`, error.message);
         return;  // stop on error, retry next time
       }
@@ -327,6 +343,14 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
       addTokens(pid, tokenDelta(stored.score, stored.errors ?? 0)).catch(() => {});
     }
   } catch { /* токены некритичны */ }
+  // Вызов дня: стрик коммитится за завершённый раунд игры вызова (pending пишет startDailyChallenge)
+  try {
+    const pid = (globalThis as any).__psygames_active_profile_id as string | undefined;
+    if (pid) {
+      const { commitChallengeIfPending } = await import('@/src/services/daily-challenge');
+      commitChallengeIfPending(pid, stored.game_type).catch(() => {});
+    }
+  } catch { /* стрик некритичен */ }
   // Notify warmup context FIRST so it enriches the session with metadata,
   // then push to cloud with the enriched version.
   if (_sessionListener) {
