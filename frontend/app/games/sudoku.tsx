@@ -36,171 +36,19 @@ const SUDOKU_BENEFITS = [
   { icon: 'pulse-outline', textKey: 'benefitSudoku3' },
 ];
 
-type Cell = number; // 0 = empty
+
+// v1.111.0: чистое ядро судоку (типы, варианты, генерация с unique-check) вынесено в сервис.
+import {
+  Cell, Variant, ThermoPN, ArrowMap,
+  dimsForSize, blanksFor, killerBlanks, generateCages, levelConfig,
+  variantLabel, variantRule, shuffle, generatePuzzle, inHyper,
+} from '@/src/services/sudoku-core';
+
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'result';
 
-// C2: размер РАЗВЯЗАН от сложности — селектор 6×6 / 9×9; сложность = плотность пустых клеток.
-function dimsForSize(size: 6 | 9) {
-  return size === 9 ? { N: 9, BR: 3, BC: 3 } : { N: 6, BR: 2, BC: 3 };
-}
-function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
-  if (size === 9) return diff === 'easy' ? 36 : diff === 'medium' ? 46 : 54;   // из 81
-  return diff === 'easy' ? 12 : diff === 'medium' ? 18 : 24;                    // из 36
-}
+// KILLER: подкрас cage-групп (тинт = subtle blend с фоном темы → виден и на свету, и в тьме).
 
-// SUDOKU-VARIANTS: правила-варианты на сетке 9×9. Применяются ТОЛЬКО при генерации решения
-// (solve уважает правило → решение легально под вариантом). В игре механика «впиши решение»,
-// поэтому вариант не энфорсится в рантайме — он задаёт характер решения + показывается игроку.
-type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow';
-const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
-const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
-const KING = [[-1, -1], [-1, 1], [1, -1], [1, 1]] as const;   // anti-king: диагональные соседи (ортогональные уже закрыты строкой/столбцом)
-const ORTHO = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
-function inHyper(r: number, c: number): readonly [number, number] | null {
-  for (const [hr, hc] of HYPER_BOXES) if (r >= hr && r < hr + 3 && c >= hc && c < hc + 3) return [hr, hc];
-  return null;
-}
-function variantLabel(v: Variant, ru: boolean): string {
-  switch (v) {
-    case 'diagonal': return ru ? '⟍ диагональ' : '⟍ diagonal';
-    case 'antiknight': return ru ? '♞ ход коня' : '♞ anti-knight';
-    case 'hyper': return ru ? '⊞ доп. зоны' : '⊞ hyper';
-    case 'nonconsec': return ru ? '≠ не подряд' : '≠ non-consecutive';
-    case 'jigsaw': return ru ? '⧉ кривые блоки' : '⧉ jigsaw';
-    case 'antiking': return ru ? '♚ ход короля' : '♚ anti-king';
-    case 'evenodd': return ru ? '◩ чёт/нечёт' : '◩ even/odd';
-    case 'kropki': return ru ? '⦿ точки' : '⦿ kropki';
-    case 'sandwich': return ru ? '🥪 сэндвич' : '🥪 sandwich';
-    case 'thermo': return ru ? '🌡 термометр' : '🌡 thermo';
-    case 'arrow': return ru ? '➳ стрелка' : '➳ arrow';
-    default: return '';
-  }
-}
-function variantRule(v: Variant, ru: boolean): string {
-  switch (v) {
-    case 'diagonal': return ru ? 'Цифры уникальны ещё и по двум диагоналям.' : 'Digits are also unique along both diagonals.';
-    case 'antiknight': return ru ? 'Одинаковые цифры не стоят на расстоянии хода коня.' : 'Equal digits cannot be a knight’s move apart.';
-    case 'hyper': return ru ? 'Четыре доп. зоны 3×3 тоже содержат 1–9 без повторов.' : 'Four extra 3×3 regions also hold 1–9 with no repeats.';
-    case 'nonconsec': return ru ? 'Соседние по стороне клетки не отличаются на 1.' : 'Orthogonally adjacent cells cannot differ by 1.';
-    case 'jigsaw': return ru ? 'Блоки кривые, а не квадраты — в каждом тоже 1–9 без повторов.' : 'Blocks are irregular, not squares — each still holds 1–9.';
-    case 'antiking': return ru ? 'Одинаковые цифры не касаются даже по диагонали (ход короля).' : 'Equal digits cannot touch even diagonally (a king’s move).';
-    case 'evenodd': return ru ? '□ — чётная цифра, ○ — нечётная: форма подсказывает чётность.' : '□ even, ○ odd — the shape hints each cell’s parity.';
-    case 'kropki': return ru ? 'Белая точка между клетками — соседние ±1, чёрная — одно вдвое больше.' : 'White dot between cells: consecutive (±1). Black dot: one is double the other.';
-    case 'sandwich': return ru ? 'Число у края — сумма цифр между 1 и 9 в этом ряду/столбце.' : 'Edge number = sum of digits between the 1 and the 9 in that row/column.';
-    case 'thermo': return ru ? 'Вдоль термометра цифры строго растут от колбы.' : 'Digits strictly increase along each thermometer from the bulb.';
-    case 'arrow': return ru ? 'Цифры вдоль стрелки в сумме равны числу в кружке.' : 'Digits along the arrow sum to the number in the circle.';
-    default: return '';
-  }
-}
-
-// Jigsaw: 9 связных регионов по 9 клеток. Region-growing «расти меньший растущий», рестарт при тупике.
-function generateRegions(N: number): number[][] {
-  for (let attempt = 0; attempt < 400; attempt++) {
-    const reg: number[][] = Array.from({ length: N }, () => Array(N).fill(-1));
-    const sizes = Array(N).fill(0);
-    shuffle(Array.from({ length: N * N }, (_, i) => i)).slice(0, N).forEach((p, id) => { reg[Math.floor(p / N)][p % N] = id; sizes[id] = 1; });
-    let filled = N, stuck = false;
-    while (filled < N * N) {
-      // анти-orphan: назначаем самую «угловую» неназначенную клетку (мин. свободных соседей),
-      // у которой есть растущий сосед-регион, её НАИМЕНЬШЕМУ соседнему региону → карманы не остаются.
-      let target = -1, tFree = 99, tReg = -1;
-      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (reg[r][c] === -1) {
-        let free = 0; const adj: number[] = [];
-        for (const [dr, dc] of ORTHO) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N) { const v = reg[nr][nc]; if (v === -1) free++; else if (sizes[v] < N) adj.push(v); } }
-        if (!adj.length) continue;
-        if (free < tFree) { tFree = free; target = r * N + c; tReg = adj.sort((a, b) => sizes[a] - sizes[b])[0]; }
-      }
-      if (target < 0) { stuck = true; break; }
-      reg[Math.floor(target / N)][target % N] = tReg; sizes[tReg]++; filled++;
-    }
-    if (!stuck && filled === N * N && sizes.every((s) => s === N)) return reg;
-  }
-  // фолбэк: квадратные блоки
-  const { BR, BC } = dimsForSize(N as 6 | 9);
-  const perRow = Math.floor(N / BC);
-  const reg: number[][] = Array.from({ length: N }, () => Array(N).fill(0));
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) reg[r][c] = Math.floor(r / BR) * perRow + Math.floor(c / BC);
-  return reg;
-}
-
-// KILLER: отдельный режим. Подкрас cage-групп (тинт = subtle blend с фоном темы → виден и на свету, и в тьме).
 const CAGE_ACCENTS = ['#7f7fd5', '#86a8e7', '#d58a7f', '#7fd5a8', '#d5c97f', '#b07fd5'] as const;
-function killerBlanks(diff: 'easy' | 'medium' | 'hard'): number {
-  return diff === 'easy' ? 44 : diff === 'medium' ? 52 : 60;   // из 81 — cages помогают дедукции, можно больше пустых
-}
-// Разбиение решения на cages: связные группы 2–4 клеток с РАЗНЫМИ цифрами (правило Killer) + сумма каждой.
-function generateCages(sol: Cell[][], N: number): { cageOf: number[][]; sum: number[]; anchor: number[] } {
-  const cageOf: number[][] = Array.from({ length: N }, () => Array(N).fill(-1));
-  const sum: number[] = [], anchor: number[] = [];
-  let cid = 0;
-  for (const start of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
-    const sr = Math.floor(start / N), sc = start % N;
-    if (cageOf[sr][sc] !== -1) continue;
-    const target = 2 + Math.floor(Math.random() * 3);   // 2..4 клетки
-    const cells: [number, number][] = [[sr, sc]];
-    const digits = new Set<number>([sol[sr][sc]]);
-    cageOf[sr][sc] = cid;
-    while (cells.length < target) {
-      const fr: [number, number][] = [];
-      for (const [r, c] of cells) for (const [dr, dc] of ORTHO) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && cageOf[nr][nc] === -1 && !digits.has(sol[nr][nc])) fr.push([nr, nc]); }
-      if (!fr.length) break;
-      const [nr, nc] = fr[Math.floor(Math.random() * fr.length)];
-      cageOf[nr][nc] = cid; cells.push([nr, nc]); digits.add(sol[nr][nc]);
-    }
-    cid++;
-  }
-  // вливаем одиночные cage в соседний (разные цифры, цель < 5) — чтобы не было «1-клеточных» групп
-  const cellsOf = (id: number) => { const a: [number, number][] = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (cageOf[r][c] === id) a.push([r, c]); return a; };
-  for (let id = 0; id < cid; id++) {
-    const cells = cellsOf(id);
-    if (cells.length !== 1) continue;
-    const [r, c] = cells[0], d = sol[r][c];
-    for (const [dr, dc] of shuffle(ORTHO.map((x) => x))) {
-      const nr = r + dr, nc = c + dc; if (nr < 0 || nr >= N || nc < 0 || nc >= N) continue;
-      const nid = cageOf[nr][nc]; if (nid === id) continue;
-      const tgt = cellsOf(nid);
-      if (tgt.length >= 5 || tgt.some(([rr, cc]) => sol[rr][cc] === d)) continue;
-      cageOf[r][c] = nid; break;
-    }
-  }
-  // суммы + якоря по финальным cage (id могут иметь пропуски после слияния — это ок)
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
-    const id = cageOf[r][c];
-    sum[id] = (sum[id] || 0) + sol[r][c];
-    anchor[id] = anchor[id] === undefined ? r * N + c : Math.min(anchor[id], r * N + c);
-  }
-  return { cageOf, sum, anchor };
-}
-
-// SUDOKU-LVL: уровневая прогрессия. 1–4 = 6×6, 5–8 = 9×9, 9–13 = диагональ, далее фазы-варианты:
-// 14–17 anti-knight, 18–21 hyper, 22+ non-consecutive (jigsaw — следующей итерацией).
-interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; }
-function levelConfig(level: number): LevelCfg {
-  const lv = Math.max(1, level);
-  const size: 6 | 9 = lv <= 4 ? 6 : 9;
-  const { N, BR, BC } = dimsForSize(size);
-  let variant: Variant = 'none';
-  if (lv >= 9 && lv <= 13) variant = 'diagonal';
-  else if (lv >= 14 && lv <= 17) variant = 'antiknight';
-  else if (lv >= 18 && lv <= 21) variant = 'hyper';
-  else if (lv >= 22 && lv <= 25) variant = 'nonconsec';
-  else if (lv >= 26 && lv <= 29) variant = 'antiking';
-  else if (lv >= 30 && lv <= 33) variant = 'evenodd';
-  else if (lv >= 34 && lv <= 37) variant = 'kropki';
-  else if (lv >= 38 && lv <= 41) variant = 'sandwich';
-  else if (lv >= 42 && lv <= 45) variant = 'thermo';
-  else if (lv >= 46 && lv <= 49) variant = 'arrow';
-  else if (lv >= 50) variant = 'jigsaw';
-  const blanks = size === 6
-    ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
-    : (variant === 'none' || variant === 'diagonal')
-      ? Math.min(58, 34 + (lv - 5) * 3)                          // L5..13 классика/диагональ → 34..58
-      : Math.min(52, 44 + Math.floor((lv - 14) / 4) * 2);        // фазы-варианты → 44,46,48,50,52 (правило добавляет сложность)
-  const hintMax = lv <= 4 ? 3 : lv <= 8 ? 2 : 1;
-  return { size, N, BR, BC, blanks, variant, hintMax };
-}
-
-function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
 // Босс-веха: каждые 3 уровня — короткий раунд с резко другим правилом (bag-рандом, без повторов подряд).
 const BOSS_EVERY = 3;
@@ -210,178 +58,125 @@ function nextSudokuBoss(): BossType {
   return SUDOKU_BOSS_BAG.pop()!;
 }
 
-function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap): boolean {
-  for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
-  if (variant === 'jigsaw' && regions) {
-    const reg = regions[r][c];
-    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) if (regions[i][j] === reg && grid[i][j] === val) return false;   // бокс заменён регионом
-  } else {
-    const br = Math.floor(r / BR) * BR, bc = Math.floor(c / BC) * BC;
-    for (let i = 0; i < BR; i++) for (let j = 0; j < BC; j++) if (grid[br + i][bc + j] === val) return false;
+
+// ─── v1.111.0: СПРАВКА ПРАВИЛ УРОВНЯ (баг-репорт Вали: играла анти-коня, не зная правила) ───
+// Доступна ВО ВРЕМЯ игры тапом по бейджу варианта; авто-открывается при первом входе
+// на уровень с новым правилом. Пример — наглядная мини-диаграмма.
+
+type ExMark = { t?: string; kind: 'src' | 'ban' | 'zone' };
+// Мини-сетка 5×5 для геометрических правил: src = поставленная цифра, ban = сюда такую же нельзя, zone = особая зона.
+function exampleGrid(variant: Variant): Record<string, ExMark> | null {
+  const m: Record<string, ExMark> = {};
+  const put = (r: number, c: number, mark: ExMark) => { m[`${r},${c}`] = mark; };
+  switch (variant) {
+    case 'antiknight':
+      put(2, 2, { t: '3', kind: 'src' });
+      for (const [dr, dc] of KNIGHT_EX) put(2 + dr, 2 + dc, { t: '3', kind: 'ban' });
+      return m;
+    case 'antiking':
+      put(2, 2, { t: '3', kind: 'src' });
+      for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) put(2 + dr, 2 + dc, { t: '3', kind: 'ban' });
+      return m;
+    case 'nonconsec':
+      put(2, 2, { t: '3', kind: 'src' });
+      put(1, 2, { t: '2', kind: 'ban' }); put(3, 2, { t: '4', kind: 'ban' });
+      put(2, 1, { t: '4', kind: 'ban' }); put(2, 3, { t: '2', kind: 'ban' });
+      return m;
+    case 'diagonal':
+      for (let i = 0; i < 5; i++) { put(i, i, { kind: 'zone' }); put(i, 4 - i, { kind: 'zone' }); }
+      m['0,0'] = { t: '3', kind: 'src' };
+      m['3,3'] = { t: '3', kind: 'ban' };
+      return m;
+    case 'hyper':
+      for (let r = 1; r <= 3; r++) for (let c = 1; c <= 3; c++) put(r, c, { kind: 'zone' });
+      put(1, 1, { t: '3', kind: 'src' });
+      put(3, 3, { t: '3', kind: 'ban' });
+      return m;
+    default: return null;
   }
-  if (variant === 'diagonal') {
-    if (r === c) { for (let i = 0; i < N; i++) if (grid[i][i] === val) return false; }                 // главная диагональ
-    if (r + c === N - 1) { for (let i = 0; i < N; i++) if (grid[i][N - 1 - i] === val) return false; }  // побочная
-  } else if (variant === 'antiknight') {
-    for (const [dr, dc] of KNIGHT) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
-  } else if (variant === 'hyper') {
-    const h = inHyper(r, c); if (h) { const [hr, hc] = h; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (grid[hr + i][hc + j] === val) return false; }
-  } else if (variant === 'nonconsec') {
-    for (const [dr, dc] of ORTHO) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N) { const v = grid[nr][nc]; if (v !== 0 && Math.abs(v - val) === 1) return false; } }
-  } else if (variant === 'antiking') {
-    for (const [dr, dc] of KING) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
-  } else if (variant === 'thermo' && thermo) {
-    const pn = thermo[r][c];
-    if (pn) {
-      if (pn.prev) { const pv = grid[pn.prev[0]][pn.prev[1]]; if (pv !== 0 && val <= pv) return false; }   // строго больше предыдущего на термометре
-      if (pn.next) { const nv = grid[pn.next[0]][pn.next[1]]; if (nv !== 0 && val >= nv) return false; }   // строго меньше следующего
-    }
-  } else if (variant === 'arrow' && arrow) {
-    const m = arrow[r][c];
-    if (m) {
-      const cv = m.isCircle ? val : grid[m.circle[0]][m.circle[1]];
-      let asum = 0, empty = 0;
-      for (const [ar, ac] of m.arrows) { const v = (ar === r && ac === c) ? val : grid[ar][ac]; if (v === 0) empty++; else asum += v; }
-      if (empty === 0) { if (cv !== 0 && cv !== asum) return false; }   // стрелка заполнена → кружок = сумме
-      else { if (asum + empty > N) return false; if (cv !== 0 && asum + empty > cv) return false; }   // прун: мин-сумма ≤ кружок и ≤ N
-    }
+}
+const KNIGHT_EX = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
+
+// Текстовый пример для не-геометрических правил (и подпись под диаграммой для геометрических).
+function exampleCaption(variant: Variant | 'killer', ru: boolean): string {
+  switch (variant) {
+    case 'antiknight': return ru ? 'Синяя 3 уже стоит. В красные клетки (буква «Г», как ходит конь) вторую 3 ставить нельзя.' : 'The blue 3 is placed. Red cells (an “L”, like a knight moves) cannot hold another 3.';
+    case 'antiking': return ru ? 'Синяя 3 стоит. В красные клетки по диагонали вплотную вторую 3 ставить нельзя.' : 'The blue 3 is placed. Diagonally touching red cells cannot hold another 3.';
+    case 'nonconsec': return ru ? 'Рядом с 3 по стороне не может быть 2 или 4 (соседние цифры). Через клетку — можно.' : 'Cells next to a 3 cannot hold 2 or 4 (consecutive digits).';
+    case 'diagonal': return ru ? 'Жёлтые клетки — две диагонали. Синяя 3 стоит на диагонали — вторая 3 на той же диагонали (красная) запрещена.' : 'Yellow cells are the two diagonals. A second 3 on the same diagonal (red) is not allowed.';
+    case 'hyper': return ru ? 'Жёлтый квадрат — доп. зона 3×3 (на настоящем поле их четыре). Внутри зоны цифры тоже не повторяются.' : 'The yellow square is an extra 3×3 zone (the real board has four). Digits cannot repeat inside it.';
+    case 'evenodd': return ru ? 'Пример: в клетке с □ может стоять 2, 4, 6 или 8. В клетке с ○ — 1, 3, 5, 7 или 9.' : 'Example: a □ cell holds 2, 4, 6 or 8. A ○ cell holds 1, 3, 5, 7 or 9.';
+    case 'kropki': return ru ? 'Пример: 2 ⚫ 4 — чёрная точка, одно вдвое больше. 4 ⚪ 5 — белая точка, разница 1. Нет точки — ни то, ни другое.' : 'Example: 2 ⚫ 4 — black dot, one is double. 4 ⚪ 5 — white dot, differ by 1. No dot — neither.';
+    case 'sandwich': return ru ? 'Пример: в ряду 1·3·5·9·… число у края = 8, потому что между 1 и 9 стоят 3+5.' : 'Example: in a row 1·3·5·9·… the edge clue is 8, because 3+5 sit between the 1 and the 9.';
+    case 'thermo': return ru ? 'Пример: по термометру от колбы 2 → 4 → 7 — каждая следующая цифра строго больше.' : 'Example: along a thermometer 2 → 4 → 7 — each digit is strictly larger than the previous.';
+    case 'arrow': return ru ? 'Пример: в кружке 8, вдоль стрелки 3 и 5 — их сумма равна числу в кружке.' : 'Example: the circle shows 8, the arrow holds 3 and 5 — they sum to the circle.';
+    case 'jigsaw': return ru ? 'Вместо квадратных блоков — фигурные области. В каждой области цифры 1–9 без повторов.' : 'Instead of square boxes — irregular regions. Each region holds 1–9 with no repeats.';
+    case 'killer': return ru ? 'Пример: рамка из 2 клеток с меткой «7» — цифры в ней дают в сумме 7 и не повторяются (например 3 и 4).' : 'Example: a 2-cell cage marked “7” — its digits sum to 7 and don’t repeat (e.g. 3 and 4).';
+    default: return '';
   }
-  return true;
 }
 
-function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], budget?: { steps: number }, thermo?: ThermoPN, arrow?: ArrowMap): boolean {
-  // MRV: заполняем самую ОГРАНИЧЕННУЮ пустую клетку (минимум кандидатов) — почти без бэктрекинга.
-  let bR = -1, bC = -1, bCands: number[] | null = null, bCount = N + 1;
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (grid[r][c] === 0) {
-    const cands: number[] = [];
-    for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions, thermo, arrow)) cands.push(n);
-    if (cands.length < bCount) { bCount = cands.length; bR = r; bC = c; bCands = cands; if (bCount === 0) return false; }
-  }
-  if (bR < 0) return true;   // пустых нет → решено
-  if (budget) { if (budget.steps <= 0) return false; budget.steps--; }   // лимит шагов: нерешаемую jigsaw-раскладку бросаем быстро
-  for (const n of shuffle(bCands!)) { grid[bR][bC] = n; if (solve(grid, N, BR, BC, variant, regions, budget, thermo, arrow)) return true; grid[bR][bC] = 0; }
-  return false;
+function RulesHelpModal({ visible, variant, killer, N, colors, ru, onClose }: {
+  visible: boolean; variant: Variant; killer: boolean; N: number; colors: any; ru: boolean; onClose: () => void;
+}) {
+  if (!visible) return null;
+  const grid = exampleGrid(variant);
+  const key: Variant | 'killer' = killer ? 'killer' : variant;
+  const CELL = 34;
+  return (
+    <View style={rhStyles.backdrop}>
+      <View style={[rhStyles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text style={[rhStyles.title, { color: colors.text }]}>
+          {killer ? 'Killer' : variant !== 'none' ? variantLabel(variant, ru) : ru ? 'Правила' : 'Rules'}
+        </Text>
+        <Text style={[rhStyles.base, { color: colors.textSecondary }]}>
+          {ru ? `Базово: каждая цифра 1–${N} ровно один раз в строке, столбце и блоке.` : `Base: each digit 1–${N} exactly once per row, column and box.`}
+        </Text>
+        {(variant !== 'none' || killer) && (
+          <Text style={[rhStyles.rule, { color: colors.text }]}>
+            {killer
+              ? (ru ? 'Killer: поле разбито на рамки-группы. Цифры группы дают указанную сумму и не повторяются внутри рамки.' : 'Killer: the board is split into cages. Digits in a cage sum to its clue and don’t repeat inside it.')
+              : variantRule(variant, ru)}
+          </Text>
+        )}
+        {grid && (
+          <View style={rhStyles.gridWrap}>
+            {Array.from({ length: 5 }, (_, r) => (
+              <View key={r} style={{ flexDirection: 'row' }}>
+                {Array.from({ length: 5 }, (_, c) => {
+                  const mark = grid[`${r},${c}`];
+                  const bg = mark?.kind === 'src' ? '#7f7fd5' : mark?.kind === 'ban' ? '#fecaca' : mark?.kind === 'zone' ? '#fde68a' : colors.background;
+                  const fg = mark?.kind === 'src' ? '#fff' : mark?.kind === 'ban' ? '#b91c1c' : colors.text;
+                  return (
+                    <View key={c} style={{ width: CELL, height: CELL, borderWidth: 0.5, borderColor: colors.border, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
+                      {mark?.t ? <Text style={{ color: fg, fontWeight: '800', fontSize: 16, textDecorationLine: mark.kind === 'ban' ? 'line-through' : 'none' }}>{mark.t}</Text> : null}
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+        )}
+        <Text style={[rhStyles.caption, { color: colors.textSecondary }]}>{exampleCaption(key, ru)}</Text>
+        <TouchableOpacity style={rhStyles.okBtn} onPress={onClose} activeOpacity={0.85}>
+          <Text style={rhStyles.okText}>{ru ? 'ПОНЯТНО' : 'GOT IT'}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 }
 
-// THERMO: prev/next-карта на клетку (строгое возрастание вдоль пути от колбы). null = клетка не на термометре.
-type ThermoPN = ({ prev: [number, number] | null; next: [number, number] | null } | null)[][];
-function generateThermo(N: number): ThermoPN {
-  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
-  const paths: [number, number][][] = [];
-  for (let attempt = 0; attempt < 40 && paths.length < 6; attempt++) {
-    const starts: [number, number][] = [];
-    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c]) starts.push([r, c]);
-    if (!starts.length) break;
-    const [sr, sc] = starts[Math.floor(Math.random() * starts.length)];
-    const len = 3 + Math.floor(Math.random() * 3);   // 3..5 (≤ N, цифры строго растут)
-    const path: [number, number][] = [[sr, sc]]; used[sr][sc] = true; let cr = sr, cc = sc;
-    for (let s = 1; s < len; s++) {
-      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number]).filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]);
-      if (!nb.length) break;
-      const [nr, nc] = nb[Math.floor(Math.random() * nb.length)];
-      used[nr][nc] = true; path.push([nr, nc]); cr = nr; cc = nc;
-    }
-    if (path.length >= 3) paths.push(path);
-  }
-  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
-  for (const path of paths) for (let k = 0; k < path.length; k++) {
-    const [r, c] = path[k];
-    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
-  }
-  return pn;
-}
-
-// ARROW: кружок (path[0], = сумма) + стрелка (path[1..], в сумме = кружок). Карта на клетку: группа (для суммы) + prev/next (для линии).
-type ArrowCell = { circle: [number, number]; arrows: [number, number][]; isCircle: boolean; prev: [number, number] | null; next: [number, number] | null };
-type ArrowMap = (ArrowCell | null)[][];
-function generateArrow(N: number): ArrowMap {
-  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
-  const groups: [number, number][][] = [];
-  for (let attempt = 0; attempt < 30 && groups.length < 6; attempt++) {
-    const starts: [number, number][] = [];
-    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c]) starts.push([r, c]);
-    if (!starts.length) break;
-    const [sr, sc] = starts[Math.floor(Math.random() * starts.length)];
-    const len = 2 + Math.floor(Math.random() * 2);   // стрелка 2-3 клетки → сумма ≤ N=9
-    const path: [number, number][] = [[sr, sc]]; used[sr][sc] = true; let cr = sr, cc = sc;
-    for (let s = 1; s <= len; s++) {
-      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number]).filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]);
-      if (!nb.length) break;
-      const [nr, nc] = nb[Math.floor(Math.random() * nb.length)];
-      used[nr][nc] = true; path.push([nr, nc]); cr = nr; cc = nc;
-    }
-    if (path.length >= 3) groups.push(path);   // кружок + ≥2 стрелки
-  }
-  const map: ArrowMap = Array.from({ length: N }, () => Array(N).fill(null));
-  for (const g of groups) {
-    const circle = g[0], arrows = g.slice(1);
-    for (let k = 0; k < g.length; k++) {
-      const [r, c] = g[k];
-      map[r][c] = { circle, arrows, isCircle: k === 0, prev: k > 0 ? g[k - 1] : null, next: k < g.length - 1 ? g[k + 1] : null };
-    }
-  }
-  return map;
-}
-
-function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap } {
-  const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
-  let regions: number[][] | undefined;
-  let thermo: ThermoPN | undefined;
-  let arrow: ArrowMap | undefined;
-  if (variant === 'jigsaw') {
-    let ok = false;
-    for (let t = 0; t < 60 && !ok; t++) { regions = generateRegions(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'jigsaw', regions, { steps: 1500 }); }   // budget низкий: ~90% раскладок нерешаемы, дешёвый отказ + ретрай
-    if (!ok) { regions = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }   // редкий фолбэк на классику
-  } else if (variant === 'thermo') {
-    let ok = false;
-    for (let t = 0; t < 60 && !ok; t++) { thermo = generateThermo(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'thermo', undefined, { steps: 2000 }, thermo); }   // ~5 ретраев, констрейн решаем
-    if (!ok) { thermo = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }
-  } else if (variant === 'arrow') {
-    let ok = false;
-    for (let t = 0; t < 60 && !ok; t++) { arrow = generateArrow(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'arrow', undefined, { steps: 3000 }, undefined, arrow); }   // ~2 ретрая, констрейн-сумма решаем
-    if (!ok) { arrow = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }
-  } else {
-    solve(sol, N, BR, BC, variant);
-  }
-  const puzzle: Cell[][] = sol.map((row) => [...row]);
-  const positions = shuffle(Array.from({ length: N * N }, (_, i) => i));
-  for (let i = 0; i < blanks; i++) {
-    const p = positions[i];
-    puzzle[Math.floor(p / N)][p % N] = 0;
-  }
-  let parity: number[][] | undefined;
-  if (variant === 'evenodd') {   // помечаем ~55% пустых клеток их чётностью: 1 = чёт (квадрат), 2 = нечёт (круг)
-    parity = Array.from({ length: N }, () => Array(N).fill(0));
-    const blank: [number, number][] = [];
-    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (puzzle[r][c] === 0) blank.push([r, c]);
-    for (const [r, c] of shuffle(blank).slice(0, Math.round(blank.length * 0.55))) parity[r][c] = sol[r][c] % 2 === 0 ? 1 : 2;
-  }
-  let kropki: { h: number[][]; v: number[][] } | undefined;
-  if (variant === 'kropki') {   // точки из решения: 2 = чёрная (одно вдвое больше), 1 = белая (±1), 0 = нет
-    const dot = (a: number, b: number) => (Math.max(a, b) === 2 * Math.min(a, b) ? 2 : Math.abs(a - b) === 1 ? 1 : 0);
-    const h = Array.from({ length: N }, () => Array(N).fill(0));   // h[r][c]: грань между (r,c) и (r,c+1)
-    const vrt = Array.from({ length: N }, () => Array(N).fill(0)); // vrt[r][c]: грань между (r,c) и (r+1,c)
-    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
-      if (c < N - 1) h[r][c] = dot(sol[r][c], sol[r][c + 1]);
-      if (r < N - 1) vrt[r][c] = dot(sol[r][c], sol[r + 1][c]);
-    }
-    kropki = { h, v: vrt };
-  }
-  let sandwich: { rows: number[]; cols: number[] } | undefined;
-  if (variant === 'sandwich') {   // сумма цифр СТРОГО между позициями 1 и 9 в ряду/столбце
-    const between = (line: number[]) => {
-      const i1 = line.indexOf(1), i9 = line.indexOf(9);
-      if (i1 < 0 || i9 < 0) return 0;
-      const [a, b] = i1 < i9 ? [i1, i9] : [i9, i1];
-      let s = 0; for (let k = a + 1; k < b; k++) s += line[k];
-      return s;
-    };
-    const rows = sol.map((row) => between(row));
-    const cols = Array.from({ length: N }, (_, c) => between(sol.map((row) => row[c])));
-    sandwich = { rows, cols };
-  }
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow };
-}
+const rhStyles = StyleSheet.create({
+  backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 20 },
+  card: { width: '100%', maxWidth: 380, borderRadius: 18, borderWidth: 1, padding: 20, alignItems: 'center', gap: 10 },
+  title: { fontSize: 20, fontWeight: '900' },
+  base: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
+  rule: { fontSize: 15, fontWeight: '700', textAlign: 'center', lineHeight: 21 },
+  gridWrap: { marginVertical: 6, borderWidth: 1, borderColor: 'rgba(127,127,213,0.5)' },
+  caption: { fontSize: 13, textAlign: 'center', lineHeight: 19 },
+  okBtn: { marginTop: 6, alignSelf: 'stretch', backgroundColor: '#7f7fd5', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
+  okText: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
+});
 
 export default function SudokuGame() {
   const { colors } = useTheme();
@@ -425,6 +220,7 @@ export default function SudokuGame() {
   const [hintMax, setHintMax] = useState(3);   // лимит подсказок (меньше на высоких уровнях)
   const [errors, setErrors] = useState(0);
   const [over, setOver] = useState(false);   // жизни кончились (3 ошибки) → game over + рестарт
+  const [rulesOpen, setRulesOpen] = useState(false);   // v1.111.0: справка правил уровня (тап по бейджу / авто при первом входе)
   const [hintUses, setHintUses] = useState(0);
   const [backtrackCount, setBacktrackCount] = useState(0);
   const [startTime, setStartTime] = useState(0);
@@ -457,6 +253,14 @@ export default function SudokuGame() {
     }
     setDims(d);
     setVariant(vr);
+    // v1.111.0: первый вход на новое правило → авто-показ справки (баг-репорт Вали:
+    // играла анти-коня, не зная про правило коня). Дальше — тап по бейджу у таймера.
+    const ruleKey = mode === 'killer' ? 'killer' : vr;
+    if (ruleKey !== 'none') {
+      AsyncStorage.getItem(`psygames_sudoku_rulehint_${ruleKey}`).then((seen) => {
+        if (!seen) { setRulesOpen(true); AsyncStorage.setItem(`psygames_sudoku_rulehint_${ruleKey}`, '1').catch(() => {}); }
+      }).catch(() => {});
+    }
     setHintMax(hMax);
     const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
     setRegions(rg ?? null);
@@ -713,7 +517,13 @@ export default function SudokuGame() {
         {mode === 'levels' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{language === 'ru' ? `Ур.${level}` : `Lv${level}`}</Text>}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{'❤️'.repeat(Math.max(0, LIVES - errors))}{'🤍'.repeat(Math.min(errors, LIVES))}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
-        {variant !== 'none' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{variantLabel(variant, language === 'ru').split(' ')[0]}</Text>}
+        {(variant !== 'none' || mode === 'killer') && (
+          <TouchableOpacity onPress={() => setRulesOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
+            <Text style={[styles.statText, { color: GRADIENT[0] }]}>
+              {mode === 'killer' ? 'Killer' : variantLabel(variant, language === 'ru').split(' ')[0]} ⓘ
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
     const gridEl = (
@@ -921,6 +731,9 @@ export default function SudokuGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {/* v1.111.0: справка правил уровня (авто при первом входе на вариант / тап по бейджу ⓘ) */}
+      <RulesHelpModal visible={rulesOpen} variant={variant} killer={mode === 'killer'} N={N}
+        colors={colors} ru={language === 'ru'} onClose={() => setRulesOpen(false)} />
       {phase === 'playing' && over && (
         <View style={styles.overWrap}>
           <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
