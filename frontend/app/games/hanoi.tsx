@@ -16,6 +16,21 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const HN_RULES: LevelRule[] = [
+  {
+    key: 'pegs4', fromLevel: 5, toLevel: 9,
+    ru: { title: '4 стержня', rule: 'Теперь стержней четыре. Больше простора для манёвра — но оптимальный путь другой, старые привычки трёх стержней не работают. Цель прежняя: собрать башню на последнем (правом) стержне.', example: 'Пример: лишний стержень = два «буфера» для мелких дисков.' },
+    en: { title: '4 pegs', rule: 'There are now four pegs. More room to maneuver — but the optimal path is different, old 3-peg habits won\'t work. The goal stays the same: rebuild the tower on the last (rightmost) peg.', example: 'Example: the extra peg gives you two "buffers" for small discs.' },
+  },
+  {
+    key: 'pegs5', fromLevel: 10,
+    ru: { title: '5 стержней', rule: 'Стержней уже пять — ещё больше простора для манёвра, но и дисков больше, а оптимальный путь снова другой. Цель прежняя: вся башня на последнем (правом) стержне.', example: 'Пример: три «буфера» — раскладывай мелкие диски параллельно.' },
+    en: { title: '5 pegs', rule: 'Five pegs now — even more room to maneuver, but more discs too, and the optimal path changes again. The goal stays the same: the whole tower on the last (rightmost) peg.', example: 'Example: three "buffers" — park small discs in parallel.' },
+  },
+];
 
 const GRADIENT = ['#a8c0ff', '#3f2b96'];
 // Базовый тон дисков под профиль — каждый профиль = своя цветовая семья (монохром-стек).
@@ -65,6 +80,9 @@ export default function HanoiGame() {
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
+
+  // Справка правил уровня: только в личной игре (в зарядке-пресете всегда 3 стержня, бейдж скрыт)
+  const levelRules = useLevelRules('hanoi', lvl.level, HN_RULES, phase === 'playing' && !isPreset);
 
   const startGame = () => {
     const p = isPreset ? { discs, pegs: 3 } : levelParams(lvl.level);   // уровень рулит: диски + число стержней
@@ -155,6 +173,7 @@ export default function HanoiGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{moves} / {optimal(discs)}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
       </View>
       <View style={styles.pegsArea}>
         {pegs.map((peg, idx) => (
@@ -211,6 +230,7 @@ export default function HanoiGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, Math.round(1000 - (moves - optimal(discs)) * 50 - elapsedTime))}

@@ -19,12 +19,27 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile, pairBackForProfile } from '@/src/constants/pairThemes';
 import { FlipCard, HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 const GRADIENT = ['#f857a6', '#ff5858'];
 const PAIRS_BENEFITS = [
   { icon: 'heart-outline', textKey: 'benefitPairs1' },
   { icon: 'eye-outline', textKey: 'benefitPairs2' },
   { icon: 'time-outline', textKey: 'benefitPairs3' },
+];
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const PAIRS_RULES: LevelRule[] = [
+  {
+    key: 'triple', fromLevel: 10, toLevel: 12,
+    ru: { title: 'Тройки', rule: 'С этого уровня совпадение — не пара, а ТРИ одинаковые картинки. Открывай три подряд: две одинаковые — ещё не матч.', example: 'Пример: 🐱🐱 — мало, группа снимется только с третьей 🐱.' },
+    en: { title: 'Triples', rule: 'From this level a match is not a pair but THREE identical pictures. Open three in a row: two of a kind is not a match yet.', example: 'Example: 🐱🐱 is not enough — the group clears only with a third 🐱.' },
+  },
+  {
+    key: 'quad', fromLevel: 13,
+    ru: { title: 'Четвёрки', rule: 'Теперь совпадение — ЧЕТЫРЕ одинаковые картинки. Открой все четыре подряд, чтобы снять группу.', example: 'Пример: 🐱🐱🐱 — мало, нужна четвёртая 🐱.' },
+    en: { title: 'Quads', rule: 'Now a match is FOUR identical pictures. Open all four in a row to clear the group.', example: 'Example: 🐱🐱🐱 is not enough — you need a fourth 🐱.' },
+  },
 ];
 
 // Спрайты карточек подбираются под активный профиль (зверята / шахматы / биохак / …),
@@ -100,6 +115,10 @@ export default function PicturePairsGame() {
   const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scoreRef = useRef(0);
   const groupSizeRef = useRef(2);   // сколько одинаковых карт = группа (2 пара / 3 тройка / 4 четвёрка)
+  // Справка правил уровня: только игровой режим (в одиночном всегда пары, в пресете свой поток).
+  // Не всплываем во время баннера уровня и фото-показа — иначе модалка перекроет флеш карт.
+  const levelRules = useLevelRules('picture_pairs', level, PAIRS_RULES,
+    phase === 'playing' && mode === 'game' && !isPreset && !previewActive && levelBanner === null);
 
   const buildDeck = (n: number, groupSize: number) => {
     const symbols = shuffle(sprites.map((_, i) => i)).slice(0, Math.min(n, sprites.length));
@@ -395,6 +414,7 @@ export default function PicturePairsGame() {
           <HudBadge icon="checkmark-done" value={`${matched}/${pairsCount}`} colors={['#34d399', '#059669']} pop />
           <HudBadge icon="swap-horizontal" value={moves} colors={['#fb7185', '#e11d48']} />
           <HudBadge icon="time" value={`${elapsedTime.toFixed(1)}${language === 'ru' ? 'с' : 's'}`} colors={['#60a5fa', '#2563eb']} />
+          {mode === 'game' && !isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
         </View>
       )}
       <View style={[styles.cardsArea, { width: containerW }]}>
@@ -446,6 +466,7 @@ export default function PicturePairsGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, Math.round(2000 - (moves - pairsCount) * 30 - elapsedTime))}

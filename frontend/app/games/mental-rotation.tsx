@@ -41,12 +41,27 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 const GRADIENT = ['#5614b0', '#dbd65c'];
 const MR_BENEFITS = [
   { icon: 'cube-outline', textKey: 'benefitMr1' },
   { icon: 'sync-outline', textKey: 'benefitMr2' },
   { icon: 'eye-outline', textKey: 'benefitMr3' },
+];
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const MR_RULES: LevelRule[] = [
+  {
+    key: 'axes2', fromLevel: 6, toLevel: 10,
+    ru: { title: 'Две оси вращения', rule: 'Фигуру теперь крутят по ДВУМ осям (X и Y): она может быть наклонена вперёд/назад и вбок, а не просто повёрнута в плоскости экрана.', example: 'Пример: та же фигура, но «завалена» на бок — мысленно наклони её обратно и сравни с эталоном.' },
+    en: { title: 'Two rotation axes', rule: 'The shape is now rotated around TWO axes (X and Y): it can be tilted forward/back and sideways, not just spun flat in the screen plane.', example: 'Example: the same shape but "tipped over" — mentally tilt it back and compare with the reference.' },
+  },
+  {
+    key: 'axes3', fromLevel: 11,
+    ru: { title: 'Три оси и составные повороты', rule: 'Вращение идёт по всем ТРЁМ осям (X+Y+Z), а с 13-го уровня повороты складываются в косые ракурсы. Зеркальная копия по-прежнему НЕ считается поворотом.', example: 'Пример: фигура повёрнута сразу по X, Y и Z — прокручивай её в голове пошагово, ось за осью.' },
+    en: { title: 'Three axes & compound turns', rule: 'Rotation now uses all THREE axes (X+Y+Z), and from level 13 turns combine into oblique views. A mirrored copy still does NOT count as a rotation.', example: 'Example: the shape is turned around X, Y and Z at once — rotate it in your head step by step, axis by axis.' },
+  },
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
@@ -336,6 +351,9 @@ export default function MentalRotationGame() {
   const [angleRtPairs, setAngleRtPairs] = useState<{ angle: number; rt: number }[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Справка правил уровня (в пресете не всплываем — там свой поток)
+  const levelRules = useLevelRules('mental_rotation', lvl.level, MR_RULES, phase === 'playing' && !isPreset);
+
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const startGame = () => {
@@ -474,6 +492,7 @@ export default function MentalRotationGame() {
           <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
           <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+          {!isPreset && <LevelRuleBadge lr={levelRules} color={colors.primary} ru={language === 'ru'} />}
         </View>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mentalRotationHint')}</Text>
         <View style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
@@ -523,6 +542,7 @@ export default function MentalRotationGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="mental_rotation" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}

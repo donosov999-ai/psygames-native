@@ -15,12 +15,28 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 const GRADIENT = ['#2d6a4f', '#95d5b2'];
 const MAHJONG_BENEFITS = [
   { icon: 'search-outline', textKey: 'benefitMahjong1' },
   { icon: 'git-branch-outline', textKey: 'benefitMahjong2' },
   { icon: 'eye-outline', textKey: 'benefitMahjong3' },
+];
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»).
+// Главное, что игрок не понимает — правило СВОБОДНОЙ плитки, поэтому оно в обоих текстах.
+const MAHJONG_RULES: LevelRule[] = [
+  {
+    key: 'layers2', fromLevel: 6, toLevel: 10,
+    ru: { title: 'Два слоя', rule: 'Плитки теперь лежат в 2 слоя. Брать можно только СВОБОДНУЮ плитку: на ней никто не лежит И у неё открыт левый или правый край. Тусклые плитки заблокированы.', example: 'Пример: плитка под другой плиткой или зажатая соседями с обоих боков — не нажимается, сначала освободи её.' },
+    en: { title: 'Two layers', rule: 'Tiles now stack in 2 layers. You can only pick a FREE tile: nothing lies on it AND its left or right side is open. Dimmed tiles are blocked.', example: 'Example: a tile under another tile, or squeezed by neighbors on both sides, cannot be tapped — free it first.' },
+  },
+  {
+    key: 'layers3', fromLevel: 11,
+    ru: { title: 'Три слоя', rule: 'Пирамида теперь в 3 слоя. Правило то же: свободна плитка, на которой НИЧЕГО не лежит и у которой открыт левый ИЛИ правый край. Разбирай пирамиду сверху вниз.', example: 'Пример: нижняя плитка станет доступна, когда снимешь всё, что её накрывает, и один её бок открыт.' },
+    en: { title: 'Three layers', rule: 'The pyramid now has 3 layers. Same rule: a tile is free when NOTHING lies on it and its left OR right side is open. Dismantle the pyramid top-down.', example: 'Example: a bottom tile becomes available once everything covering it is removed and one of its sides is open.' },
+  },
 ];
 
 // Символы тайлов — эмодзи (универсально, без ассетов). До 12 видов, кладутся ПАРАМИ.
@@ -181,6 +197,11 @@ export default function MahjongGame() {
 
   // alive по id (для рендера/логики свободы из текущих tiles)
   const aliveMaskRef = useRef<boolean[]>([]);
+
+  // Справка правил уровня (в пресете не всплываем — там свой поток).
+  // levelBanner === null: не открывать модалку поверх баннера «Уровень N ✓» — пусть покажется на новой раскладке.
+  const levelRules = useLevelRules('mahjong', level, MAHJONG_RULES,
+    phase === 'playing' && !isPreset && levelBanner === null);
 
   const loadLevel = (L: number) => {
     const p = levelParams(L);
@@ -371,6 +392,7 @@ export default function MahjongGame() {
         <HudBadge icon="checkmark-done" value={`${matched}/${pairsTotal}`} colors={['#5eead4', '#0d9488']} pop />
         <HudBadge icon="close" value={errors} colors={['#fb7185', '#e11d48']} />
         <HudBadge icon="time" value={`${elapsed.toFixed(1)}${language === 'ru' ? 'с' : 's'}`} colors={['#60a5fa', '#2563eb']} />
+        {!isPreset && <LevelRuleBadge lr={levelRules} color="#0d9488" ru={language === 'ru'} />}
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mahjongHint')}</Text>
 
@@ -409,6 +431,7 @@ export default function MahjongGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'result' && (
         <GameResult score={score} time={elapsed} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}

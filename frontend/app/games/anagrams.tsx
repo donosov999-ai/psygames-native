@@ -69,6 +69,10 @@ export default function AnagramGame() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const usedRef = useRef<Set<string>>(new Set());   // показанные в сессии слова — без повторов
+  // v1.112.0: честный зачёт — из тех же букв может сложиться ДРУГОЕ валидное слово
+  // (КОТ↔ТОК): принимаем любое слово банка этой длины, не только загаданное.
+  const validWordsRef = useRef<Set<string>>(new Set());
+  const validKeyRef = useRef('');
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
@@ -101,6 +105,12 @@ export default function AnagramGame() {
   const newRound = () => {
     let bank = wordsBank(length, theme);
     if (bank.length < 4) bank = wordsBank(length, 'all');   // мало слов этой темы на этой длине → вся длина
+    // сет валидных слов для зачёта альтернативных анаграмм — по ВСЕМ темам этой длины
+    const vKey = `${length}_${language}`;
+    if (validKeyRef.current !== vKey) {
+      validWordsRef.current = new Set(wordsBank(length, 'all').map((e) => e.w.toUpperCase()));
+      validKeyRef.current = vKey;
+    }
     let avail = bank.filter((e) => !usedRef.current.has(e.w));
     if (avail.length === 0) { usedRef.current.clear(); avail = bank; }   // банк исчерпан → сброс
     const entry = avail[Math.floor(Math.random() * avail.length)];
@@ -131,7 +141,8 @@ export default function AnagramGame() {
     setPicked(newPicked);
     if (newPicked.length === target.length) {
       const guess = newPicked.map((i) => letters[i]).join('');
-      const correct = guess === target;
+      // Любая валидная анаграмма из этих букв = зачёт (буквы те же — игрок собрал их все)
+      const correct = guess === target || validWordsRef.current.has(guess);
       const newHits = hits + (correct ? 1 : 0);
       const newErr = errors + (correct ? 0 : 1);
       setHits(newHits);

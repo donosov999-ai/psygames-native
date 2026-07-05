@@ -517,13 +517,11 @@ export default function SudokuGame() {
         {mode === 'levels' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{language === 'ru' ? `Ур.${level}` : `Lv${level}`}</Text>}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{'❤️'.repeat(Math.max(0, LIVES - errors))}{'🤍'.repeat(Math.min(errors, LIVES))}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
-        {(variant !== 'none' || mode === 'killer') && (
-          <TouchableOpacity onPress={() => setRulesOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
-            <Text style={[styles.statText, { color: GRADIENT[0] }]}>
-              {mode === 'killer' ? 'Killer' : variantLabel(variant, language === 'ru').split(' ')[0]} ⓘ
-            </Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity onPress={() => setRulesOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
+          <Text style={[styles.statText, { color: GRADIENT[0] }]}>
+            {mode === 'killer' ? 'Killer' : variant !== 'none' ? variantLabel(variant, language === 'ru').split(' ')[0] : (language === 'ru' ? 'правила' : 'rules')} ⓘ
+          </Text>
+        </TouchableOpacity>
       </View>
     );
     const gridEl = (

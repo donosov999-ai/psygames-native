@@ -67,14 +67,51 @@ function solve(g: Cell[][], budget?: { steps: number }): boolean {
   return false;
 }
 
-// Генерация партии: решаем полное поле 21×21 (это РЕШЕНИЕ), копируем в PUZZLE, выбиваем ~52% валидных клеток.
+// Счёт решений до limit (обычно 2). MRV как solve; исчерпание бюджета = limit
+// (консервативно «единственность не доказана»). Возвращает grid в исходное состояние.
+function countSolutions(g: Cell[][], limit = 2, budget: { steps: number } = { steps: 12000 }): number {
+  let count = 0;
+  const walk = (): boolean => {
+    let bR = -1, bC = -1, bCands: number[] | null = null, bCount = 10;
+    for (const [r, c] of CELLS) if (g[r][c] === 0) {
+      const cn: number[] = [];
+      for (let n = 1; n <= 9; n++) if (isValid(g, r, c, n)) cn.push(n);
+      if (cn.length < bCount) { bCount = cn.length; bR = r; bC = c; bCands = cn; if (bCount === 0) return false; }
+    }
+    if (bR < 0) { count++; return count >= limit; }
+    if (budget.steps-- <= 0) { count = limit; return true; }
+    for (const n of bCands!) {
+      g[bR][bC] = n;
+      const stop = walk();
+      g[bR][bC] = 0;
+      if (stop) return true;
+    }
+    return false;
+  };
+  walk();
+  return count;
+}
+
+// Генерация партии: решаем полное поле 21×21 (это РЕШЕНИЕ), копируем в PUZZLE и выкалываем
+// ~52% валидных клеток. v1.112.0 — dig-with-uniqueness (тот же баг-класс, что в судоку v1.111.0):
+// клетка выкалывается только если решение остаётся ЕДИНСТВЕННЫМ, иначе честный ход игрока
+// мог помечаться «ошибкой» (сверка идёт с одним зашитым решением). Дедлайн держит UI живым.
 function generatePuzzle(): { puzzle: Cell[][]; solution: Cell[][] } {
   const sol: Cell[][] = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
   solve(sol, { steps: 200000 });
   const puzzle: Cell[][] = sol.map((row) => [...row]);
   const blanks = Math.round(CELLS.length * 0.52);   // оставляем разумное число подсказок
   const order = shuffle(CELLS.map((_, i) => i));
-  for (let i = 0; i < blanks; i++) { const [r, c] = CELLS[order[i]]; puzzle[r][c] = 0; }
+  const deadline = Date.now() + 3000;
+  let dug = 0;
+  for (const idx of order) {
+    if (dug >= blanks || Date.now() > deadline) break;
+    const [r, c] = CELLS[idx];
+    const keep = puzzle[r][c];
+    puzzle[r][c] = 0;
+    if (countSolutions(puzzle, 2, { steps: 12000 }) !== 1) puzzle[r][c] = keep;
+    else dug++;
+  }
   return { puzzle, solution: sol };
 }
 

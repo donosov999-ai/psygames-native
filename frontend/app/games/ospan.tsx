@@ -16,6 +16,16 @@ import GameResult from '@/src/components/GameResult';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const OSPAN_RULES: LevelRule[] = [
+  {
+    key: 'hardmath', fromLevel: 6,
+    ru: { title: 'Счёт сложнее', rule: 'В уравнениях появляется умножение и числа крупнее. Считай внимательно — это отвлекающая задача, буквы между уравнениями всё равно запоминай.', example: 'Пример: 7 × 12 = 84 — верно.' },
+    en: { title: 'Harder math', rule: 'Equations now include multiplication and bigger numbers. Solve carefully — it is the distractor task; keep memorizing the letters in between.', example: 'Example: 7 × 12 = 84 — correct.' },
+  },
+];
 
 const GRADIENT = ['#cb356b', '#bdfff3'];
 const OSPAN_BENEFITS = [
@@ -65,6 +75,8 @@ export default function OSpanGame() {
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [setSize, setSetSize] = useState(4);
+  // Справка правил уровня. enabled на eq: уравнение ждёт ответа (без таймера), модалка ничего не срывает.
+  const levelRules = useLevelRules('ospan', lvl.level, OSPAN_RULES, phase === 'eq');
 
   const [stepIdx, setStepIdx] = useState(0);
   const [eq, setEq] = useState<Equation>({ left: '', right: 0, isCorrect: false });
@@ -193,6 +205,7 @@ export default function OSpanGame() {
           <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
           <Text style={[styles.statText, { color: '#22c55e' }]}>✓math {mathHits}</Text>
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗math {mathErrors}</Text>
+          <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
         </View>
         <View style={[styles.eqBox, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
           <Text style={[styles.eqText, { color: fbColor }]}>{eq.left} = {eq.right}</Text>
@@ -264,6 +277,7 @@ export default function OSpanGame() {
       {phase === 'eq' && renderEq()}
       {phase === 'letter' && renderLetter()}
       {phase === 'recall' && renderRecall()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="ospan" level={levelRef.current} stars={recallErrors === 0 ? 3 : recallErrors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}

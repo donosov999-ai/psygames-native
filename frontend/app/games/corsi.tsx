@@ -19,6 +19,16 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const CORSI_RULES: LevelRule[] = [
+  {
+    key: 'reverse', fromLevel: 10,
+    ru: { title: 'Обратный порядок', rule: 'С этого уровня повторяй последовательность В ОБРАТНОМ порядке — от последнего блока к первому.', example: 'Пример: загорелись блоки 1 → 2 → 3 — нажимай 3, 2, 1.' },
+    en: { title: 'Reverse order', rule: 'From this level on, reproduce the sequence in REVERSE — from the last block back to the first.', example: 'Example: blocks flash 1 → 2 → 3 — tap 3, 2, 1.' },
+  },
+];
 
 const GRADIENT = ['#0083B0', '#00B4DB'];
 const CORSI_BENEFITS = [
@@ -70,6 +80,9 @@ export default function CorsiGame() {
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'forward') as Mode));
+  // Справка правил уровня (в зарядке-пресете не показываем — там свой поток).
+  // enabled на recall: во время show модалка закрыла бы саму последовательность.
+  const levelRules = useLevelRules('corsi', lvl.level, CORSI_RULES, phase === 'recall' && !isPreset);
 
   const [seq, setSeq] = useState<number[]>([]);
   const [showIdx, setShowIdx] = useState(-1);     // currently lit during show phase
@@ -273,6 +286,7 @@ export default function CorsiGame() {
       <View style={styles.statsRow}>
         <Text style={[styles.statText, { color: colors.text }]}>Span {span}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>Len {seq.length}</Text>
+        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('watchSequence')}</Text>
       {renderBoard()}
@@ -285,6 +299,7 @@ export default function CorsiGame() {
         <Text style={[styles.statText, { color: colors.text }]}>Span {span}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>{userSeq.length}/{seq.length}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>
         {mode === 'forward' ? t('reproduceForward') : t('reproduceBackward')}
@@ -310,6 +325,7 @@ export default function CorsiGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'show' && renderShow()}
       {phase === 'recall' && renderRecall()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'boss' && (
         <BossRound config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
           language={language} colors={colors}
@@ -351,7 +367,7 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 12, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 14 },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
   board: { borderRadius: 14, borderWidth: 1, position: 'relative' },

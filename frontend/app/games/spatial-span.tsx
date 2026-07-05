@@ -13,6 +13,16 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const SS_RULES: LevelRule[] = [
+  {
+    key: 'grid5', fromLevel: 11,
+    ru: { title: 'Сетка 5×5', rule: 'Поле выросло до 5×5 — клеток больше, а сами они мельче. Порядок по-прежнему обратный.' },
+    en: { title: '5×5 grid', rule: 'The board grew to 5×5 — more cells, each one smaller. The order is still reversed.' },
+  },
+];
 
 const GRADIENT = ['#1A2980', '#26D0CE'];
 const SS_BENEFITS = [
@@ -48,6 +58,8 @@ export default function SpatialSpanGame() {
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [gridSize, setGridSize] = useState(4); // 4x4 (16 cells, classic CANTAB)
+  // Справка правил уровня. enabled на recall: во время show модалка закрыла бы последовательность.
+  const levelRules = useLevelRules('spatial_span', lvl.level, SS_RULES, phase === 'recall');
 
   const [seq, setSeq] = useState<number[]>([]);
   const [showIdx, setShowIdx] = useState(-1);
@@ -222,6 +234,7 @@ export default function SpatialSpanGame() {
         <Text style={[styles.statText, { color: colors.text }]}>Span {span} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>Len {seq.length}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{totalErrors}</Text>
+        <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('watchSequence')}</Text>
       {renderGrid()}
@@ -234,6 +247,7 @@ export default function SpatialSpanGame() {
         <Text style={[styles.statText, { color: colors.text }]}>Span {span} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>{userSeq.length}/{seq.length}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{totalErrors}</Text>
+        <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('reproduceBackward')}</Text>
       {renderGrid()}
@@ -257,6 +271,7 @@ export default function SpatialSpanGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'show' && renderShow()}
       {phase === 'recall' && renderRecall()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="spatial_span" level={levelRef.current} stars={totalErrors === 0 ? 3 : totalErrors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
@@ -291,7 +306,7 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 16, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 14 },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },

@@ -14,6 +14,16 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const SG_RULES: LevelRule[] = [
+  {
+    key: 'timelimit', fromLevel: 11,
+    ru: { title: 'Лимит времени', rule: 'Теперь на поиск SET даётся ограниченное время. Не успел — штраф ✗ и новая раскладка. С каждым уровнем лимит жмёт сильнее.', example: 'Пример: L11 — 26 с на SET, дальше −4 с за уровень (минимум 8 с).' },
+    en: { title: 'Time limit', rule: 'You now have limited time to find a SET. Run out — penalty ✗ and a fresh board. The limit tightens every level.', example: 'Example: L11 — 26 s per SET, then −4 s per level (8 s minimum).' },
+  },
+];
 
 const GRADIENT = ['#43cea2', '#185a9d'];
 const SET_BENEFITS = [
@@ -128,6 +138,9 @@ export default function SetGame() {
   const roundTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); if (roundTimerRef.current) clearTimeout(roundTimerRef.current); }, []);
+
+  // Справка правил уровня: только в личной игре (в зарядке-пресете лимита времени нет, бейдж скрыт)
+  const levelRules = useLevelRules('set_game', lvl.level, SG_RULES, phase === 'playing' && !isPreset);
 
   const handleTimeout = () => {
     setErrors((e) => e + 1);   // не успел найти SET за лимит → штраф + новая доска (тот же раунд)
@@ -279,6 +292,7 @@ export default function SetGame() {
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('setHint')}</Text>
       {hintBreakdown && feedback === 'wrong' && (
@@ -325,6 +339,7 @@ export default function SetGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="set_game" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}

@@ -12,6 +12,21 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const VS_RULES: LevelRule[] = [
+  {
+    key: 'multi', fromLevel: 4, toLevel: 7,
+    ru: { title: 'Несколько целей', rule: 'Теперь в раунде может быть несколько целей — найди ВСЕ, счётчик 🎯 покажет прогресс.', example: 'Пример: 🎯 1/3 — найдена одна цель из трёх.' },
+    en: { title: 'Multiple targets', rule: 'A round can now hold several targets — find ALL of them, the 🎯 counter shows progress.', example: 'Example: 🎯 1/3 — one of three targets found.' },
+  },
+  {
+    key: 'conj', fromLevel: 8,
+    ru: { title: 'Цвет + форма', rule: 'Цель теперь задаётся ДВУМЯ признаками: нужная форма нужного цвета. Та же форма другого цвета — НЕ цель.', example: 'Пример: ищем синюю T. Жёлтая T и синяя L — ловушки.' },
+    en: { title: 'Color + shape', rule: 'The target is now defined by TWO features: the right shape in the right color. Same shape in another color is NOT a target.', example: 'Example: find the blue T. A yellow T and a blue L are decoys.' },
+  },
+];
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 
@@ -136,6 +151,9 @@ export default function VisualSearchGame() {
 
   const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (fbTimerRef.current) clearTimeout(fbTimerRef.current); }, []);
+  // Справка правил уровня: в личной игре (в зарядке-пресете не всплываем — там свой поток,
+  // а конъюнкцию подсказывает цветной образец цели)
+  const levelRules = useLevelRules('visual_search', lvl.level, VS_RULES, phase === 'playing' && !isPreset);
   // живой таймер: тикаем пока идёт игра (раньше в шапке показывался прыгающий средний RT — «кривой»)
   useEffect(() => {
     if (phase !== 'playing') return;
@@ -292,6 +310,7 @@ export default function VisualSearchGame() {
           <Text style={[styles.statText, { color: '#3b82f6' }]}>🎯 {foundCount}/{targetCount}</Text>
         )}
         <Text style={[styles.statText, { color: colors.primary }]}>⏱ {Math.max(0, (now - stimAt) / 1000).toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
       </View>
       <View style={styles.hintRow}>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
@@ -337,6 +356,7 @@ export default function VisualSearchGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="visual_search" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}

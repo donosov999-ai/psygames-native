@@ -18,6 +18,16 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const DS_RULES: LevelRule[] = [
+  {
+    key: 'reverse', fromLevel: 11,
+    ru: { title: 'Ввод с конца', rule: 'С этого уровня вводи цифры В ОБРАТНОМ порядке — от последней к первой.', example: 'Пример: показано 4 9 2 — вводи 294.' },
+    en: { title: 'Type backwards', rule: 'From this level on, enter the digits in REVERSE order — last digit first.', example: 'Example: shown 4 9 2 — type 294.' },
+  },
+];
 
 const GRADIENT = ['#11998e', '#38ef7d'];
 const DIGIT_BENEFITS = [
@@ -51,6 +61,9 @@ export default function DigitSpanGame() {
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [direction, setDirection] = useState<Direction>(() => (str('mode', 'forward') as Direction));
+  // Справка правил уровня (в зарядке-пресете не показываем — там свой поток).
+  // enabled на input: во время показа цифр модалка закрыла бы их.
+  const levelRules = useLevelRules('digit_span', lvl.level, DS_RULES, phase === 'input' && !isPreset);
   const [seqLen, setSeqLen] = useState(() => num('startLen', 4));
   const [sequence, setSequence] = useState<number[]>([]);
   const [showIdx, setShowIdx] = useState(-1);
@@ -263,6 +276,7 @@ export default function DigitSpanGame() {
       <Text style={[styles.statText, { color: colors.textSecondary }]}>
         {t('lengthLabel')}: {seqLen} · {t('round')} {round}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}
       </Text>
+      {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
       <TextInput
         value={userInput}
         onChangeText={(s) => setUserInput(s.replace(/[^0-9]/g, '').slice(0, seqLen))}
@@ -324,6 +338,7 @@ export default function DigitSpanGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'showing' && renderShowing()}
       {phase === 'input' && renderInput()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="digit_span" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}

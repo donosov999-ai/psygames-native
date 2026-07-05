@@ -32,6 +32,16 @@ import GameIntro from '@/src/components/GameIntro';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const CPT_RULES: LevelRule[] = [
+  {
+    key: 'lookalike', fromLevel: 11,
+    ru: { title: 'Буквы-ловушки', rule: 'Среди букв всё чаще попадаются похожие на X: K, Y, V, W, N, M. Не жми на них — жди настоящую X (после A).', example: 'Пример: мелькнула K — руки прочь, это не X.' },
+    en: { title: 'Look-alike traps', rule: 'Letters that resemble X now appear more often: K, Y, V, W, N, M. Don\'t tap them — wait for a real X (after A).', example: 'Example: a K flashes by — hands off, it\'s not an X.' },
+  },
+];
 
 const GRADIENT = ['#0f4c75', '#3282b8'];
 const CPT_BENEFITS = [
@@ -126,6 +136,9 @@ export default function CPTGame() {
   };
 
   useEffect(() => () => { stoppedRef.current = true; clearAllTimers(); }, []);
+
+  // Справка правил уровня (в CPT пресета-зарядки нет — всегда личная игра)
+  const levelRules = useLevelRules('cpt', lvl.level, CPT_RULES, phase === 'playing');
 
   const scheduleNextStimulus = () => {
     if (stoppedRef.current) return;
@@ -336,6 +349,12 @@ export default function CPTGame() {
             ? (language === 'ru' ? 'AX-CPT · жми на X только после A · 90 сек' : 'AX-CPT · tap X only after A · 90 s')
             : (language === 'ru' ? 'AX-CPT · X после A · быстрее + похожие буквы · 90 сек' : 'AX-CPT · X after A · faster + look-alikes · 90 s')}
         </Text>
+        {/* v1.112.0: критерий прохождения уровня виден игроку (раньше был скрыт в коде finish()) */}
+        <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+          {language === 'ru'
+            ? 'Проход уровня: поймать ≥70% целей и ложно нажать ≤30% не-целей'
+            : 'To pass: catch ≥70% of targets with ≤30% false taps on non-targets'}
+        </Text>
         {lvl.level > 1 && (
           <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
             <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
@@ -368,6 +387,7 @@ export default function CPTGame() {
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗o{omissions}</Text>
           <Text style={[styles.statText, { color: '#fbbf24' }]}>✗c{commissions}</Text>
           <Text style={[styles.statText, { color: colors.textSecondary }]}>{totalDoneTrials}t</Text>
+          <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
         </View>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
           {modeRef.current === 'AX'
@@ -416,6 +436,7 @@ export default function CPTGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="cpt" level={levelRef.current} stars={(omissions + commissions) === 0 ? 3 : (omissions + commissions) <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}

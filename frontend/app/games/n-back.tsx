@@ -23,6 +23,16 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const NB_RULES: LevelRule[] = [
+  {
+    key: 'dual', fromLevel: 9,
+    ru: { title: 'Два потока', rule: 'Теперь ДВА потока сразу: позиция на поле и буква (звук). Совпадение позиции отмечай кнопкой «👁 Position», совпадение буквы — «🔊 Sound». Можно нажать обе.', example: 'Пример (2-back): позиция как 2 шага назад → Position; буква как 2 шага назад → Sound.' },
+    en: { title: 'Two streams', rule: 'Now TWO streams at once: the position on the grid and a letter (sound). Mark a position match with the "👁 Position" button, a letter match with "🔊 Sound". You can tap both.', example: 'Example (2-back): position same as 2 steps ago → Position; letter same as 2 steps ago → Sound.' },
+  },
+];
 
 const GRADIENT = ['#5b86e5', '#36d1dc'];
 const N_BACK_BENEFITS = [
@@ -73,6 +83,8 @@ export default function NBackGame() {
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
+  // Справка правил уровня (в зарядке-пресете не показываем — там свой поток)
+  const levelRules = useLevelRules('n_back', lvl.level, NB_RULES, phase === 'playing' && !isPreset);
   const [nLevel, setNLevel] = useState(() => num('nLevel', 1));
   const [trials, setTrials] = useState(() => num('trials', 20));
   const [modality, setModality] = useState<Modality>(() => (str('modality', 'single') as Modality));
@@ -369,6 +381,7 @@ export default function NBackGame() {
         <Text style={[styles.statText, { color: colors.text }]}>{nLevel}-back · {currentIdx + 1}/{trials}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
+        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
       </View>
       <View style={styles.gridArea}>
         <View style={[styles.grid3x3, { width: nbGridSide, height: nbGridSide }]}>
@@ -458,6 +471,7 @@ export default function NBackGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'boss' && (
         <BossRound config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
           language={language} colors={colors}
@@ -502,7 +516,7 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   playArea: { flex: 1, justifyContent: 'center', padding: 20, gap: 24, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 24 },
+  statsRow: { flexDirection: 'row', gap: 24, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },
   gridArea: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   grid3x3: { width: 240, height: 240, flexDirection: 'row', flexWrap: 'wrap', gap: 6 },

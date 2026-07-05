@@ -83,7 +83,7 @@ function genInterleaved(): Sequence {
 }
 
 // Уровень → класс прогрессии (труднота растёт; БЕЗ лимита времени).
-function makeSequence(level: number): Sequence {
+function pickSequence(level: number): Sequence {
   if (level <= 2)  return genArithmetic();
   if (level <= 4)  return genGeometric();
   if (level <= 6)  return rnd(2) ? genSquares() : genCubes();
@@ -91,6 +91,20 @@ function makeSequence(level: number): Sequence {
   if (level <= 10) return genGrowingDiff();
   if (level <= 12) return genLookAndSay();
   return genInterleaved();
+}
+
+// v1.112.0: полный перебор пространств ВСЕХ генераторов (449 рядов) нашёл ровно 2
+// неоднозначных префикса — валидны два правила с РАЗНЫМИ ответами:
+// [2,3,5,8] → Фибоначчи 13 vs растущая разность 12; [4,5,7,10] → 14 vs 10.
+// Такие ряды перегенерируем (иначе честный игрок получает несправедливую ошибку).
+// При изменении диапазонов генераторов пересчитать блэклист (скрипт в notes задачи БД).
+const AMBIGUOUS_ITEMS = new Set(['2,3,5,8', '4,5,7,10']);
+function makeSequence(level: number): Sequence {
+  for (let guard = 0; guard < 10; guard++) {
+    const s = pickSequence(level);
+    if (!AMBIGUOUS_ITEMS.has(s.items.join(','))) return s;
+  }
+  return genArithmetic();   // практически недостижимо
 }
 
 function makeOptions(answer: number, count = 4): number[] {

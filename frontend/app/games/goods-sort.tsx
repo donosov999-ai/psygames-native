@@ -14,6 +14,16 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
 import { sndCombo } from '@/src/services/feedback';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const GS_RULES: LevelRule[] = [
+  {
+    key: 'movelimit', fromLevel: 9,
+    ru: { title: 'Лимит ходов', rule: 'Теперь на уровень даётся ограниченное число перестановок — трать ходы с умом. Превысил лимит — уровень заново. Счётчик ходов в шапке: сделано/лимит.', example: 'Пример: ⇄ 12/18 — сделано 12 ходов из 18. С каждым уровнем лимит жмёт сильнее.' },
+    en: { title: 'Move limit', rule: 'Each level now allows a limited number of moves — spend them wisely. Exceed the limit and the level restarts. The header counter shows used/limit.', example: 'Example: ⇄ 12/18 — 12 of 18 moves used. The limit tightens every level.' },
+  },
+];
 
 const GRADIENT = ['#f7971e', '#ffd200'];
 const GOODS_BENEFITS = [
@@ -154,6 +164,10 @@ export default function GoodsSortGame() {
   const gridRef = useRef({ cols: 3, rows: 3, slots: 9 });        // текущая доска — для логики каскада/reshuffle
   const [gridDim, setGridDim] = useState({ cols: 3, rows: 3 });  // для рендера полок
   const { popups, spawn } = useScorePopups();
+
+  // Справка правил уровня: только в личной игре (в зарядке-пресете бейдж скрыт).
+  // level — живой стейт партии (растёт по ходу сессии), а не lvl.level.
+  const levelRules = useLevelRules('goods_sort', level, GS_RULES, phase === 'playing' && !isPreset);
 
   const loadLevel = (L: number) => {
     const cfg = levelCfg(L, poolRef.current.length);
@@ -335,6 +349,7 @@ export default function GoodsSortGame() {
           <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
           <HudBadge icon="swap-horizontal" value={(() => { const ml = levelCfg(level, poolRef.current.length).moveLimit; return ml > 0 ? `${moves}/${ml}` : String(moves); })()} colors={['#94a3b8', '#475569']} />
           <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
+          {!isPreset && <LevelRuleBadge lr={levelRules} color="#d97706" ru={language === 'ru'} />}
         </View>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
         <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }}>
@@ -381,6 +396,7 @@ export default function GoodsSortGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'result' && (
         <GameResult score={score} time={elapsed} errors={0}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}

@@ -20,6 +20,21 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+
+// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+const MS_RULES: LevelRule[] = [
+  {
+    key: 'mult', fromLevel: 3, toLevel: 4,
+    ru: { title: 'Умножение', rule: 'К сложению и вычитанию добавляется умножение (×).', example: 'Пример: 7 × 6 = 42.' },
+    en: { title: 'Multiplication', rule: 'Multiplication (×) joins addition and subtraction.', example: 'Example: 7 × 6 = 42.' },
+  },
+  {
+    key: 'div', fromLevel: 5,
+    ru: { title: 'Деление', rule: 'Теперь встречается и деление (÷) — всегда нацело, без остатка. Умножение (×) тоже остаётся.', example: 'Пример: 42 ÷ 6 = 7.' },
+    en: { title: 'Division', rule: 'Division (÷) now appears — always exact, no remainder. Multiplication (×) stays too.', example: 'Example: 42 ÷ 6 = 7.' },
+  },
+];
 
 const GRADIENT = ['#fc4a1a', '#f7b733'];
 const MATH_BENEFITS = [
@@ -97,6 +112,9 @@ export default function MathSprintGame() {
   const levelRef = useRef(1);            // текущий уровень партии (рулит набором операций и числами)
 
   useEffect(() => () => { if (tickRef.current) clearInterval(tickRef.current); }, []);
+
+  // Справка правил уровня: только в личной игре (в зарядке-пресете тир выбран вручную, бейдж скрыт)
+  const levelRules = useLevelRules('math_sprint', lvl.level, MS_RULES, phase === 'playing' && !isPreset);
 
   const startGame = () => {
     setCorrect(0); setErrors(0); setStreak(0); setBestStreak(0); setScore(0);
@@ -233,6 +251,7 @@ export default function MathSprintGame() {
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         {streak >= 3 && <Text style={[styles.statText, { color: '#fbbf24' }]}>🔥{streak}</Text>}
+        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
       </View>
       <View style={[styles.problemArea, {
         backgroundColor: feedback === 'correct' ? 'rgba(34,197,94,0.15)' : feedback === 'wrong' ? 'rgba(244,63,94,0.15)' : 'transparent',
@@ -279,6 +298,7 @@ export default function MathSprintGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'boss' && (
         <BossRound config={{ type: 'completeline', gradient: GRADIENT as [string, string] }}
           language={language} colors={colors}
