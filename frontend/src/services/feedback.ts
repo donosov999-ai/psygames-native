@@ -107,8 +107,13 @@ function beep(frequency: number, duration_ms: number, volume: number = 0.1) {
   try {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = (_soundPack || 'sine') as OscillatorType;   // SND-P: форма волны по звук-паку
-    osc.frequency.value = frequency;
+    // SND-P v1.114.0: пак может быть составным "waveform:pitchMultiplier" (напр. "sine:1.6" —
+    // тот же синус, но выше тоном) — так из 4 базовых форм волны Web Audio получаются новые
+    // самостоятельные паки без второго осциллятора.
+    const [waveRaw, pitchRaw] = (_soundPack || 'sine').split(':');
+    const pitchMult = pitchRaw ? parseFloat(pitchRaw) : 1;
+    osc.type = (waveRaw || 'sine') as OscillatorType;
+    osc.frequency.value = frequency * (Number.isFinite(pitchMult) && pitchMult > 0 ? pitchMult : 1);
     const t0 = ctx.currentTime;
     const dur = Math.max(0.05, duration_ms / 1000);
     const v = Math.max(0.0001, volume * MASTER_GAIN);

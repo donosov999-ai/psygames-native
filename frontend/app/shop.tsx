@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -11,6 +11,7 @@ import { getTokens, spendTokens } from '@/src/services/tokens';
 import {
   COSMETICS, Cosmetic, getUnlocked, unlockCosmetic, getEquipped, equipCosmetic, unequipCosmetic,
 } from '@/src/services/cosmetics';
+import { avatarImage } from '@/src/constants/avatars';
 import { sndToken, sndTap, sndWrong, sndCorrect, getSoundPack, setSoundPack as applySoundPack } from '@/src/services/feedback';
 
 export default function ShopScreen() {
@@ -68,13 +69,24 @@ export default function ShopScreen() {
     const isSound = c.type === 'sound';
     const on = isSound ? soundPack === c.value : equipped[c.type] === c.id;
     const canAfford = balance >= c.cost;
-    const accent = isSound ? colors.primary : c.value;
+    // sound value может быть составным "waveform:pitch" — акцент кнопки берём из темы, не парсим цвет из него
+    const accent = c.type === 'accent' || c.type === 'frame' ? c.value : colors.primary;
     return (
       <View key={c.id} style={[styles.row, { backgroundColor: colors.surface, borderColor: on ? accent : colors.border, borderWidth: on ? 2 : 1 }]}>
-        {isSound ? (
+        {c.type === 'sound' ? (
           <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
             <Ionicons name="musical-notes" size={22} color={accent} />
           </View>
+        ) : c.type === 'frame' ? (
+          <View style={[styles.swatch, { backgroundColor: colors.background, borderWidth: 3, borderColor: c.value, justifyContent: 'center', alignItems: 'center' }]}>
+            <Ionicons name="person" size={16} color={colors.textSecondary} />
+          </View>
+        ) : c.type === 'title' ? (
+          <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+            <Text style={{ fontSize: 20 }}>{c.value}</Text>
+          </View>
+        ) : c.type === 'avatar' ? (
+          <Image source={avatarImage(c.value)} style={[styles.swatch, { backgroundColor: colors.background }]} resizeMode="cover" />
         ) : (
           <View style={[styles.swatch, { backgroundColor: c.value }]} />
         )}
@@ -130,9 +142,26 @@ export default function ShopScreen() {
         </Text>
         {COSMETICS.filter((c) => c.type === 'sound').map(renderItem)}
 
+        <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
+          {ru ? '🖼️ Рамки — цветной контур вокруг чипа профиля на главном экране.'
+              : '🖼️ Frames — a colored outline around your profile chip on the home screen.'}
+        </Text>
+        {COSMETICS.filter((c) => c.type === 'frame').map(renderItem)}
+
+        <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
+          {ru ? '🏷️ Титулы — подпись под именем профиля.'
+              : '🏷️ Titles — a caption under your profile name.'}
+        </Text>
+        {COSMETICS.filter((c) => c.type === 'title').map(renderItem)}
+
+        <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
+          {ru ? '👤 Аватары — своя иконка профиля вместо стандартного бейджа.'
+              : '👤 Avatars — your own profile icon instead of the default badge.'}
+        </Text>
+        {COSMETICS.filter((c) => c.type === 'avatar').map(renderItem)}
+
         <Text style={[styles.hint, { color: colors.textSecondary }]}>
-          {ru ? 'Очки копятся за игры, стрики и ачивки. Скоро — рамки карточек, титулы и аватары.'
-              : 'Earn tokens from games, streaks and achievements. Coming soon — card frames, titles, avatars.'}
+          {ru ? 'Очки копятся за игры, стрики и ачивки.' : 'Tokens are earned from games, streaks and achievements.'}
         </Text>
       </ScrollView>
     </SafeAreaView>

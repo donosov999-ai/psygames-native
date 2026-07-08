@@ -21,6 +21,8 @@ import GameCard from '@/src/components/GameCard';
 import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { logoForProfile } from '@/src/constants/profileLogos';
+import { getEquippedFrameColor, getEquippedTitle, getEquippedAvatarKey } from '@/src/services/cosmetics';
+import { avatarImage } from '@/src/constants/avatars';
 import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
 import { getTodayChallenge, challengeToParams, loadChallengeStreak, setPendingChallenge, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
 import { useAllLevelStars } from '@/src/hooks/useAllLevelStars';
@@ -65,6 +67,10 @@ export default function HomeScreen() {
   const [streakDays, setStreakDays] = useState(0);
   const [streakToast, setStreakToast] = useState<number | null>(null);   // тост «🔥 +N за стрик»
   const [challengeStreak, setChallengeStreak] = useState<ChallengeStreak>({ streak: 0, total: 0, last: '' });
+  // v1.114.0 — косметика профильного чипа: рамка/титул/аватар из магазина (null = ничего не надето)
+  const [frameColor, setFrameColor] = useState<string | null>(null);
+  const [titleLabel, setTitleLabel] = useState<string | null>(null);
+  const [avatarKey, setAvatarKey] = useState<string | null>(null);
   const todayChallenge = useMemo(() => getTodayChallenge(), []);   // ротация игр — детерминировано по дате
   const prevTokensRef = useRef<number | null>(null);
   const prevLevelRef = useRef<number | null>(null);
@@ -83,8 +89,12 @@ export default function HomeScreen() {
       }
       prevTokensRef.current = v; prevLevelRef.current = lv;
       setTokens(v);
+      // Косметика профильного чипа — обновляем на фокусе (сразу видно после покупки в магазине)
+      setFrameColor(await getEquippedFrameColor(profile.id));
+      setTitleLabel(await getEquippedTitle(profile.id, language));
+      setAvatarKey(await getEquippedAvatarKey(profile.id));
     })();
-  }, [profile?.id]));
+  }, [profile?.id, language]));
   const lvl = levelInfo(tokens);
   // S1: фоновая музыка меню — играет на главной (если включена в настройках), стоп при уходе в игру
   useFocusEffect(useCallback(() => { startMusic(); return () => stopMusic(); }, []));
@@ -220,7 +230,8 @@ export default function HomeScreen() {
         </View>
         <View style={styles.headerRow}>
         <View style={{ flex: 1, gap: 6 }}>
-          {/* Клик-чип "Сменить профиль" — заметный, с chevron ▾ */}
+          {/* Клик-чип "Сменить профиль" — заметный, с chevron ▾. v1.114.0: рамка/аватар из магазина
+              (frameColor перекрывает цвет профиля, avatarKey — стандартный бейдж). */}
           <TouchableOpacity
             onPress={() => setSwitcherOpen(true)}
             activeOpacity={0.7}
@@ -230,15 +241,17 @@ export default function HomeScreen() {
               gap: 6,
               alignSelf: 'flex-start',
               backgroundColor: profile.color + '22',
-              borderWidth: 1.5,
-              borderColor: profile.color + '88',
+              borderWidth: frameColor ? 2.5 : 1.5,
+              borderColor: frameColor ?? profile.color + '88',
               paddingVertical: 5,
               paddingHorizontal: 10,
               borderRadius: 100,
               marginTop: 2,
             }}
           >
-            {profileBadge(profile.id) ? (
+            {avatarKey && avatarImage(avatarKey) ? (
+              <Image source={avatarImage(avatarKey)} style={{ width: 20, height: 20, borderRadius: 6 }} />
+            ) : profileBadge(profile.id) ? (
               <Image source={profileBadge(profile.id)} style={{ width: 20, height: 20, borderRadius: 6 }} />
             ) : (
               <Text style={{ fontSize: 14 }}>{profile.emoji}</Text>
@@ -248,6 +261,12 @@ export default function HomeScreen() {
             </Text>
             <Ionicons name="chevron-down" size={14} color={colors.text} />
           </TouchableOpacity>
+          {/* Титул из магазина — подпись под чипом (когда надет) */}
+          {titleLabel && (
+            <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: '700', marginTop: -2, marginLeft: 2 }}>
+              {titleLabel}
+            </Text>
+          )}
           <Text style={[styles.subtitle, { color: colors.textSecondary, marginTop: 4 }]}>
             {t('trainYourBrain')} · {t('homeSwitchHint')}
           </Text>
