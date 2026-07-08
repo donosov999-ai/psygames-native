@@ -12,6 +12,20 @@ describe('levelConfig — варианты по лесенке', () => {
   });
 });
 
+describe('levelConfig — монотонная сложность (v1.113.0, баг-репорт Вали)', () => {
+  it('число пустых клеток НЕ убывает нигде на 9×9-диапазоне (5..60), включая границы смены правил', () => {
+    let prevBlanks = -1;
+    for (let lv = 5; lv <= 60; lv++) {
+      const { blanks } = levelConfig(lv);
+      expect(blanks).toBeGreaterThanOrEqual(prevBlanks);
+      prevBlanks = blanks;
+    }
+  });
+  it('конкретно: Ур.20 (доп. зоны) не легче Ур.12 (диагональ) — было наоборот (26 vs 35 данных клеток)', () => {
+    expect(levelConfig(20).blanks).toBeGreaterThanOrEqual(levelConfig(12).blanks);
+  });
+});
+
 describe('generatePuzzle — решение единственно (dig-with-uniqueness)', () => {
   const check = (lv: number) => {
     const cfg = levelConfig(lv);
@@ -19,7 +33,7 @@ describe('generatePuzzle — решение единственно (dig-with-uni
     return countSolutions(g.puzzle.map(r => [...r]), cfg.N, cfg.BR, cfg.BC, cfg.variant, g.regions, 2, { steps: 200000 }, g.thermo, g.arrow);
   };
   it('Ур.15 (анти-конь, кейс Вали)', () => { expect(check(15)).toBe(1); });
-  it('Ур.13 (диагональ, 58 дырок — раньше самый рискованный)', () => { expect(check(13)).toBe(1); });
+  it('Ур.29 (антикороль, 58 дырок — новый потолок кривой)', () => { expect(check(29)).toBe(1); });
   it('Ур.8 (классика 9×9)', () => { expect(check(8)).toBe(1); });
 });
 

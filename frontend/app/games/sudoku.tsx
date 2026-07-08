@@ -17,7 +17,7 @@ import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/cons
 import type { DigitStyle } from '@/src/constants/digitThemes';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Svg, { Line } from 'react-native-svg';
+import Svg, { Line, Rect } from 'react-native-svg';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
 // Непрозрачная подсветка: смешать base (фон темы) с over (акцент). Полупрозрачный цвет поверх
@@ -41,7 +41,7 @@ const SUDOKU_BENEFITS = [
 import {
   Cell, Variant, ThermoPN, ArrowMap,
   dimsForSize, blanksFor, killerBlanks, generateCages, levelConfig,
-  variantLabel, variantRule, shuffle, generatePuzzle, inHyper,
+  variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
 } from '@/src/services/sudoku-core';
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'result';
@@ -552,7 +552,8 @@ export default function SudokuGame() {
           else if (isSel) bg = GRADIENT[0];
           else if (sameVal) bg = colors.card;
           else if (sameRow) bg = colors.card;
-          else if (variant === 'hyper' && inHyper(r, c)) bg = blendHex(colors.surface, GRADIENT[0], 0.14);   // непрозрачная подсветка доп. зон (Windoku)
+          // v1.113.0: заливку доп. зон убрали — её перебивала подсветка строки/столбца выделения
+          // (Валя: «то голубые то нет»). Зоны теперь рамкой поверх сетки (см. SVG ниже, как диагональ).
           // ДИАГОНАЛЬ: не заливаем фон и не рисуем по клеткам (границы клеток резали линию на
           // сегменты) — единая SVG-линия через ВСЮ доску рисуется ниже, поверх сетки клеток
           return (
@@ -655,6 +656,17 @@ export default function SudokuGame() {
               stroke={colors.textSecondary} strokeWidth={1.5} strokeDasharray="7,6" opacity={0.6} />
             <Line x1={cellSize * N} y1={0} x2={0} y2={cellSize * N}
               stroke={colors.textSecondary} strokeWidth={1.5} strokeDasharray="7,6" opacity={0.6} />
+          </Svg>
+        )}
+        {/* v1.113.0: доп. зоны (Windoku) — рамка поверх сетки, НЕ заливка клеток (та гасла от
+            подсветки строки/столбца выделения — баг-репорт Вали «то голубые то нет»). Рамка
+            стабильна независимо от того, что сейчас выделено. */}
+        {variant === 'hyper' && (
+          <Svg width={cellSize * N} height={cellSize * N} style={{ position: 'absolute', top: 0, left: 0 }} pointerEvents="none">
+            {HYPER_BOXES.map(([hr, hc], i) => (
+              <Rect key={i} x={hc * cellSize + 1.5} y={hr * cellSize + 1.5} width={cellSize * 3 - 3} height={cellSize * 3 - 3}
+                fill="none" stroke={GRADIENT[0]} strokeWidth={2.5} rx={4} opacity={0.85} />
+            ))}
           </Svg>
         )}
           </View>
