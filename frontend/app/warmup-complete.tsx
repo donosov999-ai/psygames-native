@@ -16,6 +16,7 @@ import {
 } from '@/src/services/warmup';
 import { addTokens, comboBonus } from '@/src/services/tokens';
 import { loadReminderSettings, saveReminderSettings, applyReminders, requestReminderPermission, DEFAULT_REMINDERS } from '@/src/services/reminders';
+import { getAiInsight, toneForProfile, dayKey } from '@/src/services/aiInsight';
 import type { StepResult } from '@/src/contexts/WarmupContext';
 
 // Промпт «включить напоминания?» показываем после завершённой зарядки, пока
@@ -37,6 +38,10 @@ export default function WarmupComplete() {
   const [persisted, setPersisted] = useState(false);
   const [combo, setCombo] = useState<{ bonus: number; streakLen: number } | null>(null);
   const [reminderPrompt, setReminderPrompt] = useState<'hidden' | 'show' | 'enabled'>('hidden');
+  // v1.115.0: ИИ-версия «Мозг сегодня» — прогрессивное улучшение. rule-based verdict
+  // (brainTodayVerdict) рисуется МГНОВЕННО, aiVerdictText подменяет текст, когда придёт
+  // (кэш на день — первая зарядка дня зовёт сеть, остальные показы за этот день читают кэш).
+  const [aiVerdictText, setAiVerdictText] = useState<string | null>(null);
 
   // v1.13.2 fix: snapshot meta/results/startTime СРАЗУ при mount.
   // stopWarmup() в useEffect занулит warmup.meta=null в WarmupContext →
@@ -74,8 +79,24 @@ export default function WarmupComplete() {
       }
       const h = await loadWarmupHistory();
       setHistory(h);
-      setStreak(computeStreak(h));
-      setVerdict(brainTodayVerdict(h, language));
+      const streakVal = computeStreak(h);
+      setStreak(streakVal);
+      const ruleVerdict = brainTodayVerdict(h, language);
+      setVerdict(ruleVerdict);
+      // ИИ-версия — только если есть о чём говорить (та же база, что и rule-based verdict).
+      // Тихий fallback: любая ошибка/нет ключа на сервере → aiVerdictText остаётся null,
+      // рисуется ruleVerdict.message (уже показан выше, не ждём сеть).
+      if (ruleVerdict && profile?.id) {
+        const completedHist = h.filter((e) => e.completed);
+        const prevScores = completedHist.slice(-11, -1).map((e) => e.total_score);
+        getAiInsight(
+          'daily_verdict', profile.id, dayKey(), language, toneForProfile(profile.id),
+          {
+            todayScore: totalScore, medianOfPrevious: prevScores, deltaPct: Math.round(ruleVerdict.delta_pct),
+            streakDays: streakVal, gamesToday: results.map((r) => ({ game: r.game_type, score: r.score, errors: r.errors })),
+          },
+        ).then((text) => { if (text) setAiVerdictText(text); }).catch(() => {});
+      }
       // Промпт напоминаний: натив + зарядка завершена + оба напоминания выключены + не отвечал
       if (Platform.OS !== 'web' && completed) {
         try {
@@ -222,7 +243,7 @@ export default function WarmupComplete() {
             borderLeftColor: verdict.delta_pct > 5 ? '#22c55e' : verdict.delta_pct < -5 ? '#f43f5e' : '#fbbf24',
           }]}>
             <Text style={[styles.verdictTitle, { color: colors.textSecondary }]}>{language === 'ru' ? '🧠 МОЗГ СЕГОДНЯ' : '🧠 BRAIN TODAY'}</Text>
-            <Text style={[styles.verdictMsg, { color: colors.text }]}>{verdict.message}</Text>
+            <Text style={[styles.verdictMsg, { color: colors.text }]}>{aiVerdictText || verdict.message}</Text>
           </View>
         )}
 

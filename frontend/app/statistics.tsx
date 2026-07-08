@@ -19,6 +19,7 @@ import { GAMES } from '@/src/constants/games';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { isGameAllowed } from '@/src/constants/profiles';
+import { getAiInsight, toneForProfile, isoWeekKey } from '@/src/services/aiInsight';
 
 export default function StatisticsScreen() {
   const { colors } = useTheme();
@@ -31,6 +32,8 @@ export default function StatisticsScreen() {
   const [tokens, setTokens] = useState(0);          // D1: токены/уровень/стрик в герое
   const [streakDays, setStreakDays] = useState(0);
   const [sessionsByGame, setSessionsByGame] = useState<Record<string, number[]>>({});  // D1.2: тренды очков
+  // v1.115.0: недельный ИИ-дайджест — кэш на ISO-неделю (isoWeekKey), молчаливый null = карточка просто не рисуется
+  const [aiDigest, setAiDigest] = useState<string | null>(null);
 
   useEffect(() => {
     loadStats();
@@ -40,7 +43,8 @@ export default function StatisticsScreen() {
     try {
       const allStats = await getAllStats();
       setStats(allStats);
-      if (profile?.id) { setTokens(await getTokens(profile.id)); setStreakDays(await getStreak(profile.id)); }
+      let freshStreak = 0;
+      if (profile?.id) { setTokens(await getTokens(profile.id)); freshStreak = await getStreak(profile.id); setStreakDays(freshStreak); }
       // D1.2: сгруппировать очки по играм в хронологии для спарклайнов
       const allSessions = await getSessions();
       const byGame: Record<string, number[]> = {};
@@ -49,6 +53,19 @@ export default function StatisticsScreen() {
         (byGame[s.game_type] ||= []).push(typeof s.score === 'number' && isFinite(s.score) ? s.score : 0);
       }
       setSessionsByGame(byGame);
+      // Недельный дайджест — компактный агрегат за последние 7 дней (не сырой дамп сессий)
+      if (profile?.id) {
+        const weekAgo = Date.now() - 7 * 86400_000;
+        const thisWeek = allSessions.filter((s) => s.timestamp && new Date(s.timestamp).getTime() >= weekAgo);
+        const byWeekday: Record<number, number> = {};
+        for (const s of thisWeek) { if (s.timestamp) { const wd = new Date(s.timestamp).getDay(); byWeekday[wd] = (byWeekday[wd] || 0) + 1; } }
+        const totalGamesLocal = allStats.reduce((s, x) => s + x.total_sessions, 0);
+        getAiInsight(
+          'weekly_digest', profile.id, isoWeekKey(), language, toneForProfile(profile.id),
+          { sessionsThisWeek: thisWeek.length, uniqueGamesThisWeek: new Set(thisWeek.map((s) => s.game_type)).size,
+            currentStreakDays: freshStreak, sessionsByWeekday: byWeekday, totalGamesEver: totalGamesLocal },
+        ).then((text) => { if (text) setAiDigest(text); }).catch(() => {});
+      }
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {
@@ -170,6 +187,15 @@ export default function StatisticsScreen() {
               <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{formatTotal(totalTime)} {language === 'ru' ? 'в игре' : 'in game'}</Text>
             </View>
           </LinearGradient>
+
+          {/* v1.115.0: недельный ИИ-дайджест — молчаливо не рисуется, пока нет текста (нет ключа/сеть/мало данных) */}
+          {aiDigest && (
+            <View style={[styles.aiCard, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
+              <Text style={[styles.aiTitle, { color: colors.primary }]}>📅 {language === 'ru' ? 'ИТОГ НЕДЕЛИ' : 'WEEK IN REVIEW'}</Text>
+              <Text style={[styles.aiText, { color: colors.text }]}>{aiDigest}</Text>
+            </View>
+          )}
+
           {/* v1.13.4: фильтр — показывать только реально пройденные игры,
               а не пустые карточки для всех 48+. Денис: «лишняя инфа».
               Раньше .map() рендерил все 48 stats включая нулевые. */}
@@ -304,6 +330,9 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     marginBottom: 16,
   },
+  aiCard: { padding: 14, borderRadius: 12, borderWidth: 1.5, gap: 6, marginBottom: 14 },
+  aiTitle: { fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  aiText: { fontSize: 14, lineHeight: 21 },
   statCard: {
     borderRadius: 16,
     overflow: 'hidden',

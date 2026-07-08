@@ -12,9 +12,9 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://iuvvheeocobhiothfgei.supabase.co';
+export const SUPABASE_URL = 'https://iuvvheeocobhiothfgei.supabase.co';
 // Modern publishable key (sb_publishable_*) — recommended over legacy anon JWT.
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1';
+export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1';
 
 let _client: SupabaseClient | null = null;
 

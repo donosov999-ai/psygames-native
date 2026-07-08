@@ -18,11 +18,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmup, StepResult } from '@/src/contexts/WarmupContext';
+import { useProfile } from '@/src/contexts/ProfileContext';
 import { GAMES } from '@/src/constants/games';
 import {
   scoreSessions, buildRecommendations, saveAssessmentResult, saveUserProfile,
   AssessmentResult, DOMAINS, Domain, UserProfile,
 } from '@/src/services/assessment';
+import { getAiInsight, toneForProfile } from '@/src/services/aiInsight';
 import type { GameSession } from '@/src/services/api';
 
 const GRADIENT = ['#7c3aed', '#ec4899'];
@@ -32,11 +34,16 @@ export default function AssessmentResultScreen() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
   const warmup = useWarmup();
+  const { profile } = useProfile();
 
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [persisted, setPersisted] = useState(false);
   const [applied, setApplied] = useState(false);
+  // v1.115.0: связный ИИ-разбор — раз в ассессмент (кэш на result.date, следующий
+  // прогон через 3 мес естественно генерит заново). Молчаливый null = держим
+  // существующий статичный список доменов+рекомендаций как есть, ничего не ломаем.
+  const [aiText, setAiText] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -56,6 +63,12 @@ export default function AssessmentResultScreen() {
         await saveAssessmentResult(res);
         await warmup.stopWarmup(true);
         setPersisted(true);
+      }
+      if (profile?.id) {
+        getAiInsight(
+          'assessment', profile.id, res.date, language, toneForProfile(profile.id),
+          { domains: res.scores.map((s) => ({ domain: s.domain, zScore: Math.round(s.z_score * 10) / 10, percentile: s.percentile, level: s.level })) },
+        ).then((text) => { if (text) setAiText(text); }).catch(() => {});
       }
     })();
   }, []);
@@ -133,6 +146,14 @@ export default function AssessmentResultScreen() {
             );
           })}
         </View>
+
+        {/* ИИ-разбор — связный текст поверх статичного списка доменов, аддитивно */}
+        {aiText && (
+          <View style={[styles.aiCard, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
+            <Text style={[styles.aiTitle, { color: GRADIENT[0] }]}>✨ {language === 'ru' ? 'РАЗБОР' : 'INSIGHT'}</Text>
+            <Text style={[styles.aiText, { color: colors.text }]}>{aiText}</Text>
+          </View>
+        )}
 
         {/* Recommendations */}
         {recommendations.length > 0 && (
@@ -271,6 +292,9 @@ const styles = StyleSheet.create({
   rowMeta: { fontSize: 11, marginTop: 2 },
   levelBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   levelText: { color: '#000', fontSize: 10, fontWeight: '900' },
+  aiCard: { padding: 14, borderRadius: 12, borderWidth: 1.5, gap: 6 },
+  aiTitle: { fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  aiText: { fontSize: 14, lineHeight: 21 },
   recsRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   recChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, borderWidth: 1.5 },
   recText: { fontSize: 12, fontWeight: '700' },
