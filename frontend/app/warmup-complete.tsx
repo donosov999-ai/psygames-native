@@ -75,7 +75,7 @@ export default function WarmupComplete() {
       const h = await loadWarmupHistory();
       setHistory(h);
       setStreak(computeStreak(h));
-      setVerdict(brainTodayVerdict(h));
+      setVerdict(brainTodayVerdict(h, language));
       // Промпт напоминаний: натив + зарядка завершена + оба напоминания выключены + не отвечал
       if (Platform.OS !== 'web' && completed) {
         try {

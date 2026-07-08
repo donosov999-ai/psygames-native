@@ -474,7 +474,7 @@ export function todayDateKey(): string {
  * "Brain today" verdict — compares last warmup score vs the median of last 10.
  * Returns null if not enough history.
  */
-export function brainTodayVerdict(history: WarmupHistoryEntry[]): {
+export function brainTodayVerdict(history: WarmupHistoryEntry[], lang: string = 'ru'): {
   delta_pct: number;
   message: string;
 } | null {
@@ -488,9 +488,10 @@ export function brainTodayVerdict(history: WarmupHistoryEntry[]): {
   if (median === 0) return null;
   const delta = ((last.total_score - median) / median) * 100;
   const sign = delta >= 0 ? '+' : '';
+  const ru = lang === 'ru';
   let msg = '';
-  if (delta > 10) msg = `Сегодня на ${sign}${delta.toFixed(0)}% выше среднего — ты в форме.`;
-  else if (delta < -10) msg = `Сегодня на ${delta.toFixed(0)}% ниже среднего — возможно недосып или стресс.`;
-  else msg = `Сегодня в твоей норме (${sign}${delta.toFixed(0)}%).`;
+  if (delta > 10) msg = ru ? `Сегодня на ${sign}${delta.toFixed(0)}% выше среднего — ты в форме.` : `Today is ${sign}${delta.toFixed(0)}% above your average — you're in good shape.`;
+  else if (delta < -10) msg = ru ? `Сегодня на ${delta.toFixed(0)}% ниже среднего — возможно недосып или стресс.` : `Today is ${delta.toFixed(0)}% below your average — maybe poor sleep or stress.`;
+  else msg = ru ? `Сегодня в твоей норме (${sign}${delta.toFixed(0)}%).` : `Today is within your normal range (${sign}${delta.toFixed(0)}%).`;
   return { delta_pct: delta, message: msg };
 }
