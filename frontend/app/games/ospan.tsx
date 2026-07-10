@@ -161,6 +161,7 @@ export default function OSpanGame() {
     setElapsedTime(finalTime);
     const passed = e === 0;
     if (passed) lvl.reach(levelRef.current + 1);   // чистый recall всех букв → +уровень
+    else lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
     setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
     try {
       await saveSession({

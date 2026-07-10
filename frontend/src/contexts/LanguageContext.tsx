@@ -640,6 +640,8 @@ const translations: Translations = {
   yourScore: { ru: 'Ваш счёт', en: 'Your Score' },
   playAgain: { ru: 'Играть снова', en: 'Play Again' },
   goHome: { ru: 'На главную', en: 'Go Home' },
+  shareResult: { ru: 'Поделиться', en: 'Share' },
+  shareCopied: { ru: 'Результат скопирован ✓', en: 'Result copied ✓' },
   configureGame: { ru: 'Настройка игры', en: 'Configure Game' },
   errors: { ru: 'Ошибки', en: 'Errors' },
   seconds: { ru: 'сек', en: 'sec' },

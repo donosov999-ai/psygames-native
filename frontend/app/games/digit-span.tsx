@@ -173,6 +173,7 @@ export default function DigitSpanGame() {
       setElapsedTime(finalTime);
       const passed = !isPreset && updatedCorrect >= 1;
       if (passed) lvl.reach(lvl.level + 1);   // прошёл стартовую длину уровня → +уровень (лесенка длина→скорость→reverse)
+      else if (!isPreset) lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
       setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
       try {
         await saveSession({

@@ -162,6 +162,7 @@ export default function ReadingSpanGame() {
     setElapsedTime(finalTime);
     const passed = !isPreset && e === 0;
     if (passed) lvl.reach(levelRef.current + 1);   // чистый recall всех слов → +уровень
+    else if (!isPreset) lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
     setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
     try {
       await saveSession({

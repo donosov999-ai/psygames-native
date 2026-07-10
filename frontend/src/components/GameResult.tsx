@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,6 +6,8 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { sndWin } from '@/src/services/feedback';
 import { tokenDelta } from '@/src/services/tokens';
+import { shareResult } from '@/src/services/share';
+import ResultSparkline from '@/src/components/ResultSparkline';
 
 interface GameResultProps {
   time?: number;
@@ -15,6 +17,8 @@ interface GameResultProps {
   gradient: string[];
   onPlayAgain: () => void;
   onGoHome: () => void;
+  shareText?: string;   // v1.116.0: если передан — показать кнопку «Поделиться» с этим текстом
+  sparkline?: { history: number[]; current: number; lowerIsBetter?: boolean };   // v1.116.0: спарклайн последних сессий
 }
 
 // Перцептивная яркость градиента → на СВЕТЛОМ берём тёмный текст, на тёмном белый.
@@ -38,12 +42,21 @@ export default function GameResult({
   gradient,
   onPlayAgain,
   onGoHome,
+  shareText,
+  sparkline,
 }: GameResultProps) {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const [shareNote, setShareNote] = useState<string | null>(null);
   const light = gradientIsLight(gradient);
   const fg = light ? '#1a1a1a' : '#FFFFFF';
   const fgSoft = light ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)';
+
+  const handleShare = async () => {
+    if (!shareText) return;
+    const outcome = await shareResult(shareText);
+    if (outcome === 'copied') { setShareNote(t('shareCopied')); setTimeout(() => setShareNote(null), 2500); }
+  };
   // T1: видимый заработок токенов — ТОТ ЖЕ tokenDelta, что начисляет saveSession (совпадает 1:1)
   const earned = score !== undefined ? tokenDelta(score, errors ?? 0) : 0;
   // Звёзды за прохождение (1–3): передан stars — рисуем его, иначе выводим из ошибок (0=3, ≤2=2, иначе 1).
@@ -112,6 +125,15 @@ export default function GameResult({
             <Text style={{ color: fgSoft, fontSize: 13, fontWeight: '600' }}>{language === 'ru' ? 'заработано' : 'earned'}</Text>
           </View>
         )}
+        {sparkline && (
+          <ResultSparkline
+            history={sparkline.history}
+            current={sparkline.current}
+            lowerIsBetter={sparkline.lowerIsBetter}
+            language={language}
+            color={fg}
+          />
+        )}
       </LinearGradient>
 
       <View style={styles.buttonsContainer}>
@@ -122,6 +144,16 @@ export default function GameResult({
           <Ionicons name="refresh" size={20} color="#FFFFFF" />
           <Text style={styles.buttonText}>{t('playAgain')}</Text>
         </TouchableOpacity>
+
+        {shareText && (
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+            onPress={handleShare}
+          >
+            <Ionicons name="share-social-outline" size={20} color={colors.text} />
+            <Text style={[styles.buttonText, { color: colors.text }]}>{shareNote ?? t('shareResult')}</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}

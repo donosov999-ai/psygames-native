@@ -24,6 +24,10 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import LeaderboardModal from '@/src/components/LeaderboardModal';
+import { submitScore } from '@/src/services/leaderboard';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const NB_RULES: LevelRule[] = [
@@ -67,6 +71,13 @@ function levelParams(level: number): { N: number; modality: Modality; showMs: nu
   const dl = level - 8; return { N: Math.min(6, 1 + dl), modality: 'dual', showMs: 700, gapMs: 1100 };   // L9=2-back dual → растёт до 6
 }
 
+// Джиттер паузы между стимулами (±15%, потолок 200мс) — иначе интервал предсказуем
+// и можно жать «в ритм» не распознавая стимул (паттерн Audio-N-back/4skinSkywalker).
+function jitteredGap(baseMs: number): number {
+  const jitter = Math.min(200, baseMs * 0.15);
+  return Math.max(300, baseMs + (Math.random() * 2 - 1) * jitter);
+}
+
 export default function NBackGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -79,10 +90,13 @@ export default function NBackGame() {
 
   const gate = useLevelGate('n_back');
   const lvl = usePersistentLevel('n_back');   // персист-уровень = N (1-back=L1, 2-back=L2…)
+  const { profile } = useProfile();
+  const [accuracyHistory, setAccuracyHistory] = useState<number[]>([]);
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   // Справка правил уровня (в зарядке-пресете не показываем — там свой поток)
   const levelRules = useLevelRules('n_back', lvl.level, NB_RULES, phase === 'playing' && !isPreset);
   const [nLevel, setNLevel] = useState(() => num('nLevel', 1));
@@ -203,7 +217,7 @@ export default function NBackGame() {
           }
         }
         runTrial(newVHist, newAHist, newIdx);
-      }, gapMsRef.current);
+      }, jitteredGap(gapMsRef.current));
     }, showMsRef.current);
   };
 
@@ -233,8 +247,18 @@ export default function NBackGame() {
     setElapsedTime(finalTime);
     const totalAnswered = hits + misses + falseAlarms + correctRejections;
     const accuracy = totalAnswered > 0 ? Math.round(((hits + correctRejections) / totalAnswered) * 100) : 0;
-    const passed = !isPreset && accuracy >= 80;
-    if (passed) lvl.reach(levelRef.current + 1);   // ≥80% → +уровень (N → скорость → dual)
+    // Dual-режим: раньше проход уровня гейтился ТОЛЬКО визуальным каналом — можно было
+    // игнорировать звук и всё равно левелапиться. Jaeggi-скоринг: итог = МИН(визуал, аудио),
+    // не средний — иначе один провальный канал маскируется хорошим другим.
+    const audioTotalAnswered = aHits + aMisses + aFalseAlarms + aCorrectRejections;
+    const audioAccuracy = audioTotalAnswered > 0 ? Math.round(((aHits + aCorrectRejections) / audioTotalAnswered) * 100) : 100;
+    const combinedAccuracy = modality === 'dual' ? Math.min(accuracy, audioAccuracy) : accuracy;
+    const passed = !isPreset && combinedAccuracy >= 80;
+    if (passed) {
+      lvl.reach(levelRef.current + 1);   // ≥80% по худшему из каналов → +уровень (N → скорость → dual)
+      submitScore('n_back', levelRef.current + 1).catch(() => {});   // тихо — лидерборд необязателен
+    }
+    else if (!isPreset) lvl.fail();   // не прошёл уровень → гистерезис понижения (3 провала подряд → level-1)
     // Signal Detection Theory: d' = z(hit_rate) - z(false_alarm_rate)
     // Hit rate = hits / (hits + misses); False alarm rate = falseAlarms / (falseAlarms + correctRejections)
     // Apply log-linear correction to avoid infinity (Snodgrass & Corwin 1988): add 0.5 to numerator, 1 to denominator
@@ -285,10 +309,16 @@ export default function NBackGame() {
             audio_falseAlarms: aFalseAlarms,
             audio_correctRejections: aCorrectRejections,
             audio_d_prime: aDPrime,
+            audio_accuracy: audioAccuracy,
+            combined_accuracy: combinedAccuracy,
           } : {}),
         },
       });
     } catch (e) { console.error(e); }
+    // Спарклайн последних сессий (v1.116.0) — читаем ДО записи текущей, иначе она попадёт в свою же историю
+    const pid = (profile as any)?.id ?? 'default';
+    getSessionHistory('n_back', pid).then(setAccuracyHistory);
+    recordSessionScore('n_back', pid, combinedAccuracy).catch(() => {});
     // веха-босс: при чистом прохождении (≥80%) каждые BOSS_EVERY уровней → битва (память → счёт)
     if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setPhase('boss'); }
     else if (passed) setPhase('cleared');   // авто-поток к следующему уровню
@@ -303,6 +333,10 @@ export default function NBackGame() {
         <Text style={styles.configDesc}>{t('nBackDesc')}</Text>
       </LinearGradient>
       <LevelProgressMap gameId="n_back" currentLevel={lvl.level} colors={colors} language={language} />
+      <TouchableOpacity style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
+        <Ionicons name="trophy-outline" size={18} color={colors.text} />
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Топ игроков' : 'Leaderboard'}</Text>
+      </TouchableOpacity>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('nLevelLabel')}</Text>
         <View style={styles.optionButtons}>
@@ -472,6 +506,11 @@ export default function NBackGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
+      <LeaderboardModal
+        visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
+        gameId="n_back" language={language} colors={colors} gradient={GRADIENT}
+        formatScore={(s) => `${s}-back`}
+      />
       {phase === 'boss' && (
         <BossRound config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
           language={language} colors={colors}
@@ -491,6 +530,10 @@ export default function NBackGame() {
           onPlayAgain={() => setPhase('config')}
           onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]}
+          shareText={language === 'ru'
+            ? `Прошёл ${nLevel}-back в PsyGames с точностью ${hits + misses + falseAlarms + correctRejections > 0 ? Math.round((hits / (hits + misses + falseAlarms + correctRejections)) * 100) : 0}% — обгони!`
+            : `I reached ${nLevel}-back in PsyGames at ${hits + misses + falseAlarms + correctRejections > 0 ? Math.round((hits / (hits + misses + falseAlarms + correctRejections)) * 100) : 0}% accuracy — beat that!`}
+          sparkline={accuracyHistory.length >= 2 ? { history: accuracyHistory, current: Math.round(((hits + correctRejections) / Math.max(1, hits + misses + falseAlarms + correctRejections)) * 100), lowerIsBetter: false } : undefined}
         />
       )}
     </SafeAreaView>

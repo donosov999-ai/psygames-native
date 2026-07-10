@@ -4,6 +4,7 @@
  * продолжает с достигнутого, видит, как растёт.
  *
  * Ключ AsyncStorage: `psygames_<gameId>_level_<profileId>`.
+ * Ключ счётчика провалов подряд: `psygames_<gameId>_failstreak_<profileId>`.
  *
  * Использование:
  *   const lvl = usePersistentLevel('digit_span');           // lvl.level (число), грузится из стора
@@ -11,54 +12,84 @@
  *   const startLen = 3 + lvl.level;
  *   // по результату — поднять уровень до достигнутого «потолка»:
  *   if (lvl.reach(maxSpan - 3)) setLeveledUp(true);          // true = был level-up
+ *   // НЕ прошёл уровень — гистерезис понижения (v1.116.0):
+ *   if (lvl.fail()) setLeveledDown(true);                    // true = был level-down (после N провалов подряд)
  *
- * reach(target): поднимает уровень до target, если target больше текущего (и сохраняет).
- * Возвращает true при повышении. setLevel(n): прямая установка + сохранение.
+ * reach(target): поднимает уровень до target, если target больше текущего (и сохраняет),
+ *   плюс сбрасывает счётчик провалов подряд (успех = чистый лист).
+ * fail(): увеличивает счётчик провалов подряд; при достижении FAIL_STREAK_THRESHOLD (3)
+ *   понижает уровень на 1 (не ниже 1) и сбрасывает счётчик. Возвращает true при понижении.
+ *   Паттерн гистерезиса — как в brainworkshop/cogniba: единичный провал НЕ наказывает
+ *   сразу, чтобы не разочаровывать за одну неудачную сессию.
+ * setLevel(n): прямая установка + сохранение (сбрасывает счётчик провалов).
  */
 import { useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useProfile } from '@/src/contexts/ProfileContext';
+
+const FAIL_STREAK_THRESHOLD = 3;
 
 export interface PersistentLevel {
   level: number;
   loaded: boolean;
   setLevel: (n: number) => void;
   reach: (target: number) => boolean;   // bump-up до target, true если повысился
+  fail: () => boolean;                  // провал уровня; true если после этого понизился
 }
 
 export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel {
   const { profile } = useProfile();
   const pid = (profile as any)?.id ?? 'default';
   const key = `psygames_${gameId}_level_${pid}`;
+  const failKey = `psygames_${gameId}_failstreak_${pid}`;
   const [level, setLevelState] = useState(initial);
   const [loaded, setLoaded] = useState(false);
   const levelRef = useRef(initial);
+  const failStreakRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
     setLoaded(false);
-    AsyncStorage.getItem(key).then((v) => {
+    Promise.all([AsyncStorage.getItem(key), AsyncStorage.getItem(failKey)]).then(([v, f]) => {
       if (cancelled) return;
       const n = parseInt(v || '', 10);
       const lv = n >= 1 ? n : initial;
       levelRef.current = lv;
       setLevelState(lv);
+      failStreakRef.current = parseInt(f || '', 10) || 0;
       setLoaded(true);
     }).catch(() => { if (!cancelled) setLoaded(true); });
     return () => { cancelled = true; };
-  }, [key, initial]);
+  }, [key, failKey, initial]);
+
+  const setFailStreak = (n: number) => {
+    failStreakRef.current = n;
+    AsyncStorage.setItem(failKey, String(n)).catch(() => {});
+  };
 
   const setLevel = (n: number) => {
     const lv = Math.max(1, Math.round(n));
     levelRef.current = lv;
     setLevelState(lv);
     AsyncStorage.setItem(key, String(lv)).catch(() => {});
+    setFailStreak(0);
   };
 
   const reach = (target: number): boolean => {
     if (target > levelRef.current) { setLevel(target); return true; }
+    setFailStreak(0);   // уровень пройден (пусть и не выше текущего потолка) — сбрасываем счётчик провалов
     return false;
   };
 
-  return { level, loaded, setLevel, reach };
+  const fail = (): boolean => {
+    const streak = failStreakRef.current + 1;
+    if (streak >= FAIL_STREAK_THRESHOLD && levelRef.current > 1) {
+      setLevel(levelRef.current - 1);   // setLevel уже обнуляет failStreak
+      return true;
+    }
+    setFailStreak(streak);
+    return false;
+  };
+
+  return { level, loaded, setLevel, reach, fail };
 }

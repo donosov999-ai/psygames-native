@@ -27,6 +27,9 @@ import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LeaderboardModal from '@/src/components/LeaderboardModal';
+import { submitScore } from '@/src/services/leaderboard';
+import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
 
 const GRADIENT = ['#667eea', '#764ba2'];
 
@@ -42,8 +45,21 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 const BOSS_EVERY = 3;
 type ContentMode = 'numbers' | 'letters' | 'mixed';
 /** v1.10.0: направление поиска. 'forward' = 1→25 / А→Я, 'backward' = 25→1 / Я→А.
- *  Для mixed (Шульте-Горбов) backward не применяется (нелогично). */
-type Direction = 'forward' | 'backward';
+ *  'center-out' (v1.116.0, свободный режим, только numbers): от центра наружу — 13,14,12,15,11...
+ *  Для mixed (Шульте-Горбов) backward/center-out не применяются (нелогично). */
+type Direction = 'forward' | 'backward' | 'center-out';
+
+// От центра наружу: h, h+1, h-1, h+2, h-2... (паттерн drafterleo/schulte «divergent»).
+function centerOutOrder(n: number): number[] {
+  const mid = Math.floor((n + 1) / 2);
+  const order: number[] = [mid];
+  let lo = mid - 1, hi = mid + 1;
+  while (order.length < n) {
+    if (hi <= n) order.push(hi++);
+    if (order.length < n && lo >= 1) order.push(lo--);
+  }
+  return order;
+}
 
 // Персональная лесенка 15 ступеней: размер → обратный → буквы → цвет → Горбов → Горбов+цвет.
 // Буквы держим 5×5 (рус/латиница ограничены алфавитом). Сложность растёт ТРУДНОСТЬЮ.
@@ -84,15 +100,31 @@ export default function SchulteGame() {
   const [colorMode, setColorMode] = useState(false);
   const [contentMode, setContentMode] = useState<ContentMode>('numbers');
   const [direction, setDirection] = useState<Direction>('forward');
+  // v1.116.0: разделённое внимание (numbers-only, свободный режим) — 2-4 группы своих
+  // счётчиков в ОДНОЙ перемешанной сетке, различаются цветом; ищем по кругу текущее
+  // число КАЖДОЙ группы (паттерн drafterleo/schulte). groupCount=1 = классика.
+  const [groupCount, setGroupCount] = useState(1);
+  const [cellGroup, setCellGroup] = useState<number[]>([]);         // group id (0..groupCount-1) на клетку
+  const [groupTargets, setGroupTargets] = useState<number[]>([]);    // текущее искомое число КАЖДОЙ группы
+  const [groupSizes, setGroupSizes] = useState<number[]>([]);        // сколько чисел всего в каждой группе
+  const [activeGroup, setActiveGroup] = useState(0);
+  // v1.116.0: «убегающая цель» — после каждого верного клика сетка перемешивается заново
+  // (не только найденная клетка), заставляет пересканировать поле, а не помнить позиции.
+  const [reshuffleOnClick, setReshuffleOnClick] = useState(false);
   // v1.27.0 (Полиглот): письменность для letters/mixed — латиница/кириллица/греческий/деванагари/кана/иероглифы
   const [script, setScript] = useState<ScriptId>(language === 'ru' ? 'cyrillic' : 'latin');
 
-  // При смене на mixed — direction всегда forward (backward бессмыслен)
+  // При смене на mixed — direction всегда forward (backward/center-out бессмысленны)
   useEffect(() => {
     if (contentMode === 'mixed' && direction !== 'forward') {
       setDirection('forward');
     }
   }, [contentMode]);
+
+  // Разделённое внимание — только numbers (letters/mixed не поддержаны, см. комментарий у groupCount)
+  useEffect(() => {
+    if (contentMode !== 'numbers' && groupCount > 1) setGroupCount(1);
+  }, [contentMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // letters: сетка не может быть больше алфавита (greek 24 < 5×5 — скрыт фильтром чипов);
   // кламп защищает и старый кейс «выбрал 8×8, потом переключился на буквы»
@@ -131,6 +163,8 @@ export default function SchulteGame() {
   // Game state
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [timeHistory, setTimeHistory] = useState<number[]>([]);
   const [grid, setGrid] = useState<(number | string)[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [startTime, setStartTime] = useState<number>(0);
@@ -158,12 +192,37 @@ export default function SchulteGame() {
     const cm = cmArg ?? contentMode;
     const dir = dirArg ?? direction;
     const totalCells = gs * gs;
+
+    // Разделённое внимание: numbers-only, свои независимые счётчики по группам вперемешку.
+    if (groupCount > 1 && cm === 'numbers') {
+      const gc = groupCount;
+      const sizes = Array.from({ length: gc }, (_, g) => Math.floor(totalCells / gc) + (g < totalCells % gc ? 1 : 0));
+      const values: number[] = [];
+      const groupsOf: number[] = [];
+      sizes.forEach((size, g) => { for (let n = 1; n <= size; n++) { values.push(n); groupsOf.push(g); } });
+      // shuffle value+group вместе (позиции), Fisher-Yates
+      for (let i = values.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [values[i], values[j]] = [values[j], values[i]];
+        [groupsOf[i], groupsOf[j]] = [groupsOf[j], groupsOf[i]];
+      }
+      setGrid(values);
+      setCellGroup(groupsOf);
+      setGroupSizes(sizes);
+      setGroupTargets(new Array(gc).fill(1));
+      setActiveGroup(0);
+      setCellColors(groupsOf.map((g) => COLORS[g % COLORS.length]));   // цвет = ID группы, не рандом — иначе группы не различить
+      setSequence([]);   // не используется в group-режиме
+      return;
+    }
+    setCellGroup([]);
+
     let items: (number | string)[];
     let orderedSequence: (number | string)[];
 
     if (cm === 'numbers') {
       items = Array.from({ length: totalCells }, (_, i) => i + 1);
-      orderedSequence = [...items];
+      orderedSequence = dir === 'center-out' ? centerOutOrder(totalCells) : [...items];
     } else if (cm === 'letters') {
       const alphabet = SCRIPTS[script].chars;
       items = alphabet.slice(0, totalCells).split('');
@@ -225,52 +284,105 @@ export default function SchulteGame() {
     }, 100);
   };
 
-  const handleCellPress = async (value: number | string) => {
+  // Общее завершение раунда (классика и разделённое внимание сходятся сюда) — сохранение
+  // сессии + авто-поток (босс/баннер/обычный результат), errsArg — т.к. errors-стейт может
+  // отставать на один клик в замыкании onPress.
+  const finishRound = async (totalCells: number, errsArg: number) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    const finalTime = (Date.now() - startTime) / 1000;
+    setElapsedTime(finalTime);
+    const passed = !isPreset && useLevelRef.current && errsArg <= 2;
+    if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset && useLevelRef.current) lvl.fail();   // не прошёл чисто по уровню → гистерезис понижения
+    // Лидерборд + спарклайн — только «классика» (иначе время между режимами несравнимо)
+    if (gridSize === 5 && contentMode === 'numbers' && direction === 'forward' && !colorMode && groupCount <= 1 && !reshuffleOnClick) {
+      submitScore('schulte_table_5x5', finalTime).catch(() => {});
+      const pid = (profile as any)?.id ?? 'default';
+      getSessionHistory('schulte_table_5x5', pid).then(setTimeHistory);
+      recordSessionScore('schulte_table_5x5', pid, finalTime).catch(() => {});
+    } else {
+      setTimeHistory([]);
+    }
+    try {
+      await saveSession({
+        game_type: 'schulte_table',
+        score: totalCells - errsArg,
+        time_seconds: finalTime,
+        difficulty: `${gridSize}x${gridSize}`,
+        mode: groupCount > 1 ? `divided_attention_${groupCount}g` : `${contentMode}_${direction}_${colorMode ? 'color' : 'bw'}${reshuffleOnClick ? '_moving' : ''}`,
+        errors: errsArg,
+        details: {
+          hits: totalCells - errsArg,
+          errors: errsArg,
+          total_cells: totalCells,
+          mean_rt_per_cell: totalCells > 0 ? finalTime / totalCells : 0,
+          ...(contentMode !== 'numbers' && groupCount <= 1 ? { script } : {}),
+          ...(groupCount > 1 ? { group_count: groupCount } : {}),
+        },
+      });
+    } catch (error) {
+      console.error('Error saving session:', error);
+    }
+    if (passed && levelRef.current % BOSS_EVERY === 0) {
+      setBossWon(null);
+      setPhase('boss');
+    } else if (passed) {
+      setPhase('cleared');
+    } else {
+      setPhase('result');
+    }
+  };
+
+  // Реролл позиций (не значений/цепочки поиска) после верного клика — «убегающая цель».
+  const reshufflePositions = () => {
+    setGrid((prevGrid) => {
+      const positions = prevGrid.map((_, i) => i);
+      for (let i = positions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [positions[i], positions[j]] = [positions[j], positions[i]];
+      }
+      const newGrid = positions.map((p) => prevGrid[p]);
+      if (cellColors.length === prevGrid.length) setCellColors(positions.map((p) => cellColors[p]));
+      if (cellGroup.length === prevGrid.length) setCellGroup(positions.map((p) => cellGroup[p]));
+      return newGrid;
+    });
+  };
+
+  const handleGroupCellPress = async (value: number | string, index: number) => {
+    const g = cellGroup[index];
+    if (g !== activeGroup || value !== groupTargets[activeGroup]) {
+      setErrors((prev) => prev + 1);
+      return;
+    }
+    const totalCells = gridSize * gridSize;
+    const newTargets = [...groupTargets];
+    newTargets[activeGroup] += 1;
+    const totalDone = newTargets.reduce((s, tgt) => s + (tgt - 1), 0);
+    setGroupTargets(newTargets);
+    if (totalDone >= totalCells) {
+      await finishRound(totalCells, errors);
+      return;
+    }
+    let next = activeGroup;
+    for (let step = 0; step < groupCount; step++) {
+      next = (next + 1) % groupCount;
+      if (newTargets[next] <= groupSizes[next]) break;
+    }
+    setActiveGroup(next);
+    if (reshuffleOnClick) reshufflePositions();
+  };
+
+  const handleCellPress = async (value: number | string, index: number) => {
+    if (groupCount > 1 && cellGroup.length > 0) { await handleGroupCellPress(value, index); return; }
     const expectedValue = sequence[currentIndex];
-    
+
     if (value === expectedValue) {
       const totalCells = gridSize * gridSize;
       if (currentIndex === totalCells - 1) {
-        // Game complete
-        if (timerRef.current) clearInterval(timerRef.current);
-        const finalTime = (Date.now() - startTime) / 1000;
-        setElapsedTime(finalTime);
-        const passed = !isPreset && useLevelRef.current && errors <= 2;
-        if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень чисто → +уровень
-
-        // Save session
-        try {
-          await saveSession({
-            game_type: 'schulte_table',
-            score: totalCells - errors,
-            time_seconds: finalTime,
-            difficulty: `${gridSize}x${gridSize}`,
-            mode: `${contentMode}_${direction}_${colorMode ? 'color' : 'bw'}`,
-            errors: errors,
-            details: {
-              hits: totalCells - errors,
-              errors,
-              total_cells: totalCells,
-              mean_rt_per_cell: totalCells > 0 ? finalTime / totalCells : 0,
-              ...(contentMode !== 'numbers' ? { script } : {}),
-            },
-          });
-        } catch (error) {
-          console.error('Error saving session:', error);
-        }
-
-        // Авто-поток: прошёл чисто → веха-босс ИЛИ баннер «уровень пройден» (сам стартует следующий).
-        // Не прошёл чисто (errors>2 / свободный режим) → обычный экран результата (переиграть/выйти).
-        if (passed && levelRef.current % BOSS_EVERY === 0) {
-          setBossWon(null);
-          setPhase('boss');
-        } else if (passed) {
-          setPhase('cleared');
-        } else {
-          setPhase('result');
-        }
+        await finishRound(totalCells, errors);
       } else {
         setCurrentIndex((prev) => prev + 1);
+        if (reshuffleOnClick) reshufflePositions();
       }
     } else {
       setErrors((prev) => prev + 1);
@@ -312,6 +424,10 @@ export default function SchulteGame() {
         <Text style={styles.configDesc}>{t('schulteTableDesc')}</Text>
       </LinearGradient>
       <LevelProgressMap gameId="schulte_table" currentLevel={lvl.level} colors={colors} language={language} />
+      <TouchableOpacity style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
+        <Ionicons name="trophy-outline" size={18} color={colors.text} />
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Топ игроков (5×5 классика)' : 'Leaderboard (5×5 classic)'}</Text>
+      </TouchableOpacity>
 
       {/* Content Mode Selection (Numbers/Letters) */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -462,12 +578,84 @@ export default function SchulteGame() {
                   : `${SCRIPTS[script].chars[SCRIPTS[script].chars.length - 1]} → ${SCRIPTS[script].chars[0]}`}
               </Text>
             </TouchableOpacity>
+            {contentMode === 'numbers' && groupCount <= 1 && (
+              <TouchableOpacity
+                style={[
+                  styles.modeButton,
+                  direction === 'center-out' && { backgroundColor: GRADIENT[0] },
+                  direction !== 'center-out' && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                ]}
+                onPress={() => setDirection('center-out')}
+              >
+                <Ionicons name="radio-button-on-outline" size={20} color={direction === 'center-out' ? '#FFFFFF' : colors.text} />
+                <Text style={[styles.modeButtonText, { color: direction === 'center-out' ? '#FFFFFF' : colors.text }]}>
+                  {language === 'ru' ? 'От центра' : 'Center-out'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
           <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
             {t('hint_backward_harder')}
           </Text>
         </View>
       )}
+
+      {/* v1.116.0: Разделённое внимание — 2-4 группы своих счётчиков вперемешку (numbers-only) */}
+      {contentMode === 'numbers' && (
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>
+            {language === 'ru' ? 'Разделённое внимание' : 'Divided attention'}
+          </Text>
+          <View style={styles.optionButtons}>
+            {[1, 2, 3, 4].map((gc) => (
+              <TouchableOpacity
+                key={gc}
+                style={[
+                  styles.sizeButton,
+                  groupCount === gc && { backgroundColor: GRADIENT[0] },
+                  groupCount !== gc && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                ]}
+                onPress={() => setGroupCount(gc)}
+              >
+                <Text style={[styles.sizeButtonText, { color: groupCount === gc ? '#FFFFFF' : colors.text }]}>
+                  {gc === 1 ? (language === 'ru' ? 'Классика' : 'Classic') : `${gc}`}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
+            {language === 'ru'
+              ? 'Несколько своих счётчиков одновременно, различаются цветом — ищи по кругу'
+              : 'Several independent counters at once, color-coded — find them round-robin'}
+          </Text>
+        </View>
+      )}
+
+      {/* v1.116.0: «Убегающая цель» — реролл позиций после каждого верного клика */}
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>
+          {language === 'ru' ? 'Убегающая цель' : 'Moving target'}
+        </Text>
+        <View style={styles.optionButtons}>
+          <TouchableOpacity
+            style={[styles.modeButton, !reshuffleOnClick && { backgroundColor: GRADIENT[0] }, reshuffleOnClick && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+            onPress={() => setReshuffleOnClick(false)}
+          >
+            <Text style={[styles.modeButtonText, { color: !reshuffleOnClick ? '#FFFFFF' : colors.text }]}>{language === 'ru' ? 'Выкл' : 'Off'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.modeButton, reshuffleOnClick && { backgroundColor: GRADIENT[0] }, !reshuffleOnClick && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+            onPress={() => setReshuffleOnClick(true)}
+          >
+            <Text style={[styles.modeButtonText, { color: reshuffleOnClick ? '#FFFFFF' : colors.text }]}>{language === 'ru' ? 'Вкл' : 'On'}</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
+          {language === 'ru'
+            ? 'После каждого верного клика сетка перемешивается заново — нельзя запомнить позиции'
+            : 'The whole grid reshuffles after every correct click — no relying on spatial memory'}
+        </Text>
+      </View>
 
       {/* Size Selection */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -513,7 +701,8 @@ export default function SchulteGame() {
         )}
       </View>
 
-      {/* Color Mode Selection */}
+      {/* Color Mode Selection — скрыт в разделённом внимании (свой цвет=ID группы, не выбирается) */}
+      {groupCount <= 1 && (
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
         <View style={styles.optionButtons}>
@@ -563,6 +752,7 @@ export default function SchulteGame() {
           </TouchableOpacity>
         </View>
       </View>
+      )}
 
       {!isPreset && (
         <TouchableOpacity style={[styles.startButton, { marginTop: 'auto', marginBottom: 10 }]} onPress={() => startGame(true)}>
@@ -587,15 +777,19 @@ export default function SchulteGame() {
   );
 
   const renderGame = () => {
-    const currentTarget = sequence[currentIndex];
-    
+    const isGroupMode = groupCount > 1 && cellGroup.length > 0;
+    const currentTarget = isGroupMode ? groupTargets[activeGroup] : sequence[currentIndex];
+
     return (
       <View style={styles.gameContainer}>
         {/* Game Header */}
         <View style={styles.gameHeader}>
           <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('find')}</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>{currentTarget}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              {isGroupMode && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS[activeGroup % COLORS.length] }} />}
+              <Text style={[styles.statValue, { color: colors.text }]}>{currentTarget}</Text>
+            </View>
           </View>
           <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
@@ -614,14 +808,15 @@ export default function SchulteGame() {
             { width: cellSize * gridSize + (gridSize - 1) * 4 }
           ]}>
             {grid.map((value, index) => {
-              const sequenceIndex = sequence.indexOf(value);
-              const isFound = sequenceIndex < currentIndex;
-              const backgroundColor = colorMode
+              const isFound = isGroupMode
+                ? (typeof value === 'number' && value < groupTargets[cellGroup[index]])
+                : sequence.indexOf(value) < currentIndex;
+              const backgroundColor = isGroupMode || colorMode
                 ? cellColors[index]
                 : isFound
                   ? colors.border
                   : colors.surface;
-              
+
               return (
                 <TouchableOpacity
                   key={index}
@@ -634,7 +829,7 @@ export default function SchulteGame() {
                       opacity: isFound ? 0.3 : 1,
                     },
                   ]}
-                  onPress={() => !isFound && handleCellPress(value)}
+                  onPress={() => !isFound && handleCellPress(value, index)}
                   disabled={isFound}
                   activeOpacity={0.7}
                 >
@@ -643,7 +838,7 @@ export default function SchulteGame() {
                       styles.cellText,
                       {
                         fontSize: cellSize * 0.4,
-                        color: colorMode ? '#FFFFFF' : colors.text,
+                        color: isGroupMode || colorMode ? '#FFFFFF' : colors.text,
                       },
                     ]}
                   >
@@ -702,6 +897,11 @@ export default function SchulteGame() {
 
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderGame()}
+      <LeaderboardModal
+        visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
+        gameId="schulte_table_5x5" language={language} colors={colors} gradient={GRADIENT}
+        formatScore={(s) => `${s.toFixed(1)}s`}
+      />
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
@@ -733,6 +933,10 @@ export default function SchulteGame() {
             setPhase('config');
           }}
           onGoHome={() => router.push('/')}
+          shareText={language === 'ru'
+            ? `Прошёл таблицу Шульте ${gridSize}×${gridSize} за ${elapsedTime.toFixed(1)}с в PsyGames — обгони!`
+            : `I cleared a ${gridSize}×${gridSize} Schulte table in ${elapsedTime.toFixed(1)}s on PsyGames — beat that!`}
+          sparkline={timeHistory.length >= 2 ? { history: timeHistory, current: elapsedTime, lowerIsBetter: true } : undefined}
         />
       )}
     </SafeAreaView>

@@ -161,6 +161,7 @@ export default function CorsiGame() {
     setElapsedTime(finalTime);
     const passed = !isPreset && finalSpan >= levelParams(levelRef.current).startSpan;
     if (passed) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
+    else if (!isPreset) lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
     try {
       await saveSession({
         game_type: 'corsi',
