@@ -10,6 +10,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import BossRound, { BossType } from '@/src/components/BossRound';
+import LevelCleared from '@/src/components/LevelCleared';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -44,7 +45,7 @@ import {
   variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
 } from '@/src/services/sudoku-core';
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 
 // KILLER: подкрас cage-групп (тинт = subtle blend с фоном темы → виден и на свету, и в тьме).
 
@@ -345,10 +346,14 @@ export default function SudokuGame() {
         });
       } catch (e) { console.error(e); }
       // Веха-босс: каждые BOSS_EVERY уровней (режим levels) → битва с боссом ВМЕСТО результата.
+      // Обычный уровень (не веха) в режиме levels → cleared-баннер общего авто-потока
+      // («Уровень N ✓» → следующий стартует сам). Free/killer → полноэкранный GameResult.
       if (mode === 'levels' && level % BOSS_EVERY === 0) {
         bossTypeRef.current = nextSudokuBoss();
         setBossWon(null);
         setPhase('boss');
+      } else if (mode === 'levels') {
+        setPhase('cleared');
       } else {
         setPhase('result');
       }
@@ -767,6 +772,19 @@ export default function SudokuGame() {
           language={language}
           colors={colors}
           onComplete={(win) => { setBossWon(win); setPhase('result'); }}
+        />
+      )}
+      {/* Обычный уровень пройден чисто (без вехи-босса) → баннер авто-потока: следующий стартует сам. */}
+      {phase === 'cleared' && (
+        <LevelCleared
+          gameId="sudoku"
+          level={level}
+          stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT}
+          language={language}
+          colors={colors}
+          onContinue={() => { const nx = level + 1; setLevel(nx); startGame(nx); }}
+          onStop={() => setPhase('config')}
         />
       )}
       {phase === 'result' && mode === 'free' && (

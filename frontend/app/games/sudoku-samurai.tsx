@@ -8,6 +8,10 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
@@ -22,7 +26,21 @@ function blendHex(base: string, over: string, t: number): string {
 }
 
 type Cell = number; // 0 = empty (та же типизация, что в sudoku.tsx)
-type GamePhase = 'config' | 'playing' | 'result';
+type GamePhase = 'config' | 'playing' | 'cleared' | 'result';
+
+// СИСТЕМА УРОВНЕЙ (порт из sudoku.tsx через usePersistentLevel). Самурай тяжелее обычного
+// судоку (21×21, 5 сеток, генерация до 3с), поэтому осмысленная кривая = 9 уровней (не 15):
+// доля закрытых клеток (dig-ratio) растёт 0.42 → 0.62, уровень 5 = прежний baseline 0.52.
+// Выше 9-го dig-ratio плато (0.62) — уровень-счётчик растёт, сложность не раздувается.
+// Бюджет ошибок и лимит подсказок сужаются с уровнем. Проход = решил в рамках бюджета ошибок.
+const MAX_LEVEL = 9;
+function levelParams(level: number): { digRatio: number; maxErrors: number; hintMax: number } {
+  const L = Math.min(Math.max(1, level), MAX_LEVEL);
+  const digRatio = Math.min(0.62, 0.42 + (L - 1) * 0.025);   // 0.42 → 0.62 (L5 = 0.52 baseline)
+  const maxErrors = Math.max(4, 10 - Math.floor((L - 1) / 2)); // 10 → 6 (пол 4)
+  const hintMax = Math.max(1, 4 - Math.floor((L - 1) / 3));    // 4 → 2 (пол 1)
+  return { digRatio, maxErrors, hintMax };
+}
 
 // САМУРАЙ: 5 перекрывающихся сеток 9×9 на поле 21×21. [r0,c0] = левый-верхний угол сетки.
 // TL, TR, BL, BR + Center, центр перекрывает каждый угол одним блоком 3×3.
@@ -93,14 +111,15 @@ function countSolutions(g: Cell[][], limit = 2, budget: { steps: number } = { st
 }
 
 // Генерация партии: решаем полное поле 21×21 (это РЕШЕНИЕ), копируем в PUZZLE и выкалываем
-// ~52% валидных клеток. v1.112.0 — dig-with-uniqueness (тот же баг-класс, что в судоку v1.111.0):
+// digRatio валидных клеток. v1.112.0 — dig-with-uniqueness (тот же баг-класс, что в судоку v1.111.0):
 // клетка выкалывается только если решение остаётся ЕДИНСТВЕННЫМ, иначе честный ход игрока
 // мог помечаться «ошибкой» (сверка идёт с одним зашитым решением). Дедлайн держит UI живым.
-function generatePuzzle(): { puzzle: Cell[][]; solution: Cell[][] } {
+// digRatio задаётся уровнем (см. levelParams) — чем выше уровень, тем больше выколотых клеток.
+function generatePuzzle(digRatio: number): { puzzle: Cell[][]; solution: Cell[][] } {
   const sol: Cell[][] = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
   solve(sol, { steps: 200000 });
   const puzzle: Cell[][] = sol.map((row) => [...row]);
-  const blanks = Math.round(CELLS.length * 0.52);   // оставляем разумное число подсказок
+  const blanks = Math.round(CELLS.length * digRatio);   // доля закрытых клеток растёт по уровню
   const order = shuffle(CELLS.map((_, i) => i));
   const deadline = Date.now() + 3000;
   let dug = 0;
@@ -118,7 +137,12 @@ function generatePuzzle(): { puzzle: Cell[][]; solution: Cell[][] } {
 export default function SamuraiSudokuGame() {
   const { colors } = useTheme();
   const { language } = useLanguage();
+  const ru = language === 'ru';
   const { width } = useWindowDimensions();
+
+  const { isPreset } = useGamePreset();
+  const lvl = usePersistentLevel('sudoku_samurai');
+  const levelRef = useRef(1);   // уровень ТЕКУЩЕЙ партии (captured at startGame — как в quick-count)
 
   const [phase, setPhase] = useState<GamePhase>('config');
   const [solution, setSolution] = useState<Cell[][]>([]);
@@ -127,19 +151,30 @@ export default function SamuraiSudokuGame() {
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
   const [zoom, setZoom] = useState<'fit' | 'zoom'>('fit');   // дефолт — вся фигура «крест» видна целиком
   const [errors, setErrors] = useState(0);
+  const [hintUses, setHintUses] = useState(0);
+  const [over, setOver] = useState(false);   // бюджет ошибок исчерпан → уровень НЕ пройден, рестарт
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
+  // Пресет (запуск из зарядки) — авто-старт, без изменения уровня (как в других играх).
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const starsFor = (e: number, h: number): number => (e === 0 && h === 0) ? 3 : (e <= 2 && h <= 1) ? 2 : 1;
+
   const startGame = () => {
-    const { puzzle: p, solution: s } = generatePuzzle();
+    levelRef.current = lvl.level;
+    const { digRatio } = levelParams(levelRef.current);
+    const { puzzle: p, solution: s } = generatePuzzle(digRatio);
     setSolution(s);
     setGrid(p.map((r) => [...r]));
     setGiven(p.map((r) => r.map((v) => v !== 0)));
     setSelected(null);
     setErrors(0);
+    setHintUses(0);
+    setOver(false);
     setZoom('fit');
     setPhase('playing');
     const start = Date.now();
@@ -149,41 +184,79 @@ export default function SamuraiSudokuGame() {
     timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
   };
 
+  const isSolved = (ng: Cell[][]): boolean => {
+    for (const [i, j] of CELLS) if (ng[i][j] !== solution[i][j]) return false;
+    return true;
+  };
+
+  // Победа: доска решена в рамках бюджета ошибок. Проход уровня → поднять персист-уровень
+  // (кроме пресета) и уйти в авто-поток LevelCleared. hintCount передаём явно (state ещё не
+  // обновился в этом рендере, если решение пришло от подсказки).
+  const finishLevel = async (ng: Cell[][], hintCount: number) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    const finalTime = (Date.now() - startTime) / 1000;
+    setElapsedTime(finalTime);
+    const passed = !isPreset;
+    if (passed) lvl.reach(levelRef.current + 1);
+    try {
+      await saveSession({
+        game_type: 'sudoku',
+        score: Math.max(0, Math.round(4000 + levelRef.current * 150 - errors * 50 - finalTime * 2 - hintCount * 60)),
+        time_seconds: finalTime,
+        difficulty: `Level ${levelRef.current}`,
+        mode: `samurai-level-${levelRef.current}`,
+        errors,
+        details: { errors, completed: true, samurai: true, level: levelRef.current, hint_uses: hintCount },
+      });
+    } catch (e) { console.error(e); }
+    setPhase(passed ? 'cleared' : 'result');
+  };
+
   const handleCellPress = (r: number, c: number) => {
+    if (over) return;
     if (!gridsOf(r, c).length) return;   // дырка — не выбирается
     if (given[r][c]) return;
     setSelected({ r, c });
   };
 
   const handleNumPress = async (n: number) => {
-    if (!selected) return;
+    if (!selected || over) return;
     const { r, c } = selected;
     if (given[r][c]) return;
     const ng = grid.map((row) => [...row]);
     ng[r][c] = n;
     setGrid(ng);
     if (n !== 0) { (solution[r][c] === n) ? sndPlace() : sndWrong(); }   // тик при верной, бузз при неверной
-    if (n !== 0 && solution[r][c] !== n) setErrors((e) => e + 1);
-    // Победа: каждая валидная клетка совпала с решением.
-    let complete = true;
-    for (const [i, j] of CELLS) if (ng[i][j] !== solution[i][j]) { complete = false; break; }
-    if (complete) {
-      if (timerRef.current) clearInterval(timerRef.current);
-      const finalTime = (Date.now() - startTime) / 1000;
-      setElapsedTime(finalTime);
-      setPhase('result');
-      try {
-        await saveSession({
-          game_type: 'sudoku',
-          score: Math.max(0, Math.round(4000 - errors * 50 - finalTime * 2)),
-          time_seconds: finalTime,
-          difficulty: 'hard',
-          mode: 'samurai',
-          errors,
-          details: { errors, completed: true, samurai: true },
-        });
-      } catch (e) { console.error(e); }
+    if (n !== 0 && solution[r][c] !== n) {
+      const ne = errors + 1;
+      setErrors(ne);
+      const { maxErrors } = levelParams(levelRef.current);
+      if (ne >= maxErrors) {   // бюджет ошибок исчерпан → уровень провален
+        if (timerRef.current) clearInterval(timerRef.current);
+        setOver(true);
+        if (!isPreset) lvl.fail();   // гистерезис понижения (после N провалов подряд)
+        return;
+      }
     }
+    if (isSolved(ng)) finishLevel(ng, hintUses);
+  };
+
+  // Подсказка: вписать верную цифру в выбранную клетку. Лимит по уровню (levelParams.hintMax).
+  const handleHint = () => {
+    if (over || !selected) return;
+    const { hintMax } = levelParams(levelRef.current);
+    if (hintUses >= hintMax) return;
+    const { r, c } = selected;
+    if (given[r][c]) return;
+    const correct = solution[r][c];
+    if (grid[r][c] === correct) return;
+    const ng = grid.map((row) => [...row]);
+    ng[r][c] = correct;
+    setGrid(ng);
+    const nh = hintUses + 1;
+    setHintUses(nh);
+    sndPlace();
+    if (isSolved(ng)) finishLevel(ng, nh);   // подсказка может закрыть последнюю клетку
   };
 
   // ZOOM: 'fit' — всё поле 21×21 видно (≈17px на телефоне), 'zoom' — вдвое крупнее со скроллом.
@@ -202,6 +275,18 @@ export default function SamuraiSudokuGame() {
         </Text>
       </LinearGradient>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? `Уровень ${lvl.level}` : `Level ${lvl.level}`}</Text>
+        <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
+          {language === 'ru'
+            ? `Закрыто ${Math.round(levelParams(lvl.level).digRatio * 100)}% клеток · лимит ${levelParams(lvl.level).maxErrors} ошибок · подсказок ${levelParams(lvl.level).hintMax}`
+            : `${Math.round(levelParams(lvl.level).digRatio * 100)}% cells hidden · ${levelParams(lvl.level).maxErrors} mistakes limit · ${levelParams(lvl.level).hintMax} hints`}
+        </Text>
+        <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
+          {language === 'ru' ? 'Реши, не превысив лимит ошибок — откроется следующий, сложнее.' : 'Solve within the mistakes limit — the next unlocks, harder.'}
+        </Text>
+      </View>
+      <LevelProgressMap gameId="sudoku_samurai" currentLevel={lvl.level} maxLevel={MAX_LEVEL} colors={colors} language={language} />
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Как играть' : 'How to play'}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
           {language === 'ru'
@@ -211,7 +296,7 @@ export default function SamuraiSudokuGame() {
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{language === 'ru' ? 'Играть' : 'Play'}</Text>
+          <Text style={styles.startBtnText}>{language === 'ru' ? `Уровень ${lvl.level} — играть` : `Play level ${lvl.level}`}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </ScrollView>
@@ -287,15 +372,27 @@ export default function SamuraiSudokuGame() {
   );
 
   const renderPlaying = () => {
+    const { maxErrors, hintMax } = levelParams(levelRef.current);
     const statsEl = (
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>{language === 'ru' ? `Ошибок ${errors}` : `Errors ${errors}`}</Text>
+        <Text style={[styles.statText, { color: GRADIENT[0] }]}>{language === 'ru' ? `Ур.${levelRef.current}` : `Lv${levelRef.current}`}</Text>
+        <Text style={[styles.statText, { color: '#f43f5e' }]}>{language === 'ru' ? `Ошибок ${errors}/${maxErrors}` : `Errors ${errors}/${maxErrors}`}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
         <TouchableOpacity onPress={() => setZoom((z) => (z === 'fit' ? 'zoom' : 'fit'))} style={[styles.zoomBtn, { borderColor: colors.border }]}>
           <Ionicons name={zoom === 'fit' ? 'search' : 'contract'} size={15} color={colors.text} />
           <Text style={[styles.statText, { color: colors.text, fontSize: 12 }]}>{zoom === 'fit' ? (language === 'ru' ? 'Крупно' : 'Zoom') : (language === 'ru' ? 'Всё поле' : 'Fit')}</Text>
         </TouchableOpacity>
       </View>
+    );
+    const hintEl = (
+      <TouchableOpacity
+        onPress={handleHint}
+        disabled={!selected || hintUses >= hintMax}
+        style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: (selected && hintUses < hintMax) ? 1 : 0.4 }]}
+      >
+        <Ionicons name="bulb" size={16} color="#000" />
+        <Text style={styles.hintBtnText}>{language === 'ru' ? 'Подсказка' : 'Hint'} ({hintUses}/{hintMax})</Text>
+      </TouchableOpacity>
     );
     // В режиме 'zoom' оборачиваем поле в 2D-скролл (вложенные ScrollView — работают и в вебе, и нативно).
     const boardWrap = zoom === 'zoom'
@@ -328,6 +425,7 @@ export default function SamuraiSudokuGame() {
         {statsEl}
         {boardWrap}
         {padEl}
+        {hintEl}
       </View>
     );
   };
@@ -343,9 +441,43 @@ export default function SamuraiSudokuGame() {
       </View>
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {/* Бюджет ошибок исчерпан → уровень провален, рестарт того же уровня */}
+      {phase === 'playing' && over && (
+        <View style={styles.overWrap}>
+          <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
+            <Text style={styles.overEmoji}>💔</Text>
+            <Text style={[styles.overTitle, { color: colors.text }]}>{ru ? 'Ошибок слишком много' : 'Too many mistakes'}</Text>
+            <Text style={[styles.overSub, { color: colors.textSecondary }]}>
+              {ru ? `Лимит ${levelParams(levelRef.current).maxErrors} ошибок на уровне. Сыграй заново — поле новое.` : `Limit of ${levelParams(levelRef.current).maxErrors} mistakes. Play again — fresh board.`}
+            </Text>
+            <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
+              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                <Text style={styles.startBtnText}>{ru ? 'Заново' : 'Restart'}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setPhase('config')} style={{ marginTop: 10 }}>
+              <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{ru ? 'Меню' : 'Menu'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+      {/* Авто-поток: прошёл уровень чисто → баннер → следующий стартует сам (onContinue) */}
+      {phase === 'cleared' && (
+        <LevelCleared
+          gameId="sudoku_samurai"
+          level={levelRef.current}
+          stars={starsFor(errors, hintUses)}
+          gradient={GRADIENT}
+          language={language}
+          colors={colors}
+          onContinue={() => startGame()}
+          onStop={() => setPhase('config')}
+        />
+      )}
+      {/* result — только для пресета (запуск из зарядки, уровень не двигаем) */}
       {phase === 'result' && (
         <GameResult
-          score={Math.max(0, Math.round(4000 - errors * 50 - elapsedTime * 2))}
+          score={Math.max(0, Math.round(4000 + levelRef.current * 150 - errors * 50 - elapsedTime * 2 - hintUses * 60))}
           time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
@@ -375,4 +507,11 @@ const styles = StyleSheet.create({
   zoomScroll: { flex: 1, alignSelf: 'stretch' },
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center' },
   numBtn: { width: 46, height: 46, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  hintBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
+  hintBtnText: { color: '#000', fontSize: 13, fontWeight: '700' },
+  overWrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.55)', padding: 24, zIndex: 100 },
+  overCard: { width: '100%', maxWidth: 340, borderRadius: 20, padding: 24, alignItems: 'center', gap: 6 },
+  overEmoji: { fontSize: 46 },
+  overTitle: { fontSize: 20, fontWeight: '800' },
+  overSub: { fontSize: 14, textAlign: 'center', marginBottom: 10 },
 });

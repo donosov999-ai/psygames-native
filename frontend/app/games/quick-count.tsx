@@ -19,6 +19,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
@@ -35,7 +36,7 @@ const QUICKCOUNT_BENEFITS = [
   { icon: 'calculator-outline', textKey: 'benefitQuickCount3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'flash' | 'answer' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'flash' | 'answer' | 'boss' | 'cleared' | 'result';
 const BOSS_EVERY = 3;
 const TRIALS_PER_ROUND = 12;
 
@@ -145,8 +146,14 @@ export default function QuickCountGame() {
         details: { correct: correctRef.current, wrong: wrongRef.current, accuracy },
       });
     } catch (e) { console.error(e); }
-    if (passed && levelRef.current % BOSS_EVERY === 0) setBossWon(true);
-    if (passed) setPhase('cleared'); else setPhase('result');
+    if (passed && levelRef.current % BOSS_EVERY === 0) {
+      setBossWon(null);
+      setPhase('boss');   // веха: настоящий босс-раунд (резкая смена правила — go/no-go на подавление)
+    } else if (passed) {
+      setPhase('cleared');
+    } else {
+      setPhase('result');
+    }
   };
 
   const renderConfig = () => (
@@ -218,6 +225,14 @@ export default function QuickCountGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'flash' && renderFlash()}
       {phase === 'answer' && renderAnswer()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={(win) => { setBossWon(win); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="quick_count" level={levelRef.current} stars={bossWon ? 3 : (wrong === 0 ? 3 : wrong <= 2 ? 2 : 1)}
           gradient={GRADIENT} language={language} colors={colors}

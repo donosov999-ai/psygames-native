@@ -17,6 +17,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import LevelCleared from '@/src/components/LevelCleared';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const HN_RULES: LevelRule[] = [
@@ -44,7 +45,7 @@ const HANOI_BENEFITS = [
   { icon: 'trending-up-outline', textKey: 'benefitHanoi3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 
 // Уровень (1..15+): L1-4 3 стержня диски 3→6 · L5-9 4 стержня диски 5→9 · L10-15 5 стержней диски 9→12.
 // Больше стержней = новый вызов (короче решение), затем растут диски.
@@ -122,7 +123,7 @@ export default function HanoiGame() {
         const finalTime = (Date.now() - startTime) / 1000;
         setElapsedTime(finalTime);
         if (!isPreset) lvl.reach(levelRef.current + 1);   // решил пазл → +уровень
-        setPhase('result');
+        setPhase(isPreset ? 'result' : 'cleared');   // личная игра → авто-поток к следующему уровню; пресет → обычный результат
         try {
           await saveSession({
             game_type: 'hanoi',
@@ -231,6 +232,14 @@ export default function HanoiGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
+      {phase === 'cleared' && (
+        // Чисто прошёл уровень (решил пазл) → баннер + авто-старт следующего.
+        // 3★ = за оптимум ходов (2^n−1 для 3 стержней; для 4/5 порог с запасом), меньше — за лишние ходы.
+        <LevelCleared gameId="hanoi" level={levelRef.current}
+          stars={moves <= optimal(discs) ? 3 : moves <= Math.ceil(optimal(discs) * 1.5) ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, Math.round(1000 - (moves - optimal(discs)) * 50 - elapsedTime))}
