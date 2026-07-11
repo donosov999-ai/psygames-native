@@ -20,6 +20,9 @@ import GameIntro from '@/src/components/GameIntro';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#f093fb', '#f5576c'];
 const PENALTY_SECONDS = 15;
@@ -30,13 +33,27 @@ const WORD_PAIRS_BENEFITS = [
   { icon: 'git-branch-outline', textKey: 'benefitWordPairs3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'memorize' | 'check' | 'result';
+type GamePhase = 'intro' | 'config' | 'memorize' | 'check' | 'cleared' | 'result';
 
 interface WordPair {
   id: number;
   word1: string;
   word2: string;
 }
+
+// Уровень 1..15 (persist, паттерн cpt/simon): пар больше (4 → 15), времени на
+// запоминание НА ПАРУ меньше (7.0с → 2.5с). Лимит — только на фазу запоминания;
+// соединение пар, как и раньше, по времени не ограничено (ошибки штрафуются).
+// Потолок 15 пар безопасен для всех языков: словники RU/EN = 50 слов (25 пар max),
+// TRANSLATION_VOCAB ~189 записей с fallback на en.
+function levelParams(level: number): { pairCount: number; perPairMs: number } {
+  const pairCount = Math.min(15, 4 + Math.floor((level - 1) * 0.8));   // 4 → 15 пар
+  const perPairMs = Math.max(2500, 7000 - (level - 1) * 320);          // 7.0с → 2.5с на пару
+  return { pairCount, perPairMs };
+}
+
+/** Проход: точность ≥80% ⇔ ошибок ≤ пар/4 (accuracy = пары / (пары + ошибки)) */
+const maxErrorsAllowed = (pairCount: number) => Math.floor(pairCount / 4);
 
 export default function WordPairsGame() {
   const { colors } = useTheme();
@@ -59,9 +76,23 @@ export default function WordPairsGame() {
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Уровни (persist): ручной селектор числа пар заменён лесенкой 1..15.
+  // Пресет зарядки (isPreset) по-прежнему задаёт pairCount сам и без лимита времени.
+  const lvl = usePersistentLevel('word_pairs');
+  const [memorizeLimitSec, setMemorizeLimitSec] = useState(0);   // 0 = без лимита (пресет)
+
+  // Рефы — авто-переход memorize→check по таймауту уровня живёт вне ре-рендеров,
+  // state в колбэке setTimeout был бы устаревшим (паттерн simon/cpt).
+  const levelRef = useRef(1);
+  const useLevelRef = useRef(false);   // запущено по уровню? (для reach/fail)
+  const pairsRef = useRef<WordPair[]>([]);
+  const checkStartedRef = useRef(false);
+  const memorizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (memorizeTimerRef.current) clearTimeout(memorizeTimerRef.current);
     };
   }, []);
 
@@ -72,7 +103,7 @@ export default function WordPairsGame() {
     setTargetLang((cur) => (cur === language ? (language === 'en' ? 'es' : 'en') : cur));
   }, [language]);
 
-  const generatePairs = () => {
+  const generatePairs = (count: number) => {
     if (mode === 'translation') {
       const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
       const vocab = [...TRANSLATION_VOCAB];
@@ -81,7 +112,7 @@ export default function WordPairsGame() {
         [vocab[i], vocab[j]] = [vocab[j], vocab[i]];
       }
       const transPairs: WordPair[] = [];
-      for (let i = 0; i < pairCount && i < vocab.length; i++) {
+      for (let i = 0; i < count && i < vocab.length; i++) {
         transPairs.push({
           id: i,
           word1: vocab[i][language] || vocab[i].en,
@@ -96,9 +127,9 @@ export default function WordPairsGame() {
       const j = Math.floor(Math.random() * (i + 1));
       [words[i], words[j]] = [words[j], words[i]];
     }
-    
+
     const newPairs: WordPair[] = [];
-    for (let i = 0; i < pairCount; i++) {
+    for (let i = 0; i < count; i++) {
       newPairs.push({
         id: i,
         word1: words[i * 2],
@@ -109,7 +140,26 @@ export default function WordPairsGame() {
   };
 
   const startGame = () => {
-    const newPairs = generatePairs();
+    // Уровневый режим (persist): число пар и лимит запоминания из levelParams.
+    // Пресет зарядки — ручной pairCount, без лимита времени.
+    const useLevel = !isPreset;
+    useLevelRef.current = useLevel;
+    let count: number;
+    let limitMs = 0;
+    if (useLevel) {
+      const p = levelParams(lvl.level);
+      levelRef.current = lvl.level;
+      count = p.pairCount;
+      limitMs = p.perPairMs * count;
+      setPairCount(count);
+      setMemorizeLimitSec(Math.round(limitMs / 1000));
+    } else {
+      count = pairCount;
+      setMemorizeLimitSec(0);
+    }
+    const newPairs = generatePairs(count);
+    pairsRef.current = newPairs;
+    checkStartedRef.current = false;
     setPairs(newPairs);
     setMatchedPairs(new Set());
     setErrors(0);
@@ -117,27 +167,35 @@ export default function WordPairsGame() {
     setSelectedRight(null);
     setPhase('memorize');
     setStartTime(Date.now());
-    
+
     const start = Date.now();
+    if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setElapsedTime((Date.now() - start) / 1000);
     }, 100);
+
+    // Уровень: авто-переход к проверке по лимиту запоминания (реф, чтобы не поймать stale-стейт)
+    if (memorizeTimerRef.current) clearTimeout(memorizeTimerRef.current);
+    if (useLevel && limitMs > 0) {
+      memorizeTimerRef.current = setTimeout(() => startCheck(), limitMs);
+    }
   };
 
   useAutostart(isPreset, startGame);
 
   const startCheck = () => {
-    // Shuffle right column words
-    const rightWords = pairs.map(p => p.word2);
+    if (checkStartedRef.current) return;   // не дублировать (кнопка + таймаут уровня)
+    checkStartedRef.current = true;
+    if (memorizeTimerRef.current) { clearTimeout(memorizeTimerRef.current); memorizeTimerRef.current = null; }
+    // Shuffle right column words (источник — реф, устойчив к таймауту)
+    const src = pairsRef.current.length ? pairsRef.current : pairs;
+    const rightWords = src.map(p => p.word2);
     for (let i = rightWords.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [rightWords[i], rightWords[j]] = [rightWords[j], rightWords[i]];
     }
     setShuffledRight(rightWords);
     setPhase('check');
-    
-    // Stop timer for single exercises
-    if (timerRef.current) clearInterval(timerRef.current);
   };
 
   const handleLeftSelect = (pairId: number) => {
@@ -169,17 +227,24 @@ export default function WordPairsGame() {
       
       // Check if all pairs matched
       if (newMatched.size === pairs.length) {
+        if (timerRef.current) clearInterval(timerRef.current);
         const finalTime = elapsedTime + (errors * PENALTY_SECONDS);
-        setPhase('result');
-        
+        // Проход уровня: точность ≥80% ⇔ ошибок ≤ пар/4. Вверх мгновенно, вниз с гистерезисом.
+        const passed = useLevelRef.current && errors <= maxErrorsAllowed(pairs.length);
+        if (!isPreset && useLevelRef.current) {
+          if (passed) lvl.reach(levelRef.current + 1);
+          else lvl.fail();
+        }
+        setPhase(passed ? 'cleared' : 'result');
+
         try {
           await saveSession({
             game_type: 'word_pairs',
             score: pairs.length - errors,
             time_seconds: finalTime,
-            difficulty: mode === 'translation' ? `${pairCount} pairs · ${language}→${targetLang}` : `${pairCount} pairs`,
+            difficulty: mode === 'translation' ? `${pairs.length} pairs · ${language}→${targetLang}` : `${pairs.length} pairs`,
             errors: errors,
-            details: { hits: pairs.length - errors, errors, pair_count: pairCount, mode, ...(mode === 'translation' ? { base_lang: language, target_lang: targetLang } : {}) },
+            details: { hits: pairs.length - errors, errors, pair_count: pairs.length, mode, ...(useLevelRef.current ? { level: levelRef.current } : {}), ...(mode === 'translation' ? { base_lang: language, target_lang: targetLang } : {}) },
           });
         } catch (error) {
           console.error('Error saving session:', error);
@@ -206,6 +271,23 @@ export default function WordPairsGame() {
         <Text style={styles.configTitle}>{t('wordPairs')}</Text>
         <Text style={styles.configDesc}>{t('wordPairsDesc')}</Text>
       </LinearGradient>
+
+      <LevelProgressMap gameId="word_pairs" currentLevel={lvl.level} colors={colors} language={language} />
+      <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', marginBottom: 12 }]}>
+        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+          {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+        </Text>
+        <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center', marginTop: 2 }}>
+          {(() => { const p = levelParams(lvl.level); return language === 'ru'
+            ? `${p.pairCount} пар · запомнить за ${Math.round(p.perPairMs * p.pairCount / 1000)}с · ошибок ≤ ${maxErrorsAllowed(p.pairCount)}`
+            : `${p.pairCount} pairs · memorize in ${Math.round(p.perPairMs * p.pairCount / 1000)}s · errors ≤ ${maxErrorsAllowed(p.pairCount)}`; })()}
+        </Text>
+        {lvl.level > 1 && (
+          <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 8, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, backgroundColor: colors.card }}>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
         <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
@@ -265,34 +347,6 @@ export default function WordPairsGame() {
         )}
       </View>
 
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>
-          {t('label_pairs_count')}
-        </Text>
-        <View style={styles.optionButtons}>
-          {[5, 10, 15, 20].map((count) => (
-            <TouchableOpacity
-              key={count}
-              style={[
-                styles.sizeButton,
-                pairCount === count && { backgroundColor: GRADIENT[0] },
-                pairCount !== count && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-              ]}
-              onPress={() => setPairCount(count)}
-            >
-              <Text
-                style={[
-                  styles.sizeButtonText,
-                  { color: pairCount === count ? '#FFFFFF' : colors.text },
-                ]}
-              >
-                {count}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
       <TouchableOpacity style={styles.startButton} onPress={startGame}>
         <LinearGradient
           colors={GRADIENT as [string, string]}
@@ -312,7 +366,11 @@ export default function WordPairsGame() {
       <View style={styles.gameHeader}>
         <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
           <Ionicons name="time-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.timerText}>{elapsedTime.toFixed(1)}s</Text>
+          <Text style={styles.timerText}>
+            {memorizeLimitSec > 0
+              ? `${Math.max(0, memorizeLimitSec - elapsedTime).toFixed(0)}s`
+              : `${elapsedTime.toFixed(1)}s`}
+          </Text>
         </View>
       </View>
       
@@ -467,6 +525,18 @@ export default function WordPairsGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'memorize' && renderMemorize()}
       {phase === 'check' && renderCheck()}
+      {phase === 'cleared' && (
+        <LevelCleared
+          gameId="word_pairs"
+          level={levelRef.current}
+          stars={errors === 0 ? 3 : errors <= 1 ? 2 : 1}
+          gradient={GRADIENT}
+          language={language}
+          colors={colors}
+          onContinue={() => startGame()}
+          onStop={() => setPhase('config')}
+        />
+      )}
       {phase === 'result' && (
         <GameResult
           time={elapsedTime + (errors * PENALTY_SECONDS)}

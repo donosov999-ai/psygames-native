@@ -1,3 +1,16 @@
+/**
+ * Анаграммы — собери слово из перемешанных букв.
+ *
+ * Уровни (persist, по паттерну cpt/simon): ручной селектор длины слова заменён на
+ * usePersistentLevel('anagrams') + levelParams. Ось усложнения:
+ *   - длина слова растёт 4 → 9 букв (бывший ручной селектор);
+ *   - с 7-го уровня появляется лимит времени НА СЛОВО и сжимается 90с → 30с
+ *     (не успел собрать = ошибка, слово закрывается само).
+ * Проход уровня: ≥80% слов собрано верно за раунд → LevelCleared (авто-поток).
+ * Селекторы ПРАВИЛА остаются: тема слов и тумблер подсказок.
+ * Словники: RU/EN курированные банки + anagramWords.json + TRANSLATION_VOCAB;
+ * не-ru/en языки получают английский набор (см. wordsBank) — уровни от языка не зависят.
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -15,6 +28,9 @@ import { sndPlace } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import ANAGRAM_DICT from '@/src/constants/anagramWords.json';
 import {
@@ -34,7 +50,19 @@ const ANAGRAM_BENEFITS = [
   { icon: 'bulb-outline', textKey: 'benefitAnagram3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type WordLen = 4 | 5 | 6 | 7 | 8 | 9;
+
+// Уровень 1..15: длина слова растёт 4→9 (по 2-3 уровня на длину),
+// с L7 включается лимит времени на слово и сжимается 90с → 30с.
+const LEVEL_LENGTHS: WordLen[] = [4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 9, 9, 9];
+function levelParams(level: number): { length: WordLen; trials: number; wordSec: number } {
+  const L = Math.max(1, level);
+  const length = LEVEL_LENGTHS[Math.min(L, 15) - 1];
+  const trials = 10;
+  const wordSec = L <= 6 ? 0 : Math.max(30, 98 - (L - 6) * 8);   // L7: 90с → L15: 30с
+  return { length, trials, wordSec };
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -51,32 +79,59 @@ export default function AnagramGame() {
   const router = useRouter();
 
   const { isPreset, num } = useGamePreset();
+  const lvl = usePersistentLevel('anagrams');
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [length, setLength] = useState<4 | 5 | 6 | 7 | 8 | 9>(() => (num('length', 4) as 4 | 5 | 6 | 7 | 8 | 9));
-  const [theme, setTheme] = useState<string>('all');   // выбранная тема слов (all = без фильтра)
-  const [trials] = useState(10);
+  // length — только для пресетов из зарядки (num('length')); в уровневом режиме перекрывается levelParams
+  const [length, setLength] = useState<WordLen>(() => (num('length', 4) as WordLen));
+  const [theme, setTheme] = useState<string>('all');   // выбранная тема слов (all = без фильтра) — правило, остаётся
+  const [totalTrials, setTotalTrials] = useState(10);
   const [round, setRound] = useState(0);
   const [target, setTarget] = useState('');
   const [hint, setHint] = useState('');     // подсказка-намёк на слово
-  const [hintsOn, setHintsOn] = useState(true);   // тумблер подсказки (выкл = хардкор, только буквы)
+  const [hintsOn, setHintsOn] = useState(true);   // тумблер подсказки (выкл = хардкор, только буквы) — правило, остаётся
   const [letters, setLetters] = useState<string[]>([]);
   const [picked, setPicked] = useState<number[]>([]);
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [hintUses, setHintUses] = useState(0);
-  const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [wordSec, setWordSec] = useState(0);        // лимит на слово (0 = без лимита) — для отображения
+  const [wordLeft, setWordLeft] = useState(0);      // сколько секунд осталось на текущее слово
+
+  // Рефы — параметры уровня и счётчики раунда живут вне ре-рендеров: цепочка
+  // setTimeout (слово → пауза → следующее / дедлайн) видела бы устаревший state
+  // (паттерн cpt/simon).
+  const levelRef = useRef(1);
+  const lengthRef = useRef<WordLen>(4);
+  const trialsRef = useRef(10);
+  const wordSecRef = useRef(0);
+  const roundRef = useRef(0);
+  const hitsRef = useRef(0);
+  const errorsRef = useRef(0);
+  const hintUsesRef = useRef(0);
+  const wordDoneRef = useRef(false);            // слово закрыто (собрано или таймаут) — клики/дедлайн игнорим
+  const wordDeadlineAtRef = useRef(0);          // Date.now() дедлайна текущего слова (0 = нет лимита)
+  const startTimeRef = useRef(0);
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const deadlineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nextTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const usedRef = useRef<Set<string>>(new Set());   // показанные в сессии слова — без повторов
   // v1.112.0: честный зачёт — из тех же букв может сложиться ДРУГОЕ валидное слово
   // (КОТ↔ТОК): принимаем любое слово банка этой длины, не только загаданное.
   const validWordsRef = useRef<Set<string>>(new Set());
   const validKeyRef = useRef('');
 
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+  const clearAllTimers = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+    if (nextTimerRef.current) clearTimeout(nextTimerRef.current);
+  };
 
-  const wordsBank = (len: 4 | 5 | 6 | 7 | 8 | 9, th: string): WordEntry[] => {
+  useEffect(() => () => clearAllTimers(), []);
+
+  const wordsBank = (len: WordLen, th: string): WordEntry[] => {
     const isRu = language === 'ru';
     const cl = isRu ? 'ru' : 'en';       // язык слова
     // курированные банки (с осмысленными подсказками-определениями); не-ru/en → английский набор
@@ -103,12 +158,13 @@ export default function AnagramGame() {
   };
 
   const newRound = () => {
-    let bank = wordsBank(length, theme);
-    if (bank.length < 4) bank = wordsBank(length, 'all');   // мало слов этой темы на этой длине → вся длина
+    const len = lengthRef.current;
+    let bank = wordsBank(len, theme);
+    if (bank.length < 4) bank = wordsBank(len, 'all');   // мало слов этой темы на этой длине → вся длина
     // сет валидных слов для зачёта альтернативных анаграмм — по ВСЕМ темам этой длины
-    const vKey = `${length}_${language}`;
+    const vKey = `${len}_${language}`;
     if (validKeyRef.current !== vKey) {
-      validWordsRef.current = new Set(wordsBank(length, 'all').map((e) => e.w.toUpperCase()));
+      validWordsRef.current = new Set(wordsBank(len, 'all').map((e) => e.w.toUpperCase()));
       validKeyRef.current = vKey;
     }
     let avail = bank.filter((e) => !usedRef.current.has(e.w));
@@ -123,127 +179,212 @@ export default function AnagramGame() {
     do { arr = shuffle(arr); attempts++; } while (arr.join('') === w && attempts < 5);
     setLetters(arr);
     setPicked([]);
+    wordDoneRef.current = false;
+    // Лимит времени на слово (верхние уровни): не успел = ошибка, слово закрывается само
+    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+    if (wordSecRef.current > 0) {
+      wordDeadlineAtRef.current = Date.now() + wordSecRef.current * 1000;
+      setWordLeft(wordSecRef.current);
+      deadlineTimerRef.current = setTimeout(() => {
+        if (wordDoneRef.current) return;
+        wordDoneRef.current = true;
+        errorsRef.current += 1;
+        setErrors(errorsRef.current);
+        nextTimerRef.current = setTimeout(advance, 400);
+      }, wordSecRef.current * 1000);
+    } else {
+      wordDeadlineAtRef.current = 0;
+      setWordLeft(0);
+    }
+  };
+
+  const advance = () => {
+    if (roundRef.current >= trialsRef.current) { finish(); return; }
+    roundRef.current += 1;
+    setRound(roundRef.current);
+    newRound();
   };
 
   const startGame = () => {
-    setHits(0); setErrors(0); setRound(1); setHintUses(0); usedRef.current.clear();
-    newRound();
+    if (isPreset) {
+      // пресет из зарядки: ручная длина из URL-параметров, без лимита времени; reach/fail не трогаем
+      levelRef.current = lvl.level;
+      lengthRef.current = length;
+      trialsRef.current = 10;
+      wordSecRef.current = 0;
+      setTotalTrials(10);
+      setWordSec(0);
+    } else {
+      const p = levelParams(lvl.level);
+      levelRef.current = lvl.level;
+      lengthRef.current = p.length;
+      trialsRef.current = p.trials;
+      wordSecRef.current = p.wordSec;
+      setLength(p.length);
+      setTotalTrials(p.trials);
+      setWordSec(p.wordSec);
+    }
+    hitsRef.current = 0; errorsRef.current = 0; hintUsesRef.current = 0;
+    roundRef.current = 1;
+    setHits(0); setErrors(0); setRound(1); setHintUses(0);
+    usedRef.current.clear();
+    setElapsedTime(0);
     setPhase('playing');
     const start = Date.now();
-    setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    startTimeRef.current = start;
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setElapsedTime((Date.now() - start) / 1000);
+      if (wordDeadlineAtRef.current > 0) {
+        setWordLeft(Math.max(0, Math.ceil((wordDeadlineAtRef.current - Date.now()) / 1000)));
+      }
+    }, 100);
+    newRound();
   };
 
-  const handleLetterPress = async (idx: number) => {
-    if (picked.includes(idx)) return;
+  const finish = async () => {
+    clearAllTimers();
+    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    setElapsedTime(finalTime);
+    const h = hitsRef.current, e = errorsRef.current;
+    const accuracy = trialsRef.current > 0 ? h / trialsRef.current : 0;
+    // Проход уровня: ≥80% слов собрано верно (таймаут по лимиту = ошибка)
+    const passed = !isPreset && accuracy >= 0.8;
+    if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset) lvl.fail();
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    try {
+      await saveSession({
+        game_type: 'anagrams',
+        score: h * 100,
+        time_seconds: finalTime,
+        difficulty: `${lengthRef.current} letters`,
+        mode: isPreset ? `${trialsRef.current}t` : `lvl${levelRef.current}`,
+        errors: e,
+        details: {
+          level: levelRef.current,
+          hits: h,
+          errors: e,
+          trials: trialsRef.current,
+          accuracy: Math.round(accuracy * 100),
+          hint_uses: hintUsesRef.current,
+          ...(wordSecRef.current > 0 ? { word_sec: wordSecRef.current } : {}),
+        },
+      });
+    } catch (err) { console.error(err); }
+  };
+
+  const handleLetterPress = (idx: number) => {
+    if (picked.includes(idx) || wordDoneRef.current) return;
     sndPlace();
     const newPicked = [...picked, idx];
     setPicked(newPicked);
     if (newPicked.length === target.length) {
+      wordDoneRef.current = true;
+      if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
       const guess = newPicked.map((i) => letters[i]).join('');
       // Любая валидная анаграмма из этих букв = зачёт (буквы те же — игрок собрал их все)
       const correct = guess === target || validWordsRef.current.has(guess);
-      const newHits = hits + (correct ? 1 : 0);
-      const newErr = errors + (correct ? 0 : 1);
-      setHits(newHits);
-      setErrors(newErr);
-      setTimeout(async () => {
-        if (round >= trials) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          const finalTime = (Date.now() - startTime) / 1000;
-          setElapsedTime(finalTime);
-          setPhase('result');
-          try {
-            await saveSession({
-              game_type: 'anagrams',
-              score: newHits * 100,
-              time_seconds: finalTime,
-              difficulty: `${length} letters`,
-              mode: `${trials}t`,
-              errors: newErr,
-              details: { hits: newHits, errors: newErr, trials },
-            });
-          } catch (e) { console.error(e); }
-        } else {
-          setRound((r) => r + 1);
-          newRound();
-        }
-      }, 700);
+      if (correct) { hitsRef.current += 1; setHits(hitsRef.current); }
+      else { errorsRef.current += 1; setErrors(errorsRef.current); }
+      nextTimerRef.current = setTimeout(advance, 700);
     }
   };
 
-  const renderConfig = () => (
-    <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="language" size={48} color="#FFF" />
-        <Text style={styles.configTitle}>{t('anagrams')}</Text>
-        <Text style={styles.configDesc}>{t('anagramsDesc')}</Text>
-      </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('lettersInWord')}</Text>
-        <View style={styles.optionButtons}>
-          {([4, 5, 6, 7, 8, 9] as const).map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, length === n
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setLength(n)}>
-              <Text style={[styles.modeButtonText, { color: length === n ? '#FFF' : colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Тема' : 'Theme'}</Text>
-        <View style={styles.optionButtons}>
-          {ANAGRAM_THEMES.map((th) => (
-            <TouchableOpacity key={th.k} style={[styles.modeButton, theme === th.k
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setTheme(th.k)}>
-              <Text style={[styles.modeButtonText, { color: theme === th.k ? '#3f2b96' : colors.text }]}>
-                {th.emoji} {language === 'ru' ? th.ru : th.en}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('btn_hint')}</Text>
-        <View style={styles.optionButtons}>
-          {([true, false] as const).map((on) => (
-            <TouchableOpacity key={String(on)} style={[styles.modeButton, hintsOn === on
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setHintsOn(on)}>
-              <Text style={[styles.modeButtonText, { color: hintsOn === on ? '#FFF' : colors.text }]}>
-                {on ? t('label_on') : t('label_off')}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={[styles.startBtnText, { color: '#3f2b96' }]}>{t('start')}</Text>
+  const renderConfig = () => {
+    const p = levelParams(lvl.level);
+    return (
+      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+        <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+          <Ionicons name="language" size={48} color="#FFF" />
+          <Text style={styles.configTitle}>{t('anagrams')}</Text>
+          <Text style={styles.configDesc}>{t('anagramsDesc')}</Text>
         </LinearGradient>
-      </TouchableOpacity>
-    </ScrollView>
-  );
+
+        <LevelProgressMap gameId="anagrams" currentLevel={lvl.level} colors={colors} language={language} />
+        {/* Карточка уровня: параметры + видимый критерий прохода + сброс ↺1 (паттерн simon/cpt) */}
+        <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+          <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+            {language === 'ru'
+              ? `${p.trials} слов · ${p.length} букв${p.wordSec > 0 ? ` · ${p.wordSec} с на слово` : ' · без лимита времени'}`
+              : `${p.trials} words · ${p.length} letters${p.wordSec > 0 ? ` · ${p.wordSec} s per word` : ' · no time limit'}`}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+            {language === 'ru'
+              ? 'Проход уровня: ≥80% слов собрано верно (не успел по времени = ошибка)'
+              : 'To pass: ≥80% words solved correctly (running out of time counts as an error)'}
+          </Text>
+          {lvl.level > 1 && (
+            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Тема' : 'Theme'}</Text>
+          <View style={styles.optionButtons}>
+            {ANAGRAM_THEMES.map((th) => (
+              <TouchableOpacity key={th.k} style={[styles.modeButton, theme === th.k
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                onPress={() => setTheme(th.k)}>
+                <Text style={[styles.modeButtonText, { color: theme === th.k ? '#3f2b96' : colors.text }]}>
+                  {th.emoji} {language === 'ru' ? th.ru : th.en}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('btn_hint')}</Text>
+          <View style={styles.optionButtons}>
+            {([true, false] as const).map((on) => (
+              <TouchableOpacity key={String(on)} style={[styles.modeButton, hintsOn === on
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                onPress={() => setHintsOn(on)}>
+                <Text style={[styles.modeButtonText, { color: hintsOn === on ? '#FFF' : colors.text }]}>
+                  {on ? t('label_on') : t('label_off')}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+          <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+            <Text style={[styles.startBtnText, { color: '#3f2b96' }]}>{t('start')}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
 
   // Подсказка: автоматически открыть следующую правильную букву
   const revealHint = () => {
+    if (wordDoneRef.current) return;
     const nextChar = target[picked.length];
     if (nextChar === undefined) return;
     const idx = letters.findIndex((ch, i) => ch === nextChar && !picked.includes(i));
-    if (idx >= 0) { setHintUses((h) => h + 1); handleLetterPress(idx); }
+    if (idx >= 0) {
+      hintUsesRef.current += 1;
+      setHintUses((h) => h + 1);
+      handleLetterPress(idx);
+    }
   };
 
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+        {wordSec > 0 && (
+          <Text style={[styles.statText, { color: wordLeft <= 10 ? '#f43f5e' : colors.text }]}>⏱{wordLeft}</Text>
+        )}
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('anagramHint')}</Text>
       {/* 💡 Hint banner — короткий намёк на слово */}
@@ -299,7 +440,8 @@ export default function AnagramGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+          onPress={() => { clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('anagrams')}</Text>
@@ -312,6 +454,11 @@ export default function AnagramGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared gameId="anagrams" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult score={hits * 100} time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}

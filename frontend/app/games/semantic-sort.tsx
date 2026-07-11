@@ -17,9 +17,21 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 
 const GRADIENT = ['#10b981', '#6366f1'];
+
+// Уровень 1..15 (persist): больше категорий-дистракторов в раунде (2 → 4) и больше
+// раундов. Близость дистракторов по эмбеддингам (V3) — будущее усиление поверх этой
+// оси; каркас уровней от неё не зависит.
+function levelParams(level: number): { catsPerRound: number; roundsCount: number } {
+  const catsPerRound = level <= 3 ? 2 : level <= 8 ? 3 : 4;
+  const roundsCount = level <= 5 ? 10 : level <= 10 ? 12 : 15;
+  return { catsPerRound, roundsCount };
+}
 
 const SORT_BENEFITS = [
   { icon: 'albums-outline', textKey: 'benefitSort1' },
@@ -27,7 +39,7 @@ const SORT_BENEFITS = [
   { icon: 'speedometer-outline', textKey: 'benefitSort3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 interface Round { word: string; correctCat: string; cats: string[] }
 
 export default function SemanticSortGame() {
@@ -42,6 +54,14 @@ export default function SemanticSortGame() {
   const [roundsCount, setRoundsCount] = useState(() => num('rounds', 15));
   const [catsPerRound, setCatsPerRound] = useState(() => num('cats', 3));
 
+  // Уровни (persist): ручные селекторы раундов/категорий заменены лесенкой 1..15.
+  const lvl = usePersistentLevel('semantic_sort');
+  const levelRef = useRef(1);
+  const useLevelRef = useRef(false);
+  const roundsRef = useRef<Round[]>([]);
+  const correctRef = useRef(0);   // счётчики в рефах — finish() читает актуальные (state отстаёт на последний клик)
+  const errorsRef = useRef(0);
+
   const [rounds, setRounds] = useState<Round[]>([]);
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
@@ -55,6 +75,17 @@ export default function SemanticSortGame() {
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
 
   const startGame = () => {
+    // Уровневый режим: число раундов и категорий-дистракторов из levelParams.
+    // Пресет зарядки — ручные rounds/cats из URL-параметров.
+    const useLevel = !isPreset;
+    useLevelRef.current = useLevel;
+    let rc = roundsCount, cpr = catsPerRound;
+    if (useLevel) {
+      const p = levelParams(lvl.level);
+      levelRef.current = lvl.level;
+      rc = p.roundsCount; cpr = p.catsPerRound;
+      setRoundsCount(rc); setCatsPerRound(cpr);
+    }
     // слова целевого языка, сгруппированные по категориям
     const byCat = new Map<string, string[]>();
     for (const w of TRANSLATION_VOCAB) {
@@ -63,16 +94,17 @@ export default function SemanticSortGame() {
       byCat.get(w.cat)!.push(w[tgt]);
     }
     const cats = Array.from(byCat.keys()).filter((c) => byCat.get(c)!.length >= 3);
+    const effCats = Math.min(cpr, cats.length);   // не больше, чем есть категорий
 
     const newRounds: Round[] = [];
-    for (let r = 0; r < roundsCount; r++) {
+    for (let r = 0; r < rc; r++) {
       const correctCat = cats[Math.floor(Math.random() * cats.length)];
       const others = cats.filter((c) => c !== correctCat);
       for (let i = others.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [others[i], others[j]] = [others[j], others[i]];
       }
-      const roundCats = [correctCat, ...others.slice(0, catsPerRound - 1)];
+      const roundCats = [correctCat, ...others.slice(0, effCats - 1)];
       for (let i = roundCats.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [roundCats[i], roundCats[j]] = [roundCats[j], roundCats[i]];
@@ -81,11 +113,14 @@ export default function SemanticSortGame() {
       const word = pool[Math.floor(Math.random() * pool.length)];
       newRounds.push({ word, correctCat, cats: roundCats });
     }
+    roundsRef.current = newRounds;
     setRounds(newRounds);
     setIdx(0);
     setPicked(null);
     setCorrectCount(0);
     setErrorsCount(0);
+    correctRef.current = 0;
+    errorsRef.current = 0;
     rtSumRef.current = 0;
     setStartTime(Date.now());
     shownAtRef.current = Date.now();
@@ -94,21 +129,31 @@ export default function SemanticSortGame() {
 
   const finish = async (total: number) => {
     const finalTime = (Date.now() - startTime) / 1000;
+    const correct = correctRef.current;
+    const errs = errorsRef.current;
+    const accuracy = total > 0 ? correct / total : 0;
+    // Проход уровня: точность ≥80%. Вверх мгновенно, вниз с гистерезисом.
+    const passed = useLevelRef.current && accuracy >= 0.8;
+    if (!isPreset && useLevelRef.current) {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+    }
     setElapsedTime(finalTime);
-    setPhase('result');
+    setPhase(passed ? 'cleared' : 'result');
     try {
       await saveSession({
         game_type: 'semantic_sort',
-        score: correctCount,
+        score: correct,
         time_seconds: finalTime,
         difficulty: `${tgt} · ${total} × ${catsPerRound}`,
-        errors: errorsCount,
+        errors: errs,
         details: {
           target_lang: tgt,
           rounds: total,
           cats_per_round: catsPerRound,
-          accuracy: total > 0 ? correctCount / total : 0,
+          accuracy,
           mean_rt_ms: total > 0 ? Math.round(rtSumRef.current / total) : 0,
+          ...(useLevelRef.current ? { level: levelRef.current } : {}),
         },
       });
     } catch (e) {
@@ -122,8 +167,8 @@ export default function SemanticSortGame() {
     rtSumRef.current += Date.now() - shownAtRef.current;
     const isCorrect = cat === round.correctCat;
     setPicked(cat);
-    if (isCorrect) setCorrectCount((c) => c + 1);
-    else setErrorsCount((c) => c + 1);
+    if (isCorrect) { correctRef.current += 1; setCorrectCount((c) => c + 1); }
+    else { errorsRef.current += 1; setErrorsCount((c) => c + 1); }
     setTimeout(() => {
       const next = idx + 1;
       if (next >= rounds.length) {
@@ -145,6 +190,23 @@ export default function SemanticSortGame() {
           <Text style={[styles.configDesc, { color: 'rgba(255,255,255,0.8)' }]}>{t('semanticSortDesc')}</Text>
         </LinearGradient>
 
+        <LevelProgressMap gameId="semantic_sort" currentLevel={lvl.level} colors={colors} language={language} />
+        <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', marginBottom: 12 }]}>
+          <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center', marginTop: 2 }}>
+            {(() => { const p = levelParams(lvl.level); return language === 'ru'
+              ? `${p.roundsCount} раундов · ${p.catsPerRound} категории · порог 80%`
+              : `${p.roundsCount} rounds · ${p.catsPerRound} categories · pass 80%`; })()}
+          </Text>
+          {lvl.level > 1 && (
+            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 8, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, backgroundColor: colors.card }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
         <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
             {LANGUAGES.find((l) => l.code === language)?.name} →
@@ -161,44 +223,6 @@ export default function SemanticSortGame() {
                 onPress={() => setTargetLang(l.code)}
               >
                 <Text style={[styles.sizeButtonText, { color: tgt === l.code ? '#fff' : colors.text }]}>{l.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('sortRounds')}</Text>
-          <View style={styles.optionButtons}>
-            {[10, 15, 20].map((n) => (
-              <TouchableOpacity
-                key={n}
-                style={[
-                  styles.sizeButton,
-                  roundsCount === n && { backgroundColor: GRADIENT[0] },
-                  roundsCount !== n && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-                ]}
-                onPress={() => setRoundsCount(n)}
-              >
-                <Text style={[styles.sizeButtonText, { color: roundsCount === n ? '#fff' : colors.text }]}>{n}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('sortCats')}</Text>
-          <View style={styles.optionButtons}>
-            {[2, 3].map((n) => (
-              <TouchableOpacity
-                key={n}
-                style={[
-                  styles.sizeButton,
-                  catsPerRound === n && { backgroundColor: GRADIENT[0] },
-                  catsPerRound !== n && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-                ]}
-                onPress={() => setCatsPerRound(n)}
-              >
-                <Text style={[styles.sizeButtonText, { color: catsPerRound === n ? '#fff' : colors.text }]}>{n}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -289,6 +313,18 @@ export default function SemanticSortGame() {
 
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared
+          gameId="semantic_sort"
+          level={levelRef.current}
+          stars={errorsRef.current === 0 ? 3 : errorsRef.current <= 2 ? 2 : 1}
+          gradient={GRADIENT}
+          language={language}
+          colors={colors}
+          onContinue={() => startGame()}
+          onStop={() => setPhase('config')}
+        />
+      )}
       {phase === 'result' && (
         <GameResult
           time={elapsedTime}

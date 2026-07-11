@@ -3,6 +3,15 @@
  * Грамматика + извлечение слова в контексте. Фразы — src/constants/clozePhrases.ts
  * (ответ привязан к словарю через answerEn), дистракторы — слова ТОЙ ЖЕ категории
  * (семантически близкие → выбор не угадывается по форме).
+ *
+ * Уровни (persist, по паттерну cpt/simon): ручной селектор числа раундов заменён на
+ * usePersistentLevel('cloze') + levelParams. В данных градации сложности фраз нет
+ * (по 16 фраз A1 на язык) → ось усложнения = объём + темп:
+ *   - число фраз за раунд растёт 6 → 16 (потолок = пул фраз языка)
+ *   - лимит времени на фразу сокращается 14с → 4.5с (не успел = ошибка, ответ показывается)
+ * Проход уровня: ≥80% верных ответов → LevelCleared (авто-поток к следующему).
+ * Селектор целевого ЯЗЫКА остаётся (меняет правило, не сложность); уровень общий
+ * на все языки — пул везде одинаковый (16 фраз), параметры языков не ломают.
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
@@ -17,6 +26,9 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { CLOZE_PHRASES } from '@/src/constants/clozePhrases';
 
@@ -28,8 +40,28 @@ const CLOZE_BENEFITS = [
   { icon: 'chatbubbles-outline', textKey: 'benefitCloze3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 interface Round { text: string; answer: string; options: string[] }
+
+/** Сентинел «время вышло»: picked не совпадает ни с одной опцией →
+ *  подсветится только правильный ответ (зелёным), как reveal. */
+const TIMEOUT_PICK = '⏰';
+
+// Уровень 1..15: раундов больше (6 → 16), лимит на фразу короче (14с → 4.5с).
+// Пул = 16 фраз на язык, поэтому раунды упираются в потолок пула.
+function levelParams(level: number): { rounds: number; timeLimitMs: number } {
+  const rounds = Math.min(16, 5 + level);                        // 6 → 16
+  const timeLimitMs = Math.max(4500, 14000 - (level - 1) * 700); // 14с → 4.5с
+  return { rounds, timeLimitMs };
+}
+
+/** Сколько фраз языка реально играбельны (answerEn найден в словаре и переведён). */
+function availablePhrases(tgt: string): number {
+  return (CLOZE_PHRASES[tgt] ?? []).filter((p) => {
+    const e = TRANSLATION_VOCAB.find((w) => w.en === p.answerEn);
+    return !!(e && e[tgt]);
+  }).length;
+}
 
 export default function ClozeGame() {
   const { colors } = useTheme();
@@ -37,33 +69,99 @@ export default function ClozeGame() {
   const router = useRouter();
 
   const { isPreset, str, num } = useGamePreset();
+  const lvl = usePersistentLevel('cloze');
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
-  const [roundsCount, setRoundsCount] = useState(() => num('rounds', 10));
+  // Число раундов: в уровневом режиме — из levelParams; пресеты (зарядка) по-прежнему задают своё
+  const [presetRounds] = useState(() => num('rounds', 10));
 
   const [rounds, setRounds] = useState<Round[]>([]);
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [errorsCount, setErrorsCount] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  // Рефы — прогресс раунда и таймерная цепочка (дедлайн → reveal → следующая фраза)
+  // живут вне ре-рендеров, state в колбэках setTimeout был бы устаревшим (паттерн simon/cpt).
+  const roundsRef = useRef<Round[]>([]);
+  const idxRef = useRef(0);
+  const correctRef = useRef(0);
+  const errorsRef = useRef(0);
+  const answeredRef = useRef(false);
   const rtSumRef = useRef(0);
   const shownAtRef = useRef(0);
-  const [startTime, setStartTime] = useState(0);
-  const [elapsedTime, setElapsedTime] = useState(0);
+  const startTimeRef = useRef(0);
+  const levelRef = useRef(1);
+  const timeLimitRef = useRef(0);   // 0 = без лимита (пресеты — прежнее поведение)
+
+  const deadlineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tickIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearAllTimers = () => {
+    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
+  };
+  useEffect(() => () => clearAllTimers(), []);
 
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
 
+  /** Показ новой фразы: сброс флага ответа + дедлайн уровня (0 = лимита нет). */
+  const armDeadline = () => {
+    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+    if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
+    answeredRef.current = false;
+    shownAtRef.current = Date.now();
+    const limit = timeLimitRef.current;
+    if (limit > 0) {
+      setTimeLeft(Math.ceil(limit / 1000));
+      tickIntervalRef.current = setInterval(() => {
+        setTimeLeft(Math.max(0, Math.ceil((shownAtRef.current + limit - Date.now()) / 1000)));
+      }, 250);
+      deadlineTimerRef.current = setTimeout(onTimeout, limit);
+    }
+  };
+
+  /** Не успел в лимит: ошибка + reveal правильного ответа, дальше сам. */
+  const onTimeout = () => {
+    if (answeredRef.current) return;
+    answeredRef.current = true;
+    if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
+    rtSumRef.current += timeLimitRef.current;
+    errorsRef.current += 1;
+    setErrorsCount(errorsRef.current);
+    setPicked(TIMEOUT_PICK);
+    advanceTimerRef.current = setTimeout(advance, 1200);
+  };
+
+  const advance = () => {
+    const next = idxRef.current + 1;
+    if (next >= roundsRef.current.length) { finish(); return; }
+    idxRef.current = next;
+    setIdx(next);
+    setPicked(null);
+    armDeadline();
+  };
+
   const startGame = () => {
+    const p = levelParams(lvl.level);
+    levelRef.current = lvl.level;
+    timeLimitRef.current = isPreset ? 0 : p.timeLimitMs;
+    const roundsCount = isPreset ? presetRounds : p.rounds;
+
     const phrases = [...(CLOZE_PHRASES[tgt] ?? [])];
     for (let i = phrases.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [phrases[i], phrases[j]] = [phrases[j], phrases[i]];
     }
     const newRounds: Round[] = [];
-    for (const p of phrases) {
+    for (const p2 of phrases) {
       if (newRounds.length >= roundsCount) break;
-      const entry = TRANSLATION_VOCAB.find((w) => w.en === p.answerEn);
+      const entry = TRANSLATION_VOCAB.find((w) => w.en === p2.answerEn);
       if (!entry || !entry[tgt]) continue; // фраза с неизвестным answerEn — пропуск
       const answer = entry[tgt];
       // дистракторы той же категории; добор из всего словаря, если категория мала
@@ -84,128 +182,155 @@ export default function ClozeGame() {
         const j = Math.floor(Math.random() * (i + 1));
         [options[i], options[j]] = [options[j], options[i]];
       }
-      newRounds.push({ text: p.text, answer, options });
+      newRounds.push({ text: p2.text, answer, options });
     }
+    roundsRef.current = newRounds;
+    idxRef.current = 0;
+    correctRef.current = 0;
+    errorsRef.current = 0;
+    rtSumRef.current = 0;
     setRounds(newRounds);
     setIdx(0);
     setPicked(null);
     setCorrectCount(0);
     setErrorsCount(0);
-    rtSumRef.current = 0;
-    setStartTime(Date.now());
-    shownAtRef.current = Date.now();
+    startTimeRef.current = Date.now();
     setPhase('playing');
+    armDeadline();
   };
 
-  const finish = async (total: number) => {
-    const finalTime = (Date.now() - startTime) / 1000;
+  const finish = async () => {
+    clearAllTimers();
+    const total = roundsRef.current.length;
+    const finalTime = (Date.now() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
-    setPhase('result');
+    const c = correctRef.current;
+    const e = errorsRef.current;
+    const accuracy = total > 0 ? c / total : 0;
+    // Проход уровня: ≥80% верных (тайм-аут по лимиту = ошибка)
+    const passed = !isPreset && total > 0 && accuracy >= 0.8;
+    if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset) lvl.fail();
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
     try {
       await saveSession({
         game_type: 'cloze',
-        score: correctCount,
+        score: c,
         time_seconds: finalTime,
         difficulty: `${tgt} · ${total}`,
-        errors: errorsCount,
+        mode: isPreset ? 'preset' : `lvl${levelRef.current}`,
+        errors: e,
         details: {
+          level: levelRef.current,
           target_lang: tgt,
           rounds: total,
-          accuracy: total > 0 ? correctCount / total : 0,
+          accuracy,
           mean_rt_ms: total > 0 ? Math.round(rtSumRef.current / total) : 0,
+          time_limit_ms: timeLimitRef.current,
         },
       });
-    } catch (e) {
-      console.error('Error saving session:', e);
+    } catch (err) {
+      console.error('Error saving session:', err);
     }
   };
 
   const handlePick = (option: string) => {
-    if (picked !== null) return;
-    const round = rounds[idx];
+    if (picked !== null || answeredRef.current) return;
+    answeredRef.current = true;
+    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+    if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
+    const round = roundsRef.current[idxRef.current];
     rtSumRef.current += Date.now() - shownAtRef.current;
     const isCorrect = option === round.answer;
     setPicked(option);
-    if (isCorrect) setCorrectCount((c) => c + 1);
-    else setErrorsCount((c) => c + 1);
-    setTimeout(() => {
-      const next = idx + 1;
-      if (next >= rounds.length) {
-        finish(rounds.length);
-      } else {
-        setIdx(next);
-        setPicked(null);
-        shownAtRef.current = Date.now();
-      }
-    }, isCorrect ? 400 : 1200);
+    if (isCorrect) {
+      correctRef.current += 1;
+      setCorrectCount(correctRef.current);
+    } else {
+      errorsRef.current += 1;
+      setErrorsCount(errorsRef.current);
+    }
+    advanceTimerRef.current = setTimeout(advance, isCorrect ? 400 : 1200);
   };
 
-  const renderConfig = () => (
-    <ScrollView style={styles.configScroll} showsVerticalScrollIndicator={false}>
-      <View style={styles.configContainer}>
-        <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
-          <Ionicons name="create" size={48} color="#fff" />
-          <Text style={[styles.configTitle, { color: '#fff' }]}>{t('cloze')}</Text>
-          <Text style={[styles.configDesc, { color: 'rgba(255,255,255,0.8)' }]}>{t('clozeDesc')}</Text>
-        </LinearGradient>
-
-        <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {LANGUAGES.find((l) => l.code === language)?.name} →
-          </Text>
-          <View style={styles.optionButtons}>
-            {LANGUAGES.filter((l) => l.code !== language).map((l) => (
-              <TouchableOpacity
-                key={l.code}
-                style={[
-                  styles.sizeButton,
-                  tgt === l.code && { backgroundColor: GRADIENT[0] },
-                  tgt !== l.code && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-                ]}
-                onPress={() => setTargetLang(l.code)}
-              >
-                <Text style={[styles.sizeButtonText, { color: tgt === l.code ? '#fff' : colors.text }]}>{l.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('sortRounds')}</Text>
-          <View style={styles.optionButtons}>
-            {[8, 10, 16].map((n) => (
-              <TouchableOpacity
-                key={n}
-                style={[
-                  styles.sizeButton,
-                  roundsCount === n && { backgroundColor: GRADIENT[0] },
-                  roundsCount !== n && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-                ]}
-                onPress={() => setRoundsCount(n)}
-              >
-                <Text style={[styles.sizeButtonText, { color: roundsCount === n ? '#fff' : colors.text }]}>{n}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <TouchableOpacity style={styles.startButton} onPress={startGame}>
-          <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
-            <Ionicons name="play" size={24} color="#fff" />
-            <Text style={[styles.startButtonText, { color: '#fff' }]}>{t('start')}</Text>
+  const renderConfig = () => {
+    const p = levelParams(lvl.level);
+    const planned = Math.min(p.rounds, availablePhrases(tgt));
+    return (
+      <ScrollView style={styles.configScroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.configContainer}>
+          <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
+            <Ionicons name="create" size={48} color="#fff" />
+            <Text style={[styles.configTitle, { color: '#fff' }]}>{t('cloze')}</Text>
+            <Text style={[styles.configDesc, { color: 'rgba(255,255,255,0.8)' }]}>{t('clozeDesc')}</Text>
           </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
-  );
+
+          <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>
+              {LANGUAGES.find((l) => l.code === language)?.name} →
+            </Text>
+            <View style={styles.optionButtons}>
+              {LANGUAGES.filter((l) => l.code !== language).map((l) => (
+                <TouchableOpacity
+                  key={l.code}
+                  style={[
+                    styles.sizeButton,
+                    tgt === l.code && { backgroundColor: GRADIENT[0] },
+                    tgt !== l.code && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                  ]}
+                  onPress={() => setTargetLang(l.code)}
+                >
+                  <Text style={[styles.sizeButtonText, { color: tgt === l.code ? '#fff' : colors.text }]}>{l.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <LevelProgressMap gameId="cloze" currentLevel={lvl.level} colors={colors} language={language} />
+          <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12, alignItems: 'center', gap: 6 }]}>
+            <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+              {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            </Text>
+            <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+              {language === 'ru'
+                ? `${planned} фраз · ⏱ ${(p.timeLimitMs / 1000).toFixed(1)} с на фразу`
+                : `${planned} phrases · ⏱ ${(p.timeLimitMs / 1000).toFixed(1)} s per phrase`}
+            </Text>
+            {/* Критерий прохождения уровня виден игроку (паттерн cpt) */}
+            <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+              {language === 'ru'
+                ? 'Проход уровня: ≥80% верных ответов (не успел в лимит = ошибка)'
+                : 'To pass: ≥80% correct answers (running out of time counts as an error)'}
+            </Text>
+            {lvl.level > 1 && (
+              <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+                <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <TouchableOpacity style={styles.startButton} onPress={startGame}>
+            <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
+              <Ionicons name="play" size={24} color="#fff" />
+              <Text style={[styles.startButtonText, { color: '#fff' }]}>{t('start')}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    );
+  };
 
   const renderPlaying = () => {
     const round = rounds[idx];
     if (!round) return null;
+    const lowTime = timeLeft <= 2;
     return (
       <View style={styles.gameContainer}>
         <View style={styles.hudRow}>
           <Text style={[styles.hudText, { color: colors.textSecondary }]}>{idx + 1}/{rounds.length}</Text>
+          {timeLimitRef.current > 0 && (
+            <Text style={[styles.hudText, { color: lowTime ? '#f43f5e' : colors.textSecondary }]}>⏱ {timeLeft}</Text>
+          )}
           <Text style={[styles.hudText, { color: colors.textSecondary }]}>✓ {correctCount} · ✗ {errorsCount}</Text>
         </View>
 
@@ -262,7 +387,7 @@ export default function ClozeGame() {
       <View style={styles.header}>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.surface }]}
-          onPress={() => goBackOrHome()}
+          onPress={() => { clearAllTimers(); goBackOrHome(); }}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
@@ -272,6 +397,18 @@ export default function ClozeGame() {
 
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared
+          gameId="cloze"
+          level={levelRef.current}
+          stars={errorsCount === 0 ? 3 : errorsCount <= 2 ? 2 : 1}
+          gradient={GRADIENT}
+          language={language}
+          colors={colors}
+          onContinue={() => startGame()}
+          onStop={() => setPhase('config')}
+        />
+      )}
       {phase === 'result' && (
         <GameResult
           time={elapsedTime}
