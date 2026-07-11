@@ -16,6 +16,18 @@
  *
  * Прямой клинический intermediate phenotype финансовых решений:
  * vmPFC обновляет ценность по обратной связи; PRL мерит насколько быстро.
+ *
+ * ─── Уровни vs классический пресет (полуклиническая парадигма) ───
+ * РЕЖИМ «Уровни» (usePersistentLevel('prl') + levelParams): ось усложнения —
+ *   частота реверсалов РАСТЁТ (реверс наступает после всё меньшего числа верных подряд)
+ *   + награда ЗАШУМЛЯЕТСЯ (rewardProb 0.90 → 0.68, ближе к неоднозначной обратной связи).
+ *   Число проб растёт ступенями (30 → 40 → 50). Проход = ≥60% верных выборов ПОСЛЕ
+ *   реверсалов (адаптация к смене правила). Непрерывный поток через LevelCleared.
+ * РЕЖИМ «Классический (диагностика)»: фиксированные easy/medium/hard параметры
+ *   парадигмы сохранены доступным выбором — чтобы снимать ЧИСТУЮ метрику на стандартных
+ *   значениях. Запуск из зарядки (isPreset) тоже идёт классическим — уровень не трогает.
+ * Диагностические метрики (win-stay/lose-shift, reversal/perseverative errors, число
+ *   реверсалов) пишутся в details в ОБОИХ режимах.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -33,6 +45,10 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#1e3c72', '#2a5298'];
 const PRL_BENEFITS = [
@@ -41,8 +57,12 @@ const PRL_BENEFITS = [
   { icon: 'analytics-outline',    textKey: 'benefitPrl3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+// Проход уровня: доля верных выборов ПОСЛЕ реверсалов (адаптация к смене правила).
+const PASS_ACC = 0.6;
+
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
+type RunMode = 'level' | 'classic';
 type Choice = 'A' | 'B';   // A = blue, B = orange
 
 interface Cfg { rewardProb: number; trialsTotal: number; reversalAfter: [number, number]; }
@@ -51,6 +71,18 @@ const DIFF_CFG: Record<Difficulty, Cfg> = {
   medium: { rewardProb: 0.80, trialsTotal: 60, reversalAfter: [8, 12] },   // standard
   hard:   { rewardProb: 0.70, trialsTotal: 80, reversalAfter: [10, 16] },  // ambiguous feedback
 };
+
+// Уровень 1..12: реверсалы учащаются (порог верных-подряд падает 8 → 3),
+// награда зашумляется (rewardProb 0.90 → 0.68), число проб растёт ступенями (30 → 40 → 50).
+// Сама механика парадигмы (вероятностный исход + скрытый reversal) НЕ меняется — только
+// частота реверсала и размах шума награды.
+function levelParams(level: number): { rewardProb: number; trialsTotal: number; revMin: number; revMax: number } {
+  const trialsTotal = level <= 4 ? 30 : level <= 8 ? 40 : 50;
+  const rewardProb = Math.max(0.68, 0.90 - (level - 1) * 0.022);   // 0.90 → ~0.68 (шумнее)
+  const revMin = Math.max(3, 8 - Math.floor((level - 1) * 0.5));   // 8 → 3 (реверс чаще)
+  const revMax = revMin + 2;
+  return { rewardProb, trialsTotal, revMin, revMax };
+}
 
 interface TrialRecord {
   index: number;
@@ -67,14 +99,22 @@ export default function PRLGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
+  const { isPreset, str } = useGamePreset();
+  const lvl = usePersistentLevel('prl');
+
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [runMode, setRunMode] = useState<RunMode>('level');
+  // Классический режим (диагностика): пресет-зарядка (isPreset) читает diff из URL.
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
 
   // running state
   const [trialIdx, setTrialIdx] = useState(0);
+  const [totalTrials, setTotalTrials] = useState(30);
   const [bank, setBank] = useState(0);
   const [feedback, setFeedback] = useState<{ choice: Choice; outcome: 'reward' | 'punish' } | null>(null);
   const [revealCount, setRevealCount] = useState(0);  // current block trial counter
+  const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера LevelCleared
+  const [clearedStars, setClearedStars] = useState(3);
 
   // refs to avoid closure stale issues during fast tapping
   const goodChoiceRef = useRef<Choice>('A');         // current "good" stimulus
@@ -85,13 +125,39 @@ export default function PRLGame() {
   const startTimeRef = useRef(0);
   const respondLockRef = useRef(false);
 
-  useEffect(() => () => { respondLockRef.current = true; }, []);
+  // параметры текущей партии — в рефах (таймер +600мс в handleChoice читает их без stale-closure)
+  const classicRef = useRef(false);   // true = классический/пресет (уровень не трогаем, экран статистики)
+  const levelRef = useRef(0);         // 0 = классика; иначе номер уровня
+  const rewardProbRef = useRef(0.90);
+  const totalRef = useRef(30);
+  const revMinRef = useRef(8);
+  const revMaxRef = useRef(10);
 
-  const rewardProb = DIFF_CFG[difficulty].rewardProb;
-  const total = DIFF_CFG[difficulty].trialsTotal;
-  const [revMin, revMax] = DIFF_CFG[difficulty].reversalAfter;
+  useEffect(() => () => { respondLockRef.current = true; }, []);
+  // Запуск из зарядки → авто-старт классическим (чистая метрика, уровень не трогается).
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startGame = () => {
+    const classic = isPreset || runMode === 'classic';
+    classicRef.current = classic;
+    let rewardProb: number, total: number, revMin: number, revMax: number, lvlNum: number;
+    if (classic) {
+      const cfg = DIFF_CFG[difficulty];
+      rewardProb = cfg.rewardProb; total = cfg.trialsTotal;
+      [revMin, revMax] = cfg.reversalAfter;
+      lvlNum = 0;
+    } else {
+      const p = levelParams(lvl.level);
+      rewardProb = p.rewardProb; total = p.trialsTotal;
+      revMin = p.revMin; revMax = p.revMax;
+      lvlNum = lvl.level;
+    }
+    rewardProbRef.current = rewardProb;
+    totalRef.current = total;
+    revMinRef.current = revMin;
+    revMaxRef.current = revMax;
+    levelRef.current = lvlNum;
+
     trialsRef.current = [];
     goodChoiceRef.current = Math.random() < 0.5 ? 'A' : 'B';
     consecutiveCorrectRef.current = 0;
@@ -99,12 +165,14 @@ export default function PRLGame() {
     trialInBlockRef.current = 0;
     respondLockRef.current = false;
     setTrialIdx(0); setBank(100); setRevealCount(0); setFeedback(null);
+    setTotalTrials(total);
     startTimeRef.current = Date.now();
     setPhase('playing');
   };
 
   const maybeReverse = () => {
-    // reverse after consecutiveCorrect ∈ [revMin, revMax]
+    // reverse after consecutiveCorrect ∈ [revMin, revMax] (частота задаётся уровнем/сложностью)
+    const revMin = revMinRef.current, revMax = revMaxRef.current;
     const threshold = revMin + Math.floor(Math.random() * (revMax - revMin + 1));
     if (consecutiveCorrectRef.current >= threshold) {
       goodChoiceRef.current = goodChoiceRef.current === 'A' ? 'B' : 'A';
@@ -117,6 +185,7 @@ export default function PRLGame() {
   const handleChoice = (c: Choice) => {
     if (respondLockRef.current || feedback !== null) return;
     respondLockRef.current = true;
+    const rewardProb = rewardProbRef.current;
     const isCorrect = c === goodChoiceRef.current;
     // probabilistic outcome: correct = reward with rewardProb, else punish; vice versa for incorrect
     const r = Math.random();
@@ -146,12 +215,13 @@ export default function PRLGame() {
       maybeReverse();
       setFeedback(null);
       respondLockRef.current = false;
-      if (trialsRef.current.length >= total) finish();
+      if (trialsRef.current.length >= totalRef.current) finish();
     }, 600);
   };
 
   const finish = async () => {
     respondLockRef.current = true;
+    const classic = classicRef.current;
     const trials = trialsRef.current;
     const totalTime = (Date.now() - startTimeRef.current) / 1000;
 
@@ -182,7 +252,7 @@ export default function PRLGame() {
     const winStayRate = winN > 0 ? winStay / winN : 0;
     const loseShiftRate = loseN > 0 ? loseShift / loseN : 0;
 
-    // Mean post-reversal accuracy: first 5 trials after each reversal
+    // Mean post-reversal accuracy: first 5 trials after each reversal (клиническая метрика)
     const postReversalTrials = trials.filter(t => t.blockIndex > 0 && t.trialInBlock < 5);
     const postReversalCorrect = postReversalTrials.filter(t => !t.isError).length;
     const postReversalAcc = postReversalTrials.length > 0 ? postReversalCorrect / postReversalTrials.length : 0;
@@ -191,15 +261,32 @@ export default function PRLGame() {
     const totalErrors = trials.filter(t => t.isError).length;
     const accuracy = trials.length > 0 ? (trials.length - totalErrors) / trials.length : 0;
 
-    setPhase('result');
+    // Проход уровня: доля верных выборов на ВСЕХ пост-реверс блоках (адаптация).
+    // Если реверсала не случилось (короткая партия) — падаем на общую точность, чтобы
+    // не заваливать уровень «пустой» пост-реверс выборкой.
+    const adaptTrials = trials.filter(t => t.blockIndex > 0);
+    const adaptCorrect = adaptTrials.filter(t => !t.isError).length;
+    const adaptAcc = adaptTrials.length > 0 ? adaptCorrect / adaptTrials.length : accuracy;
+    const passed = !classic && adaptAcc >= PASS_ACC;
+    const stars = adaptAcc >= 0.8 ? 3 : adaptAcc >= 0.65 ? 2 : 1;
+
+    if (!classic) {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();   // гистерезис: 3 провала подряд → уровень -1
+    }
+    // Непрерывный поток: уровневый режим → баннер LevelCleared (passed=false = «почти, ещё раз»
+    // + рестарт того же уровня), без тупика. Классика/пресет → экран статистики GameResult.
+    setClearedPassed(passed);
+    setClearedStars(stars);
+    setPhase(classic ? 'result' : 'cleared');
 
     try {
       await saveSession({
         game_type: 'prl',
         score: Math.max(0, bank),
         time_seconds: totalTime,
-        difficulty,
-        mode: `${total}t-${Math.round(rewardProb * 100)}%`,
+        difficulty: classic ? difficulty : (levelRef.current <= 4 ? 'easy' : levelRef.current <= 8 ? 'medium' : 'hard'),
+        mode: classic ? `${totalRef.current}t-${Math.round(rewardProbRef.current * 100)}%` : `lvl${levelRef.current}`,
         errors: totalErrors,
         details: {
           hits: trials.length - totalErrors,
@@ -211,8 +298,10 @@ export default function PRLGame() {
           win_stay_rate: Number(winStayRate.toFixed(3)),
           lose_shift_rate: Number(loseShiftRate.toFixed(3)),
           mean_post_reversal_acc: Number(postReversalAcc.toFixed(3)),
+          post_reversal_adapt_acc: Number(adaptAcc.toFixed(3)),
           accuracy: Number(accuracy.toFixed(3)),
           final_bank: bank,
+          ...(classic ? {} : { level: levelRef.current }),
         },
       });
     } catch (e) { console.error(e); }
@@ -222,41 +311,95 @@ export default function PRLGame() {
 
   // ─── render ──────────────────────────────────────────────────────────
 
-  const renderConfig = () => (
-    <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="trending-up" size={48} color="#FFF" />
-        <Text style={styles.configTitle}>{t('prl')}</Text>
-        <Text style={styles.configDesc}>{t('prlDesc')}</Text>
-      </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {(['easy','medium','hard'] as Difficulty[]).map((d) => {
-            const cfg = DIFF_CFG[d];
-            return (
-              <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
+  const renderConfig = () => {
+    const p = levelParams(lvl.level);
+    return (
+      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+        <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+          <Ionicons name="trending-up" size={48} color="#FFF" />
+          <Text style={styles.configTitle}>{t('prl')}</Text>
+          <Text style={styles.configDesc}>{t('prlDesc')}</Text>
+        </LinearGradient>
+
+        {/* Переключатель режима: уровни (прогрессия) vs классический (чистая диагностика) */}
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
+          <View style={styles.optionButtons}>
+            {(['level', 'classic'] as RunMode[]).map((m) => (
+              <TouchableOpacity key={m} style={[styles.modeButton, runMode === m
                 ? { backgroundColor: GRADIENT[1] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-                onPress={() => setDifficulty(d)}>
-                <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
-                  {t(d)} ({Math.round(cfg.rewardProb*100)}%, {cfg.trialsTotal}t)
+                onPress={() => setRunMode(m)}>
+                <Text style={[styles.modeButtonText, { color: runMode === m ? '#FFF' : colors.text }]}>
+                  {m === 'level'
+                    ? (language === 'ru' ? 'Уровни — прогрессия' : 'Levels — progression')
+                    : (language === 'ru' ? 'Классический — диагностика' : 'Classic — diagnostic')}
                 </Text>
               </TouchableOpacity>
-            );
-          })}
+            ))}
+          </View>
         </View>
-      </View>
-      <Text style={[styles.warning, { color: colors.textSecondary }]}>
-        💡 {t('prlNote')}
-      </Text>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </ScrollView>
-  );
+
+        {runMode === 'level' ? (
+          <>
+            <LevelProgressMap gameId="prl" currentLevel={lvl.level} maxLevel={12} colors={colors} language={language} />
+            <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+              <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+                {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+              </Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+                {language === 'ru'
+                  ? `${p.trialsTotal} проб · награда ${Math.round(p.rewardProb * 100)}% · реверс каждые ${p.revMin}-${p.revMax} верных подряд`
+                  : `${p.trialsTotal} trials · reward ${Math.round(p.rewardProb * 100)}% · reversal every ${p.revMin}-${p.revMax} correct in a row`}
+              </Text>
+              {/* Критерий прохождения виден игроку (паттерн cpt/simon v1.112.0) */}
+              <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+                {language === 'ru'
+                  ? `Проход: ≥${Math.round(PASS_ACC * 100)}% верных выборов после реверсалов`
+                  : `To pass: ≥${Math.round(PASS_ACC * 100)}% correct choices after reversals`}
+              </Text>
+              {lvl.level > 1 && (
+                <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </>
+        ) : (
+          <>
+            {/* Классический пресет — фиксированные параметры для чистой клинической метрики */}
+            <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
+              <View style={styles.optionButtons}>
+                {(['easy','medium','hard'] as Difficulty[]).map((d) => {
+                  const cfg = DIFF_CFG[d];
+                  return (
+                    <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
+                      ? { backgroundColor: GRADIENT[1] }
+                      : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                      onPress={() => setDifficulty(d)}>
+                      <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
+                        {t(d)} ({Math.round(cfg.rewardProb*100)}%, {cfg.trialsTotal}t)
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+            <Text style={[styles.warning, { color: colors.textSecondary }]}>
+              💡 {t('prlNote')}
+            </Text>
+          </>
+        )}
+
+        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+          <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+            <Text style={styles.startBtnText}>{t('start')}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
 
   const renderStimulus = (which: Choice, color: string) => {
     const isFeedback = feedback?.choice === which;
@@ -287,7 +430,7 @@ export default function PRLGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{trialIdx}/{total}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{trialIdx}/{totalTrials}</Text>
         <Text style={[styles.statText, { color: bank >= 100 ? '#22c55e' : '#f43f5e', fontSize: 18 }]}>
           💰 {bank}¢
         </Text>
@@ -328,6 +471,11 @@ export default function PRLGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared gameId="prl" level={levelRef.current} passed={clearedPassed} stars={clearedStars}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, bank)}

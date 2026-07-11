@@ -1,5 +1,30 @@
+/**
+ * WCST — Wisconsin Card Sorting Test (когнитивная гибкость / set-shifting)
+ *
+ * Парадигма: 4 референс-карты (различаются цветом/формой/числом). Игрок сортирует
+ * целевую карту, подбирая референс по СКРЫТОМУ правилу (color / shape / count).
+ * Правило узнаётся по обратной связи ✓/✗ и МОЛЧА меняется после серии верных.
+ *
+ * Диагностика (классика Heaton WCST):
+ *   - perseverative errors — ошибки по СТАРОМУ правилу после его смены (главный
+ *     маркер ригидности мышления / нарушений префронтальной коры)
+ *   - categories_completed — сколько полных серий-под-правилом закрыто
+ *
+ * Уровни (persist, паттерн cpt/simon): usePersistentLevel('wcst') + levelParams.
+ * Ось усложнения (НЕ искажает механику — меняется только частота/размах):
+ *   - окно смены правила сокращается 9 → 3 подряд (правило меняется всё чаще →
+ *     выше нагрузка на гибкость и больше шансов на персеверацию)
+ *   - число проб растёт ступенями 24 → 32 → 40
+ * Проход уровня: мало персеверативных ошибок (+ разумная точность) → LevelCleared
+ * (авто-поток; провал → «почти, ещё раз» + рестарт того же уровня).
+ *
+ * КЛАССИЧЕСКИЙ режим сохранён отдельным выбором на конфиге (и через isPreset/зарядку):
+ * стандартные параметры парадигмы — смена правила после 10 подряд, селектор числа
+ * проб — чтобы снять чистую диагностическую метрику. Уровень при этом не трогается.
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -10,8 +35,15 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#834d9b', '#d04ed6'];
+const MAX_LEVEL = 12;
+const CLASSIC_STREAK = 10;   // классический WCST: смена правила после 10 подряд
+
 const WCST_BENEFITS = [
   { icon: 'shuffle-outline', textKey: 'benefitWcst1' },
   { icon: 'bulb-outline',    textKey: 'benefitWcst2' },
@@ -58,7 +90,18 @@ function matchByRule(target: Card, ref: Card, rule: Rule): boolean {
   return target.count === ref.count;
 }
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+// Уровень 1..12: окно смены правила сокращается (правило меняется чаще),
+// число проб растёт ступенями. Механика сортировки НЕ меняется — только частота/размах.
+function levelParams(level: number): { trials: number; ruleChangeStreak: number; persevCap: number } {
+  const trials = level <= 4 ? 24 : level <= 8 ? 32 : 40;
+  // 9 → 3 подряд по мере роста уровня (плавно, через 12 уровней)
+  const ruleChangeStreak = Math.max(3, 9 - Math.floor((level - 1) * 6 / (MAX_LEVEL - 1)));
+  const persevCap = Math.max(2, Math.round(trials * 0.12));
+  return { trials, ruleChangeStreak, persevCap };
+}
+
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type Mode = 'level' | 'classic';
 
 export default function WcstGame() {
   const { colors, colorblind } = useTheme();
@@ -66,25 +109,55 @@ export default function WcstGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
+  const { isPreset } = useGamePreset();
+  const lvl = usePersistentLevel('wcst');
+  // Зарядка/пресет (wu=1 в URL) → авто-старт классического режима, уровень не трогаем.
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [trials, setTrials] = useState(40);
+  const [mode, setMode] = useState<Mode>('level');
+  const [clearedPassed, setClearedPassed] = useState(true);
+
+  const [trials, setTrials] = useState(40);        // селектор классического режима (20/40/60)
+  const [totalTrials, setTotalTrials] = useState(40); // активное число проб (для HUD)
 
   const [round, setRound] = useState(0);
   const [target, setTarget] = useState<Card>(() => makeTarget());
   const [rule, setRule] = useState<Rule>('color');
-  const [streak, setStreak] = useState(0);            // consecutive correct in a row
+  const [streak, setStreak] = useState(0);
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
-  const [perseverative, setPerseverative] = useState(0); // errors using OLD rule after rule change
+  const [perseverative, setPerseverative] = useState(0);
   const [feedback, setFeedback] = useState<{idx: number, ok: boolean} | null>(null);
-  const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
 
-  const lastRuleRef = useRef<Rule | null>(null); // previous rule (after change)
+  // Счётчики раунда — в рефах (таймерная цепочка + finish читают их без stale-closure).
+  const roundRef = useRef(0);
+  const hitsRef = useRef(0);
+  const errorsRef = useRef(0);
+  const persevRef = useRef(0);
+  const streakRef = useRef(0);
+  const categoriesRef = useRef(0);       // закрытых серий-под-правилом
+  const targetRef = useRef<Card>(makeTarget());
+  const ruleRef = useRef<Rule>('color');
+  const lastRuleRef = useRef<Rule | null>(null); // предыдущее правило (после смены)
   const justChangedRef = useRef<boolean>(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+  // Параметры текущей партии (в рефах — таймер живёт вне ре-рендера).
+  const classicRef = useRef(false);
+  const levelRef = useRef(1);
+  const trialsRef = useRef(40);
+  const ruleStreakRef = useRef(CLASSIC_STREAK);
+  const persevCapRef = useRef(2);
+  const startTimeRef = useRef(0);
+
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+  }, []);
 
   const pickNewRule = (prev: Rule): Rule => {
     const opts: Rule[] = (['color','shape','count'] as Rule[]).filter(r => r !== prev);
@@ -92,67 +165,123 @@ export default function WcstGame() {
   };
 
   const startGame = () => {
-    setHits(0); setErrors(0); setPerseverative(0); setRound(1);
-    setStreak(0);
+    const classic = isPreset || mode === 'classic';
+    classicRef.current = classic;
+    let total: number, streakThreshold: number;
+    if (classic) {
+      total = trials;                 // из селектора
+      streakThreshold = CLASSIC_STREAK;
+      levelRef.current = lvl.level;   // не участвует в прогрессии, но хранится
+      persevCapRef.current = 0;
+    } else {
+      const p = levelParams(lvl.level);
+      levelRef.current = lvl.level;
+      total = p.trials;
+      streakThreshold = p.ruleChangeStreak;
+      persevCapRef.current = p.persevCap;
+    }
+    trialsRef.current = total;
+    ruleStreakRef.current = streakThreshold;
+    setTotalTrials(total);
+
+    hitsRef.current = 0; errorsRef.current = 0; persevRef.current = 0;
+    streakRef.current = 0; categoriesRef.current = 0; roundRef.current = 1;
+    setHits(0); setErrors(0); setPerseverative(0); setStreak(0); setRound(1);
+
     const r0: Rule = rndItem(['color','shape','count']);
-    setRule(r0);
+    ruleRef.current = r0; setRule(r0);
     lastRuleRef.current = null;
     justChangedRef.current = false;
-    setTarget(makeTarget());
+
+    const tg = makeTarget();
+    targetRef.current = tg; setTarget(tg);
     setFeedback(null);
     setPhase('playing');
-    const start = Date.now();
-    setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    setElapsedTime(0);
+    startTimeRef.current = Date.now();
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => setElapsedTime((Date.now() - startTimeRef.current) / 1000), 100);
+  };
+
+  const finish = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    setElapsedTime(finalTime);
+
+    const classic = classicRef.current;
+    const h = hitsRef.current, e = errorsRef.current, pv = persevRef.current;
+    const cats = categoriesRef.current, total = trialsRef.current;
+
+    let passed = false;
+    if (!classic) {
+      // Проход = мало персеверативных ошибок (+ разумная точность против случайного тапа).
+      passed = pv <= persevCapRef.current && h >= Math.ceil(total * 0.55);
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(passed);
+      setPhase('cleared');
+    } else {
+      // Классический/пресет — уровень не трогаем, экран статистики.
+      setPhase('result');
+    }
+
+    saveSession({
+      game_type: 'wcst',
+      score: Math.max(0, h * 50 - e * 30 - pv * 50),
+      time_seconds: finalTime,
+      difficulty: classic ? 'medium' : (levelRef.current <= 4 ? 'easy' : levelRef.current <= 8 ? 'medium' : 'hard'),
+      mode: classic ? `classic_${total}t` : `lvl${levelRef.current}`,
+      errors: e,
+      details: {
+        perseverative: pv,             // ← клиническая метрика (обязательна по схеме)
+        categories_completed: cats,
+        hits: h,
+        n_trials: total,
+        ...(classic ? {} : { level: levelRef.current }),   // level только в уровневом режиме
+      },
+    }).catch(err => console.error(err));
   };
 
   const handlePick = (refIdx: number) => {
     if (feedback !== null) return;
-    const ok = matchByRule(target, REF_CARDS[refIdx], rule);
-    let newHits = hits, newErrors = errors, newPersev = perseverative;
-    let newStreak = streak;
+    const ok = matchByRule(targetRef.current, REF_CARDS[refIdx], ruleRef.current);
     if (ok) {
-      newHits = hits + 1;
-      newStreak = streak + 1;
+      hitsRef.current += 1;
+      streakRef.current += 1;
       justChangedRef.current = false;
     } else {
-      newErrors = errors + 1;
-      newStreak = 0;
-      // perseverative if user answered using PREVIOUS rule
+      errorsRef.current += 1;
+      streakRef.current = 0;
+      // perseverative: ответ по ПРЕДЫДУЩЕМУ правилу сразу после его смены
       if (justChangedRef.current && lastRuleRef.current
-          && matchByRule(target, REF_CARDS[refIdx], lastRuleRef.current)) {
-        newPersev = perseverative + 1;
+          && matchByRule(targetRef.current, REF_CARDS[refIdx], lastRuleRef.current)) {
+        persevRef.current += 1;
       }
     }
-    setHits(newHits); setErrors(newErrors); setPerseverative(newPersev); setStreak(newStreak);
+    setHits(hitsRef.current); setErrors(errorsRef.current);
+    setPerseverative(persevRef.current); setStreak(streakRef.current);
     setFeedback({ idx: refIdx, ok });
-    setTimeout(() => {
-      // rule changes after 6 consecutive correct (classic WCST = 10, but we shorten)
-      let nextRule = rule;
-      if (newStreak >= 6) {
-        nextRule = pickNewRule(rule);
-        lastRuleRef.current = rule;
+
+    advanceTimerRef.current = setTimeout(() => {
+      // правило МОЛЧА меняется после серии верных (окно уровня / 10 в классике)
+      if (streakRef.current >= ruleStreakRef.current) {
+        const nextRule = pickNewRule(ruleRef.current);
+        lastRuleRef.current = ruleRef.current;
         justChangedRef.current = true;
+        ruleRef.current = nextRule;
         setRule(nextRule);
+        streakRef.current = 0;
         setStreak(0);
+        categoriesRef.current += 1;   // закрыта серия-под-правилом = категория
       }
-      if (round >= trials) {
-        if (timerRef.current) clearInterval(timerRef.current);
-        const finalTime = (Date.now() - startTime) / 1000;
-        setElapsedTime(finalTime);
-        setPhase('result');
-        saveSession({
-          game_type: 'wcst',
-          score: Math.max(0, newHits * 50 - newErrors * 30 - newPersev * 50),
-          time_seconds: finalTime,
-          difficulty: 'medium',
-          mode: `${trials}t`,
-          errors: newErrors,
-          details: { perseverative: newPersev },
-        }).catch(e => console.error(e));
+      if (roundRef.current >= trialsRef.current) {
+        finish();
       } else {
-        setRound(r => r + 1);
-        setTarget(makeTarget());
+        roundRef.current += 1;
+        setRound(roundRef.current);
+        const tg = makeTarget();
+        targetRef.current = tg;
+        setTarget(tg);
         setFeedback(null);
       }
     }, 600);
@@ -209,38 +338,96 @@ export default function WcstGame() {
     );
   };
 
-  const renderConfig = () => (
-    <View style={styles.configContainer}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="shuffle" size={48} color="#FFF" />
-        <Text style={styles.configTitle}>{t('wcst')}</Text>
-        <Text style={styles.configDesc}>{t('wcstDesc')}</Text>
-      </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {[20, 40, 60].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, trials === n
-              ? { backgroundColor: GRADIENT[1] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setTrials(n)}>
-              <Text style={[styles.modeButtonText, { color: trials === n ? '#FFF' : colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
-        </LinearGradient>
+  const renderConfig = () => {
+    const p = levelParams(lvl.level);
+    const modeBtn = (m: Mode, label: string) => (
+      <TouchableOpacity style={[styles.modeButton, mode === m
+        ? { backgroundColor: GRADIENT[1] }
+        : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+        onPress={() => setMode(m)}>
+        <Text style={[styles.modeButtonText, { color: mode === m ? '#FFF' : colors.text }]}>{label}</Text>
       </TouchableOpacity>
-    </View>
-  );
+    );
+    return (
+      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+        <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+          <Ionicons name="shuffle" size={48} color="#FFF" />
+          <Text style={styles.configTitle}>{t('wcst')}</Text>
+          <Text style={styles.configDesc}>{t('wcstDesc')}</Text>
+        </LinearGradient>
+
+        {/* Режим: Уровни (прогрессия) / Классический (чистая диагностика) */}
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
+          <View style={styles.optionButtons}>
+            {modeBtn('level', language === 'ru' ? 'Уровни' : 'Levels')}
+            {modeBtn('classic', language === 'ru' ? 'Классический' : 'Classic')}
+          </View>
+          <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+            {mode === 'classic'
+              ? (language === 'ru'
+                  ? 'Стандартные параметры: правило меняется после 10 подряд. Для чистой метрики.'
+                  : 'Standard params: rule switches after 10 in a row. For a clean metric.')
+              : (language === 'ru'
+                  ? 'Правило меняется всё чаще с уровнем. Держи персеверативные ошибки низкими.'
+                  : 'Rule switches more often each level. Keep perseverative errors low.')}
+          </Text>
+        </View>
+
+        {mode === 'classic' ? (
+          <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
+            <View style={styles.optionButtons}>
+              {[20, 40, 60].map((n) => (
+                <TouchableOpacity key={n} style={[styles.modeButton, trials === n
+                  ? { backgroundColor: GRADIENT[1] }
+                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                  onPress={() => setTrials(n)}>
+                  <Text style={[styles.modeButtonText, { color: trials === n ? '#FFF' : colors.text }]}>{n}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ) : (
+          <>
+            <LevelProgressMap gameId="wcst" currentLevel={lvl.level} maxLevel={MAX_LEVEL} colors={colors} language={language} />
+            <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+              <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+                {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+              </Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+                {language === 'ru'
+                  ? `${p.trials} проб · смена правила после ${p.ruleChangeStreak} подряд`
+                  : `${p.trials} trials · rule switches after ${p.ruleChangeStreak} in a row`}
+              </Text>
+              {/* Критерий прохождения виден игроку (паттерн cpt/simon) */}
+              <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+                {language === 'ru'
+                  ? `Проход уровня: ≤${p.persevCap} персеверативных ошибок и ≥55% верных`
+                  : `To pass: ≤${p.persevCap} perseverative errors and ≥55% correct`}
+              </Text>
+              {lvl.level > 1 && (
+                <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </>
+        )}
+
+        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+          <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+            <Text style={styles.startBtnText}>{t('start')}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
 
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>↻{perseverative}</Text>
@@ -274,6 +461,12 @@ export default function WcstGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared gameId="wcst" level={levelRef.current} passed={clearedPassed}
+          stars={perseverative === 0 ? 3 : perseverative <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, hits * 50 - errors * 30 - perseverative * 50)}
@@ -290,6 +483,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
+  configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
