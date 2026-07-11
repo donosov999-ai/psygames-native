@@ -11,6 +11,16 @@
  * — биомаркеры и тренды совместимы с историей.
  *
  * Mixed — ротация обоих режимов внутри одной сессии (50/50).
+ *
+ * Уровни (persist, по паттерну cpt/simon): ручные селекторы сложности и числа
+ * проб заменены на usePersistentLevel('inhibition') + levelParams. Ось усложнения:
+ *   - окно go-ответа сокращается 1300мс → ~850мс (не успел = пропуск)
+ *   - SSD растёт 150мс → ~480мс (стоп-сигнал позже — тормозить труднее)
+ *   - доля стоп-проб растёт умеренно 20% → 35%
+ *   - число проб растёт ступенями 20 → 26 → 32
+ * Селектор суб-режима (Go/No-Go / Стоп-сигнал / Микс) остаётся — он меняет
+ * ПРАВИЛО игры, не сложность.
+ * Проход уровня: ≥80% верных (ложная тревога И пропуск go = ошибки) → LevelCleared.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -28,6 +38,10 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#11998e', '#ee0979'];
 const BENEFITS = [
@@ -36,24 +50,28 @@ const BENEFITS = [
   { icon: 'shield-checkmark-outline', textKey: 'benefitInhibition3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type SubMode = 'go_no_go' | 'stop_signal' | 'mixed';
-type Difficulty = 'easy' | 'medium' | 'hard';
 
-// Stop-Signal config
-interface StopCfg { stopProb: number; ssd: number; goWindow: number; }
-const STOP_DIFF: Record<Difficulty, StopCfg> = {
-  easy:   { stopProb: 0.20, ssd: 380, goWindow: 1300 },
-  medium: { stopProb: 0.30, ssd: 250, goWindow: 1100 },
-  hard:   { stopProb: 0.35, ssd: 160, goWindow: 1000 },
-};
+// Уровень 1..15. Ось усложнения (по паттерну cpt/simon):
+//   goWindow сокращается (реагировать надо быстрее),
+//   ssd растёт (стоп-сигнал приходит позже — отменить ответ труднее),
+//   stopProb растёт умеренно (стоп-проб больше — выше нагрузка на торможение),
+//   trials растёт ступенями 20 → 26 → 32.
+function levelParams(level: number): { trials: number; stopProb: number; ssd: number; goWindow: number } {
+  const trials = level <= 5 ? 20 : level <= 10 ? 26 : 32;
+  const stopProb = Math.min(0.35, 0.20 + (level - 1) * 0.011);   // 20% → 35%
+  const ssd = Math.min(480, 150 + (level - 1) * 24);             // 150мс → 480мс
+  const goWindow = Math.max(850, 1300 - (level - 1) * 32);       // 1300мс → ~850мс
+  return { trials, stopProb, ssd, goWindow };
+}
 
 type GngStimulus = 'go' | 'nogo' | null;
 type SsState = 'idle' | 'go' | 'stop' | 'feedback';
 
 export default function InhibitionGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const params = useLocalSearchParams<{ mode?: string }>();
 
@@ -62,10 +80,13 @@ export default function InhibitionGame() {
     params.mode === 'go_no_go' || params.mode === 'stop_signal' || params.mode === 'mixed'
       ? params.mode : null;
 
+  const { isPreset } = useGamePreset();
+  const lvl = usePersistentLevel('inhibition');
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+
   const [phase, setPhase] = useState<GamePhase>(presetMode ? 'config' : 'intro');
   const [subMode, setSubMode] = useState<SubMode>(presetMode || 'go_no_go');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [trials, setTrials] = useState(30);
+  const [totalTrials, setTotalTrials] = useState(20);
 
   const [round, setRound] = useState(0);
 
@@ -75,7 +96,6 @@ export default function InhibitionGame() {
   const [falseAlarms, setFalseAlarms] = useState(0); // pressed on no-go (or on stop-signal)
   const [correctRej, setCorrectRej] = useState(0);   // didn't press on no-go / stop
   const [rts, setRts] = useState<number[]>([]);
-  const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
 
   // Refs mirror state for use in async handlers / timers
@@ -86,6 +106,18 @@ export default function InhibitionGame() {
     setCorrectRej(next.cr); setRts(next.rts);
   };
 
+  // Параметры уровня + счётчики раунда — в рефах: таймерная цепочка
+  // (fixDelay → стимул → окно → следующая проба) живёт вне ре-рендеров,
+  // state в её колбэках был бы устаревшим (паттерн cpt/simon).
+  const levelRef = useRef(1);
+  const stopProbRef = useRef(0.20);
+  const ssdRef = useRef(150);
+  const goWindowRef = useRef(1300);
+  const totalTrialsRef = useRef(20);
+  const subModeRef = useRef<SubMode>('go_no_go');
+  const roundRef = useRef(0);
+  const startTimeRef = useRef(0);
+
   // GNG-specific
   const [gngStim, setGngStim] = useState<GngStimulus>(null);
   const gngStimAtRef = useRef<number>(0);
@@ -94,7 +126,7 @@ export default function InhibitionGame() {
   // SS-specific
   const [ssSignal, setSsSignal] = useState<SsState>('idle');
   const [ssFeedback, setSsFeedback] = useState<'right' | 'wrong' | null>(null);
-  const [ssTrialIsStop, setSsTrialIsStop] = useState(false);
+  const ssTrialIsStopRef = useRef(false);
   const ssGoAtRef = useRef<number>(0);
   const ssRespondedRef = useRef<boolean>(false);
 
@@ -111,39 +143,63 @@ export default function InhibitionGame() {
   // ─── Lifecycle ─────────────────────────────────────────────────────────
 
   const startGame = () => {
+    const p = levelParams(lvl.level);
+    levelRef.current = lvl.level;
+    stopProbRef.current = p.stopProb;
+    ssdRef.current = p.ssd;
+    goWindowRef.current = p.goWindow;
+    totalTrialsRef.current = p.trials;
+    subModeRef.current = subMode;
+    setTotalTrials(p.trials);
     updateStats({ h: 0, m: 0, fa: 0, cr: 0, rts: [] });
+    roundRef.current = 0;
     setRound(0);
+    setGngStim(null);
+    setSsSignal('idle'); setSsFeedback(null);
     setPhase('playing');
-    setStartTime(Date.now());
+    startTimeRef.current = Date.now();
     pushTimer(setTimeout(() => runRound(0), 800));
   };
 
   const finish = async () => {
+    clearAllTimers();
     const { h, m, fa, cr, rts: rtsArr } = statsRef.current;
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (Date.now() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
-    setPhase('result');
     const total = h + m + fa + cr;
-    const accuracy = total > 0 ? Math.round(((h + cr) / total) * 100) : 0;
+    // Честная accuracy по механике: верные = go-нажатия (h) + верные торможения (cr);
+    // ошибки = ложные тревоги (fa: нажал на no-go/стоп) И пропуски go (m).
+    const accuracy = total > 0 ? (h + cr) / total : 0;
     const avgRT = rtsArr.length ? Math.round(rtsArr.reduce((s, x) => s + x, 0) / rtsArr.length) : 0;
+
+    // Проход уровня: ≥80% верных (на пресетах уровень не двигаем)
+    const passed = !isPreset && accuracy >= 0.8;
+    if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset) lvl.fail();
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
 
     // Save with original game_type for biomarker compatibility
     const gameType =
-      subMode === 'mixed' ? 'inhibition_mixed' :
-      subMode === 'go_no_go' ? 'go_no_go' : 'stop_signal';
+      subModeRef.current === 'mixed' ? 'inhibition_mixed' :
+      subModeRef.current === 'go_no_go' ? 'go_no_go' : 'stop_signal';
 
     try {
       await saveSession({
         game_type: gameType,
         score: h * 10 + cr * 5 - fa * 12 - m * 5,
         time_seconds: finalTime,
-        difficulty,
-        mode: subMode === 'mixed' ? `${trials}t-mixed` : `${trials}t`,
+        difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
+        mode: `lvl${levelRef.current}`,
         errors: m + fa,
         details: {
+          level: levelRef.current,
           hits: h, misses: m, falseAlarms: fa, correctRej: cr,
-          accuracy, avgRT, mean_rt: avgRT,
-          submode: subMode,
+          accuracy: Math.round(accuracy * 100), avgRT, mean_rt: avgRT,
+          submode: subModeRef.current,
+          n_trials: totalTrialsRef.current,
+          stop_prob: stopProbRef.current,
+          ssd_ms: ssdRef.current,
+          go_window_ms: goWindowRef.current,
         },
       });
     } catch (e) { console.error(e); }
@@ -151,14 +207,15 @@ export default function InhibitionGame() {
 
   // Decide which sub-trial to run (for mixed mode)
   const pickTrialKind = (rNum: number): 'gng' | 'ss' => {
-    if (subMode === 'go_no_go') return 'gng';
-    if (subMode === 'stop_signal') return 'ss';
+    if (subModeRef.current === 'go_no_go') return 'gng';
+    if (subModeRef.current === 'stop_signal') return 'ss';
     // mixed: 50/50 with seeded shuffle by round number
     return rNum % 2 === 0 ? 'gng' : 'ss';
   };
 
   const runRound = (r: number) => {
-    if (r >= trials) { finish(); return; }
+    if (r >= totalTrialsRef.current) { finish(); return; }
+    roundRef.current = r + 1;
     setRound(r + 1);
     const kind = pickTrialKind(r);
     if (kind === 'gng') runGngTrial(r);
@@ -175,7 +232,6 @@ export default function InhibitionGame() {
     gngStimAtRef.current = Date.now();
     gngRespondedRef.current = false;
 
-    const window = difficulty === 'easy' ? 1200 : difficulty === 'hard' ? 800 : 1000;
     pushTimer(setTimeout(() => {
       const s = statsRef.current;
       if (!gngRespondedRef.current) {
@@ -185,7 +241,7 @@ export default function InhibitionGame() {
       }
       setGngStim(null);
       pushTimer(setTimeout(() => runRound(r + 1), 500 + Math.random() * 300));
-    }, window));
+    }, goWindowRef.current));
   };
 
   const onGngPress = () => {
@@ -204,9 +260,8 @@ export default function InhibitionGame() {
 
   const runSsTrial = (r: number) => {
     setGngStim(null);
-    const cfg = STOP_DIFF[difficulty];
-    const isStop = Math.random() < cfg.stopProb;
-    setSsTrialIsStop(isStop);
+    const isStop = Math.random() < stopProbRef.current;
+    ssTrialIsStopRef.current = isStop;
     setSsSignal('idle'); setSsFeedback(null);
     ssRespondedRef.current = false;
 
@@ -217,12 +272,12 @@ export default function InhibitionGame() {
       if (isStop) {
         pushTimer(setTimeout(() => {
           if (!ssRespondedRef.current) setSsSignal('stop');
-        }, cfg.ssd));
+        }, ssdRef.current));
       }
       pushTimer(setTimeout(() => {
         if (ssRespondedRef.current) return;
         endSsTrial(r, isStop ? 'stop_ok' : 'go_miss', 0);
-      }, cfg.goWindow));
+      }, goWindowRef.current));
     }, fixDelay));
   };
 
@@ -248,78 +303,79 @@ export default function InhibitionGame() {
     if (ssSignal !== 'go' && ssSignal !== 'stop') return;
     ssRespondedRef.current = true;
     const rt = Date.now() - ssGoAtRef.current;
-    const isStopTrial = ssTrialIsStop;
-    endSsTrial(round - 1, isStopTrial ? 'stop_fail' : 'go_hit', rt);
+    const isStopTrial = ssTrialIsStopRef.current;
+    endSsTrial(roundRef.current - 1, isStopTrial ? 'stop_fail' : 'go_hit', rt);
   };
 
   // ─── Render: config ─────────────────────────────────────────────────────
 
-  const renderConfig = () => (
-    <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="hand-left" size={48} color="#FFF" />
-        <Text style={styles.configTitle}>{t('inhibition')}</Text>
-        <Text style={styles.configDesc}>{t('inhibitionDesc')}</Text>
-      </LinearGradient>
+  const renderConfig = () => {
+    const p = levelParams(lvl.level);
+    return (
+      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+        <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+          <Ionicons name="hand-left" size={48} color="#FFF" />
+          <Text style={styles.configTitle}>{t('inhibition')}</Text>
+          <Text style={styles.configDesc}>{t('inhibitionDesc')}</Text>
+        </LinearGradient>
 
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('inhibitionModeLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {(['go_no_go', 'stop_signal', 'mixed'] as SubMode[]).map((m) => (
-            <TouchableOpacity key={m} style={[styles.modeButton, subMode === m
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setSubMode(m)}>
-              <Text style={[styles.modeButtonText, { color: subMode === m ? '#FFF' : colors.text }]}>
-                {m === 'go_no_go' ? t('goNoGo') : m === 'stop_signal' ? t('stopSignal') : t('mixedMode')}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <Text style={[styles.modeHint, { color: colors.textSecondary }]}>
-          {subMode === 'go_no_go' ? t('inhibitionGngHint')
-            : subMode === 'stop_signal' ? t('inhibitionSsHint')
-            : t('inhibitionMixedHint')}
-        </Text>
-      </View>
-
-      {subMode === 'stop_signal' || subMode === 'mixed' ? (
+        {/* Селектор суб-режима остаётся: он меняет ПРАВИЛО игры (парадигму), не сложность */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('inhibitionModeLabel')}</Text>
           <View style={styles.optionButtons}>
-            {(['easy','medium','hard'] as Difficulty[]).map((d) => (
-              <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
+            {(['go_no_go', 'stop_signal', 'mixed'] as SubMode[]).map((m) => (
+              <TouchableOpacity key={m} style={[styles.modeButton, subMode === m
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-                onPress={() => setDifficulty(d)}>
-                <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>{t(d)}</Text>
+                onPress={() => setSubMode(m)}>
+                <Text style={[styles.modeButtonText, { color: subMode === m ? '#FFF' : colors.text }]}>
+                  {m === 'go_no_go' ? t('goNoGo') : m === 'stop_signal' ? t('stopSignal') : t('mixedMode')}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
+          <Text style={[styles.modeHint, { color: colors.textSecondary }]}>
+            {subMode === 'go_no_go' ? t('inhibitionGngHint')
+              : subMode === 'stop_signal' ? t('inhibitionSsHint')
+              : t('inhibitionMixedHint')}
+          </Text>
         </View>
-      ) : null}
 
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {[20, 30, 50].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, trials === n
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setTrials(n)}>
-              <Text style={[styles.modeButtonText, { color: trials === n ? '#FFF' : colors.text }]}>{n}</Text>
+        <LevelProgressMap gameId="inhibition" currentLevel={lvl.level} colors={colors} language={language} />
+        <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+          <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+            {subMode === 'go_no_go'
+              ? (language === 'ru'
+                ? `${p.trials} проб · окно ответа ${(p.goWindow / 1000).toFixed(1)} с`
+                : `${p.trials} trials · ${(p.goWindow / 1000).toFixed(1)} s response window`)
+              : (language === 'ru'
+                ? `${p.trials} проб · окно ответа ${(p.goWindow / 1000).toFixed(1)} с · стоп-проб ~${Math.round(p.stopProb * 100)}% · стоп через ${p.ssd} мс`
+                : `${p.trials} trials · ${(p.goWindow / 1000).toFixed(1)} s window · ~${Math.round(p.stopProb * 100)}% stop trials · stop at ${p.ssd} ms`)}
+          </Text>
+          {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
+          <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+            {language === 'ru'
+              ? 'Проход уровня: ≥80% верных (нажал на NO/стоп или пропустил GO = ошибка)'
+              : 'To pass: ≥80% correct (pressing on NO/stop or missing GO counts as an error)'}
+          </Text>
+          {lvl.level > 1 && (
+            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
-          ))}
+          )}
         </View>
-      </View>
 
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </ScrollView>
-  );
+        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+          <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+            <Text style={styles.startBtnText}>{t('start')}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
 
   // ─── Render: playing ────────────────────────────────────────────────────
 
@@ -328,7 +384,7 @@ export default function InhibitionGame() {
   const renderGng = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits + correctRej}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
       </View>
@@ -362,7 +418,7 @@ export default function InhibitionGame() {
   const renderSs = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#3b82f6' }]}>✋{correctRej}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
@@ -399,6 +455,12 @@ export default function InhibitionGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared gameId="inhibition" level={levelRef.current}
+          stars={(misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={hits * 10 + correctRej * 5 - falseAlarms * 12 - misses * 5}
