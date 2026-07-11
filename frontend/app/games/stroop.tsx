@@ -1,5 +1,16 @@
+/**
+ * Stroop — классический тест интерференции (цвет чернил vs значение слова).
+ *
+ * Система уровней (по паттерну cpt.tsx): сложность растёт ТРУДНОСТЬЮ, не временем:
+ *   - окно ответа на пробу сокращается с уровнем (3.5с → 1.2с);
+ *   - доля конфликтных проб (incongruent: слово ≠ цвет чернил) растёт (50% → 90%);
+ *   - на верхних уровнях (11+) растёт число трейлов (20 → 30).
+ * Просрочка окна ответа = ошибка (miss). Проход уровня: точность ≥85% за раунд.
+ *
+ * Биомаркеры: mean RT congruent/incongruent, interference_ms (Stroop effect).
+ */
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -10,6 +21,10 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#fc466b', '#3f5efb'];
 const STROOP_BENEFITS = [
@@ -25,143 +40,240 @@ const COLORS_DEF = [
   { name: 'yellow', ru: 'ЖЁЛТЫЙ', en: 'YELLOW', hex: '#eab308' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Mode = 'word' | 'ink';
+
+// Маппинг уровня (1..15) в параметры сложности:
+//   L1-5  — окно 3500→2840мс, конфликтных 50→62%, 20 трейлов
+//   L6-10 — окно 2675→2015мс, конфликтных 65→77%, 20 трейлов
+//   L11-15— окно 1850→1200мс, конфликтных 80→90%, трейлы 22→30
+function levelParams(level: number): { trials: number; windowMs: number; incongruentRatio: number } {
+  const trials = level <= 10 ? 20 : Math.min(30, 20 + (level - 10) * 2);
+  const windowMs = Math.max(1200, 3500 - (level - 1) * 165);
+  const incongruentRatio = Math.min(0.9, 0.5 + (level - 1) * 0.03);
+  return { trials, windowMs, incongruentRatio };
+}
 
 export default function StroopGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
 
+  const { isPreset, str, num } = useGamePreset();
+  const lvl = usePersistentLevel('stroop');
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [mode, setMode] = useState<Mode>('ink');
-  const [trials] = useState(20);
-  const [round, setRound] = useState(0);
+  const [mode, setMode] = useState<Mode>(() => (str('mode', 'ink') === 'word' ? 'word' : 'ink'));
   const [word, setWord] = useState(COLORS_DEF[0]);
   const [inkColor, setInkColor] = useState(COLORS_DEF[1]);
+  const [round, setRound] = useState(0);
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
-  const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [trialStartTime, setTrialStartTime] = useState(0);
-  const [rtsCongruent, setRtsCongruent] = useState<number[]>([]);
-  const [rtsIncongruent, setRtsIncongruent] = useState<number[]>([]);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  // refs — таймер окна ответа живёт вне ре-рендера (без stale closures)
+  const levelRef = useRef(1);
+  const trialsRef = useRef(20);
+  const windowMsRef = useRef(3500);
+  const incongruentRef = useRef(0.5);
+  const modeRef = useRef<Mode>('ink');
+  const roundRef = useRef(0);
+  const hitsRef = useRef(0);
+  const errorsRef = useRef(0);
+  const missesRef = useRef(0);
+  const rtsCongruentRef = useRef<number[]>([]);
+  const rtsIncongruentRef = useRef<number[]>([]);
+  const wordRef = useRef(COLORS_DEF[0]);
+  const inkRef = useRef(COLORS_DEF[1]);
+  const trialStartRef = useRef(0);
+  const startTimeRef = useRef(0);
+  const answeredRef = useRef(false);
+  const windowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stoppedRef = useRef(false);
+
+  useEffect(() => () => {
+    stoppedRef.current = true;
+    if (windowTimerRef.current) clearTimeout(windowTimerRef.current);
   }, []);
 
   const nextRound = () => {
+    if (stoppedRef.current) return;
     const w = COLORS_DEF[Math.floor(Math.random() * 4)];
     let c;
-    if (Math.random() < 0.7) {
+    if (Math.random() < incongruentRef.current) {
       do { c = COLORS_DEF[Math.floor(Math.random() * 4)]; } while (c.name === w.name);
     } else {
       c = w;
     }
+    wordRef.current = w; inkRef.current = c;
     setWord(w); setInkColor(c);
+    answeredRef.current = false;
+    trialStartRef.current = Date.now();
+    if (windowTimerRef.current) clearTimeout(windowTimerRef.current);
+    windowTimerRef.current = setTimeout(handleTimeout, windowMsRef.current);
+  };
+
+  const advanceOrFinish = () => {
+    if (roundRef.current >= trialsRef.current) { finish(); return; }
+    roundRef.current += 1;
+    setRound(roundRef.current);
+    nextRound();
+  };
+
+  // просрочка окна ответа = ошибка (miss)
+  const handleTimeout = () => {
+    if (stoppedRef.current || answeredRef.current) return;
+    answeredRef.current = true;
+    missesRef.current += 1;
+    errorsRef.current += 1;
+    setErrors(errorsRef.current);
+    advanceOrFinish();
+  };
+
+  const handleAnswer = (chosen: typeof COLORS_DEF[0]) => {
+    if (stoppedRef.current || answeredRef.current) return;
+    answeredRef.current = true;
+    if (windowTimerRef.current) clearTimeout(windowTimerRef.current);
+    const correctName = modeRef.current === 'ink' ? inkRef.current.name : wordRef.current.name;
+    const isCongruent = inkRef.current.name === wordRef.current.name;
+    const rt = Date.now() - trialStartRef.current;
+    if (chosen.name === correctName) {
+      hitsRef.current += 1;
+      setHits(hitsRef.current);
+      // record RT only on correct trials (standard psychometric convention)
+      if (isCongruent) rtsCongruentRef.current.push(rt);
+      else rtsIncongruentRef.current.push(rt);
+    } else {
+      errorsRef.current += 1;
+      setErrors(errorsRef.current);
+    }
+    advanceOrFinish();
   };
 
   const startGame = () => {
+    const p = levelParams(lvl.level);
+    levelRef.current = lvl.level;
+    trialsRef.current = isPreset ? num('trials', p.trials) : p.trials;
+    windowMsRef.current = p.windowMs;
+    incongruentRef.current = p.incongruentRatio;
+    modeRef.current = mode;
+    stoppedRef.current = false;
+    hitsRef.current = 0; errorsRef.current = 0; missesRef.current = 0;
+    rtsCongruentRef.current = []; rtsIncongruentRef.current = [];
+    roundRef.current = 1;
     setHits(0); setErrors(0); setRound(1);
-    setRtsCongruent([]); setRtsIncongruent([]);
-    nextRound();
     setPhase('playing');
-    const start = Date.now();
-    setStartTime(start);
-    setTrialStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    startTimeRef.current = Date.now();
+    nextRound();
   };
 
-  const handleAnswer = async (chosen: typeof COLORS_DEF[0]) => {
-    const correct = mode === 'ink' ? inkColor.name : word.name;
-    const isCongruent = inkColor.name === word.name;
-    const rt = Date.now() - trialStartTime;
-    const isCorrect = chosen.name === correct;
-
-    if (isCorrect) {
-      setHits((h) => h + 1);
-      // record RT only on correct trials (standard psychometric convention)
-      if (isCongruent) setRtsCongruent((arr) => [...arr, rt]);
-      else setRtsIncongruent((arr) => [...arr, rt]);
-    } else setErrors((e) => e + 1);
-
-    if (round >= trials) {
-      if (timerRef.current) clearInterval(timerRef.current);
-      const finalTime = (Date.now() - startTime) / 1000;
-      setElapsedTime(finalTime);
-      setPhase('result');
-      // compute final means including this last trial
-      const finalRtsCongr = isCorrect && isCongruent ? [...rtsCongruent, rt] : rtsCongruent;
-      const finalRtsIncongr = isCorrect && !isCongruent ? [...rtsIncongruent, rt] : rtsIncongruent;
-      const meanCongr = finalRtsCongr.length ? Math.round(finalRtsCongr.reduce((a,b)=>a+b,0) / finalRtsCongr.length) : 0;
-      const meanIncongr = finalRtsIncongr.length ? Math.round(finalRtsIncongr.reduce((a,b)=>a+b,0) / finalRtsIncongr.length) : 0;
-      const interferenceMs = meanCongr && meanIncongr ? meanIncongr - meanCongr : 0;
-      try {
-        await saveSession({
-          game_type: 'stroop',
-          score: hits + (isCorrect ? 1 : 0),
-          time_seconds: finalTime,
-          difficulty: mode,
-          mode: `${trials}t`,
-          errors: errors + (isCorrect ? 0 : 1),
-          details: {
-            hits: hits + (isCorrect ? 1 : 0),
-            errors: errors + (isCorrect ? 0 : 1),
-            mean_rt_congruent: meanCongr,
-            mean_rt_incongruent: meanIncongr,
-            interference_ms: interferenceMs,
-          },
-        });
-      } catch (e) { console.error(e); }
-    } else {
-      setRound((r) => r + 1);
-      setTrialStartTime(Date.now());
-      nextRound();
-    }
+  const finish = async () => {
+    if (windowTimerRef.current) clearTimeout(windowTimerRef.current);
+    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    setElapsedTime(finalTime);
+    const totalHits = hitsRef.current;
+    const totalErrors = errorsRef.current;
+    const accuracy = trialsRef.current > 0 ? totalHits / trialsRef.current : 0;
+    const rc = rtsCongruentRef.current;
+    const ri = rtsIncongruentRef.current;
+    const meanCongr = rc.length ? Math.round(rc.reduce((a, b) => a + b, 0) / rc.length) : 0;
+    const meanIncongr = ri.length ? Math.round(ri.reduce((a, b) => a + b, 0) / ri.length) : 0;
+    const interferenceMs = meanCongr && meanIncongr ? meanIncongr - meanCongr : 0;
+    // проход уровня: точность ≥85% за раунд (просрочки окна считаются ошибками);
+    // на пресет-запусках (зарядка) уровень не трогаем — ни reach, ни fail
+    const passed = !isPreset && accuracy >= 0.85;
+    if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset) lvl.fail();
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    try {
+      await saveSession({
+        game_type: 'stroop',
+        score: totalHits,
+        time_seconds: finalTime,
+        difficulty: modeRef.current,
+        mode: `lvl${levelRef.current}`,
+        errors: totalErrors,
+        details: {
+          level: levelRef.current,
+          hits: totalHits,
+          errors: totalErrors,
+          misses: missesRef.current,
+          accuracy: Math.round(accuracy * 100),
+          window_ms: windowMsRef.current,
+          incongruent_ratio: incongruentRef.current,
+          mean_rt_congruent: meanCongr,
+          mean_rt_incongruent: meanIncongr,
+          interference_ms: interferenceMs,
+        },
+      });
+    } catch (e) { console.error(e); }
   };
 
-  const renderConfig = () => (
-    <View style={styles.configContainer}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="eye" size={48} color="#FFF" />
-        <Text style={styles.configTitle}>{t('stroop')}</Text>
-        <Text style={styles.configDesc}>{t('stroopDesc')}</Text>
-      </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('stroopModeLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {(['ink', 'word'] as Mode[]).map((m) => (
-            <TouchableOpacity
-              key={m}
-              style={[
-                styles.modeButton,
-                mode === m
-                  ? { backgroundColor: GRADIENT[0] }
-                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-              ]}
-              onPress={() => setMode(m)}
-            >
-              <Text style={[styles.modeButtonText, { color: mode === m ? '#FFF' : colors.text }]}>
-                {m === 'ink' ? t('stroopByInk') : t('stroopByWord')}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
+  const renderConfig = () => {
+    const p = levelParams(lvl.level);
+    return (
+      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+        <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+          <Ionicons name="eye" size={48} color="#FFF" />
+          <Text style={styles.configTitle}>{t('stroop')}</Text>
+          <Text style={styles.configDesc}>{t('stroopDesc')}</Text>
         </LinearGradient>
-      </TouchableOpacity>
-    </View>
-  );
+        <LevelProgressMap gameId="stroop" currentLevel={lvl.level} colors={colors} language={language} />
+        <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+          <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+            {language === 'ru'
+              ? `${p.trials} проб · окно ответа ${(p.windowMs / 1000).toFixed(1)} с · конфликтных ${Math.round(p.incongruentRatio * 100)}%`
+              : `${p.trials} trials · ${(p.windowMs / 1000).toFixed(1)} s response window · ${Math.round(p.incongruentRatio * 100)}% conflict trials`}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+            {language === 'ru'
+              ? 'Проход уровня: точность ≥85% (не успел ответить = ошибка)'
+              : 'To pass: ≥85% accuracy (missing the response window counts as an error)'}
+          </Text>
+          {lvl.level > 1 && (
+            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('stroopModeLabel')}</Text>
+          <View style={styles.optionButtons}>
+            {(['ink', 'word'] as Mode[]).map((m) => (
+              <TouchableOpacity
+                key={m}
+                style={[
+                  styles.modeButton,
+                  mode === m
+                    ? { backgroundColor: GRADIENT[0] }
+                    : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                ]}
+                onPress={() => setMode(m)}
+              >
+                <Text style={[styles.modeButtonText, { color: mode === m ? '#FFF' : colors.text }]}>
+                  {m === 'ink' ? t('stroopByInk') : t('stroopByWord')}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+          <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+            <Text style={styles.startBtnText}>{t('start')}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
 
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trialsRef.current}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
       </View>
@@ -190,7 +302,8 @@ export default function StroopGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+          onPress={() => { stoppedRef.current = true; if (windowTimerRef.current) clearTimeout(windowTimerRef.current); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('stroop')}</Text>
@@ -210,6 +323,11 @@ export default function StroopGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared gameId="stroop" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult score={hits} time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
@@ -224,6 +342,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
+  configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },

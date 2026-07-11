@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -10,6 +10,10 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
 const GRADIENT = ['#8E2DE2', '#4A00E0'];
 const STROOP2_BENEFITS = [
@@ -22,7 +26,7 @@ const STROOP2_BENEFITS = [
 // Subject names INK COLOR of words. Words have valence: threat / positive / neutral.
 // Threat words slow color naming → emotional interference.
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Valence = 'threat' | 'positive' | 'neutral';
 
 const COLORS_RGB = ['red', 'green', 'blue', 'yellow'];
@@ -48,9 +52,27 @@ interface Trial { word: string; valence: Valence; color: string; }
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
-function makeTrial(lang: 'ru' | 'en'): Trial {
-  // balanced distribution: 1/3 threat, 1/3 positive, 1/3 neutral (per Williams et al. mixed)
-  const valence = rndItem<Valence>(['threat','positive','neutral']);
+// Сложность растёт ТРУДНОСТЬЮ, не временем (по образцу cpt):
+//   - окно ответа сокращается 3500→1400мс (не успел выбрать цвет = ошибка)
+//   - доля эмоционально заряженных слов (threat/positive) растёт 40%→85% — интерференции больше
+//   - межстимульная пауза сокращается (темп растёт)
+const TRIALS_PER_ROUND = 18;
+function levelParams(level: number): { trials: number; answerWindowMs: number; emotionalRatio: number; isiBaseMs: number; isiJitterMs: number } {
+  return {
+    trials: TRIALS_PER_ROUND,
+    answerWindowMs: Math.max(1400, 3500 - (level - 1) * 150),
+    emotionalRatio: Math.min(0.85, 0.40 + (level - 1) * 0.032),
+    isiBaseMs: Math.max(250, 500 - (level - 1) * 18),
+    isiJitterMs: Math.max(200, 400 - (level - 1) * 15),
+  };
+}
+
+function makeTrial(lang: 'ru' | 'en', emotionalRatio: number): Trial {
+  // Доля эмоционально заряженных слов растёт с уровнем; нейтральные остаются базой интерференции.
+  // Внутри эмоциональной доли перевес к threat (главный источник конфликта в Emotional Stroop).
+  const valence: Valence = Math.random() < emotionalRatio
+    ? (Math.random() < 0.6 ? 'threat' : 'positive')
+    : 'neutral';
   const word = rndItem(WORDS[valence][lang]);
   const color = rndItem(COLORS_RGB);
   return { word, valence, color };
@@ -61,8 +83,11 @@ export default function StroopEmotionalGame() {
   const { t, language } = useLanguage() as any;
   const router = useRouter();
 
+  const { isPreset, num } = useGamePreset();
+  const lvl = usePersistentLevel('stroop_emotional');
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [trials, setTrials] = useState(24);
 
   const [round, setRound] = useState(0);
   const [trial, setTrial] = useState<Trial>({ word: '', valence: 'neutral', color: 'red' });
@@ -73,71 +98,131 @@ export default function StroopEmotionalGame() {
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [rtsByValence, setRtsByValence] = useState<Record<Valence, number[]>>({ threat: [], positive: [], neutral: [] });
-  const [startTime, setStartTime] = useState(0);
+
+  // refs — счётчики и параметры уровня живут вне ре-рендера (таймеры/дедлайн, паттерн cpt)
+  const levelRef = useRef(1);
+  const trialsRef = useRef(TRIALS_PER_ROUND);
+  const windowRef = useRef(3500);
+  const emoRatioRef = useRef(0.4);
+  const isiBaseRef = useRef(500);
+  const isiJitterRef = useRef(400);
+  const roundRef = useRef(1);
+  const hitsRef = useRef(0);
+  const errorsRef = useRef(0);
+  const rtsRef = useRef<Record<Valence, number[]>>({ threat: [], positive: [], neutral: [] });
+  const answeredRef = useRef(false);
+  const startTimeRef = useRef(0);
 
   const stimTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fbTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deadlineTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
-    [stimTimer, fbTimer].forEach(r => { if (r.current) clearTimeout(r.current); });
+    [stimTimer, fbTimer, deadlineTimer].forEach(r => { if (r.current) clearTimeout(r.current); });
   }, []);
+
+  const advance = () => {
+    if (roundRef.current >= trialsRef.current) { finish(); return; }
+    roundRef.current += 1;
+    setRound(roundRef.current);
+    newTrial();
+  };
+
+  // Просрочка окна ответа уровня = ошибка (RT-давление — ось усложнения)
+  const handleTimeout = () => {
+    if (answeredRef.current) return;
+    answeredRef.current = true;
+    errorsRef.current += 1;
+    setErrors(errorsRef.current);
+    setFeedback('wrong');
+    fbTimer.current = setTimeout(advance, 350);
+  };
 
   const newTrial = () => {
     setShowStim(false); setFeedback(null);
-    const tr = makeTrial(language);
+    answeredRef.current = false;
+    const tr = makeTrial(language, emoRatioRef.current);
     setTrial(tr);
     stimTimer.current = setTimeout(() => {
       setStimAt(Date.now());
       setShowStim(true);
-    }, 500 + Math.random() * 400);
+      deadlineTimer.current = setTimeout(handleTimeout, windowRef.current);
+    }, isiBaseRef.current + Math.random() * isiJitterRef.current);
   };
 
   const startGame = () => {
-    setHits(0); setErrors(0); setRtsByValence({ threat: [], positive: [], neutral: [] }); setRound(1);
+    const p = levelParams(lvl.level);
+    levelRef.current = lvl.level;
+    trialsRef.current = isPreset ? num('trials', p.trials) : p.trials;
+    windowRef.current = p.answerWindowMs;
+    emoRatioRef.current = p.emotionalRatio;
+    isiBaseRef.current = p.isiBaseMs;
+    isiJitterRef.current = p.isiJitterMs;
+    hitsRef.current = 0; errorsRef.current = 0;
+    rtsRef.current = { threat: [], positive: [], neutral: [] };
+    roundRef.current = 1;
+    setHits(0); setErrors(0); setRtsByValence({ threat: [], positive: [], neutral: [] });
+    setRound(1);
     setPhase('playing');
-    setStartTime(Date.now());
+    startTimeRef.current = Date.now();
     newTrial();
   };
 
-  const finish = async (h: number, e: number, allRts: Record<Valence, number[]>) => {
-    const totalTime = (Date.now() - startTime) / 1000;
+  const finish = async () => {
+    if (deadlineTimer.current) clearTimeout(deadlineTimer.current);
+    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const allRts = rtsRef.current;
     const meanV = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
     const tMean = meanV(allRts.threat), pMean = meanV(allRts.positive), nMean = meanV(allRts.neutral);
     const interferenceThreat = Math.round(tMean - nMean);
     const interferencePositive = Math.round(pMean - nMean);
     const flatten = [...allRts.threat, ...allRts.positive, ...allRts.neutral];
     const meanRt = flatten.length ? flatten.reduce((a, b) => a + b, 0) / flatten.length : 0;
-    setPhase('result');
+
+    // Проход уровня: назвать цвет верно (и успеть в окно) в ≥80% проб
+    const total = trialsRef.current;
+    const accuracy = total > 0 ? hitsRef.current / total : 0;
+    const passed = !isPreset && accuracy >= 0.8;
+    if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset) lvl.fail();
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+
     try {
       await saveSession({
         game_type: 'stroop_emotional',
-        score: Math.max(0, Math.round(h * 80 - e * 60 - meanRt * 0.05)),
+        score: Math.max(0, Math.round(hitsRef.current * 80 - errorsRef.current * 60 - meanRt * 0.05)),
         time_seconds: totalTime,
-        difficulty: 'medium',
-        mode: `${trials}t`,
-        errors: e,
+        difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
+        mode: `lvl${levelRef.current}`,
+        errors: errorsRef.current,
         details: {
+          level: levelRef.current,
           mean_rt: Math.round(meanRt),
           interference_threat_ms: interferenceThreat,
           interference_positive_ms: interferencePositive,
+          accuracy: Math.round(accuracy * 100),
         },
       });
     } catch (err) { console.error(err); }
   };
 
   const handleAnswer = (color: string) => {
-    if (!showStim || feedback !== null) return;
+    if (!showStim || feedback !== null || answeredRef.current) return;
+    answeredRef.current = true;
+    if (deadlineTimer.current) clearTimeout(deadlineTimer.current);
     const rt = Date.now() - stimAt;
     const ok = color === trial.color;
-    let nh = hits, ne = errors, nr = rtsByValence;
-    if (ok) { nh = hits + 1; nr = { ...rtsByValence, [trial.valence]: [...rtsByValence[trial.valence], rt] }; }
-    else ne = errors + 1;
-    setHits(nh); setErrors(ne); setRtsByValence(nr);
+    if (ok) {
+      hitsRef.current += 1;
+      rtsRef.current = { ...rtsRef.current, [trial.valence]: [...rtsRef.current[trial.valence], rt] };
+      setHits(hitsRef.current);
+      setRtsByValence(rtsRef.current);
+    } else {
+      errorsRef.current += 1;
+      setErrors(errorsRef.current);
+    }
     setFeedback(ok ? 'right' : 'wrong');
-    fbTimer.current = setTimeout(() => {
-      if (round >= trials) finish(nh, ne, nr);
-      else { setRound(r => r + 1); newTrial(); }
-    }, 350);
+    fbTimer.current = setTimeout(advance, 350);
   };
 
   const meanV = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
@@ -148,38 +233,50 @@ export default function StroopEmotionalGame() {
     return all.length ? Math.round(all.reduce((a, b) => a + b, 0) / all.length) : 0;
   })();
 
-  const renderConfig = () => (
-    <View style={styles.configContainer}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="heart-dislike" size={48} color="#FFF" />
-        <Text style={styles.configTitle}>{t('stroopEmotional')}</Text>
-        <Text style={styles.configDesc}>{t('stroopEmotionalDesc')}</Text>
-      </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {[12, 24, 36].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, trials === n
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setTrials(n)}>
-              <Text style={[styles.modeButtonText, { color: trials === n ? '#FFF' : colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
+  const renderConfig = () => {
+    const p = levelParams(lvl.level);
+    return (
+      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+        <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+          <Ionicons name="heart-dislike" size={48} color="#FFF" />
+          <Text style={styles.configTitle}>{t('stroopEmotional')}</Text>
+          <Text style={styles.configDesc}>{t('stroopEmotionalDesc')}</Text>
         </LinearGradient>
-      </TouchableOpacity>
-    </View>
-  );
+        <LevelProgressMap gameId="stroop_emotional" currentLevel={lvl.level} colors={colors} language={language} />
+        <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+          <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+            {language === 'ru'
+              ? `${p.trials} слов · окно ответа ${(p.answerWindowMs / 1000).toFixed(1)} с · эмоциональных слов ${Math.round(p.emotionalRatio * 100)}%`
+              : `${p.trials} words · ${(p.answerWindowMs / 1000).toFixed(1)} s to answer · ${Math.round(p.emotionalRatio * 100)}% emotional words`}
+          </Text>
+          {/* критерий прохождения уровня виден игроку (паттерн cpt) */}
+          <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+            {language === 'ru'
+              ? 'Проход уровня: назвать цвет верно в ≥80% слов (не успел — ошибка)'
+              : 'To pass: name the ink color correctly on ≥80% of words (timeout counts as an error)'}
+          </Text>
+          {lvl.level > 1 && (
+            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+          <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+            <Text style={styles.startBtnText}>{t('start')}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
 
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trialsRef.current}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
@@ -221,6 +318,12 @@ export default function StroopEmotionalGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared gameId="stroop_emotional" level={levelRef.current}
+          stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, Math.round(hits * 80 - errors * 60 - meanRtAll * 0.05))}
@@ -237,15 +340,13 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
+  configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
   configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  modeButton: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 8 },
-  modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },

@@ -14,6 +14,9 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#16222a', '#3a6073'];
 const FL_BENEFITS = [
@@ -22,25 +25,30 @@ const FL_BENEFITS = [
   { icon: 'shield-checkmark-outline', textKey: 'benefitFl3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
 type TrialKind = 'congruent' | 'incongruent' | 'neutral';
 type Direction = 'left' | 'right';
 
 interface Trial { center: Direction; kind: TrialKind; flankers: Direction[] | null; }
 
-function makeTrial(diff: Difficulty): Trial {
+// Сложность растёт ТРУДНОСТЬЮ, не временем: окно ответа сокращается + доля конфликтных
+// (incongruent) стрелок растёт. Распределения = бывшая DIFF-таблица easy/medium/hard:
+//   L1-5  — как easy   (50% congruent / 30% incongruent / 20% neutral), окно 3000→2200мс
+//   L6-10 — как medium (40% / 45% / 15%),                               окно 2000→1600мс
+//   L11-15— как hard   (30% / 65% / 5%),                                окно 1400→1000мс
+function levelParams(level: number): { trials: number; windowMs: number; pCong: number; pIncong: number } {
+  const trials = 20;
+  if (level <= 5)  return { trials, windowMs: 3000 - (level - 1) * 200, pCong: 0.5, pIncong: 0.3 };
+  if (level <= 10) return { trials, windowMs: 2000 - (level - 6) * 100, pCong: 0.4, pIncong: 0.45 };
+  return { trials, windowMs: Math.max(1000, 1400 - (level - 11) * 100), pCong: 0.3, pIncong: 0.65 };
+}
+
+function makeTrial(pCong: number, pIncong: number): Trial {
   const center: Direction = Math.random() < 0.5 ? 'left' : 'right';
-  // distribution of trial types depends on difficulty
+  // distribution of trial types comes from levelParams (ex-difficulty table)
   const r = Math.random();
-  let kind: TrialKind;
-  if (diff === 'easy') {
-    kind = r < 0.5 ? 'congruent' : r < 0.8 ? 'incongruent' : 'neutral';
-  } else if (diff === 'medium') {
-    kind = r < 0.4 ? 'congruent' : r < 0.85 ? 'incongruent' : 'neutral';
-  } else {
-    kind = r < 0.3 ? 'congruent' : r < 0.95 ? 'incongruent' : 'neutral';
-  }
+  const kind: TrialKind = r < pCong ? 'congruent' : r < pCong + pIncong ? 'incongruent' : 'neutral';
   let flankers: Direction[] | null;
   if (kind === 'congruent') flankers = [center, center, center, center];
   else if (kind === 'incongruent') {
@@ -55,10 +63,12 @@ export default function FlankerGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
+  const lvl = usePersistentLevel('flanker');
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
+  // пресет (зарядка) передаёт diff/trials; личная игра рулится уровнем
+  const [difficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
   const [trials, setTrials] = useState(() => num('trials', 20));
 
   const [round, setRound] = useState(0);
@@ -70,48 +80,92 @@ export default function FlankerGame() {
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [rtsByKind, setRtsByKind] = useState<Record<TrialKind, number[]>>({ congruent: [], incongruent: [], neutral: [] });
-  const [startTime, setStartTime] = useState(0);
 
   const stimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deadlineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // рефы — таймеры (окно ответа) живут вне ре-рендера, без stale-closure на счётчиках
+  const levelRef = useRef(1);
+  const windowRef = useRef(3000);
+  const pCongRef = useRef(0.4);
+  const pIncongRef = useRef(0.45);
+  const trialsTotalRef = useRef(20);
+  const roundRef = useRef(0);
+  const hitsRef = useRef(0);
+  const errorsRef = useRef(0);
+  const rtsRef = useRef<Record<TrialKind, number[]>>({ congruent: [], incongruent: [], neutral: [] });
+  const trialRef = useRef<Trial>({ center: 'left', kind: 'congruent', flankers: ['left','left','left','left'] });
+  const answeredRef = useRef(true);
+  const startTimeRef = useRef(0);
+  const stimOnsetRef = useRef(0);
 
   useEffect(() => () => {
     if (stimTimerRef.current) clearTimeout(stimTimerRef.current);
+    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
     if (fbTimerRef.current) clearTimeout(fbTimerRef.current);
   }, []);
 
   const newTrial = () => {
     setShowStim(false); setFeedback(null);
-    setTrial(makeTrial(difficulty));
+    const tr = makeTrial(pCongRef.current, pIncongRef.current);
+    trialRef.current = tr;
+    setTrial(tr);
+    answeredRef.current = false;
     stimTimerRef.current = setTimeout(() => {
+      stimOnsetRef.current = Date.now();
       setStimAt(Date.now());
       setShowStim(true);
+      // окно ответа уровня: не успел — считается ошибкой (пропуск)
+      deadlineTimerRef.current = setTimeout(() => handleMiss(), windowRef.current);
     }, 500 + Math.random() * 600);
   };
 
   const startGame = () => {
+    // личная игра → уровень рулит; пресет (зарядка) → выбранный тир маппится в уровень
+    const effLevel = isPreset ? ({ easy: 3, medium: 8, hard: 13 } as Record<Difficulty, number>)[difficulty] ?? 8 : lvl.level;
+    const p = levelParams(effLevel);
+    levelRef.current = effLevel;
+    windowRef.current = p.windowMs;
+    pCongRef.current = p.pCong;
+    pIncongRef.current = p.pIncong;
+    const total = isPreset ? trials : p.trials;   // в пресете длину задаёт зарядка
+    trialsTotalRef.current = total;
+    setTrials(total);
+    hitsRef.current = 0; errorsRef.current = 0;
+    rtsRef.current = { congruent: [], incongruent: [], neutral: [] };
+    roundRef.current = 1;
     setHits(0); setErrors(0); setRtsByKind({ congruent: [], incongruent: [], neutral: [] }); setRound(1);
     setPhase('playing');
-    setStartTime(Date.now());
+    startTimeRef.current = Date.now();
     newTrial();
   };
 
-  const finish = async (h: number, e: number, allRts: Record<TrialKind, number[]>) => {
-    const totalTime = (Date.now() - startTime) / 1000;
-    const flatten = [...allRts.congruent, ...allRts.incongruent, ...allRts.neutral];
+  const finish = async () => {
+    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const all = rtsRef.current;
+    const flatten = [...all.congruent, ...all.incongruent, ...all.neutral];
     const meanRt = flatten.length ? flatten.reduce((a, b) => a + b, 0) / flatten.length : 0;
-    const congMean = allRts.congruent.length ? allRts.congruent.reduce((a, b) => a + b, 0) / allRts.congruent.length : 0;
-    const incongMean = allRts.incongruent.length ? allRts.incongruent.reduce((a, b) => a + b, 0) / allRts.incongruent.length : 0;
-    setPhase('result');
+    const congMean = all.congruent.length ? all.congruent.reduce((a, b) => a + b, 0) / all.congruent.length : 0;
+    const incongMean = all.incongruent.length ? all.incongruent.reduce((a, b) => a + b, 0) / all.incongruent.length : 0;
+    const h = hitsRef.current;
+    const e = errorsRef.current;
+    // прохождение уровня: точность ≥80% (ошибка выбора и пропуск окна считаются одинаково)
+    const accuracy = trialsTotalRef.current ? h / trialsTotalRef.current : 0;
+    const passed = !isPreset && accuracy >= 0.8;
+    if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset) lvl.fail();   // гистерезис понижения: -1 уровень после 3 провалов подряд
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
     try {
       await saveSession({
         game_type: 'flanker',
         score: Math.max(0, Math.round(h * 80 - e * 60 - meanRt * 0.05)),
         time_seconds: totalTime,
-        difficulty,
-        mode: `${trials}t`,
+        difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
+        mode: `${trialsTotalRef.current}t`,
         errors: e,
         details: {
+          level: levelRef.current,
           mean_rt: Math.round(meanRt),
           flanker_effect_ms: Math.round(incongMean - congMean),
         },
@@ -119,23 +173,41 @@ export default function FlankerGame() {
     } catch (err) { console.error(err); }
   };
 
-  const handleAnswer = (chosen: Direction) => {
-    if (!showStim || feedback !== null) return;
-    const rt = Date.now() - stimAt;
-    const ok = chosen === trial.center;
-    let nextHits = hits, nextErrors = errors, nextRts = rtsByKind;
-    if (ok) {
-      nextHits = hits + 1;
-      nextRts = { ...rtsByKind, [trial.kind]: [...rtsByKind[trial.kind], rt] };
-    } else {
-      nextErrors = errors + 1;
-    }
-    setHits(nextHits); setErrors(nextErrors); setRtsByKind(nextRts);
-    setFeedback(ok ? 'right' : 'wrong');
+  // конец попытки (ответ или пропуск) → пауза на фидбек → следующая или финиш
+  const advance = () => {
     fbTimerRef.current = setTimeout(() => {
-      if (round >= trials) finish(nextHits, nextErrors, nextRts);
-      else { setRound(r => r + 1); newTrial(); }
+      if (roundRef.current >= trialsTotalRef.current) finish();
+      else { roundRef.current += 1; setRound(roundRef.current); newTrial(); }
     }, 350);
+  };
+
+  const handleMiss = () => {
+    if (answeredRef.current) return;
+    answeredRef.current = true;
+    errorsRef.current += 1;
+    setErrors(errorsRef.current);
+    setShowStim(false);
+    setFeedback('wrong');
+    advance();
+  };
+
+  const handleAnswer = (chosen: Direction) => {
+    if (!showStim || feedback !== null || answeredRef.current) return;
+    answeredRef.current = true;
+    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+    const rt = Date.now() - stimAt;
+    const tr = trialRef.current;
+    const ok = chosen === tr.center;
+    if (ok) {
+      hitsRef.current += 1;
+      rtsRef.current[tr.kind].push(rt);
+    } else {
+      errorsRef.current += 1;
+    }
+    setHits(hitsRef.current); setErrors(errorsRef.current);
+    setRtsByKind({ congruent: [...rtsRef.current.congruent], incongruent: [...rtsRef.current.incongruent], neutral: [...rtsRef.current.neutral] });
+    setFeedback(ok ? 'right' : 'wrong');
+    advance();
   };
 
   const meanRtAll = (() => {
@@ -150,31 +222,28 @@ export default function FlankerGame() {
         <Text style={styles.configTitle}>{t('flanker')}</Text>
         <Text style={styles.configDesc}>{t('flankerDesc')}</Text>
       </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {(['easy','medium','hard'] as Difficulty[]).map((d) => (
-            <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
-              ? { backgroundColor: GRADIENT[1] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setDifficulty(d)}>
-              <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>{t(d)}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {[10, 20, 30].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, trials === n
-              ? { backgroundColor: GRADIENT[1] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setTrials(n)}>
-              <Text style={[styles.modeButtonText, { color: trials === n ? '#FFF' : colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      <LevelProgressMap gameId="flanker" currentLevel={lvl.level} colors={colors} language={language} />
+      <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+          {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+        </Text>
+        <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+          {lvl.level <= 5
+            ? (language === 'ru' ? 'Конфликтных стрелок 30% · окно ответа 3.0–2.2 с · 20 попыток' : '30% conflict arrows · 3.0–2.2 s response window · 20 trials')
+            : lvl.level <= 10
+            ? (language === 'ru' ? 'Конфликтных стрелок 45% · окно ответа 2.0–1.6 с · 20 попыток' : '45% conflict arrows · 2.0–1.6 s response window · 20 trials')
+            : (language === 'ru' ? 'Конфликтных стрелок 65% · окно ответа 1.4–1.0 с · 20 попыток' : '65% conflict arrows · 1.4–1.0 s response window · 20 trials')}
+        </Text>
+        <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+          {language === 'ru'
+            ? 'Проход уровня: точность ≥80% (не успел ответить в окно = ошибка)'
+            : 'To pass: ≥80% accuracy (no answer within the window counts as an error)'}
+        </Text>
+        {lvl.level > 1 && (
+          <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+          </TouchableOpacity>
+        )}
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
@@ -196,7 +265,9 @@ export default function FlankerGame() {
     return (
       <View style={styles.playArea}>
         <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+          <Text style={[styles.statText, { color: colors.text }]}>
+            {round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}
+          </Text>
           <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
           <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
@@ -246,6 +317,11 @@ export default function FlankerGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared gameId="flanker" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, Math.round(hits * 80 - errors * 60 - meanRtAll * 0.05))}
@@ -269,9 +345,6 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  modeButton: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 8 },
-  modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
