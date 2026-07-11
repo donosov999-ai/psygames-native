@@ -87,6 +87,7 @@ export default function InhibitionGame() {
   const [phase, setPhase] = useState<GamePhase>(presetMode ? 'config' : 'intro');
   const [subMode, setSubMode] = useState<SubMode>(presetMode || 'go_no_go');
   const [totalTrials, setTotalTrials] = useState(20);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   const [round, setRound] = useState(0);
 
@@ -173,10 +174,18 @@ export default function InhibitionGame() {
     const avgRT = rtsArr.length ? Math.round(rtsArr.reduce((s, x) => s + x, 0) / rtsArr.length) : 0;
 
     // Проход уровня: ≥80% верных (на пресетах уровень не двигаем)
-    const passed = !isPreset && accuracy >= 0.8;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    const levelPassed = accuracy >= 0.8;
+    if (isPreset) {
+      // Пресет/свободный режим — уровень не трогаем, экран статистики как было
+      setPhase('result');
+    } else {
+      // Непрерывный поток: и проход, и провал уровня → баннер LevelCleared
+      // (passed=false рисует «почти, ещё раз» + авто-рестарт того же уровня)
+      if (levelPassed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(levelPassed);
+      setPhase('cleared');
+    }
 
     // Save with original game_type for biomarker compatibility
     const gameType =
@@ -456,7 +465,7 @@ export default function InhibitionGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
-        <LevelCleared gameId="inhibition" level={levelRef.current}
+        <LevelCleared gameId="inhibition" level={levelRef.current} passed={clearedPassed}
           stars={(misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />

@@ -83,6 +83,7 @@ export default function ClozeGame() {
   const [errorsCount, setErrorsCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   // Рефы — прогресс раунда и таймерная цепочка (дедлайн → reveal → следующая фраза)
   // живут вне ре-рендеров, state в колбэках setTimeout был бы устаревшим (паттерн simon/cpt).
@@ -209,9 +210,14 @@ export default function ClozeGame() {
     const accuracy = total > 0 ? c / total : 0;
     // Проход уровня: ≥80% верных (тайм-аут по лимиту = ошибка)
     const passed = !isPreset && total > 0 && accuracy >= 0.8;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    if (isPreset) {
+      setPhase('result');   // пресет/свободный режим — экран статистики
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(passed);
+      setPhase('cleared');   // непрерывный поток: и проход, и провал → баннер уровня с авто-рестартом
+    }
     try {
       await saveSession({
         game_type: 'cloze',
@@ -401,6 +407,7 @@ export default function ClozeGame() {
         <LevelCleared
           gameId="cloze"
           level={levelRef.current}
+          passed={clearedPassed}
           stars={errorsCount === 0 ? 3 : errorsCount <= 2 ? 2 : 1}
           gradient={GRADIENT}
           language={language}

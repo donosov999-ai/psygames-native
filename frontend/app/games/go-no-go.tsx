@@ -79,6 +79,7 @@ export default function GoNoGoGame() {
   const [falseAlarms, setFalseAlarms] = useState(0); // нажал на nogo
   const [correctRej, setCorrectRej] = useState(0);   // не нажал на nogo
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   // Рефы — таймерная цепочка (стимул → окно → пауза → следующая проба) живёт
   // вне ре-рендеров; state в её колбэках был бы устаревшим (паттерн simon/cpt).
@@ -181,10 +182,15 @@ export default function GoNoGoGame() {
     const rts = rtsRef.current;
     const avgRT = rts.length ? Math.round(rts.reduce((s, x) => s + x, 0) / rts.length) : 0;
     // Проход уровня: ≥80% верных проб (пропуск GO и тап на NO — обе ошибки)
-    const passed = !isPreset && accuracy >= 0.8;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    const passed = accuracy >= 0.8;
+    if (isPreset) {
+      setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(passed);
+      setPhase('cleared');   // непрерывный поток: провал → баннер «почти», авто-рестарт того же уровня
+    }
     try {
       await saveSession({
         game_type: 'go_no_go',
@@ -292,7 +298,7 @@ export default function GoNoGoGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
-        <LevelCleared gameId="go_no_go" level={levelRef.current}
+        <LevelCleared gameId="go_no_go" level={levelRef.current} passed={clearedPassed}
           stars={(misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />

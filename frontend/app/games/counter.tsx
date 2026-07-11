@@ -99,6 +99,7 @@ export default function CounterGame() {
   const [errors, setErrors] = useState(0);        // перебор суммы + просроченные раунды
   const [showSuccess, setShowSuccess] = useState(false);
   const [showTimeout, setShowTimeout] = useState(false);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   // Рефы — раундовая цепочка (сетка → дедлайн → следующий раунд) живёт вне
   // ре-рендеров, state в колбэках таймеров был бы устаревшим (паттерн cpt/simon).
@@ -206,10 +207,16 @@ export default function CounterGame() {
     const hits = hitsRef.current;
     const accuracy = totalRoundsRef.current > 0 ? hits / totalRoundsRef.current : 0;
     // Проход уровня: решено ≥80% раундов (просрочка = провал раунда)
-    const passed = !isPreset && accuracy >= PASS_ACCURACY;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    const passed = accuracy >= PASS_ACCURACY;
+    if (isPreset) {
+      setPhase('result');                       // пресет/свободный режим — экран статистики
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(passed);
+      // Непрерывный поток: и проход, и недобор → баннер cleared (passed={false} = «почти, ещё раз»)
+      setPhase('cleared');
+    }
     try {
       await saveSession({
         game_type: 'counter',
@@ -478,6 +485,7 @@ export default function CounterGame() {
           gameId="counter"
           level={levelRef.current}
           stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT}
           language={language}
           colors={colors}

@@ -82,6 +82,7 @@ export default function AnagramGame() {
   const lvl = usePersistentLevel('anagrams');
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);   // прошёл/не прошёл — для баннера LevelCleared (passed)
   // length — только для пресетов из зарядки (num('length')); в уровневом режиме перекрывается levelParams
   const [length, setLength] = useState<WordLen>(() => (num('length', 4) as WordLen));
   const [theme, setTheme] = useState<string>('all');   // выбранная тема слов (all = без фильтра) — правило, остаётся
@@ -250,9 +251,14 @@ export default function AnagramGame() {
     const accuracy = trialsRef.current > 0 ? h / trialsRef.current : 0;
     // Проход уровня: ≥80% слов собрано верно (таймаут по лимиту = ошибка)
     const passed = !isPreset && accuracy >= 0.8;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    if (isPreset) {
+      setPhase('result');   // пресет/зарядка — экран статистики, уровень не трогаем
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(passed);
+      setPhase('cleared');   // непрерывный поток: и проход, и провал → баннер LevelCleared (при провале авто-рестарт того же уровня)
+    }
     try {
       await saveSession({
         game_type: 'anagrams',
@@ -456,6 +462,7 @@ export default function AnagramGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="anagrams" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

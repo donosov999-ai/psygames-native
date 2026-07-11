@@ -120,6 +120,7 @@ export default function SwitchingTaskGame() {
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);
   const [mode, setMode] = useState<StimMode>(() => (str('stimMode', 'mix') as StimMode));
 
   const [round, setRound] = useState(0);
@@ -233,9 +234,14 @@ export default function SwitchingTaskGame() {
     const accuracy = totalTrialsRef.current > 0 ? h / totalTrialsRef.current : 0;
     // Проход уровня: ≥80% верных за раунд (пропуски по окну = ошибки)
     const passed = !isPreset && accuracy >= 0.8;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    if (isPreset) {
+      setPhase('result');                       // пресет/свободный режим — статистика, уровень не трогаем
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(passed);
+      setPhase('cleared');                       // непрерывный поток: провал → баннер «почти, ещё раз» + авто-рестарт того же уровня
+    }
     try {
       await saveSession({
         game_type: 'switching_task',
@@ -407,7 +413,7 @@ export default function SwitchingTaskGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="switching_task" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
-          gradient={GRADIENT} language={language} colors={colors}
+          passed={clearedPassed} gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && (

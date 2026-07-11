@@ -113,6 +113,7 @@ export default function NumberBondsGame() {
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [roundLeft, setRoundLeft] = useState(0);   // остаток окна текущей задачи (сек), только уровневый режим
+  const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (для баннера LevelCleared)
 
   // Рефы — счётчики/параметры раунда живут вне ре-рендеров: таймерная цепочка
   // (окно задачи → фидбек → следующая задача) в колбэках видела бы устаревший state
@@ -207,9 +208,14 @@ export default function NumberBondsGame() {
     const accuracy = (h + e) > 0 ? h / (h + e) : 0;
     // Проход уровня: ≤2 ошибок за раунд (неверная сумма и просрочка окна = ошибка)
     const passed = !isPreset && e <= 2;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    if (isPreset) {
+      setPhase('result');                       // пресет/свободный режим: экран статистики
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(passed);
+      setPhase('cleared');                       // непрерывный поток: провал → «почти, ещё раз» + авто-рестарт того же уровня
+    }
     try {
       await saveSession({
         game_type: 'number_bonds',
@@ -377,6 +383,7 @@ export default function NumberBondsGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="number_bonds" level={levelRef.current}
+          passed={clearedPassed}
           stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />

@@ -95,6 +95,7 @@ export default function ANTGame() {
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   const [round, setRound] = useState(0);
   const [totalTrials, setTotalTrials] = useState(12);
@@ -218,7 +219,11 @@ export default function ANTGame() {
     const passed = !isPreset && accuracy >= 0.8;
     if (passed) lvl.reach(levelRef.current + 1);
     else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    // Уровневый заход всегда через баннер LevelCleared: passed=true → «пройден»,
+    // passed=false → «почти, ещё раз» с авто-рестартом того же уровня (непрерывный поток).
+    // Пресет/свободный режим — прежний экран статистики GameResult.
+    if (isPreset) setPhase('result');
+    else { setClearedPassed(passed); setPhase('cleared'); }
     try {
       await saveSession({
         game_type: 'ant',
@@ -377,6 +382,7 @@ export default function ANTGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="ant" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

@@ -68,6 +68,7 @@ export default function LexicalDecisionGame() {
   const [correctCount, setCorrectCount] = useState(0);
   const [errorsCount, setErrorsCount] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   // Рефы — таймерная цепочка (дедлайн → фидбек → следующая проба) живёт вне
   // ре-рендеров, state в её колбэках был бы устаревшим (паттерн cpt/simon).
@@ -168,9 +169,14 @@ export default function LexicalDecisionGame() {
     const accuracy = total > 0 ? correctRef.current / total : 0;
     // Проход уровня: ≥80% верных ответов (таймаут по окну = ошибка)
     const passed = !isPreset && accuracy >= 0.8;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    if (isPreset) {
+      setPhase('result');   // пресет/зарядка: экран статистики, уровень не трогаем
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(passed);
+      setPhase('cleared');   // непрерывный поток: и проход, и недобор → баннер уровня
+    }
     try {
       await saveSession({
         game_type: 'lexical_decision',
@@ -374,6 +380,7 @@ export default function LexicalDecisionGame() {
           gradient={GRADIENT}
           language={language}
           colors={colors}
+          passed={clearedPassed}
           onContinue={() => startGame()}
           onStop={() => setPhase('config')}
         />

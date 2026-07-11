@@ -59,6 +59,7 @@ export default function MnemonicsGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [errors, setErrors] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -137,8 +138,13 @@ export default function MnemonicsGame() {
       // Check if all items selected
       if (newOrder.length === items.length) {
         const finalTime = elapsedTime + (errors * PENALTY_SECONDS);
-        const passed = !isPreset && useLevelRef.current && errors === 0;
-        if (passed) lvl.reach(levelRef.current + 1);   // чистое воспроизведение → +уровень (больше слов)
+        const isLevelRun = !isPreset && useLevelRef.current;
+        const passed = errors === 0;
+        if (isLevelRun) {
+          if (passed) lvl.reach(levelRef.current + 1);   // чистое воспроизведение → +уровень (больше слов)
+          else lvl.fail();                               // непрохождение → гистерезис понижения (после 3 подряд)
+          setClearedPassed(passed);
+        }
 
         try {
           await saveSession({
@@ -157,7 +163,7 @@ export default function MnemonicsGame() {
         } catch (error) {
           console.error('Error saving session:', error);
         }
-        setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню при чистом воспроизведении
+        setPhase(isLevelRun ? 'cleared' : 'result');   // уровень (любой исход) → авто-поток; пресет/свободно → статистика
       }
     } else {
       // Wrong - penalty
@@ -466,6 +472,7 @@ export default function MnemonicsGame() {
       {phase === 'check' && renderCheck()}
       {phase === 'cleared' && (
         <LevelCleared gameId="mnemonics" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame(true)} onStop={() => setPhase('config')} />
       )}

@@ -21,24 +21,26 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 const EYE_REST_SEC = 20;
 
 interface Props {
-  level: number;            // пройденный уровень (баннер: N ✓ → N+1)
-  stars?: number;           // 1–3
+  level: number;            // текущий уровень (passed: N ✓ → N+1; !passed: N — ещё раз)
+  stars?: number;           // 1–3 (только при passed)
+  passed?: boolean;         // прошёл чисто? false → баннер «почти, ещё раз» + рестарт того же уровня
   gradient: string[];
   language: string;
   colors: any;
   autoMs?: number;          // авто-старт следующего (по умолчанию 2200мс)
   gameId?: string;          // для персиста звёзд по уровням (psygames_<gameId>_stars_<profileId>)
-  onContinue: () => void;   // запустить следующий уровень
+  onContinue: () => void;   // запустить следующий уровень (passed) / тот же уровень заново (!passed)
   onStop: () => void;       // выйти (config / домой)
 }
 
-export default function LevelCleared({ level, stars = 3, gradient, language, colors, autoMs = 2200, gameId, onContinue, onStop }: Props) {
+export default function LevelCleared({ level, stars = 3, passed = true, gradient, language, colors, autoMs = 2200, gameId, onContinue, onStop }: Props) {
   const ru = language === 'ru';
   const { profile } = useProfile();
   const firedRef = useRef(false);
-  // вычисляем ОДНАЖДЫ при маунте: пора ли передышка для глаз (10-й уровень подряд)
+  // вычисляем ОДНАЖДЫ при маунте: пора ли передышка для глаз (10-й уровень подряд).
+  // Считаем «уровни подряд» только за ЧИСТЫЕ прохождения — провал серию обнуляет.
   const restRef = useRef<boolean | null>(null);
-  if (restRef.current === null) restRef.current = tickLevelStreak();
+  if (restRef.current === null) restRef.current = passed ? tickLevelStreak() : (resetLevelStreak(), false);
   const isRest = restRef.current;
   const [restLeft, setRestLeft] = useState(EYE_REST_SEC);
   const [cleanRun, setCleanRun] = useState(0);   // серия чистых раундов (🔥), тикается в saveSession
@@ -47,12 +49,12 @@ export default function LevelCleared({ level, stars = 3, gradient, language, col
   const stop = () => { firedRef.current = true; resetLevelStreak(); onStop(); };
 
   useEffect(() => {
-    sndWin();
-    if (gameId && profile?.id) saveLevelStars(gameId, profile.id, level, stars);   // лучшие звёзды за уровень
+    if (passed) sndWin();
+    if (passed && gameId && profile?.id) saveLevelStars(gameId, profile.id, level, stars);   // лучшие звёзды за уровень
     // Серия чистых: читаем с задержкой — тик идёт в saveSession, а игры ставят
     // setPhase('cleared') ДО await saveSession (module-кэш cleanRun сгладит гонку).
     let runTimer: ReturnType<typeof setTimeout> | null = null;
-    if (profile?.id && stars === 3) {
+    if (passed && profile?.id && stars === 3) {
       const pid = profile.id;
       runTimer = setTimeout(async () => {
         try { const r = await getCleanRun(pid); if (r >= 2) setCleanRun(r); } catch {}
@@ -94,17 +96,25 @@ export default function LevelCleared({ level, stars = 3, gradient, language, col
   }
 
   // ─── обычный баннер уровня ───
+  // passed=false → «почти, ещё раз»: тот же уровень авто-рестарт (onContinue читает
+  // lvl.level, который при провале не рос). Убирает «обрыв» — поток не кидает в тупик.
   return (
     <View style={[styles.full, { backgroundColor: colors.background }]}>
       <LinearGradient colors={gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
-        <Text style={styles.emoji}>🎉</Text>
-        <Text style={styles.title}>{ru ? `Уровень ${level} пройден!` : `Level ${level} done!`}</Text>
-        <View style={styles.stars}>
-          {[1, 2, 3].map((i) => (
-            <Ionicons key={i} name={i <= stars ? 'star' : 'star-outline'} size={36} color={i <= stars ? '#FFD93B' : 'rgba(255,255,255,0.5)'} />
-          ))}
-        </View>
-        {cleanRun >= 2 && (
+        <Text style={styles.emoji}>{passed ? '🎉' : '💪'}</Text>
+        <Text style={styles.title}>
+          {passed
+            ? (ru ? `Уровень ${level} пройден!` : `Level ${level} done!`)
+            : (ru ? `Уровень ${level} — почти!` : `Level ${level} — almost!`)}
+        </Text>
+        {passed && (
+          <View style={styles.stars}>
+            {[1, 2, 3].map((i) => (
+              <Ionicons key={i} name={i <= stars ? 'star' : 'star-outline'} size={36} color={i <= stars ? '#FFD93B' : 'rgba(255,255,255,0.5)'} />
+            ))}
+          </View>
+        )}
+        {passed && cleanRun >= 2 && (
           <View style={styles.runBadge}>
             <Text style={styles.runText}>
               {ru ? `🔥 Серия ${cleanRun} чистых` : `🔥 Clean run ${cleanRun}`}
@@ -112,12 +122,16 @@ export default function LevelCleared({ level, stars = 3, gradient, language, col
             </Text>
           </View>
         )}
-        <Text style={styles.next}>{ru ? `Уровень ${level + 1} запускается…` : `Starting level ${level + 1}…`}</Text>
+        <Text style={styles.next}>
+          {passed
+            ? (ru ? `Уровень ${level + 1} запускается…` : `Starting level ${level + 1}…`)
+            : (ru ? `Тот же уровень — ещё раз…` : `Same level — retry…`)}
+        </Text>
       </LinearGradient>
       <View style={styles.btns}>
         <TouchableOpacity style={[styles.btn, { backgroundColor: colors.primary }]} onPress={go} activeOpacity={0.85}>
-          <Ionicons name="play" size={20} color="#FFFFFF" />
-          <Text style={styles.btnText}>{ru ? 'Дальше сразу' : 'Next now'}</Text>
+          <Ionicons name={passed ? 'play' : 'refresh'} size={20} color="#FFFFFF" />
+          <Text style={styles.btnText}>{passed ? (ru ? 'Дальше сразу' : 'Next now') : (ru ? 'Ещё раз' : 'Retry')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
           onPress={stop} activeOpacity={0.85}>

@@ -182,6 +182,7 @@ export default function FindDifferencesGame() {
   const [errors, setErrors] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   // Параметры уровня и счётчики — в refs: колбэки таймеров (обратный отсчёт раунда,
   // пауза между раундами) живут вне ре-рендеров, state в них устаревал бы (паттерн simon/cpt).
@@ -301,7 +302,15 @@ export default function FindDifferencesGame() {
     const passed = !isPreset && completedAll;
     if (passed) lvl.reach(levelRef.current + 1);
     else if (!isPreset) lvl.fail();   // гистерезис понижения (3 провала подряд → −1)
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    // Непрерывный поток: и проход, и провал уровня → баннер LevelCleared (при провале
+    // passed={false} → «почти, ещё раз» + авто-рестарт того же уровня, без тупика GameResult).
+    // Пресет/свободный режим — экран статистики, уровень не трогаем.
+    if (isPreset) {
+      setPhase('result');
+    } else {
+      setClearedPassed(passed);
+      setPhase('cleared');
+    }
     const accuracy = h + e > 0 ? h / (h + e) : 0;
     try {
       await saveSession({
@@ -437,6 +446,7 @@ export default function FindDifferencesGame() {
       {(phase === 'playing' || phase === 'feedback') && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="find_differences" level={levelRef.current}
+          passed={clearedPassed}
           stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />

@@ -76,6 +76,7 @@ export default function DigitSpanGame() {
   const [errors, setErrors] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);
   const showTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const levelRef = useRef(1);
   const showMsRef = useRef(700);
@@ -174,7 +175,14 @@ export default function DigitSpanGame() {
       const passed = !isPreset && updatedCorrect >= 1;
       if (passed) lvl.reach(lvl.level + 1);   // прошёл стартовую длину уровня → +уровень (лесенка длина→скорость→reverse)
       else if (!isPreset) lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
-      setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+      // Непрерывный поток: и прохождение, и провал уровня → баннер LevelCleared (passed=false → «почти, ещё раз» + авто-рестарт того же уровня).
+      // Пресет/свободный режим — как было: экран статистики GameResult.
+      if (isPreset) {
+        setPhase('result');
+      } else {
+        setClearedPassed(passed);
+        setPhase('cleared');
+      }
       try {
         await saveSession({
           game_type: 'digit_span',
@@ -342,6 +350,7 @@ export default function DigitSpanGame() {
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="digit_span" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

@@ -251,6 +251,7 @@ export default function ChessBlindGame() {
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   const levelRef = useRef(1);
   const prmRef = useRef(levelParams(1));
@@ -338,7 +339,8 @@ export default function ChessBlindGame() {
     const fHits = hitsRef.current;
     const fErrors = errorsRef.current;
     const p = prmRef.current;
-    const passed = !isPreset && fErrors <= 1;
+    const levelPassed = fErrors <= 1;
+    const passed = !isPreset && levelPassed;
     if (passed) lvl.reach(levelRef.current + 1);
     saveSession({
       game_type: 'chess_blind',
@@ -349,7 +351,14 @@ export default function ChessBlindGame() {
       errors: fErrors,
       details: { hits: fHits, errors: fErrors, pieces: p.pieces, moves: p.moves, quiz_type: p.quizType },
     }).catch((e) => console.error(e));
-    setPhase(passed ? 'cleared' : 'result');
+    // Уровневый режим: и проход, и недобор → общий баннер LevelCleared (passed=false = «почти, ещё раз», авто-рестарт).
+    // Пресет/свободный режим — как было: экран статистики GameResult.
+    if (isPreset) {
+      setPhase('result');
+    } else {
+      setClearedPassed(levelPassed);
+      setPhase('cleared');
+    }
   };
 
   const nextQuestion = () => {
@@ -603,6 +612,7 @@ export default function ChessBlindGame() {
       {(phase === 'expose' || phase === 'mask' || phase === 'quiz') && renderPlay()}
       {phase === 'cleared' && (
         <LevelCleared gameId="chess_blind" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 1 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

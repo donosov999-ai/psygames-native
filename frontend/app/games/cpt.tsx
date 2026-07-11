@@ -95,6 +95,7 @@ export default function CPTGame() {
 
   const lvl = usePersistentLevel('cpt');
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера LevelCleared
 
   const [currentLetter, setCurrentLetter] = useState<string>('');
   const [letterVisible, setLetterVisible] = useState(false);
@@ -296,7 +297,10 @@ export default function CPTGame() {
     const commissionRate = nonTargets.length ? totalCommissions / nonTargets.length : 0;
     const passed = accuracy >= 0.7 && commissionRate <= 0.3;
     if (passed) lvl.reach(levelRef.current + 1);
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    else lvl.fail();   // гистерезис: 3 провала подряд → уровень -1
+    // непрерывный поток: и проход, и провал → баннер LevelCleared (passed=false = «почти, ещё раз» + рестарт того же уровня), без тупика GameResult
+    setClearedPassed(passed);
+    setPhase('cleared');
 
     try {
       await saveSession({
@@ -438,7 +442,7 @@ export default function CPTGame() {
       {phase === 'playing' && renderPlaying()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
-        <LevelCleared gameId="cpt" level={levelRef.current} stars={(omissions + commissions) === 0 ? 3 : (omissions + commissions) <= 2 ? 2 : 1}
+        <LevelCleared gameId="cpt" level={levelRef.current} passed={clearedPassed} stars={(omissions + commissions) === 0 ? 3 : (omissions + commissions) <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

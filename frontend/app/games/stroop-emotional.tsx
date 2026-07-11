@@ -88,6 +88,7 @@ export default function StroopEmotionalGame() {
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   const [round, setRound] = useState(0);
   const [trial, setTrial] = useState<Trial>({ word: '', valence: 'neutral', color: 'red' });
@@ -183,9 +184,15 @@ export default function StroopEmotionalGame() {
     const total = trialsRef.current;
     const accuracy = total > 0 ? hitsRef.current / total : 0;
     const passed = !isPreset && accuracy >= 0.8;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    if (isPreset) {
+      setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
+    } else {
+      // непрерывный поток: провал больше не тупик — тот же баннер с passed={false} и авто-рестартом уровня
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(passed);
+      setPhase('cleared');
+    }
 
     try {
       await saveSession({
@@ -320,6 +327,7 @@ export default function StroopEmotionalGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="stroop_emotional" level={levelRef.current}
+          passed={clearedPassed}
           stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />

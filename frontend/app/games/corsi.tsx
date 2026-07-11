@@ -92,6 +92,7 @@ export default function CorsiGame() {
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);   // память итога для баннера LevelCleared (passed/«почти»)
 
   const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -174,9 +175,10 @@ export default function CorsiGame() {
       });
     } catch (e) { console.error(e); }
     // веха-босс: при чистом прохождении каждые BOSS_EVERY уровней → битва (память → счёт)
-    if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setPhase('boss'); }
-    else if (passed) setPhase('cleared');   // авто-поток к следующему уровню
-    else setPhase('result');
+    if (passed && levelRef.current % BOSS_EVERY === 0) { setClearedPassed(true); setBossWon(null); setPhase('boss'); }
+    else if (passed) { setClearedPassed(true); setPhase('cleared'); }   // авто-поток к следующему уровню
+    else if (!isPreset) { setClearedPassed(false); setPhase('cleared'); }   // непрохождение уровня → баннер «почти», авто-рестарт того же уровня (без тупика)
+    else setPhase('result');   // пресет/свободный режим — экран статистики
   };
 
   const handleTap = (i: number) => {
@@ -333,7 +335,7 @@ export default function CorsiGame() {
           onComplete={(win) => { setBossWon(win); setPhase('cleared'); }} />
       )}
       {phase === 'cleared' && (
-        <LevelCleared gameId="corsi" level={levelRef.current} stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
+        <LevelCleared gameId="corsi" level={levelRef.current} passed={clearedPassed} stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

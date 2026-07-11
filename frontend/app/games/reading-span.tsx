@@ -107,6 +107,7 @@ export default function ReadingSpanGame() {
   const { isPreset, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);
   const [setSize, setSetSize] = useState(() => num('setSize', 4)); // sentences per recall set
   const [seq, setSeq] = useState<SentenceItem[]>([]);
   const [stepIdx, setStepIdx] = useState(0);
@@ -161,9 +162,14 @@ export default function ReadingSpanGame() {
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
     const passed = !isPreset && e === 0;
-    if (passed) lvl.reach(levelRef.current + 1);   // чистый recall всех слов → +уровень
-    else if (!isPreset) lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    if (isPreset) {
+      setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);   // чистый recall всех слов → +уровень
+      else lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
+      setClearedPassed(passed);   // непрерывный поток: провал уровня → баннер «почти», не тупик
+      setPhase('cleared');
+    }
     try {
       await saveSession({
         game_type: 'reading_span',
@@ -272,6 +278,7 @@ export default function ReadingSpanGame() {
       {phase === 'recall' && renderRecall()}
       {phase === 'cleared' && (
         <LevelCleared gameId="reading_span" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

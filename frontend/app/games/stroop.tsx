@@ -71,6 +71,7 @@ export default function StroopGame() {
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   // refs — таймер окна ответа живёт вне ре-рендера (без stale closures)
   const levelRef = useRef(1);
@@ -185,7 +186,14 @@ export default function StroopGame() {
     const passed = !isPreset && accuracy >= 0.85;
     if (passed) lvl.reach(levelRef.current + 1);
     else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    // непрерывный поток: уровневый провал больше не тупик — общий баннер с passed={false}
+    // и авто-рестартом того же (или пониженного) уровня; пресет/зарядка → статистика (result)
+    if (isPreset) {
+      setPhase('result');
+    } else {
+      setClearedPassed(passed);
+      setPhase('cleared');
+    }
     try {
       await saveSession({
         game_type: 'stroop',
@@ -325,6 +333,7 @@ export default function StroopGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="stroop" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

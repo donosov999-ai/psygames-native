@@ -165,6 +165,7 @@ export default function PhonemePairsGame() {
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   const trialsRef = useRef<Trial[]>([]);
   const hitsRef = useRef(0);
@@ -251,8 +252,13 @@ export default function PhonemePairsGame() {
     const h = hitsRef.current;
     const e = errorsRef.current;
     const passed = e <= 1;
-    if (passed && !isPreset) lvl.reach(levelRef.current + 1);
-    setPhase(passed ? 'cleared' : 'result');
+    if (isPreset) {
+      setPhase(passed ? 'cleared' : 'result');
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);
+      setClearedPassed(passed);
+      setPhase('cleared');
+    }
     try {
       await saveSession({
         game_type: 'phoneme_pairs',
@@ -427,6 +433,7 @@ export default function PhonemePairsGame() {
           gradient={GRADIENT}
           language={language}
           colors={colors}
+          passed={clearedPassed}
           onContinue={() => startGame()}
           onStop={() => setPhase('config')}
         />

@@ -71,6 +71,7 @@ export default function MemoryMatrixGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [feedbackMsg, setFeedbackMsg] = useState('');
+  const [clearedPassed, setClearedPassed] = useState(true);   // память результата уровня для <LevelCleared passed>
   const totalRounds = 10;
   const levelRef = useRef(1);
   const baseFlashesRef = useRef(3);
@@ -194,7 +195,12 @@ export default function MemoryMatrixGame() {
           setElapsedTime(finalTime);
           const passed = !isPreset && fErrors <= 1;
           if (passed) lvl.reach(levelRef.current + 1);   // чистый прогон → +уровень
-          setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+          if (isPreset) {
+            setPhase('result');                          // пресет/свободный режим — экран статистики
+          } else {
+            setClearedPassed(passed);                    // непрерывный поток: прошёл или «почти» → баннер уровня
+            setPhase('cleared');                         // непрохождение больше НЕ уходит в тупик-result
+          }
           try {
             await saveSession({
               game_type: 'memory_matrix',
@@ -377,7 +383,7 @@ export default function MemoryMatrixGame() {
       {(phase === 'showing' || phase === 'input' || phase === 'feedback') && renderGrid()}
       {phase === 'cleared' && (
         <LevelCleared gameId="memory_matrix" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
-          gradient={GRADIENT} language={language} colors={colors}
+          gradient={GRADIENT} language={language} colors={colors} passed={clearedPassed}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && (

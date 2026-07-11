@@ -69,6 +69,7 @@ export default function ProofreadingGame() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [errors, setErrors] = useState(0);
   const [lastStars, setLastStars] = useState(3);
+  const [clearedPassed, setClearedPassed] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Рефы — таймер лимита времени живёт вне ре-рендеров, state в его колбэке
@@ -188,9 +189,17 @@ export default function ProofreadingGame() {
     // Звёзды: 0 промахов (пропуски+ложные клики) = 3, ≤2 = 2, иначе 1
     const mistakes = missed + errs;
     setLastStars(mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1);
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    // Пресет зарядки — статистика в GameResult (уровень не трогаем).
+    // Уровневый проход — всегда общий баннер LevelCleared: passed=true → следующий,
+    // passed=false → «почти, ещё раз» с авто-рестартом того же (или пониженного) уровня.
+    if (isPreset) {
+      setPhase('result');
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(passed);
+      setPhase('cleared');   // непрерывный поток без тупика
+    }
 
     try {
       await saveSession({
@@ -449,6 +458,7 @@ export default function ProofreadingGame() {
           gameId="proofreading"
           level={levelRef.current}
           stars={lastStars}
+          passed={clearedPassed}
           gradient={GRADIENT}
           language={language}
           colors={colors}

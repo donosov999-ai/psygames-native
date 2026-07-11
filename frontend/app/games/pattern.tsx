@@ -127,6 +127,7 @@ export default function PatternGame() {
   const { isPreset, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);
   const [trials, setTrials] = useState(() => num('trials', 10));
   const [round, setRound] = useState(0);
   const [seq, setSeq] = useState<Sequence>({ items: [], answer: 0, classRu: '', classEn: '', ruleRu: '', ruleEn: '' });
@@ -175,8 +176,13 @@ export default function PatternGame() {
         setElapsedTime(finalTime);
         const newHits = correct ? hits + 1 : hits;
         const passed = !isPreset && newHits / trials >= 0.7;
-        if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
-        setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+        if (isPreset) {
+          setPhase('result');   // пресет/свободный режим — статистика, уровень не трогаем
+        } else {
+          if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
+          setClearedPassed(passed);
+          setPhase('cleared');   // непрерывный поток: провал → «почти, ещё раз» + авто-рестарт того же уровня
+        }
         try {
           await saveSession({
             game_type: 'pattern',
@@ -314,7 +320,7 @@ export default function PatternGame() {
         const base = errors === 0 ? 3 : errors <= 2 ? 2 : 1;
         const stars = hintUsedRef.current ? Math.min(2, base) : base;   // подсказка → потолок 2⭐
         return (
-        <LevelCleared gameId="pattern" level={levelRef.current} stars={stars}
+        <LevelCleared gameId="pattern" level={levelRef.current} stars={stars} passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
         );

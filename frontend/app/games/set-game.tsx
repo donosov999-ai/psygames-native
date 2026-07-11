@@ -132,6 +132,7 @@ export default function SetGame() {
   const [hintBreakdown, setHintBreakdown] = useState<{ shape: boolean; fill: boolean; color: boolean; count: boolean } | null>(null);
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера (проход/«почти»)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const levelRef = useRef(1);
   const timeLimitRef = useRef(0);
@@ -193,8 +194,13 @@ export default function SetGame() {
           const finalTime = (Date.now() - startTime) / 1000;
           setElapsedTime(finalTime);
           const passed = !isPreset && errors <= 1;
-          if (passed) lvl.reach(levelRef.current + 1);   // серия почти без ошибок → +уровень
-          setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+          if (isPreset) {
+            setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
+          } else {
+            if (passed) lvl.reach(levelRef.current + 1);   // серия почти без ошибок → +уровень
+            setClearedPassed(passed);
+            setPhase('cleared');   // непрерывный поток: и проход, и провал → баннер (passed рулит текстом), без тупика
+          }
           try {
             await saveSession({
               game_type: 'set_game',
@@ -342,6 +348,7 @@ export default function SetGame() {
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="set_game" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

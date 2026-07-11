@@ -93,6 +93,7 @@ export default function MathSprintGame() {
   const { isPreset, str, num } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);   // память итога: true=прошёл (звёзды), false=«почти, ещё раз»
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'easy') as Difficulty));
   const [duration, setDuration] = useState(() => num('duration', 60));
@@ -158,9 +159,9 @@ export default function MathSprintGame() {
       });
     } catch (e) { console.error(e); }
     // веха-босс: при чистом прохождении каждые BOSS_EVERY уровней → битва с боссом (счёт → «дополни ряд»)
-    if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setPhase('boss'); }
-    else if (passed) setPhase('cleared');   // авто-поток к следующему уровню
-    else setPhase('result');
+    if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setClearedPassed(true); setPhase('boss'); }
+    else if (isPreset) setPhase('result');   // пресет/свободный режим → экран статистики (уровень не трогаем)
+    else { setClearedPassed(passed); setPhase('cleared'); }   // уровневый проход ИЛИ провал → баннер (passed=true звёзды / false «почти, ещё раз» + авто-рестарт того же уровня)
   };
 
   const submit = () => {
@@ -305,7 +306,7 @@ export default function MathSprintGame() {
           onComplete={(win) => { setBossWon(win); setPhase('cleared'); }} />
       )}
       {phase === 'cleared' && (
-        <LevelCleared gameId="math_sprint" level={levelRef.current} stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
+        <LevelCleared gameId="math_sprint" level={levelRef.current} passed={clearedPassed} stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

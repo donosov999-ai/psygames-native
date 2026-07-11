@@ -70,6 +70,7 @@ export default function SpatialSpanGame() {
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -140,7 +141,8 @@ export default function SpatialSpanGame() {
     const passed = finalSpan >= levelParams(levelRef.current).startSpan;
     if (passed) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
     else lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    setClearedPassed(passed);
+    setPhase('cleared');   // непрерывный поток: и успех, и провал → баннер (passed рулит текстом), авто-рестарт уровня
     try {
       await saveSession({
         game_type: 'spatial_span',
@@ -275,6 +277,7 @@ export default function SpatialSpanGame() {
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="spatial_span" level={levelRef.current} stars={totalErrors === 0 ? 3 : totalErrors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

@@ -80,6 +80,7 @@ export default function QuickCountGame() {
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [bossWon, setBossWon] = useState<boolean | null>(null);
+  const [clearedPassed, setClearedPassed] = useState(true);
   const [trial, setTrial] = useState(0);
   const [actualN, setActualN] = useState(0);
   const [dots, setDots] = useState<Dot[]>([]);
@@ -146,13 +147,17 @@ export default function QuickCountGame() {
         details: { correct: correctRef.current, wrong: wrongRef.current, accuracy },
       });
     } catch (e) { console.error(e); }
-    if (passed && levelRef.current % BOSS_EVERY === 0) {
+    if (isPreset) {
+      setPhase('result');
+    } else if (passed && levelRef.current % BOSS_EVERY === 0) {
+      setClearedPassed(true);
       setBossWon(null);
       setPhase('boss');   // веха: настоящий босс-раунд (резкая смена правила — go/no-go на подавление)
-    } else if (passed) {
-      setPhase('cleared');
     } else {
-      setPhase('result');
+      // непрерывный поток: и прохождение, и недобор порога → общий баннер LevelCleared
+      // (passed=false рисует «почти, ещё раз» + авто-рестарт того же уровня, без тупика)
+      setClearedPassed(passed);
+      setPhase('cleared');
     }
   };
 
@@ -234,7 +239,7 @@ export default function QuickCountGame() {
         />
       )}
       {phase === 'cleared' && (
-        <LevelCleared gameId="quick_count" level={levelRef.current} stars={bossWon ? 3 : (wrong === 0 ? 3 : wrong <= 2 ? 2 : 1)}
+        <LevelCleared gameId="quick_count" level={levelRef.current} passed={clearedPassed} stars={bossWon ? 3 : (wrong === 0 ? 3 : wrong <= 2 ? 2 : 1)}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

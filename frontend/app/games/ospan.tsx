@@ -90,6 +90,7 @@ export default function OSpanGame() {
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -162,7 +163,8 @@ export default function OSpanGame() {
     const passed = e === 0;
     if (passed) lvl.reach(levelRef.current + 1);   // чистый recall всех букв → +уровень
     else lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    setClearedPassed(passed);
+    setPhase('cleared');   // непрерывный поток: и проход, и провал → баннер уровня с авто-рестартом
     try {
       await saveSession({
         game_type: 'ospan',
@@ -281,7 +283,7 @@ export default function OSpanGame() {
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="ospan" level={levelRef.current} stars={recallErrors === 0 ? 3 : recallErrors <= 2 ? 2 : 1}
-          gradient={GRADIENT} language={language} colors={colors}
+          gradient={GRADIENT} language={language} colors={colors} passed={clearedPassed}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && (

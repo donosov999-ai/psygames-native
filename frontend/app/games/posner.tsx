@@ -93,6 +93,7 @@ export default function PosnerGame() {
   const [showCue, setShowCue] = useState(false);
   const [showTarget, setShowTarget] = useState(false);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -196,10 +197,15 @@ export default function PosnerGame() {
     const h = hitsRef.current, e = errorsRef.current;
     const accuracy = totalTrialsRef.current > 0 ? h / totalTrialsRef.current : 0;
     // Проход уровня: ≥80% верных за раунд (пропуски по окну = ошибки)
-    const passed = !isPreset && accuracy >= 0.8;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    const passed = accuracy >= 0.8;
+    if (isPreset) {
+      setPhase('result');   // пресет/свободный режим — уровень не трогаем, экран статистики
+    } else {
+      setClearedPassed(passed);
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setPhase('cleared');   // непрерывный поток: проход ИЛИ «почти» → баннер уровня, авто-рестарт
+    }
     try {
       await saveSession({
         game_type: 'posner',
@@ -349,7 +355,7 @@ export default function PosnerGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="posner" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
-          gradient={GRADIENT} language={language} colors={colors}
+          gradient={GRADIENT} language={language} colors={colors} passed={clearedPassed}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && (

@@ -111,6 +111,7 @@ export default function TrailMakingGame() {
   const lvl = usePersistentLevel('trail_making');
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);
   // mode/count как state — только для пресетов зарядки (init из URL-params);
   // в уровневом режиме параметры приходят из levelParams и живут в рефах
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'B') as Mode));
@@ -182,7 +183,12 @@ export default function TrailMakingGame() {
       && finalTime <= timeLimitRef.current && e <= MAX_PASS_ERRORS;
     if (passed) lvl.reach(levelRef.current + 1);
     else if (!isPreset) lvl.fail();   // гистерезис понижения (3 провала подряд → −1)
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    if (isPreset) {
+      setPhase('result');             // пресет зарядки: экран статистики, уровень не трогаем
+    } else {
+      setClearedPassed(passed);       // непрерывный поток: провал уровня → баннер «почти, ещё раз», не тупик
+      setPhase('cleared');            // авто-поток к следующему уровню (или рестарт того же при !passed)
+    }
     try {
       await saveSession({
         game_type: 'trail_making',
@@ -343,6 +349,7 @@ export default function TrailMakingGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="trail_making" level={levelRef.current}
+          passed={clearedPassed}
           stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />

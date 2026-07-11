@@ -76,6 +76,7 @@ export default function FlankerGame() {
   const [showStim, setShowStim] = useState(false);
   const [stimAt, setStimAt] = useState(0);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -155,7 +156,11 @@ export default function FlankerGame() {
     const passed = !isPreset && accuracy >= 0.8;
     if (passed) lvl.reach(levelRef.current + 1);
     else if (!isPreset) lvl.fail();   // гистерезис понижения: -1 уровень после 3 провалов подряд
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    // непрерывный поток: уровневый заход (не пресет) ВСЕГДА в баннер cleared —
+    // прошёл → «уровень N», не прошёл → passed={false} «почти, ещё раз» + авто-рестарт того же уровня.
+    // пресет/зарядка остаётся тупиком-статистикой (result).
+    if (isPreset) setPhase('result');
+    else { setClearedPassed(passed); setPhase('cleared'); }
     try {
       await saveSession({
         game_type: 'flanker',
@@ -319,6 +324,7 @@ export default function FlankerGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="flanker" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

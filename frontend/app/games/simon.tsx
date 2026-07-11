@@ -97,6 +97,7 @@ export default function SimonGame() {
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);
 
   const [round, setRound] = useState(0);
   const [totalTrials, setTotalTrials] = useState(12);
@@ -191,10 +192,16 @@ export default function SimonGame() {
     const h = hitsRef.current, e = errorsRef.current;
     const accuracy = totalTrialsRef.current > 0 ? h / totalTrialsRef.current : 0;
     // Проход уровня: ≥80% верных за раунд (пропуски по окну = ошибки)
-    const passed = !isPreset && accuracy >= 0.8;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    const passed = accuracy >= 0.8;
+    if (isPreset) {
+      setPhase('result');   // пресет/свободный режим — уровень не трогаем, экран статистики
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      // Непрерывный поток: и проход, и провал → баннер уровня (при провале «почти, ещё раз» + авто-рестарт того же уровня)
+      setClearedPassed(passed);
+      setPhase('cleared');
+    }
     try {
       await saveSession({
         game_type: 'simon',
@@ -363,6 +370,7 @@ export default function SimonGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="simon" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

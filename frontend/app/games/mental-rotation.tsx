@@ -348,6 +348,7 @@ export default function MentalRotationGame() {
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [feedback, setFeedback] = useState<{ idx: number; ok: boolean } | null>(null);
+  const [clearedPassed, setClearedPassed] = useState(true);
   const [startTime, setStartTime] = useState(0);
   const [trialStartTime, setTrialStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -405,9 +406,14 @@ export default function MentalRotationGame() {
         const finalPairs = ok ? [...angleRtPairs, { angle: correctAngle, rt }] : angleRtPairs;
         const slope = Number(computeSlope(finalPairs).toFixed(2));
         const meanRt = finalPairs.length ? Math.round(finalPairs.reduce((s, p) => s + p.rt, 0) / finalPairs.length) : 0;
-        const passed = !isPreset && newHits / trials >= 0.7;
-        if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
-        setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+        const passed = newHits / trials >= 0.7;
+        if (isPreset) {
+          setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
+        } else {
+          if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
+          setClearedPassed(passed);
+          setPhase('cleared');   // непрерывный поток: провал → тот же уровень ещё раз, без тупика
+        }
         try {
           await saveSession({
             game_type: 'mental_rotation',
@@ -548,6 +554,7 @@ export default function MentalRotationGame() {
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="mental_rotation" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

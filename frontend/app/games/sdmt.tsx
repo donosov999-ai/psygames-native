@@ -87,6 +87,7 @@ export default function SdmtGame() {
   const [targetHits, setTargetHits] = useState(0);   // 0 = без цели (пресет)
   const [remaining, setRemaining] = useState(60);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
+  const [clearedPassed, setClearedPassed] = useState(true);   // память результата уровня для баннера LevelCleared
 
   const startTimeRef = useRef<number>(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -156,7 +157,10 @@ export default function SdmtGame() {
     const passed = !isPreset && h >= targetHitsRef.current && accuracy >= 0.8;
     if (passed) lvl.reach(levelRef.current + 1);
     else if (!isPreset) lvl.fail();
-    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    // Непрерывный поток: любой уровневый раунд (прошёл/не прошёл) → баннер LevelCleared с
+    // авто-рестартом; тупик-result остаётся только для пресета зарядки (экран статистики).
+    if (isPreset) setPhase('result');
+    else { setClearedPassed(passed); setPhase('cleared'); }
     try {
       await saveSession({
         game_type: 'sdmt',
@@ -287,6 +291,7 @@ export default function SdmtGame() {
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="sdmt" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

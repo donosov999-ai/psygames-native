@@ -117,6 +117,7 @@ export default function TowerLondonGame() {
   const lvl = usePersistentLevel('tower_london');   // уровень → тир (1=easy, 2=medium, ≥3=hard)
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);
   const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
   const [trials, setTrials] = useState(() => num('trials', 5));
 
@@ -193,8 +194,9 @@ export default function TowerLondonGame() {
           const finalTime = (Date.now() - startTime) / 1000;
           setElapsedTime(finalTime);
           const passed = !isPreset && (extraMoves + extra) <= trials;
-          if (passed) lvl.reach(levelRef.current + 1);   // эффективно прошёл → +уровень
-          setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+          if (!isPreset) { if (passed) lvl.reach(levelRef.current + 1); else lvl.fail(); }   // вверх / гистерезис вниз
+          setClearedPassed(passed);
+          setPhase(!isPreset ? 'cleared' : 'result');   // непрерывный поток: провал → баннер «ещё раз», не тупик
           try {
             await saveSession({
               game_type: 'tower_london',
@@ -315,7 +317,7 @@ export default function TowerLondonGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
-        <LevelCleared gameId="tower_london" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+        <LevelCleared gameId="tower_london" passed={clearedPassed} level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

@@ -162,6 +162,7 @@ export default function SchulteGame() {
 
   // Game state
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (для баннера LevelCleared: true=звёзды, false=«почти, ещё раз»)
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [timeHistory, setTimeHistory] = useState<number[]>([]);
@@ -323,10 +324,15 @@ export default function SchulteGame() {
     } catch (error) {
       console.error('Error saving session:', error);
     }
+    // Непрерывный поток: уровневый проход И провал уходят в баннер 'cleared' (passed=false → «почти, ещё раз» + авто-рестарт того же уровня).
+    // Пресет / свободный режим — как было: экран статистики 'result'.
+    const isLevelRun = !isPreset && useLevelRef.current;
     if (passed && levelRef.current % BOSS_EVERY === 0) {
+      setClearedPassed(true);
       setBossWon(null);
       setPhase('boss');
-    } else if (passed) {
+    } else if (isLevelRun) {
+      setClearedPassed(passed);
       setPhase('cleared');
     } else {
       setPhase('result');
@@ -919,6 +925,7 @@ export default function SchulteGame() {
         <LevelCleared
           gameId="schulte_table"
           level={levelRef.current}
+          passed={clearedPassed}
           stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
           gradient={GRADIENT}
           language={language}

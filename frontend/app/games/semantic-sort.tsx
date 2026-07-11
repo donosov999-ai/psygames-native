@@ -63,6 +63,7 @@ export default function SemanticSortGame() {
   const errorsRef = useRef(0);
 
   const [rounds, setRounds] = useState<Round[]>([]);
+  const [clearedPassed, setClearedPassed] = useState(true);
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
@@ -137,9 +138,13 @@ export default function SemanticSortGame() {
     if (!isPreset && useLevelRef.current) {
       if (passed) lvl.reach(levelRef.current + 1);
       else lvl.fail();
+      setClearedPassed(passed);
     }
     setElapsedTime(finalTime);
-    setPhase(passed ? 'cleared' : 'result');
+    // Непрерывный поток: уровневый провал больше не роняет в тупик GameResult —
+    // общий баннер LevelCleared с passed={false} («почти, ещё раз») + авто-рестарт
+    // того же уровня. Пресет/свободный режим — как было (статистика в GameResult).
+    setPhase(!isPreset && useLevelRef.current ? 'cleared' : 'result');
     try {
       await saveSession({
         game_type: 'semantic_sort',
@@ -321,6 +326,7 @@ export default function SemanticSortGame() {
           gradient={GRADIENT}
           language={language}
           colors={colors}
+          passed={clearedPassed}
           onContinue={() => startGame()}
           onStop={() => setPhase('config')}
         />

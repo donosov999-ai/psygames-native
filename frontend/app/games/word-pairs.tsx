@@ -63,6 +63,7 @@ export default function WordPairsGame() {
   const { isPreset, str, num } = useGamePreset();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
+  const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (для баннера passed)
   const [pairs, setPairs] = useState<WordPair[]>([]);
   const [shuffledRight, setShuffledRight] = useState<string[]>([]);
   const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
@@ -235,7 +236,8 @@ export default function WordPairsGame() {
           if (passed) lvl.reach(levelRef.current + 1);
           else lvl.fail();
         }
-        setPhase(passed ? 'cleared' : 'result');
+        setClearedPassed(passed);
+        setPhase(useLevelRef.current ? 'cleared' : 'result');   // непрерывный поток: провал → баннер «ещё раз», не тупик
 
         try {
           await saveSession({
@@ -528,6 +530,7 @@ export default function WordPairsGame() {
       {phase === 'cleared' && (
         <LevelCleared
           gameId="word_pairs"
+          passed={clearedPassed}
           level={levelRef.current}
           stars={errors === 0 ? 3 : errors <= 1 ? 2 : 1}
           gradient={GRADIENT}

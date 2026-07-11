@@ -139,6 +139,7 @@ export default function VisualSearchGame() {
   const conjRef = useRef(false);   // текущий раунд — конъюнктивный (цвет+форма)?
   const [targetCount, setTargetCount] = useState(1);           // сколько целей в раунде
   const [foundCount, setFoundCount] = useState(0);             // сколько уже найдено
+  const [clearedPassed, setClearedPassed] = useState(true);    // прошёл ли уровень (для баннера «почти, ещё раз»)
 
   // рефы = источник истины логики раунда (без stale-closure при быстрых тапах и в таймере)
   const hitsRef = useRef(0);
@@ -201,8 +202,9 @@ export default function VisualSearchGame() {
       const meanRt = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
       const last = levelParams(levelRef.current, trials);
       const passed = !isPreset && errorsRef.current <= 1;
-      if (passed) lvl.reach(lvl.level + 1);   // прошёл серию точно → +уровень
-      setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+      if (!isPreset) { if (passed) lvl.reach(lvl.level + 1); else lvl.fail(); }   // вверх / гистерезис вниз
+      setClearedPassed(passed);
+      setPhase(!isPreset ? 'cleared' : 'result');   // непрерывный поток: провал → баннер «ещё раз», не тупик
       try {
         await saveSession({
           game_type: 'visual_search',
@@ -358,7 +360,7 @@ export default function VisualSearchGame() {
       {phase === 'playing' && renderPlaying()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
-        <LevelCleared gameId="visual_search" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+        <LevelCleared gameId="visual_search" passed={clearedPassed} level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}

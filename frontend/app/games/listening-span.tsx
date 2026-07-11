@@ -64,6 +64,7 @@ export default function ListeningSpanGame() {
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', defaultTarget));
 
   const [phase, setPhase] = useState<GamePhase>('config');
+  const [clearedPassed, setClearedPassed] = useState(true);
   const [round, setRound] = useState(1);
   const [errors, setErrors] = useState(0);
   const [spoken, setSpoken] = useState<string[]>([]);     // услышанные (в порядке озвучки)
@@ -197,7 +198,13 @@ export default function ListeningSpanGame() {
     setElapsedTime(finalTime);
     const passed = totalErrors <= 1;   // оба раунда, суммарно ≤1 ошибка
     if (passed && !isPreset) lvl.reach(levelRef.current + 1);
-    setPhase(passed ? 'cleared' : 'result');
+    if (isPreset) {
+      setPhase(passed ? 'cleared' : 'result');
+    } else {
+      // непрерывный поток: провал уровня → баннер «почти, ещё раз», не тупик
+      setClearedPassed(passed);
+      setPhase('cleared');
+    }
     try {
       await saveSession({
         game_type: GAME_ID,
@@ -371,6 +378,7 @@ export default function ListeningSpanGame() {
           gradient={GRADIENT}
           language={language}
           colors={colors}
+          passed={clearedPassed}
           onContinue={() => startGame()}
           onStop={() => setPhase('config')}
         />

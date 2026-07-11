@@ -96,6 +96,7 @@ export default function NBackGame() {
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
+  const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (false → баннер «почти, ещё раз»)
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   // Справка правил уровня (в зарядке-пресете не показываем — там свой поток)
   const levelRules = useLevelRules('n_back', lvl.level, NB_RULES, phase === 'playing' && !isPreset);
@@ -319,10 +320,15 @@ export default function NBackGame() {
     const pid = (profile as any)?.id ?? 'default';
     getSessionHistory('n_back', pid).then(setAccuracyHistory);
     recordSessionScore('n_back', pid, combinedAccuracy).catch(() => {});
-    // веха-босс: при чистом прохождении (≥80%) каждые BOSS_EVERY уровней → битва (память → счёт)
-    if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setPhase('boss'); }
-    else if (passed) setPhase('cleared');   // авто-поток к следующему уровню
-    else setPhase('result');
+    // веха-босс: при чистом прохождении (≥80%) каждые BOSS_EVERY уровней → битва (память → счёт).
+    // Непрохождение уровня больше НЕ уводит в тупик-result: показываем общий баннер cleared
+    // с passed=false («почти, ещё раз») и авто-рестартом того же уровня. Пресет — как было (result).
+    if (isPreset) { setPhase('result'); }
+    else {
+      setClearedPassed(passed);
+      if (passed && levelRef.current % BOSS_EVERY === 0) { setBossWon(null); setPhase('boss'); }
+      else setPhase('cleared');   // авто-поток: прошёл → следующий уровень, не прошёл → тот же ещё раз
+    }
   };
 
   const renderConfig = () => (
@@ -517,7 +523,7 @@ export default function NBackGame() {
           onComplete={(win) => { setBossWon(win); setPhase('cleared'); }} />
       )}
       {phase === 'cleared' && (
-        <LevelCleared gameId="n_back" level={levelRef.current} stars={bossWon === true ? 3 : ((misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1)}
+        <LevelCleared gameId="n_back" level={levelRef.current} passed={clearedPassed} stars={bossWon === true ? 3 : ((misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1)}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
