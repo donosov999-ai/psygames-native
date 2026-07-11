@@ -26,6 +26,7 @@
 import { useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { getMaxLevelFromSessions } from '@/src/services/api';
 
 const FAIL_STREAK_THRESHOLD = 3;
 
@@ -50,17 +51,32 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
   useEffect(() => {
     let cancelled = false;
     setLoaded(false);
-    Promise.all([AsyncStorage.getItem(key), AsyncStorage.getItem(failKey)]).then(([v, f]) => {
+    Promise.all([AsyncStorage.getItem(key), AsyncStorage.getItem(failKey)]).then(async ([v, f]) => {
       if (cancelled) return;
       const n = parseInt(v || '', 10);
-      const lv = n >= 1 ? n : initial;
-      levelRef.current = lv;
-      setLevelState(lv);
+      if (n >= 1) {
+        // Локальный ключ есть — он источник истины.
+        levelRef.current = n;
+        setLevelState(n);
+      } else {
+        // Ключа нет (переустановка / сброс-смена профиля): уровень потерян, но очки/сессии
+        // durable — восстанавливаем достигнутый уровень из истории и пишем обратно в ключ,
+        // чтобы дальше он был локальным. Очки так не терялись, а уровень — терялся (баг Вали).
+        let restored = initial;
+        try {
+          const fromSessions = await getMaxLevelFromSessions(gameId);
+          if (cancelled) return;
+          restored = Math.max(initial, fromSessions);
+        } catch { /* нет истории → initial */ }
+        levelRef.current = restored;
+        setLevelState(restored);
+        if (restored > 1) AsyncStorage.setItem(key, String(restored)).catch(() => {});
+      }
       failStreakRef.current = parseInt(f || '', 10) || 0;
       setLoaded(true);
     }).catch(() => { if (!cancelled) setLoaded(true); });
     return () => { cancelled = true; };
-  }, [key, failKey, initial]);
+  }, [key, failKey, initial, gameId]);
 
   const setFailStreak = (n: number) => {
     failStreakRef.current = n;

@@ -448,6 +448,24 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
 
 export const getSessions = async (): Promise<GameSession[]> => readAll();
 
+/**
+ * Восстановить достигнутый уровень из durable-истории сессий (details.level).
+ * Нужно, когда локальный ключ уровня (usePersistentLevel, AsyncStorage) пропал —
+ * переустановка / сброс профиля / смена профиля, — а сессии-очки уцелели.
+ * Уровень реконструируется как max(details.level) по игре. Default 1 (нет истории).
+ * gameType здесь = gameId хука (совпадает с game_type сессий; при расхождении → 1, безопасно).
+ */
+export const getMaxLevelFromSessions = async (gameType: string): Promise<number> => {
+  const all = await readAll();
+  let max = 0;
+  for (const s of all) {
+    if (s.game_type !== gameType) continue;
+    const lv = Number((s.details as any)?.level);
+    if (Number.isFinite(lv) && lv > max) max = lv;
+  }
+  return max >= 1 ? max : 1;
+};
+
 export const getBestResults = async (gameType: string): Promise<GameSession | null> => {
   const all = await readAll();
   const filtered = all.filter((s) => s.game_type === gameType);
