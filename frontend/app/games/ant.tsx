@@ -1,3 +1,23 @@
+/**
+ * ANT — Attention Network Test (Fan, McCandliss, Sommer, Raz, Posner 2002).
+ *
+ * Cue type: none / center / double / spatial
+ * Target: arrow at top or bottom, flanked by congruent or incongruent arrows
+ * Three networks measured:
+ *  alerting = RT(no cue) - RT(double cue)
+ *  orienting = RT(center cue) - RT(spatial cue)
+ *  executive = RT(incongruent) - RT(congruent)
+ *
+ * Уровни (persist, по паттерну cpt/simon): ручной селектор числа проб заменён на
+ * usePersistentLevel('ant') + levelParams. Ось усложнения:
+ *   - вариативность интервалов растёт (пред-пауза и CTOA всё менее предсказуемы —
+ *     alerting-сеть нельзя «завести» ритмом)
+ *   - окно ответа сокращается 3000мс → 1040мс (не успел = ошибка-пропуск)
+ *   - число проб растёт ступенями 12 → 16 → 20
+ *   - доля конфликтных (incongruent) проб растёт умеренно 30% → 55%
+ * Проход уровня: ≥80% верных ответов за раунд → LevelCleared (авто-поток).
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -13,6 +33,10 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#005C97', '#363795'];
 const ANT_BENEFITS = [
@@ -21,33 +45,43 @@ const ANT_BENEFITS = [
   { icon: 'flash-outline',   textKey: 'benefitAnt3' },
 ];
 
-// ANT (Fan, McCandliss, Sommer, Raz, Posner 2002).
-// Cue type: none / center / double / spatial
-// Target: arrow at top or bottom, flanked by congruent or incongruent arrows
-// Three networks measured:
-//  alerting = RT(no cue) - RT(double cue)
-//  orienting = RT(center cue) - RT(spatial cue)
-//  executive = RT(incongruent) - RT(congruent)
-
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type CueType = 'none' | 'center' | 'double' | 'spatial';
 type Congruence = 'congruent' | 'incongruent' | 'neutral';
 type Direction = 'left' | 'right';
 type Position = 'top' | 'bottom';
 
 interface Trial { cue: CueType; pos: Position; dir: Direction; cong: Congruence; flankers: Direction[] | null; }
+interface RtRec { cue: CueType; cong: Congruence; rt: number; }
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
-function makeTrial(): Trial {
+// Уровень 1..15: интервалы всё менее предсказуемы, окно ответа сокращается,
+// число проб растёт ступенями, доля конфликтных проб растёт умеренно.
+function levelParams(level: number): {
+  trials: number; incongruentProb: number; windowMs: number; preJitterMs: number; ctoaVarMs: number;
+} {
+  const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
+  const incongruentProb = Math.min(0.55, 0.30 + (level - 1) * 0.018);   // 30% → 55%
+  const windowMs = Math.max(1000, 3000 - (level - 1) * 140);            // 3000мс → 1040мс
+  const preJitterMs = 400 + (level - 1) * 80;                           // разброс пред-паузы 400 → 1520мс
+  const ctoaVarMs = 100 + (level - 1) * 40;                             // разброс CTOA 100 → 660мс
+  return { trials, incongruentProb, windowMs, preJitterMs, ctoaVarMs };
+}
+
+// Доля neutral фиксирована (~20%), остальное делят congruent/incongruent по уровню
+function makeTrial(incongruentProb: number): Trial {
   const cue = rndItem<CueType>(['none','center','double','spatial']);
   const pos = rndItem<Position>(['top','bottom']);
   const dir = rndItem<Direction>(['left','right']);
-  const cong = rndItem<Congruence>(['congruent','incongruent','neutral']);
+  const r = Math.random();
+  const cong: Congruence = r < incongruentProb ? 'incongruent' : r < incongruentProb + 0.2 ? 'neutral' : 'congruent';
   let flankers: Direction[] | null;
   if (cong === 'congruent') flankers = [dir, dir, dir, dir];
-  else if (cong === 'incongruent') flankers = [dir === 'left' ? 'right' : 'left'].map(d => d as Direction).flatMap(d => [d, d, d, d]);
-  else flankers = null;
+  else if (cong === 'incongruent') {
+    const opp: Direction = dir === 'left' ? 'right' : 'left';
+    flankers = [opp, opp, opp, opp];
+  } else flankers = null;
   return { cue, pos, dir, cong, flankers };
 }
 
@@ -56,63 +90,114 @@ export default function ANTGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
+  const { isPreset } = useGamePreset();
+  const lvl = usePersistentLevel('ant');
+  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [trials, setTrials] = useState(24);
 
   const [round, setRound] = useState(0);
+  const [totalTrials, setTotalTrials] = useState(12);
   const [trial, setTrial] = useState<Trial>({ cue: 'none', pos: 'top', dir: 'left', cong: 'neutral', flankers: null });
   const [showCue, setShowCue] = useState(false);
   const [showTarget, setShowTarget] = useState(false);
-  const [stimAt, setStimAt] = useState(0);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
 
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
-  // store [cueType][cong] → rt
-  const [rts, setRts] = useState<{cue:CueType,cong:Congruence,rt:number}[]>([]);
-  const [startTime, setStartTime] = useState(0);
+  const [rts, setRts] = useState<RtRec[]>([]);
+
+  // Рефы — таймерная цепочка (пред-пауза → cue → blank → target → дедлайн → next)
+  // живёт вне ре-рендеров, state в её колбэках был бы устаревшим (паттерн cpt/simon).
+  const levelRef = useRef(1);
+  const incongruentProbRef = useRef(0.3);
+  const windowMsRef = useRef(3000);
+  const preJitterRef = useRef(400);
+  const ctoaVarRef = useRef(100);
+  const totalTrialsRef = useRef(12);
+  const roundRef = useRef(0);
+  const hitsRef = useRef(0);
+  const errorsRef = useRef(0);
+  const rtsRef = useRef<RtRec[]>([]);
+  const trialRef = useRef<Trial>({ cue: 'none', pos: 'top', dir: 'left', cong: 'neutral', flankers: null });
+  const stimAtRef = useRef(0);
+  const answeredRef = useRef(false);
+  const startTimeRef = useRef(0);
 
   const cueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const targetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blankTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deadlineTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fbTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => {
-    [cueTimer, targetTimer, fbTimer].forEach(r => { if (r.current) clearTimeout(r.current); });
-  }, []);
+  const clearAllTimers = () => {
+    [cueTimer, targetTimer, blankTimer, deadlineTimer, fbTimer].forEach(r => { if (r.current) clearTimeout(r.current); });
+  };
+
+  useEffect(() => () => clearAllTimers(), []);
+
+  const onTargetShown = () => {
+    stimAtRef.current = Date.now();
+    answeredRef.current = false;
+    setShowTarget(true);
+    // Окно ответа уровня: не успел — ошибка-пропуск, проба закрывается сама
+    deadlineTimer.current = setTimeout(() => {
+      if (answeredRef.current) return;
+      answeredRef.current = true;
+      errorsRef.current += 1;
+      setErrors(errorsRef.current);
+      setFeedback('wrong');
+      fbTimer.current = setTimeout(advance, 350);
+    }, windowMsRef.current);
+  };
 
   const newTrial = () => {
     setShowCue(false); setShowTarget(false); setFeedback(null);
-    const tr = makeTrial();
+    const tr = makeTrial(incongruentProbRef.current);
+    trialRef.current = tr;
     setTrial(tr);
+    // Пред-пауза: разброс растёт с уровнем — момент cue нельзя предугадать
     cueTimer.current = setTimeout(() => {
       if (tr.cue !== 'none') {
         setShowCue(true);
         targetTimer.current = setTimeout(() => {
           setShowCue(false);
-          setTimeout(() => {
-            setShowTarget(true);
-            setStimAt(Date.now());
-          }, 400); // fixed CTOA = 100ms cue + 400ms blank = 500ms
+          // CTOA-вариативность уровня: blank 300..300+ctoaVar (вместо фикс. 400мс)
+          blankTimer.current = setTimeout(onTargetShown, 300 + Math.random() * ctoaVarRef.current);
         }, 100);
       } else {
-        // no cue → just delay then target
-        setTimeout(() => {
-          setShowTarget(true);
-          setStimAt(Date.now());
-        }, 500);
+        // no cue → сопоставимая по времени пауза, тоже с вариативностью уровня
+        blankTimer.current = setTimeout(onTargetShown, 400 + Math.random() * ctoaVarRef.current);
       }
-    }, 400 + Math.random() * 600);
+    }, 400 + Math.random() * preJitterRef.current);
   };
 
-  const startGame = () => {
-    setHits(0); setErrors(0); setRts([]); setRound(1);
-    setPhase('playing');
-    setStartTime(Date.now());
+  const advance = () => {
+    if (roundRef.current >= totalTrialsRef.current) { finish(); return; }
+    roundRef.current += 1;
+    setRound(roundRef.current);
     newTrial();
   };
 
-  const calcMeans = (data: typeof rts) => {
-    const filt = (pred: (r: typeof rts[0]) => boolean) => {
+  const startGame = () => {
+    const p = levelParams(lvl.level);
+    levelRef.current = lvl.level;
+    incongruentProbRef.current = p.incongruentProb;
+    windowMsRef.current = p.windowMs;
+    preJitterRef.current = p.preJitterMs;
+    ctoaVarRef.current = p.ctoaVarMs;
+    totalTrialsRef.current = p.trials;
+    setTotalTrials(p.trials);
+    hitsRef.current = 0; errorsRef.current = 0; rtsRef.current = [];
+    roundRef.current = 1;
+    setHits(0); setErrors(0); setRts([]); setRound(1);
+    setPhase('playing');
+    startTimeRef.current = Date.now();
+    newTrial();
+  };
+
+  const calcMeans = (data: RtRec[]) => {
+    const filt = (pred: (r: RtRec) => boolean) => {
       const arr = data.filter(pred).map(r => r.rt);
       return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
     };
@@ -123,67 +208,98 @@ export default function ANTGame() {
     return { alerting: Math.round(alerting), orienting: Math.round(orienting), executive: Math.round(executive), meanRt: Math.round(meanRt) };
   };
 
-  const finish = async (h: number, e: number, allRts: typeof rts) => {
-    const totalTime = (Date.now() - startTime) / 1000;
-    const m = calcMeans(allRts);
-    setPhase('result');
+  const finish = async () => {
+    clearAllTimers();
+    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const m = calcMeans(rtsRef.current);
+    const h = hitsRef.current, e = errorsRef.current;
+    const accuracy = totalTrialsRef.current > 0 ? h / totalTrialsRef.current : 0;
+    // Проход уровня: ≥80% верных за раунд (пропуски по окну = ошибки)
+    const passed = !isPreset && accuracy >= 0.8;
+    if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset) lvl.fail();
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
     try {
       await saveSession({
         game_type: 'ant',
         score: Math.max(0, Math.round(h * 60 - e * 50 - m.meanRt * 0.05)),
         time_seconds: totalTime,
-        difficulty: 'medium',
-        mode: `${trials}t`,
+        difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
+        mode: `lvl${levelRef.current}`,
         errors: e,
-        details: { mean_rt: m.meanRt, alerting_ms: m.alerting, orienting_ms: m.orienting, executive_ms: m.executive },
+        details: {
+          level: levelRef.current,
+          accuracy: Math.round(accuracy * 100),
+          n_trials: totalTrialsRef.current,
+          mean_rt: m.meanRt, alerting_ms: m.alerting, orienting_ms: m.orienting, executive_ms: m.executive,
+        },
       });
     } catch (err) { console.error(err); }
   };
 
   const handleAnswer = (d: Direction) => {
-    if (!showTarget || feedback !== null) return;
-    const rt = Date.now() - stimAt;
-    const ok = d === trial.dir;
-    let nh = hits, ne = errors, nr = rts;
-    if (ok) { nh = hits + 1; nr = [...rts, { cue: trial.cue, cong: trial.cong, rt }]; }
-    else ne = errors + 1;
-    setHits(nh); setErrors(ne); setRts(nr);
+    if (!showTarget || feedback !== null || answeredRef.current) return;
+    answeredRef.current = true;
+    if (deadlineTimer.current) clearTimeout(deadlineTimer.current);
+    const rt = Date.now() - stimAtRef.current;
+    const tr = trialRef.current;
+    const ok = d === tr.dir;
+    if (ok) {
+      hitsRef.current += 1;
+      setHits(hitsRef.current);
+      rtsRef.current = [...rtsRef.current, { cue: tr.cue, cong: tr.cong, rt }];
+      setRts(rtsRef.current);
+    } else {
+      errorsRef.current += 1;
+      setErrors(errorsRef.current);
+    }
     setFeedback(ok ? 'right' : 'wrong');
-    fbTimer.current = setTimeout(() => {
-      if (round >= trials) finish(nh, ne, nr);
-      else { setRound(r => r + 1); newTrial(); }
-    }, 350);
+    fbTimer.current = setTimeout(advance, 350);
   };
 
   const m = calcMeans(rts);
 
-  const renderConfig = () => (
-    <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="git-network" size={48} color="#FFF" />
-        <Text style={styles.configTitle}>{t('ant')}</Text>
-        <Text style={styles.configDesc}>{t('antDesc')}</Text>
-      </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
-        <View style={styles.optionButtons}>
-          {[12, 24, 36].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, trials === n
-              ? { backgroundColor: GRADIENT[1] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setTrials(n)}>
-              <Text style={[styles.modeButtonText, { color: trials === n ? '#FFF' : colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
+  const renderConfig = () => {
+    const p = levelParams(lvl.level);
+    return (
+      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+        <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+          <Ionicons name="git-network" size={48} color="#FFF" />
+          <Text style={styles.configTitle}>{t('ant')}</Text>
+          <Text style={styles.configDesc}>{t('antDesc')}</Text>
         </LinearGradient>
-      </TouchableOpacity>
-    </ScrollView>
-  );
+
+        <LevelProgressMap gameId="ant" currentLevel={lvl.level} colors={colors} language={language} />
+        <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+          <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+            {language === 'ru'
+              ? `${p.trials} проб · конфликтных ~${Math.round(p.incongruentProb * 100)}% · окно ответа ${(p.windowMs / 1000).toFixed(1)} с · паузы всё непредсказуемее`
+              : `${p.trials} trials · ~${Math.round(p.incongruentProb * 100)}% conflict · ${(p.windowMs / 1000).toFixed(1)} s response window · less predictable pauses`}
+          </Text>
+          {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
+          <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+            {language === 'ru'
+              ? 'Проход уровня: ≥80% верных ответов (не успел в окно = ошибка)'
+              : 'To pass: ≥80% correct answers (missing the window counts as an error)'}
+          </Text>
+          {lvl.level > 1 && (
+            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+          <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+            <Text style={styles.startBtnText}>{t('start')}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
 
   const arrowFor = (d: Direction, size: number, color: string) => (
     <Ionicons name={d === 'left' ? 'arrow-back' : 'arrow-forward'} size={size} color={color} />
@@ -192,7 +308,7 @@ export default function ANTGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{m.meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
@@ -245,7 +361,8 @@ export default function ANTGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+          onPress={() => { clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('ant')}</Text>
@@ -258,6 +375,11 @@ export default function ANTGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared gameId="ant" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, Math.round(hits * 60 - errors * 50 - m.meanRt * 0.05))}

@@ -18,6 +18,9 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 
 const GRADIENT = ['#a8edea', '#fed6e3'];
@@ -28,7 +31,21 @@ const PROOFREADING_BENEFITS = [
   { icon: 'shield-checkmark-outline', textKey: 'benefitProofreading3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+
+// Уровень 1..15 (паттерн cpt/simon): ручные селекторы строк/колонок заменены
+// уровневым режимом. Ось усложнения:
+//   - объём «текста» растёт: 8×8 (64 клетки) → 16×12 (192 клетки)
+//   - скорость сканирования: бюджет времени на клетку 1.0с → 0.45с (лимит раунда ~60-90с)
+//   - допуск пропущенных целей снижается: найти ≥80% → ≥90% → 100% целей до конца времени
+function levelParams(level: number): { rows: number; cols: number; timeLimitSec: number; minFoundPct: number } {
+  const rows = level <= 5 ? 7 + level : level <= 10 ? 4 + level : Math.min(16, 1 + level);  // 8→12, 10→14, 12→16
+  const cols = level <= 5 ? 8 : level <= 10 ? 10 : 12;
+  const perCellSec = Math.max(0.45, 1.0 - (level - 1) * 0.04);   // темп сканирования растёт
+  const timeLimitSec = Math.round(rows * cols * perCellSec);
+  const minFoundPct = level <= 5 ? 0.8 : level <= 10 ? 0.9 : 1;
+  return { rows, cols, timeLimitSec, minFoundPct };
+}
 
 export default function ProofreadingGame() {
   const { colors } = useTheme();
@@ -37,8 +54,10 @@ export default function ProofreadingGame() {
   const { width, height } = useWindowDimensions();
 
   const { isPreset, str, num } = useGamePreset();
+  const lvl = usePersistentLevel('proofreading');
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
+  // rows/cols из пресета зарядки; в личной игре перезаписываются параметрами уровня
   const [rows, setRows] = useState(() => num('rows', 14));
   const [cols, setCols] = useState(() => num('cols', 12));
   const [mode, setMode] = useState<ScriptId | 'digits'>(() => (str('mode', language === 'ru' ? 'cyrillic' : 'latin') as ScriptId | 'digits'));
@@ -47,10 +66,23 @@ export default function ProofreadingGame() {
   const [targetLetters, setTargetLetters] = useState<string[]>([]);
   const [foundIndices, setFoundIndices] = useState<Set<number>>(new Set());
   const [targetIndices, setTargetIndices] = useState<Set<number>>(new Set());
-  const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [errors, setErrors] = useState(0);
+  const [lastStars, setLastStars] = useState(3);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Рефы — таймер лимита времени живёт вне ре-рендеров, state в его колбэке
+  // был бы устаревшим (паттерн cpt/simon).
+  const levelRef = useRef(1);
+  const rowsRef = useRef(14);
+  const colsRef = useRef(12);
+  const timeLimitRef = useRef(0);          // 0 = без лимита (пресет зарядки)
+  const minFoundPctRef = useRef(1);
+  const targetTotalRef = useRef(0);
+  const foundRef = useRef(0);
+  const errorsRef = useRef(0);
+  const startTimeRef = useRef(0);
+  const finishedRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -58,15 +90,15 @@ export default function ProofreadingGame() {
     };
   }, []);
 
-  const generateGrid = () => {
+  const generateGrid = (r: number, c: number) => {
     const alphabet = mode === 'digits' ? '0123456789' : SCRIPTS[mode].chars;
-    const totalCells = rows * cols;
-    
+    const totalCells = r * c;
+
     // Generate random letters
-    const letters = Array.from({ length: totalCells }, () => 
+    const letters = Array.from({ length: totalCells }, () =>
       alphabet[Math.floor(Math.random() * alphabet.length)]
     );
-    
+
     // Select 2 target letters
     const targets = [
       alphabet[Math.floor(Math.random() * alphabet.length)],
@@ -75,7 +107,20 @@ export default function ProofreadingGame() {
     while (targets[1] === targets[0]) {
       targets[1] = alphabet[Math.floor(Math.random() * alphabet.length)];
     }
-    
+
+    // Гарантия минимума целей: на больших алфавитах (иероглифы/кана) цели могли
+    // выпасть 0-2 раза — критерий «найти ≥N% целей» терял смысл, а при 0 раунд
+    // не завершался вовсе. Досеиваем цели в случайные не-целевые клетки.
+    const minTargets = Math.max(4, Math.round(totalCells / 16));
+    let present = letters.filter((l) => targets.includes(l)).length;
+    while (present < minTargets) {
+      const idx = Math.floor(Math.random() * totalCells);
+      if (!targets.includes(letters[idx])) {
+        letters[idx] = targets[Math.floor(Math.random() * 2)];
+        present++;
+      }
+    }
+
     // Find all indices where target letters appear
     const indices = new Set<number>();
     letters.forEach((letter, index) => {
@@ -83,55 +128,109 @@ export default function ProofreadingGame() {
         indices.add(index);
       }
     });
-    
+
     setGrid(letters);
     setTargetLetters(targets);
     setTargetIndices(indices);
     setFoundIndices(new Set());
+    targetTotalRef.current = indices.size;
+    foundRef.current = 0;
   };
 
   const startGame = () => {
-    generateGrid();
+    let r: number, c: number;
+    if (isPreset) {
+      // Пресет зарядки: размеры из warmup-параметров, без лимита времени (как раньше)
+      r = rows; c = cols;
+      timeLimitRef.current = 0;
+      minFoundPctRef.current = 1;
+    } else {
+      const p = levelParams(lvl.level);
+      r = p.rows; c = p.cols;
+      setRows(r); setCols(c);
+      timeLimitRef.current = p.timeLimitSec;
+      minFoundPctRef.current = p.minFoundPct;
+    }
+    levelRef.current = lvl.level;
+    rowsRef.current = r;
+    colsRef.current = c;
+    errorsRef.current = 0;
+    finishedRef.current = false;
+    generateGrid(r, c);
     setErrors(0);
+    setElapsedTime(0);
     setPhase('playing');
-    setStartTime(Date.now());
-    
-    const start = Date.now();
+    startTimeRef.current = Date.now();
+
+    if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setElapsedTime((Date.now() - start) / 1000);
+      const elapsed = (Date.now() - startTimeRef.current) / 1000;
+      setElapsedTime(elapsed);
+      // Лимит времени уровня: не успел — раунд закрывается с тем, что найдено
+      if (timeLimitRef.current > 0 && elapsed >= timeLimitRef.current) finish();
     }, 100);
   };
 
-  const handleCellPress = async (index: number) => {
-    if (foundIndices.has(index)) return;
-    
+  const finish = async () => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    if (timerRef.current) clearInterval(timerRef.current);
+    const rawTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = timeLimitRef.current > 0 ? Math.min(rawTime, timeLimitRef.current) : rawTime;
+    setElapsedTime(finalTime);
+
+    const total = targetTotalRef.current;
+    const found = foundRef.current;
+    const missed = Math.max(0, total - found);
+    const errs = errorsRef.current;
+    // Проход уровня: найдено ≥N% целей до истечения лимита (допуск пропусков сужается с уровнем)
+    const passed = !isPreset && total > 0 && found >= Math.ceil(total * minFoundPctRef.current);
+    // Звёзды: 0 промахов (пропуски+ложные клики) = 3, ≤2 = 2, иначе 1
+    const mistakes = missed + errs;
+    setLastStars(mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1);
+    if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset) lvl.fail();
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+
+    try {
+      await saveSession({
+        game_type: 'proofreading',
+        score: found,
+        time_seconds: finalTime,
+        difficulty: `${rowsRef.current}x${colsRef.current}`,
+        ...(isPreset ? {} : { mode: `lvl${levelRef.current}` }),
+        errors: errs,
+        details: {
+          level: levelRef.current,
+          hits: found,
+          errors: errs,
+          missed,
+          n_targets: total,
+          accuracy: total > 0 ? Math.round((found / total) * 100) : 100,
+          rows: rowsRef.current,
+          cols: colsRef.current,
+          time_limit_sec: timeLimitRef.current,
+        },
+      });
+    } catch (error) {
+      console.error('Error saving session:', error);
+    }
+  };
+
+  const handleCellPress = (index: number) => {
+    if (finishedRef.current || foundIndices.has(index)) return;
+
     if (targetIndices.has(index)) {
       const newFound = new Set(foundIndices);
       newFound.add(index);
+      foundRef.current = newFound.size;
       setFoundIndices(newFound);
-      
-      // Check if all found
-      if (newFound.size === targetIndices.size) {
-        if (timerRef.current) clearInterval(timerRef.current);
-        const finalTime = (Date.now() - startTime) / 1000;
-        setElapsedTime(finalTime);
-        setPhase('result');
-        
-        try {
-          await saveSession({
-            game_type: 'proofreading',
-            score: targetIndices.size,
-            time_seconds: finalTime,
-            difficulty: `${rows}x${cols}`,
-            errors: errors,
-            details: { hits: targetIndices.size, errors, rows, cols },
-          });
-        } catch (error) {
-          console.error('Error saving session:', error);
-        }
-      }
+
+      // Check if all found — досрочное завершение
+      if (newFound.size === targetIndices.size) finish();
     } else {
-      setErrors(prev => prev + 1);
+      errorsRef.current += 1;
+      setErrors(errorsRef.current);
       setWrongFlash(index);
       setTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);
     }
@@ -150,7 +249,9 @@ export default function ProofreadingGame() {
   const cellSize = Math.max(22, Math.min(widthBased, heightBased, 72));   // clamp 22-72px
   const gridWidth = cellSize * cols;
 
-  const renderConfig = () => (
+  const renderConfig = () => {
+    const p = levelParams(lvl.level);
+    return (
     <ScrollView style={styles.configScroll} showsVerticalScrollIndicator={false}>
       <View style={styles.configContainer}>
         <LinearGradient
@@ -195,52 +296,28 @@ export default function ProofreadingGame() {
           </View>
         </View>
 
-        {/* Rows Selection */}
-        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {t('label_rows')}
+        {/* Уровневый режим вместо ручных селекторов строк/колонок (паттерн cpt/simon) */}
+        <LevelProgressMap gameId="proofreading" currentLevel={lvl.level} colors={colors} language={language} />
+        <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', gap: 6, marginTop: 12, marginBottom: 12 }]}>
+          <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
           </Text>
-          <View style={styles.optionButtons}>
-            {[10, 12, 15, 18].map((r) => (
-              <TouchableOpacity
-                key={r}
-                style={[
-                  styles.sizeButton,
-                  rows === r && { backgroundColor: GRADIENT[0] },
-                  rows !== r && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-                ]}
-                onPress={() => setRows(r)}
-              >
-                <Text style={[styles.sizeButtonText, { color: rows === r ? '#333' : colors.text }]}>
-                  {r}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Columns Selection */}
-        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {t('label_columns')}
+          <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+            {language === 'ru'
+              ? `Поле ${p.rows}×${p.cols} · лимит ${p.timeLimitSec} с`
+              : `${p.rows}×${p.cols} grid · ${p.timeLimitSec} s limit`}
           </Text>
-          <View style={styles.optionButtons}>
-            {[8, 10, 12, 16].map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={[
-                  styles.sizeButton,
-                  cols === c && { backgroundColor: GRADIENT[0] },
-                  cols !== c && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-                ]}
-                onPress={() => setCols(c)}
-              >
-                <Text style={[styles.sizeButtonText, { color: cols === c ? '#333' : colors.text }]}>
-                  {c}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
+          <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+            {language === 'ru'
+              ? `Проход уровня: найти ≥${Math.round(p.minFoundPct * 100)}% целей до конца времени (ложные нажатия и пропуски снижают звёзды)`
+              : `To pass: find ≥${Math.round(p.minFoundPct * 100)}% of targets before time runs out (false taps and misses cost stars)`}
+          </Text>
+          {lvl.level > 1 && (
+            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <TouchableOpacity style={styles.startButton} onPress={startGame}>
@@ -256,7 +333,8 @@ export default function ProofreadingGame() {
         </TouchableOpacity>
       </View>
     </ScrollView>
-  );
+    );
+  };
 
   const renderGame = () => (
     <View style={styles.gameContainer}>
@@ -275,9 +353,17 @@ export default function ProofreadingGame() {
         </View>
         <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
           <Ionicons name="time-outline" size={18} color={colors.text} />
-          <Text style={[styles.timerText, { color: colors.text }]}>
-            {Math.floor(elapsedTime)}s
+          {/* На уровне — обратный отсчёт лимита (красный на последних 10с); в пресете — секундомер */}
+          <Text style={[styles.timerText, {
+            color: timeLimitRef.current > 0 && timeLimitRef.current - elapsedTime <= 10 ? '#f43f5e' : colors.text,
+          }]}>
+            {timeLimitRef.current > 0
+              ? `${Math.max(0, Math.ceil(timeLimitRef.current - elapsedTime))}s`
+              : `${Math.floor(elapsedTime)}s`}
           </Text>
+          {errors > 0 && (
+            <Text style={[styles.timerText, { color: '#f43f5e' }]}>✗{errors}</Text>
+          )}
         </View>
       </View>
 
@@ -358,10 +444,22 @@ export default function ProofreadingGame() {
 
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderGame()}
+      {phase === 'cleared' && (
+        <LevelCleared
+          gameId="proofreading"
+          level={levelRef.current}
+          stars={lastStars}
+          gradient={GRADIENT}
+          language={language}
+          colors={colors}
+          onContinue={() => startGame()}
+          onStop={() => setPhase('config')}
+        />
+      )}
       {phase === 'result' && (
         <GameResult
           time={elapsedTime}
-          score={targetIndices.size}
+          score={foundIndices.size}
           errors={errors}
           gradient={GRADIENT}
           onPlayAgain={() => setPhase('config')}

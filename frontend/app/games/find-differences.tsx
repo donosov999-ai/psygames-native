@@ -1,3 +1,14 @@
+/**
+ * Найди отличия — две сцены из тематических спрайтов, тапай отличия на правой.
+ *
+ * Уровни (persist, паттерн cpt/simon): ручной селектор «сколько отличий»
+ * заменён лесенкой usePersistentLevel('find_differences') + levelParams.
+ * Ось усложнения: diffCount растёт 2 → 6, сцена плотнее (объектов 12 → 19),
+ * лимит времени на раунд сокращается 40с → 15с.
+ * Проход уровня: найти ВСЕ отличия в каждом из раундов до истечения лимита
+ * → LevelCleared (авто-поток к следующему уровню).
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -14,6 +25,9 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile, SPRITE_COUNT } from '@/src/constants/pairThemes';
 
@@ -24,8 +38,18 @@ const FIND_BENEFITS = [
   { icon: 'sparkles-outline', textKey: 'benefitFind3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'feedback' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'feedback' | 'cleared' | 'result';
 type Shape = { sprite: number; x: number; y: number; size: number; rot: number };
+
+// Уровень 1..15: отличий больше, сцена плотнее, лимит времени на раунд короче.
+// Ступени по 3 уровня для diffCount — игрок успевает освоиться на каждой ступени.
+const ROUNDS_PER_LEVEL = 3;
+function levelParams(level: number): { diffCount: number; objectCount: number; roundTimeSec: number; rounds: number } {
+  const diffCount = Math.min(6, 2 + Math.floor((level - 1) / 3));       // 2,2,2,3,3,3 ... 6
+  const objectCount = Math.min(19, 12 + Math.floor((level - 1) / 2));   // 12 → 19
+  const roundTimeSec = Math.max(15, 40 - (level - 1) * 2);              // 40с → 15с на раунд
+  return { diffCount, objectCount, roundTimeSec, rounds: ROUNDS_PER_LEVEL };
+}
 
 // Объекты сцены — те же тематические спрайты, что и в «Парных картинках»,
 // набор зависит от активного профиля (см. src/constants/pairThemes.ts).
@@ -138,72 +162,116 @@ function withDifference(scene: Shape[], diffCount: number): { altered: Shape[]; 
 
 export default function FindDifferencesGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { profile } = useProfile();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const sprites = pairSpritesForProfile(profile?.id);
 
   const { isPreset, num } = useGamePreset();
+  const lvl = usePersistentLevel('find_differences');
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [diffCount, setDiffCount] = useState(() => num('diffCount', 3));
-  const [trials] = useState(8);
   const [round, setRound] = useState(0);
+  const [totalRounds, setTotalRounds] = useState(ROUNDS_PER_LEVEL);
   const [scene, setScene] = useState<Shape[]>([]);
   const [altered, setAltered] = useState<Shape[]>([]);
   const [diffIdx, setDiffIdx] = useState<number[]>([]);
   const [foundIdx, setFoundIdx] = useState<Set<number>>(new Set());
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
-  const [startTime, setStartTime] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Параметры уровня и счётчики — в refs: колбэки таймеров (обратный отсчёт раунда,
+  // пауза между раундами) живут вне ре-рендеров, state в них устаревал бы (паттерн simon/cpt).
+  const levelRef = useRef(1);
+  const diffCountRef = useRef(3);
+  const objectCountRef = useRef(14);
+  const roundTimeRef = useRef(40);
+  const roundsRef = useRef(ROUNDS_PER_LEVEL);
+  const roundRef = useRef(0);
+  const hitsRef = useRef(0);
+  const errorsRef = useRef(0);
+  const startTimeRef = useRef(0);
+  const roundStartRef = useRef(0);
+  const finishedRef = useRef(false);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Larger scene area = more room to avoid overlaps (was 280, now ~340)
   const sceneW = Math.min(width - 24, 440);
   const sceneH = Math.min(340, sceneW * 0.8);
 
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+  const clearAllTimers = () => {
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+  };
+
+  useEffect(() => () => clearAllTimers(), []);
 
   const newRound = () => {
-    const sc = generateScene(sceneW, sceneH, 14);   // больше объектов = плотнее сцена, искать отличия сложнее
-    const { altered: alt, diffIdx: idx } = withDifference(sc, diffCount);
+    const sc = generateScene(sceneW, sceneH, objectCountRef.current);
+    const { altered: alt, diffIdx: idx } = withDifference(sc, diffCountRef.current);
     setScene(sc);
     setAltered(alt);
     setDiffIdx(idx);
     setFoundIdx(new Set());
+    // Лимит времени раунда: не нашёл все отличия до нуля → уровень не пройден
+    roundStartRef.current = Date.now();
+    setTimeLeft(roundTimeRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    countdownRef.current = setInterval(() => {
+      const left = roundTimeRef.current - (Date.now() - roundStartRef.current) / 1000;
+      setTimeLeft(Math.max(0, Math.ceil(left)));
+      if (left <= 0) finish(false);
+    }, 200);
   };
 
   const startGame = () => {
-    setHits(0); setErrors(0); setRound(1);
-    newRound();
+    const p = levelParams(lvl.level);
+    levelRef.current = lvl.level;
+    // На пресете зарядки уважаем diffCount из настроек шага (см. profiles.ts)
+    diffCountRef.current = isPreset ? num('diffCount', p.diffCount) : p.diffCount;
+    objectCountRef.current = p.objectCount;
+    roundTimeRef.current = p.roundTimeSec;
+    roundsRef.current = p.rounds;
+    setTotalRounds(p.rounds);
+    finishedRef.current = false;
+    hitsRef.current = 0; errorsRef.current = 0;
+    setHits(0); setErrors(0);
+    roundRef.current = 1;
+    setRound(1);
     setPhase('playing');
-    const start = Date.now();
-    setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    startTimeRef.current = Date.now();
+    newRound();
   };
 
-  const handleShapePress = async (idx: number) => {
+  const handleShapePress = (idx: number) => {
+    if (diffIdx.length > 0 && foundIdx.size === diffIdx.length) return;   // раунд закрыт, ждём следующий
     if (foundIdx.has(idx)) return;
     if (diffIdx.includes(idx)) {
       const newFound = new Set(foundIdx);
       newFound.add(idx);
       setFoundIdx(newFound);
-      setHits((h) => h + 1);
+      hitsRef.current += 1;
+      setHits(hitsRef.current);
       if (newFound.size === diffIdx.length) {
-        // Round complete
-        setTimeout(() => {
-          if (round >= trials) {
-            finish();
+        // Раунд закрыт: таймер на паузу, дальше следующий раунд или финиш уровня
+        if (countdownRef.current) clearInterval(countdownRef.current);
+        advanceTimerRef.current = setTimeout(() => {
+          if (roundRef.current >= roundsRef.current) {
+            finish(true);
           } else {
-            setRound((r) => r + 1);
+            roundRef.current += 1;
+            setRound(roundRef.current);
             newRound();
           }
         }, 600);
       }
     } else {
-      setErrors((e) => e + 1);
+      errorsRef.current += 1;
+      setErrors(errorsRef.current);
     }
   };
 
@@ -222,22 +290,39 @@ export default function FindDifferencesGame() {
     if (best >= 0) handleShapePress(best);
   };
 
-  const finish = async () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    const finalTime = (Date.now() - startTime) / 1000;
+  const finish = async (completedAll: boolean) => {
+    if (finishedRef.current) return;   // защита от гонки «нашёл последнее отличие ↔ время вышло»
+    finishedRef.current = true;
+    clearAllTimers();
+    const finalTime = (Date.now() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
-    setPhase('result');
+    const h = hitsRef.current, e = errorsRef.current;
+    // Проход уровня: все отличия всех раундов найдены до истечения лимита
+    const passed = !isPreset && completedAll;
+    if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset) lvl.fail();   // гистерезис понижения (3 провала подряд → −1)
+    setPhase(passed ? 'cleared' : 'result');   // авто-поток к следующему уровню
+    const accuracy = h + e > 0 ? h / (h + e) : 0;
     try {
       await saveSession({
         game_type: 'find_differences',
-        score: hits * 50 - errors * 10,
+        score: Math.max(0, h * 50 - e * 10),
         time_seconds: finalTime,
-        difficulty: `${diffCount} diffs`,
-        mode: `${trials}t`,
-        errors,
-        details: { hits, errors, diff_count: diffCount, trials },
+        difficulty: `${diffCountRef.current} diffs`,
+        mode: `lvl${levelRef.current}`,
+        errors: e,
+        details: {
+          level: levelRef.current,
+          hits: h,
+          errors: e,
+          accuracy: Math.round(accuracy * 100),
+          diff_count: diffCountRef.current,
+          trials: roundsRef.current,
+          round_time_sec: roundTimeRef.current,
+          completed_all: completedAll,
+        },
       });
-    } catch (e) { console.error(e); }
+    } catch (err) { console.error(err); }
   };
 
   const renderShape = (s: Shape, idx: number, side: 'L' | 'R') => {
@@ -265,38 +350,51 @@ export default function FindDifferencesGame() {
     );
   };
 
-  const renderConfig = () => (
-    <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="search" size={48} color="#FFF" />
-        <Text style={styles.configTitle}>{t('findDiff')}</Text>
-        <Text style={styles.configDesc}>{t('findDiffDesc')}</Text>
-      </LinearGradient>
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('diffsCount')}</Text>
-        <View style={styles.optionButtons}>
-          {[2, 3, 4, 5].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, diffCount === n
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setDiffCount(n)}>
-              <Text style={[styles.modeButtonText, { color: diffCount === n ? '#FFF' : colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
+  const renderConfig = () => {
+    const p = levelParams(lvl.level);
+    return (
+      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+        <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+          <Ionicons name="search" size={48} color="#FFF" />
+          <Text style={styles.configTitle}>{t('findDiff')}</Text>
+          <Text style={styles.configDesc}>{t('findDiffDesc')}</Text>
         </LinearGradient>
-      </TouchableOpacity>
-    </ScrollView>
-  );
+        <LevelProgressMap gameId="find_differences" currentLevel={lvl.level} colors={colors} language={language} />
+        <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
+          <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
+            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+            {language === 'ru'
+              ? `Раундов: ${p.rounds} · отличий: ${p.diffCount} · объектов: ${p.objectCount} · ⏱ ${p.roundTimeSec} с на раунд`
+              : `${p.rounds} rounds · ${p.diffCount} differences · ${p.objectCount} objects · ⏱ ${p.roundTimeSec} s per round`}
+          </Text>
+          {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
+          <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+            {language === 'ru'
+              ? 'Проход уровня: найти все отличия в каждом раунде, пока не вышло время'
+              : 'To pass: find every difference in each round before the time runs out'}
+          </Text>
+          {lvl.level > 1 && (
+            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+          <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+            <Text style={styles.startBtnText}>{t('start')}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
 
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalRounds}</Text>
+        <Text style={[styles.statText, { color: timeLeft <= 5 ? '#f43f5e' : colors.text }]}>⏱{timeLeft}{language === 'ru' ? 'с' : 's'}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{foundIdx.size}/{diffIdx.length}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
       </View>
@@ -323,7 +421,8 @@ export default function FindDifferencesGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+          onPress={() => { clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('findDiff')}</Text>
@@ -336,6 +435,12 @@ export default function FindDifferencesGame() {
       )}
       {phase === 'config' && renderConfig()}
       {(phase === 'playing' || phase === 'feedback') && renderPlaying()}
+      {phase === 'cleared' && (
+        <LevelCleared gameId="find_differences" level={levelRef.current}
+          stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      )}
       {phase === 'result' && (
         <GameResult score={Math.max(0, hits * 50 - errors * 10)} time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
