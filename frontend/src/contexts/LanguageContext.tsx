@@ -119,6 +119,7 @@ const translations: Translations = {
   counter: { ru: 'Считалка: счёт', en: 'Counter: Math' },
   proofreading: { ru: 'Корректура: фокус', en: 'Proofread: Focus' },
   targets: { ru: 'Мишени: реакция', en: 'Targets: Reaction' },
+  quickCount: { ru: 'Быстрый счёт', en: 'Quick Count' },
   
   // Game descriptions
   schulteTableDesc: { ru: 'Поиск чисел от 1 до N', en: 'Find numbers from 1 to N' },
@@ -127,6 +128,7 @@ const translations: Translations = {
   counterDesc: { ru: 'Составление сумм X+Y=Z', en: 'Make sums X+Y=Z' },
   proofreadingDesc: { ru: 'Поиск заданных букв', en: 'Find specific letters' },
   targetsDesc: { ru: 'Реакция на цветные объекты', en: 'React to colored objects' },
+  quickCountDesc: { ru: 'Сколько точек — без пересчёта', en: 'How many dots — no counting' },
   
   // Skills - что тренируем
   skillAttention: { ru: 'Тренируем: концентрацию', en: 'Training: concentration' },
@@ -158,11 +160,20 @@ const translations: Translations = {
     ru: 'Найдите заданные буквы в большой таблице символов. Развивает избирательное внимание — способность находить нужное среди лишнего.', 
     en: 'Find specific letters in a large grid of characters. Develops selective attention — the ability to find what you need among distractions.' 
   },
-  targetsIntroDesc: { 
-    ru: 'Реагируйте на появление цветных объектов. Тренирует скорость реакции и способность быстро принимать решения.', 
-    en: 'React to colored objects appearing on screen. Trains reaction speed and the ability to make quick decisions.' 
+  targetsIntroDesc: {
+    ru: 'Реагируйте на появление цветных объектов. Тренирует скорость реакции и способность быстро принимать решения.',
+    en: 'React to colored objects appearing on screen. Trains reaction speed and the ability to make quick decisions.'
   },
-  
+  quickCountIntroDesc: {
+    ru: 'На мгновение появятся точки — оцените их количество, не пересчитывая по одной. Тренирует восприятие количества (subitizing) — отдельный от арифметики навык мгновенной оценки числа объектов.',
+    en: 'Dots flash briefly — estimate how many without counting one by one. Trains numerosity perception (subitizing) — a skill distinct from arithmetic, the instant sense of quantity.'
+  },
+  quickCountLookHint: { ru: 'Смотри — не считай!', en: 'Look — don’t count!' },
+  quickCountAnswerHint: { ru: 'Сколько было точек?', en: 'How many dots were there?' },
+  benefitQuickCount1: { ru: 'Быстро оценивать количество на глаз (очередь, товары, люди)', en: 'Quickly judge quantities by eye (queues, goods, people)' },
+  benefitQuickCount2: { ru: 'Развивает мгновенное восприятие, а не подсчёт', en: 'Develops instant perception, not counting' },
+  benefitQuickCount3: { ru: 'Отдельный от арифметики навык — оценка, не вычисление', en: 'A skill distinct from arithmetic — estimation, not calculation' },
+
   // Benefits for each game
   benefitSchulte1: { ru: 'Быстрее читать тексты и документы', en: 'Read texts and documents faster' },
   benefitSchulte2: { ru: 'Лучше замечать детали в окружении', en: 'Notice details in your environment better' },

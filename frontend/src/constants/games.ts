@@ -625,6 +625,16 @@ export const GAMES: GameConfig[] = [
     category: 'attention',
   },
   {
+    id: 'quick_count',
+    nameKey: 'quickCount',
+    descKey: 'quickCountDesc',
+    skillKey: 'skillAttention',
+    gradient: ['#f7971e', '#ffd200'],
+    icon: 'flash',
+    route: '/games/quick-count',
+    category: 'attention',
+  },
+  {
     id: 'cpt',
     nameKey: 'cpt',
     descKey: 'cptDesc',
