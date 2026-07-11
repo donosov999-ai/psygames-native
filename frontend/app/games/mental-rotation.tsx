@@ -44,6 +44,9 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 const GRADIENT = ['#5614b0', '#dbd65c'];
+// Цвет 3D-фигур: тёмно-фиолетовый GRADIENT[0] сливался с тёмной темой (образец не виден).
+// Светлый насыщенный фиолет читается и на светлой, и на тёмной теме.
+const SHAPE_BASE = '#9B6BFF';
 const MR_BENEFITS = [
   { icon: 'cube-outline', textKey: 'benefitMr1' },
   { icon: 'sync-outline', textKey: 'benefitMr2' },
@@ -495,8 +498,8 @@ export default function MentalRotationGame() {
           {!isPreset && <LevelRuleBadge lr={levelRules} color={colors.primary} ru={language === 'ru'} />}
         </View>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mentalRotationHint')}</Text>
-        <View style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
-          {renderShape(trial.base, baseSize, GRADIENT[0])}
+        <View style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }]}>
+          {renderShape(trial.base, baseSize, SHAPE_BASE)}
           <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>{t('label_reference')}</Text>
         </View>
         <View style={styles.optionsRow}>

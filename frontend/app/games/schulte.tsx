@@ -424,6 +424,19 @@ export default function SchulteGame() {
         <Text style={styles.configDesc}>{t('schulteTableDesc')}</Text>
       </LinearGradient>
       <LevelProgressMap gameId="schulte_table" currentLevel={lvl.level} colors={colors} language={language} />
+      {!isPreset && (
+        <TouchableOpacity style={styles.startButton} onPress={() => startGame(true)}>
+          <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
+            <Ionicons name="flag" size={22} color="#FFFFFF" />
+            <Text style={styles.startButtonText}>{language === 'ru' ? `🎯 Уровень ${lvl.level} →` : `🎯 Level ${lvl.level} →`}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
+      {!isPreset && (
+        <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center', marginTop: -2, marginBottom: 2 }}>
+          {language === 'ru' ? 'или настрой свою таблицу ниже и жми «Свободно»' : 'or customize your table below and tap “Free play”'}
+        </Text>
+      )}
       <TouchableOpacity style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
         <Ionicons name="trophy-outline" size={18} color={colors.text} />
         <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Топ игроков (5×5 классика)' : 'Leaderboard (5×5 classic)'}</Text>
@@ -754,15 +767,7 @@ export default function SchulteGame() {
       </View>
       )}
 
-      {!isPreset && (
-        <TouchableOpacity style={[styles.startButton, { marginTop: 'auto', marginBottom: 10 }]} onPress={() => startGame(true)}>
-          <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
-            <Ionicons name="flag" size={22} color="#FFFFFF" />
-            <Text style={styles.startButtonText}>{language === 'ru' ? `🎯 Уровень ${lvl.level} →` : `🎯 Level ${lvl.level} →`}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      )}
-      <TouchableOpacity style={[styles.startButton, !isPreset && { marginTop: 0 }]} onPress={() => startGame(false)}>
+      <TouchableOpacity style={[styles.startButton, !isPreset && { marginTop: 8 }]} onPress={() => startGame(false)}>
         <LinearGradient
           colors={GRADIENT as [string, string]}
           start={{ x: 0, y: 0 }}

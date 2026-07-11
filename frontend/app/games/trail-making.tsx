@@ -74,26 +74,30 @@ function makeNodes(mode: Mode, n: number, lang: string, w: number, h: number): N
       if (i < letters.length) labels.push(letters[i]);
     }
   }
-  // place non-overlapping
-  const margin = 40;
-  const cellSize = 60;
-  const nodes: Node[] = [];
-  let attempts = 0;
-  for (const lbl of labels) {
-    let placed = false;
-    for (let a = 0; a < 100 && !placed; a++) {
-      const x = rand(margin, w - margin);
-      const y = rand(margin, h - margin);
-      let ok = true;
-      for (const n2 of nodes) {
-        const dx = n2.x - x, dy = n2.y - y;
-        if (dx * dx + dy * dy < cellSize * cellSize) { ok = false; break; }
-      }
-      if (ok) { nodes.push({ label: lbl, x, y }); placed = true; }
-    }
-    if (!placed) nodes.push({ label: lbl, x: rand(margin, w - margin), y: rand(margin, h - margin) });
-    attempts++;
+  // Раскладка по «дрожащей сетке»: узлы гарантированно не накладываются.
+  // (Случайная выборка с отклонением при 22 узлах давала перекрытия — узел
+  // оказывался под другим и не нажимался. Теперь каждый узел — своя ячейка
+  // перемешанной сетки + небольшой джиттер, чтобы не выглядело линейкой.)
+  const N = labels.length;
+  const pad = 30;
+  const gw = Math.max(1, w - pad * 2), gh = Math.max(1, h - pad * 2);
+  const cols = Math.max(1, Math.round(Math.sqrt((N * gw) / gh)));
+  const rows = Math.ceil(N / cols);
+  const cellW = gw / cols, cellH = gh / rows;
+  const cells: number[] = [];
+  for (let i = 0; i < cols * rows; i++) cells.push(i);
+  for (let i = cells.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cells[i], cells[j]] = [cells[j], cells[i]];
   }
+  const jitter = 0.2;   // доля ячейки под случайное смещение (не линейка, но и не наезд)
+  const nodes: Node[] = labels.map((lbl, idx) => {
+    const cell = cells[idx];
+    const cx = cell % cols, cy = Math.floor(cell / cols);
+    const x = pad + cellW * (cx + 0.5) + (Math.random() - 0.5) * cellW * jitter;
+    const y = pad + cellH * (cy + 0.5) + (Math.random() - 0.5) * cellH * jitter;
+    return { label: lbl, x, y };
+  });
   return nodes;
 }
 
