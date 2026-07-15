@@ -579,8 +579,8 @@ const WOMEN: ProfileDef = {
   emoji: '🌸',
   color: '#ec4899',
   description: 'Залипательные казуалки для микро-отдыха: парные картинки, отличия, hidden object, судоку',
-  long_description: 'Девять самых залипательных игр в формате «5 минут в очереди / в маршрутке / перед сном». Жанры из топов мобильных сторов — Memory Match, Find the Difference, Hidden Object (Visual Search), Wordscapes-стиль, судоку, визуальная память, Шульте, поиск опечаток, аркадные мишени. Цель — удовольствие от микро-побед, dopamine hit каждые 30-60 сек. Заодно поддерживает память, внимание, вербалку. Подходит всем кто хочет лёгкого когнитивного отдыха в перерывах — особенно женщинам 25-55, мамам, HR/педагогам, медсёстрам, продажникам.',
-  long_description_en: 'Nine of the most binge-worthy games in a "5 minutes in line / on the bus / before bed" format. Genres straight from the top mobile charts — Memory Match, Find the Difference, Hidden Object (Visual Search), Wordscapes-style word puzzles, sudoku, visual memory, Schulte tables, typo hunting, arcade targets. The goal is the joy of micro-wins — a dopamine hit every 30-60 seconds. Along the way it keeps memory, attention, and verbal skills in shape. For anyone who wants light cognitive downtime on a break — especially women 25-55, moms, HR and teachers, nurses, sales pros.',
+  long_description: 'Одиннадцать самых залипательных игр в формате «5 минут в очереди / в маршрутке / перед сном». Жанры из топов мобильных сторов — Memory Match, Find the Difference, Hidden Object (Visual Search), Wordscapes-стиль, судоку, SET, визуальная память, Шульте, поиск опечаток, аркадные мишени. Цель — удовольствие от микро-побед, dopamine hit каждые 30-60 сек. Заодно поддерживает память, внимание, вербалку. Подходит всем кто хочет лёгкого когнитивного отдыха в перерывах — особенно женщинам 25-55, мамам, HR/педагогам, медсёстрам, продажникам.',
+  long_description_en: 'Eleven of the most binge-worthy games in a "5 minutes in line / on the bus / before bed" format. Genres straight from the top mobile charts — Memory Match, Find the Difference, Hidden Object (Visual Search), Wordscapes-style word puzzles, sudoku, SET, visual memory, Schulte tables, typo hunting, arcade targets. The goal is the joy of micro-wins — a dopamine hit every 30-60 seconds. Along the way it keeps memory, attention, and verbal skills in shape. For anyone who wants light cognitive downtime on a break — especially women 25-55, moms, HR and teachers, nurses, sales pros.',
   audience: 'Все · микро-отдых + dopamine (преим. женская аудитория)',
   audience_en: 'Everyone · micro-breaks + dopamine (mostly female audience)',
   session_minutes: '5-10 мин',
@@ -589,7 +589,7 @@ const WOMEN: ProfileDef = {
   price_year: 490,
   group: 'themed',
   // v1.4.1 — engagement-driven mix (НЕ формула 1+1+1+1+5)
-  // Распределение: память 2 · внимание 4 (поиск) + Goods Sort (сортировка) · логика 2 · скорость 1 = 10
+  // Распределение: память 2 · внимание 4 (поиск) + Goods Sort (сортировка) · логика 3 · скорость 1 = 11
   allowed_games: [
     // 🧠 Память (2) — match-жанр, женский фаворит
     'picture_pairs',     // Memory Match — топовая казуалка
@@ -600,9 +600,10 @@ const WOMEN: ProfileDef = {
     'schulte_table',     // brain training-классика, узнаваема
     'proofreading',      // «найди опечатку» — приятный поиск
     'goods_sort',        // Сортировка товаров — match/collect казуалка с магазинными продуктами (женский фаворит-жанр)
-    // 🧩 Логика (2) — wordscape + sudoku, оба = top-charts у женщин 30+
+    // 🧩 Логика (3) — wordscape + sudoku + SET, top-charts у женщин 30+
     'anagrams',          // буквенные пазлы — Wordscapes-стиль
     'sudoku',            // массовая классика, печаталась в журналах
+    'set_game',          // SET: тройки признаков — залипательная карточная классика, поиск по паттерну
     // ⚡ Скорость (1) — лёгкая аркада для dopamine
     'targets',           // быстрые мишени, fast wins
   ],
