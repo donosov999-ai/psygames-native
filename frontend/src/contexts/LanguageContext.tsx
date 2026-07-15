@@ -441,8 +441,8 @@ const translations: Translations = {
   secShort: { ru: 'с', en: 's' },
 
   // Sudoku
-  sudoku: { ru: 'Судоку 6×6', en: 'Sudoku 6×6' },
-  sudokuDesc: { ru: 'Цифры 1–6 в каждой строке, столбце и блоке', en: 'Digits 1–6 in each row, column and block' },
+  sudoku: { ru: 'Судоку', en: 'Sudoku' },
+  sudokuDesc: { ru: 'Цифры без повторов в строке, столбце и блоке (6×6 и 9×9)', en: 'Digits with no repeats in each row, column and box (6×6 and 9×9)' },
   sudokuIntroDesc: {
     ru: 'Заполните сетку так, чтобы цифры встречались ровно один раз в каждой строке, столбце и блоке. Классический логический пазл.\n\n🎚 Уровни — с ростом уровня добавляются правила-варианты:\n• L9 ⟍ диагонали: цифры уникальны и по двум диагоналям\n• L14 ♞ ход коня: равные цифры не на ходу коня\n• L18 ⊞ доп. зоны: ещё 4 квадрата 3×3 без повторов\n• L22 ≠ не подряд: соседи по стороне не отличаются на 1\n• L26 ♚ ход короля: равные не касаются даже по диагонали\n• L30 ◩ чёт/нечёт: □ клетка — чётная цифра, ○ — нечётная\n• L34 ⧉ кривые блоки: блоки неправильной формы\n\n👑 Killer — поле разбито на группы: цифры в группе дают сумму в её углу и не повторяются.\n\n🆓 Свободно — поле 6×6 или 9×9 без вариантов, с выбором сложности.',
     en: 'Fill the grid so digits appear exactly once in every row, column and block. The classic logic puzzle.\n\n🎚 Levels — new variant rules unlock as you climb:\n• L9 ⟍ diagonals: digits are also unique on both diagonals\n• L14 ♞ anti-knight: equal digits cannot be a knight move apart\n• L18 ⊞ hyper: 4 extra 3×3 zones with no repeats\n• L22 ≠ non-consecutive: side-neighbours cannot differ by 1\n• L26 ♚ anti-king: equal digits cannot touch even diagonally\n• L30 ◩ even/odd: □ cell = even digit, ○ = odd\n• L34 ⧉ jigsaw: irregular blocks instead of squares\n\n👑 Killer — the grid splits into cages: digits in a cage add up to the number in its corner and never repeat.\n\n🆓 Free — a 6×6 or 9×9 board with no variants, your choice of difficulty.',
