@@ -33,15 +33,18 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#ee0979', '#ff6a00'];
+// Синергия: каждые BOSS_EVERY пройденных уровней → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 const STOP_BENEFITS = [
   { icon: 'hand-left-outline', textKey: 'benefitStopSignal1' },
   { icon: 'pause-circle-outline', textKey: 'benefitStopSignal2' },
   { icon: 'flash-off-outline', textKey: 'benefitStopSignal3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type SignalState = 'idle' | 'go' | 'stop' | 'feedback';
 type TrialOutcome = 'go_hit' | 'go_miss' | 'stop_ok' | 'stop_fail';
 
@@ -142,8 +145,14 @@ export default function StopSignalGame() {
     } else {
       if (passed) lvl.reach(levelRef.current + 1);
       else lvl.fail();
-      setClearedPassed(passed);
-      setPhase('cleared');                       // непрерывный поток: и проход, и провал → баннер уровня
+      // Веха: прошёл уровень кратный BOSS_EVERY → босс (уровень уже засчитан reach), иначе баннер.
+      if (passed && levelRef.current % BOSS_EVERY === 0) {
+        setClearedPassed(true);
+        setPhase('boss');
+      } else {
+        setClearedPassed(passed);
+        setPhase('cleared');                     // непрерывный поток: и проход, и провал → баннер уровня
+      }
     }
     try {
       await saveSession({
@@ -315,6 +324,12 @@ export default function StopSignalGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
+          language={language} colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }} />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="stop_signal" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}

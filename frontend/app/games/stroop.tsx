@@ -23,6 +23,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
@@ -40,8 +41,10 @@ const COLORS_DEF = [
   { name: 'yellow', ru: 'ЖЁЛТЫЙ', en: 'YELLOW', hex: '#eab308' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type Mode = 'word' | 'ink';
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 // Маппинг уровня (1..15) в параметры сложности:
 //   L1-5  — окно 3500→2840мс, конфликтных 50→62%, 20 трейлов
@@ -190,6 +193,10 @@ export default function StroopGame() {
     // и авто-рестартом того же (или пониженного) уровня; пресет/зарядка → статистика (result)
     if (isPreset) {
       setPhase('result');
+    } else if (passed && levelRef.current % BOSS_EVERY === 0) {
+      // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+      setClearedPassed(true);
+      setPhase('boss');
     } else {
       setClearedPassed(passed);
       setPhase('cleared');
@@ -331,6 +338,14 @@ export default function StroopGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="stroop" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}

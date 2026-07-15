@@ -12,6 +12,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
@@ -26,8 +27,11 @@ const STROOP2_BENEFITS = [
 // Subject names INK COLOR of words. Words have valence: threat / positive / neutral.
 // Threat words slow color naming → emotional interference.
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type Valence = 'threat' | 'positive' | 'neutral';
+
+// Синергия (пилот): каждые BOSS_EVERY уровней при чистом прохождении → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 const COLORS_RGB = ['red', 'green', 'blue', 'yellow'];
 const COLOR_HEX: Record<string, string> = { red: '#ef4444', green: '#22c55e', blue: '#3b82f6', yellow: '#eab308' };
@@ -191,7 +195,13 @@ export default function StroopEmotionalGame() {
       if (passed) lvl.reach(levelRef.current + 1);
       else lvl.fail();
       setClearedPassed(passed);
-      setPhase('cleared');
+      // Веха: каждые BOSS_EVERY уровней при чистом прохождении — босс-раунд, затем баннер cleared.
+      // Провал по-прежнему → сразу cleared (passed=false). Уровень уже засчитан reach выше.
+      if (passed && levelRef.current % BOSS_EVERY === 0) {
+        setPhase('boss');
+      } else {
+        setPhase('cleared');
+      }
     }
 
     try {
@@ -325,6 +335,14 @@ export default function StroopEmotionalGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="stroop_emotional" level={levelRef.current}
           passed={clearedPassed}

@@ -41,6 +41,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 
@@ -54,7 +55,10 @@ const SI_BENEFITS = [
   { icon: 'brain-outline',            textKey: 'benefitSi3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+// Синергия: каждые BOSS_EVERY уровней непрерывного потока прошёл раунд → битва с боссом
+// (резкая смена правила, тренировка переключения). Паттерн из schulte.tsx.
+const BOSS_EVERY = 3;
 type StimColor = 'blue' | 'red';
 type Position = 'left' | 'right';
 type TrialKind = 'congruent' | 'incongruent';
@@ -200,7 +204,13 @@ export default function SimonGame() {
       else lvl.fail();
       // Непрерывный поток: и проход, и провал → баннер уровня (при провале «почти, ещё раз» + авто-рестарт того же уровня)
       setClearedPassed(passed);
-      setPhase('cleared');
+      // Веха: чистый проход кратного BOSS_EVERY уровня → битва с боссом перед баннером.
+      // Провал по-прежнему сразу → cleared passed={false} (поток не рвётся).
+      if (passed && levelRef.current % BOSS_EVERY === 0) {
+        setPhase('boss');
+      } else {
+        setPhase('cleared');
+      }
     }
     try {
       await saveSession({
@@ -368,6 +378,14 @@ export default function SimonGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="simon" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}

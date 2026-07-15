@@ -35,6 +35,7 @@ import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 
@@ -45,7 +46,9 @@ const GO_BENEFITS = [
   { icon: 'shield-checkmark-outline', textKey: 'benefitGoNoGo3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+// Синергия (пилот, паттерн schulte): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила — тренировка гибкости).
+const BOSS_EVERY = 3;
 type Stim = 'go' | 'nogo';
 
 // Уровень 1..15: окно ответа сокращается, доля no-go растёт (частые торможения
@@ -189,7 +192,13 @@ export default function GoNoGoGame() {
       if (passed) lvl.reach(levelRef.current + 1);
       else lvl.fail();
       setClearedPassed(passed);
-      setPhase('cleared');   // непрерывный поток: провал → баннер «почти», авто-рестарт того же уровня
+      // Непрерывный поток: провал → баннер «почти», авто-рестарт того же уровня.
+      // На вехе (уровень кратен BOSS_EVERY) прошедший уровень уходит в босса, потом в cleared; провал по-прежнему сразу в cleared.
+      if (passed && levelRef.current % BOSS_EVERY === 0) {
+        setPhase('boss');
+      } else {
+        setPhase('cleared');
+      }
     }
     try {
       await saveSession({
@@ -297,6 +306,14 @@ export default function GoNoGoGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'oddletter', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="go_no_go" level={levelRef.current} passed={clearedPassed}
           stars={(misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1}

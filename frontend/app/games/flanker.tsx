@@ -17,15 +17,18 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#16222a', '#3a6073'];
+// Синергия: каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 const FL_BENEFITS = [
   { icon: 'eye-outline',          textKey: 'benefitFl1' },
   { icon: 'flash-outline',        textKey: 'benefitFl2' },
   { icon: 'shield-checkmark-outline', textKey: 'benefitFl3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
 type TrialKind = 'congruent' | 'incongruent' | 'neutral';
 type Direction = 'left' | 'right';
@@ -159,7 +162,9 @@ export default function FlankerGame() {
     // непрерывный поток: уровневый заход (не пресет) ВСЕГДА в баннер cleared —
     // прошёл → «уровень N», не прошёл → passed={false} «почти, ещё раз» + авто-рестарт того же уровня.
     // пресет/зарядка остаётся тупиком-статистикой (result).
+    // каждые BOSS_EVERY уровней (при чистом проходе) — босс-веха; иначе непрерывный поток как было.
     if (isPreset) setPhase('result');
+    else if (passed && levelRef.current % BOSS_EVERY === 0) { setClearedPassed(true); setPhase('boss'); }
     else { setClearedPassed(passed); setPhase('cleared'); }
     try {
       await saveSession({
@@ -322,6 +327,14 @@ export default function FlankerGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="flanker" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}
