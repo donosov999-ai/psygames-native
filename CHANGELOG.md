@@ -14,6 +14,13 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.119.1] — 2026-07-15
+
+### Changed
+- Тактильно-звуковой отклик на ответ доведён до КАЖДОЙ игры с боссом (добор 9: stroop-emotional, proofreading, switching-task, trail-making, set-game, corsi, math-sprint, schulte, sudoku). Теперь все 26 boss-игр когерентны: босс + отклик.
+
+---
+
 ## [1.119.0] — 2026-07-11
 
 ### Added
