@@ -28,6 +28,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile, SPRITE_COUNT } from '@/src/constants/pairThemes';
 
@@ -38,12 +39,14 @@ const FIND_BENEFITS = [
   { icon: 'sparkles-outline', textKey: 'benefitFind3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'feedback' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'feedback' | 'boss' | 'cleared' | 'result';
 type Shape = { sprite: number; x: number; y: number; size: number; rot: number };
 
 // Уровень 1..15: отличий больше, сцена плотнее, лимит времени на раунд короче.
 // Ступени по 3 уровня для diffCount — игрок успевает освоиться на каждой ступени.
 const ROUNDS_PER_LEVEL = 3;
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 function levelParams(level: number): { diffCount: number; objectCount: number; roundTimeSec: number; rounds: number } {
   const diffCount = Math.min(6, 2 + Math.floor((level - 1) / 3));       // 2,2,2,3,3,3 ... 6
   const objectCount = Math.min(19, 12 + Math.floor((level - 1) / 2));   // 12 → 19
@@ -307,6 +310,10 @@ export default function FindDifferencesGame() {
     // Пресет/свободный режим — экран статистики, уровень не трогаем.
     if (isPreset) {
       setPhase('result');
+    } else if (passed && levelRef.current % BOSS_EVERY === 0) {
+      // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+      setClearedPassed(true);
+      setPhase('boss');
     } else {
       setClearedPassed(passed);
       setPhase('cleared');
@@ -444,6 +451,14 @@ export default function FindDifferencesGame() {
       )}
       {phase === 'config' && renderConfig()}
       {(phase === 'playing' || phase === 'feedback') && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="find_differences" level={levelRef.current}
           passed={clearedPassed}

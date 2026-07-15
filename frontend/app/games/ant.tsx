@@ -37,6 +37,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#005C97', '#363795'];
 const ANT_BENEFITS = [
@@ -45,11 +46,13 @@ const ANT_BENEFITS = [
   { icon: 'flash-outline',   textKey: 'benefitAnt3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type CueType = 'none' | 'center' | 'double' | 'spatial';
 type Congruence = 'congruent' | 'incongruent' | 'neutral';
 type Direction = 'left' | 'right';
 type Position = 'top' | 'bottom';
+// Синергия: каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 interface Trial { cue: CueType; pos: Position; dir: Direction; cong: Congruence; flankers: Direction[] | null; }
 interface RtRec { cue: CueType; cong: Congruence; rt: number; }
@@ -222,8 +225,17 @@ export default function ANTGame() {
     // Уровневый заход всегда через баннер LevelCleared: passed=true → «пройден»,
     // passed=false → «почти, ещё раз» с авто-рестартом того же уровня (непрерывный поток).
     // Пресет/свободный режим — прежний экран статистики GameResult.
-    if (isPreset) setPhase('result');
-    else { setClearedPassed(passed); setPhase('cleared'); }
+    // непрерывный поток: пресет/зарядка → статистика; иначе баннер cleared,
+    // а на вехе (уровень засчитан reach выше) прерываемся коротким боссом → потом cleared.
+    if (isPreset) {
+      setPhase('result');
+    } else if (passed && levelRef.current % BOSS_EVERY === 0) {
+      setClearedPassed(true);
+      setPhase('boss');
+    } else {
+      setClearedPassed(passed);
+      setPhase('cleared');
+    }
     try {
       await saveSession({
         game_type: 'ant',
@@ -380,6 +392,14 @@ export default function ANTGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="ant" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}

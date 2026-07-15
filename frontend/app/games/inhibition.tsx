@@ -42,6 +42,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#11998e', '#ee0979'];
 const BENEFITS = [
@@ -50,8 +51,10 @@ const BENEFITS = [
   { icon: 'shield-checkmark-outline', textKey: 'benefitInhibition3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type SubMode = 'go_no_go' | 'stop_signal' | 'mixed';
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 // Уровень 1..15. Ось усложнения (по паттерну cpt/simon):
 //   goWindow сокращается (реагировать надо быстрее),
@@ -183,8 +186,14 @@ export default function InhibitionGame() {
       // (passed=false рисует «почти, ещё раз» + авто-рестарт того же уровня)
       if (levelPassed) lvl.reach(levelRef.current + 1);
       else lvl.fail();
-      setClearedPassed(levelPassed);
-      setPhase('cleared');
+      if (levelPassed && levelRef.current % BOSS_EVERY === 0) {
+        // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+        setClearedPassed(true);
+        setPhase('boss');
+      } else {
+        setClearedPassed(levelPassed);
+        setPhase('cleared');
+      }
     }
 
     // Save with original game_type for biomarker compatibility
@@ -464,6 +473,14 @@ export default function InhibitionGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="inhibition" level={levelRef.current} passed={clearedPassed}
           stars={(misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1}

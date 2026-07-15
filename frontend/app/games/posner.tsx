@@ -34,6 +34,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#3a6186', '#89253e'];
 const POSNER_BENEFITS = [
@@ -42,13 +43,15 @@ const POSNER_BENEFITS = [
   { icon: 'flash-outline',       textKey: 'benefitPosner3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type CueValidity = 'valid' | 'invalid' | 'neutral';
 type Side = 'left' | 'right';
 
 interface Trial { cueDir: Side | null; targetSide: Side; validity: CueValidity; }
 
 const NEUTRAL_RATIO = 0.15;   // доля нейтральных проб фиксирована — меняется только valid/invalid баланс
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 // Уровень 1..15 (ось — по образцу cpt): валидность подсказки падает (подсказка чаще
 // врёт), интервал cue→target варьируется сильнее (цель труднее «поймать» по ритму),
@@ -201,10 +204,17 @@ export default function PosnerGame() {
     if (isPreset) {
       setPhase('result');   // пресет/свободный режим — уровень не трогаем, экран статистики
     } else {
-      setClearedPassed(passed);
       if (passed) lvl.reach(levelRef.current + 1);
       else lvl.fail();
-      setPhase('cleared');   // непрерывный поток: проход ИЛИ «почти» → баннер уровня, авто-рестарт
+      // непрерывный поток: проход ИЛИ «почти» → баннер уровня, авто-рестарт.
+      // веха: уровень засчитан (reach выше) → короткий босс, потом баннер cleared
+      if (passed && levelRef.current % BOSS_EVERY === 0) {
+        setClearedPassed(true);
+        setPhase('boss');
+      } else {
+        setClearedPassed(passed);
+        setPhase('cleared');
+      }
     }
     try {
       await saveSession({
@@ -353,6 +363,14 @@ export default function PosnerGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="posner" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors} passed={clearedPassed}

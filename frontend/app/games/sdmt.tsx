@@ -33,6 +33,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#0f2027', '#2c5364'];
 const SDMT_BENEFITS = [
@@ -46,7 +47,9 @@ const SYMBOLS = [
   'star', 'heart', 'leaf', 'flash', 'cloud', 'flower', 'snow', 'water', 'flame',
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+// Синергия: каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
@@ -159,8 +162,16 @@ export default function SdmtGame() {
     else if (!isPreset) lvl.fail();
     // Непрерывный поток: любой уровневый раунд (прошёл/не прошёл) → баннер LevelCleared с
     // авто-рестартом; тупик-result остаётся только для пресета зарядки (экран статистики).
-    if (isPreset) setPhase('result');
-    else { setClearedPassed(passed); setPhase('cleared'); }
+    if (isPreset) {
+      setPhase('result');
+    } else if (passed && levelRef.current % BOSS_EVERY === 0) {
+      // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+      setClearedPassed(true);
+      setPhase('boss');
+    } else {
+      setClearedPassed(passed);
+      setPhase('cleared');
+    }
     try {
       await saveSession({
         game_type: 'sdmt',
@@ -289,6 +300,14 @@ export default function SdmtGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="sdmt" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}

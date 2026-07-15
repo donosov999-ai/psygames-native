@@ -32,6 +32,7 @@ import GameIntro from '@/src/components/GameIntro';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
@@ -50,7 +51,9 @@ const CPT_BENEFITS = [
   { icon: 'shield-checkmark-outline', textKey: 'benefitCpt3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 const LETTERS_NON_X = ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','Y','Z'];  // без X
 const CONFUSABLE = ['K','Y','V','W','N','M'];   // угловатые буквы — похожи на X при беглом взгляде
@@ -299,8 +302,14 @@ export default function CPTGame() {
     if (passed) lvl.reach(levelRef.current + 1);
     else lvl.fail();   // гистерезис: 3 провала подряд → уровень -1
     // непрерывный поток: и проход, и провал → баннер LevelCleared (passed=false = «почти, ещё раз» + рестарт того же уровня), без тупика GameResult
-    setClearedPassed(passed);
-    setPhase('cleared');
+    if (passed && levelRef.current % BOSS_EVERY === 0) {
+      // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+      setClearedPassed(true);
+      setPhase('boss');
+    } else {
+      setClearedPassed(passed);
+      setPhase('cleared');
+    }
 
     try {
       await saveSession({
@@ -440,6 +449,14 @@ export default function CPTGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'oddletter', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="cpt" level={levelRef.current} passed={clearedPassed} stars={(omissions + commissions) === 0 ? 3 : (omissions + commissions) <= 2 ? 2 : 1}

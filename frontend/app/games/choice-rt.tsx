@@ -32,6 +32,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#fdc830', '#f37335'];
 const CHOICE_BENEFITS = [
@@ -45,7 +46,9 @@ const ARROW_ICON: Record<Direction, string> = {
   left: 'arrow-back', right: 'arrow-forward', up: 'arrow-up', down: 'arrow-down',
 };
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 // Уровень 1..15: число вариантов выбора растёт (2 → 3 → 4 стрелки — по механике
 // парадигмы: больше альтернатив = закон Хика, RT растёт), окно ответа сокращается,
@@ -163,11 +166,15 @@ export default function ChoiceRtGame() {
     const accuracy = totalTrialsRef.current > 0 ? h / totalTrialsRef.current : 0;
     // Проход уровня: ≥80% верных за раунд (пропуски по окну = ошибки)
     const passed = !isPreset && accuracy >= 0.8;
+    if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset) lvl.fail();
     if (isPreset) {
       setPhase('result');   // пресет/свободный режим — статистика, уровень не трогаем
+    } else if (passed && levelRef.current % BOSS_EVERY === 0) {
+      // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+      setClearedPassed(true);
+      setPhase('boss');
     } else {
-      if (passed) lvl.reach(levelRef.current + 1);
-      else lvl.fail();
       setClearedPassed(passed);
       setPhase('cleared');   // непрерывный поток: провал уровня → баннер «почти, ещё раз» + авто-рестарт
     }
@@ -344,6 +351,14 @@ export default function ChoiceRtGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="choice_rt" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed} gradient={GRADIENT} language={language} colors={colors}

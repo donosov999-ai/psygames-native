@@ -21,6 +21,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 
 const GRADIENT = ['#a8edea', '#fed6e3'];
@@ -31,7 +32,9 @@ const PROOFREADING_BENEFITS = [
   { icon: 'shield-checkmark-outline', textKey: 'benefitProofreading3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 // Уровень 1..15 (паттерн cpt/simon): ручные селекторы строк/колонок заменены
 // уровневым режимом. Ось усложнения:
@@ -197,8 +200,14 @@ export default function ProofreadingGame() {
     } else {
       if (passed) lvl.reach(levelRef.current + 1);
       else lvl.fail();
-      setClearedPassed(passed);
-      setPhase('cleared');   // непрерывный поток без тупика
+      if (passed && levelRef.current % BOSS_EVERY === 0) {
+        // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+        setClearedPassed(true);
+        setPhase('boss');
+      } else {
+        setClearedPassed(passed);
+        setPhase('cleared');   // непрерывный поток без тупика
+      }
     }
 
     try {
@@ -453,6 +462,14 @@ export default function ProofreadingGame() {
 
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderGame()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'oddletter', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={(win) => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared
           gameId="proofreading"
