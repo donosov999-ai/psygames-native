@@ -46,7 +46,7 @@ const translations: Translations = {
   welcomeTitle: { ru: 'Добро пожаловать в PsyGames', en: 'Welcome to PsyGames' },
   welcomeSub: { ru: '48+ когнитивных тренажёров (NZT-48 · десятки модификаций)', en: '48+ cognitive games (NZT-48 · dozens of modes)' },
   welcomeStart: { ru: 'С чего начать?', en: 'Where to start?' },
-  welcomeFreeTitle: { ru: 'FREE (без подписки)', en: 'FREE (no subscription)' },
+  welcomeFreeTitle: { ru: 'Начать с FREE', en: 'Start with FREE' },
   welcomeFreeSub: { ru: '9 базовых тренажёров · по одному из каждой категории', en: '9 core games · one from each category' },
   welcomeFreeList: { ru: 'Шульте · Парные картинки · Мишени · Math Sprint · Поиск отличий · Считалка · Анаграммы · Ханой · N-back', en: 'Schulte · Picture Pairs · Targets · Math Sprint · Find Differences · Counter · Anagrams · Hanoi · N-back' },
   welcomeCodeTitle: { ru: 'У меня есть код доступа', en: 'I have an access code' },
@@ -91,7 +91,7 @@ const translations: Translations = {
   profileDesc_vasilyeva: { ru: 'Поле зрения · скорость глаз · удержание текста', en: 'Visual field · eye speed · text retention' },
   profileName_nzt48: { ru: 'NZT-48 (полный)', en: 'NZT-48 (full)' },
   profileDesc_nzt48: { ru: 'Полная батарея префронталки · максимум', en: 'Full prefrontal battery · maximum' },
-  profileName_free: { ru: 'FREE Trial', en: 'FREE Trial' },
+  profileName_free: { ru: 'FREE', en: 'FREE' },
   profileDesc_free: { ru: '9 тренажёров бесплатно · попробуй и оцени', en: '9 games free · try and evaluate' },
   profileName_drivers: { ru: 'Реакция ПРО', en: 'Reaction PRO' },
   profileDesc_drivers: { ru: 'Решения за секунды · для тех у кого цена ошибки = жизнь', en: 'Split-second decisions · when the cost of error is life' },
@@ -105,7 +105,7 @@ const translations: Translations = {
   profileDesc_women: { ru: 'Залипательные казуалки для микро-отдыха: парные картинки, отличия, hidden object, судоку', en: 'Addictive casual games for micro-breaks: pairs, spot-the-difference, hidden object, sudoku' },
   profileName_polyglot: { ru: 'Языки / Полиглот', en: 'Languages / Polyglot' },
   profileDesc_polyglot: { ru: 'Под языки: вербальная память · ассоциации · беглость · скрипты', en: 'For languages: verbal memory · associations · fluency · scripts' },
-  switcherIntro: { ru: 'У каждого профиля свой набор тренажёров и плейлист зарядки. Тематические открываются мастер-кодом — нажми на закрытый профиль чтобы узнать детали и получить код в Telegram.', en: 'Each profile has its own set of games and warm-up playlist. Themed profiles unlock with a master code — tap a locked profile to see details and get a code on Telegram.' },
+  switcherIntro: { ru: 'У каждого профиля свой набор тренажёров и плейлист зарядки. Тематические открываются кодом доступа — нажми на закрытый профиль, чтобы узнать детали.', en: 'Each profile has its own set of games and warm-up playlist. Themed profiles unlock with an access code — tap a locked profile to see details.' },
 
   // Navigation
   home: { ru: 'Главная', en: 'Home' },

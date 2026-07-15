@@ -181,8 +181,9 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                           ⏱ {p.session_minutes.replace('мин', t('unitMin'))}
                         </Text>
                       )}
-                      {/* v1.8.0: Ценник на каждой locked-карточке */}
-                      {locked && p.price_year && (
+                      {/* v1.8.0: Ценник на каждой locked-карточке. v1.30.3: гейт App-Store-режимом —
+                          в Google Play-сборке цен в UI быть не должно (пока всё бесплатно). */}
+                      {MONETIZATION_ENABLED && locked && p.price_year && (
                         <View style={{
                           marginTop: 6,
                           backgroundColor: '#10b981',
@@ -207,7 +208,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                         }}>
                           <Ionicons name="gift" size={10} color="#fff" />
                           <Text style={{ fontSize: 10, color: '#fff', fontWeight: '900', letterSpacing: 1 }}>
-                            TRIAL · FREE
+                            FREE
                           </Text>
                         </View>
                       )}
@@ -481,7 +482,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
           <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 22, gap: 14 }}>
             <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 Код доступа</Text>
             <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
-              Введи код чтобы разблокировать тематический профиль. Если кода нет — нажми «Запросить в Telegram» на странице профиля.
+              Введи код, чтобы разблокировать тематический профиль.
             </Text>
             <TextInput
               value={codeInput}
