@@ -31,6 +31,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#36d1dc', '#5b86e5'];
 const NB_BENEFITS = [
@@ -39,8 +40,10 @@ const NB_BENEFITS = [
   { icon: 'git-merge-outline', textKey: 'benefitNumberBonds3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 interface Puzzle { target: number; chips: number[]; }
 interface PuzzleCfg { pool: number; maxV: number; solMin: number; solMax: number; }
@@ -213,8 +216,14 @@ export default function NumberBondsGame() {
     } else {
       if (passed) lvl.reach(levelRef.current + 1);
       else lvl.fail();
-      setClearedPassed(passed);
-      setPhase('cleared');                       // непрерывный поток: провал → «почти, ещё раз» + авто-рестарт того же уровня
+      if (passed && levelRef.current % BOSS_EVERY === 0) {
+        // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+        setClearedPassed(true);
+        setPhase('boss');
+      } else {
+        setClearedPassed(passed);
+        setPhase('cleared');                     // непрерывный поток: провал → «почти, ещё раз» + авто-рестарт того же уровня
+      }
     }
     try {
       await saveSession({
@@ -381,6 +390,14 @@ export default function NumberBondsGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="number_bonds" level={levelRef.current}
           passed={clearedPassed}

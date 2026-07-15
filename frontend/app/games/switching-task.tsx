@@ -31,6 +31,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#7873f5', '#ff6ec4'];
 const SW_BENEFITS = [
@@ -39,9 +40,11 @@ const SW_BENEFITS = [
   { icon: 'shuffle-outline',         textKey: 'benefitSw3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 // Режим стимула (выбор в настройках). У каждого — ДВА задания, между которыми идёт переключение.
 type StimMode = 'mix' | 'num2' | 'num3' | 'letters';
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 const DIGITS = ['2', '3', '4', '5', '6', '7', '8', '9'];
 const LETTERS = ['A', 'E', 'I', 'U', 'B', 'D', 'F', 'G', 'K', 'M', 'N', 'P', 'R', 'S', 'T'];
@@ -239,8 +242,14 @@ export default function SwitchingTaskGame() {
     } else {
       if (passed) lvl.reach(levelRef.current + 1);
       else lvl.fail();
-      setClearedPassed(passed);
-      setPhase('cleared');                       // непрерывный поток: провал → баннер «почти, ещё раз» + авто-рестарт того же уровня
+      if (passed && levelRef.current % BOSS_EVERY === 0) {
+        // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+        setClearedPassed(true);
+        setPhase('boss');
+      } else {
+        setClearedPassed(passed);
+        setPhase('cleared');                     // непрерывный поток: провал → баннер «почти, ещё раз» + авто-рестарт того же уровня
+      }
     }
     try {
       await saveSession({
@@ -411,6 +420,14 @@ export default function SwitchingTaskGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'lightning', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="switching_task" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed} gradient={GRADIENT} language={language} colors={colors}

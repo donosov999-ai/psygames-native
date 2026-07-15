@@ -31,6 +31,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#fa709a', '#fee140'];
 
@@ -40,7 +41,9 @@ const COUNTER_BENEFITS = [
   { icon: 'flash-outline', textKey: 'benefitCounter3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 interface Cell {
   value: number;
@@ -213,9 +216,15 @@ export default function CounterGame() {
     } else {
       if (passed) lvl.reach(levelRef.current + 1);
       else lvl.fail();
-      setClearedPassed(passed);
-      // Непрерывный поток: и проход, и недобор → баннер cleared (passed={false} = «почти, ещё раз»)
-      setPhase('cleared');
+      if (passed && levelRef.current % BOSS_EVERY === 0) {
+        // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+        setClearedPassed(true);
+        setPhase('boss');
+      } else {
+        setClearedPassed(passed);
+        // Непрерывный поток: и проход, и недобор → баннер cleared (passed={false} = «почти, ещё раз»)
+        setPhase('cleared');
+      }
     }
     try {
       await saveSession({
@@ -480,6 +489,14 @@ export default function CounterGame() {
 
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderGame()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={(win) => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared
           gameId="counter"

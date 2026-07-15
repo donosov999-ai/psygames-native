@@ -29,6 +29,7 @@ const VS_RULES: LevelRule[] = [
 ];
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#536976', '#292e49'];
 const VS_BENEFITS = [
@@ -37,8 +38,10 @@ const VS_BENEFITS = [
   { icon: 'speedometer-outline',   textKey: 'benefitVs3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 type Shape = 'T' | 'L' | 'G' | 'plus';
 
 interface Item { x: number; y: number; rot: number; isTarget: boolean; found: boolean; shape: Shape; color: string; }
@@ -203,8 +206,18 @@ export default function VisualSearchGame() {
       const last = levelParams(levelRef.current, trials);
       const passed = !isPreset && errorsRef.current <= 1;
       if (!isPreset) { if (passed) lvl.reach(lvl.level + 1); else lvl.fail(); }   // вверх / гистерезис вниз
-      setClearedPassed(passed);
-      setPhase(!isPreset ? 'cleared' : 'result');   // непрерывный поток: провал → баннер «ещё раз», не тупик
+      // непрерывный поток: провал → баннер «ещё раз», не тупик. Веха: каждые BOSS_EVERY уровней
+      // прошёл → короткий босс (уровень уже засчитан reach выше), потом баннер cleared.
+      if (isPreset) {
+        setClearedPassed(passed);
+        setPhase('result');
+      } else if (passed && levelRef.current % BOSS_EVERY === 0) {
+        setClearedPassed(true);
+        setPhase('boss');
+      } else {
+        setClearedPassed(passed);
+        setPhase('cleared');
+      }
       try {
         await saveSession({
           game_type: 'visual_search',
@@ -358,6 +371,14 @@ export default function VisualSearchGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="visual_search" passed={clearedPassed} level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}

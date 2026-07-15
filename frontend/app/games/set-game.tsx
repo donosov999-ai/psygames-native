@@ -14,6 +14,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
@@ -103,7 +104,9 @@ function buildBoard(): Card[] {
   return board;
 }
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 // Уровень (1..15+): L1-10 trials 6→15 (выносливость) · L11-15 лимит времени на SET (давление, убывает).
 function levelParams(level: number): { trials: number; timeLimit: number } {
@@ -198,8 +201,14 @@ export default function SetGame() {
             setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
           } else {
             if (passed) lvl.reach(levelRef.current + 1);   // серия почти без ошибок → +уровень
-            setClearedPassed(passed);
-            setPhase('cleared');   // непрерывный поток: и проход, и провал → баннер (passed рулит текстом), без тупика
+            if (passed && levelRef.current % BOSS_EVERY === 0) {
+              // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+              setClearedPassed(true);
+              setPhase('boss');
+            } else {
+              setClearedPassed(passed);
+              setPhase('cleared');   // непрерывный поток: и проход, и провал → баннер (passed рулит текстом), без тупика
+            }
           }
           try {
             await saveSession({
@@ -345,6 +354,14 @@ export default function SetGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'lightning', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="set_game" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}

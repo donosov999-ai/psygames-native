@@ -25,6 +25,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BossRound from '@/src/components/BossRound';
 
 const GRADIENT = ['#fc6076', '#ff9a44'];
 const TRAIL_BENEFITS = [
@@ -36,11 +37,13 @@ const TRAIL_BENEFITS = [
 const RU_LETTERS = 'АБВГДЕЖЗИКЛМНОПРСТУФХ';
 const EN_LETTERS = 'ABCDEFGHIJKLMNOPQRST';
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type Mode = 'A' | 'B';
 
 // Проход уровня: не больше стольких ошибок (+ уложиться в лимит времени уровня)
 const MAX_PASS_ERRORS = 2;
+// Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
+const BOSS_EVERY = 3;
 
 // Уровень 1..15 (классическая ось TMT):
 //   L1-7  — Trail-A: только числа, узлов 6 → 12, бюджет на узел 2.6с → 1.7с
@@ -185,6 +188,10 @@ export default function TrailMakingGame() {
     else if (!isPreset) lvl.fail();   // гистерезис понижения (3 провала подряд → −1)
     if (isPreset) {
       setPhase('result');             // пресет зарядки: экран статистики, уровень не трогаем
+    } else if (passed && levelRef.current % BOSS_EVERY === 0) {
+      // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
+      setClearedPassed(true);
+      setPhase('boss');
     } else {
       setClearedPassed(passed);       // непрерывный поток: провал уровня → баннер «почти, ещё раз», не тупик
       setPhase('cleared');            // авто-поток к следующему уровню (или рестарт того же при !passed)
@@ -347,6 +354,14 @@ export default function TrailMakingGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'playing' && renderPlaying()}
+      {phase === 'boss' && (
+        <BossRound
+          config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
+          language={language}
+          colors={colors}
+          onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
+        />
+      )}
       {phase === 'cleared' && (
         <LevelCleared gameId="trail_making" level={levelRef.current}
           passed={clearedPassed}
