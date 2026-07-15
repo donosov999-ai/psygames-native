@@ -38,6 +38,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#11998e', '#38ef7d'];
 const GO_BENEFITS = [
@@ -169,9 +170,11 @@ export default function GoNoGoGame() {
       hitsRef.current += 1;
       setHits(hitsRef.current);
       rtsRef.current.push(rt);
+      hapticSuccess();   // верный ответ: тап на GO
     } else {
       falseAlarmsRef.current += 1;
       setFalseAlarms(falseAlarmsRef.current);
+      hapticError();     // неверный ответ: тап на NO
     }
   };
 

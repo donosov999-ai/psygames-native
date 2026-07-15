@@ -35,6 +35,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#3a6186', '#89253e'];
 const POSNER_BENEFITS = [
@@ -243,11 +244,13 @@ export default function PosnerGame() {
     const tr = trialRef.current;
     const ok = side === tr.targetSide;
     if (ok) {
+      hapticSuccess();
       hitsRef.current += 1;
       setHits(hitsRef.current);
       rtsRef.current[tr.validity].push(rt);
       setRtsByValidity({ valid: [...rtsRef.current.valid], invalid: [...rtsRef.current.invalid], neutral: [...rtsRef.current.neutral] });
     } else {
+      hapticError();
       errorsRef.current += 1;
       setErrors(errorsRef.current);
     }

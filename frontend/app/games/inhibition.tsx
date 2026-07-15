@@ -43,6 +43,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#11998e', '#ee0979'];
 const BENEFITS = [
@@ -254,8 +255,8 @@ export default function InhibitionGame() {
       const s = statsRef.current;
       if (!gngRespondedRef.current) {
         // No press: if go → miss; if nogo → correct rejection
-        if (stim === 'go') updateStats({ ...s, m: s.m + 1 });
-        else               updateStats({ ...s, cr: s.cr + 1 });
+        if (stim === 'go') { updateStats({ ...s, m: s.m + 1 }); hapticError(); }
+        else               { updateStats({ ...s, cr: s.cr + 1 }); hapticSuccess(); }
       }
       setGngStim(null);
       pushTimer(setTimeout(() => runRound(r + 1), 500 + Math.random() * 300));
@@ -269,8 +270,10 @@ export default function InhibitionGame() {
     const s = statsRef.current;
     if (gngStim === 'go') {
       updateStats({ ...s, h: s.h + 1, rts: [...s.rts, rt] });
+      hapticSuccess();
     } else {
       updateStats({ ...s, fa: s.fa + 1 });
+      hapticError();
     }
   };
 
@@ -312,6 +315,7 @@ export default function InhibitionGame() {
     if (outcome === 'stop_ok')  { next.cr++; fb = 'right'; }
     if (outcome === 'stop_fail'){ next.fa++; fb = 'wrong'; }
     updateStats(next);
+    if (fb === 'right') hapticSuccess(); else hapticError();
     setSsSignal('feedback'); setSsFeedback(fb);
     pushTimer(setTimeout(() => runRound(r + 1), 500));
   };

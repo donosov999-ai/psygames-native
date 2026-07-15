@@ -26,6 +26,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#fc466b', '#3f5efb'];
 const STROOP_BENEFITS = [
@@ -143,12 +144,14 @@ export default function StroopGame() {
     const isCongruent = inkRef.current.name === wordRef.current.name;
     const rt = Date.now() - trialStartRef.current;
     if (chosen.name === correctName) {
+      hapticSuccess();
       hitsRef.current += 1;
       setHits(hitsRef.current);
       // record RT only on correct trials (standard psychometric convention)
       if (isCongruent) rtsCongruentRef.current.push(rt);
       else rtsIncongruentRef.current.push(rt);
     } else {
+      hapticError();
       errorsRef.current += 1;
       setErrors(errorsRef.current);
     }

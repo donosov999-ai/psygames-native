@@ -44,6 +44,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#1e3a8a', '#7f1d1d'];   // blue → red (отсылка к двум цветам стимула)
 const COLOR_BLUE = '#3b82f6';
@@ -239,11 +240,13 @@ export default function SimonGame() {
     const tr = trialRef.current;
     const ok = chosen === correctSide(tr.color);
     if (ok) {
+      hapticSuccess();
       hitsRef.current += 1;
       setHits(hitsRef.current);
       rtsRef.current[tr.kind].push(rt);
       setRtsByKind({ congruent: [...rtsRef.current.congruent], incongruent: [...rtsRef.current.incongruent] });
     } else {
+      hapticError();
       errorsRef.current += 1;
       setErrors(errorsRef.current);
     }

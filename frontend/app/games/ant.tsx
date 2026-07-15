@@ -38,6 +38,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#005C97', '#363795'];
 const ANT_BENEFITS = [
@@ -151,6 +152,7 @@ export default function ANTGame() {
       errorsRef.current += 1;
       setErrors(errorsRef.current);
       setFeedback('wrong');
+      hapticError();
       fbTimer.current = setTimeout(advance, 350);
     }, windowMsRef.current);
   };
@@ -271,6 +273,7 @@ export default function ANTGame() {
       setErrors(errorsRef.current);
     }
     setFeedback(ok ? 'right' : 'wrong');
+    if (ok) hapticSuccess(); else hapticError();
     fbTimer.current = setTimeout(advance, 350);
   };
 

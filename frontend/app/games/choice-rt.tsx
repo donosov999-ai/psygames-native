@@ -33,6 +33,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#fdc830', '#f37335'];
 const CHOICE_BENEFITS = [
@@ -205,11 +206,13 @@ export default function ChoiceRtGame() {
     const rt = Date.now() - stimAtRef.current;
     const correct = chosen === stimRef.current;
     if (correct) {
+      hapticSuccess();
       hitsRef.current += 1;
       rtsRef.current = [...rtsRef.current, rt];
       setHits(hitsRef.current);
       setRts(rtsRef.current);
     } else {
+      hapticError();
       errorsRef.current += 1;
       setErrors(errorsRef.current);
     }

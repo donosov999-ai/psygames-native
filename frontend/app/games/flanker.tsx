@@ -18,6 +18,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#16222a', '#3a6073'];
 // Синергия: каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
@@ -211,8 +212,10 @@ export default function FlankerGame() {
     if (ok) {
       hitsRef.current += 1;
       rtsRef.current[tr.kind].push(rt);
+      hapticSuccess();
     } else {
       errorsRef.current += 1;
+      hapticError();
     }
     setHits(hitsRef.current); setErrors(errorsRef.current);
     setRtsByKind({ congruent: [...rtsRef.current.congruent], incongruent: [...rtsRef.current.incongruent], neutral: [...rtsRef.current.neutral] });

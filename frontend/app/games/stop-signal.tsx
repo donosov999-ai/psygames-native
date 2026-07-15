@@ -34,6 +34,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#ee0979', '#ff6a00'];
 // Синергия: каждые BOSS_EVERY пройденных уровней → битва с боссом (резкая смена правила).
@@ -212,6 +213,7 @@ export default function StopSignalGame() {
     setHits(hitsRef.current); setErrors(errorsRef.current); setCorrectStops(correctStopsRef.current);
     setRts([...rtsRef.current]);
     setSignal('feedback'); setFeedback(fb);
+    if (fb === 'right') hapticSuccess(); else hapticError();
     interTimerRef.current = setTimeout(() => {
       if (roundRef.current >= totalTrialsRef.current) { finish(); return; }
       roundRef.current += 1;

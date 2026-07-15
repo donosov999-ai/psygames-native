@@ -34,6 +34,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const CPT_RULES: LevelRule[] = [
@@ -219,11 +220,13 @@ export default function CPTGame() {
       t.correct = true;
       setHits(h => h + 1);
       flashFeedback('right');
+      hapticSuccess();
     } else {
       // commission: tapped on X
       t.correct = false;
       setCommissions(c => c + 1);
       flashFeedback('wrong');
+      hapticError();
     }
   };
 
