@@ -30,6 +30,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { generatePseudowords, sampleRealWords } from '@/src/services/pseudowords';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#0ea5e9', '#6366f1'];
 
@@ -216,10 +217,12 @@ export default function LexicalDecisionGame() {
     const isCorrect = saysWord === trial.isWord;
     setPicked(saysWord);
     if (isCorrect) {
+      hapticSuccess();
       correctRef.current += 1;
       setCorrectCount(correctRef.current);
       if (trial.isWord) hitsRef.current += 1; else crRef.current += 1;
     } else {
+      hapticError();
       errorsRef.current += 1;
       setErrorsCount(errorsRef.current);
       if (trial.isWord) missRef.current += 1; else faRef.current += 1;

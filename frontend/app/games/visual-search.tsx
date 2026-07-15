@@ -30,6 +30,7 @@ const VS_RULES: LevelRule[] = [
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#536976', '#292e49'];
 const VS_BENEFITS = [
@@ -251,6 +252,7 @@ export default function VisualSearchGame() {
         setHits(hitsRef.current);
         setRts(rtsRef.current);
         setFeedback('right');
+        hapticSuccess();
         fbTimerRef.current = setTimeout(() => { finishOrNext(); }, 500);
       }
       // иначе: промежуточная цель — отмечаем зелёным (found), ищем дальше без блокировки
@@ -258,6 +260,7 @@ export default function VisualSearchGame() {
       errorsRef.current += 1;
       setErrors(errorsRef.current);
       setFeedback('wrong');
+      hapticError();
       fbTimerRef.current = setTimeout(() => setFeedback(null), 450);
     }
   };

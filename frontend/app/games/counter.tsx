@@ -32,6 +32,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#fa709a', '#fee140'];
 
@@ -269,11 +270,13 @@ export default function CounterGame() {
       hitsRef.current += 1;
       setScore(hitsRef.current);
       setShowSuccess(true);
+      hapticSuccess();
       pauseTimerRef.current = setTimeout(advance, 800);
     } else if (sum > targetSum) {
       // Перебор — ошибка, сброс выбора (функциональный апдейт: клик в 300мс окна не потеряется)
       errorsRef.current += 1;
       setErrors(errorsRef.current);
+      hapticError();
       resetSelTimerRef.current = setTimeout(() => {
         setGrid(g => g.map(cell => ({ ...cell, selected: false })));
         setSelectedSum(0);

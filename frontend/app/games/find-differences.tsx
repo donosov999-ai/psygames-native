@@ -31,6 +31,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile, SPRITE_COUNT } from '@/src/constants/pairThemes';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#34e89e', '#0f3443'];
 const FIND_BENEFITS = [
@@ -255,6 +256,7 @@ export default function FindDifferencesGame() {
     if (diffIdx.length > 0 && foundIdx.size === diffIdx.length) return;   // раунд закрыт, ждём следующий
     if (foundIdx.has(idx)) return;
     if (diffIdx.includes(idx)) {
+      hapticSuccess();
       const newFound = new Set(foundIdx);
       newFound.add(idx);
       setFoundIdx(newFound);
@@ -274,6 +276,7 @@ export default function FindDifferencesGame() {
         }, 600);
       }
     } else {
+      hapticError();
       errorsRef.current += 1;
       setErrors(errorsRef.current);
     }

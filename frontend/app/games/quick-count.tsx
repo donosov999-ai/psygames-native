@@ -22,6 +22,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 // Быстрый подсчёт (subitizing) — новая игра v1.117.0. Отдельный когнитивный навык:
 // оценить КОЛИЧЕСТВО объектов за долю секунды БЕЗ пересчёта по одному — не пересекается
@@ -120,8 +121,8 @@ export default function QuickCountGame() {
   };
 
   const handleAnswer = (guess: number) => {
-    if (guess === actualN) { correctRef.current++; setCorrect((c) => c + 1); }
-    else { wrongRef.current++; setWrong((w) => w + 1); }
+    if (guess === actualN) { hapticSuccess(); correctRef.current++; setCorrect((c) => c + 1); }
+    else { hapticError(); wrongRef.current++; setWrong((w) => w + 1); }
     const next = trialRef.current + 1;
     trialRef.current = next;
     setTrial(next);

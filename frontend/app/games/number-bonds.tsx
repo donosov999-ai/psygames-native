@@ -32,6 +32,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#36d1dc', '#5b86e5'];
 const NB_BENEFITS = [
@@ -257,6 +258,7 @@ export default function NumberBondsGame() {
       errorsRef.current += 1;
       setErrors(errorsRef.current);
       setFeedback('wrong');
+      hapticError();
       fbTimerRef.current = setTimeout(() => setFeedback(null), 600);
       return;
     }
@@ -267,11 +269,13 @@ export default function NumberBondsGame() {
       hitsRef.current += 1;
       setHits(hitsRef.current);
       setFeedback('right');
+      hapticSuccess();
       fbTimerRef.current = setTimeout(advance, 700);
     } else {
       errorsRef.current += 1;
       setErrors(errorsRef.current);
       setFeedback('wrong');
+      hapticError();
       // неверная сумма: та же задача, сброс выбора (окно продолжает тикать)
       fbTimerRef.current = setTimeout(() => { setPicked([]); setFeedback(null); }, 700);
     }

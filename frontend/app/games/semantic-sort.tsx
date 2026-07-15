@@ -21,6 +21,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#10b981', '#6366f1'];
 
@@ -172,8 +173,8 @@ export default function SemanticSortGame() {
     rtSumRef.current += Date.now() - shownAtRef.current;
     const isCorrect = cat === round.correctCat;
     setPicked(cat);
-    if (isCorrect) { correctRef.current += 1; setCorrectCount((c) => c + 1); }
-    else { errorsRef.current += 1; setErrorsCount((c) => c + 1); }
+    if (isCorrect) { hapticSuccess(); correctRef.current += 1; setCorrectCount((c) => c + 1); }
+    else { hapticError(); errorsRef.current += 1; setErrorsCount((c) => c + 1); }
     setTimeout(() => {
       const next = idx + 1;
       if (next >= rounds.length) {

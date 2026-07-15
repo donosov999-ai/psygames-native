@@ -28,6 +28,7 @@ import LeaderboardModal from '@/src/components/LeaderboardModal';
 import { submitScore } from '@/src/services/leaderboard';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const NB_RULES: LevelRule[] = [
@@ -227,8 +228,8 @@ export default function NBackGame() {
     answeredRef.current = true;
     const stimulus = history[currentIdx];
     const target = history[currentIdx - nLevel];
-    if (stimulus === target) { statsRef.current.hits++; setHits((h) => h + 1); }
-    else { statsRef.current.falseAlarms++; setFalseAlarms((f) => f + 1); }
+    if (stimulus === target) { statsRef.current.hits++; setHits((h) => h + 1); hapticSuccess(); }
+    else { statsRef.current.falseAlarms++; setFalseAlarms((f) => f + 1); hapticError(); }
   };
 
   const handleAudioMatchPress = () => {
@@ -236,8 +237,8 @@ export default function NBackGame() {
     aAnsweredRef.current = true;
     const stimulus = audioHistory[currentIdx];
     const target = audioHistory[currentIdx - nLevel];
-    if (stimulus === target) { statsRef.current.aHits++; setAHits((h) => h + 1); }
-    else { statsRef.current.aFalseAlarms++; setAFalseAlarms((f) => f + 1); }
+    if (stimulus === target) { statsRef.current.aHits++; setAHits((h) => h + 1); hapticSuccess(); }
+    else { statsRef.current.aFalseAlarms++; setAFalseAlarms((f) => f + 1); hapticError(); }
   };
 
   const finishGame = async (vHist: number[], aHist: string[]) => {

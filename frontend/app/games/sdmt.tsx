@@ -27,6 +27,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -197,8 +198,8 @@ export default function SdmtGame() {
     const entry = keymap.find(k => k.sym === stim);
     if (!entry) return;
     const ok = digit === entry.digit;
-    if (ok) { hitsRef.current += 1; setHits(hitsRef.current); }
-    else { errorsRef.current += 1; setErrors(errorsRef.current); }
+    if (ok) { hitsRef.current += 1; setHits(hitsRef.current); hapticSuccess(); }
+    else { errorsRef.current += 1; setErrors(errorsRef.current); hapticError(); }
     setFeedback(ok ? 'right' : 'wrong');
     fbTimerRef.current = setTimeout(() => {
       setFeedback(null);

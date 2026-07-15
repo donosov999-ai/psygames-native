@@ -25,6 +25,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { sndPlace } from '@/src/services/feedback';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -291,8 +292,8 @@ export default function AnagramGame() {
       const guess = newPicked.map((i) => letters[i]).join('');
       // Любая валидная анаграмма из этих букв = зачёт (буквы те же — игрок собрал их все)
       const correct = guess === target || validWordsRef.current.has(guess);
-      if (correct) { hitsRef.current += 1; setHits(hitsRef.current); }
-      else { errorsRef.current += 1; setErrors(errorsRef.current); }
+      if (correct) { hitsRef.current += 1; setHits(hitsRef.current); hapticSuccess(); }
+      else { errorsRef.current += 1; setErrors(errorsRef.current); hapticError(); }
       nextTimerRef.current = setTimeout(advance, 700);
     }
   };
