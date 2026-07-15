@@ -20,6 +20,7 @@ import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const CORSI_RULES: LevelRule[] = [
@@ -189,6 +190,7 @@ export default function CorsiGame() {
     if (next[next.length - 1] !== expected[next.length - 1]) {
       // wrong — fail
       setFeedback('wrong');
+      hapticError();
       const newErrors = errors + 1;
       setErrors(newErrors);
       fbTimerRef.current = setTimeout(() => {
@@ -200,6 +202,7 @@ export default function CorsiGame() {
     if (next.length === expected.length) {
       // success — increase span
       setFeedback('right');
+      hapticSuccess();
       const newSpan = Math.max(span, seq.length);
       setSpan(newSpan);
       fbTimerRef.current = setTimeout(() => {

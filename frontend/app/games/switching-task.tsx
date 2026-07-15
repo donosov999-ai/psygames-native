@@ -32,6 +32,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#7873f5', '#ff6ec4'];
 const SW_BENEFITS = [
@@ -278,12 +279,14 @@ export default function SwitchingTaskGame() {
     const tr = trialRef.current;
     const ok = left === tr.correctLeft;
     if (ok) {
+      hapticSuccess();
       hitsRef.current += 1;
       setHits(hitsRef.current);
       rtsRef.current.push(rt);
       if (tr.isSwitch) switchRtsRef.current.push(rt);
       setRts([...rtsRef.current]);
     } else {
+      hapticError();
       errorsRef.current += 1;
       setErrors(errorsRef.current);
     }

@@ -30,6 +30,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LeaderboardModal from '@/src/components/LeaderboardModal';
 import { submitScore } from '@/src/services/leaderboard';
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#667eea', '#764ba2'];
 
@@ -357,9 +358,11 @@ export default function SchulteGame() {
   const handleGroupCellPress = async (value: number | string, index: number) => {
     const g = cellGroup[index];
     if (g !== activeGroup || value !== groupTargets[activeGroup]) {
+      hapticError();
       setErrors((prev) => prev + 1);
       return;
     }
+    hapticSuccess();
     const totalCells = gridSize * gridSize;
     const newTargets = [...groupTargets];
     newTargets[activeGroup] += 1;
@@ -383,6 +386,7 @@ export default function SchulteGame() {
     const expectedValue = sequence[currentIndex];
 
     if (value === expectedValue) {
+      hapticSuccess();
       const totalCells = gridSize * gridSize;
       if (currentIndex === totalCells - 1) {
         await finishRound(totalCells, errors);
@@ -391,6 +395,7 @@ export default function SchulteGame() {
         if (reshuffleOnClick) reshufflePositions();
       }
     } else {
+      hapticError();
       setErrors((prev) => prev + 1);
     }
   };

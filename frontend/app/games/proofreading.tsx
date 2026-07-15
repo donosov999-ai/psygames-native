@@ -23,6 +23,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#a8edea', '#fed6e3'];
 
@@ -239,6 +240,7 @@ export default function ProofreadingGame() {
     if (finishedRef.current || foundIndices.has(index)) return;
 
     if (targetIndices.has(index)) {
+      hapticSuccess();
       const newFound = new Set(foundIndices);
       newFound.add(index);
       foundRef.current = newFound.size;
@@ -247,6 +249,7 @@ export default function ProofreadingGame() {
       // Check if all found — досрочное завершение
       if (newFound.size === targetIndices.size) finish();
     } else {
+      hapticError();
       errorsRef.current += 1;
       setErrors(errorsRef.current);
       setWrongFlash(index);

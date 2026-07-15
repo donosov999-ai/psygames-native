@@ -26,6 +26,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#fc6076', '#ff9a44'];
 const TRAIL_BENEFITS = [
@@ -220,10 +221,12 @@ export default function TrailMakingGame() {
 
   const handleNodePress = async (idx: number) => {
     if (idx === currentIdx) {
+      hapticSuccess();
       const next = currentIdx + 1;
       setCurrentIdx(next);
       if (next >= nodes.length) await finish();
     } else if (idx > currentIdx) {
+      hapticError();
       errorsRef.current += 1;
       setErrors(errorsRef.current);
     }

@@ -15,6 +15,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#8E2DE2', '#4A00E0'];
 const STROOP2_BENEFITS = [
@@ -230,11 +231,13 @@ export default function StroopEmotionalGame() {
     const rt = Date.now() - stimAt;
     const ok = color === trial.color;
     if (ok) {
+      hapticSuccess();
       hitsRef.current += 1;
       rtsRef.current = { ...rtsRef.current, [trial.valence]: [...rtsRef.current[trial.valence], rt] };
       setHits(hitsRef.current);
       setRtsByValence(rtsRef.current);
     } else {
+      hapticError();
       errorsRef.current += 1;
       setErrors(errorsRef.current);
     }

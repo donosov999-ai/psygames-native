@@ -12,6 +12,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import BossRound from '@/src/components/BossRound';
@@ -177,11 +178,13 @@ export default function MathSprintGame() {
       setBestStreak(Math.max(bestStreak, newStreak));
       setScore((s) => s + points);
       setFeedback('correct');
+      hapticSuccess();   // тактильно-звуковой отклик «верно»
     } else {
       setErrors((e) => e + 1);
       setStreak(0);
       setScore((s) => Math.max(0, s - 5));
       setFeedback('wrong');
+      hapticError();   // тактильно-звуковой отклик «неверно»
     }
     setUserAnswer('');
     setTimeout(() => {

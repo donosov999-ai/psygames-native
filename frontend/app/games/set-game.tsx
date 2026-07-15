@@ -16,6 +16,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const SG_RULES: LevelRule[] = [
@@ -183,7 +184,8 @@ export default function SetGame() {
     if (roundTimerRef.current) clearTimeout(roundTimerRef.current);   // ответ дан — снять лимит времени
     const ok = isSet(board[sel[0]], board[sel[1]], board[sel[2]]);
     setFeedback(ok ? 'right' : 'wrong');
-    if (ok) setHits((h) => h + 1); else {
+    if (ok) { hapticSuccess(); setHits((h) => h + 1); } else {
+      hapticError();
       setErrors((e) => e + 1);
       // Generate hint breakdown for wrong answer
       setHintBreakdown(explainSet(board[sel[0]], board[sel[1]], board[sel[2]]));

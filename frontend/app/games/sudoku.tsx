@@ -16,7 +16,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/constants/digitThemes';
 import type { DigitStyle } from '@/src/constants/digitThemes';
-import { sndPlace, sndWrong } from '@/src/services/feedback';
+import { hapticSuccess, hapticError } from '@/src/components/juice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Line, Rect } from 'react-native-svg';
 
@@ -299,7 +299,7 @@ export default function SudokuGame() {
     const ng = grid.map((row) => [...row]);
     ng[r][c] = n;
     setGrid(ng);
-    if (n !== 0) { (solution[r][c] === n) ? sndPlace() : sndWrong(); }   // тик при верной цифре, бузз при неверной
+    if (n !== 0) { (solution[r][c] === n) ? hapticSuccess() : hapticError(); }   // верно: звук+вибро; неверно: звук+вибро
     if (n !== 0 && solution[r][c] !== n) {
       const ne = errors + 1;
       setErrors(ne);
