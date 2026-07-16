@@ -261,9 +261,9 @@ jobs:
           retention-days: 30
         continue-on-error: true
 
-  # ─── Android (signed APK) ──────────────────────────────────────────────
+  # ─── Android (signed APK + AAB) ───────────────────────────────────────
   android:
-    name: Android (signed .apk)
+    name: Android (signed .apk + .aab)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -380,7 +380,7 @@ jobs:
           EOF
           tail -25 "$GRADLE"
 
-      - name: Build signed APK
+      - name: Build signed APK + AAB
         working-directory: src-tauri
         env:
           ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/src-tauri/keys/psygames-release.jks
@@ -390,15 +390,18 @@ jobs:
         run: |
           echo "Using keystore at: $ANDROID_KEYSTORE_PATH"
           ls -la "$ANDROID_KEYSTORE_PATH"
-          cargo tauri android build --apk
+          cargo tauri android build --apk --aab
 
-      - name: Locate APK
+      - name: Locate APK + AAB
         working-directory: src-tauri
         run: |
           echo "--- searching for APK ---"
           find gen/android -name "*.apk" -type f
+          echo "--- searching for AAB ---"
+          find gen/android -name "*.aab" -type f
           mkdir -p out
           find gen/android -name "*release*.apk" -type f -exec cp {} out/PsyGames-android.apk \;
+          find gen/android -name "*.aab" -type f -exec cp {} out/PsyGames-android.aab \;
           ls -la out/
 
       - name: Upload APK artifact
@@ -406,6 +409,13 @@ jobs:
         with:
           name: PsyGames-android-apk
           path: src-tauri/out/PsyGames-android.apk
+          retention-days: 30
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: PsyGames-android-aab
+          path: src-tauri/out/PsyGames-android.aab
           retention-days: 30
 
   # ─── Web deploy → psygames-web GH Pages repo ──────────────────────────
@@ -528,6 +538,7 @@ jobs:
             artifacts/PsyGames-windows-x64-exe/*.exe
             artifacts/PsyGames-windows-x64-msi/*.msi
             artifacts/PsyGames-android-apk/PsyGames-android.apk
+            artifacts/PsyGames-android-aab/PsyGames-android.aab
             latest.json
           generate_release_notes: true
 
