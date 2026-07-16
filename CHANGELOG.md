@@ -14,6 +14,11 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.120.5] — 2026-07-16
+
+### Fixed
+- CI: гейт подписи AAB без `-strict` — upload-ключ Android всегда self-signed, strict-режим на нём валился (exit 4, «jar verified, with signer errors»), хотя подпись валидна (падение v1.120.4). Гейт теперь: «jar verified» обязателен.
+
 ## [1.120.4] — 2026-07-16
 
 ### Fixed

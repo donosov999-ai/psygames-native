@@ -422,8 +422,13 @@ jobs:
             -storepass "$ANDROID_KEYSTORE_PASSWORD" -keypass "$ANDROID_KEY_PASSWORD" \
             -sigalg SHA256withRSA -digestalg SHA-256 \
             out/PsyGames-android.aab "$ANDROID_KEY_ALIAS"
-          jarsigner -verify -strict out/PsyGames-android.aab
-          echo "✓ AAB signed & verified"
+          # БЕЗ -strict: android upload-ключ всегда self-signed, -strict на этом
+          # валится (exit 4, «with signer errors») — ложная тревога (падение v1.120.4).
+          # Гейт: подпись существует и верифицируется.
+          verify_out=$(jarsigner -verify out/PsyGames-android.aab)
+          echo "$verify_out"
+          echo "$verify_out" | grep -q "jar verified" || { echo "✗ AAB is NOT signed"; exit 1; }
+          echo "✓ AAB signed & verified (self-signed upload key — норма для Play)"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
