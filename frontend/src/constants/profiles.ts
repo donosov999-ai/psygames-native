@@ -13,6 +13,7 @@
  * the only no-code profile.
  */
 
+import { Platform } from 'react-native';
 import { GAMES } from '@/src/constants/games';
 import type { PlaylistStep, Weekday } from '@/src/services/warmup';
 
@@ -724,6 +725,12 @@ export const PROFILES_BY_GROUP = {
  * ценник и кнопки покупки/консультации в деталях профиля. НЕ трогает «Ввести код».
  */
 export const MONETIZATION_ENABLED = false;
+
+/** App Store guideline 3.1.1: разблокировка контента кодами, полученными вне
+ *  Apple, запрещена (у Google Play redeem-код ок). На iOS прячем ВЕСЬ ввод
+ *  кода доступа (онбординг, свитчер, настройки), пока не появится IAP.
+ *  Тематические профили на iOS показываются как «Скоро». */
+export const CODE_ENTRY_ENABLED = Platform.OS !== 'ios';
 
 /** Цена пакета «Все 9 тематических» (без ODV999) на год. */
 export const BUNDLE_ALL_THEMED_PRICE = 4990;

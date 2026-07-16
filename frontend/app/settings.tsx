@@ -27,7 +27,7 @@ import {
   getMusicEnabled, setMusicEnabled,
 } from '@/src/services/feedback';
 import type { ProfileDef } from '@/src/constants/profiles';
-import { MONETIZATION_ENABLED } from '@/src/constants/profiles';
+import { MONETIZATION_ENABLED, CODE_ENTRY_ENABLED } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 // v1.16.0: флаг монетизации + helper «скоро» (раньше UNLOCK_CODES_ENABLED
 // использовался без импорта → был undefined → вёл себя как false случайно).
@@ -277,8 +277,9 @@ export default function SettingsScreen() {
                   ? t('label_themed_codes_on')
                   : t('label_themed_codes_off')}
               </Text>
-              {/* v1.15.0: «Ввести код» скрыт пока UNLOCK_CODES_ENABLED=false */}
-              {UNLOCK_CODES_ENABLED && (
+              {/* v1.15.0: «Ввести код» скрыт пока UNLOCK_CODES_ENABLED=false.
+                  + App Store 3.1.1: на iOS скрыт всегда (CODE_ENTRY_ENABLED). */}
+              {UNLOCK_CODES_ENABLED && CODE_ENTRY_ENABLED && (
                 <TouchableOpacity onPress={() => setCodeModalOpen(true)} style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text }}>🔑 {t('btn_enter_code')}</Text>
                 </TouchableOpacity>
@@ -505,12 +506,15 @@ export default function SettingsScreen() {
                     </View>
                   ) : (
                     <View style={{ gap: 10 }}>
+                      {/* App Store 3.1.1: на iOS ввод кода скрыт (CODE_ENTRY_ENABLED) */}
+                      {CODE_ENTRY_ENABLED && (
                       <TouchableOpacity
                         onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
                         style={{ backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
                       >
                         <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>🔑 {t('btn_already_have_code')}</Text>
                       </TouchableOpacity>
+                      )}
                       {/* v1.30.2: запрос кода в Telegram скрыт в App-Store-режиме (anti-steering). */}
                       {MONETIZATION_ENABLED && (
                         <>

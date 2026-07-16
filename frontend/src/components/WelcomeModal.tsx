@@ -18,6 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { CODE_ENTRY_ENABLED } from '@/src/constants/profiles';
 
 export default function WelcomeModal() {
   const { isFirstRun, completeFirstRun, switchProfile, redeemCode } = useProfile();
@@ -82,7 +83,8 @@ export default function WelcomeModal() {
                 </View>
               </TouchableOpacity>
 
-              {/* CODE option */}
+              {/* CODE option. App Store 3.1.1: на iOS ввод кода скрыт (CODE_ENTRY_ENABLED). */}
+              {CODE_ENTRY_ENABLED && (
               <TouchableOpacity style={[styles.optionCard, { backgroundColor: colors.surface, borderColor: '#7c3aed' }]}
                 onPress={() => setView('code')} activeOpacity={0.85}>
                 <View style={styles.optionHeader}>
@@ -99,6 +101,7 @@ export default function WelcomeModal() {
                   </Text>
                 </View>
               </TouchableOpacity>
+              )}
 
               <Text style={[styles.footer, { color: colors.textSecondary }]}>
                 {t('welcomeFooter')}

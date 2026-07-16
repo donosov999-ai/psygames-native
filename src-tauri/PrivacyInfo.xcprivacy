@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Apple Privacy Manifest (обязателен с мая 2024).
+  Интеграция: после `cargo tauri ios init` скопировать в
+  gen/apple/ и добавить в app-target (Copy Bundle Resources) — шаг
+  зафиксирован в APP_STORE_PLAN.md и должен быть в iOS CI-джобе.
+
+  Что декларируем:
+  - Трекинга НЕТ (нет рекламы, нет IDFA, нет кросс-app данных).
+  - Собираем: игровая статистика сессий (game_type, score, время, ошибки)
+    → Supabase cognitive_sessions. Не привязана к личности (identity нет,
+    профиль — локальный выбор), используется для функциональности
+    (прогресс/статистика) и внутренней аналитики.
+  - Required-reason API: UserDefaults (настройки/прогресс через
+    WebView localStorage/AsyncStorage — CA92.1: доступ только к своим данным),
+    File timestamp (кэш WebView — C617.1: внутри контейнера приложения).
+    Набор перепроверить при первой реальной iOS-сборке (Xcode покажет
+    недостающие декларации в отчёте архива).
+-->
+<plist version="1.0">
+<dict>
+  <key>NSPrivacyTracking</key>
+  <false/>
+  <key>NSPrivacyTrackingDomains</key>
+  <array/>
+  <key>NSPrivacyCollectedDataTypes</key>
+  <array>
+    <dict>
+      <key>NSPrivacyCollectedDataType</key>
+      <string>NSPrivacyCollectedDataTypeProductInteraction</string>
+      <key>NSPrivacyCollectedDataTypeLinked</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypeTracking</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypePurposes</key>
+      <array>
+        <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+        <string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+      </array>
+    </dict>
+  </array>
+  <key>NSPrivacyAccessedAPITypes</key>
+  <array>
+    <dict>
+      <key>NSPrivacyAccessedAPIType</key>
+      <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+      <key>NSPrivacyAccessedAPITypeReasons</key>
+      <array>
+        <string>CA92.1</string>
+      </array>
+    </dict>
+    <dict>
+      <key>NSPrivacyAccessedAPIType</key>
+      <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+      <key>NSPrivacyAccessedAPITypeReasons</key>
+      <array>
+        <string>C617.1</string>
+      </array>
+    </dict>
+  </array>
+</dict>
+</plist>

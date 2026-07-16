@@ -20,7 +20,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import type { ProfileDef } from '@/src/constants/profiles';
-import { BUNDLE_ALL_THEMED_PRICE, CORPORATE_PACK_PRICE, CORPORATE_PACK_MAX_CODES, isForSale, formatPrice, MONETIZATION_ENABLED } from '@/src/constants/profiles';
+import { BUNDLE_ALL_THEMED_PRICE, CORPORATE_PACK_PRICE, CORPORATE_PACK_MAX_CODES, isForSale, formatPrice, MONETIZATION_ENABLED, CODE_ENTRY_ENABLED } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 import { profileBadge } from '@/src/constants/profileBadges';
 
@@ -301,13 +301,15 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
               </View>
               )}
 
-              {/* Inline code button at bottom */}
+              {/* Inline code button at bottom. App Store 3.1.1: на iOS скрыто. */}
+              {CODE_ENTRY_ENABLED && (
               <TouchableOpacity
                 onPress={() => setCodeModalOpen(true)}
                 style={{ marginTop: 14, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}
               >
                 <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>🔑 У меня уже есть код — ввести</Text>
               </TouchableOpacity>
+              )}
             </ScrollView>
           </View>
         </View>
@@ -434,12 +436,18 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                       </View>
                     )}
 
+                    {CODE_ENTRY_ENABLED ? (
                     <TouchableOpacity
                       onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
                       style={{ borderWidth: 1.5, borderColor: colors.border, paddingVertical: 12, borderRadius: 10, alignItems: 'center' }}
                     >
                       <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>🔑 У меня уже есть код — ввести</Text>
                     </TouchableOpacity>
+                    ) : (
+                    <View style={{ backgroundColor: colors.card, paddingVertical: 12, borderRadius: 10, alignItems: 'center' }}>
+                      <Text style={{ color: colors.textSecondary, fontWeight: '700', fontSize: 13 }}>🔒 Скоро</Text>
+                    </View>
+                    )}
                     {/* v1.30.2: консультация/оплата в Telegram скрыты в App-Store-режиме (anti-steering). */}
                     {MONETIZATION_ENABLED && (
                       <>
