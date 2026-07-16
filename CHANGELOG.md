@@ -14,6 +14,14 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.120.1] — 2026-07-16
+
+### Changed
+- Релиз-пересборка под Google Play: Android package identifier `com.odv999.psygames` → `com.psygames.app` (выравнен с iOS bundleId) + AAB-бандл в релизе рядом с APK. Сами правки — коммиты d2b4543/b69b8be (16.07); релиз v1.120.0 был собран до них, поэтому содержал старый identifier и не содержал AAB.
+- ⚠️ Для существующих установок (APK с сайта, десктоп): из-за смены identifier обновление встанет как новое приложение с пустым локальным прогрессом.
+
+---
+
 ## [1.120.0] — 2026-07-15
 
 ### Changed
