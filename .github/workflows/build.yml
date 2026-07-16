@@ -390,18 +390,10 @@ jobs:
         run: |
           echo "Using keystore at: $ANDROID_KEYSTORE_PATH"
           ls -la "$ANDROID_KEYSTORE_PATH"
-          cargo tauri android build --apk
-
-      - name: Build signed AAB (Gradle bundleRelease)
-        working-directory: src-tauri/gen/android
-        env:
-          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/src-tauri/keys/psygames-release.jks
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          # Rust уже скомпилирован предыдущим шагом — только Gradle
-          ./gradlew bundleRelease
+          # --aab вместе с --apk: отдельный ./gradlew bundleRelease НЕ работает —
+          # gradle-таск rustBuild*Release требует живого tauri CLI (WebSocket IPC),
+          # он есть только внутри cargo tauri android build (падение v1.120.3).
+          cargo tauri android build --apk --aab
 
       - name: Locate APK + AAB
         working-directory: src-tauri
@@ -414,6 +406,24 @@ jobs:
           find gen/android -name "*release*.apk" -type f -exec cp {} out/PsyGames-android.apk \;
           find gen/android -name "*release*.aab" -type f -exec cp {} out/PsyGames-android.aab \;
           ls -la out/
+
+      # Tauri подписывает APK, но AAB из --aab выходит БЕЗ jar-подписи
+      # (проверено на артефакте: нет корневого META-INF/*.RSA) — Play такой
+      # не примет. Подписываем upload-ключом явно + verify как гейт.
+      - name: Sign AAB (jarsigner) + verify
+        working-directory: src-tauri
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/src-tauri/keys/psygames-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          jarsigner -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" -keypass "$ANDROID_KEY_PASSWORD" \
+            -sigalg SHA256withRSA -digestalg SHA-256 \
+            out/PsyGames-android.aab "$ANDROID_KEY_ALIAS"
+          jarsigner -verify -strict out/PsyGames-android.aab
+          echo "✓ AAB signed & verified"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7

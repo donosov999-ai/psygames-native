@@ -14,6 +14,14 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.120.4] — 2026-07-16
+
+### Fixed
+- CI: AAB снова собирается внутри `cargo tauri android build --apk --aab` (отдельный `./gradlew bundleRelease` не работает — rustBuild-таск требует живого tauri CLI, из-за этого упал v1.120.3). AAB после сборки подписывается jarsigner'ом upload-ключом + `jarsigner -verify -strict` как гейт (факт: AAB из tauri выходит без jar-подписи — Play не принял бы).
+- **Это первый полностью корректный релиз для Google Play**: identifier по платформам (десктоп `com.odv999.psygames`, Android `com.psygames.app`) + подписанный AAB.
+
+---
+
 ## [1.120.3] — 2026-07-16
 
 ### Fixed
