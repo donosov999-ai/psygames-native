@@ -6,6 +6,33 @@
 
 ---
 
+## 🧭 Схема identifier'ов по платформам (зафиксировано 16.07.2026)
+
+Один глобальный identifier в `tauri.conf.json` нельзя менять под сторы: смена id
+для Windows/macOS = «другое приложение» для уже установленных копий (потеря
+локальных данных, слом канала обновлений). Поэтому идентификаторы разведены
+через **платформо-специфичные конфиги Tauri 2** (мёржатся поверх базового
+только при сборке своей платформы, JSON Merge Patch):
+
+| Файл | Платформа | Identifier | Зачем |
+|---|---|---|---|
+| `src-tauri/tauri.conf.json` (база) | Windows, macOS (десктоп вне сторов), Linux | `com.odv999.psygames` | исторический id — существующие установки, updater, пути данных |
+| `src-tauri/tauri.android.conf.json` | Android (Google Play) | `com.psygames.app` | package в Play Console; совпадает с iOS |
+| `src-tauri/tauri.ios.conf.json` | iOS (App Store, на будущее) | `com.psygames.app` | bundleId в App Store Connect (= `frontend/app.json → ios.bundleIdentifier`) |
+
+**Правила:**
+1. ❗ `identifier` в базовом `tauri.conf.json` НЕ менять — это сломает
+   десктоп-юзеров. Сторовые id живут ТОЛЬКО в платформенных конфигах.
+2. CI ничего дополнительно делать не нужно: `cargo tauri android build`
+   сам подхватывает `tauri.android.conf.json` (gen/android генерится
+   каждый прогон через `cargo tauri android init`, package берётся из
+   смёрженного конфига).
+3. Релизы-теги v1.120.0–v1.120.2 — промежуточные в этой миграции
+   (в v1.120.1/2 Windows-сборка с неправильным id). Первый корректный
+   релиз со схемой выше: **v1.120.3**.
+
+---
+
 ## Блокеры (без них сабмит невозможен)
 
 ### 🔴 AAB вместо APK

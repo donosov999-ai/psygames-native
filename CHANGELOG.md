@@ -14,6 +14,14 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.120.3] — 2026-07-16
+
+### Fixed
+- **Identifier разведён по платформам** (Tauri 2 platform-specific configs): база `tauri.conf.json` откатена на `com.odv999.psygames` (Windows/macOS — как раньше, без потери данных и слома updater у существующих установок); Android/iOS получают `com.psygames.app` через `tauri.android.conf.json` / `tauri.ios.conf.json`. Схема зафиксирована в GOOGLE_PLAY_PLAN.md.
+- ⚠️ Релизы v1.120.0–v1.120.2 — промежуточные в этой миграции (в 1.120.1/1.120.2 десктоп-сборки с неправильным id; прогон 1.120.2 отменён). **Для Google Play и для сайта использовать сборки этого релиза.**
+
+---
+
 ## [1.120.2] — 2026-07-16
 
 ### Changed
