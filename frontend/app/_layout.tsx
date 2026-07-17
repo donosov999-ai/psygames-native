@@ -11,7 +11,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import UnlockToast from '@/src/components/UnlockToast';
 import AppErrorBoundary from '@/src/components/AppErrorBoundary';
-import WelcomeModal from '@/src/components/WelcomeModal';
 import UpdateGate from '@/src/components/UpdateGate';
 import GameHelpOverlay from '@/src/components/GameHelpOverlay';
 import OrientationGuard from '@/src/components/OrientationGuard';
@@ -57,8 +56,8 @@ function RootLayoutNav() {
       />
       {/* Global level-unlock toast (themed profiles only) */}
       <UnlockToast />
-      {/* First-run welcome modal (FREE vs Code choice) */}
-      <WelcomeModal />
+      {/* v1.121: экран выбора «FREE vs код» убран — приложение бесплатное,
+          первый запуск сразу стартует на FREE (см. ProfileContext). */}
       {/* Desktop-only авто-апдейтер (Tauri). На web/Android — no-op. */}
       <UpdateGate />
       {/* Глобальная «?»-справка игр (сама прячется вне /games/* через HELP_MAP) */}

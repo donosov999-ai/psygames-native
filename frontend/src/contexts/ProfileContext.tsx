@@ -61,10 +61,14 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         );
         setUnlockedThemed(unlocks);
 
-        // First-run detection: no saved profile AND no firstRunDone flag
+        // Первый запуск. Экрана выбора («Начать с FREE» / «У меня есть код»)
+        // больше нет: приложение бесплатное, а код-вход на iOS запрещён
+        // гайдлайном 3.1.1 — экран был чистым фрикшном на старте.
+        // Стартуем молча на FREE (профиль по умолчанию) и закрываем first-run,
+        // чтобы состояние в сторе было консистентным (раньше это делал WelcomeModal).
         if (!savedProfile && !firstRunDone) {
-          setIsFirstRun(true);
-          // Profile stays as FREE (default) until user picks via welcome modal
+          try { await AsyncStorage.setItem(ACTIVE_PROFILE_KEY, 'free'); } catch {}
+          try { await AsyncStorage.setItem(FIRST_RUN_KEY, '1'); } catch {}
         }
 
         if (savedProfile) {
