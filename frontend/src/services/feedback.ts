@@ -196,36 +196,88 @@ export function sndStreak()  { if (_soundEnabled) { beep(880, 70, 0.09); setTime
 export function sndTimerTick() { if (_soundEnabled) beep(1000, 45, 0.045); }
 export function sndTimerEnd()  { if (_soundEnabled) { beep(523, 130, 0.09); setTimeout(() => beep(392, 230, 0.09), 130); } }
 
-// ── Фоновая музыка меню (S1) — мягкое синтез-арпеджио, OPT-IN, очень тихо. F: плавное затухание через мастер-гейн. ──
+// ── Фоновая музыка меню — ГЕНЕРАТИВНЫЙ амбиент, OPT-IN, очень тихо. ──
+//
+// v1.122.0. Было: массив из 6 элементов (4 разные ноты, до-мажорное трезвучие
+// вверх-вниз) через setInterval(1600) → петля ровно 9.6 с, повторяется одинаково.
+// Репорт тестировщика: «музыка 3 ноты, просто несколько нот перебирается по кругу».
+//
+// Стало: ноты выбираются на лету из текущего аккорда медленной прогрессии, со
+// случайной длительностью, паузами, октавой и лёгкой расстройкой → сочетание не
+// повторяется. Почему так, а не трек-файл: файл весит мегабайты, требует лицензии
+// (CC0/CC-BY) и всё равно зацикливается на 2-3 минуте — на фоне тренировки петля
+// слышна и раздражает сильнее, чем тишина. Генератор — 0 байт ассетов, без новых
+// зависимостей, без пересборки под сторы, и не надоедает.
+//
+// Гармония: минорная пентатоника + септаккорды — любые две ноты из набора
+// звучат консонансно, поэтому случайность не может дать фальшь.
 let _musicTimer: any = null;
-let _musicIdx = 0;
 let _musicGain: any = null;
-const MUSIC_NOTES = [261.63, 329.63, 392.0, 523.25, 392.0, 329.63];   // C-E-G-C-G-E
+let _musicChord = 0;
+let _musicNoteCount = 0;
+
+/** Прогрессия Am7 → Fmaj7 → Cmaj7 → G6 в MIDI-номерах. Меняется каждые ~6 нот. */
+const MUSIC_CHORDS = [
+  [57, 60, 64, 67],
+  [53, 57, 60, 64],
+  [48, 52, 55, 59],
+  [55, 59, 62, 64],
+];
+
+const midiToFreq = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
+const pick = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
+
 export function startMusic(): void {
   if (!_musicOn || _musicTimer) return;
   const ac = getAudioCtx(); if (!ac) return;
   _musicGain = ac.createGain();
   _musicGain.gain.value = 1;
   _musicGain.connect(ac.destination);
-  const playNote = () => {
+
+  /** Одна нота: медленная атака + длинный спад = амбиент, а не «пиликанье». */
+  const voice = (midi: number, dur: number, peak: number, type: OscillatorType) => {
     const c = getAudioCtx(); if (!c || !_musicGain) return;
-    const f = MUSIC_NOTES[_musicIdx % MUSIC_NOTES.length]; _musicIdx++;
     try {
       const t0 = c.currentTime;
       const osc = c.createOscillator(); const g = c.createGain();
-      osc.type = 'sine'; osc.frequency.value = f;
+      osc.type = type;
+      osc.frequency.value = midiToFreq(midi);
+      osc.detune.value = (Math.random() - 0.5) * 12;  // ±6 центов — живое биение
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.linearRampToValueAtTime(0.03, t0 + 0.4);     // тихо (0.03)
-      g.gain.linearRampToValueAtTime(0.0001, t0 + 1.7);
-      osc.connect(g); g.connect(_musicGain);              // через мастер-гейн музыки → можно плавно гасить
-      osc.start(t0); osc.stop(t0 + 1.8);
+      g.gain.linearRampToValueAtTime(peak, t0 + dur * 0.35);
+      g.gain.linearRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g); g.connect(_musicGain);
+      osc.start(t0); osc.stop(t0 + dur + 0.05);
     } catch { /* no-op */ }
   };
-  playNote();
-  _musicTimer = setInterval(playNote, 1600);
+
+  const step = () => {
+    if (!_musicGain) return;   // stopMusic обнулил мастер-гейн → цепочка обрывается
+    const chord = MUSIC_CHORDS[_musicChord % MUSIC_CHORDS.length];
+
+    // Смена аккорда раз в ~6 нот + бас-педаль под неё
+    if (_musicNoteCount % 6 === 0) {
+      voice(chord[0] - 12, 7 + Math.random() * 3, 0.016, 'sine');
+      if (_musicNoteCount > 0) _musicChord++;
+    }
+    _musicNoteCount++;
+
+    // Мелодия: нота аккорда, иногда октавой выше; изредка пауза (дыхание)
+    if (Math.random() > 0.18) {
+      const midi = pick(chord) + (Math.random() > 0.7 ? 12 : 0);
+      voice(midi, 1.8 + Math.random() * 2.2, 0.022 + Math.random() * 0.012,
+            Math.random() > 0.75 ? 'triangle' : 'sine');
+    }
+
+    // Следующая нота через случайный интервал → нет машинного пульса
+    _musicTimer = setTimeout(step, 1100 + Math.random() * 1600);
+  };
+
+  _musicChord = 0; _musicNoteCount = 0;
+  _musicTimer = setTimeout(step, 10);
 }
 export function stopMusic(): void {
-  if (_musicTimer) { clearInterval(_musicTimer); _musicTimer = null; }
+  if (_musicTimer) { clearTimeout(_musicTimer); _musicTimer = null; }
   const g = _musicGain; _musicGain = null;
   if (!g) return;
   // F: плавное затухание 0.5с вместо резкого обрыва, затем отключаем узел.

@@ -49,6 +49,9 @@ const darkTheme: ThemeColors = {
  * accent = курированный акцент (НЕ profile.color напрямую — у части профилей
  * color это тёмный UI-цвет, невидимый как accent, напр. Шахматист #1f2937).
  */
+/** Общий на всё приложение, НЕ на профиль: выбор темы не должен слетать при смене профиля. */
+const THEME_OVERRIDE_KEY = 'psygames_theme_override';
+
 const PROFILE_THEME: Record<ProfileId, { mood: 'dark' | 'light'; accent: string }> = {
   nzt48:     { mood: 'light', accent: '#a855f7' }, // фиолетовый (светлая тема — по запросу Дениса)
   execs:     { mood: 'dark',  accent: '#14b8a6' }, // teal (ярче для видимости)
@@ -82,8 +85,17 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { profile } = useProfile();
-  // Ручной override темы (на сессию). null = тему задаёт профиль.
+  // Ручной override темы. null = тему задаёт профиль.
+  // v1.122.0: выбор темы — ОБЩИЙ для приложения и переживает перезапуск.
+  // Было: жил только в useState → терялся при перезапуске И сбрасывался при каждой
+  // смене профиля. Репорт тестировщика: «выбрал тёмную в НЗТ, переключился во FREE —
+  // снова светлая. Надо запоминать app wide».
   const [override, setOverride] = useState<null | 'dark' | 'light'>(null);
+  useEffect(() => {
+    AsyncStorage.getItem(THEME_OVERRIDE_KEY)
+      .then((v) => { if (v === 'dark' || v === 'light') setOverride(v); })
+      .catch(() => {});
+  }, []);
   const [colorblind, setColorblindState] = useState(false);
   useEffect(() => { AsyncStorage.getItem('psygames_colorblind').then((v) => { if (v !== null) setColorblindState(v === 'true'); }).catch(() => {}); }, []);
   const setColorblind = (v: boolean) => { setColorblindState(v); AsyncStorage.setItem('psygames_colorblind', String(v)).catch(() => {}); };
@@ -97,10 +109,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [profile?.id]);
   useEffect(() => { refreshCosmeticAccent(); }, [refreshCosmeticAccent]);
 
-  // При смене профиля сбрасываем override — профиль снова задаёт цвет.
-  useEffect(() => {
-    setOverride(null);
-  }, [profile.id]);
+  // v1.122.0: сброс override при смене профиля УБРАН намеренно — он и был причиной
+  // «переключился во FREE — снова светлая». Явный выбор пользователя главнее пресета
+  // профиля. Акцентный цвет по-прежнему берётся от профиля (см. pt.accent ниже) —
+  // меняется только светлота/темнота.
 
   const pt = PROFILE_THEME[profile.id] ?? { mood: 'dark' as const, accent: '#0A84FF' };
   const mood = override ?? pt.mood;
@@ -108,7 +120,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const base = isDark ? darkTheme : lightTheme;
   const colors: ThemeColors = { ...base, primary: cosmeticAccent ?? pt.accent };
 
-  const toggleTheme = () => setOverride(isDark ? 'light' : 'dark');
+  const toggleTheme = () => {
+    const next = isDark ? 'light' : 'dark';
+    setOverride(next);
+    AsyncStorage.setItem(THEME_OVERRIDE_KEY, next).catch(() => {});
+  };
 
   return (
     <ThemeContext.Provider value={{ isDark, toggleTheme, colors, themeFromProfile: override === null, colorblind, setColorblind, cosmeticAccent, refreshCosmeticAccent }}>

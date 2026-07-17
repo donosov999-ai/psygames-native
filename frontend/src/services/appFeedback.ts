@@ -28,6 +28,52 @@ export const FEEDBACK_ENABLED = true;
 
 const SHOT_BUCKET = 'feedback-shots';
 
+/**
+ * Реальная площадка, а не Platform.OS. Все наши сборки — webview, поэтому
+ * Platform.OS для Tauri-APK из Google Play возвращает 'web' ровно так же, как
+ * для вкладки Chrome на десктопе. Из-за этого репорт «лого поверх системных
+ * иконок» (чисто телефонный баг) пришёл с меткой platform=web и потребовал
+ * отдельного расследования. Различаем по Tauri-шеллу и user-agent.
+ */
+function detectPlatform(): string {
+  if (Platform.OS !== 'web') return Platform.OS; // нативная сборка, если появится
+  if (typeof window === 'undefined') return 'web';
+  const w = window as any;
+  const tauri = !!(w.__TAURI__ || w.__TAURI_INTERNALS__);
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  const mobile = /Android/i.test(ua) ? 'android' : /iPhone|iPad|iPod/i.test(ua) ? 'ios' : null;
+  if (tauri) return mobile ? `tauri-${mobile}` : 'tauri-desktop';
+  return mobile ? `web-${mobile}` : 'web';
+}
+
+/**
+ * Условия отображения: ширина экрана и масштаб текста. Три бага вёрстки
+ * («текст в столбик», «кнопка в 3 строки», «прокрутка на пол-экрана») оказались
+ * одним дефектом, видимым только на узком экране с крупным системным шрифтом —
+ * тестировщику пришлось это объяснять словами. Теперь приезжает само.
+ */
+function detectViewport(): Record<string, unknown> | null {
+  try {
+    if (typeof window === 'undefined') return null;
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;visibility:hidden;font-size:16px;';
+    probe.textContent = 'M';
+    document.body.appendChild(probe);
+    const px = parseFloat(getComputedStyle(probe).fontSize) || 16;
+    probe.remove();
+    return {
+      w: window.innerWidth,
+      h: window.innerHeight,
+      dpr: window.devicePixelRatio,
+      // >1 — система/браузер увеличивает текст (Android «Размер шрифта», zoom, min font size)
+      fontScale: Math.round((px / 16) * 100) / 100,
+      ua: (typeof navigator !== 'undefined' ? navigator.userAgent : '').slice(0, 300),
+    };
+  } catch {
+    return null;
+  }
+}
+
 /** Снять скриншот текущего экрана. null — если не webview или что-то пошло не так. */
 export async function captureScreenshot(): Promise<Blob | null> {
   try {
@@ -90,9 +136,9 @@ export async function sendFeedback(args: SendArgs): Promise<boolean> {
       screen: (args.screen || '').slice(0, 200) || null,
       game_id: (args.gameId || '').slice(0, 64) || null,
       app_version,
-      platform: Platform.OS,
+      platform: detectPlatform(),
       shot_path,
-      context: args.context ?? null,
+      context: { ...(args.context ?? {}), viewport: detectViewport() },
     };
     const { error } = await supabase.from('app_feedback').insert(row);
     return !error;

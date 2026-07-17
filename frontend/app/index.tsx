@@ -26,7 +26,7 @@ import { avatarImage } from '@/src/constants/avatars';
 import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
 import { getTodayChallenge, challengeToParams, loadChallengeStreak, setPendingChallenge, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
 import { useAllLevelStars } from '@/src/hooks/useAllLevelStars';
-import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic } from '@/src/services/feedback';
+import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic, getMusicEnabled } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
@@ -96,8 +96,15 @@ export default function HomeScreen() {
     })();
   }, [profile?.id, language]));
   const lvl = levelInfo(tokens);
-  // S1: фоновая музыка меню — играет на главной (если включена в настройках), стоп при уходе в игру
-  useFocusEffect(useCallback(() => { startMusic(); return () => stopMusic(); }, []));
+  // S1: фоновая музыка меню — играет на главной (если включена в настройках), стоп при уходе в игру.
+  // v1.122.0: ждём getMusicEnabled(). startMusic() читает флаг синхронно, а грузится он из
+  // AsyncStorage асинхронно → на холодном старте вызов приходил раньше, чем флаг, и музыка
+  // молча не включалась у тех, кто её включил.
+  useFocusEffect(useCallback(() => {
+    let alive = true;
+    getMusicEnabled().then((on) => { if (alive && on) startMusic(); }).catch(() => {});
+    return () => { alive = false; stopMusic(); };
+  }, []));
 
   useEffect(() => {
     (async () => {
@@ -210,9 +217,12 @@ export default function HomeScreen() {
         {/* v1.30.6: заголовок — на ОТДЕЛЬНОЙ строке во всю ширину (раньше делил ряд с иконками → на Android «PsyGames» переносился/обрезался) */}
         {/* Лого-вордмарк под профиль (9 вариантов, «пока в каждом режиме свой») вместо текста PsyGames */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Image source={logoForProfile(profile?.id)} style={{ height: 44, width: 190 }} resizeMode="contain" />
+          {/* Лого ужимается первым: лого(190) + плашка очков(~143) = 333 > 320 на 360dp → плашка уезжала за край */}
+          <View style={{ flex: 1, minWidth: 0, marginRight: 8, alignItems: 'flex-start' }}>
+            <Image source={logoForProfile(profile?.id)} style={{ height: 44, width: '100%', maxWidth: 190 }} resizeMode="contain" />
+          </View>
           {/* Очки-токены центра (⭐) + уровень профиля от накопленных токенов (T1 геймификация) */}
-          <TouchableOpacity activeOpacity={0.8} onPress={() => router.push('/shop' as any)} style={{ alignItems: 'flex-end', gap: 3 }}>
+          <TouchableOpacity activeOpacity={0.8} onPress={() => router.push('/shop' as any)} style={{ alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fbbf2422', borderWidth: 1.5, borderColor: '#f59e0b', paddingVertical: 4, paddingHorizontal: 11, borderRadius: 100 }}>
               <Text style={{ fontSize: 14 }}>⭐</Text>
               <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>{tokens}</Text>
@@ -229,7 +239,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
         <View style={styles.headerRow}>
-        <View style={{ flex: 1, gap: 6 }}>
+        <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 180, minWidth: 0, gap: 6 }}>
           {/* Клик-чип "Сменить профиль" — заметный, с chevron ▾. v1.114.0: рамка/аватар из магазина
               (frameColor перекрывает цвет профиля, avatarKey — стандартный бейдж). */}
           <TouchableOpacity
@@ -247,6 +257,7 @@ export default function HomeScreen() {
               paddingHorizontal: 10,
               borderRadius: 100,
               marginTop: 2,
+              maxWidth: '100%',
             }}
           >
             {avatarKey && avatarImage(avatarKey) ? (
@@ -256,7 +267,7 @@ export default function HomeScreen() {
             ) : (
               <Text style={{ fontSize: 14 }}>{profile.emoji}</Text>
             )}
-            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13, flexShrink: 1 }} numberOfLines={1}>
               {t('profileName_' + profile.id)}
             </Text>
             <Ionicons name="chevron-down" size={14} color={colors.text} />
@@ -267,9 +278,6 @@ export default function HomeScreen() {
               {titleLabel}
             </Text>
           )}
-          <Text style={[styles.subtitle, { color: colors.textSecondary, marginTop: 4 }]}>
-            {t('trainYourBrain')} · {t('homeSwitchHint')}
-          </Text>
         </View>
         <View style={styles.headerButtons}>
           {/* 👤 Profile switcher — отдельная заметная кнопка (дублирует чип) */}
@@ -315,6 +323,12 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
         </View>
+        {/* v1.122.0: подпись — ОТДЕЛЬНОЙ строкой во всю ширину. Раньше делила ряд с 5 иконками
+            (252px жёстких) → на 375px тексту оставалось ~83px, и он вставал в столбик,
+            разрываясь посреди слова. При системном крупном шрифте съедал пол-экрана. */}
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={2}>
+          {t('trainYourBrain')} · {t('homeSwitchHint')}
+        </Text>
       </View>
 
       {/* Profile switcher modal — открывается чипом или 👤 кнопкой */}
@@ -329,8 +343,8 @@ export default function HomeScreen() {
         <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/games/eye-gym' as any)} style={styles.eyeQuick}>
           <LinearGradient colors={['#43cea2', '#185a9d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.eyeQuickGrad}>
             <Image source={FEATURE_ICONS.eyegym} style={{ width: 46, height: 46, borderRadius: 13, marginRight: 12 }} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.eyeQuickTitle}>{t('eyeGym')}</Text>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.eyeQuickTitle} numberOfLines={2}>{t('eyeGym')}</Text>
               <Text style={styles.eyeQuickSub} numberOfLines={1}>{t('eyeGymDesc')}</Text>
             </View>
             <View style={styles.eyeQuickCta}>
@@ -593,17 +607,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
+    // flexWrap + flexBasis:180 у левой колонки: 180 + 252 (иконки) + 8 > 320 (телефон 360dp)
+    // → ряд иконок переносится на свою строку, чипу достаётся вся ширина.
+    // На планшете/десктопе (MAX_CONTAINER_WIDTH 1100) 440 влезает → вёрстка прежняя.
+    flexWrap: 'wrap',
+    rowGap: 8,
   },
   title: { fontSize: 32, fontWeight: '800' },
-  subtitle: { fontSize: 14, marginTop: 4 },
-  headerButtons: { flexDirection: 'row', gap: 8 },
+  subtitle: { fontSize: 14 },
+  // flexShrink: 0 — иконки не сплющиваются; flexWrap — при системном крупном шрифте,
+  // когда чип профиля разбухает, ряд переносится, а не выдавливает текст за экран.
+  headerButtons: { flexDirection: 'row', gap: 8, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' },
   iconButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   eyeQuick: { marginBottom: 14, borderRadius: 16, overflow: 'hidden' },
   eyeQuickGrad: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 16 },
   eyeQuickIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
   eyeQuickTitle: { color: '#fff', fontSize: 16, fontWeight: '800' },
   eyeQuickSub: { color: 'rgba(255,255,255,0.9)', fontSize: 12, fontWeight: '600', marginTop: 2 },
-  eyeQuickCta: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#fff', paddingHorizontal: 13, paddingVertical: 8, borderRadius: 20 },
+  // flexShrink:0 — кнопка не сплющивается; при крупном шрифте она росла и выдавливала заголовок в 4 строки
+  eyeQuickCta: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#fff', paddingHorizontal: 13, paddingVertical: 8, borderRadius: 20, flexShrink: 0 },
   eyeQuickCtaText: { color: '#185a9d', fontSize: 13, fontWeight: '800' },
   scrollView: { flex: 1 },
   gamesContainer: {
@@ -629,7 +651,9 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     gap: 6,
-    height: 150,   // FIXED (was minHeight) — иначе карточки разной высоты при разной длине subtitle
+    // v1.122.0: height → minHeight. Ровную высоту даёт alignItems:'stretch' на heroRow (см. ниже),
+    // а фикс. height обрезал текст при системном крупном шрифте. Прошлый фикс лечил симптом не там.
+    minHeight: 150,
     justifyContent: 'space-between',
   },
   heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
