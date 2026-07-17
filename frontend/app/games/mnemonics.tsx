@@ -461,7 +461,7 @@ export default function MnemonicsGame() {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
           {t('label_mnemonics')}
         </Text>
         <View style={styles.placeholder} />
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: { fontSize: 18, fontWeight: '700' },
+  title: { fontSize: 18, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }, // крупный шрифт: заголовок ужимается и не выдавливает спейсер/кнопку за край
   placeholder: { width: 44 },
   configScroll: { flex: 1 },
   configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 },
@@ -578,6 +578,7 @@ const styles = StyleSheet.create({
   },
   statBox: {
     flex: 1,
+    minWidth: 0, // крупный шрифт: длинное значение «(+45s)» не раздувает бокс за пределы 1/3 ряда и не выталкивает соседние за край
     alignItems: 'center',
     paddingVertical: 10,
     borderRadius: 12,

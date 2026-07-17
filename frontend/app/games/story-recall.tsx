@@ -365,7 +365,8 @@ export default function StoryRecallGame() {
         keyboardType="number-pad"
         returnKeyType="done"
       />
-      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+      {/* крупный шрифт: ряд кнопок переносится, а не выдавливает «ГОТОВ К ПЕРЕСКАЗУ» за край */}
+      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
         <TouchableOpacity style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitDistractor}>
           <Text style={styles.addBtnText}>OK</Text>
         </TouchableOpacity>
@@ -412,7 +413,7 @@ export default function StoryRecallGame() {
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('story')}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('story')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'intro' && (
@@ -441,7 +442,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700' },
+  title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0 },  // крупный шрифт: заголовок ужимается между «назад» и спейсером, не толкает их
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
@@ -453,7 +454,7 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   playArea: { flex: 1, padding: 16, gap: 18, alignItems: 'center', maxWidth: 540, alignSelf: 'center', width: '100%' },
-  statsRow: { flexDirection: 'row', gap: 18 },
+  statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },  // крупный шрифт: статы переносятся, а не уезжают за край
   statText: { fontSize: 14, fontWeight: '700' },
   storyBox: { padding: 18, borderRadius: 14, maxHeight: 360 },
   storyText: { fontSize: 17, lineHeight: 26 },

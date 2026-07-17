@@ -56,7 +56,7 @@ export default function GameIntro({
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
           {t('title_about_game')}
         </Text>
         <View style={styles.placeholder} />
@@ -193,6 +193,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
+    flexShrink: 1,   // крупный шрифт: заголовок ужимается, а не выталкивает спейсер за край
+    minWidth: 0,     // web-flex: без этого Yoga не даёт тексту ужаться
   },
   placeholder: {
     width: 44,
@@ -299,11 +301,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    flexShrink: 0,   // крупный шрифт: иконка не сплющивается рядом с растущим текстом
   },
   benefitText: {
     fontSize: 14,
     flex: 1,
     lineHeight: 20,
+    minWidth: 0,     // web-flex: даём тексту ужиматься/переноситься, а не уезжать за край
   },
   tipsCard: {
     padding: 20,

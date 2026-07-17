@@ -263,7 +263,7 @@ export default function SpatialSpanGame() {
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('spatialSpan')}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('spatialSpan')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'intro' && (
@@ -296,7 +296,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700' },
+  // крупный системный шрифт: длинный заголовок распирал header и выдавливал спейсер за край → ужимается сам
+  title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },

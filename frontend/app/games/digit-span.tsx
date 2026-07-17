@@ -308,14 +308,15 @@ export default function DigitSpanGame() {
           {userInput.length}/{seqLen} — {t('hint_autocheck')}
         </Text>
       ) : lastFeedback === 'right' ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        // крупный шрифт: подпись «верно, уровень выше» выдавливала иконку за край → ряд переносится
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
           <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
-          <Text style={{ color: '#22c55e', fontSize: 18, fontWeight: '800' }}>{t('msg_correct_level_up')}</Text>
+          <Text style={{ color: '#22c55e', fontSize: 18, fontWeight: '800', flexShrink: 1, minWidth: 0, textAlign: 'center' }}>{t('msg_correct_level_up')}</Text>
         </View>
       ) : (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
           <Ionicons name="close-circle" size={28} color="#f43f5e" />
-          <Text style={{ color: '#f43f5e', fontSize: 16, fontWeight: '700' }}>
+          <Text style={{ color: '#f43f5e', fontSize: 16, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }}>
             {t('label_was')}: {(direction === 'forward' ? sequence : [...sequence].reverse()).join('')}
           </Text>
         </View>
@@ -329,7 +330,7 @@ export default function DigitSpanGame() {
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('digitSpan')}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('digitSpan')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'intro' && (
@@ -367,7 +368,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700' },
+  // крупный системный шрифт: заголовок распирал header и выдавливал спейсер за край → ужимается сам
+  title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' },
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
@@ -383,11 +385,13 @@ const styles = StyleSheet.create({
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   playArea: { flex: 1, padding: 24, gap: 18, alignItems: 'center', justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
-  digitArea: { width: 200, height: 200, justifyContent: 'center', alignItems: 'center' },
+  // фикс 200×200 обрезал цифру при крупном системном шрифте (140px × масштаб) → min + рост по контенту
+  digitArea: { minWidth: 200, minHeight: 200, justifyContent: 'center', alignItems: 'center' },
   bigDigit: { fontSize: 140, fontWeight: '900' },
   inputField: {
     fontSize: 32, fontWeight: '700', textAlign: 'center', letterSpacing: 8,
     paddingVertical: 18, paddingHorizontal: 24, borderRadius: 12, borderWidth: 2,
-    minWidth: 200,
+    // до 12 цифр при крупном шрифте распирали поле за край экрана → потолок по ширине контейнера
+    minWidth: 200, maxWidth: '100%',
   },
 });

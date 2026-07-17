@@ -267,7 +267,8 @@ export default function PatternGame() {
       <View style={styles.sequenceArea}>
         {seq.items.map((n, i) => (
           <View key={i} style={[styles.seqCell, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.seqText, { color: colors.text }]}>{n}</Text>
+            {/* число ряда — всегда одной строкой (иначе 111221 рвётся пополам) */}
+            <Text style={[styles.seqText, { color: colors.text }]} numberOfLines={1}>{n}</Text>
           </View>
         ))}
         <View style={[styles.seqCell, { backgroundColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : 'transparent', borderColor: GRADIENT[0], borderWidth: 2 }]}>
@@ -306,7 +307,7 @@ export default function PatternGame() {
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('pattern')}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('pattern')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'intro' && (
@@ -344,7 +345,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700' },
+  // крупный системный шрифт: заголовок не ужимался и выдавливал кнопку «назад» за край
+  title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, marginHorizontal: 8 },
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
@@ -363,7 +365,9 @@ const styles = StyleSheet.create({
   statText: { fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320 },
   sequenceArea: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap' },
-  seqCell: { width: 64, height: 64, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
+  // жёсткие 64×64 резали длинные члены ряда («посмотри и скажи»: 111221) — при крупном
+  // системном шрифте обрезало даже 3-значные. min* + паддинг: клетка растёт под текст, ряд переносится
+  seqCell: { minWidth: 64, minHeight: 64, paddingHorizontal: 8, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
   seqText: { fontSize: 24, fontWeight: '800' },
   optionsArea: { flexDirection: 'row', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 360 },
   optBtn: { paddingVertical: 18, paddingHorizontal: 24, borderRadius: 10, minWidth: 80, alignItems: 'center' },

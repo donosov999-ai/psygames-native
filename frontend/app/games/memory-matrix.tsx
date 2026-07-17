@@ -364,7 +364,7 @@ export default function MemoryMatrixGame() {
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('memoryMatrix')}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('memoryMatrix')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'intro' && (
@@ -399,7 +399,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700' },
+  // крупный системный шрифт: заголовок не ужимался и выдавливал кнопку «назад» за край
+  title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, marginHorizontal: 8 },
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
@@ -414,7 +415,8 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   playArea: { flex: 1, justifyContent: 'center', padding: 16, alignItems: 'center', gap: 14 },
-  statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center' },
+  // 4 счётчика при крупном шрифте не влезали в ряд и уезжали за край → переносим
+  statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center', flexWrap: 'wrap' },
   statText: { fontSize: 15, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', minHeight: 18 },
   gridArea: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start' },

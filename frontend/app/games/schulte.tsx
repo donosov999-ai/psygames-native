@@ -896,7 +896,7 @@ export default function SchulteGame() {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
           {phase === 'config' ? t('configureGame') : t('schulteTable')}
         </Text>
         {phase === 'playing' ? (
@@ -981,6 +981,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
+    // крупный системный шрифт: заголовок не ужимался и выдавливал кнопки хедера за край
+    flexShrink: 1,
+    minWidth: 0,
+    marginHorizontal: 8,
   },
   placeholder: {
     width: 44,

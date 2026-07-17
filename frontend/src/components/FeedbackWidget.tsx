@@ -149,7 +149,9 @@ export default function FeedbackWidget() {
                           ]}
                         >
                           <Text style={{ fontSize: 15 }}>{k.emoji}</Text>
-                          <Text style={{ color: on ? '#fff' : colors.text, fontWeight: '700', fontSize: 12 }}>
+                          {/* flexShrink+numberOfLines: при крупном шрифте подпись
+                              усекается внутри трети-кнопки, а не ломает ряд */}
+                          <Text numberOfLines={1} style={{ color: on ? '#fff' : colors.text, fontWeight: '700', fontSize: 12, flexShrink: 1 }}>
                             {ru ? k.ru : k.en}
                           </Text>
                         </TouchableOpacity>
@@ -231,7 +233,7 @@ const styles = StyleSheet.create({
   hint: { fontSize: 12, marginBottom: 12, lineHeight: 17 },
   kinds: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   kindBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5,
+    flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5,
     paddingVertical: 10, borderRadius: 10, borderWidth: 1.5,
   },
   input: {

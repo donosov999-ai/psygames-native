@@ -217,11 +217,11 @@ export default function OSpanGame() {
         <View style={styles.choiceRow}>
           <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: '#22c55e' }]} onPress={() => handleEquation(true)}>
             <Ionicons name="checkmark" size={28} color="#FFF" />
-            <Text style={styles.choiceText}>{t('correct')}</Text>
+            <Text style={styles.choiceText} numberOfLines={1}>{t('correct')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: '#f43f5e' }]} onPress={() => handleEquation(false)}>
             <Ionicons name="close" size={28} color="#FFF" />
-            <Text style={styles.choiceText}>{t('incorrect')}</Text>
+            <Text style={styles.choiceText} numberOfLines={1}>{t('incorrect')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -268,7 +268,7 @@ export default function OSpanGame() {
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('ospan')}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('ospan')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'intro' && (
@@ -301,7 +301,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700' },
+  // крупный системный шрифт: заголовок распирал header и выдавливал спейсер за край → ужимается сам
+  title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' },
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
@@ -321,9 +322,10 @@ const styles = StyleSheet.create({
   eqBox: { paddingHorizontal: 30, paddingVertical: 22, borderRadius: 16 },
   eqText: { fontSize: 36, fontWeight: '900' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
-  choiceRow: { flexDirection: 'row', gap: 16 },
-  choiceBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 22, borderRadius: 12 },
-  choiceText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  // крупный шрифт: две кнопки «Правильно/Неправильно» с длинными подписями не влезали в ряд → перенос + ужимание текста
+  choiceRow: { flexDirection: 'row', gap: 16, flexWrap: 'wrap', justifyContent: 'center' },
+  choiceBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 22, borderRadius: 12, flexShrink: 1 },
+  choiceText: { color: '#FFF', fontSize: 15, fontWeight: '700', flexShrink: 1, minWidth: 0 },
   letterBox: { width: 160, height: 160, borderRadius: 24, borderWidth: 3, justifyContent: 'center', alignItems: 'center' },
   bigLetter: { fontSize: 88, fontWeight: '900' },
   recallTitle: { fontSize: 22, fontWeight: '800' },

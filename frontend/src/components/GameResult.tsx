@@ -142,7 +142,7 @@ export default function GameResult({
           onPress={onPlayAgain}
         >
           <Ionicons name="refresh" size={20} color="#FFFFFF" />
-          <Text style={styles.buttonText}>{t('playAgain')}</Text>
+          <Text style={styles.buttonText} numberOfLines={1}>{t('playAgain')}</Text>
         </TouchableOpacity>
 
         {shareText && (
@@ -151,7 +151,7 @@ export default function GameResult({
             onPress={handleShare}
           >
             <Ionicons name="share-social-outline" size={20} color={colors.text} />
-            <Text style={[styles.buttonText, { color: colors.text }]}>{shareNote ?? t('shareResult')}</Text>
+            <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{shareNote ?? t('shareResult')}</Text>
           </TouchableOpacity>
         )}
 
@@ -160,7 +160,7 @@ export default function GameResult({
           onPress={onGoHome}
         >
           <Ionicons name="home" size={20} color={colors.text} />
-          <Text style={[styles.buttonText, { color: colors.text }]}>{t('goHome')}</Text>
+          <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('goHome')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -223,5 +223,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+    flexShrink: 1,   // при крупном шрифте текст ужимается/усекается, а не выдавливается за кнопку
   },
 });

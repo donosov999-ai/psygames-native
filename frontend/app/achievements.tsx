@@ -40,7 +40,8 @@ export default function AchievementsScreen() {
         <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>
+        {/* flexShrink+numberOfLines: длинный заголовок со счётчиком при крупном шрифте не толкает кнопку за край */}
+        <Text style={[styles.title, { color: colors.text, flexShrink: 1, minWidth: 0, textAlign: 'center' }]} numberOfLines={1}>
           🏆 {language === 'en' ? 'Achievements' : 'Достижения'} {unlocked.length}/{ACHIEVEMENTS.length}
         </Text>
         <View style={styles.placeholder} />

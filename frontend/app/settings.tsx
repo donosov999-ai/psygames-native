@@ -221,7 +221,7 @@ export default function SettingsScreen() {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('settings')}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('settings')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -271,8 +271,10 @@ export default function SettingsScreen() {
         {/* Themed (commercial) profiles */}
         {allProfiles.some(p => p.group === 'themed') && (
           <>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, marginBottom: 4 }}>
-              <Text style={[styles.groupLabel, { color: colors.textSecondary, marginTop: 0, marginBottom: 0 }]}>
+            {/* flexWrap: при системном крупном шрифте кнопка «Ввести код» не влезала в ряд
+                с длинным лейблом → уезжала за край; перенос вместо выдавливания */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 16, marginBottom: 4 }}>
+              <Text style={[styles.groupLabel, { color: colors.textSecondary, marginTop: 0, marginBottom: 0, flexShrink: 1, minWidth: 0 }]}>
                 {UNLOCK_CODES_ENABLED
                   ? t('label_themed_codes_on')
                   : t('label_themed_codes_off')}
@@ -280,7 +282,7 @@ export default function SettingsScreen() {
               {/* v1.15.0: «Ввести код» скрыт пока UNLOCK_CODES_ENABLED=false.
                   + App Store 3.1.1: на iOS скрыт всегда (CODE_ENTRY_ENABLED). */}
               {UNLOCK_CODES_ENABLED && CODE_ENTRY_ENABLED && (
-                <TouchableOpacity onPress={() => setCodeModalOpen(true)} style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
+                <TouchableOpacity onPress={() => setCodeModalOpen(true)} style={{ flexShrink: 0, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text }}>🔑 {t('btn_enter_code')}</Text>
                 </TouchableOpacity>
               )}
@@ -618,8 +620,9 @@ export default function SettingsScreen() {
               <Ionicons name="notifications-outline" size={24} color={colors.primary} />
               <Text style={[styles.settingLabel, { color: colors.text }]}>{t('label_reminders')}</Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ color: colors.text, fontSize: 15 }}>{t('label_reminder_warmup')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              {/* flexShrink+minWidth: длинная подпись при крупном шрифте не выталкивает Switch */}
+              <Text style={{ color: colors.text, fontSize: 15, flexShrink: 1, minWidth: 0 }}>{t('label_reminder_warmup')}</Text>
               <Switch value={reminders.morning} onValueChange={() => toggleReminder('morning')} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
             </View>
             {reminders.morning && (
@@ -631,8 +634,9 @@ export default function SettingsScreen() {
                 ))}
               </View>
             )}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ color: colors.text, fontSize: 15 }}>{t('label_reminder_sleep')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              {/* flexShrink+minWidth: длинная подпись при крупном шрифте не выталкивает Switch */}
+              <Text style={{ color: colors.text, fontSize: 15, flexShrink: 1, minWidth: 0 }}>{t('label_reminder_sleep')}</Text>
               <Switch value={reminders.evening} onValueChange={() => toggleReminder('evening')} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
             </View>
             {reminders.evening && (
@@ -765,10 +769,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+    // при системном крупном шрифте длинная подпись выдавливала Switch за край —
+    // flexShrink+minWidth даёт блоку с текстом ужаться, а не толкать переключатель
+    flexShrink: 1,
+    minWidth: 0,
   },
   settingLabel: {
     fontSize: 16,
     fontWeight: '500',
+    flexShrink: 1,
   },
   languageButtons: {
     flexDirection: 'row',

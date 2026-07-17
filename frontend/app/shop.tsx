@@ -90,7 +90,8 @@ export default function ShopScreen() {
         ) : (
           <View style={[styles.swatch, { backgroundColor: c.value }]} />
         )}
-        <View style={{ flex: 1 }}>
+        {/* minWidth:0 — при крупном шрифте блок с текстом ужимается, а не выдавливает кнопку Купить/Надеть за край */}
+        <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{ru ? c.nameRu : c.nameEn}</Text>
           <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 16 }}>{ru ? c.descRu : c.descEn}</Text>
           <Text style={{ color: owned ? colors.textSecondary : colors.text, fontSize: 13, fontWeight: '700', marginTop: 3 }}>
@@ -177,6 +178,7 @@ const styles = StyleSheet.create({
   section: { fontSize: 13, lineHeight: 1.5 * 13, marginBottom: 14 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 16, padding: 14, marginBottom: 10 },
   swatch: { width: 38, height: 38, borderRadius: 12 },
-  btn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, minWidth: 92, alignItems: 'center' },
+  // flexShrink:0 — кнопка действия сохраняет размер при крупном шрифте, не сплющивается текстом слева
+  btn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, minWidth: 92, alignItems: 'center', flexShrink: 0 },
   hint: { fontSize: 12, lineHeight: 1.5 * 12, marginTop: 14, textAlign: 'center' },
 });

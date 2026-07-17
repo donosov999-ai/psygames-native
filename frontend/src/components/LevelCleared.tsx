@@ -88,7 +88,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
           <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
             onPress={go} activeOpacity={0.85}>
             <Ionicons name="play-skip-forward" size={20} color={colors.text} />
-            <Text style={[styles.btnText, { color: colors.text }]}>{ru ? 'Пропустить' : 'Skip'}</Text>
+            <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{ru ? 'Пропустить' : 'Skip'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -131,12 +131,12 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
       <View style={styles.btns}>
         <TouchableOpacity style={[styles.btn, { backgroundColor: colors.primary }]} onPress={go} activeOpacity={0.85}>
           <Ionicons name={passed ? 'play' : 'refresh'} size={20} color="#FFFFFF" />
-          <Text style={styles.btnText}>{passed ? (ru ? 'Дальше сразу' : 'Next now') : (ru ? 'Ещё раз' : 'Retry')}</Text>
+          <Text style={styles.btnText} numberOfLines={1}>{passed ? (ru ? 'Дальше сразу' : 'Next now') : (ru ? 'Ещё раз' : 'Retry')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
           onPress={stop} activeOpacity={0.85}>
           <Ionicons name="stop" size={20} color={colors.text} />
-          <Text style={[styles.btnText, { color: colors.text }]}>{ru ? 'Остановиться' : 'Stop'}</Text>
+          <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{ru ? 'Остановиться' : 'Stop'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -156,5 +156,5 @@ const styles = StyleSheet.create({
   restTimer: { fontSize: 52, fontWeight: '900', color: '#FFFFFF' },
   btns: { width: '100%', marginTop: 24 },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 12, marginBottom: 8 },
-  btnText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
+  btnText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', flexShrink: 1 },   // крупный шрифт: усечь, не выдавить за кнопку
 });

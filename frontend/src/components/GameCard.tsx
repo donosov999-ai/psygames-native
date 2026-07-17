@@ -121,12 +121,15 @@ export default function GameCard({
         </View>
         {/* Badges — pinned to bottom (after flex:1 textContainer) */}
         <View style={styles.badgeRow}>
-          <View style={[styles.skillBadge, { backgroundColor: badgeBg, flexShrink: 1 }]}>
+          {/* minWidth:0 — иначе при крупном системном шрифте skill-текст не даёт
+              бейджу ужаться и звёзды-бейдж уезжает за край карточки */}
+          <View style={[styles.skillBadge, { backgroundColor: badgeBg, flexShrink: 1, minWidth: 0 }]}>
             <Ionicons name="fitness-outline" size={12} color={badgeFg} />
             <Text style={[styles.skillText, { color: badgeFg }]} numberOfLines={1}>{t(skillKey)}</Text>
           </View>
           {starsInfo && starsInfo.completed > 0 && (
-            <View style={[styles.skillBadge, { backgroundColor: badgeBg }]}>
+            // flexShrink:0 — звёзды не сжимаем, ужимается соседний skill-бейдж
+            <View style={[styles.skillBadge, { backgroundColor: badgeBg, flexShrink: 0 }]}>
               <Text style={[styles.skillText, { color: '#FFD93B' }]} numberOfLines={1}>⭐ {Math.min(starsInfo.completed, 15)}/15</Text>
             </View>
           )}

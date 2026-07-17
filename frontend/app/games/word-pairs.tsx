@@ -386,7 +386,8 @@ export default function WordPairsGame() {
         {pairs.map((pair, index) => (
           <View key={index} style={[styles.pairRow, { backgroundColor: colors.surface }]}>
             <Text style={[styles.pairWord, { color: colors.text }]}>{pair.word1}</Text>
-            <Ionicons name="arrow-forward" size={20} color={colors.textSecondary} />
+            {/* стрелка между двумя словами не сжимается при крупном шрифте */}
+            <Ionicons name="arrow-forward" size={20} color={colors.textSecondary} style={{ flexShrink: 0 }} />
             <Text style={[styles.pairWord, { color: colors.text, fontWeight: '700' }]}>{pair.word2}</Text>
           </View>
         ))}
@@ -520,7 +521,7 @@ export default function WordPairsGame() {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('wordPairs')}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('wordPairs')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -570,7 +571,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: { fontSize: 18, fontWeight: '700' },
+  title: { fontSize: 18, fontWeight: '700', flexShrink: 1, minWidth: 0 },  // крупный шрифт: заголовок ужимается между «назад» и спейсером
   placeholder: { width: 44 },
   configContainer: { flex: 1, paddingHorizontal: 20 },
   configCard: {
@@ -647,7 +648,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 12,
   },
-  pairWord: { fontSize: 17, flex: 1, fontWeight: '600' },
+  pairWord: { fontSize: 17, flex: 1, fontWeight: '600', minWidth: 0 },  // крупный шрифт: слово ужимается/переносится, а не толкает соседнюю колонку за край
   checkButton: { marginBottom: 20 },
   checkContainer: { flex: 1 },
   columnsContainer: {

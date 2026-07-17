@@ -210,7 +210,7 @@ export default function ReadingSpanGame() {
     const sentence = language !== 'ru' ? cur.en : cur.ru;
     const lastWord = language !== 'ru' ? cur.lastEn : cur.lastRu;
     return (
-      <View style={styles.playArea}>
+      <ScrollView style={styles.playScroll} contentContainerStyle={styles.playArea} showsVerticalScrollIndicator={false}>
         <View style={styles.statsRow}>
           <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{seq.length}</Text>
           <Text style={[styles.statText, { color: GRADIENT[1] }]}>📝 {judgeHits}</Text>
@@ -226,20 +226,20 @@ export default function ReadingSpanGame() {
         <View style={styles.judgeRow}>
           <TouchableOpacity style={[styles.judgeBtn, { backgroundColor: '#22c55e' }]} onPress={() => handleJudge(true)}>
             <Ionicons name="checkmark" size={28} color="#FFF" />
-            <Text style={styles.judgeText}>{t('makesSense')}</Text>
+            <Text style={styles.judgeText} numberOfLines={2}>{t('makesSense')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.judgeBtn, { backgroundColor: '#f43f5e' }]} onPress={() => handleJudge(false)}>
             <Ionicons name="close" size={28} color="#FFF" />
-            <Text style={styles.judgeText}>{t('nonsense')}</Text>
+            <Text style={styles.judgeText} numberOfLines={2}>{t('nonsense')}</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     );
   };
 
   const renderRecall = () => (
     <View style={styles.recallArea}>
-      <Text style={[styles.recallTitle, { color: colors.text }]}>{t('recallNow')}</Text>
+      <Text style={[styles.recallTitle, { color: colors.text }]} numberOfLines={2}>{t('recallNow')}</Text>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('recallHint')}</Text>
       <TextInput
         style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
@@ -251,9 +251,9 @@ export default function ReadingSpanGame() {
         autoCorrect={false}
         autoCapitalize="none"
       />
-      <TouchableOpacity style={styles.startBtn} onPress={handleRecallSubmit}>
+      <TouchableOpacity style={[styles.startBtn, styles.recallBtn]} onPress={handleRecallSubmit}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('validateBtn')}</Text>
+          <Text style={styles.startBtnText} numberOfLines={1}>{t('validateBtn')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>
@@ -265,8 +265,8 @@ export default function ReadingSpanGame() {
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('readingSpan')}</Text>
-        <View style={{ width: 40 }} />
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('readingSpan')}</Text>
+        <View style={{ width: 40, flexShrink: 0 }} />
       </View>
       {phase === 'intro' && (
         <GameIntro nameKey="readingSpan" icon="book" gradient={GRADIENT as [string, string]}
@@ -295,9 +295,11 @@ export default function ReadingSpanGame() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700' },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between', gap: 8 },
+  // flexShrink:0 — круглая кнопка «назад» не сплющивается в овал при крупном шрифте
+  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
+  // flexShrink:1 + minWidth:0 — длинный заголовок ужимается, а не выдавливает спейсер за край
+  title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' },
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
@@ -311,19 +313,29 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 18, gap: 18, alignItems: 'center' },
+  playScroll: { flex: 1 },
+  // flexGrow:1 + justifyContent:'center' — центр по вертикали, пока влезает; дальше скроллится
+  // (при крупном шрифте перенесённый ряд кнопок + длинная фраза не влезали в экран)
+  playArea: { flexGrow: 1, justifyContent: 'center', padding: 18, gap: 18, alignItems: 'stretch' },
   // фаза ввода слов — сверху (не центр), чтобы клавиатура не закрыла поле и кнопку
   recallArea: { flex: 1, paddingTop: 40, paddingHorizontal: 18, gap: 18, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 18 },
+  // flexWrap — три счётчика при крупном шрифте переносятся, а не уезжают за край
+  statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
-  sentenceBox: { padding: 22, borderRadius: 16, gap: 16, maxWidth: 480, alignItems: 'center' },
+  sentenceBox: { padding: 22, borderRadius: 16, gap: 16, maxWidth: 480, alignItems: 'center', alignSelf: 'center' },
   sentenceText: { fontSize: 20, fontWeight: '600', textAlign: 'center', lineHeight: 28 },
   lastWordHint: { fontSize: 14, fontWeight: '600' },
   lastWordBold: { fontWeight: '900', fontSize: 16 },
-  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
-  judgeRow: { flexDirection: 'row', gap: 16 },
-  judgeBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 22, borderRadius: 12 },
-  judgeText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-  recallTitle: { fontSize: 22, fontWeight: '800' },
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, alignSelf: 'center' },
+  // ГЛАВНЫЙ ФИКС репорта: ряд был без ограничения ширины (playArea alignItems:'center'),
+  // при системном крупном шрифте кнопки росли и уезжали за край экрана.
+  // flexWrap — не влезли в строку → переносятся вниз; maxWidth+alignSelf — ряд знает свою ширину.
+  judgeRow: { flexDirection: 'row', gap: 16, flexWrap: 'wrap', justifyContent: 'center', alignSelf: 'center', width: '100%', maxWidth: 480 },
+  // flexShrink:1 + minWidth:0 — даже одна кнопка с огромным шрифтом ужимается внутрь экрана
+  judgeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 22, borderRadius: 12, flexShrink: 1, minWidth: 0 },
+  judgeText: { color: '#FFF', fontSize: 15, fontWeight: '700', flexShrink: 1 },
+  recallTitle: { fontSize: 22, fontWeight: '800', textAlign: 'center' },
+  // кнопка «Проверить» — та же ширина, что и поле ввода, вместо роста по тексту
+  recallBtn: { width: '100%', maxWidth: 460 },
   input: { width: '100%', maxWidth: 460, minHeight: 64, padding: 14, fontSize: 16, borderRadius: 12, borderWidth: 1 },
 });

@@ -429,7 +429,7 @@ export default function VocabSrsGame() {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('vocabSrs')}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('vocabSrs')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: { fontSize: 18, fontWeight: '700' },
+  title: { fontSize: 18, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }, // крупный шрифт: заголовок ужимается и не выдавливает спейсер/кнопку за край
   placeholder: { width: 44 },
   configScroll: { flex: 1 },
   configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 },

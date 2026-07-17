@@ -167,9 +167,10 @@ export default function StatisticsScreen() {
                 <Text style={{ color: '#fff', fontWeight: '900', fontSize: 18 }}>{tokens}</Text>
                 <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11 }}>{language === 'ru' ? 'Очки' : 'Tokens'}</Text>
               </View>
-              <View style={{ alignItems: 'center' }}>
+              {/* flexShrink+minWidth: длинный титул уровня при крупном шрифте не распирает ряд за край карточки */}
+              <View style={{ alignItems: 'center', flexShrink: 1, minWidth: 0 }}>
                 <Text style={{ color: '#fff', fontWeight: '900', fontSize: 22, marginTop: 2 }}>Lv {lvl.level}</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12, fontWeight: '700' }}>{language === 'ru' ? lvl.titleRu : lvl.titleEn}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12, fontWeight: '700', textAlign: 'center' }} numberOfLines={2}>{language === 'ru' ? lvl.titleRu : lvl.titleEn}</Text>
               </View>
               <View style={{ alignItems: 'center' }}>
                 <Text style={{ fontSize: 20 }}>🔥</Text>
@@ -212,7 +213,8 @@ export default function StatisticsScreen() {
                   style={styles.cardHeader}
                 >
                   <Ionicons name={gameConfig.icon as any} size={24} color="#FFFFFF" />
-                  <Text style={styles.cardTitle}>{t(gameConfig.nameKey)}</Text>
+                  {/* flexShrink+minWidth: длинное имя игры при крупном шрифте не вылезает за карточку (overflow:hidden обрезал бы) */}
+                  <Text style={[styles.cardTitle, { flexShrink: 1, minWidth: 0 }]} numberOfLines={2}>{t(gameConfig.nameKey)}</Text>
                 </LinearGradient>
                 <View style={[styles.cardBody, { backgroundColor: colors.surface }]}>
                   <View style={styles.statRow}>
