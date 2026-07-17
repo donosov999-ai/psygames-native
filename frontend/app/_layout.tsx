@@ -15,6 +15,7 @@ import WelcomeModal from '@/src/components/WelcomeModal';
 import UpdateGate from '@/src/components/UpdateGate';
 import GameHelpOverlay from '@/src/components/GameHelpOverlay';
 import OrientationGuard from '@/src/components/OrientationGuard';
+import FeedbackWidget from '@/src/components/FeedbackWidget';
 
 /** Тап по локальному напоминанию → запуск комплекса (натив-only). */
 function NotificationTapHandler() {
@@ -66,6 +67,8 @@ function RootLayoutNav() {
       <NotificationTapHandler />
       {/* Портретный лок: в телефонном landscape сетки игр (судоку 9×9 и др.) схлопываются → просим повернуть */}
       <OrientationGuard />
+      {/* Кнопка фидбека тестировщиков (закрытый тест). Гейт: FEEDBACK_ENABLED */}
+      <FeedbackWidget />
     </>
   );
 }
