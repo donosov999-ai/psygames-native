@@ -14,7 +14,7 @@
 | | |
 |---|---|
 | **Репо (единственный источник)** | `donosov999-ai/psygames-native` (private) |
-| **Рабочие клоны** | `~/dev/psygames` и `~/Downloads/Code claude/psygames` (оба на одном origin, синхронны) |
+| **Рабочая копия** | `~/dev/psygames` (реальная папка). `~/Downloads/Code claude/psygames` — **симлинк** на неё, не отдельный клон → рассинхрона быть не может |
 | **Стек** | Expo Router + React Native 0.85 + react-native-web; Tauri 2 для десктопа |
 | **Веб-деплой** | `psy-games.pro/play` (авто из CI, baseUrl `/psygames-web`) + `/downloads` |
 | **Промо-сайт** | `psy-games.pro` — отдельный проект `~/dev/psygames-astro` (Astro, Contabo) |
@@ -81,7 +81,6 @@
 ### ⚪ Технический долг
 - [ ] **Типографика-рефактор** — 1137 `fontSize`-литералов + 79 `lineHeight` в абсолютных px. Ввести `src/constants/typography.ts` + `<AppText>` + eslint-гейт против `height:<число>` рядом с текстом. Не срочно — текущие баги закрыты слоем разметки.
 - [ ] **Удалить мёртвый WelcomeModal** — компонент больше не рендерится (убран из `_layout`), но `WelcomeModal.tsx` и i18n-ключи `welcome*` в `LanguageContext.tsx` висят грузом. Удалить компонент + ключи.
-- [ ] **Дубль-клон синхронизация** — держать `~/dev/psygames` и `~/Downloads/Code claude/psygames` на одном коммите (сейчас синхронны).
 
 ---
 
