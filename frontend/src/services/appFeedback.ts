@@ -38,6 +38,24 @@ export async function setDevChatVisible(on: boolean): Promise<void> {
   try { await AsyncStorage.setItem(DEVCHAT_KEY, on ? '1' : '0'); } catch {}
 }
 
+/** v1.126.0: анонимный ID установки. `person` = метка профиля (все «Гость»
+ *  сливаются), поэтому по нему нельзя отличить, СКОЛЬКО разных людей прислали
+ *  репорты и не дубль ли это. device_id даёт «сколько установок споткнулось об
+ *  одно место» → приоритезация. UUID генерится раз при первом обращении. */
+const DEVICE_KEY = 'psygames_device_id';
+export async function getDeviceId(): Promise<string> {
+  try {
+    const existing = await AsyncStorage.getItem(DEVICE_KEY);
+    if (existing) return existing;
+    const rnd = (globalThis as any).crypto?.randomUUID?.() as string | undefined;
+    const id: string = rnd || `d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    await AsyncStorage.setItem(DEVICE_KEY, id);
+    return id;
+  } catch {
+    return 'unknown';
+  }
+}
+
 const SHOT_BUCKET = 'feedback-shots';
 
 /**
@@ -149,6 +167,7 @@ export async function sendFeedback(args: SendArgs): Promise<boolean> {
       game_id: (args.gameId || '').slice(0, 64) || null,
       app_version,
       platform: detectPlatform(),
+      device_id: await getDeviceId(),
       shot_path,
       context: { ...(args.context ?? {}), viewport: detectViewport() },
     };
