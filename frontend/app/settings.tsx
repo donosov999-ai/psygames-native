@@ -27,6 +27,7 @@ import {
   getMusicEnabled, setMusicEnabled,
 } from '@/src/services/feedback';
 import { getDevChatVisible, setDevChatVisible } from '@/src/services/appFeedback';
+import { exportProgress, importProgress } from '@/src/services/dataTransfer';
 import type { ProfileDef } from '@/src/constants/profiles';
 import { MONETIZATION_ENABLED, CODE_ENTRY_ENABLED } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
@@ -110,6 +111,27 @@ export default function SettingsScreen() {
   const toggleHaptic = async () => { const v = !hapticOn; setHapticOn(v); await setHapticEnabled(v); };
   const toggleMusic = async () => { const v = !musicOn; setMusicOnState(v); await setMusicEnabled(v); };
   const toggleDevChat = async () => { const v = !devChatOn; setDevChatOn(v); await setDevChatVisible(v); };
+  // v1.127.0: перенос прогресса между установками (веб/старый APK/Play — разные хранилища)
+  const [transferMode, setTransferMode] = React.useState<'none' | 'export' | 'import'>('none');
+  const [exportCode, setExportCode] = React.useState('');
+  const [importText, setImportText] = React.useState('');
+  const openExport = async () => { setExportCode(await exportProgress()); setTransferMode('export'); };
+  const copyExport = async () => {
+    try { await (navigator as any)?.clipboard?.writeText(exportCode); Alert.alert(language === 'ru' ? 'Скопировано' : 'Copied'); }
+    catch { Alert.alert(language === 'ru' ? 'Выдели код и скопируй вручную' : 'Select and copy manually'); }
+  };
+  const doImport = async () => {
+    const r = await importProgress(importText);
+    if (r.ok) {
+      Alert.alert(
+        language === 'ru' ? 'Готово' : 'Done',
+        language === 'ru' ? `Перенесено ${r.count} записей. Перезапусти приложение, чтобы увидеть прогресс.` : `Imported ${r.count} entries. Restart the app to see your progress.`
+      );
+      setTransferMode('none'); setImportText('');
+    } else {
+      Alert.alert(language === 'ru' ? 'Не вышло' : 'Failed', language === 'ru' ? 'Код повреждён или пустой. Скопируй его целиком.' : 'Code is invalid or empty. Copy it fully.');
+    }
+  };
   // v1.26.0: локальные напоминания
   const [reminders, setReminders] = React.useState<ReminderSettings>(DEFAULT_REMINDERS);
   React.useEffect(() => { loadReminderSettings().then(setReminders); }, []);
@@ -625,6 +647,25 @@ export default function SettingsScreen() {
           </View>
           <Switch value={devChatOn} onValueChange={toggleDevChat} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
+        {/* v1.127.0: перенос прогресса между установками (веб / старый APK / Play —
+            изолированные хранилища). Экспорт-код на старом → импорт на новом. */}
+        <View style={[styles.settingItem, { backgroundColor: colors.surface, flexDirection: 'column', alignItems: 'stretch', gap: 10 }]}>
+          <View style={styles.settingInfo}>
+            <Ionicons name="swap-horizontal-outline" size={24} color={colors.primary} />
+            <Text style={[styles.settingLabel, { color: colors.text, flexShrink: 1 }]}>{language === 'ru' ? 'Перенос прогресса' : 'Transfer progress'}</Text>
+          </View>
+          <Text style={{ color: colors.textSecondary, fontSize: 12.5, lineHeight: 17 }}>
+            {language === 'ru' ? 'Достижения и уровни хранятся на устройстве. Экспортируй код здесь, вставь на другом устройстве.' : 'Achievements and levels live on this device. Export a code here, paste it on another device.'}
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+            <TouchableOpacity onPress={openExport} style={{ flexGrow: 1, minWidth: 0, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{language === 'ru' ? 'Экспорт (получить код)' : 'Export (get code)'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setTransferMode('import')} style={{ flexGrow: 1, minWidth: 0, borderWidth: 1.5, borderColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{language === 'ru' ? 'Импорт (вставить код)' : 'Import (paste code)'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Reminders — local notifications (native only; web/Tauri can't schedule) */}
         {Platform.OS !== 'web' && (
@@ -738,6 +779,60 @@ export default function SettingsScreen() {
           : t('hint_profile_tap_unlock')}</Text>
       </View>
       </ScrollView>
+
+      {/* v1.127.0: модалка переноса прогресса (экспорт-код / импорт-код) */}
+      <Modal visible={transferMode !== 'none'} animationType="fade" transparent onRequestClose={() => setTransferMode('none')}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 22 }}>
+          <View style={{ backgroundColor: colors.background, borderRadius: 18, padding: 20, gap: 14 }}>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 17 }}>
+              {transferMode === 'export'
+                ? (language === 'ru' ? 'Код прогресса' : 'Progress code')
+                : (language === 'ru' ? 'Вставь код' : 'Paste code')}
+            </Text>
+            {transferMode === 'export' ? (
+              <>
+                <Text style={{ color: colors.textSecondary, fontSize: 12.5, lineHeight: 17 }}>
+                  {language === 'ru' ? 'Скопируй этот код и вставь на другом устройстве в «Импорт».' : 'Copy this code and paste it into "Import" on another device.'}
+                </Text>
+                <TextInput
+                  value={exportCode}
+                  editable={false}
+                  multiline
+                  selectTextOnFocus
+                  style={{ color: colors.text, backgroundColor: colors.surface, borderRadius: 10, padding: 12, fontSize: 11, maxHeight: 180, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}
+                />
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <TouchableOpacity onPress={copyExport} style={{ flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
+                    <Text style={{ color: '#fff', fontWeight: '700' }}>{language === 'ru' ? 'Копировать' : 'Copy'}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setTransferMode('none')} style={{ borderWidth: 1.5, borderColor: colors.border, borderRadius: 10, paddingVertical: 11, paddingHorizontal: 18, alignItems: 'center' }}>
+                    <Text style={{ color: colors.text, fontWeight: '700' }}>{language === 'ru' ? 'Закрыть' : 'Close'}</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <>
+                <TextInput
+                  value={importText}
+                  onChangeText={setImportText}
+                  multiline
+                  placeholder={language === 'ru' ? 'Вставь код сюда…' : 'Paste code here…'}
+                  placeholderTextColor={colors.textSecondary}
+                  style={{ color: colors.text, backgroundColor: colors.surface, borderRadius: 10, padding: 12, fontSize: 11, minHeight: 100, maxHeight: 180, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}
+                />
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <TouchableOpacity onPress={doImport} style={{ flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
+                    <Text style={{ color: '#fff', fontWeight: '700' }}>{language === 'ru' ? 'Применить' : 'Apply'}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => { setTransferMode('none'); setImportText(''); }} style={{ borderWidth: 1.5, borderColor: colors.border, borderRadius: 10, paddingVertical: 11, paddingHorizontal: 18, alignItems: 'center' }}>
+                    <Text style={{ color: colors.text, fontWeight: '700' }}>{language === 'ru' ? 'Отмена' : 'Cancel'}</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
