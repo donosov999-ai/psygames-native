@@ -130,20 +130,22 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
       <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
           <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' }}>
-            <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 30 }}>
+            {/* C3b v1.122.1: уплотнено (padding/marginBottom/gap/card-padding урезаны),
+                чтобы все 11 профилей влезали в один экран без прокрутки. */}
+            <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 20 }}>
               {/* Header */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <Text style={{ fontSize: 19, fontWeight: '800', color: colors.text }}>👤 {t('a11ySwitchProfile')}</Text>
                 <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
                   <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
-              <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18, marginBottom: 18 }}>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 16, marginBottom: 10 }}>
                 {t('switcherIntro')}
               </Text>
 
               {/* Grid */}
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start' }}>
                 {allProfiles.filter((p) => p.tier !== 'owner').map((p) => {
                   const active = p.id === profile.id;
                   const accessible = isAccessible(p.id);
@@ -152,11 +154,11 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                     <TouchableOpacity
                       key={p.id}
                       style={{
-                        width: '31%', minWidth: 100,
+                        width: '31.5%', minWidth: 92,
                         backgroundColor: active ? p.color : colors.card,
                         borderColor: active ? p.color : colors.border,
                         borderWidth: 2,
-                        padding: 12, borderRadius: 12,
+                        padding: 9, borderRadius: 12,
                         alignItems: 'center',
                         opacity: locked ? 0.65 : 1,
                       }}

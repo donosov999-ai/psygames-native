@@ -22,9 +22,17 @@ export default function Root({ children }: PropsWithChildren) {
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+        {/*
+          interactive-widget=resizes-content: заставляет Chromium-WebView (Android/Tauri)
+          сжимать layout при открытии экранной клавиатуры, а не наезжать ею на контент.
+          Тогда центрированный по вертикали блок ввода встаёт НАД клавиатурой, а не под ней.
+          Чинит разом все 7 игр с полем ввода (math-sprint, digit-span, ospan,
+          phonemic-fluency, reading-span, story-recall, vocab-srs). Репорт: «клавиатура
+          перекрывает кнопку ввода».
+        */}
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover, interactive-widget=resizes-content"
         />
         {/*
           Отключает скролл body на web, чтобы работал background-color у ScrollView.

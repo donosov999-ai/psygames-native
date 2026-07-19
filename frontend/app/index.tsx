@@ -219,7 +219,11 @@ export default function HomeScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           {/* Лого ужимается первым: лого(190) + плашка очков(~143) = 333 > 320 на 360dp → плашка уезжала за край */}
           <View style={{ flex: 1, minWidth: 0, marginRight: 8, alignItems: 'flex-start' }}>
-            <Image source={logoForProfile(profile?.id)} style={{ height: 44, width: '100%', maxWidth: 190 }} resizeMode="contain" />
+            {/* D1 v1.122.1: лёгкая подложка под лого-webp — вордмарк тонул на фоне темы без контраста.
+                Полупрозрачная плашка по теме + мягкая тень; hug под ширину лого (alignSelf), раскладку не двигает. */}
+            <View style={{ alignSelf: 'flex-start', maxWidth: 190, width: '100%', backgroundColor: colors.surface + 'CC', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 3, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } }}>
+              <Image source={logoForProfile(profile?.id)} style={{ height: 44, width: '100%', maxWidth: 174 }} resizeMode="contain" />
+            </View>
           </View>
           {/* Очки-токены центра (⭐) + уровень профиля от накопленных токенов (T1 геймификация) */}
           <TouchableOpacity activeOpacity={0.8} onPress={() => router.push('/shop' as any)} style={{ alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
@@ -280,14 +284,8 @@ export default function HomeScreen() {
           )}
         </View>
         <View style={styles.headerButtons}>
-          {/* 👤 Profile switcher — отдельная заметная кнопка (дублирует чип) */}
-          <TouchableOpacity
-            style={[styles.iconButton, { backgroundColor: profile.color + '22', borderWidth: 1.5, borderColor: profile.color + '88' }]}
-            onPress={() => setSwitcherOpen(true)}
-            accessibilityLabel={t('a11ySwitchProfile')}
-          >
-            <Ionicons name="person-circle" size={26} color={profile.color} />
-          </TouchableOpacity>
+          {/* C2 v1.122.1: убрана дублирующая круглая 👤-кнопка — профиль-чип слева уже
+              открывает switcher и информативнее (показывает имя профиля + chevron). */}
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/achievements' as any)}

@@ -14,9 +14,14 @@ const LOGOS = [
 ];
 
 // Профиль → индекс варианта (можно повторять; дефолт = 6 «мозг», бренд).
+// D3 v1.122.1: Скорочтение было logo3 (радуга-конфета) — ровно как Ребёнок (kids),
+// визуально сливались. Развёл: vasilyeva → logo8 (хром), нейтрально-премиум под чтение
+// и далеко от kids в списке. ⚠ Все 9 ассетов уже заняты (теперь seniors=vasilyeva=8,
+// students=polyglot=4, free=odv999=6 тоже делят) — полная уникальность требует нового
+// ассета лого (решение владельца). seniors и vasilyeva разнесены по списку и аудитории.
 const PROFILE_LOGO: Record<string, number> = {
   odv999: 6, nzt48: 1, chess: 2, kids: 3, students: 4, drivers: 5,
-  women: 0, vasilyeva: 3, execs: 7, seniors: 8, polyglot: 4, free: 6,
+  women: 0, vasilyeva: 8, execs: 7, seniors: 8, polyglot: 4, free: 6,
 };
 
 export function logoForProfile(id?: string) {

@@ -689,17 +689,25 @@ const POLYGLOT: ProfileDef = {
 
 // ─── Export ─────────────────────────────────────────────────────────────
 
+// C3a v1.122.1: порядок в свитчере по массовости аудитории (репорт Ребёнка:
+// «женский сверху, дальше по частоте, влезть в один экран»). WOMEN первым,
+// затем FREE (воронка), далее по убыванию массовости. ODV999 (owner) идёт
+// первым в массиве, но скрыт из свитчера фильтром tier!=='owner'.
 export const PROFILES: ProfileDef[] = [
-  // Owner (Денис, full access, locked by master code)
+  // Owner (Денис, full access, locked by master code) — скрыт из свитчера
   ODV999,
-  // Themed batch 1 (commercial)
-  CHESS, KIDS, VASILYEVA, NZT48, FREE,
-  // Themed batch 2 (commercial)
-  DRIVERS, SENIORS, EXECS, STUDENTS,
-  // Themed batch 3 (v1.4.0)
-  WOMEN,
-  // Themed batch 4 — изучающие языки
-  POLYGLOT,
+  // Themed — порядок по массовости аудитории (женский → массовые → нишевые)
+  WOMEN,      // самая массовая казуальная аудитория
+  FREE,       // бесплатный вход-воронка
+  KIDS,       // родители/дети — массовый сегмент
+  SENIORS,    // 50+ профилактика — массовый
+  CHESS,      // шахматисты
+  DRIVERS,    // Реакция ПРО — pro-профессии
+  EXECS,      // предприниматели
+  STUDENTS,   // студенты/экзамены
+  NZT48,      // биохакеры — ниша
+  VASILYEVA,  // скорочтение — ниша
+  POLYGLOT,   // изучающие языки — ниша
 ];
 
 export const PROFILE_BY_ID: Record<ProfileId, ProfileDef> = PROFILES.reduce((acc, p) => {

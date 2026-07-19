@@ -19,11 +19,13 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
   ActivityIndicator, ScrollView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { useProfile } from '@/src/contexts/ProfileContext';
 import {
   FEEDBACK_ENABLED, captureScreenshot, sendFeedback, type FeedbackKind,
 } from '@/src/services/appFeedback';
@@ -38,6 +40,7 @@ export default function FeedbackWidget() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { language } = useLanguage();
+  const { profile } = useProfile();
   const pathname = usePathname() || '';
   const ru = language === 'ru';
 
@@ -51,6 +54,10 @@ export default function FeedbackWidget() {
   // html2canvas снимает 1-3 сек. Без индикации тестировщик решит, что кнопка
   // не сработала, и натыкает ещё (проверено вживую) → спиннер + защита от дабл-тапа.
   const [capturing, setCapturing] = React.useState(false);
+  // Уровень запущенной игры для контекста репорта. Приближение: читаем сам
+  // ключ прогресса usePersistentLevel (`psygames_<gameId>_level_<profileId>`),
+  // а не живое состояние экрана — обычно совпадает. null = не игра/нет прогресса.
+  const [level, setLevel] = React.useState<number | null>(null);
 
   if (!FEEDBACK_ENABLED) return null;
 
@@ -64,6 +71,17 @@ export default function FeedbackWidget() {
     const s = await captureScreenshot();   // снимаем ДО показа шторки
     setCapturing(false);
     setShot(s);
+    // Читаем сохранённый уровень запущенной игры по тому же ключу, что и
+    // usePersistentLevel — чтобы в репорт попало «на каком уровне застряли».
+    let lvl: number | null = null;
+    if (gameId) {
+      try {
+        const raw = await AsyncStorage.getItem(`psygames_${gameId}_level_${profile.id}`);
+        const n = parseInt(raw ?? '', 10);
+        if (Number.isFinite(n)) lvl = n;
+      } catch {}
+    }
+    setLevel(lvl);
     setKind('confusion');
     setText('');
     setAttachShot(true);
@@ -80,7 +98,13 @@ export default function FeedbackWidget() {
       screen: pathname,
       gameId,
       shot: attachShot ? shot : null,
-      context: { language, theme: colors.background },
+      // profile/level — чтобы в репорте было видно, под каким профилем и на
+      // каком уровне игры это словили (не гадать по скриншоту).
+      context: {
+        language, theme: colors.background,
+        profile: profile.id, profileName: profile.display_name,
+        level,
+      },
     });
     setSending(false);
     if (ok) {
@@ -128,11 +152,17 @@ export default function FeedbackWidget() {
                 </View>
               ) : (
                 <>
+                  {/* Контекст репорта: профиль · игра · уровень — тестировщику
+                      видно, что уедет вместе с текстом (и это же летит в context). */}
+                  <Text numberOfLines={1} style={[styles.ctx, { color: colors.textSecondary }]}>
+                    {[
+                      `👤 ${profile.display_name}`,
+                      gameId ? `🎮 ${gameId}` : null,
+                      gameId && level != null ? `${ru ? 'ур.' : 'lv'} ${level}` : null,
+                    ].filter(Boolean).join('  ·  ')}
+                  </Text>
                   <Text style={[styles.hint, { color: colors.textSecondary }]}>
-                    {gameId
-                      ? (ru ? `Игра: ${gameId} · пиши как есть, даже коротко`
-                            : `Game: ${gameId} · write it as is, even briefly`)
-                      : (ru ? 'Пиши как есть, даже коротко' : 'Write it as is, even briefly')}
+                    {ru ? 'Пиши как есть, даже коротко' : 'Write it as is, even briefly'}
                   </Text>
 
                   <View style={styles.kinds}>
@@ -230,6 +260,7 @@ const styles = StyleSheet.create({
   sheet: { borderTopLeftRadius: 22, borderTopRightRadius: 22, maxHeight: '88%' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   title: { fontSize: 19, fontWeight: '800' },
+  ctx: { fontSize: 12, fontWeight: '700', marginBottom: 4 },   // строка контекста: профиль · игра · уровень
   hint: { fontSize: 12, marginBottom: 12, lineHeight: 17 },
   kinds: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   kindBtn: {

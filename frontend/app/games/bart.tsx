@@ -346,15 +346,48 @@ export default function BARTGame() {
         <Text style={[styles.statText, { color: colors.text }]}>μ{adjAvg}</Text>
       </View>
       <View style={styles.balloonArea}>
+        {/* Объёмный шар без ассетов, RN-примитивами: градиент-тело + блик-эллипс +
+            узелок-треугольник + нитка. Всё внутри Animated.View — масштабируется целиком. */}
         <Animated.View style={{
-          width: balloonSize, height: balloonSize * 1.2, borderRadius: balloonSize/2,
-          backgroundColor: feedback === 'pop' ? '#ef4444' : GRADIENT[0],
+          width: balloonSize, height: balloonSize * 1.2,
           transform: [{ scale: animScale }],
-          justifyContent: 'center', alignItems: 'center',
-          shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
+          alignItems: 'center', justifyContent: 'flex-start',
         }}>
-          {!popped && <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '900' }}>{pumps}</Text>}
-          {feedback === 'pop' && <Text style={{ color: '#FFF', fontSize: 32 }}>💥</Text>}
+          {/* нитка — тонкая линия из-под узелка (позади тела по слою) */}
+          {!popped && <View style={[styles.balloonString, { top: balloonSize * 1.2 + 8 }]} pointerEvents="none" />}
+          {/* тело шара: диагональный градиент даёт объём (светлее сверху-слева → темнее снизу-справа) */}
+          <LinearGradient
+            colors={feedback === 'pop' ? ['#f87171', '#ef4444', '#b91c1c'] : ['#ff9a8b', GRADIENT[0], '#c73e42']}
+            start={{ x: 0.25, y: 0.05 }} end={{ x: 0.85, y: 1 }}
+            style={{
+              width: balloonSize, height: balloonSize * 1.2, borderRadius: balloonSize / 2,
+              justifyContent: 'center', alignItems: 'center',
+              shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
+            }}
+          >
+            {/* блик — размытое белое пятно сверху-слева, читается как отражение света */}
+            {!popped && (
+              <View pointerEvents="none" style={{
+                position: 'absolute',
+                top: balloonSize * 0.16, left: balloonSize * 0.2,
+                width: balloonSize * 0.3, height: balloonSize * 0.42,
+                borderRadius: balloonSize * 0.2,
+                backgroundColor: 'rgba(255,255,255,0.45)',
+                transform: [{ rotate: '-18deg' }],
+              }} />
+            )}
+            {!popped && <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '900' }}>{pumps}</Text>}
+            {feedback === 'pop' && <Text style={{ color: '#FFF', fontSize: 32 }}>💥</Text>}
+          </LinearGradient>
+          {/* узелок — маленький треугольник вершиной вниз под шаром */}
+          {!popped && (
+            <View pointerEvents="none" style={{
+              width: 0, height: 0, marginTop: -1,
+              borderLeftWidth: 7, borderRightWidth: 7, borderTopWidth: 9,
+              borderLeftColor: 'transparent', borderRightColor: 'transparent',
+              borderTopColor: '#c73e42',
+            }} />
+          )}
         </Animated.View>
       </View>
 
@@ -482,6 +515,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
   balloonArea: { width: 280, height: 280, justifyContent: 'center', alignItems: 'center' },
+  balloonString: { position: 'absolute', width: 2, height: 34, backgroundColor: 'rgba(120,120,120,0.55)', borderRadius: 1 },  // нитка из-под узелка
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320 },
   actionsRow: { flexDirection: 'row', gap: 16 },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 22, borderRadius: 12 },

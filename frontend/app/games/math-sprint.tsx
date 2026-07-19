@@ -248,7 +248,12 @@ export default function MathSprintGame() {
   );
 
   const renderPlaying = () => (
-    <View style={styles.playArea}>
+    // ScrollView-обёртка: подстраховка для старых WebView без interactive-widget —
+    // при клавиатуре контент можно доскроллить до кнопки ввода. flexGrow+center сохраняет
+    // вертикальное центрирование на обычном экране; persistTaps='handled' — тап по «Проверить»
+    // не глотается при открытой клавиатуре.
+    <ScrollView style={styles.playScroll} contentContainerStyle={styles.playArea}
+      keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
       <View style={styles.statsRow}>
         <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}{language === 'ru' ? 'с' : 's'}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>★ {score}</Text>
@@ -283,7 +288,7 @@ export default function MathSprintGame() {
         <Text style={styles.submitText}>{t('check')}</Text>
       </TouchableOpacity>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mathHint')}</Text>
-    </View>
+    </ScrollView>
   );
 
   return (
@@ -341,7 +346,9 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 24, gap: 16, alignItems: 'center', justifyContent: 'center' },
+  playScroll: { flex: 1 },
+  // flexGrow (не flex) — как contentContainerStyle держит центрирование и позволяет скролл при клавиатуре
+  playArea: { flexGrow: 1, padding: 24, gap: 16, alignItems: 'center', justifyContent: 'center' },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },
   problemArea: { paddingVertical: 32, paddingHorizontal: 28, borderRadius: 14, minWidth: 240, alignItems: 'center' },

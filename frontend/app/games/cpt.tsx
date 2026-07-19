@@ -17,7 +17,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView
+  ScrollView, useWindowDimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -96,6 +96,11 @@ export default function CPTGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
+  // Стимул-окно во весь экран: привязка к размеру вьюпорта — на телефоне буква
+  // занимает бо́льшую площадь (раньше был жёсткий квадрат 240px, мелко на 6"+).
+  const { width: winW, height: winH } = useWindowDimensions();
+  const stimSide = Math.min(winW - 32, winH * 0.5, 460);   // квадрат по меньшей стороне, с потолком для планшета
+  const stimFont = stimSide * 0.6;                          // символ ~60% окна (было 120px в боксе 240px)
 
   const lvl = usePersistentLevel('cpt');
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -414,6 +419,7 @@ export default function CPTGame() {
           activeOpacity={0.7}
           onPress={handleTap}
           style={[styles.stimBox, {
+            width: stimSide, height: stimSide,   // окно масштабируется под экран (useWindowDimensions)
             backgroundColor: fbColor ? fbColor + '33' : colors.surface,
             borderColor: fbColor || (letterVisible && currentLetter === 'X' ? '#fbbf24' : colors.border),
             borderWidth: letterVisible ? 3 : 1,
@@ -421,6 +427,7 @@ export default function CPTGame() {
         >
           {letterVisible && (
             <Text style={[styles.stimText, {
+              fontSize: stimFont,   // символ ~60% окна вместо жёстких 120px
               color: currentLetter === 'X' ? '#fbbf24' : colors.text,
             }]}>
               {currentLetter}
@@ -500,8 +507,8 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
-  stimBox: { width: 240, height: 240, borderRadius: 28, justifyContent: 'center', alignItems: 'center' },
-  stimText: { fontSize: 120, fontWeight: '900' },
+  stimBox: { borderRadius: 28, justifyContent: 'center', alignItems: 'center' },  // размеры задаются инлайном от useWindowDimensions
+  stimText: { fontWeight: '900' },                                                // fontSize задаётся инлайном (масштаб окна)
   fixCross: { fontSize: 48, opacity: 0.4 },
   stopBtn: { paddingVertical: 10, paddingHorizontal: 30, borderRadius: 8, borderWidth: 1 },
   stopBtnText: { fontSize: 14, fontWeight: '700' },

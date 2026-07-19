@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { sndWin } from '@/src/services/feedback';
@@ -19,6 +20,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
  */
 
 const EYE_REST_SEC = 20;
+const LEVELS_HINT_KEY = 'psygames_levels_hint_seen';   // глобальный флаг: подсказку «уровни по порядку» показать один раз на всё приложение
 
 interface Props {
   level: number;            // текущий уровень (passed: N ✓ → N+1; !passed: N — ещё раз)
@@ -44,6 +46,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
   const isRest = restRef.current;
   const [restLeft, setRestLeft] = useState(EYE_REST_SEC);
   const [cleanRun, setCleanRun] = useState(0);   // серия чистых раундов (🔥), тикается в saveSession
+  const [showLevelsHint, setShowLevelsHint] = useState(false);   // одноразовая подпись «уровни по порядку» при первом чистом прохождении
 
   const go = () => { if (firedRef.current) return; firedRef.current = true; onContinue(); };
   const stop = () => { firedRef.current = true; resetLevelStreak(); onStop(); };
@@ -51,6 +54,13 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
   useEffect(() => {
     if (passed) sndWin();
     if (passed && gameId && profile?.id) saveLevelStars(gameId, profile.id, level, stars);   // лучшие звёзды за уровень
+    // Одноразовый хинт «уровни идут по порядку»: при ПЕРВОМ чистом прохождении любого уровня
+    // показываем подпись и сразу ставим глобальный флаг (больше не покажем на всё приложение).
+    if (passed) {
+      AsyncStorage.getItem(LEVELS_HINT_KEY).then((seen) => {
+        if (!seen) { setShowLevelsHint(true); AsyncStorage.setItem(LEVELS_HINT_KEY, '1'); }
+      }).catch(() => {});
+    }
     // Серия чистых: читаем с задержкой — тик идёт в saveSession, а игры ставят
     // setPhase('cleared') ДО await saveSession (module-кэш cleanRun сгладит гонку).
     let runTimer: ReturnType<typeof setTimeout> | null = null;
@@ -127,6 +137,11 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             ? (ru ? `Уровень ${level + 1} запускается…` : `Starting level ${level + 1}…`)
             : (ru ? `Тот же уровень — ещё раз…` : `Same level — retry…`)}
         </Text>
+        {passed && showLevelsHint && (
+          <Text style={styles.levelsHint}>
+            {ru ? 'Дальше — уровни по порядку, сложность растёт' : 'Next up — levels in order, difficulty grows'}
+          </Text>
+        )}
       </LinearGradient>
       <View style={styles.btns}>
         <TouchableOpacity style={[styles.btn, { backgroundColor: colors.primary }]} onPress={go} activeOpacity={0.85}>
@@ -152,6 +167,7 @@ const styles = StyleSheet.create({
   runBadge: { backgroundColor: 'rgba(0,0,0,0.25)', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, marginBottom: 12 },
   runText: { color: '#FFD93B', fontSize: 14, fontWeight: '800' },
   next: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
+  levelsHint: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.75)', textAlign: 'center', marginTop: 10, lineHeight: 18 },   // одноразовая подпись про порядок уровней
   restHint: { fontSize: 15, fontWeight: '500', color: 'rgba(255,255,255,0.92)', textAlign: 'center', marginBottom: 12, lineHeight: 21 },
   restTimer: { fontSize: 52, fontWeight: '900', color: '#FFFFFF' },
   btns: { width: '100%', marginTop: 24 },

@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 24, gap: 18, alignItems: 'center' },
+  playArea: { flex: 1, justifyContent: 'flex-start', paddingHorizontal: 24, paddingTop: 12, gap: 12, alignItems: 'center' },  // поджато вверх: не центрировать по высоте + меньше верхний отступ/зазор
   statsRow: { flexDirection: 'row', gap: 24, flexWrap: 'wrap', justifyContent: 'center' },  // крупный шрифт: 4 стата переносятся, а не уезжают за край
   statText: { fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center' },

@@ -46,7 +46,8 @@ const SLIDES: Slide[] = [
     gradient: ['#fbbf24', '#f59e0b'],
     title: { ru: 'Утренняя Зарядка', en: 'Morning Warm-up' },
     body: {
-      ru: '5–15 минут утром. Программа подбирается под день недели. ВТ — внимание, СР — отдых, СБ — логика. Streak считается по дням.',
+      // латиница «Streak» в русском тексте — опечатка; термин по всему приложению «стрик»
+      ru: '5–15 минут утром. Программа подбирается под день недели. ВТ — внимание, СР — отдых, СБ — логика. Стрик считается по дням.',
       en: '5–15 minutes in the morning. The program adapts to the weekday. Tue — attention, Wed — rest, Sat — logic. Streak is counted by day.',
     },
   },
