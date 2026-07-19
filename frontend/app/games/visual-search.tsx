@@ -43,13 +43,16 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
-type Shape = 'T' | 'L' | 'G' | 'plus';
+// v1.112.1: 'Г' (corner top-left) была РОТО-ДВОЙНИКОМ 'L' (corner bottom-left) — L@90°≡Г,
+// под случайным поворотом [0/90/180/270] неотличимы → ложные тапы (репорт тестера). Заменена на 'I'
+// (прямая черта): её повороты |/— не совпадают ни с углом (L), ни с 3-лучевым (T), ни с крестом (plus).
+type Shape = 'T' | 'L' | 'I' | 'plus';
 
 interface Item { x: number; y: number; rot: number; isTarget: boolean; found: boolean; shape: Shape; color: string; }
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-const SHAPES_ALL: Shape[] = ['T', 'L', 'G', 'plus'];
+const SHAPES_ALL: Shape[] = ['T', 'L', 'I', 'plus'];   // рото-различимый набор: T(3-луч)/L(угол)/I(черта)/plus(крест)
 // Конъюнктивный поиск (фаза-2, высокие уровни): цель = цвет + форма. NEUTRAL — для feature-уровней (поиск по форме).
 const NEUTRAL_STROKE = '#ffffff';
 const COLORS_ALL: string[] = ['#60a5fa', '#fbbf24', '#f472b6'];   // голубой / янтарь / розовый — различимы на тёмном поле
@@ -306,14 +309,14 @@ export default function VisualSearchGame() {
   const renderLetter = (item: Item) => {
     const stroke = item.color || NEUTRAL_STROKE, sw = 3;
     const s = item.shape;
-    const centerStem = s === 'T' || s === 'plus';   // T и + — стебель по центру; L и Г — слева
+    const centerStem = s === 'T' || s === 'plus' || s === 'I';   // T, + и I — стебель по центру; L — слева
     return (
       <View style={{ width: 26, height: 26, position: 'relative' }}>
         <View style={{ position: 'absolute', top: 0, bottom: 0, left: centerStem ? 11 : 5, width: sw, backgroundColor: stroke }} />
         {s === 'T' && <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: sw, backgroundColor: stroke }} />}
         {s === 'plus' && <View style={{ position: 'absolute', top: 11, left: 0, right: 0, height: sw, backgroundColor: stroke }} />}
         {s === 'L' && <View style={{ position: 'absolute', bottom: 0, left: 5, right: 0, height: sw, backgroundColor: stroke }} />}
-        {s === 'G' && <View style={{ position: 'absolute', top: 0, left: 5, right: 0, height: sw, backgroundColor: stroke }} />}
+        {/* 'I' — только центральный стебель без перекладины (см. коммент у type Shape): прямая черта, рото-однозначна */}
       </View>
     );
   };

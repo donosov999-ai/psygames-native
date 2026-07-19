@@ -41,8 +41,51 @@ interface Combo { type: PieceType; white: boolean }
 interface Move { pieceId: number; from: number; to: number }
 interface Question { sq: number; answer: Combo; options: Combo[] }
 
-// Один набор ЗАЛИТЫХ глифов для обоих цветов — сторону различаем цветом текста
-const GLYPH: Record<PieceType, string> = { K: '♚', Q: '♛', R: '♜', B: '♝', N: '♞', P: '♟' };
+// Два набора unicode-глифов: белые — КОНТУРНЫЕ (outline) символы ♔♕♖♗♘♙,
+// чёрные — ЗАЛИТЫЕ ♚♛♜♝♞♟. Так стороны различаются ФОРМОЙ (контур vs заливка),
+// а не только цветом текста → фигуры читаются намного легче (репорт «плохо видно фигурки»).
+const GLYPH_WHITE: Record<PieceType, string> = { K: '♔', Q: '♕', R: '♖', B: '♗', N: '♘', P: '♙' };
+const GLYPH_BLACK: Record<PieceType, string> = { K: '♚', Q: '♛', R: '♜', B: '♝', N: '♞', P: '♟' };
+const glyphOf = (c: Combo): string => (c.white ? GLYPH_WHITE : GLYPH_BLACK)[c.type];
+
+// Сдвиги для 8-направленной обводки (по кругу вокруг символа).
+const OUTLINE_OFFSETS: ReadonlyArray<readonly [number, number]> = [
+  [-1, -1], [0, -1], [1, -1],
+  [-1, 0],           [1, 0],
+  [-1, 1],  [0, 1],  [1, 1],
+];
+
+// Глиф фигуры с многонаправленной ОБВОДКОЙ. В RN нет text-stroke, поэтому тем же
+// символом рисуем 8 копий цветом обводки со сдвигом по кругу, а сверху — символ
+// заливки. Белые: светлая заливка + тёмная обводка; чёрные: тёмная заливка +
+// светлая обводка → фигура контрастна и на светлых, и на тёмных клетках доски.
+// Работает одинаково на web (Tauri-WebView) и native, без нетипизированного CSS.
+function PieceGlyph({ combo, boxW, boxH, fontSize }: {
+  combo: Combo; boxW: number; boxH: number; fontSize: number;
+}) {
+  const glyph = glyphOf(combo);
+  const fill = combo.white ? '#f8fafc' : '#111827';
+  const stroke = combo.white ? '#0f172a' : '#f8fafc';
+  const o = Math.max(1.4, Math.round(fontSize * 0.055));   // толщина обводки ∝ размеру
+  return (
+    <View pointerEvents="none" style={{ width: boxW, height: boxH }}>
+      {OUTLINE_OFFSETS.map(([dx, dy], i) => (
+        <Text
+          key={i}
+          style={[styles.glyphLayer, {
+            height: boxH, lineHeight: boxH, fontSize, color: stroke,
+            transform: [{ translateX: dx * o }, { translateY: dy * o }],
+          }]}
+        >
+          {glyph}
+        </Text>
+      ))}
+      <Text style={[styles.glyphLayer, { height: boxH, lineHeight: boxH, fontSize, color: fill }]}>
+        {glyph}
+      </Text>
+    </View>
+  );
+}
 const RU_NAME: Record<PieceType, { n: string; fem: boolean }> = {
   K: { n: 'король', fem: false }, Q: { n: 'ферзь', fem: false }, R: { n: 'ладья', fem: true },
   B: { n: 'слон', fem: false }, N: { n: 'конь', fem: false }, P: { n: 'пешка', fem: true },
@@ -444,18 +487,8 @@ export default function ChessBlindGame() {
                   {c === 0 && <Text style={[styles.coord, { top: 1, left: 2, color: coordColor }]}>{8 - r}</Text>}
                   {r === 7 && <Text style={[styles.coord, { bottom: 1, right: 2, color: coordColor }]}>{'abcdefgh'[c]}</Text>}
                   {p && (showPieces ? (
-                    <Text
-                      style={{
-                        fontSize: Math.round(cellSize * 0.72),
-                        lineHeight: Math.round(cellSize * 0.95),
-                        color: p.white ? '#f8fafc' : '#1a1a1a',
-                        textShadowColor: p.white ? '#000' : '#fff',
-                        textShadowOffset: { width: 0, height: 0 },
-                        textShadowRadius: 2,
-                      }}
-                    >
-                      {GLYPH[p.type]}
-                    </Text>
+                    // крупнее (0.82 клетки) + контурные белые / залитые чёрные с обводкой
+                    <PieceGlyph combo={p} boxW={cellSize} boxH={cellSize} fontSize={Math.round(cellSize * 0.82)} />
                   ) : (
                     // фишка-маска: цвет СТОРОНЫ сохраняется, тип скрыт
                     <View
@@ -503,7 +536,7 @@ export default function ChessBlindGame() {
           : prm.quizType === 'pick'
           ? (ru ? 'Что стоит на подсвеченной клетке?' : 'What is on the highlighted square?')
           : currentQ
-          ? `${ru ? 'Где' : 'Where is the'} ${pieceName(currentQ.answer, ru)} ${GLYPH[currentQ.answer.type]}? ${ru ? 'Тапни клетку' : 'Tap the square'}`
+          ? `${ru ? 'Где' : 'Where is the'} ${pieceName(currentQ.answer, ru)} ${glyphOf(currentQ.answer)}? ${ru ? 'Тапни клетку' : 'Tap the square'}`
           : ''}
       </Text>
 
@@ -529,18 +562,7 @@ export default function ChessBlindGame() {
                   { backgroundColor: '#334155', borderColor: isReveal ? '#22c55e' : '#1e293b', borderWidth: isReveal ? 3 : 1 },
                 ]}
               >
-                <Text
-                  style={{
-                    fontSize: 32,
-                    lineHeight: 40,
-                    color: opt.white ? '#f8fafc' : '#1a1a1a',
-                    textShadowColor: opt.white ? '#000' : '#fff',
-                    textShadowOffset: { width: 0, height: 0 },
-                    textShadowRadius: 2,
-                  }}
-                >
-                  {GLYPH[opt.type]}
-                </Text>
+                <PieceGlyph combo={opt} boxW={60} boxH={48} fontSize={40} />
               </TouchableOpacity>
             );
           })}
@@ -648,6 +670,7 @@ const styles = StyleSheet.create({
   barTrack: { height: 6, borderRadius: 3, overflow: 'hidden' },
   barFill: { height: 6, borderRadius: 3, backgroundColor: '#38bdf8' },
   coord: { position: 'absolute', fontSize: 8, fontWeight: '700' },
+  glyphLayer: { position: 'absolute', left: 0, right: 0, top: 0, textAlign: 'center' },
   hlOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderWidth: 3, borderRadius: 4 },
   optionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
   optBtn: { width: 64, height: 56, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },

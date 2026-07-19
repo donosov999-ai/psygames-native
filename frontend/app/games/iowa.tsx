@@ -157,6 +157,9 @@ export default function IowaGame() {
         <Text style={[styles.statText, { color: '#ef4444' }]}>-AB: {disCount}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('iowaHint')}</Text>
+      {/* ЗАЧЕМ: колоды (+фидбэк) центрируются по вертикали в поле flex:1 — статы/подсказка
+          сверху, а колоды по ЦЕНТРУ экрана, а не всплывают в верх-середину (эталон math-sprint) */}
+      <View style={styles.gameField}>
       <View style={styles.deckRow}>
         {(['A','B','C','D'] as Deck[]).map((d) => (
           <TouchableOpacity key={d}
@@ -177,6 +180,7 @@ export default function IowaGame() {
           </Text>
         </View>
       )}
+      </View>
     </View>
   );
 
@@ -225,10 +229,14 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 18, alignItems: 'center' },
+  // ЗАЧЕМ: playArea не центрирует всё разом — статы/подсказка сверху, колоды по центру (gameField),
+  // чтобы игровое поле было в центре экрана, а не подпрыгивало вверх (эталон math-sprint).
+  playArea: { flex: 1, padding: 16, gap: 14 },
+  gameField: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 18 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
-  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
+  // alignSelf:center — playArea больше не центрирует по горизонтали, а maxWidth иначе прижал бы подсказку влево
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, alignSelf: 'center' },
   deckRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center' },
   deck: { width: 70, height: 100, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 3, gap: 4 },
   deckLetter: { color: '#FFF', fontSize: 32, fontWeight: '900' },

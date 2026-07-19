@@ -273,7 +273,11 @@ const styles = StyleSheet.create({
   playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 10 },
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 18 },
   statText: { fontSize: 14, fontWeight: '700' },
-  pegsArea: { flex: 1, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end', paddingBottom: 12 },
+  // ЗАЧЕМ: без flex:1 блок стержней сжимается по своему контенту, и playArea(justifyContent:center)
+  // ставит башню в вертикальный ЦЕНТР экрана, а не прибивает к низу с пустым провалом сверху.
+  // alignItems:flex-end оставлен намеренно — держит основания всех стержней на одной линии.
+  // (Эталон math-sprint: игровое поле по центру.)
+  pegsArea: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end', paddingBottom: 12 },
   pegContainer: { borderWidth: 3, borderRadius: 8, paddingBottom: 4 },
   pegStack: { alignItems: 'center', justifyContent: 'flex-end', position: 'relative', minHeight: 220 },
   pole: { position: 'absolute', width: 6, height: 200, bottom: 4, borderRadius: 3, opacity: 0.3 },

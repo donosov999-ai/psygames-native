@@ -345,6 +345,10 @@ export default function BARTGame() {
         <Text style={[styles.statText, { color: '#ef4444' }]}>💥{popCount}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>μ{adjAvg}</Text>
       </View>
+      {/* ЗАЧЕМ: игровое поле (шар + риск-метр + подсказка) тянется flex:1 и центрируется по
+          вертикали — шар в центре экрана, а НЕ подпирает кнопки в середину. Действия ушли
+          в отдельный нижний тулбар (эталон math-sprint: поле по центру, кнопки у низа). */}
+      <View style={styles.gameField}>
       <View style={styles.balloonArea}>
         {/* Объёмный шар без ассетов, RN-примитивами: градиент-тело + блик-эллипс +
             узелок-треугольник + нитка. Всё внутри Animated.View — масштабируется целиком. */}
@@ -437,6 +441,8 @@ export default function BARTGame() {
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>
         {feedback === 'pop' ? t('bartPopped') : feedback === 'cash' ? t('bartCashed') : t('bartHint')}
       </Text>
+      </View>
+      {/* ЗАЧЕМ: Pump/Cash — отдельный нижний тулбар, прижат к низу игровой зоны (как кнопка снизу в math-sprint) */}
       <View style={styles.actionsRow}>
         <TouchableOpacity disabled={popped || feedback !== null}
           style={[styles.actionBtn, { backgroundColor: GRADIENT[0], opacity: popped || feedback ? 0.5 : 1 }]}
@@ -511,13 +517,16 @@ const styles = StyleSheet.create({
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   classicBtn: { borderRadius: 10, borderWidth: 1.5, paddingVertical: 12, alignItems: 'center', marginTop: 6 },
   classicBtnText: { fontSize: 14, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 18, alignItems: 'center' },
+  // ЗАЧЕМ: playArea больше не центрирует всё разом (иначе кнопки зависали в середине).
+  // Статы сверху, поле по центру (gameField flex:1), тулбар снизу — как в math-sprint.
+  playArea: { flex: 1, padding: 16, gap: 14 },
+  gameField: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 18 },
   statsRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
   balloonArea: { width: 280, height: 280, justifyContent: 'center', alignItems: 'center' },
   balloonString: { position: 'absolute', width: 2, height: 34, backgroundColor: 'rgba(120,120,120,0.55)', borderRadius: 1 },  // нитка из-под узелка
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320 },
-  actionsRow: { flexDirection: 'row', gap: 16 },
+  actionsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center' },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 22, borderRadius: 12 },
   actionText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
   riskMeter: { width: 280, gap: 6, marginTop: 6 },

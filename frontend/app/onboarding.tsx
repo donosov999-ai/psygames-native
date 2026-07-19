@@ -135,7 +135,9 @@ export default function OnboardingScreen() {
     router.replace('/' as any);
   };
 
-  // Финальная CTA: профиль с зарядкой → первая зарядка; FREE (зарядка отключена) → вызов дня.
+  // Финальная CTA: профиль с зарядкой → первая зарядка; FREE → ГЛАВНАЯ (каталог игр).
+  // v1.124.0: FREE больше НЕ кидается сразу в Вызов дня — репорт «неудачно для знакомства,
+  // лучше сразу дать осмотреться». Вызов дня остаётся доступен карточкой на главной.
   const startAction = async () => {
     if (busy) return;
     setBusy(true);
@@ -144,9 +146,7 @@ export default function OnboardingScreen() {
       router.replace('/' as any);
       warmup.startWarmup(5);
     } else {
-      if (profile?.id) await setPendingChallenge(profile.id, todayChallenge.game.id);
       router.replace('/' as any);
-      router.push({ pathname: todayChallenge.game.route, params: challengeToParams(todayChallenge) } as any);
     }
   };
 

@@ -178,8 +178,8 @@ const KIDS: ProfileDef = {
   emoji: '🧒',
   color: '#10b981',
   description: 'Память · счёт · реакция · без сложных абстракций',
-  long_description: 'Девять игр, которые ребёнок 7-12 лет понимает без объяснений: парные картинки, поиск отличий, Ханойская башня, устный счёт, Шульте, реакция на мишени, анаграммы. Сессии короткие (3-5 мин), с позитивным подкреплением и рекордами. Подходит для родителей, развивающих центров, начальной школы.',
-  long_description_en: 'Nine games a 7-12 year old understands with no explanation needed: picture pairs, spot the difference, Tower of Hanoi, mental math, Schulte tables, target reaction, anagrams. Sessions are short (3-5 min), with positive reinforcement and personal records. Great for parents, learning centers, and elementary school.',
+  long_description: 'Десять игр, которые ребёнок 7-12 лет понимает без объяснений: парные картинки, поиск отличий, Ханойская башня, устный счёт, Шульте, реакция на мишени, анаграммы, судоку 6×6. Сессии короткие (3-5 мин), с позитивным подкреплением и рекордами. Подходит для родителей, развивающих центров, начальной школы.',
+  long_description_en: 'Ten games a 7-12 year old understands with no explanation needed: picture pairs, spot the difference, Tower of Hanoi, mental math, Schulte tables, target reaction, anagrams, 6×6 sudoku. Sessions are short (3-5 min), with positive reinforcement and personal records. Great for parents, learning centers, and elementary school.',
   audience: 'Дети 7-12 лет, родители',
   audience_en: 'Kids 7-12, parents',
   session_minutes: '3-5 мин',
@@ -200,6 +200,7 @@ const KIDS: ProfileDef = {
     'anagrams',          // ещё логика (буквенные пазлы)
     'math_sprint',       // ещё action — счёт-гонка
     'counter',           // ещё action — устный счёт
+    'sudoku',            // v1.124.0: логика-головоломка (6×6 выбирается в игре) — по запросу Дениса
   ],
   // kids: только утро. Вечер (экран перед сном ребёнку) намеренно ВЫКЛ — добавить по решению Дениса.
   morning_playlist: [
@@ -761,7 +762,9 @@ export function formatPrice(rub: number): string {
 }
 
 // Доступны во ВСЕХ профилях независимо от whitelist (Денис: парные картинки везде, как goods_sort).
-const ALWAYS_ALLOWED = new Set<string>(['picture_pairs']);
+// v1.124.0: breathing видимо во ВСЕХ профилях (репорт «Дыхание не вижу в приложении»).
+// Релакс/дыхание уместно в любом профиле, поэтому глобально, а не по whitelist каждого.
+const ALWAYS_ALLOWED = new Set<string>(['picture_pairs', 'breathing']);
 
 export function isGameAllowed(profile: ProfileDef, gameId: string): boolean {
   if (profile.allowed_games === 'all') return true;

@@ -588,9 +588,16 @@ const styles = StyleSheet.create({
   phaseTitle: { fontSize: 18, fontWeight: '700', marginBottom: 4, textAlign: 'center' },
   phaseSubtitle: { fontSize: 13, marginBottom: 12, textAlign: 'center' },
   itemsContainer: { flex: 1 },
+  // ЗАЧЕМ: itemWidth уже резервирует зазор (columns-1)*12, но сам зазор не применялся —
+  // ячейки-слова слипались и читались как сплошной столбец. space-between раскладывает
+  // резерв в колонки (без риска переноса: суммарная ширина ячеек < контейнера), rowGap —
+  // между рядами. Сетка слов остаётся сеткой в ScrollView (прокрутка списка не тронута),
+  // а кнопка «Проверить» уже прижата к низу — раскладка под эталон math-sprint.
   itemsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 12,
     marginBottom: 10,
     paddingBottom: 20,
   },
