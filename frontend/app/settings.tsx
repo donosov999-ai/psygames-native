@@ -26,6 +26,7 @@ import {
   getSoundEnabled, getHapticEnabled, setSoundEnabled, setHapticEnabled,
   getMusicEnabled, setMusicEnabled,
 } from '@/src/services/feedback';
+import { getDevChatVisible, setDevChatVisible } from '@/src/services/appFeedback';
 import type { ProfileDef } from '@/src/constants/profiles';
 import { MONETIZATION_ENABLED, CODE_ENTRY_ENABLED } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
@@ -96,16 +97,19 @@ export default function SettingsScreen() {
   const [soundOn, setSoundOn] = React.useState(true);
   const [hapticOn, setHapticOn] = React.useState(true);
   const [musicOn, setMusicOnState] = React.useState(false);
+  const [devChatOn, setDevChatOn] = React.useState(true);   // v1.125: кнопка «Чат с разработчиками»
   React.useEffect(() => {
     (async () => {
       setSoundOn(await getSoundEnabled());
       setHapticOn(await getHapticEnabled());
       setMusicOnState(await getMusicEnabled());
+      setDevChatOn(await getDevChatVisible());
     })();
   }, []);
   const toggleSound = async () => { const v = !soundOn; setSoundOn(v); await setSoundEnabled(v); };
   const toggleHaptic = async () => { const v = !hapticOn; setHapticOn(v); await setHapticEnabled(v); };
   const toggleMusic = async () => { const v = !musicOn; setMusicOnState(v); await setMusicEnabled(v); };
+  const toggleDevChat = async () => { const v = !devChatOn; setDevChatOn(v); await setDevChatVisible(v); };
   // v1.26.0: локальные напоминания
   const [reminders, setReminders] = React.useState<ReminderSettings>(DEFAULT_REMINDERS);
   React.useEffect(() => { loadReminderSettings().then(setReminders); }, []);
@@ -611,6 +615,15 @@ export default function SettingsScreen() {
             <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Без цвета (дальтонизм)' : 'Colorblind mode'}</Text>
           </View>
           <Switch value={colorblind} onValueChange={setColorblind} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+        </View>
+        {/* v1.125.0: галочка «Чат с разработчиками» — тестировщик может скрыть плавающую
+            кнопку фидбека, если мешает в игре (репорт «кнопка мешается»). */}
+        <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
+          <View style={styles.settingInfo}>
+            <Ionicons name="chatbubble-ellipses-outline" size={24} color={colors.primary} />
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Чат с разработчиками' : 'Developer chat button'}</Text>
+          </View>
+          <Switch value={devChatOn} onValueChange={toggleDevChat} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
 
         {/* Reminders — local notifications (native only; web/Tauri can't schedule) */}

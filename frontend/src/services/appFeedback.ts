@@ -16,6 +16,7 @@
  * платформу и экран. Ни имени, ни почты, ни личных данных.
  */
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSupabase } from '@/src/services/supabase';
 
 export type FeedbackKind = 'bug' | 'idea' | 'confusion' | 'other';
@@ -25,6 +26,17 @@ export type FeedbackKind = 'bug' | 'idea' | 'confusion' | 'other';
  *  ⚠️ ПЕРЕД ПУБЛИЧНЫМ РЕЛИЗОМ поставить false (или гейтить тест-каналом),
  *  иначе кнопка будет висеть у всех и польётся мусор. */
 export const FEEDBACK_ENABLED = true;
+
+/** v1.125.0: пользовательская галочка «Чат с разработчиками» в настройках.
+ *  Тестировщик может СКРЫТЬ плавающую кнопку, если она мешает (репорт
+ *  «кнопка мешается в игре»). По умолчанию видна. Ключ '0' = скрыта. */
+const DEVCHAT_KEY = 'psygames_devchat_on';
+export async function getDevChatVisible(): Promise<boolean> {
+  try { return (await AsyncStorage.getItem(DEVCHAT_KEY)) !== '0'; } catch { return true; }
+}
+export async function setDevChatVisible(on: boolean): Promise<void> {
+  try { await AsyncStorage.setItem(DEVCHAT_KEY, on ? '1' : '0'); } catch {}
+}
 
 const SHOT_BUCKET = 'feedback-shots';
 

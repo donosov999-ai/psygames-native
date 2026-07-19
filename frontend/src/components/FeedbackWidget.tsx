@@ -27,7 +27,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {
-  FEEDBACK_ENABLED, captureScreenshot, sendFeedback, type FeedbackKind,
+  FEEDBACK_ENABLED, getDevChatVisible, captureScreenshot, sendFeedback, type FeedbackKind,
 } from '@/src/services/appFeedback';
 
 const KINDS: { key: FeedbackKind; emoji: string; ru: string; en: string }[] = [
@@ -58,8 +58,14 @@ export default function FeedbackWidget() {
   // ключ прогресса usePersistentLevel (`psygames_<gameId>_level_<profileId>`),
   // а не живое состояние экрана — обычно совпадает. null = не игра/нет прогресса.
   const [level, setLevel] = React.useState<number | null>(null);
+  // v1.125.0: пользователь может скрыть кнопку галочкой в настройках («кнопка мешается
+  // в игре»). Перечитываем при навигации — после выхода из настроек кнопка обновится.
+  const [hidden, setHidden] = React.useState(false);
+  React.useEffect(() => {
+    getDevChatVisible().then((on) => setHidden(!on)).catch(() => {});
+  }, [pathname]);
 
-  if (!FEEDBACK_ENABLED) return null;
+  if (!FEEDBACK_ENABLED || hidden) return null;
 
   const gameId = pathname.startsWith('/games/')
     ? pathname.replace('/games/', '').replace(/\/+$/, '') || undefined
