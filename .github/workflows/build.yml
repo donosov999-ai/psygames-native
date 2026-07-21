@@ -641,6 +641,7 @@ jobs:
         run: |
           sed -i 's|"baseUrl": "/psygames-web"|"baseUrl": "/play"|' app.json
           npx expo export -p web
+          node scripts/create-web-route-aliases.mjs
           ls -la dist/ | head
       - name: SFTP dist → Contabo /play
         env:

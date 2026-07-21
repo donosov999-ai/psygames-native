@@ -117,6 +117,34 @@ export function setSessionListener(fn: SessionListener | null) {
   _sessionListener = fn;
 }
 
+// Web bridge for the marketing site. Every trainer already saves its real
+// completed round through saveSession(), so this is the single trustworthy
+// place to notify the parent SEO page without patching dozens of games.
+function notifyWebHost(s: GameSession): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const game = GAMES.find((item) => item.id === s.game_type);
+    const detail = {
+      source: 'psygames-web',
+      version: 1,
+      session: {
+        gameType: s.game_type,
+        category: game?.category,
+        score: Number(s.score) || 0,
+        timeSeconds: Number(s.time_seconds) || 0,
+        errors: Number(s.errors) || 0,
+        difficulty: s.difficulty,
+        mode: s.mode,
+        timestamp: s.timestamp,
+      },
+    };
+    window.dispatchEvent(new CustomEvent('psygames:training-complete', { detail }));
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'psygames:training-complete', ...detail }, window.location.origin);
+    }
+  } catch { /* связь с хостом не должна мешать сохранению результата */ }
+}
+
 // ───────────────────────────────────────────────────────────────────────
 // Session schema runtime validation — non-blocking, console.warn only.
 // Catches contract drift if a game starts writing wrong types into details.
@@ -442,6 +470,8 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
   } catch (e) {
     console.warn('level-unlock dispatch failed:', e);
   }
+
+  notifyWebHost(stored);
 
   return stored;
 };
