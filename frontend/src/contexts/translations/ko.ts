@@ -1319,5 +1319,7 @@ const t: Record<string, string> = {
   "anagramTheme_nature": "자연",
   "anagramTheme_home": "사물",
   "anagramTheme_transport": "교통수단",
+  "petSkinCat": "뉴로 고양이",
+  "petSkinRobot": "로봇",
 };
 export default t;

@@ -39,8 +39,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUnlocked } from '@/src/services/achievements';
 import { ACHIEVEMENTS } from '@/src/services/achievements';
 import ProfileSwitcherModal from '@/src/components/ProfileSwitcherModal';
-import SynapsePet from '@/src/components/pet/SynapsePet';
-import { getPetStats, PetStage } from '@/src/services/pet';
+import { petFrame, PetSkin } from '@/src/components/pet/PetSprite';
+import { getPetStats, PetStage, getPetSkin } from '@/src/services/pet';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
 import DemoLanding from '@/src/components/DemoLanding';
 
@@ -86,8 +86,10 @@ function FullHome() {
   const [avatarKey, setAvatarKey] = useState<string | null>(null);
   // Стадия питомца «Синапс» в шапке — из реального счётчика тренировок (глобальный, без профиля)
   const [petStage, setPetStage] = useState<PetStage>(1);
+  const [petSkin, setPetSkinState] = useState<PetSkin>('cat');   // v1.140: скин в шапке
   useFocusEffect(useCallback(() => {
     getPetStats().then((s) => setPetStage(s.stage)).catch(() => {});
+    getPetSkin().then(setPetSkinState).catch(() => {});
   }, []));
   const todayChallenge = useMemo(() => getTodayChallenge(), []);   // ротация игр — детерминировано по дате
   const prevTokensRef = useRef<number | null>(null);
@@ -270,7 +272,7 @@ function FullHome() {
             accessibilityLabel={t('petSynapse')}
             style={{ width: 36, flexShrink: 0, marginLeft: 6, alignItems: 'center', alignSelf: 'center' }}
           >
-            <SynapsePet stage={petStage} size={30} />
+            <Image source={petFrame(petSkin, 'idle', 0)} style={{ width: 32, height: 32 }} resizeMode="contain" />
           </TouchableOpacity>
         </View>
         <View style={styles.headerRow}>

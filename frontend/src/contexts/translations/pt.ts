@@ -1204,5 +1204,7 @@ const t: Record<string, string> = {
   "anagramTheme_nature": "Natureza",
   "anagramTheme_home": "Objetos",
   "anagramTheme_transport": "Transporte",
+  "petSkinCat": "Neurogato",
+  "petSkinRobot": "Robô",
 };
 export default t;

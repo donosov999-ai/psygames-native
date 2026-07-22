@@ -21,8 +21,8 @@ import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import PetSprite, { PetState } from '@/src/components/pet/PetSprite';
-import { getPetVisible, pickReaction } from '@/src/services/pet';
+import PetSprite, { PetSkin, PetState } from '@/src/components/pet/PetSprite';
+import { getPetSkin, getPetVisible, pickReaction } from '@/src/services/pet';
 
 const PET_SIZE = 56;
 const WALK_SPEED = 34;        // px/с — прогулочный шаг, не спринт
@@ -40,6 +40,7 @@ export default function WalkingPet() {
   const pathname = usePathname() || '';
 
   const [petOn, setPetOn] = React.useState(true);
+  const [skin, setSkin] = React.useState<PetSkin>('cat');
   const [bubble, setBubble] = React.useState<string | null>(null);
   // v1.135: кадровая анимация (спрайты kie) — шаг/отдых/сон/машет/прыжок
   const [sprite, setSprite] = React.useState<PetState>('idle');
@@ -51,10 +52,11 @@ export default function WalkingPet() {
   );
   const active = petOn && routeAllowed;
 
-  // Тумблер и стадия перечитываются при каждой навигации (как в FeedbackWidget):
-  // после выхода из настроек тумблер применится, после игры стадия подрастёт.
+  // Тумблер и скин перечитываются при каждой навигации (как в FeedbackWidget):
+  // после выхода из настроек тумблер применится, после /pet скин обновится.
   React.useEffect(() => {
     getPetVisible().then(setPetOn).catch(() => {});
+    getPetSkin().then(setSkin).catch(() => {});
   }, [pathname]);
 
   // Позиция/язык в ref'ах: таймеры-замыкания живут дольше рендера, а
@@ -150,7 +152,7 @@ export default function WalkingPet() {
         accessibilityLabel="Synapse"
       >
         <Animated.View style={{ transform: [{ scaleX: flip }] }}>
-          <PetSprite state={sprite} size={PET_SIZE} />
+          <PetSprite state={sprite} size={PET_SIZE} skin={skin} />
         </Animated.View>
       </TouchableOpacity>
     </Animated.View>

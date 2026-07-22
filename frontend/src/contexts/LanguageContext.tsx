@@ -1789,6 +1789,9 @@ const translations: Translations = {
   anagramTheme_nature: { ru: 'Природа', en: 'Nature' },
   anagramTheme_home: { ru: 'Предметы', en: 'Objects' },
   anagramTheme_transport: { ru: 'Транспорт', en: 'Transport' },
+  // v1.140: подписи выбора скина питомца на /pet
+  petSkinCat: { ru: 'Нейро-кот', en: 'Neuro Cat' },
+  petSkinRobot: { ru: 'Робот', en: 'Robot' },
 };
 
 /** Standalone-резолвер для кода вне React-дерева: сервисы (reminders, cosmetics)
