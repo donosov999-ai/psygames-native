@@ -1571,6 +1571,18 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const loadLanguage = async () => {
     try {
+      // ?lang=<code> (embed-контракт с promo-сайтом): страница передаёт язык
+      // статьи, iframe открывается на нём. Приоритет над стораджем, но БЕЗ
+      // записи — выбор пользователя в основном /play не перетираем.
+      if (typeof window !== 'undefined') {
+        try {
+          const urlLang = new URLSearchParams(window.location.search).get('lang');
+          if (urlLang && LANG_CODES.includes(urlLang)) {
+            setLanguageState(urlLang as Language);
+            return;
+          }
+        } catch {}
+      }
       const savedLang = await AsyncStorage.getItem('language');
       if (savedLang && LANG_CODES.includes(savedLang)) {
         setLanguageState(savedLang as Language);
