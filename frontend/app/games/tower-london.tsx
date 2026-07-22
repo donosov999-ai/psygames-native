@@ -10,6 +10,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -280,25 +281,35 @@ export default function TowerLondonGame() {
     </View>
   );
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{solved}</Text>
-        <Text style={[styles.statText, { color: GRADIENT[1] }]}>{moves}/{puzzle.minMoves}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
-      </View>
-      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('goalState')}</Text>
-      <View style={styles.pegRow}>
-        {puzzle.goal.map((balls, i) => renderPeg(i, balls, CURRENT_CAPS[i], true))}
-      </View>
-      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('currentState')}</Text>
-      <View style={styles.pegRow}>
-        {state.map((balls, i) => renderPeg(i, balls, CURRENT_CAPS[i], false))}
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('towerHint')}</Text>
-    </View>
-  );
+  // игровая фаза — на едином каркасе GameShell; pegRow (цель + текущая) переносится как есть
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('towerLondon')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{solved}</Text>
+            <Text style={[styles.statText, { color: GRADIENT[1] }]}>{moves}/{puzzle.minMoves}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('goalState')}</Text>
+          <View style={styles.pegRow}>
+            {puzzle.goal.map((balls, i) => renderPeg(i, balls, CURRENT_CAPS[i], true))}
+          </View>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('currentState')}</Text>
+          <View style={styles.pegRow}>
+            {state.map((balls, i) => renderPeg(i, balls, CURRENT_CAPS[i], false))}
+          </View>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('towerHint')}</Text>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -315,7 +326,6 @@ export default function TowerLondonGame() {
           benefits={TOL_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="tower_london" passed={clearedPassed} level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
@@ -349,7 +359,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 8, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 8 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   sectionLabel: { fontSize: 12, fontWeight: '600', marginTop: 4 },

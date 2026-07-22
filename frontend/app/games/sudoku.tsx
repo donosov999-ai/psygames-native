@@ -9,6 +9,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
+import GameShell from '@/src/components/GameShell';
 import BossRound, { BossType } from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameIntro from '@/src/components/GameIntro';
@@ -365,9 +366,11 @@ export default function SudokuGame() {
   // v1.30.6: рабочий landscape — сетка слева, панель цифр справа. В landscape размер ячейки
   // считаем по ВЫСОТЕ (она ограничивает), оставляя справа ~210px под цифры. Портрет — как был.
   const landscape = width > height;
+  // Ширинные бюджеты подогнаны под каркас GameShell (поле имеет paddingHorizontal 16×2):
+  // портрет 28→36 (34 = 32 паддинга + 4 рамка сетки), landscape 210→240 (паддинг + gap 22 + цифры сбоку).
   const cellSize = landscape
-    ? Math.max(16, Math.floor(Math.min((height - 96) / N, (width - 210) / N, 92)))
-    : Math.max(14, Math.floor(Math.min((width - 28) / N, (height - 330) / N, 92)));
+    ? Math.max(16, Math.floor(Math.min((height - 96) / N, (width - 240) / N, 92)))
+    : Math.max(14, Math.floor(Math.min((width - 36) / N, (height - 330) / N, 92)));
 
   const renderConfig = () => (
     <View style={styles.configContainer}>
@@ -703,23 +706,57 @@ export default function SudokuGame() {
         </Text>
       </View>
     );
-    if (landscape) {
-      return (
-        <View style={[styles.playArea, styles.playAreaLand]}>
-          {gridEl}
-          <View style={styles.landControls}>{statsEl}{padEl}{hintEl}</View>
-        </View>
-      );
-    }
+    // Единый каркас GameShell: статы — в props каркаса (обе ориентации).
+    // Portrait: numPad+hint в прибитом нижнем тулбаре. Landscape: сетка | цифры рядом
+    // (numPad остаётся сбоку, тулбара нет) — рабочий landscape v1.30.6 сохранён.
     return (
-      <View style={styles.playArea}>
-        {statsEl}
-        {gridEl}
-        {padEl}
-        {hintEl}
-      </View>
+      <GameShell
+        title={t('sudoku').replace(/\s*\d+\s*[×xX]\s*\d+\s*$/, '') + ` ${N}×${N}`}
+        onBack={() => goBackOrHome()}
+        stats={statsEl}
+        toolbar={landscape ? undefined : <View style={styles.toolbarCol}>{padEl}{hintEl}</View>}
+      >
+        {landscape ? (
+          <View style={styles.playAreaLand}>
+            {gridEl}
+            <View style={styles.landControls}>{padEl}{hintEl}</View>
+          </View>
+        ) : (
+          gridEl
+        )}
+      </GameShell>
     );
   };
+
+  // Игровая фаза — на едином каркасе GameShell; справка правил и game-over — оверлеи
+  // поверх каркаса (обёртка View flex:1, паттерн digit-span).
+  if (phase === 'playing') {
+    return (
+      <View style={{ flex: 1 }}>
+        {renderPlaying()}
+        {/* v1.111.0: справка правил уровня (авто при первом входе на вариант / тап по бейджу ⓘ) */}
+        <RulesHelpModal visible={rulesOpen} variant={variant} killer={mode === 'killer'} N={N}
+          colors={colors} language={language} onClose={() => setRulesOpen(false)} />
+        {over && (
+          <View style={styles.overWrap}>
+            <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
+              <Text style={styles.overEmoji}>💔</Text>
+              <Text style={[styles.overTitle, { color: colors.text }]}>{t('outOfLives')}</Text>
+              <Text style={[styles.overSub, { color: colors.textSecondary }]}>{t('outOfLivesHint')}</Text>
+              <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
+                <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                  <Text style={styles.startBtnText}>{t('restart')}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => goBackOrHome()} style={{ marginTop: 10 }}>
+                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('goHome')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -727,7 +764,7 @@ export default function SudokuGame() {
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('sudoku').replace(/\s*\d+\s*[×xX]\s*\d+\s*$/, '') + (phase === 'playing' ? ` ${N}×${N}` : '')}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('sudoku').replace(/\s*\d+\s*[×xX]\s*\d+\s*$/, '')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'intro' && (
@@ -736,27 +773,9 @@ export default function SudokuGame() {
           benefits={SUDOKU_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
-      {/* v1.111.0: справка правил уровня (авто при первом входе на вариант / тап по бейджу ⓘ) */}
+      {/* v1.111.0: справка правил уровня (на конфиге — если открыта) */}
       <RulesHelpModal visible={rulesOpen} variant={variant} killer={mode === 'killer'} N={N}
         colors={colors} language={language} onClose={() => setRulesOpen(false)} />
-      {phase === 'playing' && over && (
-        <View style={styles.overWrap}>
-          <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
-            <Text style={styles.overEmoji}>💔</Text>
-            <Text style={[styles.overTitle, { color: colors.text }]}>{t('outOfLives')}</Text>
-            <Text style={[styles.overSub, { color: colors.textSecondary }]}>{t('outOfLivesHint')}</Text>
-            <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
-              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-                <Text style={styles.startBtnText}>{t('restart')}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => goBackOrHome()} style={{ marginTop: 10 }}>
-              <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('goHome')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
       {phase === 'boss' && (
         <BossRound
           config={{ type: bossTypeRef.current, gradient: GRADIENT as [string, string] }}
@@ -827,9 +846,9 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 14, alignItems: 'center' },
-  playAreaLand: { flexDirection: 'row', gap: 22 },                 // landscape: сетка | цифры
+  playAreaLand: { flexDirection: 'row', gap: 22, alignItems: 'center' },   // landscape: сетка | цифры
   landControls: { gap: 14, alignItems: 'center', justifyContent: 'center' },
+  toolbarCol: { flex: 1, alignItems: 'center', gap: 8 },           // portrait: numPad+hint колонкой в тулбаре каркаса
   numPadLand: { maxWidth: 56 * 3 },                                // 3 столбца цифр справа
   // до 4 счётчиков (уровень/жизни/время/правила) при крупном шрифте не влезали в ряд → перенос
   statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },

@@ -11,6 +11,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
+import GameShell from '@/src/components/GameShell';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -318,7 +319,7 @@ export default function MahjongGame() {
   // Габариты поля в полуклетках → размер тайла под ширину экрана.
   const maxHalfX = tiles.reduce((m, t) => Math.max(m, t.x + 2), 2);
   const maxHalfY = tiles.reduce((m, t) => Math.max(m, t.y + 2), 2);
-  const boardW = Math.min(width - 24, 460);
+  const boardW = Math.min(width - 36, 460);   // 24→36: поле GameShell имеет paddingHorizontal 16×2
   const half = Math.max(14, Math.floor(boardW / Math.max(8, maxHalfX)));   // размер полуклетки в px
   const tileW = half * 2 - 2;
   const tileH = half * 2 - 2;
@@ -384,36 +385,55 @@ export default function MahjongGame() {
     );
   };
 
+  // Единый каркас GameShell: HUD-бейджи — в props stats, «Перемешать» — в прибитом тулбаре.
+  // Слои плиток (absolute-позиции) переносятся контейнером boardPxW×boardPxH целиком.
   const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <HudBadge icon="flag" value={`${t('unitLevelShort')} ${level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
-        <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
-        <HudBadge icon="checkmark-done" value={`${matched}/${pairsTotal}`} colors={['#5eead4', '#0d9488']} pop />
-        <HudBadge icon="close" value={errors} colors={['#fb7185', '#e11d48']} />
-        <HudBadge icon="time" value={`${elapsed.toFixed(1)}${t('secShort')}`} colors={['#60a5fa', '#2563eb']} />
-        {!isPreset && <LevelRuleBadge lr={levelRules} color="#0d9488" ru={language === 'ru'} />}
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mahjongHint')}</Text>
-
-      <View style={{ width: boardPxW, height: boardPxH, alignSelf: 'center', marginTop: 6 }}>
-        {tiles.map((tt, i) => renderTile(tt, i))}
-      </View>
-
-      <TouchableOpacity onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Ionicons name="shuffle" size={18} color="#0d9488" />
-        <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')}</Text>
-      </TouchableOpacity>
-
-      <ScorePopupLayer popups={popups} />
-      {levelBanner !== null && (
-        <View style={styles.levelBanner} pointerEvents="none">
-          <Text style={styles.levelBannerText}>🎉 {t('level')} {levelBanner} ✓</Text>
-          <Text style={styles.levelBannerSub}>→ {t('level')} {levelBanner + 1}</Text>
+    <GameShell
+      title={t('mahjong')}
+      onBack={() => goBackOrHome()}
+      stats={
+        <View style={styles.statsRow}>
+          <HudBadge icon="flag" value={`${t('unitLevelShort')} ${level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
+          <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
+          <HudBadge icon="checkmark-done" value={`${matched}/${pairsTotal}`} colors={['#5eead4', '#0d9488']} pop />
+          <HudBadge icon="close" value={errors} colors={['#fb7185', '#e11d48']} />
+          <HudBadge icon="time" value={`${elapsed.toFixed(1)}${t('secShort')}`} colors={['#60a5fa', '#2563eb']} />
+          {!isPreset && <LevelRuleBadge lr={levelRules} color="#0d9488" ru={language === 'ru'} />}
         </View>
-      )}
-    </View>
+      }
+      toolbar={
+        <TouchableOpacity onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Ionicons name="shuffle" size={18} color="#0d9488" />
+          <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')}</Text>
+        </TouchableOpacity>
+      }
+    >
+      <View style={styles.fieldCol}>
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mahjongHint')}</Text>
+        <View style={{ width: boardPxW, height: boardPxH, alignSelf: 'center', marginTop: 6 }}>
+          {tiles.map((tt, i) => renderTile(tt, i))}
+        </View>
+      </View>
+    </GameShell>
   );
+
+  // Игровая фаза — на едином каркасе GameShell; поверх (обёртка View flex:1, паттерн
+  // digit-span): очки-попапы, баннер «Уровень N ✓», модалка правил уровня.
+  if (phase === 'playing') {
+    return (
+      <View style={{ flex: 1 }}>
+        {renderPlaying()}
+        <ScorePopupLayer popups={popups} />
+        {levelBanner !== null && (
+          <View style={styles.levelBanner} pointerEvents="none">
+            <Text style={styles.levelBannerText}>🎉 {t('level')} {levelBanner} ✓</Text>
+            <Text style={styles.levelBannerSub}>→ {t('level')} {levelBanner + 1}</Text>
+          </View>
+        )}
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -430,7 +450,6 @@ export default function MahjongGame() {
           benefits={MAHJONG_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'result' && (
         <GameResult score={score} time={elapsed} errors={errors}
@@ -453,7 +472,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: '#04341f', opacity: 0.85, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  playArea: { flex: 1, padding: 12, gap: 8, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 8 },   // hint + контейнер слоёв плиток внутри поля каркаса
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap' },
   hintText: { fontSize: 12, textAlign: 'center' },
   tile: {

@@ -8,6 +8,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
+import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -259,8 +260,9 @@ export default function SamuraiSudokuGame() {
     if (isSolved(ng)) finishLevel(ng, nh);   // подсказка может закрыть последнюю клетку
   };
 
-  // ZOOM: 'fit' — всё поле 21×21 видно (≈17px на телефоне), 'zoom' — вдвое крупнее со скроллом.
-  const fitCell = Math.floor((Math.min(width, 600) - 16) / SIZE);
+  // ZOOM: 'fit' — всё поле 21×21 видно (≈16px на телефоне), 'zoom' — вдвое крупнее со скроллом.
+  // Бюджет 16→36: поле GameShell имеет paddingHorizontal 16×2, иначе крест вылезал за паддинг.
+  const fitCell = Math.floor((Math.min(width, 600) - 36) / SIZE);
   const cellSize = zoom === 'fit' ? Math.max(12, fitCell) : Math.max(24, fitCell * 2);
 
   const renderConfig = () => (
@@ -415,15 +417,50 @@ export default function SamuraiSudokuGame() {
       </View>
     );
 
+    // Единый каркас GameShell: статы (уровень/ошибки/время/зум) — в props, numPad+hint —
+    // в прибитом нижнем тулбаре (в 'zoom' панель гарантированно видна — цель v-flex сохранена:
+    // доска-скролл занимает ровно остаток поля, тулбар не съезжает).
     return (
-      <View style={styles.playArea}>
-        {statsEl}
+      <GameShell
+        title={t('samuraiTitle')}
+        onBack={() => goBackOrHome()}
+        stats={statsEl}
+        toolbar={<View style={styles.toolbarCol}>{padEl}{hintEl}</View>}
+      >
         {boardWrap}
-        {padEl}
-        {hintEl}
-      </View>
+      </GameShell>
     );
   };
+
+  // Игровая фаза — на едином каркасе GameShell; оверлей «лимит ошибок» — поверх каркаса
+  // (обёртка View flex:1, паттерн digit-span).
+  if (phase === 'playing') {
+    return (
+      <View style={{ flex: 1 }}>
+        {renderPlaying()}
+        {/* Бюджет ошибок исчерпан → уровень провален, рестарт того же уровня */}
+        {over && (
+          <View style={styles.overWrap}>
+            <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
+              <Text style={styles.overEmoji}>💔</Text>
+              <Text style={[styles.overTitle, { color: colors.text }]}>{ru ? 'Ошибок слишком много' : 'Too many mistakes'}</Text>
+              <Text style={[styles.overSub, { color: colors.textSecondary }]}>
+                {ru ? `Лимит ${levelParams(levelRef.current).maxErrors} ошибок на уровне. Сыграй заново — поле новое.` : `Limit of ${levelParams(levelRef.current).maxErrors} mistakes. Play again — fresh board.`}
+              </Text>
+              <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
+                <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                  <Text style={styles.startBtnText}>{ru ? 'Заново' : 'Restart'}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setPhase('config')} style={{ marginTop: 10 }}>
+                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{ru ? 'Меню' : 'Menu'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -435,27 +472,6 @@ export default function SamuraiSudokuGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
-      {/* Бюджет ошибок исчерпан → уровень провален, рестарт того же уровня */}
-      {phase === 'playing' && over && (
-        <View style={styles.overWrap}>
-          <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
-            <Text style={styles.overEmoji}>💔</Text>
-            <Text style={[styles.overTitle, { color: colors.text }]}>{ru ? 'Ошибок слишком много' : 'Too many mistakes'}</Text>
-            <Text style={[styles.overSub, { color: colors.textSecondary }]}>
-              {ru ? `Лимит ${levelParams(levelRef.current).maxErrors} ошибок на уровне. Сыграй заново — поле новое.` : `Limit of ${levelParams(levelRef.current).maxErrors} mistakes. Play again — fresh board.`}
-            </Text>
-            <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
-              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-                <Text style={styles.startBtnText}>{ru ? 'Заново' : 'Restart'}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setPhase('config')} style={{ marginTop: 10 }}>
-              <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{ru ? 'Меню' : 'Menu'}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
       {/* Авто-поток: прошёл уровень чисто → баннер → следующий стартует сам (onContinue) */}
       {phase === 'cleared' && (
         <LevelCleared
@@ -495,8 +511,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 14, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 16, alignItems: 'center' },
+  toolbarCol: { flex: 1, alignItems: 'center', gap: 8 },   // numPad+hint колонкой в тулбаре каркаса
+  statsRow: { flexDirection: 'row', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   zoomBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
   zoomScroll: { flex: 1, alignSelf: 'stretch' },

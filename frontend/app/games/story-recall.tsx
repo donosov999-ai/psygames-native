@@ -27,6 +27,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 
 const GRADIENT = ['#654ea3', '#eaafc8'];
 const STORY_BENEFITS = [
@@ -325,20 +326,6 @@ export default function StoryRecallGame() {
     </View>
   );
 
-  const renderReading = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text, fontSize: 20 }]}>{t('storyReadPhase')} · {readRemaining}s</Text>
-      </View>
-      <View style={[styles.storyBox, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.storyText, { color: colors.text }]}>
-          {language === 'ru' ? story.ru : story.en}
-        </Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('storyReadHint')}</Text>
-    </View>
-  );
-
   // Skip distractor → перейти сразу к recall (если юзер чувствует что готов)
   const skipDistractor = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -346,66 +333,105 @@ export default function StoryRecallGame() {
     else if (phase === 'distractor2') setPhase('recall2');
   };
 
-  const renderDistractor = (phaseLabel: string) => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{phaseLabel} · {distractorRemaining}s</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{distractorScore}</Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('storyDistractorHint')}</Text>
-      <View style={[styles.mathBox, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.mathText, { color: colors.text }]}>{distractorMath.a} {distractorMath.op} {distractorMath.b} = ?</Text>
-      </View>
-      <TextInput
-        style={[styles.numInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
-        value={distractorInput}
-        onChangeText={setDistractorInput}
-        onSubmitEditing={submitDistractor}
-        autoFocus
-        keyboardType="number-pad"
-        returnKeyType="done"
-      />
-      {/* крупный шрифт: ряд кнопок переносится, а не выдавливает «ГОТОВ К ПЕРЕСКАЗУ» за край */}
-      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <TouchableOpacity style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitDistractor}>
-          <Text style={styles.addBtnText}>OK</Text>
-        </TouchableOpacity>
-        {/* Skip-to-recall button — для тех кто уверен что готов */}
-        <TouchableOpacity
-          style={[styles.addBtn, { backgroundColor: '#22c55e', flexDirection: 'row', gap: 6 }]}
-          onPress={skipDistractor}
-        >
-          <Ionicons name="checkmark" size={20} color="#FFF" />
-          <Text style={styles.addBtnText}>ГОТОВ К ПЕРЕСКАЗУ</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  const renderRecall = (which: 1 | 2) => (
-    <View style={styles.playArea}>
-      <Text style={[styles.recallTitle, { color: colors.text }]}>
-        {which === 1 ? t('storyImmediate') : t('storyDelayed')}
-      </Text>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('storyRecallHint')}</Text>
-      <TextInput
-        style={[styles.recallInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
-        value={which === 1 ? recall1Text : recall2Text}
-        onChangeText={which === 1 ? setRecall1Text : setRecall2Text}
-        multiline
-        autoFocus
-        autoCorrect={false}
-        textAlignVertical="top"
-        placeholder={t('storyRecallPlaceholder')}
-        placeholderTextColor={colors.textSecondary}
-      />
-      <TouchableOpacity style={styles.startBtn} onPress={which === 1 ? submitRecall1 : submitRecall2}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('storyDone')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
-  );
+  // игровые фазы (чтение/математика/пересказ) — на едином каркасе GameShell:
+  // кнопки прибиты к низу, поле в скролле (TextInput + клавиатура)
+  if (phase === 'reading' || phase === 'distractor1' || phase === 'distractor2'
+    || phase === 'recall1' || phase === 'recall2') {
+    const isDistractor = phase === 'distractor1' || phase === 'distractor2';
+    const isRecall = phase === 'recall1' || phase === 'recall2';
+    const which: 1 | 2 = phase === 'recall2' ? 2 : 1;
+    return (
+      <GameShell
+        title={t('story')}
+        onBack={() => goBackOrHome()}
+        scrollableField
+        stats={
+          phase === 'reading' ? (
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text, fontSize: 20 }]}>{t('storyReadPhase')} · {readRemaining}s</Text>
+            </View>
+          ) : isDistractor ? (
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>
+                {phase === 'distractor1' ? t('storyDistractor1') : t('storyDistractor2')} · {distractorRemaining}s
+              </Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{distractorScore}</Text>
+            </View>
+          ) : undefined
+        }
+        toolbar={
+          isDistractor ? (
+            <>
+              <TouchableOpacity style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitDistractor}>
+                <Text style={styles.addBtnText}>OK</Text>
+              </TouchableOpacity>
+              {/* Skip-to-recall button — для тех кто уверен что готов */}
+              <TouchableOpacity
+                style={[styles.addBtn, { backgroundColor: '#22c55e', flexDirection: 'row', gap: 6 }]}
+                onPress={skipDistractor}
+              >
+                <Ionicons name="checkmark" size={20} color="#FFF" />
+                <Text style={styles.addBtnText}>ГОТОВ К ПЕРЕСКАЗУ</Text>
+              </TouchableOpacity>
+            </>
+          ) : isRecall ? (
+            <TouchableOpacity style={[styles.startBtn, styles.recallSubmit]} onPress={which === 1 ? submitRecall1 : submitRecall2}>
+              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                <Text style={styles.startBtnText}>{t('storyDone')}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ) : undefined
+        }
+      >
+        {phase === 'reading' && (
+          <View style={styles.fieldCol}>
+            <View style={[styles.storyBox, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.storyText, { color: colors.text }]}>
+                {language === 'ru' ? story.ru : story.en}
+              </Text>
+            </View>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('storyReadHint')}</Text>
+          </View>
+        )}
+        {isDistractor && (
+          <View style={styles.fieldCol}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('storyDistractorHint')}</Text>
+            <View style={[styles.mathBox, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.mathText, { color: colors.text }]}>{distractorMath.a} {distractorMath.op} {distractorMath.b} = ?</Text>
+            </View>
+            <TextInput
+              style={[styles.numInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+              value={distractorInput}
+              onChangeText={setDistractorInput}
+              onSubmitEditing={submitDistractor}
+              autoFocus
+              keyboardType="number-pad"
+              returnKeyType="done"
+            />
+          </View>
+        )}
+        {isRecall && (
+          <View style={styles.fieldCol}>
+            <Text style={[styles.recallTitle, { color: colors.text }]}>
+              {which === 1 ? t('storyImmediate') : t('storyDelayed')}
+            </Text>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('storyRecallHint')}</Text>
+            <TextInput
+              style={[styles.recallInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+              value={which === 1 ? recall1Text : recall2Text}
+              onChangeText={which === 1 ? setRecall1Text : setRecall2Text}
+              multiline
+              autoFocus
+              autoCorrect={false}
+              textAlignVertical="top"
+              placeholder={t('storyRecallPlaceholder')}
+              placeholderTextColor={colors.textSecondary}
+            />
+          </View>
+        )}
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -422,11 +448,6 @@ export default function StoryRecallGame() {
           benefits={STORY_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'reading' && renderReading()}
-      {phase === 'distractor1' && renderDistractor(t('storyDistractor1'))}
-      {phase === 'recall1' && renderRecall(1)}
-      {phase === 'distractor2' && renderDistractor(t('storyDistractor2'))}
-      {phase === 'recall2' && renderRecall(2)}
       {phase === 'result' && (
         <GameResult
           score={(recall1Hits + recall2Hits) * 50}
@@ -453,7 +474,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 16, gap: 18, alignItems: 'center', maxWidth: 540, alignSelf: 'center', width: '100%' },
+  // игровое поле внутри каркаса: колонка на всю ширину, содержимое центрировано
+  fieldCol: { width: '100%', maxWidth: 540, alignSelf: 'center', alignItems: 'center', gap: 18 },
   statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },  // крупный шрифт: статы переносятся, а не уезжают за край
   statText: { fontSize: 14, fontWeight: '700' },
   storyBox: { padding: 18, borderRadius: 14, maxHeight: 360 },
@@ -467,4 +489,6 @@ const styles = StyleSheet.create({
   addBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   recallTitle: { fontSize: 22, fontWeight: '800' },
   recallInput: { width: '100%', minHeight: 200, padding: 14, fontSize: 15, borderRadius: 12, borderWidth: 1, lineHeight: 22 },
+  // кнопка «Готово» в тулбаре — тянется по ряду до ширины поля ввода
+  recallSubmit: { flexGrow: 1, maxWidth: 460 },
 });

@@ -12,6 +12,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
+import GameShell from '@/src/components/GameShell';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -315,7 +316,7 @@ export default function ChessBlindGame() {
   };
   useEffect(() => () => clearTimers(), []);   // очистка всех таймеров на unmount
 
-  const cellSize = Math.floor(Math.min(width - 24, height - 360, 480) / 8);
+  const cellSize = Math.floor(Math.min(width - 36, height - 360, 480) / 8);   // 24→36: поле GameShell имеет paddingHorizontal 16×2
   const boardSize = cellSize * 8;
 
   const startGame = () => {
@@ -514,63 +515,72 @@ export default function ChessBlindGame() {
     );
   };
 
-  // ─── игровой экран (expose / mask / quiz) ───
+  // ─── игровой экран (expose / mask / quiz) — на едином каркасе GameShell ───
+  // Статы — в props каркаса; кнопки-глифы pick-квиза — в прибитом нижнем тулбаре
+  // (эталон math-sprint); RTL-пин на контейнере доски сохранён внутри renderBoard.
   const renderPlay = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{ru ? 'Ур.' : 'Lv'}{levelRef.current}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        {phase === 'quiz' && (
-          <Text style={[styles.statText, { color: colors.text }]}>
-            {ru ? 'Вопрос' : 'Q'} {qIndex + 1}/{prm.questions}
-          </Text>
+    <GameShell
+      title={t('chessBlind')}
+      onBack={() => goBackOrHome()}
+      stats={
+        <View style={styles.statsRow}>
+          <Text style={[styles.statText, { color: colors.text }]}>{ru ? 'Ур.' : 'Lv'}{levelRef.current}</Text>
+          <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+          {phase === 'quiz' && (
+            <Text style={[styles.statText, { color: colors.text }]}>
+              {ru ? 'Вопрос' : 'Q'} {qIndex + 1}/{prm.questions}
+            </Text>
+          )}
+        </View>
+      }
+      toolbar={
+        phase === 'quiz' && prm.quizType === 'pick' && currentQ ? (
+          <View style={[styles.optionsWrap, { width: boardSize }]}>
+            {currentQ.options.map((opt, i) => {
+              const isReveal = revealOpt && opt.type === revealOpt.type && opt.white === revealOpt.white;
+              return (
+                <TouchableOpacity
+                  key={i}
+                  activeOpacity={0.8}
+                  onPress={() => answerPick(opt)}
+                  style={[
+                    styles.optBtn,
+                    { backgroundColor: '#334155', borderColor: isReveal ? '#22c55e' : '#1e293b', borderWidth: isReveal ? 3 : 1 },
+                  ]}
+                >
+                  <PieceGlyph combo={opt} boxW={60} boxH={48} fontSize={40} />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : undefined
+      }
+    >
+      <View style={styles.fieldCol}>
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+          {phase === 'expose'
+            ? `${ru ? 'Запомни позицию' : 'Memorize the position'} · ${exposeLeft}${ru ? 'с' : 's'}`
+            : phase === 'mask'
+            ? (prm.moves > 0
+                ? `${ru ? 'Фигуры ходят вслепую' : 'Blind moves'}: ${moveNum}/${prm.moves}`
+                : (ru ? 'Фигуры скрыты…' : 'Pieces are hidden…'))
+            : prm.quizType === 'pick'
+            ? (ru ? 'Что стоит на подсвеченной клетке?' : 'What is on the highlighted square?')
+            : currentQ
+            ? `${ru ? 'Где' : 'Where is the'} ${pieceName(currentQ.answer, ru)} ${glyphOf(currentQ.answer)}? ${ru ? 'Тапни клетку' : 'Tap the square'}`
+            : ''}
+        </Text>
+
+        {phase === 'expose' && (
+          <View style={[styles.barTrack, { width: boardSize, backgroundColor: colors.surface }]}>
+            <View style={[styles.barFill, { width: `${exposePct}%` }]} />
+          </View>
         )}
+
+        {renderBoard()}
       </View>
-
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-        {phase === 'expose'
-          ? `${ru ? 'Запомни позицию' : 'Memorize the position'} · ${exposeLeft}${ru ? 'с' : 's'}`
-          : phase === 'mask'
-          ? (prm.moves > 0
-              ? `${ru ? 'Фигуры ходят вслепую' : 'Blind moves'}: ${moveNum}/${prm.moves}`
-              : (ru ? 'Фигуры скрыты…' : 'Pieces are hidden…'))
-          : prm.quizType === 'pick'
-          ? (ru ? 'Что стоит на подсвеченной клетке?' : 'What is on the highlighted square?')
-          : currentQ
-          ? `${ru ? 'Где' : 'Where is the'} ${pieceName(currentQ.answer, ru)} ${glyphOf(currentQ.answer)}? ${ru ? 'Тапни клетку' : 'Tap the square'}`
-          : ''}
-      </Text>
-
-      {phase === 'expose' && (
-        <View style={[styles.barTrack, { width: boardSize, backgroundColor: colors.surface }]}>
-          <View style={[styles.barFill, { width: `${exposePct}%` }]} />
-        </View>
-      )}
-
-      {renderBoard()}
-
-      {phase === 'quiz' && prm.quizType === 'pick' && currentQ && (
-        <View style={[styles.optionsWrap, { width: boardSize }]}>
-          {currentQ.options.map((opt, i) => {
-            const isReveal = revealOpt && opt.type === revealOpt.type && opt.white === revealOpt.white;
-            return (
-              <TouchableOpacity
-                key={i}
-                activeOpacity={0.8}
-                onPress={() => answerPick(opt)}
-                style={[
-                  styles.optBtn,
-                  { backgroundColor: '#334155', borderColor: isReveal ? '#22c55e' : '#1e293b', borderWidth: isReveal ? 3 : 1 },
-                ]}
-              >
-                <PieceGlyph combo={opt} boxW={60} boxH={48} fontSize={40} />
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
-    </View>
+    </GameShell>
   );
 
   // ─── конфиг ───
@@ -611,6 +621,11 @@ export default function ChessBlindGame() {
     );
   };
 
+  // Игровые фазы — на едином каркасе GameShell (без самодельной шапки).
+  if (phase === 'expose' || phase === 'mask' || phase === 'quiz') {
+    return renderPlay();
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -633,7 +648,6 @@ export default function ChessBlindGame() {
         />
       )}
       {phase === 'config' && renderConfig()}
-      {(phase === 'expose' || phase === 'mask' || phase === 'quiz') && renderPlay()}
       {phase === 'cleared' && (
         <LevelCleared gameId="chess_blind" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 1 ? 2 : 1}
           passed={clearedPassed}
@@ -665,8 +679,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 12, gap: 12 },
-  statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center' },
+  fieldCol: { alignItems: 'center', gap: 12 },   // hint + таймер-бар + доска внутри поля каркаса
+  statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center', flexWrap: 'wrap' },
   statText: { fontSize: 15, fontWeight: '700' },
   hintText: { fontSize: 14, textAlign: 'center', minHeight: 20, fontWeight: '600' },
   barTrack: { height: 6, borderRadius: 3, overflow: 'hidden' },
