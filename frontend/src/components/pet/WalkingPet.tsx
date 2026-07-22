@@ -21,8 +21,8 @@ import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import SynapsePet from '@/src/components/pet/SynapsePet';
-import { getPetStats, getPetVisible, pickReaction, PetStage } from '@/src/services/pet';
+import PetSprite, { PetState } from '@/src/components/pet/PetSprite';
+import { getPetVisible, pickReaction } from '@/src/services/pet';
 
 const PET_SIZE = 56;
 const WALK_SPEED = 34;        // px/с — прогулочный шаг, не спринт
@@ -39,9 +39,11 @@ export default function WalkingPet() {
   const { width } = useWindowDimensions();
   const pathname = usePathname() || '';
 
-  const [stage, setStage] = React.useState<PetStage>(1);
   const [petOn, setPetOn] = React.useState(true);
   const [bubble, setBubble] = React.useState<string | null>(null);
+  // v1.135: кадровая анимация (спрайты kie) — шаг/отдых/сон/машет/прыжок
+  const [sprite, setSprite] = React.useState<PetState>('idle');
+  const walkingRef = React.useRef(false);
 
   // В играх плавающие элементы мешают (проверено фидбеком) — прячемся.
   const routeAllowed = !(
@@ -53,8 +55,7 @@ export default function WalkingPet() {
   // после выхода из настроек тумблер применится, после игры стадия подрастёт.
   React.useEffect(() => {
     getPetVisible().then(setPetOn).catch(() => {});
-    if (routeAllowed) getPetStats().then((s) => setStage(s.stage)).catch(() => {});
-  }, [pathname, routeAllowed]);
+  }, [pathname]);
 
   // Позиция/язык в ref'ах: таймеры-замыкания живут дольше рендера, а
   // перезапускать всю прогулку из-за смены языка или ресайза не хотим.
@@ -83,6 +84,8 @@ export default function WalkingPet() {
       // выглядит как поворот корпуса — отдельной анимации не нужно
       Animated.timing(flip, { toValue: target >= posRef.current ? 1 : -1, duration: 260, useNativeDriver: true }).start();
       // Длительность пропорциональна дистанции — скорость постоянная
+      walkingRef.current = true;
+      setSprite('walk');
       Animated.timing(x, {
         toValue: target,
         duration: Math.max(900, (dist / WALK_SPEED) * 1000),
@@ -90,12 +93,24 @@ export default function WalkingPet() {
         useNativeDriver: true,
       }).start(({ finished }) => {
         posRef.current = target;
-        if (finished && alive) later(step, PAUSE_MIN + Math.random() * PAUSE_SPAN);
+        walkingRef.current = false;
+        if (finished && alive) {
+          setSprite('idle');
+          const pause = PAUSE_MIN + Math.random() * PAUSE_SPAN;
+          // затяжной отдых → задремал (кадры сна с Zz)
+          if (pause > 5500) later(() => { if (!walkingRef.current) setSprite('sleep'); }, 4000);
+          later(step, pause);
+        }
       });
     };
 
     const speak = () => {
       setBubble(pickReaction(langRef.current));
+      // говорит — машет лапкой (если не в пути)
+      if (!walkingRef.current) {
+        setSprite('wave');
+        later(() => { if (!walkingRef.current) setSprite('idle'); }, 1600);
+      }
       later(() => setBubble(null), SPEECH_SHOW);
       later(speak, SPEECH_MIN + Math.random() * SPEECH_SPAN);
     };
@@ -126,12 +141,16 @@ export default function WalkingPet() {
         </View>
       )}
       <TouchableOpacity
-        onPress={() => router.push('/pet' as any)}
+        onPress={() => {
+          // прыжок-отклик, затем экран питомца
+          setSprite('jump');
+          setTimeout(() => router.push('/pet' as any), 450);
+        }}
         activeOpacity={0.8}
         accessibilityLabel="Synapse"
       >
         <Animated.View style={{ transform: [{ scaleX: flip }] }}>
-          <SynapsePet stage={stage} size={PET_SIZE} />
+          <PetSprite state={sprite} size={PET_SIZE} />
         </Animated.View>
       </TouchableOpacity>
     </Animated.View>
