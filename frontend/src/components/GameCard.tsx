@@ -77,7 +77,7 @@ export default function GameCard({
   const wrapperStyle: any = isWeb
     ? {
         width: cardWidth,            // обычно '100%' от index.tsx
-        aspectRatio: 1 / 1.2,        // высота автоматом по ширине
+        aspectRatio: 1 / 1.06,       // v1.134: чуть ниже — сетка на десктопе была слишком высокой
       }
     : {
         width: cardWidth,
@@ -114,9 +114,16 @@ export default function GameCard({
             Игры без превью (13 новых) рендерятся как раньше — фолбэк на градиент. */}
         {thumb && (
           <View style={styles.thumbLayer} pointerEvents="none">
-            <Image source={thumb} style={styles.thumbImg} resizeMode="cover" />
-            {/* затемнение: текст поверх должен читаться на любой картинке */}
-            <View style={[styles.thumbScrim, { backgroundColor: light ? 'rgba(255,255,255,0.62)' : 'rgba(0,0,0,0.52)' }]} />
+            {/* v1.134: превью — ФАКТУРА поверх градиента (низкая opacity), а не сплошная
+                подложка: сплошной scrim убивал фирменный цвет карточек (скрин Дениса —
+                сетка серых плиток). Контраст тексту даёт узкий фейд ТОЛЬКО снизу. */}
+            <Image source={thumb} style={[styles.thumbImg, { opacity: 0.22 }]} resizeMode="cover" />
+            <LinearGradient
+              colors={light
+                ? ['rgba(255,255,255,0)', 'rgba(255,255,255,0.55)']
+                : ['rgba(0,0,0,0)', 'rgba(0,0,0,0.42)']}
+              style={styles.thumbFade}
+            />
           </View>
         )}
         {/* Icon — top, fixed position */}
@@ -158,7 +165,8 @@ const styles = StyleSheet.create({
   // Слой превью: абсолютом под контентом карточки, обрезается её borderRadius
   thumbLayer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' },
   thumbImg: { width: '100%', height: '100%' },
-  thumbScrim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  // фейд под текстовой зоной (нижняя треть) — не трогает верх карточки
+  thumbFade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '55%' },
   card: {
     flex: 1,                       // fill wrapper
     borderRadius: 20,
