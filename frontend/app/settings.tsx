@@ -27,6 +27,7 @@ import {
   getMusicEnabled, setMusicEnabled,
 } from '@/src/services/feedback';
 import { getDevChatVisible, setDevChatVisible } from '@/src/services/appFeedback';
+import { getPetVisible, setPetVisible } from '@/src/services/pet';
 import { exportProgress, importProgress } from '@/src/services/dataTransfer';
 import type { ProfileDef } from '@/src/constants/profiles';
 import { MONETIZATION_ENABLED, CODE_ENTRY_ENABLED } from '@/src/constants/profiles';
@@ -99,18 +100,21 @@ export default function SettingsScreen() {
   const [hapticOn, setHapticOn] = React.useState(true);
   const [musicOn, setMusicOnState] = React.useState(false);
   const [devChatOn, setDevChatOn] = React.useState(true);   // v1.125: кнопка «Чат с разработчиками»
+  const [petOn, setPetOn] = React.useState(true);           // гуляющий питомец «Синапс» (независим от чата)
   React.useEffect(() => {
     (async () => {
       setSoundOn(await getSoundEnabled());
       setHapticOn(await getHapticEnabled());
       setMusicOnState(await getMusicEnabled());
       setDevChatOn(await getDevChatVisible());
+      setPetOn(await getPetVisible());
     })();
   }, []);
   const toggleSound = async () => { const v = !soundOn; setSoundOn(v); await setSoundEnabled(v); };
   const toggleHaptic = async () => { const v = !hapticOn; setHapticOn(v); await setHapticEnabled(v); };
   const toggleMusic = async () => { const v = !musicOn; setMusicOnState(v); await setMusicEnabled(v); };
   const toggleDevChat = async () => { const v = !devChatOn; setDevChatOn(v); await setDevChatVisible(v); };
+  const togglePet = async () => { const v = !petOn; setPetOn(v); await setPetVisible(v); };
   // v1.127.0: перенос прогресса между установками (веб/старый APK/Play — разные хранилища)
   const [transferMode, setTransferMode] = React.useState<'none' | 'export' | 'import'>('none');
   const [exportCode, setExportCode] = React.useState('');
@@ -646,6 +650,16 @@ export default function SettingsScreen() {
             <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Чат с разработчиками' : 'Developer chat button'}</Text>
           </View>
           <Switch value={devChatOn} onValueChange={toggleDevChat} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+        </View>
+        {/* Гуляющий питомец «Синапс» — паттерн тот же, что у чата (кому-то
+            любое движение на экране мешает), но тумблер НЕЗАВИСИМЫЙ:
+            прячет только прогулки, экран /pet и аватар в шапке остаются */}
+        <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
+          <View style={styles.settingInfo}>
+            <Ionicons name="paw-outline" size={24} color={colors.primary} />
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Питомец Синапс' : 'Synapse pet'}</Text>
+          </View>
+          <Switch value={petOn} onValueChange={togglePet} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
         {/* v1.127.0: перенос прогресса между установками (веб / старый APK / Play —
             изолированные хранилища). Экспорт-код на старом → импорт на новом. */}

@@ -39,6 +39,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUnlocked } from '@/src/services/achievements';
 import { ACHIEVEMENTS } from '@/src/services/achievements';
 import ProfileSwitcherModal from '@/src/components/ProfileSwitcherModal';
+import SynapsePet from '@/src/components/pet/SynapsePet';
+import { getPetStats, PetStage } from '@/src/services/pet';
 
 const MAX_CONTAINER_WIDTH = 1100;
 const CONTAINER_PADDING = 16;
@@ -71,6 +73,11 @@ export default function HomeScreen() {
   const [frameColor, setFrameColor] = useState<string | null>(null);
   const [titleLabel, setTitleLabel] = useState<string | null>(null);
   const [avatarKey, setAvatarKey] = useState<string | null>(null);
+  // Стадия питомца «Синапс» в шапке — из реального счётчика тренировок (глобальный, без профиля)
+  const [petStage, setPetStage] = useState<PetStage>(1);
+  useFocusEffect(useCallback(() => {
+    getPetStats().then((s) => setPetStage(s.stage)).catch(() => {});
+  }, []));
   const todayChallenge = useMemo(() => getTodayChallenge(), []);   // ротация игр — детерминировано по дате
   const prevTokensRef = useRef<number | null>(null);
   const prevLevelRef = useRef<number | null>(null);
@@ -243,6 +250,16 @@ export default function HomeScreen() {
                 <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 4, backgroundColor: '#f59e0b' }} />
               </View>
             )}
+          </TouchableOpacity>
+          {/* Мини-аватар питомца «Синапс» → /pet. Шапка недавно чинена на адаптивность:
+              аватар с фикс-шириной и flexShrink:0, ужиматься продолжает ТОЛЬКО лого (flex:1) */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => router.push('/pet' as any)}
+            accessibilityLabel={language === 'ru' ? 'Питомец Синапс' : 'Synapse pet'}
+            style={{ width: 36, flexShrink: 0, marginLeft: 6, alignItems: 'center', alignSelf: 'center' }}
+          >
+            <SynapsePet stage={petStage} size={30} />
           </TouchableOpacity>
         </View>
         <View style={styles.headerRow}>

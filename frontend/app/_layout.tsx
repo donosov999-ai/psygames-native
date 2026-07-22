@@ -15,6 +15,7 @@ import UpdateGate from '@/src/components/UpdateGate';
 import GameHelpOverlay from '@/src/components/GameHelpOverlay';
 import OrientationGuard from '@/src/components/OrientationGuard';
 import FeedbackWidget from '@/src/components/FeedbackWidget';
+import WalkingPet from '@/src/components/pet/WalkingPet';
 
 /** Тап по локальному напоминанию → запуск комплекса (натив-only). */
 function NotificationTapHandler() {
@@ -69,6 +70,9 @@ function RootLayoutNav() {
       <OrientationGuard />
       {/* Кнопка фидбека тестировщиков (закрытый тест). Гейт: FEEDBACK_ENABLED */}
       <FeedbackWidget />
+      {/* Питомец «Синапс» гуляет по низу экрана (сам прячется в играх и на /pet;
+          тумблер в настройках). Тап по нему — экран /pet */}
+      <WalkingPet />
     </>
   );
 }
