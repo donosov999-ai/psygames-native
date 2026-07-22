@@ -16,6 +16,7 @@ import { isRTLLang } from '@/src/services/rtl';
 import { JuicyButton } from '@/src/components/juice';
 import { gameIconByNameKey } from '@/src/constants/gameIcons';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
+import { isEmbed } from '@/src/services/buildTarget';
 
 interface Benefit {
   icon: string;
@@ -47,6 +48,16 @@ export default function GameIntro({
   const { t, language } = useLanguage();
   const [helpOpen, setHelpOpen] = React.useState(false);
   const heroImg = gameIconByNameKey(nameKey);
+
+  // ?embed=1 (iframe на страницах promo-сайта): интро пропускаем — сайт уже
+  // показал описание игры своей статьёй, iframe должен открыть чистое поле.
+  // Контракт с Кодексом 22.07: /play/games/<slug>?embed=1&lang=<code>.
+  const embedded = isEmbed();
+  React.useEffect(() => {
+    if (embedded) onStart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [embedded]);
+  if (embedded) return null;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
