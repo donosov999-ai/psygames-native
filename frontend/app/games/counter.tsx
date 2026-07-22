@@ -27,6 +27,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -356,108 +357,115 @@ export default function CounterGame() {
     );
   };
 
+  // playing-фаза — на едином каркасе GameShell (кнопочная миграция: сетка вписана в экран, скролла нет)
   const renderGame = () => (
-    <View style={styles.gameContainer}>
-      {/* Target Sum - Big and Clear */}
-      <View style={[styles.targetContainer, { backgroundColor: showSuccess ? colors.success : showTimeout ? colors.error : GRADIENT[0] }]}>
-        <Text style={styles.targetLabel}>
-          {t('label_find_sum')}
-        </Text>
-        <Text style={styles.targetValue}>{targetSum}</Text>
-      </View>
-
-      {/* Current Sum Display */}
-      <View style={[styles.sumDisplay, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.sumLabel, { color: colors.textSecondary }]}>
-          {t('label_your_sum')}
-        </Text>
-        <Text style={[
-          styles.sumValue,
-          { color: showSuccess ? colors.success : selectedSum > targetSum ? colors.error : colors.text }
-        ]}>
-          {selectedSum}
-        </Text>
-        {showSuccess && (
-          <View style={[styles.successBadge, { backgroundColor: colors.success }]}>
-            <Ionicons name="checkmark" size={24} color="#FFFFFF" />
-            <Text style={styles.successText}>
-              {t('label_correct_excl')}
+    <GameShell
+      title={t('counter')}
+      onBack={() => { clearAllTimers(); goBackOrHome(); }}
+      stats={
+        <View style={styles.statsRow}>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              {t('round')}
+            </Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{round}/{totalRounds}</Text>
+          </View>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              {language === 'ru' ? 'Осталось' : 'Time left'}
+            </Text>
+            <Text style={[styles.statValue, { color: roundLeft <= 3 ? colors.error : colors.text }]}>
+              {roundLeft.toFixed(1)}{language === 'ru' ? 'с' : 's'}
             </Text>
           </View>
-        )}
-        {showTimeout && (
-          <View style={[styles.successBadge, { backgroundColor: colors.error }]}>
-            <Ionicons name="time-outline" size={24} color="#FFFFFF" />
-            <Text style={styles.successText}>
-              {language === 'ru' ? 'Время вышло' : 'Time is up'}
-            </Text>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
+            <Text style={[styles.statValue, { color: errors > 0 ? colors.error : colors.text }]}>{errors}</Text>
           </View>
-        )}
-      </View>
+        </View>
+      }
+    >
+      {/* Обёртка на всю ширину: поле каркаса центрирует детей, а цель/сумма должны тянуться */}
+      <View style={styles.fieldWrap}>
+        {/* Target Sum - Big and Clear */}
+        <View style={[styles.targetContainer, { backgroundColor: showSuccess ? colors.success : showTimeout ? colors.error : GRADIENT[0] }]}>
+          <Text style={styles.targetLabel}>
+            {t('label_find_sum')}
+          </Text>
+          <Text style={styles.targetValue}>{targetSum}</Text>
+        </View>
 
-      {/* Stats Row */}
-      <View style={styles.statsRow}>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            {t('round')}
+        {/* Current Sum Display */}
+        <View style={[styles.sumDisplay, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.sumLabel, { color: colors.textSecondary }]}>
+            {t('label_your_sum')}
           </Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>{round}/{totalRounds}</Text>
-        </View>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            {language === 'ru' ? 'Осталось' : 'Time left'}
+          <Text style={[
+            styles.sumValue,
+            { color: showSuccess ? colors.success : selectedSum > targetSum ? colors.error : colors.text }
+          ]}>
+            {selectedSum}
           </Text>
-          <Text style={[styles.statValue, { color: roundLeft <= 3 ? colors.error : colors.text }]}>
-            {roundLeft.toFixed(1)}{language === 'ru' ? 'с' : 's'}
-          </Text>
+          {showSuccess && (
+            <View style={[styles.successBadge, { backgroundColor: colors.success }]}>
+              <Ionicons name="checkmark" size={24} color="#FFFFFF" />
+              <Text style={styles.successText}>
+                {t('label_correct_excl')}
+              </Text>
+            </View>
+          )}
+          {showTimeout && (
+            <View style={[styles.successBadge, { backgroundColor: colors.error }]}>
+              <Ionicons name="time-outline" size={24} color="#FFFFFF" />
+              <Text style={styles.successText}>
+                {language === 'ru' ? 'Время вышло' : 'Time is up'}
+              </Text>
+            </View>
+          )}
         </View>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
-          <Text style={[styles.statValue, { color: errors > 0 ? colors.error : colors.text }]}>{errors}</Text>
-        </View>
-      </View>
 
-      {/* Grid */}
-      <View style={styles.gridContainer}>
-        <View style={[
-          styles.grid,
-          { width: cellSize * gridSize + (gridSize - 1) * 8 }
-        ]}>
-          {grid.map((cell, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.cell,
-                {
-                  width: cellSize,
-                  height: cellSize,
-                  backgroundColor: cell.selected
-                    ? (showSuccess ? colors.success : GRADIENT[0])
-                    : colors.surface,
-                  borderWidth: cell.selected ? 3 : 0,
-                  borderColor: showSuccess ? colors.success : GRADIENT[0],
-                },
-              ]}
-              onPress={() => handleCellPress(index)}
-              activeOpacity={0.7}
-              disabled={showSuccess || showTimeout}
-            >
-              <Text
+        {/* Grid */}
+        <View style={styles.gridContainer}>
+          <View style={[
+            styles.grid,
+            { width: cellSize * gridSize + (gridSize - 1) * 8 }
+          ]}>
+            {grid.map((cell, index) => (
+              <TouchableOpacity
+                key={index}
                 style={[
-                  styles.cellText,
+                  styles.cell,
                   {
-                    fontSize: Math.min(cellSize * 0.45, 32),
-                    color: cell.selected ? '#FFFFFF' : colors.text,
+                    width: cellSize,
+                    height: cellSize,
+                    backgroundColor: cell.selected
+                      ? (showSuccess ? colors.success : GRADIENT[0])
+                      : colors.surface,
+                    borderWidth: cell.selected ? 3 : 0,
+                    borderColor: showSuccess ? colors.success : GRADIENT[0],
                   },
                 ]}
+                onPress={() => handleCellPress(index)}
+                activeOpacity={0.7}
+                disabled={showSuccess || showTimeout}
               >
-                {cell.value}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    styles.cellText,
+                    {
+                      fontSize: Math.min(cellSize * 0.45, 32),
+                      color: cell.selected ? '#FFFFFF' : colors.text,
+                    },
+                  ]}
+                >
+                  {cell.value}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       </View>
-    </View>
+    </GameShell>
   );
 
   if (phase === 'intro') {
@@ -477,6 +485,8 @@ export default function CounterGame() {
     );
   }
 
+  if (phase === 'playing') return renderGame();
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -491,7 +501,6 @@ export default function CounterGame() {
       </View>
 
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderGame()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
@@ -575,7 +584,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   startButtonText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
-  gameContainer: { flex: 1, justifyContent: 'center', paddingHorizontal: 16 },
+  // Поле каркаса центрирует детей по оси X — обёртка возвращает блокам всю ширину,
+  // а flex даёт сетке забрать оставшееся место (как в старом gameContainer)
+  fieldWrap: { flex: 1, alignSelf: 'stretch' },
   targetContainer: {
     padding: 16,
     borderRadius: 16,

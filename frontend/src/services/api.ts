@@ -8,6 +8,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GAMES } from '@/src/constants/games';
 import { getSupabase, SUPABASE_TABLE } from '@/src/services/supabase';
+import { IS_WEB_DEMO } from '@/src/services/buildTarget';
 
 const STORAGE_KEY = 'psygames_sessions';
 // v2 (v1.107.0): форс-ребэкфилл. Синк был мёртв ~2 месяца: клиентский upsert
@@ -136,6 +137,11 @@ function notifyWebHost(s: GameSession): void {
         difficulty: s.difficulty,
         mode: s.mode,
         timestamp: s.timestamp,
+        // Web-demo: помечаем сессию для сайта-хоста (demo=true + эфемерный sessionId).
+        // ТОЛЬКО в демо-сборке — полный web-контракт события не меняется.
+        ...(IS_WEB_DEMO
+          ? { demo: true, sessionId: (globalThis as any).crypto?.randomUUID?.() ?? s.id }
+          : {}),
       },
     };
     window.dispatchEvent(new CustomEvent('psygames:training-complete', { detail }));
@@ -402,10 +408,14 @@ async function maybeMigrateLegacy(): Promise<void> {
   }
 }
 
-// Trigger migration on module load — runs once per session, async, non-blocking
-maybeMigrateLegacy();
-// Дослать outbox с прошлого запуска (упавшие пуши), тоже non-blocking
-flushOutbox();
+// Trigger migration on module load — runs once per session, async, non-blocking.
+// Web-demo: миграция/outbox выключены — демо вообще не пишет в облако
+// (на /play/ могли остаться localStorage-сессии от прежней полной web-версии).
+if (!IS_WEB_DEMO) {
+  maybeMigrateLegacy();
+  // Дослать outbox с прошлого запуска (упавшие пуши), тоже non-blocking
+  flushOutbox();
+}
 
 export const saveSession = async (session: GameSession): Promise<GameSession> => {
   const stored: GameSession = {
@@ -413,6 +423,13 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
     id: session.id || makeId(),
     timestamp: session.timestamp || new Date().toISOString(),
   };
+  // Web-demo: НЕ пишем в storage/облако (ни сессий, ни токенов, ни ачивок) —
+  // только уведомляем сайт-хост о завершённом демо-раунде (событие-канон
+  // psygames:training-complete, в detail.session добавлены demo/sessionId).
+  if (IS_WEB_DEMO) {
+    notifyWebHost(stored);
+    return stored;
+  }
   validateSession(stored);   // non-blocking schema check (warnings only)
   const all = await readAll();
   all.push(stored);

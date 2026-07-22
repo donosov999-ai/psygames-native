@@ -17,6 +17,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 
@@ -480,73 +481,80 @@ export default function TargetsGame() {
     </View>
   );
 
+  // playing-фаза — на едином каркасе GameShell (кнопочная миграция: поле тапов не скроллится,
+  // мемоизированная кнопка «МИШЕНЬ!» прибита к низу в тулбаре)
   const renderGame = () => (
-    <View style={styles.gameContainer}>
-      {/* Header */}
-      <View style={styles.gameHeader}>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('level')}</Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>{level}</Text>
-        </View>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('score')}</Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>{score}</Text>
-        </View>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            {t('label_lives')}
-          </Text>
-          <Text style={[styles.statValue, { color: lives <= 2 ? colors.error : colors.text }]}>
-            {lives}
-          </Text>
-        </View>
-      </View>
-
-      {/* Shapes Display */}
-      <View style={[styles.shapesArea, { backgroundColor: colors.surface }]}>
-        {feedback && (
-          <View style={[
-            styles.feedbackBadge,
-            { backgroundColor: feedback === 'hit' ? colors.success : colors.error }
-          ]}>
-            <Ionicons 
-              name={feedback === 'hit' ? 'checkmark' : 'close'} 
-              size={28} 
-              color="#FFFFFF" 
-            />
+    <GameShell
+      title={t('targets')}
+      onBack={() => { stoppedRef.current = true; clearAllTimers(); goBackOrHome(); }}
+      stats={
+        <View style={styles.gameHeader}>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('level')}</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{level}</Text>
           </View>
-        )}
-        
-        <View style={styles.shapesRow}>
-          {shapes.map((shape, index) => (
-            <View
-              key={index}
-              style={[
-                shape.type === 'circle' ? styles.circle : styles.square,
-                { backgroundColor: shape.color }
-              ]}
-            />
-          ))}
-        </View>
-        
-        {mode === 'joker' && prevCircleColor && (
-          <View style={styles.prevCircleHint}>
-            <Text style={[styles.prevCircleLabel, { color: colors.textSecondary }]}>
-              {t('label_prev_circle')}
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('score')}</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{score}</Text>
+          </View>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              {t('label_lives')}
             </Text>
-            <View style={[styles.miniCircle, { backgroundColor: prevCircleColor }]} />
+            <Text style={[styles.statValue, { color: lives <= 2 ? colors.error : colors.text }]}>
+              {lives}
+            </Text>
           </View>
-        )}
+        </View>
+      }
+      toolbar={clickButton}
+    >
+      <View style={styles.fieldCol}>
+        {/* Shapes Display */}
+        <View style={[styles.shapesArea, { backgroundColor: colors.surface }]}>
+          {feedback && (
+            <View style={[
+              styles.feedbackBadge,
+              { backgroundColor: feedback === 'hit' ? colors.success : colors.error }
+            ]}>
+              <Ionicons
+                name={feedback === 'hit' ? 'checkmark' : 'close'}
+                size={28}
+                color="#FFFFFF"
+              />
+            </View>
+          )}
+
+          <View style={styles.shapesRow}>
+            {shapes.map((shape, index) => (
+              <View
+                key={index}
+                style={[
+                  shape.type === 'circle' ? styles.circle : styles.square,
+                  { backgroundColor: shape.color }
+                ]}
+              />
+            ))}
+          </View>
+
+          {mode === 'joker' && prevCircleColor && (
+            <View style={styles.prevCircleHint}>
+              <Text style={[styles.prevCircleLabel, { color: colors.textSecondary }]}>
+                {t('label_prev_circle')}
+              </Text>
+              <View style={[styles.miniCircle, { backgroundColor: prevCircleColor }]} />
+            </View>
+          )}
+        </View>
+
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+          {t('hint_targets_tap_if')}
+        </Text>
       </View>
-
-      {/* Click Button (мемоизирован — см. clickButton выше) */}
-      {clickButton}
-
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-        {t('hint_targets_tap_if')}
-      </Text>
-    </View>
+    </GameShell>
   );
+
+  if (phase === 'playing') return renderGame();
 
   if (phase === 'intro') {
     return (
@@ -580,7 +588,6 @@ export default function TargetsGame() {
 
       {phase === 'config' && renderConfig()}
       {phase === 'ready' && renderReady()}
-      {phase === 'playing' && renderGame()}
       {phase === 'result' && (
         <GameResult
           time={reactionTimes.length > 0 
@@ -673,7 +680,8 @@ const styles = StyleSheet.create({
   },
   readyTitle: { fontSize: 32, fontWeight: '800', marginBottom: 16 },
   readyHint: { fontSize: 16, textAlign: 'center', marginBottom: 40 },
-  gameContainer: { flex: 1, paddingHorizontal: 16 },
+  // Колонка поля: растянута на всё поле каркаса (оно центрирует и не тянет детей по ширине)
+  fieldCol: { flex: 1, alignSelf: 'stretch' },
   gameHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -734,8 +742,9 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
   },
+  // В тулбаре каркаса: тянется на всю ширину ряда (нижний отступ даёт сам тулбар)
   clickButton: {
-    marginBottom: 12,
+    flex: 1,
   },
   clickButtonGradient: {
     paddingVertical: 22,

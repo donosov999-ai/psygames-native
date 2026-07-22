@@ -837,5 +837,10 @@ const t: Record<string, string> = {
   "bossTitle": "BOSS",
   "bossDefeated": "🏆 BOSS 被击败！+⭐",
   "bossSurvived": "BOSS 挺住了——继续前进",
+  // web-demo (добавлено вручную к автогенерату — при регенерации воркфлоу включить эти ключи в базу)
+  "demoTitle": "60+ 记忆、注意力与逻辑训练",
+  "demoSubtitle": "这是演示版。完整应用包含全部游戏、关卡和统计。",
+  "demoDownloadCta": "下载应用",
+  "demoResultCta": "获取应用——全部 60+ 游戏和关卡",
 };
 export default t;

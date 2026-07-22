@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
+import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -23,6 +24,8 @@ import { isGameAllowed } from '@/src/constants/profiles';
 import { getAiInsight, toneForProfile, isoWeekKey } from '@/src/services/aiInsight';
 
 export default function StatisticsScreen() {
+  // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
+  if (isWebDemo()) return <Redirect href="/" />;
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();

@@ -954,5 +954,10 @@ const t: Record<string, string> = {
   "bossTitle": "보스",
   "bossDefeated": "🏆 보스 격파! +⭐",
   "bossSurvived": "보스가 버텼어요 — 계속 가요",
+  // web-demo (добавлено вручную к автогенерату — при регенерации воркфлоу включить эти ключи в базу)
+  "demoTitle": "기억력·주의력·논리력 60+ 트레이닝",
+  "demoSubtitle": "데모 버전입니다. 전체 앱: 모든 게임, 레벨, 통계.",
+  "demoDownloadCta": "앱 다운로드",
+  "demoResultCta": "앱 받기 — 60+ 게임과 레벨 전부",
 };
 export default t;

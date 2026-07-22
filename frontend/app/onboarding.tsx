@@ -8,7 +8,8 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
+import { isWebDemo } from '@/src/services/buildTarget';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -112,6 +113,8 @@ const SLIDES: Slide[] = [
 ];
 
 export default function OnboardingScreen() {
+  // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
+  if (isWebDemo()) return <Redirect href="/" />;
   const router = useRouter();
   const { colors } = useTheme();
   const { t, language } = useLanguage();

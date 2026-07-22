@@ -13,7 +13,8 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
+import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -54,6 +55,8 @@ const CATEGORY_EMOJI: Record<string, string> = {
 };
 
 export default function SettingsScreen() {
+  // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
+  if (isWebDemo()) return <Redirect href="/" />;
   const { colors, isDark, toggleTheme, colorblind, setColorblind } = useTheme();
   const { t, language, setLanguage } = useLanguage();
   const {
