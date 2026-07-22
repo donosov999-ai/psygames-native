@@ -35,24 +35,21 @@ const SUB_GAMES = [
     icon: 'color-palette' as const,
     nameKey: 'stroop' as const,
     descKey: 'stroopDesc' as const,
-    typeLabelRu: 'Цвет vs Слово',
-    typeLabelEn: 'Color vs Word',
+    typeKey: 'acTypeStroop' as const,   // «Цвет vs Слово» — словарь LanguageContext
   },
   {
     route: '/games/stroop-emotional',
     icon: 'heart' as const,
     nameKey: 'stroopEmotional' as const,
     descKey: 'stroopEmotionalDesc' as const,
-    typeLabelRu: 'Цвет vs Эмоция',
-    typeLabelEn: 'Color vs Emotion',
+    typeKey: 'acTypeStroopEmotional' as const,
   },
   {
     route: '/games/flanker',
     icon: 'arrow-forward' as const,
     nameKey: 'flanker' as const,
     descKey: 'flankerDesc' as const,
-    typeLabelRu: 'Центр vs Бока',
-    typeLabelEn: 'Center vs Flankers',
+    typeKey: 'acTypeFlanker' as const,
   },
   // v1.9.1 — Simon Task: 4-я парадигма interference resolution
   {
@@ -60,8 +57,7 @@ const SUB_GAMES = [
     icon: 'flash' as const,
     nameKey: 'simon' as const,
     descKey: 'simonDesc' as const,
-    typeLabelRu: 'Цвет vs Позиция',
-    typeLabelEn: 'Color vs Position',
+    typeKey: 'acTypeSimon' as const,
   },
 ];
 
@@ -70,7 +66,7 @@ export default function AttentionConflictGame() {
   if (isWebDemo()) return <Redirect href="/games/flanker" />;
 
   const { colors } = useTheme();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter();
 
   return (
@@ -105,7 +101,7 @@ export default function AttentionConflictGame() {
             <View style={styles.cardBody}>
               <Text style={[styles.cardName, { color: colors.text }]}>{t(g.nameKey)}</Text>
               <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{t(g.descKey)}</Text>
-              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{language === 'ru' ? g.typeLabelRu : g.typeLabelEn}</Text>
+              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{t(g.typeKey)}</Text>
             </View>
             <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
           </TouchableOpacity>

@@ -327,14 +327,15 @@ export default function PosnerGame() {
           </View>
         }
         toolbar={
-          <>
+          /* RTL-пин: кнопка ← физически слева, как и слоты стимула — иначе валидность подсказки инвертируется */
+          <View style={styles.toolbarLtr}>
             <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
               <Ionicons name="arrow-back" size={32} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
               <Ionicons name="arrow-forward" size={32} color="#FFF" />
             </TouchableOpacity>
-          </>
+          </View>
         }
       >
         <View style={styles.fieldCol}>
@@ -423,7 +424,10 @@ const styles = StyleSheet.create({
   fieldCol: { alignItems: 'center', gap: 18, alignSelf: 'stretch' },
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
-  stimBox: { width: 380, maxWidth: '100%', height: 130, borderRadius: 14, borderWidth: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 30 },
+  // RTL-пин: слоты «лево/центр/право» не зеркалятся в ar — стрелка-подсказка (глиф не зеркалится)
+  // должна указывать на тот же физический слот; кнопки ответа пинятся тем же writingDirection
+  stimBox: { width: 380, maxWidth: '100%', height: 130, borderRadius: 14, borderWidth: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 30, writingDirection: 'ltr' },
+  toolbarLtr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', writingDirection: 'ltr' },
   targetSlot: { width: 50, height: 50, borderRadius: 25, borderWidth: 2, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
   target: { width: 30, height: 30, borderRadius: 15 },
   center: { width: 60, height: 60, justifyContent: 'center', alignItems: 'center' },

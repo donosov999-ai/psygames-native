@@ -172,7 +172,7 @@ export default function StatisticsScreen() {
               {/* flexShrink+minWidth: длинный титул уровня при крупном шрифте не распирает ряд за край карточки */}
               <View style={{ alignItems: 'center', flexShrink: 1, minWidth: 0 }}>
                 <Text style={{ color: '#fff', fontWeight: '900', fontSize: 22, marginTop: 2 }}>Lv {lvl.level}</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12, fontWeight: '700', textAlign: 'center' }} numberOfLines={2}>{language === 'ru' ? lvl.titleRu : lvl.titleEn}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12, fontWeight: '700', textAlign: 'center' }} numberOfLines={2}>{t(lvl.titleKey)}</Text>
               </View>
               <View style={{ alignItems: 'center' }}>
                 <Text style={{ fontSize: 20 }}>🔥</Text>
@@ -269,10 +269,10 @@ export default function StatisticsScreen() {
           {stats.every((s) => s.total_sessions === 0) && (
             <View style={styles.emptyState}>
               <Ionicons name="bar-chart-outline" size={64} color={colors.textSecondary} />
+              {/* было t('language') === 'ru' — сравнение с ПЕРЕВОДОМ слова «Язык», ru-ветка
+                  никогда не срабатывала; теперь нормальный ключ словаря */}
               <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                {t('language') === 'ru'
-                  ? 'Сыграйте несколько игр, чтобы увидеть статистику'
-                  : 'Play some games to see statistics'}
+                {t('statsEmptyHint')}
               </Text>
             </View>
           )}

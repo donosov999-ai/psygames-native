@@ -17,6 +17,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
@@ -178,39 +179,53 @@ export default function QuickCountGame() {
     </ScrollView>
   );
 
-  const renderFlash = () => (
-    <View style={styles.playArea}>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('quickCountLookHint')}</Text>
-      <View style={[styles.field, { width: fieldW, height: fieldH, backgroundColor: colors.surface }]}>
-        {dots.map((d, i) => (
-          <View key={i} style={[styles.dot, { left: d.x - dotR, top: d.y - dotR, width: dotR * 2, height: dotR * 2, borderRadius: dotR, backgroundColor: GRADIENT[0] }]} />
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderAnswer = () => {
+  // игровые фазы (вспышка и ответ) — на едином каркасе GameShell (кнопки-варианты прибиты к низу)
+  if (phase === 'flash' || phase === 'answer') {
     const p = levelParams(levelRef.current);
     const choices = Array.from({ length: p.maxN + 3 - Math.max(1, p.minN - 2) }, (_, i) => Math.max(1, p.minN - 2) + i);
     return (
-      <View style={styles.playArea}>
-        <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{trial + 1}/{TRIALS_PER_ROUND}</Text>
-          <Text style={[styles.statText, { color: colors.text }]}>✓{correct}</Text>
-          <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>✗{wrong}</Text>
-        </View>
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('quickCountAnswerHint')}</Text>
-        <View style={[styles.field, { width: fieldW, height: fieldH * 0.4, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }]} />
-        <View style={styles.choiceGrid}>
-          {choices.map((n) => (
-            <TouchableOpacity key={n} style={[styles.choiceBtn, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => handleAnswer(n)}>
-              <Text style={[styles.choiceText, { color: colors.text }]}>{n}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+      <GameShell
+        title={t('quickCount')}
+        onBack={() => goBackOrHome()}
+        stats={
+          phase === 'answer' ? (
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>{trial + 1}/{TRIALS_PER_ROUND}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>✓{correct}</Text>
+              <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>✗{wrong}</Text>
+            </View>
+          ) : undefined
+        }
+        toolbar={
+          phase === 'answer' ? (
+            <View style={styles.choiceGrid}>
+              {choices.map((n) => (
+                <TouchableOpacity key={n} style={[styles.choiceBtn, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => handleAnswer(n)}>
+                  <Text style={[styles.choiceText, { color: colors.text }]}>{n}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : undefined
+        }
+      >
+        {phase === 'flash' ? (
+          <View style={styles.fieldCol}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('quickCountLookHint')}</Text>
+            <View style={[styles.field, { width: fieldW, height: fieldH, backgroundColor: colors.surface }]}>
+              {dots.map((d, i) => (
+                <View key={i} style={[styles.dot, { left: d.x - dotR, top: d.y - dotR, width: dotR * 2, height: dotR * 2, borderRadius: dotR, backgroundColor: GRADIENT[0] }]} />
+              ))}
+            </View>
+          </View>
+        ) : (
+          <View style={styles.fieldCol}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('quickCountAnswerHint')}</Text>
+            <View style={[styles.field, { width: fieldW, height: fieldH * 0.4, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }]} />
+          </View>
+        )}
+      </GameShell>
     );
-  };
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -229,8 +244,6 @@ export default function QuickCountGame() {
         />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'flash' && renderFlash()}
-      {phase === 'answer' && renderAnswer()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
@@ -268,7 +281,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, gap: 16 },
+  fieldCol: { alignItems: 'center', gap: 16 },
   statsRow: { flexDirection: 'row', gap: 24, justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center' },

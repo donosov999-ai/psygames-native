@@ -69,10 +69,10 @@ export async function spendTokens(profileId: string, cost: number): Promise<bool
 
 // ── Уровень профиля от накопленных токенов (геймификация T1) — токены теперь ЧТО-ТО дают ──
 const LEVEL_THRESH = [0, 80, 200, 400, 700, 1100, 1700, 2500, 3600, 5000, 7000];
-const LEVEL_TITLE_RU = ['Новичок', 'Ученик', 'Игрок', 'Боец', 'Эксперт', 'Мастер', 'Гроссмейстер', 'Виртуоз', 'Гуру', 'Легенда', 'Кибермозг'];
-const LEVEL_TITLE_EN = ['Rookie', 'Student', 'Player', 'Fighter', 'Expert', 'Master', 'Grandmaster', 'Virtuoso', 'Guru', 'Legend', 'Cyberbrain'];
+// Титулы («Новичок»…«Кибермозг») — в словаре LanguageContext (levelTitle0..levelTitle10),
+// потребители рендерят t(lvl.titleKey).
 
-export interface LevelInfo { level: number; titleRu: string; titleEn: string; intoLevel: number; span: number | null; progress: number; }
+export interface LevelInfo { level: number; titleKey: string; intoLevel: number; span: number | null; progress: number; }
 
 export function levelInfo(tokens: number): LevelInfo {
   let lvl = 0;
@@ -82,7 +82,7 @@ export function levelInfo(tokens: number): LevelInfo {
   const span = nextBase !== null ? nextBase - base : null;
   const intoLevel = tokens - base;
   const progress = span ? Math.min(1, intoLevel / span) : 1;
-  return { level: lvl, titleRu: LEVEL_TITLE_RU[lvl], titleEn: LEVEL_TITLE_EN[lvl], intoLevel, span, progress };
+  return { level: lvl, titleKey: `levelTitle${lvl}`, intoLevel, span, progress };
 }
 
 // ── Дневной стрик (T2): заходи каждый день → бонус токенов + 🔥. Per-profile. ──

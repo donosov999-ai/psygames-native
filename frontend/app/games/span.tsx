@@ -31,21 +31,21 @@ const SUB_GAMES = [
     icon: 'keypad' as const,
     nameKey: 'digitSpan' as const,
     descKey: 'digitSpanDesc' as const,
-    typeLabel: 'Цифры · forward + backward',
+    typeKey: 'spanTypeDigit' as const,   // «Цифры · forward + backward» — словарь LanguageContext
   },
   {
     route: '/games/corsi',
     icon: 'grid' as const,
     nameKey: 'corsi' as const,
     descKey: 'corsiDesc' as const,
-    typeLabel: 'Пространство · forward',
+    typeKey: 'spanTypeSpatialFwd' as const,
   },
   {
     route: '/games/spatial-span',
     icon: 'swap-horizontal' as const,
     nameKey: 'spatialSpan' as const,
     descKey: 'spatialSpanDesc' as const,
-    typeLabel: 'Пространство · backward',
+    typeKey: 'spanTypeSpatialBwd' as const,
   },
 ];
 
@@ -54,7 +54,7 @@ export default function SpanGame() {
   if (isWebDemo()) return <Redirect href="/games/digit-span" />;
 
   const { colors } = useTheme();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter();
 
   return (
@@ -89,7 +89,7 @@ export default function SpanGame() {
             <View style={styles.cardBody}>
               <Text style={[styles.cardName, { color: colors.text }]}>{t(g.nameKey)}</Text>
               <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{t(g.descKey)}</Text>
-              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{language === 'ru' ? g.typeLabel : g.typeLabel.replace('Цифры', 'Digits').replace('Пространство', 'Spatial')}</Text>
+              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{t(g.typeKey)}</Text>
             </View>
             <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
           </TouchableOpacity>

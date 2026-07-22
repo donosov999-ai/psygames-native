@@ -11,6 +11,7 @@
  */
 
 import { GameSession } from '@/src/services/api';
+import { translateFor } from '@/src/contexts/LanguageContext';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Sunday, 1 = Monday, ...
@@ -487,11 +488,9 @@ export function brainTodayVerdict(history: WarmupHistoryEntry[], lang: string = 
   const median = sorted[Math.floor(sorted.length / 2)];
   if (median === 0) return null;
   const delta = ((last.total_score - median) / median) * 100;
-  const sign = delta >= 0 ? '+' : '';
-  const ru = lang === 'ru';
-  let msg = '';
-  if (delta > 10) msg = ru ? `Сегодня на ${sign}${delta.toFixed(0)}% выше среднего — ты в форме.` : `Today is ${sign}${delta.toFixed(0)}% above your average — you're in good shape.`;
-  else if (delta < -10) msg = ru ? `Сегодня на ${delta.toFixed(0)}% ниже среднего — возможно недосып или стресс.` : `Today is ${delta.toFixed(0)}% below your average — maybe poor sleep or stress.`;
-  else msg = ru ? `Сегодня в твоей норме (${sign}${delta.toFixed(0)}%).` : `Today is within your normal range (${sign}${delta.toFixed(0)}%).`;
-  return { delta_pct: delta, message: msg };
+  // Тексты вердикта — в словаре LanguageContext (brainDelta*, все 12 языков, {d} = ±NN).
+  // Сервис вне React-дерева → translateFor(lang, key).
+  const d = `${delta >= 0 ? '+' : ''}${delta.toFixed(0)}`;
+  const key = delta > 10 ? 'brainDeltaUp' : delta < -10 ? 'brainDeltaDown' : 'brainDeltaNorm';
+  return { delta_pct: delta, message: translateFor(lang, key).replace('{d}', d) };
 }

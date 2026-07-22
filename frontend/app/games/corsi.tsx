@@ -17,6 +17,7 @@ import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -287,32 +288,41 @@ export default function CorsiGame() {
     );
   };
 
-  const renderShow = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>Span {span}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
-        <Text style={[styles.statText, { color: GRADIENT[1] }]}>Len {seq.length}</Text>
-        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+  // игровые фазы (показ и воспроизведение) — на едином каркасе GameShell; модалка правил поверх
+  if (phase === 'show' || phase === 'recall') {
+    return (
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('corsi')}
+          onBack={() => goBackOrHome()}
+          stats={
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>Span {span}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+              {phase === 'show' ? (
+                <Text style={[styles.statText, { color: GRADIENT[1] }]}>Len {seq.length}</Text>
+              ) : (
+                <>
+                  <Text style={[styles.statText, { color: GRADIENT[1] }]}>{userSeq.length}/{seq.length}</Text>
+                  <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+                </>
+              )}
+              {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+            </View>
+          }
+        >
+          <View style={styles.fieldCol}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+              {phase === 'show'
+                ? t('watchSequence')
+                : (mode === 'forward' ? t('reproduceForward') : t('reproduceBackward'))}
+            </Text>
+            {renderBoard()}
+          </View>
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('watchSequence')}</Text>
-      {renderBoard()}
-    </View>
-  );
-
-  const renderRecall = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>Span {span}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
-        <Text style={[styles.statText, { color: GRADIENT[1] }]}>{userSeq.length}/{seq.length}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-        {mode === 'forward' ? t('reproduceForward') : t('reproduceBackward')}
-      </Text>
-      {renderBoard()}
-    </View>
-  );
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -329,8 +339,6 @@ export default function CorsiGame() {
           benefits={CORSI_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'show' && renderShow()}
-      {phase === 'recall' && renderRecall()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'boss' && (
         <BossRound config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
@@ -373,8 +381,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 12, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
+  fieldCol: { alignItems: 'center', gap: 12 },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
   board: { borderRadius: 14, borderWidth: 1, position: 'relative' },

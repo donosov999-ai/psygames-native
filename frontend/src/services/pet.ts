@@ -27,11 +27,8 @@ export async function setPetVisible(on: boolean): Promise<void> {
 
 export type PetStage = 1 | 2 | 3;
 
-/** Имена стадий — 1:1 с сайта (COPY.stages в NeuroPet.astro). */
-export const STAGE_NAMES: Record<'ru' | 'en', [string, string, string]> = {
-  ru: ['Искра', 'Импульс', 'Созвездие'],
-  en: ['Spark', 'Impulse', 'Constellation'],
-};
+// Имена стадий («Искра/Импульс/Созвездие», 1:1 с сайта COPY.stages в NeuroPet.astro)
+// живут в словаре LanguageContext (ключи petStage1..petStage3) — рендер через t(`petStage${stage}`).
 
 /**
  * Реплики питомца — 1:1 с сайта (REACTIONS в NeuroPet.astro), 11 языков

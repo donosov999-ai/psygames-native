@@ -31,10 +31,10 @@ import {
 } from '@/src/services/appFeedback';
 import { isRTLLang } from '@/src/services/rtl';
 
-const KINDS: { key: FeedbackKind; emoji: string; ru: string; en: string }[] = [
-  { key: 'confusion', emoji: '🤷', ru: 'Непонятно',  en: 'Confusing' },
-  { key: 'bug',       emoji: '🐞', ru: 'Не работает', en: 'Broken' },
-  { key: 'idea',      emoji: '💡', ru: 'Идея',        en: 'Idea' },
+const KINDS: { key: FeedbackKind; emoji: string; labelKey: string }[] = [
+  { key: 'confusion', emoji: '🤷', labelKey: 'fbKindConfusion' },
+  { key: 'bug',       emoji: '🐞', labelKey: 'fbKindBug' },
+  { key: 'idea',      emoji: '💡', labelKey: 'fbKindIdea' },
 ];
 
 export default function FeedbackWidget() {
@@ -43,7 +43,6 @@ export default function FeedbackWidget() {
   const { t, language } = useLanguage();
   const { profile } = useProfile();
   const pathname = usePathname() || '';
-  const ru = language === 'ru';
   // RTL: кнопка зеркалится к правому краю (а «?»-справка уходит влево) — не конфликтуем
   const rtl = isRTLLang(language);
 
@@ -190,7 +189,7 @@ export default function FeedbackWidget() {
                           {/* flexShrink+numberOfLines: при крупном шрифте подпись
                               усекается внутри трети-кнопки, а не ломает ряд */}
                           <Text numberOfLines={1} style={{ color: on ? '#fff' : colors.text, fontWeight: '700', fontSize: 12, flexShrink: 1 }}>
-                            {ru ? k.ru : k.en}
+                            {t(k.labelKey)}
                           </Text>
                         </TouchableOpacity>
                       );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
-  ScrollView
+  ScrollView, PanResponder, Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -14,6 +14,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -41,6 +42,10 @@ function levelParams(level: number): { gridSize: number; baseFlashes: number; fl
 
 const SERIES1_COLOR = '#8e2de2';   // фиолетовая серия (как GRADIENT[0])
 const SERIES2_COLOR = '#ef4444';   // красная серия
+
+// Свайп-выбор (паттерн trail-making): зазор сетки участвует в хит-тесте пальца
+const CELL_GAP = 6;    // = styles.gridArea.gap и расчёту ширины поля — держать синхронно
+const DRAG_SLOP = 6;   // до этого смещения (px) жест считается тапом и уходит клетке-TouchableOpacity
 
 export default function MemoryMatrixGame() {
   const { colors } = useTheme();
@@ -77,6 +82,14 @@ export default function MemoryMatrixGame() {
   const baseFlashesRef = useRef(3);
   const flashMsRef = useRef(1500);
 
+  // ── Свайп-выбор клеток (паттерн trail-making: PanResponder + onLayout-геометрия) ──
+  // PanResponder создан один раз → фазу читает из рефа, не из stale-замыкания
+  const phaseRef = useRef<GamePhase>('intro');
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+  const gridRef = useRef<View>(null);
+  const gridOffsetRef = useRef({ x: 0, y: 0 });          // позиция сетки в окне: pageX/Y → локальные координаты
+  const swipedCellsRef = useRef<Set<number>>(new Set()); // клетки, уже обработанные ТЕКУЩИМ жестом (1 toggle на жест)
+
   const numLit = (n: number) => Math.min(n * n - 1, Math.max(3, 2 + Math.floor(n / 2) + Math.floor(round / 3)));
 
   const newRound = (gs: number, r: number) => {
@@ -100,6 +113,7 @@ export default function MemoryMatrixGame() {
     setPickedCells(new Set());
     setPickedSequence([]);
     setInputSeries(0);
+    swipedCellsRef.current = new Set();   // палец могли не отрывать через feedback → новый раунд = чистый жест
     setPhase('showing');
 
     if (matrixMode === 'static') {
@@ -187,6 +201,7 @@ export default function MemoryMatrixGame() {
     const wrongPicked = !isHit;
     if (allFound || wrongPicked) {
       setFeedbackMsg(allFound && !wrongPicked ? t('matrixGood') : t('matrixMissed'));
+      phaseRef.current = 'feedback';   // синхронно (useEffect-синк ленивый): хвост свайпа не должен кликать после конца раунда
       setPhase('feedback');
       setTimeout(async () => {
         if (round >= totalRounds) {
@@ -226,10 +241,65 @@ export default function MemoryMatrixGame() {
   // v1.29.1 (мобайл): full-width сетка — зажим 420px + потолок 70 делали её мелкой по центру.
   // Высотный лимит (хедер+статус ≈ 280) держит ландшафт/десктоп; 110 — потолок больших окон.
   const cellSize = Math.min(
-    (width - 32 - (gridSize - 1) * 6) / gridSize,
-    (height - 280 - (gridSize - 1) * 6) / gridSize,
+    (width - 32 - (gridSize - 1) * CELL_GAP) / gridSize,
+    (height - 280 - (gridSize - 1) * CELL_GAP) / gridSize,
     110
   );
+
+  // ── Свайп-выбор: ведёшь палец по полю — клетки под ним отмечаются (как выделение фото в галерее) ──
+  const measureGrid = () => {
+    gridRef.current?.measureInWindow((x, y) => {
+      // на web pageX/pageY включают прокрутку документа, measureInWindow — нет
+      const sx = Platform.OS === 'web' && typeof window !== 'undefined' ? window.scrollX : 0;
+      const sy = Platform.OS === 'web' && typeof window !== 'undefined' ? window.scrollY : 0;
+      gridOffsetRef.current = { x: x + sx, y: y + sy };
+    });
+  };
+
+  // Точка (page-координаты) → индекс клетки; зазор справа/снизу отдаём клетке (палец толстый)
+  const cellAtPoint = (pageX: number, pageY: number): number => {
+    const x = pageX - gridOffsetRef.current.x;
+    const y = pageY - gridOffsetRef.current.y;
+    if (x < 0 || y < 0) return -1;
+    const step = cellSize + CELL_GAP;
+    const col = Math.floor(x / step);
+    const row = Math.floor(y / step);
+    if (col >= gridSize || row >= gridSize) return -1;
+    return row * gridSize + col;
+  };
+
+  // Палец над клеткой: обрабатываем её ОДИН раз за жест той же логикой, что тап
+  const onSwipeAt = (pageX: number, pageY: number) => {
+    if (phaseRef.current !== 'input') return;
+    const idx = cellAtPoint(pageX, pageY);
+    if (idx < 0 || swipedCellsRef.current.has(idx)) return;
+    swipedCellsRef.current.add(idx);
+    handleCellPress(idx);
+  };
+
+  const endSwipe = () => { swipedCellsRef.current = new Set(); };
+
+  // PanResponder создаётся один раз — свежие замыкания (state в handleCellPress,
+  // cellSize/gridSize в cellAtPoint) идут через ref, иначе поймаем stale closure первого рендера.
+  const swipeHandlersRef = useRef({ onSwipeAt, endSwipe });
+  swipeHandlersRef.current = { onSwipeAt, endSwipe };
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,      // чистый тап отдаём клетке-TouchableOpacity (работает как раньше)
+      onMoveShouldSetPanResponder: (_e, g) =>
+        phaseRef.current === 'input' && (Math.abs(g.dx) > DRAG_SLOP || Math.abs(g.dy) > DRAG_SLOP),
+      onMoveShouldSetPanResponderCapture: (_e, g) =>   // забрать жест у клетки, с которой начали вести
+        phaseRef.current === 'input' && (Math.abs(g.dx) > DRAG_SLOP || Math.abs(g.dy) > DRAG_SLOP),
+      onPanResponderTerminationRequest: () => false,   // начатый свайп никому не отдаём (в т.ч. скроллу каркаса)
+      onPanResponderGrant: (e) => {
+        measureGrid();                                 // подстраховка: оффсет мог уехать после layout
+        swipeHandlersRef.current.onSwipeAt(e.nativeEvent.pageX, e.nativeEvent.pageY);
+      },
+      onPanResponderMove: (_e, g) => swipeHandlersRef.current.onSwipeAt(g.moveX, g.moveY),
+      onPanResponderRelease: () => swipeHandlersRef.current.endSwipe(),
+      onPanResponderTerminate: () => swipeHandlersRef.current.endSwipe(),
+    })
+  ).current;
 
   const renderConfig = () => (
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
@@ -301,62 +371,76 @@ export default function MemoryMatrixGame() {
     </ScrollView>
   );
 
-  const renderGrid = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalRounds}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{score}</Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-        {phase === 'showing'
-          ? (seriesCountRef.current === 2 && matrixMode === 'static'
-              ? (showingSeries === 2 ? (language === 'ru' ? '🔴 Запомни КРАСНЫЕ' : '🔴 Memorize RED') : (language === 'ru' ? '🟣 Запомни ФИОЛЕТОВЫЕ' : '🟣 Memorize PURPLE'))
-              : t('matrixMemorize'))
-          : phase === 'input'
-          ? (seriesCountRef.current === 2 && matrixMode === 'static'
-              ? (inputSeries === 1 ? (language === 'ru' ? '🔴 Теперь КРАСНЫЕ' : '🔴 Now RED') : (language === 'ru' ? '🟣 Сначала ФИОЛЕТОВЫЕ' : '🟣 Purple first'))
-              : t('matrixRecall'))
-          : feedbackMsg}
-      </Text>
-      <View
-        style={[styles.gridArea, { width: gridSize * (cellSize + 6) - 6, height: gridSize * (cellSize + 6) - 6 }]}
+  // playing-фазы (showing/input/feedback) — на едином каркасе GameShell:
+  // самодельная шапка и строка счётчиков заменены слотами каркаса, логика поля 1:1
+  if (phase === 'showing' || phase === 'input' || phase === 'feedback') {
+    return (
+      <GameShell
+        title={t('memoryMatrix')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalRounds}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{score}</Text>
+          </View>
+        }
       >
-        {Array.from({ length: gridSize * gridSize }).map((_, i) => {
-          const two = seriesCountRef.current === 2 && matrixMode === 'static';
-          const inSeries1 = litCells.has(i);
-          const inSeries2 = series2.has(i);
-          const showLit = matrixMode === 'static'
-            ? ((showingSeries === 1 && inSeries1) || (showingSeries === 2 && inSeries2))
-            : (activeIdx === i);
-          const targetHas = two ? (inputSeries === 1 ? inSeries2 : inSeries1) : inSeries1;   // целевая серия ввода
-          const isPicked = pickedCells.has(i);
-          let bg = colors.surface;
-          let border = colors.textSecondary;   // заметная рамка (было colors.border — бледная, поля не видно на светлой теме)
-          if (phase === 'showing' && showLit) bg = showingSeries === 2 ? SERIES2_COLOR : SERIES1_COLOR;
-          else if (phase === 'input' && isPicked) bg = targetHas ? '#22c55e' : '#f43f5e';
-          else if (phase === 'feedback') {
-            const inAny = inSeries1 || inSeries2;
-            if (inAny && !isPicked) bg = '#fbbf24';
-            else if (inAny && isPicked) bg = '#22c55e';
-            else if (!inAny && isPicked) bg = '#f43f5e';
-          }
-          return (
-            <TouchableOpacity
-              key={i}
-              activeOpacity={0.7}
-              onPress={() => handleCellPress(i)}
-              style={[
-                styles.cell,
-                { width: cellSize, height: cellSize, backgroundColor: bg, borderColor: border, borderWidth: 2 },
-              ]}
-            />
-          );
-        })}
-      </View>
-    </View>
-  );
+        <View style={styles.fieldCol}>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            {phase === 'showing'
+              ? (seriesCountRef.current === 2 && matrixMode === 'static'
+                  ? (showingSeries === 2 ? (language === 'ru' ? '🔴 Запомни КРАСНЫЕ' : '🔴 Memorize RED') : (language === 'ru' ? '🟣 Запомни ФИОЛЕТОВЫЕ' : '🟣 Memorize PURPLE'))
+                  : t('matrixMemorize'))
+              : phase === 'input'
+              ? (seriesCountRef.current === 2 && matrixMode === 'static'
+                  ? (inputSeries === 1 ? (language === 'ru' ? '🔴 Теперь КРАСНЫЕ' : '🔴 Now RED') : (language === 'ru' ? '🟣 Сначала ФИОЛЕТОВЫЕ' : '🟣 Purple first'))
+                  : t('matrixRecall'))
+              : feedbackMsg}
+          </Text>
+          <View
+            ref={gridRef}
+            onLayout={measureGrid}
+            {...panResponder.panHandlers}
+            style={[styles.gridArea, { width: gridSize * (cellSize + CELL_GAP) - CELL_GAP, height: gridSize * (cellSize + CELL_GAP) - CELL_GAP }]}
+          >
+            {Array.from({ length: gridSize * gridSize }).map((_, i) => {
+              const two = seriesCountRef.current === 2 && matrixMode === 'static';
+              const inSeries1 = litCells.has(i);
+              const inSeries2 = series2.has(i);
+              const showLit = matrixMode === 'static'
+                ? ((showingSeries === 1 && inSeries1) || (showingSeries === 2 && inSeries2))
+                : (activeIdx === i);
+              const targetHas = two ? (inputSeries === 1 ? inSeries2 : inSeries1) : inSeries1;   // целевая серия ввода
+              const isPicked = pickedCells.has(i);
+              let bg = colors.surface;
+              let border = colors.textSecondary;   // заметная рамка (было colors.border — бледная, поля не видно на светлой теме)
+              if (phase === 'showing' && showLit) bg = showingSeries === 2 ? SERIES2_COLOR : SERIES1_COLOR;
+              else if (phase === 'input' && isPicked) bg = targetHas ? '#22c55e' : '#f43f5e';
+              else if (phase === 'feedback') {
+                const inAny = inSeries1 || inSeries2;
+                if (inAny && !isPicked) bg = '#fbbf24';
+                else if (inAny && isPicked) bg = '#22c55e';
+                else if (!inAny && isPicked) bg = '#f43f5e';
+              }
+              return (
+                <TouchableOpacity
+                  key={i}
+                  activeOpacity={0.7}
+                  onPress={() => handleCellPress(i)}
+                  style={[
+                    styles.cell,
+                    { width: cellSize, height: cellSize, backgroundColor: bg, borderColor: border, borderWidth: 2 },
+                  ]}
+                />
+              );
+            })}
+          </View>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -380,7 +464,6 @@ export default function MemoryMatrixGame() {
         />
       )}
       {phase === 'config' && renderConfig()}
-      {(phase === 'showing' || phase === 'input' || phase === 'feedback') && renderGrid()}
       {phase === 'cleared' && (
         <LevelCleared gameId="memory_matrix" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors} passed={clearedPassed}
@@ -414,11 +497,12 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, alignItems: 'center', gap: 14 },
+  // колонка внутри поля GameShell: подсказка + сетка (само центрирование делает каркас)
+  fieldCol: { alignItems: 'center', gap: 14 },
   // 4 счётчика при крупном шрифте не влезали в ряд и уезжали за край → переносим
   statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center', flexWrap: 'wrap' },
   statText: { fontSize: 15, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', minHeight: 18 },
-  gridArea: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start' },
+  gridArea: { flexDirection: 'row', flexWrap: 'wrap', gap: CELL_GAP, justifyContent: 'flex-start' },
   cell: { borderRadius: 8, borderWidth: 1 },
 });

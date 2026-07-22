@@ -366,7 +366,8 @@ export default function SamuraiSudokuGame() {
   };
 
   const boardEl = (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', width: cellSize * SIZE }}>
+    // RTL-пин: зеркалирование ломает жирные границы боксов (физические border на логических колонках)
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', width: cellSize * SIZE, writingDirection: 'ltr' } as any}>
       {grid.map((row, r) => row.map((_, c) => renderCell(r, c)))}
     </View>
   );
@@ -505,7 +506,8 @@ const styles = StyleSheet.create({
   statText: { fontSize: 14, fontWeight: '700' },
   zoomBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
   zoomScroll: { flex: 1, alignSelf: 'stretch' },
-  numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center' },
+  // RTL-пин: цифровой ряд 1..9 не зеркалится (конвенция цифровых клавиатур в RTL-локалях)
+  numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr' },
   numBtn: { width: 46, height: 46, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   hintBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   hintBtnText: { color: '#000', fontSize: 13, fontWeight: '700' },

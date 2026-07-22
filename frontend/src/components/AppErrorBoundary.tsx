@@ -9,6 +9,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { reportCrash } from '@/src/services/crashReport';
+import { translateFor } from '@/src/contexts/LanguageContext';
 
 interface State { error: Error | null }
 
@@ -27,21 +28,21 @@ export default class AppErrorBoundary extends React.Component<{ children: React.
 
   render() {
     if (!this.state.error) return this.props.children;
-    const isRu = (() => {
-      try { return ((globalThis as any).navigator?.language || 'ru').startsWith('ru'); } catch { return true; }
+    // Вне LanguageProvider (границей ловим и его падение) → язык берём из системного
+    // navigator.language + standalone-резолвер translateFor (crash* в словаре, все 12 языков;
+    // неизвестный код языка падает на EN, отказ navigator — на RU как раньше).
+    const lang = (() => {
+      try { return (((globalThis as any).navigator?.language || 'ru') as string).slice(0, 2).toLowerCase(); } catch { return 'ru'; }
     })();
     return (
       <View style={styles.wrap}>
         <View style={styles.card}>
           <Text style={styles.emoji}>🛠️</Text>
-          <Text style={styles.title}>{isRu ? 'Что-то сломалось' : 'Something broke'}</Text>
+          <Text style={styles.title}>{translateFor(lang, 'crashTitle')}</Text>
           <Text style={styles.msg} numberOfLines={3}>{this.state.error.message}</Text>
-          <Text style={styles.hint}>
-            {isRu ? 'Отчёт об ошибке уже отправлен. Твои данные целы — они хранятся локально.'
-                  : 'The error report has been sent. Your data is safe — it is stored locally.'}
-          </Text>
+          <Text style={styles.hint}>{translateFor(lang, 'crashHint')}</Text>
           <TouchableOpacity style={styles.btn} onPress={this.reset} activeOpacity={0.85}>
-            <Text style={styles.btnText}>{isRu ? 'ПЕРЕЗАПУСТИТЬ' : 'RESTART'}</Text>
+            <Text style={styles.btnText}>{translateFor(lang, 'crashRestart')}</Text>
           </TouchableOpacity>
         </View>
       </View>

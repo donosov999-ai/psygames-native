@@ -362,11 +362,12 @@ const styles = StyleSheet.create({
   fieldCol: { alignItems: 'center', gap: 12 },
   statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '800' },
-  legend: { flexDirection: 'row', justifyContent: 'center', gap: 3, padding: 8, borderRadius: 10 },
+  // RTL-пин: легенда символ→цифра идёт 1..9 слева направо (канон SDMT), кейпад 1..9 не зеркалится
+  legend: { flexDirection: 'row', justifyContent: 'center', gap: 3, padding: 8, borderRadius: 10, writingDirection: 'ltr' },
   legendCell: { alignItems: 'center', borderWidth: 1, borderRadius: 6, paddingVertical: 4, gap: 2 },
   legendDigit: { fontSize: 15, fontWeight: '800' },
   stimBox: { borderRadius: 20, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
-  padGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+  padGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', writingDirection: 'ltr' },
   padBtn: { borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   padText: { color: '#FFF', fontSize: 24, fontWeight: '900' },
 });

@@ -28,88 +28,27 @@ const GAME_COUNT = GAMES.filter((g) => !['span_group', 'attention_conflict'].inc
 interface Slide {
   emoji: string;
   gradient: [string, string];
-  title: { ru: string; en: string };
-  body: { ru: string; en: string };
+  titleKey: string;   // ключи словаря LanguageContext (onbSlide*Title/Body) — рендер через t()
+  bodyKey: string;    // {n} в onbSlideWelcomeBody подставляется .replace() при рендере
   kind?: 'notifications' | 'final';
 }
 
 const SLIDES: Slide[] = [
-  {
-    emoji: '🧠',
-    gradient: ['#7c3aed', '#ec4899'],
-    title: { ru: 'Добро пожаловать в PsyGames', en: 'Welcome to PsyGames' },
-    body: {
-      ru: `${GAME_COUNT} когнитивных игр — память, внимание, логика, контроль, счёт, скорость. Каждая измеряет конкретный психометрический биомаркер.`,
-      en: `${GAME_COUNT} cognitive games — memory, attention, logic, control, math, speed. Each one measures a specific psychometric biomarker.`,
-    },
-  },
-  {
-    emoji: '⚡',
-    gradient: ['#fbbf24', '#f59e0b'],
-    title: { ru: 'Утренняя Зарядка', en: 'Morning Warm-up' },
-    body: {
-      // латиница «Streak» в русском тексте — опечатка; термин по всему приложению «стрик»
-      ru: '5–15 минут утром. Программа подбирается под день недели. ВТ — внимание, СР — отдых, СБ — логика. Стрик считается по дням.',
-      en: '5–15 minutes in the morning. The program adapts to the weekday. Tue — attention, Wed — rest, Sat — logic. Streak is counted by day.',
-    },
-  },
-  {
-    emoji: '🎲',
-    gradient: ['#ef4444', '#f97316'],
-    title: { ru: 'Ежедневный вызов', en: 'Daily challenge' },
-    body: {
-      ru: 'Каждый день — одна игра из ротации, одинаковая у всех игроков. Пройди раунд до конца — день засчитан, стрик 🔥 растёт. Пропустил день — стрик сгорает.',
-      en: 'Every day — one game from the rotation, the same for all players. Finish a round — the day counts and your 🔥 streak grows. Miss a day — the streak resets.',
-    },
-  },
-  {
-    emoji: '🎯',
-    gradient: ['#7c3aed', '#ec4899'],
-    title: { ru: 'Оцени свой профиль', en: 'Assess your profile' },
-    body: {
-      ru: '12 коротких тестов (≈12 минут) → radar chart твоих сильных и слабых сторон + персональные рекомендации игр. Повторяй раз в 3 месяца чтобы видеть прогресс.',
-      en: '12 short tests (≈12 minutes) → a radar chart of your strengths and weaknesses + personal game recommendations. Repeat every 3 months to track progress.',
-    },
-  },
-  {
-    emoji: '👤',
-    gradient: ['#22c55e', '#0d9488'],
-    title: { ru: 'Профили под цель', en: 'Goal-based profiles' },
-    body: {
-      ru: 'FREE — попробовать бесплатно, без кода. 11 тематических (Шахматы, Дети, Скорочтение, NZT-48, Водители, 50+, Предприниматели, Студенты ЕГЭ, Женщины, Полиглот, ODV999) — каждый со своим набором игр и плейлистом. Открываются мастер-кодом в Settings.',
-      en: 'FREE — try it free, no code. 11 themed (Chess, Kids, Speed reading, NZT-48, Drivers, 50+, Entrepreneurs, Exam students, Women, Polyglot, ODV999) — each with its own set of games and playlist. Unlock with a master code in Settings.',
-    },
-  },
-  {
-    emoji: '☁️',
-    gradient: ['#3b82f6', '#1e40af'],
-    title: { ru: 'Данные надёжны', en: 'Your data is safe' },
-    body: {
-      ru: 'Каждая сессия сохраняется и локально, и в облаке. Очистка кэша браузера = не страшно. История за месяцы и годы — твоя.',
-      en: 'Every session is saved both locally and in the cloud. Clearing your browser cache is no problem. Months and years of history are yours.',
-    },
-  },
+  { emoji: '🧠', gradient: ['#7c3aed', '#ec4899'], titleKey: 'onbSlideWelcomeTitle', bodyKey: 'onbSlideWelcomeBody' },
+  { emoji: '⚡', gradient: ['#fbbf24', '#f59e0b'], titleKey: 'onbSlideWarmupTitle', bodyKey: 'onbSlideWarmupBody' },
+  { emoji: '🎲', gradient: ['#ef4444', '#f97316'], titleKey: 'onbSlideChallengeTitle', bodyKey: 'onbSlideChallengeBody' },
+  { emoji: '🎯', gradient: ['#7c3aed', '#ec4899'], titleKey: 'onbSlideAssessTitle', bodyKey: 'onbSlideAssessBody' },
+  { emoji: '👤', gradient: ['#22c55e', '#0d9488'], titleKey: 'onbSlideProfilesTitle', bodyKey: 'onbSlideProfilesBody' },
+  { emoji: '☁️', gradient: ['#3b82f6', '#1e40af'], titleKey: 'onbSlideDataTitle', bodyKey: 'onbSlideDataBody' },
   // Уведомления — только натив (на web/desktop expo-notifications = no-op)
   ...(Platform.OS !== 'web' ? [{
     emoji: '🔔',
     gradient: ['#8b5cf6', '#6366f1'] as [string, string],
-    title: { ru: 'Напоминания', en: 'Reminders' },
-    body: {
-      ru: 'Одно мягкое напоминание утром в 9:00 — и тренировка не потеряется в делах. Время меняется в Settings, отключить можно там же.',
-      en: 'One gentle reminder at 9:00 AM keeps your training on track. Change the time or turn it off anytime in Settings.',
-    },
+    titleKey: 'onbSlideRemindTitle',
+    bodyKey: 'onbSlideRemindBody',
     kind: 'notifications' as const,
   }] : []),
-  {
-    emoji: '🚀',
-    gradient: ['#ef4444', '#f97316'],
-    title: { ru: 'Поехали!', en: 'Let’s go!' },
-    body: {
-      ru: 'Лучший способ понять PsyGames — сыграть прямо сейчас. Первый раунд займёт пару минут.',
-      en: 'The best way to get PsyGames is to play right now. Your first round takes a couple of minutes.',
-    },
-    kind: 'final' as const,
-  },
+  { emoji: '🚀', gradient: ['#ef4444', '#f97316'], titleKey: 'onbSlideGoTitle', bodyKey: 'onbSlideGoBody', kind: 'final' as const },
 ];
 
 export default function OnboardingScreen() {
@@ -201,8 +140,8 @@ export default function OnboardingScreen() {
       <LinearGradient colors={slide.gradient} start={{x:0,y:0}} end={{x:1,y:1}}
         style={[styles.slideCard, { width: containerW }]}>
         <Text style={styles.emoji}>{slide.emoji}</Text>
-        <Text style={styles.title}>{language === 'ru' ? slide.title.ru : slide.title.en}</Text>
-        <Text style={styles.body}>{language === 'ru' ? slide.body.ru : slide.body.en}</Text>
+        <Text style={styles.title}>{t(slide.titleKey)}</Text>
+        <Text style={styles.body}>{t(slide.bodyKey).replace('{n}', String(GAME_COUNT))}</Text>
         {isFinal && (
           <Text style={styles.finalHint}>
             {canWarmup

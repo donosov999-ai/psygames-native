@@ -340,14 +340,16 @@ export default function SimonGame() {
           </View>
         }
         toolbar={
-          <>
+          /* RTL-пин: стимул позиционируется физическими left/right (не зеркалится), значит и кнопка ←
+             обязана остаться физически слева — иначе конгруэнтность проб Саймона инвертируется */
+          <View style={styles.toolbarLtr}>
             <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: COLOR_BLUE }]} onPress={() => handleAnswer('left')}>
               <Ionicons name="arrow-back" size={32} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: COLOR_RED }]} onPress={() => handleAnswer('right')}>
               <Ionicons name="arrow-forward" size={32} color="#FFF" />
             </TouchableOpacity>
-          </>
+          </View>
         }
       >
         <View style={styles.fieldCol}>
@@ -443,4 +445,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   choiceBtn: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
+  // RTL-пин: раскладка кнопок лево/право не зеркалится в ar (web: writingDirection → CSS direction)
+  toolbarLtr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', writingDirection: 'ltr' },
 });

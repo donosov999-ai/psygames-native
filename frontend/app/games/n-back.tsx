@@ -21,6 +21,7 @@ import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -416,78 +417,91 @@ export default function NBackGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{nLevel}-back · {currentIdx + 1}/{trials}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
-        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
-      </View>
-      <View style={styles.gridArea}>
-        <View style={[styles.grid3x3, { width: nbGridSide, height: nbGridSide }]}>
-          {Array.from({ length: 9 }).map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.gridCell,
-                {
-                  width: nbCell,
-                  height: nbCell,
-                  backgroundColor: activeCell === i && showWindow ? GRADIENT[0] : colors.surface,
-                  borderColor: colors.border,
-                },
-              ]}
-            />
-          ))}
-        </View>
-      </View>
-      {/* In dual mode show the current letter visually too (for users without audio) */}
-      {modality === 'dual' && showWindow && activeLetter && (
-        <View style={[styles.letterDisplay, { backgroundColor: GRADIENT[1] }]}>
-          <Text style={styles.letterText}>{activeLetter}</Text>
-        </View>
-      )}
-      <View style={modality === 'dual' ? styles.dualBtnRow : undefined}>
-        <TouchableOpacity
-          disabled={!waitingResponse || answeredRef.current}
-          onPress={handleMatchPress}
-          style={[
-            styles.matchButton,
-            modality === 'dual' && { flex: 1, marginRight: 8 },
-            {
-              backgroundColor: !waitingResponse ? colors.surface : answeredRef.current ? '#6b7280' : GRADIENT[1],
-            },
-          ]}
+  // playing-фаза — на едином каркасе GameShell (кнопки Match/Sound прибиты к низу); модалка правил поверх
+  if (phase === 'playing') {
+    return (
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('nBack')}
+          onBack={() => goBackOrHome()}
+          stats={
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>{nLevel}-back · {currentIdx + 1}/{trials}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>✓{hits}</Text>
+              <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
+              {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+            </View>
+          }
+          toolbar={
+            <View style={modality === 'dual' ? styles.dualBtnRow : undefined}>
+              <TouchableOpacity
+                disabled={!waitingResponse || answeredRef.current}
+                onPress={handleMatchPress}
+                style={[
+                  styles.matchButton,
+                  modality === 'dual' && { flex: 1, marginRight: 8 },
+                  {
+                    backgroundColor: !waitingResponse ? colors.surface : answeredRef.current ? '#6b7280' : GRADIENT[1],
+                  },
+                ]}
+              >
+                <Text style={styles.matchBtnText}>
+                  {waitingResponse ? (modality === 'dual' ? '👁 Position' : t('match')) : t('warmup')}
+                </Text>
+              </TouchableOpacity>
+              {modality === 'dual' && (
+                <TouchableOpacity
+                  disabled={!waitingResponse || aAnsweredRef.current}
+                  onPress={handleAudioMatchPress}
+                  style={[
+                    styles.matchButton,
+                    { flex: 1, marginLeft: 8, backgroundColor: !waitingResponse ? colors.surface : aAnsweredRef.current ? '#6b7280' : GRADIENT[0] },
+                  ]}
+                >
+                  <Text style={styles.matchBtnText}>
+                    {waitingResponse ? '🔊 Sound' : t('warmup')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          }
         >
-          <Text style={styles.matchBtnText}>
-            {waitingResponse ? (modality === 'dual' ? '👁 Position' : t('match')) : t('warmup')}
-          </Text>
-        </TouchableOpacity>
-        {modality === 'dual' && (
-          <TouchableOpacity
-            disabled={!waitingResponse || aAnsweredRef.current}
-            onPress={handleAudioMatchPress}
-            style={[
-              styles.matchButton,
-              { flex: 1, marginLeft: 8, backgroundColor: !waitingResponse ? colors.surface : aAnsweredRef.current ? '#6b7280' : GRADIENT[0] },
-            ]}
-          >
-            <Text style={styles.matchBtnText}>
-              {waitingResponse ? '🔊 Sound' : t('warmup')}
+          <View style={styles.fieldCol}>
+            <View style={[styles.grid3x3, { width: nbGridSide, height: nbGridSide }]}>
+              {Array.from({ length: 9 }).map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.gridCell,
+                    {
+                      width: nbCell,
+                      height: nbCell,
+                      backgroundColor: activeCell === i && showWindow ? GRADIENT[0] : colors.surface,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+            {/* In dual mode show the current letter visually too (for users without audio) */}
+            {modality === 'dual' && showWindow && activeLetter && (
+              <View style={[styles.letterDisplay, { backgroundColor: GRADIENT[1] }]}>
+                <Text style={styles.letterText}>{activeLetter}</Text>
+              </View>
+            )}
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+              {modality === 'dual'
+                ? (language === 'ru'
+                    ? `Жми Position если позиция повторяет ${nLevel} назад. Жми Sound если буква повторяет ${nLevel} назад. Можно жать оба`
+                    : `Tap Position if the position repeats ${nLevel} back. Tap Sound if the letter repeats ${nLevel} back. You can tap both`)
+                : t('nBackHint')}
             </Text>
-          </TouchableOpacity>
-        )}
+          </View>
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-        {modality === 'dual'
-          ? (language === 'ru'
-              ? `Жми Position если позиция повторяет ${nLevel} назад. Жми Sound если буква повторяет ${nLevel} назад. Можно жать оба`
-              : `Tap Position if the position repeats ${nLevel} back. Tap Sound if the letter repeats ${nLevel} back. You can tap both`)
-          : t('nBackHint')}
-      </Text>
-    </View>
-  );
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -511,7 +525,6 @@ export default function NBackGame() {
         />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       <LeaderboardModal
         visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
@@ -565,10 +578,9 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 20, gap: 24, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 24, flexWrap: 'wrap', justifyContent: 'center' },
+  fieldCol: { alignItems: 'center', gap: 24 },
+  statsRow: { flexDirection: 'row', gap: 24, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },
-  gridArea: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   grid3x3: { width: 240, height: 240, flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   gridCell: { width: 76, height: 76, borderRadius: 8, borderWidth: 1 },
   matchButton: { paddingVertical: 18, paddingHorizontal: 60, borderRadius: 12, alignItems: 'center' },

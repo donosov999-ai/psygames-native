@@ -320,7 +320,8 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
   eqBox: { paddingHorizontal: 30, paddingVertical: 22, borderRadius: 16 },
-  eqText: { fontSize: 36, fontWeight: '900' },
+  // RTL-пин: уравнение «(3×4)+2 = 14» в RTL-bidi перестраивает порядок — математика всегда LTR
+  eqText: { fontSize: 36, fontWeight: '900', writingDirection: 'ltr' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
   // крупный шрифт: две кнопки «Правильно/Неправильно» с длинными подписями не влезали в ряд → перенос + ужимание текста
   choiceRow: { flexDirection: 'row', gap: 16, flexWrap: 'wrap', justifyContent: 'center' },

@@ -530,7 +530,10 @@ export default function SudokuGame() {
       </View>
     );
     const gridEl = (
-      <View style={{ alignSelf: 'center' }}>
+      // RTL-пин: зеркалирование ломает жирные границы боксов (физический borderRight на логической
+      // колонке), сегменты thermo/arrow (физический left «к соседу справа») и SVG-оверлеи
+      // (диагональ/клетки рисуются в физических координатах поверх перевёрнутой сетки)
+      <View style={{ alignSelf: 'center', writingDirection: 'ltr' } as any}>
         {variant === 'sandwich' && sandwich && (
           <View style={{ flexDirection: 'row', marginLeft: Math.round(cellSize * 0.6), marginBottom: 2 }}>
             {sandwich.cols.map((s, c) => (
@@ -846,7 +849,8 @@ const styles = StyleSheet.create({
   gridArea: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 2, borderRadius: 4, position: 'relative' },
   cell: { justifyContent: 'center', alignItems: 'center' },
   cellText: { fontSize: 28, fontWeight: '600' },
-  numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center' },
+  // RTL-пин: цифровой ряд 1..9 не зеркалится (конвенция цифровых клавиатур в RTL-локалях)
+  numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr' },
   numBtn: { width: 50, height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   numText: { color: '#FFF', fontSize: 26, fontWeight: '800' },
   hintRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 8, flexWrap: 'wrap' },

@@ -10,6 +10,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
@@ -293,34 +294,46 @@ export default function StroopEmotionalGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trialsRef.current}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
-        <Text style={[styles.statText, { color: '#ef4444' }]}>IT {interfThreat}</Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('stroop2Hint')}</Text>
-      <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
-        {showStim ? (
-          <Text style={{ color: COLOR_HEX[trial.color], fontSize: 44, fontWeight: '900', letterSpacing: 2 }}>
-            {trial.word}
-          </Text>
-        ) : (
-          <Text style={{ color: colors.textSecondary, fontSize: 36 }}>+</Text>
-        )}
-      </View>
-      <View style={styles.choiceGrid}>
-        {COLORS_RGB.map((c) => (
-          <TouchableOpacity key={c} style={[styles.colorBtn, { backgroundColor: COLOR_HEX[c] }]} onPress={() => handleAnswer(c)}>
-            <Text style={styles.colorBtnText}>{t('color_'+c)}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
+  // playing-фаза — на едином каркасе GameShell (цветные кнопки прибиты к низу)
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('stroopEmotional')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{trialsRef.current}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
+            <Text style={[styles.statText, { color: '#ef4444' }]}>IT {interfThreat}</Text>
+          </View>
+        }
+        toolbar={
+          <View style={styles.choiceGrid}>
+            {COLORS_RGB.map((c) => (
+              <TouchableOpacity key={c} style={[styles.colorBtn, { backgroundColor: COLOR_HEX[c] }]} onPress={() => handleAnswer(c)}>
+                <Text style={styles.colorBtnText}>{t('color_'+c)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('stroop2Hint')}</Text>
+          <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
+            {showStim ? (
+              <Text style={{ color: COLOR_HEX[trial.color], fontSize: 44, fontWeight: '900', letterSpacing: 2 }}>
+                {trial.word}
+              </Text>
+            ) : (
+              <Text style={{ color: colors.textSecondary, fontSize: 36 }}>+</Text>
+            )}
+          </View>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -337,7 +350,6 @@ export default function StroopEmotionalGame() {
           benefits={STROOP2_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
@@ -379,7 +391,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 16, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 16 },
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },

@@ -366,7 +366,8 @@ export default function SwitchingTaskGame() {
     if (mode === 'mix') {
       const numOn = meta.emph === 'num';
       return (
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        // RTL-пин: составной стимул «цифра+буква» читается в одном порядке во всех локалях
+        <View style={{ flexDirection: 'row', alignItems: 'center', writingDirection: 'ltr' } as any}>
           <Text style={[styles.stimText, { fontSize: stStim * 0.42, color: numOn ? meta.color : colors.textSecondary, opacity: numOn ? 1 : 0.3 }]}>{trial.num}</Text>
           <Text style={[styles.stimText, { fontSize: stStim * 0.42, color: !numOn ? meta.color : colors.textSecondary, opacity: !numOn ? 1 : 0.3 }]}>{trial.letter}</Text>
         </View>
@@ -488,7 +489,8 @@ const styles = StyleSheet.create({
   cueSwitch: { color: '#FFF', fontSize: 18, fontWeight: '900' },
   stimBox: { borderRadius: 24, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   stimText: { fontWeight: '900' },
-  choiceRow: { flexDirection: 'row', gap: 16 },
+  // RTL-пин: подписи кнопок содержат ←/→ (глифы не зеркалятся) — раскладка не переворачивается в ar
+  choiceRow: { flexDirection: 'row', gap: 16, writingDirection: 'ltr' },
   choiceBtn: { paddingVertical: 16, paddingHorizontal: 22, borderRadius: 12, alignItems: 'center' },
   choiceTextSmall: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });

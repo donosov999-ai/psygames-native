@@ -16,6 +16,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#7028e4', '#e5b2ca'];
@@ -256,50 +257,63 @@ export default function PatternGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('patternHint')}</Text>
-      <View style={styles.sequenceArea}>
-        {seq.items.map((n, i) => (
-          <View key={i} style={[styles.seqCell, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            {/* число ряда — всегда одной строкой (иначе 111221 рвётся пополам) */}
-            <Text style={[styles.seqText, { color: colors.text }]} numberOfLines={1}>{n}</Text>
+  // playing-фаза — на едином каркасе GameShell (варианты ответа прибиты к низу,
+  // подсказка и её текст остаются в поле рядом с рядом)
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('pattern')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
           </View>
-        ))}
-        <View style={[styles.seqCell, { backgroundColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : 'transparent', borderColor: GRADIENT[0], borderWidth: 2 }]}>
-          <Text style={[styles.seqText, { color: feedback ? '#FFF' : GRADIENT[0] }]}>?</Text>
-        </View>
-      </View>
-      <View style={styles.optionsArea}>
-        {options.map((o, i) => (
-          <TouchableOpacity key={i}
-            disabled={feedback !== null}
-            onPress={() => handleAnswer(o)}
-            style={[styles.optBtn, { backgroundColor: GRADIENT[0] }]}
-          >
-            <Text style={styles.optText}>{o}</Text>
+        }
+        toolbar={
+          <View style={styles.optionsArea}>
+            {options.map((o, i) => (
+              <TouchableOpacity key={i}
+                disabled={feedback !== null}
+                onPress={() => handleAnswer(o)}
+                style={[styles.optBtn, { backgroundColor: GRADIENT[0] }]}
+              >
+                <Text style={styles.optText}>{o}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('patternHint')}</Text>
+          <View style={styles.sequenceArea}>
+            {seq.items.map((n, i) => (
+              <View key={i} style={[styles.seqCell, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                {/* число ряда — всегда одной строкой (иначе 111221 рвётся пополам) */}
+                <Text style={[styles.seqText, { color: colors.text }]} numberOfLines={1}>{n}</Text>
+              </View>
+            ))}
+            <View style={[styles.seqCell, { backgroundColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : 'transparent', borderColor: GRADIENT[0], borderWidth: 2 }]}>
+              <Text style={[styles.seqText, { color: feedback ? '#FFF' : GRADIENT[0] }]}>?</Text>
+            </View>
+          </View>
+          {hintStage >= 1 && (
+            <View style={[styles.hintBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
+              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14, textAlign: 'center' }}>💡 {language === 'ru' ? seq.classRu : seq.classEn}</Text>
+              {hintStage >= 2 && <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4, textAlign: 'center' }}>{language === 'ru' ? seq.ruleRu : seq.ruleEn}</Text>}
+            </View>
+          )}
+          <TouchableOpacity onPress={useHint} disabled={hintStage >= 2 || feedback !== null}
+            style={[styles.hintBtn, { borderColor: GRADIENT[0], opacity: (hintStage >= 2 || feedback !== null) ? 0.4 : 1 }]}>
+            <Text style={{ color: GRADIENT[0], fontWeight: '700', fontSize: 14 }}>
+              💡 {hintStage === 0 ? (language === 'ru' ? 'Подсказка' : 'Hint') : hintStage === 1 ? (language === 'ru' ? 'Ещё: правило (−1⭐)' : 'More: rule (−1⭐)') : (language === 'ru' ? 'Подсказка использована' : 'Hint used')}
+            </Text>
           </TouchableOpacity>
-        ))}
-      </View>
-      {hintStage >= 1 && (
-        <View style={[styles.hintBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
-          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14, textAlign: 'center' }}>💡 {language === 'ru' ? seq.classRu : seq.classEn}</Text>
-          {hintStage >= 2 && <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4, textAlign: 'center' }}>{language === 'ru' ? seq.ruleRu : seq.ruleEn}</Text>}
         </View>
-      )}
-      <TouchableOpacity onPress={useHint} disabled={hintStage >= 2 || feedback !== null}
-        style={[styles.hintBtn, { borderColor: GRADIENT[0], opacity: (hintStage >= 2 || feedback !== null) ? 0.4 : 1 }]}>
-        <Text style={{ color: GRADIENT[0], fontWeight: '700', fontSize: 14 }}>
-          💡 {hintStage === 0 ? (language === 'ru' ? 'Подсказка' : 'Hint') : hintStage === 1 ? (language === 'ru' ? 'Ещё: правило (−1⭐)' : 'More: rule (−1⭐)') : (language === 'ru' ? 'Подсказка использована' : 'Hint used')}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -316,7 +330,6 @@ export default function PatternGame() {
           benefits={PATTERN_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (() => {
         const base = errors === 0 ? 3 : errors <= 2 ? 2 : 1;
         const stars = hintUsedRef.current ? Math.min(2, base) : base;   // подсказка → потолок 2⭐
@@ -360,11 +373,12 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 18, gap: 18, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 24 },
+  fieldCol: { alignItems: 'center', gap: 18 },
+  statsRow: { flexDirection: 'row', gap: 24, justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320 },
-  sequenceArea: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap' },
+  // RTL-пин: числовой ряд с «?» в конце — порядок прогрессии всегда слева направо
+  sequenceArea: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap', writingDirection: 'ltr' },
   // жёсткие 64×64 резали длинные члены ряда («посмотри и скажи»: 111221) — при крупном
   // системном шрифте обрезало даже 3-значные. min* + паддинг: клетка растёт под текст, ряд переносится
   seqCell: { minWidth: 64, minHeight: 64, paddingHorizontal: 8, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
