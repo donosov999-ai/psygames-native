@@ -51,7 +51,12 @@ const SUB_GAMES = [
 
 export default function SpanGame() {
   // Web-demo: хаб-выбор модальности не показываем — сразу первая подигра.
-  if (isWebDemo()) return <Redirect href="/games/digit-span" />;
+  // Query (embed=1, lang=…) обязан пережить редирект — embed-контракт с сайтом
+  // (запись Кодекса в SYNC 22.07: терялись embed/lang → всплывало интро).
+  if (isWebDemo()) {
+    const qs = typeof window !== 'undefined' ? window.location.search : '';
+    return <Redirect href={('/games/digit-span' + qs) as any} />;
+  }
 
   const { colors } = useTheme();
   const { t } = useLanguage();
