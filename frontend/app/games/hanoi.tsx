@@ -282,7 +282,8 @@ const styles = StyleSheet.create({
   // ставит башню в вертикальный ЦЕНТР экрана, а не прибивает к низу с пустым провалом сверху.
   // alignItems:flex-end оставлен намеренно — держит основания всех стержней на одной линии.
   // (Эталон math-sprint: игровое поле по центру.)
-  pegsArea: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end', paddingBottom: 12 },
+  // RTL-пин: правило «вся башня на последнем (правом) стержне» — порядок стержней не зеркалится
+  pegsArea: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end', paddingBottom: 12, writingDirection: 'ltr' },
   pegContainer: { borderWidth: 3, borderRadius: 8, paddingBottom: 4 },
   pegStack: { alignItems: 'center', justifyContent: 'flex-end', position: 'relative', minHeight: 220 },
   pole: { position: 'absolute', width: 6, height: 200, bottom: 4, borderRadius: 3, opacity: 0.3 },

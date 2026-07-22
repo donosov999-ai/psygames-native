@@ -10,6 +10,7 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
+import { translateFor } from '@/src/contexts/LanguageContext';
 
 const KEY = 'psygames_reminders';
 
@@ -39,17 +40,8 @@ if (Platform.OS !== 'web') {
   });
 }
 
-// Двуязычный текст уведомлений (натив не имеет доступа к useLanguage — берём lang параметром).
-const TEXT = {
-  morning: {
-    ru: { title: '🧠 Пора на зарядку', body: 'Утренний когнитивный комплекс готов — 5-10 минут' },
-    en: { title: '🧠 Time to train', body: 'Your morning cognitive warm-up is ready — 5-10 min' },
-  },
-  evening: {
-    ru: { title: '🌙 Перед сном', body: 'Спокойный вечерний комплекс — мягко завершить день' },
-    en: { title: '🌙 Before sleep', body: 'A calm evening session to wind down the day' },
-  },
-};
+// Тексты уведомлений — в словаре LanguageContext (remindMorning*/remindEvening*, все 12 языков).
+// Сервис вне React-дерева → translateFor(lang, key), lang приходит параметром.
 
 export async function loadReminderSettings(): Promise<ReminderSettings> {
   try {
@@ -79,18 +71,17 @@ export async function requestReminderPermission(): Promise<boolean> {
 /** Перепланировать все напоминания согласно настройкам (cancel-all → schedule). */
 export async function applyReminders(s: ReminderSettings, lang: string): Promise<void> {
   if (Platform.OS === 'web') return;
-  const L = lang === 'ru' ? 'ru' : 'en';
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
     if (s.morning) {
       await Notifications.scheduleNotificationAsync({
-        content: { title: TEXT.morning[L].title, body: TEXT.morning[L].body, data: { type: 'morning' } },
+        content: { title: translateFor(lang, 'remindMorningTitle'), body: translateFor(lang, 'remindMorningBody'), data: { type: 'morning' } },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour: s.morningHour, minute: 0 },
       });
     }
     if (s.evening) {
       await Notifications.scheduleNotificationAsync({
-        content: { title: TEXT.evening[L].title, body: TEXT.evening[L].body, data: { type: 'evening' } },
+        content: { title: translateFor(lang, 'remindEveningTitle'), body: translateFor(lang, 'remindEveningBody'), data: { type: 'evening' } },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour: s.eveningHour, minute: 0 },
       });
     }

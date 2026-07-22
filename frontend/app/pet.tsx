@@ -17,7 +17,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import SynapsePet from '@/src/components/pet/SynapsePet';
-import { getPetStats, pickReaction, PetStats, STAGE_NAMES } from '@/src/services/pet';
+import { getPetStats, pickReaction, PetStats } from '@/src/services/pet';
 
 /** Цвета шкал — 1:1 с сайта (.pet-skill-memory и т.д.) */
 const SKILL_COLORS: Record<keyof PetStats['skills'], string> = {
@@ -41,7 +41,7 @@ export default function PetScreen() {
   if (isWebDemo()) return <Redirect href="/" />;
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  const ru = language === 'ru';   // остался только для русской плюрализации и выбора локали данных STAGE_NAMES
+  const ru = language === 'ru';   // остался только для русской плюрализации (ruTrainings)
 
   const [stats, setStats] = React.useState<PetStats | null>(null);
   // Реплика выбирается раз на визит (не на каждый рендер) — питомец «здоровается»
@@ -65,7 +65,7 @@ export default function PetScreen() {
   };
 
   const stage = stats?.stage ?? 1;
-  const stageName = STAGE_NAMES[ru ? 'ru' : 'en'][stage - 1];
+  const stageName = t(`petStage${stage}`);
   const total = stats?.total ?? 0;
 
   return (

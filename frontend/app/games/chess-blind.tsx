@@ -462,7 +462,9 @@ export default function ChessBlindGame() {
     const pickTargetSq = phase === 'quiz' && prm.quizType === 'pick' && currentQ ? currentQ.sq : -1;
 
     return (
-      <View style={{ width: boardSize, height: boardSize, borderRadius: 6, overflow: 'hidden' }}>
+      // RTL-пин: шахматная доска канонически LTR (a-файл слева, светлая клетка справа внизу) —
+      // зеркальная доска нарушает нотацию; writingDirection → CSS direction на web, нативу no-op
+      <View style={{ width: boardSize, height: boardSize, borderRadius: 6, overflow: 'hidden', writingDirection: 'ltr' } as any}>
         {Array.from({ length: 8 }).map((_, r) => (
           <View key={r} style={{ flexDirection: 'row' }}>
             {Array.from({ length: 8 }).map((_, c) => {

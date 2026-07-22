@@ -28,6 +28,7 @@ import { sndPlace } from '@/src/services/feedback';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -383,66 +384,78 @@ export default function AnagramGame() {
     }
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        {wordSec > 0 && (
-          <Text style={[styles.statText, { color: wordLeft <= 10 ? '#f43f5e' : colors.text }]}>⏱{wordLeft}</Text>
-        )}
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('anagramHint')}</Text>
-      {/* 💡 Hint banner — короткий намёк на слово */}
-      {hint ? (
-        <View style={[styles.hintBanner, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
-          <Text style={[styles.hintBannerEmoji]}>💡</Text>
-          <Text style={[styles.hintBannerText, { color: colors.text }]}>{hint}</Text>
-        </View>
-      ) : null}
-      <View style={styles.pickedRow}>
-        {Array.from({ length: target.length }).map((_, i) => (
-          <View key={i} style={[styles.pickedSlot, { borderColor: colors.textSecondary, backgroundColor: colors.surface }]}>
-            <Text style={[styles.pickedLetter, { color: colors.text }]}>
-              {picked[i] !== undefined ? letters[picked[i]] : ''}
-            </Text>
+  // playing-фаза — на едином каркасе GameShell (кнопки Подсказка/Сброс прибиты к низу)
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('anagrams')}
+        onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            {wordSec > 0 && (
+              <Text style={[styles.statText, { color: wordLeft <= 10 ? '#f43f5e' : colors.text }]}>⏱{wordLeft}</Text>
+            )}
           </View>
-        ))}
-      </View>
-      <View style={styles.lettersRow}>
-        {letters.map((l, i) => (
-          <TouchableOpacity
-            key={i}
-            disabled={picked.includes(i)}
-            onPress={() => handleLetterPress(i)}
-            activeOpacity={0.8}
-            style={[
-              styles.letterBtn,
-              {
-                backgroundColor: picked.includes(i) ? colors.surface : GRADIENT[0],
-                opacity: picked.includes(i) ? 0.3 : 1,
-              },
-            ]}
-          >
-            <View style={styles.tileShine} pointerEvents="none" />
-            <Text style={[styles.letterText, { color: '#3f2b96' }]}>{l}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
-        {/* 💡 кнопка-подсказка только когда тумблер ВКЛ — иначе «хардкор» подсказку не выключал */}
-        {hintsOn && (
-          <TouchableOpacity onPress={revealHint} style={[styles.clearBtn, { flex: 1, backgroundColor: '#fbbf24' }]}>
-            <Text style={[styles.clearText, { color: '#1a1a1a' }]}>💡 {t('btn_hint')}{hintUses > 0 ? ` (${hintUses})` : ''}</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity onPress={() => setPicked([])} style={[styles.clearBtn, { flex: 1, backgroundColor: colors.surface }]}>
-          <Text style={[styles.clearText, { color: colors.text }]}>{t('clear')}</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+        }
+        toolbar={
+          <View style={styles.actionsRow}>
+            {/* 💡 кнопка-подсказка только когда тумблер ВКЛ — иначе «хардкор» подсказку не выключал */}
+            {hintsOn && (
+              <TouchableOpacity onPress={revealHint} style={[styles.clearBtn, { flex: 1, backgroundColor: '#fbbf24' }]}>
+                <Text style={[styles.clearText, { color: '#1a1a1a' }]}>💡 {t('btn_hint')}{hintUses > 0 ? ` (${hintUses})` : ''}</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={() => setPicked([])} style={[styles.clearBtn, { flex: 1, backgroundColor: colors.surface }]}>
+              <Text style={[styles.clearText, { color: colors.text }]}>{t('clear')}</Text>
+            </TouchableOpacity>
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('anagramHint')}</Text>
+          {/* 💡 Hint banner — короткий намёк на слово */}
+          {hint ? (
+            <View style={[styles.hintBanner, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
+              <Text style={[styles.hintBannerEmoji]}>💡</Text>
+              <Text style={[styles.hintBannerText, { color: colors.text }]}>{hint}</Text>
+            </View>
+          ) : null}
+          <View style={styles.pickedRow}>
+            {Array.from({ length: target.length }).map((_, i) => (
+              <View key={i} style={[styles.pickedSlot, { borderColor: colors.textSecondary, backgroundColor: colors.surface }]}>
+                <Text style={[styles.pickedLetter, { color: colors.text }]}>
+                  {picked[i] !== undefined ? letters[picked[i]] : ''}
+                </Text>
+              </View>
+            ))}
+          </View>
+          <View style={styles.lettersRow}>
+            {letters.map((l, i) => (
+              <TouchableOpacity
+                key={i}
+                disabled={picked.includes(i)}
+                onPress={() => handleLetterPress(i)}
+                activeOpacity={0.8}
+                style={[
+                  styles.letterBtn,
+                  {
+                    backgroundColor: picked.includes(i) ? colors.surface : GRADIENT[0],
+                    opacity: picked.includes(i) ? 0.3 : 1,
+                  },
+                ]}
+              >
+                <View style={styles.tileShine} pointerEvents="none" />
+                <Text style={[styles.letterText, { color: '#3f2b96' }]}>{l}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -460,7 +473,6 @@ export default function AnagramGame() {
           benefits={ANAGRAM_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="anagrams" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}
@@ -494,7 +506,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'flex-start', paddingHorizontal: 24, paddingTop: 12, gap: 12, alignItems: 'center' },  // поджато вверх: не центрировать по высоте + меньше верхний отступ/зазор
+  fieldCol: { alignItems: 'center', gap: 12 },
+  actionsRow: { flexDirection: 'row', gap: 10, flex: 1, maxWidth: 360 },
   statsRow: { flexDirection: 'row', gap: 24, flexWrap: 'wrap', justifyContent: 'center' },  // крупный шрифт: 4 стата переносятся, а не уезжают за край
   statText: { fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center' },
@@ -510,13 +523,14 @@ const styles = StyleSheet.create({
   },
   hintBannerEmoji: { fontSize: 20, flexShrink: 0 },  // иконка рядом с текстом не сжимается
   hintBannerText: { fontSize: 14, fontWeight: '600', flex: 1, minWidth: 0 },  // крупный шрифт: текст переносится внутри баннера, а не распирает его
-  pickedRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap' },
+  // RTL-пин: слоты собираемого слова (ru/en) заполняются слева направо — иначе слово читается задом наперёд
+  pickedRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap', writingDirection: 'ltr' },
   pickedSlot: { width: 44, height: 54, borderRadius: 8, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   pickedLetter: { fontSize: 22, fontWeight: '700' },
   lettersRow: { flexDirection: 'row', gap: 10, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 360 },
   letterBtn: { width: 56, height: 56, borderRadius: 14, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   tileShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '46%', backgroundColor: 'rgba(255,255,255,0.28)' },
   letterText: { fontSize: 24, fontWeight: '800' },
-  clearBtn: { paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginTop: 8, borderWidth: 1.5, borderColor: 'rgba(128,128,128,0.4)' },
+  clearBtn: { paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, borderWidth: 1.5, borderColor: 'rgba(128,128,128,0.4)', alignItems: 'center' },
   clearText: { fontSize: 13, fontWeight: '600' },
 });

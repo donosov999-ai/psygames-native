@@ -27,7 +27,7 @@ export interface BossConfig {
 
 interface Props {
   config: BossConfig;
-  language: string;
+  language: string;   // legacy: тексты теперь из t() (см. bossIntro*/bossHud* в словаре); проп оставлен — его передают все игры
   colors: any;
   onComplete: (win: boolean) => void;   // мягкий провал — игра решает, что дальше
 }
@@ -53,8 +53,8 @@ function mkOptionsFrom(answer: number, max: number): number[] {
 
 interface BossTask {
   kind: 'choose' | 'tapcell';
-  intro: { ru: string; en: string };
-  hud: { ru: string; en: string };
+  introKey: string;   // ключи словаря LanguageContext (bossIntro*/bossHud*) — рендер через t()
+  hudKey: string;
   cells?: { value: number | string; hl?: boolean }[];   // choose: визуальная сетка-подсказка
   cols?: number;
   options?: number[];
@@ -68,12 +68,12 @@ function makeTask(type: BossType): BossTask {
   if (type === 'lightning') {
     const n = 5, miss = 1 + rnd(n);
     const cells = Array.from({ length: n }, (_, i) => ({ value: (i + 1 === miss ? '?' : i + 1) as number | string, hl: i + 1 === miss }));
-    return { kind: 'choose', intro: { ru: 'Какой цифры НЕ ХВАТАЕТ в ряду?', en: 'Which digit is MISSING?' }, hud: { ru: 'Впиши пропуск', en: 'Fill the gap' }, cells, cols: n, options: mkOptionsFrom(miss, n), answer: miss };
+    return { kind: 'choose', introKey: 'bossIntroLightning', hudKey: 'bossHudLightning', cells, cols: n, options: mkOptionsFrom(miss, n), answer: miss };
   }
   if (type === 'completeline') {
     const miss = 1 + rnd(9);
     const shown = shuffle(Array.from({ length: 9 }, (_, i) => i + 1).filter((v) => v !== miss));
-    return { kind: 'choose', intro: { ru: 'Дополни ряд до 1–9 — какой цифры нет?', en: 'Complete 1-9 — which digit is missing?' }, hud: { ru: 'Недостающая цифра', en: 'Missing digit' }, cells: shown.map((v) => ({ value: v })), cols: 9, options: mkOptionsFrom(miss, 9), answer: miss };
+    return { kind: 'choose', introKey: 'bossIntroCompleteline', hudKey: 'bossHudCompleteline', cells: shown.map((v) => ({ value: v })), cols: 9, options: mkOptionsFrom(miss, 9), answer: miss };
   }
   if (type === 'finderror') {
     const n = 4;
@@ -82,7 +82,7 @@ function makeTask(type: BossType): BossTask {
     const er = rnd(n), base = er * n, a = rnd(n);
     let b = rnd(n); while (b === a) b = rnd(n);
     grid[base + b] = grid[base + a];   // в строке er теперь повтор (клетки a и b)
-    return { kind: 'tapcell', intro: { ru: 'Найди ОШИБКУ — цифра повторяется в строке', en: 'Find the ERROR — a repeat in a row' }, hud: { ru: 'Тапни повтор', en: 'Tap the repeat' }, grid, gridCols: n, badCells: [base + a, base + b] };
+    return { kind: 'tapcell', introKey: 'bossIntroFinderror', hudKey: 'bossHudFinderror', grid, gridCols: n, badCells: [base + a, base + b] };
   }
   if (type === 'oddletter') {
     // 5 согласных + 1 гласная (латиница, универсально) — тапни ЛИШНЮЮ гласную.
@@ -90,7 +90,7 @@ function makeTask(type: BossType): BossTask {
     const letters: (number | string)[] = Array.from({ length: 5 }, () => cons[rnd(cons.length)]);
     const vIdx = rnd(6);
     letters.splice(vIdx, 0, vow[rnd(vow.length)]);
-    return { kind: 'tapcell', intro: { ru: 'Найди ЛИШНЮЮ — гласную среди согласных', en: 'Find the ODD letter — the vowel' }, hud: { ru: 'Тапни гласную', en: 'Tap the vowel' }, grid: letters, gridCols: 3, badCells: [vIdx] };
+    return { kind: 'tapcell', introKey: 'bossIntroOddletter', hudKey: 'bossHudOddletter', grid: letters, gridCols: 3, badCells: [vIdx] };
   }
   if (type === 'gonogo') {
     // 6 цветных кружков, ровно один ЗЕЛЁНЫЙ — тапни только его (подави остальные).
@@ -98,18 +98,17 @@ function makeTask(type: BossType): BossTask {
     const grid: (number | string)[] = Array.from({ length: 6 }, () => others[rnd(others.length)]);
     const gIdx = rnd(6);
     grid[gIdx] = '🟢';
-    return { kind: 'tapcell', intro: { ru: 'Тапни только ЗЕЛЁНЫЙ, подави остальные', en: 'Tap only GREEN' }, hud: { ru: 'Зелёный!', en: 'Green!' }, grid, gridCols: 3, badCells: [gIdx] };
+    return { kind: 'tapcell', introKey: 'bossIntroGonogo', hudKey: 'bossHudGonogo', grid, gridCols: 3, badCells: [gIdx] };
   }
   // counting (Шульте)
   const nums = Array.from({ length: 6 }, () => 1 + rnd(12));
   const hl = shuffle([0, 1, 2, 3, 4, 5]).slice(0, 3);
   const answer = hl.reduce((s, i) => s + nums[i], 0);
-  return { kind: 'choose', intro: { ru: 'Теперь СЛОЖИ подсвеченные числа — не ищи по порядку!', en: 'Now ADD the highlighted numbers!' }, hud: { ru: 'Сумма подсвеченных?', en: 'Sum of highlighted?' }, cells: nums.map((v, i) => ({ value: v, hl: hl.includes(i) })), cols: 3, options: mkOptions(answer), answer };
+  return { kind: 'choose', introKey: 'bossIntroCounting', hudKey: 'bossHudCounting', cells: nums.map((v, i) => ({ value: v, hl: hl.includes(i) })), cols: 3, options: mkOptions(answer), answer };
 }
 
-export default function BossRound({ config, language, colors, onComplete }: Props) {
+export default function BossRound({ config, colors, onComplete }: Props) {
   const { t } = useLanguage();
-  const ru = language === 'ru';   // остался только для выбора локали данных task.intro/task.hud (инлайн ru/en в makeTask)
   const [stage, setStage] = useState<'intro' | 'task' | 'done'>('intro');
   const [task] = useState<BossTask>(() => makeTask(config.type));
   const [picked, setPicked] = useState<number | null>(null);     // choose: выбранный вариант; tapcell: индекс клетки
@@ -154,7 +153,7 @@ export default function BossRound({ config, language, colors, onComplete }: Prop
         <View style={styles.center}>
           <Text style={styles.bossEmoji}>⚔️</Text>
           <Text style={[styles.bossTitle, { color: colors.text }]}>{t('bossTitle')}</Text>
-          <Text style={[styles.bossHint, { color: colors.textSecondary }]}>{ru ? task.intro.ru : task.intro.en}</Text>
+          <Text style={[styles.bossHint, { color: colors.textSecondary }]}>{t(task.introKey)}</Text>
         </View>
       </View>
     );
@@ -163,7 +162,7 @@ export default function BossRound({ config, language, colors, onComplete }: Prop
   return (
     <View style={[styles.full, { backgroundColor: colors.background }]}>
       <View style={styles.hud}>
-        <Text style={[styles.hudText, { color: '#f59e0b' }]}>⚔️ {ru ? task.hud.ru : task.hud.en}</Text>
+        <Text style={[styles.hudText, { color: '#f59e0b' }]}>⚔️ {t(task.hudKey)}</Text>
         <Text style={[styles.hudText, { color: timeLeft <= 5 ? '#ef4444' : colors.textSecondary }]}>⏱ {timeLeft}</Text>
       </View>
 

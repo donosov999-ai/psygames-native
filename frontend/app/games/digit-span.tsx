@@ -14,6 +14,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -266,63 +267,79 @@ export default function DigitSpanGame() {
     </ScrollView>
   );
 
-  const renderShowing = () => (
-    <View style={styles.playArea}>
-      <Text style={[styles.statText, { color: colors.textSecondary }]}>{t('memorize')} ({seqLen})</Text>
-      <View style={styles.digitArea}>
-        <Text style={[styles.bigDigit, { color: colors.text }]}>
-          {showIdx >= 0 && showIdx < sequence.length ? sequence[showIdx] : ' '}
-        </Text>
+  // игровые фазы (показ и ввод) — на едином каркасе GameShell; модалка правил поверх каркаса
+  if (phase === 'showing' || phase === 'input') {
+    return (
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('digitSpan')}
+          onBack={() => goBackOrHome()}
+          stats={
+            phase === 'showing' ? (
+              <Text style={[styles.statText, { color: colors.textSecondary }]}>{t('memorize')} ({seqLen})</Text>
+            ) : (
+              <View style={styles.statsRow}>
+                <Text style={[styles.statText, { color: colors.textSecondary }]}>
+                  {t('lengthLabel')}: {seqLen} · {t('round')} {round}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}
+                </Text>
+                {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+              </View>
+            )
+          }
+        >
+          {phase === 'showing' ? (
+            <View style={styles.digitArea}>
+              <Text style={[styles.bigDigit, { color: colors.text }]}>
+                {showIdx >= 0 && showIdx < sequence.length ? sequence[showIdx] : ' '}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.fieldCol}>
+              <Text style={[styles.statText, { color: colors.text }]}>
+                {direction === 'forward' ? t('typeAsShown') : t('typeReversed')}
+              </Text>
+              <TextInput
+                value={userInput}
+                onChangeText={(s) => setUserInput(s.replace(/[^0-9]/g, '').slice(0, seqLen))}
+                keyboardType="numeric"
+                autoFocus
+                maxLength={seqLen}
+                editable={lastFeedback === null}
+                style={[styles.inputField, {
+                  color: colors.text,
+                  borderColor: lastFeedback === 'right' ? '#22c55e' : lastFeedback === 'wrong' ? '#f43f5e' : colors.border,
+                  borderWidth: lastFeedback ? 3 : 1,
+                  backgroundColor: colors.surface,
+                }]}
+                placeholder={'•'.repeat(seqLen)}
+                placeholderTextColor={colors.textSecondary}
+              />
+              {/* Status badge (replaces manual Check button — auto-submit happens on last digit) */}
+              {lastFeedback === null ? (
+                <Text style={{ color: colors.textSecondary, fontSize: 12, fontStyle: 'italic' }}>
+                  {userInput.length}/{seqLen} — {t('hint_autocheck')}
+                </Text>
+              ) : lastFeedback === 'right' ? (
+                // крупный шрифт: подпись «верно, уровень выше» выдавливала иконку за край → ряд переносится
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
+                  <Text style={{ color: '#22c55e', fontSize: 18, fontWeight: '800', flexShrink: 1, minWidth: 0, textAlign: 'center' }}>{t('msg_correct_level_up')}</Text>
+                </View>
+              ) : (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <Ionicons name="close-circle" size={28} color="#f43f5e" />
+                  <Text style={{ color: '#f43f5e', fontSize: 16, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }}>
+                    {t('label_was')}: {(direction === 'forward' ? sequence : [...sequence].reverse()).join('')}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
-    </View>
-  );
-
-  const renderInput = () => (
-    <View style={styles.playArea}>
-      <Text style={[styles.statText, { color: colors.text }]}>
-        {direction === 'forward' ? t('typeAsShown') : t('typeReversed')}
-      </Text>
-      <Text style={[styles.statText, { color: colors.textSecondary }]}>
-        {t('lengthLabel')}: {seqLen} · {t('round')} {round}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}
-      </Text>
-      {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
-      <TextInput
-        value={userInput}
-        onChangeText={(s) => setUserInput(s.replace(/[^0-9]/g, '').slice(0, seqLen))}
-        keyboardType="numeric"
-        autoFocus
-        maxLength={seqLen}
-        editable={lastFeedback === null}
-        style={[styles.inputField, {
-          color: colors.text,
-          borderColor: lastFeedback === 'right' ? '#22c55e' : lastFeedback === 'wrong' ? '#f43f5e' : colors.border,
-          borderWidth: lastFeedback ? 3 : 1,
-          backgroundColor: colors.surface,
-        }]}
-        placeholder={'•'.repeat(seqLen)}
-        placeholderTextColor={colors.textSecondary}
-      />
-      {/* Status badge (replaces manual Check button — auto-submit happens on last digit) */}
-      {lastFeedback === null ? (
-        <Text style={{ color: colors.textSecondary, fontSize: 12, fontStyle: 'italic' }}>
-          {userInput.length}/{seqLen} — {t('hint_autocheck')}
-        </Text>
-      ) : lastFeedback === 'right' ? (
-        // крупный шрифт: подпись «верно, уровень выше» выдавливала иконку за край → ряд переносится
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
-          <Text style={{ color: '#22c55e', fontSize: 18, fontWeight: '800', flexShrink: 1, minWidth: 0, textAlign: 'center' }}>{t('msg_correct_level_up')}</Text>
-        </View>
-      ) : (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Ionicons name="close-circle" size={28} color="#f43f5e" />
-          <Text style={{ color: '#f43f5e', fontSize: 16, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }}>
-            {t('label_was')}: {(direction === 'forward' ? sequence : [...sequence].reverse()).join('')}
-          </Text>
-        </View>
-      )}
-    </View>
-  );
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -346,8 +363,6 @@ export default function DigitSpanGame() {
         />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'showing' && renderShowing()}
-      {phase === 'input' && renderInput()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="digit_span" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
@@ -383,7 +398,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 24, gap: 18, alignItems: 'center', justifyContent: 'center' },
+  fieldCol: { alignItems: 'center', gap: 18, alignSelf: 'stretch' },
+  statsRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' },
   statText: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
   // фикс 200×200 обрезал цифру при крупном системном шрифте (140px × масштаб) → min + рост по контенту
   digitArea: { minWidth: 200, minHeight: 200, justifyContent: 'center', alignItems: 'center' },

@@ -226,7 +226,7 @@ function FullHome() {
           <View style={{ backgroundColor: '#f59e0b', paddingHorizontal: 34, paddingVertical: 22, borderRadius: 22, alignItems: 'center', gap: 4 }}>
             <Text style={{ fontSize: 40 }}>⭐</Text>
             <Text style={{ color: '#3f2b00', fontWeight: '900', fontSize: 24 }}>{t('level')} {levelUp}!</Text>
-            <Text style={{ color: '#3f2b00', fontWeight: '800', fontSize: 15 }}>{language === 'ru' ? lvl.titleRu : lvl.titleEn}</Text>
+            <Text style={{ color: '#3f2b00', fontWeight: '800', fontSize: 15 }}>{t(lvl.titleKey)}</Text>
           </View>
         </View>
       )}

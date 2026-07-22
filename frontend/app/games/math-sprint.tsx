@@ -19,6 +19,7 @@ import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -247,49 +248,62 @@ export default function MathSprintGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => (
-    // ScrollView-обёртка: подстраховка для старых WebView без interactive-widget —
-    // при клавиатуре контент можно доскроллить до кнопки ввода. flexGrow+center сохраняет
-    // вертикальное центрирование на обычном экране; persistTaps='handled' — тап по «Проверить»
-    // не глотается при открытой клавиатуре.
-    <ScrollView style={styles.playScroll} contentContainerStyle={styles.playArea}
-      keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}{language === 'ru' ? 'с' : 's'}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>★ {score}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        {streak >= 3 && <Text style={[styles.statText, { color: '#fbbf24' }]}>🔥{streak}</Text>}
-        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+  // playing-фаза — на едином каркасе GameShell: скроллящееся поле (подстраховка для старых
+  // WebView без interactive-widget — при клавиатуре контент доскролливается), кнопка
+  // «Проверить» прибита к низу в тулбаре; модалка правил поверх каркаса
+  if (phase === 'playing') {
+    return (
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('mathSprint')}
+          onBack={() => goBackOrHome()}
+          scrollableField
+          stats={
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}{language === 'ru' ? 'с' : 's'}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>★ {score}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+              {streak >= 3 && <Text style={[styles.statText, { color: '#fbbf24' }]}>🔥{streak}</Text>}
+              {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+            </View>
+          }
+          toolbar={
+            <TouchableOpacity onPress={submit} style={[styles.submitBtn, { backgroundColor: GRADIENT[0] }]}>
+              <Text style={styles.submitText}>{t('check')}</Text>
+            </TouchableOpacity>
+          }
+        >
+          <View style={styles.fieldCol}>
+            <View style={[styles.problemArea, {
+              backgroundColor: feedback === 'correct' ? 'rgba(34,197,94,0.15)' : feedback === 'wrong' ? 'rgba(244,63,94,0.15)' : 'transparent',
+            }]}>
+              {problem && (
+                <Text style={[styles.problemText, { color: colors.text }]}>
+                  {problem.a} {problem.op === '*' ? '×' : problem.op === '/' ? '÷' : problem.op} {problem.b} = ?
+                </Text>
+              )}
+            </View>
+            <TextInput
+              ref={inputRef}
+              value={userAnswer}
+              onChangeText={(s) => setUserAnswer(s.replace(/[^-0-9]/g, ''))}
+              onSubmitEditing={submit}
+              autoFocus
+              keyboardType="numeric"
+              placeholder="?"
+              placeholderTextColor={colors.textSecondary}
+              style={[styles.input, {
+                color: colors.text, borderColor: colors.border, backgroundColor: colors.surface,
+              }]}
+            />
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mathHint')}</Text>
+          </View>
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
-      <View style={[styles.problemArea, {
-        backgroundColor: feedback === 'correct' ? 'rgba(34,197,94,0.15)' : feedback === 'wrong' ? 'rgba(244,63,94,0.15)' : 'transparent',
-      }]}>
-        {problem && (
-          <Text style={[styles.problemText, { color: colors.text }]}>
-            {problem.a} {problem.op === '*' ? '×' : problem.op === '/' ? '÷' : problem.op} {problem.b} = ?
-          </Text>
-        )}
-      </View>
-      <TextInput
-        ref={inputRef}
-        value={userAnswer}
-        onChangeText={(s) => setUserAnswer(s.replace(/[^-0-9]/g, ''))}
-        onSubmitEditing={submit}
-        autoFocus
-        keyboardType="numeric"
-        placeholder="?"
-        placeholderTextColor={colors.textSecondary}
-        style={[styles.input, {
-          color: colors.text, borderColor: colors.border, backgroundColor: colors.surface,
-        }]}
-      />
-      <TouchableOpacity onPress={submit} style={[styles.submitBtn, { backgroundColor: GRADIENT[0] }]}>
-        <Text style={styles.submitText}>{t('check')}</Text>
-      </TouchableOpacity>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mathHint')}</Text>
-    </ScrollView>
-  );
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -306,7 +320,6 @@ export default function MathSprintGame() {
           benefits={MATH_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'boss' && (
         <BossRound config={{ type: 'completeline', gradient: GRADIENT as [string, string] }}
@@ -346,13 +359,12 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playScroll: { flex: 1 },
-  // flexGrow (не flex) — как contentContainerStyle держит центрирование и позволяет скролл при клавиатуре
-  playArea: { flexGrow: 1, padding: 24, gap: 16, alignItems: 'center', justifyContent: 'center' },
-  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
+  fieldCol: { alignItems: 'center', gap: 16 },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },
   problemArea: { paddingVertical: 32, paddingHorizontal: 28, borderRadius: 14, minWidth: 240, alignItems: 'center' },
-  problemText: { fontSize: 48, fontWeight: '900' },
+  // RTL-пин: «a − b = ?» в RTL-bidi перестраивается в «? = b − a» — математика всегда LTR
+  problemText: { fontSize: 48, fontWeight: '900', writingDirection: 'ltr' },
   input: {
     fontSize: 36, fontWeight: '700', textAlign: 'center', letterSpacing: 4,
     paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12, borderWidth: 2,

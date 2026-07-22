@@ -71,3 +71,11 @@ const THUMBS: Record<string, any> = {
 export function gameThumb(id?: string) {
   return id ? THUMBS[id] : undefined;
 }
+
+// Текстовые игры: превью — плотный абзац текста, на 0.22 он спорит с названием
+// карточки (скрин Дениса 22.07). Им фактуру глушим сильнее.
+const SUBTLE_IDS = new Set(['story_recall', 'reading_span', 'mnemonics', 'proofreading', 'cloze']);
+
+export function gameThumbOpacity(id?: string): number {
+  return id && SUBTLE_IDS.has(id) ? 0.1 : 0.22;
+}

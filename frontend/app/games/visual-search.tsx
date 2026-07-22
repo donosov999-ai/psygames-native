@@ -10,6 +10,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -321,45 +322,59 @@ export default function VisualSearchGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{t('label_level_short')} {round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        {targetCount > 1 && (
-          <Text style={[styles.statText, { color: '#3b82f6' }]}>🎯 {foundCount}/{targetCount}</Text>
-        )}
-        <Text style={[styles.statText, { color: colors.primary }]}>⏱ {Math.max(0, (now - stimAt) / 1000).toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
-        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+  // playing-фаза — на едином каркасе GameShell (ответ = тап по доске, тулбар не нужен);
+  // модалка правил поверх каркаса
+  if (phase === 'playing') {
+    return (
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('visualSearch')}
+          onBack={() => goBackOrHome()}
+          stats={
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('label_level_short')} {round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+              {targetCount > 1 && (
+                <Text style={[styles.statText, { color: '#3b82f6' }]}>🎯 {foundCount}/{targetCount}</Text>
+              )}
+              <Text style={[styles.statText, { color: colors.primary }]}>⏱ {Math.max(0, (now - stimAt) / 1000).toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+              {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+            </View>
+          }
+        >
+          <View style={styles.fieldCol}>
+            <View style={styles.hintRow}>
+              <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+                {(conjRef.current ? (FIND_CONJ[language] || FIND_CONJ.en) : (FIND_TXT[language] || FIND_TXT.en))}{targetCount > 1 ? ` ×${targetCount}` : ''}
+              </Text>
+              <View style={styles.targetRef}>{renderLetter({ shape: targetShape, color: targetColor, rot: 0, x: 0, y: 0, isTarget: true, found: false })}</View>
+            </View>
+            <View style={[styles.boardArea, { width: boardW, height: boardH, backgroundColor: '#1f2937', borderColor: feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
+              {items.map((it, i) => (
+                <TouchableOpacity key={i}
+                  onPress={() => handlePick(i)}
+                  disabled={feedback !== null}
+                  style={{
+                    position: 'absolute',
+                    left: it.x - 16, top: it.y - 16,
+                    width: 32, height: 32,
+                    alignItems: 'center', justifyContent: 'center',
+                    backgroundColor: it.found ? '#22c55e66' : 'transparent',
+                    borderRadius: 4,
+                    transform: [{ rotate: `${it.rot}deg` }],
+                  }}
+                >
+                  {renderLetter(it)}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
-      <View style={styles.hintRow}>
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-          {(conjRef.current ? (FIND_CONJ[language] || FIND_CONJ.en) : (FIND_TXT[language] || FIND_TXT.en))}{targetCount > 1 ? ` ×${targetCount}` : ''}
-        </Text>
-        <View style={styles.targetRef}>{renderLetter({ shape: targetShape, color: targetColor, rot: 0, x: 0, y: 0, isTarget: true, found: false })}</View>
-      </View>
-      <View style={[styles.boardArea, { width: boardW, height: boardH, backgroundColor: '#1f2937', borderColor: feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
-        {items.map((it, i) => (
-          <TouchableOpacity key={i}
-            onPress={() => handlePick(i)}
-            disabled={feedback !== null}
-            style={{
-              position: 'absolute',
-              left: it.x - 16, top: it.y - 16,
-              width: 32, height: 32,
-              alignItems: 'center', justifyContent: 'center',
-              backgroundColor: it.found ? '#22c55e66' : 'transparent',
-              borderRadius: 4,
-              transform: [{ rotate: `${it.rot}deg` }],
-            }}
-          >
-            {renderLetter(it)}
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -376,7 +391,6 @@ export default function VisualSearchGame() {
           benefits={VS_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
@@ -420,8 +434,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 12, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
+  fieldCol: { alignItems: 'center', gap: 12 },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 280 },
   hintRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 2 },

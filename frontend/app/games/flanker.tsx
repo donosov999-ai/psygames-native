@@ -292,14 +292,15 @@ export default function FlankerGame() {
           </View>
         }
         toolbar={
-          <>
+          /* RTL-пин: кнопка ← обязана быть физически СЛЕВА (S-R совместимость), иначе в ar психометрика рушится */
+          <View style={styles.toolbarLtr}>
             <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
               <Ionicons name="arrow-back" size={32} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
               <Ionicons name="arrow-forward" size={32} color="#FFF" />
             </TouchableOpacity>
-          </>
+          </View>
         }
       >
         <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
@@ -381,6 +382,9 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   stimBox: { width: 360, maxWidth: '100%', height: 120, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  // RTL-пин (writingDirection → CSS direction на web, на нативе no-op): направленный
+  // стимул и раскладка кнопок лево/право не зеркалятся в ar
+  arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 4, writingDirection: 'ltr' },
+  toolbarLtr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', writingDirection: 'ltr' },
   choiceBtn: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
 });

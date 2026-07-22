@@ -27,6 +27,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -323,59 +324,71 @@ export default function NumberBondsGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        {!isPreset && (
-          <Text style={[styles.statText, { color: roundLeft <= 5 ? '#f43f5e' : colors.text }]}>
-            ⏱{Math.ceil(roundLeft)}{language === 'ru' ? 'с' : 's'}
-          </Text>
-        )}
-        <Text style={[styles.statText, { color: colors.textSecondary }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('numberBondsHint')}</Text>
-      <View style={[styles.targetBox, {
-        borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : GRADIENT[1],
-        backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
-      }]}>
-        <Text style={[styles.targetLabel, { color: colors.textSecondary }]}>Σ =</Text>
-        <Text style={[styles.targetVal, { color: GRADIENT[1] }]}>{puzzle.target}</Text>
-        <Text style={[styles.runningSum, { color: sumPicked === puzzle.target ? '#22c55e' : colors.text }]}>
-          {sumPicked}
-        </Text>
-      </View>
-      <View style={styles.chipsArea}>
-        {puzzle.chips.map((v, i) => {
-          const sel = picked.includes(i);
-          return (
-            <TouchableOpacity key={i}
-              onPress={() => togglePick(i)}
-              disabled={feedback !== null}
-              style={[styles.chip, {
-                backgroundColor: sel ? GRADIENT[1] : colors.surface,
-                borderColor: sel ? GRADIENT[0] : colors.border,
-              }]}
-            >
-              <Text style={[styles.chipText, { color: sel ? '#FFF' : colors.text }]}>{v}</Text>
+  // playing-фаза — на едином каркасе GameShell (кнопки Сброс/Проверить прибиты к низу)
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('numberBonds')}
+        onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            {!isPreset && (
+              <Text style={[styles.statText, { color: roundLeft <= 5 ? '#f43f5e' : colors.text }]}>
+                ⏱{Math.ceil(roundLeft)}{language === 'ru' ? 'с' : 's'}
+              </Text>
+            )}
+            <Text style={[styles.statText, { color: colors.textSecondary }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+          </View>
+        }
+        toolbar={
+          <View style={styles.actionsRow}>
+            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]} onPress={() => setPicked([])}>
+              <Text style={[styles.actionTxt, { color: colors.text }]}>{t('clearBtn')}</Text>
             </TouchableOpacity>
-          );
-        })}
-      </View>
-      <View style={styles.actionsRow}>
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]} onPress={() => setPicked([])}>
-          <Text style={[styles.actionTxt, { color: colors.text }]}>{t('clearBtn')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtnPrimary} onPress={validate}>
-          <LinearGradient colors={GRADIENT as [string, string]} style={styles.actionGrad}>
-            <Text style={styles.actionTxt}>{t('validateBtn')}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+            <TouchableOpacity style={styles.actionBtnPrimary} onPress={validate}>
+              <LinearGradient colors={GRADIENT as [string, string]} style={styles.actionGrad}>
+                <Text style={styles.actionTxt}>{t('validateBtn')}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('numberBondsHint')}</Text>
+          <View style={[styles.targetBox, {
+            borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : GRADIENT[1],
+            backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
+          }]}>
+            <Text style={[styles.targetLabel, { color: colors.textSecondary }]}>Σ =</Text>
+            <Text style={[styles.targetVal, { color: GRADIENT[1] }]}>{puzzle.target}</Text>
+            <Text style={[styles.runningSum, { color: sumPicked === puzzle.target ? '#22c55e' : colors.text }]}>
+              {sumPicked}
+            </Text>
+          </View>
+          <View style={styles.chipsArea}>
+            {puzzle.chips.map((v, i) => {
+              const sel = picked.includes(i);
+              return (
+                <TouchableOpacity key={i}
+                  onPress={() => togglePick(i)}
+                  disabled={feedback !== null}
+                  style={[styles.chip, {
+                    backgroundColor: sel ? GRADIENT[1] : colors.surface,
+                    borderColor: sel ? GRADIENT[0] : colors.border,
+                  }]}
+                >
+                  <Text style={[styles.chipText, { color: sel ? '#FFF' : colors.text }]}>{v}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -393,7 +406,6 @@ export default function NumberBondsGame() {
           benefits={NB_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
@@ -438,18 +450,19 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 16, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 16 },
   statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center' },
-  targetBox: { flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingHorizontal: 24, paddingVertical: 16, borderRadius: 16, borderWidth: 2 },
+  // RTL-пин: ряд «Σ = цель · набранная сумма» читается в одном порядке во всех локалях
+  targetBox: { flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingHorizontal: 24, paddingVertical: 16, borderRadius: 16, borderWidth: 2, writingDirection: 'ltr' },
   targetLabel: { fontSize: 16, fontWeight: '600' },
   targetVal: { fontSize: 36, fontWeight: '900' },
   runningSum: { fontSize: 18, fontWeight: '700', marginLeft: 8 },
   chipsArea: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', maxWidth: 420 },
   chip: { width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', borderWidth: 2 },
   chipText: { fontSize: 20, fontWeight: '800' },
-  actionsRow: { flexDirection: 'row', gap: 12, marginTop: 8 },
+  actionsRow: { flexDirection: 'row', gap: 12 },
   actionBtn: { paddingVertical: 12, paddingHorizontal: 22, borderRadius: 10 },
   actionBtnPrimary: { borderRadius: 10, overflow: 'hidden' },
   actionGrad: { paddingVertical: 12, paddingHorizontal: 22 },

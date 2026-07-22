@@ -446,7 +446,8 @@ const styles = StyleSheet.create({
   stimBox: { width: 380, height: 220, borderRadius: 14, borderWidth: 2, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
   row: { height: 50, justifyContent: 'center', alignItems: 'center' },
   cueDot: { color: '#fbbf24', fontSize: 36, fontWeight: '900' },
-  arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  choiceRow: { flexDirection: 'row', gap: 24 },
+  // RTL-пин: стрелочный стимул и кнопки лево/право не зеркалятся в ar (web: writingDirection → CSS direction)
+  arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 2, writingDirection: 'ltr' },
+  choiceRow: { flexDirection: 'row', gap: 24, writingDirection: 'ltr' },
   choiceBtn: { width: 64, height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center' },
 });

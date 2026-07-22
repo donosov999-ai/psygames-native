@@ -20,9 +20,8 @@ export default function ShopScreen() {
   // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
   if (isWebDemo()) return <Redirect href="/" />;
   const { colors, refreshCosmeticAccent } = useTheme();
-  const { t, language } = useLanguage();
+  const { t, language } = useLanguage();   // language — только для RTL-зеркала стрелки «назад»
   const { profile } = useProfile();
-  const ru = language === 'ru';   // остался только для выбора локали данных COSMETICS (nameRu/nameEn)
 
   const [balance, setBalance] = useState(0);
   const [unlocked, setUnlocked] = useState<string[]>([]);
@@ -96,8 +95,8 @@ export default function ShopScreen() {
         )}
         {/* minWidth:0 — при крупном шрифте блок с текстом ужимается, а не выдавливает кнопку Купить/Надеть за край */}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{ru ? c.nameRu : c.nameEn}</Text>
-          <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 16 }}>{ru ? c.descRu : c.descEn}</Text>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{t(c.nameKey)}</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 16 }}>{t(c.descKey)}</Text>
           <Text style={{ color: owned ? colors.textSecondary : colors.text, fontSize: 13, fontWeight: '700', marginTop: 3 }}>
             {owned ? t('ownedBadge') : `${c.cost} ⭐`}
           </Text>

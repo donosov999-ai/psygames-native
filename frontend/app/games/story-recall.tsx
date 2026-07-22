@@ -460,7 +460,8 @@ const styles = StyleSheet.create({
   storyText: { fontSize: 17, lineHeight: 26 },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
   mathBox: { padding: 24, borderRadius: 12, marginTop: 4 },
-  mathText: { fontSize: 36, fontWeight: '900' },
+  // RTL-пин: «a − b = ?» в RTL-bidi перестраивается — математика всегда LTR
+  mathText: { fontSize: 36, fontWeight: '900', writingDirection: 'ltr' },
   numInput: { width: 140, height: 56, paddingHorizontal: 14, fontSize: 24, borderRadius: 10, borderWidth: 1, fontWeight: '700', textAlign: 'center' },
   addBtn: { paddingVertical: 12, paddingHorizontal: 32, borderRadius: 10 },
   addBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },

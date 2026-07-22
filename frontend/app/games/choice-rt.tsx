@@ -409,7 +409,8 @@ const styles = StyleSheet.create({
   stimulusBox: { width: 200, height: 200, borderRadius: 24, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   waitText: { fontSize: 60, opacity: 0.5 },
   padGrid: { gap: 8, alignItems: 'center' },
-  padRow: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
+  // RTL-пин: пад-кнопки ←/→ должны стоять на своих физических сторонах (глифы стрелок не зеркалятся)
+  padRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', writingDirection: 'ltr' },
   padBtn: { width: 64, height: 64, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   padCell: { width: 64, height: 64 },
 });

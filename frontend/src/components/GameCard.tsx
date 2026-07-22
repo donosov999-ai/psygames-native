@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { gameIcon } from '@/src/constants/gameIcons';
-import { gameThumb } from '@/src/constants/gameThumbs';
+import { gameThumb, gameThumbOpacity } from '@/src/constants/gameThumbs';
 
 interface GameCardProps {
   id?: string;
@@ -117,7 +117,7 @@ export default function GameCard({
             {/* v1.134: превью — ФАКТУРА поверх градиента (низкая opacity), а не сплошная
                 подложка: сплошной scrim убивал фирменный цвет карточек (скрин Дениса —
                 сетка серых плиток). Контраст тексту даёт узкий фейд ТОЛЬКО снизу. */}
-            <Image source={thumb} style={[styles.thumbImg, { opacity: 0.22 }]} resizeMode="cover" />
+            <Image source={thumb} style={[styles.thumbImg, { opacity: gameThumbOpacity(id) }]} resizeMode="cover" />
             <LinearGradient
               colors={light
                 ? ['rgba(255,255,255,0)', 'rgba(255,255,255,0.55)']

@@ -1369,7 +1369,190 @@ const translations: Translations = {
   bossTitle: { ru: 'БОСС', en: 'BOSS' },
   bossDefeated: { ru: '🏆 Босс повержен! +⭐', en: '🏆 Boss defeated! +⭐' },
   bossSurvived: { ru: 'Босс устоял — идём дальше', en: 'Boss survived — moving on' },
+
+  // ── вынесенные DATA-driven тернары `ru/en` из структур данных (onboarding SLIDES /
+  // BossRound makeTask / KINDS фидбека / COSMETICS / STAGE_NAMES питомца / титулы
+  // уровней tokens.ts / reminders / AppErrorBoundary / attention-conflict).
+  // Плейсхолдер {n} (onbSlideWelcomeBody) подставляется через .replace() при рендере.
+
+  // Onboarding — слайды (app/onboarding.tsx, SLIDES[].titleKey/bodyKey)
+  onbSlideWelcomeTitle: { ru: 'Добро пожаловать в PsyGames', en: 'Welcome to PsyGames' },
+  onbSlideWelcomeBody: { ru: '{n} когнитивных игр — память, внимание, логика, контроль, счёт, скорость. Каждая измеряет конкретный психометрический биомаркер.', en: '{n} cognitive games — memory, attention, logic, control, math, speed. Each one measures a specific psychometric biomarker.' },
+  onbSlideWarmupTitle: { ru: 'Утренняя Зарядка', en: 'Morning Warm-up' },
+  onbSlideWarmupBody: { ru: '5–15 минут утром. Программа подбирается под день недели. ВТ — внимание, СР — отдых, СБ — логика. Стрик считается по дням.', en: '5–15 minutes in the morning. The program adapts to the weekday. Tue — attention, Wed — rest, Sat — logic. Streak is counted by day.' },
+  onbSlideChallengeTitle: { ru: 'Ежедневный вызов', en: 'Daily challenge' },
+  onbSlideChallengeBody: { ru: 'Каждый день — одна игра из ротации, одинаковая у всех игроков. Пройди раунд до конца — день засчитан, стрик 🔥 растёт. Пропустил день — стрик сгорает.', en: 'Every day — one game from the rotation, the same for all players. Finish a round — the day counts and your 🔥 streak grows. Miss a day — the streak resets.' },
+  onbSlideAssessTitle: { ru: 'Оцени свой профиль', en: 'Assess your profile' },
+  onbSlideAssessBody: { ru: '12 коротких тестов (≈12 минут) → radar chart твоих сильных и слабых сторон + персональные рекомендации игр. Повторяй раз в 3 месяца чтобы видеть прогресс.', en: '12 short tests (≈12 minutes) → a radar chart of your strengths and weaknesses + personal game recommendations. Repeat every 3 months to track progress.' },
+  onbSlideProfilesTitle: { ru: 'Профили под цель', en: 'Goal-based profiles' },
+  onbSlideProfilesBody: { ru: 'FREE — попробовать бесплатно, без кода. 11 тематических (Шахматы, Дети, Скорочтение, NZT-48, Водители, 50+, Предприниматели, Студенты ЕГЭ, Женщины, Полиглот, ODV999) — каждый со своим набором игр и плейлистом. Открываются мастер-кодом в Settings.', en: 'FREE — try it free, no code. 11 themed (Chess, Kids, Speed reading, NZT-48, Drivers, 50+, Entrepreneurs, Exam students, Women, Polyglot, ODV999) — each with its own set of games and playlist. Unlock with a master code in Settings.' },
+  onbSlideDataTitle: { ru: 'Данные надёжны', en: 'Your data is safe' },
+  onbSlideDataBody: { ru: 'Каждая сессия сохраняется и локально, и в облаке. Очистка кэша браузера = не страшно. История за месяцы и годы — твоя.', en: 'Every session is saved both locally and in the cloud. Clearing your browser cache is no problem. Months and years of history are yours.' },
+  onbSlideRemindTitle: { ru: 'Напоминания', en: 'Reminders' },
+  onbSlideRemindBody: { ru: 'Одно мягкое напоминание утром в 9:00 — и тренировка не потеряется в делах. Время меняется в Settings, отключить можно там же.', en: 'One gentle reminder at 9:00 AM keeps your training on track. Change the time or turn it off anytime in Settings.' },
+  onbSlideGoTitle: { ru: 'Поехали!', en: 'Let’s go!' },
+  onbSlideGoBody: { ru: 'Лучший способ понять PsyGames — сыграть прямо сейчас. Первый раунд займёт пару минут.', en: 'The best way to get PsyGames is to play right now. Your first round takes a couple of minutes.' },
+
+  // BossRound — интро/HUD задач босса (makeTask → introKey/hudKey)
+  bossIntroLightning: { ru: 'Какой цифры НЕ ХВАТАЕТ в ряду?', en: 'Which digit is MISSING?' },
+  bossHudLightning: { ru: 'Впиши пропуск', en: 'Fill the gap' },
+  bossIntroCompleteline: { ru: 'Дополни ряд до 1–9 — какой цифры нет?', en: 'Complete 1-9 — which digit is missing?' },
+  bossHudCompleteline: { ru: 'Недостающая цифра', en: 'Missing digit' },
+  bossIntroFinderror: { ru: 'Найди ОШИБКУ — цифра повторяется в строке', en: 'Find the ERROR — a repeat in a row' },
+  bossHudFinderror: { ru: 'Тапни повтор', en: 'Tap the repeat' },
+  bossIntroOddletter: { ru: 'Найди ЛИШНЮЮ — гласную среди согласных', en: 'Find the ODD letter — the vowel' },
+  bossHudOddletter: { ru: 'Тапни гласную', en: 'Tap the vowel' },
+  bossIntroGonogo: { ru: 'Тапни только ЗЕЛЁНЫЙ, подави остальные', en: 'Tap only GREEN' },
+  bossHudGonogo: { ru: 'Зелёный!', en: 'Green!' },
+  bossIntroCounting: { ru: 'Теперь СЛОЖИ подсвеченные числа — не ищи по порядку!', en: 'Now ADD the highlighted numbers!' },
+  bossHudCounting: { ru: 'Сумма подсвеченных?', en: 'Sum of highlighted?' },
+
+  // FeedbackWidget — категории репорта (KINDS[].labelKey)
+  fbKindConfusion: { ru: 'Непонятно', en: 'Confusing' },
+  fbKindBug: { ru: 'Не работает', en: 'Broken' },
+  fbKindIdea: { ru: 'Идея', en: 'Idea' },
+
+  // Питомец Синапс — имена стадий (бывший STAGE_NAMES в services/pet.ts, 1:1 с сайта)
+  petStage1: { ru: 'Искра', en: 'Spark' },
+  petStage2: { ru: 'Импульс', en: 'Impulse' },
+  petStage3: { ru: 'Созвездие', en: 'Constellation' },
+
+  // Титулы уровней профиля (бывшие LEVEL_TITLE_RU/EN в services/tokens.ts, t(lvl.titleKey))
+  levelTitle0: { ru: 'Новичок', en: 'Rookie' },
+  levelTitle1: { ru: 'Ученик', en: 'Student' },
+  levelTitle2: { ru: 'Игрок', en: 'Player' },
+  levelTitle3: { ru: 'Боец', en: 'Fighter' },
+  levelTitle4: { ru: 'Эксперт', en: 'Expert' },
+  levelTitle5: { ru: 'Мастер', en: 'Master' },
+  levelTitle6: { ru: 'Гроссмейстер', en: 'Grandmaster' },
+  levelTitle7: { ru: 'Виртуоз', en: 'Virtuoso' },
+  levelTitle8: { ru: 'Гуру', en: 'Guru' },
+  levelTitle9: { ru: 'Легенда', en: 'Legend' },
+  levelTitle10: { ru: 'Кибермозг', en: 'Cyberbrain' },
+
+  // Конфликт внимания — подписи типа конфликта (SUB_GAMES[].typeKey)
+  acTypeStroop: { ru: 'Цвет vs Слово', en: 'Color vs Word' },
+  acTypeStroopEmotional: { ru: 'Цвет vs Эмоция', en: 'Color vs Emotion' },
+  acTypeFlanker: { ru: 'Центр vs Бока', en: 'Center vs Flankers' },
+  acTypeSimon: { ru: 'Цвет vs Позиция', en: 'Color vs Position' },
+
+  // Span-хаб — подписи модальности (games/span.tsx SUB_GAMES[].typeKey;
+  // forward/backward — психометрические термины, оставлены латиницей во всех языках)
+  spanTypeDigit: { ru: 'Цифры · forward + backward', en: 'Digits · forward + backward' },
+  spanTypeSpatialFwd: { ru: 'Пространство · forward', en: 'Spatial · forward' },
+  spanTypeSpatialBwd: { ru: 'Пространство · backward', en: 'Spatial · backward' },
+
+  // Напоминания — тексты локальных уведомлений (services/reminders.ts, translateFor)
+  remindMorningTitle: { ru: '🧠 Пора на зарядку', en: '🧠 Time to train' },
+  remindMorningBody: { ru: 'Утренний когнитивный комплекс готов — 5-10 минут', en: 'Your morning cognitive warm-up is ready — 5-10 min' },
+  remindEveningTitle: { ru: '🌙 Перед сном', en: '🌙 Before sleep' },
+  remindEveningBody: { ru: 'Спокойный вечерний комплекс — мягко завершить день', en: 'A calm evening session to wind down the day' },
+
+  // Statistics — пустое состояние (был сломанный тернар t('language') === 'ru')
+  statsEmptyHint: { ru: 'Сыграйте несколько игр, чтобы увидеть статистику', en: 'Play some games to see statistics' },
+
+  // «Мозг сегодня» — вердикт зарядки (services/warmup.ts brainTodayVerdict, {d} = ±NN процентов)
+  brainDeltaUp: { ru: 'Сегодня на {d}% выше среднего — ты в форме.', en: "Today is {d}% above your average — you're in good shape." },
+  brainDeltaDown: { ru: 'Сегодня на {d}% ниже среднего — возможно недосып или стресс.', en: 'Today is {d}% below your average — maybe poor sleep or stress.' },
+  brainDeltaNorm: { ru: 'Сегодня в твоей норме ({d}%).', en: 'Today is within your normal range ({d}%).' },
+
+  // AppErrorBoundary — крэш-экран (вне провайдеров → translateFor + navigator.language)
+  crashTitle: { ru: 'Что-то сломалось', en: 'Something broke' },
+  crashHint: { ru: 'Отчёт об ошибке уже отправлен. Твои данные целы — они хранятся локально.', en: 'The error report has been sent. Your data is safe — it is stored locally.' },
+  crashRestart: { ru: 'ПЕРЕЗАПУСТИТЬ', en: 'RESTART' },
+
+  // Магазин — имена/описания косметики (COSMETICS[].nameKey/descKey в services/cosmetics.ts)
+  cosName_accent_gold: { ru: 'Золото', en: 'Gold' },
+  cosName_accent_neon: { ru: 'Неон', en: 'Neon' },
+  cosName_accent_ocean: { ru: 'Океан', en: 'Ocean' },
+  cosName_accent_rose: { ru: 'Роза', en: 'Rose' },
+  cosName_accent_emerald: { ru: 'Изумруд', en: 'Emerald' },
+  cosName_accent_lavender: { ru: 'Лаванда', en: 'Lavender' },
+  cosName_accent_crimson: { ru: 'Багрянец', en: 'Crimson' },
+  cosName_accent_cyan: { ru: 'Бирюза', en: 'Cyan' },
+  cosName_accent_tangerine: { ru: 'Мандарин', en: 'Tangerine' },
+  cosName_accent_indigo: { ru: 'Индиго', en: 'Indigo' },
+  cosName_accent_coral: { ru: 'Коралл', en: 'Coral' },
+  cosName_accent_slate: { ru: 'Графит', en: 'Slate' },
+  cosName_accent_copper: { ru: 'Медь', en: 'Copper' },
+  cosName_accent_mint: { ru: 'Мята', en: 'Mint' },
+  cosName_accent_magenta: { ru: 'Маджента', en: 'Magenta' },
+  cosDesc_accent_gold: { ru: 'Тёплый янтарный акцент — солидно, премиально', en: 'Warm amber accent — premium feel' },
+  cosDesc_accent_neon: { ru: 'Кислотно-зелёный — энергично, киберпанк', en: 'Acid green — energetic, cyberpunk' },
+  cosDesc_accent_ocean: { ru: 'Глубокий синий — спокойно и ясно', en: 'Deep blue — calm and clear' },
+  cosDesc_accent_rose: { ru: 'Яркая фуксия — живо и тепло', en: 'Bright fuchsia — lively and warm' },
+  cosDesc_accent_emerald: { ru: 'Сочный зелёный — свежо и природно', en: 'Lush green — fresh and natural' },
+  cosDesc_accent_lavender: { ru: 'Мягкий фиолет — спокойная роскошь', en: 'Soft violet — calm luxury' },
+  cosDesc_accent_crimson: { ru: 'Насыщенный красный — уверенно и дерзко', en: 'Deep red — bold and confident' },
+  cosDesc_accent_cyan: { ru: 'Прохладный бирюзовый — свежо и технично', en: 'Cool cyan — fresh and technical' },
+  cosDesc_accent_tangerine: { ru: 'Сочный оранжевый — бодро и заметно', en: 'Juicy orange — punchy and visible' },
+  cosDesc_accent_indigo: { ru: 'Глубокий сине-фиолетовый — ночное небо', en: 'Deep blue-violet — night sky' },
+  cosDesc_accent_coral: { ru: 'Тёплый розово-красный — живо и уютно', en: 'Warm pink-red — lively and cosy' },
+  cosDesc_accent_slate: { ru: 'Строгий серо-синий — минимализм', en: 'Cool grey-blue — minimalist' },
+  cosDesc_accent_copper: { ru: 'Тёплый медный — винтажно и благородно', en: 'Warm copper — vintage and noble' },
+  cosDesc_accent_mint: { ru: 'Мятно-бирюзовый — лёгкость и чистота', en: 'Minty teal — light and clean' },
+  cosDesc_accent_magenta: { ru: 'Яркая фуксия-2 — смело и заметно', en: 'Bold magenta — loud and visible' },
+  cosName_sound_retro: { ru: 'Ретро', en: 'Retro' },
+  cosName_sound_soft: { ru: 'Мягкий', en: 'Soft' },
+  cosName_sound_arcade: { ru: 'Аркада', en: 'Arcade' },
+  cosName_sound_crystal: { ru: 'Хрусталь', en: 'Crystal' },
+  cosName_sound_deep: { ru: 'Глубина', en: 'Deep' },
+  cosName_sound_chipbass: { ru: 'Чип-бас', en: 'Chip Bass' },
+  cosName_sound_buzz: { ru: 'Дрель', en: 'Buzz' },
+  cosDesc_sound_retro: { ru: '8-битный квадратный синтез — как старая консоль', en: '8-bit square synth — retro console' },
+  cosDesc_sound_soft: { ru: 'Тёплый треугольный тон — мягче дефолта', en: 'Warm triangle tone — softer' },
+  cosDesc_sound_arcade: { ru: 'Звонкий пилообразный — ярко, по-аркадному', en: 'Bright sawtooth — punchy arcade' },
+  cosDesc_sound_crystal: { ru: 'Высокий чистый тон — звонко и лёгко', en: 'High clean tone — bright and airy' },
+  cosDesc_sound_deep: { ru: 'Низкий бархатный тон — солидно и спокойно', en: 'Low velvety tone — calm and solid' },
+  cosDesc_sound_chipbass: { ru: 'Низкий квадратный — басовитый 8-бит', en: 'Low square wave — bassy chiptune' },
+  cosDesc_sound_buzz: { ru: 'Высокий пилообразный — резко и дерзко', en: 'High sawtooth — sharp and punchy' },
+  cosName_frame_gold: { ru: 'Золотая рамка', en: 'Gold frame' },
+  cosName_frame_crimson: { ru: 'Багровая рамка', en: 'Crimson frame' },
+  cosName_frame_azure: { ru: 'Лазурная рамка', en: 'Azure frame' },
+  cosName_frame_emerald: { ru: 'Изумрудная рамка', en: 'Emerald frame' },
+  cosName_frame_violet: { ru: 'Фиолетовая рамка', en: 'Violet frame' },
+  cosName_frame_silver: { ru: 'Серебряная рамка', en: 'Silver frame' },
+  cosDesc_frame_gold: { ru: 'Тёплая янтарная обводка чипа профиля', en: 'Warm amber outline for your profile chip' },
+  cosDesc_frame_crimson: { ru: 'Насыщенно-красная обводка — дерзко', en: 'Bold red outline' },
+  cosDesc_frame_azure: { ru: 'Ясный голубой контур', en: 'Clear sky-blue outline' },
+  cosDesc_frame_emerald: { ru: 'Сочный зелёный контур', en: 'Lush green outline' },
+  cosDesc_frame_violet: { ru: 'Мягкий фиолетовый контур', en: 'Soft violet outline' },
+  cosDesc_frame_silver: { ru: 'Строгий серебристый контур', en: 'Cool silver outline' },
+  cosName_title_focused: { ru: 'Сфокусированный', en: 'Focused' },
+  cosName_title_sharp: { ru: 'Острый ум', en: 'Sharp Mind' },
+  cosName_title_strategist: { ru: 'Стратег', en: 'Strategist' },
+  cosName_title_owl: { ru: 'Сова разума', en: 'Mind Owl' },
+  cosName_title_unstoppable: { ru: 'Неудержимый', en: 'Unstoppable' },
+  cosName_title_grandmaster: { ru: 'Гроссмейстер', en: 'Grandmaster' },
+  cosName_title_legend: { ru: 'Легенда', en: 'Legend' },
+  cosName_title_cyberbrain: { ru: 'Кибермозг', en: 'Cyberbrain' },
+  cosDesc_title_generic: { ru: 'Титул под именем профиля', en: 'Title shown under your profile name' },
+  cosDesc_title_cyberbrain: { ru: 'Тот же титул, что и макс. уровень профиля', en: 'Same title as the max profile level' },
+  cosName_avatar_owl: { ru: 'Сова', en: 'Owl' },
+  cosName_avatar_fox: { ru: 'Лис', en: 'Fox' },
+  cosName_avatar_gem: { ru: 'Кристалл', en: 'Gem' },
+  cosName_avatar_lightning: { ru: 'Молния', en: 'Lightning' },
+  cosName_avatar_star: { ru: 'Звезда', en: 'Star' },
+  cosName_avatar_knight: { ru: 'Конь', en: 'Knight' },
+  cosName_avatar_phoenix: { ru: 'Феникс', en: 'Phoenix' },
+  cosName_avatar_robot: { ru: 'Робот', en: 'Robot' },
+  cosName_avatar_brain: { ru: 'Мозг', en: 'Brain' },
+  cosDesc_avatar_generic: { ru: 'Иконка профиля вместо стандартного бейджа', en: 'Profile icon replacing the default badge' },
+  cosDesc_avatar_brain: { ru: 'Флагманский аватар — иконка профиля', en: 'Flagship avatar — profile icon' },
 };
+
+/** Standalone-резолвер для кода вне React-дерева: сервисы (reminders, cosmetics)
+ *  и AppErrorBoundary (стоит СНАРУЖИ провайдеров — хук недоступен).
+ *  Та же цепочка фолбэков, что у t(): инлайн → overlay → EN → RU → key.
+ *  Неизвестный lang безопасно падает на EN. */
+export function translateFor(lang: string, key: string): string {
+  const L = lang as Language;
+  const translation = translations[key];
+  if (translation) {
+    return translation[L] ?? OVERLAYS[L]?.[key] ?? translation.en ?? translation.ru ?? key;
+  }
+  return OVERLAYS[L]?.[key] ?? key;
+}
 
 interface LanguageContextType {
   language: Language;
@@ -1411,13 +1594,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const t = (key: string): string => {
-    const translation = translations[key];
-    if (translation) {
-      return translation[language] ?? OVERLAYS[language]?.[key] ?? translation.en ?? translation.ru ?? key;
-    }
-    return OVERLAYS[language]?.[key] ?? key;
-  };
+  const t = (key: string): string => translateFor(language, key);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
