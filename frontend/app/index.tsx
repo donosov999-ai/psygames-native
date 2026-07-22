@@ -340,23 +340,25 @@ export default function HomeScreen() {
         contentContainerStyle={styles.gamesContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* 👁 Быстрый перерыв для глаз — вынесен в самый верх (один тап, чтобы не искать) */}
-        <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/games/eye-gym' as any)} style={styles.eyeQuick}>
-          <LinearGradient colors={['#43cea2', '#185a9d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.eyeQuickGrad}>
-            <Image source={FEATURE_ICONS.eyegym} style={{ width: 46, height: 46, borderRadius: 13, marginRight: 12 }} />
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.eyeQuickTitle} numberOfLines={2}>{t('eyeGym')}</Text>
-              <Text style={styles.eyeQuickSub} numberOfLines={2}>{t('eyeGymDesc')}</Text>
-            </View>
-            <View style={styles.eyeQuickCta}>
-              <Ionicons name="play" size={13} color="#185a9d" />
-              <Text style={styles.eyeQuickCtaText}>{t('ctaStart')}</Text>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-
-        {/* 🎯 Ежедневный вызов — ротация игр, детерминировано по дате (согласовано с Денисом 2026-07-01) */}
+        {/* v1.130.0: «Гимнастика для глаз» + «Вызов дня» — ОДНИМ рядом 50/50 (запрос Дениса:
+            две полноширинные карточки ели слишком много вертикали). Обе в hero-формате. */}
         <View style={styles.heroRow}>
+          {/* 👁 Быстрый перерыв для глаз */}
+          <TouchableOpacity style={styles.heroCardWrap} onPress={() => router.push('/games/eye-gym' as any)} activeOpacity={0.85}>
+            <LinearGradient colors={['#43cea2', '#185a9d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+              <View style={styles.heroTopRow}>
+                <Image source={FEATURE_ICONS.eyegym} style={{ width: 34, height: 34, borderRadius: 10 }} />
+              </View>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>{t('eyeGym')}</Text>
+              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>{t('eyeGymDesc')}</Text>
+              <View style={[styles.heroCta, { backgroundColor: '#FFF' }]}>
+                <Ionicons name="play" size={14} color="#185a9d" />
+                <Text style={[styles.heroCtaText, { color: '#185a9d' }]}>{t('ctaStart')}</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* 🎯 Ежедневный вызов — ротация игр, детерминировано по дате */}
           <TouchableOpacity style={styles.heroCardWrap} onPress={startDailyChallenge} activeOpacity={0.85}>
             <LinearGradient colors={todayChallenge.game.gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
               <View style={styles.heroTopRow}>
@@ -620,14 +622,7 @@ const styles = StyleSheet.create({
   // когда чип профиля разбухает, ряд переносится, а не выдавливает текст за экран.
   headerButtons: { flexDirection: 'row', gap: 8, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' },
   iconButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
-  eyeQuick: { marginBottom: 14, borderRadius: 16, overflow: 'hidden' },
-  eyeQuickGrad: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 16 },
-  eyeQuickIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
-  eyeQuickTitle: { color: '#fff', fontSize: 16, fontWeight: '800' },
-  eyeQuickSub: { color: 'rgba(255,255,255,0.9)', fontSize: 12, fontWeight: '600', marginTop: 2 },
   // flexShrink:0 — кнопка не сплющивается; при крупном шрифте она росла и выдавливала заголовок в 4 строки
-  eyeQuickCta: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#fff', paddingHorizontal: 13, paddingVertical: 8, borderRadius: 20, flexShrink: 0 },
-  eyeQuickCtaText: { color: '#185a9d', fontSize: 13, fontWeight: '800' },
   scrollView: { flex: 1 },
   gamesContainer: {
     paddingHorizontal: CONTAINER_PADDING,
