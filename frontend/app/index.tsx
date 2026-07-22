@@ -41,12 +41,23 @@ import { ACHIEVEMENTS } from '@/src/services/achievements';
 import ProfileSwitcherModal from '@/src/components/ProfileSwitcherModal';
 import SynapsePet from '@/src/components/pet/SynapsePet';
 import { getPetStats, PetStage } from '@/src/services/pet';
+import { IS_WEB_DEMO } from '@/src/services/buildTarget';
+import DemoLanding from '@/src/components/DemoLanding';
 
 const MAX_CONTAINER_WIDTH = 1100;
 const CONTAINER_PADDING = 16;
 const GRID_GAP = 12;
 
+// Web-demo (решение Дениса 07.2026): публичный /play/ = ТОЛЬКО ДЕМО.
+// Вместо полного каталога — компактный лендинг (игра дня + CTA «Скачать приложение»).
+// IS_WEB_DEMO — build-time константа (инлайнится при экспорте), ветка статична:
+// FullHome в демо не монтируется вовсе (включая онбординг-гейт psygames_onboarded).
 export default function HomeScreen() {
+  if (IS_WEB_DEMO) return <DemoLanding />;
+  return <FullHome />;
+}
+
+function FullHome() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();

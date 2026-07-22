@@ -17,6 +17,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -357,80 +358,78 @@ export default function ProofreadingGame() {
     );
   };
 
+  // playing-фаза — на едином каркасе GameShell (сетка букв в скролл-поле, кнопок действий нет)
   const renderGame = () => (
-    <View style={styles.gameContainer}>
-      {/* Game Header */}
-      <View style={styles.gameHeader}>
-        <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.targetLabel, { color: colors.text }]}>{t('find')}:</Text>
-          {targetLetters.map((tl, i) => (
-            <View key={i} style={[styles.targetChip, { backgroundColor: i === 0 ? '#34d399' : '#fbbf24' }]}>
-              <Text style={styles.targetChipText}>{tl}</Text>
-            </View>
-          ))}
-          <Text style={[styles.targetCount, { color: colors.textSecondary }]}>
-            {foundIndices.size}/{targetIndices.size}
-          </Text>
+    <GameShell
+      title={t('proofreading')}
+      onBack={() => goBackOrHome()}
+      scrollableField
+      stats={
+        <View style={styles.gameHeader}>
+          <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.targetLabel, { color: colors.text }]}>{t('find')}:</Text>
+            {targetLetters.map((tl, i) => (
+              <View key={i} style={[styles.targetChip, { backgroundColor: i === 0 ? '#34d399' : '#fbbf24' }]}>
+                <Text style={styles.targetChipText}>{tl}</Text>
+              </View>
+            ))}
+            <Text style={[styles.targetCount, { color: colors.textSecondary }]}>
+              {foundIndices.size}/{targetIndices.size}
+            </Text>
+          </View>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Ionicons name="time-outline" size={18} color={colors.text} />
+            {/* На уровне — обратный отсчёт лимита (красный на последних 10с); в пресете — секундомер */}
+            <Text style={[styles.timerText, {
+              color: timeLimitRef.current > 0 && timeLimitRef.current - elapsedTime <= 10 ? '#f43f5e' : colors.text,
+            }]}>
+              {timeLimitRef.current > 0
+                ? `${Math.max(0, Math.ceil(timeLimitRef.current - elapsedTime))}s`
+                : `${Math.floor(elapsedTime)}s`}
+            </Text>
+            {errors > 0 && (
+              <Text style={[styles.timerText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            )}
+          </View>
         </View>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Ionicons name="time-outline" size={18} color={colors.text} />
-          {/* На уровне — обратный отсчёт лимита (красный на последних 10с); в пресете — секундомер */}
-          <Text style={[styles.timerText, {
-            color: timeLimitRef.current > 0 && timeLimitRef.current - elapsedTime <= 10 ? '#f43f5e' : colors.text,
-          }]}>
-            {timeLimitRef.current > 0
-              ? `${Math.max(0, Math.ceil(timeLimitRef.current - elapsedTime))}s`
-              : `${Math.floor(elapsedTime)}s`}
-          </Text>
-          {errors > 0 && (
-            <Text style={[styles.timerText, { color: '#f43f5e' }]}>✗{errors}</Text>
-          )}
-        </View>
-      </View>
+      }
+    >
+      <View style={[styles.gridContainer, { width: gridWidth }]}>
+        {grid.map((letter, index) => {
+          const isTarget = targetIndices.has(index);
+          const isFound = foundIndices.has(index);
 
-      {/* Grid */}
-      <ScrollView 
-        style={styles.gridScroll}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.gridScrollContent}
-      >
-        <View style={[styles.gridContainer, { width: gridWidth }]}>
-          {grid.map((letter, index) => {
-            const isTarget = targetIndices.has(index);
-            const isFound = foundIndices.has(index);
-            
-            return (
-              <TouchableOpacity
-                key={index}
+          return (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.cell,
+                {
+                  width: cellSize - 2,
+                  height: cellSize - 2,
+                  backgroundColor: isFound ? GRADIENT[0] : wrongFlash === index ? '#f43f5e' : colors.surface,
+                },
+              ]}
+              onPress={() => handleCellPress(index)}
+              activeOpacity={0.7}
+            >
+              <Text
                 style={[
-                  styles.cell,
+                  styles.cellText,
                   {
-                    width: cellSize - 2,
-                    height: cellSize - 2,
-                    backgroundColor: isFound ? GRADIENT[0] : wrongFlash === index ? '#f43f5e' : colors.surface,
+                    fontSize: Math.min(cellSize * 0.5, 24),
+                    color: isFound ? '#333' : wrongFlash === index ? '#fff' : colors.text,
+                    fontWeight: isFound || wrongFlash === index ? '700' : '500',
                   },
                 ]}
-                onPress={() => handleCellPress(index)}
-                activeOpacity={0.7}
               >
-                <Text
-                  style={[
-                    styles.cellText,
-                    {
-                      fontSize: Math.min(cellSize * 0.5, 24),
-                      color: isFound ? '#333' : wrongFlash === index ? '#fff' : colors.text,
-                      fontWeight: isFound || wrongFlash === index ? '700' : '500',
-                    },
-                  ]}
-                >
-                  {letter}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </ScrollView>
-    </View>
+                {letter}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </GameShell>
   );
 
   if (phase === 'intro') {
@@ -450,6 +449,8 @@ export default function ProofreadingGame() {
     );
   }
 
+  if (phase === 'playing') return renderGame();
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -464,7 +465,6 @@ export default function ProofreadingGame() {
       </View>
 
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderGame()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'oddletter', gradient: GRADIENT as [string, string] }}
@@ -557,7 +557,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   startButtonText: { fontSize: 18, fontWeight: '700' },
-  gameContainer: { flex: 1, paddingHorizontal: 16 },
   gameHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -591,11 +590,11 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   timerText: { fontSize: 16, fontWeight: '600' },
-  gridScroll: { flex: 1 },
-  gridScrollContent: { alignItems: 'center', paddingBottom: 20 },
+  // alignSelf: сетка с явной width центрируется в скролл-поле каркаса (у него нет alignItems)
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    alignSelf: 'center',
   },
   cell: {
     justifyContent: 'center',

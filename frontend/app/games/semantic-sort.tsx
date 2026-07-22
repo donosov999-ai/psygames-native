@@ -16,6 +16,7 @@ import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -257,48 +258,58 @@ export default function SemanticSortGame() {
     </ScrollView>
   );
 
+  // playing-фаза — на едином каркасе GameShell (слово в скролл-поле, категории-ответы прибиты к низу)
   const renderPlaying = () => {
     const round = rounds[idx];
     if (!round) return null;
     return (
-      <View style={styles.gameContainer}>
-        <View style={styles.hudRow}>
-          <Text style={[styles.hudText, { color: colors.textSecondary }]}>{idx + 1}/{rounds.length}</Text>
-          <Text style={[styles.hudText, { color: colors.textSecondary }]}>✓ {correctCount} · ✗ {errorsCount}</Text>
-        </View>
-
+      <GameShell
+        title={t('semanticSort')}
+        onBack={() => goBackOrHome()}
+        scrollableField
+        stats={
+          <View style={styles.hudRow}>
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{idx + 1}/{rounds.length}</Text>
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>✓ {correctCount} · ✗ {errorsCount}</Text>
+          </View>
+        }
+        toolbar={
+          <View style={styles.toolbarOptions}>
+            {round.cats.map((cat) => {
+              const isRight = picked !== null && cat === round.correctCat;
+              const isWrongPick = picked === cat && cat !== round.correctCat;
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.answerButton,
+                    styles.toolbarOptionBtn,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    isRight && { backgroundColor: '#34d399', borderColor: '#34d399' },
+                    isWrongPick && { backgroundColor: '#f43f5e', borderColor: '#f43f5e' },
+                  ]}
+                  onPress={() => handlePick(cat)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.answerText, { color: isRight || isWrongPick ? '#fff' : colors.text }]}>
+                    {t(`catVocab_${cat}`)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        }
+      >
         <View style={[styles.promptCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.promptWord, { color: colors.text }]}>{round.word}</Text>
         </View>
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('sortHint')}</Text>
-
-        <View style={styles.optionsWrap}>
-          {round.cats.map((cat) => {
-            const isRight = picked !== null && cat === round.correctCat;
-            const isWrongPick = picked === cat && cat !== round.correctCat;
-            return (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  styles.answerButton,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
-                  isRight && { backgroundColor: '#34d399', borderColor: '#34d399' },
-                  isWrongPick && { backgroundColor: '#f43f5e', borderColor: '#f43f5e' },
-                ]}
-                onPress={() => handlePick(cat)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.answerText, { color: isRight || isWrongPick ? '#fff' : colors.text }]}>
-                  {t(`catVocab_${cat}`)}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+      </GameShell>
     );
   };
+
+  if (phase === 'playing') return renderPlaying();
 
   if (phase === 'intro') {
     return (
@@ -331,7 +342,6 @@ export default function SemanticSortGame() {
       </View>
 
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared
           gameId="semantic_sort"
@@ -392,7 +402,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   startButtonText: { fontSize: 18, fontWeight: '700' },
-  gameContainer: { flex: 1, justifyContent: 'center', paddingHorizontal: 16 },
   hudRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
   hudText: { fontSize: 15, fontWeight: '600' },
   promptCard: {
@@ -404,7 +413,9 @@ const styles = StyleSheet.create({
   },
   promptWord: { fontSize: 34, fontWeight: '800', textAlign: 'center' },
   hint: { fontSize: 13, textAlign: 'center', marginBottom: 14 },
-  optionsWrap: { gap: 10 },
+  // Категории-ответы в тулбаре каркаса: сетка 2×N на всю ширину ряда
+  toolbarOptions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  toolbarOptionBtn: { flexGrow: 1, flexBasis: '45%' },
   answerButton: {
     borderRadius: 14,
     borderWidth: 1,

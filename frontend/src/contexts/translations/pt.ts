@@ -837,5 +837,10 @@ const t: Record<string, string> = {
   "bossTitle": "CHEFE",
   "bossDefeated": "🏆 Chefe derrotado! +⭐",
   "bossSurvived": "O chefe resistiu — seguimos em frente",
+  // web-demo (добавлено вручную к автогенерату — при регенерации воркфлоу включить эти ключи в базу)
+  "demoTitle": "Mais de 60 treinos de memória, atenção e lógica",
+  "demoSubtitle": "Isto é uma demo. O app completo: todos os jogos, níveis e estatísticas.",
+  "demoDownloadCta": "Baixar o app",
+  "demoResultCta": "Baixe o app — todos os 60+ jogos e níveis",
 };
 export default t;

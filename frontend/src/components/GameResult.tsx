@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -8,6 +8,7 @@ import { sndWin } from '@/src/services/feedback';
 import { tokenDelta } from '@/src/services/tokens';
 import { shareResult } from '@/src/services/share';
 import ResultSparkline from '@/src/components/ResultSparkline';
+import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
 
 interface GameResultProps {
   time?: number;
@@ -136,6 +137,26 @@ export default function GameResult({
         )}
       </LinearGradient>
 
+      {/* Web-demo: вместо «Играть снова/Домой» — большая CTA «Скачать приложение»
+          (все 60+ игр и уровни в приложении) + маленькая «Ещё раз». */}
+      {IS_WEB_DEMO ? (
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity
+            style={[styles.button, styles.demoCta, { backgroundColor: colors.primary }]}
+            onPress={() => Linking.openURL(demoDownloadUrl(language)).catch(() => {})}
+          >
+            <Ionicons name="download-outline" size={22} color="#FFFFFF" />
+            <Text style={[styles.buttonText, styles.demoCtaText]} numberOfLines={2}>{t('demoResultCta')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+            onPress={onPlayAgain}
+          >
+            <Ionicons name="refresh" size={18} color={colors.text} />
+            <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('playAgain')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
           style={[styles.button, { backgroundColor: colors.primary }]}
@@ -163,6 +184,7 @@ export default function GameResult({
           <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('goHome')}</Text>
         </TouchableOpacity>
       </View>
+      )}
     </View>
   );
 }
@@ -225,4 +247,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     flexShrink: 1,   // при крупном шрифте текст ужимается/усекается, а не выдавливается за кнопку
   },
+  // Web-demo CTA — крупнее обычной кнопки, текст в 2 строки допустим
+  demoCta: { paddingVertical: 18, gap: 8, paddingHorizontal: 14 },
+  demoCtaText: { fontWeight: '800', textAlign: 'center' },
 });

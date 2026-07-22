@@ -24,6 +24,7 @@ import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import {
   buildQueue,
@@ -322,6 +323,7 @@ export default function VocabSrsGame() {
     </ScrollView>
   );
 
+  // playing-фаза — на едином каркасе GameShell (карточка в скролл-поле, варианты ответов прибиты к низу)
   const renderPlaying = () => {
     const card = queue[idx];
     if (!card) return null;
@@ -330,54 +332,61 @@ export default function VocabSrsGame() {
     const right = card[field];
 
     return (
-      <View style={styles.gameContainer}>
-        <View style={styles.hudRow}>
-          <Text style={[styles.hudText, { color: colors.textSecondary }]}>
-            {idx + 1}/{queue.length}
-          </Text>
-          {card.isNew && (
-            <View style={[styles.newBadge, { backgroundColor: GRADIENT[0] }]}>
-              <Text style={styles.newBadgeText}>{t('srsNew')}</Text>
-            </View>
-          )}
-          <Text style={[styles.hudText, { color: colors.textSecondary }]}>
-            ✓ {correctCount} · ✗ {wrongCount}
-          </Text>
-        </View>
-
+      <GameShell
+        title={t('vocabSrs')}
+        onBack={() => goBackOrHome()}
+        scrollableField
+        stats={
+          <View style={styles.hudRow}>
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>
+              {idx + 1}/{queue.length}
+            </Text>
+            {card.isNew && (
+              <View style={[styles.newBadge, { backgroundColor: GRADIENT[0] }]}>
+                <Text style={styles.newBadgeText}>{t('srsNew')}</Text>
+              </View>
+            )}
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>
+              ✓ {correctCount} · ✗ {wrongCount}
+            </Text>
+          </View>
+        }
+        toolbar={
+          <View style={styles.toolbarOptions}>
+            {options.map((o) => {
+              const isRight = picked !== null && o === right;
+              const isWrongPick = picked === o && o !== right;
+              return (
+                <TouchableOpacity
+                  key={o}
+                  style={[
+                    styles.answerButton,
+                    styles.toolbarOptionBtn,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    isRight && { backgroundColor: '#34d399', borderColor: '#34d399' },
+                    isWrongPick && { backgroundColor: '#f43f5e', borderColor: '#f43f5e' },
+                  ]}
+                  onPress={() => handlePick(o)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.answerText,
+                      { color: isRight || isWrongPick ? '#fff' : colors.text },
+                    ]}
+                  >
+                    {o}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        }
+      >
         <View style={[styles.promptCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.promptWord, { color: colors.text }]}>{prompt}</Text>
         </View>
-
-        <View style={styles.optionsWrap}>
-          {options.map((o) => {
-            const isRight = picked !== null && o === right;
-            const isWrongPick = picked === o && o !== right;
-            return (
-              <TouchableOpacity
-                key={o}
-                style={[
-                  styles.answerButton,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
-                  isRight && { backgroundColor: '#34d399', borderColor: '#34d399' },
-                  isWrongPick && { backgroundColor: '#f43f5e', borderColor: '#f43f5e' },
-                ]}
-                onPress={() => handlePick(o)}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.answerText,
-                    { color: isRight || isWrongPick ? '#fff' : colors.text },
-                  ]}
-                >
-                  {o}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+      </GameShell>
     );
   };
 
@@ -402,6 +411,8 @@ export default function VocabSrsGame() {
       </TouchableOpacity>
     </View>
   );
+
+  if (phase === 'playing') return renderPlaying();
 
   if (phase === 'intro') {
     return (
@@ -434,7 +445,6 @@ export default function VocabSrsGame() {
       </View>
 
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'done' && renderDone()}
       {phase === 'result' && (
         <GameResult
@@ -562,7 +572,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   promptWord: { fontSize: 34, fontWeight: '800', textAlign: 'center' },
-  optionsWrap: { gap: 10 },
+  // Варианты ответов в тулбаре каркаса: сетка 2×N на всю ширину ряда
+  toolbarOptions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  toolbarOptionBtn: { flexGrow: 1, flexBasis: '45%' },
   answerButton: {
     borderRadius: 14,
     borderWidth: 1,

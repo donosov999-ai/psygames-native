@@ -840,5 +840,10 @@ const t: Record<string, string> = {
   "bossTitle": "बॉस",
   "bossDefeated": "🏆 बॉस हार गया! +⭐",
   "bossSurvived": "बॉस बच गया — आगे बढ़ते हैं",
+  // web-demo (добавлено вручную к автогенерату — при регенерации воркфлоу включить эти ключи в базу)
+  "demoTitle": "याददाश्त, ध्यान और तर्क के लिए 60+ अभ्यास",
+  "demoSubtitle": "यह एक डेमो है। पूरा ऐप: सभी गेम, स्तर और आँकड़े।",
+  "demoDownloadCta": "ऐप डाउनलोड करें",
+  "demoResultCta": "ऐप पाएँ — सभी 60+ गेम और स्तर",
 };
 export default t;

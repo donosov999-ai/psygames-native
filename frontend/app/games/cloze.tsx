@@ -25,6 +25,7 @@ import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -326,50 +327,60 @@ export default function ClozeGame() {
     );
   };
 
+  // playing-фаза — на едином каркасе GameShell (фраза в скролл-поле, варианты ответов прибиты к низу)
   const renderPlaying = () => {
     const round = rounds[idx];
     if (!round) return null;
     const lowTime = timeLeft <= 2;
     return (
-      <View style={styles.gameContainer}>
-        <View style={styles.hudRow}>
-          <Text style={[styles.hudText, { color: colors.textSecondary }]}>{idx + 1}/{rounds.length}</Text>
-          {timeLimitRef.current > 0 && (
-            <Text style={[styles.hudText, { color: lowTime ? '#f43f5e' : colors.textSecondary }]}>⏱ {timeLeft}</Text>
-          )}
-          <Text style={[styles.hudText, { color: colors.textSecondary }]}>✓ {correctCount} · ✗ {errorsCount}</Text>
-        </View>
-
+      <GameShell
+        title={t('cloze')}
+        onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        scrollableField
+        stats={
+          <View style={styles.hudRow}>
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{idx + 1}/{rounds.length}</Text>
+            {timeLimitRef.current > 0 && (
+              <Text style={[styles.hudText, { color: lowTime ? '#f43f5e' : colors.textSecondary }]}>⏱ {timeLeft}</Text>
+            )}
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>✓ {correctCount} · ✗ {errorsCount}</Text>
+          </View>
+        }
+        toolbar={
+          <View style={styles.toolbarOptions}>
+            {round.options.map((o) => {
+              const isRight = picked !== null && o === round.answer;
+              const isWrongPick = picked === o && o !== round.answer;
+              return (
+                <TouchableOpacity
+                  key={o}
+                  style={[
+                    styles.answerButton,
+                    styles.toolbarOptionBtn,
+                    { backgroundColor: colors.surface, borderColor: colors.textSecondary },
+                    isRight && { backgroundColor: '#34d399', borderColor: '#34d399' },
+                    isWrongPick && { backgroundColor: '#f43f5e', borderColor: '#f43f5e' },
+                  ]}
+                  onPress={() => handlePick(o)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.answerText, { color: isRight || isWrongPick ? '#fff' : colors.text }]}>{o}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        }
+      >
         <View style={[styles.promptCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.promptPhrase, { color: colors.text }]}>{round.text}</Text>
         </View>
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('clozeHint')}</Text>
-
-        <View style={styles.optionsWrap}>
-          {round.options.map((o) => {
-            const isRight = picked !== null && o === round.answer;
-            const isWrongPick = picked === o && o !== round.answer;
-            return (
-              <TouchableOpacity
-                key={o}
-                style={[
-                  styles.answerButton,
-                  { backgroundColor: colors.surface, borderColor: colors.textSecondary },
-                  isRight && { backgroundColor: '#34d399', borderColor: '#34d399' },
-                  isWrongPick && { backgroundColor: '#f43f5e', borderColor: '#f43f5e' },
-                ]}
-                onPress={() => handlePick(o)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.answerText, { color: isRight || isWrongPick ? '#fff' : colors.text }]}>{o}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+      </GameShell>
     );
   };
+
+  if (phase === 'playing') return renderPlaying();
 
   if (phase === 'intro') {
     return (
@@ -402,7 +413,6 @@ export default function ClozeGame() {
       </View>
 
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared
           gameId="cloze"
@@ -463,7 +473,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   startButtonText: { fontSize: 18, fontWeight: '700' },
-  gameContainer: { flex: 1, justifyContent: 'center', paddingHorizontal: 16 },
   hudRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
   hudText: { fontSize: 15, fontWeight: '600' },
   promptCard: {
@@ -477,7 +486,9 @@ const styles = StyleSheet.create({
   },
   promptPhrase: { fontSize: 24, fontWeight: '700', textAlign: 'center', lineHeight: 34 },
   hint: { fontSize: 13, textAlign: 'center', marginBottom: 14 },
-  optionsWrap: { gap: 10 },
+  // Варианты ответов в тулбаре каркаса: сетка 2×N на всю ширину ряда
+  toolbarOptions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  toolbarOptionBtn: { flexGrow: 1, flexBasis: '45%' },
   answerButton: {
     borderRadius: 14,
     borderWidth: 1.5,

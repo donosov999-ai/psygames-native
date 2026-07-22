@@ -650,6 +650,12 @@ const translations: Translations = {
   catVocab_basics: { ru: 'Базовые слова', en: 'Basic words' },
   cognitiveGames: { ru: 'Когнитивные игры', en: 'Cognitive Games' },
   trainYourBrain: { ru: 'Тренируйте мозг', en: 'Train Your Brain' },
+
+  // Web-demo (публичный /play/ = только демо; полная версия — в приложении)
+  demoTitle: { ru: '60+ тренажёров для памяти, внимания и логики', en: '60+ workouts for memory, attention and logic' },
+  demoSubtitle: { ru: 'Это демо. Полная версия — в приложении: все игры, уровни и статистика.', en: 'This is a demo. Get the app for all games, levels and stats.' },
+  demoDownloadCta: { ru: 'Скачать приложение', en: 'Download the app' },
+  demoResultCta: { ru: 'Скачать приложение — все 60+ игр и уровни', en: 'Get the app — all 60+ games & levels' },
   selectGame: { ru: 'Выберите игру', en: 'Select a Game' },
   gameResult: { ru: 'Результат игры', en: 'Game Result' },
   yourTime: { ru: 'Ваше время', en: 'Your Time' },

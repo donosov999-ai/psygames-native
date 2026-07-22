@@ -27,6 +27,7 @@ import { useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getMaxLevelFromSessions } from '@/src/services/api';
+import { IS_WEB_DEMO } from '@/src/services/buildTarget';
 
 const FAIL_STREAK_THRESHOLD = 3;
 
@@ -49,6 +50,14 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
   const failStreakRef = useRef(0);
 
   useEffect(() => {
+    // Web-demo: прогресс не читаем и не пишем — всегда стартовый уровень (демо-раунд).
+    if (IS_WEB_DEMO) {
+      levelRef.current = initial;
+      setLevelState(initial);
+      failStreakRef.current = 0;
+      setLoaded(true);
+      return;
+    }
     let cancelled = false;
     setLoaded(false);
     Promise.all([AsyncStorage.getItem(key), AsyncStorage.getItem(failKey)]).then(async ([v, f]) => {
@@ -80,6 +89,7 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
 
   const setFailStreak = (n: number) => {
     failStreakRef.current = n;
+    if (IS_WEB_DEMO) return;   // демо: запись прогресса выключена
     AsyncStorage.setItem(failKey, String(n)).catch(() => {});
   };
 
@@ -87,17 +97,19 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
     const lv = Math.max(1, Math.round(n));
     levelRef.current = lv;
     setLevelState(lv);
-    AsyncStorage.setItem(key, String(lv)).catch(() => {});
+    if (!IS_WEB_DEMO) AsyncStorage.setItem(key, String(lv)).catch(() => {});   // демо: без записи
     setFailStreak(0);
   };
 
   const reach = (target: number): boolean => {
+    if (IS_WEB_DEMO) return false;   // демо: уровень не растёт (всегда демо-раунд уровня 1), записи нет
     if (target > levelRef.current) { setLevel(target); return true; }
     setFailStreak(0);   // уровень пройден (пусть и не выше текущего потолка) — сбрасываем счётчик провалов
     return false;
   };
 
   const fail = (): boolean => {
+    if (IS_WEB_DEMO) return false;   // демо: без понижений и записи
     const streak = failStreakRef.current + 1;
     if (streak >= FAIL_STREAK_THRESHOLD && levelRef.current > 1) {
       setLevel(levelRef.current - 1);   // setLevel уже обнуляет failStreak

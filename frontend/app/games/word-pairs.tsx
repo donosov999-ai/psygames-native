@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,6 +16,7 @@ import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
@@ -363,136 +363,143 @@ export default function WordPairsGame() {
     </View>
   );
 
+  // memorize-фаза — на едином каркасе GameShell (список пар в скролл-поле, «Проверить» прибита к низу)
   const renderMemorize = () => (
-    <View style={styles.gameContainer}>
-      <View style={styles.gameHeader}>
-        <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
-          <Ionicons name="time-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.timerText}>
-            {memorizeLimitSec > 0
-              ? `${Math.max(0, memorizeLimitSec - elapsedTime).toFixed(0)}s`
-              : `${elapsedTime.toFixed(1)}s`}
-          </Text>
+    <GameShell
+      title={t('wordPairs')}
+      onBack={() => goBackOrHome()}
+      scrollableField
+      stats={
+        <View style={styles.gameHeader}>
+          <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
+            <Ionicons name="time-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.timerText}>
+              {memorizeLimitSec > 0
+                ? `${Math.max(0, memorizeLimitSec - elapsedTime).toFixed(0)}s`
+                : `${elapsedTime.toFixed(1)}s`}
+            </Text>
+          </View>
         </View>
-      </View>
-      
+      }
+      toolbar={
+        <TouchableOpacity style={styles.toolbarBtn} onPress={startCheck}>
+          <LinearGradient
+            colors={GRADIENT as [string, string]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.startButtonGradient, styles.toolbarGrad]}
+          >
+            <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
+            <Text style={styles.startButtonText}>
+              {t('btn_check')}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      }
+    >
       <Text style={[styles.phaseTitle, { color: colors.text }]}>
         {mode === 'translation'
           ? `${LANGUAGES.find(l => l.code === language)?.name} → ${LANGUAGES.find(l => l.code === targetLang)?.name}`
           : t('label_memorize_word_pairs')}
       </Text>
-      
-      <ScrollView style={styles.pairsList} showsVerticalScrollIndicator={false}>
-        {pairs.map((pair, index) => (
-          <View key={index} style={[styles.pairRow, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.pairWord, { color: colors.text }]}>{pair.word1}</Text>
-            {/* стрелка между двумя словами не сжимается при крупном шрифте */}
-            <Ionicons name="arrow-forward" size={20} color={colors.textSecondary} style={{ flexShrink: 0 }} />
-            <Text style={[styles.pairWord, { color: colors.text, fontWeight: '700' }]}>{pair.word2}</Text>
-          </View>
-        ))}
-      </ScrollView>
-      
-      <TouchableOpacity style={styles.checkButton} onPress={startCheck}>
-        <LinearGradient
-          colors={GRADIENT as [string, string]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.startButtonGradient}
-        >
-          <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
-          <Text style={styles.startButtonText}>
-            {t('btn_check')}
-          </Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
+      {pairs.map((pair, index) => (
+        <View key={index} style={[styles.pairRow, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.pairWord, { color: colors.text }]}>{pair.word1}</Text>
+          {/* стрелка между двумя словами не сжимается при крупном шрифте */}
+          <Ionicons name="arrow-forward" size={20} color={colors.textSecondary} style={{ flexShrink: 0 }} />
+          <Text style={[styles.pairWord, { color: colors.text, fontWeight: '700' }]}>{pair.word2}</Text>
+        </View>
+      ))}
+    </GameShell>
   );
 
+  // check-фаза — тот же каркас; соединение пар идёт тапами по колонкам, кнопок действий нет
   const renderCheck = () => (
-    <View style={styles.gameContainer}>
-      <View style={styles.gameHeader}>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>{elapsedTime.toFixed(1)}s</Text>
+    <GameShell
+      title={t('wordPairs')}
+      onBack={() => goBackOrHome()}
+      scrollableField
+      stats={
+        <View style={styles.gameHeader}>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{elapsedTime.toFixed(1)}s</Text>
+          </View>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
+            <Text style={[styles.statValue, { color: errors > 0 ? colors.error : colors.text }]}>
+              {errors} (+{errors * PENALTY_SECONDS}s)
+            </Text>
+          </View>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              {t('label_found')}
+            </Text>
+            <Text style={[styles.statValue, { color: colors.success }]}>
+              {matchedPairs.size}/{pairs.length}
+            </Text>
+          </View>
         </View>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
-          <Text style={[styles.statValue, { color: errors > 0 ? colors.error : colors.text }]}>
-            {errors} (+{errors * PENALTY_SECONDS}s)
-          </Text>
-        </View>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            {t('label_found')}
-          </Text>
-          <Text style={[styles.statValue, { color: colors.success }]}>
-            {matchedPairs.size}/{pairs.length}
-          </Text>
-        </View>
-      </View>
-      
+      }
+    >
       <Text style={[styles.phaseTitle, { color: colors.text }]}>
         {t('label_restore_pairs')}
       </Text>
-      
-      <ScrollView style={styles.checkContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.columnsContainer}>
-          {/* Left column */}
-          <View style={styles.column}>
-            {pairs.map((pair) => {
-              const isMatched = matchedPairs.has(pair.id);
-              const isSelected = selectedLeft === pair.id;
-              return (
-                <TouchableOpacity
-                  key={pair.id}
-                  style={[
-                    styles.wordButton,
-                    { backgroundColor: isMatched ? colors.success : isSelected ? GRADIENT[0] : colors.surface },
-                  ]}
-                  onPress={() => !isMatched && handleLeftSelect(pair.id)}
-                  disabled={isMatched}
-                >
-                  <Text style={[
-                    styles.wordButtonText,
-                    { color: isMatched || isSelected ? '#FFFFFF' : colors.text }
-                  ]}>
-                    {pair.word1}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-          
-          {/* Right column (shuffled) */}
-          <View style={styles.column}>
-            {shuffledRight.map((word, index) => {
-              const originalPair = pairs.find(p => p.word2 === word);
-              const isMatched = originalPair ? matchedPairs.has(originalPair.id) : false;
-              const isSelected = selectedRight === word;
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.wordButton,
-                    { backgroundColor: isMatched ? colors.success : isSelected ? GRADIENT[0] : colors.surface },
-                  ]}
-                  onPress={() => !isMatched && handleRightSelect(word)}
-                  disabled={isMatched}
-                >
-                  <Text style={[
-                    styles.wordButtonText,
-                    { color: isMatched || isSelected ? '#FFFFFF' : colors.text }
-                  ]}>
-                    {word}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+      <View style={styles.columnsContainer}>
+        {/* Left column */}
+        <View style={styles.column}>
+          {pairs.map((pair) => {
+            const isMatched = matchedPairs.has(pair.id);
+            const isSelected = selectedLeft === pair.id;
+            return (
+              <TouchableOpacity
+                key={pair.id}
+                style={[
+                  styles.wordButton,
+                  { backgroundColor: isMatched ? colors.success : isSelected ? GRADIENT[0] : colors.surface },
+                ]}
+                onPress={() => !isMatched && handleLeftSelect(pair.id)}
+                disabled={isMatched}
+              >
+                <Text style={[
+                  styles.wordButtonText,
+                  { color: isMatched || isSelected ? '#FFFFFF' : colors.text }
+                ]}>
+                  {pair.word1}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-      </ScrollView>
-    </View>
+
+        {/* Right column (shuffled) */}
+        <View style={styles.column}>
+          {shuffledRight.map((word, index) => {
+            const originalPair = pairs.find(p => p.word2 === word);
+            const isMatched = originalPair ? matchedPairs.has(originalPair.id) : false;
+            const isSelected = selectedRight === word;
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.wordButton,
+                  { backgroundColor: isMatched ? colors.success : isSelected ? GRADIENT[0] : colors.surface },
+                ]}
+                onPress={() => !isMatched && handleRightSelect(word)}
+                disabled={isMatched}
+              >
+                <Text style={[
+                  styles.wordButtonText,
+                  { color: isMatched || isSelected ? '#FFFFFF' : colors.text }
+                ]}>
+                  {word}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    </GameShell>
   );
 
   if (phase === 'intro') {
@@ -512,6 +519,9 @@ export default function WordPairsGame() {
     );
   }
 
+  if (phase === 'memorize') return renderMemorize();
+  if (phase === 'check') return renderCheck();
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -526,8 +536,6 @@ export default function WordPairsGame() {
       </View>
 
       {phase === 'config' && renderConfig()}
-      {phase === 'memorize' && renderMemorize()}
-      {phase === 'check' && renderCheck()}
       {phase === 'cleared' && (
         <LevelCleared
           gameId="word_pairs"
@@ -616,7 +624,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   startButtonText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
-  gameContainer: { flex: 1, justifyContent: 'center', paddingHorizontal: 20 },
+  // Кнопка «Проверить» в тулбаре каркаса: тянется на всю ширину ряда
+  toolbarBtn: { flex: 1 },
+  toolbarGrad: { marginBottom: 0 },
   gameHeader: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -640,7 +650,6 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 11 },
   statValue: { fontSize: 14, fontWeight: '700', marginTop: 2 },
   phaseTitle: { fontSize: 18, fontWeight: '700', marginBottom: 16, textAlign: 'center' },
-  pairsList: { flex: 1 },
   pairRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -649,8 +658,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   pairWord: { fontSize: 17, flex: 1, fontWeight: '600', minWidth: 0 },  // крупный шрифт: слово ужимается/переносится, а не толкает соседнюю колонку за край
-  checkButton: { marginBottom: 20 },
-  checkContainer: { flex: 1 },
   columnsContainer: {
     flexDirection: 'row',
     marginBottom: 12,

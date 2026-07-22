@@ -475,8 +475,14 @@ jobs:
         working-directory: frontend
         run: npm ci --legacy-peer-deps
 
-      - name: Build web (with /psygames-web baseUrl)
+      - name: Build web (with /psygames-web baseUrl) — WEB-DEMO
         working-directory: frontend
+        env:
+          # Решение Дениса (07.2026): публичный web = ТОЛЬКО ДЕМО (лендинг + демо-раунды,
+          # прогресс не пишется, CTA «Скачать приложение»). Флаг инлайнится babel'ем при
+          # экспорте (src/services/buildTarget.ts). Tauri-джобы экспортят БЕЗ флага
+          # (свой export в каждой джобе) = полное приложение.
+          EXPO_PUBLIC_BUILD_TARGET: web-demo
         run: |
           # app.json already has baseUrl=/psygames-web in committed state
           grep baseUrl app.json
@@ -642,8 +648,12 @@ jobs:
       - name: Install frontend deps
         working-directory: frontend
         run: npm ci --legacy-peer-deps
-      - name: Build web (baseUrl=/play)
+      - name: Build web (baseUrl=/play) — WEB-DEMO
         working-directory: frontend
+        env:
+          # /play/ на psy-games.pro = ТОЛЬКО ДЕМО (решение Дениса 07.2026) — тот же
+          # флаг, что и psygames-web деплой выше. Tauri-джобы без флага (полная версия).
+          EXPO_PUBLIC_BUILD_TARGET: web-demo
         run: |
           sed -i 's|"baseUrl": "/psygames-web"|"baseUrl": "/play"|' app.json
           npx expo export -p web

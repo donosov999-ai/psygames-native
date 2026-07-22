@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { saveLevelStars } from '@/src/services/levelStars';
 import { getCleanRun, cleanRunBonus } from '@/src/services/cleanRun';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
 
 /**
  * LevelCleared — короткий баннер между уровнями для АВТО-ПОТОКА (по выбору Дениса):
@@ -37,13 +38,14 @@ interface Props {
 }
 
 export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, onContinue, onStop }: Props) {
-  const { t } = useLanguage();   // язык берём из контекста; проп language остался в Props для совместимости вызовов из игр
+  const { t, language } = useLanguage();   // язык берём из контекста; проп language остался в Props для совместимости вызовов из игр
   const { profile } = useProfile();
   const firedRef = useRef(false);
   // вычисляем ОДНАЖДЫ при маунте: пора ли передышка для глаз (10-й уровень подряд).
   // Считаем «уровни подряд» только за ЧИСТЫЕ прохождения — провал серию обнуляет.
+  // Web-demo: авто-потока нет → и глаз-разрядки нет.
   const restRef = useRef<boolean | null>(null);
-  if (restRef.current === null) restRef.current = passed ? tickLevelStreak() : (resetLevelStreak(), false);
+  if (restRef.current === null) restRef.current = IS_WEB_DEMO ? false : passed ? tickLevelStreak() : (resetLevelStreak(), false);
   const isRest = restRef.current;
   const [restLeft, setRestLeft] = useState(EYE_REST_SEC);
   const [cleanRun, setCleanRun] = useState(0);   // серия чистых раундов (🔥), тикается в saveSession
@@ -54,6 +56,9 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
 
   useEffect(() => {
     if (passed) sndWin();
+    // Web-demo: демо-раунд — без авто-продолжения на следующий уровень и без
+    // персиста (звёзды/хинт/серии). Показываем CTA-блок, игрок решает сам.
+    if (IS_WEB_DEMO) return;
     if (passed && gameId && profile?.id) saveLevelStars(gameId, profile.id, level, stars);   // лучшие звёзды за уровень
     // Одноразовый хинт «уровни идут по порядку»: при ПЕРВОМ чистом прохождении любого уровня
     // показываем подпись и сразу ставим глобальный флаг (больше не покажем на всё приложение).
@@ -130,17 +135,44 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             </Text>
           </View>
         )}
-        <Text style={styles.next}>
-          {passed
-            ? t('levelStarting').replace('{n}', String(level + 1))
-            : t('sameLevelRetry')}
-        </Text>
+        {/* Web-demo: авто-старта следующего уровня нет — строку «Запускаю уровень N+1» не показываем */}
+        {!IS_WEB_DEMO && (
+          <Text style={styles.next}>
+            {passed
+              ? t('levelStarting').replace('{n}', String(level + 1))
+              : t('sameLevelRetry')}
+          </Text>
+        )}
         {passed && showLevelsHint && (
           <Text style={styles.levelsHint}>
             {t('levelsInOrderHint')}
           </Text>
         )}
       </LinearGradient>
+      {IS_WEB_DEMO ? (
+        // Демо: тот же CTA-блок, что и в GameResult — большая «Скачать приложение
+        // — все 60+ игр и уровни» + маленькие «Ещё раз» и «Стоп».
+        <View style={styles.btns}>
+          <TouchableOpacity
+            style={[styles.btn, styles.demoCta, { backgroundColor: colors.primary }]}
+            onPress={() => Linking.openURL(demoDownloadUrl(language)).catch(() => {})}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="download-outline" size={22} color="#FFFFFF" />
+            <Text style={[styles.btnText, styles.demoCtaText]} numberOfLines={2}>{t('demoResultCta')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+            onPress={go} activeOpacity={0.85}>
+            <Ionicons name="refresh" size={18} color={colors.text} />
+            <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('retry')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+            onPress={stop} activeOpacity={0.85}>
+            <Ionicons name="stop" size={18} color={colors.text} />
+            <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
       <View style={styles.btns}>
         <TouchableOpacity style={[styles.btn, { backgroundColor: colors.primary }]} onPress={go} activeOpacity={0.85}>
           <Ionicons name={passed ? 'play' : 'refresh'} size={20} color="#FFFFFF" />
@@ -152,6 +184,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
           <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>
         </TouchableOpacity>
       </View>
+      )}
     </View>
   );
 }
@@ -171,4 +204,7 @@ const styles = StyleSheet.create({
   btns: { width: '100%', marginTop: 24 },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 12, marginBottom: 8 },
   btnText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', flexShrink: 1 },   // крупный шрифт: усечь, не выдавить за кнопку
+  // Web-demo CTA — крупнее обычной кнопки, текст в 2 строки допустим
+  demoCta: { paddingVertical: 18, gap: 8, paddingHorizontal: 14 },
+  demoCtaText: { fontWeight: '800', textAlign: 'center' },
 });

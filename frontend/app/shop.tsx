@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, Redirect } from 'expo-router';
+import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -16,6 +17,8 @@ import { avatarImage } from '@/src/constants/avatars';
 import { sndToken, sndTap, sndWrong, sndCorrect, getSoundPack, setSoundPack as applySoundPack } from '@/src/services/feedback';
 
 export default function ShopScreen() {
+  // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
+  if (isWebDemo()) return <Redirect href="/" />;
   const { colors, refreshCosmeticAccent } = useTheme();
   const { t, language } = useLanguage();
   const { profile } = useProfile();

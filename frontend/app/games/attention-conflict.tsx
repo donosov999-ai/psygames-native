@@ -18,7 +18,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
+import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -65,6 +66,9 @@ const SUB_GAMES = [
 ];
 
 export default function AttentionConflictGame() {
+  // Web-demo: хаб-выбор парадигмы не показываем — сразу первая подигра.
+  if (isWebDemo()) return <Redirect href="/games/flanker" />;
+
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();

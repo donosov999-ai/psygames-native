@@ -25,6 +25,7 @@ import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -297,18 +298,44 @@ export default function LexicalDecisionGame() {
     );
   };
 
+  // playing-фаза — на едином каркасе GameShell (слово в скролл-поле, две кнопки ответа прибиты к низу)
   const renderPlaying = () => {
     const trial = trials[idx];
     if (!trial) return null;
     const showFeedback = picked !== null;
     const wasCorrect = showFeedback && picked === trial.isWord;
     return (
-      <View style={styles.gameContainer}>
-        <View style={styles.hudRow}>
-          <Text style={[styles.hudText, { color: colors.textSecondary }]}>{idx + 1}/{trials.length}</Text>
-          <Text style={[styles.hudText, { color: colors.textSecondary }]}>✓ {correctCount} · ✗ {errorsCount}</Text>
-        </View>
-
+      <GameShell
+        title={t('lexicalDecision')}
+        onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        scrollableField
+        stats={
+          <View style={styles.hudRow}>
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{idx + 1}/{trials.length}</Text>
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>✓ {correctCount} · ✗ {errorsCount}</Text>
+          </View>
+        }
+        toolbar={
+          <>
+            <TouchableOpacity
+              style={[styles.bigButton, { backgroundColor: '#34d399' }]}
+              onPress={() => handleAnswer(true)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="checkmark" size={28} color="#fff" />
+              <Text style={styles.bigButtonText}>{t('ldWordBtn')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.bigButton, { backgroundColor: '#f43f5e' }]}
+              onPress={() => handleAnswer(false)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="close" size={28} color="#fff" />
+              <Text style={styles.bigButtonText}>{t('ldNonwordBtn')}</Text>
+            </TouchableOpacity>
+          </>
+        }
+      >
         <View
           style={[
             styles.promptCard,
@@ -320,28 +347,11 @@ export default function LexicalDecisionGame() {
         </View>
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('ldHint')}</Text>
-
-        <View style={styles.answerRow}>
-          <TouchableOpacity
-            style={[styles.bigButton, { backgroundColor: '#34d399' }]}
-            onPress={() => handleAnswer(true)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="checkmark" size={28} color="#fff" />
-            <Text style={styles.bigButtonText}>{t('ldWordBtn')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.bigButton, { backgroundColor: '#f43f5e' }]}
-            onPress={() => handleAnswer(false)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={28} color="#fff" />
-            <Text style={styles.bigButtonText}>{t('ldNonwordBtn')}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      </GameShell>
     );
   };
+
+  if (phase === 'playing') return renderPlaying();
 
   if (phase === 'intro') {
     return (
@@ -374,7 +384,6 @@ export default function LexicalDecisionGame() {
       </View>
 
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared
           gameId="lexical_decision"
@@ -435,7 +444,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   startButtonText: { fontSize: 18, fontWeight: '700' },
-  gameContainer: { flex: 1, justifyContent: 'center', paddingHorizontal: 16 },
   hudRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
   hudText: { fontSize: 15, fontWeight: '600' },
   promptCard: {
@@ -447,7 +455,6 @@ const styles = StyleSheet.create({
   },
   promptWord: { fontSize: 36, fontWeight: '800', textAlign: 'center' },
   hint: { fontSize: 13, textAlign: 'center', marginBottom: 16 },
-  answerRow: { flexDirection: 'row', gap: 12 },
   bigButton: {
     flex: 1,
     borderRadius: 16,

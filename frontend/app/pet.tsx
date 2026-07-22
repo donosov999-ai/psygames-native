@@ -9,7 +9,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, Redirect } from 'expo-router';
+import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -36,6 +37,8 @@ function ruTrainings(n: number): string {
 }
 
 export default function PetScreen() {
+  // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
+  if (isWebDemo()) return <Redirect href="/" />;
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const ru = language === 'ru';   // остался только для русской плюрализации и выбора локали данных STAGE_NAMES

@@ -21,6 +21,7 @@ import { getUnlockedLevels, getNextLockedLevel } from '@/src/services/level-unlo
 import { LEVELS_BY_GAME } from '@/src/constants/level-progression';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
@@ -792,37 +793,48 @@ export default function SchulteGame() {
     </ScrollView>
   );
 
+  // playing-фаза — на едином каркасе GameShell (кнопочная миграция: сетка вписана в экран,
+  // скролла нет; рестарт-кнопка переехала в правый слот шапки)
   const renderGame = () => {
     const isGroupMode = groupCount > 1 && cellGroup.length > 0;
     const currentTarget = isGroupMode ? groupTargets[activeGroup] : sequence[currentIndex];
 
     return (
-      <View style={styles.gameContainer}>
-        {/* Game Header */}
-        <View style={styles.gameHeader}>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('find')}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              {isGroupMode && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS[activeGroup % COLORS.length] }} />}
-              <Text style={[styles.statValue, { color: colors.text }]}>{currentTarget}</Text>
+      <GameShell
+        title={t('schulteTable')}
+        onBack={() => goBackOrHome()}
+        headerRight={
+          <TouchableOpacity
+            style={[styles.backButton, { backgroundColor: colors.surface }]}
+            onPress={() => setPhase('config')}
+          >
+            <Ionicons name="refresh" size={24} color={colors.text} />
+          </TouchableOpacity>
+        }
+        stats={
+          <View style={styles.gameHeader}>
+            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('find')}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                {isGroupMode && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS[activeGroup % COLORS.length] }} />}
+                <Text style={[styles.statValue, { color: colors.text }]}>{currentTarget}</Text>
+              </View>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{formatTime(elapsedTime)}</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
+              <Text style={[styles.statValue, { color: errors > 0 ? colors.error : colors.text }]}>{errors}</Text>
             </View>
           </View>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>{formatTime(elapsedTime)}</Text>
-          </View>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
-            <Text style={[styles.statValue, { color: errors > 0 ? colors.error : colors.text }]}>{errors}</Text>
-          </View>
-        </View>
-
-        {/* Grid */}
-        <View style={styles.gridContainer}>
-          <View style={[
-            styles.grid,
-            { width: cellSize * gridSize + (gridSize - 1) * 4 }
-          ]}>
+        }
+      >
+        <View style={[
+          styles.grid,
+          { width: cellSize * gridSize + (gridSize - 1) * 4 }
+        ]}>
             {grid.map((value, index) => {
               const isFound = isGroupMode
                 ? (typeof value === 'number' && value < groupTargets[cellGroup[index]])
@@ -863,9 +875,8 @@ export default function SchulteGame() {
                 </TouchableOpacity>
               );
             })}
-          </View>
         </View>
-      </View>
+      </GameShell>
     );
   };
 
@@ -886,6 +897,8 @@ export default function SchulteGame() {
     );
   }
 
+  if (phase === 'playing') return renderGame();
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
@@ -899,20 +912,10 @@ export default function SchulteGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
           {phase === 'config' ? t('configureGame') : t('schulteTable')}
         </Text>
-        {phase === 'playing' ? (
-          <TouchableOpacity
-            style={[styles.backButton, { backgroundColor: colors.surface }]}
-            onPress={() => setPhase('config')}
-          >
-            <Ionicons name="refresh" size={24} color={colors.text} />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.placeholder} />
-        )}
+        <View style={styles.placeholder} />
       </View>
 
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderGame()}
       <LeaderboardModal
         visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
         gameId="schulte_table_5x5" language={language} colors={colors} gradient={GRADIENT}
@@ -1070,10 +1073,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  gameContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
   gameHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1092,11 +1091,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     marginTop: 4,
-  },
-  gridContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   grid: {
     flexDirection: 'row',

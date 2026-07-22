@@ -17,6 +17,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -309,130 +310,137 @@ export default function MnemonicsGame() {
     </ScrollView>
   );
 
+  // memorize-фаза — на едином каркасе GameShell (поле в ScrollView, «Проверить» прибита к низу)
   const renderMemorize = () => (
-    <View style={styles.gameContainer}>
-      <View style={styles.gameHeader}>
-        <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
-          <Ionicons name="time-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.timerText}>{elapsedTime.toFixed(1)}s</Text>
+    <GameShell
+      title={t('label_mnemonics')}
+      onBack={() => goBackOrHome()}
+      scrollableField
+      stats={
+        <View style={styles.gameHeader}>
+          <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
+            <Ionicons name="time-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.timerText}>{elapsedTime.toFixed(1)}s</Text>
+          </View>
         </View>
-      </View>
-      
+      }
+      toolbar={
+        <TouchableOpacity style={styles.toolbarBtn} onPress={startCheck}>
+          <LinearGradient
+            colors={GRADIENT as [string, string]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.startButtonGradient, styles.toolbarGrad]}
+          >
+            <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
+            <Text style={styles.startButtonText}>
+              {t('btn_check')}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      }
+    >
       <Text style={[styles.phaseTitle, { color: colors.text }]}>
-        {language === 'ru' 
+        {language === 'ru'
           ? `Запомните ${itemCount} ${mode === 'words' ? 'слов' : 'чисел'}`
           : `Memorize ${itemCount} ${mode}`}
       </Text>
-      
-      <ScrollView style={styles.itemsContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.itemsGrid}>
-          {items.map((item, index) => (
-            <View
-              key={index}
-              style={[
-                styles.itemCell,
-                { 
-                  width: itemWidth, 
-                  height: itemHeight,
-                  backgroundColor: colors.surface,
-                }
-              ]}
-            >
-              <Text style={[styles.itemNumber, { color: colors.text }]}>
-                {index + 1}
-              </Text>
-              <Text style={[styles.itemText, { color: colors.text, fontSize: mode === 'numbers' ? 32 : 24 }]}>
-                {item}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-      
-      <TouchableOpacity style={styles.checkButton} onPress={startCheck}>
-        <LinearGradient
-          colors={GRADIENT as [string, string]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.startButtonGradient}
-        >
-          <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
-          <Text style={styles.startButtonText}>
-            {t('btn_check')}
-          </Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.itemsGrid}>
+        {items.map((item, index) => (
+          <View
+            key={index}
+            style={[
+              styles.itemCell,
+              {
+                width: itemWidth,
+                height: itemHeight,
+                backgroundColor: colors.surface,
+              }
+            ]}
+          >
+            <Text style={[styles.itemNumber, { color: colors.text }]}>
+              {index + 1}
+            </Text>
+            <Text style={[styles.itemText, { color: colors.text, fontSize: mode === 'numbers' ? 32 : 24 }]}>
+              {item}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </GameShell>
   );
 
+  // check-фаза — тот же каркас; выбор идёт тапами по ячейкам, кнопок действий нет
   const renderCheck = () => (
-    <View style={styles.gameContainer}>
-      <View style={styles.statsHeader}>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>{elapsedTime.toFixed(1)}s</Text>
+    <GameShell
+      title={t('label_mnemonics')}
+      onBack={() => goBackOrHome()}
+      scrollableField
+      stats={
+        <View style={styles.statsHeader}>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{elapsedTime.toFixed(1)}s</Text>
+          </View>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
+            <Text style={[styles.statValue, { color: errors > 0 ? colors.error : colors.text }]}>
+              {errors} (+{errors * PENALTY_SECONDS}s)
+            </Text>
+          </View>
+          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              {t('label_selected')}
+            </Text>
+            <Text style={[styles.statValue, { color: colors.success }]}>
+              {selectedOrder.length}/{items.length}
+            </Text>
+          </View>
         </View>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
-          <Text style={[styles.statValue, { color: errors > 0 ? colors.error : colors.text }]}>
-            {errors} (+{errors * PENALTY_SECONDS}s)
-          </Text>
-        </View>
-        <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            {t('label_selected')}
-          </Text>
-          <Text style={[styles.statValue, { color: colors.success }]}>
-            {selectedOrder.length}/{items.length}
-          </Text>
-        </View>
-      </View>
-      
+      }
+    >
       <Text style={[styles.phaseTitle, { color: colors.text }]}>
         {t('label_restore_order')}
       </Text>
       <Text style={[styles.phaseSubtitle, { color: colors.textSecondary }]}>
         {t('hint_top_to_bottom')}
       </Text>
-      
-      <ScrollView style={styles.itemsContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.itemsGrid}>
-          {shuffledItems.map((item, index) => {
-            const isSelected = selectedOrder.includes(item);
-            const orderIndex = selectedOrder.indexOf(item);
-            
-            return (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.checkItemCell,
-                  { 
-                    width: itemWidth, 
-                    height: itemHeight,
-                    backgroundColor: isSelected ? colors.success : colors.surface,
-                  }
-                ]}
-                onPress={() => !isSelected && handleItemSelect(item)}
-                disabled={isSelected}
-              >
-                {isSelected && (
-                  <Text style={styles.selectedNumber}>{orderIndex + 1}</Text>
-                )}
-                <Text style={[
-                  styles.checkItemText, 
-                  { 
-                    color: isSelected ? '#FFFFFF' : colors.text,
-                    fontSize: mode === 'numbers' ? 32 : 24,
-                  }
-                ]}>
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </ScrollView>
-    </View>
+      <View style={styles.itemsGrid}>
+        {shuffledItems.map((item, index) => {
+          const isSelected = selectedOrder.includes(item);
+          const orderIndex = selectedOrder.indexOf(item);
+
+          return (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.checkItemCell,
+                {
+                  width: itemWidth,
+                  height: itemHeight,
+                  backgroundColor: isSelected ? colors.success : colors.surface,
+                }
+              ]}
+              onPress={() => !isSelected && handleItemSelect(item)}
+              disabled={isSelected}
+            >
+              {isSelected && (
+                <Text style={styles.selectedNumber}>{orderIndex + 1}</Text>
+              )}
+              <Text style={[
+                styles.checkItemText,
+                {
+                  color: isSelected ? '#FFFFFF' : colors.text,
+                  fontSize: mode === 'numbers' ? 32 : 24,
+                }
+              ]}>
+                {item}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </GameShell>
   );
 
   if (phase === 'intro') {
@@ -452,6 +460,9 @@ export default function MnemonicsGame() {
     );
   }
 
+  if (phase === 'memorize') return renderMemorize();
+  if (phase === 'check') return renderCheck();
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -468,8 +479,6 @@ export default function MnemonicsGame() {
       </View>
 
       {phase === 'config' && renderConfig()}
-      {phase === 'memorize' && renderMemorize()}
-      {phase === 'check' && renderCheck()}
       {phase === 'cleared' && (
         <LevelCleared gameId="mnemonics" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}
@@ -556,7 +565,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   startButtonText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
-  gameContainer: { flex: 1, justifyContent: 'center', paddingHorizontal: 16 },
+  // Кнопка «Проверить» в тулбаре каркаса: тянется на всю ширину ряда
+  toolbarBtn: { flex: 1 },
+  toolbarGrad: { marginBottom: 0 },
   gameHeader: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -587,7 +598,6 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 14, fontWeight: '700', marginTop: 2 },
   phaseTitle: { fontSize: 18, fontWeight: '700', marginBottom: 4, textAlign: 'center' },
   phaseSubtitle: { fontSize: 13, marginBottom: 12, textAlign: 'center' },
-  itemsContainer: { flex: 1 },
   // ЗАЧЕМ: itemWidth уже резервирует зазор (columns-1)*12, но сам зазор не применялся —
   // ячейки-слова слипались и читались как сплошной столбец. space-between раскладывает
   // резерв в колонки (без риска переноса: суммарная ширина ячеек < контейнера), rowGap —
@@ -609,7 +619,6 @@ const styles = StyleSheet.create({
   },
   itemNumber: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
   itemText: { fontWeight: '600', textAlign: 'center', fontSize: 24 },
-  checkButton: { marginBottom: 16 },
   checkItemCell: {
     padding: 12,
     borderRadius: 14,
