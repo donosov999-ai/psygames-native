@@ -1,71 +1,112 @@
 /**
- * PetSprite — кадровая анимация Синапса (v1.135.0).
+ * PetSprite — кадровая анимация Синапса (v1.135, скины v1.140).
  *
- * Кадры сгенерены одним листом через kie (Nano Banana): 4×5 поз, зелёный
- * хромакей снят PIL-нарезкой (scratchpad). 5 состояний × 4 кадра, 144px webp.
- * Формат состояний подсмотрен в петпаках codex-pet-desktop (idle/walk/wave/
- * jump/sleep + тайминги в pet.json) — форк donosov999-ai.
+ * v1.140: два скина по 20 кадров 512×512 (пакеты Кодекса из _sync/synapse-v2,
+ * Kie 4K лист 4×5 → нарезка): «cat» — нейро-кот v2 (утверждён Денисом 22.07),
+ * «robot» — прежний Синапс, перерисованный hi-res. Выбор — экран /pet,
+ * хранение psygames_pet_skin (pet.ts). Дефолт — cat (канон v2).
  *
- * SVG-версия (SynapsePet) остаётся для экрана /pet и мини-аватара шапки —
- * там нужен масштабируемый персонаж со стадиями; спрайты — для ЖИВОЙ ходьбы.
+ * SVG-версия (SynapsePet) остаётся для стадий на /pet; мини-аватар шапки и
+ * ходьба — кадры текущего скина.
  */
 import React from 'react';
 import { Image } from 'react-native';
 
 export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep';
+export type PetSkin = 'cat' | 'robot';
 
-const FRAMES: Record<PetState, any[]> = {
+const CAT: Record<PetState, any[]> = {
   walk: [
-    require('../../../assets/images/pet/walk0.webp'),
-    require('../../../assets/images/pet/walk1.webp'),
-    require('../../../assets/images/pet/walk2.webp'),
-    require('../../../assets/images/pet/walk3.webp'),
+    require('../../../assets/images/pet/cat/walk0.webp'),
+    require('../../../assets/images/pet/cat/walk1.webp'),
+    require('../../../assets/images/pet/cat/walk2.webp'),
+    require('../../../assets/images/pet/cat/walk3.webp'),
   ],
   idle: [
-    require('../../../assets/images/pet/idle0.webp'),
-    require('../../../assets/images/pet/idle1.webp'),
-    require('../../../assets/images/pet/idle2.webp'),
-    require('../../../assets/images/pet/idle3.webp'),
+    require('../../../assets/images/pet/cat/idle0.webp'),
+    require('../../../assets/images/pet/cat/idle1.webp'),
+    require('../../../assets/images/pet/cat/idle2.webp'),
+    require('../../../assets/images/pet/cat/idle3.webp'),
   ],
   wave: [
-    require('../../../assets/images/pet/wave0.webp'),
-    require('../../../assets/images/pet/wave1.webp'),
-    require('../../../assets/images/pet/wave2.webp'),
-    require('../../../assets/images/pet/wave3.webp'),
+    require('../../../assets/images/pet/cat/wave0.webp'),
+    require('../../../assets/images/pet/cat/wave1.webp'),
+    require('../../../assets/images/pet/cat/wave2.webp'),
+    require('../../../assets/images/pet/cat/wave3.webp'),
   ],
   jump: [
-    require('../../../assets/images/pet/jump0.webp'),
-    require('../../../assets/images/pet/jump1.webp'),
-    require('../../../assets/images/pet/jump2.webp'),
-    require('../../../assets/images/pet/jump3.webp'),
+    require('../../../assets/images/pet/cat/jump0.webp'),
+    require('../../../assets/images/pet/cat/jump1.webp'),
+    require('../../../assets/images/pet/cat/jump2.webp'),
+    require('../../../assets/images/pet/cat/jump3.webp'),
   ],
   sleep: [
-    require('../../../assets/images/pet/sleep0.webp'),
-    require('../../../assets/images/pet/sleep1.webp'),
-    require('../../../assets/images/pet/sleep2.webp'),
-    require('../../../assets/images/pet/sleep3.webp'),
+    require('../../../assets/images/pet/cat/sleep0.webp'),
+    require('../../../assets/images/pet/cat/sleep1.webp'),
+    require('../../../assets/images/pet/cat/sleep2.webp'),
+    require('../../../assets/images/pet/cat/sleep3.webp'),
   ],
 };
+
+const ROBOT: Record<PetState, any[]> = {
+  walk: [
+    require('../../../assets/images/pet/robot/walk0.webp'),
+    require('../../../assets/images/pet/robot/walk1.webp'),
+    require('../../../assets/images/pet/robot/walk2.webp'),
+    require('../../../assets/images/pet/robot/walk3.webp'),
+  ],
+  idle: [
+    require('../../../assets/images/pet/robot/idle0.webp'),
+    require('../../../assets/images/pet/robot/idle1.webp'),
+    require('../../../assets/images/pet/robot/idle2.webp'),
+    require('../../../assets/images/pet/robot/idle3.webp'),
+  ],
+  wave: [
+    require('../../../assets/images/pet/robot/wave0.webp'),
+    require('../../../assets/images/pet/robot/wave1.webp'),
+    require('../../../assets/images/pet/robot/wave2.webp'),
+    require('../../../assets/images/pet/robot/wave3.webp'),
+  ],
+  jump: [
+    require('../../../assets/images/pet/robot/jump0.webp'),
+    require('../../../assets/images/pet/robot/jump1.webp'),
+    require('../../../assets/images/pet/robot/jump2.webp'),
+    require('../../../assets/images/pet/robot/jump3.webp'),
+  ],
+  sleep: [
+    require('../../../assets/images/pet/robot/sleep0.webp'),
+    require('../../../assets/images/pet/robot/sleep1.webp'),
+    require('../../../assets/images/pet/robot/sleep2.webp'),
+    require('../../../assets/images/pet/robot/sleep3.webp'),
+  ],
+};
+
+const SKINS: Record<PetSkin, Record<PetState, any[]>> = { cat: CAT, robot: ROBOT };
+
+/** Один кадр скина (для превью выбора и мини-аватара шапки). */
+export function petFrame(skin: PetSkin, state: PetState = 'idle', frame = 0) {
+  return SKINS[skin][state][frame];
+}
 
 /** Кадровая частота по состоянию: шаг бодрый, сон медленный. */
 const FRAME_MS: Record<PetState, number> = {
   walk: 140, idle: 420, wave: 180, jump: 150, sleep: 600,
 };
 
-export default function PetSprite({ state, size = 56 }: { state: PetState; size?: number }) {
+export default function PetSprite({ state, size = 56, skin = 'cat' }: {
+  state: PetState; size?: number; skin?: PetSkin;
+}) {
+  const frames = SKINS[skin][state];
   const [frame, setFrame] = React.useState(0);
   React.useEffect(() => {
     setFrame(0);
-    const t = setInterval(
-      () => setFrame((f) => (f + 1) % FRAMES[state].length),
-      FRAME_MS[state],
-    );
+    const t = setInterval(() => setFrame((f) => (f + 1) % frames.length), FRAME_MS[state]);
     return () => clearInterval(t);
-  }, [state]);
+  }, [state, skin, frames.length]);
 
   return (
     <Image
-      source={FRAMES[state][frame]}
+      source={frames[frame % frames.length]}
       style={{ width: size, height: size }}
       resizeMode="contain"
       fadeDuration={0}

@@ -25,6 +25,17 @@ export async function setPetVisible(on: boolean): Promise<void> {
   try { await AsyncStorage.setItem(PET_KEY, on ? '1' : '0'); } catch {}
 }
 
+/** v1.140: скин питомца — «cat» (нейро-кот v2, канон, дефолт) или «robot»
+ *  (прежний Синапс в hi-res). Выбор на экране /pet. */
+const SKIN_KEY = 'psygames_pet_skin';
+export type { PetSkin } from '@/src/components/pet/PetSprite';
+export async function getPetSkin(): Promise<'cat' | 'robot'> {
+  try { return ((await AsyncStorage.getItem(SKIN_KEY)) === 'robot' ? 'robot' : 'cat'); } catch { return 'cat'; }
+}
+export async function setPetSkin(skin: 'cat' | 'robot'): Promise<void> {
+  try { await AsyncStorage.setItem(SKIN_KEY, skin); } catch {}
+}
+
 export type PetStage = 1 | 2 | 3;
 
 // Имена стадий («Искра/Импульс/Созвездие», 1:1 с сайта COPY.stages в NeuroPet.astro)

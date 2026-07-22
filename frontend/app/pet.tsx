@@ -16,8 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
-import SynapsePet from '@/src/components/pet/SynapsePet';
-import { getPetStats, pickReaction, PetStats } from '@/src/services/pet';
+import PetSprite, { PetSkin, petFrame } from '@/src/components/pet/PetSprite';
+import { Image } from 'react-native';
+import { getPetSkin, getPetStats, pickReaction, PetStats, setPetSkin } from '@/src/services/pet';
 
 /** Цвета шкал — 1:1 с сайта (.pet-skill-memory и т.д.) */
 const SKILL_COLORS: Record<keyof PetStats['skills'], string> = {
@@ -46,14 +47,19 @@ export default function PetScreen() {
   const [stats, setStats] = React.useState<PetStats | null>(null);
   // Реплика выбирается раз на визит (не на каждый рендер) — питомец «здоровается»
   const [greeting, setGreeting] = React.useState('');
+  // v1.140: скин (cat = нейро-кот v2, дефолт; robot = прежний Синапс hi-res)
+  const [skin, setSkin] = React.useState<PetSkin>('cat');
 
   // На фокусе, не на маунте: вернулся с тренировки → шкалы уже подросли
   useFocusEffect(
     React.useCallback(() => {
       getPetStats().then(setStats).catch(() => {});
+      getPetSkin().then(setSkin).catch(() => {});
       setGreeting(pickReaction(language));
     }, [language]),
   );
+
+  const pickSkin = (s: PetSkin) => { setSkin(s); setPetSkin(s).catch(() => {}); };
 
   const skillLabel = (k: keyof PetStats['skills']): string => {
     switch (k) {
@@ -86,11 +92,32 @@ export default function PetScreen() {
           <Text style={[styles.bubbleText, { color: colors.text }]}>{greeting}</Text>
         </View>
 
-        <SynapsePet stage={stage} size={160} />
+        {/* v1.140: живой портрет — анимированный idle текущего скина (512px кадры) */}
+        <PetSprite state="idle" size={170} skin={skin} />
         <Text style={[styles.stageName, { color: colors.text }]}>{stageName}</Text>
         <Text style={[styles.stageHint, { color: colors.textSecondary }]}>
           {t('petGrowsHint')}
         </Text>
+
+        {/* Выбор скина: кот v2 (канон) или прежний робот. Хранится на устройстве. */}
+        <View style={styles.skinRow}>
+          {(['cat', 'robot'] as PetSkin[]).map((s) => {
+            const on = skin === s;
+            return (
+              <TouchableOpacity
+                key={s}
+                style={[styles.skinCard, { backgroundColor: colors.surface, borderColor: on ? '#8a68f5' : colors.border, borderWidth: on ? 2 : 1 }]}
+                onPress={() => pickSkin(s)}
+                activeOpacity={0.75}
+              >
+                <Image source={petFrame(s, 'idle', 0)} style={styles.skinThumb} resizeMode="contain" />
+                <Text style={[styles.skinLabel, { color: on ? '#8a68f5' : colors.textSecondary }]}>
+                  {t(s === 'cat' ? 'petSkinCat' : 'petSkinRobot')}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
         {/* Уровень + счётчик тренировок (как .pet-status на сайте) */}
         <View style={styles.statusRow}>
@@ -143,6 +170,10 @@ const styles = StyleSheet.create({
   bubbleText: { fontSize: 13, fontWeight: '700', lineHeight: 18, textAlign: 'center' },
   stageName: { fontSize: 24, fontWeight: '900', marginTop: 2 },
   stageHint: { fontSize: 12.5, textAlign: 'center' },
+  skinRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  skinCard: { borderRadius: 15, paddingVertical: 8, paddingHorizontal: 14, alignItems: 'center', minWidth: 96 },
+  skinThumb: { width: 52, height: 52 },
+  skinLabel: { fontSize: 11.5, fontWeight: '800', marginTop: 3 },
   statusRow: { flexDirection: 'row', gap: 10, marginTop: 14, marginBottom: 6 },
   statusBox: {
     minWidth: 112, paddingVertical: 10, paddingHorizontal: 16, borderWidth: 1,
