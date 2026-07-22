@@ -27,6 +27,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -374,37 +375,49 @@ export default function SwitchingTaskGame() {
     return <Text style={[styles.stimText, { fontSize: stStim * (mode === 'num3' ? 0.3 : 0.36), color: meta.color }]}>{trial.full}</Text>;
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
-      </View>
-      {/* Крупная заметная плашка: ЧТО оценивать сейчас (+ ↻ если задание сменилось) */}
-      <View style={[styles.cueBadge, { backgroundColor: meta.color }]}>
-        <Ionicons name={meta.icon} size={20} color="#FFF" />
-        <Text style={styles.cueText}>{language === 'ru' ? 'ОЦЕНИ' : 'JUDGE'}: {meta.cue}</Text>
-        {trial.isSwitch && showStim && <Text style={styles.cueSwitch}>↻</Text>}
-      </View>
-      <View style={[styles.stimBox, {
-        width: stStim, height: stStim,
-        backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
-        borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.textSecondary,
-      }]}>
-        {renderStim()}
-      </View>
-      <View style={[styles.choiceRow, { width: stStim }]}>
-        <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0], flex: 1 }]} onPress={() => handleAnswer(true)}>
-          <Text style={styles.choiceTextSmall}>← {meta.left}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1], flex: 1 }]} onPress={() => handleAnswer(false)}>
-          <Text style={styles.choiceTextSmall}>{meta.right} →</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  // playing-фаза — на едином каркасе GameShell (кнопки лево/право прибиты к низу)
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('switchingTask')}
+        onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
+          </View>
+        }
+        toolbar={
+          <View style={[styles.choiceRow, { flex: 1, maxWidth: stStim }]}>
+            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0], flex: 1 }]} onPress={() => handleAnswer(true)}>
+              <Text style={styles.choiceTextSmall}>← {meta.left}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1], flex: 1 }]} onPress={() => handleAnswer(false)}>
+              <Text style={styles.choiceTextSmall}>{meta.right} →</Text>
+            </TouchableOpacity>
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          {/* Крупная заметная плашка: ЧТО оценивать сейчас (+ ↻ если задание сменилось) */}
+          <View style={[styles.cueBadge, { backgroundColor: meta.color }]}>
+            <Ionicons name={meta.icon} size={20} color="#FFF" />
+            <Text style={styles.cueText}>{language === 'ru' ? 'ОЦЕНИ' : 'JUDGE'}: {meta.cue}</Text>
+            {trial.isSwitch && showStim && <Text style={styles.cueSwitch}>↻</Text>}
+          </View>
+          <View style={[styles.stimBox, {
+            width: stStim, height: stStim,
+            backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
+            borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.textSecondary,
+          }]}>
+            {renderStim()}
+          </View>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -422,7 +435,6 @@ export default function SwitchingTaskGame() {
           benefits={SW_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'lightning', gradient: GRADIENT as [string, string] }}
@@ -468,7 +480,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 18, gap: 18, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 18 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   cueBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 11, borderRadius: 22 },

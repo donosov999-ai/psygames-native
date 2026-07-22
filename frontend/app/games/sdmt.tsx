@@ -30,6 +30,7 @@ import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -73,8 +74,11 @@ export default function SdmtGame() {
   // фикс stimBox 140). Теперь всё от ширины экрана: легенда во всю ширину (9 ячеек в ряд),
   // пад-кнопки и стимул крупнее.
   const { width } = useWindowDimensions();
-  const sdmtW = Math.min(width - 24, 460);
-  const sdmtPad = Math.min((sdmtW - 2 * 8) / 3, 96); // 3 кнопки в ряд
+  // Поле GameShell имеет paddingHorizontal 16 с двух сторон → доступно width-32
+  const sdmtW = Math.min(width - 32, 460);
+  // Пад живёт в прибитом тулбаре GameShell: слева гуттер под FAB-фидбек (66) +
+  // паддинг справа (16) + межкнопочные зазоры — итого ~106 вычитаем из ширины.
+  const sdmtPad = Math.min((width - 106) / 3, 96); // 3 кнопки в ряд
   const sdmtStim = Math.min(sdmtW * 0.42, 180);
   const router = useRouter();
 
@@ -248,41 +252,53 @@ export default function SdmtGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: GRADIENT[1] }]}>{remaining}s</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>
-          ✓{hits}{targetHits > 0 ? `/${targetHits}` : ''}
-        </Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-      </View>
-      <View style={[styles.legend, { backgroundColor: colors.surface, width: sdmtW }]}>
-        {keymap.map((k, i) => (
-          <View key={i} style={[styles.legendCell, { borderColor: colors.border, flex: 1 }]}>
-            <Ionicons name={k.sym as any} size={Math.min(sdmtW / 18, 22)} color={GRADIENT[1]} />
-            <Text style={[styles.legendDigit, { color: colors.text }]}>{k.digit}</Text>
+  // playing-фаза — на едином каркасе GameShell (цифровой пад прибит к низу)
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('sdmt')}
+        onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: GRADIENT[1] }]}>{remaining}s</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>
+              ✓{hits}{targetHits > 0 ? `/${targetHits}` : ''}
+            </Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
           </View>
-        ))}
-      </View>
-      <View style={[styles.stimBox, {
-        width: sdmtStim, height: sdmtStim,
-        backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
-        borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border,
-      }]}>
-        <Ionicons name={stim as any} size={sdmtStim * 0.6} color={GRADIENT[1]} />
-      </View>
-      <View style={[styles.padGrid, { width: sdmtPad * 3 + 16 }]}>
-        {[1,2,3,4,5,6,7,8,9].map((d) => (
-          <TouchableOpacity key={d}
-            style={[styles.padBtn, { width: sdmtPad, height: sdmtPad, backgroundColor: GRADIENT[0] }]}
-            onPress={() => handleAnswer(d)}>
-            <Text style={[styles.padText, { fontSize: sdmtPad * 0.38 }]}>{d}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
+        }
+        toolbar={
+          <View style={[styles.padGrid, { width: sdmtPad * 3 + 16 }]}>
+            {[1,2,3,4,5,6,7,8,9].map((d) => (
+              <TouchableOpacity key={d}
+                style={[styles.padBtn, { width: sdmtPad, height: sdmtPad, backgroundColor: GRADIENT[0] }]}
+                onPress={() => handleAnswer(d)}>
+                <Text style={[styles.padText, { fontSize: sdmtPad * 0.38 }]}>{d}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <View style={[styles.legend, { backgroundColor: colors.surface, width: sdmtW }]}>
+            {keymap.map((k, i) => (
+              <View key={i} style={[styles.legendCell, { borderColor: colors.border, flex: 1 }]}>
+                <Ionicons name={k.sym as any} size={Math.min(sdmtW / 18, 22)} color={GRADIENT[1]} />
+                <Text style={[styles.legendDigit, { color: colors.text }]}>{k.digit}</Text>
+              </View>
+            ))}
+          </View>
+          <View style={[styles.stimBox, {
+            width: sdmtStim, height: sdmtStim,
+            backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
+            borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border,
+          }]}>
+            <Ionicons name={stim as any} size={sdmtStim * 0.6} color={GRADIENT[1]} />
+          </View>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -300,7 +316,6 @@ export default function SdmtGame() {
           benefits={SDMT_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
@@ -344,8 +359,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 12, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 18 },
+  fieldCol: { alignItems: 'center', gap: 12 },
+  statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '800' },
   legend: { flexDirection: 'row', justifyContent: 'center', gap: 3, padding: 8, borderRadius: 10 },
   legendCell: { alignItems: 'center', borderWidth: 1, borderRadius: 6, paddingVertical: 4, gap: 2 },

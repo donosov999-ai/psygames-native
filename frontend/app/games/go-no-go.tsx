@@ -33,6 +33,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import BossRound from '@/src/components/BossRound';
@@ -267,30 +268,41 @@ export default function GoNoGoGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits + correctRej}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
-      </View>
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={handleResponse}
-        style={[
-          styles.pad,
-          {
-            backgroundColor: stimulus === 'go' ? '#22c55e' : stimulus === 'nogo' ? '#f43f5e' : colors.surface,
-          },
-        ]}
+  // playing-фаза — на едином каркасе GameShell; действий-кнопок нет (реакция тапом
+  // по самому полю), поэтому toolbar не передаётся
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('goNoGo')}
+        onBack={() => { stoppedRef.current = true; clearAllTimers(); goBackOrHome(); }}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits + correctRej}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
+          </View>
+        }
       >
-        <Text style={[styles.padText, { color: stimulus ? '#FFF' : colors.textSecondary }]}>
-          {stimulus === 'go' ? 'GO' : stimulus === 'nogo' ? 'NO' : '•'}
-        </Text>
-      </TouchableOpacity>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goNoGoHint')}</Text>
-    </View>
-  );
+        <View style={styles.fieldCol}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handleResponse}
+            style={[
+              styles.pad,
+              {
+                backgroundColor: stimulus === 'go' ? '#22c55e' : stimulus === 'nogo' ? '#f43f5e' : colors.surface,
+              },
+            ]}
+          >
+            <Text style={[styles.padText, { color: stimulus ? '#FFF' : colors.textSecondary }]}>
+              {stimulus === 'go' ? 'GO' : stimulus === 'nogo' ? 'NO' : '•'}
+            </Text>
+          </TouchableOpacity>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goNoGoHint')}</Text>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -308,7 +320,6 @@ export default function GoNoGoGame() {
           benefits={GO_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'oddletter', gradient: GRADIENT as [string, string] }}
@@ -351,8 +362,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 24, gap: 30, alignItems: 'center', justifyContent: 'center' },
-  statsRow: { flexDirection: 'row', gap: 24 },
+  fieldCol: { alignItems: 'center', gap: 30 },
+  statsRow: { flexDirection: 'row', gap: 24, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },
   pad: { width: 240, height: 240, borderRadius: 120, justifyContent: 'center', alignItems: 'center' },
   padText: { fontSize: 60, fontWeight: '900' },

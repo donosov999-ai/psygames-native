@@ -21,13 +21,15 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
+import { SEMANTIC_DISTRACTORS } from '@/src/data/semantic-distractors';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 
 const GRADIENT = ['#10b981', '#6366f1'];
 
 // Уровень 1..15 (persist): больше категорий-дистракторов в раунде (2 → 4) и больше
-// раундов. Близость дистракторов по эмбеддингам (V3) — будущее усиление поверх этой
-// оси; каркас уровней от неё не зависит.
+// раундов. Близость дистракторов по эмбеддингам (V3) реализована: предрасчитанная
+// таблица SEMANTIC_DISTRACTORS (bge-m3, scripts/gen-semantic-distractors.mjs) даёт
+// «коварные» категории; каркас уровней от неё не зависит.
 function levelParams(level: number): { catsPerRound: number; roundsCount: number } {
   const catsPerRound = level <= 3 ? 2 : level <= 8 ? 3 : 4;
   const roundsCount = level <= 5 ? 10 : level <= 10 ? 12 : 15;
@@ -88,12 +90,14 @@ export default function SemanticSortGame() {
       rc = p.roundsCount; cpr = p.catsPerRound;
       setRoundsCount(rc); setCatsPerRound(cpr);
     }
-    // слова целевого языка, сгруппированные по категориям
+    // слова целевого языка, сгруппированные по категориям (+ обратный маппинг слово → категория)
     const byCat = new Map<string, string[]>();
+    const wordCat = new Map<string, string>();
     for (const w of TRANSLATION_VOCAB) {
       if (!w[tgt] || !w.cat) continue;
       if (!byCat.has(w.cat)) byCat.set(w.cat, []);
       byCat.get(w.cat)!.push(w[tgt]);
+      wordCat.set(w[tgt], w.cat);
     }
     const cats = Array.from(byCat.keys()).filter((c) => byCat.get(c)!.length >= 3);
     const effCats = Math.min(cpr, cats.length);   // не больше, чем есть категорий
@@ -101,18 +105,27 @@ export default function SemanticSortGame() {
     const newRounds: Round[] = [];
     for (let r = 0; r < rc; r++) {
       const correctCat = cats[Math.floor(Math.random() * cats.length)];
+      const pool = byCat.get(correctCat)!;
+      const word = pool[Math.floor(Math.random() * pool.length)];
       const others = cats.filter((c) => c !== correctCat);
       for (let i = others.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [others[i], others[j]] = [others[j], others[i]];
       }
-      const roundCats = [correctCat, ...others.slice(0, effCats - 1)];
+      // V3: «коварные» категории-дистракторы — из предрасчитанной таблицы эмбеддинг-близости
+      // (похожие на целевое слово слова других категорий → их категории). Фолбэк — случайные.
+      const smart: string[] = [];
+      for (const dw of SEMANTIC_DISTRACTORS[`${tgt}:${word}`] ?? []) {
+        const dc = wordCat.get(dw);
+        if (dc && dc !== correctCat && cats.includes(dc) && !smart.includes(dc)) smart.push(dc);
+        if (smart.length >= effCats - 1) break;
+      }
+      const fill = others.filter((c) => !smart.includes(c));
+      const roundCats = [correctCat, ...smart, ...fill].slice(0, effCats);
       for (let i = roundCats.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [roundCats[i], roundCats[j]] = [roundCats[j], roundCats[i]];
       }
-      const pool = byCat.get(correctCat)!;
-      const word = pool[Math.floor(Math.random() * pool.length)];
       newRounds.push({ word, correctCat, cats: roundCats });
     }
     roundsRef.current = newRounds;

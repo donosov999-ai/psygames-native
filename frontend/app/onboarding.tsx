@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { isRTLLang } from '@/src/services/rtl';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { GAMES } from '@/src/constants/games';
@@ -175,12 +176,10 @@ export default function OnboardingScreen() {
   const isNotif = slide.kind === 'notifications';
   const isFinal = slide.kind === 'final';
   const mainLabel = isNotif
-    ? (language === 'ru' ? 'ВКЛЮЧИТЬ НАПОМИНАНИЯ' : 'ENABLE REMINDERS')
+    ? t('onbEnableReminders')
     : isFinal
-      ? (canWarmup
-          ? (language === 'ru' ? 'НАЧАТЬ ПЕРВУЮ ЗАРЯДКУ' : 'START FIRST WARM-UP')
-          : (language === 'ru' ? 'СЫГРАТЬ ВЫЗОВ ДНЯ' : 'PLAY TODAY’S CHALLENGE'))
-      : (language === 'ru' ? 'ДАЛЬШЕ' : 'NEXT');
+      ? (canWarmup ? t('onbStartFirstWarmup') : t('onbPlayDailyChallenge'))
+      : t('onbNext');
   const onMainPress = isNotif ? enableReminders : isFinal ? startAction : next;
 
   return (
@@ -191,7 +190,7 @@ export default function OnboardingScreen() {
         </Text>
         {!isLast && (
           <TouchableOpacity onPress={skip}>
-            <Text style={[styles.skipBtn, { color: colors.textSecondary }]}>{language === 'ru' ? 'Пропустить' : 'Skip'}</Text>
+            <Text style={[styles.skipBtn, { color: colors.textSecondary }]}>{t('skip')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -204,8 +203,8 @@ export default function OnboardingScreen() {
         {isFinal && (
           <Text style={styles.finalHint}>
             {canWarmup
-              ? (language === 'ru' ? '⚡ 5 минут, программа на сегодня уже собрана' : '⚡ 5 minutes, today’s program is ready')
-              : `🎲 ${language === 'ru' ? 'Сегодня' : 'Today'}: ${t(todayChallenge.game.nameKey)}`}
+              ? t('onbWarmupReady')
+              : `🎲 ${t('today')}: ${t(todayChallenge.game.nameKey)}`}
           </Text>
         )}
       </LinearGradient>
@@ -224,13 +223,13 @@ export default function OnboardingScreen() {
         <TouchableOpacity style={styles.nextBtn} onPress={onMainPress} disabled={busy}>
           <LinearGradient colors={slide.gradient} style={styles.nextBtnGrad}>
             <Text style={styles.nextBtnText}>{mainLabel}</Text>
-            <Ionicons name={isFinal ? 'play' : 'arrow-forward'} size={18} color="#FFF" />
+            <Ionicons name={isFinal ? 'play' : (isRTLLang(language) ? 'arrow-back' : 'arrow-forward')} size={18} color="#FFF" />
           </LinearGradient>
         </TouchableOpacity>
         {(isNotif || isFinal) && (
           <TouchableOpacity onPress={isNotif ? next : finish} disabled={busy} style={styles.secondaryBtn}>
             <Text style={[styles.secondaryText, { color: colors.textSecondary }]}>
-              {isNotif ? (language === 'ru' ? 'Не сейчас' : 'Not now') : (language === 'ru' ? 'Просто осмотреться' : 'Just look around')}
+              {isNotif ? t('notNow') : t('justLookAround')}
             </Text>
           </TouchableOpacity>
         )}

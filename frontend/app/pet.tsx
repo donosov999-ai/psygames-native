@@ -14,6 +14,7 @@ import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { isRTLLang } from '@/src/services/rtl';
 import SynapsePet from '@/src/components/pet/SynapsePet';
 import { getPetStats, pickReaction, PetStats, STAGE_NAMES } from '@/src/services/pet';
 
@@ -36,8 +37,8 @@ function ruTrainings(n: number): string {
 
 export default function PetScreen() {
   const { colors } = useTheme();
-  const { language } = useLanguage();
-  const ru = language === 'ru';   // подписи инлайн ru/en — как принято в проекте
+  const { t, language } = useLanguage();
+  const ru = language === 'ru';   // остался только для русской плюрализации и выбора локали данных STAGE_NAMES
 
   const [stats, setStats] = React.useState<PetStats | null>(null);
   // Реплика выбирается раз на визит (не на каждый рендер) — питомец «здоровается»
@@ -53,10 +54,10 @@ export default function PetScreen() {
 
   const skillLabel = (k: keyof PetStats['skills']): string => {
     switch (k) {
-      case 'memory': return ru ? 'Память' : 'Memory';
-      case 'attention': return ru ? 'Внимание' : 'Attention';
-      case 'logic': return ru ? 'Логика' : 'Logic';
-      case 'speed': return ru ? 'Скорость' : 'Speed';
+      case 'memory': return t('catMemory');
+      case 'attention': return t('catAttention');
+      case 'logic': return t('petSkillLogic');
+      case 'speed': return t('petSkillSpeed');
     }
   };
 
@@ -68,10 +69,10 @@ export default function PetScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-          {ru ? 'Синапс' : 'Synapse'}
+          {t('petName')}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -85,19 +86,19 @@ export default function PetScreen() {
         <SynapsePet stage={stage} size={160} />
         <Text style={[styles.stageName, { color: colors.text }]}>{stageName}</Text>
         <Text style={[styles.stageHint, { color: colors.textSecondary }]}>
-          {ru ? 'Растёт после каждой завершённой тренировки' : 'Grows with every completed training'}
+          {t('petGrowsHint')}
         </Text>
 
         {/* Уровень + счётчик тренировок (как .pet-status на сайте) */}
         <View style={styles.statusRow}>
           <View style={[styles.statusBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={[styles.statusBig, { color: colors.text }]}>{stats?.level ?? 1}</Text>
-            <Text style={[styles.statusSmall, { color: colors.textSecondary }]}>{ru ? 'Уровень' : 'Level'}</Text>
+            <Text style={[styles.statusSmall, { color: colors.textSecondary }]}>{t('level')}</Text>
           </View>
           <View style={[styles.statusBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={[styles.statusBig, { color: colors.text }]}>{total}</Text>
             <Text style={[styles.statusSmall, { color: colors.textSecondary }]}>
-              {ru ? ruTrainings(total) : total === 1 ? 'training' : 'trainings'}
+              {ru ? ruTrainings(total) : t(total === 1 ? 'unitTrainingOne' : 'unitTrainings')}
             </Text>
           </View>
         </View>

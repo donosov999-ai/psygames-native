@@ -206,7 +206,7 @@ export default function HomeScreen() {
         <View style={{ position: 'absolute', top: 76, left: 0, right: 0, alignItems: 'center', zIndex: 150 }} pointerEvents="none">
           <View style={{ backgroundColor: '#ef4444', paddingHorizontal: 18, paddingVertical: 9, borderRadius: 100, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Text style={{ fontSize: 16 }}>🔥</Text>
-            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>{language === 'ru' ? 'Стрик' : 'Streak'} {streakDays} · +{streakToast} ⭐</Text>
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>{t('streakLabel')} {streakDays} · +{streakToast} ⭐</Text>
           </View>
         </View>
       )}
@@ -214,7 +214,7 @@ export default function HomeScreen() {
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', zIndex: 200 }} pointerEvents="none">
           <View style={{ backgroundColor: '#f59e0b', paddingHorizontal: 34, paddingVertical: 22, borderRadius: 22, alignItems: 'center', gap: 4 }}>
             <Text style={{ fontSize: 40 }}>⭐</Text>
-            <Text style={{ color: '#3f2b00', fontWeight: '900', fontSize: 24 }}>{language === 'ru' ? 'Уровень' : 'Level'} {levelUp}!</Text>
+            <Text style={{ color: '#3f2b00', fontWeight: '900', fontSize: 24 }}>{t('level')} {levelUp}!</Text>
             <Text style={{ color: '#3f2b00', fontWeight: '800', fontSize: 15 }}>{language === 'ru' ? lvl.titleRu : lvl.titleEn}</Text>
           </View>
         </View>
@@ -256,7 +256,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push('/pet' as any)}
-            accessibilityLabel={language === 'ru' ? 'Питомец Синапс' : 'Synapse pet'}
+            accessibilityLabel={t('petSynapse')}
             style={{ width: 36, flexShrink: 0, marginLeft: 6, alignItems: 'center', alignSelf: 'center' }}
           >
             <SynapsePet stage={petStage} size={30} />
@@ -321,7 +321,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/shop' as any)}
-            accessibilityLabel={language === 'ru' ? 'Магазин' : 'Shop'}
+            accessibilityLabel={t('shop')}
           >
             <Ionicons name="bag-handle" size={21} color={colors.primary} />
           </TouchableOpacity>
@@ -387,7 +387,7 @@ export default function HomeScreen() {
                 </View>
               </View>
               <Text style={[styles.heroTitle, { color: '#FFF' }]}>
-                {language === 'ru' ? 'Вызов дня' : 'Daily challenge'}
+                {t('dailyChallenge')}
               </Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
                 {t(todayChallenge.game.nameKey)} · {t(todayChallenge.difficulty)}

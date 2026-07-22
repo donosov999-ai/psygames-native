@@ -122,7 +122,7 @@ export default function GameResult({
           <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: light ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.18)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999 }}>
             <Text style={{ fontSize: 22 }}>⭐</Text>
             <Text style={{ color: fg, fontSize: 20, fontWeight: '900' }}>+{earned}</Text>
-            <Text style={{ color: fgSoft, fontSize: 13, fontWeight: '600' }}>{language === 'ru' ? 'заработано' : 'earned'}</Text>
+            <Text style={{ color: fgSoft, fontSize: 13, fontWeight: '600' }}>{t('earnedLabel')}</Text>
           </View>
         )}
         {sparkline && (

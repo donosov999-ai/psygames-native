@@ -6,6 +6,7 @@ import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { isRTLLang } from '@/src/services/rtl';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getTokens, spendTokens } from '@/src/services/tokens';
 import {
@@ -16,9 +17,9 @@ import { sndToken, sndTap, sndWrong, sndCorrect, getSoundPack, setSoundPack as a
 
 export default function ShopScreen() {
   const { colors, refreshCosmeticAccent } = useTheme();
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const { profile } = useProfile();
-  const ru = language === 'ru';
+  const ru = language === 'ru';   // остался только для выбора локали данных COSMETICS (nameRu/nameEn)
 
   const [balance, setBalance] = useState(0);
   const [unlocked, setUnlocked] = useState<string[]>([]);
@@ -95,21 +96,21 @@ export default function ShopScreen() {
           <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{ru ? c.nameRu : c.nameEn}</Text>
           <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 16 }}>{ru ? c.descRu : c.descEn}</Text>
           <Text style={{ color: owned ? colors.textSecondary : colors.text, fontSize: 13, fontWeight: '700', marginTop: 3 }}>
-            {owned ? (ru ? '✓ Куплено' : '✓ Owned') : `${c.cost} ⭐`}
+            {owned ? t('ownedBadge') : `${c.cost} ⭐`}
           </Text>
         </View>
         {owned ? (
           <TouchableOpacity onPress={() => (isSound ? toggleSound(c) : toggleEquip(c))}
             style={[styles.btn, { backgroundColor: on ? accent : 'transparent', borderColor: accent, borderWidth: 1.5 }]}>
             <Text style={{ color: on ? '#fff' : accent, fontWeight: '800', fontSize: 13 }}>
-              {on ? (ru ? 'Надето' : 'Equipped') : (ru ? 'Надеть' : 'Equip')}
+              {on ? t('equipped') : t('equip')}
             </Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={() => buy(c)} disabled={!canAfford}
             style={[styles.btn, { backgroundColor: canAfford ? colors.primary : colors.border, opacity: canAfford ? 1 : 0.6 }]}>
             <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>
-              {canAfford ? (ru ? 'Купить' : 'Buy') : (ru ? 'Мало очков' : 'Need more')}
+              {canAfford ? t('buy') : t('needMoreTokens')}
             </Text>
           </TouchableOpacity>
         )}
@@ -121,9 +122,9 @@ export default function ShopScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{ru ? 'Магазин' : 'Shop'}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('shop')}</Text>
         <View style={[styles.balance, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={{ fontSize: 15 }}>⭐</Text>
           <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>{balance}</Text>
@@ -132,37 +133,32 @@ export default function ShopScreen() {
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
         <Text style={[styles.section, { color: colors.textSecondary }]}>
-          {ru ? 'Акцентные темы — меняют цвет интерфейса. Купи за очки, надень бесплатно.'
-              : 'Accent themes — recolor the UI. Buy with tokens, equip for free.'}
+          {t('shopAccentSection')}
         </Text>
         {COSMETICS.filter((c) => c.type === 'accent').map(renderItem)}
 
         <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
-          {ru ? '🎵 Звуковые паки — меняют характер игровых звуков. Тапни «Надеть» — сразу слышно.'
-              : '🎵 Sound packs — change the game sound character. Tap Equip to hear it.'}
+          {t('shopSoundSection')}
         </Text>
         {COSMETICS.filter((c) => c.type === 'sound').map(renderItem)}
 
         <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
-          {ru ? '🖼️ Рамки — цветной контур вокруг чипа профиля на главном экране.'
-              : '🖼️ Frames — a colored outline around your profile chip on the home screen.'}
+          {t('shopFrameSection')}
         </Text>
         {COSMETICS.filter((c) => c.type === 'frame').map(renderItem)}
 
         <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
-          {ru ? '🏷️ Титулы — подпись под именем профиля.'
-              : '🏷️ Titles — a caption under your profile name.'}
+          {t('shopTitleSection')}
         </Text>
         {COSMETICS.filter((c) => c.type === 'title').map(renderItem)}
 
         <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
-          {ru ? '👤 Аватары — своя иконка профиля вместо стандартного бейджа.'
-              : '👤 Avatars — your own profile icon instead of the default badge.'}
+          {t('shopAvatarSection')}
         </Text>
         {COSMETICS.filter((c) => c.type === 'avatar').map(renderItem)}
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>
-          {ru ? 'Очки копятся за игры, стрики и ачивки.' : 'Tokens are earned from games, streaks and achievements.'}
+          {t('shopEarnHint')}
         </Text>
       </ScrollView>
     </SafeAreaView>

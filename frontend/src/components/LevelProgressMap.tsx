@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getLevelStars, StarsMap } from '@/src/services/levelStars';
+import { useLanguage } from '@/src/contexts/LanguageContext';
 
 /**
  * LevelProgressMap — компактный бейдж на экране конфига: «Уровень X/Y» + звёзды
@@ -19,10 +20,10 @@ interface Props {
 
 const WINDOW = 5;
 
-export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, colors, language }: Props) {
+export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, colors }: Props) {
+  const { t } = useLanguage();   // язык из контекста; проп language остался в Props для совместимости
   const { profile } = useProfile();
   const [stars, setStars] = useState<StarsMap>({});
-  const ru = language === 'ru';
 
   useEffect(() => {
     let alive = true;
@@ -39,7 +40,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
   return (
     <View style={[styles.card, { backgroundColor: colors.surface }]}>
       <Text style={[styles.title, { color: colors.text }]}>
-        {ru ? `Уровень ${reached}/${maxLevel}` : `Level ${reached}/${maxLevel}`}
+        {t('levelOfMax').replace('{n}', String(reached)).replace('{max}', String(maxLevel))}
       </Text>
       <View style={styles.row}>
         {levels.map((l) => {

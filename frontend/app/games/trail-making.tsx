@@ -9,7 +9,7 @@
  * Пресеты зарядки (mode/count из URL-params) играются как раньше, без reach/fail.
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, PanResponder, Platform } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -43,6 +43,11 @@ type Mode = 'A' | 'B';
 
 // Проход уровня: не больше стольких ошибок (+ уложиться в лимит времени уровня)
 const MAX_PASS_ERRORS = 2;
+// Drag-соединение: хит-радиус вокруг центра узла при ведении пальцем.
+// Кружок 44px (r=22), берём больше — палец толстый и центр им не видно.
+const NODE_HIT_R = 30;
+// До этого смещения (px) жест считается тапом и уходит узлу-TouchableOpacity.
+const DRAG_SLOP = 6;
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 
@@ -137,12 +142,26 @@ export default function TrailMakingGame() {
   const errorsRef = useRef(0);
   const startTimeRef = useRef(0);
 
+  // Drag-соединение: «резинка» от последнего пройденного узла к пальцу.
+  // Тапы по узлам продолжают работать как раньше (фолбэк) — PanResponder
+  // перехватывает жест только после смещения > DRAG_SLOP.
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  const nodesRef = useRef<Node[]>([]);
+  const currentIdxRef = useRef(0);
+  const phaseRef = useRef<GamePhase>('intro');
+  const wrongDragNodeRef = useRef<number | null>(null); // анти-спам: 1 ошибка на «вход» пальца в неверный узел
+  const canvasRef = useRef<View>(null);
+  const canvasOffsetRef = useRef({ x: 0, y: 0 });       // позиция канвы в окне: pageX/Y → локальные координаты
+
   const playW = Math.min(width - 32, 600);
   const playH = Math.min(height * 0.55, 460);
 
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
+
+  // PanResponder создан один раз → фазу читает из рефа, не из stale-замыкания
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
 
   const startGame = () => {
     let m: Mode;
@@ -164,7 +183,11 @@ export default function TrailMakingGame() {
     totalNodesRef.current = newNodes.length;
     setTimeLimit(timeLimitRef.current);
     setNodes(newNodes);
+    nodesRef.current = newNodes;
     setCurrentIdx(0);
+    currentIdxRef.current = 0;
+    wrongDragNodeRef.current = null;
+    setDragPos(null);
     errorsRef.current = 0;
     setErrors(0);
     setElapsedTime(0);
@@ -219,18 +242,97 @@ export default function TrailMakingGame() {
     } catch (err) { console.error(err); }
   };
 
-  const handleNodePress = async (idx: number) => {
-    if (idx === currentIdx) {
-      hapticSuccess();
-      const next = currentIdx + 1;
-      setCurrentIdx(next);
-      if (next >= nodes.length) await finish();
-    } else if (idx > currentIdx) {
-      hapticError();
-      errorsRef.current += 1;
-      setErrors(errorsRef.current);
+  // Засчитать следующий узел — общая точка для тапа И drag
+  const advanceNode = async () => {
+    hapticSuccess();
+    const next = currentIdxRef.current + 1;
+    currentIdxRef.current = next;
+    setCurrentIdx(next);
+    if (next >= nodesRef.current.length) {
+      setDragPos(null);
+      await finish();
     }
   };
+
+  // Неверный узел — общая обработка ошибки для тапа И drag
+  const registerMiss = () => {
+    hapticError();
+    errorsRef.current += 1;
+    setErrors(errorsRef.current);
+  };
+
+  // Тап по узлу — фолбэк, работает как раньше
+  const handleNodePress = (idx: number) => {
+    if (idx === currentIdxRef.current) advanceNode();
+    else if (idx > currentIdxRef.current) registerMiss();
+  };
+
+  // ── Drag-соединение ────────────────────────────────────────────────
+  const measureCanvas = () => {
+    canvasRef.current?.measureInWindow((x, y) => {
+      // на web pageX/pageY включают прокрутку документа, measureInWindow — нет
+      const sx = Platform.OS === 'web' && typeof window !== 'undefined' ? window.scrollX : 0;
+      const sy = Platform.OS === 'web' && typeof window !== 'undefined' ? window.scrollY : 0;
+      canvasOffsetRef.current = { x: x + sx, y: y + sy };
+    });
+  };
+
+  // Ближайший узел в хит-радиусе (при перекрытии зон побеждает ближайший)
+  const nodeAtPoint = (x: number, y: number): number => {
+    let best = -1;
+    let bestD = Infinity;
+    nodesRef.current.forEach((n, i) => {
+      const d = (n.x - x) * (n.x - x) + (n.y - y) * (n.y - y);
+      if (d < bestD) { bestD = d; best = i; }
+    });
+    return bestD <= NODE_HIT_R * NODE_HIT_R ? best : -1;
+  };
+
+  // Палец в точке (page-координаты): двигаем резинку, зашёл в радиус узла —
+  // правильный засчитываем той же advanceNode (без отрыва пальца),
+  // неверный — та же ошибка, что у тапа, 1 раз на вход, жест НЕ рвём.
+  const onDragAt = (pageX: number, pageY: number) => {
+    if (phaseRef.current !== 'playing') return;
+    const x = pageX - canvasOffsetRef.current.x;
+    const y = pageY - canvasOffsetRef.current.y;
+    setDragPos({ x, y });
+    const hit = nodeAtPoint(x, y);
+    if (hit !== wrongDragNodeRef.current) wrongDragNodeRef.current = null; // палец вышел из «ошибочного» узла
+    if (hit < 0) return;
+    if (hit === currentIdxRef.current) {
+      advanceNode();
+    } else if (hit > currentIdxRef.current && wrongDragNodeRef.current === null) {
+      wrongDragNodeRef.current = hit;
+      registerMiss();
+    }
+  };
+
+  const endDrag = () => {
+    wrongDragNodeRef.current = null;
+    setDragPos(null);
+  };
+
+  // PanResponder создаётся один раз — свежие замыкания (finish/lvl внутри
+  // advanceNode) идут через ref, иначе поймаем stale closure первого рендера.
+  const dragHandlersRef = useRef({ onDragAt, endDrag });
+  dragHandlersRef.current = { onDragAt, endDrag };
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,      // чистый тап отдаём узлу-TouchableOpacity (фолбэк)
+      onMoveShouldSetPanResponder: (_e, g) =>
+        phaseRef.current === 'playing' && (Math.abs(g.dx) > DRAG_SLOP || Math.abs(g.dy) > DRAG_SLOP),
+      onMoveShouldSetPanResponderCapture: (_e, g) =>   // забрать жест у узла, с которого начали вести
+        phaseRef.current === 'playing' && (Math.abs(g.dx) > DRAG_SLOP || Math.abs(g.dy) > DRAG_SLOP),
+      onPanResponderTerminationRequest: () => false,   // начатый drag никому не отдаём
+      onPanResponderGrant: (e) => {
+        measureCanvas();                               // подстраховка: оффсет мог уехать после layout
+        dragHandlersRef.current.onDragAt(e.nativeEvent.pageX, e.nativeEvent.pageY);
+      },
+      onPanResponderMove: (_e, g) => dragHandlersRef.current.onDragAt(g.moveX, g.moveY),
+      onPanResponderRelease: () => dragHandlersRef.current.endDrag(),
+      onPanResponderTerminate: () => dragHandlersRef.current.endDrag(),
+    })
+  ).current;
 
   const renderConfig = () => {
     const p = levelParams(lvl.level);
@@ -289,8 +391,13 @@ export default function TrailMakingGame() {
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>
         {currentIdx < nodes.length ? `${t('nextLabel')}: ${nodes[currentIdx].label}` : t('done')}
       </Text>
-      <View style={[styles.canvas, { width: playW, height: playH, backgroundColor: colors.surface }]}>
-        <Svg width={playW} height={playH} style={StyleSheet.absoluteFill as any}>
+      <View
+        ref={canvasRef}
+        onLayout={measureCanvas}
+        {...panResponder.panHandlers}
+        style={[styles.canvas, { width: playW, height: playH, backgroundColor: colors.surface }]}
+      >
+        <Svg width={playW} height={playH} style={StyleSheet.absoluteFill as any} pointerEvents="none">
           {nodes.slice(0, currentIdx).map((n, i) => {
             if (i === 0) return null;
             const prev = nodes[i - 1];
@@ -302,6 +409,14 @@ export default function TrailMakingGame() {
               />
             );
           })}
+          {/* «Резинка»: от последнего пройденного узла к пальцу во время drag */}
+          {dragPos && currentIdx > 0 && currentIdx < nodes.length && (
+            <Line
+              x1={nodes[currentIdx - 1].x} y1={nodes[currentIdx - 1].y}
+              x2={dragPos.x} y2={dragPos.y}
+              stroke={GRADIENT[0]} strokeWidth={4} strokeOpacity={0.55} strokeLinecap="round"
+            />
+          )}
         </Svg>
         {nodes.map((n, i) => {
           const done = i < currentIdx;

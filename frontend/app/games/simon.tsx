@@ -39,6 +39,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import BossRound from '@/src/components/BossRound';
@@ -319,50 +320,60 @@ export default function SimonGame() {
     );
   };
 
-  const renderPlaying = () => {
+  // playing-фаза — на едином каркасе GameShell (кнопки-ответы прибиты к низу)
+  if (phase === 'playing') {
     const fbColor =
       feedback === 'right' ? '#22c55e' :
       feedback === 'wrong' ? '#f43f5e' :
       colors.text;
     const stimColor = trial.color === 'blue' ? COLOR_BLUE : COLOR_RED;
     return (
-      <View style={styles.playArea}>
-        <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-          <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-          <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
+      <GameShell
+        title={t('simon')}
+        onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
+          </View>
+        }
+        toolbar={
+          <>
+            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: COLOR_BLUE }]} onPress={() => handleAnswer('left')}>
+              <Ionicons name="arrow-back" size={32} color="#FFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: COLOR_RED }]} onPress={() => handleAnswer('right')}>
+              <Ionicons name="arrow-forward" size={32} color="#FFF" />
+            </TouchableOpacity>
+          </>
+        }
+      >
+        <View style={styles.fieldCol}>
+          {/* Stim area — широкая, квадрат появляется слева или справа от центра */}
+          <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
+            {/* Центральный фиксационный крестик */}
+            <Text style={{ position: 'absolute', fontSize: 24, color: colors.textSecondary, opacity: 0.4 }}>+</Text>
+            {showStim && (
+              <View style={{
+                position: 'absolute',
+                left: trial.position === 'left' ? 30 : undefined,
+                right: trial.position === 'right' ? 30 : undefined,
+                width: 64, height: 64, borderRadius: 10,
+                backgroundColor: stimColor,
+                shadowColor: stimColor, shadowOpacity: 0.6, shadowRadius: 14,
+              }} />
+            )}
+          </View>
+          {/* Подсказка правила (для конфига и для playing) */}
+          <Text style={{ color: colors.textSecondary, fontSize: 11, textAlign: 'center', maxWidth: 320 }}>
+            {t('hint_simon_color_rule')}
+          </Text>
         </View>
-        {/* Stim area — широкая, квадрат появляется слева или справа от центра */}
-        <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
-          {/* Центральный фиксационный крестик */}
-          <Text style={{ position: 'absolute', fontSize: 24, color: colors.textSecondary, opacity: 0.4 }}>+</Text>
-          {showStim && (
-            <View style={{
-              position: 'absolute',
-              left: trial.position === 'left' ? 30 : undefined,
-              right: trial.position === 'right' ? 30 : undefined,
-              width: 64, height: 64, borderRadius: 10,
-              backgroundColor: stimColor,
-              shadowColor: stimColor, shadowOpacity: 0.6, shadowRadius: 14,
-            }} />
-          )}
-        </View>
-        {/* Подсказка правила (для конфига и для playing) */}
-        <Text style={{ color: colors.textSecondary, fontSize: 11, textAlign: 'center', maxWidth: 320 }}>
-          {t('hint_simon_color_rule')}
-        </Text>
-        <View style={styles.choiceRow}>
-          <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: COLOR_BLUE }]} onPress={() => handleAnswer('left')}>
-            <Ionicons name="arrow-back" size={32} color="#FFF" />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: COLOR_RED }]} onPress={() => handleAnswer('right')}>
-            <Ionicons name="arrow-forward" size={32} color="#FFF" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      </GameShell>
     );
-  };
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -380,7 +391,6 @@ export default function SimonGame() {
           benefits={SI_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
@@ -424,14 +434,13 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 18, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 14 },
+  fieldCol: { alignItems: 'center', gap: 18 },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   stimBox: {
-    width: 360, height: 140, borderRadius: 16,
+    width: 360, maxWidth: '100%', height: 140, borderRadius: 16,
     justifyContent: 'center', alignItems: 'center',
     position: 'relative',
   },
-  choiceRow: { flexDirection: 'row', gap: 24 },
   choiceBtn: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
 });

@@ -8,6 +8,7 @@ import { tickLevelStreak, resetLevelStreak } from '@/src/services/eyeRestTracker
 import { saveLevelStars } from '@/src/services/levelStars';
 import { getCleanRun, cleanRunBonus } from '@/src/services/cleanRun';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { useLanguage } from '@/src/contexts/LanguageContext';
 
 /**
  * LevelCleared — короткий баннер между уровнями для АВТО-ПОТОКА (по выбору Дениса):
@@ -35,8 +36,8 @@ interface Props {
   onStop: () => void;       // выйти (config / домой)
 }
 
-export default function LevelCleared({ level, stars = 3, passed = true, gradient, language, colors, autoMs = 2200, gameId, onContinue, onStop }: Props) {
-  const ru = language === 'ru';
+export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, onContinue, onStop }: Props) {
+  const { t } = useLanguage();   // язык берём из контекста; проп language остался в Props для совместимости вызовов из игр
   const { profile } = useProfile();
   const firedRef = useRef(false);
   // вычисляем ОДНАЖДЫ при маунте: пора ли передышка для глаз (10-й уровень подряд).
@@ -87,10 +88,9 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
       <View style={[styles.full, { backgroundColor: colors.background }]}>
         <LinearGradient colors={['#43cea2', '#185a9d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
           <Ionicons name="eye-outline" size={56} color="#FFFFFF" />
-          <Text style={styles.title}>{ru ? 'Передышка для глаз' : 'Eye break'}</Text>
+          <Text style={styles.title}>{t('eyeBreakTitle')}</Text>
           <Text style={styles.restHint}>
-            {ru ? 'Посмотри вдаль, поморгай. Дай глазам отдохнуть от азарта — играешь 10-й уровень подряд.'
-                : 'Look into the distance, blink. Let your eyes rest — you’ve played 10 levels in a row.'}
+            {t('eyeBreakHint')}
           </Text>
           <Text style={styles.restTimer}>{restLeft}</Text>
         </LinearGradient>
@@ -98,7 +98,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
           <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
             onPress={go} activeOpacity={0.85}>
             <Ionicons name="play-skip-forward" size={20} color={colors.text} />
-            <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{ru ? 'Пропустить' : 'Skip'}</Text>
+            <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('skip')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -113,9 +113,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
       <LinearGradient colors={gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
         <Text style={styles.emoji}>{passed ? '🎉' : '💪'}</Text>
         <Text style={styles.title}>
-          {passed
-            ? (ru ? `Уровень ${level} пройден!` : `Level ${level} done!`)
-            : (ru ? `Уровень ${level} — почти!` : `Level ${level} — almost!`)}
+          {t(passed ? 'levelDone' : 'levelAlmost').replace('{n}', String(level))}
         </Text>
         {passed && (
           <View style={styles.stars}>
@@ -127,31 +125,31 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
         {passed && cleanRun >= 2 && (
           <View style={styles.runBadge}>
             <Text style={styles.runText}>
-              {ru ? `🔥 Серия ${cleanRun} чистых` : `🔥 Clean run ${cleanRun}`}
+              {t('cleanRunBadge').replace('{n}', String(cleanRun))}
               {cleanRunBonus(cleanRun) > 0 ? ` · +${cleanRunBonus(cleanRun)} ⭐` : ''}
             </Text>
           </View>
         )}
         <Text style={styles.next}>
           {passed
-            ? (ru ? `Уровень ${level + 1} запускается…` : `Starting level ${level + 1}…`)
-            : (ru ? `Тот же уровень — ещё раз…` : `Same level — retry…`)}
+            ? t('levelStarting').replace('{n}', String(level + 1))
+            : t('sameLevelRetry')}
         </Text>
         {passed && showLevelsHint && (
           <Text style={styles.levelsHint}>
-            {ru ? 'Дальше — уровни по порядку, сложность растёт' : 'Next up — levels in order, difficulty grows'}
+            {t('levelsInOrderHint')}
           </Text>
         )}
       </LinearGradient>
       <View style={styles.btns}>
         <TouchableOpacity style={[styles.btn, { backgroundColor: colors.primary }]} onPress={go} activeOpacity={0.85}>
           <Ionicons name={passed ? 'play' : 'refresh'} size={20} color="#FFFFFF" />
-          <Text style={styles.btnText} numberOfLines={1}>{passed ? (ru ? 'Дальше сразу' : 'Next now') : (ru ? 'Ещё раз' : 'Retry')}</Text>
+          <Text style={styles.btnText} numberOfLines={1}>{passed ? t('nextNow') : t('retry')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
           onPress={stop} activeOpacity={0.85}>
           <Ionicons name="stop" size={20} color={colors.text} />
-          <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{ru ? 'Остановиться' : 'Stop'}</Text>
+          <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>
         </TouchableOpacity>
       </View>
     </View>

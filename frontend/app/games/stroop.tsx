@@ -21,6 +21,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
@@ -288,34 +289,44 @@ export default function StroopGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trialsRef.current}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-      </View>
-      <View style={styles.wordArea}>
-        <Text style={[styles.bigWord, { color: inkColor.hex }]}>
-          {language === 'ru' ? word.ru : word.en}
-        </Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-        {mode === 'ink' ? t('stroopHintInk') : t('stroopHintWord')}
-      </Text>
-      <View style={styles.answersGrid}>
-        {COLORS_DEF.map((c) => (
-          <TouchableOpacity
-            key={c.name}
-            style={[styles.answerBtn, { backgroundColor: c.hex }]}
-            onPress={() => handleAnswer(c)}
-          >
-            <Text style={styles.answerText}>{language === 'ru' ? c.ru : c.en}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
+  // playing-фаза — на едином каркасе GameShell (цветные кнопки прибиты к низу)
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('stroop')}
+        onBack={() => { stoppedRef.current = true; if (windowTimerRef.current) clearTimeout(windowTimerRef.current); goBackOrHome(); }}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{trialsRef.current}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+          </View>
+        }
+        toolbar={
+          <View style={styles.answersGrid}>
+            {COLORS_DEF.map((c) => (
+              <TouchableOpacity
+                key={c.name}
+                style={[styles.answerBtn, { backgroundColor: c.hex }]}
+                onPress={() => handleAnswer(c)}
+              >
+                <Text style={styles.answerText}>{language === 'ru' ? c.ru : c.en}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.bigWord, { color: inkColor.hex }]}>
+            {language === 'ru' ? word.ru : word.en}
+          </Text>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            {mode === 'ink' ? t('stroopHintInk') : t('stroopHintWord')}
+          </Text>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -340,7 +351,6 @@ export default function StroopGame() {
         />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
@@ -382,10 +392,9 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 20, gap: 20, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 24 },
+  statsRow: { flexDirection: 'row', gap: 24, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },
-  wordArea: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 20 },
   bigWord: { fontSize: 56, fontWeight: '900', letterSpacing: 4 },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320 },
   answersGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center', maxWidth: 360 },
