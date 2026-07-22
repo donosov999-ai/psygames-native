@@ -246,9 +246,9 @@ export default function CorsiGame() {
         )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
-          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам (span → скорость → обратный порядок)` : `Lv ${lvl.level} — grows with results (span → speed → reverse)`}
+          {t('corsiLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
@@ -297,7 +297,7 @@ export default function CorsiGame() {
           onBack={() => goBackOrHome()}
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>Span {span}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>Span {span}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
               {phase === 'show' ? (
                 <Text style={[styles.statText, { color: GRADIENT[1] }]}>Len {seq.length}</Text>
               ) : (

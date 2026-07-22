@@ -322,17 +322,13 @@ export default function CounterGame() {
           {/* Карточка уровня: параметры + видимый критерий прохода + сброс ↺1 */}
           <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', gap: 6, marginTop: 12 }]}>
             <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-              {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+              {t('level')} {lvl.level}
             </Text>
             <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-              {language === 'ru'
-                ? `сетка ${p.gridSize}×${p.gridSize} · ${p.rounds} раундов · ${p.roundLimitMs / 1000} с на раунд`
-                : `${p.gridSize}×${p.gridSize} grid · ${p.rounds} rounds · ${p.roundLimitMs / 1000}s per round`}
+              {t('counterLvlParams').replace(/\{g\}/g, String(p.gridSize)).replace('{r}', String(p.rounds)).replace('{w}', String(p.roundLimitMs / 1000))}
             </Text>
             <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-              {language === 'ru'
-                ? `Проход уровня: собрать сумму в ≥${passNeed} из ${p.rounds} раундов до конца времени`
-                : `To pass: hit the target sum in ≥${passNeed} of ${p.rounds} rounds before time runs out`}
+              {t('counterPass').replace('{k}', String(passNeed)).replace('{r}', String(p.rounds))}
             </Text>
             {lvl.level > 1 && (
               <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -372,10 +368,10 @@ export default function CounterGame() {
           </View>
           <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {language === 'ru' ? 'Осталось' : 'Time left'}
+              {t('timeLeftLabel')}
             </Text>
             <Text style={[styles.statValue, { color: roundLeft <= 3 ? colors.error : colors.text }]}>
-              {roundLeft.toFixed(1)}{language === 'ru' ? 'с' : 's'}
+              {roundLeft.toFixed(1)}{t('secShort')}
             </Text>
           </View>
           <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
@@ -418,7 +414,7 @@ export default function CounterGame() {
             <View style={[styles.successBadge, { backgroundColor: colors.error }]}>
               <Ionicons name="time-outline" size={24} color="#FFFFFF" />
               <Text style={styles.successText}>
-                {language === 'ru' ? 'Время вышло' : 'Time is up'}
+                {t('timeIsUp')}
               </Text>
             </View>
           )}

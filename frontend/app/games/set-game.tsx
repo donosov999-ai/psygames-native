@@ -10,6 +10,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -360,43 +361,56 @@ export default function SetGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
-        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('setHint')}</Text>
-      {hintBreakdown && feedback === 'wrong' && (
-        <View style={[styles.hintBox, { backgroundColor: '#f43f5e22', borderColor: '#f43f5e' }]}>
-          <Text style={[styles.hintTitle, { color: '#f43f5e' }]}>{t('label_not_set')}</Text>
-          <View style={styles.hintRow}>
-            <Text style={[styles.hintItem, { color: hintBreakdown.shape ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.shape ? '✓' : '✗'} {t('label_shape')}
-            </Text>
-            <Text style={[styles.hintItem, { color: hintBreakdown.color ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.color ? '✓' : '✗'} {t('label_color')}
-            </Text>
-            <Text style={[styles.hintItem, { color: hintBreakdown.fill ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.fill ? '✓' : '✗'} {t('label_fill')}
-            </Text>
-            <Text style={[styles.hintItem, { color: hintBreakdown.count ? '#22c55e' : '#f43f5e' }]}>
-              {hintBreakdown.count ? '✓' : '✗'} {t('label_count_short')}
-            </Text>
+  // игровая фаза — на едином каркасе GameShell; модалка правил уровня — поверх (паттерн digit-span)
+  if (phase === 'playing') {
+    return (
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('setGame')}
+          onBack={() => goBackOrHome()}
+          stats={
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+              {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
+            </View>
+          }
+        >
+          <View style={styles.fieldCol}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('setHint')}</Text>
+            {hintBreakdown && feedback === 'wrong' && (
+              <View style={[styles.hintBox, { backgroundColor: '#f43f5e22', borderColor: '#f43f5e' }]}>
+                <Text style={[styles.hintTitle, { color: '#f43f5e' }]}>{t('label_not_set')}</Text>
+                <View style={styles.hintRow}>
+                  <Text style={[styles.hintItem, { color: hintBreakdown.shape ? '#22c55e' : '#f43f5e' }]}>
+                    {hintBreakdown.shape ? '✓' : '✗'} {t('label_shape')}
+                  </Text>
+                  <Text style={[styles.hintItem, { color: hintBreakdown.color ? '#22c55e' : '#f43f5e' }]}>
+                    {hintBreakdown.color ? '✓' : '✗'} {t('label_color')}
+                  </Text>
+                  <Text style={[styles.hintItem, { color: hintBreakdown.fill ? '#22c55e' : '#f43f5e' }]}>
+                    {hintBreakdown.fill ? '✓' : '✗'} {t('label_fill')}
+                  </Text>
+                  <Text style={[styles.hintItem, { color: hintBreakdown.count ? '#22c55e' : '#f43f5e' }]}>
+                    {hintBreakdown.count ? '✓' : '✗'} {t('label_count_short')}
+                  </Text>
+                </View>
+                <Text style={[styles.hintRule, { color: colors.textSecondary }]}>
+                  {t('hint_set_rule')}
+                </Text>
+              </View>
+            )}
+            <View style={styles.boardArea}>
+              {board.map(renderCard)}
+            </View>
           </View>
-          <Text style={[styles.hintRule, { color: colors.textSecondary }]}>
-            {t('hint_set_rule')}
-          </Text>
-        </View>
-      )}
-      <View style={styles.boardArea}>
-        {board.map(renderCard)}
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
-    </View>
-  );
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -413,7 +427,6 @@ export default function SetGame() {
           benefits={SET_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'lightning', gradient: GRADIENT as [string, string] }}
@@ -462,7 +475,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 12, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 12 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 12, textAlign: 'center', maxWidth: 360 },

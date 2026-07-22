@@ -366,22 +366,16 @@ export default function InhibitionGame() {
         <LevelProgressMap gameId="inhibition" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
             {subMode === 'go_no_go'
-              ? (language === 'ru'
-                ? `${p.trials} проб · окно ответа ${(p.goWindow / 1000).toFixed(1)} с`
-                : `${p.trials} trials · ${(p.goWindow / 1000).toFixed(1)} s response window`)
-              : (language === 'ru'
-                ? `${p.trials} проб · окно ответа ${(p.goWindow / 1000).toFixed(1)} с · стоп-проб ~${Math.round(p.stopProb * 100)}% · стоп через ${p.ssd} мс`
-                : `${p.trials} trials · ${(p.goWindow / 1000).toFixed(1)} s window · ~${Math.round(p.stopProb * 100)}% stop trials · stop at ${p.ssd} ms`)}
+              ? t('trialsWindowParams').replace('{n}', String(p.trials)).replace('{w}', (p.goWindow / 1000).toFixed(1))
+              : t('inhibStopLvlParams').replace('{n}', String(p.trials)).replace('{w}', (p.goWindow / 1000).toFixed(1)).replace('{p}', String(Math.round(p.stopProb * 100))).replace('{d}', String(p.ssd))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? 'Проход уровня: ≥80% верных (нажал на NO/стоп или пропустил GO = ошибка)'
-              : 'To pass: ≥80% correct (pressing on NO/stop or missing GO counts as an error)'}
+            {t('inhibPass')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

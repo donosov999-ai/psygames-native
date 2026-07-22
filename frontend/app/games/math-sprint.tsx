@@ -235,7 +235,7 @@ export default function MathSprintGame() {
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setDuration(n)}>
-              <Text style={[styles.modeButtonText, { color: duration === n ? '#FFF' : colors.text }]}>{n}{language === 'ru' ? 'с' : 's'}</Text>
+              <Text style={[styles.modeButtonText, { color: duration === n ? '#FFF' : colors.text }]}>{n}{t('secShort')}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -260,7 +260,7 @@ export default function MathSprintGame() {
           scrollableField
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}{language === 'ru' ? 'с' : 's'}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}{t('secShort')}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
               <Text style={[styles.statText, { color: colors.text }]}>★ {score}</Text>
               <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
               <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>

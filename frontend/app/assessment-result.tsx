@@ -98,7 +98,7 @@ export default function AssessmentResultScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.empty}>
-          <Text style={{ color: colors.text }}>{language === 'ru' ? 'Считаем результаты...' : 'Calculating results...'}</Text>
+          <Text style={{ color: colors.text }}>{t('calcResults')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -109,8 +109,8 @@ export default function AssessmentResultScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.hero}>
           <Text style={styles.heroEmoji}>🎯</Text>
-          <Text style={styles.heroTitle}>{language === 'ru' ? 'ТВОЙ КОГНИТИВНЫЙ ПРОФИЛЬ' : 'YOUR COGNITIVE PROFILE'}</Text>
-          <Text style={styles.heroSubtitle}>{result.date} · {language === 'ru' ? '12 доменов' : '12 domains'}</Text>
+          <Text style={styles.heroTitle}>{t('cogProfileTitle')}</Text>
+          <Text style={styles.heroSubtitle}>{result.date} · {t('domains12')}</Text>
         </LinearGradient>
 
         {/* Radar chart */}
@@ -120,7 +120,7 @@ export default function AssessmentResultScreen() {
 
         {/* Per-domain list */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{language === 'ru' ? 'По доменам' : 'By domain'}</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('byDomain')}</Text>
           {result.scores.map((s) => {
             const dom = DOMAINS.find(d => d.id === s.domain)!;
             const color = s.level === 'weak' ? '#f43f5e' : s.level === 'strong' ? '#22c55e' : '#fbbf24';
@@ -129,17 +129,15 @@ export default function AssessmentResultScreen() {
                 <View style={[styles.rowDot, { backgroundColor: color }]} />
                 <View style={styles.rowMain}>
                   <Text style={[styles.rowDomain, { color: colors.text }]}>
-                    {language === 'en' ? dom.label_en : dom.label_ru}
+                    {language === 'ru' ? dom.label_ru : dom.label_en}
                   </Text>
                   <Text style={[styles.rowMeta, { color: colors.textSecondary }]}>
-                    z = {s.z_score >= 0 ? '+' : ''}{s.z_score.toFixed(1)} · {language === 'ru' ? `${s.percentile}-й перцентиль` : `${s.percentile}th percentile`}
+                    z = {s.z_score >= 0 ? '+' : ''}{s.z_score.toFixed(1)} · {t('percentileN').replace('{n}', String(s.percentile))}
                   </Text>
                 </View>
                 <View style={[styles.levelBadge, { backgroundColor: color }]}>
                   <Text style={styles.levelText}>
-                    {language === 'ru'
-                      ? (s.level === 'weak' ? 'СЛАБО' : s.level === 'strong' ? 'СИЛЬНО' : 'СРЕД')
-                      : (s.level === 'weak' ? 'WEAK' : s.level === 'strong' ? 'STRONG' : 'AVG')}
+                    {s.level === 'weak' ? t('domainWeak') : s.level === 'strong' ? t('domainStrong') : t('domainAvg')}
                   </Text>
                 </View>
               </View>
@@ -150,7 +148,7 @@ export default function AssessmentResultScreen() {
         {/* ИИ-разбор — связный текст поверх статичного списка доменов, аддитивно */}
         {aiText && (
           <View style={[styles.aiCard, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
-            <Text style={[styles.aiTitle, { color: GRADIENT[0] }]}>✨ {language === 'ru' ? 'РАЗБОР' : 'INSIGHT'}</Text>
+            <Text style={[styles.aiTitle, { color: GRADIENT[0] }]}>✨ {t('insightTitle')}</Text>
             <Text style={[styles.aiText, { color: colors.text }]}>{aiText}</Text>
           </View>
         )}
@@ -159,7 +157,7 @@ export default function AssessmentResultScreen() {
         {recommendations.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              💡 {language === 'ru' ? 'Рекомендованные игры (для слабых доменов)' : 'Recommended games (for weak domains)'}
+              💡 {t('recommendedGames')}
             </Text>
             <View style={styles.recsRow}>
               {recommendations.map((gameId) => {
@@ -182,26 +180,24 @@ export default function AssessmentResultScreen() {
             <TouchableOpacity style={styles.btn} onPress={applyToProfile}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.btnGrad}>
                 <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                <Text style={styles.btnText}>{language === 'ru' ? 'СОХРАНИТЬ ПРОФИЛЬ' : 'SAVE PROFILE'}</Text>
+                <Text style={styles.btnText}>{t('saveProfileBtn')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           ) : (
             <View style={[styles.btn, { backgroundColor: '#22c55e' }]}>
               <View style={styles.btnGrad}>
                 <Ionicons name="checkmark" size={20} color="#FFF" />
-                <Text style={styles.btnText}>{language === 'ru' ? 'ПРОФИЛЬ СОХРАНЁН ✓' : 'PROFILE SAVED ✓'}</Text>
+                <Text style={styles.btnText}>{t('profileSavedBtn')}</Text>
               </View>
             </View>
           )}
           <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]} onPress={goHome}>
-            <Text style={[styles.btnTextSecondary, { color: colors.text }]}>{language === 'ru' ? 'На главную' : 'Home'}</Text>
+            <Text style={[styles.btnTextSecondary, { color: colors.text }]}>{t('goHome')}</Text>
           </TouchableOpacity>
         </View>
 
         <Text style={[styles.footnote, { color: colors.textSecondary }]}>
-          {language === 'ru'
-            ? 'Повторный прогон через 3 месяца покажет реальный прогресс по каждому домену.'
-            : 'A repeat run in 3 months will show real progress in each domain.'}
+          {t('assessRepeatNote')}
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -266,7 +262,7 @@ function RadarChart({ scores, language }: { scores: any[]; language: string }) {
           const y = cy + lblR * Math.sin(angle(i));
           return (
             <SvgText key={'l'+i} x={x} y={y} fontSize="9" fill="#94a3b8" textAnchor="middle" alignmentBaseline="middle">
-              {(language === 'en' ? dom.label_en : dom.label_ru).slice(0, 12)}
+              {(language === 'ru' ? dom.label_ru : dom.label_en).slice(0, 12)}
             </SvgText>
           );
         })}

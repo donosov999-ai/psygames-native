@@ -291,7 +291,7 @@ export default function MnemonicsGame() {
           <TouchableOpacity style={styles.startButton} onPress={() => startGame(true)}>
             <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
               <Ionicons name="flag" size={22} color="#FFFFFF" />
-              <Text style={styles.startButtonText}>{language === 'ru' ? `🎯 Уровень ${lvl.level} →` : `🎯 Level ${lvl.level} →`}</Text>
+              <Text style={styles.startButtonText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
             </LinearGradient>
           </TouchableOpacity>
         )}
@@ -303,7 +303,7 @@ export default function MnemonicsGame() {
             style={styles.startButtonGradient}
           >
             <Ionicons name="play" size={24} color="#FFFFFF" />
-            <Text style={styles.startButtonText}>{!isPreset ? (language === 'ru' ? 'Свободно' : 'Free play') : t('start')}</Text>
+            <Text style={styles.startButtonText}>{!isPreset ? t('freePlay') : t('start')}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -341,9 +341,7 @@ export default function MnemonicsGame() {
       }
     >
       <Text style={[styles.phaseTitle, { color: colors.text }]}>
-        {language === 'ru'
-          ? `Запомните ${itemCount} ${mode === 'words' ? 'слов' : 'чисел'}`
-          : `Memorize ${itemCount} ${mode}`}
+        {(mode === 'words' ? t('mnemMemorizeWords') : t('mnemMemorizeNumbers')).replace('{n}', String(itemCount))}
       </Text>
       <View style={styles.itemsGrid}>
         {items.map((item, index) => (

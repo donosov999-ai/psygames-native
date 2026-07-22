@@ -14,6 +14,7 @@ import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -390,65 +391,75 @@ export default function PicturePairsGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      {previewActive ? (
-        <View style={{ alignItems: 'center', gap: 4, paddingVertical: 8 }}>
-          <Text style={{ color: colors.text, fontSize: 22, fontWeight: '900', letterSpacing: 2 }}>
-            {t('label_memorize')}
-          </Text>
-          <Text style={{ color: '#666', fontSize: 12 }}>
-            {language === 'ru'
-              ? `${(previewMs / 1000).toFixed(1)}с — потом карты закроются`
-              : `${(previewMs / 1000).toFixed(1)}s — then the cards flip back`}
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.statsRow}>
-          {mode === 'game' && (
-            <HudBadge icon="flag" value={`${language === 'ru' ? 'ур.' : 'lv.'} ${level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
+  // игровая фаза — на едином каркасе GameShell (HUD-бейджи в статс-слоте);
+  // модалка правил уровня — поверх каркаса (паттерн digit-span)
+  if (phase === 'playing') {
+    return (
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('picturePairs')}
+          onBack={() => goBackOrHome()}
+          stats={previewActive ? (
+            <View style={{ alignItems: 'center', gap: 4, paddingVertical: 8 }}>
+              <Text style={{ color: colors.text, fontSize: 22, fontWeight: '900', letterSpacing: 2 }}>
+                {t('label_memorize')}
+              </Text>
+              <Text style={{ color: '#666', fontSize: 12 }}>
+                {language === 'ru'
+                  ? `${(previewMs / 1000).toFixed(1)}с — потом карты закроются`
+                  : `${(previewMs / 1000).toFixed(1)}s — then the cards flip back`}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.statsRow}>
+              {mode === 'game' && (
+                <HudBadge icon="flag" value={`${language === 'ru' ? 'ур.' : 'lv.'} ${level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
+              )}
+              {mode === 'game' && (
+                <HudBadge icon="star" value={score} colors={['#f59e0b', '#b45309']} pop />
+              )}
+              <HudBadge icon="checkmark-done" value={`${matched}/${pairsCount}`} colors={['#34d399', '#059669']} pop />
+              <HudBadge icon="swap-horizontal" value={moves} colors={['#fb7185', '#e11d48']} />
+              <HudBadge icon="time" value={`${elapsedTime.toFixed(1)}${language === 'ru' ? 'с' : 's'}`} colors={['#60a5fa', '#2563eb']} />
+              {mode === 'game' && !isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+            </View>
           )}
-          {mode === 'game' && (
-            <HudBadge icon="star" value={score} colors={['#f59e0b', '#b45309']} pop />
+        >
+          <View style={[styles.cardsArea, { width: containerW }]}>
+            {cards.map((card, i) => (
+              <FlipCard
+                key={i}
+                size={cardSize}
+                radius={10}
+                flipped={card.flipped || card.matched}
+                matched={card.matched}
+                disabled={card.matched || card.flipped || locked}
+                onPress={() => handleCardPress(i)}
+                back={
+                  <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: cardBack.color, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
+                    <Ionicons name={cardBack.icon as any} size={cardSize * 0.32} color="rgba(255,255,255,0.6)" />
+                  </View>
+                }
+                front={
+                  <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: card.matched ? '#22c55e' : colors.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }}>
+                    <Image source={sprites[card.symbol]} style={{ width: cardSize * 0.82, height: cardSize * 0.82 }} resizeMode="contain" />
+                  </View>
+                }
+              />
+            ))}
+          </View>
+          {levelBanner !== null && (
+            <View style={styles.levelBanner} pointerEvents="none">
+              <Text style={styles.levelBannerText}>🎉 {language === 'ru' ? 'Уровень' : 'Level'} {levelBanner} ✓</Text>
+              <Text style={styles.levelBannerSub}>→ {language === 'ru' ? 'Уровень' : 'Level'} {levelBanner + 1}</Text>
+            </View>
           )}
-          <HudBadge icon="checkmark-done" value={`${matched}/${pairsCount}`} colors={['#34d399', '#059669']} pop />
-          <HudBadge icon="swap-horizontal" value={moves} colors={['#fb7185', '#e11d48']} />
-          <HudBadge icon="time" value={`${elapsedTime.toFixed(1)}${language === 'ru' ? 'с' : 's'}`} colors={['#60a5fa', '#2563eb']} />
-          {mode === 'game' && !isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
-        </View>
-      )}
-      <View style={[styles.cardsArea, { width: containerW }]}>
-        {cards.map((card, i) => (
-          <FlipCard
-            key={i}
-            size={cardSize}
-            radius={10}
-            flipped={card.flipped || card.matched}
-            matched={card.matched}
-            disabled={card.matched || card.flipped || locked}
-            onPress={() => handleCardPress(i)}
-            back={
-              <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: cardBack.color, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
-                <Ionicons name={cardBack.icon as any} size={cardSize * 0.32} color="rgba(255,255,255,0.6)" />
-              </View>
-            }
-            front={
-              <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: card.matched ? '#22c55e' : colors.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }}>
-                <Image source={sprites[card.symbol]} style={{ width: cardSize * 0.82, height: cardSize * 0.82 }} resizeMode="contain" />
-              </View>
-            }
-          />
-        ))}
+          <ScorePopupLayer popups={popups} />
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
-      {levelBanner !== null && (
-        <View style={styles.levelBanner} pointerEvents="none">
-          <Text style={styles.levelBannerText}>🎉 {language === 'ru' ? 'Уровень' : 'Level'} {levelBanner} ✓</Text>
-          <Text style={styles.levelBannerSub}>→ {language === 'ru' ? 'Уровень' : 'Level'} {levelBanner + 1}</Text>
-        </View>
-      )}
-      <ScorePopupLayer popups={popups} />
-    </View>
-  );
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -465,7 +476,6 @@ export default function PicturePairsGame() {
           benefits={PAIRS_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'result' && (
         <GameResult
@@ -496,7 +506,6 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 14, alignItems: 'center' },
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap' },
   statText: { fontSize: 14, fontWeight: '700' },
   cardsArea: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' },

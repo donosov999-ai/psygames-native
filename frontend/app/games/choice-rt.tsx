@@ -236,21 +236,17 @@ export default function ChoiceRtGame() {
         <LevelProgressMap gameId="choice_rt" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `${p.trials} проб · ${p.dirs.length} направления · окно ответа ${(p.windowMs / 1000).toFixed(1)} с`
-              : `${p.trials} trials · ${p.dirs.length} directions · ${(p.windowMs / 1000).toFixed(1)} s response window`}
+            {t('choiceRtLvlParams').replace('{n}', String(p.trials)).replace('{d}', String(p.dirs.length)).replace('{w}', (p.windowMs / 1000).toFixed(1))}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
             {p.dirs.map(d => d === 'left' ? '←' : d === 'right' ? '→' : d === 'up' ? '↑' : '↓').join('  ')}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? 'Проход уровня: ≥80% верных ответов (не успел в окно = ошибка)'
-              : 'To pass: ≥80% correct answers (missing the window counts as an error)'}
+            {t('passCorrect80Window')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -327,7 +323,7 @@ export default function ChoiceRtGame() {
             <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
             <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
             <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{t('msShort')}</Text>
           </View>
         }
         toolbar={renderPad()}

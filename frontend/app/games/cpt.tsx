@@ -29,6 +29,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -393,54 +394,67 @@ export default function CPTGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => {
+  // игровая фаза — на едином каркасе GameShell (стоп прибит к низу);
+  // модалка правил уровня — поверх каркаса (паттерн digit-span)
+  if (phase === 'playing') {
     const mins = Math.floor(remaining / 60);
     const secs = remaining % 60;
-    const totalDoneTrials = trialIdx;
     const fbColor = feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : null;
     return (
-      <View style={styles.playArea}>
-        <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: GRADIENT[1], fontSize: 18 }]}>
-            {mins}:{secs.toString().padStart(2, '0')}
-          </Text>
-          <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗o{omissions}</Text>
-          <Text style={[styles.statText, { color: '#fbbf24' }]}>✗c{commissions}</Text>
-          <Text style={[styles.statText, { color: colors.textSecondary }]}>{totalDoneTrials}t</Text>
-          <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
-        </View>
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-          {modeRef.current === 'AX'
-            ? (language === 'ru' ? 'Жми только на X, если ПЕРЕД ней была A' : 'Tap X only if it followed A')
-            : (language === 'ru' ? 'Жми на каждую X. Не пропускай!' : 'Tap every X. Don\'t miss!')}
-        </Text>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={handleTap}
-          style={[styles.stimBox, {
-            width: stimSide, height: stimSide,   // окно масштабируется под экран (useWindowDimensions)
-            backgroundColor: fbColor ? fbColor + '33' : colors.surface,
-            borderColor: fbColor || (letterVisible && currentLetter === 'X' ? '#fbbf24' : colors.border),
-            borderWidth: letterVisible ? 3 : 1,
-          }]}
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('cpt')}
+          onBack={() => { stoppedRef.current = true; clearAllTimers(); goBackOrHome(); }}
+          stats={
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: GRADIENT[1], fontSize: 18 }]}>
+                {mins}:{secs.toString().padStart(2, '0')}
+              </Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗o{omissions}</Text>
+              <Text style={[styles.statText, { color: '#fbbf24' }]}>✗c{commissions}</Text>
+              <Text style={[styles.statText, { color: colors.textSecondary }]}>{trialIdx}t</Text>
+              <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
+            </View>
+          }
+          toolbar={
+            <TouchableOpacity style={[styles.stopBtn, { borderColor: '#f43f5e' }]} onPress={stop}>
+              <Text style={[styles.stopBtnText, { color: '#f43f5e' }]}>{t('btn_stop')}</Text>
+            </TouchableOpacity>
+          }
         >
-          {letterVisible && (
-            <Text style={[styles.stimText, {
-              fontSize: stimFont,   // символ ~60% окна вместо жёстких 120px
-              color: currentLetter === 'X' ? '#fbbf24' : colors.text,
-            }]}>
-              {currentLetter}
+          <View style={styles.fieldCol}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+              {modeRef.current === 'AX'
+                ? (language === 'ru' ? 'Жми только на X, если ПЕРЕД ней была A' : 'Tap X only if it followed A')
+                : (language === 'ru' ? 'Жми на каждую X. Не пропускай!' : 'Tap every X. Don\'t miss!')}
             </Text>
-          )}
-          {!letterVisible && <Text style={[styles.fixCross, { color: colors.textSecondary }]}>+</Text>}
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.stopBtn, { borderColor: '#f43f5e' }]} onPress={stop}>
-          <Text style={[styles.stopBtnText, { color: '#f43f5e' }]}>{t('btn_stop')}</Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleTap}
+              style={[styles.stimBox, {
+                width: stimSide, height: stimSide,   // окно масштабируется под экран (useWindowDimensions)
+                backgroundColor: fbColor ? fbColor + '33' : colors.surface,
+                borderColor: fbColor || (letterVisible && currentLetter === 'X' ? '#fbbf24' : colors.border),
+                borderWidth: letterVisible ? 3 : 1,
+              }]}
+            >
+              {letterVisible && (
+                <Text style={[styles.stimText, {
+                  fontSize: stimFont,   // символ ~60% окна вместо жёстких 120px
+                  color: currentLetter === 'X' ? '#fbbf24' : colors.text,
+                }]}>
+                  {currentLetter}
+                </Text>
+              )}
+              {!letterVisible && <Text style={[styles.fixCross, { color: colors.textSecondary }]}>+</Text>}
+            </TouchableOpacity>
+          </View>
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
     );
-  };
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -458,7 +472,6 @@ export default function CPTGame() {
           benefits={CPT_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'oddletter', gradient: GRADIENT as [string, string] }}
@@ -503,7 +516,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 22, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 22 },
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },

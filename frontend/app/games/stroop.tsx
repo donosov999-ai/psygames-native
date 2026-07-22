@@ -241,17 +241,13 @@ export default function StroopGame() {
         <LevelProgressMap gameId="stroop" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `${p.trials} проб · окно ответа ${(p.windowMs / 1000).toFixed(1)} с · конфликтных ${Math.round(p.incongruentRatio * 100)}%`
-              : `${p.trials} trials · ${(p.windowMs / 1000).toFixed(1)} s response window · ${Math.round(p.incongruentRatio * 100)}% conflict trials`}
+            {t('stroopLvlParams').replace('{n}', String(p.trials)).replace('{w}', (p.windowMs / 1000).toFixed(1)).replace('{p}', String(Math.round(p.incongruentRatio * 100)))}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? 'Проход уровня: точность ≥85% (не успел ответить = ошибка)'
-              : 'To pass: ≥85% accuracy (missing the response window counts as an error)'}
+            {t('stroopPass')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

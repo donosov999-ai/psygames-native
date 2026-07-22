@@ -237,18 +237,14 @@ export default function GoNoGoGame() {
         <LevelProgressMap gameId="go_no_go" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `${p.trials} проб · NO ~${Math.round(p.nogoProb * 100)}% · окно ответа ${(p.windowMs / 1000).toFixed(2)} с`
-              : `${p.trials} trials · ~${Math.round(p.nogoProb * 100)}% NO · ${(p.windowMs / 1000).toFixed(2)} s response window`}
+            {t('goNoGoLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(p.nogoProb * 100))).replace('{w}', (p.windowMs / 1000).toFixed(2))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? 'Проход уровня: ≥80% верных проб (пропуск GO и нажатие на NO = ошибки)'
-              : 'To pass: ≥80% correct trials (missing GO and tapping NO both count as errors)'}
+            {t('goNoGoPass')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

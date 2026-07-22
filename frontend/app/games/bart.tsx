@@ -35,6 +35,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -336,19 +337,9 @@ export default function BARTGame() {
 
   const balloonSize = 60 + pumps * 4;
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{t('label_balloon')} {round}/{totalBalloons}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>💰{bank}¢</Text>
-        <Text style={[styles.statText, { color: '#fbbf24' }]}>⏳{pending}¢</Text>
-        <Text style={[styles.statText, { color: '#ef4444' }]}>💥{popCount}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>μ{adjAvg}</Text>
-      </View>
-      {/* ЗАЧЕМ: игровое поле (шар + риск-метр + подсказка) тянется flex:1 и центрируется по
-          вертикали — шар в центре экрана, а НЕ подпирает кнопки в середину. Действия ушли
-          в отдельный нижний тулбар (эталон math-sprint: поле по центру, кнопки у низа). */}
-      <View style={styles.gameField}>
+  // игровая фаза — на едином каркасе GameShell: Pump/Cash прибиты к низу (эталон math-sprint)
+  const renderField = () => (
+    <View style={styles.fieldCol}>
       <View style={styles.balloonArea}>
         {/* Объёмный шар без ассетов, RN-примитивами: градиент-тело + блик-эллипс +
             узелок-треугольник + нитка. Всё внутри Animated.View — масштабируется целиком. */}
@@ -441,24 +432,44 @@ export default function BARTGame() {
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>
         {feedback === 'pop' ? t('bartPopped') : feedback === 'cash' ? t('bartCashed') : t('bartHint')}
       </Text>
-      </View>
-      {/* ЗАЧЕМ: Pump/Cash — отдельный нижний тулбар, прижат к низу игровой зоны (как кнопка снизу в math-sprint) */}
-      <View style={styles.actionsRow}>
-        <TouchableOpacity disabled={popped || feedback !== null}
-          style={[styles.actionBtn, { backgroundColor: GRADIENT[0], opacity: popped || feedback ? 0.5 : 1 }]}
-          onPress={pump}>
-          <Ionicons name="add-circle" size={22} color="#FFF" />
-          <Text style={styles.actionText}>{t('bartPump')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity disabled={popped || feedback !== null || pumps === 0}
-          style={[styles.actionBtn, { backgroundColor: '#22c55e', opacity: popped || feedback || pumps === 0 ? 0.5 : 1 }]}
-          onPress={cashOut}>
-          <Ionicons name="cash" size={22} color="#FFF" />
-          <Text style={styles.actionText}>{t('bartCash')}</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
+
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('bart')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('label_balloon')} {round}/{totalBalloons}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>💰{bank}¢</Text>
+            <Text style={[styles.statText, { color: '#fbbf24' }]}>⏳{pending}¢</Text>
+            <Text style={[styles.statText, { color: '#ef4444' }]}>💥{popCount}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>μ{adjAvg}</Text>
+          </View>
+        }
+        toolbar={
+          <View style={styles.actionsRow}>
+            <TouchableOpacity disabled={popped || feedback !== null}
+              style={[styles.actionBtn, { backgroundColor: GRADIENT[0], opacity: popped || feedback ? 0.5 : 1 }]}
+              onPress={pump}>
+              <Ionicons name="add-circle" size={22} color="#FFF" />
+              <Text style={styles.actionText}>{t('bartPump')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity disabled={popped || feedback !== null || pumps === 0}
+              style={[styles.actionBtn, { backgroundColor: '#22c55e', opacity: popped || feedback || pumps === 0 ? 0.5 : 1 }]}
+              onPress={cashOut}>
+              <Ionicons name="cash" size={22} color="#FFF" />
+              <Text style={styles.actionText}>{t('bartCash')}</Text>
+            </TouchableOpacity>
+          </View>
+        }
+      >
+        {renderField()}
+      </GameShell>
+    );
+  }
 
   const stars = (() => {
     const pr = totalBalloons ? popCount / totalBalloons : 1;
@@ -480,7 +491,6 @@ export default function BARTGame() {
           benefits={BART_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="bart" level={levelRef.current} passed={clearedPassed} stars={stars}
           gradient={GRADIENT} language={language} colors={colors}
@@ -517,10 +527,7 @@ const styles = StyleSheet.create({
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   classicBtn: { borderRadius: 10, borderWidth: 1.5, paddingVertical: 12, alignItems: 'center', marginTop: 6 },
   classicBtnText: { fontSize: 14, fontWeight: '700' },
-  // ЗАЧЕМ: playArea больше не центрирует всё разом (иначе кнопки зависали в середине).
-  // Статы сверху, поле по центру (gameField flex:1), тулбар снизу — как в math-sprint.
-  playArea: { flex: 1, padding: 16, gap: 14 },
-  gameField: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 18 },
+  fieldCol: { alignItems: 'center', gap: 18 },
   statsRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
   balloonArea: { width: 280, height: 280, justifyContent: 'center', alignItems: 'center' },

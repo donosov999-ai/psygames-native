@@ -268,17 +268,13 @@ export default function LexicalDecisionGame() {
           {/* Карточка уровня: параметры + видимый критерий прохода + сброс ↺1 (паттерн cpt/simon) */}
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginTop: 12, marginBottom: 12, alignItems: 'center', gap: 6 }]}>
             <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-              {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+              {t('level')} {lvl.level}
             </Text>
             <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-              {language === 'ru'
-                ? `${p.trials} проб · окно ответа ${(p.windowMs / 1000).toFixed(1)} с`
-                : `${p.trials} trials · ${(p.windowMs / 1000).toFixed(1)} s response window`}
+              {t('trialsWindowParams').replace('{n}', String(p.trials)).replace('{w}', (p.windowMs / 1000).toFixed(1))}
             </Text>
             <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-              {language === 'ru'
-                ? 'Проход уровня: ≥80% верных ответов (не успел в окно = ошибка)'
-                : 'To pass: ≥80% correct answers (missing the window counts as an error)'}
+              {t('passCorrect80Window')}
             </Text>
             {lvl.level > 1 && (
               <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

@@ -296,18 +296,14 @@ export default function ClozeGame() {
           <LevelProgressMap gameId="cloze" currentLevel={lvl.level} colors={colors} language={language} />
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12, alignItems: 'center', gap: 6 }]}>
             <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-              {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+              {t('level')} {lvl.level}
             </Text>
             <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-              {language === 'ru'
-                ? `${planned} фраз · ⏱ ${(p.timeLimitMs / 1000).toFixed(1)} с на фразу`
-                : `${planned} phrases · ⏱ ${(p.timeLimitMs / 1000).toFixed(1)} s per phrase`}
+              {t('clozeLvlParams').replace('{n}', String(planned)).replace('{w}', (p.timeLimitMs / 1000).toFixed(1))}
             </Text>
             {/* Критерий прохождения уровня виден игроку (паттерн cpt) */}
             <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-              {language === 'ru'
-                ? 'Проход уровня: ≥80% верных ответов (не успел в лимит = ошибка)'
-                : 'To pass: ≥80% correct answers (running out of time counts as an error)'}
+              {t('clozePass')}
             </Text>
             {lvl.level > 1 && (
               <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

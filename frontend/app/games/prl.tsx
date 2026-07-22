@@ -45,6 +45,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -427,32 +428,44 @@ export default function PRLGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{trialIdx}/{totalTrials}</Text>
-        <Text style={[styles.statText, { color: bank >= 100 ? '#22c55e' : '#f43f5e', fontSize: 18 }]}>
-          💰 {bank}¢
+  // игровая фаза — на едином каркасе GameShell: круги-ответы и стоп прибиты к низу
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('prl')}
+        onBack={() => { respondLockRef.current = true; goBackOrHome(); }}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{trialIdx}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: bank >= 100 ? '#22c55e' : '#f43f5e', fontSize: 18 }]}>
+              💰 {bank}¢
+            </Text>
+            <Text style={[styles.statText, { color: GRADIENT[1] }]}>
+              R:{blockIndexRef.current}
+            </Text>
+            <Text style={[styles.statText, { color: colors.textSecondary }]}>
+              ✓{revealCount}
+            </Text>
+          </View>
+        }
+        toolbar={
+          <View style={styles.toolbarCol}>
+            <View style={styles.stimRow}>
+              {renderStimulus('A', '#3b82f6')}
+              {renderStimulus('B', '#f59e0b')}
+            </View>
+            <TouchableOpacity style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
+              <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{t('btn_stop')}</Text>
+            </TouchableOpacity>
+          </View>
+        }
+      >
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+          {t('prlHint')}
         </Text>
-        <Text style={[styles.statText, { color: GRADIENT[1] }]}>
-          R:{blockIndexRef.current}
-        </Text>
-        <Text style={[styles.statText, { color: colors.textSecondary }]}>
-          ✓{revealCount}
-        </Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-        {t('prlHint')}
-      </Text>
-      <View style={styles.stimRow}>
-        {renderStimulus('A', '#3b82f6')}
-        {renderStimulus('B', '#f59e0b')}
-      </View>
-      <TouchableOpacity style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
-        <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{t('btn_stop')}</Text>
-      </TouchableOpacity>
-    </View>
-  );
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -470,7 +483,6 @@ export default function PRLGame() {
           benefits={PRL_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="prl" level={levelRef.current} passed={clearedPassed} stars={clearedStars}
           gradient={GRADIENT} language={language} colors={colors}
@@ -507,7 +519,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 24, alignItems: 'center' },
+  toolbarCol: { alignItems: 'center', gap: 4 },
   statsRow: { flexDirection: 'row', gap: 16, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },

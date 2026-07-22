@@ -322,18 +322,14 @@ export default function ProofreadingGame() {
         <LevelProgressMap gameId="proofreading" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', gap: 6, marginTop: 12, marginBottom: 12 }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `Поле ${p.rows}×${p.cols} · лимит ${p.timeLimitSec} с`
-              : `${p.rows}×${p.cols} grid · ${p.timeLimitSec} s limit`}
+            {t('proofLvlParams').replace('{r}', String(p.rows)).replace('{c}', String(p.cols)).replace('{w}', String(p.timeLimitSec))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `Проход уровня: найти ≥${Math.round(p.minFoundPct * 100)}% целей до конца времени (ложные нажатия и пропуски снижают звёзды)`
-              : `To pass: find ≥${Math.round(p.minFoundPct * 100)}% of targets before time runs out (false taps and misses cost stars)`}
+            {t('proofPass').replace('{p}', String(Math.round(p.minFoundPct * 100)))}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

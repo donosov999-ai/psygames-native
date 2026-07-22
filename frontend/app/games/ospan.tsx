@@ -187,9 +187,9 @@ export default function OSpanGame() {
       </LinearGradient>
       <LevelProgressMap gameId="ospan" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
-          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам (набор → сложнее счёт → быстрее показ)` : `Lv ${lvl.level} — grows with results (set size → harder math → faster)`}
+          {t('ospanLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
@@ -205,7 +205,7 @@ export default function OSpanGame() {
     return (
       <View style={styles.playArea}>
         <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
+          <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize} · {t('label_level_short')}{lvl.level}</Text>
           <Text style={[styles.statText, { color: '#22c55e' }]}>✓math {mathHits}</Text>
           <Text style={[styles.statText, { color: '#f43f5e' }]}>✗math {mathErrors}</Text>
           <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
@@ -231,7 +231,7 @@ export default function OSpanGame() {
   const renderLetter = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize} · {t('label_level_short')}{lvl.level}</Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('ospanRememberLetter')}</Text>
       <View style={[styles.letterBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>

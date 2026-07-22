@@ -385,7 +385,7 @@ export default function TrailMakingGame() {
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
         {/* Лимит времени уровня виден игроку; просрочил — таймер краснеет */}
         <Text style={[styles.statText, { color: timeLimit > 0 && elapsedTime > timeLimit ? '#f43f5e' : colors.text }]}>
-          {elapsedTime.toFixed(1)}{timeLimit > 0 ? `/${timeLimit}` : ''}{language === 'ru' ? 'с' : 's'}
+          {elapsedTime.toFixed(1)}{timeLimit > 0 ? `/${timeLimit}` : ''}{t('secShort')}
         </Text>
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>

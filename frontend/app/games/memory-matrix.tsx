@@ -310,7 +310,7 @@ export default function MemoryMatrixGame() {
       </LinearGradient>
       <LevelProgressMap gameId="memory_matrix" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('gridSize')}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('gridSize')}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
         <View style={styles.optionButtons}>
           {[3, 4, 5, 6].map((n) => {
             const levelKey = `${n}x${n}`;
@@ -391,11 +391,11 @@ export default function MemoryMatrixGame() {
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
             {phase === 'showing'
               ? (seriesCountRef.current === 2 && matrixMode === 'static'
-                  ? (showingSeries === 2 ? (language === 'ru' ? '🔴 Запомни КРАСНЫЕ' : '🔴 Memorize RED') : (language === 'ru' ? '🟣 Запомни ФИОЛЕТОВЫЕ' : '🟣 Memorize PURPLE'))
+                  ? (showingSeries === 2 ? t('mmMemorizeRed') : t('mmMemorizePurple'))
                   : t('matrixMemorize'))
               : phase === 'input'
               ? (seriesCountRef.current === 2 && matrixMode === 'static'
-                  ? (inputSeries === 1 ? (language === 'ru' ? '🔴 Теперь КРАСНЫЕ' : '🔴 Now RED') : (language === 'ru' ? '🟣 Сначала ФИОЛЕТОВЫЕ' : '🟣 Purple first'))
+                  ? (inputSeries === 1 ? t('mmNowRed') : t('mmPurpleFirst'))
                   : t('matrixRecall'))
               : feedbackMsg}
           </Text>

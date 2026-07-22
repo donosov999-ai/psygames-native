@@ -31,6 +31,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 
 const GRADIENT = ['#fc466b', '#a445b2'];
 const RMET_BENEFITS = [
@@ -338,43 +339,54 @@ export default function RMETGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => {
+  // игровая фаза — на едином каркасе GameShell: слова-ответы прибиты к низу
+  if (phase === 'playing') {
     const it = items[round];
-    if (!it) return null;
-    const correctWord = language === 'en' ? it.correct_en : it.correct_ru;
+    const correctWord = it ? (language === 'en' ? it.correct_en : it.correct_ru) : '';
     return (
-      <View style={styles.playArea}>
-        <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{round + 1}/{items.length}</Text>
-          <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        </View>
-        <View style={[styles.eyeBox, { backgroundColor: colors.surface }]}>
-          <Image source={EYE_IMG[it.correct_en][it._vi ?? 0]} style={styles.eyeImg} resizeMode="cover" />
-        </View>
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('rmetHint')}</Text>
-        <View style={styles.optsGrid}>
-          {shuffledOpts.map((opt) => {
-            const isFb = feedback?.chosen === opt;
-            const isCorrect = opt === correctWord;
-            const bg = isFb
-              ? (feedback.correct ? '#22c55e' : '#f43f5e')
-              : (feedback && isCorrect ? '#22c55e88' : GRADIENT[0]);
-            return (
-              <TouchableOpacity key={opt}
-                disabled={feedback !== null}
-                onPress={() => handleAnswer(opt)}
-                activeOpacity={0.85}
-                style={[styles.optBtn, { backgroundColor: bg }]}>
-                <View style={styles.optShine} pointerEvents="none" />
-                <Text style={styles.optText}>{opt}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+      <GameShell
+        title={t('rmet')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round + 1}/{items.length}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+          </View>
+        }
+        toolbar={it ? (
+          <View style={styles.optsGrid}>
+            {shuffledOpts.map((opt) => {
+              const isFb = feedback?.chosen === opt;
+              const isCorrect = opt === correctWord;
+              const bg = isFb
+                ? (feedback.correct ? '#22c55e' : '#f43f5e')
+                : (feedback && isCorrect ? '#22c55e88' : GRADIENT[0]);
+              return (
+                <TouchableOpacity key={opt}
+                  disabled={feedback !== null}
+                  onPress={() => handleAnswer(opt)}
+                  activeOpacity={0.85}
+                  style={[styles.optBtn, { backgroundColor: bg }]}>
+                  <View style={styles.optShine} pointerEvents="none" />
+                  <Text style={styles.optText}>{opt}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : undefined}
+      >
+        {it && (
+          <View style={styles.fieldCol}>
+            <View style={[styles.eyeBox, { backgroundColor: colors.surface }]}>
+              <Image source={EYE_IMG[it.correct_en][it._vi ?? 0]} style={styles.eyeImg} resizeMode="cover" />
+            </View>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('rmetHint')}</Text>
+          </View>
+        )}
+      </GameShell>
     );
-  };
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -391,7 +403,6 @@ export default function RMETGame() {
           benefits={RMET_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'result' && (
         <GameResult
           score={hits * 50}
@@ -422,8 +433,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 18, alignItems: 'center', maxWidth: 480, alignSelf: 'center', width: '100%' },
-  statsRow: { flexDirection: 'row', gap: 18 },
+  fieldCol: { alignItems: 'center', gap: 18, maxWidth: 480, width: '100%' },
+  statsRow: { flexDirection: 'row', gap: 18, justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   eyeBox: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 12, width: '100%' },
   eyeImg: { width: '100%', aspectRatio: 1.5, borderRadius: 14, backgroundColor: '#000' },

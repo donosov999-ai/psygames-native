@@ -381,18 +381,14 @@ export default function FindDifferencesGame() {
         <LevelProgressMap gameId="find_differences" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `Раундов: ${p.rounds} · отличий: ${p.diffCount} · объектов: ${p.objectCount} · ⏱ ${p.roundTimeSec} с на раунд`
-              : `${p.rounds} rounds · ${p.diffCount} differences · ${p.objectCount} objects · ⏱ ${p.roundTimeSec} s per round`}
+            {t('findDiffLvlParams').replace('{r}', String(p.rounds)).replace('{d}', String(p.diffCount)).replace('{o}', String(p.objectCount)).replace('{w}', String(p.roundTimeSec))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? 'Проход уровня: найти все отличия в каждом раунде, пока не вышло время'
-              : 'To pass: find every difference in each round before the time runs out'}
+            {t('findDiffPass')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -413,7 +409,7 @@ export default function FindDifferencesGame() {
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
         <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalRounds}</Text>
-        <Text style={[styles.statText, { color: timeLeft <= 5 ? '#f43f5e' : colors.text }]}>⏱{timeLeft}{language === 'ru' ? 'с' : 's'}</Text>
+        <Text style={[styles.statText, { color: timeLeft <= 5 ? '#f43f5e' : colors.text }]}>⏱{timeLeft}{t('secShort')}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{foundIdx.size}/{diffIdx.length}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
       </View>
