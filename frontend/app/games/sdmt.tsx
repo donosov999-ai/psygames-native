@@ -213,7 +213,6 @@ export default function SdmtGame() {
 
   const renderConfig = () => {
     const p = levelParams(lvl.level);
-    const ru = language === 'ru';
     return (
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
@@ -224,18 +223,17 @@ export default function SdmtGame() {
         <LevelProgressMap gameId="sdmt" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {ru ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {ru
-              ? `${p.symbolCount} символов · раунд ${p.durationSec} с · цель ${p.targetHits} верных`
-              : `${p.symbolCount} symbols · ${p.durationSec} s round · goal ${p.targetHits} correct`}
+            {t('sdmtLvlParams')
+              .replace('{n}', String(p.symbolCount))
+              .replace('{w}', String(p.durationSec))
+              .replace('{g}', String(p.targetHits))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {ru
-              ? `Проход уровня: ≥${p.targetHits} верных за раунд и точность ≥80%`
-              : `To pass: ≥${p.targetHits} correct in the round with ≥80% accuracy`}
+            {t('sdmtPass').replace('{g}', String(p.targetHits))}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

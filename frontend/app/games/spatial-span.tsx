@@ -196,7 +196,7 @@ export default function SpatialSpanGame() {
       </LinearGradient>
       <LevelProgressMap gameId="spatial_span" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
           {language === 'ru' ? `Ур. ${lvl.level} — растёт сам (span → скорость показа → сетка 5×5)` : `Lv ${lvl.level} — grows with results (span → show speed → 5×5 grid)`}
         </Text>

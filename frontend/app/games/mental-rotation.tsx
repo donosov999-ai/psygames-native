@@ -455,7 +455,7 @@ export default function MentalRotationGame() {
       </LinearGradient>
       <LevelProgressMap gameId="mental_rotation" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
-        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('level')} {lvl.level}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
           {(() => {
             const p = levelParams(lvl.level);

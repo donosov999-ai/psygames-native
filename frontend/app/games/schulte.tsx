@@ -17,7 +17,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { useProfile } from '@/src/contexts/ProfileContext';
-import { getUnlockedLevels, getNextLockedLevel } from '@/src/services/level-unlocks';
+import { getUnlockedLevels, getNextLockedLevel, formatUnlockHint } from '@/src/services/level-unlocks';
 import { LEVELS_BY_GAME } from '@/src/constants/level-progression';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
@@ -147,18 +147,8 @@ export default function SchulteGame() {
       const unlocked = await getUnlockedLevels(profile.person, true, 'schulte_table');
       setUnlockedSet(new Set(unlocked));
       const next = await getNextLockedLevel(profile.person, true, 'schulte_table');
-      if (next) {
-        const dot = next.consecutiveDone > 0
-          ? (language === 'ru'
-            ? ` · прогресс ${next.consecutiveDone}/${next.condition.consecutive ?? 1}`
-            : ` · progress ${next.consecutiveDone}/${next.condition.consecutive ?? 1}`)
-          : '';
-        setNextHint(language === 'ru'
-          ? `🔒 Следующий ${next.level.label}: ${next.condition.human_hint}${dot}`
-          : `🔒 Next ${next.level.label_en ?? next.level.label}: ${next.condition.human_hint_en ?? next.condition.human_hint}${dot}`);
-      } else {
-        setNextHint(null);
-      }
+      // v1.142: строка собирается из словаря (12 языков) с фолбэком на манифест
+      setNextHint(next ? formatUnlockHint(language, 'schulte_table', next) : null);
     })();
   }, [isThemed, profile.person, language]);
 

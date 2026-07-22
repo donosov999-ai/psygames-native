@@ -24,6 +24,7 @@ import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import { generatePseudowords } from '@/src/services/pseudowords';
 import GameResult from '@/src/components/GameResult';
+import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 
@@ -148,7 +149,7 @@ function buildRounds(lang: string, count: number, lenMin: number, lenMax: number
 
 export default function PseudowordEchoGame() {
   const { colors } = useTheme();
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const lvl = usePersistentLevel(GAME_ID);
   const ru = language === 'ru';
 
@@ -320,7 +321,7 @@ export default function PseudowordEchoGame() {
       </View>
 
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{ru ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.levelHint, { color: colors.textSecondary }]}>
           {ru
             ? `Ур. ${lvl.level} — растёт сам (длиннее слова → больше раундов)`
@@ -348,59 +349,67 @@ export default function PseudowordEchoGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => {
-    const round = rounds[idx];
-    if (!round) return null;
+  // игровая фаза — на едином каркасе GameShell: счётчики в статс-строке; динамик-стимул
+  // и варианты написания — в центрируемом поле (нижних кнопок у игры нет)
+  const playingRound = phase === 'playing' ? rounds[idx] : undefined;
+  if (phase === 'playing' && playingRound) {
+    const round = playingRound;
     return (
-      <View style={styles.playArea}>
-        <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>
-            {idx + 1}/{rounds.length} · {ru ? 'Ур.' : 'Lv'}{levelRef.current}
+      <GameShell
+        title={ru ? 'Эхо: псевдослова' : 'Pseudoword Echo'}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>
+              {idx + 1}/{rounds.length} · {ru ? 'Ур.' : 'Lv'}{levelRef.current}
+            </Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓ {hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗ {errors}</Text>
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <TouchableOpacity
+            style={[styles.speakerBtn, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}
+            onPress={() => speak(round.word, tgtRef.current, 0.85)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="volume-high" size={44} color={GRADIENT[0]} />
+            <Text style={[styles.speakerLabel, { color: colors.textSecondary }]}>
+              {ru ? 'Ещё раз' : 'Repeat'}
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            {ru ? 'Выбери написание того, что услышал' : 'Pick the spelling of what you heard'}
           </Text>
-          <Text style={[styles.statText, { color: '#22c55e' }]}>✓ {hits}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗ {errors}</Text>
+
+          <View style={styles.optionsCol}>
+            {round.options.map((opt) => {
+              const revealed = answered !== null;
+              const isTarget = opt === round.word;
+              const isPicked = opt === answered;
+              const bg = revealed && isTarget ? '#22c55e'
+                : revealed && isPicked ? '#f43f5e'
+                : colors.surface;
+              const fg = revealed && (isTarget || isPicked) ? '#FFF' : colors.text;
+              return (
+                <TouchableOpacity
+                  key={opt}
+                  style={[styles.optionBtn, { backgroundColor: bg, borderColor: revealed && isTarget ? '#22c55e' : colors.border }]}
+                  onPress={() => handlePick(opt)}
+                  disabled={revealed}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.optionText, { color: fg }]}>{opt}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
-
-        <TouchableOpacity
-          style={[styles.speakerBtn, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}
-          onPress={() => speak(round.word, tgtRef.current, 0.85)}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="volume-high" size={44} color={GRADIENT[0]} />
-          <Text style={[styles.speakerLabel, { color: colors.textSecondary }]}>
-            {ru ? 'Ещё раз' : 'Repeat'}
-          </Text>
-        </TouchableOpacity>
-
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-          {ru ? 'Выбери написание того, что услышал' : 'Pick the spelling of what you heard'}
-        </Text>
-
-        <View style={styles.optionsCol}>
-          {round.options.map((opt) => {
-            const revealed = answered !== null;
-            const isTarget = opt === round.word;
-            const isPicked = opt === answered;
-            const bg = revealed && isTarget ? '#22c55e'
-              : revealed && isPicked ? '#f43f5e'
-              : colors.surface;
-            const fg = revealed && (isTarget || isPicked) ? '#FFF' : colors.text;
-            return (
-              <TouchableOpacity
-                key={opt}
-                style={[styles.optionBtn, { backgroundColor: bg, borderColor: revealed && isTarget ? '#22c55e' : colors.border }]}
-                onPress={() => handlePick(opt)}
-                disabled={revealed}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.optionText, { color: fg }]}>{opt}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+      </GameShell>
     );
-  };
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -413,7 +422,6 @@ export default function PseudowordEchoGame() {
       </View>
 
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared
           gameId={GAME_ID}
@@ -463,7 +471,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { flexDirection: 'row', gap: 8, paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 18, gap: 16, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 16, alignSelf: 'stretch' },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
   speakerBtn: {

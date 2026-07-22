@@ -9,6 +9,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#43cea2', '#185a9d'];
@@ -87,8 +88,9 @@ export default function EyeGymGame() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Зона во ВСЮ доступную ширину/высоту (без квадрат-капа) — макс размах для глаз на любом устройстве/режиме.
+  // -300 по вертикали: шапка+статы+тулбар каркаса GameShell + инструкция + прогресс-бар.
   const boardW = width - 12;
-  const boardH = Math.max(220, height - 240);
+  const boardH = Math.max(220, height - 300);
   const cx = boardW / 2, cy = boardH / 2;
   const RX = Math.max(40, boardW / 2 - 24);            // горизонтальный размах = почти вся ширина
   const RY = Math.max(40, boardH / 2 - 24);            // вертикальный размах
@@ -206,54 +208,6 @@ export default function EyeGymGame() {
     </View>
   );
 
-  const renderExercise = () => {
-    const isPalming = step.pattern === 'palming';
-    const isFocus = step.pattern === 'focus';
-    const dot = (!isPalming && !isFocus) ? dotFor(step.pattern, local, localSec, RX, RY, cx, cy, speed) : null;
-    return (
-      <View style={styles.exArea}>
-        <View style={styles.exHead}>
-          <Text style={[styles.exStep, { color: colors.textSecondary }]}>{stepIdx + 1}/{steps.length}</Text>
-          <Text style={[styles.exTimer, { color: colors.text }]}>{remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
-          <TouchableOpacity onPress={stop} style={[styles.stopBtn, { backgroundColor: colors.surface }]}>
-            <Ionicons name="close" size={18} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-        <Text style={[styles.instr, { color: colors.text }]}>{t(step.instrKey)}</Text>
-
-        {isPalming ? (
-          <View style={[styles.stage, { width: boardW, height: boardH, backgroundColor: '#000', borderColor: colors.border }]}>
-            <Ionicons name="hand-left-outline" size={64} color="#1f2937" />
-            <Text style={styles.palmHint}>{t('eyePalmBlink')}</Text>
-          </View>
-        ) : isFocus ? (
-          <View style={[styles.stage, { width: boardW, height: boardH, backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Ionicons name="telescope-outline" size={56} color={GRADIENT[0]} />
-            <Text style={[styles.focusBig, { color: colors.text }]}>{Math.max(0, Math.ceil(step.dur - localSec))}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
-            <Text style={[styles.focusSub, { color: colors.textSecondary }]}>{t('eyeFocusSub')}</Text>
-          </View>
-        ) : (
-          <View style={[styles.stage, { width: boardW, height: boardH, backgroundColor: colors.surface, borderColor: colors.border }]}>
-            {dot && (
-              <View style={{
-                position: 'absolute',
-                left: dot.x - dot.size / 2,
-                top: dot.y - dot.size / 2,
-                width: dot.size, height: dot.size, borderRadius: dot.size / 2,
-                backgroundColor: GRADIENT[0],
-                shadowColor: GRADIENT[0], shadowOpacity: 0.6, shadowRadius: 8, shadowOffset: { width: 0, height: 0 },
-              }} />
-            )}
-          </View>
-        )}
-
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${(elapsed / totalDur) * 100}%`, backgroundColor: GRADIENT[0] }]} />
-        </View>
-      </View>
-    );
-  };
-
   const renderDone = () => (
     <View style={styles.doneContainer}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.doneCard}>
@@ -272,6 +226,64 @@ export default function EyeGymGame() {
     </View>
   );
 
+  // фаза упражнения — на едином каркасе GameShell: шаг/таймер в статс-строке, СТОП прибит к низу
+  if (phase === 'exercise') {
+    const isPalming = step.pattern === 'palming';
+    const isFocus = step.pattern === 'focus';
+    const dot = (!isPalming && !isFocus) ? dotFor(step.pattern, local, localSec, RX, RY, cx, cy, speed) : null;
+    return (
+      <GameShell
+        title={t('eyeGym')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.exStep, { color: colors.textSecondary }]}>{stepIdx + 1}/{steps.length}</Text>
+            <Text style={[styles.exTimer, { color: colors.text }]}>{remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
+          </View>
+        }
+        toolbar={
+          <TouchableOpacity style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
+            <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{t('btn_stop')}</Text>
+          </TouchableOpacity>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.instr, { color: colors.text }]}>{t(step.instrKey)}</Text>
+
+          {isPalming ? (
+            <View style={[styles.stage, { width: boardW, height: boardH, backgroundColor: '#000', borderColor: colors.border }]}>
+              <Ionicons name="hand-left-outline" size={64} color="#1f2937" />
+              <Text style={styles.palmHint}>{t('eyePalmBlink')}</Text>
+            </View>
+          ) : isFocus ? (
+            <View style={[styles.stage, { width: boardW, height: boardH, backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Ionicons name="telescope-outline" size={56} color={GRADIENT[0]} />
+              <Text style={[styles.focusBig, { color: colors.text }]}>{Math.max(0, Math.ceil(step.dur - localSec))}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
+              <Text style={[styles.focusSub, { color: colors.textSecondary }]}>{t('eyeFocusSub')}</Text>
+            </View>
+          ) : (
+            <View style={[styles.stage, { width: boardW, height: boardH, backgroundColor: colors.surface, borderColor: colors.border }]}>
+              {dot && (
+                <View style={{
+                  position: 'absolute',
+                  left: dot.x - dot.size / 2,
+                  top: dot.y - dot.size / 2,
+                  width: dot.size, height: dot.size, borderRadius: dot.size / 2,
+                  backgroundColor: GRADIENT[0],
+                  shadowColor: GRADIENT[0], shadowOpacity: 0.6, shadowRadius: 8, shadowOffset: { width: 0, height: 0 },
+                }} />
+              )}
+            </View>
+          )}
+
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${(elapsed / totalDur) * 100}%`, backgroundColor: GRADIENT[0] }]} />
+          </View>
+        </View>
+      </GameShell>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -287,7 +299,6 @@ export default function EyeGymGame() {
           benefits={EYE_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'exercise' && renderExercise()}
       {phase === 'done' && renderDone()}
     </SafeAreaView>
   );
@@ -311,11 +322,12 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  exArea: { flex: 1, alignItems: 'center', paddingHorizontal: 6, paddingVertical: 10, gap: 10 },
-  exHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingHorizontal: 4 },
+  fieldCol: { flex: 1, alignSelf: 'stretch', alignItems: 'center', paddingVertical: 10, gap: 10 },
+  statsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 },
   exStep: { fontSize: 14, fontWeight: '700' },
   exTimer: { fontSize: 16, fontWeight: '800' },
-  stopBtn: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center' },
+  stopBtn: { paddingVertical: 10, paddingHorizontal: 30, borderRadius: 8, borderWidth: 1 },
+  stopBtnText: { fontSize: 14, fontWeight: '700' },
   instr: { fontSize: 15, fontWeight: '600', textAlign: 'center', minHeight: 40, paddingHorizontal: 8 },
   stage: { borderRadius: 16, borderWidth: 2, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', gap: 10 },
   palmHint: { color: '#374151', fontSize: 14, fontWeight: '600' },

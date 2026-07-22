@@ -24,6 +24,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -169,7 +170,7 @@ export default function FindDifferencesGame() {
   const { t, language } = useLanguage();
   const { profile } = useProfile();
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const sprites = pairSpritesForProfile(profile?.id);
 
   const { isPreset, num } = useGamePreset();
@@ -204,9 +205,11 @@ export default function FindDifferencesGame() {
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Larger scene area = more room to avoid overlaps (was 280, now ~340)
+  // Larger scene area = more room to avoid overlaps (was 280, now ~340).
+  // Кап по высоте: обе сцены должны быть видны целиком в поле каркаса (шапка+статы+подсказка
+  // -240px) — иначе центрируемое поле переполняется и контент наезжает на шапку.
   const sceneW = Math.min(width - 24, 440);
-  const sceneH = Math.min(340, sceneW * 0.8);
+  const sceneH = Math.min(340, sceneW * 0.8, Math.max(150, (height - 240) / 2));
 
   const clearAllTimers = () => {
     if (countdownRef.current) clearInterval(countdownRef.current);
@@ -405,33 +408,43 @@ export default function FindDifferencesGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalRounds}</Text>
-        <Text style={[styles.statText, { color: timeLeft <= 5 ? '#f43f5e' : colors.text }]}>⏱{timeLeft}{t('secShort')}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{foundIdx.size}/{diffIdx.length}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('findHint')}</Text>
-      <View style={[styles.scenesArea, { width: sceneW }]}>
-        <View style={[styles.sceneBox, { backgroundColor: colors.surface }]}>
-          <View style={{ width: sceneW, height: sceneH }} pointerEvents="none">
-            {scene.map((_, i) => renderShape(scene[i], i, 'L'))}
+  // игровая фаза — на едином каркасе GameShell: счётчики в статс-строке, сцены в центрируемом поле
+  if (phase === 'playing' || phase === 'feedback') {
+    return (
+      <GameShell
+        title={t('findDiff')}
+        onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalRounds}</Text>
+            <Text style={[styles.statText, { color: timeLeft <= 5 ? '#f43f5e' : colors.text }]}>⏱{timeLeft}{t('secShort')}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{foundIdx.size}/{diffIdx.length}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('findHint')}</Text>
+          <View style={[styles.scenesArea, { width: sceneW }]}>
+            <View style={[styles.sceneBox, { backgroundColor: colors.surface }]}>
+              <View style={{ width: sceneW, height: sceneH }} pointerEvents="none">
+                {scene.map((_, i) => renderShape(scene[i], i, 'L'))}
+              </View>
+            </View>
+            <View
+              style={[styles.sceneBox, { backgroundColor: colors.surface }]}
+              onStartShouldSetResponder={() => true}
+              onResponderRelease={(e) => handleSceneTap(e.nativeEvent.locationX, e.nativeEvent.locationY)}
+            >
+              <View style={{ width: sceneW, height: sceneH }} pointerEvents="none">
+                {altered.map((_, i) => renderShape(altered[i], i, 'R'))}
+              </View>
+            </View>
           </View>
         </View>
-        <View
-          style={[styles.sceneBox, { backgroundColor: colors.surface }]}
-          onStartShouldSetResponder={() => true}
-          onResponderRelease={(e) => handleSceneTap(e.nativeEvent.locationX, e.nativeEvent.locationY)}
-        >
-          <View style={{ width: sceneW, height: sceneH }} pointerEvents="none">
-            {altered.map((_, i) => renderShape(altered[i], i, 'R'))}
-          </View>
-        </View>
-      </View>
-    </View>
-  );
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -449,7 +462,6 @@ export default function FindDifferencesGame() {
           benefits={FIND_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {(phase === 'playing' || phase === 'feedback') && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
@@ -492,8 +504,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 12, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 16 },
+  fieldCol: { alignItems: 'center', gap: 12 },
+  statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 12, textAlign: 'center' },
   scenesArea: { gap: 18 },

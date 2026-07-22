@@ -33,6 +33,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -321,58 +322,70 @@ export default function ANTGame() {
     <Ionicons name={d === 'left' ? 'arrow-back' : 'arrow-forward'} size={size} color={color} />
   );
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{m.meanRt}{t('msShort')}</Text>
-      </View>
-      <View style={[styles.networkRow]}>
-        <Text style={[styles.netText, { color: '#22c55e' }]}>A {m.alerting}</Text>
-        <Text style={[styles.netText, { color: '#fbbf24' }]}>O {m.orienting}</Text>
-        <Text style={[styles.netText, { color: '#ef4444' }]}>E {m.executive}</Text>
-      </View>
-      <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
-        {/* top cue / target slot */}
-        <View style={styles.row}>
-          {showCue && (trial.cue === 'double' || (trial.cue === 'spatial' && trial.pos === 'top')) && <Text style={styles.cueDot}>*</Text>}
-          {showTarget && trial.pos === 'top' && (
-            <View style={styles.arrowRow}>
-              {trial.flankers ? trial.flankers.slice(0, 2).map((d, i) => <View key={'l'+i}>{arrowFor(d, 22, '#888')}</View>) : ['—','—'].map((s, i) => <Text key={'l'+i} style={{ fontSize: 22, color: '#888' }}>{s}</Text>)}
-              <View style={{ marginHorizontal: 4 }}>{arrowFor(trial.dir, 32, colors.text)}</View>
-              {trial.flankers ? trial.flankers.slice(2).map((d, i) => <View key={'r'+i}>{arrowFor(d, 22, '#888')}</View>) : ['—','—'].map((s, i) => <Text key={'r'+i} style={{ fontSize: 22, color: '#888' }}>{s}</Text>)}
+  // игровая фаза — на едином каркасе GameShell: кнопки лево/право прибиты к низу (эталон math-sprint)
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('ant')}
+        onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        stats={
+          <View style={styles.statsCol}>
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{m.meanRt}{t('msShort')}</Text>
             </View>
-          )}
-        </View>
-        {/* center fixation */}
-        <View style={styles.row}>
-          {showCue && trial.cue === 'center' && <Text style={styles.cueDot}>*</Text>}
-          {!showCue || trial.cue !== 'center' ? <Text style={{ color: colors.textSecondary, fontSize: 22 }}>+</Text> : null}
-        </View>
-        {/* bottom */}
-        <View style={styles.row}>
-          {showCue && (trial.cue === 'double' || (trial.cue === 'spatial' && trial.pos === 'bottom')) && <Text style={styles.cueDot}>*</Text>}
-          {showTarget && trial.pos === 'bottom' && (
-            <View style={styles.arrowRow}>
-              {trial.flankers ? trial.flankers.slice(0, 2).map((d, i) => <View key={'l'+i}>{arrowFor(d, 22, '#888')}</View>) : ['—','—'].map((s, i) => <Text key={'l'+i} style={{ fontSize: 22, color: '#888' }}>{s}</Text>)}
-              <View style={{ marginHorizontal: 4 }}>{arrowFor(trial.dir, 32, colors.text)}</View>
-              {trial.flankers ? trial.flankers.slice(2).map((d, i) => <View key={'r'+i}>{arrowFor(d, 22, '#888')}</View>) : ['—','—'].map((s, i) => <Text key={'r'+i} style={{ fontSize: 22, color: '#888' }}>{s}</Text>)}
+            <View style={[styles.networkRow]}>
+              <Text style={[styles.netText, { color: '#22c55e' }]}>A {m.alerting}</Text>
+              <Text style={[styles.netText, { color: '#fbbf24' }]}>O {m.orienting}</Text>
+              <Text style={[styles.netText, { color: '#ef4444' }]}>E {m.executive}</Text>
             </View>
-          )}
+          </View>
+        }
+        toolbar={
+          <View style={styles.choiceRow}>
+            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
+              <Ionicons name="arrow-back" size={28} color="#FFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
+              <Ionicons name="arrow-forward" size={28} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        }
+      >
+        <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
+          {/* top cue / target slot */}
+          <View style={styles.row}>
+            {showCue && (trial.cue === 'double' || (trial.cue === 'spatial' && trial.pos === 'top')) && <Text style={styles.cueDot}>*</Text>}
+            {showTarget && trial.pos === 'top' && (
+              <View style={styles.arrowRow}>
+                {trial.flankers ? trial.flankers.slice(0, 2).map((d, i) => <View key={'l'+i}>{arrowFor(d, 22, '#888')}</View>) : ['—','—'].map((s, i) => <Text key={'l'+i} style={{ fontSize: 22, color: '#888' }}>{s}</Text>)}
+                <View style={{ marginHorizontal: 4 }}>{arrowFor(trial.dir, 32, colors.text)}</View>
+                {trial.flankers ? trial.flankers.slice(2).map((d, i) => <View key={'r'+i}>{arrowFor(d, 22, '#888')}</View>) : ['—','—'].map((s, i) => <Text key={'r'+i} style={{ fontSize: 22, color: '#888' }}>{s}</Text>)}
+              </View>
+            )}
+          </View>
+          {/* center fixation */}
+          <View style={styles.row}>
+            {showCue && trial.cue === 'center' && <Text style={styles.cueDot}>*</Text>}
+            {!showCue || trial.cue !== 'center' ? <Text style={{ color: colors.textSecondary, fontSize: 22 }}>+</Text> : null}
+          </View>
+          {/* bottom */}
+          <View style={styles.row}>
+            {showCue && (trial.cue === 'double' || (trial.cue === 'spatial' && trial.pos === 'bottom')) && <Text style={styles.cueDot}>*</Text>}
+            {showTarget && trial.pos === 'bottom' && (
+              <View style={styles.arrowRow}>
+                {trial.flankers ? trial.flankers.slice(0, 2).map((d, i) => <View key={'l'+i}>{arrowFor(d, 22, '#888')}</View>) : ['—','—'].map((s, i) => <Text key={'l'+i} style={{ fontSize: 22, color: '#888' }}>{s}</Text>)}
+                <View style={{ marginHorizontal: 4 }}>{arrowFor(trial.dir, 32, colors.text)}</View>
+                {trial.flankers ? trial.flankers.slice(2).map((d, i) => <View key={'r'+i}>{arrowFor(d, 22, '#888')}</View>) : ['—','—'].map((s, i) => <Text key={'r'+i} style={{ fontSize: 22, color: '#888' }}>{s}</Text>)}
+              </View>
+            )}
+          </View>
         </View>
-      </View>
-      <View style={styles.choiceRow}>
-        <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
-          <Ionicons name="arrow-back" size={28} color="#FFF" />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
-          <Ionicons name="arrow-forward" size={28} color="#FFF" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -390,7 +403,6 @@ export default function ANTGame() {
           benefits={ANT_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
@@ -434,7 +446,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 12, alignItems: 'center' },
+  statsCol: { alignItems: 'center', gap: 4 },
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center' },
   networkRow: { flexDirection: 'row', gap: 18 },
   netText: { fontSize: 12, fontWeight: '700' },

@@ -14,6 +14,17 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.142.0] — 2026-07-23
+
+### Added
+- **GameShell-когорта 5** — ещё 10 игр на каркасе (ant, breathing, eye-gym, find-differences, goods-sort, inhibition, listening-span, phonemic-fluency, phoneme-pairs, pseudoword-echo). Итого **51 из 62**.
+- **Локализация +45 ключей ×12 языков**: карточки уровней sdmt/bart/cpt/prl/trail-making/wcst + единый механизм подсказок анлока сложности (formatUnlockHint — покрыл math-sprint, schulte, n-back, digit-span, corsi, память, пары).
+
+### Changed
+- **Скин «Нейрон» пересобран (v3)**: построчная генерация по kit Кодекса + сборка из чистого пула двух заходов — walk с честным чередованием ног, wave с прогрессией руки, сон сидя; кадры втрое легче (584К). Подпись скина — «Нейрон» (имя «Созвездие» остаётся стадии роста).
+- **ja/ko вычитаны нейтив-ревью Кодекса**: применены все 286 правок (161 ja + 125 ko).
+- Портрет питомца на /pet крупнее и адаптивен к ширине экрана.
+
 ## [1.141.0] — 2026-07-22
 
 ### Added

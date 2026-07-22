@@ -313,7 +313,7 @@ export default function PicturePairsGame() {
       {mode === 'game' ? (
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {level}
+            {t('level')} {level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
             {c.pairs} {language === 'ru' ? 'пар' : 'pairs'}
@@ -450,8 +450,8 @@ export default function PicturePairsGame() {
           </View>
           {levelBanner !== null && (
             <View style={styles.levelBanner} pointerEvents="none">
-              <Text style={styles.levelBannerText}>🎉 {language === 'ru' ? 'Уровень' : 'Level'} {levelBanner} ✓</Text>
-              <Text style={styles.levelBannerSub}>→ {language === 'ru' ? 'Уровень' : 'Level'} {levelBanner + 1}</Text>
+              <Text style={styles.levelBannerText}>🎉 {t('level')} {levelBanner} ✓</Text>
+              <Text style={styles.levelBannerSub}>→ {t('level')} {levelBanner + 1}</Text>
             </View>
           )}
           <ScorePopupLayer popups={popups} />

@@ -6,7 +6,8 @@
  *     (false for personal profiles, false for first level, false if already unlocked)
  *   - nextHint: human-readable string "🔒 Следующий 6×6: пройди 5×5 за ≤25 сек · прогресс 0/1"
  *     (or null if profile is personal / all unlocked / no progression configured;
- *     EN UI builds "🔒 Next 6×6: … · progress 0/1" via label_en/human_hint_en)
+ *     v1.142: строится в formatUnlockHint() через словарь unlockNextFmt +
+ *     unlockLabel_… + unlockHint_… — 12 языков, фолбэк на ru/en-поля манифеста)
  *   - isThemed: convenience flag if the active profile is a themed (locked) one
  *
  * Usage:
@@ -18,7 +19,7 @@
 import { useEffect, useState } from 'react';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { getUnlockedLevels, getNextLockedLevel } from '@/src/services/level-unlocks';
+import { getUnlockedLevels, getNextLockedLevel, formatUnlockHint } from '@/src/services/level-unlocks';
 
 export interface LevelGate {
   isLocked: (levelKey: string) => boolean;
@@ -48,18 +49,8 @@ export function useLevelGate(gameId: string): LevelGate {
       const next = await getNextLockedLevel(profile.person, true, gameId);
       if (cancelled) return;
       setUnlockedSet(new Set(unlocked));
-      if (next) {
-        const progressTail = next.consecutiveDone > 0
-          ? (language === 'ru'
-            ? ` · прогресс ${next.consecutiveDone}/${next.condition.consecutive ?? 1}`
-            : ` · progress ${next.consecutiveDone}/${next.condition.consecutive ?? 1}`)
-          : '';
-        setNextHint(language === 'ru'
-          ? `🔒 Следующий ${next.level.label}: ${next.condition.human_hint}${progressTail}`
-          : `🔒 Next ${next.level.label_en ?? next.level.label}: ${next.condition.human_hint_en ?? next.condition.human_hint}${progressTail}`);
-      } else {
-        setNextHint(null);
-      }
+      // v1.142: строка собирается из словаря (12 языков) с фолбэком на манифест
+      setNextHint(next ? formatUnlockHint(language, gameId, next) : null);
     })();
     return () => { cancelled = true; };
   }, [isThemed, profile.person, gameId, language]);

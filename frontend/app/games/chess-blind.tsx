@@ -604,7 +604,7 @@ export default function ChessBlindGame() {
         </View>
         <TouchableOpacity style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-            <Text style={styles.startBtnText}>🎯 {ru ? 'Уровень' : 'Level'} {lvl.level} →</Text>
+            <Text style={styles.startBtnText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </ScrollView>

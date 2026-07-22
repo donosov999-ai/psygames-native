@@ -1733,6 +1733,58 @@ const translations: Translations = {
   anagramsLvlParamsFree: { ru: '{n} слов · {l} букв · без лимита времени', en: '{n} words · {l} letters · no time limit' },
   anagramsPass: { ru: 'Проход уровня: ≥80% слов собрано верно (не успел по времени = ошибка)', en: 'To pass: ≥80% words solved correctly (running out of time counts as an error)' },
 
+  // ── v1.142: конфиг-карточки уровней sdmt/bart/cpt/prl/trail/wcst — из ru/en-тернаров в словарь ──
+  sdmtLvlParams: { ru: '{n} символов · раунд {w} с · цель {g} верных', en: '{n} symbols · {w} s round · goal {g} correct' },
+  sdmtPass: { ru: 'Проход уровня: ≥{g} верных за раунд и точность ≥80%', en: 'To pass: ≥{g} correct in the round with ≥80% accuracy' },
+  bartLvlParams: { ru: '{n} шаров · разброс взрыва 1–{m}', en: '{n} balloons · burst range 1–{m}' },
+  bartPass: { ru: 'Проход: разумный средний накач без частых взрывов', en: 'To pass: reasonable avg pumps without frequent bursts' },
+  cptLvlParamsX: { ru: 'X-CPT · жми на каждую X · 90 сек', en: 'X-CPT · tap every X · 90 s' },
+  cptLvlParamsAX: { ru: 'AX-CPT · жми на X только после A · 90 сек', en: 'AX-CPT · tap X only after A · 90 s' },
+  cptLvlParamsAXHard: { ru: 'AX-CPT · X после A · быстрее + похожие буквы · 90 сек', en: 'AX-CPT · X after A · faster + look-alikes · 90 s' },
+  cptPass: { ru: 'Проход уровня: поймать ≥70% целей и ложно нажать ≤30% не-целей', en: 'To pass: catch ≥70% of targets with ≤30% false taps on non-targets' },
+  prlLvlParams: { ru: '{n} проб · награда {p}% · реверс каждые {a}-{b} верных подряд', en: '{n} trials · reward {p}% · reversal every {a}-{b} correct in a row' },
+  prlPass: { ru: 'Проход: ≥{p}% верных выборов после реверсалов', en: 'To pass: ≥{p}% correct choices after reversals' },
+  trailLvlParamsA: { ru: 'Trail-A · числа 1→{n}', en: 'Trail-A · numbers 1→{n}' },
+  trailLvlParamsB: { ru: 'Trail-B · чередование 1→А→2→Б…', en: 'Trail-B · alternate 1→A→2→B…' },
+  trailNodes: { ru: '{n} узлов', en: '{n} nodes' },
+  trailPass: { ru: 'Проход уровня: пройти цепочку за ≤{t} с и сделать не больше {e} ошибок', en: 'To pass: finish the trail within {t}s with at most {e} errors' },
+  wcstLvlParams: { ru: '{n} проб · смена правила после {s} подряд', en: '{n} trials · rule switches after {s} in a row' },
+  wcstPass: { ru: 'Проход уровня: ≤{c} персеверативных ошибок и ≥55% верных', en: 'To pass: ≤{c} perseverative errors and ≥55% correct' },
+
+  // ── v1.142: анлок-подсказки «🔒 Следующий …» тематических профилей (formatUnlockHint
+  // в level-unlocks.ts; useLevelGate + schulte). Каркас + контент по (game, level);
+  // {n} в unlockHint_* = порог threshold из level-progression, подставляется кодом.
+  // Ключ = unlock{Label|Hint}_<game_id>_<levelKey без не-алфанумерики> ──
+  unlockNextFmt: { ru: '🔒 Следующий {label}: {hint}', en: '🔒 Next {label}: {hint}' },
+  unlockProgressFmt: { ru: ' · прогресс {n}/{m}', en: ' · progress {n}/{m}' },
+  unlockLabel_schulte_table_10x10: { ru: '10×10 (мастер)', en: '10×10 (master)' },
+  unlockHint_schulte_table_6x6: { ru: 'Пройди Шульте 5×5 за ≤{n} сек', en: 'Complete Schulte 5×5 in ≤{n} s' },
+  unlockHint_schulte_table_7x7: { ru: 'Пройди Шульте 6×6 за ≤{n} сек два раза подряд', en: 'Complete Schulte 6×6 in ≤{n} s twice in a row' },
+  unlockHint_schulte_table_8x8: { ru: 'Пройди Шульте 7×7 за ≤{n} сек два раза подряд', en: 'Complete Schulte 7×7 in ≤{n} s twice in a row' },
+  unlockHint_schulte_table_9x9: { ru: 'Пройди Шульте 8×8 за ≤{n} сек два раза подряд', en: 'Complete Schulte 8×8 in ≤{n} s twice in a row' },
+  unlockHint_schulte_table_10x10: { ru: 'Пройди Шульте 9×9 за ≤{n} сек два раза подряд', en: 'Complete Schulte 9×9 in ≤{n} s twice in a row' },
+  unlockLabel_n_back_4back: { ru: '4-back (продвинутый)', en: '4-back (advanced)' },
+  unlockHint_n_back_2back: { ru: 'Достигни d′ ≥ {n} на 1-back', en: 'Reach d′ ≥ {n} on 1-back' },
+  unlockHint_n_back_3back: { ru: 'Достигни d′ ≥ {n} на 2-back два раза подряд', en: 'Reach d′ ≥ {n} on 2-back twice in a row' },
+  unlockHint_n_back_4back: { ru: 'Достигни d′ ≥ {n} на 3-back два раза подряд', en: 'Reach d′ ≥ {n} on 3-back twice in a row' },
+  unlockLabel_digit_span_backward: { ru: 'Обратный', en: 'Backward' },
+  unlockHint_digit_span_backward: { ru: 'Достигни span ≥ {n} на прямом', en: 'Reach span ≥ {n} on forward' },
+  unlockLabel_corsi_backward: { ru: 'Обратный', en: 'Backward' },
+  unlockHint_corsi_backward: { ru: 'Достигни Corsi span ≥ {n} на прямом', en: 'Reach Corsi span ≥ {n} on forward' },
+  unlockHint_memory_matrix_4x4: { ru: '{n} правильных подряд на 3×3', en: '{n} correct in a row on 3×3' },
+  unlockHint_memory_matrix_5x5: { ru: '{n} правильных на 4×4 два раза', en: '{n} correct on 4×4 twice' },
+  unlockHint_memory_matrix_6x6: { ru: '{n} правильных на 5×5 два раза', en: '{n} correct on 5×5 twice' },
+  unlockLabel_picture_pairs_8pairs: { ru: '8 пар', en: '8 pairs' },
+  unlockLabel_picture_pairs_10pairs: { ru: '10 пар', en: '10 pairs' },
+  unlockLabel_picture_pairs_12pairs: { ru: '12 пар', en: '12 pairs' },
+  unlockHint_picture_pairs_8pairs: { ru: 'Пройди 6 пар за ≤{n} сек', en: 'Complete 6 pairs in ≤{n} s' },
+  unlockHint_picture_pairs_10pairs: { ru: 'Пройди 8 пар за ≤{n} сек', en: 'Complete 8 pairs in ≤{n} s' },
+  unlockHint_picture_pairs_12pairs: { ru: 'Пройди 10 пар за ≤{n} сек два раза подряд', en: 'Complete 10 pairs in ≤{n} s twice in a row' },
+  unlockLabel_math_sprint_medium: { ru: 'Средний (×/÷, до 100)', en: 'Medium (×/÷, up to 100)' },
+  unlockLabel_math_sprint_hard: { ru: 'Тяжёлый (двузначные)', en: 'Hard (two-digit)' },
+  unlockHint_math_sprint_medium: { ru: '{n}+ задач за 30 сек на лёгком', en: '{n}+ problems in 30 s on easy' },
+  unlockHint_math_sprint_hard: { ru: '{n}+ за 30 сек на среднем два раза', en: '{n}+ in 30 s on medium twice' },
+
   // Авто-растущие уровни (одна строка на игру)
   corsiLvlAuto: { ru: 'Ур. {n} — растёт сам (span → скорость → обратный порядок)', en: 'Lv {n} — grows with results (span → speed → reverse)' },
   vsearchLvlAuto: { ru: 'Ур. {n} — растёт сам по результату (объектов и целей больше)', en: 'Lv {n} — grows with results (more items & targets)' },
@@ -1792,7 +1844,7 @@ const translations: Translations = {
   // v1.140: подписи выбора скина питомца на /pet
   petSkinCat: { ru: 'Нейро-кот', en: 'Neuro Cat' },
   petSkinRobot: { ru: 'Робот', en: 'Robot' },
-  petSkinConstellation: { ru: 'Созвездие', en: 'Constellation' },
+  petSkinConstellation: { ru: 'Нейрон', en: 'Neuron' },   // скин ≠ стадия «Созвездие» (коллизия имён, аудит Кодекса)
 };
 
 /** Standalone-резолвер для кода вне React-дерева: сервисы (reminders, cosmetics)

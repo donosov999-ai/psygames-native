@@ -38,6 +38,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -397,13 +398,10 @@ export default function InhibitionGame() {
 
   const currentKind = pickTrialKind(round - 1);
 
-  const renderGng = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits + correctRej}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
-      </View>
+  // Поле Go/No-Go — статы вынесены в статс-строку каркаса; GO-кнопка стоп-сигнала остаётся
+  // в поле (в mixed-режиме вид меняется каждую пробу — тулбар прыгал бы появлением/исчезновением)
+  const renderGngField = () => (
+    <View style={styles.fieldCol}>
       <Text style={[styles.modeBadge, { color: colors.textSecondary }]}>Go/No-Go</Text>
       <TouchableOpacity
         activeOpacity={0.85}
@@ -431,14 +429,8 @@ export default function InhibitionGame() {
     ssSignal === 'stop' ? '✋' :
     ssFeedback ? (ssFeedback === 'right' ? '✓' : '✗') : '•';
 
-  const renderSs = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#3b82f6' }]}>✋{correctRej}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
-      </View>
+  const renderSsField = () => (
+    <View style={styles.fieldCol}>
       <Text style={[styles.modeBadge, { color: colors.textSecondary }]}>{t('stopSignal')}</Text>
       <View style={[styles.stimulusBox, { backgroundColor: ssStimColor + '33', borderColor: ssStimColor }]}>
         <Text style={[styles.stimText, { color: ssStimColor }]}>{ssStimLabel}</Text>
@@ -452,7 +444,33 @@ export default function InhibitionGame() {
     </View>
   );
 
-  const renderPlaying = () => currentKind === 'gng' ? renderGng() : renderSs();
+  // игровая фаза — на едином каркасе GameShell (счётчики обоих суб-режимов в статс-строке)
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('inhibition')}
+        onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        stats={
+          currentKind === 'gng' ? (
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits + correctRej}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
+            </View>
+          ) : (
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+              <Text style={[styles.statText, { color: '#3b82f6' }]}>✋{correctRej}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
+            </View>
+          )
+        }
+      >
+        {currentKind === 'gng' ? renderGngField() : renderSsField()}
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -470,7 +488,6 @@ export default function InhibitionGame() {
           benefits={BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
@@ -515,7 +532,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 16, gap: 14, alignItems: 'center', justifyContent: 'center' },
+  fieldCol: { alignItems: 'center', gap: 14 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   modeBadge: { fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
