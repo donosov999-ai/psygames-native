@@ -7,7 +7,7 @@
  * что человек реально натренировал. Математика — в src/services/pet.ts.
  */
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, Redirect } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
@@ -43,6 +43,11 @@ export default function PetScreen() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const ru = language === 'ru';   // остался только для русской плюрализации (ruTrainings)
+
+  const { width: winW, height: winH } = useWindowDimensions();
+  // Жалоба «питомец мелкий на Mac»: портрет адаптивный — desktop крупнее,
+  // но не выше трети окна, чтобы шкалы не уезжали.
+  const portrait = Math.min(winW >= 768 ? 300 : 220, Math.round(winH * 0.34));
 
   const [stats, setStats] = React.useState<PetStats | null>(null);
   // Реплика выбирается раз на визит (не на каждый рендер) — питомец «здоровается»
@@ -93,7 +98,7 @@ export default function PetScreen() {
         </View>
 
         {/* v1.140: живой портрет — анимированный idle текущего скина (512px кадры) */}
-        <PetSprite state="idle" size={170} skin={skin} />
+        <PetSprite state="idle" size={portrait} skin={skin} />
         <Text style={[styles.stageName, { color: colors.text }]}>{stageName}</Text>
         <Text style={[styles.stageHint, { color: colors.textSecondary }]}>
           {t('petGrowsHint')}

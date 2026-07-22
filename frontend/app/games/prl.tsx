@@ -346,18 +346,18 @@ export default function PRLGame() {
             <LevelProgressMap gameId="prl" currentLevel={lvl.level} maxLevel={12} colors={colors} language={language} />
             <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
               <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-                {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+                {t('level')} {lvl.level}
               </Text>
               <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-                {language === 'ru'
-                  ? `${p.trialsTotal} проб · награда ${Math.round(p.rewardProb * 100)}% · реверс каждые ${p.revMin}-${p.revMax} верных подряд`
-                  : `${p.trialsTotal} trials · reward ${Math.round(p.rewardProb * 100)}% · reversal every ${p.revMin}-${p.revMax} correct in a row`}
+                {t('prlLvlParams')
+                  .replace('{n}', String(p.trialsTotal))
+                  .replace('{p}', String(Math.round(p.rewardProb * 100)))
+                  .replace('{a}', String(p.revMin))
+                  .replace('{b}', String(p.revMax))}
               </Text>
               {/* Критерий прохождения виден игроку (паттерн cpt/simon v1.112.0) */}
               <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-                {language === 'ru'
-                  ? `Проход: ≥${Math.round(PASS_ACC * 100)}% верных выборов после реверсалов`
-                  : `To pass: ≥${Math.round(PASS_ACC * 100)}% correct choices after reversals`}
+                {t('prlPass').replace('{p}', String(Math.round(PASS_ACC * 100)))}
               </Text>
               {lvl.level > 1 && (
                 <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

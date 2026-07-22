@@ -266,18 +266,16 @@ export default function BARTGame() {
         <LevelProgressMap gameId="bart" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `${p.balloons} шаров · разброс взрыва 1–${p.maxBurst}`
-              : `${p.balloons} balloons · burst range 1–${p.maxBurst}`}
+            {t('bartLvlParams')
+              .replace('{n}', String(p.balloons))
+              .replace('{m}', String(p.maxBurst))}
           </Text>
           {/* Критерий прохождения виден игроку (паттерн cpt/simon) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? 'Проход: разумный средний накач без частых взрывов'
-              : 'To pass: reasonable avg pumps without frequent bursts'}
+            {t('bartPass')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

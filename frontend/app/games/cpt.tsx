@@ -362,20 +362,14 @@ export default function CPTGame() {
       <LevelProgressMap gameId="cpt" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-          {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+          {t('level')} {lvl.level}
         </Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-          {lvl.level <= 5
-            ? (language === 'ru' ? 'X-CPT · жми на каждую X · 90 сек' : 'X-CPT · tap every X · 90 s')
-            : lvl.level <= 10
-            ? (language === 'ru' ? 'AX-CPT · жми на X только после A · 90 сек' : 'AX-CPT · tap X only after A · 90 s')
-            : (language === 'ru' ? 'AX-CPT · X после A · быстрее + похожие буквы · 90 сек' : 'AX-CPT · X after A · faster + look-alikes · 90 s')}
+          {lvl.level <= 5 ? t('cptLvlParamsX') : lvl.level <= 10 ? t('cptLvlParamsAX') : t('cptLvlParamsAXHard')}
         </Text>
         {/* v1.112.0: критерий прохождения уровня виден игроку (раньше был скрыт в коде finish()) */}
         <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-          {language === 'ru'
-            ? 'Проход уровня: поймать ≥70% целей и ложно нажать ≤30% не-целей'
-            : 'To pass: catch ≥70% of targets with ≤30% false taps on non-targets'}
+          {t('cptPass')}
         </Text>
         {lvl.level > 1 && (
           <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

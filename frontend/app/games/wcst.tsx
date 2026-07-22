@@ -394,18 +394,16 @@ export default function WcstGame() {
             <LevelProgressMap gameId="wcst" currentLevel={lvl.level} maxLevel={MAX_LEVEL} colors={colors} language={language} />
             <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
               <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-                {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+                {t('level')} {lvl.level}
               </Text>
               <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-                {language === 'ru'
-                  ? `${p.trials} проб · смена правила после ${p.ruleChangeStreak} подряд`
-                  : `${p.trials} trials · rule switches after ${p.ruleChangeStreak} in a row`}
+                {t('wcstLvlParams')
+                  .replace('{n}', String(p.trials))
+                  .replace('{s}', String(p.ruleChangeStreak))}
               </Text>
               {/* Критерий прохождения виден игроку (паттерн cpt/simon) */}
               <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-                {language === 'ru'
-                  ? `Проход уровня: ≤${p.persevCap} персеверативных ошибок и ≥55% верных`
-                  : `To pass: ≤${p.persevCap} perseverative errors and ≥55% correct`}
+                {t('wcstPass').replace('{c}', String(p.persevCap))}
               </Text>
               {lvl.level > 1 && (
                 <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

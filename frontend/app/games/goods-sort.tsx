@@ -10,6 +10,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
@@ -340,45 +341,59 @@ export default function GoodsSortGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => {
+  // игровая фаза — на едином каркасе GameShell: HUD-бейджи в статс-строке, «перемешать» прибит
+  // к низу; модалка правил уровня поверх каркаса (паттерн digit-span)
+  if (phase === 'playing') {
     const remaining = cells.reduce((s, c) => s + c.length, 0);
     return (
-      <View style={styles.playArea}>
-        <View style={styles.statsRow}>
-          <HudBadge icon="pricetag" label={t('goodsLevel')} value={level} colors={['#fbbf24', '#d97706']} tint="#3f2b00" />
-          <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
-          <HudBadge icon="swap-horizontal" value={(() => { const ml = levelCfg(level, poolRef.current.length).moveLimit; return ml > 0 ? `${moves}/${ml}` : String(moves); })()} colors={['#94a3b8', '#475569']} />
-          <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
-          {!isPreset && <LevelRuleBadge lr={levelRules} color="#d97706" ru={language === 'ru'} />}
-        </View>
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
-        <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }}>
-          {Array.from({ length: gridDim.rows }).map((_, row) => (
-            <LinearGradient key={row} colors={['#6b4423', '#4a2e16']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.shelf, { width: boardW }]}>
-              {Array.from({ length: gridDim.cols }).map((_, col) => renderCell(row * gridDim.cols + col))}
-            </LinearGradient>
-          ))}
-        </View>
-        <TouchableOpacity onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Ionicons name="shuffle" size={18} color="#d97706" />
-          <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')}</Text>
-        </TouchableOpacity>
-        <ScorePopupLayer popups={popups} />
-        {levelBanner !== null && (
-          <View style={styles.levelBanner} pointerEvents="none">
-            {levelBanner === -1 ? (
-              <Text style={styles.levelBannerText}>{t('tooManyMoves')}</Text>
-            ) : (
-              <>
-                <Text style={styles.levelBannerText}>🎉 {t('goodsLevel')} {levelBanner} ✓</Text>
-                <Text style={styles.levelBannerSub}>→ {t('goodsLevel')} {levelBanner + 1}</Text>
-              </>
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('goodsSort')}
+          onBack={() => goBackOrHome()}
+          stats={
+            <View style={styles.statsRow}>
+              <HudBadge icon="pricetag" label={t('goodsLevel')} value={level} colors={['#fbbf24', '#d97706']} tint="#3f2b00" />
+              <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
+              <HudBadge icon="swap-horizontal" value={(() => { const ml = levelCfg(level, poolRef.current.length).moveLimit; return ml > 0 ? `${moves}/${ml}` : String(moves); })()} colors={['#94a3b8', '#475569']} />
+              <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
+              {!isPreset && <LevelRuleBadge lr={levelRules} color="#d97706" ru={language === 'ru'} />}
+            </View>
+          }
+          toolbar={
+            <TouchableOpacity onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Ionicons name="shuffle" size={18} color="#d97706" />
+              <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')}</Text>
+            </TouchableOpacity>
+          }
+        >
+          <View style={styles.fieldCol}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
+            <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }}>
+              {Array.from({ length: gridDim.rows }).map((_, row) => (
+                <LinearGradient key={row} colors={['#6b4423', '#4a2e16']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.shelf, { width: boardW }]}>
+                  {Array.from({ length: gridDim.cols }).map((_, col) => renderCell(row * gridDim.cols + col))}
+                </LinearGradient>
+              ))}
+            </View>
+            <ScorePopupLayer popups={popups} />
+            {levelBanner !== null && (
+              <View style={styles.levelBanner} pointerEvents="none">
+                {levelBanner === -1 ? (
+                  <Text style={styles.levelBannerText}>{t('tooManyMoves')}</Text>
+                ) : (
+                  <>
+                    <Text style={styles.levelBannerText}>🎉 {t('goodsLevel')} {levelBanner} ✓</Text>
+                    <Text style={styles.levelBannerSub}>→ {t('goodsLevel')} {levelBanner + 1}</Text>
+                  </>
+                )}
+              </View>
             )}
           </View>
-        )}
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
     );
-  };
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -395,7 +410,6 @@ export default function GoodsSortGame() {
           benefits={GOODS_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'result' && (
         <GameResult score={score} time={elapsed} errors={0}
@@ -422,7 +436,7 @@ const styles = StyleSheet.create({
   setBtn: { flex: 1, borderRadius: 12, borderWidth: 2, paddingVertical: 10, paddingHorizontal: 6, alignItems: 'center', gap: 4 },
   setBtnText: { fontSize: 12, fontWeight: '700' },
   setPreview: { flexDirection: 'row', gap: 1, marginTop: 2 },
-  playArea: { flex: 1, padding: 12, gap: 8, alignItems: 'center' },
+  fieldCol: { flex: 1, alignSelf: 'stretch', justifyContent: 'center', gap: 8, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   hintText: { fontSize: 12, textAlign: 'center' },
   shuffleBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 22, borderWidth: 1.5, marginTop: 6 },

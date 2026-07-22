@@ -336,7 +336,6 @@ export default function TrailMakingGame() {
 
   const renderConfig = () => {
     const p = levelParams(lvl.level);
-    const ru = language === 'ru';
     return (
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
@@ -348,19 +347,19 @@ export default function TrailMakingGame() {
         <LevelProgressMap gameId="trail_making" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {ru ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
             {p.mode === 'A'
-              ? (ru ? `Trail-A · числа 1→${p.count}` : `Trail-A · numbers 1→${p.count}`)
-              : (ru ? 'Trail-B · чередование 1→А→2→Б…' : 'Trail-B · alternate 1→A→2→B…')}
-            {ru ? ` · ${p.totalNodes} узлов` : ` · ${p.totalNodes} nodes`}
+              ? t('trailLvlParamsA').replace('{n}', String(p.count))
+              : t('trailLvlParamsB')}
+            {' · ' + t('trailNodes').replace('{n}', String(p.totalNodes))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {ru
-              ? `Проход уровня: пройти цепочку за ≤${p.timeLimitSec} с и сделать не больше ${MAX_PASS_ERRORS} ошибок`
-              : `To pass: finish the trail within ${p.timeLimitSec}s with at most ${MAX_PASS_ERRORS} errors`}
+            {t('trailPass')
+              .replace('{t}', String(p.timeLimitSec))
+              .replace('{e}', String(MAX_PASS_ERRORS))}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>

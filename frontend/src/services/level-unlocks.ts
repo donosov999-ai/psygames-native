@@ -18,6 +18,7 @@ import { DeviceEventEmitter } from 'react-native';
 import {
   LEVELS_BY_GAME, LevelDef, UnlockCondition, hasLevelProgression,
 } from '@/src/constants/level-progression';
+import { translateFor } from '@/src/contexts/LanguageContext';
 import type { GameSession } from '@/src/services/api';
 
 const KEY_PREFIX = 'psygames_level_unlocks_';
@@ -117,6 +118,40 @@ export async function getNextLockedLevel(
     }
   }
   return null;
+}
+
+/**
+ * v1.142: локализованная строка «🔒 Следующий {label}: {hint} · прогресс n/m»
+ * для конфиг-экранов (useLevelGate + schulte). Контент берётся из словаря по
+ * ключам `unlockLabel_/unlockHint_<gameId>_<levelKey>` (12 языков), фолбэк —
+ * ru/en-поля манифеста level-progression. `{n}` в hint = condition.threshold.
+ */
+export function formatUnlockHint(
+  language: string,
+  gameId: string,
+  next: { level: LevelDef; condition: UnlockCondition; consecutiveDone: number },
+): string {
+  const ru = language === 'ru';
+  const san = next.level.key.replace(/[^a-z0-9]/gi, '').toLowerCase();
+  const labelKey = `unlockLabel_${gameId}_${san}`;
+  const hintKey = `unlockHint_${gameId}_${san}`;
+  const labelT = translateFor(language, labelKey);
+  const hintT = translateFor(language, hintKey);
+  const label = labelT !== labelKey
+    ? labelT
+    : (ru ? next.level.label : (next.level.label_en ?? next.level.label));
+  const hint = (hintT !== hintKey
+    ? hintT
+    : (ru ? next.condition.human_hint : (next.condition.human_hint_en ?? next.condition.human_hint)))
+    .replace('{n}', String(next.condition.threshold));
+  const tail = next.consecutiveDone > 0
+    ? translateFor(language, 'unlockProgressFmt')
+        .replace('{n}', String(next.consecutiveDone))
+        .replace('{m}', String(next.condition.consecutive ?? 1))
+    : '';
+  return translateFor(language, 'unlockNextFmt')
+    .replace('{label}', label)
+    .replace('{hint}', hint) + tail;
 }
 
 /**

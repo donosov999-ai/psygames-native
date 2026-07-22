@@ -20,6 +20,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
+import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 
@@ -147,7 +148,7 @@ function buildTrials(pairs: [string, string][], count: number): Trial[] {
 
 export default function PhonemePairsGame() {
   const { colors } = useTheme();
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const lvl = usePersistentLevel('phoneme_pairs');
   const ru = language === 'ru';
 
@@ -335,7 +336,7 @@ export default function PhonemePairsGame() {
         </View>
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{ru ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.optionHint, { color: colors.textSecondary }]}>
           {ru ? `Ур. ${lvl.level} — растёт сам: больше проб → все пары → без подсказок`
               : `Lv ${lvl.level} — grows with results: more trials → all pairs → no visual hints`}
@@ -358,61 +359,74 @@ export default function PhonemePairsGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => {
-    const tr = trialsRef.current[idx];
-    if (!tr) return null;
+  // игровая фаза — на едином каркасе GameShell: двухъярусный тулбар (пара слов + повтор)
+  // прибит к низу (паттерн prl), в поле — подсказка и показ прозвучавшего слова
+  const playingTrial = phase === 'playing' ? trialsRef.current[idx] : undefined;
+  if (phase === 'playing' && playingTrial) {
+    const tr = playingTrial;
     const p = paramsRef.current;
     const total = trialsRef.current.length;
     const spokenWord = tr.words[tr.correctIdx];
     const wasCorrect = answered !== null && answered === tr.correctIdx;
     return (
-      <View style={styles.playArea}>
-        <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{idx + 1}/{total} · {ru ? 'Ур.' : 'Lv'}{levelRef.current}</Text>
-          {!p.blind && <Text style={[styles.statText, { color: '#22c55e' }]}>✓ {hits}</Text>}
-          {!p.blind && <Text style={[styles.statText, { color: '#f43f5e' }]}>✗ {errors}</Text>}
-        </View>
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-          {ru ? 'Что прозвучало? Выбери слово.' : 'What did you hear? Pick the word.'}
-        </Text>
-        <View style={styles.pairCol}>
-          {([0, 1] as const).map((i) => {
-            let bg = colors.surface;
-            let fg = colors.text;
-            let border = colors.border;
-            if (!p.blind && answered !== null) {
-              if (i === tr.correctIdx) { bg = '#22c55e'; fg = '#FFF'; border = '#22c55e'; }
-              else if (i === answered) { bg = '#f43f5e'; fg = '#FFF'; border = '#f43f5e'; }
-            }
-            return (
-              <TouchableOpacity
-                key={i}
-                style={[styles.wordBtn, { backgroundColor: bg, borderColor: border }]}
-                onPress={() => handleAnswer(i)}
-                activeOpacity={0.8}
-                disabled={answered !== null}
-              >
-                <Text style={[styles.wordBtnText, { color: fg }]}>{tr.words[i]}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        {p.showWord && answered !== null && (
-          <Text style={[styles.revealText, { color: wasCorrect ? '#22c55e' : '#f43f5e' }]}>
-            {(ru ? 'Прозвучало: ' : 'Played: ') + spokenWord}
+      <GameShell
+        title={ru ? 'Фонемы: пары' : 'Phoneme pairs'}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{idx + 1}/{total} · {ru ? 'Ур.' : 'Lv'}{levelRef.current}</Text>
+            {!p.blind && <Text style={[styles.statText, { color: '#22c55e' }]}>✓ {hits}</Text>}
+            {!p.blind && <Text style={[styles.statText, { color: '#f43f5e' }]}>✗ {errors}</Text>}
+          </View>
+        }
+        toolbar={
+          <View style={styles.toolbarCol}>
+            <View style={styles.pairCol}>
+              {([0, 1] as const).map((i) => {
+                let bg = colors.surface;
+                let fg = colors.text;
+                let border = colors.border;
+                if (!p.blind && answered !== null) {
+                  if (i === tr.correctIdx) { bg = '#22c55e'; fg = '#FFF'; border = '#22c55e'; }
+                  else if (i === answered) { bg = '#f43f5e'; fg = '#FFF'; border = '#f43f5e'; }
+                }
+                return (
+                  <TouchableOpacity
+                    key={i}
+                    style={[styles.wordBtn, { backgroundColor: bg, borderColor: border }]}
+                    onPress={() => handleAnswer(i)}
+                    activeOpacity={0.8}
+                    disabled={answered !== null}
+                  >
+                    <Text style={[styles.wordBtnText, { color: fg }]}>{tr.words[i]}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <TouchableOpacity
+              style={[styles.replayBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={replay}
+              disabled={answered !== null}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.replayText, { color: colors.text }]}>🔊 {ru ? 'Ещё раз' : 'Play again'}</Text>
+            </TouchableOpacity>
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            {ru ? 'Что прозвучало? Выбери слово.' : 'What did you hear? Pick the word.'}
           </Text>
-        )}
-        <TouchableOpacity
-          style={[styles.replayBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          onPress={replay}
-          disabled={answered !== null}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.replayText, { color: colors.text }]}>🔊 {ru ? 'Ещё раз' : 'Play again'}</Text>
-        </TouchableOpacity>
-      </View>
+          {p.showWord && answered !== null && (
+            <Text style={[styles.revealText, { color: wasCorrect ? '#22c55e' : '#f43f5e' }]}>
+              {(ru ? 'Прозвучало: ' : 'Played: ') + spokenWord}
+            </Text>
+          )}
+        </View>
+      </GameShell>
     );
-  };
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -424,7 +438,6 @@ export default function PhonemePairsGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared
           gameId="phoneme_pairs"
@@ -473,11 +486,12 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 18, gap: 18, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 18 },
+  toolbarCol: { flex: 1, alignItems: 'center', gap: 10 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
-  pairCol: { width: '100%', maxWidth: 420, gap: 14, marginTop: 8 },
+  pairCol: { width: '100%', maxWidth: 420, gap: 14 },
   wordBtn: { paddingVertical: 26, paddingHorizontal: 20, borderRadius: 16, borderWidth: 2, alignItems: 'center' },
   wordBtnText: { fontSize: 30, fontWeight: '800' },
   revealText: { fontSize: 16, fontWeight: '700' },

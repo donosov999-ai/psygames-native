@@ -11,6 +11,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { hapticMedium } from '@/src/components/juice/haptics';
 import { sndTap } from '@/src/services/feedback';
@@ -330,75 +331,6 @@ export default function BreathingGame() {
     </ScrollView>
   );
 
-  const renderBreathing = () => {
-    if (tech.special === 'wimhof') return renderWim();
-    const size = circleMax * scaleNow;
-    const remainTotal = Math.max(0, Math.ceil(totalDur - elapsed));
-    return (
-      <View style={styles.exArea}>
-        <View style={styles.exHead}>
-          <Text style={[styles.exStep, { color: colors.textSecondary }]}>{Math.min(cycleNow, totalCycles)}/{totalCycles}</Text>
-          <Text style={[styles.exTimer, { color: colors.text }]}>{remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
-          <TouchableOpacity onPress={stop} style={[styles.stopBtn, { backgroundColor: colors.surface }]}>
-            <Ionicons name="close" size={18} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.circleWrap}>
-          <View style={{
-            width: size, height: size, borderRadius: size / 2,
-            backgroundColor: GRADIENT[0], opacity: 0.18,
-            position: 'absolute',
-          }} />
-          <View style={{
-            width: size * 0.72, height: size * 0.72, borderRadius: size * 0.36,
-            borderWidth: 3, borderColor: GRADIENT[1], alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Text style={[styles.phaseText, { color: colors.text }]}>{phaseLabel(curPhase.type)}</Text>
-            <Text style={[styles.phaseCount, { color: GRADIENT[0] }]}>{phaseRemain}</Text>
-          </View>
-        </View>
-
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${(elapsed / totalDur) * 100}%`, backgroundColor: GRADIENT[0] }]} />
-        </View>
-      </View>
-    );
-  };
-
-  const renderWim = () => (
-    <View style={styles.exArea}>
-      <View style={styles.exHead}>
-        <Text style={[styles.exStep, { color: colors.textSecondary }]}>{t('brWimRound')} {wimRound}/{WIM_ROUNDS}</Text>
-        <TouchableOpacity onPress={stop} style={[styles.stopBtn, { backgroundColor: colors.surface }]}>
-          <Ionicons name="close" size={18} color={colors.text} />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.circleWrap}>
-        {wimStage === 'breaths' && (
-          <View style={[styles.wimBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.phaseText, { color: colors.text }]}>{t('brWimBreathe')}</Text>
-            <Text style={[styles.wimBig, { color: GRADIENT[0] }]}>{wimBreath}/{WIM_BREATHS}</Text>
-            <Text style={[styles.focusSub, { color: colors.textSecondary }]}>{t('brWimBreatheHint')}</Text>
-          </View>
-        )}
-        {wimStage === 'hold' && (
-          <TouchableOpacity style={[styles.wimBox, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={wimReleaseHold}>
-            <Text style={[styles.phaseText, { color: colors.text }]}>{t('brWimHold')}</Text>
-            <Text style={[styles.wimBig, { color: GRADIENT[0] }]}>{wimHoldSec}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
-            <Text style={[styles.focusSub, { color: colors.textSecondary }]}>{t('brWimHoldHint')}</Text>
-          </TouchableOpacity>
-        )}
-        {wimStage === 'recover' && (
-          <View style={[styles.wimBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.phaseText, { color: colors.text }]}>{t('brWimRecover')}</Text>
-            <Text style={[styles.wimBig, { color: GRADIENT[0] }]}>{wimHoldSec}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
-          </View>
-        )}
-      </View>
-    </View>
-  );
-
   const renderDone = () => (
     <View style={styles.doneContainer}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.doneCard}>
@@ -422,6 +354,83 @@ export default function BreathingGame() {
     </View>
   );
 
+  // дыхательная фаза — на едином каркасе GameShell: счётчики в статс-строке, СТОП прибит к низу
+  if (phase === 'breathing') {
+    const isWim = tech.special === 'wimhof';
+    const size = circleMax * scaleNow;
+    const remainTotal = Math.max(0, Math.ceil(totalDur - elapsed));
+    return (
+      <GameShell
+        title={t('breathing')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            {isWim ? (
+              <Text style={[styles.exStep, { color: colors.textSecondary }]}>{t('brWimRound')} {wimRound}/{WIM_ROUNDS}</Text>
+            ) : (
+              <>
+                <Text style={[styles.exStep, { color: colors.textSecondary }]}>{Math.min(cycleNow, totalCycles)}/{totalCycles}</Text>
+                <Text style={[styles.exTimer, { color: colors.text }]}>{remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
+              </>
+            )}
+          </View>
+        }
+        toolbar={
+          <TouchableOpacity style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
+            <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{t('btn_stop')}</Text>
+          </TouchableOpacity>
+        }
+      >
+        {isWim ? (
+          <View style={styles.fieldCol}>
+            <View style={styles.circleWrap}>
+              {wimStage === 'breaths' && (
+                <View style={[styles.wimBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Text style={[styles.phaseText, { color: colors.text }]}>{t('brWimBreathe')}</Text>
+                  <Text style={[styles.wimBig, { color: GRADIENT[0] }]}>{wimBreath}/{WIM_BREATHS}</Text>
+                  <Text style={[styles.focusSub, { color: colors.textSecondary }]}>{t('brWimBreatheHint')}</Text>
+                </View>
+              )}
+              {wimStage === 'hold' && (
+                <TouchableOpacity style={[styles.wimBox, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={wimReleaseHold}>
+                  <Text style={[styles.phaseText, { color: colors.text }]}>{t('brWimHold')}</Text>
+                  <Text style={[styles.wimBig, { color: GRADIENT[0] }]}>{wimHoldSec}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
+                  <Text style={[styles.focusSub, { color: colors.textSecondary }]}>{t('brWimHoldHint')}</Text>
+                </TouchableOpacity>
+              )}
+              {wimStage === 'recover' && (
+                <View style={[styles.wimBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Text style={[styles.phaseText, { color: colors.text }]}>{t('brWimRecover')}</Text>
+                  <Text style={[styles.wimBig, { color: GRADIENT[0] }]}>{wimHoldSec}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        ) : (
+          <View style={styles.fieldCol}>
+            <View style={styles.circleWrap}>
+              <View style={{
+                width: size, height: size, borderRadius: size / 2,
+                backgroundColor: GRADIENT[0], opacity: 0.18,
+                position: 'absolute',
+              }} />
+              <View style={{
+                width: size * 0.72, height: size * 0.72, borderRadius: size * 0.36,
+                borderWidth: 3, borderColor: GRADIENT[1], alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Text style={[styles.phaseText, { color: colors.text }]}>{phaseLabel(curPhase.type)}</Text>
+                <Text style={[styles.phaseCount, { color: GRADIENT[0] }]}>{phaseRemain}</Text>
+              </View>
+            </View>
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${(elapsed / totalDur) * 100}%`, backgroundColor: GRADIENT[0] }]} />
+            </View>
+          </View>
+        )}
+      </GameShell>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -438,7 +447,6 @@ export default function BreathingGame() {
       )}
       {phase === 'config' && renderConfig()}
       {phase === 'warning' && renderWarning()}
-      {phase === 'breathing' && renderBreathing()}
       {phase === 'done' && renderDone()}
     </SafeAreaView>
   );
@@ -466,11 +474,12 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 4 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  exArea: { flex: 1, alignItems: 'center', paddingHorizontal: 6, paddingVertical: 10, gap: 10 },
-  exHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingHorizontal: 4 },
+  fieldCol: { flex: 1, alignSelf: 'stretch', alignItems: 'center', paddingVertical: 10, gap: 10 },
+  statsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 },
   exStep: { fontSize: 14, fontWeight: '700' },
   exTimer: { fontSize: 16, fontWeight: '800' },
-  stopBtn: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center' },
+  stopBtn: { paddingVertical: 10, paddingHorizontal: 30, borderRadius: 8, borderWidth: 1 },
+  stopBtnText: { fontSize: 14, fontWeight: '700' },
   circleWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', width: '100%' },
   phaseText: { fontSize: 22, fontWeight: '700' },
   phaseCount: { fontSize: 44, fontWeight: '900', marginTop: 4 },

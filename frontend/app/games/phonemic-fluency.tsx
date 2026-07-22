@@ -34,6 +34,7 @@ import { saveSession } from '@/src/services/api';
 import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#16a085', '#f4d03f'];
@@ -227,50 +228,62 @@ export default function PhonemicFluencyGame() {
   );
 
   const validCount = words.filter(w => w.valid).length;
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text, fontSize: 24 }]}>{remaining}s</Text>
-        <Text style={[styles.statText, { color: '#22c55e', fontSize: 24 }]}>{validCount}</Text>
-        <View style={[styles.letterBox, { borderColor: GRADIENT[0] }]}>
-          <Text style={[styles.letterBig, { color: colors.text }]}>{letter}</Text>
-        </View>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-        {t('phonemicHint').replace('{L}', letter)}
-      </Text>
-      <TextInput
-        style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
-        placeholder={t('phonemicPlaceholder').replace('{L}', letter.toLowerCase())}
-        placeholderTextColor={colors.textSecondary}
-        value={input}
-        onChangeText={setInput}
-        onSubmitEditing={submitWord}
-        autoFocus
-        autoCorrect={false}
-        autoCapitalize="none"
-        returnKeyType="done"
-      />
-      <TouchableOpacity style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitWord}>
-        <Text style={styles.addBtnText}>+ {t('phonemicAdd')}</Text>
-      </TouchableOpacity>
-      <ScrollView style={styles.wordList} contentContainerStyle={styles.wordListInner}>
-        {words.slice().reverse().map((w, i) => (
-          <View key={i} style={[styles.wordChip, {
-            backgroundColor: w.valid ? '#22c55e22' : '#f43f5e22',
-            borderColor: w.valid ? '#22c55e' : '#f43f5e',
-          }]}>
-            <Text style={[styles.wordText, { color: w.valid ? '#22c55e' : '#f43f5e' }]}>
-              {w.word}
-              {!w.valid && w.reason === 'repetition' && ' ↻'}
-              {!w.valid && w.reason === 'wrong_letter' && ' ✗'}
-              {!w.valid && w.reason === 'too_short' && ' ‹'}
-            </Text>
+
+  // игровая фаза — на едином каркасе GameShell: таймер/счёт/буква в статс-строке;
+  // ввод и кнопка «добавить» остаются в поле рядом с клавиатурой (не в нижнем тулбаре)
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('phonemic')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text, fontSize: 24 }]}>{remaining}s</Text>
+            <Text style={[styles.statText, { color: '#22c55e', fontSize: 24 }]}>{validCount}</Text>
+            <View style={[styles.letterBox, { borderColor: GRADIENT[0] }]}>
+              <Text style={[styles.letterBig, { color: colors.text }]}>{letter}</Text>
+            </View>
           </View>
-        ))}
-      </ScrollView>
-    </View>
-  );
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            {t('phonemicHint').replace('{L}', letter)}
+          </Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+            placeholder={t('phonemicPlaceholder').replace('{L}', letter.toLowerCase())}
+            placeholderTextColor={colors.textSecondary}
+            value={input}
+            onChangeText={setInput}
+            onSubmitEditing={submitWord}
+            autoFocus
+            autoCorrect={false}
+            autoCapitalize="none"
+            returnKeyType="done"
+          />
+          <TouchableOpacity style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitWord}>
+            <Text style={styles.addBtnText}>+ {t('phonemicAdd')}</Text>
+          </TouchableOpacity>
+          <ScrollView style={styles.wordList} contentContainerStyle={styles.wordListInner}>
+            {words.slice().reverse().map((w, i) => (
+              <View key={i} style={[styles.wordChip, {
+                backgroundColor: w.valid ? '#22c55e22' : '#f43f5e22',
+                borderColor: w.valid ? '#22c55e' : '#f43f5e',
+              }]}>
+                <Text style={[styles.wordText, { color: w.valid ? '#22c55e' : '#f43f5e' }]}>
+                  {w.word}
+                  {!w.valid && w.reason === 'repetition' && ' ↻'}
+                  {!w.valid && w.reason === 'wrong_letter' && ' ✗'}
+                  {!w.valid && w.reason === 'too_short' && ' ‹'}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -287,7 +300,6 @@ export default function PhonemicFluencyGame() {
           benefits={FLU_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'result' && (
         <GameResult
           score={validCount * 10}
@@ -318,7 +330,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 16, gap: 14, alignItems: 'center' },
+  fieldCol: { flex: 1, alignSelf: 'stretch', paddingVertical: 8, gap: 14, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 24, alignItems: 'center', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '900' },
   letterBox: { width: 80, height: 80, borderRadius: 40, borderWidth: 3, justifyContent: 'center', alignItems: 'center' },
