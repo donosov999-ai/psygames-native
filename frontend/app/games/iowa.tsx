@@ -13,6 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 
 const GRADIENT = ['#0F2027', '#2C5364'];
 const IGT_BENEFITS = [
@@ -148,41 +149,49 @@ export default function IowaGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>Card {round}/{trials}</Text>
-        <Text style={[styles.statText, { color: bank >= 2000 ? '#22c55e' : '#ef4444', fontSize: 16 }]}>${bank}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>+CD: {advCount}</Text>
-        <Text style={[styles.statText, { color: '#ef4444' }]}>-AB: {disCount}</Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('iowaHint')}</Text>
-      {/* ЗАЧЕМ: колоды (+фидбэк) центрируются по вертикали в поле flex:1 — статы/подсказка
-          сверху, а колоды по ЦЕНТРУ экрана, а не всплывают в верх-середину (эталон math-sprint) */}
-      <View style={styles.gameField}>
-      <View style={styles.deckRow}>
-        {(['A','B','C','D'] as Deck[]).map((d) => (
-          <TouchableOpacity key={d}
-            disabled={lastFeedback !== null}
-            onPress={() => pickDeck(d)}
-            style={[styles.deck, { backgroundColor: GRADIENT[1], borderColor: lastFeedback?.deck === d ? '#fbbf24' : 'transparent' }]}>
-            <Text style={styles.deckLetter}>{d}</Text>
-            <Text style={styles.deckCount}>{deckCounters[d]}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      {lastFeedback && (
-        <View style={[styles.fbBox, { backgroundColor: colors.surface, borderColor: lastFeedback.loss < 0 ? '#ef4444' : '#22c55e' }]}>
-          <Text style={[styles.fbText, { color: '#22c55e' }]}>+ ${lastFeedback.win}</Text>
-          {lastFeedback.loss < 0 && <Text style={[styles.fbText, { color: '#ef4444' }]}>- ${Math.abs(lastFeedback.loss)}</Text>}
-          <Text style={[styles.fbNet, { color: lastFeedback.win + lastFeedback.loss >= 0 ? '#22c55e' : '#ef4444' }]}>
-            net {lastFeedback.win + lastFeedback.loss >= 0 ? '+' : ''}{lastFeedback.win + lastFeedback.loss}
-          </Text>
+  // игровая фаза — на едином каркасе GameShell: колоды-ответы прибиты к низу, фидбэк в центре поля
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('iowa')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>Card {round}/{trials}</Text>
+            <Text style={[styles.statText, { color: bank >= 2000 ? '#22c55e' : '#ef4444', fontSize: 16 }]}>${bank}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>+CD: {advCount}</Text>
+            <Text style={[styles.statText, { color: '#ef4444' }]}>-AB: {disCount}</Text>
+          </View>
+        }
+        toolbar={
+          <View style={styles.deckRow}>
+            {(['A','B','C','D'] as Deck[]).map((d) => (
+              <TouchableOpacity key={d}
+                disabled={lastFeedback !== null}
+                onPress={() => pickDeck(d)}
+                style={[styles.deck, { backgroundColor: GRADIENT[1], borderColor: lastFeedback?.deck === d ? '#fbbf24' : 'transparent' }]}>
+                <Text style={styles.deckLetter}>{d}</Text>
+                <Text style={styles.deckCount}>{deckCounters[d]}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('iowaHint')}</Text>
+          {lastFeedback && (
+            <View style={[styles.fbBox, { backgroundColor: colors.surface, borderColor: lastFeedback.loss < 0 ? '#ef4444' : '#22c55e' }]}>
+              <Text style={[styles.fbText, { color: '#22c55e' }]}>+ ${lastFeedback.win}</Text>
+              {lastFeedback.loss < 0 && <Text style={[styles.fbText, { color: '#ef4444' }]}>- ${Math.abs(lastFeedback.loss)}</Text>}
+              <Text style={[styles.fbNet, { color: lastFeedback.win + lastFeedback.loss >= 0 ? '#22c55e' : '#ef4444' }]}>
+                net {lastFeedback.win + lastFeedback.loss >= 0 ? '+' : ''}{lastFeedback.win + lastFeedback.loss}
+              </Text>
+            </View>
+          )}
         </View>
-      )}
-      </View>
-    </View>
-  );
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -199,7 +208,6 @@ export default function IowaGame() {
           benefits={IGT_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, bank)}
@@ -229,13 +237,9 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  // ЗАЧЕМ: playArea не центрирует всё разом — статы/подсказка сверху, колоды по центру (gameField),
-  // чтобы игровое поле было в центре экрана, а не подпрыгивало вверх (эталон math-sprint).
-  playArea: { flex: 1, padding: 16, gap: 14 },
-  gameField: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 18 },
+  fieldCol: { alignItems: 'center', gap: 18 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
-  // alignSelf:center — playArea больше не центрирует по горизонтали, а maxWidth иначе прижал бы подсказку влево
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, alignSelf: 'center' },
   deckRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center' },
   deck: { width: 70, height: 100, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 3, gap: 4 },

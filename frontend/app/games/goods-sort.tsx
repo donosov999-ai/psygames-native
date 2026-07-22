@@ -307,7 +307,7 @@ export default function GoodsSortGame() {
 
       {/* ВЫБОР ТОВАРОВ — как в оригинале */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? '🛒 Товары' : '🛒 Goods'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('goodsSetsLabel')}</Text>
         <View style={styles.setRow}>
           {GOOD_SETS.map((s) => {
             const on = setKey === s.key;
@@ -315,7 +315,7 @@ export default function GoodsSortGame() {
               <TouchableOpacity key={s.key} activeOpacity={0.85} onPress={() => { setSetKey(s.key); hapticTap(); }}
                 style={[styles.setBtn, { borderColor: on ? GRADIENT[0] : colors.border, backgroundColor: on ? '#fff7e0' : colors.card }]}>
                 <Ionicons name={s.icon} size={22} color={on ? '#d97706' : colors.textSecondary} />
-                <Text style={[styles.setBtnText, { color: on ? '#92600a' : colors.textSecondary }]}>{language === 'ru' ? s.ru : s.en}</Text>
+                <Text style={[styles.setBtnText, { color: on ? '#92600a' : colors.textSecondary }]}>{t('goodsSet_' + s.key)}</Text>
                 <View style={styles.setPreview}>
                   {s.pool.slice(0, 4).map((p) => <GoodIcon key={p} type={p} size={18} />)}
                 </View>
@@ -361,13 +361,13 @@ export default function GoodsSortGame() {
         </View>
         <TouchableOpacity onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Ionicons name="shuffle" size={18} color="#d97706" />
-          <Text style={[styles.shuffleText, { color: colors.text }]}>{language === 'ru' ? 'Перемешать' : 'Shuffle'}</Text>
+          <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')}</Text>
         </TouchableOpacity>
         <ScorePopupLayer popups={popups} />
         {levelBanner !== null && (
           <View style={styles.levelBanner} pointerEvents="none">
             {levelBanner === -1 ? (
-              <Text style={styles.levelBannerText}>{language === 'ru' ? '🔁 Слишком много ходов' : '🔁 Too many moves'}</Text>
+              <Text style={styles.levelBannerText}>{t('tooManyMoves')}</Text>
             ) : (
               <>
                 <Text style={styles.levelBannerText}>🎉 {t('goodsLevel')} {levelBanner} ✓</Text>

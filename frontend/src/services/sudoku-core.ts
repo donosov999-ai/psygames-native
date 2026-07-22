@@ -7,6 +7,8 @@
  * т.к. ввод сверяется с одним зашитым solution).
  */
 
+import { translateFor } from '../contexts/LanguageContext';
+
 export type Cell = number; // 0 = empty
 export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow';
 
@@ -29,37 +31,21 @@ export function inHyper(r: number, c: number): readonly [number, number] | null 
   return null;
 }
 
-export function variantLabel(v: Variant, ru: boolean): string {
-  switch (v) {
-    case 'diagonal': return ru ? '⟍ диагональ' : '⟍ diagonal';
-    case 'antiknight': return ru ? '♞ ход коня' : '♞ anti-knight';
-    case 'hyper': return ru ? '⊞ доп. зоны' : '⊞ hyper';
-    case 'nonconsec': return ru ? '≠ не подряд' : '≠ non-consecutive';
-    case 'jigsaw': return ru ? '⧉ кривые блоки' : '⧉ jigsaw';
-    case 'antiking': return ru ? '♚ ход короля' : '♚ anti-king';
-    case 'evenodd': return ru ? '◩ чёт/нечёт' : '◩ even/odd';
-    case 'kropki': return ru ? '⦿ точки' : '⦿ kropki';
-    case 'sandwich': return ru ? '🥪 сэндвич' : '🥪 sandwich';
-    case 'thermo': return ru ? '🌡 термометр' : '🌡 thermo';
-    case 'arrow': return ru ? '➳ стрелка' : '➳ arrow';
-    default: return '';
-  }
+/** v1.137: подписи/правила вариантов живут в словаре LanguageContext
+ *  (sudokuVariant* / sudokuRule*) — берутся через translateFor, чтобы 10
+ *  оверлейных языков не падали на английский. lang — код языка ('ru'|'en'|…). */
+const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
+  diagonal: 'Diagonal', antiknight: 'Antiknight', hyper: 'Hyper', nonconsec: 'Nonconsec',
+  jigsaw: 'Jigsaw', antiking: 'Antiking', evenodd: 'Evenodd', kropki: 'Kropki',
+  sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow',
+};
+export function variantLabel(v: Variant, lang: string): string {
+  if (v === 'none') return '';
+  return translateFor(lang, 'sudokuVariant' + VARIANT_KEY_SUFFIX[v]);
 }
-export function variantRule(v: Variant, ru: boolean): string {
-  switch (v) {
-    case 'diagonal': return ru ? 'Цифры уникальны ещё и по двум диагоналям.' : 'Digits are also unique along both diagonals.';
-    case 'antiknight': return ru ? 'Одинаковые цифры не стоят на расстоянии хода коня.' : 'Equal digits cannot be a knight’s move apart.';
-    case 'hyper': return ru ? 'Четыре доп. зоны 3×3 тоже содержат 1–9 без повторов.' : 'Four extra 3×3 regions also hold 1–9 with no repeats.';
-    case 'nonconsec': return ru ? 'Соседние по стороне клетки не отличаются на 1.' : 'Orthogonally adjacent cells cannot differ by 1.';
-    case 'jigsaw': return ru ? 'Блоки кривые, а не квадраты — в каждом тоже 1–9 без повторов.' : 'Blocks are irregular, not squares — each still holds 1–9.';
-    case 'antiking': return ru ? 'Одинаковые цифры не касаются даже по диагонали (ход короля).' : 'Equal digits cannot touch even diagonally (a king’s move).';
-    case 'evenodd': return ru ? '□ — чётная цифра, ○ — нечётная: форма подсказывает чётность.' : '□ even, ○ odd — the shape hints each cell’s parity.';
-    case 'kropki': return ru ? 'Белая точка между клетками — соседние ±1, чёрная — одно вдвое больше.' : 'White dot between cells: consecutive (±1). Black dot: one is double the other.';
-    case 'sandwich': return ru ? 'Число у края — сумма цифр между 1 и 9 в этом ряду/столбце.' : 'Edge number = sum of digits between the 1 and the 9 in that row/column.';
-    case 'thermo': return ru ? 'Вдоль термометра цифры строго растут от колбы.' : 'Digits strictly increase along each thermometer from the bulb.';
-    case 'arrow': return ru ? 'Цифры вдоль стрелки в сумме равны числу в кружке.' : 'Digits along the arrow sum to the number in the circle.';
-    default: return '';
-  }
+export function variantRule(v: Variant, lang: string): string {
+  if (v === 'none') return '';
+  return translateFor(lang, 'sudokuRule' + VARIANT_KEY_SUFFIX[v]);
 }
 
 export function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }

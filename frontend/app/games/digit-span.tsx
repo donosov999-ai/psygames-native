@@ -280,7 +280,7 @@ export default function DigitSpanGame() {
             ) : (
               <View style={styles.statsRow}>
                 <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                  {t('lengthLabel')}: {seqLen} · {t('round')} {round}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}
+                  {t('lengthLabel')}: {seqLen} · {t('round')} {round}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}
                 </Text>
                 {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
               </View>

@@ -35,6 +35,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -424,26 +425,39 @@ export default function WcstGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: GRADIENT[1] }]}>↻{perseverative}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('wcstHint')}</Text>
-      <View style={styles.refRow}>
-        {REF_CARDS.map((c, i) =>
-          renderCard(c, true, i, feedback?.idx === i ? (feedback.ok ? 'right' : 'wrong') : null)
-        )}
-      </View>
-      <View style={styles.targetWrap}>
-        {renderCard(target, false)}
-      </View>
-    </View>
-  );
+  // игровая фаза — на едином каркасе GameShell: 4 референс-карты (ответы) прибиты к низу,
+  // целевая карта в центре поля
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('wcst')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: GRADIENT[1] }]}>↻{perseverative}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+          </View>
+        }
+        toolbar={
+          <View style={styles.refRow}>
+            {REF_CARDS.map((c, i) =>
+              renderCard(c, true, i, feedback?.idx === i ? (feedback.ok ? 'right' : 'wrong') : null)
+            )}
+          </View>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('wcstHint')}</Text>
+          <View style={styles.targetWrap}>
+            {renderCard(target, false)}
+          </View>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -460,7 +474,6 @@ export default function WcstGame() {
           benefits={WCST_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'cleared' && (
         <LevelCleared gameId="wcst" level={levelRef.current} passed={clearedPassed}
           stars={perseverative === 0 ? 3 : perseverative <= 2 ? 2 : 1}
@@ -496,13 +509,13 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 18, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 18 },
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
-  refRow: { flexDirection: 'row', gap: 8 },
+  refRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
   refCard: { width: 80, height: 102, borderRadius: 16, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
-  targetWrap: { marginTop: 26 },
+  targetWrap: { marginTop: 8 },
   targetCard: { width: 138, height: 128, borderRadius: 22, borderWidth: 3, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 6 },
   shapeRow: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '90%' },
 });

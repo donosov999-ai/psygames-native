@@ -239,19 +239,15 @@ export default function FlankerGame() {
       <LevelProgressMap gameId="flanker" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-          {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+          {t('level')} {lvl.level}
         </Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-          {lvl.level <= 5
-            ? (language === 'ru' ? 'Конфликтных стрелок 30% · окно ответа 3.0–2.2 с · 20 попыток' : '30% conflict arrows · 3.0–2.2 s response window · 20 trials')
-            : lvl.level <= 10
-            ? (language === 'ru' ? 'Конфликтных стрелок 45% · окно ответа 2.0–1.6 с · 20 попыток' : '45% conflict arrows · 2.0–1.6 s response window · 20 trials')
-            : (language === 'ru' ? 'Конфликтных стрелок 65% · окно ответа 1.4–1.0 с · 20 попыток' : '65% conflict arrows · 1.4–1.0 s response window · 20 trials')}
+          {t('flankerLvlParams')
+            .replace('{p}', lvl.level <= 5 ? '30' : lvl.level <= 10 ? '45' : '65')
+            .replace('{w}', lvl.level <= 5 ? '3.0–2.2' : lvl.level <= 10 ? '2.0–1.6' : '1.4–1.0')}
         </Text>
         <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-          {language === 'ru'
-            ? 'Проход уровня: точность ≥80% (не успел ответить в окно = ошибка)'
-            : 'To pass: ≥80% accuracy (no answer within the window counts as an error)'}
+          {t('flankerPass')}
         </Text>
         {lvl.level > 1 && (
           <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -284,11 +280,11 @@ export default function FlankerGame() {
         stats={
           <View style={styles.statsRow}>
             <Text style={[styles.statText, { color: colors.text }]}>
-              {round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}
+              {round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}
             </Text>
             <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
             <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{t('msShort')}</Text>
           </View>
         }
         toolbar={

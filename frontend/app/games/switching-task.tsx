@@ -23,7 +23,7 @@ import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
-import { useLanguage } from '@/src/contexts/LanguageContext';
+import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
@@ -72,23 +72,24 @@ function levelParams(level: number): { trials: number; switchProb: number; windo
 function midFor(mode: StimMode): number { return mode === 'num3' ? 500 : 50; }
 
 // Метаданные задания (cue + подписи кнопок + что подсветить) по режиму и индексу задания (0/1).
+// v1.137: тексты в словаре (cue*/ans*), через translateFor — работают все 12 языков.
 function taskMeta(mode: StimMode, idx: number, lang: string) {
-  const ru = lang === 'ru';
+  const tr = (k: string) => translateFor(lang, k);
   if (mode === 'mix') {
     return idx === 0
-      ? { cue: ru ? 'ЧИСЛО' : 'NUMBER', left: ru ? 'нечёт' : 'odd', right: ru ? 'чёт' : 'even', icon: 'calculator' as const, color: '#3b82f6', emph: 'num' as const }
-      : { cue: ru ? 'БУКВА' : 'LETTER', left: ru ? 'гласная' : 'vowel', right: ru ? 'согласная' : 'conson.', icon: 'text' as const, color: '#f59e0b', emph: 'letter' as const };
+      ? { cue: tr('cueNumber'), left: tr('ansOdd'), right: tr('ansEven'), icon: 'calculator' as const, color: '#3b82f6', emph: 'num' as const }
+      : { cue: tr('cueLetter'), left: tr('ansVowel'), right: tr('ansConsonant'), icon: 'text' as const, color: '#f59e0b', emph: 'letter' as const };
   }
   if (mode === 'num2' || mode === 'num3') {
     const mid = midFor(mode);
     return idx === 0
-      ? { cue: ru ? 'ЧЁТНОСТЬ' : 'PARITY', left: ru ? 'нечёт' : 'odd', right: ru ? 'чёт' : 'even', icon: 'calculator' as const, color: '#3b82f6', emph: 'num' as const }
-      : { cue: ru ? 'РАЗМЕР' : 'SIZE', left: `< ${mid}`, right: `≥ ${mid}`, icon: 'resize' as const, color: '#10b981', emph: 'num' as const };
+      ? { cue: tr('cueParity'), left: tr('ansOdd'), right: tr('ansEven'), icon: 'calculator' as const, color: '#3b82f6', emph: 'num' as const }
+      : { cue: tr('cueSize'), left: `< ${mid}`, right: `≥ ${mid}`, icon: 'resize' as const, color: '#10b981', emph: 'num' as const };
   }
   // letters
   return idx === 0
-    ? { cue: ru ? 'ГЛАСНАЯ?' : 'VOWEL?', left: ru ? 'гласная' : 'vowel', right: ru ? 'согласная' : 'conson.', icon: 'text' as const, color: '#f59e0b', emph: 'letter' as const }
-    : { cue: ru ? 'ПОЛОВИНА' : 'HALF', left: 'A–M', right: 'N–Z', icon: 'swap-horizontal' as const, color: '#8b5cf6', emph: 'letter' as const };
+    ? { cue: tr('cueVowelQ'), left: tr('ansVowel'), right: tr('ansConsonant'), icon: 'text' as const, color: '#f59e0b', emph: 'letter' as const }
+    : { cue: tr('cueHalf'), left: 'A–M', right: 'N–Z', icon: 'swap-horizontal' as const, color: '#8b5cf6', emph: 'letter' as const };
 }
 
 function modeHint(mode: StimMode, lang: string): string {
@@ -310,21 +311,21 @@ export default function SwitchingTaskGame() {
 
         {/* Режим стимула + ПРАВИЛА (что оценивать) — меняет ПРАВИЛО игры, не сложность → оставлен */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Что показывать' : 'Stimulus'}</Text>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('stimulusLabel')}</Text>
           <View style={styles.optionButtons}>
             {MODES.map((m) => (
               <TouchableOpacity key={m.key} style={[styles.modeButton, mode === m.key
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setMode(m.key)}>
-                <Text style={[styles.modeButtonText, { color: mode === m.key ? '#FFF' : colors.text }]}>{language === 'ru' ? m.ru : m.en}</Text>
+                <Text style={[styles.modeButtonText, { color: mode === m.key ? '#FFF' : colors.text }]}>{t('switchMode_' + m.key)}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <View style={[styles.rulesBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.rulesText, { color: colors.text }]}>{language === 'ru' ? 'Правила:' : 'Rules:'} {modeHint(mode, language)}</Text>
+            <Text style={[styles.rulesText, { color: colors.text }]}>{t('rulesColon')} {modeHint(mode, language)}</Text>
             <Text style={[styles.rulesSub, { color: colors.textSecondary }]}>
-              {language === 'ru' ? 'Плашка сверху скажет, ЧТО оценивать сейчас. Левая кнопка / правая кнопка.' : 'The top badge tells WHAT to judge now. Left / right button.'}
+              {t('switchTopBadgeHint')}
             </Text>
           </View>
         </View>
@@ -332,18 +333,14 @@ export default function SwitchingTaskGame() {
         <LevelProgressMap gameId="switching_task" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `${p.trials} проб · переключений ~${Math.round(p.switchProb * 100)}% · окно ответа ${(p.windowMs / 1000).toFixed(1)} с`
-              : `${p.trials} trials · ~${Math.round(p.switchProb * 100)}% switches · ${(p.windowMs / 1000).toFixed(1)} s response window`}
+            {t('switchLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(p.switchProb * 100))).replace('{w}', (p.windowMs / 1000).toFixed(1))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? 'Проход уровня: ≥80% верных ответов (не успел в окно = ошибка)'
-              : 'To pass: ≥80% correct answers (missing the window counts as an error)'}
+            {t('passCorrect80Window')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -387,7 +384,7 @@ export default function SwitchingTaskGame() {
             <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
             <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
             <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{t('msShort')}</Text>
           </View>
         }
         toolbar={
@@ -405,7 +402,7 @@ export default function SwitchingTaskGame() {
           {/* Крупная заметная плашка: ЧТО оценивать сейчас (+ ↻ если задание сменилось) */}
           <View style={[styles.cueBadge, { backgroundColor: meta.color }]}>
             <Ionicons name={meta.icon} size={20} color="#FFF" />
-            <Text style={styles.cueText}>{language === 'ru' ? 'ОЦЕНИ' : 'JUDGE'}: {meta.cue}</Text>
+            <Text style={styles.cueText}>{t('judgeCue')}: {meta.cue}</Text>
             {trial.isSwitch && showStim && <Text style={styles.cueSwitch}>↻</Text>}
           </View>
           <View style={[styles.stimBox, {

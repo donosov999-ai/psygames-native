@@ -280,9 +280,9 @@ export default function VisualSearchGame() {
       </LinearGradient>
       <LevelProgressMap gameId="visual_search" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
-          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам по результату (объектов и целей больше)` : `Lv ${lvl.level} — grows with results (more items & targets)`}
+          {t('vsearchLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -332,13 +332,13 @@ export default function VisualSearchGame() {
           onBack={() => goBackOrHome()}
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('label_level_short')} {round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('label_level_short')} {round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
               <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
               <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
               {targetCount > 1 && (
                 <Text style={[styles.statText, { color: '#3b82f6' }]}>🎯 {foundCount}/{targetCount}</Text>
               )}
-              <Text style={[styles.statText, { color: colors.primary }]}>⏱ {Math.max(0, (now - stimAt) / 1000).toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+              <Text style={[styles.statText, { color: colors.primary }]}>⏱ {Math.max(0, (now - stimAt) / 1000).toFixed(1)}{t('secShort')}</Text>
               {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
             </View>
           }

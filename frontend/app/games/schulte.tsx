@@ -440,18 +440,18 @@ export default function SchulteGame() {
         <TouchableOpacity style={styles.startButton} onPress={() => startGame(true)}>
           <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
             <Ionicons name="flag" size={22} color="#FFFFFF" />
-            <Text style={styles.startButtonText}>{language === 'ru' ? `🎯 Уровень ${lvl.level} →` : `🎯 Level ${lvl.level} →`}</Text>
+            <Text style={styles.startButtonText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
           </LinearGradient>
         </TouchableOpacity>
       )}
       {!isPreset && (
         <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center', marginTop: -2, marginBottom: 2 }}>
-          {language === 'ru' ? 'или настрой свою таблицу ниже и жми «Свободно»' : 'or customize your table below and tap “Free play”'}
+          {t('schulteFreeHint')}
         </Text>
       )}
       <TouchableOpacity style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
         <Ionicons name="trophy-outline" size={18} color={colors.text} />
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Топ игроков (5×5 классика)' : 'Leaderboard (5×5 classic)'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('schulteLeaderboard')}</Text>
       </TouchableOpacity>
 
       {/* Content Mode Selection (Numbers/Letters) */}
@@ -614,7 +614,7 @@ export default function SchulteGame() {
               >
                 <Ionicons name="radio-button-on-outline" size={20} color={direction === 'center-out' ? '#FFFFFF' : colors.text} />
                 <Text style={[styles.modeButtonText, { color: direction === 'center-out' ? '#FFFFFF' : colors.text }]}>
-                  {language === 'ru' ? 'От центра' : 'Center-out'}
+                  {t('schulteCenterOut')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -629,7 +629,7 @@ export default function SchulteGame() {
       {contentMode === 'numbers' && (
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {language === 'ru' ? 'Разделённое внимание' : 'Divided attention'}
+            {t('schulteDivided')}
           </Text>
           <View style={styles.optionButtons}>
             {[1, 2, 3, 4].map((gc) => (
@@ -643,15 +643,13 @@ export default function SchulteGame() {
                 onPress={() => setGroupCount(gc)}
               >
                 <Text style={[styles.sizeButtonText, { color: groupCount === gc ? '#FFFFFF' : colors.text }]}>
-                  {gc === 1 ? (language === 'ru' ? 'Классика' : 'Classic') : `${gc}`}
+                  {gc === 1 ? t('classicLabel') : `${gc}`}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
           <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
-            {language === 'ru'
-              ? 'Несколько своих счётчиков одновременно, различаются цветом — ищи по кругу'
-              : 'Several independent counters at once, color-coded — find them round-robin'}
+            {t('schulteDividedHint')}
           </Text>
         </View>
       )}
@@ -659,26 +657,24 @@ export default function SchulteGame() {
       {/* v1.116.0: «Убегающая цель» — реролл позиций после каждого верного клика */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>
-          {language === 'ru' ? 'Убегающая цель' : 'Moving target'}
+          {t('schulteMoving')}
         </Text>
         <View style={styles.optionButtons}>
           <TouchableOpacity
             style={[styles.modeButton, !reshuffleOnClick && { backgroundColor: GRADIENT[0] }, reshuffleOnClick && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
             onPress={() => setReshuffleOnClick(false)}
           >
-            <Text style={[styles.modeButtonText, { color: !reshuffleOnClick ? '#FFFFFF' : colors.text }]}>{language === 'ru' ? 'Выкл' : 'Off'}</Text>
+            <Text style={[styles.modeButtonText, { color: !reshuffleOnClick ? '#FFFFFF' : colors.text }]}>{t('label_off')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.modeButton, reshuffleOnClick && { backgroundColor: GRADIENT[0] }, !reshuffleOnClick && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
             onPress={() => setReshuffleOnClick(true)}
           >
-            <Text style={[styles.modeButtonText, { color: reshuffleOnClick ? '#FFFFFF' : colors.text }]}>{language === 'ru' ? 'Вкл' : 'On'}</Text>
+            <Text style={[styles.modeButtonText, { color: reshuffleOnClick ? '#FFFFFF' : colors.text }]}>{t('label_on')}</Text>
           </TouchableOpacity>
         </View>
         <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
-          {language === 'ru'
-            ? 'После каждого верного клика сетка перемешивается заново — нельзя запомнить позиции'
-            : 'The whole grid reshuffles after every correct click — no relying on spatial memory'}
+          {t('schulteMovingHint')}
         </Text>
       </View>
 
@@ -787,7 +783,7 @@ export default function SchulteGame() {
           style={styles.startButtonGradient}
         >
           <Ionicons name="play" size={24} color="#FFFFFF" />
-          <Text style={styles.startButtonText}>{!isPreset ? (language === 'ru' ? 'Свободно' : 'Free play') : t('start')}</Text>
+          <Text style={styles.startButtonText}>{!isPreset ? t('freePlay') : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </ScrollView>
@@ -953,9 +949,7 @@ export default function SchulteGame() {
             setPhase('config');
           }}
           onGoHome={() => router.push('/')}
-          shareText={language === 'ru'
-            ? `Прошёл таблицу Шульте ${gridSize}×${gridSize} за ${elapsedTime.toFixed(1)}с в PsyGames — обгони!`
-            : `I cleared a ${gridSize}×${gridSize} Schulte table in ${elapsedTime.toFixed(1)}s on PsyGames — beat that!`}
+          shareText={t('schulteShare').replace(/\{g\}/g, String(gridSize)).replace('{t}', elapsedTime.toFixed(1))}
           sparkline={timeHistory.length >= 2 ? { history: timeHistory, current: elapsedTime, lowerIsBetter: true } : undefined}
         />
       )}

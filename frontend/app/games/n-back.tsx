@@ -343,7 +343,7 @@ export default function NBackGame() {
       <LevelProgressMap gameId="n_back" currentLevel={lvl.level} colors={colors} language={language} />
       <TouchableOpacity style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
         <Ionicons name="trophy-outline" size={18} color={colors.text} />
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Топ игроков' : 'Leaderboard'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('leaderboardLabel')}</Text>
       </TouchableOpacity>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('nLevelLabel')}</Text>
@@ -491,9 +491,7 @@ export default function NBackGame() {
             )}
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>
               {modality === 'dual'
-                ? (language === 'ru'
-                    ? `Жми Position если позиция повторяет ${nLevel} назад. Жми Sound если буква повторяет ${nLevel} назад. Можно жать оба`
-                    : `Tap Position if the position repeats ${nLevel} back. Tap Sound if the letter repeats ${nLevel} back. You can tap both`)
+                ? t('nBackDualHint').replace(/\{n\}/g, String(nLevel))
                 : t('nBackHint')}
             </Text>
           </View>
@@ -550,9 +548,7 @@ export default function NBackGame() {
           onPlayAgain={() => setPhase('config')}
           onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]}
-          shareText={language === 'ru'
-            ? `Прошёл ${nLevel}-back в PsyGames с точностью ${hits + misses + falseAlarms + correctRejections > 0 ? Math.round((hits / (hits + misses + falseAlarms + correctRejections)) * 100) : 0}% — обгони!`
-            : `I reached ${nLevel}-back in PsyGames at ${hits + misses + falseAlarms + correctRejections > 0 ? Math.round((hits / (hits + misses + falseAlarms + correctRejections)) * 100) : 0}% accuracy — beat that!`}
+          shareText={t('nBackShare').replace('{n}', String(nLevel)).replace('{p}', String(hits + misses + falseAlarms + correctRejections > 0 ? Math.round((hits / (hits + misses + falseAlarms + correctRejections)) * 100) : 0))}
           sparkline={accuracyHistory.length >= 2 ? { history: accuracyHistory, current: Math.round(((hits + correctRejections) / Math.max(1, hits + misses + falseAlarms + correctRejections)) * 100), lowerIsBetter: false } : undefined}
         />
       )}

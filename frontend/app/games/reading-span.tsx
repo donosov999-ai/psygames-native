@@ -192,9 +192,9 @@ export default function ReadingSpanGame() {
       </LinearGradient>
       <LevelProgressMap gameId="reading_span" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
-          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам: больше фраз в наборе (держать больше последних слов)` : `Lv ${lvl.level} — grows with results: more sentences per set`}
+          {t('rspanLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>

@@ -136,7 +136,7 @@ function generatePuzzle(digRatio: number): { puzzle: Cell[][]; solution: Cell[][
 
 export default function SamuraiSudokuGame() {
   const { colors } = useTheme();
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const ru = language === 'ru';
   const { width } = useWindowDimensions();
 
@@ -267,36 +267,30 @@ export default function SamuraiSudokuGame() {
     <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.configContainer}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
         <Text style={{ fontSize: 44 }}>🎴</Text>
-        <Text style={styles.configTitle}>{language === 'ru' ? 'Самурай' : 'Samurai'}</Text>
+        <Text style={styles.configTitle}>{t('samuraiTitle')}</Text>
         <Text style={styles.configDesc}>
-          {language === 'ru'
-            ? 'Пять сеток 9×9 с общими угловыми блоками. Правила судоку в каждой.'
-            : 'Five overlapping 9×9 grids sharing corner blocks; standard sudoku in each.'}
+          {t('samuraiDesc')}
         </Text>
       </LinearGradient>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? `Уровень ${lvl.level}` : `Level ${lvl.level}`}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')} {lvl.level}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
-          {language === 'ru'
-            ? `Закрыто ${Math.round(levelParams(lvl.level).digRatio * 100)}% клеток · лимит ${levelParams(lvl.level).maxErrors} ошибок · подсказок ${levelParams(lvl.level).hintMax}`
-            : `${Math.round(levelParams(lvl.level).digRatio * 100)}% cells hidden · ${levelParams(lvl.level).maxErrors} mistakes limit · ${levelParams(lvl.level).hintMax} hints`}
+          {t('samuraiLvlParams').replace('{p}', String(Math.round(levelParams(lvl.level).digRatio * 100))).replace('{e}', String(levelParams(lvl.level).maxErrors)).replace('{h}', String(levelParams(lvl.level).hintMax))}
         </Text>
         <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
-          {language === 'ru' ? 'Реши, не превысив лимит ошибок — откроется следующий, сложнее.' : 'Solve within the mistakes limit — the next unlocks, harder.'}
+          {t('samuraiNextUnlocks')}
         </Text>
       </View>
       <LevelProgressMap gameId="sudoku_samurai" currentLevel={lvl.level} maxLevel={MAX_LEVEL} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Как играть' : 'How to play'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('btn_help')}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
-          {language === 'ru'
-            ? 'Поле 21×21 = пять судоку, перекрытых углами. Заполни каждую клетку так, чтобы в каждой сетке 9×9 строки, столбцы и блоки 3×3 содержали 1–9 без повторов. Кнопкой 🔍 переключай масштаб: «вся фигура» или «крупно со скроллом».'
-            : 'A 21×21 board = five sudoku overlapping at the corners. Fill every cell so each 9×9 grid has 1–9 with no repeats in rows, columns and 3×3 boxes. Use 🔍 to toggle zoom: whole shape or zoomed-in with scroll.'}
+          {t('samuraiHowTo')}
         </Text>
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{language === 'ru' ? `Уровень ${lvl.level} — играть` : `Play level ${lvl.level}`}</Text>
+          <Text style={styles.startBtnText}>{t('playLevelN').replace('{n}', String(lvl.level))}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </ScrollView>
@@ -376,12 +370,12 @@ export default function SamuraiSudokuGame() {
     const { maxErrors, hintMax } = levelParams(levelRef.current);
     const statsEl = (
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: GRADIENT[0] }]}>{language === 'ru' ? `Ур.${levelRef.current}` : `Lv${levelRef.current}`}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>{language === 'ru' ? `Ошибок ${errors}/${maxErrors}` : `Errors ${errors}/${maxErrors}`}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+        <Text style={[styles.statText, { color: GRADIENT[0] }]}>{t('label_level_short')}{levelRef.current}</Text>
+        <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('errorsOfMax').replace('{n}', String(errors)).replace('{max}', String(maxErrors))}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
         <TouchableOpacity onPress={() => setZoom((z) => (z === 'fit' ? 'zoom' : 'fit'))} style={[styles.zoomBtn, { borderColor: colors.border }]}>
           <Ionicons name={zoom === 'fit' ? 'search' : 'contract'} size={15} color={colors.text} />
-          <Text style={[styles.statText, { color: colors.text, fontSize: 12 }]}>{zoom === 'fit' ? (language === 'ru' ? 'Крупно' : 'Zoom') : (language === 'ru' ? 'Всё поле' : 'Fit')}</Text>
+          <Text style={[styles.statText, { color: colors.text, fontSize: 12 }]}>{zoom === 'fit' ? t('zoomIn') : t('zoomFit')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -392,7 +386,7 @@ export default function SamuraiSudokuGame() {
         style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: (selected && hintUses < hintMax) ? 1 : 0.4 }]}
       >
         <Ionicons name="bulb" size={16} color="#000" />
-        <Text style={styles.hintBtnText}>{language === 'ru' ? 'Подсказка' : 'Hint'} ({hintUses}/{hintMax})</Text>
+        <Text style={styles.hintBtnText}>{t('btn_hint')} ({hintUses}/{hintMax})</Text>
       </TouchableOpacity>
     );
     // В режиме 'zoom' оборачиваем поле в 2D-скролл (вложенные ScrollView — работают и в вебе, и нативно).
@@ -437,7 +431,7 @@ export default function SamuraiSudokuGame() {
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{language === 'ru' ? 'Самурай' : 'Samurai'}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('samuraiTitle')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}

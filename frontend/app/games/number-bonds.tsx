@@ -295,18 +295,14 @@ export default function NumberBondsGame() {
         <LevelProgressMap gameId="number_bonds" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `${p.trials} задач · числа до ${p.maxV} · фишек ${p.pool} · слагаемых ${p.solMin}–${p.solMax} · ${Math.round(p.windowMs / 1000)} с на задачу`
-              : `${p.trials} puzzles · numbers up to ${p.maxV} · ${p.pool} chips · ${p.solMin}–${p.solMax} addends · ${Math.round(p.windowMs / 1000)}s per puzzle`}
+            {t('numberBondsLvlParams').replace('{n}', String(p.trials)).replace('{m}', String(p.maxV)).replace('{c}', String(p.pool)).replace('{a}', String(p.solMin)).replace('{b}', String(p.solMax)).replace('{w}', String(Math.round(p.windowMs / 1000)))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? 'Проход уровня: не больше 2 ошибок (неверная сумма или не уложился в окно = ошибка)'
-              : 'To pass: at most 2 errors (a wrong sum or missing the time window counts as an error)'}
+            {t('numberBondsPass')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -337,10 +333,10 @@ export default function NumberBondsGame() {
             <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
             {!isPreset && (
               <Text style={[styles.statText, { color: roundLeft <= 5 ? '#f43f5e' : colors.text }]}>
-                ⏱{Math.ceil(roundLeft)}{language === 'ru' ? 'с' : 's'}
+                ⏱{Math.ceil(roundLeft)}{t('secShort')}
               </Text>
             )}
-            <Text style={[styles.statText, { color: colors.textSecondary }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+            <Text style={[styles.statText, { color: colors.textSecondary }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
           </View>
         }
         toolbar={

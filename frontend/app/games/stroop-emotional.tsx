@@ -266,18 +266,14 @@ export default function StroopEmotionalGame() {
         <LevelProgressMap gameId="stroop_emotional" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `${p.trials} слов · окно ответа ${(p.answerWindowMs / 1000).toFixed(1)} с · эмоциональных слов ${Math.round(p.emotionalRatio * 100)}%`
-              : `${p.trials} words · ${(p.answerWindowMs / 1000).toFixed(1)} s to answer · ${Math.round(p.emotionalRatio * 100)}% emotional words`}
+            {t('stroopEmoLvlParams').replace('{n}', String(p.trials)).replace('{w}', (p.answerWindowMs / 1000).toFixed(1)).replace('{p}', String(Math.round(p.emotionalRatio * 100)))}
           </Text>
           {/* критерий прохождения уровня виден игроку (паттерн cpt) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? 'Проход уровня: назвать цвет верно в ≥80% слов (не успел — ошибка)'
-              : 'To pass: name the ink color correctly on ≥80% of words (timeout counts as an error)'}
+            {t('stroopEmoPass')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -305,7 +301,7 @@ export default function StroopEmotionalGame() {
             <Text style={[styles.statText, { color: colors.text }]}>{round}/{trialsRef.current}</Text>
             <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
             <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{t('msShort')}</Text>
             <Text style={[styles.statText, { color: '#ef4444' }]}>IT {interfThreat}</Text>
           </View>
         }

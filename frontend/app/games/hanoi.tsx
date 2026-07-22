@@ -155,9 +155,9 @@ export default function HanoiGame() {
         <Text style={styles.configDesc}>{t('hanoiDesc')}</Text>
       </LinearGradient>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Уровень' : 'Level'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.optionHint, { color: colors.textSecondary }]}>
-          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам: больше дисков, затем 4 и 5 стержней` : `Lv ${lvl.level} — grows with results: more discs, then 4 and 5 pegs`}
+          {t('hanoiLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
       <TouchableOpacity style={styles.startBtn} onPress={startGame}>
@@ -171,9 +171,9 @@ export default function HanoiGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{moves} / {optimal(discs)}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{moves} / {optimal(discs)}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
         {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
       </View>
       <View style={styles.pegsArea}>

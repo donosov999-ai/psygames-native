@@ -13,6 +13,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
@@ -231,31 +232,38 @@ export default function SpatialSpanGame() {
     </View>
   );
 
-  const renderShow = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>Span {span} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
-        <Text style={[styles.statText, { color: GRADIENT[1] }]}>Len {seq.length}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{totalErrors}</Text>
-        <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
+  // игровые фазы (показ и воспроизведение) — на едином каркасе GameShell;
+  // модалка правил уровня — поверх каркаса (паттерн digit-span)
+  if (phase === 'show' || phase === 'recall') {
+    return (
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('spatialSpan')}
+          onBack={() => goBackOrHome()}
+          stats={
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>Span {span} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
+              {phase === 'show' ? (
+                <Text style={[styles.statText, { color: GRADIENT[1] }]}>Len {seq.length}</Text>
+              ) : (
+                <Text style={[styles.statText, { color: GRADIENT[1] }]}>{userSeq.length}/{seq.length}</Text>
+              )}
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{totalErrors}</Text>
+              <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
+            </View>
+          }
+        >
+          <View style={styles.fieldCol}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+              {phase === 'show' ? t('watchSequence') : t('reproduceBackward')}
+            </Text>
+            {renderGrid()}
+          </View>
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('watchSequence')}</Text>
-      {renderGrid()}
-    </View>
-  );
-
-  const renderRecall = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>Span {span} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
-        <Text style={[styles.statText, { color: GRADIENT[1] }]}>{userSeq.length}/{seq.length}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{totalErrors}</Text>
-        <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('reproduceBackward')}</Text>
-      {renderGrid()}
-    </View>
-  );
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -272,8 +280,6 @@ export default function SpatialSpanGame() {
           benefits={SS_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'show' && renderShow()}
-      {phase === 'recall' && renderRecall()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="spatial_span" level={levelRef.current} stars={totalErrors === 0 ? 3 : totalErrors <= 2 ? 2 : 1}
@@ -310,7 +316,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 16, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 16 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },

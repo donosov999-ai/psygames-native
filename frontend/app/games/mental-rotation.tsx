@@ -40,6 +40,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
@@ -491,49 +492,63 @@ export default function MentalRotationGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => {
+  // игровая фаза — на едином каркасе GameShell: варианты-ответы прибиты к низу,
+  // эталон в центре поля; модалка правил поверх каркаса (паттерн digit-span)
+  if (phase === 'playing') {
     const baseSize = 130;
     const optSize = 110;
     return (
-      <View style={styles.playArea}>
-        <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
-          <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-          <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
-          {!isPreset && <LevelRuleBadge lr={levelRules} color={colors.primary} ru={language === 'ru'} />}
-        </View>
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mentalRotationHint')}</Text>
-        <View style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }]}>
-          {renderShape(trial.base, baseSize, SHAPE_BASE)}
-          <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>{t('label_reference')}</Text>
-        </View>
-        <View style={styles.optionsRow}>
-          {trial.options.map((opt, i) => {
-            const fb = feedback?.idx === i
-              ? (feedback.ok ? '#22c55e' : '#f43f5e')
-              : null;
-            return (
-              <TouchableOpacity key={i}
-                disabled={feedback !== null}
-                onPress={() => handlePick(i)}
-                style={[styles.optionBox, {
-                  backgroundColor: colors.surface,
-                  borderColor: fb || colors.border,
-                  borderWidth: fb ? 3 : 1,
-                }]}
-              >
-                {renderShape(opt.shape, optSize, GRADIENT[1])}
-                <Text style={[styles.optionLabel2, { color: colors.textSecondary }]}>
-                  {opt.isMatch && feedback ? '✓ rotation' : feedback && opt.rotationLabel === 'mirror' ? '✗ mirror' : ''}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('mentalRotation')}
+          onBack={() => goBackOrHome()}
+          stats={
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+              {!isPreset && <LevelRuleBadge lr={levelRules} color={colors.primary} ru={language === 'ru'} />}
+            </View>
+          }
+          toolbar={
+            <View style={styles.optionsRow}>
+              {trial.options.map((opt, i) => {
+                const fb = feedback?.idx === i
+                  ? (feedback.ok ? '#22c55e' : '#f43f5e')
+                  : null;
+                return (
+                  <TouchableOpacity key={i}
+                    disabled={feedback !== null}
+                    onPress={() => handlePick(i)}
+                    style={[styles.optionBox, {
+                      backgroundColor: colors.surface,
+                      borderColor: fb || colors.border,
+                      borderWidth: fb ? 3 : 1,
+                    }]}
+                  >
+                    {renderShape(opt.shape, optSize, GRADIENT[1])}
+                    <Text style={[styles.optionLabel2, { color: colors.textSecondary }]}>
+                      {opt.isMatch && feedback ? '✓ rotation' : feedback && opt.rotationLabel === 'mirror' ? '✗ mirror' : ''}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          }
+        >
+          <View style={styles.fieldCol}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mentalRotationHint')}</Text>
+            <View style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }]}>
+              {renderShape(trial.base, baseSize, SHAPE_BASE)}
+              <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>{t('label_reference')}</Text>
+            </View>
+          </View>
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
     );
-  };
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -550,7 +565,6 @@ export default function MentalRotationGame() {
           benefits={MR_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="mental_rotation" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
@@ -589,7 +603,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 16, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 16 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },

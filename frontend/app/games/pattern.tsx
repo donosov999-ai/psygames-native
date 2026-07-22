@@ -30,8 +30,13 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
 
 // Каждый ряд = ОДНОЗНАЧНО продолжаемая прогрессия (правило Дениса: фрактальные/неоднозначные нельзя).
-// Подсказка 2 ступени: classRu (класс) → ruleRu (формула/правило).
-interface Sequence { items: number[]; answer: number; classRu: string; classEn: string; ruleRu: string; ruleEn: string; }
+// Подсказка 2 ступени: classKey (класс) → ruleKey+ruleParams (формула/правило).
+// v1.137: тексты в словаре LanguageContext (patternClass*/patternRule*), параметры — {a}/{b}/{c}/{n}.
+interface Sequence { items: number[]; answer: number; classKey: string; ruleKey: string; ruleParams?: Record<string, string | number>; }
+function fillParams(s: string, params?: Record<string, string | number>): string {
+  if (!params) return s;
+  return Object.entries(params).reduce((acc, [k, v]) => acc.replace(new RegExp('\\{' + k + '\\}', 'g'), String(v)), s);
+}
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 const rnd = (n: number) => Math.floor(Math.random() * n);
@@ -39,48 +44,48 @@ const rnd = (n: number) => Math.floor(Math.random() * n);
 function genArithmetic(): Sequence {
   const start = 1 + rnd(9), step = 2 + rnd(6);
   return { items: [start, start+step, start+2*step, start+3*step], answer: start+4*step,
-    classRu: 'Арифметическая прогрессия', classEn: 'Arithmetic', ruleRu: `Каждый член больше на ${step}`, ruleEn: `Each term +${step}` };
+    classKey: 'patternClassArithmetic', ruleKey: 'patternRuleArithmetic', ruleParams: { n: step } };
 }
 function genGeometric(): Sequence {
   const start = 2 + rnd(3), r = 2 + rnd(2);   // ×2..×3
   return { items: [start, start*r, start*r*r, start*r*r*r], answer: start*r*r*r*r,
-    classRu: 'Геометрическая прогрессия', classEn: 'Geometric', ruleRu: `Каждый член умножается на ${r}`, ruleEn: `Each term ×${r}` };
+    classKey: 'patternClassGeometric', ruleKey: 'patternRuleGeometric', ruleParams: { n: r } };
 }
 function genSquares(): Sequence {
   const s = 1 + rnd(4);
   return { items: [s*s, (s+1)*(s+1), (s+2)*(s+2), (s+3)*(s+3)], answer: (s+4)*(s+4),
-    classRu: 'Квадраты чисел', classEn: 'Squares', ruleRu: `n²: ${s}², ${s+1}², ${s+2}², …`, ruleEn: `n²: ${s}², ${s+1}², …` };
+    classKey: 'patternClassSquares', ruleKey: 'patternRuleSquares', ruleParams: { a: s, b: s+1, c: s+2 } };
 }
 function genCubes(): Sequence {
   const s = 1 + rnd(2);
   return { items: [s*s*s, (s+1)*(s+1)*(s+1), (s+2)*(s+2)*(s+2)], answer: (s+3)*(s+3)*(s+3),
-    classRu: 'Кубы чисел', classEn: 'Cubes', ruleRu: `n³: ${s}³, ${s+1}³, …`, ruleEn: `n³: ${s}³, ${s+1}³, …` };
+    classKey: 'patternClassCubes', ruleKey: 'patternRuleCubes', ruleParams: { a: s, b: s+1 } };
 }
 function genFibonacci(): Sequence {
   let a = 1 + rnd(3), b = a + 1 + rnd(2);
   const all = [a, b]; for (let i=0;i<3;i++){ const c=a+b; all.push(c); a=b; b=c; }
   return { items: all.slice(0,4), answer: all[4],
-    classRu: 'Похоже на Фибоначчи', classEn: 'Fibonacci-like', ruleRu: 'Сумма двух предыдущих', ruleEn: 'Sum of the previous two' };
+    classKey: 'patternClassFibonacci', ruleKey: 'patternRuleFibonacci' };
 }
 function genGrowingDiff(): Sequence {
   const start = 1 + rnd(5), baseStep = 1 + rnd(3);
   const items = [start]; let s = baseStep;
   for (let i=0;i<3;i++){ items.push(items[items.length-1] + s); s++; }
   return { items, answer: items[3] + s,
-    classRu: 'Растущая разность', classEn: 'Growing difference', ruleRu: `Разность растёт на 1 каждый шаг (${baseStep}, ${baseStep+1}, …)`, ruleEn: 'Difference grows by 1 each step' };
+    classKey: 'patternClassGrowingDiff', ruleKey: 'patternRuleGrowingDiff', ruleParams: { a: baseStep, b: baseStep+1 } };
 }
 function genLookAndSay(): Sequence {
   const seqs = [1, 11, 21, 1211, 111221, 312211];   // однозначный ряд «посмотри и скажи»
   const i = rnd(2);
   return { items: seqs.slice(i, i+4), answer: seqs[i+4],
-    classRu: '«Посмотри и скажи»', classEn: 'Look-and-say', ruleRu: 'Читай предыдущий вслух: «один 1» → 11, «два 1 один 2» …', ruleEn: 'Read the previous term aloud: "one 1" → 11' };
+    classKey: 'patternClassLookSay', ruleKey: 'patternRuleLookSay' };
 }
 function genInterleaved(): Sequence {
   const startO = 1 + rnd(4), a = 1 + rnd(3);     // нечётные позиции: +a
   const startE = 5 + rnd(5),  b = 5 + rnd(6);     // чётные позиции: +b
   // показываем O1,E1,O2,E2; ответ = O3 (следующая нечётная позиция)
   return { items: [startO, startE, startO+a, startE+b], answer: startO + 2*a,
-    classRu: 'Два переплетённых ряда', classEn: 'Two interleaved series', ruleRu: `Позиции 1,3,5… растут на ${a}; позиции 2,4… на ${b}. Нужна следующая нечётная`, ruleEn: `Odd positions +${a}, even +${b}` };
+    classKey: 'patternClassInterleaved', ruleKey: 'patternRuleInterleaved', ruleParams: { a, b } };
 }
 
 // Уровень → класс прогрессии (труднота растёт; БЕЗ лимита времени).
@@ -131,7 +136,7 @@ export default function PatternGame() {
   const [clearedPassed, setClearedPassed] = useState(true);
   const [trials, setTrials] = useState(() => num('trials', 10));
   const [round, setRound] = useState(0);
-  const [seq, setSeq] = useState<Sequence>({ items: [], answer: 0, classRu: '', classEn: '', ruleRu: '', ruleEn: '' });
+  const [seq, setSeq] = useState<Sequence>({ items: [], answer: 0, classKey: '', ruleKey: '' });
   const [options, setOptions] = useState<number[]>([]);
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -220,15 +225,15 @@ export default function PatternGame() {
       </LinearGradient>
       <LevelProgressMap gameId="pattern" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
-        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('level')} {lvl.level}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-          {lvl.level <= 2 ? (language === 'ru' ? 'Арифметическая прогрессия' : 'Arithmetic')
-           : lvl.level <= 4 ? (language === 'ru' ? 'Геометрическая прогрессия' : 'Geometric')
-           : lvl.level <= 6 ? (language === 'ru' ? 'Квадраты и кубы' : 'Squares & cubes')
-           : lvl.level <= 8 ? (language === 'ru' ? 'Похоже на Фибоначчи' : 'Fibonacci-like')
-           : lvl.level <= 10 ? (language === 'ru' ? 'Растущая разность' : 'Growing difference')
-           : lvl.level <= 12 ? (language === 'ru' ? '«Посмотри и скажи» (нужна подсказка)' : 'Look-and-say (use hint)')
-           : (language === 'ru' ? 'Два переплетённых ряда' : 'Two interleaved series')}
+          {lvl.level <= 2 ? t('patternClassArithmetic')
+           : lvl.level <= 4 ? t('patternClassGeometric')
+           : lvl.level <= 6 ? t('patternClassSquaresCubes')
+           : lvl.level <= 8 ? t('patternClassFibonacci')
+           : lvl.level <= 10 ? t('patternClassGrowingDiff')
+           : lvl.level <= 12 ? t('patternClassLookSayHint')
+           : t('patternClassInterleaved')}
         </Text>
         {lvl.level > 1 && (
           <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -300,14 +305,14 @@ export default function PatternGame() {
           </View>
           {hintStage >= 1 && (
             <View style={[styles.hintBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
-              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14, textAlign: 'center' }}>💡 {language === 'ru' ? seq.classRu : seq.classEn}</Text>
-              {hintStage >= 2 && <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4, textAlign: 'center' }}>{language === 'ru' ? seq.ruleRu : seq.ruleEn}</Text>}
+              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14, textAlign: 'center' }}>💡 {t(seq.classKey)}</Text>
+              {hintStage >= 2 && <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4, textAlign: 'center' }}>{fillParams(t(seq.ruleKey), seq.ruleParams)}</Text>}
             </View>
           )}
           <TouchableOpacity onPress={useHint} disabled={hintStage >= 2 || feedback !== null}
             style={[styles.hintBtn, { borderColor: GRADIENT[0], opacity: (hintStage >= 2 || feedback !== null) ? 0.4 : 1 }]}>
             <Text style={{ color: GRADIENT[0], fontWeight: '700', fontSize: 14 }}>
-              💡 {hintStage === 0 ? (language === 'ru' ? 'Подсказка' : 'Hint') : hintStage === 1 ? (language === 'ru' ? 'Ещё: правило (−1⭐)' : 'More: rule (−1⭐)') : (language === 'ru' ? 'Подсказка использована' : 'Hint used')}
+              💡 {hintStage === 0 ? t('btn_hint') : hintStage === 1 ? t('hintMoreRule') : t('hintUsed')}
             </Text>
           </TouchableOpacity>
         </View>

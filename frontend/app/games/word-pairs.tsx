@@ -277,12 +277,10 @@ export default function WordPairsGame() {
       <LevelProgressMap gameId="word_pairs" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', marginBottom: 12 }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-          {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+          {t('level')} {lvl.level}
         </Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center', marginTop: 2 }}>
-          {(() => { const p = levelParams(lvl.level); return language === 'ru'
-            ? `${p.pairCount} пар · запомнить за ${Math.round(p.perPairMs * p.pairCount / 1000)}с · ошибок ≤ ${maxErrorsAllowed(p.pairCount)}`
-            : `${p.pairCount} pairs · memorize in ${Math.round(p.perPairMs * p.pairCount / 1000)}s · errors ≤ ${maxErrorsAllowed(p.pairCount)}`; })()}
+          {(() => { const p = levelParams(lvl.level); return t('wordPairsLvlParams').replace('{n}', String(p.pairCount)).replace('{w}', String(Math.round(p.perPairMs * p.pairCount / 1000))).replace('{e}', String(maxErrorsAllowed(p.pairCount))); })()}
         </Text>
         {lvl.level > 1 && (
           <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 8, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, backgroundColor: colors.card }}>

@@ -213,12 +213,10 @@ export default function SemanticSortGame() {
         <LevelProgressMap gameId="semantic_sort" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', marginBottom: 12 }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center', marginTop: 2 }}>
-            {(() => { const p = levelParams(lvl.level); return language === 'ru'
-              ? `${p.roundsCount} раундов · ${p.catsPerRound} категории · порог 80%`
-              : `${p.roundsCount} rounds · ${p.catsPerRound} categories · pass 80%`; })()}
+            {(() => { const p = levelParams(lvl.level); return t('semanticLvlParams').replace('{r}', String(p.roundsCount)).replace('{c}', String(p.catsPerRound)); })()}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 8, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, backgroundColor: colors.card }}>

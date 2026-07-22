@@ -6,7 +6,7 @@ import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
-import { useLanguage } from '@/src/contexts/LanguageContext';
+import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import BossRound, { BossType } from '@/src/components/BossRound';
@@ -99,26 +99,14 @@ function exampleGrid(variant: Variant): Record<string, ExMark> | null {
 const KNIGHT_EX = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
 
 // Текстовый пример для не-геометрических правил (и подпись под диаграммой для геометрических).
-function exampleCaption(variant: Variant | 'killer', ru: boolean): string {
-  switch (variant) {
-    case 'antiknight': return ru ? 'Синяя 3 уже стоит. В красные клетки (буква «Г», как ходит конь) вторую 3 ставить нельзя.' : 'The blue 3 is placed. Red cells (an “L”, like a knight moves) cannot hold another 3.';
-    case 'antiking': return ru ? 'Синяя 3 стоит. В красные клетки по диагонали вплотную вторую 3 ставить нельзя.' : 'The blue 3 is placed. Diagonally touching red cells cannot hold another 3.';
-    case 'nonconsec': return ru ? 'Рядом с 3 по стороне не может быть 2 или 4 (соседние цифры). Через клетку — можно.' : 'Cells next to a 3 cannot hold 2 or 4 (consecutive digits).';
-    case 'diagonal': return ru ? 'Жёлтые клетки — две диагонали. Синяя 3 стоит на диагонали — вторая 3 на той же диагонали (красная) запрещена.' : 'Yellow cells are the two diagonals. A second 3 on the same diagonal (red) is not allowed.';
-    case 'hyper': return ru ? 'Жёлтый квадрат — доп. зона 3×3 (на настоящем поле их четыре). Внутри зоны цифры тоже не повторяются.' : 'The yellow square is an extra 3×3 zone (the real board has four). Digits cannot repeat inside it.';
-    case 'evenodd': return ru ? 'Пример: в клетке с □ может стоять 2, 4, 6 или 8. В клетке с ○ — 1, 3, 5, 7 или 9.' : 'Example: a □ cell holds 2, 4, 6 or 8. A ○ cell holds 1, 3, 5, 7 or 9.';
-    case 'kropki': return ru ? 'Пример: 2 ⚫ 4 — чёрная точка, одно вдвое больше. 4 ⚪ 5 — белая точка, разница 1. Нет точки — ни то, ни другое.' : 'Example: 2 ⚫ 4 — black dot, one is double. 4 ⚪ 5 — white dot, differ by 1. No dot — neither.';
-    case 'sandwich': return ru ? 'Пример: в ряду 1·3·5·9·… число у края = 8, потому что между 1 и 9 стоят 3+5.' : 'Example: in a row 1·3·5·9·… the edge clue is 8, because 3+5 sit between the 1 and the 9.';
-    case 'thermo': return ru ? 'Пример: по термометру от колбы 2 → 4 → 7 — каждая следующая цифра строго больше.' : 'Example: along a thermometer 2 → 4 → 7 — each digit is strictly larger than the previous.';
-    case 'arrow': return ru ? 'Пример: в кружке 8, вдоль стрелки 3 и 5 — их сумма равна числу в кружке.' : 'Example: the circle shows 8, the arrow holds 3 and 5 — they sum to the circle.';
-    case 'jigsaw': return ru ? 'Вместо квадратных блоков — фигурные области. В каждой области цифры 1–9 без повторов.' : 'Instead of square boxes — irregular regions. Each region holds 1–9 with no repeats.';
-    case 'killer': return ru ? 'Пример: рамка из 2 клеток с меткой «7» — цифры в ней дают в сумме 7 и не повторяются (например 3 и 4).' : 'Example: a 2-cell cage marked “7” — its digits sum to 7 and don’t repeat (e.g. 3 and 4).';
-    default: return '';
-  }
+// v1.137: тексты в словаре (sudokuEx_*), берём через translateFor — работают все 12 языков.
+function exampleCaption(variant: Variant | 'killer', lang: string): string {
+  if (variant === 'none') return '';
+  return translateFor(lang, 'sudokuEx_' + variant);
 }
 
-function RulesHelpModal({ visible, variant, killer, N, colors, ru, onClose }: {
-  visible: boolean; variant: Variant; killer: boolean; N: number; colors: any; ru: boolean; onClose: () => void;
+function RulesHelpModal({ visible, variant, killer, N, colors, language, onClose }: {
+  visible: boolean; variant: Variant; killer: boolean; N: number; colors: any; language: string; onClose: () => void;
 }) {
   if (!visible) return null;
   const grid = exampleGrid(variant);
@@ -128,16 +116,16 @@ function RulesHelpModal({ visible, variant, killer, N, colors, ru, onClose }: {
     <View style={rhStyles.backdrop}>
       <View style={[rhStyles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[rhStyles.title, { color: colors.text }]}>
-          {killer ? 'Killer' : variant !== 'none' ? variantLabel(variant, ru) : ru ? 'Правила' : 'Rules'}
+          {killer ? 'Killer' : variant !== 'none' ? variantLabel(variant, language) : translateFor(language, 'btn_rules')}
         </Text>
         <Text style={[rhStyles.base, { color: colors.textSecondary }]}>
-          {ru ? `Базово: каждая цифра 1–${N} ровно один раз в строке, столбце и блоке.` : `Base: each digit 1–${N} exactly once per row, column and box.`}
+          {translateFor(language, 'sudokuBaseRule').replace('{n}', String(N))}
         </Text>
         {(variant !== 'none' || killer) && (
           <Text style={[rhStyles.rule, { color: colors.text }]}>
             {killer
-              ? (ru ? 'Killer: поле разбито на рамки-группы. Цифры группы дают указанную сумму и не повторяются внутри рамки.' : 'Killer: the board is split into cages. Digits in a cage sum to its clue and don’t repeat inside it.')
-              : variantRule(variant, ru)}
+              ? translateFor(language, 'sudokuKillerRule')
+              : variantRule(variant, language)}
           </Text>
         )}
         {grid && (
@@ -158,9 +146,9 @@ function RulesHelpModal({ visible, variant, killer, N, colors, ru, onClose }: {
             ))}
           </View>
         )}
-        <Text style={[rhStyles.caption, { color: colors.textSecondary }]}>{exampleCaption(key, ru)}</Text>
+        <Text style={[rhStyles.caption, { color: colors.textSecondary }]}>{exampleCaption(key, language)}</Text>
         <TouchableOpacity style={rhStyles.okBtn} onPress={onClose} activeOpacity={0.85}>
-          <Text style={rhStyles.okText}>{ru ? 'ПОНЯТНО' : 'GOT IT'}</Text>
+          <Text style={rhStyles.okText}>{translateFor(language, 'ctaGotIt')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -390,9 +378,9 @@ export default function SudokuGame() {
       </LinearGradient>
       {/* SUDOKU-LVL: режим — уровни (прогрессия) или свободно (селекторы) */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
         <View style={styles.optionButtons}>
-          {([['levels', language === 'ru' ? 'Уровни' : 'Levels'], ['free', language === 'ru' ? 'Свободно' : 'Free'], ['killer', 'Killer']] as const).map(([m, lbl]) => (
+          {([['levels', t('sudokuModeLevels')], ['free', t('sudokuModeFree')], ['killer', 'Killer']] as const).map(([m, lbl]) => (
             <TouchableOpacity key={m} style={[styles.modeButton, mode === m
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
@@ -410,9 +398,9 @@ export default function SudokuGame() {
         activeOpacity={0.7}
       >
         <View style={{ flex: 1, paddingRight: 10 }}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>🎴 {language === 'ru' ? 'Самурай' : 'Samurai'}</Text>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>🎴 {t('samuraiTitle')}</Text>
           <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 17 }}>
-            {language === 'ru' ? 'Пять сеток 9×9 с общими угловыми блоками.' : 'Five overlapping 9×9 grids sharing corner blocks.'}
+            {t('sudokuSamuraiTeaser')}
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
@@ -422,17 +410,17 @@ export default function SudokuGame() {
         const cfg = levelConfig(level);
         return (
           <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? `Уровень ${level}` : `Level ${level}`}</Text>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')} {level}</Text>
             <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
-              {cfg.N}×{cfg.N}{` · ${language === 'ru' ? 'пусто' : 'blanks'} ${cfg.blanks} · ${language === 'ru' ? 'подсказок' : 'hints'} ${cfg.hintMax}`}{cfg.variant !== 'none' ? ` · ${variantLabel(cfg.variant, language === 'ru')}` : ''}
+              {cfg.N}×{cfg.N}{` · ${t('blanksLabel')} ${cfg.blanks} · ${t('hintsLabel')} ${cfg.hintMax}`}{cfg.variant !== 'none' ? ` · ${variantLabel(cfg.variant, language)}` : ''}
             </Text>
             {cfg.variant !== 'none' && (
               <Text style={{ color: GRADIENT[0], fontSize: 12, marginTop: 3, fontWeight: '600' }}>
-                {variantRule(cfg.variant, language === 'ru')}
+                {variantRule(cfg.variant, language)}
               </Text>
             )}
             <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
-              {language === 'ru' ? 'Прошёл — откроется следующий, сложнее.' : 'Beat it — the next unlocks, harder.'}
+              {t('sudokuNextUnlocks')}
             </Text>
           </View>
         );
@@ -442,13 +430,13 @@ export default function SudokuGame() {
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>Killer Sudoku</Text>
           <Text style={{ color: GRADIENT[0], fontSize: 12, marginTop: 2, fontWeight: '600', lineHeight: 17 }}>
-            {language === 'ru' ? 'Цифры в каждой цветной группе в сумме дают число в её углу и не повторяются.' : 'Digits in each coloured cage add up to the number in its corner and never repeat.'}
+            {t('killerCageRule')}
           </Text>
         </View>
       )}
       {mode === 'free' && (
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Размер поля' : 'Board size'}</Text>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('boardSize')}</Text>
           <View style={styles.optionButtons}>
             {([6, 9] as const).map((s) => (
               <TouchableOpacity key={s} style={[styles.modeButton, size === s
@@ -480,9 +468,9 @@ export default function SudokuGame() {
       )}
       {/* Тип цифр: обычные (чёткий текст) или рисованные */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Цифры' : 'Digits'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('digitsLabel')}</Text>
         <View style={styles.optionButtons}>
-          {([['plain', language === 'ru' ? 'Обычные' : 'Plain'], ['drawn', language === 'ru' ? 'Рисованные' : 'Drawn']] as const).map(([m, lbl]) => (
+          {([['plain', t('digitsPlain')], ['drawn', t('digitsDrawn')]] as const).map(([m, lbl]) => (
             <TouchableOpacity key={m} onPress={() => changeDigitMode(m as 'plain' | 'drawn')}
               style={[styles.modeButton, digitMode === m
                 ? { backgroundColor: GRADIENT[0] }
@@ -495,7 +483,7 @@ export default function SudokuGame() {
       {/* Стиль рисованных цифр — только в режиме «Рисованные» */}
       {digitMode === 'drawn' && (
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Стиль цифр' : 'Digit style'}</Text>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('digitStyle')}</Text>
           <View style={styles.optionButtons}>
             {DIGIT_STYLES.map((st) => (
               <TouchableOpacity key={st} onPress={() => setDigitStyle(st)}
@@ -510,7 +498,7 @@ export default function SudokuGame() {
       )}
       <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{mode === 'levels' ? (language === 'ru' ? `Уровень ${level} — играть` : `Play level ${level}`) : t('start')}</Text>
+          <Text style={styles.startBtnText}>{mode === 'levels' ? t('playLevelN').replace('{n}', String(level)) : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>
@@ -519,12 +507,12 @@ export default function SudokuGame() {
   const renderPlaying = () => {
     const statsEl = (
       <View style={styles.statsRow}>
-        {mode === 'levels' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{language === 'ru' ? `Ур.${level}` : `Lv${level}`}</Text>}
+        {mode === 'levels' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{t('label_level_short')}{level}</Text>}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{'❤️'.repeat(Math.max(0, LIVES - errors))}{'🤍'.repeat(Math.min(errors, LIVES))}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
         <TouchableOpacity onPress={() => setRulesOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>
-            {mode === 'killer' ? 'Killer' : variant !== 'none' ? variantLabel(variant, language === 'ru').split(' ')[0] : (language === 'ru' ? 'правила' : 'rules')} ⓘ
+            {mode === 'killer' ? 'Killer' : variant !== 'none' ? variantLabel(variant, language).split(' ')[0] : t('rulesWord')} ⓘ
           </Text>
         </TouchableOpacity>
       </View>
@@ -751,20 +739,20 @@ export default function SudokuGame() {
       {phase === 'playing' && renderPlaying()}
       {/* v1.111.0: справка правил уровня (авто при первом входе на вариант / тап по бейджу ⓘ) */}
       <RulesHelpModal visible={rulesOpen} variant={variant} killer={mode === 'killer'} N={N}
-        colors={colors} ru={language === 'ru'} onClose={() => setRulesOpen(false)} />
+        colors={colors} language={language} onClose={() => setRulesOpen(false)} />
       {phase === 'playing' && over && (
         <View style={styles.overWrap}>
           <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
             <Text style={styles.overEmoji}>💔</Text>
-            <Text style={[styles.overTitle, { color: colors.text }]}>{language === 'ru' ? 'Жизни закончились' : 'Out of lives'}</Text>
-            <Text style={[styles.overSub, { color: colors.textSecondary }]}>{language === 'ru' ? '3 ошибки. Сыграй заново — поле новое.' : '3 mistakes. Play again — fresh board.'}</Text>
+            <Text style={[styles.overTitle, { color: colors.text }]}>{t('outOfLives')}</Text>
+            <Text style={[styles.overSub, { color: colors.textSecondary }]}>{t('outOfLivesHint')}</Text>
             <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-                <Text style={styles.startBtnText}>{language === 'ru' ? 'Заново' : 'Restart'}</Text>
+                <Text style={styles.startBtnText}>{t('restart')}</Text>
               </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => goBackOrHome()} style={{ marginTop: 10 }}>
-              <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{language === 'ru' ? 'На главную' : 'Home'}</Text>
+              <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('goHome')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -800,19 +788,19 @@ export default function SudokuGame() {
         <View style={styles.overWrap}>
           <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
             <Text style={styles.overEmoji}>🎉</Text>
-            <Text style={[styles.overTitle, { color: colors.text }]}>{language === 'ru' ? `Уровень ${level} пройден!` : `Level ${level} done!`}</Text>
+            <Text style={[styles.overTitle, { color: colors.text }]}>{t('levelDone').replace('{n}', String(level))}</Text>
             <Text style={[styles.overSub, { color: colors.textSecondary }]}>
-              {language === 'ru' ? `Время ${elapsedTime.toFixed(1)}с · ошибок ${errors}` : `Time ${elapsedTime.toFixed(1)}s · errors ${errors}`}
+              {t('timeErrorsLine').replace('{t}', elapsedTime.toFixed(1)).replace('{n}', String(errors))}
             </Text>
-            {bossWon === true && <Text style={[styles.overSub, { color: '#f59e0b', fontWeight: '800' }]}>🏆 {language === 'ru' ? 'Босс повержен! +⭐' : 'Boss defeated! +⭐'}</Text>}
-            {bossWon === false && <Text style={[styles.overSub, { color: colors.textSecondary }]}>{language === 'ru' ? 'Босс устоял' : 'Boss survived'}</Text>}
+            {bossWon === true && <Text style={[styles.overSub, { color: '#f59e0b', fontWeight: '800' }]}>{t('bossDefeated')}</Text>}
+            {bossWon === false && <Text style={[styles.overSub, { color: colors.textSecondary }]}>{t('bossSurvived')}</Text>}
             <TouchableOpacity style={styles.startBtn} onPress={() => { const nx = level + 1; setLevel(nx); startGame(nx); }}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-                <Text style={styles.startBtnText}>{language === 'ru' ? `Уровень ${level + 1} →` : `Level ${level + 1} →`}</Text>
+                <Text style={styles.startBtnText}>{`${t('level')} ${level + 1} →`}</Text>
               </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setPhase('config')} style={{ marginTop: 10 }}>
-              <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{language === 'ru' ? 'Меню судоку' : 'Sudoku menu'}</Text>
+              <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('sudokuMenu')}</Text>
             </TouchableOpacity>
           </View>
         </View>

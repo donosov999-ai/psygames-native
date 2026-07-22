@@ -247,18 +247,14 @@ export default function StopSignalGame() {
         <LevelProgressMap gameId="stop_signal" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `${p.trials} проб · стоп-сигналов ~${Math.round(p.stopProb * 100)}% · стоп через ${p.ssd} мс · окно ${(p.goWindow / 1000).toFixed(1)} с`
-              : `${p.trials} trials · ~${Math.round(p.stopProb * 100)}% stop signals · stop at ${p.ssd} ms · ${(p.goWindow / 1000).toFixed(1)} s window`}
+            {t('stopSignalLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(p.stopProb * 100))).replace('{d}', String(p.ssd)).replace('{w}', (p.goWindow / 1000).toFixed(1))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? 'Проход уровня: ≥80% верных проб (нажал при ✋ или пропустил GO = ошибка)'
-              : 'To pass: ≥80% correct trials (pressing on ✋ or missing GO = error)'}
+            {t('stopSignalPass')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -300,7 +296,7 @@ export default function StopSignalGame() {
             <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
             <Text style={[styles.statText, { color: '#3b82f6' }]}>✋{correctStops}</Text>
             <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{language === 'ru' ? 'мс' : 'ms'}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{meanRt}{t('msShort')}</Text>
           </View>
         }
         toolbar={

@@ -137,9 +137,9 @@ export default function WarmupComplete() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.empty}>
-          <Text style={{ color: colors.text }}>{language === 'ru' ? 'Сессия не найдена' : 'Session not found'}</Text>
+          <Text style={{ color: colors.text }}>{t('sessionNotFound')}</Text>
           <TouchableOpacity style={[styles.btn, { backgroundColor: '#fbbf24' }]} onPress={goHome}>
-            <Text style={[styles.btnText, { color: '#000' }]}>{language === 'ru' ? 'На главную' : 'Home'}</Text>
+            <Text style={[styles.btnText, { color: '#000' }]}>{t('goHome')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -164,21 +164,21 @@ export default function WarmupComplete() {
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={styles.hero}>
           <Text style={styles.heroEmoji}>{completed ? '🎉' : '⏸'}</Text>
-          <Text style={styles.heroTitle}>{completed ? (language === 'ru' ? 'ЗАРЯДКА ЗАВЕРШЕНА' : 'WARM-UP COMPLETE') : (language === 'ru' ? 'ЗАРЯДКА ОСТАНОВЛЕНА' : 'WARM-UP STOPPED')}</Text>
+          <Text style={styles.heroTitle}>{completed ? t('warmupDoneTitle') : t('warmupStoppedTitle')}</Text>
           <Text style={styles.heroSubtitle}>
             {meta.weekday_name} · {meta.track_label} · {elapsedMin}:{elapsedSecRem.toString().padStart(2, '0')}
           </Text>
           {isPersonalBest && completed && (
             <View style={styles.pbBadge}>
               <Ionicons name="trophy" size={16} color="#fbbf24" />
-              <Text style={styles.pbText}>{language === 'ru' ? 'Личный рекорд' : 'Personal best'}</Text>
+              <Text style={styles.pbText}>{t('personalBest')}</Text>
             </View>
           )}
         </LinearGradient>
 
         {/* Per-game breakdown */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{language === 'ru' ? 'Результаты' : 'Results'}</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('resultsTitle')}</Text>
           {results.map((r, i) => {
             const game = GAMES.find((g) => g.id === r.game_type);
             return (
@@ -190,7 +190,7 @@ export default function WarmupComplete() {
                   </Text>
                   <View style={styles.rowMetrics}>
                     <Text style={[styles.metric, { color: '#22c55e' }]}>+{r.score}</Text>
-                    <Text style={[styles.metric, { color: colors.textSecondary }]}>{r.time_seconds.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+                    <Text style={[styles.metric, { color: colors.textSecondary }]}>{r.time_seconds.toFixed(1)}{t('secShort')}</Text>
                     {r.errors > 0 && <Text style={[styles.metric, { color: '#f43f5e' }]}>✗{r.errors}</Text>}
                   </View>
                 </View>
@@ -200,26 +200,24 @@ export default function WarmupComplete() {
           })}
           {meta.steps.length > results.length && (
             <Text style={[styles.skipped, { color: colors.textSecondary }]}>
-              {language === 'ru' ? 'Пропущено: ' : 'Skipped: '}{meta.steps.length - results.length}{language === 'ru' ? ' игр' : ' games'}
+              {t('skippedGamesN').replace('{n}', String(meta.steps.length - results.length))}
             </Text>
           )}
         </View>
 
         {/* Total */}
         <View style={[styles.totalCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>{language === 'ru' ? 'Общий счёт' : 'Total score'}</Text>
+          <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>{t('totalScoreLabel')}</Text>
           <Text style={[styles.totalValue, { color: '#fbbf24' }]}>{totalScore}</Text>
           {sameKindBest > 0 && (
             <Text style={[styles.totalCompare, { color: colors.textSecondary }]}>
-              {isPersonalBest ? (language === 'ru' ? '👑 Лучший в этой категории' : '👑 Best in this category') : (language === 'ru' ? `Лучший: ${sameKindBest}` : `Best: ${sameKindBest}`)}
+              {isPersonalBest ? t('bestInCategory') : t('bestScoreN').replace('{n}', String(sameKindBest))}
             </Text>
           )}
           {combo && combo.bonus > 0 && (
             <View style={styles.comboBadge}>
               <Text style={styles.comboText}>
-                {language === 'ru'
-                  ? `🔥 Комбо ×1.5! ${combo.streakLen} чистых подряд · +${combo.bonus}`
-                  : `🔥 Combo ×1.5! ${combo.streakLen} clean in a row · +${combo.bonus}`}
+                {t('comboLine').replace('{n}', String(combo.streakLen)).replace('{b}', String(combo.bonus))}
               </Text>
             </View>
           )}
@@ -230,8 +228,8 @@ export default function WarmupComplete() {
           <LinearGradient colors={GRADIENT_GREEN as [string, string]} style={styles.streakCard}>
             <Text style={styles.streakEmoji}>🔥</Text>
             <View>
-              <Text style={styles.streakValue}>{language === 'ru' ? `${streak} ${streak === 1 ? 'день' : 'дней'} подряд` : `${streak} ${streak === 1 ? 'day' : 'days'} in a row`}</Text>
-              <Text style={styles.streakLabel}>{language === 'ru' ? 'Не сломай серию' : "Don't break the streak"}</Text>
+              <Text style={styles.streakValue}>{(streak === 1 ? t('streakDayOne') : t('streakDaysMany')).replace('{n}', String(streak))}</Text>
+              <Text style={styles.streakLabel}>{t('dontBreakStreak')}</Text>
             </View>
           </LinearGradient>
         )}
@@ -242,7 +240,7 @@ export default function WarmupComplete() {
             backgroundColor: colors.surface,
             borderLeftColor: verdict.delta_pct > 5 ? '#22c55e' : verdict.delta_pct < -5 ? '#f43f5e' : '#fbbf24',
           }]}>
-            <Text style={[styles.verdictTitle, { color: colors.textSecondary }]}>{language === 'ru' ? '🧠 МОЗГ СЕГОДНЯ' : '🧠 BRAIN TODAY'}</Text>
+            <Text style={[styles.verdictTitle, { color: colors.textSecondary }]}>{t('brainTodayTitle')}</Text>
             <Text style={[styles.verdictMsg, { color: colors.text }]}>{aiVerdictText || verdict.message}</Text>
           </View>
         )}
@@ -252,28 +250,26 @@ export default function WarmupComplete() {
           <View style={[styles.reminderCard, { backgroundColor: colors.surface, borderColor: '#8b5cf6' }]}>
             <Text style={styles.reminderEmoji}>🔔</Text>
             <Text style={[styles.reminderTitle, { color: colors.text }]}>
-              {language === 'ru' ? 'Напомнить завтра?' : 'Remind you tomorrow?'}
+              {t('remindTomorrowQ')}
             </Text>
             <Text style={[styles.reminderBody, { color: colors.textSecondary }]}>
-              {language === 'ru'
-                ? 'Одно мягкое напоминание утром в 9:00 — и стрик не сгорит. Время меняется в Settings.'
-                : 'One gentle reminder at 9:00 AM keeps your streak alive. Change the time in Settings.'}
+              {t('remindTomorrowBody')}
             </Text>
             <TouchableOpacity style={styles.reminderBtn} onPress={enableReminders}>
               <LinearGradient colors={['#8b5cf6', '#6366f1']} style={styles.btnGrad}>
                 <Ionicons name="notifications" size={18} color="#FFF" />
-                <Text style={[styles.btnText, { color: '#FFF', paddingVertical: 0 }]}>{language === 'ru' ? 'ВКЛЮЧИТЬ' : 'ENABLE'}</Text>
+                <Text style={[styles.btnText, { color: '#FFF', paddingVertical: 0 }]}>{t('ctaEnable')}</Text>
               </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity onPress={dismissReminders}>
-              <Text style={[styles.reminderLater, { color: colors.textSecondary }]}>{language === 'ru' ? 'Не сейчас' : 'Not now'}</Text>
+              <Text style={[styles.reminderLater, { color: colors.textSecondary }]}>{t('notNow')}</Text>
             </TouchableOpacity>
           </View>
         )}
         {reminderPrompt === 'enabled' && (
           <View style={[styles.reminderCard, { backgroundColor: colors.surface, borderColor: '#22c55e' }]}>
             <Text style={[styles.reminderTitle, { color: '#22c55e' }]}>
-              {language === 'ru' ? '✓ Напомню утром в 9:00' : '✓ Will remind you at 9:00 AM'}
+              {t('remindSetMorning')}
             </Text>
           </View>
         )}
@@ -283,11 +279,11 @@ export default function WarmupComplete() {
           <TouchableOpacity style={styles.btn} onPress={playAgain}>
             <LinearGradient colors={GRADIENT_GOLD as [string, string]} style={styles.btnGrad}>
               <Ionicons name="refresh" size={18} color="#000" />
-              <Text style={[styles.btnText, { color: '#000' }]}>{language === 'ru' ? 'ЕЩЁ РАЗ' : 'AGAIN'}</Text>
+              <Text style={[styles.btnText, { color: '#000' }]}>{t('ctaAgain')}</Text>
             </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]} onPress={goHome}>
-            <Text style={[styles.btnText, { color: colors.text }]}>{language === 'ru' ? 'На главную' : 'Home'}</Text>
+            <Text style={[styles.btnText, { color: colors.text }]}>{t('goHome')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

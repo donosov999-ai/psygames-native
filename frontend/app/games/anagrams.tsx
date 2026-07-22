@@ -313,17 +313,13 @@ export default function AnagramGame() {
         {/* Карточка уровня: параметры + видимый критерий прохода + сброс ↺1 (паттерн simon/cpt) */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {lvl.level}
+            {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {language === 'ru'
-              ? `${p.trials} слов · ${p.length} букв${p.wordSec > 0 ? ` · ${p.wordSec} с на слово` : ' · без лимита времени'}`
-              : `${p.trials} words · ${p.length} letters${p.wordSec > 0 ? ` · ${p.wordSec} s per word` : ' · no time limit'}`}
+            {(p.wordSec > 0 ? t('anagramsLvlParamsTimed').replace('{w}', String(p.wordSec)) : t('anagramsLvlParamsFree')).replace('{n}', String(p.trials)).replace('{l}', String(p.length))}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {language === 'ru'
-              ? 'Проход уровня: ≥80% слов собрано верно (не успел по времени = ошибка)'
-              : 'To pass: ≥80% words solved correctly (running out of time counts as an error)'}
+            {t('anagramsPass')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -333,7 +329,7 @@ export default function AnagramGame() {
         </View>
 
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Тема' : 'Theme'}</Text>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('themeLabel')}</Text>
           <View style={styles.optionButtons}>
             {ANAGRAM_THEMES.map((th) => (
               <TouchableOpacity key={th.k} style={[styles.modeButton, theme === th.k
@@ -341,7 +337,7 @@ export default function AnagramGame() {
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setTheme(th.k)}>
                 <Text style={[styles.modeButtonText, { color: theme === th.k ? '#3f2b96' : colors.text }]}>
-                  {th.emoji} {language === 'ru' ? th.ru : th.en}
+                  {th.emoji} {t('anagramTheme_' + th.k)}
                 </Text>
               </TouchableOpacity>
             ))}

@@ -283,10 +283,10 @@ export default function TowerLondonGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
         <Text style={[styles.statText, { color: '#22c55e' }]}>✓{solved}</Text>
         <Text style={[styles.statText, { color: GRADIENT[1] }]}>{moves}/{puzzle.minMoves}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
       </View>
       <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('goalState')}</Text>
       <View style={styles.pegRow}>

@@ -365,10 +365,10 @@ export default function MahjongGame() {
 
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
-            {language === 'ru' ? 'Уровень' : 'Level'} {level}
+            {t('level')} {level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {p.pairs} {language === 'ru' ? 'пар' : 'pairs'} · {p.layers} {language === 'ru' ? (p.layers === 1 ? 'слой' : 'слоя') : (p.layers === 1 ? 'layer' : 'layers')}
+            {p.pairs} {t('pairsWord')} · {p.layers} {p.layers === 1 ? t('layerOne') : t('layerMany')}
           </Text>
           {level > 1 && (
             <TouchableOpacity onPress={() => { setLevel(1); levelRef.current = 1; if (!isPreset) lvl.setLevel(1); }} style={{ marginTop: 6 }}>
@@ -378,7 +378,7 @@ export default function MahjongGame() {
         </View>
 
         <JuicyButton
-          label={language === 'ru' ? `Играть — уровень ${level}` : `Play — level ${level}`}
+          label={t('playLevelBtn').replace('{n}', String(level))}
           icon="play" colors={GRADIENT as [string, string]} tint="#04341f" onPress={startGame} style={{ marginTop: 8 }} />
       </ScrollView>
     );
@@ -387,11 +387,11 @@ export default function MahjongGame() {
   const renderPlaying = () => (
     <View style={styles.playArea}>
       <View style={styles.statsRow}>
-        <HudBadge icon="flag" value={`${language === 'ru' ? 'ур.' : 'lv.'} ${level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
+        <HudBadge icon="flag" value={`${t('unitLevelShort')} ${level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
         <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
         <HudBadge icon="checkmark-done" value={`${matched}/${pairsTotal}`} colors={['#5eead4', '#0d9488']} pop />
         <HudBadge icon="close" value={errors} colors={['#fb7185', '#e11d48']} />
-        <HudBadge icon="time" value={`${elapsed.toFixed(1)}${language === 'ru' ? 'с' : 's'}`} colors={['#60a5fa', '#2563eb']} />
+        <HudBadge icon="time" value={`${elapsed.toFixed(1)}${t('secShort')}`} colors={['#60a5fa', '#2563eb']} />
         {!isPreset && <LevelRuleBadge lr={levelRules} color="#0d9488" ru={language === 'ru'} />}
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mahjongHint')}</Text>
@@ -402,14 +402,14 @@ export default function MahjongGame() {
 
       <TouchableOpacity onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Ionicons name="shuffle" size={18} color="#0d9488" />
-        <Text style={[styles.shuffleText, { color: colors.text }]}>{language === 'ru' ? 'Перемешать' : 'Shuffle'}</Text>
+        <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')}</Text>
       </TouchableOpacity>
 
       <ScorePopupLayer popups={popups} />
       {levelBanner !== null && (
         <View style={styles.levelBanner} pointerEvents="none">
-          <Text style={styles.levelBannerText}>🎉 {language === 'ru' ? 'Уровень' : 'Level'} {levelBanner} ✓</Text>
-          <Text style={styles.levelBannerSub}>→ {language === 'ru' ? 'Уровень' : 'Level'} {levelBanner + 1}</Text>
+          <Text style={styles.levelBannerText}>🎉 {t('level')} {levelBanner} ✓</Text>
+          <Text style={styles.levelBannerSub}>→ {t('level')} {levelBanner + 1}</Text>
         </View>
       )}
     </View>
