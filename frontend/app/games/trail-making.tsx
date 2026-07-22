@@ -21,6 +21,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -377,76 +378,90 @@ export default function TrailMakingGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{currentIdx}/{nodes.length}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        {/* Лимит времени уровня виден игроку; просрочил — таймер краснеет */}
-        <Text style={[styles.statText, { color: timeLimit > 0 && elapsedTime > timeLimit ? '#f43f5e' : colors.text }]}>
-          {elapsedTime.toFixed(1)}{timeLimit > 0 ? `/${timeLimit}` : ''}{t('secShort')}
-        </Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-        {currentIdx < nodes.length ? `${t('nextLabel')}: ${nodes[currentIdx].label}` : t('done')}
-      </Text>
-      <View
-        ref={canvasRef}
-        onLayout={measureCanvas}
-        {...panResponder.panHandlers}
-        style={[styles.canvas, { width: playW, height: playH, backgroundColor: colors.surface }]}
+  // Игровая фаза — на едином каркасе GameShell. Канва переносится контейнером
+  // как есть: canvasRef/onLayout/panHandlers остаются на том же View, а
+  // координатная математика drag не зависит от обёрток каркаса —
+  // measureInWindow даёт абсолютную позицию канвы, onDragAt вычитает её из
+  // page-координат пальца (плюс подстраховочный measureCanvas на grant).
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('trailMaking')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{currentIdx}/{nodes.length}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            {/* Лимит времени уровня виден игроку; просрочил — таймер краснеет */}
+            <Text style={[styles.statText, { color: timeLimit > 0 && elapsedTime > timeLimit ? '#f43f5e' : colors.text }]}>
+              {elapsedTime.toFixed(1)}{timeLimit > 0 ? `/${timeLimit}` : ''}{t('secShort')}
+            </Text>
+          </View>
+        }
       >
-        <Svg width={playW} height={playH} style={StyleSheet.absoluteFill as any} pointerEvents="none">
-          {nodes.slice(0, currentIdx).map((n, i) => {
-            if (i === 0) return null;
-            const prev = nodes[i - 1];
-            return (
-              <Line
-                key={i}
-                x1={prev.x} y1={prev.y} x2={n.x} y2={n.y}
-                stroke={GRADIENT[0]} strokeWidth={4}
-              />
-            );
-          })}
-          {/* «Резинка»: от последнего пройденного узла к пальцу во время drag */}
-          {dragPos && currentIdx > 0 && currentIdx < nodes.length && (
-            <Line
-              x1={nodes[currentIdx - 1].x} y1={nodes[currentIdx - 1].y}
-              x2={dragPos.x} y2={dragPos.y}
-              stroke={GRADIENT[0]} strokeWidth={4} strokeOpacity={0.55} strokeLinecap="round"
-            />
-          )}
-        </Svg>
-        {nodes.map((n, i) => {
-          const done = i < currentIdx;
-          let bg = colors.card;
-          let textColor = colors.text;
-          let borderColor = colors.textSecondary;   // все невыполненные узлы — одинаковая заметная рамка
-          // следующий узел НЕ подсвечиваем: искать его по последовательности и есть суть игры (было: оранжевая рамка выдавала ГДЕ он)
-          if (done) { bg = GRADIENT[0]; textColor = '#FFF'; borderColor = GRADIENT[0]; }
-          return (
-            <TouchableOpacity
-              key={i}
-              activeOpacity={0.7}
-              onPress={() => handleNodePress(i)}
-              style={[
-                styles.node,
-                {
-                  left: n.x - 22,
-                  top: n.y - 22,
-                  backgroundColor: bg,
-                  borderColor,
-                  borderWidth: 2,
-                },
-              ]}
-            >
-              <Text style={[styles.nodeLabel, { color: textColor }]}>{n.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
+        <View style={styles.fieldCol}>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            {currentIdx < nodes.length ? `${t('nextLabel')}: ${nodes[currentIdx].label}` : t('done')}
+          </Text>
+          <View
+            ref={canvasRef}
+            onLayout={measureCanvas}
+            {...panResponder.panHandlers}
+            style={[styles.canvas, { width: playW, height: playH, backgroundColor: colors.surface }]}
+          >
+            <Svg width={playW} height={playH} style={StyleSheet.absoluteFill as any} pointerEvents="none">
+              {nodes.slice(0, currentIdx).map((n, i) => {
+                if (i === 0) return null;
+                const prev = nodes[i - 1];
+                return (
+                  <Line
+                    key={i}
+                    x1={prev.x} y1={prev.y} x2={n.x} y2={n.y}
+                    stroke={GRADIENT[0]} strokeWidth={4}
+                  />
+                );
+              })}
+              {/* «Резинка»: от последнего пройденного узла к пальцу во время drag */}
+              {dragPos && currentIdx > 0 && currentIdx < nodes.length && (
+                <Line
+                  x1={nodes[currentIdx - 1].x} y1={nodes[currentIdx - 1].y}
+                  x2={dragPos.x} y2={dragPos.y}
+                  stroke={GRADIENT[0]} strokeWidth={4} strokeOpacity={0.55} strokeLinecap="round"
+                />
+              )}
+            </Svg>
+            {nodes.map((n, i) => {
+              const done = i < currentIdx;
+              let bg = colors.card;
+              let textColor = colors.text;
+              let borderColor = colors.textSecondary;   // все невыполненные узлы — одинаковая заметная рамка
+              // следующий узел НЕ подсвечиваем: искать его по последовательности и есть суть игры (было: оранжевая рамка выдавала ГДЕ он)
+              if (done) { bg = GRADIENT[0]; textColor = '#FFF'; borderColor = GRADIENT[0]; }
+              return (
+                <TouchableOpacity
+                  key={i}
+                  activeOpacity={0.7}
+                  onPress={() => handleNodePress(i)}
+                  style={[
+                    styles.node,
+                    {
+                      left: n.x - 22,
+                      top: n.y - 22,
+                      backgroundColor: bg,
+                      borderColor,
+                      borderWidth: 2,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.nodeLabel, { color: textColor }]}>{n.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -470,7 +485,6 @@ export default function TrailMakingGame() {
         />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
@@ -518,8 +532,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 8, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 18 },
+  fieldCol: { alignItems: 'center', gap: 8 },
+  statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center' },
   canvas: { borderRadius: 12, position: 'relative', overflow: 'hidden' },

@@ -13,6 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import GameResult from '@/src/components/GameResult';
+import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
@@ -200,67 +201,88 @@ export default function OSpanGame() {
     </ScrollView>
   );
 
-  const renderEq = () => {
+  // игровые фазы (уравнение/буква/ввод букв) — на едином каркасе GameShell:
+  // кнопки суждения и «Проверить» прибиты к низу; модалка правил — поверх (паттерн cpt)
+  if (phase === 'eq' || phase === 'letter' || phase === 'recall') {
     const fbColor = feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.text;
     return (
-      <View style={styles.playArea}>
-        <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize} · {t('label_level_short')}{lvl.level}</Text>
-          <Text style={[styles.statText, { color: '#22c55e' }]}>✓math {mathHits}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗math {mathErrors}</Text>
-          <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
-        </View>
-        <View style={[styles.eqBox, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
-          <Text style={[styles.eqText, { color: fbColor }]}>{eq.left} = {eq.right}</Text>
-        </View>
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('ospanEqHint')}</Text>
-        <View style={styles.choiceRow}>
-          <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: '#22c55e' }]} onPress={() => handleEquation(true)}>
-            <Ionicons name="checkmark" size={28} color="#FFF" />
-            <Text style={styles.choiceText} numberOfLines={1}>{t('correct')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: '#f43f5e' }]} onPress={() => handleEquation(false)}>
-            <Ionicons name="close" size={28} color="#FFF" />
-            <Text style={styles.choiceText} numberOfLines={1}>{t('incorrect')}</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={{ flex: 1 }}>
+        <GameShell
+          title={t('ospan')}
+          onBack={() => goBackOrHome()}
+          scrollableField={phase === 'recall'}
+          stats={
+            phase === 'recall' ? undefined : (
+              <View style={styles.statsRow}>
+                <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize} · {t('label_level_short')}{lvl.level}</Text>
+                {phase === 'eq' && (
+                  <>
+                    <Text style={[styles.statText, { color: '#22c55e' }]}>✓math {mathHits}</Text>
+                    <Text style={[styles.statText, { color: '#f43f5e' }]}>✗math {mathErrors}</Text>
+                    <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
+                  </>
+                )}
+              </View>
+            )
+          }
+          toolbar={
+            phase === 'eq' ? (
+              <View style={styles.choiceRow}>
+                <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: '#22c55e' }]} onPress={() => handleEquation(true)}>
+                  <Ionicons name="checkmark" size={28} color="#FFF" />
+                  <Text style={styles.choiceText} numberOfLines={1}>{t('correct')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: '#f43f5e' }]} onPress={() => handleEquation(false)}>
+                  <Ionicons name="close" size={28} color="#FFF" />
+                  <Text style={styles.choiceText} numberOfLines={1}>{t('incorrect')}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : phase === 'recall' ? (
+              <TouchableOpacity style={[styles.startBtn, styles.recallSubmit]} onPress={handleRecall}>
+                <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                  <Text style={styles.startBtnText}>{t('validateBtn')}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            ) : undefined
+          }
+        >
+          {phase === 'eq' && (
+            <View style={styles.fieldCol}>
+              <View style={[styles.eqBox, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
+                <Text style={[styles.eqText, { color: fbColor }]}>{eq.left} = {eq.right}</Text>
+              </View>
+              <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('ospanEqHint')}</Text>
+            </View>
+          )}
+          {phase === 'letter' && (
+            <View style={styles.fieldCol}>
+              <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('ospanRememberLetter')}</Text>
+              <View style={[styles.letterBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
+                <Text style={[styles.bigLetter, { color: colors.text }]}>{letter}</Text>
+              </View>
+            </View>
+          )}
+          {phase === 'recall' && (
+            <View style={styles.fieldCol}>
+              <Text style={[styles.recallTitle, { color: colors.text }]}>{t('recallNow')}</Text>
+              <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('ospanRecallHint')}</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                placeholder={letterPool.slice(0, setSize).join(' ')}
+                placeholderTextColor={colors.textSecondary}
+                value={recallInput}
+                onChangeText={setRecallInput}
+                autoFocus
+                autoCorrect={false}
+                autoCapitalize="characters"
+              />
+            </View>
+          )}
+        </GameShell>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
     );
-  };
-
-  const renderLetter = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize} · {t('label_level_short')}{lvl.level}</Text>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('ospanRememberLetter')}</Text>
-      <View style={[styles.letterBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
-        <Text style={[styles.bigLetter, { color: colors.text }]}>{letter}</Text>
-      </View>
-    </View>
-  );
-
-  const renderRecall = () => (
-    <View style={styles.playArea}>
-      <Text style={[styles.recallTitle, { color: colors.text }]}>{t('recallNow')}</Text>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('ospanRecallHint')}</Text>
-      <TextInput
-        style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
-        placeholder={letterPool.slice(0, setSize).join(' ')}
-        placeholderTextColor={colors.textSecondary}
-        value={recallInput}
-        onChangeText={setRecallInput}
-        autoFocus
-        autoCorrect={false}
-        autoCapitalize="characters"
-      />
-      <TouchableOpacity style={styles.startBtn} onPress={handleRecall}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('validateBtn')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
-  );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -277,9 +299,6 @@ export default function OSpanGame() {
           benefits={OSPAN_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'eq' && renderEq()}
-      {phase === 'letter' && renderLetter()}
-      {phase === 'recall' && renderRecall()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="ospan" level={levelRef.current} stars={recallErrors === 0 ? 3 : recallErrors <= 2 ? 2 : 1}
@@ -316,7 +335,7 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, padding: 18, gap: 18, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 18 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
   eqBox: { paddingHorizontal: 30, paddingVertical: 22, borderRadius: 16 },
@@ -331,4 +350,6 @@ const styles = StyleSheet.create({
   bigLetter: { fontSize: 88, fontWeight: '900' },
   recallTitle: { fontSize: 22, fontWeight: '800' },
   input: { width: '100%', maxWidth: 360, minHeight: 56, padding: 14, fontSize: 20, borderRadius: 12, borderWidth: 1, textAlign: 'center', fontWeight: '700', letterSpacing: 4 },
+  // кнопка «Проверить» в тулбаре — тянется по ряду до ширины поля ввода
+  recallSubmit: { flexGrow: 1, maxWidth: 360 },
 });

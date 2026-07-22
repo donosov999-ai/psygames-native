@@ -14,6 +14,11 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.143.0] — 2026-07-23
+
+### Changed
+- **Каркас GameShell ЗАКРЫТ — все 60 игр мигрированы** (финальные когорты: sudoku с обеими ориентациями и боковой панелью в landscape, sudoku-samurai с зумом, mahjong со слоями, chess-blind, hanoi, ospan, reading-span, story-recall, trail-making с сохранённой drag-геометрией, tower-london). Единое поведение: поле по центру, статы в шапке, действия прибиты к низу. Хабы span/attention-conflict — меню выбора, вне каркаса осознанно.
+
 ## [1.142.0] — 2026-07-23
 
 ### Added

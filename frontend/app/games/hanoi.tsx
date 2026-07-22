@@ -12,6 +12,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
+import GameShell from '@/src/components/GameShell';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -142,7 +143,7 @@ export default function HanoiGame() {
     }
   };
 
-  const pegW = Math.min((width - 24) / (pegs.length + 0.5), 110);   // подгон под число стержней
+  const pegW = Math.min((width - 36) / (pegs.length + 0.5), 110);   // подгон под число стержней (24→36: паддинг поля GameShell 16×2)
   const discBaseW = pegW * 0.35;
   const discStep = (pegW - discBaseW) / Math.max(discs, 2);
   const baseHue = DISC_HUE[profile?.id ?? ''] ?? 215;
@@ -168,14 +169,22 @@ export default function HanoiGame() {
     </ScrollView>
   );
 
+  // Единый каркас GameShell: статы — в props каркаса, поле = стержни + подсказка
+  // (кнопок действий нет — тулбар не нужен). Тап-обработчики дисков/стержней не тронуты.
   const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{moves} / {optimal(discs)}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
-        {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
-      </View>
+    <GameShell
+      title={t('hanoi')}
+      onBack={() => goBackOrHome()}
+      stats={
+        <View style={styles.statsRow}>
+          <Text style={[styles.statText, { color: colors.text }]}>{moves} / {optimal(discs)}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
+          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+          <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
+          {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
+        </View>
+      }
+    >
+      <View style={styles.fieldCol}>
       <View style={styles.pegsArea}>
         {pegs.map((peg, idx) => (
           <TouchableOpacity
@@ -217,8 +226,20 @@ export default function HanoiGame() {
         ))}
       </View>
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('hanoiHint')}</Text>
-    </View>
+      </View>
+    </GameShell>
   );
+
+  // Игровая фаза — на едином каркасе GameShell; модалка правил уровня поверх
+  // (обёртка View flex:1, паттерн digit-span).
+  if (phase === 'playing') {
+    return (
+      <View style={{ flex: 1 }}>
+        {renderPlaying()}
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -235,7 +256,6 @@ export default function HanoiGame() {
           benefits={HANOI_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         // Чисто прошёл уровень (решил пазл) → баннер + авто-старт следующего.
@@ -275,8 +295,9 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 12, gap: 10 },
-  statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 18 },
+  // Поле каркаса центрирует контент; stretch — чтобы стержни распределялись по всей ширине
+  fieldCol: { alignSelf: 'stretch', gap: 10 },
+  statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 18, flexWrap: 'wrap' },
   statText: { fontSize: 14, fontWeight: '700' },
   // ЗАЧЕМ: без flex:1 блок стержней сжимается по своему контенту, и playArea(justifyContent:center)
   // ставит башню в вертикальный ЦЕНТР экрана, а не прибивает к низу с пустым провалом сверху.

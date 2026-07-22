@@ -13,6 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import GameResult from '@/src/components/GameResult';
+import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
@@ -205,59 +206,79 @@ export default function ReadingSpanGame() {
     </ScrollView>
   );
 
-  const renderPlaying = () => {
-    const cur = seq[stepIdx];
-    const sentence = language !== 'ru' ? cur.en : cur.ru;
-    const lastWord = language !== 'ru' ? cur.lastEn : cur.lastRu;
+  // игровые фазы (суждение/ввод слов) — на едином каркасе GameShell:
+  // кнопки суждения и «Проверить» прибиты к низу (эталон math-sprint),
+  // поле в скролле — длинная фраза при крупном шрифте и клавиатура на recall
+  if (phase === 'playing' || phase === 'recall') {
     return (
-      <ScrollView style={styles.playScroll} contentContainerStyle={styles.playArea} showsVerticalScrollIndicator={false}>
-        <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{seq.length}</Text>
-          <Text style={[styles.statText, { color: GRADIENT[1] }]}>📝 {judgeHits}</Text>
-          <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
-        </View>
-        <View style={[styles.sentenceBox, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.sentenceText, { color: colors.text }]}>{sentence}</Text>
-          <Text style={[styles.lastWordHint, { color: colors.text }]}>
-            {t('rememberLast')}: <Text style={styles.lastWordBold}>{lastWord}</Text>
-          </Text>
-        </View>
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('readingSpanJudge')}</Text>
-        <View style={styles.judgeRow}>
-          <TouchableOpacity style={[styles.judgeBtn, { backgroundColor: '#22c55e' }]} onPress={() => handleJudge(true)}>
-            <Ionicons name="checkmark" size={28} color="#FFF" />
-            <Text style={styles.judgeText} numberOfLines={2}>{t('makesSense')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.judgeBtn, { backgroundColor: '#f43f5e' }]} onPress={() => handleJudge(false)}>
-            <Ionicons name="close" size={28} color="#FFF" />
-            <Text style={styles.judgeText} numberOfLines={2}>{t('nonsense')}</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+      <GameShell
+        title={t('readingSpan')}
+        onBack={() => goBackOrHome()}
+        scrollableField
+        stats={
+          phase === 'playing' ? (
+            <View style={styles.statsRow}>
+              <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{seq.length}</Text>
+              <Text style={[styles.statText, { color: GRADIENT[1] }]}>📝 {judgeHits}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
+            </View>
+          ) : undefined
+        }
+        toolbar={
+          phase === 'playing' ? (
+            <View style={styles.judgeRow}>
+              <TouchableOpacity style={[styles.judgeBtn, { backgroundColor: '#22c55e' }]} onPress={() => handleJudge(true)}>
+                <Ionicons name="checkmark" size={28} color="#FFF" />
+                <Text style={styles.judgeText} numberOfLines={2}>{t('makesSense')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.judgeBtn, { backgroundColor: '#f43f5e' }]} onPress={() => handleJudge(false)}>
+                <Ionicons name="close" size={28} color="#FFF" />
+                <Text style={styles.judgeText} numberOfLines={2}>{t('nonsense')}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity style={[styles.startBtn, styles.recallBtn]} onPress={handleRecallSubmit}>
+              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                <Text style={styles.startBtnText} numberOfLines={1}>{t('validateBtn')}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )
+        }
+      >
+        {phase === 'playing' ? (() => {
+          const cur = seq[stepIdx];
+          const sentence = language !== 'ru' ? cur.en : cur.ru;
+          const lastWord = language !== 'ru' ? cur.lastEn : cur.lastRu;
+          return (
+            <View style={styles.fieldCol}>
+              <View style={[styles.sentenceBox, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.sentenceText, { color: colors.text }]}>{sentence}</Text>
+                <Text style={[styles.lastWordHint, { color: colors.text }]}>
+                  {t('rememberLast')}: <Text style={styles.lastWordBold}>{lastWord}</Text>
+                </Text>
+              </View>
+              <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('readingSpanJudge')}</Text>
+            </View>
+          );
+        })() : (
+          <View style={styles.fieldCol}>
+            <Text style={[styles.recallTitle, { color: colors.text }]} numberOfLines={2}>{t('recallNow')}</Text>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('recallHint')}</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+              placeholder={t('recallPlaceholder')}
+              placeholderTextColor={colors.textSecondary}
+              value={recallInput}
+              onChangeText={setRecallInput}
+              autoFocus
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+          </View>
+        )}
+      </GameShell>
     );
-  };
-
-  const renderRecall = () => (
-    <View style={styles.recallArea}>
-      <Text style={[styles.recallTitle, { color: colors.text }]} numberOfLines={2}>{t('recallNow')}</Text>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('recallHint')}</Text>
-      <TextInput
-        style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
-        placeholder={t('recallPlaceholder')}
-        placeholderTextColor={colors.textSecondary}
-        value={recallInput}
-        onChangeText={setRecallInput}
-        autoFocus
-        autoCorrect={false}
-        autoCapitalize="none"
-      />
-      <TouchableOpacity style={[styles.startBtn, styles.recallBtn]} onPress={handleRecallSubmit}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText} numberOfLines={1}>{t('validateBtn')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
-  );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -274,8 +295,6 @@ export default function ReadingSpanGame() {
           benefits={RS_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
-      {phase === 'recall' && renderRecall()}
       {phase === 'cleared' && (
         <LevelCleared gameId="reading_span" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}
@@ -313,12 +332,8 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playScroll: { flex: 1 },
-  // flexGrow:1 + justifyContent:'center' — центр по вертикали, пока влезает; дальше скроллится
-  // (при крупном шрифте перенесённый ряд кнопок + длинная фраза не влезали в экран)
-  playArea: { flexGrow: 1, justifyContent: 'center', padding: 18, gap: 18, alignItems: 'stretch' },
-  // фаза ввода слов — сверху (не центр), чтобы клавиатура не закрыла поле и кнопку
-  recallArea: { flex: 1, paddingTop: 40, paddingHorizontal: 18, gap: 18, alignItems: 'center' },
+  // игровое поле внутри каркаса: колонка на всю ширину, содержимое центрировано
+  fieldCol: { width: '100%', maxWidth: 540, alignSelf: 'center', alignItems: 'center', gap: 18 },
   // flexWrap — три счётчика при крупном шрифте переносятся, а не уезжают за край
   statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
