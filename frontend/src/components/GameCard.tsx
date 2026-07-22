@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { gameIcon } from '@/src/constants/gameIcons';
+import { gameThumb } from '@/src/constants/gameThumbs';
 
 interface GameCardProps {
   id?: string;
@@ -44,6 +45,7 @@ export default function GameCard({
 }: GameCardProps) {
   useTheme();
   const gameImg = gameIcon(id);
+  const thumb = gameThumb(id);   // превью-фон карточки (может не быть — тогда как раньше)
   const scale = useRef(new Animated.Value(1)).current;
   const spring = (to: number) => Animated.spring(scale, { toValue: to, friction: 7, useNativeDriver: true }).start();
   const { t } = useLanguage();
@@ -106,6 +108,17 @@ export default function GameCard({
           end={{ x: 1, y: 1 }}
           style={styles.card}
         >
+        {/* v1.128.0: превью игры фоном под затемнением — репорт «кнопке хорошо бы
+            скрин игры фоном под прозрачной». Миниатюры взяты готовыми с промо-сайта
+            (там их отрисовали для страницы «Все 48 тренажёров»), ~4 КБ каждая.
+            Игры без превью (13 новых) рендерятся как раньше — фолбэк на градиент. */}
+        {thumb && (
+          <View style={styles.thumbLayer} pointerEvents="none">
+            <Image source={thumb} style={styles.thumbImg} resizeMode="cover" />
+            {/* затемнение: текст поверх должен читаться на любой картинке */}
+            <View style={[styles.thumbScrim, { backgroundColor: light ? 'rgba(255,255,255,0.62)' : 'rgba(0,0,0,0.52)' }]} />
+          </View>
+        )}
         {/* Icon — top, fixed position */}
         {gameImg ? (
           <Image source={gameImg} style={styles.iconImage} resizeMode="cover" />
@@ -142,6 +155,10 @@ export default function GameCard({
 }
 
 const styles = StyleSheet.create({
+  // Слой превью: абсолютом под контентом карточки, обрезается её borderRadius
+  thumbLayer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' },
+  thumbImg: { width: '100%', height: '100%' },
+  thumbScrim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   card: {
     flex: 1,                       // fill wrapper
     borderRadius: 20,

@@ -286,7 +286,9 @@ const translations: Translations = {
 
   // Skills (new)
   skillWorkingMemory: { ru: 'Тренируем: оперативную память', en: 'Training: working memory' },
-  skillInhibition: { ru: 'Тренируем: торможение', en: 'Training: inhibition' },
+  // Тот же «торможение» → «самоконтроль», что и в названии категории (catAction):
+  // подпись висит на КАЖДОЙ карточке этой категории, чинить только заголовок бессмысленно.
+  skillInhibition: { ru: 'Тренируем: самоконтроль', en: 'Training: self-control' },
   skillShortTermMemory: { ru: 'Тренируем: кратковременную память', en: 'Training: short-term memory' },
   skillVisualMemory: { ru: 'Тренируем: зрительную память', en: 'Training: visual memory' },
   skillSwitching: { ru: 'Тренируем: переключение внимания', en: 'Training: attention switching' },
@@ -662,12 +664,18 @@ const translations: Translations = {
   catMemory:    { ru: 'Память',                          en: 'Memory' },
   catAttention: { ru: 'Внимание',                        en: 'Attention' },
   catLogic:     { ru: 'Логика и принятие решений',       en: 'Logic & Decisions' },
-  catAction:    { ru: 'Скорость и торможение',           en: 'Speed & Control' },
+  // ЗАЧЕМ «самоконтроль» вместо «торможение» (репорт тестировщика: «Торможение?
+  // не совсем понятно что это»): «торможение» — калька с inhibition, вне
+  // психологии читается как автомобильное. Суть категории (ингибиторный
+  // контроль = затормозить готовую реакцию) сохранена: «самоконтроль» — бытовое
+  // название ровно этого. Вариант «Скорость и реакция» отброшен — он теряет
+  // смысл подавления и превращает категорию в «просто быстро».
+  catAction:    { ru: 'Скорость и самоконтроль',         en: 'Speed & Self-Control' },
   catIntuition: { ru: 'Интуиция и риск',                 en: 'Intuition & Risk' },
   // Legacy keys (kept for back-compat with anything that still references them)
-  catControl:   { ru: 'Скорость и торможение',           en: 'Speed & Control' },
-  catMath:      { ru: 'Скорость и торможение',           en: 'Speed & Control' },
-  catSpeed:     { ru: 'Скорость и торможение',           en: 'Speed & Control' },
+  catControl:   { ru: 'Скорость и самоконтроль',         en: 'Speed & Self-Control' },
+  catMath:      { ru: 'Скорость и самоконтроль',         en: 'Speed & Self-Control' },
+  catSpeed:     { ru: 'Скорость и самоконтроль',         en: 'Speed & Self-Control' },
 
   // Round-3 games — names
   pattern:    { ru: 'Паттерны: мышление',         en: 'Patterns: Reasoning' },
@@ -1214,7 +1222,23 @@ const translations: Translations = {
   title_real_life_benefits: { ru: 'Польза в жизни', en: 'Real-life benefits' },
   title_tip: { ru: 'Совет', en: 'Tip' },
   desc_regular_training_tip: { ru: 'Регулярные тренировки по 5-10 минут в день дают лучший результат, чем редкие длинные сессии.', en: 'Regular 5-10 minute daily sessions give better results than occasional long sessions.' },
-  btn_help: { ru: 'Справка', en: 'Help' },
+  // ЗАЧЕМ «Как играть» вместо «Справка» (репорты по set-game и n-back: «не понимаю
+  // как играть, справка где?»): человек ищет глазами свой вопрос, а не служебное
+  // слово «справка» — кнопка должна называться его словами.
+  btn_help: { ru: 'Как играть', en: 'How to play', es: 'Cómo jugar', pt: 'Como jogar', de: 'Spielanleitung', zh: '怎么玩', hi: 'कैसे खेलें' },
+  // Подпись под глобальной «?»-кнопкой (GameHelpOverlay) — голая иконка не читалась.
+  btn_rules: { ru: 'Правила', en: 'Rules', es: 'Reglas', pt: 'Regras', de: 'Regeln', zh: '规则', hi: 'नियम' },
+  btn_got_it: { ru: 'Понятно', en: 'Got it', es: 'Entendido', pt: 'Entendi', de: 'Verstanden', zh: '明白了', hi: 'समझ गया' },
+  // Одноразовое облачко-указатель на «?» при первом заходе в игру.
+  helpCoachText: {
+    ru: 'Не понимаешь, как играть? Правила игры — здесь',
+    en: 'Not sure how to play? The rules are here',
+    es: '¿No sabes cómo jugar? Las reglas están aquí',
+    pt: 'Não sabe como jogar? As regras estão aqui',
+    de: 'Unklar, wie es geht? Hier sind die Regeln',
+    zh: '不知道怎么玩？规则在这里',
+    hi: 'खेलना समझ नहीं आया? नियम यहाँ हैं',
+  },
   toast_new_level_unlocked: { ru: '🎉 Новый уровень разблокирован!', en: '🎉 New level unlocked!' },
 };
 

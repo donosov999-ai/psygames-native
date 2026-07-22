@@ -44,6 +44,9 @@ export const CATEGORY_ORDER: GameCategory[] = [
   'recovery',
 ];
 
+/** Видимые названия категорий живут в переводах (titleKey → LanguageContext),
+ *  здесь только ключ/иконка/цвет. 'action' подписана «Скорость и самоконтроль»:
+ *  прежнее «Скорость и торможение» тестировщики не понимали (см. коммент у catAction). */
 export const CATEGORY_META: Record<GameCategory, { titleKey: string; icon: string; color: string }> = {
   memory:    { titleKey: 'catMemory',    icon: 'library-outline',         color: '#f093fb' },
   attention: { titleKey: 'catAttention', icon: 'eye-outline',             color: '#667eea' },

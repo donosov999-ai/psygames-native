@@ -24,6 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 
 const GRADIENT = ['#7c3aed', '#ec4899'];
 
@@ -79,6 +80,7 @@ export default function AttentionConflictGame() {
       </View>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.heroCard}>
+          <GamePreviewBackground />
           <Ionicons name="layers" size={48} color="#FFF" />
           <Text style={styles.heroTitle}>{t('attentionConflict')}</Text>
           <Text style={styles.heroDesc}>{t('attentionConflictDesc')}</Text>
@@ -118,8 +120,8 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   scrollContent: { padding: 16, gap: 14, paddingBottom: 40 },
-  heroCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  heroTitle: { fontSize: 22, fontWeight: '700', color: '#FFF', textAlign: 'center' },
+  heroCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8, overflow: 'hidden' },
+  heroTitle: { fontSize: 22, fontWeight: '700', color: '#FFF', textAlign: 'center', textShadowColor: 'rgba(0,0,0,.55)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 8 },
   heroDesc: { fontSize: 13, color: '#FFF', opacity: 0.92, textAlign: 'center', lineHeight: 18 },
   sectionLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: 8, marginLeft: 4 },
   subCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, gap: 14, borderWidth: 1 },

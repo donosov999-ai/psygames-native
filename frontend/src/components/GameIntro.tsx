@@ -14,6 +14,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { JuicyButton } from '@/src/components/juice';
 import { gameIconByNameKey } from '@/src/constants/gameIcons';
+import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 
 interface Benefit {
   icon: string;
@@ -74,6 +75,7 @@ export default function GameIntro({
           end={{ x: 1, y: 1 }}
           style={styles.heroCard}
         >
+          <GamePreviewBackground />
           {heroImg ? (
             <Image source={heroImg} style={styles.heroImage} />
           ) : (
@@ -211,6 +213,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     marginBottom: 16,
+    overflow: 'hidden',
   },
   heroImage: { width: 88, height: 88, borderRadius: 22, marginBottom: 12 },
   iconContainer: {
@@ -228,11 +231,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 12,
+    textShadowColor: 'rgba(0, 0, 0, 0.55)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   skillBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    backgroundColor: 'rgba(8, 7, 20, 0.46)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -54,34 +54,62 @@ export default function TargetsGame() {
   const [level, setLevel] = useState(() => num('level', 1));
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
-  const [round, setRound] = useState(0);
-  const [isTarget, setIsTarget] = useState(false);
+  // Рендерится только то, что реально видно на экране. Раньше тут же жили
+  // round/isTarget/showTime/gameOver — в JSX они НЕ используются, но каждый setState
+  // гонял лишний ре-рендер игрового поля (LinearGradient + фигуры) по 4 раза за раунд.
+  // Их значения переехали в рефы ниже (см. levelRef/isTargetRef/showTimeRef/gameOverRef).
   const [shapes, setShapes] = useState<{ type: 'circle' | 'square'; color: string }[]>([]);
   const [prevCircleColor, setPrevCircleColor] = useState<string | null>(null);
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
-  const [showTime, setShowTime] = useState(0);
   const [feedback, setFeedback] = useState<'hit' | 'miss' | 'wrong' | null>(null);
-  const [gameOver, setGameOver] = useState(false);
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const roundsPerLevel = 10;
 
   // Рефы для значений, читаемых из таймерных колбэков (фикс stale-closure).
   // generateRound/nextRound/handleMiss вызываются из setTimeout со СТАРЫМ замыканием,
   // поэтому level/round «застревали» и потом скакали (2→9). Источник истины — рефы,
-  // state (setLevel/setRound/...) остаётся только для рендера HUD.
+  // state (setLevel/setLives/...) остаётся только для рендера HUD.
   const levelRef = useRef(level);
   const roundRef = useRef(0);
   const livesRef = useRef(3);
   const gameOverRef = useRef(false);
   const isTargetRef = useRef(false);
   const prevColorRef = useRef<string | null>(null);
+  const showTimeRef = useRef(0);                 // момент показа стимула — нужен только для RT, не для рендера
+  const scoreRef = useRef(0);                    // endGame зовётся из setTimeout → state в его замыкании отстаёт
+  const rtRef = useRef<number[]>([]);            // на последний хит; в БД уходили бы старые очки/RT
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
+  // ── ОДИН слот таймера на весь игровой цикл ──────────────────────────────────
+  // ЗАЧЕМ: цикл строго последовательный (показ → ответ/промах → пауза → показ),
+  // одновременно живых шагов не бывает. Раньше в timerRef хранился ТОЛЬКО таймер
+  // авто-промаха, а таймауты фидбэка (300мс), паузы между раундами (200мс) и старта
+  // (500мс) не хранились нигде и не отменялись. Итог: тап в паузе между раундами
+  // (или дабл-тап по «НАЧАТЬ») запускал ВТОРУЮ независимую цепочку generateRound,
+  // и дальше два-три цикла крутились параллельно — каждый со своим таймером и своим
+  // раундом. Отсюда и репорты: цвета/крестик «мигают», а темп «ускоряется» к концу
+  // уровня (цепочки копятся по ходу уровня и никогда не схлопываются).
+  // Единственный слот делает лишнюю цепочку невозможной: новый шаг отменяет прошлый.
+  const stepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stoppedRef = useRef(false);              // размонтировали/ушли назад — таймеры молчат
+  const roundLiveRef = useRef(false);            // стимул на экране и ещё не отвечен
+
+  const clearAllTimers = () => {
+    if (stepTimerRef.current) {
+      clearTimeout(stepTimerRef.current);
+      stepTimerRef.current = null;
+    }
+  };
+
+  const schedule = (fn: () => void, ms: number) => {
+    clearAllTimers();
+    stepTimerRef.current = setTimeout(() => {
+      stepTimerRef.current = null;
+      if (stoppedRef.current) return;
+      fn();
+    }, ms);
+  };
+
+  useEffect(() => () => { stoppedRef.current = true; clearAllTimers(); }, []);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const getLifeBonus = (lvl: number): number => {
     if (lvl <= 3) return 1;
@@ -90,7 +118,7 @@ export default function TargetsGame() {
   };
 
   const generateRound = () => {
-    if (gameOverRef.current) return;
+    if (stoppedRef.current || gameOverRef.current) return;
 
     const newShapes: { type: 'circle' | 'square'; color: string }[] = [];
     
@@ -116,62 +144,72 @@ export default function TargetsGame() {
     
     prevColorRef.current = circleColor;
     isTargetRef.current = target;
+    showTimeRef.current = Date.now();
+    roundLiveRef.current = true;        // с этого момента тап засчитывается (см. handleClick)
+    // Один синхронный блок = один ре-рендер поля (React 18+ батчит), фигуры не «моргают»
     setPrevCircleColor(circleColor);
     setShapes(newShapes);
-    setIsTarget(target);
-    setShowTime(Date.now());
 
     // Auto-advance after delay (по СВЕЖЕМУ уровню из рефа, не из stale-замыкания)
     const delay = levelParams(levelRef.current).delay;
     // Передаём СВЕЖИЙ target в таймаут: handleMiss из этого замыкания читал бы stale isTarget
     // (значение ПРОШЛОГО раунда — setIsTarget ещё не применился) → снимал жизнь на НЕ-мишени,
     // если прошлый раунд был мишенью. Теперь решение по факту текущего раунда.
-    timerRef.current = setTimeout(() => {
-      handleMiss(target);
-    }, delay);
+    schedule(() => handleMiss(target), delay);
   };
 
   const startGame = () => {
+    clearAllTimers();                   // «Играть снова» не должно наследовать таймер прошлой партии
+    stoppedRef.current = false;
+    roundLiveRef.current = false;
     const startLvl = isPreset ? level : Math.max(level, lvl.level);   // старт с сохранённого уровня
     if (!isPreset) setLevel(startLvl);
+    scoreRef.current = 0;
     setScore(0);
     livesRef.current = 3 + getLifeBonus(startLvl);
     setLives(livesRef.current);
     roundRef.current = 0;
-    setRound(0);
     levelRef.current = startLvl;        // стартовый уровень (сохранённый или из конфига)
     gameOverRef.current = false;
     isTargetRef.current = false;
     prevColorRef.current = null;
+    rtRef.current = [];
     setReactionTimes([]);
     setPrevCircleColor(null);
-    setGameOver(false);
+    setShapes([]);
     setFeedback(null);
     setPhase('ready');
   };
 
   const beginRounds = () => {
     setPhase('playing');
-    setTimeout(() => {
-      generateRound();
-    }, 500);
+    // через общий слот: дабл-тап по «НАЧАТЬ» больше не даёт двух параллельных циклов
+    schedule(generateRound, 500);
   };
 
   const handleClick = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (gameOverRef.current) return;
+    // ЗАЧЕМ roundLiveRef: тап засчитывается ТОЛЬКО пока стимул на экране и не отвечен.
+    // Раньше тап в паузе между раундами (200/300мс) читал isTargetRef ПРОШЛОГО раунда —
+    // фантомный «хит» с завышенным RT или потеря жизни ни за что — и вдобавок заводил
+    // вторую цепочку таймеров. На высоких уровнях (delay 450мс) в паузы попадали
+    // постоянно → мигание цветов и «ускорение» ближе к концу уровня.
+    if (stoppedRef.current || gameOverRef.current || !roundLiveRef.current) return;
+    roundLiveRef.current = false;
+    clearAllTimers();                                  // снять авто-промах текущего раунда
 
-    const reactionTime = Date.now() - showTime;
+    const reactionTime = Date.now() - showTimeRef.current;
 
     if (isTargetRef.current) {
       // Correct hit!
       setFeedback('hit');
-      setReactionTimes(prev => [...prev, reactionTime]);
+      rtRef.current = [...rtRef.current, reactionTime];
+      setReactionTimes(rtRef.current);
 
       // Calculate points
       const delay = levelParams(levelRef.current).delay;
       const points = Math.floor((levelRef.current * levelRef.current) * Math.max(0, delay - reactionTime) / 100);
-      setScore(prev => prev + points);
+      scoreRef.current += points;
+      setScore(scoreRef.current);
     } else {
       // Wrong click
       setFeedback('wrong');
@@ -180,24 +218,20 @@ export default function TargetsGame() {
 
       if (livesRef.current <= 0) {
         gameOverRef.current = true;
-        setGameOver(true);
-        setTimeout(() => {
-          endGame();
-        }, 500);
+        schedule(endGame, 500);
         return;
       }
     }
 
-    setTimeout(() => {
+    schedule(() => {
       setFeedback(null);
-      if (!gameOverRef.current) {
-        nextRound();
-      }
+      nextRound();
     }, 300);
   };
 
   const handleMiss = (wasTarget: boolean) => {
-    if (gameOverRef.current) return;
+    if (stoppedRef.current || gameOverRef.current) return;
+    roundLiveRef.current = false;                      // окно ответа закрыто
 
     if (wasTarget) {
       // Missed a target
@@ -207,14 +241,11 @@ export default function TargetsGame() {
 
       if (livesRef.current <= 0) {
         gameOverRef.current = true;
-        setGameOver(true);
-        setTimeout(() => {
-          endGame();
-        }, 500);
+        schedule(endGame, 500);
         return;
       }
 
-      setTimeout(() => {
+      schedule(() => {
         setFeedback(null);
         nextRound();
       }, 300);
@@ -225,7 +256,7 @@ export default function TargetsGame() {
   };
 
   const nextRound = () => {
-    if (gameOverRef.current) return;
+    if (stoppedRef.current || gameOverRef.current) return;
 
     roundRef.current += 1;
 
@@ -238,50 +269,47 @@ export default function TargetsGame() {
         setLevel(levelRef.current);
         if (!isPreset) lvl.reach(levelRef.current);   // сохранить достигнутый уровень между сессиями
         setLives(livesRef.current);
-        setRound(0);
       } else {
         // Все уровни пройдены
         gameOverRef.current = true;
-        setGameOver(true);
         endGame();
         return;
       }
-    } else {
-      setRound(roundRef.current);
     }
 
-    setTimeout(() => {
-      if (!gameOverRef.current) {
-        generateRound();
-      }
-    }, 200);
+    schedule(generateRound, 200);
   };
 
   const endGame = async () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    
-    const avgReaction = reactionTimes.length > 0
-      ? reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length
+    clearAllTimers();
+    roundLiveRef.current = false;
+
+    // Из рефов, а не из state: endGame запускается через setTimeout(500) и его
+    // замыкание относится к рендеру ДО последнего setScore/setReactionTimes —
+    // в БД улетали очки и RT без последнего попадания.
+    const rts = rtRef.current;
+    const avgReaction = rts.length > 0
+      ? rts.reduce((a, b) => a + b, 0) / rts.length
       : 0;
     // Standard deviation of RT — variability marker (higher std = more attention drift)
-    const rtVariance = reactionTimes.length > 1
-      ? reactionTimes.reduce((s, rt) => s + Math.pow(rt - avgReaction, 2), 0) / reactionTimes.length
+    const rtVariance = rts.length > 1
+      ? rts.reduce((s, rt) => s + Math.pow(rt - avgReaction, 2), 0) / rts.length
       : 0;
     const rtStd = Math.sqrt(rtVariance);
 
     try {
       await saveSession({
         game_type: 'targets',
-        score: score,
+        score: scoreRef.current,
         time_seconds: avgReaction / 1000,
         difficulty: `Level ${levelRef.current}`,
         mode: mode,
         errors: 0,
         details: {
-          hits: reactionTimes.length,
+          hits: rts.length,
           mean_rt: Math.round(avgReaction),
           std_rt: Math.round(rtStd),
-          n_targets: reactionTimes.length,
+          n_targets: rts.length,
         },
       });
     } catch (error) {
@@ -290,6 +318,32 @@ export default function TargetsGame() {
     
     setPhase('result');
   };
+
+  // Кнопка «МИШЕНЬ!» статична, но лежит в том же поддереве, что и фигуры/HUD,
+  // и раньше пересобиралась (вместе с LinearGradient) на КАЖДЫЙ setState раунда.
+  // Стабильный onPress + useMemo → тяжёлый градиент рендерится один раз за партию,
+  // а не 4 раза за раунд. handleClick читается через реф, поэтому не устаревает.
+  const handleClickRef = useRef(handleClick);
+  handleClickRef.current = handleClick;
+  const onTargetPress = useCallback(() => handleClickRef.current(), []);
+  const clickButton = useMemo(() => (
+    <TouchableOpacity
+      style={styles.clickButton}
+      onPress={onTargetPress}
+      activeOpacity={0.8}
+    >
+      <LinearGradient
+        colors={GRADIENT as [string, string]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.clickButtonGradient}
+      >
+        <Text style={styles.clickButtonText}>
+          {t('label_target_excl')}
+        </Text>
+      </LinearGradient>
+    </TouchableOpacity>
+  ), [onTargetPress, t]);
 
   const renderConfig = () => (
     <ScrollView style={styles.configScroll} showsVerticalScrollIndicator={false}>
@@ -485,23 +539,8 @@ export default function TargetsGame() {
         )}
       </View>
 
-      {/* Click Button */}
-      <TouchableOpacity 
-        style={styles.clickButton}
-        onPress={handleClick}
-        activeOpacity={0.8}
-      >
-        <LinearGradient
-          colors={GRADIENT as [string, string]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.clickButtonGradient}
-        >
-          <Text style={styles.clickButtonText}>
-            {t('label_target_excl')}
-          </Text>
-        </LinearGradient>
-      </TouchableOpacity>
+      {/* Click Button (мемоизирован — см. clickButton выше) */}
+      {clickButton}
 
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>
         {t('hint_targets_tap_if')}
@@ -531,7 +570,7 @@ export default function TargetsGame() {
       <View style={styles.header}>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.surface }]}
-          onPress={() => goBackOrHome()}
+          onPress={() => { stoppedRef.current = true; clearAllTimers(); goBackOrHome(); }}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

@@ -221,8 +221,11 @@ export default function HomeScreen() {
           <View style={{ flex: 1, minWidth: 0, marginRight: 8, alignItems: 'flex-start' }}>
             {/* D1 v1.122.1: лёгкая подложка под лого-webp — вордмарк тонул на фоне темы без контраста.
                 Полупрозрачная плашка по теме + мягкая тень; hug под ширину лого (alignSelf), раскладку не двигает. */}
-            <View style={{ alignSelf: 'flex-start', maxWidth: 190, width: '100%', backgroundColor: colors.surface + 'CC', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 3, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } }}>
-              <Image source={logoForProfile(profile?.id)} style={{ height: 44, width: '100%', maxWidth: 174 }} resizeMode="contain" />
+            {/* v1.128.0: лого стояло ВПРИТЫК к плашке (maxWidth 174 = ровно её внутренняя
+                ширина) — крайние буквы читались как «срезанные» (репорт). Убрали maxWidth
+                у Image, добавили полям воздуха, скругление ≤ паддинга — углы не съедает. */}
+            <View style={{ alignSelf: 'flex-start', maxWidth: 190, width: '100%', backgroundColor: colors.surface + 'CC', borderRadius: 10, paddingHorizontal: 11, paddingVertical: 5, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } }}>
+              <Image source={logoForProfile(profile?.id)} style={{ height: 40, width: '100%' }} resizeMode="contain" />
             </View>
           </View>
           {/* Очки-токены центра (⭐) + уровень профиля от накопленных токенов (T1 геймификация) */}
@@ -324,7 +327,7 @@ export default function HomeScreen() {
         {/* v1.122.0: подпись — ОТДЕЛЬНОЙ строкой во всю ширину. Раньше делила ряд с 5 иконками
             (252px жёстких) → на 375px тексту оставалось ~83px, и он вставал в столбик,
             разрываясь посреди слова. При системном крупном шрифте съедал пол-экрана. */}
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={2}>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={3}>
           {t('trainYourBrain')} · {t('homeSwitchHint')}
         </Text>
       </View>
@@ -343,7 +346,7 @@ export default function HomeScreen() {
             <Image source={FEATURE_ICONS.eyegym} style={{ width: 46, height: 46, borderRadius: 13, marginRight: 12 }} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.eyeQuickTitle} numberOfLines={2}>{t('eyeGym')}</Text>
-              <Text style={styles.eyeQuickSub} numberOfLines={1}>{t('eyeGymDesc')}</Text>
+              <Text style={styles.eyeQuickSub} numberOfLines={2}>{t('eyeGymDesc')}</Text>
             </View>
             <View style={styles.eyeQuickCta}>
               <Ionicons name="play" size={13} color="#185a9d" />
@@ -367,7 +370,7 @@ export default function HomeScreen() {
               <Text style={[styles.heroTitle, { color: '#FFF' }]}>
                 {language === 'ru' ? 'Вызов дня' : 'Daily challenge'}
               </Text>
-              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
+              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
                 {t(todayChallenge.game.nameKey)} · {t(todayChallenge.difficulty)}
               </Text>
               <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
@@ -406,7 +409,7 @@ export default function HomeScreen() {
                 )}
               </View>
               <Text style={[styles.heroTitle, { color: isRest ? '#FFF' : '#000' }]}>{t('complexWarmup')}</Text>
-              <Text style={[styles.heroSub, { color: isRest ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)' }]} numberOfLines={2}>
+              <Text style={[styles.heroSub, { color: isRest ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)' }]} numberOfLines={3}>
                 {isRest
                   ? t('restDay')
                   : `${todayPreview.steps.length} ${todayPreview.steps.length === 1 ? t('unitGame') : t('unitGames')} · ~${Math.round(todayPreview.est_total_sec / 60)} ${t('unitMin')}`}
@@ -437,7 +440,7 @@ export default function HomeScreen() {
                 <Image source={FEATURE_ICONS.night} style={{ width: 30, height: 30, borderRadius: 8 }} />
               </View>
               <Text style={[styles.heroTitle, { color: '#FFF' }]}>{t('complexEvening')}</Text>
-              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
+              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
                 {eveningMeta.steps.length} {t('unitGames')} · ~{Math.round(eveningMeta.est_total_sec / 60)} {t('unitMin')} · {t('calm')}
               </Text>
               <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
@@ -475,7 +478,7 @@ export default function HomeScreen() {
                 )}
               </View>
               <Text style={[styles.heroTitle, { color: '#FFF' }]}>{t('complexAssessment')}</Text>
-              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
+              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
                 {t('assessmentMeta')}
               </Text>
               <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
@@ -514,7 +517,7 @@ export default function HomeScreen() {
                 )}
               </View>
               <Text style={[styles.heroTitle, { color: '#FFF' }]}>FIN BRAIN</Text>
-              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>
+              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
                 {t('finBrainMeta')}
               </Text>
               {finCooldown.ready ? (
@@ -665,7 +668,9 @@ const styles = StyleSheet.create({
   },
   heroChipMiniText: { color: '#000', fontWeight: '900', fontSize: 10 },
   heroTitle: { fontSize: 14, fontWeight: '900', letterSpacing: 1 },
-  heroSub: { fontSize: 11, fontWeight: '600', lineHeight: 14 },
+  // v1.128.0: фикс. lineHeight:14 убран — при системном крупном шрифте (WebView textZoom)
+  // fontSize растёт, а px-межстрочник нет → строки наезжали и резались (репорт fontScale 1.25)
+  heroSub: { fontSize: 11, fontWeight: '600' },
   heroCta: {
     backgroundColor: '#000',
     paddingVertical: 6,

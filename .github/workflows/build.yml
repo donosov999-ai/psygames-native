@@ -336,16 +336,22 @@ jobs:
         working-directory: src-tauri
         run: cargo tauri android init
 
-      - name: Allow rotation (Android manifest) — sudoku landscape; OrientationGuard enforces portrait elsewhere
+      - name: Respect system auto-rotate (Android manifest) — fullUser
         working-directory: src-tauri
         run: |
-          # v1.30.10: разрешаем поворот (sensor). У судоку есть landscape-раскладка
-          # (сетка слева, цифры справа). Экраны БЕЗ landscape прикрывает OrientationGuard
-          # (webview): в телефонном landscape показывает «поверни в портрет», кроме LANDSCAPE_OK.
+          # ЗАЧЕМ fullUser, а НЕ sensor.
+          # `sensor` крутит активити по датчику ДАЖЕ КОГДА пользователь выключил
+          # автоповорот в настройках телефона — приложение переворачивалось само
+          # вопреки системной настройке (репорт тестировщика: «экран переворачивается
+          # сам, автоповорот отключён»), а потом OrientationGuard ещё и требовал
+          # повернуть обратно. Замкнутый круг раздражения.
+          # `fullUser` = поворот отдан системе: автоповорот ВЫКЛ → активити не крутится
+          # вообще; автоповорот ВКЛ → доступны все ориентации, значит landscape-раскладка
+          # судоку (сетка слева, цифры справа) по-прежнему достижима.
           MANIFEST=gen/android/app/src/main/AndroidManifest.xml
           if [ -f "$MANIFEST" ]; then
-            sed -i 's#android:name=".MainActivity"#android:name=".MainActivity" android:screenOrientation="sensor"#' "$MANIFEST"
-            echo "— rotation (sensor) applied —"; grep -n "screenOrientation\|MainActivity" "$MANIFEST" || true
+            sed -i 's#android:name=".MainActivity"#android:name=".MainActivity" android:screenOrientation="fullUser"#' "$MANIFEST"
+            echo "— rotation (fullUser) applied —"; grep -n "screenOrientation\|MainActivity" "$MANIFEST" || true
           else
             echo "WARN: $MANIFEST не найден — пропускаю (OrientationGuard в webview покрывает)"; find gen/android -name AndroidManifest.xml -type f || true
           fi

@@ -191,9 +191,14 @@ export default function HanoiGame() {
             ]}
           >
             <View style={styles.pegStack}>
-              {peg.map((size, i) => (
+              {/* ЗАЧЕМ: в peg[] индекс 0 = НИЗ стержня, последний элемент = ВЕРХ
+                  (handlePegPress берёт top = from[from.length - 1]). Колонка RN рисует детей
+                  сверху вниз, поэтому массив разворачиваем: без reverse широкий диск оказывался
+                  наверху, а узкий у основания — перевёрнутая пирамида. key=size: размеры на
+                  одном стержне уникальны, индекс после reverse нестабилен. */}
+              {peg.slice().reverse().map((size) => (
                 <LinearGradient
-                  key={i}
+                  key={size}
                   colors={[
                     `hsl(${baseHue}, 68%, ${Math.min(82, 55 + (size / discs) * 28)}%)`,
                     `hsl(${baseHue}, 74%, ${Math.max(34, 42 + (size / discs) * 18)}%)`,
