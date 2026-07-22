@@ -42,24 +42,8 @@ interface Translations {
 }
 
 const translations: Translations = {
-  // Welcome / first-run (WelcomeModal)
-  welcomeTitle: { ru: 'Добро пожаловать в PsyGames', en: 'Welcome to PsyGames' },
-  welcomeSub: { ru: '48+ когнитивных тренажёров (NZT-48 · десятки модификаций)', en: '48+ cognitive games (NZT-48 · dozens of modes)' },
-  welcomeStart: { ru: 'С чего начать?', en: 'Where to start?' },
-  welcomeFreeTitle: { ru: 'Начать с FREE', en: 'Start with FREE' },
-  welcomeFreeSub: { ru: '9 базовых тренажёров · по одному из каждой категории', en: '9 core games · one from each category' },
-  welcomeFreeList: { ru: 'Шульте · Парные картинки · Мишени · Math Sprint · Поиск отличий · Считалка · Анаграммы · Ханой · N-back', en: 'Schulte · Picture Pairs · Targets · Math Sprint · Find Differences · Counter · Anagrams · Hanoi · N-back' },
-  welcomeCodeTitle: { ru: 'У меня есть код доступа', en: 'I have an access code' },
-  welcomeCodeSub: { ru: 'Разблокирует тематический профиль (9 специальных тренажёров)', en: 'Unlocks a themed profile (9 special games)' },
-  welcomeCodeList: { ru: '♟ Шахматист · 🧒 Дети · 📖 Скорочтение · 💊 NZT-48 · 🚗 Водители · 👴 50+ · 💼 Предприниматели · 🎓 ЕГЭ', en: '♟ Chess · 🧒 Kids · 📖 Speed Reading · 💊 NZT-48 · 🚗 Drivers · 👴 50+ · 💼 Entrepreneurs · 🎓 Exams' },
-  welcomeFooter: { ru: 'Можно изменить позже в Settings → Профиль. Прогресс хранится локально на устройстве.', en: 'You can change this later in Settings → Profile. Progress is stored locally on your device.' },
-  welcomeCodeInvalid: { ru: 'Неверный код. Проверь и попробуй ещё раз, или начни с FREE.', en: 'Invalid code. Check it and try again, or start with FREE.' },
-  welcomeBack: { ru: 'назад', en: 'back' },
-  welcomeCodeEntryTitle: { ru: '🔑 Введите код доступа', en: '🔑 Enter access code' },
-  welcomeCodeDesc: { ru: 'Код выдаётся владельцем программы (твоим тренером / преподавателем / организацией). Регистр и пробелы не важны.', en: 'The code is issued by the program owner (your coach / teacher / organization). Case and spaces do not matter.' },
-  welcomeCodePlaceholder: { ru: 'например, CHESS-NZT-2026', en: 'e.g., CHESS-NZT-2026' },
+  // welcomeUnlock — кнопка разблокировки кода в настройках (остальной welcome-блок удалён с WelcomeModal, v1.129.0)
   welcomeUnlock: { ru: 'Разблокировать', en: 'Unlock' },
-  welcomeNoCode: { ru: 'Кода нет → начать с FREE', en: 'No code → start with FREE' },
 
   // Home — hero cards (complexes) + header
   homeSwitchHint: { ru: 'нажми на чип чтобы сменить профиль', en: 'tap the chip to switch profile' },
