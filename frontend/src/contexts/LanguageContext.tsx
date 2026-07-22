@@ -1792,6 +1792,7 @@ const translations: Translations = {
   // v1.140: подписи выбора скина питомца на /pet
   petSkinCat: { ru: 'Нейро-кот', en: 'Neuro Cat' },
   petSkinRobot: { ru: 'Робот', en: 'Robot' },
+  petSkinConstellation: { ru: 'Созвездие', en: 'Constellation' },
 };
 
 /** Standalone-резолвер для кода вне React-дерева: сервисы (reminders, cosmetics)

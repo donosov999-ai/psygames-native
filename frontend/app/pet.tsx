@@ -101,7 +101,7 @@ export default function PetScreen() {
 
         {/* Выбор скина: кот v2 (канон) или прежний робот. Хранится на устройстве. */}
         <View style={styles.skinRow}>
-          {(['cat', 'robot'] as PetSkin[]).map((s) => {
+          {(['cat', 'robot', 'constellation'] as PetSkin[]).map((s) => {
             const on = skin === s;
             return (
               <TouchableOpacity
@@ -112,7 +112,7 @@ export default function PetScreen() {
               >
                 <Image source={petFrame(s, 'idle', 0)} style={styles.skinThumb} resizeMode="contain" />
                 <Text style={[styles.skinLabel, { color: on ? '#8a68f5' : colors.textSecondary }]}>
-                  {t(s === 'cat' ? 'petSkinCat' : 'petSkinRobot')}
+                  {t(s === 'cat' ? 'petSkinCat' : s === 'robot' ? 'petSkinRobot' : 'petSkinConstellation')}
                 </Text>
               </TouchableOpacity>
             );

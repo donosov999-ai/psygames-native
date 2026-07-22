@@ -29,10 +29,13 @@ export async function setPetVisible(on: boolean): Promise<void> {
  *  (прежний Синапс в hi-res). Выбор на экране /pet. */
 const SKIN_KEY = 'psygames_pet_skin';
 export type { PetSkin } from '@/src/components/pet/PetSprite';
-export async function getPetSkin(): Promise<'cat' | 'robot'> {
-  try { return ((await AsyncStorage.getItem(SKIN_KEY)) === 'robot' ? 'robot' : 'cat'); } catch { return 'cat'; }
+export async function getPetSkin(): Promise<'cat' | 'robot' | 'constellation'> {
+  try {
+    const v = await AsyncStorage.getItem(SKIN_KEY);
+    return v === 'robot' || v === 'constellation' ? v : 'cat';
+  } catch { return 'cat'; }
 }
-export async function setPetSkin(skin: 'cat' | 'robot'): Promise<void> {
+export async function setPetSkin(skin: 'cat' | 'robot' | 'constellation'): Promise<void> {
   try { await AsyncStorage.setItem(SKIN_KEY, skin); } catch {}
 }
 
