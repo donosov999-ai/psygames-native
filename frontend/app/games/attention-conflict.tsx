@@ -63,7 +63,11 @@ const SUB_GAMES = [
 
 export default function AttentionConflictGame() {
   // Web-demo: хаб-выбор парадигмы не показываем — сразу первая подигра.
-  if (isWebDemo()) return <Redirect href="/games/flanker" />;
+  // Query (embed=1, lang=…) обязан пережить редирект — embed-контракт с сайтом.
+  if (isWebDemo()) {
+    const qs = typeof window !== 'undefined' ? window.location.search : '';
+    return <Redirect href={('/games/flanker' + qs) as any} />;
+  }
 
   const { colors } = useTheme();
   const { t } = useLanguage();

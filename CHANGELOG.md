@@ -14,6 +14,11 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.138.0] — 2026-07-22
+
+### Fixed
+- **Хаб-редиректы сохраняют query** (`span → digit-span`, `attention-conflict → flanker`): `?embed=1&lang=…` переживают редирект — embed-контракт работает и на хаб-URL (блокер Кодекса из SYNC 22.07).
+
 ## [1.137.0] — 2026-07-22
 
 ### Added
