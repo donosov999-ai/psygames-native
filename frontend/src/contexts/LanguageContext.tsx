@@ -5,8 +5,12 @@ import ptT from './translations/pt';
 import hiT from './translations/hi';
 import zhT from './translations/zh';
 import deT from './translations/de';
+import frT from './translations/fr';
+import itT from './translations/it';
+import jaT from './translations/ja';
+import koT from './translations/ko';
 
-type Language = 'ru' | 'en' | 'es' | 'de' | 'zh' | 'hi' | 'pt';
+type Language = 'ru' | 'en' | 'es' | 'de' | 'zh' | 'hi' | 'pt' | 'fr' | 'it' | 'ja' | 'ko';
 
 /** v1.22.0: 6 базовых языков. Ключи, переведённые только на ru/en, в t()
  *  падают на EN → приложение работает на всех 6, наполнение es/de/zh/hi
@@ -18,6 +22,10 @@ export const LANGUAGES: { code: Language; name: string }[] = [
   { code: 'hi', name: 'हिन्दी' },      // India — #1 рынок Google Play по объёму
   { code: 'zh', name: '中文' },
   { code: 'de', name: 'Deutsch' },
+  { code: 'fr', name: 'Français' },
+  { code: 'it', name: 'Italiano' },
+  { code: 'ja', name: '日本語' },
+  { code: 'ko', name: '한국어' },
   { code: 'ru', name: 'Русский' },
 ];
 const LANG_CODES = LANGUAGES.map((l) => l.code) as string[];
@@ -27,6 +35,8 @@ const LANG_CODES = LANGUAGES.map((l) => l.code) as string[];
  *  — здесь. t() смотрит: инлайн → overlay → EN → RU → key. */
 const OVERLAYS: Partial<Record<Language, Record<string, string>>> = {
   es: esT, pt: ptT, hi: hiT, zh: zhT, de: deT,
+  // v1.129.0: паритет с сайтом (транскреация с EN-базы; ar готов в translations/, ждёт RTL-заход)
+  fr: frT, it: itT, ja: jaT, ko: koT,
 };
 
 interface Translations {
@@ -38,6 +48,12 @@ interface Translations {
     zh?: string;
     hi?: string;
     pt?: string;
+    // v1.129.0: инлайн-переводы для этих языков не ведём — живут в OVERLAYS,
+    // но тип обязан знать ключи, иначе translation[language] не типизируется.
+    fr?: string;
+    it?: string;
+    ja?: string;
+    ko?: string;
   };
 }
 
