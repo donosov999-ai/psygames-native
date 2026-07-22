@@ -13,7 +13,7 @@ import React from 'react';
 import { Image } from 'react-native';
 
 export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep';
-export type PetSkin = 'cat' | 'robot';
+export type PetSkin = 'cat' | 'robot' | 'constellation';
 
 const CAT: Record<PetState, any[]> = {
   walk: [
@@ -81,7 +81,41 @@ const ROBOT: Record<PetState, any[]> = {
   ],
 };
 
-const SKINS: Record<PetSkin, Record<PetState, any[]>> = { cat: CAT, robot: ROBOT };
+
+const CONSTELLATION: Record<PetState, any[]> = {
+  walk: [
+    require('../../../assets/images/pet/constellation/walk0.webp'),
+    require('../../../assets/images/pet/constellation/walk1.webp'),
+    require('../../../assets/images/pet/constellation/walk2.webp'),
+    require('../../../assets/images/pet/constellation/walk3.webp'),
+  ],
+  idle: [
+    require('../../../assets/images/pet/constellation/idle0.webp'),
+    require('../../../assets/images/pet/constellation/idle1.webp'),
+    require('../../../assets/images/pet/constellation/idle2.webp'),
+    require('../../../assets/images/pet/constellation/idle3.webp'),
+  ],
+  wave: [
+    require('../../../assets/images/pet/constellation/wave0.webp'),
+    require('../../../assets/images/pet/constellation/wave1.webp'),
+    require('../../../assets/images/pet/constellation/wave2.webp'),
+    require('../../../assets/images/pet/constellation/wave3.webp'),
+  ],
+  jump: [
+    require('../../../assets/images/pet/constellation/jump0.webp'),
+    require('../../../assets/images/pet/constellation/jump1.webp'),
+    require('../../../assets/images/pet/constellation/jump2.webp'),
+    require('../../../assets/images/pet/constellation/jump3.webp'),
+  ],
+  sleep: [
+    require('../../../assets/images/pet/constellation/sleep0.webp'),
+    require('../../../assets/images/pet/constellation/sleep1.webp'),
+    require('../../../assets/images/pet/constellation/sleep2.webp'),
+    require('../../../assets/images/pet/constellation/sleep3.webp'),
+  ],
+};
+
+const SKINS: Record<PetSkin, Record<PetState, any[]>> = { cat: CAT, robot: ROBOT, constellation: CONSTELLATION };
 
 /** Один кадр скина (для превью выбора и мини-аватара шапки). */
 export function petFrame(skin: PetSkin, state: PetState = 'idle', frame = 0) {
