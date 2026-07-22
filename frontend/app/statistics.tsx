@@ -13,6 +13,7 @@ import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { isRTLLang } from '@/src/services/rtl';
 import { getAllStats, GameStats, getSessions } from '@/src/services/api';
 import { getTokens, levelInfo, getStreak } from '@/src/services/tokens';
 import { GAMES } from '@/src/constants/games';
@@ -94,7 +95,7 @@ export default function StatisticsScreen() {
   const lvl = levelInfo(tokens);
   const totalGames = stats.reduce((s, x) => s + x.total_sessions, 0);
   const totalTime = stats.reduce((s, x) => s + (isFinite(x.total_time) && x.total_time > 0 && x.total_time <= 86400 * 365 ? x.total_time : 0), 0);
-  const formatTotal = (s: number) => s >= 3600 ? `${(s / 3600).toFixed(1)}${language === 'ru' ? 'ч' : 'h'}` : `${Math.round(s / 60)}${language === 'ru' ? 'м' : 'm'}`;
+  const formatTotal = (s: number) => s >= 3600 ? `${(s / 3600).toFixed(1)}${t('unitHourShort')}` : `${Math.round(s / 60)}${t('unitMinShort')}`;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -104,7 +105,7 @@ export default function StatisticsScreen() {
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => goBackOrHome()}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('statistics')}</Text>
         <TouchableOpacity
@@ -132,7 +133,7 @@ export default function StatisticsScreen() {
             backgroundColor: scopeAll ? colors.primary : colors.surface,
             borderWidth: 1, borderColor: scopeAll ? colors.primary : colors.border }}>
           <Text style={{ fontSize: 12, fontWeight: '700', color: scopeAll ? '#fff' : colors.text }}>
-            {language === 'ru' ? 'Все игры' : 'All games'}
+            {t('allGames')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -142,9 +143,7 @@ export default function StatisticsScreen() {
           сессии (брошенные на середине не сохраняются). */}
       {!loading && (
         <Text style={{ textAlign: 'center', color: colors.textSecondary, fontSize: 12, marginBottom: 10 }}>
-          {language === 'ru' ? 'Всего сыграно: ' : 'Total played: '}
-          {stats.reduce((sum, s) => sum + s.total_sessions, 0)}
-          {language === 'ru' ? ' игр (завершённых)' : ' games (completed)'}
+          {t('totalPlayedCompleted').replace('{n}', String(stats.reduce((sum, s) => sum + s.total_sessions, 0)))}
         </Text>
       )}
 
@@ -165,7 +164,7 @@ export default function StatisticsScreen() {
               <View style={{ alignItems: 'center' }}>
                 <Text style={{ fontSize: 20 }}>⭐</Text>
                 <Text style={{ color: '#fff', fontWeight: '900', fontSize: 18 }}>{tokens}</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11 }}>{language === 'ru' ? 'Очки' : 'Tokens'}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11 }}>{t('tokensLabel')}</Text>
               </View>
               {/* flexShrink+minWidth: длинный титул уровня при крупном шрифте не распирает ряд за край карточки */}
               <View style={{ alignItems: 'center', flexShrink: 1, minWidth: 0 }}>
@@ -175,7 +174,7 @@ export default function StatisticsScreen() {
               <View style={{ alignItems: 'center' }}>
                 <Text style={{ fontSize: 20 }}>🔥</Text>
                 <Text style={{ color: '#fff', fontWeight: '900', fontSize: 18 }}>{streakDays}</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11 }}>{language === 'ru' ? 'Стрик' : 'Streak'}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11 }}>{t('streakLabel')}</Text>
               </View>
             </View>
             {lvl.span !== null && (
@@ -184,15 +183,15 @@ export default function StatisticsScreen() {
               </View>
             )}
             <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 12 }}>
-              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{totalGames} {language === 'ru' ? 'игр сыграно' : 'games played'}</Text>
-              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{formatTotal(totalTime)} {language === 'ru' ? 'в игре' : 'in game'}</Text>
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{totalGames} {t('gamesPlayed')}</Text>
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{formatTotal(totalTime)} {t('inGameTime')}</Text>
             </View>
           </LinearGradient>
 
           {/* v1.115.0: недельный ИИ-дайджест — молчаливо не рисуется, пока нет текста (нет ключа/сеть/мало данных) */}
           {aiDigest && (
             <View style={[styles.aiCard, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
-              <Text style={[styles.aiTitle, { color: colors.primary }]}>📅 {language === 'ru' ? 'ИТОГ НЕДЕЛИ' : 'WEEK IN REVIEW'}</Text>
+              <Text style={[styles.aiTitle, { color: colors.primary }]}>📅 {t('weekInReview')}</Text>
               <Text style={[styles.aiText, { color: colors.text }]}>{aiDigest}</Text>
             </View>
           )}
@@ -250,8 +249,8 @@ export default function StatisticsScreen() {
                     const best = Math.max(...arr);
                     const avg = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
                     const caption = best > 0
-                      ? (language === 'ru' ? `Очки — рекорд ${best} · ⌀ ${avg}` : `Score — best ${best} · avg ${avg}`)
-                      : (language === 'ru' ? 'Динамика — последние игры' : 'Trend — recent games');
+                      ? t('scoreBestAvg').replace('{best}', String(best)).replace('{avg}', String(avg))
+                      : t('trendRecentGames');
                     return (
                       <View>
                         <Text style={[styles.statLabel, { color: colors.textSecondary, marginTop: 12 }]}>{caption}</Text>

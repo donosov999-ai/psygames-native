@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -85,6 +85,21 @@ function explainSet(a: Card, b: Card, c: Card): { shape: boolean; fill: boolean;
   };
 }
 
+// v1.131.0+: наглядный пример «валидный SET vs невалидный» в конфиге (волна фидбека:
+// справка была только текстом). Карточки рисуются теми же примитивами, что и в игре.
+// Валидная тройка: форма и заливка одинаковы у ВСЕХ, цвет и число — у ВСЕХ разные.
+const EXAMPLE_VALID: Card[] = [
+  { shape: 'circle', fill: 'solid', color: 'red', count: 1, id: 'ex-v-1' },
+  { shape: 'circle', fill: 'solid', color: 'green', count: 2, id: 'ex-v-2' },
+  { shape: 'circle', fill: 'solid', color: 'purple', count: 3, id: 'ex-v-3' },
+];
+// Невалидная: те же карты, но у второй цвет = красный → признак «цвет» совпал у двух из трёх.
+const EXAMPLE_INVALID: Card[] = [
+  { shape: 'circle', fill: 'solid', color: 'red', count: 1, id: 'ex-i-1' },
+  { shape: 'circle', fill: 'solid', color: 'red', count: 2, id: 'ex-i-2' },
+  { shape: 'circle', fill: 'solid', color: 'purple', count: 3, id: 'ex-i-3' },
+];
+
 function findAnySet(cards: Card[]): [number, number, number] | null {
   for (let i = 0; i < cards.length; i++)
     for (let j = i + 1; j < cards.length; j++)
@@ -137,6 +152,7 @@ export default function SetGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера (проход/«почти»)
+  const [showExample, setShowExample] = useState(false);      // сворачиваемый блок «Пример» в конфиге
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const levelRef = useRef(1);
   const timeLimitRef = useRef(0);
@@ -273,7 +289,19 @@ export default function SetGame() {
     );
   };
 
+  // Статичная карточка для примера: тот же вид, что в игре (styles.card + renderShape), но без тапа.
+  const renderExampleCard = (card: Card, verdictColor: string) => (
+    <View key={card.id} style={[styles.card, { backgroundColor: colors.surface, borderColor: verdictColor, borderWidth: 2 }]}>
+      <View style={styles.shapeRow}>
+        {Array.from({ length: card.count }).map((_, k) => renderShape(card, k))}
+      </View>
+    </View>
+  );
+
+  // ЗАЧЕМ ScrollView: раскрытый «Пример» удлиняет конфиг — на малых экранах кнопка
+  // «Старт» уезжала бы за край (паттерн конфига-скролла как в mnemonics/schulte).
   const renderConfig = () => (
+    <ScrollView showsVerticalScrollIndicator={false}>
     <View style={styles.configContainer}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="shapes" size={48} color="#FFF" />
@@ -281,6 +309,35 @@ export default function SetGame() {
         <Text style={styles.configDesc}>{t('setGameDesc')}</Text>
       </LinearGradient>
       <LevelProgressMap gameId="set_game" currentLevel={lvl.level} colors={colors} language={language} />
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <TouchableOpacity style={styles.exampleHeader} onPress={() => setShowExample((v) => !v)}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>
+            {language === 'ru' ? 'Пример: что такое SET' : 'Example: what is a SET'}
+          </Text>
+          <Ionicons name={showExample ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+        {showExample && (
+          <View style={styles.exampleBody}>
+            <View style={styles.exampleRow}>{EXAMPLE_VALID.map((c) => renderExampleCard(c, '#22c55e'))}</View>
+            <Text style={[styles.exampleCaption, { color: '#22c55e' }]}>
+              {language === 'ru'
+                ? '✓ SET: форма и заливка одинаковые у всех, цвет и число — у всех разные'
+                : '✓ SET: shape and fill are the same on all, color and count all differ'}
+            </Text>
+            <View style={styles.exampleRow}>{EXAMPLE_INVALID.map((c) => renderExampleCard(c, '#f43f5e'))}</View>
+            <Text style={[styles.exampleCaption, { color: '#f43f5e' }]}>
+              {language === 'ru'
+                ? '✗ Не SET: цвет совпал только у двух (два красных и фиолетовый)'
+                : '✗ Not a SET: color matches on only two cards (two red, one purple)'}
+            </Text>
+            <Text style={[styles.exampleNote, { color: colors.textSecondary }]}>
+              {language === 'ru'
+                ? 'Каждый из 4 признаков (форма, цвет, заливка, число) должен быть либо одинаковым у всех трёх карт, либо разным у всех трёх.'
+                : 'Each of the 4 features (shape, color, fill, count) must be either the same on all three cards or different on all three.'}
+            </Text>
+          </View>
+        )}
+      </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
         <View style={styles.optionButtons}>
@@ -300,6 +357,7 @@ export default function SetGame() {
         </LinearGradient>
       </TouchableOpacity>
     </View>
+    </ScrollView>
   );
 
   const renderPlaying = () => (
@@ -393,6 +451,11 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
+  exampleHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  exampleBody: { gap: 8, alignItems: 'center', marginTop: 2 },
+  exampleRow: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
+  exampleCaption: { fontSize: 12, fontWeight: '600', textAlign: 'center', maxWidth: 320 },
+  exampleNote: { fontSize: 11, textAlign: 'center', fontStyle: 'italic', maxWidth: 320, marginTop: 2 },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   modeButton: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 8 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },

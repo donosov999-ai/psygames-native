@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { isRTLLang } from '@/src/services/rtl';
 import { JuicyButton } from '@/src/components/juice';
 import { gameIconByNameKey } from '@/src/constants/gameIcons';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
@@ -55,7 +56,7 @@ export default function GameIntro({
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={onBack}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
           {t('title_about_game')}

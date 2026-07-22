@@ -18,6 +18,7 @@ import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
+import { isRTLLang } from '@/src/services/rtl';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { ScrollView } from 'react-native';
 import Constants from 'expo-constants';
@@ -73,15 +74,13 @@ export default function SettingsScreen() {
   /** Открыть Telegram с pre-filled сообщением для запроса кода. */
   const requestCodeViaTelegram = (p: ProfileDef) => {
     const msg = encodeURIComponent(
-      language === 'ru'
-        ? `Привет, Денис! Хочу получить код доступа к профилю «${p.display_name}» (${p.emoji}) в PsyGames. Это для меня / для (укажи кому, если в подарок).`
-        : `Hi Denis! I'd like an access code for the "${p.display_name}" profile (${p.emoji}) in PsyGames. It's for me / for (specify who, if it's a gift).`
+      t('tgRequestCodeMsg').replace('{name}', p.display_name).replace('{emoji}', p.emoji)
     );
     const url = `https://t.me/${OWNER_TG}?text=${msg}`;
     Linking.openURL(url).catch(() => {
       Alert.alert(
         t('alert_telegram_open_failed'),
-        language === 'ru' ? `Напиши вручную: @${OWNER_TG}` : `Message manually: @${OWNER_TG}`
+        t('messageManually').replace('{tg}', OWNER_TG)
       );
     });
   };
@@ -121,19 +120,19 @@ export default function SettingsScreen() {
   const [importText, setImportText] = React.useState('');
   const openExport = async () => { setExportCode(await exportProgress()); setTransferMode('export'); };
   const copyExport = async () => {
-    try { await (navigator as any)?.clipboard?.writeText(exportCode); Alert.alert(language === 'ru' ? 'Скопировано' : 'Copied'); }
-    catch { Alert.alert(language === 'ru' ? 'Выдели код и скопируй вручную' : 'Select and copy manually'); }
+    try { await (navigator as any)?.clipboard?.writeText(exportCode); Alert.alert(t('copied')); }
+    catch { Alert.alert(t('copyManually')); }
   };
   const doImport = async () => {
     const r = await importProgress(importText);
     if (r.ok) {
       Alert.alert(
-        language === 'ru' ? 'Готово' : 'Done',
-        language === 'ru' ? `Перенесено ${r.count} записей. Перезапусти приложение, чтобы увидеть прогресс.` : `Imported ${r.count} entries. Restart the app to see your progress.`
+        t('storyDone'),
+        t('importDoneMsg').replace('{n}', String(r.count))
       );
       setTransferMode('none'); setImportText('');
     } else {
-      Alert.alert(language === 'ru' ? 'Не вышло' : 'Failed', language === 'ru' ? 'Код повреждён или пустой. Скопируй его целиком.' : 'Code is invalid or empty. Copy it fully.');
+      Alert.alert(t('importFailedTitle'), t('importFailedBody'));
     }
   };
   // v1.26.0: локальные напоминания
@@ -209,9 +208,7 @@ export default function SettingsScreen() {
   const handleImportBackup = async () => {
     const okMsg = (restored: number) => Alert.alert(
       t('alert_backup_restored'),
-      language === 'ru'
-        ? `Восстановлено ${restored} записей. Перезапусти приложение чтобы данные применились.`
-        : `Restored ${restored} records. Restart the app to apply the data.`
+      t('backupRestoredMsg').replace('{n}', String(restored))
     );
     try {
       if (Platform.OS === 'web' && !inTauri) {
@@ -249,7 +246,7 @@ export default function SettingsScreen() {
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => goBackOrHome()}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('settings')}</Text>
         <View style={styles.placeholder} />
@@ -499,9 +496,7 @@ export default function SettingsScreen() {
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 10 }}>
                   🎮 {detailProfile.allowed_games === 'all'
                     ? t('label_all_48_games')
-                    : (language === 'ru'
-                        ? `${(detailProfile.allowed_games as string[]).length} тренажёров в этом профиле`
-                        : `${(detailProfile.allowed_games as string[]).length} exercises in this profile`)}
+                    : t('exercisesInProfile').replace('{n}', String((detailProfile.allowed_games as string[]).length))}
                 </Text>
                 {detailProfile.allowed_games !== 'all' && (
                   <View style={{ gap: 6, marginBottom: 18 }}>
@@ -531,9 +526,7 @@ export default function SettingsScreen() {
                     <View style={{ gap: 8, backgroundColor: colors.card, borderRadius: 12, padding: 16 }}>
                       <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text, textAlign: 'center' }}>🔒 {t('label_coming_soon')}</Text>
                       <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center', lineHeight: 17 }}>
-                        {language === 'ru'
-                          ? <>Этот профиль откроется после запуска. Сейчас бесплатно доступны:{'\n'}💊 NZT-48 · 🌸 Микро-релакс · 🧒 Дети · 👴 50+ · 🎓 Студенты{'\n'}— выбери любой из них.</>
-                          : <>This profile will open after launch. Available free right now:{'\n'}💊 NZT-48 · 🌸 Micro-relax · 🧒 Kids · 👴 50+ · 🎓 Students{'\n'}— pick any of them.</>}
+                        {t('comingSoonBody')}
                       </Text>
                     </View>
                   ) : (
@@ -555,12 +548,10 @@ export default function SettingsScreen() {
                             style={{ backgroundColor: '#0088cc', paddingVertical: 14, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
                           >
                             <Ionicons name="paper-plane" size={18} color="#fff" />
-                            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>{language === 'ru' ? `Запросить код у @${OWNER_TG}` : `Request a code from @${OWNER_TG}`}</Text>
+                            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>{t('requestCodeFrom').replace('{tg}', OWNER_TG)}</Text>
                           </TouchableOpacity>
                           <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
-                            {language === 'ru'
-                              ? <>Напиши Денису в Telegram — он выдаст персональный код доступа{'\n'}за 5 минут (рабочие часы Мск).</>
-                              : <>Message Denis on Telegram — he'll issue a personal access code{'\n'}within 5 minutes (Moscow business hours).</>}
+                            {t('requestCodeHint')}
                           </Text>
                         </>
                       )}
@@ -622,7 +613,7 @@ export default function SettingsScreen() {
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
           <View style={styles.settingInfo}>
             <Ionicons name={musicOn ? 'musical-notes' : 'musical-notes-outline'} size={24} color={colors.primary} />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Музыка' : 'Music'}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('music')}</Text>
           </View>
           <Switch value={musicOn} onValueChange={toggleMusic} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
@@ -638,7 +629,7 @@ export default function SettingsScreen() {
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
           <View style={styles.settingInfo}>
             <Ionicons name="eye-outline" size={24} color={colors.primary} />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Без цвета (дальтонизм)' : 'Colorblind mode'}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('colorblindMode')}</Text>
           </View>
           <Switch value={colorblind} onValueChange={setColorblind} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
@@ -647,7 +638,7 @@ export default function SettingsScreen() {
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
           <View style={styles.settingInfo}>
             <Ionicons name="chatbubble-ellipses-outline" size={24} color={colors.primary} />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Чат с разработчиками' : 'Developer chat button'}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('devChatToggle')}</Text>
           </View>
           <Switch value={devChatOn} onValueChange={toggleDevChat} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
@@ -657,7 +648,7 @@ export default function SettingsScreen() {
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
           <View style={styles.settingInfo}>
             <Ionicons name="paw-outline" size={24} color={colors.primary} />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{language === 'ru' ? 'Питомец Синапс' : 'Synapse pet'}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('petSynapse')}</Text>
           </View>
           <Switch value={petOn} onValueChange={togglePet} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
@@ -666,17 +657,17 @@ export default function SettingsScreen() {
         <View style={[styles.settingItem, { backgroundColor: colors.surface, flexDirection: 'column', alignItems: 'stretch', gap: 10 }]}>
           <View style={styles.settingInfo}>
             <Ionicons name="swap-horizontal-outline" size={24} color={colors.primary} />
-            <Text style={[styles.settingLabel, { color: colors.text, flexShrink: 1 }]}>{language === 'ru' ? 'Перенос прогресса' : 'Transfer progress'}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text, flexShrink: 1 }]}>{t('transferProgress')}</Text>
           </View>
           <Text style={{ color: colors.textSecondary, fontSize: 12.5, lineHeight: 17 }}>
-            {language === 'ru' ? 'Достижения и уровни хранятся на устройстве. Экспортируй код здесь, вставь на другом устройстве.' : 'Achievements and levels live on this device. Export a code here, paste it on another device.'}
+            {t('transferProgressHint')}
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
             <TouchableOpacity onPress={openExport} style={{ flexGrow: 1, minWidth: 0, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{language === 'ru' ? 'Экспорт (получить код)' : 'Export (get code)'}</Text>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{t('exportGetCode')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setTransferMode('import')} style={{ flexGrow: 1, minWidth: 0, borderWidth: 1.5, borderColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
-              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{language === 'ru' ? 'Импорт (вставить код)' : 'Import (paste code)'}</Text>
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{t('importPasteCode')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -800,13 +791,13 @@ export default function SettingsScreen() {
           <View style={{ backgroundColor: colors.background, borderRadius: 18, padding: 20, gap: 14 }}>
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 17 }}>
               {transferMode === 'export'
-                ? (language === 'ru' ? 'Код прогресса' : 'Progress code')
-                : (language === 'ru' ? 'Вставь код' : 'Paste code')}
+                ? t('progressCodeTitle')
+                : t('pasteCodeTitle')}
             </Text>
             {transferMode === 'export' ? (
               <>
                 <Text style={{ color: colors.textSecondary, fontSize: 12.5, lineHeight: 17 }}>
-                  {language === 'ru' ? 'Скопируй этот код и вставь на другом устройстве в «Импорт».' : 'Copy this code and paste it into "Import" on another device.'}
+                  {t('exportCodeHint')}
                 </Text>
                 <TextInput
                   value={exportCode}
@@ -817,10 +808,10 @@ export default function SettingsScreen() {
                 />
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <TouchableOpacity onPress={copyExport} style={{ flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
-                    <Text style={{ color: '#fff', fontWeight: '700' }}>{language === 'ru' ? 'Копировать' : 'Copy'}</Text>
+                    <Text style={{ color: '#fff', fontWeight: '700' }}>{t('copy')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => setTransferMode('none')} style={{ borderWidth: 1.5, borderColor: colors.border, borderRadius: 10, paddingVertical: 11, paddingHorizontal: 18, alignItems: 'center' }}>
-                    <Text style={{ color: colors.text, fontWeight: '700' }}>{language === 'ru' ? 'Закрыть' : 'Close'}</Text>
+                    <Text style={{ color: colors.text, fontWeight: '700' }}>{t('close')}</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -830,16 +821,16 @@ export default function SettingsScreen() {
                   value={importText}
                   onChangeText={setImportText}
                   multiline
-                  placeholder={language === 'ru' ? 'Вставь код сюда…' : 'Paste code here…'}
+                  placeholder={t('pasteCodePlaceholder')}
                   placeholderTextColor={colors.textSecondary}
                   style={{ color: colors.text, backgroundColor: colors.surface, borderRadius: 10, padding: 12, fontSize: 11, minHeight: 100, maxHeight: 180, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}
                 />
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <TouchableOpacity onPress={doImport} style={{ flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
-                    <Text style={{ color: '#fff', fontWeight: '700' }}>{language === 'ru' ? 'Применить' : 'Apply'}</Text>
+                    <Text style={{ color: '#fff', fontWeight: '700' }}>{t('apply')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => { setTransferMode('none'); setImportText(''); }} style={{ borderWidth: 1.5, borderColor: colors.border, borderRadius: 10, paddingVertical: 11, paddingHorizontal: 18, alignItems: 'center' }}>
-                    <Text style={{ color: colors.text, fontWeight: '700' }}>{language === 'ru' ? 'Отмена' : 'Cancel'}</Text>
+                    <Text style={{ color: colors.text, fontWeight: '700' }}>{t('btn_cancel')}</Text>
                   </TouchableOpacity>
                 </View>
               </>

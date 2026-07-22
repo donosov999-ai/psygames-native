@@ -2,7 +2,8 @@ import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useTheme } from '@/src/contexts/ThemeContext';
-import { LanguageProvider } from '@/src/contexts/LanguageContext';
+import { LanguageProvider, useLanguage } from '@/src/contexts/LanguageContext';
+import { applyRTL, isRTLLang } from '@/src/services/rtl';
 import { WarmupProvider, useWarmup } from '@/src/contexts/WarmupContext';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
@@ -44,6 +45,12 @@ function NotificationTapHandler() {
 
 function RootLayoutNav() {
   const { isDark, colors } = useTheme();
+  // RTL-заход (арабский): при смене языка ставим dir/lang на корень документа
+  // (web; RN Web I18nManager — заглушка, работает именно document.dir) и флаг
+  // I18nManager на нативе. LanguageContext не трогаем — подписка живёт здесь.
+  const { language } = useLanguage();
+  const rtl = isRTLLang(language);
+  React.useEffect(() => { applyRTL(language); }, [language]);
 
   return (
     <>
@@ -52,7 +59,8 @@ function RootLayoutNav() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: colors.background },
-          animation: 'slide_from_right',
+          // в RTL экраны въезжают слева — направление «вперёд» зеркалится
+          animation: rtl ? 'slide_from_left' : 'slide_from_right',
         }}
       />
       {/* Global level-unlock toast (themed profiles only) */}

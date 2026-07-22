@@ -13,6 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -270,21 +271,37 @@ export default function FlankerGame() {
     <Ionicons name={d === 'left' ? 'arrow-back' : 'arrow-forward'} size={size} color={color} />
   );
 
-  const renderPlaying = () => {
+  // playing-фаза — на едином каркасе GameShell (кнопки ответов прибиты к низу)
+  if (phase === 'playing') {
     const fbColor =
       feedback === 'right' ? '#22c55e' :
       feedback === 'wrong' ? '#f43f5e' :
       colors.text;
     return (
-      <View style={styles.playArea}>
-        <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>
-            {round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}
-          </Text>
-          <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-          <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
-        </View>
+      <GameShell
+        title={t('flanker')}
+        onBack={() => goBackOrHome()}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>
+              {round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}
+            </Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
+          </View>
+        }
+        toolbar={
+          <>
+            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
+              <Ionicons name="arrow-back" size={32} color="#FFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
+              <Ionicons name="arrow-forward" size={32} color="#FFF" />
+            </TouchableOpacity>
+          </>
+        }
+      >
         <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
           {showStim ? (
             <View style={styles.arrowRow}>
@@ -302,17 +319,9 @@ export default function FlankerGame() {
             <Text style={{ fontSize: 36, color: colors.textSecondary }}>•</Text>
           )}
         </View>
-        <View style={styles.choiceRow}>
-          <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
-            <Ionicons name="arrow-back" size={32} color="#FFF" />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
-            <Ionicons name="arrow-forward" size={32} color="#FFF" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      </GameShell>
     );
-  };
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -329,7 +338,6 @@ export default function FlankerGame() {
           benefits={FL_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
@@ -370,11 +378,9 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 24, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 14 },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
-  stimBox: { width: 360, height: 120, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  stimBox: { width: 360, maxWidth: '100%', height: 120, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
   arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  choiceRow: { flexDirection: 'row', gap: 24 },
   choiceBtn: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
 });

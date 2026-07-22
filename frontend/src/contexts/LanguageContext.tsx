@@ -9,8 +9,9 @@ import frT from './translations/fr';
 import itT from './translations/it';
 import jaT from './translations/ja';
 import koT from './translations/ko';
+import arT from './translations/ar';
 
-type Language = 'ru' | 'en' | 'es' | 'de' | 'zh' | 'hi' | 'pt' | 'fr' | 'it' | 'ja' | 'ko';
+type Language = 'ru' | 'en' | 'es' | 'de' | 'zh' | 'hi' | 'pt' | 'fr' | 'it' | 'ja' | 'ko' | 'ar';
 
 /** v1.22.0: 6 базовых языков. Ключи, переведённые только на ru/en, в t()
  *  падают на EN → приложение работает на всех 6, наполнение es/de/zh/hi
@@ -26,6 +27,7 @@ export const LANGUAGES: { code: Language; name: string }[] = [
   { code: 'it', name: 'Italiano' },
   { code: 'ja', name: '日本語' },
   { code: 'ko', name: '한국어' },
+  { code: 'ar', name: 'العربية' },
   { code: 'ru', name: 'Русский' },
 ];
 const LANG_CODES = LANGUAGES.map((l) => l.code) as string[];
@@ -36,7 +38,7 @@ const LANG_CODES = LANGUAGES.map((l) => l.code) as string[];
 const OVERLAYS: Partial<Record<Language, Record<string, string>>> = {
   es: esT, pt: ptT, hi: hiT, zh: zhT, de: deT,
   // v1.129.0: паритет с сайтом (транскреация с EN-базы; ar готов в translations/, ждёт RTL-заход)
-  fr: frT, it: itT, ja: jaT, ko: koT,
+  fr: frT, it: itT, ja: jaT, ko: koT, ar: arT,
 };
 
 interface Translations {
@@ -54,6 +56,7 @@ interface Translations {
     it?: string;
     ja?: string;
     ko?: string;
+    ar?: string;
   };
 }
 
@@ -1240,6 +1243,126 @@ const translations: Translations = {
     hi: 'खेलना समझ नहीं आया? नियम यहाँ हैं',
   },
   toast_new_level_unlocked: { ru: '🎉 Новый уровень разблокирован!', en: '🎉 New level unlocked!' },
+
+  // ── v1.132: вынесенные из инлайн-тернаров `language === 'ru' ? … : …` ──
+  // (index/settings/pet/statistics/shop/onboarding + src/components).
+  // Плейсхолдеры {n}/{max}/{best}/{avg}/{name}/{emoji}/{tg} подставляются через .replace().
+
+  // Home (index)
+  streakLabel: { ru: 'Стрик', en: 'Streak' },   // дневной стрик (brStreak «Серия» — про Brain Workshop, не путать)
+  petSynapse: { ru: 'Питомец Синапс', en: 'Synapse pet' },
+  shop: { ru: 'Магазин', en: 'Shop' },
+  dailyChallenge: { ru: 'Вызов дня', en: 'Daily challenge' },
+
+  // Settings — перенос прогресса, коды, тумблеры
+  tgRequestCodeMsg: { ru: 'Привет, Денис! Хочу получить код доступа к профилю «{name}» ({emoji}) в PsyGames. Это для меня / для (укажи кому, если в подарок).', en: 'Hi Denis! I\'d like an access code for the "{name}" profile ({emoji}) in PsyGames. It\'s for me / for (specify who, if it\'s a gift).' },
+  messageManually: { ru: 'Напиши вручную: @{tg}', en: 'Message manually: @{tg}' },
+  copied: { ru: 'Скопировано', en: 'Copied' },
+  copyManually: { ru: 'Выдели код и скопируй вручную', en: 'Select and copy manually' },
+  importDoneMsg: { ru: 'Перенесено {n} записей. Перезапусти приложение, чтобы увидеть прогресс.', en: 'Imported {n} entries. Restart the app to see your progress.' },
+  importFailedTitle: { ru: 'Не вышло', en: 'Failed' },
+  importFailedBody: { ru: 'Код повреждён или пустой. Скопируй его целиком.', en: 'Code is invalid or empty. Copy it fully.' },
+  backupRestoredMsg: { ru: 'Восстановлено {n} записей. Перезапусти приложение чтобы данные применились.', en: 'Restored {n} records. Restart the app to apply the data.' },
+  exercisesInProfile: { ru: '{n} тренажёров в этом профиле', en: '{n} exercises in this profile' },
+  comingSoonBody: { ru: 'Этот профиль откроется после запуска. Сейчас бесплатно доступны:\n💊 NZT-48 · 🌸 Микро-релакс · 🧒 Дети · 👴 50+ · 🎓 Студенты\n— выбери любой из них.', en: 'This profile will open after launch. Available free right now:\n💊 NZT-48 · 🌸 Micro-relax · 🧒 Kids · 👴 50+ · 🎓 Students\n— pick any of them.' },
+  requestCodeFrom: { ru: 'Запросить код у @{tg}', en: 'Request a code from @{tg}' },
+  requestCodeHint: { ru: 'Напиши Денису в Telegram — он выдаст персональный код доступа\nза 5 минут (рабочие часы Мск).', en: 'Message Denis on Telegram — he\'ll issue a personal access code\nwithin 5 minutes (Moscow business hours).' },
+  music: { ru: 'Музыка', en: 'Music' },
+  colorblindMode: { ru: 'Без цвета (дальтонизм)', en: 'Colorblind mode' },
+  devChatToggle: { ru: 'Чат с разработчиками', en: 'Developer chat button' },
+  transferProgress: { ru: 'Перенос прогресса', en: 'Transfer progress' },
+  transferProgressHint: { ru: 'Достижения и уровни хранятся на устройстве. Экспортируй код здесь, вставь на другом устройстве.', en: 'Achievements and levels live on this device. Export a code here, paste it on another device.' },
+  exportGetCode: { ru: 'Экспорт (получить код)', en: 'Export (get code)' },
+  importPasteCode: { ru: 'Импорт (вставить код)', en: 'Import (paste code)' },
+  progressCodeTitle: { ru: 'Код прогресса', en: 'Progress code' },
+  pasteCodeTitle: { ru: 'Вставь код', en: 'Paste code' },
+  exportCodeHint: { ru: 'Скопируй этот код и вставь на другом устройстве в «Импорт».', en: 'Copy this code and paste it into "Import" on another device.' },
+  copy: { ru: 'Копировать', en: 'Copy' },
+  close: { ru: 'Закрыть', en: 'Close' },
+  pasteCodePlaceholder: { ru: 'Вставь код сюда…', en: 'Paste code here…' },
+  apply: { ru: 'Применить', en: 'Apply' },
+
+  // Pet (Синапс)
+  petName: { ru: 'Синапс', en: 'Synapse' },
+  petGrowsHint: { ru: 'Растёт после каждой завершённой тренировки', en: 'Grows with every completed training' },
+  petSkillLogic: { ru: 'Логика', en: 'Logic' },     // короткая форма (catLogic — длинное название категории)
+  petSkillSpeed: { ru: 'Скорость', en: 'Speed' },
+  unitTrainingOne: { ru: 'тренировка', en: 'training' },
+  unitTrainings: { ru: 'тренировок', en: 'trainings' },
+
+  // Statistics
+  unitHourShort: { ru: 'ч', en: 'h' },
+  unitMinShort: { ru: 'м', en: 'm' },
+  allGames: { ru: 'Все игры', en: 'All games' },
+  totalPlayedCompleted: { ru: 'Всего сыграно: {n} игр (завершённых)', en: 'Total played: {n} games (completed)' },
+  tokensLabel: { ru: 'Очки', en: 'Tokens' },
+  gamesPlayed: { ru: 'игр сыграно', en: 'games played' },
+  inGameTime: { ru: 'в игре', en: 'in game' },
+  weekInReview: { ru: 'ИТОГ НЕДЕЛИ', en: 'WEEK IN REVIEW' },
+  scoreBestAvg: { ru: 'Очки — рекорд {best} · ⌀ {avg}', en: 'Score — best {best} · avg {avg}' },
+  trendRecentGames: { ru: 'Динамика — последние игры', en: 'Trend — recent games' },
+
+  // Shop
+  ownedBadge: { ru: '✓ Куплено', en: '✓ Owned' },
+  equipped: { ru: 'Надето', en: 'Equipped' },
+  equip: { ru: 'Надеть', en: 'Equip' },
+  buy: { ru: 'Купить', en: 'Buy' },
+  needMoreTokens: { ru: 'Мало очков', en: 'Need more' },
+  shopAccentSection: { ru: 'Акцентные темы — меняют цвет интерфейса. Купи за очки, надень бесплатно.', en: 'Accent themes — recolor the UI. Buy with tokens, equip for free.' },
+  shopSoundSection: { ru: '🎵 Звуковые паки — меняют характер игровых звуков. Тапни «Надеть» — сразу слышно.', en: '🎵 Sound packs — change the game sound character. Tap Equip to hear it.' },
+  shopFrameSection: { ru: '🖼️ Рамки — цветной контур вокруг чипа профиля на главном экране.', en: '🖼️ Frames — a colored outline around your profile chip on the home screen.' },
+  shopTitleSection: { ru: '🏷️ Титулы — подпись под именем профиля.', en: '🏷️ Titles — a caption under your profile name.' },
+  shopAvatarSection: { ru: '👤 Аватары — своя иконка профиля вместо стандартного бейджа.', en: '👤 Avatars — your own profile icon instead of the default badge.' },
+  shopEarnHint: { ru: 'Очки копятся за игры, стрики и ачивки.', en: 'Tokens are earned from games, streaks and achievements.' },
+
+  // Onboarding
+  onbEnableReminders: { ru: 'ВКЛЮЧИТЬ НАПОМИНАНИЯ', en: 'ENABLE REMINDERS' },
+  onbStartFirstWarmup: { ru: 'НАЧАТЬ ПЕРВУЮ ЗАРЯДКУ', en: 'START FIRST WARM-UP' },
+  onbPlayDailyChallenge: { ru: 'СЫГРАТЬ ВЫЗОВ ДНЯ', en: 'PLAY TODAY’S CHALLENGE' },
+  onbNext: { ru: 'ДАЛЬШЕ', en: 'NEXT' },
+  skip: { ru: 'Пропустить', en: 'Skip' },
+  onbWarmupReady: { ru: '⚡ 5 минут, программа на сегодня уже собрана', en: '⚡ 5 minutes, today’s program is ready' },
+  today: { ru: 'Сегодня', en: 'Today' },
+  notNow: { ru: 'Не сейчас', en: 'Not now' },
+  justLookAround: { ru: 'Просто осмотреться', en: 'Just look around' },
+
+  // LevelCleared (баннер между уровнями)
+  eyeBreakTitle: { ru: 'Передышка для глаз', en: 'Eye break' },
+  eyeBreakHint: { ru: 'Посмотри вдаль, поморгай. Дай глазам отдохнуть от азарта — играешь 10-й уровень подряд.', en: 'Look into the distance, blink. Let your eyes rest — you’ve played 10 levels in a row.' },
+  levelDone: { ru: 'Уровень {n} пройден!', en: 'Level {n} done!' },
+  levelAlmost: { ru: 'Уровень {n} — почти!', en: 'Level {n} — almost!' },
+  cleanRunBadge: { ru: '🔥 Серия {n} чистых', en: '🔥 Clean run {n}' },
+  levelStarting: { ru: 'Уровень {n} запускается…', en: 'Starting level {n}…' },
+  sameLevelRetry: { ru: 'Тот же уровень — ещё раз…', en: 'Same level — retry…' },
+  levelsInOrderHint: { ru: 'Дальше — уровни по порядку, сложность растёт', en: 'Next up — levels in order, difficulty grows' },
+  nextNow: { ru: 'Дальше сразу', en: 'Next now' },
+  retry: { ru: 'Ещё раз', en: 'Retry' },
+  stop: { ru: 'Остановиться', en: 'Stop' },
+
+  // GameResult / ResultSparkline
+  earnedLabel: { ru: 'заработано', en: 'earned' },
+  trendOnAverage: { ru: 'как обычно', en: 'right on your average' },
+  trendBetterPct: { ru: 'лучше среднего на {n}%', en: '{n}% better than your average' },
+  trendWorsePct: { ru: 'хуже среднего на {n}%', en: '{n}% worse than your average' },
+
+  // FeedbackWidget
+  feedbackSendFailed: { ru: 'Не удалось отправить. Проверь интернет и попробуй ещё раз.', en: 'Failed to send. Check your connection and try again.' },
+  feedbackFabLabel: { ru: 'Сообщить о проблеме', en: 'Send feedback' },
+  feedbackTitle: { ru: '💬 Что не так?', en: '💬 What’s wrong?' },
+  feedbackThanks: { ru: 'Спасибо! Отправлено.', en: 'Thanks! Sent.' },
+  unitLevelShort: { ru: 'ур.', en: 'lv' },   // строчная инлайн-форма (label_level_short «Ур.» — заголовочная)
+  feedbackHint: { ru: 'Пиши как есть, даже коротко', en: 'Write it as is, even briefly' },
+  feedbackPlaceholder: { ru: 'Например: открыл игру и не понял, что делать — нужна кнопка со справкой', en: 'E.g.: opened the game and had no idea what to do — need a help button' },
+  feedbackAttachShot: { ru: '📷 Приложить скриншот этого экрана', en: '📷 Attach a screenshot of this screen' },
+  send: { ru: 'Отправить', en: 'Send' },
+
+  // LeaderboardModal / LevelProgressMap / BossRound
+  leaderboardTitle: { ru: '🏆 Топ игроков', en: '🏆 Leaderboard' },
+  leaderboardEmpty: { ru: 'Пока пусто — стань первым!', en: 'Empty so far — be the first!' },
+  levelOfMax: { ru: 'Уровень {n}/{max}', en: 'Level {n}/{max}' },
+  bossTitle: { ru: 'БОСС', en: 'BOSS' },
+  bossDefeated: { ru: '🏆 Босс повержен! +⭐', en: '🏆 Boss defeated! +⭐' },
+  bossSurvived: { ru: 'Босс устоял — идём дальше', en: 'Boss survived — moving on' },
 };
 
 interface LanguageContextType {

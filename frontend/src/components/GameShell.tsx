@@ -26,8 +26,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from '
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLanguage } from '@/src/contexts/LanguageContext';
+import { isRTLLang } from '@/src/services/rtl';
 
-/** Ширина зоны, которую занимает плавающая кнопка фидбека слева снизу. */
+/** Ширина зоны, которую занимает плавающая кнопка фидбека снизу (LTR — слева, RTL — справа). */
 const FAB_GUTTER = 66;
 
 export interface GameShellProps {
@@ -52,6 +54,9 @@ export default function GameShell({
 }: GameShellProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  // RTL: стрелка «назад» смотрит вправо, отступ под кнопку фидбека зеркалится
+  const { language } = useLanguage();
+  const rtl = isRTLLang(language);
 
   const field = scrollableField ? (
     <ScrollView
@@ -75,7 +80,7 @@ export default function GameShell({
           style={[styles.headerBtn, { backgroundColor: colors.surface }]}
           accessibilityLabel="Назад"
         >
-          <Ionicons name="arrow-back" size={22} color={colors.text} />
+          <Ionicons name={rtl ? 'arrow-forward' : 'arrow-back'} size={22} color={colors.text} />
         </TouchableOpacity>
         <Text
           style={[styles.title, { color: colors.text }]}
@@ -99,7 +104,10 @@ export default function GameShell({
               borderTopColor: colors.border,
               backgroundColor: colors.background,
               paddingBottom: Math.max(insets.bottom, 10),
-              paddingLeft: FAB_GUTTER,   // не залезать под кнопку фидбека
+              // не залезать под кнопку фидбека (в RTL она у правого края)
+              ...(rtl
+                ? { paddingRight: FAB_GUTTER, paddingLeft: 16 }
+                : { paddingLeft: FAB_GUTTER, paddingRight: 16 }),
             },
           ]}
         >
@@ -138,7 +146,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: 10,
-    paddingRight: 16,
+    // горизонтальные отступы задаются в рендере (FAB_GUTTER зеркалится в RTL)
     ...(Platform.OS === 'web' ? { cursor: 'default' as any } : null),
   },
 });

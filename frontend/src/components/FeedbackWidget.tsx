@@ -29,6 +29,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import {
   FEEDBACK_ENABLED, getDevChatVisible, captureScreenshot, sendFeedback, type FeedbackKind,
 } from '@/src/services/appFeedback';
+import { isRTLLang } from '@/src/services/rtl';
 
 const KINDS: { key: FeedbackKind; emoji: string; ru: string; en: string }[] = [
   { key: 'confusion', emoji: '🤷', ru: 'Непонятно',  en: 'Confusing' },
@@ -39,10 +40,12 @@ const KINDS: { key: FeedbackKind; emoji: string; ru: string; en: string }[] = [
 export default function FeedbackWidget() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const { profile } = useProfile();
   const pathname = usePathname() || '';
   const ru = language === 'ru';
+  // RTL: кнопка зеркалится к правому краю (а «?»-справка уходит влево) — не конфликтуем
+  const rtl = isRTLLang(language);
 
   const [open, setOpen] = React.useState(false);
   const [kind, setKind] = React.useState<FeedbackKind>('confusion');
@@ -118,8 +121,7 @@ export default function FeedbackWidget() {
       setTimeout(() => { setOpen(false); setShot(null); }, 1300);
     } else {
       setText((t) => t);   // оставляем текст, чтобы не потерять написанное
-      alert(ru ? 'Не удалось отправить. Проверь интернет и попробуй ещё раз.'
-               : 'Failed to send. Check your connection and try again.');
+      alert(t('feedbackSendFailed'));
     }
   };
 
@@ -128,8 +130,8 @@ export default function FeedbackWidget() {
       <TouchableOpacity
         onPress={openSheet}
         activeOpacity={0.85}
-        accessibilityLabel={ru ? 'Сообщить о проблеме' : 'Send feedback'}
-        style={[styles.fab, { bottom: insets.bottom + 92, backgroundColor: '#ef4444' }]}
+        accessibilityLabel={t('feedbackFabLabel')}
+        style={[styles.fab, rtl ? { right: 14 } : { left: 14 }, { bottom: insets.bottom + 92, backgroundColor: '#ef4444' }]}
       >
         {capturing
           ? <ActivityIndicator size="small" color="#fff" />
@@ -142,7 +144,7 @@ export default function FeedbackWidget() {
             <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
               <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>
-                  {ru ? '💬 Что не так?' : '💬 What’s wrong?'}
+                  {t('feedbackTitle')}
                 </Text>
                 <TouchableOpacity onPress={() => setOpen(false)} style={{ padding: 4 }}>
                   <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
@@ -153,7 +155,7 @@ export default function FeedbackWidget() {
                 <View style={styles.thanks}>
                   <Text style={{ fontSize: 44 }}>🙏</Text>
                   <Text style={[styles.title, { color: colors.text, textAlign: 'center' }]}>
-                    {ru ? 'Спасибо! Отправлено.' : 'Thanks! Sent.'}
+                    {t('feedbackThanks')}
                   </Text>
                 </View>
               ) : (
@@ -164,11 +166,11 @@ export default function FeedbackWidget() {
                     {[
                       `👤 ${profile.display_name}`,
                       gameId ? `🎮 ${gameId}` : null,
-                      gameId && level != null ? `${ru ? 'ур.' : 'lv'} ${level}` : null,
+                      gameId && level != null ? `${t('unitLevelShort')} ${level}` : null,
                     ].filter(Boolean).join('  ·  ')}
                   </Text>
                   <Text style={[styles.hint, { color: colors.textSecondary }]}>
-                    {ru ? 'Пиши как есть, даже коротко' : 'Write it as is, even briefly'}
+                    {t('feedbackHint')}
                   </Text>
 
                   <View style={styles.kinds}>
@@ -200,9 +202,7 @@ export default function FeedbackWidget() {
                     onChangeText={setText}
                     multiline
                     autoFocus
-                    placeholder={ru
-                      ? 'Например: открыл игру и не понял, что делать — нужна кнопка со справкой'
-                      : 'E.g.: opened the game and had no idea what to do — need a help button'}
+                    placeholder={t('feedbackPlaceholder')}
                     placeholderTextColor={colors.textSecondary}
                     style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.card }]}
                   />
@@ -218,7 +218,7 @@ export default function FeedbackWidget() {
                         color={attachShot ? '#22c55e' : colors.textSecondary}
                       />
                       <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>
-                        {ru ? '📷 Приложить скриншот этого экрана' : '📷 Attach a screenshot of this screen'}
+                        {t('feedbackAttachShot')}
                       </Text>
                     </TouchableOpacity>
                   )}
@@ -230,7 +230,7 @@ export default function FeedbackWidget() {
                   >
                     {sending
                       ? <ActivityIndicator color="#fff" />
-                      : <Text style={styles.sendText}>{ru ? 'Отправить' : 'Send'}</Text>}
+                      : <Text style={styles.sendText}>{t('send')}</Text>}
                   </TouchableOpacity>
                 </>
               )}
@@ -243,12 +243,12 @@ export default function FeedbackWidget() {
 }
 
 const styles = StyleSheet.create({
-  // Слева и ПОДНЯТА над нижними CTA («Справка»/«Начать» на интро-экранах игр —
-  // проверено вживую: на bottom+16 кнопка налезала на «Справку»). Справа сверху
-  // висит «?»-оверлей — туда не лезем.
+  // Слева (в RTL — справа, сторона задаётся в рендере) и ПОДНЯТА над нижними CTA
+  // («Справка»/«Начать» на интро-экранах игр — проверено вживую: на bottom+16
+  // кнопка налезала на «Справку»). «?»-оверлей висит с противоположной стороны
+  // сверху — туда не лезем.
   fab: {
     position: 'absolute',
-    left: 14,
     width: 42,
     height: 42,
     borderRadius: 21,

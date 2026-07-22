@@ -6,6 +6,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Polyline, Circle } from 'react-native-svg';
+import { useLanguage } from '@/src/contexts/LanguageContext';
 
 interface Props {
   history: number[];        // последние сессии (БЕЗ текущей), старые → новые
@@ -15,7 +16,8 @@ interface Props {
   color: string;
 }
 
-export default function ResultSparkline({ history, current, lowerIsBetter, language, color }: Props) {
+export default function ResultSparkline({ history, current, lowerIsBetter, color }: Props) {
+  const { t } = useLanguage();   // хук ДО раннего return (правило хуков); проп language остался в Props для совместимости
   if (history.length < 2) return null;   // нужна хотя бы пара точек для тренда
 
   const points = [...history, current];
@@ -33,10 +35,8 @@ export default function ResultSparkline({ history, current, lowerIsBetter, langu
   const deltaPct = prevAvg !== 0 ? Math.round(((current - prevAvg) / prevAvg) * 100) : 0;
   const better = lowerIsBetter ? current < prevAvg : current > prevAvg;
   const trendText = deltaPct === 0
-    ? (language === 'ru' ? 'как обычно' : 'right on your average')
-    : language === 'ru'
-      ? `${better ? 'лучше' : 'хуже'} среднего на ${Math.abs(deltaPct)}%`
-      : `${Math.abs(deltaPct)}% ${better ? 'better' : 'worse'} than your average`;
+    ? t('trendOnAverage')
+    : t(better ? 'trendBetterPct' : 'trendWorsePct').replace('{n}', String(Math.abs(deltaPct)));
 
   return (
     <View style={styles.wrap}>

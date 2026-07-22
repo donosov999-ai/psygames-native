@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { HELP_MAP } from '@/src/constants/helpMap';
+import { isRTLLang } from '@/src/services/rtl';
 
 /**
  * Глобальная кнопка-«?» справки для всех экранов игр.
@@ -41,6 +42,8 @@ export default function GameHelpOverlay() {
   const insets = useSafeAreaInsets();
   const HELP_LABEL: Record<string, string> = { ru: 'Справка', en: 'Help', es: 'Ayuda', pt: 'Ajuda', hi: 'मदद', zh: '帮助', de: 'Hilfe' };
   const helpLabel = HELP_LABEL[language] || 'Help';
+  // RTL: «?» зеркалится к левому краю (кнопка фидбека при этом уходит вправо вниз)
+  const rtl = isRTLLang(language);
   const pathname = usePathname() || '';
   const [open, setOpen] = useState(false);
   const [coach, setCoach] = useState(false);           // одноразовое облачко-указатель
@@ -110,7 +113,7 @@ export default function GameHelpOverlay() {
         accessibilityRole="button"
         onPress={openHelp}
         activeOpacity={0.85}
-        style={[styles.fabWrap, { top: insets.top + 10 }]}
+        style={[styles.fabWrap, rtl ? { left: 10 } : { right: 10 }, { top: insets.top + 10 }]}
       >
         <View style={[styles.fabCircle, { backgroundColor: accent }]}>
           <Ionicons name="help-circle" size={26} color="#fff" />
@@ -121,8 +124,15 @@ export default function GameHelpOverlay() {
       </TouchableOpacity>
 
       {coach ? (
-        <View style={[styles.coachWrap, { top: insets.top + 10 + 44 + 20 }]} pointerEvents="box-none">
-          <View style={[styles.coachArrow, { borderBottomColor: accent }]} />
+        <View
+          style={[
+            styles.coachWrap,
+            rtl ? { left: 12, alignItems: 'flex-start' } : { right: 12, alignItems: 'flex-end' },
+            { top: insets.top + 10 + 44 + 20 },
+          ]}
+          pointerEvents="box-none"
+        >
+          <View style={[styles.coachArrow, rtl ? { marginLeft: 16 } : { marginRight: 16 }, { borderBottomColor: accent }]} />
           <View style={[styles.coachBubble, { backgroundColor: accent }]}>
             {/* тап по тексту = сразу открыть справку, не заставляя целиться в «?» */}
             <TouchableOpacity activeOpacity={0.85} onPress={openHelp} accessibilityRole="button">
@@ -187,9 +197,9 @@ const styles = StyleSheet.create({
   // Ширина колонки фиксирована (50) и почти равна старой кнопке (40): шапки игр
   // центрируют длинный заголовок («Стоп-сигнал: торможение» ~235 px из 360), лишние
   // пиксели справа съели бы зазор. Подпись под кружком в эти 50 укладывается.
+  // Сторона (right/left) задаётся в рендере по направлению письма (RTL-зеркало)
   fabWrap: {
     position: 'absolute',
-    right: 10,
     width: 50,
     alignItems: 'center',
     zIndex: 100,
@@ -219,9 +229,9 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     overflow: 'hidden',
   },
-  coachWrap: { position: 'absolute', right: 12, maxWidth: 270, zIndex: 101, alignItems: 'flex-end' },
+  // Сторона и выравнивание — в рендере (RTL-зеркало вместе с «?»-кнопкой)
+  coachWrap: { position: 'absolute', maxWidth: 270, zIndex: 101 },
   coachArrow: {
-    marginRight: 16,
     width: 0,
     height: 0,
     borderLeftWidth: 8,

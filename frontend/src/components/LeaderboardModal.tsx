@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { fetchTop, LeaderboardEntry, LeaderboardGameId } from '@/src/services/leaderboard';
+import { useLanguage } from '@/src/contexts/LanguageContext';
 
 interface Props {
   visible: boolean;
@@ -15,7 +16,8 @@ interface Props {
   formatScore: (score: number) => string;   // напр. "12.3s" или "7-back"
 }
 
-export default function LeaderboardModal({ visible, onClose, gameId, language, colors, gradient, formatScore }: Props) {
+export default function LeaderboardModal({ visible, onClose, gameId, colors, gradient, formatScore }: Props) {
+  const { t } = useLanguage();   // язык из контекста; проп language остался в Props для совместимости
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function LeaderboardModal({ visible, onClose, gameId, language, c
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>
-              {language === 'ru' ? '🏆 Топ игроков' : '🏆 Leaderboard'}
+              {t('leaderboardTitle')}
             </Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={24} color={colors.text} />
@@ -40,7 +42,7 @@ export default function LeaderboardModal({ visible, onClose, gameId, language, c
             <ActivityIndicator color={gradient[0]} style={{ marginVertical: 24 }} />
           ) : entries.length === 0 ? (
             <Text style={{ color: colors.textSecondary, textAlign: 'center', marginVertical: 24 }}>
-              {language === 'ru' ? 'Пока пусто — стань первым!' : 'Empty so far — be the first!'}
+              {t('leaderboardEmpty')}
             </Text>
           ) : (
             <FlatList

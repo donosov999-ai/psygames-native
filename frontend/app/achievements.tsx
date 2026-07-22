@@ -6,6 +6,7 @@ import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { isRTLLang } from '@/src/services/rtl';
 import { ACHIEVEMENTS, getUnlocked, UnlockedRecord } from '@/src/services/achievements';
 
 export default function AchievementsScreen() {
@@ -38,7 +39,7 @@ export default function AchievementsScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         {/* flexShrink+numberOfLines: длинный заголовок со счётчиком при крупном шрифте не толкает кнопку за край */}
         <Text style={[styles.title, { color: colors.text, flexShrink: 1, minWidth: 0, textAlign: 'center' }]} numberOfLines={1}>

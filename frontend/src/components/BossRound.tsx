@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useLanguage } from '@/src/contexts/LanguageContext';
 
 /**
  * BossRound — общий движок «битвы с боссом»: на вехах уровней игра прерывается
@@ -107,7 +108,8 @@ function makeTask(type: BossType): BossTask {
 }
 
 export default function BossRound({ config, language, colors, onComplete }: Props) {
-  const ru = language === 'ru';
+  const { t } = useLanguage();
+  const ru = language === 'ru';   // остался только для выбора локали данных task.intro/task.hud (инлайн ru/en в makeTask)
   const [stage, setStage] = useState<'intro' | 'task' | 'done'>('intro');
   const [task] = useState<BossTask>(() => makeTask(config.type));
   const [picked, setPicked] = useState<number | null>(null);     // choose: выбранный вариант; tapcell: индекс клетки
@@ -151,7 +153,7 @@ export default function BossRound({ config, language, colors, onComplete }: Prop
       <View style={[styles.full, { backgroundColor: colors.background }]}>
         <View style={styles.center}>
           <Text style={styles.bossEmoji}>⚔️</Text>
-          <Text style={[styles.bossTitle, { color: colors.text }]}>{ru ? 'БОСС' : 'BOSS'}</Text>
+          <Text style={[styles.bossTitle, { color: colors.text }]}>{t('bossTitle')}</Text>
           <Text style={[styles.bossHint, { color: colors.textSecondary }]}>{ru ? task.intro.ru : task.intro.en}</Text>
         </View>
       </View>
@@ -219,7 +221,7 @@ export default function BossRound({ config, language, colors, onComplete }: Prop
       {stage === 'done' && (
         <View style={styles.banner} pointerEvents="none">
           <Text style={styles.bannerText}>
-            {won ? (ru ? '🏆 Босс повержен! +⭐' : '🏆 Boss defeated! +⭐') : (ru ? 'Босс устоял — идём дальше' : 'Boss survived — moving on')}
+            {won ? t('bossDefeated') : t('bossSurvived')}
           </Text>
         </View>
       )}

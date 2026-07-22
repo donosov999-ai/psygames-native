@@ -30,6 +30,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
+import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -310,44 +311,56 @@ export default function PosnerGame() {
     );
   };
 
-  const renderPlaying = () => (
-    <View style={styles.playArea}>
-      <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-        <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>VE {validityEffect}</Text>
-      </View>
-      <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
-        {/* left target slot */}
-        <View style={[styles.targetSlot, { borderColor: colors.border }]}>
-          {showTarget && trial.targetSide === 'left' && <View style={[styles.target, { backgroundColor: GRADIENT[1] }]} />}
+  // playing-фаза — на едином каркасе GameShell (стрелки ответа прибиты к низу)
+  if (phase === 'playing') {
+    return (
+      <GameShell
+        title={t('posner')}
+        onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{language === 'ru' ? 'мс' : 'ms'}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>VE {validityEffect}</Text>
+          </View>
+        }
+        toolbar={
+          <>
+            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
+              <Ionicons name="arrow-back" size={32} color="#FFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
+              <Ionicons name="arrow-forward" size={32} color="#FFF" />
+            </TouchableOpacity>
+          </>
+        }
+      >
+        <View style={styles.fieldCol}>
+          <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
+            {/* left target slot */}
+            <View style={[styles.targetSlot, { borderColor: colors.border }]}>
+              {showTarget && trial.targetSide === 'left' && <View style={[styles.target, { backgroundColor: GRADIENT[1] }]} />}
+            </View>
+            {/* center fixation + cue */}
+            <View style={styles.center}>
+              {showCue && trial.cueDir && (
+                <Ionicons name={trial.cueDir === 'left' ? 'arrow-back' : 'arrow-forward'} size={36} color="#fbbf24" />
+              )}
+              {showCue && !trial.cueDir && <Text style={{ color: '#fbbf24', fontSize: 36 }}>+</Text>}
+              {!showCue && <Text style={{ color: colors.textSecondary, fontSize: 28 }}>+</Text>}
+            </View>
+            {/* right target slot */}
+            <View style={[styles.targetSlot, { borderColor: colors.border }]}>
+              {showTarget && trial.targetSide === 'right' && <View style={[styles.target, { backgroundColor: GRADIENT[1] }]} />}
+            </View>
+          </View>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('posnerHint')}</Text>
         </View>
-        {/* center fixation + cue */}
-        <View style={styles.center}>
-          {showCue && trial.cueDir && (
-            <Ionicons name={trial.cueDir === 'left' ? 'arrow-back' : 'arrow-forward'} size={36} color="#fbbf24" />
-          )}
-          {showCue && !trial.cueDir && <Text style={{ color: '#fbbf24', fontSize: 36 }}>+</Text>}
-          {!showCue && <Text style={{ color: colors.textSecondary, fontSize: 28 }}>+</Text>}
-        </View>
-        {/* right target slot */}
-        <View style={[styles.targetSlot, { borderColor: colors.border }]}>
-          {showTarget && trial.targetSide === 'right' && <View style={[styles.target, { backgroundColor: GRADIENT[1] }]} />}
-        </View>
-      </View>
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('posnerHint')}</Text>
-      <View style={styles.choiceRow}>
-        <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
-          <Ionicons name="arrow-back" size={32} color="#FFF" />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
-          <Ionicons name="arrow-forward" size={32} color="#FFF" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+      </GameShell>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -365,7 +378,6 @@ export default function PosnerGame() {
           benefits={POSNER_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
       )}
       {phase === 'config' && renderConfig()}
-      {phase === 'playing' && renderPlaying()}
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
@@ -408,14 +420,13 @@ const styles = StyleSheet.create({
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  playArea: { flex: 1, justifyContent: 'center', padding: 16, gap: 18, alignItems: 'center' },
+  fieldCol: { alignItems: 'center', gap: 18, alignSelf: 'stretch' },
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 13, fontWeight: '700' },
-  stimBox: { width: 380, height: 130, borderRadius: 14, borderWidth: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 30 },
+  stimBox: { width: 380, maxWidth: '100%', height: 130, borderRadius: 14, borderWidth: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 30 },
   targetSlot: { width: 50, height: 50, borderRadius: 25, borderWidth: 2, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
   target: { width: 30, height: 30, borderRadius: 15 },
   center: { width: 60, height: 60, justifyContent: 'center', alignItems: 'center' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
-  choiceRow: { flexDirection: 'row', gap: 24 },
   choiceBtn: { width: 72, height: 72, borderRadius: 36, justifyContent: 'center', alignItems: 'center' },
 });
