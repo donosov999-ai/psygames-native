@@ -44,7 +44,10 @@ export interface ImportResult {
 /** Применить код с другой установки. Пишет ключи в AsyncStorage (перезапись). */
 export async function importProgress(code: string): Promise<ImportResult> {
   try {
-    const clean = (code || '').trim();
+    // Убираем ВСЕ пробельные символы, не только края: код часто едет через
+    // мессенджер/почту, которые вставляют переносы строк внутрь base64 —
+    // atob падает на любом '\n' (репорт Вали: «файл импорта не срабатывает»).
+    const clean = (code || '').replace(/\s+/g, '');
     if (!clean) return { ok: false, count: 0, error: 'empty' };
     const parsed = JSON.parse(b64decode(clean));
     if (!parsed?.data || typeof parsed.data !== 'object') {

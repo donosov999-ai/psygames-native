@@ -174,7 +174,9 @@ export default function SettingsScreen() {
       );
       setTransferMode('none'); setImportText('');
     } else {
-      Alert.alert(t('importFailedTitle'), t('importFailedBody'));
+      // Код причины в скобках — по скрину алерта сразу видно класс проблемы
+      // (empty / bad-format / no-keys / исключение декодера).
+      Alert.alert(t('importFailedTitle'), `${t('importFailedBody')}\n(${r.error || '?'})`);
     }
   };
   // v1.26.0: локальные напоминания
