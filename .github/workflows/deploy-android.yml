@@ -1,0 +1,43 @@
+name: Deploy Android to Google Play
+
+on:
+  workflow_run:
+    workflows: ["Build native bundles (macOS arm + Windows + Android)"]
+    types: [completed]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Only on tag builds (v*) that succeeded
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+
+    steps:
+      - name: Checkout (for deploy script)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Download AAB from build run
+        uses: actions/download-artifact@v4
+        with:
+          name: PsyGames-android-aab
+          path: ./aab
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install googleapis
+        run: npm install googleapis
+
+      - name: Upload to Google Play (internal + alpha + closed-test1)
+        env:
+          GOOGLE_PLAY_SA_JSON: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
+          AAB_PATH: ./aab/PsyGames-android.aab
+          VERSION_NAME: ${{ github.event.workflow_run.head_branch }}
+        run: node .github/scripts/deploy_play.js
