@@ -4,20 +4,28 @@ on:
   workflow_run:
     workflows: ["Build native bundles (macOS arm + Windows + Android)"]
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Build run ID (from Actions tab)'
+        required: true
+      version_name:
+        description: 'Version name (e.g. v1.145.0)'
+        required: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Only on tag builds (v*) that succeeded
     if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      startsWith(github.event.workflow_run.head_branch, 'v')
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       startsWith(github.event.workflow_run.head_branch, 'v'))
 
     steps:
       - name: Checkout (for deploy script)
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.event.workflow_run.head_sha }}
 
       - name: Download AAB from build run
         uses: actions/download-artifact@v4
@@ -25,7 +33,7 @@ jobs:
           name: PsyGames-android-aab
           path: ./aab
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ github.event_name == 'workflow_dispatch' && inputs.run_id || github.event.workflow_run.id }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -39,5 +47,5 @@ jobs:
         env:
           GOOGLE_PLAY_SA_JSON: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
           AAB_PATH: ./aab/PsyGames-android.aab
-          VERSION_NAME: ${{ github.event.workflow_run.head_branch }}
+          VERSION_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.version_name || github.event.workflow_run.head_branch }}
         run: node .github/scripts/deploy_play.js
