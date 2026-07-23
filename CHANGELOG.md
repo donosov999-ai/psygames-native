@@ -14,6 +14,13 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.147.0] — 2026-07-23
+
+### CI
+- Автодеплой Google Play перенесён в same-run job `google-play` внутри build.yml — прежний `workflow_run`-триггер на тег-пушах не срабатывал (v1.146 в Play пришлось догонять вручную). Этот релиз — боевая проверка нового пути.
+- `deploy-android.yml` — теперь только ручной инструмент (workflow_dispatch).
+- Новый read-only workflow `play-status.yml` — версии релизов по трекам Google Play.
+
 ## [1.146.0] — 2026-07-23
 
 ### Infrastructure
