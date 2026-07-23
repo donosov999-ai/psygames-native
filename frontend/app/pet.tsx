@@ -7,7 +7,7 @@
  * что человек реально натренировал. Математика — в src/services/pet.ts.
  */
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, Redirect } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
@@ -16,9 +16,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
-import PetSprite, { PetSkin, petFrame } from '@/src/components/pet/PetSprite';
+import PetSprite, { PetAccessory, PetSkin, petFrame } from '@/src/components/pet/PetSprite';
 import { Image } from 'react-native';
-import { getPetSkin, getPetStats, pickReaction, PetStats, setPetSkin } from '@/src/services/pet';
+import {
+  getFedToday, getPetAccessory, getPetName, getPetSkinChoice, getPetStats, markFedToday,
+  PET_FEED_COST, PetSkinChoice, pickReaction, PetStats, resolvePetSkin, setPetName, setPetSkin,
+} from '@/src/services/pet';
+import { pickPettedLine } from '@/src/services/petLines';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { getTokens, spendTokens } from '@/src/services/tokens';
+import { sndToken, sndWrong } from '@/src/services/feedback';
 
 /** Цвета шкал — 1:1 с сайта (.pet-skill-memory и т.д.) */
 const SKILL_COLORS: Record<keyof PetStats['skills'], string> = {
@@ -49,22 +56,56 @@ export default function PetScreen() {
   // но не выше трети окна, чтобы шкалы не уезжали.
   const portrait = Math.min(winW >= 768 ? 300 : 220, Math.round(winH * 0.34));
 
+  const { profile } = useProfile();
   const [stats, setStats] = React.useState<PetStats | null>(null);
   // Реплика выбирается раз на визит (не на каждый рендер) — питомец «здоровается»
   const [greeting, setGreeting] = React.useState('');
-  // v1.140: скин (cat = нейро-кот v2, дефолт; robot = прежний Синапс hi-res)
-  const [skin, setSkin] = React.useState<PetSkin>('cat');
+  // v1.140: скин; + 'auto' — эволюция по стадии (Искра=кот → Импульс=робот → Созвездие=Нейрон)
+  const [skinChoice, setSkinChoice] = React.useState<PetSkinChoice>('cat');
+  const [accessory, setAccessory] = React.useState<PetAccessory | null>(null);
+  // Имя питомца: тап по заголовку — инлайн-редактор (глобально, 20 симв.)
+  const [petName, setPetNameState] = React.useState('');
+  const [editingName, setEditingName] = React.useState(false);
+  // Кормление: раз в день за токены активного профиля
+  const [fed, setFed] = React.useState(false);
+  const [balance, setBalance] = React.useState(0);
+  const [feastAnim, setFeastAnim] = React.useState(false);
 
   // На фокусе, не на маунте: вернулся с тренировки → шкалы уже подросли
   useFocusEffect(
     React.useCallback(() => {
       getPetStats().then(setStats).catch(() => {});
-      getPetSkin().then(setSkin).catch(() => {});
+      getPetSkinChoice().then(setSkinChoice).catch(() => {});
+      getPetAccessory().then(setAccessory).catch(() => {});
+      getPetName().then(setPetNameState).catch(() => {});
+      getFedToday().then(setFed).catch(() => {});
+      if (profile?.id) getTokens(profile.id).then(setBalance).catch(() => {});
       setGreeting(pickReaction(language));
-    }, [language]),
+    }, [language, profile?.id]),
   );
 
-  const pickSkin = (s: PetSkin) => { setSkin(s); setPetSkin(s).catch(() => {}); };
+  const pickSkin = (s: PetSkinChoice) => { setSkinChoice(s); setPetSkin(s).catch(() => {}); };
+
+  const saveName = () => {
+    setEditingName(false);
+    setPetName(petName).catch(() => {});
+  };
+
+  const feed = async () => {
+    const pid = profile?.id;
+    if (!pid || fed) return;
+    if (balance < PET_FEED_COST) { sndWrong(); return; }
+    const ok = await spendTokens(pid, PET_FEED_COST);
+    if (!ok) { sndWrong(); return; }
+    sndToken();
+    await markFedToday();
+    setFed(true);
+    setBalance(await getTokens(pid));
+    // Радость: прыжки на пару секунд + благодарная реплика
+    setFeastAnim(true);
+    setGreeting(pickPettedLine(language).text);
+    setTimeout(() => setFeastAnim(false), 2600);
+  };
 
   const skillLabel = (k: keyof PetStats['skills']): string => {
     switch (k) {
@@ -78,6 +119,8 @@ export default function PetScreen() {
   const stage = stats?.stage ?? 1;
   const stageName = t(`petStage${stage}`);
   const total = stats?.total ?? 0;
+  const skin: PetSkin = resolvePetSkin(skinChoice, stage);
+  const shownName = petName || t('petName');
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -85,9 +128,24 @@ export default function PetScreen() {
         <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-          {t('petName')}
-        </Text>
+        {editingName ? (
+          <TextInput
+            value={petName}
+            onChangeText={setPetNameState}
+            onBlur={saveName}
+            onSubmitEditing={saveName}
+            autoFocus
+            maxLength={20}
+            placeholder={t('petName')}
+            placeholderTextColor={colors.textSecondary}
+            style={[styles.title, styles.nameInput, { color: colors.text, borderColor: colors.border }]}
+          />
+        ) : (
+          <TouchableOpacity onPress={() => setEditingName(true)} style={styles.nameRow} accessibilityLabel={t('petRename')}>
+            <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{shownName}</Text>
+            <Ionicons name="pencil-outline" size={15} color={colors.textSecondary} />
+          </TouchableOpacity>
+        )}
         <View style={styles.placeholder} />
       </View>
 
@@ -97,17 +155,37 @@ export default function PetScreen() {
           <Text style={[styles.bubbleText, { color: colors.text }]}>{greeting}</Text>
         </View>
 
-        {/* v1.140: живой портрет — анимированный idle текущего скина (512px кадры) */}
-        <PetSprite state="idle" size={portrait} skin={skin} />
+        {/* v1.140: живой портрет — анимированный idle текущего скина (512px кадры);
+            после угощения пару секунд прыгает от радости */}
+        <PetSprite state={feastAnim ? 'jump' : 'idle'} size={portrait} skin={skin} accessory={accessory} />
         <Text style={[styles.stageName, { color: colors.text }]}>{stageName}</Text>
         <Text style={[styles.stageHint, { color: colors.textSecondary }]}>
           {t('petGrowsHint')}
         </Text>
 
-        {/* Выбор скина: кот v2 (канон) или прежний робот. Хранится на устройстве. */}
+        {/* Кормление: раз в день, за токены активного профиля */}
+        <TouchableOpacity
+          onPress={feed}
+          disabled={fed}
+          activeOpacity={0.8}
+          style={[styles.feedBtn, {
+            backgroundColor: fed ? colors.surface : '#8a68f5',
+            borderColor: fed ? colors.border : '#8a68f5',
+          }]}
+        >
+          <Text style={[styles.feedText, { color: fed ? colors.textSecondary : '#fff' }]}>
+            {fed ? `❤️ ${t('petFedToday')}` : `🍪 ${t('petFeed')} · ${PET_FEED_COST} ⭐`}
+          </Text>
+        </TouchableOpacity>
+        {!fed && balance < PET_FEED_COST && (
+          <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{t('needMoreTokens')}</Text>
+        )}
+
+        {/* Выбор скина: кот/робот/Нейрон или «Авто» — эволюция по стадии. */}
         <View style={styles.skinRow}>
-          {(['cat', 'robot', 'constellation'] as PetSkin[]).map((s) => {
-            const on = skin === s;
+          {(['cat', 'robot', 'constellation', 'auto'] as PetSkinChoice[]).map((s) => {
+            const on = skinChoice === s;
+            const thumbSkin: PetSkin = s === 'auto' ? resolvePetSkin('auto', stage) : s;
             return (
               <TouchableOpacity
                 key={s}
@@ -115,9 +193,12 @@ export default function PetScreen() {
                 onPress={() => pickSkin(s)}
                 activeOpacity={0.75}
               >
-                <Image source={petFrame(s, 'idle', 0)} style={styles.skinThumb} resizeMode="contain" />
+                <Image source={petFrame(thumbSkin, 'idle', 0)} style={styles.skinThumb} resizeMode="contain" />
+                {s === 'auto' && (
+                  <Ionicons name="sparkles" size={13} color={on ? '#8a68f5' : colors.textSecondary} style={styles.autoBadge} />
+                )}
                 <Text style={[styles.skinLabel, { color: on ? '#8a68f5' : colors.textSecondary }]}>
-                  {t(s === 'cat' ? 'petSkinCat' : s === 'robot' ? 'petSkinRobot' : 'petSkinConstellation')}
+                  {t(s === 'cat' ? 'petSkinCat' : s === 'robot' ? 'petSkinRobot' : s === 'constellation' ? 'petSkinConstellation' : 'petSkinAuto')}
                 </Text>
               </TouchableOpacity>
             );
@@ -166,7 +247,13 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
   backButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '800', flexShrink: 1, minWidth: 0, textAlign: 'center' },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1, minWidth: 0 },
+  nameInput: { borderBottomWidth: 1.5, paddingVertical: 2, minWidth: 140, maxWidth: 220 },
   placeholder: { width: 44 },
+  feedBtn: { borderRadius: 999, borderWidth: 1.5, paddingVertical: 9, paddingHorizontal: 20, marginTop: 8 },
+  feedText: { fontSize: 13.5, fontWeight: '800' },
+  feedHint: { fontSize: 11.5, marginTop: 3 },
+  autoBadge: { position: 'absolute', top: 6, right: 8 },
   scroll: { padding: 16, alignItems: 'center', maxWidth: 520, alignSelf: 'center', width: '100%', gap: 6 },
   bubble: {
     maxWidth: 260, paddingVertical: 9, paddingHorizontal: 14, borderWidth: 1,

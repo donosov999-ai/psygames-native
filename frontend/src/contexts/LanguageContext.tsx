@@ -1258,6 +1258,15 @@ const translations: Translations = {
   streakLabel: { ru: 'Стрик', en: 'Streak' },   // дневной стрик (brStreak «Серия» — про Brain Workshop, не путать)
   petSynapse: { ru: 'Питомец Синапс', en: 'Synapse pet' },
   petSize: { ru: 'Размер питомца', en: 'Pet size' },
+  petFeed: { ru: 'Угостить', en: 'Feed' },
+  petFedToday: { ru: 'Сыт и доволен', en: 'Fed and happy' },
+  petRename: { ru: 'Переименовать питомца', en: 'Rename pet' },
+  petSkinAuto: { ru: 'Авто', en: 'Auto' },
+  shopPetSection: { ru: '🐾 Для питомца — аксессуары Синапса (надеваются глобально)', en: '🐾 For the pet — Synapse accessories (equipped globally)' },
+  cosName_pet_bow: { ru: 'Бантик', en: 'Bow' },
+  cosName_pet_party_hat: { ru: 'Праздничный колпак', en: 'Party hat' },
+  cosName_pet_glasses: { ru: 'Умные очки', en: 'Smart glasses' },
+  cosDesc_pet_generic: { ru: 'Аксессуар гуляющего питомца — виден на всех экранах', en: 'Accessory for the walking pet — visible on every screen' },
   shop: { ru: 'Магазин', en: 'Shop' },
   dailyChallenge: { ru: 'Вызов дня', en: 'Daily challenge' },
 
@@ -1444,10 +1453,10 @@ const translations: Translations = {
   spanTypeSpatialBwd: { ru: 'Пространство · backward', en: 'Spatial · backward' },
 
   // Напоминания — тексты локальных уведомлений (services/reminders.ts, translateFor)
-  remindMorningTitle: { ru: '🧠 Пора на зарядку', en: '🧠 Time to train' },
-  remindMorningBody: { ru: 'Утренний когнитивный комплекс готов — 5-10 минут', en: 'Your morning cognitive warm-up is ready — 5-10 min' },
-  remindEveningTitle: { ru: '🌙 Перед сном', en: '🌙 Before sleep' },
-  remindEveningBody: { ru: 'Спокойный вечерний комплекс — мягко завершить день', en: 'A calm evening session to wind down the day' },
+  remindMorningTitle: { ru: '💜 Синапс ждёт тебя', en: '💜 Synapse is waiting' },
+  remindMorningBody: { ru: 'Доброе утро! Утренний комплекс готов — 5-10 минут, и я подрасту', en: 'Good morning! Your warm-up is ready — 5-10 min and I grow a little' },
+  remindEveningTitle: { ru: '🌙 Синапс зевает', en: '🌙 Synapse is yawning' },
+  remindEveningBody: { ru: 'Спокойный вечерний комплекс — завершим день вместе?', en: 'A calm evening session — shall we wind down the day together?' },
 
   // Statistics — пустое состояние (был сломанный тернар t('language') === 'ru')
   statsEmptyHint: { ru: 'Сыграйте несколько игр, чтобы увидеть статистику', en: 'Play some games to see statistics' },
