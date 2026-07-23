@@ -1257,6 +1257,7 @@ const translations: Translations = {
   // Home (index)
   streakLabel: { ru: 'Стрик', en: 'Streak' },   // дневной стрик (brStreak «Серия» — про Brain Workshop, не путать)
   petSynapse: { ru: 'Питомец Синапс', en: 'Synapse pet' },
+  petSize: { ru: 'Размер питомца', en: 'Pet size' },
   shop: { ru: 'Магазин', en: 'Shop' },
   dailyChallenge: { ru: 'Вызов дня', en: 'Daily challenge' },
 

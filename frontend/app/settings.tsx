@@ -9,6 +9,8 @@ import {
   TextInput,
   Alert,
   Linking,
+  PanResponder,
+  DeviceEventEmitter,
   Platform,
   useWindowDimensions,
 } from 'react-native';
@@ -29,7 +31,10 @@ import {
   getMusicEnabled, setMusicEnabled,
 } from '@/src/services/feedback';
 import { getDevChatVisible, setDevChatVisible } from '@/src/services/appFeedback';
-import { getPetVisible, setPetVisible } from '@/src/services/pet';
+import {
+  getPetVisible, setPetVisible, getPetScale, setPetScale,
+  PET_SCALE_MIN, PET_SCALE_MAX, PET_SCALE_EVENT,
+} from '@/src/services/pet';
 import { exportProgress, importProgress } from '@/src/services/dataTransfer';
 import type { ProfileDef } from '@/src/constants/profiles';
 import { MONETIZATION_ENABLED, CODE_ENTRY_ENABLED } from '@/src/constants/profiles';
@@ -103,6 +108,7 @@ export default function SettingsScreen() {
   const [musicOn, setMusicOnState] = React.useState(false);
   const [devChatOn, setDevChatOn] = React.useState(true);   // v1.125: кнопка «Чат с разработчиками»
   const [petOn, setPetOn] = React.useState(true);           // гуляющий питомец «Синапс» (независим от чата)
+  const [petScale, setPetScaleState] = React.useState(1);
   React.useEffect(() => {
     (async () => {
       setSoundOn(await getSoundEnabled());
@@ -110,8 +116,41 @@ export default function SettingsScreen() {
       setMusicOnState(await getMusicEnabled());
       setDevChatOn(await getDevChatVisible());
       setPetOn(await getPetVisible());
+      setPetScaleState(await getPetScale());
     })();
   }, []);
+  // Ползунок размера питомца: значение шлётся живьём (питомец гуляет прямо на
+  // этом экране — меняется под пальцем), в хранилище пишем на отпускание.
+  const petTrackW = React.useRef(1);
+  const petScaleRef = React.useRef(1);
+  petScaleRef.current = petScale;
+  const applyPetScale = (v: number) => {
+    const clamped = Math.min(PET_SCALE_MAX, Math.max(PET_SCALE_MIN, v));
+    // ref — сразу (не через рендер): Release при тапе идёт в том же тике,
+    // до ре-рендера, и иначе записал бы в хранилище прошлое значение.
+    petScaleRef.current = clamped;
+    setPetScaleState(clamped);
+    DeviceEventEmitter.emit(PET_SCALE_EVENT, clamped);
+    return clamped;
+  };
+  const petDragStart = React.useRef(1);
+  const petPan = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        // Тап по треку — прыгаем сразу в точку тапа (locationX от трека).
+        const ratio = Math.min(1, Math.max(0, evt.nativeEvent.locationX / petTrackW.current));
+        petDragStart.current = applyPetScale(PET_SCALE_MIN + ratio * (PET_SCALE_MAX - PET_SCALE_MIN));
+      },
+      onPanResponderMove: (_evt, g) => {
+        // Дальше ведём относительно точки старта (dx стабилен на web и нативе).
+        applyPetScale(petDragStart.current + (g.dx / petTrackW.current) * (PET_SCALE_MAX - PET_SCALE_MIN));
+      },
+      onPanResponderRelease: () => { setPetScale(petScaleRef.current); },
+      onPanResponderTerminate: () => { setPetScale(petScaleRef.current); },
+    })
+  ).current;
   const toggleSound = async () => { const v = !soundOn; setSoundOn(v); await setSoundEnabled(v); };
   const toggleHaptic = async () => { const v = !hapticOn; setHapticOn(v); await setHapticEnabled(v); };
   const toggleMusic = async () => { const v = !musicOn; setMusicOnState(v); await setMusicEnabled(v); };
@@ -655,6 +694,59 @@ export default function SettingsScreen() {
           </View>
           <Switch value={petOn} onValueChange={togglePet} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
+        {/* Ползунок размера гуляющего питомца (0.6×..1.8×). Живое превью:
+            питомец гуляет прямо на этом экране и меняется под пальцем;
+            в хранилище значение уходит на отпускание. Свой мини-слайдер на
+            PanResponder — зависимость ради одного ползунка не тащим. */}
+        {petOn && (
+          <View style={[styles.settingItem, { backgroundColor: colors.surface, flexDirection: 'column', alignItems: 'stretch', gap: 8 }]}>
+            <View style={[styles.settingInfo, { justifyContent: 'space-between' }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <Ionicons name="resize-outline" size={24} color={colors.primary} />
+                <Text style={[styles.settingLabel, { color: colors.text }]}>{t('petSize')}</Text>
+              </View>
+              <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'] }}>
+                {Math.round(petScale * 100)}%
+              </Text>
+            </View>
+            <View
+              {...petPan.panHandlers}
+              onLayout={(e) => { petTrackW.current = Math.max(1, e.nativeEvent.layout.width); }}
+              style={{ height: 32, justifyContent: 'center' }}
+            >
+              <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.border }} />
+              <View
+                pointerEvents="none"
+                style={{
+                  position: 'absolute',
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: colors.primary,
+                  width: `${((petScale - PET_SCALE_MIN) / (PET_SCALE_MAX - PET_SCALE_MIN)) * 100}%`,
+                }}
+              />
+              <View
+                pointerEvents="none"
+                style={{
+                  position: 'absolute',
+                  left: `${((petScale - PET_SCALE_MIN) / (PET_SCALE_MAX - PET_SCALE_MIN)) * 100}%`,
+                  marginLeft: -11,
+                  width: 22,
+                  height: 22,
+                  borderRadius: 11,
+                  backgroundColor: colors.primary,
+                  borderWidth: 2.5,
+                  borderColor: '#FFFFFF',
+                  shadowColor: '#000',
+                  shadowOpacity: 0.2,
+                  shadowRadius: 3,
+                  shadowOffset: { width: 0, height: 1 },
+                  elevation: 3,
+                }}
+              />
+            </View>
+          </View>
+        )}
         {/* v1.127.0: перенос прогресса между установками (веб / старый APK / Play —
             изолированные хранилища). Экспорт-код на старом → импорт на новом. */}
         <View style={[styles.settingItem, { backgroundColor: colors.surface, flexDirection: 'column', alignItems: 'stretch', gap: 10 }]}>

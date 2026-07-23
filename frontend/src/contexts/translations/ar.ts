@@ -860,6 +860,7 @@ const t: Record<string, string> = {
   // v1.132: вынесенные из инлайн-тернаров (index/settings/pet/statistics/shop/onboarding + components)
   "streakLabel": "السلسلة",
   "petSynapse": "الحيوان الأليف سينابس",
+  "petSize": "حجم الحيوان الأليف",
   "shop": "المتجر",
   "dailyChallenge": "تحدي اليوم",
   "tgRequestCodeMsg": "مرحبًا دينيس! أريد رمز وصول للملف «{name}» ({emoji}) في PsyGames. إنه لي / لِـ(اذكر لمن، إن كان هدية).",

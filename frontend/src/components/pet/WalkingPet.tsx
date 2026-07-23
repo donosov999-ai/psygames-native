@@ -15,14 +15,16 @@
  */
 import React from 'react';
 import {
-  Animated, Easing, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View,
+  Animated, DeviceEventEmitter, Easing, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import PetSprite, { PetSkin, PetState } from '@/src/components/pet/PetSprite';
-import { getPetSkin, getPetVisible, pickReaction } from '@/src/services/pet';
+import {
+  getPetScale, getPetSkin, getPetVisible, PET_SCALE_DEFAULT, PET_SCALE_EVENT, pickReaction,
+} from '@/src/services/pet';
 
 const PET_SIZE = 56;
 const WALK_SPEED = 34;        // px/с — прогулочный шаг, не спринт
@@ -41,6 +43,8 @@ export default function WalkingPet() {
 
   const [petOn, setPetOn] = React.useState(true);
   const [skin, setSkin] = React.useState<PetSkin>('cat');
+  // Масштаб из настроек (ползунок): применяется живо через DeviceEventEmitter.
+  const [scale, setScale] = React.useState(PET_SCALE_DEFAULT);
   const [bubble, setBubble] = React.useState<string | null>(null);
   // v1.135: кадровая анимация (спрайты kie) — шаг/отдых/сон/машет/прыжок
   const [sprite, setSprite] = React.useState<PetState>('idle');
@@ -52,12 +56,21 @@ export default function WalkingPet() {
   );
   const active = petOn && routeAllowed;
 
-  // Тумблер и скин перечитываются при каждой навигации (как в FeedbackWidget):
+  // Тумблер/скин/масштаб перечитываются при каждой навигации (как в FeedbackWidget):
   // после выхода из настроек тумблер применится, после /pet скин обновится.
   React.useEffect(() => {
     getPetVisible().then(setPetOn).catch(() => {});
     getPetSkin().then(setSkin).catch(() => {});
+    getPetScale().then(setScale).catch(() => {});
   }, [pathname]);
+
+  // Ползунок в настройках шлёт масштаб живьём — питомец меняется прямо под пальцем.
+  React.useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(PET_SCALE_EVENT, (v: number) => {
+      if (Number.isFinite(v)) setScale(v);
+    });
+    return () => sub.remove();
+  }, []);
 
   // Позиция/язык в ref'ах: таймеры-замыкания живут дольше рендера, а
   // перезапускать всю прогулку из-за смены языка или ресайза не хотим.
@@ -68,6 +81,11 @@ export default function WalkingPet() {
   widthRef.current = width;
   const langRef = React.useRef(language);
   langRef.current = language;
+  // Размер в ref: step() живёт в замыкании эффекта, а перезапускать прогулку
+  // на каждый сдвиг ползунка нельзя (шторм таймеров при живом драге).
+  const size = Math.round(PET_SIZE * scale);
+  const sizeRef = React.useRef(size);
+  sizeRef.current = size;
 
   React.useEffect(() => {
     if (!active) return;
@@ -79,7 +97,7 @@ export default function WalkingPet() {
       const W = widthRef.current;
       // Гуляем в полосе 10%..90% ширины (координата — левый край спрайта)
       const min = W * 0.10;
-      const max = Math.max(min + 40, W * 0.90 - PET_SIZE);
+      const max = Math.max(min + 40, W * 0.90 - sizeRef.current);
       const target = min + Math.random() * (max - min);
       const dist = Math.abs(target - posRef.current);
       // Разворот мордой по ходу движения; проход scaleX через 0 сам по себе
@@ -152,7 +170,7 @@ export default function WalkingPet() {
         accessibilityLabel="Synapse"
       >
         <Animated.View style={{ transform: [{ scaleX: flip }] }}>
-          <PetSprite state={sprite} size={PET_SIZE} skin={skin} />
+          <PetSprite state={sprite} size={size} skin={skin} />
         </Animated.View>
       </TouchableOpacity>
     </Animated.View>
