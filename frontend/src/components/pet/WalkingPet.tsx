@@ -23,8 +23,10 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import PetSprite, { PetSkin, PetState } from '@/src/components/pet/PetSprite';
 import {
-  getPetScale, getPetSkin, getPetVisible, PET_SCALE_DEFAULT, PET_SCALE_EVENT, pickReaction,
+  getPetScale, getPetSkin, getPetStats, getPetVisible,
+  PET_SCALE_DEFAULT, PET_SCALE_EVENT, pickPetLine, PetStage,
 } from '@/src/services/pet';
+import { getSessions } from '@/src/services/api';
 
 const PET_SIZE = 56;
 const WALK_SPEED = 34;        // px/с — прогулочный шаг, не спринт
@@ -56,12 +58,23 @@ export default function WalkingPet() {
   );
   const active = petOn && routeAllowed;
 
+  // Контекст для реплик: стадия + давность последней сессии. В ref'ах —
+  // speak() живёт в замыкании эффекта. Перечитывается при навигации: вышел из
+  // игры → свежая сессия видна → питомец реагирует «только что сыграл».
+  const stageRef = React.useRef<PetStage>(1);
+  const lastSessionAtRef = React.useRef<number | null>(null);
+
   // Тумблер/скин/масштаб перечитываются при каждой навигации (как в FeedbackWidget):
   // после выхода из настроек тумблер применится, после /pet скин обновится.
   React.useEffect(() => {
     getPetVisible().then(setPetOn).catch(() => {});
     getPetSkin().then(setSkin).catch(() => {});
     getPetScale().then(setScale).catch(() => {});
+    getPetStats().then((s) => { stageRef.current = s.stage; }).catch(() => {});
+    getSessions().then((ss) => {
+      const last = ss.length ? ss[ss.length - 1]?.timestamp : null;
+      lastSessionAtRef.current = last ? Date.parse(last) || null : null;
+    }).catch(() => {});
   }, [pathname]);
 
   // Ползунок в настройках шлёт масштаб живьём — питомец меняется прямо под пальцем.
@@ -125,13 +138,25 @@ export default function WalkingPet() {
     };
 
     const speak = () => {
-      setBubble(pickReaction(langRef.current));
+      const last = lastSessionAtRef.current;
+      const line = pickPetLine(langRef.current, {
+        hour: new Date().getHours(),
+        stage: stageRef.current,
+        minutesSinceLastSession: last != null ? (Date.now() - last) / 60000 : null,
+      });
+      setBubble(line.text);
       // говорит — машет лапкой (если не в пути)
       if (!walkingRef.current) {
         setSprite('wave');
         later(() => { if (!walkingRef.current) setSprite('idle'); }, 1600);
       }
-      later(() => setBubble(null), SPEECH_SHOW);
+      // Диалог-цепочка: вторая фраза сменяет первую в том же пузыре.
+      if (line.follow) {
+        later(() => setBubble(line.follow!), SPEECH_SHOW - 1000);
+        later(() => setBubble(null), SPEECH_SHOW - 1000 + SPEECH_SHOW);
+      } else {
+        later(() => setBubble(null), SPEECH_SHOW);
+      }
       later(speak, SPEECH_MIN + Math.random() * SPEECH_SPAN);
     };
 
