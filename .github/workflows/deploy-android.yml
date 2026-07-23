@@ -1,9 +1,9 @@
-name: Deploy Android to Google Play
+# РУЧНОЙ инструмент передеплоя произвольного билда в Google Play.
+# Автодеплой на тегах живёт job'ом google-play ВНУТРИ build.yml (same-run):
+# прежний workflow_run-триггер здесь на тег-пушах не срабатывал вовсе (v1.146).
+name: Deploy Android to Google Play (manual)
 
 on:
-  workflow_run:
-    workflows: ["Build native bundles (macOS arm + Windows + Android)"]
-    types: [completed]
   workflow_dispatch:
     inputs:
       run_id:
@@ -16,16 +16,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       startsWith(github.event.workflow_run.head_branch, 'v'))
-
     steps:
       - name: Checkout (for deploy script)
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.event.workflow_run.head_sha }}
 
       - name: Download AAB from build run
         uses: actions/download-artifact@v4
@@ -33,7 +26,7 @@ jobs:
           name: PsyGames-android-aab
           path: ./aab
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event_name == 'workflow_dispatch' && inputs.run_id || github.event.workflow_run.id }}
+          run-id: ${{ inputs.run_id }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -47,5 +40,5 @@ jobs:
         env:
           GOOGLE_PLAY_SA_JSON: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
           AAB_PATH: ./aab/PsyGames-android.aab
-          VERSION_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.version_name || github.event.workflow_run.head_branch }}
+          VERSION_NAME: ${{ inputs.version_name }}
         run: node .github/scripts/deploy_play.js
