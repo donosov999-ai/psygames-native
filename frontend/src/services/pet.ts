@@ -25,6 +25,28 @@ export async function setPetVisible(on: boolean): Promise<void> {
   try { await AsyncStorage.setItem(PET_KEY, on ? '1' : '0'); } catch {}
 }
 
+/** Масштаб гуляющего питомца (ползунок в настройках): 0.6×..1.8×, дефолт 1.
+ *  Касается ТОЛЬКО прогулочного оверлея — аватар в шапке и экран /pet имеют
+ *  свои фиксированные размеры (там масштаб решает раскладка, не вкус). */
+const SCALE_KEY = 'psygames_pet_scale';
+export const PET_SCALE_MIN = 0.6;
+export const PET_SCALE_MAX = 1.8;
+export const PET_SCALE_DEFAULT = 1;
+const clampScale = (v: number) =>
+  Math.min(PET_SCALE_MAX, Math.max(PET_SCALE_MIN, v));
+export async function getPetScale(): Promise<number> {
+  try {
+    const v = parseFloat((await AsyncStorage.getItem(SCALE_KEY)) ?? '');
+    return Number.isFinite(v) ? clampScale(v) : PET_SCALE_DEFAULT;
+  } catch { return PET_SCALE_DEFAULT; }
+}
+export async function setPetScale(v: number): Promise<void> {
+  try { await AsyncStorage.setItem(SCALE_KEY, String(clampScale(v))); } catch {}
+}
+/** Имя события DeviceEventEmitter для живого применения ползунка:
+ *  настройки шлют новое значение, гуляющий питомец подхватывает без навигации. */
+export const PET_SCALE_EVENT = 'psygames-pet-scale';
+
 /** Скин питомца: «cat» (канон, дефолт) · «robot» (прежний Синапс hi-res) ·
  *  «constellation» (semi-realistic, в UI подписан «Нейрон»). Выбор на /pet. */
 const SKIN_KEY = 'psygames_pet_skin';

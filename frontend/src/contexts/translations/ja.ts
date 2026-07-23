@@ -860,6 +860,7 @@ const t: Record<string, string> = {
   // v1.132: вынесенные из инлайн-тернаров (index/settings/pet/statistics/shop/onboarding + components)
   "streakLabel": "ストリーク",
   "petSynapse": "ペットのシナプス",
+  "petSize": "ペットのサイズ",
   "shop": "ショップ",
   "dailyChallenge": "デイリーチャレンジ",
   "tgRequestCodeMsg": "こんにちは、Denisさん！PsyGamesの「{name}」プロフィール（{emoji}）のアクセスコードをください。自分用 / プレゼント用（贈る相手を書いてください）。",

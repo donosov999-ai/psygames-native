@@ -860,6 +860,7 @@ const t: Record<string, string> = {
   // v1.132: вынесенные из инлайн-тернаров (index/settings/pet/statistics/shop/onboarding + components)
   "streakLabel": "연속",
   "petSynapse": "펫 시냅스",
+  "petSize": "펫 크기",
   "shop": "상점",
   "dailyChallenge": "오늘의 도전",
   "tgRequestCodeMsg": "안녕하세요 Denis님! PsyGames의 «{name}» 프로필({emoji}) 액세스 코드를 받고 싶어요. 제가 쓸 거예요 / 선물이라면 받는 사람을 적어 주세요.",

@@ -743,6 +743,7 @@ const t: Record<string, string> = {
   // v1.132: вынесенные из инлайн-тернаров (index/settings/pet/statistics/shop/onboarding + components)
   "streakLabel": "连胜",
   "petSynapse": "突触宠物",
+  "petSize": "宠物大小",
   "shop": "商店",
   "dailyChallenge": "每日挑战",
   "tgRequestCodeMsg": "你好，Denis！我想获取 PsyGames 中“{name}”档案（{emoji}）的访问码。给自己用 / 送人（请注明送给谁）。",

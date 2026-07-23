@@ -746,6 +746,7 @@ const t: Record<string, string> = {
   // v1.132: вынесенные из инлайн-тернаров (index/settings/pet/statistics/shop/onboarding + components)
   "streakLabel": "स्ट्रीक",
   "petSynapse": "पालतू साइनैप्स",
+  "petSize": "पालतू का आकार",
   "shop": "दुकान",
   "dailyChallenge": "आज की चुनौती",
   "tgRequestCodeMsg": "नमस्ते डेनिस! मुझे PsyGames में «{name}» प्रोफ़ाइल ({emoji}) का एक्सेस कोड चाहिए। यह मेरे लिए है / (अगर उपहार है तो बताएं किसके लिए)।",

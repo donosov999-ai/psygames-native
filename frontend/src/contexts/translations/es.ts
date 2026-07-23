@@ -743,6 +743,7 @@ const t: Record<string, string> = {
   // v1.132: вынесенные из инлайн-тернаров (index/settings/pet/statistics/shop/onboarding + components)
   "streakLabel": "Racha",
   "petSynapse": "Mascota Sinapsis",
+  "petSize": "Tamaño de la mascota",
   "shop": "Tienda",
   "dailyChallenge": "Desafío del día",
   "tgRequestCodeMsg": "¡Hola, Denis! Quiero un código de acceso al perfil «{name}» ({emoji}) en PsyGames. Es para mí / para (indica para quién, si es un regalo).",
