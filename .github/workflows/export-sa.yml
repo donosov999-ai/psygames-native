@@ -1,0 +1,25 @@
+# ВРЕМЕННЫЙ workflow: отдать GOOGLE_PLAY_SA_JSON владельцу зашифрованным
+# артефактом (AES-256, одноразовый пароль из PLAY_SA_WRAP_KEY).
+# Удаляется сразу после использования вместе с артефактом и временным секретом.
+name: Export SA (encrypted, one-off)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Encrypt SA JSON
+        env:
+          SA: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
+          WRAP: ${{ secrets.PLAY_SA_WRAP_KEY }}
+        run: |
+          printf '%s' "$SA" | openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -pass env:WRAP -out sa.enc
+          ls -la sa.enc
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sa-encrypted
+          path: sa.enc
+          retention-days: 1
