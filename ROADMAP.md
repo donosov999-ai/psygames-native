@@ -64,8 +64,10 @@
 
 ## 4. Что висит — по приоритету
 
-### 🔴 Блокеры (решение/действие за Денисом)
-- [ ] **Apple Developer Program $99/год** — без него нет iOS-сборки. После оплаты → iOS CI job (сейчас в `build.yml` iOS нет вовсе).
+### 🟠 iOS — аккаунт ЕСТЬ, Apple ждёт первый билд (статус 23.07)
+- [x] Apple Developer Program — **оплачен, заявка принята**, Apple ожидает submission приложения.
+- [ ] **Первая подача**: путь Fast = Tauri iOS-сборка тем же конвейером (bundle `com.psygames.app`) → TestFlight → App Review. Нужно от Дениса: App Store Connect API-ключ (.p8 + Key ID + Issuer ID из appstoreconnect.apple.com → Users and Access → Integrations) в `~/.sdt_secrets/` — тогда iOS-job в CI подпишет и зальёт билд сам.
+- [ ] Второй эшелон (по желанию): миграция на классический React Native (нативные виджеты, точные тайминги) — триггер наступил, но первую подачу быстрее сделать на Tauri.
 
 ### 🟠 Перед публичным релизом (обязательно)
 - [ ] **`FEEDBACK_ENABLED = false`** в `appFeedback.ts` — иначе кнопка фидбека висит у всех, польётся мусор. Сейчас `true` для закрытого теста. (Галочка в настройках это НЕ заменяет — она по умолчанию ON.)
