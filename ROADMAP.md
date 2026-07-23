@@ -38,7 +38,7 @@
 | **Web** | 🟢 live на psy-games.pro/play |
 | **Windows** | 🟢 собирается в CI, self-signed |
 | **macOS** | 🟢 собирается в CI (arm) |
-| **Android** | 🟡 закрытый тест Google Play, **12 тестировщиков**, AAB `com.psygames.app` |
+| **Android** | 🟡 закрытый тест, 12 тестировщиков; v1.145 на проверке Play; **автодеплой из CI включён** (деплой-скрипт Сергея, треки internal+alpha+closed-test1) |
 | **iOS** | 🔴 не собран — блокер Apple Developer Program ($99/год на Денисе) |
 
 - **Монетизация:** OFF (`MONETIZATION_ENABLED = false`) — всё бесплатно, одобрено Google Play
