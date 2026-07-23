@@ -21,12 +21,15 @@ import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import PetSprite, { PetSkin, PetState } from '@/src/components/pet/PetSprite';
+import PetSprite, { PetAccessory, PetSkin, PetState } from '@/src/components/pet/PetSprite';
 import {
-  getPetScale, getPetSkin, getPetStats, getPetVisible,
-  PET_SCALE_DEFAULT, PET_SCALE_EVENT, pickPetLine, PetStage,
+  consumeRecentRecord, getPetAccessory, getPetScale, getPetSkinChoice, getPetStats,
+  getPetVisible, PET_SCALE_DEFAULT, PET_SCALE_EVENT,
+  pickPetLine, pickPettedLine, pickRecordLine, resolvePetSkin, PetStage,
 } from '@/src/services/pet';
+import type { PetLine, PetSkill } from '@/src/services/petLines';
 import { getSessions } from '@/src/services/api';
+import { GAMES } from '@/src/constants/games';
 
 const PET_SIZE = 56;
 const WALK_SPEED = 34;        // px/с — прогулочный шаг, не спринт
@@ -45,9 +48,11 @@ export default function WalkingPet() {
 
   const [petOn, setPetOn] = React.useState(true);
   const [skin, setSkin] = React.useState<PetSkin>('cat');
+  const [accessory, setAccessory] = React.useState<PetAccessory | null>(null);
   // Масштаб из настроек (ползунок): применяется живо через DeviceEventEmitter.
   const [scale, setScale] = React.useState(PET_SCALE_DEFAULT);
-  const [bubble, setBubble] = React.useState<string | null>(null);
+  // Пузырь: текст + опциональная шкала тренера (тап по пузырю → игра шкалы).
+  const [bubble, setBubble] = React.useState<{ text: string; skill?: PetSkill } | null>(null);
   // v1.135: кадровая анимация (спрайты kie) — шаг/отдых/сон/машет/прыжок
   const [sprite, setSprite] = React.useState<PetState>('idle');
   const walkingRef = React.useRef(false);
@@ -58,24 +63,51 @@ export default function WalkingPet() {
   );
   const active = petOn && routeAllowed;
 
-  // Контекст для реплик: стадия + давность последней сессии. В ref'ах —
-  // speak() живёт в замыкании эффекта. Перечитывается при навигации: вышел из
-  // игры → свежая сессия видна → питомец реагирует «только что сыграл».
+  // Контекст для реплик: стадия + слабейшая шкала + давность последней сессии.
+  // В ref'ах — speak() живёт в замыкании эффекта. Перечитывается при навигации:
+  // вышел из игры → свежая сессия видна → питомец реагирует «только что сыграл».
   const stageRef = React.useRef<PetStage>(1);
+  const weakSkillRef = React.useRef<PetSkill | undefined>(undefined);
   const lastSessionAtRef = React.useRef<number | null>(null);
 
   // Тумблер/скин/масштаб перечитываются при каждой навигации (как в FeedbackWidget):
   // после выхода из настроек тумблер применится, после /pet скин обновится.
   React.useEffect(() => {
     getPetVisible().then(setPetOn).catch(() => {});
-    getPetSkin().then(setSkin).catch(() => {});
     getPetScale().then(setScale).catch(() => {});
-    getPetStats().then((s) => { stageRef.current = s.stage; }).catch(() => {});
+    getPetAccessory().then(setAccessory).catch(() => {});
+    getPetStats().then(async (s) => {
+      stageRef.current = s.stage;
+      // Тренер зовёт в слабейшую шкалу — только когда прогресс уже есть
+      // (совсем нулёвому пользователю рекомендация «память отстаёт» = шум).
+      const entries = Object.entries(s.skills) as [PetSkill, number][];
+      const min = entries.reduce((a, b) => (b[1] < a[1] ? b : a));
+      weakSkillRef.current = s.total >= 5 ? min[0] : undefined;
+      // Скин: выбор может быть 'auto' — эволюция по стадии.
+      const choice = await getPetSkinChoice();
+      setSkin(resolvePetSkin(choice, s.stage));
+    }).catch(() => {});
     getSessions().then((ss) => {
       const last = ss.length ? ss[ss.length - 1]?.timestamp : null;
       lastSessionAtRef.current = last ? Date.parse(last) || null : null;
     }).catch(() => {});
   }, [pathname]);
+
+  // Праздник рекорда: api.saveSession оставил маркер → на первой же навигации
+  // после игры питомец прыгает и хвалит, не дожидаясь таймера болтовни.
+  React.useEffect(() => {
+    if (!active) return;
+    let alive = true;
+    const id = setTimeout(async () => {
+      if (!alive || !(await consumeRecentRecord())) return;
+      if (!alive) return;
+      setSprite('jump');
+      setBubble({ text: pickRecordLine(langRef.current).text });
+      setTimeout(() => { if (alive) { setSprite('idle'); setBubble(null); } }, 5000);
+    }, 1300);
+    return () => { alive = false; clearTimeout(id); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, active]);
 
   // Ползунок в настройках шлёт масштаб живьём — питомец меняется прямо под пальцем.
   React.useEffect(() => {
@@ -139,12 +171,13 @@ export default function WalkingPet() {
 
     const speak = () => {
       const last = lastSessionAtRef.current;
-      const line = pickPetLine(langRef.current, {
+      const line: PetLine = pickPetLine(langRef.current, {
         hour: new Date().getHours(),
         stage: stageRef.current,
         minutesSinceLastSession: last != null ? (Date.now() - last) / 60000 : null,
+        weakSkill: weakSkillRef.current,
       });
-      setBubble(line.text);
+      setBubble({ text: line.text, skill: line.skill });
       // говорит — машет лапкой (если не в пути)
       if (!walkingRef.current) {
         setSprite('wave');
@@ -152,7 +185,7 @@ export default function WalkingPet() {
       }
       // Диалог-цепочка: вторая фраза сменяет первую в том же пузыре.
       if (line.follow) {
-        later(() => setBubble(line.follow!), SPEECH_SHOW - 1000);
+        later(() => setBubble({ text: line.follow!, skill: line.skill }), SPEECH_SHOW - 1000);
         later(() => setBubble(null), SPEECH_SHOW - 1000 + SPEECH_SHOW);
       } else {
         later(() => setBubble(null), SPEECH_SHOW);
@@ -181,9 +214,26 @@ export default function WalkingPet() {
       style={[styles.walker, { bottom: insets.bottom + 6, transform: [{ translateX: x }] }]}
     >
       {bubble != null && (
-        <View style={[styles.bubble, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.bubbleText, { color: colors.text }]} numberOfLines={2}>{bubble}</Text>
-        </View>
+        <TouchableOpacity
+          disabled={!bubble.skill}
+          activeOpacity={0.7}
+          onPress={() => {
+            // Тренерский пузырь: тап открывает случайную игру слабой шкалы.
+            const cats = bubble.skill === 'logic' ? ['logic', 'intuition']
+              : bubble.skill === 'speed' ? ['action']
+              : [bubble.skill as string];
+            const pool = GAMES.filter((g) => cats.includes(g.category));
+            const game = pool[Math.floor(Math.random() * pool.length)];
+            if (game) { setBubble(null); router.push(`/games/${game.id}` as any); }
+          }}
+          style={[styles.bubble, {
+            backgroundColor: colors.surface,
+            borderColor: bubble.skill ? colors.primary : colors.border,
+            borderWidth: bubble.skill ? 1.5 : 1,
+          }]}
+        >
+          <Text style={[styles.bubbleText, { color: colors.text }]} numberOfLines={2}>{bubble.text}</Text>
+        </TouchableOpacity>
       )}
       <TouchableOpacity
         onPress={() => {
@@ -191,11 +241,18 @@ export default function WalkingPet() {
           setSprite('jump');
           setTimeout(() => router.push('/pet' as any), 450);
         }}
+        onLongPress={() => {
+          // Поглаживание: долгий тап — ласка без навигации.
+          setSprite('wave');
+          setBubble({ text: pickPettedLine(langRef.current).text });
+          setTimeout(() => { setSprite('idle'); setBubble(null); }, 3200);
+        }}
+        delayLongPress={420}
         activeOpacity={0.8}
         accessibilityLabel="Synapse"
       >
         <Animated.View style={{ transform: [{ scaleX: flip }] }}>
-          <PetSprite state={sprite} size={size} skin={skin} />
+          <PetSprite state={sprite} size={size} skin={skin} accessory={accessory} />
         </Animated.View>
       </TouchableOpacity>
     </Animated.View>

@@ -432,6 +432,15 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
   }
   validateSession(stored);   // non-blocking schema check (warnings only)
   const all = await readAll();
+  // Рекорд игры (до записи новой сессии): питомец празднует немедленно.
+  // Минимум 3 прошлые сессии этой игры — иначе «рекорд» на первой же партии.
+  try {
+    const prev = all.filter((s) => s.game_type === stored.game_type);
+    if (prev.length >= 3 && (stored.score ?? 0) > Math.max(...prev.map((s) => s.score ?? 0))) {
+      const { markRecord } = await import('@/src/services/pet');
+      markRecord().catch(() => {});
+    }
+  } catch { /* праздник некритичен */ }
   all.push(stored);
   await writeAll(all);
   // Геймификация: начислить токены в ЦЕНТР (победы +, ошибки −), per-profile.

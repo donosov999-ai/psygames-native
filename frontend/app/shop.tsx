@@ -13,6 +13,7 @@ import { getTokens, spendTokens } from '@/src/services/tokens';
 import {
   COSMETICS, Cosmetic, getUnlocked, unlockCosmetic, getEquipped, equipCosmetic, unequipCosmetic,
 } from '@/src/services/cosmetics';
+import { getPetAccessory, setPetAccessory } from '@/src/services/pet';
 import { avatarImage } from '@/src/constants/avatars';
 import { sndToken, sndTap, sndWrong, sndCorrect, getSoundPack, setSoundPack as applySoundPack } from '@/src/services/feedback';
 
@@ -27,6 +28,7 @@ export default function ShopScreen() {
   const [unlocked, setUnlocked] = useState<string[]>([]);
   const [equipped, setEquipped] = useState<Record<string, string>>({});
   const [soundPack, setSoundPackState] = useState<string | null>(null);   // SND-P: текущий звук-пак (глобально)
+  const [petAcc, setPetAcc] = useState<string | null>(null);              // аксессуар питомца (глобально, как скин)
 
   const reload = useCallback(async () => {
     const pid = profile?.id;
@@ -35,6 +37,7 @@ export default function ShopScreen() {
     setUnlocked(await getUnlocked(pid));
     setEquipped(await getEquipped(pid));
     setSoundPackState(await getSoundPack());
+    setPetAcc(await getPetAccessory());
   }, [profile?.id]);
 
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
@@ -67,10 +70,19 @@ export default function ShopScreen() {
     if (next) sndCorrect(); else sndTap();
   };
 
+  // Аксессуар питомца — глобальный (питомец один на устройство, как скин).
+  const togglePetAcc = async (c: Cosmetic) => {
+    const next = petAcc === c.value ? null : (c.value as any);
+    await setPetAccessory(next);
+    setPetAcc(next);
+    sndTap();
+  };
+
   const renderItem = (c: Cosmetic) => {
     const owned = unlocked.includes(c.id);
     const isSound = c.type === 'sound';
-    const on = isSound ? soundPack === c.value : equipped[c.type] === c.id;
+    const isPet = c.type === 'pet';
+    const on = isSound ? soundPack === c.value : isPet ? petAcc === c.value : equipped[c.type] === c.id;
     const canAfford = balance >= c.cost;
     // sound value может быть составным "waveform:pitch" — акцент кнопки берём из темы, не парсим цвет из него
     const accent = c.type === 'accent' || c.type === 'frame' ? c.value : colors.primary;
@@ -90,6 +102,10 @@ export default function ShopScreen() {
           </View>
         ) : c.type === 'avatar' ? (
           <Image source={avatarImage(c.value)} style={[styles.swatch, { backgroundColor: colors.background }]} resizeMode="cover" />
+        ) : c.type === 'pet' ? (
+          <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+            <Text style={{ fontSize: 20 }}>{c.value === 'bow' ? '🎀' : c.value === 'party_hat' ? '🥳' : '👓'}</Text>
+          </View>
         ) : (
           <View style={[styles.swatch, { backgroundColor: c.value }]} />
         )}
@@ -102,7 +118,7 @@ export default function ShopScreen() {
           </Text>
         </View>
         {owned ? (
-          <TouchableOpacity onPress={() => (isSound ? toggleSound(c) : toggleEquip(c))}
+          <TouchableOpacity onPress={() => (isSound ? toggleSound(c) : isPet ? togglePetAcc(c) : toggleEquip(c))}
             style={[styles.btn, { backgroundColor: on ? accent : 'transparent', borderColor: accent, borderWidth: 1.5 }]}>
             <Text style={{ color: on ? '#fff' : accent, fontWeight: '800', fontSize: 13 }}>
               {on ? t('equipped') : t('equip')}
@@ -158,6 +174,11 @@ export default function ShopScreen() {
           {t('shopAvatarSection')}
         </Text>
         {COSMETICS.filter((c) => c.type === 'avatar').map(renderItem)}
+
+        <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
+          {t('shopPetSection')}
+        </Text>
+        {COSMETICS.filter((c) => c.type === 'pet').map(renderItem)}
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>
           {t('shopEarnHint')}

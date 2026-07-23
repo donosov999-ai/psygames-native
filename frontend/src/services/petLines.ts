@@ -15,17 +15,27 @@
  */
 import type { PetStage } from '@/src/services/pet';
 
+export type PetSkill = 'memory' | 'attention' | 'logic' | 'speed';
+
 export interface PetLine {
   text: string;
   /** Вторая фраза диалога — WalkingPet покажет её следом в том же пузыре. */
   follow?: string;
+  /** Тренерская реплика: тап по пузырю откроет игру этой шкалы. */
+  skill?: PetSkill;
 }
 
 type Ctx =
   | 'idle' | 'morning' | 'day' | 'evening' | 'night'
   | 'comeback' | 'fresh' | 'stage1' | 'stage2' | 'stage3';
 
-type Pack = Record<Ctx, PetLine[]>;
+type Pack = Record<Ctx, PetLine[]> & {
+  /** Мгновенные события — не участвуют в обычной ротации. */
+  record: PetLine[];
+  petted: PetLine[];
+  /** Тренер: по фразе на каждую шкалу, зовёт в слабейшую. */
+  trainer: Record<PetSkill, PetLine[]>;
+};
 
 const L: Record<string, Pack> = {
   ru: {
@@ -76,6 +86,22 @@ const L: Record<string, Pack> = {
       { text: 'Мы дошли до Созвездия! Это ты меня прокачал 🌌' },
       { text: 'Созвездие сияет, когда ты играешь ✨' },
     ],
+    record: [
+      { text: 'РЕКОРД! Я так горжусь! 🏆' },
+      { text: 'Новый максимум! Ты растёшь 🚀' },
+      { text: 'Вот это результат! Звёзды видели ⭐' },
+    ],
+    petted: [
+      { text: 'Мурр… можно ещё? 💜' },
+      { text: 'Хи-хи, щекотно и приятно ✨' },
+      { text: 'Обнимашки засчитаны 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: 'Память просит тренировки. Заглянем? 🧠', skill: 'memory' }],
+      attention: [{ text: 'Внимание немного отстаёт. Потренируем? 👀', skill: 'attention' }],
+      logic: [{ text: 'Логика заждалась задачек 🧩', skill: 'logic' }],
+      speed: [{ text: 'Скорость можно подтянуть. Рискнём? ⚡', skill: 'speed' }],
+    },
   },
   en: {
     idle: [
@@ -125,6 +151,22 @@ const L: Record<string, Pack> = {
       { text: 'We reached the Constellation! You built me 🌌' },
       { text: 'The Constellation shines when you play ✨' },
     ],
+    record: [
+      { text: 'A RECORD! So proud of you! 🏆' },
+      { text: 'New personal best! You’re growing 🚀' },
+      { text: 'What a result! The stars noticed ⭐' },
+    ],
+    petted: [
+      { text: 'Purr… more, please? 💜' },
+      { text: 'Hee-hee, tickly and nice ✨' },
+      { text: 'Hug registered 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: 'Memory could use a workout. Shall we? 🧠', skill: 'memory' }],
+      attention: [{ text: 'Attention is lagging a bit. Train it? 👀', skill: 'attention' }],
+      logic: [{ text: 'Logic is waiting for puzzles 🧩', skill: 'logic' }],
+      speed: [{ text: 'We could boost your speed. Game? ⚡', skill: 'speed' }],
+    },
   },
   es: {
     idle: [
@@ -174,6 +216,22 @@ const L: Record<string, Pack> = {
       { text: '¡Llegamos a la Constelación! Tú me construiste 🌌' },
       { text: 'La Constelación brilla cuando juegas ✨' },
     ],
+    record: [
+      { text: '¡RÉCORD! ¡Qué orgullo! 🏆' },
+      { text: '¡Nuevo máximo! Estás creciendo 🚀' },
+      { text: '¡Vaya resultado! Las estrellas lo vieron ⭐' },
+    ],
+    petted: [
+      { text: 'Prrr… ¿más, porfa? 💜' },
+      { text: 'Ji, ji, qué cosquillas ✨' },
+      { text: 'Abrazo registrado 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: 'La memoria pide entrenamiento. ¿Vamos? 🧠', skill: 'memory' }],
+      attention: [{ text: 'La atención se queda atrás. ¿La entrenamos? 👀', skill: 'attention' }],
+      logic: [{ text: 'La lógica espera sus acertijos 🧩', skill: 'logic' }],
+      speed: [{ text: '¿Subimos tu velocidad? ⚡', skill: 'speed' }],
+    },
   },
   pt: {
     idle: [
@@ -223,6 +281,22 @@ const L: Record<string, Pack> = {
       { text: 'Chegamos à Constelação! Você me construiu 🌌' },
       { text: 'A Constelação brilha quando você joga ✨' },
     ],
+    record: [
+      { text: 'RECORDE! Que orgulho! 🏆' },
+      { text: 'Novo máximo! Você está crescendo 🚀' },
+      { text: 'Que resultado! As estrelas viram ⭐' },
+    ],
+    petted: [
+      { text: 'Prrr… mais, por favor? 💜' },
+      { text: 'Hihi, que cócegas boas ✨' },
+      { text: 'Abraço registrado 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: 'A memória pede treino. Vamos? 🧠', skill: 'memory' }],
+      attention: [{ text: 'A atenção está ficando para trás. Treinamos? 👀', skill: 'attention' }],
+      logic: [{ text: 'A lógica espera seus desafios 🧩', skill: 'logic' }],
+      speed: [{ text: 'Que tal acelerar sua velocidade? ⚡', skill: 'speed' }],
+    },
   },
   de: {
     idle: [
@@ -272,6 +346,22 @@ const L: Record<string, Pack> = {
       { text: 'Wir haben das Sternbild erreicht! Dein Werk 🌌' },
       { text: 'Das Sternbild leuchtet, wenn du spielst ✨' },
     ],
+    record: [
+      { text: 'REKORD! Ich bin so stolz! 🏆' },
+      { text: 'Neue Bestmarke! Du wächst 🚀' },
+      { text: 'Was für ein Ergebnis! Die Sterne haben es gesehen ⭐' },
+    ],
+    petted: [
+      { text: 'Purr… noch mal? 💜' },
+      { text: 'Hihi, das kitzelt schön ✨' },
+      { text: 'Umarmung gezählt 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: 'Das Gedächtnis will Training. Los? 🧠', skill: 'memory' }],
+      attention: [{ text: 'Die Aufmerksamkeit hinkt etwas. Üben? 👀', skill: 'attention' }],
+      logic: [{ text: 'Die Logik wartet auf Rätsel 🧩', skill: 'logic' }],
+      speed: [{ text: 'Tempo steigern? ⚡', skill: 'speed' }],
+    },
   },
   fr: {
     idle: [
@@ -321,6 +411,22 @@ const L: Record<string, Pack> = {
       { text: 'La Constellation est atteinte ! C’est grâce à toi 🌌' },
       { text: 'La Constellation brille quand tu joues ✨' },
     ],
+    record: [
+      { text: 'RECORD ! Je suis si fier ! 🏆' },
+      { text: 'Nouveau sommet ! Tu progresses 🚀' },
+      { text: 'Quel résultat ! Les étoiles ont vu ⭐' },
+    ],
+    petted: [
+      { text: 'Ronron… encore ? 💜' },
+      { text: 'Hihi, ça chatouille bien ✨' },
+      { text: 'Câlin enregistré 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: 'La mémoire réclame un entraînement. On y va ? 🧠', skill: 'memory' }],
+      attention: [{ text: 'L’attention traîne un peu. On la muscle ? 👀', skill: 'attention' }],
+      logic: [{ text: 'La logique attend ses énigmes 🧩', skill: 'logic' }],
+      speed: [{ text: 'On booste ta vitesse ? ⚡', skill: 'speed' }],
+    },
   },
   it: {
     idle: [
@@ -370,6 +476,22 @@ const L: Record<string, Pack> = {
       { text: 'Siamo arrivati alla Costellazione! Merito tuo 🌌' },
       { text: 'La Costellazione brilla quando giochi ✨' },
     ],
+    record: [
+      { text: 'RECORD! Sono fiero di te! 🏆' },
+      { text: 'Nuovo massimo! Stai crescendo 🚀' },
+      { text: 'Che risultato! Le stelle hanno visto ⭐' },
+    ],
+    petted: [
+      { text: 'Purr… ancora? 💜' },
+      { text: 'Hihi, che solletico piacevole ✨' },
+      { text: 'Abbraccio registrato 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: 'La memoria chiede allenamento. Andiamo? 🧠', skill: 'memory' }],
+      attention: [{ text: 'L’attenzione resta un po’ indietro. La alleniamo? 👀', skill: 'attention' }],
+      logic: [{ text: 'La logica aspetta i suoi enigmi 🧩', skill: 'logic' }],
+      speed: [{ text: 'Aumentiamo la tua velocità? ⚡', skill: 'speed' }],
+    },
   },
   ja: {
     idle: [
@@ -419,6 +541,22 @@ const L: Record<string, Pack> = {
       { text: 'コンステレーションに到達！君のおかげだよ 🌌' },
       { text: '君が遊ぶと星座が輝くんだ ✨' },
     ],
+    record: [
+      { text: '新記録！誇らしいよ！🏆' },
+      { text: '自己ベスト更新！成長してるね 🚀' },
+      { text: 'すごい結果！星も見てたよ ⭐' },
+    ],
+    petted: [
+      { text: 'ゴロゴロ…もっと？💜' },
+      { text: 'ふふ、くすぐったくて気持ちいい ✨' },
+      { text: 'なでなで、受け取ったよ 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: '記憶力がトレーニングを待ってるよ 🧠', skill: 'memory' }],
+      attention: [{ text: '注意力がちょっと遅れてる。鍛える？👀', skill: 'attention' }],
+      logic: [{ text: '論理パズルが待ってるよ 🧩', skill: 'logic' }],
+      speed: [{ text: 'スピードを上げてみない？⚡', skill: 'speed' }],
+    },
   },
   ko: {
     idle: [
@@ -468,6 +606,22 @@ const L: Record<string, Pack> = {
       { text: '컨스텔레이션에 도달했어요! 당신 덕분이에요 🌌' },
       { text: '당신이 플레이하면 별자리가 빛나요 ✨' },
     ],
+    record: [
+      { text: '신기록! 정말 자랑스러워요! 🏆' },
+      { text: '자기 최고 기록! 성장하고 있어요 🚀' },
+      { text: '대단한 결과! 별들도 봤어요 ⭐' },
+    ],
+    petted: [
+      { text: '골골… 더 해줄래요? 💜' },
+      { text: '히히, 간지럽고 좋아요 ✨' },
+      { text: '쓰다듬기 접수 완료 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: '기억력이 훈련을 기다려요. 할까요? 🧠', skill: 'memory' }],
+      attention: [{ text: '주의력이 조금 뒤처져요. 훈련할까요? 👀', skill: 'attention' }],
+      logic: [{ text: '논리가 퍼즐을 기다려요 🧩', skill: 'logic' }],
+      speed: [{ text: '속도를 올려볼까요? ⚡', skill: 'speed' }],
+    },
   },
   zh: {
     idle: [
@@ -517,6 +671,22 @@ const L: Record<string, Pack> = {
       { text: '我们到达星座了！是你造就了我 🌌' },
       { text: '你玩的时候，星座会发光 ✨' },
     ],
+    record: [
+      { text: '破纪录啦！我太骄傲了！🏆' },
+      { text: '新的最高分！你在成长 🚀' },
+      { text: '这成绩太棒了！星星都看到了 ⭐' },
+    ],
+    petted: [
+      { text: '呼噜…再摸摸？💜' },
+      { text: '嘻嘻，痒痒的真舒服 ✨' },
+      { text: '抱抱已收到 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: '记忆力想练一练了，走吗？🧠', skill: 'memory' }],
+      attention: [{ text: '注意力有点落后，练练？👀', skill: 'attention' }],
+      logic: [{ text: '逻辑在等它的谜题 🧩', skill: 'logic' }],
+      speed: [{ text: '要不要提提速度？⚡', skill: 'speed' }],
+    },
   },
   hi: {
     idle: [
@@ -566,6 +736,22 @@ const L: Record<string, Pack> = {
       { text: 'हम नक्षत्र तक पहुँच गए! यह आपकी मेहनत है 🌌' },
       { text: 'आप खेलते हैं तो नक्षत्र चमकता है ✨' },
     ],
+    record: [
+      { text: 'रिकॉर्ड! मुझे गर्व है! 🏆' },
+      { text: 'नया सर्वश्रेष्ठ! आप बढ़ रहे हैं 🚀' },
+      { text: 'क्या नतीजा! सितारों ने देखा ⭐' },
+    ],
+    petted: [
+      { text: 'गुर्र… और सहलाएँ? 💜' },
+      { text: 'ही-ही, गुदगुदी अच्छी लगी ✨' },
+      { text: 'झप्पी दर्ज हुई 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: 'याददाश्त को अभ्यास चाहिए। चलें? 🧠', skill: 'memory' }],
+      attention: [{ text: 'ध्यान थोड़ा पीछे है। अभ्यास करें? 👀', skill: 'attention' }],
+      logic: [{ text: 'तर्क पहेलियों की राह देख रहा है 🧩', skill: 'logic' }],
+      speed: [{ text: 'रफ़्तार बढ़ाएँ? ⚡', skill: 'speed' }],
+    },
   },
   ar: {
     idle: [
@@ -615,6 +801,22 @@ const L: Record<string, Pack> = {
       { text: 'وصلنا إلى الكوكبة! أنت من صنعني 🌌' },
       { text: 'الكوكبة تتلألأ حين تلعب ✨' },
     ],
+    record: [
+      { text: 'رقم قياسي! أنا فخور بك! 🏆' },
+      { text: 'أفضل نتيجة لك! أنت تنمو 🚀' },
+      { text: 'يا لها من نتيجة! النجوم رأت ⭐' },
+    ],
+    petted: [
+      { text: 'خرخرة… المزيد؟ 💜' },
+      { text: 'هيهي، دغدغة لطيفة ✨' },
+      { text: 'تم تسجيل العناق 🤗' },
+    ],
+    trainer: {
+      memory: [{ text: 'الذاكرة تطلب تمرينًا. هيا؟ 🧠', skill: 'memory' }],
+      attention: [{ text: 'الانتباه متأخر قليلًا. نتمرن؟ 👀', skill: 'attention' }],
+      logic: [{ text: 'المنطق ينتظر ألغازه 🧩', skill: 'logic' }],
+      speed: [{ text: 'نرفع سرعتك؟ ⚡', skill: 'speed' }],
+    },
   },
 };
 
@@ -624,6 +826,8 @@ export interface PetLineCtx {
   stage: PetStage;
   /** Минут с последней сессии; null — сессий ещё не было. */
   minutesSinceLastSession: number | null;
+  /** Слабейшая шкала навыков — тренер зовёт именно в неё. */
+  weakSkill?: PetSkill;
 }
 
 const FRESH_WINDOW_MIN = 12;          // «только что сыграл» — до 12 минут
@@ -662,7 +866,25 @@ export function pickPetLine(language: string, ctx: PetLineCtx): PetLine {
     ...pack[timeCtx(ctx.hour)],
     ...pack[`stage${ctx.stage}` as Ctx],
   ];
+  // Тренер вплетается в обычную ротацию (дважды — чуть чаще прочих фраз),
+  // но только когда со времени последней игры прошло 6+ часов: звать в игру
+  // сразу после сессии — навязчиво.
+  if (ctx.weakSkill && (m == null || m >= 360)) {
+    pool.push(...pack.trainer[ctx.weakSkill], ...pack.trainer[ctx.weakSkill]);
+  }
   return pickFrom(pool);
+}
+
+/** Мгновенная реплика на новый рекорд (не ждёт таймер болтовни). */
+export function pickRecordLine(language: string): PetLine {
+  const pack = L[language] || L.en;
+  return pickFrom(pack.record);
+}
+
+/** Реакция на поглаживание (long-press по гуляющему питомцу). */
+export function pickPettedLine(language: string): PetLine {
+  const pack = L[language] || L.en;
+  return pickFrom(pack.petted);
 }
 
 /** Простая случайная реплика без контекста (экран /pet, обратная

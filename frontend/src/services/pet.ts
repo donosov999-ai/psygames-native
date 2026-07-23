@@ -48,17 +48,84 @@ export async function setPetScale(v: number): Promise<void> {
 export const PET_SCALE_EVENT = 'psygames-pet-scale';
 
 /** Скин питомца: «cat» (канон, дефолт) · «robot» (прежний Синапс hi-res) ·
- *  «constellation» (semi-realistic, в UI подписан «Нейрон»). Выбор на /pet. */
+ *  «constellation» (semi-realistic, в UI подписан «Нейрон») · «auto» —
+ *  эволюция по стадии (Искра=кот → Импульс=робот → Созвездие=Нейрон).
+ *  Выбор на /pet, хранение глобальное (питомец один на устройство). */
 const SKIN_KEY = 'psygames_pet_skin';
 export type { PetSkin } from '@/src/components/pet/PetSprite';
-export async function getPetSkin(): Promise<'cat' | 'robot' | 'constellation'> {
+export type PetSkinChoice = 'cat' | 'robot' | 'constellation' | 'auto';
+export async function getPetSkinChoice(): Promise<PetSkinChoice> {
   try {
     const v = await AsyncStorage.getItem(SKIN_KEY);
-    return v === 'robot' || v === 'constellation' ? v : 'cat';
+    return v === 'robot' || v === 'constellation' || v === 'auto' ? v : 'cat';
   } catch { return 'cat'; }
 }
-export async function setPetSkin(skin: 'cat' | 'robot' | 'constellation'): Promise<void> {
+export function resolvePetSkin(choice: PetSkinChoice, stage: PetStage): 'cat' | 'robot' | 'constellation' {
+  if (choice !== 'auto') return choice;
+  return stage >= 3 ? 'constellation' : stage === 2 ? 'robot' : 'cat';
+}
+/** Разрешённый скин (для точек показа, которым не нужен сам выбор). */
+export async function getPetSkin(): Promise<'cat' | 'robot' | 'constellation'> {
+  const choice = await getPetSkinChoice();
+  if (choice !== 'auto') return choice;
+  return resolvePetSkin(choice, (await getPetStats()).stage);
+}
+export async function setPetSkin(skin: PetSkinChoice): Promise<void> {
   try { await AsyncStorage.setItem(SKIN_KEY, skin); } catch {}
+}
+
+/** Надетый аксессуар (магазин, type 'pet'). Покупка — токенами профиля,
+ *  надевание глобальное: питомец один на устройство, как и скин. */
+const ACC_KEY = 'psygames_pet_acc';
+export type { PetAccessory } from '@/src/components/pet/PetSprite';
+export async function getPetAccessory(): Promise<'party_hat' | 'bow' | 'glasses' | null> {
+  try {
+    const v = await AsyncStorage.getItem(ACC_KEY);
+    return v === 'party_hat' || v === 'bow' || v === 'glasses' ? v : null;
+  } catch { return null; }
+}
+export async function setPetAccessory(acc: 'party_hat' | 'bow' | 'glasses' | null): Promise<void> {
+  try {
+    if (acc) await AsyncStorage.setItem(ACC_KEY, acc);
+    else await AsyncStorage.removeItem(ACC_KEY);
+  } catch {}
+}
+
+/** Имя питомца (пустая строка = дефолтное «Синапс» из словаря). Глобальное. */
+const NAME_KEY = 'psygames_pet_name';
+export async function getPetName(): Promise<string> {
+  try { return ((await AsyncStorage.getItem(NAME_KEY)) || '').trim().slice(0, 20); } catch { return ''; }
+}
+export async function setPetName(name: string): Promise<void> {
+  try { await AsyncStorage.setItem(NAME_KEY, name.trim().slice(0, 20)); } catch {}
+}
+
+/** Кормление: раз в день, стоит токенов. Питомец «семейный», сытость общая,
+ *  но платит активный профиль — его токены, его решение. */
+export const PET_FEED_COST = 10;
+const FED_KEY = 'psygames_pet_fed';
+const dayStamp = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+export async function getFedToday(): Promise<boolean> {
+  try { return (await AsyncStorage.getItem(FED_KEY)) === dayStamp(); } catch { return false; }
+}
+export async function markFedToday(): Promise<void> {
+  try { await AsyncStorage.setItem(FED_KEY, dayStamp()); } catch {}
+}
+
+/** Маркер свежего рекорда: пишет api.saveSession, читает WalkingPet, чтобы
+ *  питомец отпраздновал немедленно (не дожидаясь таймера болтовни). */
+const RECORD_KEY = 'psygames_pet_record_at';
+export async function markRecord(): Promise<void> {
+  try { await AsyncStorage.setItem(RECORD_KEY, String(Date.now())); } catch {}
+}
+export async function consumeRecentRecord(maxAgeMs = 120000): Promise<boolean> {
+  try {
+    const raw = await AsyncStorage.getItem(RECORD_KEY);
+    if (!raw) return false;
+    const fresh = Date.now() - Number(raw) < maxAgeMs;
+    await AsyncStorage.removeItem(RECORD_KEY);
+    return fresh;
+  } catch { return false; }
 }
 
 export type PetStage = 1 | 2 | 3;
@@ -71,8 +138,8 @@ export type PetStage = 1 | 2 | 3;
  * время суток / стадия / «вернулся» / «только что сыграл» + диалоги-цепочки).
  * Было 3 фразы с промо-сайта — примелькались за день.
  */
-export { pickPetLine, pickSimpleLine } from '@/src/services/petLines';
-export type { PetLine, PetLineCtx } from '@/src/services/petLines';
+export { pickPetLine, pickPettedLine, pickRecordLine, pickSimpleLine } from '@/src/services/petLines';
+export type { PetLine, PetLineCtx, PetSkill } from '@/src/services/petLines';
 
 /** Обратная совместимость (экран /pet): случайная фраза без контекста. */
 export function pickReaction(language: string): string {
