@@ -14,6 +14,11 @@ to a GitHub Release automatically.
 
 ---
 
+## [1.146.0] — 2026-07-23
+
+### Infrastructure
+- Технический релиз — первая проверка автодеплоя в Google Play (скрипт Сергея: build → AAB → internal/alpha/closed-test1 автоматом). Кодовых изменений нет.
+
 ## [1.145.0] — 2026-07-23
 
 ### Changed
