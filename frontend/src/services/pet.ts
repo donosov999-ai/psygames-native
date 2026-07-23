@@ -67,29 +67,20 @@ export type PetStage = 1 | 2 | 3;
 // живут в словаре LanguageContext (ключи petStage1..petStage3) — рендер через t(`petStage${stage}`).
 
 /**
- * Реплики питомца — 1:1 с сайта (REACTIONS в NeuroPet.astro), 11 языков
- * приложения (ar с сайта не переносим — в приложении арабского нет).
- * Ключи совпадают с type Language из LanguageContext.
+ * Реплики питомца живут в petLines.ts (27 фраз × 12 языков, контекстные:
+ * время суток / стадия / «вернулся» / «только что сыграл» + диалоги-цепочки).
+ * Было 3 фразы с промо-сайта — примелькались за день.
  */
-export const REACTIONS: Record<string, string[]> = {
-  en: ['I see you 👀', 'Impulse caught! ⚡', 'That gesture tickles ✨'],
-  ru: ['Я слежу за тобой 👀', 'Импульс пойман! ⚡', 'Этот жест щекочет ✨'],
-  es: ['Te veo 👀', '¡Impulso capturado! ⚡', 'Ese gesto hace cosquillas ✨'],
-  pt: ['Estou vendo você 👀', 'Impulso capturado! ⚡', 'Esse gesto faz cócegas ✨'],
-  de: ['Ich sehe dich 👀', 'Impuls gefangen! ⚡', 'Diese Geste kitzelt ✨'],
-  fr: ['Je te vois 👀', 'Impulsion captée ! ⚡', 'Ce geste me chatouille ✨'],
-  it: ['Ti vedo 👀', 'Impulso catturato! ⚡', 'Quel gesto fa il solletico ✨'],
-  ja: ['見えているよ 👀', 'インパルスをキャッチ！⚡', 'そのジェスチャー、くすぐったい ✨'],
-  ko: ['보고 있어요 👀', '임펄스 포착! ⚡', '그 제스처는 간지러워요 ✨'],
-  zh: ['我看到你了 👀', '捕捉到脉冲！⚡', '这个手势好痒 ✨'],
-  hi: ['मैं आपको देख रहा हूँ 👀', 'आवेग पकड़ लिया! ⚡', 'यह इशारा गुदगुदाता है ✨'],
-};
+export { pickPetLine, pickSimpleLine } from '@/src/services/petLines';
+export type { PetLine, PetLineCtx } from '@/src/services/petLines';
 
-/** Случайная реплика на языке приложения (fallback en — как на сайте). */
+/** Обратная совместимость (экран /pet): случайная фраза без контекста. */
 export function pickReaction(language: string): string {
-  const list = REACTIONS[language] || REACTIONS.en;
-  return list[Math.floor(Math.random() * list.length)];
+  return pickSimpleLineImpl(language);
 }
+// Отдельное имя, чтобы не конфликтовать с re-export'ом выше (petLines
+// импортирует из pet.ts только type PetStage — цикла значений нет).
+import { pickSimpleLine as pickSimpleLineImpl } from '@/src/services/petLines';
 
 export interface PetStats {
   /** Всего завершённых тренировок (сессий) на устройстве. */
