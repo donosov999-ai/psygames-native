@@ -469,6 +469,32 @@ jobs:
           find gen/android -name "*release*.aab" -type f -exec cp {} out/PsyGames-android.aab \;
           ls -la out/
 
+      - name: ГЕЙТ — нативные .so выровнены на 16 КБ (Google Play, Android 15+)
+        working-directory: src-tauri
+        run: |
+          # Проверяем ИМЕННО те .so, что уедут в стор (из готового APK).
+          # LOAD-сегменты должны быть выровнены на 2**14 (0x4000 = 16 КБ), иначе
+          # на устройствах с 16 КБ страницами приложение не запустится, а Google
+          # Play блокирует прод. Ловим ЗДЕСЬ, а не постфактум в консоли разработчика.
+          OBJDUMP=$(find "$ANDROID_HOME/ndk" -name llvm-objdump -path '*linux-x86_64*' | head -1)
+          echo "objdump: $OBJDUMP"
+          rm -rf so_gate && mkdir so_gate && cd so_gate
+          unzip -q ../out/PsyGames-android.apk 'lib/*' -d x
+          bad=0; n=0
+          while IFS= read -r so; do
+            n=$((n+1))
+            # у llvm-objdump -p строки LOAD оканчиваются на "align 2**N"; нужно 2**14
+            aligns=$("$OBJDUMP" -p "$so" | awk '/LOAD/{print $NF}' | sort -u | tr '\n' ' ')
+            if echo "$aligns" | grep -qvw '2\*\*14'; then
+              echo "✗ $so — LOAD align: $aligns (нужно 2**14)"; bad=1
+            else
+              echo "✓ $(basename $(dirname "$so"))/$(basename "$so") — 16 КБ (2**14)"
+            fi
+          done < <(find x/lib -name '*.so')
+          echo "проверено .so: $n"
+          [ "$n" -ge 4 ] || { echo "БЛОКЕР: ожидалось ≥4 .so, найдено $n"; exit 1; }
+          [ "$bad" = 0 ] || { echo "БЛОКЕР: .so не выровнены на 16 КБ — Android 15+ упадёт"; exit 1; }
+
       # Tauri подписывает APK, но AAB из --aab выходит БЕЗ jar-подписи
       # (проверено на артефакте: нет корневого META-INF/*.RSA) — Play такой
       # не примет. Подписываем upload-ключом явно + verify как гейт.
