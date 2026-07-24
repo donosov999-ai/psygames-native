@@ -150,6 +150,9 @@ export default function SetGame() {
   const [errors, setErrors] = useState(0);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [hintBreakdown, setHintBreakdown] = useState<{ shape: boolean; fill: boolean; color: boolean; count: boolean } | null>(null);
+  // v1.148: 💡 подсказка — подсветить одну карту гарантированного сета (Валя
+  // «нет правильного ответа»: сет есть всегда, но найти бывает трудно).
+  const [hintCardIdx, setHintCardIdx] = useState<number | null>(null);
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера (проход/«почти»)
@@ -170,9 +173,28 @@ export default function SetGame() {
   };
 
   const newRound = () => {
-    setBoard(buildBoard()); setPicked([]); setFeedback(null); setHintBreakdown(null);
+    setBoard(buildBoard()); setPicked([]); setFeedback(null); setHintBreakdown(null); setHintCardIdx(null);
     if (roundTimerRef.current) clearTimeout(roundTimerRef.current);
     if (timeLimitRef.current > 0) roundTimerRef.current = setTimeout(() => handleTimeout(), timeLimitRef.current * 1000);   // лимит времени на SET
+  };
+
+  // 💡 Подсветить первую карту любого валидного сета на поле. Бесплатно —
+  // цена и так зашита во время (score штрафуется секундами).
+  const showHintCard = () => {
+    const s = findAnySet(board);
+    if (s) setHintCardIdx(s[0]);
+  };
+
+  // «Понятно» после ошибки: разбор висит, пока человек его не закрыл
+  // (Валя: «показал ошибки так быстро, что не успела прочитать»).
+  const dismissWrong = () => {
+    setPicked([]);
+    setFeedback(null);
+    setHintBreakdown(null);
+    if (timeLimitRef.current > 0) {
+      if (roundTimerRef.current) clearTimeout(roundTimerRef.current);
+      roundTimerRef.current = setTimeout(() => handleTimeout(), timeLimitRef.current * 1000);
+    }
   };
 
   const startGame = () => {
@@ -207,8 +229,10 @@ export default function SetGame() {
       // Generate hint breakdown for wrong answer
       setHintBreakdown(explainSet(board[sel[0]], board[sel[1]], board[sel[2]]));
     }
-    // Wrong answers stay on screen 2.5 sec so user can see hint
-    const delay = ok ? 700 : 2500;
+    // v1.148: разбор ошибки больше НЕ исчезает сам — закрывается кнопкой
+    // «Понятно» (dismissWrong). Автотаймер остался только у верного ответа.
+    if (!ok) return;
+    const delay = 700;
     setTimeout(async () => {
       if (ok) {
         if (round >= trials) {
@@ -244,10 +268,6 @@ export default function SetGame() {
           setRound((r) => r + 1);
           newRound();
         }
-      } else {
-        setPicked([]);
-        setFeedback(null);
-        setHintBreakdown(null);
       }
     }, delay);
   };
@@ -255,33 +275,43 @@ export default function SetGame() {
   const renderShape = (card: Card, key: number) => {
     const c = COLOR_HEX[card.color];
     const size = 18;
-    const common = { width: size, height: size, marginHorizontal: 2 } as const;
+    const common = { width: size, height: size, marginHorizontal: 2, overflow: 'hidden' as const };
+    // v1.148: штриховка — РЕАЛЬНЫЕ полоски вместо полупрозрачной заливки
+    // (репорт Вали: «нет правильного ответа» — сет был через striped, но
+    // бледная заливка на разных формах читалась то как open, то как solid).
+    // Один и тот же рисунок полос на всех трёх формах.
     const fillStyle = card.fill === 'solid'
       ? { backgroundColor: c, borderColor: c, borderWidth: 2 }
-      : card.fill === 'open'
-      ? { backgroundColor: 'transparent', borderColor: c, borderWidth: 2 }
-      : { backgroundColor: c + '55', borderColor: c, borderWidth: 2 };
+      : { backgroundColor: 'transparent', borderColor: c, borderWidth: 2 };
+    const stripes = card.fill === 'striped' ? (
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} pointerEvents="none">
+        <View style={{ position: 'absolute', top: '22%', left: 0, right: 0, height: 2, backgroundColor: c }} />
+        <View style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 2, backgroundColor: c }} />
+        <View style={{ position: 'absolute', top: '78%', left: 0, right: 0, height: 2, backgroundColor: c }} />
+      </View>
+    ) : null;
     if (card.shape === 'circle') {
-      return <View key={key} style={[common, { borderRadius: size / 2 }, fillStyle]} />;
+      return <View key={key} style={[common, { borderRadius: size / 2 }, fillStyle]}>{stripes}</View>;
     }
     if (card.shape === 'square') {
-      return <View key={key} style={[common, { borderRadius: 3 }, fillStyle]} />;
+      return <View key={key} style={[common, { borderRadius: 3 }, fillStyle]}>{stripes}</View>;
     }
     // triangle: use rotated square w/ clip — simple approximation with View
     return (
-      <View key={key} style={[common, { borderRadius: 3, transform: [{ rotate: '45deg' }] }, fillStyle]} />
+      <View key={key} style={[common, { borderRadius: 3, transform: [{ rotate: '45deg' }] }, fillStyle]}>{stripes}</View>
     );
   };
 
   const renderCard = (card: Card, i: number) => {
     const sel = picked.includes(i);
+    const hinted = hintCardIdx === i && !sel;
     const fbColor = sel && feedback === 'right' ? '#22c55e' : sel && feedback === 'wrong' ? '#f43f5e' : null;
     return (
       <TouchableOpacity key={i} onPress={() => togglePick(i)} disabled={feedback !== null}
         style={[styles.card, {
           backgroundColor: colors.surface,
-          borderColor: fbColor || (sel ? GRADIENT[1] : colors.border),
-          borderWidth: sel ? 3 : 1,
+          borderColor: fbColor || (sel ? GRADIENT[1] : hinted ? '#f5b50a' : colors.border),
+          borderWidth: sel || hinted ? 3 : 1,
         }]}>
         <View style={styles.shapeRow}>
           {Array.from({ length: card.count }).map((_, k) => renderShape(card, k))}
@@ -336,6 +366,13 @@ export default function SetGame() {
                 ? 'Каждый из 4 признаков (форма, цвет, заливка, число) должен быть либо одинаковым у всех трёх карт, либо разным у всех трёх.'
                 : 'Each of the 4 features (shape, color, fill, count) must be either the same on all three cards or different on all three.'}
             </Text>
+            {/* v1.148: советы по логике поиска (запрос Дениса по волне Вали) */}
+            <View style={[styles.tipsBox, { borderColor: colors.border }]}>
+              <Text style={[styles.tipsTitle, { color: colors.text }]}>{t('setTipsTitle')}</Text>
+              <Text style={[styles.tipItem, { color: colors.textSecondary }]}>1. {t('setTip1')}</Text>
+              <Text style={[styles.tipItem, { color: colors.textSecondary }]}>2. {t('setTip2')}</Text>
+              <Text style={[styles.tipItem, { color: colors.textSecondary }]}>3. {t('setTip3')}</Text>
+            </View>
           </View>
         )}
       </View>
@@ -400,11 +437,20 @@ export default function SetGame() {
                 <Text style={[styles.hintRule, { color: colors.textSecondary }]}>
                   {t('hint_set_rule')}
                 </Text>
+                <TouchableOpacity onPress={dismissWrong} style={[styles.gotItBtn, { backgroundColor: '#f43f5e' }]}>
+                  <Text style={styles.gotItText}>{t('setGotIt')}</Text>
+                </TouchableOpacity>
               </View>
             )}
             <View style={styles.boardArea}>
               {board.map(renderCard)}
             </View>
+            {feedback === null && (
+              <TouchableOpacity onPress={showHintCard} disabled={hintCardIdx !== null}
+                style={[styles.hintBtn, { borderColor: '#f5b50a', opacity: hintCardIdx !== null ? 0.45 : 1 }]}>
+                <Text style={[styles.hintBtnText, { color: '#b8860b' }]}>💡 {t('setHintBtn')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </GameShell>
         <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
@@ -484,6 +530,13 @@ const styles = StyleSheet.create({
   hintRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   hintItem: { fontSize: 13, fontWeight: '700' },
   hintRule: { fontSize: 11, textAlign: 'center', fontStyle: 'italic', maxWidth: 360 },
+  gotItBtn: { paddingVertical: 9, paddingHorizontal: 26, borderRadius: 10, marginTop: 2 },
+  gotItText: { color: '#fff', fontSize: 13.5, fontWeight: '800' },
+  hintBtn: { borderWidth: 1.5, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 18 },
+  hintBtnText: { fontSize: 13, fontWeight: '700' },
+  tipsBox: { borderTopWidth: 1, paddingTop: 8, marginTop: 4, gap: 4, alignSelf: 'stretch' },
+  tipsTitle: { fontSize: 12.5, fontWeight: '700' },
+  tipItem: { fontSize: 11.5, lineHeight: 16 },
   boardArea: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 480 },
   card: { width: 88, height: 64, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   shapeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },

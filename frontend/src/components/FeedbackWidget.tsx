@@ -17,8 +17,9 @@
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
-  ActivityIndicator, ScrollView,
+  ActivityIndicator, ScrollView, DeviceEventEmitter,
 } from 'react-native';
+import { DEVCHAT_VISIBLE_EVENT } from '@/src/services/pet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname } from 'expo-router';
@@ -61,11 +62,16 @@ export default function FeedbackWidget() {
   // а не живое состояние экрана — обычно совпадает. null = не игра/нет прогресса.
   const [level, setLevel] = React.useState<number | null>(null);
   // v1.125.0: пользователь может скрыть кнопку галочкой в настройках («кнопка мешается
-  // в игре»). Перечитываем при навигации — после выхода из настроек кнопка обновится.
+  // в игре»). Перечитываем при навигации; v1.148 — плюс живое событие из настроек
+  // (репорт Rulon: тумблер «не работал», пока не уйдёшь с экрана).
   const [hidden, setHidden] = React.useState(false);
   React.useEffect(() => {
     getDevChatVisible().then((on) => setHidden(!on)).catch(() => {});
   }, [pathname]);
+  React.useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(DEVCHAT_VISIBLE_EVENT, (on: boolean) => setHidden(!on));
+    return () => sub.remove();
+  }, []);
 
   if (!FEEDBACK_ENABLED || hidden) return null;
 

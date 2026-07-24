@@ -35,6 +35,9 @@ import {
   getFinancialCooldown, FINANCIAL_COOLDOWN_DAYS,
 } from '@/src/services/warmup';
 import { getAssessmentStatus } from '@/src/services/assessment';
+import WhatsNewModal from '@/src/components/WhatsNewModal';
+import { checkForUpdateDaily, updateUrl } from '@/src/services/appUpdates';
+import { Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUnlocked } from '@/src/services/achievements';
 import { ACHIEVEMENTS } from '@/src/services/achievements';
@@ -74,6 +77,13 @@ function FullHome() {
   const [achievementsCount, setAchievementsCount] = useState(0);
   // v1.7.0: ProfileSwitcherModal — открывается из шапки (профиль-чип или 👤 кнопка)
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  // v1.148: тихая автопроверка обновлений (раз в сутки) → баннер под шапкой
+  const [updAvail, setUpdAvail] = useState<string | null>(null);
+  useEffect(() => {
+    checkForUpdateDaily().then((info) => {
+      if (info?.hasUpdate) setUpdAvail(info.latest);
+    }).catch(() => {});
+  }, []);
   // Общие очки-токены ЦЕНТРА (копятся со всех игр; перечит на фокусе главного после игры)
   const [tokens, setTokens] = useState(0);
   const [levelUp, setLevelUp] = useState<number | null>(null);   // оверлей «Уровень N!» при повышении
@@ -360,7 +370,22 @@ function FullHome() {
         <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={3}>
           {t('trainYourBrain')} · {t('homeSwitchHint')}
         </Text>
+        {/* v1.148: баннер «доступно обновление» (тихая автопроверка раз в сутки) */}
+        {updAvail != null && (
+          <TouchableOpacity
+            onPress={() => Linking.openURL(updateUrl()).catch(() => {})}
+            style={[styles.updBanner, { backgroundColor: colors.primary + '22', borderColor: colors.primary }]}
+          >
+            <Ionicons name="arrow-up-circle" size={17} color={colors.primary} />
+            <Text style={[styles.updBannerText, { color: colors.primary }]} numberOfLines={1}>
+              {t('updAvailable')} v{updAvail} · {t('updDownload')}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
+
+      {/* v1.148: «Что нового» после обновления — один раз при росте версии */}
+      <WhatsNewModal />
 
       {/* Profile switcher modal — открывается чипом или 👤 кнопкой */}
       <ProfileSwitcherModal visible={switcherOpen} onClose={() => setSwitcherOpen(false)} />
@@ -399,7 +424,7 @@ function FullHome() {
                   </Text>
                 </View>
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]}>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>
                 {t('dailyChallenge')}
               </Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
@@ -440,7 +465,7 @@ function FullHome() {
                   </View>
                 )}
               </View>
-              <Text style={[styles.heroTitle, { color: isRest ? '#FFF' : '#000' }]}>{t('complexWarmup')}</Text>
+              <Text style={[styles.heroTitle, { color: isRest ? '#FFF' : '#000' }]} numberOfLines={2}>{t('complexWarmup')}</Text>
               <Text style={[styles.heroSub, { color: isRest ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)' }]} numberOfLines={3}>
                 {isRest
                   ? t('restDay')
@@ -471,7 +496,7 @@ function FullHome() {
               <View style={styles.heroTopRow}>
                 <Image source={FEATURE_ICONS.night} style={{ width: 30, height: 30, borderRadius: 8 }} />
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]}>{t('complexEvening')}</Text>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>{t('complexEvening')}</Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
                 {eveningMeta.steps.length} {t('unitGames')} · ~{Math.round(eveningMeta.est_total_sec / 60)} {t('unitMin')} · {t('calm')}
               </Text>
@@ -509,7 +534,7 @@ function FullHome() {
                   </View>
                 )}
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]}>{t('complexAssessment')}</Text>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>{t('complexAssessment')}</Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
                 {t('assessmentMeta')}
               </Text>
@@ -548,7 +573,7 @@ function FullHome() {
                   </View>
                 )}
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]}>FIN BRAIN</Text>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>FIN BRAIN</Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
                 {t('finBrainMeta')}
               </Text>
@@ -648,6 +673,11 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 32, fontWeight: '800' },
   subtitle: { fontSize: 14 },
+  updBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'stretch',
+    borderWidth: 1.5, borderRadius: 11, paddingVertical: 8, paddingHorizontal: 12, marginTop: 8,
+  },
+  updBannerText: { fontSize: 13, fontWeight: '800', flexShrink: 1 },
   // flexShrink: 0 — иконки не сплющиваются; flexWrap — при системном крупном шрифте,
   // когда чип профиля разбухает, ряд переносится, а не выдавливает текст за экран.
   headerButtons: { flexDirection: 'row', gap: 8, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' },

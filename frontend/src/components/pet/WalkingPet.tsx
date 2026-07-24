@@ -24,7 +24,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import PetSprite, { PetAccessory, PetSkin, PetState } from '@/src/components/pet/PetSprite';
 import {
   consumeRecentRecord, getPetAccessory, getPetScale, getPetSkinChoice, getPetStats,
-  getPetVisible, PET_SCALE_DEFAULT, PET_SCALE_EVENT,
+  getPetVisible, PET_SCALE_DEFAULT, PET_SCALE_EVENT, PET_VISIBLE_EVENT,
   pickPetLine, pickPettedLine, pickRecordLine, resolvePetSkin, PetStage,
 } from '@/src/services/pet';
 import type { PetLine, PetSkill } from '@/src/services/petLines';
@@ -109,12 +109,16 @@ export default function WalkingPet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, active]);
 
-  // Ползунок в настройках шлёт масштаб живьём — питомец меняется прямо под пальцем.
+  // Ползунок и тумблер в настройках шлют события живьём — питомец меняется
+  // прямо под пальцем (репорт Rulon: тумблер «не работал», пока не сменишь экран).
   React.useEffect(() => {
-    const sub = DeviceEventEmitter.addListener(PET_SCALE_EVENT, (v: number) => {
+    const subScale = DeviceEventEmitter.addListener(PET_SCALE_EVENT, (v: number) => {
       if (Number.isFinite(v)) setScale(v);
     });
-    return () => sub.remove();
+    const subOn = DeviceEventEmitter.addListener(PET_VISIBLE_EVENT, (on: boolean) => {
+      setPetOn(!!on);
+    });
+    return () => { subScale.remove(); subOn.remove(); };
   }, []);
 
   // Позиция/язык в ref'ах: таймеры-замыкания живут дольше рендера, а
