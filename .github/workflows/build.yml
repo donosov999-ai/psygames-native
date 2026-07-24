@@ -376,31 +376,36 @@ jobs:
           s = open(p).read()
           if 'setOnApplyWindowInsetsListener' in s:
               print('insets listener already present'); sys.exit(0)
-          if 'override fun onCreate' in s:
-              print('ERROR: onCreate already defined — patch manually'); sys.exit(1)
-          imports = (
-              'import android.os.Bundle\n'
-              'import androidx.core.view.ViewCompat\n'
-              'import androidx.core.view.WindowInsetsCompat\n'
-          )
-          s = re.sub(r'^(package [^\n]+\n)', r'\1\n' + imports, s, count=1)
-          method = (
-              '  override fun onCreate(savedInstanceState: Bundle?) {\n'
-              '    super.onCreate(savedInstanceState)\n'
-              '    val content = findViewById<android.view.View>(android.R.id.content)\n'
-              '    ViewCompat.setOnApplyWindowInsetsListener(content) { v, insets ->\n'
-              '      val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())\n'
-              '      v.setPadding(0, 0, 0, nav.bottom)\n'
+          # Платформенный API (без androidx) — ноль внешних зависимостей.
+          if 'import android.os.Bundle' not in s:
+              s = re.sub(r'^(package [^\n]+\n)', r'\1\nimport android.os.Bundle\n', s, count=1)
+          listener = (
+              '\n    // PsyGames: паддинг под системную навигацию (edge-to-edge, targetSdk 35+)\n'
+              '    window.decorView.setOnApplyWindowInsetsListener { _, insets ->\n'
+              '      val bottom = if (android.os.Build.VERSION.SDK_INT >= 30)\n'
+              '          insets.getInsets(android.view.WindowInsets.Type.navigationBars()).bottom\n'
+              '        else @Suppress("DEPRECATION") insets.systemWindowInsetBottom\n'
+              '      findViewById<android.view.View>(android.R.id.content)?.setPadding(0, 0, 0, bottom)\n'
               '      insets\n'
               '    }\n'
-              '  }\n'
           )
-          # класс может быть объявлен как «class MainActivity : TauriActivity()» без тела
-          if re.search(r'class MainActivity[^\{]*\{', s):
-              i = s.rfind('}')
-              s = s[:i] + method + s[i:]
+          if 'super.onCreate(' in s:
+              # onCreate уже есть (шаблон tauri) — вставляем ПОСЛЕ super.onCreate(...)
+              s = re.sub(r'(super\.onCreate\([^\)]*\)\s*\n)', r'\1' + listener, s, count=1)
           else:
-              s = re.sub(r'(class MainActivity[^\n]*)\n', r'\1 {\n' + method + '}\n', s, count=1)
+              method = (
+                  '  override fun onCreate(savedInstanceState: Bundle?) {\n'
+                  '    super.onCreate(savedInstanceState)\n'
+                  + listener +
+                  '  }\n'
+              )
+              if re.search(r'class MainActivity[^\{]*\{', s):
+                  i = s.rfind('}')
+                  s = s[:i] + method + s[i:]
+              else:
+                  s = re.sub(r'(class MainActivity[^\n]*)\n', r'\1 {\n' + method + '}\n', s, count=1)
+          if 'setOnApplyWindowInsetsListener' not in s:
+              print('ERROR: patch failed to apply'); sys.exit(1)
           open(p, 'w').write(s)
           print('MainActivity patched with navigation-bar inset padding')
           PYEOF
