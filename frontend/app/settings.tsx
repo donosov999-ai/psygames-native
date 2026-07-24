@@ -33,7 +33,7 @@ import {
 import { getDevChatVisible, setDevChatVisible } from '@/src/services/appFeedback';
 import {
   getPetVisible, setPetVisible, getPetScale, setPetScale,
-  PET_SCALE_MIN, PET_SCALE_MAX, PET_SCALE_EVENT,
+  PET_SCALE_MIN, PET_SCALE_MAX, PET_SCALE_EVENT, PET_VISIBLE_EVENT, DEVCHAT_VISIBLE_EVENT,
 } from '@/src/services/pet';
 import { exportProgress, importProgress } from '@/src/services/dataTransfer';
 import type { ProfileDef } from '@/src/constants/profiles';
@@ -154,8 +154,18 @@ export default function SettingsScreen() {
   const toggleSound = async () => { const v = !soundOn; setSoundOn(v); await setSoundEnabled(v); };
   const toggleHaptic = async () => { const v = !hapticOn; setHapticOn(v); await setHapticEnabled(v); };
   const toggleMusic = async () => { const v = !musicOn; setMusicOnState(v); await setMusicEnabled(v); };
-  const toggleDevChat = async () => { const v = !devChatOn; setDevChatOn(v); await setDevChatVisible(v); };
-  const togglePet = async () => { const v = !petOn; setPetOn(v); await setPetVisible(v); };
+  // v1.148: тумблеры применяются ЖИВЬЁМ (событие) — раньше питомец/кнопка чата
+  // оставались на экране до смены роута (репорт Rulon «переключатели не работают»).
+  const toggleDevChat = async () => {
+    const v = !devChatOn; setDevChatOn(v);
+    DeviceEventEmitter.emit(DEVCHAT_VISIBLE_EVENT, v);
+    await setDevChatVisible(v);
+  };
+  const togglePet = async () => {
+    const v = !petOn; setPetOn(v);
+    DeviceEventEmitter.emit(PET_VISIBLE_EVENT, v);
+    await setPetVisible(v);
+  };
   // v1.127.0: перенос прогресса между установками (веб/старый APK/Play — разные хранилища)
   const [transferMode, setTransferMode] = React.useState<'none' | 'export' | 'import'>('none');
   const [exportCode, setExportCode] = React.useState('');
@@ -848,6 +858,14 @@ export default function SettingsScreen() {
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
+        {/* v1.148: история версий + проверка обновлений (запрос Дениса) */}
+        <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={() => router.push('/whats-new' as any)}>
+          <View style={styles.settingInfo}>
+            <Ionicons name="sparkles-outline" size={24} color={colors.primary} />
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('versionHistory')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
         <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={replayOnboarding}>
           <View style={styles.settingInfo}>
             <Ionicons name="play-circle-outline" size={24} color={colors.primary} />
@@ -979,6 +997,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+    // v1.148: зазор иконка↔текст (репорт Rulon «текст прилипает к иконкам»)
+    gap: 12,
     // при системном крупном шрифте длинная подпись выдавливала Switch за край —
     // flexShrink+minWidth даёт блоку с текстом ужаться, а не толкать переключатель
     flexShrink: 1,

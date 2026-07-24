@@ -358,6 +358,55 @@ jobs:
             echo "WARN: $MANIFEST не найден — пропускаю (OrientationGuard в webview покрывает)"; find gen/android -name AndroidManifest.xml -type f || true
           fi
 
+      - name: Safe-area — паддинг под системную навигацию (MainActivity)
+        working-directory: src-tauri
+        run: |
+          # ЗАЧЕМ: на edge-to-edge Android (принудителен с targetSdk 35+) WebView
+          # рисуется ПОД системной навигацией — нижние кнопки игр перекрывались
+          # (репорт Вали: «кнопка "играть" не видна на Самсунге»). CSS
+          # env(safe-area-inset-bottom) в Android WebView всегда 0, поэтому чиним
+          # на нативном слое: инсет-листенер даёт контенту паддинг ровно в высоту
+          # навигации (кнопочная ~48dp, жестовая ~0-15dp) на любом устройстве.
+          # Вариант «B» из ROADMAP — переживёт Android 16 (opt-out атрибут — нет).
+          MAIN=$(find gen/android -name MainActivity.kt | head -1)
+          if [ -z "$MAIN" ]; then echo "ERROR: MainActivity.kt not found"; exit 1; fi
+          python3 - "$MAIN" <<'PYEOF'
+          import sys, re
+          p = sys.argv[1]
+          s = open(p).read()
+          if 'setOnApplyWindowInsetsListener' in s:
+              print('insets listener already present'); sys.exit(0)
+          if 'override fun onCreate' in s:
+              print('ERROR: onCreate already defined — patch manually'); sys.exit(1)
+          imports = (
+              'import android.os.Bundle\n'
+              'import androidx.core.view.ViewCompat\n'
+              'import androidx.core.view.WindowInsetsCompat\n'
+          )
+          s = re.sub(r'^(package [^\n]+\n)', r'\1\n' + imports, s, count=1)
+          method = (
+              '  override fun onCreate(savedInstanceState: Bundle?) {\n'
+              '    super.onCreate(savedInstanceState)\n'
+              '    val content = findViewById<android.view.View>(android.R.id.content)\n'
+              '    ViewCompat.setOnApplyWindowInsetsListener(content) { v, insets ->\n'
+              '      val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())\n'
+              '      v.setPadding(0, 0, 0, nav.bottom)\n'
+              '      insets\n'
+              '    }\n'
+              '  }\n'
+          )
+          # класс может быть объявлен как «class MainActivity : TauriActivity()» без тела
+          if re.search(r'class MainActivity[^\{]*\{', s):
+              i = s.rfind('}')
+              s = s[:i] + method + s[i:]
+          else:
+              s = re.sub(r'(class MainActivity[^\n]*)\n', r'\1 {\n' + method + '}\n', s, count=1)
+          open(p, 'w').write(s)
+          print('MainActivity patched with navigation-bar inset padding')
+          PYEOF
+          echo '--- MainActivity.kt after patch ---'
+          cat "$MAIN"
+
       - name: Patch build.gradle.kts with signing config
         working-directory: src-tauri
         run: |
@@ -661,6 +710,13 @@ jobs:
           npx expo export -p web
           node scripts/create-web-route-aliases.mjs
           ls -la dist/ | head
+      - name: version.json — источник правды для проверки обновлений в приложении
+        run: |
+          # Приложение (appUpdates.ts) спрашивает https://psy-games.pro/play/version.json;
+          # GitHub Releases не годится — репо приватный.
+          printf '{"version": "%s"}\n' "${GITHUB_REF_NAME#v}" > frontend/dist/version.json
+          cat frontend/dist/version.json
+
       - name: SFTP dist → Contabo /play
         env:
           CONTABO_SSH_HOST: ${{ secrets.CONTABO_SSH_HOST }}

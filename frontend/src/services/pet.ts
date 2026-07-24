@@ -46,6 +46,11 @@ export async function setPetScale(v: number): Promise<void> {
 /** Имя события DeviceEventEmitter для живого применения ползунка:
  *  настройки шлют новое значение, гуляющий питомец подхватывает без навигации. */
 export const PET_SCALE_EVENT = 'psygames-pet-scale';
+/** Живое применение тумблера «Питомец Синапс» (репорт Rulon: «переключатели
+ *  не работают» — применялись только при смене экрана). */
+export const PET_VISIBLE_EVENT = 'psygames-pet-visible';
+/** Живое применение тумблера «Чат с разработчиками» (там же). */
+export const DEVCHAT_VISIBLE_EVENT = 'psygames-devchat-visible';
 
 /** Скин питомца: «cat» (канон, дефолт) · «robot» (прежний Синапс hi-res) ·
  *  «constellation» (semi-realistic, в UI подписан «Нейрон») · «auto» —
