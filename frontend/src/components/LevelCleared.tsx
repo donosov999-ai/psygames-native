@@ -83,6 +83,10 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
       const to = setTimeout(go, EYE_REST_SEC * 1000);
       return () => { clearInterval(iv); clearTimeout(to); if (runTimer) clearTimeout(runTimer); };
     }
+    // v1.154: на ПРОВАЛЕ авто-рестарта НЕТ — игрок сам жмёт «Ещё раз», успев спокойно
+    // разобрать результат (репорт из аудита + Валя: повтор стартовал раньше, чем
+    // читаешь ошибки). Авто-поток остаётся только для ПРОЙДЕННЫХ уровней.
+    if (!passed) return () => { if (runTimer) clearTimeout(runTimer); };
     const t = setTimeout(go, autoMs);
     return () => { clearTimeout(t); if (runTimer) clearTimeout(runTimer); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
