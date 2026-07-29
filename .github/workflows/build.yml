@@ -388,6 +388,25 @@ jobs:
               '      findViewById<android.view.View>(android.R.id.content)?.setPadding(0, 0, 0, bottom)\n'
               '      insets\n'
               '    }\n'
+              # PsyGames: авто-обновление Google Play (flexible in-app update) —
+              # проверяем при старте; скачивается в фоне, по готовности Play
+              # сам предлагает перезапуститься. Всё в try/Throwable — не крашит.
+              '    try {\n'
+              '      val updMgr = com.google.android.play.core.appupdate.AppUpdateManagerFactory.create(this)\n'
+              '      updMgr.appUpdateInfo.addOnSuccessListener { info ->\n'
+              '        if (info.updateAvailability() == com.google.android.play.core.install.model.UpdateAvailability.UPDATE_AVAILABLE\n'
+              '            && info.isUpdateTypeAllowed(com.google.android.play.core.install.model.AppUpdateType.FLEXIBLE)) {\n'
+              '          updMgr.registerListener { state ->\n'
+              '            if (state.installStatus() == com.google.android.play.core.install.model.InstallStatus.DOWNLOADED) {\n'
+              '              updMgr.completeUpdate()\n'
+              '            }\n'
+              '          }\n'
+              '          try {\n'
+              '            updMgr.startUpdateFlowForResult(info, com.google.android.play.core.install.model.AppUpdateType.FLEXIBLE, this, 17563)\n'
+              '          } catch (e: Exception) {}\n'
+              '        }\n'
+              '      }\n'
+              '    } catch (e: Throwable) {}\n'
           )
           if 'super.onCreate(' in s:
               # onCreate уже есть (шаблон tauri) — вставляем ПОСЛЕ super.onCreate(...)
@@ -439,8 +458,12 @@ jobs:
                   }
               }
           }
+
+          dependencies {
+              implementation("com.google.android.play:app-update:2.1.0")
+          }
           EOF
-          tail -25 "$GRADLE"
+          tail -30 "$GRADLE"
 
       - name: Build signed APK (Tauri)
         working-directory: src-tauri

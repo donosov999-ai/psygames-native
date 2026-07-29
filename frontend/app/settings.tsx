@@ -36,6 +36,7 @@ import {
   PET_SCALE_MIN, PET_SCALE_MAX, PET_SCALE_EVENT, PET_VISIBLE_EVENT, DEVCHAT_VISIBLE_EVENT,
 } from '@/src/services/pet';
 import { exportProgress, importProgress } from '@/src/services/dataTransfer';
+import { checkForUpdate, currentVersion, updateUrl } from '@/src/services/appUpdates';
 import type { ProfileDef } from '@/src/constants/profiles';
 import { MONETIZATION_ENABLED, CODE_ENTRY_ENABLED } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
@@ -211,6 +212,24 @@ export default function SettingsScreen() {
   const replayOnboarding = async () => {
     try { await AsyncStorage.removeItem('psygames_onboarded'); } catch {}
     router.push('/onboarding' as any);
+  };
+
+  // v1.151: прямая проверка обновлений из настроек (запрос Дениса — кнопка была
+  // спрятана в /whats-new). Спрашивает psy-games.pro/play/version.json.
+  const [updChecking, setUpdChecking] = React.useState(false);
+  const checkUpdatesNow = async () => {
+    setUpdChecking(true);
+    const info = await checkForUpdate();
+    setUpdChecking(false);
+    if (!info) { Alert.alert(t('updCheckFailed')); return; }
+    if (info.hasUpdate) {
+      Alert.alert(`${t('updAvailable')} v${info.latest}`, t('updAvailableBody'), [
+        { text: t('updLater'), style: 'cancel' },
+        { text: t('updDownload'), onPress: () => Linking.openURL(updateUrl()).catch(() => {}) },
+      ]);
+    } else {
+      Alert.alert(`✓ ${t('updLatest')}`, `v${currentVersion()}`);
+    }
   };
 
   // v1.15.0: Backup / Restore прогресса.
@@ -858,7 +877,17 @@ export default function SettingsScreen() {
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-        {/* v1.148: история версий + проверка обновлений (запрос Дениса) */}
+        {/* v1.151: прямая кнопка «Проверить обновления» (запрос Дениса) */}
+        <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={checkUpdatesNow} disabled={updChecking}>
+          <View style={styles.settingInfo}>
+            <Ionicons name="cloud-download-outline" size={24} color={colors.primary} />
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('updCheckBtn')}</Text>
+          </View>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: '600' }}>
+            {updChecking ? '…' : `v${currentVersion()}`}
+          </Text>
+        </TouchableOpacity>
+        {/* v1.148: история версий («Что нового») */}
         <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={() => router.push('/whats-new' as any)}>
           <View style={styles.settingInfo}>
             <Ionicons name="sparkles-outline" size={24} color={colors.primary} />
