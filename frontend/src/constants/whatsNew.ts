@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.155.0',
+    date: '2026-07-29',
+    ru: [
+      'Магазин: фильтр по категориям — акценты, звуки, рамки, титулы, аватары, питомец',
+      'Питомец больше не перекрывает нижние карточки на экранах со списками',
+    ],
+    en: [
+      'Shop: category filter — accents, sounds, frames, titles, avatars, pet',
+      'The pet no longer overlaps bottom cards on list screens',
+    ],
+  },
+  {
     version: '1.154.0',
     date: '2026-07-29',
     ru: [
