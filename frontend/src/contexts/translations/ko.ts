@@ -1,23 +1,7 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
-  "welcomeTitle": "PsyGames에 오신 걸 환영해요",
-  "welcomeSub": "48개 이상의 인지 게임 (NZT-48 · 수십 가지 모드)",
-  "welcomeStart": "어디서 시작할까요?",
-  "welcomeFreeTitle": "무료로 시작하기",
-  "welcomeFreeSub": "핵심 게임 9종 · 카테고리별 1개씩",
-  "welcomeFreeList": "슐테 · 그림 짝맞추기 · 타깃 · 암산 스프린트 · 다른 그림 찾기 · 카운터 · 애너그램 · 하노이 · N백",
-  "welcomeCodeTitle": "액세스 코드가 있어요",
-  "welcomeCodeSub": "테마 프로필을 잠금 해제해요 (특별 게임 9종)",
-  "welcomeCodeList": "♟ 체스 · 🧒 어린이 · 📖 속독 · 💊 NZT-48 · 🚗 운전자 · 👴 50+ · 💼 사업가 · 🎓 시험",
-  "welcomeFooter": "나중에 설정 → 프로필에서 바꿀 수 있어요. 진행 상황은 기기에 로컬로 저장돼요.",
-  "welcomeCodeInvalid": "잘못된 코드예요. 다시 확인하거나 무료로 시작하세요.",
-  "welcomeBack": "뒤로",
-  "welcomeCodeEntryTitle": "🔑 액세스 코드 입력",
-  "welcomeCodeDesc": "코드는 프로그램 운영자(코치·교사·기관)가 발급해요. 대소문자와 공백은 상관없어요.",
-  "welcomeCodePlaceholder": "예: CHESS-NZT-2026",
   "welcomeUnlock": "잠금 해제",
-  "welcomeNoCode": "코드 없음 → 무료로 시작",
   "homeSwitchHint": "칩을 눌러 프로필 전환",
   "a11ySwitchProfile": "프로필 전환",
   "a11yAchievements": "업적",

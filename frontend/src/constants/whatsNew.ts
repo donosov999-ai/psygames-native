@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.153.0',
+    date: '2026-07-29',
+    ru: [
+      'Полная локализация: испанский, португальский, немецкий, китайский и хинди больше не выпадают в английский посреди игры',
+    ],
+    en: [
+      'Full localization: Spanish, Portuguese, German, Chinese and Hindi no longer drop to English mid-game',
+    ],
+  },
+  {
     version: '1.152.0',
     date: '2026-07-29',
     ru: [

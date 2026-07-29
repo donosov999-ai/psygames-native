@@ -1,23 +1,7 @@
 // AUTO-GENERATED translation overlay (it). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
-  "welcomeTitle": "Ti diamo il benvenuto in PsyGames",
-  "welcomeSub": "48+ giochi cognitivi (NZT-48 · decine di modalità)",
-  "welcomeStart": "Da dove iniziare?",
-  "welcomeFreeTitle": "Inizia con FREE",
-  "welcomeFreeSub": "9 giochi base · uno per ogni categoria",
-  "welcomeFreeList": "Schulte · Coppie di immagini · Bersagli · Math Sprint · Trova le differenze · Calcolo · Anagrammi · Hanoi · N-back",
-  "welcomeCodeTitle": "Ho un codice di accesso",
-  "welcomeCodeSub": "Sblocca un profilo tematico (9 giochi speciali)",
-  "welcomeCodeList": "♟ Scacchi · 🧒 Bambini · 📖 Lettura veloce · 💊 NZT-48 · 🚗 Autisti · 👴 50+ · 💼 Imprenditori · 🎓 Esami",
-  "welcomeFooter": "Puoi cambiare più tardi in Impostazioni → Profilo. I progressi restano salvati sul tuo dispositivo.",
-  "welcomeCodeInvalid": "Codice non valido. Controlla e riprova, oppure inizia con FREE.",
-  "welcomeBack": "indietro",
-  "welcomeCodeEntryTitle": "🔑 Inserisci il codice di accesso",
-  "welcomeCodeDesc": "Il codice viene fornito dal titolare del programma (il tuo coach / insegnante / organizzazione). Maiuscole e spazi non contano.",
-  "welcomeCodePlaceholder": "es. CHESS-NZT-2026",
   "welcomeUnlock": "Sblocca",
-  "welcomeNoCode": "Niente codice → inizia con FREE",
   "homeSwitchHint": "tocca il chip per cambiare profilo",
   "a11ySwitchProfile": "Cambia profilo",
   "a11yAchievements": "Traguardi",

@@ -1,23 +1,7 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
-  "welcomeTitle": "PsyGamesへようこそ",
-  "welcomeSub": "48種類以上の認知ゲーム（NZT-48・数十のモード）",
-  "welcomeStart": "どこから始めますか？",
-  "welcomeFreeTitle": "無料で始める",
-  "welcomeFreeSub": "主要ゲーム9種・各カテゴリから1つ",
-  "welcomeFreeList": "シュルテ・絵合わせ・ターゲット・計算スプリント・間違い探し・カウンター・アナグラム・ハノイ・Nバック",
-  "welcomeCodeTitle": "アクセスコードを持っています",
-  "welcomeCodeSub": "テーマ別プロフィール（特別な9ゲーム）を解放",
-  "welcomeCodeList": "♟ チェス・🧒 子ども・📖 速読・💊 NZT-48・🚗 ドライバー・👴 50+・💼 起業家・🎓 受験",
-  "welcomeFooter": "後で「設定」→「プロフィール」から変更できます。進捗はお使いの端末内に保存されます。",
-  "welcomeCodeInvalid": "コードが正しくありません。確認して再入力するか、無料で始めてください。",
-  "welcomeBack": "戻る",
-  "welcomeCodeEntryTitle": "🔑 アクセスコードを入力",
-  "welcomeCodeDesc": "コードはプログラム提供者（コーチ・講師・団体）から発行されます。大文字小文字やスペースは区別されません。",
-  "welcomeCodePlaceholder": "例：CHESS-NZT-2026",
   "welcomeUnlock": "解放する",
-  "welcomeNoCode": "コードなし → 無料で始める",
   "homeSwitchHint": "プロフィールを切り替えるにはチップをタップ",
   "a11ySwitchProfile": "プロフィールを切り替え",
   "a11yAchievements": "実績",

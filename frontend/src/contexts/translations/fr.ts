@@ -1,23 +1,7 @@
 // AUTO-GENERATED translation overlay (fr). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
-  "welcomeTitle": "Bienvenue dans PsyGames",
-  "welcomeSub": "48+ jeux cognitifs (NZT-48 · des dizaines de modes)",
-  "welcomeStart": "Par où commencer ?",
-  "welcomeFreeTitle": "Commencer avec FREE",
-  "welcomeFreeSub": "9 jeux de base · un par catégorie",
-  "welcomeFreeList": "Schulte · Paires d'images · Cibles · Math Sprint · Différences · Compteur · Anagrammes · Hanoï · N-back",
-  "welcomeCodeTitle": "J'ai un code d'accès",
-  "welcomeCodeSub": "Débloque un profil thématique (9 jeux spéciaux)",
-  "welcomeCodeList": "♟ Échecs · 🧒 Enfants · 📖 Lecture rapide · 💊 NZT-48 · 🚗 Conducteurs · 👴 50+ · 💼 Entrepreneurs · 🎓 Examens",
-  "welcomeFooter": "Modifiable plus tard dans Réglages → Profil. La progression est stockée localement sur ton appareil.",
-  "welcomeCodeInvalid": "Code invalide. Vérifie-le et réessaie, ou commence avec FREE.",
-  "welcomeBack": "retour",
-  "welcomeCodeEntryTitle": "🔑 Saisis ton code d'accès",
-  "welcomeCodeDesc": "Le code est fourni par le responsable du programme (ton coach / prof / organisation). Majuscules et espaces sans importance.",
-  "welcomeCodePlaceholder": "ex. CHESS-NZT-2026",
   "welcomeUnlock": "Débloquer",
-  "welcomeNoCode": "Pas de code → commencer avec FREE",
   "homeSwitchHint": "touche la pastille pour changer de profil",
   "a11ySwitchProfile": "Changer de profil",
   "a11yAchievements": "Succès",

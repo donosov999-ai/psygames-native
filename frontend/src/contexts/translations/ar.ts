@@ -1,23 +1,7 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
-  "welcomeTitle": "مرحبًا بك في PsyGames",
-  "welcomeSub": "أكثر من 48 لعبة معرفية (NZT-48 · عشرات الأوضاع)",
-  "welcomeStart": "من أين تبدأ؟",
-  "welcomeFreeTitle": "ابدأ مع FREE",
-  "welcomeFreeSub": "9 ألعاب أساسية · واحدة من كل فئة",
-  "welcomeFreeList": "شولتي · أزواج الصور · الأهداف · سباق الحساب · أوجد الاختلافات · العدّاد · الكلمات المبعثرة · هانوي · N-back",
-  "welcomeCodeTitle": "لديّ رمز وصول",
-  "welcomeCodeSub": "يفتح ملفًا موضوعيًا (9 ألعاب خاصة)",
-  "welcomeCodeList": "♟ الشطرنج · 🧒 الأطفال · 📖 القراءة السريعة · 💊 NZT-48 · 🚗 السائقون · 👴 50+ · 💼 روّاد الأعمال · 🎓 الامتحانات",
-  "welcomeFooter": "يمكنك تغيير ذلك لاحقًا من الإعدادات → الملف الشخصي. يُحفظ تقدمك محليًا على جهازك.",
-  "welcomeCodeInvalid": "رمز غير صالح. تحقق منه وحاول مجددًا، أو ابدأ مع FREE.",
-  "welcomeBack": "رجوع",
-  "welcomeCodeEntryTitle": "🔑 أدخل رمز الوصول",
-  "welcomeCodeDesc": "يصدر الرمز من مالك البرنامج (مدرّبك / معلّمك / مؤسستك). لا تهم حالة الأحرف ولا المسافات.",
-  "welcomeCodePlaceholder": "مثال: CHESS-NZT-2026",
   "welcomeUnlock": "فتح",
-  "welcomeNoCode": "لا يوجد رمز → ابدأ مع FREE",
   "homeSwitchHint": "اضغط على الشريحة لتبديل الملف الشخصي",
   "a11ySwitchProfile": "تبديل الملف الشخصي",
   "a11yAchievements": "الإنجازات",
