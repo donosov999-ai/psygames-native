@@ -29,6 +29,7 @@ export default function ShopScreen() {
   const [equipped, setEquipped] = useState<Record<string, string>>({});
   const [soundPack, setSoundPackState] = useState<string | null>(null);   // SND-P: текущий звук-пак (глобально)
   const [petAcc, setPetAcc] = useState<string | null>(null);              // аксессуар питомца (глобально, как скин)
+  const [cat, setCat] = useState<string | null>(null);                    // v1.155: фильтр категорий (null = все) — магазин был длинной лентой (аудит)
 
   const reload = useCallback(async () => {
     const pid = profile?.id;
@@ -149,36 +150,35 @@ export default function ShopScreen() {
         </View>
       </View>
 
+      {/* v1.155: фильтр-категории (иконки, без новых i18n-ключей) — магазин был
+          длинной лентой без навигации (аудит). null = показать все секции. */}
+      <View style={styles.catRow}>
+        {([
+          [null, 'apps'], ['accent', 'color-palette'], ['sound', 'musical-notes'],
+          ['frame', 'scan'], ['title', 'pricetag'], ['avatar', 'person'], ['pet', 'paw'],
+        ] as const).map(([c, icon]) => {
+          const on = cat === c;
+          return (
+            <TouchableOpacity key={String(c)} onPress={() => setCat(c)} activeOpacity={0.75}
+              style={[styles.catChip, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.border }]}>
+              <Ionicons name={icon as any} size={18} color={on ? '#fff' : colors.textSecondary} />
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.section, { color: colors.textSecondary }]}>
-          {t('shopAccentSection')}
-        </Text>
-        {COSMETICS.filter((c) => c.type === 'accent').map(renderItem)}
-
-        <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
-          {t('shopSoundSection')}
-        </Text>
-        {COSMETICS.filter((c) => c.type === 'sound').map(renderItem)}
-
-        <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
-          {t('shopFrameSection')}
-        </Text>
-        {COSMETICS.filter((c) => c.type === 'frame').map(renderItem)}
-
-        <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
-          {t('shopTitleSection')}
-        </Text>
-        {COSMETICS.filter((c) => c.type === 'title').map(renderItem)}
-
-        <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
-          {t('shopAvatarSection')}
-        </Text>
-        {COSMETICS.filter((c) => c.type === 'avatar').map(renderItem)}
-
-        <Text style={[styles.section, { color: colors.textSecondary, marginTop: 20 }]}>
-          {t('shopPetSection')}
-        </Text>
-        {COSMETICS.filter((c) => c.type === 'pet').map(renderItem)}
+        {([
+          ['accent', 'shopAccentSection'], ['sound', 'shopSoundSection'], ['frame', 'shopFrameSection'],
+          ['title', 'shopTitleSection'], ['avatar', 'shopAvatarSection'], ['pet', 'shopPetSection'],
+        ] as const).filter(([type]) => !cat || cat === type).map(([type, sectionKey], i) => (
+          <React.Fragment key={type}>
+            <Text style={[styles.section, { color: colors.textSecondary, marginTop: i === 0 ? 0 : 20 }]}>
+              {t(sectionKey)}
+            </Text>
+            {COSMETICS.filter((c) => c.type === type).map(renderItem)}
+          </React.Fragment>
+        ))}
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>
           {t('shopEarnHint')}
@@ -193,6 +193,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
   iconBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
+  catRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingBottom: 12, flexWrap: 'wrap' },
+  catChip: { width: 40, height: 40, borderRadius: 12, borderWidth: 1.5, justifyContent: 'center', alignItems: 'center' },
   balance: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: 44, borderRadius: 22, borderWidth: 1 },
   section: { fontSize: 13, lineHeight: 1.5 * 13, marginBottom: 14 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 16, padding: 14, marginBottom: 10 },

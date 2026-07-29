@@ -58,8 +58,13 @@ export default function WalkingPet() {
   const walkingRef = React.useRef(false);
 
   // В играх плавающие элементы мешают (проверено фидбеком) — прячемся.
+  // v1.155: питомец гуляет только на главной. На утилитарных экранах со списками
+  // (магазин/статистика/ачивки/настройки/что-нового) он перекрывал нижние карточки
+  // (аудит) — там прячем, как в играх.
   const routeAllowed = !(
     pathname.startsWith('/games/') || pathname.startsWith('/pet') || pathname.startsWith('/onboarding')
+    || pathname.startsWith('/shop') || pathname.startsWith('/statistics') || pathname.startsWith('/achievements')
+    || pathname.startsWith('/settings') || pathname.startsWith('/whats-new')
   );
   const active = petOn && routeAllowed;
 
