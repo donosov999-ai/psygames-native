@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -262,7 +263,7 @@ export default function WordPairsGame() {
   };
 
   const renderConfig = () => (
-    <View style={styles.configContainer}>
+    <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient
         colors={GRADIENT as [string, string]}
         start={{ x: 0, y: 0 }}
@@ -358,7 +359,7 @@ export default function WordPairsGame() {
           <Text style={styles.startButtonText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 
   // memorize-фаза — на едином каркасе GameShell (список пар в скролл-поле, «Проверить» прибита к низу)
@@ -579,7 +580,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 18, fontWeight: '700', flexShrink: 1, minWidth: 0 },  // крупный шрифт: заголовок ужимается между «назад» и спейсером
   placeholder: { width: 44 },
-  configContainer: { flex: 1, paddingHorizontal: 20 },
+  configContainer: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: 20 },
   configCard: {
     padding: 24,
     borderRadius: 20,
