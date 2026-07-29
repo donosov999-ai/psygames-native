@@ -129,17 +129,25 @@ export default function PetScreen() {
           <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         {editingName ? (
-          <TextInput
-            value={petName}
-            onChangeText={setPetNameState}
-            onBlur={saveName}
-            onSubmitEditing={saveName}
-            autoFocus
-            maxLength={20}
-            placeholder={t('petName')}
-            placeholderTextColor={colors.textSecondary}
-            style={[styles.title, styles.nameInput, { color: colors.text, borderColor: colors.border }]}
-          />
+          // v1.156 (репорт Дениса): раньше имя сохранялось только по onBlur/Enter —
+          // на Android клавиатура закрывается без blur, и имя терялось. Явная
+          // кнопка «✓» рядом с полем.
+          <View style={styles.nameEditRow}>
+            <TextInput
+              value={petName}
+              onChangeText={setPetNameState}
+              onBlur={saveName}
+              onSubmitEditing={saveName}
+              autoFocus
+              maxLength={20}
+              placeholder={t('petName')}
+              placeholderTextColor={colors.textSecondary}
+              style={[styles.title, styles.nameInput, { color: colors.text, borderColor: colors.border }]}
+            />
+            <TouchableOpacity onPress={saveName} style={[styles.nameSaveBtn, { backgroundColor: '#8a68f5' }]} accessibilityLabel={t('apply')}>
+              <Ionicons name="checkmark" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
         ) : (
           <TouchableOpacity onPress={() => setEditingName(true)} style={styles.nameRow} accessibilityLabel={t('petRename')}>
             <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{shownName}</Text>
@@ -248,6 +256,8 @@ const styles = StyleSheet.create({
   backButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '800', flexShrink: 1, minWidth: 0, textAlign: 'center' },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1, minWidth: 0 },
+  nameEditRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0 },
+  nameSaveBtn: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   nameInput: { borderBottomWidth: 1.5, paddingVertical: 2, minWidth: 140, maxWidth: 220 },
   placeholder: { width: 44 },
   feedBtn: { borderRadius: 999, borderWidth: 1.5, paddingVertical: 9, paddingHorizontal: 20, marginTop: 8 },

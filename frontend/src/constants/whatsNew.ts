@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.156.0',
+    date: '2026-07-29',
+    ru: [
+      'Судоку: на уровнях 30+ пазл иногда имел два решения — верный ход мог засчитаться ошибкой. Теперь решение всегда единственное',
+      'Питомец: у переименования появилась кнопка сохранения',
+    ],
+    en: [
+      'Sudoku: on levels 30+ a puzzle could have two solutions — a correct move could count as an error. Now the solution is always unique',
+      'Pet: renaming now has a save button',
+    ],
+  },
+  {
     version: '1.155.0',
     date: '2026-07-29',
     ru: [

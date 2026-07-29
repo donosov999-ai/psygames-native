@@ -305,7 +305,14 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // evenodd/kropki/sandwich дают игроку оверлеи-ПОДСКАЗКИ (метки чётности, точки, суммы),
 // которых isValid не знает — проверка была бы ложно-строгой (выкалывалось бы слишком мало).
 // TODO(unique): научить countSolutions оверлеям и включить эти варианты + killer-cages.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow'];
+// v1.156 (репорт Вали L30 «два варианта возможно» + эмпирика 20/20 неоднозначных):
+// evenodd/kropki/sandwich — маркерные варианты, движок их констрейнт НЕ enforces
+// (isValid их не знает → считает как базовый судоку). Раньше они копались БЕЗ
+// проверки уникальности → пазл имел 2+ базовых решения → игрок ставил валидную
+// альтернативу, а сверка с зашитым solution засчитывала «ошибку» (нечестно, до
+// потери всех жизней). Добавлены в проверку: теперь дырки копаются только пока
+// БАЗОВОЕ решение единственно → любой верный ход совпадает с solution.
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich'];
 
 export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
