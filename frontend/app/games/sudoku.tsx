@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
@@ -172,6 +172,7 @@ export default function SudokuGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const { profile } = useProfile();
+  const insets = useSafeAreaInsets();   // v1.150: sticky-футер над системной навигацией
   const [digitStyle, setDigitStyle] = useState<DigitStyle>(() => defaultStyleForProfile(profile?.id));
   const DIGIT_IMG = digitsForStyle(digitStyle);
   // Тип цифр: 'plain' = обычный чёткий текст (дефолт — ровный размер, по центру, без тени), 'drawn' = рисованные наборы.
@@ -373,7 +374,12 @@ export default function SudokuGame() {
     : Math.max(14, Math.floor(Math.min((width - 36) / N, (height - 330) / N, 92)));
 
   const renderConfig = () => (
-    <View style={styles.configContainer}>
+    // v1.150: раньше конфиг был голым View → на невысоком экране кнопка «играть»
+    // уходила под системную навигацию без возможности доскроллить (репорт Вали
+    // «где нижняя строка», Samsung). Теперь: опции в ScrollView + кнопка прибита
+    // sticky-футером над навигацией — видна ВСЕГДА.
+    <View style={{ flex: 1 }}>
+    <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="apps" size={48} color="#FFF" />
         <Text style={styles.configTitle}>{t('sudoku')}</Text>
@@ -499,11 +505,15 @@ export default function SudokuGame() {
           </View>
         </View>
       )}
+    </ScrollView>
+    {/* Sticky-футер: кнопка «играть» всегда на экране, над системной навигацией */}
+    <View style={[styles.stickyFooter, { backgroundColor: colors.background, borderTopColor: colors.border, paddingBottom: insets.bottom + 12 }]}>
       <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{mode === 'levels' ? t('playLevelN').replace('{n}', String(level)) : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
+    </View>
     </View>
   );
 
@@ -843,6 +853,7 @@ const styles = StyleSheet.create({
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   modeButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
+  stickyFooter: { paddingHorizontal: 16, paddingTop: 10, borderTopWidth: 1 },
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
