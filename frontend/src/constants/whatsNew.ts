@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.152.0',
+    date: '2026-07-29',
+    ru: [
+      'Судоку: введённая цифра в выделенной ячейке теперь хорошо видна',
+      'WCST: справка исправлена — правило меняется после серии верных подряд, а первая ошибка после смены это норма',
+    ],
+    en: [
+      'Sudoku: the digit you enter in the selected cell is now clearly visible',
+      'WCST: help fixed — the rule changes after a run of correct answers, and the first error after a change is normal',
+    ],
+  },
+  {
     version: '1.148.0',
     date: '2026-07-24',
     ru: [
