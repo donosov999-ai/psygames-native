@@ -38,7 +38,7 @@ import {
 import { exportProgress, importProgress } from '@/src/services/dataTransfer';
 import { checkForUpdate, currentVersion, updateUrl } from '@/src/services/appUpdates';
 import type { ProfileDef } from '@/src/constants/profiles';
-import { MONETIZATION_ENABLED, CODE_ENTRY_ENABLED } from '@/src/constants/profiles';
+import { MONETIZATION_ENABLED, CODE_ENTRY_ENABLED, PUBLIC_GAME_COUNT } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 // v1.16.0: флаг монетизации + helper «скоро» (раньше UNLOCK_CODES_ENABLED
 // использовался без импорта → был undefined → вёл себя как false случайно).
@@ -359,7 +359,7 @@ export default function SettingsScreen() {
                     </Text>
                     <Text style={[styles.profileDesc, { color: active ? 'rgba(0,0,0,0.7)' : colors.textSecondary }]}
                       numberOfLines={2}>
-                      {t('profileDesc_' + p.id)}
+                      {t('profileDesc_' + p.id).replace('{n}', String(PUBLIC_GAME_COUNT))}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -424,7 +424,7 @@ export default function SettingsScreen() {
                     </Text>
                     <Text style={[styles.profileDesc, { color: active ? 'rgba(0,0,0,0.7)' : colors.textSecondary }]}
                       numberOfLines={2}>
-                      {t('profileDesc_' + p.id)}
+                      {t('profileDesc_' + p.id).replace('{n}', String(PUBLIC_GAME_COUNT))}
                     </Text>
                     {p.session_minutes && (
                       <Text style={{ fontSize: 9, color: active ? 'rgba(0,0,0,0.55)' : colors.textSecondary, marginTop: 2, fontFamily: 'monospace' }}>
@@ -568,7 +568,7 @@ export default function SettingsScreen() {
                 {/* Games list */}
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 10 }}>
                   🎮 {detailProfile.allowed_games === 'all'
-                    ? t('label_all_48_games')
+                    ? t('label_all_48_games').replace('{n}', String(PUBLIC_GAME_COUNT))
                     : t('exercisesInProfile').replace('{n}', String((detailProfile.allowed_games as string[]).length))}
                 </Text>
                 {detailProfile.allowed_games !== 'all' && (

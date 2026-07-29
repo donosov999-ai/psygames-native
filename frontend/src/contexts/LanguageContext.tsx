@@ -85,7 +85,7 @@ const translations: Translations = {
 
   // Profiles — display_name + description (consumed via t('profileName_'+id) / t('profileDesc_'+id))
   profileName_odv999: { ru: 'ODV999', en: 'ODV999' },
-  profileDesc_odv999: { ru: 'Все 48 игр · Зарядка · Financial · Assessment', en: 'All 48 games · Warm-up · Financial · Assessment' },
+  profileDesc_odv999: { ru: 'Все {n} игр · Зарядка · Financial · Assessment', en: 'All {n} games · Warm-up · Financial · Assessment' },
   profileName_chess: { ru: 'Шахматист', en: 'Chess Player' },
   profileDesc_chess: { ru: 'Расчёт ходов · spatial · sustained attention', en: 'Move calculation · spatial · sustained attention' },
   profileName_kids: { ru: 'Дети 7-12', en: 'Kids 7-12' },
@@ -1146,7 +1146,7 @@ const translations: Translations = {
   desc_enter_code: { ru: 'Введите код чтобы разблокировать тематический профиль (ODV999, Шахматист, Дети, Скорочтение, NZT-48, Водители, 50+, Предприниматели, Студенты ЕГЭ, Женщины).', en: 'Enter a code to unlock a themed profile (ODV999, Chess Player, Kids, Speed Reading, NZT-48, Drivers, 50+, Entrepreneurs, Exam Students, Women).' },
   ph_code_example: { ru: 'например, CHESS-NZT-2026', en: 'e.g. CHESS-NZT-2026' },
   badge_morning_warmup: { ru: 'Утренняя Зарядка', en: 'Morning Warm-up' },
-  label_all_48_games: { ru: 'Все 48 тренажёров', en: 'All 48 exercises' },
+  label_all_48_games: { ru: 'Все {n} тренажёров', en: 'All {n} exercises' },
   desc_full_library: { ru: 'Полная библиотека: 12 памяти · 7 внимания · 14 логики · 15 скорости/торможения. Все 48 — без ограничений.', en: 'Full library: 12 memory · 7 attention · 14 logic · 15 speed/inhibition. All 48 — no limits.' },
   label_coming_soon: { ru: 'Скоро', en: 'Coming soon' },
   btn_already_have_code: { ru: 'У меня уже есть код — ввести', en: 'I already have a code — enter it' },

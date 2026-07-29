@@ -13,8 +13,11 @@ describe('tokenDelta', () => {
     expect(tokenDelta(90, 0)).toBe(5);    // 4.5 → round → 5 (банковское НЕ используется)
     expect(tokenDelta(0, 0)).toBe(0);
   });
-  it('может быть отрицательным и терпит мусор на входе', () => {
-    expect(tokenDelta(0, 4)).toBe(-4);
+  it('v1.154: НЕ уходит в минус (пол 0), капится на 50, терпит мусор', () => {
+    expect(tokenDelta(0, 4)).toBe(0);        // раньше −4 → скрытое списание; теперь пол 0
+    expect(tokenDelta(60, 5)).toBe(0);       // 3−5=−2 → 0
+    expect(tokenDelta(2000, 0)).toBe(50);    // 100 → кап 50 (анти-фарм)
+    expect(tokenDelta(1000, 0)).toBe(50);    // ровно на потолке
     expect(tokenDelta(undefined as any, undefined as any)).toBe(0);
   });
 });

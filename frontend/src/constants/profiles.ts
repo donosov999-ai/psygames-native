@@ -82,8 +82,12 @@ export interface ProfileDef {
 }
 
 
+// v1.154 (аудит): публичное число игр — ВЫЧИСЛЯЕМОЕ из каталога, а не «48»
+// хардкодом (реально в каталоге больше, число дрейфовало). Единый источник.
+export const PUBLIC_GAME_COUNT = GAMES.length;
+
 // ─── 🛠 ODV999 — Денис, locked by master code ────────────────────────────
-// All 47 games unlocked. Master code = тот же что для NZT staticrypt.
+// Все игры разблокированы. Master code = тот же что для NZT staticrypt.
 // Раньше был personal profile "Денис"; в v1.3.0 переименован + переведён
 // в themed (требует код) чтобы личные данные не светились публично.
 
@@ -93,14 +97,14 @@ const ODV999: ProfileDef = {
   display_name: 'ODV999',
   emoji: '🛠',
   color: '#fbbf24',
-  description: 'Все 48 игр · Зарядка · Financial · Assessment',
-  long_description: 'Полный доступ ко всему приложению — все 48 игр, Утренняя Зарядка, Financial Brain Day, G1 Assessment. Для владельца программы (Денис, ODV999) и его доверенных лиц. Разблокируется одним мастер-кодом.',
-  long_description_en: 'Full access to the entire app — all 48 games, Morning Warm-up, Financial Brain Day, G1 Assessment. For the program owner (Denis, ODV999) and his trusted circle. Unlocked with a single master code.',
+  description: `Все ${PUBLIC_GAME_COUNT} игр · Зарядка · Financial · Assessment`,
+  long_description: `Полный доступ ко всему приложению — все ${PUBLIC_GAME_COUNT} игр, Утренняя Зарядка, Financial Brain Day, G1 Assessment. Для владельца программы (Денис, ODV999) и его доверенных лиц. Разблокируется одним мастер-кодом.`,
+  long_description_en: `Full access to the entire app — all ${PUBLIC_GAME_COUNT} games, Morning Warm-up, Financial Brain Day, G1 Assessment. For the program owner (Denis, ODV999) and his trusted circle. Unlocked with a single master code.`,
   audience: 'Владелец · полный доступ',
   audience_en: 'Owner · full access',
   session_minutes: '5-40 мин',
-  sales_hook: '🛠 Полный набор владельца — все 48 тренажёров, без ограничений. Выдаётся только лично.',
-  sales_hook_en: '🛠 The full owner kit — all 48 trainers, no limits. Granted in person only.',
+  sales_hook: `🛠 Полный набор владельца — все ${PUBLIC_GAME_COUNT} тренажёров, без ограничений. Выдаётся только лично.`,
+  sales_hook_en: `🛠 The full owner kit — all ${PUBLIC_GAME_COUNT} trainers, no limits. Granted in person only.`,
   // price_year не задан → "не продаётся" (см. helper isForSale)
   tier: 'owner',
   group: 'themed',

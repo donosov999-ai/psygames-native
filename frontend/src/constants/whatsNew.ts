@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.154.0',
+    date: '2026-07-29',
+    ru: [
+      'Провал уровня больше не перезапускается сам — сначала спокойно смотришь результат, потом жмёшь «Ещё раз»',
+      'Токены за игру больше не уходят в минус',
+    ],
+    en: [
+      'A failed level no longer auto-restarts — review your result first, then tap Retry',
+      'Game tokens never go negative anymore',
+    ],
+  },
+  {
     version: '1.153.0',
     date: '2026-07-29',
     ru: [
