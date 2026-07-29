@@ -558,7 +558,10 @@ export default function SudokuGame() {
           const wrongVal = v !== 0 && solution[r] && solution[r][c] !== v;
           let bg = (mode === 'killer' && cages) ? blendHex(colors.surface, CAGE_ACCENTS[cages[r][c] % CAGE_ACCENTS.length], 0.16) : colors.surface;
           if (wrongVal) bg = isSel ? '#ef4444' : '#fecaca';  // ошибка: яркий красный если выделена, светло-красный иначе
-          else if (isSel) bg = GRADIENT[0];
+          // v1.152: фон выделения затемнён #7f7fd5→#5b4fd1. Была светлая лаванда,
+          // на ней БЕЛАЯ цифра (line ~652) не читалась (репорт Вали L30 «введённая
+          // цифра светлая, не видно», контраст ~2.9:1). Теперь ~6:1, тема-независимо.
+          else if (isSel) bg = '#5b4fd1';
           else if (sameVal) bg = colors.card;
           else if (sameRow) bg = colors.card;
           // v1.113.0: заливку доп. зон убрали — её перебивала подсветка строки/столбца выделения

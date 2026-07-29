@@ -858,8 +858,8 @@ const translations: Translations = {
     en: 'A board with 9 blocks. They light up in sequence — memorize the order. Then reproduce it (or in reverse). Length grows until you fail twice. Classic visuospatial working memory test.'
   },
   wcstIntroDesc: {
-    ru: 'Внизу — карточка. Сверху — 4 эталона. Сортируйте по СКРЫТОМУ правилу: цвет, форма или количество. Узнаете правило по обратной связи. После 6 правильных подряд правило незаметно меняется — нужно перестроиться. Классический Wisconsin Card Sort.',
-    en: 'Bottom: a card. Top: 4 reference cards. Sort by a HIDDEN rule: colour, shape, or count. Discover the rule via feedback. After 6 correct in a row, the rule silently changes — you must adapt. The classic Wisconsin Card Sort.'
+    ru: 'Внизу — карточка. Сверху — 4 эталона. Сортируйте по СКРЫТОМУ правилу: цвет, форма или количество. Правило узнаётся только по обратной связи ✓/✗. После серии верных подряд правило незаметно меняется. ⚠️ Первый выбор после смены угадать нельзя — ошибка здесь это НОРМА: именно так ты и находишь новое правило. Классический Wisconsin Card Sort.',
+    en: 'Bottom: a card. Top: 4 reference cards. Sort by a HIDDEN rule: colour, shape, or count. The rule is learned only from ✓/✗ feedback. After a run of correct answers the rule silently changes. ⚠️ The first pick after a change can\'t be guessed — an error here is NORMAL: that\'s exactly how you find the new rule. The classic Wisconsin Card Sort.'
   },
   flankerIntroDesc: {
     ru: 'В центре — стрелка ← или →. По бокам — отвлекающие фланкеры (в том же или противоположном направлении). Реагируйте только на ЦЕНТР, игнорируя бока. Измеряет способность подавлять автоматические реакции (Eriksen Flanker, 1974).',
