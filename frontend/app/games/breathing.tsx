@@ -370,6 +370,14 @@ export default function BreathingGame() {
             ) : (
               <>
                 <Text style={[styles.exStep, { color: colors.textSecondary }]}>{Math.min(cycleNow, totalCycles)}/{totalCycles}</Text>
+                {/* v1.157 (репорт Вали «выдох слишком длинный, вдох короткий»): показываем
+                    ВЫБРАННУЮ технику и её ритм. Тайминги менять нельзя — асимметрия это суть
+                    методик (4-7-8 Вейля, physiological sigh: длинный выдох включает
+                    парасимпатику). Но раньше на экране был только счётчик, человек не помнил,
+                    что сам выбрал 4-7-8 → длинный выдох читался как баг. Теперь ритм на виду. */}
+                <Text style={[styles.exStep, { color: colors.textSecondary }]} numberOfLines={1}>
+                  {t(tech.nameKey)} · {tech.phases.map((p) => p.sec).join('–')}
+                </Text>
                 <Text style={[styles.exTimer, { color: colors.text }]}>{remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
               </>
             )}

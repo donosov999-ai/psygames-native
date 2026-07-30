@@ -186,8 +186,15 @@ export function buildEveningWarmupPlaylist(opts: {
   profileEvening?: PlaylistStep[];    // профильный фикс-вечер (override)
 }): PlaylistMeta {
   const { weekday, excludeGameIds, profileEvening } = opts;
-  const ex = new Set(excludeGameIds || []);
-  const base = (profileEvening && profileEvening.length) ? profileEvening : EVENING_BY_WEEKDAY[weekday];
+  const fixed = !!(profileEvening && profileEvening.length);
+  const base = fixed ? profileEvening! : EVENING_BY_WEEKDAY[weekday];
+  // v1.157 (репорт Вали «почему всего одна игра перед сном?»): дедуп против утра
+  // применяем ТОЛЬКО к авто-ротации. Если профиль задал вечер ЯВНО — это осознанный
+  // выбор автора профиля (у «Микро-релакса» утро и вечер намеренно пересекаются:
+  // отличия/парные картинки — залипательные казуалки для обоих слотов). Раньше дедуп
+  // срезал их и от 3 игр оставалась 1, при этом карточка на главной (строится БЕЗ
+  // excludeGameIds) обещала 3 — расхождение обещания и запуска.
+  const ex = new Set(fixed ? [] : (excludeGameIds || []));
   const steps = base.filter((s) => !ex.has(s.game_id)).map((s) => ({ ...s }));
   return {
     duration_min: Math.max(1, Math.round(sumDuration(steps) / 60)),

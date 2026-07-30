@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.157.0',
+    date: '2026-07-30',
+    ru: [
+      'Вечерний комплекс «перед сном» снова из 3 игр — раньше запускалась только одна',
+      'Дыхание: на экране видно выбранную технику и её ритм',
+    ],
+    en: [
+      'The evening "before sleep" set is 3 games again — only one used to launch',
+      'Breathing: the chosen technique and its rhythm are now shown on screen',
+    ],
+  },
+  {
     version: '1.156.0',
     date: '2026-07-29',
     ru: [
