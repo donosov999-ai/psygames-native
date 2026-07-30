@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
   backBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '800' },
-  scroll: { padding: 16, gap: 12, maxWidth: 560, alignSelf: 'center', width: '100%' },
+  scroll: { padding: 16, gap: 12, maxWidth: 560, alignSelf: 'center', width: '100%' , paddingBottom: 96 },
   checkBtn: { flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 12, paddingVertical: 13 },
   checkText: { color: '#fff', fontSize: 14, fontWeight: '800' },
   card: { borderWidth: 1, borderRadius: 14, padding: 14, gap: 6 },

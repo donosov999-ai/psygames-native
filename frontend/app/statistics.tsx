@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 24,
+    paddingBottom: 96,   // v1.158: место под гуляющего питомца
     marginBottom: 16,
   },
   aiCard: { padding: 14, borderRadius: 12, borderWidth: 1.5, gap: 6, marginBottom: 14 },
