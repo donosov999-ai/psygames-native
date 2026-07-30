@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.158.0',
+    date: '2026-07-30',
+    ru: [
+      'Питомец снова разговаривает — и на экранах со списками тоже, никого не перекрывая',
+    ],
+    en: [
+      'The pet talks again — including on list screens, without covering anything',
+    ],
+  },
+  {
     version: '1.157.0',
     date: '2026-07-30',
     ru: [

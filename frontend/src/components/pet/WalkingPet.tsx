@@ -38,6 +38,14 @@ const PAUSE_SPAN = 5000;
 const SPEECH_MIN = 20000;     // реплика раз в 20-40 с
 const SPEECH_SPAN = 20000;
 const SPEECH_SHOW = 4000;
+// v1.158: расписание речи ЖИВЁТ МЕЖДУ ЭКРАНАМИ (module-scope, не ref).
+// Было: таймер стартовал заново при каждом монтировании, а после v1.155 питомец
+// активен только на главной — где редко сидят 20-40 с подряд, поэтому он почти
+// перестал говорить (репорт Дениса «куда фразы делись»). Теперь помним момент
+// последней реплики: вернулся на главную, а пауза уже вышла → скажет сразу.
+let lastSpokeAt = 0;
+const FIRST_SPEECH_MIN = 4000;   // самая первая фраза за сессию — быстро, не через 20-40 с
+const FIRST_SPEECH_SPAN = 4000;
 
 export default function WalkingPet() {
   const insets = useSafeAreaInsets();
@@ -58,13 +66,14 @@ export default function WalkingPet() {
   const walkingRef = React.useRef(false);
 
   // В играх плавающие элементы мешают (проверено фидбеком) — прячемся.
-  // v1.155: питомец гуляет только на главной. На утилитарных экранах со списками
-  // (магазин/статистика/ачивки/настройки/что-нового) он перекрывал нижние карточки
-  // (аудит) — там прячем, как в играх.
+  // v1.158: питомец ВЕРНУЛСЯ на экраны со списками. В v1.155 я его там спрятал,
+  // чтобы не перекрывал нижние карточки (аудит) — но побочно он замолчал: остался
+  // только на главной, где редко сидят 20-40 с до реплики (репорт Дениса «куда
+  // фразы делись»). Правильное решение: питомец на месте, а спискам добавлен
+  // нижний отступ 96px под него (shop/statistics/achievements/whats-new).
+  // Скрыт по-прежнему там, где реально мешает: в играх, онбординге и на своём /pet.
   const routeAllowed = !(
     pathname.startsWith('/games/') || pathname.startsWith('/pet') || pathname.startsWith('/onboarding')
-    || pathname.startsWith('/shop') || pathname.startsWith('/statistics') || pathname.startsWith('/achievements')
-    || pathname.startsWith('/settings') || pathname.startsWith('/whats-new')
   );
   const active = petOn && routeAllowed;
 
@@ -199,11 +208,18 @@ export default function WalkingPet() {
       } else {
         later(() => setBubble(null), SPEECH_SHOW);
       }
+      lastSpokeAt = Date.now();
       later(speak, SPEECH_MIN + Math.random() * SPEECH_SPAN);
     };
 
     later(step, 1200);                                    // первый шаг почти сразу
-    later(speak, SPEECH_MIN + Math.random() * SPEECH_SPAN);
+    // Когда заговорить: за сессию ещё не говорил → быстро (4-8 с). Уже говорил →
+    // досиживаем ОСТАТОК паузы с прошлого раза, а не полные 20-40 с заново.
+    const sinceLast = lastSpokeAt === 0 ? Infinity : Date.now() - lastSpokeAt;
+    const firstDelay = lastSpokeAt === 0
+      ? FIRST_SPEECH_MIN + Math.random() * FIRST_SPEECH_SPAN
+      : Math.max(2500, SPEECH_MIN + Math.random() * SPEECH_SPAN - sinceLast);
+    later(speak, firstDelay);
 
     return () => {
       alive = false;

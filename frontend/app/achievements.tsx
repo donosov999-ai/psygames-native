@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   backButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '800' },
   placeholder: { width: 44 },
-  scroll: { padding: 16, gap: 18, maxWidth: 720, alignSelf: 'center', width: '100%' },
+  scroll: { padding: 16, gap: 18, maxWidth: 720, alignSelf: 'center', width: '100%' , paddingBottom: 96 },
   section: { gap: 10 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginLeft: 4 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' },
