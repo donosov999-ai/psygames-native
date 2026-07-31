@@ -182,6 +182,7 @@ export default function ChoiceRtGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'choice_rt',
         score: Math.max(0, Math.round(h * 100 - e * 50 - meanRt * 0.1)),
         time_seconds: totalTime,

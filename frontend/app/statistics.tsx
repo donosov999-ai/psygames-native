@@ -223,23 +223,37 @@ export default function StatisticsScreen() {
                   <Text style={[styles.cardTitle, { flexShrink: 1, minWidth: 0 }]} numberOfLines={2}>{t(gameConfig.nameKey)}</Text>
                 </LinearGradient>
                 <View style={[styles.cardBody, { backgroundColor: colors.surface }]}>
+                  {/* v1.163 (репорт Вали): «почему нет по времени сколько максимальная была
+                      игра, сколько минимальная» + «должны считаться только те игры, где я
+                      выиграла». Показываем и самую долгую попытку, и долю пройденных —
+                      там, где у игры вообще есть победа (у тестов вроде RMET её нет). */}
                   <View style={styles.statRow}>
                     <View style={styles.statItem}>
                       <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                        {t('totalGames')}
+                        {stat.outcome_known > 0 ? t('statPassedOfPlayed') : t('totalGames')}
                       </Text>
                       <Text style={[styles.statValue, { color: colors.text }]}>
-                        {stat.total_sessions}
+                        {stat.outcome_known > 0
+                          ? `${stat.passed_sessions}/${stat.total_sessions}`
+                          : stat.total_sessions}
                       </Text>
                     </View>
                     <View style={styles.statItem}>
                       <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                        {t('bestTime')}
+                        {t('statFastest')}
                       </Text>
                       <Text style={[styles.statValue, { color: colors.text }]}>
                         {stat.best_results.length > 0
                           ? formatTime(stat.best_results[0].time_seconds)
                           : '-'}
+                      </Text>
+                    </View>
+                    <View style={styles.statItem}>
+                      <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                        {t('statSlowest')}
+                      </Text>
+                      <Text style={[styles.statValue, { color: colors.text }]}>
+                        {stat.worst_time > 0 ? formatTime(stat.worst_time) : '-'}
                       </Text>
                     </View>
                     <View style={styles.statItem}>
@@ -255,13 +269,24 @@ export default function StatisticsScreen() {
                     const arr = sessionsByGame[stat.game_type];
                     const best = Math.max(...arr);
                     const avg = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
-                    const caption = best > 0
+                    const shown = arr.slice(-12);
+                    // v1.163 (репорт Вали): «что это за диаграмма, где-то я активнее, где-то
+                    // менее активная» — она читала столбики как активность по дням. Это не дни
+                    // и не активность: столбик = ОЧКИ за одну попытку, слева старые, справа
+                    // свежие. Пишем это прямым текстом и подписываем края.
+                    const caption = t('statScoreBars').replace('{n}', String(shown.length));
+                    const numbers = best > 0
                       ? t('scoreBestAvg').replace('{best}', String(best)).replace('{avg}', String(avg))
                       : t('trendRecentGames');
                     return (
                       <View>
                         <Text style={[styles.statLabel, { color: colors.textSecondary, marginTop: 12 }]}>{caption}</Text>
-                        <Sparkline data={arr.slice(-12)} color={(gameConfig.gradient as string[])[1]} />
+                        <Sparkline data={shown} color={(gameConfig.gradient as string[])[1]} />
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
+                          <Text style={{ color: colors.textSecondary, fontSize: 10 }}>{t('statOlder')}</Text>
+                          <Text style={{ color: colors.textSecondary, fontSize: 10 }}>{numbers}</Text>
+                          <Text style={{ color: colors.textSecondary, fontSize: 10 }}>{t('statNewer')}</Text>
+                        </View>
                       </View>
                     );
                   })()}

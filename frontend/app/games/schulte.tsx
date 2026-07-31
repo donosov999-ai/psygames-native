@@ -298,6 +298,7 @@ export default function SchulteGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'schulte_table',
         score: totalCells - errsArg,
         time_seconds: finalTime,

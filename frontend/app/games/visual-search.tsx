@@ -225,6 +225,7 @@ export default function VisualSearchGame() {
       }
       try {
         await saveSession({
+          passed,
           game_type: 'visual_search',
           score: Math.max(0, Math.round(hitsRef.current * 100 - errorsRef.current * 50 - meanRt * 0.05)),
           time_seconds: totalTime,

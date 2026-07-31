@@ -322,6 +322,7 @@ export default function CPTGame() {
 
     try {
       await saveSession({
+        passed,
         game_type: 'cpt',
         score: Math.max(0, Math.round(totalHits * 5 - totalCommissions * 20 - totalOmissions * 10)),
         time_seconds: totalTime,

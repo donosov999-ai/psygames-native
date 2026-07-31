@@ -235,6 +235,7 @@ export default function PseudowordEchoGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: GAME_ID,
         score: Math.max(0, h * 120 - e * 40),
         time_seconds: finalTime,

@@ -387,6 +387,7 @@ export default function ChessBlindGame() {
     const passed = !isPreset && levelPassed;
     if (passed) lvl.reach(levelRef.current + 1);
     saveSession({
+      passed,
       game_type: 'chess_blind',
       score: fHits * 150 - fErrors * 50,
       time_seconds: timeSec,

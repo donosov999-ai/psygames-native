@@ -207,6 +207,7 @@ export default function StroopGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'stroop',
         score: totalHits,
         time_seconds: finalTime,

@@ -173,6 +173,7 @@ export default function ReadingSpanGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'reading_span',
         score: Math.max(0, h * 100 + judgeHits * 30 - e * 50),
         time_seconds: finalTime,

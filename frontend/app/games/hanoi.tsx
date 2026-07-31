@@ -127,6 +127,7 @@ export default function HanoiGame() {
         setPhase(isPreset ? 'result' : 'cleared');   // личная игра → авто-поток к следующему уровню; пресет → обычный результат
         try {
           await saveSession({
+            passed: true,   // сессия пишется только когда уровень собран
             game_type: 'hanoi',
             score: Math.max(0, Math.round(1000 - (moves + 1 - optimal(discs)) * 50 - finalTime)),
             time_seconds: finalTime,

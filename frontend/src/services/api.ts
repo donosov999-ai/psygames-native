@@ -36,6 +36,13 @@ export interface GameSession {
   warmup_id?: string;           // shared UUID across all games in one warmup series
   stack_active?: boolean;       // NZT stack active at time of session (Денис will toggle in settings later)
   person?: string;              // 'Денис' / 'Алекс' / 'Валя' / 'Юлия' / 'Гость' (for E1)
+
+  /**
+   * v1.163: прошла ли попытка. Репорт Вали: «считаются те игры, которые я вышла…
+   * должны считаться только те, где я выиграла». undefined — у игры нет понятия
+   * победы (дыхание, гимнастика для глаз), такие в счётчик побед не идут вообще.
+   */
+  passed?: boolean;
 }
 
 export interface GameStats {
@@ -46,6 +53,12 @@ export interface GameStats {
   best_results: GameSession[];
   total_score: number;
   average_score: number;
+  /** v1.163: сколько попыток пройдено (passed === true). */
+  passed_sessions: number;
+  /** v1.163: у скольких попыток исход вообще известен — иначе «выиграно» не показываем. */
+  outcome_known: number;
+  /** v1.163: самая долгая валидная попытка — Валя просила максимум, не только лучшее. */
+  worst_time: number;
 }
 
 // Build the canonical list of game IDs from the GAMES catalog so any new game
@@ -543,6 +556,9 @@ export const getStats = async (gameType: string): Promise<GameStats> => {
       best_results: [],
       total_score: 0,
       average_score: 0,
+      passed_sessions: 0,
+      outcome_known: 0,
+      worst_time: 0,
     };
   }
 
@@ -562,6 +578,9 @@ export const getStats = async (gameType: string): Promise<GameStats> => {
     best_results: sorted.slice(0, 5),
     total_score,
     average_score: total_sessions > 0 ? total_score / total_sessions : 0,
+    passed_sessions: sessions.filter((s) => s.passed === true).length,
+    outcome_known: sessions.filter((s) => typeof s.passed === 'boolean').length,
+    worst_time: sorted.length ? sorted[sorted.length - 1].time_seconds : 0,
   };
 };
 

@@ -283,6 +283,7 @@ export default function PRLGame() {
 
     try {
       await saveSession({
+        passed,
         game_type: 'prl',
         score: Math.max(0, bank),
         time_seconds: totalTime,

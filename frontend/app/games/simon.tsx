@@ -216,6 +216,7 @@ export default function SimonGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'simon',
         score: Math.max(0, Math.round(h * 80 - e * 60 - meanRt * 0.05 - Math.max(0, simonEffect) * 0.3)),
         time_seconds: totalTime,

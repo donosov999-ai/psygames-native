@@ -255,6 +255,7 @@ export default function SetGame() {
           }
           try {
             await saveSession({
+              passed,
               game_type: 'set_game',
               score: Math.max(0, (hits + 1) * 200 - errors * 50 - Math.floor(finalTime)),
               time_seconds: finalTime,

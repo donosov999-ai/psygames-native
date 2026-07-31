@@ -208,6 +208,7 @@ export default function StroopEmotionalGame() {
 
     try {
       await saveSession({
+        passed,
         game_type: 'stroop_emotional',
         score: Math.max(0, Math.round(hitsRef.current * 80 - errorsRef.current * 60 - meanRt * 0.05)),
         time_seconds: totalTime,

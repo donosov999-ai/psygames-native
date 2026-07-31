@@ -186,6 +186,7 @@ export default function DigitSpanGame() {
       }
       try {
         await saveSession({
+          passed,
           game_type: 'digit_span',
           score: updatedMax * 10,
           time_seconds: finalTime,

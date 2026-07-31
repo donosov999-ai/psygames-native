@@ -162,6 +162,7 @@ export default function SemanticSortGame() {
     setPhase(!isPreset && useLevelRef.current ? 'cleared' : 'result');
     try {
       await saveSession({
+        passed,
         game_type: 'semantic_sort',
         score: correct,
         time_seconds: finalTime,

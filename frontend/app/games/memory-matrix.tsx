@@ -218,6 +218,7 @@ export default function MemoryMatrixGame() {
           }
           try {
             await saveSession({
+              passed,
               game_type: 'memory_matrix',
               score: fScore,
               time_seconds: finalTime,

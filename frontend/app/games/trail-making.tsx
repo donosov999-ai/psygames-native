@@ -223,6 +223,7 @@ export default function TrailMakingGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'trail_making',
         score: Math.max(0, Math.round(1000 - finalTime * 5 - e * 30)),
         time_seconds: finalTime,

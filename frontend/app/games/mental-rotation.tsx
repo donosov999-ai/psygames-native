@@ -417,6 +417,7 @@ export default function MentalRotationGame() {
         }
         try {
           await saveSession({
+            passed,
             game_type: 'mental_rotation',
             score: Math.max(0, newHits * 100 - newErrors * 30 - Math.floor(finalTime)),
             time_seconds: finalTime,

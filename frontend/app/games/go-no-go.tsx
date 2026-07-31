@@ -206,6 +206,7 @@ export default function GoNoGoGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'go_no_go',
         score: h * 10 - fa * 10,
         time_seconds: finalTime,

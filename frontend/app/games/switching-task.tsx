@@ -256,6 +256,7 @@ export default function SwitchingTaskGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'switching_task',
         score: Math.max(0, Math.round(h * 80 - e * 50 - meanRt * 0.05)),
         time_seconds: totalTime,

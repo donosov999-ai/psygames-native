@@ -242,6 +242,7 @@ export default function WordPairsGame() {
 
         try {
           await saveSession({
+            passed,
             game_type: 'word_pairs',
             score: pairs.length - errors,
             time_seconds: finalTime,

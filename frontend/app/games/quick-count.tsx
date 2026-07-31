@@ -140,6 +140,7 @@ export default function QuickCountGame() {
     else if (!isPreset) lvl.fail();
     try {
       await saveSession({
+        passed,
         game_type: 'quick_count',
         score: correctRef.current * 10 - wrongRef.current * 5,
         time_seconds: finalTime,

@@ -191,6 +191,7 @@ export default function PatternGame() {
         }
         try {
           await saveSession({
+            passed,
             game_type: 'pattern',
             score: newHits * 100 - (errors + (correct ? 0 : 1)) * 25,
             time_seconds: finalTime,

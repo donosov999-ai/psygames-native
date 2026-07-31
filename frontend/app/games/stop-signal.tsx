@@ -158,6 +158,7 @@ export default function StopSignalGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'stop_signal',
         score: Math.max(0, Math.round(h * 50 + cs * 100 - e * 60 - meanRt * 0.1)),
         time_seconds: totalTime,

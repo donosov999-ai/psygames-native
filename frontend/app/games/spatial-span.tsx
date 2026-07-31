@@ -146,6 +146,7 @@ export default function SpatialSpanGame() {
     setPhase('cleared');   // непрерывный поток: и успех, и провал → баннер (passed рулит текстом), авто-рестарт уровня
     try {
       await saveSession({
+        passed,
         game_type: 'spatial_span',
         score: Math.max(0, finalSpan * 250 - finalErrors * 50),
         time_seconds: finalTime,

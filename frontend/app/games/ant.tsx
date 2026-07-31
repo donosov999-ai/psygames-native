@@ -241,6 +241,7 @@ export default function ANTGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'ant',
         score: Math.max(0, Math.round(h * 60 - e * 50 - m.meanRt * 0.05)),
         time_seconds: totalTime,

@@ -168,6 +168,7 @@ export default function OSpanGame() {
     setPhase('cleared');   // непрерывный поток: и проход, и провал → баннер уровня с авто-рестартом
     try {
       await saveSession({
+        passed,
         game_type: 'ospan',
         score: Math.max(0, h * 100 + mathHits * 30 - e * 50 - mathErrors * 30),
         time_seconds: finalTime,

@@ -262,6 +262,7 @@ export default function PhonemePairsGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'phoneme_pairs',
         score: Math.max(0, h * 100 - e * 30),
         time_seconds: finalTime,

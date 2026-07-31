@@ -205,6 +205,7 @@ export default function InhibitionGame() {
 
     try {
       await saveSession({
+        passed: levelPassed,
         game_type: gameType,
         score: h * 10 + cr * 5 - fa * 12 - m * 5,
         time_seconds: finalTime,

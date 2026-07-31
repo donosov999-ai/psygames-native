@@ -24,6 +24,7 @@ import { BUNDLE_ALL_THEMED_PRICE, CORPORATE_PACK_PRICE, CORPORATE_PACK_MAX_CODES
 import { GAMES } from '@/src/constants/games';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { a11yDecor, a11yModal } from '@/src/services/a11y';
+import { getTokens } from '@/src/services/tokens';
 
 const OWNER_TG = 'Denis_On999';
 
@@ -47,6 +48,19 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
   } = useProfile();
 
   // States
+  // v1.163 (репорт Вали «когда я перехожу в другой профиль, теряются все очки — обидно,
+  // и я уже не хочу менять профиль»): очки НЕ теряются, у каждой программы свой счёт —
+  // это нигде не было написано, и переключение читалось как обнуление. Показываем счёт
+  // прямо на карточке, чтобы смена программы не выглядела наказанием.
+  const [wallets, setWallets] = React.useState<Record<string, number>>({});
+  React.useEffect(() => {
+    if (!visible) return;
+    let alive = true;
+    Promise.all(allProfiles.map((pr) => getTokens(pr.id).then((v) => [pr.id, v] as const)))
+      .then((pairs) => { if (alive) setWallets(Object.fromEntries(pairs)); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [visible, allProfiles]);
   const [detailProfile, setDetailProfile] = React.useState<ProfileDef | null>(null);
   const [codeModalOpen, setCodeModalOpen] = React.useState(false);
   const [codeInput, setCodeInput] = React.useState('');
@@ -183,6 +197,11 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                       {p.session_minutes && (
                         <Text style={{ fontSize: 9, color: active ? 'rgba(0,0,0,0.55)' : colors.textSecondary, marginTop: 2, fontFamily: 'monospace' }}>
                           ⏱ {p.session_minutes.replace('мин', t('unitMin'))}
+                        </Text>
+                      )}
+                      {!locked && (wallets[p.id] ?? 0) > 0 && (
+                        <Text style={{ fontSize: 10, fontWeight: '800', marginTop: 3, color: active ? 'rgba(0,0,0,0.75)' : colors.textSecondary }}>
+                          ⭐ {wallets[p.id]}
                         </Text>
                       )}
                       {/* v1.8.0: Ценник на каждой locked-карточке. v1.30.3: гейт App-Store-режимом —

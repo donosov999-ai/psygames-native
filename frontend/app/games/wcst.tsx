@@ -227,6 +227,7 @@ export default function WcstGame() {
     }
 
     saveSession({
+      passed,
       game_type: 'wcst',
       score: Math.max(0, h * 50 - e * 30 - pv * 50),
       time_seconds: finalTime,

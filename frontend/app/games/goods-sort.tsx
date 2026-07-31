@@ -209,6 +209,7 @@ export default function GoodsSortGame() {
     scoreRef.current += Math.max(50, 300 - movesRef.current * 4);
     setScore(scoreRef.current);
     saveSession({
+      passed: true,   // сессия пишется только когда уровень собран
       game_type: 'goods_sort', score: scoreRef.current, time_seconds: finalTime,
       difficulty: done < 5 ? 'easy' : done < 10 ? 'medium' : 'hard', mode: `lvl${done}`, errors: 0,
       details: { moves: movesRef.current, level: done },
