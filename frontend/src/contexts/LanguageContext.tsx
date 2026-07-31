@@ -1258,6 +1258,9 @@ const translations: Translations = {
   streakLabel: { ru: 'Стрик', en: 'Streak' },   // дневной стрик (brStreak «Серия» — про Brain Workshop, не путать)
   petSynapse: { ru: 'Питомец Синапс', en: 'Synapse pet' },
   petSize: { ru: 'Размер питомца', en: 'Pet size' },
+  warmupStepOf: { ru: 'Игра {n} из {m}', en: 'Game {n} of {m}' },
+  warmupNextGame: { ru: 'Следующая игра', en: 'Next game' },
+  warmupFinish: { ru: 'Завершить комплекс', en: 'Finish the set' },
   setGotIt: { ru: 'Понятно', en: 'Got it' },
   setHintBtn: { ru: 'Подсказка', en: 'Hint' },
   setTipsTitle: { ru: 'Как искать SET', en: 'How to hunt for a SET' },

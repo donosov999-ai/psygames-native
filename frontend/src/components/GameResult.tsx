@@ -9,6 +9,7 @@ import { tokenDelta } from '@/src/services/tokens';
 import { shareResult } from '@/src/services/share';
 import ResultSparkline from '@/src/components/ResultSparkline';
 import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
+import { useWarmup } from '@/src/contexts/WarmupContext';
 
 interface GameResultProps {
   time?: number;
@@ -49,6 +50,17 @@ export default function GameResult({
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const [shareNote, setShareNote] = useState<string | null>(null);
+  // v1.159 (репорты Вали «там не должно быть кнопки играть снова», «непонятно,
+  // наступит следующая игра или нет»): внутри комплекса экран результата
+  // промежуточный — комплекс сам ведёт по шагам через listener saveSession.
+  // «Играть снова» тут ломала поток: человек жал её, игра стартовала заново,
+  // а автопереход уже был запланирован. Показываем прогресс «игра N из M» и
+  // явные кнопки «Дальше» / «Остановить».
+  const warmup = useWarmup();
+  const inWarmup = !!(warmup.active && warmup.meta && !IS_WEB_DEMO);
+  const wuIdx = (warmup.currentIdx ?? 0) + 1;
+  const wuTotal = warmup.meta?.steps.length ?? 0;
+  const wuLast = inWarmup && wuIdx >= wuTotal;
   const light = gradientIsLight(gradient);
   const fg = light ? '#1a1a1a' : '#FFFFFF';
   const fgSoft = light ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)';
@@ -154,6 +166,29 @@ export default function GameResult({
           >
             <Ionicons name="refresh" size={18} color={colors.text} />
             <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('playAgain')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : inWarmup ? (
+        // Внутри комплекса: прогресс + «Дальше» вместо «Играть снова» (репорт Вали)
+        <View style={styles.buttonsContainer}>
+          <Text style={{ color: colors.textSecondary, fontSize: 13.5, fontWeight: '700', textAlign: 'center', marginBottom: 8 }}>
+            {t('warmupStepOf').replace('{n}', String(wuIdx)).replace('{m}', String(wuTotal))}
+          </Text>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.primary }]}
+            onPress={() => warmup.advanceToNext()}
+          >
+            <Ionicons name={wuLast ? 'checkmark' : 'play-forward'} size={20} color="#FFFFFF" />
+            <Text style={styles.buttonText} numberOfLines={1}>
+              {wuLast ? t('warmupFinish') : t('warmupNextGame')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+            onPress={() => { warmup.stopWarmup(false); onGoHome(); }}
+          >
+            <Ionicons name="stop" size={20} color={colors.text} />
+            <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
