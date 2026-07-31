@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.162.0',
+    date: '2026-07-31',
+    ru: [
+      'На телефонах без «чёлки» шапка больше не уезжает под системные иконки',
+      'В альбомной ориентации контент не попадает под вырез экрана',
+    ],
+    en: [
+      'On phones without a notch the header no longer slides under the system icons',
+      'In landscape the content no longer falls under the display cutout',
+    ],
+  },
+  {
     version: '1.161.0',
     date: '2026-07-31',
     ru: [

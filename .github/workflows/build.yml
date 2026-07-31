@@ -370,15 +370,26 @@ jobs:
             echo "WARN: $MANIFEST не найден — пропускаю (OrientationGuard в webview покрывает)"; find gen/android -name AndroidManifest.xml -type f || true
           fi
 
-      - name: Safe-area — паддинг под системную навигацию (MainActivity)
+      - name: Safe-area — инсеты системных панелей (MainActivity)
         working-directory: src-tauri
         run: |
-          # ЗАЧЕМ: на edge-to-edge Android (принудителен с targetSdk 35+) WebView
-          # рисуется ПОД системной навигацией — нижние кнопки игр перекрывались
-          # (репорт Вали: «кнопка "играть" не видна на Самсунге»). CSS
-          # env(safe-area-inset-bottom) в Android WebView всегда 0, поэтому чиним
-          # на нативном слое: инсет-листенер даёт контенту паддинг ровно в высоту
-          # навигации (кнопочная ~48dp, жестовая ~0-15dp) на любом устройстве.
+          # ЗАЧЕМ. targetSdk 35+ рисует приложение ОТ КРАЯ ДО КРАЯ: системные панели
+          # лежат поверх контента. Chromium-WebView отдаёт в env(safe-area-inset-*)
+          # только ВЫРЕЗ экрана — ни статус-бар, ни навигацию он туда не кладёт.
+          # Отсюда две разные проблемы и два разных решения:
+          #
+          #  НИЗ  — паддинг нативно. Навигация перекрывала кнопки игр (репорт Вали
+          #         «кнопка "играть" не видна на Самсунге»). setPadding сжимает
+          #         WebView; в освободившейся полосе виден фон окна, но снизу это
+          #         незаметно.
+          #  ВЕРХ и БОКА — значения отдаём в JS (window.__psyInsets), паддинг ставит
+          #         само приложение. Нативным паддингом нельзя: под статус-баром
+          #         показался бы фон ОКНА, а он один, тогда как у приложения две темы
+          #         (#F5F5F7 и #000000) — в одной из них вылезла бы чужая полоса.
+          #         Телефон БЕЗ выреза давал env(top)=0 и шапку под системными
+          #         иконками — это и есть предупреждение Google Play «отображение от
+          #         края до края может работать не у всех пользователей» (v1.157.0).
+          #
           # Вариант «B» из ROADMAP — переживёт Android 16 (opt-out атрибут — нет).
           MAIN=$(find gen/android -name MainActivity.kt | head -1)
           if [ -z "$MAIN" ]; then echo "ERROR: MainActivity.kt not found"; exit 1; fi
@@ -392,12 +403,25 @@ jobs:
           if 'import android.os.Bundle' not in s:
               s = re.sub(r'^(package [^\n]+\n)', r'\1\nimport android.os.Bundle\n', s, count=1)
           listener = (
-              '\n    // PsyGames: паддинг под системную навигацию (edge-to-edge, targetSdk 35+)\n'
+              '\n    // PsyGames: инсеты системных панелей (edge-to-edge, targetSdk 35+)\n'
               '    window.decorView.setOnApplyWindowInsetsListener { _, insets ->\n'
-              '      val bottom = if (android.os.Build.VERSION.SDK_INT >= 30)\n'
-              '          insets.getInsets(android.view.WindowInsets.Type.navigationBars()).bottom\n'
-              '        else @Suppress("DEPRECATION") insets.systemWindowInsetBottom\n'
+              '      val sdk30 = android.os.Build.VERSION.SDK_INT >= 30\n'
+              '      // Берём панели И вырез экрана: в альбомной ориентации чёлка уходит вбок\n'
+              '      val bars = if (sdk30)\n'
+              '          insets.getInsets(\n'
+              '            android.view.WindowInsets.Type.systemBars() or android.view.WindowInsets.Type.displayCutout())\n'
+              '        else null\n'
+              '      val top = if (bars != null) bars.top else @Suppress("DEPRECATION") insets.systemWindowInsetTop\n'
+              '      val bottom = if (bars != null) bars.bottom else @Suppress("DEPRECATION") insets.systemWindowInsetBottom\n'
+              '      val left = if (bars != null) bars.left else @Suppress("DEPRECATION") insets.systemWindowInsetLeft\n'
+              '      val right = if (bars != null) bars.right else @Suppress("DEPRECATION") insets.systemWindowInsetRight\n'
+              '      // Низ — нативным паддингом (см. комментарий шага): кнопки игр\n'
+              '      // не должны попадать под навигацию.\n'
               '      findViewById<android.view.View>(android.R.id.content)?.setPadding(0, 0, 0, bottom)\n'
+              '      // Верх и бока — в JS. Инсеты в физических пикселях, WebView считает\n'
+              '      // в CSS-пикселях, поэтому делим на density.\n'
+              '      val d = resources.displayMetrics.density\n'
+              '      publishInsets(top / d, left / d, right / d)\n'
               '      insets\n'
               '    }\n'
               # PsyGames: авто-обновление Google Play (flexible in-app update) —
@@ -435,10 +459,40 @@ jobs:
                   s = s[:i] + method + s[i:]
               else:
                   s = re.sub(r'(class MainActivity[^\n]*)\n', r'\1 {\n' + method + '}\n', s, count=1)
-          if 'setOnApplyWindowInsetsListener' not in s:
+          # Публикация инсетов в WebView. Tauri не даёт ссылку на WebView наружу,
+          # поэтому ищем его обходом дерева view. evaluateJavascript кладёт значения
+          # в window.__psyInsets и будит React-мост событием psy-insets. Мост берёт
+          # максимум с env(), поэтому на телефоне с вырезом двойного отступа не будет.
+          publisher = (
+              '\n  private var lastInsets: String = ""\n'
+              '\n  private fun findWebView(v: android.view.View?): android.webkit.WebView? {\n'
+              '    if (v is android.webkit.WebView) return v\n'
+              '    if (v is android.view.ViewGroup) {\n'
+              '      for (i in 0 until v.childCount) {\n'
+              '        val r = findWebView(v.getChildAt(i))\n'
+              '        if (r != null) return r\n'
+              '      }\n'
+              '    }\n'
+              '    return null\n'
+              '  }\n'
+              '\n  private fun publishInsets(top: Float, left: Float, right: Float) {\n'
+              '    val payload = "{top:" + top + ",bottom:0,left:" + left + ",right:" + right + "}"\n'
+              '    if (payload == lastInsets) return\n'
+              '    val wv = findWebView(findViewById(android.R.id.content)) ?: return\n'
+              '    lastInsets = payload\n'
+              '    try {\n'
+              '      wv.evaluateJavascript(\n'
+              '        "window.__psyInsets=" + payload + ";" +\n'
+              "        \"window.dispatchEvent(new CustomEvent('psy-insets'));\", null)\n"
+              '    } catch (e: Throwable) {}\n'
+              '  }\n'
+          )
+          i = s.rfind('}')
+          s = s[:i] + publisher + s[i:]
+          if 'setOnApplyWindowInsetsListener' not in s or 'publishInsets' not in s:
               print('ERROR: patch failed to apply'); sys.exit(1)
           open(p, 'w').write(s)
-          print('MainActivity patched with navigation-bar inset padding')
+          print('MainActivity patched: bottom padding + insets bridge to WebView')
           PYEOF
           echo '--- MainActivity.kt after patch ---'
           cat "$MAIN"
@@ -529,6 +583,18 @@ jobs:
           echo "проверено .so: $n"
           [ "$n" -ge 4 ] || { echo "БЛОКЕР: ожидалось ≥4 .so, найдено $n"; exit 1; }
           [ "$bad" = 0 ] || { echo "БЛОКЕР: .so не выровнены на 16 КБ — Android 15+ упадёт"; exit 1; }
+
+      # v1.162.0: полный предрелизный аудит APK одним скриптом. Появился после
+      # того, как ДВАЖДЫ о проблеме сообщал Google, а не наша сборка: сначала
+      # 16 КБ выравнивание, потом отображение от края до края. Всё, что Play
+      # умеет находить постфактум, должно падать здесь.
+      - name: ГЕЙТ — предрелизный аудит APK (блокеры Google Play)
+        working-directory: src-tauri
+        run: |
+          python3 -m pip install --quiet pyaxmlparser
+          OBJDUMP=$(find "$ANDROID_HOME/ndk" -name llvm-objdump -path '*linux-x86_64*' | head -1)
+          export PATH="$(dirname "$OBJDUMP"):$PATH"
+          python3 ../scripts/android_release_audit.py out/PsyGames-android.apk
 
       # Tauri подписывает APK, но AAB из --aab выходит БЕЗ jar-подписи
       # (проверено на артефакте: нет корневого META-INF/*.RSA) — Play такой
