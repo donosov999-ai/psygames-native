@@ -174,6 +174,36 @@ export default function PetScreen() {
         <Text style={[styles.stageHint, { color: colors.textSecondary }]}>
           {t('petGrowsHint')}
         </Text>
+        {/* v1.164 (репорт Вали «что нужно сделать, чтобы котик вырос, может кормить или
+            гладить… у нас была тамагочи»): раньше тут было только «растёт после каждой
+            тренировки» — без числа. Непонятно, сколько осталось, и рост не ощущается целью.
+            Показываем счётчик и остаток до следующей стадии; на последней — сколько до
+            следующего уровня, чтобы полоса не упиралась в тупик. */}
+        {stats && (() => {
+          const total = stats.total;
+          const nextStageAt = total < 10 ? 10 : total < 30 ? 30 : null;
+          const prevStageAt = total < 10 ? 0 : total < 30 ? 10 : 30;
+          const target = nextStageAt ?? (Math.floor(total / 5) + 1) * 5;
+          const base = nextStageAt ? prevStageAt : Math.floor(total / 5) * 5;
+          const left = Math.max(0, target - total);
+          const frac = Math.max(0, Math.min(1, (total - base) / Math.max(1, target - base)));
+          return (
+            <View style={{ width: '82%', maxWidth: 320, marginTop: 6, gap: 5 }}>
+              <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.border, overflow: 'hidden' }}>
+                <View style={{ width: `${Math.round(frac * 100)}%`, height: 6, backgroundColor: '#8a68f5' }} />
+              </View>
+              <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
+                {t('petTrainingsDone').replace('{n}', String(total))}
+                {' · '}
+                {nextStageAt
+                  ? t('petUntilNextStage')
+                      .replace('{n}', String(left))
+                      .replace('{stage}', t(`petStage${total < 10 ? 2 : 3}`))
+                  : t('petUntilNextLevel').replace('{n}', String(left))}
+              </Text>
+            </View>
+          );
+        })()}
 
         {/* Кормление: раз в день, за токены активного профиля */}
         <TouchableOpacity

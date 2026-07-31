@@ -444,9 +444,26 @@ export default function BreathingGame() {
                 <Text style={[styles.phaseCount, { color: GRADIENT[0] }]}>{phaseRemain}</Text>
               </View>
             </View>
-            {/* v1.160 (идея Вали): перед сном подсказать убавить яркость — первые 6 с
-                сессии на «успокоение 4-7-8». Яркостью управляет ОС, поэтому просто
-                напоминаем, а не лезем в системные настройки. */}
+            {/* v1.164 (репорт Вали «выдох слишком длинный, вдох короткий»): асимметрия
+                в 4-7-8 намеренная — длинный выдох и есть то, что тормозит пульс. Раньше
+                это было написано только в описании техники на экране настройки, а внутри
+                сессии выглядело как перекос. Говорим прямо в момент, когда это чувствуется,
+                и рядом даём уйти на симметричный «квадрат» одним нажатием. */}
+            {techKey === 'calm478' && elapsed >= 6 && elapsed < 16 && (
+              <View style={{ alignItems: 'center', marginTop: 10, paddingHorizontal: 20, gap: 6 }}>
+                <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+                  {t('brLongExhaleWhy')}
+                </Text>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={t('brSwitchToBox')}
+                  onPress={() => { setTechKey('box'); stop(); }}
+                  style={{ paddingVertical: 6, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: colors.border }}
+                >
+                  <Text style={{ color: colors.text, fontSize: 12, fontWeight: '700' }}>{t('brSwitchToBox')}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
             {techKey === 'calm478' && elapsed < 6 && (
               <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center', marginTop: 10, paddingHorizontal: 20 }}>
                 {t('brDimHint')}
