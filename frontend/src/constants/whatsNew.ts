@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.163.0',
+    date: '2026-07-31',
+    ru: [
+      'В статистике видно, сколько попыток пройдено, а не только сколько начато',
+      'Появились самая быстрая и самая долгая игра',
+      'Диаграмма подписана: столбик = очки за одну попытку',
+      'На карточке каждой программы виден её собственный счёт — очки не теряются при смене',
+    ],
+    en: [
+      'Statistics now show how many attempts you passed, not just how many you started',
+      'Fastest and slowest game added',
+      'The chart is labelled: each bar = score for one attempt',
+      'Each program card shows its own score — switching does not lose your points',
+    ],
+  },
+  {
     version: '1.162.0',
     date: '2026-07-31',
     ru: [

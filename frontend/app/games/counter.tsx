@@ -230,6 +230,7 @@ export default function CounterGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'counter',
         score: hits,
         time_seconds: finalTime,

@@ -172,6 +172,7 @@ export default function PicturePairsGame() {
     scoreRef.current += Math.max(50, Math.round(400 - Math.max(0, moves + 1 - pairsCount) * 15 - finalTime * 2));
     setScore(scoreRef.current);
     saveSession({
+      passed: true,   // сессия пишется только когда уровень собран
       game_type: 'picture_pairs', score: scoreRef.current, time_seconds: finalTime,
       difficulty: `lvl${done}`, mode: 'game', errors,
       details: { level: done, moves: moves + 1, pairs: pairsCount, photo_memory_mode: levelCfg(done).photo },

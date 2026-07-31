@@ -208,6 +208,7 @@ export default function ListeningSpanGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: GAME_ID,
         score: Math.max(0, spanRef.current * 250 - totalErrors * 50),
         time_seconds: finalTime,

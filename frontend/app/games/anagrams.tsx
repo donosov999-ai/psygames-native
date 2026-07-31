@@ -263,6 +263,7 @@ export default function AnagramGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'anagrams',
         score: h * 100,
         time_seconds: finalTime,

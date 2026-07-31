@@ -229,6 +229,7 @@ export default function NumberBondsGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'number_bonds',
         score: Math.max(0, h * 100 - e * 25 - Math.floor(finalTime)),
         time_seconds: finalTime,

@@ -201,6 +201,7 @@ export default function SamuraiSudokuGame() {
     if (passed) lvl.reach(levelRef.current + 1);
     try {
       await saveSession({
+        passed,
         game_type: 'sudoku',
         score: Math.max(0, Math.round(4000 + levelRef.current * 150 - errors * 50 - finalTime * 2 - hintCount * 60)),
         time_seconds: finalTime,

@@ -167,6 +167,7 @@ export default function CorsiGame() {
     else if (!isPreset) lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
     try {
       await saveSession({
+        passed,
         game_type: 'corsi',
         score: Math.max(0, finalSpan * 200 - finalErrors * 50),
         time_seconds: finalTime,

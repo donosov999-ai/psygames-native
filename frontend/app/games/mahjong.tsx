@@ -238,6 +238,7 @@ export default function MahjongGame() {
     scoreRef.current += Math.max(60, Math.round(500 - errors * 20 - finalTime * 2));
     setScore(scoreRef.current);
     saveSession({
+      passed: true,   // сессия пишется только когда уровень собран
       game_type: 'mahjong', score: scoreRef.current, time_seconds: finalTime,
       difficulty: done <= 5 ? 'easy' : done <= 10 ? 'medium' : 'hard', mode: `lvl${done}`, errors,
       details: { level: done, pairs: p.pairs, layers: p.layers },

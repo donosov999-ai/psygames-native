@@ -328,6 +328,7 @@ export default function FindDifferencesGame() {
     const accuracy = h + e > 0 ? h / (h + e) : 0;
     try {
       await saveSession({
+        passed,
         game_type: 'find_differences',
         score: Math.max(0, h * 50 - e * 10),
         time_seconds: finalTime,

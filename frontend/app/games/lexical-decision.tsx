@@ -181,6 +181,7 @@ export default function LexicalDecisionGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'lexical_decision',
         score: correctRef.current,
         time_seconds: finalTime,

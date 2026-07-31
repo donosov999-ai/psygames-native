@@ -220,6 +220,7 @@ export default function PosnerGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'posner',
         score: Math.max(0, Math.round(h * 80 - e * 60 - meanRt * 0.05)),
         time_seconds: totalTime,

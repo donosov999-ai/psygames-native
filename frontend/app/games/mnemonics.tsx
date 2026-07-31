@@ -149,6 +149,7 @@ export default function MnemonicsGame() {
 
         try {
           await saveSession({
+            passed,
             game_type: 'mnemonics',
             score: items.length - errors,
             time_seconds: finalTime,

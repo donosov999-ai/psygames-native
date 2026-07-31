@@ -200,6 +200,7 @@ export default function TowerLondonGame() {
           setPhase(!isPreset ? 'cleared' : 'result');   // непрерывный поток: провал → баннер «ещё раз», не тупик
           try {
             await saveSession({
+              passed,
               game_type: 'tower_london',
               score: Math.max(0, (solved + 1) * 200 - (extraMoves + extra) * 30 - errors * 20 - Math.floor(finalTime)),
               time_seconds: finalTime,

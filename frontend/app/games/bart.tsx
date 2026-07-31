@@ -191,6 +191,7 @@ export default function BARTGame() {
 
     try {
       await saveSession({
+        passed,
         game_type: 'bart',
         score: finalBank,
         time_seconds: 0,

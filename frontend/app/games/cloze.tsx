@@ -221,6 +221,7 @@ export default function ClozeGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'cloze',
         score: c,
         time_seconds: finalTime,

@@ -151,6 +151,7 @@ export default function MathSprintGame() {
     if (passed) lvl.reach(lvl.level + 1);   // ≥12 верных → +уровень
     try {
       await saveSession({
+        passed,
         game_type: 'math_sprint',
         score,
         time_seconds: duration,

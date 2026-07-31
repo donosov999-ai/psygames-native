@@ -179,6 +179,7 @@ export default function SdmtGame() {
     }
     try {
       await saveSession({
+        passed,
         game_type: 'sdmt',
         score: Math.max(0, h * 100 - e * 50),
         time_seconds: durationRef.current,

@@ -321,6 +321,7 @@ export default function SudokuGame() {
       const baseScore = mode === 'levels' ? 1500 + level * 150 : 2000;
       try {
         await saveSession({
+          passed: true,   // сессия пишется только когда уровень собран
           game_type: 'sudoku',
           // hint_uses penalize score lightly (each hint = -50 pts), backtracks already implicit in errors
           score: Math.max(0, Math.round(baseScore - errors * 50 - finalTime * 2 - hintUses * 50)),

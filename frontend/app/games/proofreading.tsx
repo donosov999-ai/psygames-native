@@ -214,6 +214,7 @@ export default function ProofreadingGame() {
 
     try {
       await saveSession({
+        passed,
         game_type: 'proofreading',
         score: found,
         time_seconds: finalTime,
