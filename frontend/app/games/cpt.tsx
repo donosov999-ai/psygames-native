@@ -372,7 +372,8 @@ export default function CPTGame() {
           {t('cptPass')}
         </Text>
         {lvl.level > 1 && (
-          <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+          <TouchableOpacity
+            accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
             <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
           </TouchableOpacity>
         )}
@@ -380,7 +381,8 @@ export default function CPTGame() {
       <Text style={[styles.warning, { color: colors.textSecondary }]}>
         ⚠ {t('cptStrenuous')}
       </Text>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -412,7 +414,8 @@ export default function CPTGame() {
             </View>
           }
           toolbar={
-            <TouchableOpacity style={[styles.stopBtn, { borderColor: '#f43f5e' }]} onPress={stop}>
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.stopBtn, { borderColor: '#f43f5e' }]} onPress={stop}>
               <Text style={[styles.stopBtnText, { color: '#f43f5e' }]}>{t('btn_stop')}</Text>
             </TouchableOpacity>
           }
@@ -424,6 +427,7 @@ export default function CPTGame() {
                 : (language === 'ru' ? 'Жми на каждую X. Не пропускай!' : 'Tap every X. Don\'t miss!')}
             </Text>
             <TouchableOpacity
+              accessibilityRole="button"
               activeOpacity={0.7}
               onPress={handleTap}
               style={[styles.stimBox, {
@@ -453,7 +457,8 @@ export default function CPTGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
           onPress={() => { stoppedRef.current = true; clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

@@ -290,7 +290,8 @@ export default function SamuraiSudokuGame() {
           {t('samuraiHowTo')}
         </Text>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('playLevelN').replace('{n}', String(lvl.level))}</Text>
         </LinearGradient>
@@ -337,6 +338,7 @@ export default function SamuraiSudokuGame() {
 
     return (
       <TouchableOpacity
+        accessibilityRole="button"
         key={`${r}-${c}`}
         activeOpacity={0.6}
         onPress={() => handleCellPress(r, c)}
@@ -375,7 +377,8 @@ export default function SamuraiSudokuGame() {
         <Text style={[styles.statText, { color: GRADIENT[0] }]}>{t('label_level_short')}{levelRef.current}</Text>
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('errorsOfMax').replace('{n}', String(errors)).replace('{max}', String(maxErrors))}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
-        <TouchableOpacity onPress={() => setZoom((z) => (z === 'fit' ? 'zoom' : 'fit'))} style={[styles.zoomBtn, { borderColor: colors.border }]}>
+        <TouchableOpacity
+          accessibilityRole="button" onPress={() => setZoom((z) => (z === 'fit' ? 'zoom' : 'fit'))} style={[styles.zoomBtn, { borderColor: colors.border }]}>
           <Ionicons name={zoom === 'fit' ? 'search' : 'contract'} size={15} color={colors.text} />
           <Text style={[styles.statText, { color: colors.text, fontSize: 12 }]}>{zoom === 'fit' ? t('zoomIn') : t('zoomFit')}</Text>
         </TouchableOpacity>
@@ -383,6 +386,7 @@ export default function SamuraiSudokuGame() {
     );
     const hintEl = (
       <TouchableOpacity
+        accessibilityRole="button"
         onPress={handleHint}
         disabled={!selected || hintUses >= hintMax}
         style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: (selected && hintUses < hintMax) ? 1 : 0.4 }]}
@@ -406,12 +410,14 @@ export default function SamuraiSudokuGame() {
     const padEl = (
       <View style={styles.numPad}>
         {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
-          <TouchableOpacity key={n} onPress={() => handleNumPress(n)}
+          <TouchableOpacity
+            accessibilityRole="button" key={n} onPress={() => handleNumPress(n)}
             style={[styles.numBtn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>
             <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text }}>{n}</Text>
           </TouchableOpacity>
         ))}
-        <TouchableOpacity onPress={() => handleNumPress(0)} style={[styles.numBtn, { backgroundColor: colors.surface }]}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yErase')}
+          onPress={() => handleNumPress(0)} style={[styles.numBtn, { backgroundColor: colors.surface }]}>
           <Ionicons name="backspace-outline" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -447,12 +453,14 @@ export default function SamuraiSudokuGame() {
               <Text style={[styles.overSub, { color: colors.textSecondary }]}>
                 {ru ? `Лимит ${levelParams(levelRef.current).maxErrors} ошибок на уровне. Сыграй заново — поле новое.` : `Limit of ${levelParams(levelRef.current).maxErrors} mistakes. Play again — fresh board.`}
               </Text>
-              <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
+              <TouchableOpacity
+                accessibilityRole="button" style={styles.startBtn} onPress={() => startGame()}>
                 <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
                   <Text style={styles.startBtnText}>{ru ? 'Заново' : 'Restart'}</Text>
                 </LinearGradient>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setPhase('config')} style={{ marginTop: 10 }}>
+              <TouchableOpacity
+                accessibilityRole="button" onPress={() => setPhase('config')} style={{ marginTop: 10 }}>
                 <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{ru ? 'Меню' : 'Menu'}</Text>
               </TouchableOpacity>
             </View>
@@ -465,7 +473,8 @@ export default function SamuraiSudokuGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('samuraiTitle')}</Text>

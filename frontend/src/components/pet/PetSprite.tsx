@@ -13,6 +13,7 @@
 import React from 'react';
 import { Image, View } from 'react-native';
 import Svg, { Circle, Ellipse, Line, Path } from 'react-native-svg';
+import { a11yDecor } from '@/src/services/a11y';
 
 export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep';
 export type PetSkin = 'cat' | 'robot' | 'constellation';
@@ -184,6 +185,7 @@ export default function PetSprite({ state, size = 56, skin = 'cat', accessory = 
   return (
     <View style={{ width: size, height: size }}>
       <Image
+        {...a11yDecor}
         source={frames[frame % frames.length]}
         style={{ width: size, height: size }}
         resizeMode="contain"

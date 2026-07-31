@@ -317,6 +317,7 @@ export default function MemoryMatrixGame() {
             const locked = gate.isLocked(levelKey);
             return (
             <TouchableOpacity
+              accessibilityRole="button"
               key={n}
               disabled={locked}
               style={[
@@ -345,6 +346,7 @@ export default function MemoryMatrixGame() {
         <View style={styles.optionButtons}>
           {(['static', 'sequential'] as MatrixMode[]).map((m) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={m}
               style={[
                 styles.modeButton,
@@ -363,7 +365,8 @@ export default function MemoryMatrixGame() {
           ))}
         </View>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -429,6 +432,9 @@ export default function MemoryMatrixGame() {
                   key={i}
                   activeOpacity={0.7}
                   onPress={() => handleCellPress(i)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('a11yRow')} ${Math.floor(i / gridSize) + 1}, ${t('a11yCol')} ${(i % gridSize) + 1}`}
+                  accessibilityState={{ selected: isPicked }}
                   style={[
                     styles.cell,
                     { width: cellSize, height: cellSize, backgroundColor: bg, borderColor: border, borderWidth: 2 },
@@ -445,7 +451,8 @@ export default function MemoryMatrixGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('memoryMatrix')}</Text>

@@ -17,6 +17,7 @@ import { JuicyButton } from '@/src/components/juice';
 import { gameIconByNameKey } from '@/src/constants/gameIcons';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 import { isEmbed } from '@/src/services/buildTarget';
+import { a11yDecor, a11yModal } from '@/src/services/a11y';
 
 interface Benefit {
   icon: string;
@@ -64,6 +65,7 @@ export default function GameIntro({
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={onBack}
         >
@@ -89,7 +91,7 @@ export default function GameIntro({
         >
           <GamePreviewBackground />
           {heroImg ? (
-            <Image source={heroImg} style={styles.heroImage} />
+            <Image {...a11yDecor} source={heroImg} style={styles.heroImage} />
           ) : (
             <View style={styles.iconContainer}>
               <Ionicons name={icon as any} size={48} color="#FFFFFF" />
@@ -161,11 +163,12 @@ export default function GameIntro({
 
       {/* Help modal (структурная справка — как играть + что тренирует) */}
       <Modal visible={helpOpen} transparent animationType="fade" onRequestClose={() => setHelpOpen(false)}>
-        <View style={styles.modalBackdrop}>
+        <View {...a11yModal} style={styles.modalBackdrop}>
           <View style={[styles.modalSheet, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <View style={styles.modalHead}>
               <Text style={[styles.modalTitle, { color: colors.text }]} numberOfLines={2}>{t(nameKey)}</Text>
-              <TouchableOpacity onPress={() => setHelpOpen(false)} style={[styles.modalClose, { backgroundColor: colors.surface }]}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')}
+                onPress={() => setHelpOpen(false)} style={[styles.modalClose, { backgroundColor: colors.surface }]}>
                 <Ionicons name="close" size={20} color={colors.text} />
               </TouchableOpacity>
             </View>
@@ -176,7 +179,8 @@ export default function GameIntro({
             <ScrollView style={{ marginTop: 14 }} showsVerticalScrollIndicator={false}>
               <Text style={[styles.modalBody, { color: colors.text }]}>{t(descriptionKey)}</Text>
             </ScrollView>
-            <TouchableOpacity onPress={() => setHelpOpen(false)} style={[styles.modalOk, { backgroundColor: gradient[0] }]}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => setHelpOpen(false)} style={[styles.modalOk, { backgroundColor: gradient[0] }]}>
               <Text style={styles.modalOkText}>OK</Text>
             </TouchableOpacity>
           </View>

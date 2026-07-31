@@ -363,13 +363,15 @@ export default function TrailMakingGame() {
               .replace('{e}', String(MAX_PASS_ERRORS))}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -439,6 +441,7 @@ export default function TrailMakingGame() {
               if (done) { bg = GRADIENT[0]; textColor = '#FFF'; borderColor = GRADIENT[0]; }
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={i}
                   activeOpacity={0.7}
                   onPress={() => handleNodePress(i)}
@@ -466,7 +469,8 @@ export default function TrailMakingGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('trailMaking')}</Text>

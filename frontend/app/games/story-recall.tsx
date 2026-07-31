@@ -318,7 +318,8 @@ export default function StoryRecallGame() {
           {t('storyInfoBody')}
         </Text>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -362,11 +363,13 @@ export default function StoryRecallGame() {
         toolbar={
           isDistractor ? (
             <>
-              <TouchableOpacity style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitDistractor}>
+              <TouchableOpacity
+                accessibilityRole="button" style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitDistractor}>
                 <Text style={styles.addBtnText}>OK</Text>
               </TouchableOpacity>
               {/* Skip-to-recall button — для тех кто уверен что готов */}
               <TouchableOpacity
+                accessibilityRole="button"
                 style={[styles.addBtn, { backgroundColor: '#22c55e', flexDirection: 'row', gap: 6 }]}
                 onPress={skipDistractor}
               >
@@ -375,7 +378,8 @@ export default function StoryRecallGame() {
               </TouchableOpacity>
             </>
           ) : isRecall ? (
-            <TouchableOpacity style={[styles.startBtn, styles.recallSubmit]} onPress={which === 1 ? submitRecall1 : submitRecall2}>
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.startBtn, styles.recallSubmit]} onPress={which === 1 ? submitRecall1 : submitRecall2}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
                 <Text style={styles.startBtnText}>{t('storyDone')}</Text>
               </LinearGradient>
@@ -436,7 +440,8 @@ export default function StoryRecallGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('story')}</Text>

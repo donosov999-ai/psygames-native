@@ -188,7 +188,8 @@ export default function BossRound({ config, colors, onComplete }: Props) {
             const correct = stage === 'done' && task.badCells?.includes(i);
             const wrong = stage === 'done' && isP && !task.badCells?.includes(i);
             return (
-              <TouchableOpacity key={i} disabled={picked !== null} activeOpacity={0.85} onPress={() => pickCell(i)}
+              <TouchableOpacity
+                accessibilityRole="button" key={i} disabled={picked !== null} activeOpacity={0.85} onPress={() => pickCell(i)}
                 style={[styles.numCell, {
                   backgroundColor: correct ? '#22c55e' : wrong ? '#ef4444' : colors.surface,
                   borderColor: colors.border, borderWidth: 1,
@@ -208,7 +209,8 @@ export default function BossRound({ config, colors, onComplete }: Props) {
             const correct = stage === 'done' && o === task.answer;
             const wrong = stage === 'done' && isP && o !== task.answer;
             return (
-              <TouchableOpacity key={i} disabled={picked !== null} activeOpacity={0.85} onPress={() => pickOption(o)}
+              <TouchableOpacity
+                accessibilityRole="button" key={i} disabled={picked !== null} activeOpacity={0.85} onPress={() => pickOption(o)}
                 style={[styles.optBtn, { backgroundColor: correct ? '#22c55e' : wrong ? '#ef4444' : config.gradient[0] }]}>
                 <Text style={styles.optText}>{o}</Text>
               </TouchableOpacity>

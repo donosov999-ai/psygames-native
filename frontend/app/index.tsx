@@ -255,11 +255,12 @@ function FullHome() {
                 ширина) — крайние буквы читались как «срезанные» (репорт). Убрали maxWidth
                 у Image, добавили полям воздуха, скругление ≤ паддинга — углы не съедает. */}
             <View style={{ alignSelf: 'flex-start', maxWidth: 190, width: '100%', backgroundColor: colors.surface + 'CC', borderRadius: 10, paddingHorizontal: 11, paddingVertical: 5, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } }}>
-              <Image source={logoForProfile(profile?.id)} style={{ height: 40, width: '100%' }} resizeMode="contain" />
+              <Image source={logoForProfile(profile?.id)} accessibilityLabel="PsyGames" style={{ height: 40, width: '100%' }} resizeMode="contain" />
             </View>
           </View>
           {/* Очки-токены центра (⭐) + уровень профиля от накопленных токенов (T1 геймификация) */}
-          <TouchableOpacity activeOpacity={0.8} onPress={() => router.push('/shop' as any)} style={{ alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
+          <TouchableOpacity
+            accessibilityRole="button" activeOpacity={0.8} onPress={() => router.push('/shop' as any)} style={{ alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fbbf2422', borderWidth: 1.5, borderColor: '#f59e0b', paddingVertical: 4, paddingHorizontal: 11, borderRadius: 100 }}>
               <Text style={{ fontSize: 14 }}>⭐</Text>
               <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>{tokens}</Text>
@@ -277,6 +278,7 @@ function FullHome() {
           {/* Мини-аватар питомца «Синапс» → /pet. Шапка недавно чинена на адаптивность:
               аватар с фикс-шириной и flexShrink:0, ужиматься продолжает ТОЛЬКО лого (flex:1) */}
           <TouchableOpacity
+            accessibilityRole="button"
             activeOpacity={0.8}
             onPress={() => router.push('/pet' as any)}
             accessibilityLabel={t('petSynapse')}
@@ -290,6 +292,7 @@ function FullHome() {
           {/* Клик-чип "Сменить профиль" — заметный, с chevron ▾. v1.114.0: рамка/аватар из магазина
               (frameColor перекрывает цвет профиля, avatarKey — стандартный бейдж). */}
           <TouchableOpacity
+            accessibilityRole="button"
             onPress={() => setSwitcherOpen(true)}
             activeOpacity={0.7}
             style={{
@@ -330,6 +333,7 @@ function FullHome() {
           {/* C2 v1.122.1: убрана дублирующая круглая 👤-кнопка — профиль-чип слева уже
               открывает switcher и информативнее (показывает имя профиля + chevron). */}
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/achievements' as any)}
             accessibilityLabel={t('a11yAchievements')}
@@ -342,6 +346,7 @@ function FullHome() {
             )}
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/shop' as any)}
             accessibilityLabel={t('shop')}
@@ -349,6 +354,7 @@ function FullHome() {
             <Ionicons name="bag-handle" size={21} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/statistics')}
             accessibilityLabel={t('statistics')}
@@ -356,6 +362,7 @@ function FullHome() {
             <Ionicons name="stats-chart" size={22} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => router.push('/settings')}
             accessibilityLabel={t('settings')}
@@ -373,6 +380,7 @@ function FullHome() {
         {/* v1.148: баннер «доступно обновление» (тихая автопроверка раз в сутки) */}
         {updAvail != null && (
           <TouchableOpacity
+            accessibilityRole="button"
             onPress={() => Linking.openURL(updateUrl()).catch(() => {})}
             style={[styles.updBanner, { backgroundColor: colors.primary + '22', borderColor: colors.primary }]}
           >
@@ -399,7 +407,8 @@ function FullHome() {
             две полноширинные карточки ели слишком много вертикали). Обе в hero-формате. */}
         <View style={styles.heroRow}>
           {/* 👁 Быстрый перерыв для глаз */}
-          <TouchableOpacity style={styles.heroCardWrap} onPress={() => router.push('/games/eye-gym' as any)} activeOpacity={0.85}>
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.heroCardWrap} onPress={() => router.push('/games/eye-gym' as any)} activeOpacity={0.85}>
             <LinearGradient colors={['#43cea2', '#185a9d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
               <View style={styles.heroTopRow}>
                 <Image source={FEATURE_ICONS.eyegym} style={{ width: 34, height: 34, borderRadius: 10 }} />
@@ -414,7 +423,8 @@ function FullHome() {
           </TouchableOpacity>
 
           {/* 🎯 Ежедневный вызов — ротация игр, детерминировано по дате */}
-          <TouchableOpacity style={styles.heroCardWrap} onPress={startDailyChallenge} activeOpacity={0.85}>
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.heroCardWrap} onPress={startDailyChallenge} activeOpacity={0.85}>
             <LinearGradient colors={todayChallenge.game.gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
               <View style={styles.heroTopRow}>
                 <Ionicons name="flash" size={26} color="#FFF" />
@@ -447,6 +457,7 @@ function FullHome() {
           {/* CARD 1: Утренняя зарядка */}
           {profile.warmup_enabled && (
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.heroCardWrap}
             onPress={isRest ? undefined : startWarmup}
             disabled={isRest}
@@ -484,6 +495,7 @@ function FullHome() {
           {/* CARD 1b: Вечерний комплекс (перед сном) — v1.23 */}
           {profile.warmup_enabled && (profile.evening_enabled || (profile.evening_playlist?.length ?? 0) > 0) && (
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.heroCardWrap}
             onPress={() => warmup.startEvening()}
             activeOpacity={0.85}
@@ -511,6 +523,7 @@ function FullHome() {
           {/* CARD 2: Assessment (профиль) */}
           {profile.assessment_enabled && (
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.heroCardWrap}
             onPress={() => warmup.startAssessment()}
             activeOpacity={0.85}
@@ -551,6 +564,7 @@ function FullHome() {
           {/* CARD 3: Financial Brain Day */}
           {profile.financial_brain_day_enabled && (
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.heroCardWrap}
             onPress={finCooldown.ready ? () => warmup.startFinancialBattery() : undefined}
             disabled={!finCooldown.ready}

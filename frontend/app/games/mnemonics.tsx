@@ -222,6 +222,7 @@ export default function MnemonicsGame() {
           </Text>
           <View style={styles.optionButtons}>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[
                 styles.modeButton,
                 mode === 'words' && { backgroundColor: GRADIENT[0] },
@@ -239,6 +240,7 @@ export default function MnemonicsGame() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[
                 styles.modeButton,
                 mode === 'numbers' && { backgroundColor: GRADIENT[0] },
@@ -266,6 +268,7 @@ export default function MnemonicsGame() {
           <View style={styles.optionButtons}>
             {[5, 8, 12, 20].map((count) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={count}
                 style={[
                   styles.countButton,
@@ -288,14 +291,16 @@ export default function MnemonicsGame() {
         </View>
 
         {!isPreset && (
-          <TouchableOpacity style={styles.startButton} onPress={() => startGame(true)}>
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.startButton} onPress={() => startGame(true)}>
             <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
               <Ionicons name="flag" size={22} color="#FFFFFF" />
               <Text style={styles.startButtonText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
             </LinearGradient>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.startButton} onPress={() => startGame(false)}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startButton} onPress={() => startGame(false)}>
           <LinearGradient
             colors={GRADIENT as [string, string]}
             start={{ x: 0, y: 0 }}
@@ -325,7 +330,8 @@ export default function MnemonicsGame() {
         </View>
       }
       toolbar={
-        <TouchableOpacity style={styles.toolbarBtn} onPress={startCheck}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.toolbarBtn} onPress={startCheck}>
           <LinearGradient
             colors={GRADIENT as [string, string]}
             start={{ x: 0, y: 0 }}
@@ -410,6 +416,7 @@ export default function MnemonicsGame() {
 
           return (
             <TouchableOpacity
+              accessibilityRole="button"
               key={index}
               style={[
                 styles.checkItemCell,
@@ -465,6 +472,7 @@ export default function MnemonicsGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => goBackOrHome()}
         >

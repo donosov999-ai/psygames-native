@@ -236,7 +236,8 @@ export default function PatternGame() {
            : t('patternClassInterleaved')}
         </Text>
         {lvl.level > 1 && (
-          <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+          <TouchableOpacity
+            accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
             <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
           </TouchableOpacity>
         )}
@@ -245,7 +246,8 @@ export default function PatternGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
         <View style={styles.optionButtons}>
           {[5, 10, 15].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, trials === n
+            <TouchableOpacity
+              accessibilityRole="button" key={n} style={[styles.modeButton, trials === n
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setTrials(n)}>
@@ -254,7 +256,8 @@ export default function PatternGame() {
           ))}
         </View>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -279,7 +282,8 @@ export default function PatternGame() {
         toolbar={
           <View style={styles.optionsArea}>
             {options.map((o, i) => (
-              <TouchableOpacity key={i}
+              <TouchableOpacity
+                accessibilityRole="button" key={i}
                 disabled={feedback !== null}
                 onPress={() => handleAnswer(o)}
                 style={[styles.optBtn, { backgroundColor: GRADIENT[0] }]}
@@ -309,7 +313,8 @@ export default function PatternGame() {
               {hintStage >= 2 && <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4, textAlign: 'center' }}>{fillParams(t(seq.ruleKey), seq.ruleParams)}</Text>}
             </View>
           )}
-          <TouchableOpacity onPress={useHint} disabled={hintStage >= 2 || feedback !== null}
+          <TouchableOpacity
+            accessibilityRole="button" onPress={useHint} disabled={hintStage >= 2 || feedback !== null}
             style={[styles.hintBtn, { borderColor: GRADIENT[0], opacity: (hintStage >= 2 || feedback !== null) ? 0.4 : 1 }]}>
             <Text style={{ color: GRADIENT[0], fontWeight: '700', fontSize: 14 }}>
               💡 {hintStage === 0 ? t('btn_hint') : hintStage === 1 ? t('hintMoreRule') : t('hintUsed')}
@@ -323,7 +328,8 @@ export default function PatternGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('pattern')}</Text>

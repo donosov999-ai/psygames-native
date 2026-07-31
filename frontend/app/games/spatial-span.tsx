@@ -201,7 +201,8 @@ export default function SpatialSpanGame() {
           {language === 'ru' ? `Ур. ${lvl.level} — растёт сам (span → скорость показа → сетка 5×5)` : `Lv ${lvl.level} — grows with results (span → show speed → 5×5 grid)`}
         </Text>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -221,6 +222,9 @@ export default function SpatialSpanGame() {
           <TouchableOpacity key={i}
             disabled={phase !== 'recall' || feedback !== null}
             onPress={() => handleTap(i)}
+            accessibilityRole="button"
+            accessibilityLabel={`${t('a11yRow')} ${Math.floor(i / gridSize) + 1}, ${t('a11yCol')} ${(i % gridSize) + 1}`}
+            accessibilityState={{ selected: tapped, disabled: phase !== 'recall' || feedback !== null }}
             style={{
               width: cellSize, height: cellSize, borderRadius: 8,
               backgroundColor: fbColor || (lit ? '#fbbf24' : tapped ? GRADIENT[1] : colors.surface),
@@ -268,7 +272,8 @@ export default function SpatialSpanGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('spatialSpan')}</Text>

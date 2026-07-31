@@ -252,7 +252,8 @@ export default function BreathingGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('brTechniqueLabel')}</Text>
         {TECHNIQUES.map((x) => (
-          <TouchableOpacity key={x.key}
+          <TouchableOpacity
+            accessibilityRole="button" key={x.key}
             style={[styles.techRow, techKey === x.key
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
@@ -274,12 +275,14 @@ export default function BreathingGame() {
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('brFormatLabel')}</Text>
           <View style={styles.optionButtons}>
-            <TouchableOpacity style={[styles.modeButton, format === 'cycles'
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.modeButton, format === 'cycles'
               ? { backgroundColor: GRADIENT[0] } : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setFormat('cycles')}>
               <Text style={[styles.modeButtonText, { color: format === 'cycles' ? '#FFF' : colors.text }]}>{t('brByCycles')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.modeButton, format === 'time'
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.modeButton, format === 'time'
               ? { backgroundColor: GRADIENT[0] } : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setFormat('time')}>
               <Text style={[styles.modeButtonText, { color: format === 'time' ? '#FFF' : colors.text }]}>{t('brByTime')}</Text>
@@ -288,14 +291,16 @@ export default function BreathingGame() {
           <View style={[styles.optionButtons, { marginTop: 8 }]}>
             {format === 'cycles'
               ? CYCLE_OPTIONS.map((c) => (
-                <TouchableOpacity key={c} style={[styles.modeButton, cycles === c
+                <TouchableOpacity
+                  accessibilityRole="button" key={c} style={[styles.modeButton, cycles === c
                   ? { backgroundColor: GRADIENT[0] } : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                   onPress={() => setCycles(c)}>
                   <Text style={[styles.modeButtonText, { color: cycles === c ? '#FFF' : colors.text }]}>{c} {t('brCyclesUnit')}</Text>
                 </TouchableOpacity>
               ))
               : TIME_OPTIONS.map((m) => (
-                <TouchableOpacity key={m} style={[styles.modeButton, timeMin === m
+                <TouchableOpacity
+                  accessibilityRole="button" key={m} style={[styles.modeButton, timeMin === m
                   ? { backgroundColor: GRADIENT[0] } : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                   onPress={() => setTimeMin(m)}>
                   <Text style={[styles.modeButtonText, { color: timeMin === m ? '#FFF' : colors.text }]}>{m} {t('brMinUnit')}</Text>
@@ -305,7 +310,8 @@ export default function BreathingGame() {
         </View>
       )}
 
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -322,12 +328,14 @@ export default function BreathingGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.warnText, { color: colors.text }]}>{t('brWimWarnBody')}</Text>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startWim}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startWim}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('brWimAgree')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.homeBtn, { borderColor: colors.border }]} onPress={() => setPhase('config')}>
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.homeBtn, { borderColor: colors.border }]} onPress={() => setPhase('config')}>
         <Text style={[styles.homeBtnText, { color: colors.text }]}>{t('back') !== 'back' ? t('back') : 'OK'}</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -345,12 +353,14 @@ export default function BreathingGame() {
           <Text style={[styles.hrvNote, { color: colors.textSecondary }]}>💗 {t('brHrvNote')}</Text>
         </View>
       )}
-      <TouchableOpacity style={styles.startBtn} onPress={() => setPhase('config')}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={() => setPhase('config')}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('playAgain') !== 'playAgain' ? t('playAgain') : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.homeBtn, { borderColor: colors.border }]} onPress={() => goBackOrHome()}>
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.homeBtn, { borderColor: colors.border }]} onPress={() => goBackOrHome()}>
         <Text style={[styles.homeBtnText, { color: colors.text }]}>{t('goHome') !== 'goHome' ? t('goHome') : 'OK'}</Text>
       </TouchableOpacity>
     </View>
@@ -386,7 +396,8 @@ export default function BreathingGame() {
           </View>
         }
         toolbar={
-          <TouchableOpacity style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
             <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{t('btn_stop')}</Text>
           </TouchableOpacity>
         }
@@ -402,7 +413,8 @@ export default function BreathingGame() {
                 </View>
               )}
               {wimStage === 'hold' && (
-                <TouchableOpacity style={[styles.wimBox, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={wimReleaseHold}>
+                <TouchableOpacity
+                  accessibilityRole="button" style={[styles.wimBox, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={wimReleaseHold}>
                   <Text style={[styles.phaseText, { color: colors.text }]}>{t('brWimHold')}</Text>
                   <Text style={[styles.wimBig, { color: GRADIENT[0] }]}>{wimHoldSec}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
                   <Text style={[styles.focusSub, { color: colors.textSecondary }]}>{t('brWimHoldHint')}</Text>
@@ -452,7 +464,8 @@ export default function BreathingGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('breathing')}</Text>

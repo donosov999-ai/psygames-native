@@ -148,7 +148,8 @@ function RulesHelpModal({ visible, variant, killer, N, colors, language, onClose
           </View>
         )}
         <Text style={[rhStyles.caption, { color: colors.textSecondary }]}>{exampleCaption(key, language)}</Text>
-        <TouchableOpacity style={rhStyles.okBtn} onPress={onClose} activeOpacity={0.85}>
+        <TouchableOpacity
+          accessibilityRole="button" style={rhStyles.okBtn} onPress={onClose} activeOpacity={0.85}>
           <Text style={rhStyles.okText}>{translateFor(language, 'ctaGotIt')}</Text>
         </TouchableOpacity>
       </View>
@@ -390,7 +391,8 @@ export default function SudokuGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
         <View style={styles.optionButtons}>
           {([['levels', t('sudokuModeLevels')], ['free', t('sudokuModeFree')], ['killer', 'Killer']] as const).map(([m, lbl]) => (
-            <TouchableOpacity key={m} style={[styles.modeButton, mode === m
+            <TouchableOpacity
+              accessibilityRole="button" key={m} style={[styles.modeButton, mode === m
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setMode(m as 'levels' | 'free' | 'killer')}>
@@ -402,6 +404,7 @@ export default function SudokuGame() {
 
       {/* Вход в отдельный режим «Самурай» (5 перекрытых сеток 9×9) — открывает /games/sudoku-samurai */}
       <TouchableOpacity
+        accessibilityRole="button"
         style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
         onPress={() => router.push('/games/sudoku-samurai' as any)}
         activeOpacity={0.7}
@@ -448,7 +451,8 @@ export default function SudokuGame() {
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('boardSize')}</Text>
           <View style={styles.optionButtons}>
             {([6, 9] as const).map((s) => (
-              <TouchableOpacity key={s} style={[styles.modeButton, size === s
+              <TouchableOpacity
+                accessibilityRole="button" key={s} style={[styles.modeButton, size === s
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setSize(s)}>
@@ -463,7 +467,8 @@ export default function SudokuGame() {
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
           <View style={styles.optionButtons}>
             {(['easy','medium','hard'] as const).map((d) => (
-              <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
+              <TouchableOpacity
+                accessibilityRole="button" key={d} style={[styles.modeButton, difficulty === d
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setDifficulty(d)}>
@@ -480,7 +485,8 @@ export default function SudokuGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('digitsLabel')}</Text>
         <View style={styles.optionButtons}>
           {([['plain', t('digitsPlain')], ['drawn', t('digitsDrawn')]] as const).map(([m, lbl]) => (
-            <TouchableOpacity key={m} onPress={() => changeDigitMode(m as 'plain' | 'drawn')}
+            <TouchableOpacity
+              accessibilityRole="button" key={m} onPress={() => changeDigitMode(m as 'plain' | 'drawn')}
               style={[styles.modeButton, digitMode === m
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}>
@@ -494,8 +500,10 @@ export default function SudokuGame() {
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('digitStyle')}</Text>
           <View style={styles.optionButtons}>
-            {DIGIT_STYLES.map((st) => (
+            {DIGIT_STYLES.map((st, si) => (
               <TouchableOpacity key={st} onPress={() => setDigitStyle(st)}
+                accessibilityRole="button" accessibilityLabel={`${t('a11yDigitStyle')} ${si + 1}`}
+                accessibilityState={{ selected: digitStyle === st }}
                 style={[styles.modeButton, { paddingVertical: 6, paddingHorizontal: 10 }, digitStyle === st
                   ? { backgroundColor: GRADIENT[0], borderWidth: 2, borderColor: GRADIENT[0] }
                   : { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border }]}>
@@ -508,7 +516,8 @@ export default function SudokuGame() {
     </ScrollView>
     {/* Sticky-футер: кнопка «играть» всегда на экране, над системной навигацией */}
     <View style={[styles.stickyFooter, { backgroundColor: colors.background, borderTopColor: colors.border, paddingBottom: insets.bottom + 12 }]}>
-      <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={() => startGame()}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{mode === 'levels' ? t('playLevelN').replace('{n}', String(level)) : t('start')}</Text>
         </LinearGradient>
@@ -523,7 +532,8 @@ export default function SudokuGame() {
         {mode === 'levels' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{t('label_level_short')}{level}</Text>}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{'❤️'.repeat(Math.max(0, LIVES - errors))}{'🤍'.repeat(Math.min(errors, LIVES))}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
-        <TouchableOpacity onPress={() => setRulesOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
+        <TouchableOpacity
+          accessibilityRole="button" onPress={() => setRulesOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>
             {mode === 'killer' ? 'Killer' : variant !== 'none' ? variantLabel(variant, language).split(' ')[0] : t('rulesWord')} ⓘ
           </Text>
@@ -570,6 +580,7 @@ export default function SudokuGame() {
           // сегменты) — единая SVG-линия через ВСЮ доску рисуется ниже, поверх сетки клеток
           return (
             <TouchableOpacity
+              accessibilityRole="button"
               key={`${r}-${c}`}
               activeOpacity={0.6}
               onPress={() => handleCellPress(r, c)}
@@ -654,7 +665,8 @@ export default function SudokuGame() {
                 (isSel || wrongVal || digitMode === 'plain') ? (
                   <Text style={{ color: isSel ? '#FFF' : wrongVal ? '#b91c1c' : colors.text, fontWeight: '700', fontSize: Math.round(cellSize * 0.52) }}>{v}</Text>
                 ) : (
-                  <Image source={DIGIT_IMG[v]} style={{ width: cellSize * 0.72, height: cellSize * 0.72 }} resizeMode="contain" />
+                  <Image source={DIGIT_IMG[v]} accessibilityLabel={String(v)}
+                    style={{ width: cellSize * 0.72, height: cellSize * 0.72 }} resizeMode="contain" />
                 )
               )}
             </TouchableOpacity>
@@ -689,16 +701,19 @@ export default function SudokuGame() {
       <View style={[styles.numPad, landscape && styles.numPadLand]}>
         {Array.from({ length: N }, (_, i) => i + 1).map((n) => (
           <TouchableOpacity
+            accessibilityRole="button"
             key={n}
             onPress={() => handleNumPress(n)}
             style={[styles.numBtn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
           >
             {digitMode === 'plain'
               ? <Text style={{ fontSize: 24, fontWeight: '800', color: colors.text }}>{n}</Text>
-              : <Image source={DIGIT_IMG[n]} style={{ width: 36, height: 36 }} resizeMode="contain" />}
+              : <Image source={DIGIT_IMG[n]} accessibilityLabel={String(n)}
+              style={{ width: 36, height: 36 }} resizeMode="contain" />}
           </TouchableOpacity>
         ))}
-        <TouchableOpacity onPress={() => handleNumPress(0)} style={[styles.numBtn, { backgroundColor: colors.surface }]}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yErase')}
+          onPress={() => handleNumPress(0)} style={[styles.numBtn, { backgroundColor: colors.surface }]}>
           <Ionicons name="backspace-outline" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -707,6 +722,7 @@ export default function SudokuGame() {
     const hintEl = (
       <View style={styles.hintRow}>
         <TouchableOpacity
+          accessibilityRole="button"
           onPress={handleHint}
           disabled={!selected || hintUses >= hintMax}
           style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: (selected && hintUses < hintMax) ? 1 : 0.4 }]}
@@ -756,12 +772,14 @@ export default function SudokuGame() {
               <Text style={styles.overEmoji}>💔</Text>
               <Text style={[styles.overTitle, { color: colors.text }]}>{t('outOfLives')}</Text>
               <Text style={[styles.overSub, { color: colors.textSecondary }]}>{t('outOfLivesHint')}</Text>
-              <TouchableOpacity style={styles.startBtn} onPress={() => startGame()}>
+              <TouchableOpacity
+                accessibilityRole="button" style={styles.startBtn} onPress={() => startGame()}>
                 <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
                   <Text style={styles.startBtnText}>{t('restart')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => goBackOrHome()} style={{ marginTop: 10 }}>
+              <TouchableOpacity
+                accessibilityRole="button" onPress={() => goBackOrHome()} style={{ marginTop: 10 }}>
                 <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('goHome')}</Text>
               </TouchableOpacity>
             </View>
@@ -774,7 +792,8 @@ export default function SudokuGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('sudoku').replace(/\s*\d+\s*[×xX]\s*\d+\s*$/, '')}</Text>
@@ -826,12 +845,14 @@ export default function SudokuGame() {
             </Text>
             {bossWon === true && <Text style={[styles.overSub, { color: '#f59e0b', fontWeight: '800' }]}>{t('bossDefeated')}</Text>}
             {bossWon === false && <Text style={[styles.overSub, { color: colors.textSecondary }]}>{t('bossSurvived')}</Text>}
-            <TouchableOpacity style={styles.startBtn} onPress={() => { const nx = level + 1; setLevel(nx); startGame(nx); }}>
+            <TouchableOpacity
+              accessibilityRole="button" style={styles.startBtn} onPress={() => { const nx = level + 1; setLevel(nx); startGame(nx); }}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
                 <Text style={styles.startBtnText}>{`${t('level')} ${level + 1} →`}</Text>
               </LinearGradient>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setPhase('config')} style={{ marginTop: 10 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => setPhase('config')} style={{ marginTop: 10 }}>
               <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('sudokuMenu')}</Text>
             </TouchableOpacity>
           </View>

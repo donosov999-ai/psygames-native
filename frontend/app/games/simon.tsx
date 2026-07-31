@@ -301,13 +301,15 @@ export default function SimonGame() {
             {t('passCorrect80Window')}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -339,10 +341,10 @@ export default function SimonGame() {
           /* RTL-пин: стимул позиционируется физическими left/right (не зеркалится), значит и кнопка ←
              обязана остаться физически слева — иначе конгруэнтность проб Саймона инвертируется */
           <View style={styles.toolbarLtr}>
-            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: COLOR_BLUE }]} onPress={() => handleAnswer('left')}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { backgroundColor: COLOR_BLUE }]} onPress={() => handleAnswer('left')}>
               <Ionicons name="arrow-back" size={32} color="#FFF" />
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: COLOR_RED }]} onPress={() => handleAnswer('right')}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { backgroundColor: COLOR_RED }]} onPress={() => handleAnswer('right')}>
               <Ionicons name="arrow-forward" size={32} color="#FFF" />
             </TouchableOpacity>
           </View>
@@ -376,7 +378,8 @@ export default function SimonGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
           onPress={() => { clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

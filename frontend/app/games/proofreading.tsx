@@ -302,6 +302,7 @@ export default function ProofreadingGame() {
           <View style={styles.optionButtons}>
             {([...SCRIPT_IDS, 'digits'] as const).map((m) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={m}
                 style={[
                   styles.sizeButton,
@@ -332,13 +333,15 @@ export default function ProofreadingGame() {
             {t('proofPass').replace('{p}', String(Math.round(p.minFoundPct * 100)))}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        <TouchableOpacity style={styles.startButton} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startButton} onPress={startGame}>
           <LinearGradient
             colors={GRADIENT as [string, string]}
             start={{ x: 0, y: 0 }}
@@ -397,6 +400,7 @@ export default function ProofreadingGame() {
 
           return (
             <TouchableOpacity
+              accessibilityRole="button"
               key={index}
               style={[
                 styles.cell,
@@ -451,6 +455,7 @@ export default function ProofreadingGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => goBackOrHome()}
         >

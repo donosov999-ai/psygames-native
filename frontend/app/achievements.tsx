@@ -14,7 +14,7 @@ export default function AchievementsScreen() {
   // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
   if (isWebDemo()) return <Redirect href="/" />;
   const { colors } = useTheme();
-  const { language } = useLanguage() as any;
+  const { language, t } = useLanguage() as any;
   const router = useRouter();
   const [unlocked, setUnlocked] = useState<UnlockedRecord[]>([]);
 
@@ -41,7 +41,8 @@ export default function AchievementsScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yBack')}
+          style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         {/* flexShrink+numberOfLines: длинный заголовок со счётчиком при крупном шрифте не толкает кнопку за край */}

@@ -50,7 +50,7 @@ const FIRST_SPEECH_SPAN = 4000;
 export default function WalkingPet() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { width } = useWindowDimensions();
   const pathname = usePathname() || '';
 
@@ -240,6 +240,7 @@ export default function WalkingPet() {
     >
       {bubble != null && (
         <TouchableOpacity
+          accessibilityRole="button"
           disabled={!bubble.skill}
           activeOpacity={0.7}
           onPress={() => {
@@ -274,7 +275,8 @@ export default function WalkingPet() {
         }}
         delayLongPress={420}
         activeOpacity={0.8}
-        accessibilityLabel="Synapse"
+        accessibilityRole="button"
+        accessibilityLabel={t('a11yPet')}
       >
         <Animated.View style={{ transform: [{ scaleX: flip }] }}>
           <PetSprite state={sprite} size={size} skin={skin} accessory={accessory} />

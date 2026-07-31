@@ -41,7 +41,8 @@ export default class AppErrorBoundary extends React.Component<{ children: React.
           <Text style={styles.title}>{translateFor(lang, 'crashTitle')}</Text>
           <Text style={styles.msg} numberOfLines={3}>{this.state.error.message}</Text>
           <Text style={styles.hint}>{translateFor(lang, 'crashHint')}</Text>
-          <TouchableOpacity style={styles.btn} onPress={this.reset} activeOpacity={0.85}>
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.btn} onPress={this.reset} activeOpacity={0.85}>
             <Text style={styles.btnText}>{translateFor(lang, 'crashRestart')}</Text>
           </TouchableOpacity>
         </View>

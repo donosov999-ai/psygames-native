@@ -257,12 +257,14 @@ export default function StopSignalGame() {
             {t('stopSignalPass')}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -300,7 +302,8 @@ export default function StopSignalGame() {
           </View>
         }
         toolbar={
-          <TouchableOpacity activeOpacity={0.7} onPress={onPressGo}
+          <TouchableOpacity
+            accessibilityRole="button" activeOpacity={0.7} onPress={onPressGo}
             style={styles.goBtnWrap}>
             <LinearGradient colors={GRADIENT as [string, string]} style={styles.goBtn}>
               <Text style={styles.goBtnText}>{t('goBtn')}</Text>
@@ -321,7 +324,8 @@ export default function StopSignalGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
           onPress={() => { clearTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

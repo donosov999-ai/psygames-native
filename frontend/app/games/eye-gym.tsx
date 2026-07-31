@@ -164,7 +164,8 @@ export default function EyeGymGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('eyeDurationLabel')}</Text>
         <View style={styles.optionButtons}>
           {[{ s: 0.4, k: 'eye1min' }, { s: 1, k: 'eye3min' }, { s: 1.7, k: 'eye5min' }].map((o) => (
-            <TouchableOpacity key={o.k} style={[styles.modeButton, scale === o.s
+            <TouchableOpacity
+              accessibilityRole="button" key={o.k} style={[styles.modeButton, scale === o.s
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setScale(o.s)}>
@@ -177,7 +178,8 @@ export default function EyeGymGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('eyeSpeedLabel')}</Text>
         <View style={styles.optionButtons}>
           {[{ v: 0.7, k: 'eyeSlow' }, { v: 1, k: 'eyeNorm' }, { v: 1.4, k: 'eyeFast' }].map((o) => (
-            <TouchableOpacity key={o.k} style={[styles.modeButton, speed === o.v
+            <TouchableOpacity
+              accessibilityRole="button" key={o.k} style={[styles.modeButton, speed === o.v
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setSpeed(o.v)}>
@@ -190,7 +192,8 @@ export default function EyeGymGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('eyeModeLabel')}</Text>
         <View style={styles.optionButtons}>
           {([['full', 'eyeModeFull'], ['pursuit', 'eyeModePursuit'], ['focus', 'eyeModeFocus'], ['relax', 'eyeModeRelax']] as const).map(([m, k]) => (
-            <TouchableOpacity key={m} style={[styles.modeButton, mode === m
+            <TouchableOpacity
+              accessibilityRole="button" key={m} style={[styles.modeButton, mode === m
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setMode(m)}>
@@ -200,7 +203,8 @@ export default function EyeGymGame() {
         </View>
       </View>
       <Text style={[styles.disclaimer, { color: colors.textSecondary }]}>{t('eyeDisclaimer')}</Text>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -215,12 +219,14 @@ export default function EyeGymGame() {
         <Text style={styles.doneTitle}>{t('eyeDoneTitle')}</Text>
         <Text style={styles.doneSub}>{t('eyeDoneSub')}</Text>
       </LinearGradient>
-      <TouchableOpacity style={styles.startBtn} onPress={() => setPhase('config')}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={() => setPhase('config')}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('playAgain') !== 'playAgain' ? t('playAgain') : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.homeBtn, { borderColor: colors.border }]} onPress={() => goBackOrHome()}>
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.homeBtn, { borderColor: colors.border }]} onPress={() => goBackOrHome()}>
         <Text style={[styles.homeBtnText, { color: colors.text }]}>{t('goHome') !== 'goHome' ? t('goHome') : 'OK'}</Text>
       </TouchableOpacity>
     </View>
@@ -242,7 +248,8 @@ export default function EyeGymGame() {
           </View>
         }
         toolbar={
-          <TouchableOpacity style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
             <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{t('btn_stop')}</Text>
           </TouchableOpacity>
         }
@@ -287,7 +294,8 @@ export default function EyeGymGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('eyeGym')}</Text>

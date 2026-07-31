@@ -236,12 +236,14 @@ export default function SdmtGame() {
             {t('sdmtPass').replace('{g}', String(p.targetHits))}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -268,7 +270,8 @@ export default function SdmtGame() {
         toolbar={
           <View style={[styles.padGrid, { width: sdmtPad * 3 + 16 }]}>
             {[1,2,3,4,5,6,7,8,9].map((d) => (
-              <TouchableOpacity key={d}
+              <TouchableOpacity
+                accessibilityRole="button" key={d}
                 style={[styles.padBtn, { width: sdmtPad, height: sdmtPad, backgroundColor: GRADIENT[0] }]}
                 onPress={() => handleAnswer(d)}>
                 <Text style={[styles.padText, { fontSize: sdmtPad * 0.38 }]}>{d}</Text>
@@ -301,7 +304,8 @@ export default function SdmtGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
           onPress={() => { clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

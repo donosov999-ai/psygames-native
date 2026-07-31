@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.161.0',
+    date: '2026-07-31',
+    ru: [
+      'Приложение научилось работать с VoiceOver и TalkBack — незрячий человек теперь слышит, что на экране',
+      'Игровое поле описывается словами: «Стержень 1: красный, зелёный», «2 зелёных круга»',
+      'Итог игры, новый уровень и разблокировки проговариваются вслух',
+    ],
+    en: [
+      'The app now works with VoiceOver and TalkBack — blind users can hear what is on screen',
+      'The board is described in words: "Peg 1: red, green", "2 green circles"',
+      'Results, new levels and unlocks are spoken out loud',
+    ],
+  },
+  {
     version: '1.160.0',
     date: '2026-07-30',
     ru: [

@@ -177,7 +177,8 @@ export default function AssessmentResultScreen() {
         {/* Apply / actions */}
         <View style={styles.actions}>
           {!applied ? (
-            <TouchableOpacity style={styles.btn} onPress={applyToProfile}>
+            <TouchableOpacity
+              accessibilityRole="button" style={styles.btn} onPress={applyToProfile}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.btnGrad}>
                 <Ionicons name="checkmark-circle" size={20} color="#FFF" />
                 <Text style={styles.btnText}>{t('saveProfileBtn')}</Text>
@@ -191,7 +192,8 @@ export default function AssessmentResultScreen() {
               </View>
             </View>
           )}
-          <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]} onPress={goHome}>
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]} onPress={goHome}>
             <Text style={[styles.btnTextSecondary, { color: colors.text }]}>{t('goHome')}</Text>
           </TouchableOpacity>
         </View>

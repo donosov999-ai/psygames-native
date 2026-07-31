@@ -227,7 +227,8 @@ export default function CorsiGame() {
           {(['forward','backward'] as Mode[]).map((m) => {
             const locked = gate.isLocked(m);
             return (
-            <TouchableOpacity key={m} disabled={locked}
+            <TouchableOpacity
+              accessibilityRole="button" key={m} disabled={locked}
               style={[styles.modeButton, mode === m && !locked
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 }]}
@@ -251,7 +252,8 @@ export default function CorsiGame() {
           {t('corsiLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -274,6 +276,9 @@ export default function CorsiGame() {
             <TouchableOpacity key={i}
               disabled={phase !== 'recall' || feedback !== null}
               onPress={() => handleTap(i)}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('a11yCell')} ${i + 1}`}
+              accessibilityState={{ selected: tapped, disabled: phase !== 'recall' || feedback !== null }}
               style={{
                 position: 'absolute',
                 left: p.x * boardScale - block / 2, top: p.y * boardScale - block / 2,
@@ -327,7 +332,8 @@ export default function CorsiGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('corsi')}</Text>

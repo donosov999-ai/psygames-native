@@ -481,6 +481,7 @@ export default function ChessBlindGame() {
               const p = bySq.get(sq);
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={c}
                   activeOpacity={0.8}
                   onPress={() => answerLocate(sq)}
@@ -544,6 +545,7 @@ export default function ChessBlindGame() {
                   key={i}
                   activeOpacity={0.8}
                   onPress={() => answerPick(opt)}
+                  accessibilityRole="button" accessibilityLabel={pieceName(opt, language === 'ru')}
                   style={[
                     styles.optBtn,
                     { backgroundColor: '#334155', borderColor: isReveal ? '#22c55e' : '#1e293b', borderWidth: isReveal ? 3 : 1 },
@@ -612,7 +614,8 @@ export default function ChessBlindGame() {
             {descBits.join(' · ')}
           </Text>
         </View>
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
           </LinearGradient>
@@ -629,7 +632,8 @@ export default function ChessBlindGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('chessBlind')}</Text>

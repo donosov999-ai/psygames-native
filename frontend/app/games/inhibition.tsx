@@ -347,7 +347,8 @@ export default function InhibitionGame() {
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('inhibitionModeLabel')}</Text>
           <View style={styles.optionButtons}>
             {(['go_no_go', 'stop_signal', 'mixed'] as SubMode[]).map((m) => (
-              <TouchableOpacity key={m} style={[styles.modeButton, subMode === m
+              <TouchableOpacity
+                accessibilityRole="button" key={m} style={[styles.modeButton, subMode === m
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setSubMode(m)}>
@@ -379,13 +380,15 @@ export default function InhibitionGame() {
             {t('inhibPass')}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -404,6 +407,7 @@ export default function InhibitionGame() {
     <View style={styles.fieldCol}>
       <Text style={[styles.modeBadge, { color: colors.textSecondary }]}>Go/No-Go</Text>
       <TouchableOpacity
+        accessibilityRole="button"
         activeOpacity={0.85}
         onPress={onGngPress}
         style={[styles.pad, {
@@ -435,7 +439,8 @@ export default function InhibitionGame() {
       <View style={[styles.stimulusBox, { backgroundColor: ssStimColor + '33', borderColor: ssStimColor }]}>
         <Text style={[styles.stimText, { color: ssStimColor }]}>{ssStimLabel}</Text>
       </View>
-      <TouchableOpacity activeOpacity={0.7} onPress={onSsPress} style={styles.goBtnWrap}>
+      <TouchableOpacity
+        accessibilityRole="button" activeOpacity={0.7} onPress={onSsPress} style={styles.goBtnWrap}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.goBtn}>
           <Text style={styles.goBtnText}>{t('goBtn')}</Text>
         </LinearGradient>
@@ -475,7 +480,8 @@ export default function InhibitionGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
           onPress={() => { clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

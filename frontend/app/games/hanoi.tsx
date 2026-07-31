@@ -161,7 +161,8 @@ export default function HanoiGame() {
           {t('hanoiLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -188,6 +189,7 @@ export default function HanoiGame() {
       <View style={styles.pegsArea}>
         {pegs.map((peg, idx) => (
           <TouchableOpacity
+            accessibilityRole="button"
             key={idx}
             activeOpacity={0.7}
             onPress={() => handlePegPress(idx)}
@@ -244,7 +246,8 @@ export default function HanoiGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('hanoi')}</Text>

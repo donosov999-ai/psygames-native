@@ -9,6 +9,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { WHATS_NEW } from '@/src/constants/whatsNew';
 import { currentVersion, getSeenVersion, isNewer, setSeenVersion } from '@/src/services/appUpdates';
+import { a11yModal } from '@/src/services/a11y';
 
 export default function WhatsNewModal() {
   const { colors } = useTheme();
@@ -37,7 +38,7 @@ export default function WhatsNewModal() {
 
   return (
     <Modal transparent animationType="fade" visible onRequestClose={close}>
-      <View style={styles.backdrop}>
+      <View {...a11yModal} style={styles.backdrop}>
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <Text style={[styles.title, { color: colors.text }]}>
             🎁 {t('whatsNewTitle')} v{entry.version}
@@ -50,7 +51,8 @@ export default function WhatsNewModal() {
               </View>
             ))}
           </ScrollView>
-          <TouchableOpacity onPress={close} style={[styles.btn, { backgroundColor: colors.primary }]}>
+          <TouchableOpacity
+            accessibilityRole="button" onPress={close} style={[styles.btn, { backgroundColor: colors.primary }]}>
             <Text style={styles.btnText}>{t('setGotIt')}</Text>
           </TouchableOpacity>
         </View>

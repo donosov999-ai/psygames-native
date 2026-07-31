@@ -249,13 +249,15 @@ export default function ChoiceRtGame() {
             {t('passCorrect80Window')}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -265,7 +267,9 @@ export default function ChoiceRtGame() {
   };
 
   const padBtn = (d: Direction) => (
-    <TouchableOpacity key={d} style={[styles.padBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handlePress(d)}>
+    <TouchableOpacity key={d} accessibilityRole="button"
+      accessibilityLabel={t(`a11y${d.charAt(0).toUpperCase()}${d.slice(1)}`)}
+      style={[styles.padBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handlePress(d)}>
       <Ionicons name={ARROW_ICON[d] as any} size={32} color="#FFF" />
     </TouchableOpacity>
   );
@@ -345,7 +349,8 @@ export default function ChoiceRtGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
           onPress={() => { clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

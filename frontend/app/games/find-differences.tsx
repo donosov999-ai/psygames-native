@@ -33,6 +33,7 @@ import BossRound from '@/src/components/BossRound';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile, SPRITE_COUNT } from '@/src/constants/pairThemes';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { a11yDecor } from '@/src/services/a11y';
 
 const GRADIENT = ['#34e89e', '#0f3443'];
 const FIND_BENEFITS = [
@@ -354,6 +355,7 @@ export default function FindDifferencesGame() {
     // Тапы ловит контейнер сцены (handleSceneTap по координате) — у объектов onPress нет.
     return (
       <Image
+        {...a11yDecor}
         key={idx}
         source={sprites[shape.sprite]}
         resizeMode="contain"
@@ -394,12 +396,14 @@ export default function FindDifferencesGame() {
             {t('findDiffPass')}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -449,7 +453,8 @@ export default function FindDifferencesGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
           onPress={() => { clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

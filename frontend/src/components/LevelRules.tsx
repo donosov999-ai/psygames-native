@@ -55,7 +55,8 @@ export function LevelRuleBadge({ lr, color, ru }: { lr: LevelRulesState; color: 
   if (!lr.active) return null;
   const title = ru ? lr.active.ru.title : lr.active.en.title;
   return (
-    <TouchableOpacity onPress={() => lr.setOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
+    <TouchableOpacity
+      accessibilityRole="button" onPress={() => lr.setOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
       <Text style={{ fontSize: 14, fontWeight: '700', color }} numberOfLines={1}>⚡ {title} ⓘ</Text>
     </TouchableOpacity>
   );
@@ -71,7 +72,8 @@ export function LevelRuleModal({ lr, colors, ru }: { lr: LevelRulesState; colors
         <Text style={[st.title, { color: colors.text }]}>{t.title}</Text>
         <Text style={[st.rule, { color: colors.text }]}>{t.rule}</Text>
         {t.example ? <Text style={[st.example, { color: colors.textSecondary }]}>{t.example}</Text> : null}
-        <TouchableOpacity style={st.okBtn} onPress={() => lr.setOpen(false)} activeOpacity={0.85}>
+        <TouchableOpacity
+          accessibilityRole="button" style={st.okBtn} onPress={() => lr.setOpen(false)} activeOpacity={0.85}>
           <Text style={st.okText}>{ru ? 'ПОНЯТНО' : 'GOT IT'}</Text>
         </TouchableOpacity>
       </View>

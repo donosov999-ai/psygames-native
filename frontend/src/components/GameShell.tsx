@@ -29,6 +29,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { GAME_PAUSE_EVENT } from '@/src/services/appFeedback';
+import { announce } from '@/src/services/a11y';
 
 /** Ширина зоны, которую занимает плавающая кнопка фидбека снизу (LTR — слева, RTL — справа). */
 const FAB_GUTTER = 66;
@@ -63,7 +64,10 @@ export default function GameShell({
   // не проиграть вслепую, и возвращает контекст после закрытия окна.
   const [paused, setPaused] = React.useState(false);
   React.useEffect(() => {
-    const sub = DeviceEventEmitter.addListener(GAME_PAUSE_EVENT, (v: boolean) => setPaused(!!v));
+    const sub = DeviceEventEmitter.addListener(GAME_PAUSE_EVENT, (v: boolean) => {
+      setPaused(!!v);
+      if (v) announce(t('gamePaused'));
+    });
     return () => sub.remove();
   }, []);
 
@@ -87,11 +91,13 @@ export default function GameShell({
         <TouchableOpacity
           onPress={onBack}
           style={[styles.headerBtn, { backgroundColor: colors.surface }]}
-          accessibilityLabel="Назад"
+          accessibilityRole="button"
+          accessibilityLabel={t('a11yBack')}
         >
           <Ionicons name={rtl ? 'arrow-forward' : 'arrow-back'} size={22} color={colors.text} />
         </TouchableOpacity>
         <Text
+          accessibilityRole="header"
           style={[styles.title, { color: colors.text }]}
           numberOfLines={1}
         >

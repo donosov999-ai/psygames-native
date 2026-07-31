@@ -219,7 +219,8 @@ export default function SemanticSortGame() {
             {(() => { const p = levelParams(lvl.level); return t('semanticLvlParams').replace('{r}', String(p.roundsCount)).replace('{c}', String(p.catsPerRound)); })()}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 8, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, backgroundColor: colors.card }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 8, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, backgroundColor: colors.card }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
@@ -232,6 +233,7 @@ export default function SemanticSortGame() {
           <View style={styles.optionButtons}>
             {LANGUAGES.filter((l) => l.code !== language).map((l) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={l.code}
                 style={[
                   styles.sizeButton,
@@ -246,7 +248,8 @@ export default function SemanticSortGame() {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.startButton} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startButton} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
             <Ionicons name="play" size={24} color="#fff" />
             <Text style={[styles.startButtonText, { color: '#fff' }]}>{t('start')}</Text>
@@ -278,6 +281,7 @@ export default function SemanticSortGame() {
               const isWrongPick = picked === cat && cat !== round.correctCat;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={cat}
                   style={[
                     styles.answerButton,
@@ -330,6 +334,7 @@ export default function SemanticSortGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => goBackOrHome()}
         >

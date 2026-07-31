@@ -249,6 +249,7 @@ export default function LexicalDecisionGame() {
             <View style={styles.optionButtons}>
               {LANGUAGES.filter((l) => l.code !== language).map((l) => (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={l.code}
                   style={[
                     styles.sizeButton,
@@ -277,13 +278,15 @@ export default function LexicalDecisionGame() {
               {t('passCorrect80Window')}
             </Text>
             {lvl.level > 1 && (
-              <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+              <TouchableOpacity
+                accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
                 <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          <TouchableOpacity style={styles.startButton} onPress={startGame}>
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.startButton} onPress={startGame}>
             <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
               <Ionicons name="play" size={24} color="#fff" />
               <Text style={[styles.startButtonText, { color: '#fff' }]}>{t('start')}</Text>
@@ -314,6 +317,7 @@ export default function LexicalDecisionGame() {
         toolbar={
           <>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.bigButton, { backgroundColor: '#34d399' }]}
               onPress={() => handleAnswer(true)}
               activeOpacity={0.8}
@@ -322,6 +326,7 @@ export default function LexicalDecisionGame() {
               <Text style={styles.bigButtonText}>{t('ldWordBtn')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.bigButton, { backgroundColor: '#f43f5e' }]}
               onPress={() => handleAnswer(false)}
               activeOpacity={0.8}
@@ -370,6 +375,7 @@ export default function LexicalDecisionGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => { clearAllTimers(); goBackOrHome(); }}
         >

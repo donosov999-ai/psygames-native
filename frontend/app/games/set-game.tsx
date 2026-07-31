@@ -272,6 +272,11 @@ export default function SetGame() {
     }, delay);
   };
 
+  // Скринридер не видит фигуру — собираем описание из тех же 4 признаков,
+  // по которым игрок ищет сет: количество, цвет, заливка, форма.
+  const cardLabel = (c: Card) =>
+    `${c.count} ${t('color_' + c.color).toLowerCase()} ${t('fill_' + c.fill)} ${t('shape_' + c.shape)}`;
+
   const renderShape = (card: Card, key: number) => {
     const c = COLOR_HEX[card.color];
     const size = 18;
@@ -308,6 +313,8 @@ export default function SetGame() {
     const fbColor = sel && feedback === 'right' ? '#22c55e' : sel && feedback === 'wrong' ? '#f43f5e' : null;
     return (
       <TouchableOpacity key={i} onPress={() => togglePick(i)} disabled={feedback !== null}
+        accessibilityRole="button" accessibilityLabel={cardLabel(card)}
+        accessibilityState={{ selected: sel, disabled: feedback !== null }}
         style={[styles.card, {
           backgroundColor: colors.surface,
           borderColor: fbColor || (sel ? GRADIENT[1] : hinted ? '#f5b50a' : colors.border),
@@ -341,7 +348,8 @@ export default function SetGame() {
       </LinearGradient>
       <LevelProgressMap gameId="set_game" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <TouchableOpacity style={styles.exampleHeader} onPress={() => setShowExample((v) => !v)}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.exampleHeader} onPress={() => setShowExample((v) => !v)}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
             {language === 'ru' ? 'Пример: что такое SET' : 'Example: what is a SET'}
           </Text>
@@ -380,7 +388,8 @@ export default function SetGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
         <View style={styles.optionButtons}>
           {[3, 6, 10].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, trials === n
+            <TouchableOpacity
+              accessibilityRole="button" key={n} style={[styles.modeButton, trials === n
               ? { backgroundColor: GRADIENT[1] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setTrials(n)}>
@@ -389,7 +398,8 @@ export default function SetGame() {
           ))}
         </View>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -437,7 +447,8 @@ export default function SetGame() {
                 <Text style={[styles.hintRule, { color: colors.textSecondary }]}>
                   {t('hint_set_rule')}
                 </Text>
-                <TouchableOpacity onPress={dismissWrong} style={[styles.gotItBtn, { backgroundColor: '#f43f5e' }]}>
+                <TouchableOpacity
+                  accessibilityRole="button" onPress={dismissWrong} style={[styles.gotItBtn, { backgroundColor: '#f43f5e' }]}>
                   <Text style={styles.gotItText}>{t('setGotIt')}</Text>
                 </TouchableOpacity>
               </View>
@@ -446,7 +457,8 @@ export default function SetGame() {
               {board.map(renderCard)}
             </View>
             {feedback === null && (
-              <TouchableOpacity onPress={showHintCard} disabled={hintCardIdx !== null}
+              <TouchableOpacity
+                accessibilityRole="button" onPress={showHintCard} disabled={hintCardIdx !== null}
                 style={[styles.hintBtn, { borderColor: '#f5b50a', opacity: hintCardIdx !== null ? 0.45 : 1 }]}>
                 <Text style={[styles.hintBtnText, { color: '#b8860b' }]}>💡 {t('setHintBtn')}</Text>
               </TouchableOpacity>
@@ -461,7 +473,8 @@ export default function SetGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('setGame')}</Text>

@@ -55,7 +55,7 @@ export default function DemoLanding() {
           <View style={styles.logoWrap}>
             <View style={[styles.logoPlate, { backgroundColor: colors.surface + 'CC' }]}>
               {/* logo6 — «мозг + надпись», бренд-вариант вордмарка */}
-              <Image source={LOGO_VARIANTS[6]} style={styles.logo} resizeMode="contain" />
+              <Image source={LOGO_VARIANTS[6]} accessibilityLabel="PsyGames" style={styles.logo} resizeMode="contain" />
             </View>
           </View>
         )}
@@ -79,7 +79,8 @@ export default function DemoLanding() {
           <Text style={styles.cardSub} numberOfLines={2}>
             {t(challenge.game.descKey)} · {t(challenge.difficulty)}
           </Text>
-          <TouchableOpacity style={styles.playBtn} onPress={playToday} activeOpacity={0.85}>
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.playBtn} onPress={playToday} activeOpacity={0.85}>
             <Ionicons name="play" size={18} color="#FFF" />
             <Text style={styles.playBtnText}>{t('ctaStart')}</Text>
           </TouchableOpacity>
@@ -87,6 +88,7 @@ export default function DemoLanding() {
 
         {/* CTA: полная версия — в приложении */}
         <TouchableOpacity
+          accessibilityRole="button"
           style={[styles.downloadBtn, { backgroundColor: colors.primary }]}
           onPress={openDownload}
           activeOpacity={0.85}

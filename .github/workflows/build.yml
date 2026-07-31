@@ -50,6 +50,12 @@ jobs:
         working-directory: frontend
         run: npm test -- --ci
 
+      # v1.161.0: гейт доступности. Ловит кнопку без подписи для скринридера
+      # (VoiceOver/TalkBack) — иначе такое всплывает только на ревью в Apple.
+      - name: a11y gate (кнопки без подписи)
+        working-directory: frontend
+        run: node scripts/a11y-audit.mjs
+
   # ─── Smoke games — ловит mount-краши/ошибки консоли ──────────────────
   # v1.110.0: теперь БЛОКИРУЕТ release (по клику Дениса в аудите 2026-07-04).
   # Только на тегах (на релизах, когда важно), чтобы не жечь минуты на каждый main.

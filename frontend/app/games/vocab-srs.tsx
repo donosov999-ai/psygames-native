@@ -238,6 +238,7 @@ export default function VocabSrsGame() {
           <View style={styles.optionButtons}>
             {LANGUAGES.filter((l) => l.code !== language).map((l) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={l.code}
                 style={[
                   styles.sizeButton,
@@ -260,6 +261,7 @@ export default function VocabSrsGame() {
           <View style={styles.optionButtons}>
             {[5, 10, 15, 20].map((n) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={n}
                 style={[
                   styles.sizeButton,
@@ -280,6 +282,7 @@ export default function VocabSrsGame() {
           <View style={styles.optionButtons}>
             {([['recognize', t('srsRecognize')], ['recall', t('srsRecall')]] as const).map(([d, label]) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={d}
                 style={[
                   styles.sizeButton,
@@ -298,6 +301,7 @@ export default function VocabSrsGame() {
 
         {/* Мои слова */}
         <TouchableOpacity
+          accessibilityRole="button"
           style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }]}
           onPress={() => { setAddedMsg(null); setWordsModal(true); }}
         >
@@ -308,7 +312,8 @@ export default function VocabSrsGame() {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.startButton} onPress={startSession}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startButton} onPress={startSession}>
           <LinearGradient
             colors={GRADIENT as [string, string]}
             start={{ x: 0, y: 0 }}
@@ -358,6 +363,7 @@ export default function VocabSrsGame() {
               const isWrongPick = picked === o && o !== right;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={o}
                   style={[
                     styles.answerButton,
@@ -399,7 +405,8 @@ export default function VocabSrsGame() {
           {t('srsNextDue')}: {fmtNextDue(stats.nextDueAt)}
         </Text>
       )}
-      <TouchableOpacity style={styles.startButton} onPress={() => router.push('/')}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startButton} onPress={() => router.push('/')}>
         <LinearGradient
           colors={GRADIENT as [string, string]}
           start={{ x: 0, y: 0 }}
@@ -435,6 +442,7 @@ export default function VocabSrsGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => goBackOrHome()}
         >
@@ -476,12 +484,14 @@ export default function VocabSrsGame() {
             )}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={[styles.modalBtn, { backgroundColor: GRADIENT[0] }]}
                 onPress={handleAddWords}
               >
                 <Text style={{ color: '#fff', fontWeight: '700' }}>{t('srsAddBtn')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={[styles.modalBtn, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setWordsModal(false)}
               >

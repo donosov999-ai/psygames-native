@@ -319,7 +319,8 @@ export default function RMETGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
         <View style={styles.optionButtons}>
           {([9, 18] as const).map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, trialsCount === n
+            <TouchableOpacity
+              accessibilityRole="button" key={n} style={[styles.modeButton, trialsCount === n
               ? { backgroundColor: GRADIENT[1] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setTrialsCount(n)}>
@@ -331,7 +332,8 @@ export default function RMETGame() {
       <Text style={[styles.warning, { color: colors.textSecondary }]}>
         {t('rmetNote')}
       </Text>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -363,7 +365,8 @@ export default function RMETGame() {
                 ? (feedback.correct ? '#22c55e' : '#f43f5e')
                 : (feedback && isCorrect ? '#22c55e88' : GRADIENT[0]);
               return (
-                <TouchableOpacity key={opt}
+                <TouchableOpacity
+                  accessibilityRole="button" key={opt}
                   disabled={feedback !== null}
                   onPress={() => handleAnswer(opt)}
                   activeOpacity={0.85}
@@ -379,7 +382,9 @@ export default function RMETGame() {
         {it && (
           <View style={styles.fieldCol}>
             <View style={[styles.eyeBox, { backgroundColor: colors.surface }]}>
-              <Image source={EYE_IMG[it.correct_en][it._vi ?? 0]} style={styles.eyeImg} resizeMode="cover" />
+              {/* Ответ (эмоция) в подпись НЕ кладём — это и есть задание. */}
+            <Image source={EYE_IMG[it.correct_en][it._vi ?? 0]} accessibilityLabel={t('a11yEyesPhoto')}
+              style={styles.eyeImg} resizeMode="cover" />
             </View>
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('rmetHint')}</Text>
           </View>
@@ -391,7 +396,8 @@ export default function RMETGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('rmet')}</Text>
