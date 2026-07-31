@@ -20,6 +20,7 @@ import {
   ActivityIndicator, ScrollView, DeviceEventEmitter,
 } from 'react-native';
 import { DEVCHAT_VISIBLE_EVENT } from '@/src/services/pet';
+import { GAME_PAUSE_EVENT } from '@/src/services/appFeedback';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname } from 'expo-router';
@@ -101,6 +102,7 @@ export default function FeedbackWidget() {
     setAttachShot(true);
     setSent(false);
     setOpen(true);
+    DeviceEventEmitter.emit(GAME_PAUSE_EVENT, true);   // игра на паузу, пока пишут отзыв
   };
 
   const submit = async () => {
@@ -123,7 +125,7 @@ export default function FeedbackWidget() {
     setSending(false);
     if (ok) {
       setSent(true);
-      setTimeout(() => { setOpen(false); setShot(null); }, 1300);
+      setTimeout(() => { setOpen(false); setShot(null); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }, 1300);
     } else {
       setText((t) => t);   // оставляем текст, чтобы не потерять написанное
       alert(t('feedbackSendFailed'));
@@ -143,7 +145,7 @@ export default function FeedbackWidget() {
           : <Ionicons name="chatbubble-ellipses" size={19} color="#fff" />}
       </TouchableOpacity>
 
-      <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
+      <Modal visible={open} animationType="slide" transparent onRequestClose={() => { setOpen(false); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }}>
         <View style={styles.backdrop}>
           <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
             <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
@@ -151,7 +153,7 @@ export default function FeedbackWidget() {
                 <Text style={[styles.title, { color: colors.text }]}>
                   {t('feedbackTitle')}
                 </Text>
-                <TouchableOpacity onPress={() => setOpen(false)} style={{ padding: 4 }}>
+                <TouchableOpacity onPress={() => { setOpen(false); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }} style={{ padding: 4 }}>
                   <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>

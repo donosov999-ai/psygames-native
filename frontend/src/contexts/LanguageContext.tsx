@@ -1258,6 +1258,8 @@ const translations: Translations = {
   streakLabel: { ru: 'Стрик', en: 'Streak' },   // дневной стрик (brStreak «Серия» — про Brain Workshop, не путать)
   petSynapse: { ru: 'Питомец Синапс', en: 'Synapse pet' },
   petSize: { ru: 'Размер питомца', en: 'Pet size' },
+  gamePaused: { ru: '⏸ Пауза — пишете отзыв', en: '⏸ Paused — writing feedback' },
+  brDimHint: { ru: '💡 Перед сном убавьте яркость экрана — так проще заснуть', en: '💡 Before sleep, dim your screen — it helps you fall asleep' },
   warmupStepOf: { ru: 'Игра {n} из {m}', en: 'Game {n} of {m}' },
   warmupNextGame: { ru: 'Следующая игра', en: 'Next game' },
   warmupFinish: { ru: 'Завершить комплекс', en: 'Finish the set' },

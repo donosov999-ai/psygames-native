@@ -728,6 +728,8 @@ const t: Record<string, string> = {
   "streakLabel": "Sequência",
   "petSynapse": "Mascote Sinapse",
   "petSize": "Tamanho do mascote",
+  "gamePaused": "⏸ Em pausa — escrevendo feedback",
+  "brDimHint": "💡 Antes de dormir, diminua o brilho — ajuda a pegar no sono",
   "warmupStepOf": "Jogo {n} de {m}",
   "warmupNextGame": "Próximo jogo",
   "warmupFinish": "Concluir o conjunto",

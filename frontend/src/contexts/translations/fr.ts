@@ -845,6 +845,8 @@ const t: Record<string, string> = {
   "streakLabel": "Série",
   "petSynapse": "Compagnon Synapse",
   "petSize": "Taille du compagnon",
+  "gamePaused": "⏸ En pause — rédaction du retour",
+  "brDimHint": "💡 Avant de dormir, baissez la luminosité — l’endormissement est plus facile",
   "warmupStepOf": "Jeu {n} sur {m}",
   "warmupNextGame": "Jeu suivant",
   "warmupFinish": "Terminer la série",

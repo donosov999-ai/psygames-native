@@ -845,6 +845,8 @@ const t: Record<string, string> = {
   "streakLabel": "Serie",
   "petSynapse": "Mascotte Sinapsi",
   "petSize": "Dimensione della mascotte",
+  "gamePaused": "⏸ In pausa — stai scrivendo un feedback",
+  "brDimHint": "💡 Prima di dormire abbassa la luminosità — aiuta ad addormentarti",
   "warmupStepOf": "Gioco {n} di {m}",
   "warmupNextGame": "Gioco successivo",
   "warmupFinish": "Concludi la serie",

@@ -728,6 +728,8 @@ const t: Record<string, string> = {
   "streakLabel": "连胜",
   "petSynapse": "突触宠物",
   "petSize": "宠物大小",
+  "gamePaused": "⏸ 已暂停 — 正在填写反馈",
+  "brDimHint": "💡 睡前调暗屏幕，更容易入睡",
   "warmupStepOf": "第 {n} 个 / 共 {m} 个",
   "warmupNextGame": "下一个游戏",
   "warmupFinish": "结束这组",

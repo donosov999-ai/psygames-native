@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.160.0',
+    date: '2026-07-30',
+    ru: [
+      'Комплекс перед сном стал спокойным: отличия, поиск предметов и дыхание 4-7-8 прямо в нём',
+      'Утренние и вечерние игры больше не повторяют друг друга',
+      'Игра встаёт на паузу, пока пишете отзыв',
+      'Приложение стало легче — картинки пережаты без потери качества',
+    ],
+    en: [
+      'The evening set is calm now: spot-the-difference, visual search and 4-7-8 breathing built in',
+      'Morning and evening games no longer repeat each other',
+      'The game pauses while you write feedback',
+      'Smaller app — images recompressed with no visible quality loss',
+    ],
+  },
+  {
     version: '1.159.0',
     date: '2026-07-30',
     ru: [
