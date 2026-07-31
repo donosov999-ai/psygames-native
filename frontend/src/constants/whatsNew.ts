@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.159.0',
+    date: '2026-07-30',
+    ru: [
+      'Зарядка и комплекс перед сном больше не застревают: видно «Игра N из M» и кнопку «Следующая игра» вместо «Играть снова»',
+    ],
+    en: [
+      'Warm-up and evening sets no longer get stuck: you see "Game N of M" and a "Next game" button instead of "Play again"',
+    ],
+  },
+  {
     version: '1.158.0',
     date: '2026-07-30',
     ru: [
