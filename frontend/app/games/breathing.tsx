@@ -81,10 +81,12 @@ export default function BreathingGame() {
   const { profile } = useProfile();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset } = useGamePreset();
+  const { isPreset, str } = useGamePreset();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
-  const [techKey, setTechKey] = useState('box');
+  // v1.160: технику может задать шаг комплекса (перед сном → calm478 «помогает заснуть»),
+  // запрос Вали «дыхание перед сном должно быть в тренировке, чтобы не заходить отдельно».
+  const [techKey, setTechKey] = useState(() => str('tech', 'box'));
   const [format, setFormat] = useState<Format>('cycles');
   const [cycles, setCycles] = useState(6);
   const [timeMin, setTimeMin] = useState(3);
@@ -430,6 +432,14 @@ export default function BreathingGame() {
                 <Text style={[styles.phaseCount, { color: GRADIENT[0] }]}>{phaseRemain}</Text>
               </View>
             </View>
+            {/* v1.160 (идея Вали): перед сном подсказать убавить яркость — первые 6 с
+                сессии на «успокоение 4-7-8». Яркостью управляет ОС, поэтому просто
+                напоминаем, а не лезем в системные настройки. */}
+            {techKey === 'calm478' && elapsed < 6 && (
+              <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center', marginTop: 10, paddingHorizontal: 20 }}>
+                {t('brDimHint')}
+              </Text>
+            )}
             <View style={styles.progressBar}>
               <View style={[styles.progressFill, { width: `${(elapsed / totalDur) * 100}%`, backgroundColor: GRADIENT[0] }]} />
             </View>

@@ -22,12 +22,13 @@
  * она смонтирована глобально в _layout и иначе перекрывает крайнюю кнопку.
  */
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
+import { GAME_PAUSE_EVENT } from '@/src/services/appFeedback';
 
 /** Ширина зоны, которую занимает плавающая кнопка фидбека снизу (LTR — слева, RTL — справа). */
 const FAB_GUTTER = 66;
@@ -55,8 +56,16 @@ export default function GameShell({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   // RTL: стрелка «назад» смотрит вправо, отступ под кнопку фидбека зеркалится
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const rtl = isRTLLang(language);
+  // v1.160: пока открыт отзыв — игра на паузе (репорт Вали «писала отзыв, пауза
+  // не наступила, и теперь не понимаю, что за игра»). Оверлей ловит тапы, чтобы
+  // не проиграть вслепую, и возвращает контекст после закрытия окна.
+  const [paused, setPaused] = React.useState(false);
+  React.useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(GAME_PAUSE_EVENT, (v: boolean) => setPaused(!!v));
+    return () => sub.remove();
+  }, []);
 
   const field = scrollableField ? (
     <ScrollView
@@ -114,12 +123,24 @@ export default function GameShell({
           {toolbar}
         </View>
       ) : null}
+
+      {paused && (
+        <View style={styles.pauseOverlay} pointerEvents="auto">
+          <View style={[styles.pauseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Ionicons name="pause-circle" size={44} color={colors.primary} />
+            <Text style={[styles.pauseText, { color: colors.text }]}>{t('gamePaused')}</Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  pauseOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center', zIndex: 90 },
+  pauseCard: { paddingVertical: 22, paddingHorizontal: 30, borderRadius: 18, borderWidth: 1, alignItems: 'center', gap: 8 },
+  pauseText: { fontSize: 16, fontWeight: '800' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

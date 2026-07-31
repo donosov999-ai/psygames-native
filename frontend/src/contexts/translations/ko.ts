@@ -845,6 +845,8 @@ const t: Record<string, string> = {
   "streakLabel": "연속",
   "petSynapse": "펫 시냅스",
   "petSize": "펫 크기",
+  "gamePaused": "⏸ 일시정지 — 피드백 작성 중",
+  "brDimHint": "💡 자기 전엔 화면 밝기를 낮추세요 — 잠들기 쉬워집니다",
   "warmupStepOf": "{m}개 중 {n}번째",
   "warmupNextGame": "다음 게임",
   "warmupFinish": "세트 마치기",

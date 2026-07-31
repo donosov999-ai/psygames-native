@@ -613,15 +613,21 @@ const WOMEN: ProfileDef = {
     // ⚡ Скорость (1) — лёгкая аркада для dopamine
     'targets',           // быстрые мишени, fast wins
   ],
+  // v1.160 (репорты Вали): утро БОДРИТ, вечер УСПОКАИВАЕТ, и наборы больше не
+  // пересекаются («зачем перед сном и с утра одни и те же игры»).
+  // Матрица памяти уехала в утро — она на скорость («если быстро не успел, всё забыл»).
   morning_playlist: [
-    { game_id: 'find_differences', game_route: '/games/find-differences', difficulty: 'easy', settings: { diffCount: 3 }, est_duration_sec: 100 },
+    { game_id: 'memory_matrix',    game_route: '/games/memory-matrix',    difficulty: 'easy', settings: { size: 3 }, est_duration_sec: 100 },
     { game_id: 'picture_pairs',    game_route: '/games/picture-pairs',    difficulty: 'easy', settings: { pairsCount: 6 }, est_duration_sec: 100 },
     { game_id: 'pattern',          game_route: '/games/pattern',          difficulty: 'easy', settings: { trials: 5 }, est_duration_sec: 90 },
   ],
+  // Вечер: только затормаживающее. «Найди отличие» Валя хвалит («действительно
+  // затормаживает»), «Поиск предметов» — спокойный hidden-object, финал — дыхание
+  // 4-7-8 («успокоение, помогает заснуть») прямо в комплексе.
   evening_playlist: [
-    { game_id: 'find_differences', game_route: '/games/find-differences', difficulty: 'easy',   settings: { diffCount: 2 }, est_duration_sec: 90 },
-    { game_id: 'memory_matrix',    game_route: '/games/memory-matrix',    difficulty: 'medium', mode: 'static', settings: { size: 3 }, est_duration_sec: 100 },
-    { game_id: 'picture_pairs',    game_route: '/games/picture-pairs',    difficulty: 'easy',   settings: { pairsCount: 6 }, est_duration_sec: 100 },
+    { game_id: 'find_differences', game_route: '/games/find-differences', difficulty: 'easy', settings: { diffCount: 2 }, est_duration_sec: 90 },
+    { game_id: 'visual_search',    game_route: '/games/visual-search',    difficulty: 'easy', est_duration_sec: 90 },
+    { game_id: 'breathing',        game_route: '/games/breathing',        difficulty: 'easy', settings: { tech: 'calm478' }, est_duration_sec: 120 },
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,
