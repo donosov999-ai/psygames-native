@@ -65,7 +65,8 @@ export default function SpanGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('spanGroup')}</Text>
@@ -83,6 +84,7 @@ export default function SpanGame() {
         </Text>
         {SUB_GAMES.map((g) => (
           <TouchableOpacity
+            accessibilityRole="button"
             key={g.route}
             style={[styles.subCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => router.push(g.route as any)}

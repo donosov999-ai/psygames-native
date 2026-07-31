@@ -16,6 +16,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
 import { sndCombo } from '@/src/services/feedback';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { a11yDecor } from '@/src/services/a11y';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const GS_RULES: LevelRule[] = [
@@ -68,9 +69,18 @@ const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: number[
   { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22] },
 ];
 
+// Названия товаров для скринридера. Держим локально ru/en (как pieceName в
+// chess-blind) вместо 23 ключей × 12 языков: игроку важно РАЗЛИЧАТЬ товары,
+// а не читать их на родном — при другом языке падаем на английский.
+const GOOD_NAMES_RU = ['кола','лимонад','кефир','молоко','сок','йогурт','банан','яблоко','шоколад','чипсы','хлеб','зубная паста','виноградный сок','клубничный коктейль','мишка','кактус','цветок','зайка','цыплёнок','коала','растение','пингвин','лиса'];
+const GOOD_NAMES_EN = ['cola','lemonade','kefir','milk','juice','yogurt','banana','apple','chocolate','chips','bread','toothpaste','grape juice','strawberry shake','teddy bear','cactus','flower','bunny','chick','koala','plant','penguin','fox'];
+const goodName = (type: number, ru: boolean) =>
+  (ru ? GOOD_NAMES_RU : GOOD_NAMES_EN)[type % GOOD_NAMES_EN.length];
+
 function GoodIcon({ type, size }: { type: number; size: number }) {
   return (
     <Image
+      {...a11yDecor}
       source={GOOD_SPRITES[type % GOOD_SPRITES.length]}
       style={{ width: size, height: size, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }}
       resizeMode="contain"
@@ -270,6 +280,13 @@ export default function GoodsSortGame() {
   const availH = Math.max(180, height - 360);
   const itemSize = Math.max(40, Math.min(112, Math.floor((cellW - 10) / 3), Math.floor(availH / gridDim.rows) - 26));
 
+  // Полка целиком: «Полка 4: кола, кола, пусто» — по этой строке незрячий
+  // игрок понимает, где уже есть пара и куда нести третий товар.
+  const ru = language === 'ru';
+  const cellLabel = (i: number, cell: number[]) =>
+    `${t('a11yShelf')} ${i + 1}: ` +
+    (cell.length ? cell.map((tp) => goodName(tp, ru)).join(', ') : t('a11yEmpty'));
+
   const renderCell = (i: number) => {
     const cell = cells[i] || [];
     const isSelCell = sel?.cell === i;
@@ -277,6 +294,8 @@ export default function GoodsSortGame() {
     const canDrop = !!sel && sel.cell !== i && cell.length < CAP;
     return (
       <TouchableOpacity key={i} activeOpacity={0.9} onPress={() => handleCellTap(i)}
+        accessibilityRole="button" accessibilityLabel={cellLabel(i, cell)}
+        accessibilityState={{ selected: isSelCell }}
         style={[styles.cell, {
           width: cellW, height: itemSize + 22,
           borderColor: canDrop ? '#fbbf24' : close ? '#22c55e' : '#8a5a2b',
@@ -288,6 +307,9 @@ export default function GoodsSortGame() {
             const selected = isSelCell && sel?.idx === s;
             return (
               <TouchableOpacity key={s} activeOpacity={0.7} onPress={() => handleItemTap(i, s)}
+                accessibilityRole="button"
+                accessibilityLabel={`${goodName(tp, ru)}, ${t('a11yShelf')} ${i + 1}`}
+                accessibilityState={{ selected }}
                 style={[styles.itemSlot, { width: itemSize, height: itemSize }, selected && styles.itemSel]}>
                 <GoodIcon type={tp} size={itemSize - 2} />
               </TouchableOpacity>
@@ -313,7 +335,8 @@ export default function GoodsSortGame() {
           {GOOD_SETS.map((s) => {
             const on = setKey === s.key;
             return (
-              <TouchableOpacity key={s.key} activeOpacity={0.85} onPress={() => { setSetKey(s.key); hapticTap(); }}
+              <TouchableOpacity
+                accessibilityRole="button" key={s.key} activeOpacity={0.85} onPress={() => { setSetKey(s.key); hapticTap(); }}
                 style={[styles.setBtn, { borderColor: on ? GRADIENT[0] : colors.border, backgroundColor: on ? '#fff7e0' : colors.card }]}>
                 <Ionicons name={s.icon} size={22} color={on ? '#d97706' : colors.textSecondary} />
                 <Text style={[styles.setBtnText, { color: on ? '#92600a' : colors.textSecondary }]}>{t('goodsSet_' + s.key)}</Text>
@@ -332,7 +355,8 @@ export default function GoodsSortGame() {
           🛒 {levelCfg(level, poolRef.current.length).types}   ·   📦 {levelCfg(level, poolRef.current.length).slots - levelCfg(level, poolRef.current.length).spares}
         </Text>
         {level > 1 && (
-          <TouchableOpacity onPress={() => { setLevel(1); if (!isPreset) lvl.setLevel(1); }} style={{ marginTop: 6 }}>
+          <TouchableOpacity
+            accessibilityRole="button" onPress={() => { setLevel(1); if (!isPreset) lvl.setLevel(1); }} style={{ marginTop: 6 }}>
             <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
           </TouchableOpacity>
         )}
@@ -360,7 +384,8 @@ export default function GoodsSortGame() {
             </View>
           }
           toolbar={
-            <TouchableOpacity onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Ionicons name="shuffle" size={18} color="#d97706" />
               <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')}</Text>
             </TouchableOpacity>
@@ -398,7 +423,8 @@ export default function GoodsSortGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('goodsSort')}</Text>

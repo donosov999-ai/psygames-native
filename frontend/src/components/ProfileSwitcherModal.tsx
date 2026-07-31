@@ -23,6 +23,7 @@ import type { ProfileDef } from '@/src/constants/profiles';
 import { BUNDLE_ALL_THEMED_PRICE, CORPORATE_PACK_PRICE, CORPORATE_PACK_MAX_CODES, isForSale, formatPrice, MONETIZATION_ENABLED, CODE_ENTRY_ENABLED } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 import { profileBadge } from '@/src/constants/profileBadges';
+import { a11yDecor, a11yModal } from '@/src/services/a11y';
 
 const OWNER_TG = 'Denis_On999';
 
@@ -128,7 +129,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
     <>
       {/* === Main switcher modal === */}
       <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
+        <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
           <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' }}>
             {/* C3b v1.122.1: уплотнено (padding/marginBottom/gap/card-padding урезаны),
                 чтобы все 11 профилей влезали в один экран без прокрутки. */}
@@ -136,7 +137,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
               {/* Header */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <Text style={{ fontSize: 19, fontWeight: '800', color: colors.text }}>👤 {t('a11ySwitchProfile')}</Text>
-                <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')} onPress={onClose} style={{ padding: 4 }}>
                   <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
@@ -152,6 +153,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   const locked = !accessible;
                   return (
                     <TouchableOpacity
+                      accessibilityRole="button"
                       key={p.id}
                       style={{
                         width: '31.5%', minWidth: 92,
@@ -166,7 +168,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                     >
                       {profileBadge(p.id) ? (
                   <View>
-                    <Image source={profileBadge(p.id)} style={{ width: 46, height: 46, borderRadius: 13, opacity: locked ? 0.5 : 1 }} />
+                    <Image {...a11yDecor} source={profileBadge(p.id)} style={{ width: 46, height: 46, borderRadius: 13, opacity: locked ? 0.5 : 1 }} />
                     {locked && <Text style={{ position: 'absolute', right: -3, bottom: -3, fontSize: 15 }}>🔒</Text>}
                   </View>
                 ) : (
@@ -259,6 +261,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.7)' }}>/год</Text>
                 </View>
                 <TouchableOpacity
+                  accessibilityRole="button"
                   onPress={buyBundleViaTelegram}
                   style={{ backgroundColor: '#1a1a1a', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}
                 >
@@ -294,6 +297,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   <Text style={{ fontSize: 12, color: '#94a3b8' }}>/год · ≈ {Math.round(CORPORATE_PACK_PRICE / CORPORATE_PACK_MAX_CODES)} ₽/сотрудник</Text>
                 </View>
                 <TouchableOpacity
+                  accessibilityRole="button"
                   onPress={buyCorporateViaTelegram}
                   style={{ backgroundColor: '#fbbf24', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}
                 >
@@ -306,6 +310,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
               {/* Inline code button at bottom. App Store 3.1.1: на iOS скрыто. */}
               {CODE_ENTRY_ENABLED && (
               <TouchableOpacity
+                accessibilityRole="button"
                 onPress={() => setCodeModalOpen(true)}
                 style={{ marginTop: 14, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}
               >
@@ -319,7 +324,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
 
       {/* === Detail modal (clicked on locked profile) === */}
       <Modal visible={detailProfile !== null} animationType="slide" transparent onRequestClose={() => setDetailProfile(null)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
+        <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
           <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' }}>
             {detailProfile && (
               <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 30 }}>
@@ -333,7 +338,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                       )}
                     </View>
                   </View>
-                  <TouchableOpacity onPress={() => setDetailProfile(null)} style={{ padding: 4 }}>
+                  <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')} onPress={() => setDetailProfile(null)} style={{ padding: 4 }}>
                     <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
@@ -429,6 +434,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                           ≈ {Math.round(detailProfile.price_year / 12)}₽/мес · код на 365 дней
                         </Text>
                         <TouchableOpacity
+                          accessibilityRole="button"
                           onPress={() => buyProfileViaTelegram(detailProfile)}
                           style={{ backgroundColor: '#10b981', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}
                         >
@@ -440,6 +446,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
 
                     {CODE_ENTRY_ENABLED ? (
                     <TouchableOpacity
+                      accessibilityRole="button"
                       onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
                       style={{ borderWidth: 1.5, borderColor: colors.border, paddingVertical: 12, borderRadius: 10, alignItems: 'center' }}
                     >
@@ -454,6 +461,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                     {MONETIZATION_ENABLED && (
                       <>
                         <TouchableOpacity
+                          accessibilityRole="button"
                           onPress={() => requestCodeViaTelegram(detailProfile)}
                           style={{ backgroundColor: '#0088cc', paddingVertical: 12, borderRadius: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
                         >
@@ -469,6 +477,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 )}
                 {isAccessible(detailProfile.id) && detailProfile.id !== profile.id && (
                   <TouchableOpacity
+                    accessibilityRole="button"
                     onPress={() => { switchProfile(detailProfile.id); setDetailProfile(null); onClose(); }}
                     style={{ backgroundColor: detailProfile.color, paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
                   >
@@ -488,7 +497,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
 
       {/* === Code input modal === */}
       <Modal visible={codeModalOpen} animationType="fade" transparent onRequestClose={() => setCodeModalOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 20 }}>
+        <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 20 }}>
           <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 22, gap: 14 }}>
             <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 Код доступа</Text>
             <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
@@ -511,11 +520,13 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
             />
             {codeError && <Text style={{ fontSize: 12, color: '#ef4444' }}>{codeError}</Text>}
             <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'flex-end' }}>
-              <TouchableOpacity onPress={() => { setCodeModalOpen(false); setCodeInput(''); setCodeError(null); }}
+              <TouchableOpacity
+                accessibilityRole="button" onPress={() => { setCodeModalOpen(false); setCodeInput(''); setCodeError(null); }}
                 style={{ paddingVertical: 10, paddingHorizontal: 16 }}>
                 <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>Отмена</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={tryRedeem}
+              <TouchableOpacity
+                accessibilityRole="button" onPress={tryRedeem}
                 style={{ paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#10b981', borderRadius: 8 }}>
                 <Text style={{ color: '#fff', fontWeight: '700' }}>Разблокировать</Text>
               </TouchableOpacity>

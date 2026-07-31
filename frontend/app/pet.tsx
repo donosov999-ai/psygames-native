@@ -26,6 +26,7 @@ import { pickPettedLine } from '@/src/services/petLines';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getTokens, spendTokens } from '@/src/services/tokens';
 import { sndToken, sndWrong } from '@/src/services/feedback';
+import { a11yDecor } from '@/src/services/a11y';
 
 /** Цвета шкал — 1:1 с сайта (.pet-skill-memory и т.д.) */
 const SKILL_COLORS: Record<keyof PetStats['skills'], string> = {
@@ -125,7 +126,8 @@ export default function PetScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yBack')}
+          style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         {editingName ? (
@@ -144,12 +146,14 @@ export default function PetScreen() {
               placeholderTextColor={colors.textSecondary}
               style={[styles.title, styles.nameInput, { color: colors.text, borderColor: colors.border }]}
             />
-            <TouchableOpacity onPress={saveName} style={[styles.nameSaveBtn, { backgroundColor: '#8a68f5' }]} accessibilityLabel={t('apply')}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={saveName} style={[styles.nameSaveBtn, { backgroundColor: '#8a68f5' }]} accessibilityLabel={t('apply')}>
               <Ionicons name="checkmark" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity onPress={() => setEditingName(true)} style={styles.nameRow} accessibilityLabel={t('petRename')}>
+          <TouchableOpacity
+            accessibilityRole="button" onPress={() => setEditingName(true)} style={styles.nameRow} accessibilityLabel={t('petRename')}>
             <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{shownName}</Text>
             <Ionicons name="pencil-outline" size={15} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -173,6 +177,7 @@ export default function PetScreen() {
 
         {/* Кормление: раз в день, за токены активного профиля */}
         <TouchableOpacity
+          accessibilityRole="button"
           onPress={feed}
           disabled={fed}
           activeOpacity={0.8}
@@ -196,12 +201,13 @@ export default function PetScreen() {
             const thumbSkin: PetSkin = s === 'auto' ? resolvePetSkin('auto', stage) : s;
             return (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={s}
                 style={[styles.skinCard, { backgroundColor: colors.surface, borderColor: on ? '#8a68f5' : colors.border, borderWidth: on ? 2 : 1 }]}
                 onPress={() => pickSkin(s)}
                 activeOpacity={0.75}
               >
-                <Image source={petFrame(thumbSkin, 'idle', 0)} style={styles.skinThumb} resizeMode="contain" />
+                <Image {...a11yDecor} source={petFrame(thumbSkin, 'idle', 0)} style={styles.skinThumb} resizeMode="contain" />
                 {s === 'auto' && (
                   <Ionicons name="sparkles" size={13} color={on ? '#8a68f5' : colors.textSecondary} style={styles.autoBadge} />
                 )}

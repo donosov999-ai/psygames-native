@@ -32,6 +32,7 @@ import {
   FEEDBACK_ENABLED, getDevChatVisible, captureScreenshot, sendFeedback, type FeedbackKind,
 } from '@/src/services/appFeedback';
 import { isRTLLang } from '@/src/services/rtl';
+import { a11yModal } from '@/src/services/a11y';
 
 const KINDS: { key: FeedbackKind; emoji: string; labelKey: string }[] = [
   { key: 'confusion', emoji: '🤷', labelKey: 'fbKindConfusion' },
@@ -135,6 +136,7 @@ export default function FeedbackWidget() {
   return (
     <>
       <TouchableOpacity
+        accessibilityRole="button"
         onPress={openSheet}
         activeOpacity={0.85}
         accessibilityLabel={t('feedbackFabLabel')}
@@ -146,14 +148,15 @@ export default function FeedbackWidget() {
       </TouchableOpacity>
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => { setOpen(false); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }}>
-        <View style={styles.backdrop}>
+        <View {...a11yModal} style={styles.backdrop}>
           <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
             <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
               <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>
                   {t('feedbackTitle')}
                 </Text>
-                <TouchableOpacity onPress={() => { setOpen(false); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }} style={{ padding: 4 }}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')}
+                  onPress={() => { setOpen(false); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }} style={{ padding: 4 }}>
                   <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
@@ -185,6 +188,7 @@ export default function FeedbackWidget() {
                       const on = kind === k.key;
                       return (
                         <TouchableOpacity
+                          accessibilityRole="button"
                           key={k.key}
                           onPress={() => setKind(k.key)}
                           style={[
@@ -216,6 +220,7 @@ export default function FeedbackWidget() {
 
                   {shot && (
                     <TouchableOpacity
+                      accessibilityRole="button"
                       onPress={() => setAttachShot((v) => !v)}
                       style={[styles.shotRow, { borderColor: colors.border }]}
                     >
@@ -231,6 +236,7 @@ export default function FeedbackWidget() {
                   )}
 
                   <TouchableOpacity
+                    accessibilityRole="button"
                     onPress={submit}
                     disabled={!text.trim() || sending}
                     style={[styles.send, { backgroundColor: text.trim() ? '#ef4444' : colors.border }]}

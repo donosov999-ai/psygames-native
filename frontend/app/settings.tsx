@@ -48,6 +48,7 @@ import { UNLOCK_CODES_ENABLED, isComingSoon } from '@/src/services/unlock';
 import { buildBackupJSON, restoreBackupJSON, downloadBackup, pickAndRestoreBackup } from '@/src/services/backup';
 // v1.26.0: локальные напоминания (зарядка/перед сном) — натив-only.
 import { loadReminderSettings, saveReminderSettings, applyReminders, requestReminderPermission, ReminderSettings, DEFAULT_REMINDERS } from '@/src/services/reminders';
+import { a11yModal } from '@/src/services/a11y';
 
 // Telegram-аккаунт владельца для запроса кодов разблокировки.
 const OWNER_TG = 'Denis_On999';
@@ -316,6 +317,7 @@ export default function SettingsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => goBackOrHome()}
         >
@@ -344,6 +346,7 @@ export default function SettingsScreen() {
                 const active = p.id === profile.id;
                 return (
                   <TouchableOpacity
+                    accessibilityRole="button"
                     key={p.id}
                     style={[styles.profileCard, {
                       width: profileCardWidth,
@@ -382,7 +385,8 @@ export default function SettingsScreen() {
               {/* v1.15.0: «Ввести код» скрыт пока UNLOCK_CODES_ENABLED=false.
                   + App Store 3.1.1: на iOS скрыт всегда (CODE_ENTRY_ENABLED). */}
               {UNLOCK_CODES_ENABLED && CODE_ENTRY_ENABLED && (
-                <TouchableOpacity onPress={() => setCodeModalOpen(true)} style={{ flexShrink: 0, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
+                <TouchableOpacity
+                  accessibilityRole="button" onPress={() => setCodeModalOpen(true)} style={{ flexShrink: 0, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text }}>🔑 {t('btn_enter_code')}</Text>
                 </TouchableOpacity>
               )}
@@ -394,6 +398,7 @@ export default function SettingsScreen() {
                 const locked = !accessible;
                 return (
                   <TouchableOpacity
+                    accessibilityRole="button"
                     key={p.id}
                     // v1.6.0: убрали disabled — теперь locked-карточки кликабельные
                     // и открывают modal с описанием/хуком/инструкцией как получить код
@@ -436,7 +441,8 @@ export default function SettingsScreen() {
               })}
             </View>
             {unlockedThemed.size > 0 && (
-              <TouchableOpacity onPress={() => {
+              <TouchableOpacity
+                accessibilityRole="button" onPress={() => {
                 Alert.alert(
                   t('alert_reset_unlocks'),
                   t('msg_reset_unlocks_confirm'),
@@ -457,7 +463,7 @@ export default function SettingsScreen() {
 
       {/* Unlock-code modal */}
       <Modal visible={codeModalOpen} animationType="fade" transparent onRequestClose={() => setCodeModalOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 20 }}>
+        <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 20 }}>
           <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 22, gap: 14 }}>
             <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 {t('title_access_code')}</Text>
             <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
@@ -483,11 +489,13 @@ export default function SettingsScreen() {
             />
             {codeError && <Text style={{ fontSize: 12, color: '#ef4444' }}>{codeError}</Text>}
             <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'flex-end' }}>
-              <TouchableOpacity onPress={() => { setCodeModalOpen(false); setCodeInput(''); setCodeError(null); }}
+              <TouchableOpacity
+                accessibilityRole="button" onPress={() => { setCodeModalOpen(false); setCodeInput(''); setCodeError(null); }}
                 style={{ paddingVertical: 10, paddingHorizontal: 16 }}>
                 <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('btn_cancel')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={tryRedeem}
+              <TouchableOpacity
+                accessibilityRole="button" onPress={tryRedeem}
                 style={{ paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#10b981', borderRadius: 8 }}>
                 <Text style={{ color: '#fff', fontWeight: '700' }}>{t('welcomeUnlock')}</Text>
               </TouchableOpacity>
@@ -498,7 +506,7 @@ export default function SettingsScreen() {
 
       {/* Profile Detail Modal (v1.6.0) — описание, хук, список игр + кнопки */}
       <Modal visible={detailProfile !== null} animationType="slide" transparent onRequestClose={() => setDetailProfile(null)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
+        <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
           <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' }}>
             {detailProfile && (
               <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 30 }}>
@@ -513,7 +521,7 @@ export default function SettingsScreen() {
                       )}
                     </View>
                   </View>
-                  <TouchableOpacity onPress={() => setDetailProfile(null)} style={{ padding: 4 }}>
+                  <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')} onPress={() => setDetailProfile(null)} style={{ padding: 4 }}>
                     <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
@@ -607,6 +615,7 @@ export default function SettingsScreen() {
                       {/* App Store 3.1.1: на iOS ввод кода скрыт (CODE_ENTRY_ENABLED) */}
                       {CODE_ENTRY_ENABLED && (
                       <TouchableOpacity
+                        accessibilityRole="button"
                         onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
                         style={{ backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
                       >
@@ -617,6 +626,7 @@ export default function SettingsScreen() {
                       {MONETIZATION_ENABLED && (
                         <>
                           <TouchableOpacity
+                            accessibilityRole="button"
                             onPress={() => requestCodeViaTelegram(detailProfile)}
                             style={{ backgroundColor: '#0088cc', paddingVertical: 14, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
                           >
@@ -635,6 +645,7 @@ export default function SettingsScreen() {
                 {/* Если уже разблокирован — кнопка «Активировать» */}
                 {!!isAccessible(detailProfile.id) && detailProfile.id !== profile.id && (
                   <TouchableOpacity
+                    accessibilityRole="button"
                     onPress={() => { switchProfile(detailProfile.id); setDetailProfile(null); }}
                     style={{ backgroundColor: detailProfile.color, paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
                   >
@@ -789,10 +800,12 @@ export default function SettingsScreen() {
             {t('transferProgressHint')}
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-            <TouchableOpacity onPress={openExport} style={{ flexGrow: 1, minWidth: 0, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={openExport} style={{ flexGrow: 1, minWidth: 0, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
               <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{t('exportGetCode')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setTransferMode('import')} style={{ flexGrow: 1, minWidth: 0, borderWidth: 1.5, borderColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => setTransferMode('import')} style={{ flexGrow: 1, minWidth: 0, borderWidth: 1.5, borderColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
               <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{t('importPasteCode')}</Text>
             </TouchableOpacity>
           </View>
@@ -813,7 +826,8 @@ export default function SettingsScreen() {
             {reminders.morning && (
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {[7, 8, 9, 10].map((h) => (
-                  <TouchableOpacity key={h} onPress={() => setReminderHour('morning', h)} style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, backgroundColor: reminders.morningHour === h ? colors.primary : colors.background, borderWidth: 1, borderColor: colors.border }}>
+                  <TouchableOpacity
+                    accessibilityRole="button" key={h} onPress={() => setReminderHour('morning', h)} style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, backgroundColor: reminders.morningHour === h ? colors.primary : colors.background, borderWidth: 1, borderColor: colors.border }}>
                     <Text style={{ color: reminders.morningHour === h ? '#FFF' : colors.text, fontWeight: '700' }}>{('0' + h).slice(-2)}:00</Text>
                   </TouchableOpacity>
                 ))}
@@ -827,7 +841,8 @@ export default function SettingsScreen() {
             {reminders.evening && (
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {[21, 22, 23].map((h) => (
-                  <TouchableOpacity key={h} onPress={() => setReminderHour('evening', h)} style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, backgroundColor: reminders.eveningHour === h ? colors.primary : colors.background, borderWidth: 1, borderColor: colors.border }}>
+                  <TouchableOpacity
+                    accessibilityRole="button" key={h} onPress={() => setReminderHour('evening', h)} style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, backgroundColor: reminders.eveningHour === h ? colors.primary : colors.background, borderWidth: 1, borderColor: colors.border }}>
                     <Text style={{ color: reminders.eveningHour === h ? '#FFF' : colors.text, fontWeight: '700' }}>{h}:00</Text>
                   </TouchableOpacity>
                 ))}
@@ -849,6 +864,7 @@ export default function SettingsScreen() {
               const active = language === l.code;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={l.code}
                   style={[
                     styles.langButton,
@@ -870,7 +886,8 @@ export default function SettingsScreen() {
 
       {/* Achievements + Tutorial actions */}
       <View style={[styles.settingsList, { gap: 8 }]}>
-        <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={() => router.push('/achievements' as any)}>
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={() => router.push('/achievements' as any)}>
           <View style={styles.settingInfo}>
             <Ionicons name="trophy" size={24} color="#fbbf24" />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('a11yAchievements')}</Text>
@@ -878,7 +895,8 @@ export default function SettingsScreen() {
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
         {/* v1.151: прямая кнопка «Проверить обновления» (запрос Дениса) */}
-        <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={checkUpdatesNow} disabled={updChecking}>
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={checkUpdatesNow} disabled={updChecking}>
           <View style={styles.settingInfo}>
             <Ionicons name="cloud-download-outline" size={24} color={colors.primary} />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('updCheckBtn')}</Text>
@@ -888,14 +906,16 @@ export default function SettingsScreen() {
           </Text>
         </TouchableOpacity>
         {/* v1.148: история версий («Что нового») */}
-        <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={() => router.push('/whats-new' as any)}>
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={() => router.push('/whats-new' as any)}>
           <View style={styles.settingInfo}>
             <Ionicons name="sparkles-outline" size={24} color={colors.primary} />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('versionHistory')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={replayOnboarding}>
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={replayOnboarding}>
           <View style={styles.settingInfo}>
             <Ionicons name="play-circle-outline" size={24} color={colors.primary} />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('btn_replay_tutorial')}</Text>
@@ -904,14 +924,16 @@ export default function SettingsScreen() {
         </TouchableOpacity>
 
         {/* v1.15.0: Backup / Restore прогресса */}
-        <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={handleExportBackup}>
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={handleExportBackup}>
           <View style={styles.settingInfo}>
             <Ionicons name="cloud-download-outline" size={24} color="#22c55e" />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('btn_save_backup')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={handleImportBackup}>
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={handleImportBackup}>
           <View style={styles.settingInfo}>
             <Ionicons name="cloud-upload-outline" size={24} color="#3b82f6" />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('btn_restore_backup')}</Text>
@@ -931,7 +953,7 @@ export default function SettingsScreen() {
 
       {/* v1.127.0: модалка переноса прогресса (экспорт-код / импорт-код) */}
       <Modal visible={transferMode !== 'none'} animationType="fade" transparent onRequestClose={() => setTransferMode('none')}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 22 }}>
+        <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 22 }}>
           <View style={{ backgroundColor: colors.background, borderRadius: 18, padding: 20, gap: 14 }}>
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 17 }}>
               {transferMode === 'export'
@@ -951,10 +973,12 @@ export default function SettingsScreen() {
                   style={{ color: colors.text, backgroundColor: colors.surface, borderRadius: 10, padding: 12, fontSize: 11, maxHeight: 180, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}
                 />
                 <View style={{ flexDirection: 'row', gap: 8 }}>
-                  <TouchableOpacity onPress={copyExport} style={{ flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
+                  <TouchableOpacity
+                    accessibilityRole="button" onPress={copyExport} style={{ flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
                     <Text style={{ color: '#fff', fontWeight: '700' }}>{t('copy')}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setTransferMode('none')} style={{ borderWidth: 1.5, borderColor: colors.border, borderRadius: 10, paddingVertical: 11, paddingHorizontal: 18, alignItems: 'center' }}>
+                  <TouchableOpacity
+                    accessibilityRole="button" onPress={() => setTransferMode('none')} style={{ borderWidth: 1.5, borderColor: colors.border, borderRadius: 10, paddingVertical: 11, paddingHorizontal: 18, alignItems: 'center' }}>
                     <Text style={{ color: colors.text, fontWeight: '700' }}>{t('close')}</Text>
                   </TouchableOpacity>
                 </View>
@@ -970,10 +994,12 @@ export default function SettingsScreen() {
                   style={{ color: colors.text, backgroundColor: colors.surface, borderRadius: 10, padding: 12, fontSize: 11, minHeight: 100, maxHeight: 180, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}
                 />
                 <View style={{ flexDirection: 'row', gap: 8 }}>
-                  <TouchableOpacity onPress={doImport} style={{ flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
+                  <TouchableOpacity
+                    accessibilityRole="button" onPress={doImport} style={{ flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
                     <Text style={{ color: '#fff', fontWeight: '700' }}>{t('apply')}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => { setTransferMode('none'); setImportText(''); }} style={{ borderWidth: 1.5, borderColor: colors.border, borderRadius: 10, paddingVertical: 11, paddingHorizontal: 18, alignItems: 'center' }}>
+                  <TouchableOpacity
+                    accessibilityRole="button" onPress={() => { setTransferMode('none'); setImportText(''); }} style={{ borderWidth: 1.5, borderColor: colors.border, borderRadius: 10, paddingVertical: 11, paddingHorizontal: 18, alignItems: 'center' }}>
                     <Text style={{ color: colors.text, fontWeight: '700' }}>{t('btn_cancel')}</Text>
                   </TouchableOpacity>
                 </View>

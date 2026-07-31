@@ -105,6 +105,7 @@ export default function StatisticsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => goBackOrHome()}
         >
@@ -112,6 +113,7 @@ export default function StatisticsScreen() {
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('statistics')}</Text>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yRefresh')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={loadStats}
         >
@@ -122,6 +124,7 @@ export default function StatisticsScreen() {
       {/* v1.15.0: scope toggle — статистика этого профиля vs все игры */}
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginBottom: 10 }}>
         <TouchableOpacity
+          accessibilityRole="button"
           onPress={() => setScopeAll(false)}
           style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center',
             backgroundColor: !scopeAll ? colors.primary : colors.surface,
@@ -131,6 +134,7 @@ export default function StatisticsScreen() {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
+          accessibilityRole="button"
           onPress={() => setScopeAll(true)}
           style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center',
             backgroundColor: scopeAll ? colors.primary : colors.surface,

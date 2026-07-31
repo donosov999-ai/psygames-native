@@ -306,6 +306,13 @@ export default function WcstGame() {
     return <Text style={{ fontSize: size, color, lineHeight: size, includeFontPadding: false }}>★</Text>;
   };
 
+  // Описание карточки для скринридера: те же признаки, что видит глаз
+  // (количество / цвет / форма). Правило сортировки НЕ раскрываем — его и
+  // зрячий игрок должен вывести сам.
+  const COLOR_KEY: Record<Color, string> = { R: 'color_red', G: 'color_green', B: 'color_blue', Y: 'color_yellow' };
+  const cardLabel = (c: Card) =>
+    `${c.count} ${t(COLOR_KEY[c.color]).toLowerCase()} ${t('shape_' + c.shape)}`;
+
   const renderCard = (card: Card, isRef: boolean, idx?: number, fb?: 'right' | 'wrong' | null) => {
     const fbColor = fb === 'right' ? '#22c55e' : fb === 'wrong' ? '#f43f5e' : null;
     const inner = (
@@ -323,6 +330,8 @@ export default function WcstGame() {
       return (
         <TouchableOpacity key={idx} onPress={() => idx !== undefined && handlePick(idx)}
           disabled={feedback !== null}
+          accessibilityRole="button" accessibilityLabel={cardLabel(card)}
+          accessibilityState={{ disabled: feedback !== null }}
           style={[styles.refCard, {
             backgroundColor: colors.surface,
             borderColor: fbColor || colors.border,
@@ -342,7 +351,8 @@ export default function WcstGame() {
   const renderConfig = () => {
     const p = levelParams(lvl.level);
     const modeBtn = (m: Mode, label: string) => (
-      <TouchableOpacity style={[styles.modeButton, mode === m
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.modeButton, mode === m
         ? { backgroundColor: GRADIENT[1] }
         : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
         onPress={() => setMode(m)}>
@@ -380,7 +390,8 @@ export default function WcstGame() {
             <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
             <View style={styles.optionButtons}>
               {[20, 40, 60].map((n) => (
-                <TouchableOpacity key={n} style={[styles.modeButton, trials === n
+                <TouchableOpacity
+                  accessibilityRole="button" key={n} style={[styles.modeButton, trials === n
                   ? { backgroundColor: GRADIENT[1] }
                   : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                   onPress={() => setTrials(n)}>
@@ -406,7 +417,8 @@ export default function WcstGame() {
                 {t('wcstPass').replace('{c}', String(p.persevCap))}
               </Text>
               {lvl.level > 1 && (
-                <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+                <TouchableOpacity
+                  accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
                   <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
                 </TouchableOpacity>
               )}
@@ -414,7 +426,8 @@ export default function WcstGame() {
           </>
         )}
 
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -460,7 +473,8 @@ export default function WcstGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('wcst')}</Text>

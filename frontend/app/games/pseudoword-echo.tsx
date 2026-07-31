@@ -301,6 +301,7 @@ export default function PseudowordEchoGame() {
         <View style={styles.optionButtons}>
           {TARGET_LANGS.filter((l) => l.code !== language).map((l) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={l.code}
               style={[
                 styles.langButton,
@@ -340,7 +341,8 @@ export default function PseudowordEchoGame() {
         </View>
       )}
 
-      <TouchableOpacity style={[styles.startBtn, !voiceOk && { opacity: 0.4 }]} onPress={startGame} disabled={!voiceOk}>
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.startBtn, !voiceOk && { opacity: 0.4 }]} onPress={startGame} disabled={!voiceOk}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Ionicons name="play" size={22} color="#FFF" />
           <Text style={styles.startBtnText}>{ru ? 'Начать' : 'Start'}</Text>
@@ -370,6 +372,7 @@ export default function PseudowordEchoGame() {
       >
         <View style={styles.fieldCol}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.speakerBtn, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}
             onPress={() => speak(round.word, tgtRef.current, 0.85)}
             activeOpacity={0.8}
@@ -395,6 +398,7 @@ export default function PseudowordEchoGame() {
               const fg = revealed && (isTarget || isPicked) ? '#FFF' : colors.text;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={opt}
                   style={[styles.optionBtn, { backgroundColor: bg, borderColor: revealed && isTarget ? '#22c55e' : colors.border }]}
                   onPress={() => handlePick(opt)}
@@ -414,7 +418,8 @@ export default function PseudowordEchoGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{ru ? 'Эхо: псевдослова' : 'Pseudoword Echo'}</Text>

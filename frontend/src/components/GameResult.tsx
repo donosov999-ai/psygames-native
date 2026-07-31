@@ -10,6 +10,7 @@ import { shareResult } from '@/src/services/share';
 import ResultSparkline from '@/src/components/ResultSparkline';
 import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
 import { useWarmup } from '@/src/contexts/WarmupContext';
+import { announce } from '@/src/services/a11y';
 
 interface GameResultProps {
   time?: number;
@@ -75,6 +76,11 @@ export default function GameResult({
   // Звёзды за прохождение (1–3): передан stars — рисуем его, иначе выводим из ошибок (0=3, ≤2=2, иначе 1).
   const shownStars = stars ?? (errors !== undefined ? (errors === 0 ? 3 : errors <= 2 ? 2 : 1) : undefined);
   useEffect(() => { sndWin(); }, []);   // фанфары при показе экрана результата (завершение)
+  // Скринридеру фанфары ничего не говорят — произносим итог словами.
+  useEffect(() => {
+    announce([t('complete'), score !== undefined ? `${t('score')}: ${score}` : '',
+              errors !== undefined ? `${t('errors')}: ${errors}` : ''].filter(Boolean).join('. '));
+  }, []);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -154,6 +160,7 @@ export default function GameResult({
       {IS_WEB_DEMO ? (
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.button, styles.demoCta, { backgroundColor: colors.primary }]}
             onPress={() => Linking.openURL(demoDownloadUrl(language)).catch(() => {})}
           >
@@ -161,6 +168,7 @@ export default function GameResult({
             <Text style={[styles.buttonText, styles.demoCtaText]} numberOfLines={2}>{t('demoResultCta')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
             onPress={onPlayAgain}
           >
@@ -175,6 +183,7 @@ export default function GameResult({
             {t('warmupStepOf').replace('{n}', String(wuIdx)).replace('{m}', String(wuTotal))}
           </Text>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.button, { backgroundColor: colors.primary }]}
             onPress={() => warmup.advanceToNext()}
           >
@@ -184,6 +193,7 @@ export default function GameResult({
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
             onPress={() => { warmup.stopWarmup(false); onGoHome(); }}
           >
@@ -194,6 +204,7 @@ export default function GameResult({
       ) : (
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
+          accessibilityRole="button"
           style={[styles.button, { backgroundColor: colors.primary }]}
           onPress={onPlayAgain}
         >
@@ -203,6 +214,7 @@ export default function GameResult({
 
         {shareText && (
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
             onPress={handleShare}
           >
@@ -212,6 +224,7 @@ export default function GameResult({
         )}
 
         <TouchableOpacity
+          accessibilityRole="button"
           style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
           onPress={onGoHome}
         >

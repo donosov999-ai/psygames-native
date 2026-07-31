@@ -138,7 +138,8 @@ export default function WarmupComplete() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.empty}>
           <Text style={{ color: colors.text }}>{t('sessionNotFound')}</Text>
-          <TouchableOpacity style={[styles.btn, { backgroundColor: '#fbbf24' }]} onPress={goHome}>
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.btn, { backgroundColor: '#fbbf24' }]} onPress={goHome}>
             <Text style={[styles.btnText, { color: '#000' }]}>{t('goHome')}</Text>
           </TouchableOpacity>
         </View>
@@ -255,13 +256,15 @@ export default function WarmupComplete() {
             <Text style={[styles.reminderBody, { color: colors.textSecondary }]}>
               {t('remindTomorrowBody')}
             </Text>
-            <TouchableOpacity style={styles.reminderBtn} onPress={enableReminders}>
+            <TouchableOpacity
+              accessibilityRole="button" style={styles.reminderBtn} onPress={enableReminders}>
               <LinearGradient colors={['#8b5cf6', '#6366f1']} style={styles.btnGrad}>
                 <Ionicons name="notifications" size={18} color="#FFF" />
                 <Text style={[styles.btnText, { color: '#FFF', paddingVertical: 0 }]}>{t('ctaEnable')}</Text>
               </LinearGradient>
             </TouchableOpacity>
-            <TouchableOpacity onPress={dismissReminders}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={dismissReminders}>
               <Text style={[styles.reminderLater, { color: colors.textSecondary }]}>{t('notNow')}</Text>
             </TouchableOpacity>
           </View>
@@ -276,13 +279,15 @@ export default function WarmupComplete() {
 
         {/* Actions */}
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.btn} onPress={playAgain}>
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.btn} onPress={playAgain}>
             <LinearGradient colors={GRADIENT_GOLD as [string, string]} style={styles.btnGrad}>
               <Ionicons name="refresh" size={18} color="#000" />
               <Text style={[styles.btnText, { color: '#000' }]}>{t('ctaAgain')}</Text>
             </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]} onPress={goHome}>
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]} onPress={goHome}>
             <Text style={[styles.btnText, { color: colors.text }]}>{t('goHome')}</Text>
           </TouchableOpacity>
         </View>

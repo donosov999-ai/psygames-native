@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList, ActivityIndi
 import { Ionicons } from '@expo/vector-icons';
 import { fetchTop, LeaderboardEntry, LeaderboardGameId } from '@/src/services/leaderboard';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { a11yModal } from '@/src/services/a11y';
 
 interface Props {
   visible: boolean;
@@ -28,13 +29,13 @@ export default function LeaderboardModal({ visible, onClose, gameId, colors, gra
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
+      <View {...a11yModal} style={styles.backdrop}>
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>
               {t('leaderboardTitle')}
             </Text>
-            <TouchableOpacity onPress={onClose}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')} onPress={onClose}>
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>

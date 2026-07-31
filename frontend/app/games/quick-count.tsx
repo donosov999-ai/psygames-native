@@ -171,7 +171,8 @@ export default function QuickCountGame() {
         <Text style={styles.configDesc}>{t('quickCountDesc')}</Text>
       </LinearGradient>
       <LevelProgressMap gameId="quick_count" currentLevel={lvl.level} colors={colors} language={language} />
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -200,7 +201,8 @@ export default function QuickCountGame() {
           phase === 'answer' ? (
             <View style={styles.choiceGrid}>
               {choices.map((n) => (
-                <TouchableOpacity key={n} style={[styles.choiceBtn, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => handleAnswer(n)}>
+                <TouchableOpacity
+                  accessibilityRole="button" key={n} style={[styles.choiceBtn, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => handleAnswer(n)}>
                   <Text style={[styles.choiceText, { color: colors.text }]}>{n}</Text>
                 </TouchableOpacity>
               ))}
@@ -230,7 +232,8 @@ export default function QuickCountGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('quickCount')}</Text>

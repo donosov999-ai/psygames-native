@@ -16,6 +16,7 @@ import {
 import { getPetAccessory, setPetAccessory } from '@/src/services/pet';
 import { avatarImage } from '@/src/constants/avatars';
 import { sndToken, sndTap, sndWrong, sndCorrect, getSoundPack, setSoundPack as applySoundPack } from '@/src/services/feedback';
+import { a11yDecor } from '@/src/services/a11y';
 
 export default function ShopScreen() {
   // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
@@ -102,7 +103,7 @@ export default function ShopScreen() {
             <Text style={{ fontSize: 20 }}>{c.value}</Text>
           </View>
         ) : c.type === 'avatar' ? (
-          <Image source={avatarImage(c.value)} style={[styles.swatch, { backgroundColor: colors.background }]} resizeMode="cover" />
+          <Image {...a11yDecor} source={avatarImage(c.value)} style={[styles.swatch, { backgroundColor: colors.background }]} resizeMode="cover" />
         ) : c.type === 'pet' ? (
           <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
             <Text style={{ fontSize: 20 }}>{c.value === 'bow' ? '🎀' : c.value === 'party_hat' ? '🥳' : '👓'}</Text>
@@ -119,14 +120,16 @@ export default function ShopScreen() {
           </Text>
         </View>
         {owned ? (
-          <TouchableOpacity onPress={() => (isSound ? toggleSound(c) : isPet ? togglePetAcc(c) : toggleEquip(c))}
+          <TouchableOpacity
+            accessibilityRole="button" onPress={() => (isSound ? toggleSound(c) : isPet ? togglePetAcc(c) : toggleEquip(c))}
             style={[styles.btn, { backgroundColor: on ? accent : 'transparent', borderColor: accent, borderWidth: 1.5 }]}>
             <Text style={{ color: on ? '#fff' : accent, fontWeight: '800', fontSize: 13 }}>
               {on ? t('equipped') : t('equip')}
             </Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity onPress={() => buy(c)} disabled={!canAfford}
+          <TouchableOpacity
+            accessibilityRole="button" onPress={() => buy(c)} disabled={!canAfford}
             style={[styles.btn, { backgroundColor: canAfford ? colors.primary : colors.border, opacity: canAfford ? 1 : 0.6 }]}>
             <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>
               {canAfford ? t('buy') : t('needMoreTokens')}
@@ -140,7 +143,8 @@ export default function ShopScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yBack')}
+          style={[styles.iconBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('shop')}</Text>
@@ -154,12 +158,13 @@ export default function ShopScreen() {
           длинной лентой без навигации (аудит). null = показать все секции. */}
       <View style={styles.catRow}>
         {([
-          [null, 'apps'], ['accent', 'color-palette'], ['sound', 'musical-notes'],
-          ['frame', 'scan'], ['title', 'pricetag'], ['avatar', 'person'], ['pet', 'paw'],
-        ] as const).map(([c, icon]) => {
+          [null, 'apps', 'a11yCatAll'], ['accent', 'color-palette', 'a11yCatAccent'], ['sound', 'musical-notes', 'a11yCatSound'],
+          ['frame', 'scan', 'a11yCatFrame'], ['title', 'pricetag', 'a11yCatTitle'], ['avatar', 'person', 'a11yCatAvatar'], ['pet', 'paw', 'a11yCatPet'],
+        ] as const).map(([c, icon, labelKey]) => {
           const on = cat === c;
           return (
             <TouchableOpacity key={String(c)} onPress={() => setCat(c)} activeOpacity={0.75}
+              accessibilityRole="button" accessibilityLabel={t(labelKey)} accessibilityState={{ selected: on }}
               style={[styles.catChip, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.border }]}>
               <Ionicons name={icon as any} size={18} color={on ? '#fff' : colors.textSecondary} />
             </TouchableOpacity>

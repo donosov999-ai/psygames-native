@@ -329,6 +329,7 @@ export default function TargetsGame() {
   const onTargetPress = useCallback(() => handleClickRef.current(), []);
   const clickButton = useMemo(() => (
     <TouchableOpacity
+      accessibilityRole="button"
       style={styles.clickButton}
       onPress={onTargetPress}
       activeOpacity={0.8}
@@ -372,6 +373,7 @@ export default function TargetsGame() {
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
           <View style={styles.optionButtons}>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[
                 styles.modeButton,
                 mode === 'field' && { backgroundColor: GRADIENT[0] },
@@ -389,6 +391,7 @@ export default function TargetsGame() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[
                 styles.modeButton,
                 mode === 'joker' && { backgroundColor: GRADIENT[0] },
@@ -421,6 +424,7 @@ export default function TargetsGame() {
           <View style={styles.levelButtons}>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((lvl) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={lvl}
                 style={[
                   styles.levelButton,
@@ -442,7 +446,8 @@ export default function TargetsGame() {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.startButton} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startButton} onPress={startGame}>
           <LinearGradient
             colors={GRADIENT as [string, string]}
             start={{ x: 0, y: 0 }}
@@ -466,7 +471,8 @@ export default function TargetsGame() {
         {t('hint_targets_press')}
       </Text>
       
-      <TouchableOpacity style={styles.startButton} onPress={beginRounds}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startButton} onPress={beginRounds}>
         <LinearGradient
           colors={GRADIENT as [string, string]}
           start={{ x: 0, y: 0 }}
@@ -577,6 +583,7 @@ export default function TargetsGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => { stoppedRef.current = true; clearAllTimers(); goBackOrHome(); }}
         >

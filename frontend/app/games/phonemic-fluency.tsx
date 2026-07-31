@@ -188,7 +188,8 @@ export default function PhonemicFluencyGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('cptDuration')}</Text>
         <View style={styles.optionButtons}>
           {([60, 90, 120] as const).map((d) => (
-            <TouchableOpacity key={d} style={[styles.modeButton, duration === d
+            <TouchableOpacity
+              accessibilityRole="button" key={d} style={[styles.modeButton, duration === d
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setDuration(d)}>
@@ -199,14 +200,16 @@ export default function PhonemicFluencyGame() {
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('phonemicLetter')}</Text>
-        <TouchableOpacity onPress={() => setAutoPickLetter(!autoPickLetter)} style={styles.toggleRow}>
+        <TouchableOpacity
+          accessibilityRole="button" onPress={() => setAutoPickLetter(!autoPickLetter)} style={styles.toggleRow}>
           <Ionicons name={autoPickLetter ? 'checkbox' : 'square-outline'} size={20} color={GRADIENT[0]} />
           <Text style={[styles.modeButtonText, { color: colors.text }]}>{t('phonemicAutoPick')}</Text>
         </TouchableOpacity>
         {!autoPickLetter && (
           <View style={styles.optionButtons}>
             {letterPool.slice(0, 8).map((L) => (
-              <TouchableOpacity key={L} style={[styles.modeButton, letter === L
+              <TouchableOpacity
+                accessibilityRole="button" key={L} style={[styles.modeButton, letter === L
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setLetter(L)}>
@@ -219,7 +222,8 @@ export default function PhonemicFluencyGame() {
       <Text style={[styles.warning, { color: colors.textSecondary }]}>
         {t('phonemicRules')}
       </Text>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -262,7 +266,8 @@ export default function PhonemicFluencyGame() {
             autoCapitalize="none"
             returnKeyType="done"
           />
-          <TouchableOpacity style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitWord}>
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitWord}>
             <Text style={styles.addBtnText}>+ {t('phonemicAdd')}</Text>
           </TouchableOpacity>
           <ScrollView style={styles.wordList} contentContainerStyle={styles.wordListInner}>
@@ -288,7 +293,8 @@ export default function PhonemicFluencyGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('phonemic')}</Text>

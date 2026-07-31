@@ -217,6 +217,7 @@ export default function DigitSpanGame() {
             const locked = gate.isLocked(d);
             return (
             <TouchableOpacity
+              accessibilityRole="button"
               key={d}
               disabled={locked}
               style={[
@@ -245,6 +246,7 @@ export default function DigitSpanGame() {
         <View style={styles.optionButtons}>
           {[3, 4, 5].map((n) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={n}
               style={[
                 styles.modeButton,
@@ -259,7 +261,8 @@ export default function DigitSpanGame() {
           ))}
         </View>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -344,7 +347,8 @@ export default function DigitSpanGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('digitSpan')}</Text>

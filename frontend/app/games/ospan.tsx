@@ -193,7 +193,8 @@ export default function OSpanGame() {
           {t('ospanLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -228,17 +229,20 @@ export default function OSpanGame() {
           toolbar={
             phase === 'eq' ? (
               <View style={styles.choiceRow}>
-                <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: '#22c55e' }]} onPress={() => handleEquation(true)}>
+                <TouchableOpacity
+                  accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: '#22c55e' }]} onPress={() => handleEquation(true)}>
                   <Ionicons name="checkmark" size={28} color="#FFF" />
                   <Text style={styles.choiceText} numberOfLines={1}>{t('correct')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.choiceBtn, { backgroundColor: '#f43f5e' }]} onPress={() => handleEquation(false)}>
+                <TouchableOpacity
+                  accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: '#f43f5e' }]} onPress={() => handleEquation(false)}>
                   <Ionicons name="close" size={28} color="#FFF" />
                   <Text style={styles.choiceText} numberOfLines={1}>{t('incorrect')}</Text>
                 </TouchableOpacity>
               </View>
             ) : phase === 'recall' ? (
-              <TouchableOpacity style={[styles.startBtn, styles.recallSubmit]} onPress={handleRecall}>
+              <TouchableOpacity
+                accessibilityRole="button" style={[styles.startBtn, styles.recallSubmit]} onPress={handleRecall}>
                 <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
                   <Text style={styles.startBtnText}>{t('validateBtn')}</Text>
                 </LinearGradient>
@@ -287,7 +291,8 @@ export default function OSpanGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('ospan')}</Text>

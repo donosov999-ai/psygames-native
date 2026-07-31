@@ -341,7 +341,8 @@ export default function NBackGame() {
         <Text style={styles.configDesc}>{t('nBackDesc')}</Text>
       </LinearGradient>
       <LevelProgressMap gameId="n_back" currentLevel={lvl.level} colors={colors} language={language} />
-      <TouchableOpacity style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
         <Ionicons name="trophy-outline" size={18} color={colors.text} />
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('leaderboardLabel')}</Text>
       </TouchableOpacity>
@@ -352,6 +353,7 @@ export default function NBackGame() {
             const locked = gate.isLocked(`${n}-back`);
             return (
             <TouchableOpacity
+              accessibilityRole="button"
               key={n}
               disabled={locked}
               style={[
@@ -379,7 +381,8 @@ export default function NBackGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>Modality</Text>
         <View style={styles.optionButtons}>
           {(['single', 'dual'] as Modality[]).map((m) => (
-            <TouchableOpacity key={m} style={[styles.modeButton, modality === m
+            <TouchableOpacity
+              accessibilityRole="button" key={m} style={[styles.modeButton, modality === m
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setModality(m)}>
@@ -395,6 +398,7 @@ export default function NBackGame() {
         <View style={styles.optionButtons}>
           {[15, 20, 30].map((n) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={n}
               style={[
                 styles.modeButton,
@@ -409,7 +413,8 @@ export default function NBackGame() {
           ))}
         </View>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -435,6 +440,7 @@ export default function NBackGame() {
           toolbar={
             <View style={modality === 'dual' ? styles.dualBtnRow : undefined}>
               <TouchableOpacity
+                accessibilityRole="button"
                 disabled={!waitingResponse || answeredRef.current}
                 onPress={handleMatchPress}
                 style={[
@@ -451,6 +457,7 @@ export default function NBackGame() {
               </TouchableOpacity>
               {modality === 'dual' && (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   disabled={!waitingResponse || aAnsweredRef.current}
                   onPress={handleAudioMatchPress}
                   style={[
@@ -504,7 +511,8 @@ export default function NBackGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('nBack')}</Text>

@@ -278,12 +278,14 @@ export default function BARTGame() {
             {t('bartPass')}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -302,7 +304,8 @@ export default function BARTGame() {
           <Text style={[styles.optionLabel, { color: colors.text, marginTop: 4 }]}>{t('difficultyLabel')}</Text>
           <View style={styles.optionButtons}>
             {(['easy','medium','hard'] as Difficulty[]).map((d) => (
-              <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
+              <TouchableOpacity
+                accessibilityRole="button" key={d} style={[styles.modeButton, difficulty === d
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setDifficulty(d)}>
@@ -315,7 +318,8 @@ export default function BARTGame() {
           <Text style={[styles.optionLabel, { color: colors.text, marginTop: 4 }]}>{t('balloonsCount')}</Text>
           <View style={styles.optionButtons}>
             {[10, 15, 20].map((n) => (
-              <TouchableOpacity key={n} style={[styles.modeButton, balloons === n
+              <TouchableOpacity
+                accessibilityRole="button" key={n} style={[styles.modeButton, balloons === n
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setBalloons(n)}>
@@ -323,7 +327,8 @@ export default function BARTGame() {
               </TouchableOpacity>
             ))}
           </View>
-          <TouchableOpacity style={[styles.classicBtn, { borderColor: GRADIENT[0] }]} onPress={startClassic}>
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.classicBtn, { borderColor: GRADIENT[0] }]} onPress={startClassic}>
             <Text style={[styles.classicBtnText, { color: GRADIENT[0] }]}>
               {language === 'ru' ? 'Классический замер' : 'Classic run'}
             </Text>
@@ -449,13 +454,15 @@ export default function BARTGame() {
         }
         toolbar={
           <View style={styles.actionsRow}>
-            <TouchableOpacity disabled={popped || feedback !== null}
+            <TouchableOpacity
+              accessibilityRole="button" disabled={popped || feedback !== null}
               style={[styles.actionBtn, { backgroundColor: GRADIENT[0], opacity: popped || feedback ? 0.5 : 1 }]}
               onPress={pump}>
               <Ionicons name="add-circle" size={22} color="#FFF" />
               <Text style={styles.actionText}>{t('bartPump')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity disabled={popped || feedback !== null || pumps === 0}
+            <TouchableOpacity
+              accessibilityRole="button" disabled={popped || feedback !== null || pumps === 0}
               style={[styles.actionBtn, { backgroundColor: '#22c55e', opacity: popped || feedback || pumps === 0 ? 0.5 : 1 }]}
               onPress={cashOut}>
               <Ionicons name="cash" size={22} color="#FFF" />
@@ -477,7 +484,8 @@ export default function BARTGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('bart')}</Text>

@@ -321,6 +321,7 @@ export default function PhonemePairsGame() {
         <View style={styles.optionButtons}>
           {TARGET_LANGS.filter((c) => c !== language).map((c) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={c}
               style={[
                 styles.langBtn,
@@ -351,7 +352,8 @@ export default function PhonemePairsGame() {
           </Text>
         </View>
       )}
-      <TouchableOpacity style={[styles.startBtn, !voiceOk && { opacity: 0.4 }]} onPress={startGame} disabled={!voiceOk}>
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.startBtn, !voiceOk && { opacity: 0.4 }]} onPress={startGame} disabled={!voiceOk}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{ru ? 'Начать' : 'Start'}</Text>
         </LinearGradient>
@@ -392,6 +394,7 @@ export default function PhonemePairsGame() {
                 }
                 return (
                   <TouchableOpacity
+                    accessibilityRole="button"
                     key={i}
                     style={[styles.wordBtn, { backgroundColor: bg, borderColor: border }]}
                     onPress={() => handleAnswer(i)}
@@ -404,6 +407,7 @@ export default function PhonemePairsGame() {
               })}
             </View>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.replayBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
               onPress={replay}
               disabled={answered !== null}
@@ -431,7 +435,8 @@ export default function PhonemePairsGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{ru ? 'Фонемы: пары' : 'Phoneme pairs'}</Text>

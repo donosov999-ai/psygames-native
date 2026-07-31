@@ -131,7 +131,8 @@ export default function OnboardingScreen() {
           {step + 1} / {SLIDES.length}
         </Text>
         {!isLast && (
-          <TouchableOpacity onPress={skip}>
+          <TouchableOpacity
+            accessibilityRole="button" onPress={skip}>
             <Text style={[styles.skipBtn, { color: colors.textSecondary }]}>{t('skip')}</Text>
           </TouchableOpacity>
         )}
@@ -162,14 +163,16 @@ export default function OnboardingScreen() {
       </View>
 
       <View style={{ width: containerW, marginBottom: 16 }}>
-        <TouchableOpacity style={styles.nextBtn} onPress={onMainPress} disabled={busy}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.nextBtn} onPress={onMainPress} disabled={busy}>
           <LinearGradient colors={slide.gradient} style={styles.nextBtnGrad}>
             <Text style={styles.nextBtnText}>{mainLabel}</Text>
             <Ionicons name={isFinal ? 'play' : (isRTLLang(language) ? 'arrow-back' : 'arrow-forward')} size={18} color="#FFF" />
           </LinearGradient>
         </TouchableOpacity>
         {(isNotif || isFinal) && (
-          <TouchableOpacity onPress={isNotif ? next : finish} disabled={busy} style={styles.secondaryBtn}>
+          <TouchableOpacity
+            accessibilityRole="button" onPress={isNotif ? next : finish} disabled={busy} style={styles.secondaryBtn}>
             <Text style={[styles.secondaryText, { color: colors.textSecondary }]}>
               {isNotif ? t('notNow') : t('justLookAround')}
             </Text>

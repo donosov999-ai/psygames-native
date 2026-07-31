@@ -36,7 +36,8 @@ export default function JuicyButton({ label, onPress, colors = ['#f857a6', '#ff5
   const hov = useRef(false);   // десктоп: ховер-подъём при наведении
   const spring = (to: number) => Animated.spring(scale, { toValue: to, friction: 6, tension: 220, useNativeDriver: true }).start();
   return (
-    <Pressable style={style}
+    <Pressable
+      accessibilityRole="button" style={style}
       onHoverIn={() => { hov.current = true; spring(1.04); }}
       onHoverOut={() => { hov.current = false; spring(1); }}
       onPressIn={() => spring(0.95)} onPressOut={() => spring(hov.current ? 1.04 : 1)}

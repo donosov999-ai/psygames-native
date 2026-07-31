@@ -250,7 +250,8 @@ export default function StroopGame() {
             {t('stroopPass')}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
@@ -260,6 +261,7 @@ export default function StroopGame() {
           <View style={styles.optionButtons}>
             {(['ink', 'word'] as Mode[]).map((m) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={m}
                 style={[
                   styles.modeButton,
@@ -276,7 +278,8 @@ export default function StroopGame() {
             ))}
           </View>
         </View>
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -302,6 +305,7 @@ export default function StroopGame() {
           <View style={styles.answersGrid}>
             {COLORS_DEF.map((c) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={c.name}
                 style={[styles.answerBtn, { backgroundColor: c.hex }]}
                 onPress={() => handleAnswer(c)}
@@ -327,7 +331,8 @@ export default function StroopGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
           onPress={() => { stoppedRef.current = true; if (windowTimerRef.current) clearTimeout(windowTimerRef.current); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

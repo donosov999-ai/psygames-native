@@ -217,6 +217,13 @@ export default function TowerLondonGame() {
     }
   };
 
+  // Стержень озвучиваем составом: цвета шариков снизу вверх — ровно то, что
+  // видит глаз. Без этого скринридер читает пустую кнопку.
+  const BALL_KEY: Record<Ball, string> = { R: 'color_red', G: 'color_green', B: 'color_blue', Y: 'color_yellow' };
+  const pegLabel = (pegIdx: number, balls: Ball[]) =>
+    `${t('a11yPeg')} ${pegIdx + 1}: ` +
+    (balls.length ? balls.map((b) => t(BALL_KEY[b]).toLowerCase()).join(', ') : t('a11yEmpty'));
+
   const renderPeg = (pegIdx: number, balls: Ball[], cap: number, isGoal: boolean) => {
     const pegHeight = 36 * cap + 20;
     return (
@@ -224,6 +231,8 @@ export default function TowerLondonGame() {
         disabled={isGoal || feedback !== null}
         activeOpacity={0.7}
         onPress={() => !isGoal && handlePeg(pegIdx)}
+        accessibilityRole="button" accessibilityLabel={pegLabel(pegIdx, balls)}
+        accessibilityState={{ selected: selPeg === pegIdx, disabled: isGoal || feedback !== null }}
         style={[styles.peg, { height: pegHeight, borderColor: selPeg === pegIdx ? GRADIENT[1] : colors.border, borderWidth: selPeg === pegIdx ? 3 : 1 }]}
       >
         {/* balls bottom to top */}
@@ -251,7 +260,8 @@ export default function TowerLondonGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
         <View style={styles.optionButtons}>
           {(['easy','medium','hard'] as Difficulty[]).map((d) => (
-            <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
+            <TouchableOpacity
+              accessibilityRole="button" key={d} style={[styles.modeButton, difficulty === d
               ? { backgroundColor: GRADIENT[1] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setDifficulty(d)}>
@@ -264,7 +274,8 @@ export default function TowerLondonGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
         <View style={styles.optionButtons}>
           {[3, 5, 8].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, trials === n
+            <TouchableOpacity
+              accessibilityRole="button" key={n} style={[styles.modeButton, trials === n
               ? { backgroundColor: GRADIENT[1] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setTrials(n)}>
@@ -273,7 +284,8 @@ export default function TowerLondonGame() {
           ))}
         </View>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -314,7 +326,8 @@ export default function TowerLondonGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('towerLondon')}</Text>

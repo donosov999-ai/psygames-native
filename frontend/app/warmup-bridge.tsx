@@ -136,17 +136,20 @@ export default function WarmupBridge() {
         </Text>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.actionPrimary} onPress={startNow}>
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.actionPrimary} onPress={startNow}>
             <LinearGradient colors={GRADIENT as [string, string]} style={styles.actionPrimaryGrad}>
               <Text style={styles.actionPrimaryText}>{t('ctaStartNow')}</Text>
             </LinearGradient>
           </TouchableOpacity>
           <View style={styles.actionsRow}>
-            <TouchableOpacity style={[styles.actionSecondary, { borderColor: colors.border }]} onPress={skip}>
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.actionSecondary, { borderColor: colors.border }]} onPress={skip}>
               <Ionicons name="play-skip-forward" size={18} color={colors.text} />
               <Text style={[styles.actionSecondaryText, { color: colors.text }]}>SKIP</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionSecondary, { borderColor: '#f43f5e' }]} onPress={stop}>
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.actionSecondary, { borderColor: '#f43f5e' }]} onPress={stop}>
               <Ionicons name="stop" size={18} color="#f43f5e" />
               <Text style={[styles.actionSecondaryText, { color: '#f43f5e' }]}>STOP</Text>
             </TouchableOpacity>

@@ -40,7 +40,8 @@ export default function WhatsNewScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yBack')}
+          style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name={isRTLLang(language) ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('versionHistory')}</Text>
@@ -48,7 +49,8 @@ export default function WhatsNewScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <TouchableOpacity onPress={doCheck} disabled={checking}
+        <TouchableOpacity
+          accessibilityRole="button" onPress={doCheck} disabled={checking}
           style={[styles.checkBtn, { backgroundColor: colors.primary, opacity: checking ? 0.6 : 1 }]}>
           <Ionicons name="refresh" size={17} color="#fff" />
           <Text style={styles.checkText}>

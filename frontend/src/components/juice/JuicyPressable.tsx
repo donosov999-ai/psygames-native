@@ -16,6 +16,7 @@ export default function JuicyPressable({ style, haptic = true, scaleTo = 0.92, o
   const spring = (to: number) => Animated.spring(scale, { toValue: to, friction: 6, tension: 220, useNativeDriver: true }).start();
   return (
     <Pressable
+      accessibilityRole="button"
       disabled={disabled}
       onHoverIn={() => { hov.current = true; spring(1.03); }}
       onHoverOut={() => { hov.current = false; spring(1); }}

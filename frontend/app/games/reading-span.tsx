@@ -198,7 +198,8 @@ export default function ReadingSpanGame() {
           {t('rspanLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -227,17 +228,20 @@ export default function ReadingSpanGame() {
         toolbar={
           phase === 'playing' ? (
             <View style={styles.judgeRow}>
-              <TouchableOpacity style={[styles.judgeBtn, { backgroundColor: '#22c55e' }]} onPress={() => handleJudge(true)}>
+              <TouchableOpacity
+                accessibilityRole="button" style={[styles.judgeBtn, { backgroundColor: '#22c55e' }]} onPress={() => handleJudge(true)}>
                 <Ionicons name="checkmark" size={28} color="#FFF" />
                 <Text style={styles.judgeText} numberOfLines={2}>{t('makesSense')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.judgeBtn, { backgroundColor: '#f43f5e' }]} onPress={() => handleJudge(false)}>
+              <TouchableOpacity
+                accessibilityRole="button" style={[styles.judgeBtn, { backgroundColor: '#f43f5e' }]} onPress={() => handleJudge(false)}>
                 <Ionicons name="close" size={28} color="#FFF" />
                 <Text style={styles.judgeText} numberOfLines={2}>{t('nonsense')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity style={[styles.startBtn, styles.recallBtn]} onPress={handleRecallSubmit}>
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.startBtn, styles.recallBtn]} onPress={handleRecallSubmit}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
                 <Text style={styles.startBtnText} numberOfLines={1}>{t('validateBtn')}</Text>
               </LinearGradient>
@@ -283,7 +287,8 @@ export default function ReadingSpanGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('readingSpan')}</Text>

@@ -322,7 +322,8 @@ export default function AnagramGame() {
             {t('anagramsPass')}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
@@ -332,7 +333,8 @@ export default function AnagramGame() {
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('themeLabel')}</Text>
           <View style={styles.optionButtons}>
             {ANAGRAM_THEMES.map((th) => (
-              <TouchableOpacity key={th.k} style={[styles.modeButton, theme === th.k
+              <TouchableOpacity
+                accessibilityRole="button" key={th.k} style={[styles.modeButton, theme === th.k
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setTheme(th.k)}>
@@ -347,7 +349,8 @@ export default function AnagramGame() {
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('btn_hint')}</Text>
           <View style={styles.optionButtons}>
             {([true, false] as const).map((on) => (
-              <TouchableOpacity key={String(on)} style={[styles.modeButton, hintsOn === on
+              <TouchableOpacity
+                accessibilityRole="button" key={String(on)} style={[styles.modeButton, hintsOn === on
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setHintsOn(on)}>
@@ -358,7 +361,8 @@ export default function AnagramGame() {
             ))}
           </View>
         </View>
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={[styles.startBtnText, { color: '#3f2b96' }]}>{t('start')}</Text>
           </LinearGradient>
@@ -400,11 +404,13 @@ export default function AnagramGame() {
           <View style={styles.actionsRow}>
             {/* 💡 кнопка-подсказка только когда тумблер ВКЛ — иначе «хардкор» подсказку не выключал */}
             {hintsOn && (
-              <TouchableOpacity onPress={revealHint} style={[styles.clearBtn, { flex: 1, backgroundColor: '#fbbf24' }]}>
+              <TouchableOpacity
+                accessibilityRole="button" onPress={revealHint} style={[styles.clearBtn, { flex: 1, backgroundColor: '#fbbf24' }]}>
                 <Text style={[styles.clearText, { color: '#1a1a1a' }]}>💡 {t('btn_hint')}{hintUses > 0 ? ` (${hintUses})` : ''}</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={() => setPicked([])} style={[styles.clearBtn, { flex: 1, backgroundColor: colors.surface }]}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => setPicked([])} style={[styles.clearBtn, { flex: 1, backgroundColor: colors.surface }]}>
               <Text style={[styles.clearText, { color: colors.text }]}>{t('clear')}</Text>
             </TouchableOpacity>
           </View>
@@ -431,6 +437,7 @@ export default function AnagramGame() {
           <View style={styles.lettersRow}>
             {letters.map((l, i) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={i}
                 disabled={picked.includes(i)}
                 onPress={() => handleLetterPress(i)}
@@ -456,7 +463,8 @@ export default function AnagramGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
           onPress={() => { clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

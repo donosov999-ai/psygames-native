@@ -334,6 +334,7 @@ export default function MahjongGame() {
     const top = tt.y * half - tt.layer * layerOffset;
     return (
       <TouchableOpacity
+        accessibilityRole="button"
         key={tt.id}
         activeOpacity={0.85}
         onPress={() => handleTilePress(i)}
@@ -372,7 +373,8 @@ export default function MahjongGame() {
             {p.pairs} {t('pairsWord')} · {p.layers} {p.layers === 1 ? t('layerOne') : t('layerMany')}
           </Text>
           {level > 1 && (
-            <TouchableOpacity onPress={() => { setLevel(1); levelRef.current = 1; if (!isPreset) lvl.setLevel(1); }} style={{ marginTop: 6 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => { setLevel(1); levelRef.current = 1; if (!isPreset) lvl.setLevel(1); }} style={{ marginTop: 6 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
@@ -402,7 +404,8 @@ export default function MahjongGame() {
         </View>
       }
       toolbar={
-        <TouchableOpacity onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <TouchableOpacity
+          accessibilityRole="button" onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Ionicons name="shuffle" size={18} color="#0d9488" />
           <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')}</Text>
         </TouchableOpacity>
@@ -438,7 +441,8 @@ export default function MahjongGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('mahjong')}</Text>

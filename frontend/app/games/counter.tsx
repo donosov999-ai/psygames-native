@@ -331,13 +331,15 @@ export default function CounterGame() {
               {t('counterPass').replace('{k}', String(passNeed)).replace('{r}', String(p.rounds))}
             </Text>
             {lvl.level > 1 && (
-              <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+              <TouchableOpacity
+                accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
                 <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          <TouchableOpacity style={styles.startButton} onPress={startGame}>
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.startButton} onPress={startGame}>
             <LinearGradient
               colors={GRADIENT as [string, string]}
               start={{ x: 0, y: 0 }}
@@ -428,6 +430,7 @@ export default function CounterGame() {
           ]}>
             {grid.map((cell, index) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={index}
                 style={[
                   styles.cell,
@@ -487,6 +490,7 @@ export default function CounterGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => { clearAllTimers(); goBackOrHome(); }}
         >

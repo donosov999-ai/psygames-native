@@ -305,13 +305,15 @@ export default function NumberBondsGame() {
             {t('numberBondsPass')}
           </Text>
           {lvl.level > 1 && (
-            <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -341,10 +343,12 @@ export default function NumberBondsGame() {
         }
         toolbar={
           <View style={styles.actionsRow}>
-            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]} onPress={() => setPicked([])}>
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]} onPress={() => setPicked([])}>
               <Text style={[styles.actionTxt, { color: colors.text }]}>{t('clearBtn')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtnPrimary} onPress={validate}>
+            <TouchableOpacity
+              accessibilityRole="button" style={styles.actionBtnPrimary} onPress={validate}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.actionGrad}>
                 <Text style={styles.actionTxt}>{t('validateBtn')}</Text>
               </LinearGradient>
@@ -368,7 +372,8 @@ export default function NumberBondsGame() {
             {puzzle.chips.map((v, i) => {
               const sel = picked.includes(i);
               return (
-                <TouchableOpacity key={i}
+                <TouchableOpacity
+                  accessibilityRole="button" key={i}
                   onPress={() => togglePick(i)}
                   disabled={feedback !== null}
                   style={[styles.chip, {
@@ -389,7 +394,8 @@ export default function NumberBondsGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
           onPress={() => { clearAllTimers(); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

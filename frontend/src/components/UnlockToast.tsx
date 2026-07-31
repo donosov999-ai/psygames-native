@@ -13,6 +13,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Animated, StyleSheet, DeviceEventEmitter } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { announce } from '@/src/services/a11y';
 
 interface UnlockEventDetail {
   gameId: string;
@@ -33,6 +34,7 @@ export default function UnlockToast() {
     const handler = (d: UnlockEventDetail) => {
       setDetail(d);
       setVisible(true);
+      announce(`${t('label_unlocked')}: ${language === 'en' && d.labelEn ? d.labelEn : d.label}`);
       Animated.parallel([
         Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
         Animated.spring(translateY, { toValue: 0, useNativeDriver: true }),

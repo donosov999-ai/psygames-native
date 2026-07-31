@@ -209,7 +209,8 @@ export default function MathSprintGame() {
           {(['easy','medium','hard'] as Difficulty[]).map((d) => {
             const locked = gate.isLocked(d);
             return (
-            <TouchableOpacity key={d} disabled={locked}
+            <TouchableOpacity
+              accessibilityRole="button" key={d} disabled={locked}
               style={[styles.modeButton, difficulty === d && !locked
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 }]}
@@ -231,7 +232,8 @@ export default function MathSprintGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('durationLabel')}</Text>
         <View style={styles.optionButtons}>
           {[30, 60, 120].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, duration === n
+            <TouchableOpacity
+              accessibilityRole="button" key={n} style={[styles.modeButton, duration === n
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setDuration(n)}>
@@ -240,7 +242,8 @@ export default function MathSprintGame() {
           ))}
         </View>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -269,7 +272,8 @@ export default function MathSprintGame() {
             </View>
           }
           toolbar={
-            <TouchableOpacity onPress={submit} style={[styles.submitBtn, { backgroundColor: GRADIENT[0] }]}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={submit} style={[styles.submitBtn, { backgroundColor: GRADIENT[0] }]}>
               <Text style={styles.submitText}>{t('check')}</Text>
             </TouchableOpacity>
           }
@@ -308,7 +312,8 @@ export default function MathSprintGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('mathSprint')}</Text>

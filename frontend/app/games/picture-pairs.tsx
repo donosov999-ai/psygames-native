@@ -279,7 +279,8 @@ export default function PicturePairsGame() {
       <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
       <View style={styles.optionButtons}>
         {(['game', 'single'] as const).map((m) => (
-          <TouchableOpacity key={m}
+          <TouchableOpacity
+            accessibilityRole="button" key={m}
             style={[styles.modeButton, mode === m
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
@@ -320,7 +321,8 @@ export default function PicturePairsGame() {
             {c.photo ? ` · ${language === 'ru' ? 'фото-память' : 'flash'} ${(c.previewMs / 1000).toFixed(1)}${language === 'ru' ? 'с' : 's'}` : ''}
           </Text>
           {level > 1 && (
-            <TouchableOpacity onPress={() => setLevel(1)} style={{ marginTop: 6 }}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => setLevel(1)} style={{ marginTop: 6 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
@@ -334,7 +336,8 @@ export default function PicturePairsGame() {
                 const levelKey = `${n} pairs`;
                 const lock = gate.isLocked(levelKey);
                 return (
-                <TouchableOpacity key={n} disabled={lock}
+                <TouchableOpacity
+                  accessibilityRole="button" key={n} disabled={lock}
                   style={[styles.modeButton, pairsCount === n && !lock
                     ? { backgroundColor: GRADIENT[0] }
                     : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: lock ? 0.5 : 1 }]}
@@ -354,7 +357,8 @@ export default function PicturePairsGame() {
           </View>
 
           <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-            <TouchableOpacity onPress={() => setPhotoMemoryMode(!photoMemoryMode)}
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => setPhotoMemoryMode(!photoMemoryMode)}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Ionicons name={photoMemoryMode ? 'checkbox' : 'square-outline'} size={24} color={GRADIENT[0]} />
               <View style={{ flex: 1 }}>
@@ -367,7 +371,8 @@ export default function PicturePairsGame() {
             {photoMemoryMode && (
               <View style={styles.optionButtons}>
                 {([500, 1500, 3000] as const).map((ms) => (
-                  <TouchableOpacity key={ms} style={[styles.modeButton, previewMs === ms
+                  <TouchableOpacity
+                    accessibilityRole="button" key={ms} style={[styles.modeButton, previewMs === ms
                     ? { backgroundColor: GRADIENT[0] }
                     : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                     onPress={() => setPreviewMs(ms)}>
@@ -435,6 +440,12 @@ export default function PicturePairsGame() {
                 matched={card.matched}
                 disabled={card.matched || card.flipped || locked}
                 onPress={() => handleCardPress(i)}
+                a11yLabel={
+                  // Пока карта закрыта — символ НЕ называем, иначе игра теряет смысл.
+                  card.flipped || card.matched
+                    ? `${t('a11yCard')} ${i + 1}, ${card.symbol + 1}${card.matched ? `, ${t('a11yFound')}` : ''}`
+                    : `${t('a11yCard')} ${i + 1}`
+                }
                 back={
                   <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: cardBack.color, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
                     <Ionicons name={cardBack.icon as any} size={cardSize * 0.32} color="rgba(255,255,255,0.6)" />
@@ -464,7 +475,8 @@ export default function PicturePairsGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('picturePairs')}</Text>

@@ -327,7 +327,8 @@ export default function PRLGame() {
           <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
           <View style={styles.optionButtons}>
             {(['level', 'classic'] as RunMode[]).map((m) => (
-              <TouchableOpacity key={m} style={[styles.modeButton, runMode === m
+              <TouchableOpacity
+                accessibilityRole="button" key={m} style={[styles.modeButton, runMode === m
                 ? { backgroundColor: GRADIENT[1] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setRunMode(m)}>
@@ -360,7 +361,8 @@ export default function PRLGame() {
                 {t('prlPass').replace('{p}', String(Math.round(PASS_ACC * 100)))}
               </Text>
               {lvl.level > 1 && (
-                <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+                <TouchableOpacity
+                  accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
                   <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
                 </TouchableOpacity>
               )}
@@ -375,7 +377,8 @@ export default function PRLGame() {
                 {(['easy','medium','hard'] as Difficulty[]).map((d) => {
                   const cfg = DIFF_CFG[d];
                   return (
-                    <TouchableOpacity key={d} style={[styles.modeButton, difficulty === d
+                    <TouchableOpacity
+                      accessibilityRole="button" key={d} style={[styles.modeButton, difficulty === d
                       ? { backgroundColor: GRADIENT[1] }
                       : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                       onPress={() => setDifficulty(d)}>
@@ -393,7 +396,8 @@ export default function PRLGame() {
           </>
         )}
 
-        <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
           </LinearGradient>
@@ -409,6 +413,7 @@ export default function PRLGame() {
       : null;
     return (
       <TouchableOpacity
+        accessibilityRole="button"
         key={which}
         disabled={feedback !== null}
         onPress={() => handleChoice(which)}
@@ -454,7 +459,8 @@ export default function PRLGame() {
               {renderStimulus('A', '#3b82f6')}
               {renderStimulus('B', '#f59e0b')}
             </View>
-            <TouchableOpacity style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
               <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{t('btn_stop')}</Text>
             </TouchableOpacity>
           </View>
@@ -470,7 +476,8 @@ export default function PRLGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]}
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
           onPress={() => { respondLockRef.current = true; goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

@@ -279,6 +279,7 @@ export default function ClozeGame() {
             <View style={styles.optionButtons}>
               {LANGUAGES.filter((l) => l.code !== language).map((l) => (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={l.code}
                   style={[
                     styles.sizeButton,
@@ -306,13 +307,15 @@ export default function ClozeGame() {
               {t('clozePass')}
             </Text>
             {lvl.level > 1 && (
-              <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+              <TouchableOpacity
+                accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
                 <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          <TouchableOpacity style={styles.startButton} onPress={startGame}>
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.startButton} onPress={startGame}>
             <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
               <Ionicons name="play" size={24} color="#fff" />
               <Text style={[styles.startButtonText, { color: '#fff' }]}>{t('start')}</Text>
@@ -349,6 +352,7 @@ export default function ClozeGame() {
               const isWrongPick = picked === o && o !== round.answer;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={o}
                   style={[
                     styles.answerButton,
@@ -399,6 +403,7 @@ export default function ClozeGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => { clearAllTimers(); goBackOrHome(); }}
         >

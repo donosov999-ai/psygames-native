@@ -10,6 +10,7 @@ import { getCleanRun, cleanRunBonus } from '@/src/services/cleanRun';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
+import { announce } from '@/src/services/a11y';
 
 /**
  * LevelCleared — короткий баннер между уровнями для АВТО-ПОТОКА (по выбору Дениса):
@@ -38,7 +39,8 @@ interface Props {
 }
 
 export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, onContinue, onStop }: Props) {
-  const { t, language } = useLanguage();   // язык берём из контекста; проп language остался в Props для совместимости вызовов из игр
+  const { t, language } = useLanguage();
+  const levelWord = t('level');   // внутри эффекта `t` перекрыт локальным таймер-хендлом   // язык берём из контекста; проп language остался в Props для совместимости вызовов из игр
   const { profile } = useProfile();
   const firedRef = useRef(false);
   // вычисляем ОДНАЖДЫ при маунте: пора ли передышка для глаз (10-й уровень подряд).
@@ -56,6 +58,8 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
 
   useEffect(() => {
     if (passed) sndWin();
+    // Баннер держится ~2 с и уходит сам — скринридер должен успеть сказать.
+    announce(`${levelWord} ${level}${passed ? ' ✓' : ''}`);
     // Web-demo: демо-раунд — без авто-продолжения на следующий уровень и без
     // персиста (звёзды/хинт/серии). Показываем CTA-блок, игрок решает сам.
     if (IS_WEB_DEMO) return;
@@ -104,7 +108,8 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
           <Text style={styles.restTimer}>{restLeft}</Text>
         </LinearGradient>
         <View style={styles.btns}>
-          <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
             onPress={go} activeOpacity={0.85}>
             <Ionicons name="play-skip-forward" size={20} color={colors.text} />
             <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('skip')}</Text>
@@ -158,6 +163,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
         // — все 60+ игр и уровни» + маленькие «Ещё раз» и «Стоп».
         <View style={styles.btns}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.btn, styles.demoCta, { backgroundColor: colors.primary }]}
             onPress={() => Linking.openURL(demoDownloadUrl(language)).catch(() => {})}
             activeOpacity={0.85}
@@ -165,12 +171,14 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             <Ionicons name="download-outline" size={22} color="#FFFFFF" />
             <Text style={[styles.btnText, styles.demoCtaText]} numberOfLines={2}>{t('demoResultCta')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
             onPress={go} activeOpacity={0.85}>
             <Ionicons name="refresh" size={18} color={colors.text} />
             <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('retry')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
             onPress={stop} activeOpacity={0.85}>
             <Ionicons name="stop" size={18} color={colors.text} />
             <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>
@@ -178,11 +186,13 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
         </View>
       ) : (
       <View style={styles.btns}>
-        <TouchableOpacity style={[styles.btn, { backgroundColor: colors.primary }]} onPress={go} activeOpacity={0.85}>
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.primary }]} onPress={go} activeOpacity={0.85}>
           <Ionicons name={passed ? 'play' : 'refresh'} size={20} color="#FFFFFF" />
           <Text style={styles.btnText} numberOfLines={1}>{passed ? t('nextNow') : t('retry')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
           onPress={stop} activeOpacity={0.85}>
           <Ionicons name="stop" size={20} color={colors.text} />
           <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>

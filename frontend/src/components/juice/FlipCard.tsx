@@ -13,11 +13,13 @@ interface Props {
   front: React.ReactNode;      // лицо карты
   radius?: number;
   style?: ViewStyle;
+  /** Подпись для скринридера: рубашка не должна выдавать символ. */
+  a11yLabel?: string;
 }
 
 // Карта с 3D-переворотом (rotateY вокруг perspective). Тап → хаптик.
 // Две грани с backfaceVisibility:hidden — видна только обращённая к зрителю.
-export default function FlipCard({ size, flipped, matched, onPress, disabled, back, front, radius = 12, style }: Props) {
+export default function FlipCard({ size, flipped, matched, onPress, disabled, back, front, radius = 12, style, a11yLabel }: Props) {
   const flip = useRef(new Animated.Value(flipped ? 1 : 0)).current;
   const hov = useRef(new Animated.Value(1)).current;   // десктоп: ховер-подъём карты
   const mounted = useRef(false);
@@ -34,6 +36,9 @@ export default function FlipCard({ size, flipped, matched, onPress, disabled, ba
   };
   return (
     <Pressable disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={a11yLabel}
+      accessibilityState={{ disabled: !!disabled, selected: !!matched }}
       onHoverIn={() => Animated.spring(hov, { toValue: 1.06, friction: 7, useNativeDriver: true }).start()}
       onHoverOut={() => Animated.spring(hov, { toValue: 1, friction: 7, useNativeDriver: true }).start()}
       onPress={() => { if (!disabled) { hapticTap(); onPress?.(); } }} style={[{ width: size, height: size }, style]}>

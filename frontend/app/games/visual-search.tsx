@@ -289,7 +289,8 @@ export default function VisualSearchGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
         <View style={styles.optionButtons}>
           {[5, 8, 12].map((n) => (
-            <TouchableOpacity key={n} style={[styles.modeButton, trials === n
+            <TouchableOpacity
+              accessibilityRole="button" key={n} style={[styles.modeButton, trials === n
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setTrials(n)}>
@@ -298,7 +299,8 @@ export default function VisualSearchGame() {
           ))}
         </View>
       </View>
-      <TouchableOpacity style={styles.startBtn} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -307,6 +309,16 @@ export default function VisualSearchGame() {
   );
 
   // Render letter-shaped target/distractors using SVG-like primitives via Views
+  // Описание фигуры для скринридера. isTarget НЕ раскрываем — это и есть
+  // ответ; озвучиваем ровно то, что видно глазу: форму и цвет.
+  const SHAPE_LABEL: Record<Shape, string> = { T: 'T', L: 'L', I: 'I', plus: '+' };
+  const COLOR_LABEL: Record<string, string> = {
+    '#60a5fa': 'color_blue', '#fbbf24': 'color_yellow', '#f472b6': 'color_red',
+  };
+  const itemLabel = (it: Item) =>
+    `${SHAPE_LABEL[it.shape]}${COLOR_LABEL[it.color] ? ', ' + t(COLOR_LABEL[it.color]).toLowerCase() : ''}` +
+    (it.found ? `, ${t('a11yFound')}` : '');
+
   const renderLetter = (item: Item) => {
     const stroke = item.color || NEUTRAL_STROKE, sw = 3;
     const s = item.shape;
@@ -355,6 +367,8 @@ export default function VisualSearchGame() {
                 <TouchableOpacity key={i}
                   onPress={() => handlePick(i)}
                   disabled={feedback !== null}
+                  accessibilityRole="button" accessibilityLabel={itemLabel(it)}
+                  accessibilityState={{ disabled: feedback !== null }}
                   style={{
                     position: 'absolute',
                     left: it.x - 16, top: it.y - 16,
@@ -379,7 +393,8 @@ export default function VisualSearchGame() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('visualSearch')}</Text>

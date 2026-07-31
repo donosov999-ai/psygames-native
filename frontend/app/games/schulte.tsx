@@ -427,7 +427,8 @@ export default function SchulteGame() {
       </LinearGradient>
       <LevelProgressMap gameId="schulte_table" currentLevel={lvl.level} colors={colors} language={language} />
       {!isPreset && (
-        <TouchableOpacity style={styles.startButton} onPress={() => startGame(true)}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.startButton} onPress={() => startGame(true)}>
           <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
             <Ionicons name="flag" size={22} color="#FFFFFF" />
             <Text style={styles.startButtonText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
@@ -439,7 +440,8 @@ export default function SchulteGame() {
           {t('schulteFreeHint')}
         </Text>
       )}
-      <TouchableOpacity style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
         <Ionicons name="trophy-outline" size={18} color={colors.text} />
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('schulteLeaderboard')}</Text>
       </TouchableOpacity>
@@ -451,6 +453,7 @@ export default function SchulteGame() {
         </Text>
         <View style={styles.optionButtons}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[
               styles.modeButton,
               contentMode === 'numbers' && { backgroundColor: GRADIENT[0] },
@@ -473,6 +476,7 @@ export default function SchulteGame() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[
               styles.modeButton,
               contentMode === 'letters' && { backgroundColor: GRADIENT[0] },
@@ -496,6 +500,7 @@ export default function SchulteGame() {
           </TouchableOpacity>
           {/* Schulte-Gorbov: chase 1, A, 2, B, 3, C... — самый сильный вариант */}
           <TouchableOpacity
+            accessibilityRole="button"
             style={[
               styles.modeButton,
               contentMode === 'mixed' && { backgroundColor: GRADIENT[0] },
@@ -530,6 +535,7 @@ export default function SchulteGame() {
               .filter((id) => contentMode === 'mixed' || SCRIPTS[id].chars.length >= 25)
               .map((id) => (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={id}
                   style={[
                     styles.sizeButton,
@@ -556,6 +562,7 @@ export default function SchulteGame() {
           </Text>
           <View style={styles.optionButtons}>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[
                 styles.modeButton,
                 direction === 'forward' && { backgroundColor: GRADIENT[0] },
@@ -575,6 +582,7 @@ export default function SchulteGame() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[
                 styles.modeButton,
                 direction === 'backward' && { backgroundColor: GRADIENT[0] },
@@ -595,6 +603,7 @@ export default function SchulteGame() {
             </TouchableOpacity>
             {contentMode === 'numbers' && groupCount <= 1 && (
               <TouchableOpacity
+                accessibilityRole="button"
                 style={[
                   styles.modeButton,
                   direction === 'center-out' && { backgroundColor: GRADIENT[0] },
@@ -624,6 +633,7 @@ export default function SchulteGame() {
           <View style={styles.optionButtons}>
             {[1, 2, 3, 4].map((gc) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={gc}
                 style={[
                   styles.sizeButton,
@@ -651,12 +661,14 @@ export default function SchulteGame() {
         </Text>
         <View style={styles.optionButtons}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.modeButton, !reshuffleOnClick && { backgroundColor: GRADIENT[0] }, reshuffleOnClick && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
             onPress={() => setReshuffleOnClick(false)}
           >
             <Text style={[styles.modeButtonText, { color: !reshuffleOnClick ? '#FFFFFF' : colors.text }]}>{t('label_off')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.modeButton, reshuffleOnClick && { backgroundColor: GRADIENT[0] }, !reshuffleOnClick && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
             onPress={() => setReshuffleOnClick(true)}
           >
@@ -683,6 +695,7 @@ export default function SchulteGame() {
 
             return (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={size}
                 style={[
                   styles.sizeButton,
@@ -718,6 +731,7 @@ export default function SchulteGame() {
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
         <View style={styles.optionButtons}>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[
               styles.modeButton,
               !colorMode && { backgroundColor: GRADIENT[0] },
@@ -740,6 +754,7 @@ export default function SchulteGame() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={[
               styles.modeButton,
               colorMode && { backgroundColor: GRADIENT[0] },
@@ -765,7 +780,8 @@ export default function SchulteGame() {
       </View>
       )}
 
-      <TouchableOpacity style={[styles.startButton, !isPreset && { marginTop: 8 }]} onPress={() => startGame(false)}>
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.startButton, !isPreset && { marginTop: 8 }]} onPress={() => startGame(false)}>
         <LinearGradient
           colors={GRADIENT as [string, string]}
           start={{ x: 0, y: 0 }}
@@ -791,6 +807,7 @@ export default function SchulteGame() {
         onBack={() => goBackOrHome()}
         headerRight={
           <TouchableOpacity
+            accessibilityRole="button" accessibilityLabel={t('a11yNewTable')}
             style={[styles.backButton, { backgroundColor: colors.surface }]}
             onPress={() => setPhase('config')}
           >
@@ -833,6 +850,7 @@ export default function SchulteGame() {
 
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={index}
                   style={[
                     styles.cell,
@@ -890,6 +908,7 @@ export default function SchulteGame() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => goBackOrHome()}
         >

@@ -8,6 +8,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { HELP_MAP } from '@/src/constants/helpMap';
 import { isRTLLang } from '@/src/services/rtl';
+import { a11yModal } from '@/src/services/a11y';
 
 /**
  * Глобальная кнопка-«?» справки для всех экранов игр.
@@ -94,7 +95,8 @@ export default function GameHelpOverlay() {
   // плоская функция-рендер (не компонент) — без ремонтов при каждом рендере
   const renderSec = (k: string, title: string, body: React.ReactNode) => (
     <View key={k} style={[styles.sec, { borderTopColor: colors.border }]}>
-      <TouchableOpacity style={styles.secHead} onPress={() => toggle(k)} activeOpacity={0.7}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.secHead} onPress={() => toggle(k)} activeOpacity={0.7}>
         <Text style={[styles.secTitle, { color: colors.primary || '#a855f7' }]}>{title}</Text>
         <Ionicons name={openSecs[k] ? 'chevron-up' : 'chevron-down'} size={18} color={sub} />
       </TouchableOpacity>
@@ -146,11 +148,12 @@ export default function GameHelpOverlay() {
       ) : null}
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <View style={styles.backdrop}>
+        <View {...a11yModal} style={styles.backdrop}>
           <View style={[styles.sheet, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <View style={styles.sheetHead}>
               <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>{t(entry.nameKey)}</Text>
-              <TouchableOpacity onPress={() => setOpen(false)} style={[styles.close, { backgroundColor: colors.surface }]}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')}
+                onPress={() => setOpen(false)} style={[styles.close, { backgroundColor: colors.surface }]}>
                 <Ionicons name="close" size={20} color={colors.text} />
               </TouchableOpacity>
             </View>
@@ -183,7 +186,8 @@ export default function GameHelpOverlay() {
               ) : null}
             </ScrollView>
 
-            <TouchableOpacity onPress={() => setOpen(false)} style={[styles.okBtn, { backgroundColor: colors.primary || '#a855f7' }]}>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => setOpen(false)} style={[styles.okBtn, { backgroundColor: colors.primary || '#a855f7' }]}>
               <Text style={styles.okText}>{t('close') !== 'close' ? t('close') : 'OK'}</Text>
             </TouchableOpacity>
           </View>

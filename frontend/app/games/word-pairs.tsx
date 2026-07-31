@@ -284,7 +284,8 @@ export default function WordPairsGame() {
           {(() => { const p = levelParams(lvl.level); return t('wordPairsLvlParams').replace('{n}', String(p.pairCount)).replace('{w}', String(Math.round(p.perPairMs * p.pairCount / 1000))).replace('{e}', String(maxErrorsAllowed(p.pairCount))); })()}
         </Text>
         {lvl.level > 1 && (
-          <TouchableOpacity onPress={() => lvl.setLevel(1)} style={{ marginTop: 8, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, backgroundColor: colors.card }}>
+          <TouchableOpacity
+            accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 8, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, backgroundColor: colors.card }}>
             <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
           </TouchableOpacity>
         )}
@@ -305,6 +306,7 @@ export default function WordPairsGame() {
           {([['random', t('label_random_pairs')],
              ['translation', t('label_translation')]] as const).map(([m, label]) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={m}
               style={[
                 styles.modeButton,
@@ -329,6 +331,7 @@ export default function WordPairsGame() {
             <View style={styles.optionButtons}>
               {LANGUAGES.filter(l => l.code !== language).map(l => (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={l.code}
                   style={[
                     styles.langButton,
@@ -348,7 +351,8 @@ export default function WordPairsGame() {
         )}
       </View>
 
-      <TouchableOpacity style={styles.startButton} onPress={startGame}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startButton} onPress={startGame}>
         <LinearGradient
           colors={GRADIENT as [string, string]}
           start={{ x: 0, y: 0 }}
@@ -381,7 +385,8 @@ export default function WordPairsGame() {
         </View>
       }
       toolbar={
-        <TouchableOpacity style={styles.toolbarBtn} onPress={startCheck}>
+        <TouchableOpacity
+          accessibilityRole="button" style={styles.toolbarBtn} onPress={startCheck}>
           <LinearGradient
             colors={GRADIENT as [string, string]}
             start={{ x: 0, y: 0 }}
@@ -452,6 +457,7 @@ export default function WordPairsGame() {
             const isSelected = selectedLeft === pair.id;
             return (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={pair.id}
                 style={[
                   styles.wordButton,
@@ -479,6 +485,7 @@ export default function WordPairsGame() {
             const isSelected = selectedRight === word;
             return (
               <TouchableOpacity
+                accessibilityRole="button"
                 key={index}
                 style={[
                   styles.wordButton,
@@ -525,6 +532,7 @@ export default function WordPairsGame() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel={t('a11yBack')}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => goBackOrHome()}
         >
