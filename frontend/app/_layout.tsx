@@ -10,6 +10,7 @@ import * as Notifications from 'expo-notifications';
 import { ProfileProvider } from '@/src/contexts/ProfileContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import NativeInsetBridge from '@/src/components/NativeInsetBridge';
 import UnlockToast from '@/src/components/UnlockToast';
 import AppErrorBoundary from '@/src/components/AppErrorBoundary';
 import UpdateGate from '@/src/components/UpdateGate';
@@ -91,6 +92,9 @@ export default function RootLayout() {
       {/* Снаружи провайдеров: ловит краши и экранов, и самих провайдеров */}
       <AppErrorBoundary>
         <SafeAreaProvider>
+          {/* v1.162: инсеты Android приходят из нативного слоя — env() в WebView
+              знает только про вырез экрана, но не про статус-бар и навигацию. */}
+          <NativeInsetBridge>
           <ProfileProvider>
             <ThemeProvider>
               <LanguageProvider>
@@ -100,6 +104,7 @@ export default function RootLayout() {
               </LanguageProvider>
             </ThemeProvider>
           </ProfileProvider>
+          </NativeInsetBridge>
         </SafeAreaProvider>
       </AppErrorBoundary>
     </GestureHandlerRootView>
