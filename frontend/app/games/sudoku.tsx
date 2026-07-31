@@ -374,6 +374,13 @@ export default function SudokuGame() {
   const cellSize = landscape
     ? Math.max(16, Math.floor(Math.min((height - 96) / N, (width - 240) / N, 92)))
     : Math.max(14, Math.floor(Math.min((width - 36) / N, (height - 330) / N, 92)));
+  // v1.164 (репорт Вали ур.29 «где нижняя строка????»): floor в Math.max не даёт
+  // ячейке ужаться ниже 14px, поэтому на невысоком экране (или при крупном системном
+  // шрифте, когда шапка и счётчики съедают больше) доска перерастает поле и нижний ряд
+  // просто обрезается — доскроллить некуда, поле у каркаса не скроллится. Считаем, влезла
+  // ли доска в бюджет высоты, и если нет — включаем прокрутку поля. Обрезка невозможна
+  // в принципе: не влезло по высоте → доступно скроллом.
+  const boardOverflows = !landscape && cellSize * N > height - 330;
 
   const renderConfig = () => (
     // v1.150: раньше конфиг был голым View → на невысоком экране кнопка «играть»
@@ -745,6 +752,7 @@ export default function SudokuGame() {
         onBack={() => goBackOrHome()}
         stats={statsEl}
         toolbar={landscape ? undefined : <View style={styles.toolbarCol}>{padEl}{hintEl}</View>}
+        scrollableField={boardOverflows}
       >
         {landscape ? (
           <View style={styles.playAreaLand}>

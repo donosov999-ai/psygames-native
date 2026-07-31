@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.165.0',
+    date: '2026-08-01',
+    ru: [
+      'Теперь видно, что починили именно по твоим сообщениям — прямо в этом окне',
+      'Судоку: нижний ряд больше не обрезается на невысоком экране',
+    ],
+    en: [
+      'You can now see what was fixed from your own reports — right in this window',
+      'Sudoku: the bottom row is no longer cut off on short screens',
+    ],
+  },
+  {
     version: '1.164.0',
     date: '2026-07-31',
     ru: [

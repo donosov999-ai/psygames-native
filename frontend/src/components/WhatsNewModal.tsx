@@ -10,23 +10,32 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { WHATS_NEW } from '@/src/constants/whatsNew';
 import { currentVersion, getSeenVersion, isNewer, setSeenVersion } from '@/src/services/appUpdates';
 import { a11yModal } from '@/src/services/a11y';
+import { getMyFixedReports, markShown, type FixedReport } from '@/src/services/feedbackLoop';
 
 export default function WhatsNewModal() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const [visible, setVisible] = React.useState(false);
+  // v1.165 — обратный контур: что починили ПО РЕПОРТАМ этого человека. Раньше он
+  // писал в пустоту: правки по его словам уезжали в Play, а он об этом не узнавал.
+  // Пустой список — обычное дело (нет репортов / нет сети), блок просто не рисуется.
+  const [mine, setMine] = React.useState<FixedReport[]>([]);
 
   React.useEffect(() => {
     (async () => {
       const seen = await getSeenVersion();
       const cur = currentVersion();
       if (!seen) { await setSeenVersion(cur); return; }   // первая установка — не показываем
-      if (isNewer(cur, seen)) setVisible(true);
+      if (isNewer(cur, seen)) {
+        setVisible(true);
+        setMine(await getMyFixedReports());
+      }
     })();
   }, []);
 
   const close = async () => {
     setVisible(false);
+    await markShown(mine.map((r) => r.id));
     await setSeenVersion(currentVersion());
   };
 
@@ -50,6 +59,35 @@ export default function WhatsNewModal() {
                 <Text style={[styles.item, { color: colors.text }]}>{it}</Text>
               </View>
             ))}
+
+            {/* Личный блок: его собственные слова и что по ним сделали. Стоит ПОСЛЕ
+                общего списка намеренно — сначала «что нового вообще», потом «а вот
+                это лично по твоей просьбе», так вторая часть читается как ответ. */}
+            {mine.length > 0 && (
+              <View style={[styles.mineBox, { borderColor: colors.primary }]}>
+                <Text style={[styles.mineTitle, { color: colors.primary }]}>
+                  {'\u270D\uFE0F  '}{t('fixedByYourReport')}
+                </Text>
+                {mine.slice(0, 5).map((r) => (
+                  <View key={r.id} style={styles.mineRow}>
+                    <Text style={[styles.mineQuote, { color: colors.textSecondary }]} numberOfLines={3}>
+                      «{r.message.trim()}»
+                    </Text>
+                    <Text style={[styles.mineFix, { color: colors.text }]}>
+                      → {r.fix_note}
+                    </Text>
+                  </View>
+                ))}
+                {mine.length > 5 && (
+                  <Text style={[styles.mineThanks, { color: colors.textSecondary }]}>
+                    {t('andMoreFixed').replace('{n}', String(mine.length - 5))}
+                  </Text>
+                )}
+                <Text style={[styles.mineThanks, { color: colors.textSecondary }]}>
+                  {t('thanksForReports')}
+                </Text>
+              </View>
+            )}
           </ScrollView>
           <TouchableOpacity
             accessibilityRole="button" onPress={close} style={[styles.btn, { backgroundColor: colors.primary }]}>
@@ -70,4 +108,10 @@ const styles = StyleSheet.create({
   item: { fontSize: 13.5, lineHeight: 19, flex: 1 },
   btn: { borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   btnText: { color: '#fff', fontSize: 14.5, fontWeight: '800' },
+  mineBox: { marginTop: 14, borderTopWidth: 1, paddingTop: 12, gap: 10 },
+  mineTitle: { fontSize: 13, fontWeight: '800' },
+  mineRow: { gap: 2 },
+  mineQuote: { fontSize: 12.5, lineHeight: 17, fontStyle: 'italic' },
+  mineFix: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  mineThanks: { fontSize: 12, lineHeight: 16, marginTop: 2 },
 });
