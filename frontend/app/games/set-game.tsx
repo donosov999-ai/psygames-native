@@ -156,7 +156,11 @@ export default function SetGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера (проход/«почти»)
-  const [showExample, setShowExample] = useState(false);      // сворачиваемый блок «Пример» в конфиге
+  // v1.164: блок «Пример» РАЗВЁРНУТ по умолчанию. Сам пример «валидный vs невалидный
+  // SET» есть с v1.148, но был свёрнут — тестировщик его просто не нашёл («не нашёл "?"»).
+  // Правила SET неочевидны с нуля, поэтому первый экран должен показывать их сразу;
+  // кому не нужно — сворачивает одним нажатием.
+  const [showExample, setShowExample] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const levelRef = useRef(1);
   const timeLimitRef = useRef(0);

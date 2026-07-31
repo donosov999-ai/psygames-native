@@ -130,6 +130,11 @@ export default function WcstGame() {
   const [errors, setErrors] = useState(0);
   const [perseverative, setPerseverative] = useState(0);
   const [feedback, setFeedback] = useState<{idx: number, ok: boolean} | null>(null);
+  // v1.164 (репорт Вали «как угадать правило? в любом случае будет ошибка!!»):
+  // первая ошибка после молчаливой смены правила угадыванию не поддаётся — так
+  // устроен сам тест. Во вступлении это написано, но в момент ошибки не читается,
+  // и выглядит как несправедливость. Показываем объяснение ровно там, где больно.
+  const [ruleShiftNote, setRuleShiftNote] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
 
   // Счётчики раунда — в рефах (таймерная цепочка + finish читают их без stale-closure).
@@ -254,6 +259,8 @@ export default function WcstGame() {
     } else {
       errorsRef.current += 1;
       streakRef.current = 0;
+      // ошибка сразу после смены правила — не вина игрока, а механика теста
+      if (justChangedRef.current) setRuleShiftNote(true);
       // perseverative: ответ по ПРЕДЫДУЩЕМУ правилу сразу после его смены
       if (justChangedRef.current && lastRuleRef.current
           && matchByRule(targetRef.current, REF_CARDS[refIdx], lastRuleRef.current)) {
@@ -285,6 +292,7 @@ export default function WcstGame() {
         targetRef.current = tg;
         setTarget(tg);
         setFeedback(null);
+        setRuleShiftNote(false);
       }
     }, 600);
   };
@@ -462,7 +470,9 @@ export default function WcstGame() {
         }
       >
         <View style={styles.fieldCol}>
-          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('wcstHint')}</Text>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            {ruleShiftNote ? t('wcstRuleShifted') : t('wcstHint')}
+          </Text>
           <View style={styles.targetWrap}>
             {renderCard(target, false)}
           </View>

@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.164.0',
+    date: '2026-07-31',
+    ru: [
+      'Видно, сколько тренировок осталось до следующей стадии питомца',
+      'В дыхании 4-7-8 объяснено, зачем выдох длиннее вдоха — и можно перейти на ровный «квадрат»',
+      'В WCST понятно, что ошибка сразу после смены правила неизбежна',
+      'В SET пример «что такое SET» открыт сразу',
+    ],
+    en: [
+      'You can see how many trainings are left until your pet grows',
+      '4-7-8 breathing now explains why the exhale is longer — and you can switch to an even box pattern',
+      'WCST makes clear that an error right after a rule change is unavoidable',
+      'SET shows the “what is a SET” example right away',
+    ],
+  },
+  {
     version: '1.163.0',
     date: '2026-07-31',
     ru: [
