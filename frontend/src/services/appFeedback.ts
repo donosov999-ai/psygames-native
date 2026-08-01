@@ -62,6 +62,8 @@ export async function getDeviceId(): Promise<string> {
 }
 
 const SHOT_BUCKET = 'feedback-shots';
+// v1.166: голосовая заметка рядом с текстом — см. src/services/voiceNote.ts.
+const AUDIO_BUCKET = 'feedback-audio';
 
 /**
  * Реальная площадка, а не Platform.OS. Все наши сборки — webview, поэтому
@@ -136,6 +138,8 @@ interface SendArgs {
   screen?: string;
   gameId?: string;
   shot?: Blob | null;
+  /** Голосовая заметка: оригинал речи, а не то, что расслышал телефон. */
+  audio?: { blob: Blob; seconds: number; mime: string } | null;
   context?: Record<string, unknown>;
 }
 
@@ -163,6 +167,19 @@ export async function sendFeedback(args: SendArgs): Promise<boolean> {
       } catch {}
     }
 
+    // 1b) Голосовая заметка — тем же правилом: не загрузилась, репорт всё равно уходит.
+    let audio_path: string | null = null;
+    if (args.audio?.blob) {
+      try {
+        const { extFor } = await import('@/src/services/voiceNote');
+        const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.${extFor(args.audio.mime)}`;
+        const { error } = await supabase.storage
+          .from(AUDIO_BUCKET)
+          .upload(name, args.audio.blob, { contentType: args.audio.mime, upsert: false });
+        if (!error) audio_path = name;
+      } catch {}
+    }
+
     // 2) Сам фидбек
     const row = {
       person: person || null,
@@ -174,7 +191,12 @@ export async function sendFeedback(args: SendArgs): Promise<boolean> {
       platform: detectPlatform(),
       device_id: await getDeviceId(),
       shot_path,
-      context: { ...(args.context ?? {}), viewport: detectViewport() },
+      audio_path,
+      context: {
+        ...(args.context ?? {}),
+        viewport: detectViewport(),
+        ...(args.audio ? { audio_seconds: args.audio.seconds } : null),
+      },
     };
     const { error } = await supabase.from('app_feedback').insert(row);
     return !error;
