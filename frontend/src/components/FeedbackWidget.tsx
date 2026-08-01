@@ -33,6 +33,7 @@ import {
 } from '@/src/services/appFeedback';
 import { isRTLLang } from '@/src/services/rtl';
 import { a11yModal } from '@/src/services/a11y';
+import { canRecord, startRecording, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
 
 const KINDS: { key: FeedbackKind; emoji: string; labelKey: string }[] = [
   { key: 'confusion', emoji: '🤷', labelKey: 'fbKindConfusion' },
@@ -53,6 +54,31 @@ export default function FeedbackWidget() {
   const [kind, setKind] = React.useState<FeedbackKind>('confusion');
   const [text, setText] = React.useState('');
   const [shot, setShot] = React.useState<Blob | null>(null);
+  // v1.166 (идея Дениса «нажал и записал: нихуя не понимаю что делать»):
+  // голосовая заметка РЯДОМ с текстом. Валя диктует всё голосом, и до нас
+  // доезжает распознавание её телефона — «глубоко запечатательное дыхание»
+  // вместо «диафрагмальное». Оригинал звука снимает этот слой потерь.
+  const [rec, setRec] = React.useState<Recorder | null>(null);
+  const [recSec, setRecSec] = React.useState(0);
+  const [note, setNote] = React.useState<VoiceNote | null>(null);
+  const [micDenied, setMicDenied] = React.useState(false);
+
+  const toggleRecord = async () => {
+    if (rec) {
+      const v = await rec.stop();
+      setRec(null); setRecSec(0);
+      if (v) setNote(v);
+      return;
+    }
+    setMicDenied(false);
+    try {
+      setNote(null);
+      setRec(await startRecording(setRecSec));
+    } catch {
+      // Отказ в микрофоне — не ошибка: человек просто пишет текстом.
+      setMicDenied(true);
+    }
+  };
   const [attachShot, setAttachShot] = React.useState(true);
   const [sending, setSending] = React.useState(false);
   const [sent, setSent] = React.useState(false);
@@ -115,6 +141,7 @@ export default function FeedbackWidget() {
       screen: pathname,
       gameId,
       shot: attachShot ? shot : null,
+      audio: note ? { blob: note.blob, seconds: note.seconds, mime: note.mime } : null,
       // profile/level — чтобы в репорте было видно, под каким профилем и на
       // каком уровне игры это словили (не гадать по скриншоту).
       context: {
@@ -218,6 +245,39 @@ export default function FeedbackWidget() {
                     style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.card }]}
                   />
 
+                  {canRecord() && (
+                    <View style={{ gap: 6 }}>
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={rec ? t('voiceStop') : t('voiceRecord')}
+                        onPress={toggleRecord}
+                        style={[styles.shotRow, { borderColor: rec ? '#ef4444' : colors.border }]}
+                      >
+                        <Ionicons
+                          name={rec ? 'stop-circle' : note ? 'checkmark-circle' : 'mic-outline'}
+                          size={20}
+                          color={rec ? '#ef4444' : note ? '#22c55e' : colors.textSecondary}
+                        />
+                        <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>
+                          {rec
+                            ? `${t('voiceStop')} · ${Math.floor(recSec / 60)}:${String(recSec % 60).padStart(2, '0')}`
+                            : note
+                              ? `${t('voiceAttached')} · ${note.seconds} ${t('unitSecShort')}`
+                              : t('voiceRecord')}
+                        </Text>
+                        {note && !rec && (
+                          <Ionicons
+                            name="close-circle-outline" size={19} color={colors.textSecondary}
+                            onPress={() => setNote(null)}
+                          />
+                        )}
+                      </TouchableOpacity>
+                      {micDenied && (
+                        <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{t('voiceDenied')}</Text>
+                      )}
+                    </View>
+                  )}
+
                   {shot && (
                     <TouchableOpacity
                       accessibilityRole="button"
@@ -238,8 +298,8 @@ export default function FeedbackWidget() {
                   <TouchableOpacity
                     accessibilityRole="button"
                     onPress={submit}
-                    disabled={!text.trim() || sending}
-                    style={[styles.send, { backgroundColor: text.trim() ? '#ef4444' : colors.border }]}
+                    disabled={(!text.trim() && !note) || sending}
+                    style={[styles.send, { backgroundColor: (text.trim() || note) ? '#ef4444' : colors.border }]}
                   >
                     {sending
                       ? <ActivityIndicator color="#fff" />
