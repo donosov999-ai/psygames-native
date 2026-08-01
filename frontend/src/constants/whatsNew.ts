@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.168.0',
+    date: '2026-08-01',
+    ru: ['Обновлён движок приложения — под капотом, на игры не влияет'],
+    en: ['App engine updated — under the hood, games are unaffected'],
+  },
+  {
     version: '1.167.0',
     date: '2026-08-01',
     ru: [

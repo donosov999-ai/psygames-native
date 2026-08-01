@@ -20,6 +20,14 @@ to a GitHub Release automatically.
 - **paths-ignore '.github/**' убран**: правки самого CI теперь валидируются этим workflow.
 - **Dependabot**: brace-expansion (2×high) — в закоммиченном lockfile уже пропатчены (1.1.14/2.1.0 ≥ фикс-версий), алерты устарели, кода не требуют. glib (medium) — Linux-GTK путь, наши сборки macOS/Win/Android его не шипят.
 
+## [1.168.0] — 2026-08-01
+
+### Зависимости
+- **Tauri 2.11.2 → 2.11.5** (плюс tauri-runtime, tauri-runtime-wry, tauri-macros, tauri-utils, tray-icon). Патч-версии, `cargo check` чистый.
+- **Открытых уязвимостей осталась одна: `glib 0.18.5` (medium).** Разобрал: её тянет весь GTK3-стек Tauri (atk, cairo-rs, gdk, gdk-pixbuf, gdkx11, gio — все 0.18), а `glib 0.20` требует привязок GTK4, которых в Tauri v2 для Linux нет. Своими силами не закрывается, и на нас не распространяется: мы собираем macOS, Windows и Android, GTK там не участвует. Все high-алерты (axios, ws, brace-expansion) закрыты ранее.
+
+Репортов этот релиз не закрывает — это работа по зависимостям.
+
 ## [1.167.0] — 2026-08-01
 
 ### Сессии зарядки никогда не доезжали до облака, и вместе с ними встал весь синк
