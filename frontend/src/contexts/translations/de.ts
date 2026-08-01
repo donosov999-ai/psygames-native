@@ -748,6 +748,8 @@ const t: Record<string, string> = {
   "a11ySelected": "ausgewählt",
   "a11yFound": "gefunden",
   "a11yCard": "Karte",
+  "setTimeUpTitle": "⏱ Zeit abgelaufen — es gab ein SET",
+  "setTimeUpBody": "Ein SET, das auf dem Tisch lag, ist markiert. Jedes Feld hat mindestens eins — unlösbare Tische werden nie ausgeteilt",
   "skipGameNamed": "Überspringen:",
   "skipStep": "Spiel überspringen",
   "stopComplex": "Beenden",

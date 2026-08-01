@@ -865,6 +865,8 @@ const t: Record<string, string> = {
   "a11ySelected": "محدد",
   "a11yFound": "تم العثور",
   "a11yCard": "بطاقة",
+  "setTimeUpTitle": "⏱ انتهى الوقت — كان هناك SET",
+  "setTimeUpBody": "تم إبراز أحد الـSET التي كانت على الطاولة. كل لوحة تحتوي على واحد على الأقل",
   "skipGameNamed": "تخطّي:",
   "skipStep": "تخطّي هذه اللعبة",
   "stopComplex": "إيقاف",

@@ -865,6 +865,8 @@ const t: Record<string, string> = {
   "a11ySelected": "selezionato",
   "a11yFound": "trovato",
   "a11yCard": "Carta",
+  "setTimeUpTitle": "⏱ Tempo scaduto — un SET c’era",
+  "setTimeUpBody": "È evidenziato uno dei SET presenti. Ogni tavolo ne ha almeno uno — il gioco non distribuisce tavoli irrisolvibili",
   "skipGameNamed": "Salta:",
   "skipStep": "Salta il gioco",
   "stopComplex": "Interrompi",

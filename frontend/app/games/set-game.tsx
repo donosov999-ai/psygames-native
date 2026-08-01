@@ -153,6 +153,12 @@ export default function SetGame() {
   // v1.148: 💡 подсказка — подсветить одну карту гарантированного сета (Валя
   // «нет правильного ответа»: сет есть всегда, но найти бывает трудно).
   const [hintCardIdx, setHintCardIdx] = useState<number | null>(null);
+  // v1.169 (репорт Вали «тут нет правильного ответа»): при истечении времени доска
+  // МОЛЧА подменялась на новую — ошибка засчитана, стол исчез. С места игрока это
+  // неотличимо от «сета тут и не было», а доказать обратное нечем: подсказка
+  // помогает только если успел нажать ДО таймера. Сет на столе есть всегда
+  // (buildBoard пересдаёт, пока не найдёт), поэтому просто показываем какой.
+  const [revealedSet, setRevealedSet] = useState<number[] | null>(null);
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера (проход/«почти»)
@@ -172,12 +178,22 @@ export default function SetGame() {
   const levelRules = useLevelRules('set_game', lvl.level, SG_RULES, phase === 'playing' && !isPreset);
 
   const handleTimeout = () => {
-    setErrors((e) => e + 1);   // не успел найти SET за лимит → штраф + новая доска (тот же раунд)
+    setErrors((e) => e + 1);   // не успел найти SET за лимит → штраф
+    // Не забираем доску молча: подсвечиваем сет, который тут был, и ждём «Понятно».
+    // Так штраф превращается в объяснение, а не в «игра меня обманула».
+    const s = findAnySet(board);
+    if (s) { setRevealedSet(s); return; }
+    newRound();   // теоретически недостижимо — buildBoard гарантирует сет
+  };
+
+  /** Закрыть показ «вот он был» и раздать новую доску. */
+  const dismissRevealed = () => {
+    setRevealedSet(null);
     newRound();
   };
 
   const newRound = () => {
-    setBoard(buildBoard()); setPicked([]); setFeedback(null); setHintBreakdown(null); setHintCardIdx(null);
+    setBoard(buildBoard()); setPicked([]); setFeedback(null); setHintBreakdown(null); setHintCardIdx(null); setRevealedSet(null);
     if (roundTimerRef.current) clearTimeout(roundTimerRef.current);
     if (timeLimitRef.current > 0) roundTimerRef.current = setTimeout(() => handleTimeout(), timeLimitRef.current * 1000);   // лимит времени на SET
   };
@@ -314,10 +330,10 @@ export default function SetGame() {
 
   const renderCard = (card: Card, i: number) => {
     const sel = picked.includes(i);
-    const hinted = hintCardIdx === i && !sel;
+    const hinted = (hintCardIdx === i || !!revealedSet?.includes(i)) && !sel;
     const fbColor = sel && feedback === 'right' ? '#22c55e' : sel && feedback === 'wrong' ? '#f43f5e' : null;
     return (
-      <TouchableOpacity key={i} onPress={() => togglePick(i)} disabled={feedback !== null}
+      <TouchableOpacity key={i} onPress={() => togglePick(i)} disabled={feedback !== null || revealedSet !== null}
         accessibilityRole="button" accessibilityLabel={cardLabel(card)}
         accessibilityState={{ selected: sel, disabled: feedback !== null }}
         style={[styles.card, {
@@ -454,6 +470,20 @@ export default function SetGame() {
                 </Text>
                 <TouchableOpacity
                   accessibilityRole="button" onPress={dismissWrong} style={[styles.gotItBtn, { backgroundColor: '#f43f5e' }]}>
+                  <Text style={styles.gotItText}>{t('setGotIt')}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            {/* v1.169: время вышло — вместо молчаливой подмены доски показываем сет,
+                который на ней был. Подсвечены все три карты, панель ждёт «Понятно».
+                Прямой ответ на «тут нет правильного ответа»: вот он. */}
+            {revealedSet && (
+              <View style={[styles.hintBox, { backgroundColor: '#f5b50a22', borderColor: '#f5b50a' }]}>
+                <Text style={[styles.hintTitle, { color: '#f5b50a' }]}>{t('setTimeUpTitle')}</Text>
+                <Text style={[styles.hintRule, { color: colors.textSecondary }]}>{t('setTimeUpBody')}</Text>
+                <TouchableOpacity
+                  accessibilityRole="button" onPress={dismissRevealed}
+                  style={[styles.gotItBtn, { backgroundColor: '#f5b50a' }]}>
                   <Text style={styles.gotItText}>{t('setGotIt')}</Text>
                 </TouchableOpacity>
               </View>
