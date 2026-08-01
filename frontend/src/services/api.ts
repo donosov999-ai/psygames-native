@@ -290,6 +290,14 @@ function validateSession(s: GameSession): void {
 // Fire-and-forget: localStorage is source of truth for offline UX,
 // Supabase is long-term storage. Failed inserts log warning but don't block UI.
 
+/** 0-6 (вс-сб, как отдаёт Date.getDay) → 'sun'…'sat'. Не число — вернём как есть. */
+const WEEKDAY_NAMES = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
+export function weekdayName(v: unknown): string | null {
+  if (Number.isInteger(v) && (v as number) >= 0 && (v as number) <= 6) return WEEKDAY_NAMES[v as number];
+  if (typeof v === 'string' && (WEEKDAY_NAMES as readonly string[]).includes(v)) return v;
+  return null;
+}
+
 function buildCloudRow(s: GameSession): Record<string, any> {
   // Pull active person from global (set by ProfileContext on every profile change).
   // Falls back to session field, then to 'Денис' as ultimate default.
@@ -305,7 +313,13 @@ function buildCloudRow(s: GameSession): Record<string, any> {
     errors: s.errors ?? 0,
     details: s.details ?? {},
     session_tag: s.session_tag || 'manual',
-    weekday: s.weekday ?? null,
+    // v1.167: колонка weekday — ТЕКСТ с CHECK IN ('mon'…'sun'), а в сессии лежит
+    // число 0-6 (вс-сб). Слали число → каждая сессия ЗАРЯДКИ отлетала с 23514 в
+    // outbox. Проверено вставкой публикуемым ключом: manual проходит, warmup нет.
+    // Итог: за всё время в облаке ноль сессий зарядки — вся аналитика по
+    // комплексам была слепой, и разбирать репорты вроде «где третья игра»
+    // приходилось по скриншотам.
+    weekday: weekdayName(s.weekday),
     duration_preset: s.duration_preset ?? null,
     warmup_id: s.warmup_id ?? null,
     stack_active: s.stack_active ?? null,
@@ -316,6 +330,17 @@ function buildCloudRow(s: GameSession): Record<string, any> {
 // ВАЖНО: НЕ upsert/ON CONFLICT — под anon-ролью RLS требует SELECT-политику для
 // чтения конфликтующей строки, которой нет (и не должно быть — чужие сессии приватны).
 // Дубликат первичного ключа (23505) означает «строка уже в облаке» = успех.
+/**
+ * Ошибка, которую ретраить бессмысленно: строка нарушает CHECK/NOT NULL/RLS и
+ * валидной не станет. Сетевые сбои и 5xx сюда НЕ попадают — их ждём.
+ */
+function isPermanent(error: any): boolean {
+  const code = String(error?.code || '');
+  // 23xxx — нарушение целостности (CHECK, NOT NULL, FK), 42501 — отказ RLS,
+  // 22xxx — данные не лезут в тип. Всё это про саму строку, а не про связь.
+  return /^(22|23)/.test(code) || code === '42501';
+}
+
 function isDuplicate(error: any): boolean {
   return error?.code === '23505' || /duplicate key/i.test(error?.message || '');
 }
@@ -354,11 +379,27 @@ export async function flushOutbox(): Promise<void> {
     if (list.length === 0) { outboxNonEmpty = false; return; }
     const supabase = getSupabase();
     const remaining = [...list];
+    let dropped = 0;
     for (const row of list) {
       const { error } = await supabase.from(SUPABASE_TABLE).insert(row);
-      if (error && !isDuplicate(error)) break;   // сеть/сервер лёг — не молотим дальше
+      if (error && !isDuplicate(error)) {
+        // v1.167: раньше тут был безусловный break — ЛЮБАЯ ошибка вешала очередь,
+        // и одна невозможная строка в голове блокировала синк НАВСЕГДА, вместе со
+        // всеми исправными сессиями за ней. Именно так у тестировщицы перестали
+        // доезжать даже обычные игры. Различаем: временную ошибку (сеть, 5xx)
+        // ждём и ретраим, постоянную (нарушение CHECK/RLS — строка не станет
+        // валидной сама) выбрасываем с записью в лог.
+        if (isPermanent(error)) {
+          console.warn('[F2] Outbox: строка не пройдёт никогда, выбрасываю:', error.message);
+          remaining.shift();
+          dropped++;
+          continue;
+        }
+        break;   // сеть/сервер лёг — не молотим дальше
+      }
       remaining.shift();
     }
+    if (dropped) console.warn(`[F2] Outbox: выброшено невалидных строк: ${dropped}`);
     await AsyncStorage.setItem(OUTBOX_KEY, JSON.stringify(remaining));
     outboxNonEmpty = remaining.length > 0;
     if (list.length !== remaining.length) console.log(`[F2] Outbox: дослано ${list.length - remaining.length}, осталось ${remaining.length}`);

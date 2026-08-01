@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.167.0',
+    date: '2026-08-01',
+    ru: [
+      'Результаты комплексов снова синхронизируются — раньше они молча не доезжали и тормозили остальную синхронизацию',
+    ],
+    en: [
+      'Warm-up results sync again — they used to fail silently and stall everything else',
+    ],
+  },
+  {
     version: '1.166.0',
     date: '2026-08-01',
     ru: [
