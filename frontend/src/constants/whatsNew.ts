@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.169.0',
+    date: '2026-08-01',
+    ru: [
+      'SET: когда время вышло, игра показывает сет, который был на столе — а не меняет доску молча',
+      'WCST: видно, сколько верных подряд осталось до смены правила',
+    ],
+    en: [
+      'SET: when time runs out the game shows the SET that was on the table instead of silently redealing',
+      'WCST: you can see how many correct answers are left before the rule changes',
+    ],
+  },
+  {
     version: '1.168.0',
     date: '2026-08-01',
     ru: ['Обновлён движок приложения — под капотом, на игры не влияет'],

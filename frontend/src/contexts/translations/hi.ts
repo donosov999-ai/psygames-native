@@ -751,6 +751,8 @@ const t: Record<string, string> = {
   "a11ySelected": "चयनित",
   "a11yFound": "मिल गया",
   "a11yCard": "कार्ड",
+  "setTimeUpTitle": "⏱ समय समाप्त — यहाँ SET था",
+  "setTimeUpBody": "मेज़ पर मौजूद एक SET दिखाया गया है। हर बोर्ड में कम से कम एक होता है",
   "skipGameNamed": "छोड़ें:",
   "skipStep": "यह गेम छोड़ें",
   "stopComplex": "रोकें",

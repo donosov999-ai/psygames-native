@@ -748,6 +748,8 @@ const t: Record<string, string> = {
   "a11ySelected": "已选",
   "a11yFound": "已找到",
   "a11yCard": "卡片",
+  "setTimeUpTitle": "⏱ 时间到 — 这里确实有一组",
+  "setTimeUpBody": "已高亮其中一组。每个牌面至少有一组 — 游戏不会发出无解的牌面",
   "skipGameNamed": "跳过:",
   "skipStep": "跳过这个游戏",
   "stopComplex": "中止",

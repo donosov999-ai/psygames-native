@@ -859,7 +859,7 @@ const translations: Translations = {
     en: 'A board with 9 blocks. They light up in sequence — memorize the order. Then reproduce it (or in reverse). Length grows until you fail twice. Classic visuospatial working memory test.'
   },
   wcstIntroDesc: {
-    ru: 'Внизу — карточка. Сверху — 4 эталона. Сортируйте по СКРЫТОМУ правилу: цвет, форма или количество. Правило узнаётся только по обратной связи ✓/✗. После серии верных подряд правило незаметно меняется. ⚠️ Первый выбор после смены угадать нельзя — ошибка здесь это НОРМА: именно так ты и находишь новое правило. Классический Wisconsin Card Sort.',
+    ru: 'Внизу — карточка. Сверху — 4 эталона. Сортируйте по СКРЫТОМУ правилу: цвет, форма или количество. Правило узнаётся только по обратной связи ✓/✗. Правило незаметно меняется после серии верных подряд — текущий порог виден в счётчике 🔥 наверху (сколько подряд из скольких нужно). ⚠️ Первый выбор после смены угадать нельзя — ошибка здесь это НОРМА: именно так ты и находишь новое правило. Классический Wisconsin Card Sort.',
     en: 'Bottom: a card. Top: 4 reference cards. Sort by a HIDDEN rule: colour, shape, or count. The rule is learned only from ✓/✗ feedback. After a run of correct answers the rule silently changes. ⚠️ The first pick after a change can\'t be guessed — an error here is NORMAL: that\'s exactly how you find the new rule. The classic Wisconsin Card Sort.'
   },
   flankerIntroDesc: {
@@ -1313,6 +1313,8 @@ const translations: Translations = {
   skipStep:          { ru: 'Пропустить игру', en: 'Skip this game' },
   stopComplex:       { ru: 'Остановить', en: 'Stop the set' },
   skippedNamed:      { ru: 'Пропущено', en: 'Skipped' },
+  setTimeUpTitle: { ru: '⏱ Время вышло — сет тут был', en: '⏱ Time is up — there was a SET' },
+  setTimeUpBody: { ru: 'Подсвечен один из сетов, которые были на столе. Сет есть на КАЖДОЙ доске — игра не раздаёт поля без решения', en: 'One of the SETs that was on the table is highlighted. Every board has at least one — the game never deals an unsolvable table' },
   a11yCard:        { ru: 'Карточка', en: 'Card' },
   a11yCorrect:     { ru: 'Верно', en: 'Correct' },
   a11yWrong:       { ru: 'Неверно', en: 'Wrong' },

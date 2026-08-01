@@ -865,6 +865,8 @@ const t: Record<string, string> = {
   "a11ySelected": "선택됨",
   "a11yFound": "찾음",
   "a11yCard": "카드",
+  "setTimeUpTitle": "⏱ 시간 초과 — SET은 있었습니다",
+  "setTimeUpBody": "테이블에 있던 SET 중 하나를 표시했습니다. 모든 판에는 최소 하나가 있습니다",
   "skipGameNamed": "건너뛰기:",
   "skipStep": "이 게임 건너뛰기",
   "stopComplex": "중단",
