@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.166.0',
+    date: '2026-08-01',
+    ru: [
+      'В отзыв можно записать голос — не нужно надиктовывать текст и бороться с распознаванием',
+      'В комплексе видно, какую именно игру пропускает кнопка «Пропустить»',
+      'Кнопка «На главную» больше не прячется под «Ещё раз»',
+    ],
+    en: [
+      'You can attach a voice note to feedback — no more fighting with speech-to-text',
+      'The skip button now names the game it will skip',
+      'The Home button no longer hides under Play again',
+    ],
+  },
+  {
     version: '1.165.0',
     date: '2026-08-01',
     ru: [

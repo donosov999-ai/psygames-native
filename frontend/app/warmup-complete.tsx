@@ -199,11 +199,23 @@ export default function WarmupComplete() {
               </View>
             );
           })}
-          {meta.steps.length > results.length && (
-            <Text style={[styles.skipped, { color: colors.textSecondary }]}>
-              {t('skippedGamesN').replace('{n}', String(meta.steps.length - results.length))}
-            </Text>
-          )}
+          {/* v1.166: раньше тут было «Пропущено: N игр» — голое число читалось как
+              ошибка приложения («ни 1 игры не было пропущено»). Называем игры
+              поимённо: тогда видно, что это был выбор человека, а не сбой. */}
+          {meta.steps.length > results.length && (() => {
+            const doneIds = results.map((r) => r.game_type);
+            const missed = meta.steps
+              .filter((st) => !doneIds.includes(st.game_id))
+              .map((st) => {
+                const g = GAMES.find((x) => x.id === st.game_id);
+                return g ? t(g.nameKey) : st.game_id;
+              });
+            return (
+              <Text style={[styles.skipped, { color: colors.textSecondary }]}>
+                {t('skippedNamed')}: {missed.join(', ')}
+              </Text>
+            );
+          })()}
         </View>
 
         {/* Total */}
@@ -280,14 +292,17 @@ export default function WarmupComplete() {
         {/* Actions */}
         <View style={styles.actions}>
           <TouchableOpacity
-            accessibilityRole="button" style={styles.btn} onPress={playAgain}>
+            accessibilityRole="button" style={[styles.btn, { flex: 1 }]} onPress={playAgain}>
             <LinearGradient colors={GRADIENT_GOLD as [string, string]} style={styles.btnGrad}>
               <Ionicons name="refresh" size={18} color="#000" />
               <Text style={[styles.btnText, { color: '#000' }]}>{t('ctaAgain')}</Text>
             </LinearGradient>
           </TouchableOpacity>
+          {/* v1.166 (репорт Вали «нет кнопки вернуться на главную, есть только повторить»):
+              кнопка была, но уезжала под сгиб за «Ещё раз». Ставим её В РЯД, а не
+              под ним — на невысоком экране видны обе. */}
           <TouchableOpacity
-            accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]} onPress={goHome}>
+            accessibilityRole="button" style={[styles.btn, { flex: 1, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]} onPress={goHome}>
             <Text style={[styles.btnText, { color: colors.text }]}>{t('goHome')}</Text>
           </TouchableOpacity>
         </View>
@@ -334,7 +349,7 @@ const styles = StyleSheet.create({
   reminderBody: { fontSize: 13, lineHeight: 19, textAlign: 'center' },
   reminderBtn: { borderRadius: 12, overflow: 'hidden', alignSelf: 'stretch', marginTop: 4 },
   reminderLater: { fontSize: 13, fontWeight: '600', paddingVertical: 6 },
-  actions: { gap: 10, marginTop: 8 },
+  actions: { flexDirection: 'row', gap: 10, alignItems: 'stretch', marginTop: 8 },
   btn: { borderRadius: 12, overflow: 'hidden' },
   btnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14 },
   btnText: { fontSize: 15, fontWeight: '800', letterSpacing: 1, paddingVertical: 14, textAlign: 'center' },
