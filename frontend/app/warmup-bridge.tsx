@@ -143,15 +143,27 @@ export default function WarmupBridge() {
             </LinearGradient>
           </TouchableOpacity>
           <View style={styles.actionsRow}>
+            {/* v1.166 (репорт Вали «что значит 1 игра была пропущена, ни 1 игры не было
+                пропущено»): кнопка называлась SKIP — латиницей, без перевода, и стояла
+                под отсчётом «начинаем через N». Читалась как «пропустить ожидание», а
+                пропускала игру целиком. Теперь в подписи стоит ИМЯ игры, которая уйдёт,
+                и обе кнопки переведены. */}
             <TouchableOpacity
-              accessibilityRole="button" style={[styles.actionSecondary, { borderColor: colors.border }]} onPress={skip}>
+              accessibilityRole="button"
+              accessibilityLabel={nextGame ? `${t('skipGameNamed')} ${t(nextGame.nameKey)}` : t('skipStep')}
+              style={[styles.actionSecondary, { borderColor: colors.border }]} onPress={skip}>
               <Ionicons name="play-skip-forward" size={18} color={colors.text} />
-              <Text style={[styles.actionSecondaryText, { color: colors.text }]}>SKIP</Text>
+              <Text numberOfLines={1} style={[styles.actionSecondaryText, { color: colors.text, flexShrink: 1 }]}>
+                {nextGame ? `${t('skipGameNamed')} ${t(nextGame.nameKey)}` : t('skipStep')}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityRole="button" style={[styles.actionSecondary, { borderColor: '#f43f5e' }]} onPress={stop}>
+              accessibilityRole="button" accessibilityLabel={t('stopComplex')}
+              style={[styles.actionSecondary, { borderColor: '#f43f5e' }]} onPress={stop}>
               <Ionicons name="stop" size={18} color="#f43f5e" />
-              <Text style={[styles.actionSecondaryText, { color: '#f43f5e' }]}>STOP</Text>
+              <Text numberOfLines={1} style={[styles.actionSecondaryText, { color: '#f43f5e', flexShrink: 1 }]}>
+                {t('stopComplex')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
