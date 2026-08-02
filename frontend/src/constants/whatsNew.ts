@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.176.0',
+    date: '2026-08-02',
+    ru: ['Экранная клавиатура больше не закрывает кнопку «Проверить» — во всех играх с вводом'],
+    en: ['The on-screen keyboard no longer covers the “Check” button — in every game with text input'],
+  },
+  {
     version: '1.175.0',
     date: '2026-08-02',
     ru: [
