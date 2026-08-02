@@ -16,10 +16,10 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
-    version: '1.176.0',
+    version: '1.177.0',
     date: '2026-08-02',
-    ru: ['Экранная клавиатура больше не закрывает кнопку «Проверить» — во всех играх с вводом'],
-    en: ['The on-screen keyboard no longer covers the “Check” button — in every game with text input'],
+    ru: ['Написанный отзыв больше не пропадает, если закрыть окно и вернуться'],
+    en: ['A feedback draft is no longer lost if you close the window and come back'],
   },
   {
     version: '1.175.0',
