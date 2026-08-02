@@ -199,8 +199,59 @@ export async function sendFeedback(args: SendArgs): Promise<boolean> {
       },
     };
     const { error } = await supabase.from('app_feedback').insert(row);
-    return !error;
+    if (error) { await queueFeedback(row); return false; }
+    flushFeedbackQueue();   // связь есть — дошлём то, что копилось
+    return true;
   } catch {
     return false;
+  }
+}
+
+/**
+ * v1.170: очередь недоставленных отзывов.
+ *
+ * ЗАЧЕМ. Репорт тестировщицы: «не отправляется обратная связь без включенного
+ * vpn». Раньше неудачная отправка означала, что написанное ПРОПАЛО — человек
+ * набрал текст, нажал отправить, получил отказ и потерял сообщение. Для канала,
+ * по которому мы единственным способом узнаём о проблемах, это недопустимо.
+ * Запасной адрес (см. supabase.ts) закрывает блокировку, очередь закрывает
+ * всё остальное: нет сети в метро, самолётный режим, упал сервер.
+ *
+ * Вложения в очередь НЕ кладём: скрин и голос могут весить мегабайты, а
+ * AsyncStorage для этого не предназначен. Текст репорта ценнее картинки —
+ * теряем вложение, сохраняем суть.
+ */
+const FEEDBACK_QUEUE_KEY = 'psygames_feedback_queue';
+const QUEUE_MAX = 20;
+
+async function queueFeedback(row: Record<string, unknown>): Promise<void> {
+  try {
+    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const raw = await AsyncStorage.getItem(FEEDBACK_QUEUE_KEY);
+    const list: Record<string, unknown>[] = raw ? JSON.parse(raw) : [];
+    const { shot_path, audio_path, ...light } = row;   // вложения не храним
+    list.push(light);
+    await AsyncStorage.setItem(FEEDBACK_QUEUE_KEY, JSON.stringify(list.slice(-QUEUE_MAX)));
+  } catch { /* не смогли сохранить — хуже уже не сделаем */ }
+}
+
+/** Дослать накопившееся. Тихо: человек про очередь ничего не знает. */
+export async function flushFeedbackQueue(): Promise<number> {
+  try {
+    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const raw = await AsyncStorage.getItem(FEEDBACK_QUEUE_KEY);
+    const list: Record<string, unknown>[] = raw ? JSON.parse(raw) : [];
+    if (!list.length) return 0;
+    const supabase = getSupabase();
+    const left: Record<string, unknown>[] = [];
+    let sent = 0;
+    for (const row of list) {
+      const { error } = await supabase.from('app_feedback').insert(row);
+      if (error) { left.push(row); } else { sent++; }
+    }
+    await AsyncStorage.setItem(FEEDBACK_QUEUE_KEY, JSON.stringify(left));
+    return sent;
+  } catch {
+    return 0;
   }
 }

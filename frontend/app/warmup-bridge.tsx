@@ -106,6 +106,15 @@ export default function WarmupBridge() {
         {/* Just-completed result */}
         {justCompleted && completedGame && (
           <View style={[styles.completedCard, { backgroundColor: colors.surface }]}>
+            {/* v1.170 (репорт Вали «опять пропустил среднюю игру»): карточка сыгранной
+                игры отличалась от карточки следующей только галочкой, а «ДАЛЬШЕ:» стояло
+                лишь на второй. Она читала верхнюю как «сейчас будет визуальный поиск»,
+                начиналось дыхание — вывод «пропустил, обман». На её скриншоте игра при
+                этом честно сыграна: +300 за 21.8 с. Подписываем карточку явно и номером
+                шага, чтобы прочитать её наоборот было невозможно. */}
+            <Text style={[styles.doneLabel, { color: colors.textSecondary }]}>
+              {t('bridgeJustPlayed')}{justCompletedIdx >= 0 && meta ? ` · ${justCompletedIdx + 1}/${meta.steps.length}` : ''}
+            </Text>
             <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
             <Text style={[styles.completedTitle, { color: colors.text }]}>
               {t(completedGame.nameKey)}
@@ -179,6 +188,7 @@ const styles = StyleSheet.create({
   progressBar: { height: 4, backgroundColor: '#1c1c40', borderRadius: 2, overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: '#fbbf24' },
   content: { flex: 1, padding: 20, justifyContent: 'center', gap: 18, alignItems: 'center', maxWidth: 520, alignSelf: 'center', width: '100%' },
+  doneLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1.2, textTransform: 'uppercase' },
   completedCard: { padding: 16, borderRadius: 14, alignItems: 'center', gap: 8, width: '100%' },
   completedTitle: { fontSize: 18, fontWeight: '700' },
   statsLine: { flexDirection: 'row', gap: 12, marginTop: 4 },

@@ -72,8 +72,15 @@ export default function WalkingPet() {
   // фразы делись»). Правильное решение: питомец на месте, а спискам добавлен
   // нижний отступ 96px под него (shop/statistics/achievements/whats-new).
   // Скрыт по-прежнему там, где реально мешает: в играх, онбординге и на своём /pet.
+  // v1.170 (видно на скриншоте Вали): пузырь питомца «Я тут, если что 💜» лёг
+  // ПОВЕРХ кнопки «Стоп» на мосту между играми. На служебных экранах комплекса
+  // внизу стоят кнопки решения (начать сейчас / пропустить / остановить), и
+  // питомец там не сопровождает, а мешает нажать. Убираем его оттуда совсем —
+  // это экраны на несколько секунд, компания на них не нужна.
   const routeAllowed = !(
     pathname.startsWith('/games/') || pathname.startsWith('/pet') || pathname.startsWith('/onboarding')
+    || pathname.startsWith('/warmup-bridge') || pathname.startsWith('/warmup-complete')
+    || pathname.startsWith('/assessment-result')
   );
   const active = petOn && routeAllowed;
 

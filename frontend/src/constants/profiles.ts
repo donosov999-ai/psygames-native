@@ -626,7 +626,14 @@ const WOMEN: ProfileDef = {
   // 4-7-8 («успокоение, помогает заснуть») прямо в комплексе.
   evening_playlist: [
     { game_id: 'find_differences', game_route: '/games/find-differences', difficulty: 'easy', settings: { diffCount: 2 }, est_duration_sec: 90 },
-    { game_id: 'visual_search',    game_route: '/games/visual-search',    difficulty: 'easy', est_duration_sec: 90 },
+    // v1.170 (репорт Вали «опять пропустил среднюю игру… обман»): шаг заявлял 90 с,
+    // а отрабатывал за 21 — difficulty easy без настроек даёт 8 тривиальных раундов
+    // «найди T среди L». Рядом стоят отличия на 90 с и дыхание на 114, и двадцать
+    // секунд щелчков между ними просто не читаются как игра. Ставим 20 раундов:
+    // при её же темпе (21.8 с на 8) это ~55 с, плюс сложность medium добавляет
+    // элементов на поле — выходит заявленная минута с небольшим, и шаг становится
+    // заметным. Больше не берём: вечер должен успокаивать, а не утомлять.
+    { game_id: 'visual_search',    game_route: '/games/visual-search',    difficulty: 'medium', settings: { trials: 20 }, est_duration_sec: 90 },
     { game_id: 'breathing',        game_route: '/games/breathing',        difficulty: 'easy', settings: { tech: 'calm478' }, est_duration_sec: 120 },
   ],
   warmup_enabled: true,

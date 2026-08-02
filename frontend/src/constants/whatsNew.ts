@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.170.0',
+    date: '2026-08-02',
+    ru: [
+      'Микрофон в отзывах заработал — не хватало разрешения на запись',
+      'Отзывы уходят и без VPN, а при обрыве связи не пропадают, а досылаются потом',
+      'На экране между играми видно, какая игра уже сыграна, а какая следующая',
+      'Синапс подсказывает, во что поиграть, чтобы подтянуть отстающую шкалу',
+    ],
+    en: [
+      'The microphone in feedback works — the recording permission was missing',
+      'Feedback now sends without a VPN, and is queued instead of lost when offline',
+      'The between-games screen now shows which game is already played',
+      'Synapse suggests what to play to pull up your weakest skill',
+    ],
+  },
+  {
     version: '1.169.0',
     date: '2026-08-01',
     ru: [
