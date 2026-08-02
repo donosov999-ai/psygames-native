@@ -16,6 +16,34 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.175.0',
+    date: '2026-08-02',
+    ru: [
+      'Вибрация заработала на телефоне — раньше тумблер сохранялся, но ничего не включал',
+      'Кнопки отзываются на нажатие короткой вибрацией',
+      'Питомец больше не мигает и не пропадает на мгновение',
+      'Отправка отзыва не зависает навсегда: если связь не тянет, отзыв уходит без вложения',
+      'Сообщить о проблеме можно прямо из окна с правилами',
+      'Режим для дальтоников теперь работает и в Струпе, и в SET',
+      'Судоку: цифра в кружке или квадрате видна нормально, а не полупрозрачной',
+      'Карточки «Вызов дня» и «Гимнастика для глаз» одной высоты',
+      'Вечерний комплекс: средний шаг стал 10 раундов вместо 20 — шаги сопоставимы',
+      'Очень крупный системный шрифт больше не ломает подписи на кнопках',
+    ],
+    en: [
+      'Vibration works on the phone — the toggle used to save but switch nothing on',
+      'Buttons answer a press with a short vibration',
+      'The pet no longer blinks or vanishes for a moment',
+      'Sending feedback no longer hangs forever: on a weak connection it goes without the attachment',
+      'You can report a problem straight from the rules window',
+      'Colorblind mode now works in Stroop and SET too',
+      'Sudoku: a digit inside a circle or square is properly visible, not half-transparent',
+      'The “Daily challenge” and “Eye gym” cards are the same height',
+      'Evening set: the middle step is 10 rounds instead of 20 — steps are comparable',
+      'A very large system font no longer breaks button labels',
+    ],
+  },
+  {
     version: '1.174.0',
     date: '2026-08-02',
     ru: [

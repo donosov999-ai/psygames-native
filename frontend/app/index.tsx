@@ -724,6 +724,12 @@ const styles = StyleSheet.create({
     // v1.122.0: height → minHeight. Ровную высоту даёт alignItems:'stretch' на heroRow (см. ниже),
     // а фикс. height обрезал текст при системном крупном шрифте. Прошлый фикс лечил симптом не там.
     minHeight: 150,
+    // v1.175: без flex:1 растягивалась только обёртка heroCardWrap, а сам градиент
+    // сжимался по содержимому — у «Вызова дня» подпись в 3 строки, у «Гимнастики»
+    // в 2, и вторая карточка визуально ниже первой («разной высоты» — репорт
+    // тестировщика, v1.170). stretch на ряду задаёт высоту обёртке; чтобы её занял
+    // фон, растягиваться должен и он.
+    flex: 1,
     justifyContent: 'space-between',
   },
   heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },

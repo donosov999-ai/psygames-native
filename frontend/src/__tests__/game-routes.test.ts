@@ -11,9 +11,15 @@
  * тест дешёвый, а класс ошибки — «ссылка ведёт в никуда» — самый обидный, потому
  * что выглядит как работающая кнопка.
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { GAMES } from '../constants/games';
+
+// Node-API берём через require с локальными объявлениями: @types/node в проекте
+// нет (фронт собирается под RN/web), а тянуть его ради одного теста — лишняя
+// зависимость. Под jest это обычный node, всё доступно в рантайме.
+declare const __dirname: string;
+declare function require(m: string): any;
+const { existsSync, readdirSync, readFileSync } = require('fs');
+const { join } = require('path');
 
 const SCREENS_DIR = join(__dirname, '../../app/games');
 
@@ -47,7 +53,7 @@ describe('маршруты игр', () => {
         const p = join(dir, e.name);
         if (e.isDirectory()) { walk(p); continue; }
         if (!/\.tsx?$/.test(e.name)) continue;
-        readFileSync(p, 'utf8').split('\n').forEach((line, i) => {
+        readFileSync(p, 'utf8').split('\n').forEach((line: string, i: number) => {
           if (line.trimStart().startsWith('//') || line.trimStart().startsWith('*')) return;
           if (/`\/games\/\$\{/.test(line)) offenders.push(`${p.split('/frontend/')[1]}:${i + 1}`);
         });

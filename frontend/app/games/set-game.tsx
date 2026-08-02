@@ -54,6 +54,9 @@ const FILLS: FillType[] = ['solid', 'striped', 'open'];
 const COLORS: ColorType[] = ['red', 'green', 'purple'];
 const COUNTS: CountType[] = [1, 2, 3];
 const COLOR_HEX: Record<ColorType, string> = { red: '#e63946', green: '#2a9d8f', purple: '#7b2cbf' };
+// Okabe-Ito: киноварь / сине-зелёный / красно-фиолетовый. Цвет здесь один из трёх
+// признаков карты, но без него сет не собрать.
+const COLOR_HEX_CB: Record<ColorType, string> = { red: '#d55e00', green: '#009e73', purple: '#cc79a7' };
 
 const allCards = (): Card[] => {
   const out: Card[] = [];
@@ -134,7 +137,8 @@ function levelParams(level: number): { trials: number; timeLimit: number } {
 }
 
 export default function SetGame() {
-  const { colors } = useTheme();
+  const { colors, colorblind } = useTheme();
+  const HEX = colorblind ? COLOR_HEX_CB : COLOR_HEX;
   const { t, language } = useLanguage();
   const router = useRouter();
 
@@ -299,7 +303,7 @@ export default function SetGame() {
     `${c.count} ${t('color_' + c.color).toLowerCase()} ${t('fill_' + c.fill)} ${t('shape_' + c.shape)}`;
 
   const renderShape = (card: Card, key: number) => {
-    const c = COLOR_HEX[card.color];
+    const c = HEX[card.color];
     const size = 18;
     const common = { width: size, height: size, marginHorizontal: 2, overflow: 'hidden' as const };
     // v1.148: штриховка — РЕАЛЬНЫЕ полоски вместо полупрозрачной заливки

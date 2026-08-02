@@ -499,7 +499,21 @@ jobs:
               '    }\n'
               '    return null\n'
               '  }\n'
+              # Потолок системного масштаба шрифта.
+              #
+              # Android даёт увеличивать текст до 200%, WebView применяет это как
+              # textZoom ко всему интерфейсу разом. На 175-200% подписи перестают
+              # помещаться в кнопки («в увеличенном размере системного шрифта тексты
+              # в кнопке плохо влазят» — репорт Rulon, v1.171). Полностью игнорировать
+              # системный размер нельзя: для того он и есть, и человек с плохим
+              # зрением останется ни с чем. Поэтому потолок 135%: крупнее штатного
+              # заметно, а вёрстка ещё держит.
+              '\n  private fun clampTextZoom() {\n'
+              '    val wv = findWebView(findViewById(android.R.id.content)) ?: return\n'
+              '    try { if (wv.settings.textZoom > 135) wv.settings.textZoom = 135 } catch (e: Throwable) {}\n'
+              '  }\n'
               '\n  private fun publishInsets(top: Float, left: Float, right: Float) {\n'
+              '    clampTextZoom()\n'
               '    val payload = "{top:" + top + ",bottom:0,left:" + left + ",right:" + right + "}"\n'
               '    if (payload == lastInsets) return\n'
               '    val wv = findWebView(findViewById(android.R.id.content)) ?: return\n'

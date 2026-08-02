@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Platform, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { HELP_MAP } from '@/src/constants/helpMap';
 import { isRTLLang } from '@/src/services/rtl';
 import { a11yModal } from '@/src/services/a11y';
+import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 
 /**
  * Глобальная кнопка-«?» справки для всех экранов игр.
@@ -186,6 +187,18 @@ export default function GameHelpOverlay() {
               ) : null}
             </ScrollView>
 
+            {/* Пока правила открыты, плавающая кнопка репорта накрыта этим же
+                Modal и недоступна — а сказать «в правилах ошибка» хочется именно
+                отсюда (репорт Rulon, v1.171). Своя точка входа: закрываем правила
+                и просим виджет открыться. */}
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => { setOpen(false); DeviceEventEmitter.emit(FEEDBACK_OPEN_EVENT); }}
+              style={styles.reportLink}>
+              <Text style={[styles.reportText, { color: colors.textSecondary }]}>
+                {t('feedbackFabLabel')}
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button" onPress={() => setOpen(false)} style={[styles.okBtn, { backgroundColor: colors.primary || '#a855f7' }]}>
               <Text style={styles.okText}>{t('close') !== 'close' ? t('close') : 'OK'}</Text>
@@ -271,6 +284,8 @@ const styles = StyleSheet.create({
   secTitle: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4, flex: 1 },
   para: { fontSize: 15.5, lineHeight: 23, marginBottom: 8 },
   faqQ: { fontSize: 15.5, fontWeight: '700', marginBottom: 2 },
+  reportLink: { alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 12 },
+  reportText: { fontSize: 12.5, textDecorationLine: 'underline' },
   okBtn: { marginTop: 14, paddingVertical: 13, borderRadius: 12, alignItems: 'center' },
   okText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });
