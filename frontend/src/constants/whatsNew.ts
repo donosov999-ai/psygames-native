@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.178.0',
+    date: '2026-08-02',
+    ru: [
+      'Вечерний комплекс проходится целиком: средний шаг застревал и его приходилось бросать',
+      'В дыхании видно, какой это шаг комплекса — раньше экран выглядел как отдельная игра',
+      'Поиск предметов: сказано, что фигуру надо искать в любом повороте',
+    ],
+    en: [
+      'The before-sleep set can be completed: the middle step used to get stuck',
+      'Breathing shows which step of the set it is — it used to look like a standalone game',
+      'Visual Search now says the shape can appear in any rotation',
+    ],
+  },
+  {
     version: '1.177.0',
     date: '2026-08-02',
     ru: ['Написанный отзыв больше не пропадает, если закрыть окно и вернуться'],

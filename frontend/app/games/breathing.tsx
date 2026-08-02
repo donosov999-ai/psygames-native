@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import GameIntro from '@/src/components/GameIntro';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useWarmup } from '@/src/contexts/WarmupContext';
 import { hapticMedium } from '@/src/components/juice/haptics';
 import { sndTap } from '@/src/services/feedback';
 
@@ -82,6 +83,7 @@ export default function BreathingGame() {
   const { width, height } = useWindowDimensions();
 
   const { isPreset, str } = useGamePreset();
+  const warmup = useWarmup();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   // v1.160: технику может задать шаг комплекса (перед сном → calm478 «помогает заснуть»),
@@ -377,6 +379,17 @@ export default function BreathingGame() {
         onBack={() => goBackOrHome()}
         stats={
           <View style={styles.statsRow}>
+            {/* Шаг комплекса. Дыхание — единственная игра без итогового экрана
+                GameResult, а именно он показывает «шаг N из M». Внутри комплекса
+                экран выглядел как отдельно запущенная игра, и человек терял нить:
+                «всё в разнобой, ничего не понятно» (репорт Вали, v1.173). */}
+            {warmup.active && warmup.meta && (
+              <Text style={[styles.exStep, { color: colors.primary, fontWeight: '900' }]}>
+                {t('warmupStepOf')
+                  .replace('{n}', String(warmup.currentIdx + 1))
+                  .replace('{m}', String(warmup.meta.steps.length))}
+              </Text>
+            )}
             {isWim ? (
               <Text style={[styles.exStep, { color: colors.textSecondary }]}>{t('brWimRound')} {wimRound}/{WIM_ROUNDS}</Text>
             ) : (
