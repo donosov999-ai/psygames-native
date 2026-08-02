@@ -62,14 +62,17 @@ async function reachable(base: string): Promise<boolean> {
   try {
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), PROBE_MS);
-    // Любой ответ сервера годится: 401 от /rest/v1/ без токена — это «жив».
-    const r = await fetch(`${base}/rest/v1/`, {
-      method: 'HEAD',
+    // /auth/v1/health отвечает 200 — единственная точка, которая НЕ даёт 401.
+    // Это важно не для логики (нам хватило бы любого ответа), а для консоли:
+    // 401 браузер печатает как «Failed to load resource», и смоук-тест, который
+    // валит сборку на любой ошибке в консоли, честно уронил релиз v1.170.
+    // Проба обязана быть бесшумной.
+    const r = await fetch(`${base}/auth/v1/health`, {
       headers: { apikey: SUPABASE_PUBLISHABLE_KEY },
       signal: ctl.signal,
     });
     clearTimeout(t);
-    return r.status > 0;
+    return r.ok;
   } catch {
     return false;   // таймаут, обрыв, блокировка — всё сюда
   }
