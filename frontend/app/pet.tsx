@@ -9,7 +9,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect, Redirect } from 'expo-router';
+import { useFocusEffect, Redirect, router } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +27,9 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { getTokens, spendTokens } from '@/src/services/tokens';
 import { sndToken, sndWrong } from '@/src/services/feedback';
 import { a11yDecor } from '@/src/services/a11y';
+import { CATEGORY_TO_SKILL } from '@/src/services/pet';
+import { GAMES } from '@/src/constants/games';
+import { isGameAllowed } from '@/src/constants/profiles';
 
 /** Цвета шкал — 1:1 с сайта (.pet-skill-memory и т.д.) */
 const SKILL_COLORS: Record<keyof PetStats['skills'], string> = {
@@ -263,6 +266,37 @@ export default function PetScreen() {
           </View>
         </View>
 
+        {/* v1.170 (идея Вали): «он даёт статистику — память 100%, логика 100%, а вот
+            эта не 100. А во что нужно поиграть, чтобы было 100? Он же сопроводитель,
+            он должен давать советы». Шкалы показывали цифру и молчали о том, что с
+            ней делать. Берём самую отстающую и предлагаем игру из ЕЁ категории —
+            связь «шкала → игры» уже есть, ею пользуется тренерский пузырь питомца.
+            Игру выбираем среди доступных профилю, иначе совет упрётся в замок. */}
+        {stats && (() => {
+          const weakest = SKILL_ORDER.reduce((a, b) => (stats.skills[a] <= stats.skills[b] ? a : b));
+          if (stats.skills[weakest] >= 100) return null;   // всё на максимуме — советовать нечего
+          const pool = GAMES.filter((g) => CATEGORY_TO_SKILL[g.category] === weakest && isGameAllowed(profile, g.id));
+          if (!pool.length) return null;
+          const pick = pool[stats.total % pool.length];   // без случайности: совет стабилен в пределах сессии
+          return (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={`${t('petAdviceTitle')}: ${t(pick.nameKey)}`}
+              onPress={() => router.push(`/games/${pick.id}` as any)}
+              style={[styles.adviceCard, { backgroundColor: colors.surface, borderColor: SKILL_COLORS[weakest] }]}
+            >
+              <Text style={[styles.adviceTitle, { color: SKILL_COLORS[weakest] }]}>
+                💡 {t('petAdviceTitle')}
+              </Text>
+              <Text style={[styles.adviceBody, { color: colors.text }]}>
+                {t('petAdviceBody')
+                  .replace('{skill}', skillLabel(weakest))
+                  .replace('{game}', t(pick.nameKey))}
+              </Text>
+            </TouchableOpacity>
+          );
+        })()}
+
         {/* 4 шкалы навыков из реальных сессий */}
         <View style={styles.skills}>
           {SKILL_ORDER.map((k) => {
@@ -319,6 +353,9 @@ const styles = StyleSheet.create({
   },
   statusBig: { fontSize: 20, fontWeight: '900' },
   statusSmall: { fontSize: 11.5, marginTop: 1 },
+  adviceCard: { borderWidth: 1.5, borderRadius: 14, padding: 13, gap: 4, marginBottom: 4 },
+  adviceTitle: { fontSize: 12.5, fontWeight: '800' },
+  adviceBody: { fontSize: 13.5, lineHeight: 19 },
   skills: { alignSelf: 'stretch', gap: 10, marginTop: 8 },
   skillCard: { borderWidth: 1, borderRadius: 15, paddingVertical: 12, paddingHorizontal: 14 },
   skillTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },

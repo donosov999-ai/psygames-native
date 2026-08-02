@@ -373,7 +373,23 @@ jobs:
           MANIFEST=gen/android/app/src/main/AndroidManifest.xml
           if [ -f "$MANIFEST" ]; then
             sed -i 's#android:name=".MainActivity"#android:name=".MainActivity" android:screenOrientation="fullUser"#' "$MANIFEST"
-            echo "— rotation (fullUser) applied —"; grep -n "screenOrientation\|MainActivity" "$MANIFEST" || true
+            # v1.170: права на микрофон. Голосовая заметка в отзыве (v1.166) уехала в
+            # прод МЁРТВОЙ — репорт дословно: «почему микрофон не работает»,
+            # «микрофон недоступен». В браузере разрешение выдаёт сам браузер, поэтому
+            # при проверке всё работало.
+            #
+            # ВАЖНО, ЧТО ИМЕННО СЛОМАНО. Обработчик onPermissionRequest у WebView УЖЕ
+            # ЕСТЬ — его делает сам wry (RustWebChromeClient.kt): на AUDIO_CAPTURE он
+            # запрашивает у системы RECORD_AUDIO + MODIFY_AUDIO_SETTINGS и по успеху
+            # зовёт request.grant(). Но если права не объявлены в манифесте, системный
+            # запрос возвращает «отказано» мгновенно, и wry честно делает request.deny().
+            # То есть код был рабочий, не хватало ровно двух строк объявления.
+            for P in RECORD_AUDIO MODIFY_AUDIO_SETTINGS; do
+              grep -q "android.permission.$P" "$MANIFEST" || \
+                sed -i "s#<application#<uses-permission android:name=\"android.permission.$P\" />\n    <application#" "$MANIFEST"
+            done
+            echo "— rotation + аудио-права applied —"
+            grep -n "screenOrientation\|RECORD_AUDIO\|MODIFY_AUDIO\|MainActivity" "$MANIFEST" || true
           else
             echo "WARN: $MANIFEST не найден — пропускаю (OrientationGuard в webview покрывает)"; find gen/android -name AndroidManifest.xml -type f || true
           fi

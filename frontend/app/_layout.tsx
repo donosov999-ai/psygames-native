@@ -11,6 +11,8 @@ import { ProfileProvider } from '@/src/contexts/ProfileContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import NativeInsetBridge from '@/src/components/NativeInsetBridge';
+import { pickSupabaseBase } from '@/src/services/supabase';
+import { flushFeedbackQueue } from '@/src/services/appFeedback';
 import UnlockToast from '@/src/components/UnlockToast';
 import AppErrorBoundary from '@/src/components/AppErrorBoundary';
 import UpdateGate from '@/src/components/UpdateGate';
@@ -87,6 +89,15 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  // v1.170: один раз за запуск выбираем рабочий адрес Supabase. В РФ прямой
+  // домен режется, и без этого отзывы уходили в никуда без VPN. Не блокирует
+  // старт: до ответа пробы клиент работает на прямом адресе.
+  React.useEffect(() => {
+    pickSupabaseBase()
+      .then(() => flushFeedbackQueue())   // адрес выбран → дошлём то, что не ушло раньше
+      .catch(() => {});
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       {/* Снаружи провайдеров: ловит краши и экранов, и самих провайдеров */}

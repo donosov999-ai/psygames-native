@@ -173,7 +173,7 @@ export interface PetStats {
  *  - recovery           → ни в одну шкалу (дыхание/отдых — не когнитивный домен),
  *                         но в общий счётчик тренировок входит.
  */
-const CATEGORY_TO_SKILL: Partial<Record<GameCategory, keyof PetStats['skills']>> = {
+export const CATEGORY_TO_SKILL: Partial<Record<GameCategory, keyof PetStats['skills']>> = {
   memory: 'memory',
   attention: 'attention',
   logic: 'logic',

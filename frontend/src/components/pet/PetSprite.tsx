@@ -12,7 +12,7 @@
  */
 import React from 'react';
 import { Image, View } from 'react-native';
-import Svg, { Circle, Ellipse, Line, Path } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Line, Path } from 'react-native-svg';
 import { a11yDecor } from '@/src/services/a11y';
 
 export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep';
@@ -136,7 +136,54 @@ const FRAME_MS: Record<PetState, number> = {
 /** Векторные аксессуары в координатах 0..100 (масштабируются с size).
  *  Позиции подобраны по силуэтам трёх скинов: головы у всех в верхней трети,
  *  идеального прилегания к каждому кадру нет и не нужно — это «стикер». */
-function AccessoryOverlay({ kind, size }: { kind: PetAccessory; size: number }) {
+/**
+ * v1.170: ЯКОРНЫЕ ТОЧКИ ВМЕСТО ОБЩИХ КООРДИНАТ.
+ *
+ * ЗАЧЕМ. Аксессуары сидели ОДНИМИ координатами на всех трёх скинах: на коте
+ * попадало, на роботе и Созвездии съезжало — головы и шеи у них в других
+ * местах. Вещи при этом продаются в магазине за очки, то есть человек платит
+ * за криво надетый предмет.
+ *
+ * КОНТРАКТ. Формат задал mascot-claude-mac (02.08) и уже проставил якоря в 31
+ * пак колоды: проценты 0..100 внутри кадра, origin в левом верхнем углу — та
+ * же система, что была у нашего viewBox, поэтому координатную математику
+ * переписывать не пришлось. Точка = МЕСТО КРЕПЛЕНИЯ, а не центр предмета;
+ * какой стороной предмет садится на точку — задаётся один раз на ТИП
+ * аксессуара (ниже), а не на скин. scale — насколько этот персонаж шире или
+ * уже среднего.
+ *
+ * Наши три скина живут не в формате .petpack, а простыми кадрами в assets,
+ * поэтому якоря лежат здесь константами в том же формате. При переезде на паки
+ * меняется только источник данных, логика остаётся.
+ */
+interface Anchor { x: number; y: number; scale: number }
+type AnchorName = 'head_top' | 'eyes' | 'neck';
+
+const SKIN_ANCHORS: Record<PetSkin, Record<AnchorName, Anchor>> = {
+  // Кот: пропорции, под которые изначально рисовались координаты — эталон.
+  cat:           { head_top: { x: 50, y: 12, scale: 1.00 }, eyes: { x: 50, y: 34, scale: 1.00 }, neck: { x: 50, y: 74, scale: 1.00 } },
+  // Робот: голова крупнее и ниже, корпус шире — предмет должен быть больше.
+  robot:         { head_top: { x: 50, y: 16, scale: 1.15 }, eyes: { x: 50, y: 38, scale: 1.15 }, neck: { x: 50, y: 78, scale: 1.15 } },
+  // Созвездие: силуэт уже и выше, макушка почти у края кадра.
+  constellation: { head_top: { x: 50, y:  8, scale: 0.90 }, eyes: { x: 50, y: 30, scale: 0.90 }, neck: { x: 50, y: 70, scale: 0.90 } },
+};
+
+/** Куда крепится каждый ТИП аксессуара и какой стороной садится на точку. */
+const ACCESSORY_MOUNT: Record<PetAccessory, { at: AnchorName; edge: 'bottom' | 'center' }> = {
+  party_hat: { at: 'head_top', edge: 'bottom' },   // колпак нижней кромкой на макушку
+  bow:       { at: 'neck',     edge: 'center' },   // бант центром на шею
+  glasses:   { at: 'eyes',     edge: 'center' },   // очки центром на глаза
+};
+
+function AccessoryOverlay({ kind, size, skin }: { kind: PetAccessory; size: number; skin: PetSkin }) {
+  const mount = ACCESSORY_MOUNT[kind];
+  const a = SKIN_ANCHORS[skin][mount.at];
+  // Рисуем предмет в СВОЕЙ системе (как раньше, вокруг кота), а потом сдвигаем и
+  // масштабируем группу так, чтобы точка крепления легла на якорь скина.
+  // База — координаты кота: там предмет уже стоял правильно.
+  const base = SKIN_ANCHORS.cat[mount.at];
+  const tx = a.x - base.x * a.scale;
+  const ty = a.y - base.y * a.scale;
   return (
     <Svg
       pointerEvents="none"
@@ -145,28 +192,30 @@ function AccessoryOverlay({ kind, size }: { kind: PetAccessory; size: number }) 
       viewBox="0 0 100 100"
       style={{ position: 'absolute', top: 0, left: 0 }}
     >
-      {kind === 'party_hat' && (
-        <>
-          <Path d="M50 2 L36 26 L64 26 Z" fill="#8a68f5" stroke="#5d43c4" strokeWidth={2} />
-          <Line x1={43} y1={14} x2={57} y2={14} stroke="#f5b50a" strokeWidth={2.5} />
-          <Circle cx={50} cy={2.5} r={4} fill="#f5b50a" />
-        </>
-      )}
-      {kind === 'bow' && (
-        <>
-          <Path d="M50 74 L36 66 L36 82 Z" fill="#ff4d8d" stroke="#c22a63" strokeWidth={2} />
-          <Path d="M50 74 L64 66 L64 82 Z" fill="#ff4d8d" stroke="#c22a63" strokeWidth={2} />
-          <Circle cx={50} cy={74} r={4.5} fill="#c22a63" />
-        </>
-      )}
-      {kind === 'glasses' && (
-        <>
-          <Circle cx={38} cy={34} r={9} fill="none" stroke="#1f2937" strokeWidth={3} />
-          <Circle cx={62} cy={34} r={9} fill="none" stroke="#1f2937" strokeWidth={3} />
-          <Line x1={47} y1={34} x2={53} y2={34} stroke="#1f2937" strokeWidth={3} />
-          <Ellipse cx={35} cy={31} rx={3} ry={2} fill="#ffffff" opacity={0.55} />
-        </>
-      )}
+      <G transform={`translate(${tx} ${ty}) scale(${a.scale})`}>
+        {kind === 'party_hat' && (
+          <>
+            <Path d="M50 2 L36 26 L64 26 Z" fill="#8a68f5" stroke="#5d43c4" strokeWidth={2} />
+            <Line x1={43} y1={14} x2={57} y2={14} stroke="#f5b50a" strokeWidth={2.5} />
+            <Circle cx={50} cy={2.5} r={4} fill="#f5b50a" />
+          </>
+        )}
+        {kind === 'bow' && (
+          <>
+            <Path d="M50 74 L36 66 L36 82 Z" fill="#ff4d8d" stroke="#c22a63" strokeWidth={2} />
+            <Path d="M50 74 L64 66 L64 82 Z" fill="#ff4d8d" stroke="#c22a63" strokeWidth={2} />
+            <Circle cx={50} cy={74} r={4.5} fill="#c22a63" />
+          </>
+        )}
+        {kind === 'glasses' && (
+          <>
+            <Circle cx={38} cy={34} r={9} fill="none" stroke="#1f2937" strokeWidth={3} />
+            <Circle cx={62} cy={34} r={9} fill="none" stroke="#1f2937" strokeWidth={3} />
+            <Line x1={47} y1={34} x2={53} y2={34} stroke="#1f2937" strokeWidth={3} />
+            <Ellipse cx={35} cy={31} rx={3} ry={2} fill="#ffffff" opacity={0.55} />
+          </>
+        )}
+      </G>
     </Svg>
   );
 }
@@ -191,7 +240,7 @@ export default function PetSprite({ state, size = 56, skin = 'cat', accessory = 
         resizeMode="contain"
         fadeDuration={0}
       />
-      {accessory && <AccessoryOverlay kind={accessory} size={size} />}
+      {accessory && <AccessoryOverlay kind={accessory} size={size} skin={skin} />}
     </View>
   );
 }
