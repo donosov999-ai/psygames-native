@@ -143,8 +143,25 @@ interface SendArgs {
   context?: Record<string, unknown>;
 }
 
-/** Отправить фидбек. true = долетело (строка в БД создана). */
-export async function sendFeedback(args: SendArgs): Promise<boolean> {
+/**
+ * Исход отправки. Раньше возвращался просто boolean, и три разных исхода
+ * схлопывались в два: «репорт ушёл, но запись не загрузилась» выглядело ровно
+ * как полный успех. Человек видел «спасибо», был уверен, что рассказал голосом,
+ * и повторял попытку вслепую (репорт Rulon: «непонятно, ушло или нет»).
+ */
+export interface SendResult {
+  /** Строка в БД создана — репорт у нас. */
+  ok: boolean;
+  /** Не ушло сейчас, но сохранено и уйдёт при связи. Написанное не пропало. */
+  queued: boolean;
+  /** Запись была и долетела до хранилища. */
+  audioSent: boolean;
+  /** Запись была, но НЕ долетела — сказать об этом прямо. */
+  audioLost: boolean;
+}
+
+export async function sendFeedback(args: SendArgs): Promise<SendResult> {
+  const hadAudio = !!args.audio?.blob;
   try {
     const supabase = getSupabase();
     const person = (globalThis as any).__psygames_active_person as string | undefined;
@@ -167,7 +184,10 @@ export async function sendFeedback(args: SendArgs): Promise<boolean> {
       } catch {}
     }
 
-    // 1b) Голосовая заметка — тем же правилом: не загрузилась, репорт всё равно уходит.
+    // 1b) Голосовая заметка — тем же правилом: не загрузилась, репорт всё равно
+    // уходит. Но исход ОБЯЗАН вернуться наверх: если запись не долетела, а мы
+    // показали «спасибо», человек уверен, что рассказал о проблеме голосом, —
+    // и никто никогда не узнает, что до нас доехал только текст.
     let audio_path: string | null = null;
     if (args.audio?.blob) {
       try {
@@ -199,11 +219,16 @@ export async function sendFeedback(args: SendArgs): Promise<boolean> {
       },
     };
     const { error } = await supabase.from('app_feedback').insert(row);
-    if (error) { await queueFeedback(row); return false; }
+    if (error) {
+      await queueFeedback(row);
+      // Запись уже в хранилище и путь уехал в очередь вместе со строкой —
+      // с точки зрения человека голос не потерян, просто ждёт связи.
+      return { ok: false, queued: true, audioSent: !!audio_path, audioLost: hadAudio && !audio_path };
+    }
     flushFeedbackQueue();   // связь есть — дошлём то, что копилось
-    return true;
+    return { ok: true, queued: false, audioSent: !!audio_path, audioLost: hadAudio && !audio_path };
   } catch {
-    return false;
+    return { ok: false, queued: false, audioSent: false, audioLost: hadAudio };
   }
 }
 
@@ -217,9 +242,12 @@ export async function sendFeedback(args: SendArgs): Promise<boolean> {
  * Запасной адрес (см. supabase.ts) закрывает блокировку, очередь закрывает
  * всё остальное: нет сети в метро, самолётный режим, упал сервер.
  *
- * Вложения в очередь НЕ кладём: скрин и голос могут весить мегабайты, а
- * AsyncStorage для этого не предназначен. Текст репорта ценнее картинки —
- * теряем вложение, сохраняем суть.
+ * В очередь кладём строку целиком, ВМЕСТЕ с shot_path/audio_path. В v1.170 эти
+ * два поля здесь отбрасывались «чтобы не хранить вложения» — ошибка: сами файлы
+ * в эту структуру никогда не попадали, тут лежат только пути, а файлы к этому
+ * моменту УЖЕ загружены в хранилище. Отбрасывая путь, мы выкидывали
+ * единственную ссылку на существующую запись: голос оставался в бакете
+ * сиротой, а до нас доезжал текст без него.
  */
 const FEEDBACK_QUEUE_KEY = 'psygames_feedback_queue';
 const QUEUE_MAX = 20;
@@ -229,8 +257,7 @@ async function queueFeedback(row: Record<string, unknown>): Promise<void> {
     const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
     const raw = await AsyncStorage.getItem(FEEDBACK_QUEUE_KEY);
     const list: Record<string, unknown>[] = raw ? JSON.parse(raw) : [];
-    const { shot_path, audio_path, ...light } = row;   // вложения не храним
-    list.push(light);
+    list.push(row);
     await AsyncStorage.setItem(FEEDBACK_QUEUE_KEY, JSON.stringify(list.slice(-QUEUE_MAX)));
   } catch { /* не смогли сохранить — хуже уже не сделаем */ }
 }

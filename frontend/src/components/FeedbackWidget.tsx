@@ -29,7 +29,8 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {
-  FEEDBACK_ENABLED, getDevChatVisible, captureScreenshot, sendFeedback, type FeedbackKind,
+  FEEDBACK_ENABLED, getDevChatVisible, captureScreenshot, sendFeedback,
+  type FeedbackKind, type SendResult,
 } from '@/src/services/appFeedback';
 import { isRTLLang } from '@/src/services/rtl';
 import { a11yModal } from '@/src/services/a11y';
@@ -82,6 +83,10 @@ export default function FeedbackWidget() {
   const [attachShot, setAttachShot] = React.useState(true);
   const [sending, setSending] = React.useState(false);
   const [sent, setSent] = React.useState(false);
+  // Что именно уехало — показываем на экране «спасибо». Без этого голосовой
+  // репорт уходил вслепую: значок 🙏 выглядел одинаково и когда запись дошла,
+  // и когда потерялась (репорт Rulon, v1.170).
+  const [outcome, setOutcome] = React.useState<SendResult | null>(null);
   // html2canvas снимает 1-3 сек. Без индикации тестировщик решит, что кнопка
   // не сработала, и натыкает ещё (проверено вживую) → спиннер + защита от дабл-тапа.
   const [capturing, setCapturing] = React.useState(false);
@@ -140,7 +145,7 @@ export default function FeedbackWidget() {
     // совпадать с условием доступности кнопки, иначе кнопка врёт.
     if ((!text.trim() && !note) || sending) return;
     setSending(true);
-    const ok = await sendFeedback({
+    const res = await sendFeedback({
       kind,
       // Пустое сообщение читается в выгрузке как «потерялось»; ставим явную
       // пометку, чтобы было видно: смысл в записи, расшифровать её.
@@ -158,9 +163,14 @@ export default function FeedbackWidget() {
       },
     });
     setSending(false);
-    if (ok) {
+    // Очередь — тоже успех для человека: написанное сохранено и уйдёт само.
+    // Ошибкой считаем только случай, когда не сохранили вообще ничего.
+    if (res.ok || res.queued) {
+      setOutcome(res);
       setSent(true);
-      setTimeout(() => { setOpen(false); setShot(null); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }, 1300);
+      // Дольше 1.3 с: тут теперь есть что прочитать, а не один значок.
+      // Закрыть можно и раньше — крестик остаётся на месте.
+      setTimeout(() => { setOpen(false); setShot(null); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }, 3200);
     } else {
       setText((t) => t);   // оставляем текст, чтобы не потерять написанное
       alert(t('feedbackSendFailed'));
@@ -197,10 +207,22 @@ export default function FeedbackWidget() {
 
               {sent ? (
                 <View style={styles.thanks}>
-                  <Text style={{ fontSize: 44 }}>🙏</Text>
+                  <Text style={{ fontSize: 44 }}>{outcome?.audioLost ? '⚠️' : '🙏'}</Text>
                   <Text style={[styles.title, { color: colors.text, textAlign: 'center' }]}>
-                    {t('feedbackThanks')}
+                    {outcome?.queued ? t('feedbackQueued') : t('feedbackThanks')}
                   </Text>
+                  {/* Судьба записи — отдельной строкой и словами. «Спасибо» само
+                      по себе не отличает «голос у нас» от «голос потерялся». */}
+                  {outcome?.audioSent && (
+                    <Text style={[styles.outcomeLine, { color: colors.textSecondary }]}>
+                      🎤 {t('feedbackAudioSent')}
+                    </Text>
+                  )}
+                  {outcome?.audioLost && (
+                    <Text style={[styles.outcomeLine, { color: '#e0574a' }]}>
+                      {t('feedbackAudioLost')}
+                    </Text>
+                  )}
                 </View>
               ) : (
                 <>
@@ -364,4 +386,5 @@ const styles = StyleSheet.create({
   send: { paddingVertical: 15, borderRadius: 12, alignItems: 'center' },
   sendText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   thanks: { alignItems: 'center', gap: 10, paddingVertical: 30 },
+  outcomeLine: { fontSize: 13.5, fontWeight: '700', textAlign: 'center', paddingHorizontal: 16 },
 });

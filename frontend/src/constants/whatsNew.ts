@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.172.0',
+    date: '2026-08-02',
+    ru: [
+      'После отправки отзыва видно, дошла ли голосовая запись — раньше «спасибо» выглядело одинаково в обоих случаях',
+      'Если связи нет, отзыв сохраняется и уходит сам — вместе с записью, а не без неё',
+    ],
+    en: [
+      'After sending a report you can see whether the voice recording arrived — “thanks” used to look the same either way',
+      'With no connection the report is saved and sends itself later — with the recording, not without it',
+    ],
+  },
+  {
     version: '1.171.0',
     date: '2026-08-02',
     ru: [

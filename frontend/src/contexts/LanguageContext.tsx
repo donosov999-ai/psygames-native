@@ -1460,6 +1460,11 @@ const translations: Translations = {
   feedbackFabLabel: { ru: 'Сообщить о проблеме', en: 'Send feedback' },
   feedbackTitle: { ru: '💬 Что не так?', en: '💬 What’s wrong?' },
   feedbackThanks: { ru: 'Спасибо! Отправлено.', en: 'Thanks! Sent.' },
+  // Исход отправки словами: «спасибо» одинаково выглядело и когда запись дошла,
+  // и когда потерялась, поэтому про голос говорим отдельной строкой.
+  feedbackQueued: { ru: 'Сохранено. Уйдёт, как появится связь.', en: 'Saved. It will send once you’re online.' },
+  feedbackAudioSent: { ru: 'запись получена', en: 'recording received' },
+  feedbackAudioLost: { ru: 'Запись не загрузилась — дошёл только текст', en: 'The recording did not upload — only the text arrived' },
   unitLevelShort: { ru: 'ур.', en: 'lv' },   // строчная инлайн-форма (label_level_short «Ур.» — заголовочная)
   feedbackHint: { ru: 'Пиши как есть, даже коротко', en: 'Write it as is, even briefly' },
   feedbackPlaceholder: { ru: 'Например: открыл игру и не понял, что делать — нужна кнопка со справкой', en: 'E.g.: opened the game and had no idea what to do — need a help button' },
