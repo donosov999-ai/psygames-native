@@ -286,11 +286,15 @@ export default function PetScreen() {
           const pool = GAMES.filter((g) => CATEGORY_TO_SKILL[g.category] === weakest && isGameAllowed(profile, g.id));
           if (!pool.length) return null;
           const pick = pool[stats.total % pool.length];   // без случайности: совет стабилен в пределах сессии
+          // Переход строго по pick.route, а НЕ по `/games/${pick.id}`: id и имя
+          // файла экрана совпадают лишь у 26 игр из 61 (schulte_table лежит в
+          // /games/schulte), для остальных 35 собранный из id адрес открывал
+          // «Unmatched Route» — совет вёл в никуда (репорт Rulon голосом, v1.171).
           return (
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel={`${t('petAdviceTitle')}: ${t(pick.nameKey)}`}
-              onPress={() => router.push(`/games/${pick.id}` as any)}
+              onPress={() => router.push(pick.route as any)}
               style={[styles.adviceCard, { backgroundColor: colors.surface, borderColor: SKILL_COLORS[weakest] }]}
             >
               <Text style={[styles.adviceTitle, { color: SKILL_COLORS[weakest] }]}>
