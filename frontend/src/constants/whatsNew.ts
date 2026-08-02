@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.171.0',
+    date: '2026-08-02',
+    ru: [
+      'Отзыв можно отправить одним голосом, без текста — раньше кнопка нажималась, а ничего не уходило',
+      'Выбор персонажа теперь листается пальцем — четвёртая карточка не влезала на узкие экраны',
+    ],
+    en: [
+      'A voice-only report now sends — the button used to press with nothing happening',
+      'The character picker scrolls sideways — the fourth card did not fit narrow screens',
+    ],
+  },
+  {
     version: '1.170.0',
     date: '2026-08-02',
     ru: [
