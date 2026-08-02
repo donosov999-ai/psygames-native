@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.174.0',
+    date: '2026-08-02',
+    ru: [
+      'Совет Синапса «во что поиграть» открывает игру, а не пустой экран с ошибкой',
+      'Подсказка ходячего питомца ломалась так же — тоже починена',
+    ],
+    en: [
+      'Synapse’s “what to play” tip now opens the game instead of an error page',
+      'The walking pet’s tip was broken the same way — fixed too',
+    ],
+  },
+  {
     version: '1.173.0',
     date: '2026-08-02',
     ru: [

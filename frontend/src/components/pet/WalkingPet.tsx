@@ -257,7 +257,10 @@ export default function WalkingPet() {
               : [bubble.skill as string];
             const pool = GAMES.filter((g) => cats.includes(g.category));
             const game = pool[Math.floor(Math.random() * pool.length)];
-            if (game) { setBubble(null); router.push(`/games/${game.id}` as any); }
+            // game.route, а НЕ `/games/${game.id}`: у 35 игр из 61 id не совпадает
+            // с именем файла экрана, и собранный из id адрес открывает
+            // «Unmatched Route» вместо игры.
+            if (game) { setBubble(null); router.push(game.route as any); }
           }}
           style={[styles.bubble, {
             backgroundColor: colors.surface,

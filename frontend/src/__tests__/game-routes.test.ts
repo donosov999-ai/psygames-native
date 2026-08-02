@@ -1,0 +1,60 @@
+/**
+ * Каждый route из реестра игр обязан вести на существующий экран.
+ *
+ * ЗАЧЕМ. Совет Синапса на экране питомца собирал адрес как `/games/${game.id}`.
+ * У 26 игр из 61 id случайно совпадает с именем файла — на них всё работало, и
+ * ошибку не было видно ни в типах, ни в тестах. У остальных 35 (schulte_table
+ * лежит в /games/schulte) переход открывал «Unmatched Route · Page could not be
+ * found». Поймал это тестировщик голосом, спустя релиз.
+ *
+ * Тип `route: string` такое не ловит по определению, поэтому проверяем файлами:
+ * тест дешёвый, а класс ошибки — «ссылка ведёт в никуда» — самый обидный, потому
+ * что выглядит как работающая кнопка.
+ */
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { GAMES } from '../constants/games';
+
+const SCREENS_DIR = join(__dirname, '../../app/games');
+
+describe('маршруты игр', () => {
+  it('у каждой игры есть экран по её route', () => {
+    const broken = GAMES.filter((g) => {
+      const name = g.route.replace(/^\/games\//, '');
+      return !existsSync(join(SCREENS_DIR, `${name}.tsx`));
+    }).map((g) => `${g.id} → ${g.route}`);
+
+    expect(broken).toEqual([]);
+  });
+
+  it('route начинается с /games/ — иначе router.push уедет мимо', () => {
+    const odd = GAMES.filter((g) => !g.route.startsWith('/games/')).map((g) => g.id);
+    expect(odd).toEqual([]);
+  });
+
+  /**
+   * Проверка выше сама по себе исходный баг НЕ поймала бы: поле route было
+   * верным, врал вызывающий код. Ловим именно его — никто не имеет права
+   * склеивать адрес игры из подстановки, единственный источник это g.route.
+   */
+  it('никто не собирает адрес игры шаблоном /games/${…}', () => {
+    const roots = [join(__dirname, '../../app'), join(__dirname, '..')];
+    const offenders: string[] = [];
+
+    const walk = (dir: string) => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        if (e.name === 'node_modules' || e.name === '__tests__') continue;
+        const p = join(dir, e.name);
+        if (e.isDirectory()) { walk(p); continue; }
+        if (!/\.tsx?$/.test(e.name)) continue;
+        readFileSync(p, 'utf8').split('\n').forEach((line, i) => {
+          if (line.trimStart().startsWith('//') || line.trimStart().startsWith('*')) return;
+          if (/`\/games\/\$\{/.test(line)) offenders.push(`${p.split('/frontend/')[1]}:${i + 1}`);
+        });
+      }
+    };
+    roots.forEach(walk);
+
+    expect(offenders).toEqual([]);
+  });
+});
