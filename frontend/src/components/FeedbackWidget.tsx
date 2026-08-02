@@ -133,11 +133,18 @@ export default function FeedbackWidget() {
   };
 
   const submit = async () => {
-    if (!text.trim() || sending) return;
+    // Голосом БЕЗ текста — полноценный репорт: ради этого запись и делали.
+    // Раньше здесь стояло `if (!text.trim())`, а кнопка при этом была активна,
+    // если есть запись, — человек жал «Отправить», не происходило ничего, и он
+    // решал, что отзывы не уходят (репорт Rulon, v1.170). Условие должно
+    // совпадать с условием доступности кнопки, иначе кнопка врёт.
+    if ((!text.trim() && !note) || sending) return;
     setSending(true);
     const ok = await sendFeedback({
       kind,
-      message: text.trim(),
+      // Пустое сообщение читается в выгрузке как «потерялось»; ставим явную
+      // пометку, чтобы было видно: смысл в записи, расшифровать её.
+      message: text.trim() || '[голосом, без текста]',
       screen: pathname,
       gameId,
       shot: attachShot ? shot : null,

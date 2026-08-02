@@ -227,8 +227,16 @@ export default function PetScreen() {
           <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{t('needMoreTokens')}</Text>
         )}
 
-        {/* Выбор скина: кот/робот/Нейрон или «Авто» — эволюция по стадии. */}
-        <View style={styles.skinRow}>
+        {/* Выбор скина: кот/робот/Нейрон или «Авто» — эволюция по стадии.
+            Прокрутка обязательна: четыре карточки по 96pt с отступами дают ~414pt,
+            а на экране 360pt это не помещается — раньше ряд просто обрезался, и
+            «Авто» было не достать (репорт Rulon, голосом, v1.170). */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.skinRow}
+          style={styles.skinScroll}
+        >
           {(['cat', 'robot', 'constellation', 'auto'] as PetSkinChoice[]).map((s) => {
             const on = skinChoice === s;
             const thumbSkin: PetSkin = s === 'auto' ? resolvePetSkin('auto', stage) : s;
@@ -250,7 +258,7 @@ export default function PetScreen() {
               </TouchableOpacity>
             );
           })}
-        </View>
+        </ScrollView>
 
         {/* Уровень + счётчик тренировок (как .pet-status на сайте) */}
         <View style={styles.statusRow}>
@@ -342,7 +350,10 @@ const styles = StyleSheet.create({
   bubbleText: { fontSize: 13, fontWeight: '700', lineHeight: 18, textAlign: 'center' },
   stageName: { fontSize: 24, fontWeight: '900', marginTop: 2 },
   stageHint: { fontSize: 12.5, textAlign: 'center' },
-  skinRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  // flexGrow+center: когда карточки влезают целиком (планшет, альбомная), ряд
+  // стоит по центру, а не жмётся к левому краю.
+  skinScroll: { marginTop: 12, alignSelf: 'stretch' },
+  skinRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 4, flexGrow: 1, justifyContent: 'center' },
   skinCard: { borderRadius: 15, paddingVertical: 8, paddingHorizontal: 14, alignItems: 'center', minWidth: 96 },
   skinThumb: { width: 52, height: 52 },
   skinLabel: { fontSize: 11.5, fontWeight: '800', marginTop: 3 },
