@@ -229,9 +229,12 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                           borderRadius: 100,
                           flexDirection: 'row', alignItems: 'center', gap: 4,
                         }}>
-                          <Ionicons name="gift" size={10} color="#fff" />
-                          <Text style={{ fontSize: 10, color: '#fff', fontWeight: '900', letterSpacing: 1 }}>
-                            FREE
+                          {/* Не «FREE»: бесплатно сейчас всё, и обещать этим словом
+                              нечего. Бейдж говорит единственное, чем профиль
+                              отличается от соседей по сетке, — он открыт без кода. */}
+                          <Ionicons name="lock-open" size={10} color="#fff" />
+                          <Text style={{ fontSize: 10, color: '#fff', fontWeight: '900' }}>
+                            {t('badgeNoCode')}
                           </Text>
                         </View>
                       )}

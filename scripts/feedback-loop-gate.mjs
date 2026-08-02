@@ -79,6 +79,36 @@ if (!res.ok) {
 
 const count = Number(await res.json());
 if (count > 0) {
+  // Ответ должен быть на языке, на котором человек ПИСАЛ. Признак — письменность
+  // самого сообщения, а не язык интерфейса: у Rulon интерфейс английский, пишет
+  // он по-русски, и подгонка под интерфейс отвечала бы ему не на его языке.
+  const langRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/psygames_fix_note_lang_mismatch`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: PUBLISHABLE_KEY,
+      Authorization: `Bearer ${PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ p_version: version }),
+  });
+  if (langRes.ok) {
+    const mismatched = Number(await langRes.json());
+    if (mismatched > 0) {
+      console.error(`
+❌ обратный контур: ${mismatched} ответ(ов) в v${version} написаны не на языке репорта.
+
+   Человек написал на одном языке, а прочитает ответ на другом — и решит,
+   что отвечали не ему.
+
+   Найти и переписать:
+
+   select id, message, fix_note from public.app_feedback
+   where fixed_in_version = '${version}'
+     and (message ~ '[А-Яа-яЁё]') <> (fix_note ~ '[А-Яа-яЁё]');
+`);
+      process.exit(1);
+    }
+  }
   console.log(`✅ обратный контур: v${version} закрывает ${count} репорт(ов) — авторы это увидят`);
   process.exit(0);
 }

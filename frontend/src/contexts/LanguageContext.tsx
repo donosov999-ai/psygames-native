@@ -94,8 +94,13 @@ const translations: Translations = {
   profileDesc_vasilyeva: { ru: 'Поле зрения · скорость глаз · удержание текста', en: 'Visual field · eye speed · text retention' },
   profileName_nzt48: { ru: 'NZT-48 (полный)', en: 'NZT-48 (full)' },
   profileDesc_nzt48: { ru: 'Полная батарея префронталки · максимум', en: 'Full prefrontal battery · maximum' },
-  profileName_free: { ru: 'FREE', en: 'FREE' },
-  profileDesc_free: { ru: '9 тренажёров бесплатно · попробуй и оцени', en: '9 games free · try and evaluate' },
+  // «FREE» обещало, что где-то есть платное — а платный проект отложен. Ещё
+  // хуже, что оно читалось как «урезанная проба»: набор из 9 тренажёров не
+  // урезан, он подобран. Вываливать человеку все 60 сразу нельзя — он уйдёт и
+  // не вернётся, поэтому 9-10 в профиле это норма, а не ограничение.
+  badgeNoCode: { ru: 'без кода', en: 'no code' },
+  profileName_free: { ru: 'Стандарт', en: 'Standard' },
+  profileDesc_free: { ru: '9 тренажёров · подобранный набор для старта', en: '9 trainers · a curated set to start with' },
   profileName_drivers: { ru: 'Реакция ПРО', en: 'Reaction PRO' },
   profileDesc_drivers: { ru: 'Решения за секунды · для тех у кого цена ошибки = жизнь', en: 'Split-second decisions · when the cost of error is life' },
   profileName_seniors: { ru: '50+ профилактика', en: '50+ Prevention' },
@@ -1302,7 +1307,10 @@ const translations: Translations = {
   petUntilNextStage:   { ru: 'до стадии «{stage}» ещё {n}', en: '{n} more to reach “{stage}”' },
   petUntilNextLevel:   { ru: 'до нового уровня ещё {n}', en: '{n} more to the next level' },
   fixedByYourReport:     { ru: 'Починили по твоим репортам', en: 'Fixed from your reports' },
-  thanksForReports:      { ru: 'Спасибо — без этих сообщений мы бы про такое не узнали', en: 'Thank you — without these messages we would never have known' },
+  // Благодарность стоит ПЕРВОЙ строкой блока. Раньше она была последней — и на
+  // телефоне уезжала за край экрана: человек видел свою цитату и сухое «сделали
+  // то-то», а «спасибо» не видел вообще (скрин от Вали, v1.170).
+  thanksForReports:      { ru: 'Благодарим за твои сообщения — вот что мы по ним сделали', en: 'Thank you for your messages — here is what we did about them' },
   andMoreFixed: { ru: '…и ещё {n} по твоим прошлым репортам', en: '…and {n} more from your earlier reports' },
   voiceRecord:     { ru: '🎤 Записать голосом', en: '🎤 Record a voice note' },
   voiceStop:       { ru: 'Стоп', en: 'Stop' },

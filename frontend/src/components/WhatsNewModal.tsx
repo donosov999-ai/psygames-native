@@ -68,6 +68,11 @@ export default function WhatsNewModal() {
                 <Text style={[styles.mineTitle, { color: colors.primary }]}>
                   {'\u270D\uFE0F  '}{t('fixedByYourReport')}
                 </Text>
+                {/* \u0411\u043B\u0430\u0433\u043E\u0434\u0430\u0440\u043D\u043E\u0441\u0442\u044C \u2014 \u0441\u0440\u0430\u0437\u0443 \u043F\u043E\u0434 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u043E\u043C, \u0434\u043E \u0446\u0438\u0442\u0430\u0442. \u0412\u043D\u0438\u0437\u0443 \u0431\u043B\u043E\u043A\u0430 \u043E\u043D\u0430
+                    \u0443\u0435\u0437\u0436\u0430\u043B\u0430 \u0437\u0430 \u043A\u0440\u0430\u0439 \u044D\u043A\u0440\u0430\u043D\u0430, \u0438 \u0447\u0435\u043B\u043E\u0432\u0435\u043A \u0435\u0451 \u043D\u0435 \u0432\u0438\u0434\u0435\u043B (\u0441\u043A\u0440\u0438\u043D \u043E\u0442 \u0412\u0430\u043B\u0438). */}
+                <Text style={[styles.mineIntro, { color: colors.textSecondary }]}>
+                  {t('thanksForReports')}
+                </Text>
                 {mine.slice(0, 5).map((r) => (
                   <View key={r.id} style={styles.mineRow}>
                     <Text style={[styles.mineQuote, { color: colors.textSecondary }]} numberOfLines={3}>
@@ -83,9 +88,6 @@ export default function WhatsNewModal() {
                     {t('andMoreFixed').replace('{n}', String(mine.length - 5))}
                   </Text>
                 )}
-                <Text style={[styles.mineThanks, { color: colors.textSecondary }]}>
-                  {t('thanksForReports')}
-                </Text>
               </View>
             )}
           </ScrollView>
@@ -114,4 +116,5 @@ const styles = StyleSheet.create({
   mineQuote: { fontSize: 12.5, lineHeight: 17, fontStyle: 'italic' },
   mineFix: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
   mineThanks: { fontSize: 12, lineHeight: 16, marginTop: 2 },
+  mineIntro: { fontSize: 12.5, lineHeight: 17, marginTop: 4, marginBottom: 8 },
 });
