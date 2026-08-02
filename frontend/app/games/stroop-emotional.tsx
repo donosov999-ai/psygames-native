@@ -37,6 +37,10 @@ const BOSS_EVERY = 3;
 
 const COLORS_RGB = ['red', 'green', 'blue', 'yellow'];
 const COLOR_HEX: Record<string, string> = { red: '#ef4444', green: '#22c55e', blue: '#3b82f6', yellow: '#eab308' };
+// Режим для дальтоников: палитра Okabe-Ito (та же, что в WCST). В этой игре цвет
+// и есть ответ — при неразличимых красном и зелёном она просто непроходима
+// («переключатель Colorblind ни на что не влияет» — репорт Rulon, v1.171).
+const COLOR_HEX_CB: Record<string, string> = { red: '#d55e00', green: '#009e73', blue: '#0072b2', yellow: '#f0e442' };
 
 interface WordSet { ru: string[]; en: string[]; }
 const WORDS: Record<Valence, WordSet> = {
@@ -85,7 +89,8 @@ function makeTrial(lang: 'ru' | 'en', emotionalRatio: number): Trial {
 }
 
 export default function StroopEmotionalGame() {
-  const { colors } = useTheme();
+  const { colors, colorblind } = useTheme();
+  const HEX = colorblind ? COLOR_HEX_CB : COLOR_HEX;
   const { t, language } = useLanguage() as any;
   const router = useRouter();
 
@@ -312,7 +317,7 @@ export default function StroopEmotionalGame() {
           <View style={styles.choiceGrid}>
             {COLORS_RGB.map((c) => (
               <TouchableOpacity
-                accessibilityRole="button" key={c} style={[styles.colorBtn, { backgroundColor: COLOR_HEX[c] }]} onPress={() => handleAnswer(c)}>
+                accessibilityRole="button" key={c} style={[styles.colorBtn, { backgroundColor: HEX[c] }]} onPress={() => handleAnswer(c)}>
                 <Text style={styles.colorBtnText}>{t('color_'+c)}</Text>
               </TouchableOpacity>
             ))}
@@ -323,7 +328,7 @@ export default function StroopEmotionalGame() {
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('stroop2Hint')}</Text>
           <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
             {showStim ? (
-              <Text style={{ color: COLOR_HEX[trial.color], fontSize: 44, fontWeight: '900', letterSpacing: 2 }}>
+              <Text style={{ color: HEX[trial.color], fontSize: 44, fontWeight: '900', letterSpacing: 2 }}>
                 {trial.word}
               </Text>
             ) : (

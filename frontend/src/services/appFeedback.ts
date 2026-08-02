@@ -32,6 +32,17 @@ export const FEEDBACK_ENABLED = true;
  *  показывает оверлей и перехватывает тапы, чтобы не проиграть вслепую. */
 export const GAME_PAUSE_EVENT = 'psygames-game-pause';
 
+/**
+ * Открыть окно отзыва снаружи виджета.
+ *
+ * Нужно потому, что плавающая кнопка репорта — обычный слой, а окно правил это
+ * Modal: пока правила открыты, кнопка накрыта и до неё не дотянуться (репорт
+ * Rulon голосом, v1.171). Возиться с z-порядком двух модалок дороже и хрупче,
+ * чем дать правилам собственную точку входа: событие, на которое виджет
+ * открывается сам.
+ */
+export const FEEDBACK_OPEN_EVENT = 'psygames-feedback-open';
+
 /** v1.125.0: пользовательская галочка «Чат с разработчиками» в настройках.
  *  Тестировщик может СКРЫТЬ плавающую кнопку, если она мешает (репорт
  *  «кнопка мешается в игре»). По умолчанию видна. Ключ '0' = скрыта. */
@@ -160,6 +171,28 @@ export interface SendResult {
   audioLost: boolean;
 }
 
+/**
+ * Ограничить ожидание. Ни у одной загрузки тайм-аута не было, а вложения весят
+ * мегабайты: на слабой связи спиннер «Отправка…» висел бесконечно и человек не
+ * знал, что делать («подвисает на стадии отправки» — репорт тестировщика,
+ * v1.170). Лучше отдать репорт без вложения и честно сказать об этом, чем
+ * держать человека у неподвижного экрана.
+ */
+function withTimeout<T>(p: PromiseLike<T>, ms: number, onTimeout: T): Promise<T> {
+  return new Promise<T>((resolve) => {
+    let done = false;
+    const settle = (v: T) => { if (!done) { done = true; clearTimeout(t); resolve(v); } };
+    const t = setTimeout(() => settle(onTimeout), ms);
+    // PromiseLike, а не Promise: билдер запроса Supabase — thenable без .catch,
+    // поэтому обработчик отказа передаём вторым аргументом then.
+    p.then((v) => settle(v), () => settle(onTimeout));
+  });
+}
+
+const SHOT_UPLOAD_MS = 12000;
+const AUDIO_UPLOAD_MS = 25000;   // запись до 3 минут — ей нужно больше
+const INSERT_MS = 12000;
+
 export async function sendFeedback(args: SendArgs): Promise<SendResult> {
   const hadAudio = !!args.audio?.blob;
   try {
@@ -177,10 +210,13 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
     if (args.shot) {
       try {
         const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.jpg`;
-        const { error } = await supabase.storage
-          .from(SHOT_BUCKET)
-          .upload(name, args.shot, { contentType: 'image/jpeg', upsert: false });
-        if (!error) shot_path = name;
+        const ok = await withTimeout(
+          supabase.storage.from(SHOT_BUCKET)
+            .upload(name, args.shot, { contentType: 'image/jpeg', upsert: false })
+            .then(({ error }: any) => !error),
+          SHOT_UPLOAD_MS, false,
+        );
+        if (ok) shot_path = name;
       } catch {}
     }
 
@@ -193,10 +229,13 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
       try {
         const { extFor } = await import('@/src/services/voiceNote');
         const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.${extFor(args.audio.mime)}`;
-        const { error } = await supabase.storage
-          .from(AUDIO_BUCKET)
-          .upload(name, args.audio.blob, { contentType: args.audio.mime, upsert: false });
-        if (!error) audio_path = name;
+        const ok = await withTimeout(
+          supabase.storage.from(AUDIO_BUCKET)
+            .upload(name, args.audio.blob, { contentType: args.audio.mime, upsert: false })
+            .then(({ error }: any) => !error),
+          AUDIO_UPLOAD_MS, false,
+        );
+        if (ok) audio_path = name;
       } catch {}
     }
 
@@ -218,8 +257,11 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
         ...(args.audio ? { audio_seconds: args.audio.seconds } : null),
       },
     };
-    const { error } = await supabase.from('app_feedback').insert(row);
-    if (error) {
+    const insertFailed = await withTimeout(
+      supabase.from('app_feedback').insert(row).then(({ error }: any) => !!error),
+      INSERT_MS, true,   // не ответили вовремя — считаем недоставленным и кладём в очередь
+    );
+    if (insertFailed) {
       await queueFeedback(row);
       // Запись уже в хранилище и путь уехал в очередь вместе со строкой —
       // с точки зрения человека голос не потерян, просто ждёт связи.

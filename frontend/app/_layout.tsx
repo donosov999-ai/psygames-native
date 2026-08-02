@@ -6,6 +6,7 @@ import { LanguageProvider, useLanguage } from '@/src/contexts/LanguageContext';
 import { applyRTL, isRTLLang } from '@/src/services/rtl';
 import { WarmupProvider, useWarmup } from '@/src/contexts/WarmupContext';
 import { Platform } from 'react-native';
+import { vibrate } from '@/src/services/feedback';
 import * as Notifications from 'expo-notifications';
 import { ProfileProvider } from '@/src/contexts/ProfileContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -54,6 +55,28 @@ function RootLayoutNav() {
   const { language } = useLanguage();
   const rtl = isRTLLang(language);
   React.useEffect(() => { applyRTL(language); }, [language]);
+
+  /**
+   * Отклик на нажатие кнопок — одним слушателем на весь документ.
+   *
+   * Просьба Rulon голосом (v1.171): «стоит добавить вибрацию на нажатие кнопки».
+   * Расставлять вызов по местам нажатий бессмысленно — их сотни в 62 играх, и
+   * половину неизбежно забудешь. Android-сборка это WebView, RN Web рисует
+   * тачаблы как элементы с role="button", поэтому одна подписка на click
+   * покрывает всё приложение сразу и ничего не требует от новых экранов.
+   *
+   * Именно click, а НЕ pointerdown: click не стреляет на прокрутке и свайпах —
+   * иначе телефон дрожал бы при каждом пролистывании списка.
+   */
+  React.useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const onTap = (e: Event) => {
+      const el = e.target as HTMLElement | null;
+      if (el?.closest?.('[role="button"],[role="switch"],[role="tab"],button')) vibrate(12);
+    };
+    document.addEventListener('click', onTap, true);
+    return () => document.removeEventListener('click', onTap, true);
+  }, []);
 
   return (
     <>

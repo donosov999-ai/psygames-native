@@ -128,7 +128,19 @@ function beep(frequency: number, duration_ms: number, volume: number = 0.1) {
   } catch {}
 }
 
-function vibrate(pattern: number | number[]) {
+/**
+ * Вибрация. Экспортирована с v1.175: тем же путём теперь ходит `juice/haptics`,
+ * где раньше стоял гард `Platform.OS === 'web' → return` — а Android-сборка это
+ * Tauri, то есть WebView, и для React Native она ровно `web`. Из-за этого вся
+ * ветка juice молчала именно на телефонах («вибрацию включил, но её не было»),
+ * хотя вот этот путь — через fbCorrect/fbWrong — работал.
+ *
+ * Настройку спрашиваем ЗДЕСЬ, а не у каждого вызывающего: соседние fb*-функции
+ * проверяют `_hapticEnabled` сами, и это ровно та развилка, на которой один
+ * новый вызов однажды забудут проверить. Двойная проверка безвредна.
+ */
+export function vibrate(pattern: number | number[]) {
+  if (!_hapticEnabled) return;
   try {
     if (Platform.OS === 'web') {
       const nav = (typeof navigator !== 'undefined') ? (navigator as any) : null;
@@ -138,6 +150,9 @@ function vibrate(pattern: number | number[]) {
     }
   } catch {}
 }
+
+/** Включена ли вибрация — синхронно, для гарда в хаптик-обёртках. */
+export function hapticEnabledNow(): boolean { return _hapticEnabled; }
 
 // ─── public API ────────────────────────────────────────────────────────
 

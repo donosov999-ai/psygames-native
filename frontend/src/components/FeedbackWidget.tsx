@@ -20,7 +20,7 @@ import {
   ActivityIndicator, ScrollView, DeviceEventEmitter,
 } from 'react-native';
 import { DEVCHAT_VISIBLE_EVENT } from '@/src/services/pet';
-import { GAME_PAUSE_EVENT } from '@/src/services/appFeedback';
+import { GAME_PAUSE_EVENT, FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname } from 'expo-router';
@@ -136,6 +136,21 @@ export default function FeedbackWidget() {
     setOpen(true);
     DeviceEventEmitter.emit(GAME_PAUSE_EVENT, true);   // игра на паузу, пока пишут отзыв
   };
+
+  /**
+   * Открытие снаружи: из окна правил, которое накрывает плавающую кнопку собой.
+   *
+   * Через ref, а не прямым захватом openSheet: подписка живёт одна на всё время
+   * жизни виджета, а openSheet читает текущий экран, игру и уровень. Захвати мы
+   * его напрямую с пустыми зависимостями — репорт уезжал бы с данными первого
+   * рендера, то есть с чужой игрой и чужим уровнем.
+   */
+  const openSheetRef = React.useRef(openSheet);
+  openSheetRef.current = openSheet;
+  React.useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(FEEDBACK_OPEN_EVENT, () => { openSheetRef.current(); });
+    return () => sub.remove();
+  }, []);
 
   const submit = async () => {
     // Голосом БЕЗ текста — полноценный репорт: ради этого запись и делали.

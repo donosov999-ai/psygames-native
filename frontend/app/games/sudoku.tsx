@@ -669,8 +669,15 @@ export default function SudokuGame() {
               {mode === 'killer' && cages && cageAnchors[cages[r][c]] === r * N + c && (
                 <Text style={{ position: 'absolute', top: 1, left: 2, fontSize: Math.max(8, Math.round(cellSize * 0.27)), fontWeight: '800', color: colors.text }}>{cageSums[cages[r][c]]}</Text>
               )}
+              {/* В «чётное/нечётное» клетка залита меткой-кружком/квадратом, и
+                  декоративная цифра-картинка поверх тонировки читается как
+                  выцветшая («после тридцатого уровня цифра становится прозрачной,
+                  надо чтобы была тоже чёрной» — репорт Вали, v1.169). На таких
+                  клетках рисуем цифру обычным текстом цветом текста темы: контраст
+                  важнее единообразия начертания. */}
               {v !== 0 && (
-                (isSel || wrongVal || digitMode === 'plain') ? (
+                (isSel || wrongVal || digitMode === 'plain'
+                  || (variant === 'evenodd' && parityMarks && parityMarks[r][c] !== 0)) ? (
                   <Text style={{ color: isSel ? '#FFF' : wrongVal ? '#b91c1c' : colors.text, fontWeight: '700', fontSize: Math.round(cellSize * 0.52) }}>{v}</Text>
                 ) : (
                   <Image source={DIGIT_IMG[v]} accessibilityLabel={String(v)}

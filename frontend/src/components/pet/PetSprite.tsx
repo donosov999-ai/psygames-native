@@ -231,15 +231,34 @@ export default function PetSprite({ state, size = 56, skin = 'cat', accessory = 
     return () => clearInterval(t);
   }, [state, skin, frames.length]);
 
+  /**
+   * Все кадры лежат стопкой, анимация — переключение видимости.
+   *
+   * Раньше здесь была ОДНА картинка, которой подменяли source по таймеру. На
+   * нативе это гасит `fadeDuration={0}`, а в вебе — нет: Chromium на смену src
+   * показывает пустой кадр, пока декодирует новый файл. Android-сборка у нас
+   * это WebView, поэтому питомец на телефоне подмигивал и «исчезал на мгновение»
+   * (репорт тестировщика, v1.170). Смонтированные картинки уже декодированы,
+   * переключение opacity ничего не подгружает — мигать нечему.
+   *
+   * Кадров в состоянии 2-4 штуки, так что стопка ничего не стоит по памяти.
+   */
   return (
     <View style={{ width: size, height: size }}>
-      <Image
-        {...a11yDecor}
-        source={frames[frame % frames.length]}
-        style={{ width: size, height: size }}
-        resizeMode="contain"
-        fadeDuration={0}
-      />
+      {frames.map((src, i) => (
+        <Image
+          key={i}
+          {...a11yDecor}
+          source={src}
+          style={{
+            width: size, height: size,
+            ...(i === 0 ? null : { position: 'absolute', top: 0, left: 0 }),
+            opacity: i === frame % frames.length ? 1 : 0,
+          }}
+          resizeMode="contain"
+          fadeDuration={0}
+        />
+      ))}
       {accessory && <AccessoryOverlay kind={accessory} size={size} skin={skin} />}
     </View>
   );
