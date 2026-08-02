@@ -130,7 +130,11 @@ export default function FeedbackWidget() {
     }
     setLevel(lvl);
     setKind('confusion');
-    setText('');
+    // Текст НЕ чистим при открытии — только после успешной отправки.
+    // «Начал писать — решил посмотреть экран — вернулся, а поле пустое»: репорт
+    // с v1.121. Человек закрывает окно именно чтобы свериться с тем, на что
+    // жалуется, и терять из-за этого написанное — ровно то поведение, из-за
+    // которого перестают писать вообще.
     setAttachShot(true);
     setSent(false);
     setOpen(true);
@@ -183,6 +187,8 @@ export default function FeedbackWidget() {
     if (res.ok || res.queued) {
       setOutcome(res);
       setSent(true);
+      setText('');   // единственное место, где черновик стирается — после доставки
+      setNote(null);
       // Дольше 1.3 с: тут теперь есть что прочитать, а не один значок.
       // Закрыть можно и раньше — крестик остаётся на месте.
       setTimeout(() => { setOpen(false); setShot(null); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }, 3200);
