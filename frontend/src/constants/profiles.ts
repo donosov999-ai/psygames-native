@@ -323,11 +323,11 @@ const NZT48: ProfileDef = {
 const FREE: ProfileDef = {
   id: 'free',
   person: 'Гость',           // generic visitor identifier in cognitive_sessions.person
-  display_name: 'FREE',
+  display_name: 'Стандарт',
   emoji: '🎁',
   color: '#f59e0b',
-  description: '9 тренажёров бесплатно · попробуй и оцени',
-  long_description: 'Стартовый набор без кода. По одному тренажёру из каждой категории: Шульте (внимание), Парные картинки (память), Мишени (реакция), Математический спринт + Считалка, Поиск отличий, Анаграммы, Ханойская башня, N-back (рабочая память — облегчённая). Тематические профили открываются кодом доступа.',
+  description: '9 тренажёров · подобранный набор для старта',
+  long_description: 'Набор для старта, без кода. По одному тренажёру из каждой категории: Шульте (внимание), Парные картинки (память), Мишени (реакция), Математический спринт + Считалка, Поиск отличий, Анаграммы, Ханойская башня, N-back (рабочая память — облегчённая). Девять — это осознанный размер: полный каталог в первый день не помогает, а отпугивает. Остальные профили — такие же подборки под конкретную задачу, открываются кодом.',
   long_description_en: 'The starter set — no code needed. One trainer from each category: Schulte tables (attention), Picture Pairs (memory), Targets (reaction), Math Sprint + Counter, Spot the Difference, Anagrams, Tower of Hanoi, N-back (working memory — light version). Themed profiles unlock with an access code.',
   audience: 'Знакомство с приложением',
   audience_en: 'First look at the app',

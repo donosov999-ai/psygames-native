@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.173.0',
+    date: '2026-08-02',
+    ru: [
+      'Блок «Починили по твоим репортам» теперь начинается с благодарности, а не заканчивается ею — раньше её было не видно',
+      'Профиль FREE называется «Стандарт»: девять тренажёров — это подобранный набор для старта, а не урезанная проба',
+    ],
+    en: [
+      'The “Fixed from your reports” block now opens with a thank-you instead of ending with one — it used to be off-screen',
+      'The FREE profile is now “Standard”: nine trainers are a curated starting set, not a cut-down trial',
+    ],
+  },
+  {
     version: '1.172.0',
     date: '2026-08-02',
     ru: [
