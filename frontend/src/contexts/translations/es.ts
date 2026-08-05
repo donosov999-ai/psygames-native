@@ -1383,6 +1383,7 @@ const t: Record<string, string> = {
   "brTech424Desc": "Ritmo inicial sencillo",
   "brTechWim": "Método Wim Hof",
   "brTechWimDesc": "Energía. Solo sentado o acostado",
+  "brGetReady": "Ponte cómodo",
   "brInhale": "Inhala",
   "brExhale": "Exhala",
   "brHold": "Mantenlo",

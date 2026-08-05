@@ -227,6 +227,7 @@ const t: Record<string, string> = {
   "brTech424Desc": "シンプルな入門リズム",
   "brTechWim": "ヴィム・ホフ・メソッド",
   "brTechWimDesc": "活力アップ。必ず座るか横になって行う",
+  "brGetReady": "楽な姿勢になって",
   "brInhale": "吸う",
   "brExhale": "吐く",
   "brHold": "息を止める",

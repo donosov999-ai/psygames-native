@@ -238,7 +238,8 @@ const DAY_STEPS: PlaylistStep[] = [
  * дыхание 4-7-8, где выдох вдвое длиннее вдоха.
  */
 const NIGHT_STEPS: PlaylistStep[] = [
-  { game_id: 'breathing', game_route: '/games/breathing', difficulty: 'easy', settings: { tech: 'calm478' }, est_duration_sec: 120 },
+  // dim=1 → приглушённая палитра экрана: ночью яркий градиент бодрит.
+  { game_id: 'breathing', game_route: '/games/breathing', difficulty: 'easy', settings: { tech: 'calm478', dim: 1 }, est_duration_sec: 120 },
 ];
 
 /** Дневной перерыв. Фиксированный, от дня недели не зависит. */

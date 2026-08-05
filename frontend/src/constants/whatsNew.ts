@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.181.0',
+    date: '2026-08-03',
+    ru: [
+      'Экран больше не гаснет посреди дыхательной сессии',
+      'Вдох, задержка и выдох звучат по-разному — упражнение можно делать с закрытыми глазами',
+      'Перед первым вдохом три секунды на «устройся поудобнее»',
+      'Ночью экран дыхания приглушён — яркий свет в три часа не помогает уснуть',
+    ],
+    en: [
+      'The screen no longer sleeps in the middle of a breathing session',
+      'Inhale, hold and exhale sound different — you can do the exercise with your eyes closed',
+      'Three seconds to get comfortable before the first inhale',
+      'At night the breathing screen is dimmed — bright light at 3am does not help you sleep',
+    ],
+  },
+  {
     version: '1.180.0',
     date: '2026-08-03',
     ru: [

@@ -61,7 +61,7 @@ export default function WarmupPicker() {
 
   // Предвыбор по часам. Считаем ОДИН раз при открытии: если человек сидит на
   // экране в 17:59, переключать выбор у него под пальцем нельзя.
-  const [picked, setPicked] = React.useState<WarmupSlot>(() => currentSlot());
+  const [picked, setPickedRaw] = React.useState<WarmupSlot>(() => currentSlot());
   const [helpOpen, setHelpOpen] = React.useState(false);
 
   const wd = getCurrentWeekday();
@@ -88,7 +88,21 @@ export default function WarmupPicker() {
     }
   }, [wd, profile]);
 
+  // Пустой набор — не выбор. Среда у нас день отдыха, и утренний плейлист в этот
+  // день пуст; предвыбранное по часам «Утро» показывало бы «0 игр», а «Начать»
+  // уводило бы сразу на экран завершения. Пустые слоты гасим и не даём выбрать,
+  // а предвыбор при необходимости сдвигаем на ближайший непустой.
+  const isEmpty = React.useCallback((slot: WarmupSlot) => metaFor(slot).steps.length === 0, [metaFor]);
+  const setPicked = (slot: WarmupSlot) => { if (!isEmpty(slot)) setPickedRaw(slot); };
+
+  React.useEffect(() => {
+    if (!isEmpty(picked)) return;
+    const fallback = ORDER.find((sl) => !isEmpty(sl));
+    if (fallback) setPickedRaw(fallback);
+  }, [picked, isEmpty]);
+
   const launch = () => {
+    if (isEmpty(picked)) return;   // страховка: кнопка и так заблокирована
     switch (picked) {
       case 'day':     warmup.startDay(); break;
       case 'night':   warmup.startNight(); break;
@@ -114,6 +128,7 @@ export default function WarmupPicker() {
         {ORDER.map((slot) => {
           const on = picked === slot;
           const meta = metaFor(slot);
+          const empty = meta.steps.length === 0;
           const mins = Math.max(1, Math.round(meta.est_total_sec / 60));
           return (
             <TouchableOpacity
@@ -122,8 +137,10 @@ export default function WarmupPicker() {
               accessibilityState={{ selected: on }}
               accessibilityLabel={`${t('slot' + slot.charAt(0).toUpperCase() + slot.slice(1))}. ${t('slot' + slot.charAt(0).toUpperCase() + slot.slice(1) + 'Desc')}`}
               onPress={() => setPicked(slot)}
+              disabled={empty}
               activeOpacity={0.85}
               style={[styles.card, {
+                opacity: empty ? 0.45 : 1,
                 backgroundColor: colors.surface,
                 borderColor: on ? TINT[slot][0] : colors.border,
                 borderWidth: on ? 2 : 1,
@@ -140,7 +157,7 @@ export default function WarmupPicker() {
                   {t('slot' + slot.charAt(0).toUpperCase() + slot.slice(1) + 'Desc')}
                 </Text>
                 <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-                  {meta.steps.length} {t('unitGames')} · ~{mins} {t('unitMin')}
+                  {empty ? t('restDay') : `${meta.steps.length} ${t('unitGames')} · ~${mins} ${t('unitMin')}`}
                 </Text>
                 {/* Пишем это на самой карточке, а не мелким шрифтом внизу экрана:
                     человек должен понимать до запуска, что стрик тут не растёт. */}
@@ -170,7 +187,11 @@ export default function WarmupPicker() {
         <TouchableOpacity
           {...a11yBtn(t('start'))}
           onPress={launch}
-          style={[styles.startBtn, { backgroundColor: TINT[picked][0] }]}
+          disabled={metaFor(picked).steps.length === 0}
+          style={[styles.startBtn, {
+            backgroundColor: TINT[picked][0],
+            opacity: metaFor(picked).steps.length === 0 ? 0.5 : 1,
+          }]}
         >
           <Ionicons name="play" size={18} color="#fff" />
           <Text style={styles.startText}>{t('start')}</Text>

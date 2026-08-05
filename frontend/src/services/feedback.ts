@@ -194,6 +194,48 @@ export function fbAchievement() {
 
 // ─── ЗВУК-ОНЛИ (хаптик в juice/haptics отдельно) + новые события (v1.58) ──
 // Подключены к существующему флагу psygames_sound_enabled (тумблер «Звук» в настройках).
+/**
+ * Сигналы смены фазы дыхания — РАЗНЫЕ для вдоха, задержки и выдоха.
+ *
+ * ЗАЧЕМ. До v1.181 на любую смену фазы шёл один и тот же `sndTap` + одна и та
+ * же вибрация. Дыхательные практики делают с закрытыми глазами — и с закрытыми
+ * глазами понять, что именно началось, было нельзя: экран показывал, звук молчал
+ * об этом. Теперь тон сам говорит, что делать: вверх — вдох, вниз — выдох,
+ * ровно и тихо — задержка. Тогда упражнение можно вести на слух, не глядя.
+ *
+ * Вибрация различается так же: короткий импульс на вдох, двойной на задержку,
+ * длинный на выдох. Это дублирует звук для тех, кто выключил громкость.
+ */
+function glide(from: number, to: number, ms: number, volume: number) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const [waveRaw, pitchRaw] = (_soundPack || 'sine').split(':');
+    const mult = pitchRaw ? parseFloat(pitchRaw) : 1;
+    const k = Number.isFinite(mult) && mult > 0 ? mult : 1;
+    osc.type = (waveRaw || 'sine') as OscillatorType;
+    const t0 = ctx.currentTime;
+    const dur = Math.max(0.08, ms / 1000);
+    osc.frequency.setValueAtTime(from * k, t0);
+    osc.frequency.exponentialRampToValueAtTime(to * k, t0 + dur);
+    const v = Math.max(0.0001, volume * MASTER_GAIN);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(v, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.05);
+  } catch {}
+}
+
+/** Вдох: тон идёт вверх — как наполнение. */
+export function sndBreathIn()   { if (_soundEnabled) glide(330, 550, 320, 0.07); vibrate(18); }
+/** Задержка: ровный тихий тон, ничего не происходит. */
+export function sndBreathHold() { if (_soundEnabled) beep(440, 130, 0.045); vibrate([14, 90, 14]); }
+/** Выдох: тон идёт вниз, длиннее — на нём и расслабляются. */
+export function sndBreathOut()  { if (_soundEnabled) glide(520, 300, 420, 0.07); vibrate(60); }
+
 export function sndTap()     { if (_soundEnabled) beep(660, 45, 0.05); }
 export function sndCorrect() { if (_soundEnabled) beep(880, 85, 0.09); }
 export function sndWrong()   { if (_soundEnabled) beep(220, 180, 0.11); }

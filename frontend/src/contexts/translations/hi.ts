@@ -1386,6 +1386,7 @@ const t: Record<string, string> = {
   "brTech424Desc": "सरल शुरुआती लय",
   "brTechWim": "विम हॉफ विधि",
   "brTechWimDesc": "ऊर्जा। केवल बैठकर या लेटकर करें",
+  "brGetReady": "आराम से बैठ जाइए",
   "brInhale": "साँस अंदर लें",
   "brExhale": "साँस बाहर छोड़ें",
   "brHold": "रोकें",
