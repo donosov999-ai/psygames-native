@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import {
   PlaylistMeta, PlaylistStep,
   buildMorningWarmupPlaylist, buildFinancialBatteryPlaylist, buildAssessmentPlaylist,
-  buildFixedPlaylist, buildEveningWarmupPlaylist, stepToParams,
+  buildFixedPlaylist, buildEveningWarmupPlaylist, buildDayPlaylist, buildNightPlaylist, stepToParams,
   getCurrentWeekday, todayDateKey,
   saveWarmupHistory, WarmupHistoryEntry, Weekday,
 } from '@/src/services/warmup';
@@ -34,6 +34,8 @@ interface WarmupCtx extends WarmupState {
   currentStep: PlaylistStep | null;
   startWarmup: (duration: 5 | 10 | 15) => void;
   startEvening: () => void;              // v1.23 — вечерний комплекс (перед сном)
+  startDay: () => void;                  // v1.179 — дневной перерыв
+  startNight: () => void;                // v1.179 — «Не спится»: НЕ тренировка, вне стрика
   startFinancialBattery: () => void;     // D1 — Iowa+BART+PRL session
   startAssessment: () => void;            // G1 — 12-domain skill assessment
   recordResult: (r: StepResult) => Promise<void>;
@@ -118,6 +120,31 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0]) } as any);
     }
   }, [router, profile]);
+
+  /**
+   * Дневной перерыв и «Не спится». Оба набора фиксированные, от профиля и дня
+   * недели не зависят, поэтому строятся проще утра и вечера.
+   *
+   * sessionTag у ночи 'manual', а не 'warmup': она не тренировка и не должна
+   * попадать в статистику комплексов и двигать стрик (решение Дениса 02.08).
+   */
+  const startSlotPlaylist = useCallback((meta: PlaylistMeta) => {
+    const warmupId = genUUID();
+    setState({
+      active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],
+      warmupId, sessionTag: meta.slot === 'night' ? 'manual' : 'warmup',
+    });
+    if (meta.steps.length === 0) router.replace('/warmup-complete' as any);
+    else router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0]) } as any);
+  }, [router]);
+
+  const startDay = useCallback(() => {
+    startSlotPlaylist(buildDayPlaylist(getCurrentWeekday()));
+  }, [startSlotPlaylist]);
+
+  const startNight = useCallback(() => {
+    startSlotPlaylist(buildNightPlaylist(getCurrentWeekday()));
+  }, [startSlotPlaylist]);
 
   const startFinancialBattery = useCallback(() => {
     const meta = buildFinancialBatteryPlaylist();
@@ -263,7 +290,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   }, [stopWarmup, router]);
 
   return (
-    <Ctx.Provider value={{ ...state, currentStep, startWarmup, startEvening, startFinancialBattery, startAssessment, recordResult, advanceToNext, skipCurrent, stopWarmup }}>
+    <Ctx.Provider value={{ ...state, currentStep, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startAssessment, recordResult, advanceToNext, skipCurrent, stopWarmup }}>
       {children}
     </Ctx.Provider>
   );

@@ -32,6 +32,7 @@ import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '
 import { filterAllowedGames } from '@/src/constants/profiles';
 import {
   buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
+  currentSlot, WarmupSlot,
   getFinancialCooldown, FINANCIAL_COOLDOWN_DAYS,
 } from '@/src/services/warmup';
 import { getAssessmentStatus } from '@/src/services/assessment';
@@ -55,6 +56,14 @@ const GRID_GAP = 12;
 // Вместо полного каталога — компактный лендинг (игра дня + CTA «Скачать приложение»).
 // IS_WEB_DEMO — build-time константа (инлайнится при экспорте), ветка статична:
 // FullHome в демо не монтируется вовсе (включая онбординг-гейт psygames_onboarded).
+/** Палитра кнопки «Зарядка» по времени суток — совпадает с экраном выбора. */
+const SLOT_TINT: Record<WarmupSlot, [string, string]> = {
+  morning: ['#f7b733', '#fc4a1a'],
+  day:     ['#43cea2', '#185a9d'],
+  evening: ['#7b4397', '#dc2430'],
+  night:   ['#2c3e50', '#4ca1af'],
+};
+
 export default function HomeScreen() {
   if (IS_WEB_DEMO) return <DemoLanding />;
   return <FullHome />;
@@ -102,6 +111,11 @@ function FullHome() {
     getPetSkin().then(setPetSkinState).catch(() => {});
   }, []));
   const todayChallenge = useMemo(() => getTodayChallenge(), []);   // ротация игр — детерминировано по дате
+
+  // Время суток для подписи кнопки «Зарядка». Считаем один раз на монтирование:
+  // перерисовывать подпись под пальцем, когда часы перевалили за 18:00, незачем —
+  // экран и так пересоздаётся при возврате на главную.
+  const slotNow: WarmupSlot = useMemo(() => currentSlot(), []);
   const prevTokensRef = useRef<number | null>(null);
   const prevLevelRef = useRef<number | null>(null);
   useFocusEffect(useCallback(() => {
@@ -403,9 +417,41 @@ function FullHome() {
         contentContainerStyle={styles.gamesContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* v1.130.0: «Гимнастика для глаз» + «Вызов дня» — ОДНИМ рядом 50/50 (запрос Дениса:
-            две полноширинные карточки ели слишком много вертикали). Обе в hero-формате. */}
+        {/* v1.179: ряд ПРАКТИК — Зарядка · Глаза · Дыхание.
+            Зарядка теперь ОДНА кнопка вместо двух («Утренняя» + «Вечерний комплекс»):
+            подпись меняется по времени суток, выбор набора — на своём экране. За счёт
+            освободившегося слота сюда переехало Дыхание, которого на главной не было
+            вовсе (замысел Дениса 02.08). Три карточки — предел: на 360-412pt это
+            103-120pt каждая, четвёртая ужимает до 74-88pt и текст перестаёт влезать. */}
         <View style={styles.heroRow}>
+          {/* 🏃 Зарядка — подпись по часам, набор выбирается на /warmup-picker */}
+          {profile.warmup_enabled && (
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.heroCardWrap}
+            onPress={() => router.push('/warmup-picker' as any)} activeOpacity={0.85}>
+            <LinearGradient colors={SLOT_TINT[slotNow]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+              <View style={styles.heroTopRow}>
+                <Image source={FEATURE_ICONS.warmup} style={{ width: 30, height: 30, borderRadius: 8 }} />
+                {streak > 0 && (
+                  <View style={styles.heroChipMini}>
+                    <Text style={styles.heroChipMiniText}>🔥{streak}</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>
+                {t('slot' + slotNow.charAt(0).toUpperCase() + slotNow.slice(1))}
+              </Text>
+              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
+                {t('slot' + slotNow.charAt(0).toUpperCase() + slotNow.slice(1) + 'Desc')}
+              </Text>
+              <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
+                <Ionicons name="play" size={14} color="#FFF" />
+                <Text style={[styles.heroCtaText, { color: '#FFF' }]}>{t('ctaStart')}</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+          )}
+
           {/* 👁 Быстрый перерыв для глаз */}
           <TouchableOpacity
             accessibilityRole="button" style={styles.heroCardWrap} onPress={() => router.push('/games/eye-gym' as any)} activeOpacity={0.85}>
@@ -422,6 +468,31 @@ function FullHome() {
             </LinearGradient>
           </TouchableOpacity>
 
+          {/* 🌬 Дыхание — самостоятельное упражнение, а не только финал вечернего
+              набора: в комплексе оно остаётся третьим шагом (решение Дениса 03.08). */}
+          <TouchableOpacity
+            accessibilityRole="button" style={styles.heroCardWrap}
+            onPress={() => router.push('/games/breathing' as any)} activeOpacity={0.85}>
+            <LinearGradient colors={['#5b86e5', '#36d1dc']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+              <View style={styles.heroTopRow}>
+                <Ionicons name="leaf-outline" size={26} color="#FFF" />
+              </View>
+              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>{t('breathing')}</Text>
+              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>{t('breathingDesc')}</Text>
+              <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
+                <Ionicons name="play" size={14} color="#FFF" />
+                <Text style={[styles.heroCtaText, { color: '#FFF' }]}>{t('ctaStart')}</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+
+        {/* === 3 HERO CARDS in a row (compact) === (each gated by profile) */}
+        <View style={styles.heroRow}>
+
+          {/* v1.179: «Утренняя зарядка» и «Вечерний комплекс» отсюда УБРАНЫ —
+              они схлопнуты в одну кнопку «Зарядка» в ряду практик выше, набор
+              выбирается на /warmup-picker. Здесь остались испытания и замеры. */}
           {/* 🎯 Ежедневный вызов — ротация игр, детерминировано по дате */}
           <TouchableOpacity
             accessibilityRole="button" style={styles.heroCardWrap} onPress={startDailyChallenge} activeOpacity={0.85}>
@@ -448,78 +519,6 @@ function FullHome() {
               </View>
             </LinearGradient>
           </TouchableOpacity>
-        </View>
-
-        {/* === 3 HERO CARDS in a row (compact) === (each gated by profile) */}
-        {(profile.warmup_enabled || profile.assessment_enabled || profile.financial_brain_day_enabled) && (
-        <View style={styles.heroRow}>
-
-          {/* CARD 1: Утренняя зарядка */}
-          {profile.warmup_enabled && (
-          <TouchableOpacity
-            accessibilityRole="button"
-            style={styles.heroCardWrap}
-            onPress={isRest ? undefined : startWarmup}
-            disabled={isRest}
-            activeOpacity={0.85}
-          >
-            <LinearGradient
-              colors={isMeasurement ? ['#ee0979', '#ff6a00'] : isRest ? ['#475569', '#64748b'] : ['#fbbf24', '#f59e0b']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={styles.heroCard}
-            >
-              <View style={styles.heroTopRow}>
-                <Image source={FEATURE_ICONS.warmup} style={{ width: 30, height: 30, borderRadius: 8 }} />
-                {streak > 0 && (
-                  <View style={styles.heroChipMini}>
-                    <Text style={styles.heroChipMiniText}>🔥{streak}</Text>
-                  </View>
-                )}
-              </View>
-              <Text style={[styles.heroTitle, { color: isRest ? '#FFF' : '#000' }]} numberOfLines={2}>{t('complexWarmup')}</Text>
-              <Text style={[styles.heroSub, { color: isRest ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)' }]} numberOfLines={3}>
-                {isRest
-                  ? t('restDay')
-                  : `${todayPreview.steps.length} ${todayPreview.steps.length === 1 ? t('unitGame') : t('unitGames')} · ~${Math.round(todayPreview.est_total_sec / 60)} ${t('unitMin')}`}
-              </Text>
-              {!isRest && (
-                <View style={styles.heroCta}>
-                  <Ionicons name="play" size={14} color="#fbbf24" />
-                  <Text style={styles.heroCtaText}>{t('ctaStart')}</Text>
-                </View>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
-          )}
-
-          {/* CARD 1b: Вечерний комплекс (перед сном) — v1.23 */}
-          {profile.warmup_enabled && (profile.evening_enabled || (profile.evening_playlist?.length ?? 0) > 0) && (
-          <TouchableOpacity
-            accessibilityRole="button"
-            style={styles.heroCardWrap}
-            onPress={() => warmup.startEvening()}
-            activeOpacity={0.85}
-          >
-            <LinearGradient
-              colors={['#6366f1', '#4338ca']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={styles.heroCard}
-            >
-              <View style={styles.heroTopRow}>
-                <Image source={FEATURE_ICONS.night} style={{ width: 30, height: 30, borderRadius: 8 }} />
-              </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>{t('complexEvening')}</Text>
-              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
-                {eveningMeta.steps.length} {t('unitGames')} · ~{Math.round(eveningMeta.est_total_sec / 60)} {t('unitMin')} · {t('calm')}
-              </Text>
-              <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
-                <Ionicons name="play" size={14} color="#818cf8" />
-                <Text style={[styles.heroCtaText, { color: '#818cf8' }]}>{t('ctaStart')}</Text>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-          )}
-
           {/* CARD 2: Assessment (профиль) */}
           {profile.assessment_enabled && (
           <TouchableOpacity
@@ -608,7 +607,6 @@ function FullHome() {
           )}
 
         </View>
-        )}
 
         {/* === Manual category sections === */}
         {CATEGORY_ORDER.map((cat) => {

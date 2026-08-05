@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.179.0',
+    date: '2026-08-03',
+    ru: [
+      'Зарядка — одна кнопка вместо двух: подпись меняется по времени суток, а набор выбирается на своём экране',
+      'Появились дневной перерыв и ночное «Не спится» — только дыхание, без очков и без стрика',
+      'Дыхание вынесено на главную отдельной кнопкой и осталось шагом вечернего набора',
+      'В «Числовых парах» справка объясняет, как играть, а не только зачем',
+      'На экране питомца подписано, что ряд картинок — это его внешность, а не другие персонажи',
+    ],
+    en: [
+      'One workout button instead of two: the label follows the time of day, the set is chosen on its own screen',
+      'Added a daytime break and a night “Can’t sleep” — breathing only, no points, no streak',
+      'Breathing is now its own button on the home screen and still a step of the evening set',
+      'Number Bonds help explains how to play, not just why',
+      'The pet screen now says the row of pictures is how he looks, not other characters',
+    ],
+  },
+  {
     version: '1.178.0',
     date: '2026-08-02',
     ru: [

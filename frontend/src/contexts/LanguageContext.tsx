@@ -528,6 +528,24 @@ const translations: Translations = {
   
   // Game UI
   start: { ru: 'Начать', en: 'Start' },
+
+  // ─── Зарядка по времени суток (v1.179) ───────────────────────────────────
+  // Одна кнопка вместо двух: подпись меняется по часам, по тапу открывается
+  // выбор, где нужный набор уже выбран, но доступны и остальные. Границы часов
+  // согласованы с Денисом: 5-12 · 12-18 · 18-00 · 00-05.
+  warmupPickerTitle: { ru: 'Зарядка', en: 'Workout' },
+  warmupPickerHint:  { ru: 'Выбрано по времени суток — можно взять любой другой', en: 'Picked by time of day — you can take any other' },
+  slotMorning:      { ru: 'Утренняя', en: 'Morning' },
+  slotDay:          { ru: 'Дневная', en: 'Daytime' },
+  slotEvening:      { ru: 'Вечерняя', en: 'Evening' },
+  // Не «Ночная тренировка»: человек открывает это, потому что не может заснуть,
+  // и обещать ему тренировку было бы обманом (решение Дениса 02.08).
+  slotNight:        { ru: 'Не спится', en: 'Can’t sleep' },
+  slotMorningDesc:  { ru: 'Разогнать голову на день', en: 'Get your head going for the day' },
+  slotDayDesc:      { ru: 'Короткий перерыв в работе', en: 'A short break from work' },
+  slotEveningDesc:  { ru: 'Спокойные игры и дыхание', en: 'Calm games and breathing' },
+  slotNightDesc:    { ru: 'Только дыхание, без счёта и таймера', en: 'Just breathing — no score, no timer' },
+  slotNightNote:    { ru: 'Это не тренировка: очки не начисляются и стрик не растёт', en: 'Not a workout: no points, no streak' },
   restart: { ru: 'Заново', en: 'Restart' },
   back: { ru: 'Назад', en: 'Back' },
   time: { ru: 'Время', en: 'Time' },
@@ -715,9 +733,13 @@ const translations: Translations = {
     ru: 'На экране появится стрелка ←, → , ↑ или ↓. Нажмите кнопку соответствующего направления как можно быстрее. Тренирует скорость выбора и точность моторных реакций.',
     en: 'An arrow ←, →, ↑ or ↓ appears. Tap the matching direction button as fast as you can. Trains choice speed and motor accuracy.'
   },
+  // Справка описывала ЦЕЛЬ, но не механику: сколько кружков брать, как снять
+  // ошибочный выбор, надо ли что-то нажимать в конце и что за счётчик сверху —
+  // ничего этого не было. Репорт Вали с этого экрана: «слишком сложно».
+  // Игра нормальная, непонятны были правила. Числа сверены с levelParams.
   numberBondsIntroDesc: {
-    ru: 'Дано целевое число и набор кружков с числами. Выберите кружки, дающие в сумме цель. Тренирует устный счёт, гибкость арифметического мышления и поиск комбинаций.',
-    en: 'Given a target and a pool of numbered chips. Pick chips that sum to the target. Trains mental arithmetic, flexible numeracy and combination search.'
+    ru: 'Сверху — целевое число. Нажимайте кружки, чтобы набрать из них ровно эту сумму: на первых уровнях хватает двух-трёх, дальше слагаемых больше. Нажали лишний — тапните по нему ещё раз, он снимется; «Сбросить» очищает всё. Набрали — жмите «Проверить». На каждую задачу есть время, счётчик идёт сверху: не уложились или ошиблись с суммой — это ошибка, на уровень их допускается две. Тренирует устный счёт и поиск комбинаций.',
+    en: 'The target number is at the top. Tap chips to make exactly that sum: two or three are enough at first, more later on. Tapped a wrong one — tap it again to remove it; “Reset” clears everything. Once the sum is right, press “Check”. Each puzzle is timed — the counter runs at the top: running out or getting the sum wrong counts as an error, and two are allowed per level. Trains mental arithmetic and combination search.'
   },
   setGameIntroDesc: {
     ru: 'Каждая карточка имеет 4 признака: цвет, форма, штриховка, количество. Найдите тройку, где каждый признак либо одинаков на всех трёх, либо разный на всех трёх. Тренирует визуальную логику.',
@@ -1402,6 +1424,12 @@ const translations: Translations = {
 
   // Pet (Синапс)
   petName: { ru: 'Синапс', en: 'Synapse' },
+  // Ряд скинов стоял вообще без подписи: четыре карточки с чужими именами
+  // («Нейро-кот», «Нейрон», «Робот») и никакой связи с самим питомцем.
+  // Репорт Вали: «не могу понять, кто такой Синапс — в списке он называется
+  // по-другому». Заголовок называет ряд тем, что он есть: это ВНЕШНОСТЬ, а не
+  // другие существа. {name} — имя питомца, его можно переименовать.
+  petSkinSectionTitle: { ru: 'Как выглядит {name}', en: 'How {name} looks' },
   petGrowsHint: { ru: 'Растёт после каждой завершённой тренировки', en: 'Grows with every completed training' },
   petSkillLogic: { ru: 'Логика', en: 'Logic' },     // короткая форма (catLogic — длинное название категории)
   petSkillSpeed: { ru: 'Скорость', en: 'Speed' },
