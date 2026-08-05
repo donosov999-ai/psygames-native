@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.180.0',
+    date: '2026-08-03',
+    ru: [
+      'У каждой техники дыхания своя фигура: квадрат, треугольник или круг — по ней точка и бежит',
+      'Вдох теперь идёт вверх, задержка видна как движение по стороне, выдох — вниз',
+      'В выборе техники видно её фигуру, настоящее название и ритм отдельной строкой',
+    ],
+    en: [
+      'Each breathing technique has its own shape — square, triangle or circle — and the dot travels along it',
+      'The inhale now goes upward, the hold reads as movement along a side, the exhale goes down',
+      'The technique list shows the shape, the real name and the rhythm on its own line',
+    ],
+  },
+  {
     version: '1.179.0',
     date: '2026-08-03',
     ru: [
