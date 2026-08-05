@@ -32,7 +32,7 @@
 
 | | |
 |---|---|
-| **Репо (единственный источник)** | `donosov999-ai/psygames-native` (private) |
+| **Репо (единственный источник)** | `donosov999-ai/psygames-native` — 🔴 **ПУБЛИЧНЫЙ** (значилось «private» — ошибка, проверено 03.08) |
 | **Рабочая копия** | `~/dev/psygames` (реальная папка). `~/Downloads/Code claude/psygames` — **симлинк** на неё, не отдельный клон → рассинхрона быть не может |
 | **Стек** | Expo Router + React Native 0.85 + react-native-web; Tauri 2 для десктопа |
 | **Веб-деплой** | `psy-games.pro/play` (авто из CI, baseUrl `/psygames-web`) + `/downloads` |

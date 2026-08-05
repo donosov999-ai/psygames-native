@@ -95,7 +95,8 @@ Each build:
 
 Keystore: `psygames-release.jks` (RSA 4096, valid until ~2126).
 - ⚠ The actual `.jks` file is **NOT in this repo** — only base64-encoded in GitHub Secrets
-- Backup of the file is kept in `~/Downloads/psygames-keys/psygames-release.jks` on the build machine
+- Its local backup path is deliberately **not documented here**: this repository is public.
+  Maintainers: see the private infrastructure notes.
 - **Same keystore must be reused for all future versions** — otherwise Android won't accept the update (signature mismatch)
 
 GitHub Secrets used by Android job:

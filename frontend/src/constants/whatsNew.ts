@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.183.0',
+    date: '2026-08-03',
+    ru: ['Аксессуары питомца садятся на место на всех трёх обликах — колпак на макушку, бант на шею, очки на глаза'],
+    en: ['Pet accessories now sit correctly on all three looks — hat on the head, bow on the neck, glasses on the eyes'],
+  },
+  {
     version: '1.182.0',
     date: '2026-08-03',
     ru: [
