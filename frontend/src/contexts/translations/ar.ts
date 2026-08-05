@@ -227,6 +227,7 @@ const t: Record<string, string> = {
   "brTech424Desc": "إيقاع بسيط للبداية",
   "brTechWim": "طريقة ويم هوف",
   "brTechWimDesc": "طاقة. جالسًا أو مستلقيًا فقط",
+  "brGetReady": "اجلس بشكل مريح",
   "brInhale": "شهيق",
   "brExhale": "زفير",
   "brHold": "احبس",

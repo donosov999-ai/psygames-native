@@ -1383,6 +1383,7 @@ const t: Record<string, string> = {
   "brTech424Desc": "简单入门节奏",
   "brTechWim": "维姆·霍夫呼吸法",
   "brTechWimDesc": "激发能量。仅限坐位或卧位",
+  "brGetReady": "找个舒服的姿势",
   "brInhale": "吸气",
   "brExhale": "呼气",
   "brHold": "屏气",

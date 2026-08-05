@@ -227,6 +227,7 @@ const t: Record<string, string> = {
   "brTech424Desc": "간단한 입문 리듬",
   "brTechWim": "빔 호프 호흡법",
   "brTechWimDesc": "활력 회복 · 앉거나 누워서만",
+  "brGetReady": "편한 자세를 취하세요",
   "brInhale": "들숨",
   "brExhale": "날숨",
   "brHold": "숨 참기",

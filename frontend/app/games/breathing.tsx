@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import BreathShape from '@/src/components/breath/BreathShape';
+import { useKeepAwake } from '@/src/hooks/useKeepAwake';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,9 +17,12 @@ import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { hapticMedium } from '@/src/components/juice/haptics';
-import { sndTap } from '@/src/services/feedback';
+import { sndTap, sndBreathIn, sndBreathHold, sndBreathOut } from '@/src/services/feedback';
 
-const GRADIENT = ['#5b86e5', '#36d1dc'];   // спокойный сине-бирюзовый (отлично от eye-gym)
+const GRADIENT_DAY = ['#5b86e5', '#36d1dc'];   // спокойный сине-бирюзовый (отлично от eye-gym)
+// Ночной вид для сценария «Не спится»: человек открыл это, потому что не может
+// заснуть, и яркий экран в три часа ночи работает против задачи. Приглушаем.
+const GRADIENT_NIGHT = ['#2c3e50', '#4ca1af'];
 const BREATH_BENEFITS = [
   { icon: 'heart-outline',   textKey: 'benefitBreath1' },
   { icon: 'moon-outline',    textKey: 'benefitBreath2' },
@@ -95,7 +99,10 @@ export default function BreathingGame() {
   const { profile } = useProfile();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset, str } = useGamePreset();
+  const { isPreset, str, bool } = useGamePreset();
+  // dim=1 приходит шагом ночного набора (см. NIGHT_STEPS в warmup.ts).
+  const dim = bool('dim');
+  const GRADIENT = dim ? GRADIENT_NIGHT : GRADIENT_DAY;
   const warmup = useWarmup();
   useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -106,6 +113,10 @@ export default function BreathingGame() {
   const [cycles, setCycles] = useState(6);
   const [timeMin, setTimeMin] = useState(3);
   const [elapsed, setElapsed] = useState(0);
+  // Отсчёт перед первым вдохом. Раньше сессия стартовала мгновенно: человек
+  // ещё устраивался, а вдох уже шёл, и первый цикл всегда пропадал.
+  const [leadIn, setLeadIn] = useState(0);
+  const leadTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [streak, setStreak] = useState(0);
   const [totalSessions, setTotalSessions] = useState(0);
 
@@ -119,6 +130,9 @@ export default function BreathingGame() {
   const lastPhaseRef = useRef<string>('');   // для вибро/звука на смену фазы
   const wimTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Экран не гаснет, пока идёт упражнение: касаний тут нет по 3-5 минут.
+  useKeepAwake(phase === 'breathing');
+
   const tech = TECHNIQUES.find((x) => x.key === techKey) || TECHNIQUES[0];
   const cycleDur = tech.phases.reduce((a, p) => a + p.sec, 0) || 1;
   const totalDur = format === 'cycles' ? cycles * cycleDur : timeMin * 60;
@@ -131,6 +145,7 @@ export default function BreathingGame() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (wimTimerRef.current) clearInterval(wimTimerRef.current);
+      if (leadTimerRef.current) clearInterval(leadTimerRef.current);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -163,6 +178,23 @@ export default function BreathingGame() {
     setElapsed(0);
     lastPhaseRef.current = '';
     setPhase('breathing');
+    setLeadIn(3);
+    // Три секунды на «сядь и выдохни». Основной таймер стартует ПОСЛЕ отсчёта,
+    // иначе первый вдох уходит в никуда.
+    leadTimerRef.current = setInterval(() => {
+      setLeadIn((n) => {
+        if (n <= 1) {
+          if (leadTimerRef.current) clearInterval(leadTimerRef.current);
+          runCycle();
+          return 0;
+        }
+        sndTap();
+        return n - 1;
+      });
+    }, 1000);
+  };
+
+  const runCycle = () => {
     const start = Date.now();
     timerRef.current = setInterval(() => {
       const tt = (Date.now() - start) / 1000;
@@ -174,6 +206,7 @@ export default function BreathingGame() {
   const finish = async (label?: string) => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (wimTimerRef.current) clearInterval(wimTimerRef.current);
+    if (leadTimerRef.current) clearInterval(leadTimerRef.current);
     setPhase('done');
     bumpStreak();
     try {
@@ -209,14 +242,18 @@ export default function BreathingGame() {
 
   // вибро + звук на смену фазы (во время рендера breathing-фазы)
   useEffect(() => {
-    if (phase !== 'breathing') return;
+    if (phase !== 'breathing' || leadIn > 0) return;   // во время отсчёта фаз ещё нет
     const id = `${phaseIdx}-${cycleNow}`;
     if (id !== lastPhaseRef.current) {
       lastPhaseRef.current = id;
-      hapticMedium();
-      sndTap();
+      // Сигнал зависит от ФАЗЫ: вдох — тон вверх, выдох — вниз, задержка — ровно.
+      // Раньше на все три шёл один и тот же щелчок, и с закрытыми глазами понять,
+      // что началось, было нельзя — а дыхание именно так и делают.
+      if (curPhase.type === 'inhale') sndBreathIn();
+      else if (curPhase.type === 'exhale') sndBreathOut();
+      else sndBreathHold();
     }
-  }, [phaseIdx, cycleNow, phase]);
+  }, [phaseIdx, cycleNow, phase, curPhase.type, leadIn]);
 
   const phaseLabel = (p: PhaseType) =>
     p === 'inhale' ? t('brInhale') : p === 'exhale' ? t('brExhale') : t('brHold');
@@ -494,8 +531,17 @@ export default function BreathingGame() {
                   backgroundColor: GRADIENT[0], opacity: 0.18, position: 'absolute',
                 }} />
                 <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={[styles.phaseText, { color: colors.text }]}>{phaseLabel(curPhase.type)}</Text>
-                  <Text style={[styles.phaseCount, { color: GRADIENT[0] }]}>{phaseRemain}</Text>
+                  {leadIn > 0 ? (
+                    <>
+                      <Text style={[styles.phaseText, { color: colors.textSecondary }]}>{t('brGetReady')}</Text>
+                      <Text style={[styles.phaseCount, { color: GRADIENT[0] }]}>{leadIn}</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={[styles.phaseText, { color: colors.text }]}>{phaseLabel(curPhase.type)}</Text>
+                      <Text style={[styles.phaseCount, { color: GRADIENT[0] }]}>{phaseRemain}</Text>
+                    </>
+                  )}
                 </View>
               </BreathShape>
             </View>

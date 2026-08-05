@@ -390,6 +390,7 @@ const translations: Translations = {
   brTech424Desc: { ru: 'Простой ритм для старта', en: 'Simple starter rhythm' },
   brTechWim: { ru: 'Метод Вима Хофа', en: 'Wim Hof method' },
   brTechWimDesc: { ru: 'Энергия. Только сидя или лёжа', en: 'Energy. Sitting or lying only' },
+  brGetReady: { ru: 'Устройся поудобнее', en: 'Get comfortable' },
   brInhale: { ru: 'Вдох', en: 'Inhale' },
   brExhale: { ru: 'Выдох', en: 'Exhale' },
   brHold: { ru: 'Задержка', en: 'Hold' },
