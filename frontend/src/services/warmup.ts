@@ -119,7 +119,12 @@ const FIXED_BATTERY: PlaylistStep[] = [
 ];
 
 // PER-WEEKDAY TRAINING playlists (5-min default), tuned per the agreed schedule.
-// СР is a REST day (Brain Workshop slot externally), so empty playlist.
+//
+// ⚠️ НАВЯЗАННЫХ ДНЕЙ ОТДЫХА НЕТ — зарядка идёт КАЖДЫЙ день (решение Дениса 03.08).
+// До v1.182 среда была пустой: в самом первом коммите её отвели под Brain Workshop,
+// внешнюю программу, которой пользуется Денис. Это личный график, а он утёк в общее
+// расписание — и профиль НЗТ-48, у которого своего утреннего набора нет, получал
+// по средам пустоту и подпись «Brain Workshop день» про незнакомую ему программу.
 const TRAINING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
   // ПН — мягкий вход после выходных
   1: [
@@ -136,8 +141,16 @@ const TRAINING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
     { game_id: 'posner',         game_route: '/games/posner',          difficulty: 'medium', trials: 20,    est_duration_sec: 90 },
     { game_id: 'sdmt',           game_route: '/games/sdmt',            difficulty: 'medium', mode: '60s',   est_duration_sec: 70 },
   ],
-  // СР — rest day (Brain Workshop)
-  3: [],
+  // СР — рабочая память. В неделе она иначе НЕ тренируется: n-back, corsi и
+  // digit span стоят только в замерах ЧТ/ВС, то есть их меряют, но не качают.
+  // Среда между ними — естественное место. Плюс анаграммы: вербальное во всей
+  // неделе тоже было только по субботам.
+  3: [
+    { game_id: 'n_back',      game_route: '/games/n-back',      difficulty: 'easy', trials: 20, mode: '1-back', est_duration_sec: 90 },
+    { game_id: 'corsi',       game_route: '/games/corsi',       difficulty: 'easy',                              est_duration_sec: 90 },
+    { game_id: 'digit_span',  game_route: '/games/digit-span',  difficulty: 'easy', mode: 'forward',             est_duration_sec: 90 },
+    { game_id: 'anagrams',    game_route: '/games/anagrams',    difficulty: 'easy',                              est_duration_sec: 90 },
+  ],
   // ЧТ — PEAK MEASUREMENT (after BOOST)
   4: FIXED_BATTERY,
   // ПТ — Inhibition Stack (D3) + Mental Rotation (2× из 3×/нед для слабого места)
@@ -296,7 +309,7 @@ const TRACK_LABEL: Record<string, string> = {
   training:           'тренировка',
   'measure-peak':     'ЗАМЕР · PEAK (после стека)',
   'measure-baseline': 'ЗАМЕР · BASELINE (до стека)',
-  rest:               'отдых (Brain Workshop)',
+  rest:               'без нагрузки',
   'financial-battery':'FINANCIAL · vmPFC чекап',
   'assessment':       'ОЦЕНКА ПРОФИЛЯ · 12 доменов',
 };
@@ -304,7 +317,7 @@ const TRACK_LABEL: Record<string, string> = {
 function getTrack(weekday: Weekday): PlaylistMeta['track'] {
   if (weekday === 4) return 'measure-peak';
   if (weekday === 0) return 'measure-baseline';
-  if (weekday === 3) return 'rest';
+  // среда больше не выходной — см. комментарий к TRAINING_BY_WEEKDAY
   return 'training';
 }
 

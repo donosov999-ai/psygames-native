@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.182.0',
+    date: '2026-08-03',
+    ru: [
+      'Зарядка есть каждый день — по средам она больше не пустует',
+      'Среда закрывает рабочую память: n-back, Корси, ряды цифр и анаграммы',
+    ],
+    en: [
+      'A workout every day — Wednesday is no longer empty',
+      'Wednesday covers working memory: n-back, Corsi, digit span and anagrams',
+    ],
+  },
+  {
     version: '1.181.0',
     date: '2026-08-03',
     ru: [

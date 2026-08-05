@@ -8,7 +8,7 @@ const t: Record<string, string> = {
   "complexWarmup": "الإحماء",
   "complexEvening": "قبل النوم",
   "complexAssessment": "التقييم",
-  "restDay": "يوم ورشة الدماغ",
+  "restDay": "لا توجد مجموعة اليوم",
   "ctaStart": "ابدأ",
   "ctaRepeat": "كرّر",
   "ctaWait": "انتظر",
