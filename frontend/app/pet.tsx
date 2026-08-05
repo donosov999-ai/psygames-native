@@ -227,6 +227,14 @@ export default function PetScreen() {
           <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{t('needMoreTokens')}</Text>
         )}
 
+        {/* Подпись над рядом. Без неё это четыре карточки с чужими именами
+            («Нейро-кот», «Нейрон», «Робот») и ни намёка, что все они — один и тот
+            же питомец в разном виде. Репорт Вали: «не могу понять, кто такой
+            Синапс, в списке он называется по-другому». Имя подставляем текущее:
+            питомца можно переименовать, и тогда «Синапс» в подписи только запутает. */}
+        <Text style={[styles.skinSectionTitle, { color: colors.textSecondary }]}>
+          {t('petSkinSectionTitle').replace('{name}', shownName)}
+        </Text>
         {/* Выбор скина: кот/робот/Нейрон или «Авто» — эволюция по стадии.
             Прокрутка обязательна: четыре карточки по 96pt с отступами дают ~414pt,
             а на экране 360pt это не помещается — раньше ряд просто обрезался, и
@@ -356,7 +364,8 @@ const styles = StyleSheet.create({
   stageHint: { fontSize: 12.5, textAlign: 'center' },
   // flexGrow+center: когда карточки влезают целиком (планшет, альбомная), ряд
   // стоит по центру, а не жмётся к левому краю.
-  skinScroll: { marginTop: 12, alignSelf: 'stretch' },
+  skinSectionTitle: { fontSize: 12.5, fontWeight: '700', marginTop: 14, alignSelf: 'center' },
+  skinScroll: { marginTop: 6, alignSelf: 'stretch' },
   skinRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 4, flexGrow: 1, justifyContent: 'center' },
   skinCard: { borderRadius: 15, paddingVertical: 8, paddingHorizontal: 14, alignItems: 'center', minWidth: 96 },
   skinThumb: { width: 52, height: 52 },

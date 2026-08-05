@@ -27,6 +27,37 @@ export interface PlaylistStep {
   is_fixed_baseline?: boolean; // marker for ЧТ peak / ВС baseline trials
 }
 
+/**
+ * Время суток, под которое подбирается набор. Одна кнопка «Зарядка» на главной
+ * меняет по нему подпись и предвыбор (решение Дениса 02.08).
+ *
+ * `night` — намеренно НЕ тренировка: человек открывает её потому, что не спится,
+ * и счёт с таймером его разбудят. Отсюда у неё нет стрика, очков и итогового
+ * экрана; см. `isTrainingSlot` ниже и `ROADMAP.md`.
+ */
+export type WarmupSlot = 'morning' | 'day' | 'evening' | 'night';
+
+/** Границы согласованы с Денисом 02.08: 5-12 · 12-18 · 18-00 · 00-05. */
+export function slotForHour(hour: number): WarmupSlot {
+  if (hour >= 5 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 18) return 'day';
+  if (hour >= 18) return 'evening';
+  return 'night';                       // 00:00-04:59
+}
+
+/** Текущий слот. Отдельной функцией — чтобы тесты могли подставить свой час. */
+export function currentSlot(date: Date = new Date()): WarmupSlot {
+  return slotForHour(date.getHours());
+}
+
+/**
+ * Пишет ли этот набор результат как тренировку. Ночь — нет: она не должна
+ * двигать стрик и счётчик дней, иначе «не спится» превратится в обязанность.
+ */
+export function isTrainingSlot(slot: WarmupSlot): boolean {
+  return slot !== 'night';
+}
+
 export interface PlaylistMeta {
   duration_min: number;
   weekday: Weekday;
@@ -35,7 +66,7 @@ export interface PlaylistMeta {
   track_label: string;
   steps: PlaylistStep[];
   est_total_sec: number;
-  slot?: 'morning' | 'evening';   // утренняя зарядка vs вечерний комплекс (перед сном)
+  slot?: WarmupSlot;              // время суток: утро / день / вечер / «не спится»
 }
 
 /**
@@ -180,6 +211,58 @@ const EVENING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
 
 // Вечерний комплекс с РОТАЦИЕЙ по дню + дедуп против утра того же дня (утро≠вечер).
 // profileEvening (если профиль задал свой фикс-вечер) имеет приоритет над ротацией.
+/**
+ * ДНЕВНОЙ набор — перерыв в работе, а не тренировка «на максимум».
+ *
+ * Контекст: послеобеденный провал, человек оторвался от дел на пару минут.
+ * Задача — сбить залипание и вернуть фокус, поэтому коротко и без разгона:
+ * Шульте будит поиск, фланкер — избирательное внимание, гимнастика для глаз
+ * закрывает буквальную причину усталости, если человек весь день в экране.
+ *
+ * Ротации по дням недели здесь НЕТ намеренно (решение 02.08): у утра и вечера
+ * она оправдана ежедневностью, а перерыв берут нерегулярно — разнообразия никто
+ * не заметит, зато плейлистов стало бы вдвое больше.
+ */
+const DAY_STEPS: PlaylistStep[] = [
+  { game_id: 'schulte_table', game_route: '/games/schulte',  difficulty: 'easy', est_duration_sec: 60 },
+  { game_id: 'flanker',       game_route: '/games/flanker',  difficulty: 'easy', settings: { trials: 20 }, est_duration_sec: 60 },
+  { game_id: 'eye_gym',       game_route: '/games/eye-gym',  difficulty: 'easy', est_duration_sec: 60 },
+];
+
+/**
+ * НОЧНОЙ набор — «Не спится». НЕ тренировка, согласовано с Денисом 02.08.
+ *
+ * Человек открывает это, потому что не может заснуть. Всё, что бодрит — счёт,
+ * таймер, стрик, итоговый экран с очками — работает против задачи, поэтому
+ * ночь исключена из тренировочной механики (`isTrainingSlot`). Состав один:
+ * дыхание 4-7-8, где выдох вдвое длиннее вдоха.
+ */
+const NIGHT_STEPS: PlaylistStep[] = [
+  { game_id: 'breathing', game_route: '/games/breathing', difficulty: 'easy', settings: { tech: 'calm478' }, est_duration_sec: 120 },
+];
+
+/** Дневной перерыв. Фиксированный, от дня недели не зависит. */
+export function buildDayPlaylist(weekday: Weekday): PlaylistMeta {
+  const steps = DAY_STEPS.map((s) => ({ ...s }));
+  return {
+    duration_min: Math.max(1, Math.round(sumDuration(steps) / 60)),
+    weekday, weekday_name: WEEKDAY_NAMES[weekday],
+    track: 'training', track_label: 'перерыв',
+    steps, est_total_sec: sumDuration(steps), slot: 'day',
+  };
+}
+
+/** «Не спится». Один шаг, вне тренировочной механики. */
+export function buildNightPlaylist(weekday: Weekday): PlaylistMeta {
+  const steps = NIGHT_STEPS.map((s) => ({ ...s }));
+  return {
+    duration_min: Math.max(1, Math.round(sumDuration(steps) / 60)),
+    weekday, weekday_name: WEEKDAY_NAMES[weekday],
+    track: 'rest', track_label: 'не спится',
+    steps, est_total_sec: sumDuration(steps), slot: 'night',
+  };
+}
+
 export function buildEveningWarmupPlaylist(opts: {
   weekday: Weekday;
   excludeGameIds?: string[];          // id игр утреннего комплекса сегодня — не повторять вечером
