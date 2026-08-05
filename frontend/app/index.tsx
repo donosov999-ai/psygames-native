@@ -232,7 +232,8 @@ function FullHome() {
     router.push({ pathname: todayChallenge.game.route, params: challengeToParams(todayChallenge) } as any);
   };
 
-  const isRest = todayPreview.track === 'rest';
+  // isRest убран в v1.182: навязанных дней отдыха нет, среда стала тренировочной,
+  // а утренняя карточка схлопнута в общую кнопку «Зарядка».
   const isMeasurement = todayPreview.track.startsWith('measure');
 
   return (

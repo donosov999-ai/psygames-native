@@ -501,7 +501,7 @@ const t: Record<string, string> = {
   "complexWarmup": "AQUECIMENTO",
   "complexEvening": "ANTES DE DORMIR",
   "complexAssessment": "AVALIAÇÃO",
-  "restDay": "Dia de Brain Workshop",
+  "restDay": "Hoje não há série",
   "ctaStart": "INICIAR",
   "ctaRepeat": "REPETIR",
   "ctaWait": "AGUARDE",

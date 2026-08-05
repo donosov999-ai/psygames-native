@@ -71,7 +71,7 @@ const translations: Translations = {
   complexWarmup: { ru: 'ЗАРЯДКА', en: 'WARM-UP' },
   complexEvening: { ru: 'ПЕРЕД СНОМ', en: 'BEFORE SLEEP' },
   complexAssessment: { ru: 'ОЦЕНКА', en: 'ASSESSMENT' },
-  restDay: { ru: 'Brain Workshop день', en: 'Brain Workshop day' },
+  restDay: { ru: 'Сегодня набора нет', en: 'No set today' },
   ctaStart: { ru: 'СТАРТ', en: 'START' },
   ctaRepeat: { ru: 'ПОВТОР', en: 'REPEAT' },
   ctaWait: { ru: 'ЖДЁМ', en: 'WAIT' },
