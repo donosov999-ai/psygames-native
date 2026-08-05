@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollVi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
+import BreathShape from '@/src/components/breath/BreathShape';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -74,6 +75,18 @@ const CYCLE_OPTIONS = [4, 6, 10];
 const TIME_OPTIONS = [1, 3, 5];   // минуты
 const WIM_BREATHS = 30;           // быстрых вдохов в раунде
 const WIM_ROUNDS = 3;
+
+
+/**
+ * Ритм техники строкой: «4-7-8», «5.5-5.5». Считаем ИЗ ФАЗ, а не храним текстом —
+ * иначе подпись однажды разойдётся с реальными таймингами и будет врать.
+ * Названия техник теперь без цифр (задача Дениса 02.08): человек выбирает по
+ * задаче — «успокоиться», «уснуть», — а ритм ему нужен второй строкой, справочно.
+ */
+function rhythmOf(tech: Technique): string {
+  if (!tech.phases.length) return '';
+  return tech.phases.map((p) => (Number.isInteger(p.sec) ? String(p.sec) : p.sec.toFixed(1))).join('-');
+}
 
 export default function BreathingGame() {
   const { colors } = useTheme();
@@ -260,10 +273,30 @@ export default function BreathingGame() {
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
             onPress={() => setTechKey(x.key)}>
+            {/* Мини-фигура на карточке: квадрат / треугольник / круг видно ДО запуска,
+                и техники перестают быть одинаковыми строчками текста. Рисуем тем же
+                компонентом, что и в сессии, — форма не разойдётся с настоящей. */}
+            <View style={{ width: 40, height: 40, marginRight: 10 }}>
+              <BreathShape
+                phases={x.phases}
+                phaseIdx={0}
+                local={0}
+                size={40}
+                colors={techKey === x.key ? ['#FFFFFF', '#FFFFFF'] : [GRADIENT[0], GRADIENT[1]]}
+              />
+            </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.techName, { color: techKey === x.key ? '#FFF' : colors.text }]}>
-                {t(x.nameKey)}{x.special === 'wimhof' ? '  ⚠️' : ''}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <Text style={[styles.techName, { color: techKey === x.key ? '#FFF' : colors.text }]}>
+                  {t(x.nameKey)}{x.special === 'wimhof' ? '  ⚠️' : ''}
+                </Text>
+                {/* Ритм — второй, мелким: он справка, а не название техники. */}
+                {!!rhythmOf(x) && (
+                  <Text style={[styles.techRhythm, { color: techKey === x.key ? 'rgba(255,255,255,0.8)' : colors.textSecondary }]}>
+                    {rhythmOf(x)}
+                  </Text>
+                )}
+              </View>
               <Text style={[styles.techDesc, { color: techKey === x.key ? 'rgba(255,255,255,0.85)' : colors.textSecondary }]}>
                 {t(x.descKey)}
               </Text>
@@ -443,19 +476,28 @@ export default function BreathingGame() {
           </View>
         ) : (
           <View style={styles.fieldCol}>
+            {/* Форма зависит от техники: квадрат на 4 фазы, треугольник на 3,
+                круг на 2. Раньше все семь техник рисовались одним пульсирующим
+                кругом, и метод по картинке не читался вовсе (задача Дениса 02.08).
+                Внутри фигуры — дышащий круг: он остаётся, потому что показывает
+                наполнение лёгких, чего контур не передаёт. */}
             <View style={styles.circleWrap}>
-              <View style={{
-                width: size, height: size, borderRadius: size / 2,
-                backgroundColor: GRADIENT[0], opacity: 0.18,
-                position: 'absolute',
-              }} />
-              <View style={{
-                width: size * 0.72, height: size * 0.72, borderRadius: size * 0.36,
-                borderWidth: 3, borderColor: GRADIENT[1], alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Text style={[styles.phaseText, { color: colors.text }]}>{phaseLabel(curPhase.type)}</Text>
-                <Text style={[styles.phaseCount, { color: GRADIENT[0] }]}>{phaseRemain}</Text>
-              </View>
+              <BreathShape
+                phases={tech.phases}
+                phaseIdx={phaseIdx}
+                local={local}
+                size={circleMax}
+                colors={[GRADIENT[0], GRADIENT[1]]}
+              >
+                <View style={{
+                  width: size * 0.62, height: size * 0.62, borderRadius: size * 0.31,
+                  backgroundColor: GRADIENT[0], opacity: 0.18, position: 'absolute',
+                }} />
+                <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={[styles.phaseText, { color: colors.text }]}>{phaseLabel(curPhase.type)}</Text>
+                  <Text style={[styles.phaseCount, { color: GRADIENT[0] }]}>{phaseRemain}</Text>
+                </View>
+              </BreathShape>
             </View>
             {/* v1.164 (репорт Вали «выдох слишком длинный, вдох короткий»): асимметрия
                 в 4-7-8 намеренная — длинный выдох и есть то, что тормозит пульс. Раньше
@@ -530,6 +572,7 @@ const styles = StyleSheet.create({
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   techRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 10, gap: 8 },
   techName: { fontSize: 15, fontWeight: '700' },
+  techRhythm: { fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
   techDesc: { fontSize: 12, marginTop: 2 },
   warnText: { fontSize: 14, lineHeight: 21 },
   startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 4 },
