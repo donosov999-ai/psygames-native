@@ -152,7 +152,7 @@ export default function PhonemePairsGame() {
   const lvl = usePersistentLevel('phoneme_pairs');
   const ru = language === 'ru';
 
-  const { isPreset, str } = useGamePreset();
+  const { isPreset, autostart, str } = useGamePreset();
 
   const [phase, setPhase] = useState<GamePhase>('config');
   const [targetLang, setTargetLang] = useState<string>(() => {
@@ -198,7 +198,7 @@ export default function PhonemePairsGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет зарядки → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет зарядки → авто-старт
 
   const pickLang = (code: string) => {
     setTargetLang(code);

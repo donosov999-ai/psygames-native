@@ -278,8 +278,8 @@ export default function ChessBlindGame() {
   const { width, height } = useWindowDimensions();
 
   const lvl = usePersistentLevel('chess_blind');
-  const { isPreset, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart, num } = useGamePreset();
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [dispPieces, setDispPieces] = useState<Piece[]>([]);

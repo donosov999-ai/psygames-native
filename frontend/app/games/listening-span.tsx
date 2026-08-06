@@ -59,7 +59,7 @@ export default function ListeningSpanGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
   const lvl = usePersistentLevel(GAME_ID);
-  const { isPreset, str } = useGamePreset();
+  const { isPreset, autostart, str } = useGamePreset();
 
   const defaultTarget = language === 'en' ? 'es' : 'en';
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', defaultTarget));
@@ -106,7 +106,7 @@ export default function ListeningSpanGame() {
 
   // авто-старт из зарядки
   useEffect(() => {
-    if (isPreset) startGame();
+    if (autostart) startGame();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

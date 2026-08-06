@@ -94,9 +94,9 @@ export default function StroopEmotionalGame() {
   const { t, language } = useLanguage() as any;
   const router = useRouter();
 
-  const { isPreset, num } = useGamePreset();
+  const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('stroop_emotional');
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [clearedPassed, setClearedPassed] = useState(true);

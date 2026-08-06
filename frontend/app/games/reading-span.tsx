@@ -105,8 +105,8 @@ export default function ReadingSpanGame() {
   const lvl = usePersistentLevel('reading_span');   // персист-уровень = setSize − 2
   const router = useRouter();
 
-  const { isPreset, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart, num } = useGamePreset();
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [clearedPassed, setClearedPassed] = useState(true);
   const [setSize, setSetSize] = useState(() => num('setSize', 4)); // sentences per recall set

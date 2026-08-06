@@ -63,9 +63,9 @@ export default function HanoiGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
-  const { isPreset, num } = useGamePreset();
+  const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('hanoi');   // персист-уровень = discs − 2 (L1=3 диска)
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [discs, setDiscs] = useState(() => num('discs', 4));
   const [pegs, setPegs] = useState<number[][]>([[], [], []]);

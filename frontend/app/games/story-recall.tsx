@@ -170,7 +170,7 @@ export default function StoryRecallGame() {
   const { t, language } = useLanguage() as any;
   const router = useRouter();
 
-  const { isPreset } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [story, setStory] = useState<Story>(STORIES[0]);
   const [readRemaining, setReadRemaining] = useState(0);
@@ -223,7 +223,7 @@ export default function StoryRecallGame() {
       }
     }, 200);
   };
-  useAutostart(isPreset, startGame);   // в плейлисте зарядки игра стартует сама
+  useAutostart(autostart, startGame);   // в плейлисте зарядки игра стартует сама
 
   const startDistractor1 = () => {
     setPhase('distractor1');

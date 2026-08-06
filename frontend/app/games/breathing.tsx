@@ -99,12 +99,12 @@ export default function BreathingGame() {
   const { profile } = useProfile();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset, str, bool } = useGamePreset();
+  const { isPreset, autostart, str, bool } = useGamePreset();
   // dim=1 приходит шагом ночного набора (см. NIGHT_STEPS в warmup.ts).
   const dim = bool('dim');
   const GRADIENT = dim ? GRADIENT_NIGHT : GRADIENT_DAY;
   const warmup = useWarmup();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   // v1.160: технику может задать шаг комплекса (перед сном → calm478 «помогает заснуть»),
   // запрос Вали «дыхание перед сном должно быть в тренировке, чтобы не заходить отдельно».

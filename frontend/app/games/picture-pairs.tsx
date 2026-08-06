@@ -88,7 +88,7 @@ export default function PicturePairsGame() {
   const cardBack = pairBackForProfile(profile?.id);
   const { popups, spawn } = useScorePopups();
 
-  const { isPreset, num } = useGamePreset();
+  const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('picture_pairs');   // персист достигнутого уровня (раньше сбрасывался на 1)
   const [phase, setPhase] = useState<GamePhase>('intro');
   const gate = useLevelGate('picture_pairs');
@@ -194,7 +194,7 @@ export default function PicturePairsGame() {
     }
   };
 
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);

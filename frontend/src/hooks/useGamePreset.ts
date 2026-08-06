@@ -20,7 +20,19 @@ import { useLocalSearchParams } from 'expo-router';
  */
 export function useGamePreset() {
   const params = useLocalSearchParams<Record<string, string>>();
+  /**
+   * wu=1 — шаг ПЛЕЙЛИСТА зарядки. В этом режиме игры намеренно не двигают уровень:
+   * `passed = !isPreset && …` стоит в 36 экранах.
+   *
+   * ⚠️ Ежедневный вызов раньше тоже слался с wu=1 (challengeToParams звал stepToParams,
+   * а тот всегда ставит wu). Из-за этого он молча не засчитывал уровни: «я не сделала ни
+   * одной ошибки, почему не открывается следующий уровень?», «уровней 15, но дальше
+   * первого я не ухожу» — два репорта Вали на v1.185.0, вызов дня как раз был Choice RT.
+   * Теперь вызов шлёт auto=1: игра стартует сама, но считается обычным раундом.
+   */
   const isPreset = params?.wu === '1';
+  /** Стартовать сразу, минуя intro/config: и шаг зарядки, и вызов дня. */
+  const autostart = isPreset || params?.auto === '1';
 
   const str = (key: string, def = ''): string => {
     const v = (params as Record<string, unknown>)?.[key];
@@ -38,7 +50,7 @@ export function useGamePreset() {
     return def;
   };
 
-  return { isPreset, params, str, num, bool };
+  return { isPreset, autostart, params, str, num, bool };
 }
 
 /**

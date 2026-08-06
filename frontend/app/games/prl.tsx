@@ -100,7 +100,7 @@ export default function PRLGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset, str } = useGamePreset();
+  const { isPreset, autostart, str } = useGamePreset();
   const lvl = usePersistentLevel('prl');
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -136,7 +136,7 @@ export default function PRLGame() {
 
   useEffect(() => () => { respondLockRef.current = true; }, []);
   // Запуск из зарядки → авто-старт классическим (чистая метрика, уровень не трогается).
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startGame = () => {
     const classic = isPreset || runMode === 'classic';

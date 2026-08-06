@@ -105,7 +105,7 @@ export default function CPTGame() {
   const stimFont = stimSide * 0.6;                          // символ ~60% окна (было 120px в боксе 240px)
 
   const lvl = usePersistentLevel('cpt');
-  const { isPreset } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера LevelCleared
 
@@ -263,7 +263,7 @@ export default function CPTGame() {
     }, 200);
     scheduleNextStimulus();
   };
-  useAutostart(isPreset, startGame);   // в плейлисте зарядки игра стартует сама
+  useAutostart(autostart, startGame);   // в плейлисте зарядки игра стартует сама
 
   const finish = async () => {
     stoppedRef.current = true;

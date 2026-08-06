@@ -6,7 +6,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GAMES, GameConfig } from '@/src/constants/games';
-import { stepToParams, PlaylistStep, Difficulty } from '@/src/services/warmup';
+import { Difficulty } from '@/src/services/warmup';
 
 // Восстановление (дыхание) — не «вызов», исключаем из ротации.
 // Хабы-группы — не игры: не сохраняют сессию (стрик не закоммитится) и не принимают сложность.
@@ -41,11 +41,13 @@ export function getTodayChallenge(date: Date = new Date()): DailyChallenge {
 }
 
 export function challengeToParams(c: DailyChallenge): Record<string, string> {
-  const step: PlaylistStep = {
-    game_id: c.game.id, game_route: c.game.route,
-    difficulty: c.difficulty, est_duration_sec: 90,
-  };
-  return stepToParams(step);
+  // ⚠️ Раньше здесь звался stepToParams, а он ВСЕГДА ставит wu=1 — флаг шага зарядки.
+  // В зарядке уровни намеренно не растут (`passed = !isPreset && …` в 36 экранах), и
+  // вызов дня из-за этого молча не засчитывался: «я не сделала ни одной ошибки, почему
+  // не открывается следующий уровень?», «уровней 15, но дальше первого я не ухожу»
+  // (два репорта Вали на v1.185.0, вызовом дня был Choice RT).
+  // auto=1 даёт тот же автостарт без intro, но раунд считается обычным.
+  return { auto: '1', diff: c.difficulty };
 }
 
 // ─── стрик ежедневного вызова (отдельный от общего app-open стрика) ───

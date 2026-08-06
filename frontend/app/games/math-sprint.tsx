@@ -92,8 +92,8 @@ export default function MathSprintGame() {
   const gate = useLevelGate('math_sprint');
   const lvl = usePersistentLevel('math_sprint');   // уровень → тир (1=easy, 2=medium, ≥3=hard)
 
-  const { isPreset, str, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart, str, num } = useGamePreset();
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [clearedPassed, setClearedPassed] = useState(true);   // память итога: true=прошёл (звёзды), false=«почти, ещё раз»
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)

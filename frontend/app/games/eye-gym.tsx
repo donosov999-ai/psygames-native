@@ -78,8 +78,8 @@ export default function EyeGymGame() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart } = useGamePreset();
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [scale, setScale] = useState(1);               // 0.4 = ~1 мин, 1 = ~3, 1.7 = ~5
   const [speed, setSpeed] = useState(1);               // скорость точки: 0.7 медл / 1 норма / 1.4 быстро

@@ -42,7 +42,7 @@ describe('плейлист зарядки: авто-старт', () => {
     const file = path.join(APP, 'games', `${route}.tsx`);
     expect(fs.existsSync(file)).toBe(true);
     const src = read(file);
-    const auto = src.includes('useAutostart(') || /if \(isPreset\)\s*start/.test(src);
+    const auto = src.includes('useAutostart(') || /if \(autostart\)\s*start/.test(src);
     expect(auto).toBe(true);
   });
 });

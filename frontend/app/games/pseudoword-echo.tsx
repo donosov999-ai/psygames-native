@@ -153,7 +153,7 @@ export default function PseudowordEchoGame() {
   const lvl = usePersistentLevel(GAME_ID);
   const ru = language === 'ru';
 
-  const { isPreset, str } = useGamePreset();
+  const { isPreset, autostart, str } = useGamePreset();
   const [phase, setPhase] = useState<GamePhase>('config');
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const [rounds, setRounds] = useState<Round[]>([]);
@@ -184,7 +184,7 @@ export default function PseudowordEchoGame() {
     }).catch(() => {});
   }, [isPreset]);
 
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет зарядки → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет зарядки → авто-старт
 
   useEffect(() => () => {
     if (advTimerRef.current) clearTimeout(advTimerRef.current);

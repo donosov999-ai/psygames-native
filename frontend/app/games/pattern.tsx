@@ -130,8 +130,8 @@ export default function PatternGame() {
   const router = useRouter();
 
   const lvl = usePersistentLevel('pattern');
-  const { isPreset, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart, num } = useGamePreset();
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [clearedPassed, setClearedPassed] = useState(true);
   const [trials, setTrials] = useState(() => num('trials', 10));
