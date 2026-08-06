@@ -157,7 +157,7 @@ export default function WarmupPicker() {
                   {t('slot' + slot.charAt(0).toUpperCase() + slot.slice(1) + 'Desc')}
                 </Text>
                 <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-                  {empty ? t('restDay') : `${meta.steps.length} ${t('unitGames')} · ~${mins} ${t('unitMin')}`}
+                  {empty ? t('restDay') : `${t('unitGames')}: ${meta.steps.length} · ~${mins} ${t('unitMin')}`}
                 </Text>
                 {/* Пишем это на самой карточке, а не мелким шрифтом внизу экрана:
                     человек должен понимать до запуска, что стрик тут не растёт. */}

@@ -12,7 +12,7 @@
  */
 import React from 'react';
 import { Image, View } from 'react-native';
-import Svg, { Circle, Ellipse, G, Line, Path } from 'react-native-svg';
+
 import { a11yDecor } from '@/src/services/a11y';
 
 export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep';
@@ -189,48 +189,56 @@ const ACCESSORY_MOUNT: Record<PetAccessory, { at: AnchorName; edge: 'bottom' | '
   glasses:   { at: 'eyes',     edge: 'center' },   // очки центром на глаза
 };
 
+/**
+ * Картинки аксессуаров. Раньше это были примитивы SVG — треугольник, два
+ * треугольника и два кружка. Отзыв тестировщицы дословно: «праздничный колпак
+ * выглядит как треугольник, нарисованный трёхлетним ребёнком», и она права:
+ * человек платит очками за вещь, которая выглядит как заглушка.
+ * Теперь объёмные PNG с альфой, 512×512, нарезаны из сгенерированных листов.
+ */
+const ACCESSORY_IMG: Record<PetAccessory, any> = {
+  party_hat: require('@/assets/images/pet/accessories/party_hat.png'),
+  bow:       require('@/assets/images/pet/accessories/bow.png'),
+  glasses:   require('@/assets/images/pet/accessories/glasses.png'),
+};
+
+/** Доля от размера питомца: колпак уже очков, очки шире банта. */
+const ACCESSORY_REL: Record<PetAccessory, number> = {
+  party_hat: 0.46,
+  bow:       0.50,
+  glasses:   0.60,
+};
+
+/** Поле вокруг предмета внутри PNG — задано при нарезке (6% с каждой стороны). */
+const IMG_PAD = 0.06;
+
 function AccessoryOverlay({ kind, size, skin }: { kind: PetAccessory; size: number; skin: PetSkin }) {
   const mount = ACCESSORY_MOUNT[kind];
   const a = SKIN_ANCHORS[skin][mount.at];
-  // Рисуем предмет в СВОЕЙ системе (как раньше, вокруг кота), а потом сдвигаем и
-  // масштабируем группу так, чтобы точка крепления легла на якорь скина.
-  // База — координаты кота: там предмет уже стоял правильно.
-  const base = SKIN_ANCHORS.cat[mount.at];
-  const tx = a.x - base.x * a.scale;
-  const ty = a.y - base.y * a.scale;
+
+  // Якорь задан в процентах кадра — переводим в пиксели текущего размера питомца.
+  const ax = (a.x / 100) * size;
+  const ay = (a.y / 100) * size;
+  const img = ACCESSORY_REL[kind] * size * a.scale;
+
+  // Шапки садятся НИЖНЕЙ кромкой на макушку: внутри PNG предмет прижат к низу с
+  // полем IMG_PAD, поэтому нижний край предмета = img * (1 - IMG_PAD) от верха картинки.
+  // Остальное крепится центром.
+  const top = mount.edge === 'bottom' ? ay - img * (1 - IMG_PAD) : ay - img / 2;
+  const left = ax - img / 2;
+
   return (
-    <Svg
-      pointerEvents="none"
-      width={size}
-      height={size}
-      viewBox="0 0 100 100"
-      style={{ position: 'absolute', top: 0, left: 0 }}
-    >
-      <G transform={`translate(${tx} ${ty}) scale(${a.scale})`}>
-        {kind === 'party_hat' && (
-          <>
-            <Path d="M50 2 L36 26 L64 26 Z" fill="#8a68f5" stroke="#5d43c4" strokeWidth={2} />
-            <Line x1={43} y1={14} x2={57} y2={14} stroke="#f5b50a" strokeWidth={2.5} />
-            <Circle cx={50} cy={2.5} r={4} fill="#f5b50a" />
-          </>
-        )}
-        {kind === 'bow' && (
-          <>
-            <Path d="M50 74 L36 66 L36 82 Z" fill="#ff4d8d" stroke="#c22a63" strokeWidth={2} />
-            <Path d="M50 74 L64 66 L64 82 Z" fill="#ff4d8d" stroke="#c22a63" strokeWidth={2} />
-            <Circle cx={50} cy={74} r={4.5} fill="#c22a63" />
-          </>
-        )}
-        {kind === 'glasses' && (
-          <>
-            <Circle cx={38} cy={34} r={9} fill="none" stroke="#1f2937" strokeWidth={3} />
-            <Circle cx={62} cy={34} r={9} fill="none" stroke="#1f2937" strokeWidth={3} />
-            <Line x1={47} y1={34} x2={53} y2={34} stroke="#1f2937" strokeWidth={3} />
-            <Ellipse cx={35} cy={31} rx={3} ry={2} fill="#ffffff" opacity={0.55} />
-          </>
-        )}
-      </G>
-    </Svg>
+    // Обёртка ради pointerEvents: у Image его нет ни в пропсах, ни в стиле,
+    // а тап должен доставаться питомцу под аксессуаром.
+    <View pointerEvents="none" style={{ position: 'absolute', left, top, width: img, height: img }}>
+      <Image
+        {...a11yDecor}
+        source={ACCESSORY_IMG[kind]}
+        style={{ width: img, height: img }}
+        resizeMode="contain"
+        fadeDuration={0}
+      />
+    </View>
   );
 }
 
