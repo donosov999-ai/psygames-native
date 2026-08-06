@@ -47,9 +47,9 @@ export default function TargetsGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
-  const { isPreset, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('targets');   // персист достигнутого уровня (раньше сбрасывался)
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [mode, setMode] = useState<GameMode>(() => (str('mode', 'field') as GameMode));
   const [level, setLevel] = useState(() => num('level', 1));

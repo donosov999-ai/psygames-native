@@ -338,8 +338,8 @@ export default function MentalRotationGame() {
   const router = useRouter();
 
   const lvl = usePersistentLevel('mental_rotation');
-  const { isPreset, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart, num } = useGamePreset();
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [trials, setTrials] = useState(() => num('trials', 10));
 

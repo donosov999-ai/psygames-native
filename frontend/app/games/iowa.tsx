@@ -59,7 +59,7 @@ export default function IowaGame() {
   const { t } = useLanguage();
   const router = useRouter();
 
-  const { isPreset } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [trials, setTrials] = useState(60);
 
@@ -77,7 +77,7 @@ export default function IowaGame() {
     setRound(1);
     setPhase('playing');
   };
-  useAutostart(isPreset, startGame);   // в плейлисте зарядки игра стартует сама
+  useAutostart(autostart, startGame);   // в плейлисте зарядки игра стартует сама
 
   const finish = async (finalBank: number, finalPicks: typeof picks) => {
     const advantageous = finalPicks.filter(p => p.deck === 'C' || p.deck === 'D').length;

@@ -52,8 +52,8 @@ export default function VocabSrsGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset, str, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startSession(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart, str, num } = useGamePreset();
+  useEffect(() => { if (autostart) startSession(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const [newLimit, setNewLimit] = useState(() => num('newLimit', 10));

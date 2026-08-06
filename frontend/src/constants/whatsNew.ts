@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.186.0',
+    date: '2026-08-06',
+    ru: [
+      'Вызов дня снова засчитывает уровни: раньше он запускался как шаг зарядки, а там уровни намеренно не растут — можно было пройти идеально и остаться на первом',
+      'Вечерняя зарядка больше не повторяет утреннюю игру: парные картинки заменены маджонгом',
+    ],
+    en: [
+      'The daily challenge counts levels again: it used to launch as a workout step, where levels intentionally do not grow — you could play perfectly and stay on level one',
+      'The evening workout no longer repeats a morning game: picture pairs replaced with mahjong',
+    ],
+  },
+  {
     version: '1.185.0',
     date: '2026-08-06',
     ru: [

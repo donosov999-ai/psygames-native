@@ -77,8 +77,8 @@ export default function CorsiGame() {
 
   const gate = useLevelGate('corsi');
   const lvl = usePersistentLevel('corsi');   // персист-уровень (как у судоку)
-  const { isPreset, str, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart, str, num } = useGamePreset();
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'forward') as Mode));

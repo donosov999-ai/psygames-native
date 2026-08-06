@@ -85,9 +85,9 @@ export default function InhibitionGame() {
     params.mode === 'go_no_go' || params.mode === 'stop_signal' || params.mode === 'mixed'
       ? params.mode : null;
 
-  const { isPreset } = useGamePreset();
+  const { isPreset, autostart } = useGamePreset();
   const lvl = usePersistentLevel('inhibition');
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>(presetMode ? 'config' : 'intro');
   const [subMode, setSubMode] = useState<SubMode>(presetMode || 'go_no_go');

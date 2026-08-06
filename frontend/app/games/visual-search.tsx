@@ -142,9 +142,9 @@ export default function VisualSearchGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
-  const { isPreset, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('visual_search');   // уровень → тир (1=easy, 2=medium, ≥3=hard)
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [trials, setTrials] = useState(() => num('trials', 8));
 

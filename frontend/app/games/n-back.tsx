@@ -94,8 +94,8 @@ export default function NBackGame() {
   const lvl = usePersistentLevel('n_back');   // персист-уровень = N (1-back=L1, 2-back=L2…)
   const { profile } = useProfile();
   const [accuracyHistory, setAccuracyHistory] = useState<number[]>([]);
-  const { isPreset, str, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart, str, num } = useGamePreset();
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (false → баннер «почти, ещё раз»)

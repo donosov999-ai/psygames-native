@@ -121,9 +121,9 @@ export default function SwitchingTaskGame() {
   const stStim = Math.min(width - 36, 320);
   const router = useRouter();
 
-  const { isPreset, str } = useGamePreset();
+  const { isPreset, autostart, str } = useGamePreset();
   const lvl = usePersistentLevel('switching_task');
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [clearedPassed, setClearedPassed] = useState(true);

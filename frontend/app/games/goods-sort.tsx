@@ -153,9 +153,9 @@ export default function GoodsSortGame() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset } = useGamePreset();
+  const { isPreset, autostart } = useGamePreset();
   const lvl = usePersistentLevel('goods_sort');   // персист достигнутого уровня (раньше сбрасывался на 1)
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [setKey, setSetKey] = useState('drinks');
   const poolRef = useRef<number[]>(GOOD_SETS[0].pool);

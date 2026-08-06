@@ -176,7 +176,7 @@ export default function MahjongGame() {
   const { width } = useWindowDimensions();
   const { popups, spawn } = useScorePopups();
 
-  const { isPreset } = useGamePreset();
+  const { isPreset, autostart } = useGamePreset();
   const lvl = usePersistentLevel('mahjong');   // персист достигнутого уровня между сессиями
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [level, setLevel] = useState(1);
@@ -225,7 +225,7 @@ export default function MahjongGame() {
     setPhase('playing');
   };
 
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);

@@ -47,10 +47,10 @@ export default function MnemonicsGame() {
   const { width } = useWindowDimensions();
 
   const lvl = usePersistentLevel('mnemonics');   // персональная лесенка (старт 5, растёт)
-  const { isPreset, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num } = useGamePreset();
   const levelRef = useRef(1);
   const useLevelRef = useRef(false);   // запущено по уровню? (для reach + авто-потока)
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [mode, setMode] = useState<GameMode>(() => (str('mode', 'words') as GameMode));
   const [itemCount, setItemCount] = useState(() => num('itemCount', levelParams(1).itemCount));   // дефолт 5, не 10

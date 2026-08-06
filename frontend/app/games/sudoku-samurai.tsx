@@ -141,7 +141,7 @@ export default function SamuraiSudokuGame() {
   const ru = language === 'ru';
   const { width } = useWindowDimensions();
 
-  const { isPreset } = useGamePreset();
+  const { isPreset, autostart } = useGamePreset();
   const lvl = usePersistentLevel('sudoku_samurai');
   const levelRef = useRef(1);   // уровень ТЕКУЩЕЙ партии (captured at startGame — как в quick-count)
 
@@ -161,7 +161,7 @@ export default function SamuraiSudokuGame() {
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   // Пресет (запуск из зарядки) — авто-старт, без изменения уровня (как в других играх).
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const starsFor = (e: number, h: number): number => (e === 0 && h === 0) ? 3 : (e <= 2 && h <= 1) ? 2 : 1;
 

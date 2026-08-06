@@ -58,7 +58,7 @@ export default function SpatialSpanGame() {
   const { width, height } = useWindowDimensions();
   const gridW = Math.min(width - 32, height - 300, 520);
 
-  const { isPreset } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [gridSize, setGridSize] = useState(4); // 4x4 (16 cells, classic CANTAB)
   // Справка правил уровня. enabled на recall: во время show модалка закрыла бы последовательность.
@@ -136,7 +136,7 @@ export default function SpatialSpanGame() {
     timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
     showSequence(p.startSpan);
   };
-  useAutostart(isPreset, startGame);   // в плейлисте зарядки игра стартует сама
+  useAutostart(autostart, startGame);   // в плейлисте зарядки игра стартует сама
 
   const finish = async (finalSpan: number, finalErrors: number) => {
     if (timerRef.current) clearInterval(timerRef.current);

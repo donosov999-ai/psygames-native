@@ -69,8 +69,8 @@ export default function FlankerGame() {
   const router = useRouter();
 
   const lvl = usePersistentLevel('flanker');
-  const { isPreset, str, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart, str, num } = useGamePreset();
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   // пресет (зарядка) передаёт diff/trials; личная игра рулится уровнем
   const [difficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));

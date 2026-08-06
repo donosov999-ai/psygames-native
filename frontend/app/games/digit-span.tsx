@@ -58,8 +58,8 @@ export default function DigitSpanGame() {
 
   const gate = useLevelGate('digit_span');
   const lvl = usePersistentLevel('digit_span');   // персист-уровень (как у судоку): старт от достигнутого, растёт
-  const { isPreset, str, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart, str, num } = useGamePreset();
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [direction, setDirection] = useState<Direction>(() => (str('mode', 'forward') as Direction));
   // Справка правил уровня (в зарядке-пресете не показываем — там свой поток).

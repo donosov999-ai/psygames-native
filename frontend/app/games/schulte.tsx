@@ -93,11 +93,11 @@ export default function SchulteGame() {
   const isThemed = profile.group === 'themed';
 
   // Game configuration
-  const { isPreset, num } = useGamePreset();
+  const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('schulte_table');   // персональный уровень (лесенка); отдельно от ручного config и gating
   const levelRef = useRef(1);
   const useLevelRef = useRef(false);   // запущено по уровню? (для reach)
-  useEffect(() => { if (isPreset) startGame(false); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(false); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [gridSize, setGridSize] = useState(() => num('size', 5));
   const [colorMode, setColorMode] = useState(false);
   const [contentMode, setContentMode] = useState<ContentMode>('numbers');

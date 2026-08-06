@@ -72,7 +72,7 @@ export default function BARTGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('bart');
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -106,7 +106,7 @@ export default function BARTGame() {
   const historyRef = useRef<BalloonRecord[]>([]);
 
   // Запуск из зарядки — классический прогон на стандартных параметрах (диагностика).
-  useEffect(() => { if (isPreset) startClassic(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (autostart) startClassic(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const resetBalloon = () => {
     setBurstAt(1 + Math.floor(Math.random() * maxBurstRef.current));

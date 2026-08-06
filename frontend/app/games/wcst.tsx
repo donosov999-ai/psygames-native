@@ -110,10 +110,10 @@ export default function WcstGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset } = useGamePreset();
+  const { isPreset, autostart } = useGamePreset();
   const lvl = usePersistentLevel('wcst');
   // Зарядка/пресет (wu=1 в URL) → авто-старт классического режима, уровень не трогаем.
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [mode, setMode] = useState<Mode>('level');

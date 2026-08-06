@@ -87,9 +87,9 @@ export default function CounterGame() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset } = useGamePreset();
+  const { isPreset, autostart } = useGamePreset();
   const lvl = usePersistentLevel('counter');
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [gridSize, setGridSize] = useState(3);

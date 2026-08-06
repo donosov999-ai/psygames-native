@@ -82,9 +82,9 @@ export default function SdmtGame() {
   const sdmtStim = Math.min(sdmtW * 0.42, 180);
   const router = useRouter();
 
-  const { isPreset, num } = useGamePreset();
+  const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('sdmt');
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [duration] = useState(() => num('duration', 60)); // seconds — только для пресета зарядки
 

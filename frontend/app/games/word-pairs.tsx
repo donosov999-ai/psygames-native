@@ -61,7 +61,7 @@ export default function WordPairsGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const { isPreset, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num } = useGamePreset();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (для баннера passed)
@@ -183,7 +183,7 @@ export default function WordPairsGame() {
     }
   };
 
-  useAutostart(isPreset, startGame);
+  useAutostart(autostart, startGame);
 
   const startCheck = () => {
     if (checkStartedRef.current) return;   // не дублировать (кнопка + таймаут уровня)

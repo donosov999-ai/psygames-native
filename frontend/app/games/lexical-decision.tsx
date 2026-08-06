@@ -57,9 +57,9 @@ export default function LexicalDecisionGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('lexical_decision');
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const presetTrials = num('trials', 30);   // только для пресетов (зарядка передаёт trials)

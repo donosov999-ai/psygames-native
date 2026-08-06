@@ -58,9 +58,9 @@ export default function ProofreadingGame() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('proofreading');
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   // rows/cols из пресета зарядки; в личной игре перезаписываются параметрами уровня
   const [rows, setRows] = useState(() => num('rows', 14));

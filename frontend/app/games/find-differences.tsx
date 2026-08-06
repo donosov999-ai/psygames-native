@@ -174,9 +174,9 @@ export default function FindDifferencesGame() {
   const { width, height } = useWindowDimensions();
   const sprites = pairSpritesForProfile(profile?.id);
 
-  const { isPreset, num } = useGamePreset();
+  const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('find_differences');
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [round, setRound] = useState(0);
   const [totalRounds, setTotalRounds] = useState(ROUNDS_PER_LEVEL);

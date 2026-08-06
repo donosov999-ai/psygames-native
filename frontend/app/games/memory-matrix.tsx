@@ -55,8 +55,8 @@ export default function MemoryMatrixGame() {
 
   const gate = useLevelGate('memory_matrix');
   const lvl = usePersistentLevel('memory_matrix');   // персист-уровень (уровень = размер сетки − 2)
-  const { isPreset, str, num } = useGamePreset();
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { isPreset, autostart, str, num } = useGamePreset();
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [gridSize, setGridSize] = useState(() => num('size', 3));
   const [matrixMode, setMatrixMode] = useState<MatrixMode>(() => (str('mode', 'static') as MatrixMode));

@@ -142,9 +142,9 @@ export default function SetGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset, num } = useGamePreset();
+  const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('set_game');   // персист-уровень = trials − 5 (эндуранс серии)
-  useEffect(() => { if (isPreset) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [trials, setTrials] = useState(() => num('trials', 6));
   const [round, setRound] = useState(0);
