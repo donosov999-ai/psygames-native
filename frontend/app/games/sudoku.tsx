@@ -657,8 +657,15 @@ export default function SudokuGame() {
                   </>
                 );
               })()}
+              {/* ⚠️ Заливку метки мешаем с ФОНОМ ЭТОЙ клетки (bg), а не с colors.surface.
+                  Пять раз приходил один и тот же репорт: «ставишь цифру — она белая, почти
+                  прозрачная, почему в кружочке не станет чёрной». Причина была не в цифре:
+                  метка рисуется ПОВЕРХ фона клетки, и на выделенной клетке (тёмно-фиолетовый
+                  #5b4fd1) она клала сверху светлое пятно от colors.surface — белая цифра на
+                  нём исчезала. Правка v1.175 сменила начертание цифры, но базу заливки не
+                  трогала, поэтому ничего и не изменилось. */}
               {variant === 'evenodd' && parityMarks && parityMarks[r][c] !== 0 && (
-                <View style={{ position: 'absolute', width: cellSize * 0.6, height: cellSize * 0.6, borderRadius: parityMarks[r][c] === 2 ? cellSize * 0.3 : Math.max(3, Math.round(cellSize * 0.1)), backgroundColor: blendHex(colors.surface, GRADIENT[1], 0.20), borderWidth: 1, borderColor: blendHex(colors.surface, GRADIENT[1], 0.45) }} />
+                <View style={{ position: 'absolute', width: cellSize * 0.6, height: cellSize * 0.6, borderRadius: parityMarks[r][c] === 2 ? cellSize * 0.3 : Math.max(3, Math.round(cellSize * 0.1)), backgroundColor: blendHex(bg, GRADIENT[1], 0.20), borderWidth: 1, borderColor: blendHex(bg, GRADIENT[1], 0.45) }} />
               )}
               {variant === 'kropki' && kropki && c < N - 1 && kropki.h[r][c] !== 0 && (
                 <View style={{ position: 'absolute', width: cellSize * 0.2, height: cellSize * 0.2, borderRadius: cellSize * 0.1, right: -cellSize * 0.1, top: cellSize / 2 - cellSize * 0.1, backgroundColor: kropki.h[r][c] === 2 ? '#222222' : '#ffffff', borderWidth: 1.5, borderColor: '#777777', zIndex: 5, pointerEvents: 'none' }} />
