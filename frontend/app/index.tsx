@@ -51,6 +51,10 @@ import DemoLanding from '@/src/components/DemoLanding';
 const MAX_CONTAINER_WIDTH = 1100;
 const CONTAINER_PADDING = 16;
 const GRID_GAP = 12;
+/** Проверено в браузере: hitSlop в react-native-web НЕ РАБОТАЕТ — elementFromPoint в 3px
+ *  за краем кнопки её не находит. Android-сборка живёт в WebView, значит там он тоже
+ *  пустышка. Поэтому зона нажатия — настоящие 44×44 (styles.iconButton), а кружок 36×36
+ *  рисуется ВНУТРИ неё (styles.iconCircle): вид компактный, палец не обделён. */
 
 // Web-demo (решение Дениса 07.2026): публичный /play/ = ТОЛЬКО ДЕМО.
 // Вместо полного каталога — компактный лендинг (игра дня + CTA «Скачать приложение»).
@@ -307,7 +311,7 @@ function FullHome() {
           </TouchableOpacity>
         </View>
         <View style={styles.headerRow}>
-        <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 180, minWidth: 0, gap: 6 }}>
+        <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 120, minWidth: 0, gap: 6 }}>
           {/* Клик-чип "Сменить профиль" — заметный, с chevron ▾. v1.114.0: рамка/аватар из магазина
               (frameColor перекрывает цвет профиля, avatarKey — стандартный бейдж). */}
           <TouchableOpacity
@@ -353,40 +357,42 @@ function FullHome() {
               открывает switcher и информативнее (показывает имя профиля + chevron). */}
           <TouchableOpacity
             accessibilityRole="button"
-            style={[styles.iconButton, { backgroundColor: colors.surface }]}
+            style={styles.iconButton}
             onPress={() => router.push('/achievements' as any)}
             accessibilityLabel={t('a11yAchievements')}
           >
-            <Ionicons name="trophy" size={20} color="#fbbf24" />
+            <View style={[styles.iconCircle, { backgroundColor: colors.surface }]}>
+              <Ionicons name="trophy" size={18} color="#fbbf24" />
+            </View>
             {achievementsCount > 0 && (
-              <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: '#fbbf24', borderRadius: 10, paddingHorizontal: 5, paddingVertical: 1 }}>
+              <View style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#fbbf24', borderRadius: 10, paddingHorizontal: 5, paddingVertical: 1 }}>
                 <Text style={{ color: '#000', fontSize: 10, fontWeight: '900' }}>{achievementsCount}</Text>
               </View>
             )}
           </TouchableOpacity>
           <TouchableOpacity
             accessibilityRole="button"
-            style={[styles.iconButton, { backgroundColor: colors.surface }]}
+            style={styles.iconButton}
             onPress={() => router.push('/shop' as any)}
             accessibilityLabel={t('shop')}
           >
-            <Ionicons name="bag-handle" size={21} color={colors.primary} />
+            <View style={[styles.iconCircle, { backgroundColor: colors.surface }]}><Ionicons name="bag-handle" size={18} color={colors.primary} /></View>
           </TouchableOpacity>
           <TouchableOpacity
             accessibilityRole="button"
-            style={[styles.iconButton, { backgroundColor: colors.surface }]}
+            style={styles.iconButton}
             onPress={() => router.push('/statistics')}
             accessibilityLabel={t('statistics')}
           >
-            <Ionicons name="stats-chart" size={22} color={colors.primary} />
+            <View style={[styles.iconCircle, { backgroundColor: colors.surface }]}><Ionicons name="stats-chart" size={18} color={colors.primary} /></View>
           </TouchableOpacity>
           <TouchableOpacity
             accessibilityRole="button"
-            style={[styles.iconButton, { backgroundColor: colors.surface }]}
+            style={styles.iconButton}
             onPress={() => router.push('/settings')}
             accessibilityLabel={t('settings')}
           >
-            <Ionicons name="settings-outline" size={22} color={colors.text} />
+            <View style={[styles.iconCircle, { backgroundColor: colors.surface }]}><Ionicons name="settings-outline" size={18} color={colors.text} /></View>
           </TouchableOpacity>
         </View>
         </View>
@@ -673,22 +679,26 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    // Ритм ужат (было 16/8): четыре яруса подряд с воздухом вокруг каждого съедали
+    // 202 px из 812 — четверть первого экрана, до контента дело не доходило.
+    paddingVertical: 10,
     maxWidth: MAX_CONTAINER_WIDTH,
     width: '100%',
     alignSelf: 'center',
-    gap: 8,
+    gap: 6,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    // flexWrap + flexBasis:180 у левой колонки: 180 + 252 (иконки) + 8 > 320 (телефон 360dp)
-    // → ряд иконок переносится на свою строку, чипу достаётся вся ширина.
-    // На планшете/десктопе (MAX_CONTAINER_WIDTH 1100) 440 влезает → вёрстка прежняя.
+    // Раньше здесь стоял flexBasis:180 у левой колонки, и 180 + 252 (иконки) + 8 не влезали
+    // в 320 (телефон 360dp) → ряд иконок уезжал на СВОЮ строку, добавляя шапке целый ярус
+    // в 52 px. Теперь 4×44 = 176 плюс база чипа 120 = 296 < 335 доступных,
+    // и всё помещается в одну строку. flexWrap оставлен страховкой на случай
+    // системного крупного шрифта — тогда перенос сработает как раньше.
     flexWrap: 'wrap',
-    rowGap: 8,
+    rowGap: 6,
   },
   title: { fontSize: 32, fontWeight: '800' },
   subtitle: { fontSize: 14 },
@@ -699,8 +709,12 @@ const styles = StyleSheet.create({
   updBannerText: { fontSize: 13, fontWeight: '800', flexShrink: 1 },
   // flexShrink: 0 — иконки не сплющиваются; flexWrap — при системном крупном шрифте,
   // когда чип профиля разбухает, ряд переносится, а не выдавливает текст за экран.
-  headerButtons: { flexDirection: 'row', gap: 8, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' },
-  iconButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+  headerButtons: { flexDirection: 'row', gap: 0, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' },
+  // 44×44 — зона нажатия (минимум для пальца), фон на ней НЕ рисуется.
+  iconButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  // 36×36 — видимый кружок внутри зоны. Между кружками получается 8px воздуха
+  // (4+4 от соседних зон) даже при нулевом gap ряда.
+  iconCircle: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
   // flexShrink:0 — кнопка не сплющивается; при крупном шрифте она росла и выдавливала заголовок в 4 строки
   scrollView: { flex: 1 },
   gamesContainer: {

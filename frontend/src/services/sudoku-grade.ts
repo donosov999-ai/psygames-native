@@ -1,0 +1,447 @@
+/**
+ * ГРАДАЦИЯ СЛОЖНОСТИ СУДОКУ ПО ТЕХНИКЕ РЕШЕНИЯ.
+ *
+ * Зачем это вообще. Сложность мерили числом пустых клеток: `min(58, 34 + lv - 5)`.
+ * Это не та ось. Пустые клетки выходят на потолок 58 к 29-му уровню и дальше не
+ * растут, а варианты правил после 30-го (метки чётности, точки кропки) не усложняют
+ * задачу, а ОБЛЕГЧАЮТ её — они добавляют игроку информацию. Отсюда репорты Вали:
+ *   «с 30 по 34 сложность не меняется, абсолютно не становится сложнее»
+ *   «с этими точками судоку на 34 уровне стал намного легче, чем на 19»
+ *   «начиная с 34 уровня всё очень лёгкое, я так быстро десятый не проходила»
+ *
+ * Настоящая ось — КАКУЮ ТЕХНИКУ приходится применить, чтобы продвинуться. Здесь
+ * логический решатель, который идёт по лестнице техник от простого к сложному и
+ * возвращает самую сложную из понадобившихся. Дальше генератор перебирает раскладки,
+ * пока не попадёт в целевую полосу уровня.
+ *
+ * Что учитывается как информация игрока: правило варианта (через isValid ядра),
+ * метки чётности и ПОКАЗАННЫЕ точки кропки. Отсутствие точки НЕ считается подсказкой —
+ * мы показываем не все грани (см. markerDensity), поэтому пустая грань не означает
+ * «связи нет». Это же должно быть сказано в правилах варианта.
+ *
+ * Чего не учитывается: суммы sandwich. Такой пазл оценивается пессимистично (кажется
+ * сложнее, чем играется) — на уровнях 38–41 полоса поэтому задана с запасом.
+ */
+import {
+  Cell, Variant, ThermoPN, ArrowMap, isValid, generatePuzzle, shuffle, HYPER_BOXES,
+} from './sudoku-core';
+
+export type Technique =
+  | 'naked_single'    // в клетке остался один кандидат
+  | 'hidden_single'   // в блоке/строке цифра помещается только в одну клетку
+  | 'locked'          // связанные кандидаты: цифра блока заперта в одной строке (и наоборот)
+  | 'naked_subset'    // голая пара/тройка
+  | 'hidden_subset'   // скрытая пара
+  | 'x_wing'          // X-wing
+  | 'guess';          // логики не хватило — нужен перебор
+
+export const TECHNIQUE_TIER: Record<Technique, number> = {
+  naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, hidden_subset: 5, x_wing: 6, guess: 9,
+};
+
+export interface GradeCtx {
+  N: number; BR: number; BC: number;
+  variant: Variant;
+  regions?: number[][];
+  thermo?: ThermoPN;
+  arrow?: ArrowMap;
+  parity?: number[][];                       // 1 = чётная, 2 = нечётная, 0 = без метки
+  kropki?: { h: number[][]; v: number[][] }; // 2 = чёрная, 1 = белая, 0 = ТОЧКА НЕ ПОКАЗАНА
+}
+
+export interface Grade { solved: boolean; tier: number; hardest: Technique; }
+
+const bit = (v: number) => 1 << (v - 1);
+const popcount = (m: number) => { let n = 0; while (m) { m &= m - 1; n++; } return n; };
+const bitsOf = (m: number, N: number) => { const o: number[] = []; for (let v = 1; v <= N; v++) if (m & bit(v)) o.push(v); return o; };
+
+/** Зоны, внутри которых каждая цифра встречается ровно один раз. */
+export function unitsFor(N: number, BR: number, BC: number, variant: Variant, regions?: number[][]): [number, number][][] {
+  const units: [number, number][][] = [];
+  for (let r = 0; r < N; r++) units.push(Array.from({ length: N }, (_, c) => [r, c] as [number, number]));
+  for (let c = 0; c < N; c++) units.push(Array.from({ length: N }, (_, r) => [r, c] as [number, number]));
+  if (variant === 'jigsaw' && regions) {
+    const byReg = new Map<number, [number, number][]>();
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const g = regions[r][c];
+      if (!byReg.has(g)) byReg.set(g, []);
+      byReg.get(g)!.push([r, c]);
+    }
+    for (const cells of byReg.values()) units.push(cells);
+  } else {
+    for (let br = 0; br < N; br += BR) for (let bc = 0; bc < N; bc += BC) {
+      const cells: [number, number][] = [];
+      for (let i = 0; i < BR; i++) for (let j = 0; j < BC; j++) cells.push([br + i, bc + j]);
+      units.push(cells);
+    }
+  }
+  // Диагонали и зоны Windoku — тоже полноценные зоны: игрок ими пользуется, значит и решатель должен.
+  if (variant === 'diagonal') {
+    units.push(Array.from({ length: N }, (_, i) => [i, i] as [number, number]));
+    units.push(Array.from({ length: N }, (_, i) => [i, N - 1 - i] as [number, number]));
+  } else if (variant === 'hyper') {
+    for (const [hr, hc] of HYPER_BOXES) {
+      const cells: [number, number][] = [];
+      for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) cells.push([hr + i, hc + j]);
+      units.push(cells);
+    }
+  }
+  return units;
+}
+
+/** Оценка пазла: самая сложная техника, без которой не обойтись. */
+export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
+  const { N, BR, BC, variant, regions, thermo, arrow, parity, kropki } = ctx;
+  const grid = puzzle.map((row) => [...row]);
+  const FULL = (1 << N) - 1;
+  const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
+  const units = unitsFor(N, BR, BC, variant, regions);
+  const unitsOfCell: number[][][] = Array.from({ length: N }, () => Array.from({ length: N }, () => [] as number[]));
+  units.forEach((cells, ui) => { for (const [r, c] of cells) unitsOfCell[r][c].push(ui); });
+
+  let maxTier = 0;
+  let hardest: Technique = 'naked_single';
+  const bump = (t: Technique) => { const tr = TECHNIQUE_TIER[t]; if (tr > maxTier) { maxTier = tr; hardest = t; } };
+
+  const kropkiOk = (d: number, a: number, b: number) => (d === 2 ? Math.max(a, b) === 2 * Math.min(a, b) : Math.abs(a - b) === 1);
+
+  /** Пересчёт кандидатов по всей информации, которая есть у игрока. true = противоречие. */
+  const refilter = (): boolean => {
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (grid[r][c] !== 0) { cand[r][c] = 0; continue; }
+      let m = cand[r][c];
+      for (const v of bitsOf(m, N)) {
+        let ok = isValid(grid, r, c, v, N, BR, BC, variant, regions, thermo, arrow);
+        if (ok && parity && parity[r][c] !== 0) ok = (parity[r][c] === 1) === (v % 2 === 0);
+        if (!ok) m &= ~bit(v);
+      }
+      cand[r][c] = m;
+      if (m === 0) return true;
+    }
+    if (kropki) {
+      // Дуговая согласованность по ПОКАЗАННЫМ точкам: кандидат выживает, только если
+      // у соседа найдётся значение, с которым точка выполняется. 0 = точки нет = нет информации.
+      for (let pass = 0; pass < 3; pass++) {
+        let changed = false;
+        const edges: [number, number, number, number, number][] = [];
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          if (c < N - 1 && kropki.h[r][c] !== 0) edges.push([r, c, r, c + 1, kropki.h[r][c]]);
+          if (r < N - 1 && kropki.v[r][c] !== 0) edges.push([r, c, r + 1, c, kropki.v[r][c]]);
+        }
+        for (const [ar, ac, br2, bc2, d] of edges) {
+          const maskOf = (rr: number, cc: number) => (grid[rr][cc] !== 0 ? bit(grid[rr][cc]) : cand[rr][cc]);
+          const prune = (rr: number, cc: number, orr: number, occ: number) => {
+            if (grid[rr][cc] !== 0) return;
+            const other = maskOf(orr, occ);
+            let m = cand[rr][cc];
+            for (const v of bitsOf(m, N)) {
+              if (!bitsOf(other, N).some((w) => kropkiOk(d, v, w))) { m &= ~bit(v); changed = true; }
+            }
+            cand[rr][cc] = m;
+          };
+          prune(ar, ac, br2, bc2);
+          prune(br2, bc2, ar, ac);
+          if (cand[ar][ac] === 0 && grid[ar][ac] === 0) return true;
+          if (cand[br2][bc2] === 0 && grid[br2][bc2] === 0) return true;
+        }
+        if (!changed) break;
+      }
+    }
+    return false;
+  };
+
+  const place = (r: number, c: number, v: number) => { grid[r][c] = v; cand[r][c] = 0; };
+
+  const nakedSingle = (): boolean => {
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++)
+      if (grid[r][c] === 0 && popcount(cand[r][c]) === 1) { place(r, c, bitsOf(cand[r][c], N)[0]); bump('naked_single'); return true; }
+    return false;
+  };
+
+  const hiddenSingle = (): boolean => {
+    for (const cells of units) for (let v = 1; v <= N; v++) {
+      if (cells.some(([r, c]) => grid[r][c] === v)) continue;
+      const spots = cells.filter(([r, c]) => grid[r][c] === 0 && (cand[r][c] & bit(v)));
+      if (spots.length === 1) { const [r, c] = spots[0]; place(r, c, v); bump('hidden_single'); return true; }
+    }
+    return false;
+  };
+
+  const locked = (): boolean => {
+    for (let ui = 0; ui < units.length; ui++) for (let v = 1; v <= N; v++) {
+      const cells = units[ui].filter(([r, c]) => grid[r][c] === 0 && (cand[r][c] & bit(v)));
+      if (cells.length < 2 || cells.length > 3) continue;
+      // зоны, содержащие ВСЕ эти клетки — там цифру можно вычеркнуть из остальных клеток
+      const shared = unitsOfCell[cells[0][0]][cells[0][1]].filter((u) => u !== ui
+        && cells.every(([r, c]) => unitsOfCell[r][c].includes(u)));
+      for (const u of shared) {
+        let hit = false;
+        for (const [r, c] of units[u]) {
+          if (grid[r][c] !== 0) continue;
+          if (cells.some(([cr, cc]) => cr === r && cc === c)) continue;
+          if (cand[r][c] & bit(v)) { cand[r][c] &= ~bit(v); hit = true; }
+        }
+        if (hit) { bump('locked'); return true; }
+      }
+    }
+    return false;
+  };
+
+  const nakedSubset = (): boolean => {
+    for (const cells of units) {
+      const open = cells.filter(([r, c]) => grid[r][c] === 0);
+      for (let k = 2; k <= 3; k++) {
+        const idx = open.map((_, i) => i).filter((i) => popcount(cand[open[i][0]][open[i][1]]) <= k && popcount(cand[open[i][0]][open[i][1]]) >= 2);
+        for (const combo of combos(idx, k)) {
+          let mask = 0;
+          for (const i of combo) mask |= cand[open[i][0]][open[i][1]];
+          if (popcount(mask) !== k) continue;
+          let hit = false;
+          for (let i = 0; i < open.length; i++) {
+            if (combo.includes(i)) continue;
+            const [r, c] = open[i];
+            if (cand[r][c] & mask) { cand[r][c] &= ~mask; hit = true; if (cand[r][c] === 0) return false; }
+          }
+          if (hit) { bump('naked_subset'); return true; }
+        }
+      }
+    }
+    return false;
+  };
+
+  const hiddenSubset = (): boolean => {
+    for (const cells of units) {
+      const open = cells.filter(([r, c]) => grid[r][c] === 0);
+      const spotsOf = new Map<number, number[]>();
+      for (let v = 1; v <= N; v++) {
+        if (cells.some(([r, c]) => grid[r][c] === v)) continue;
+        const s = open.map((_, i) => i).filter((i) => cand[open[i][0]][open[i][1]] & bit(v));
+        if (s.length === 2) spotsOf.set(v, s);
+      }
+      const vs = [...spotsOf.keys()];
+      for (const [a, b] of combos(vs, 2)) {
+        const sa = spotsOf.get(a)!, sb = spotsOf.get(b)!;
+        if (sa[0] !== sb[0] || sa[1] !== sb[1]) continue;
+        const keep = bit(a) | bit(b);
+        let hit = false;
+        for (const i of sa) {
+          const [r, c] = open[i];
+          if (cand[r][c] & ~keep) { cand[r][c] &= keep; hit = true; }
+        }
+        if (hit) { bump('hidden_subset'); return true; }
+      }
+    }
+    return false;
+  };
+
+  const xWing = (): boolean => {
+    for (let v = 1; v <= N; v++) {
+      for (const byRow of [true, false]) {
+        const lines: number[][] = [];
+        for (let i = 0; i < N; i++) {
+          const spots: number[] = [];
+          for (let j = 0; j < N; j++) {
+            const r = byRow ? i : j, c = byRow ? j : i;
+            if (grid[r][c] === 0 && (cand[r][c] & bit(v))) spots.push(j);
+          }
+          lines.push(spots.length === 2 ? spots : []);
+        }
+        for (let i1 = 0; i1 < N; i1++) for (let i2 = i1 + 1; i2 < N; i2++) {
+          const a = lines[i1], b = lines[i2];
+          if (a.length !== 2 || b.length !== 2 || a[0] !== b[0] || a[1] !== b[1]) continue;
+          let hit = false;
+          for (const j of a) for (let i = 0; i < N; i++) {
+            if (i === i1 || i === i2) continue;
+            const r = byRow ? i : j, c = byRow ? j : i;
+            if (grid[r][c] === 0 && (cand[r][c] & bit(v))) { cand[r][c] &= ~bit(v); hit = true; }
+          }
+          if (hit) { bump('x_wing'); return true; }
+        }
+      }
+    }
+    return false;
+  };
+
+  // tierCap отсекает техники сверху: так можно спросить «решается ли это БЕЗ техник выше k».
+  // На этом стоит ПОЛ сложности: пазл требует технику k, если без неё он не добирается.
+  const all: [Technique, () => boolean][] = [
+    ['naked_single', nakedSingle], ['hidden_single', hiddenSingle], ['locked', locked],
+    ['naked_subset', nakedSubset], ['hidden_subset', hiddenSubset], ['x_wing', xWing],
+  ];
+  const steps = all.filter(([t]) => TECHNIQUE_TIER[t] <= tierCap).map(([, f]) => f);
+  for (let guard = 0; guard < N * N * 25; guard++) {
+    if (refilter()) return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess' };
+    let empty = 0;
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (grid[r][c] === 0) empty++;
+    if (empty === 0) return { solved: true, tier: Math.max(1, maxTier), hardest };
+    if (!steps.some((f) => f())) break;
+  }
+  return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess' };
+}
+
+function combos(arr: number[], k: number): number[][] {
+  const out: number[][] = [];
+  const walk = (start: number, acc: number[]) => {
+    if (acc.length === k) { out.push([...acc]); return; }
+    for (let i = start; i < arr.length; i++) { acc.push(arr[i]); walk(i + 1, acc); acc.pop(); }
+  };
+  walk(0, []);
+  return out;
+}
+
+/**
+ * Целевая полоса сложности по уровню. Верх — потолок («сложнее не делаем»),
+ * низ — ПОЛ («легче не выпускаем»), и именно пол чинит жалобу «34-й легче 19-го»:
+ * у 34-го пол выше, чем потолок у 19-го, так что перепрыгнуть вниз уже нельзя.
+ */
+export function targetTier(level: number): { min: number; max: number } {
+  const lv = Math.max(1, level);
+  if (lv <= 4) return { min: 1, max: 1 };    // 6×6, только голые одиночки
+  if (lv <= 8) return { min: 1, max: 2 };    // 9×9 классика, скрытые одиночки
+  if (lv <= 13) return { min: 2, max: 3 };
+  if (lv <= 21) return { min: 3, max: 3 };   // связанные кандидаты
+  if (lv <= 29) return { min: 3, max: 4 };   // голые пары/тройки
+  if (lv <= 37) return { min: 4, max: 5 };   // скрытые пары
+  return { min: 4, max: 6 };                 // выше x-wing не поднимаемся: дальше растит сам вариант
+}
+
+/**
+ * Доля показываемых меток (чётность / точки кропки) внутри фазы варианта.
+ * Метка — это подарок игроку, поэтому к концу фазы подарков меньше.
+ * Раньше было наглухо 0.55 для чётности и 1.00 для кропки — оттого «с этими точками
+ * стало намного легче».
+ */
+export function markerDensity(level: number, variant: Variant): number {
+  if (variant === 'evenodd') return [0.40, 0.34, 0.28, 0.22][Math.min(3, Math.max(0, level - 30))];
+  if (variant === 'kropki') return [0.32, 0.28, 0.24, 0.20][Math.min(3, Math.max(0, level - 34))];
+  return 1;
+}
+
+/** Прореживание меток до нужной доли. Мутирует копию, исходник не трогаем. */
+export function thinMarkers<T extends { parity?: number[][]; kropki?: { h: number[][]; v: number[][] } }>(
+  gen: T, level: number, variant: Variant, N: number,
+): T {
+  const dens = markerDensity(level, variant);
+  if (dens >= 1) return gen;
+  if (variant === 'evenodd' && gen.parity) {
+    const marked: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (gen.parity[r][c] !== 0) marked.push([r, c]);
+    // 0.55 — та доля, что уже проставлена в ядре; здесь снимаем лишнее до целевой
+    const keep = Math.round(marked.length * (dens / 0.55));   // 0.55 — доля, уже проставленная ядром
+    for (const [r, c] of shuffle(marked).slice(keep)) gen.parity[r][c] = 0;
+  }
+  if (variant === 'kropki' && gen.kropki) {
+    const dots: ['h' | 'v', number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (c < N - 1 && gen.kropki.h[r][c] !== 0) dots.push(['h', r, c]);
+      if (r < N - 1 && gen.kropki.v[r][c] !== 0) dots.push(['v', r, c]);
+    }
+    const keep = Math.round(dots.length * dens);
+    for (const [k, r, c] of shuffle(dots as any).slice(keep) as ['h' | 'v', number, number][]) gen.kropki[k][r][c] = 0;
+  }
+  return gen;
+}
+
+export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
+
+/**
+ * Варианты, где логический решатель по-настоящему силён. У остальных правило работает
+ * только против УЖЕ известных соседей (nonconsec, thermo, arrow) или вовсе не заведено
+ * в решатель (sandwich) — там он откатывает почти каждое выкалывание и упирается в
+ * бюджет. Замер: nonconsec на логическом пути стоил 38 с на пазл. Поэтому такие
+ * варианты идут прежним путём — через проверку единственности.
+ */
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'jigsaw', 'nonconsec', 'thermo', 'arrow'];
+
+/** Потолок пустых клеток на 9×9: доска в 74 дырки решается, но заполнять её долго. */
+const MAX_BLANKS_9 = 64;
+
+function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
+  return gradePuzzle(gen.puzzle, {
+    N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow,
+    parity: gen.parity, kropki: gen.kropki,
+  });
+}
+
+/** Одна попытка копания от логики. Возвращает null, если вариант не по этому пути. */
+function digByLogic(
+  level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant, deadline: number,
+): { gen: GeneratedPuzzle; grade: Grade; dug: number } | null {
+  const base = generatePuzzle(0, N, BR, BC, variant);   // blanks=0 → только решение и структура варианта
+  const sol = base.solution;
+  const puzzle = sol.map((row) => [...row]);
+  const { max } = targetTier(level);
+  const dens = markerDensity(level, variant);
+
+  const parity = variant === 'evenodd' ? Array.from({ length: N }, () => Array(N).fill(0)) : undefined;
+  let kropki = base.kropki;
+  if (variant === 'kropki' && kropki) kropki = thinMarkers({ kropki }, level, variant, N).kropki;
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, parity, kropki };
+
+  // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
+  // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,
+  // из-за чего сложность переставала расти — замер: L5..L37 почти сплошь tier 1.
+  const cap = level <= 8 ? blanksCap : (N === 9 ? MAX_BLANKS_9 : N * N);
+  let dug = 0;
+  for (const p of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
+    if (dug >= cap || Date.now() > deadline) break;
+    const r = Math.floor(p / N), c = p % N;
+    const keep = puzzle[r][c];
+    puzzle[r][c] = 0;
+    if (parity) parity[r][c] = Math.random() < dens ? (sol[r][c] % 2 === 0 ? 1 : 2) : 0;
+    const g = gradePuzzle(puzzle, ctx);
+    if (!g.solved || g.tier > max) { puzzle[r][c] = keep; if (parity) parity[r][c] = 0; }
+    else dug++;
+  }
+  // Порог — «получилась ли вообще задача», а не «дотянули ли до идеала». Доска на 30 дырок
+  // это нормальное судоку; гнать её на дорогой путь ради лишних клеток не стоит: замер
+  // показал 4–20 с на пазл для nonconsec именно там.
+  if (dug < Math.min(cap, blanksCap, 30)) return null;
+  const gen: GeneratedPuzzle = { ...base, puzzle, parity, kropki };
+  return { gen, grade: gradePuzzle(puzzle, ctx), dug };
+}
+
+/**
+ * Генерация ОТ ЛОГИКИ: выкалываем клетку только если пазл остаётся решаемым техниками
+ * не выше потолка уровня. Даёт три вещи разом.
+ *
+ * 1. Сложность растёт по уровням — потому что растёт потолок техник, а не число дырок.
+ * 2. Единственность решения бесплатно: если пазл добирается логикой, каждый шаг вынужден,
+ *    значит решение одно. Дорогой countSolutions на этом пути не нужен вовсе.
+ * 3. Угадайка исчезает: старый путь на термометрах выдавал раскладки, не решаемые логикой.
+ *
+ * Метку чётности ставим В МОМЕНТ выкалывания клетки: она видна игроку, значит должна
+ * участвовать в оценке прямо во время копания, иначе меряем не ту задачу.
+ *
+ * Внутри бюджета делаем несколько заходов и берём тот, что ближе к полосе уровня:
+ * порядок выкалывания случайный, и от него сложность заметно пляшет.
+ */
+export function generateLogical(
+  level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
+  opts: { budgetMs?: number } = {},
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean } {
+  const budget = opts.budgetMs ?? 2200;
+  const until = Date.now() + budget;
+  const { min, max } = targetTier(level);
+  const dist = (t: number) => (t < min ? min - t : t > max ? t - max : 0);
+
+  if (LOGIC_VARIANTS.includes(variant)) {
+    let best: { gen: GeneratedPuzzle; grade: Grade; dug: number } | null = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const r = digByLogic(level, blanksCap, N, BR, BC, variant, until);
+      if (r && (!best || dist(r.grade.tier) < dist(best.grade.tier))) best = r;
+      if (best && dist(best.grade.tier) === 0) break;
+      if (Date.now() > until) break;
+    }
+    if (best) return { ...best, fellBack: false };
+  }
+
+  // Вариант не по логическому пути (или логика не потянула) — прежний путь ядра,
+  // ровно как сегодня в проде. Пробовали ускорить его логическим пре-фильтром перед
+  // countSolutions: на nonconsec это дало доску БЕЗ ЕДИНОЙ пустой клетки — проверка
+  // единственности там упирается в бюджет шагов и откатывает каждое выкалывание.
+  const gen = thinMarkers(generatePuzzle(blanksCap, N, BR, BC, variant), level, variant, N);
+  let left = 0;
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (gen.puzzle[r][c] === 0) left++;
+  return { gen, grade: gradeOf(gen, N, BR, BC, variant), dug: left, fellBack: true };
+}
