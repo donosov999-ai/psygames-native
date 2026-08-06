@@ -539,13 +539,15 @@ const translations: Translations = {
   slotMorning:      { ru: 'Утренняя', en: 'Morning' },
   slotDay:          { ru: 'Дневная', en: 'Daytime' },
   slotEvening:      { ru: 'Вечерняя', en: 'Evening' },
-  // Не «Ночная тренировка»: человек открывает это, потому что не может заснуть,
-  // и обещать ему тренировку было бы обманом (решение Дениса 02.08).
-  slotNight:        { ru: 'Не спится', en: 'Can’t sleep' },
+  // 06.08: назад к «Ночной». «Не спится» читалось как отдельная сущность, а не как
+  // время суток зарядки — Валя дословно: «непонятно написано не спица… в итоге когда
+  // заходишь, там все зарядки». Денис: «это зарядка вечерняя, дневная или ночная».
+  // Мягкость смысла осталась в описании и в пометке «не тренировка».
+  slotNight:        { ru: 'Ночная', en: 'Night' },
   slotMorningDesc:  { ru: 'Разогнать голову на день', en: 'Get your head going for the day' },
   slotDayDesc:      { ru: 'Короткий перерыв в работе', en: 'A short break from work' },
   slotEveningDesc:  { ru: 'Спокойные игры и дыхание', en: 'Calm games and breathing' },
-  slotNightDesc:    { ru: 'Только дыхание, без счёта и таймера', en: 'Just breathing — no score, no timer' },
+  slotNightDesc:    { ru: 'Не спится — только дыхание, без счёта', en: 'Can’t sleep — breathing only, no score' },
   slotNightNote:    { ru: 'Это не тренировка: очки не начисляются и стрик не растёт', en: 'Not a workout: no points, no streak' },
   restart: { ru: 'Заново', en: 'Restart' },
   back: { ru: 'Назад', en: 'Back' },

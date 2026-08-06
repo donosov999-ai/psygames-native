@@ -598,3 +598,24 @@ export function brainTodayVerdict(history: WarmupHistoryEntry[], lang: string = 
   const key = delta > 10 ? 'brainDeltaUp' : delta < -10 ? 'brainDeltaDown' : 'brainDeltaNorm';
   return { delta_pct: delta, message: translateFor(lang, key).replace('{d}', d) };
 }
+
+/** Пауза, за которую повторный вызов перехода считается дублем (напр. двойной сейв сессии). */
+export const ADVANCE_DEBOUNCE_MS = 800;
+
+/**
+ * Делать ли переход к следующему шагу зарядки.
+ *
+ * Вынесено из WarmupContext ради теста: авто-переход планируется на 2000–3500 мс,
+ * и если человек за это время сам жмёт «Далее», переход случается дважды —
+ * руками и по таймеру, — а шаг между ними проглатывается. У Вали так вечерняя
+ * зарядка схлопывалась в «одна игра и сразу дыхание».
+ *
+ * @param fromIdx номер шага, для которого переход был запланирован (undefined = ручной)
+ */
+export function shouldAdvance(o: {
+  fromIdx?: number; currentIdx: number; now: number; lastAdvanceAt: number;
+}): boolean {
+  if (o.fromIdx !== undefined && o.fromIdx !== o.currentIdx) return false;   // шаг уже сменили
+  if (o.now - o.lastAdvanceAt < ADVANCE_DEBOUNCE_MS) return false;           // дубль
+  return true;
+}

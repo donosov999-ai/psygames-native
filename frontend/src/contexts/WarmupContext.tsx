@@ -7,6 +7,7 @@ import {
   buildFixedPlaylist, buildEveningWarmupPlaylist, buildDayPlaylist, buildNightPlaylist, stepToParams,
   getCurrentWeekday, todayDateKey,
   saveWarmupHistory, WarmupHistoryEntry, Weekday,
+  shouldAdvance,
 } from '@/src/services/warmup';
 import { setSessionListener, GameSession } from '@/src/services/api';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -39,7 +40,7 @@ interface WarmupCtx extends WarmupState {
   startFinancialBattery: () => void;     // D1 — Iowa+BART+PRL session
   startAssessment: () => void;            // G1 — 12-domain skill assessment
   recordResult: (r: StepResult) => Promise<void>;
-  advanceToNext: () => void;        // navigates to next game or to /warmup-complete
+  advanceToNext: (fromIdx?: number) => void;   // переход к следующей игре или на /warmup-complete
   skipCurrent: () => void;
   stopWarmup: (completed?: boolean) => Promise<void>;
 }
@@ -177,11 +178,22 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   // (симптом: зарядка «проскакивает» игры и обрывается раньше времени). Плюс debounce-гард:
   // два advanceToNext ближе 800мс (напр. дубль-сейв сессии) не продвигают шаг дважды.
   const lastAdvanceRef = useRef(0);
-  const advanceToNext = useCallback(() => {
+  // Отложенный авто-переход (см. слушатель сессий ниже) планируется на 2000–3500 мс.
+  // Если человек за это время сам жмёт «Далее» в результате игры — переход происходит
+  // дважды: руками и по таймеру, — и шаг между ними ПРОГЛАТЫВАЕТСЯ. Дебаунс в 800 мс
+  // это не ловит: переходы разнесены на секунды. Именно так у Вали вечерняя зарядка
+  // из трёх игр схлопывалась в «одна игра и сразу дыхание» (репорты 03.08 и 05.08 —
+  // «где другие игры?????»). У вечера задержка самая длинная → рвалось чаще всего.
+  // Лечим двумя замками: гасим запланированный таймер и сверяем номер шага.
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const advanceToNext = useCallback((fromIdx?: number) => {
     const s = stateRef.current;
     if (!s.meta) return;
     const now = Date.now();
-    if (now - lastAdvanceRef.current < 800) return;
+    if (!shouldAdvance({ fromIdx, currentIdx: s.currentIdx, now, lastAdvanceAt: lastAdvanceRef.current })) return;
+    // Гасим только когда переход реально состоялся: отменить таймер и при этом
+    // никуда не уйти — значит подвесить зарядку на текущем шаге навсегда.
+    if (advanceTimerRef.current) { clearTimeout(advanceTimerRef.current); advanceTimerRef.current = null; }
     lastAdvanceRef.current = now;
     const next = s.currentIdx + 1;
     setState((st) => ({ ...st, currentIdx: st.currentIdx + 1 }));
@@ -266,7 +278,9 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       // ЛЮБОГО завершённого раунда, с настоящим warmup-стриком (раньше тут был 0).
       // small delay so the game's own result UI can render briefly,
       // then auto-navigate to bridge / complete
-      setTimeout(() => advanceToNext(), cur.meta.slot === 'evening' ? 3500 : 2000);
+      const idxAtSave = cur.currentIdx;   // переход валиден только для ЭТОГО шага
+      if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = setTimeout(() => advanceToNext(idxAtSave), cur.meta.slot === 'evening' ? 3500 : 2000);
     };
     setSessionListener(listener);
     return () => setSessionListener(null);

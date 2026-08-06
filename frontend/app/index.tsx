@@ -112,10 +112,14 @@ function FullHome() {
   }, []));
   const todayChallenge = useMemo(() => getTodayChallenge(), []);   // ротация игр — детерминировано по дате
 
-  // Время суток для подписи кнопки «Зарядка». Считаем один раз на монтирование:
-  // перерисовывать подпись под пальцем, когда часы перевалили за 18:00, незачем —
-  // экран и так пересоздаётся при возврате на главную.
-  const slotNow: WarmupSlot = useMemo(() => currentSlot(), []);
+  // Время суток для подписи кнопки «Зарядка».
+  // ⚠️ РАНЬШЕ считалось ОДИН раз через useMemo(..., []) с рассуждением «экран и так
+  // пересоздаётся при возврате». Неверно: на Android приложение живёт в WebView и
+  // главный экран остаётся смонтированным сутками — подпись застывала на времени
+  // запуска, и утром человек видел ночную зарядку (репорт Дениса 06.08).
+  // Пересчитываем на каждом возврате на главную.
+  const [slotNow, setSlotNow] = useState<WarmupSlot>(() => currentSlot());
+  useFocusEffect(useCallback(() => { setSlotNow(currentSlot()); }, []));
   const prevTokensRef = useRef<number | null>(null);
   const prevLevelRef = useRef<number | null>(null);
   useFocusEffect(useCallback(() => {
@@ -439,10 +443,12 @@ function FullHome() {
                   </View>
                 )}
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>
-                {t('slot' + slotNow.charAt(0).toUpperCase() + slotNow.slice(1))}
+              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={1}>
+                {t('warmupPickerTitle')}
               </Text>
               <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
+                {t('slot' + slotNow.charAt(0).toUpperCase() + slotNow.slice(1))}
+                {' · '}
                 {t('slot' + slotNow.charAt(0).toUpperCase() + slotNow.slice(1) + 'Desc')}
               </Text>
               <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>

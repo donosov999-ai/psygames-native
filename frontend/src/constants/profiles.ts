@@ -640,6 +640,10 @@ const WOMEN: ProfileDef = {
     // успокоение. Ставим парные картинки: тот же жанр, что и отличия в первом
     // шаге, из её же профиля, и заведомо проходятся.
     { game_id: 'picture_pairs',    game_route: '/games/picture-pairs',    difficulty: 'easy', settings: { pairsCount: 6 }, est_duration_sec: 60 },
+    // Четвёртый шаг добавлен 06.08 по требованию Дениса: «сделай 4 тогда, раз не
+    // получается с тремя». Сортировка товаров — тот же казуальный жанр, что
+    // отличия и парные картинки, из её же профиля, спокойная и заведомо проходится.
+    { game_id: 'goods_sort',       game_route: '/games/goods-sort',       difficulty: 'easy', est_duration_sec: 90 },
     { game_id: 'breathing',        game_route: '/games/breathing',        difficulty: 'easy', settings: { tech: 'calm478' }, est_duration_sec: 120 },
   ],
   warmup_enabled: true,

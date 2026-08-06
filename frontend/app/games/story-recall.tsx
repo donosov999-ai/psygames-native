@@ -28,6 +28,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import GameShell from '@/src/components/GameShell';
+import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#654ea3', '#eaafc8'];
 const STORY_BENEFITS = [
@@ -169,6 +170,7 @@ export default function StoryRecallGame() {
   const { t, language } = useLanguage() as any;
   const router = useRouter();
 
+  const { isPreset } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [story, setStory] = useState<Story>(STORIES[0]);
   const [readRemaining, setReadRemaining] = useState(0);
@@ -221,6 +223,7 @@ export default function StoryRecallGame() {
       }
     }, 200);
   };
+  useAutostart(isPreset, startGame);   // в плейлисте зарядки игра стартует сама
 
   const startDistractor1 = () => {
     setPhase('distractor1');

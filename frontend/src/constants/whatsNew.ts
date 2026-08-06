@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.184.0',
+    date: '2026-08-06',
+    ru: [
+      'Зарядка больше не проглатывает игры: если нажать «Далее» самому, следующая игра не пропускается. Из-за этого вечерний набор превращался в одну игру и дыхание',
+      'Вечерняя зарядка — четыре упражнения',
+      'Зарядка — одна кнопка: утренняя, дневная, вечерняя и ночная выбираются на одном экране',
+      'Подпись на главной больше не застревает: утром показывает утреннюю, а не ту, что была при запуске',
+      'Игры внутри зарядки запускаются сами — больше не нужно жать «Начать» на каждом шаге',
+    ],
+    en: [
+      'A workout no longer swallows games: tapping Next yourself no longer skips the following game. That is what turned the evening set into one game and breathing',
+      'Evening workout now has four exercises',
+      'Workout is one button now: morning, daytime, evening and night are picked on a single screen',
+      'The label on the home screen no longer gets stuck — in the morning it shows the morning workout',
+      'Games inside a workout start on their own — no more tapping Start at every step',
+    ],
+  },
+  {
     version: '1.183.0',
     date: '2026-08-03',
     ru: ['Аксессуары питомца садятся на место на всех трёх обликах — колпак на макушку, бант на шею, очки на глаза'],
