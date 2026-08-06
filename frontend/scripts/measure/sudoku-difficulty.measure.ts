@@ -1,15 +1,15 @@
 import { levelConfig, generatePuzzle } from '@/src/services/sudoku-core';
 import { gradePuzzle, generateLogical, targetTier } from '@/src/services/sudoku-grade';
 
-/**
- * ЗАМЕР, А НЕ ТЕСТ. Печатает кривую сложности судоку по уровням.
- *
- * Лежит ВНЕ src/__tests__ намеренно: jest ловит только `**/src/__tests__/**/*.test.ts`,
- * а этот прогон стоит ~5 минут на выборку — в CI-гейте ему делать нечего.
- * Запуск вручную:
- *   npx jest --rootDir . scripts/measure/sudoku-difficulty.measure.ts
- *     --testMatch '**/scripts/measure/*.measure.ts' -t 'НОВЫЙ'
- */
+// ЗАМЕР, А НЕ ТЕСТ. Печатает кривую сложности судоку по уровням.
+//
+// Лежит ВНЕ src/__tests__ намеренно: jest ловит тесты только из той папки, а этот
+// прогон стоит ~5 минут на выборку — в CI-гейте ему делать нечего. Фоновый запуск
+// с ним внутри набора стоил 2100 с против 14.7 с без него.
+//
+// Запуск вручную: npx jest --rootDir . scripts/measure/sudoku-difficulty.measure.ts
+//   --testMatch "<rootDir>/scripts/measure/*.measure.ts" -t "НОВЫЙ"
+
 const LEVELS = [22, 24, 43, 45, 47, 52];
 const SAMPLES = 5;
 
