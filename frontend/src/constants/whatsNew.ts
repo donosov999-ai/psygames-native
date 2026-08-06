@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.185.0',
+    date: '2026-08-06',
+    ru: [
+      'Судоку: на уровнях с кружками и квадратиками введённая цифра больше не «выцветает» — она читается сразу, не дожидаясь снятия выделения',
+      'Главный экран стал компактнее: шапка занимает вдвое меньше, игры начинаются выше',
+      'Кубок, магазин, статистика и настройки больше не переносятся на отдельную строку',
+    ],
+    en: [
+      'Sudoku: on levels with circles and squares the digit you place no longer looks washed out — it reads right away, without deselecting the cell',
+      'The home screen is tighter: the header takes half the space, games start higher',
+      'Trophy, shop, stats and settings no longer wrap onto their own row',
+    ],
+  },
+  {
     version: '1.184.0',
     date: '2026-08-06',
     ru: [
