@@ -45,6 +45,7 @@ import {
   dimsForSize, blanksFor, killerBlanks, generateCages, levelConfig,
   variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
 } from '@/src/services/sudoku-core';
+import { generateLogical } from '@/src/services/sudoku-grade';
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 
@@ -254,7 +255,19 @@ export default function SudokuGame() {
       }).catch(() => {});
     }
     setHintMax(hMax);
-    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar } = generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
+    // Режим уровней генерируется ОТ ЛОГИКИ: клетка выкалывается, только если пазл
+    // остаётся решаемым техниками не выше потолка уровня. Отсюда два следствия сразу:
+    //   • сложность растёт по уровням, а не по числу дырок (замер старого пути: с 5-го
+    //     по 37-й почти всё бралось голыми одиночками — «начиная с 34 уровня всё очень
+    //     лёгкое», «с 30 по 34 сложность не меняется»);
+    //   • решение ЕДИНСТВЕННО по построению — каждый шаг логики вынужден, второму
+    //     решению взяться неоткуда («игра имеет несколько вариантов победы» — репорты Вали).
+    // Варианты, которые решатель тянет слабо (несоседние, термометры, стрелки, сэндвич),
+    // внутри generateLogical сами уходят на прежний путь с проверкой единственности.
+    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar } =
+      mode === 'levels'
+        ? generateLogical(lvlOverride ?? level, blanks, d.N, d.BR, d.BC, vr, { budgetMs: 2200 }).gen
+        : generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
     setRegions(rg ?? null);
     setParityMarks(pa ?? null);
     setKropki(kr ?? null);

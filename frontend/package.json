@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "main": "expo-router/entry",
-  "version": "1.186.0",
+  "version": "1.187.0",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -12,7 +12,8 @@
     "keygen": "node scripts/keygen.mjs",
     "keygen:interactive": "node scripts/keygen.mjs --interactive",
     "smoke": "node scripts/smoke-games.mjs",
-    "test": "jest"
+    "test": "jest",
+    "test:levels": "jest --testMatch '**/src/__gates__/*.gate.ts'"
   },
   "dependencies": {
     "@expo/ngrok": "^4.1.3",

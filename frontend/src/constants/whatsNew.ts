@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.187.0',
+    date: '2026-08-07',
+    ru: [
+      'Судоку: сложность наконец растёт по уровням. Раньше уровень задавал число пустых клеток, а они могут заполняться совсем механически — поэтому 34-й выходил легче 12-го. Теперь уровень задаёт, какой приём решения понадобится',
+      'Судоку: у каждого уровня гарантированно ровно одно решение — это проверяется при каждой сборке для всех 52 уровней, а не на глаз',
+    ],
+    en: [
+      'Sudoku: difficulty finally grows with the level. It used to be set by the number of empty cells, which can be filled purely mechanically — that is why level 34 felt easier than 12. Now the level sets which solving technique you will need',
+      'Sudoku: every level is guaranteed to have exactly one solution — checked on every build across all 52 levels, not by eye',
+    ],
+  },
+  {
     version: '1.186.0',
     date: '2026-08-06',
     ru: [
