@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "teamops": {
+      "type": "http",
+      "url": "https://teamops.asibots.pro/mcp",
+      "headers": {
+        "Authorization": "Bearer 6b3f0165bf8c751050acc68e0a7f66a4f9c2aa8cc64cdbbf"
+      }
+    }
+  }
+}

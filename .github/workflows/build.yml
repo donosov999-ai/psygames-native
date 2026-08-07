@@ -600,6 +600,21 @@ jobs:
           EOF
           tail -30 "$GRADLE"
 
+      - name: Build signed APK (Tauri)
+        working-directory: src-tauri
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/src-tauri/keys/psygames-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "Using keystore at: $ANDROID_KEYSTORE_PATH"
+          ls -la "$ANDROID_KEYSTORE_PATH"
+          # --aab вместе с --apk: отдельный ./gradlew bundleRelease НЕ работает —
+          # gradle-таск rustBuild*Release требует живого tauri CLI (WebSocket IPC),
+          # он есть только внутри cargo tauri android build (падение v1.120.3).
+          cargo tauri android build --apk --aab
+
       # v1.190.0: после включения shrinkResources артефакт надо проверить руками —
       # веб-смоук APK не трогает, а ресурс, найденный по имени в рантайме, исчезает молча.
       # Проверяем, что на месте всё, без чего приложение не запустится.
@@ -633,21 +648,6 @@ jobs:
               print('❌ ПОТЕРЯНО:', ', '.join(bad)); sys.exit(1)
           print('✅ всё на месте: манифест, ресурсы, байткод, .so, веб-сборка, иконка, инсеты')
           PYEOF
-
-      - name: Build signed APK (Tauri)
-        working-directory: src-tauri
-        env:
-          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/src-tauri/keys/psygames-release.jks
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          echo "Using keystore at: $ANDROID_KEYSTORE_PATH"
-          ls -la "$ANDROID_KEYSTORE_PATH"
-          # --aab вместе с --apk: отдельный ./gradlew bundleRelease НЕ работает —
-          # gradle-таск rustBuild*Release требует живого tauri CLI (WebSocket IPC),
-          # он есть только внутри cargo tauri android build (падение v1.120.3).
-          cargo tauri android build --apk --aab
 
       - name: Locate APK + AAB
         working-directory: src-tauri
