@@ -47,6 +47,24 @@ let lastSpokeAt = 0;
 const FIRST_SPEECH_MIN = 4000;   // самая первая фраза за сессию — быстро, не через 20-40 с
 const FIRST_SPEECH_SPAN = 4000;
 
+/**
+ * Подъём над нижним тулбаром.
+ *
+ * Питомец ходит по самому низу экрана — ровно там, где на части экранов живёт тулбар
+ * с главной кнопкой. Репорт Вали 07.08 со скрином: питомец сидел НА кнопке «Начать»
+ * на экране выбора зарядки — «сдвинуть невозможно, в итоге нет возможности начать игру».
+ *
+ * ⚠️ Я перед этим проверял перекрытие на веб-превью и написал, что тап не перехватывается.
+ * Замер был верен для десктопного окна, где питомец разгуливает по всей ширине, но
+ * на телефоне он паркуется поверх кнопки — и человеку неважно, перехватывает он тап
+ * или просто закрывает собой цель. Смотреть надо было на её скрин, а не на своё окно.
+ *
+ * Экраны с тулбаром: игры (GameShell) и выбор зарядки. Там поднимаем питомца выше него.
+ */
+const TOOLBAR_H = 74;
+const BOTTOM_BAR_LIFT = (pathname: string): number =>
+  (pathname.startsWith('/games/') || pathname.startsWith('/warmup-picker') ? TOOLBAR_H : 0);
+
 export default function WalkingPet() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -243,7 +261,7 @@ export default function WalkingPet() {
   return (
     <Animated.View
       pointerEvents="box-none"
-      style={[styles.walker, { bottom: insets.bottom + 6, transform: [{ translateX: x }] }]}
+      style={[styles.walker, { bottom: insets.bottom + 6 + BOTTOM_BAR_LIFT(pathname), transform: [{ translateX: x }] }]}
     >
       {bubble != null && (
         <TouchableOpacity

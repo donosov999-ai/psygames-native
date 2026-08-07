@@ -56,6 +56,9 @@ function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0
 const SHAPES_ALL: Shape[] = ['T', 'L', 'I', 'plus'];   // рото-различимый набор: T(3-луч)/L(угол)/I(черта)/plus(крест)
 // Конъюнктивный поиск (фаза-2, высокие уровни): цель = цвет + форма. NEUTRAL — для feature-уровней (поиск по форме).
 const NEUTRAL_STROKE = '#ffffff';
+/** Фон поля И плашки-образца. Одна константа на оба места намеренно: они разъехались, и
+ *  образец стал рисоваться белым по белому — см. комментарий у плашки ниже. */
+const FIELD_BG = '#1f2937';
 const COLORS_ALL: string[] = ['#60a5fa', '#fbbf24', '#f472b6'];   // голубой / янтарь / розовый — различимы на тёмном поле
 const CONJ_FROM_LEVEL = 8;                                        // с L8 включается конъюнкция
 
@@ -376,9 +379,16 @@ export default function VisualSearchGame() {
               <Text style={[styles.hintText, { color: colors.textSecondary }]}>
                 {(conjRef.current ? (FIND_CONJ[language] || FIND_CONJ.en) : (FIND_TXT[language] || FIND_TXT.en))}{targetCount > 1 ? ` ×${targetCount}` : ''}
               </Text>
-              <View style={styles.targetRef}>{renderLetter({ shape: targetShape, color: targetColor, rot: 0, x: 0, y: 0, isTarget: true, found: false })}</View>
+              {/* ⚠️ Фон задан ИНЛАЙНОМ, а не только в styles.targetRef. Снимок из репорта
+                  Вали 07.08 (v1.188, ✓0 ✗4 за 65 с): замер пикселей показал плашку
+                  [252,252,254] — цвет фона страницы, хотя в стиле стоит тёмный. Белая
+                  фигура на белой плашке = образца не видно, и человек ищет вслепую.
+                  Берём ту же константу, что и поле: разъехаться им больше нечем. */}
+              <View style={[styles.targetRef, { backgroundColor: FIELD_BG }]}>
+                {renderLetter({ shape: targetShape, color: targetColor || NEUTRAL_STROKE, rot: 0, x: 0, y: 0, isTarget: true, found: false })}
+              </View>
             </View>
-            <View style={[styles.boardArea, { width: boardW, height: boardH, backgroundColor: '#1f2937', borderColor: feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
+            <View style={[styles.boardArea, { width: boardW, height: boardH, backgroundColor: FIELD_BG, borderColor: feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
               {items.map((it, i) => (
                 <TouchableOpacity key={i}
                   onPress={() => handlePick(i)}
@@ -470,6 +480,6 @@ const styles = StyleSheet.create({
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 280 },
   hintRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 2 },
-  targetRef: { width: 38, height: 38, borderRadius: 8, backgroundColor: '#1f2937', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#3b82f6' },
+  targetRef: { width: 38, height: 38, borderRadius: 8, backgroundColor: FIELD_BG, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#3b82f6' },
   boardArea: { borderRadius: 12, borderWidth: 1, position: 'relative', overflow: 'hidden' },
 });
