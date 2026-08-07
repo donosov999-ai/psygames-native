@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.190.0',
+    date: '2026-08-07',
+    ru: [
+      'Голосовая заметка: если микрофон не отдал звук, приложение скажет об этом сразу — раньше запись уходила немой, а на экране всё выглядело удачно',
+      'Приложение стало легче: из сборки убраны неиспользуемые ресурсы',
+    ],
+    en: [
+      'Voice note: if the microphone gave no sound, the app now says so right away — recordings used to go out silent while the screen looked fine',
+      'The app got lighter: unused resources are stripped from the build',
+    ],
+  },
+  {
     version: '1.189.0',
     date: '2026-08-07',
     ru: [
