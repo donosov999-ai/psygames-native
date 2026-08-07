@@ -45,9 +45,17 @@ describe('гейт: все уровни судоку решаемы и реше�
       if (puzzle[i][j] !== 0) expect(puzzle[i][j]).toBe(solution[i][j]);
     }
 
-    // 3. Решение единственно. Логический путь даёт это по построению; где логики не
-    //    хватило — досчитываем перебором.
+    // 3. Решение единственно. Логический путь даёт это по построению (каждый шаг вынужден);
+    //    где логики не хватило — досчитываем перебором.
     const solvedByLogic = r.grade.solved && r.grade.tier < TECHNIQUE_TIER.guess;
+
+    // 3a. Если решатель дошёл логикой — он обязан прийти РОВНО к эталонному решению.
+    //     Это ловит неверный пруннинг: с ним решатель «решит» чужую сетку и объявит
+    //     единственность там, где её нет. Без этой сверки гарантия была бы на слово.
+    if (solvedByLogic && r.grade.grid) {
+      for (let i = 0; i < cfg.N; i++) expect(r.grade.grid[i]).toEqual(solution[i]);
+    }
+
     if (!solvedByLogic) {
       const eff: Variant = (cfg.variant === 'jigsaw' && !r.gen.regions)
         || (cfg.variant === 'thermo' && !r.gen.thermo)

@@ -10,7 +10,7 @@ import { gradePuzzle, generateLogical, targetTier } from '@/src/services/sudoku-
 // Запуск вручную: npx jest --rootDir . scripts/measure/sudoku-difficulty.measure.ts
 //   --testMatch "<rootDir>/scripts/measure/*.measure.ts" -t "НОВЫЙ"
 
-const LEVELS = [22, 24, 43, 45, 47, 52];
+const LEVELS = [8, 12, 19, 22, 26, 33, 37, 40, 45, 47];
 const SAMPLES = 5;
 
 const median = (a: number[]) => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };

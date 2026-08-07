@@ -314,6 +314,33 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // БАЗОВОЕ решение единственно → любой верный ход совпадает с solution.
 const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich'];
 
+/**
+ * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
+ *
+ * Правило «ортогональные соседи не отличаются на единицу» режет пространство так, что
+ * обычный поиск залипает: замер одной сетки — 90 СЕКУНД, и это был живой прод (уровни
+ * 22–25 подвешивали игру на генерации). Перезапуски с бюджетом шагов дали 6–15 с и
+ * дикий разброс, при steps=120 стало ещё хуже — 175 с. Перебор тут просто не тот
+ * инструмент.
+ *
+ * Зато такая сетка СТРОИТСЯ формулой: v(r,c) = (3·(r mod 3) + ⌊r/3⌋ + m·c + shift) mod 9 + 1.
+ *   • строки/столбцы/боксы — свойство классической «сдвиговой» сетки судоку;
+ *   • по горизонтали соседи отличаются на m (mod 9), по вертикали — на 3 либо на 4–5;
+ *     ни одно из этих значений не даёт разницу в единицу, если m ∉ {1, 8}.
+ * Множитель m ∈ {2,4,5,7} (взаимно прост с 9 и не даёт единицы), сдвиг 0..8, плюс
+ * транспонирование и разворот цифр v→10−v: 144 разные сетки, любая за микросекунды.
+ * Все 36 комбинаций m×shift проверены настоящим isValid с правилом nonconsec.
+ */
+export function buildNonconsecSolution(): Cell[][] {
+  const m = [2, 4, 5, 7][Math.floor(Math.random() * 4)];
+  const shift = Math.floor(Math.random() * 9);
+  let g: Cell[][] = Array.from({ length: 9 }, (_, r) =>
+    Array.from({ length: 9 }, (_, c) => ((3 * (r % 3) + Math.floor(r / 3) + m * c + shift) % 9) + 1));
+  if (Math.random() < 0.5) g = g[0].map((_, c) => g.map((row) => row[c]));       // транспонирование
+  if (Math.random() < 0.5) g = g.map((row) => row.map((v) => 10 - v));           // разворот цифр: |a−b| не меняется
+  return g;
+}
+
 export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
@@ -331,6 +358,9 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
     let ok = false;
     for (let t = 0; t < 60 && !ok; t++) { arrow = generateArrow(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'arrow', undefined, { steps: 3000 }, undefined, arrow); }   // ~2 ретрая, констрейн-сумма решаем
     if (!ok) { arrow = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }
+  } else if (variant === 'nonconsec' && N === 9) {
+    const g = buildNonconsecSolution();   // строим формулой, перебор тут не тот инструмент — см. комментарий выше
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) sol[r][c] = g[r][c];
   } else {
     solve(sol, N, BR, BC, variant);
   }

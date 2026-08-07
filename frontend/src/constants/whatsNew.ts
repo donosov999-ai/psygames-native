@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.188.0',
+    date: '2026-08-07',
+    ru: [
+      'Судоку с правилом «соседи не отличаются на единицу» (уровни 22–25) больше не заставляет ждать: доска собиралась полторы минуты, теперь секунду',
+      'Сложность по технике решения заработала ещё на трёх правилах — несоседние числа, стрелки и термометры',
+    ],
+    en: [
+      'Sudoku with the “neighbours differ by more than one” rule (levels 22–25) no longer keeps you waiting: the board took a minute and a half to build, now about a second',
+      'Technique-based difficulty now also covers three more rules — non-consecutive, arrows and thermometers',
+    ],
+  },
+  {
     version: '1.187.0',
     date: '2026-08-07',
     ru: [
