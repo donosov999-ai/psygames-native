@@ -1,12 +1,24 @@
 # PsyGames Native — 🏛 SOURCE OF TRUTH
 
+> ## ⚖️ Лицензия: проприетарная. Это НЕ открытый исходный код.
+>
+> Репозиторий публичен, чтобы можно было проверить сборку и скачать релизы.
+> Публичность **не даёт права использовать код**: копирование, перенос в свои
+> продукты, изменение и публикация под другим именем запрещены без письменного
+> разрешения. Приложением пользоваться можно — на старте оно бесплатное.
+>
+> Продукт коммерческий по дорожной карте: бесплатность на старте — этап, а не
+> свойство. Все коммерческие права остаются за правообладателем.
+>
+> Полный текст: [LICENSE](LICENSE) · © 2026 Denis Onosov (ODV999)
+
 > **⚠ This repo is the ONLY place to edit PsyGames source code.**
 >
 > A single push to `main` rebuilds and redeploys ALL 4 platforms automatically:
 > - macOS arm64 `.app`
 > - Windows x86_64 `.exe` + `.msi`
 > - Android signed `.apk`
-> - Web → [psygames-web](https://github.com/donosov999-ai/psygames-web) → [GH Pages](https://donosov999-ai.github.io/psygames-web/)
+> - Web → `psygames-web` (приватный репозиторий) → раздаётся с psy-games.pro/play/
 >
 > ❌ **Do NOT edit `psygames-web` directly** — it will be overwritten by the next CI run from here.
 > ❌ **Do NOT edit `/Users/denisonosov/Downloads/Code claude/psygames/frontend/` locally** — it's a historical mirror, may drift.
