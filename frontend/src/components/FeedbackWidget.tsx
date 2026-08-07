@@ -34,7 +34,7 @@ import {
 } from '@/src/services/appFeedback';
 import { isRTLLang } from '@/src/services/rtl';
 import { a11yModal } from '@/src/services/a11y';
-import { canRecord, startRecording, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
+import { canRecord, startRecording, SILENCE_PEAK, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
 
 const KINDS: { key: FeedbackKind; emoji: string; labelKey: string }[] = [
   { key: 'confusion', emoji: '🤷', labelKey: 'fbKindConfusion' },
@@ -63,15 +63,21 @@ export default function FeedbackWidget() {
   const [recSec, setRecSec] = React.useState(0);
   const [note, setNote] = React.useState<VoiceNote | null>(null);
   const [micDenied, setMicDenied] = React.useState(false);
+  /** Запись получилась, но звука в ней нет — микрофон не отдал сэмплы. */
+  const [micSilent, setMicSilent] = React.useState(false);
 
   const toggleRecord = async () => {
     if (rec) {
       const v = await rec.stop();
       setRec(null); setRecSec(0);
       if (v) setNote(v);
+      // Немая запись — не молчим об этом. Две Валины заметки уехали полностью
+      // немыми (замер: −91 дБ, цифровая тишина), и по интерфейсу это выглядело
+      // как успешная отправка. Лучше сказать сразу, чем принять три минуты в пустоту.
+      setMicSilent(!!v && v.peak < SILENCE_PEAK);
       return;
     }
-    setMicDenied(false);
+    setMicDenied(false); setMicSilent(false);
     try {
       setNote(null);
       setRec(await startRecording(setRecSec));
@@ -324,6 +330,9 @@ export default function FeedbackWidget() {
                       </TouchableOpacity>
                       {micDenied && (
                         <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{t('voiceDenied')}</Text>
+                      )}
+                      {micSilent && !micDenied && (
+                        <Text style={{ color: '#b45309', fontSize: 12, fontWeight: '700' }}>{t('voiceSilent')}</Text>
                       )}
                     </View>
                   )}

@@ -24,7 +24,27 @@ export interface VoiceNote {
   /** Длительность в секундах — показываем человеку и кладём в контекст репорта. */
   seconds: number;
   mime: string;
+  /**
+   * Пиковая громкость за запись, 0..1. Ноль означает, что дорожка была, а звука в
+   * ней не было.
+   *
+   * ЗАЧЕМ. Две Валины голосовые заметки (02.08 и 07.08, 15 и 21 секунда) приехали
+   * ПОЛНОСТЬЮ немыми: замер ffmpeg — mean_volume = max_volume = −91 дБ, то есть
+   * цифровая тишина. Файл при этом валидный и правильной длительности, размер
+   * 3.6 и 5 КБ — столько opus и весит на тишине. Права RECORD_AUDIO в манифесте
+   * есть с v1.170, getUserMedia отдаёт поток, MediaRecorder честно пишет — но
+   * сэмплов в дорожке нет (похоже на отказ системы отдавать микрофон, Android
+   * в таких случаях молча шлёт нули вместо ошибки).
+   *
+   * Отладить чужой телефон отсюда нельзя, а вот сделать отказ ВИДИМЫМ можно:
+   * человек узнаёт сразу, а не пишет три минуты в пустоту, и мы видим уровень
+   * в контексте репорта.
+   */
+  peak: number;
 }
+
+/** Ниже этого пика считаем, что микрофон не отдал звук (тишина ≈ 0.0005). */
+export const SILENCE_PEAK = 0.01;
 
 /** Поддерживает ли эта сборка запись вообще (старый WebView, десктоп без микрофона). */
 export function canRecord(): boolean {
@@ -63,12 +83,36 @@ export async function startRecording(onTick?: (sec: number) => void): Promise<Re
   const startedAt = Date.now();
   let stopped = false;
 
+  // Слушаем уровень параллельно записи — MediaRecorder про громкость ничего не знает
+  // и одинаково довольна и речью, и тишиной.
+  let peak = 0;
+  let audioCtx: AudioContext | null = null;
+  let levelTimer: ReturnType<typeof setInterval> | null = null;
+  try {
+    const AC: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (AC) {
+      audioCtx = new AC();
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      audioCtx.createMediaStreamSource(stream).connect(analyser);
+      const buf = new Uint8Array(analyser.fftSize);
+      levelTimer = setInterval(() => {
+        analyser.getByteTimeDomainData(buf);
+        let m = 0;
+        for (let i = 0; i < buf.length; i++) { const d = Math.abs(buf[i] - 128) / 128; if (d > m) m = d; }
+        if (m > peak) peak = m;
+      }, 200);
+    }
+  } catch { /* нет AudioContext — просто останемся без замера */ }
+
   rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
   rec.start(1000);   // таймслайсы: если WebView прибьют, уже записанное не пропадёт
 
   const release = () => {
     stopped = true;
     clearInterval(timer);
+    if (levelTimer) clearInterval(levelTimer);
+    try { audioCtx?.close(); } catch { /* уже закрыт */ }
     try { stream.getTracks().forEach((t) => t.stop()); } catch { /* поток уже мёртв */ }
   };
 
@@ -92,6 +136,7 @@ export async function startRecording(onTick?: (sec: number) => void): Promise<Re
             blob: new Blob(chunks, { type }),
             seconds: Math.max(1, Math.round((Date.now() - startedAt) / 1000)),
             mime: type,
+            peak,
           });
         };
         if (rec.state === 'inactive') { finish(); return; }

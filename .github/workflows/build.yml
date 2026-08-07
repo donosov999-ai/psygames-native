@@ -574,6 +574,22 @@ jobs:
               buildTypes {
                   getByName("release") {
                       signingConfig = signingConfigs.getByName("release")
+                      // v1.190.0: удаление неиспользуемых РЕСУРСОВ. Обфускация кода (R8)
+                      // в шаблоне Tauri уже включена — в dex классы переименованы в a/b/c, —
+                      // а вот ресурсы не чистились, и Play писал об этом прямым текстом:
+                      // «Удаление неиспользуемых ресурсов не включено» (рекомендация к v1.189.0).
+                      //
+                      // Побочный расчёт: в сборку из шаблона Tauri приезжает Material вместе с
+                      // календарём-датапикером, которого у нас нет ни на одном экране. Именно
+                      // его Google и показывает во втором замечании — setStatusBarColor и
+                      // setNavigationBarColor зовём не мы, а он (в отчёте он под обфусцированным
+                      // именем G.e.q). Сняв ресурсы, R8 получает право выкинуть и его код.
+                      //
+                      // ⚠️ Риск ровно один: ресурс, который ищут по имени в рантайме, исчезнет
+                      // молча. У Tauri-приложения ресурсов почти нет (тема, иконки, строки),
+                      // и все они объявлены в манифесте — шринкер такие не трогает. После
+                      // сборки артефакт проверяется отдельным шагом ниже.
+                      isShrinkResources = true
                   }
               }
           }
@@ -583,6 +599,40 @@ jobs:
           }
           EOF
           tail -30 "$GRADLE"
+
+      # v1.190.0: после включения shrinkResources артефакт надо проверить руками —
+      # веб-смоук APK не трогает, а ресурс, найденный по имени в рантайме, исчезает молча.
+      # Проверяем, что на месте всё, без чего приложение не запустится.
+      - name: APK после чистки ресурсов — цел
+        working-directory: src-tauri
+        run: |
+          APK=$(find gen/android -name "*-release*.apk" | head -1)
+          if [ -z "$APK" ]; then echo "ERROR: APK не найден"; exit 1; fi
+          echo "APK: $APK  ($(du -m "$APK" | cut -f1) МБ)"
+          python3 - "$APK" <<'PYEOF'
+          import sys, zipfile
+          z = zipfile.ZipFile(sys.argv[1])
+          names = z.namelist()
+          need = {
+            'манифест':      lambda: 'AndroidManifest.xml' in names,
+            'таблица ресурсов': lambda: 'resources.arsc' in names,
+            'байткод':       lambda: any(n.endswith('.dex') for n in names),
+            'нативные .so':  lambda: any(n.endswith('.so') for n in names),
+            'веб-сборка':    lambda: any(n.startswith('assets/') for n in names),
+            'иконка':        lambda: any('mipmap' in n or 'ic_launcher' in n for n in names),
+          }
+          bad = [k for k, f in need.items() if not f()]
+          man = z.read('AndroidManifest.xml').decode('utf-16-le', errors='ignore')
+          for k in ('RECORD_AUDIO', 'MainActivity'):
+              if k not in man: bad.append(f'манифест: нет {k}')
+          dex = b''.join(z.read(n) for n in names if n.endswith('.dex'))
+          if b'setOnApplyWindowInsetsListener' not in dex:
+              bad.append('инсеты системных панелей вырезаны')
+          print('файлов в APK:', len(names))
+          if bad:
+              print('❌ ПОТЕРЯНО:', ', '.join(bad)); sys.exit(1)
+          print('✅ всё на месте: манифест, ресурсы, байткод, .so, веб-сборка, иконка, инсеты')
+          PYEOF
 
       - name: Build signed APK (Tauri)
         working-directory: src-tauri

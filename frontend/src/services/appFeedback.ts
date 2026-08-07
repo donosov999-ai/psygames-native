@@ -150,7 +150,7 @@ interface SendArgs {
   gameId?: string;
   shot?: Blob | null;
   /** Голосовая заметка: оригинал речи, а не то, что расслышал телефон. */
-  audio?: { blob: Blob; seconds: number; mime: string } | null;
+  audio?: { blob: Blob; seconds: number; mime: string; peak?: number } | null;
   context?: Record<string, unknown>;
 }
 
@@ -254,7 +254,10 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
       context: {
         ...(args.context ?? {}),
         viewport: detectViewport(),
-        ...(args.audio ? { audio_seconds: args.audio.seconds } : null),
+        // audio_peak — пиковый уровень записи, 0..1. Нужен, чтобы немая заметка была
+        // видна В БАЗЕ, а не только человеку: две Валины записи приехали на −91 дБ
+        // (цифровая тишина), и по метаданным это было не отличить от нормальной.
+        ...(args.audio ? { audio_seconds: args.audio.seconds, audio_peak: args.audio.peak ?? null } : null),
       },
     };
     const insertFailed = await withTimeout(

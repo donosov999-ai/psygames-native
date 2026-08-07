@@ -1099,6 +1099,7 @@ const translations: Translations = {
   phonemicAutoPick:{ ru: 'Случайная буква', en: 'Random letter' },
   phonemicRules:   { ru: 'Правила: только нарицательные, длина ≥ 2, без повторов',
                     en: 'Rules: common nouns only, length ≥ 2, no repetitions' },
+  voiceSilent:     { ru: 'Запись получилась немой — микрофон не отдал звук. Проверьте разрешение для приложения и запишите ещё раз, иначе мы услышим тишину.', en: 'The recording came out silent — the microphone gave no sound. Check the app’s permission and record again, otherwise we will just hear silence.' },
   phonemicHint:    { ru: 'Слова на букву "{L}". Жми Enter после каждого', en: 'Words starting with "{L}". Press Enter after each' },
   phonemicPlaceholder: { ru: '{L}...', en: '{L}...' },
   phonemicAdd:     { ru: 'добавить', en: 'add' },
