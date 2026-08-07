@@ -23,7 +23,7 @@
  * сложнее, чем играется) — на уровнях 38–41 полоса поэтому задана с запасом.
  */
 import {
-  Cell, Variant, ThermoPN, ArrowMap, isValid, generatePuzzle, shuffle, HYPER_BOXES,
+  Cell, Variant, ThermoPN, ArrowMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
 } from './sudoku-core';
 
 export type Technique =
@@ -47,13 +47,28 @@ export interface GradeCtx {
   arrow?: ArrowMap;
   parity?: number[][];                       // 1 = чётная, 2 = нечётная, 0 = без метки
   kropki?: { h: number[][]; v: number[][] }; // 2 = чёрная, 1 = белая, 0 = ТОЧКА НЕ ПОКАЗАНА
+  sandwich?: { rows: number[]; cols: number[] };
 }
 
-export interface Grade { solved: boolean; tier: number; hardest: Technique; }
+export interface Grade {
+  solved: boolean;
+  tier: number;
+  hardest: Technique;
+  /** Доска, к которой решатель пришёл. Гейт сверяет её с эталоном: если пруннинг где-то
+   *  неверен, решатель «решит» ЧУЖУЮ сетку и объявит единственность там, где её нет. */
+  grid?: Cell[][];
+}
 
 const bit = (v: number) => 1 << (v - 1);
 const popcount = (m: number) => { let n = 0; while (m) { m &= m - 1; n++; } return n; };
 const bitsOf = (m: number, N: number) => { const o: number[] = []; for (let v = 1; v <= N; v++) if (m & bit(v)) o.push(v); return o; };
+// Минимум/максимум значения прямо из маски. Раньше правила вариантов гоняли bitsOf в
+// тройном цикле и аллоцировали массив на каждую пару клеток — уровень 22 (несоседние)
+// собирался 312 с. С масками те же проверки идут за считанные операции.
+const loVal = (m: number) => 32 - Math.clz32(m & -m);          // значение младшего бита
+const hiVal = (m: number) => 32 - Math.clz32(m);               // значение старшего бита
+const atLeast = (k: number) => ~((1 << (k - 1)) - 1);          // маска значений ≥ k
+const atMost = (k: number) => (k <= 0 ? 0 : (1 << k) - 1);     // маска значений ≤ k
 
 /** Зоны, внутри которых каждая цифра встречается ровно один раз. */
 export function unitsFor(N: number, BR: number, BC: number, variant: Variant, regions?: number[][]): [number, number][][] {
@@ -91,7 +106,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, parity, kropki } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, parity, kropki, sandwich } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -118,6 +133,138 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
       cand[r][c] = m;
       if (m === 0) return true;
     }
+    // ── Несоседние числа: у соседа обязан найтись вариант, отличающийся не на единицу.
+    // isValid ловит правило только против УЖЕ известных соседей, а тут оно работает и по
+    // кандидатам. Без этого решатель на nonconsec (L22–25) откатывал почти каждое
+    // выкалывание и уходил на дорогой путь.
+    if (variant === 'nonconsec') {
+      // Кандидат v невозможен, если У СОСЕДА не осталось ни одного значения, отличного
+      // от v не на единицу — то есть все его кандидаты лежат в {v-1, v+1}.
+      for (let pass = 0; pass < 3; pass++) {
+        let changed = false;
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          if (grid[r][c] !== 0) continue;
+          let m = cand[r][c];
+          for (const [dr, dc] of ORTHO) {
+            const nr = r + dr, nc = c + dc;
+            if (nr < 0 || nr >= N || nc < 0 || nc >= N) continue;
+            const other = grid[nr][nc] !== 0 ? bit(grid[nr][nc]) : cand[nr][nc];
+            if (!other) continue;
+            for (let v = 1; v <= N; v++) {
+              if (!(m & bit(v))) continue;
+              const adj = (v > 1 ? bit(v - 1) : 0) | (v < N ? bit(v + 1) : 0);
+              if ((other & ~adj) === 0) { m &= ~bit(v); changed = true; }
+            }
+          }
+          cand[r][c] = m;
+          if (m === 0) return true;
+        }
+        if (!changed) break;
+      }
+    }
+
+    // ── Термометр: вдоль пути от колбы значения строго растут. Отсюда границы —
+    // на i-й позиции значение не меньше i+1 и не больше N-(длина-1-i), — и попарная
+    // сверка с соседями по пути. isValid знал только про уже заполненных соседей.
+    if (variant === 'thermo' && thermo) {
+      for (let pass = 0; pass < 4; pass++) {
+        let changed = false;
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          const pn = thermo[r][c];
+          if (!pn || grid[r][c] !== 0) continue;
+          let allow = (1 << N) - 1;
+          if (pn.prev) {
+            const pm = grid[pn.prev[0]][pn.prev[1]] !== 0 ? bit(grid[pn.prev[0]][pn.prev[1]]) : cand[pn.prev[0]][pn.prev[1]];
+            if (pm) allow &= atLeast(loVal(pm) + 1);             // строго больше предыдущего
+          }
+          if (pn.next) {
+            const nm = grid[pn.next[0]][pn.next[1]] !== 0 ? bit(grid[pn.next[0]][pn.next[1]]) : cand[pn.next[0]][pn.next[1]];
+            if (nm) allow &= atMost(hiVal(nm) - 1);              // строго меньше следующего
+          }
+          const next = cand[r][c] & allow;
+          if (next !== cand[r][c]) { cand[r][c] = next; changed = true; }
+          if (cand[r][c] === 0) return true;
+        }
+        if (!changed) break;
+      }
+    }
+
+    // ── Стрелка: кружок равен сумме клеток вдоль стрелки. Считаем границы суммы по
+    // кандидатам и режем и кружок, и сами клетки стрелки.
+    if (variant === 'arrow' && arrow) {
+      const mask = (rr: number, cc: number) => (grid[rr][cc] !== 0 ? bit(grid[rr][cc]) : cand[rr][cc]);
+      for (let pass = 0; pass < 3; pass++) {
+        let changed = false;
+        const seen = new Set<number>();
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          const m = arrow[r][c];
+          if (!m) continue;
+          const key = m.circle[0] * N + m.circle[1];
+          if (seen.has(key)) continue;
+          seen.add(key);
+          const [cr, cc] = m.circle;
+          let minSum = 0, maxSum = 0;
+          for (const [ar, ac] of m.arrows) { const mm = mask(ar, ac); if (!mm) return true; minSum += loVal(mm); maxSum += hiVal(mm); }
+          if (grid[cr][cc] === 0) {
+            const next = cand[cr][cc] & atLeast(minSum) & atMost(maxSum);
+            if (next !== cand[cr][cc]) { cand[cr][cc] = next; changed = true; }
+            if (cand[cr][cc] === 0) return true;
+          }
+          const cm = mask(cr, cc);
+          if (!cm) return true;
+          const cLo = loVal(cm), cHi = hiVal(cm);
+          for (const [ar, ac] of m.arrows) {
+            if (grid[ar][ac] !== 0) continue;
+            const mm = cand[ar][ac];
+            const restMin = minSum - loVal(mm), restMax = maxSum - hiVal(mm);
+            const next = mm & atMost(cHi - restMin) & atLeast(cLo - restMax > 0 ? cLo - restMax : 1);
+            if (next !== mm) { cand[ar][ac] = next; changed = true; }
+            if (cand[ar][ac] === 0) return true;
+          }
+        }
+        if (!changed) break;
+      }
+    }
+
+    // ── Сэндвич: подсказка = сумма цифр СТРОГО между 1 и 9 в ряду/столбце. Перебираем
+    // допустимые пары позиций (1,9) и оставляем единице и девятке только те клетки,
+    // где хоть одна пара сходится по границам суммы. Правило раньше решателю не было
+    // известно вовсе — оттого сэндвич и оценивался пессимистично.
+    if (variant === 'sandwich' && sandwich && N === 9) {
+      const line = (idx: number, byRow: boolean) => Array.from({ length: N }, (_, k) => (byRow ? [idx, k] : [k, idx]) as [number, number]);
+      for (const byRow of [true, false]) {
+        const targets = byRow ? sandwich.rows : sandwich.cols;
+        for (let i = 0; i < N; i++) {
+          const cells = line(i, byRow);
+          const has = (k: number, v: number) => {
+            const [rr, cc] = cells[k];
+            return grid[rr][cc] !== 0 ? grid[rr][cc] === v : !!(cand[rr][cc] & bit(v));
+          };
+          const okPos1 = new Set<number>(), okPos9 = new Set<number>();
+          for (let a = 0; a < N; a++) for (let b = 0; b < N; b++) {
+            if (a === b) continue;
+            if (!has(a, 1) || !has(b, 9)) continue;
+            const [x, y] = a < b ? [a, b] : [b, a];
+            let mn = 0, mx = 0;
+            for (let k = x + 1; k < y; k++) {
+              const [rr, cc] = cells[k];
+              const m = grid[rr][cc] !== 0 ? bit(grid[rr][cc]) : cand[rr][cc];
+              if (!m) { mn = 1e9; break; }
+              mn += loVal(m); mx += hiVal(m);
+            }
+            if (mn <= targets[i] && targets[i] <= mx) { okPos1.add(a); okPos9.add(b); }
+          }
+          for (let k = 0; k < N; k++) {
+            const [rr, cc] = cells[k];
+            if (grid[rr][cc] !== 0) continue;
+            if ((cand[rr][cc] & bit(1)) && !okPos1.has(k)) cand[rr][cc] &= ~bit(1);
+            if ((cand[rr][cc] & bit(9)) && !okPos9.has(k)) cand[rr][cc] &= ~bit(9);
+            if (cand[rr][cc] === 0) return true;
+          }
+        }
+      }
+    }
+
     if (kropki) {
       // Дуговая согласованность по ПОКАЗАННЫМ точкам: кандидат выживает, только если
       // у соседа найдётся значение, с которым точка выполняется. 0 = точки нет = нет информации.
@@ -273,7 +420,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     if (refilter()) return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess' };
     let empty = 0;
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (grid[r][c] === 0) empty++;
-    if (empty === 0) return { solved: true, tier: Math.max(1, maxTier), hardest };
+    if (empty === 0) return { solved: true, tier: Math.max(1, maxTier), hardest, grid: grid.map((row) => [...row]) };
     if (!steps.some((f) => f())) break;
   }
   return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess' };
@@ -359,7 +506,7 @@ const MAX_BLANKS_9 = 64;
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow,
-    parity: gen.parity, kropki: gen.kropki,
+    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich,
   });
 }
 
@@ -376,7 +523,7 @@ function digByLogic(
   const parity = variant === 'evenodd' ? Array.from({ length: N }, () => Array(N).fill(0)) : undefined;
   let kropki = base.kropki;
   if (variant === 'kropki' && kropki) kropki = thinMarkers({ kropki }, level, variant, N).kropki;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, parity, kropki };
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, parity, kropki, sandwich: base.sandwich };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,
