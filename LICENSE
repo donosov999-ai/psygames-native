@@ -1,0 +1,101 @@
+PsyGames — Proprietary License / Проприетарная лицензия
+Copyright (c) 2026 Denis Onosov (ODV999). All rights reserved.
+Все права защищены.
+
+────────────────────────────────────────────────────────────────────────
+РУССКИЙ
+────────────────────────────────────────────────────────────────────────
+
+ЭТО НЕ ОТКРЫТЫЙ ИСХОДНЫЙ КОД.
+
+Репозиторий публичен, чтобы можно было проверить, как собирается приложение,
+и скачать готовые сборки. Публичность репозитория НЕ означает разрешения
+использовать код.
+
+ЧТО РАЗРЕШЕНО
+1. Пользоваться самим приложением PsyGames. На старте оно бесплатное.
+2. Читать исходный код и изучать его.
+3. Скачивать официальные сборки из раздела Releases и устанавливать их
+   для личного пользования.
+4. Присылать сообщения об ошибках и предложения.
+
+ЧТО ЗАПРЕЩЕНО БЕЗ ПИСЬМЕННОГО РАЗРЕШЕНИЯ ПРАВООБЛАДАТЕЛЯ
+1. Копировать, переносить и повторно использовать код, полностью или частями,
+   в любых своих продуктах — коммерческих и некоммерческих.
+2. Изменять код и распространять изменённые версии.
+3. Создавать производные продукты, в том числе сборки под другим названием
+   или другим оформлением.
+4. Публиковать приложение или его части в магазинах приложений, каталогах
+   и на сторонних площадках.
+5. Продавать, сдавать в аренду, предоставлять как услугу.
+6. Использовать материалы приложения — тексты заданий, наборы стимулов,
+   переводы, изображения, звуки — отдельно от него.
+
+ПРО КОММЕРЧЕСКОЕ БУДУЩЕЕ
+Бесплатность на старте — этап, а не свойство продукта. Дорожная карта
+предполагает платные возможности. Все коммерческие права остаются за
+правообладателем, и бесплатный период их никак не ограничивает.
+
+СТОРОННИЕ КОМПОНЕНТЫ
+Приложение использует библиотеки с собственными лицензиями (см. package.json
+и Cargo.toml). Эта лицензия распространяется только на код и материалы
+PsyGames, а не на сторонние компоненты — у них свои условия.
+
+ОТСУТСТВИЕ ГАРАНТИЙ
+Программа предоставляется «как есть», без каких-либо гарантий. PsyGames —
+тренажёр, а не медицинское изделие: он не ставит диагнозов и не заменяет
+обращение к врачу. Правообладатель не отвечает за любые убытки, связанные
+с использованием программы.
+
+ЛИЦЕНЗИРОВАНИЕ
+Хотите использовать код или материалы — договоритесь письменно. Вопросы
+через раздел Issues этого репозитория.
+
+────────────────────────────────────────────────────────────────────────
+ENGLISH
+────────────────────────────────────────────────────────────────────────
+
+THIS IS NOT OPEN SOURCE.
+
+The repository is public so that anyone can inspect how the application is
+built and download official releases. Public visibility does NOT grant any
+right to use the code.
+
+PERMITTED
+1. Using the PsyGames application itself. It is free at launch.
+2. Reading and studying the source code.
+3. Downloading official builds from Releases and installing them for
+   personal use.
+4. Submitting bug reports and suggestions.
+
+PROHIBITED WITHOUT WRITTEN PERMISSION FROM THE COPYRIGHT HOLDER
+1. Copying, porting or reusing the code, in whole or in part, in any product
+   of your own — commercial or non-commercial.
+2. Modifying the code and distributing modified versions.
+3. Creating derivative products, including builds under a different name
+   or different branding.
+4. Publishing the application or any part of it to app stores, catalogues
+   or third-party platforms.
+5. Selling, renting or providing it as a service.
+6. Using the application's materials — task texts, stimulus sets,
+   translations, images, sounds — separately from the application.
+
+ON THE COMMERCIAL FUTURE
+Being free at launch is a stage, not a property of the product. The roadmap
+includes paid capabilities. All commercial rights remain with the copyright
+holder, and the free period does not limit them in any way.
+
+THIRD-PARTY COMPONENTS
+The application uses libraries under their own licenses (see package.json and
+Cargo.toml). This license covers only PsyGames' own code and materials, not
+third-party components, which carry their own terms.
+
+NO WARRANTY
+The software is provided "as is", without warranty of any kind. PsyGames is a
+training tool, not a medical device: it does not diagnose and does not replace
+consulting a doctor. The copyright holder is not liable for any damages arising
+from use of the software.
+
+LICENSING
+If you want to use the code or the materials, arrange it in writing. Enquiries
+via the Issues section of this repository.
