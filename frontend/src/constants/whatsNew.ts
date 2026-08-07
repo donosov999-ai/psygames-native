@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.189.0',
+    date: '2026-08-07',
+    ru: [
+      'Питомец больше не садится на кнопку «Начать» — на экранах с нижней панелью он ходит выше неё',
+      'Поиск фигур: образец искомой фигуры было не видно — он рисовался белым по белому',
+    ],
+    en: [
+      'The pet no longer sits on the Start button — on screens with a bottom bar it walks above it',
+      'Visual Search: the target shape sample was invisible — it was drawn white on white',
+    ],
+  },
+  {
     version: '1.188.0',
     date: '2026-08-07',
     ru: [
