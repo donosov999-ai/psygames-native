@@ -66,7 +66,7 @@ const auth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/androidpublisher'],
 });
 
-const TRACKS = ['internal', 'alpha', 'closed-test1'];
+const TRACKS = ['production'];
 
 async function main() {
   // Сначала текст, только потом загрузка: если описания нет, лучше не залить
