@@ -771,6 +771,7 @@ const t: Record<string, string> = {
   "hint_profile_tap_telegram": "プロフィールをタップ → 詳細を確認＋Telegramでコードをリクエスト",
   "hint_profile_tap_unlock": "プロフィールをタップ → 詳細を見てコードで解放",
   "btn_hint": "ヒント",
+  "btn_undo": "元に戻す",
   "label_on": "オン",
   "label_off": "オフ",
   "label_balloon": "風船",
