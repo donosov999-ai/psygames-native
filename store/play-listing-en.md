@@ -1,7 +1,7 @@
 # Google Play — карточка, локаль en
 
 Автор: Denis Onosov (ODV999) · под сборку v1.190.2
-Структура повторяет русскую (ред. 3), утверждённую и уже размещённую в Play.
+Структура повторяет русскую (ред. 4), переписанную под поисковый индекс.
 Это НЕ перевод: хук-сцены и примеры переписаны под язык, а не переложены.
 
 ---
@@ -34,7 +34,7 @@ Memory, focus, thinking speed. 61 exercises. Offline, no ads
 
 ---
 
-## 3. ПОЛНОЕ ОПИСАНИЕ — 4000 символов (3999 использовано)
+## 3. ПОЛНОЕ ОПИСАНИЕ — 4000 символов (3911 использовано)
 ```
 Read a page — and you still know what was on it.
 Hold three tasks in your head and drop none of them.
@@ -43,7 +43,19 @@ Hear a foreign language and catch sounds that used to blur into noise.
 
 That's not a gift you're born with. It's trained — and here you can see by how much.
 
-PsyGames — 61 exercises for memory, attention, logic and speed. Not another "test your IQ", but training with a result you can measure.
+PsyGames is brain training with 61 exercises for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
+
+MEMORY GAMES
+Train visual memory with Corsi blocks, matrices and matching pairs. Build working memory with N-back, operation span and reading span. Hold a pattern in mind and reproduce it later.
+
+ATTENTION AND FOCUS
+Improve concentration with Schulte tables, Spot the Difference, Posner and Flanker tasks. Practise staying on task despite interruptions.
+
+LOGIC AND PUZZLES
+Solve brain puzzles: Sudoku with 12 rule variants, Tower of Hanoi, Tower of London, SET and anagrams. Plan several moves ahead.
+
+THINKING SPEED AND REACTION
+Train reaction time, mental math and cognitive control with Stroop, Go/No-Go, timed arithmetic and Trail Making.
 
 WHY YOU WON'T QUIT IN THREE DAYS
 Everyone downloads a brain app. Most open it three times and delete it — same drills, no visible progress. This one is built differently.
@@ -55,17 +67,8 @@ Everyone downloads a brain app. Most open it three times and delete it — same 
 • Points for accuracy and speed, a shop with frames, avatars and titles
 • Daily challenge with its own streak, plus achievements
 
-WHAT YOU GET
-• Visual memory — glance at a diagram, reproduce it later
-• Working memory — hold several things at once without losing the thread
-• Concentration — work while someone interrupts every five minutes
-• Thinking speed — decide faster at the same quality
-• Self-control — don't answer the first impulse, choose instead
-• An ear for foreign speech — hear sounds you couldn't distinguish before
-• Planning — see several moves ahead
-
 WHAT'S INSIDE
-• 61 exercises in 4 categories: Memory, Attention, Logic, Speed & Control
+• 61 exercises for memory, attention, logic, speed and control
 • Warm-up in one button: morning, daytime, evening and night — ready sets launch with the right settings
 • 12 profiles for different goals: languages, kids, 50+, focus, reaction, founders and more
 • Assessment with a radar of strengths and weak spots
@@ -77,20 +80,14 @@ Behind every exercise is a validated paradigm, not invented mechanics. Schulte t
 That's why the number on screen means something. You're not watching "level 7" — you're watching yourself improve.
 
 DEVELOPERS WHO ANSWER
-A feedback button right inside the app: write, or just say it out loud, and the screenshot attaches itself. We read all of it.
-
-More importantly, you find out how it ended. When a fix ships, the app shows you: this was fixed because of YOUR message, in this version. Not "thanks, we'll pass it on" — an answer to your specific complaint.
-
-That's how this app grows: most of what you'll see inside exists because someone complained.
+A feedback button lives inside the app: write or speak, and a screenshot attaches automatically. When a fix ships, the app tells you exactly what changed because of YOUR message and in which version.
 
 WHO IT'S FOR
 • Adults — holding focus in work where you're interrupted every five minutes
 • 50+ — memory and reaction speed, regularly and without fiddly settings
 • Kids 7+ — counting, memory and attention as a game, in a dedicated profile
-• Students — concentration through long exams
-• Language learners — an ear for foreign sounds, memory for words
-• Drivers, pilots, surgeons — split-second decisions under load
-• Chess players and speed readers — calculation and visual span
+• Students and language learners — concentration, foreign sounds and memory for words
+• Chess players, speed readers and anyone training decisions under pressure
 
 HONEST ABOUT THE SCIENCE
 Training reliably improves the trained tasks and closely related skills (near transfer). We do NOT promise an IQ boost — transfer to "general intelligence" is scientifically disputed. What we give you is validated instruments and a clear, measurable picture of progress. That's the difference from brain-game toys.
