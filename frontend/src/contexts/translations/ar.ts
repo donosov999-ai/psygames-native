@@ -771,6 +771,7 @@ const t: Record<string, string> = {
   "hint_profile_tap_telegram": "اضغط على ملف → التفاصيل + اطلب رمزًا عبر تيليجرام",
   "hint_profile_tap_unlock": "اضغط على ملف → التفاصيل والفتح برمز",
   "btn_hint": "تلميح",
+  "btn_undo": "تراجع",
   "label_on": "مفعّل",
   "label_off": "معطّل",
   "label_balloon": "البالون",

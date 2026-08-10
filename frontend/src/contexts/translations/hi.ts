@@ -659,6 +659,7 @@ const t: Record<string, string> = {
   "hint_profile_tap_telegram": "प्रोफ़ाइल पर टैप करें → विवरण + Telegram पर कोड का अनुरोध",
   "hint_profile_tap_unlock": "प्रोफ़ाइल पर टैप करें → विवरण और कोड से अनलॉक",
   "btn_hint": "संकेत",
+  "btn_undo": "पूर्ववत करें",
   "label_on": "चालू",
   "label_off": "बंद",
   "label_balloon": "गुब्बारा",

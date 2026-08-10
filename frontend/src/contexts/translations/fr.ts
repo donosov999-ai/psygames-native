@@ -771,6 +771,7 @@ const t: Record<string, string> = {
   "hint_profile_tap_telegram": "Touche un profil → détails + demande de code sur Telegram",
   "hint_profile_tap_unlock": "Touche un profil → détails et déblocage par code",
   "btn_hint": "Indice",
+  "btn_undo": "Annuler",
   "label_on": "Activé",
   "label_off": "Désactivé",
   "label_balloon": "Ballon",

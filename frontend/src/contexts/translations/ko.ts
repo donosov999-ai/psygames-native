@@ -771,6 +771,7 @@ const t: Record<string, string> = {
   "hint_profile_tap_telegram": "프로필을 눌러 상세 정보를 보고 텔레그램에서 코드를 요청하세요",
   "hint_profile_tap_unlock": "프로필을 눌러 상세 정보를 확인하고 코드로 잠금 해제하세요",
   "btn_hint": "힌트",
+  "btn_undo": "실행 취소",
   "label_on": "켜짐",
   "label_off": "꺼짐",
   "label_balloon": "풍선",

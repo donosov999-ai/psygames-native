@@ -656,6 +656,7 @@ const t: Record<string, string> = {
   "hint_profile_tap_telegram": "点按档案 → 详情 + 在 Telegram 申请代码",
   "hint_profile_tap_unlock": "点按档案 → 详情并用代码解锁",
   "btn_hint": "提示",
+  "btn_undo": "撤销",
   "label_on": "开",
   "label_off": "关",
   "label_balloon": "气球",

@@ -1196,6 +1196,7 @@ const translations: Translations = {
   hint_profile_tap_telegram: { ru: 'Клик по профилю → детали + запрос кода в Telegram', en: 'Tap a profile → details + request a code on Telegram' },
   hint_profile_tap_unlock: { ru: 'Клик по профилю → детали и разблокировка кодом', en: 'Tap a profile → details and unlock with a code' },
   btn_hint: { ru: 'Подсказка', en: 'Hint' },
+  btn_undo: { ru: 'Отменить', en: 'Undo' },
   label_on: { ru: 'Вкл', en: 'On' },
   label_off: { ru: 'Выкл', en: 'Off' },
   label_balloon: { ru: 'Шар', en: 'Balloon' },

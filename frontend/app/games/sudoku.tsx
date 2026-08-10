@@ -18,6 +18,9 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/constants/digitThemes';
 import type { DigitStyle } from '@/src/constants/digitThemes';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { useMoveHistory } from '@/src/hooks/useMoveHistory';
+import { saveResume, loadResume, clearResume } from '@/src/services/resume';
+import { failurePolicy, isOver as isFailOver, livesLeft } from '@/src/services/failure';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Line, Rect } from 'react-native-svg';
 
@@ -170,6 +173,51 @@ const rhStyles = StyleSheet.create({
   okText: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
 });
 
+const GAME_ID = 'sudoku';
+
+/**
+ * Версия формата незаконченной партии. Поднимать при ЛЮБОМ изменении полей SudokuResume:
+ * старая запись тогда не подойдёт под новый код и будет молча выброшена, а не уронит экран.
+ */
+const RESUME_V = 1;
+
+/** Ход: что стояло в клетке до него и что стало. Назад отыгрывает экран, лента только помнит. */
+interface SudokuMove { r: number; c: number; from: Cell; to: Cell }
+
+/**
+ * Снимок незаконченной партии. Кладём ВСЁ, что нужно, чтобы доска ожила ровно такой,
+ * какой её оставили: саму доску, правила варианта (у судоку их 12, и без карты регионов
+ * или термометров доска станет нерешаемой), счётчики и ленту ходов.
+ */
+interface SudokuResume {
+  mode: 'levels' | 'free' | 'killer';
+  level: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+  size: 6 | 9;
+  variant: Variant;
+  dims: { N: number; BR: number; BC: number };
+  puzzle: Cell[][];
+  solution: Cell[][];
+  grid: Cell[][];
+  given: boolean[][];
+  regions: number[][] | null;
+  cages: number[][] | null;
+  cageSums: number[];
+  cageAnchors: number[];
+  parityMarks: number[][] | null;
+  kropki: { h: number[][]; v: number[][] } | null;
+  sandwich: { rows: number[]; cols: number[] } | null;
+  thermo: ThermoPN | null;
+  arrow: ArrowMap | null;
+  errors: number;
+  hintUses: number;
+  hintMax: number;
+  backtrackCount: number;
+  /** Накопленные секунды, а не момент старта: между сессиями настенные часы уходят вперёд. */
+  elapsed: number;
+  history: { past: SudokuMove[]; future: SudokuMove[] };
+}
+
 export default function SudokuGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -209,7 +257,13 @@ export default function SudokuGame() {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [given, setGiven] = useState<boolean[][]>([]);
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
-  const LIVES = 3;   // 3 жизни до перезапуска
+  // Модель провала — свойство РЕЖИМА, а не константа экрана (см. services/failure).
+  // Сейчас все режимы судоку короткие → 'standard', три жизни, как было. Длинные режимы
+  // (самурай, фрактал) возьмут 'longform': ошибки считаются, но час работы не обрывают.
+  const failure = failurePolicy('standard');
+  const LIVES = failure.lives;
+  // Лента ходов для отмены. Хранит ЧТО было в клетке до хода — назад отыгрывает экран.
+  const hist = useMoveHistory<SudokuMove>();
   const [hintMax, setHintMax] = useState(3);   // лимит подсказок (меньше на высоких уровнях)
   const [errors, setErrors] = useState(0);
   const [over, setOver] = useState(false);   // жизни кончились (3 ошибки) → game over + рестарт
@@ -231,6 +285,10 @@ export default function SudokuGame() {
   }, [profile?.id]);
 
   const startGame = (lvlOverride?: number) => {
+    // Новая партия заменяет незаконченную: старую доску продолжать уже нечем.
+    const pidStart = profile?.id;
+    if (pidStart) clearResume(GAME_ID, pidStart).catch(() => {});
+    hist.reset();
     let d: { N: number; BR: number; BC: number };
     let blanks: number, vr: Variant = 'none', hMax = 3;
     if (mode === 'levels') {
@@ -290,6 +348,89 @@ export default function SudokuGame() {
     timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
   };
 
+  /** Снимок партии для слоя незаконченной игры. */
+  const snapshot = (): SudokuResume => ({
+    mode, level, difficulty, size, variant, dims,
+    puzzle, solution, grid, given,
+    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow,
+    errors, hintUses, hintMax, backtrackCount,
+    elapsed: elapsedTime,
+    history: hist.serialize(),
+  });
+
+  /** Поднять партию из снимка — доска оживает ровно такой, какой её оставили. */
+  const applyResume = (s: SudokuResume) => {
+    setMode(s.mode); setLevel(s.level); setDifficulty(s.difficulty); setSize(s.size);
+    setVariant(s.variant); setDims(s.dims);
+    setPuzzle(s.puzzle); setSolution(s.solution); setGrid(s.grid); setGiven(s.given);
+    setRegions(s.regions); setCages(s.cages); setCageSums(s.cageSums); setCageAnchors(s.cageAnchors);
+    setParityMarks(s.parityMarks); setKropki(s.kropki); setSandwich(s.sandwich);
+    setThermo(s.thermo); setArrow(s.arrow);
+    setErrors(s.errors); setHintUses(s.hintUses); setHintMax(s.hintMax); setBacktrackCount(s.backtrackCount);
+    setSelected(null); setOver(false); setBossWon(null);
+    hist.restore(s.history);
+    // Таймер продолжаем с накопленного: настенные часы между сессиями ушли вперёд,
+    // и от прежнего startTime партия «шла» бы всё то время, что телефон лежал в кармане.
+    const start = Date.now() - Math.max(0, s.elapsed) * 1000;
+    setStartTime(start);
+    setElapsedTime(s.elapsed);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    setPhase('playing');
+  };
+
+  // Поднять незаконченную партию при входе на экран. Не трогаем путь зарядки (autostart):
+  // там человек явно запустил свежий раунд, и startGame сам выбросит старую партию.
+  const bootRef = useRef(false);
+  useEffect(() => {
+    if (autostart || bootRef.current) return;
+    const pid = profile?.id;
+    if (!pid) return;
+    bootRef.current = true;
+    let cancelled = false;
+    loadResume<SudokuResume>(GAME_ID, pid, RESUME_V)
+      .then((saved) => {
+        if (cancelled || !saved || !Array.isArray(saved.grid) || !saved.grid.length) return;
+        applyResume(saved);
+      })
+      .catch(() => { /* нет партии — обычный вход через интро */ });
+    return () => { cancelled = true; };
+  }, [profile?.id, autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — разовый подъём партии
+
+  // Автосохранение по ходу партии. Записываем с задержкой: подряд идущие касания
+  // не должны бить по хранилищу каждым нажатием.
+  useEffect(() => {
+    if (phase !== 'playing' || over || !grid.length) return;
+    const pid = profile?.id;
+    if (!pid) return;
+    const snap = snapshot();
+    const tm = setTimeout(() => { saveResume(GAME_ID, pid, RESUME_V, snap).catch(() => {}); }, 400);
+    return () => clearTimeout(tm);
+  }, [grid, errors, hintUses, backtrackCount, phase, over]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Уход с экрана. Отложенная запись выше на этом моменте отменяется своим clearTimeout,
+  // поэтому сохраняем ещё раз здесь — и с ЖИВЫМ временем, а не с тем, что было на прошлом ходу.
+  const liveRef = useRef<{ ok: boolean; pid?: string; snap: () => SudokuResume }>({ ok: false, snap: () => ({} as SudokuResume) });
+  liveRef.current = { ok: phase === 'playing' && !over && grid.length > 0, pid: profile?.id, snap: snapshot };
+  useEffect(() => () => {
+    const l = liveRef.current;
+    if (l.ok && l.pid) saveResume(GAME_ID, l.pid, RESUME_V, l.snap()).catch(() => {});
+  }, []);
+
+  /**
+   * Отмена хода. Возвращает КЛЕТКУ, но НЕ возвращает жизнь: иначе три жизни превращаются
+   * в бесконечные и модель сложности рассыпается. Промах пальцем чинится, счёт ошибок —
+   * нет. В длинных режимах жизней не будет вовсе (см. services/failure).
+   */
+  const handleUndo = () => {
+    const m = hist.undo();
+    if (!m) return;
+    const ng = grid.map((row) => [...row]);
+    ng[m.r][m.c] = m.from;
+    setGrid(ng);
+    setSelected({ r: m.r, c: m.c });
+  };
+
   const handleCellPress = (r: number, c: number) => {
     if (given[r][c]) return;
     setSelected({ r, c });
@@ -303,13 +444,16 @@ export default function SudokuGame() {
     const ng = grid.map((row) => [...row]);
     ng[r][c] = n;
     setGrid(ng);
+    hist.push({ r, c, from: previousValue, to: n });
     if (n !== 0) { (solution[r][c] === n) ? hapticSuccess() : hapticError(); }   // верно: звук+вибро; неверно: звук+вибро
     if (n !== 0 && solution[r][c] !== n) {
       const ne = errors + 1;
       setErrors(ne);
-      if (ne >= LIVES) {                              // жизни кончились → game over
+      if (isFailOver(failure, ne)) {                 // жизни кончились → game over
         if (timerRef.current) clearInterval(timerRef.current);
         setOver(true);
+        const pid = profile?.id;
+        if (pid) clearResume(GAME_ID, pid).catch(() => {});   // партия проиграна — продолжать нечего
       }
     }
     // Backtrack detection: if user previously placed a non-zero value and now changes/clears it
@@ -327,10 +471,11 @@ export default function SudokuGame() {
       const finalTime = (Date.now() - startTime) / 1000;
       setElapsedTime(finalTime);
       // SUDOKU-LVL: уровни — сохранить прогресс на следующий уровень (счёт растёт с уровнем)
-      if (mode === 'levels') {
-        const pid = profile?.id;
-        if (pid) AsyncStorage.setItem(`psygames_sudoku_level_${pid}`, String(level + 1)).catch(() => {});
+      const pidDone = profile?.id;
+      if (mode === 'levels' && pidDone) {
+        AsyncStorage.setItem(`psygames_sudoku_level_${pidDone}`, String(level + 1)).catch(() => {});
       }
+      if (pidDone) clearResume(GAME_ID, pidDone).catch(() => {});   // доиграна — продолжать нечего
       const baseScore = mode === 'levels' ? 1500 + level * 150 : 2000;
       try {
         await saveSession({
@@ -765,6 +910,16 @@ export default function SudokuGame() {
           <Ionicons name="bulb" size={16} color="#000" />
           <Text style={styles.hintBtnText}>{t('btn_hint')} ({hintUses}/{hintMax})</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t('btn_undo')}
+          onPress={handleUndo}
+          disabled={!hist.canUndo}
+          style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: hist.canUndo ? 1 : 0.4 }]}
+        >
+          <Ionicons name="arrow-undo" size={16} color={colors.text} />
+          <Text style={[styles.undoBtnText, { color: colors.text }]}>{t('btn_undo')}</Text>
+        </TouchableOpacity>
         <Text style={[styles.metaText, { color: colors.textSecondary }]}>
           ↻ {backtrackCount}
         </Text>
@@ -939,5 +1094,7 @@ const styles = StyleSheet.create({
   overSub: { fontSize: 14, textAlign: 'center', marginBottom: 10 },
   hintBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   hintBtnText: { color: '#000', fontSize: 13, fontWeight: '700' },
+  undoBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1 },
+  undoBtnText: { fontSize: 13, fontWeight: '700' },
   metaText: { fontSize: 12, fontWeight: '700' },
 });
