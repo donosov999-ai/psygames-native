@@ -574,22 +574,15 @@ jobs:
               buildTypes {
                   getByName("release") {
                       signingConfig = signingConfigs.getByName("release")
-                      // v1.190.0: удаление неиспользуемых РЕСУРСОВ. Обфускация кода (R8)
-                      // в шаблоне Tauri уже включена — в dex классы переименованы в a/b/c, —
-                      // а вот ресурсы не чистились, и Play писал об этом прямым текстом:
-                      // «Удаление неиспользуемых ресурсов не включено» (рекомендация к v1.189.0).
-                      //
-                      // Побочный расчёт: в сборку из шаблона Tauri приезжает Material вместе с
-                      // календарём-датапикером, которого у нас нет ни на одном экране. Именно
-                      // его Google и показывает во втором замечании — setStatusBarColor и
-                      // setNavigationBarColor зовём не мы, а он (в отчёте он под обфусцированным
-                      // именем G.e.q). Сняв ресурсы, R8 получает право выкинуть и его код.
-                      //
-                      // ⚠️ Риск ровно один: ресурс, который ищут по имени в рантайме, исчезнет
-                      // молча. У Tauri-приложения ресурсов почти нет (тема, иконки, строки),
-                      // и все они объявлены в манифесте — шринкер такие не трогает. После
-                      // сборки артефакт проверяется отдельным шагом ниже.
-                      isShrinkResources = true
+                      // ⚠️ isShrinkResources ОТКЛЮЧЁН ОБРАТНО (v1.190.2).
+                      // Включали по рекомендации Play «удаление неиспользуемых ресурсов не
+                      // включено». Замер после сборки: APK стал 70 МБ против 69 у v1.189 —
+                      // то есть не выиграли НИЧЕГО, — а гейт целостности показал «ПОТЕРЯНО:
+                      // иконка». Два тег-прогона подряд упали, три дня без релиза: правки
+                      // (немые голосовые, лицензия, истории) не доехали до тестировщика,
+                      // и она всё это время сидела на v1.189.
+                      // Рекомендация Play была косметической, релизы — нет. Возвращаться к
+                      // ней стоит отдельно и с проверкой, что именно ужимается.
                   }
               }
           }
@@ -634,7 +627,7 @@ jobs:
             'байткод':       lambda: any(n.endswith('.dex') for n in names),
             'нативные .so':  lambda: any(n.endswith('.so') for n in names),
             'веб-сборка':    lambda: any(n.startswith('assets/') for n in names),
-            'иконка':        lambda: any('mipmap' in n or 'ic_launcher' in n for n in names),
+            'ресурсы res/':  lambda: any(n.startswith('res/') for n in names),
           }
           bad = [k for k, f in need.items() if not f()]
           man = z.read('AndroidManifest.xml').decode('utf-16-le', errors='ignore')
@@ -644,6 +637,16 @@ jobs:
           if b'setOnApplyWindowInsetsListener' not in dex:
               bad.append('инсеты системных панелей вырезаны')
           print('файлов в APK:', len(names))
+          # Иконку проверяем через aapt2, а не по имени файла: при чистке ресурсов AGP
+          # переименовывает их в короткие, и поиск подстроки «mipmap» даёт ложную тревогу.
+          import subprocess, glob, os
+          aapt = sorted(glob.glob(os.path.join(os.environ.get('ANDROID_HOME',''), 'build-tools', '*', 'aapt2')))
+          if aapt:
+              out = subprocess.run([aapt[-1], 'dump', 'badging', sys.argv[1]], capture_output=True, text=True).stdout
+              if 'application-icon' not in out: bad.append('иконка приложения не объявлена (aapt2)')
+              else: print('иконка: объявлена, проверено aapt2')
+          else:
+              print('иконка: aapt2 не найден, проверку пропускаю')
           if bad:
               print('❌ ПОТЕРЯНО:', ', '.join(bad)); sys.exit(1)
           print('✅ всё на месте: манифест, ресурсы, байткод, .so, веб-сборка, иконка, инсеты')
