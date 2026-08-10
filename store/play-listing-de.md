@@ -1,7 +1,7 @@
 # Google Play — карточка, локаль de
 
 Автор: Denis Onosov (ODV999) · под сборку v1.190.2
-Структура повторяет русскую (ред. 3), утверждённую и уже размещённую в Play.
+Структура повторяет русскую (ред. 4), переписанную под поисковый индекс.
 Это НЕ перевод: хук-сцены и примеры переписаны под язык, а не переложены.
 
 ---
@@ -43,7 +43,19 @@ Du hörst eine fremde Sprache und unterscheidest Laute, die vorher nur Rauschen 
 
 Das ist kein Talent, mit dem man geboren wird. Das trainiert man — und hier siehst du, um wie viel.
 
-PsyGames — 61 Übungen für Gedächtnis, Aufmerksamkeit, Logik und Tempo. Kein weiterer IQ-Test, sondern Training mit messbarem Ergebnis.
+PsyGames ist Gehirntraining mit 61 Übungen für Gedächtnis, Aufmerksamkeit, Logik und Denktempo. Kein weiterer IQ-Test, sondern Training mit messbarem Ergebnis.
+
+GEDÄCHTNISSPIELE
+Trainiere visuelles Gedächtnis mit Corsi-Blöcken, Matrizen und Bildpaaren. Stärke das Arbeitsgedächtnis mit N-Back, Operation Span und Reading Span.
+
+AUFMERKSAMKEIT UND KONZENTRATION
+Verbessere Konzentration mit Schulte-Tabellen, Fehlersuche, Posner-Test und Flanker-Aufgabe. Bleib trotz Ablenkung bei der Sache.
+
+LOGIK UND RÄTSEL
+Löse Denkrätsel: Sudoku mit 12 Regelvarianten, Türme von Hanoi, Turm von London, SET und Anagramme. Plane mehrere Züge voraus.
+
+DENKGESCHWINDIGKEIT UND REAKTION
+Trainiere Reaktion, Kopfrechnen und Selbstkontrolle mit Stroop-Test, Go/No-Go, Rechnen auf Zeit und Trail Making.
 
 WARUM DU NICHT NACH DREI TAGEN AUFHÖRST
 Gehirn-Apps lädt jeder herunter und löscht sie nach drei Malen — immer dieselben Übungen, kein sichtbarer Fortschritt. Hier ist es anders.
@@ -55,17 +67,8 @@ Gehirn-Apps lädt jeder herunter und löscht sie nach drei Malen — immer diese
 • Punkte für Genauigkeit und Tempo, Shop mit Rahmen, Avataren und Titeln
 • Tagesaufgabe mit eigener Serie und Erfolge
 
-WAS DU BEKOMMST
-• Visuelles Gedächtnis — einmal aufs Schema geschaut, später aus dem Kopf wiedergegeben
-• Arbeitsgedächtnis — mehreres halten, ohne den Faden zu verlieren
-• Konzentration — arbeiten, während alle fünf Minuten jemand stört
-• Denktempo — schneller entscheiden bei gleicher Qualität
-• Selbstkontrolle — nicht dem ersten Impuls folgen, sondern wählen
-• Gehör für fremde Sprache — Laute unterscheiden, die vorher verschwammen
-• Planung — mehrere Züge vorausdenken
-
 WAS DRIN IST
-• 61 Übungen in 4 Kategorien: Gedächtnis, Aufmerksamkeit, Logik, Tempo & Kontrolle
+• 61 Übungen für Gedächtnis, Aufmerksamkeit, Logik, Tempo und Kontrolle
 • Aufwärmen per Knopfdruck: morgens, tagsüber, abends und nachts — fertige Sets starten mit den passenden Einstellungen
 • 12 Profile für verschiedene Ziele: Sprachen, Kinder, 50+, Fokus, Reaktion, Gründer und mehr
 • Auswertung mit Radar der Stärken und Schwachstellen
@@ -77,17 +80,14 @@ Hinter jeder Übung steht ein validiertes Paradigma, keine erfundene Mechanik. S
 Deshalb bedeutet die Zahl auf dem Bildschirm etwas. Du siehst nicht "Level 7", sondern wie weit genau du gekommen bist.
 
 ENTWICKLER, DIE ANTWORTEN
-Feedback-Knopf direkt in der App: schreiben oder einsprechen, der Screenshot hängt sich selbst an. Wir lesen alles.
-
-Vor allem erfährst du, wie es ausging: Wenn eine Korrektur erscheint, zeigt dir die App, dass sie wegen DEINER Meldung behoben wurde — kein "danke, wir leiten es weiter". So wächst diese App: das meiste darin gibt es, weil sich jemand beschwert hat.
+Feedback-Knopf direkt in der App: schreiben oder einsprechen, der Screenshot hängt sich automatisch an. Wenn eine Korrektur erscheint, zeigt dir die App, was wegen DEINER Meldung geändert wurde und in welcher Version.
 
 FÜR WEN
 • Erwachsene — Konzentration halten, wo alle fünf Minuten jemand stört
 • 50+ — Gedächtnis und Reaktion, regelmäßig und ohne komplizierte Einstellungen
 • Kinder ab 7 — Rechnen, Gedächtnis, Aufmerksamkeit spielerisch, eigenes Profil
-• Studierende — Konzentration in langen Prüfungen
-• Sprachenlernende — Gehör für fremde Laute, Gedächtnis für Wörter
-• Fahrer, Piloten, Chirurgen — Entscheidungen im Sekundenbruchteil
+• Studierende und Sprachenlernende — Konzentration, fremde Laute und Wörter behalten
+• Schachspieler, Schnellleser und alle, die Entscheidungen unter Belastung trainieren
 
 EHRLICH ZUR WISSENSCHAFT
 Training verbessert zuverlässig die trainierten Aufgaben und eng verwandte Fähigkeiten (Near Transfer). Wir versprechen KEINEN IQ-Zuwachs — der Transfer auf "allgemeine Intelligenz" ist wissenschaftlich umstritten. Wir geben validierte Instrumente und ein messbares Bild des Fortschritts. Das ist der Unterschied zum Gehirnjogging-Spielzeug.
