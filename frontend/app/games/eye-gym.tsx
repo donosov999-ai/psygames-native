@@ -8,7 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { eyeGymGeometry } from '@/src/services/eyeGymGeometry';
@@ -81,7 +81,7 @@ export default function EyeGymGame() {
 
   const { isPreset, autostart } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [scale, setScale] = useState(1);               // 0.4 = ~1 мин, 1 = ~3, 1.7 = ~5
   const [speed, setSpeed] = useState(1);               // скорость точки: 0.7 медл / 1 норма / 1.4 быстро
   const [mode, setMode] = useState<'full' | 'pursuit' | 'focus' | 'relax'>('full');
@@ -159,6 +159,7 @@ export default function EyeGymGame() {
         <Text style={styles.configTitle}>{t('eyeGym')}</Text>
         <Text style={styles.configDesc}>{t('eyeGymDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="eyeGymIntroDesc" benefits={EYE_BENEFITS} accent={GRADIENT[0]} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('eyeDurationLabel')}</Text>
         <View style={styles.optionButtons}>
@@ -306,11 +307,6 @@ export default function EyeGymGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('eyeGym')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="eyeGym" icon="eye" gradient={GRADIENT as [string, string]}
-          skillKey="skillEyeRelax" descriptionKey="eyeGymIntroDesc"
-          benefits={EYE_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'done' && renderDone()}
     </SafeAreaView>

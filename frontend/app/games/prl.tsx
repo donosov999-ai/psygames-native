@@ -44,7 +44,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -103,7 +103,7 @@ export default function PRLGame() {
   const { isPreset, autostart, str } = useGamePreset();
   const lvl = usePersistentLevel('prl');
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [runMode, setRunMode] = useState<RunMode>('level');
   // Классический режим (диагностика): пресет-зарядка (isPreset) читает diff из URL.
   const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
@@ -322,6 +322,7 @@ export default function PRLGame() {
           <Text style={styles.configTitle}>{t('prl')}</Text>
           <Text style={styles.configDesc}>{t('prlDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="prlIntroDesc" benefits={PRL_BENEFITS} accent={GRADIENT[0]} />
 
         {/* Переключатель режима: уровни (прогрессия) vs классический (чистая диагностика) */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -485,11 +486,6 @@ export default function PRLGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('prl')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="prl" icon="trending-up" gradient={GRADIENT as [string, string]}
-          skillKey="skillRisk" descriptionKey="prlIntroDesc"
-          benefits={PRL_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared gameId="prl" level={levelRef.current} passed={clearedPassed} stars={clearedStars}

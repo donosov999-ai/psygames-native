@@ -18,7 +18,7 @@ import GameResult from '@/src/components/GameResult';
 import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -94,7 +94,7 @@ export default function MathSprintGame() {
 
   const { isPreset, autostart, str, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // память итога: true=прошёл (звёзды), false=«почти, ещё раз»
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'easy') as Difficulty));
@@ -203,6 +203,7 @@ export default function MathSprintGame() {
         <Text style={styles.configTitle}>{t('mathSprint')}</Text>
         <Text style={styles.configDesc}>{t('mathSprintDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="mathSprintIntroDesc" benefits={MATH_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="math_sprint" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
@@ -320,11 +321,6 @@ export default function MathSprintGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('mathSprint')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="mathSprint" icon="calculator" gradient={GRADIENT as [string, string]}
-          skillKey="skillMath" descriptionKey="mathSprintIntroDesc"
-          benefits={MATH_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'boss' && (

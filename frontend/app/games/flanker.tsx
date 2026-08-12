@@ -12,7 +12,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -71,7 +71,7 @@ export default function FlankerGame() {
   const lvl = usePersistentLevel('flanker');
   const { isPreset, autostart, str, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   // пресет (зарядка) передаёт diff/trials; личная игра рулится уровнем
   const [difficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
   const [trials, setTrials] = useState(() => num('trials', 20));
@@ -237,6 +237,7 @@ export default function FlankerGame() {
         <Text style={styles.configTitle}>{t('flanker')}</Text>
         <Text style={styles.configDesc}>{t('flankerDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="flankerIntroDesc" benefits={FL_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="flanker" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
@@ -333,11 +334,6 @@ export default function FlankerGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('flanker')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="flanker" icon="flash" gradient={GRADIENT as [string, string]}
-          skillKey="skillInhibition" descriptionKey="flankerIntroDesc"
-          benefits={FL_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

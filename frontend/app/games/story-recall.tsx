@@ -26,7 +26,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 
@@ -171,7 +171,7 @@ export default function StoryRecallGame() {
   const router = useRouter();
 
   const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [story, setStory] = useState<Story>(STORIES[0]);
   const [readRemaining, setReadRemaining] = useState(0);
   const [distractorRemaining, setDistractorRemaining] = useState(0);
@@ -315,6 +315,7 @@ export default function StoryRecallGame() {
         <Text style={styles.configTitle}>{t('story')}</Text>
         <Text style={styles.configDesc}>{t('storyDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="storyIntroDesc" benefits={STORY_BENEFITS} accent={GRADIENT[0]} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('storyInfo')}</Text>
         <Text style={[styles.infoText, { color: colors.textSecondary }]}>
@@ -450,11 +451,6 @@ export default function StoryRecallGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('story')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="story" icon="book" gradient={GRADIENT as [string, string]}
-          skillKey="skillMemory" descriptionKey="storyIntroDesc"
-          benefits={STORY_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'result' && (
         <GameResult

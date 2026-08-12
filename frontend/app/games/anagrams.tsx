@@ -27,7 +27,7 @@ import { saveSession } from '@/src/services/api';
 import { sndPlace } from '@/src/services/feedback';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -83,7 +83,7 @@ export default function AnagramGame() {
   const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('anagrams');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл/не прошёл — для баннера LevelCleared (passed)
   // length — только для пресетов из зарядки (num('length')); в уровневом режиме перекрывается levelParams
   const [length, setLength] = useState<WordLen>(() => (num('length', 4) as WordLen));
@@ -309,6 +309,7 @@ export default function AnagramGame() {
           <Text style={styles.configTitle}>{t('anagrams')}</Text>
           <Text style={styles.configDesc}>{t('anagramsDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="anagramsIntroDesc" benefits={ANAGRAM_BENEFITS} accent={GRADIENT[0]} />
 
         <LevelProgressMap gameId="anagrams" currentLevel={lvl.level} colors={colors} language={language} />
         {/* Карточка уровня: параметры + видимый критерий прохода + сброс ↺1 (паттерн simon/cpt) */}
@@ -472,11 +473,6 @@ export default function AnagramGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('anagrams')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="anagrams" icon="language" gradient={GRADIENT as [string, string]}
-          skillKey="skillVerbal" descriptionKey="anagramsIntroDesc"
-          benefits={ANAGRAM_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared gameId="anagrams" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}

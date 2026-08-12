@@ -9,7 +9,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -155,7 +155,7 @@ export default function GoodsSortGame() {
 
   const { isPreset, autostart } = useGamePreset();
   const lvl = usePersistentLevel('goods_sort');   // персист достигнутого уровня (раньше сбрасывался на 1)
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [setKey, setSetKey] = useState('drinks');
   const poolRef = useRef<number[]>(GOOD_SETS[0].pool);
   useEffect(() => { poolRef.current = (GOOD_SETS.find((s) => s.key === setKey) || GOOD_SETS[0]).pool; }, [setKey]);
@@ -344,6 +344,7 @@ export default function GoodsSortGame() {
         <Text style={styles.configTitle}>{t('goodsSort')}</Text>
         <Text style={styles.configDesc}>{t('goodsSortDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="goodsSortIntroDesc" benefits={GOODS_BENEFITS} accent={GRADIENT[0]} />
 
       {/* ВЫБОР ТОВАРОВ — как в оригинале */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -447,11 +448,6 @@ export default function GoodsSortGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('goodsSort')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="goodsSort" icon="basket" gradient={GRADIENT as [string, string]}
-          skillKey="skillPlanningWM" descriptionKey="goodsSortIntroDesc"
-          benefits={GOODS_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'result' && (

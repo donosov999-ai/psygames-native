@@ -27,7 +27,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -74,7 +74,7 @@ export default function ChoiceRtGame() {
   const lvl = usePersistentLevel('choice_rt');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
 
   const [round, setRound] = useState(0);
@@ -233,6 +233,7 @@ export default function ChoiceRtGame() {
           <Text style={styles.configTitle}>{t('choiceRt')}</Text>
           <Text style={styles.configDesc}>{t('choiceRtDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="choiceRtIntroDesc" benefits={CHOICE_BENEFITS} accent={GRADIENT[0]} />
 
         <LevelProgressMap gameId="choice_rt" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
@@ -358,11 +359,6 @@ export default function ChoiceRtGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('choiceRt')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="choiceRt" icon="arrow-forward-circle" gradient={GRADIENT as [string, string]}
-          skillKey="skillReaction" descriptionKey="choiceRtIntroDesc"
-          benefits={CHOICE_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

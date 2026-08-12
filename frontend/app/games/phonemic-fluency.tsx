@@ -33,7 +33,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 import { phonemicLetterPool } from '@/src/services/phonemicFluency';
@@ -53,7 +53,7 @@ export default function PhonemicFluencyGame() {
   const router = useRouter();
 
   const { isPreset, autostart, num } = useGamePreset();
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [duration, setDuration] = useState<60 | 90 | 120>(() => (num('duration', 60) as 60 | 90 | 120));
   const [letter, setLetter] = useState<string>('');
   const [autoPickLetter, setAutoPickLetter] = useState(true);
@@ -185,6 +185,7 @@ export default function PhonemicFluencyGame() {
         <Text style={styles.configTitle}>{t('phonemic')}</Text>
         <Text style={styles.configDesc}>{t('phonemicDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="phonemicIntroDesc" benefits={FLU_BENEFITS} accent={GRADIENT[0]} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('cptDuration')}</Text>
         <View style={styles.optionButtons}>
@@ -301,11 +302,6 @@ export default function PhonemicFluencyGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('phonemic')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="phonemic" icon="chatbubbles" gradient={GRADIENT as [string, string]}
-          skillKey="skillVerbal" descriptionKey="phonemicIntroDesc"
-          benefits={FLU_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'result' && (
         <GameResult

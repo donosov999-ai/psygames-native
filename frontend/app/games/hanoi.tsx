@@ -13,7 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -68,7 +68,7 @@ export default function HanoiGame() {
   const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('hanoi');   // персист-уровень = discs − 2 (L1=3 диска)
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [discs, setDiscs] = useState(() => num('discs', 4));
   const [pegs, setPegs] = useState<number[][]>([[], [], []]);
   const [selected, setSelected] = useState<number | null>(null);
@@ -304,6 +304,7 @@ export default function HanoiGame() {
         <Text style={styles.configTitle}>{t('hanoi')}</Text>
         <Text style={styles.configDesc}>{t('hanoiDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="hanoiIntroDesc" benefits={HANOI_BENEFITS} accent={GRADIENT[0]} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.optionHint, { color: colors.textSecondary }]}>
@@ -460,11 +461,6 @@ export default function HanoiGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('hanoi')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="hanoi" icon="extension-puzzle" gradient={GRADIENT as [string, string]}
-          skillKey="skillProblemSolving" descriptionKey="hanoiIntroDesc"
-          benefits={HANOI_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (

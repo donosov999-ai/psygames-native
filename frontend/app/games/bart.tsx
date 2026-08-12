@@ -34,7 +34,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -75,7 +75,7 @@ export default function BARTGame() {
   const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('bart');
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера LevelCleared
 
   // КЛАССИЧЕСКИЙ селектор (независим от уровневого режима). Из зарядки — из params.
@@ -262,6 +262,7 @@ export default function BARTGame() {
           <Text style={styles.configTitle}>{t('bart')}</Text>
           <Text style={styles.configDesc}>{t('bartDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="bartIntroDesc" benefits={BART_BENEFITS} accent={GRADIENT[0]} />
 
         {/* ── УРОВНЕВЫЙ режим (по умолчанию) ── */}
         <LevelProgressMap gameId="bart" currentLevel={lvl.level} colors={colors} language={language} />
@@ -492,11 +493,6 @@ export default function BARTGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('bart')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="bart" icon="warning" gradient={GRADIENT as [string, string]}
-          skillKey="skillRisk" descriptionKey="bartIntroDesc"
-          benefits={BART_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared gameId="bart" level={levelRef.current} passed={clearedPassed} stars={stars}

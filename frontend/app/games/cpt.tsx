@@ -28,7 +28,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -106,7 +106,7 @@ export default function CPTGame() {
 
   const lvl = usePersistentLevel('cpt');
   const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера LevelCleared
 
   const [currentLetter, setCurrentLetter] = useState<string>('');
@@ -363,6 +363,7 @@ export default function CPTGame() {
         <Text style={styles.configTitle}>{t('cpt')}</Text>
         <Text style={styles.configDesc}>{t('cptDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="cptIntroDesc" benefits={CPT_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="cpt" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
@@ -469,11 +470,6 @@ export default function CPTGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('cpt')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="cpt" icon="time" gradient={GRADIENT as [string, string]}
-          skillKey="skillSustainedAttention" descriptionKey="cptIntroDesc"
-          benefits={CPT_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

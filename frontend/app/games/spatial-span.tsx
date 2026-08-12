@@ -12,7 +12,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
@@ -59,7 +59,7 @@ export default function SpatialSpanGame() {
   const gridW = Math.min(width - 32, height - 300, 520);
 
   const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [gridSize, setGridSize] = useState(4); // 4x4 (16 cells, classic CANTAB)
   // Справка правил уровня. enabled на recall: во время show модалка закрыла бы последовательность.
   const levelRules = useLevelRules('spatial_span', lvl.level, SS_RULES, phase === 'recall');
@@ -198,6 +198,7 @@ export default function SpatialSpanGame() {
         <Text style={styles.configTitle}>{t('spatialSpan')}</Text>
         <Text style={styles.configDesc}>{t('spatialSpanDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="spatialSpanIntroDesc" benefits={SS_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="spatial_span" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
@@ -283,11 +284,6 @@ export default function SpatialSpanGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('spatialSpan')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="spatialSpan" icon="apps" gradient={GRADIENT as [string, string]}
-          skillKey="skillVisualMemory" descriptionKey="spatialSpanIntroDesc"
-          benefits={SS_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (

@@ -9,7 +9,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -98,7 +98,7 @@ export default function StroopEmotionalGame() {
   const lvl = usePersistentLevel('stroop_emotional');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
 
   const [round, setRound] = useState(0);
@@ -269,6 +269,7 @@ export default function StroopEmotionalGame() {
           <Text style={styles.configTitle}>{t('stroopEmotional')}</Text>
           <Text style={styles.configDesc}>{t('stroopEmotionalDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="stroopEmotionalIntroDesc" benefits={STROOP2_BENEFITS} accent={GRADIENT[0]} />
         <LevelProgressMap gameId="stroop_emotional" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
@@ -350,11 +351,6 @@ export default function StroopEmotionalGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('stroopEmotional')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="stroopEmotional" icon="heart-dislike" gradient={GRADIENT as [string, string]}
-          skillKey="skillInhibition" descriptionKey="stroopEmotionalIntroDesc"
-          benefits={STROOP2_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

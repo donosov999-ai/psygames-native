@@ -30,7 +30,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 
 const GRADIENT = ['#fc466b', '#a445b2'];
@@ -234,7 +234,7 @@ export default function RMETGame() {
   const { t, language } = useLanguage() as any;
   const router = useRouter();
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [trialsCount, setTrialsCount] = useState<9 | 18>(18);
   const [items, setItems] = useState<EyeItem[]>([]);
   const [shuffledOpts, setShuffledOpts] = useState<string[]>([]);
@@ -315,6 +315,7 @@ export default function RMETGame() {
         <Text style={styles.configTitle}>{t('rmet')}</Text>
         <Text style={styles.configDesc}>{t('rmetDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="rmetIntroDesc" benefits={RMET_BENEFITS} accent={GRADIENT[0]} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
         <View style={styles.optionButtons}>
@@ -403,11 +404,6 @@ export default function RMETGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('rmet')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="rmet" icon="eye" gradient={GRADIENT as [string, string]}
-          skillKey="skillSocial" descriptionKey="rmetIntroDesc"
-          benefits={RMET_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'result' && (
         <GameResult

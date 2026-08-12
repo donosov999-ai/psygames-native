@@ -13,7 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -57,7 +57,7 @@ export default function MemoryMatrixGame() {
   const lvl = usePersistentLevel('memory_matrix');   // персист-уровень (уровень = размер сетки − 2)
   const { isPreset, autostart, str, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [gridSize, setGridSize] = useState(() => num('size', 3));
   const [matrixMode, setMatrixMode] = useState<MatrixMode>(() => (str('mode', 'static') as MatrixMode));
   const [litCells, setLitCells] = useState<Set<number>>(new Set());
@@ -309,6 +309,7 @@ export default function MemoryMatrixGame() {
         <Text style={styles.configTitle}>{t('memoryMatrix')}</Text>
         <Text style={styles.configDesc}>{t('memoryMatrixDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="memoryMatrixIntroDesc" benefits={MATRIX_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="memory_matrix" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('gridSize')}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
@@ -459,18 +460,6 @@ export default function MemoryMatrixGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('memoryMatrix')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro
-          nameKey="memoryMatrix"
-          icon="grid"
-          gradient={GRADIENT as [string, string]}
-          skillKey="skillVisualMemory"
-          descriptionKey="memoryMatrixIntroDesc"
-          benefits={MATRIX_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared gameId="memory_matrix" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}

@@ -16,7 +16,7 @@ import GameResult from '@/src/components/GameResult';
 import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -79,7 +79,7 @@ export default function CorsiGame() {
   const lvl = usePersistentLevel('corsi');   // персист-уровень (как у судоку)
   const { isPreset, autostart, str, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'forward') as Mode));
   // Справка правил уровня (в зарядке-пресете не показываем — там свой поток).
@@ -221,6 +221,7 @@ export default function CorsiGame() {
         <Text style={styles.configTitle}>{t('corsi')}</Text>
         <Text style={styles.configDesc}>{t('corsiDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="corsiIntroDesc" benefits={CORSI_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="corsi" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
@@ -340,11 +341,6 @@ export default function CorsiGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('corsi')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="corsi" icon="grid" gradient={GRADIENT as [string, string]}
-          skillKey="skillVisualMemory" descriptionKey="corsiIntroDesc"
-          benefits={CORSI_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'boss' && (

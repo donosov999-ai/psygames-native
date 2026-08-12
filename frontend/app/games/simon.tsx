@@ -38,7 +38,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -102,7 +102,7 @@ export default function SimonGame() {
   const lvl = usePersistentLevel('simon');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
 
   const [round, setRound] = useState(0);
@@ -270,6 +270,7 @@ export default function SimonGame() {
           <Text style={styles.configTitle}>{t('simon')}</Text>
           <Text style={styles.configDesc}>{t('simonDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="simonIntroDesc" benefits={SI_BENEFITS} accent={GRADIENT[0]} />
 
         {/* Правила игры — статический rule reminder */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -387,11 +388,6 @@ export default function SimonGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('simon')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="simon" icon="flash" gradient={GRADIENT as [string, string]}
-          skillKey="skillInhibition" descriptionKey="simonIntroDesc"
-          benefits={SI_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

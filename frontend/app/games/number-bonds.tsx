@@ -26,7 +26,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -104,7 +104,7 @@ export default function NumberBondsGame() {
   const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('number_bonds');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   // Пресет-параметры (только wu=1): вне пресета сложность идёт от уровня
   const [difficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
   const [presetTrials] = useState(() => num('trials', 8));
@@ -292,6 +292,7 @@ export default function NumberBondsGame() {
           <Text style={styles.configTitle}>{t('numberBonds')}</Text>
           <Text style={styles.configDesc}>{t('numberBondsDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="numberBondsIntroDesc" benefits={NB_BENEFITS} accent={GRADIENT[0]} />
 
         <LevelProgressMap gameId="number_bonds" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
@@ -403,11 +404,6 @@ export default function NumberBondsGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('numberBonds')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="numberBonds" icon="git-merge" gradient={GRADIENT as [string, string]}
-          skillKey="skillMath" descriptionKey="numberBondsIntroDesc"
-          benefits={NB_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

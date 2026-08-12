@@ -12,7 +12,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
@@ -178,7 +178,7 @@ export default function MahjongGame() {
 
   const { isPreset, autostart } = useGamePreset();
   const lvl = usePersistentLevel('mahjong');   // персист достигнутого уровня между сессиями
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [level, setLevel] = useState(1);
   const levelRef = useRef(1);
   const [levelBanner, setLevelBanner] = useState<number | null>(null);
@@ -369,6 +369,7 @@ export default function MahjongGame() {
           <Text style={styles.configTitle}>{t('mahjong')}</Text>
           <Text style={styles.configDesc}>{t('mahjongDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="mahjongIntroDesc" benefits={MAHJONG_BENEFITS} accent={GRADIENT[0]} />
 
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
@@ -453,11 +454,6 @@ export default function MahjongGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('mahjong')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="mahjong" icon="grid" gradient={GRADIENT as [string, string]}
-          skillKey="skillVisualSearch" descriptionKey="mahjongIntroDesc"
-          benefits={MAHJONG_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'result' && (

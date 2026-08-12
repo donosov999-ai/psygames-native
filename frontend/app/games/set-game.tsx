@@ -9,7 +9,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -145,7 +145,7 @@ export default function SetGame() {
   const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('set_game');   // персист-уровень = trials − 5 (эндуранс серии)
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [trials, setTrials] = useState(() => num('trials', 6));
   const [round, setRound] = useState(0);
   const [board, setBoard] = useState<Card[]>([]);
@@ -371,6 +371,7 @@ export default function SetGame() {
         <Text style={styles.configTitle}>{t('setGame')}</Text>
         <Text style={styles.configDesc}>{t('setGameDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="setGameIntroDesc" benefits={SET_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="set_game" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <TouchableOpacity
@@ -519,11 +520,6 @@ export default function SetGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('setGame')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="setGame" icon="shapes" gradient={GRADIENT as [string, string]}
-          skillKey="skillReasoning" descriptionKey="setGameIntroDesc"
-          benefits={SET_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

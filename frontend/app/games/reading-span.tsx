@@ -16,7 +16,7 @@ import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#1f4037', '#99f2c8'];
@@ -107,7 +107,7 @@ export default function ReadingSpanGame() {
 
   const { isPreset, autostart, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
   const [setSize, setSetSize] = useState(() => num('setSize', 4)); // sentences per recall set
   const [seq, setSeq] = useState<SentenceItem[]>([]);
@@ -192,6 +192,7 @@ export default function ReadingSpanGame() {
         <Text style={styles.configTitle}>{t('readingSpan')}</Text>
         <Text style={styles.configDesc}>{t('readingSpanDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="readingSpanIntroDesc" benefits={RS_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="reading_span" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
@@ -295,11 +296,6 @@ export default function ReadingSpanGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('readingSpan')}</Text>
         <View style={{ width: 40, flexShrink: 0 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="readingSpan" icon="book" gradient={GRADIENT as [string, string]}
-          skillKey="skillWorkingMemory" descriptionKey="readingSpanIntroDesc"
-          benefits={RS_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared gameId="reading_span" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}

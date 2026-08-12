@@ -13,7 +13,7 @@ import { saveSession } from '@/src/services/api';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -281,7 +281,7 @@ export default function ChessBlindGame() {
   const { isPreset, autostart, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [dispPieces, setDispPieces] = useState<Piece[]>([]);
   const [prm, setPrm] = useState(() => levelParams(1));
   const [exposePct, setExposePct] = useState(100);
@@ -606,6 +606,7 @@ export default function ChessBlindGame() {
               : 'Memorize the position — the pieces get masked as identical tokens. Keep track of what each token is, even as they move.'}
           </Text>
         </LinearGradient>
+        <GameAbout descriptionKey="chessBlindIntroDesc" benefits={CHESS_BENEFITS} accent={GRADIENT[0]} />
         <LevelProgressMap gameId="chess_blind" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
@@ -640,18 +641,6 @@ export default function ChessBlindGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('chessBlind')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro
-          nameKey="chessBlind"
-          icon="grid"
-          gradient={GRADIENT as [string, string]}
-          skillKey="skillVisualMemory"
-          descriptionKey="chessBlindIntroDesc"
-          benefits={CHESS_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared gameId="chess_blind" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 1 ? 2 : 1}
