@@ -33,13 +33,31 @@ const BASE = args.base ?? 'http://localhost:8099';
 // От расположения самого скрипта, а не от cwd: запускать приходится из frontend,
 // где лежат playwright и sharp, а класть надо в корень репозитория.
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
-const OUT = path.join(ROOT, 'store-assets', 'play', LANG);
 
-/** Play принимает от 320 до 3840 px, соотношение от 1:2 до 2:1. 1080×1920 — стандарт телефона. */
-const W = 1080;
-const H = 1920;
-const BAND = 300;          // высота полосы с заголовком
-const VIEW = { width: 540, height: (H - BAND) / 2 };   // снимаем в 2× и кладём под полосу
+/**
+ * Пресеты магазинов. Числа у каждого СВОИ и заданы явно — общей формулы здесь нарочно нет:
+ * она бы пересчитала и перенос строк у Play, а те кадры уже сняты и одобрены. Пусть лучше
+ * две строки констант, чем тихо разъехавшиеся заголовки на готовой карточке.
+ *
+ * windows: Microsoft Store хочет 16:9, минимум 1366×768, рекомендует 2560×1440. Отдельная
+ * машина для этого не нужна — Tauri и на Windows рисует тем же Chromium (там WebView2),
+ * так что headless с Мака даёт ту же картинку. Отличались бы только рамка окна, системный
+ * шрифт и полосы прокрутки, а рамка магазину и не нужна: там ждут чистый экран приложения.
+ */
+const PRESETS = {
+  play:    { W: 1080, H: 1920, BAND: 300, VIEW: { width: 540,  height: 810 }, WRAP: 19, BIG: 62, SMALL: 54,
+             dir: ['store', 'google-play', 'assets', 'screenshots', LANG] },
+  windows: { W: 2560, H: 1440, BAND: 220, VIEW: { width: 1280, height: 610 }, WRAP: 48, BIG: 76, SMALL: 64,
+             dir: ['store', 'windows', 'assets', 'screenshots', LANG] },
+};
+
+const PRESET = args.preset ?? 'play';
+if (!PRESETS[PRESET]) {
+  console.error(`неизвестный пресет «${PRESET}»; есть: ${Object.keys(PRESETS).join(', ')}`);
+  process.exit(1);
+}
+const { W, H, BAND, VIEW, WRAP, BIG, SMALL, dir } = PRESETS[PRESET];
+const OUT = path.join(ROOT, ...dir);
 
 /**
  * Восемь кадров, каждый продаёт ОДНУ вещь. Порядок — по убыванию силы: первым идёт то,
@@ -66,11 +84,11 @@ function band(title) {
   const lines = [];
   let cur = '';
   for (const w of words) {
-    // ~19 знаков в строку при 62px — подобрано под ширину 1080 с полями
-    if ((cur + ' ' + w).trim().length > 19 && cur) { lines.push(cur); cur = w; } else { cur = (cur + ' ' + w).trim(); }
+    // Предел строки — из пресета: подобран под ширину кадра с полями
+    if ((cur + ' ' + w).trim().length > WRAP && cur) { lines.push(cur); cur = w; } else { cur = (cur + ' ' + w).trim(); }
   }
   if (cur) lines.push(cur);
-  const size = lines.length > 2 ? 54 : 62;
+  const size = lines.length > 2 ? SMALL : BIG;
   const startY = BAND / 2 - ((lines.length - 1) * (size + 12)) / 2 + size / 3;
   const tspans = lines.map((l, i) =>
     `<tspan x="${W / 2}" y="${startY + i * (size + 12)}">${l.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</tspan>`).join('');
