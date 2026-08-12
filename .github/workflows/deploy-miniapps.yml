@@ -1,0 +1,219 @@
+name: Verify and deploy mini apps
+
+on:
+  pull_request:
+    paths:
+      - 'miniapps/**'
+      - '.github/workflows/deploy-miniapps.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'miniapps/**'
+      - '.github/workflows/deploy-miniapps.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: psygames-miniapps-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  verify:
+    name: Test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: miniapps
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: miniapps/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Responsive browser QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v google-chrome >/dev/null 2>&1 && \
+             ! command -v google-chrome-stable >/dev/null 2>&1 && \
+             ! command -v chromium >/dev/null 2>&1; then
+            npx playwright install --with-deps chromium
+          fi
+          npm run qa:mobile
+
+      - name: Validate generated routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          for slug in \
+            3-minute-brain-check \
+            schulte-speed \
+            reaction-duel \
+            memory-matrix \
+            stroop-challenge \
+            n-back-daily \
+            impulse-control \
+            tower-puzzle \
+            focus-defender
+          do
+            test -f "dist/$slug/index.html"
+          done
+
+      - name: Save production bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: psygames-miniapps-dist
+          path: miniapps/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Publish to psy-games.pro/mini
+    needs: verify
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download production bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: psygames-miniapps-dist
+          path: dist
+
+      - name: Install SFTP client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Upload staged bundle
+        env:
+          CONTABO_SSH_HOST: ${{ secrets.CONTABO_SSH_HOST }}
+          CONTABO_SSH_USER: ${{ secrets.CONTABO_SSH_USER }}
+          CONTABO_SSH_PASS: ${{ secrets.CONTABO_SSH_PASS }}
+          CONTABO_REMOTE_DIR: ${{ secrets.CONTABO_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          : "${CONTABO_SSH_HOST:?Missing CONTABO_SSH_HOST}"
+          : "${CONTABO_SSH_USER:?Missing CONTABO_SSH_USER}"
+          : "${CONTABO_SSH_PASS:?Missing CONTABO_SSH_PASS}"
+          : "${CONTABO_REMOTE_DIR:?Missing CONTABO_REMOTE_DIR}"
+          NEXT_DIR="$CONTABO_REMOTE_DIR/.mini-next-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          lftp -u "$CONTABO_SSH_USER","$CONTABO_SSH_PASS" "sftp://$CONTABO_SSH_HOST" -e "
+            set sftp:auto-confirm yes;
+            set net:timeout 60;
+            set net:max-retries 3;
+            set net:connection-limit 1;
+            mkdir -f $NEXT_DIR;
+            mirror -R --delete --no-perms dist/ $NEXT_DIR/;
+            bye"
+
+      - name: Activate staged bundle
+        id: activate
+        env:
+          CONTABO_SSH_HOST: ${{ secrets.CONTABO_SSH_HOST }}
+          CONTABO_SSH_USER: ${{ secrets.CONTABO_SSH_USER }}
+          CONTABO_SSH_PASS: ${{ secrets.CONTABO_SSH_PASS }}
+          CONTABO_REMOTE_DIR: ${{ secrets.CONTABO_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          NEXT_DIR="$CONTABO_REMOTE_DIR/.mini-next-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          PREVIOUS_DIR="$CONTABO_REMOTE_DIR/.mini-previous"
+          if lftp -u "$CONTABO_SSH_USER","$CONTABO_SSH_PASS" "sftp://$CONTABO_SSH_HOST" -e "
+            set sftp:auto-confirm yes;
+            set net:timeout 60;
+            set cmd:fail-exit yes;
+            cls -d $CONTABO_REMOTE_DIR/mini;
+            bye" >/dev/null 2>&1; then
+            echo "had_previous=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "had_previous=false" >> "$GITHUB_OUTPUT"
+          fi
+          if ! lftp -u "$CONTABO_SSH_USER","$CONTABO_SSH_PASS" "sftp://$CONTABO_SSH_HOST" -e "
+            set sftp:auto-confirm yes;
+            set net:timeout 60;
+            set net:max-retries 3;
+            set net:connection-limit 1;
+            set cmd:fail-exit no;
+            rm -r $PREVIOUS_DIR;
+            mv $CONTABO_REMOTE_DIR/mini $PREVIOUS_DIR;
+            set cmd:fail-exit yes;
+            mv $NEXT_DIR $CONTABO_REMOTE_DIR/mini;
+            bye"; then
+            lftp -u "$CONTABO_SSH_USER","$CONTABO_SSH_PASS" "sftp://$CONTABO_SSH_HOST" -e "
+              set sftp:auto-confirm yes;
+              set net:timeout 60;
+              set cmd:fail-exit no;
+              mv $PREVIOUS_DIR $CONTABO_REMOTE_DIR/mini;
+              bye" || true
+            exit 1
+          fi
+
+      - name: Check live catalog and game routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          routes=(
+            ''
+            '3-minute-brain-check/'
+            'schulte-speed/'
+            'reaction-duel/'
+            'memory-matrix/'
+            'stroop-challenge/'
+            'n-back-daily/'
+            'impulse-control/'
+            'tower-puzzle/'
+            'focus-defender/'
+          )
+          for route in "${routes[@]}"; do
+            curl --retry 5 --retry-delay 3 --retry-all-errors \
+              -fsS -H 'Cache-Control: no-cache' \
+              "https://psy-games.pro/mini/${route}?deploy=${GITHUB_RUN_ID}" \
+              -o /tmp/mini-route.html
+            grep -q '<html lang="en">' /tmp/mini-route.html
+          done
+
+          curl -fsS -H 'Cache-Control: no-cache' \
+            "https://psy-games.pro/mini/?deploy=${GITHUB_RUN_ID}" \
+            -o /tmp/mini-index.html
+          asset_path=$(grep -oE '/mini/assets/[^" ]+\.js' /tmp/mini-index.html | head -n 1)
+          test -n "$asset_path"
+          curl -fsS -H 'Cache-Control: no-cache' "https://psy-games.pro${asset_path}" -o /dev/null
+          curl -fsS -H 'Cache-Control: no-cache' 'https://psy-games.pro/download/' -o /dev/null
+
+      - name: Restore previous bundle if live checks fail
+        if: failure() && steps.activate.outcome == 'success' && steps.activate.outputs.had_previous == 'true'
+        env:
+          CONTABO_SSH_HOST: ${{ secrets.CONTABO_SSH_HOST }}
+          CONTABO_SSH_USER: ${{ secrets.CONTABO_SSH_USER }}
+          CONTABO_SSH_PASS: ${{ secrets.CONTABO_SSH_PASS }}
+          CONTABO_REMOTE_DIR: ${{ secrets.CONTABO_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          FAILED_DIR="$CONTABO_REMOTE_DIR/.mini-failed-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          PREVIOUS_DIR="$CONTABO_REMOTE_DIR/.mini-previous"
+          lftp -u "$CONTABO_SSH_USER","$CONTABO_SSH_PASS" "sftp://$CONTABO_SSH_HOST" -e "
+            set sftp:auto-confirm yes;
+            set net:timeout 60;
+            set net:max-retries 3;
+            set cmd:fail-exit no;
+            mv $CONTABO_REMOTE_DIR/mini $FAILED_DIR;
+            mv $PREVIOUS_DIR $CONTABO_REMOTE_DIR/mini;
+            bye"
