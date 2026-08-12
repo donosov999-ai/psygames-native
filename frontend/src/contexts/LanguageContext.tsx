@@ -459,6 +459,12 @@ const translations: Translations = {
     en: 'Fill the grid so digits appear exactly once in every row, column and block. The classic logic puzzle.\n\n🎚 Levels — new variant rules unlock as you climb:\n• L9 ⟍ diagonals: digits are also unique on both diagonals\n• L14 ♞ anti-knight: equal digits cannot be a knight move apart\n• L18 ⊞ hyper: 4 extra 3×3 zones with no repeats\n• L22 ≠ non-consecutive: side-neighbours cannot differ by 1\n• L26 ♚ anti-king: equal digits cannot touch even diagonally\n• L30 ◩ even/odd: □ cell = even digit, ○ = odd\n• L34 ⧉ jigsaw: irregular blocks instead of squares\n\n👑 Killer — the grid splits into cages: digits in a cage add up to the number in its corner and never repeat.\n\n🆓 Free — a 6×6 or 9×9 board with no variants, your choice of difficulty.',
   },
   difficultyLabel: { ru: 'Сложность', en: 'Difficulty' },
+  sudokuTierBeginner: { ru: 'Начинающий', en: 'Beginner' },
+  sudokuTierEasy: { ru: 'Лёгкий', en: 'Easy' },
+  sudokuTierMedium: { ru: 'Средний', en: 'Medium' },
+  sudokuTierHard: { ru: 'Сложный', en: 'Hard' },
+  sudokuTierExpert: { ru: 'Экспертный', en: 'Expert' },
+  sudokuTierExtreme: { ru: 'Крайность', en: 'Extreme' },
   easy: { ru: 'Легко', en: 'Easy' },
   medium: { ru: 'Средне', en: 'Medium' },
   hard: { ru: 'Сложно', en: 'Hard' },
@@ -1100,6 +1106,8 @@ const translations: Translations = {
   phonemicRules:   { ru: 'Правила: только нарицательные, длина ≥ 2, без повторов',
                     en: 'Rules: common nouns only, length ≥ 2, no repetitions' },
   voiceSilent:     { ru: 'Запись получилась немой — микрофон не отдал звук. Проверьте разрешение для приложения и запишите ещё раз, иначе мы услышим тишину.', en: 'The recording came out silent — the microphone gave no sound. Check the app’s permission and record again, otherwise we will just hear silence.' },
+  voicePlay:       { ru: 'Прослушать запись', en: 'Play the recording' },
+  voiceCheckHint:  { ru: 'Послушайте себя перед отправкой: бывает, что микрофон пишет шум вместо голоса.', en: 'Listen to yourself before sending: sometimes the microphone records noise instead of your voice.' },
   phonemicHint:    { ru: 'Слова на букву "{L}". Жми Enter после каждого', en: 'Words starting with "{L}". Press Enter after each' },
   phonemicPlaceholder: { ru: '{L}...', en: '{L}...' },
   phonemicAdd:     { ru: 'добавить', en: 'add' },
@@ -1289,6 +1297,17 @@ const translations: Translations = {
 
   // Home (index)
   streakLabel: { ru: 'Стрик', en: 'Streak' },   // дневной стрик (brStreak «Серия» — про Brain Workshop, не путать)
+  streakCalendarTitle: { ru: 'Календарь серии', en: 'Streak calendar' },
+  streakCurrent: { ru: 'Текущая серия', en: 'Current streak' },
+  streakBest: { ru: 'Личный рекорд', en: 'Personal best' },
+  streakTrainingDays: { ru: 'Дней тренировок', en: 'Training days' },
+  streakBestCaption: { ru: 'Это твоя самая длинная серия за всё время', en: 'This is your longest streak of all time' },
+  streakEmpty: { ru: 'Заверши Зарядку — и первый огонёк появится в календаре.', en: 'Finish a Warm-up and your first flame will appear on the calendar.' },
+  streakPreviousMonth: { ru: 'Предыдущий месяц', en: 'Previous month' },
+  streakNextMonth: { ru: 'Следующий месяц', en: 'Next month' },
+  streakTrainingDay: { ru: 'Тренировка завершена', en: 'Training completed' },
+  streakNoTraining: { ru: 'Без тренировки', en: 'No training' },
+  resumeGameTitle: { ru: 'Продолжить: {game}', en: 'Continue: {game}' },
   petSynapse: { ru: 'Питомец Синапс', en: 'Synapse pet' },
   petSize: { ru: 'Размер питомца', en: 'Pet size' },
   gamePaused: { ru: '⏸ Пауза — пишете отзыв', en: '⏸ Paused — writing feedback' },
@@ -1467,6 +1486,9 @@ const translations: Translations = {
   shopEarnHint: { ru: 'Очки копятся за игры, стрики и ачивки.', en: 'Tokens are earned from games, streaks and achievements.' },
 
   // Onboarding
+  onbPickGameTitle: { ru: 'Выбери первую игру', en: 'Choose your first game' },
+  onbPickGameBody: { ru: 'Не будем начинать с лекции. Выбери, что хочется попробовать прямо сейчас.', en: 'No lecture first. Pick what you want to try right now.' },
+  onbPickGameHint: { ru: 'Память ∨ внимание ∨ логика — остальное всегда доступно на главной.', en: 'Memory ∨ attention ∨ logic — everything else stays available on Home.' },
   onbEnableReminders: { ru: 'ВКЛЮЧИТЬ НАПОМИНАНИЯ', en: 'ENABLE REMINDERS' },
   onbStartFirstWarmup: { ru: 'НАЧАТЬ ПЕРВУЮ ЗАРЯДКУ', en: 'START FIRST WARM-UP' },
   onbPlayDailyChallenge: { ru: 'СЫГРАТЬ ВЫЗОВ ДНЯ', en: 'PLAY TODAY’S CHALLENGE' },
@@ -1515,6 +1537,7 @@ const translations: Translations = {
   // LeaderboardModal / LevelProgressMap / BossRound
   leaderboardTitle: { ru: '🏆 Топ игроков', en: '🏆 Leaderboard' },
   leaderboardEmpty: { ru: 'Пока пусто — стань первым!', en: 'Empty so far — be the first!' },
+  bestAmongPlayers: { ru: 'Лучший среди игроков', en: 'Best among players' },
   levelOfMax: { ru: 'Уровень {n}/{max}', en: 'Level {n}/{max}' },
   bossTitle: { ru: 'БОСС', en: 'BOSS' },
   bossDefeated: { ru: '🏆 Босс повержен! +⭐', en: '🏆 Boss defeated! +⭐' },
@@ -1756,6 +1779,8 @@ const translations: Translations = {
   blanksLabel: { ru: 'пусто', en: 'blanks' },
   hintsLabel: { ru: 'подсказок', en: 'hints' },
   sudokuNextUnlocks: { ru: 'Прошёл — откроется следующий, сложнее.', en: 'Beat it — the next unlocks, harder.' },
+  sudokuColorMode: { ru: 'Цвет', en: 'Color' },
+  sudokuColorHint: { ru: 'Коснись клетки; повторный тап снимает цвет.', en: 'Tap a cell; tap it again to remove the color.' },
   killerCageRule: { ru: 'Цифры в каждой цветной группе в сумме дают число в её углу и не повторяются.', en: 'Digits in each coloured cage add up to the number in its corner and never repeat.' },
   boardSize: { ru: 'Размер поля', en: 'Board size' },
   digitsLabel: { ru: 'Цифры', en: 'Digits' },
@@ -2012,6 +2037,8 @@ export function translateFor(lang: string, key: string): string {
 
 interface LanguageContextType {
   language: Language;
+  /** AsyncStorage/URL language has been resolved; autostart games must wait for this. */
+  ready: boolean;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
 }
@@ -2020,6 +2047,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('en'); // база — English
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     loadLanguage();
@@ -2050,6 +2078,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Error loading language:', error);
+    } finally {
+      setReady(true);
     }
   };
 
@@ -2065,7 +2095,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const t = (key: string): string => translateFor(language, key);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, ready, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );

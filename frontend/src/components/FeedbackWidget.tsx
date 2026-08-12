@@ -66,6 +66,29 @@ export default function FeedbackWidget() {
   /** Запись получилась, но звука в ней нет — микрофон не отдал сэмплы. */
   const [micSilent, setMicSilent] = React.useState(false);
 
+  /** Проигрывание записи перед отправкой — единственная честная проверка, что голос попал. */
+  const [playing, setPlaying] = React.useState(false);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  React.useEffect(() => () => {
+    // URL блоба живёт до отзыва: не отзовём — утечёт память на каждой перезаписи.
+    try { audioRef.current?.pause(); } catch { /* уже мёртв */ }
+    if (audioRef.current?.src) URL.revokeObjectURL(audioRef.current.src);
+  }, []);
+
+  const playNote = () => {
+    if (!note) return;
+    if (audioRef.current && playing) { try { audioRef.current.pause(); } catch { /* */ } setPlaying(false); return; }
+    try {
+      if (audioRef.current?.src) URL.revokeObjectURL(audioRef.current.src);
+      const a = audioRef.current ?? new Audio();
+      a.src = URL.createObjectURL(note.blob);
+      a.onended = () => setPlaying(false);
+      a.onerror = () => setPlaying(false);
+      audioRef.current = a;
+      a.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    } catch { setPlaying(false); }
+  };
+
   const toggleRecord = async () => {
     if (rec) {
       const v = await rec.stop();
@@ -328,11 +351,34 @@ export default function FeedbackWidget() {
                           />
                         )}
                       </TouchableOpacity>
+                      {/* Прослушать ДО отправки. Пороги громкости отличают тишину от звука,
+                          но не голос от шума: четыре заметки от 07.08 имели пик −1.2 дБ и не
+                          содержали речи — щелчки и шорох рук. Человек говорил больше минуты
+                          и получил «спасибо» за пустоту. Ухо решает это за секунду, никакой
+                          порог не нужен. */}
+                      {note && !rec && (
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessibilityLabel={t('voicePlay')}
+                          onPress={playNote}
+                          style={[styles.shotRow, { borderColor: colors.border }]}
+                        >
+                          <Ionicons
+                            name={playing ? 'pause-circle' : 'play-circle'}
+                            size={20}
+                            color={colors.textSecondary}
+                          />
+                          <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>{t('voicePlay')}</Text>
+                        </TouchableOpacity>
+                      )}
                       {micDenied && (
                         <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{t('voiceDenied')}</Text>
                       )}
                       {micSilent && !micDenied && (
                         <Text style={{ color: '#b45309', fontSize: 12, fontWeight: '700' }}>{t('voiceSilent')}</Text>
+                      )}
+                      {note && !rec && !micSilent && (
+                        <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{t('voiceCheckHint')}</Text>
                       )}
                     </View>
                   )}
