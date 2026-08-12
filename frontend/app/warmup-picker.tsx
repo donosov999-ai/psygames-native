@@ -233,7 +233,7 @@ export default function WarmupPicker() {
 const styles = StyleSheet.create({
   wrap: { flex: 1 },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12 },
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  backBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 19, fontWeight: '800' },
   hint: { fontSize: 12.5, textAlign: 'center', paddingHorizontal: 24, marginTop: 2, marginBottom: 10, lineHeight: 17 },
   list: { paddingHorizontal: 14, paddingBottom: 16, gap: 10 },

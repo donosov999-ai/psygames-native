@@ -497,7 +497,7 @@ export default function SettingsScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button" onPress={tryRedeem}
-                style={{ paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#10b981', borderRadius: 8 }}>
+                style={{ minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#10b981', borderRadius: 8 }}>
                 <Text style={{ color: '#fff', fontWeight: '700' }}>{t('welcomeUnlock')}</Text>
               </TouchableOpacity>
             </View>
@@ -811,7 +811,7 @@ export default function SettingsScreen() {
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
             <TouchableOpacity
-              accessibilityRole="button" onPress={openExport} style={{ flexGrow: 1, minWidth: 0, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
+              accessibilityRole="button" onPress={openExport} style={{ minHeight: 48, justifyContent: 'center', flexGrow: 1, minWidth: 0, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
               <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{t('exportGetCode')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -984,7 +984,7 @@ export default function SettingsScreen() {
                 />
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <TouchableOpacity
-                    accessibilityRole="button" onPress={copyExport} style={{ flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
+                    accessibilityRole="button" onPress={copyExport} style={{ minHeight: 48, justifyContent: 'center', flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
                     <Text style={{ color: '#fff', fontWeight: '700' }}>{t('copy')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -1005,7 +1005,7 @@ export default function SettingsScreen() {
                 />
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <TouchableOpacity
-                    accessibilityRole="button" onPress={doImport} style={{ flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
+                    accessibilityRole="button" onPress={doImport} style={{ minHeight: 48, justifyContent: 'center', flexGrow: 1, backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}>
                     <Text style={{ color: '#fff', fontWeight: '700' }}>{t('apply')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
