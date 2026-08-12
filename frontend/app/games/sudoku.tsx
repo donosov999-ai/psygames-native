@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -19,6 +19,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/constants/digitThemes';
 import type { DigitStyle } from '@/src/constants/digitThemes';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 import { failurePolicy, formatErrorCount, isOver as isFailOver } from '@/src/services/failure';
@@ -163,6 +164,20 @@ function RulesHelpModal({ visible, variant, killer, N, colors, language, onClose
           </View>
         )}
         <Text style={[rhStyles.caption, { color: colors.textSecondary }]}>{exampleCaption(key, language)}</Text>
+        {/* Пока правила открыты, плавающая кнопка репорта накрыта этим окном и
+            недоступна — а сказать «в правилах ошибка» хочется именно отсюда.
+            Расшифровка голосового репорта 02.08 (прочитана только 12.08, месяц
+            пролежала): «кнопка отправки ошибки недоступна, если открываешь окно
+            с правилами». В общей справке такой выход уже сделан по репорту Rulon,
+            а у судоку своё окно правил — и там его не было. */}
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => { onClose(); DeviceEventEmitter.emit(FEEDBACK_OPEN_EVENT); }}
+          style={rhStyles.reportLink} activeOpacity={0.7}>
+          <Text style={[rhStyles.reportText, { color: colors.textSecondary }]}>
+            {translateFor(language, 'feedbackFabLabel')}
+          </Text>
+        </TouchableOpacity>
         <TouchableOpacity
           accessibilityRole="button" style={rhStyles.okBtn} onPress={onClose} activeOpacity={0.85}>
           <Text style={rhStyles.okText}>{translateFor(language, 'ctaGotIt')}</Text>
@@ -180,6 +195,8 @@ const rhStyles = StyleSheet.create({
   rule: { fontSize: 15, fontWeight: '700', textAlign: 'center', lineHeight: 21 },
   gridWrap: { marginVertical: 6, borderWidth: 1, borderColor: 'rgba(127,127,213,0.5)' },
   caption: { fontSize: 13, textAlign: 'center', lineHeight: 19 },
+  reportLink: { marginTop: 8, paddingVertical: 6, alignSelf: 'center' },
+  reportText: { fontSize: 13, textDecorationLine: 'underline' },
   okBtn: { marginTop: 6, alignSelf: 'stretch', backgroundColor: '#7f7fd5', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   okText: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
 });
