@@ -984,6 +984,7 @@ const t: Record<string, string> = {
   "requestCodeHint": "TelegramでDenisに連絡してください — 5分ほどで\n個人用アクセスコードを発行します（モスクワの営業時間内）。",
   "music": "音楽",
   "colorblindMode": "色覚サポート",
+  "colorblindWhere": "色が意味を持つ課題に適用されます：数独、SET、ストループ、ウィスコンシン検査、ロンドン塔",
   "devChatToggle": "開発者チャットボタン",
   "transferProgress": "進捗の引き継ぎ",
   "transferProgressHint": "実績とレベルはこの端末に保存されます。ここでコードを書き出し、別の端末で貼り付けてください。",

@@ -984,6 +984,7 @@ const t: Record<string, string> = {
   "requestCodeHint": "Telegram으로 Denis에게 연락하세요 — 5분 안에\n개인 액세스 코드를 드려요 (모스크바 업무 시간).",
   "music": "음악",
   "colorblindMode": "색약 모드",
+  "colorblindWhere": "색이 의미를 갖는 항목에 적용됩니다: 스도쿠, SET, 스트룹, 위스콘신 검사, 런던탑",
   "devChatToggle": "개발자 채팅 버튼",
   "transferProgress": "진행 상황 이전",
   "transferProgressHint": "업적과 레벨은 이 기기에 저장돼요. 여기서 코드를 내보내고 다른 기기에서 붙여넣으세요.",

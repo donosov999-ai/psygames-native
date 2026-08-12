@@ -865,6 +865,7 @@ const t: Record<string, string> = {
   "requestCodeHint": "在 Telegram 上联系 Denis——他会在 5 分钟内\n发放个人访问码（莫斯科工作时间）。",
   "music": "音乐",
   "colorblindMode": "色盲模式",
+  "colorblindWhere": "适用于颜色承载信息的项目：数独、SET、斯特鲁普、威斯康星测试、伦敦塔",
   "devChatToggle": "开发者聊天按钮",
   "transferProgress": "进度迁移",
   "transferProgressHint": "成就和等级保存在本机。在这里导出代码，到另一台设备粘贴。",

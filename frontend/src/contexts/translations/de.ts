@@ -865,6 +865,7 @@ const t: Record<string, string> = {
   "requestCodeHint": "Schreib Denis auf Telegram — er stellt dir in 5 Minuten\neinen persönlichen Zugangscode aus (Moskauer Geschäftszeiten).",
   "music": "Musik",
   "colorblindMode": "Farbenblind-Modus",
+  "colorblindWhere": "Gilt dort, wo Farbe Bedeutung trägt: Sudoku, SET, Stroop, Wisconsin-Test, Turm von London",
   "devChatToggle": "Entwickler-Chat-Button",
   "transferProgress": "Fortschritt übertragen",
   "transferProgressHint": "Erfolge und Stufen liegen auf diesem Gerät. Exportiere hier einen Code und füge ihn auf dem anderen Gerät ein.",

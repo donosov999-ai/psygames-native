@@ -395,12 +395,19 @@ jobs:
             # зовёт request.grant(). Но если права не объявлены в манифесте, системный
             # запрос возвращает «отказано» мгновенно, и wry честно делает request.deny().
             # То есть код был рабочий, не хватало ровно двух строк объявления.
-            for P in RECORD_AUDIO MODIFY_AUDIO_SETTINGS; do
+            #
+            # VIBRATE — та же болезнь, вскрыта 12.08.2026 расшифровкой голосового
+            # репорта: «вибрация — настройку включила, но её не было». Запись месяц
+            # пролежала неразобранной. Проводка в приложении цела: переключатель →
+            # флаг → navigator.vibrate. Но в Android-вебвью vibrate() без объявленного
+            # разрешения молча возвращает false — ни ошибки, ни вибрации. В браузере
+            # при проверке всё работало, потому что там разрешение не нужно.
+            for P in RECORD_AUDIO MODIFY_AUDIO_SETTINGS VIBRATE; do
               grep -q "android.permission.$P" "$MANIFEST" || \
                 sed -i "s#<application#<uses-permission android:name=\"android.permission.$P\" />\n    <application#" "$MANIFEST"
             done
-            echo "— rotation + аудио-права applied —"
-            grep -n "screenOrientation\|RECORD_AUDIO\|MODIFY_AUDIO\|MainActivity" "$MANIFEST" || true
+            echo "— rotation + аудио-права + вибрация applied —"
+            grep -n "screenOrientation\|RECORD_AUDIO\|MODIFY_AUDIO\|VIBRATE\|MainActivity" "$MANIFEST" || true
           else
             echo "WARN: $MANIFEST не найден — пропускаю (OrientationGuard в webview покрывает)"; find gen/android -name AndroidManifest.xml -type f || true
           fi

@@ -1433,6 +1433,7 @@ const translations: Translations = {
   requestCodeHint: { ru: 'Напиши Денису в Telegram — он выдаст персональный код доступа\nза 5 минут (рабочие часы Мск).', en: 'Message Denis on Telegram — he\'ll issue a personal access code\nwithin 5 minutes (Moscow business hours).' },
   music: { ru: 'Музыка', en: 'Music' },
   colorblindMode: { ru: 'Без цвета (дальтонизм)', en: 'Colorblind mode' },
+  colorblindWhere: { ru: 'Действует там, где цвет несёт смысл: судоку, SET, Струп, Висконсинский тест, Башня Лондона', en: 'Applies where colour carries meaning: Sudoku, SET, Stroop, Wisconsin test, Tower of London' },
   devChatToggle: { ru: 'Чат с разработчиками', en: 'Developer chat button' },
   transferProgress: { ru: 'Перенос прогресса', en: 'Transfer progress' },
   transferProgressHint: { ru: 'Достижения и уровни хранятся на устройстве. Экспортируй код здесь, вставь на другом устройстве.', en: 'Achievements and levels live on this device. Export a code here, paste it on another device.' },
