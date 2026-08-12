@@ -25,7 +25,7 @@ const ROOT = path.join(__dirname, '../..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf8') as string;
 
 /** Известный долг японской локали на 12.08.2026. Менять ТОЛЬКО в меньшую сторону. */
-const JA_DEBT = 419;
+const JA_DEBT = 52;
 
 const LOCALES = ['de', 'es', 'pt', 'fr', 'it', 'zh', 'ja', 'ko', 'hi', 'ar'];
 
