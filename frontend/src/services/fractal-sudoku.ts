@@ -89,18 +89,27 @@ export function rootCellForChild(i: number): [number, number] {
 /**
  * Сколько клеток дочерней сетки уже решено. Считаем СОВПАДЕНИЯ с решением, а не просто
  * заполненность: неверная цифра — не прогресс, и открывать ею родителя нельзя.
+ *
+ * ⚠️ ПАРАМЕТР given ОБЯЗАТЕЛЕН НА ЖИВОМ ЭКРАНЕ. Без него считаются и подсказки задания,
+ * а они с решением совпадают по определению: при 36 подсказках порог 17 оказывается
+ * взят ДО первого хода, все девять сеток открыты сразу, и вся конструкция теряет смысл.
+ * Поймано на первом же запуске экрана 12.08 — девять плиток показали «17/17».
+ * Маска given помечает клетки задания, они в счёт не идут.
  */
-export function solvedCount(current: Board, solution: Board): number {
+export function solvedCount(current: Board, solution: Board, given?: boolean[][]): number {
   let n = 0;
   for (let r = 0; r < N; r++) {
-    for (let c = 0; c < N; c++) if (current[r][c] !== 0 && current[r][c] === solution[r][c]) n++;
+    for (let c = 0; c < N; c++) {
+      if (given?.[r][c]) continue;
+      if (current[r][c] !== 0 && current[r][c] === solution[r][c]) n++;
+    }
   }
   return n;
 }
 
 /** Открыта ли родительская клетка этой дочерней сеткой. */
-export function isUnlocked(current: Board, solution: Board): boolean {
-  return solvedCount(current, solution) >= UNLOCK_CELLS;
+export function isUnlocked(current: Board, solution: Board, given?: boolean[][]): boolean {
+  return solvedCount(current, solution, given) >= UNLOCK_CELLS;
 }
 
 function dig(solution: Board, blanks: number, rnd?: Rng): Board {

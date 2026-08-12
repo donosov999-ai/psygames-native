@@ -72,6 +72,15 @@ const translations: Translations = {
   complexEvening: { ru: 'ПЕРЕД СНОМ', en: 'BEFORE SLEEP' },
   complexAssessment: { ru: 'ОЦЕНКА', en: 'ASSESSMENT' },
   restDay: { ru: 'Сегодня набора нет', en: 'No set today' },
+  fractalTitle: { ru: 'Фрактальная судоку', en: 'Fractal Sudoku' },
+  fractalDesc: { ru: 'За каждой клеткой верхней сетки спрятана целая судоку', en: 'Behind every cell of the top grid hides a whole sudoku' },
+  fractalHowTo: { ru: 'Девять нижних сеток — не украшение. Центр каждой это цифра, которой не хватает наверху. Решите нижнюю до 17 верных клеток — и цифра сама встанет в корневую сетку. Соберите все девять, и корень закроется.', en: 'The nine lower grids are not decoration. The centre of each is a digit missing up top. Solve a lower grid to 17 correct cells and that digit moves into the root grid. Collect all nine and the root closes.' },
+  fractalRoot: { ru: 'Корневая сетка', en: 'Root grid' },
+  fractalChildren: { ru: 'Нижние сетки', en: 'Lower grids' },
+  fractalChildN: { ru: 'Сетка', en: 'Grid' },
+  fractalOpened: { ru: 'Открыто', en: 'Opened' },
+  fractalToUnlock: { ru: 'до открытия', en: 'to unlock' },
+  fractalFeedHint: { ru: 'Подсвеченная клетка в центре — та самая цифра, которая уйдёт в корневую сетку', en: 'The highlighted centre cell is the digit that will move up into the root grid' },
   ctaStart: { ru: 'СТАРТ', en: 'START' },
   // Карточка зарядки ведёт на ВЫБОР набора, а не запускает его. Подпись «СТАРТ»
   // обещала запуск — Валя об этом и писала: «заходишь в „не спится“, а там все
