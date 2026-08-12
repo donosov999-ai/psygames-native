@@ -1522,5 +1522,11 @@ const t: Record<string, string> = {
   "leaguesSeasonPoints": "{d}일간 점수",
   "leaguesEmpty": "한 판 해보면 리그가 나타납니다.",
   "leaguesSeasonHint": "리그는 최근 30일 점수로 정해집니다. 지금까지의 전부가 아니라 현재의 페이스입니다. 한 주 쉬면 내려가고, 그래도 괜찮습니다.",
+  "areaBalanceTitle": "훈련 균형",
+  "areaBalanceWeak": "가장 적게 훈련한 영역: {area}",
+  "areaBalanceEmpty": "몇 판 해보면 여기에 그림이 나타납니다.",
+  "areaTrendUp": "성적 {n}% 상승",
+  "areaTrendDown": "성적 {n}% 하락",
+  "areaBalanceHint": "영역별 훈련 비중입니다. 능력 점수가 아닙니다 — 측정하지도, 그렇다고 주장하지도 않습니다. 실제로 무엇을 훈련하고 무엇을 건너뛰는지 보여줄 뿐입니다.",
 };
 export default t;

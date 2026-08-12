@@ -1527,5 +1527,11 @@ const t: Record<string, string> = {
   "leaguesSeasonPoints": "{d} 天内的积分",
   "leaguesEmpty": "玩一局，段位就会出现。",
   "leaguesSeasonHint": "段位按最近 30 天的积分计算，反映你当前的节奏，而不是全部历程。停一周会下降，这很正常。",
+  "areaBalanceTitle": "训练分布",
+  "areaBalanceWeak": "你练得最少的是：{area}",
+  "areaBalanceEmpty": "玩几局，这里就会出现分布图。",
+  "areaTrendUp": "成绩提升 {n}%",
+  "areaTrendDown": "成绩下降 {n}%",
+  "areaBalanceHint": "你的训练在各领域的占比。这不是能力评分——我们不测量能力，也不作此承诺：这只是你实际在练什么、又略过了什么。",
 };
 export default t;

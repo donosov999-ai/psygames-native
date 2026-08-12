@@ -822,5 +822,11 @@ const t: Record<string, string> = {
   "leaguesSeasonPoints": "{d} 日間のポイント",
   "leaguesEmpty": "何か遊ぶとリーグが表示されます。",
   "leaguesSeasonHint": "リーグは直近30日のポイントで決まります。これまでの積み重ねではなく、今のペースです。1週間空けば下がりますが、それで構いません。",
+  "areaBalanceTitle": "トレーニングの偏り",
+  "areaBalanceWeak": "いちばん少ないのは：{area}",
+  "areaBalanceEmpty": "何回か遊ぶと、ここに全体像が出ます。",
+  "areaTrendUp": "成績が {n}% 向上",
+  "areaTrendDown": "成績が {n}% 低下",
+  "areaBalanceHint": "分野ごとの練習量の割合です。能力の点数ではありません——測っていませんし、そう主張もしません。実際に何を鍛え、何を避けているかを示すだけです。",
 };
 export default t;

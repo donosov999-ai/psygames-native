@@ -1522,5 +1522,11 @@ const t: Record<string, string> = {
   "leaguesSeasonPoints": "Points sur {d} jours",
   "leaguesEmpty": "Joue un peu et ta ligue apparaîtra.",
   "leaguesSeasonHint": "La ligue compte les points des 30 derniers jours — ton rythme actuel, pas tout ton parcours. Une semaine sans jouer et elle descend, c’est normal.",
+  "areaBalanceTitle": "Équilibre de l’entraînement",
+  "areaBalanceWeak": "Ce que tu travailles le moins : {area}",
+  "areaBalanceEmpty": "Joue quelques parties et le tableau apparaîtra ici.",
+  "areaTrendUp": "résultat en hausse de {n}%",
+  "areaTrendDown": "résultat en baisse de {n}%",
+  "areaBalanceHint": "Comment ton entraînement se répartit entre les domaines. Ce n’est pas une note de tes capacités : nous ne les mesurons pas et ne le prétendons pas. C’est ce que tu travailles vraiment et ce que tu évites.",
 };
 export default t;
