@@ -661,20 +661,6 @@ export default function SudokuGame() {
       </LinearGradient>
       <GameAbout descriptionKey="sudokuIntroDesc" benefits={SUDOKU_BENEFITS} accent={GRADIENT[0]} />
       {/* SUDOKU-LVL: режим — уровни (прогрессия) или свободно (селекторы) */}
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
-        <View style={styles.optionButtons}>
-          {([['levels', t('sudokuModeLevels')], ['free', t('sudokuModeFree')], ['killer', 'Killer']] as const).map(([m, lbl]) => (
-            <TouchableOpacity
-              accessibilityRole="button" key={m} style={[styles.modeButton, mode === m
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setMode(m as 'levels' | 'free' | 'killer')}>
-              <Text style={[styles.modeButtonText, { color: mode === m ? '#FFF' : colors.text }]}>{lbl}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
 
       {/* Вход в отдельный режим «Самурай» (5 перекрытых сеток 9×9) — открывает /games/sudoku-samurai */}
       <TouchableOpacity
@@ -799,6 +785,27 @@ export default function SudokuGame() {
     </ScrollView>
     {/* Sticky-футер: кнопка «играть» всегда на экране, над системной навигацией */}
     <View style={[styles.stickyFooter, { backgroundColor: colors.background, borderTopColor: colors.border, paddingBottom: insets.bottom + 12 }]}>
+      {/* Выбор режима и справка — В ПРИБИТОМ НИЗУ, а не карточкой в прокрутке
+          (просьба Дениса 12.08). Раньше режим лежал первой карточкой: чтобы его
+          сменить, надо было прокрутить экран вверх, а кнопка «играть» при этом
+          оставалась внизу — два разных места для одного решения «во что играю».
+          Теперь оба рядом и всегда на экране. */}
+      <View style={styles.configBar}>
+        {([['levels', t('sudokuModeLevels')], ['free', t('sudokuModeFree')], ['killer', 'Killer']] as const).map(([m, lbl]) => (
+          <GlassButton
+            key={m}
+            grow
+            label={lbl}
+            active={mode === m}
+            onPress={() => setMode(m as 'levels' | 'free' | 'killer')}
+          />
+        ))}
+        <GlassButton
+          icon="help-circle-outline"
+          accessibilityLabel={t('rulesWord')}
+          onPress={() => setRulesOpen(true)}
+        />
+      </View>
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={() => startGame()}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
@@ -1250,6 +1257,11 @@ const styles = StyleSheet.create({
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
+  // Отступ слева — под плавающую кнопку отзыва: она смонтирована глобально и висит
+  // поверх экрана, накрывая первую кнопку строки. Общий каркас игр резервирует под
+  // неё те же 66 точек (FAB_GUTTER в GameShell), здесь низ рисуется свой — значит
+  // и место надо оставить своё.
+  configBar: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10, paddingLeft: 52 },
   stickyFooter: { paddingHorizontal: 16, paddingTop: 10, borderTopWidth: 1 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
