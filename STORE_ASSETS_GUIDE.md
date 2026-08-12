@@ -10,10 +10,10 @@
 
 | Путь | Что там |
 |---|---|
-|  | 12 файлов с текстами для Google Play |
-|  | Иконка + 5 скринов для App Store |
-|  (корень) | Старый листинг App Store (дублирует?) |
-|  (корень) | Старый листинг Google Play (дублирует?) |
+| `store/play-listing-{lang}.md` | 12 файлов с текстами для Google Play |
+| `store-assets/appstore/` | Иконка + 5 скринов для App Store |
+| `APPSTORE_LISTING.md` (корень) | Старый листинг App Store (дублирует?) |
+| `GOOGLE_PLAY_LISTING.md` (корень) | Старый листинг Google Play (дублирует?) |
 
 Проблемы: картинки Google Play не хранятся в репо, Windows Store материалов нет,
 структура не масштабируется при добавлении новых сторов.
@@ -57,18 +57,18 @@ store/
 ```
 
 **Что переместить:**
--  →  (переименовать)
--  →  (перенести)
--  и  из корня — решить, нужны ли, или удалить как устаревшие
+- `store/play-listing-*.md` → `store/google-play/listing-*.md` (переименовать)
+- `store-assets/appstore/` → `store/appstore/` (перенести)
+- `GOOGLE_PLAY_LISTING.md` и `APPSTORE_LISTING.md` из корня — решить, нужны ли, или удалить как устаревшие
 
-**Важно:** при переименовании/переносе  нужно обновить
-путь в  (сейчас он читает ).
+**Важно:** при переименовании/переносе `store/play-listing-*.md` нужно обновить
+путь в `.github/scripts/update_listings.js` (сейчас он читает `store/play-listing-{lang}.md`).
 
 ---
 
 ## Требования к ассетам — Google Play
 
-### Тексты ()
+### Тексты (`store/google-play/listing-{lang}.md`)
 Текущий формат (три блока кода) работает — скрипт сам парсит title / short / full.
 
 | Поле | Лимит |
@@ -92,7 +92,7 @@ store/
 
 ## Требования к ассетам — Microsoft Store (Windows)
 
-### Тексты ()
+### Тексты (`store/windows/listing-{lang}.md`)
 Можно взять за основу тексты Google Play — смысл тот же, но:
 - Microsoft Store не разделяет short/full, есть одно **Description** (до 10 000 символов)
 - Дополнительно есть поле **Features** — список из 5–20 пунктов (одна строка = один фич)
@@ -129,7 +129,7 @@ brain training, memory, cognitive games, focus, attention
 | Hero art | 1920×1080 | PNG | Нет (используется в рекомендациях Store) |
 
 Скрины должны быть 16:9. Так как PsyGames — десктопное приложение (Tauri),
-скрины надо делать на Windows:  или Snipping Tool.
+скрины надо делать на Windows: `Win + PrtScn` или Snipping Tool.
 Оптимально: 2560×1440 (2K) или 1920×1080 (Full HD).
 
 ---
@@ -137,20 +137,20 @@ brain training, memory, cognitive games, focus, attention
 ## Сколько языков делать для Windows Store
 
 Microsoft Store поддерживает ~100 языков, но обязателен хотя бы **один** из:
-, , , , .
+`en-US`, `en-GB`, `en-AU`, `en-CA`, `en-IN`.
 
-**Рекомендация:** начать с  и , потом постепенно добавлять остальные 10 языков
-по мере готовности — приоритет: , , , , , , .
+**Рекомендация:** начать с `en` и `ru`, потом постепенно добавлять остальные 10 языков
+по мере готовности — приоритет: `de`, `fr`, `es`, `ja`, `ko`, `pt`, `zh`.
 
 ---
 
 ## Workflow обновления (как это работает сейчас для Google Play)
 
-1. Денис правит  → пушит в 
-2. GitHub Actions видит изменение файла → запускает 
-3. Скрипт парсит MD и загружает текст через Google Play API
+1. Денис правит `store/google-play/listing-{lang}.md` → коммитит и пушит в ветку `main`
+2. GitHub Actions видит изменение файла → запускает `update-listings.yml`
+3. Скрипт `.github/scripts/update_listings.js` парсит MD и загружает текст через Google Play API
 
-Для Windows Store можно сделать аналогичный воркфлоу ()
+Для Windows Store можно сделать аналогичный воркфлоу (`update-listings-windows.yml`)
 после того, как будет настроен Microsoft Store API.
 
 ---
