@@ -447,7 +447,12 @@ const styles = StyleSheet.create({
   eyeEmoji: { fontSize: 96 },
   eyeHint: { fontSize: 13, fontStyle: 'italic', textAlign: 'center' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
-  optsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+  // Ограничены той же шириной, что и фото глаз (fieldCol). Репорт 11.08 с экрана
+  // 1888 точек: «надо бы сделать не на всю ширину экрана, а то глаза разбегаются».
+  // Фото было ограничено 480, а кнопки ответов — ничем, и на широком экране они
+  // разъезжались к краям: взгляд метался от глаз к варианту через полэкрана, что в
+  // игре на чтение эмоций по глазам мешает прямо по существу задания.
+  optsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 480, width: '100%', alignSelf: 'center' },
   optBtn: { paddingVertical: 13, paddingHorizontal: 24, borderRadius: 999, minWidth: 132, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 5, shadowOffset: { width: 0, height: 3 }, elevation: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
   optShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: 'rgba(255,255,255,0.18)' },
   optText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
