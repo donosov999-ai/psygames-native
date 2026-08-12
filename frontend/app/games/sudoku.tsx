@@ -14,7 +14,7 @@ import GlassButton from '@/src/components/GlassButton';
 import BossRound, { BossType } from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/constants/digitThemes';
@@ -274,7 +274,10 @@ export default function SudokuGame() {
 
   const { isPreset, autostart, str } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  // Открываемся сразу на настройках: описание переехало в сворачиваемый блок наверху
+  // (см. GameAbout). Раньше до игры было два экрана подряд, и второй раз человек
+  // пролистывал то, что прочитал в первый.
+  const [phase, setPhase] = useState<GamePhase>('config');
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const bossTypeRef = useRef<BossType>('lightning');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(() => (str('diff', 'medium') as 'easy' | 'medium' | 'hard'));
@@ -656,6 +659,7 @@ export default function SudokuGame() {
         <Text style={styles.configTitle}>{t('sudoku')}</Text>
         <Text style={styles.configDesc}>{t('sudokuDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="sudokuIntroDesc" benefits={SUDOKU_BENEFITS} accent={GRADIENT[0]} />
       {/* SUDOKU-LVL: режим — уровни (прогрессия) или свободно (селекторы) */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
@@ -1153,11 +1157,6 @@ export default function SudokuGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('sudoku').replace(/\s*\d+\s*[×xX]\s*\d+\s*$/, '')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="sudoku" icon="apps" gradient={GRADIENT as [string, string]}
-          skillKey="skillLogic" descriptionKey="sudokuIntroDesc"
-          benefits={SUDOKU_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {/* v1.111.0: справка правил уровня (на конфиге — если открыта) */}
       <RulesHelpModal visible={rulesOpen} variant={variant} killer={mode === 'killer'} N={N}
