@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  exampleHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  exampleHeader: { minHeight: 48,  flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   exampleBody: { gap: 8, alignItems: 'center', marginTop: 2 },
   exampleRow: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
   exampleCaption: { fontSize: 12, fontWeight: '600', textAlign: 'center', maxWidth: 320 },

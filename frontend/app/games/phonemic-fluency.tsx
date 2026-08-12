@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16, minWidth: 48, alignItems: 'center' },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
-  toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  toggleRow: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 8 },
   warning: { fontSize: 12, textAlign: 'center', fontStyle: 'italic', paddingHorizontal: 16, lineHeight: 18 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
