@@ -20,7 +20,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { getUnlockedLevels, getNextLockedLevel, formatUnlockHint } from '@/src/services/level-unlocks';
 import { LEVELS_BY_GAME } from '@/src/constants/level-progression';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -153,7 +153,7 @@ export default function SchulteGame() {
   }, [isThemed, profile.person, language]);
 
   // Game state
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (для баннера LevelCleared: true=звёзды, false=«почти, ещё раз»)
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -445,6 +445,7 @@ export default function SchulteGame() {
         <Text style={styles.configTitle}>{t('schulteTable')}</Text>
         <Text style={styles.configDesc}>{t('schulteTableDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="schulteIntroDesc" benefits={SCHULTE_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="schulte_table" currentLevel={lvl.level} colors={colors} language={language} />
       {!isPreset && (
         <TouchableOpacity
@@ -904,22 +905,6 @@ export default function SchulteGame() {
     );
   };
 
-  if (phase === 'intro') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <GameIntro
-          nameKey="schulteTable"
-          icon="grid"
-          gradient={GRADIENT}
-          skillKey="skillAttention"
-          descriptionKey="schulteIntroDesc"
-          benefits={SCHULTE_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      </SafeAreaView>
-    );
-  }
 
   if (phase === 'playing') return renderGame();
 

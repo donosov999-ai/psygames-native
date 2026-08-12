@@ -12,7 +12,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 
@@ -60,7 +60,7 @@ export default function IowaGame() {
   const router = useRouter();
 
   const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [trials, setTrials] = useState(60);
 
   const [round, setRound] = useState(0);
@@ -131,6 +131,7 @@ export default function IowaGame() {
         <Text style={styles.configTitle}>{t('iowa')}</Text>
         <Text style={styles.configDesc}>{t('iowaDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="iowaIntroDesc" benefits={IGT_BENEFITS} accent={GRADIENT[0]} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
         <View style={styles.optionButtons}>
@@ -202,15 +203,6 @@ export default function IowaGame() {
   // GameIntro уже содержит собственную шапку с Back. Если оборачивать его
   // общей шапкой игры, на мобильном экране появляются два заголовка и две
   // кнопки назад — ровно на пути старого репорта про неудачную компоновку Iowa.
-  if (phase === 'intro') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <GameIntro nameKey="iowa" icon="cash" gradient={GRADIENT as [string, string]}
-          skillKey="skillRisk" descriptionKey="iowaIntroDesc"
-          benefits={IGT_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>

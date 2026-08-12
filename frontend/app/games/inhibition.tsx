@@ -37,7 +37,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -89,7 +89,7 @@ export default function InhibitionGame() {
   const lvl = usePersistentLevel('inhibition');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
-  const [phase, setPhase] = useState<GamePhase>(presetMode ? 'config' : 'intro');
+  const [phase, setPhase] = useState<GamePhase>('config');   // вступления больше нет: описание в блоке «Об игре»
   const [subMode, setSubMode] = useState<SubMode>(presetMode || 'go_no_go');
   const [totalTrials, setTotalTrials] = useState(20);
   const [clearedPassed, setClearedPassed] = useState(true);
@@ -342,6 +342,7 @@ export default function InhibitionGame() {
           <Text style={styles.configTitle}>{t('inhibition')}</Text>
           <Text style={styles.configDesc}>{t('inhibitionDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="inhibitionIntroDesc" benefits={BENEFITS} accent={GRADIENT[0]} />
 
         {/* Селектор суб-режима остаётся: он меняет ПРАВИЛО игры (парадигму), не сложность */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -489,11 +490,6 @@ export default function InhibitionGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('inhibition')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="inhibition" icon="hand-left" gradient={GRADIENT as [string, string]}
-          skillKey="skillInhibition" descriptionKey="inhibitionIntroDesc"
-          benefits={BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

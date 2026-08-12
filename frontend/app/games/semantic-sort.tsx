@@ -15,7 +15,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -53,7 +53,7 @@ export default function SemanticSortGame() {
 
   const { isPreset, autostart, str, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const [roundsCount, setRoundsCount] = useState(() => num('rounds', 15));
   const [catsPerRound, setCatsPerRound] = useState(() => num('cats', 3));
@@ -210,6 +210,7 @@ export default function SemanticSortGame() {
           <Text style={[styles.configTitle, { color: '#fff' }]}>{t('semanticSort')}</Text>
           <Text style={[styles.configDesc, { color: 'rgba(255,255,255,0.8)' }]}>{t('semanticSortDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="semanticSortIntroDesc" benefits={SORT_BENEFITS} accent={GRADIENT[0]} />
 
         <LevelProgressMap gameId="semantic_sort" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', marginBottom: 12 }]}>
@@ -314,22 +315,6 @@ export default function SemanticSortGame() {
 
   if (phase === 'playing') return renderPlaying();
 
-  if (phase === 'intro') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <GameIntro
-          nameKey="semanticSort"
-          icon="albums"
-          gradient={GRADIENT}
-          skillKey="skillVocabulary"
-          descriptionKey="semanticSortIntroDesc"
-          benefits={SORT_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>

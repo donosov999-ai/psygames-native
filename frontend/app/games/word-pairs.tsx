@@ -16,7 +16,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
@@ -63,7 +63,7 @@ export default function WordPairsGame() {
   const { width } = useWindowDimensions();
   const { isPreset, autostart, str, num } = useGamePreset();
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (для баннера passed)
   const [pairs, setPairs] = useState<WordPair[]>([]);
   const [shuffledRight, setShuffledRight] = useState<string[]>([]);
@@ -275,6 +275,7 @@ export default function WordPairsGame() {
         <Text style={styles.configTitle}>{t('wordPairs')}</Text>
         <Text style={styles.configDesc}>{t('wordPairsDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="wordPairsIntroDesc" benefits={WORD_PAIRS_BENEFITS} accent={GRADIENT[0]} />
 
       <LevelProgressMap gameId="word_pairs" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', marginBottom: 12 }]}>
@@ -509,22 +510,6 @@ export default function WordPairsGame() {
     </GameShell>
   );
 
-  if (phase === 'intro') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <GameIntro
-          nameKey="wordPairs"
-          icon="link"
-          gradient={GRADIENT}
-          skillKey="skillMemory"
-          descriptionKey="wordPairsIntroDesc"
-          benefits={WORD_PAIRS_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      </SafeAreaView>
-    );
-  }
 
   if (phase === 'memorize') return renderMemorize();
   if (phase === 'check') return renderCheck();

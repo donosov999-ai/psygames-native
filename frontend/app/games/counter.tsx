@@ -26,7 +26,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -91,7 +91,7 @@ export default function CounterGame() {
   const lvl = usePersistentLevel('counter');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [gridSize, setGridSize] = useState(3);
   const [grid, setGrid] = useState<Cell[]>([]);
   const [targetSum, setTargetSum] = useState(0);
@@ -310,6 +310,7 @@ export default function CounterGame() {
             <Text style={styles.configTitle}>{t('counter')}</Text>
             <Text style={styles.configDesc}>{t('counterDesc')}</Text>
           </LinearGradient>
+          <GameAbout descriptionKey="counterIntroDesc" benefits={COUNTER_BENEFITS} accent={GRADIENT[0]} />
 
           <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
             <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
@@ -468,22 +469,6 @@ export default function CounterGame() {
     </GameShell>
   );
 
-  if (phase === 'intro') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <GameIntro
-          nameKey="counter"
-          icon="add-circle"
-          gradient={GRADIENT}
-          skillKey="skillMath"
-          descriptionKey="counterIntroDesc"
-          benefits={COUNTER_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      </SafeAreaView>
-    );
-  }
 
   if (phase === 'playing') return renderGame();
 

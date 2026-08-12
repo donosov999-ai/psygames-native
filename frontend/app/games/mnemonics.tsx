@@ -16,7 +16,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -51,7 +51,7 @@ export default function MnemonicsGame() {
   const levelRef = useRef(1);
   const useLevelRef = useRef(false);   // запущено по уровню? (для reach + авто-потока)
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [mode, setMode] = useState<GameMode>(() => (str('mode', 'words') as GameMode));
   const [itemCount, setItemCount] = useState(() => num('itemCount', levelParams(1).itemCount));   // дефолт 5, не 10
   const [items, setItems] = useState<string[]>([]);
@@ -207,6 +207,7 @@ export default function MnemonicsGame() {
             {t('desc_mnemonics_short')}
           </Text>
         </LinearGradient>
+        <GameAbout descriptionKey="mnemonicsIntroDesc" benefits={MNEMONICS_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="mnemonics" currentLevel={lvl.level} colors={colors} language={language} />
 
         <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
@@ -449,22 +450,6 @@ export default function MnemonicsGame() {
     </GameShell>
   );
 
-  if (phase === 'intro') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <GameIntro
-          nameKey="mnemonics"
-          icon="bulb"
-          gradient={GRADIENT}
-          skillKey="skillSequence"
-          descriptionKey="mnemonicsIntroDesc"
-          benefits={MNEMONICS_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      </SafeAreaView>
-    );
-  }
 
   if (phase === 'memorize') return renderMemorize();
   if (phase === 'check') return renderCheck();
