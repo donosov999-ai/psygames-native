@@ -107,8 +107,13 @@ function levelCfg(L: number, poolSize: number) {
   const { cols, rows } = gridFor(L);
   const slots = cols * rows;
   const typeCeiling = slots - 2;                                 // ≥2 пустых ячейки → всегда решаемо
-  const types = Math.min(poolSize, typeCeiling, 3 + Math.floor(L / 2));   // 3 → растёт, теперь выше 7 на больших досках
-  let spares = Math.max(2, 6 - Math.floor((L - 1) / 3));         // 6 → 2 пустых ячеек
+  const types = Math.min(poolSize, typeCeiling, 4 + Math.floor(L / 2));   // 4 → растёт, выше 7 на больших досках
+  // ⚠️ ПУСТЫЕ ЯЧЕЙКИ — ДОЛЕЙ ДОСКИ, А НЕ АБСОЛЮТНЫМ ЧИСЛОМ.
+  // Было `6 - ...`: на поле 3×3 это оставляло шесть свободных из девяти — занято три
+  // ячейки, две трети поля пустуют, и первый уровень решался без единой мысли.
+  // Репорт Вали 12.08 дословно: «даже не все слоты заняты, это просто, какой-то позор».
+  // Одно и то же число на доске 9 и на доске 16 означает разное: 67% пустоты против 37%.
+  let spares = Math.max(2, Math.ceil(slots * 0.34) - Math.floor((L - 1) / 4));
   spares = Math.max(2, Math.min(spares, slots - types));
   // За L8 сложность ещё и ЛИМИТ ХОДОВ (давление эффективности).
   const over = Math.max(0, L - 8);
