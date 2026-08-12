@@ -328,9 +328,19 @@ function FullHome() {
               </TouchableOpacity>
             </View>
             {lvl.span !== null && (
-              <View style={{ width: 104, height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden' }}>
+              /* Полоска прогресса ведёт в лиги: она и так означает «сколько до следующей
+                 ступени», так что это её место по смыслу. Отдельную кнопку в шапку не
+                 добавляем — там уже тесно, и каждый лишний значок отодвигает игры вниз. */
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={t('leaguesTitle')}
+                activeOpacity={0.8}
+                onPress={() => router.push('/leagues' as any)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={{ width: 104, height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden' }}
+              >
                 <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 4, backgroundColor: '#f59e0b' }} />
-              </View>
+              </TouchableOpacity>
             )}
           </View>
           {/* Мини-аватар питомца «Синапс» → /pet. Шапка недавно чинена на адаптивность:
