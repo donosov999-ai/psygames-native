@@ -193,7 +193,7 @@ export default function StreakCalendarScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
-  headerButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  headerButton: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   headerPlaceholder: { width: 44 },
   title: { fontSize: 19, fontWeight: '900', flexShrink: 1, textAlign: 'center' },
   scroll: { width: '100%', maxWidth: 620, alignSelf: 'center', paddingHorizontal: 16, paddingBottom: 96, gap: 12 },
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   bestCaption: { fontSize: 13, textAlign: 'center', lineHeight: 18, paddingHorizontal: 16 },
   calendarCard: { borderRadius: 22, borderWidth: 1, paddingHorizontal: 10, paddingTop: 14, paddingBottom: 18, overflow: 'hidden' },
   monthHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 14 },
-  monthButton: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+  monthButton: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   monthTitle: { fontSize: 17, fontWeight: '900', textAlign: 'center', flexShrink: 1, paddingHorizontal: 8 },
   weekRow: { flexDirection: 'row', marginBottom: 4 },
   weekday: { width: '14.2857%', textAlign: 'center', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },

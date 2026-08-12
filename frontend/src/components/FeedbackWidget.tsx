@@ -465,9 +465,9 @@ const styles = StyleSheet.create({
   ctx: { fontSize: 12, fontWeight: '700', marginBottom: 4 },   // строка контекста: профиль · игра · уровень
   hint: { fontSize: 12, marginBottom: 12, lineHeight: 17 },
   kinds: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  kindBtn: {
+  kindBtn: { minHeight: 48,
     flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5,
-    paddingVertical: 10, borderRadius: 10, borderWidth: 1.5,
+    paddingVertical: 10, borderRadius: 16, borderWidth: 1.5,
   },
   input: {
     borderWidth: 1, borderRadius: 12, padding: 12, fontSize: 15,

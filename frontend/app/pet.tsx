@@ -343,11 +343,11 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   // Шапка — как на других экранах (achievements/statistics)
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
-  backButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+  backButton: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '800', flexShrink: 1, minWidth: 0, textAlign: 'center' },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1, minWidth: 0 },
   nameEditRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0 },
-  nameSaveBtn: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
+  nameSaveBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   nameInput: { borderBottomWidth: 1.5, paddingVertical: 2, minWidth: 140, maxWidth: 220 },
   placeholder: { width: 44 },
   feedBtn: { borderRadius: 999, borderWidth: 1.5, paddingVertical: 9, paddingHorizontal: 20, marginTop: 8 },

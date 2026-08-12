@@ -199,7 +199,7 @@ const rhStyles = StyleSheet.create({
   caption: { fontSize: 13, textAlign: 'center', lineHeight: 19 },
   reportLink: { marginTop: 8, paddingVertical: 6, alignSelf: 'center' },
   reportText: { fontSize: 13, textDecorationLine: 'underline' },
-  okBtn: { marginTop: 6, alignSelf: 'stretch', backgroundColor: '#7f7fd5', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
+  okBtn: { minHeight: 48, justifyContent: 'center', marginTop: 6, alignSelf: 'stretch', backgroundColor: '#7f7fd5', borderRadius: 16, paddingVertical: 13, alignItems: 'center' },
   okText: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
 });
 
@@ -1092,14 +1092,17 @@ export default function SudokuGame() {
         //
         // ЛАНДШАФТ не трогаем: там управление и так стоит СБОКУ от поля, теснота не
         // возникает, и переносить нечего.
-        headerActions={landscape ? undefined : hintEl}
+        // Действия наверху ВСЕГДА (решение Дениса 12.08 — «делай везде»), в обеих
+        // раскладках. Внизу и сбоку остаются только цифры: место вспомогательных
+        // кнопок должно совпадать, куда бы ни повернули экран.
+        headerActions={hintEl}
         toolbar={landscape ? undefined : padEl}
         scrollableField={boardOverflows}
       >
         {landscape ? (
           <View style={styles.playAreaLand}>
             {gridEl}
-            <View style={styles.landControls}>{padEl}{hintEl}</View>
+            <View style={styles.landControls}>{padEl}</View>
           </View>
         ) : (
           gridEl
@@ -1216,7 +1219,7 @@ export default function SudokuGame() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   // крупный системный шрифт: заголовок не ужимался и выдавливал кнопку «назад» за край
   title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, marginHorizontal: 8 },
   configContainer: { padding: 16, gap: 14 },
@@ -1226,10 +1229,10 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  modeButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
+  modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   stickyFooter: { paddingHorizontal: 16, paddingTop: 10, borderTopWidth: 1 },
-  startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
+  startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   playAreaLand: { flexDirection: 'row', gap: 22, alignItems: 'center' },   // landscape: сетка | цифры
@@ -1244,7 +1247,7 @@ const styles = StyleSheet.create({
   cellText: { fontSize: 28, fontWeight: '600' },
   // RTL-пин: цифровой ряд 1..9 не зеркалится (конвенция цифровых клавиатур в RTL-локалях)
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr' },
-  numBtn: { width: 50, height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  numBtn: { width: 50, height: 50, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
   numText: { color: '#FFF', fontSize: 26, fontWeight: '800' },
   // alignItems:'stretch' — иначе ряд кнопок сжимается по содержимому и вылезает
   // за экран: на 375px первая капсула уезжала за левый край и обрезалась.
@@ -1262,9 +1265,9 @@ const styles = StyleSheet.create({
   overEmoji: { fontSize: 46 },
   overTitle: { fontSize: 20, fontWeight: '800' },
   overSub: { fontSize: 14, textAlign: 'center', marginBottom: 10 },
-  hintBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 12, minHeight: 48, borderRadius: 10 },
+  hintBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 12, minHeight: 48, borderRadius: 16 },
   hintBtnText: { color: '#000', fontSize: 14, fontWeight: '700' },
-  undoBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 12, minHeight: 48, borderRadius: 10, borderWidth: 1 },
+  undoBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 12, minHeight: 48, borderRadius: 16, borderWidth: 1 },
   undoBtnText: { fontSize: 14, fontWeight: '700' },
   metaText: { fontSize: 12, fontWeight: '700' },
 });

@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   numCell: { width: 56, height: 56, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   numText: { fontSize: 26, fontWeight: '800' },
   opts: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12 },
-  optBtn: { minWidth: 70, paddingVertical: 16, paddingHorizontal: 20, borderRadius: 12, alignItems: 'center' },
+  optBtn: { minWidth: 70, paddingVertical: 16, paddingHorizontal: 20, borderRadius: 16, alignItems: 'center' },
   optText: { color: '#FFFFFF', fontSize: 22, fontWeight: '800' },
   banner: { position: 'absolute', top: '42%', alignSelf: 'center', backgroundColor: 'rgba(245,158,11,0.97)', paddingHorizontal: 28, paddingVertical: 16, borderRadius: 16 },
   bannerText: { color: '#3f2b00', fontSize: 19, fontWeight: '900', textAlign: 'center' },

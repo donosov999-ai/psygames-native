@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   sheetHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   title: { flex: 1, fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
   close: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center' },
-  skillChip: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginTop: 12 },
+  skillChip: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginTop: 12 },
   skillText: { fontSize: 14, fontWeight: '700' },
   body: { marginTop: 14 },
   intro: { fontSize: 16.5, lineHeight: 25 },
@@ -308,6 +308,6 @@ const styles = StyleSheet.create({
   faqQ: { fontSize: 15.5, fontWeight: '700', marginBottom: 2 },
   reportLink: { alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 12 },
   reportText: { fontSize: 12.5, textDecorationLine: 'underline' },
-  okBtn: { marginTop: 14, paddingVertical: 13, borderRadius: 12, alignItems: 'center' },
+  okBtn: { minHeight: 48, justifyContent: 'center', marginTop: 14, paddingVertical: 13, borderRadius: 16, alignItems: 'center' },
   okText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

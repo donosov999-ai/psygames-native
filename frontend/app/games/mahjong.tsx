@@ -472,7 +472,7 @@ export default function MahjongGame() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     position: 'absolute', borderRadius: 6, borderWidth: 1.5, justifyContent: 'center', alignItems: 'center',
     shadowColor: '#04341f', shadowRadius: 3, shadowOffset: { width: 1, height: 2 },
   },
-  shuffleBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 22, borderWidth: 1.5, marginTop: 8 },
+  shuffleBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1.5, marginTop: 8 },
   shuffleText: { fontSize: 14, fontWeight: '700' },
   levelBanner: { position: 'absolute', top: '38%', alignSelf: 'center', backgroundColor: 'rgba(45,106,79,0.97)', paddingHorizontal: 30, paddingVertical: 18, borderRadius: 18, alignItems: 'center', gap: 4 },
   levelBannerText: { color: '#FFF', fontSize: 24, fontWeight: '900' },

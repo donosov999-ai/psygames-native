@@ -58,6 +58,6 @@ const styles = StyleSheet.create({
   title: { color: '#FFFFFF', fontSize: 22, fontWeight: '900' },
   msg: { color: '#f87171', fontSize: 13, textAlign: 'center' },
   hint: { color: '#9ca3af', fontSize: 13, textAlign: 'center', lineHeight: 19 },
-  btn: { marginTop: 10, alignSelf: 'stretch', backgroundColor: '#fbbf24', borderRadius: 12, paddingVertical: 15, alignItems: 'center' },
+  btn: { marginTop: 10, alignSelf: 'stretch', backgroundColor: '#fbbf24', borderRadius: 16, paddingVertical: 15, alignItems: 'center' },
   btnText: { color: '#000', fontSize: 15, fontWeight: '900', letterSpacing: 1 },
 });

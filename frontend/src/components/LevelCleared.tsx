@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   restHint: { fontSize: 15, fontWeight: '500', color: 'rgba(255,255,255,0.92)', textAlign: 'center', marginBottom: 12, lineHeight: 21 },
   restTimer: { fontSize: 52, fontWeight: '900', color: '#FFFFFF' },
   btns: { width: '100%', marginTop: 24 },
-  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 12, marginBottom: 8 },
+  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 16, marginBottom: 8 },
   btnText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', flexShrink: 1 },   // крупный шрифт: усечь, не выдавить за кнопку
   // Web-demo CTA — крупнее обычной кнопки, текст в 2 строки допустим
   demoCta: { paddingVertical: 18, gap: 8, paddingHorizontal: 14 },

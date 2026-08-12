@@ -206,9 +206,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     gap: 10,
     alignItems: 'stretch',
   },
-  helpBtn: {
+  helpBtn: { minHeight: 48,
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   helpBtnText: { fontSize: 16, fontWeight: '700' },
-  startButton: {
+  startButton: { minHeight: 48, justifyContent: 'center',
     flex: 1,
     borderRadius: 16,
     overflow: 'hidden',

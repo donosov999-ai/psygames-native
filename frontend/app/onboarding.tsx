@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   finalHint: { color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: '700', textAlign: 'center' },
   dotsRow: { flexDirection: 'row', gap: 6, marginVertical: 24 },
   dot: { height: 8, borderRadius: 4 },
-  nextBtn: { borderRadius: 14, overflow: 'hidden' },
+  nextBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden' },
   nextBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 18 },
   nextBtnText: { color: '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 2 },
   secondaryBtn: { alignItems: 'center', paddingVertical: 12 },

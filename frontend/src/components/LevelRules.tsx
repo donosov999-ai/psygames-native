@@ -88,6 +88,6 @@ const st = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '900', textAlign: 'center' },
   rule: { fontSize: 15, fontWeight: '600', textAlign: 'center', lineHeight: 22 },
   example: { fontSize: 13, textAlign: 'center', lineHeight: 19 },
-  okBtn: { marginTop: 6, alignSelf: 'stretch', backgroundColor: '#7f7fd5', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
+  okBtn: { minHeight: 48, justifyContent: 'center', marginTop: 6, alignSelf: 'stretch', backgroundColor: '#7f7fd5', borderRadius: 16, paddingVertical: 13, alignItems: 'center' },
   okText: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
 });

@@ -467,7 +467,7 @@ export default function SwitchingTaskGame() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
@@ -477,12 +477,12 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  modeButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
+  modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   rulesBox: { borderRadius: 10, borderWidth: 1, padding: 10, gap: 4 },
   rulesText: { fontSize: 13, fontWeight: '700' },
   rulesSub: { fontSize: 12, lineHeight: 16 },
-  startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
+  startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 18 },
@@ -495,6 +495,6 @@ const styles = StyleSheet.create({
   stimText: { fontWeight: '900' },
   // RTL-пин: подписи кнопок содержат ←/→ (глифы не зеркалятся) — раскладка не переворачивается в ar
   choiceRow: { flexDirection: 'row', gap: 16, writingDirection: 'ltr' },
-  choiceBtn: { paddingVertical: 16, paddingHorizontal: 22, borderRadius: 12, alignItems: 'center' },
+  choiceBtn: { paddingVertical: 16, paddingHorizontal: 22, borderRadius: 16, alignItems: 'center' },
   choiceTextSmall: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });
