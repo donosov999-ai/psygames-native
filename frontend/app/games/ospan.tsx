@@ -325,7 +325,7 @@ export default function OSpanGame() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   // крупный системный шрифт: заголовок распирал header и выдавливал спейсер за край → ужимается сам
   title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' },
   configScroll: { flex: 1 },
@@ -336,9 +336,9 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  modeButton: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 8 },
+  modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
-  startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
+  startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 18 },
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
   // крупный шрифт: две кнопки «Правильно/Неправильно» с длинными подписями не влезали в ряд → перенос + ужимание текста
   choiceRow: { flexDirection: 'row', gap: 16, flexWrap: 'wrap', justifyContent: 'center' },
-  choiceBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 22, borderRadius: 12, flexShrink: 1 },
+  choiceBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 22, borderRadius: 16, flexShrink: 1 },
   choiceText: { color: '#FFF', fontSize: 15, fontWeight: '700', flexShrink: 1, minWidth: 0 },
   letterBox: { width: 160, height: 160, borderRadius: 24, borderWidth: 3, justifyContent: 'center', alignItems: 'center' },
   bigLetter: { fontSize: 88, fontWeight: '900' },

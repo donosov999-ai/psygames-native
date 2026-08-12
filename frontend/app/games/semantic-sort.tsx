@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  backButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+  backButton: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '700' },
   placeholder: { width: 44 },
   configScroll: { flex: 1 },
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 16 },
   optionLabel: { fontSize: 16, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
-  sizeButton: { paddingHorizontal: 18, paddingVertical: 12, borderRadius: 12, minWidth: 56, alignItems: 'center' },
+  sizeButton: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 18, paddingVertical: 12, borderRadius: 16, minWidth: 56, alignItems: 'center' },
   sizeButtonText: { fontSize: 15, fontWeight: '600' },
   startButton: { marginTop: 10 },
   startButtonGradient: {
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   toolbarOptions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   toolbarOptionBtn: { flexGrow: 1, flexBasis: '45%' },
   answerButton: {
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     paddingVertical: 18,
     paddingHorizontal: 16,

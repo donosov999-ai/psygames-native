@@ -391,7 +391,7 @@ export default function ChoiceRtGame() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
@@ -401,9 +401,9 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  modeButton: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 8 },
+  modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
-  startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
+  startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
@@ -413,6 +413,6 @@ const styles = StyleSheet.create({
   padGrid: { gap: 8, alignItems: 'center' },
   // RTL-пин: пад-кнопки ←/→ должны стоять на своих физических сторонах (глифы стрелок не зеркалятся)
   padRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', writingDirection: 'ltr' },
-  padBtn: { width: 64, height: 64, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  padBtn: { width: 64, height: 64, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
   padCell: { width: 64, height: 64 },
 });

@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'flex-start' },
   dot: { fontSize: 14, fontWeight: '900', lineHeight: 19 },
   item: { fontSize: 13.5, lineHeight: 19, flex: 1 },
-  btn: { borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  btn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, paddingVertical: 12, alignItems: 'center' },
   btnText: { color: '#fff', fontSize: 14.5, fontWeight: '800' },
   mineBox: { marginTop: 14, borderTopWidth: 1, paddingTop: 12, gap: 10 },
   mineTitle: { fontSize: 13, fontWeight: '800' },

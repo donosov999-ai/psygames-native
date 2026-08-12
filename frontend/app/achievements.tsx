@@ -97,7 +97,7 @@ export default function AchievementsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
-  backButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+  backButton: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '800' },
   placeholder: { width: 44 },
   scroll: { padding: 16, gap: 18, maxWidth: 720, alignSelf: 'center', width: '100%' , paddingBottom: 96 },

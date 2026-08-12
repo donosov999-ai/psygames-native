@@ -464,7 +464,10 @@ export default function SamuraiSudokuGame() {
         title={t('samuraiTitle')}
         onBack={() => goBackOrHome()}
         stats={statsEl}
-        toolbar={<View style={styles.toolbarCol}>{padEl}{hintEl}</View>}
+        // Как в обычной судоку: действия наверху, цифры внизу. Расхождение между
+        // играми одного семейства человек читает как поломку, а не как замысел.
+        headerActions={hintEl}
+        toolbar={padEl}
       >
         {boardWrap}
       </GameShell>
@@ -542,7 +545,7 @@ export default function SamuraiSudokuGame() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
@@ -550,18 +553,18 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
+  startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   toolbarCol: { flex: 1, alignItems: 'center', gap: 8 },   // numPad+hint колонкой в тулбаре каркаса
   statsRow: { flexDirection: 'row', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
-  zoomBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
+  zoomBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, borderWidth: 1 },
   zoomScroll: { flex: 1, alignSelf: 'stretch' },
   // RTL-пин: цифровой ряд 1..9 не зеркалится (конвенция цифровых клавиатур в RTL-локалях)
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr' },
-  numBtn: { width: 46, height: 46, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  hintBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
+  numBtn: { width: 46, height: 48, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  hintBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16 },
   hintBtnText: { color: '#000', fontSize: 13, fontWeight: '700' },
   overWrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.55)', padding: 24, zIndex: 100 },
   overCard: { width: '100%', maxWidth: 340, borderRadius: 20, padding: 24, alignItems: 'center', gap: 6 },

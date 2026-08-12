@@ -512,9 +512,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   sizeButton: {
     paddingHorizontal: 20,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 16,
     minWidth: 60,
     alignItems: 'center',
   },
@@ -576,9 +576,9 @@ const styles = StyleSheet.create({
   targetLabel: { fontSize: 14 },
   targetChip: {
     minWidth: 34,
-    height: 34,
+    height: 48,
     paddingHorizontal: 8,
-    borderRadius: 8,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },

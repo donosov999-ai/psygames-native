@@ -366,10 +366,10 @@ const styles = StyleSheet.create({
   reminderEmoji: { fontSize: 32 },
   reminderTitle: { fontSize: 16, fontWeight: '800' },
   reminderBody: { fontSize: 13, lineHeight: 19, textAlign: 'center' },
-  reminderBtn: { borderRadius: 12, overflow: 'hidden', alignSelf: 'stretch', marginTop: 4 },
+  reminderBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', alignSelf: 'stretch', marginTop: 4 },
   reminderLater: { fontSize: 13, fontWeight: '600', paddingVertical: 6 },
   actions: { flexDirection: 'row', gap: 10, alignItems: 'stretch', marginTop: 8 },
-  btn: { borderRadius: 12, overflow: 'hidden' },
+  btn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden' },
   btnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14 },
   btnText: { fontSize: 15, fontWeight: '800', letterSpacing: 1, paddingVertical: 14, textAlign: 'center' },
 });

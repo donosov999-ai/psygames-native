@@ -130,9 +130,9 @@ const styles = StyleSheet.create({
   cardChipText: { color: '#FFF', fontWeight: '800', fontSize: 11, letterSpacing: 0.5 },
   cardTitle: { color: '#FFF', fontSize: 22, fontWeight: '900' },
   cardSub: { color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: '600', lineHeight: 18 },
-  playBtn: {
+  playBtn: { minHeight: 48,
     backgroundColor: 'rgba(0,0,0,0.35)',
-    borderRadius: 12,
+    borderRadius: 16,
     paddingVertical: 13,
     flexDirection: 'row',
     alignItems: 'center',
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   playBtnText: { color: '#FFF', fontWeight: '900', fontSize: 15, letterSpacing: 1 },
   downloadBtn: {
-    borderRadius: 14,
+    borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 16,
     flexDirection: 'row',

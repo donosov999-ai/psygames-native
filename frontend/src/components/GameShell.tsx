@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   // flexShrink+minWidth: при системном крупном шрифте длинный заголовок
   // ужимается, а не выталкивает кнопку «назад» за край (репорт «кнопка уехала»).
   title: { flex: 1, minWidth: 0, fontSize: 18, fontWeight: '800', textAlign: 'center' },
-  headerBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
+  headerBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   headerRight: { width: 44, alignItems: 'flex-end', flexShrink: 0 },
   stats: { paddingHorizontal: 16, paddingBottom: 6 },
   // Разделитель снизу отделяет действия от игрового поля: без него ряд кнопок

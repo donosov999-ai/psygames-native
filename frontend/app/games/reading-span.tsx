@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between', gap: 8 },
   // flexShrink:0 — круглая кнопка «назад» не сплющивается в овал при крупном шрифте
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
+  backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   // flexShrink:1 + minWidth:0 — длинный заголовок ужимается, а не выдавливает спейсер за край
   title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' },
   configScroll: { flex: 1 },
@@ -333,9 +333,9 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  modeButton: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 8 },
+  modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
-  startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
+  startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   // игровое поле внутри каркаса: колонка на всю ширину, содержимое центрировано
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   // flexWrap — не влезли в строку → переносятся вниз; maxWidth+alignSelf — ряд знает свою ширину.
   judgeRow: { flexDirection: 'row', gap: 16, flexWrap: 'wrap', justifyContent: 'center', alignSelf: 'center', width: '100%', maxWidth: 480 },
   // flexShrink:1 + minWidth:0 — даже одна кнопка с огромным шрифтом ужимается внутрь экрана
-  judgeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 22, borderRadius: 12, flexShrink: 1, minWidth: 0 },
+  judgeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 22, borderRadius: 16, flexShrink: 1, minWidth: 0 },
   judgeText: { color: '#FFF', fontSize: 15, fontWeight: '700', flexShrink: 1 },
   recallTitle: { fontSize: 22, fontWeight: '800', textAlign: 'center' },
   // кнопка «Проверить» — та же ширина, что и поле ввода, вместо роста по тексту

@@ -671,7 +671,7 @@ export default function ChessBlindGame() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
@@ -681,7 +681,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center', lineHeight: 19 },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
+  startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 12 },   // hint + таймер-бар + доска внутри поля каркаса
@@ -694,5 +694,5 @@ const styles = StyleSheet.create({
   glyphLayer: { position: 'absolute', left: 0, right: 0, top: 0, textAlign: 'center' },
   hlOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderWidth: 3, borderRadius: 4 },
   optionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
-  optBtn: { width: 64, height: 56, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  optBtn: { width: 64, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
 });

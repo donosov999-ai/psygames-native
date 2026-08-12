@@ -140,7 +140,7 @@ export default function LeaguesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8 },
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { flex: 1, fontSize: 18, fontWeight: '800', textAlign: 'center' },
   body: { padding: 16, gap: 10, paddingBottom: 40 },
   card: { borderRadius: 14, borderWidth: 1, padding: 16, alignItems: 'center', gap: 2 },

@@ -470,7 +470,7 @@ export default function StoryRecallGame() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0 },  // крупный шрифт: заголовок ужимается между «назад» и спейсером, не толкает их
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '700' },
   infoText: { fontSize: 13, lineHeight: 19 },
-  startBtn: { borderRadius: 12, overflow: 'hidden', marginTop: 8 },
+  startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   // игровое поле внутри каркаса: колонка на всю ширину, содержимое центрировано
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   // RTL-пин: «a − b = ?» в RTL-bidi перестраивается — математика всегда LTR
   mathText: { fontSize: 36, fontWeight: '900', writingDirection: 'ltr' },
   numInput: { width: 140, height: 56, paddingHorizontal: 14, fontSize: 24, borderRadius: 10, borderWidth: 1, fontWeight: '700', textAlign: 'center' },
-  addBtn: { paddingVertical: 12, paddingHorizontal: 32, borderRadius: 10 },
+  addBtn: { minHeight: 48, justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 32, borderRadius: 16 },
   addBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   recallTitle: { fontSize: 22, fontWeight: '800' },
   recallInput: { width: '100%', minHeight: 200, padding: 14, fontSize: 15, borderRadius: 12, borderWidth: 1, lineHeight: 22 },
