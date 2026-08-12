@@ -68,6 +68,12 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 
 // KILLER: подкрас cage-групп (тинт = subtle blend с фоном темы → виден и на свету, и в тьме).
 
+// Оттенки клавиш ввода: своя устойчивая краска на каждую цифру. Смешиваются с
+// поверхностью темы (blendHex), поэтому держатся стилистики приложения и читаются
+// и в светлой, и в тёмной. Порядок — по кругу цветового круга, чтобы соседние
+// цифры не сливались.
+const DIGIT_TINT = ['#e8564f', '#ef8f27', '#e7c229', '#4fb455', '#2fa3a8', '#3f7fd5', '#7f5ad5', '#c94fa8', '#8a6f4f'] as const;
+
 const CAGE_ACCENTS = ['#7f7fd5', '#86a8e7', '#d58a7f', '#7fd5a8', '#d5c97f', '#b07fd5'] as const;
 
 // Босс-веха: каждые 3 уровня — короткий раунд с резко другим правилом (bag-рандом, без повторов подряд).
@@ -1041,12 +1047,16 @@ export default function SudokuGame() {
             accessibilityRole="button"
             key={n}
             onPress={() => handleNumPress(n)}
-            style={[styles.numBtn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+            style={[styles.numBtn, {
+              backgroundColor: blendHex(colors.surface, DIGIT_TINT[(n - 1) % DIGIT_TINT.length], isDark ? 0.34 : 0.20),
+              borderWidth: 1,
+              borderColor: blendHex(colors.border, DIGIT_TINT[(n - 1) % DIGIT_TINT.length], 0.55),
+            }]}
           >
             {digitMode === 'plain'
-              ? <Text style={{ fontSize: 24, fontWeight: '800', color: colors.text }}>{n}</Text>
+              ? <Text style={{ fontSize: 30, fontWeight: '800', color: colors.text }}>{n}</Text>
               : <Image source={DIGIT_IMG[n]} accessibilityLabel={String(n)}
-              style={{ width: 36, height: 36 }} resizeMode="contain" />}
+              style={{ width: 46, height: 46 }} resizeMode="contain" />}
           </TouchableOpacity>
         ))}
         <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yErase')}
@@ -1127,7 +1137,10 @@ export default function SudokuGame() {
         // раскладках. Внизу и сбоку остаются только цифры: место вспомогательных
         // кнопок должно совпадать, куда бы ни повернули экран.
         headerActions={hintEl}
-        toolbar={landscape ? undefined : padEl}
+        // Клавиатура больше НЕ в прибитом низу: между доской и цифрами оставалась
+        // пустота почти в пол-экрана, и рука тянулась вниз через весь телефон.
+        // Теперь цифры идут сразу под доской, где на них и смотрят.
+        toolbar={undefined}
         scrollableField={boardOverflows}
       >
         {landscape ? (
@@ -1136,7 +1149,13 @@ export default function SudokuGame() {
             <View style={styles.landControls}>{padEl}</View>
           </View>
         ) : (
-          gridEl
+          // Вертикаль: доска и цифры ОДНОЙ колонкой — клавиатура идёт сразу под доской.
+          // Раньше она была прибита к низу экрана, и между доской и цифрами зияла
+          // пустота почти в пол-экрана: рука тянулась вниз через весь телефон.
+          <View style={styles.playAreaCol}>
+            {gridEl}
+            {padEl}
+          </View>
         )}
       </GameShell>
     );
@@ -1277,8 +1296,11 @@ const styles = StyleSheet.create({
   cell: { justifyContent: 'center', alignItems: 'center' },
   cellText: { fontSize: 28, fontWeight: '600' },
   // RTL-пин: цифровой ряд 1..9 не зеркалится (конвенция цифровых клавиатур в RTL-локалях)
+  // Нижний отступ поднимает колонку над плавающей кнопкой отзыва: она висит
+  // в левом нижнем углу поверх экрана и накрывала вторую строку клавиш.
+  playAreaCol: { alignItems: 'center', gap: 14, marginBottom: 76 },
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr' },
-  numBtn: { width: 50, height: 50, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  numBtn: { width: 64, height: 64, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   numText: { color: '#FFF', fontSize: 26, fontWeight: '800' },
   // alignItems:'stretch' — иначе ряд кнопок сжимается по содержимому и вылезает
   // за экран: на 375px первая капсула уезжала за левый край и обрезалась.
