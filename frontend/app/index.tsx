@@ -537,8 +537,11 @@ function FullHome() {
                 {t('slot' + slotNow.charAt(0).toUpperCase() + slotNow.slice(1) + 'Desc')}
               </Text>
               <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
-                <Ionicons name="play" size={14} color="#FFF" />
-                <Text style={[styles.heroCtaText, { color: '#FFF' }]}>{t('ctaStart')}</Text>
+                {/* Карточка ведёт на ВЫБОР набора, а не запускает его: «СТАРТ» обещал
+                    запуск и обманывал. Значок тоже меняем — стрелка «дальше» вместо
+                    «играть», иначе подпись честная, а картинка нет. */}
+                <Ionicons name="chevron-forward" size={14} color="#FFF" />
+                <Text style={[styles.heroCtaText, { color: '#FFF' }]}>{t('ctaChoose')}</Text>
               </View>
             </LinearGradient>
           </TouchableOpacity>

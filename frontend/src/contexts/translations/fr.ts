@@ -10,6 +10,7 @@ const t: Record<string, string> = {
   "complexAssessment": "BILAN",
   "restDay": "Pas de série aujourd’hui",
   "ctaStart": "DÉMARRER",
+  "ctaChoose": "CHOISIR",
   "ctaRepeat": "REFAIRE",
   "ctaWait": "EN ATTENTE",
   "unitGame": "jeu",

@@ -513,6 +513,7 @@ const t: Record<string, string> = {
   "complexAssessment": "मूल्यांकन",
   "restDay": "आज कोई सेट नहीं",
   "ctaStart": "शुरू",
+  "ctaChoose": "चुनें",
   "ctaRepeat": "दोहराएँ",
   "ctaWait": "प्रतीक्षा",
   "unitGame": "खेल",

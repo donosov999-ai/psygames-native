@@ -10,6 +10,7 @@ const t: Record<string, string> = {
   "complexAssessment": "評価",
   "restDay": "今日のセットはありません",
   "ctaStart": "開始",
+  "ctaChoose": "えらぶ",
   "ctaRepeat": "もう一度",
   "ctaWait": "待機",
   "unitGame": "ゲーム",
