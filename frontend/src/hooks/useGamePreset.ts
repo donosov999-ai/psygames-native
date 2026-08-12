@@ -54,8 +54,9 @@ export function useGamePreset() {
 }
 
 /**
- * Вызывает `start()` ровно один раз на mount, если `enabled` (= запущено из зарядки).
- * Конфиг-state к этому моменту уже проинициализирован из params через useState-initializers.
+ * Вызывает `start()` ровно один раз, когда `enabled` впервые становится true.
+ * Обычно это mount зарядки; отложенное true позволяет дождаться обязательной
+ * асинхронной готовности (например, языка) и не стартовать с временным EN.
  */
 export function useAutostart(enabled: boolean, start: () => void) {
   const done = useRef(false);
@@ -65,5 +66,5 @@ export function useAutostart(enabled: boolean, start: () => void) {
       start();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [enabled]);
 }

@@ -11,6 +11,7 @@ import { saveSession } from '@/src/services/api';
 import GameIntro from '@/src/components/GameIntro';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { eyeGymGeometry } from '@/src/services/eyeGymGeometry';
 
 const GRADIENT = ['#43cea2', '#185a9d'];
 const EYE_BENEFITS = [
@@ -85,15 +86,13 @@ export default function EyeGymGame() {
   const [speed, setSpeed] = useState(1);               // скорость точки: 0.7 медл / 1 норма / 1.4 быстро
   const [mode, setMode] = useState<'full' | 'pursuit' | 'focus' | 'relax'>('full');
   const [elapsed, setElapsed] = useState(0);
+  const [fieldSize, setFieldSize] = useState<{ width: number; height: number } | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Зона во ВСЮ доступную ширину/высоту (без квадрат-капа) — макс размах для глаз на любом устройстве/режиме.
-  // -300 по вертикали: шапка+статы+тулбар каркаса GameShell + инструкция + прогресс-бар.
-  const boardW = width - 12;
-  const boardH = Math.max(220, height - 300);
-  const cx = boardW / 2, cy = boardH / 2;
-  const RX = Math.max(40, boardW / 2 - 24);            // горизонтальный размах = почти вся ширина
-  const RY = Math.max(40, boardH / 2 - 24);            // вертикальный размах
+  // Фактическая область GameShell уже исключает шапку, toolbar и safe-area.
+  // Старое `height - 300` этого не знало: нижняя точка уходила под системную
+  // навигацию, а в landscape принудительный min-height переполнял поле.
+  const { boardW, boardH, cx, cy, RX, RY } = eyeGymGeometry({ width, height }, fieldSize);
 
   // мини-режим: полный / только слежение / только фокус вдаль / только пальминг (отдых)
   const MODE_PHASES: Record<string, string[] | null> = {
@@ -254,7 +253,13 @@ export default function EyeGymGame() {
           </TouchableOpacity>
         }
       >
-        <View style={styles.fieldCol}>
+        <View
+          style={styles.fieldCol}
+          onLayout={({ nativeEvent: { layout } }) => {
+            const next = { width: Math.round(layout.width), height: Math.round(layout.height) };
+            setFieldSize((prev) => prev?.width === next.width && prev?.height === next.height ? prev : next);
+          }}
+        >
           <Text style={[styles.instr, { color: colors.text }]}>{t(step.instrKey)}</Text>
 
           {isPalming ? (

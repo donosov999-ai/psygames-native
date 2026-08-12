@@ -48,6 +48,20 @@ function make(base: string): SupabaseClient {
   });
 }
 
+function activate(base: string): void {
+  _base = base;
+  _client = make(base);
+}
+
+/**
+ * Сохранённый relay — рабочий last-known-good, а не подсказка, которую можно
+ * игнорировать. В заблокированной сети приложение должно использовать его
+ * сразу и перепроверять прямой адрес уже фоном.
+ */
+export function preferredSupabaseBase(saved: string | null): string {
+  return saved === SUPABASE_RELAY_URL ? SUPABASE_RELAY_URL : SUPABASE_URL;
+}
+
 export function getSupabase(): SupabaseClient {
   if (!_client) _client = make(_base);
   return _client;
@@ -59,9 +73,9 @@ export function currentSupabaseBase(): string {
 }
 
 async function reachable(base: string): Promise<boolean> {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), PROBE_MS);
   try {
-    const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), PROBE_MS);
     // /auth/v1/health отвечает 200 — единственная точка, которая НЕ даёт 401.
     // Это важно не для логики (нам хватило бы любого ответа), а для консоли:
     // 401 браузер печатает как «Failed to load resource», и смоук-тест, который
@@ -71,32 +85,41 @@ async function reachable(base: string): Promise<boolean> {
       headers: { apikey: SUPABASE_PUBLISHABLE_KEY },
       signal: ctl.signal,
     });
-    clearTimeout(t);
     return r.ok;
   } catch {
     return false;   // таймаут, обрыв, блокировка — всё сюда
+  } finally {
+    clearTimeout(t);
   }
 }
 
 /**
- * Выбрать рабочий адрес. Вызывается один раз при старте приложения; до её
- * завершения клиент работает на прямом адресе, поэтому ничего не блокируется.
+ * Выбрать рабочий адрес после первого рендера. Last-known relay активируется
+ * сразу; без сохранённого выбора direct проверяется с ограниченным таймаутом.
  */
 export async function pickSupabaseBase(): Promise<string> {
+  let saved: string | null = null;
   try {
-    const saved = await AsyncStorage.getItem(PICKED_KEY);
-    if (saved === SUPABASE_RELAY_URL) {
-      // В прошлый раз прямой был недоступен. Всё равно перепроверяем его:
-      // блокировки снимают, и возвращаться на прямой лучше сразу.
-      _base = (await reachable(SUPABASE_URL)) ? SUPABASE_URL : SUPABASE_RELAY_URL;
-    } else {
-      _base = (await reachable(SUPABASE_URL)) ? SUPABASE_URL : SUPABASE_RELAY_URL;
-    }
+    saved = await AsyncStorage.getItem(PICKED_KEY);
   } catch {
-    _base = SUPABASE_URL;
+    activate(SUPABASE_URL);
+    return _base;
   }
+
+  if (preferredSupabaseBase(saved) === SUPABASE_RELAY_URL) {
+    // Не заставляем пользователя из заблокированной сети ждать тот же таймаут
+    // на каждом запуске. Relay активен сразу; возврат на direct — фоновый.
+    activate(SUPABASE_RELAY_URL);
+    void reachable(SUPABASE_URL).then((directWorks) => {
+      if (!directWorks) return;
+      activate(SUPABASE_URL);
+      AsyncStorage.setItem(PICKED_KEY, SUPABASE_URL).catch(() => {});
+    });
+    return _base;
+  }
+
+  activate((await reachable(SUPABASE_URL)) ? SUPABASE_URL : SUPABASE_RELAY_URL);
   AsyncStorage.setItem(PICKED_KEY, _base).catch(() => {});
-  _client = make(_base);   // пересоздаём клиента под выбранный адрес
   return _base;
 }
 

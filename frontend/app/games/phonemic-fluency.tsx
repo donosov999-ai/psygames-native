@@ -35,7 +35,8 @@ import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import GameShell from '@/src/components/GameShell';
-import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { phonemicLetterPool } from '@/src/services/phonemicFluency';
 
 const GRADIENT = ['#16a085', '#f4d03f'];
 const FLU_BENEFITS = [
@@ -46,16 +47,12 @@ const FLU_BENEFITS = [
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 
-const RU_LETTERS = ['К','Л','М','П','С','Т','Б','В','Г','Д','Н','Р'];
-const EN_LETTERS = ['F','A','S','B','C','D','M','P','R','T','L','N'];
-
 export default function PhonemicFluencyGame() {
   const { colors } = useTheme();
-  const { t, language } = useLanguage() as any;
+  const { t, language, ready: languageReady } = useLanguage() as any;
   const router = useRouter();
 
   const { isPreset, autostart, num } = useGamePreset();
-  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [duration, setDuration] = useState<60 | 90 | 120>(() => (num('duration', 60) as 60 | 90 | 120));
   const [letter, setLetter] = useState<string>('');
@@ -70,7 +67,7 @@ export default function PhonemicFluencyGame() {
 
   useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
 
-  const letterPool = language === 'en' ? EN_LETTERS : RU_LETTERS;
+  const letterPool = phonemicLetterPool(language);
 
   const startGame = () => {
     const L = autoPickLetter
@@ -94,6 +91,10 @@ export default function PhonemicFluencyGame() {
       }
     }, 200);
   };
+  // LanguageProvider стартует с EN и затем асинхронно читает RU/другой язык.
+  // Раньше COWAT успевал выбрать латинскую букву, а валидировал уже кириллицу:
+  // серия формально шла, но ни одно русское слово не могло быть принято.
+  useAutostart(autostart && languageReady, startGame);
 
   // Word validation rules (no random gibberish)
   const isValidWord = (raw: string, letter: string, lang: 'ru' | 'en'): { valid: boolean; reason?: string } => {

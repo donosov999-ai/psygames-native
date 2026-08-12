@@ -10,6 +10,8 @@ import { HELP_MAP } from '@/src/constants/helpMap';
 import { isRTLLang } from '@/src/services/rtl';
 import { a11yModal } from '@/src/services/a11y';
 import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
+import type { GameContextHelp } from '@/src/services/gameContextHelp';
+import { getGameContextHelp, subscribeGameContextHelp } from '@/src/services/gameContextHelp';
 
 /**
  * Глобальная кнопка-«?» справки для всех экранов игр.
@@ -57,6 +59,18 @@ export default function GameHelpOverlay() {
   const key = gi >= 0 ? clean.slice(gi) : clean;
   const entry = HELP_MAP[key];
   const hasHelp = !!(entry && entry.introKey);
+  const gameId = key.replace('/games/', '');
+  const [contextHelp, setContextHelp] = useState<GameContextHelp | null>(null);
+
+  // Экран игры может добавить динамическое правило текущего раунда. Читаем и
+  // синхронный реестр, и дальнейшие обновления: порядок mount эффектов не важен.
+  useEffect(() => {
+    setContextHelp(getGameContextHelp(gameId));
+    const sub = subscribeGameContextHelp((next) => {
+      setContextHelp(next?.gameId === gameId ? next : null);
+    });
+    return () => sub.remove();
+  }, [gameId]);
 
   // Ленивая подгрузка общих описаний — грузим 1.1 МБ только когда открыли справку.
   useEffect(() => {
@@ -87,7 +101,6 @@ export default function GameHelpOverlay() {
 
   if (!hasHelp) return null;                           // нет справки — нет кнопки
 
-  const gameId = key.replace('/games/', '');
   const L = DEEP_LABELS[language] || DEEP_LABELS.en;
   const gd: any = deep ? (deep[gameId]?.[language] || deep[gameId]?.en) : null;
   const sub = colors.textSecondary || colors.text;
@@ -165,6 +178,12 @@ export default function GameHelpOverlay() {
             </View>
 
             <ScrollView style={styles.body} contentContainerStyle={{ paddingBottom: 8 }} showsVerticalScrollIndicator={false}>
+              {contextHelp ? (
+                <View style={[styles.contextCard, { backgroundColor: accent + '14', borderColor: accent + '55' }]}>
+                  <Text style={[styles.contextTitle, { color: accent }]}>{contextHelp.title}</Text>
+                  <Text style={[styles.contextBody, { color: colors.text }]}>{contextHelp.body}</Text>
+                </View>
+              ) : null}
               <Text style={[styles.intro, { color: colors.text }]}>{t(entry.introKey)}</Text>
 
               {gd ? (
@@ -279,6 +298,9 @@ const styles = StyleSheet.create({
   skillText: { fontSize: 14, fontWeight: '700' },
   body: { marginTop: 14 },
   intro: { fontSize: 16.5, lineHeight: 25 },
+  contextCard: { borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 14, gap: 6 },
+  contextTitle: { fontSize: 15, fontWeight: '800' },
+  contextBody: { fontSize: 14, lineHeight: 20 },
   sec: { borderTopWidth: 1, paddingTop: 2 },
   secHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 11, gap: 10 },
   secTitle: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4, flex: 1 },

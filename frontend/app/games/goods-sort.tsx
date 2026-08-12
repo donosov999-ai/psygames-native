@@ -11,7 +11,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameIntro from '@/src/components/GameIntro';
 import GameShell from '@/src/components/GameShell';
-import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
 import { sndCombo } from '@/src/services/feedback';
@@ -155,7 +155,6 @@ export default function GoodsSortGame() {
 
   const { isPreset, autostart } = useGamePreset();
   const lvl = usePersistentLevel('goods_sort');   // персист достигнутого уровня (раньше сбрасывался на 1)
-  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [phase, setPhase] = useState<GamePhase>('intro');
   const [setKey, setSetKey] = useState('drinks');
   const poolRef = useRef<number[]>(GOOD_SETS[0].pool);
@@ -163,7 +162,9 @@ export default function GoodsSortGame() {
 
   const [level, setLevel] = useState(1);
   const [levelBanner, setLevelBanner] = useState<number | null>(null);
-  useEffect(() => { if (lvl.loaded && !isPreset) setLevel(lvl.level); }, [lvl.loaded]); // eslint-disable-line react-hooks/exhaustive-deps — старт с сохранённого уровня
+  // Сортировка в зарядке тоже двигает общую лесенку: вход через wu=1 не должен
+  // подменять уже достигнутый уровень временной единицей.
+  useEffect(() => { if (lvl.loaded) setLevel(lvl.level); }, [lvl.loaded, lvl.level]);
   const [cells, setCells] = useState<number[][]>([]);
   const [sel, setSel] = useState<Sel>(null);
   const [cleared, setCleared] = useState(0);
@@ -190,10 +191,16 @@ export default function GoodsSortGame() {
   };
 
   const startGame = () => {
+    if (!lvl.loaded) return;
+    const startLvl = lvl.level;
     setCleared(0); setScore(0); scoreRef.current = 0; setLevelBanner(null);
-    loadLevel(level);
+    setLevel(startLvl);
+    loadLevel(startLvl);
     setPhase('playing');   // спокойный режим — без таймера (как в оригинале «собери всё»)
   };
+
+  // Ждём восстановленный уровень перед auto-start из зарядки.
+  useAutostart(autostart && lvl.loaded, startGame);
 
   const advanceLevel = () => {
     const cfg = levelCfg(level, poolRef.current.length);
@@ -216,7 +223,7 @@ export default function GoodsSortGame() {
     }).catch((e) => console.error(e));
     const next = done + 1;
     setLevel(next);
-    if (!isPreset) lvl.setLevel(next);   // сохранить достигнутый уровень между сессиями
+    lvl.setLevel(next);   // сохранить достигнутый уровень, включая прохождение в зарядке
     setLevelBanner(done);
     setTimeout(() => { setLevelBanner(null); loadLevel(next); }, 1400);
   };
@@ -294,16 +301,25 @@ export default function GoodsSortGame() {
     const close = hasPair(cell);   // 2 одинаковых → подсказка «положи третий»
     const canDrop = !!sel && sel.cell !== i && cell.length < CAP;
     return (
-      <TouchableOpacity key={i} activeOpacity={0.9} onPress={() => handleCellTap(i)}
-        accessibilityRole="button" accessibilityLabel={cellLabel(i, cell)}
-        accessibilityState={{ selected: isSelCell }}
+      <View key={i}
         style={[styles.cell, {
           width: cellW, height: itemSize + 22,
           borderColor: canDrop ? '#fbbf24' : close ? '#22c55e' : '#8a5a2b',
           borderWidth: canDrop || close ? 3 : 2,
         }]}>
+        {/* Полка и товары — соседние кнопки, а не button внутри button.
+            На web вложенные TouchableOpacity давали hydration-error и могли
+            проглатывать тап при переходе вечерней зарядки через Goods Sort. */}
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => handleCellTap(i)}
+          accessibilityRole="button"
+          accessibilityLabel={cellLabel(i, cell)}
+          accessibilityState={{ selected: isSelCell }}
+          style={styles.cellDropTarget}
+        />
         {/* Рисуем ТОЛЬКО реальные товары (по центру) — без пустых боксов; пустое место ячейки = куда класть */}
-        <View style={styles.cellRow}>
+        <View pointerEvents="box-none" style={styles.cellRow}>
           {cell.map((tp, s) => {
             const selected = isSelCell && sel?.idx === s;
             return (
@@ -317,7 +333,7 @@ export default function GoodsSortGame() {
             );
           })}
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -470,7 +486,8 @@ const styles = StyleSheet.create({
   shuffleText: { fontSize: 14, fontWeight: '700' },
   shelf: { flexDirection: 'row', justifyContent: 'center', gap: 8, padding: 10, borderRadius: 12, borderBottomWidth: 6, borderBottomColor: 'rgba(0,0,0,0.4)' },
   cell: { borderRadius: 10, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5e7cf', shadowColor: '#3a230f', shadowOpacity: 0.18, shadowRadius: 3, shadowOffset: { width: 0, height: 2 } },
-  cellRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  cellDropTarget: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 8 },
+  cellRow: { zIndex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
   itemSlot: { justifyContent: 'center', alignItems: 'center', borderRadius: 6 },
   itemSel: { backgroundColor: '#fff2c2', borderWidth: 2, borderColor: '#f7971e', transform: [{ translateY: -4 }] },
   levelBanner: { position: 'absolute', top: '38%', alignSelf: 'center', backgroundColor: 'rgba(247,151,30,0.97)', paddingHorizontal: 30, paddingVertical: 18, borderRadius: 18, alignItems: 'center', gap: 4 },
