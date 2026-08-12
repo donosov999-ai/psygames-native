@@ -26,7 +26,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import LeaderboardModal from '@/src/components/LeaderboardModal';
-import { submitScore } from '@/src/services/leaderboard';
+import { fetchBest, getPersonalBest, submitScore } from '@/src/services/leaderboard';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
@@ -100,6 +100,7 @@ export default function NBackGame() {
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (false → баннер «почти, ещё раз»)
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [resultBenchmark, setResultBenchmark] = useState<{ own: number; best: number; source: 'players' | 'personal' } | null>(null);
   // Справка правил уровня (в зарядке-пресете не показываем — там свой поток)
   const levelRules = useLevelRules('n_back', lvl.level, NB_RULES, phase === 'playing' && !isPreset);
   const [nLevel, setNLevel] = useState(() => num('nLevel', 1));
@@ -152,6 +153,7 @@ export default function NBackGame() {
     }
     setHits(0); setMisses(0); setFalseAlarms(0); setCorrectRejections(0);
     setBossWon(null);
+    setResultBenchmark(null);
     setAHits(0); setAMisses(0); setAFalseAlarms(0); setACorrectRejections(0);
     statsRef.current = { hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0, aHits: 0, aMisses: 0, aFalseAlarms: 0, aCorrectRejections: 0 };
     setHistory([]); setAudioHistory([]); setCurrentIdx(-1); setActiveCell(null); setActiveLetter('');
@@ -257,9 +259,12 @@ export default function NBackGame() {
     const audioAccuracy = audioTotalAnswered > 0 ? Math.round(((aHits + aCorrectRejections) / audioTotalAnswered) * 100) : 100;
     const combinedAccuracy = modality === 'dual' ? Math.min(accuracy, audioAccuracy) : accuracy;
     const passed = !isPreset && combinedAccuracy >= 80;
+    const ownLeaderboardLevel = passed ? levelRef.current + 1 : Math.max(1, lvl.level);
+    setResultBenchmark({ own: ownLeaderboardLevel, best: ownLeaderboardLevel, source: 'personal' });
+    let leaderboardSubmit: Promise<unknown> = Promise.resolve();
     if (passed) {
       lvl.reach(levelRef.current + 1);   // ≥80% по худшему из каналов → +уровень (N → скорость → dual)
-      submitScore('n_back', levelRef.current + 1).catch(() => {});   // тихо — лидерборд необязателен
+      leaderboardSubmit = submitScore('n_back', levelRef.current + 1);   // тихо — лидерборд необязателен
     }
     else if (!isPreset) lvl.fail();   // не прошёл уровень → гистерезис понижения (3 провала подряд → level-1)
     // Signal Detection Theory: d' = z(hit_rate) - z(false_alarm_rate)
@@ -322,6 +327,15 @@ export default function NBackGame() {
     const pid = (profile as any)?.id ?? 'default';
     getSessionHistory('n_back', pid).then(setAccuracyHistory);
     recordSessionScore('n_back', pid, combinedAccuracy).catch(() => {});
+    Promise.all([leaderboardSubmit.then(() => fetchBest('n_back')), getPersonalBest('n_back')]).then(([playersBest, storedPersonalBest]) => {
+      const personalBest = Math.max(ownLeaderboardLevel, storedPersonalBest ?? ownLeaderboardLevel);
+      setResultBenchmark({
+        own: ownLeaderboardLevel,
+        best: playersBest ?? personalBest,
+        source: playersBest === null ? 'personal' : 'players',
+      });
+    });
+    leaderboardSubmit.catch(() => {});
     // веха-босс: при чистом прохождении (≥80%) каждые BOSS_EVERY уровней → битва (память → счёт).
     // Непрохождение уровня больше НЕ уводит в тупик-result: показываем общий баннер cleared
     // с passed=false («почти, ещё раз») и авто-рестартом того же уровня. Пресет — как было (result).
@@ -545,6 +559,9 @@ export default function NBackGame() {
       {phase === 'cleared' && (
         <LevelCleared gameId="n_back" level={levelRef.current} passed={clearedPassed} stars={bossWon === true ? 3 : ((misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1)}
           gradient={GRADIENT} language={language} colors={colors}
+          comparisonLine={resultBenchmark
+            ? `${t('level')} ${resultBenchmark.own} · ${t(resultBenchmark.source === 'players' ? 'bestAmongPlayers' : 'personalBest')}: ${t('level')} ${resultBenchmark.best}`
+            : undefined}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && (
@@ -558,6 +575,9 @@ export default function NBackGame() {
           gradient={GRADIENT as [string, string]}
           shareText={t('nBackShare').replace('{n}', String(nLevel)).replace('{p}', String(hits + misses + falseAlarms + correctRejections > 0 ? Math.round((hits / (hits + misses + falseAlarms + correctRejections)) * 100) : 0))}
           sparkline={accuracyHistory.length >= 2 ? { history: accuracyHistory, current: Math.round(((hits + correctRejections) / Math.max(1, hits + misses + falseAlarms + correctRejections)) * 100), lowerIsBetter: false } : undefined}
+          comparisonLine={resultBenchmark
+            ? `${t('level')} ${resultBenchmark.own} · ${t(resultBenchmark.source === 'players' ? 'bestAmongPlayers' : 'personalBest')}: ${t('level')} ${resultBenchmark.best}`
+            : undefined}
         />
       )}
     </SafeAreaView>

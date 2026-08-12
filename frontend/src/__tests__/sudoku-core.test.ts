@@ -2,7 +2,7 @@
  * Судоку-ядро: единственность решения (v1.111.0, баг-репорт Вали 2026-07-05) +
  * реальный кейс с её скриншота как регресс-фикстура.
  */
-import { generatePuzzle, countSolutions, levelConfig } from '@/src/services/sudoku-core';
+import { generatePuzzle, countSolutions, levelConfig, sudokuDifficultyTier } from '@/src/services/sudoku-core';
 
 describe('levelConfig — варианты по лесенке', () => {
   it('Ур.15 — анти-конь, Ур.9-13 — диагональ', () => {
@@ -23,6 +23,29 @@ describe('levelConfig — монотонная сложность (v1.113.0, б�
   });
   it('конкретно: Ур.20 (доп. зоны) не легче Ур.12 (диагональ) — было наоборот (26 vs 35 данных клеток)', () => {
     expect(levelConfig(20).blanks).toBeGreaterThanOrEqual(levelConfig(12).blanks);
+  });
+});
+
+describe('sudokuDifficultyTier — подпись сложности карты уровней', () => {
+  it.each([
+    [1, 'beginner'], [4, 'beginner'],
+    [5, 'easy'], [8, 'easy'],
+    [9, 'medium'], [13, 'medium'],
+    [14, 'hard'], [21, 'hard'],
+    [22, 'expert'], [33, 'expert'],
+    [34, 'extreme'], [52, 'extreme'],
+  ] as const)('уровень %i → %s', (level, tier) => {
+    expect(sudokuDifficultyTier(level)).toBe(tier);
+  });
+
+  it('ступень не понижается на уровнях 1–52', () => {
+    const order = ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme'];
+    let previous = -1;
+    for (let level = 1; level <= 52; level++) {
+      const current = order.indexOf(sudokuDifficultyTier(level));
+      expect(current).toBeGreaterThanOrEqual(previous);
+      previous = current;
+    }
   });
 });
 

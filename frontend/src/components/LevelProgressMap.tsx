@@ -16,11 +16,12 @@ interface Props {
   maxLevel?: number;      // по умолчанию 15 (программа «≥15 уровней»)
   colors: any;
   language: string;
+  levelLabel?: (level: number) => string;
 }
 
 const WINDOW = 5;
 
-export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, colors }: Props) {
+export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, colors, levelLabel }: Props) {
   const { t } = useLanguage();   // язык из контекста; проп language остался в Props для совместимости
   const { profile } = useProfile();
   const [stars, setStars] = useState<StarsMap>({});
@@ -49,6 +50,16 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
           return (
             <View key={l} style={styles.cell}>
               <Text style={[styles.lvlNum, { color: isCurrent ? colors.primary : colors.textSecondary, fontWeight: isCurrent ? '800' : '600' }]}>{l}</Text>
+              {levelLabel && (
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                  style={[styles.levelLabel, { color: isCurrent ? colors.primary : colors.textSecondary }]}
+                >
+                  {levelLabel(l)}
+                </Text>
+              )}
               <View style={styles.starsRow}>
                 {[1, 2, 3].map((i) => (
                   <Ionicons key={i} name={i <= s ? 'star' : 'star-outline'} size={9}
@@ -66,8 +77,9 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
 const styles = StyleSheet.create({
   card: { borderRadius: 12, padding: 12, gap: 8 },
   title: { fontSize: 13, fontWeight: '700' },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  cell: { alignItems: 'center', gap: 3 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', gap: 3 },
+  cell: { flex: 1, alignItems: 'center', gap: 3 },
   lvlNum: { fontSize: 11 },
+  levelLabel: { width: '100%', fontSize: 9, fontWeight: '600', textAlign: 'center' },
   starsRow: { flexDirection: 'row', gap: 1 },
 });

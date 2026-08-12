@@ -462,13 +462,17 @@ async function maybeMigrateLegacy(): Promise<void> {
   }
 }
 
-// Trigger migration on module load — runs once per session, async, non-blocking.
-// Web-demo: миграция/outbox выключены — демо вообще не пишет в облако
-// (на /play/ могли остаться localStorage-сессии от прежней полной web-версии).
-if (!IS_WEB_DEMO) {
-  maybeMigrateLegacy();
-  // Дослать outbox с прошлого запуска (упавшие пуши), тоже non-blocking
-  flushOutbox();
+// ВАЖНО: никаких сетевых side effects на module import. Раньше SSR/export уже
+// здесь запускал migration/outbox (до первого экрана и до выбора relay), что
+// давало `[F2] Migration error: window is not defined` и било direct-адрес даже
+// в сети, где он заведомо заблокирован. RootLayout вызывает этот старт после
+// первого рендера и после pickSupabaseBase().
+let cloudStartupStarted = false;
+export function startSessionCloudSync(): void {
+  if (IS_WEB_DEMO || cloudStartupStarted) return;
+  cloudStartupStarted = true;
+  void maybeMigrateLegacy();
+  void flushOutbox();
 }
 
 export const saveSession = async (session: GameSession): Promise<GameSession> => {

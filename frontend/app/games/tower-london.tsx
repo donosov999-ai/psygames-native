@@ -15,6 +15,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 
 const GRADIENT = ['#3a1c71', '#d76d77'];
 const TOL_BENEFITS = [
@@ -38,6 +39,7 @@ let CURRENT_CAPS = [3, 2, 1];
 type State = Ball[][]; // 3 arrays bottom→top
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
+type PegMove = { from: number; to: number };
 
 function cloneState(s: State): State { return s.map(p => [...p]); }
 function stateKey(s: State): string { return s.map(p => p.join('')).join('|'); }
@@ -137,6 +139,7 @@ export default function TowerLondonGame() {
   const levelRef = useRef(1);
   const targetMovesRef = useRef(5);
   const ballsRef = useRef(3);
+  const moveHistory = useMoveHistory<PegMove>();
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
@@ -147,6 +150,7 @@ export default function TowerLondonGame() {
     setSelPeg(null);
     setMoves(0);
     setFeedback(null);
+    moveHistory.reset();
   };
 
   const startGame = () => {
@@ -181,6 +185,7 @@ export default function TowerLondonGame() {
     const ns = cloneState(state);
     ns[i].push(ns[selPeg].pop()!);
     setState(ns);
+    moveHistory.push({ from: selPeg, to: i });
     setMoves(m => m + 1);
     setSelPeg(null);
     if (stateKey(ns) === stateKey(puzzle.goal)) {
@@ -218,6 +223,22 @@ export default function TowerLondonGame() {
     }
   };
 
+  const handleUndo = () => {
+    if (feedback !== null) return;
+    const move = moveHistory.undo();
+    if (!move) return;
+    setState((current) => {
+      const next = cloneState(current);
+      const ball = next[move.to].pop();
+      if (ball === undefined) return current;
+      next[move.from].push(ball);
+      return next;
+    });
+    setSelPeg(null);
+    // moves не уменьшаем: это метрика планирования и итоговый результат. Отмена
+    // исправляет неточный тап, но не превращает перебор вариантов в оптимальную игру.
+  };
+
   // Стержень озвучиваем составом: цвета шариков снизу вверх — ровно то, что
   // видит глаз. Без этого скринридер читает пустую кнопку.
   const BALL_KEY: Record<Ball, string> = { R: 'color_red', G: 'color_green', B: 'color_blue', Y: 'color_yellow' };
@@ -229,6 +250,7 @@ export default function TowerLondonGame() {
     const pegHeight = 36 * cap + 20;
     return (
       <TouchableOpacity
+        key={`${isGoal ? 'goal' : 'current'}-${pegIdx}`}
         disabled={isGoal || feedback !== null}
         activeOpacity={0.7}
         onPress={() => !isGoal && handlePeg(pegIdx)}
@@ -300,6 +322,18 @@ export default function TowerLondonGame() {
       <GameShell
         title={t('towerLondon')}
         onBack={() => goBackOrHome()}
+        toolbar={
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('btn_undo')}
+            disabled={!moveHistory.canUndo || feedback !== null}
+            onPress={handleUndo}
+            style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: moveHistory.canUndo && feedback === null ? 1 : 0.4 }]}
+          >
+            <Ionicons name="arrow-undo" size={18} color={colors.text} />
+            <Text style={[styles.undoBtnText, { color: colors.text }]}>{t('btn_undo')}</Text>
+          </TouchableOpacity>
+        }
         stats={
           <View style={styles.statsRow}>
             <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
@@ -384,4 +418,6 @@ const styles = StyleSheet.create({
   ball: { width: 32, height: 32, borderRadius: 16, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 4 },
   ballShine: { position: 'absolute', top: 4, left: 6, width: 11, height: 8, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.55)' },
   hintText: { fontSize: 12, textAlign: 'center', color: '#888', marginTop: 8 },
+  undoBtn: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 18, paddingVertical: 9, borderRadius: 10, borderWidth: 1 },
+  undoBtnText: { fontSize: 14, fontWeight: '700' },
 });

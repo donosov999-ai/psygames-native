@@ -39,7 +39,6 @@ import { getAssessmentStatus } from '@/src/services/assessment';
 import WhatsNewModal from '@/src/components/WhatsNewModal';
 import { checkForUpdateDaily, updateUrl } from '@/src/services/appUpdates';
 import { Linking } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUnlocked } from '@/src/services/achievements';
 import { ACHIEVEMENTS } from '@/src/services/achievements';
 import ProfileSwitcherModal from '@/src/components/ProfileSwitcherModal';
@@ -47,6 +46,8 @@ import { petFrame, PetSkin } from '@/src/components/pet/PetSprite';
 import { getPetStats, PetStage, getPetSkin } from '@/src/services/pet';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
 import DemoLanding from '@/src/components/DemoLanding';
+import { listResumable, resolveResumableGame } from '@/src/services/resume';
+import { shouldOpenOnboardingPicker } from '@/src/services/onboarding';
 
 const MAX_CONTAINER_WIDTH = 1100;
 const CONTAINER_PADDING = 16;
@@ -78,7 +79,7 @@ function FullHome() {
   const { t, language } = useLanguage();
   const router = useRouter();
   const warmup = useWarmup();
-  const { profile } = useProfile();
+  const { profile, ready: profileReady } = useProfile();
   const eveningMeta = buildEveningWarmupPlaylist({ weekday: getCurrentWeekday(), profileEvening: profile.evening_playlist });   // вечер: ротация по дню (или профильный фикс)
   const { width: winWidth } = useWindowDimensions();
   const [duration, setDuration] = useState<5 | 10 | 15>(5);
@@ -100,8 +101,7 @@ function FullHome() {
   // Общие очки-токены ЦЕНТРА (копятся со всех игр; перечит на фокусе главного после игры)
   const [tokens, setTokens] = useState(0);
   const [levelUp, setLevelUp] = useState<number | null>(null);   // оверлей «Уровень N!» при повышении
-  const [streakDays, setStreakDays] = useState(0);
-  const [streakToast, setStreakToast] = useState<number | null>(null);   // тост «🔥 +N за стрик»
+  const [streakToast, setStreakToast] = useState<number | null>(null);   // ежедневный бонус входа; не путать с тренировочным стриком календаря
   const [challengeStreak, setChallengeStreak] = useState<ChallengeStreak>({ streak: 0, total: 0, last: '' });
   // v1.114.0 — косметика профильного чипа: рамка/титул/аватар из магазина (null = ничего не надето)
   const [frameColor, setFrameColor] = useState<string | null>(null);
@@ -110,10 +110,25 @@ function FullHome() {
   // Стадия питомца «Синапс» в шапке — из реального счётчика тренировок (глобальный, без профиля)
   const [petStage, setPetStage] = useState<PetStage>(1);
   const [petSkin, setPetSkinState] = useState<PetSkin>('cat');   // v1.140: скин в шапке
+  const [resumeGame, setResumeGame] = useState<GameConfig | null>(null);
   useFocusEffect(useCallback(() => {
     getPetStats().then((s) => setPetStage(s.stage)).catch(() => {});
     getPetSkin().then(setPetSkinState).catch(() => {});
   }, []));
+  // Незаконченная партия перечитывается при каждом возврате на главную: после первого
+  // хода карточка появляется, после завершения/сброса исчезает. URL берём только из GAMES.
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    setResumeGame(null);
+    listResumable(profile.id)
+      .then((items) => {
+        if (active) setResumeGame(resolveResumableGame(items, GAMES));
+      })
+      .catch(() => {
+        if (active) setResumeGame(null);
+      });
+    return () => { active = false; };
+  }, [profile.id]));
   const todayChallenge = useMemo(() => getTodayChallenge(), []);   // ротация игр — детерминировано по дате
 
   // Время суток для подписи кнопки «Зарядка».
@@ -130,7 +145,6 @@ function FullHome() {
     if (!profile?.id) return;
     (async () => {
       const ci = await dailyCheckIn(profile.id);   // T2: отметка дня + бонус токенов (раз в сутки)
-      setStreakDays(ci.streak);
       if (ci.isNew && ci.awarded > 0) { setStreakToast(ci.awarded); sndStreak(); setTimeout(() => setStreakToast(null), 2600); }
       setChallengeStreak(await loadChallengeStreak(profile.id));   // ежедневный вызов — стрик обновляем на фокусе
       const v = await getTokens(profile.id);
@@ -159,17 +173,21 @@ function FullHome() {
   }, []));
 
   useEffect(() => {
+    if (!profileReady) return;
+    let active = true;
     (async () => {
-      // First-time onboarding gate
-      try {
-        const onboarded = await AsyncStorage.getItem('psygames_onboarded');
-        if (onboarded !== 'true') {
+      // Первый вход в каждый профиль → выбор одной из трёх игр. Старый глобальный
+      // psygames_onboarded мигрируется внутри сервиса, чтобы существующих людей
+      // не встречать новым экраном внезапно после обновления.
+      if (await shouldOpenOnboardingPicker(profile.id)) {
+        if (active) {
           router.replace('/onboarding' as any);
-          return;
         }
-      } catch {}
+        return;
+      }
 
       const h = await loadWarmupHistory();
+      if (!active) return;
       setHistory(h);
       setStreak(computeStreak(h));
       const fc = await getFinancialCooldown();
@@ -179,7 +197,8 @@ function FullHome() {
       const unlocked = await getUnlocked();
       setAchievementsCount(unlocked.length);
     })();
-  }, []);
+    return () => { active = false; };
+  }, [profile.id, profileReady, router]);
 
   // v1.6.1 — Container/card width strategy:
   //
@@ -251,8 +270,8 @@ function FullHome() {
       {streakToast !== null && (
         <View style={{ position: 'absolute', top: 76, left: 0, right: 0, alignItems: 'center', zIndex: 150 }} pointerEvents="none">
           <View style={{ backgroundColor: '#ef4444', paddingHorizontal: 18, paddingVertical: 9, borderRadius: 100, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={{ fontSize: 16 }}>🔥</Text>
-            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>{t('streakLabel')} {streakDays} · +{streakToast} ⭐</Text>
+            <Text style={{ fontSize: 16 }}>🎁</Text>
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>+{streakToast} ⭐</Text>
           </View>
         </View>
       )}
@@ -281,23 +300,39 @@ function FullHome() {
               <Image source={logoForProfile(profile?.id)} accessibilityLabel="PsyGames" style={{ height: 40, width: '100%' }} resizeMode="contain" />
             </View>
           </View>
-          {/* Очки-токены центра (⭐) + уровень профиля от накопленных токенов (T1 геймификация) */}
-          <TouchableOpacity
-            accessibilityRole="button" activeOpacity={0.8} onPress={() => router.push('/shop' as any)} style={{ alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fbbf2422', borderWidth: 1.5, borderColor: '#f59e0b', paddingVertical: 4, paddingHorizontal: 11, borderRadius: 100 }}>
-              <Text style={{ fontSize: 14 }}>⭐</Text>
-              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>{tokens}</Text>
-              <View style={{ width: 1, height: 12, backgroundColor: '#f59e0b88' }} />
-              <Text style={{ color: '#b45309', fontWeight: '800', fontSize: 12 }}>Lv {lvl.level}</Text>
-              {streakDays > 0 && <Text style={{ fontSize: 13 }}>🔥{streakDays}</Text>}
-              <Text style={{ fontSize: 12 }}>🛍️</Text>
+          {/* Очки/магазин и стрик — отдельные цели тапа. Стрик берётся из истории
+              завершённых Зарядок (тот же источник, что календарь и ачивки), а
+              dailyCheckIn выше остаётся только ежедневным бонусом токенов. */}
+          <View style={{ alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                activeOpacity={0.8}
+                onPress={() => router.push('/shop' as any)}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#fbbf2422', borderWidth: 1.5, borderColor: '#f59e0b', paddingVertical: 4, paddingHorizontal: 8, borderRadius: 100 }}
+              >
+                <Text style={{ fontSize: 14 }}>⭐</Text>
+                <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>{tokens}</Text>
+                <View style={{ width: 1, height: 12, backgroundColor: '#f59e0b88' }} />
+                <Text style={{ color: '#b45309', fontWeight: '800', fontSize: 12 }}>Lv {lvl.level}</Text>
+                <Text style={{ fontSize: 12 }}>🛍️</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={`${t('streakLabel')}: ${streak}`}
+                activeOpacity={0.8}
+                onPress={() => router.push('/streak-calendar' as any)}
+                style={{ minWidth: 44, minHeight: 34, paddingHorizontal: 7, borderRadius: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f973161c', borderWidth: 1.5, borderColor: '#f97316' }}
+              >
+                <Text style={{ color: colors.text, fontWeight: '900', fontSize: 13 }}>🔥{streak}</Text>
+              </TouchableOpacity>
             </View>
             {lvl.span !== null && (
               <View style={{ width: 104, height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden' }}>
                 <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 4, backgroundColor: '#f59e0b' }} />
               </View>
             )}
-          </TouchableOpacity>
+          </View>
           {/* Мини-аватар питомца «Синапс» → /pet. Шапка недавно чинена на адаптивность:
               аватар с фикс-шириной и flexShrink:0, ужиматься продолжает ТОЛЬКО лого (flex:1) */}
           <TouchableOpacity
@@ -428,6 +463,34 @@ function FullHome() {
         contentContainerStyle={styles.gamesContainer}
         showsVerticalScrollIndicator={false}
       >
+        {resumeGame && (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('resumeGameTitle').replace('{game}', t(resumeGame.nameKey))}
+            activeOpacity={0.82}
+            onPress={() => router.push(resumeGame.route as any)}
+            style={[styles.resumeCard, { backgroundColor: colors.surface, borderColor: resumeGame.gradient[0] }]}
+          >
+            <LinearGradient
+              colors={resumeGame.gradient as [string, string]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.resumeIcon}
+            >
+              <Ionicons name="play" size={22} color="#FFF" />
+            </LinearGradient>
+            <View style={styles.resumeCopy}>
+              <Text style={[styles.resumeTitle, { color: colors.text }]} numberOfLines={2}>
+                {t('resumeGameTitle').replace('{game}', t(resumeGame.nameKey))}
+              </Text>
+              <Text style={[styles.resumeSub, { color: colors.textSecondary }]} numberOfLines={1}>
+                {t(resumeGame.skillKey)}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color={resumeGame.gradient[0]} />
+          </TouchableOpacity>
+        )}
+
         {/* v1.179: ряд ПРАКТИК — Зарядка · Глаза · Дыхание.
             Зарядка теперь ОДНА кнопка вместо двух («Утренняя» + «Вечерний комплекс»):
             подпись меняется по времени суток, выбор набора — на своём экране. За счёт
@@ -724,6 +787,28 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
   },
+
+  resumeCard: {
+    minHeight: 68,
+    marginBottom: 14,
+    padding: 11,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  resumeIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  resumeCopy: { flex: 1, minWidth: 0, gap: 3 },
+  resumeTitle: { fontSize: 16, fontWeight: '900' },
+  resumeSub: { fontSize: 12, fontWeight: '600' },
 
   // Compact 3-hero-card row (2026-05-17)
   heroRow: {

@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSupabase } from '@/src/services/supabase';
 
 const PLAYER_ID_KEY = 'psygames_leaderboard_player_id';
+const PERSONAL_BEST_KEY = 'psygames_leaderboard_personal_best';
 
 // Cross-platform UUID (тот же паттерн, что WarmupContext.genUUID — не изобретаем заново).
 function genUUID(): string {
@@ -36,6 +37,38 @@ export async function getPlayerId(): Promise<string> {
 
 export type LeaderboardGameId = 'schulte_table_5x5' | 'n_back';
 
+function personalBestKey(gameId: LeaderboardGameId): string {
+  return `${PERSONAL_BEST_KEY}_${gameId}`;
+}
+
+function isBetter(gameId: LeaderboardGameId, candidate: number, current: number): boolean {
+  return gameId === 'schulte_table_5x5' ? candidate < current : candidate > current;
+}
+
+async function rememberPersonalBest(gameId: LeaderboardGameId, score: number): Promise<void> {
+  if (!Number.isFinite(score)) return;
+  try {
+    const key = personalBestKey(gameId);
+    const raw = await AsyncStorage.getItem(key);
+    const current = raw === null ? null : Number(raw);
+    if (current === null || !Number.isFinite(current) || isBetter(gameId, score, current)) {
+      await AsyncStorage.setItem(key, String(score));
+    }
+  } catch {}
+}
+
+/** Личный рекорд нужен как офлайн-фолбэк, когда общий лидерборд недоступен. */
+export async function getPersonalBest(gameId: LeaderboardGameId): Promise<number | null> {
+  try {
+    const raw = await AsyncStorage.getItem(personalBestKey(gameId));
+    if (raw === null) return null;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 export interface SubmitScoreResult {
   ok: boolean;
   improved?: boolean;
@@ -45,6 +78,8 @@ export interface SubmitScoreResult {
 
 /** Отправить результат — тихо игнорит сетевые ошибки (лидерборд необязателен для игры). */
 export async function submitScore(gameId: LeaderboardGameId, score: number): Promise<SubmitScoreResult> {
+  // Сначала локально: даже при отсутствии сети результат не должен потеряться.
+  await rememberPersonalBest(gameId, score);
   try {
     const playerId = await getPlayerId();
     const supabase = getSupabase();
@@ -74,5 +109,18 @@ export async function fetchTop(gameId: LeaderboardGameId, limit = 20): Promise<L
     return data as LeaderboardEntry[];
   } catch {
     return [];
+  }
+}
+
+/** Лучший результат среди игроков; сеть/пустая таблица → null без ошибки для UI. */
+export async function fetchBest(gameId: LeaderboardGameId): Promise<number | null> {
+  try {
+    const supabase = getSupabase();
+    const { data, error } = await supabase.rpc('psygames_leaderboard_top', { p_game_id: gameId, p_limit: 1 });
+    if (error || !Array.isArray(data) || data.length === 0) return null;
+    const score = Number(data[0]?.score);
+    return Number.isFinite(score) ? score : null;
+  } catch {
+    return null;
   }
 }

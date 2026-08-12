@@ -528,6 +528,55 @@ export async function saveWarmupHistory(entry: WarmupHistoryEntry): Promise<void
   } catch (e) { console.warn('Failed to save warmup history', e); }
 }
 
+/**
+ * Уникальные завершённые дни тренировки в хронологическом порядке.
+ *
+ * История могла накопить повторные записи за один день или старые битые даты,
+ * поэтому календарь и рекорд серии получают один нормализованный источник.
+ */
+export function completedWarmupDateKeys(history: WarmupHistoryEntry[]): string[] {
+  const valid = new Set<string>();
+  for (const entry of history) {
+    if (!entry.completed) continue;
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(entry.date);
+    if (!match) continue;
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (
+      date.getUTCFullYear() !== year
+      || date.getUTCMonth() !== month - 1
+      || date.getUTCDate() !== day
+    ) continue;
+    valid.add(entry.date);
+  }
+  return [...valid].sort();
+}
+
+/**
+ * Самая длинная серия за всю историю. Использует ту же политику, что
+ * computeStreak(): один изолированный пропуск не рвёт серию, два подряд — рвут.
+ * Пропущенный день не прибавляется к длине: считаются только тренировки.
+ */
+export function computeLongestStreak(history: WarmupHistoryEntry[]): number {
+  const dates = completedWarmupDateKeys(history);
+  let best = 0;
+  let current = 0;
+  let previousOrdinal: number | null = null;
+
+  for (const key of dates) {
+    const [year, month, day] = key.split('-').map(Number);
+    const ordinal = Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
+    const gap = previousOrdinal === null ? 0 : ordinal - previousOrdinal;
+    current = previousOrdinal === null || gap <= 2 ? current + 1 : 1;
+    best = Math.max(best, current);
+    previousOrdinal = ordinal;
+  }
+
+  return best;
+}
+
 // Streak with 1-day grace: ОДИН пропуск подряд не ломает streak.
 // (Жизнь случается; одна суббота в командировке не должна обнулять 30 дней.)
 // Два пропуска подряд = streak обрывается.
