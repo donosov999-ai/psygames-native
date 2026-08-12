@@ -107,3 +107,31 @@ export const FRAMES: readonly Frame[] = [
 export function earnedFrames(seasonPoints: number): Frame[] {
   return FRAMES.filter((f) => isLeagueReached(f.league, seasonPoints));
 }
+
+/** Длина сезона. Месяц — достаточно, чтобы пропуск пары дней не обвалил лигу. */
+export const SEASON_DAYS = 30;
+
+export interface ScoredSession { score?: number; timestamp?: string }
+
+/**
+ * Очки сезона — сумма за последние SEASON_DAYS дней.
+ *
+ * Отдельно от чтения хранилища, чтобы проверялось тестом напрямую: расчёт «за период»
+ * это ровно то место, где легко ошибиться на границе суток и не заметить.
+ *
+ * Записи без времени НЕ учитываем. Соблазн «считать их свежими» велик — так сезон
+ * выглядит бодрее, — но это накрутка: старая партия без отметки времени подняла бы лигу
+ * на пустом месте, и человек получил бы ступень, которую не проходил.
+ */
+export function seasonPointsFrom(sessions: readonly ScoredSession[], now: number = Date.now()): number {
+  const from = now - SEASON_DAYS * 24 * 60 * 60 * 1000;
+  let sum = 0;
+  for (const s of sessions) {
+    if (!s?.timestamp) continue;
+    const t = Date.parse(s.timestamp);
+    if (!Number.isFinite(t) || t < from || t > now) continue;   // будущее тоже мимо: часы устройства врут
+    const score = Number(s.score);
+    if (Number.isFinite(score) && score > 0) sum += score;
+  }
+  return Math.floor(sum);
+}
