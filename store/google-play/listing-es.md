@@ -33,7 +33,7 @@ Escuchas otro idioma y separas sonidos que antes parecían iguales.
 
 No es un don reservado a unos pocos. Se entrena, y aquí puedes medir cuánto avanzas.
 
-PsyGames es entrenamiento cerebral con 63 ejercicios para mejorar memoria, atención, lógica y rapidez mental. No es otro test para adivinar tu IQ: es práctica con resultados visibles.
+PsyGames es entrenamiento cerebral: juegos mentales, rompecabezas y 63 ejercicios de memoria, atención y lógica. No es otro test para adivinar tu IQ: es práctica con resultados visibles.
 
 JUEGOS DE MEMORIA
 Entrena la memoria visual con bloques de Corsi, matrices, parejas e historias. Refuerza la memoria de trabajo con N-back, Operation Span y Reading Span. Observa un patrón, retenlo y recupéralo después.

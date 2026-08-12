@@ -43,7 +43,7 @@ Du hörst eine fremde Sprache und unterscheidest Laute, die vorher nur Rauschen 
 
 Das ist kein Talent, mit dem man geboren wird. Das trainiert man — und hier siehst du, um wie viel.
 
-PsyGames ist Gehirntraining mit 63 Übungen für Gedächtnis, Aufmerksamkeit, Logik und Denktempo. Kein weiterer IQ-Test, sondern Training mit messbarem Ergebnis.
+PsyGames ist Gehirnjogging: Denkspiele, Rätsel und 63 Übungen für Gedächtnis, Aufmerksamkeit und Logik. Kein weiterer IQ-Test, sondern Training mit messbarem Ergebnis.
 
 GEDÄCHTNISSPIELE
 Trainiere visuelles Gedächtnis mit Corsi-Blöcken, Matrizen und Bildpaaren. Stärke das Arbeitsgedächtnis mit N-Back, Operation Span und Reading Span.
