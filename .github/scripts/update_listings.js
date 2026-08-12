@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PACKAGE = 'com.psygames.app';
-const STORE_DIR = './store';
+const STORE_DIR = './store/google-play';
 
 const LANG_MAP = {
   'ar':  'ar',
@@ -38,7 +38,7 @@ async function main() {
 
   const listings = {};
   for (const [suffix, playLang] of Object.entries(LANG_MAP)) {
-    const file = path.join(STORE_DIR, `play-listing-${suffix}.md`);
+    const file = path.join(STORE_DIR, `listing-${suffix}.md`);
     if (!fs.existsSync(file)) continue;
     const d = extract(fs.readFileSync(file, 'utf8'));
     if (d) listings[playLang] = d;

@@ -12,8 +12,8 @@
 | Privacy Policy URL | https://psy-games.pro/privacy — живая, описывает локальные данные + анонимный Supabase-синк, без трекинга |
 | Гайдлайн 3.1.1 (коды вне Apple запрещены) | `CODE_ENTRY_ENABLED = Platform.OS !== 'ios'` в `src/constants/profiles.ts` — на iOS скрыт ВЕСЬ ввод кода доступа (онбординг WelcomeModal, свитчер ProfileSwitcherModal, настройки settings); locked-профили показывают «🔒 Скоро» |
 | UI без цен/подписок/внешней оплаты | сделано в v1.120.0 (`MONETIZATION_ENABLED=false`) — Apple anti-steering жёстче Google |
-| Иконка 1024×1024 без альфа-канала | `store-assets/appstore/icon-1024-noalpha.png` |
-| Скриншоты iPhone 6.7" (1290×2796) | `store-assets/appstore/iphone67-0{1..5}-*.png` (RU; сняты с web-сборки, DPR 3) |
+| Иконка 1024×1024 без альфа-канала | `store/appstore/icon-1024-noalpha.png` |
+| Скриншоты iPhone 6.7" (1290×2796) | `store/appstore/iphone67-0{1..5}-*.png` (RU; сняты с web-сборки, DPR 3) |
 | Удаление аккаунта (5.1.1(v)) | не требуется — аккаунтов/логина в приложении нет |
 
 ## ⏳ Что осталось (по порядку)
