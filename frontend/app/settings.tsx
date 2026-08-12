@@ -211,8 +211,9 @@ export default function SettingsScreen() {
   const setReminderHour = (slot: 'morning' | 'evening', hour: number) =>
     applyAndSaveReminders({ ...reminders, [slot === 'morning' ? 'morningHour' : 'eveningHour']: hour });
   const replayOnboarding = async () => {
-    try { await AsyncStorage.removeItem('psygames_onboarded'); } catch {}
-    router.push('/onboarding' as any);
+    // Повтор из настроек открывает сохранённую подробную экскурсию. Флаг первого
+    // выбора игры не сбрасываем — иначе после выхода picker навязывался бы снова.
+    router.push({ pathname: '/onboarding', params: { tutorial: '1' } } as any);
   };
 
   // v1.151: прямая проверка обновлений из настроек (запрос Дениса — кнопка была
@@ -678,6 +679,7 @@ export default function SettingsScreen() {
             </Text>
           </View>
           <Switch
+            accessibilityLabel={t('darkTheme')}
             value={isDark}
             onValueChange={toggleTheme}
             trackColor={{ false: colors.border, true: colors.primary }}
@@ -691,7 +693,7 @@ export default function SettingsScreen() {
             <Ionicons name={soundOn ? 'volume-high' : 'volume-mute'} size={24} color={colors.primary} />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('label_sound')}</Text>
           </View>
-          <Switch value={soundOn} onValueChange={toggleSound} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+          <Switch accessibilityLabel={t('label_sound')} value={soundOn} onValueChange={toggleSound} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
         {/* Music (S1) — мягкая фоновая музыка меню, opt-in */}
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
@@ -699,7 +701,7 @@ export default function SettingsScreen() {
             <Ionicons name={musicOn ? 'musical-notes' : 'musical-notes-outline'} size={24} color={colors.primary} />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('music')}</Text>
           </View>
-          <Switch value={musicOn} onValueChange={toggleMusic} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+          <Switch accessibilityLabel={t('music')} value={musicOn} onValueChange={toggleMusic} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
         {/* Haptic */}
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
@@ -707,7 +709,7 @@ export default function SettingsScreen() {
             <Ionicons name="phone-portrait-outline" size={24} color={colors.primary} />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('label_vibration')}</Text>
           </View>
-          <Switch value={hapticOn} onValueChange={toggleHaptic} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+          <Switch accessibilityLabel={t('label_vibration')} value={hapticOn} onValueChange={toggleHaptic} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
         {/* A1: колор-блайнд режим — игры с цвет-идентичностью берут различимую палитру */}
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
@@ -715,7 +717,7 @@ export default function SettingsScreen() {
             <Ionicons name="eye-outline" size={24} color={colors.primary} />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('colorblindMode')}</Text>
           </View>
-          <Switch value={colorblind} onValueChange={setColorblind} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+          <Switch accessibilityLabel={t('colorblindMode')} value={colorblind} onValueChange={setColorblind} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
         {/* v1.125.0: галочка «Чат с разработчиками» — тестировщик может скрыть плавающую
             кнопку фидбека, если мешает в игре (репорт «кнопка мешается»). */}
@@ -724,7 +726,7 @@ export default function SettingsScreen() {
             <Ionicons name="chatbubble-ellipses-outline" size={24} color={colors.primary} />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('devChatToggle')}</Text>
           </View>
-          <Switch value={devChatOn} onValueChange={toggleDevChat} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+          <Switch accessibilityLabel={t('devChatToggle')} value={devChatOn} onValueChange={toggleDevChat} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
         {/* Гуляющий питомец «Синапс» — паттерн тот же, что у чата (кому-то
             любое движение на экране мешает), но тумблер НЕЗАВИСИМЫЙ:
@@ -734,7 +736,7 @@ export default function SettingsScreen() {
             <Ionicons name="paw-outline" size={24} color={colors.primary} />
             <Text style={[styles.settingLabel, { color: colors.text }]}>{t('petSynapse')}</Text>
           </View>
-          <Switch value={petOn} onValueChange={togglePet} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+          <Switch accessibilityLabel={t('petSynapse')} value={petOn} onValueChange={togglePet} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
         {/* Ползунок размера гуляющего питомца (0.6×..1.8×). Живое превью:
             питомец гуляет прямо на этом экране и меняется под пальцем;

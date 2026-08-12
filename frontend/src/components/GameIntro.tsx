@@ -53,11 +53,15 @@ export default function GameIntro({
   // ?embed=1 (iframe на страницах promo-сайта): интро пропускаем — сайт уже
   // показал описание игры своей статьёй, iframe должен открыть чистое поле.
   // Контракт с Кодексом 22.07: /play/games/<slug>?embed=1&lang=<code>.
-  const embedded = isEmbed();
+  // Static export cannot know the query string. Keep the server and the first
+  // client render identical, then enable embed mode after hydration.
+  const [embedded, setEmbedded] = React.useState(false);
   React.useEffect(() => {
-    if (embedded) onStart();
+    if (!isEmbed()) return;
+    setEmbedded(true);
+    onStart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [embedded]);
+  }, []);
   if (embedded) return null;
 
   return (

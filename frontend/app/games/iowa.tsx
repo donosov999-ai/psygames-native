@@ -199,6 +199,19 @@ export default function IowaGame() {
     );
   }
 
+  // GameIntro уже содержит собственную шапку с Back. Если оборачивать его
+  // общей шапкой игры, на мобильном экране появляются два заголовка и две
+  // кнопки назад — ровно на пути старого репорта про неудачную компоновку Iowa.
+  if (phase === 'intro') {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <GameIntro nameKey="iowa" icon="cash" gradient={GRADIENT as [string, string]}
+          skillKey="skillRisk" descriptionKey="iowaIntroDesc"
+          benefits={IGT_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -209,11 +222,6 @@ export default function IowaGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('iowa')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="iowa" icon="cash" gradient={GRADIENT as [string, string]}
-          skillKey="skillRisk" descriptionKey="iowaIntroDesc"
-          benefits={IGT_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'result' && (
         <GameResult

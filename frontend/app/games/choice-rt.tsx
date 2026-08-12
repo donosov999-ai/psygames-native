@@ -39,7 +39,7 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 const GRADIENT = ['#fdc830', '#f37335'];
 const CHOICE_BENEFITS = [
   { icon: 'flash-outline', textKey: 'benefitChoiceRt1' },
-  { icon: 'crosshairs', textKey: 'benefitChoiceRt2' },
+  { icon: 'locate-outline', textKey: 'benefitChoiceRt2' },
   { icon: 'hand-right-outline', textKey: 'benefitChoiceRt3' },
 ];
 

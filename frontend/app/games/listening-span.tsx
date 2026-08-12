@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { speakSequence, ttsAvailable, ttsCancel } from '@/src/services/tts';
+import { useTtsAvailable } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import GameResult from '@/src/components/GameResult';
@@ -115,7 +116,7 @@ export default function ListeningSpanGame() {
     AsyncStorage.setItem(TARGETLANG_KEY, code).catch(() => {});
   };
 
-  const voiceOk = ttsAvailable(targetLang);
+  const voiceOk = useTtsAvailable(targetLang);
 
   const startGame = () => {
     const tl = targetLang === language ? defaultTarget : targetLang;

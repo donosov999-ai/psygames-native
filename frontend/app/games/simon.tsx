@@ -54,7 +54,7 @@ const COLOR_RED = '#ef4444';
 const SI_BENEFITS = [
   { icon: 'flash-outline',            textKey: 'benefitSi1' },
   { icon: 'shield-checkmark-outline', textKey: 'benefitSi2' },
-  { icon: 'brain-outline',            textKey: 'benefitSi3' },
+  { icon: 'speedometer-outline',      textKey: 'benefitSi3' },
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
