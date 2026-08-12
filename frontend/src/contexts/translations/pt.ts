@@ -865,6 +865,7 @@ const t: Record<string, string> = {
   "requestCodeHint": "Escreva para o Denis no Telegram — ele envia um código de acesso pessoal\nem 5 minutos (horário comercial de Moscou).",
   "music": "Música",
   "colorblindMode": "Modo daltônico",
+  "colorblindWhere": "Vale onde a cor carrega significado: Sudoku, SET, Stroop, teste de Wisconsin, Torre de Londres",
   "devChatToggle": "Botão de chat com desenvolvedores",
   "transferProgress": "Transferir progresso",
   "transferProgressHint": "Conquistas e níveis ficam neste dispositivo. Exporte um código aqui e cole em outro dispositivo.",

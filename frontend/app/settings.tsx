@@ -711,11 +711,19 @@ export default function SettingsScreen() {
           </View>
           <Switch accessibilityLabel={t('label_vibration')} value={hapticOn} onValueChange={toggleHaptic} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
-        {/* A1: колор-блайнд режим — игры с цвет-идентичностью берут различимую палитру */}
+        {/* A1: колор-блайнд режим — игры с цвет-идентичностью берут различимую палитру.
+            Репорт 02.08 (расшифрован 12.08): «переключатель colorblind ни на что не влияет,
+            у меня по крайней мере». Переключатель исправен — он просто действует не везде:
+            цвет несёт смысл в пяти играх из 61, в остальных менять нечего. Молчаливый
+            тумблер, который «иногда работает», читается как сломанный, поэтому теперь
+            он прямо говорит, где именно применяется. */}
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
           <View style={styles.settingInfo}>
             <Ionicons name="eye-outline" size={24} color={colors.primary} />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('colorblindMode')}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>{t('colorblindMode')}</Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>{t('colorblindWhere')}</Text>
+            </View>
           </View>
           <Switch accessibilityLabel={t('colorblindMode')} value={colorblind} onValueChange={setColorblind} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
