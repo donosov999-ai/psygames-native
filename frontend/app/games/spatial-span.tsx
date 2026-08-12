@@ -192,7 +192,8 @@ export default function SpatialSpanGame() {
   const cellSize = (gridW - (gridSize - 1) * 6) / gridSize;
 
   const renderConfig = () => (
-    <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+    <View style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="apps" size={48} color="#FFF" />
         <Text style={styles.configTitle}>{t('spatialSpan')}</Text>
@@ -206,13 +207,16 @@ export default function SpatialSpanGame() {
           {language === 'ru' ? `Ур. ${lvl.level} — растёт сам (span → скорость показа → сетка 5×5)` : `Lv ${lvl.level} — grows with results (span → show speed → 5×5 grid)`}
         </Text>
       </View>
+    </ScrollView>
+      <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-    </ScrollView>
+      </View>
+    </View>
   );
 
   const renderGrid = () => (
@@ -310,6 +314,11 @@ const styles = StyleSheet.create({
   // крупный системный шрифт: длинный заголовок распирал header и выдавливал спейсер за край → ужимается сам
   title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' },
   configContainer: { padding: 16, gap: 14 },
+  // Прибитый низ настроек: кнопка «начать» всегда на экране, над системной навигацией.
+  // Раньше она была последней в прокрутке — на невысоком экране до неё приходилось
+  // доскроллить, а решение «во что играю» оказывалось в двух разных местах.
+  // Отступ слева — под плавающую кнопку отзыва, она висит поверх и накрывала бы её.
+  configSticky: { paddingTop: 10, paddingHorizontal: 16, paddingLeft: 68, borderTopWidth: StyleSheet.hairlineWidth },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
   configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },

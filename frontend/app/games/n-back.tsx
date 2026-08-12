@@ -348,7 +348,8 @@ export default function NBackGame() {
   };
 
   const renderConfig = () => (
-    <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="analytics" size={48} color="#FFF" />
         <Text style={styles.configTitle}>{t('nBack')}</Text>
@@ -428,13 +429,16 @@ export default function NBackGame() {
           ))}
         </View>
       </View>
+    </ScrollView>
+      <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
-    </ScrollView>
+      </View>
+    </View>
   );
 
   // playing-фаза — на едином каркасе GameShell (кнопки Match/Sound прибиты к низу); модалка правил поверх
@@ -580,6 +584,11 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
+  // Прибитый низ настроек: кнопка «начать» всегда на экране, над системной навигацией.
+  // Раньше она была последней в прокрутке — на невысоком экране до неё приходилось
+  // доскроллить, а решение «во что играю» оказывалось в двух разных местах.
+  // Отступ слева — под плавающую кнопку отзыва, она висит поверх и накрывала бы её.
+  configSticky: { paddingTop: 10, paddingHorizontal: 16, paddingLeft: 68, borderTopWidth: StyleSheet.hairlineWidth },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
   configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
