@@ -16,6 +16,32 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.193.0',
+    date: '2026-08-12',
+    ru: [
+      'Судоку: цифры на клавиатуре стали крупнее, у каждой свой цвет, и сама клавиатура переехала под доску — раньше между ними была пустота почти в пол-экрана',
+      'Судоку: подсказка, отмена и цвет переехали наверх, а выбор режима и справка — вниз к кнопке «играть». Игра открывается сразу настройками, описание свернулось в строку «Об игре»',
+      'Судоку: цифра рядом с кружком или заливкой больше не выглядит выцветшей — она рисуется чёрным поверх любой подложки (по многократной просьбе тестировщика)',
+      'Ханойская башня: диски можно перетаскивать пальцем. Нажатия по стержням продолжают работать',
+      'На компьютере играм можно управлять с клавиатуры: цифры ставят, Backspace стирает, стрелки ходят по доске',
+      'Судоку-самурай появился в каталоге игр — раньше его можно было найти только внутри обычной судоку',
+      'Кнопки по всему приложению стали крупнее: 123 из 440 были меньше размера, при котором палец попадает надёжно',
+      'Купленный цвет интерфейса теперь виден на главной, а не только в настройках',
+      'Кнопка зарядки на главной честно подписана «Выбрать» — она открывает выбор набора, а не запускает его',
+    ],
+    en: [
+      'Sudoku: bigger, colour-coded number keys, moved right under the board — there used to be half a screen of emptiness between them',
+      'Sudoku: hint, undo and colour moved to the top bar; mode and rules moved down next to Play. The game now opens straight into settings, with the description folded into an “About game” row',
+      'Sudoku: a digit sitting on a circle or a tint no longer looks washed out — it is drawn in solid black over any backdrop',
+      'Tower of Hanoi: drag discs with your finger. Tapping the pegs still works',
+      'On desktop you can play with the keyboard: digits enter, Backspace clears, arrows move around the board',
+      'Samurai Sudoku is now in the game catalogue — previously reachable only from inside regular Sudoku',
+      'Buttons across the app got bigger: 123 of 440 were below a reliable finger-tap size',
+      'The interface colour you buy is now visible on the home screen, not just in settings',
+      'The workout card now says “Choose” — it opens the set picker rather than starting a set',
+    ],
+  },
+  {
     version: '1.192.0',
     date: '2026-08-12',
     ru: [
