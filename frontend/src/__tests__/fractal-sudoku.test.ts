@@ -107,3 +107,46 @@ describe('размер задачи', () => {
     for (const ch of f.children) check(ch.puzzle, ch.solution);
   });
 });
+
+/**
+ * Порог не должен браться подсказками задания.
+ *
+ * Поймано на первом запуске экрана 12.08: девять плиток сразу показали «17/17».
+ * Причина — solvedCount считал совпадения с решением, а подсказки совпадают с ним
+ * по определению. При 36 подсказках порог оказывался взят ДО первого хода: все
+ * дочерние открыты сразу, корень заполняется сам, играть не во что.
+ */
+describe('порог считает только ходы человека', () => {
+  it('нетронутая сетка с подсказками НЕ открыта', () => {
+    const f = generateFractal(50, 45);
+    for (const ch of f.children) {
+      const given = ch.puzzle.map((row) => row.map((v) => v !== 0));
+      expect(isUnlocked(ch.puzzle, ch.solution, given)).toBe(false);
+    }
+  });
+
+  it('без маски подсказок порог берётся сам собой — ради этого маска и заведена', () => {
+    const f = generateFractal(50, 45);
+    expect(isUnlocked(f.children[0].puzzle, f.children[0].solution)).toBe(true);
+  });
+
+  it('открывается ровно на 17 верных СВОИХ клетках', () => {
+    const f = generateFractal(50, 45);
+    const ch = f.children[0];
+    const given = ch.puzzle.map((row) => row.map((v) => v !== 0));
+    const cur = ch.puzzle.map((row) => [...row]);
+    let put = 0;
+    outer: for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        if (given[r][c]) continue;
+        cur[r][c] = ch.solution[r][c];
+        if (++put === UNLOCK_CELLS - 1) break outer;
+      }
+    }
+    expect(isUnlocked(cur, ch.solution, given)).toBe(false);
+    outer2: for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) if (!given[r][c] && cur[r][c] === 0) { cur[r][c] = ch.solution[r][c]; break outer2; }
+    }
+    expect(isUnlocked(cur, ch.solution, given)).toBe(true);
+  });
+});

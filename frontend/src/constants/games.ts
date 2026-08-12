@@ -362,6 +362,19 @@ export const GAMES: GameConfig[] = [
     route: '/games/sudoku-samurai',
     category: 'logic',
   },
+  // Фрактальная судоку — вторая длинная форма после самурая. Стоит рядом с ними
+  // намеренно: обе живут часами, и человек находит их там, где ищет «что-то
+  // подольше обычной партии».
+  {
+    id: 'sudoku-fractal',
+    nameKey: 'fractalTitle',
+    descKey: 'fractalDesc',
+    skillKey: 'skillLogic',
+    gradient: ['#5b4d9e', '#7f7fd5'],
+    icon: 'git-network',
+    route: '/games/sudoku-fractal',
+    category: 'logic',
+  },
   {
     id: 'anagrams',
     nameKey: 'anagrams',
