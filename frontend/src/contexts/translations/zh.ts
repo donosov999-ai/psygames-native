@@ -192,6 +192,7 @@ const t: Record<string, string> = {
   "english": "英语",
   "start": "开始",
   "restart": "重新开始",
+  "a11yResetLevel": "从第一关重新开始",
   "back": "返回",
   "time": "时间",
   "score": "得分",

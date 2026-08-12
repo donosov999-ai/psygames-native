@@ -334,6 +334,7 @@ const t: Record<string, string> = {
   "english": "영어",
   "start": "시작",
   "restart": "다시 시작",
+  "a11yResetLevel": "1레벨부터 다시 시작",
   "back": "뒤로",
   "time": "시간",
   "score": "점수",

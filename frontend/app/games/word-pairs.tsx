@@ -286,7 +286,7 @@ export default function WordPairsGame() {
         </Text>
         {lvl.level > 1 && (
           <TouchableOpacity
-            accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 8, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, backgroundColor: colors.card }}>
+            accessibilityRole="button" accessibilityLabel={t('a11yResetLevel')} onPress={() => lvl.setLevel(1)} style={{ marginTop: 8, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, backgroundColor: colors.card }}>
             <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
           </TouchableOpacity>
         )}

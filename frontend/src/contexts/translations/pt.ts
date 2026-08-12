@@ -192,6 +192,7 @@ const t: Record<string, string> = {
   "english": "Inglês",
   "start": "Iniciar",
   "restart": "Reiniciar",
+  "a11yResetLevel": "Recomeçar do nível um",
   "back": "Voltar",
   "time": "Tempo",
   "score": "Pontuação",

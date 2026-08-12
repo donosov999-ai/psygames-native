@@ -323,7 +323,7 @@ export default function PicturePairsGame() {
           </Text>
           {level > 1 && (
             <TouchableOpacity
-              accessibilityRole="button" onPress={() => setLevel(1)} style={{ marginTop: 6 }}>
+              accessibilityRole="button" accessibilityLabel={t('a11yResetLevel')} onPress={() => setLevel(1)} style={{ marginTop: 6 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
