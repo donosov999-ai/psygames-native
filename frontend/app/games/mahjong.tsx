@@ -13,7 +13,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import GameIntro from '@/src/components/GameIntro';
-import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -182,7 +182,9 @@ export default function MahjongGame() {
   const [level, setLevel] = useState(1);
   const levelRef = useRef(1);
   const [levelBanner, setLevelBanner] = useState<number | null>(null);
-  useEffect(() => { if (lvl.loaded && !isPreset) setLevel(lvl.level); }, [lvl.loaded]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Маджонг в зарядке — полноценный пройденный уровень: следующий вход через
+  // зарядку должен продолжать лесенку, а не каждый раз возвращать на L1.
+  useEffect(() => { if (lvl.loaded) setLevel(lvl.level); }, [lvl.loaded, lvl.level]);
 
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
@@ -218,14 +220,16 @@ export default function MahjongGame() {
   };
 
   const startGame = () => {
-    const startLvl = (!isPreset && lvl.loaded) ? lvl.level : 1;
+    if (!lvl.loaded) return;
+    const startLvl = lvl.level;
     scoreRef.current = 0; setScore(0);
     setLevel(startLvl); levelRef.current = startLvl; setLevelBanner(null);
     loadLevel(startLvl);
     setPhase('playing');
   };
 
-  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // AsyncStorage обязан загрузиться до auto-start, иначе тёплый вход стартует с L1.
+  useAutostart(autostart && lvl.loaded, startGame);
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
@@ -245,7 +249,7 @@ export default function MahjongGame() {
     }).catch((e) => console.error(e));
     const next = done + 1;
     setLevel(next); levelRef.current = next;
-    if (!isPreset) lvl.setLevel(next);
+    lvl.setLevel(next);   // прогресс сохраняется и при прохождении через зарядку
     setLevelBanner(done);
     bannerTimerRef.current = setTimeout(() => { setLevelBanner(null); loadLevel(next); }, 1400);
   };

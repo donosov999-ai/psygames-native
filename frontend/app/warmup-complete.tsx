@@ -65,6 +65,19 @@ export default function WarmupComplete() {
   const elapsedSecRem = Math.floor(elapsedSec % 60);
   const completed = meta ? results.length >= meta.steps.length : false;
 
+  // PlaylistMeta исторически хранит русские подписи (ПН / перед сном).
+  // В интерфейсе показываем язык пользователя, не меняя формат сохранённой истории.
+  const metaWeekday = meta
+    ? new Intl.DateTimeFormat(language, { weekday: 'short', timeZone: 'UTC' })
+        .format(new Date(Date.UTC(2024, 0, 7 + meta.weekday)))
+        .replace(/\.$/, '')
+    : '';
+  const metaSlot = meta?.slot === 'morning' ? t('slotMorning')
+    : meta?.slot === 'day' ? t('slotDay')
+      : meta?.slot === 'evening' ? t('slotEvening')
+        : meta?.slot === 'night' ? t('slotNight')
+          : meta?.track_label || '';
+
   // Persist & compute streak/verdict
   useEffect(() => {
     (async () => {
@@ -130,7 +143,13 @@ export default function WarmupComplete() {
 
   const goHome = () => router.replace('/' as any);
   const playAgain = () => {
-    if (meta) warmup.startWarmup(meta.duration_min as any);
+    if (!meta) return;
+    // «Ещё раз» повторяет тот же временной слот. Раньше любой результат,
+    // включая вечерний, всегда запускал утреннюю зарядку через startWarmup().
+    if (meta.slot === 'evening') warmup.startEvening();
+    else if (meta.slot === 'day') warmup.startDay();
+    else if (meta.slot === 'night') warmup.startNight();
+    else warmup.startWarmup(meta.duration_min as any);
   };
 
   if (!meta) {
@@ -167,7 +186,7 @@ export default function WarmupComplete() {
           <Text style={styles.heroEmoji}>{completed ? '🎉' : '⏸'}</Text>
           <Text style={styles.heroTitle}>{completed ? t('warmupDoneTitle') : t('warmupStoppedTitle')}</Text>
           <Text style={styles.heroSubtitle}>
-            {meta.weekday_name} · {meta.track_label} · {elapsedMin}:{elapsedSecRem.toString().padStart(2, '0')}
+            {metaWeekday} · {metaSlot} · {elapsedMin}:{elapsedSecRem.toString().padStart(2, '0')}
           </Text>
           {isPersonalBest && completed && (
             <View style={styles.pbBadge}>
