@@ -33,7 +33,7 @@ Ouve outro idioma e percebe sons que antes pareciam todos iguais.
 
 Isso não é um dom de nascença. Dá para treinar — e aqui você mede a evolução.
 
-PsyGames é treino cerebral com 63 exercícios para memória, foco, lógica e agilidade mental. Não é mais um teste que inventa seu QI: é prática com resultado acompanhado.
+PsyGames é treino cerebral: jogos mentais, quebra-cabeças e 63 exercícios de memória, foco e lógica. Não é mais um teste que inventa seu QI: é prática com resultado acompanhado.
 
 JOGOS DE MEMÓRIA
 Treine memória visual com blocos de Corsi, matrizes, pares e histórias. Fortaleça a memória de trabalho com N-back, Operation Span e Reading Span. Observe um padrão, mantenha-o na mente e reproduza depois.

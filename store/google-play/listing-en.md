@@ -43,7 +43,7 @@ Hear a foreign language and catch sounds that used to blur into noise.
 
 That's not a gift you're born with. It's trained — and here you can see by how much.
 
-PsyGames is brain training with 63 exercises for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
+PsyGames is brain training and brain games: 63 exercises and puzzles for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
 
 MEMORY GAMES
 Train visual memory with Corsi blocks, matrices and matching pairs. Build working memory with N-back, operation span and reading span. Hold a pattern in mind and reproduce it later.

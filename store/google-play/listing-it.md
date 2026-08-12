@@ -33,7 +33,7 @@ Ascolti una lingua straniera e distingui suoni che prima sembravano uguali.
 
 Non è un talento riservato a pochi. Si può allenare — e qui puoi misurare i progressi.
 
-PsyGames offre 63 esercizi di allenamento mentale per memoria, attenzione, logica e velocità di pensiero. Non è l'ennesimo test che indovina il tuo QI, ma pratica quotidiana con risultati misurabili.
+PsyGames offre giochi mentali, rompicapo e 63 esercizi per memoria, attenzione, logica e rapidità. Non è l'ennesimo test che indovina il tuo QI, ma pratica quotidiana con risultati misurabili.
 
 GIOCHI DI MEMORIA
 Allena la memoria visiva con blocchi di Corsi, matrici, coppie e storie. Rafforza la memoria di lavoro con N-back, Operation Span e Reading Span. Osserva uno schema, tienilo a mente e riproducilo più tardi.
