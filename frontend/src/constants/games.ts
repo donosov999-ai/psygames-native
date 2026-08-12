@@ -344,6 +344,22 @@ export const GAMES: GameConfig[] = [
     route: '/games/sudoku',
     category: 'logic',
   },
+  // Самурай стоит сразу за судоку намеренно: это её длинная форма, и человек находит
+  // её в тот момент, когда обычная 9×9 уже даётся легко.
+  //
+  // ⚠️ Экран существует с v1.186.0 и всё это время был недоступен: 539 строк рабочего
+  // кода, уровни, проверка единственности решения, переводы на 12 языков — и ни одной
+  // ссылки в каталоге. Попасть в игру можно было только набрав адрес руками.
+  {
+    id: 'sudoku-samurai',
+    nameKey: 'samuraiTitle',
+    descKey: 'samuraiDesc',
+    skillKey: 'skillLogic',
+    gradient: ['#5b4d9e', '#7f7fd5'],
+    icon: 'grid',
+    route: '/games/sudoku-samurai',
+    category: 'logic',
+  },
   {
     id: 'anagrams',
     nameKey: 'anagrams',
