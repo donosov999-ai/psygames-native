@@ -1,0 +1,24 @@
+name: Update Play Store Listings
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'store/play-listing-*.md'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - run: npm install googleapis
+
+      - name: Upload listings to Google Play
+        env:
+          GOOGLE_PLAY_SA_JSON: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
+        run: node .github/scripts/update_listings.js
