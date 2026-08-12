@@ -140,3 +140,40 @@ mental math trainer
 ```
 
 Длины: 14 · 18 · 23 · 18 · 13 · 21 · 19 — все в пределах 40.
+
+---
+
+## Short description
+
+Shown at the top of the Store listing. Recommended ≤270 characters.
+
+```
+Brain training that survives past week one. 63 exercises for memory, attention, logic and speed — every one a validated paradigm, not invented mechanics. Levels adapt to you, a streak keeps you honest, progress is measurable. Offline. No ads, no sign-up.
+```
+
+---
+
+## What's new in this version
+
+Лимит 1500 символов.
+
+```
+Sudoku, reworked
+• Bigger, colour-coded number keys, moved right under the board — there used to be half a screen of emptiness between them
+• Hint, undo and colour moved to the top; mode and rules sit next to Play
+• The game opens straight into settings, with the description folded into an “About game” row
+• A digit sitting on a circle or a tint is no longer washed out — it is drawn solid over any backdrop
+
+Play with your hands
+• Tower of Hanoi: drag discs with your finger; tapping the pegs still works
+• Keyboard support on desktop: digits enter, Backspace clears, arrows move around the board
+
+New long-form puzzles
+• Samurai Sudoku — five overlapping 9×9 grids, now in the game catalogue
+• Fractal Sudoku — behind every cell of the top grid hides a whole sudoku
+
+Everywhere else
+• Buttons across the app got bigger: 123 of 440 were below a reliable finger-tap size
+• The interface colour you buy is now visible on the home screen
+• Japanese went from 54% to 97% translated
+```
