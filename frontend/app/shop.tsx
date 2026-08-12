@@ -199,12 +199,16 @@ const styles = StyleSheet.create({
   iconBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   catRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingBottom: 12, flexWrap: 'wrap' },
-  catChip: { width: 40, height: 40, borderRadius: 12, borderWidth: 1.5, justifyContent: 'center', alignItems: 'center' },
+  // 40×40 — ниже минимума 44; вкладки разделов жмут часто и мимо.
+  catChip: { width: 48, height: 48, borderRadius: 999, borderWidth: 1.5, justifyContent: 'center', alignItems: 'center' },
   balance: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: 44, borderRadius: 22, borderWidth: 1 },
   section: { fontSize: 13, lineHeight: 1.5 * 13, marginBottom: 14 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 16, padding: 14, marginBottom: 10 },
   swatch: { width: 38, height: 38, borderRadius: 12 },
   // flexShrink:0 — кнопка действия сохраняет размер при крупном шрифте, не сплющивается текстом слева
-  btn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, minWidth: 92, alignItems: 'center', flexShrink: 0 },
+  // Замер 12.08 нашёл здесь 19 одинаковых кнопок «Мало очков» высотой 36 точек при
+  // минимуме 44: paddingVertical:10 плюс шрифт 13 в сумме столько и дают. Радиус 999 —
+  // капсула, как в остальном приложении после перехода на стеклянный стиль.
+  btn: { paddingHorizontal: 16, paddingVertical: 10, minHeight: 48, justifyContent: 'center', borderRadius: 999, minWidth: 92, alignItems: 'center', flexShrink: 0 },
   hint: { fontSize: 12, lineHeight: 1.5 * 12, marginTop: 14, textAlign: 'center' },
 });
