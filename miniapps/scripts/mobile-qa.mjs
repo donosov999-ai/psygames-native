@@ -7,7 +7,7 @@ import { chromium } from '@playwright/test';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const screenshotRoot = path.join(root, 'qa', 'screenshots');
-const baseUrl = 'http://127.0.0.1:4173/mini';
+const baseUrl = process.env.QA_BASE_URL ?? 'http://127.0.0.1:4173/mini';
 const slugs = [
   '3-minute-brain-check',
   'schulte-speed',
@@ -21,6 +21,7 @@ const slugs = [
 ];
 const requestedSlug = process.env.QA_SLUG;
 const selectedSlugs = requestedSlug ? slugs.filter((slug) => slug === requestedSlug) : slugs;
+const useLocalPreview = !process.env.QA_BASE_URL;
 
 if (requestedSlug && selectedSlugs.length === 0) {
   throw new Error(`Unknown QA_SLUG: ${requestedSlug}`);
@@ -29,14 +30,16 @@ if (requestedSlug && selectedSlugs.length === 0) {
 await mkdir(screenshotRoot, { recursive: true });
 
 const viteBin = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
-const preview = spawn(process.execPath, [viteBin, 'preview', '--host', '127.0.0.1', '--port', '4173'], {
-  cwd: root,
-  stdio: ['ignore', 'pipe', 'pipe'],
-});
+const preview = useLocalPreview
+  ? spawn(process.execPath, [viteBin, 'preview', '--host', '127.0.0.1', '--port', '4173'], {
+      cwd: root,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+  : null;
 
 let previewLog = '';
-preview.stdout.on('data', (chunk) => { previewLog += chunk.toString(); });
-preview.stderr.on('data', (chunk) => { previewLog += chunk.toString(); });
+preview?.stdout.on('data', (chunk) => { previewLog += chunk.toString(); });
+preview?.stderr.on('data', (chunk) => { previewLog += chunk.toString(); });
 
 async function waitForServer() {
   const deadline = Date.now() + 15_000;
@@ -304,5 +307,5 @@ try {
   console.log(`Responsive QA passed: hub + ${report.length}/${selectedSlugs.length} games, intro/play/result, 390x844; desktop hub 1440x900.`);
 } finally {
   if (browser) await browser.close();
-  preview.kill();
+  preview?.kill();
 }
