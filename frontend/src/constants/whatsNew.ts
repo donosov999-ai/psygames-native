@@ -16,6 +16,40 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.191.0',
+    date: '2026-08-12',
+    ru: [
+      'Вечерняя зарядка больше не вылетает: в сортировке товаров кнопки были вложены друг в друга, и от этого рвались нажатия',
+      'Приложение запускается без интернета: раньше оно ждало недоступный адрес — теперь сразу берёт рабочий, а прямой перепроверяет фоном',
+      'Маджонг и сортировка в зарядке перестали сбрасывать уровень: партия стартовала раньше, чем прогресс успевал загрузиться',
+      'Судоку: незаконченная партия сохраняется — вышли из игры и вернулись, доска на месте. Добавлена отмена хода и раскраска клеток',
+      'Судоку: в справке снова есть правила текущего варианта, а на карте уровней видно ступень сложности',
+      'Гимнастика для глаз: точка внизу больше не уходит за край экрана',
+      'Фонематическая беглость: серия снова запускается — набор букв не подходил под язык профиля',
+      'История: буквы в поле для числа больше не прячутся за клавиатурой',
+      'Новое: календарь серии тренировок, карточка «Продолжить партию» на главной, выбор первой игры при запуске',
+      'На экране итога Шульте и N-back виден лучший результат среди игроков',
+      'Отмена хода появилась в Ханойской башне и Башне Лондона',
+      'Голосовая заметка: теперь её можно прослушать до отправки — микрофон иногда пишет шум вместо голоса',
+      'Настройки: переключатели получили подписи для озвучивания экрана',
+    ],
+    en: [
+      'The evening warm-up no longer crashes: in Goods Sort the buttons were nested inside each other, which broke taps',
+      'The app starts without internet: it used to wait for an unreachable address — now it takes the working one at once and rechecks the direct one in the background',
+      'Mahjong and Goods Sort stopped resetting your level in the warm-up: the round started before progress had loaded',
+      'Sudoku: an unfinished game is saved — leave and come back, the board is still there. Undo and cell colouring added',
+      'Sudoku: the help shows the current variant’s rule again, and the level map shows each level’s difficulty',
+      'Eye gym: the dot at the bottom no longer slips off the screen',
+      'Phonemic fluency: the round starts again — the letter set did not match the profile language',
+      'Story recall: the number field no longer hides behind the keyboard',
+      'New: a training streak calendar, a “Continue game” card on the home screen, and a first-game picker at launch',
+      'Schulte and N-back result screens now show the best score among players',
+      'Undo arrived in the Tower of Hanoi and the Tower of London',
+      'Voice note: you can now play it back before sending — the microphone sometimes records noise instead of your voice',
+      'Settings: the switches now have labels for screen readers',
+    ],
+  },
+  {
     version: '1.190.2',
     date: '2026-08-07',
     ru: [
