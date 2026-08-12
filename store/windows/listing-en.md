@@ -34,7 +34,7 @@ Sit down to work — and two hours later you still haven't reached for the phone
 
 That's not a gift you're born with. It's trained — and here you can see by how much.
 
-PsyGames is brain training with 61 exercises for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
+PsyGames is brain training with 63 exercises for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
 
 WHY THE DESKTOP VERSION IS THE ONE THAT STICKS
 
@@ -67,7 +67,7 @@ Most brain apps are the same drill at the same difficulty, and progress you have
 
 WHAT'S INSIDE
 
-• 61 exercises for memory, attention, logic, speed and control
+• 63 exercises for memory, attention, logic, speed and control
 • Warm-up in one button: morning, daytime, evening and night — ready sets launch with the right settings
 • 12 profiles for different goals: languages, kids, 50+, focus, reaction, founders and more
 • Assessment with a radar of strengths and weak spots
@@ -107,7 +107,7 @@ Install and play. Progress is stored on your device. Optional anonymous cloud sy
 Лимит 20 пунктов, по одной строке. Первые три видны в плитке — там самое сильное.
 
 ```
-61 exercises for memory, attention, logic and speed
+63 exercises for memory, attention, logic and speed
 Full-screen Schulte tables, matrices and Sudoku
 Levels that adapt: rise when you nail it, wait when you miss
 Sudoku with 12 rule variants
