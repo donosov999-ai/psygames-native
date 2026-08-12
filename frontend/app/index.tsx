@@ -360,7 +360,7 @@ function FullHome() {
             activeOpacity={0.8}
             onPress={() => router.push('/pet' as any)}
             accessibilityLabel={t('petSynapse')}
-            style={{ width: 36, flexShrink: 0, marginLeft: 6, alignItems: 'center', alignSelf: 'center' }}
+            style={{ width: 44, height: 44, marginVertical: -6, flexShrink: 0, marginLeft: 2, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' }}
           >
             <Image source={petFrame(petSkin, 'idle', 0)} style={{ width: 32, height: 32 }} resizeMode="contain" />
           </TouchableOpacity>
@@ -378,6 +378,10 @@ function FullHome() {
               alignItems: 'center',
               gap: 6,
               alignSelf: 'flex-start',
+              // Зона нажатия 44 при прежнем виде: отрицательный отступ гасит прибавку,
+              // чтобы шапка не разъехалась. Тот же приём, что у полоски лиг.
+              minHeight: 44,
+              marginVertical: -6,
               backgroundColor: profile.color + '22',
               borderWidth: frameColor ? 2.5 : 1.5,
               borderColor: frameColor ?? profile.color + '88',
