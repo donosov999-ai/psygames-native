@@ -313,7 +313,7 @@ function FullHome() {
                 accessibilityRole="button"
                 activeOpacity={0.8}
                 onPress={() => router.push('/shop' as any)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#fbbf2422', borderWidth: 1.5, borderColor: '#f59e0b', paddingVertical: 4, paddingHorizontal: 8, borderRadius: 100 }}
+                style={{ flexDirection: 'row', alignItems: 'center', minHeight: 44, marginVertical: -7, gap: 5, backgroundColor: '#fbbf2422', borderWidth: 1.5, borderColor: '#f59e0b', paddingVertical: 4, paddingHorizontal: 8, borderRadius: 100 }}
               >
                 <Text style={{ fontSize: 14 }}>⭐</Text>
                 <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>{tokens}</Text>
@@ -326,7 +326,7 @@ function FullHome() {
                 accessibilityLabel={`${t('streakLabel')}: ${streak}`}
                 activeOpacity={0.8}
                 onPress={() => router.push('/streak-calendar' as any)}
-                style={{ minWidth: 44, minHeight: 34, paddingHorizontal: 7, borderRadius: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f973161c', borderWidth: 1.5, borderColor: '#f97316' }}
+                style={{ minWidth: 44, minHeight: 44, marginVertical: -5, paddingHorizontal: 7, borderRadius: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f973161c', borderWidth: 1.5, borderColor: '#f97316' }}
               >
                 <Text style={{ color: colors.text, fontWeight: '900', fontSize: 13 }}>🔥{streak}</Text>
               </TouchableOpacity>

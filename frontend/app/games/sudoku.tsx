@@ -810,6 +810,10 @@ export default function SudokuGame() {
           icon="help-circle-outline"
           accessibilityLabel={t('rulesWord')}
           onPress={() => setRulesOpen(true)}
+          // Кнопка без подписи ужималась по содержимому до 36 точек в ширину.
+          // Задаём квадрат по минимуму нажатия: у иконки нет текста, который
+          // растянул бы её сам.
+          style={{ width: 48 }}
         />
       </View>
       <TouchableOpacity

@@ -815,7 +815,7 @@ export default function SettingsScreen() {
               <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{t('exportGetCode')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityRole="button" onPress={() => setTransferMode('import')} style={{ flexGrow: 1, minWidth: 0, borderWidth: 1.5, borderColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
+              accessibilityRole="button" onPress={() => setTransferMode('import')} style={{ flexGrow: 1, minWidth: 0, minHeight: 48, justifyContent: 'center', borderWidth: 1.5, borderColor: colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}>
               <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{t('importPasteCode')}</Text>
             </TouchableOpacity>
           </View>
@@ -988,7 +988,7 @@ export default function SettingsScreen() {
                     <Text style={{ color: '#fff', fontWeight: '700' }}>{t('copy')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    accessibilityRole="button" onPress={() => setTransferMode('none')} style={{ borderWidth: 1.5, borderColor: colors.border, borderRadius: 10, paddingVertical: 11, paddingHorizontal: 18, alignItems: 'center' }}>
+                    accessibilityRole="button" onPress={() => setTransferMode('none')} style={{ borderWidth: 1.5, minHeight: 48, justifyContent: 'center', borderColor: colors.border, borderRadius: 10, paddingVertical: 11, paddingHorizontal: 18, alignItems: 'center' }}>
                     <Text style={{ color: colors.text, fontWeight: '700' }}>{t('close')}</Text>
                   </TouchableOpacity>
                 </View>

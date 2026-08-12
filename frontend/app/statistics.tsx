@@ -132,7 +132,7 @@ export default function StatisticsScreen() {
         <TouchableOpacity
           accessibilityRole="button"
           onPress={() => setScopeAll(false)}
-          style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center',
+          style={{ flex: 1, paddingVertical: 8, minHeight: 48, justifyContent: 'center', borderRadius: 10, alignItems: 'center',
             backgroundColor: !scopeAll ? colors.primary : colors.surface,
             borderWidth: 1, borderColor: !scopeAll ? colors.primary : colors.border }}>
           <Text style={{ fontSize: 12, fontWeight: '700', color: !scopeAll ? '#fff' : colors.text }}>
@@ -142,7 +142,7 @@ export default function StatisticsScreen() {
         <TouchableOpacity
           accessibilityRole="button"
           onPress={() => setScopeAll(true)}
-          style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center',
+          style={{ flex: 1, paddingVertical: 8, minHeight: 48, justifyContent: 'center', borderRadius: 10, alignItems: 'center',
             backgroundColor: scopeAll ? colors.primary : colors.surface,
             borderWidth: 1, borderColor: scopeAll ? colors.primary : colors.border }}>
           <Text style={{ fontSize: 12, fontWeight: '700', color: scopeAll ? '#fff' : colors.text }}>
