@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
-  ScrollView
+  ScrollView, Animated, PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -106,6 +106,157 @@ export default function HanoiGame() {
     timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
   };
 
+  /**
+   * ПЕРЕТАСКИВАНИЕ ДИСКОВ (просьба Дениса 12.08).
+   *
+   * ЗАЧЕМ. Ханойская башня — единственная игра, где предмет физически ПЕРЕКЛАДЫВАЮТ,
+   * и до сих пор это делалось двумя нажатиями: тап по стержню-источнику, тап по цели.
+   * Способ рабочий, но он описывает ход, а не совершает его: рука не чувствует, что
+   * диск тяжёлый и что на маленький его класть нельзя. Смысл головоломки — в ощущении
+   * ограничения, и оно теряется.
+   *
+   * ⚠️ НАЖАТИЯ ОСТАВЛЕНЫ. Перетаскивание не заменяет тапы, а добавляется: тащить мышью
+   * или пальцем по длинной дуге тяжело тем, у кого проблемы с моторикой, а игра до сих
+   * пор была им доступна. Отнять единственный способ игры ради нового — плохой размен.
+   * Различаем по расстоянию: сдвиг меньше DRAG_SLOP считается нажатием.
+   */
+  const DRAG_SLOP = 8;
+  const areaRef = useRef<View>(null);
+  const areaX = useRef(0);
+  const areaW = useRef(0);
+  const dragPos = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  const [dragging, setDragging] = useState<{ from: number; size: number } | null>(null);
+  const [hoverPeg, setHoverPeg] = useState<number | null>(null);
+  const dragRef = useRef<{ from: number; size: number } | null>(null);   // panResponder замыкает старое состояние
+
+  /**
+   * Положение поля на экране. Замеряем в момент захвата, а не в onLayout: measureInWindow
+   * там возвращал нули (проверено отладкой 12.08 — жест доходил до захвата, но стержень
+   * не определялся никогда, потому что ширина и левый край оставались нулевыми). К моменту
+   * первого касания элемент заведомо на месте, и замер честный.
+   */
+  const syncAreaBounds = () => {
+    const node: any = areaRef.current;
+    if (!node) return;
+    if (typeof node.getBoundingClientRect === 'function') {
+      const r = node.getBoundingClientRect();
+      areaX.current = r.left; areaW.current = r.width;
+      return;
+    }
+    node.measureInWindow?.((x: number, _y: number, w: number) => { areaX.current = x; areaW.current = w; });
+  };
+
+  /** Стержень под точкой x (в координатах экрана). null — мимо поля. */
+  const pegAtX = (pageX: number): number | null => {
+    if (!areaW.current || !pegsRef.current.length) return null;
+    const rel = pageX - areaX.current;
+    if (rel < 0 || rel > areaW.current) return null;
+    const n = pegsRef.current.length;
+    const i = Math.floor((rel / areaW.current) * n);
+    return Math.min(Math.max(i, 0), n - 1);
+  };
+
+  /** Ляжет ли диск, который в руке, на стержень idx. Правило то же, что в moveDisc. */
+  const canDrop = (idx: number): boolean => {
+    if (!dragging) return false;
+    const dst = pegs[idx];
+    return dst.length === 0 || dst[dst.length - 1] > dragging.size;
+  };
+
+  const pan = useRef(
+    PanResponder.create({
+      // Касание НЕ перехватываем: короткий тап должен достаться кнопке стержня —
+      // это же путь, которым игру активирует скринридер. Жест включается только когда
+      // палец реально поехал. Иначе один тап обработался бы дважды: и кнопкой, и здесь.
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > DRAG_SLOP || Math.abs(g.dy) > DRAG_SLOP,
+      // ⚠️ Без Capture перетаскивание не работает вовсе: кнопка стержня забирает жест
+      // на касании и держит его, а родителя система уже не спрашивает. Capture поднимает
+      // вопрос ДО детей — но только когда палец сдвинулся дальше DRAG_SLOP, поэтому
+      // короткий тап по-прежнему достаётся кнопке.
+      onMoveShouldSetPanResponderCapture: (_e, g) => Math.abs(g.dx) > DRAG_SLOP || Math.abs(g.dy) > DRAG_SLOP,
+
+      onPanResponderGrant: (e) => {
+        syncAreaBounds();
+        const idx = pegAtX(e.nativeEvent.pageX);
+        if (idx === null) return;
+        const peg = pegsRef.current[idx];
+        if (!peg.length) return;
+        const size = peg[peg.length - 1];
+        dragRef.current = { from: idx, size };
+        setDragging({ from: idx, size });
+        setHoverPeg(idx);
+        dragPos.setValue({ x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
+      },
+
+      onPanResponderMove: (e) => {
+        if (!dragRef.current) return;
+        dragPos.setValue({ x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
+        setHoverPeg(pegAtX(e.nativeEvent.pageX));
+      },
+
+      onPanResponderRelease: (e) => {
+        const held = dragRef.current;
+        dragRef.current = null;
+        setDragging(null);
+        setHoverPeg(null);
+        const target = pegAtX(e.nativeEvent.pageX);
+
+        if (!held || target === null || target === held.from) return;
+        void moveDiscRef.current(held.from, target);
+      },
+
+      onPanResponderTerminate: () => { dragRef.current = null; setDragging(null); setHoverPeg(null); },
+    }),
+  ).current;
+
+  /**
+   * Сам ход: снять верхний диск со стержня from и положить на to.
+   *
+   * Вынесен из обработчика нажатия, потому что теперь ходов два способа — нажатия и
+   * перетаскивание, — и правило «на меньший диск больший не кладётся» обязано быть
+   * ОДНО. Продублируй его во втором месте, и рано или поздно способы разойдутся:
+   * перетаскиванием пройдёт то, что нажатием не проходит, и это будет выглядеть
+   * не как разные проверки, а как то, что игра сжульничала.
+   */
+  const moveDisc = async (from: number, to: number) => {
+    const src = pegs[from];
+    const dst = pegs[to];
+    if (!src.length) return;
+    const top = src[src.length - 1];
+    if (dst.length !== 0 && dst[dst.length - 1] <= top) {
+      setErrors((e) => e + 1);
+      setSelected(null);
+      return;
+    }
+    const np = pegs.map((p) => [...p]);
+    np[to].push(np[from].pop()!);
+    setPegs(np);
+    moveHistory.push({ from, to });
+    setMoves((m) => m + 1);
+    setSelected(null);
+    // Победа — все диски на ПОСЛЕДНЕМ стержне (работает для 3/4/5 стержней)
+    if (np[np.length - 1].length === discs) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      const finalTime = (Date.now() - startTime) / 1000;
+      setElapsedTime(finalTime);
+      if (!isPreset) lvl.reach(levelRef.current + 1);   // решил пазл → +уровень
+      setPhase(isPreset ? 'result' : 'cleared');
+      try {
+        await saveSession({
+          passed: true,   // сессия пишется только когда уровень собран
+          game_type: 'hanoi',
+          score: Math.max(0, Math.round(1000 - (moves + 1 - optimal(discs)) * 50 - finalTime)),
+          time_seconds: finalTime,
+          difficulty: `${discs} discs`,
+          mode: 'classic',
+          errors,
+          details: { moves: moves + 1, optimal: optimal(discs) },
+        });
+      } catch (e) { console.error(e); }
+    }
+  };
+
   const handlePegPress = async (idx: number) => {
     if (selected === null) {
       if (pegs[idx].length === 0) return;
@@ -113,41 +264,18 @@ export default function HanoiGame() {
       return;
     }
     if (selected === idx) { setSelected(null); return; }
-    const from = pegs[selected];
-    const to = pegs[idx];
-    const top = from[from.length - 1];
-    if (to.length === 0 || to[to.length - 1] > top) {
-      const np = pegs.map((p) => [...p]);
-      np[idx].push(np[selected].pop()!);
-      setPegs(np);
-      moveHistory.push({ from: selected, to: idx });
-      setMoves((m) => m + 1);
-      setSelected(null);
-      // Check win — все диски на ПОСЛЕДНЕМ стержне (работает для 3/4/5 стержней)
-      if (np[np.length - 1].length === discs) {
-        if (timerRef.current) clearInterval(timerRef.current);
-        const finalTime = (Date.now() - startTime) / 1000;
-        setElapsedTime(finalTime);
-        if (!isPreset) lvl.reach(levelRef.current + 1);   // решил пазл → +уровень
-        setPhase(isPreset ? 'result' : 'cleared');   // личная игра → авто-поток к следующему уровню; пресет → обычный результат
-        try {
-          await saveSession({
-            passed: true,   // сессия пишется только когда уровень собран
-            game_type: 'hanoi',
-            score: Math.max(0, Math.round(1000 - (moves + 1 - optimal(discs)) * 50 - finalTime)),
-            time_seconds: finalTime,
-            difficulty: `${discs} discs`,
-            mode: 'classic',
-            errors,
-            details: { moves: moves + 1, optimal: optimal(discs) },
-          });
-        } catch (e) { console.error(e); }
-      }
-    } else {
-      setErrors((e) => e + 1);
-      setSelected(null);
-    }
+    await moveDisc(selected, idx);
   };
+
+  // Обработчик жеста создаётся один раз и замыкает состояние первого рендера.
+  // Через ссылки он всегда видит свежие доски и функции — без этого перетаскивание
+  // ходило бы по расстановке, которая была в момент запуска уровня.
+  const pegsRef = useRef(pegs);
+  pegsRef.current = pegs;
+  const handlePegPressRef = useRef(handlePegPress);
+  handlePegPressRef.current = handlePegPress;
+  const moveDiscRef = useRef(moveDisc);
+  moveDiscRef.current = moveDisc;
 
   const handleUndo = () => {
     const move = moveHistory.undo();
@@ -218,7 +346,12 @@ export default function HanoiGame() {
       }
     >
       <View style={styles.fieldCol}>
-      <View style={styles.pegsArea}>
+      <View
+        style={styles.pegsArea}
+        {...pan.panHandlers}
+        ref={areaRef}
+        onLayout={(e) => { areaW.current = e.nativeEvent.layout.width; }}
+      >
         {pegs.map((peg, idx) => (
           <TouchableOpacity
             accessibilityRole="button"
@@ -229,7 +362,13 @@ export default function HanoiGame() {
               styles.pegContainer,
               {
                 width: pegW,
-                borderColor: selected === idx ? GRADIENT[0] : 'transparent',
+                // Подсветка: выбранный нажатием — синим, стержень под пальцем при
+                // перетаскивании — зелёным, если диск туда ЛЯЖЕТ, и красным, если нет.
+                // Ответ до отпускания: иначе про запрет узнаёшь уже ошибкой в счётчике.
+                borderColor:
+                  dragging && hoverPeg === idx
+                    ? (canDrop(idx) ? '#22c55e' : '#f43f5e')
+                    : selected === idx ? GRADIENT[0] : 'transparent',
               },
             ]}
           >
@@ -239,7 +378,11 @@ export default function HanoiGame() {
                   сверху вниз, поэтому массив разворачиваем: без reverse широкий диск оказывался
                   наверху, а узкий у основания — перевёрнутая пирамида. key=size: размеры на
                   одном стержне уникальны, индекс после reverse нестабилен. */}
-              {peg.slice().reverse().map((size) => (
+              {peg.slice().reverse()
+                // Диск, который сейчас в руке, со стержня убираем: иначе он был бы
+                // виден в двух местах разом, и непонятно, где он на самом деле.
+                .filter((size) => !(dragging && dragging.from === idx && dragging.size === size))
+                .map((size) => (
                 <LinearGradient
                   key={size}
                   colors={[
@@ -259,6 +402,38 @@ export default function HanoiGame() {
           </TouchableOpacity>
         ))}
       </View>
+      {/* Диск в руке. Рисуется поверх всего и следует за пальцем; смещение на половину
+          ширины и на высоту диска ставит его ПОД палец, а не под него центром — иначе
+          собственный палец закрывает то, что несёшь. pointerEvents='none', чтобы диск
+          не перехватывал жест у поля под собой. */}
+      {dragging && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.dragLayer,
+            { transform: [{ translateX: dragPos.x }, { translateY: dragPos.y }] },
+          ]}
+        >
+          <LinearGradient
+            colors={[
+              `hsl(${baseHue}, 68%, ${Math.min(82, 55 + (dragging.size / discs) * 28)}%)`,
+              `hsl(${baseHue}, 74%, ${Math.max(34, 42 + (dragging.size / discs) * 18)}%)`,
+            ]}
+            start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+            style={[
+              styles.disc,
+              styles.discDragged,
+              {
+                width: discBaseW + dragging.size * discStep,
+                marginLeft: -(discBaseW + dragging.size * discStep) / 2,
+              },
+            ]}
+          >
+            <View style={styles.discShine} pointerEvents="none" />
+            <Text style={styles.discLabel} numberOfLines={1}>{dragging.size}</Text>
+          </LinearGradient>
+        </Animated.View>
+      )}
       <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('hanoiHint')}</Text>
       </View>
     </GameShell>
@@ -344,6 +519,10 @@ const styles = StyleSheet.create({
   pegStack: { alignItems: 'center', justifyContent: 'flex-end', position: 'relative', minHeight: 220 },
   pole: { position: 'absolute', width: 6, height: 200, bottom: 4, borderRadius: 3, opacity: 0.3 },
   pegBase: { height: 8, borderRadius: 4 },
+  // Слой в координатах ОКНА: жест отдаёт pageX/pageY, поэтому и слой абсолютный от края
+  // экрана, иначе диск улетал бы на величину отступов родителя.
+  dragLayer: { position: 'absolute', left: 0, top: 0, zIndex: 50 },
+  discDragged: { marginTop: -34, opacity: 0.95, shadowOpacity: 0.45, shadowRadius: 8, elevation: 8 },
   disc: { height: 22, marginTop: 2, borderRadius: 7, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   discShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%', backgroundColor: 'rgba(255,255,255,0.28)' },
   discLabel: { position: 'absolute', left: 0, right: 0, top: 3, textAlign: 'center', fontSize: 12, fontWeight: '800', color: 'rgba(25,15,0,0.62)' },

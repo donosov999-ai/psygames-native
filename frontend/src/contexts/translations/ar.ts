@@ -168,7 +168,7 @@ const t: Record<string, string> = {
   "discsCount": "الأقراص",
   "hanoiOptimal": "الأمثل",
   "movesLabel": "نقلات",
-  "hanoiHint": "اضغط وتد المصدر أولًا ثم وتد الوجهة",
+  "hanoiHint": "اسحب القرص إلى وتد آخر — أو اضغط: المصدر أولًا ثم الوجهة",
   "benefitHanoi1": "خطّط للمهام متعددة الخطوات بشكل أفضل",
   "benefitHanoi2": "نمِّ التفكير العودي",
   "benefitHanoi3": "أبصر البنية داخل المشكلات",

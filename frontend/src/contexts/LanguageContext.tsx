@@ -312,7 +312,7 @@ const translations: Translations = {
   discsCount: { ru: 'Дисков', en: 'Discs' },
   hanoiOptimal: { ru: 'Минимум', en: 'Optimal' },
   movesLabel: { ru: 'ходов', en: 'moves' },
-  hanoiHint: { ru: 'Сначала кликни на стержень-источник, потом на стержень-цель', en: 'Tap source peg first, then target peg' },
+  hanoiHint: { ru: 'Перетащи диск на другой стержень — или кликни: сначала источник, потом цель', en: 'Drag a disc to another peg — or tap: source first, then target' },
   benefitHanoi1: { ru: 'Лучше планировать многошаговые задачи', en: 'Better at planning multi-step tasks' },
   benefitHanoi2: { ru: 'Развить рекурсивное мышление', en: 'Develop recursive thinking' },
   benefitHanoi3: { ru: 'Видеть структуру в проблеме', en: 'See structure inside problems' },

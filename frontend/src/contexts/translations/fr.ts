@@ -168,7 +168,7 @@ const t: Record<string, string> = {
   "discsCount": "Disques",
   "hanoiOptimal": "Optimal",
   "movesLabel": "coups",
-  "hanoiHint": "Touche d'abord la tige source, puis la tige cible",
+  "hanoiHint": "Fais glisser un disque vers une autre tige — ou touche : source puis cible",
   "benefitHanoi1": "Mieux planifier les tâches en plusieurs étapes",
   "benefitHanoi2": "Développer la pensée récursive",
   "benefitHanoi3": "Voir la structure dans les problèmes",
