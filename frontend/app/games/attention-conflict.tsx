@@ -18,7 +18,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, Redirect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,12 +61,20 @@ const SUB_GAMES = [
   },
 ];
 
+function DemoAttentionRedirect() {
+  const router = useRouter();
+  React.useEffect(() => {
+    const qs = typeof window !== 'undefined' ? window.location.search : '';
+    router.replace(('/games/flanker' + qs) as any);
+  }, [router]);
+  return null;
+}
+
 export default function AttentionConflictGame() {
   // Web-demo: хаб-выбор парадигмы не показываем — сразу первая подигра.
   // Query (embed=1, lang=…) обязан пережить редирект — embed-контракт с сайтом.
   if (isWebDemo()) {
-    const qs = typeof window !== 'undefined' ? window.location.search : '';
-    return <Redirect href={('/games/flanker' + qs) as any} />;
+    return <DemoAttentionRedirect />;
   }
 
   const { colors } = useTheme();

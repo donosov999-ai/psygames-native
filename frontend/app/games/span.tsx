@@ -14,7 +14,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, Redirect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,13 +49,21 @@ const SUB_GAMES = [
   },
 ];
 
+function DemoSpanRedirect() {
+  const router = useRouter();
+  React.useEffect(() => {
+    const qs = typeof window !== 'undefined' ? window.location.search : '';
+    router.replace(('/games/digit-span' + qs) as any);
+  }, [router]);
+  return null;
+}
+
 export default function SpanGame() {
   // Web-demo: хаб-выбор модальности не показываем — сразу первая подигра.
   // Query (embed=1, lang=…) обязан пережить редирект — embed-контракт с сайтом
   // (запись Кодекса в SYNC 22.07: терялись embed/lang → всплывало интро).
   if (isWebDemo()) {
-    const qs = typeof window !== 'undefined' ? window.location.search : '';
-    return <Redirect href={('/games/digit-span' + qs) as any} />;
+    return <DemoSpanRedirect />;
   }
 
   const { colors } = useTheme();

@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { Dimensions, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { usePathname } from 'expo-router';
+import { isPhysicalPhoneLandscape } from '@/src/services/orientation';
 
 // ЗАЧЕМ ЭТОТ КОМПОНЕНТ И ПОЧЕМУ ОН БОЛЬШЕ НЕ «ЛОК».
 // Ориентацию задаёт СИСТЕМА, а не приложение: Android-манифест патчится в
@@ -38,7 +39,11 @@ const TXT: Record<string, [string, string, string]> = {
 const LANDSCAPE_OK = ['/games/sudoku'];
 
 export default function OrientationGuard() {
-  const { width, height } = useWindowDimensions();
+  // Подписка нужна для реального поворота. Само решение берём по `screen`, а не
+  // по `window`: экранная клавиатура сжимает window и раньше выглядела как
+  // ложный landscape (375×330), закрывая поле ввода нашим же оверлеем.
+  useWindowDimensions();
+  const physicalScreen = Dimensions.get('screen');
   const { colors } = useTheme();
   const { language } = useLanguage();
   const pathname = usePathname();
@@ -49,8 +54,8 @@ export default function OrientationGuard() {
   if (!pathname?.startsWith('/games/')) return null;
   // у этого экрана свой landscape-режим → не перехватываем
   if (LANDSCAPE_OK.some((r) => pathname.startsWith(r))) return null;
-  // телефон в горизонтали: ширина > высоты И высота мала (десктоп/планшет шире → не трогаем)
-  const isPhoneLandscape = width > height && height < 480;
+  // телефон физически в горизонтали; клавиатура размеры screen не меняет
+  const isPhoneLandscape = isPhysicalPhoneLandscape(physicalScreen);
   if (!isPhoneLandscape || dismissed) return null;
 
   const [title, sub, cta] = TXT[language] || TXT.en;

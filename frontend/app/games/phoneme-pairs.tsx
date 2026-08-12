@@ -18,6 +18,7 @@ import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
+import { useTtsAvailable } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
@@ -181,7 +182,7 @@ export default function PhonemePairsGame() {
 
   // язык тренировки не должен совпадать с языком интерфейса
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
-  const voiceOk = ttsAvailable(tgt);
+  const voiceOk = useTtsAvailable(tgt);
 
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);

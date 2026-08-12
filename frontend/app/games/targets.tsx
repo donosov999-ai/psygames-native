@@ -472,7 +472,7 @@ export default function TargetsGame() {
       </Text>
       
       <TouchableOpacity
-        accessibilityRole="button" style={styles.startButton} onPress={beginRounds}>
+        accessibilityRole="button" style={[styles.startButton, styles.readyStartButton]} onPress={beginRounds}>
         <LinearGradient
           colors={GRADIENT as [string, string]}
           start={{ x: 0, y: 0 }}
@@ -670,6 +670,7 @@ const styles = StyleSheet.create({
   },
   levelButtonText: { fontSize: 16, fontWeight: '600' },
   startButton: { marginTop: 10 },
+  readyStartButton: { width: '100%', maxWidth: 280 },
   startButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',

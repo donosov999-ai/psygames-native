@@ -21,6 +21,7 @@ import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
+import { useTtsAvailable } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import { generatePseudowords } from '@/src/services/pseudowords';
 import GameResult from '@/src/components/GameResult';
@@ -174,7 +175,7 @@ export default function PseudowordEchoGame() {
 
   // валидный целевой язык: не совпадает с языком интерфейса
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
-  const voiceOk = ttsAvailable(tgt);
+  const voiceOk = useTtsAvailable(tgt);
 
   // сохранённый выбор языка тренировки (пресет из зарядки имеет приоритет)
   useEffect(() => {

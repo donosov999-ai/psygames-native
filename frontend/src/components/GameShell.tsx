@@ -59,6 +59,7 @@ export default function GameShell({
   // RTL: стрелка «назад» смотрит вправо, отступ под кнопку фидбека зеркалится
   const { language, t } = useLanguage();
   const rtl = isRTLLang(language);
+  const fieldScrollRef = React.useRef<ScrollView>(null);
   // v1.160: пока открыт отзыв — игра на паузе (репорт Вали «писала отзыв, пауза
   // не наступила, и теперь не понимаю, что за игра»). Оверлей ловит тапы, чтобы
   // не проиграть вслепую, и возвращает контекст после закрытия окна.
@@ -71,8 +72,39 @@ export default function GameShell({
     return () => sub.remove();
   }, []);
 
+  // Android-сборка — WebView (Platform.OS === 'web'). Клавиатура уменьшает
+  // visual viewport, но браузер не всегда докручивает вложенный RN ScrollView
+  // к активному полю. В итоге input остаётся ниже видимой части, хотя viewport
+  // meta уже содержит interactive-widget=resizes-content. Два шага нужны для
+  // начала и конца анимации клавиатуры; обычные экраны без активного ввода не
+  // двигаются вообще.
+  React.useEffect(() => {
+    if (!scrollableField || Platform.OS !== 'web' || typeof window === 'undefined' || typeof document === 'undefined') return;
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const revealFocusedField = () => {
+      const active = document.activeElement as HTMLElement | null;
+      const isTextEntry = active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.isContentEditable;
+      if (!isTextEntry) return;
+      for (const delay of [60, 320]) {
+        const tm = setTimeout(() => {
+          fieldScrollRef.current?.scrollToEnd({ animated: true });
+          timers.delete(tm);
+        }, delay);
+        timers.add(tm);
+      }
+    };
+    window.addEventListener('resize', revealFocusedField);
+    window.visualViewport?.addEventListener('resize', revealFocusedField);
+    return () => {
+      window.removeEventListener('resize', revealFocusedField);
+      window.visualViewport?.removeEventListener('resize', revealFocusedField);
+      timers.forEach(clearTimeout);
+    };
+  }, [scrollableField]);
+
   const field = scrollableField ? (
     <ScrollView
+      ref={fieldScrollRef}
       style={styles.fieldScroll}
       contentContainerStyle={styles.fieldScrollContent}
       keyboardShouldPersistTaps="handled"

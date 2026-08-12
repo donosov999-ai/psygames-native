@@ -1,6 +1,7 @@
 import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from '@/src/contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from '@/src/contexts/LanguageContext';
 import { applyRTL, isRTLLang } from '@/src/services/rtl';
@@ -14,6 +15,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import NativeInsetBridge from '@/src/components/NativeInsetBridge';
 import { pickSupabaseBase } from '@/src/services/supabase';
 import { flushFeedbackQueue } from '@/src/services/appFeedback';
+import { startSessionCloudSync } from '@/src/services/api';
 import UnlockToast from '@/src/components/UnlockToast';
 import AppErrorBoundary from '@/src/components/AppErrorBoundary';
 import UpdateGate from '@/src/components/UpdateGate';
@@ -112,13 +114,28 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-  // v1.170: один раз за запуск выбираем рабочий адрес Supabase. В РФ прямой
-  // домен режется, и без этого отзывы уходили в никуда без VPN. Не блокирует
-  // старт: до ответа пробы клиент работает на прямом адресе.
+  // Expo resets its static font registry before every route render, so this
+  // must run inside the root render (module-level registration is discarded).
+  // It is synchronous on the server and makes SSR/client icon markup identical.
+  if (Platform.OS === 'web' && typeof window === 'undefined') {
+    void Ionicons.loadFont().catch(() => {});
+  }
+
+  // Cloud не участвует в критическом пути старта. Сначала монтируем локальные
+  // экраны/игры, затем выбираем direct/relay и только после этого запускаем
+  // migration + две outbox-очереди. Ни один из промисов не блокирует UI.
   React.useEffect(() => {
-    pickSupabaseBase()
-      .then(() => flushFeedbackQueue())   // адрес выбран → дошлём то, что не ушло раньше
-      .catch(() => {});
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      pickSupabaseBase()
+        .then(() => {
+          if (cancelled) return;
+          startSessionCloudSync();
+          void flushFeedbackQueue();
+        })
+        .catch(() => {});
+    }, 1200);
+    return () => { cancelled = true; clearTimeout(timer); };
   }, []);
 
   return (
