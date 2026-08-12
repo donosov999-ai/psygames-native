@@ -136,6 +136,28 @@ const COZ = [
   require('../../assets/images/pairs_coz/c11.webp'),
 ];
 
+
+// Мозги (иконочный стиль) — профиль NZT-48 и «Предприниматель».
+// ⚠️ ОТЛИЧИЕ ОТ ОСТАЛЬНЫХ НАБОРОВ: спрайты здесь НЕ вырезаны по контуру, у каждого
+// свой фон-плашка. Так и задумано — это набор значков, и различаются они прежде
+// всего фоном и силуэтом сразу, а не мелкой деталью внутри. Для игры на пары это
+// даже удобнее: пару видно с одного взгляда, не приходится вглядываться.
+// Отобраны 12 из 20 сгенерированных — самые непохожие друг на друга.
+const BRAIN = [
+  require('../../assets/images/pairs_brain/b0.webp'),
+  require('../../assets/images/pairs_brain/b1.webp'),
+  require('../../assets/images/pairs_brain/b2.webp'),
+  require('../../assets/images/pairs_brain/b3.webp'),
+  require('../../assets/images/pairs_brain/b4.webp'),
+  require('../../assets/images/pairs_brain/b5.webp'),
+  require('../../assets/images/pairs_brain/b6.webp'),
+  require('../../assets/images/pairs_brain/b7.webp'),
+  require('../../assets/images/pairs_brain/b8.webp'),
+  require('../../assets/images/pairs_brain/b9.webp'),
+  require('../../assets/images/pairs_brain/b10.webp'),
+  require('../../assets/images/pairs_brain/b11.webp'),
+];
+
 export const PAIR_THEMES = {
   animals: ANIMALS,
   chess: CHESS,
@@ -145,6 +167,7 @@ export const PAIR_THEMES = {
   edu: EDU,
   geo: GEO,
   coz: COZ,
+  brain: BRAIN,
 } as const;
 
 export type PairTheme = keyof typeof PAIR_THEMES;
@@ -154,7 +177,10 @@ const PROFILE_PAIR_THEME: Record<string, PairTheme> = {
   kids: 'animals',
   free: 'animals',
   chess: 'chess',
-  nzt48: 'bio',
+  // НЗТ-48 — профиль про ноотропы и работу мозга, поэтому здесь набор «мозги».
+  // Остальные профили оставлены со своими наборами: они подобраны под характер
+  // профиля, и менять их без причины значит отнимать то, что уже работает.
+  nzt48: 'brain',
   odv999: 'bio',
   execs: 'biz',
   drivers: 'car',
@@ -181,6 +207,7 @@ export const PAIR_BACKS: Record<PairTheme, { color: string; icon: string }> = {
   edu:     { color: '#14b8a6', icon: 'school' },
   geo:     { color: '#2563eb', icon: 'earth' },
   coz:     { color: '#ec4899', icon: 'flower' },
+  brain:   { color: '#7f7fd5', icon: 'bulb' },
 };
 
 /** Цвет+иконка рубашки карты под активный профиль (дефолт — зелёная «лапка»). */
