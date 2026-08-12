@@ -20,7 +20,7 @@ import GameResult from '@/src/components/GameResult';
 import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -96,7 +96,7 @@ export default function NBackGame() {
   const [accuracyHistory, setAccuracyHistory] = useState<number[]>([]);
   const { isPreset, autostart, str, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (false → баннер «почти, ещё раз»)
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -354,6 +354,7 @@ export default function NBackGame() {
         <Text style={styles.configTitle}>{t('nBack')}</Text>
         <Text style={styles.configDesc}>{t('nBackDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="nBackIntroDesc" benefits={N_BACK_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="n_back" currentLevel={lvl.level} colors={colors} language={language} />
       <TouchableOpacity
         accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
@@ -532,18 +533,6 @@ export default function NBackGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('nBack')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro
-          nameKey="nBack"
-          icon="analytics"
-          gradient={GRADIENT as [string, string]}
-          skillKey="skillWorkingMemory"
-          descriptionKey="nBackIntroDesc"
-          benefits={N_BACK_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      )}
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       <LeaderboardModal

@@ -34,7 +34,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -115,7 +115,7 @@ export default function WcstGame() {
   // Зарядка/пресет (wu=1 в URL) → авто-старт классического режима, уровень не трогаем.
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [mode, setMode] = useState<Mode>('level');
   const [clearedPassed, setClearedPassed] = useState(true);
 
@@ -375,6 +375,7 @@ export default function WcstGame() {
           <Text style={styles.configTitle}>{t('wcst')}</Text>
           <Text style={styles.configDesc}>{t('wcstDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="wcstIntroDesc" benefits={WCST_BENEFITS} accent={GRADIENT[0]} />
 
         {/* Режим: Уровни (прогрессия) / Классический (чистая диагностика) */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -499,11 +500,6 @@ export default function WcstGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('wcst')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="wcst" icon="shuffle" gradient={GRADIENT as [string, string]}
-          skillKey="skillSwitching" descriptionKey="wcstIntroDesc"
-          benefits={WCST_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared gameId="wcst" level={levelRef.current} passed={clearedPassed}

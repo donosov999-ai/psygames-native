@@ -39,7 +39,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -340,7 +340,7 @@ export default function MentalRotationGame() {
   const lvl = usePersistentLevel('mental_rotation');
   const { isPreset, autostart, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [trials, setTrials] = useState(() => num('trials', 10));
 
   const [round, setRound] = useState(0);
@@ -454,6 +454,7 @@ export default function MentalRotationGame() {
           <Text style={styles.versionText}>3D · Shepard-Metzler</Text>
         </View>
       </LinearGradient>
+      <GameAbout descriptionKey="mentalRotationIntroDesc" benefits={MR_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="mental_rotation" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('level')} {lvl.level}</Text>
@@ -565,11 +566,6 @@ export default function MentalRotationGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('mentalRotation')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="mentalRotation" icon="cube" gradient={GRADIENT as [string, string]}
-          skillKey="skillSpatial" descriptionKey="mentalRotationIntroDesc"
-          benefits={MR_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (

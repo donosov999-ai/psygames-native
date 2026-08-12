@@ -16,7 +16,7 @@ import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
@@ -74,7 +74,7 @@ export default function OSpanGame() {
   const lvl = usePersistentLevel('ospan');   // персист-уровень = setSize − 2
   const router = useRouter();
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [setSize, setSetSize] = useState(4);
   // Справка правил уровня. enabled на eq: уравнение ждёт ответа (без таймера), модалка ничего не срывает.
   const levelRules = useLevelRules('ospan', lvl.level, OSPAN_RULES, phase === 'eq');
@@ -187,6 +187,7 @@ export default function OSpanGame() {
         <Text style={styles.configTitle}>{t('ospan')}</Text>
         <Text style={styles.configDesc}>{t('ospanDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="ospanIntroDesc" benefits={OSPAN_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="ospan" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
@@ -299,11 +300,6 @@ export default function OSpanGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('ospan')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="ospan" icon="calculator" gradient={GRADIENT as [string, string]}
-          skillKey="skillWorkingMemory" descriptionKey="ospanIntroDesc"
-          benefits={OSPAN_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (

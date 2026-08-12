@@ -9,7 +9,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -148,7 +148,7 @@ export default function VisualSearchGame() {
   const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('visual_search');   // уровень → тир (1=easy, 2=medium, ≥3=hard)
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [trials, setTrials] = useState(() => num('trials', 8));
 
   const [round, setRound] = useState(0);
@@ -297,6 +297,7 @@ export default function VisualSearchGame() {
         <Text style={styles.configTitle}>{t('visualSearch')}</Text>
         <Text style={styles.configDesc}>{t('visualSearchDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="visualSearchIntroDesc" benefits={VS_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="visual_search" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
@@ -426,11 +427,6 @@ export default function VisualSearchGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('visualSearch')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="visualSearch" icon="scan" gradient={GRADIENT as [string, string]}
-          skillKey="skillFocus" descriptionKey="visualSearchIntroDesc"
-          benefits={VS_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

@@ -26,7 +26,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -125,7 +125,7 @@ export default function SwitchingTaskGame() {
   const lvl = usePersistentLevel('switching_task');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
   const [mode, setMode] = useState<StimMode>(() => (str('stimMode', 'mix') as StimMode));
 
@@ -309,6 +309,7 @@ export default function SwitchingTaskGame() {
           <Text style={styles.configTitle}>{t('switchingTask')}</Text>
           <Text style={styles.configDesc}>{t('switchingTaskDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="switchingTaskIntroDesc" benefits={SW_BENEFITS} accent={GRADIENT[0]} />
 
         {/* Режим стимула + ПРАВИЛА (что оценивать) — меняет ПРАВИЛО игры, не сложность → оставлен */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -434,11 +435,6 @@ export default function SwitchingTaskGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('switchingTask')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="switchingTask" icon="swap-horizontal" gradient={GRADIENT as [string, string]}
-          skillKey="skillSwitching" descriptionKey="switchingTaskIntroDesc"
-          benefits={SW_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

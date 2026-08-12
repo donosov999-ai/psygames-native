@@ -32,7 +32,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -75,7 +75,7 @@ export default function GoNoGoGame() {
   const lvl = usePersistentLevel('go_no_go');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [round, setRound] = useState(0);
   const [totalTrials, setTotalTrials] = useState(24);
   const [stimulus, setStimulus] = useState<Stim | null>(null);
@@ -235,6 +235,7 @@ export default function GoNoGoGame() {
           <Text style={styles.configTitle}>{t('goNoGo')}</Text>
           <Text style={styles.configDesc}>{t('goNoGoDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="goNoGoIntroDesc" benefits={GO_BENEFITS} accent={GRADIENT[0]} />
         <LevelProgressMap gameId="go_no_go" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
@@ -315,11 +316,6 @@ export default function GoNoGoGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('goNoGo')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="goNoGo" icon="pause-circle" gradient={GRADIENT as [string, string]}
-          skillKey="skillInhibition" descriptionKey="goNoGoIntroDesc"
-          benefits={GO_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

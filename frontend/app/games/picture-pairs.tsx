@@ -13,7 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -90,7 +90,7 @@ export default function PicturePairsGame() {
 
   const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('picture_pairs');   // персист достигнутого уровня (раньше сбрасывался на 1)
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const gate = useLevelGate('picture_pairs');
   // Пресет (Зарядка) → одиночный раунд по фикс-настройкам; ручной запуск → игровой по умолчанию.
   const [mode, setMode] = useState<GameMode>(isPreset ? 'single' : 'game');
@@ -309,6 +309,7 @@ export default function PicturePairsGame() {
         <Text style={styles.configTitle}>{t('picturePairs')}</Text>
         <Text style={styles.configDesc}>{t('picturePairsDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="picturePairsIntroDesc" benefits={PAIRS_BENEFITS} accent={GRADIENT[0]} />
 
       {renderModeToggle()}
 
@@ -483,11 +484,6 @@ export default function PicturePairsGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('picturePairs')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="picturePairs" icon="heart" gradient={GRADIENT as [string, string]}
-          skillKey="skillVisualMemory" descriptionKey="picturePairsIntroDesc"
-          benefits={PAIRS_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'result' && (

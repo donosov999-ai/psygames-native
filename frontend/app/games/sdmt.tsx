@@ -29,7 +29,7 @@ import { saveSession } from '@/src/services/api';
 import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -85,7 +85,7 @@ export default function SdmtGame() {
   const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('sdmt');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [duration] = useState(() => num('duration', 60)); // seconds — только для пресета зарядки
 
   const [keymap, setKeymap] = useState<KeyMap[]>([]);
@@ -221,6 +221,7 @@ export default function SdmtGame() {
           <Text style={styles.configTitle}>{t('sdmt')}</Text>
           <Text style={styles.configDesc}>{t('sdmtDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="sdmtIntroDesc" benefits={SDMT_BENEFITS} accent={GRADIENT[0]} />
         <LevelProgressMap gameId="sdmt" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
@@ -313,11 +314,6 @@ export default function SdmtGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('sdmt')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="sdmt" icon="apps" gradient={GRADIENT as [string, string]}
-          skillKey="skillProcessingSpeed" descriptionKey="sdmtIntroDesc"
-          benefits={SDMT_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

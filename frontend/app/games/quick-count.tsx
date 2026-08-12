@@ -16,7 +16,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -80,7 +80,7 @@ export default function QuickCountGame() {
   const levelRef = useRef(1);
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [bossWon, setBossWon] = useState<boolean | null>(null);
   const [clearedPassed, setClearedPassed] = useState(true);
   const [trial, setTrial] = useState(0);
@@ -171,6 +171,7 @@ export default function QuickCountGame() {
         <Text style={styles.configTitle}>{t('quickCount')}</Text>
         <Text style={styles.configDesc}>{t('quickCountDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="quickCountIntroDesc" benefits={QUICKCOUNT_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="quick_count" currentLevel={lvl.level} colors={colors} language={language} />
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
@@ -240,13 +241,6 @@ export default function QuickCountGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('quickCount')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro
-          nameKey="quickCount" icon="flash" gradient={GRADIENT as [string, string]}
-          skillKey="skillAttention" descriptionKey="quickCountIntroDesc" benefits={QUICKCOUNT_BENEFITS}
-          onStart={() => setPhase('config')} onBack={() => goBackOrHome()}
-        />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

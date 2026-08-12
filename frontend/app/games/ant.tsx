@@ -32,7 +32,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -99,7 +99,7 @@ export default function ANTGame() {
   const lvl = usePersistentLevel('ant');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
 
   const [round, setRound] = useState(0);
@@ -290,6 +290,7 @@ export default function ANTGame() {
           <Text style={styles.configTitle}>{t('ant')}</Text>
           <Text style={styles.configDesc}>{t('antDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="antIntroDesc" benefits={ANT_BENEFITS} accent={GRADIENT[0]} />
 
         <LevelProgressMap gameId="ant" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
@@ -401,11 +402,6 @@ export default function ANTGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('ant')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="ant" icon="git-network" gradient={GRADIENT as [string, string]}
-          skillKey="skillFocus" descriptionKey="antIntroDesc"
-          benefits={ANT_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

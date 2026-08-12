@@ -15,7 +15,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 
@@ -132,7 +132,7 @@ export default function PatternGame() {
   const lvl = usePersistentLevel('pattern');
   const { isPreset, autostart, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
   const [trials, setTrials] = useState(() => num('trials', 10));
   const [round, setRound] = useState(0);
@@ -224,6 +224,7 @@ export default function PatternGame() {
         <Text style={styles.configTitle}>{t('pattern')}</Text>
         <Text style={styles.configDesc}>{t('patternDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="patternIntroDesc" benefits={PATTERN_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="pattern" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('level')} {lvl.level}</Text>
@@ -336,11 +337,6 @@ export default function PatternGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('pattern')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="pattern" icon="analytics" gradient={GRADIENT as [string, string]}
-          skillKey="skillReasoning" descriptionKey="patternIntroDesc"
-          benefits={PATTERN_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (() => {
         const base = errors === 0 ? 3 : errors <= 2 ? 2 : 1;

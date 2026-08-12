@@ -12,7 +12,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useWarmup } from '@/src/contexts/WarmupContext';
@@ -105,7 +105,7 @@ export default function BreathingGame() {
   const GRADIENT = dim ? GRADIENT_NIGHT : GRADIENT_DAY;
   const warmup = useWarmup();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   // v1.160: технику может задать шаг комплекса (перед сном → calm478 «помогает заснуть»),
   // запрос Вали «дыхание перед сном должно быть в тренировке, чтобы не заходить отдельно».
   const [techKey, setTechKey] = useState(() => str('tech', 'box'));
@@ -300,6 +300,7 @@ export default function BreathingGame() {
         <Text style={styles.configTitle}>{t('breathing')}</Text>
         <Text style={styles.configDesc}>{t('breathingDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="breathingIntroDesc" benefits={BREATH_BENEFITS} accent={GRADIENT[0]} />
 
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('brTechniqueLabel')}</Text>
@@ -589,11 +590,6 @@ export default function BreathingGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('breathing')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="breathing" icon="flower-outline" gradient={GRADIENT as [string, string]}
-          skillKey="skillRecovery" descriptionKey="breathingIntroDesc"
-          benefits={BREATH_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'warning' && renderWarning()}
       {phase === 'done' && renderDone()}

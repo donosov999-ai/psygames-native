@@ -13,7 +13,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -60,7 +60,7 @@ export default function DigitSpanGame() {
   const lvl = usePersistentLevel('digit_span');   // персист-уровень (как у судоку): старт от достигнутого, растёт
   const { isPreset, autostart, str, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [direction, setDirection] = useState<Direction>(() => (str('mode', 'forward') as Direction));
   // Справка правил уровня (в зарядке-пресете не показываем — там свой поток).
   // enabled на input: во время показа цифр модалка закрыла бы их.
@@ -210,6 +210,7 @@ export default function DigitSpanGame() {
         <Text style={styles.configTitle}>{t('digitSpan')}</Text>
         <Text style={styles.configDesc}>{t('digitSpanDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="digitSpanIntroDesc" benefits={DIGIT_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="digit_span" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('directionLabel')}</Text>
@@ -355,18 +356,6 @@ export default function DigitSpanGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('digitSpan')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro
-          nameKey="digitSpan"
-          icon="call"
-          gradient={GRADIENT as [string, string]}
-          skillKey="skillShortTermMemory"
-          descriptionKey="digitSpanIntroDesc"
-          benefits={DIGIT_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      )}
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (

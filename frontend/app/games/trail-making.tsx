@@ -20,7 +20,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -120,7 +120,7 @@ export default function TrailMakingGame() {
   const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('trail_making');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
   // mode/count как state — только для пресетов зарядки (init из URL-params);
   // в уровневом режиме параметры приходят из levelParams и живут в рефах
@@ -345,6 +345,7 @@ export default function TrailMakingGame() {
           <Text style={styles.configTitle}>{t('trailMaking')}</Text>
           <Text style={styles.configDesc}>{t('trailMakingDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="trailMakingIntroDesc" benefits={TRAIL_BENEFITS} accent={GRADIENT[0]} />
 
         <LevelProgressMap gameId="trail_making" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
@@ -477,18 +478,6 @@ export default function TrailMakingGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('trailMaking')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro
-          nameKey="trailMaking"
-          icon="swap-horizontal"
-          gradient={GRADIENT as [string, string]}
-          skillKey="skillSwitching"
-          descriptionKey="trailMakingIntroDesc"
-          benefits={TRAIL_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

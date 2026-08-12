@@ -28,7 +28,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -71,7 +71,7 @@ export default function StopSignalGame() {
   const lvl = usePersistentLevel('stop_signal');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
 
   const [round, setRound] = useState(0);
@@ -245,6 +245,7 @@ export default function StopSignalGame() {
           <Text style={styles.configTitle}>{t('stopSignal')}</Text>
           <Text style={styles.configDesc}>{t('stopSignalDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="stopSignalIntroDesc" benefits={STOP_BENEFITS} accent={GRADIENT[0]} />
         <LevelProgressMap gameId="stop_signal" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
@@ -333,11 +334,6 @@ export default function StopSignalGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('stopSignal')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="stopSignal" icon="hand-left" gradient={GRADIENT as [string, string]}
-          skillKey="skillInhibition" descriptionKey="stopSignalIntroDesc"
-          benefits={STOP_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

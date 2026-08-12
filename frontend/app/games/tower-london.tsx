@@ -9,7 +9,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -119,7 +119,7 @@ export default function TowerLondonGame() {
   const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('tower_london');   // уровень → тир (1=easy, 2=medium, ≥3=hard)
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
   const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
   const [trials, setTrials] = useState(() => num('trials', 5));
@@ -278,6 +278,7 @@ export default function TowerLondonGame() {
         <Text style={styles.configTitle}>{t('towerLondon')}</Text>
         <Text style={styles.configDesc}>{t('towerLondonDesc')}</Text>
       </LinearGradient>
+      <GameAbout descriptionKey="towerLondonIntroDesc" benefits={TOL_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="tower_london" currentLevel={lvl.level} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
@@ -368,11 +369,6 @@ export default function TowerLondonGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('towerLondon')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="towerLondon" icon="git-branch" gradient={GRADIENT as [string, string]}
-          skillKey="skillPlanning" descriptionKey="towerLondonIntroDesc"
-          benefits={TOL_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared gameId="tower_london" passed={clearedPassed} level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}

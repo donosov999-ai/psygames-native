@@ -20,7 +20,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -68,7 +68,7 @@ export default function StroopGame() {
   const lvl = usePersistentLevel('stroop');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'ink') === 'word' ? 'word' : 'ink'));
   const [word, setWord] = useState(COLORS_DEF[0]);
   const [inkColor, setInkColor] = useState(COLORS_DEF[1]);
@@ -239,6 +239,7 @@ export default function StroopGame() {
           <Text style={styles.configTitle}>{t('stroop')}</Text>
           <Text style={styles.configDesc}>{t('stroopDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="stroopIntroDesc" benefits={STROOP_BENEFITS} accent={GRADIENT[0]} />
         <LevelProgressMap gameId="stroop" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
@@ -340,18 +341,6 @@ export default function StroopGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('stroop')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro
-          nameKey="stroop"
-          icon="eye"
-          gradient={GRADIENT as [string, string]}
-          skillKey="skillInhibition"
-          descriptionKey="stroopIntroDesc"
-          benefits={STROOP_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

@@ -23,7 +23,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -177,7 +177,7 @@ export default function FindDifferencesGame() {
   const { isPreset, autostart, num } = useGamePreset();
   const lvl = usePersistentLevel('find_differences');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [round, setRound] = useState(0);
   const [totalRounds, setTotalRounds] = useState(ROUNDS_PER_LEVEL);
   const [scene, setScene] = useState<Shape[]>([]);
@@ -384,6 +384,7 @@ export default function FindDifferencesGame() {
           <Text style={styles.configTitle}>{t('findDiff')}</Text>
           <Text style={styles.configDesc}>{t('findDiffDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="findDiffIntroDesc" benefits={FIND_BENEFITS} accent={GRADIENT[0]} />
         <LevelProgressMap gameId="find_differences" currentLevel={lvl.level} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
@@ -462,11 +463,6 @@ export default function FindDifferencesGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('findDiff')}</Text>
         <View style={{ width: 40 }} />
       </View>
-      {phase === 'intro' && (
-        <GameIntro nameKey="findDiff" icon="search" gradient={GRADIENT as [string, string]}
-          skillKey="skillDetailAttention" descriptionKey="findDiffIntroDesc"
-          benefits={FIND_BENEFITS} onStart={() => setPhase('config')} onBack={() => goBackOrHome()} />
-      )}
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound
