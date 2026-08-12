@@ -266,7 +266,11 @@ function FullHome() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Стилизация профиля: лёгкий акцент-фон сверху под цвет активного профиля */}
-      <LinearGradient colors={[colors.primary + '26', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 260 }} pointerEvents="none" />
+      {/* Заливка усилена с 15% до 30%: при 15% купленный цвет не читался, и покупка
+          выглядела впустую («поменяла интерфейс на розовый — незаметно, что их не видно»,
+          репорт 02.08). Выше поднимать нельзя — под ней лежат карточки игр со своими
+          градиентами, и сильная подложка начала бы с ними спорить. */}
+      <LinearGradient colors={[colors.primary + '4D', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 260 }} pointerEvents="none" />
       {streakToast !== null && (
         <View style={{ position: 'absolute', top: 76, left: 0, right: 0, alignItems: 'center', zIndex: 150 }} pointerEvents="none">
           <View style={{ backgroundColor: '#ef4444', paddingHorizontal: 18, paddingVertical: 9, borderRadius: 100, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -344,7 +348,7 @@ function FullHome() {
                 style={{ width: 104, height: 44, marginVertical: -20, justifyContent: 'center' }}
               >
                 <View style={{ height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden' }}>
-                  <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 4, backgroundColor: '#f59e0b' }} />
+                  <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 4, backgroundColor: colors.primary }} />
                 </View>
               </TouchableOpacity>
             )}
