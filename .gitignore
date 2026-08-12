@@ -7,9 +7,13 @@ yarn-debug.log*
 
 # Build outputs
 dist/
+*.tsbuildinfo
 src-tauri/dist/
 src-tauri/target/
 src-tauri/gen/
+
+# Generated mini-app visual QA artifacts
+miniapps/qa/
 
 # OS
 .DS_Store
