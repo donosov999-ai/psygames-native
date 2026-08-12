@@ -858,6 +858,17 @@ export default function SudokuGame() {
           const sameVal = v !== 0 && selected && grid[selected.r][selected.c] === v;
           const wrongVal = v !== 0 && solution[r] && solution[r][c] !== v;
           const markColor = cellColors[r]?.[c] ?? -1;
+          // Есть ли под цифрой рисунок варианта: кружок, колба, заливка клетки.
+          // Если да — цифру рисуем текстом, иначе картинка выцветает на тонировке.
+          const hasDecorBehind = !!(
+            (variant === 'evenodd' && parityMarks && parityMarks[r][c] !== 0)
+            || (variant === 'thermo' && thermo && thermo[r][c])
+            || (variant === 'arrow' && arrow && arrow[r][c])
+            || (variant === 'kropki' && kropki && (
+                 (c < N - 1 && kropki.h[r][c] !== 0) || (c > 0 && kropki.h[r][c - 1] !== 0)
+                 || (r < N - 1 && kropki.v[r][c] !== 0) || (r > 0 && kropki.v[r - 1][c] !== 0)))
+            || (mode === 'killer' && cages)
+          );
           let bg = (mode === 'killer' && cages) ? blendHex(colors.surface, CAGE_ACCENTS[cages[r][c] % CAGE_ACCENTS.length], 0.16) : colors.surface;
           if (markColor >= 0 && markColor < paintPalette.length) {
             bg = blendHex(bg, paintPalette[markColor], isDark ? 0.34 : 0.24);
@@ -970,9 +981,18 @@ export default function SudokuGame() {
                   надо чтобы была тоже чёрной» — репорт Вали, v1.169). На таких
                   клетках рисуем цифру обычным текстом цветом текста темы: контраст
                   важнее единообразия начертания. */}
+              {/* ⚠️ ЦИФРА ПОВЕРХ ЛЮБОЙ ПОДЛОЖКИ — ТОЛЬКО ТЕКСТОМ.
+                  Валя писала об этом ПЯТЬ раз («когда ставишь цифру, она становится белой
+                  почти прозрачной, почему она в кружочке не становится чёрной сразу»).
+                  В v1.169 починили ОДИН вариант — «чёт/нечёт», перечислив его руками.
+                  Перечисление и было ошибкой: кружки и заливки есть ещё в «термометре»
+                  (колба), «стрелке» (круг), «клетках» killer и «точках» Кропки, и там
+                  цифра-картинка поверх тонировки читается так же выцветшей.
+                  Поэтому условие теперь по СУТИ, а не по списку: под цифрой что-то
+                  нарисовано → цифра рисуется текстом цветом темы. Контраст важнее
+                  единообразия начертания — читаемость цифры и есть игра. */}
               {v !== 0 && (
-                (isSel || wrongVal || digitMode === 'plain'
-                  || (variant === 'evenodd' && parityMarks && parityMarks[r][c] !== 0)) ? (
+                (isSel || wrongVal || digitMode === 'plain' || hasDecorBehind) ? (
                   <Text style={{ color: isSel ? '#FFF' : wrongVal ? '#b91c1c' : colors.text, fontWeight: '700', fontSize: Math.round(cellSize * 0.52) }}>{v}</Text>
                 ) : (
                   <Image source={DIGIT_IMG[v]} accessibilityLabel={String(v)}
