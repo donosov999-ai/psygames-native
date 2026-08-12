@@ -13,6 +13,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGameKeyboard, digitKeys } from '@/src/hooks/useGameKeyboard';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
@@ -220,6 +221,37 @@ export default function SamuraiSudokuGame() {
     if (given[r][c]) return;
     setSelected({ r, c });
   };
+
+  /**
+   * КЛАВИАТУРА — та же раскладка, что в обычной судоку: цифры ставят, Backspace стирает,
+   * стрелки ходят. Одинаковость здесь не косметика: человек приходит сюда из судоку 9×9
+   * с уже наработанной привычкой, и «в той игре Backspace стирал, в этой нет» читается
+   * как поломка, а не как разница режимов.
+   *
+   * Отличие одно, и оно от раскладки поля: на 21×21 между сетками есть ДЫРКИ — клетки,
+   * не принадлежащие ни одной сетке. Стрелки пропускают и их, и данные клетки, иначе
+   * курсор вставал бы в пустоте, где ввод не работает, и это выглядело бы как зависание.
+   */
+  const moveSelection = (dr: number, dc: number) => {
+    if (!grid.length) return;
+    let { r, c } = selected ?? { r: dr < 0 ? SIZE : -1, c: dc < 0 ? SIZE : -1 };
+    for (let step = 0; step < SIZE * SIZE; step++) {
+      r += dr; c += dc;
+      if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) return;
+      if (gridsOf(r, c).length && !given[r][c]) { setSelected({ r, c }); return; }
+    }
+  };
+
+  useGameKeyboard(
+    {
+      ...digitKeys((n) => { void handleNumPress(n); }),
+      ArrowUp: () => moveSelection(-1, 0),
+      ArrowDown: () => moveSelection(1, 0),
+      ArrowLeft: () => moveSelection(0, -1),
+      ArrowRight: () => moveSelection(0, 1),
+    },
+    phase === 'playing' && !over,
+  );
 
   const handleNumPress = async (n: number) => {
     if (!selected || over) return;
