@@ -119,7 +119,7 @@ const t: Record<string, string> = {
   "discsCount": "圆盘数",
   "hanoiOptimal": "最优",
   "movesLabel": "步",
-  "hanoiHint": "先点击起始柱子，再点击目标柱子",
+  "hanoiHint": "把圆盘拖到另一根柱子 — 或点击：先选起点，再选终点",
   "benefitHanoi1": "更擅长规划多步骤任务",
   "benefitHanoi2": "培养递归思维",
   "benefitHanoi3": "看清问题的内部结构",

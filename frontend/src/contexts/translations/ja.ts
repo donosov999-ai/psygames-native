@@ -168,7 +168,7 @@ const t: Record<string, string> = {
   "discsCount": "円盤の数",
   "hanoiOptimal": "最適手数",
   "movesLabel": "手",
-  "hanoiHint": "先に移動元の柱、次に移動先の柱をタップ",
+  "hanoiHint": "円盤を別の杭へドラッグ — またはタップ：先に移動元、次に移動先",
   "benefitHanoi1": "複数ステップの作業を計画しやすくなる",
   "benefitHanoi2": "再帰的な思考を養う",
   "benefitHanoi3": "問題の内部構造を見抜く",

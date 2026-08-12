@@ -122,7 +122,7 @@ const t: Record<string, string> = {
   "discsCount": "चकतियाँ",
   "hanoiOptimal": "इष्टतम",
   "movesLabel": "चालें",
-  "hanoiHint": "पहले स्रोत छड़ टैप करें, फिर लक्ष्य छड़",
+  "hanoiHint": "डिस्क को दूसरी छड़ पर खींचें — या टैप करें: पहले स्रोत, फिर लक्ष्य",
   "benefitHanoi1": "बहु-चरणीय कार्यों की बेहतर योजना",
   "benefitHanoi2": "पुनरावर्ती सोच विकसित करें",
   "benefitHanoi3": "समस्याओं के भीतर संरचना देखें",

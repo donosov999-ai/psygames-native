@@ -119,7 +119,7 @@ const t: Record<string, string> = {
   "discsCount": "Scheiben",
   "hanoiOptimal": "Optimal",
   "movesLabel": "Züge",
-  "hanoiHint": "Tippe zuerst den Ausgangsstab an, dann den Zielstab",
+  "hanoiHint": "Zieh eine Scheibe auf einen anderen Stab – oder tippe: erst Quelle, dann Ziel",
   "benefitHanoi1": "Besser im Planen mehrstufiger Aufgaben",
   "benefitHanoi2": "Rekursives Denken entwickeln",
   "benefitHanoi3": "Die Struktur in Problemen erkennen",

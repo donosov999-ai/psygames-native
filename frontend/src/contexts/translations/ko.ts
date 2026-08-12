@@ -168,7 +168,7 @@ const t: Record<string, string> = {
   "discsCount": "원반",
   "hanoiOptimal": "최적 횟수",
   "movesLabel": "이동",
-  "hanoiHint": "출발 기둥을 먼저, 그다음 도착 기둥을 누르세요",
+  "hanoiHint": "원반을 다른 기둥으로 끌어다 놓으세요 — 또는 탭: 출발 기둥 먼저, 그다음 목표 기둥",
   "benefitHanoi1": "여러 단계 과제를 더 잘 계획해요",
   "benefitHanoi2": "재귀적 사고를 길러요",
   "benefitHanoi3": "문제 속 구조를 꿰뚫어봐요",

@@ -119,7 +119,7 @@ const t: Record<string, string> = {
   "discsCount": "Discos",
   "hanoiOptimal": "Ótimo",
   "movesLabel": "movimentos",
-  "hanoiHint": "Toque primeiro no pino de origem, depois no de destino",
+  "hanoiHint": "Arraste um disco para outra haste — ou toque: primeiro origem, depois destino",
   "benefitHanoi1": "Melhor no planejamento de tarefas em várias etapas",
   "benefitHanoi2": "Desenvolva o pensamento recursivo",
   "benefitHanoi3": "Enxergue a estrutura dentro dos problemas",
