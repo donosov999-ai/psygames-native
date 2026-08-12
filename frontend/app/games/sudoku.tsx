@@ -10,6 +10,7 @@ import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import GlassButton from '@/src/components/GlassButton';
 import BossRound, { BossType } from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -810,6 +811,14 @@ export default function SudokuGame() {
         {mode === 'levels' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{t('label_level_short')}{level}</Text>}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('errors')} {formatErrorCount(failure, errors)}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
+        {/* Счётчик переделок переехал сюда из ряда действий: он показатель, а не кнопка,
+            и там отбирал ширину у трёх капсул, из-за чего первая уезжала за край экрана. */}
+        {/* Остаток подсказок и число переделок — показатели, а не подписи на кнопках:
+            в капсулу они не помещались и резали слово «Подсказка» до «Подск…». */}
+        <Text style={[styles.statText, { color: colors.textSecondary }]}>💡 {hintMax - hintUses}</Text>
+        {backtrackCount > 0 && (
+          <Text style={[styles.statText, { color: colors.textSecondary }]}>↻ {backtrackCount}</Text>
+        )}
         <TouchableOpacity
           accessibilityRole="button" onPress={() => setRulesOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>
@@ -1019,46 +1028,28 @@ export default function SudokuGame() {
     const hintEl = (
       <View style={styles.hintBlock}>
         <View style={styles.hintRow}>
-          <TouchableOpacity
-            accessibilityRole="button"
+          <GlassButton
+            grow
+            tone="warn"
+            icon="bulb"
+            label={t('btn_hint')}
             onPress={handleHint}
             disabled={!selected || hintUses >= hintMax}
-            style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: (selected && hintUses < hintMax) ? 1 : 0.4 }]}
-          >
-            <Ionicons name="bulb" size={16} color="#000" />
-            <Text style={styles.hintBtnText}>{t('btn_hint')} ({hintUses}/{hintMax})</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={t('btn_undo')}
+          />
+          <GlassButton
+            grow
+            icon="arrow-undo"
+            label={t('btn_undo')}
             onPress={handleUndo}
             disabled={!hist.canUndo}
-            style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: hist.canUndo ? 1 : 0.4 }]}
-          >
-            <Ionicons name="arrow-undo" size={16} color={colors.text} />
-            <Text style={[styles.undoBtnText, { color: colors.text }]}>{t('btn_undo')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={t('sudokuColorMode')}
-            accessibilityState={{ selected: paintColor !== null }}
+          />
+          <GlassButton
+            grow
+            icon="color-palette-outline"
+            label={t('sudokuColorMode')}
+            active={paintColor !== null}
             onPress={() => { setPaintColor((current) => current === null ? 0 : null); setSelected(null); }}
-            style={[
-              styles.undoBtn,
-              {
-                backgroundColor: paintColor === null
-                  ? colors.surface
-                  : blendHex(colors.surface, paintPalette[paintColor], isDark ? 0.45 : 0.28),
-                borderColor: paintColor === null ? colors.border : paintPalette[paintColor],
-              },
-            ]}
-          >
-            <Ionicons name="color-palette-outline" size={16} color={colors.text} />
-            <Text style={[styles.undoBtnText, { color: colors.text }]}>{t('sudokuColorMode')}</Text>
-          </TouchableOpacity>
-          <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-            ↻ {backtrackCount}
-          </Text>
+          />
         </View>
         {paintColor !== null && (
           <>
@@ -1095,7 +1086,14 @@ export default function SudokuGame() {
         title={t('sudoku').replace(/\s*\d+\s*[×xX]\s*\d+\s*$/, '') + ` ${N}×${N}`}
         onBack={() => goBackOrHome()}
         stats={statsEl}
-        toolbar={landscape ? undefined : <View style={styles.toolbarCol}>{padEl}{hintEl}</View>}
+        // ПОРТРЕТ: подсказка, отмена и цвет уезжают наверх, внизу остаются только цифры.
+        // Раньше низ держал два ряда управления подряд — клавиатуру и действия под ней;
+        // на телефоне рука закрывала оба сразу, а ряд действий читался как часть доски.
+        //
+        // ЛАНДШАФТ не трогаем: там управление и так стоит СБОКУ от поля, теснота не
+        // возникает, и переносить нечего.
+        headerActions={landscape ? undefined : hintEl}
+        toolbar={landscape ? undefined : padEl}
         scrollableField={boardOverflows}
       >
         {landscape ? (
@@ -1248,8 +1246,14 @@ const styles = StyleSheet.create({
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr' },
   numBtn: { width: 50, height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   numText: { color: '#FFF', fontSize: 26, fontWeight: '800' },
-  hintBlock: { alignItems: 'center', gap: 5 },
-  hintRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' },
+  // alignItems:'stretch' — иначе ряд кнопок сжимается по содержимому и вылезает
+  // за экран: на 375px первая капсула уезжала за левый край и обрезалась.
+  hintBlock: { alignSelf: 'stretch', alignItems: 'stretch', gap: 5 },
+  // Кнопки тянутся по ширине панели поровну (flex: 1) и держат минимум 48 точек по
+  // высоте. Было paddingVertical: 8 — около 36 точек, ниже минимума, при котором палец
+  // попадает надёжно (44 у Apple, 48 у Material). Промах по «Отменить» в судоку стоит
+  // дорого: рядом «Подсказка», а она тратит лимит и режет счёт.
+  hintRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, width: '100%' },
   paintPalette: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
   paintSwatch: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   paintHint: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
@@ -1258,9 +1262,9 @@ const styles = StyleSheet.create({
   overEmoji: { fontSize: 46 },
   overTitle: { fontSize: 20, fontWeight: '800' },
   overSub: { fontSize: 14, textAlign: 'center', marginBottom: 10 },
-  hintBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
-  hintBtnText: { color: '#000', fontSize: 13, fontWeight: '700' },
-  undoBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1 },
-  undoBtnText: { fontSize: 13, fontWeight: '700' },
+  hintBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 12, minHeight: 48, borderRadius: 10 },
+  hintBtnText: { color: '#000', fontSize: 14, fontWeight: '700' },
+  undoBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 12, minHeight: 48, borderRadius: 10, borderWidth: 1 },
+  undoBtnText: { fontSize: 14, fontWeight: '700' },
   metaText: { fontSize: 12, fontWeight: '700' },
 });

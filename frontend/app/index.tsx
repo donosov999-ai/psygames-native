@@ -331,15 +331,21 @@ function FullHome() {
               /* Полоска прогресса ведёт в лиги: она и так означает «сколько до следующей
                  ступени», так что это её место по смыслу. Отдельную кнопку в шапку не
                  добавляем — там уже тесно, и каждый лишний значок отодвигает игры вниз. */
+              /* Зона нажатия — настоящие 44 точки по высоте, полоска рисуется ВНУТРИ неё.
+                 Раньше здесь было 104×4 плюс hitSlop, и замер 12.08 показал, что попасть
+                 в лиги почти нельзя: hitSlop на вебе пустышка (см. примечание выше), то
+                 есть цель была ровно 4 точки высотой. Отрицательный отступ по вертикали
+                 гасит прибавку, чтобы шапка не разъехалась: растёт зона, не раскладка. */
               <TouchableOpacity
                 accessibilityRole="button"
                 accessibilityLabel={t('leaguesTitle')}
                 activeOpacity={0.8}
                 onPress={() => router.push('/leagues' as any)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                style={{ width: 104, height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden' }}
+                style={{ width: 104, height: 44, marginVertical: -20, justifyContent: 'center' }}
               >
-                <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 4, backgroundColor: '#f59e0b' }} />
+                <View style={{ height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden' }}>
+                  <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 4, backgroundColor: '#f59e0b' }} />
+                </View>
               </TouchableOpacity>
             )}
           </View>
