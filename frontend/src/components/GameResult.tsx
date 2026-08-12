@@ -22,6 +22,7 @@ interface GameResultProps {
   onGoHome: () => void;
   shareText?: string;   // v1.116.0: если передан — показать кнопку «Поделиться» с этим текстом
   sparkline?: { history: number[]; current: number; lowerIsBetter?: boolean };   // v1.116.0: спарклайн последних сессий
+  comparisonLine?: string;   // свой итог · лучший среди игроков / личный рекорд при офлайне
 }
 
 // Перцептивная яркость градиента → на СВЕТЛОМ берём тёмный текст, на тёмном белый.
@@ -47,6 +48,7 @@ export default function GameResult({
   onGoHome,
   shareText,
   sparkline,
+  comparisonLine,
 }: GameResultProps) {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -137,6 +139,13 @@ export default function GameResult({
           )}
         </View>
 
+        {comparisonLine && (
+          <View style={styles.comparisonBadge}>
+            <Ionicons name="people-outline" size={18} color={fg} />
+            <Text style={[styles.comparisonText, { color: fg }]}>{comparisonLine}</Text>
+          </View>
+        )}
+
         {earned > 0 && (
           <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: light ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.18)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999 }}>
             <Text style={{ fontSize: 22 }}>⭐</Text>
@@ -192,14 +201,16 @@ export default function GameResult({
               {wuLast ? t('warmupFinish') : t('warmupNextGame')}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
-            onPress={() => { warmup.stopWarmup(false); onGoHome(); }}
-          >
-            <Ionicons name="stop" size={20} color={colors.text} />
-            <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>
-          </TouchableOpacity>
+          {!wuLast && (
+            <TouchableOpacity
+              accessibilityRole="button"
+              style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+              onPress={() => { warmup.stopWarmup(false); onGoHome(); }}
+            >
+              <Ionicons name="stop" size={20} color={colors.text} />
+              <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : (
       <View style={styles.buttonsContainer}>
@@ -262,6 +273,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     flexWrap: 'wrap',
   },
+  comparisonBadge: {
+    marginTop: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.16)',
+  },
+  comparisonText: { fontSize: 14, fontWeight: '700', textAlign: 'center', flexShrink: 1 },
   statItem: {
     alignItems: 'center',
     minWidth: 80,

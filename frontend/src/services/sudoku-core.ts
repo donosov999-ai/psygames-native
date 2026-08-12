@@ -159,6 +159,23 @@ export function levelConfig(level: number): LevelCfg {
   return { size, N, BR, BC, blanks, variant, hintMax };
 }
 
+export type SudokuDifficultyTier = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | 'extreme';
+
+/**
+ * Читаемая ступень сложности для карты уровней. Это не отдельная шкала:
+ * первые две ступени следуют из числа подсказок, средние — из плотности пустых
+ * клеток, старшие — из уже существующих семейств variant в levelConfig.
+ */
+export function sudokuDifficultyTier(level: number): SudokuDifficultyTier {
+  const cfg = levelConfig(level);
+  if (cfg.hintMax >= 3) return 'beginner';
+  if (cfg.hintMax === 2) return 'easy';
+  if (cfg.blanks < 43) return 'medium';       // diagonal, L9–13
+  if (cfg.blanks < 51) return 'hard';         // anti-knight + hyper, L14–21
+  if (cfg.variant === 'nonconsec' || cfg.variant === 'antiking' || cfg.variant === 'evenodd') return 'expert';
+  return 'extreme';                           // kropki и все следующие варианты, L34+
+}
+
 // THERMO: prev/next-карта на клетку (строгое возрастание вдоль пути от колбы). null = клетка не на термометре.
 export type ThermoPN = ({ prev: [number, number] | null; next: [number, number] | null } | null)[][];
 export function generateThermo(N: number): ThermoPN {

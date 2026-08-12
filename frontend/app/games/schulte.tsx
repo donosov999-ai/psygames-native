@@ -29,7 +29,7 @@ import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LeaderboardModal from '@/src/components/LeaderboardModal';
-import { submitScore } from '@/src/services/leaderboard';
+import { fetchBest, getPersonalBest, submitScore } from '@/src/services/leaderboard';
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 
@@ -157,6 +157,7 @@ export default function SchulteGame() {
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (для баннера LevelCleared: true=звёзды, false=«почти, ещё раз»)
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [resultBenchmark, setResultBenchmark] = useState<{ own: number; best: number; source: 'players' | 'personal' } | null>(null);
   const [timeHistory, setTimeHistory] = useState<number[]>([]);
   const [grid, setGrid] = useState<(number | string)[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -266,6 +267,7 @@ export default function SchulteGame() {
     setCurrentIndex(0);
     setErrors(0);
     setElapsedTime(0);
+    setResultBenchmark(null);
     setBossWon(null);
     setPhase('playing');
 
@@ -289,12 +291,29 @@ export default function SchulteGame() {
     else if (!isPreset && useLevelRef.current) lvl.fail();   // не прошёл чисто по уровню → гистерезис понижения
     // Лидерборд + спарклайн — только «классика» (иначе время между режимами несравнимо)
     if (gridSize === 5 && contentMode === 'numbers' && direction === 'forward' && !colorMode && groupCount <= 1 && !reshuffleOnClick) {
-      submitScore('schulte_table_5x5', finalTime).catch(() => {});
+      // UI сразу получает честный офлайн-фолбэк; сеть и сохранённый личный рекорд
+      // уточнят строку асинхронно и не задержат переход на экран итога.
+      setResultBenchmark({ own: finalTime, best: finalTime, source: 'personal' });
+      const submit = submitScore('schulte_table_5x5', finalTime);
       const pid = (profile as any)?.id ?? 'default';
-      getSessionHistory('schulte_table_5x5', pid).then(setTimeHistory);
+      Promise.all([
+        getSessionHistory('schulte_table_5x5', pid),
+        submit.then(() => fetchBest('schulte_table_5x5')),
+        getPersonalBest('schulte_table_5x5'),
+      ]).then(([history, playersBest, storedPersonalBest]) => {
+        setTimeHistory(history);
+        const personalBest = Math.min(finalTime, storedPersonalBest ?? finalTime, ...history.filter((n) => Number.isFinite(n) && n > 0));
+        setResultBenchmark({
+          own: finalTime,
+          best: playersBest ?? personalBest,
+          source: playersBest === null ? 'personal' : 'players',
+        });
+      });
+      submit.catch(() => {});
       recordSessionScore('schulte_table_5x5', pid, finalTime).catch(() => {});
     } else {
       setTimeHistory([]);
+      setResultBenchmark(null);
     }
     try {
       await saveSession({
@@ -944,6 +963,9 @@ export default function SchulteGame() {
           gradient={GRADIENT}
           language={language}
           colors={colors}
+          comparisonLine={resultBenchmark
+            ? `${resultBenchmark.own.toFixed(1)} ${t('seconds')} · ${t(resultBenchmark.source === 'players' ? 'bestAmongPlayers' : 'personalBest')}: ${resultBenchmark.best.toFixed(1)} ${t('seconds')}`
+            : undefined}
           onContinue={() => startGame(true)}
           onStop={() => setPhase('config')}
         />
@@ -961,6 +983,9 @@ export default function SchulteGame() {
           onGoHome={() => router.push('/')}
           shareText={t('schulteShare').replace(/\{g\}/g, String(gridSize)).replace('{t}', elapsedTime.toFixed(1))}
           sparkline={timeHistory.length >= 2 ? { history: timeHistory, current: elapsedTime, lowerIsBetter: true } : undefined}
+          comparisonLine={resultBenchmark
+            ? `${resultBenchmark.own.toFixed(1)} ${t('seconds')} · ${t(resultBenchmark.source === 'players' ? 'bestAmongPlayers' : 'personalBest')}: ${resultBenchmark.best.toFixed(1)} ${t('seconds')}`
+            : undefined}
         />
       )}
     </SafeAreaView>

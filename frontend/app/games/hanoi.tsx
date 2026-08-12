@@ -19,6 +19,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import LevelCleared from '@/src/components/LevelCleared';
+import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const HN_RULES: LevelRule[] = [
@@ -47,6 +48,7 @@ const HANOI_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
+type PegMove = { from: number; to: number };
 
 // Уровень (1..15+): L1-4 3 стержня диски 3→6 · L5-9 4 стержня диски 5→9 · L10-15 5 стержней диски 9→12.
 // Больше стержней = новый вызов (короче решение), затем растут диски.
@@ -76,6 +78,7 @@ export default function HanoiGame() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const levelRef = useRef(1);
+  const moveHistory = useMoveHistory<PegMove>();
 
   const optimal = (n: number) => Math.pow(2, n) - 1;
 
@@ -96,6 +99,7 @@ export default function HanoiGame() {
     setSelected(null);
     setMoves(0);
     setErrors(0);
+    moveHistory.reset();
     setPhase('playing');
     const start = Date.now();
     setStartTime(start);
@@ -116,6 +120,7 @@ export default function HanoiGame() {
       const np = pegs.map((p) => [...p]);
       np[idx].push(np[selected].pop()!);
       setPegs(np);
+      moveHistory.push({ from: selected, to: idx });
       setMoves((m) => m + 1);
       setSelected(null);
       // Check win — все диски на ПОСЛЕДНЕМ стержне (работает для 3/4/5 стержней)
@@ -142,6 +147,21 @@ export default function HanoiGame() {
       setErrors((e) => e + 1);
       setSelected(null);
     }
+  };
+
+  const handleUndo = () => {
+    const move = moveHistory.undo();
+    if (!move) return;
+    setPegs((current) => {
+      const next = current.map((peg) => [...peg]);
+      const disc = next[move.to].pop();
+      if (disc === undefined) return current;
+      next[move.from].push(disc);
+      return next;
+    });
+    setSelected(null);
+    // Намеренно НЕ уменьшаем moves: иначе оптимальный результат можно подобрать
+    // перебором с бесплатной отменой. Кнопка чинит промах, но ход остаётся попыткой.
   };
 
   const pegW = Math.min((width - 36) / (pegs.length + 0.5), 110);   // подгон под число стержней (24→36: паддинг поля GameShell 16×2)
@@ -171,12 +191,23 @@ export default function HanoiGame() {
     </ScrollView>
   );
 
-  // Единый каркас GameShell: статы — в props каркаса, поле = стержни + подсказка
-  // (кнопок действий нет — тулбар не нужен). Тап-обработчики дисков/стержней не тронуты.
+  // Единый каркас GameShell: статы — в props каркаса, отмена — в прибитом тулбаре.
   const renderPlaying = () => (
     <GameShell
       title={t('hanoi')}
       onBack={() => goBackOrHome()}
+      toolbar={
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t('btn_undo')}
+          disabled={!moveHistory.canUndo}
+          onPress={handleUndo}
+          style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: moveHistory.canUndo ? 1 : 0.4 }]}
+        >
+          <Ionicons name="arrow-undo" size={18} color={colors.text} />
+          <Text style={[styles.undoBtnText, { color: colors.text }]}>{t('btn_undo')}</Text>
+        </TouchableOpacity>
+      }
       stats={
         <View style={styles.statsRow}>
           <Text style={[styles.statText, { color: colors.text }]}>{moves} / {optimal(discs)}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
@@ -317,4 +348,6 @@ const styles = StyleSheet.create({
   discShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%', backgroundColor: 'rgba(255,255,255,0.28)' },
   discLabel: { position: 'absolute', left: 0, right: 0, top: 3, textAlign: 'center', fontSize: 12, fontWeight: '800', color: 'rgba(25,15,0,0.62)' },
   hintText: { fontSize: 12, textAlign: 'center' },
+  undoBtn: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 18, paddingVertical: 9, borderRadius: 10, borderWidth: 1 },
+  undoBtnText: { fontSize: 14, fontWeight: '700' },
 });

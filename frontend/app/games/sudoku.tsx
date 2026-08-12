@@ -12,6 +12,7 @@ import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import BossRound, { BossType } from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameIntro from '@/src/components/GameIntro';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -20,11 +21,14 @@ import type { DigitStyle } from '@/src/constants/digitThemes';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 import { saveResume, loadResume, clearResume } from '@/src/services/resume';
-import { failurePolicy, isOver as isFailOver, livesLeft } from '@/src/services/failure';
+import { failurePolicy, formatErrorCount, isOver as isFailOver } from '@/src/services/failure';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Line, Rect } from 'react-native-svg';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
+const CELL_COLORS = ['#8B5CF6', '#0EA5E9', '#22C55E', '#F59E0B', '#EC4899'] as const;
+// Okabe–Ito: отдельная палитра для режима дальтонизма, а не перестановка тех же цветов.
+const CELL_COLORS_CB = ['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7'] as const;
 // Непрозрачная подсветка: смешать base (фон темы) с over (акцент). Полупрозрачный цвет поверх
 // чёрного gridArea (colors.text) давал «чёрные» диагональные клетки в тёмной теме — баг.
 function blendHex(base: string, over: string, t: number): string {
@@ -44,11 +48,18 @@ const SUDOKU_BENEFITS = [
 
 // v1.111.0: чистое ядро судоку (типы, варианты, генерация с unique-check) вынесено в сервис.
 import {
-  Cell, Variant, ThermoPN, ArrowMap,
+  Cell, Variant, ThermoPN, ArrowMap, SudokuDifficultyTier,
   dimsForSize, blanksFor, killerBlanks, generateCages, levelConfig,
-  variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
+  sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
 } from '@/src/services/sudoku-core';
 import { generateLogical } from '@/src/services/sudoku-grade';
+import { clearGameContextHelp, publishGameContextHelp } from '@/src/services/gameContextHelp';
+import {
+  emptySudokuCellColors,
+  normalizeSudokuCellColors,
+  SudokuCellColors,
+  toggleSudokuCellColor,
+} from '@/src/services/sudoku-coloring';
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 
@@ -174,12 +185,21 @@ const rhStyles = StyleSheet.create({
 });
 
 const GAME_ID = 'sudoku';
+const SUDOKU_LAST_LEVEL = 52;
+const SUDOKU_TIER_KEYS: Record<SudokuDifficultyTier, string> = {
+  beginner: 'sudokuTierBeginner',
+  easy: 'sudokuTierEasy',
+  medium: 'sudokuTierMedium',
+  hard: 'sudokuTierHard',
+  expert: 'sudokuTierExpert',
+  extreme: 'sudokuTierExtreme',
+};
 
 /**
  * Версия формата незаконченной партии. Поднимать при ЛЮБОМ изменении полей SudokuResume:
  * старая запись тогда не подойдёт под новый код и будет молча выброшена, а не уронит экран.
  */
-const RESUME_V = 1;
+const RESUME_V = 2;
 
 /** Ход: что стояло в клетке до него и что стало. Назад отыгрывает экран, лента только помнит. */
 interface SudokuMove { r: number; c: number; from: Cell; to: Cell }
@@ -200,6 +220,7 @@ interface SudokuResume {
   solution: Cell[][];
   grid: Cell[][];
   given: boolean[][];
+  cellColors: SudokuCellColors;
   regions: number[][] | null;
   cages: number[][] | null;
   cageSums: number[];
@@ -219,7 +240,7 @@ interface SudokuResume {
 }
 
 export default function SudokuGame() {
-  const { colors } = useTheme();
+  const { colors, isDark, colorblind } = useTheme();
   const { t, language } = useLanguage();
   const { profile } = useProfile();
   const insets = useSafeAreaInsets();   // v1.150: sticky-футер над системной навигацией
@@ -256,12 +277,13 @@ export default function SudokuGame() {
   const [solution, setSolution] = useState<Cell[][]>([]);
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [given, setGiven] = useState<boolean[][]>([]);
+  const [cellColors, setCellColors] = useState<SudokuCellColors>([]);
+  const [paintColor, setPaintColor] = useState<number | null>(null);
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
   // Модель провала — свойство РЕЖИМА, а не константа экрана (см. services/failure).
   // Сейчас все режимы судоку короткие → 'standard', три жизни, как было. Длинные режимы
   // (самурай, фрактал) возьмут 'longform': ошибки считаются, но час работы не обрывают.
   const failure = failurePolicy('standard');
-  const LIVES = failure.lives;
   // Лента ходов для отмены. Хранит ЧТО было в клетке до хода — назад отыгрывает экран.
   const hist = useMoveHistory<SudokuMove>();
   const [hintMax, setHintMax] = useState(3);   // лимит подсказок (меньше на высоких уровнях)
@@ -274,6 +296,31 @@ export default function SudokuGame() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { N, BR, BC } = dims;   // размеры сетки текущей партии (6×6 или 9×9)
+  const paintPalette = colorblind ? CELL_COLORS_CB : CELL_COLORS;
+
+  // Большая глобальная кнопка «Правила» раньше показывала только общую статью,
+  // поэтому на доске Кропки/диагонали человек не видел правило текущей партии.
+  // Публикуем его в общий оверлей; локальный бейдж у таймера остаётся как был.
+  useEffect(() => {
+    if (phase !== 'playing') {
+      clearGameContextHelp(GAME_ID);
+      return;
+    }
+    const base = translateFor(language, 'sudokuBaseRule').replace('{n}', String(N));
+    const specific = mode === 'killer'
+      ? translateFor(language, 'sudokuKillerRule')
+      : variantRule(variant, language);
+    publishGameContextHelp({
+      gameId: GAME_ID,
+      title: mode === 'killer'
+        ? 'Killer'
+        : variant !== 'none'
+          ? variantLabel(variant, language)
+          : translateFor(language, 'btn_rules'),
+      body: specific ? `${base}\n\n${specific}` : base,
+    });
+    return () => clearGameContextHelp(GAME_ID);
+  }, [phase, mode, variant, N, language]);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
@@ -320,8 +367,8 @@ export default function SudokuGame() {
     //     лёгкое», «с 30 по 34 сложность не меняется»);
     //   • решение ЕДИНСТВЕННО по построению — каждый шаг логики вынужден, второму
     //     решению взяться неоткуда («игра имеет несколько вариантов победы» — репорты Вали).
-    // Варианты, которые решатель тянет слабо (несоседние, термометры, стрелки, сэндвич),
-    // внутри generateLogical сами уходят на прежний путь с проверкой единственности.
+    // Если конкретная попытка логического пути не уложилась в бюджет, generateLogical
+    // сохраняет безопасный fallback с проверкой единственности.
     const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar } =
       mode === 'levels'
         ? generateLogical(lvlOverride ?? level, blanks, d.N, d.BR, d.BC, vr, { budgetMs: 2200 }).gen
@@ -336,6 +383,8 @@ export default function SudokuGame() {
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
     setGiven(p.map((r) => r.map((v) => v !== 0)));
+    setCellColors(emptySudokuCellColors(d.N));
+    setPaintColor(null);
     setSelected(null);
     setErrors(0);
     setOver(false);
@@ -351,7 +400,7 @@ export default function SudokuGame() {
   /** Снимок партии для слоя незаконченной игры. */
   const snapshot = (): SudokuResume => ({
     mode, level, difficulty, size, variant, dims,
-    puzzle, solution, grid, given,
+    puzzle, solution, grid, given, cellColors,
     regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow,
     errors, hintUses, hintMax, backtrackCount,
     elapsed: elapsedTime,
@@ -363,6 +412,8 @@ export default function SudokuGame() {
     setMode(s.mode); setLevel(s.level); setDifficulty(s.difficulty); setSize(s.size);
     setVariant(s.variant); setDims(s.dims);
     setPuzzle(s.puzzle); setSolution(s.solution); setGrid(s.grid); setGiven(s.given);
+    setCellColors(normalizeSudokuCellColors(s.cellColors, s.dims.N));
+    setPaintColor(null);
     setRegions(s.regions); setCages(s.cages); setCageSums(s.cageSums); setCageAnchors(s.cageAnchors);
     setParityMarks(s.parityMarks); setKropki(s.kropki); setSandwich(s.sandwich);
     setThermo(s.thermo); setArrow(s.arrow);
@@ -406,7 +457,7 @@ export default function SudokuGame() {
     const snap = snapshot();
     const tm = setTimeout(() => { saveResume(GAME_ID, pid, RESUME_V, snap).catch(() => {}); }, 400);
     return () => clearTimeout(tm);
-  }, [grid, errors, hintUses, backtrackCount, phase, over]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [grid, cellColors, errors, hintUses, backtrackCount, phase, over]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // Уход с экрана. Отложенная запись выше на этом моменте отменяется своим clearTimeout,
   // поэтому сохраняем ещё раз здесь — и с ЖИВЫМ временем, а не с тем, что было на прошлом ходу.
@@ -432,6 +483,10 @@ export default function SudokuGame() {
   };
 
   const handleCellPress = (r: number, c: number) => {
+    if (paintColor !== null) {
+      setCellColors((current) => toggleSudokuCellColor(current, N, r, c, paintColor));
+      return;
+    }
     if (given[r][c]) return;
     setSelected({ r, c });
   };
@@ -586,9 +641,10 @@ export default function SudokuGame() {
 
       {mode === 'levels' && (() => {
         const cfg = levelConfig(level);
+        const tierLabel = (value: number) => t(SUDOKU_TIER_KEYS[sudokuDifficultyTier(value)]);
         return (
           <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')} {level}</Text>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')} {level} · {tierLabel(level)}</Text>
             <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
               {cfg.N}×{cfg.N}{` · ${t('blanksLabel')} ${cfg.blanks} · ${t('hintsLabel')} ${cfg.hintMax}`}{cfg.variant !== 'none' ? ` · ${variantLabel(cfg.variant, language)}` : ''}
             </Text>
@@ -600,6 +656,14 @@ export default function SudokuGame() {
             <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
               {t('sudokuNextUnlocks')}
             </Text>
+            <LevelProgressMap
+              gameId={GAME_ID}
+              currentLevel={level}
+              maxLevel={Math.max(SUDOKU_LAST_LEVEL, level)}
+              colors={colors}
+              language={language}
+              levelLabel={tierLabel}
+            />
           </View>
         );
       })()}
@@ -696,7 +760,7 @@ export default function SudokuGame() {
     const statsEl = (
       <View style={styles.statsRow}>
         {mode === 'levels' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{t('label_level_short')}{level}</Text>}
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>{'❤️'.repeat(Math.max(0, LIVES - errors))}{'🤍'.repeat(Math.min(errors, LIVES))}</Text>
+        <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('errors')} {formatErrorCount(failure, errors)}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
         <TouchableOpacity
           accessibilityRole="button" onPress={() => setRulesOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
@@ -732,14 +796,18 @@ export default function SudokuGame() {
           const sameRow = selected?.r === r || selected?.c === c;
           const sameVal = v !== 0 && selected && grid[selected.r][selected.c] === v;
           const wrongVal = v !== 0 && solution[r] && solution[r][c] !== v;
+          const markColor = cellColors[r]?.[c] ?? -1;
           let bg = (mode === 'killer' && cages) ? blendHex(colors.surface, CAGE_ACCENTS[cages[r][c] % CAGE_ACCENTS.length], 0.16) : colors.surface;
+          if (markColor >= 0 && markColor < paintPalette.length) {
+            bg = blendHex(bg, paintPalette[markColor], isDark ? 0.34 : 0.24);
+          }
           if (wrongVal) bg = isSel ? '#ef4444' : '#fecaca';  // ошибка: яркий красный если выделена, светло-красный иначе
           // v1.152: фон выделения затемнён #7f7fd5→#5b4fd1. Была светлая лаванда,
           // на ней БЕЛАЯ цифра (line ~652) не читалась (репорт Вали L30 «введённая
           // цифра светлая, не видно», контраст ~2.9:1). Теперь ~6:1, тема-независимо.
           else if (isSel) bg = '#5b4fd1';
-          else if (sameVal) bg = colors.card;
-          else if (sameRow) bg = colors.card;
+          else if (sameVal) bg = markColor >= 0 ? blendHex(bg, GRADIENT[0], 0.10) : colors.card;
+          else if (sameRow) bg = markColor >= 0 ? blendHex(bg, GRADIENT[0], 0.08) : colors.card;
           // v1.113.0: заливку доп. зон убрали — её перебивала подсветка строки/столбца выделения
           // (Валя: «то голубые то нет»). Зоны теперь рамкой поверх сетки (см. SVG ниже, как диагональ).
           // ДИАГОНАЛЬ: не заливаем фон и не рисуем по клеткам (границы клеток резали линию на
@@ -747,6 +815,7 @@ export default function SudokuGame() {
           return (
             <TouchableOpacity
               accessibilityRole="button"
+              accessibilityLabel={`${t('a11yCell')} ${r + 1}, ${c + 1}${markColor >= 0 ? ` · ${t('sudokuColorMode')} ${markColor + 1}` : ''}`}
               key={`${r}-${c}`}
               activeOpacity={0.6}
               onPress={() => handleCellPress(r, c)}
@@ -900,29 +969,74 @@ export default function SudokuGame() {
     );
     {/* Hint button + biomarker counters */}
     const hintEl = (
-      <View style={styles.hintRow}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={handleHint}
-          disabled={!selected || hintUses >= hintMax}
-          style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: (selected && hintUses < hintMax) ? 1 : 0.4 }]}
-        >
-          <Ionicons name="bulb" size={16} color="#000" />
-          <Text style={styles.hintBtnText}>{t('btn_hint')} ({hintUses}/{hintMax})</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel={t('btn_undo')}
-          onPress={handleUndo}
-          disabled={!hist.canUndo}
-          style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: hist.canUndo ? 1 : 0.4 }]}
-        >
-          <Ionicons name="arrow-undo" size={16} color={colors.text} />
-          <Text style={[styles.undoBtnText, { color: colors.text }]}>{t('btn_undo')}</Text>
-        </TouchableOpacity>
-        <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-          ↻ {backtrackCount}
-        </Text>
+      <View style={styles.hintBlock}>
+        <View style={styles.hintRow}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={handleHint}
+            disabled={!selected || hintUses >= hintMax}
+            style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: (selected && hintUses < hintMax) ? 1 : 0.4 }]}
+          >
+            <Ionicons name="bulb" size={16} color="#000" />
+            <Text style={styles.hintBtnText}>{t('btn_hint')} ({hintUses}/{hintMax})</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('btn_undo')}
+            onPress={handleUndo}
+            disabled={!hist.canUndo}
+            style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: hist.canUndo ? 1 : 0.4 }]}
+          >
+            <Ionicons name="arrow-undo" size={16} color={colors.text} />
+            <Text style={[styles.undoBtnText, { color: colors.text }]}>{t('btn_undo')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('sudokuColorMode')}
+            accessibilityState={{ selected: paintColor !== null }}
+            onPress={() => { setPaintColor((current) => current === null ? 0 : null); setSelected(null); }}
+            style={[
+              styles.undoBtn,
+              {
+                backgroundColor: paintColor === null
+                  ? colors.surface
+                  : blendHex(colors.surface, paintPalette[paintColor], isDark ? 0.45 : 0.28),
+                borderColor: paintColor === null ? colors.border : paintPalette[paintColor],
+              },
+            ]}
+          >
+            <Ionicons name="color-palette-outline" size={16} color={colors.text} />
+            <Text style={[styles.undoBtnText, { color: colors.text }]}>{t('sudokuColorMode')}</Text>
+          </TouchableOpacity>
+          <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+            ↻ {backtrackCount}
+          </Text>
+        </View>
+        {paintColor !== null && (
+          <>
+            <View style={styles.paintPalette}>
+              {paintPalette.map((accent, index) => (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('sudokuColorMode')} ${index + 1}`}
+                  accessibilityState={{ selected: paintColor === index }}
+                  key={accent}
+                  onPress={() => setPaintColor(index)}
+                  style={[
+                    styles.paintSwatch,
+                    {
+                      backgroundColor: blendHex(colors.surface, accent, isDark ? 0.62 : 0.44),
+                      borderColor: paintColor === index ? colors.text : colors.border,
+                    },
+                  ]}
+                >
+                  {paintColor === index && <Ionicons name="checkmark" size={16} color={colors.text} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={[styles.paintHint, { color: colors.textSecondary }]}>{t('sudokuColorHint')}</Text>
+          </>
+        )}
       </View>
     );
     // Единый каркас GameShell: статы — в props каркаса (обе ориентации).
@@ -1086,7 +1200,11 @@ const styles = StyleSheet.create({
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr' },
   numBtn: { width: 50, height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   numText: { color: '#FFF', fontSize: 26, fontWeight: '800' },
-  hintRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 8, flexWrap: 'wrap' },
+  hintBlock: { alignItems: 'center', gap: 5 },
+  hintRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' },
+  paintPalette: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
+  paintSwatch: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  paintHint: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
   overWrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.55)', padding: 24, zIndex: 100 },
   overCard: { width: '100%', maxWidth: 340, borderRadius: 20, padding: 24, alignItems: 'center', gap: 6 },
   overEmoji: { fontSize: 46 },

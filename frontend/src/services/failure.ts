@@ -45,3 +45,13 @@ export function livesLeft(policy: FailurePolicy, errors: number): number {
   if (!policy.fatal) return Infinity;
   return Math.max(0, policy.lives - errors);
 }
+
+/**
+ * Значение для счётчика ошибок. В длинной партии не рисуем бессмысленное `0/∞`;
+ * в короткой знаменатель выводится из политики через livesLeft, а не из константы UI.
+ */
+export function formatErrorCount(policy: FailurePolicy, errors: number): string {
+  const count = Math.max(0, Math.floor(errors));
+  const remaining = livesLeft(policy, count);
+  return Number.isFinite(remaining) ? `${count}/${count + remaining}` : String(count);
+}

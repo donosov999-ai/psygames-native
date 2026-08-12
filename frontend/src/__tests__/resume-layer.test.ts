@@ -6,9 +6,9 @@
  * фрактал — партия на час) это цена часа работы.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { saveResume, loadResume, clearResume, listResumable, RESUME_MAX_AGE_MS } from '@/src/services/resume';
+import { saveResume, loadResume, clearResume, listResumable, resolveResumableGame, RESUME_MAX_AGE_MS } from '@/src/services/resume';
 import { createMoveStack } from '@/src/services/moveStack';
-import { failurePolicy, isOver, livesLeft, STANDARD_LIVES } from '@/src/services/failure';
+import { failurePolicy, formatErrorCount, isOver, livesLeft, STANDARD_LIVES } from '@/src/services/failure';
 
 const GAME = 'sudoku';
 const PID = 'default';
@@ -76,6 +76,19 @@ describe('resume — незаконченная партия', () => {
     );
     expect(await listResumable(PID)).toEqual([]);
   });
+
+  it('карточка берёт канонический route из реестра и пропускает удалённую игру', () => {
+    const registry = [
+      { id: 'sudoku', route: '/games/sudoku' },
+      { id: 'schulte_table', route: '/games/schulte' },
+    ];
+    const resolved = resolveResumableGame([
+      { gameId: 'removed_game', savedAt: 3 },
+      { gameId: 'schulte_table', savedAt: 2 },
+    ], registry);
+    expect(resolved).toEqual({ id: 'schulte_table', route: '/games/schulte' });
+    expect(resolveResumableGame([{ gameId: 'unknown', savedAt: 1 }], registry)).toBeNull();
+  });
 });
 
 describe('moveStack — отмена хода', () => {
@@ -142,6 +155,8 @@ describe('failure — модель провала как параметр реж
     expect(isOver(p, 2)).toBe(false);
     expect(isOver(p, 3)).toBe(true);
     expect(livesLeft(p, 2)).toBe(1);
+    expect(formatErrorCount(p, 0)).toBe('0/3');
+    expect(formatErrorCount(p, 2)).toBe('2/3');
   });
 
   it('длинная партия: ошибки считаются, но час работы не обрывают', () => {
@@ -150,5 +165,6 @@ describe('failure — модель провала как параметр реж
     expect(isOver(p, 3)).toBe(false);
     expect(isOver(p, 99)).toBe(false);
     expect(livesLeft(p, 99)).toBe(Infinity);
+    expect(formatErrorCount(p, 99)).toBe('99');
   });
 });

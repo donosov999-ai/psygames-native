@@ -5,10 +5,10 @@
  * уведомлений (натив), финал ведёт к действию — первая зарядка или вызов дня.
  */
 
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, Redirect } from 'expo-router';
+import { useLocalSearchParams, useRouter, Redirect } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,6 +21,9 @@ import { useWarmup } from '@/src/contexts/WarmupContext';
 import { GAMES } from '@/src/constants/games';
 import { getTodayChallenge, challengeToParams, setPendingChallenge } from '@/src/services/daily-challenge';
 import { requestReminderPermission, applyReminders, saveReminderSettings, DEFAULT_REMINDERS } from '@/src/services/reminders';
+import { gameThumb } from '@/src/constants/gameThumbs';
+import { a11yDecor } from '@/src/services/a11y';
+import { getOnboardingGames, hasPickedOnboarding, markOnboardingPicked } from '@/src/services/onboarding';
 
 // Играбельные игры = всё, кроме карточек-хабов (span_group, attention_conflict — внутри них скрытые подигры).
 const GAME_COUNT = GAMES.filter((g) => !['span_group', 'attention_conflict'].includes(g.id)).length;
@@ -58,10 +61,29 @@ export default function OnboardingScreen() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const { profile } = useProfile();
+  const params = useLocalSearchParams<{ tutorial?: string | string[] }>();
   const warmup = useWarmup();
   const { width } = useWindowDimensions();
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
+  const tutorialMode = Array.isArray(params.tutorial)
+    ? params.tutorial.includes('1')
+    : params.tutorial === '1';
+  const [pickerReady, setPickerReady] = useState(tutorialMode);
+  const pickerGames = useMemo(() => getOnboardingGames(), []);
+
+  useEffect(() => {
+    if (tutorialMode) { setPickerReady(true); return; }
+    let active = true;
+    hasPickedOnboarding(profile.id)
+      .then((picked) => {
+        if (!active) return;
+        if (picked) router.replace('/' as any);
+        else setPickerReady(true);
+      })
+      .catch(() => { if (active) setPickerReady(true); });
+    return () => { active = false; };
+  }, [profile.id, router, tutorialMode]);
 
   const slide = SLIDES[step];
   const isLast = step === SLIDES.length - 1;
@@ -115,6 +137,23 @@ export default function OnboardingScreen() {
 
   const skip = () => finish();
 
+  const chooseGame = async (game: (typeof pickerGames)[number]) => {
+    if (busy) return;
+    setBusy(true);
+    try { await markOnboardingPicked(profile.id); } catch {}
+    router.replace({
+      pathname: game.route as any,
+      params: { auto: '1', diff: 'easy' },
+    } as any);
+  };
+
+  const skipPicker = async () => {
+    if (busy) return;
+    setBusy(true);
+    try { await markOnboardingPicked(profile.id); } catch {}
+    router.replace('/' as any);
+  };
+
   const isNotif = slide.kind === 'notifications';
   const isFinal = slide.kind === 'final';
   const mainLabel = isNotif
@@ -123,6 +162,73 @@ export default function OnboardingScreen() {
       ? (canWarmup ? t('onbStartFirstWarmup') : t('onbPlayDailyChallenge'))
       : t('onbNext');
   const onMainPress = isNotif ? enableReminders : isFinal ? startAction : next;
+
+  if (!tutorialMode) {
+    if (!pickerReady) {
+      return (
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </SafeAreaView>
+      );
+    }
+
+    return (
+      <SafeAreaView style={[styles.pickerContainer, { backgroundColor: colors.background }]}>
+        <ScrollView
+          contentContainerStyle={[styles.pickerScroll, { width: containerW }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.pickerHeading}>
+            <Text style={styles.pickerEmoji}>🎮</Text>
+            <Text style={[styles.pickerTitle, { color: colors.text }]}>{t('onbPickGameTitle')}</Text>
+            <Text style={[styles.pickerBody, { color: colors.textSecondary }]}>{t('onbPickGameBody')}</Text>
+          </View>
+
+          <View style={styles.pickerCards}>
+            {pickerGames.map((game) => {
+              const thumb = gameThumb(game.id);
+              return (
+                <TouchableOpacity
+                  key={game.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t(game.nameKey)}. ${t(game.skillKey)}`}
+                  activeOpacity={0.84}
+                  disabled={busy}
+                  onPress={() => chooseGame(game)}
+                  style={styles.pickerCard}
+                >
+                  <LinearGradient colors={game.gradient as [string, string]} style={styles.pickerGradient}>
+                    {thumb && <Image {...a11yDecor} source={thumb} resizeMode="cover" style={styles.pickerThumb} />}
+                    <View style={styles.pickerShade} pointerEvents="none" />
+                    <View style={styles.pickerIcon}>
+                      <Ionicons name={game.icon as any} size={25} color="#fff" />
+                    </View>
+                    <View style={styles.pickerCopy}>
+                      <Text style={styles.pickerGameName} numberOfLines={1}>{t(game.nameKey)}</Text>
+                      <Text style={styles.pickerSkill} numberOfLines={1}>{t(game.skillKey)}</Text>
+                      <Text style={styles.pickerDesc} numberOfLines={2}>{t(game.descKey)}</Text>
+                    </View>
+                    <Ionicons name={isRTLLang(language) ? 'chevron-back' : 'chevron-forward'} size={25} color="#fff" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <Text style={[styles.pickerHint, { color: colors.textSecondary }]}>{t('onbPickGameHint')}</Text>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('skip')}
+            disabled={busy}
+            onPress={skipPicker}
+            style={[styles.pickerSkip, { borderColor: colors.border, backgroundColor: colors.surface }]}
+          >
+            <Text style={[styles.pickerSkipText, { color: colors.text }]}>{t('skip')}</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -185,6 +291,25 @@ export default function OnboardingScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'space-between', padding: 16 },
+  pickerContainer: { flex: 1, alignItems: 'center' },
+  pickerScroll: { alignSelf: 'center', paddingTop: 24, paddingBottom: 32, gap: 18 },
+  pickerHeading: { alignItems: 'center', paddingHorizontal: 12, gap: 8 },
+  pickerEmoji: { fontSize: 42 },
+  pickerTitle: { fontSize: 27, lineHeight: 32, fontWeight: '900', textAlign: 'center' },
+  pickerBody: { fontSize: 15, lineHeight: 21, textAlign: 'center', maxWidth: 390 },
+  pickerCards: { gap: 11 },
+  pickerCard: { height: 118, borderRadius: 19, overflow: 'hidden' },
+  pickerGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 12, position: 'relative', overflow: 'hidden' },
+  pickerThumb: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, width: '100%', height: '100%', opacity: 0.24 },
+  pickerShade: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(10,16,36,0.24)' },
+  pickerIcon: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.22)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' },
+  pickerCopy: { flex: 1, minWidth: 0, gap: 3 },
+  pickerGameName: { color: '#fff', fontSize: 18, fontWeight: '900' },
+  pickerSkill: { color: 'rgba(255,255,255,0.92)', fontSize: 12, fontWeight: '800' },
+  pickerDesc: { color: 'rgba(255,255,255,0.86)', fontSize: 12, lineHeight: 16 },
+  pickerHint: { fontSize: 12, lineHeight: 17, textAlign: 'center', paddingHorizontal: 20 },
+  pickerSkip: { minHeight: 48, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  pickerSkipText: { fontSize: 15, fontWeight: '800' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12 },
   stepCounter: { fontSize: 13, fontWeight: '700' },
   skipBtn: { fontSize: 14, fontWeight: '600' },

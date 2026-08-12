@@ -34,11 +34,12 @@ interface Props {
   colors: any;
   autoMs?: number;          // авто-старт следующего (по умолчанию 2200мс)
   gameId?: string;          // для персиста звёзд по уровням (psygames_<gameId>_stars_<profileId>)
+  comparisonLine?: string;  // свой итог · лучший среди игроков / личный рекорд при офлайне
   onContinue: () => void;   // запустить следующий уровень (passed) / тот же уровень заново (!passed)
   onStop: () => void;       // выйти (config / домой)
 }
 
-export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, onContinue, onStop }: Props) {
+export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, onContinue, onStop }: Props) {
   const { t, language } = useLanguage();
   const levelWord = t('level');   // внутри эффекта `t` перекрыт локальным таймер-хендлом   // язык берём из контекста; проп language остался в Props для совместимости вызовов из игр
   const { profile } = useProfile();
@@ -144,6 +145,12 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             </Text>
           </View>
         )}
+        {comparisonLine && (
+          <View style={styles.comparisonBadge}>
+            <Ionicons name="people-outline" size={17} color="#FFFFFF" />
+            <Text style={styles.comparisonText}>{comparisonLine}</Text>
+          </View>
+        )}
         {/* Web-demo: авто-старта следующего уровня нет — строку «Запускаю уровень N+1» не показываем */}
         {!IS_WEB_DEMO && (
           <Text style={styles.next}>
@@ -211,6 +218,8 @@ const styles = StyleSheet.create({
   stars: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   runBadge: { backgroundColor: 'rgba(0,0,0,0.25)', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, marginBottom: 12 },
   runText: { color: '#FFD93B', fontSize: 14, fontWeight: '800' },
+  comparisonBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: 'rgba(0,0,0,0.20)', paddingHorizontal: 13, paddingVertical: 8, borderRadius: 14, marginBottom: 12 },
+  comparisonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700', textAlign: 'center', flexShrink: 1 },
   next: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
   levelsHint: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.75)', textAlign: 'center', marginTop: 10, lineHeight: 18 },   // одноразовая подпись про порядок уровней
   restHint: { fontSize: 15, fontWeight: '500', color: 'rgba(255,255,255,0.92)', textAlign: 'center', marginBottom: 12, lineHeight: 21 },

@@ -19,8 +19,8 @@
  * мы показываем не все грани (см. markerDensity), поэтому пустая грань не означает
  * «связи нет». Это же должно быть сказано в правилах варианта.
  *
- * Чего не учитывается: суммы sandwich. Такой пазл оценивается пессимистично (кажется
- * сложнее, чем играется) — на уровнях 38–41 полоса поэтому задана с запасом.
+ * Суммы sandwich учитываются как границы допустимых позиций 1 и 9: пара позиций
+ * остаётся только если сумма между ними может совпасть с подсказкой.
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
@@ -32,11 +32,12 @@ export type Technique =
   | 'locked'          // связанные кандидаты: цифра блока заперта в одной строке (и наоборот)
   | 'naked_subset'    // голая пара/тройка
   | 'hidden_subset'   // скрытая пара
+  | 'sandwich_sum'    // вывод из суммы между позициями 1 и 9
   | 'x_wing'          // X-wing
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
-  naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, hidden_subset: 5, x_wing: 6, guess: 9,
+  naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, sandwich_sum: 4, hidden_subset: 5, x_wing: 6, guess: 9,
 };
 
 export interface GradeCtx {
@@ -231,6 +232,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     // где хоть одна пара сходится по границам суммы. Правило раньше решателю не было
     // известно вовсе — оттого сэндвич и оценивался пессимистично.
     if (variant === 'sandwich' && sandwich && N === 9) {
+      let usedSandwich = false;
       const line = (idx: number, byRow: boolean) => Array.from({ length: N }, (_, k) => (byRow ? [idx, k] : [k, idx]) as [number, number]);
       for (const byRow of [true, false]) {
         const targets = byRow ? sandwich.rows : sandwich.cols;
@@ -240,7 +242,8 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
             const [rr, cc] = cells[k];
             return grid[rr][cc] !== 0 ? grid[rr][cc] === v : !!(cand[rr][cc] & bit(v));
           };
-          const okPos1 = new Set<number>(), okPos9 = new Set<number>();
+          // Девять позиций помещаются в один int: без Set/массивов на каждой линии.
+          let okPos1 = 0, okPos9 = 0;
           for (let a = 0; a < N; a++) for (let b = 0; b < N; b++) {
             if (a === b) continue;
             if (!has(a, 1) || !has(b, 9)) continue;
@@ -252,17 +255,20 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
               if (!m) { mn = 1e9; break; }
               mn += loVal(m); mx += hiVal(m);
             }
-            if (mn <= targets[i] && targets[i] <= mx) { okPos1.add(a); okPos9.add(b); }
+            if (mn <= targets[i] && targets[i] <= mx) { okPos1 |= 1 << a; okPos9 |= 1 << b; }
           }
           for (let k = 0; k < N; k++) {
             const [rr, cc] = cells[k];
             if (grid[rr][cc] !== 0) continue;
-            if ((cand[rr][cc] & bit(1)) && !okPos1.has(k)) cand[rr][cc] &= ~bit(1);
-            if ((cand[rr][cc] & bit(9)) && !okPos9.has(k)) cand[rr][cc] &= ~bit(9);
+            if ((cand[rr][cc] & bit(1)) && !(okPos1 & (1 << k))) { cand[rr][cc] &= ~bit(1); usedSandwich = true; }
+            if ((cand[rr][cc] & bit(9)) && !(okPos9 & (1 << k))) { cand[rr][cc] &= ~bit(9); usedSandwich = true; }
             if (cand[rr][cc] === 0) return true;
           }
         }
       }
+      // Само применение суммы — техника игрока, а не «бесплатный» refilter. Без bump
+      // пазл, решённый через sandwich, ошибочно оценивался как набор простых одиночек.
+      if (usedSandwich) bump('sandwich_sum');
     }
 
     if (kropki) {
@@ -492,13 +498,12 @@ export function thinMarkers<T extends { parity?: number[][]; kropki?: { h: numbe
 export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
 
 /**
- * Варианты, где логический решатель по-настоящему силён. У остальных правило работает
- * только против УЖЕ известных соседей (nonconsec, thermo, arrow) или вовсе не заведено
- * в решатель (sandwich) — там он откатывает почти каждое выкалывание и упирается в
- * бюджет. Замер: nonconsec на логическом пути стоил 38 с на пазл. Поэтому такие
- * варианты идут прежним путём — через проверку единственности.
+ * Варианты, где логический решатель понимает правило достаточно, чтобы копать от
+ * техники. Ограничения вариантов распространяются по маскам кандидатов внутри
+ * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
+ * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'jigsaw', 'nonconsec', 'thermo', 'arrow'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow'];
 
 /** Потолок пустых клеток на 9×9: доска в 74 дырки решается, но заполнять её долго. */
 const MAX_BLANKS_9 = 64;
@@ -528,7 +533,11 @@ function digByLogic(
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,
   // из-за чего сложность переставала расти — замер: L5..L37 почти сплошь tier 1.
-  const cap = level <= 8 ? blanksCap : (N === 9 ? MAX_BLANKS_9 : N * N);
+  // Полные 18 sandwich-подсказок уже добавляют технику уровня 4; выкапывать сверх
+  // продуктового лимита 58 клеток ради той же ступени только расходует бюджет.
+  const cap = level <= 8 || variant === 'sandwich'
+    ? blanksCap
+    : (N === 9 ? MAX_BLANKS_9 : N * N);
   let dug = 0;
   for (const p of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
     if (dug >= cap || Date.now() > deadline) break;

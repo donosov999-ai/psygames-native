@@ -86,6 +86,23 @@ export interface ResumableGame {
 }
 
 /**
+ * Берёт самую свежую партию, для которой всё ещё есть запись в реестре игр.
+ * Возвращаем сам объект реестра: вызывающий код получает канонический `route`, а не
+ * пытается собрать URL из gameId (они не совпадают у большинства игр).
+ */
+export function resolveResumableGame<T extends { id: string }>(
+  resumable: ResumableGame[],
+  registry: readonly T[],
+): T | null {
+  const byId = new Map(registry.map((game) => [game.id, game]));
+  for (const item of resumable) {
+    const game = byId.get(item.gameId);
+    if (game) return game;
+  }
+  return null;
+}
+
+/**
  * Какие игры ждут продолжения у этого профиля. Для карточки «Продолжить» на главной —
  * читает только заголовки, сами состояния не разбирает.
  */
