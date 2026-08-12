@@ -73,6 +73,10 @@ const translations: Translations = {
   complexAssessment: { ru: 'ОЦЕНКА', en: 'ASSESSMENT' },
   restDay: { ru: 'Сегодня набора нет', en: 'No set today' },
   ctaStart: { ru: 'СТАРТ', en: 'START' },
+  // Карточка зарядки ведёт на ВЫБОР набора, а не запускает его. Подпись «СТАРТ»
+  // обещала запуск — Валя об этом и писала: «заходишь в „не спится“, а там все
+  // зарядки». Обещание кнопки должно совпадать с тем, что произойдёт.
+  ctaChoose: { ru: 'ВЫБРАТЬ', en: 'CHOOSE' },
   ctaRepeat: { ru: 'ПОВТОР', en: 'REPEAT' },
   ctaWait: { ru: 'ЖДЁМ', en: 'WAIT' },
   unitGame: { ru: 'игра', en: 'game' },
