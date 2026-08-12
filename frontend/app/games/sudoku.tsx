@@ -21,6 +21,7 @@ import type { DigitStyle } from '@/src/constants/digitThemes';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
+import { useGameKeyboard, digitKeys } from '@/src/hooks/useGameKeyboard';
 import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 import { failurePolicy, formatErrorCount, isOver as isFailOver } from '@/src/services/failure';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -581,6 +582,36 @@ export default function SudokuGame() {
       }
     }
   };
+
+  /**
+   * КЛАВИАТУРА. На компьютере к цифрам тянутся рефлекторно, и раньше нажатие не делало
+   * ничего — человек читал это как «приложение подтормаживает», а не «клавиатуру не
+   * поддержали». Раскладка привычная: цифры ставят, Backspace стирает, стрелки ходят.
+   *
+   * Стрелки перескакивают через ДАННЫЕ клетки: в них всё равно нельзя писать
+   * (handleCellPress их не выбирает), и остановка на такой клетке выглядела бы как
+   * зависшее управление — курсор стоит, цифры не вводятся, причина не видна.
+   */
+  const moveSelection = (dr: number, dc: number) => {
+    if (!grid.length) return;
+    let { r, c } = selected ?? { r: dr < 0 ? N : -1, c: dc < 0 ? N : -1 };
+    for (let step = 0; step < N * N; step++) {
+      r += dr; c += dc;
+      if (r < 0 || r >= N || c < 0 || c >= N) return;   // упёрлись в край — стоим
+      if (!given[r][c]) { setSelected({ r, c }); return; }
+    }
+  };
+
+  useGameKeyboard(
+    {
+      ...digitKeys((n) => { void handleNumPress(n); }, { maxDigit: N }),
+      ArrowUp: () => moveSelection(-1, 0),
+      ArrowDown: () => moveSelection(1, 0),
+      ArrowLeft: () => moveSelection(0, -1),
+      ArrowRight: () => moveSelection(0, 1),
+    },
+    phase === 'playing' && !over,
+  );
 
   // Hint: fill the selected cell with the correct value (penalizes biomarker)
   const handleHint = () => {
