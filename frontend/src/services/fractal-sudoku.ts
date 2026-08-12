@@ -21,6 +21,7 @@
  * Та же теорема, на которой стоит наш гейт единственности.
  */
 import { shuffle } from '@/src/services/sudoku-core';
+import { makeRng, seededShuffle, type Rng } from '@/src/services/seed';
 
 export const N = 9;
 
@@ -51,25 +52,25 @@ function ok(b: Board, r: number, c: number, v: number): boolean {
 
 const empty = (): Board => Array.from({ length: N }, () => Array(N).fill(0));
 
-function fill(b: Board, pos = 0): boolean {
+function fill(b: Board, pos = 0, rnd?: Rng): boolean {
   if (pos === N * N) return true;
   const r = Math.floor(pos / N), c = pos % N;
-  if (b[r][c] !== 0) return fill(b, pos + 1);
-  for (const v of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
+  if (b[r][c] !== 0) return fill(b, pos + 1, rnd);
+  for (const v of (rnd ? seededShuffle([1, 2, 3, 4, 5, 6, 7, 8, 9], rnd) : shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]))) {
     if (!ok(b, r, c, v)) continue;
     b[r][c] = v;
-    if (fill(b, pos + 1)) return true;
+    if (fill(b, pos + 1, rnd)) return true;
     b[r][c] = 0;
   }
   return false;
 }
 
 /** Решённая сетка, у которой центр равен заданной цифре. */
-export function solvedWithCenter(center: number): Board {
+export function solvedWithCenter(center: number, rnd?: Rng): Board {
   for (let attempt = 0; attempt < 60; attempt++) {
     const b = empty();
     b[FEED_CELL[0]][FEED_CELL[1]] = center;
-    if (fill(b)) return b;
+    if (fill(b, 0, rnd)) return b;
   }
   throw new Error(`fractal: не удалось собрать сетку с центром ${center}`);
 }
@@ -102,9 +103,9 @@ export function isUnlocked(current: Board, solution: Board): boolean {
   return solvedCount(current, solution) >= UNLOCK_CELLS;
 }
 
-function dig(solution: Board, blanks: number): Board {
+function dig(solution: Board, blanks: number, rnd?: Rng): Board {
   const b = solution.map((row) => [...row]);
-  const cells = shuffle(Array.from({ length: N * N }, (_, i) => i));
+  const cells = rnd ? seededShuffle(Array.from({ length: N * N }, (_, i) => i), rnd) : shuffle(Array.from({ length: N * N }, (_, i) => i));
   let removed = 0;
   for (const idx of cells) {
     if (removed >= blanks) break;
@@ -124,21 +125,22 @@ function dig(solution: Board, blanks: number): Board {
  * @param rootBlanks   выколотых клеток в корне
  * @param childBlanks  выколотых в каждой дочерней; чем больше, тем дольше до порога 17
  */
-export function generateFractal(rootBlanks = 50, childBlanks = 50): FractalPuzzle {
+export function generateFractal(rootBlanks = 50, childBlanks = 50, seed?: string): FractalPuzzle {
+  const rnd = seed ? makeRng(seed) : undefined;
   const rootSolution = empty();
-  if (!fill(rootSolution)) throw new Error('fractal: не удалось собрать корень');
+  if (!fill(rootSolution, 0, rnd)) throw new Error('fractal: не удалось собрать корень');
 
   const children = [];
   for (let i = 0; i < 9; i++) {
     const [rr, rc] = rootCellForChild(i);
     const center = rootSolution[rr][rc];
-    const solution = solvedWithCenter(center);
-    children.push({ solution, puzzle: dig(solution, childBlanks), feedsCell: [rr, rc] as [number, number] });
+    const solution = solvedWithCenter(center, rnd);
+    children.push({ solution, puzzle: dig(solution, childBlanks, rnd), feedsCell: [rr, rc] as [number, number] });
   }
 
   // В корне выкалываем ТОЛЬКО те клетки, которые открываются снизу, плюс обычные дырки.
   // Иначе корень решался бы сам по себе, и вложенность оказалась бы украшением.
-  const rootPuzzle = dig(rootSolution, rootBlanks);
+  const rootPuzzle = dig(rootSolution, rootBlanks, rnd);
   for (let i = 0; i < 9; i++) {
     const [rr, rc] = rootCellForChild(i);
     rootPuzzle[rr][rc] = 0;

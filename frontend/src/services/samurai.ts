@@ -29,6 +29,7 @@
  *   └───┘   └───┘
  */
 import { shuffle } from '@/src/services/sudoku-core';
+import { makeRng, seededShuffle, type Rng } from '@/src/services/seed';
 
 export const N = 9;
 export const CANVAS = 21;
@@ -85,14 +86,14 @@ function ok(b: Board, r: number, c: number, v: number): boolean {
 const empty = (): Board => Array.from({ length: N }, () => Array(N).fill(0));
 
 /** Заполнить сетку с учётом уже расставленных клеток. Возвращает false, если не вышло. */
-function fill(b: Board, pos = 0): boolean {
+function fill(b: Board, pos = 0, rnd?: Rng): boolean {
   if (pos === N * N) return true;
   const r = Math.floor(pos / N), c = pos % N;
-  if (b[r][c] !== 0) return fill(b, pos + 1);
-  for (const v of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
+  if (b[r][c] !== 0) return fill(b, pos + 1, rnd);
+  for (const v of (rnd ? seededShuffle([1, 2, 3, 4, 5, 6, 7, 8, 9], rnd) : shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]))) {
     if (!ok(b, r, c, v)) continue;
     b[r][c] = v;
-    if (fill(b, pos + 1)) return true;
+    if (fill(b, pos + 1, rnd)) return true;
     b[r][c] = 0;
   }
   return false;
@@ -106,7 +107,7 @@ function fill(b: Board, pos = 0): boolean {
  * четыре готовых блока сразу, что почти всегда упирается в тупик и заставляет
  * перебирать всё заново.
  */
-export function buildSolution(): Board[] {
+export function buildSolution(rnd?: Rng): Board[] {
   // 🔴 Геометрию проверяем ДО перебора. Замер 12.08.2026: при сдвинутой раскладке
   // (центр в [5,5] вместо [6,6]) пересечение разрастается с 9 клеток до 16, решения
   // не существует, и перебор МОЛОТИТ ВХОЛОСТУЮ — 400 секунд без результата и без ошибки.
@@ -119,12 +120,12 @@ export function buildSolution(): Board[] {
 
   for (let attempt = 0; attempt < 40; attempt++) {
     const grids: Board[] = [empty(), empty(), empty(), empty(), empty()];
-    if (!fill(grids[4])) continue;
+    if (!fill(grids[4], 0, rnd)) continue;
 
     let good = true;
     for (let g = 0; g < 4 && good; g++) {
       for (const [r, c, cr, cc] of overlapsOf(g)) grids[g][r][c] = grids[4][cr][cc];
-      if (!fill(grids[g])) good = false;
+      if (!fill(grids[g], 0, rnd)) good = false;
     }
     if (good) return grids;
   }
@@ -158,7 +159,7 @@ export function isSolved(grids: Board[]): boolean {
  * исчезает В ОБЕИХ сетках — иначе человек видел бы подсказку с одной стороны и пустоту
  * с другой на одной и той же точке поля, и доска выглядела бы сломанной.
  */
-export function dig(solution: Board[], blanksPerGrid: number): Board[] {
+export function dig(solution: Board[], blanksPerGrid: number, rnd?: Rng): Board[] {
   const puzzle = solution.map((b) => b.map((row) => [...row]));
 
   const twin = new Map<string, [number, number, number]>();
@@ -170,7 +171,7 @@ export function dig(solution: Board[], blanksPerGrid: number): Board[] {
   }
 
   for (let g = 0; g < 5; g++) {
-    const cells = shuffle(Array.from({ length: N * N }, (_, i) => i));
+    const cells = rnd ? seededShuffle(Array.from({ length: N * N }, (_, i) => i), rnd) : shuffle(Array.from({ length: N * N }, (_, i) => i));
     let removed = 0;
     for (const idx of cells) {
       if (removed >= blanksPerGrid) break;
@@ -185,7 +186,13 @@ export function dig(solution: Board[], blanksPerGrid: number): Board[] {
   return puzzle;
 }
 
-export function generateSamurai(blanksPerGrid = 45): Samurai {
-  const solution = buildSolution();
-  return { solution, puzzle: dig(solution, blanksPerGrid) };
+/**
+ * @param seed  строка-сид. Один сид — одна и та же доска, всегда: и перебор, и
+ *              выкалывание идут на ОДНОМ генераторе. Разведи их на два — и
+ *              воспроизведётся только половина доски, а это хуже, чем ничего.
+ */
+export function generateSamurai(blanksPerGrid = 45, seed?: string): Samurai {
+  const rnd = seed ? makeRng(seed) : undefined;
+  const solution = buildSolution(rnd);
+  return { solution, puzzle: dig(solution, blanksPerGrid, rnd) };
 }
