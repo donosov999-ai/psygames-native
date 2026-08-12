@@ -24,7 +24,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -60,7 +60,7 @@ export default function LexicalDecisionGame() {
   const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('lexical_decision');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const presetTrials = num('trials', 30);   // только для пресетов (зарядка передаёт trials)
 
@@ -242,6 +242,7 @@ export default function LexicalDecisionGame() {
             <Text style={[styles.configTitle, { color: '#fff' }]}>{t('lexicalDecision')}</Text>
             <Text style={[styles.configDesc, { color: 'rgba(255,255,255,0.8)' }]}>{t('lexicalDecisionDesc')}</Text>
           </LinearGradient>
+          <GameAbout descriptionKey="lexicalDecisionIntroDesc" benefits={LD_BENEFITS} accent={GRADIENT[0]} />
 
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
             <Text style={[styles.optionLabel, { color: colors.text }]}>
@@ -355,22 +356,6 @@ export default function LexicalDecisionGame() {
 
   if (phase === 'playing') return renderPlaying();
 
-  if (phase === 'intro') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <GameIntro
-          nameKey="lexicalDecision"
-          icon="flash"
-          gradient={GRADIENT}
-          skillKey="skillVocabulary"
-          descriptionKey="lexicalDecisionIntroDesc"
-          benefits={LD_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>

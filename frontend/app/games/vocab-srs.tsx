@@ -23,7 +23,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import {
@@ -54,7 +54,7 @@ export default function VocabSrsGame() {
 
   const { isPreset, autostart, str, num } = useGamePreset();
   useEffect(() => { if (autostart) startSession(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const [newLimit, setNewLimit] = useState(() => num('newLimit', 10));
   const [direction, setDirection] = useState<Direction>(() => (str('direction', 'recognize') as Direction));
@@ -220,6 +220,7 @@ export default function VocabSrsGame() {
           <Text style={[styles.configTitle, { color: '#fff' }]}>{t('vocabSrs')}</Text>
           <Text style={[styles.configDesc, { color: 'rgba(255,255,255,0.8)' }]}>{t('vocabSrsDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="vocabSrsIntroDesc" benefits={VOCAB_BENEFITS} accent={GRADIENT[0]} />
 
         {stats && (
           <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
@@ -421,22 +422,6 @@ export default function VocabSrsGame() {
 
   if (phase === 'playing') return renderPlaying();
 
-  if (phase === 'intro') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <GameIntro
-          nameKey="vocabSrs"
-          icon="school"
-          gradient={GRADIENT}
-          skillKey="skillVocabulary"
-          descriptionKey="vocabSrsIntroDesc"
-          benefits={VOCAB_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>

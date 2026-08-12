@@ -24,7 +24,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -72,7 +72,7 @@ export default function ClozeGame() {
   const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('cloze');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   // Число раундов: в уровневом режиме — из levelParams; пресеты (зарядка) по-прежнему задают своё
   const [presetRounds] = useState(() => num('rounds', 10));
@@ -272,6 +272,7 @@ export default function ClozeGame() {
             <Text style={[styles.configTitle, { color: '#fff' }]}>{t('cloze')}</Text>
             <Text style={[styles.configDesc, { color: 'rgba(255,255,255,0.8)' }]}>{t('clozeDesc')}</Text>
           </LinearGradient>
+          <GameAbout descriptionKey="clozeIntroDesc" benefits={CLOZE_BENEFITS} accent={GRADIENT[0]} />
 
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
             <Text style={[styles.optionLabel, { color: colors.text }]}>
@@ -383,22 +384,6 @@ export default function ClozeGame() {
 
   if (phase === 'playing') return renderPlaying();
 
-  if (phase === 'intro') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <GameIntro
-          nameKey="cloze"
-          icon="create"
-          gradient={GRADIENT}
-          skillKey="skillVocabulary"
-          descriptionKey="clozeIntroDesc"
-          benefits={CLOZE_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>

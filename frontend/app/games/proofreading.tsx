@@ -16,7 +16,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -61,7 +61,7 @@ export default function ProofreadingGame() {
   const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('proofreading');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   // rows/cols из пресета зарядки; в личной игре перезаписываются параметрами уровня
   const [rows, setRows] = useState(() => num('rows', 14));
   const [cols, setCols] = useState(() => num('cols', 12));
@@ -287,6 +287,7 @@ export default function ProofreadingGame() {
           <Text style={[styles.configTitle, { color: '#333' }]}>{t('proofreading')}</Text>
           <Text style={[styles.configDesc, { color: 'rgba(0,0,0,0.6)' }]}>{t('proofreadingDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="proofreadingIntroDesc" benefits={PROOFREADING_BENEFITS} accent={GRADIENT[0]} />
 
         <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
@@ -433,22 +434,6 @@ export default function ProofreadingGame() {
     </GameShell>
   );
 
-  if (phase === 'intro') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <GameIntro
-          nameKey="proofreading"
-          icon="search"
-          gradient={GRADIENT}
-          skillKey="skillFocus"
-          descriptionKey="proofreadingIntroDesc"
-          benefits={PROOFREADING_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      </SafeAreaView>
-    );
-  }
 
   if (phase === 'playing') return renderGame();
 

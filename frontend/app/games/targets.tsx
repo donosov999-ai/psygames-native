@@ -16,7 +16,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
-import GameIntro from '@/src/components/GameIntro';
+import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -50,7 +50,7 @@ export default function TargetsGame() {
   const { isPreset, autostart, str, num } = useGamePreset();
   const lvl = usePersistentLevel('targets');   // персист достигнутого уровня (раньше сбрасывался)
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
-  const [phase, setPhase] = useState<GamePhase>('intro');
+  const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [mode, setMode] = useState<GameMode>(() => (str('mode', 'field') as GameMode));
   const [level, setLevel] = useState(() => num('level', 1));
   const [score, setScore] = useState(0);
@@ -360,6 +360,7 @@ export default function TargetsGame() {
           <Text style={styles.configTitle}>{t('targets')}</Text>
           <Text style={styles.configDesc}>{t('targetsDesc')}</Text>
         </LinearGradient>
+        <GameAbout descriptionKey="targetsIntroDesc" benefits={TARGETS_BENEFITS} accent={GRADIENT[0]} />
 
         <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
@@ -562,22 +563,6 @@ export default function TargetsGame() {
 
   if (phase === 'playing') return renderGame();
 
-  if (phase === 'intro') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <GameIntro
-          nameKey="targets"
-          icon="disc"
-          gradient={GRADIENT}
-          skillKey="skillReaction"
-          descriptionKey="targetsIntroDesc"
-          benefits={TARGETS_BENEFITS}
-          onStart={() => setPhase('config')}
-          onBack={() => goBackOrHome()}
-        />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
