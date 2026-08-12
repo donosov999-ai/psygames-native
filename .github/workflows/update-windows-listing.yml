@@ -1,0 +1,32 @@
+name: Generate Windows Store Listing CSV
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'store/windows/listing-*.md'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Generate CSV
+        run: node .github/scripts/generate_windows_csv.js
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add store/windows/store-listing.csv
+          git diff --staged --quiet || git commit -m "auto: regenerate Windows Store listing CSV [skip ci]"
+          git push
