@@ -16,6 +16,28 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.192.0',
+    date: '2026-08-12',
+    ru: [
+      'Приложение больше не падает, если выключить кнопку отзыва в настройках — раньше после этого не открывался ни один экран',
+      'Вибрация наконец работает на Android: приложению не хватало системного разрешения, поэтому настройка включалась, а вибрации не было',
+      'Судоку: в описании правил были указаны не те уровни — точки Кропки стоят на 34-м, а кривые блоки только на 50-м. Добавлены сэндвич, термометры и стрелки, о которых раньше не говорилось',
+      'Режим для дальтоников теперь честно пишет, где именно он работает',
+      'Из окна правил судоку снова можно отправить отзыв',
+      'Гимнастика для глаз и Дыхание на главной встали ровно — раньше карточки разъезжались по высоте',
+      'Названия зарядок и подписи виджета отзыва переведены на все 12 языков — раньше девять языков видели их по-английски',
+    ],
+    en: [
+      'The app no longer crashes if you switch the feedback button off in settings — after that no screen would open at all',
+      'Vibration finally works on Android: the app was missing a system permission, so the setting turned on but nothing happened',
+      'Sudoku: the rules described the wrong levels — kropki dots start at 34, irregular blocks only at 50. Sandwich, thermometers and arrows were missing from the list entirely',
+      'Colorblind mode now says honestly where it applies',
+      'You can send feedback from the Sudoku rules window again',
+      'Eye Gymnastics and Breathing cards on the home screen line up — they used to sit at different heights',
+      'Warm-up names and feedback labels are translated into all 12 languages — nine languages used to see them in English',
+    ],
+  },
+  {
     version: '1.191.0',
     date: '2026-08-12',
     ru: [
