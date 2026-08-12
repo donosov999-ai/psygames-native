@@ -556,6 +556,7 @@ const translations: Translations = {
   slotNightDesc:    { ru: 'Не спится — только дыхание, без счёта', en: 'Can’t sleep — breathing only, no score' },
   slotNightNote:    { ru: 'Это не тренировка: очки не начисляются и стрик не растёт', en: 'Not a workout: no points, no streak' },
   restart: { ru: 'Заново', en: 'Restart' },
+  a11yResetLevel: { ru: 'Начать заново с первого уровня', en: 'Restart from level one' },
   back: { ru: 'Назад', en: 'Back' },
   time: { ru: 'Время', en: 'Time' },
   score: { ru: 'Счёт', en: 'Score' },

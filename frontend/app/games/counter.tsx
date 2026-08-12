@@ -333,7 +333,7 @@ export default function CounterGame() {
             </Text>
             {lvl.level > 1 && (
               <TouchableOpacity
-                accessibilityRole="button" onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
+                accessibilityRole="button" accessibilityLabel={t('a11yResetLevel')} onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
                 <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
               </TouchableOpacity>
             )}

@@ -60,6 +60,34 @@ function blocks(s, tag) {
   return out;
 }
 
+/**
+ * Есть ли в теле кнопки текст, который человек услышит как СЛОВО.
+ *
+ * Считаем произносимым: вызов перевода `t('…')`, любая подстановка `{…}` со смыслом
+ * (имя игры, число очков — их читает сам RN) и буквы длиннее одной. Не считаем:
+ * значки-стрелки, эмодзи, одиночные цифры и знаки препинания. «↺ 1» и «✕» — не подпись.
+ */
+function speakable(body) {
+  if (/\bt\(/.test(body)) return true;                    // переведённая строка
+  const texts = [...body.matchAll(/<Text[^>]*>([\s\S]*?)<\/Text>/g)].map((m) => m[1]);
+  for (const raw of texts) {
+    // ⚠️ Подстановка `{…}` — это ЖИВОЕ значение: цифра клавиши, буква, имя уровня.
+    // Скринридер прочитает его как есть, и это нормально. Первая версия проверки
+    // вырезала подстановки и ругалась на всё подряд — 123 срабатывания, из них
+    // подавляющее большинство на исправном коде. Гейт, падающий на исправном, хуже
+    // отсутствия гейта: его отключат целиком вместе с настоящими находками.
+    if (/\{[^}]+\}/.test(raw)) return true;
+    if (/[\p{L}]{2,}/u.test(raw.replace(/<[^>]*>/g, ' '))) return true;   // настоящее слово
+  }
+  return false;
+}
+
+/** Что именно там за символы — чтобы в отчёте было видно, о чём речь. */
+function symbolsOf(body) {
+  const texts = [...body.matchAll(/<Text[^>]*>([\s\S]*?)<\/Text>/g)].map((m) => m[1]);
+  return texts.map((x) => x.replace(/\s+/g, ' ').trim().slice(0, 18)).filter(Boolean).join(' | ') || '(пусто)';
+}
+
 const bad = [];
 for (const d of DIRS) {
   for (const f of walk(join(ROOT, d))) {
@@ -69,8 +97,19 @@ for (const d of DIRS) {
         const head = s.slice(st, oe + 1);
         const body = s.slice(oe + 1, be);
         if (/accessibilityLabel|accessible=|a11yDecor|a11yBtn|a11yCell|\.\.\.rest|\{\.\.\.props\}/.test(head)) continue;
-        if (/<Text[\s>]/.test(body)) continue;
-        bad.push(`${relative(ROOT, f)}:${s.slice(0, st).split('\n').length}  <${tag}> без подписи`);
+        const line = s.slice(0, st).split('\n').length;
+        if (/<Text[\s>]/.test(body)) {
+          // Дочерний текст — ещё не подпись. Гейт зачитывал ЛЮБОЙ <Text> как «озвучится
+          // само», и кнопка сброса с содержимым «↺ 1» проходила проверку зелёной, а
+          // скринридер произносил символ вместо действия. Замечено при аудите Sonnet 4.6
+          // 12.08.2026; проверено — так и есть, строка пропуска стояла без разбора
+          // содержимого. Значит проверять надо, ЧТО именно в тексте.
+          if (!speakable(body)) {
+            bad.push(`${relative(ROOT, f)}:${line}  <${tag}> подпись из символов: ${symbolsOf(body)}`);
+          }
+          continue;
+        }
+        bad.push(`${relative(ROOT, f)}:${line}  <${tag}> без подписи`);
       }
     }
   }
