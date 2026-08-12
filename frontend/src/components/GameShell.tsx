@@ -41,6 +41,19 @@ export interface GameShellProps {
   onBack: () => void;
   /** Строка счётчиков под шапкой (раунд/время/ошибки). Опционально. */
   stats?: React.ReactNode;
+  /**
+   * Вспомогательные действия ВВЕРХУ, под счётчиками: подсказка, отмена, цвет.
+   *
+   * ЗАЧЕМ ОТДЕЛЬНО ОТ toolbar. Низ — место ОСНОВНОГО ввода, и в играх, где этот ввод
+   * занимает целый ряд (цифровая клавиатура судоку), действия под ним образуют второй
+   * ряд кнопок: два уровня управления подряд, и рука на телефоне закрывает оба. Наверху
+   * вспомогательное не спорит с вводом и не уезжает при смене высоты поля.
+   *
+   * Игры БЕЗ своей клавиатуры по-прежнему кладут кнопки в toolbar — там низ свободен,
+   * и переносить их наверх незачем: место действий во всём приложении должно совпадать
+   * там, где для этого нет причины расходиться.
+   */
+  headerActions?: React.ReactNode;
   /** Кнопки действий — прибиты к низу экрана. Опционально. */
   toolbar?: React.ReactNode;
   /** Слот справа в шапке (обычно «?»-справка). */
@@ -52,7 +65,7 @@ export interface GameShellProps {
 }
 
 export default function GameShell({
-  title, onBack, stats, toolbar, headerRight, scrollableField, children,
+  title, onBack, stats, headerActions, toolbar, headerRight, scrollableField, children,
 }: GameShellProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -141,6 +154,10 @@ export default function GameShell({
 
       {stats ? <View style={styles.stats}>{stats}</View> : null}
 
+      {headerActions ? (
+        <View style={[styles.headerActions, { borderBottomColor: colors.border }]}>{headerActions}</View>
+      ) : null}
+
       {field}
 
       {toolbar ? (
@@ -192,6 +209,9 @@ const styles = StyleSheet.create({
   headerBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   headerRight: { width: 44, alignItems: 'flex-end', flexShrink: 0 },
   stats: { paddingHorizontal: 16, paddingBottom: 6 },
+  // Разделитель снизу отделяет действия от игрового поля: без него ряд кнопок
+  // читается как часть поля, и в судоку его принимали за первую строку доски.
+  headerActions: { paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth },
   // Поле забирает всё свободное место и центрирует содержимое — единое
   // поведение для всех игр вместо разнобоя.
   field: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 },
