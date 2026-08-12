@@ -135,6 +135,29 @@ export default function FeedbackWidget() {
     return () => sub.remove();
   }, []);
 
+  /**
+   * 🔴 Подписка на «открой виджет» ДОЛЖНА стоять ДО возврата ниже.
+   *
+   * Раньше она была под ним, и это роняло ВСЁ ПРИЛОЖЕНИЕ, стоило человеку выключить
+   * кнопку отзыва в настройках: пока кнопка видна, хуков больше; скрыли — на два
+   * меньше, число не сходится, и React валит экран «Rendered fewer hooks than
+   * expected». Не только виджет — весь экран, на любом маршруте.
+   *
+   * Замер 12.08.2026: чистый браузер, единственное действие — psygames_devchat_on=0.
+   * Главная падает сразу. Нашлось при съёмке скриншотов для магазина, когда кнопку
+   * потребовалось убрать из кадра.
+   *
+   * Через ref, а не прямым захватом openSheet: подписка живёт одна на всё время жизни
+   * виджета, а openSheet читает текущий экран, игру и уровень. Захвати мы его напрямую
+   * с пустыми зависимостями — репорт уезжал бы с данными первого рендера, то есть
+   * с чужой игрой и чужим уровнем.
+   */
+  const openSheetRef = React.useRef<() => void>(() => {});
+  React.useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(FEEDBACK_OPEN_EVENT, () => { openSheetRef.current(); });
+    return () => sub.remove();
+  }, []);
+
   if (!FEEDBACK_ENABLED || hidden) return null;
 
   const gameId = pathname.startsWith('/games/')
@@ -178,12 +201,7 @@ export default function FeedbackWidget() {
    * его напрямую с пустыми зависимостями — репорт уезжал бы с данными первого
    * рендера, то есть с чужой игрой и чужим уровнем.
    */
-  const openSheetRef = React.useRef(openSheet);
   openSheetRef.current = openSheet;
-  React.useEffect(() => {
-    const sub = DeviceEventEmitter.addListener(FEEDBACK_OPEN_EVENT, () => { openSheetRef.current(); });
-    return () => sub.remove();
-  }, []);
 
   const submit = async () => {
     // Голосом БЕЗ текста — полноценный репорт: ради этого запись и делали.
