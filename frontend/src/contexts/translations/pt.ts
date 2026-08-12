@@ -1527,5 +1527,11 @@ const t: Record<string, string> = {
   "leaguesSeasonPoints": "Pontos em {d} dias",
   "leaguesEmpty": "Jogue algo e sua liga aparecerá.",
   "leaguesSeasonHint": "A liga conta os pontos dos últimos 30 dias — seu ritmo atual, não todo o seu caminho. Faltou uma semana, ela cai, e tudo bem.",
+  "areaBalanceTitle": "Equilíbrio do treino",
+  "areaBalanceWeak": "O que você menos treina: {area}",
+  "areaBalanceEmpty": "Jogue algumas rodadas e o panorama aparece aqui.",
+  "areaTrendUp": "resultado subiu {n}%",
+  "areaTrendDown": "resultado caiu {n}%",
+  "areaBalanceHint": "Como seu treino se divide entre as áreas. Não é nota das suas capacidades: não medimos isso nem prometemos. É o que você realmente treina e o que evita.",
 };
 export default t;

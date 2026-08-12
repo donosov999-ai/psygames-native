@@ -18,6 +18,7 @@ import { isRTLLang } from '@/src/services/rtl';
 import { getAllStats, GameStats, getSessions } from '@/src/services/api';
 import { getTokens, levelInfo, getStreak } from '@/src/services/tokens';
 import { GAMES } from '@/src/constants/games';
+import { areaBreakdown, weakestArea, type AreaStat } from '@/src/services/analytics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { isGameAllowed } from '@/src/constants/profiles';
@@ -35,7 +36,9 @@ export default function StatisticsScreen() {
   const [scopeAll, setScopeAll] = useState(false);  // false = текущий профиль, true = все игры
   const [tokens, setTokens] = useState(0);          // D1: токены/уровень/стрик в герое
   const [streakDays, setStreakDays] = useState(0);
-  const [sessionsByGame, setSessionsByGame] = useState<Record<string, number[]>>({});  // D1.2: тренды очков
+  const [sessionsByGame, setSessionsByGame] = useState<Record<string, number[]>>({});
+  // Баланс тренировок по областям: чего человек качает, а что обходит стороной.
+  const [areas, setAreas] = useState<AreaStat[]>([]);  // D1.2: тренды очков
   // v1.115.0: недельный ИИ-дайджест — кэш на ISO-неделю (isoWeekKey), молчаливый null = карточка просто не рисуется
   const [aiDigest, setAiDigest] = useState<string | null>(null);
 
@@ -57,6 +60,9 @@ export default function StatisticsScreen() {
         (byGame[s.game_type] ||= []).push(typeof s.score === 'number' && isFinite(s.score) ? s.score : 0);
       }
       setSessionsByGame(byGame);
+      // Категория берётся из реестра игр: id игры и категория живут там, а не здесь.
+      const areaOf = (g: string) => GAMES.find((x: any) => x.id === g)?.category as string | undefined;
+      setAreas(areaBreakdown(allSessions as any, areaOf));
       // Недельный дайджест — компактный агрегат за последние 7 дней (не сырой дамп сессий)
       if (profile?.id) {
         const weekAgo = Date.now() - 7 * 86400_000;
@@ -194,6 +200,58 @@ export default function StatisticsScreen() {
               <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{formatTotal(totalTime)} {t('inGameTime')}</Text>
             </View>
           </LinearGradient>
+
+          {/* Баланс тренировок по областям.
+              ⚠️ Полоса — ДОЛЯ ТРЕНИРОВОК, а не оценка способности. Сказать «ваше внимание
+              на 59%» мы не можем: для этого нужны нормы по возрасту, которых у нас нет, а
+              выдумать их — то же, что обещать рост IQ, чего мы прямо не обещаем в карточке
+              Play. Доля же — проверяемый факт, и с перекосом можно что-то сделать. */}
+          {areas.length > 0 && (
+            <View style={{ marginBottom: 14 }}>
+              <Text style={{ color: colors.text, fontSize: 16, fontWeight: '800', marginBottom: 4 }}>
+                {t('areaBalanceTitle')}
+              </Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 12.5, lineHeight: 18, marginBottom: 10 }}>
+                {t('areaBalanceHint')}
+              </Text>
+              {areas.map((a) => {
+                const label = t(`cat${a.area.charAt(0).toUpperCase()}${a.area.slice(1)}`);
+                const pct = Math.round(a.share * 100);
+                const trendPct = a.trend === null ? null : Math.round(a.trend * 100);
+                return (
+                  <View
+                    key={a.area}
+                    accessibilityRole="text"
+                    accessibilityLabel={`${label}: ${pct}%, ${a.sessions}`}
+                    style={{ marginBottom: 9 }}
+                  >
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
+                      <Text style={{ color: colors.text, fontSize: 13.5, fontWeight: '700' }}>{label}</Text>
+                      <Text style={{ color: colors.textSecondary, fontSize: 13, fontVariant: ['tabular-nums'] }}>
+                        {pct}% · {a.sessions}
+                      </Text>
+                    </View>
+                    <View style={{ height: 8, borderRadius: 4, backgroundColor: colors.border, overflow: 'hidden' }}>
+                      <View style={{ width: `${pct}%`, height: 8, backgroundColor: colors.primary || '#7f7fd5' }} />
+                    </View>
+                    {/* Сдвиг показываем ТОЛЬКО когда есть что сравнивать. «0%» вместо
+                        «нет данных» сообщил бы о застое там, где данных просто мало. */}
+                    {trendPct !== null && trendPct !== 0 && (
+                      <Text style={{ color: trendPct > 0 ? '#1f6b4a' : '#9e2b2b', fontSize: 11.5, marginTop: 2 }}>
+                        {(trendPct > 0 ? t('areaTrendUp') : t('areaTrendDown')).replace('{n}', String(Math.abs(trendPct)))}
+                      </Text>
+                    )}
+                  </View>
+                );
+              })}
+              {weakestArea(areas) && (
+                <Text style={{ color: colors.textSecondary, fontSize: 12.5, marginTop: 2 }}>
+                  {t('areaBalanceWeak').replace('{area}', t(`cat${weakestArea(areas)!.charAt(0).toUpperCase()}${weakestArea(areas)!.slice(1)}`))}
+                </Text>
+              )}
+            </View>
+          )}
+
 
           {/* v1.115.0: недельный ИИ-дайджест — молчаливо не рисуется, пока нет текста (нет ключа/сеть/мало данных) */}
           {aiDigest && (

@@ -704,6 +704,12 @@ const translations: Translations = {
 
   // Categories
   // 4 categories (v1.2.0 Lumosity-style)
+  areaBalanceTitle: { ru: 'Баланс тренировок', en: 'Training balance' },
+  areaBalanceHint: { ru: 'Доля ваших тренировок по областям. Это не оценка способностей — мы не меряем их и не обещаем: это то, что вы на самом деле качаете, а что обходите стороной.', en: 'How your training is split across areas. Not a rating of ability — we do not measure that and do not claim to: this is what you actually train and what you skip.' },
+  areaBalanceWeak: { ru: 'Реже всего вы тренируете: {area}', en: 'You train this the least: {area}' },
+  areaBalanceEmpty: { ru: 'Сыграйте несколько партий — и здесь появится картина.', en: 'Play a few rounds and the picture will appear here.' },
+  areaTrendUp: { ru: 'результат вырос на {n}%', en: 'score up {n}%' },
+  areaTrendDown: { ru: 'результат снизился на {n}%', en: 'score down {n}%' },
   catMemory:    { ru: 'Память',                          en: 'Memory' },
   catAttention: { ru: 'Внимание',                        en: 'Attention' },
   catLogic:     { ru: 'Логика и принятие решений',       en: 'Logic & Decisions' },
