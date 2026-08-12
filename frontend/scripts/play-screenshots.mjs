@@ -46,9 +46,9 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../.
  */
 const PRESETS = {
   play:    { W: 1080, H: 1920, BAND: 300, VIEW: { width: 540,  height: 810 }, WRAP: 19, BIG: 62, SMALL: 54,
-             dir: ['store', 'google-play', 'assets', 'screenshots', LANG] },
-  windows: { W: 2560, H: 1440, BAND: 220, VIEW: { width: 1280, height: 610 }, WRAP: 48, BIG: 76, SMALL: 64,
-             dir: ['store', 'windows', 'assets', 'screenshots', LANG] },
+             fit: 'cover', dir: ['store', 'google-play', 'assets', 'screenshots', LANG] },
+  windows: { W: 2560, H: 1440, BAND: 220, VIEW: { width: 1100, height: 610 }, WRAP: 48, BIG: 76, SMALL: 64,
+             fit: 'window', dir: ['store', 'windows', 'assets', 'screenshots', LANG] },
 };
 
 const PRESET = args.preset ?? 'play';
@@ -56,7 +56,7 @@ if (!PRESETS[PRESET]) {
   console.error(`неизвестный пресет «${PRESET}»; есть: ${Object.keys(PRESETS).join(', ')}`);
   process.exit(1);
 }
-const { W, H, BAND, VIEW, WRAP, BIG, SMALL, dir } = PRESETS[PRESET];
+const { W, H, BAND, VIEW, WRAP, BIG, SMALL, fit, dir } = PRESETS[PRESET];
 const OUT = path.join(ROOT, ...dir);
 
 /**
@@ -149,11 +149,24 @@ async function main() {
     if (bad) { console.log(`  ⚠️  ${s.id}: ${bad} — ПРОПУСКАЮ, битый снимок в магазин не уедет`); continue; }
 
     const shot = await page.screenshot({ type: 'png' });
-    const body = await sharp(shot).resize(W, H - BAND, { fit: 'cover', position: 'top' }).toBuffer();
+
+    // 'cover' — кадр во всю ширину: так снят Play, там окно и приложение одной ширины.
+    //
+    // 'window' — окно приложения по центру фирменного фона. Нужно потому, что раскладки
+    // под широкий экран у приложения ПОКА НЕТ: каталог и судоку в ландшафте расходятся
+    // нормально, а календарь серии, Шульте и диагностика рисуют узкую колонку по центру,
+    // и растянутый на 2560 кадр выглядит недоделанным портом. Растягивать нечестно —
+    // человек поставит и увидит ту же колонку. Поэтому показываем окно как окно.
+    // ⚠️ Это обход, а не решение: раскладку под десктоп всё равно надо делать.
+    const bodyW = fit === 'window' ? VIEW.width * 2 : W;
+    const body = await sharp(shot).resize(bodyW, H - BAND, { fit: 'cover', position: 'top' }).toBuffer();
 
     const file = path.join(OUT, `${s.id}.png`);
     await sharp({ create: { width: W, height: H, channels: 4, background: BG } })
-      .composite([{ input: band(s[LANG] ?? s.en), top: 0, left: 0 }, { input: body, top: BAND, left: 0 }])
+      .composite([
+        { input: band(s[LANG] ?? s.en), top: 0, left: 0 },
+        { input: body, top: BAND, left: Math.round((W - bodyW) / 2) },
+      ])
       .png()
       .toFile(file);
     made.push(s.id);
