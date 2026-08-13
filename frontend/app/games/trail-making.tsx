@@ -387,9 +387,19 @@ export default function TrailMakingGame() {
   // координатная математика drag не зависит от обёрток каркаса —
   // measureInWindow даёт абсолютную позицию канвы, onDragAt вычитает её из
   // page-координат пальца (плюс подстраховочный measureCanvas на grant).
-  if (phase === 'playing') {
+  // Доска остаётся видна и после победы — она и есть награда; карточка итога
+  // висит поверх неё (решение Дениса «карточка над всей доской»).
+  if (phase === 'playing' || phase === 'cleared') {
     return (
       <GameShell
+        overlay={phase === 'cleared' ? (
+          <LevelCleared
+          variant="overlay" gameId="trail_making" level={levelRef.current}
+          passed={clearedPassed}
+          stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+        ) : null}
         title={t('trailMaking')}
         onBack={() => goBackOrHome()}
         stats={
@@ -487,13 +497,7 @@ export default function TrailMakingGame() {
           onComplete={() => { setClearedPassed(true); setPhase('cleared'); }}
         />
       )}
-      {phase === 'cleared' && (
-        <LevelCleared gameId="trail_making" level={levelRef.current}
-          passed={clearedPassed}
-          stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
-          gradient={GRADIENT} language={language} colors={colors}
-          onContinue={() => startGame()} onStop={() => setPhase('config')} />
-      )}
+
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, Math.round(1000 - elapsedTime * 5 - errors * 30))}

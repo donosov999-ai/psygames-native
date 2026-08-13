@@ -435,9 +435,20 @@ export default function SetGame() {
   );
 
   // игровая фаза — на едином каркасе GameShell; модалка правил уровня — поверх (паттерн digit-span)
-  if (phase === 'playing') {
+  // Доска остаётся видна и после победы — она и есть награда; карточка итога
+  // висит поверх неё (решение Дениса «карточка над всей доской»).
+  if (phase === 'playing' || phase === 'cleared') {
     return (
       <View style={{ flex: 1 }}>
+        {phase === 'cleared' && (
+          <View style={StyleSheet.absoluteFill as any} pointerEvents="box-none">
+            <LevelCleared
+          variant="overlay" gameId="set_game" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          passed={clearedPassed}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+          </View>
+        )}
         <GameShell
           title={t('setGame')}
           onBack={() => goBackOrHome()}
@@ -530,12 +541,7 @@ export default function SetGame() {
         />
       )}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
-      {phase === 'cleared' && (
-        <LevelCleared gameId="set_game" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
-          passed={clearedPassed}
-          gradient={GRADIENT} language={language} colors={colors}
-          onContinue={() => startGame()} onStop={() => setPhase('config')} />
-      )}
+
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, hits * 200 - errors * 50 - Math.floor(elapsedTime))}

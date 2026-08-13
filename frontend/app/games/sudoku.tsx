@@ -1186,10 +1186,28 @@ export default function SudokuGame() {
 
   // Игровая фаза — на едином каркасе GameShell; справка правил и game-over — оверлеи
   // поверх каркаса (обёртка View flex:1, паттерн digit-span).
-  if (phase === 'playing') {
+  // Доска остаётся на экране и после победы: заполненная сетка — это и есть
+  // награда, ради неё решали. Карточка итога висит ПОВЕРХ неё (решение Дениса:
+  // «делать карточку над всей доской, чтобы было оттуда и оттуда полезное»).
+  if (phase === 'playing' || phase === 'cleared') {
     return (
       <View style={{ flex: 1 }}>
         {renderPlaying()}
+        {phase === 'cleared' && (
+          <View style={StyleSheet.absoluteFill as any} pointerEvents="box-none">
+            <LevelCleared
+              gameId="sudoku"
+              level={level}
+              stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+              gradient={GRADIENT}
+              language={language}
+              colors={colors}
+              variant="overlay"
+              onContinue={() => { const nx = level + 1; setLevel(nx); startGame(nx); }}
+              onStop={() => setPhase('config')}
+            />
+          </View>
+        )}
         {/* v1.111.0: справка правил уровня (авто при первом входе на вариант / тап по бейджу ⓘ) */}
         <RulesHelpModal visible={rulesOpen} variant={variant} killer={mode === 'killer'} N={N}
           colors={colors} language={language} onClose={() => setRulesOpen(false)} />
@@ -1236,19 +1254,6 @@ export default function SudokuGame() {
           language={language}
           colors={colors}
           onComplete={(win) => { setBossWon(win); setPhase('result'); }}
-        />
-      )}
-      {/* Обычный уровень пройден чисто (без вехи-босса) → баннер авто-потока: следующий стартует сам. */}
-      {phase === 'cleared' && (
-        <LevelCleared
-          gameId="sudoku"
-          level={level}
-          stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
-          gradient={GRADIENT}
-          language={language}
-          colors={colors}
-          onContinue={() => { const nx = level + 1; setLevel(nx); startGame(nx); }}
-          onStop={() => setPhase('config')}
         />
       )}
       {phase === 'result' && mode === 'free' && (

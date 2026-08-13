@@ -476,9 +476,26 @@ export default function SamuraiSudokuGame() {
 
   // Игровая фаза — на едином каркасе GameShell; оверлей «лимит ошибок» — поверх каркаса
   // (обёртка View flex:1, паттерн digit-span).
-  if (phase === 'playing') {
+  // Доска остаётся видна и после победы — она и есть награда; карточка итога
+  // висит поверх неё (решение Дениса «карточка над всей доской»).
+  if (phase === 'playing' || phase === 'cleared') {
     return (
       <View style={{ flex: 1 }}>
+        {phase === 'cleared' && (
+          <View style={StyleSheet.absoluteFill as any} pointerEvents="box-none">
+            <LevelCleared
+          variant="overlay"
+          gameId="sudoku_samurai"
+          level={levelRef.current}
+          stars={starsFor(errors, hintUses)}
+          gradient={GRADIENT}
+          language={language}
+          colors={colors}
+          onContinue={() => startGame()}
+          onStop={() => setPhase('config')}
+        />
+          </View>
+        )}
         {renderPlaying()}
         {/* Бюджет ошибок исчерпан → уровень провален, рестарт того же уровня */}
         {over && (
@@ -518,18 +535,7 @@ export default function SamuraiSudokuGame() {
       </View>
       {phase === 'config' && renderConfig()}
       {/* Авто-поток: прошёл уровень чисто → баннер → следующий стартует сам (onContinue) */}
-      {phase === 'cleared' && (
-        <LevelCleared
-          gameId="sudoku_samurai"
-          level={levelRef.current}
-          stars={starsFor(errors, hintUses)}
-          gradient={GRADIENT}
-          language={language}
-          colors={colors}
-          onContinue={() => startGame()}
-          onStop={() => setPhase('config')}
-        />
-      )}
+
       {/* result — только для пресета (запуск из зарядки, уровень не двигаем) */}
       {phase === 'result' && (
         <GameResult
