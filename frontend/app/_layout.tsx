@@ -23,12 +23,26 @@ import GameHelpOverlay from '@/src/components/GameHelpOverlay';
 import OrientationGuard from '@/src/components/OrientationGuard';
 import FeedbackWidget from '@/src/components/FeedbackWidget';
 import WalkingPet from '@/src/components/pet/WalkingPet';
-import { repairWarmupHistoryOnce } from '@/src/services/warmup';
+import { repairWarmupHistoryOnce, loadWarmupHistory } from '@/src/services/warmup';
+import { grantWarmupCompensationOnce } from '@/src/services/tokens';
+import { useProfile } from '@/src/contexts/ProfileContext';
 import { getSessions } from '@/src/services/api';
 
 /** Тап по локальному напоминанию → запуск комплекса (натив-only). */
 function NotificationTapHandler() {
   const warmup = useWarmup();
+  const { profile } = useProfile();
+
+  // Разовый возврат очков за сорванные зарядки (решение Дениса 13.08.2026).
+  // Очки живут только на устройстве — начислить снаружи некуда, поэтому возврат
+  // происходит здесь, один раз, и только там, где зарядки действительно делались.
+  React.useEffect(() => {
+    const pid = (profile as any)?.id;
+    if (!pid) return;
+    grantWarmupCompensationOnce(pid, async () => (await loadWarmupHistory()).length > 0)
+      .then((n) => { if (n) console.log(`возврат очков за сорванные зарядки: +${n}`); })
+      .catch(() => {});
+  }, [profile]);
   // Разовое восстановление отметок календаря: история зарядок могла быть стёрта
   // целиком (пустой список сохранялся поверх накопленного при сбое чтения). Дни
   // восстанавливаются из СОБСТВЕННЫХ сессий человека — ничего не выдумывается.
