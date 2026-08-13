@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.198.0',
+    date: '2026-08-13',
+    ru: [
+      'Появилась настоящая фоновая музыка — шесть спокойных инструментальных треков по две минуты: под дыхание, под утро, под вечер, под счёт. Раньше «музыка» была четырьмя аккордами, синтезированными на лету, и тестер честно назвал это «3 ноты»',
+      'Музыка по-прежнему выключена по умолчанию и включается в настройках. Треки идут вперемешку и тихо — фоном под упражнением, а не вместо него',
+    ],
+    en: [
+      'Real background music at last — six calm instrumental tracks of about two minutes each: for breathing, for mornings, for evenings, for counting. What used to be called music was four chords synthesised on the fly, and a tester fairly called it “3 notes”',
+      'Music is still off by default and turns on in settings. Tracks play shuffled and quiet — under the exercise, not instead of it',
+    ],
+  },
+  {
     version: '1.197.0',
     date: '2026-08-13',
     ru: [
