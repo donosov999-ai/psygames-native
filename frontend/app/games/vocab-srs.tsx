@@ -25,6 +25,8 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import {
   buildQueue,
@@ -50,6 +52,15 @@ type Direction = 'recognize' | 'recall'; // recognize: L2→родной · reca
 export default function VocabSrsGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  /**
+   * СЧЁТЧИК ПРОХОЖДЕНИЙ, не ступень сложности.
+   *
+   * Здесь трудность задаёт не мы, а расписание повторений: какие карточки созрели
+   * сегодня, такие и придут. Приделать сверху «уровень сложности» значило бы
+   * спорить с расписанием — карточка, которую пора повторить, важнее нашей ступени.
+   * Считаем доведённые до конца подходы.
+   */
+  const runs = usePersistentLevel('vocab_srs');
   const router = useRouter();
 
   const { isPreset, autostart, str, num } = useGamePreset();
@@ -134,6 +145,9 @@ export default function VocabSrsGame() {
     const finalTime = (Date.now() - startTime) / 1000;
     setElapsedTime(finalTime);
     setPhase('result');
+    // Подход доводят до конца — провалить нельзя. Засчитан фактом завершения.
+    const doneRun = runs.level;
+    runs.reach(doneRun + 1);
     try {
       await saveSession({
         game_type: 'vocab_srs',
@@ -143,6 +157,7 @@ export default function VocabSrsGame() {
         mode: direction,
         errors: wrongCount,
         details: {
+          level: doneRun,   // по нему счётчик восстановится, если ключ прогресса потерян
           base_lang: language,
           target_lang: tgt,
           cards_total: finalQueueLen,
@@ -312,6 +327,15 @@ export default function VocabSrsGame() {
             <Text style={{ color: colors.textSecondary, marginLeft: 'auto' }}>{stats.customCount}</Text>
           )}
         </TouchableOpacity>
+
+        <LevelProgressMap
+          gameId="vocab_srs"
+          currentLevel={runs.level}
+          maxLevel={Math.max(15, runs.level)}
+          colors={colors}
+          language={language}
+          countsRuns
+        />
 
         <TouchableOpacity
           accessibilityRole="button" style={styles.startButton} onPress={startSession}>

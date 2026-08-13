@@ -1075,6 +1075,7 @@ const t: Record<string, string> = {
   "leaderboardEmpty": "아직 비어 있어요 — 1등이 되어 보세요!",
   "bestAmongPlayers": "플레이어 중 최고",
   "levelOfMax": "레벨 {n}/{max}",
+  "runsCompleted": "완료: {n}",
   "bossTitle": "보스",
   "bossDefeated": "🏆 보스 격파! +⭐",
   "bossSurvived": "보스가 버텼어요 — 계속 가요",

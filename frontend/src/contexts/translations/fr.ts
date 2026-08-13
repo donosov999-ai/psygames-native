@@ -1075,6 +1075,7 @@ const t: Record<string, string> = {
   "leaderboardEmpty": "Encore vide — sois le premier !",
   "bestAmongPlayers": "Meilleur parmi les joueurs",
   "levelOfMax": "Niveau {n}/{max}",
+  "runsCompleted": "Terminé : {n}",
   "bossTitle": "BOSS",
   "bossDefeated": "🏆 Boss vaincu ! +⭐",
   "bossSurvived": "Le boss a tenu bon — on continue",

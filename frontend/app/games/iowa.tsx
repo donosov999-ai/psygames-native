@@ -15,6 +15,8 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#0F2027', '#2C5364'];
 const IGT_BENEFITS = [
@@ -56,10 +58,20 @@ const LOSS_PATTERNS: Record<Deck, number[]> = {
 
 export default function IowaGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  /**
+   * СЧЁТЧИК ПРОХОЖДЕНИЙ, а не уровень сложности.
+   *
+   * Iowa Gambling Task — методика с популяционными нормами: результат осмыслен
+   * только потому, что колоды у всех одинаковые. Крутить здесь сложность значило бы
+   * сломать сравнимость и превратить проверенную методику в придуманную механику.
+   * Поэтому число растёт за каждое доведённое до конца прохождение, а подпись на
+   * тропинке так и говорит — «Пройдено: N», без обещания роста сложности.
+   */
+  const runs = usePersistentLevel('iowa');
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [trials, setTrials] = useState(60);
 
@@ -85,6 +97,10 @@ export default function IowaGame() {
     const lastBlock = finalPicks.slice(-20);
     const lastBlockAdv = lastBlock.filter(p => p.deck === 'C' || p.deck === 'D').length;
     setPhase('result');
+    // Тест доводят до конца или бросают — провалить его нельзя. Прохождение
+    // засчитано фактом завершения.
+    const doneRun = runs.level;
+    runs.reach(doneRun + 1);
     try {
       await saveSession({
         game_type: 'iowa',
@@ -97,6 +113,9 @@ export default function IowaGame() {
           adv_minus_disadv: advantageous - disadvantageous,
           last_block_adv: lastBlockAdv,
           final_bank: finalBank,
+          // level читает getMaxLevelFromSessions — по нему счётчик восстановится,
+          // если локальный ключ прогресса потерян.
+          level: doneRun,
         },
       });
     } catch (e) { console.error(e); }
@@ -147,6 +166,14 @@ export default function IowaGame() {
           ))}
         </View>
       </View>
+      <LevelProgressMap
+        gameId="iowa"
+        currentLevel={runs.level}
+        maxLevel={Math.max(15, runs.level)}
+        colors={colors}
+        language={language}
+        countsRuns
+      />
     </ScrollView>
       <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
       <TouchableOpacity

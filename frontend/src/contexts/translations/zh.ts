@@ -956,6 +956,7 @@ const t: Record<string, string> = {
   "leaderboardEmpty": "暂时空空——来当第一名吧！",
   "bestAmongPlayers": "玩家中的最佳成绩",
   "levelOfMax": "关卡 {n}/{max}",
+  "runsCompleted": "已完成：{n}",
   "bossTitle": "BOSS",
   "bossDefeated": "🏆 BOSS 被击败！+⭐",
   "bossSurvived": "BOSS 挺住了——继续前进",

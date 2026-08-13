@@ -39,6 +39,16 @@ interface Props {
   levelLabel?: (level: number) => string;
   /** Переиграть пройденный уровень. Не передан → узлы не нажимаются. */
   onPickLevel?: (level: number) => void;
+  /**
+   * true — число считает ПРОХОЖДЕНИЯ, а не ступени сложности.
+   *
+   * ЗАЧЕМ. Iowa, RMET, охват памяти — проверенные методики с нормами. Крутить в них
+   * сложность нельзя: сломается сравнимость результата, а на ней и держится всё
+   * «за каждым упражнением проверенная методика, а не придуманная механика».
+   * Путь человеку показать хочется, но подписывать его «Уровень 7/15» — обещать
+   * рост сложности, которого там нет. Поэтому подпись другая, а картинка та же.
+   */
+  countsRuns?: boolean;
 }
 
 // ─── раскладка ───
@@ -95,7 +105,7 @@ function dendrites(cx: number, cy: number, r: number, n: number) {
   return out;
 }
 
-export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, colors, levelLabel, onPickLevel }: Props) {
+export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, colors, levelLabel, onPickLevel, countsRuns }: Props) {
   const { t } = useLanguage();   // язык из контекста; проп language остался в Props для совместимости
   const { profile } = useProfile();
   const [stars, setStars] = useState<StarsMap>({});
@@ -140,6 +150,11 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
     centerOnCurrent(false);
   };
 
+  // Подпись над лентой. У методик она про количество пройденного, а не про ступень.
+  const heading = countsRuns
+    ? t('runsCompleted').replace('{n}', String(reached - 1))
+    : t('levelOfMax').replace('{n}', String(reached)).replace('{max}', String(maxLevel));
+
   const dim = colors.textSecondary;
   const accent = colors.primary;
 
@@ -175,16 +190,14 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
 
   return (
     <View style={[styles.card, { backgroundColor: colors.surface }]}>
-      <Text style={[styles.title, { color: colors.text }]}>
-        {t('levelOfMax').replace('{n}', String(reached)).replace('{max}', String(maxLevel))}
-      </Text>
+      <Text style={[styles.title, { color: colors.text }]}>{heading}</Text>
 
       <ScrollView
         ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         onLayout={onLayout}
-        accessibilityLabel={t('levelOfMax').replace('{n}', String(reached)).replace('{max}', String(maxLevel))}
+        accessibilityLabel={heading}
       >
         <View style={{ width: totalW, height: H }}>
           <Svg width={totalW} height={H}>
