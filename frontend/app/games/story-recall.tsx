@@ -28,6 +28,9 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { STORY_MAX_LEVEL, readSecondsFor, distractorSecondsFor } from '@/src/services/storyRecallLevels';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 
 const GRADIENT = ['#654ea3', '#eaafc8'];
@@ -168,6 +171,17 @@ const DISTRACTOR2_SEC = 90;   // longer delay before delayed recall
 export default function StoryRecallGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
+  /**
+   * Уровень здесь настоящий: он ужимает время на чтение и удлиняет помеху перед
+   * пересказом (см. storyRecallLevels.ts). Тексты не трогаем — ключевые слова,
+   * по которым считается попадание, привязаны к ним.
+   */
+  const lvl = usePersistentLevel('story_recall');
+  // Длительности читаются ВНУТРИ setInterval — держим их в ref, иначе замыкание
+  // возьмёт значение с момента создания таймера и уровень перестанет влиять.
+  const readSecRef = useRef(0);
+  const dist1Ref = useRef(DISTRACTOR1_SEC);
+  const dist2Ref = useRef(DISTRACTOR2_SEC);
   const router = useRouter();
 
   const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
@@ -211,11 +225,13 @@ export default function StoryRecallGame() {
     setRecall1Text(''); setRecall2Text('');
     setRecall1Hits(0); setRecall2Hits(0);
     setDistractorScore(0);
-    setReadRemaining(s.read_seconds);
+    const readSec = readSecondsFor(s.read_seconds, lvl.level);
+    readSecRef.current = readSec;
+    setReadRemaining(readSec);
     setPhase('reading');
     startTimeRef.current = Date.now();
     intervalRef.current = setInterval(() => {
-      const left = s.read_seconds - Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const left = readSec - Math.floor((Date.now() - startTimeRef.current) / 1000);
       setReadRemaining(Math.max(0, left));
       if (left <= 0) {
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -227,11 +243,13 @@ export default function StoryRecallGame() {
 
   const startDistractor1 = () => {
     setPhase('distractor1');
-    setDistractorRemaining(DISTRACTOR1_SEC);
+    const d1 = distractorSecondsFor(DISTRACTOR1_SEC, lvl.level);
+    dist1Ref.current = d1;
+    setDistractorRemaining(d1);
     nextDistractorTrial();
     startTimeRef.current = Date.now();
     intervalRef.current = setInterval(() => {
-      const left = DISTRACTOR1_SEC - Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const left = dist1Ref.current - Math.floor((Date.now() - startTimeRef.current) / 1000);
       setDistractorRemaining(Math.max(0, left));
       if (left <= 0) {
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -263,11 +281,13 @@ export default function StoryRecallGame() {
 
   const startDistractor2 = (hits1: number) => {
     setPhase('distractor2');
-    setDistractorRemaining(DISTRACTOR2_SEC);
+    const d2 = distractorSecondsFor(DISTRACTOR2_SEC, lvl.level);
+    dist2Ref.current = d2;
+    setDistractorRemaining(d2);
     nextDistractorTrial();
     startTimeRef.current = Date.now();
     intervalRef.current = setInterval(() => {
-      const left = DISTRACTOR2_SEC - Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const left = dist2Ref.current - Math.floor((Date.now() - startTimeRef.current) / 1000);
       setDistractorRemaining(Math.max(0, left));
       if (left <= 0) {
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -285,6 +305,9 @@ export default function StoryRecallGame() {
     const immediatePct = total > 0 ? (recall1Hits / total) : 0;
     const delayedPct = total > 0 ? (hits / total) : 0;
     const retention = immediatePct > 0 ? delayedPct / immediatePct : 0;
+    // Пересказ доводят до конца — провалить нельзя. Уровень засчитан завершением.
+    const doneLevel = lvl.level;
+    if (doneLevel < STORY_MAX_LEVEL) lvl.reach(doneLevel + 1);
     try {
       await saveSession({
         game_type: 'story_recall',
@@ -294,6 +317,7 @@ export default function StoryRecallGame() {
         mode: 'standard',
         errors: total - hits,
         details: {
+          level: doneLevel,   // результат сравним ВНУТРИ уровня: условия чтения и помехи разные
           n_keywords: total,
           immediate_recall_count: recall1Hits,
           delayed_recall_count: hits,
@@ -322,6 +346,13 @@ export default function StoryRecallGame() {
           {t('storyInfoBody')}
         </Text>
       </View>
+      <LevelProgressMap
+        gameId="story_recall"
+        currentLevel={lvl.level}
+        maxLevel={STORY_MAX_LEVEL}
+        colors={colors}
+        language={language}
+      />
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
