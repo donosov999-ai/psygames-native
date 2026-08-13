@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.196.0',
+    date: '2026-08-13',
+    ru: [
+      'Колпак наконец сидит НА голове, а не висит над ней. Заодно очки съехали на глаза, а бант — под подбородок: точки крепления были задраны к верху картинки у всех трёх обликов',
+      'Маджонг стал сложнее по делу: перетасовка теперь ресурс (первые пять уровней без счёта, дальше 3 → 2 → 1 на уровень), а выше 15-го пирамида растёт в четыре и пять слоёв',
+      'Итог уровня показывается ПОВЕРХ доски в маджонге, сортировке, парах, судоку, ханойской башне и других — собранное поле остаётся на экране',
+      'Уровни появились там, где их не было: гимнастика глаз, пересказ, фрактальная судоку. В Iowa, RMET, словаре и беглости речи вместо уровня счётчик прохождений — это проверенные методики, крутить в них сложность нельзя',
+      'Переключатель «Уровни / Свободно» на экране настроек: раньше свободная игра пряталась кнопкой под всеми настройками',
+      'Возврат очков за зарядки, сорванные прошлой ошибкой',
+    ],
+    en: [
+      'The party hat finally sits ON the head instead of floating above it. Glasses moved onto the eyes and the bow under the chin too: mount points were skewed toward the top of the frame on all three skins',
+      'Mahjong is harder where it counts: the shuffle is a resource now (unlimited for the first five levels, then 3 → 2 → 1 per level), and past level 15 the pyramid grows to four and five layers',
+      'The level result now appears OVER the board in Mahjong, Goods Sort, Picture Pairs, Sudoku, Tower of Hanoi and others — the board you just cleared stays on screen',
+      'Levels arrived where there were none: Eye Gymnastics, Story Recall, Fractal Sudoku. Iowa, RMET, Vocabulary and Verbal Fluency count completed runs instead — those are validated tests and their difficulty must not be tampered with',
+      'A “Levels / Free” switch on the settings screen: free play used to hide behind a button below every setting',
+      'Points returned for warm-ups broken by an earlier bug',
+    ],
+  },
+  {
     version: '1.195.0',
     date: '2026-08-13',
     ru: [
