@@ -16,6 +16,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/constants/digitThemes';
 import type { DigitStyle } from '@/src/constants/digitThemes';
@@ -324,6 +325,7 @@ export default function SudokuGame() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { N, BR, BC } = dims;   // размеры сетки текущей партии (6×6 или 9×9)
+  const chainNext = shouldChainNextLevel(useGameMode());
   const paintPalette = colorblind ? CELL_COLORS_CB : CELL_COLORS;
 
   // Большая глобальная кнопка «Правила» раньше показывала только общую статью,
@@ -537,6 +539,23 @@ export default function SudokuGame() {
         setOver(true);
         const pid = profile?.id;
         if (pid) clearResume(GAME_ID, pid).catch(() => {});   // партия проиграна — продолжать нечего
+        // ⚠️ В ЗАРЯДКЕ ПРОИГРЫШ ОБЯЗАН ЗАВЕРШИТЬ ШАГ. Зарядка двигается по СОХРАНЁННОЙ
+        // сессии, а судоку пишет её только когда доска собрана. Значит проигрыш внутри
+        // зарядки не сохранял ничего, и человек оставался на этом шаге навсегда: набор
+        // не шёл дальше, «где другие игры?». Судоку стоит в наборах трижды, проигрыш
+        // у неё настоящий — три ошибки и конец.
+        if (!chainNext) {
+          void saveSession({
+            passed: false,
+            game_type: 'sudoku',
+            score: 0,
+            time_seconds: (Date.now() - startTime) / 1000,
+            difficulty: mode === 'levels' ? (level <= 4 ? 'easy' : level <= 9 ? 'medium' : 'hard') : difficulty,
+            mode: mode === 'levels' ? `level-${level}` : `${N}x${N}`,
+            errors: ne,
+            details: { errors: ne, completed: false, failed_out: true, ...(mode === 'levels' ? { level, variant } : {}) },
+          }).catch((e) => console.error(e));
+        }
       }
     }
     // Backtrack detection: if user previously placed a non-zero value and now changes/clears it
