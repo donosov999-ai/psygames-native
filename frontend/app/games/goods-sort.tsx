@@ -12,6 +12,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
 import { sndCombo } from '@/src/services/feedback';
@@ -159,6 +160,7 @@ export default function GoodsSortGame() {
   const { width, height } = useWindowDimensions();
 
   const { isPreset, autostart } = useGamePreset();
+  const chainNext = shouldChainNextLevel(useGameMode());
   const lvl = usePersistentLevel('goods_sort');   // персист достигнутого уровня (раньше сбрасывался на 1)
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [setKey, setSetKey] = useState('drinks');
@@ -210,8 +212,21 @@ export default function GoodsSortGame() {
   const advanceLevel = () => {
     const cfg = levelCfg(level, poolRef.current.length);
     if (cfg.moveLimit > 0 && movesRef.current > cfg.moveLimit) {
-      // превысил лимит ходов — уровень НЕ засчитан, тот же уровень заново
+      // Превысил лимит ходов — уровень не засчитан.
+      // ⚠️ В ЗАРЯДКЕ ПЕРЕЗАПУСКАТЬ НЕЛЬЗЯ. Сессия при провале не сохраняется, а зарядка
+      // двигается именно по сохранённой сессии — значит человек застрял бы на этом шаге
+      // навсегда, переигрывая один уровень. Поэтому в зарядке провал ЗАВЕРШАЕТ шаг:
+      // пишем сессию с passed:false, и зарядка уходит к следующей игре.
       setLevelBanner(-1);
+      if (!chainNext) {
+        saveSession({
+          passed: false,
+          game_type: 'goods_sort', score: scoreRef.current, time_seconds: (Date.now() - startTime) / 1000,
+          difficulty: level < 5 ? 'easy' : level < 10 ? 'medium' : 'hard', mode: `lvl${level}`, errors: 0,
+          details: { moves: movesRef.current, level, move_limit_exceeded: true },
+        }).catch((e) => console.error(e));
+        return;
+      }
       setTimeout(() => { setLevelBanner(null); loadLevel(level); }, 1200);
       return;
     }
@@ -230,7 +245,11 @@ export default function GoodsSortGame() {
     setLevel(next);
     lvl.setLevel(next);   // сохранить достигнутый уровень, включая прохождение в зарядке
     setLevelBanner(done);
-    setTimeout(() => { setLevelBanner(null); loadLevel(next); }, 1400);
+// ⚠️ В ЗАРЯДКЕ СЛЕДУЮЩИЙ УРОВЕНЬ НЕ ГРУЗИМ — иначе гонка с самой зарядкой: здесь
+    // через 1400 мс начинается следующий уровень, а зарядка через 2000–3500 мс уводит
+    // экран к следующей игре. Репорт Вали на v1.193.0: «Сортировка товаров тоже выдаёт
+    // второй уровень и вылетает в вечерней зарядке».
+    setTimeout(() => { setLevelBanner(null); if (chainNext) loadLevel(next); }, 1400);
   };
 
   // Переместить КОНКРЕТНЫЙ товар (fromCell, fromIdx) в toCell, если там есть место; затем собрать тройки.

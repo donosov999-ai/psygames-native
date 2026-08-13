@@ -11,6 +11,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
 import { announce } from '@/src/services/a11y';
+import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 
 /**
  * LevelCleared — короткий баннер между уровнями для АВТО-ПОТОКА (по выбору Дениса):
@@ -52,6 +53,17 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
   const isRest = restRef.current;
   const [restLeft, setRestLeft] = useState(EYE_REST_SEC);
   const [cleanRun, setCleanRun] = useState(0);   // серия чистых раундов (🔥), тикается в saveSession
+  /**
+   * ⚠️ РЕЖИМ ЧИТАЕМ ЗДЕСЬ, А НЕ В КАЖДОЙ ИГРЕ. Этот экран показывают 49 игр; если
+   * бы каждая передавала признак пропсом, 49 мест могли бы забыть — и забывали бы,
+   * как забыли маджонг и сортировку товаров.
+   *
+   * В зарядке следующий уровень НЕ запускается. Иначе получается гонка: игра стартует
+   * следующий уровень через autoMs, а зарядка через свои 2000–3500 мс уводит экран —
+   * человек видит начавшийся уровень 2 и вылет. Репорт Вали на v1.193.0.
+   */
+  const gameMode = useGameMode();
+  const chainNext = shouldChainNextLevel(gameMode);
   const [showLevelsHint, setShowLevelsHint] = useState(false);   // одноразовая подпись «уровни по порядку» при первом чистом прохождении
 
   const go = () => { if (firedRef.current) return; firedRef.current = true; onContinue(); };
@@ -92,6 +104,10 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
     // разобрать результат (репорт из аудита + Валя: повтор стартовал раньше, чем
     // читаешь ошибки). Авто-поток остаётся только для ПРОЙДЕННЫХ уровней.
     if (!passed) return () => { if (runTimer) clearTimeout(runTimer); };
+    // В зарядке и в свободной партии дальше распоряжается не игра: зарядка уводит
+    // на следующий шаг сама, свободный режим показывает итог. Свой таймер здесь
+    // только сталкивался бы с чужим.
+    if (!chainNext) return () => { if (runTimer) clearTimeout(runTimer); };
     const t = setTimeout(go, autoMs);
     return () => { clearTimeout(t); if (runTimer) clearTimeout(runTimer); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
