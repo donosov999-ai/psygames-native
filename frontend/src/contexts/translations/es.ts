@@ -512,7 +512,7 @@ const t: Record<string, string> = {
   "ctaStart": "EMPEZAR",
   "fractalTitle": "Sudoku fractal",
   "fractalDesc": "Tras cada casilla de la cuadrícula superior se esconde un sudoku entero",
-  "fractalHowTo": "Las nueve cuadrículas inferiores no son adorno. El centro de cada una es un dígito que falta arriba. Resuelve una hasta 17 casillas correctas y ese dígito sube a la cuadrícula raíz. Reúne las nueve y la raíz se cierra.",
+  "fractalHowTo": "Las nueve cuadrículas inferiores no son decoración. El centro de cada una es un dígito que falta arriba. Resuelve una cuadrícula inferior hasta el número requerido de celdas correctas (se muestra en pantalla) y ese dígito pasa a la cuadrícula raíz. Reúne las nueve y la raíz se cierra. Ese número crece con el nivel.",
   "fractalRoot": "Cuadrícula raíz",
   "fractalChildren": "Cuadrículas inferiores",
   "fractalChildN": "Cuadrícula",

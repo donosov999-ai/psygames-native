@@ -512,7 +512,7 @@ const t: Record<string, string> = {
   "ctaStart": "开始",
   "fractalTitle": "分形数独",
   "fractalDesc": "上层棋盘的每一格背后，都藏着一整盘数独",
-  "fractalHowTo": "下面九个盘面并非装饰。每个盘面的中心，正是上层缺少的那个数字。把一个下层盘面解到 17 个正确格，该数字便会填入根盘面。集齐九个，根盘面即告完成。",
+  "fractalHowTo": "下方九个盘不是装饰。每个盘的中心是上方缺少的数字。把下方的盘解到屏幕显示的所需正确格数，该数字就会填入上方的盘。集齐九个，上方的盘即告完成。所需格数随关卡增加。",
   "fractalRoot": "根盘面",
   "fractalChildren": "下层盘面",
   "fractalChildN": "盘面",

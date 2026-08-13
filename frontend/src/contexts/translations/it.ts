@@ -12,7 +12,7 @@ const t: Record<string, string> = {
   "ctaStart": "INIZIA",
   "fractalTitle": "Sudoku frattale",
   "fractalDesc": "Dietro ogni casella della griglia superiore si nasconde un intero sudoku",
-  "fractalHowTo": "Le nove griglie inferiori non sono decorazione. Il centro di ognuna è una cifra che manca in alto. Risolvine una fino a 17 caselle corrette e quella cifra sale nella griglia radice. Raccoglile tutte e nove e la radice si chiude.",
+  "fractalHowTo": "Le nove griglie in basso non sono decorative. Il centro di ciascuna è una cifra che manca in alto. Risolvi una griglia inferiore fino al numero richiesto di celle corrette (mostrato sullo schermo) e quella cifra passa alla griglia radice. Raccoglile tutte e nove e la radice si chiude. Quel numero cresce con il livello.",
   "fractalRoot": "Griglia radice",
   "fractalChildren": "Griglie inferiori",
   "fractalChildN": "Griglia",

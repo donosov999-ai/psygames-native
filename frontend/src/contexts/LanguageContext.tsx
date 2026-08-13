@@ -74,7 +74,10 @@ const translations: Translations = {
   restDay: { ru: 'Сегодня набора нет', en: 'No set today' },
   fractalTitle: { ru: 'Фрактальная судоку', en: 'Fractal Sudoku' },
   fractalDesc: { ru: 'За каждой клеткой верхней сетки спрятана целая судоку', en: 'Behind every cell of the top grid hides a whole sudoku' },
-  fractalHowTo: { ru: 'Девять нижних сеток — не украшение. Центр каждой это цифра, которой не хватает наверху. Решите нижнюю до 17 верных клеток — и цифра сама встанет в корневую сетку. Соберите все девять, и корень закроется.', en: 'The nine lower grids are not decoration. The centre of each is a digit missing up top. Solve a lower grid to 17 correct cells and that digit moves into the root grid. Collect all nine and the root closes.' },
+  // ⚠️ ЧИСЛО ЗДЕСЬ НЕ ЗАШИВАТЬ. Порог открытия растёт с уровнем (fractalLevels.ts):
+  // было «до 17 верных клеток», и на верхних уровнях описание врало про механику —
+  // ровно как правила маджонга объясняли три слоя, когда выкладывалось четыре.
+  fractalHowTo: { ru: 'Девять нижних сеток — не украшение. Центр каждой это цифра, которой не хватает наверху. Решите нижнюю до нужного числа верных клеток (оно показано на экране) — и цифра сама встанет в корневую сетку. Соберите все девять, и корень закроется. С уровнем это число растёт.', en: 'The nine lower grids are not decoration. The centre of each is a digit missing up top. Solve a lower grid to the required number of correct cells (shown on screen) and that digit moves into the root grid. Collect all nine and the root closes. That number grows with the level.' },
   fractalRoot: { ru: 'Корневая сетка', en: 'Root grid' },
   fractalChildren: { ru: 'Нижние сетки', en: 'Lower grids' },
   fractalChildN: { ru: 'Сетка', en: 'Grid' },

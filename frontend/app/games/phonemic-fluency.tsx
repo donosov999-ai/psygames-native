@@ -30,6 +30,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { saveSession } from '@/src/services/api';
 import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
@@ -50,6 +52,16 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 export default function PhonemicFluencyGame() {
   const { colors } = useTheme();
   const { t, language, ready: languageReady } = useLanguage() as any;
+  /**
+   * СЧЁТЧИК ПРОХОЖДЕНИЙ, не ступень сложности.
+   *
+   * COWAT — стандартный тест: буква берётся из нормативного набора (F/A/S по-английски,
+   * К/Л/М/П/С по-русски) и пишется в сессию именно ради сравнимости. «Буквы посложнее»
+   * как ступени увели бы человека с нормативного набора, и его собственные прошлые
+   * результаты перестали бы сравниваться — при том, что счётчик слов внешне продолжил
+   * бы работать. Тихая порча данных, которую заметили бы через месяцы.
+   */
+  const runs = usePersistentLevel('phonemic_fluency');
   const router = useRouter();
 
   const { isPreset, autostart, num } = useGamePreset();
@@ -153,6 +165,9 @@ export default function PhonemicFluencyGame() {
     const firstHalf = validWords.filter(w => w.ts < halfTime).length;
     const secondHalf = validWords.filter(w => w.ts >= halfTime).length;
 
+    // Подход доводят до конца по таймеру — провалить нельзя. Засчитан завершением.
+    const doneRun = runs.level;
+    runs.reach(doneRun + 1);
     try {
       await saveSession({
         game_type: 'phonemic_fluency',
@@ -162,6 +177,7 @@ export default function PhonemicFluencyGame() {
         mode: `${duration}s`,
         errors: repetitions + wrongLetter + tooShort,
         details: {
+          level: doneRun,   // по нему счётчик восстановится, если ключ прогресса потерян
           word_count: validWords.length,
           repetitions,
           wrong_letter: wrongLetter,
@@ -224,6 +240,14 @@ export default function PhonemicFluencyGame() {
       <Text style={[styles.warning, { color: colors.textSecondary }]}>
         {t('phonemicRules')}
       </Text>
+            <LevelProgressMap
+        gameId="phonemic_fluency"
+        currentLevel={runs.level}
+        maxLevel={Math.max(15, runs.level)}
+        colors={colors}
+        language={language}
+        countsRuns
+      />
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>

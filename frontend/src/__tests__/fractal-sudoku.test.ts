@@ -150,3 +150,84 @@ describe('порог считает только ходы человека', () 
     expect(isUnlocked(cur, ch.solution, given)).toBe(true);
   });
 });
+
+/**
+ * Уровни фрактальной судоку.
+ *
+ * ЗАЧЕМ. Игра вышла вообще без уровней — сразу «hard» и всегда одинаково. Уровень
+ * крутит два условия: сколько выколото и сколько верных клеток нужно набрать до
+ * открытия корневой.
+ *
+ * ⚠️ ПОРОГ НЕ ДОЛЖЕН ДОРАСТАТЬ ДО ПОЛНОГО РЕШЕНИЯ. Открывать корневую клетку
+ * только за полностью решённую дочернюю значит превратить фрактал в девять судоку
+ * подряд без единой промежуточной награды — ровно то, ради чего порог и заведён.
+ * И порог не может превысить число ВЫКОЛОТЫХ клеток: набрать больше нечем.
+ */
+import { FRACTAL_MAX_LEVEL, clampFractalLevel, fractalLevel } from '../services/fractalLevels';
+
+describe('уровни фрактальной судоку', () => {
+  const ALL = Array.from({ length: FRACTAL_MAX_LEVEL }, (_, i) => i + 1);
+
+  it('есть что проверять — иначе тест зелен вслепую', () => {
+    expect(FRACTAL_MAX_LEVEL).toBeGreaterThanOrEqual(10);
+  });
+
+  it('первый уровень — нынешние условия игры', () => {
+    expect(fractalLevel(1).unlockCells).toBe(UNLOCK_CELLS);
+  });
+
+  it('оба параметра растут строго', () => {
+    const flat: string[] = [];
+    for (let n = 2; n <= FRACTAL_MAX_LEVEL; n++) {
+      const p = fractalLevel(n - 1), c = fractalLevel(n);
+      if (c.childBlanks < p.childBlanks) flat.push(`выколото на ${n}: ${p.childBlanks} → ${c.childBlanks}`);
+      if (c.unlockCells < p.unlockCells) flat.push(`порог на ${n}: ${p.unlockCells} → ${c.unlockCells}`);
+    }
+    expect(flat).toEqual([]);
+    expect(fractalLevel(FRACTAL_MAX_LEVEL).childBlanks).toBeGreaterThan(fractalLevel(1).childBlanks);
+    expect(fractalLevel(FRACTAL_MAX_LEVEL).unlockCells).toBeGreaterThan(fractalLevel(1).unlockCells);
+  });
+
+  it('порог набираем: он не больше числа выколотых клеток', () => {
+    const impossible = ALL
+      .map((n) => ({ n, ...fractalLevel(n) }))
+      .filter((c) => c.unlockCells > c.childBlanks)
+      .map((c) => `уровень ${c.n}: нужно ${c.unlockCells}, а выколото всего ${c.childBlanks}`);
+    expect(impossible).toEqual([]);
+  });
+
+  it('награда остаётся промежуточной — порог меньше половины сетки', () => {
+    const tooLate = ALL
+      .map((n) => ({ n, u: fractalLevel(n).unlockCells }))
+      .filter((c) => c.u > 40)
+      .map((c) => `уровень ${c.n}: порог ${c.u} из 81`);
+    expect(tooLate).toEqual([]);
+  });
+
+  it('сетка не выкалывается в ноль — опоры остаются', () => {
+    const empty = ALL
+      .map((n) => ({ n, b: fractalLevel(n).childBlanks }))
+      .filter((c) => c.b > 64)   // осталось бы меньше 17 подсказок — уже не судоку
+      .map((c) => `уровень ${c.n}: выколото ${c.b} из 81`);
+    expect(empty).toEqual([]);
+  });
+
+  it('порог реально влияет на открытие клетки', () => {
+    const sol = solvedWithCenter(5);
+    const cur = Array.from({ length: N }, () => Array(N).fill(0));
+    let put = 0;
+    outer:
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      cur[r][c] = sol[r][c];
+      if (++put === 20) break outer;
+    }
+    expect(isUnlocked(cur, sol, undefined, 17)).toBe(true);    // порог первого уровня взят
+    expect(isUnlocked(cur, sol, undefined, 34)).toBe(false);   // порог верхнего — ещё нет
+  });
+
+  it('мусор на входе не роняет', () => {
+    expect(clampFractalLevel(0)).toBe(1);
+    expect(clampFractalLevel(999)).toBe(FRACTAL_MAX_LEVEL);
+    expect(clampFractalLevel(NaN)).toBe(1);
+  });
+});

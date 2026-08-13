@@ -512,7 +512,7 @@ const t: Record<string, string> = {
   "ctaStart": "INICIAR",
   "fractalTitle": "Sudoku fractal",
   "fractalDesc": "Atrás de cada célula da grade superior esconde-se um sudoku inteiro",
-  "fractalHowTo": "As nove grades inferiores não são enfeite. O centro de cada uma é um dígito que falta em cima. Resolva uma até 17 células corretas e esse dígito sobe para a grade raiz. Junte as nove e a raiz se fecha.",
+  "fractalHowTo": "As nove grades inferiores não são decoração. O centro de cada uma é um dígito que falta em cima. Resolva uma grade inferior até o número exigido de células corretas (mostrado na tela) e esse dígito vai para a grade raiz. Reúna todas as nove e a raiz se fecha. Esse número cresce com o nível.",
   "fractalRoot": "Grade raiz",
   "fractalChildren": "Grades inferiores",
   "fractalChildN": "Grade",
