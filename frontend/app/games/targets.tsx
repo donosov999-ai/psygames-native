@@ -20,6 +20,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#ff0844', '#ffb199'];
 
@@ -447,6 +448,13 @@ export default function TargetsGame() {
           </View>
         </View>
 
+        <LevelProgressMap
+          gameId="targets"
+          currentLevel={lvl.level}
+          maxLevel={Math.max(15, lvl.level)}
+          colors={colors}
+          language={language}
+        />
         <TouchableOpacity
           accessibilityRole="button" style={styles.startButton} onPress={startGame}>
           <LinearGradient

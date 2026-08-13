@@ -273,9 +273,21 @@ export default function PatternGame() {
 
   // playing-фаза — на едином каркасе GameShell (варианты ответа прибиты к низу,
   // подсказка и её текст остаются в поле рядом с рядом)
-  if (phase === 'playing') {
+  // Доска остаётся видна и после победы — она и есть награда; карточка итога
+  // висит поверх неё (решение Дениса «карточка над всей доской»).
+  //
+  // ⚠️ Звёзды в карточке посчитаны выражением, а не взяты из переменной `stars`:
+  // та объявлена внутри блока экрана результата ниже и сюда не видна. Правило то
+  // же самое — подсказка ставит потолок в две звезды.
+  if (phase === 'playing' || phase === 'cleared') {
     return (
       <GameShell
+        overlay={phase === 'cleared' ? (
+          <LevelCleared
+          variant="overlay" gameId="pattern" level={levelRef.current} stars={hintUsedRef.current ? Math.min(2, errors === 0 ? 3 : errors <= 2 ? 2 : 1) : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)} passed={clearedPassed}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+        ) : null}
         title={t('pattern')}
         onBack={() => goBackOrHome()}
         stats={
@@ -342,15 +354,7 @@ export default function PatternGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
-      {phase === 'cleared' && (() => {
-        const base = errors === 0 ? 3 : errors <= 2 ? 2 : 1;
-        const stars = hintUsedRef.current ? Math.min(2, base) : base;   // подсказка → потолок 2⭐
-        return (
-        <LevelCleared gameId="pattern" level={levelRef.current} stars={stars} passed={clearedPassed}
-          gradient={GRADIENT} language={language} colors={colors}
-          onContinue={() => startGame()} onStop={() => setPhase('config')} />
-        );
-      })()}
+
       {phase === 'result' && (() => {
         const base = errors === 0 ? 3 : errors <= 2 ? 2 : 1;
         const stars = hintUsedRef.current ? Math.min(2, base) : base;   // подсказка → потолок 2⭐

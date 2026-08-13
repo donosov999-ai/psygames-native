@@ -322,9 +322,17 @@ export default function TowerLondonGame() {
   );
 
   // игровая фаза — на едином каркасе GameShell; pegRow (цель + текущая) переносится как есть
-  if (phase === 'playing') {
+  // Доска остаётся видна и после победы — она и есть награда; карточка итога
+  // висит поверх неё (решение Дениса «карточка над всей доской»).
+  if (phase === 'playing' || phase === 'cleared') {
     return (
       <GameShell
+        overlay={phase === 'cleared' ? (
+          <LevelCleared
+          variant="overlay" gameId="tower_london" passed={clearedPassed} level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+        ) : null}
         title={t('towerLondon')}
         onBack={() => goBackOrHome()}
         toolbar={
@@ -374,11 +382,7 @@ export default function TowerLondonGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
-      {phase === 'cleared' && (
-        <LevelCleared gameId="tower_london" passed={clearedPassed} level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
-          gradient={GRADIENT} language={language} colors={colors}
-          onContinue={() => startGame()} onStop={() => setPhase('config')} />
-      )}
+
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, solved * 200 - extraMoves * 30 - errors * 20 - Math.floor(elapsedTime))}

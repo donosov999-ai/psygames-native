@@ -16,6 +16,7 @@ import GameShell from '@/src/components/GameShell';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -311,6 +312,13 @@ export default function HanoiGame() {
           {t('hanoiLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
+      <LevelProgressMap
+        gameId="hanoi"
+        currentLevel={lvl.level}
+        maxLevel={Math.max(15, lvl.level)}
+        colors={colors}
+        language={language}
+      />
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
@@ -442,9 +450,20 @@ export default function HanoiGame() {
 
   // Игровая фаза — на едином каркасе GameShell; модалка правил уровня поверх
   // (обёртка View flex:1, паттерн digit-span).
-  if (phase === 'playing') {
+  // Доска остаётся видна и после победы — она и есть награда; карточка итога
+  // висит поверх неё (решение Дениса «карточка над всей доской»).
+  if (phase === 'playing' || phase === 'cleared') {
     return (
       <View style={{ flex: 1 }}>
+        {phase === 'cleared' && (
+          <View style={StyleSheet.absoluteFill as any} pointerEvents="box-none">
+            <LevelCleared
+          variant="overlay" gameId="hanoi" level={levelRef.current}
+          stars={moves <= optimal(discs) ? 3 : moves <= Math.ceil(optimal(discs) * 1.5) ? 2 : 1}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+          </View>
+        )}
         {renderPlaying()}
         <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
@@ -463,14 +482,7 @@ export default function HanoiGame() {
       </View>
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
-      {phase === 'cleared' && (
-        // Чисто прошёл уровень (решил пазл) → баннер + авто-старт следующего.
-        // 3★ = за оптимум ходов (2^n−1 для 3 стержней; для 4/5 порог с запасом), меньше — за лишние ходы.
-        <LevelCleared gameId="hanoi" level={levelRef.current}
-          stars={moves <= optimal(discs) ? 3 : moves <= Math.ceil(optimal(discs) * 1.5) ? 2 : 1}
-          gradient={GRADIENT} language={language} colors={colors}
-          onContinue={() => startGame()} onStop={() => setPhase('config')} />
-      )}
+
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, Math.round(1000 - (moves - optimal(discs)) * 50 - elapsedTime))}
