@@ -11,6 +11,7 @@
 
 import { Vibration, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { startMusic as musicStart, stopMusic as musicStop } from '@/src/services/music';
 
 const SOUND_KEY = 'psygames_sound_enabled';
 const HAPTIC_KEY = 'psygames_haptic_enabled';
@@ -268,79 +269,22 @@ export function sndTimerEnd()  { if (_soundEnabled) { beep(523, 130, 0.09); setT
 //
 // Гармония: минорная пентатоника + септаккорды — любые две ноты из набора
 // звучат консонансно, поэтому случайность не может дать фальшь.
-let _musicTimer: any = null;
-let _musicGain: any = null;
-let _musicChord = 0;
-let _musicNoteCount = 0;
-
-/** Прогрессия Am7 → Fmaj7 → Cmaj7 → G6 в MIDI-номерах. Меняется каждые ~6 нот. */
-const MUSIC_CHORDS = [
-  [57, 60, 64, 67],
-  [53, 57, 60, 64],
-  [48, 52, 55, 59],
-  [55, 59, 62, 64],
-];
-
-const midiToFreq = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
-const pick = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
-
-export function startMusic(): void {
-  if (!_musicOn || _musicTimer) return;
-  const ac = getAudioCtx(); if (!ac) return;
-  _musicGain = ac.createGain();
-  _musicGain.gain.value = 1;
-  _musicGain.connect(ac.destination);
-
-  /** Одна нота: медленная атака + длинный спад = амбиент, а не «пиликанье». */
-  const voice = (midi: number, dur: number, peak: number, type: OscillatorType) => {
-    const c = getAudioCtx(); if (!c || !_musicGain) return;
-    try {
-      const t0 = c.currentTime;
-      const osc = c.createOscillator(); const g = c.createGain();
-      osc.type = type;
-      osc.frequency.value = midiToFreq(midi);
-      osc.detune.value = (Math.random() - 0.5) * 12;  // ±6 центов — живое биение
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.linearRampToValueAtTime(peak, t0 + dur * 0.35);
-      g.gain.linearRampToValueAtTime(0.0001, t0 + dur);
-      osc.connect(g); g.connect(_musicGain);
-      osc.start(t0); osc.stop(t0 + dur + 0.05);
-    } catch { /* no-op */ }
-  };
-
-  const step = () => {
-    if (!_musicGain) return;   // stopMusic обнулил мастер-гейн → цепочка обрывается
-    const chord = MUSIC_CHORDS[_musicChord % MUSIC_CHORDS.length];
-
-    // Смена аккорда раз в ~6 нот + бас-педаль под неё
-    if (_musicNoteCount % 6 === 0) {
-      voice(chord[0] - 12, 7 + Math.random() * 3, 0.016, 'sine');
-      if (_musicNoteCount > 0) _musicChord++;
-    }
-    _musicNoteCount++;
-
-    // Мелодия: нота аккорда, иногда октавой выше; изредка пауза (дыхание)
-    if (Math.random() > 0.18) {
-      const midi = pick(chord) + (Math.random() > 0.7 ? 12 : 0);
-      voice(midi, 1.8 + Math.random() * 2.2, 0.022 + Math.random() * 0.012,
-            Math.random() > 0.75 ? 'triangle' : 'sine');
-    }
-
-    // Следующая нота через случайный интервал → нет машинного пульса
-    _musicTimer = setTimeout(step, 1100 + Math.random() * 1600);
-  };
-
-  _musicChord = 0; _musicNoteCount = 0;
-  _musicTimer = setTimeout(step, 10);
+/**
+ * Фоновая музыка переехала в services/music.ts на НАСТОЯЩИЕ треки.
+ *
+ * Раньше здесь жил генератор: прогрессия Am7 → Fmaj7 → Cmaj7 → G6 чистыми синусами,
+ * нота раз в 1-2 секунды. Тестер назвал это «3 ноты) или убрать пока» и был прав по
+ * сути. Теперь шесть инструментальных треков по две минуты; здесь остались только
+ * переходники, чтобы не менять вызовы setMusicEnabled и старые импорты.
+ *
+ * Звуковые ЭФФЕКТЫ остаются на Web Audio в этом файле: там важна миллисекундная
+ * задержка отклика, а музыке — нет.
+ */
+export function startMusic(preferId?: string): void {
+  if (!_musicOn) return;
+  musicStart(preferId);
 }
+
 export function stopMusic(): void {
-  if (_musicTimer) { clearTimeout(_musicTimer); _musicTimer = null; }
-  const g = _musicGain; _musicGain = null;
-  if (!g) return;
-  // F: плавное затухание 0.5с вместо резкого обрыва, затем отключаем узел.
-  try {
-    const c = getAudioCtx();
-    if (c) { const t = c.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0.0001, t + 0.5); }
-    setTimeout(() => { try { g.disconnect(); } catch { /* no-op */ } }, 700);
-  } catch { try { g.disconnect(); } catch { /* no-op */ } }
+  musicStop();
 }
