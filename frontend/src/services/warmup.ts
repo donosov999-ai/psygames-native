@@ -511,21 +511,131 @@ export interface WarmupHistoryEntry {
   steps_total: number;
 }
 
-export async function loadWarmupHistory(): Promise<WarmupHistoryEntry[]> {
+/**
+ * Чтение истории с РАЗЛИЧЕНИЕМ «пусто» и «не смогли прочитать».
+ *
+ * ⚠️ ЗАЧЕМ РАЗЛИЧАТЬ. Раньше любая ошибка — сбой хранилища, битый JSON — молча давала
+ * пустой список, а следующая запись сохраняла его же плюс одну запись. Вся история
+ * зарядок стиралась без единого сообщения, и вместе с ней исчезали все отметки в
+ * календаре серии. Репорт Вали 12.08: «Куда деваются огонечки, было много — все исчезли».
+ *
+ * Теперь неудачное чтение возвращает null, и запись в этом случае НЕ ТРОГАЕТ хранилище:
+ * лучше потерять одну сегодняшнюю отметку, чем всю историю за месяцы.
+ */
+/**
+ * Решение «писать или не писать», отделённое от хранилища.
+ *
+ * Вынесено отдельно, потому что проверить его через настоящее хранилище не выходит:
+ * warmup.ts берёт AsyncStorage динамическим импортом внутри функции, и подмены в тесте
+ * до этого экземпляра не достают — тест на вызовы оказывался зелёным просто потому,
+ * что записи не было НИ В ОДНОМ случае. Такую проверку легко принять за настоящую.
+ * Здесь же правило видно целиком и проверяется без подделок.
+ *
+ * @param current  прочитанная история; null — прочитать НЕ УДАЛОСЬ
+ * @returns        что писать, либо null — не трогать хранилище
+ */
+export function mergeHistory(
+  current: WarmupHistoryEntry[] | null,
+  entry: WarmupHistoryEntry,
+): WarmupHistoryEntry[] | null {
+  if (current === null) return null;   // читать не смогли → писать нельзя, затрём всё
+  return [...current, entry];
+}
+
+async function readHistoryRaw(): Promise<WarmupHistoryEntry[] | null> {
   try {
     const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
     const raw = await AsyncStorage.getItem(WARMUP_HISTORY_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+    if (raw == null) return [];                 // ключа нет — человек новый, это честное «пусто»
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;   // не массив — считаем сбоем, не пустотой
+  } catch { return null; }
+}
+
+export async function loadWarmupHistory(): Promise<WarmupHistoryEntry[]> {
+  return (await readHistoryRaw()) ?? [];
 }
 
 export async function saveWarmupHistory(entry: WarmupHistoryEntry): Promise<void> {
   try {
     const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
-    const cur = await loadWarmupHistory();
-    cur.push(entry);
-    await AsyncStorage.setItem(WARMUP_HISTORY_KEY, JSON.stringify(cur));
+    const next = mergeHistory(await readHistoryRaw(), entry);
+    if (next === null) {
+      // Прочитать не удалось. Записать сейчас — значит затереть всё, что было.
+      console.warn('warmup history unreadable — skipping write to avoid wiping it');
+      return;
+    }
+    await AsyncStorage.setItem(WARMUP_HISTORY_KEY, JSON.stringify(next));
   } catch (e) { console.warn('Failed to save warmup history', e); }
+}
+
+/**
+ * РАЗОВОЕ ВОССТАНОВЛЕНИЕ ОТМЕТОК КАЛЕНДАРЯ ИЗ СОБСТВЕННЫХ СЕССИЙ.
+ *
+ * ЗАЧЕМ. История зарядок стиралась целиком при неудачном чтении (см. readHistoryRaw):
+ * пустой список молча сохранялся поверх накопленного. Репорт Вали 12.08: «Куда деваются
+ * огонечки, было много — все исчезли». Отметки — это месяцы её работы, и просто починить
+ * запись мало: потерянное надо вернуть.
+ *
+ * ОТКУДА БЕРЁМ ПРАВДУ. Из сессий на самом устройстве: каждая партия внутри зарядки несёт
+ * warmup_id. День, в который есть хоть одна такая сессия, — это день, когда человек
+ * тренировался. Ничего не выдумываем: только то, что он сам сыграл.
+ *
+ * ⚠️ ПОЧЕМУ ЗАСЧИТЫВАЕМ И НЕПОЛНЫЕ ДНИ. Строгое «зарядка пройдена до конца» отняло бы у
+ * Вали половину дней — а обрывались они из-за НАШЕЙ ошибки: игра запускала следующий
+ * уровень, зарядка уводила экран, и набор ломался на первой же игре (см. useGameMode).
+ * Наказывать человека за наш баг нельзя.
+ *
+ * Отметка ставится только там, где записи за этот день нет — существующие не трогаем.
+ * Идёт один раз, флаг ниже.
+ */
+const HISTORY_REPAIR_FLAG = 'psygames_warmup_history_repaired_v1';
+
+export function daysFromSessions(
+  sessions: { timestamp?: string; warmup_id?: string }[],
+): string[] {
+  const days = new Set<string>();
+  for (const s of sessions) {
+    if (!s.warmup_id || !s.timestamp) continue;
+    const d = new Date(s.timestamp);
+    if (Number.isNaN(d.getTime())) continue;
+    days.add(localDateKey(d));
+  }
+  return [...days].sort();
+}
+
+export async function repairWarmupHistoryOnce(
+  getSessions: () => Promise<{ timestamp?: string; warmup_id?: string }[]>,
+): Promise<number> {
+  try {
+    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    if (await AsyncStorage.getItem(HISTORY_REPAIR_FLAG)) return 0;
+
+    const current = await readHistoryRaw();
+    if (current === null) return 0;   // не прочитали — чинить вслепую нельзя
+
+    const have = new Set(current.map((e) => e.date));
+    const restored: WarmupHistoryEntry[] = [];
+    for (const day of daysFromSessions(await getSessions())) {
+      if (have.has(day)) continue;
+      restored.push({
+        date: day,
+        weekday: new Date(day + 'T12:00:00Z').getUTCDay() as WarmupHistoryEntry['weekday'],
+        duration_min: 5,
+        track: 'training',
+        total_score: 0,
+        completed: true,
+        steps_done: 0,
+        steps_total: 0,
+      } as WarmupHistoryEntry);
+    }
+
+    if (restored.length) {
+      await AsyncStorage.setItem(WARMUP_HISTORY_KEY, JSON.stringify([...current, ...restored]));
+    }
+    await AsyncStorage.setItem(HISTORY_REPAIR_FLAG, '1');
+    return restored.length;
+  } catch { return 0; }
 }
 
 /**
