@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.197.0',
+    date: '2026-08-13',
+    ru: [
+      'Все упражнения устроены одинаково: уровень или счётчик прохождений, тропинка с вашим питомцем и общий итог со звёздами. Раньше девять игр шли мимо: у них не копились звёзды и не считалась серия чистых',
+      'Прогресс больше не теряется при переустановке. Достигнутые уровни хранились только в памяти телефона — теперь они восстанавливаются из истории ваших тренировок',
+      'Дыхание тоже считает пройденные подходы и показывает их на тропинке',
+    ],
+    en: [
+      'Every exercise now works the same way: a level or a run counter, a path with your pet on it, and one shared result screen with stars. Nine games used to bypass all of that — no stars collected, no clean-run streak',
+      'Progress no longer disappears after a reinstall. Levels lived only in phone memory; they are now rebuilt from your own training history',
+      'Breathing counts completed sessions too and shows them on the path',
+    ],
+  },
+  {
     version: '1.196.0',
     date: '2026-08-13',
     ru: [
