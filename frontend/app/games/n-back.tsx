@@ -306,6 +306,9 @@ export default function NBackGame() {
         mode: `${trials}t-${modality}`,
         errors: misses + falseAlarms + (modality === 'dual' ? aMisses + aFalseAlarms : 0),
         details: {
+          // Резерв прогресса: getMaxLevelFromSessions восстановит уровень отсюда,
+          // если локальный ключ потерян (переустановка, сброс профиля).
+          level: levelRef.current,
           hits, misses, falseAlarms, correctRejections, accuracy,
           d_prime: dPrime,
           hit_rate: Number(hitRate.toFixed(3)),

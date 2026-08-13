@@ -216,7 +216,7 @@ export default function ListeningSpanGame() {
         difficulty: `L${levelRef.current}`,
         mode: `${spanRef.current}-span · ${tlRef.current}`,
         errors: totalErrors,
-        details: { span: spanRef.current, errors: totalErrors, target_lang: tlRef.current },
+        details: { level: levelRef.current, span: spanRef.current, errors: totalErrors, target_lang: tlRef.current },
       });
     } catch (err) { console.error(err); }
   };

@@ -250,7 +250,7 @@ export default function VisualSearchGame() {
           difficulty: levelRef.current <= 3 ? 'easy' : levelRef.current <= 9 ? 'medium' : 'hard',
           mode: `${trials}t`,
           errors: errorsRef.current,
-          details: { mean_rt: Math.round(meanRt), max_items: last.count, max_targets: last.targetCount },
+          details: { level: levelRef.current, mean_rt: Math.round(meanRt), max_items: last.count, max_targets: last.targetCount },
         });
       } catch (e) { console.error(e); }
     } else {

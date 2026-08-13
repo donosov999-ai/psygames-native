@@ -147,7 +147,7 @@ export default function QuickCountGame() {
         difficulty: `Level ${levelRef.current}`,
         mode: `${TRIALS_PER_ROUND}t`,
         errors: wrongRef.current,
-        details: { correct: correctRef.current, wrong: wrongRef.current, accuracy },
+        details: { level: levelRef.current, correct: correctRef.current, wrong: wrongRef.current, accuracy },
       });
     } catch (e) { console.error(e); }
     if (isPreset) {

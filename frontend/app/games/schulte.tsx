@@ -334,6 +334,9 @@ export default function SchulteGame() {
         mode: groupCount > 1 ? `divided_attention_${groupCount}g` : `${contentMode}_${direction}_${colorMode ? 'color' : 'bw'}${reshuffleOnClick ? '_moving' : ''}`,
         errors: errsArg,
         details: {
+          // Резерв прогресса: getMaxLevelFromSessions восстановит уровень отсюда,
+          // если локальный ключ потерян (переустановка, сброс профиля).
+          level: levelRef.current,
           hits: totalCells - errsArg,
           errors: errsArg,
           total_cells: totalCells,

@@ -271,6 +271,9 @@ export default function PhonemePairsGame() {
         mode: tgtRef.current,
         errors: e,
         details: {
+          // Резерв прогресса: getMaxLevelFromSessions восстановит уровень отсюда,
+          // если локальный ключ потерян (переустановка, сброс профиля).
+          level: levelRef.current,
           hits: h,
           errors: e,
           trials: paramsRef.current.trials,

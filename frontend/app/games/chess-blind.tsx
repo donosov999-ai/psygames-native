@@ -394,7 +394,7 @@ export default function ChessBlindGame() {
       difficulty: `L${levelRef.current}`,
       mode: p.quizType,
       errors: fErrors,
-      details: { hits: fHits, errors: fErrors, pieces: p.pieces, moves: p.moves, quiz_type: p.quizType },
+      details: { level: levelRef.current, hits: fHits, errors: fErrors, pieces: p.pieces, moves: p.moves, quiz_type: p.quizType },
     }).catch((e) => console.error(e));
     // Уровневый режим: и проход, и недобор → общий баннер LevelCleared (passed=false = «почти, ещё раз», авто-рестарт).
     // Пресет/свободный режим — как было: экран статистики GameResult.

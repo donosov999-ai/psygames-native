@@ -175,7 +175,7 @@ export default function OSpanGame() {
         difficulty: setSize <= 3 ? 'easy' : setSize <= 5 ? 'medium' : 'hard',
         mode: `${setSize}-set`,
         errors: e,
-        details: { math_hits: mathHits, math_errors: mathErrors, letters: letters.join('') },
+        details: { level: levelRef.current, math_hits: mathHits, math_errors: mathErrors, letters: letters.join('') },
       });
     } catch (err) { console.error(err); }
   };

@@ -157,6 +157,9 @@ export default function MnemonicsGame() {
             mode: mode,  // 'words' | 'numbers'
             errors: errors,
             details: {
+          // Резерв прогресса: getMaxLevelFromSessions восстановит уровень отсюда,
+          // если локальный ключ потерян (переустановка, сброс профиля).
+          level: levelRef.current,
               hits: items.length - errors,
               errors: errors,
               item_count: items.length,
