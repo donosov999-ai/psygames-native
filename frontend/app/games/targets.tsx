@@ -309,6 +309,9 @@ export default function TargetsGame() {
         mode: mode,
         errors: 0,
         details: {
+          // Резерв прогресса: getMaxLevelFromSessions восстановит уровень отсюда,
+          // если локальный ключ потерян (переустановка, сброс профиля).
+          level: levelRef.current,
           hits: rts.length,
           mean_rt: Math.round(avgReaction),
           std_rt: Math.round(rtStd),

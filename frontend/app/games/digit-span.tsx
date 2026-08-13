@@ -193,7 +193,7 @@ export default function DigitSpanGame() {
           difficulty: direction,
           mode: `start${seqLen}`,
           errors: updatedErrors,
-          details: { maxSpan: updatedMax, correctRounds: updatedCorrect, finalLength: seqLen },
+          details: { level: levelRef.current, maxSpan: updatedMax, correctRounds: updatedCorrect, finalLength: seqLen },
         });
       } catch (e) { console.error(e); }
     } else {

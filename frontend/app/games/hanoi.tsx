@@ -252,7 +252,7 @@ export default function HanoiGame() {
           difficulty: `${discs} discs`,
           mode: 'classic',
           errors,
-          details: { moves: moves + 1, optimal: optimal(discs) },
+          details: { level: levelRef.current, moves: moves + 1, optimal: optimal(discs) },
         });
       } catch (e) { console.error(e); }
     }

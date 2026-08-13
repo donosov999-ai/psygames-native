@@ -286,7 +286,7 @@ export default function SetGame() {
               difficulty: 'medium',
               mode: `${trials}t`,
               errors,
-              details: { hits: hits + 1, errors, trials },
+              details: { level: levelRef.current, hits: hits + 1, errors, trials },
             });
           } catch (e) { console.error(e); }
         } else {

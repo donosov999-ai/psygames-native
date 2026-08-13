@@ -158,7 +158,7 @@ export default function MathSprintGame() {
         difficulty: levelRef.current <= 4 ? 'easy' : levelRef.current <= 9 ? 'medium' : 'hard',
         mode: `${duration}s`,
         errors,
-        details: { correct, bestStreak },
+        details: { level: levelRef.current, correct, bestStreak },
       });
     } catch (e) { console.error(e); }
     // веха-босс: при чистом прохождении каждые BOSS_EVERY уровней → битва с боссом (счёт → «дополни ряд»)

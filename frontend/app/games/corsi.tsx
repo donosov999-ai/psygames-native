@@ -174,7 +174,7 @@ export default function CorsiGame() {
         difficulty: modeRef.current,
         mode: `L${levelRef.current}`,
         errors: finalErrors,
-        details: { span: finalSpan },
+        details: { level: levelRef.current, span: finalSpan },
       });
     } catch (e) { console.error(e); }
     // веха-босс: при чистом прохождении каждые BOSS_EVERY уровней → битва (память → счёт)

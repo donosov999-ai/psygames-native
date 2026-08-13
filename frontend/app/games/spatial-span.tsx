@@ -156,7 +156,7 @@ export default function SpatialSpanGame() {
         difficulty: 'medium',
         mode: `${gridSize}x${gridSize}-backward`,
         errors: finalErrors,
-        details: { span: finalSpan, grid: gridSize },
+        details: { level: levelRef.current, span: finalSpan, grid: gridSize },
       });
     } catch (e) { console.error(e); }
   };

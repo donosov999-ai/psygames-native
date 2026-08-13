@@ -212,7 +212,7 @@ export default function TowerLondonGame() {
               difficulty,
               mode: `${trials}t`,
               errors,
-              details: { extra_moves: extraMoves + extra, optimal_moves: puzzle.minMoves },
+              details: { level: levelRef.current, extra_moves: extraMoves + extra, optimal_moves: puzzle.minMoves },
             });
           } catch (e) { console.error(e); }
         } else {

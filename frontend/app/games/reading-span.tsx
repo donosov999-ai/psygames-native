@@ -180,7 +180,7 @@ export default function ReadingSpanGame() {
         difficulty: setSize <= 3 ? 'easy' : setSize <= 5 ? 'medium' : 'hard',
         mode: `${setSize}-set`,
         errors: e,
-        details: { judgments: judgeHits, recalled: h, expected: expected.join(' ') },
+        details: { level: levelRef.current, judgments: judgeHits, recalled: h, expected: expected.join(' ') },
       });
     } catch (err) { console.error(err); }
   };

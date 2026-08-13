@@ -225,7 +225,7 @@ export default function MemoryMatrixGame() {
               difficulty: `${gridSize}x${gridSize}`,
               mode: `${totalRounds}r`,
               errors: fErrors,
-              details: { hits: fHits, finalRound: round },
+              details: { level: levelRef.current, hits: fHits, finalRound: round },
             });
           } catch (e) { console.error(e); }
         } else {
