@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.195.0',
+    date: '2026-08-13',
+    ru: [
+      'Тропинка уровней вместо строки с номерами: цепочка нейронов, пройденное горит, впереди пунктир, вехи-боссы крупнее. На текущем узле сидит ваш питомец — видно, где вы сейчас',
+      'Зарядка больше не вылетает: игра запускала следующий уровень, пока зарядка уводила на следующее упражнение. Два таймера спорили за один экран',
+      'Огоньки серии восстановлены: сбой чтения стирал историю дней. Прошлые дни подняты из ваших же тренировок',
+      'Судоку в зарядке: проигрыш больше не запирает на одном шаге — зарядка едет дальше',
+      'Гимнастика для глаз получила 15 уровней: с каждым дольше проработка и быстрее точка. Ручные настройки остались — это свободный режим',
+    ],
+    en: [
+      'A level path instead of a row of numbers: a chain of neurons, the road behind lit up, dashes ahead, boss milestones larger. Your pet sits on the current node so you can see where you are',
+      'Warm-up no longer drops out: the game started the next level while the warm-up moved on to the next exercise. Two timers fought over one screen',
+      'Streak flames restored: a failed read wiped the day history. Past days were rebuilt from your own sessions',
+      'Sudoku in warm-up: losing no longer traps you on one step — the warm-up moves on',
+      'Eye Gymnastics now has 15 levels: each one runs longer and moves the dot faster. Manual settings stay — that is free mode',
+    ],
+  },
+  {
     version: '1.194.0',
     date: '2026-08-13',
     ru: [
