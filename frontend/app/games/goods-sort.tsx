@@ -11,6 +11,8 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -227,7 +229,8 @@ export default function GoodsSortGame() {
         }).catch((e) => console.error(e));
         return;
       }
-      setTimeout(() => { setLevelBanner(null); loadLevel(level); }, 1200);
+      // Авто-рестарта на провале нет (канон v1.154): человек сам жмёт «Ещё раз»,
+      // успев разобрать, где перебрал ходы. Кнопку рисует общая карточка.
       return;
     }
     hapticSuccess();
@@ -244,12 +247,11 @@ export default function GoodsSortGame() {
     const next = done + 1;
     setLevel(next);
     lvl.setLevel(next);   // сохранить достигнутый уровень, включая прохождение в зарядке
+    // Итог показывает общая карточка ПОВЕРХ полок — разложенный товар остаётся
+    // на экране. Она же решает, запускать ли следующий уровень: своего таймера
+    // здесь больше нет, он спорил с таймером зарядки (репорт Вали на v1.193.0
+    // «Сортировка товаров выдаёт второй уровень и вылетает в вечерней зарядке»).
     setLevelBanner(done);
-// ⚠️ В ЗАРЯДКЕ СЛЕДУЮЩИЙ УРОВЕНЬ НЕ ГРУЗИМ — иначе гонка с самой зарядкой: здесь
-    // через 1400 мс начинается следующий уровень, а зарядка через 2000–3500 мс уводит
-    // экран к следующей игре. Репорт Вали на v1.193.0: «Сортировка товаров тоже выдаёт
-    // второй уровень и вылетает в вечерней зарядке».
-    setTimeout(() => { setLevelBanner(null); if (chainNext) loadLevel(next); }, 1400);
   };
 
   // Переместить КОНКРЕТНЫЙ товар (fromCell, fromIdx) в toCell, если там есть место; затем собрать тройки.
@@ -403,6 +405,14 @@ export default function GoodsSortGame() {
           </TouchableOpacity>
         )}
       </View>
+      <LevelProgressMap
+        gameId="goods_sort"
+        currentLevel={level}
+        maxLevel={Math.max(15, level)}
+        colors={colors}
+        language={language}
+      />
+
       <JuicyButton label={t('start')} icon="play" colors={GRADIENT as [string, string]} tint="#3f2b00" onPress={startGame} style={{ marginTop: 8 }} />
     </ScrollView>
   );
@@ -443,16 +453,29 @@ export default function GoodsSortGame() {
               ))}
             </View>
             <ScorePopupLayer popups={popups} />
+            {/* Итог — общей карточкой поверх полок. Своя плашка не сохраняла звёзды,
+                не считала серию и не тикала глаз-разрядку; всё это живёт в общей.
+                ⚠️ levelBanner === -1 означает ПРОВАЛ (перебрал ходы). Считать по нему
+                конфиг уровня нельзя — уровня «минус один» не существует, поэтому всюду
+                подставляем текущий level. */}
             {levelBanner !== null && (
-              <View style={styles.levelBanner} pointerEvents="none">
-                {levelBanner === -1 ? (
-                  <Text style={styles.levelBannerText}>{t('tooManyMoves')}</Text>
-                ) : (
-                  <>
-                    <Text style={styles.levelBannerText}>🎉 {t('goodsLevel')} {levelBanner} ✓</Text>
-                    <Text style={styles.levelBannerSub}>→ {t('goodsLevel')} {levelBanner + 1}</Text>
-                  </>
-                )}
+              <View style={StyleSheet.absoluteFill as any} pointerEvents="box-none">
+                <LevelCleared
+                  level={levelBanner === -1 ? level : levelBanner}
+                  passed={levelBanner !== -1}
+                  stars={movesRef.current <= levelCfg(levelBanner === -1 ? level : levelBanner, poolRef.current.length).moveLimit * 0.6 ? 3 : 2}
+                  gradient={GRADIENT}
+                  colors={colors}
+                  language={language}
+                  gameId="goods_sort"
+                  variant="overlay"
+                  onContinue={() => {
+                    const target = levelBanner === -1 ? level : levelBanner + 1;
+                    setLevelBanner(null);
+                    loadLevel(target);
+                  }}
+                  onStop={() => { setLevelBanner(null); setPhase('config'); }}
+                />
               </View>
             )}
           </View>
@@ -510,7 +533,4 @@ const styles = StyleSheet.create({
   cellRow: { zIndex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
   itemSlot: { justifyContent: 'center', alignItems: 'center', borderRadius: 6 },
   itemSel: { backgroundColor: '#fff2c2', borderWidth: 2, borderColor: '#f7971e', transform: [{ translateY: -4 }] },
-  levelBanner: { position: 'absolute', top: '38%', alignSelf: 'center', backgroundColor: 'rgba(247,151,30,0.97)', paddingHorizontal: 30, paddingVertical: 18, borderRadius: 18, alignItems: 'center', gap: 4 },
-  levelBannerText: { color: '#3f2b00', fontSize: 24, fontWeight: '900' },
-  levelBannerSub: { color: '#3f2b00', fontSize: 15, fontWeight: '700', opacity: 0.85 },
 });
