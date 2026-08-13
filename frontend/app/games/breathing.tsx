@@ -13,6 +13,8 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
 import GameAbout from '@/src/components/GameAbout';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useWarmup } from '@/src/contexts/WarmupContext';
@@ -110,6 +112,20 @@ export default function BreathingGame() {
   // запрос Вали «дыхание перед сном должно быть в тренировке, чтобы не заходить отдельно».
   const [techKey, setTechKey] = useState(() => str('tech', 'box'));
   const [format, setFormat] = useState<Format>('cycles');
+  /**
+   * СЧЁТЧИК ПРОХОЖДЕНИЙ, а не ступени сложности. Решение по указанию Дениса
+   * «уровни или счёт, как везде»; выбран счёт, и вот почему.
+   *
+   * Дыхание — восстановление, а не нагрузка. Техники (квадрат, 4-7-8, когерентное)
+   * держатся на ФИКСИРОВАННЫХ соотношениях вдоха, задержки и выдоха: растянешь их
+   * «для сложности» — получишь другую технику, а не более трудную ту же. Единственное,
+   * что честно растёт, — число циклов, но это и так ручная настройка, то есть
+   * свободный режим.
+   *
+   * ⚠️ Ночная зарядка сознательно идёт БЕЗ счёта и серии — это записанное решение
+   * Дениса, и счётчик его не трогает: он считает завершённые подходы, а не очки.
+   */
+  const runs = usePersistentLevel('breathing');
   const [cycles, setCycles] = useState(6);
   const [timeMin, setTimeMin] = useState(3);
   const [elapsed, setElapsed] = useState(0);
@@ -209,6 +225,10 @@ export default function BreathingGame() {
     if (leadTimerRef.current) clearInterval(leadTimerRef.current);
     setPhase('done');
     bumpStreak();
+    // Дыхание доводят до конца или прекращают — провалить его нельзя.
+    // Подход засчитан фактом завершения.
+    const doneRun = runs.level;
+    runs.reach(doneRun + 1);
     try {
       await saveSession({
         game_type: 'breathing',
@@ -217,7 +237,7 @@ export default function BreathingGame() {
         difficulty: label || tech.key,
         mode: format === 'cycles' ? `${cycles}cyc` : `${timeMin}min`,
         errors: 0,
-        details: { technique: tech.key, format, dur: Math.round(totalDur) },
+        details: { technique: tech.key, format, dur: Math.round(totalDur), level: doneRun },
       });
     } catch (e) { console.error(e); }
   };
@@ -384,6 +404,14 @@ export default function BreathingGame() {
         </View>
       )}
 
+      <LevelProgressMap
+        gameId="breathing"
+        currentLevel={runs.level}
+        maxLevel={Math.max(15, runs.level)}
+        colors={colors}
+        language={language}
+        countsRuns
+      />
     </ScrollView>
       <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
       <TouchableOpacity
