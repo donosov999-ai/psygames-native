@@ -12,6 +12,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
 import { announce } from '@/src/services/a11y';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
+import { hasBoss, isBossLevel } from '@/src/constants/bosses';
 
 /**
  * LevelCleared — короткий баннер между уровнями для АВТО-ПОТОКА (по выбору Дениса):
@@ -38,9 +39,20 @@ interface Props {
   comparisonLine?: string;  // свой итог · лучший среди игроков / личный рекорд при офлайне
   onContinue: () => void;   // запустить следующий уровень (passed) / тот же уровень заново (!passed)
   onStop: () => void;       // выйти (config / домой)
+  /**
+   * Как показывать итог.
+   *
+   * 'overlay' — карточка ПОВЕРХ доски: доска остаётся видна, и человек смотрит на
+   *   то, что собрал. Это целевой облик (решение Дениса: «объединить их идеи и
+   *   делать карточку над всей доской»). Игра при этом продолжает рисовать поле и
+   *   кладёт карточку в слот overlay каркаса GameShell.
+   * 'screen' — прежний полноэкранный вид. Остаётся для игр, где доски в момент
+   *   победы попросту нет (набрал число, вспомнил слово): затемнять там нечего.
+   */
+  variant?: 'overlay' | 'screen';
 }
 
-export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, onContinue, onStop }: Props) {
+export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, onContinue, onStop, variant = 'screen' }: Props) {
   const { t, language } = useLanguage();
   const levelWord = t('level');   // внутри эффекта `t` перекрыт локальным таймер-хендлом   // язык берём из контекста; проп language остался в Props для совместимости вызовов из игр
   const { profile } = useProfile();
@@ -65,6 +77,25 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
   const gameMode = useGameMode();
   const chainNext = shouldChainNextLevel(gameMode);
   const [showLevelsHint, setShowLevelsHint] = useState(false);   // одноразовая подпись «уровни по порядку» при первом чистом прохождении
+
+  /**
+   * ПЛОТНОСТЬ КАРТОЧКИ. Решение Дениса: между обычными уровнями карточка короткая —
+   * звёзды, серия, «запускаю следующий»; сравнение с игроками и кнопки показываются
+   * ТОЛЬКО на вехе-боссе. Тогда каждый третий уровень становится событием, а не
+   * рутиной, и поток между обычными уровнями не рвётся ряда́ми кнопок.
+   *
+   * ⚠️ ПРОВАЛ — ВСЕГДА ПОЛНАЯ. На непройденном уровне авто-рестарта нет (v1.154):
+   * человек сам жмёт «Ещё раз». Спрятать там кнопки значило бы запереть его на
+   * экране без выхода — ровно тот тупик, который чинили в зарядке судоку.
+   *
+   * ⚠️ И БЕЗ АВТО-ПЕРЕХОДА — ТОЖЕ ПОЛНАЯ. Компактная карточка не имеет кнопок и
+   * рассчитывает, что следующий уровень запустится сам. Там, где он не запускается
+   * (свободная партия), это тупик: ни кнопок, ни продолжения. Поймано при первой же
+   * проверке в браузере. В зарядке кнопок тоже нет, но там дальше распоряжается
+   * зарядка — она уводит на следующее упражнение сама, и тупика не возникает.
+   */
+  const boss = passed && !!gameId && hasBoss(gameId) && isBossLevel(level);
+  const compact = variant === 'overlay' && passed && !boss && (chainNext || gameMode === 'warmup');
 
   const go = () => { if (firedRef.current) return; firedRef.current = true; onContinue(); };
   const stop = () => { firedRef.current = true; resetLevelStreak(); onStop(); };
@@ -112,10 +143,22 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
     return () => { clearTimeout(t); if (runTimer) clearTimeout(runTimer); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /**
+   * Корень. В накладном облике фон НЕ сплошной, а полупрозрачный: доска должна
+   * читаться сквозь него — иначе смысл накладки теряется и это просто карточка
+   * с лишним шагом. 0.45 подобрано так, чтобы белый текст на градиенте оставался
+   * контрастным, а собранная доска — узнаваемой.
+   */
+  const rootStyle = variant === 'overlay'
+    ? [styles.full, styles.overlayRoot]
+    : [styles.full, { backgroundColor: colors.background }];
+  // Накладная карточка у́же и ниже: она висит над полем, а не занимает экран.
+  const cardStyle = variant === 'overlay' ? [styles.card, styles.cardOverlay] : [styles.card];
+
   // ─── передышка для глаз (каждый 10-й уровень подряд) ───
   if (isRest) {
     return (
-      <View style={[styles.full, { backgroundColor: colors.background }]}>
+      <View style={rootStyle}>
         <LinearGradient colors={['#43cea2', '#185a9d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
           <Ionicons name="eye-outline" size={56} color="#FFFFFF" />
           <Text style={styles.title}>{t('eyeBreakTitle')}</Text>
@@ -140,8 +183,8 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
   // passed=false → «почти, ещё раз»: тот же уровень авто-рестарт (onContinue читает
   // lvl.level, который при провале не рос). Убирает «обрыв» — поток не кидает в тупик.
   return (
-    <View style={[styles.full, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
+    <View style={rootStyle}>
+      <LinearGradient colors={gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={cardStyle}>
         <Text style={styles.emoji}>{passed ? '🎉' : '💪'}</Text>
         <Text style={styles.title}>
           {t(passed ? 'levelDone' : 'levelAlmost').replace('{n}', String(level))}
@@ -161,7 +204,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             </Text>
           </View>
         )}
-        {comparisonLine && (
+        {comparisonLine && !compact && (
           <View style={styles.comparisonBadge}>
             <Ionicons name="people-outline" size={17} color="#FFFFFF" />
             <Text style={styles.comparisonText}>{comparisonLine}</Text>
@@ -207,7 +250,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>
           </TouchableOpacity>
         </View>
-      ) : (
+      ) : compact ? null : (
       <View style={styles.btns}>
         <TouchableOpacity
           accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.primary }]} onPress={go} activeOpacity={0.85}>
@@ -228,7 +271,12 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
 
 const styles = StyleSheet.create({
   full: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  // Накладной облик: затемняем доску, но не прячем — она и есть награда.
+  overlayRoot: { backgroundColor: 'rgba(0,0,0,0.45)' },
   card: { width: '100%', borderRadius: 24, padding: 32, alignItems: 'center' },
+  // Над доской карточка у́же и компактнее: на телефоне 32 точки полей с каждой
+  // стороны съедали поле целиком, и накладка переставала быть накладкой.
+  cardOverlay: { maxWidth: 340, padding: 22, borderRadius: 20 },
   emoji: { fontSize: 56 },
   title: { fontSize: 26, fontWeight: '800', color: '#FFFFFF', marginTop: 12, marginBottom: 16, textAlign: 'center' },
   stars: { flexDirection: 'row', gap: 8, marginBottom: 16 },

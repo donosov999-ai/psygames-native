@@ -60,12 +60,25 @@ export interface GameShellProps {
   headerRight?: React.ReactNode;
   /** true — игровое поле в ScrollView (длинный контент: списки слов и т.п.). */
   scrollableField?: boolean;
+  /**
+   * Накладка поверх поля — экран «уровень пройден».
+   *
+   * ЗАЧЕМ СЛОТ, А НЕ ЗАМЕНА ЭКРАНА. Раньше игра при `phase === 'cleared'` возвращала
+   * карточку ВМЕСТО доски, и в момент победы доска пропадала. Денис: «карточка и
+   * плашка — надо объединить их идеи и делать карточку над всей доской, чтобы было
+   * оттуда и оттуда полезное». Разобранный маджонг, разложенные товары, сошедшиеся
+   * пары — это и есть награда, ради неё играли; полноэкранная карточка её отбирала.
+   *
+   * Игра теперь продолжает рисовать доску, а итог кладёт сюда — правка в игре
+   * умещается в одну строку.
+   */
+  overlay?: React.ReactNode;
   /** Само игровое поле. */
   children: React.ReactNode;
 }
 
 export default function GameShell({
-  title, onBack, stats, headerActions, toolbar, headerRight, scrollableField, children,
+  title, onBack, stats, headerActions, toolbar, headerRight, scrollableField, overlay, children,
 }: GameShellProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -179,6 +192,10 @@ export default function GameShell({
         </View>
       ) : null}
 
+      {/* Итог уровня — поверх доски, но ПОД паузой: если человек открыл отзыв,
+          пауза должна перекрывать всё, включая карточку. */}
+      {overlay ? <View style={styles.overlay}>{overlay}</View> : null}
+
       {paused && (
         <View style={styles.pauseOverlay} pointerEvents="auto">
           <View style={[styles.pauseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -193,6 +210,9 @@ export default function GameShell({
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  // Слой итога. Своего фона нет: затемнение рисует сама карточка — так она решает,
+  // насколько глушить доску, а каркас не навязывает.
+  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 80 },
   pauseOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center', zIndex: 90 },
   pauseCard: { paddingVertical: 22, paddingHorizontal: 30, borderRadius: 18, borderWidth: 1, alignItems: 'center', gap: 8 },
   pauseText: { fontSize: 16, fontWeight: '800' },

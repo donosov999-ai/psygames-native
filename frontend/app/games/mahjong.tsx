@@ -5,6 +5,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -14,7 +16,6 @@ import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import GameAbout from '@/src/components/GameAbout';
 import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
-import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -178,7 +179,6 @@ export default function MahjongGame() {
   const { popups, spawn } = useScorePopups();
 
   const { isPreset, autostart } = useGamePreset();
-  const chainNext = shouldChainNextLevel(useGameMode());
   const lvl = usePersistentLevel('mahjong');   // персист достигнутого уровня между сессиями
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [level, setLevel] = useState(1);
@@ -198,7 +198,6 @@ export default function MahjongGame() {
   const [elapsed, setElapsed] = useState(0);
   const scoreRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // alive по id (для рендера/логики свободы из текущих tiles)
   const aliveMaskRef = useRef<boolean[]>([]);
@@ -234,7 +233,6 @@ export default function MahjongGame() {
   useAutostart(autostart && lvl.loaded, startGame);
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
   }, []);
 
   const advanceLevel = (finalTime: number) => {
@@ -252,16 +250,11 @@ export default function MahjongGame() {
     const next = done + 1;
     setLevel(next); levelRef.current = next;
     lvl.setLevel(next);   // прогресс сохраняется и при прохождении через зарядку
+    // Итог показывает общая карточка ПОВЕРХ доски (см. рендер): она же и решает,
+    // запускать ли следующий уровень — правило режима живёт в ней одной. Своего
+    // таймера здесь больше нет: раньше он спорил с таймером зарядки, и человек
+    // видел начавшийся уровень 2 и вылет (репорт Вали на v1.193.0).
     setLevelBanner(done);
-    // ⚠️ В ЗАРЯДКЕ СЛЕДУЮЩИЙ УРОВЕНЬ НЕ ГРУЗИМ. Иначе гонка: здесь через 1400 мс
-    // начинается уровень 2, а зарядка через 3500 мс (вечером) уводит экран к следующей
-    // игре — человек видит начавшийся уровень и вылет. Репорт Вали на v1.193.0
-    // дословно: «Маджонг выдаёт уровень 2 и ВЫЛЕТАЕТ в вечерней зарядке».
-    // Баннер показываем — он и есть итог шага, — а дальше распоряжается зарядка.
-    bannerTimerRef.current = setTimeout(() => {
-      setLevelBanner(null);
-      if (chainNext) loadLevel(next);
-    }, 1400);
   };
 
   // Свободен ли тайл с данным индексом среди живых (для тапа и подсветки).
@@ -396,6 +389,14 @@ export default function MahjongGame() {
           )}
         </View>
 
+        <LevelProgressMap
+          gameId="mahjong"
+          currentLevel={level}
+          maxLevel={Math.max(15, level)}
+          colors={colors}
+          language={language}
+        />
+
         <JuicyButton
           label={t('playLevelBtn').replace('{n}', String(level))}
           icon="play" colors={GRADIENT as [string, string]} tint="#04341f" onPress={startGame} style={{ marginTop: 8 }} />
@@ -443,10 +444,23 @@ export default function MahjongGame() {
       <View style={{ flex: 1 }}>
         {renderPlaying()}
         <ScorePopupLayer popups={popups} />
+        {/* Итог уровня — общей карточкой ПОВЕРХ доски. Своя плашка показывала
+            «Уровень N ✓» и всё: звёзды не сохранялись, серия чистых не считалась,
+            глаз-разрядка не тикала — всё это живёт в общей карточке. Доска при этом
+            видна по-прежнему: разобранный маджонг и есть награда. */}
         {levelBanner !== null && (
-          <View style={styles.levelBanner} pointerEvents="none">
-            <Text style={styles.levelBannerText}>🎉 {t('level')} {levelBanner} ✓</Text>
-            <Text style={styles.levelBannerSub}>→ {t('level')} {levelBanner + 1}</Text>
+          <View style={StyleSheet.absoluteFill as any} pointerEvents="box-none">
+            <LevelCleared
+              level={levelBanner}
+              stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+              gradient={GRADIENT}
+              colors={colors}
+              language={language}
+              gameId="mahjong"
+              variant="overlay"
+              onContinue={() => { setLevelBanner(null); loadLevel(levelBanner + 1); }}
+              onStop={() => { setLevelBanner(null); setPhase('config'); }}
+            />
           </View>
         )}
         <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
@@ -496,7 +510,4 @@ const styles = StyleSheet.create({
   },
   shuffleBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1.5, marginTop: 8 },
   shuffleText: { fontSize: 14, fontWeight: '700' },
-  levelBanner: { position: 'absolute', top: '38%', alignSelf: 'center', backgroundColor: 'rgba(45,106,79,0.97)', paddingHorizontal: 30, paddingVertical: 18, borderRadius: 18, alignItems: 'center', gap: 4 },
-  levelBannerText: { color: '#FFF', fontSize: 24, fontWeight: '900' },
-  levelBannerSub: { color: '#FFF', fontSize: 15, fontWeight: '700', opacity: 0.9 },
 });
