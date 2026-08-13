@@ -21,6 +21,7 @@ import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LevelCleared from '@/src/components/LevelCleared';
 
 const GRADIENT = ['#ff0844', '#ffb199'];
 
@@ -588,17 +589,30 @@ export default function TargetsGame() {
 
       {phase === 'config' && renderConfig()}
       {phase === 'ready' && renderReady()}
-      {phase === 'result' && (
-        <GameResult
-          time={reactionTimes.length > 0 
-            ? reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length / 1000 
-            : 0}
-          score={score}
-          gradient={GRADIENT}
-          onPlayAgain={() => setPhase('config')}
-          onGoHome={() => router.push('/')}
-        />
-      )}
+      {/* Итог раунда — общим экраном «уровень пройден»: только он пишет звёзды по
+          уровням, считает серию чистых и тикает глаз-разрядку. До этого мишени шли
+          мимо него, и узлы на их тропинке оставались пустыми.
+
+          ⚠️ ЗВЁЗДЫ ЗДЕСЬ — ИГРОВАЯ ОЦЕНКА, А НЕ НОРМА. Пороги 350 и 500 мс выбраны
+          как ступени внутри игры; выдавать их за возрастные нормы реакции нельзя,
+          на телефоне к времени реакции добавляется задержка тапа. */}
+      {phase === 'result' && (() => {
+        const rts = reactionTimes;
+        const mean = rts.length ? rts.reduce((a, b) => a + b, 0) / rts.length : 0;
+        const stars = mean > 0 && mean <= 350 ? 3 : mean <= 500 ? 2 : 1;
+        return (
+          <LevelCleared
+            gameId="targets"
+            level={lvl.level}
+            stars={stars}
+            gradient={GRADIENT}
+            language={language}
+            colors={colors}
+            onContinue={() => startGame()}
+            onStop={() => setPhase('config')}
+          />
+        );
+      })()}
     </SafeAreaView>
   );
 }

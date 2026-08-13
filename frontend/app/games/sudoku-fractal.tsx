@@ -28,6 +28,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameShell from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LevelCleared from '@/src/components/LevelCleared';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { FRACTAL_MAX_LEVEL, fractalLevel } from '@/src/services/fractalLevels';
 import GameResult from '@/src/components/GameResult';
@@ -72,6 +73,8 @@ export default function FractalSudokuScreen() {
   const [openChild, setOpenChild] = useState<number | null>(null);
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
   const [errors, setErrors] = useState(0);
+  // Итог партии нужен и в рендере результата — держим в состоянии, а не только в аргументе finish().
+  const [won, setWon] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const startRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -104,6 +107,7 @@ export default function FractalSudokuScreen() {
   const openedCount = children.filter((c) => c.done).length;
 
   const finish = useCallback(async (won: boolean) => {
+    setWon(won);
     if (timerRef.current) clearInterval(timerRef.current);
     const time = (Date.now() - startRef.current) / 1000;
     setElapsed(time);
@@ -213,14 +217,20 @@ export default function FractalSudokuScreen() {
   }
 
   if (phase === 'result') {
+    // Итог — общим экраном «уровень пройден»: только он пишет звёзды по уровням,
+    // считает серию чистых и тикает глаз-разрядку. Звёзды по ошибкам — настоящая
+    // оценка: в судоку ошибка это поставленная не та цифра, а не «медленно».
     return (
-      <GameResult
-        score={Math.max(0, Math.round(4000 - errors * 60 - elapsed))}
-        time={elapsed}
-        errors={errors}
+      <LevelCleared
+        gameId={GAME_ID}
+        level={won ? Math.max(1, lvl.level - 1) : lvl.level}
+        passed={won}
+        stars={errors === 0 ? 3 : errors <= 3 ? 2 : 1}
         gradient={GRADIENT}
-        onPlayAgain={start}
-        onGoHome={() => goBackOrHome()}
+        language={language}
+        colors={colors}
+        onContinue={start}
+        onStop={() => goBackOrHome()}
       />
     );
   }

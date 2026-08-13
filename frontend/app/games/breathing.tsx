@@ -15,6 +15,7 @@ import { saveSession } from '@/src/services/api';
 import GameAbout from '@/src/components/GameAbout';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LevelCleared from '@/src/components/LevelCleared';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useWarmup } from '@/src/contexts/WarmupContext';
@@ -446,29 +447,24 @@ export default function BreathingGame() {
     </ScrollView>
   );
 
+  /**
+   * Итог — общим экраном «уровень пройден»: только он пишет звёзды, считает серию
+   * чистых и тикает глаз-разрядку. Свой экран поздравления шёл мимо него.
+   *
+   * ⚠️ ТРИ ЗВЕЗДЫ ЗА ЗАВЕРШЁННЫЙ ПОДХОД. Дыхание нельзя сделать «хуже»: его либо
+   * довели до конца, либо прекратили. Оценивать расслабление шкалой — противоречие.
+   */
   const renderDone = () => (
-    <View style={styles.doneContainer}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.doneCard}>
-        <Ionicons name="checkmark-circle" size={60} color="#FFF" />
-        <Text style={styles.doneTitle}>{t('brDoneTitle')}</Text>
-        <Text style={styles.doneSub}>🔥 {t('brStreak')}: {streak} · {t('brTotal')}: {totalSessions}</Text>
-      </LinearGradient>
-      {techKey === 'coherent' && (
-        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.hrvNote, { color: colors.textSecondary }]}>💗 {t('brHrvNote')}</Text>
-        </View>
-      )}
-      <TouchableOpacity
-        accessibilityRole="button" style={styles.startBtn} onPress={() => setPhase('config')}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('playAgain') !== 'playAgain' ? t('playAgain') : t('start')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-      <TouchableOpacity
-        accessibilityRole="button" style={[styles.homeBtn, { borderColor: colors.border }]} onPress={() => goBackOrHome()}>
-        <Text style={[styles.homeBtnText, { color: colors.text }]}>{t('goHome') !== 'goHome' ? t('goHome') : 'OK'}</Text>
-      </TouchableOpacity>
-    </View>
+    <LevelCleared
+      gameId="breathing"
+      level={Math.max(1, runs.level - 1)}
+      stars={3}
+      gradient={GRADIENT}
+      language={language}
+      colors={colors}
+      onContinue={() => setPhase('config')}
+      onStop={() => goBackOrHome()}
+    />
   );
 
   // дыхательная фаза — на едином каркасе GameShell: счётчики в статс-строке, СТОП прибит к низу
