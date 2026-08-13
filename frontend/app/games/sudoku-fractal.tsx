@@ -27,6 +27,9 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameShell from '@/src/components/GameShell';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { FRACTAL_MAX_LEVEL, fractalLevel } from '@/src/services/fractalLevels';
 import GameResult from '@/src/components/GameResult';
 import GlassButton from '@/src/components/GlassButton';
 import { useGameKeyboard, digitKeys } from '@/src/hooks/useGameKeyboard';
@@ -52,7 +55,14 @@ const copy = (b: Board): Board => b.map((r) => [...r]);
 
 export default function FractalSudokuScreen() {
   const { colors, isDark } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  /**
+   * Уровень настоящий: растёт число выколотых клеток и порог открытия корневой.
+   * Игра вышла вообще без уровней — сразу «hard» и всегда одинаково; это была моя
+   * же дыра, новая игра мимо формата, на который я сам жалуюсь.
+   */
+  const lvl = usePersistentLevel(GAME_ID);
+  const cfg = fractalLevel(lvl.level);
   const { width } = useWindowDimensions();
 
   const [phase, setPhase] = useState<Phase>('config');
@@ -72,7 +82,7 @@ export default function FractalSudokuScreen() {
     // 45 выколотых из 81 в дочерних: до порога 17 верных доходишь примерно за треть
     // сетки, то есть открытие корневой клетки случается ощутимо раньше, чем полное
     // решение. Иначе фрактал превращается в девять судоку подряд без промежуточных наград.
-    const p = generateFractal(50, 45);
+    const p = generateFractal(cfg.rootBlanks, cfg.childBlanks);
     setPuzzle(p);
     setRootGrid(copy(p.root.puzzle));
     setChildren(p.children.map((ch) => ({
@@ -88,7 +98,7 @@ export default function FractalSudokuScreen() {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => setElapsed((Date.now() - startRef.current) / 1000), 200);
     setPhase('map');
-  }, []);
+  }, [cfg.rootBlanks, cfg.childBlanks]);
 
   /** Сколько дочерних уже отдали цифру наверх. */
   const openedCount = children.filter((c) => c.done).length;
@@ -98,16 +108,18 @@ export default function FractalSudokuScreen() {
     const time = (Date.now() - startRef.current) / 1000;
     setElapsed(time);
     setPhase('result');
+    // Уровень засчитан только за ВЫИГРАННУЮ партию: здесь можно и не собрать.
+    if (won && lvl.level < FRACTAL_MAX_LEVEL) lvl.reach(lvl.level + 1);
     try {
       await saveSession({
         passed: won,
         game_type: GAME_ID,
         score: won ? Math.max(0, Math.round(4000 - errors * 60 - time)) : 0,
         time_seconds: time,
-        difficulty: 'hard',
+        difficulty: `lvl${lvl.level}`,
         mode: 'fractal',
         errors,
-        details: { opened: openedCount, of: 9 },
+        details: { level: lvl.level, opened: openedCount, of: 9, child_blanks: cfg.childBlanks, unlock_cells: cfg.unlockCells },
       });
     } catch (e) { console.error(e); }
   }, [errors, openedCount]);
@@ -130,7 +142,7 @@ export default function FractalSudokuScreen() {
 
     // Порог пройден — цифра уходит в корень. Это и есть смысл всей конструкции,
     // поэтому возвращаем на карту: там видно, как заполнилась клетка наверху.
-    if (!next[idx].done && isUnlocked(next[idx].grid, sol, next[idx].given)) {
+    if (!next[idx].done && isUnlocked(next[idx].grid, sol, next[idx].given, cfg.unlockCells)) {
       next[idx].done = true;
       const [rr, rc] = puzzle.children[idx].feedsCell;
       const rg = copy(rootGrid);
@@ -187,6 +199,13 @@ export default function FractalSudokuScreen() {
             <Text style={[styles.cardText, { color: colors.text }]}>{t('fractalHowTo')}</Text>
           </View>
 
+          <LevelProgressMap
+            gameId={GAME_ID}
+            currentLevel={lvl.level}
+            maxLevel={FRACTAL_MAX_LEVEL}
+            colors={colors}
+            language={language}
+          />
           <GlassButton label={t('start')} tone="accent" onPress={start} style={{ marginTop: 4 }} />
         </ScrollView>
       </GameShell>
@@ -269,7 +288,7 @@ export default function FractalSudokuScreen() {
                     {done ? '✓' : i + 1}
                   </Text>
                   <Text style={{ fontSize: 11, color: done ? 'rgba(255,255,255,0.85)' : colors.textSecondary }}>
-                    {Math.min(got, UNLOCK_CELLS)}/{UNLOCK_CELLS}
+                    {Math.min(got, cfg.unlockCells)}/{cfg.unlockCells}
                   </Text>
                 </TouchableOpacity>
               );
@@ -292,7 +311,7 @@ export default function FractalSudokuScreen() {
       onBack={() => { setOpenChild(null); setSelected(null); setPhase('map'); }}
       stats={
         <View style={styles.stats}>
-          <Text style={[styles.stat, { color: GRADIENT[1] }]}>{got}/{UNLOCK_CELLS} {t('fractalToUnlock')}</Text>
+          <Text style={[styles.stat, { color: GRADIENT[1] }]}>{got}/{cfg.unlockCells} {t('fractalToUnlock')}</Text>
           <Text style={[styles.stat, { color: '#f43f5e' }]}>✗{errors}</Text>
         </View>
       }

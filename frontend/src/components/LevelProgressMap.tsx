@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutChangeEvent } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutChangeEvent, useWindowDimensions } from 'react-native';
 import Svg, { Circle, Defs, G, Line, Path, Polygon, RadialGradient, Stop } from 'react-native-svg';
 import PetSprite, { PetAccessory, PetSkin } from '@/src/components/pet/PetSprite';
 import { getPetSkin, getPetAccessory } from '@/src/services/pet';
@@ -111,6 +111,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
   const [stars, setStars] = useState<StarsMap>({});
   const [skin, setSkin] = useState<PetSkin>('cat');
   const [accessory, setAccessory] = useState<PetAccessory | null>(null);
+  const { width: winW } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
   const viewW = useRef(0);
 
@@ -189,7 +190,15 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
   }
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+    /**
+     * ⚠️ ПОТОЛОК ШИРИНЫ ПО ОКНУ, А НЕ ПО РОДИТЕЛЮ. Внутри горизонтальная лента шириной
+     * под все уровни (при 15 узлах ~930 px). Если родитель сам сжимается по содержимому
+     * — а так устроен ScrollView без явной ширины, — лента задаёт ширину ЕМУ, и весь
+     * экран разъезжается вбок: во фрактальной судоку текст уехал за край, заголовок
+     * пропал. `width: '100%'` там не спасает: сто процентов уже раздутой ширины — та же
+     * раздутая ширина. Ширина окна известна всегда и от родителя не зависит.
+     */
+    <View style={[styles.card, { backgroundColor: colors.surface, maxWidth: winW }]}>
       <Text style={[styles.title, { color: colors.text }]}>{heading}</Text>
 
       <ScrollView
@@ -284,7 +293,12 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 12, padding: 12, gap: 6 },
+  // ⚠️ alignSelf + overflow ОБЯЗАТЕЛЬНЫ. Внутри горизонтальная лента шириной под
+  // все уровни (при 15 узлах это ~930 px). Без ограничения по ширине она задаёт
+  // ширину родителю, и весь экран разъезжается вбок: во фрактальной судоку текст
+  // уехал за край, а заголовок карточки пропал. Поймано глазами на её экране —
+  // на других не было видно, потому что там родитель и так во всю ширину.
+  card: { borderRadius: 12, padding: 12, gap: 6, alignSelf: 'stretch', width: '100%', overflow: 'hidden' },
   title: { fontSize: 13, fontWeight: '700' },
   levelLabel: { position: 'absolute', fontSize: 9, fontWeight: '600', textAlign: 'center' },
 });

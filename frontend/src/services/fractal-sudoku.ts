@@ -107,9 +107,15 @@ export function solvedCount(current: Board, solution: Board, given?: boolean[][]
   return n;
 }
 
-/** Открыта ли родительская клетка этой дочерней сеткой. */
-export function isUnlocked(current: Board, solution: Board, given?: boolean[][]): boolean {
-  return solvedCount(current, solution, given) >= UNLOCK_CELLS;
+/**
+ * Открыта ли родительская клетка этой дочерней сеткой.
+ *
+ * @param threshold сколько верных клеток нужно. По умолчанию UNLOCK_CELLS — это
+ *   ПЕРВЫЙ уровень; выше по лесенке порог растёт (см. services/fractalLevels.ts),
+ *   и идти до промежуточной награды приходится дольше.
+ */
+export function isUnlocked(current: Board, solution: Board, given?: boolean[][], threshold: number = UNLOCK_CELLS): boolean {
+  return solvedCount(current, solution, given) >= threshold;
 }
 
 function dig(solution: Board, blanks: number, rnd?: Rng): Board {

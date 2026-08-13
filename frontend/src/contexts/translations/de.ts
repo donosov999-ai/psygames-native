@@ -512,7 +512,7 @@ const t: Record<string, string> = {
   "ctaStart": "START",
   "fractalTitle": "Fraktal-Sudoku",
   "fractalDesc": "Hinter jeder Zelle des oberen Gitters steckt ein ganzes Sudoku",
-  "fractalHowTo": "Die neun unteren Gitter sind keine Deko. Die Mitte jedes Gitters ist eine Ziffer, die oben fehlt. Löse ein unteres Gitter bis 17 richtige Zellen — die Ziffer wandert nach oben. Sammle alle neun, und das Wurzelgitter schließt sich.",
+  "fractalHowTo": "Die neun unteren Gitter sind keine Dekoration. Die Mitte jedes Gitters ist eine Ziffer, die oben fehlt. Löse ein unteres Gitter bis zur geforderten Anzahl richtiger Zellen (auf dem Bildschirm angezeigt), und die Ziffer wandert ins Wurzelgitter. Sammle alle neun, und die Wurzel schließt sich. Diese Zahl wächst mit dem Level.",
   "fractalRoot": "Wurzelgitter",
   "fractalChildren": "Untere Gitter",
   "fractalChildN": "Gitter",
