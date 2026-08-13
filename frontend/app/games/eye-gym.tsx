@@ -12,6 +12,9 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { eyeGymGeometry } from '@/src/services/eyeGymGeometry';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { EYE_GYM_MAX_LEVEL, eyeGymLevel, eyeGymLevelMinutes } from '@/src/services/eyeGymLevels';
 
 const GRADIENT = ['#43cea2', '#185a9d'];
 const EYE_BENEFITS = [
@@ -36,6 +39,9 @@ const SEQUENCE: Step[] = [
   { key: 'converge', pattern: 'converge',   dur: 20, instrKey: 'eyeInstrConverge' },
   { key: 'palming',  pattern: 'palming',    dur: 30, instrKey: 'eyeInstrPalming' },
 ];
+
+/** Полная последовательность в базовых секундах — от неё считается длина уровня. */
+const BASE_TOTAL_SEC = SEQUENCE.reduce((a, s) => a + s.dur, 0);
 
 const DIRECTIONS = [
   [0, -1], [0.85, -0.85], [1, 0], [0.85, 0.85],
@@ -75,7 +81,7 @@ function dotFor(pattern: Pattern, local: number, localSec: number, RX: number, R
 
 export default function EyeGymGame() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
@@ -85,6 +91,23 @@ export default function EyeGymGame() {
   const [scale, setScale] = useState(1);               // 0.4 = ~1 мин, 1 = ~3, 1.7 = ~5
   const [speed, setSpeed] = useState(1);               // скорость точки: 0.7 медл / 1 норма / 1.4 быстро
   const [mode, setMode] = useState<'full' | 'pursuit' | 'focus' | 'relax'>('full');
+  /**
+   * Уровни против свободного режима — единый канон Дениса «уровни / свободно / зарядка».
+   *
+   * В гимнастике уровень не декоративный: он поднимает ДВА реальных параметра
+   * нагрузки — длительность проработки и скорость точки (см. eyeGymLevels.ts).
+   * Свободный режим оставляет прежние ручные настройки: они никуда не делись,
+   * просто перестали быть единственным способом играть.
+   *
+   * Пресет (зарядка, вызов дня) — всегда по уровню: там человек не настраивает,
+   * там ему выдают нагрузку по его текущему уровню.
+   */
+  const lvl = usePersistentLevel('eye_gym');
+  const [playMode, setPlayMode] = useState<'levels' | 'free'>('levels');
+  const byLevel = playMode === 'levels' || isPreset;
+  const levelCfg = eyeGymLevel(lvl.level);
+  const effScale = byLevel ? levelCfg.scale : scale;
+  const effSpeed = byLevel ? levelCfg.speed : speed;
   const [elapsed, setElapsed] = useState(0);
   const [fieldSize, setFieldSize] = useState<{ width: number; height: number } | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -101,10 +124,13 @@ export default function EyeGymGame() {
     focus: ['focusFar', 'converge'],
     relax: ['palming'],
   };
-  const sel = MODE_PHASES[mode];
-  const modeMul = mode === 'relax' ? 4 : mode === 'focus' ? 2.5 : 1;   // короткие режимы — длиннее, чтобы был смысл
+  // По уровню идёт ПОЛНАЯ последовательность: урезанные режимы (только слежение,
+  // только пальминг) — это выбор человека под настроение, а не ступень нагрузки.
+  const effMode = byLevel ? 'full' : mode;
+  const sel = MODE_PHASES[effMode];
+  const modeMul = effMode === 'relax' ? 4 : effMode === 'focus' ? 2.5 : 1;   // короткие режимы — длиннее, чтобы был смысл
   const steps = (sel ? SEQUENCE.filter((s) => sel.includes(s.key)) : SEQUENCE)
-    .map((s) => ({ ...s, dur: Math.max(8, Math.round(s.dur * scale * modeMul)) }));
+    .map((s) => ({ ...s, dur: Math.max(8, Math.round(s.dur * effScale * modeMul)) }));
   const totalDur = steps.reduce((acc, s) => acc + s.dur, 0);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
@@ -126,16 +152,26 @@ export default function EyeGymGame() {
   };
 
   const finish = async () => {
+    const doneLevel = lvl.level;
     setPhase('done');
+    // Проработку доводят до конца или бросают — провалить её нельзя. Значит уровень
+    // засчитан фактом завершения: следующий раз нагрузка будет на ступень выше.
+    // В свободном режиме уровень не трогаем — там человек сам выбрал настройки.
+    if (byLevel && doneLevel < EYE_GYM_MAX_LEVEL) lvl.reach(doneLevel + 1);
     try {
       await saveSession({
         game_type: 'eye_gym',
         score: Math.round(totalDur),
         time_seconds: totalDur,
-        difficulty: scale > 1 ? '5min' : '3min',
+        difficulty: effScale > 1 ? '5min' : '3min',
         mode: `${steps.length}steps`,
         errors: 0,
-        details: { duration_sec: totalDur, steps: steps.length },
+        // level читает getMaxLevelFromSessions — по нему уровень восстанавливается,
+        // если локальный ключ прогресса потерян. Пишем ТОЛЬКО в режиме уровней:
+        // свободная партия на медленных настройках иначе занижала бы достигнутое.
+        details: byLevel
+          ? { duration_sec: totalDur, steps: steps.length, level: doneLevel }
+          : { duration_sec: totalDur, steps: steps.length },
       });
     } catch (e) { console.error(e); }
   };
@@ -161,6 +197,39 @@ export default function EyeGymGame() {
         <Text style={styles.configDesc}>{t('eyeGymDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="eyeGymIntroDesc" benefits={EYE_BENEFITS} accent={GRADIENT[0]} />
+
+      {/* Уровни / свободно — общий канон режимов.
+          ⚠️ Ключи подписей называются sudokuMode*, потому что впервые появились в
+          судоку, но строки в них общие («Уровни» / «Свободно») и уже переведены на
+          все 12 языков. Заводить вторую пару ключей ради имени — двенадцать правок
+          и риск разъехавшегося перевода; переименование ключей это отдельная
+          механическая замена, когда панель поедет на остальные экраны. */}
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <View style={styles.optionButtons}>
+          {([['levels', 'sudokuModeLevels'], ['free', 'sudokuModeFree']] as const).map(([m, k]) => (
+            <TouchableOpacity
+              accessibilityRole="button" key={m} style={[styles.modeButton, playMode === m
+              ? { backgroundColor: GRADIENT[0] }
+              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+              onPress={() => setPlayMode(m)}>
+              <Text style={[styles.modeButtonText, { color: playMode === m ? '#FFF' : colors.text }]}>{t(k)}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {byLevel && (
+        <LevelProgressMap
+          gameId="eye_gym"
+          currentLevel={lvl.level}
+          maxLevel={EYE_GYM_MAX_LEVEL}
+          colors={colors}
+          language={language}
+          levelLabel={(n) => `${eyeGymLevelMinutes(n, BASE_TOTAL_SEC)}′`}
+        />
+      )}
+
+      {!byLevel && (<>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('eyeDurationLabel')}</Text>
         <View style={styles.optionButtons}>
@@ -203,6 +272,7 @@ export default function EyeGymGame() {
           ))}
         </View>
       </View>
+      </>)}
       <Text style={[styles.disclaimer, { color: colors.textSecondary }]}>{t('eyeDisclaimer')}</Text>
     </ScrollView>
       <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
@@ -240,7 +310,7 @@ export default function EyeGymGame() {
   if (phase === 'exercise') {
     const isPalming = step.pattern === 'palming';
     const isFocus = step.pattern === 'focus';
-    const dot = (!isPalming && !isFocus) ? dotFor(step.pattern, local, localSec, RX, RY, cx, cy, speed) : null;
+    const dot = (!isPalming && !isFocus) ? dotFor(step.pattern, local, localSec, RX, RY, cx, cy, effSpeed) : null;
     return (
       <GameShell
         title={t('eyeGym')}
