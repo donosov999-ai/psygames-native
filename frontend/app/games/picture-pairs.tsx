@@ -15,6 +15,8 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -115,7 +117,6 @@ export default function PicturePairsGame() {
   const [locked, setLocked] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scoreRef = useRef(0);
   const groupSizeRef = useRef(2);   // сколько одинаковых карт = группа (2 пара / 3 тройка / 4 четвёрка)
   // Справка правил уровня: только игровой режим (в одиночном всегда пары, в пресете свой поток).
@@ -182,9 +183,10 @@ export default function PicturePairsGame() {
     const next = done + 1;
     setLevel(next);
     if (!isPreset) lvl.setLevel(next);   // сохранить достигнутый уровень между сессиями
+    // Итог показывает общая карточка ПОВЕРХ поля — сошедшиеся пары остаются видны.
+    // Она же решает, запускать ли следующий уровень: своего таймера здесь больше нет,
+    // он спорил с таймером зарядки (см. useGameMode).
     setLevelBanner(done);
-// В зарядке следующий уровень не грузим — иначе гонка с самой зарядкой (см. useGameMode).
-    bannerTimerRef.current = setTimeout(() => { setLevelBanner(null); if (chainNext) loadLevel(next); }, 1400);
   };
 
   const startGame = () => {
@@ -202,7 +204,6 @@ export default function PicturePairsGame() {
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
-    if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
   }, []);
 
   const handleCardPress = async (idx: number) => {
@@ -394,6 +395,17 @@ export default function PicturePairsGame() {
         </>
       )}
 
+      {/* Тропинка — только в режиме уровней: в свободной партии уровня нет. */}
+      {mode === 'game' && (
+        <LevelProgressMap
+          gameId="picture_pairs"
+          currentLevel={level}
+          maxLevel={Math.max(15, level)}
+          colors={colors}
+          language={language}
+        />
+      )}
+
       <JuicyButton
         label={mode === 'game' ? (language === 'ru' ? `Играть — уровень ${level}` : `Play — level ${level}`) : t('start')}
         icon="play" colors={GRADIENT as [string, string]} onPress={startGame} style={{ marginTop: 8 }} />
@@ -464,10 +476,21 @@ export default function PicturePairsGame() {
               />
             ))}
           </View>
+          {/* Итог — общей карточкой поверх поля. Своя плашка не сохраняла звёзды,
+              не считала серию и не тикала глаз-разрядку; всё это живёт в общей. */}
           {levelBanner !== null && (
-            <View style={styles.levelBanner} pointerEvents="none">
-              <Text style={styles.levelBannerText}>🎉 {t('level')} {levelBanner} ✓</Text>
-              <Text style={styles.levelBannerSub}>→ {t('level')} {levelBanner + 1}</Text>
+            <View style={StyleSheet.absoluteFill as any} pointerEvents="box-none">
+              <LevelCleared
+                level={levelBanner}
+                stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+                gradient={GRADIENT}
+                colors={colors}
+                language={language}
+                gameId="picture_pairs"
+                variant="overlay"
+                onContinue={() => { setLevelBanner(null); loadLevel(levelBanner + 1); }}
+                onStop={() => { setLevelBanner(null); setPhase('config'); }}
+              />
             </View>
           )}
           <ScorePopupLayer popups={popups} />
@@ -523,7 +546,4 @@ const styles = StyleSheet.create({
   cardsArea: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' },
   card: { borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   cardText: { textAlign: 'center' },
-  levelBanner: { position: 'absolute', top: '38%', alignSelf: 'center', backgroundColor: 'rgba(248,87,166,0.97)', paddingHorizontal: 30, paddingVertical: 18, borderRadius: 18, alignItems: 'center', gap: 4 },
-  levelBannerText: { color: '#FFF', fontSize: 24, fontWeight: '900' },
-  levelBannerSub: { color: '#FFF', fontSize: 15, fontWeight: '700', opacity: 0.9 },
 });
