@@ -27,6 +27,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LevelCleared from '@/src/components/LevelCleared';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import {
   buildQueue,
@@ -463,14 +464,20 @@ export default function VocabSrsGame() {
 
       {phase === 'config' && renderConfig()}
       {phase === 'done' && renderDone()}
+      {/* Итог — общим экраном «уровень пройден»: только он пишет звёзды, считает
+          серию чистых и тикает глаз-разрядку. Три звезды за ЗАВЕРШЁННЫЙ подход:
+          оценивать попадания нельзя — расписание повторений решает, какие карточки
+          придут сегодня, и «промах» может значить просто трудную карточку. */}
       {phase === 'result' && (
-        <GameResult
-          time={elapsedTime}
-          score={correctCount}
-          errors={wrongCount}
+        <LevelCleared
+          gameId="vocab_srs"
+          level={Math.max(1, runs.level - 1)}
+          stars={3}
           gradient={GRADIENT}
-          onPlayAgain={() => setPhase('config')}
-          onGoHome={() => router.push('/')}
+          language={language}
+          colors={colors}
+          onContinue={() => setPhase('config')}
+          onStop={() => router.push('/')}
         />
       )}
 

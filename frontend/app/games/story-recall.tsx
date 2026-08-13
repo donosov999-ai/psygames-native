@@ -29,6 +29,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LevelCleared from '@/src/components/LevelCleared';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { STORY_MAX_LEVEL, readSecondsFor, distractorSecondsFor } from '@/src/services/storyRecallLevels';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
@@ -483,13 +484,29 @@ export default function StoryRecallGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
-      {phase === 'result' && (
-        <GameResult
-          score={(recall1Hits + recall2Hits) * 50}
-          time={undefined} errors={(language === 'ru' ? story.keywords_ru.length : story.keywords_en.length) - recall2Hits}
-          onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
-          gradient={GRADIENT as [string, string]} />
-      )}
+      {/* Итог — общим экраном «уровень пройден»: только он пишет звёзды по уровням,
+          считает серию чистых и тикает глаз-разрядку. Раньше пересказ шёл мимо него,
+          и узлы на его тропинке оставались пустыми.
+
+          Звёзды здесь НАСТОЯЩИЕ: доля деталей, переживших помеху. Отложенный
+          пересказ — то, ради чего упражнение и делается, поэтому считаем по нему. */}
+      {phase === 'result' && (() => {
+        const total = (language === 'ru' ? story.keywords_ru.length : story.keywords_en.length);
+        const kept = total > 0 ? recall2Hits / total : 0;
+        const stars = kept >= 0.7 ? 3 : kept >= 0.4 ? 2 : 1;
+        return (
+          <LevelCleared
+            gameId="story_recall"
+            level={lvl.level > 1 ? lvl.level - 1 : 1}
+            stars={stars}
+            gradient={GRADIENT}
+            language={language}
+            colors={colors}
+            onContinue={() => setPhase('config')}
+            onStop={() => goBackOrHome()}
+          />
+        );
+      })()}
     </SafeAreaView>
   );
 }

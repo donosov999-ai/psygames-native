@@ -17,6 +17,7 @@ import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LevelCleared from '@/src/components/LevelCleared';
 
 const GRADIENT = ['#0F2027', '#2C5364'];
 const IGT_BENEFITS = [
@@ -246,12 +247,22 @@ export default function IowaGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
+      {/* Итог — общим экраном «уровень пройден»: только он пишет звёзды, считает
+          серию чистых и тикает глаз-разрядку.
+
+          ⚠️ ТРИ ЗВЕЗДЫ ЗА ЗАВЕРШЁННЫЙ ПОДХОД, А НЕ ЗА РЕЗУЛЬТАТ ТЕСТА. Это
+          методика с нормами: оценивай мы попадания, человек начал бы играть «на
+          три звезды», а не так, как играл бы, и результат перестал бы что-либо
+          мерить. Звезда здесь говорит «дошёл до конца», и это правда. */}
       {phase === 'result' && (
-        <GameResult
-          score={Math.max(0, bank)}
-          time={undefined} errors={disCount}
-          onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
-          gradient={GRADIENT as [string, string]} />
+        <LevelCleared
+          gameId="iowa"
+          level={Math.max(1, runs.level - 1)}
+          stars={3}
+          gradient={GRADIENT}
+          language={language}
+          colors={colors}
+          onContinue={() => setPhase('config')} onStop={() => goBackOrHome()} />
       )}
     </SafeAreaView>
   );

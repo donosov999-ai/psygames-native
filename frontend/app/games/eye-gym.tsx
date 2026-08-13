@@ -14,6 +14,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { eyeGymGeometry } from '@/src/services/eyeGymGeometry';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LevelCleared from '@/src/components/LevelCleared';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
 import { EYE_GYM_MAX_LEVEL, eyeGymLevel, eyeGymLevelMinutes } from '@/src/services/eyeGymLevels';
 
@@ -270,24 +271,26 @@ export default function EyeGymGame() {
     </View>
   );
 
+  /**
+   * Итог — общим экраном «уровень пройден»: только он пишет звёзды по уровням,
+   * считает серию чистых и тикает глаз-разрядку. Свой экран поздравления шёл мимо
+   * него, и узлы на тропинке гимнастики оставались пустыми.
+   *
+   * ⚠️ ЗВЁЗДЫ ЗДЕСЬ ВСЕГДА ТРИ, И ЭТО ЧЕСТНО. Проработку нельзя сделать «хуже» —
+   * её либо довели до конца, либо бросили. Оценивать не по чему, а выдумывать
+   * оценку значило бы врать шкалой.
+   */
   const renderDone = () => (
-    <View style={styles.doneContainer}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.doneCard}>
-        <Ionicons name="checkmark-circle" size={64} color="#FFF" />
-        <Text style={styles.doneTitle}>{t('eyeDoneTitle')}</Text>
-        <Text style={styles.doneSub}>{t('eyeDoneSub')}</Text>
-      </LinearGradient>
-      <TouchableOpacity
-        accessibilityRole="button" style={styles.startBtn} onPress={() => setPhase('config')}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('playAgain') !== 'playAgain' ? t('playAgain') : t('start')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-      <TouchableOpacity
-        accessibilityRole="button" style={[styles.homeBtn, { borderColor: colors.border }]} onPress={() => goBackOrHome()}>
-        <Text style={[styles.homeBtnText, { color: colors.text }]}>{t('goHome') !== 'goHome' ? t('goHome') : 'OK'}</Text>
-      </TouchableOpacity>
-    </View>
+    <LevelCleared
+      gameId="eye_gym"
+      level={byLevel ? Math.max(1, lvl.level - 1) : 1}
+      stars={3}
+      gradient={GRADIENT}
+      language={language}
+      colors={colors}
+      onContinue={() => setPhase('config')}
+      onStop={() => goBackOrHome()}
+    />
   );
 
   // фаза упражнения — на едином каркасе GameShell: шаг/таймер в статс-строке, СТОП прибит к низу
