@@ -16,6 +16,32 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.194.0',
+    date: '2026-08-13',
+    ru: [
+      'Фрактальная судоку: за каждой клеткой верхней сетки спрятана целая судоку. Решаете нижнюю — её цифра встаёт в корневую',
+      'Сортировка товаров стала настоящей: на первом уровне пустовали две трети поля, теперь занято больше половины и типов больше',
+      'Колпак питомца наконец сидит НА голове, а не висит над ней — точка крепления у кота стояла на кончиках антенн',
+      'Карточки игр: на телефоне снова две колонки. Была одна растянутая, и между описанием и «Тренируем» пустовало 218 точек',
+      'Описание игры свернулось в строку «Об игре» во всех 56 играх — экран открывается сразу настройками',
+      'Кнопка «начать» прибита к низу в 23 играх: раньше до неё приходилось доскроллить',
+      'Кнопки по всему приложению доведены до размера, при котором палец попадает: было 123 мелких из 618, стало ноль',
+      'Японский переведён полностью — был наполовину. Теперь все 12 языков закрыты',
+      'Иконка приложения на Windows и macOS обновлена: настольные сборки собирались из старого файла и выходили со старым логотипом',
+    ],
+    en: [
+      'Fractal Sudoku: behind every cell of the top grid hides a whole sudoku. Solve a lower grid and its digit moves up into the root',
+      'Goods Sort is a real puzzle now: level one left two thirds of the board empty; it is over half full and has more types',
+      'The pet hat finally sits ON the head instead of floating above it — the cat’s mount point was on the antenna tips',
+      'Game cards: two columns again on phones. One stretched column left 218 points of emptiness between the text and the badge',
+      'The game description folded into an “About game” row across all 56 games — screens open straight into settings',
+      'The Start button is pinned to the bottom in 23 games; you used to have to scroll down to it',
+      'Buttons across the app now meet a reliable finger-tap size: 123 of 618 were below it, now none',
+      'Japanese is fully translated — it was half done. All 12 languages are complete',
+      'The app icon on Windows and macOS is updated: desktop builds were made from an old file and shipped the old logo',
+    ],
+  },
+  {
     version: '1.193.0',
     date: '2026-08-12',
     ru: [

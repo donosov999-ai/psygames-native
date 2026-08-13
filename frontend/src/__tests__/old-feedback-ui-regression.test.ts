@@ -15,19 +15,38 @@ describe('старые UI-репорты', () => {
     expect(source).toContain("readyStartButton: { width: '100%', maxWidth: 280 }");
   });
 
-  it('Iowa не вкладывает GameIntro под вторую шапку игры', () => {
+  /**
+   * ⚠️ ПРОВЕРКА ПЕРЕПИСАНА 13.08.2026. Раньше она требовала, чтобы Iowa показывала
+   * GameIntro отдельным экраном и не вкладывала его под вторую шапку. Экрана-вступления
+   * больше нет: описание переехало в сворачиваемый блок «Об игре» на экране настроек
+   * (56 игр из 58). Старая проверка стала бессмысленной — стерегла конструкцию,
+   * которой не существует.
+   *
+   * Свойство, ради которого она писалась, осталось прежним и стережётся дальше:
+   * НЕ РИСОВАТЬ СВОЮ ШАПКУ ВНУТРИ ОБЩЕГО КАРКАСА. Две шапки подряд — это и был
+   * исходный репорт.
+   */
+  it('Iowa не рисует свою шапку внутри общего каркаса', () => {
     const source = read('app/games/iowa.tsx');
-    const introStart = source.indexOf("if (phase === 'intro')");
-    const sharedScreenStart = source.indexOf('\n  return (', introStart);
-    const introBranch = source.slice(
-      introStart,
-      sharedScreenStart,
-    );
+    const shellStart = source.indexOf('<GameShell');
+    expect(shellStart).toBeGreaterThan(0);
 
-    expect(introStart).toBeGreaterThan(0);
-    expect(sharedScreenStart).toBeGreaterThan(introStart);
-    expect(introBranch).toContain('<GameIntro nameKey="iowa"');
-    expect(introBranch).not.toContain('styles.header');
-    expect(source.slice(sharedScreenStart)).not.toContain("phase === 'intro'");
+    // Своя шапка допустима ТОЛЬКО вне GameShell: экран настроек рисует её сам,
+    // и он идёт ОТДЕЛЬНОЙ веткой возврата, после закрытия каркаса. Поэтому режем
+    // строго содержимое каркаса — от открывающего тега до закрывающего.
+    // (Первая версия этой проверки резала файл до конца и краснела на шапке
+    //  настроек — ложная тревога на верном коде.)
+    const shellEnd = source.indexOf('</GameShell>', shellStart);
+    expect(shellEnd).toBeGreaterThan(shellStart);
+    const insideShell = source.slice(shellStart, shellEnd);
+    expect(`своя шапка внутри каркаса: ${insideShell.includes('styles.header')}`)
+      .toBe('своя шапка внутри каркаса: false');
+  });
+
+  it('описание игры — сворачиваемым блоком, а не отдельным экраном', () => {
+    const source = read('app/games/iowa.tsx');
+    expect(source).toContain('<GameAbout');
+    expect(`отдельный экран вступления: ${source.includes('<GameIntro')}`)
+      .toBe('отдельный экран вступления: false');
   });
 });
