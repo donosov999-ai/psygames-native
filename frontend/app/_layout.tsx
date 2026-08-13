@@ -23,10 +23,22 @@ import GameHelpOverlay from '@/src/components/GameHelpOverlay';
 import OrientationGuard from '@/src/components/OrientationGuard';
 import FeedbackWidget from '@/src/components/FeedbackWidget';
 import WalkingPet from '@/src/components/pet/WalkingPet';
+import { repairWarmupHistoryOnce } from '@/src/services/warmup';
+import { getSessions } from '@/src/services/api';
 
 /** Тап по локальному напоминанию → запуск комплекса (натив-only). */
 function NotificationTapHandler() {
   const warmup = useWarmup();
+  // Разовое восстановление отметок календаря: история зарядок могла быть стёрта
+  // целиком (пустой список сохранялся поверх накопленного при сбое чтения). Дни
+  // восстанавливаются из СОБСТВЕННЫХ сессий человека — ничего не выдумывается.
+  // Идёт один раз, дальше флаг в хранилище.
+  React.useEffect(() => {
+    repairWarmupHistoryOnce(getSessions)
+      .then((n) => { if (n) console.log(`восстановлено дней в календаре: ${n}`); })
+      .catch(() => {});
+  }, []);
+
   React.useEffect(() => {
     if (Platform.OS === 'web') return;
     const launch = (type?: string) => {
