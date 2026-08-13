@@ -374,6 +374,7 @@ const t: Record<string, string> = {
   "leaderboardEmpty": "まだ誰もいません — 一番乗りしよう！",
   "bestAmongPlayers": "プレイヤー内ベスト",
   "levelOfMax": "レベル {n}/{max}",
+  "runsCompleted": "完了: {n}",
   "bossTitle": "ボス",
   "bossDefeated": "🏆 ボス撃破！+⭐",
   "bossSurvived": "ボスは倒せず — 先へ進もう",

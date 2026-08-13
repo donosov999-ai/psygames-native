@@ -32,6 +32,8 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#fc466b', '#a445b2'];
 const RMET_BENEFITS = [
@@ -232,6 +234,15 @@ function Eyes({ emotion }: { emotion: string }) {
 export default function RMETGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
+  /**
+   * СЧЁТЧИК ПРОХОЖДЕНИЙ, не ступень сложности.
+   *
+   * Reading the Mind in the Eyes — валидированный тест с нормами: набор глаз и
+   * вариантов ответа один и тот же у всех, и только поэтому результат с чем-то
+   * сравним. Усложнять его (меньше времени, больше вариантов) значит получить
+   * другую методику, а не более трудную ту же. Считаем прохождения.
+   */
+  const runs = usePersistentLevel('rmet');
   const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
@@ -287,6 +298,9 @@ export default function RMETGame() {
     const meanRt = finalRts.length > 0 ? finalRts.reduce((a, b) => a + b, 0) / finalRts.length : 0;
     const accuracy = items.length > 0 ? finalHits / items.length : 0;
     setPhase('result');
+    // Тест доводят до конца — провалить нельзя. Прохождение засчитано завершением.
+    const doneRun = runs.level;
+    runs.reach(doneRun + 1);
     try {
       await saveSession({
         game_type: 'rmet',
@@ -296,6 +310,7 @@ export default function RMETGame() {
         mode: `${trialsCount}t`,
         errors: finalErrors,
         details: {
+          level: doneRun,   // по нему счётчик восстановится, если ключ прогресса потерян
           hits: finalHits,
           errors: finalErrors,
           n_trials: items.length,
@@ -334,6 +349,14 @@ export default function RMETGame() {
       <Text style={[styles.warning, { color: colors.textSecondary }]}>
         {t('rmetNote')}
       </Text>
+      <LevelProgressMap
+        gameId="rmet"
+        currentLevel={runs.level}
+        maxLevel={Math.max(15, runs.level)}
+        colors={colors}
+        language={language}
+        countsRuns
+      />
     </ScrollView>
       <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
       <TouchableOpacity

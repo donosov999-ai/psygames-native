@@ -959,6 +959,7 @@ const t: Record<string, string> = {
   "leaderboardEmpty": "अभी खाली है — पहले बनें!",
   "bestAmongPlayers": "खिलाड़ियों में सर्वश्रेष्ठ",
   "levelOfMax": "स्तर {n}/{max}",
+  "runsCompleted": "पूर्ण: {n}",
   "bossTitle": "बॉस",
   "bossDefeated": "🏆 बॉस हार गया! +⭐",
   "bossSurvived": "बॉस बच गया — आगे बढ़ते हैं",

@@ -1582,6 +1582,10 @@ const translations: Translations = {
   leaderboardEmpty: { ru: 'Пока пусто — стань первым!', en: 'Empty so far — be the first!' },
   bestAmongPlayers: { ru: 'Лучший среди игроков', en: 'Best among players' },
   levelOfMax: { ru: 'Уровень {n}/{max}', en: 'Level {n}/{max}' },
+  // Для проверенных методик (Iowa, RMET, охват) уровень НИЧЕГО не усложняет — он
+  // считает успешные прохождения. Называть это «уровнем» значило бы обещать рост
+  // сложности, которого там нет и быть не должно: методики держатся на нормах.
+  runsCompleted: { ru: 'Пройдено: {n}', en: 'Completed: {n}' },
   bossTitle: { ru: 'БОСС', en: 'BOSS' },
   bossDefeated: { ru: '🏆 Босс повержен! +⭐', en: '🏆 Boss defeated! +⭐' },
   bossSurvived: { ru: 'Босс устоял — идём дальше', en: 'Boss survived — moving on' },
