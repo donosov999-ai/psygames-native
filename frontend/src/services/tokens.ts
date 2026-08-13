@@ -120,3 +120,47 @@ export async function getStreak(profileId: string): Promise<number> {
     return (data[profileId]?.streak) || 0;
   } catch { return 0; }
 }
+
+// ── Разовый возврат очков за сорванные зарядки (решение Дениса 13.08.2026) ──
+
+/**
+ * Сколько вернуть. Число задал Денис — я его не выдумываю и не округляю.
+ */
+export const WARMUP_COMPENSATION = 400;
+
+const COMP_KEY = 'psygames_warmup_comp_v1';
+
+/**
+ * Разовый возврат очков тому, у кого зарядка ломалась.
+ *
+ * ЗАЧЕМ ТАК, А НЕ НАЧИСЛЕНИЕМ СО СТОРОНЫ. Очки живут ТОЛЬКО на устройстве
+ * (`psygames_tokens_v1`, AsyncStorage) — сервера с балансом нет, начислить снаружи
+ * физически некуда. Значит возврат должен произойти в приложении, один раз, сам.
+ * Тот же приём, которым восстанавливались отметки календаря.
+ *
+ * КОМУ. Условие — на устройстве ЕСТЬ история зарядок: если человек ни одной не
+ * делал, компенсировать нечего. Начисляем активному профилю: сессии и история
+ * зарядок хранятся на устройство, а очки — на профиль, и связать одно с другим
+ * точнее нечем. На семейном устройстве это значит «тому, кто открыл приложение»;
+ * повторно тому же профилю не начислится никогда — список уже выданных хранится.
+ *
+ * ⚠️ ФЛАГ ПИШЕТСЯ ТОЛЬКО ПОСЛЕ УСПЕШНОГО НАЧИСЛЕНИЯ. Наоборот — и при сбое записи
+ * очков человек остался бы и без возврата, и без права на него.
+ */
+export async function grantWarmupCompensationOnce(
+  profileId: string,
+  hadWarmup: () => Promise<boolean>,
+): Promise<number> {
+  if (!profileId) return 0;
+  try {
+    const raw = await AsyncStorage.getItem(COMP_KEY);
+    const done: string[] = raw ? JSON.parse(raw) : [];
+    if (done.includes(profileId)) return 0;
+    if (!(await hadWarmup())) return 0;
+    await addTokens(profileId, WARMUP_COMPENSATION);
+    await AsyncStorage.setItem(COMP_KEY, JSON.stringify([...done, profileId]));
+    return WARMUP_COMPENSATION;
+  } catch {
+    return 0;
+  }
+}
