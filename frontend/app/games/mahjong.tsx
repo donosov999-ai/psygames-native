@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { mahjongLevel, canShuffle, shufflesLeft } from '@/src/services/mahjongLevels';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -36,9 +37,22 @@ const MAHJONG_RULES: LevelRule[] = [
     en: { title: 'Two layers', rule: 'Tiles now stack in 2 layers. You can only pick a FREE tile: nothing lies on it AND its left or right side is open. Dimmed tiles are blocked.', example: 'Example: a tile under another tile, or squeezed by neighbors on both sides, cannot be tapped — free it first.' },
   },
   {
-    key: 'layers3', fromLevel: 11,
+    key: 'layers3', fromLevel: 11, toLevel: 15,
     ru: { title: 'Три слоя', rule: 'Пирамида теперь в 3 слоя. Правило то же: свободна плитка, на которой НИЧЕГО не лежит и у которой открыт левый ИЛИ правый край. Разбирай пирамиду сверху вниз.', example: 'Пример: нижняя плитка станет доступна, когда снимешь всё, что её накрывает, и один её бок открыт.' },
     en: { title: 'Three layers', rule: 'The pyramid now has 3 layers. Same rule: a tile is free when NOTHING lies on it and its left OR right side is open. Dismantle the pyramid top-down.', example: 'Example: a bottom tile becomes available once everything covering it is removed and one of its sides is open.' },
+  },
+  // ⚠️ ПРАВИЛА ОБЯЗАНЫ СОВПАДАТЬ СО СЛОЯМИ из mahjongLevels.ts. До этой правки
+  // «Три слоя» стояло без верхней границы, и на 18 уровне игра объясняла три слоя,
+  // выкладывая четыре — та самая «молчаливая механика», ради которой правила и заведены.
+  {
+    key: 'layers4', fromLevel: 16, toLevel: 22,
+    ru: { title: 'Четыре слоя', rule: 'Слоёв стало 4, и перетасовка теперь одна на уровень. Правило свободной плитки не меняется — меняется цена ошибки: снимать надо сверху и с краёв, иначе запрёшь низ.', example: 'Пример: пара в самом низу может стать недоступной, если разобрать середину не с того края. Смотри на два хода вперёд.' },
+    en: { title: 'Four layers', rule: 'Four layers now, and you get one shuffle per level. The free-tile rule is unchanged — what changes is the cost of a mistake: clear from the top and the edges, or you will lock the bottom.', example: 'Example: a bottom pair can become unreachable if you open the middle from the wrong side. Think two moves ahead.' },
+  },
+  {
+    key: 'layers5', fromLevel: 23,
+    ru: { title: 'Пять слоёв', rule: 'Пять слоёв — верх пирамиды узкий, низ широкий. Перетасовка одна. Здесь уже нельзя брать любую доступную пару: почти каждый снятый тайл открывает или запирает что-то ниже.', example: 'Пример: две одинаковые плитки свободны, но одна из них держит крышку над последней парой — бери ту, что не держит.' },
+    en: { title: 'Five layers', rule: 'Five layers — a narrow top over a wide base. One shuffle. You can no longer take just any available pair: almost every tile you remove opens or locks something below.', example: 'Example: two identical tiles are free, but one of them caps the last pair — take the other one.' },
   },
 ];
 
@@ -54,23 +68,9 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-// ── Параметры уровня ──────────────────────────────────────────────────
-// L1-5  — один слой, плоская сетка, пар 4→8.
-// L6-10 — два слоя (пирамида), пар ~10→14.
-// L11-15 — три слоя («черепаха» поменьше), пар ~16→20.
-// pairs всегда ЧЁТНО учитывается: число тайлов = pairs*2.
-function levelParams(L: number): { layers: number; pairs: number; cols: number } {
-  if (L <= 5) {
-    const pairs = 3 + L;                  // 4,5,6,7,8 пар
-    return { layers: 1, pairs, cols: 6 };
-  }
-  if (L <= 10) {
-    const pairs = 9 + (L - 6);            // 9,10,11,12,13 пар  (тайлов 18→26)
-    return { layers: 2, pairs, cols: 7 };
-  }
-  const pairs = 14 + (L - 11);           // 14,15,16,17,18 пар (тайлов 28→36)
-  return { layers: 3, pairs, cols: 8 };
-}
+// Параметры уровня живут в services/mahjongLevels.ts — там же лимит перетасовок
+// и объяснение, почему вверх растим слои, а не количество плиток.
+const levelParams = mahjongLevel;
 
 // ── Построение позиций пирамиды ──────────────────────────────────────
 // Сетка с ПОЛУШАГОМ (x,y в «полуклетках»): тайл занимает 2×2 полуклетки.
@@ -184,6 +184,9 @@ export default function MahjongGame() {
   const [level, setLevel] = useState(1);
   const levelRef = useRef(1);
   const [levelBanner, setLevelBanner] = useState<number | null>(null);
+  // Перетасовки ограничены с 6 уровня: без лимита любой расклад пробивался
+  // тасованием, и сложность раскладки ничего не решала (отзыв «можно сложнее?»).
+  const [shufflesUsed, setShufflesUsed] = useState(0);
   // Маджонг в зарядке — полноценный пройденный уровень: следующий вход через
   // зарядку должен продолжать лесенку, а не каждый раз возвращать на L1.
   useEffect(() => { if (lvl.loaded) setLevel(lvl.level); }, [lvl.loaded, lvl.level]);
@@ -214,6 +217,7 @@ export default function MahjongGame() {
     setTiles(deck);
     setPairsTotal(deck.length / 2);
     setMatched(0); setErrors(0); setSelected(null);
+    setShufflesUsed(0);   // бюджет перетасовок — на уровень, а не на партию
     if (timerRef.current) clearInterval(timerRef.current);
     const start = Date.now();
     setStartTime(start); setElapsed(0);
@@ -225,6 +229,7 @@ export default function MahjongGame() {
     const startLvl = lvl.level;
     scoreRef.current = 0; setScore(0);
     setLevel(startLvl); levelRef.current = startLvl; setLevelBanner(null);
+    setShufflesUsed(0);
     loadLevel(startLvl);
     setPhase('playing');
   };
@@ -301,6 +306,9 @@ export default function MahjongGame() {
   // Перемешать символы ОСТАВШИХСЯ тайлов (страховка от тупика) — заново решаемо.
   const reshuffle = () => {
     if (tiles.length === 0) return;
+    // Перетасовка — расходуемый ресурс, а не бесплатная кнопка «сделай проще».
+    if (!canShuffle(levelParams(level).shuffles, shufflesUsed)) return;
+    setShufflesUsed((n) => n + 1);
     const positions = tiles.map((t) => ({ x: t.x, y: t.y, layer: t.layer }));
     // повторно назначаем символы парами в обратном порядке снятия по ТЕКУЩИМ позициям
     const total = positions.length - (positions.length % 2);
@@ -420,13 +428,27 @@ export default function MahjongGame() {
           {!isPreset && <LevelRuleBadge lr={levelRules} color="#0d9488" ru={language === 'ru'} />}
         </View>
       }
-      toolbar={
-        <TouchableOpacity
-          accessibilityRole="button" onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Ionicons name="shuffle" size={18} color="#0d9488" />
-          <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')}</Text>
-        </TouchableOpacity>
-      }
+      toolbar={(() => {
+        // Остаток перетасовок виден НА кнопке: ресурс, о котором узнаёшь, только
+        // когда он кончился, воспринимается как поломка, а не как правило.
+        const budget = levelParams(level).shuffles;
+        const left = shufflesLeft(budget, shufflesUsed);
+        const can = canShuffle(budget, shufflesUsed);
+        return (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !can }}
+            accessibilityLabel={left < 0 ? t('shuffleBtn') : `${t('shuffleBtn')} — ${left}`}
+            disabled={!can}
+            onPress={reshuffle} activeOpacity={0.8}
+            style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: can ? 1 : 0.45 }]}>
+            <Ionicons name="shuffle" size={18} color="#0d9488" />
+            <Text style={[styles.shuffleText, { color: colors.text }]}>
+              {t('shuffleBtn')}{left < 0 ? '' : ` · ${left}`}
+            </Text>
+          </TouchableOpacity>
+        );
+      })()}
     >
       <View style={styles.fieldCol}>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mahjongHint')}</Text>
