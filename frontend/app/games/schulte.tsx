@@ -28,6 +28,7 @@ import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import GameModeSwitch from '@/src/components/GameModeSwitch';
 import LeaderboardModal from '@/src/components/LeaderboardModal';
 import { fetchBest, getPersonalBest, submitScore } from '@/src/services/leaderboard';
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
@@ -94,7 +95,15 @@ export default function SchulteGame() {
 
   // Game configuration
   const { isPreset, autostart, num } = useGamePreset();
-  const lvl = usePersistentLevel('schulte_table');   // персональный уровень (лесенка); отдельно от ручного config и gating
+  const lvl = usePersistentLevel('schulte_table');
+  /**
+   * Уровни против свободной партии. Механика тут была всегда — startGame(true)
+   * идёт по уровню, startGame(false) по ручным настройкам, — но выбор не был
+   * виден: кнопка «Free play» лежала внизу за всеми настройками, а сверху стояла
+   * фраза «или настрой таблицу ниже». Денис ткнул сюда прямо: «одиночные битвы
+   * то с тем, то с другим». Теперь это явный переключатель, как в остальных играх.
+   */
+  const [playMode, setPlayMode] = useState<'levels' | 'free'>('levels');   // персональный уровень (лесенка); отдельно от ручного config и gating
   const levelRef = useRef(1);
   const useLevelRef = useRef(false);   // запущено по уровню? (для reach)
   useEffect(() => { if (autostart) startGame(false); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
@@ -446,27 +455,35 @@ export default function SchulteGame() {
         <Text style={styles.configDesc}>{t('schulteTableDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="schulteIntroDesc" benefits={SCHULTE_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="schulte_table" currentLevel={lvl.level} colors={colors} language={language} />
       {!isPreset && (
-        <TouchableOpacity
-          accessibilityRole="button" style={styles.startButton} onPress={() => startGame(true)}>
-          <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
-            <Ionicons name="flag" size={22} color="#FFFFFF" />
-            <Text style={styles.startButtonText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        <GameModeSwitch mode={playMode} onChange={setPlayMode} colors={colors} accent={GRADIENT[0]} t={t} />
       )}
-      {!isPreset && (
-        <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center', marginTop: -2, marginBottom: 2 }}>
-          {t('schulteFreeHint')}
-        </Text>
-      )}
+      {/* Подсказка «или настрой таблицу ниже и нажми Free play» убрана намеренно:
+          с явным переключателем она объясняла бы уже несуществующий обходной путь. */}
+      {(isPreset || playMode === 'levels') && (<>
+        <LevelProgressMap gameId="schulte_table" currentLevel={lvl.level} colors={colors} language={language} />
+        {!isPreset && (
+          <TouchableOpacity
+            accessibilityRole="button"
+            /* ⚠️ marginTop у startButton — 'auto': стиль рассчитан на кнопку, прибитую
+               к низу длинного экрана настроек. У кнопки уровня настроек над ней нет,
+               и 'auto' раздувал пустую полосу между тропинкой и кнопкой. */
+            style={[styles.startButton, { marginTop: 8 }]}
+            onPress={() => startGame(true)}>
+            <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
+              <Ionicons name="flag" size={22} color="#FFFFFF" />
+              <Text style={styles.startButtonText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+      </>)}
       <TouchableOpacity
         accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
         <Ionicons name="trophy-outline" size={18} color={colors.text} />
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('schulteLeaderboard')}</Text>
       </TouchableOpacity>
 
+      {(isPreset || playMode === 'free') && (<>
       {/* Content Mode Selection (Numbers/Letters) */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>
@@ -813,6 +830,7 @@ export default function SchulteGame() {
           <Text style={styles.startButtonText}>{!isPreset ? t('freePlay') : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
+      </>)}
     </ScrollView>
   );
 

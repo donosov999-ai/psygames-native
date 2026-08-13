@@ -14,6 +14,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { eyeGymGeometry } from '@/src/services/eyeGymGeometry';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import GameModeSwitch from '@/src/components/GameModeSwitch';
 import { EYE_GYM_MAX_LEVEL, eyeGymLevel, eyeGymLevelMinutes } from '@/src/services/eyeGymLevels';
 
 const GRADIENT = ['#43cea2', '#185a9d'];
@@ -198,25 +199,8 @@ export default function EyeGymGame() {
       </LinearGradient>
       <GameAbout descriptionKey="eyeGymIntroDesc" benefits={EYE_BENEFITS} accent={GRADIENT[0]} />
 
-      {/* Уровни / свободно — общий канон режимов.
-          ⚠️ Ключи подписей называются sudokuMode*, потому что впервые появились в
-          судоку, но строки в них общие («Уровни» / «Свободно») и уже переведены на
-          все 12 языков. Заводить вторую пару ключей ради имени — двенадцать правок
-          и риск разъехавшегося перевода; переименование ключей это отдельная
-          механическая замена, когда панель поедет на остальные экраны. */}
-      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <View style={styles.optionButtons}>
-          {([['levels', 'sudokuModeLevels'], ['free', 'sudokuModeFree']] as const).map(([m, k]) => (
-            <TouchableOpacity
-              accessibilityRole="button" key={m} style={[styles.modeButton, playMode === m
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => setPlayMode(m)}>
-              <Text style={[styles.modeButtonText, { color: playMode === m ? '#FFF' : colors.text }]}>{t(k)}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+      {/* Уровни / свободно — общий переключатель, тот же во всех играх. */}
+      <GameModeSwitch mode={playMode} onChange={setPlayMode} colors={colors} accent={GRADIENT[0]} t={t} />
 
       {byLevel && (
         <LevelProgressMap
