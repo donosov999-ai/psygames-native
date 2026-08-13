@@ -14,6 +14,7 @@ import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import GameAbout from '@/src/components/GameAbout';
 import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -177,6 +178,7 @@ export default function MahjongGame() {
   const { popups, spawn } = useScorePopups();
 
   const { isPreset, autostart } = useGamePreset();
+  const chainNext = shouldChainNextLevel(useGameMode());
   const lvl = usePersistentLevel('mahjong');   // персист достигнутого уровня между сессиями
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [level, setLevel] = useState(1);
@@ -251,7 +253,15 @@ export default function MahjongGame() {
     setLevel(next); levelRef.current = next;
     lvl.setLevel(next);   // прогресс сохраняется и при прохождении через зарядку
     setLevelBanner(done);
-    bannerTimerRef.current = setTimeout(() => { setLevelBanner(null); loadLevel(next); }, 1400);
+    // ⚠️ В ЗАРЯДКЕ СЛЕДУЮЩИЙ УРОВЕНЬ НЕ ГРУЗИМ. Иначе гонка: здесь через 1400 мс
+    // начинается уровень 2, а зарядка через 3500 мс (вечером) уводит экран к следующей
+    // игре — человек видит начавшийся уровень и вылет. Репорт Вали на v1.193.0
+    // дословно: «Маджонг выдаёт уровень 2 и ВЫЛЕТАЕТ в вечерней зарядке».
+    // Баннер показываем — он и есть итог шага, — а дальше распоряжается зарядка.
+    bannerTimerRef.current = setTimeout(() => {
+      setLevelBanner(null);
+      if (chainNext) loadLevel(next);
+    }, 1400);
   };
 
   // Свободен ли тайл с данным индексом среди живых (для тапа и подсветки).

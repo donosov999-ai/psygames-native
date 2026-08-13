@@ -16,6 +16,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile, pairBackForProfile } from '@/src/constants/pairThemes';
@@ -89,6 +90,7 @@ export default function PicturePairsGame() {
   const { popups, spawn } = useScorePopups();
 
   const { isPreset, autostart, num } = useGamePreset();
+  const chainNext = shouldChainNextLevel(useGameMode());
   const lvl = usePersistentLevel('picture_pairs');   // персист достигнутого уровня (раньше сбрасывался на 1)
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const gate = useLevelGate('picture_pairs');
@@ -181,7 +183,8 @@ export default function PicturePairsGame() {
     setLevel(next);
     if (!isPreset) lvl.setLevel(next);   // сохранить достигнутый уровень между сессиями
     setLevelBanner(done);
-    bannerTimerRef.current = setTimeout(() => { setLevelBanner(null); loadLevel(next); }, 1400);
+// В зарядке следующий уровень не грузим — иначе гонка с самой зарядкой (см. useGameMode).
+    bannerTimerRef.current = setTimeout(() => { setLevelBanner(null); if (chainNext) loadLevel(next); }, 1400);
   };
 
   const startGame = () => {
