@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.199.0',
+    date: '2026-08-14',
+    ru: [
+      'Бант вернулся на голову заколкой и больше не закрывает питомцу морду. Раньше он держался на точке, которая называлась «шея», но лежала выше макушки — когда точки пересчитали честно, бант съехал на лицо',
+    ],
+    en: [
+      'The bow is back on the head as a hair clip and no longer covers the pet’s face. It used to hang off a point called “neck” that actually sat above the skull — once the points were measured honestly, the bow slid down onto the face',
+    ],
+  },
+  {
     version: '1.198.0',
     date: '2026-08-13',
     ru: [
