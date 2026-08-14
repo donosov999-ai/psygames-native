@@ -33,7 +33,7 @@ Dans une langue étrangère, vous distinguez des sons qui se confondaient aupara
 
 Ce n'est pas un talent réservé à quelques-uns. Cela s'entraîne — et ici, les progrès se mesurent.
 
-PsyGames, c'est des jeux de réflexion, des casse-tête et 63 exercices pour la mémoire, l'attention et la logique. Pas un test de QI, mais une pratique aux résultats mesurables.
+PsyGames, c'est de l'entraînement cérébral : jeux de réflexion, casse-tête et 63 exercices pour la mémoire, l'attention et la logique. Pas un test de QI, mais une pratique aux résultats mesurables.
 
 JEUX DE MÉMOIRE
 Entraînez la mémoire visuelle avec Corsi, les matrices et les paires. Renforcez la mémoire de travail avec N-back, Operation Span et Reading Span.
