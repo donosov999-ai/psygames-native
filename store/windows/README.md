@@ -1,0 +1,95 @@
+# Витрина Microsoft Store — контекст и порядок работы
+
+Автор: Denis Onosov (ODV999) · ⚠️ Информация конфиденциальная
+Обновлено 13.08.2026
+
+Эта папка — всё, что касается публикации PsyGames в Microsoft Store. Читается
+холодно, без доступа к переписке: если вы взяли задачу впервые, здесь есть всё.
+
+## Что за продукт
+
+Приложение когнитивных тренировок: 63 упражнения на память, внимание, логику и
+скорость мышления, 12 языков, 12 профилей под разные задачи. Сейчас в закрытом
+тестировании Google Play; в Microsoft Store подано, но **не опубликовано**.
+
+Собирается на Tauri 2 — веб-приложение (Expo Router + React Native Web) в родной
+оболочке. Сборки делает CI на тегах `vX.Y.Z`: macOS arm64, Windows x86_64,
+Android. Файл: `/.github/workflows/build.yml` в корне репозитория.
+
+## Где мы находимся
+
+**13.08.2026 заявку отклонили.** Статус в Partner Center — Attention needed.
+Причина одна, дословно:
+
+> **10.2.9.4 Security — Package Submissions**
+> Your win32 submission appears to be a game. Games are not accepted as MSI or EXE
+> but are accepted as other app types.
+
+Расшифровка: рецензент решил, что перед ним игра. Игру в Store нельзя подавать
+установщиком `.msi`/`.exe`, а Tauri **других форматов не собирает** — это сказано
+в их же документации по публикации. Значит либо мы не выглядим игрой, либо нужен
+MSIX, которого у нас нет.
+
+## Что решили делать
+
+Выбран самый дешёвый путь: **не трогать приложение вообще**, переделать заявку.
+Ноль правок в коде, ноль пересборок.
+
+Три действия:
+
+1. **Новое имя витрины.** `PsyGames: Brain Training` → `Brain Tools: Cognitive
+   Training`. Слово Games уходит из названия ПРОДУКТА, но остаётся у ИЗДАТЕЛЯ —
+   в карточке видно «Psy Games», бренд не теряется.
+   ⚠️ Поле Product name в витрине — это выпадающий список из ЗАРЕЗЕРВИРОВАННЫХ
+   имён. Сначала имя резервируется в Partner Center, только потом появляется в
+   списке.
+2. **Категория** Games → **Education** (запасной вариант Health + fitness).
+3. **Заполнить «Notes for certification»** — поле на 2000 символов в разделе
+   Properties. Это единственный прямой канал к живому рецензенту, и оно у нас
+   оставалось пустым. Готовый текст: `notes-for-certification.md`.
+
+Тексты витрины уже переписаны: слово «game»/«игра» убрано отовсюду, где мы
+называли так себя (в английском описании было девять упоминаний).
+
+## Файлы в папке
+
+| Файл | Что это |
+|---|---|
+| `README.md` | этот файл — контекст и порядок |
+| `notes-for-certification.md` | текст для живого рецензента + куда вставлять |
+| `resubmit-after-rejection.md` | пошаговый порядок повторной подачи |
+| `listing-en.md` | тексты витрины на английском (описание, фичи, поисковые запросы) |
+| `listing-ru.md` | то же на русском |
+| `store-listing.csv` | те же данные таблицей, под загрузку в форму |
+| `listing-requirements.md` | лимиты полей и требования к картинкам |
+| `assets/` | логотипы и скриншоты |
+
+## Чего НЕ делать
+
+- **Не менять `productName` в `/src-tauri/tauri.conf.json`** и идентификатор
+  `com.odv999.psygames`. Имя витрины и имя сборки — разные вещи; требования,
+  чтобы они совпадали, в документации Microsoft нет (проверено 13.08.2026).
+- **Не переименовывать приложение в Google Play** — там своя витрина и своё имя.
+- **Не класть сюда Product ID заявки и ничего из Partner Center**: репозиторий
+  `donosov999-ai/psygames-native` ПУБЛИЧНЫЙ.
+
+## Если откажут снова
+
+Значит дело не в подаче, а в типе пакета, и нужен MSIX. Два пути:
+
+- собственный **winapp CLI** от Microsoft — у него есть инструкция именно под
+  Tauri: https://learn.microsoft.com/en-us/windows/apps/dev-tools/winapp-cli/guides/tauri
+- сторонний упаковщик: https://github.com/Choochmeque/tauri-windows-bundle
+
+⚠️ Там ждёт вторая стена: в трекере Tauri висит баг, что чистый проект v2 не
+проходит проверку WACK на Windows S Mode из-за обращений к `cmd.exe` —
+https://github.com/tauri-apps/tauri/issues/14935
+
+Третий путь, если возиться не хочется: не идти в Store и раздавать `.exe` с
+GitHub Releases, как сейчас.
+
+## Полезные ссылки
+
+- требования к заявке MSI/EXE: https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msi/create-app-submission
+- категории и подкатегории: https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/categories-and-subcategories
+- публикация Tauri в Store: https://v2.tauri.app/distribute/microsoft-store/

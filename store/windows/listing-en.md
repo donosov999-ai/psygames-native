@@ -17,9 +17,17 @@
 ## Title
 
 ```
-PsyGames: Brain Training
+Brain Tools: Cognitive Training
 ```
-24 символа (лимит 256, но короткое читается в плитке)
+31 символ (лимит 256)
+
+⚠️ ИМЯ БЕЗ СЛОВА GAMES — ЭТО НЕ КОСМЕТИКА. Заявку 13.08.2026 отклонили по правилу
+10.2.9.4: «Your win32 submission appears to be a game. Games are not accepted as MSI
+or EXE». Игру в Store нельзя подавать как .msi/.exe, а Tauri других форматов не
+собирает. Значит нам нельзя выглядеть игрой — ни названием, ни описанием.
+
+Бренд при этом не теряется: издатель в заявке значится как **Psy Games**, и эта
+строка видна в карточке. Слово уходит из названия продукта, но остаётся у автора.
 
 ---
 
@@ -34,7 +42,7 @@ Sit down to work — and two hours later you still haven't reached for the phone
 
 That's not a gift you're born with. It's trained — and here you can see by how much.
 
-PsyGames is brain training with 63 exercises for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
+Brain Tools is cognitive training with 63 exercises for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
 
 WHY THE DESKTOP VERSION IS THE ONE THAT STICKS
 
@@ -58,7 +66,7 @@ WHY YOU WON'T QUIT IN THREE DAYS
 
 Most brain apps are the same drill at the same difficulty, and progress you have to take on faith. This one is built differently.
 
-• Levels in every game. Nail it and difficulty rises; miss and it waits for you. Always at your edge, never past it
+• Levels in every exercise. Nail it and difficulty rises; miss and it waits for you. Always at your edge, never past it
 • Boss rounds at milestones: same rule, unexpected twist
 • Streak. Skip a day, start over. A blunt trick, but it beats good intentions
 • Synapse, your pet, lives on the screen, grows with your training and points at what's lagging
@@ -73,7 +81,7 @@ WHAT'S INSIDE
 • Assessment with a radar of strengths and weak spots
 • 12 languages · works offline · no ads
 
-THIS IS NOT A BRAIN-GAME TOY
+THIS IS NOT A CASUAL PUZZLE APP
 
 Behind every exercise is a validated paradigm, not invented mechanics. Schulte tables — search speed and attention span. The Stroop test — suppressing the automatic response: name the colour, don't read the word. N-back — working memory, the most studied paradigm in cognitive training. The Corsi block test — visuospatial memory. Trail Making — switching between sequences. Tower of London and Tower of Hanoi — planning several steps ahead. Plus SET, Go/No-Go, Flanker, WCST, the Posner cueing task and fifty more.
 
@@ -87,13 +95,13 @@ WHO IT'S FOR
 
 • Adults — holding focus in work where you're interrupted every five minutes
 • 50+ — memory and reaction speed, regularly and without fiddly settings
-• Kids 7+ — counting, memory and attention as a game, in a dedicated profile
+• Kids 7+ — counting, memory and attention in a playful form, in a dedicated profile
 • Students and language learners — concentration, foreign sounds and memory for words
 • Chess players, speed readers and anyone training decisions under pressure
 
 HONEST ABOUT THE SCIENCE
 
-Training reliably improves the trained tasks and closely related skills (near transfer). We do NOT promise an IQ boost — transfer to "general intelligence" is scientifically disputed. What we give you is validated instruments and a clear, measurable picture of progress. That's the difference from brain-game toys.
+Training reliably improves the trained tasks and closely related skills (near transfer). We do NOT promise an IQ boost — transfer to "general intelligence" is scientifically disputed. What we give you is validated instruments and a clear, measurable picture of progress. That's the difference from casual puzzle apps.
 
 NO SIGN-UP
 
@@ -161,7 +169,7 @@ Brain training that survives past week one. 63 exercises for memory, attention, 
 Sudoku, reworked
 • Bigger, colour-coded number keys, moved right under the board — there used to be half a screen of emptiness between them
 • Hint, undo and colour moved to the top; mode and rules sit next to Play
-• The game opens straight into settings, with the description folded into an “About game” row
+• Each exercise opens straight into settings, with the description folded into an “About” row
 • A digit sitting on a circle or a tint is no longer washed out — it is drawn solid over any backdrop
 
 Play with your hands
@@ -169,7 +177,7 @@ Play with your hands
 • Keyboard support on desktop: digits enter, Backspace clears, arrows move around the board
 
 New long-form puzzles
-• Samurai Sudoku — five overlapping 9×9 grids, now in the game catalogue
+• Samurai Sudoku — five overlapping 9×9 grids, now in the exercise catalogue
 • Fractal Sudoku — behind every cell of the top grid hides a whole sudoku
 
 Everywhere else
