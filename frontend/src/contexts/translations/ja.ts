@@ -865,6 +865,7 @@ const t: Record<string, string> = {
   "a11yPeg": "杭",
   "a11yRow": "行",
   "cosName_pet_bow": "リボン",
+  "cosName_pet_bow_tie": "蝶ネクタイ",
   "sudokuTierEasy": "やさしい",
   "sudokuTierHard": "むずかしい",
   "easy": "やさしい",

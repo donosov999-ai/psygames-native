@@ -106,7 +106,7 @@ export default function ShopScreen() {
           <Image {...a11yDecor} source={avatarImage(c.value)} style={[styles.swatch, { backgroundColor: colors.background }]} resizeMode="cover" />
         ) : c.type === 'pet' ? (
           <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
-            <Text style={{ fontSize: 20 }}>{c.value === 'bow' ? '🎀' : c.value === 'party_hat' ? '🥳' : '👓'}</Text>
+            <Text style={{ fontSize: 20 }}>{c.value === 'bow' ? '🎀' : c.value === 'party_hat' ? '🥳' : c.value === 'bow_tie' ? '🎩' : '👓'}</Text>
           </View>
         ) : (
           <View style={[styles.swatch, { backgroundColor: c.value }]} />

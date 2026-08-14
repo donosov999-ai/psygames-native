@@ -976,6 +976,7 @@ const t: Record<string, string> = {
   "petSkinAuto": "تلقائي",
   "shopPetSection": "🐾 للحيوان الأليف — إكسسوارات سينابس (تُلبس في كل الشاشات)",
   "cosName_pet_bow": "ربطة",
+  "cosName_pet_bow_tie": "ربطة عنق فراشية",
   "cosName_pet_party_hat": "قبعة الحفلات",
   "cosName_pet_glasses": "نظارة ذكية",
   "cosDesc_pet_generic": "إكسسوار الحيوان المتجوّل — يظهر في كل الشاشات",

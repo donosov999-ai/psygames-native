@@ -83,13 +83,13 @@ export async function setPetSkin(skin: PetSkinChoice): Promise<void> {
  *  надевание глобальное: питомец один на устройство, как и скин. */
 const ACC_KEY = 'psygames_pet_acc';
 export type { PetAccessory } from '@/src/components/pet/PetSprite';
-export async function getPetAccessory(): Promise<'party_hat' | 'bow' | 'glasses' | null> {
+export async function getPetAccessory(): Promise<'party_hat' | 'bow' | 'glasses' | 'bow_tie' | null> {
   try {
     const v = await AsyncStorage.getItem(ACC_KEY);
-    return v === 'party_hat' || v === 'bow' || v === 'glasses' ? v : null;
+    return v === 'party_hat' || v === 'bow' || v === 'glasses' || v === 'bow_tie' ? v : null;
   } catch { return null; }
 }
-export async function setPetAccessory(acc: 'party_hat' | 'bow' | 'glasses' | null): Promise<void> {
+export async function setPetAccessory(acc: 'party_hat' | 'bow' | 'glasses' | 'bow_tie' | null): Promise<void> {
   try {
     if (acc) await AsyncStorage.setItem(ACC_KEY, acc);
     else await AsyncStorage.removeItem(ACC_KEY);

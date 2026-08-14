@@ -976,6 +976,7 @@ const t: Record<string, string> = {
   "petSkinAuto": "Auto",
   "shopPetSection": "🐾 Per la mascotte — accessori di Sinapsi (indossati ovunque)",
   "cosName_pet_bow": "Fiocco",
+  "cosName_pet_bow_tie": "Papillon",
   "cosName_pet_party_hat": "Cappello da festa",
   "cosName_pet_glasses": "Occhiali furbi",
   "cosDesc_pet_generic": "Accessorio della mascotte a passeggio — visibile su tutti gli schermi",
