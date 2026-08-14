@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.202.0',
+    date: '2026-08-14',
+    ru: [
+      'В карточке профиля было написано «Все 48 тренажёров» — столько их было когда-то. Сейчас их 63, и число теперь считается само, а не вписано руками',
+    ],
+    en: [
+      'The profile card said “All 48 trainers” — that was the count long ago. There are 63 now, and the number is counted automatically instead of being typed in',
+    ],
+  },
+  {
     version: '1.201.0',
     date: '2026-08-14',
     ru: [
