@@ -415,7 +415,17 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 </View>
 
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 10 }}>
-                  🎮 {detailProfile.allowed_games === 'all' ? 'Все 48 тренажёров' : `${(detailProfile.allowed_games as string[]).length} тренажёров в этом профиле`}
+                  {/* ⚠️ ЧИСЛО СЧИТАЕМ, А НЕ ПИШЕМ РУКАМИ. Здесь стояло «Все 48
+                      тренажёров» — столько их было когда-то. Каталог дорос до 63,
+                      а строка осталась, и человек видел цифру меньше правды прямо
+                      в карточке своего профиля. Теперь из GAMES: каталог вырастет
+                      — вырастет и подпись.
+
+                      Число вынесено за слово намеренно. «23 тренажёров» неверно
+                      по-русски (нужно «23 тренажёра»), а окончание зависит от
+                      последней цифры — при вычисляемом числе пришлось бы заводить
+                      склонятор. Двоеточие снимает вопрос для любого числа. */}
+                  🎮 {detailProfile.allowed_games === 'all' ? `Все тренажёры: ${GAMES.length}` : `Тренажёров в профиле: ${(detailProfile.allowed_games as string[]).length}`}
                 </Text>
                 {detailProfile.allowed_games !== 'all' && (
                   <View style={{ gap: 6, marginBottom: 18 }}>
