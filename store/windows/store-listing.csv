@@ -1,6 +1,75 @@
-﻿Field,Type,Russian,English
-ProductName,Text,Когнитивный тренажёр,Brain Tools: Cognitive Training
-Description,Text,"Прочитал страницу — и помнишь, что на ней.
+﻿Field,Type,English,Russian
+ProductName,Text,Brain Tools: Cognitive Training,Когнитивный тренажёр
+Description,Text,Read a page — and you still know what was on it.
+Hold three tasks in your head and drop none of them.
+Sit down to work — and two hours later you still haven't reached for the phone.
+
+That's not a gift you're born with. It's trained — and here you can see by how much.
+
+Brain Tools is cognitive training with 63 exercises for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
+
+WHY THE DESKTOP VERSION IS THE ONE THAT STICKS
+
+Brain apps die on the phone. You install one, open it three times on the way to work, and forget it — because the phone is where you rest, and training is work.
+
+On the computer it lands differently. It's the machine you already sit at for eight hours. A ten-minute set between two tasks costs you nothing to start: no unlocking, no finding the icon, no "later". And the screen finally has room — Schulte tables, memory matrices and Sudoku were designed for a full field of view, not a 6-inch strip.
+
+MEMORY
+Visual memory with Corsi blocks, matrices and matching pairs. Working memory with N-back, operation span and reading span. Hold a pattern in mind and reproduce it later.
+
+ATTENTION AND FOCUS
+Schulte tables, Spot the Difference, Posner and Flanker tasks. Practise staying on task despite interruptions — the exact skill an open inbox eats.
+
+LOGIC AND PUZZLES
+Sudoku with 12 rule variants, Tower of Hanoi, Tower of London, SET and anagrams. Plan several moves ahead.
+
+THINKING SPEED AND REACTION
+Stroop, Go/No-Go, timed arithmetic and Trail Making — reaction time, mental math and cognitive control.
+
+WHY YOU WON'T QUIT IN THREE DAYS
+
+Most brain apps are the same drill at the same difficulty, and progress you have to take on faith. This one is built differently.
+
+• Levels in every exercise. Nail it and difficulty rises; miss and it waits for you. Always at your edge, never past it
+• Boss rounds at milestones: same rule, unexpected twist
+• Streak. Skip a day, start over. A blunt trick, but it beats good intentions
+• Synapse, your pet, lives on the screen, grows with your training and points at what's lagging
+• Points for accuracy and speed, a shop with frames, avatars and titles
+• Daily challenge with its own streak, plus achievements
+
+WHAT'S INSIDE
+
+• 63 exercises for memory, attention, logic, speed and control
+• Warm-up in one button: morning, daytime, evening and night — ready sets launch with the right settings
+• 12 profiles for different goals: languages, kids, 50+, focus, reaction, founders and more
+• Assessment with a radar of strengths and weak spots
+• 12 languages · works offline · no ads
+
+THIS IS NOT A CASUAL PUZZLE APP
+
+Behind every exercise is a validated paradigm, not invented mechanics. Schulte tables — search speed and attention span. The Stroop test — suppressing the automatic response: name the colour, don't read the word. N-back — working memory, the most studied paradigm in cognitive training. The Corsi block test — visuospatial memory. Trail Making — switching between sequences. Tower of London and Tower of Hanoi — planning several steps ahead. Plus SET, Go/No-Go, Flanker, WCST, the Posner cueing task and fifty more.
+
+That's why the number on screen means something. You're not watching "level 7" — you're watching yourself improve.
+
+DEVELOPERS WHO ANSWER
+
+A feedback button lives inside the app: write or speak, and a screenshot attaches automatically. When a fix ships, the app tells you exactly what changed because of YOUR message and in which version.
+
+WHO IT'S FOR
+
+• Adults — holding focus in work where you're interrupted every five minutes
+• 50+ — memory and reaction speed, regularly and without fiddly settings
+• Kids 7+ — counting, memory and attention in a playful form, in a dedicated profile
+• Students and language learners — concentration, foreign sounds and memory for words
+• Chess players, speed readers and anyone training decisions under pressure
+
+HONEST ABOUT THE SCIENCE
+
+Training reliably improves the trained tasks and closely related skills (near transfer). We do NOT promise an IQ boost — transfer to "general intelligence" is scientifically disputed. What we give you is validated instruments and a clear, measurable picture of progress. That's the difference from casual puzzle apps.
+
+NO SIGN-UP
+
+Install and play. Progress is stored on your device. Optional anonymous cloud sync — no name, no email.,Прочитал страницу — и помнишь, что на ней.
 Держишь в голове три дела сразу и не теряешь ни одного.
 Сел работать — и два часа не тянулся к телефону.
 
@@ -30,7 +99,7 @@ Description,Text,"Прочитал страницу — и помнишь, чт�
 
 Обычно это одно и то же упражнение одной и той же сложности, а прогресс приходится принимать на веру. Здесь устроено иначе.
 
-• Уровни в каждой игре. Справился — сложность растёт, ошибся — подождёт вас. Всегда на пределе, но не за ним
+• Уровни в каждом упражнении. Справился — сложность растёт, ошибся — подождёт вас. Всегда на пределе, но не за ним
 • Босс-раунды на рубежах: правило то же, поворот неожиданный
 • Серия. Пропустил день — начинай заново. Приём грубый, но работает лучше намерений
 • Синапс, ваш питомец, живёт на экране, растёт от тренировок и показывает, что проседает
@@ -45,7 +114,7 @@ Description,Text,"Прочитал страницу — и помнишь, чт�
 • Диагностика с радаром сильных и слабых сторон
 • 12 языков · работает офлайн · без рекламы
 
-ЭТО НЕ ИГРУШКА «ПРОКАЧАЙ МОЗГ»
+ЭТО НЕ РАЗВЛЕКАТЕЛЬНАЯ ГОЛОВОЛОМКА
 
 За каждым упражнением стоит проверенная методика, а не придуманная механика. Таблицы Шульте — скорость поиска и объём внимания. Тест Струпа — подавление автоматической реакции: назвать цвет, а не прочитать слово. N-back — рабочая память, самая изученная методика в когнитивных тренировках. Кубики Корси — зрительно-пространственная память. Trail Making — переключение между последовательностями. Лондонская и Ханойская башни — планирование на несколько шагов. Плюс SET, Go/No-Go, Фланкер, WCST, задача Познера и ещё полсотни.
 
@@ -59,48 +128,65 @@ Description,Text,"Прочитал страницу — и помнишь, чт�
 
 • Взрослым — держать фокус в работе, где дёргают каждые пять минут
 • 50+ — память и скорость реакции, регулярно и без возни с настройками
-• Детям с 7 лет — счёт, память и внимание как игра, в отдельном профиле
+• Детям с 7 лет — счёт, память и внимание в понятной детям форме, в отдельном профиле
 • Студентам и тем, кто учит языки, — концентрация, чужие звуки и память на слова
 • Шахматистам, скорочтецам и всем, кто тренирует решения под давлением
 
 ЧЕСТНО О НАУКЕ
 
-Тренировки надёжно улучшают сами тренируемые задачи и близкие к ним навыки (ближний перенос). Мы НЕ обещаем рост IQ — перенос на «общий интеллект» научно спорен. Что мы даём: проверенные инструменты и понятную измеримую картину прогресса. Этим и отличаемся от игрушек «прокачай мозг».
+Тренировки надёжно улучшают сами тренируемые задачи и близкие к ним навыки (ближний перенос). Мы НЕ обещаем рост IQ — перенос на «общий интеллект» научно спорен. Что мы даём: проверенные инструменты и понятную измеримую картину прогресса. Этим и отличаемся от развлекательных головоломок.
 
 БЕЗ РЕГИСТРАЦИИ
 
-Поставил и играешь. Прогресс хранится на вашем устройстве. По желанию — анонимная синхронизация с облаком, без имени и без почты.",
-WhatsNew,Text,"Судоку переработана
+Поставил и занимаешься. Прогресс хранится на вашем устройстве. По желанию — анонимная синхронизация с облаком, без имени и без почты.
+WhatsNew,Text,Sudoku, reworked
+• Bigger, colour-coded number keys, moved right under the board — there used to be half a screen of emptiness between them
+• Hint, undo and colour moved to the top; mode and rules sit next to Play
+• Each exercise opens straight into settings, with the description folded into an “About” row
+• A digit sitting on a circle or a tint is no longer washed out — it is drawn solid over any backdrop
+
+Play with your hands
+• Tower of Hanoi: drag discs with your finger; tapping the pegs still works
+• Keyboard support on desktop: digits enter, Backspace clears, arrows move around the board
+
+New long-form puzzles
+• Samurai Sudoku — five overlapping 9×9 grids, now in the exercise catalogue
+• Fractal Sudoku — behind every cell of the top grid hides a whole sudoku
+
+Everywhere else
+• Buttons across the app got bigger: 123 of 440 were below a reliable finger-tap size
+• The interface colour you buy is now visible on the home screen
+• Japanese went from 54% to 97% translated,Судоку переработана
 • Клавиши крупнее, у каждой цифры свой цвет, и сама клавиатура переехала под доску — раньше между ними была пустота почти в пол-экрана
-• Подсказка, отмена и цвет — наверху; режим и справка — рядом с кнопкой «играть»
-• Игра открывается сразу настройками, описание свернулось в строку «Об игре»
+• Подсказка, отмена и цвет — наверху; режим и справка — рядом с кнопкой запуска
+• Упражнение открывается сразу настройками, описание свернулось в строку «Об упражнении»
 • Цифра на кружке или заливке больше не выглядит выцветшей — рисуется чётко поверх любой подложки
 
-Играть руками
+Работать руками
 • Ханойская башня: диски перетаскиваются пальцем, нажатия по стержням тоже работают
-• На компьютере можно играть с клавиатуры: цифры ставят, Backspace стирает, стрелки ходят
+• На компьютере можно заниматься с клавиатуры: цифры ставят, Backspace стирает, стрелки ходят
 
 Новые длинные головоломки
-• Судоку-самурай — пять перекрывающихся сеток 9×9, теперь в каталоге игр
+• Судоку-самурай — пять перекрывающихся сеток 9×9, теперь в каталоге упражнений
 • Фрактальная судоку — за каждой клеткой верхней сетки спрятана целая судоку
 
 Остальное
 • Кнопки по всему приложению стали крупнее: 123 из 440 были меньше размера, при котором палец попадает надёжно
 • Купленный цвет интерфейса стал виден на главной
-• Японский переведён с 54% до 97%",
-ProductFeatures1,Text,"61 упражнение на память, внимание, логику и скорость",
-ProductFeatures2,Text,"Таблицы Шульте, матрицы и судоку на весь экран",
-ProductFeatures3,Text,"Уровни подстраиваются: растут за успех, ждут при ошибке",
-ProductFeatures4,Text,Судоку с 12 вариантами правил,
-ProductFeatures5,Text,"N-back, Струп, Корси, Trail Making и ещё 50 методик",
-ProductFeatures6,Text,"Зарядка одной кнопкой: утро, день, вечер, ночь",
-ProductFeatures7,Text,"12 профилей: языки, дети, 50+, фокус, реакция, предприниматели",
-ProductFeatures8,Text,Диагностика с радаром сильных и слабых сторон,
-ProductFeatures9,Text,"Синапс — питомец, который растёт от ваших тренировок",
-ProductFeatures10,Text,"Ежедневный вызов, серии и достижения",
-ProductFeatures11,Text,Полностью работает офлайн,
-ProductFeatures12,Text,"Без рекламы, без регистрации, без почты",
-ProductFeatures13,Text,12 языков,
+• Японский переведён с 54% до 97%
+ProductFeatures1,Text,63 exercises for memory, attention, logic and speed,63 упражнения на память, внимание, логику и скорость
+ProductFeatures2,Text,Full-screen Schulte tables, matrices and Sudoku,Таблицы Шульте, матрицы и судоку на весь экран
+ProductFeatures3,Text,Levels that adapt: rise when you nail it, wait when you miss,Уровни подстраиваются: растут за успех, ждут при ошибке
+ProductFeatures4,Text,Sudoku with 12 rule variants,Судоку с 12 вариантами правил
+ProductFeatures5,Text,N-back, Stroop, Corsi, Trail Making and 50 more validated tasks,N-back, Струп, Корси, Trail Making и ещё 50 методик
+ProductFeatures6,Text,Warm-up in one button: morning, daytime, evening, night,Зарядка одной кнопкой: утро, день, вечер, ночь
+ProductFeatures7,Text,12 profiles: languages, kids, 50+, focus, reaction, founders,12 профилей: языки, дети, 50+, фокус, реакция, предприниматели
+ProductFeatures8,Text,Assessment with a radar of strengths and weak spots,Диагностика с радаром сильных и слабых сторон
+ProductFeatures9,Text,Synapse — a pet that grows with your training,Синапс — питомец, который растёт от ваших тренировок
+ProductFeatures10,Text,Daily challenge, streaks and achievements,Ежедневный вызов, серии и достижения
+ProductFeatures11,Text,Works fully offline,Полностью работает офлайн
+ProductFeatures12,Text,No ads, no sign-up, no email,Без рекламы, без регистрации, без почты
+ProductFeatures13,Text,12 languages,12 языков
 ProductFeatures14,Text,,
 ProductFeatures15,Text,,
 ProductFeatures16,Text,,
@@ -108,16 +194,16 @@ ProductFeatures17,Text,,
 ProductFeatures18,Text,,
 ProductFeatures19,Text,,
 ProductFeatures20,Text,,
-ShortDescription,Text,"Тренировка мозга, которую не бросают на второй неделе. 63 упражнения на память, внимание, логику и скорость — за каждым проверенная методика, а не придуманная механика. Уровни подстраиваются, прогресс измеряется. Офлайн, без рекламы и регистрации.",
-SearchTerms1,Text,упражнения на внимания,
-SearchTerms2,Text,тренировка мозга,
-SearchTerms3,Text,развитие памяти,
-SearchTerms4,Text,когнитивные тренировки,
-SearchTerms5,Text,таблицы шульте,
-SearchTerms6,Text,рабочая память n-back,
-SearchTerms7,Text,устный счёт тренажёр,
-Applicable license terms,Text,Использование данного приложения регулируется стандартными условиями лицензионного соглашения Microsoft Store.,
-Copyright,Text,©2026 PsyGames,
+ShortDescription,Text,Brain training that survives past week one. 63 exercises for memory, attention, logic and speed — every one a validated paradigm, not invented mechanics. Levels adapt to you, a streak keeps you honest, progress is measurable. Offline. No ads, no sign-up.,Тренировка мозга, которую не бросают на второй неделе. 63 упражнения на память, внимание, логику и скорость — за каждым проверенная методика, а не придуманная механика. Уровни подстраиваются, прогресс измеряется. Офлайн, без рекламы и регистрации.
+SearchTerms1,Text,brain training,тренировка мозга
+SearchTerms2,Text,memory improvement,развитие памяти
+SearchTerms3,Text,concentration exercises,упражнения на внимание
+SearchTerms4,Text,cognitive training,когнитивные тренировки
+SearchTerms5,Text,schulte table,таблицы шульте
+SearchTerms6,Text,n-back working memory,рабочая память n-back
+SearchTerms7,Text,mental math trainer,устный счёт тренажёр
+Applicable license terms,Text,Use of this application is governed by the standard Microsoft Store licence agreement terms.,Использование данного приложения регулируется стандартными условиями лицензионного соглашения Microsoft Store.
+Copyright,Text,©2026 PsyGames,©2026 PsyGames
 DevelopedBy,Text,,
 RequirementsMinimum1,Text,,
 RequirementsMinimum2,Text,,
