@@ -607,7 +607,7 @@ export default function ChessBlindGame() {
           </Text>
         </LinearGradient>
         <GameAbout descriptionKey="chessBlindIntroDesc" benefits={CHESS_BENEFITS} accent={GRADIENT[0]} />
-        <LevelProgressMap gameId="chess_blind" currentLevel={lvl.level} colors={colors} language={language} />
+        <LevelProgressMap gameId="chess_blind" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
             {stageName(lvl.level, ru)} · {ru ? 'Ур.' : 'Lv'}{lvl.level}

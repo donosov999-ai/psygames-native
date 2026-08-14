@@ -212,7 +212,7 @@ export default function DigitSpanGame() {
         <Text style={styles.configDesc}>{t('digitSpanDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="digitSpanIntroDesc" benefits={DIGIT_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="digit_span" currentLevel={lvl.level} colors={colors} language={language} />
+      <LevelProgressMap gameId="digit_span" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('directionLabel')}</Text>
         <View style={styles.optionButtons}>

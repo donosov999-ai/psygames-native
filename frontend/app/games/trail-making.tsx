@@ -347,7 +347,7 @@ export default function TrailMakingGame() {
         </LinearGradient>
         <GameAbout descriptionKey="trailMakingIntroDesc" benefits={TRAIL_BENEFITS} accent={GRADIENT[0]} />
 
-        <LevelProgressMap gameId="trail_making" currentLevel={lvl.level} colors={colors} language={language} />
+        <LevelProgressMap gameId="trail_making" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

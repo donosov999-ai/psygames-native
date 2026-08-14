@@ -320,7 +320,7 @@ export default function PhonemePairsGame() {
               : 'Listen to the word and pick what you heard — ship or sheep? Trains phonemic hearing.'}
         </Text>
       </LinearGradient>
-      <LevelProgressMap gameId="phoneme_pairs" currentLevel={lvl.level} colors={colors} language={language} />
+      <LevelProgressMap gameId="phoneme_pairs" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{ru ? 'Какой язык учим' : 'Language to train'}</Text>
         <View style={styles.optionButtons}>

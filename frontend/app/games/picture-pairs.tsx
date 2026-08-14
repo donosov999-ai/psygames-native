@@ -101,7 +101,10 @@ export default function PicturePairsGame() {
   const [level, setLevel] = useState(1);
   const [levelBanner, setLevelBanner] = useState<number | null>(null);
   // Кнопка «Играть — уровень N» должна показывать реальный сохранённый стартовый уровень, не «1».
-  useEffect(() => { if (lvl.loaded && !isPreset && mode === 'game') setLevel(lvl.level); }, [lvl.loaded, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ⚠️ lvl.level В ЗАВИСИМОСТЯХ ОБЯЗАТЕЛЕН. Без него выбор уровня на тропинке не
+  // доезжал бы до игры: нажатие меняет lvl.level, а этот эффект — единственный
+  // мост от хука к локальному состоянию, из которого собирается партия.
+  useEffect(() => { if (lvl.loaded && !isPreset && mode === 'game') setLevel(lvl.level); }, [lvl.loaded, lvl.level, mode]); // eslint-disable-line react-hooks/exhaustive-deps
   const [pairsCount, setPairsCount] = useState(() => num('pairsCount', 6));
   const [photoMemoryMode, setPhotoMemoryMode] = useState(true);   // одиночный: фото-память ON по умолчанию
   const [previewMs, setPreviewMs] = useState<number>(() => num('previewMs', isPreset ? 3000 : 500));
@@ -182,7 +185,9 @@ export default function PicturePairsGame() {
     }).catch((e) => console.error(e));
     const next = done + 1;
     setLevel(next);
-    if (!isPreset) lvl.setLevel(next);   // сохранить достигнутый уровень между сессиями
+    // ⚠️ reach, а НЕ setLevel: прямая установка срезала бы потолок после переигровки
+    // пройденного уровня. pick следом продолжает цепочку с того места, где играли.
+    if (!isPreset) { lvl.reach(next); lvl.pick(next); }
     // Итог показывает общая карточка ПОВЕРХ поля — сошедшиеся пары остаются видны.
     // Она же решает, запускать ли следующий уровень: своего таймера здесь больше нет,
     // он спорил с таймером зарядки (см. useGameMode).
@@ -400,7 +405,8 @@ export default function PicturePairsGame() {
         <LevelProgressMap
           gameId="picture_pairs"
           currentLevel={level}
-          maxLevel={Math.max(15, level)}
+          maxLevel={Math.max(15, level, lvl.best)}
+          onPickLevel={lvl.pick}
           colors={colors}
           language={language}
         />

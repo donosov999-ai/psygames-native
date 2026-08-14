@@ -1589,6 +1589,10 @@ const translations: Translations = {
   // считает успешные прохождения. Называть это «уровнем» значило бы обещать рост
   // сложности, которого там нет и быть не должно: методики держатся на нормах.
   runsCompleted: { ru: 'Пройдено: {n}', en: 'Completed: {n}' },
+  // Переигровка пройденного уровня с тропинки. Обещаем звёзды, а не «повторение»:
+  // saveLevelStars хранит лучший результат, поэтому второй заход может только улучшить.
+  tapNodeToReplay: { ru: 'Нажми на пройденный узел — переиграть и добрать звёзды', en: 'Tap a completed node to replay it and earn more stars' },
+  replayingLevel: { ru: 'Переигрываешь уровень {n} · рекорд {best}', en: 'Replaying level {n} · best {best}' },
   bossTitle: { ru: 'БОСС', en: 'BOSS' },
   bossDefeated: { ru: '🏆 Босс повержен! +⭐', en: '🏆 Boss defeated! +⭐' },
   bossSurvived: { ru: 'Босс устоял — идём дальше', en: 'Boss survived — moving on' },

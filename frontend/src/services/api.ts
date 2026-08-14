@@ -36,6 +36,16 @@ export interface GameSession {
   warmup_id?: string;           // shared UUID across all games in one warmup series
   stack_active?: boolean;       // NZT stack active at time of session (Денис will toggle in settings later)
   person?: string;              // 'Денис' / 'Алекс' / 'Валя' / 'Юлия' / 'Гость' (for E1)
+  /**
+   * ЧЕЙ ЭТО РАУНД — id профиля, только для локальной истории (в облако не уходит:
+   * там своя колонка person, и buildCloudRow берёт поля поимённо).
+   *
+   * ⚠️ ЗАЧЕМ. Локальная история — ОДИН общий массив без пометки владельца, а
+   * getMaxLevelFromSessions восстанавливал из неё уровень по максимуму. На семейном
+   * устройстве это значит, что профиль Алекса (7 лет) при первом заходе в игру
+   * подхватывал уровень взрослого. Ключи прогресса per-profile, история — нет.
+   */
+  profile_id?: string;
 
   /**
    * v1.163: прошла ли попытка. Репорт Вали: «считаются те игры, которые я вышла…
@@ -480,6 +490,10 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
     ...session,
     id: session.id || makeId(),
     timestamp: session.timestamp || new Date().toISOString(),
+    // Метка владельца для локальной истории — по ней восстанавливается уровень.
+    // Глобаль ставит ProfileContext при каждой смене профиля.
+    profile_id: session.profile_id
+      || ((globalThis as any).__psygames_active_profile_id as string | undefined),
   };
   // Web-demo: НЕ пишем в storage/облако (ни сессий, ни токенов, ни ачивок) —
   // только уведомляем сайт-хост о завершённом демо-раунде (событие-канон
@@ -563,17 +577,31 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
 export const getSessions = async (): Promise<GameSession[]> => readAll();
 
 /**
- * Восстановить достигнутый уровень из durable-истории сессий (details.level).
- * Нужно, когда локальный ключ уровня (usePersistentLevel, AsyncStorage) пропал —
- * переустановка / сброс профиля / смена профиля, — а сессии-очки уцелели.
- * Уровень реконструируется как max(details.level) по игре. Default 1 (нет истории).
- * gameType здесь = gameId хука (совпадает с game_type сессий; при расхождении → 1, безопасно).
+ * Восстановить достигнутый уровень из локальной истории сессий (details.level).
+ * Нужно, когда ключ уровня (usePersistentLevel, AsyncStorage) пропал — сброс или
+ * смена профиля, — а история раундов уцелела. max(details.level) по игре, default 1.
+ * gameType здесь = gameId хука (совпадает с game_type сессий; при расхождении → 1).
+ *
+ * ⚠️ ЧТО ЭТО НЕ ЛЕЧИТ — ЧЕСТНАЯ ГРАНИЦА. Историю читаем ЛОКАЛЬНУЮ: в облако сессии
+ * только пишутся, обратного чтения в приложении нет ни одного (`.select(` не
+ * встречается во всём коде). Значит после НАСТОЯЩЕЙ переустановки восстанавливать
+ * не из чего — вместе с ключом уровня уходит и история. Работает это для сброса
+ * профиля, смены профиля и обновления приложения, где данные приложения остаются.
+ *
+ * ⚠️ ТОЛЬКО СВОИ РАУНДЫ. Локальная история — один общий массив на устройство. Пока
+ * фильтра не было, новый профиль подхватывал МАКСИМУМ ПО ВСЕМ: на семейном
+ * устройстве профиль Алекса (7 лет) стартовал бы с уровня взрослого. Раунды без
+ * метки владельца (записанные до этой правки) не используем совсем: приписать их
+ * некому, а угадывать — тот же самый leak, только тише.
  */
 export const getMaxLevelFromSessions = async (gameType: string): Promise<number> => {
   const all = await readAll();
+  const pid = (globalThis as any).__psygames_active_profile_id as string | undefined;
+  if (!pid) return 1;   // профиль неизвестен — чужой уровень не подставляем
   let max = 0;
   for (const s of all) {
     if (s.game_type !== gameType) continue;
+    if (s.profile_id !== pid) continue;
     const lv = Number((s.details as any)?.level);
     if (Number.isFinite(lv) && lv > max) max = lv;
   }

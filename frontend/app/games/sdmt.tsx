@@ -222,7 +222,7 @@ export default function SdmtGame() {
           <Text style={styles.configDesc}>{t('sdmtDesc')}</Text>
         </LinearGradient>
         <GameAbout descriptionKey="sdmtIntroDesc" benefits={SDMT_BENEFITS} accent={GRADIENT[0]} />
-        <LevelProgressMap gameId="sdmt" currentLevel={lvl.level} colors={colors} language={language} />
+        <LevelProgressMap gameId="sdmt" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

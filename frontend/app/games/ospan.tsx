@@ -189,7 +189,7 @@ export default function OSpanGame() {
         <Text style={styles.configDesc}>{t('ospanDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="ospanIntroDesc" benefits={OSPAN_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="ospan" currentLevel={lvl.level} colors={colors} language={language} />
+      <LevelProgressMap gameId="ospan" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>

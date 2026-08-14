@@ -1076,6 +1076,8 @@ const t: Record<string, string> = {
   "bestAmongPlayers": "Meilleur parmi les joueurs",
   "levelOfMax": "Niveau {n}/{max}",
   "runsCompleted": "Terminé : {n}",
+  "tapNodeToReplay": "Touchez un nœud terminé pour le rejouer et gagner plus d’étoiles",
+  "replayingLevel": "Vous rejouez le niveau {n} · record {best}",
   "bossTitle": "BOSS",
   "bossDefeated": "🏆 Boss vaincu ! +⭐",
   "bossSurvived": "Le boss a tenu bon — on continue",

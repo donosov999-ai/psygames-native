@@ -246,7 +246,11 @@ export default function GoodsSortGame() {
     }).catch((e) => console.error(e));
     const next = done + 1;
     setLevel(next);
-    lvl.setLevel(next);   // сохранить достигнутый уровень, включая прохождение в зарядке
+    // ⚠️ reach, а НЕ setLevel: прямая установка срезала бы потолок, если человек
+    // вернулся с тропинки на пройденный уровень. pick следом держит цепочку на
+    // переигровке — иначе после уровня 3 при рекорде 20 игра прыгнула бы на 20.
+    lvl.reach(next);
+    lvl.pick(next);   // выше потолка pick сам обнуляется — прыжка не будет
     // Итог показывает общая карточка ПОВЕРХ полок — разложенный товар остаётся
     // на экране. Она же решает, запускать ли следующий уровень: своего таймера
     // здесь больше нет, он спорил с таймером зарядки (репорт Вали на v1.193.0
@@ -408,7 +412,8 @@ export default function GoodsSortGame() {
       <LevelProgressMap
         gameId="goods_sort"
         currentLevel={level}
-        maxLevel={Math.max(15, level)}
+        maxLevel={Math.max(15, level, lvl.best)}
+        onPickLevel={lvl.pick}
         colors={colors}
         language={language}
       />

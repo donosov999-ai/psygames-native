@@ -254,7 +254,10 @@ export default function MahjongGame() {
     }).catch((e) => console.error(e));
     const next = done + 1;
     setLevel(next); levelRef.current = next;
-    lvl.setLevel(next);   // прогресс сохраняется и при прохождении через зарядку
+    // ⚠️ reach, а НЕ setLevel: прямая установка срезала бы потолок после переигровки
+    // пройденного уровня. pick следом продолжает цепочку с того места, где играли.
+    lvl.reach(next);
+    lvl.pick(next);   // выше потолка pick сам обнуляется
     // Итог показывает общая карточка ПОВЕРХ доски (см. рендер): она же и решает,
     // запускать ли следующий уровень — правило режима живёт в ней одной. Своего
     // таймера здесь больше нет: раньше он спорил с таймером зарядки, и человек
@@ -400,7 +403,8 @@ export default function MahjongGame() {
         <LevelProgressMap
           gameId="mahjong"
           currentLevel={level}
-          maxLevel={Math.max(15, level)}
+          maxLevel={Math.max(15, level, lvl.best)}
+          onPickLevel={lvl.pick}
           colors={colors}
           language={language}
         />

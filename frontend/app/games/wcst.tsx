@@ -413,7 +413,7 @@ export default function WcstGame() {
           </View>
         ) : (
           <>
-            <LevelProgressMap gameId="wcst" currentLevel={lvl.level} maxLevel={MAX_LEVEL} colors={colors} language={language} />
+            <LevelProgressMap gameId="wcst" currentLevel={lvl.level} onPickLevel={lvl.pick} maxLevel={MAX_LEVEL} colors={colors} language={language} />
             <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
               <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
                 {t('level')} {lvl.level}

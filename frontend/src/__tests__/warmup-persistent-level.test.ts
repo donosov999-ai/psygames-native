@@ -24,8 +24,18 @@ describe.each(['mahjong.tsx', 'goods-sort.tsx'])('%s — уровень в за�
     expect(src).toContain('loadLevel(startLvl)');
   });
 
+  /**
+   * ⚠️ ТЕПЕРЬ reach, А НЕ setLevel. Смысл гейта прежний — прохождение через зарядку
+   * обязано сохранять прогресс, — но способ сменился вместе с переигровкой уровней:
+   * прямая установка срезала бы потолок, если человек вернулся с тропинки на
+   * пройденный уровень (собрал уровень 3 при рекорде 20 → записалось бы 4).
+   */
   it('сохраняет следующий уровень без запрета для warmup', () => {
-    expect(src).toContain('lvl.setLevel(next)');
-    expect(src).not.toMatch(/if\s*\(!isPreset\)\s*lvl\.setLevel\(next\)/);
+    expect(src).toContain('lvl.reach(next)');
+    expect(src).not.toMatch(/if\s*\(!isPreset\)\s*lvl\.reach\(next\)/);
+  });
+
+  it('поднимает потолок только вверх — прямой установки уровня на успехе нет', () => {
+    expect(src).not.toContain('lvl.setLevel(next)');
   });
 });

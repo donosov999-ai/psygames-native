@@ -246,7 +246,7 @@ export default function StopSignalGame() {
           <Text style={styles.configDesc}>{t('stopSignalDesc')}</Text>
         </LinearGradient>
         <GameAbout descriptionKey="stopSignalIntroDesc" benefits={STOP_BENEFITS} accent={GRADIENT[0]} />
-        <LevelProgressMap gameId="stop_signal" currentLevel={lvl.level} colors={colors} language={language} />
+        <LevelProgressMap gameId="stop_signal" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

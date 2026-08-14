@@ -957,6 +957,8 @@ const t: Record<string, string> = {
   "bestAmongPlayers": "玩家中的最佳成绩",
   "levelOfMax": "关卡 {n}/{max}",
   "runsCompleted": "已完成：{n}",
+  "tapNodeToReplay": "点击已完成的节点即可重玩并获得更多星星",
+  "replayingLevel": "正在重玩第 {n} 关 · 最高 {best}",
   "bossTitle": "BOSS",
   "bossDefeated": "🏆 BOSS 被击败！+⭐",
   "bossSurvived": "BOSS 挺住了——继续前进",

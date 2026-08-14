@@ -464,7 +464,7 @@ export default function SchulteGame() {
       {/* Подсказка «или настрой таблицу ниже и нажми Free play» убрана намеренно:
           с явным переключателем она объясняла бы уже несуществующий обходной путь. */}
       {(isPreset || playMode === 'levels') && (<>
-        <LevelProgressMap gameId="schulte_table" currentLevel={lvl.level} colors={colors} language={language} />
+        <LevelProgressMap gameId="schulte_table" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         {!isPreset && (
           <TouchableOpacity
             accessibilityRole="button"

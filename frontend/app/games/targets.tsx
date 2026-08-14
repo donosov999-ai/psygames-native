@@ -454,7 +454,7 @@ export default function TargetsGame() {
 
         <LevelProgressMap
           gameId="targets"
-          currentLevel={lvl.level}
+          currentLevel={lvl.level} onPickLevel={lvl.pick}
           maxLevel={Math.max(15, lvl.level)}
           colors={colors}
           language={language}
