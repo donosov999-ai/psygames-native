@@ -219,7 +219,12 @@ export default function FeedbackWidget() {
       screen: pathname,
       gameId,
       shot: attachShot ? shot : null,
-      audio: note ? { blob: note.blob, seconds: note.seconds, mime: note.mime } : null,
+      // ⚠️ peak ОБЯЗАТЕЛЕН. Здесь собирали объект из трёх полей и роняли четвёртое,
+      // поэтому `audio_peak` в контексте репорта был null у ВСЕХ 26 голосовых: замер,
+      // ради которого в v1.190 заводили AnalyserNode, до базы не доезжал ни разу.
+      // Уровень со стороны сервера считает ffmpeg, но это уже посмертно — а нужен
+      // ответ на вопрос «телефон отдал звук или нет» в момент отправки.
+      audio: note ? { blob: note.blob, seconds: note.seconds, mime: note.mime, peak: note.peak } : null,
       // profile/level — чтобы в репорте было видно, под каким профилем и на
       // каком уровне игры это словили (не гадать по скриншоту).
       context: {

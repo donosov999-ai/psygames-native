@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.203.0',
+    date: '2026-08-14',
+    ru: [
+      'Голосовая заметка больше не пишется дольше положенного: приехала запись на 5,5 минуты при потолке в три, потому что счётчик останавливался, когда экран гас. Теперь потолок держится независимо от этого',
+      '⚠️ Если ваша голосовая заметка приходит немой — это известная беда, мы её ещё ищем. Пока запись получилась без звука, приложение говорит об этом сразу: продублируйте текстом, иначе до нас ничего не дойдёт',
+    ],
+    en: [
+      'A voice note can no longer run past its limit: one arrived at 5.5 minutes against a 3-minute cap because the counter stalled when the screen went dark. The cap now holds regardless',
+      '⚠️ If your voice note arrives silent, that is a known problem we are still chasing. When a recording captures no sound the app now says so immediately — please retype it, otherwise nothing reaches us',
+    ],
+  },
+  {
     version: '1.202.0',
     date: '2026-08-14',
     ru: [
