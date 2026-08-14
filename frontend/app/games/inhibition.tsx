@@ -368,7 +368,7 @@ export default function InhibitionGame() {
           </Text>
         </View>
 
-        <LevelProgressMap gameId="inhibition" currentLevel={lvl.level} colors={colors} language={language} />
+        <LevelProgressMap gameId="inhibition" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

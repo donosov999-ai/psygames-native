@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.200.0',
+    date: '2026-08-14',
+    ru: [
+      'Пройденный уровень можно переиграть прямо с тропинки: нажмите на любой пройденный узел, и «Начать» запустит именно его. Звёзды хранятся по лучшему результату, так что второй заход может оценку только улучшить',
+      'Провал на переигровке не понижает ваш уровень — вы сами вернулись в лёгкое, это не повод считать, что стало трудно. Выше своего рекорда тропинка не пускает',
+      'Профиль ребёнка больше не подхватывает уровень взрослого. Достижения раздельные по профилям, а история раундов хранилась общей — новый профиль стартовал с чужой ступени',
+    ],
+    en: [
+      'Any completed level can be replayed straight from the path: tap a completed node and Start will launch that one. Stars keep your best result, so a second run can only improve the rating',
+      'Failing a replay does not lower your level — you chose to go back to an easier one, which is no reason to treat it as difficulty. The path will not let you jump above your record',
+      'A child profile no longer inherits an adult level. Progress was per profile but round history was shared, so a fresh profile started at someone else’s step',
+    ],
+  },
+  {
     version: '1.199.0',
     date: '2026-08-14',
     ru: [
@@ -42,12 +56,12 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     date: '2026-08-13',
     ru: [
       'Все упражнения устроены одинаково: уровень или счётчик прохождений, тропинка с вашим питомцем и общий итог со звёздами. Раньше девять игр шли мимо: у них не копились звёзды и не считалась серия чистых',
-      'Прогресс больше не теряется при переустановке. Достигнутые уровни хранились только в памяти телефона — теперь они восстанавливаются из истории ваших тренировок',
+      'Прогресс больше не теряется при сбросе или смене профиля. Достигнутые уровни хранились только одним ключом — теперь они восстанавливаются из истории ваших тренировок на этом устройстве',
       'Дыхание тоже считает пройденные подходы и показывает их на тропинке',
     ],
     en: [
       'Every exercise now works the same way: a level or a run counter, a path with your pet on it, and one shared result screen with stars. Nine games used to bypass all of that — no stars collected, no clean-run streak',
-      'Progress no longer disappears after a reinstall. Levels lived only in phone memory; they are now rebuilt from your own training history',
+      'Progress no longer disappears when a profile is reset or switched. Levels lived behind a single key; they are now rebuilt from your own training history on this device',
       'Breathing counts completed sessions too and shows them on the path',
     ],
   },

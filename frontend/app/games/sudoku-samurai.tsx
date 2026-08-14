@@ -316,7 +316,7 @@ export default function SamuraiSudokuGame() {
           {t('samuraiNextUnlocks')}
         </Text>
       </View>
-      <LevelProgressMap gameId="sudoku_samurai" currentLevel={lvl.level} maxLevel={MAX_LEVEL} colors={colors} language={language} />
+      <LevelProgressMap gameId="sudoku_samurai" currentLevel={lvl.level} onPickLevel={lvl.pick} maxLevel={MAX_LEVEL} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('btn_help')}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>

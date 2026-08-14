@@ -312,7 +312,7 @@ export default function AnagramGame() {
         </LinearGradient>
         <GameAbout descriptionKey="anagramsIntroDesc" benefits={ANAGRAM_BENEFITS} accent={GRADIENT[0]} />
 
-        <LevelProgressMap gameId="anagrams" currentLevel={lvl.level} colors={colors} language={language} />
+        <LevelProgressMap gameId="anagrams" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         {/* Карточка уровня: параметры + видимый критерий прохода + сброс ↺1 (паттерн simon/cpt) */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>

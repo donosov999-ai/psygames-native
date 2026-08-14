@@ -200,7 +200,7 @@ export default function SpatialSpanGame() {
         <Text style={styles.configDesc}>{t('spatialSpanDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="spatialSpanIntroDesc" benefits={SS_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="spatial_span" currentLevel={lvl.level} colors={colors} language={language} />
+      <LevelProgressMap gameId="spatial_span" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>

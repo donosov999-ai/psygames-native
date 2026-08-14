@@ -235,7 +235,7 @@ export default function ChoiceRtGame() {
         </LinearGradient>
         <GameAbout descriptionKey="choiceRtIntroDesc" benefits={CHOICE_BENEFITS} accent={GRADIENT[0]} />
 
-        <LevelProgressMap gameId="choice_rt" currentLevel={lvl.level} colors={colors} language={language} />
+        <LevelProgressMap gameId="choice_rt" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

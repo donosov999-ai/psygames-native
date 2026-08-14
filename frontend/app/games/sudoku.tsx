@@ -291,6 +291,15 @@ export default function SudokuGame() {
   const [size, setSize] = useState<6 | 9>(6);   // C2: явный размер поля (свободный режим)
   const [mode, setMode] = useState<'levels' | 'free' | 'killer'>('levels');   // уровни (дефолт) / свободно / killer
   const [level, setLevel] = useState(1);
+  /**
+   * Достигнутый ПОТОЛОК — отдельно от того, на чём сейчас играем.
+   *
+   * ⚠️ БЕЗ НЕГО ПЕРЕИГРОВКА СТИРАЛА БЫ ПРОГРЕСС. На финише судоку пишет в хранилище
+   * `level + 1`. Пока уровень был один на всё, это верно; но стоит вернуться с
+   * тропинки на уровень 3 при пройденных двадцати — и сборка тройки записала бы
+   * четвёрку, срезав семнадцать уровней. Пишем максимум.
+   */
+  const [best, setBest] = useState(1);
   const [variant, setVariant] = useState<Variant>('none');   // активный вариант-правило текущей партии
   const [regions, setRegions] = useState<number[][] | null>(null);   // jigsaw: карта регионов текущей партии
   const [cages, setCages] = useState<number[][] | null>(null);       // killer: cageId каждой клетки
@@ -358,7 +367,10 @@ export default function SudokuGame() {
   useEffect(() => {
     const pid = profile?.id;
     if (!pid) return;
-    AsyncStorage.getItem(`psygames_sudoku_level_${pid}`).then((v) => { const n = parseInt(v || '1', 10); if (n >= 1) setLevel(n); }).catch(() => {});
+    AsyncStorage.getItem(`psygames_sudoku_level_${pid}`).then((v) => {
+      const n = parseInt(v || '1', 10);
+      if (n >= 1) { setLevel(n); setBest(n); }   // заход в игру — всегда с достигнутого
+    }).catch(() => {});
   }, [profile?.id]);
 
   const startGame = (lvlOverride?: number) => {
@@ -575,7 +587,10 @@ export default function SudokuGame() {
       // SUDOKU-LVL: уровни — сохранить прогресс на следующий уровень (счёт растёт с уровнем)
       const pidDone = profile?.id;
       if (mode === 'levels' && pidDone) {
-        AsyncStorage.setItem(`psygames_sudoku_level_${pidDone}`, String(level + 1)).catch(() => {});
+        // Максимум, а не level + 1: переигранный лёгкий уровень не должен срезать потолок.
+        const nextBest = Math.max(best, level + 1);
+        setBest(nextBest);
+        AsyncStorage.setItem(`psygames_sudoku_level_${pidDone}`, String(nextBest)).catch(() => {});
       }
       if (pidDone) clearResume(GAME_ID, pidDone).catch(() => {});   // доиграна — продолжать нечего
       const baseScore = mode === 'levels' ? 1500 + level * 150 : 2000;
@@ -723,10 +738,13 @@ export default function SudokuGame() {
             <LevelProgressMap
               gameId={GAME_ID}
               currentLevel={level}
-              maxLevel={Math.max(SUDOKU_LAST_LEVEL, level)}
+              maxLevel={Math.max(SUDOKU_LAST_LEVEL, best)}
               colors={colors}
               language={language}
               levelLabel={tierLabel}
+              // Нажатие на пройденный узел меняет только «на чём играем»: потолок в
+              // best, кнопка «Начать» ниже стартует startGame() уже с этого уровня.
+              onPickLevel={(n) => setLevel(Math.min(n, best))}
             />
           </View>
         );

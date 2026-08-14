@@ -226,7 +226,7 @@ export default function PatternGame() {
         <Text style={styles.configDesc}>{t('patternDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="patternIntroDesc" benefits={PATTERN_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="pattern" currentLevel={lvl.level} colors={colors} language={language} />
+      <LevelProgressMap gameId="pattern" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('level')} {lvl.level}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>

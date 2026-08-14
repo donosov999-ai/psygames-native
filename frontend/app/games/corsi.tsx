@@ -223,7 +223,7 @@ export default function CorsiGame() {
         <Text style={styles.configDesc}>{t('corsiDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="corsiIntroDesc" benefits={CORSI_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="corsi" currentLevel={lvl.level} colors={colors} language={language} />
+      <LevelProgressMap gameId="corsi" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
         <View style={styles.optionButtons}>

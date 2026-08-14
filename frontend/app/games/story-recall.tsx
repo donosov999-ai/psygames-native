@@ -349,7 +349,7 @@ export default function StoryRecallGame() {
       </View>
       <LevelProgressMap
         gameId="story_recall"
-        currentLevel={lvl.level}
+        currentLevel={lvl.level} onPickLevel={lvl.pick}
         maxLevel={STORY_MAX_LEVEL}
         colors={colors}
         language={language}

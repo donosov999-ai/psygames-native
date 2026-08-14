@@ -206,7 +206,7 @@ export default function EyeGymGame() {
       {byLevel && (
         <LevelProgressMap
           gameId="eye_gym"
-          currentLevel={lvl.level}
+          currentLevel={lvl.level} onPickLevel={lvl.pick}
           maxLevel={EYE_GYM_MAX_LEVEL}
           colors={colors}
           language={language}

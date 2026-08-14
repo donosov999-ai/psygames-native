@@ -334,7 +334,7 @@ export default function SwitchingTaskGame() {
           </View>
         </View>
 
-        <LevelProgressMap gameId="switching_task" currentLevel={lvl.level} colors={colors} language={language} />
+        <LevelProgressMap gameId="switching_task" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

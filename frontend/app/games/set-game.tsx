@@ -372,7 +372,7 @@ export default function SetGame() {
         <Text style={styles.configDesc}>{t('setGameDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="setGameIntroDesc" benefits={SET_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="set_game" currentLevel={lvl.level} colors={colors} language={language} />
+      <LevelProgressMap gameId="set_game" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <TouchableOpacity
           accessibilityRole="button" style={styles.exampleHeader} onPress={() => setShowExample((v) => !v)}>

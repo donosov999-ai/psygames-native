@@ -311,7 +311,7 @@ export default function MemoryMatrixGame() {
         <Text style={styles.configDesc}>{t('memoryMatrixDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="memoryMatrixIntroDesc" benefits={MATRIX_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="memory_matrix" currentLevel={lvl.level} colors={colors} language={language} />
+      <LevelProgressMap gameId="memory_matrix" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('gridSize')}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
         <View style={styles.optionButtons}>
