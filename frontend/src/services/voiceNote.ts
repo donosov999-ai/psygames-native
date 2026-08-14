@@ -105,7 +105,23 @@ export async function startRecording(onTick?: (sec: number) => void): Promise<Re
     }
   } catch { /* нет AudioContext — просто останемся без замера */ }
 
-  rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+  /**
+   * ⚠️ ПОТОЛОК ПРОВЕРЯЕМ ЗДЕСЬ, А НЕ ТОЛЬКО ПО ТАЙМЕРУ.
+   *
+   * 14.08.2026 приехала заметка на 329 секунд при потолке 180: автостоп не сработал.
+   * Он висел на одном setInterval, а Android-вебвью душит таймеры JS, когда экран
+   * гаснет или приложение уходит в фон — человек говорит, счётчик стоит, запись
+   * не останавливается. Дальше упирается в 8 МБ бакета, и заметка теряется целиком.
+   *
+   * ondataavailable тикает от САМОГО рекордера (нативная часть, таймслайс 1000 мс) —
+   * этот источник времени не зависит от того, что вебвью сделал с таймерами.
+   */
+  rec.ondataavailable = (e) => {
+    if (e.data && e.data.size) chunks.push(e.data);
+    if (Date.now() - startedAt >= MAX_RECORD_SEC * 1000 && rec.state === 'recording') {
+      try { rec.stop(); } catch { /* уже остановлен */ }
+    }
+  };
   rec.start(1000);   // таймслайсы: если WebView прибьют, уже записанное не пропадёт
 
   const release = () => {

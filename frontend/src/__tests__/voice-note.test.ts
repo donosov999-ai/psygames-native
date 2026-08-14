@@ -1,0 +1,72 @@
+/**
+ * ГОЛОСОВАЯ ЗАМЕТКА — ЧТО ОБЯЗАНО ДОЕЗЖАТЬ ДО БАЗЫ.
+ *
+ * ЗАЧЕМ. 14.08.2026 тестировщик наговорил в отзыв 5 минут 29 секунд, и приехала
+ * цифровая тишина: пик −91 дБ, то есть чистые нули. Это двенадцатая подряд пустая
+ * голосовая — с 07.08 (версии 1.188, 1.189, 1.193, 1.194, 1.198, 1.199, 1.200) речи
+ * не доехало ни разу, при том что 02.08 на версиях 1.170–1.171 записывалось нормально.
+ *
+ * Сам отказ микрофона отсюда не чинится: Android молча отдаёт нули вместо ошибки, и
+ * чужой телефон из этого репозитория не отладить. Но разбор этой записи вскрыл ДВЕ
+ * СВОИ поломки, и вот они проверяются здесь.
+ *
+ * ⚠️ ЭТОТ ГЕЙТ НЕ ДОКАЗЫВАЕТ, ЧТО МИКРОФОН ЧИНИТСЯ. Он держит на месте две вещи,
+ * без которых мы даже не узнаем, починился ли он.
+ */
+declare const __dirname: string;
+declare function require(m: string): any;
+const { readFileSync } = require('fs');
+const { join } = require('path');
+
+const SRC = join(__dirname, '..');
+const read = (p: string): string => readFileSync(join(SRC, p), 'utf8');
+
+describe('замер уровня доезжает до отчёта', () => {
+  /**
+   * В v1.190 ради этого завели AnalyserNode: слушать уровень параллельно записи,
+   * чтобы немая заметка была видна. Виджет собирал объект записи из трёх полей и
+   * ронял четвёртое — `audio_peak` в контексте был null у ВСЕХ 26 голосовых. Замер
+   * делался и выбрасывался.
+   */
+  it('виджет передаёт peak, а не только blob/seconds/mime', () => {
+    const src = read('components/FeedbackWidget.tsx');
+    const m = src.match(/audio: note \? \{([^}]*)\}/);
+    expect(m).toBeTruthy();
+    expect(m![1]).toContain('peak');
+  });
+
+  it('отправка кладёт peak в контекст репорта', () => {
+    expect(read('services/appFeedback.ts')).toContain('audio_peak: args.audio.peak');
+  });
+
+  /** Немая запись обязана быть ВИДНА человеку сразу, а не выглядеть удачной отправкой. */
+  it('немая запись показывается человеку', () => {
+    const src = read('components/FeedbackWidget.tsx');
+    expect(src).toContain('v.peak < SILENCE_PEAK');
+    expect(src).toContain("t('voiceSilent')");
+  });
+});
+
+describe('запись не убегает за потолок', () => {
+  /**
+   * ⚠️ ГЛАВНОЕ ИЗ ЭТОГО РАЗБОРА. Потолок 180 секунд держался на одном setInterval,
+   * а Android-вебвью душит таймеры JS в фоне и при погасшем экране. Приехало 329
+   * секунд — почти вдвое больше потолка. Дальше упор в 8 МБ бакета и потеря всей
+   * заметки. ondataavailable тикает от самого рекордера, нативно, и от судьбы
+   * JS-таймеров не зависит.
+   */
+  it('автостоп висит не только на таймере, но и на потоке данных рекордера', () => {
+    const src = read('services/voiceNote.ts');
+    const handler = src.slice(src.indexOf('rec.ondataavailable'), src.indexOf('rec.start('));
+    expect(handler).toContain('MAX_RECORD_SEC');
+    expect(handler).toContain('rec.stop()');
+  });
+
+  it('потолок остался осмысленным — 8 МБ бакета это примерно четыре минуты opus', () => {
+    const src = read('services/voiceNote.ts');
+    const m = src.match(/MAX_RECORD_SEC = (\d+)/);
+    expect(m).toBeTruthy();
+    const sec = Number(m![1]);
+    expect(`${sec} с, в пределах 30..240`).toBe(`${Math.min(Math.max(sec, 30), 240)} с, в пределах 30..240`);
+  });
+});
