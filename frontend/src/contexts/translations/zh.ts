@@ -857,6 +857,7 @@ const t: Record<string, string> = {
   "petSkinAuto": "自动",
   "shopPetSection": "🐾 宠物专区 — 突触的配饰（全局佩戴）",
   "cosName_pet_bow": "蝴蝶结",
+  "cosName_pet_bow_tie": "领结",
   "cosName_pet_party_hat": "派对帽",
   "cosName_pet_glasses": "聪明眼镜",
   "cosDesc_pet_generic": "散步宠物的配饰——所有页面都能看到",

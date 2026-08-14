@@ -1435,6 +1435,8 @@ const translations: Translations = {
   petSkinAuto: { ru: 'Авто', en: 'Auto' },
   shopPetSection: { ru: '🐾 Для питомца — аксессуары Синапса (надеваются глобально)', en: '🐾 For the pet — Synapse accessories (equipped globally)' },
   cosName_pet_bow: { ru: 'Бантик', en: 'Bow' },
+  // Отдельный предмет на шею — бантик остался заколкой на голове.
+  cosName_pet_bow_tie: { ru: 'Бабочка', en: 'Bow tie' },
   cosName_pet_party_hat: { ru: 'Праздничный колпак', en: 'Party hat' },
   cosName_pet_glasses: { ru: 'Умные очки', en: 'Smart glasses' },
   cosDesc_pet_generic: { ru: 'Аксессуар гуляющего питомца — виден на всех экранах', en: 'Accessory for the walking pet — visible on every screen' },

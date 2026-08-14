@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.201.0',
+    date: '2026-08-14',
+    ru: [
+      'В магазине появилась «Бабочка» за 300 очков — на шею питомцу. Бантик при этом остаётся заколкой на голове: теперь это два разных предмета',
+    ],
+    en: [
+      'A bow tie has appeared in the shop for 300 points — for your pet’s neck. The bow stays a hair clip on the head: they are two different items now',
+    ],
+  },
+  {
     version: '1.200.0',
     date: '2026-08-14',
     ru: [

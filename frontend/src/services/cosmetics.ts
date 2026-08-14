@@ -68,6 +68,9 @@ export const COSMETICS: Cosmetic[] = [
   { id: 'pet_bow',       type: 'pet', nameKey: 'cosName_pet_bow',       descKey: 'cosDesc_pet_generic', cost: 300, value: 'bow' },
   { id: 'pet_party_hat', type: 'pet', nameKey: 'cosName_pet_party_hat', descKey: 'cosDesc_pet_generic', cost: 400, value: 'party_hat' },
   { id: 'pet_glasses',   type: 'pet', nameKey: 'cosName_pet_glasses',   descKey: 'cosDesc_pet_generic', cost: 500, value: 'glasses' },
+  // Бабочка на шею — решение Дениса 14.08.2026 после разбора банта: бант остался
+  // заколкой на голове, а на шею завели отдельный предмет. Цена его же — 300.
+  { id: 'pet_bow_tie',   type: 'pet', nameKey: 'cosName_pet_bow_tie',   descKey: 'cosDesc_pet_generic', cost: 300, value: 'bow_tie' },
 
   // ─── AVATAR — иконка профиля вместо стандартного бейджа (kie.ai, единая 3×3-сетка v1.114.0) ───
   { id: 'avatar_owl',       type: 'avatar', nameKey: 'cosName_avatar_owl',       descKey: 'cosDesc_avatar_generic', cost: 300, value: 'avatar_owl' },

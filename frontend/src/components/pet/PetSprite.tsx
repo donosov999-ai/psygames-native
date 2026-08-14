@@ -19,7 +19,7 @@ export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep';
 export type PetSkin = 'cat' | 'robot' | 'constellation';
 /** Аксессуары из магазина (type 'pet' в COSMETICS). Рисуются вектором поверх
  *  кадров — не зависят от скина и не требуют перерисовки спрайт-листов. */
-export type PetAccessory = 'party_hat' | 'bow' | 'glasses';
+export type PetAccessory = 'party_hat' | 'bow' | 'glasses' | 'bow_tie';
 
 const CAT: Record<PetState, any[]> = {
   walk: [
@@ -211,6 +211,15 @@ const ACCESSORY_MOUNT: Record<PetAccessory, { at: AnchorName; edge: 'bottom' | '
   // Садится нижней кромкой на макушку — тем же способом, что колпак.
   bow:       { at: 'head_top', edge: 'center' },  // бант СЕРЕДИНОЙ на макушку — заколка сидит НА голове, а не парит над ней
   glasses:   { at: 'eyes',     edge: 'center' },   // очки центром на глаза
+  /**
+   * Бабочка — отдельный предмет, тот самый «третий вариант» из разбора банта:
+   * бант остался заколкой на голове, а на шею есть чем повязать.
+   *
+   * ВЕРХНИМ краем на шею, а не серединой. Середина увела бы половину бабочки
+   * выше точки шеи — коту прямо на морду, то есть ровно в ту жалобу, из-за
+   * которой бант и переезжал: «когда на шее половину лица не видно».
+   */
+  bow_tie:   { at: 'neck',     edge: 'top' },
 };
 
 /**
@@ -224,6 +233,9 @@ const ACCESSORY_IMG: Record<PetAccessory, any> = {
   party_hat: require('@/assets/images/pet/accessories/party_hat.png'),
   bow:       require('@/assets/images/pet/accessories/bow.png'),
   glasses:   require('@/assets/images/pet/accessories/glasses.png'),
+  // Готовая картинка из уже нарисованного набора: бабочка с узлом посередине,
+  // рисовать заново нечего. Синяя — чтобы не путалась с розовым бантом-заколкой.
+  bow_tie:   require('@/assets/images/pet/accessories/bow_blue.png'),
 };
 
 /** Доля от размера питомца: колпак уже очков, очки шире банта. */
@@ -231,6 +243,7 @@ const ACCESSORY_REL: Record<PetAccessory, number> = {
   party_hat: 0.46,
   bow:       0.50,
   glasses:   0.60,
+  bow_tie:   0.44,   // уже банта: бабочка не должна перекрывать грудь целиком
 };
 
 /** Поле вокруг предмета внутри PNG — задано при нарезке (6% с каждой стороны). */
@@ -248,6 +261,7 @@ const ACCESSORY_INSET: Record<PetAccessory, { top: number; height: number }> = {
   party_hat: { top: 0.059, height: 0.881 },
   bow:       { top: 0.297, height: 0.402 },
   glasses:   { top: 0.318, height: 0.361 },
+  bow_tie:   { top: 0.287, height: 0.426 },   // замер bow_blue.png тем же правилом
 };
 
 function AccessoryOverlay({ kind, size, skin }: { kind: PetAccessory; size: number; skin: PetSkin }) {

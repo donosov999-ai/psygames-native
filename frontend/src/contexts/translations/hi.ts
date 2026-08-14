@@ -860,6 +860,7 @@ const t: Record<string, string> = {
   "petSkinAuto": "ऑटो",
   "shopPetSection": "🐾 पालतू के लिए — साइनैप्स की एक्सेसरीज़ (हर जगह दिखती हैं)",
   "cosName_pet_bow": "बो",
+  "cosName_pet_bow_tie": "बो टाई",
   "cosName_pet_party_hat": "पार्टी टोपी",
   "cosName_pet_glasses": "स्मार्ट चश्मा",
   "cosDesc_pet_generic": "घूमते पालतू की एक्सेसरी — हर स्क्रीन पर दिखती है",

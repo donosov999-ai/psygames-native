@@ -976,6 +976,7 @@ const t: Record<string, string> = {
   "petSkinAuto": "자동",
   "shopPetSection": "🐾 펫 용품 — 시냅스 액세서리 (모든 화면 공통)",
   "cosName_pet_bow": "리본",
+  "cosName_pet_bow_tie": "나비넥타이",
   "cosName_pet_party_hat": "파티 모자",
   "cosName_pet_glasses": "똑똑 안경",
   "cosDesc_pet_generic": "산책하는 펫의 액세서리 — 모든 화면에서 보여요",
