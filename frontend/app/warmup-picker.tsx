@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { isGameAllowed } from '@/src/constants/profiles';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import {
   WarmupSlot, currentSlot, isTrainingSlot,
@@ -73,8 +74,8 @@ export default function WarmupPicker() {
       case 'night': return buildNightPlaylist(wd);
       case 'evening': {
         const morning = profile.morning_playlist?.length
-          ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd)
-          : buildMorningWarmupPlaylist({ duration: 5, weekday: wd, profilePlaylists: profile.custom_playlists });
+          ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, (g: string) => isGameAllowed(profile, g))
+          : buildMorningWarmupPlaylist({ duration: 5, weekday: wd, profilePlaylists: profile.custom_playlists, allow: (g: string) => isGameAllowed(profile, g) });
         return buildEveningWarmupPlaylist({
           weekday: wd,
           excludeGameIds: morning.steps.map((s) => s.game_id),
@@ -83,8 +84,8 @@ export default function WarmupPicker() {
       }
       default:
         return profile.morning_playlist?.length
-          ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd)
-          : buildMorningWarmupPlaylist({ duration: 5, weekday: wd, profilePlaylists: profile.custom_playlists });
+          ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, (g: string) => isGameAllowed(profile, g))
+          : buildMorningWarmupPlaylist({ duration: 5, weekday: wd, profilePlaylists: profile.custom_playlists, allow: (g: string) => isGameAllowed(profile, g) });
     }
   }, [wd, profile]);
 
