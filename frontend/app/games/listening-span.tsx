@@ -20,6 +20,7 @@ import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 const GRADIENT = ['#4776E6', '#8E54E9'];
 const GAME_ID = 'listening_span';
@@ -29,6 +30,20 @@ const ROUNDS = 2;
 // Listening span: K слов целевого языка озвучиваются по одному (экран слов НЕ показывает),
 // затем recall — сетка из K услышанных + K дистракторов; тапать услышанные В ТОМ ЖЕ ПОРЯДКЕ.
 // Как в corsi: неверный следующий элемент → ошибка раунда, раунд завершается.
+
+/**
+ * Что меняется с уровнем — вслух, а не молча.
+ *
+ * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
+ * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
+ */
+const LISTENINGSPAN_RULES: LevelRule[] = [
+  {
+    key: 'span8', fromLevel: 6,
+    ru: { title: "Восемь слов — предел ряда", rule: "Длиннее ряд не станет: восемь это потолок слуховой памяти почти у всех. Дальше сокращается пауза между словами — с 0,7 секунды до 0,5.", example: "Меньше паузы — меньше времени повторить услышанное про себя, а именно повтор и держит ряд." },
+    en: { title: "Eight words is the ceiling", rule: "The list stops growing here: eight is the limit of auditory span for almost everyone. What shrinks from now on is the gap between words — from 0.7 seconds down to 0.5.", example: "A shorter gap means less time to repeat what you heard in your head — and that repetition is what holds the list." },
+  },
+];
 
 type GamePhase = 'config' | 'listen' | 'recall' | 'cleared' | 'result';
 
@@ -66,6 +81,8 @@ export default function ListeningSpanGame() {
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', defaultTarget));
 
   const [phase, setPhase] = useState<GamePhase>('config');
+  // Правила уровня: показать при первом входе и дать перечитать по бейджу.
+  const levelRules = useLevelRules('listening_span', lvl.level, LISTENINGSPAN_RULES, phase === 'recall');
   const [clearedPassed, setClearedPassed] = useState(true);
   const [round, setRound] = useState(1);
   const [errors, setErrors] = useState(0);
@@ -366,6 +383,7 @@ export default function ListeningSpanGame() {
             </View>
           </View>
         )}
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </GameShell>
     );
   }
@@ -404,6 +422,7 @@ export default function ListeningSpanGame() {
           gradient={GRADIENT as [string, string]}
         />
       )}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
     </SafeAreaView>
   );
 }

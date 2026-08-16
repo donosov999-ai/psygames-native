@@ -28,10 +28,30 @@ import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 const GRADIENT = ['#8E2DE2', '#4A00E0'];
 const GAME_ID = 'pseudoword_echo';
 const TL_KEY = `psygames_${GAME_ID}_targetlang`;
+
+/**
+ * Что меняется с уровнем — вслух, а не молча.
+ *
+ * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
+ * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
+ */
+const PSEUDOWORDECHO_RULES: LevelRule[] = [
+  {
+    key: 'longer6', fromLevel: 5,
+    ru: { title: "Слова стали длиннее", rule: "Было четыре-пять букв, стало шесть-семь. Целиком такое слово в голове уже не удержать — его придётся разбить на слоги.", example: "Пример: было «нолап», стало «вирунтек». Второе держится только по частям." },
+    en: { title: "Longer words now", rule: "It was four or five letters, now it is six or seven. A word this long no longer fits whole — you have to break it into syllables.", example: "Example: it was \"nolap\", now it is \"viruntek\". The second one only holds in pieces." },
+  },
+  {
+    key: 'longer8', fromLevel: 9,
+    ru: { title: "Восемь-девять букв", rule: "Предельная длина. На таком слове решает не память, а то, насколько точно ты расслышал каждый звук.", example: "Варианты ответа теперь различаются одной буквой в середине — там, где слух подводит чаще всего." },
+    en: { title: "Eight or nine letters", rule: "Maximum length. At this size it is not memory that decides but how precisely you heard every sound.", example: "The answer options now differ by one letter in the middle — exactly where hearing fails most often." },
+  },
+];
 
 type GamePhase = 'config' | 'playing' | 'cleared' | 'result';
 
@@ -156,6 +176,8 @@ export default function PseudowordEchoGame() {
 
   const { isPreset, autostart, str } = useGamePreset();
   const [phase, setPhase] = useState<GamePhase>('config');
+  // Правила уровня: показать при первом входе и дать перечитать по бейджу.
+  const levelRules = useLevelRules('pseudoword_echo', lvl.level, PSEUDOWORDECHO_RULES, phase === 'playing');
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const [rounds, setRounds] = useState<Round[]>([]);
   const [idx, setIdx] = useState(0);
@@ -416,6 +438,7 @@ export default function PseudowordEchoGame() {
             })}
           </View>
         </View>
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </GameShell>
     );
   }
@@ -455,6 +478,7 @@ export default function PseudowordEchoGame() {
           gradient={GRADIENT as [string, string]}
         />
       )}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
     </SafeAreaView>
   );
 }

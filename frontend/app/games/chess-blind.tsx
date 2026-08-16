@@ -18,6 +18,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 /**
  * Слепые шахматы (chess_blind) — тренировка удержания позиции в уме.
@@ -31,6 +32,25 @@ const CHESS_BENEFITS = [
   { icon: 'eye-off-outline', textKey: 'benefitChessBlind1' },
   { icon: 'grid-outline', textKey: 'benefitChessBlind2' },
   { icon: 'bulb-outline', textKey: 'benefitChessBlind3' },
+];
+
+/**
+ * Что меняется с уровнем — вслух, а не молча.
+ *
+ * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
+ * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
+ */
+const CHESSBLIND_RULES: LevelRule[] = [
+  {
+    key: 'moves', fromLevel: 6,
+    ru: { title: "Фигуры начали ходить", rule: "До пятого уровня позиция замирала, и достаточно было запомнить картинку. С шестого после показа фигуры делают ходы вслепую — и держать надо не картинку, а то, как она изменилась.", example: "Пример: «конь b1 — c3». Двигай его в голове и запоминай новое место, старое больше не считается." },
+    en: { title: "The pieces start moving", rule: "Up to level 5 the position froze and remembering the picture was enough. From level 6 the pieces make blind moves after the display — and what you must hold is not the picture but how it changed.", example: "Example: \"knight b1 to c3\". Move it in your head and remember the new square; the old one no longer counts." },
+  },
+  {
+    key: 'locate', fromLevel: 11,
+    ru: { title: "Вопрос перевернулся", rule: "Раньше спрашивали «что стоит на этой клетке» — ты проверял одно место. Теперь спрашивают «где стоит эта фигура», и искать приходится по всей доске.", example: "Держать позицию списком «клетка → фигура» больше не выйдет. Нужен обратный список: «фигура → клетка»." },
+    en: { title: "The question flips", rule: "It used to ask \"what stands on this square\" — you checked one place. Now it asks \"where does this piece stand\", and you have to search the whole board.", example: "Holding the position as \"square → piece\" stops working. You need the reverse list: \"piece → square\"." },
+  },
 ];
 
 type GamePhase = 'intro' | 'config' | 'expose' | 'mask' | 'quiz' | 'cleared' | 'result';
@@ -282,6 +302,8 @@ export default function ChessBlindGame() {
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  // Правила уровня: показать при первом входе и дать перечитать по бейджу.
+  const levelRules = useLevelRules('chess_blind', lvl.level, CHESSBLIND_RULES, phase === 'quiz');
   const [dispPieces, setDispPieces] = useState<Piece[]>([]);
   const [prm, setPrm] = useState(() => levelParams(1));
   const [exposePct, setExposePct] = useState(100);
@@ -629,6 +651,7 @@ export default function ChessBlindGame() {
   // Игровые фазы — на едином каркасе GameShell (без самодельной шапки).
   if (phase === 'expose' || phase === 'mask' || phase === 'quiz') {
     return renderPlay();
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
   }
 
   return (
@@ -653,6 +676,7 @@ export default function ChessBlindGame() {
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
     </SafeAreaView>
   );
 }

@@ -24,6 +24,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { SEMANTIC_DISTRACTORS } from '@/src/data/semantic-distractors';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 const GRADIENT = ['#10b981', '#6366f1'];
 
@@ -43,6 +44,25 @@ const SORT_BENEFITS = [
   { icon: 'speedometer-outline', textKey: 'benefitSort3' },
 ];
 
+/**
+ * Что меняется с уровнем — вслух, а не молча.
+ *
+ * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
+ * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
+ */
+const SEMANTICSORT_RULES: LevelRule[] = [
+  {
+    key: 'three', fromLevel: 4,
+    ru: { title: "Категорий стало три", rule: "До этого выбор был из двух корзин, теперь из трёх. Угадать наугад стало втрое труднее, и слово придётся действительно понять.", example: "Пример: было «еда или животное», стало «фрукт, овощ или животное»." },
+    en: { title: "Three categories now", rule: "Until now you chose between two baskets, now there are three. Guessing blindly got three times harder — you actually have to know the word.", example: "Example: it was \"food or animal\", now it is \"fruit, vegetable or animal\"." },
+  },
+  {
+    key: 'four', fromLevel: 9,
+    ru: { title: "Категорий стало четыре", rule: "Четвёртая корзина. Здесь уже не хватит общего смысла — нужен точный признак слова.", example: "Разница между «фруктом» и «ягодой» на этом уровне решает." },
+    en: { title: "Four categories now", rule: "A fourth basket. General meaning is no longer enough — you need the precise feature of the word.", example: "The difference between \"fruit\" and \"berry\" starts to matter here." },
+  },
+];
+
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 interface Round { word: string; correctCat: string; cats: string[] }
 
@@ -60,6 +80,8 @@ export default function SemanticSortGame() {
 
   // Уровни (persist): ручные селекторы раундов/категорий заменены лесенкой 1..15.
   const lvl = usePersistentLevel('semantic_sort');
+  // Правила уровня: показать при первом входе и дать перечитать по бейджу.
+  const levelRules = useLevelRules('semantic_sort', lvl.level, SEMANTICSORT_RULES, phase === 'playing');
   const levelRef = useRef(1);
   const useLevelRef = useRef(false);
   const roundsRef = useRef<Round[]>([]);
@@ -313,7 +335,7 @@ export default function SemanticSortGame() {
     );
   };
 
-  if (phase === 'playing') return renderPlaying();
+  if (phase === 'playing') return <>{renderPlaying()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
 
 
   return (
@@ -354,6 +376,7 @@ export default function SemanticSortGame() {
           onGoHome={() => router.push('/')}
         />
       )}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
     </SafeAreaView>
   );
 }

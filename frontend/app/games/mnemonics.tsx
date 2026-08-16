@@ -23,6 +23,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 const GRADIENT = ['#4facfe', '#00f2fe'];
 const PENALTY_SECONDS = 15;
@@ -31,6 +32,20 @@ const MNEMONICS_BENEFITS = [
   { icon: 'cart-outline', textKey: 'benefitMnemonics1' },
   { icon: 'call-outline', textKey: 'benefitMnemonics2' },
   { icon: 'list-outline', textKey: 'benefitMnemonics3' },
+];
+
+/**
+ * Что меняется с уровнем — вслух, а не молча.
+ *
+ * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
+ * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
+ */
+const MNEMONICS_RULES: LevelRule[] = [
+  {
+    key: 'method', fromLevel: 7,
+    ru: { title: "Повтор в уме перестал справляться", rule: "С семи-восьми элементов простое проговаривание ряд уже не держит — это предел, он у всех примерно одинаковый. Дальше работает только метод.", example: "Два рабочих: цепочка — связать каждое слово со следующим нелепой картинкой; комната — расставить слова по знакомым местам и потом пройти по ним взглядом." },
+    en: { title: "Repeating in your head stops working", rule: "From seven or eight items, plain repetition no longer holds the list — that is the limit, and it is about the same for everyone. Past it, only a method works.", example: "Two that work: the chain — link each word to the next with an absurd image; the room — place the words around a familiar space and walk it in your mind." },
+  },
 ];
 
 type GamePhase = 'intro' | 'config' | 'memorize' | 'check' | 'cleared' | 'result';
@@ -52,6 +67,8 @@ export default function MnemonicsGame() {
   const useLevelRef = useRef(false);   // запущено по уровню? (для reach + авто-потока)
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
+  // Правила уровня: показать при первом входе и дать перечитать по бейджу.
+  const levelRules = useLevelRules('mnemonics', lvl.level, MNEMONICS_RULES, phase === 'memorize');
   const [mode, setMode] = useState<GameMode>(() => (str('mode', 'words') as GameMode));
   const [itemCount, setItemCount] = useState(() => num('itemCount', levelParams(1).itemCount));   // дефолт 5, не 10
   const [items, setItems] = useState<string[]>([]);
@@ -454,8 +471,8 @@ export default function MnemonicsGame() {
   );
 
 
-  if (phase === 'memorize') return renderMemorize();
-  if (phase === 'check') return renderCheck();
+  if (phase === 'memorize') return <>{renderMemorize()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
+  if (phase === 'check') return <>{renderCheck()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -490,6 +507,7 @@ export default function MnemonicsGame() {
           onGoHome={() => router.push('/')}
         />
       )}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
     </SafeAreaView>
   );
 }
