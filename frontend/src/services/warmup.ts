@@ -92,7 +92,9 @@ export function buildFixedPlaylist(
   steps: PlaylistStep[],
   slot: 'morning' | 'evening',
   weekday: Weekday,
+  allow?: AllowFn,
 ): PlaylistMeta {
+  steps = keepAllowed(steps, allow);
   const total = steps.reduce((s, x) => s + x.est_duration_sec, 0);
   return {
     duration_min: Math.max(1, Math.round(total / 60)),
@@ -107,6 +109,45 @@ export function buildFixedPlaylist(
 }
 
 const WEEKDAY_NAMES = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+/**
+ * Тренировочный набор для дня, ГАРАНТИРОВАННО не являющийся замером.
+ *
+ * ⚠️ ЛОВУШКА, НА КОТОРОЙ Я СПОТКНУЛСЯ 16.08.2026. В `TRAINING_BY_WEEKDAY`
+ * четверг и воскресенье ССЫЛАЮТСЯ НА ТУ ЖЕ `FIXED_BATTERY`. Поэтому «если
+ * батарея профилю недоступна — дадим тренировку» не работало: тренировкой в
+ * эти дни оказывалась ровно та же батарея, только урезанная фильтром. Первый
+ * гейт это и поймал — сам по себе отказ от батареи ничего не менял.
+ *
+ * Берём ближайший предыдущий день, у которого набор свой. Именно предыдущий, а
+ * не случайный: набор дня осмысленный (понедельник мягче, пятница нагруженнее),
+ * и «вчерашняя тренировка» ближе по смыслу, чем набор с другого конца недели.
+ */
+function trainingSetFor(weekday: Weekday): PlaylistStep[] {
+  for (let i = 0; i < 7; i++) {
+    const d = (((weekday - i) % 7) + 7) % 7 as Weekday;
+    const set = TRAINING_BY_WEEKDAY[d];
+    if (set && set !== FIXED_BATTERY) return set;
+  }
+  return TRAINING_BY_WEEKDAY[1];      // недостижимо: понедельник всегда свой
+}
+
+
+/**
+ * ЗАРЯДКА СОБИРАЕТСЯ ИЗ ИГР ПРОФИЛЯ, А НЕ ИЗ ВСЕГО КАТАЛОГА.
+ *
+ * 🔴 ПОВОД, 16.08.2026. Денис открыл зарядку всем профилям (раньше её не было у
+ * «Стандарта»). Само по себе это одна строка, но плейлисты тянут 33 игры, а на
+ * «Стандарте» разрешено 9 — и главная это правило СОБЛЮДАЕТ (`filterAllowedGames`,
+ * оттого «Память · 2»). Без фильтра зарядка стала бы чёрным ходом: в каталоге
+ * девять игр, а по кнопке «Старт» играются любые. Платный каталог утёк бы весь.
+ *
+ * Предикат приходит снаружи и по умолчанию пропускает всё: тесты и старые
+ * вызовы, которые про профиль ничего не знают, работают как раньше.
+ */
+type AllowFn = (gameId: string) => boolean;
+const keepAllowed = (steps: PlaylistStep[], allow?: AllowFn): PlaylistStep[] =>
+  allow ? steps.filter((s) => allow(s.game_id)) : steps;
+
 
 // FIXED MEASUREMENT BATTERY — same setup for ЧТ peak and ВС baseline (allows lifelong comparison).
 const FIXED_BATTERY: PlaylistStep[] = [
@@ -281,8 +322,9 @@ export function buildEveningWarmupPlaylist(opts: {
   weekday: Weekday;
   excludeGameIds?: string[];          // id игр утреннего комплекса сегодня — не повторять вечером
   profileEvening?: PlaylistStep[];    // профильный фикс-вечер (override)
+  allow?: AllowFn;                    // игры профиля; без него — весь каталог
 }): PlaylistMeta {
-  const { weekday, excludeGameIds, profileEvening } = opts;
+  const { weekday, excludeGameIds, profileEvening, allow } = opts;
   const fixed = !!(profileEvening && profileEvening.length);
   const base = fixed ? profileEvening! : EVENING_BY_WEEKDAY[weekday];
   // v1.157 (репорт Вали «почему всего одна игра перед сном?»): дедуп против утра
@@ -292,7 +334,20 @@ export function buildEveningWarmupPlaylist(opts: {
   // срезал их и от 3 игр оставалась 1, при этом карточка на главной (строится БЕЗ
   // excludeGameIds) обещала 3 — расхождение обещания и запуска.
   const ex = new Set(fixed ? [] : (excludeGameIds || []));
-  const steps = base.filter((s) => !ex.has(s.game_id)).map((s) => ({ ...s }));
+  let steps = keepAllowed(base.filter((s) => !ex.has(s.game_id)).map((s) => ({ ...s })), allow);
+
+  /**
+   * Пустой вечер — та же сломанная кнопка, что и пустое утро (см. комментарий в
+   * buildMorningWarmupPlaylist). У «Стандарта» после отсева пустыми выходили три
+   * вечера из семи. Добираем набором предыдущих дней; парные картинки и дыхание
+   * доступны в любом профиле, поэтому что-то найдётся всегда.
+   */
+  if (steps.length === 0 && allow) {
+    for (let i = 1; i <= 7 && steps.length === 0; i++) {
+      const d = (((weekday - i) % 7) + 7) % 7 as Weekday;
+      steps = keepAllowed(EVENING_BY_WEEKDAY[d].map((x) => ({ ...x })), allow);
+    }
+  }
   return {
     duration_min: Math.max(1, Math.round(sumDuration(steps) / 60)),
     weekday,
@@ -336,19 +391,29 @@ export function buildMorningWarmupPlaylist(opts: {
   weekday: Weekday;
   history?: GameSession[];
   profilePlaylists?: Partial<Record<Weekday, PlaylistStep[]>>;  // E1: per-profile override
+  allow?: AllowFn;                    // игры профиля; без него — весь каталог
 }): PlaylistMeta {
-  const { duration, weekday, profilePlaylists } = opts;
+  const { duration, weekday, profilePlaylists, allow } = opts;
   const track = getTrack(weekday);
   let steps: PlaylistStep[];
 
   if (track === 'rest') {
     steps = [];
-  } else if (track === 'measure-peak' || track === 'measure-baseline') {
+  } else if ((track === 'measure-peak' || track === 'measure-baseline')
+             && FIXED_BATTERY.every((s) => !allow || allow(s.game_id))) {
     // Fixed battery — duration is essentially always 10 min (~9 actually)
     steps = FIXED_BATTERY.map((s) => ({ ...s }));
   } else {
+    /**
+     * ⚠️ УРЕЗАННУЮ БАТАРЕЮ НЕ ЗАПУСКАЕМ — лучше обычная тренировка.
+     * FIXED_BATTERY существует ради одного: «тот же набор всегда», чтобы замер
+     * можно было сравнивать с собой годами. На «Стандарте» из шести её игр
+     * доступны две. Прогнать две и записать это как замер — значит испортить
+     * ряд сравнения молча: цифра есть, а сравнивать её не с чем. Поэтому в
+     * такой день профиль получает тренировочный трек.
+     */
     // Training — adjust by duration. If profile has custom playlist for this weekday, use it.
-    const allSteps = (profilePlaylists && profilePlaylists[weekday]) || TRAINING_BY_WEEKDAY[weekday];
+    const allSteps = (profilePlaylists && profilePlaylists[weekday]) || trainingSetFor(weekday);
     const targetSec = duration * 60;
     if (duration === 5) {
       steps = pickSteps(allSteps, targetSec);
@@ -371,6 +436,28 @@ export function buildMorningWarmupPlaylist(opts: {
       }
       const cooldownExtras = pickCooldown(weekday, remainingFor(steps));
       steps.push(...cooldownExtras);
+    }
+  }
+
+  // Отсев по профилю — ОДНОЙ строкой на выходе, а не в каждой ветке:
+  // веток пять (отдых, батарея, 5/10/15 с добавками), и фильтр, размазанный
+  // по ним, однажды забудут в новой.
+  steps = keepAllowed(steps, allow);
+
+  /**
+   * 🔴 ПУСТАЯ ЗАРЯДКА ХУЖЕ ОТСУТСТВУЮЩЕЙ. Найдено гейтом 16.08.2026: у
+   * «Стандарта» в пятницу после отсева не оставалось НИ ОДНОЙ игры — карточка
+   * на главной есть, кнопка «Старт» есть, а нажатие вело сразу на экран
+   * «готово». Для человека это сломанная кнопка, и никакой ошибки в логах.
+   *
+   * Поэтому пустоту добираем набором предыдущих дней. Хотя бы одна игра
+   * найдётся всегда: парные картинки и дыхание доступны во всех профилях
+   * (ALWAYS_ALLOWED в profiles.ts).
+   */
+  if (track !== 'rest' && steps.length === 0 && allow) {
+    for (let i = 1; i <= 7 && steps.length === 0; i++) {
+      const d = (((weekday - i) % 7) + 7) % 7 as Weekday;
+      steps = keepAllowed(trainingSetFor(d).map((x) => ({ ...x })), allow);
     }
   }
 

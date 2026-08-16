@@ -10,6 +10,7 @@ import {
   shouldAdvance,
 } from '@/src/services/warmup';
 import { setSessionListener, GameSession } from '@/src/services/api';
+import { isGameAllowed } from '@/src/constants/profiles';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { fbCorrect, fbComplete } from '@/src/services/feedback';
 
@@ -78,15 +79,23 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     return 'warmup';
   };
 
+  /**
+   * Игры текущего профиля. Зарядка обязана собираться ИЗ НИХ: главная экрана
+   * каталог уже гейтит (`filterAllowedGames`), и без этого предиката зарядка
+   * стала бы чёрным ходом к платным тренажёрам.
+   */
+  const allow = useCallback((gameId: string) => isGameAllowed(profile, gameId), [profile]);
+
   const startWarmup = useCallback((duration: 5 | 10 | 15) => {
     const wd = getCurrentWeekday();
     // Если у профиля задан фиксированный утренний набор — используем его (минуя weekday-логику).
     const meta = profile.morning_playlist && profile.morning_playlist.length > 0
-      ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd)
+      ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, allow)
       : buildMorningWarmupPlaylist({
           duration,
           weekday: wd,
           profilePlaylists: profile.custom_playlists,    // E1: per-profile override
+          allow,
         });
     const warmupId = genUUID();
     const sessionTag = trackToTag(meta.track);
@@ -100,16 +109,16 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     } else {
       router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0]) } as any);
     }
-  }, [router, profile]);
+  }, [router, profile, allow]);
 
   // v1.23 «Комплексы» — вечерний комплекс (перед сном): спокойные игры из profile.evening_playlist.
   const startEvening = useCallback(() => {
     const wd = getCurrentWeekday();
     // утро сегодня → дедуп: вечер не повторяет утренние игры (утро≠вечер)
     const morning = profile.morning_playlist && profile.morning_playlist.length > 0
-      ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd)
-      : buildMorningWarmupPlaylist({ duration: 5, weekday: wd, profilePlaylists: profile.custom_playlists });
-    const meta = buildEveningWarmupPlaylist({ weekday: wd, excludeGameIds: morning.steps.map((s) => s.game_id), profileEvening: profile.evening_playlist });
+      ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, allow)
+      : buildMorningWarmupPlaylist({ duration: 5, weekday: wd, profilePlaylists: profile.custom_playlists, allow });
+    const meta = buildEveningWarmupPlaylist({ weekday: wd, excludeGameIds: morning.steps.map((s) => s.game_id), profileEvening: profile.evening_playlist, allow });
     const warmupId = genUUID();
     setState({
       active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],
@@ -120,7 +129,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     } else {
       router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0]) } as any);
     }
-  }, [router, profile]);
+  }, [router, profile, allow]);
 
   /**
    * Дневной перерыв и «Не спится». Оба набора фиксированные, от профиля и дня
