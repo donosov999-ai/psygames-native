@@ -24,6 +24,7 @@ import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 const GRADIENT = ['#f093fb', '#f5576c'];
 const PENALTY_SECONDS = 15;
@@ -32,6 +33,25 @@ const WORD_PAIRS_BENEFITS = [
   { icon: 'people-outline', textKey: 'benefitWordPairs1' },
   { icon: 'language-outline', textKey: 'benefitWordPairs2' },
   { icon: 'git-branch-outline', textKey: 'benefitWordPairs3' },
+];
+
+/**
+ * Что меняется с уровнем — вслух, а не молча.
+ *
+ * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
+ * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
+ */
+const WORDPAIRS_RULES: LevelRule[] = [
+  {
+    key: 'faster', fromLevel: 4,
+    ru: { title: "Времени на пару меньше", rule: "Пар с каждым уровнем больше, а секунд на каждую — меньше. На первом уровне пара висит 7 секунд, к десятому около 4, дальше 2,5.", example: "Проговаривать вслух перестаёт хватать примерно с восьмого уровня — связывай пару образом, это быстрее." },
+    en: { title: "Less time per pair", rule: "Every level adds pairs and takes away seconds. A pair is shown for 7 seconds at level 1, about 4 by level 10, then 2.5.", example: "Saying them out loud stops fitting around level 8 — link the pair with an image instead, it is faster." },
+  },
+  {
+    key: 'fifteen', fromLevel: 12,
+    ru: { title: "Пятнадцать пар", rule: "Список дорос до предела — пятнадцать пар. Дальше растёт только скорость показа.", example: "На таком объёме держать пары по отдельности уже нельзя: собирай их в цепочку, где каждая тянет следующую." },
+    en: { title: "Fifteen pairs", rule: "The list has hit its ceiling — fifteen pairs. From here only the pace keeps rising.", example: "At this size you cannot hold pairs separately: chain them so each one pulls the next." },
+  },
 ];
 
 type GamePhase = 'intro' | 'config' | 'memorize' | 'check' | 'cleared' | 'result';
@@ -81,6 +101,8 @@ export default function WordPairsGame() {
   // Уровни (persist): ручной селектор числа пар заменён лесенкой 1..15.
   // Пресет зарядки (isPreset) по-прежнему задаёт pairCount сам и без лимита времени.
   const lvl = usePersistentLevel('word_pairs');
+  // Правила уровня: показать при первом входе и дать перечитать по бейджу.
+  const levelRules = useLevelRules('word_pairs', lvl.level, WORDPAIRS_RULES, phase === 'memorize');
   const [memorizeLimitSec, setMemorizeLimitSec] = useState(0);   // 0 = без лимита (пресет)
 
   // Рефы — авто-переход memorize→check по таймауту уровня живёт вне ре-рендеров,
@@ -511,8 +533,8 @@ export default function WordPairsGame() {
   );
 
 
-  if (phase === 'memorize') return renderMemorize();
-  if (phase === 'check') return renderCheck();
+  if (phase === 'memorize') return <>{renderMemorize()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
+  if (phase === 'check') return <>{renderCheck()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -552,6 +574,7 @@ export default function WordPairsGame() {
           onGoHome={() => router.push('/')}
         />
       )}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
     </SafeAreaView>
   );
 }

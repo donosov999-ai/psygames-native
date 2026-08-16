@@ -18,6 +18,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 const GRADIENT = ['#1f4037', '#99f2c8'];
 const RS_BENEFITS = [
@@ -95,6 +96,20 @@ const SENTENCES: SentenceItem[] = [
   { ru: 'Кирпич плавает в воздухе над городом.',      en: 'A brick floats in the air above the city.', ok: false, lastRu: 'городом', lastEn: 'city' },
 ];
 
+/**
+ * Что меняется с уровнем — вслух, а не молча.
+ *
+ * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
+ * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
+ */
+const READINGSPAN_RULES: LevelRule[] = [
+  {
+    key: 'load', fromLevel: 5,
+    ru: { title: "Предложений больше, чем удержишь подряд", rule: "С этого уровня набор длиннее, чем помещается в голове списком. Смысл теста в этом и есть: проверить предложение и НЕ потерять слова из предыдущих.", example: "Не повторяй слова по кругу — на проверке следующего предложения повтор собьётся. Связывай слова в одну фразу, пусть нелепую." },
+    en: { title: "More sentences than you can hold in a row", rule: "From this level the set is longer than fits in your head as a list. That is exactly what the test measures: judge the sentence and do NOT lose the words from the previous ones.", example: "Do not loop the words in your head — judging the next sentence will break the loop. Tie the words into one phrase, however absurd." },
+  },
+];
+
 type GamePhase = 'intro' | 'config' | 'playing' | 'recall' | 'cleared' | 'result';
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
@@ -108,6 +123,8 @@ export default function ReadingSpanGame() {
   const { isPreset, autostart, num } = useGamePreset();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  // Правила уровня: показать при первом входе и дать перечитать по бейджу.
+  const levelRules = useLevelRules('reading_span', lvl.level, READINGSPAN_RULES, phase === 'recall');
   const [clearedPassed, setClearedPassed] = useState(true);
   const [setSize, setSetSize] = useState(() => num('setSize', 4)); // sentences per recall set
   const [seq, setSeq] = useState<SentenceItem[]>([]);
@@ -286,6 +303,7 @@ export default function ReadingSpanGame() {
             />
           </View>
         )}
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </GameShell>
     );
   }
@@ -314,6 +332,7 @@ export default function ReadingSpanGame() {
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
     </SafeAreaView>
   );
 }
