@@ -1,5 +1,5 @@
 // AUTO-GENERATED. route → ключи справки игры (имя/навык/intro-описание).
-// Регенерировать: node /tmp/gen_helpmap.js
+// Регенерировать: node scripts/gen-helpmap.mjs   (скрипт в репозитории, НЕ в /tmp)
 export interface HelpEntry { nameKey: string; skillKey: string; introKey: string }
 export const HELP_MAP: Record<string, HelpEntry> = {
   "/games/schulte": {
@@ -31,6 +31,31 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "wordPairs",
     "skillKey": "skillMemory",
     "introKey": "wordPairsIntroDesc"
+  },
+  "/games/vocab-srs": {
+    "nameKey": "vocabSrs",
+    "skillKey": "skillVocabulary",
+    "introKey": "vocabSrsIntroDesc"
+  },
+  "/games/semantic-sort": {
+    "nameKey": "semanticSort",
+    "skillKey": "skillVocabulary",
+    "introKey": "semanticSortIntroDesc"
+  },
+  "/games/cloze": {
+    "nameKey": "cloze",
+    "skillKey": "skillVocabulary",
+    "introKey": "clozeIntroDesc"
+  },
+  "/games/lexical-decision": {
+    "nameKey": "lexicalDecision",
+    "skillKey": "skillVocabulary",
+    "introKey": "lexicalDecisionIntroDesc"
+  },
+  "/games/chess-blind": {
+    "nameKey": "chessBlind",
+    "skillKey": "skillVisualMemory",
+    "introKey": "chessBlindIntroDesc"
   },
   "/games/mnemonics": {
     "nameKey": "mnemonics",
@@ -82,11 +107,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillVisualMemory",
     "introKey": "spatialSpanIntroDesc"
   },
-  "/games/span": {
-    "nameKey": "spanGroup",
-    "skillKey": "skillShortTermMemory",
-    "introKey": ""
-  },
   "/games/hanoi": {
     "nameKey": "hanoi",
     "skillKey": "skillProblemSolving",
@@ -121,11 +141,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "towerLondon",
     "skillKey": "skillPlanning",
     "introKey": "towerLondonIntroDesc"
-  },
-  "/games/attention-conflict": {
-    "nameKey": "attentionConflict",
-    "skillKey": "skillInhibition",
-    "introKey": ""
   },
   "/games/inhibition": {
     "nameKey": "inhibition",
@@ -232,6 +247,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillFocus",
     "introKey": "antIntroDesc"
   },
+  "/games/quick-count": {
+    "nameKey": "quickCount",
+    "skillKey": "skillAttention",
+    "introKey": "quickCountIntroDesc"
+  },
   "/games/cpt": {
     "nameKey": "cpt",
     "skillKey": "skillSustainedAttention",
@@ -256,5 +276,10 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "simon",
     "skillKey": "skillInhibition",
     "introKey": "simonIntroDesc"
+  },
+  "/games/breathing": {
+    "nameKey": "breathing",
+    "skillKey": "skillRecovery",
+    "introKey": "breathingIntroDesc"
   }
 };
