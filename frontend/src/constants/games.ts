@@ -577,6 +577,16 @@ export const GAMES: GameConfig[] = [
     category: 'action',
   },
   {
+    id: 'math_slider',
+    nameKey: 'mathSlider',
+    descKey: 'mathSliderDesc',
+    skillKey: 'skillMath',
+    gradient: ['#5b4ee8', '#12a594'],
+    icon: 'options',
+    route: '/games/math-slider',
+    category: 'action',
+  },
+  {
     id: 'math_sprint',
     nameKey: 'mathSprint',
     descKey: 'mathSprintDesc',

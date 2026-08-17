@@ -531,8 +531,14 @@ const translations: Translations = {
   benefitMahjong3: { ru: 'Концентрация и внимание к деталям', en: 'Focus and attention to detail' },
 
   // Math Sprint
+  mathSlider: { ru: 'Математическая шкала', en: 'Math Slider' },
+  mathSliderDesc: { ru: 'Прикинь результат и поставь метку на числовой прямой', en: 'Estimate the result and place a marker on the number line' },
   mathSprint: { ru: 'Математический спринт', en: 'Mental Math Sprint' },
   mathSprintDesc: { ru: 'Реши максимум примеров за время', en: 'Solve as many problems as possible in time' },
+  mathSliderIntroDesc: {
+    ru: 'Прикиньте результат выражения и поставьте метку на числовой прямой. Точный счёт не нужен — важно попасть в правильную область шкалы. Тренирует чувство величины и приблизительный счёт, а с уровнями меняется само выражение: сложение, вычитание, умножение, дроби, проценты, скидки, пропорции.',
+    en: 'Estimate the value of the expression and place a marker on the number line. Exact calculation is not the point — landing in the right region of the scale is. Builds number sense and approximation, and the expression family itself changes with the levels: addition, subtraction, multiplication, decimals, percentages, discounts, proportions.',
+  },
   mathSprintIntroDesc: {
     ru: 'Решайте арифметические примеры на скорость. Каждое правильное подряд увеличивает бонус-стрик. Развивает устный счёт и быстроту мышления.',
     en: 'Solve arithmetic problems against the clock. Consecutive correct answers grow a streak bonus. Builds mental arithmetic and processing speed.',
@@ -2076,6 +2082,36 @@ const translations: Translations = {
   petSkinCat: { ru: 'Нейро-кот', en: 'Neuro Cat' },
   petSkinRobot: { ru: 'Робот', en: 'Robot' },
   petSkinConstellation: { ru: 'Нейрон', en: 'Neuron' },   // скин ≠ стадия «Созвездие» (коллизия имён, аудит Кодекса)
+
+  // Справка для семи игр, у которых раньше открывалось пустое окно «как играть».
+  phonemePairsIntroDesc: {
+    ru: 'Два слова звучат почти одинаково и различаются одним-единственным звуком: ship или sheep, bad или bed. Слушаешь запись и выбираешь, что прозвучало.\n\nРодной язык глушит чужие звуки: тех, которых в нём нет, мозг подгоняет под привычные и со временем перестаёт их различать вообще. Упражнение возвращает слух к этой разнице — с неё начинается и понимание беглой речи, и собственное произношение.',
+    en: 'Two words sound nearly identical and differ by a single sound: ship or sheep, bad or bed. You listen and pick which one was said.\n\nYour native language mutes foreign sounds: the ones it lacks get bent into familiar shapes until you stop hearing the difference at all. This brings that distinction back — and both understanding fast speech and your own pronunciation start there.',
+  },
+  pseudowordEchoIntroDesc: {
+    ru: 'Звучит выдуманное слово — такого нет ни в одном языке. Твоя задача выбрать, как оно пишется.\n\nПочему именно несуществующее: настоящее слово узнаётся целиком, по памяти, и разбирать его на звуки не приходится. С выдуманным этот путь закрыт — надо удержать звучание в голове и разложить на части. Это чистая проверка фонологической памяти, на которой держится запоминание новых слов чужого языка.',
+    en: 'You hear an invented word — one that exists in no language. Your task is to pick how it is spelled.\n\nWhy invented: a real word is recognised whole, from memory, and never has to be broken into sounds. An invented one closes that shortcut — you must hold the sound in your head and take it apart. That is a clean measure of phonological memory, the thing new foreign vocabulary rests on.',
+  },
+  listeningSpanIntroDesc: {
+    ru: 'Слушаешь ряд слов и повторяешь их в том же порядке. С каждым уровнем ряд длиннее.\n\nЭто слуховая версия охвата памяти, и она труднее зрительной: картинку можно мысленно «сфотографировать», а звук исчезает в тот же миг, как прозвучал. Тренирует рабочую память в том виде, в каком она работает на совещании, на лекции и в разговоре на чужом языке.',
+    en: 'You hear a list of words and repeat it in the same order. Each level makes the list longer.\n\nThis is the auditory version of memory span, and it is harder than the visual one: a picture can be "photographed" in the mind, sound is gone the instant it ends. It trains working memory in the form it actually works in — in meetings, in lectures, in a conversation in a foreign language.',
+  },
+  spanGroupIntroDesc: {
+    ru: 'Это не отдельное упражнение, а развилка: карточка открывает группу тестов на охват памяти. Внутри — цифры и пространство, прямой порядок и обратный.\n\nПрямой порядок показывает, сколько элементов удаётся удержать. Обратный требует ещё и вертеть их в уме, ничего не потеряв, — потому и даётся заметно хуже. Выбери нужный вариант внутри.',
+    en: 'This is not an exercise but a fork: the card opens a group of memory-span tests. Inside — digits and space, forward order and backward.\n\nForward order shows how many items you can hold. Backward also demands turning them over in your mind without dropping any — which is why it comes out noticeably worse. Pick the variant you want inside.',
+  },
+  samuraiTitleIntroDesc: {
+    ru: 'Пять сеток 9×9, сцепленных углами: каждый угловой блок принадлежит сразу двум сеткам. Правила обычной судоку действуют в каждой сетке отдельно.\n\nВся трудность в общих блоках. Цифра, поставленная в углу, меняет расклад сразу в двух сетках, поэтому решать их по очереди не выйдет — приходится держать в голове обе.',
+    en: 'Five 9×9 grids locked together at the corners: every corner block belongs to two grids at once. Ordinary sudoku rules apply within each grid separately.\n\nAll the difficulty lives in the shared blocks. A digit placed in a corner changes the picture in two grids at once, so solving them one after another does not work — you have to hold both in your head.',
+  },
+  fractalTitleIntroDesc: {
+    ru: 'За каждой клеткой верхней сетки спрятана целая судоку. Решаешь вложенную — её ответ становится цифрой в клетке верхней.\n\nРешение идёт на двух уровнях сразу. Верхняя сетка говорит, какая цифра нужна внизу, а вложенная — можно ли её там вообще получить. Когда эти два ответа расходятся, придётся возвращаться и переигрывать нижнюю.',
+    en: 'Behind every cell of the top grid hides a whole sudoku. Solve the nested one and its answer becomes the digit in that cell above.\n\nYou are solving on two levels at once. The top grid tells you which digit is needed below; the nested one tells you whether that digit can be reached there at all. When those two answers disagree, you go back and redo the lower grid.',
+  },
+  attentionConflictIntroDesc: {
+    ru: 'Это не отдельное упражнение, а развилка: карточка открывает группу тестов на подавление автоматической реакции.\n\nОбщее у них одно — правильный ответ спорит с тем, который просится сам. Прочитать слово легче, чем назвать цвет, которым оно написано. Нажать на всё подряд легче, чем вовремя удержаться. Тренируется именно этот зазор между «хочется» и «надо». Выбери нужный тест внутри.',
+    en: 'This is not an exercise but a fork: the card opens a group of tests on suppressing an automatic response.\n\nThey share one thing — the correct answer competes with the one that suggests itself. Reading a word is easier than naming the colour it is printed in. Pressing everything is easier than holding back at the right moment. What gets trained is exactly that gap between the easy move and the right one. Pick the test you want inside.',
+  },
 };
 
 /** Standalone-резолвер для кода вне React-дерева: сервисы (reminders, cosmetics)
