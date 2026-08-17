@@ -22,13 +22,13 @@ PsyGames: Memory & Focus
 
 ## 2. КРАТКОЕ ОПИСАНИЕ — 80 символов
 ```
-Remember it the first time and stop drifting. 63 exercises, offline, no ads
+Remember it the first time and stop drifting. 64 exercises, offline, no ads
 ```
 75 символов · рекомендую
 
 Запасной:
 ```
-Memory, focus, thinking speed. 63 exercises. Offline, no ads
+Memory, focus, thinking speed. 64 exercises. Offline, no ads
 ```
 60 символов
 
@@ -43,7 +43,7 @@ Hear a foreign language and catch sounds that used to blur into noise.
 
 That's not a gift you're born with. It's trained — and here you can see by how much.
 
-PsyGames is brain training and brain games: 63 exercises and puzzles for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
+PsyGames is brain training and brain games: 64 exercises and puzzles for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
 
 MEMORY GAMES
 Train visual memory with Corsi blocks, matrices and matching pairs. Build working memory with N-back, operation span and reading span. Hold a pattern in mind and reproduce it later.
@@ -68,7 +68,7 @@ Everyone downloads a brain app. Most open it three times and delete it — same 
 • Daily challenge with its own streak, plus achievements
 
 WHAT'S INSIDE
-• 63 exercises for memory, attention, logic, speed and control
+• 64 exercises for memory, attention, logic, speed and control
 • Warm-up in one button: morning, daytime, evening and night — ready sets launch with the right settings
 • 12 profiles for different goals: languages, kids, 50+, focus, reaction, founders and more
 • Assessment with a radar of strengths and weak spots

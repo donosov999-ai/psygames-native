@@ -52,6 +52,21 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillVocabulary",
     "introKey": "lexicalDecisionIntroDesc"
   },
+  "/games/phoneme-pairs": {
+    "nameKey": "phonemePairs",
+    "skillKey": "skillListening",
+    "introKey": "phonemePairsIntroDesc"
+  },
+  "/games/pseudoword-echo": {
+    "nameKey": "pseudowordEcho",
+    "skillKey": "skillListening",
+    "introKey": "pseudowordEchoIntroDesc"
+  },
+  "/games/listening-span": {
+    "nameKey": "listeningSpan",
+    "skillKey": "skillWorkingMemory",
+    "introKey": "listeningSpanIntroDesc"
+  },
   "/games/chess-blind": {
     "nameKey": "chessBlind",
     "skillKey": "skillVisualMemory",
@@ -107,6 +122,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillVisualMemory",
     "introKey": "spatialSpanIntroDesc"
   },
+  "/games/span": {
+    "nameKey": "spanGroup",
+    "skillKey": "skillShortTermMemory",
+    "introKey": "spanGroupIntroDesc"
+  },
   "/games/hanoi": {
     "nameKey": "hanoi",
     "skillKey": "skillProblemSolving",
@@ -116,6 +136,16 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "sudoku",
     "skillKey": "skillLogic",
     "introKey": "sudokuIntroDesc"
+  },
+  "/games/sudoku-samurai": {
+    "nameKey": "samuraiTitle",
+    "skillKey": "skillLogic",
+    "introKey": "samuraiTitleIntroDesc"
+  },
+  "/games/sudoku-fractal": {
+    "nameKey": "fractalTitle",
+    "skillKey": "skillLogic",
+    "introKey": "fractalTitleIntroDesc"
   },
   "/games/anagrams": {
     "nameKey": "anagrams",
@@ -141,6 +171,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "towerLondon",
     "skillKey": "skillPlanning",
     "introKey": "towerLondonIntroDesc"
+  },
+  "/games/attention-conflict": {
+    "nameKey": "attentionConflict",
+    "skillKey": "skillInhibition",
+    "introKey": "attentionConflictIntroDesc"
   },
   "/games/inhibition": {
     "nameKey": "inhibition",
@@ -206,6 +241,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "counter",
     "skillKey": "skillMath",
     "introKey": "counterIntroDesc"
+  },
+  "/games/math-slider": {
+    "nameKey": "mathSlider",
+    "skillKey": "skillMath",
+    "introKey": "mathSliderIntroDesc"
   },
   "/games/math-sprint": {
     "nameKey": "mathSprint",
