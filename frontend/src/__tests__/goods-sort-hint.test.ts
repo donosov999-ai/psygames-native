@@ -12,6 +12,9 @@
  */
 import { findHint } from '@/app/games/goods-sort';
 
+declare const __dirname: string;
+declare function require(m: string): any;
+
 const all = () => true;
 
 describe('поиск подсказки', () => {
