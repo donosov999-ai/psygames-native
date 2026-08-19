@@ -4,6 +4,16 @@
 // listening_span, mahjong, phoneme_pairs, pseudoword_echo, quick_count,
 // semantic_sort, vocab_srs) дорисованы тем же стилем: SVG 160x160 → sharp → webp.
 // ~2-4 КБ каждое. Игры без превью показывают карточку как раньше (фолбэк).
+//
+// 19.08.2026 к ним добавлены ещё 7 (dots_connect, faces_names, memory_palace,
+// navigator, object_tracker, one_line, rhythm_pitch) — тот же холст 160x160,
+// та же палитра, снятая пиксельным замером с прежних 13. Рисует их КОДОМ
+// scripts/gen-gamethumbs.mjs: у пиктограмм точная геометрия (эйлеров обход
+// домика, четыре непересекающихся пути в сетке), генератор картинок такое
+// коверкает. Перерисовать: `node scripts/gen-gamethumbs.mjs [id]`.
+//
+// Кто ещё без превью и почему — поимённо в src/__tests__/game-thumbs.test.ts;
+// молчаливых пропусков там нет, новая игра без записи роняет прогон.
 const THUMBS: Record<string, any> = {
   anagrams: require('../../assets/images/gamethumbs/anagrams.webp'),
   ant: require('../../assets/images/gamethumbs/ant.webp'),
@@ -17,7 +27,9 @@ const THUMBS: Record<string, any> = {
   counter: require('../../assets/images/gamethumbs/counter.webp'),
   cpt: require('../../assets/images/gamethumbs/cpt.webp'),
   digit_span: require('../../assets/images/gamethumbs/digit_span.webp'),
+  dots_connect: require('../../assets/images/gamethumbs/dots_connect.webp'),
   eye_gym: require('../../assets/images/gamethumbs/eye_gym.webp'),
+  faces_names: require('../../assets/images/gamethumbs/faces_names.webp'),
   find_differences: require('../../assets/images/gamethumbs/find_differences.webp'),
   flanker: require('../../assets/images/gamethumbs/flanker.webp'),
   go_no_go: require('../../assets/images/gamethumbs/go_no_go.webp'),
@@ -30,10 +42,14 @@ const THUMBS: Record<string, any> = {
   mahjong: require('../../assets/images/gamethumbs/mahjong.webp'),
   math_sprint: require('../../assets/images/gamethumbs/math_sprint.webp'),
   memory_matrix: require('../../assets/images/gamethumbs/memory_matrix.webp'),
+  memory_palace: require('../../assets/images/gamethumbs/memory_palace.webp'),
   mental_rotation: require('../../assets/images/gamethumbs/mental_rotation.webp'),
   mnemonics: require('../../assets/images/gamethumbs/mnemonics.webp'),
   n_back: require('../../assets/images/gamethumbs/n_back.webp'),
+  navigator: require('../../assets/images/gamethumbs/navigator.webp'),
   number_bonds: require('../../assets/images/gamethumbs/number_bonds.webp'),
+  object_tracker: require('../../assets/images/gamethumbs/object_tracker.webp'),
+  one_line: require('../../assets/images/gamethumbs/one_line.webp'),
   ospan: require('../../assets/images/gamethumbs/ospan.webp'),
   pattern: require('../../assets/images/gamethumbs/pattern.webp'),
   phoneme_pairs: require('../../assets/images/gamethumbs/phoneme_pairs.webp'),
@@ -45,6 +61,7 @@ const THUMBS: Record<string, any> = {
   pseudoword_echo: require('../../assets/images/gamethumbs/pseudoword_echo.webp'),
   quick_count: require('../../assets/images/gamethumbs/quick_count.webp'),
   reading_span: require('../../assets/images/gamethumbs/reading_span.webp'),
+  rhythm_pitch: require('../../assets/images/gamethumbs/rhythm_pitch.webp'),
   rmet: require('../../assets/images/gamethumbs/rmet.webp'),
   schulte_table: require('../../assets/images/gamethumbs/schulte_table.webp'),
   sdmt: require('../../assets/images/gamethumbs/sdmt.webp'),
