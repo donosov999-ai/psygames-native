@@ -106,6 +106,47 @@ function dendrites(cx: number, cy: number, r: number, n: number) {
   return out;
 }
 
+/**
+ * СТУПЕНЬ СЛОВОМ — ОБЩАЯ, КОГДА ИГРА НЕ ДАЛА СВОЮ.
+ *
+ * 🔴 ЗАЧЕМ. Тропинка умеет подписывать узлы словами (`levelLabel`) с самого
+ * начала, но пользовались этим ДВЕ игры из шестидесяти четырёх. У остальных на
+ * карте стояли голые номера, и жалоба из репортов 9 августа — «не понимаю, как
+ * меняется сложность» — не была закрыта нигде, кроме судоку и глазной
+ * гимнастики. Номер сам по себе не сообщает ничего: двенадцатый уровень это
+ * «уже трудно» или «ещё разминка»?
+ *
+ * Общая подпись считается от ДОЛИ пути, а не от абсолютного номера: у одной игры
+ * уровней 15, у другой 60, и «двенадцатый» в них значит разное. Игра, которая
+ * знает про себя больше (судоку знает настоящую ступень генератора), по-прежнему
+ * передаёт свою — она точнее.
+ *
+ * ⚠️ У МЕТОДИК ПОДПИСИ НЕТ И БЫТЬ НЕ ДОЛЖНО. Там число считает ПРОХОЖДЕНИЯ, а не
+ * ступени сложности (`countsRuns`): «третье прохождение — трудный» это ложь.
+ *
+ * ⚠️ КЛЮЧИ ВЗЯТЫ СУЩЕСТВУЮЩИЕ, С ПРЕФИКСОМ `sudokuTier`. Слова в них общие
+ * («Начинающий», «Лёгкий», …) и уже переведены на 12 языков; заводить рядом
+ * `tier*` с тем же текстом значит получить дубли, которые сегодня как раз
+ * вычищали. Префикс исторический — переименование отдельной задачей, когда
+ * словарь освободится.
+ */
+const TIER_KEYS = [
+  'sudokuTierBeginner',
+  'sudokuTierEasy',
+  'sudokuTierMedium',
+  'sudokuTierHard',
+  'sudokuTierExpert',
+  'sudokuTierExtreme',
+] as const;
+
+/** Ступень по доле пройденного пути. Возвращает ключ словаря. */
+export function tierKeyFor(level: number, maxLevel: number): string {
+  if (maxLevel <= 1) return TIER_KEYS[0];
+  const share = (Math.max(1, level) - 1) / (maxLevel - 1);
+  const idx = Math.min(TIER_KEYS.length - 1, Math.floor(share * TIER_KEYS.length));
+  return TIER_KEYS[idx];
+}
+
 export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, colors, levelLabel, onPickLevel, countsRuns }: Props) {
   const { t } = useLanguage();   // язык из контекста; проп language остался в Props для совместимости
   const { profile } = useProfile();
@@ -148,7 +189,11 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
     return () => { alive = false; };
   }, []);
 
-  const H = levelLabel ? H_LABEL : H_BASE;
+  /**
+   * Подпись ступени: своя от игры, иначе общая по доле пути. У методик — нет.
+   */
+  const label = levelLabel ?? (countsRuns ? undefined : (l: number) => t(tierKeyFor(l, maxLevel)));
+  const H = label ? H_LABEL : H_BASE;
   const sel = Math.min(Math.max(1, currentLevel), maxLevel);   // где стоит питомец = что запустится
   /**
    * ПОТОЛОК ПУТИ — самое высокое, что мы видели за это открытие экрана.
@@ -306,7 +351,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
           </View>
 
           {/* Подписи уровней (судоку передаёт «лёгкий/средний/…») — под звёздами. */}
-          {levelLabel && Array.from({ length: maxLevel }, (_, i) => (
+          {label && Array.from({ length: maxLevel }, (_, i) => (
             <Text
               key={`lb${i}`}
               numberOfLines={1}
@@ -317,7 +362,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
                 color: i + 1 === sel ? accent : dim,
               }]}
             >
-              {levelLabel(i + 1)}
+              {label(i + 1)}
             </Text>
           ))}
 
