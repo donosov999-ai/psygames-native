@@ -413,18 +413,54 @@ describe('🔴 причина соответствует данным', () => {
     return filterAllowedGames(p).filter((g) => !g.hideFromMenu && !RECO_GROUP_HUBS.includes(g.id));
   }
 
-  /** Партий на ветку за окно — сырым счётчиком; на размер ветки делит уже вызывающий. */
+  /**
+   * Партий на ветку за окно — сырым счётчиком; на размер ветки делит уже вызывающий.
+   * Считается по ВСЕМУ каталогу: партия, сыгранная через хаб, пишется под скрытой из
+   * меню игрой, но тренировкой ветки быть не перестаёт.
+   */
   function branchLoad(pool: GameConfig[], before: HistorySession[], dayStart: number): Map<string, number> {
     const win = dayStart - RECO_BRANCH_WINDOW_DAYS * MS_DAY;
+    const cats = new Set(pool.map((g) => g.category));
     const load = new Map<string, number>();
     for (const s of before) {
       const t = Date.parse(s.timestamp as string);
-      const g = pool.find((x) => x.id === s.game_type);
-      if (!g || t < win) continue;
+      const g = BY_ID.get(s.game_type as string);
+      if (!g || !cats.has(g.category) || t < win) continue;
       load.set(g.category, (load.get(g.category) ?? 0) + 1);
     }
     return load;
   }
+
+  /**
+   * 🔴 ТРЕНИРОВКА ЧЕРЕЗ ХАБ — ТОЖЕ ТРЕНИРОВКА ВЕТКИ.
+   *
+   * Человек каждый день заходит в «Охват» и играет ряд цифр. Партия пишется под
+   * `digit_span`, которого в меню нет (он схлопнут в хаб). Если считать нагрузку только
+   * по видимым в меню упражнениям, память у такого человека выглядит нетронутой — и блок
+   * годами зовёт его туда, куда он ходит ежедневно. Ровно это и было до правки.
+   */
+  it('🔴 партии через хаб считаются нагрузкой своей ветки, а не пропадают', () => {
+    const p = profile('odv999');
+    const hidden = GAMES.find((g) => g.id === 'digit_span') as GameConfig;
+    expect(`${hidden.category}/${hidden.hideFromMenu}`).toBe('memory/true');
+    const sessions: HistorySession[] = [];
+    // Двадцать пять партий ряда цифр за месяц — память тренируется плотнее всего.
+    for (let k = 0; k < 25; k++) {
+      sessions.push(ago(2 + (k % 27), DAY, {
+        game_type: 'digit_span', profile_id: p.id, score: 500 - k * 10, time_seconds: 20 + k,
+      }));
+    }
+    // Всё остальное — по одной партии на игру: ни «давно не играли», ни «растёте».
+    for (const g of GAMES) {
+      if (g.category === 'memory') continue;
+      sessions.push(ago(3, DAY, { game_type: g.id, profile_id: p.id, score: 100 }));
+    }
+    const branchPicks = recommendToday({ profile: p, sessions, now: MORNING, freshIds: [] })
+      .filter((r) => r.reason === 'branch');
+    expect(branchPicks.length).toBeGreaterThan(0);
+    const cats = branchPicks.map((r) => (BY_ID.get(r.gameId) as GameConfig).category);
+    expect(`обделённой названа: ${[...new Set(cats)].join(',')}`).not.toContain('memory');
+  });
 
   /** Пересчёт «с нуля», намеренно другим кодом, чем в сервисе. */
   function audit(picks: RecoPick[], sessions: HistorySession[], profileId: string, now: Date): string[] {

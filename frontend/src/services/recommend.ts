@@ -296,12 +296,26 @@ export function recommendToday(input: RecoInput): RecoPick[] {
       const list = inCat.get(g.category);
       if (list) list.push(g.id); else inCat.set(g.category, [g.id]);
     }
+    /**
+     * ⚠️ НАГРУЗКУ СЧИТАЕМ ПО ВСЕМУ КАТАЛОГУ, А ПРЕДЛАГАЕМ — ТОЛЬКО ИЗ ПУЛА. Это разные
+     * вопросы, и мерить их одним списком нельзя.
+     *
+     * Первая редакция считала только партии игр ИЗ ПУЛА — и не видела тренировок,
+     * сделанных через хаб: человек заходит в «Охват», играет ряд цифр, а партия пишется
+     * как `digit_span`, которого в меню нет (`hideFromMenu`). Для счётчика памяти такой
+     * человек — «не тренировал память ни разу», и блок каждый день звал бы его туда,
+     * куда он и так ходит ежедневно.
+     *
+     * Знаменатель при этом остаётся размером ПУЛА: он отвечает на другой вопрос —
+     * сколько упражнений этой ветки мы вообще можем предложить.
+     */
+    const catOf = new Map<string, GameCategory>(GAMES.map((g) => [g.id, g.category]));
     const load = new Map<GameCategory, number>();
     for (const { s, t } of before) {
       if (t < windowStart) continue;
-      const g = byId.get(s.game_type as string);
-      if (!g) continue;   // упражнение вне профиля — в нагрузку его ветки не идёт
-      load.set(g.category, (load.get(g.category) ?? 0) + 1);
+      const c = catOf.get(s.game_type as string);
+      if (c === undefined || !inCat.has(c)) continue;   // ветки нет в профиле — сравнивать не с чем
+      load.set(c, (load.get(c) ?? 0) + 1);
     }
     const cats = [...inCat.keys()].sort((a, b) => {
       const la = (load.get(a) ?? 0) / (inCat.get(a) as string[]).length;
