@@ -148,10 +148,21 @@ const NOT_A_GAME: Record<string, string> = {
   'span.tsx': 'хаб: меню из трёх модальностей охвата, играть тут не в чем',
   'math-slider.tsx':
     'экран-обёртка: партию рисует модуль src/games/math-slider/MathSliderGame.tsx, строка живёт там (strings.prompt) вместе со своим словарём',
+  'navigator.tsx':
+    'экран-обёртка: партию рисует модуль src/games/navigator/NavigatorGame.tsx, строка живёт там (strings.routePrompt / turnPrompt / homePrompt — своя на каждый из трёх режимов) вместе со своим словарём',
 };
 
 /** Строка модуля «Прикидки» — лежит в чужом файле, но проверяется так же. */
 const MODULE_LINE = { file: 'src/games/math-slider/MathSliderGame.tsx', token: 'strings.prompt' };
+/**
+ * Строка «Навигатора» — та же история, но строк ТРИ: у каждого режима свой
+ * вопрос, и подставляется он в `prompt` перед отрисовкой. Проверяем все три:
+ * пропажа любой означает режим без объяснения, что делать.
+ */
+const NAVIGATOR_LINES = {
+  file: 'src/games/navigator/NavigatorGame.tsx',
+  tokens: ['strings.routePrompt', 'strings.turnPrompt', 'strings.homePrompt'],
+};
 
 /**
  * ДОЛГ: судоку правит соседний заход, файл трогать нельзя. Список закрыт —
@@ -187,6 +198,10 @@ describe('строка «что делать» во время партии', ()
     }
     const mod = read(MODULE_LINE.file);
     if (!mod.includes(MODULE_LINE.token)) bad.push(`${MODULE_LINE.file}: «${MODULE_LINE.token}» пропал`);
+    const nav = read(NAVIGATOR_LINES.file);
+    for (const token of NAVIGATOR_LINES.tokens) {
+      if (!nav.includes(token)) bad.push(`${NAVIGATOR_LINES.file}: «${token}» пропал`);
+    }
     expect(bad).toEqual([]);
   });
 
@@ -218,6 +233,7 @@ describe('строка «что делать» во время партии', ()
     }
     // У обёртки «Прикидки» партию рисует модуль — связь обязана быть видна.
     expect(read('app/games/math-slider.tsx')).toContain('<MathSliderGame');
+    expect(read('app/games/navigator.tsx')).toContain('<NavigatorGame');
   });
 
   it('долг не протух: судоку всё ещё без строки', () => {
