@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.204.0',
+    date: '2026-08-19',
+    ru: [
+      'Вечерняя зарядка больше не торопит: в «Отличиях» убран обратный отсчёт, у маджонга скрыт секундомер. Вечерний набор задуман как успокоение перед сном, а таймер делал ровно обратное',
+      'Не успели раунд — теряете только его. Раньше просроченный раунд заканчивал весь уровень и съедал оставшиеся попытки',
+      'Пока вы пишете отзыв, игра стоит на паузе. Раньше время шло, и партия могла закончиться, пока вы про неё рассказывали',
+      'В PRL наконец сказано, что происходит: угадывать не нужно. Стороны молча меняются местами, и две ошибки подряд после удачной серии означают, что правило сменилось',
+      'Полки в «Сортировке товаров» больше не обрезаются снизу',
+      '⚠️ Приложение всё ещё требует ВПН, и это пока не решено. Отчёты теперь сообщают нам, каким путём они доехали, — без этого разобраться не получалось',
+    ],
+    en: [
+      'The evening warm-up no longer rushes you: Spot the Difference lost its countdown and Mahjong its stopwatch. The evening set exists to wind down, and a timer did the opposite',
+      'Running out of time now costs you that round only. Before, one late round ended the whole level and ate the remaining tries',
+      'The game pauses while you write feedback. Time used to keep running, so a round could end while you were describing it',
+      'PRL finally says what is going on: there is nothing to guess. The sides swap silently, and two errors in a row after a good streak mean the rule has changed',
+      'Shelves in Sort the Goods are no longer cut off at the bottom',
+      '⚠️ The app still needs a VPN in some networks and that is not solved yet. Reports now tell us which route they took — without that we could not investigate',
+    ],
+  },
+  {
     version: '1.203.0',
     date: '2026-08-14',
     ru: [
