@@ -15,6 +15,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -437,17 +438,19 @@ export default function HanoiGame() {
       confirmExit={liveGame && touched}
       resumable
       onSaveBeforeExit={saveBeforeExit}
-      toolbar={
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel={t('btn_undo')}
-          disabled={!moveHistory.canUndo}
-          onPress={handleUndo}
-          style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: moveHistory.canUndo ? 1 : 0.4 }]}
-        >
-          <Ionicons name="arrow-undo" size={18} color={colors.text} />
-          <Text style={[styles.undoBtnText, { color: colors.text }]}>{t('btn_undo')}</Text>
-        </TouchableOpacity>
+      /* Отмена откатывает ЗАСЧИТАННЫЙ ход (диск переложен, счётчик ходов
+         вырос) — значит трогает игру, а не черновик ответа, и по правилу
+         каркаса живёт в шапке. Отвечают здесь на самом поле: тапом по стержню.
+         Нижней полосы у ханоя больше нет — башня получила её высоту. */
+      headerActions={
+        <GameAuxBar>
+          <GameAuxAction
+            icon="arrow-undo"
+            label={t('btn_undo')}
+            disabled={!moveHistory.canUndo}
+            onPress={handleUndo}
+          />
+        </GameAuxBar>
       }
       stats={
         <View style={styles.statsRow}>
@@ -639,6 +642,9 @@ const styles = StyleSheet.create({
   discShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%', backgroundColor: 'rgba(255,255,255,0.28)' },
   discLabel: { position: 'absolute', left: 0, right: 0, top: 3, textAlign: 'center', fontSize: 12, fontWeight: '800', color: 'rgba(25,15,0,0.62)' },
   hintText: { fontSize: 12, textAlign: 'center' },
+  // ⚠️ Осиротело после разводки слотов: «Отменить» уехала в шапку (GameAuxAction).
+  // Стили ниже (undoBtn, undoBtnText) больше никем не берутся; оставлены
+  // намеренно — удаление чужого кода в этом проекте только с разрешения.
   undoBtn: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 18, paddingVertical: 9, borderRadius: 16, borderWidth: 1 },
   undoBtnText: { fontSize: 14, fontWeight: '700' },
 });

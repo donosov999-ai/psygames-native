@@ -24,6 +24,7 @@ import { useTtsAvailable } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { gameNow } from '@/src/services/gamePause';
@@ -370,8 +371,9 @@ export default function PhonemePairsGame() {
     </ScrollView>
   );
 
-  // игровая фаза — на едином каркасе GameShell: двухъярусный тулбар (пара слов + повтор)
-  // прибит к низу (паттерн prl), в поле — подсказка и показ прозвучавшего слова
+  // игровая фаза — на едином каркасе GameShell: внизу ТОЛЬКО пара слов (ответ),
+  // повтор звука — служебное действие и стоит в шапке; в поле — подсказка и показ
+  // прозвучавшего слова
   const playingTrial = phase === 'playing' ? trialsRef.current[idx] : undefined;
   if (phase === 'playing' && playingTrial) {
     const tr = playingTrial;
@@ -389,6 +391,23 @@ export default function PhonemePairsGame() {
             {!p.blind && <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>}
             {!p.blind && <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>}
           </View>
+        }
+        /*
+          🔴 «Ещё раз» УЕХАЛО ИЗ НИЖНЕЙ ПОЛОСЫ, и здесь смешение было самым
+          наглядным: две кнопки-ответа и повтор звука стояли ОДНОЙ КОЛОНКОЙ,
+          одинаковыми пилюлями, причём повтор — САМЫМ НИЖНИМ, ближе всего к
+          пальцу. Ответ и «подай задание заново» ничем не различались.
+          Повтор игру не отвечает: он заново произносит слово (и считается в
+          `replaysRef`). Это подача задания — служебное действие, место в шапке.
+          Внизу остались ровно два ответа, и полоса снова значит одно.
+        */
+        headerActions={
+          <GameAuxBar>
+            <GameAuxAction
+              icon="volume-high" label={t('replaySound')}
+              disabled={answered !== null} onPress={replay}
+            />
+          </GameAuxBar>
         }
         toolbar={
           <View style={styles.toolbarCol}>
@@ -415,15 +434,6 @@ export default function PhonemePairsGame() {
                 );
               })}
             </View>
-            <TouchableOpacity
-              accessibilityRole="button"
-              style={[styles.replayBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={replay}
-              disabled={answered !== null}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.replayText, { color: colors.text }]}>🔊 {t('replaySound')}</Text>
-            </TouchableOpacity>
           </View>
         }
       >
@@ -509,6 +519,9 @@ const styles = StyleSheet.create({
   wordBtn: { paddingVertical: 26, paddingHorizontal: 20, borderRadius: 16, borderWidth: 2, alignItems: 'center' },
   wordBtnText: { fontSize: 30, fontWeight: '800' },
   revealText: { fontSize: 16, fontWeight: '700' },
+  // ⚠️ Осиротело после разводки слотов: «Ещё раз» уехало в шапку (GameAuxAction).
+  // Стили ниже (replayBtn, replayText) больше никем не берутся; оставлены
+  // намеренно — удаление чужого кода в этом проекте только с разрешения.
   replayBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 22, borderRadius: 16, borderWidth: 1, marginTop: 4 },
   replayText: { fontSize: 15, fontWeight: '700' },
 });

@@ -30,6 +30,7 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
@@ -454,7 +455,8 @@ export default function AnagramGame() {
     }
   };
 
-  // playing-фаза — на едином каркасе GameShell (кнопки Подсказка/Сброс прибиты к низу)
+  // playing-фаза — на едином каркасе GameShell: подсказка — служебное действие,
+  // значит в шапке; «Отменить/Сброс» правят черновик ответа и остаются внизу
   if (phase === 'playing') {
     return (
       <GameShell
@@ -470,22 +472,31 @@ export default function AnagramGame() {
             )}
           </View>
         }
+        /* 💡 Подсказка ушла НАВЕРХ, к остальному служебному: она открывает
+           следующую верную букву и растит счётчик `hintUses`, который режет
+           результат — то есть трогает игру, а не черновик ответа.
+           Кнопка показывается только при включённом тумблере: иначе «хардкор»
+           подсказку не выключал. */
+        headerActions={
+          hintsOn ? (
+            <GameAuxBar>
+              <GameAuxAction
+                icon="bulb" tint="#d97706"
+                label={t('btn_hint')} count={hintUses > 0 ? hintUses : undefined}
+                onPress={revealHint}
+              />
+            </GameAuxBar>
+          ) : undefined
+        }
+        /*
+          А «Отменить» и «Сброс» ОСТАЛИСЬ ВНИЗУ, и это не недоделка. Обе правят
+          ЧЕРНОВИК ответа: снимают набранные буквы, пока слово не сдано. Игры они
+          не трогают — ни счётчика, ни лимита, ни доски, — а до полного набора
+          анаграмма ничего не проверяет. Правка ответа обязана стоять рядом со
+          сдачей ответа, а не в шапке: это одна и та же работа.
+        */
         toolbar={
           <View style={styles.actionsRow}>
-            {/* 💡 кнопка-подсказка только когда тумблер ВКЛ — иначе «хардкор» подсказку не выключал */}
-            {hintsOn && (
-              <TouchableOpacity
-                accessibilityRole="button" onPress={revealHint} style={[styles.clearBtn, { flex: 1, backgroundColor: '#fbbf24' }]}>
-                <Text style={[styles.clearText, { color: '#1a1a1a' }]}>💡 {t('btn_hint')}{hintUses > 0 ? ` (${hintUses})` : ''}</Text>
-              </TouchableOpacity>
-            )}
-            {/*
-              Отмена стоит РЯДОМ со «Сбросом», в том же нижнем ряду, а не в шапке.
-              Низ здесь не занят вводом: буквы игрок жмёт в поле, внизу только
-              служебные кнопки. Правило каркаса (`GameShell.headerActions`) велит
-              уносить наверх лишь тем играм, у кого низ забит своей клавиатурой —
-              иначе служебные кнопки разъезжаются по двум углам экрана.
-            */}
             <TouchableOpacity
               accessibilityRole="button" accessibilityLabel={t('btn_undo')}
               accessibilityState={{ disabled: !hist.canUndo }}

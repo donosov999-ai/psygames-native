@@ -11,6 +11,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
@@ -2104,8 +2105,9 @@ export default function GoodsSortGame() {
     </ScrollView>
   );
 
-  // игровая фаза — на едином каркасе GameShell: HUD-бейджи в статс-строке, «перемешать» прибит
-  // к низу; модалка правил уровня поверх каркаса (паттерн digit-span)
+  // игровая фаза — на едином каркасе GameShell: HUD-бейджи в статс-строке, служебные
+  // действия (отмена/подсказка/перемешать) — в шапке; модалка правил уровня поверх
+  // каркаса (паттерн digit-span)
   if (phase === 'playing') {
     const remaining = cells.reduce((s, c) => s + c.length, 0);
     return (
@@ -2129,36 +2131,36 @@ export default function GoodsSortGame() {
                 ) : null;
               })()}
               {!isPreset && <LevelRuleBadge lr={levelRules} color="#d97706" ru={language === 'ru'} />}
-              {/* Отмена — служебное действие, поэтому в шапке, а не в нижней
-                  полосе: низ у нас для «перемешать», и смешивать их значит
-                  ставить рядом «дай новый расклад» и «верни как было». */}
-              <TouchableOpacity
-                accessibilityRole="button" accessibilityLabel={t('btn_undo')}
-                accessibilityState={{ disabled: !history.canUndo }}
-                onPress={undoMove} disabled={!history.canUndo} activeOpacity={0.8}
-                style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: history.canUndo ? 1 : 0.4 }]}>
-                <Ionicons name="arrow-undo" size={17} color="#d97706" />
-              </TouchableOpacity>
-              {/* Подсказка — тоже служебное действие, поэтому рядом с отменой.
-                  Остаток на кнопке: цена видна ДО нажатия, а не после. */}
-              <TouchableOpacity
-                accessibilityRole="button" accessibilityLabel={t('btn_hint')}
-                accessibilityState={{ disabled: hints <= 0 }}
-                onPress={showHint} disabled={hints <= 0} activeOpacity={0.8}
-                style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: hints > 0 ? 1 : 0.4 }]}>
-                <Ionicons name="bulb" size={17} color="#0284c7" />
-                <Text style={[styles.hintCount, { color: colors.text }]}>{hints}</Text>
-              </TouchableOpacity>
             </View>
           }
-          toolbar={
-            <TouchableOpacity
-              accessibilityRole="button" onPress={reshuffle} activeOpacity={0.8} disabled={shuffles <= 0}
-              accessibilityState={{ disabled: shuffles <= 0 }}
-              style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: shuffles > 0 ? 1 : 0.45 }]}>
-              <Ionicons name="shuffle" size={18} color="#d97706" />
-              <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')} {shuffles}</Text>
-            </TouchableOpacity>
+          /*
+            🔴 ВСЕ ТРИ СЛУЖЕБНЫЕ КНОПКИ СОБРАНЫ В ОДНО МЕСТО. Отмена и подсказка
+            и раньше стояли в шапке — но ВНУТРИ строки счётчиков, вперемешку с
+            бейджами уровня и очков: кнопка среди табло не читается как кнопка.
+            «Перемешать» при этом жило внизу с обоснованием «низ свободен».
+
+            Оба решения сняты одним правилом: низ каркаса означает ОТВЕТ игрока,
+            а отвечают здесь на поле — перетаскивая товар. Перетасовка, отмена и
+            подсказка тратят лимит и перекладывают доску, то есть трогают игру,
+            и все трое — служебные. Теперь они в одном ряду, счётчики отдельно,
+            нижней полосы у сортировки нет.
+          */
+          headerActions={
+            <GameAuxBar>
+              <GameAuxAction
+                icon="arrow-undo" tint="#d97706" label={t('btn_undo')}
+                disabled={!history.canUndo} onPress={undoMove}
+              />
+              {/* Остаток подсказок на кнопке: цена видна ДО нажатия, а не после. */}
+              <GameAuxAction
+                icon="bulb" tint="#0284c7" label={t('btn_hint')} count={hints}
+                disabled={hints <= 0} onPress={showHint}
+              />
+              <GameAuxAction
+                icon="shuffle" tint="#d97706" label={t('shuffleBtn')} count={shuffles}
+                disabled={shuffles <= 0} onPress={reshuffle}
+              />
+            </GameAuxBar>
           }
         >
           <View style={styles.fieldCol}
@@ -2349,6 +2351,9 @@ const styles = StyleSheet.create({
   fieldCol: { flex: 1, alignSelf: 'stretch', justifyContent: 'center', gap: 8, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   hintText: { fontSize: 12, textAlign: 'center' },
+  // ⚠️ Осиротело после разводки слотов: все три служебные кнопки уехали в шапку (GameAuxAction).
+  // Больше никем не берутся четыре записи — shuffleBtn и shuffleText здесь, undoBtn и
+  // hintCount ниже по файлу; оставлены намеренно: удаление чужого кода — только с разрешения.
   shuffleBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1.5, marginTop: 6 },
   shuffleText: { fontSize: 14, fontWeight: '700' },
   /**
