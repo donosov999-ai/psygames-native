@@ -148,6 +148,8 @@ const NOT_A_GAME: Record<string, string> = {
   'span.tsx': 'хаб: меню из трёх модальностей охвата, играть тут не в чем',
   'math-slider.tsx':
     'экран-обёртка: партию рисует модуль src/games/math-slider/MathSliderGame.tsx, строка живёт там (strings.prompt) вместе со своим словарём',
+  'one-line.tsx':
+    'экран-обёртка: партию рисует модуль src/games/one-line/OneLineGame.tsx, строка живёт там (strings.rulesRepeat под счётчиком рёбер: «в вершины можно возвращаться, но уже пройденное ребро использовать нельзя») вместе со своим словарём; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт one-line-integration.test.ts',
   'object-tracker.tsx':
     'экран-обёртка: партию рисует модуль src/games/object-tracker/ObjectTrackerGame.tsx, строка живёт там (phaseTitle → strings.preview/moving/selection, свой словарь ru/en) и меняется на каждой фазе раунда',
   'faces-names.tsx':
