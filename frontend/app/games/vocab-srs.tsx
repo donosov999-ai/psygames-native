@@ -1,3 +1,4 @@
+/* psygames-game-vocab-srs · VER 1 · 19.08.2026 */
 /**
  * Словарь SRS (Полиглот TIER 1 п.1, v1.28.0).
  * Квиз «слово → 4 варианта»; SRS-график ведёт src/services/vocab-srs.ts (упрощённый SM-2).

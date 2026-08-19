@@ -1,3 +1,4 @@
+/* psygames-game-stroop-emotional · VER 1 · 19.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

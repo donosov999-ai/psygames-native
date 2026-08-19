@@ -1,3 +1,4 @@
+/* psygames-game-simon · VER 1 · 19.08.2026 */
 /**
  * Simon Task (v1.9.0 — 48-я игра, классика inhibitory control)
  *

@@ -1,3 +1,4 @@
+/* psygames-game-ant · VER 1 · 19.08.2026 */
 /**
  * ANT — Attention Network Test (Fan, McCandliss, Sommer, Raz, Posner 2002).
  *

@@ -1,3 +1,4 @@
+/* psygames-game-stop-signal · VER 1 · 19.08.2026 */
 /**
  * Stop-Signal Task — классика inhibitory control (response inhibition).
  *

@@ -1,3 +1,4 @@
+/* psygames-game-trail-making · VER 1 · 19.08.2026 */
 /**
  * Trail Making Test (TMT) — соединяй узлы по порядку.
  *

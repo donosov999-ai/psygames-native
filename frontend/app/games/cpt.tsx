@@ -1,3 +1,4 @@
+/* psygames-game-cpt · VER 1 · 19.08.2026 */
 /**
  * CPT — Continuous Performance Test (Conners Not-X variant)
  *

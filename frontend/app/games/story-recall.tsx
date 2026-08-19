@@ -1,3 +1,4 @@
+/* psygames-game-story-recall · VER 1 · 19.08.2026 */
 /**
  * Story Recall (Wechsler Logical Memory style)
  *

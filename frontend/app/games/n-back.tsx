@@ -1,3 +1,4 @@
+/* psygames-game-n-back · VER 1 · 19.08.2026 */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,

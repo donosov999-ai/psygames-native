@@ -1,3 +1,4 @@
+/* psygames-game-mental-rotation · VER 1 · 19.08.2026 */
 /**
  * Mental Rotation — 3D Shepard-Metzler version (Round 7 upgrade)
  *
