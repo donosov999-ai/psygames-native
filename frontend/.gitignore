@@ -37,3 +37,5 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+# Временные сборки агентов: expo export в отдельную папку, чтобы не затирать чужую dist/
+dist-*/
