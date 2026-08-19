@@ -66,6 +66,7 @@ describe('маршруты игр', () => {
    * (проверка ниже). То есть список умеет только сокращаться.
    */
   const AWAITING_CATALOG: Record<string, string> = {
+    'one-line': 'G3 «Одна линия» (эйлеров путь по всем рёбрам без повторов, 48 уровней). Экран и модуль приняты; строка для GAMES, ключи oneLine/oneLineDesc/oneLineIntroDesc, справка, место в профилях и шаг зарядки — в src/games/one-line/INTEGRATION.md',
     'faces-names': 'G4 «Лица и имена» (лицо→имя→факт, 33 уровня). Экран и модуль приняты; строка для GAMES, ключи facesNames/facesNamesDesc/facesNamesIntroDesc, справка и место в профилях — в src/games/faces-names/INTEGRATION.md',
     'object-tracker': 'G5 «Трекер объектов» (multiple object tracking, 41 уровень). Экран и модуль приняты; строка для GAMES, ключи objectTracker/objectTrackerDesc/objectTrackerIntroDesc и место в профилях — в src/games/object-tracker/INTEGRATION.md',
     navigator: 'G6 «Навигатор» (мысленная карта маршрута, 33 уровня). Экран и модуль приняты; строка для GAMES, ключи navigator/navigatorDesc/navigatorIntroDesc, справка и место в профилях — в src/games/navigator/INTEGRATION.md',
