@@ -80,12 +80,12 @@ const GOOD_NAMES_EN = ['cola','lemonade','kefir','milk','juice','yogurt','banana
 const goodName = (type: number, ru: boolean) =>
   (ru ? GOOD_NAMES_RU : GOOD_NAMES_EN)[type % GOOD_NAMES_EN.length];
 
-function GoodIcon({ type, size }: { type: number; size: number }) {
+function GoodIcon({ type, width, height }: { type: number; width: number; height: number }) {
   return (
     <Image
       {...a11yDecor}
       source={GOOD_SPRITES[type % GOOD_SPRITES.length]}
-      style={{ width: size, height: size, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }}
+      style={{ width, height, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 2, shadowOffset: { width: 0, height: 2 } }}
       resizeMode="contain"
     />
   );
@@ -99,15 +99,32 @@ function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length -
 const CAP = 3;     // вместимость ячейки — 3 товара ВИДИМЫ (суть оригинала)
 
 // Доска РАСТЁТ с уровнем: L1-7 3×3 (9), L8-11 4×3 (12), L12+ 4×4 (16) → больше типов на верхах.
-function gridFor(L: number): { cols: number; rows: number } {
+/**
+ * 🔴 НА ТЕЛЕФОНЕ НЕ БОЛЬШЕ ТРЁХ КОЛОНОК.
+ *
+ * Денис 19.08.2026: «убого смотрится, далеко от оригинала», с ссылкой на
+ * Sort Match (1 млн скачиваний). Разбор эталона: густые полки на восемь колонок
+ * — это ВИТРИНА в сторе, а игровой экран у них ТРЁХКОЛОНОЧНЫЙ, товар крупный и
+ * узнаётся силуэтом.
+ *
+ * У нас с 8-го уровня стояли четыре колонки, и на 386px это давало товар в
+ * 23 пикселя — при том, что сам файл нарисован 384×384. Красивую жестянку
+ * показывали цветным пятном. Никакая перерисовка этого не лечит: дело не в
+ * рисунке, а в том, сколько ему дали места.
+ *
+ * Сложность от этого не падает: она держится числом ТИПОВ и теснотой свободных
+ * ячеек, а не количеством пикселей. Ряды добавляем вместо колонок — вниз экран
+ * тянется, вбок нет.
+ */
+function gridFor(L: number, narrow = false): { cols: number; rows: number } {
   if (L <= 7) return { cols: 3, rows: 3 };
-  if (L <= 11) return { cols: 4, rows: 3 };
-  return { cols: 4, rows: 4 };
+  if (L <= 11) return narrow ? { cols: 3, rows: 4 } : { cols: 4, rows: 3 };
+  return narrow ? { cols: 3, rows: 5 } : { cols: 4, rows: 4 };
 }
 
 // Сложность по уровню: больше типов + теснее (меньше пустых ячеек для манёвра) + растущая доска.
-function levelCfg(L: number, poolSize: number) {
-  const { cols, rows } = gridFor(L);
+function levelCfg(L: number, poolSize: number, narrow = false) {
+  const { cols, rows } = gridFor(L, narrow);
   const slots = cols * rows;
   const typeCeiling = slots - 2;                                 // ≥2 пустых ячейки → всегда решаемо
   const types = Math.min(poolSize, typeCeiling, 4 + Math.floor(L / 2));   // 4 → растёт, выше 7 на больших досках
@@ -182,7 +199,11 @@ export default function GoodsSortGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const scoreRef = useRef(0); const movesRef = useRef(0);
-  const gridRef = useRef({ cols: 3, rows: 3, slots: 9 });        // текущая доска — для логики каскада/reshuffle
+  /** Узкий экран (телефон): сетка ограничивается тремя колонками. 560px — граница,
+   *  за которой четвёртая колонка перестаёт душить товар. */
+  const narrowRef = useRef(false);
+  const gridRef = useRef({ cols: 3, rows: 3, slots: 9 });
+  narrowRef.current = width < 560;        // текущая доска — для логики каскада/reshuffle
   const [gridDim, setGridDim] = useState({ cols: 3, rows: 3 });  // для рендера полок
   const { popups, spawn } = useScorePopups();
 
@@ -191,7 +212,7 @@ export default function GoodsSortGame() {
   const levelRules = useLevelRules('goods_sort', level, GS_RULES, phase === 'playing' && !isPreset);
 
   const loadLevel = (L: number) => {
-    const cfg = levelCfg(L, poolRef.current.length);
+    const cfg = levelCfg(L, poolRef.current.length, narrowRef.current);
     gridRef.current = { cols: cfg.cols, rows: cfg.rows, slots: cfg.slots };
     setGridDim({ cols: cfg.cols, rows: cfg.rows });
     setCells(generate(poolRef.current, cfg.types, cfg.spares, cfg.slots));
@@ -212,7 +233,7 @@ export default function GoodsSortGame() {
   useAutostart(autostart && lvl.loaded, startGame);
 
   const advanceLevel = () => {
-    const cfg = levelCfg(level, poolRef.current.length);
+    const cfg = levelCfg(level, poolRef.current.length, narrowRef.current);
     if (cfg.moveLimit > 0 && movesRef.current > cfg.moveLimit) {
       // Превысил лимит ходов — уровень не засчитан.
       // ⚠️ В ЗАРЯДКЕ ПЕРЕЗАПУСКАТЬ НЕЛЬЗЯ. Сессия при провале не сохраняется, а зарядка
@@ -313,7 +334,7 @@ export default function GoodsSortGame() {
 
   // ── вёрстка ──────────────────────────────────────────────────────────
   const boardW = Math.min(width - 24, 900);   // шире → товары крупнее на десктопе
-  const cellW = Math.floor((boardW - 10 * 2 - 8 * (gridDim.cols - 1)) / gridDim.cols);   // cols ячеек-полок в ряд
+  const cellW = Math.floor((boardW - 7 * 2 - 6 * (gridDim.cols - 1)) / gridDim.cols);   // cols ячеек-полок в ряд
   // Размер товара ограничен И шириной (cols в ряд), И доступной высотой (rows полок) — тянемся по высоте экрана.
   /**
    * 🔴 ВЫСОТУ ПОД ПОЛКИ МЕРЯЕМ, А НЕ УГАДЫВАЕМ.
@@ -353,10 +374,26 @@ export default function GoodsSortGame() {
    * он честнее константы, — но резало по ширине, и без картинки я этого знать
    * не мог. Отсюда правило: пока скриншот из отчёта нечитаем, диагноз — догадка.
    */
-  const CELL_GAP = 4;                        // зазор между товарами в ячейке (styles.cellRow)
+  const CELL_GAP = 2;                        // зазор между товарами в ячейке (styles.cellRow)
+  /**
+   * 🔴 ТОВАР УЗКИЙ, А ХОЛСТ КВАДРАТНЫЙ — И В ЭТОМ ТЕРЯЛАСЬ ПОЛОВИНА РАЗМЕРА.
+   *
+   * Замер спрайтов 19.08.2026: бутылка занимает 204×361 в холсте 384×384, то
+   * есть 53% ширины и 94% высоты, пропорция 0.57. Почти половина файла —
+   * прозрачные поля. Если положить такой файл в КВАДРАТНУЮ ячейку 36×36 с
+   * resizeMode="contain", он впишется по меньшей стороне и нарисуется 20×36:
+   * видимый товар вдвое меньше того места, что ему дали.
+   *
+   * В эталоне (Sort Match) товары высокие и узкие, стоят во всю высоту ниши —
+   * ровно потому, что ниша тоже высокая. Даём слоту ту же пропорцию, что у
+   * самих рисунков: ширина прежняя (три в ряд по-прежнему влезают), высота
+   * в 1.7 раза больше. Товар растёт в площади вдвое, ничего не переезжая.
+   */
+  const ITEM_ASPECT = 0.6;                   // ширина/высота, снято с самих спрайтов
   const fitsInCell = Math.floor((cellW - CELL_GAP * (CAP - 1)) / CAP);
-  const fitsInRow = Math.floor(availH / gridDim.rows) - 26;
+  const fitsInRow = Math.floor((availH / gridDim.rows - 14) * ITEM_ASPECT);
   const itemSize = Math.max(18, Math.min(112, fitsInCell, fitsInRow));
+  const itemH = Math.round(itemSize / ITEM_ASPECT);
 
   // Полка целиком: «Полка 4: кола, кола, пусто» — по этой строке незрячий
   // игрок понимает, где уже есть пара и куда нести третий товар.
@@ -373,7 +410,7 @@ export default function GoodsSortGame() {
     return (
       <View key={i}
         style={[styles.cell, {
-          width: cellW, height: itemSize + 22,
+          width: cellW, height: itemH + 10,
           borderColor: canDrop ? '#fbbf24' : close ? '#22c55e' : '#8a5a2b',
           borderWidth: canDrop || close ? 3 : 2,
         }]}>
@@ -397,8 +434,8 @@ export default function GoodsSortGame() {
                 accessibilityRole="button"
                 accessibilityLabel={`${goodName(tp, ru)}, ${t('a11yShelf')} ${i + 1}`}
                 accessibilityState={{ selected }}
-                style={[styles.itemSlot, { width: itemSize, height: itemSize }, selected && styles.itemSel]}>
-                <GoodIcon type={tp} size={itemSize - 2} />
+                style={[styles.itemSlot, { width: itemSize, height: itemH }, selected && styles.itemSel]}>
+                <GoodIcon type={tp} width={itemSize} height={itemH - 2} />
               </TouchableOpacity>
             );
           })}
@@ -429,7 +466,7 @@ export default function GoodsSortGame() {
                 <Ionicons name={s.icon} size={22} color={on ? '#d97706' : colors.textSecondary} />
                 <Text style={[styles.setBtnText, { color: on ? '#92600a' : colors.textSecondary }]}>{t('goodsSet_' + s.key)}</Text>
                 <View style={styles.setPreview}>
-                  {s.pool.slice(0, 4).map((p) => <GoodIcon key={p} type={p} size={18} />)}
+                  {s.pool.slice(0, 4).map((p) => <GoodIcon key={p} type={p} width={18} height={28} />)}
                 </View>
               </TouchableOpacity>
             );
@@ -440,7 +477,7 @@ export default function GoodsSortGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('goodsLevel')} {level}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-          🛒 {levelCfg(level, poolRef.current.length).types}   ·   📦 {levelCfg(level, poolRef.current.length).slots - levelCfg(level, poolRef.current.length).spares}
+          🛒 {levelCfg(level, poolRef.current.length, narrowRef.current).types}   ·   📦 {levelCfg(level, poolRef.current.length, narrowRef.current).slots - levelCfg(level, poolRef.current.length, narrowRef.current).spares}
         </Text>
         {level > 1 && (
           <TouchableOpacity
@@ -578,10 +615,35 @@ const styles = StyleSheet.create({
   hintText: { fontSize: 12, textAlign: 'center' },
   shuffleBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1.5, marginTop: 6 },
   shuffleText: { fontSize: 14, fontWeight: '700' },
-  shelf: { flexDirection: 'row', justifyContent: 'center', gap: 8, padding: 10, borderRadius: 12, borderBottomWidth: 6, borderBottomColor: 'rgba(0,0,0,0.4)' },
-  cell: { borderRadius: 10, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5e7cf', shadowColor: '#3a230f', shadowOpacity: 0.18, shadowRadius: 3, shadowOffset: { width: 0, height: 2 } },
-  cellDropTarget: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 8 },
-  cellRow: { zIndex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
-  itemSlot: { justifyContent: 'center', alignItems: 'center', borderRadius: 6 },
+  /**
+   * 🔴 ПОЛКА — ШКАФ С НИШАМИ, А НЕ КОРИЧНЕВАЯ ПОЛОСА.
+   *
+   * Денис 19.08.2026 показал эталон (Sort Match, 1 млн скачиваний): там каждая
+   * ячейка — УГЛУБЛЕНИЕ в светлом дереве, с задней стенкой, боковыми стойками
+   * и тенью под товаром. У нас была плоская тёмная планка с чёрной каймой снизу
+   * — отсюда и «убого».
+   *
+   * Что взято из эталона:
+   *   · дерево СВЕТЛОЕ и тёплое, а не тёмно-коричневое — товар на нём читается;
+   *   · ниша темнее рамы, а не светлее: так она выглядит углублением, а не
+   *     наклейкой. Именно эта инверсия и даёт ощущение объёма;
+   *   · товар стоит НА ДНЕ ниши (flex-end), а не висит по центру — предметы
+   *     подчиняются тяжести, иначе полка читается как таблица;
+   *   · тонкая светлая линия по верхнему краю ниши = блик на кромке доски.
+   */
+  shelf: {
+    flexDirection: 'row', justifyContent: 'center', gap: 6, padding: 7,
+    borderRadius: 10, backgroundColor: '#e2b887',
+    borderBottomWidth: 7, borderBottomColor: '#b07f4a',
+  },
+  cell: {
+    borderRadius: 7, justifyContent: 'flex-end', alignItems: 'center',
+    backgroundColor: '#c9975f',                 // ниша ТЕМНЕЕ рамы — это и есть глубина
+    borderTopWidth: 2, borderTopColor: 'rgba(0,0,0,0.22)',   // тень от верхней кромки
+    borderBottomWidth: 2, borderBottomColor: 'rgba(255,236,205,0.35)', // блик на дне
+  },
+  cellDropTarget: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 7 },
+  cellRow: { zIndex: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 2, paddingBottom: 3 },
+  itemSlot: { justifyContent: 'flex-end', alignItems: 'center', borderRadius: 6 },
   itemSel: { backgroundColor: '#fff2c2', borderWidth: 2, borderColor: '#f7971e', transform: [{ translateY: -4 }] },
 });
