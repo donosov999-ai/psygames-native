@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, Easing, PanResponder } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -20,12 +20,13 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
 import { sndCombo, sndPlace, sndMatch, sndWrong } from '@/src/services/feedback';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
-import { useMoveHistory } from '@/src/hooks/useMoveHistory';
+import { useMoveHistory, MoveStackData } from '@/src/hooks/useMoveHistory';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { a11yDecor } from '@/src/services/a11y';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { gameNow } from '@/src/services/gamePause';
+import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 /**
@@ -171,7 +172,7 @@ function GoodIcon({ type, width, height }: { type: number; width: number; height
   );
 }
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+export type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 type Sel = { cell: number; idx: number } | null;
 
 function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
@@ -378,7 +379,7 @@ function shapeFor(L: number, cols: number, rows: number): boolean[] {
  * правило «три одинаковых в одной нише». Класть поверх него второе правило —
  * это не сложность, а каша.
  */
-type Obstacle =
+export type Obstacle =
   | { kind: 'blocked' }                        // ниша заперта, снимается тройкой в соседней
   | { kind: 'locked'; movesLeft: number }      // откроется через N ходов, счётчик виден
   | null;
@@ -648,7 +649,7 @@ interface GoalPlan { kind: GoalKind; count: number }
  * ⚠️ ЧИСЛА ТОЖЕ В СНИМКЕ. Без них отмена дарила бы ходы: откатил доску, а
  * счётчик остался — и лимит на уровнях цели «ходы» обходится отменой.
  */
-interface Snapshot {
+export interface Snapshot {
   cells: number[][];
   obstacles: Obstacle[];
   covered: string[];
@@ -659,7 +660,7 @@ interface Snapshot {
 }
 
 /** Живая цель уровня: план, разложенный на КОНКРЕТНУЮ доску. */
-type Goal =
+export type Goal =
   | { kind: 'all' }
   | { kind: 'pick'; types: number[] }
   | { kind: 'moves'; limit: number }
@@ -1003,6 +1004,344 @@ export function generate(pool: number[], types: number, spares: number, slots: n
   return cells;
 }
 
+/* ─────────────────────── незаконченная партия ───────────────────────
+ *
+ * 🔴 ЧТО ЛОМАЛОСЬ (замер 19.08.2026). Склад здесь живёт ВЕСЬ УРОВЕНЬ, а уровней
+ * шестьдесят: расклад случайный, препятствия садятся на случайные ниши, цель
+ * раскладывается на КОНКРЕТНУЮ доску — по номеру уровня всё это не
+ * воспроизвести. С 14-го идёт строгая укладка, с 18-го ниши разной
+ * вместимости, на уровнях цели «ходы» партия ещё и ограничена лимитом. Это
+ * минуты работы над одной доской. Выход с экрана — промах пальцем по «назад» в
+ * шапке или аппаратная «назад» — уводил МОЛЧА и стирал всё: расклад,
+ * потраченные ходы, очки, остатки подсказок и перетасовок, ленту отмены. Ни
+ * вопроса, ни хранения.
+ *
+ * ⚠️ ПОЧЕМУ СНИМОК И ПОДЪЁМ — ОБЫЧНЫЕ ФУНКЦИИ, А НЕ КУСОК КОМПОНЕНТА. Рендерера
+ * компонентов в зависимостях проекта нет (`testMatch` — только `*.test.ts`), а
+ * ломкая здесь АРИФМЕТИКА ОСТАТКОВ: ходов при лимите, подсказок, перетасовок.
+ * Ошибись знаком — и выход с экрана превратится в способ получить их бесплатно
+ * (вышел, вернулся, лимит целый), причём в исходнике это выглядит совершенно
+ * правильно. Вынесено сюда → гоняется исполнением в
+ * `src/__tests__/goods-sort-resume.test.ts`.
+ *
+ * ⚠️ ЧАСЫ ИГРОВЫЕ (`gameNow`), а не настенные: на паузе — окно отзыва, вопрос о
+ * выходе — отсчёт стоит. Момент `now` приходит аргументом, поэтому обе стороны,
+ * и снимок, и подъём, меряют одними часами.
+ */
+
+/** Ключ незаконченной партии. Совпадает с id в реестре игр — карточка «Продолжить» ищет по нему. */
+export const GS_GAME_ID = 'goods_sort';
+/** Версия формата снимка. Поменяли набор полей — подняли номер, старые записи просто не поднимутся. */
+export const GS_RESUME_V = 1;
+/** Задержка отложенной записи: каскад из нескольких троек не бьёт по хранилищу каждым шагом. */
+const GS_RESUME_DEBOUNCE_MS = 400;
+
+/** Снимок незаконченной партии. Лежит на устройстве, на сервер не уходит. */
+export interface GoodsResume {
+  level: number;
+  /** Набор товаров: от него зависит пул спрайтов и расчёт СЛЕДУЮЩЕГО уровня. */
+  setKey: string;
+  cols: number;
+  rows: number;
+  /** Форма доски: true — ниша есть, false — дырка. Длина = cols × rows. */
+  mask: boolean[];
+  /** Сам склад: ниши и их содержимое. Длина = число ниш (true в маске). */
+  cells: number[][];
+  obstacles: Obstacle[];
+  covered: string[];
+  frozen: { row: number; type: number } | null;
+  goal: Goal;
+  moves: number;
+  /** Лимит ходов этого уровня, 0 = лимита нет. */
+  moveLimit: number;
+  /**
+   * ОСТАТОК ходов — то самое, что нельзя ни обнулить, ни начать заново.
+   * `null` = на этом уровне лимита нет.
+   */
+  movesLeft: number | null;
+  score: number;
+  cleared: number;
+  shuffles: number;
+  hints: number;
+  /** Лента отмены целиком: каждый её шаг — полный снимок доски. */
+  history: MoveStackData<Snapshot>;
+  /** Накопленное ИГРОВОЕ время партии, мс. */
+  elapsedMs: number;
+}
+
+/** Живая партия — то, что экран знает о себе в момент снимка. */
+export interface GoodsLiveParty {
+  phase: GamePhase;
+  /** Поверх полок висит карточка итога уровня (пройден или провален). */
+  bannerUp: boolean;
+  level: number;
+  setKey: string;
+  cols: number;
+  rows: number;
+  mask: boolean[];
+  cells: number[][];
+  obstacles: Obstacle[];
+  covered: string[];
+  frozen: { row: number; type: number } | null;
+  goal: Goal;
+  moves: number;
+  moveLimit: number;
+  score: number;
+  cleared: number;
+  shuffles: number;
+  hints: number;
+  /** Сделан хотя бы один неотменённый ход. */
+  canUndo: boolean;
+  history: MoveStackData<Snapshot>;
+  /** Отметка игровых часов, от которой идёт уровень. */
+  startedAt: number;
+}
+
+/** Поднятая партия: экран раскладывает это по своим состояниям. */
+export interface GoodsRestored {
+  level: number;
+  setKey: string;
+  cols: number;
+  rows: number;
+  /** Число ниш — считается из маски, отдельно в снимке не хранится. */
+  slots: number;
+  mask: boolean[];
+  cells: number[][];
+  obstacles: Obstacle[];
+  covered: string[];
+  frozen: { row: number; type: number } | null;
+  goal: Goal;
+  moves: number;
+  moveLimit: number;
+  movesLeft: number | null;
+  score: number;
+  cleared: number;
+  shuffles: number;
+  hints: number;
+  history: MoveStackData<Snapshot>;
+  /** Отметка игровых часов, с которой считать время уровня. */
+  startedAt: number;
+}
+
+/** Ниша: массив типов товаров, не длиннее самой вместительной ниши в игре. */
+const isCellShape = (c: any): c is number[] =>
+  Array.isArray(c) && c.length <= CAP_MAX && c.every((t: any) => Number.isInteger(t) && t >= 0);
+
+/**
+ * Препятствие из хранилища. Непонятное считаем ОТСУТСТВИЕМ, а не поводом
+ * выбросить партию: ниша без замка играется, ниша с мусором вместо замка — нет.
+ */
+const normObstacle = (o: any): Obstacle => {
+  if (!o || typeof o !== 'object') return null;
+  if (o.kind === 'blocked') return { kind: 'blocked' };
+  if (o.kind === 'locked') return { kind: 'locked', movesLeft: Math.max(0, Math.floor(Number(o.movesLeft) || 0)) };
+  return null;
+};
+
+/** Накрытые товары: ключ «ниша:позиция». Указывающие в пустоту отсеиваем — силуэт над ничем. */
+const normCovered = (list: any, cells: number[][]): string[] =>
+  (Array.isArray(list) ? list : []).filter((k: any) => {
+    if (typeof k !== 'string' || !/^\d+:\d+$/.test(k)) return false;
+    const [i, j] = k.split(':').map(Number);
+    return i < cells.length && j < cells[i].length;
+  });
+
+/** Примёрзший ряд. Ряд вне доски — то же, что заморозки нет. */
+const normFrozen = (f: any, rows: number): { row: number; type: number } | null => {
+  if (!f || typeof f !== 'object') return null;
+  const row = Math.floor(Number(f.row));
+  const type = Math.floor(Number(f.type));
+  if (!Number.isInteger(row) || row < 0 || row >= rows) return null;
+  if (!Number.isInteger(type) || type < 0) return null;
+  return { row, type };
+};
+
+/**
+ * Цель уровня, разложенная на КОНКРЕТНУЮ доску. Не разобрали — партию не
+ * поднимаем вовсе: подставить сюда «убрать всё» значит молча выдать человеку
+ * другой уровень вместо того, который он играл.
+ */
+const normGoal = (g: any, slots: number): Goal | null => {
+  if (!g || typeof g !== 'object') return null;
+  if (g.kind === 'all') return { kind: 'all' };
+  if (g.kind === 'moves') {
+    const limit = Math.floor(Number(g.limit) || 0);
+    return limit > 0 ? { kind: 'moves', limit } : null;
+  }
+  if (g.kind === 'pick') {
+    const types = (Array.isArray(g.types) ? g.types : []).filter((t: any) => Number.isInteger(t) && t >= 0);
+    return types.length ? { kind: 'pick', types } : null;
+  }
+  if (g.kind === 'free') {
+    const niches = (Array.isArray(g.niches) ? g.niches : [])
+      .filter((i: any) => Number.isInteger(i) && i >= 0 && i < slots);
+    return niches.length ? { kind: 'free', niches } : null;
+  }
+  return null;
+};
+
+/**
+ * Шаг ленты отмены. Каждый шаг — ПОЛНЫЙ снимок доски, поэтому битый шаг можно
+ * просто выбросить: лента станет короче на один откат, а не сломается целиком.
+ */
+const normHistoryStep = (s: any, slots: number, rows: number): Snapshot | null => {
+  if (!s || typeof s !== 'object') return null;
+  const cells = Array.isArray(s.cells) ? s.cells : [];
+  if (cells.length !== slots || !cells.every(isCellShape)) return null;
+  return {
+    cells: cells.map((c: number[]) => [...c]),
+    obstacles: Array.from({ length: slots }, (_, i) => normObstacle((Array.isArray(s.obstacles) ? s.obstacles : [])[i])),
+    covered: normCovered(s.covered, cells),
+    frozen: normFrozen(s.frozen, rows),
+    moves: Math.max(0, Math.floor(Number(s.moves) || 0)),
+    score: Math.max(0, Math.floor(Number(s.score) || 0)),
+    cleared: Math.max(0, Math.floor(Number(s.cleared) || 0)),
+  };
+};
+
+/** Счётчик-остаток из хранилища: не отрицательный и не больше выданного на уровень. */
+const clampLeft = (v: any, max: number): number => Math.max(0, Math.min(max, Math.floor(Number(v) || 0)));
+
+/**
+ * ЕСТЬ ЛИ ЧТО ТЕРЯТЬ. Вопрос при выходе там, где терять нечего, раздражает
+ * сильнее, чем помогает, поэтому «идёт партия» тут не критерий: свежий, ещё не
+ * тронутый склад продолжать не за чем — он ничем не лучше нового.
+ *
+ * ⚠️ ТРАТЫ СЧИТАЮТСЯ НАРАВНЕ С ХОДАМИ. Подсказок и перетасовок на уровень по
+ * три, и они не восстанавливаются: потратить перетасовку и выйти — потерять
+ * ровно то, за что заплачено. Поэтому не только `canUndo`.
+ *
+ * ⚠️ ОТМЕНИЛ ВСЁ ДО НАЧАЛА — И ТЕРЯТЬ СНОВА НЕЧЕГО. `canUndo` гаснет, доска
+ * возвращается к выданной, счётчик ходов откатывается вместе с ней. Это не
+ * дыра, а то же самое правило: сохранять нечего, кроме случайного расклада.
+ *
+ * ⚠️ КАРТОЧКА ИТОГА (`bannerUp`) СНИМАЕТ ВОПРОС. Уровень уже засчитан и записан,
+ * достигнутая ступенька уехала в хранилище уровней — следующий склад всё равно
+ * будет новым.
+ */
+export function goodsHasSomethingToLose(p: {
+  phase: GamePhase; bannerUp: boolean; canUndo: boolean; hints: number; shuffles: number;
+}): boolean {
+  if (p.phase !== 'playing' || p.bannerUp) return false;
+  return p.canUndo || p.hints < HINTS_PER_LEVEL || p.shuffles < SHUFFLES_PER_LEVEL;
+}
+
+/**
+ * Снимок для хранилища. `null` = сохранять нечего, и это не ошибка: мусорные
+ * записи потом всплывают карточкой «Продолжить» на главной и обещают партию,
+ * которой нет.
+ */
+export function snapshotGoodsParty(live: GoodsLiveParty, now: number): GoodsResume | null {
+  if (!goodsHasSomethingToLose(live)) return null;
+  const slots = live.mask.filter(Boolean).length;
+  if (slots === 0 || live.cells.length !== slots) return null;
+  // Полки пусты — уровень собран, карточка итога вот-вот встанет поверх них.
+  // Записать это значит вернуть человека на доигранный уровень с пустым складом.
+  if (live.cells.every((c) => c.length === 0)) return null;
+  return {
+    level: live.level,
+    setKey: live.setKey,
+    cols: live.cols,
+    rows: live.rows,
+    mask: [...live.mask],
+    cells: live.cells.map((c) => [...c]),
+    obstacles: live.obstacles.map((o) => (o ? { ...o } : null)),
+    covered: [...live.covered],
+    frozen: live.frozen ? { ...live.frozen } : null,
+    goal: live.goal,
+    moves: live.moves,
+    moveLimit: live.moveLimit,
+    movesLeft: live.moveLimit > 0 ? Math.max(0, live.moveLimit - live.moves) : null,
+    score: live.score,
+    cleared: live.cleared,
+    shuffles: live.shuffles,
+    hints: live.hints,
+    // Шаги ленты создаются заново на каждый ход и не правятся на месте — копии массивов хватает.
+    history: { past: [...live.history.past], future: [...live.history.future] },
+    elapsedMs: Math.max(0, now - live.startedAt),
+  };
+}
+
+/**
+ * Поднять партию из снимка. `null` = продолжать нечего (записи нет, она битая
+ * или доигранная), экран просто заходит через настройку.
+ *
+ * Часы заводим ЗАДНИМ ЧИСЛОМ на накопленное время: разность `now − startedAt`
+ * сразу даёт настоящую длительность уровня, а не срок хранения записи.
+ */
+export function restoreGoodsParty(saved: GoodsResume | null | undefined, now: number): GoodsRestored | null {
+  if (!saved || typeof saved !== 'object') return null;
+
+  const cols = Math.floor(Number(saved.cols) || 0);
+  const rows = Math.floor(Number(saved.rows) || 0);
+  const mask = (Array.isArray(saved.mask) ? saved.mask : []).map((v: any) => !!v);
+  // Форма доски обязана сойтись сама с собой: по ней считается и попадание
+  // пальцем в нишу, и ряд для заморозки. Разъехалась — партии нет.
+  if (cols < 1 || rows < 1 || mask.length !== cols * rows) return null;
+  const slots = mask.filter(Boolean).length;
+  if (slots < 1) return null;
+
+  const cells = Array.isArray(saved.cells) ? saved.cells : [];
+  if (cells.length !== slots || !cells.every(isCellShape)) return null;
+  if (cells.every((c: number[]) => c.length === 0)) return null;   // доигранный склад продолжать нечем
+
+  const goal = normGoal(saved.goal, slots);
+  if (!goal) return null;
+
+  const moveLimit = Math.max(0, Math.floor(Number(saved.moveLimit) || 0));
+  /**
+   * 🔴 ХОДЫ ПОДНИМАЮТСЯ ПО ОСТАТКУ, А НЕ ПО ПОТРАЧЕННОМУ. Разница видна ровно
+   * тогда, когда лимит уровня посчитался бы иначе, чем при уходе (доска на
+   * телефоне и на планшете разного размера, а значит и лимит разный): по
+   * остатку человек получит то, что у него было, по потраченному — лишние
+   * бесплатные ходы. Остатка в записи нет (старый формат) — считаем из
+   * потраченного, это ровно та же величина.
+   */
+  const movesLeft = moveLimit > 0
+    ? clampLeft(
+        saved.movesLeft === null || saved.movesLeft === undefined
+          ? moveLimit - Math.max(0, Math.floor(Number(saved.moves) || 0))
+          : saved.movesLeft,
+        moveLimit,
+      )
+    : null;
+  const moves = moveLimit > 0 ? moveLimit - (movesLeft as number) : Math.max(0, Math.floor(Number(saved.moves) || 0));
+
+  const rawHistory = saved.history && typeof saved.history === 'object' ? saved.history : { past: [], future: [] };
+  const step = (s: any) => normHistoryStep(s, slots, rows);
+  const keep = (s: Snapshot | null): s is Snapshot => s !== null;
+
+  return {
+    level: Math.max(1, Math.floor(Number(saved.level) || 1)),
+    // Незнакомый набор товаров — берём первый: спрайты на доске уже лежат
+    // своими номерами, набор нужен только для расчёта следующего уровня.
+    setKey: GOOD_SETS.some((s) => s.key === saved.setKey) ? saved.setKey : GOOD_SETS[0].key,
+    cols,
+    rows,
+    slots,
+    mask,
+    cells: cells.map((c: number[]) => [...c]),
+    obstacles: Array.from({ length: slots }, (_, i) => normObstacle((Array.isArray(saved.obstacles) ? saved.obstacles : [])[i])),
+    covered: normCovered(saved.covered, cells),
+    frozen: normFrozen(saved.frozen, rows),
+    goal,
+    moves,
+    moveLimit,
+    movesLeft,
+    score: Math.max(0, Math.floor(Number(saved.score) || 0)),
+    cleared: Math.max(0, Math.floor(Number(saved.cleared) || 0)),
+    // Потраченного не вернуть: остаток поднимается тем же, каким был, и уж
+    // точно не «полным на уровень».
+    shuffles: clampLeft(saved.shuffles, SHUFFLES_PER_LEVEL),
+    hints: clampLeft(saved.hints, HINTS_PER_LEVEL),
+    history: {
+      past: (Array.isArray(rawHistory.past) ? rawHistory.past : []).map(step).filter(keep),
+      future: (Array.isArray(rawHistory.future) ? rawHistory.future : []).map(step).filter(keep),
+    },
+    startedAt: now - Math.max(0, Number(saved.elapsedMs) || 0),
+  };
+}
+
 export default function GoodsSortGame() {
   const { colors } = useTheme();
   const { profile } = useProfile();
@@ -1028,9 +1367,29 @@ export default function GoodsSortGame() {
 
   const [level, setLevel] = useState(1);
   const [levelBanner, setLevelBanner] = useState<number | null>(null);
+  /**
+   * ЛИМИТ ХОДОВ ЭТОГО УРОВНЯ — ОДНО ЗНАЧЕНИЕ, ЗАФИКСИРОВАННОЕ ПРИ РАЗДАЧЕ.
+   *
+   * Раньше его пересчитывали в трёх местах — заново спрашивая `levelCfg` при
+   * ЖИВОЙ ширине экрана. Доска при этом раздана один раз: поверни
+   * телефон посреди уровня — сетка на экране прежняя, а лимит в шапке другой.
+   * Та же дыра открывалась и подъёмом партии: ушёл с телефона, вернулся на
+   * планшете — и получил бесплатные ходы. Поэтому лимит теперь берётся оттуда
+   * же, откуда доска: из раздачи (`loadLevel`) или из снимка партии.
+   */
+  const moveLimitRef = useRef(0);
+  /** Партия поднята из хранилища — уровень взят из неё, а не из сохранённого потолка. */
+  const resumedRef = useRef(false);
   // Сортировка в зарядке тоже двигает общую лесенку: вход через wu=1 не должен
   // подменять уже достигнутый уровень временной единицей.
-  useEffect(() => { if (lvl.loaded) setLevel(lvl.level); }, [lvl.loaded, lvl.level]);
+  /**
+   * ⚠️ `resumedRef` ОБЯЗАТЕЛЕН. Хранилище уровня грузится асинхронно, партия —
+   * тоже, и порядок не гарантирован. Без флага сохранённый потолок (скажем, 12)
+   * приезжал бы ПОВЕРХ поднятого уровня партии (7): доска остаётся седьмого
+   * уровня, а строгая укладка, ёмкости ниш и бейдж в шапке считаются по
+   * двенадцатому. Молча и наискось.
+   */
+  useEffect(() => { if (lvl.loaded && !resumedRef.current) setLevel(lvl.level); }, [lvl.loaded, lvl.level]);
   const [cells, setCells] = useState<number[][]>([]);
   const [sel, setSel] = useState<Sel>(null);
   const [cleared, setCleared] = useState(0);
@@ -1201,6 +1560,7 @@ export default function GoodsSortGame() {
      * потому что зависший экран хуже трудного уровня, а отмена и перемешивание
      * у человека на руках.
      */
+    moveLimitRef.current = cfg.moveLimit;   // лимит уровня фиксируется вместе с доской
     const levelCaps = capsFor(L, cfg.slots);
     let built = generate(poolRef.current, cfg.types, cfg.spares, cfg.slots, levelCaps);
     if (strictPlacement(L)) {
@@ -1285,6 +1645,10 @@ export default function GoodsSortGame() {
 
   const startGame = () => {
     if (!lvl.loaded) return;
+    // Новая партия заменяет незаконченную: старый склад продолжать уже нечем.
+    const pidStart = profile?.id;
+    if (pidStart) clearResume(GS_GAME_ID, pidStart).catch(() => {});
+    resumedRef.current = false;
     const startLvl = lvl.level;
     setCleared(0); setScore(0); scoreRef.current = 0; setLevelBanner(null);
     setLevel(startLvl);
@@ -1295,9 +1659,124 @@ export default function GoodsSortGame() {
   // Ждём восстановленный уровень перед auto-start из зарядки.
   useAutostart(autostart && lvl.loaded, startGame);
 
+  /**
+   * Поднять партию из снимка — склад оживает ровно таким, каким его оставили:
+   * ниши и их содержимое, препятствия, накрытия, заморозка, цель, счётчики и
+   * лента отмены. Отдельно от `loadLevel`: тот РАЗДАЁТ новый уровень, а здесь
+   * ничего раздавать нельзя — расклад случайный и повторить его нечем.
+   */
+  const applyResume = (r: GoodsRestored) => {
+    resumedRef.current = true;
+    setSetKey(r.setKey);
+    // Пул ставим сразу, не дожидаясь эффекта на setKey: по нему считается
+    // следующий уровень, а эффект приедет только в следующем рендере.
+    poolRef.current = (GOOD_SETS.find((s) => s.key === r.setKey) || GOOD_SETS[0]).pool;
+    setLevel(r.level);
+    gridRef.current = { cols: r.cols, rows: r.rows, slots: r.slots };
+    setGridDim({ cols: r.cols, rows: r.rows });
+    setMask(r.mask);
+    setCells(r.cells);
+    setObstacles(r.obstacles);
+    setCovered(new Set(r.covered));
+    setFrozen(r.frozen);
+    setGoal(r.goal); goalRef.current = r.goal;
+    // ⚠️ Лимит берём ИЗ СНИМКА, а не пересчитываем по уровню: пересчёт на
+    // другой ширине экрана вернул бы человеку ходы, которые он потратил.
+    moveLimitRef.current = r.moveLimit;
+    movesRef.current = r.moves; setMoves(r.moves);
+    scoreRef.current = r.score; setScore(r.score);
+    setCleared(r.cleared);
+    setShuffles(r.shuffles); setHints(r.hints); setHint(null);
+    history.restore(r.history);
+    setSel(null); setLevelBanner(null);
+    setStartTime(r.startedAt); setElapsed(0);
+    setPhase('playing');
+  };
+
+  /** Есть что терять → «назад» спросит, а не выбросит молча (см. goodsHasSomethingToLose). */
+  const armed = goodsHasSomethingToLose({
+    phase, bannerUp: levelBanner !== null, canUndo: history.canUndo, hints, shuffles,
+  });
+
+  /**
+   * Живая партия для записи. Читаем через ref, а не из замыкания: снимок обязан
+   * быть свежим на МОМЕНТ ухода, иначе допишем доску прошлого хода — со всеми
+   * товарами, которые уже переложены.
+   */
+  const partyRef = useRef<{ pid?: string; snap: () => GoodsResume | null }>({ snap: () => null });
+  partyRef.current = {
+    pid: profile?.id,
+    snap: () => snapshotGoodsParty({
+      phase, bannerUp: levelBanner !== null,
+      level, setKey,
+      cols: gridDim.cols, rows: gridDim.rows,
+      mask, cells, obstacles,
+      covered: Array.from(covered),
+      frozen, goal,
+      moves, moveLimit: moveLimitRef.current,
+      score, cleared, shuffles, hints,
+      canUndo: history.canUndo,
+      history: history.serialize(),
+      startedAt: startTime,
+    }, gameNow()),
+  };
+
+  /**
+   * Дописать партию. Зовётся из двух мест: ПЕРЕД вопросом при выходе
+   * (`onSaveBeforeExit` у каркаса) и отложенно по ходу партии. Первое
+   * обязательно: человек видит «партия сохранится» — обещание должно быть уже
+   * выполнено, а не зависеть от того, доживёт ли экран до размонтажа.
+   */
+  const saveParty = useCallback(() => {
+    const { pid, snap } = partyRef.current;
+    if (!pid) return;
+    const s = snap();
+    if (!s) return;
+    saveResume<GoodsResume>(GS_GAME_ID, pid, GS_RESUME_V, s).catch(() => {});
+  }, []);
+
+  /**
+   * Отложенная запись по ходу партии — страховка на случай, когда экран сносят
+   * мимо всех кнопок (система убила приложение). Пишет ЖИВОЕ состояние в момент
+   * срабатывания, поэтому задержка стоит максимум 400 мс свежести, а не целый ход.
+   */
+  useEffect(() => {
+    if (!armed) return;
+    const tm = setTimeout(saveParty, GS_RESUME_DEBOUNCE_MS);
+    return () => clearTimeout(tm);
+  }, [armed, cells, obstacles, covered, frozen, moves, score, hints, shuffles, saveParty]);
+
+  /**
+   * Подъём партии при входе. Путь зарядки (autostart) не трогаем: там человек
+   * явно запустил свежий шаг, и поднятая партия подменила бы заданный уровень.
+   */
+  const bootRef = useRef(false);
+  useEffect(() => {
+    if (autostart || bootRef.current) return;
+    const pid = profile?.id;
+    if (!pid) return;
+    bootRef.current = true;
+    let cancelled = false;
+    loadResume<GoodsResume>(GS_GAME_ID, pid, GS_RESUME_V)
+      .then((saved) => {
+        if (cancelled) return;
+        const live = restoreGoodsParty(saved, gameNow());
+        if (live) applyResume(live);
+      })
+      .catch(() => { /* нет партии — обычный вход через настройку */ });
+    return () => { cancelled = true; };
+  }, [profile?.id, autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — разовый подъём партии
+
   const advanceLevel = () => {
-    const cfg = levelCfg(level, poolRef.current.length, narrowRef.current);
-    if (cfg.moveLimit > 0 && movesRef.current > cfg.moveLimit) {
+    /**
+     * Уровень закончился — пройден или провален, доска в обоих случаях будет
+     * новой. Незаконченную партию выбрасываем здесь же, иначе возвращение
+     * поднимет склад уровня, который человек уже закрыл.
+     */
+    const pidDone = profile?.id;
+    if (pidDone) clearResume(GS_GAME_ID, pidDone).catch(() => {});
+    const moveLimit = moveLimitRef.current;
+    if (moveLimit > 0 && movesRef.current > moveLimit) {
       // Превысил лимит ходов — уровень не засчитан.
       // ⚠️ В ЗАРЯДКЕ ПЕРЕЗАПУСКАТЬ НЕЛЬЗЯ. Сессия при провале не сохраняется, а зарядка
       // двигается именно по сохранённой сессии — значит человек застрял бы на этом шаге
@@ -2115,11 +2594,21 @@ export default function GoodsSortGame() {
         <GameShell
           title={t('goodsSort')}
           onBack={() => goBackOrHome()}
+          /**
+           * Выход из живой партии больше не молчит. Спрашиваем только когда терять
+           * действительно есть что: на свежем, ещё не тронутом складе вопрос был бы
+           * шумом (см. goodsHasSomethingToLose). `resumable` здесь правда — потому
+           * текст и обещает продолжение: партия ложится в хранилище ещё до вопроса,
+           * а не после ответа.
+           */
+          confirmExit={armed}
+          resumable
+          onSaveBeforeExit={saveParty}
           stats={
             <View style={styles.statsRow}>
               <HudBadge icon="pricetag" label={t('goodsLevel')} value={level} colors={['#fbbf24', '#d97706']} tint="#3f2b00" />
               <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
-              <HudBadge icon="swap-horizontal" value={(() => { const ml = levelCfg(level, poolRef.current.length, narrowRef.current).moveLimit; return ml > 0 ? `${moves}/${ml}` : String(moves); })()} colors={['#94a3b8', '#475569']} />
+              <HudBadge icon="swap-horizontal" value={(() => { const ml = moveLimitRef.current; return ml > 0 ? `${moves}/${ml}` : String(moves); })()} colors={['#94a3b8', '#475569']} />
               <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
               {/* Прогресс цели показываем только для 'pick'/'free': у 'all' его
                   и так видно по счётчику товаров, у 'moves' — по счётчику ходов. */}
