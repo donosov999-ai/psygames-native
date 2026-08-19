@@ -24,6 +24,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile, pairBackForProfile } from '@/src/constants/pairThemes';
 import { FlipCard, HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#f857a6', '#ff5858'];
 const PAIRS_BENEFITS = [
@@ -153,16 +154,16 @@ export default function PicturePairsGame() {
         setCards(deck.map(c => ({ ...c, flipped: false })));
         setPreviewActive(false);
         setLocked(false);
-        const start = Date.now();
+        const start = gameNow();
         setStartTime(start);
-        timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+        timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
       }, pms);
     } else {
       setCards(deck);
       setPreviewActive(false);
-      const start = Date.now();
+      const start = gameNow();
       setStartTime(start);
-      timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+      timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
     }
   };
 
@@ -236,7 +237,7 @@ export default function PicturePairsGame() {
           spawn(width / 2 - 16, 120, '+1', '#fbbf24');
           if (newMatched >= pairsCount) {
             if (timerRef.current) clearInterval(timerRef.current);
-            const finalTime = (Date.now() - startTime) / 1000;
+            const finalTime = (gameNow() - startTime) / 1000;
             setElapsedTime(finalTime);
             if (mode === 'game') {
               advanceLevel(finalTime);

@@ -34,6 +34,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#fa709a', '#fee140'];
 
@@ -156,7 +157,7 @@ export default function CounterGame() {
   // Новый раунд: свежая сетка + дедлайн уровня (не успел = ошибка-пропуск)
   const beginRound = () => {
     setGrid(generateGrid(gridSizeRef.current));
-    roundDeadlineRef.current = Date.now() + roundLimitRef.current;
+    roundDeadlineRef.current = gameNow() + roundLimitRef.current;
     setRoundLeft(roundLimitRef.current / 1000);
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
     deadlineTimerRef.current = setTimeout(onRoundTimeout, roundLimitRef.current);
@@ -192,13 +193,13 @@ export default function CounterGame() {
     setScore(0); setErrors(0); setRound(1);
     setElapsedTime(0);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
 
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setElapsedTime((Date.now() - startTimeRef.current) / 1000);
+      setElapsedTime((gameNow() - startTimeRef.current) / 1000);
       if (roundDeadlineRef.current > 0) {
-        setRoundLeft(Math.max(0, (roundDeadlineRef.current - Date.now()) / 1000));
+        setRoundLeft(Math.max(0, (roundDeadlineRef.current - gameNow()) / 1000));
       }
     }, 100);
 
@@ -207,7 +208,7 @@ export default function CounterGame() {
 
   const finish = async () => {
     clearAllTimers();
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const hits = hitsRef.current;
     const accuracy = totalRoundsRef.current > 0 ? hits / totalRoundsRef.current : 0;

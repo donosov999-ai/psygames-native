@@ -15,6 +15,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useGameKeyboard, digitKeys } from '@/src/hooks/useGameKeyboard';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
 // Непрозрачная подсветка: смешать base (фон темы) с over (акцент) — как в sudoku.tsx,
@@ -123,10 +124,10 @@ function generatePuzzle(digRatio: number): { puzzle: Cell[][]; solution: Cell[][
   const puzzle: Cell[][] = sol.map((row) => [...row]);
   const blanks = Math.round(CELLS.length * digRatio);   // доля закрытых клеток растёт по уровню
   const order = shuffle(CELLS.map((_, i) => i));
-  const deadline = Date.now() + 3000;
+  const deadline = gameNow() + 3000;
   let dug = 0;
   for (const idx of order) {
-    if (dug >= blanks || Date.now() > deadline) break;
+    if (dug >= blanks || gameNow() > deadline) break;
     const [r, c] = CELLS[idx];
     const keep = puzzle[r][c];
     puzzle[r][c] = 0;
@@ -179,11 +180,11 @@ export default function SamuraiSudokuGame() {
     setOver(false);
     setZoom('fit');
     setPhase('playing');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
     setElapsedTime(0);
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
 
   const isSolved = (ng: Cell[][]): boolean => {
@@ -196,7 +197,7 @@ export default function SamuraiSudokuGame() {
   // обновился в этом рендере, если решение пришло от подсказки).
   const finishLevel = async (ng: Cell[][], hintCount: number) => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
     const passed = !isPreset;
     if (passed) lvl.reach(levelRef.current + 1);

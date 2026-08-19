@@ -35,6 +35,7 @@ import GameResult from '@/src/components/GameResult';
 import GlassButton from '@/src/components/GlassButton';
 import { useGameKeyboard, digitKeys } from '@/src/hooks/useGameKeyboard';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
+import { gameNow } from '@/src/services/gamePause';
 import {
   N, UNLOCK_CELLS, FEED_CELL, generateFractal, rootCellForChild, solvedCount, isUnlocked,
   type FractalPuzzle, type Board,
@@ -97,9 +98,9 @@ export default function FractalSudokuScreen() {
     setElapsed(0);
     setOpenChild(null);
     setSelected(null);
-    startRef.current = Date.now();
+    startRef.current = gameNow();
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setElapsed((Date.now() - startRef.current) / 1000), 200);
+    timerRef.current = setInterval(() => setElapsed((gameNow() - startRef.current) / 1000), 200);
     setPhase('map');
   }, [cfg.rootBlanks, cfg.childBlanks]);
 
@@ -109,7 +110,7 @@ export default function FractalSudokuScreen() {
   const finish = useCallback(async (won: boolean) => {
     setWon(won);
     if (timerRef.current) clearInterval(timerRef.current);
-    const time = (Date.now() - startRef.current) / 1000;
+    const time = (gameNow() - startRef.current) / 1000;
     setElapsed(time);
     setPhase('result');
     // Уровень засчитан только за ВЫИГРАННУЮ партию: здесь можно и не собрать.

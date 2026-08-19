@@ -37,6 +37,7 @@ import BossRound from '@/src/components/BossRound';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const CPT_RULES: LevelRule[] = [
@@ -155,7 +156,7 @@ export default function CPTGame() {
 
   const scheduleNextStimulus = () => {
     if (stoppedRef.current) return;
-    const elapsedSec = (Date.now() - startTimeRef.current) / 1000;
+    const elapsedSec = (gameNow() - startTimeRef.current) / 1000;
     if (elapsedSec >= durationSecRef.current) {
       finish();
       return;
@@ -178,7 +179,7 @@ export default function CPTGame() {
       };
       currentTrialRef.current = trial;
       respondedRef.current = false;
-      stimOnsetRef.current = Date.now();
+      stimOnsetRef.current = gameNow();
       setCurrentLetter(letter);
       setLetterVisible(true);
       // hide after STIM_DURATION
@@ -223,7 +224,7 @@ export default function CPTGame() {
     if (!t || respondedRef.current) return;
     respondedRef.current = true;
     t.responded = true;
-    t.rt = Date.now() - stimOnsetRef.current;
+    t.rt = gameNow() - stimOnsetRef.current;
     if (t.isTarget) {
       t.correct = true;
       setHits(h => h + 1);
@@ -256,9 +257,9 @@ export default function CPTGame() {
     setCurrentLetter('');
     setRemaining(p.durationSec);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     remainingTimerRef.current = setInterval(() => {
-      const left = durationSecRef.current - Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const left = durationSecRef.current - Math.floor((gameNow() - startTimeRef.current) / 1000);
       setRemaining(Math.max(0, left));
     }, 200);
     scheduleNextStimulus();
@@ -306,7 +307,7 @@ export default function CPTGame() {
       vigilanceSlope = den > 0 ? num / den : 0;
     }
 
-    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const totalTime = (gameNow() - startTimeRef.current) / 1000;
     // прохождение уровня: высокая доля hits + мало commission → следующий уровень
     const accuracy = targets.length ? totalHits / targets.length : 0;
     const commissionRate = nonTargets.length ? totalCommissions / nonTargets.length : 0;

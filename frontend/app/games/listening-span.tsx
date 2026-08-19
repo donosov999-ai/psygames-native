@@ -21,6 +21,7 @@ import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#4776E6', '#8E54E9'];
 const GAME_ID = 'listening_span';
@@ -148,10 +149,10 @@ export default function ListeningSpanGame() {
     setRound(1);
     setErrors(0);
     setElapsedTime(0);
-    const start = Date.now();
+    const start = gameNow();
     startTimeRef.current = start;
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 200);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 200);
     beginRound();
   };
 
@@ -213,7 +214,7 @@ export default function ListeningSpanGame() {
 
   const finishGame = async (totalErrors: number) => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const passed = totalErrors <= 1;   // оба раунда, суммарно ≤1 ошибка
     if (passed && !isPreset) lvl.reach(levelRef.current + 1);

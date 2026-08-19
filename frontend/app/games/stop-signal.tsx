@@ -36,6 +36,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#ee0979', '#ff6a00'];
 // Синергия: каждые BOSS_EVERY пройденных уровней → битва с боссом (резкая смена правила).
@@ -127,13 +128,13 @@ export default function StopSignalGame() {
     setRound(1);
     setSignal('idle'); setFeedback(null);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     nextTrial();
   };
 
   const finish = async () => {
     clearTimers();
-    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const totalTime = (gameNow() - startTimeRef.current) / 1000;
     const h = hitsRef.current, e = errorsRef.current, cs = correctStopsRef.current;
     const finalRts = rtsRef.current;
     const meanRt = finalRts.length ? finalRts.reduce((a, b) => a + b, 0) / finalRts.length : 0;
@@ -188,7 +189,7 @@ export default function StopSignalGame() {
     const fixDelay = 700 + Math.random() * 700;
     goTimerRef.current = setTimeout(() => {
       setSignal('go');
-      goAtRef.current = Date.now();
+      goAtRef.current = gameNow();
       // schedule stop signal if applicable (SSD уровня)
       if (isStop) {
         stopTimerRef.current = setTimeout(() => {
@@ -228,7 +229,7 @@ export default function StopSignalGame() {
     if (respondedRef.current) return;
     if (signal !== 'go' && signal !== 'stop') return;
     respondedRef.current = true;
-    const rt = Date.now() - goAtRef.current;
+    const rt = gameNow() - goAtRef.current;
     // Нажатие на стоп-пробе = failed inhibition, даже если стоп ещё не показан
     if (signal === 'stop' || trialIsStopRef.current) endTrial('stop_fail', rt);
     else endTrial('go_hit', rt);

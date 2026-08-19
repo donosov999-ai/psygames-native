@@ -12,6 +12,7 @@ import { a11yModal } from '@/src/services/a11y';
 import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 import type { GameContextHelp } from '@/src/services/gameContextHelp';
 import { getGameContextHelp, subscribeGameContextHelp } from '@/src/services/gameContextHelp';
+import { holdGame } from '@/src/services/gamePause';
 
 /**
  * Глобальная кнопка-«?» справки для всех экранов игр.
@@ -50,6 +51,20 @@ export default function GameHelpOverlay() {
   const rtl = isRTLLang(language);
   const pathname = usePathname() || '';
   const [open, setOpen] = useState(false);
+
+  /**
+   * 🔴 ЧТЕНИЕ ПРАВИЛ НЕ СТОИТ ПАРТИИ.
+   *
+   * Та же беда, что была с окном отзыва (репорт 18.08 «пока я писала отзыв, игра
+   * закончилась»), только тише: правила открывают ИМЕННО ТОГДА, когда не поняли,
+   * что делать, — то есть посреди раунда с отсчётом. Прочитал — проиграл, и в
+   * следующий раз не откроешь. Пауза общая и считает вложенно, так что открытые
+   * поверх правил отзыв или подтверждение её не отпустят.
+   */
+  useEffect(() => {
+    if (!open) return;
+    return holdGame();
+  }, [open]);
   const [coach, setCoach] = useState(false);           // одноразовое облачко-указатель
   const [deep, setDeep] = useState<Record<string, any> | null>(null);
   const [openSecs, setOpenSecs] = useState<Record<string, boolean>>({});

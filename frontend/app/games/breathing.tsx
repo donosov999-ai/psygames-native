@@ -21,6 +21,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { hapticMedium } from '@/src/components/juice/haptics';
 import { sndTap, sndBreathIn, sndBreathHold, sndBreathOut } from '@/src/services/feedback';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT_DAY = ['#5b86e5', '#36d1dc'];   // спокойный сине-бирюзовый (отлично от eye-gym)
 // Ночной вид для сценария «Не спится»: человек открыл это, потому что не может
@@ -212,9 +213,9 @@ export default function BreathingGame() {
   };
 
   const runCycle = () => {
-    const start = Date.now();
+    const start = gameNow();
     timerRef.current = setInterval(() => {
-      const tt = (Date.now() - start) / 1000;
+      const tt = (gameNow() - start) / 1000;
       if (tt >= totalDur) { if (timerRef.current) clearInterval(timerRef.current); setElapsed(totalDur); finish(); }
       else setElapsed(tt);
     }, 50);
@@ -295,8 +296,8 @@ export default function BreathingGame() {
   };
   const runWimHold = () => {
     setWimHoldSec(0);
-    const start = Date.now();
-    wimTimerRef.current = setInterval(() => { setWimHoldSec(Math.floor((Date.now() - start) / 1000)); }, 250);
+    const start = gameNow();
+    wimTimerRef.current = setInterval(() => { setWimHoldSec(Math.floor((gameNow() - start) / 1000)); }, 250);
   };
   const wimReleaseHold = () => {   // игрок не может больше держать → восстановит. вдох 15с
     if (wimTimerRef.current) clearInterval(wimTimerRef.current);

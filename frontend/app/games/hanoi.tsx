@@ -21,6 +21,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import LevelCleared from '@/src/components/LevelCleared';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
+import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const HN_RULES: LevelRule[] = [
@@ -102,9 +103,9 @@ export default function HanoiGame() {
     setErrors(0);
     moveHistory.reset();
     setPhase('playing');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
 
   /**
@@ -239,7 +240,7 @@ export default function HanoiGame() {
     // Победа — все диски на ПОСЛЕДНЕМ стержне (работает для 3/4/5 стержней)
     if (np[np.length - 1].length === discs) {
       if (timerRef.current) clearInterval(timerRef.current);
-      const finalTime = (Date.now() - startTime) / 1000;
+      const finalTime = (gameNow() - startTime) / 1000;
       setElapsedTime(finalTime);
       if (!isPreset) lvl.reach(levelRef.current + 1);   // решил пазл → +уровень
       setPhase(isPreset ? 'result' : 'cleared');

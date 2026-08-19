@@ -46,6 +46,7 @@ import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#1e3a8a', '#7f1d1d'];   // blue → red (отсылка к двум цветам стимула)
 const COLOR_BLUE = '#3b82f6';
@@ -146,7 +147,7 @@ export default function SimonGame() {
     trialRef.current = tr;
     setTrial(tr);
     stimTimerRef.current = setTimeout(() => {
-      stimAtRef.current = Date.now();
+      stimAtRef.current = gameNow();
       answeredRef.current = false;
       setShowStim(true);
       // Окно ответа уровня: не успел — ошибка-пропуск, проба закрывается сама
@@ -182,13 +183,13 @@ export default function SimonGame() {
     setRtsByKind({ congruent: [], incongruent: [] });
     setRound(1);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     newTrial();
   };
 
   const finish = async () => {
     clearAllTimers();
-    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const totalTime = (gameNow() - startTimeRef.current) / 1000;
     const rts = rtsRef.current;
     const flatten = [...rts.congruent, ...rts.incongruent];
     const meanRt = flatten.length ? flatten.reduce((a, b) => a + b, 0) / flatten.length : 0;
@@ -238,7 +239,7 @@ export default function SimonGame() {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
-    const rt = Date.now() - stimAtRef.current;
+    const rt = gameNow() - stimAtRef.current;
     const tr = trialRef.current;
     const ok = chosen === correctSide(tr.color);
     if (ok) {

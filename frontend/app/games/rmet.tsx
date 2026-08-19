@@ -35,6 +35,7 @@ import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#fc466b', '#a445b2'];
 const RMET_BENEFITS = [
@@ -276,14 +277,14 @@ export default function RMETGame() {
     setShuffledOpts(shuffle(opts));
     setRound(idx);
     setFeedback(null);
-    stimAtRef.current = Date.now();
+    stimAtRef.current = gameNow();
   };
 
   const handleAnswer = (chosen: string) => {
     if (feedback !== null) return;
     const it = items[round];
     const correct = chosen === (language === 'en' ? it.correct_en : it.correct_ru);
-    const rt = Date.now() - stimAtRef.current;
+    const rt = gameNow() - stimAtRef.current;
     setFeedback({ chosen, correct });
     if (correct) {
       setHits(h => h + 1);

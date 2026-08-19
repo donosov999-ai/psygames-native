@@ -16,6 +16,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#3a1c71', '#d76d77'];
 const TOL_BENEFITS = [
@@ -163,9 +164,9 @@ export default function TowerLondonGame() {
     setSolved(0); setExtraMoves(0); setErrors(0); setRound(1);
     newRound(tm, balls);
     setPhase('playing');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
 
   const handlePeg = async (i: number) => {
@@ -197,7 +198,7 @@ export default function TowerLondonGame() {
       setTimeout(async () => {
         if (round >= trials) {
           if (timerRef.current) clearInterval(timerRef.current);
-          const finalTime = (Date.now() - startTime) / 1000;
+          const finalTime = (gameNow() - startTime) / 1000;
           setElapsedTime(finalTime);
           const passed = !isPreset && (extraMoves + extra) <= trials;
           if (!isPreset) { if (passed) lvl.reach(levelRef.current + 1); else lvl.fail(); }   // вверх / гистерезис вниз

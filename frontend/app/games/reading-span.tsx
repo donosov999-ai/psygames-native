@@ -19,6 +19,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#1f4037', '#99f2c8'];
 const RS_BENEFITS = [
@@ -153,9 +154,9 @@ export default function ReadingSpanGame() {
     setRecallInput('');
     setHits(0); setErrors(0); setJudgeHits(0);
     setPhase('playing');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
 
   const handleJudge = (says: boolean) => {
@@ -177,7 +178,7 @@ export default function ReadingSpanGame() {
     }
     setHits(h); setErrors(e);
     if (timerRef.current) clearInterval(timerRef.current);
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
     const passed = !isPreset && e === 0;
     if (isPreset) {

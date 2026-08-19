@@ -34,6 +34,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#36d1dc', '#5b86e5'];
 const NB_BENEFITS = [
@@ -150,7 +151,7 @@ export default function NumberBondsGame() {
     setPicked([]);
     setFeedback(null);
     solvedRef.current = false;
-    roundStartAtRef.current = Date.now();
+    roundStartAtRef.current = gameNow();
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
     if (windowMsRef.current > 0) {
       setRoundLeft(windowMsRef.current / 1000);
@@ -194,9 +195,9 @@ export default function NumberBondsGame() {
     setHits(0); setErrors(0); setRound(1);
     setElapsedTime(0);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     timerRef.current = setInterval(() => {
-      const now = Date.now();
+      const now = gameNow();
       setElapsedTime((now - startTimeRef.current) / 1000);
       if (windowMsRef.current > 0) {
         setRoundLeft(Math.max(0, (windowMsRef.current - (now - roundStartAtRef.current)) / 1000));
@@ -207,7 +208,7 @@ export default function NumberBondsGame() {
 
   const finish = async () => {
     clearAllTimers();
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const h = hitsRef.current, e = errorsRef.current;
     const accuracy = (h + e) > 0 ? h / (h + e) : 0;

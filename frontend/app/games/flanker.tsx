@@ -20,6 +20,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#16222a', '#3a6073'];
 // Синергия: каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
@@ -119,8 +120,8 @@ export default function FlankerGame() {
     setTrial(tr);
     answeredRef.current = false;
     stimTimerRef.current = setTimeout(() => {
-      stimOnsetRef.current = Date.now();
-      setStimAt(Date.now());
+      stimOnsetRef.current = gameNow();
+      setStimAt(gameNow());
       setShowStim(true);
       // окно ответа уровня: не успел — считается ошибкой (пропуск)
       deadlineTimerRef.current = setTimeout(() => handleMiss(), windowRef.current);
@@ -143,12 +144,12 @@ export default function FlankerGame() {
     roundRef.current = 1;
     setHits(0); setErrors(0); setRtsByKind({ congruent: [], incongruent: [], neutral: [] }); setRound(1);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     newTrial();
   };
 
   const finish = async () => {
-    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const totalTime = (gameNow() - startTimeRef.current) / 1000;
     const all = rtsRef.current;
     const flatten = [...all.congruent, ...all.incongruent, ...all.neutral];
     const meanRt = flatten.length ? flatten.reduce((a, b) => a + b, 0) / flatten.length : 0;
@@ -208,7 +209,7 @@ export default function FlankerGame() {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
-    const rt = Date.now() - stimAt;
+    const rt = gameNow() - stimAt;
     const tr = trialRef.current;
     const ok = chosen === tr.center;
     if (ok) {

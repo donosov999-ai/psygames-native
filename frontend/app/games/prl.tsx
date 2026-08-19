@@ -51,6 +51,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#1e3c72', '#2a5298'];
 const PRL_BENEFITS = [
@@ -196,7 +197,7 @@ export default function PRLGame() {
     respondLockRef.current = false;
     setTrialIdx(0); setBank(100); setRevealCount(0); setFeedback(null);
     setTotalTrials(total);
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     setPhase('playing');
   };
 
@@ -253,7 +254,7 @@ export default function PRLGame() {
     respondLockRef.current = true;
     const classic = classicRef.current;
     const trials = trialsRef.current;
-    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const totalTime = (gameNow() - startTimeRef.current) / 1000;
 
     // Reversal errors = errors in trials where blockIndex > 0 (after first reversal)
     const reversalErrors = trials.filter(t => t.blockIndex > 0 && t.isError).length;
@@ -530,7 +531,7 @@ export default function PRLGame() {
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, bank)}
-          time={(Date.now() - startTimeRef.current) / 1000}
+          time={(gameNow() - startTimeRef.current) / 1000}
           errors={trialsRef.current.filter(t => t.isError).length}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />

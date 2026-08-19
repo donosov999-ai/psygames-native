@@ -22,6 +22,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#ff0844', '#ffb199'];
 
@@ -147,7 +148,7 @@ export default function TargetsGame() {
     
     prevColorRef.current = circleColor;
     isTargetRef.current = target;
-    showTimeRef.current = Date.now();
+    showTimeRef.current = gameNow();
     roundLiveRef.current = true;        // с этого момента тап засчитывается (см. handleClick)
     // Один синхронный блок = один ре-рендер поля (React 18+ батчит), фигуры не «моргают»
     setPrevCircleColor(circleColor);
@@ -200,7 +201,7 @@ export default function TargetsGame() {
     roundLiveRef.current = false;
     clearAllTimers();                                  // снять авто-промах текущего раунда
 
-    const reactionTime = Date.now() - showTimeRef.current;
+    const reactionTime = gameNow() - showTimeRef.current;
 
     if (isTargetRef.current) {
       // Correct hit!

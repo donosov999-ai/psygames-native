@@ -29,6 +29,7 @@ import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#8E2DE2', '#4A00E0'];
 const GAME_ID = 'pseudoword_echo';
@@ -238,13 +239,13 @@ export default function PseudowordEchoGame() {
     setAnswered(null);
     setIdx(0);
     setRounds(buildRounds(tgt, p.trials, p.lenMin, p.lenMax));
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     setPhase('playing');
   };
 
   const finish = async (total: number) => {
     ttsCancel();
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const h = hitsRef.current;
     const e = errorsRef.current;

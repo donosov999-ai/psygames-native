@@ -29,6 +29,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { gameNow } from '@/src/services/gamePause';
 import {
   buildQueue,
   gradeCard,
@@ -116,7 +117,7 @@ export default function VocabSrsGame() {
     }
     setOptions(opts);
     setPicked(null);
-    shownAtRef.current = Date.now();
+    shownAtRef.current = gameNow();
   };
 
   const startSession = async () => {
@@ -137,13 +138,13 @@ export default function VocabSrsGame() {
     reviewsDoneRef.current = 0;
     rtSumRef.current = 0;
     answersRef.current = 0;
-    setStartTime(Date.now());
+    setStartTime(gameNow());
     setPhase('playing');
     makeOptions(cards[0], q.pool);
   };
 
   const finishSession = async (finalQueueLen: number) => {
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
     setPhase('result');
     // Подход доводят до конца — провалить нельзя. Засчитан фактом завершения.
@@ -179,7 +180,7 @@ export default function VocabSrsGame() {
     const card = queue[idx];
     const field = direction === 'recognize' ? 'base' : 'target';
     const right = card[field];
-    const rt = Date.now() - shownAtRef.current;
+    const rt = gameNow() - shownAtRef.current;
     const isRight = option === right;
     setPicked(option);
     answersRef.current += 1;

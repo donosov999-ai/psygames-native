@@ -18,6 +18,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const SG_RULES: LevelRule[] = [
@@ -229,9 +230,9 @@ export default function SetGame() {
     setHits(0); setErrors(0); setRound(1);
     newRound();
     setPhase('playing');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
 
   const togglePick = (i: number) => {
@@ -261,7 +262,7 @@ export default function SetGame() {
       if (ok) {
         if (round >= trials) {
           if (timerRef.current) clearInterval(timerRef.current);
-          const finalTime = (Date.now() - startTime) / 1000;
+          const finalTime = (gameNow() - startTime) / 1000;
           setElapsedTime(finalTime);
           const passed = !isPreset && errors <= 1;
           if (isPreset) {

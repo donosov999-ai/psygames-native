@@ -33,6 +33,7 @@ import LeaderboardModal from '@/src/components/LeaderboardModal';
 import { fetchBest, getPersonalBest, submitScore } from '@/src/services/leaderboard';
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#667eea', '#764ba2'];
 
@@ -281,10 +282,10 @@ export default function SchulteGame() {
     setPhase('playing');
 
     if (timerRef.current) clearInterval(timerRef.current);
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
     timerRef.current = setInterval(() => {
-      setElapsedTime((Date.now() - start) / 1000);
+      setElapsedTime((gameNow() - start) / 1000);
     }, 100);
   };
 
@@ -293,7 +294,7 @@ export default function SchulteGame() {
   // отставать на один клик в замыкании onPress.
   const finishRound = async (totalCells: number, errsArg: number) => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
     const passed = !isPreset && useLevelRef.current && errsArg <= 2;
     if (passed) lvl.reach(levelRef.current + 1);

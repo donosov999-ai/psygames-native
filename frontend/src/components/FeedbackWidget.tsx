@@ -20,7 +20,7 @@ import {
   ActivityIndicator, ScrollView, DeviceEventEmitter,
 } from 'react-native';
 import { DEVCHAT_VISIBLE_EVENT } from '@/src/services/pet';
-import { GAME_PAUSE_EVENT, FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
+import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname } from 'expo-router';
@@ -58,6 +58,11 @@ export default function FeedbackWidget() {
    * 🔴 ПОКА ОТКРЫТ ОТЗЫВ — ИГРА ЗАМИРАЕТ. Репорт 18.08.2026: «пока я писала
    * отзыв, игра моя закончилась… несправедливость». Репорт не должен стоить
    * человеку партии: это единственный канал, по которому мы узнаём о проблемах.
+   *
+   * ЕДИНСТВЕННЫЙ ИСТОЧНИК ПАУЗЫ. Рядом жили ещё четыре ручных `emit` булева
+   * эвента — открыли «да», три закрытия «нет». Пятый выход (свайп, системный
+   * «назад») никто бы не вспомнил, и игра осталась бы замороженной. Эффект по
+   * `open` снимает паузу сам: и на закрытии, и на размонтировании виджета.
    */
   React.useEffect(() => {
     if (!open) return;
@@ -201,8 +206,7 @@ export default function FeedbackWidget() {
     // которого перестают писать вообще.
     setAttachShot(true);
     setSent(false);
-    setOpen(true);
-    DeviceEventEmitter.emit(GAME_PAUSE_EVENT, true);   // игра на паузу, пока пишут отзыв
+    setOpen(true);   // пауза наступает от эффекта по `open`, см. выше
   };
 
   /**
@@ -255,7 +259,7 @@ export default function FeedbackWidget() {
       setNote(null);
       // Дольше 1.3 с: тут теперь есть что прочитать, а не один значок.
       // Закрыть можно и раньше — крестик остаётся на месте.
-      setTimeout(() => { setOpen(false); setShot(null); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }, 3200);
+      setTimeout(() => { setOpen(false); setShot(null); }, 3200);
     } else {
       setText((t) => t);   // оставляем текст, чтобы не потерять написанное
       alert(t('feedbackSendFailed'));
@@ -276,7 +280,7 @@ export default function FeedbackWidget() {
           : <Ionicons name="chatbubble-ellipses" size={19} color="#fff" />}
       </TouchableOpacity>
 
-      <Modal visible={open} animationType="slide" transparent onRequestClose={() => { setOpen(false); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }}>
+      <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
         <View {...a11yModal} style={styles.backdrop}>
           <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
             <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
@@ -285,7 +289,7 @@ export default function FeedbackWidget() {
                   {t('feedbackTitle')}
                 </Text>
                 <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')}
-                  onPress={() => { setOpen(false); DeviceEventEmitter.emit(GAME_PAUSE_EVENT, false); }} style={{ padding: 4 }}>
+                  onPress={() => setOpen(false)} style={{ padding: 4 }}>
                   <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>

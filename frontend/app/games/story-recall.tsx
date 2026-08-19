@@ -33,6 +33,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { STORY_MAX_LEVEL, readSecondsFor, distractorSecondsFor } from '@/src/services/storyRecallLevels';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#654ea3', '#eaafc8'];
 const STORY_BENEFITS = [
@@ -230,9 +231,9 @@ export default function StoryRecallGame() {
     readSecRef.current = readSec;
     setReadRemaining(readSec);
     setPhase('reading');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     intervalRef.current = setInterval(() => {
-      const left = readSec - Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const left = readSec - Math.floor((gameNow() - startTimeRef.current) / 1000);
       setReadRemaining(Math.max(0, left));
       if (left <= 0) {
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -248,9 +249,9 @@ export default function StoryRecallGame() {
     dist1Ref.current = d1;
     setDistractorRemaining(d1);
     nextDistractorTrial();
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     intervalRef.current = setInterval(() => {
-      const left = dist1Ref.current - Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const left = dist1Ref.current - Math.floor((gameNow() - startTimeRef.current) / 1000);
       setDistractorRemaining(Math.max(0, left));
       if (left <= 0) {
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -286,9 +287,9 @@ export default function StoryRecallGame() {
     dist2Ref.current = d2;
     setDistractorRemaining(d2);
     nextDistractorTrial();
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     intervalRef.current = setInterval(() => {
-      const left = dist2Ref.current - Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const left = dist2Ref.current - Math.floor((gameNow() - startTimeRef.current) / 1000);
       setDistractorRemaining(Math.max(0, left));
       if (left <= 0) {
         if (intervalRef.current) clearInterval(intervalRef.current);

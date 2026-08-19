@@ -21,6 +21,7 @@ import { sndCombo } from '@/src/services/feedback';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { a11yDecor } from '@/src/services/a11y';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const GS_RULES: LevelRule[] = [
@@ -686,7 +687,7 @@ export default function GoodsSortGame() {
     setGoal(g); goalRef.current = g;
 
     setSel(null); setMoves(0); movesRef.current = 0;
-    setStartTime(Date.now()); setElapsed(0);
+    setStartTime(gameNow()); setElapsed(0);
   };
 
   const startGame = () => {
@@ -713,7 +714,7 @@ export default function GoodsSortGame() {
       if (!chainNext) {
         saveSession({
           passed: false,
-          game_type: 'goods_sort', score: scoreRef.current, time_seconds: (Date.now() - startTime) / 1000,
+          game_type: 'goods_sort', score: scoreRef.current, time_seconds: (gameNow() - startTime) / 1000,
           difficulty: level < 5 ? 'easy' : level < 10 ? 'medium' : 'hard', mode: `lvl${level}`, errors: 0,
           details: { moves: movesRef.current, level, move_limit_exceeded: true },
         }).catch((e) => console.error(e));
@@ -725,7 +726,7 @@ export default function GoodsSortGame() {
     }
     hapticSuccess();
     const done = level;
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (gameNow() - startTime) / 1000;
     scoreRef.current += Math.max(50, 300 - movesRef.current * 4);
     setScore(scoreRef.current);
     saveSession({

@@ -43,6 +43,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#5614b0', '#dbd65c'];
 // Цвет 3D-фигур: тёмно-фиолетовый GRADIENT[0] сливался с тёмной темой (образец не виден).
@@ -368,10 +369,10 @@ export default function MentalRotationGame() {
     setTrial(makeTrial(lvl.level));
     setFeedback(null);
     setPhase('playing');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
     setTrialStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
 
   const computeSlope = (pairs: { angle: number; rt: number }[]): number => {
@@ -389,7 +390,7 @@ export default function MentalRotationGame() {
   const handlePick = async (idx: number) => {
     if (feedback !== null) return;
     const ok = idx === trial.correctIdx;
-    const rt = Date.now() - trialStartTime;
+    const rt = gameNow() - trialStartTime;
     const correctAngle = trial.options[trial.correctIdx]?.angleSum || 90;
     setFeedback({ idx, ok });
     if (ok) {
@@ -400,7 +401,7 @@ export default function MentalRotationGame() {
     setTimeout(async () => {
       if (round >= trials) {
         if (timerRef.current) clearInterval(timerRef.current);
-        const finalTime = (Date.now() - startTime) / 1000;
+        const finalTime = (gameNow() - startTime) / 1000;
         setElapsedTime(finalTime);
         const newHits = hits + (ok ? 1 : 0);
         const newErrors = errors + (ok ? 0 : 1);
@@ -439,7 +440,7 @@ export default function MentalRotationGame() {
         setRound(r => r + 1);
         setTrial(makeTrial(levelRef.current));
         setFeedback(null);
-        setTrialStartTime(Date.now());
+        setTrialStartTime(gameNow());
       }
     }, 700);
   };

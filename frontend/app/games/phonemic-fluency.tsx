@@ -40,6 +40,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 import { phonemicLetterPool } from '@/src/services/phonemicFluency';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#16a085', '#f4d03f'];
 const FLU_BENEFITS = [
@@ -91,10 +92,10 @@ export default function PhonemicFluencyGame() {
     setInput('');
     setRemaining(duration);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     let lastSec: number = duration;
     intervalRef.current = setInterval(() => {
-      const left = duration - Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const left = duration - Math.floor((gameNow() - startTimeRef.current) / 1000);
       setRemaining(Math.max(0, left));
       if (left !== lastSec) { lastSec = left; if (left > 0 && left <= 5) sndTimerTick(); }   // SND-T: тик последних 5с
       if (left <= 0) {
@@ -131,7 +132,7 @@ export default function PhonemicFluencyGame() {
     const raw = input.trim().toLowerCase();
     setInput('');
     if (!raw) return;
-    const ts = Date.now();
+    const ts = gameNow();
     let result = isValidWord(raw, letter, language as 'ru' | 'en');
     let valid = result.valid;
     let reason: string | undefined = result.reason;

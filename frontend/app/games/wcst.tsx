@@ -40,6 +40,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#834d9b', '#d04ed6'];
 const MAX_LEVEL = 12;
@@ -204,14 +205,14 @@ export default function WcstGame() {
     setFeedback(null);
     setPhase('playing');
     setElapsedTime(0);
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - startTimeRef.current) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - startTimeRef.current) / 1000), 100);
   };
 
   const finish = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
 
     const classic = classicRef.current;

@@ -28,6 +28,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#fc6076', '#ff9a44'];
 const TRAIL_BENEFITS = [
@@ -194,14 +195,14 @@ export default function TrailMakingGame() {
     setElapsedTime(0);
     setPhase('playing');
     if (timerRef.current) clearInterval(timerRef.current);
-    const start = Date.now();
+    const start = gameNow();
     startTimeRef.current = start;
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
 
   const finish = async () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const e = errorsRef.current;
     const totalNodes = totalNodesRef.current;

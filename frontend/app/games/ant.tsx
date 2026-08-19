@@ -40,6 +40,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#005C97', '#363795'];
 const ANT_BENEFITS = [
@@ -143,7 +144,7 @@ export default function ANTGame() {
   useEffect(() => () => clearAllTimers(), []);
 
   const onTargetShown = () => {
-    stimAtRef.current = Date.now();
+    stimAtRef.current = gameNow();
     answeredRef.current = false;
     setShowTarget(true);
     // Окно ответа уровня: не успел — ошибка-пропуск, проба закрывается сама
@@ -199,7 +200,7 @@ export default function ANTGame() {
     roundRef.current = 1;
     setHits(0); setErrors(0); setRts([]); setRound(1);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     newTrial();
   };
 
@@ -217,7 +218,7 @@ export default function ANTGame() {
 
   const finish = async () => {
     clearAllTimers();
-    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const totalTime = (gameNow() - startTimeRef.current) / 1000;
     const m = calcMeans(rtsRef.current);
     const h = hitsRef.current, e = errorsRef.current;
     const accuracy = totalTrialsRef.current > 0 ? h / totalTrialsRef.current : 0;
@@ -262,7 +263,7 @@ export default function ANTGame() {
     if (!showTarget || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
     if (deadlineTimer.current) clearTimeout(deadlineTimer.current);
-    const rt = Date.now() - stimAtRef.current;
+    const rt = gameNow() - stimAtRef.current;
     const tr = trialRef.current;
     const ok = d === tr.dir;
     if (ok) {

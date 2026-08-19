@@ -18,6 +18,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const OSPAN_RULES: LevelRule[] = [
@@ -121,9 +122,9 @@ export default function OSpanGame() {
     setFeedback(null);
     setEq(makeEquation(p.hardMath));
     setPhase('eq');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
 
   const handleEquation = (says: boolean) => {
@@ -159,7 +160,7 @@ export default function OSpanGame() {
     }
     setRecallHits(h); setRecallErrors(e);
     if (timerRef.current) clearInterval(timerRef.current);
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
     const passed = e === 0;
     if (passed) lvl.reach(levelRef.current + 1);   // чистый recall всех букв → +уровень

@@ -23,6 +23,7 @@ import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const MS_RULES: LevelRule[] = [
@@ -130,11 +131,11 @@ export default function MathSprintGame() {
     setTimeLeft(duration);
     setProblem(generateProblem(effLevel));
     setPhase('playing');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
     let lastSec = Math.ceil(duration);
     tickRef.current = setInterval(() => {
-      const elapsed = (Date.now() - start) / 1000;
+      const elapsed = (gameNow() - start) / 1000;
       setElapsedTime(elapsed);
       const remaining = Math.max(0, duration - elapsed);
       setTimeLeft(remaining);

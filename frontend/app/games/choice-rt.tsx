@@ -35,6 +35,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#fdc830', '#f37335'];
 const CHOICE_BENEFITS = [
@@ -119,7 +120,7 @@ export default function ChoiceRtGame() {
     const next = dirs[Math.floor(Math.random() * dirs.length)];
     stimRef.current = next;
     stimTimerRef.current = setTimeout(() => {
-      stimAtRef.current = Date.now();
+      stimAtRef.current = gameNow();
       answeredRef.current = false;
       setStim(next);
       setShowStim(true);
@@ -155,13 +156,13 @@ export default function ChoiceRtGame() {
     setHits(0); setErrors(0); setRts([]);
     setRound(1);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     newTrial();
   };
 
   const finish = async () => {
     clearAllTimers();
-    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const totalTime = (gameNow() - startTimeRef.current) / 1000;
     const finalRts = rtsRef.current;
     const meanRt = finalRts.length ? finalRts.reduce((a, b) => a + b, 0) / finalRts.length : 0;
     const h = hitsRef.current, e = errorsRef.current;
@@ -205,7 +206,7 @@ export default function ChoiceRtGame() {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
-    const rt = Date.now() - stimAtRef.current;
+    const rt = gameNow() - stimAtRef.current;
     const correct = chosen === stimRef.current;
     if (correct) {
       hapticSuccess();

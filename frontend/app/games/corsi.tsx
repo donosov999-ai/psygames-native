@@ -22,6 +22,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const CORSI_RULES: LevelRule[] = [
@@ -130,9 +131,9 @@ export default function CorsiGame() {
     setSpan(0); setErrors(0);
     setUserSeq([]);
     setPhase('show');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
     showSequence(startSpan);
   };
 
@@ -160,7 +161,7 @@ export default function CorsiGame() {
 
   const finish = async (finalSpan: number, finalErrors: number) => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
     const passed = !isPreset && finalSpan >= levelParams(levelRef.current).startSpan;
     if (passed) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
