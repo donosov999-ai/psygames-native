@@ -16,7 +16,7 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
-    version: '1.206.1',
+    version: '1.206.2',
     date: '2026-08-19',
     ru: [
       "Семь новых упражнений — в каталоге стало 71",

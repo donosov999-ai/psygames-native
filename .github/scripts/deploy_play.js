@@ -22,43 +22,10 @@ if (!SA_JSON) { console.error('GOOGLE_PLAY_SA_JSON not set'); process.exit(1); }
  * дороже, чем прочитать файл текстом. Формат файла наш собственный и стабилен,
  * а если он всё-таки изменится — см. ниже: молча заглушку не подставим.
  */
-const PLAY_NOTES_LIMIT = 500;   // жёсткий лимит Google на язык
-
-function extractNotes(version) {
-  const file = path.join(__dirname, '../../frontend/src/constants/whatsNew.ts');
-  const src = fs.readFileSync(file, 'utf8');
-
-  // Блок нужной версии: от её строки version до начала следующей записи.
-  const at = src.indexOf(`version: '${version}'`);
-  if (at === -1) return null;
-  const next = src.indexOf('version: \'', at + 10);
-  const block = next === -1 ? src.slice(at) : src.slice(at, next);
-
-  const pick = (lang) => {
-    const m = block.match(new RegExp(`${lang}:\\s*\\[([\\s\\S]*?)\\]`));
-    if (!m) return null;
-    // Строки в кавычках верхнего уровня; внутри допускаем экранированные кавычки.
-    const items = [...m[1].matchAll(/'((?:[^'\\]|\\.)*)'/g)].map((x) => x[1].replace(/\\'/g, "'"));
-    return items.length ? items : null;
-  };
-
-  const ru = pick('ru');
-  const en = pick('en');
-  if (!ru || !en) return null;
-  return { ru, en };
-}
-
-/** Пункты → текст карточки, с запасом под лимит Play. */
-function format(items) {
-  const out = [];
-  let len = 0;
-  for (const item of items) {
-    const line = `• ${item}`;
-    if (len + line.length + 1 > PLAY_NOTES_LIMIT) break;
-    out.push(line);
-    len += line.length + 1;
-  }
-  return out.join('\n');
+// Разбор «Что нового» и нарезка под лимит Play вынесены отдельно: тем же кодом
+// пользуется гейт `scripts/release-notes-gate.mjs`, который гоняется ДО сборки.
+// Иначе ошибка чтения всплывает на последнем шаге, когда собрано уже всё.
+const { extractNotes, format, PLAY_NOTES_LIMIT } = require('./whatsnew-notes');
 }
 
 const auth = new google.auth.GoogleAuth({
@@ -73,8 +40,8 @@ async function main() {
   // ничего и переспросить, чем залить сборку с пустой карточкой.
   const version = VERSION_NAME.replace(/^v/, '');
   const notes = extractNotes(version);
-  if (!notes) {
-    console.error(`❌ В frontend/src/constants/whatsNew.ts нет записи для ${version}.
+  if (notes.error) {
+    console.error(`❌ ${notes.error}.
 
    В Play эта строка — единственное, что тестировщик читает про обновление.
    Добавь запись { version: '${version}', date, ru: [...], en: [...] } и перевыпусти тег.`);
