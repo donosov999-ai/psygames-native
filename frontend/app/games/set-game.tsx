@@ -258,6 +258,7 @@ export default function SetGame() {
     const p = isPreset ? { trials, timeLimit: 0 } : levelParams(lvl.level);   // уровень рулит: trials → лимит времени на SET
     levelRef.current = lvl.level;
     timeLimitRef.current = p.timeLimit;
+    setDealLimit(p.timeLimit);
     if (!isPreset) setTrials(p.trials);
     setHits(0); setErrors(0); setRound(1);
     newRound();
