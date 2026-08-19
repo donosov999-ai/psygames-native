@@ -58,6 +58,7 @@ const PROFILE_THEME: Record<ProfileId, { mood: 'dark' | 'light'; accent: string 
   drivers:   { mood: 'dark',  accent: '#f97316' }, // оранжевый
   chess:     { mood: 'dark',  accent: '#eab308' }, // золото (а не тёмный графит)
   odv999:    { mood: 'dark',  accent: '#fbbf24' }, // янтарь (владелец)
+  whatsnew:  { mood: 'dark',  accent: '#22c55e' }, // зелёный — витрина свежего, рядом с профилем владельца
   women:     { mood: 'light', accent: '#ec4899' }, // роза — мягкий светлый
   kids:      { mood: 'light', accent: '#10b981' }, // сочный зелёный — игровой
   seniors:   { mood: 'light', accent: '#7c3aed' }, // спокойный фиолет, высокий контраст
