@@ -74,7 +74,11 @@ describe('сортировка товаров: раскладка', () => {
   it('экран считает размер от ячейки, а не от пола в 40px', () => {
     const src = require('fs').readFileSync(
       require('path').join(__dirname, '../../app/games/goods-sort.tsx'), 'utf8') as string;
-    expect(src).toMatch(/const fitsInCell = Math\.floor\(\(cellW - CELL_GAP \* \(CAP - 1\)\) \/ CAP\)/);
+    // ⚠️ Смысл, а не запись: важно, что ширина товара считается из ширины НИШИ
+    // и числа товаров в ряд, а не из фиксированного пола. Со смешанной ёмкостью
+    // делитель перестал быть константой `CAP` — стал ёмкостью самой широкой
+    // ниши уровня, и дословная проверка покраснела на правильной правке.
+    expect(src).toMatch(/const fitsInCell = Math\.floor\(\(cellW - CELL_GAP \* \((\w+) - 1\)\) \/ \1\)/);
     expect(src).not.toMatch(/Math\.max\(40, Math\.min\(112/);
   });
 });
