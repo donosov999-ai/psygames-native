@@ -863,6 +863,54 @@ export default function GoodsSortGame() {
   /** Показанный ход: подсвечен товар и ниша. Гаснет сам — подсказка не должна висеть. */
   const [hint, setHint] = useState<HintMove | null>(null);
 
+  /**
+   * ПОЛЁТ ТОВАРА ПРИ ПЕРЕКЛАДЫВАНИИ.
+   *
+   * 🔴 ЗАЧЕМ. Раньше доска менялась мгновенно: товар пропадал в одной нише и
+   * возникал в другой. Прочитать ход глазом было нельзя — особенно чужой ход
+   * после подсказки или отмены. Мгновенная смена читается как сбой отрисовки, а
+   * не как «я это сделал».
+   *
+   * ⚠️ ЛЕТИТ КОПИЯ, А НАСТОЯЩИЙ ТОВАР НА ВРЕМЯ ПОЛЁТА СПРЯТАН. Иначе на экране
+   * два одинаковых товара сразу — тот же приём, что уже сделан у перетаскивания
+   * (`inHand`), и по той же причине.
+   *
+   * В щадящем режиме полёта нет вовсе: проезд по экрану — ровно то движение,
+   * от которого там отказываются. Ход остаётся мгновенным, как и был.
+   */
+  const flyAt = useRef(new Animated.Value(0)).current;
+  const [fly, setFly] = useState<{ type: number; toCell: number; covered: boolean; ax: number; ay: number; bx: number; by: number } | null>(null);
+
+  /** Центр ниши в координатах экрана — общий и для полёта, и для чего угодно ещё. */
+  const nicheCenter = (i: number): { x: number; y: number } | null => {
+    const L = liveRef.current;
+    if (!L.geom.cellW || !L.geom.nicheH) return null;
+    const r = nicheRect(i, L.geom, L.mask);
+    if (!r) return null;
+    return {
+      x: boardBox.current.x + r.x + L.geom.cellW / 2,
+      y: boardBox.current.y + r.y + L.geom.nicheH / 2,
+    };
+  };
+
+  const flyItem = (type: number, covered: boolean, fromCell: number, toCell: number) => {
+    if (reduced) return;
+    /**
+     * ⚠️ РАМКУ ДОСКИ МЕРЯЕМ ЗДЕСЬ, А НЕ НАДЕЕМСЯ НА ЧУЖОЙ ЗАМЕР. `syncBoardBox`
+     * до сих пор звался ровно в одном месте — в начале жеста перетаскивания.
+     * При ходе ДВУМЯ ТАПАМИ этого не происходит, рамка остаётся нулевой, и
+     * копия улетала к заголовку экрана вместо соседней ниши. Видно на снимке
+     * 19.08.2026: товар в шапке над названием игры.
+     */
+    syncBoardBox();
+    const a = nicheCenter(fromCell), b = nicheCenter(toCell);
+    if (!a || !b) return;
+    setFly({ type, toCell, covered, ax: a.x, ay: a.y, bx: b.x, by: b.y });
+    flyAt.setValue(0);
+    Animated.timing(flyAt, { toValue: 1, duration: 190, easing: Easing.out(Easing.quad), useNativeDriver: true })
+      .start(() => setFly(null));
+  };
+
   /** Ниши вспыхивают на сборе тройки. В щадящем режиме — короткий показ без плавности. */
   const flashNiches = (cellsHit: number[]) => {
     if (!cellsHit.length) return;
@@ -1118,6 +1166,9 @@ export default function GoodsSortGame() {
     const ns = cells.map((c) => [...c]);
     const [item] = ns[fromCell].splice(fromIdx, 1);
     ns[toCell].push(item);
+    // Копия летит из ниши в нишу. Запускаем ДО смены доски: геометрия та же,
+    // а настоящий товар на время полёта спрячется в нише-цели.
+    flyItem(item, covered.has(`${fromCell}:${fromIdx}`), fromCell, toCell);
     movesRef.current += 1; setMoves(movesRef.current);
     setHint(null);   // сходил — подсказка больше не про эту доску
     // каскад: любая ячейка с 3 одинаковыми → собрать (+50). Спокойно, без таймед-комбо.
@@ -1652,12 +1703,14 @@ export default function GoodsSortGame() {
             // Товар, который сейчас в руке, на полке гаснет: он нарисован под
             // пальцем, и две копии одного товара читаются как сбой отрисовки.
             const inHand = drag?.cell === i && drag?.idx === s;
+            /** Товар в полёте: настоящий скрыт, пока летит копия — иначе на экране две штуки. */
+            const arriving = fly?.toCell === i && s === cell.length - 1;
             return (
               <TouchableOpacity key={s} activeOpacity={0.7} onPress={() => handleItemTap(i, s)}
                 accessibilityRole="button"
                 accessibilityLabel={`${goodName(tp, ru)}, ${t('a11yShelf')} ${i + 1}`}
                 accessibilityState={{ selected }}
-                style={[styles.itemSlot, { width: itemSize, height: itemH }, selected && styles.itemSel, hinted && styles.itemHint, inHand && { opacity: 0.2 }]}>
+                style={[styles.itemSlot, { width: itemSize, height: itemH }, selected && styles.itemSel, hinted && styles.itemHint, inHand && { opacity: 0.2 }, arriving && { opacity: 0 }]}>
                 {covered.has(`${i}:${s}`) ? (
                   /**
                    * НАКРЫТЫЙ ТОВАР: силуэт есть, что именно — не видно.
@@ -1931,6 +1984,25 @@ export default function GoodsSortGame() {
           а видеть надо — по нему и целятся. pointerEvents='none' обязателен,
           иначе слой перехватывает собственный жест у доски под ним.
         */}
+        {/* Летящая копия. Тот же слой, что и у товара под пальцем, и та же причина:
+            рисовать поверх доски, не влезая в её вёрстку. */}
+        {fly && (
+          <Animated.View pointerEvents="none" style={[styles.dragLayer, {
+            transform: [
+              { translateX: flyAt.interpolate({ inputRange: [0, 1], outputRange: [fly.ax, fly.bx] }) },
+              { translateY: flyAt.interpolate({ inputRange: [0, 1], outputRange: [fly.ay, fly.by] }) },
+            ],
+          }]}>
+            <View style={{ transform: [{ translateX: -itemSize / 2 }, { translateY: -itemH / 2 }] }}>
+              {fly.covered ? (
+                <Image {...a11yDecor} source={GOOD_SPRITES[fly.type % GOOD_SPRITES.length]}
+                  style={{ width: itemSize, height: itemH - 2, tintColor: 'rgba(35,20,8,0.82)' }} resizeMode="contain" />
+              ) : (
+                <GoodIcon type={fly.type} width={itemSize} height={itemH - 2} />
+              )}
+            </View>
+          </Animated.View>
+        )}
         {drag && (
           <Animated.View pointerEvents="none"
             style={[styles.dragLayer, { transform: [{ translateX: dragPos.x }, { translateY: dragPos.y }] }]}>

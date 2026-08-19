@@ -127,3 +127,39 @@ describe('отмена хода', () => {
     expect(CODE).toMatch(/disabled=\{!history\.canUndo\}/);
   });
 });
+
+/**
+ * ПОЛЁТ ТОВАРА ПРИ ПЕРЕКЛАДЫВАНИИ.
+ *
+ * 🔴 ЗАЧЕМ. Доска менялась мгновенно: товар пропадал в одной нише и возникал в
+ * другой. Прочитать ход глазом было нельзя — особенно ЧУЖОЙ ход, то есть тот,
+ * что случился после подсказки или отмены. Мгновенная смена читается как сбой
+ * отрисовки, а не как «я это сделал».
+ */
+describe('полёт товара', () => {
+  const code = SRC.split('\n').filter((l: string) => !l.trim().startsWith('*') && !l.trim().startsWith('//') && !l.trim().startsWith('/*')).join('\n');
+
+  it('ход запускает полёт', () => {
+    const move = code.slice(code.indexOf('const moveItem'), code.indexOf('const undoMove'));
+    expect(move).toMatch(/flyItem\(item,/);
+  });
+
+  /** Иначе на экране два одинаковых товара сразу — как было бы и у перетаскивания без `inHand`. */
+  it('настоящий товар спрятан, пока летит копия', () => {
+    expect(code).toMatch(/const arriving = fly\?\.toCell === i && s === cell\.length - 1/);
+    expect(code).toMatch(/arriving && \{ opacity: 0 \}/);
+  });
+
+  /** Проезд по экрану — ровно то движение, от которого отказываются в щадящем режиме. */
+  it('в щадящем режиме полёта нет вовсе', () => {
+    const fn = code.slice(code.indexOf('const flyItem'), code.indexOf('const nicheAt') > 0 ? code.indexOf('const nicheAt') : undefined);
+    expect(fn.slice(0, 300)).toMatch(/if \(reduced\) return;/);
+  });
+
+  /** Долгий полёт превращает быструю игру в ожидание: ход должен читаться, а не тормозить. */
+  it('полёт короткий — не дольше четверти секунды', () => {
+    const ms = Number((code.match(/toValue: 1, duration: (\d+), easing: Easing\.out\(Easing\.quad\), useNativeDriver: true \}\)\n\s+\.start\(\(\) => setFly/) || [])[1]);
+    expect(ms).toBeGreaterThanOrEqual(80);
+    expect(ms).toBeLessThanOrEqual(250);
+  });
+});
