@@ -18,6 +18,7 @@ import GameShell from '@/src/components/GameShell';
 import GameAbout from '@/src/components/GameAbout';
 import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
@@ -96,7 +97,59 @@ interface MahjongResume {
   shufflesUsed: number;
   /** Накопленные секунды, а не момент старта: между сессиями настенные часы уходят вперёд. */
   elapsed: number;
+  /**
+   * Потраченные отмены — ресурс уровня, как и перетасовки, поэтому переживает выход.
+   * Не храни его — и «выйти-зайти» стало бы бесплатной дозаправкой бюджета.
+   *
+   * ⚠️ ПОЧЕМУ RESUME_V НЕ ПОДНЯТ. Поле ДОБАВЛЕНО и НЕОБЯЗАТЕЛЬНО: у старой записи
+   * его нет, читается оно через `?? 0`, и никакая доска не оживает с дырой. Правило
+   * «поднимать версию при изменении полей» стережёт ровно этот случай — недостающее
+   * обязательное поле; здесь его нет, а бампом версии мы выбросили бы все
+   * недоигранные пирамиды ради одного счётчика.
+   */
+  undosUsed?: number;
 }
+
+/**
+ * Снимок доски ПЕРЕД снятием пары. Всё, что снятие меняет, — здесь.
+ *
+ * Почему снимок, а не «положить две плитки обратно». Снятие пары перестраивает
+ * массив `tiles` целиком (фильтрация ломает индексы), заново собирает маску живых
+ * и двигает два счётчика сразу. Обратный ход пришлось бы держать в согласии со
+ * всеми четырьмя местами; разойдётся хоть одно — доска встанет в состояние,
+ * которого в игре никогда не было, а это хуже, чем отсутствие отмены.
+ *
+ * `errors` тут нет намеренно: промах по НЕ-паре плиток не снимает, это не ход и
+ * откатывать в нём нечего. `pairsTotal` не меняется. `shufflesUsed` — см. ниже,
+ * перетасовка ленту обнуляет.
+ */
+interface MahjongSnapshot {
+  tiles: Tile[];
+  matched: number;
+  score: number;
+}
+
+/**
+ * СКОЛЬКО ОТМЕН НА УРОВЕНЬ — И ПОЧЕМУ ОНИ ВООБЩЕ ПЛАТНЫЕ.
+ *
+ * 🔴 В сортировке товаров отмена бесплатна, и это правильно: там игра с ПОЛНОЙ
+ * информацией, все товары на виду, перебором ничего не разведаешь. Маджонг —
+ * другой случай, и разница ровно одна: плитка верхнего слоя ЗАКРЫВАЕТ ту, что под
+ * ней. Снял пару — увидел, что лежало ниже. Отмена возвращает плитки на место, но
+ * УВИДЕННОЕ не забирает. Значит бесплатная отмена — это «вскрыл всю пирамиду,
+ * посмотрел, откатил»: разведка задаром, а вся сложность верхних уровней («не
+ * запри низ») держится именно на том, что низа не видно.
+ *
+ * Поэтому бюджет, и на том же языке, что и перетасовки: остаток виден НА кнопке.
+ *
+ * Три — не круглое число, а прикидка: хватает исправить промах пальцем и одну
+ * настоящую ошибку в разборе, не хватает просветить пирамиду из тридцати с
+ * лишним пар. Бюджет НЕ ужимается с уровнем, в отличие от перетасовок: чем
+ * глубже уровень, тем дороже стоит именно случайное касание, и наказывать за
+ * дрогнувший палец сильнее там, где партия длиннее, — ровно наоборот здравому
+ * смыслу.
+ */
+const UNDOS_PER_LEVEL = 3;
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -224,6 +277,10 @@ export default function MahjongGame() {
   // Перетасовки ограничены с 6 уровня: без лимита любой расклад пробивался
   // тасованием, и сложность раскладки ничего не решала (отзыв «можно сложнее?»).
   const [shufflesUsed, setShufflesUsed] = useState(0);
+  /** Потраченные отмены на этом уровне (бюджет — UNDOS_PER_LEVEL, см. шапку). */
+  const [undosUsed, setUndosUsed] = useState(0);
+  /** Лента снимков доски: снятие пары обратимо, и в маджонге это половина игры. */
+  const history = useMoveHistory<MahjongSnapshot>();
   // Маджонг в зарядке — полноценный пройденный уровень: следующий вход через
   // зарядку должен продолжать лесенку, а не каждый раз возвращать на L1.
   // ⚠️ `phase !== 'playing'` появилось вместе со слоем незаконченной партии.
@@ -260,6 +317,8 @@ export default function MahjongGame() {
     setPairsTotal(deck.length / 2);
     setMatched(0); setErrors(0); setSelected(null);
     setShufflesUsed(0);   // бюджет перетасовок — на уровень, а не на партию
+    setUndosUsed(0);      // и бюджет отмен тоже: новая пирамида — новые три попытки
+    history.reset();      // чужая раскладка в ленте отмены не годится
     if (timerRef.current) clearInterval(timerRef.current);
     const start = gameNow();
     setStartTime(start); setElapsed(0);
@@ -286,13 +345,13 @@ export default function MahjongGame() {
 
   // ── незаконченная партия ────────────────────────────────────────────────
   /** Что в этой партии уже сделано руками — то, ради чего и стоит спрашивать при выходе. */
-  const touched = matched > 0 || errors > 0 || selected !== null || shufflesUsed > 0;
+  const touched = matched > 0 || errors > 0 || selected !== null || shufflesUsed > 0 || undosUsed > 0;
   /** Живая партия: доска на экране, итог ещё не показан. */
   const liveGame = phase === 'playing' && levelBanner === null && tiles.length > 0;
 
   const snapshot = (): MahjongResume => ({
     level, tiles, matched, pairsTotal, errors,
-    score: scoreRef.current, shufflesUsed, elapsed,
+    score: scoreRef.current, shufflesUsed, elapsed, undosUsed,
   });
 
   /** Поднять раскладку из снимка — пирамида оживает ровно такой, какой её оставили. */
@@ -302,6 +361,15 @@ export default function MahjongGame() {
     setLevel(r.level); levelRef.current = r.level;
     setPairsTotal(r.pairsTotal); setMatched(r.matched); setErrors(r.errors);
     setShufflesUsed(r.shufflesUsed);
+    // `?? 0` — у записи, сделанной до появления отмены, поля просто нет (см. MahjongResume).
+    setUndosUsed(r.undosUsed ?? 0);
+    /**
+     * Ленту снимков через хранилище НЕ тащим, и это не забывчивость: доска
+     * поднимается ровно такой, какой её оставили, а откатывать ходы прошлой
+     * сессии нечего — их уже не помнит и сам игрок. Потраченный бюджет при этом
+     * цел, поэтому дозаправиться выходом-входом нельзя.
+     */
+    history.reset();
     scoreRef.current = r.score; setScore(r.score);
     setSelected(null); setLevelBanner(null);
     // Секундомер продолжаем с НАКОПЛЕННОГО: от прежнего startTime партия «шла» бы
@@ -340,7 +408,7 @@ export default function MahjongGame() {
     const snap = snapshot();
     const tm = setTimeout(() => { saveResume(GAME_ID, pid, RESUME_V, snap).catch(() => {}); }, 400);
     return () => clearTimeout(tm);
-  }, [tiles, matched, errors, shufflesUsed, liveGame, touched]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tiles, matched, errors, shufflesUsed, undosUsed, liveGame, touched]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * Дописать партию перед уходом. Отложенная запись выше на этом моменте
@@ -393,6 +461,9 @@ export default function MahjongGame() {
 
     if (tiles[selected].symbol === tiles[i].symbol) {
       // пара — убираем оба
+      // Снимок кладём ДО правки доски: снятие уже необратимо руками (массив
+      // пересобирается), и восстановить его можно только из целого снимка.
+      history.push({ tiles, matched, score: scoreRef.current });
       const a = selected, b = i;
       aliveMaskRef.current[a] = false;
       aliveMaskRef.current[b] = false;
@@ -412,6 +483,10 @@ export default function MahjongGame() {
         if (timerRef.current) clearInterval(timerRef.current);
         const finalTime = (gameNow() - startTime) / 1000;
         setElapsed(finalTime);
+        // Уровень собран — лента гаснет. Иначе кнопка отмены осталась бы живой
+        // над победной карточкой и «отменяла» бы выигранный уровень: очки уже
+        // начислены, сессия записана, а доска поехала бы назад.
+        history.reset();
         advanceLevel(finalTime);
       }
     } else {
@@ -420,6 +495,27 @@ export default function MahjongGame() {
       hapticError();
       setSelected(i);
     }
+  };
+
+  /**
+   * Вернуть последнюю снятую пару. Возвращает ВСЁ, что снятие поменяло: доску,
+   * маску живых, счётчик пар и очки. Частичный откат (например доска назад, а очки
+   * оставить) дал бы фарм очков «снял — отменил — снял».
+   */
+  const undoMove = () => {
+    if (phase !== 'playing' || levelBanner !== null) return;
+    if (undosUsed >= UNDOS_PER_LEVEL) return;
+    const snap = history.undo();
+    if (!snap) return;
+    setUndosUsed((n) => n + 1);
+    // Маска строится по ДЛИНЕ снимка: после снятия она пересобиралась сплошь живой
+    // под укороченный массив, и та же логика верна в обратную сторону.
+    aliveMaskRef.current = new Array(snap.tiles.length).fill(true);
+    setTiles(snap.tiles);
+    setMatched(snap.matched);
+    scoreRef.current = snap.score; setScore(snap.score);
+    setSelected(null);
+    hapticTap();
   };
 
   // Перемешать символы ОСТАВШИХСЯ тайлов (страховка от тупика) — заново решаемо.
@@ -447,6 +543,14 @@ export default function MahjongGame() {
     }
     const next = baseTiles.map((tt, i) => ({ ...tt, symbol: symbolOf[i] >= 0 ? symbolOf[i] : 0 }));
     aliveMaskRef.current = new Array(next.length).fill(true);
+    /**
+     * 🔴 ПЕРЕТАСОВКА ОБНУЛЯЕТ ЛЕНТУ ОТМЕНЫ. После неё это ДРУГАЯ доска: символы
+     * назначены заново, у плиток новые id. Снимок из старой ленты вернул бы
+     * раскладку, которой в этой партии уже нет, — и заодно отменил бы саму
+     * перетасовку, оставив её потраченной. Тот же урок, что в сортировке
+     * товаров: отмена честна, пока возвращает ровно то, что было.
+     */
+    history.reset();
     setTiles(next); setSelected(null); hapticTap();
   };
 
@@ -567,19 +671,42 @@ export default function MahjongGame() {
         const budget = levelParams(level).shuffles;
         const left = shufflesLeft(budget, shufflesUsed);
         const can = canShuffle(budget, shufflesUsed);
+        // Остаток отмен — на кнопке по той же причине, что и остаток перетасовок.
+        const undoLeft = Math.max(0, UNDOS_PER_LEVEL - undosUsed);
+        const canUndo = history.canUndo && undoLeft > 0 && levelBanner === null;
         return (
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !can }}
-            accessibilityLabel={left < 0 ? t('shuffleBtn') : `${t('shuffleBtn')} — ${left}`}
-            disabled={!can}
-            onPress={reshuffle} activeOpacity={0.8}
-            style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: can ? 1 : 0.45 }]}>
-            <Ionicons name="shuffle" size={18} color="#0d9488" />
-            <Text style={[styles.shuffleText, { color: colors.text }]}>
-              {t('shuffleBtn')}{left < 0 ? '' : ` · ${left}`}
-            </Text>
-          </TouchableOpacity>
+          <>
+            {/*
+              Отмена стоит В НИЖНЕЙ ПОЛОСЕ, рядом с перетасовкой, а не в шапке.
+              Низ здесь не занят вводом — плитки жмут прямо на доске, — и правило
+              каркаса (`GameShell.headerActions`) велит уносить кнопки наверх только
+              играм со своей клавиатурой. Ровно так же сделано в сортировке товаров.
+            */}
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !canUndo }}
+              accessibilityLabel={`${t('btn_undo')} — ${undoLeft}`}
+              disabled={!canUndo}
+              onPress={undoMove} activeOpacity={0.8}
+              style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: canUndo ? 1 : 0.45 }]}>
+              <Ionicons name="arrow-undo" size={18} color="#d97706" />
+              <Text style={[styles.shuffleText, { color: colors.text }]}>
+                {t('btn_undo')} · {undoLeft}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !can }}
+              accessibilityLabel={left < 0 ? t('shuffleBtn') : `${t('shuffleBtn')} — ${left}`}
+              disabled={!can}
+              onPress={reshuffle} activeOpacity={0.8}
+              style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: can ? 1 : 0.45 }]}>
+              <Ionicons name="shuffle" size={18} color="#0d9488" />
+              <Text style={[styles.shuffleText, { color: colors.text }]}>
+                {t('shuffleBtn')}{left < 0 ? '' : ` · ${left}`}
+              </Text>
+            </TouchableOpacity>
+          </>
         );
       })()}
     >
