@@ -1826,6 +1826,19 @@ const t: Record<string, string> = {
   "memoryPalace": "记忆宫殿",
   "memoryPalaceDesc": "把物品沿路线一一放好，再正着和倒着回想一遍",
   "memoryPalaceIntroDesc": "训练位置记忆法：先记住路线，把每件物品拴在它的位置上，再按位置正反两个方向回想出来。",
+  "statsTabSummary": "总览",
+  "statsTabHistory": "历史",
+  "historyYesterday": "昨天",
+  "historyBetter": "提升 {n}",
+  "historyWorse": "下降 {n}",
+  "historySame": "与上次相同",
+  "historyFirstRun": "第一次",
+  "historyTailHint": "显示最近 {n} 个训练日",
+  "historyEmptyTitle": "第一局结束后，历史就从这里开始",
+  "historyEmptyHint": "这里会按天显示你玩过什么，以及每次成绩的变化——比上次更好还是更差。",
+  "historyEmptyCta": "选择练习",
+  "historyScopedTitle": "该档案还没有记录",
+  "historyScopedHint": "你有对局，但属于其他练习或其他档案。打开全部游戏。",
   // >>> SCREEN_STRINGS
 };
 export default t;

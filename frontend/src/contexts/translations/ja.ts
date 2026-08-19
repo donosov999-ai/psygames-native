@@ -1820,6 +1820,19 @@ const t: Record<string, string> = {
   "memoryPalace": "記憶の宮殿",
   "memoryPalaceDesc": "道すじに沿って品物を置き、順にも逆順にも思い出します",
   "memoryPalaceIntroDesc": "場所法を鍛えます。道すじを覚え、品物を一つずつ場所に結びつけ、場所をたどって行きと帰りの両方で思い出します。",
+  "statsTabSummary": "概要",
+  "statsTabHistory": "履歴",
+  "historyYesterday": "昨日",
+  "historyBetter": "{n} 改善",
+  "historyWorse": "{n} 悪化",
+  "historySame": "前回と同じ",
+  "historyFirstRun": "初めて",
+  "historyTailHint": "直近 {n} 日ぶんのトレーニングを表示",
+  "historyEmptyTitle": "履歴は最初の1回から始まります",
+  "historyEmptyHint": "ここには、日ごとに何をプレイし、結果が前回よりどう動いたか（良くなったか悪くなったか）が表示されます。",
+  "historyEmptyCta": "種目を選ぶ",
+  "historyScopedTitle": "このプロフィールにはまだ記録がありません",
+  "historyScopedHint": "プレイ記録はありますが、別の種目または別のプロフィールにあります。すべてのゲームを開いてください。",
   // >>> SCREEN_STRINGS
 };
 export default t;

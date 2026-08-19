@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -15,10 +15,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
-import { getAllStats, GameStats, getSessions } from '@/src/services/api';
+import { getAllStats, GameStats, GameSession, getSessions } from '@/src/services/api';
 import { getTokens, levelInfo, getStreak } from '@/src/services/tokens';
 import { GAMES } from '@/src/constants/games';
 import { areaBreakdown, weakestArea, type AreaStat } from '@/src/services/analytics';
+import {
+  belongsToProfile,
+  buildTrainingHistory,
+  historyView,
+  MAX_HISTORY_DAYS,
+  type HistoryEntry,
+  type HistoryUnit,
+} from '@/src/services/trainingHistory';
+import { localDateKey } from '@/src/services/warmup';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { isGameAllowed } from '@/src/constants/profiles';
@@ -32,6 +41,10 @@ export default function StatisticsScreen() {
   const router = useRouter();
   const [stats, setStats] = useState<GameStats[]>([]);
   const [loading, setLoading] = useState(true);
+  // Вкладки: сводка (итоги) и история (движение). Обе живут на ОДНОЙ загрузке —
+  // переключение не ходит в хранилище, иначе клик по вкладке давал бы спиннер.
+  const [tab, setTab] = useState<'summary' | 'history'>('summary');
+  const [sessions, setSessions] = useState<GameSession[]>([]);
   const { profile } = useProfile();
   const [scopeAll, setScopeAll] = useState(false);  // false = текущий профиль, true = все игры
   const [tokens, setTokens] = useState(0);          // D1: токены/уровень/стрик в герое
@@ -54,6 +67,7 @@ export default function StatisticsScreen() {
       if (profile?.id) { setTokens(await getTokens(profile.id)); freshStreak = await getStreak(profile.id); setStreakDays(freshStreak); }
       // D1.2: сгруппировать очки по играм в хронологии для спарклайнов
       const allSessions = await getSessions();
+      setSessions(allSessions);   // сырые сессии нужны вкладке «История» — второй раз их не читаем
       const byGame: Record<string, number[]> = {};
       for (const s of allSessions) {
         if (!s.game_type) continue;
@@ -100,6 +114,57 @@ export default function StatisticsScreen() {
     return GAMES.find((g) => g.id === gameType);
   };
 
+  // ───────────── История тренировок ─────────────
+  // Строится из ТЕХ ЖЕ сессий, что уже загружены для сводки: своего хранилища у истории
+  // нет и не нужно — иначе она появилась бы только у тех, кто играл после этой правки.
+  const historyDays = useMemo(() => buildTrainingHistory(
+    sessions.filter((s) => {
+      // Игра не из реестра (переименованная, снятая) — рисовать нечем: ни имени, ни цвета.
+      if (!GAMES.some((g) => g.id === s.game_type)) return false;
+      if (scopeAll) return true;
+      return isGameAllowed(profile, s.game_type) && belongsToProfile(s, profile.id);
+    }),
+  ), [sessions, scopeAll, profile]);
+
+  const view = historyView(historyDays, { anySessions: sessions.length > 0, scoped: !scopeAll });
+
+  /** Результат партии словами. `—` только там, где данные битые (мусорное время). */
+  const formatResult = (value: number | null, unit: HistoryUnit): string => {
+    if (value === null) return '—';
+    return unit === 'seconds' ? formatTime(value) : String(Math.round(value));
+  };
+
+  /** Вердикт: лучше / хуже / так же / первый раз. Направление уже учтено в сервисе. */
+  const verdictText = (e: HistoryEntry): string => {
+    if (e.verdict === null || e.diff === null) return t('historyFirstRun');
+    if (e.verdict === 'same') return t('historySame');
+    return t(e.verdict === 'better' ? 'historyBetter' : 'historyWorse')
+      .replace('{n}', formatResult(e.diff, e.unit));
+  };
+
+  const verdictColor = (e: HistoryEntry): string =>
+    e.verdict === 'better' ? '#1f6b4a' : e.verdict === 'worse' ? '#9e2b2b' : colors.textSecondary;
+
+  /** «Сегодня» / «Вчера» / «12 августа». Локаль берём кодом языка — Intl понимает его сам. */
+  const dayLabel = (key: string): string => {
+    const now = new Date();
+    if (key === localDateKey(now)) return t('today');
+    const yest = new Date(now);
+    yest.setDate(yest.getDate() - 1);
+    if (key === localDateKey(yest)) return t('historyYesterday');
+    const [y, m, d] = key.split('-').map(Number);
+    try {
+      return new Intl.DateTimeFormat(language, { day: 'numeric', month: 'long' }).format(new Date(y, m - 1, d));
+    } catch {
+      return key;   // экзотическая среда без Intl — лучше сырая дата, чем падение экрана
+    }
+  };
+
+  const timeLabel = (iso: string): string => {
+    const d = new Date(iso);
+    return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+
   // D1: агрегаты прогресса для героя
   const lvl = levelInfo(tokens);
   const totalGames = stats.reduce((s, x) => s + x.total_sessions, 0);
@@ -125,6 +190,25 @@ export default function StatisticsScreen() {
         >
           <Ionicons name="refresh" size={24} color={colors.text} />
         </TouchableOpacity>
+      </View>
+
+      {/* Вкладки. Сводка отвечает «сколько всего», история — «что менялось». Второе и
+          есть повод вернуться: итог одинаков вчера и сегодня, а движение — нет.
+          Оба списка строятся из одной загрузки, поэтому переключение мгновенное. */}
+      <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginBottom: 10 }}>
+        {([['summary', 'statsTabSummary'], ['history', 'statsTabHistory']] as const).map(([id, key]) => (
+          <TouchableOpacity
+            key={id}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: tab === id }}
+            onPress={() => setTab(id)}
+            style={{ flex: 1, paddingVertical: 10, minHeight: 48, justifyContent: 'center', alignItems: 'center',
+              borderBottomWidth: 3, borderBottomColor: tab === id ? colors.primary : 'transparent' }}>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: tab === id ? colors.primary : colors.textSecondary }}>
+              {t(key)}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* v1.15.0: scope toggle — статистика этого профиля vs все игры */}
@@ -160,11 +244,13 @@ export default function StatisticsScreen() {
         </Text>
       )}
 
-      {loading ? (
+      {loading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
-      ) : (
+      )}
+
+      {!loading && tab === 'summary' && (
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -361,6 +447,106 @@ export default function StatisticsScreen() {
               <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
                 {t('statsEmptyHint')}
               </Text>
+            </View>
+          )}
+        </ScrollView>
+      )}
+
+      {/* ───────────── ИСТОРИЯ ─────────────
+          День → упражнения этого дня → результат и что с ним стало относительно
+          ПРОШЛОГО РАЗА этого же упражнения. Все три состояния (дни / пусто у нового
+          человека / всё спрятал фильтр) решает historyView — в разметке такое правило
+          проверялось бы только глазами. */}
+      {!loading && tab === 'history' && (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {view.kind === 'days' && view.days.map((day) => (
+            <View key={day.dateKey} style={{ marginBottom: 18 }}>
+              <Text style={{ color: colors.text, fontSize: 15, fontWeight: '800', marginBottom: 8 }}>
+                {dayLabel(day.dateKey)}
+              </Text>
+              {day.entries.map((e, i) => {
+                const cfg = getGameConfig(e.gameType)!;
+                const value = formatResult(e.value, e.unit);
+                const verdict = verdictText(e);
+                return (
+                  <View
+                    key={`${e.timestamp}-${i}`}
+                    accessibilityRole="text"
+                    accessibilityLabel={`${t(cfg.nameKey)}, ${timeLabel(e.timestamp)}, ${value}, ${verdict}`}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9,
+                      borderBottomWidth: 1, borderBottomColor: colors.border }}
+                  >
+                    <View style={{ width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
+                      backgroundColor: (cfg.gradient as string[])[0] }}>
+                      <Ionicons name={cfg.icon as any} size={18} color="#fff" />
+                    </View>
+                    {/* minWidth:0 — длинное имя упражнения ужимается, а не выдавливает результат за край */}
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text numberOfLines={1} style={{ color: colors.text, fontSize: 14, fontWeight: '700' }}>
+                        {t(cfg.nameKey)}
+                      </Text>
+                      <Text style={{ color: verdictColor(e), fontSize: 12, marginTop: 1 }}>{verdict}</Text>
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={{ color: colors.text, fontSize: 15, fontWeight: '800', fontVariant: ['tabular-nums'] }}>
+                        {value}
+                      </Text>
+                      <Text style={{ color: colors.textSecondary, fontSize: 11 }}>{timeLabel(e.timestamp)}</Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          ))}
+
+          {view.kind === 'days' && view.days.length >= MAX_HISTORY_DAYS && (
+            <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center', marginTop: 4 }}>
+              {t('historyTailHint').replace('{n}', String(MAX_HISTORY_DAYS))}
+            </Text>
+          )}
+
+          {/* Пусто у нового человека — обычное дело, а не поломка: зовём сыграть.
+              Никаких «примерных» данных: чужой прогресс под видом своего — обман. */}
+          {view.kind === 'empty' && (
+            <View style={styles.emptyState}>
+              <Ionicons name="time-outline" size={64} color={colors.textSecondary} />
+              <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', marginTop: 12, textAlign: 'center' }}>
+                {t(view.titleKey)}
+              </Text>
+              <Text style={[styles.emptyText, { color: colors.textSecondary, marginTop: 8 }]}>
+                {t(view.hintKey)}
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => router.replace('/')}
+                style={{ marginTop: 18, minHeight: 48, justifyContent: 'center', paddingHorizontal: 22,
+                  borderRadius: 12, backgroundColor: colors.primary }}>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '800' }}>{t(view.ctaKey)}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Партии есть, но их спрятал фильтр профиля — показываем выход, а не пустоту. */}
+          {view.kind === 'scoped' && (
+            <View style={styles.emptyState}>
+              <Ionicons name="funnel-outline" size={64} color={colors.textSecondary} />
+              <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', marginTop: 12, textAlign: 'center' }}>
+                {t(view.titleKey)}
+              </Text>
+              <Text style={[styles.emptyText, { color: colors.textSecondary, marginTop: 8 }]}>
+                {t(view.hintKey)}
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => setScopeAll(true)}
+                style={{ marginTop: 18, minHeight: 48, justifyContent: 'center', paddingHorizontal: 22,
+                  borderRadius: 12, backgroundColor: colors.primary }}>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '800' }}>{t(view.ctaKey)}</Text>
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>

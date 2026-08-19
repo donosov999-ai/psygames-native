@@ -1821,6 +1821,19 @@ const t: Record<string, string> = {
   "memoryPalace": "Palais de la mémoire",
   "memoryPalaceDesc": "Disposez des objets le long d'un parcours et restituez-les à l'endroit puis à l'envers",
   "memoryPalaceIntroDesc": "Entraîne la méthode des lieux : apprenez le parcours, attachez chaque objet à sa place et restituez-les lieu par lieu dans les deux sens.",
+  "statsTabSummary": "Résumé",
+  "statsTabHistory": "Historique",
+  "historyYesterday": "Hier",
+  "historyBetter": "{n} de mieux",
+  "historyWorse": "{n} de moins bien",
+  "historySame": "comme la dernière fois",
+  "historyFirstRun": "première fois",
+  "historyTailHint": "Vos {n} derniers jours d’entraînement",
+  "historyEmptyTitle": "Votre historique commence à la première partie",
+  "historyEmptyHint": "Vous verrez ici ce que vous avez joué jour après jour et comment chaque résultat a évolué — mieux ou moins bien que la fois précédente.",
+  "historyEmptyCta": "Choisir un exercice",
+  "historyScopedTitle": "Rien dans ce profil pour l’instant",
+  "historyScopedHint": "Vous avez des parties, mais sur d’autres exercices ou un autre profil. Ouvrez tous les jeux.",
   // >>> SCREEN_STRINGS
 };
 export default t;

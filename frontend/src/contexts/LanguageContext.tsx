@@ -1399,6 +1399,25 @@ const translations: Translations = {
   statScoreBars:         { ru: 'Столбик = очки за попытку, последние {n}', en: 'Each bar = score for one attempt, last {n}' },
   statOlder:             { ru: 'раньше', en: 'older' },
   statNewer:             { ru: 'свежее', en: 'newer' },
+  // Вкладки экрана статистики: итоги против движения. Итог одинаков вчера и сегодня,
+  // повод вернуться даёт вторая вкладка — «неделю назад ряд был 5, сегодня 7».
+  statsTabSummary:       { ru: 'Сводка', en: 'Summary' },
+  statsTabHistory:       { ru: 'История', en: 'History' },
+  historyYesterday:      { ru: 'Вчера', en: 'Yesterday' },
+  // {n} — насколько именно изменился результат; единицы подставляет экран (очки/секунды).
+  historyBetter:         { ru: 'лучше на {n}', en: '{n} better' },
+  historyWorse:          { ru: 'хуже на {n}', en: '{n} worse' },
+  historySame:           { ru: 'как в прошлый раз', en: 'same as last time' },
+  // Первая партия упражнения: сравнивать не с чем, и это честнее любого «рост».
+  historyFirstRun:       { ru: 'первый раз', en: 'first time' },
+  historyTailHint:       { ru: 'Показаны последние {n} дней с тренировками', en: 'Showing your last {n} days with training' },
+  // Пустая история у нового человека — обычное дело, а не поломка. Никаких выдуманных
+  // «примерных» результатов: показать чужой прогресс под видом своего нельзя.
+  historyEmptyTitle:     { ru: 'История начнётся с первой партии', en: 'Your history starts with the first round' },
+  historyEmptyHint:      { ru: 'Здесь будет видно, что вы играли по дням и как менялся результат — лучше или хуже прошлого раза.', en: 'Here you will see what you played day by day and how each result moved — better or worse than last time.' },
+  historyEmptyCta:       { ru: 'Выбрать упражнение', en: 'Pick an exercise' },
+  historyScopedTitle:    { ru: 'В этом профиле партий пока нет', en: 'Nothing in this profile yet' },
+  historyScopedHint:     { ru: 'Сыгранное есть, но за другими упражнениями или другим профилем. Откройте все игры.', en: 'You do have rounds, but under other exercises or another profile. Open all games.' },
   brLongExhaleWhy:     { ru: 'Так и задумано: выдох длиннее вдоха — именно это замедляет пульс', en: 'By design: the exhale is longer than the inhale — that is what slows your pulse' },
   brSwitchToBox:       { ru: 'Хочу поровну — квадрат 4-4-4-4', en: 'Prefer even — box 4-4-4-4' },
   wcstRuleShifted: { ru: '↻ Правило только что сменилось — эту ошибку угадать было нельзя, так и находят новое', en: '↻ The rule just changed — this error was unavoidable, that is how you find the new one' },

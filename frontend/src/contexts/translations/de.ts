@@ -1826,6 +1826,19 @@ const t: Record<string, string> = {
   "memoryPalace": "Gedächtnispalast",
   "memoryPalaceDesc": "Verteile Gegenstände entlang einer Route und rufe sie vorwärts und rückwärts ab",
   "memoryPalaceIntroDesc": "Trainiert die Loci-Methode: Lerne die Route, verknüpfe jeden Gegenstand mit seinem Ort und rufe sie ortsweise in beide Richtungen ab.",
+  "statsTabSummary": "Übersicht",
+  "statsTabHistory": "Verlauf",
+  "historyYesterday": "Gestern",
+  "historyBetter": "{n} besser",
+  "historyWorse": "{n} schlechter",
+  "historySame": "wie beim letzten Mal",
+  "historyFirstRun": "zum ersten Mal",
+  "historyTailHint": "Die letzten {n} Tage mit Training",
+  "historyEmptyTitle": "Dein Verlauf beginnt mit der ersten Runde",
+  "historyEmptyHint": "Hier siehst du Tag für Tag, was du gespielt hast und wie sich jedes Ergebnis bewegt hat — besser oder schlechter als beim letzten Mal.",
+  "historyEmptyCta": "Übung wählen",
+  "historyScopedTitle": "In diesem Profil noch nichts",
+  "historyScopedHint": "Runden gibt es, aber unter anderen Übungen oder einem anderen Profil. Öffne alle Spiele.",
   // >>> SCREEN_STRINGS
 };
 export default t;

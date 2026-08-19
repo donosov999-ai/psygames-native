@@ -1822,6 +1822,19 @@ const t: Record<string, string> = {
   "memoryPalace": "قصر الذاكرة",
   "memoryPalaceDesc": "وزّع الأشياء على طول المسار ثم استرجعها بالترتيب وبالعكس",
   "memoryPalaceIntroDesc": "يدرّب طريقة المواضع: ادرس المسار، واربط كل شيء بموضعه، ثم استرجعها موضعًا بعد موضع في الاتجاهين.",
+  "statsTabSummary": "الملخص",
+  "statsTabHistory": "السجل",
+  "historyYesterday": "أمس",
+  "historyBetter": "أفضل بمقدار {n}",
+  "historyWorse": "أسوأ بمقدار {n}",
+  "historySame": "مثل المرة السابقة",
+  "historyFirstRun": "المرة الأولى",
+  "historyTailHint": "نعرض آخر {n} يومًا من التدريب",
+  "historyEmptyTitle": "يبدأ سجلّك من أول جولة",
+  "historyEmptyHint": "سترى هنا ما لعبته يومًا بيوم وكيف تغيّرت كل نتيجة — أفضل أم أسوأ من المرة السابقة.",
+  "historyEmptyCta": "اختر تمرينًا",
+  "historyScopedTitle": "لا يوجد شيء في هذا الملف بعد",
+  "historyScopedHint": "لديك جولات، لكنها في تمارين أخرى أو ملف آخر. افتح كل الألعاب.",
   // >>> SCREEN_STRINGS
 };
 export default t;
