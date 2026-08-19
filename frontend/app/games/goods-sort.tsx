@@ -352,6 +352,123 @@ const NO_OBSTACLES: ObstaclePlan = { blocked: 0, locked: 0, covered: 0, frozenRo
  * Вынесено из loadLevel наружу ради гейта: правило решаемости должно
  * проверяться исполнением, а не чтением исходника глазами теста.
  */
+/**
+ * ЦЕЛЬ УРОВНЯ — ЧТО ИМЕННО ЗНАЧИТ «ПРОШЁЛ».
+ *
+ * До сих пор цель была одна и неписаная: опустошить доску. Лимит ходов при этом
+ * существовал ОТДЕЛЬНО и молча — с девятого уровня он резал прохождение, нигде
+ * не назвавшись целью. Человек собирал доску и узнавал о лимите постфактум, из
+ * экрана провала. Это не сложность, а подстава.
+ *
+ * Теперь целей четыре, и каждая написана на экране до старта и в шапке во время:
+ *
+ *   all    убрать всё          база, ей учат первые четыре уровня
+ *   pick   собрать названные   тройки конкретных товаров, остальное можно бросить
+ *   moves  уложиться в ходы    лимит становится ЦЕЛЬЮ, а не тихим ограничением
+ *   free   освободить ниши     помеченные ниши должны опустеть
+ *
+ * 🔴 ЛИМИТ ХОДОВ ТЕПЕРЬ ТОЛЬКО НА СВОИХ УРОВНЯХ. Раньше он висел на каждом
+ * уровне с девятого. Оставить его везде и заодно назвать целью — значит
+ * получить цель, которая ничего не отличает. Давление эффективности никуда не
+ * делось: звёзды считаются по ходам ВСЕГДА, на всех уровнях.
+ *
+ * `pick` даёт настоящую смену задачи, а не косметику: уровень заканчивается,
+ * пока на полках ещё лежит товар, и играть надо адресно.
+ */
+type GoalKind = 'all' | 'pick' | 'moves' | 'free';
+interface GoalPlan { kind: GoalKind; count: number }
+
+/** Живая цель уровня: план, разложенный на КОНКРЕТНУЮ доску. */
+type Goal =
+  | { kind: 'all' }
+  | { kind: 'pick'; types: number[] }
+  | { kind: 'moves'; limit: number }
+  | { kind: 'free'; niches: number[] };
+
+/**
+ * Ритм целей. Как и у препятствий — таблица, не формула: каждый новый вид
+ * приходит ОДИН, потом передышка на базовой цели, потом связки посложнее.
+ *
+ * Длина 12 против 10 у препятствий — совместный цикл выходит 60 уровней, ровно
+ * столько, сколько мы меряем. Совпадение не случайное: одинаковые длины дали бы
+ * жёсткую пару «цель+препятствие» и вдвое меньше разных уровней.
+ */
+const GOAL_PLANS: GoalPlan[] = [
+  { kind: 'pick', count: 2 },    // знакомство: собери названные
+  { kind: 'all', count: 0 },     // передышка
+  { kind: 'free', count: 1 },    // знакомство: освободи нишу
+  { kind: 'all', count: 0 },
+  { kind: 'moves', count: 0 },   // знакомство: лимит ходов
+  { kind: 'pick', count: 3 },
+  { kind: 'all', count: 0 },
+  { kind: 'free', count: 2 },
+  { kind: 'moves', count: 0 },
+  { kind: 'pick', count: 2 },
+  { kind: 'all', count: 0 },
+  { kind: 'free', count: 2 },
+];
+
+/**
+ * Первые четыре уровня — только «убрать всё»: пока не усвоено правило «три
+ * одинаковых в одной нише», вторая задача поверх него читается как каша (та же
+ * причина, по которой препятствий нет до шестого).
+ *
+ * Лимит ходов раньше девятого не существует (формула `L - 8`), поэтому цель
+ * `moves` до L9 подменяется базовой — иначе была бы цель «уложись в ноль ходов».
+ */
+export function goalPlan(L: number): GoalPlan {
+  if (L < 5) return { kind: 'all', count: 0 };
+  return clampGoalToLevel(GOAL_PLANS[(L - 5) % GOAL_PLANS.length], L);
+}
+
+/**
+ * Страховка: цель «уложись в ходы» ниже девятого уровня подменяется базовой.
+ *
+ * Отдельной функцией, а не строчкой внутри `goalPlan`, намеренно. При текущей
+ * раскладке таблицы первый `moves` и так приходится на L9, то есть страховка
+ * НЕДОСТИЖИМА — мутация «убрать проверку» проходила мимо гейта 19.08.2026.
+ * Строчка, которую нельзя проверить исполнением, ничего не стережёт: таблицу
+ * переставят, и она молча пропустит цель «уложись в ноль ходов».
+ */
+export function clampGoalToLevel(g: GoalPlan, L: number): GoalPlan {
+  if (g.kind === 'moves' && L < 9) return { kind: 'all', count: 0 };
+  return g;
+}
+
+/** Цель достигнута? Единственное место, где решается «уровень пройден». */
+export function goalMet(cells: number[][], goal: Goal): boolean {
+  if (goal.kind === 'pick') return !cells.some((c) => c.some((t) => goal.types.includes(t)));
+  if (goal.kind === 'free') return goal.niches.every((i) => (cells[i]?.length ?? 0) === 0);
+  return cells.every((c) => c.length === 0);
+}
+
+/** Сколько из цели сделано — для бейджа в шапке. Для 'all'/'moves' считает бейдж товаров. */
+export function goalProgress(cells: number[][], goal: Goal): { done: number; total: number } | null {
+  if (goal.kind === 'pick') {
+    const left = new Set(cells.flat());
+    return { done: goal.types.filter((tp) => !left.has(tp)).length, total: goal.types.length };
+  }
+  if (goal.kind === 'free') {
+    return { done: goal.niches.filter((i) => (cells[i]?.length ?? 0) === 0).length, total: goal.niches.length };
+  }
+  return null;
+}
+
+/**
+ * Ряд ниши по её НОМЕРУ СРЕДИ СУЩЕСТВУЮЩИХ. Генератор не знает про дырки формы
+ * и отдаёт плотный список, а маска задаёт разрежённую сетку — перевод между
+ * ними нужен и на отрисовке, и при раскладке цели.
+ */
+export function rowOfNiche(i: number, mask: boolean[], cols: number): number {
+  let seen = -1;
+  for (let pos = 0; pos < mask.length; pos++) {
+    if (!mask[pos]) continue;
+    seen++;
+    if (seen === i) return Math.floor(pos / cols);
+  }
+  return 0;
+}
+
 export function liveRowsForFreeze(
   mask: boolean[], obs: (Obstacle | null)[], cols: number, rows: number,
 ): number[] {
@@ -372,7 +489,7 @@ function obstaclePlan(L: number): ObstaclePlan {
   return OBSTACLE_PLANS[(L - 6) % OBSTACLE_PLANS.length];
 }
 
-function levelCfg(L: number, poolSize: number, narrow = false) {
+export function levelCfg(L: number, poolSize: number, narrow = false) {
   const { cols, rows } = gridFor(L, narrow);
   const mask = shapeFor(L, cols, rows);
   // ⚠️ Всё дальше считается по СУЩЕСТВУЮЩИМ нишам, а не по габариту доски:
@@ -396,10 +513,18 @@ function levelCfg(L: number, poolSize: number, narrow = false) {
   const usable = slots - shut;
   let spares = Math.max(2, Math.ceil(usable * 0.34) - Math.floor((L - 1) / 4));
   spares = Math.max(2, Math.min(spares, usable - types));
-  // За L8 сложность ещё и ЛИМИТ ХОДОВ (давление эффективности).
+  /**
+   * ЛИМИТ ХОДОВ — ТОЛЬКО ТАМ, ГДЕ ОН ЦЕЛЬ.
+   *
+   * Формула прежняя (с L9, тем туже, чем дальше), но включается лишь когда план
+   * уровня назвал целью `moves`. Раньше лимит стоял на КАЖДОМ уровне с девятого
+   * и нигде не был назван — человек узнавал о нём из экрана провала.
+   * `moveLimit > 0` теперь ровно и означает «цель этого уровня — ходы».
+   */
+  const goal = goalPlan(L);
   const over = Math.max(0, L - 8);
-  const moveLimit = over > 0 ? Math.max(types * 2, types * 3 - over) : 0;   // 0 = без лимита
-  return { types, spares, moveLimit, cols, rows, slots, mask, obst, usable };
+  const moveLimit = goal.kind === 'moves' && over > 0 ? Math.max(types * 2, types * 3 - over) : 0;
+  return { types, spares, moveLimit, cols, rows, slots, mask, obst, usable, goal };
 }
 
 function threeSame(cell: number[]): boolean { return cell.length === 3 && cell[0] === cell[1] && cell[1] === cell[2]; }
@@ -477,6 +602,8 @@ export default function GoodsSortGame() {
   const [covered, setCovered] = useState<Set<string>>(() => new Set());
   /** Примёрзший ряд: индекс ряда и тип, тройку которого надо собрать, чтобы растопить. */
   const [frozen, setFrozen] = useState<{ row: number; type: number } | null>(null);
+  const [goal, setGoal] = useState<Goal>({ kind: 'all' });
+  const goalRef = useRef<Goal>({ kind: 'all' });
   const { popups, spawn } = useScorePopups();
 
   // Справка правил уровня: только в личной игре (в зарядке-пресете бейдж скрыт).
@@ -511,6 +638,7 @@ export default function GoodsSortGame() {
     shuffle(spots).slice(0, cfg.obst.covered).forEach((k) => cov.add(k));
     setCovered(cov);
 
+    let frozenRow = -1;
     /**
      * Примёрзший ряд: тип, тройка которого действительно есть на доске.
      *
@@ -527,8 +655,36 @@ export default function GoodsSortGame() {
       const type = present[Math.floor(Math.random() * present.length)] ?? -1;
       const live = liveRowsForFreeze(cfg.mask, obs, cfg.cols, cfg.rows);
       const row = live.length ? live[Math.floor(Math.random() * live.length)] : -1;
-      setFrozen(type >= 0 && row >= 0 ? { row, type } : null);
+      if (type >= 0 && row >= 0) { setFrozen({ row, type }); frozenRow = row; }
+      else setFrozen(null);
     } else setFrozen(null);
+
+    /**
+     * Цель раскладываем ПОСЛЕДНЕЙ — ей нужно видеть и раздачу, и препятствия.
+     *
+     * `pick`: называем не все типы, иначе цель вырождается в «убрать всё».
+     * `free`: метим только те ниши, из которых МОЖНО выложить — не запертые, не
+     * примёрзшие, и не больше, чем есть пустых ниш минус одна. В нише максимум
+     * три товара, пустая ниша вмещает ровно три — значит на каждую помеченную
+     * заведомо найдётся куда переложить, и одна ниша остаётся на манёвр.
+     */
+    const plan = cfg.goal;
+    let g: Goal = { kind: 'all' };
+    if (plan.kind === 'moves' && cfg.moveLimit > 0) {
+      g = { kind: 'moves', limit: cfg.moveLimit };
+    } else if (plan.kind === 'pick') {
+      const present = shuffle(Array.from(new Set(built.flat())));
+      const n = Math.max(1, Math.min(plan.count, present.length - 1));
+      if (n >= 1 && present.length > n) g = { kind: 'pick', types: present.slice(0, n) };
+    } else if (plan.kind === 'free') {
+      const movable = built
+        .map((c, i) => (c.length > 0 && !obs[i] && rowOfNiche(i, cfg.mask, cfg.cols) !== frozenRow ? i : -1))
+        .filter((i) => i >= 0);
+      const n = Math.min(plan.count, Math.max(1, cfg.spares - 1), movable.length);
+      if (n >= 1) g = { kind: 'free', niches: shuffle(movable).slice(0, n) };
+    }
+    setGoal(g); goalRef.current = g;
+
     setSel(null); setMoves(0); movesRef.current = 0;
     setStartTime(Date.now()); setElapsed(0);
   };
@@ -595,13 +751,7 @@ export default function GoodsSortGame() {
   // Переместить КОНКРЕТНЫЙ товар (fromCell, fromIdx) в toCell, если там есть место; затем собрать тройки.
 /** Ряд, в котором лежит ниша с плотным индексом i (нумерация по существующим). */
   const rowOfCell = (i: number): number => {
-    let seen = -1;
-    for (let pos = 0; pos < mask.length; pos++) {
-      if (!mask[pos]) continue;
-      seen++;
-      if (seen === i) return Math.floor(pos / gridDim.cols);
-    }
-    return 0;
+    return rowOfNiche(i, mask, gridDim.cols);
   };
 
   /** Соседи ниши по доске — по ним снимается «закрытая ниша». */
@@ -686,7 +836,12 @@ export default function GoodsSortGame() {
     setCells(ns); setSel(null); setScore(scoreRef.current);
     if (clearedNow > 0) { setCleared((c) => c + clearedNow); hapticSuccess(); if (clearedNow > 1) sndCombo(clearedNow); spawn(width / 2 - 24, 150, '+' + clearedNow * 50, '#fde047'); }
     else hapticTap();
-    if (ns.every((c) => c.length === 0)) setTimeout(advanceLevel, 350);
+    /**
+     * 🔴 УРОВЕНЬ КОНЧАЕТСЯ ПО ЦЕЛИ, А НЕ ПО ПУСТОЙ ДОСКЕ. При цели `pick` на
+     * полках ещё лежит товар, и это НЕ незаконченный уровень — это и есть
+     * смысл цели: играть адресно, а не выметать всё подряд.
+     */
+    if (goalMet(ns, goalRef.current)) setTimeout(advanceLevel, 350);
   };
 
   const handleItemTap = (cellI: number, idx: number) => {
@@ -702,17 +857,41 @@ export default function GoodsSortGame() {
   };
 
   // Бустер «перемешать» (как в оригинале) — переразложить оставшиеся товары, подстраховка от тупика.
+  /**
+   * 🔴 ПЕРЕМЕШАТЬ НЕ ИМЕЕТ ПРАВА КЛАСТЬ ТОВАР ТУДА, ОТКУДА ЕГО НЕ ДОСТАТЬ.
+   *
+   * Раньше тасовка гоняла товары по ВСЕМ нишам подряд — она была написана
+   * задолго до препятствий и про них не знает. С препятствиями это стало
+   * тупиком: товар мог улететь в запертую нишу, а тройка примёрзшего типа —
+   * в примёрзший ряд, где её не тронуть, пока не соберёшь ту самую тройку.
+   * Запертая ниша открывается от тройки ПО СОСЕДСТВУ; если соседям нечем
+   * очиститься, уровень встаёт намертво, и кнопка «перемешать» окажется тем,
+   * что его сломало.
+   *
+   * Поэтому раскладываем только по ДОСТУПНЫМ нишам. Их всегда хватает: ёмкость
+   * уже посчитана с вычетом запертых (`usable`), а товаров на доске не больше,
+   * чем `types * 3 ≤ (usable - 2) * 3`.
+   */
   const reshuffle = () => {
     const items = cells.flat();
     if (items.length === 0) return;
-    const used = Math.min(gridRef.current.slots - 2, Math.max(1, Math.ceil(items.length / CAP)));
+    const slots = gridRef.current.slots;
+    const open: number[] = [];
+    for (let i = 0; i < slots; i++) if (cellUsable(i)) open.push(i);
+    const dest = open.length * CAP >= items.length ? open : Array.from({ length: slots }, (_, i) => i);
+    const used = Math.min(Math.max(1, dest.length - 2), Math.max(1, Math.ceil(items.length / CAP)));
     let ns: number[][]; let guard = 0;
     do {
       const sh = shuffle(items);
-      ns = Array.from({ length: gridRef.current.slots }, () => [] as number[]);
+      const bins = shuffle(dest).slice(0, Math.max(used, Math.ceil(items.length / CAP)));
+      ns = Array.from({ length: slots }, () => [] as number[]);
       let ci = 0;
-      for (const it of sh) { for (let tr = 0; tr < used; tr++) { const c = ci % used; ci++; if (ns[c].length < CAP) { ns[c].push(it); break; } } }
-      ns = shuffle(ns);
+      for (const it of sh) {
+        for (let tr = 0; tr < bins.length; tr++) {
+          const c = bins[ci % bins.length]; ci++;
+          if (ns[c].length < CAP) { ns[c].push(it); break; }
+        }
+      }
       guard++;
     } while (ns.some(threeSame) && guard < 60);
     setCells(ns); setSel(null); hapticTap();
@@ -891,6 +1070,13 @@ export default function GoodsSortGame() {
           затемнение — что сюда нельзя. Одного значка мало: на беглый взгляд он
           читается как украшение, а не как запрет.
         */}
+        {/* Помеченная ниша цели 'free' — флажок в углу. Без метки цель
+            «освободить помеченные» превращается в загадку, какие именно. */}
+        {goal.kind === 'free' && goal.niches.includes(i) && (
+          <View pointerEvents="none" style={styles.goalMark}>
+            <Ionicons name="flag" size={Math.min(15, Math.max(11, itemSize / 3))} color="#f97316" />
+          </View>
+        )}
         {obstacles[i]?.kind === 'blocked' && (
           <View pointerEvents="none" style={styles.obstacle}>
             <Ionicons name="lock-closed" size={Math.min(26, itemSize)} color="#f8e3c4" />
@@ -981,6 +1167,15 @@ export default function GoodsSortGame() {
               <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
               <HudBadge icon="swap-horizontal" value={(() => { const ml = levelCfg(level, poolRef.current.length, narrowRef.current).moveLimit; return ml > 0 ? `${moves}/${ml}` : String(moves); })()} colors={['#94a3b8', '#475569']} />
               <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
+              {/* Прогресс цели показываем только для 'pick'/'free': у 'all' его
+                  и так видно по счётчику товаров, у 'moves' — по счётчику ходов. */}
+              {(() => {
+                const gp = goalProgress(cells, goal);
+                return gp ? (
+                  <HudBadge icon="flag" label={t('goalLabel')} value={`${gp.done}/${gp.total}`}
+                    colors={['#fb923c', '#c2410c']} tint="#3f2b00" />
+                ) : null;
+              })()}
               {!isPreset && <LevelRuleBadge lr={levelRules} color="#d97706" ru={language === 'ru'} />}
             </View>
           }
@@ -999,7 +1194,31 @@ export default function GoodsSortGame() {
               // гоняет размер товара туда-сюда каждый кадр.
               setFieldH((prev) => (Math.abs(prev - h) > 8 ? h : prev));
             }}>
-            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
+            {/*
+              ЦЕЛЬ НАПИСАНА НАД ДОСКОЙ, А НЕ СПРЯТАНА В ПРАВИЛАХ. До сих пор
+              здесь висела общая подсказка «собери три одинаковых» — на сотом
+              уровне она уже ничего не сообщает, а вот ЧТО СЕЙЧАС НАДО СДЕЛАТЬ
+              не сообщал никто. Первые четыре уровня цель одна и та же (убрать
+              всё), поэтому там оставляем правило игры.
+            */}
+            {level < 5 ? (
+              <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
+            ) : (
+              <View style={styles.goalLine}>
+                <Ionicons name="flag" size={13} color="#d97706" />
+                <Text style={[styles.goalText, { color: colors.text }]}>
+                  {goal.kind === 'pick' ? t('goalPick')
+                    : goal.kind === 'free' ? t('goalFree')
+                    : goal.kind === 'moves' ? `${t('goalMoves')} ${goal.limit}`
+                    : t('goalAll')}
+                </Text>
+                {goal.kind === 'pick' && goal.types.map((tp) => (
+                  <View key={tp} style={styles.goalGood}>
+                    <GoodIcon type={tp} width={16} height={26} />
+                  </View>
+                ))}
+              </View>
+            )}
             {/*
               🔴 ОДИН ШКАФ, А НЕ СТОПКА ОТДЕЛЬНЫХ ПОЛОК.
               Денис 19.08: «у них пусто между полками нет, у тебя есть». Верно:
@@ -1156,6 +1375,10 @@ const styles = StyleSheet.create({
   /** Ряд ниш. Между рядами только толщина доски (gap короба), а не фон экрана. */
   shelfRow: { flexDirection: 'row', justifyContent: 'center', gap: 9 },
   /** Слой препятствия: затемнение на всю нишу плюс значок по центру. */
+  goalLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap', paddingHorizontal: 12, marginBottom: 2 },
+  goalText: { fontSize: 13, fontWeight: '700' },
+  goalGood: { backgroundColor: 'rgba(217,119,6,0.14)', borderRadius: 6, paddingHorizontal: 3, paddingVertical: 1 },
+  goalMark: { position: 'absolute', top: 3, right: 3, zIndex: 3 },
   obstacle: {
     position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
     alignItems: 'center', justifyContent: 'center', gap: 2,
