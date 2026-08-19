@@ -85,7 +85,12 @@ function GoodIcon({ type, width, height }: { type: number; width: number; height
     <Image
       {...a11yDecor}
       source={GOOD_SPRITES[type % GOOD_SPRITES.length]}
-      style={{ width, height, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 2, shadowOffset: { width: 0, height: 2 } }}
+      /**
+       * Тень ложится на ЗАДНЮЮ СТЕНКУ ниши со сдвигом вниз-влево, а не под
+       * предмет: свет в эталоне идёт сверху-справа-спереди. Тень строго снизу
+       * читается как наклейка на полу, а не как стоящий предмет.
+       */
+      style={{ width, height, shadowColor: '#2e1a08', shadowOpacity: 0.5, shadowRadius: 5, shadowOffset: { width: -3, height: 4 } }}
       resizeMode="contain"
     />
   );
@@ -337,7 +342,7 @@ export default function GoodsSortGame() {
 
   // ── вёрстка ──────────────────────────────────────────────────────────
   const boardW = Math.min(width - 24, 900);   // шире → товары крупнее на десктопе
-  const cellW = Math.floor((boardW - 7 * 2 - 6 * (gridDim.cols - 1)) / gridDim.cols);   // cols ячеек-полок в ряд
+  const cellW = Math.floor((boardW - 10 * 2 - 10 * (gridDim.cols - 1)) / gridDim.cols);   // cols ячеек-полок в ряд
   // Размер товара ограничен И шириной (cols в ряд), И доступной высотой (rows полок) — тянемся по высоте экрана.
   /**
    * 🔴 ВЫСОТУ ПОД ПОЛКИ МЕРЯЕМ, А НЕ УГАДЫВАЕМ.
@@ -409,7 +414,7 @@ export default function GoodsSortGame() {
    * ровно как в эталоне, где над предметами есть воздух. Растить сам товар
    * тут нельзя: его ширину держат три штуки в ряд, а не высота экрана.
    */
-  const SHELF_GAP = 10, HINT_H = 44, SHELF_PAD = 7;
+  const SHELF_GAP = 10, HINT_H = 44, SHELF_PAD = 10;
   const shelfOuter = Math.floor((availH - HINT_H - SHELF_GAP * (gridDim.rows - 1)) / gridDim.rows);
   // Ниша выше товара примерно на четверть — столько воздуха над предметом в
   // эталоне. Вдвое выше = пустая коробка, экран заполняется НЕ этим, а рядами.
@@ -428,12 +433,33 @@ export default function GoodsSortGame() {
     const close = hasPair(cell);   // 2 одинаковых → подсказка «положи третий»
     const canDrop = !!sel && sel.cell !== i && cell.length < CAP;
     return (
-      <View key={i}
+      <LinearGradient key={i}
+        /**
+         * 🔴 НИША — УГЛУБЛЕНИЕ, А НЕ ЗАКРАШЕННАЯ КЛЕТКА.
+         *
+         * Денис 19.08: «3д не ощущается, что там глубина — просто закрашенная
+         * таблица». Плоская заливка с рамкой глубины не даёт ни при каком цвете.
+         *
+         * Что её создаёт на самом деле, три вещи вместе:
+         *   1. ГРАДИЕНТ ВНУТРЬ. Свет падает сверху, значит верх ниши — в тени от
+         *      собственной кромки, низ — освещённое дно. Тёмный верх → светлый
+         *      низ, а не ровный цвет.
+         *   2. КРОМКА ДОСКИ. Внизу светлая полоса — передний торец полки,
+         *      единственная поверхность, повёрнутая к зрителю и к свету.
+         *   3. ТЕНЬ ПОД ТОВАРОМ на дне ниши: без неё предмет висит в воздухе.
+         *
+         * Рамка выделения осталась, но она теперь поверх объёма, а не вместо него.
+         */
+        colors={['#8a5f33', '#a97845', '#c99a63', '#dcb079']}
+        locations={[0, 0.18, 0.72, 1]}
+        start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
         style={[styles.cell, {
           width: cellW, height: nicheH,
-          borderColor: canDrop ? '#fbbf24' : close ? '#22c55e' : '#8a5a2b',
-          borderWidth: canDrop || close ? 3 : 2,
+          borderColor: canDrop ? '#fbbf24' : close ? '#22c55e' : 'transparent',
+          borderWidth: canDrop || close ? 3 : 0,
         }]}>
+        {/* Передний торец полки — светлая кромка, к которой прилипает тень товара. */}
+        <View pointerEvents="none" style={styles.shelfLip} />
         {/* Полка и товары — соседние кнопки, а не button внутри button.
             На web вложенные TouchableOpacity давали hydration-error и могли
             проглатывать тап при переходе вечерней зарядки через Goods Sort. */}
@@ -460,7 +486,7 @@ export default function GoodsSortGame() {
             );
           })}
         </View>
-      </View>
+      </LinearGradient>
     );
   };
 
@@ -562,7 +588,7 @@ export default function GoodsSortGame() {
               Поэтому теперь одна рама на все ряды, внутри — сетка без зазоров
               по вертикали, разделители рисуются самими нишами.
             */}
-            <LinearGradient colors={['#e8c39a', '#c98f52']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+            <LinearGradient colors={['#f6e3c6', '#e0b98a']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
               style={[styles.cabinet, { width: boardW }]}>
               {Array.from({ length: gridDim.rows }).map((_, row) => (
                 <View key={row} style={styles.shelfRow}>
@@ -662,18 +688,32 @@ const styles = StyleSheet.create({
    *   · тонкая светлая линия по верхнему краю ниши = блик на кромке доски.
    */
   /** Короб целиком: рама шкафа, внутри ряды ниш без пустот между ними. */
+  /**
+   * 🔴 ГЛУБИНУ ДЕЛАЮТ ТОЛСТЫЕ ДОСКИ, А НЕ ТОНКИЕ ЛИНИИ.
+   *
+   * Разбор увеличенного скриншота эталона (Денис, 19.08): между нишами идут
+   * ПЛАНКИ заметной толщины — светлые, с освещённой верхней гранью и тёмным
+   * передним торцом. Это и читается как мебель. Тонкий зазор в 4-6px читается
+   * как разлиновка таблицы, сколько его ни крась.
+   *
+   * Толщина взята долей от ниши: на маленьком экране пропорции сохраняются.
+   */
   cabinet: {
-    borderRadius: 12, padding: 6, gap: 4,
-    borderBottomWidth: 8, borderBottomColor: '#a5713d',
+    borderRadius: 14, padding: 10, gap: 10,
+    borderBottomWidth: 9, borderBottomColor: '#b98a55',
     shadowColor: '#5a3a18', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
   },
   /** Ряд ниш. Между рядами только толщина доски (gap короба), а не фон экрана. */
-  shelfRow: { flexDirection: 'row', justifyContent: 'center', gap: 4 },
+  shelfRow: { flexDirection: 'row', justifyContent: 'center', gap: 10 },
   cell: {
     borderRadius: 7, justifyContent: 'flex-end', alignItems: 'center',
-    backgroundColor: '#c9975f',                 // ниша ТЕМНЕЕ рамы — это и есть глубина
-    borderTopWidth: 2, borderTopColor: 'rgba(0,0,0,0.22)',   // тень от верхней кромки
-    borderBottomWidth: 2, borderBottomColor: 'rgba(255,236,205,0.35)', // блик на дне
+    overflow: 'hidden',                          // тень товара не вылезает из ниши
+  },
+  /** Передний торец доски: светлая полоса на дне ниши, повёрнутая к свету. */
+  shelfLip: {
+    position: 'absolute', left: 0, right: 0, bottom: 0, height: 7,
+    backgroundColor: '#efc794',
+    borderTopWidth: 2, borderTopColor: 'rgba(60,36,14,0.5)',
   },
   cellDropTarget: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 7 },
   cellRow: { zIndex: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 2, paddingBottom: 3 },

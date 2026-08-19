@@ -17,9 +17,16 @@ describe('вечерняя зарядка — web UI', () => {
     const source = read('app/games/goods-sort.tsx');
     const cell = source.slice(source.indexOf('const renderCell'), source.indexOf('const renderConfig'));
 
-    expect(cell).toContain('<View key={i}');
+    /**
+     * ⚠️ СТЕРЕЖЁМ СМЫСЛ, А НЕ ИМЯ ТЕГА. Первая версия требовала дословно
+     * `<View key={i}` и покраснела 19.08, когда обёртка ячейки стала
+     * LinearGradient ради глубины ниши — при том, что вложенных кнопок как не
+     * было, так и нет. Проверка должна ловить кнопку внутри кнопки, а не
+     * запрещать менять оформление.
+     */
     expect(cell).toContain('style={styles.cellDropTarget}');
     expect(cell).not.toContain('<TouchableOpacity key={i}');
+    expect(cell).not.toMatch(/<TouchableOpacity[^>]*\bkey=\{i\}/);
   });
 
   it('AGAIN повторяет вечерний слот, а не запускает утренний', () => {
