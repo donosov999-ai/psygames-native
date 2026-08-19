@@ -16,7 +16,7 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
-    version: '1.206.2',
+    version: '1.206.3',
     date: '2026-08-19',
     ru: [
       "Семь новых упражнений — в каталоге стало 71",
@@ -26,6 +26,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       "Отмена, подсказка и перемешать — отдельным рядом; низ экрана только для ответа",
       "Самурай, SET и «Сортировка товаров» спрашивают перед выходом — долгая партия не пропадает",
       "Рекорды теперь в шести играх, а не в двух; без сети видно ваш личный",
+      "Пять новых игр заговорили на вашем языке: внутри партии они знали только русский и английский",
       "«Числовая шкала»: одно подтверждение вместо двух",
       "Дневной перерыв считается с вашим набором упражнений",
       "Тропинка уровней снова видна. Она не показывалась почти нигде: карточка схлопывалась в полоску, подпись «Уровень 1 / 52» вставала по букве в столбик, питомец и звёзды пропадали. Держалось до поворота экрана — то есть у большинства всегда",
@@ -51,6 +52,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       "Undo, hint and shuffle sit in their own row; the bottom is for answering",
       "Samurai, SET and Sort the Goods ask before you leave — a long game is not lost",
       "Leaderboards cover six games now, not two — offline you see your best",
+      "Five new games now speak your language: inside a round they only knew Russian and English",
       "Number Line takes one confirmation instead of two",
       "The midday break respects your own set of exercises",
       "The level path is visible again. It was showing almost nowhere: the card collapsed to a sliver, the “Level 1 / 52” caption stacked one letter per line, and the pet and stars vanished. It lasted until you rotated the screen — for most people, forever",

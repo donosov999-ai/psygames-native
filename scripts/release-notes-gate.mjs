@@ -24,12 +24,43 @@
  */
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 const { extractNotes, format, PLAY_NOTES_LIMIT } = require(join(ROOT, '.github/scripts/whatsnew-notes.js'));
+
+/**
+ * 🔴 СНАЧАЛА — РАЗБИРАЕТСЯ ЛИ ВООБЩЕ СКРИПТ ВЫКЛАДКИ. Проверка на секунду, а без
+ * неё цена ошибки — полный круг релиза: 19.08.2026 я оставил в нём лишнюю
+ * закрывающую скобку, и выкладка упала синтаксисом ПОСЛЕ того, как собрались
+ * Android, macOS, Windows и веб и опубликовался GitHub Release. В логе сборки
+ * место ошибки вдобавок было скрыто маскировкой секретов — читалось как «***».
+ *
+ * Проверяем `node --check`, а не запуск: запускать выкладку ради проверки
+ * значит выложить.
+ */
+const RELEASE_SCRIPTS = [
+  '.github/scripts/deploy_play.js',
+  '.github/scripts/whatsnew-notes.js',
+  'scripts/release-notes-gate.mjs',
+  'scripts/feedback-loop-gate.mjs',
+];
+const broken = [];
+for (const rel of RELEASE_SCRIPTS) {
+  try {
+    execFileSync(process.execPath, ['--check', join(ROOT, rel)], { stdio: 'pipe' });
+  } catch (e) {
+    broken.push(`${rel}: ${String(e.stderr || e).split('\n').find((l) => l.includes('Error')) || 'не разбирается'}`);
+  }
+}
+if (broken.length) {
+  console.error('❌ скрипты релиза не разбираются — выкладка упадёт на последнем шаге:');
+  for (const b of broken) console.error(`   ${b}`);
+  process.exit(1);
+}
 
 const version = JSON.parse(readFileSync(join(ROOT, 'frontend/package.json'), 'utf8')).version;
 const notes = extractNotes(version);
