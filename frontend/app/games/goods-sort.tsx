@@ -73,6 +73,14 @@ const GS_RULES: LevelRule[] = [
     ru: { title: 'Примёрзший ряд', rule: 'Синий ряд не работает: ни взять, ни положить. Оттает, когда ты соберёшь тройку того товара, что примёрз — он показан снежинкой.', example: 'Пример: ❄ ряд внизу примёрз на соке. Собери тройку сока где угодно — ряд оттает.' },
     en: { title: 'Frozen row', rule: 'A blue row is out of action — nothing in, nothing out. It thaws when you clear a triple of the frozen good, shown by the snowflake.', example: 'Example: ❄ the bottom row is frozen on juice. Clear a triple of juice anywhere and it thaws.' },
   },
+  /**
+   * ⚠️ ПОРЯДОК В ЭТОМ МАССИВЕ — ЧАСТЬ ПРАВИЛА. Побеждает ПОСЛЕДНЕЕ подошедшее,
+   * поэтому записи идут по возрастанию `fromLevel`. Первая редакция поставила
+   * строгую укладку выше «примёрзшего ряда» (12), и на 14-м уровне человек
+   * видел бы объяснение про заморозку вместо нового правила — то есть механику
+   * ввели бы молча. Гейт это поймал.
+   */
+  { key: 'strict', fromLevel: 14 },
 ];
 
 const GRADIENT = ['#f7971e', '#ffd200'];
@@ -382,6 +390,113 @@ const OBSTACLE_PLANS: ObstaclePlan[] = [
   { blocked: 0, locked: 0, covered: 3, frozenRow: true },
   { blocked: 1, locked: 1, covered: 2, frozenRow: false },   // всё сразу
 ];
+
+/**
+ * СТРОГАЯ УКЛАДКА — ПРАВИЛО, КОТОРОЕ МЕНЯЕТ МЫШЛЕНИЕ, А НЕ ДАВИТ.
+ *
+ * 🔴 ЗАЧЕМ. Разбор жанра (19.08.2026) делит механики на две кучи: одни меняют
+ * САМО ДЕРЕВО РЕШЕНИЙ, другие лишь повышают цену ошибки. Из нашего набора
+ * замок и заморозка — давление: они запрещают ход, но не меняют, о чём думать.
+ * А вот правило «класть можно только к ТАКОМУ ЖЕ товару или в ПУСТУЮ нишу» —
+ * ровно то, из-за чего сортировка по контейнерам вообще является трудной
+ * задачей: появляются тупики, и приходится считать на два-три хода вперёд.
+ *
+ * ⚠️ НЕ НА ВСЕХ УРОВНЯХ, И ЭТО ГЛАВНОЕ. Под строгой укладкой доска МОЖЕТ зайти
+ * в тупик — это её смысл. Поставь правило везде, и половина партий будет
+ * кончаться не победой и не честным проигрышем, а «ходов нет». Поэтому оно
+ * приходит через уровень по своей таблице, объявляется правилом уровня заранее,
+ * а тупик всегда разбирается отменой хода (она бесплатна) или перемешиванием.
+ *
+ * ⚠️ И ОБЯЗАТЕЛЬНО С ПРОВЕРКОЙ РЕШАЕМОСТИ. Расклад, выданный под строгой
+ * укладкой, обязан иметь решение — гейт перебирает его целиком. Перебор здесь
+ * посилен именно потому, что правило режет ветвление: почти все ходы незаконны.
+ */
+export function strictPlacement(L: number): boolean {
+  // С 14-го, через два уровня на третий: успевает и надоесть не успевает.
+  return L >= 14 && (L - 14) % 3 === 0;
+}
+
+/**
+ * Можно ли класть товар типа `type` в нишу `dst` при данном правиле укладки.
+ * Единственное место, где живёт разница между обычным уровнем и строгим.
+ */
+export function placementOk(dst: number[], type: number, strict: boolean): boolean {
+  if (dst.length >= CAP) return false;
+  if (!strict || dst.length === 0) return true;
+  return dst[dst.length - 1] === type;
+}
+
+/**
+ * ЕСТЬ ЛИ У РАСКЛАДА РЕШЕНИЕ ПОД СТРОГОЙ УКЛАДКОЙ.
+ *
+ * 🔴 ЗАЧЕМ ВООБЩЕ. Обычная гарантия «две свободные ниши» под строгим правилом
+ * не работает: свободная ниша не спасает, если положить в неё нужный товар —
+ * значит запереть следующий ход. Расклад может быть непроходим, и выдать такой
+ * человеку нельзя.
+ *
+ * ⚠️ ИЩЕМ ЛЮБОЕ РЕШЕНИЕ, А НЕ КРАТЧАЙШЕЕ. Обход в ширину даёт кратчайшее, но
+ * замер 19.08.2026 показал: доска на 14 ниш требует больше полумиллиона
+ * состояний, и «не нашлось» означало бы «кончился бюджет», а не «нерешаемо».
+ * Поиск в глубину с разумным порядком ходов находит решение за сотни узлов —
+ * нам нужен именно факт существования.
+ *
+ * Порядок ходов и есть весь фокус: сначала то, что собирает тройку, потом к
+ * такому же товару, потом в пустую нишу. Жадность здесь безопасна — она лишь
+ * ускоряет нахождение, а полный откат оставлен.
+ */
+export function solvableStrict(start: number[][], budget = 20000): boolean {
+  const seen = new Set<string>();
+  let nodes = 0;
+
+  const collapse = (b: number[][]) => {
+    let again = true;
+    while (again) {
+      again = false;
+      for (let i = 0; i < b.length; i++) {
+        const c = b[i];
+        if (c.length === CAP && c.every((t) => t === c[0])) { b[i] = []; again = true; }
+      }
+    }
+  };
+  // Ниши равноправны: состояние — отсортированный список содержимого.
+  const key = (b: number[][]) => b.map((c) => c.join('.')).sort().join('|');
+
+  const walk = (b: number[][]): boolean => {
+    if (b.every((c) => c.length === 0)) return true;
+    if (++nodes > budget) return false;
+    const k = key(b);
+    if (seen.has(k)) return false;
+    seen.add(k);
+
+    type Try = { from: number; to: number; rank: number };
+    const tries: Try[] = [];
+    for (let from = 0; from < b.length; from++) {
+      const src = b[from];
+      if (!src.length) continue;
+      const type = src[src.length - 1];
+      for (let to = 0; to < b.length; to++) {
+        if (to === from || !placementOk(b[to], type, true)) continue;
+        const dst = b[to];
+        // 0 — собирает тройку, 1 — кладём к такому же, 2 — в пустую.
+        const rank = dst.length === CAP - 1 && dst[0] === type ? 0 : dst.length ? 1 : 2;
+        tries.push({ from, to, rank });
+      }
+    }
+    tries.sort((x, y) => x.rank - y.rank);
+    for (const t of tries) {
+      const nb = b.map((c) => [...c]);
+      nb[t.from].pop();
+      nb[t.to].push(b[t.from][b[t.from].length - 1]);
+      collapse(nb);
+      if (walk(nb)) return true;
+    }
+    return false;
+  };
+
+  const first = start.map((c) => [...c]);
+  collapse(first);
+  return walk(first);
+}
 
 /** Сколько раз за уровень можно перемешать. Не спасение от тупика — тупика нет. */
 const SHUFFLES_PER_LEVEL = 3;
@@ -968,7 +1083,20 @@ export default function GoodsSortGame() {
     gridRef.current = { cols: cfg.cols, rows: cfg.rows, slots: cfg.slots };
     setGridDim({ cols: cfg.cols, rows: cfg.rows });
     setMask(cfg.mask);
-    const built = generate(poolRef.current, cfg.types, cfg.spares, cfg.slots);
+    /**
+     * Под строгой укладкой расклад может оказаться непроходимым — это её
+     * природа, а не дефект. Гейт показывает, что генератор такие почти не
+     * выдаёт, но «почти» человеку не объяснишь: переспрашиваем, пока не выйдет
+     * решаемый. Пятая попытка — предел; если и она не дала, отдаём как есть,
+     * потому что зависший экран хуже трудного уровня, а отмена и перемешивание
+     * у человека на руках.
+     */
+    let built = generate(poolRef.current, cfg.types, cfg.spares, cfg.slots);
+    if (strictPlacement(L)) {
+      for (let tries = 0; tries < 5 && !solvableStrict(built); tries++) {
+        built = generate(poolRef.current, cfg.types, cfg.spares, cfg.slots);
+      }
+    }
     setCells(built);
     /**
      * Препятствия ставим ПОСЛЕ раскладки и только на подходящие ниши:
@@ -1148,10 +1276,16 @@ export default function GoodsSortGame() {
    * проглоченное нажатие, а перетаскиванием читалось бы куда хуже — товар
    * летит в подсвеченную нишу и отскакивает. Поэтому предикат один.
    */
-  const canPlaceInto = (fromCell: number, toCell: number): boolean =>
-    fromCell !== toCell
-    && (cells[toCell]?.length ?? 0) < CAP
-    && cellUsable(fromCell) && cellUsable(toCell);
+  /** Идёт ли на этом уровне строгая укладка. Одно место, откуда это узнают все. */
+  const strict = strictPlacement(level);
+
+  const canPlaceInto = (fromCell: number, toCell: number): boolean => {
+    if (fromCell === toCell) return false;
+    if (!cellUsable(fromCell) || !cellUsable(toCell)) return false;
+    const src = cells[fromCell];
+    if (!src?.length) return false;
+    return placementOk(cells[toCell] ?? [], src[src.length - 1], strict);
+  };
 
   const moveItem = (fromCell: number, fromIdx: number, toCell: number) => {
     const src = cells[fromCell];

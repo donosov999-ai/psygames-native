@@ -121,8 +121,17 @@ describe('препятствия', () => {
    * закрепляем теперь сам предикат и то, что ход идёт через него. Способов
    * хода стало два, а проверка обязана остаться одна.
    */
+  /**
+   * ⚠️ ПРОВЕРЯЕМ СМЫСЛ, А НЕ ЗАПИСЬ. Первая редакция требовала дословное
+   * `cellUsable(fromCell) && cellUsable(toCell)` и покраснела 19.08.2026 на
+   * правильной правке: предикат вырос до нескольких строк ради строгой укладки,
+   * и то же самое условие записалось как ранний выход. Смысл — обе стороны хода
+   * спрашивают о препятствии — не изменился ни на букву.
+   */
   it('препятствие запрещает обе стороны хода', () => {
-    expect(src).toMatch(/cellUsable\(fromCell\) && cellUsable\(toCell\)/);
+    const pred = src.slice(src.indexOf('const canPlaceInto'), src.indexOf('const moveItem'));
+    expect(pred).toMatch(/cellUsable\(fromCell\)/);
+    expect(pred).toMatch(/cellUsable\(toCell\)/);
     expect(src).toMatch(/if \(!canPlaceInto\(fromCell, toCell\)\)/);
   });
 
