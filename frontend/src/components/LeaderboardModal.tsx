@@ -1,9 +1,17 @@
-// Простой топ-20 лидерборда (v1.116.0, пилот schulte_table_5x5/n_back). Модалка, без
-// анимаций — минимальный UI, чтобы проверить ценность механики прежде чем полировать.
+// Простой топ-20 лидерборда (v1.116.0). Модалка, без анимаций — минимальный UI, чтобы
+// проверить ценность механики прежде чем полировать.
+//
+// 🔴 ПУСТАЯ ТАБЛИЦА ЧИТАЕТСЯ КАК ПОЛОМКА. Строка «Пока пусто — стань первым!» честна
+// ровно в одном случае: сервер ответил и в таблице действительно никого. Но `fetchTop`
+// возвращает пустой массив ЕЩЁ И при отсутствии сети, при заблокированном домене
+// (в РФ supabase.co режется — см. шапку services/supabase.ts) и при игре, которую
+// серверная RPC пока не знает. Во всех этих случаях человек, у которого рекорд ЕСТЬ,
+// видел бы пустоту и решал, что сломалось. Поэтому личный рекорд читается ВСЕГДА и
+// подставляется, как только чужих результатов не пришло.
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchTop, LeaderboardEntry, LeaderboardGameId } from '@/src/services/leaderboard';
+import { fetchTop, getPersonalBest, leaderboardView, LeaderboardEntry, LeaderboardGameId } from '@/src/services/leaderboard';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { a11yModal } from '@/src/services/a11y';
 
@@ -20,12 +28,22 @@ interface Props {
 export default function LeaderboardModal({ visible, onClose, gameId, colors, gradient, formatScore }: Props) {
   const { t } = useLanguage();   // язык из контекста; проп language остался в Props для совместимости
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
+  const [personalBest, setPersonalBest] = useState<number | null>(null);
 
   useEffect(() => {
     if (!visible) return;
     setEntries(null);
-    fetchTop(gameId, 20).then(setEntries);
+    setPersonalBest(null);
+    // Личный рекорд лежит в AsyncStorage и приходит быстрее сети — но ждём оба, иначе
+    // на секунду мелькнёт «пусто», а это ровно то сообщение, от которого мы уходим.
+    Promise.all([fetchTop(gameId, 20), getPersonalBest(gameId)]).then(([top, own]) => {
+      setPersonalBest(own);
+      setEntries(top);
+    });
   }, [visible, gameId]);
+
+  // Само правило «что показать» — в services/leaderboard.ts (чистая функция, её гоняет гейт).
+  const view = leaderboardView(entries, personalBest);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -39,15 +57,22 @@ export default function LeaderboardModal({ visible, onClose, gameId, colors, gra
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
-          {entries === null ? (
+          {view.kind === 'loading' ? (
             <ActivityIndicator color={gradient[0]} style={{ marginVertical: 24 }} />
-          ) : entries.length === 0 ? (
+          ) : view.kind === 'empty' ? (
             <Text style={{ color: colors.textSecondary, textAlign: 'center', marginVertical: 24 }}>
               {t('leaderboardEmpty')}
             </Text>
+          ) : view.kind === 'personal' ? (
+            <View style={{ marginVertical: 24, alignItems: 'center', gap: 8 }}>
+              <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
+                {t('leaderboardPersonalOnly')}
+              </Text>
+              <Text style={[styles.personalScore, { color: gradient[0] }]}>{formatScore(view.score)}</Text>
+            </View>
           ) : (
             <FlatList
-              data={entries}
+              data={view.entries}
               keyExtractor={(_, i) => String(i)}
               style={{ maxHeight: 360 }}
               renderItem={({ item, index }) => (
@@ -74,4 +99,5 @@ const styles = StyleSheet.create({
   rank: { width: 24, fontSize: 13, fontWeight: '700' },
   name: { flex: 1, fontSize: 14, fontWeight: '600' },
   score: { fontSize: 14, fontWeight: '700' },
+  personalScore: { fontSize: 26, fontWeight: '800' },
 });

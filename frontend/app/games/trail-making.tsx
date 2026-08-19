@@ -28,6 +28,8 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LeaderboardModal from '@/src/components/LeaderboardModal';
+import { countsForRecord, submitScore } from '@/src/services/leaderboard';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
@@ -130,6 +132,7 @@ export default function TrailMakingGame() {
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   // mode/count как state — только для пресетов зарядки (init из URL-params);
   // в уровневом режиме параметры приходят из levelParams и живут в рефах
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'B') as Mode));
@@ -250,6 +253,12 @@ export default function TrailMakingGame() {
         },
       });
     } catch (err) { console.error(err); }
+    // Рекорд — только чистая партия первого уровня (Trail-A, 6 узлов, только цифры):
+    // уровень задаёт и режим A/B, и число узлов, а неверный тап хода не блокирует —
+    // без гейта «0 ошибок» время выигрывалось бы наугад (см. LEADERBOARD_GAMES.trail_making).
+    if (countsForRecord('trail_making', { isPreset, level: levelRef.current, errors: e })) {
+      submitScore('trail_making', finalTime).catch(() => {});   // тихо — лидерборд необязателен
+    }
   };
 
   // Засчитать следующий узел — общая точка для тапа И drag
@@ -356,6 +365,11 @@ export default function TrailMakingGame() {
         <GameAbout descriptionKey="trailMakingIntroDesc" benefits={TRAIL_BENEFITS} accent={GRADIENT[0]} />
 
         <LevelProgressMap gameId="trail_making" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
+          <Ionicons name="trophy-outline" size={18} color={colors.text} />
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('leaderboardLevel1')}</Text>
+        </TouchableOpacity>
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}
@@ -497,6 +511,11 @@ export default function TrailMakingGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
+      <LeaderboardModal
+        visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
+        gameId="trail_making" language={language} colors={colors} gradient={GRADIENT}
+        formatScore={(s) => `${s.toFixed(1)}s`}
+      />
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'counting', gradient: GRADIENT as [string, string] }}

@@ -28,7 +28,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import LeaderboardModal from '@/src/components/LeaderboardModal';
-import { fetchBest, getPersonalBest, submitScore } from '@/src/services/leaderboard';
+import { countsForRecord, fetchBest, getPersonalBest, submitScore } from '@/src/services/leaderboard';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
@@ -267,8 +267,15 @@ export default function NBackGame() {
     setResultBenchmark({ own: ownLeaderboardLevel, best: ownLeaderboardLevel, source: 'personal' });
     let leaderboardSubmit: Promise<unknown> = Promise.resolve();
     if (passed) {
-      lvl.reach(levelRef.current + 1);   // ≥80% по худшему из каналов → +уровень (N → скорость → dual)
-      leaderboardSubmit = submitScore('n_back', levelRef.current + 1);   // тихо — лидерборд необязателен
+      lvl.reach(levelRef.current + 1);   // ≥ 80% по худшему из каналов → +уровень (N → скорость → dual)
+      // В рекорд — только раунд из 20 проб (LEADERBOARD_GAMES.n_back). Найдено при
+      // разборе 19.08.2026: число проб выбирается рядом одной кнопкой (15/20/30) и НЕ
+      // перебивается уровнем — а на пятнадцати пробах порог 80% держать заметно легче.
+      // То есть уровень в таблице можно было накручивать укороченным раундом. Сама лестница
+      // уровней растёт по-прежнему — гейт только на отправке рекорда.
+      if (countsForRecord('n_back', { isPreset, passed, trials })) {
+        leaderboardSubmit = submitScore('n_back', levelRef.current + 1);   // тихо — лидерборд необязателен
+      }
     }
     else if (!isPreset) lvl.fail();   // не прошёл уровень → гистерезис понижения (3 провала подряд → level-1)
     // Signal Detection Theory: d' = z(hit_rate) - z(false_alarm_rate)

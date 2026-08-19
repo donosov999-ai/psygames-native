@@ -17,6 +17,8 @@ import GameResult from '@/src/components/GameResult';
 import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LeaderboardModal from '@/src/components/LeaderboardModal';
+import { countsForRecord, submitScore } from '@/src/services/leaderboard';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -99,6 +101,7 @@ export default function CorsiGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);   // память итога для баннера LevelCleared (passed/«почти»)
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -181,6 +184,11 @@ export default function CorsiGame() {
         details: { level: levelRef.current, span: finalSpan },
       });
     } catch (e) { console.error(e); }
+    // Рекорд — только партия первого уровня: стартовый спан и темп показа выводятся из
+    // уровня, поэтому спан с разных ступеней несравним (см. LEADERBOARD_GAMES.corsi).
+    if (countsForRecord('corsi', { isPreset, level: levelRef.current })) {
+      submitScore('corsi', finalSpan).catch(() => {});   // тихо — лидерборд необязателен
+    }
     // веха-босс: при чистом прохождении каждые BOSS_EVERY уровней → битва (память → счёт)
     if (passed && levelRef.current % BOSS_EVERY === 0) { setClearedPassed(true); setBossWon(null); setPhase('boss'); }
     else if (passed) { setClearedPassed(true); setPhase('cleared'); }   // авто-поток к следующему уровню
@@ -228,6 +236,11 @@ export default function CorsiGame() {
       </LinearGradient>
       <GameAbout descriptionKey="corsiIntroDesc" benefits={CORSI_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="corsi" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
+        <Ionicons name="trophy-outline" size={18} color={colors.text} />
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('leaderboardLevel1')}</Text>
+      </TouchableOpacity>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
         <View style={styles.optionButtons}>
@@ -350,6 +363,11 @@ export default function CorsiGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
+      <LeaderboardModal
+        visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
+        gameId="corsi" language={language} colors={colors} gradient={GRADIENT}
+        formatScore={(s) => String(Math.round(s))}
+      />
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'boss' && (
         <BossRound config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
