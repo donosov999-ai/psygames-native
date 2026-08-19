@@ -514,6 +514,14 @@ const translations: Translations = {
   // Picture Pairs
   picturePairs: { ru: 'Парные картинки', en: 'Picture Pairs' },
   picturePairsDesc: { ru: 'Открой все одинаковые пары', en: 'Reveal every matching pair' },
+  // Парные картинки: панель «уровни / свободно» и параметры уровня. Раньше эти
+  // строки выбирались тернарником по языку прямо в экране — то есть все десять
+  // неанглийских локалей получали английский текст.
+  pairsModeLevelsHint: { ru: 'Уровни растут: выиграл — дальше, сложнее. Счёт копится.', en: 'Levels ramp: win → next, harder. Score accumulates.' },
+  pairsModeFreeHint: { ru: 'Один раунд по своим настройкам.', en: 'One round, your settings.' },
+  pairsLvlPairs: { ru: '{n} пар', en: '{n} pairs' },
+  pairsLvlFlash: { ru: 'фото-память {s}с', en: 'flash {s}s' },
+  pairsPreviewHint: { ru: '{s}с — потом карты закроются', en: '{s}s — then the cards flip back' },
   picturePairsIntroDesc: {
     ru: 'Открывайте по две карточки за раз и ищите пары. Чем меньше ходов — тем выше счёт. Тренирует визуальную память и сопоставление.',
     en: 'Flip two cards at a time and find matching pairs. Fewer moves = higher score. Trains visual memory and matching.',
@@ -1436,6 +1444,12 @@ const translations: Translations = {
   warmupFinish: { ru: 'Завершить комплекс', en: 'Finish the set' },
   setGotIt: { ru: 'Понятно', en: 'Got it' },
   setHintBtn: { ru: 'Подсказка', en: 'Hint' },
+  // SET: разбор примера «что такое SET». Длинный методический текст, который до
+  // 19.08.2026 существовал только на двух языках прямо в разметке экрана.
+  setExampleTitle: { ru: 'Пример: что такое SET', en: 'Example: what is a SET' },
+  setExampleValid: { ru: '✓ SET: форма и заливка одинаковые у всех, цвет и число — у всех разные', en: '✓ SET: shape and fill are the same on all, color and count all differ' },
+  setExampleInvalid: { ru: '✗ Не SET: цвет совпал только у двух (два красных и фиолетовый)', en: '✗ Not a SET: color matches on only two cards (two red, one purple)' },
+  setExampleNote: { ru: 'Каждый из 4 признаков (форма, цвет, заливка, число) должен быть либо одинаковым у всех трёх карт, либо разным у всех трёх.', en: 'Each of the 4 features (shape, color, fill, count) must be either the same on all three cards or different on all three.' },
   setTipsTitle: { ru: 'Как искать SET', en: 'How to hunt for a SET' },
   setTip1: { ru: 'Возьми любые две карты — они всегда начало сета. Пойми, какая третья их завершает (одинаковые признаки → такой же, разные → третий вариант), и поищи её на поле.', en: 'Pick any two cards — they always start a SET. Work out which third card completes them (same features → the same, different → the third option) and look for it.' },
   setTip2: { ru: 'Если какой-то признак совпал ровно у двух карт из трёх — это точно не SET.', en: 'If any feature matches on exactly two of the three cards — it is never a SET.' },
@@ -1857,6 +1871,17 @@ const translations: Translations = {
   sudokuNextUnlocks: { ru: 'Прошёл — откроется следующий, сложнее.', en: 'Beat it — the next unlocks, harder.' },
   sudokuColorMode: { ru: 'Цвет', en: 'Color' },
   sudokuColorHint: { ru: 'Коснись клетки; повторный тап снимает цвет.', en: 'Tap a cell; tap it again to remove the color.' },
+  // Названия приёмов решения — подпись НАСТОЯЩЕЙ сложности сетки во фрактале.
+  // Не объявленной уровнем, а измеренной решателем: с уровня 21 сетки берутся из
+  // библиотеки заготовок, и «что задумано» с «что вышло» расходятся по построению.
+  fracTechSingle: { ru: 'Голый одиночка', en: 'Naked single' },
+  fracTechHidden: { ru: 'Скрытый одиночка', en: 'Hidden single' },
+  fracTechLocked: { ru: 'Связанные кандидаты', en: 'Locked candidates' },
+  fracTechPair: { ru: 'Голая пара', en: 'Naked pair' },
+  fracTechHiddenPair: { ru: 'Скрытая пара', en: 'Hidden pair' },
+  fracTechXwing: { ru: 'X-wing', en: 'X-wing' },
+  sudokuPencilMode: { ru: 'Пометки', en: 'Notes' },
+  sudokuPencilHint: { ru: 'Выбери клетку и жми цифры — они встанут в угол мелким. Повторный тап снимает пометку.', en: 'Pick a cell and tap digits — they go into the corner as small marks. Tap again to remove one.' },
   killerCageRule: { ru: 'Цифры в каждой цветной группе в сумме дают число в её углу и не повторяются.', en: 'Digits in each coloured cage add up to the number in its corner and never repeat.' },
   boardSize: { ru: 'Размер поля', en: 'Board size' },
   digitsLabel: { ru: 'Цифры', en: 'Digits' },
@@ -1911,6 +1936,9 @@ const translations: Translations = {
   // Судоку-самурай
   samuraiDesc: { ru: 'Пять сеток 9×9 с общими угловыми блоками. Правила судоку в каждой.', en: 'Five overlapping 9×9 grids sharing corner blocks; standard sudoku in each.' },
   samuraiLvlParams: { ru: 'Закрыто {p}% клеток · лимит {e} ошибок · подсказок {h}', en: '{p}% cells hidden · {e} mistakes limit · {h} hints' },
+  // Самурай: экран исчерпанного лимита ошибок.
+  samuraiOverTitle: { ru: 'Ошибок слишком много', en: 'Too many mistakes' },
+  samuraiOverSub: { ru: 'Лимит {n} ошибок на уровне. Сыграй заново — поле новое.', en: 'Limit of {n} mistakes. Play again — fresh board.' },
   samuraiNextUnlocks: { ru: 'Реши, не превысив лимит ошибок — откроется следующий, сложнее.', en: 'Solve within the mistakes limit — the next unlocks, harder.' },
   samuraiHowTo: { ru: 'Поле 21×21 = пять судоку, перекрытых углами. Заполни каждую клетку так, чтобы в каждой сетке 9×9 строки, столбцы и блоки 3×3 содержали 1–9 без повторов. Кнопкой 🔍 переключай масштаб: «вся фигура» или «крупно со скроллом».', en: 'A 21×21 board = five sudoku overlapping at the corners. Fill every cell so each 9×9 grid has 1–9 with no repeats in rows, columns and 3×3 boxes. Use 🔍 to toggle zoom: whole shape or zoomed-in with scroll.' },
   errorsOfMax: { ru: 'Ошибок {n}/{max}', en: 'Errors {n}/{max}' },

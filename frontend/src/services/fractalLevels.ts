@@ -170,3 +170,28 @@ export function fractalLevel(level: number): FractalLevelCfg {
     unlockShare: UNLOCK_SHARE_MIN + k * (UNLOCK_SHARE_MAX - UNLOCK_SHARE_MIN),
   };
 }
+
+/**
+ * Ключ словаря с НАЗВАНИЕМ приёма по номеру ступени.
+ *
+ * ⚠️ ЗАЧЕМ ЭТО ЗДЕСЬ, А НЕ В ЭКРАНЕ. Ступеней шесть, и они заданы в двух местах —
+ * `FRACTAL_TIERS` движка и `TECHNIQUE_TIER` градатора. Табличка «номер → как это
+ * называется по-человечески» обязана лежать рядом с лестницей, иначе при добавлении
+ * седьмой ступени экран молча покажет пустую подпись. Гейт проверяет, что покрыты ВСЕ
+ * ступени и что ключи разные (одинаковые означали бы, что две ступени неотличимы).
+ */
+const TECHNIQUE_KEYS: readonly string[] = [
+  'fracTechSingle',       // 1 — в клетке остался один кандидат
+  'fracTechHidden',       // 2 — в зоне цифра помещается только сюда
+  'fracTechLocked',       // 3 — цифра блока заперта в одной строке
+  'fracTechPair',         // 4 — две клетки делят два кандидата
+  'fracTechHiddenPair',   // 5 — две цифры зоны помещаются в две одни и те же клетки
+  'fracTechXwing',        // 6 — цифра в двух строках стоит в одних и тех же столбцах
+];
+
+export function fractalTechniqueKey(tier: number): string {
+  return TECHNIQUE_KEYS[Math.max(1, Math.min(FRACTAL_TIER_STEPS, Math.round(tier))) - 1];
+}
+
+/** Все ключи приёмов — для гейта: он обязан видеть таблицу целиком, а не по одному. */
+export const FRACTAL_TECHNIQUE_KEYS = TECHNIQUE_KEYS;

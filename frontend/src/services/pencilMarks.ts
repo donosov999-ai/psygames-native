@@ -1,0 +1,107 @@
+/* psygames-pencil-marks · VER 1 · 19.08.2026 */
+/**
+ * КАРАНДАШНЫЕ ПОМЕТКИ — ОБЩИЙ СЛОЙ ДЛЯ ВСЕХ СУДОКУ.
+ *
+ * ЗАЧЕМ. Пометок в приложении не было НИ В ОДНОЙ игре (замер 19.08.2026: слов
+ * `pencil`/`candidates` нет ни в одном сервисе). Без них судоку выше второй ступени
+ * решается только в уме: техника «голая пара» требует помнить по два кандидата в
+ * нескольких клетках разом, «скрытая пара» — расположение цифры по всей зоне. На бумаге
+ * это пишут карандашом в углу клетки; на экране писать было негде.
+ *
+ * ⚠️ ПОЧЕМУ ОТДЕЛЬНЫЙ СЕРВИС, А НЕ ПОЛЕ В ЭКРАНЕ. Просят пометки три игры разом:
+ * фрактальная судоку (десять сеток — там без них вообще никак), обычная судоку и
+ * самурай (пять сеток 21×21). Написать их в одном экране значит переписать потом
+ * дважды и разойтись в мелочах — ровно то, от чего завели `services/resume` и
+ * `hooks/useMoveHistory`. Здесь чистое ядро без React: маска, переключение, разбор
+ * сохранённого. Экран добавляет только вид.
+ *
+ * ⚠️ ПОДКЛЮЧЁН ПОКА ТОЛЬКО ФРАКТАЛ. Обычная судоку и самурай ждут: их файлы правят
+ * параллельные заходы, и лезть туда значит затереть чужую работу. Сервис написан так,
+ * чтобы им хватило вызовов, без правки этого файла.
+ *
+ * ⚠️ ЧЕГО ЗДЕСЬ СОЗНАТЕЛЬНО НЕТ — АВТОЗАПОЛНЕНИЯ. «Проставить все возможные цифры»
+ * выглядит удобством, но это раздача первой ступени лестницы техник даром: голый
+ * одиночка — это ровно «в клетке остался один кандидат», и автопометки показывают его
+ * без единой мысли. Ступени сложности во фрактале строились именно на том, какую
+ * технику приходится ПРИМЕНИТЬ (fractalLevels.ts); автозаполнение обнулило бы половину
+ * лестницы. Пометки — бухгалтерия игрока, а не подсказка.
+ *
+ * ФОРМАТ. Маска девяти бит на клетку: бит (d−1) поднят = цифра d помечена. Одно число
+ * вместо массива — потому что состояние уезжает в незаконченную партию целиком
+ * (`services/resume`), а десять сеток по 81 клетке массивами дали бы километр JSON.
+ */
+
+/** Пометки одной сетки: N×N масок. 0 = пусто. */
+export type PencilMarks = number[][];
+
+/** Сколько цифр помещается в маску. Больше девяти биты не держат, и судоку больше не бывает. */
+export const PENCIL_MAX_DIGIT = 9;
+
+const FULL_MASK = (1 << PENCIL_MAX_DIGIT) - 1;
+
+export function emptyPencilMarks(N: number): PencilMarks {
+  return Array.from({ length: N }, () => Array(N).fill(0));
+}
+
+/** Помечена ли цифра в клетке. */
+export function hasPencilMark(marks: PencilMarks, r: number, c: number, digit: number): boolean {
+  if (digit < 1 || digit > PENCIL_MAX_DIGIT) return false;
+  return ((marks[r]?.[c] ?? 0) & (1 << (digit - 1))) !== 0;
+}
+
+/** Цифры клетки по возрастанию — для отрисовки. */
+export function pencilDigits(mask: number): number[] {
+  const out: number[] = [];
+  for (let d = 1; d <= PENCIL_MAX_DIGIT; d++) if (mask & (1 << (d - 1))) out.push(d);
+  return out;
+}
+
+/**
+ * Переключить цифру: помечена — снять, не помечена — поставить.
+ *
+ * Именно ПЕРЕКЛЮЧИТЬ, а не «поставить»: карандаш на бумаге стирают тем же движением,
+ * которым пишут, и отдельная кнопка «снять пометку» была бы лишним режимом.
+ */
+export function togglePencilMark(marks: PencilMarks, N: number, r: number, c: number, digit: number): PencilMarks {
+  const next = normalizePencilMarks(marks, N);
+  if (r < 0 || r >= N || c < 0 || c >= N || digit < 1 || digit > PENCIL_MAX_DIGIT) return next;
+  next[r][c] ^= 1 << (digit - 1);
+  return next;
+}
+
+/** Стереть все пометки клетки — одно движение вместо девяти. */
+export function clearPencilMarks(marks: PencilMarks, N: number, r: number, c: number): PencilMarks {
+  const next = normalizePencilMarks(marks, N);
+  if (r < 0 || r >= N || c < 0 || c >= N) return next;
+  next[r][c] = 0;
+  return next;
+}
+
+/** Сколько пометок стоит на всей сетке. Нужно экранам: пустой слой не показывают. */
+export function countPencilMarks(marks: PencilMarks): number {
+  let n = 0;
+  for (const row of marks) for (const mask of row) {
+    for (let d = 0; d < PENCIL_MAX_DIGIT; d++) if (mask & (1 << d)) n++;
+  }
+  return n;
+}
+
+/**
+ * Привести прочитанное из хранилища к рабочему виду.
+ *
+ * ⚠️ Незаконченная партия живёт на устройстве месяц и переживает обновления приложения.
+ * Битую или чужую запись нельзя пускать в отрисовку: маска с лишними битами нарисует
+ * несуществующие цифры, а строка вместо числа уронит экран. Всё непонятное гасим в ноль
+ * — потерять пометки не страшно, уронить партию страшно.
+ */
+export function normalizePencilMarks(value: unknown, N: number): PencilMarks {
+  if (!Array.isArray(value) || value.length !== N) return emptyPencilMarks(N);
+  return Array.from({ length: N }, (_, r) => {
+    const row = (value as unknown[])[r];
+    if (!Array.isArray(row) || row.length !== N) return Array(N).fill(0);
+    return Array.from({ length: N }, (_, c) => {
+      const mask = (row as unknown[])[c];
+      return Number.isInteger(mask) && (mask as number) >= 0 && (mask as number) <= FULL_MASK ? (mask as number) : 0;
+    });
+  });
+}
