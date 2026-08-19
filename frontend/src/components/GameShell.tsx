@@ -384,7 +384,17 @@ export default function GameShell({
         </View>
       )}
 
-      {paused && (
+      {/*
+        ⚠️ ПЛАШКА ПАУЗЫ НЕ ПОКАЗЫВАЕТСЯ ПОВЕРХ ВОПРОСА О ВЫХОДЕ. Игра на паузе и
+        во время вопроса — так и задумано, часы стоят. Но плашка лежит выше
+        (zIndex 90 против 85) и ловит нажатия: на «остаться» и «выйти» нельзя
+        было нажать вовсе, экран запирался до перезагрузки. Регрессия жила
+        полчаса и накрывала все девять игр с вопросом при выходе.
+
+        Пауза здесь и не нужна: вопрос сам и есть накладка, и он объясняет, что
+        происходит, лучше, чем «Пауза — пишется отзыв».
+      */}
+      {paused && !exitGuard.asking && (
         <View style={styles.pauseOverlay} pointerEvents="auto">
           <View style={[styles.pauseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Ionicons name="pause-circle" size={44} color={colors.primary} />
@@ -401,8 +411,16 @@ const styles = StyleSheet.create({
   // Слой итога. Своего фона нет: затемнение рисует сама карточка — так она решает,
   // насколько глушить доску, а каркас не навязывает.
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 80 },
-  // Вопрос о выходе. zIndex между итогом (80) и паузой (90).
-  exitOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 85, paddingHorizontal: 24 },
+  /**
+   * Вопрос о выходе — САМАЯ ВЕРХНЯЯ накладка каркаса (итог 80, пауза 90).
+   *
+   * ⚠️ Был 85, ниже паузы, и это заперло экран: пауза ложится во весь экран с
+   * `pointerEvents="auto"`, поэтому нажатия по «остаться» и «выйти» доставались
+   * ей. Ответить на вопрос было нельзя вообще. Одного «не показывать паузу
+   * поверх вопроса» мало: любая следующая накладка повторит ту же беду молча,
+   * поэтому вопрос теперь выше всех по порядку, а не по стечению обстоятельств.
+   */
+  exitOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 95, paddingHorizontal: 24 },
   exitCard: { width: '100%', maxWidth: 380, paddingVertical: 22, paddingHorizontal: 22, borderRadius: 18, borderWidth: 1, gap: 10 },
   exitTitle: { fontSize: 19, fontWeight: '800' },
   exitBody: { fontSize: 14, lineHeight: 20 },
