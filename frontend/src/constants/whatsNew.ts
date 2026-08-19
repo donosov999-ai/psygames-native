@@ -16,6 +16,42 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.205.0',
+    date: '2026-08-19',
+    ru: [
+      "Тропинка уровней снова видна. Она не показывалась почти нигде: карточка схлопывалась в полоску, подпись «Уровень 1 / 52» вставала по букве в столбик, питомец и звёзды пропадали. Держалось до поворота экрана — то есть у большинства всегда",
+      "«Сортировка товаров» переделана: у каждого уровня своя цель, появились препятствия, товар можно тащить пальцем, есть отмена хода и подсказка. Разных уровней стало 59 вместо 13",
+      "Между уровнями теперь короткая передышка с картинкой, и питомец на глазах переходит на следующий уровень",
+      "Выход из игры больше не стирает партию. Раньше 20 минут маджонга исчезали от одного промаха по «назад», и вопроса не задавала ни одна из 64 игр",
+      "Отмена хода — в маджонге, анаграммах, самурае и фрактальной судоку",
+      "Название игры и кнопку «Начать» стало видно на 59 экранах: они были белым по светлому, и на части экранов текст физически не читался",
+      "«Фрактальное судоку» было непроходимо вовсе — в корневую сетку нельзя было вводить цифры. Теперь играется целиком, уровней 30 вместо 15",
+      "«Судоку-самурай»: ступени сложности стали настоящими (раньше все уровни решались одним приёмом), партия сохраняется при выходе, в клетку можно попасть пальцем",
+      "В SET видно, сколько осталось на расклад. С 11-го уровня время режется с 26 секунд до 10, и уровень терялся по часам, которых никто не показывал",
+      "Числа в шапках подписаны словами на 51 экране — вместо «A 12», «μ8», «Span 5»",
+      "Правила уровней переведены на все 12 языков. Раньше десять языков читали объяснение новой механики по-английски",
+      "Вечером и ночью звук глушится на 57 экранах: вечерний набор задуман как успокоение, а писк на каждое действие делал обратное",
+      "Появился щадящий режим движения для тех, у кого от анимаций кружится голова",
+      "Новый профиль «Новинки» — витрина свежего и существенно обновлённого",
+    ],
+    en: [
+      "The level path is visible again. It was showing almost nowhere: the card collapsed to a sliver, the “Level 1 / 52” caption stacked one letter per line, and the pet and stars vanished. It lasted until you rotated the screen — for most people, forever",
+      "Sort the Goods is rebuilt: every level states its own goal, obstacles appeared, goods can be dragged, and there is undo and a hint. Distinct levels went from 13 to 59",
+      "Levels are now separated by a short breather with a picture, and the pet visibly walks on to the next one",
+      "Leaving a game no longer wipes your board. Twenty minutes of Mahjong used to disappear from one stray tap on “back”, and none of the 64 games asked first",
+      "Undo — in Mahjong, Anagrams, Samurai Sudoku and Fractal Sudoku",
+      "Game titles and the Start button are readable on 59 screens: they were white on light, and on some screens the text was physically unreadable",
+      "Fractal Sudoku was unwinnable outright — the root grid took no input at all. It is now fully playable, with 30 levels instead of 15",
+      "Samurai Sudoku: the difficulty ladder became real (every level used to fall to a single technique), the game saves when you leave, and cells can be hit with a finger",
+      "SET now shows how long is left on the current deal. From level 11 the time is cut from 26 seconds to 10, and levels were lost to a clock nobody displayed",
+      "Numbers in headers are labelled with words on 51 screens — instead of “A 12”, “μ8”, “Span 5”",
+      "Level rules are translated into all 12 languages. Ten languages used to read the explanation of a new mechanic in English",
+      "Sound is muted on 57 screens during the evening and night warm-up: that set exists to wind down, and a beep on every action did the opposite",
+      "A reduced-motion mode arrived for people who get dizzy from animation",
+      "A new “What’s new” profile — a shelf for fresh and substantially reworked exercises",
+    ],
+  },
+  {
     version: '1.204.0',
     date: '2026-08-19',
     ru: [
