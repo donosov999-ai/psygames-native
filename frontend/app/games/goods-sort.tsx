@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, Easing, PanResponder } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -17,7 +17,10 @@ import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
-import { sndCombo } from '@/src/services/feedback';
+import { sndCombo, sndPlace, sndMatch, sndWrong } from '@/src/services/feedback';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
+import { useMoveHistory } from '@/src/hooks/useMoveHistory';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { a11yDecor } from '@/src/services/a11y';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -423,6 +426,27 @@ const NO_OBSTACLES: ObstaclePlan = { blocked: 0, locked: 0, covered: 0, frozenRo
 type GoalKind = 'all' | 'pick' | 'moves' | 'free';
 interface GoalPlan { kind: GoalKind; count: number }
 
+/**
+ * СНИМОК ДОСКИ ДЛЯ ОТМЕНЫ ХОДА.
+ *
+ * 🔴 ПОЧЕМУ СНИМОК ЦЕЛИКОМ, А НЕ «ОТКУДА-КУДА». Ход запускает каскад: собранные
+ * тройки исчезают, замки тикают, примёрзший ряд оттаивает, накрытые товары
+ * открываются. Обратить это «переложив товар назад» нельзя — надо вернуть ВСЁ
+ * состояние. Снимок стоит копейки: восемнадцать ниш по три товара.
+ *
+ * ⚠️ ЧИСЛА ТОЖЕ В СНИМКЕ. Без них отмена дарила бы ходы: откатил доску, а
+ * счётчик остался — и лимит на уровнях цели «ходы» обходится отменой.
+ */
+interface Snapshot {
+  cells: number[][];
+  obstacles: Obstacle[];
+  covered: string[];
+  frozen: { row: number; type: number } | null;
+  moves: number;
+  score: number;
+  cleared: number;
+}
+
 /** Живая цель уровня: план, разложенный на КОНКРЕТНУЮ доску. */
 type Goal =
   | { kind: 'all' }
@@ -707,7 +731,13 @@ export default function GoodsSortGame() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset, autostart } = useGamePreset();
+  const { isPreset, autostart, isCalm } = useGamePreset();
+  /**
+   * Тихий вечер. Вечерний и ночной шаг зарядки задуман как успокоение перед
+   * сном; писк на каждое перекладывание делает ровно то же, что делал убранный
+   * оттуда отсчёт. Глушение снимается при уходе с экрана само.
+   */
+  useCalmHush(isCalm);
   const chainNext = shouldChainNextLevel(useGameMode());
   const lvl = usePersistentLevel('goods_sort');   // персист достигнутого уровня (раньше сбрасывался на 1)
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
@@ -742,7 +772,66 @@ export default function GoodsSortGame() {
   const [covered, setCovered] = useState<Set<string>>(() => new Set());
   /** Примёрзший ряд: индекс ряда и тип, тройку которого надо собрать, чтобы растопить. */
   const [frozen, setFrozen] = useState<{ row: number; type: number } | null>(null);
+  /**
+   * ВСПЫШКА И ДРОЖАНИЕ — ОДНО ЗНАЧЕНИЕ НА ВСЮ ДОСКУ, А НЕ ПО ЗНАЧЕНИЮ НА НИШУ.
+   *
+   * Ниш до восемнадцати, и заводить каждой свой `Animated.Value` значит держать
+   * восемнадцать живых анимаций ради двух, которые сейчас идут. Здесь одно
+   * значение и список ниш, которых оно касается: анимация всегда ровно одна, а
+   * какие ниши мигают — обычное состояние.
+   */
+  const flash = useRef(new Animated.Value(0)).current;
+  const [flashCells, setFlashCells] = useState<number[]>([]);
+  const shake = useRef(new Animated.Value(0)).current;
+  const [shakeCell, setShakeCell] = useState<number | null>(null);
+  const reduced = useReducedMotion();
+
+  /**
+   * ОТМЕНА ХОДА — БЕСПЛАТНАЯ И БЕЗ СЧЁТЧИКА, И ЭТО ОСОЗНАННО.
+   *
+   * Соблазн был сделать её платной, как перемешивание: там бесплатная кнопка
+   * обесценила всё планирование. Но случай другой. Сортировка — игра с ПОЛНОЙ
+   * информацией: все товары на виду, скрытых стопок нет, исход хода считается
+   * заранее. Значит перебором «сделал — посмотрел — откатил» ничего не
+   * разведаешь: то же самое можно вычислить, не трогая доску.
+   *
+   * Перемешивание — другое дело: оно МЕНЯЕТ расклад, то есть даёт новый шанс.
+   * Отмена возвращает ровно то, что было. Платить за исправление промаха
+   * пальцем — наказывать за неточность рук, а не за неточность мысли.
+   */
+  const history = useMoveHistory<Snapshot>();
+
   const [shuffles, setShuffles] = useState(SHUFFLES_PER_LEVEL);
+
+  /** Ниши вспыхивают на сборе тройки. В щадящем режиме — короткий показ без плавности. */
+  const flashNiches = (cellsHit: number[]) => {
+    if (!cellsHit.length) return;
+    setFlashCells(cellsHit);
+    flash.setValue(1);
+    if (reduced) { setTimeout(() => { flash.setValue(0); setFlashCells([]); }, 160); return; }
+    Animated.timing(flash, { toValue: 0, duration: 420, easing: Easing.out(Easing.quad), useNativeDriver: true })
+      .start(() => setFlashCells([]));
+  };
+
+  /**
+   * Ниша дрожит на недопустимом ходе.
+   *
+   * 🔴 ЗАЧЕМ. Раньше отказ был виден только по тому, что НИЧЕГО НЕ ПРОИЗОШЛО, —
+   * а это неотличимо от «не нажалось». Человек жмёт второй раз, и всё повторяется.
+   * В щадящем режиме дрожания нет: тряска — худший вид движения для
+   * вестибулярной чувствительности. Там остаётся звук и тычок.
+   */
+  const shakeNiche = (cell: number) => {
+    if (reduced) return;
+    setShakeCell(cell);
+    shake.setValue(0);
+    Animated.sequence([
+      Animated.timing(shake, { toValue: 1, duration: 55, useNativeDriver: true }),
+      Animated.timing(shake, { toValue: -1, duration: 55, useNativeDriver: true }),
+      Animated.timing(shake, { toValue: 0.6, duration: 50, useNativeDriver: true }),
+      Animated.timing(shake, { toValue: 0, duration: 50, useNativeDriver: true }),
+    ]).start(() => setShakeCell(null));
+  };
   const [goal, setGoal] = useState<Goal>({ kind: 'all' });
   const goalRef = useRef<Goal>({ kind: 'all' });
   const { popups, spawn } = useScorePopups();
@@ -827,6 +916,7 @@ export default function GoodsSortGame() {
     setGoal(g); goalRef.current = g;
 
     setSel(null); setMoves(0); movesRef.current = 0; setShuffles(SHUFFLES_PER_LEVEL);
+    history.reset();   // лента отмены не переживает уровень: чужая доска в неё не годится
     setStartTime(gameNow()); setElapsed(0);
   };
 
@@ -946,9 +1036,24 @@ export default function GoodsSortGame() {
       setSel(null);
       // Отказ ПО ПРЕПЯТСТВИЮ отзывается тычком: «нельзя» должно ощущаться.
       // Полная ниша и та же самая ниша молчат — там и так видно, почему не вышло.
-      if (fromCell !== toCell && (!cellUsable(fromCell) || !cellUsable(toCell))) hapticTap();
+      // Отказ ПО ПРЕПЯТСТВИЮ отзывается тычком, звуком и дрожанием ниши: «нельзя»
+      // должно ощущаться, иначе оно неотличимо от «не нажалось».
+      // Полная ниша и та же самая ниша молчат — там и так видно, почему не вышло.
+      if (fromCell !== toCell && (!cellUsable(fromCell) || !cellUsable(toCell))) {
+        hapticTap(); sndWrong(); shakeNiche(toCell);
+      }
       return;
     }
+    // Снимок ДО хода: каскад ниже необратим по частям, вернуть можно только всё разом.
+    history.push({
+      cells: cells.map((c) => [...c]),
+      obstacles: obstacles.slice(),
+      covered: Array.from(covered),
+      frozen,
+      moves: movesRef.current,
+      score: scoreRef.current,
+      cleared,
+    });
     const ns = cells.map((c) => [...c]);
     const [item] = ns[fromCell].splice(fromIdx, 1);
     ns[toCell].push(item);
@@ -956,11 +1061,12 @@ export default function GoodsSortGame() {
     // каскад: любая ячейка с 3 одинаковыми → собрать (+50). Спокойно, без таймед-комбо.
     let clearedNow = 0; let gained = 0; let again = true;
     const clearedTypes: number[] = [];
+    const clearedCells: number[] = [];   // какие ниши вспыхнут
     while (again) {
       again = false;
       for (let i = 0; i < gridRef.current.slots; i++) {
         if (threeSame(ns[i])) {
-          clearedTypes.push(ns[i][0]); ns[i] = []; clearedNow += 1; again = true;
+          clearedTypes.push(ns[i][0]); clearedCells.push(i); ns[i] = []; clearedNow += 1; again = true;
           /**
            * 🔴 КОМБО-МНОЖИТЕЛЬ. Раньше каждая тройка давала ровно 50, сколько бы
            * их ни ссыпалось разом, — при том что звук `sndCombo` играл, а справка
@@ -1006,11 +1112,13 @@ export default function GoodsSortGame() {
     scoreRef.current += gained;
     if (clearedNow > 0) {
       setCleared((c) => c + clearedNow); hapticSuccess();
-      if (clearedNow > 1) sndCombo(clearedNow);
+      flashNiches(clearedCells);
+      // Одна тройка — короткий подтверждающий звук; цепочка — восходящее комбо.
+      if (clearedNow > 1) sndCombo(clearedNow); else sndMatch();
       // Цифра во всплывашке — НАСТОЯЩАЯ прибавка, включая множитель.
       spawn(width / 2 - 24, 150, (clearedNow > 1 ? `×${clearedNow}  ` : '') + '+' + gained, '#fde047');
     }
-    else hapticTap();
+    else { hapticTap(); sndPlace(); }   // обычный ход — мягкий тик, чтобы было слышно, что он засчитан
     /**
      * 🔴 УРОВЕНЬ КОНЧАЕТСЯ ПО ЦЕЛИ, А НЕ ПО ПУСТОЙ ДОСКЕ. При цели `pick` на
      * полках ещё лежит товар, и это НЕ незаконченный уровень — это и есть
@@ -1184,6 +1292,25 @@ export default function GoodsSortGame() {
    * уже посчитана с вычетом запертых (`usable`), а товаров на доске не больше,
    * чем `types * 3 ≤ (usable - 2) * 3`.
    */
+  /**
+   * Откат к предыдущему снимку. Возвращает ВСЁ: доску, препятствия, накрытия,
+   * заморозку и числа. Частичный откат хуже отсутствия отката — он оставил бы
+   * доску и счётчики в состояниях, которых в игре никогда не было.
+   */
+  const undoMove = () => {
+    const snap = history.undo();
+    if (!snap) return;
+    setCells(snap.cells.map((c) => [...c]));
+    setObstacles(snap.obstacles.slice());
+    setCovered(new Set(snap.covered));
+    setFrozen(snap.frozen);
+    movesRef.current = snap.moves; setMoves(snap.moves);
+    scoreRef.current = snap.score; setScore(snap.score);
+    setCleared(snap.cleared);
+    setSel(null);
+    hapticTap(); sndPlace();
+  };
+
   const reshuffle = () => {
     const items = cells.flat();
     if (items.length === 0) return;
@@ -1201,6 +1328,22 @@ export default function GoodsSortGame() {
      * «уложись в ходы» цена была настоящей.
      */
     if (shuffles <= 0) { hapticTap(); return; }
+    /**
+     * Перемешивание кладёт снимок, как обычный ход: иначе отмена после него
+     * вернула бы доску на ход НАЗАД от перемешивания — состояние, которого в
+     * партии не было.
+     *
+     * 🔴 НО СЧЁТЧИК ПЕРЕМЕШИВАНИЙ ОТМЕНА НЕ ВОЗВРАЩАЕТ, и это главное. Верни
+     * его — и выйдет «перемешал, не понравилось, отменил, перемешал заново»:
+     * бесконечная перетасовка в обход трёх попыток. Отмена честна там, где
+     * возвращает ровно то, что было (расклад открыт, перебором ничего не
+     * разведаешь), и нечестна там, где даёт НОВЫЙ расклад. Потраченное
+     * перемешивание потрачено.
+     */
+    history.push({
+      cells: cells.map((c) => [...c]), obstacles: obstacles.slice(), covered: Array.from(covered),
+      frozen, moves: movesRef.current, score: scoreRef.current, cleared,
+    });
     setShuffles((n) => n - 1);
     movesRef.current += 1; setMoves(movesRef.current);
     const slots = gridRef.current.slots;
@@ -1356,6 +1499,15 @@ export default function GoodsSortGame() {
     return moves <= reference * 0.6 ? 3 : 2;
   };
 
+  /**
+   * Смещение дрожащей ниши. Отдельной функцией, чтобы `renderCell` не оброс
+   * ещё одним тернарником: дрожит всегда максимум одна ниша.
+   */
+  const shakeStyle = (i: number) =>
+    shakeCell === i
+      ? { transform: [{ translateX: shake.interpolate({ inputRange: [-1, 1], outputRange: [-7, 7] }) }] }
+      : null;
+
   const renderCell = (i: number) => {
     const cell = cells[i] || [];
     const isSelCell = sel?.cell === i;
@@ -1374,6 +1526,7 @@ export default function GoodsSortGame() {
      * тот же `canPlaceInto`, а не две похожие формулы.
      */
     const held = drag ?? sel;
+    /** Подсветка «сюда можно» — одна на оба способа хода: `held` уже покрывает и тап, и палец. */
     const canDrop = !!held && canPlaceInto(held.cell, i);
     /** Ниша прямо под пальцем и туда МОЖНО — самая яркая рамка: сюда и ляжет. */
     const aimed = !!drag && hover === i && canDrop;
@@ -1390,7 +1543,13 @@ export default function GoodsSortGame() {
           width: cellW, height: nicheH,
           borderColor: aimed ? '#f97316' : canDrop ? '#fbbf24' : close ? '#22c55e' : 'transparent',
           borderWidth: aimed ? 4 : canDrop || close ? 3 : 0,
-        }]}>
+        }, shakeStyle(i)]}>
+        {/* Вспышка на сборе тройки: белая пелена, которая гаснет. Рисуется поверх
+            уже опустевшей ниши, поэтому объясняет, ЧТО именно исчезло и откуда. */}
+        {flashCells.includes(i) && (
+          <Animated.View pointerEvents="none"
+            style={[styles.flash, { opacity: flash.interpolate({ inputRange: [0, 1], outputRange: [0, 0.85] }) }]} />
+        )}
         {/* Полка и товары — соседние кнопки, а не button внутри button.
             На web вложенные TouchableOpacity давали hydration-error и могли
             проглатывать тап при переходе вечерней зарядки через Goods Sort. */}
@@ -1546,6 +1705,16 @@ export default function GoodsSortGame() {
                 ) : null;
               })()}
               {!isPreset && <LevelRuleBadge lr={levelRules} color="#d97706" ru={language === 'ru'} />}
+              {/* Отмена — служебное действие, поэтому в шапке, а не в нижней
+                  полосе: низ у нас для «перемешать», и смешивать их значит
+                  ставить рядом «дай новый расклад» и «верни как было». */}
+              <TouchableOpacity
+                accessibilityRole="button" accessibilityLabel={t('btn_undo')}
+                accessibilityState={{ disabled: !history.canUndo }}
+                onPress={undoMove} disabled={!history.canUndo} activeOpacity={0.8}
+                style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: history.canUndo ? 1 : 0.4 }]}>
+                <Ionicons name="arrow-undo" size={17} color="#d97706" />
+              </TouchableOpacity>
             </View>
           }
           toolbar={
@@ -1778,6 +1947,15 @@ const styles = StyleSheet.create({
   /** Ряд ниш. Между рядами только толщина доски (gap короба), а не фон экрана. */
   shelfRow: { flexDirection: 'row', justifyContent: 'center', gap: 9 },
   /** Слой препятствия: затемнение на всю нишу плюс значок по центру. */
+  /** Пелена вспышки: белая, потому что гасит цвет полки, а не спорит с ним. */
+  flash: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#ffffff', borderRadius: 8, zIndex: 4 },
+  /**
+   * Форма — как у бейджей рядом (таблетка), а не отдельная квадратная кнопка:
+   * при нехватке ширины строка переносится, и одинокий квадрат во второй
+   * строке читается как сбой вёрстки, а не как продолжение шапки.
+   * Размер держим 48 — это общий минимум попадания пальцем.
+   */
+  undoBtn: { minWidth: 56, minHeight: 48, borderRadius: 999, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, flexDirection: 'row', gap: 4 },
   goalLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap', paddingHorizontal: 12, marginBottom: 2 },
   goalText: { fontSize: 13, fontWeight: '700' },
   goalGood: { backgroundColor: 'rgba(217,119,6,0.14)', borderRadius: 6, paddingHorizontal: 3, paddingVertical: 1 },
