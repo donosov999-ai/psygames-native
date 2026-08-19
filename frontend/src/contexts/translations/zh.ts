@@ -1457,7 +1457,7 @@ const t: Record<string, string> = {
   "goalPick": "集齐三个一组：",
   "goalMoves": "全部清空。最多步数：",
   "goalFree": "腾空标记的格子",
-  "goodsSortHint": "点击货物再点击格子即可移动。在同一格子凑齐 3个相同 即可消除。清空所有货架。",
+  "goodsSortHint": "把货物拖进格子，或先点货物再点格子。在同一格子凑齐 3个相同 即可消除。清空所有货架。",
   "goodsLevel": "关卡",
   "eyeInstrWarmup": "双眼顺应各个方向追随圆点",
   "eyeInstrPursuit": "仅用双眼追随圆点，保持头部不动",
@@ -1562,5 +1562,10 @@ const t: Record<string, string> = {
   "samuraiTitleIntroDesc": "五个 9×9 宫格在四角相连：每个相接的角宫同时属于两张盘面。每张盘面都分别遵循普通数独规则。\n\n难点全在共用的角宫。角落里填入一个数字，会同时改变两张盘面的局势，因此不能一张接一张地解；你必须同时兼顾两边。",
   "fractalTitleIntroDesc": "上层盘面的每个格子背后，都藏着一道完整的数独。解出嵌套数独，它的答案就会成为上层对应格子的数字。\n\n你需要同时处理两个层级。上层盘面告诉你下层需要哪个数字，嵌套盘面则决定这个数字是否真的能得到。两边答案对不上时，就要退回去重解下层盘面。",
   "attentionConflictIntroDesc": "这不是一项独立练习，而是一个入口：点击卡片会进入一组抑制自动反应的测试。\n\n这些测试都有同一个特点：正确答案会和下意识想做的反应发生冲突。读出文字比说出文字的颜色容易；看到就按比在该停手时忍住容易。训练的正是“顺手去做”和“应该去做”之间的那一点间隔。进入后选择你想做的测试。",
+  "exitConfirmTitle": "退出游戏？",
+  "exitConfirmSaved": "本局会自动保存，回来后可从中断处继续。",
+  "exitConfirmLost": "本局不会保存：棋盘和进度都会丢失。",
+  "exitConfirmStay": "继续游戏",
+  "exitConfirmLeave": "退出",
 };
 export default t;

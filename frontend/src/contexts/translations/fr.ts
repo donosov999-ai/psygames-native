@@ -266,7 +266,7 @@ const t: Record<string, string> = {
   "goalPick": "Réunir des trios de :",
   "goalMoves": "Tout vider. Coups au maximum :",
   "goalFree": "Libérer les niches marquées",
-  "goodsSortHint": "Touche un produit, puis une case — pour le déplacer. Réunis 3 IDENTIQUES dans une case — ils disparaissent. Vide tout.",
+  "goodsSortHint": "Fais glisser un produit dans une case — ou touche-le, puis la case. Réunis 3 IDENTIQUES dans une case, ils disparaissent. Vide tout.",
   "goodsLevel": "Niveau",
   "eyeInstrWarmup": "Suis le point dans chaque direction",
   "eyeInstrPursuit": "Suis le point des yeux, garde la tête immobile",
@@ -1557,5 +1557,10 @@ const t: Record<string, string> = {
   "samuraiTitleIntroDesc": "Cinq grilles de 9×9 imbriquées par les coins : chaque bloc d’angle appartient à deux grilles à la fois. Les règles habituelles du sudoku s’appliquent séparément à chacune.\n\nToute la difficulté vient des blocs communs. Un chiffre placé dans un coin modifie deux grilles en même temps : impossible de les résoudre l’une après l’autre, il faut garder les deux en tête.",
   "fractalTitleIntroDesc": "Derrière chaque case de la grille supérieure se cache un sudoku entier. Résous la grille imbriquée : sa réponse devient le chiffre de la case correspondante au-dessus.\n\nTu avances sur deux niveaux à la fois. La grille du haut indique quel chiffre il faut en bas ; la grille imbriquée dit s’il est réellement possible de l’obtenir. Quand les deux réponses ne coïncident pas, il faut revenir en arrière et reprendre la grille inférieure.",
   "attentionConflictIntroDesc": "Ce n’est pas un exercice à part entière, mais un carrefour : cette carte ouvre un groupe de tests où il faut inhiber une réponse automatique.\n\nIls ont tous le même principe : la bonne réponse entre en conflit avec celle qui vient spontanément. Lire un mot est plus facile que nommer la couleur de son encre. Appuyer partout est plus facile que se retenir au bon moment. C’est précisément cet écart entre le geste facile et le geste juste que tu entraînes. Choisis à l’intérieur le test qui t’intéresse.",
+  "exitConfirmTitle": "Quitter la partie ?",
+  "exitConfirmSaved": "La partie sera sauvegardée — revenez et reprenez où vous en étiez.",
+  "exitConfirmLost": "La partie ne sera pas sauvegardée : le plateau et votre progression seront perdus.",
+  "exitConfirmStay": "Continuer à jouer",
+  "exitConfirmLeave": "Quitter",
 };
 export default t;
