@@ -894,10 +894,20 @@ export default function SamuraiSudokuGame() {
   // поэтому сохраняем ещё раз здесь — и с ЖИВЫМ временем, а не с тем, что было на прошлом ходу.
   const liveRef = useRef<{ ok: boolean; pid?: string; snap: () => SamuraiResume }>({ ok: false, snap: () => ({} as SamuraiResume) });
   liveRef.current = { ok: phase === 'playing' && !over && grid.length > 0, pid: profile?.id, snap: snapshot };
-  useEffect(() => () => {
+  /**
+   * Дописать партию. Зовётся из двух мест: при сносе экрана (ниже) и ПЕРЕД вопросом
+   * при выходе (`onSaveBeforeExit` у каркаса). Второе обязательно: человек нажимает
+   * «назад», видит «партия сохранится» — и обещание должно быть уже выполнено, а не
+   * зависеть от того, доживёт ли экран до размонтажа.
+   *
+   * Читаем через `liveRef`, а не из замыкания: снимок обязан быть свежим на момент
+   * ухода, иначе допишем состояние прошлого хода.
+   */
+  const saveParty = React.useCallback(() => {
     const l = liveRef.current;
     if (l.ok && l.pid) saveResume(GAME_ID, l.pid, RESUME_V, l.snap()).catch(() => {});
   }, []);
+  useEffect(() => () => saveParty(), [saveParty]);
 
   /**
    * Отмена хода. Возвращает КЛЕТКУ, но НЕ возвращает потраченную ошибку: иначе бюджет
@@ -1242,6 +1252,19 @@ export default function SamuraiSudokuGame() {
         // играми одного семейства человек читает как поломку, а не как замысел.
         headerActions={hintEl}
         toolbar={padEl}
+        /**
+         * 🔴 ПЯТЬ СЕТОК 9×9 — ПАРТИЯ НА ЧАС. Промах по «назад» уводил с экрана
+         * молча. Слой сохранения тут был с самого начала, то есть партия и не
+         * терялась — но человек об этом не знал и считал, что потерял час.
+         *
+         * Спрашиваем не по факту «идёт партия», а по `hist.canUndo`: пока не
+         * сделано ни одного хода, терять нечего, и вопрос был бы шумом на пустом
+         * месте. `resumable` здесь правда — потому и текст обещает продолжение,
+         * а не потерю.
+         */
+        confirmExit={phase === 'playing' && !over && hist.canUndo}
+        resumable
+        onSaveBeforeExit={saveParty}
       >
         {boardWrap}
       </GameShell>
