@@ -639,6 +639,6 @@ const styles = StyleSheet.create({
   discShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%', backgroundColor: 'rgba(255,255,255,0.28)' },
   discLabel: { position: 'absolute', left: 0, right: 0, top: 3, textAlign: 'center', fontSize: 12, fontWeight: '800', color: 'rgba(25,15,0,0.62)' },
   hintText: { fontSize: 12, textAlign: 'center' },
-  undoBtn: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 18, paddingVertical: 9, borderRadius: 16, borderWidth: 1 },
+  undoBtn: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 18, paddingVertical: 9, borderRadius: 16, borderWidth: 1 },
   undoBtnText: { fontSize: 14, fontWeight: '700' },
 });

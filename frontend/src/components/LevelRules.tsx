@@ -125,7 +125,15 @@ export function LevelRuleBadge({ lr, color }: { lr: LevelRulesState; color: stri
   const { title } = levelRuleText(language, lr.gameId, lr.active);
   return (
     <TouchableOpacity
-      accessibilityRole="button" onPress={() => lr.setOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
+      accessibilityRole="button" onPress={() => lr.setOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}
+      /**
+       * ⚠️ ВЫСОТА 48 — НЕ УКРАШЕНИЕ. Замер 19.08.2026: бейдж был 23 px высотой,
+       * то есть вдвое ниже общего минимума попадания пальцем, и это на КАЖДОЙ
+       * игре с правилами уровня — их 23. `hitSlop` тут не спасал: он расширяет
+       * зону, но соседние бейджи в той же строке перекрывают её собой, и промах
+       * попадал в них. Своя высота такого не допускает.
+       */
+      style={{ minHeight: 48, justifyContent: 'center' }}>
       <Text style={{ fontSize: 14, fontWeight: '700', color }} numberOfLines={1}>⚡ {title} ⓘ</Text>
     </TouchableOpacity>
   );

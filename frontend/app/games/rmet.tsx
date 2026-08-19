@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
   // разъезжались к краям: взгляд метался от глаз к варианту через полэкрана, что в
   // игре на чтение эмоций по глазам мешает прямо по существу задания.
   optsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 480, width: '100%', alignSelf: 'center' },
-  optBtn: { paddingVertical: 13, paddingHorizontal: 24, borderRadius: 999, minWidth: 132, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 5, shadowOffset: { width: 0, height: 3 }, elevation: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
+  optBtn: { minHeight: 48, paddingVertical: 13, paddingHorizontal: 24, borderRadius: 999, minWidth: 132, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 5, shadowOffset: { width: 0, height: 3 }, elevation: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
   optShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: 'rgba(255,255,255,0.18)' },
   optText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
 });

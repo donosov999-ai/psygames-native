@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12, borderWidth: 2,
     minWidth: 180,
   },
-  submitBtn: { paddingVertical: 14, paddingHorizontal: 48, borderRadius: 16 },
+  submitBtn: { minHeight: 48, paddingVertical: 14, paddingHorizontal: 48, borderRadius: 16 , justifyContent: 'center'},
   submitText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 12, textAlign: 'center' },
 });

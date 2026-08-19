@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
   hintRule: { fontSize: 11, textAlign: 'center', fontStyle: 'italic', maxWidth: 360 },
   gotItBtn: { minHeight: 48, justifyContent: 'center', paddingVertical: 9, paddingHorizontal: 26, borderRadius: 16, marginTop: 2 },
   gotItText: { color: '#fff', fontSize: 13.5, fontWeight: '800' },
-  hintBtn: { borderWidth: 1.5, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 18 },
+  hintBtn: { minHeight: 48, borderWidth: 1.5, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 18 , justifyContent: 'center'},
   hintBtnText: { fontSize: 13, fontWeight: '700' },
   tipsBox: { borderTopWidth: 1, paddingTop: 8, marginTop: 4, gap: 4, alignSelf: 'stretch' },
   tipsTitle: { fontSize: 12.5, fontWeight: '700' },
