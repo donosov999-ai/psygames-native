@@ -1834,6 +1834,8 @@ const t: Record<string, string> = {
   "historyEmptyCta": "Scegli un esercizio",
   "historyScopedTitle": "In questo profilo non c’è ancora nulla",
   "historyScopedHint": "Le partite ci sono, ma in altri esercizi o in un altro profilo. Apri tutti i giochi.",
+  "historyNewTask": "nuova difficoltà",
+  "historyLevelShort": "liv. {n}",
   // >>> SCREEN_STRINGS
 };
 export default t;

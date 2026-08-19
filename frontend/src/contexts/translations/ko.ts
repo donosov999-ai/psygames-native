@@ -1834,6 +1834,8 @@ const t: Record<string, string> = {
   "historyEmptyCta": "종목 선택",
   "historyScopedTitle": "이 프로필에는 아직 기록이 없습니다",
   "historyScopedHint": "플레이 기록은 있지만 다른 종목이나 다른 프로필에 있습니다. 모든 게임을 열어 보세요.",
+  "historyNewTask": "새로운 난이도",
+  "historyLevelShort": "{n}단계",
   // >>> SCREEN_STRINGS
 };
 export default t;

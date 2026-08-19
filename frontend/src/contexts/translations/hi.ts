@@ -1842,6 +1842,8 @@ const t: Record<string, string> = {
   "historyEmptyCta": "अभ्यास चुनें",
   "historyScopedTitle": "इस प्रोफ़ाइल में अभी कुछ नहीं",
   "historyScopedHint": "बाज़ियाँ हैं, पर दूसरे अभ्यासों या दूसरी प्रोफ़ाइल में। सभी खेल खोलें।",
+  "historyNewTask": "नई कठिनाई",
+  "historyLevelShort": "स्तर {n}",
   // >>> SCREEN_STRINGS
 };
 export default t;

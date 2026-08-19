@@ -1839,6 +1839,8 @@ const t: Record<string, string> = {
   "historyEmptyCta": "选择练习",
   "historyScopedTitle": "该档案还没有记录",
   "historyScopedHint": "你有对局，但属于其他练习或其他档案。打开全部游戏。",
+  "historyNewTask": "新难度",
+  "historyLevelShort": "第 {n} 关",
   // >>> SCREEN_STRINGS
 };
 export default t;

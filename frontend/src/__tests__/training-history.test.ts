@@ -146,6 +146,63 @@ describe('первый раз — это не рост', () => {
   });
 });
 
+describe('сравниваем только одинаковые партии', () => {
+  const lvl = (game: string, level: number, score: number, day: number, seconds = 30): HistorySession =>
+    ({ game_type: game, score, time_seconds: seconds, timestamp: at(day), details: { level } });
+
+  it('🔴 взял следующий уровень — «новая сложность», а не «хуже»', () => {
+    // Уровень 2 Шульте это 6×6 вместо 5×5: тридцать шесть клеток вместо двадцати пяти.
+    // Время там всегда больше, и по одному имени упражнения вышло бы «хуже на 20 секунд»
+    // ровно в тот момент, когда человек ВЫРОС.
+    const days = buildTrainingHistory([
+      lvl('schulte_table', 1, 25, 10, 42),
+      lvl('schulte_table', 2, 36, 11, 71),
+    ]);
+    expect(days[0].entries[0].verdict).toBe('newTask');
+    expect(days[0].entries[0].prev).toBeNull();
+  });
+
+  it('🔴 у очков та же ловушка: выше уровень — меньше попаданий, но это не провал', () => {
+    const days = buildTrainingHistory([lvl('n_back', 1, 180, 10), lvl('n_back', 2, 90, 11)]);
+    expect(days[0].entries[0].verdict).toBe('newTask');
+  });
+
+  it('вернулся на прежний уровень — сравнение с прошлым разом НА ЭТОМ уровне', () => {
+    const days = buildTrainingHistory([
+      lvl('schulte_table', 1, 25, 10, 60),
+      lvl('schulte_table', 2, 36, 11, 90),
+      lvl('schulte_table', 1, 25, 12, 48),
+    ]);
+    const fresh = days[0].entries[0];
+    expect(fresh.prev).toBe(60);          // не 90 с шестёрочной сетки
+    expect(fresh.verdict).toBe('better');
+    expect(fresh.diff).toBe(12);
+  });
+
+  it('«новая сложность» — это НЕ «первый раз»: упражнение уже знакомо', () => {
+    const days = buildTrainingHistory([lvl('corsi', 1, 100, 10), lvl('corsi', 2, 100, 11)]);
+    expect(flat(days).find((e) => e.level === 2)!.verdict).toBe('newTask');
+    expect(flat(days).find((e) => e.level === 1)!.verdict).toBeNull();
+  });
+
+  it('свободный режим без лестницы различается по настройкам партии', () => {
+    // Уровня нет, но 4×4 и 7×7 — разные задачи: ключ собирает difficulty и mode.
+    const free = (grid: string, seconds: number, day: number): HistorySession =>
+      ({ game_type: 'schulte_table', score: 25, time_seconds: seconds, timestamp: at(day),
+         difficulty: grid, mode: 'numbers_forward_bw' });
+    const days = buildTrainingHistory([free('4x4', 20, 10), free('7x7', 95, 11), free('4x4', 17, 12)]);
+    const fresh = flat(days).find((e) => e.value === 17)!;
+    expect(fresh.prev).toBe(20);
+    expect(fresh.verdict).toBe('better');
+    expect(flat(days).find((e) => e.value === 95)!.verdict).toBe('newTask');
+  });
+
+  it('уровень попадает в строку — иначе «новая сложность» выглядит капризом', () => {
+    expect(buildTrainingHistory([lvl('corsi', 7, 100, 10)])[0].entries[0].level).toBe(7);
+    expect(buildTrainingHistory([round('corsi', 100, 10)])[0].entries[0].level).toBeNull();
+  });
+});
+
 describe('порядок дней и партий', () => {
   it('дни идут от новых к старым', () => {
     const days = buildTrainingHistory([round('n_back', 1, 3), round('n_back', 2, 17), round('n_back', 3, 9)]);
@@ -316,5 +373,16 @@ describe('экран статистики', () => {
       (kind) => !new RegExp(`===\\s*'${kind}'|kind === '${kind}'`).test(src),
     );
     expect(missing).toEqual([]);
+  });
+
+  it('🔴 у каждого вердикта есть подпись — иначе «новая сложность» молча станет «первым разом»', () => {
+    const src = screen();
+    const base = read('src/contexts/LanguageContext.tsx');
+    const bad: string[] = [];
+    for (const key of ['historyNewTask', 'historyFirstRun', 'historySame', 'historyBetter', 'historyWorse', 'historyLevelShort']) {
+      if (!new RegExp(`^ {2}${key}:\\s*\\{`, 'm').test(base)) bad.push(`нет ключа ${key} в словаре`);
+      if (!src.includes(`'${key}'`)) bad.push(`экран не показывает ${key}`);
+    }
+    expect(bad).toEqual([]);
   });
 });

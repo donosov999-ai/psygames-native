@@ -31,6 +31,23 @@
  * ⚠️ ПЕРВЫЙ РАЗ — ЭТО НЕ РОСТ. Если прошлой партии этого упражнения нет, вердикта нет
  * вовсе (`null`), а не «лучше». Сравнивать не с чем — значит молчим: выдуманный рост на
  * первой же партии обесценивает настоящий рост на десятой.
+ *
+ * ⚠️ СРАВНИВАЕМ ТОЛЬКО ОДИНАКОВЫЕ ПАРТИИ — вторая ловушка, найденная живой игрой.
+ * Уровень 1 Шульте это сетка 5×5, уровень 2 — 6×6, то есть тридцать шесть клеток вместо
+ * двадцати пяти. Время на них несравнимо в принципе, и «прошлый раз» по одному лишь
+ * названию упражнения написал бы «хуже на 20 секунд» человеку, который ТОЛЬКО ЧТО взял
+ * следующий уровень. То же у очков: n-back на уровне выше поднимает N, попаданий
+ * становится меньше, счёт падает — рост читался бы как провал.
+ *
+ * Поэтому «прошлый раз» ищется среди партий с тем же КЛЮЧОМ ЗАДАЧИ (упражнение + уровень
+ * + настройки). Опора не выдумана: у экранов с лестницей параметры партии выводит чистая
+ * `levelParams(level)`, то есть одно число фиксирует партию целиком — на этом же держится
+ * пин конфигураций в лидерборде. Свободный режим лестницей не описывается, поэтому в ключ
+ * идут ещё `difficulty` и `mode`, которыми игры пишут настройки партии.
+ *
+ * Первая партия на НОВОЙ сложности получает отдельный вердикт `newTask`: это не «первый
+ * раз» (упражнение знакомо) и не «хуже» (сравнивать не с чем). Молчание здесь честнее
+ * любой цифры.
  */
 import { localDateKey } from '@/src/services/warmup';
 
@@ -41,6 +58,10 @@ export interface HistorySession {
   score?: number;
   time_seconds?: number;
   timestamp?: string;
+  /** Настройки партии — вместе с уровнем описывают, ЧТО именно человек играл. */
+  difficulty?: string;
+  mode?: string;
+  details?: Record<string, any>;
   /** Чей раунд. Пусто у сессий, записанных до появления метки владельца. */
   profile_id?: string;
 }
@@ -48,8 +69,12 @@ export interface HistorySession {
 /** Что именно показываем как «результат» партии. */
 export type HistoryUnit = 'score' | 'seconds';
 
-/** Итог сравнения с прошлым разом. `null` — сравнивать не с чем. */
-export type HistoryVerdict = 'better' | 'worse' | 'same';
+/**
+ * Итог сравнения с прошлым разом.
+ * `newTask` — упражнение знакомо, но эта сложность играется впервые.
+ * `null` — упражнение вообще впервые (или результат непригоден).
+ */
+export type HistoryVerdict = 'better' | 'worse' | 'same' | 'newTask';
 
 export interface HistoryEntry {
   gameType: string;
@@ -58,7 +83,10 @@ export interface HistoryEntry {
   /** Результат партии. `null` — метрика непригодна (битое время, отсутствующие очки). */
   value: number | null;
   unit: HistoryUnit;
-  /** Результат прошлого раза этого же упражнения; `null` — прошлого раза не было. */
+  /** Уровень партии, если игра его пишет — подписываем в строке, иначе «новая сложность»
+   *  выглядит как каприз. `null` — у упражнения нет лестницы. */
+  level: number | null;
+  /** Результат прошлого раза НА ТОЙ ЖЕ сложности; `null` — сравнивать не с чем. */
   prev: number | null;
   /** Насколько изменилось (всегда ≥ 0); `null` вместе с `prev`. */
   diff: number | null;
@@ -124,6 +152,20 @@ export function compare(unit: HistoryUnit, value: number, prev: number): History
   return better ? 'better' : 'worse';
 }
 
+/** Уровень партии, если игра его пишет. Он же — главная часть ключа задачи. */
+export function entryLevel(s: HistorySession): number | null {
+  const lv = Number(s.details?.level);
+  return Number.isFinite(lv) && lv > 0 ? lv : null;
+}
+
+/**
+ * ЧТО ИМЕННО человек играл: упражнение + уровень + настройки. Сравнивать между собой
+ * можно только партии с одинаковым ключом — 5×5 и 6×6 это разные задачи, а не прогресс.
+ */
+export function taskKey(s: HistorySession): string {
+  return [s.game_type ?? '', entryLevel(s) ?? '', s.difficulty ?? '', s.mode ?? ''].join('|');
+}
+
 /** Сколько дней показываем. Экран рисует список целиком, без виртуализации, а у
  *  человека с годом тренировок дней набирается сотни — поэтому потолок есть, и UI
  *  честно подписывает, что показан хвост, а не всё. */
@@ -152,32 +194,42 @@ export function buildTrainingHistory(
     // По возрастанию: чтобы «прошлый раз» был уже посчитан, когда доходим до следующей.
     .sort((a, b) => (a.t - b.t) || (a.i - b.i));
 
-  const lastByGame = new Map<string, number>();
+  const lastByTask = new Map<string, number>();
+  const seenGames = new Set<string>();
   const byDay = new Map<string, HistoryEntry[]>();
 
   for (const { s, t } of dated) {
     const gameType = s.game_type as string;
     const { value, unit } = entryValue(s);
-    const prev = lastByGame.has(gameType) ? (lastByGame.get(gameType) as number) : null;
+    const key = taskKey(s);
+    const prev = lastByTask.has(key) ? (lastByTask.get(key) as number) : null;
+
+    // Упражнение знакомо, а сложность новая — это не провал и не первый раз.
+    const verdict: HistoryVerdict | null =
+      value === null ? null
+        : prev !== null ? compare(unit, value, prev)
+          : seenGames.has(gameType) ? 'newTask'
+            : null;
 
     const entry: HistoryEntry = {
       gameType,
       timestamp: new Date(t).toISOString(),
       value,
       unit,
+      level: entryLevel(s),
       prev: value === null ? null : prev,
       diff: value === null || prev === null ? null : Math.abs(value - prev),
-      verdict: value === null || prev === null ? null : compare(unit, value, prev),
+      verdict,
     };
 
     // Непригодная партия не становится «прошлым разом»: сравнивать следующую с
     // дырой нельзя, а тихо подставить ноль — значит соврать про обвал.
-    if (value !== null) lastByGame.set(gameType, value);
+    if (value !== null) { lastByTask.set(key, value); seenGames.add(gameType); }
 
-    const key = localDateKey(new Date(t));
-    const bucket = byDay.get(key);
+    const dayKey = localDateKey(new Date(t));
+    const bucket = byDay.get(dayKey);
     if (bucket) bucket.push(entry);
-    else byDay.set(key, [entry]);
+    else byDay.set(dayKey, [entry]);
   }
 
   const days: HistoryDay[] = [...byDay.entries()]

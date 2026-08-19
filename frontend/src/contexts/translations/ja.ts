@@ -1833,6 +1833,8 @@ const t: Record<string, string> = {
   "historyEmptyCta": "種目を選ぶ",
   "historyScopedTitle": "このプロフィールにはまだ記録がありません",
   "historyScopedHint": "プレイ記録はありますが、別の種目または別のプロフィールにあります。すべてのゲームを開いてください。",
+  "historyNewTask": "新しい難易度",
+  "historyLevelShort": "Lv {n}",
   // >>> SCREEN_STRINGS
 };
 export default t;
