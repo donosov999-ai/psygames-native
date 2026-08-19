@@ -1772,6 +1772,13 @@ const t: Record<string, string> = {
   "phPairsPickHint": "Qu’as-tu entendu ? Choisis le mot.",
   "phPairsPlayed": "Prononcé : {w}",
   "replaySound": "Réécouter",
+  "hint_center_arrow": "Réponds selon la flèche CENTRALE : celles des côtés trompent",
+  "choiceRtHint": "Quand une flèche apparaît, appuie sur le bouton du même côté",
+  "counterHint": "Touche des nombres jusqu’à atteindre la somme demandée",
+  "picturePairsHint": "Retourne deux cartes à la fois et retiens où est quoi",
+  "schulteHint": "Touche les nombres dans l’ordre : celui à trouver est indiqué en haut",
+  "sdmtHint": "Utilise la légende du haut : chaque symbole a son chiffre",
+  "vocabSrsHint": "Choisis la traduction du mot ci-dessus",
   // >>> SCREEN_STRINGS
 };
 export default t;

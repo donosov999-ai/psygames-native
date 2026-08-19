@@ -22,6 +22,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
@@ -90,7 +91,8 @@ export default function MathSprintGame() {
   const gate = useLevelGate('math_sprint');
   const lvl = usePersistentLevel('math_sprint');   // уровень → тир (1=easy, 2=medium, ≥3=hard)
 
-  const { isPreset, autostart, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // память итога: true=прошёл (звёзды), false=«почти, ещё раз»

@@ -36,6 +36,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -67,7 +68,8 @@ export default function MathSliderScreen() {
   const { colors } = useTheme();
   const { language, t } = useLanguage();
   const lvl = usePersistentLevel('math_slider');
-  const { isPreset, autostart, num } = useGamePreset();
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const mode = useGameMode();
 
   const [phase, setPhase] = React.useState<Phase>('config');

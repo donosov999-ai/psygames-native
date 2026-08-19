@@ -31,6 +31,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
@@ -93,7 +94,8 @@ export default function CounterGame() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset, autostart } = useGamePreset();
+  const { isPreset, autostart, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('counter');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
@@ -430,6 +432,9 @@ export default function CounterGame() {
           )}
         </View>
 
+        {/* Строка «что делать»: без неё правило видно только в справке, а
+            в справку во время партии не ходят. */}
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('counterHint')}</Text>
         {/* Grid */}
         <View style={styles.gridContainer}>
           <View style={[
@@ -529,6 +534,7 @@ export default function CounterGame() {
 }
 
 const styles = StyleSheet.create({
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320, marginTop: 12 },
   container: { flex: 1 },
   header: {
     flexDirection: 'row',

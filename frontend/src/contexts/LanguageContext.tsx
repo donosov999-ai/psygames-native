@@ -1075,6 +1075,26 @@ const translations: Translations = {
   skillRisk:      { ru: 'Тренируем: оценка риска',     en: 'Training: risk assessment' },
 
   // Shared
+
+  /**
+   * СТРОКА «ЧТО ДЕЛАТЬ» ВО ВРЕМЯ ПАРТИИ (аудит 19.08.2026, п. 37).
+   *
+   * Правило игры жило только в справке «?», а в справку посреди раунда никто не
+   * ходит — там счёт идёт на секунды. В 47 играх такая строка была, в этих —
+   * нет, и человек догадывался о правиле по последствиям.
+   *
+   * `hint_center_arrow` НАМЕРЕННО ОБЩИЙ для ANT и «Фланкера»: правило про
+   * центральную стрелку у них дословно одно. Отдельные antHint/flankerHint были
+   * бы ровно тем дублем, который схлопывали 19.08 (см. dictionary-duplicates).
+   */
+  hint_center_arrow: { ru: 'Отвечай по ЦЕНТРАЛЬНОЙ стрелке — боковые сбивают', en: 'Answer by the CENTRE arrow — the side ones mislead' },
+  choiceRtHint:     { ru: 'Появилась стрелка — жми кнопку той же стороны',      en: 'When an arrow appears, press the button on the same side' },
+  counterHint:      { ru: 'Тапай числа, пока не наберётся нужная сумма',        en: 'Tap numbers until they add up to the target' },
+  picturePairsHint: { ru: 'Открывай по две карточки и запоминай, где что',      en: 'Flip two cards at a time and remember what is where' },
+  schulteHint:      { ru: 'Тапай числа по порядку — какое искать, написано сверху', en: 'Tap the numbers in order — the one to find is shown above' },
+  sdmtHint:         { ru: 'Смотри на ключ сверху: под каждым знаком своя цифра', en: 'Use the key above: every symbol has its own digit' },
+  vocabSrsHint:     { ru: 'Выбери перевод показанного слова',                   en: 'Pick the translation of the word above' },
+
   posnerHint:     { ru: 'Где появилась мишень? Не доверяйте cue слепо',     en: 'Where did target appear? Don\'t trust cue blindly' },
   bartHint:       { ru: 'Pump надувает (+1¢) · Cash забирает в банк',         en: 'Pump inflates (+1¢) · Cash banks it' },
   bartPopped:     { ru: '💥 Шар лопнул — деньги потеряны',                  en: '💥 Burst — money lost' },

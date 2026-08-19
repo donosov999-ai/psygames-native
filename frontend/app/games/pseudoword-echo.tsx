@@ -21,6 +21,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
 import { useTtsAvailable } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
@@ -171,7 +172,8 @@ export default function PseudowordEchoGame() {
   const { t, language } = useLanguage();
   const lvl = usePersistentLevel(GAME_ID);
 
-  const { isPreset, autostart, str } = useGamePreset();
+  const { isPreset, autostart, str, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const [phase, setPhase] = useState<GamePhase>('config');
   // Правила уровня: показать при первом входе и дать перечитать по бейджу.
   const levelRules = useLevelRules('pseudoword_echo', lvl.level, PSEUDOWORDECHO_RULES, phase === 'playing');

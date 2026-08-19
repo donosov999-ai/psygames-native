@@ -16,6 +16,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -67,7 +68,8 @@ export default function IowaGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  const { isPreset, autostart, isCalm } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   /**
    * СЧЁТЧИК ПРОХОЖДЕНИЙ, а не уровень сложности.
    *

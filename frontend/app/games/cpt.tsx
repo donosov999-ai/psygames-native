@@ -39,6 +39,7 @@ import BossRound from '@/src/components/BossRound';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
@@ -110,7 +111,8 @@ export default function CPTGame() {
   const stimFont = stimSide * 0.6;                          // символ ~60% окна (было 120px в боксе 240px)
 
   const lvl = usePersistentLevel('cpt');
-  const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  const { isPreset, autostart, isCalm } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера LevelCleared
 

@@ -14,6 +14,8 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -76,6 +78,8 @@ function makeEquation(hard: boolean): Equation {
 export default function OSpanGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
+  const { isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('ospan');   // персист-уровень = setSize − 2
   const router = useRouter();
 

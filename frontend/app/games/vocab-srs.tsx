@@ -30,6 +30,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
 import {
   buildQueue,
@@ -70,7 +71,8 @@ export default function VocabSrsGame() {
   const runs = usePersistentLevel('vocab_srs');
   const router = useRouter();
 
-  const { isPreset, autostart, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   useEffect(() => { if (autostart) startSession(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
@@ -424,6 +426,9 @@ export default function VocabSrsGame() {
         <View style={[styles.promptCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.promptWord, { color: colors.text }]}>{prompt}</Text>
         </View>
+        {/* Строка «что делать»: без неё правило видно только в справке, а
+            в справку во время партии не ходят. */}
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('vocabSrsHint')}</Text>
       </GameShell>
     );
   };
@@ -529,6 +534,7 @@ export default function VocabSrsGame() {
 }
 
 const styles = StyleSheet.create({
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320, marginTop: 12 },
   container: { flex: 1 },
   header: {
     flexDirection: 'row',

@@ -28,6 +28,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -183,7 +184,8 @@ export default function FindDifferencesGame() {
   const { width, height } = useWindowDimensions();
   const sprites = pairSpritesForProfile(profile?.id);
 
-  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, num, isCalm  } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   // Часы, замирающие вместе с игрой: отзыв больше не съедает раунд.
   /*
    * Часы игры — общие `gameNow()`, а не отдельный хук.

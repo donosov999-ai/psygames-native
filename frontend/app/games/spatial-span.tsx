@@ -18,6 +18,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
@@ -63,7 +64,8 @@ export default function SpatialSpanGame() {
   const { width, height } = useWindowDimensions();
   const gridW = Math.min(width - 32, height - 300, 520);
 
-  const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  const { isPreset, autostart, isCalm } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [gridSize, setGridSize] = useState(4); // 4x4 (16 cells, classic CANTAB)
   // Справка правил уровня. enabled на recall: во время show модалка закрыла бы последовательность.

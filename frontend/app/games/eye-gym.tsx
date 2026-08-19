@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { eyeGymGeometry } from '@/src/services/eyeGymGeometry';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -96,7 +97,8 @@ export default function EyeGymGame() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset, autostart } = useGamePreset();
+  const { isPreset, autostart, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [scale, setScale] = useState(1);               // 0.4 = ~1 мин, 1 = ~3, 1.7 = ~5

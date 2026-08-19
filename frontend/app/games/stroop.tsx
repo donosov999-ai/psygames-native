@@ -28,6 +28,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
@@ -73,7 +74,8 @@ export default function StroopGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset, autostart, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('stroop');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 

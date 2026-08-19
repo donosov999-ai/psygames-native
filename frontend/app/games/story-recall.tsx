@@ -35,6 +35,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { STORY_MAX_LEVEL, readSecondsFor, distractorSecondsFor } from '@/src/services/storyRecallLevels';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#654ea3', '#eaafc8'];
@@ -194,7 +195,8 @@ export default function StoryRecallGame() {
   const dist2Ref = useRef(DISTRACTOR2_SEC);
   const router = useRouter();
 
-  const { isPreset, autostart } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  const { isPreset, autostart, isCalm } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [story, setStory] = useState<Story>(STORIES[0]);
   const [readRemaining, setReadRemaining] = useState(0);

@@ -15,8 +15,21 @@
  *     10 игр (mnemonics, counter, cloze, lexical-decision, proofreading,
  *     semantic-sort, schulte, targets, vocab-srs, word-pairs) держат длинный
  *     контент, остальным хватает центрирования.
- *  3. Правый слот шапки (`headerRight`) — под справку «?», чтобы плавающая
- *     кнопка не висела над игровым полем.
+ *  3. Правый слот шапки (`headerRight`) — под кнопку самой игры.
+ *
+ *     ⚠️ ЗДЕСЬ БЫЛО НАПИСАНО «под справку „?“» — и это оказалось неправдой.
+ *     Справка так и осталась ПЛАВАЮЩЕЙ кнопкой GameHelpOverlay, смонтированной
+ *     глобально в _layout поверх экрана (zIndex 100) ровно в этом углу. Слот
+ *     переехать ей не помог, а комментарий продолжал обещать обратное — и
+ *     следующий, кто в слот что-то положил (Шульте, «новая таблица»), получил
+ *     кнопку ПОД справкой. Замер 19.08.2026 на 390×844: справка занимает
+ *     x 330…380, кнопка таблицы x 326…374, перекрытие 92 % площади, а
+ *     elementFromPoint по центру кнопки возвращает справку — то есть нажать
+ *     кнопку игры было нельзя вообще, тап открывал справку.
+ *
+ *     Поэтому слот теперь ОТСТУПАЕТ от края на ширину справки (HELP_FAB_GUTTER)
+ *     — но только когда в нём что-то есть: у 63 игр он пуст, и лишний отступ
+ *     сдвинул бы им центрированный заголовок без всякой причины.
  *
  * Футер оставляет отступ слева (FAB_GUTTER) под плавающую кнопку фидбека —
  * она смонтирована глобально в _layout и иначе перекрывает крайнюю кнопку.
@@ -34,6 +47,13 @@ import { useExitGuard } from '@/src/hooks/useExitGuard';
 
 /** Ширина зоны, которую занимает плавающая кнопка фидбека снизу (LTR — слева, RTL — справа). */
 const FAB_GUTTER = 66;
+
+/**
+ * Ширина зоны, которую занимает плавающая справка «?» сверху: 50 — сама кнопка
+ * (styles.fabWrap в GameHelpOverlay), 10 — её отступ от края экрана. Сторона
+ * зеркалится вместе с ней: LTR — справа, RTL — слева.
+ */
+const HELP_FAB_GUTTER = 60;
 
 export interface GameShellProps {
   /** Заголовок игры (уже переведённый). */
@@ -162,22 +182,45 @@ export default function GameShell({
     };
   }, [scrollableField]);
 
+  /**
+   * 🔴 НИЖНЮЮ БЕЗОПАСНУЮ ЗОНУ ОПЛАЧИВАЕТ РОВНО ОДИН СЛОЙ.
+   *
+   * Было два: корневой SafeAreaView шёл БЕЗ `edges` (значит, все четыре края,
+   * в том числе нижний), а тулбар ДОПОЛНИТЕЛЬНО клал себе
+   * `paddingBottom: Math.max(insets.bottom, 10)`. Отступ считался дважды.
+   *
+   * ЗАМЕР 19.08.2026 (playwright, 390×844, insets.bottom = 34 подсунуты в
+   * скрытый env(safe-area-*)-элемент react-native-safe-area-context):
+   *   корень paddingBottom 34 + тулбар paddingBottom 34 → под кнопками 68 px
+   *   пустоты, тулбар кончался на y=810 при высоте окна 844.
+   * После правки тот же замер даёт 34 — ровно домашнюю полосу.
+   *
+   * ⚠️ ПОЧЕМУ ЭТОГО НЕ ВИДЕЛИ. Android-сборка у нас Tauri, то есть WebView, и
+   * `env(safe-area-inset-bottom)` там 0 — двойной ноль остаётся нулём. Баг живёт
+   * только на iPhone с домашней полосой, куда тестировщики не ходили.
+   *
+   * Нижний край снимаем с корня и оставляем ТОМУ, кто стоит внизу: есть тулбар —
+   * платит тулбар; тулбара нет — платит поле, иначе последняя строка залезет под
+   * домашнюю полосу.
+   */
+  const bottomSafe = insets.bottom;
+
   const field = scrollableField ? (
     <ScrollView
       ref={fieldScrollRef}
       style={styles.fieldScroll}
-      contentContainerStyle={styles.fieldScrollContent}
+      contentContainerStyle={[styles.fieldScrollContent, toolbar ? null : { paddingBottom: 8 + bottomSafe }]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
       {children}
     </ScrollView>
   ) : (
-    <View style={styles.field}>{children}</View>
+    <View style={[styles.field, toolbar ? null : { paddingBottom: bottomSafe }]}>{children}</View>
   );
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.root, { backgroundColor: colors.background }]}>
       {/* Шапка: назад — заголовок — правый слот. Заголовок ужимается, кнопки нет. */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -195,8 +238,17 @@ export default function GameShell({
         >
           {title}
         </Text>
-        {/* Правый слот фиксированной ширины — держит заголовок по центру */}
-        <View style={styles.headerRight}>{headerRight}</View>
+        {/* Правый слот фиксированной ширины — держит заголовок по центру.
+            Отступ под плавающую справку кладём ТОЛЬКО когда в слоте что-то есть:
+            пустому слоту разъезжаться незачем, а заголовок центрируется по нему. */}
+        <View
+          style={[
+            styles.headerRight,
+            headerRight ? (rtl ? { marginLeft: HELP_FAB_GUTTER } : { marginRight: HELP_FAB_GUTTER }) : null,
+          ]}
+        >
+          {headerRight}
+        </View>
       </View>
 
       {stats ? <View style={styles.stats}>{stats}</View> : null}

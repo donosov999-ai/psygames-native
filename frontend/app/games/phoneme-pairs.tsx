@@ -18,6 +18,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
 import { useTtsAvailable } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
@@ -158,7 +159,8 @@ export default function PhonemePairsGame() {
   const { t, language } = useLanguage();
   const lvl = usePersistentLevel('phoneme_pairs');
 
-  const { isPreset, autostart, str } = useGamePreset();
+  const { isPreset, autostart, str, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
 
   const [phase, setPhase] = useState<GamePhase>('config');
   const [targetLang, setTargetLang] = useState<string>(() => {

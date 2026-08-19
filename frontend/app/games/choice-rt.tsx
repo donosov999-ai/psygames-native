@@ -31,6 +31,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -76,7 +77,8 @@ export default function ChoiceRtGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset, autostart } = useGamePreset();
+  const { isPreset, autostart, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('choice_rt');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
@@ -350,6 +352,9 @@ export default function ChoiceRtGame() {
             <Text style={[styles.waitText, { color: colors.textSecondary }]}>•</Text>
           )}
         </View>
+        {/* Строка «что делать»: без неё правило видно только в справке, а
+            в справку во время партии не ходят. */}
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('choiceRtHint')}</Text>
       </GameShell>
     );
   }
@@ -391,6 +396,7 @@ export default function ChoiceRtGame() {
 }
 
 const styles = StyleSheet.create({
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320, marginTop: 12 },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },

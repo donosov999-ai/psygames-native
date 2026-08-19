@@ -37,6 +37,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
@@ -101,7 +102,8 @@ export default function ANTGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset, autostart } = useGamePreset();
+  const { isPreset, autostart, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('ant');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
@@ -393,6 +395,11 @@ export default function ANTGame() {
             )}
           </View>
         </View>
+        {/* Строка «что делать»: без неё правило видно только в справке, а
+            в справку во время партии не ходят. Ключ ОБЩИЙ с соседней игрой:
+            правило про центральную стрелку у них дословно одно, и разводить
+            его двумя ключами — это ровно те дубли, которые только что схлопывали. */}
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('hint_center_arrow')}</Text>
       </GameShell>
     );
   }
@@ -435,6 +442,7 @@ export default function ANTGame() {
 }
 
 const styles = StyleSheet.create({
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320, marginTop: 12 },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
