@@ -230,7 +230,7 @@ export default function MathSprintGame() {
         )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('durationLabel')}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('duration')}</Text>
         <View style={styles.optionButtons}>
           {[30, 60, 120].map((n) => (
             <TouchableOpacity

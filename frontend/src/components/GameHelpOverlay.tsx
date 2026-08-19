@@ -181,7 +181,7 @@ export default function GameHelpOverlay() {
           <View style={[styles.sheet, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <View style={styles.sheetHead}>
               <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>{t(entry.nameKey)}</Text>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')}
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('close')}
                 onPress={() => setOpen(false)} style={[styles.close, { backgroundColor: colors.surface }]}>
                 <Ionicons name="close" size={20} color={colors.text} />
               </TouchableOpacity>

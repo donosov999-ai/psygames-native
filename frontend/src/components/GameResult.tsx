@@ -177,7 +177,7 @@ export default function GameResult({
             onPress={onPlayAgain}
           >
             <Ionicons name="refresh" size={18} color={colors.text} />
-            <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('playAgain')}</Text>
+            <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('retry')}</Text>
           </TouchableOpacity>
         </View>
       ) : inWarmup ? (
@@ -215,7 +215,7 @@ export default function GameResult({
           onPress={onPlayAgain}
         >
           <Ionicons name="refresh" size={20} color="#FFFFFF" />
-          <Text style={styles.buttonText} numberOfLines={1}>{t('playAgain')}</Text>
+          <Text style={styles.buttonText} numberOfLines={1}>{t('retry')}</Text>
         </TouchableOpacity>
 
         {shareText && (

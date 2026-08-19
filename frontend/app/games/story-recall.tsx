@@ -513,6 +513,7 @@ export default function StoryRecallGame() {
             colors={colors}
             onContinue={() => setPhase('config')}
             onStop={() => goBackOrHome()}
+            stopKind="exit"   // onStop уводит С ЭКРАНА игры (goBackOrHome), а не к настройкам → подпись «На главную»
           />
         );
       })()}

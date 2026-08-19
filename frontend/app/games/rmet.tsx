@@ -457,7 +457,9 @@ export default function RMETGame() {
           gradient={GRADIENT}
           language={language}
           colors={colors}
-          onContinue={() => setPhase('config')} onStop={() => goBackOrHome()} />
+          onContinue={() => setPhase('config')} onStop={() => goBackOrHome()}
+          stopKind="exit"   // onStop уводит С ЭКРАНА игры (goBackOrHome), а не к настройкам → подпись «На главную»
+        />
       )}
     </SafeAreaView>
   );

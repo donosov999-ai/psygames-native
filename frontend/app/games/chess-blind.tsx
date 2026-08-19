@@ -575,7 +575,7 @@ export default function ChessBlindGame() {
       <View style={styles.fieldCol}>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
           {phase === 'expose'
-            ? `${t('chessHintMemorize')} · ${exposeLeft}${t('unitSecShort')}`
+            ? `${t('chessHintMemorize')} · ${exposeLeft}${t('secShort')}`
             : phase === 'mask'
             ? (prm.moves > 0
                 ? `${t('chessHintBlindMoves')}: ${moveNum}/${prm.moves}`
@@ -603,7 +603,7 @@ export default function ChessBlindGame() {
     const p = levelParams(lvl.level);
     const descBits = [
       `${p.pieces} ${t('chessCfgPieces')}`,
-      `${t('chessCfgExpose')} ${p.exposeSec}${t('unitSecShort')}`,
+      `${t('chessCfgExpose')} ${p.exposeSec}${t('secShort')}`,
       ...(p.moves > 0 ? [`${p.moves} ${t('chessCfgBlindMoves')}`] : []),
       t(p.quizType === 'pick' ? 'chessCfgQuizPick' : 'chessCfgQuizLocate'),
     ];

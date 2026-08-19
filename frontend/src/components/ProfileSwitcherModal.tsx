@@ -151,7 +151,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
               {/* Header */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <Text style={{ fontSize: 19, fontWeight: '800', color: colors.text }}>👤 {t('a11ySwitchProfile')}</Text>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')} onPress={onClose} style={{ padding: 4 }}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('close')} onPress={onClose} style={{ padding: 4 }}>
                   <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
@@ -360,7 +360,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                       )}
                     </View>
                   </View>
-                  <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')} onPress={() => setDetailProfile(null)} style={{ padding: 4 }}>
+                  <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('close')} onPress={() => setDetailProfile(null)} style={{ padding: 4 }}>
                     <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </View>

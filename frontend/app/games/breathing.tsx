@@ -411,7 +411,7 @@ export default function BreathingGame() {
                   accessibilityRole="button" key={m} style={[styles.modeButton, timeMin === m
                   ? { backgroundColor: GRADIENT[0] } : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                   onPress={() => setTimeMin(m)}>
-                  <Text style={[styles.modeButtonText, { color: timeMin === m ? '#FFF' : colors.text }]}>{m} {t('brMinUnit')}</Text>
+                  <Text style={[styles.modeButtonText, { color: timeMin === m ? '#FFF' : colors.text }]}>{m} {t('unitMin')}</Text>
                 </TouchableOpacity>
               ))}
           </View>
@@ -477,6 +477,7 @@ export default function BreathingGame() {
       colors={colors}
       onContinue={() => setPhase('config')}
       onStop={() => goBackOrHome()}
+      stopKind="exit"   // onStop уводит С ЭКРАНА игры (goBackOrHome), а не к настройкам → подпись «На главную»
     />
   );
 
@@ -503,7 +504,7 @@ export default function BreathingGame() {
               </Text>
             )}
             {isWim ? (
-              <Text style={[styles.exStep, { color: colors.textSecondary }]}>{t('brWimRound')} {wimRound}/{WIM_ROUNDS}</Text>
+              <Text style={[styles.exStep, { color: colors.textSecondary }]}>{t('round')} {wimRound}/{WIM_ROUNDS}</Text>
             ) : (
               <>
                 <Text style={[styles.exStep, { color: colors.textSecondary }]}>{t('hud_cycle')} {Math.min(cycleNow, totalCycles)}/{totalCycles}</Text>

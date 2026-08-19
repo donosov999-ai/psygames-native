@@ -522,7 +522,7 @@ export default function SettingsScreen() {
                       )}
                     </View>
                   </View>
-                  <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')} onPress={() => setDetailProfile(null)} style={{ padding: 4 }}>
+                  <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('close')} onPress={() => setDetailProfile(null)} style={{ padding: 4 }}>
                     <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
