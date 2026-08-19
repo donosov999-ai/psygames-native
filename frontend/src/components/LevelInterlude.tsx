@@ -35,15 +35,27 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
 /**
- * Панели рисуются одним листом и режутся на четыре — так дешевле и так они
- * держат общий свет и стиль. Порядок — суточный: утро, день, закат, ночь; он
- * повторяется каждые четыре уровня и сам по себе читается как ход времени.
+ * Панели рисуются ЛИСТОМ по четыре и режутся — так дешевле и так четвёрка держит
+ * общий свет и стиль. Листов два, панелей восемь.
+ *
+ * Порядок не случайный: сначала суточный круг (утро → день → закат → ночь),
+ * потом годовой (осень → горы → лето у воды → зима). Восемь уровней подряд идут
+ * без повтора, и смена картинки сама читается как ход времени, а не как
+ * случайная подмена фона.
+ *
+ * ⚠️ Почему не четыре, как было сначала: круг замыкался каждые четыре уровня, и
+ * к десятому человек видел каждую панель уже трижды. Восемь стоят 512 КБ на все
+ * — дешевле одного спрайтового набора игры.
  */
 const PANELS = [
   require('../../assets/images/interlude/meadow.webp'),
   require('../../assets/images/interlude/forest.webp'),
   require('../../assets/images/interlude/town.webp'),
   require('../../assets/images/interlude/night.webp'),
+  require('../../assets/images/interlude/autumn.webp'),
+  require('../../assets/images/interlude/mountain.webp'),
+  require('../../assets/images/interlude/dunes.webp'),
+  require('../../assets/images/interlude/winter.webp'),
 ];
 
 interface Props {
