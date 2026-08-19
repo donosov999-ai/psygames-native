@@ -32,6 +32,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
@@ -101,6 +102,28 @@ export default function AnagramGame() {
   const [hintsOn, setHintsOn] = useState(true);   // тумблер подсказки (выкл = хардкор, только буквы) — правило, остаётся
   const [letters, setLetters] = useState<string[]>([]);
   const [picked, setPicked] = useState<number[]>([]);
+
+  /**
+   * ОТМЕНА БУКВЫ — БЕСПЛАТНАЯ, БЕЗ СЧЁТЧИКА, И ЭТО ОСОЗНАННО.
+   *
+   * До этого из набранного слова можно было только СТЕРЕТЬ ВСЁ («Сброс»):
+   * промахнулся по второй букве в слове из девяти — набирай заново все девять.
+   * Наказание за неточность пальца, а не за неточность мысли.
+   *
+   * Почему бесплатно. Все буквы лежат на виду с первого кадра, и до полного
+   * набора игра НИЧЕГО не проверяет: правильность считается ровно в тот тик,
+   * когда длина набранного сравнялась с длиной слова. Значит снятая буква не
+   * открывает НИ ОДНОГО нового факта — то же самое видно, не трогая плитки.
+   * Перебором «поставил — посмотрел — снял» тут не разведаешь ничего.
+   *
+   * ⚠️ А цена всё-таки есть, и она встроена: на верхних уровнях у слова свой
+   * дедлайн, и часы во время отмены не останавливаются. Возня стоит секунд.
+   *
+   * 🔴 ХРАНИМ СНИМОК ВСЕГО `picked`, А НЕ ОДИН ИНДЕКС. Тогда одной кнопкой
+   * откатывается и обычная буква, и «Сброс» целиком, а рассинхрона ленты с
+   * доской (лента помнит буквы, которых на доске уже нет) не бывает в принципе.
+   */
+  const hist = useMoveHistory<number[]>();
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
   const [hintUses, setHintUses] = useState(0);
@@ -188,6 +211,7 @@ export default function AnagramGame() {
     do { arr = shuffle(arr); attempts++; } while (arr.join('') === w && attempts < 5);
     setLetters(arr);
     setPicked([]);
+    hist.reset();   // лента отмены не переезжает на новое слово: чужие буквы в неё не годятся
     wordDoneRef.current = false;
     // Лимит времени на слово (верхние уровни): не успел = ошибка, слово закрывается само
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
@@ -197,6 +221,9 @@ export default function AnagramGame() {
       deadlineTimerRef.current = setTimeout(() => {
         if (wordDoneRef.current) return;
         wordDoneRef.current = true;
+        // Слово закрыто по времени — откатывать больше нечего и незачем: ошибка
+        // уже записана. Гасим ленту, чтобы кнопка не осталась живой над мёртвым словом.
+        hist.reset();
         errorsRef.current += 1;
         setErrors(errorsRef.current);
         nextTimerRef.current = setTimeout(advance, 400);
@@ -292,10 +319,19 @@ export default function AnagramGame() {
   const handleLetterPress = (idx: number) => {
     if (picked.includes(idx) || wordDoneRef.current) return;
     sndPlace();
+    hist.push(picked);   // снимок ДО буквы — как в сортировке товаров
     const newPicked = [...picked, idx];
     setPicked(newPicked);
     if (newPicked.length === target.length) {
       wordDoneRef.current = true;
+      /**
+       * 🔴 ЗДЕСЬ ЖЕ ЛЕНТА И ГАСНЕТ. Последняя буква — это КОММИТ: игра сравнивает
+       * набранное со словарём и показывает «верно/неверно». Оставь отмену живой
+       * после коммита — и получится «собрал, посмотрел ответ, откатил, собрал
+       * правильно»: единственный момент, когда ход выдаёт новое знание, стал бы
+       * бесплатным. Отменяются буквы 1..n−1, последняя — нет.
+       */
+      hist.reset();
       if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
       const guess = newPicked.map((i) => letters[i]).join('');
       // Любая валидная анаграмма из этих букв = зачёт (буквы те же — игрок собрал их все)
@@ -383,6 +419,28 @@ export default function AnagramGame() {
     );
   };
 
+  /**
+   * Снять последнюю букву (и вернуть «Сброс», если жали его).
+   *
+   * Возвращаем ВЕСЬ снимок, а не `picked.slice(0, -1)`: срез после «Сброса»
+   * оставил бы пустое слово и живую кнопку — частичный откат, состояние,
+   * которого в игре никогда не было.
+   */
+  const undoLetter = () => {
+    if (wordDoneRef.current) return;
+    const prev = hist.undo();
+    if (prev === null) return;
+    setPicked(prev);
+    sndPlace();
+  };
+
+  /** Стереть всё набранное. Снимок кладём ДО — значит и «Сброс» откатывается. */
+  const clearPicked = () => {
+    if (wordDoneRef.current || picked.length === 0) return;
+    hist.push(picked);
+    setPicked([]);
+  };
+
   // Подсказка: автоматически открыть следующую правильную букву
   const revealHint = () => {
     if (wordDoneRef.current) return;
@@ -421,8 +479,22 @@ export default function AnagramGame() {
                 <Text style={[styles.clearText, { color: '#1a1a1a' }]}>💡 {t('btn_hint')}{hintUses > 0 ? ` (${hintUses})` : ''}</Text>
               </TouchableOpacity>
             )}
+            {/*
+              Отмена стоит РЯДОМ со «Сбросом», в том же нижнем ряду, а не в шапке.
+              Низ здесь не занят вводом: буквы игрок жмёт в поле, внизу только
+              служебные кнопки. Правило каркаса (`GameShell.headerActions`) велит
+              уносить наверх лишь тем играм, у кого низ забит своей клавиатурой —
+              иначе служебные кнопки разъезжаются по двум углам экрана.
+            */}
             <TouchableOpacity
-              accessibilityRole="button" onPress={() => setPicked([])} style={[styles.clearBtn, { flex: 1, backgroundColor: colors.surface }]}>
+              accessibilityRole="button" accessibilityLabel={t('btn_undo')}
+              accessibilityState={{ disabled: !hist.canUndo }}
+              onPress={undoLetter} disabled={!hist.canUndo}
+              style={[styles.clearBtn, { flex: 1, backgroundColor: colors.surface, opacity: hist.canUndo ? 1 : 0.4 }]}>
+              <Text style={[styles.clearText, { color: colors.text }]}>↩ {t('btn_undo')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={clearPicked} style={[styles.clearBtn, { flex: 1, backgroundColor: colors.surface }]}>
               <Text style={[styles.clearText, { color: colors.text }]}>{t('clear')}</Text>
             </TouchableOpacity>
           </View>
