@@ -2,7 +2,20 @@ export const MEMORY_PALACE_GENERATOR_VERSION = 'memory-palace-generator-v1';
 export const LEVELS = 15;
 export const RECALL_DIRECTIONS = ['forward', 'reverse'] as const;
 
-export type MemoryPalaceLocale = 'ru' | 'en';
+/**
+ * ЯЗЫКИ — ВСЕ ДВЕНАДЦАТЬ, А НЕ ПАРА RU/EN. В лаборатории тип был `'ru' | 'en'`,
+ * и модуль со словарём на два языка выдавал немцу, японцу и корейцу английский
+ * текст посреди переведённого экрана. Список держим ОДИН в один с
+ * `type Language` приложения; сверяется гейтом games-module-i18n.
+ */
+export type MemoryPalaceLocale =
+  | 'ru' | 'en' | 'es' | 'de' | 'zh' | 'hi'
+  | 'pt' | 'fr' | 'it' | 'ja' | 'ko' | 'ar';
+
+/** Порядок неважен, важна полнота: по нему сверяются словари в тестах. */
+export const MEMORY_PALACE_LOCALES: readonly MemoryPalaceLocale[] = [
+  'ru', 'en', 'es', 'de', 'zh', 'hi', 'pt', 'fr', 'it', 'ja', 'ko', 'ar',
+];
 export type RecallDirection = typeof RECALL_DIRECTIONS[number];
 export type LocusMotif =
   | 'arch'
@@ -19,10 +32,13 @@ export type LocusMotif =
   | 'stars';
 export type ItemShape = 'round' | 'square' | 'diamond' | 'triangle' | 'capsule' | 'arch';
 
-export interface LocalizedLabel {
-  ru: string;
-  en: string;
-}
+/**
+ * 🔴 ПОДПИСЬ МЕСТА И ПРЕДМЕТА — МАТЕРИАЛ УПРАЖНЕНИЯ, А НЕ УКРАШЕНИЕ. Человек
+ * запоминает связку «Фонтан → Синяя книга» и потом называет её вслух себе;
+ * английское `Fountain` посреди японского экрана ломает не вид, а сам приём.
+ * Поэтому подпись обязана быть на ВСЕХ двенадцати языках, а не на паре ru/en.
+ */
+export type LocalizedLabel = Record<MemoryPalaceLocale, string>;
 
 export interface PalaceLocus {
   id: string;

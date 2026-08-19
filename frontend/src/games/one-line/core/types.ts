@@ -1,7 +1,23 @@
 export const ONE_LINE_GENERATOR_VERSION = 'one-line-generator-v1';
 export const LEVELS = 48;
 
-export type OneLineLocale = 'ru' | 'en';
+/**
+ * ЯЗЫКИ — ВСЕ ДВЕНАДЦАТЬ, А НЕ ПАРА RU/EN.
+ *
+ * В лаборатории тип был `'ru' | 'en'`, и это не мелочь типизации: у приложения
+ * двенадцать локалей (LanguageContext), и модуль со словарём на два языка выдал
+ * бы немцу, японцу и корейцу английский текст посреди переведённого экрана.
+ * Список держим ОДИН в один с `type Language` приложения; сверяется гейтом
+ * games-module-i18n.
+ */
+export type OneLineLocale =
+  | 'ru' | 'en' | 'es' | 'de' | 'zh' | 'hi'
+  | 'pt' | 'fr' | 'it' | 'ja' | 'ko' | 'ar';
+
+/** Порядок неважен, важна полнота: по нему сверяются словари в тестах. */
+export const ONE_LINE_LOCALES: readonly OneLineLocale[] = [
+  'ru', 'en', 'es', 'de', 'zh', 'hi', 'pt', 'fr', 'it', 'ja', 'ko', 'ar',
+];
 
 export interface GraphVertex {
   id: string;

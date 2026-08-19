@@ -66,6 +66,7 @@ import {
   LEVELS,
   getObjectTrackerStrings,
   isPassed,
+  type ObjectTrackerLocale,
   type ObjectTrackerMetrics,
 } from '@/src/games/object-tracker/core';
 
@@ -95,7 +96,22 @@ export default function ObjectTrackerScreen() {
   // Уровень из адреса (шаг зарядки, вызов дня) важнее сохранённого.
   // Потолок 41 — дальше генератор не растёт, и обещать несуществующее нельзя.
   const level = Math.min(LEVELS, num('level', lvl.level));
-  const locale = language === 'ru' ? 'ru' : 'en';
+  /**
+   * 🔴 ЯЗЫК ОТДАЁМ МОДУЛЮ ЦЕЛИКОМ, А НЕ СХЛОПЫВАЕМ ДО ПАРЫ RU/EN (19.08.2026).
+   *
+   * Здесь стояло `language === 'ru' ? 'ru' : 'en'`, и это тихо сводило на нет
+   * весь перевод партии: словарь модуля переведён на двенадцать языков, но
+   * японец, кореец и немец всё равно получали английский — до словаря их язык
+   * просто не доезжал. Ошибка того же рода, что ловит ci-i18n-hardcode-guard,
+   * только на строку раньше: не «текст выбран тернарником», а «язык выброшен
+   * перед выбором текста». Сам тернарник гейт пропускает законно — по обеим
+   * веткам там код языка, а не фраза для человека.
+   *
+   * Приведение нужно потому, что `language` типизирован как Language
+   * приложения, а модуль объявляет свой список; списки сверяет по буквам гейт
+   * games-module-i18n, поэтому расхождение не проедет молча.
+   */
+  const locale = language as ObjectTrackerLocale;
   const strings = getObjectTrackerStrings(locale);
 
   /**

@@ -3,7 +3,20 @@ export const LEVELS = 31;
 export const RHYTHM_PITCH_MODES = ['rhythm-echo', 'pitch-path'] as const;
 export const PITCH_LEVELS = ['low', 'mid', 'high'] as const;
 
-export type RhythmPitchLocale = 'ru' | 'en';
+/**
+ * ЯЗЫКИ — ВСЕ ДВЕНАДЦАТЬ, А НЕ ПАРА RU/EN. В лаборатории тип был `'ru' | 'en'`,
+ * и модуль со словарём на два языка выдавал немцу, японцу и корейцу английские
+ * подписи на кнопках ответа — в игре, где отвечают на слух. Список держим ОДИН
+ * в один с `type Language` приложения; сверяется гейтом games-module-i18n.
+ */
+export type RhythmPitchLocale =
+  | 'ru' | 'en' | 'es' | 'de' | 'zh' | 'hi'
+  | 'pt' | 'fr' | 'it' | 'ja' | 'ko' | 'ar';
+
+/** Порядок неважен, важна полнота: по нему сверяются словари в тестах. */
+export const RHYTHM_PITCH_LOCALES: readonly RhythmPitchLocale[] = [
+  'ru', 'en', 'es', 'de', 'zh', 'hi', 'pt', 'fr', 'it', 'ja', 'ko', 'ar',
+];
 export type RhythmPitchMode = typeof RHYTHM_PITCH_MODES[number];
 export type PitchLevel = typeof PITCH_LEVELS[number];
 export type PitchDirection = 'higher' | 'lower';

@@ -72,6 +72,7 @@ import { MemoryPalaceGame } from '@/src/games/memory-palace/MemoryPalaceGame';
 import {
   getMemoryPalaceStrings,
   interpolateMemoryPalace,
+  type MemoryPalaceLocale,
   type MemoryPalaceMetrics,
   type MemoryPalaceSession,
 } from '@/src/games/memory-palace/core';
@@ -133,7 +134,22 @@ export default function MemoryPalaceScreen() {
   const [review, setReview] = React.useState<MemoryPalaceReviewRow[]>([]);
   const [clearedPassed, setClearedPassed] = React.useState(false);
 
-  const locale = language === 'ru' ? 'ru' : 'en';
+  /**
+   * 🔴 ЯЗЫК ОТДАЁМ МОДУЛЮ ЦЕЛИКОМ, А НЕ СХЛОПЫВАЕМ ДО ПАРЫ RU/EN (19.08.2026).
+   *
+   * Здесь стояло `language === 'ru' ? 'ru' : 'en'`, и это тихо сводило на нет
+   * весь перевод партии: словарь модуля переведён на двенадцать языков, но
+   * японец, кореец и немец всё равно получали английский — до словаря их язык
+   * просто не доезжал. Ошибка того же рода, что ловит ci-i18n-hardcode-guard,
+   * только на строку раньше: не «текст выбран тернарником», а «язык выброшен
+   * перед выбором текста». Сам тернарник гейт пропускает законно — по обеим
+   * веткам там код языка, а не фраза для человека.
+   *
+   * Приведение нужно потому, что `language` типизирован как Language
+   * приложения, а модуль объявляет свой список; списки сверяет по буквам гейт
+   * games-module-i18n, поэтому расхождение не проедет молча.
+   */
+  const locale = language as MemoryPalaceLocale;
   const strings = getMemoryPalaceStrings(locale);
 
   // Уровень из адреса (шаг зарядки, вызов дня) важнее сохранённого.

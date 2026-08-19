@@ -1,6 +1,76 @@
+/* psygames-one-line-i18n · VER 2 · 19.08.2026 */
+/**
+ * СВОЙ СЛОВАРЬ МОДУЛЯ — НА ВСЕ ДВЕНАДЦАТЬ ЯЗЫКОВ (VER 2, 19.08.2026).
+ *
+ * 🔴 ЧТО БЫЛО СЛОМАНО. Модуль пришёл из лаборатории самодостаточным, и его
+ * словарь знал ровно два языка, `ru` и `en`. У приложения языков двенадцать, и
+ * `getOneLineStrings('ja')` молча падал на английский: человек с интерфейсом на
+ * японском открывал партию и посреди своего экрана видел «Undo», «Hint»,
+ * «Vertex 3». Тем же классом ошибки занимается ci-i18n-hardcode-guard, но он
+ * смотрит только в `app/games/*` — словарь МОДУЛЯ ему не виден в принципе.
+ *
+ * Поэтому здесь полные двенадцать, ровно как в `faces-names/core/i18n.ts`.
+ * Гейт `games-module-i18n.test.ts` сверяет: язык не потерян, ключ не потерян,
+ * строка не осталась английской заглушкой, знаки — свои у своей письменности.
+ *
+ * ⚠️ ИМЯ ИГРЫ — МЕСТНОЕ НАЗВАНИЕ ГОЛОВОЛОМКИ, А НЕ ПЕРЕВОД СЛОВ. Эйлеров путь
+ * называется у каждого своим словом: 一筆書き, 한붓그리기, 一笔画. Калька
+ * «одна линия» на этих языках звучала бы как перевод вывески, а не как название
+ * знакомой с детства задачи. Строки взяты один в один из ключей `oneLine` /
+ * `oneLineDesc` общего словаря — чтобы карточка каталога и шапка партии не
+ * расходились в словах.
+ *
+ * ⚠️ ПОРТУГАЛЬСКИЙ — БРАЗИЛЬСКИЙ. Весь словарь приложения на pt-BR
+ * (você/tela/planejamento), и словарь модуля обязан звучать так же.
+ */
 import type { OneLineLocale } from './types';
 
-const STRINGS = {
+export interface OneLineStrings {
+  /** Заставка правил */
+  title: string;
+  skill: string;
+  rulesTitle: string;
+  rulesBody: string;
+  rulesRepeat: string;
+  rulesCrossing: string;
+  keyboardHelp: string;
+  /** Тренировочный круг перед партией */
+  startTraining: string;
+  training: string;
+  trainingHint: string;
+  trainingDone: string;
+  startRound: string;
+  /** Поле и ход партии */
+  roundLabel: string;
+  graphLabel: string;
+  graphHint: string;
+  progress: string;
+  vertexLabel: string;
+  startMarker: string;
+  currentMarker: string;
+  hintMarker: string;
+  undo: string;
+  hint: string;
+  restart: string;
+  pause: string;
+  resume: string;
+  /**
+   * Экран итога МОДУЛЯ. В приложении он выключен (`showOwnResults={false}`) —
+   * итог рисует общий LevelCleared, — но код экрана жив и зовёт эти строки:
+   * модуль остаётся играбельным сам по себе, и мёртвыми ключи не являются.
+   */
+  resultTitle: string;
+  accuracy: string;
+  duration: string;
+  corrections: string;
+  hints: string;
+  noAutoAdvance: string;
+  playAgain: string;
+  seed: string;
+  exit: string;
+}
+
+const STRINGS: Record<OneLineLocale, OneLineStrings> = {
   ru: {
     title: 'Одна линия',
     skill: 'Планирование и контроль импульса',
@@ -34,7 +104,7 @@ const STRINGS = {
     hints: 'Подсказки',
     noAutoAdvance: 'Следующий уровень запускается только по вашему выбору.',
     playAgain: 'Повторить с тем же seed',
-    seed: 'Seed',
+    seed: 'Зерно',
     exit: 'Выйти',
   },
   en: {
@@ -73,10 +143,369 @@ const STRINGS = {
     seed: 'Seed',
     exit: 'Exit',
   },
-} as const;
+  es: {
+    title: 'Un solo trazo',
+    skill: 'Planificación y control del impulso',
+    rulesTitle: 'Cómo jugar',
+    rulesBody: 'Traza una sola línea continua que pase por cada arista del grafo exactamente una vez.',
+    rulesRepeat: 'Puedes volver a un vértice, pero no puedes repetir una arista ya recorrida.',
+    rulesCrossing: 'Un cruce visual de líneas no es un vértice: ahí no se puede girar.',
+    keyboardHelp: 'Teclas: las flechas eligen vértice, Enter avanza, U deshace, H da pista, R reinicia, P pausa.',
+    startTraining: 'Probar el entrenamiento',
+    training: 'Entrenamiento',
+    trainingHint: 'El entrenamiento no cuenta para el resultado. El vértice marcado es una salida válida.',
+    trainingDone: 'Entrenamiento superado',
+    startRound: 'Empezar la partida',
+    roundLabel: 'Nivel {level} · vértices {vertices} · aristas {edges}',
+    graphLabel: 'Grafo para el trazo continuo',
+    graphHint: 'Elige vértices vecinos tocando, arrastrando o con el teclado.',
+    progress: 'Aristas recorridas: {used} de {total}',
+    vertexLabel: 'Vértice {number}',
+    startMarker: 'Salida válida',
+    currentMarker: 'Vértice actual',
+    hintMarker: 'Movimiento sugerido',
+    undo: 'Deshacer',
+    hint: 'Pista',
+    restart: 'Reiniciar',
+    pause: 'Pausa',
+    resume: 'Continuar',
+    resultTitle: 'Trazo completado',
+    accuracy: 'Precisión',
+    duration: 'Tiempo activo',
+    corrections: 'Correcciones',
+    hints: 'Pistas',
+    noAutoAdvance: 'El siguiente nivel empieza solo cuando tú lo eliges.',
+    playAgain: 'Repetir con la misma semilla',
+    seed: 'Semilla',
+    exit: 'Salir',
+  },
+  de: {
+    title: 'Ein Strich',
+    skill: 'Planung und Impulskontrolle',
+    rulesTitle: 'So wird gespielt',
+    rulesBody: 'Zieh eine einzige durchgehende Linie, die jede Kante des Graphen genau einmal nutzt.',
+    rulesRepeat: 'Zu einem Knoten darfst du zurückkehren, eine schon gezogene Kante nicht noch einmal nutzen.',
+    rulesCrossing: 'Eine sichtbare Kreuzung zweier Linien ist kein Knoten: dort kannst du nicht abbiegen.',
+    keyboardHelp: 'Tasten: Pfeile wählen den Knoten, Enter zieht, U nimmt zurück, H gibt einen Tipp, R startet neu, P pausiert.',
+    startTraining: 'Übung ausprobieren',
+    training: 'Übung',
+    trainingHint: 'Die Übung zählt nicht zum Ergebnis. Der markierte Knoten ist ein gültiger Start.',
+    trainingDone: 'Übung geschafft',
+    startRound: 'Runde starten',
+    roundLabel: 'Stufe {level} · Knoten {vertices} · Kanten {edges}',
+    graphLabel: 'Graph für die durchgehende Linie',
+    graphHint: 'Wähle benachbarte Knoten per Tippen, Ziehen oder Tastatur.',
+    progress: 'Gezogene Kanten: {used} von {total}',
+    vertexLabel: 'Knoten {number}',
+    startMarker: 'Gültiger Start',
+    currentMarker: 'Aktueller Knoten',
+    hintMarker: 'Vorgeschlagener Zug',
+    undo: 'Zurücknehmen',
+    hint: 'Tipp',
+    restart: 'Neu starten',
+    pause: 'Pause',
+    resume: 'Weiter',
+    resultTitle: 'Linie fertig',
+    accuracy: 'Genauigkeit',
+    duration: 'Aktive Zeit',
+    corrections: 'Korrekturen',
+    hints: 'Tipps',
+    noAutoAdvance: 'Die nächste Stufe startet nur, wenn du es willst.',
+    playAgain: 'Mit demselben Startwert wiederholen',
+    seed: 'Startwert',
+    exit: 'Beenden',
+  },
+  zh: {
+    title: '一笔画',
+    skill: '规划与冲动控制',
+    rulesTitle: '怎么玩',
+    rulesBody: '一笔连过图上的每一条边，每条边正好走一次。',
+    rulesRepeat: '顶点可以重复经过，走过的边不能再走。',
+    rulesCrossing: '两条线在画面上交叉的地方不是顶点，不能在那里转向。',
+    keyboardHelp: '按键：方向键选顶点，回车走一步，U 撤销，H 提示，R 重来，P 暂停。',
+    startTraining: '先试试练习',
+    training: '练习',
+    trainingHint: '练习不计入成绩。高亮的顶点是可用的起点。',
+    trainingDone: '练习通过',
+    startRound: '开始本局',
+    roundLabel: '第 {level} 关 · 顶点 {vertices} · 边 {edges}',
+    graphLabel: '一笔画用的图',
+    graphHint: '用点按、拖动或键盘选择相邻的顶点。',
+    progress: '已走过的边：{total} 条中的 {used} 条',
+    vertexLabel: '顶点 {number}',
+    startMarker: '可用起点',
+    currentMarker: '当前顶点',
+    hintMarker: '建议的走法',
+    undo: '撤销',
+    hint: '提示',
+    restart: '重新开始',
+    pause: '暂停',
+    resume: '继续',
+    resultTitle: '一笔画完成',
+    accuracy: '准确度',
+    duration: '实际用时',
+    corrections: '改动次数',
+    hints: '提示次数',
+    noAutoAdvance: '下一关只在你选择时才开始。',
+    playAgain: '用同一个种子再来一次',
+    seed: '种子',
+    exit: '退出',
+  },
+  hi: {
+    title: 'एक ही रेखा',
+    skill: 'योजना बनाना और आवेग पर काबू',
+    rulesTitle: 'कैसे खेलें',
+    rulesBody: 'एक ही अटूट रेखा खींचें जो आरेख के हर किनारे से ठीक एक बार गुज़रे।',
+    rulesRepeat: 'बिंदु पर दोबारा लौट सकते हैं, पर जो किनारा पार कर लिया उसे फिर नहीं ले सकते।',
+    rulesCrossing: 'जहाँ रेखाएँ पर्दे पर एक-दूसरे को काटती हैं वह बिंदु नहीं है — वहाँ मुड़ा नहीं जा सकता।',
+    keyboardHelp: 'कुंजियाँ: तीर से बिंदु चुनें, Enter से चाल, U वापस, H संकेत, R नए सिरे से, P ठहराव।',
+    startTraining: 'अभ्यास आज़माएँ',
+    training: 'अभ्यास',
+    trainingHint: 'अभ्यास नतीजे में नहीं गिना जाता। चमकता बिंदु शुरू करने के लिए सही है।',
+    trainingDone: 'अभ्यास पूरा',
+    startRound: 'बाज़ी शुरू करें',
+    roundLabel: 'स्तर {level} · बिंदु {vertices} · किनारे {edges}',
+    graphLabel: 'एक ही रेखा का आरेख',
+    graphHint: 'पड़ोसी बिंदु छूकर, खींचकर या कुंजीपटल से चुनें।',
+    progress: 'पार किए किनारे: {total} में से {used}',
+    vertexLabel: 'बिंदु {number}',
+    startMarker: 'सही शुरुआत',
+    currentMarker: 'मौजूदा बिंदु',
+    hintMarker: 'सुझाई गई चाल',
+    undo: 'वापस लें',
+    hint: 'संकेत',
+    restart: 'नए सिरे से',
+    pause: 'ठहराव',
+    resume: 'जारी रखें',
+    resultTitle: 'रेखा पूरी हुई',
+    accuracy: 'सटीकता',
+    duration: 'सक्रिय समय',
+    corrections: 'सुधार',
+    hints: 'संकेत',
+    noAutoAdvance: 'अगला स्तर तभी शुरू होगा जब आप चुनेंगे।',
+    playAgain: 'उसी बीज से दोबारा',
+    seed: 'बीज',
+    exit: 'बाहर',
+  },
+  pt: {
+    title: 'Um só traço',
+    skill: 'Planejamento e controle do impulso',
+    rulesTitle: 'Como jogar',
+    rulesBody: 'Trace uma única linha contínua passando por cada aresta do grafo exatamente uma vez.',
+    rulesRepeat: 'Você pode voltar a um vértice, mas não pode repetir uma aresta já percorrida.',
+    rulesCrossing: 'O cruzamento visual das linhas não é um vértice: ali não dá para virar.',
+    keyboardHelp: 'Teclas: as setas escolhem o vértice, Enter avança, U desfaz, H dá dica, R recomeça, P pausa.',
+    startTraining: 'Experimentar o treino',
+    training: 'Treino',
+    trainingHint: 'O treino não entra no resultado. O vértice destacado é uma partida válida.',
+    trainingDone: 'Treino concluído',
+    startRound: 'Começar a partida',
+    roundLabel: 'Nível {level} · vértices {vertices} · arestas {edges}',
+    graphLabel: 'Grafo para o traço contínuo',
+    graphHint: 'Escolha vértices vizinhos por toque, arrasto ou teclado.',
+    progress: 'Arestas percorridas: {used} de {total}',
+    vertexLabel: 'Vértice {number}',
+    startMarker: 'Partida válida',
+    currentMarker: 'Vértice atual',
+    hintMarker: 'Jogada sugerida',
+    undo: 'Desfazer',
+    hint: 'Dica',
+    restart: 'Recomeçar',
+    pause: 'Pausa',
+    resume: 'Continuar',
+    resultTitle: 'Traço concluído',
+    accuracy: 'Precisão',
+    duration: 'Tempo ativo',
+    corrections: 'Correções',
+    hints: 'Dicas',
+    noAutoAdvance: 'O próximo nível só começa quando você escolher.',
+    playAgain: 'Repetir com a mesma semente',
+    seed: 'Semente',
+    exit: 'Sair',
+  },
+  fr: {
+    title: 'Un seul trait',
+    skill: 'Planification et contrôle de l’impulsion',
+    rulesTitle: 'Comment jouer',
+    rulesBody: 'Tracez une seule ligne continue passant exactement une fois par chaque arête du graphe.',
+    rulesRepeat: 'Vous pouvez revenir sur un sommet, mais pas réemprunter une arête déjà tracée.',
+    rulesCrossing: 'Un croisement visuel de lignes n’est pas un sommet : impossible d’y tourner.',
+    keyboardHelp: 'Touches : les flèches choisissent le sommet, Entrée avance, U annule, H donne un indice, R relance, P met en pause.',
+    startTraining: 'Essayer l’entraînement',
+    training: 'Entraînement',
+    trainingHint: 'L’entraînement ne compte pas dans le résultat. Le sommet marqué est un départ valable.',
+    trainingDone: 'Entraînement réussi',
+    startRound: 'Lancer la partie',
+    roundLabel: 'Niveau {level} · sommets {vertices} · arêtes {edges}',
+    graphLabel: 'Graphe pour le trait continu',
+    graphHint: 'Choisissez des sommets voisins au doigt, au glissé ou au clavier.',
+    progress: 'Arêtes parcourues : {used} sur {total}',
+    vertexLabel: 'Sommet {number}',
+    startMarker: 'Départ valable',
+    currentMarker: 'Sommet actuel',
+    hintMarker: 'Coup suggéré',
+    undo: 'Annuler',
+    hint: 'Indice',
+    restart: 'Recommencer',
+    pause: 'Pause',
+    resume: 'Reprendre',
+    resultTitle: 'Trait terminé',
+    accuracy: 'Précision',
+    duration: 'Temps actif',
+    corrections: 'Corrections',
+    hints: 'Indices',
+    noAutoAdvance: 'Le niveau suivant ne démarre que si vous le décidez.',
+    playAgain: 'Rejouer avec la même graine',
+    seed: 'Graine',
+    exit: 'Quitter',
+  },
+  it: {
+    title: 'Un solo tratto',
+    skill: 'Pianificazione e controllo dell’impulso',
+    rulesTitle: 'Come si gioca',
+    rulesBody: 'Traccia una sola linea continua che percorra ogni lato del grafo esattamente una volta.',
+    rulesRepeat: 'Puoi tornare su un vertice, ma non puoi ripercorrere un lato già usato.',
+    rulesCrossing: 'Un incrocio visivo fra due linee non è un vertice: lì non si può svoltare.',
+    keyboardHelp: 'Tasti: le frecce scelgono il vertice, Invio avanza, U annulla, H suggerisce, R ricomincia, P mette in pausa.',
+    startTraining: 'Prova l’allenamento',
+    training: 'Allenamento',
+    trainingHint: 'L’allenamento non entra nel risultato. Il vertice evidenziato è una partenza valida.',
+    trainingDone: 'Allenamento superato',
+    startRound: 'Inizia la partita',
+    roundLabel: 'Livello {level} · vertici {vertices} · lati {edges}',
+    graphLabel: 'Grafo per il tratto continuo',
+    graphHint: 'Scegli i vertici vicini con il tocco, il trascinamento o la tastiera.',
+    progress: 'Lati percorsi: {used} di {total}',
+    vertexLabel: 'Vertice {number}',
+    startMarker: 'Partenza valida',
+    currentMarker: 'Vertice attuale',
+    hintMarker: 'Mossa suggerita',
+    undo: 'Annulla',
+    hint: 'Suggerimento',
+    restart: 'Ricomincia',
+    pause: 'Pausa',
+    resume: 'Riprendi',
+    resultTitle: 'Tratto completato',
+    accuracy: 'Precisione',
+    duration: 'Tempo attivo',
+    corrections: 'Correzioni',
+    hints: 'Suggerimenti',
+    noAutoAdvance: 'Il livello successivo parte solo quando lo scegli tu.',
+    playAgain: 'Ripeti con lo stesso seme',
+    seed: 'Seme',
+    exit: 'Esci',
+  },
+  ja: {
+    title: '一筆書き',
+    skill: '見通しを立てる力と衝動の抑制',
+    rulesTitle: '遊び方',
+    rulesBody: 'すべての辺をちょうど一度ずつ通るように、一本の線で描き切ります。',
+    rulesRepeat: '点には何度でも戻れますが、いちど通った辺をもう一度使うことはできません。',
+    rulesCrossing: '線どうしが画面で交わる場所は点ではありません。そこで曲がることはできません。',
+    keyboardHelp: 'キー操作：矢印で点を選び、Enterで進み、Uで取り消し、Hでヒント、Rでやり直し、Pで一時停止。',
+    startTraining: '練習をためす',
+    training: '練習',
+    trainingHint: '練習は成績に入りません。光っている点が使える出発点です。',
+    trainingDone: '練習クリア',
+    startRound: '本番をはじめる',
+    roundLabel: 'レベル {level} · 点 {vertices} · 辺 {edges}',
+    graphLabel: '一筆書きの図形',
+    graphHint: 'となりの点をタップ、ドラッグ、またはキーボードで選びます。',
+    progress: '通った辺：{total} 本中 {used} 本',
+    vertexLabel: '点 {number}',
+    startMarker: '使える出発点',
+    currentMarker: '今いる点',
+    hintMarker: 'おすすめの一手',
+    undo: '取り消す',
+    hint: 'ヒント',
+    restart: 'やり直す',
+    pause: '一時停止',
+    resume: '再開',
+    resultTitle: '一筆書き完成',
+    accuracy: '正確さ',
+    duration: '実時間',
+    corrections: '打ち直し',
+    hints: 'ヒント回数',
+    noAutoAdvance: '次のレベルは自分で選んだときだけ始まります。',
+    playAgain: '同じシードでもう一度',
+    seed: 'シード',
+    exit: '終了',
+  },
+  ko: {
+    title: '한붓그리기',
+    skill: '계획 세우기와 충동 조절',
+    rulesTitle: '놀이 방법',
+    rulesBody: '그래프의 모든 변을 정확히 한 번씩 지나도록 선 하나로 이어 그으세요.',
+    rulesRepeat: '점에는 다시 돌아올 수 있지만, 이미 지난 변은 다시 쓸 수 없습니다.',
+    rulesCrossing: '화면에서 선이 겹쳐 보이는 곳은 점이 아니라서 거기서는 방향을 바꿀 수 없습니다.',
+    keyboardHelp: '키: 화살표로 점 선택, Enter로 한 걸음, U는 되돌리기, H는 힌트, R은 다시 시작, P는 일시정지.',
+    startTraining: '연습부터 해보기',
+    training: '연습',
+    trainingHint: '연습은 성적에 들어가지 않습니다. 밝게 표시된 점이 시작할 수 있는 점입니다.',
+    trainingDone: '연습 통과',
+    startRound: '한 판 시작',
+    roundLabel: '{level}단계 · 점 {vertices} · 변 {edges}',
+    graphLabel: '한붓그리기 도형',
+    graphHint: '이웃한 점을 눌러서, 끌어서, 또는 키보드로 고르세요.',
+    progress: '지난 변: {total}개 중 {used}개',
+    vertexLabel: '점 {number}',
+    startMarker: '시작할 수 있는 점',
+    currentMarker: '지금 있는 점',
+    hintMarker: '추천하는 수',
+    undo: '되돌리기',
+    hint: '힌트',
+    restart: '다시 시작',
+    pause: '일시정지',
+    resume: '계속하기',
+    resultTitle: '한붓그리기 완성',
+    accuracy: '정확도',
+    duration: '실제 시간',
+    corrections: '고친 횟수',
+    hints: '힌트 사용',
+    noAutoAdvance: '다음 단계는 직접 고를 때만 시작됩니다.',
+    playAgain: '같은 시드로 다시',
+    seed: '시드',
+    exit: '나가기',
+  },
+  ar: {
+    title: 'خط واحد',
+    skill: 'التخطيط وكبح الاندفاع',
+    rulesTitle: 'طريقة اللعب',
+    rulesBody: 'ارسم خطاً واحداً متصلاً يمرّ بكل ضلع في الشكل مرة واحدة بالضبط.',
+    rulesRepeat: 'يمكنك العودة إلى رأس سبق أن مررت به، لكن لا يمكنك تكرار ضلع قطعته.',
+    rulesCrossing: 'تقاطع الخطين على الشاشة ليس رأساً: لا يمكن الانعطاف عنده.',
+    keyboardHelp: 'المفاتيح: الأسهم تختار الرأس، Enter يتقدّم، U تراجع، H تلميح، R إعادة، P إيقاف مؤقت.',
+    startTraining: 'جرّب التدريب',
+    training: 'تدريب',
+    trainingHint: 'التدريب لا يدخل في النتيجة. الرأس المضيء بداية صالحة.',
+    trainingDone: 'اجتزت التدريب',
+    startRound: 'ابدأ الجولة',
+    roundLabel: 'المستوى {level} · رؤوس {vertices} · أضلاع {edges}',
+    graphLabel: 'شكل الخط الواحد',
+    graphHint: 'اختر الرؤوس المجاورة باللمس أو السحب أو لوحة المفاتيح.',
+    progress: 'الأضلاع المقطوعة: {used} من {total}',
+    vertexLabel: 'رأس {number}',
+    startMarker: 'بداية صالحة',
+    currentMarker: 'الرأس الحالي',
+    hintMarker: 'حركة مقترحة',
+    undo: 'تراجع',
+    hint: 'تلميح',
+    restart: 'إعادة البدء',
+    pause: 'إيقاف مؤقت',
+    resume: 'متابعة',
+    resultTitle: 'اكتمل الخط',
+    accuracy: 'الدقة',
+    duration: 'الزمن الفعلي',
+    corrections: 'التصحيحات',
+    hints: 'التلميحات',
+    noAutoAdvance: 'المستوى التالي لا يبدأ إلا باختيارك.',
+    playAgain: 'أعد بالبذرة نفسها',
+    seed: 'البذرة',
+    exit: 'خروج',
+  },
+};
 
-export type OneLineStrings = (typeof STRINGS)[OneLineLocale];
-
+/** Незнакомый язык — английский, а не пустой экран. Тип этого не допускает, но рантайм бывает шире типа. */
 export function getOneLineStrings(locale: OneLineLocale): OneLineStrings {
   return STRINGS[locale] ?? STRINGS.en;
 }

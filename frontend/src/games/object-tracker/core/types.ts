@@ -2,7 +2,20 @@ export const OBJECT_TRACKER_GENERATOR_VERSION = 'object-tracker-generator-v1';
 export const TRACKER_OBJECT_RADIUS = 0.068;
 export const LEVELS = 41;
 
-export type ObjectTrackerLocale = 'ru' | 'en';
+/**
+ * ЯЗЫКИ — ВСЕ ДВЕНАДЦАТЬ, А НЕ ПАРА RU/EN. В лаборатории тип был `'ru' | 'en'`,
+ * и модуль со словарём на два языка выдавал немцу, японцу и корейцу английский
+ * текст посреди переведённого экрана. Список держим ОДИН в один с
+ * `type Language` приложения; сверяется гейтом games-module-i18n.
+ */
+export type ObjectTrackerLocale =
+  | 'ru' | 'en' | 'es' | 'de' | 'zh' | 'hi'
+  | 'pt' | 'fr' | 'it' | 'ja' | 'ko' | 'ar';
+
+/** Порядок неважен, важна полнота: по нему сверяются словари в тестах. */
+export const OBJECT_TRACKER_LOCALES: readonly ObjectTrackerLocale[] = [
+  'ru', 'en', 'es', 'de', 'zh', 'hi', 'pt', 'fr', 'it', 'ja', 'ko', 'ar',
+];
 
 export interface TrackerObjectState {
   id: string;
