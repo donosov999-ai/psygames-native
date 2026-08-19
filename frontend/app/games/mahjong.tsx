@@ -21,6 +21,8 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 
 const GRADIENT = ['#2d6a4f', '#95d5b2'];
 const MAHJONG_BENEFITS = [
@@ -62,6 +64,39 @@ const SYMBOLS = ['🀄', '🎋', '🌸', '🐉', '🀙', '⭐', '🍀', '🔥', 
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 interface Tile { id: number; x: number; y: number; layer: number; symbol: number; }
+
+/** Ключ незаконченной партии — совпадает с id в реестре игр (карточка «Продолжить»). */
+const GAME_ID = 'mahjong';
+
+/**
+ * Версия формата снимка. Поднимать при ЛЮБОМ изменении полей MahjongResume:
+ * старая запись тогда не подойдёт под новый код и будет молча выброшена,
+ * а не оживит доску с недостающими полями.
+ */
+const RESUME_V = 1;
+
+/**
+ * Снимок недоигранной раскладки.
+ *
+ * ⚠️ ПОЧЕМУ ЦЕЛИКОМ tiles, А НЕ «уровень + сколько снято». Раскладка строится
+ * случайно (buildPositions + shuffle символов): по номеру уровня её не
+ * воспроизвести, а по числу снятых пар — тем более. Пирамида, которую человек
+ * разбирал двадцать минут, существует ровно в одном экземпляре.
+ *
+ * `aliveMask` не храним: игра после каждой снятой пары пересобирает массив
+ * tiles и делает маску сплошь живой — она выводится из самих tiles.
+ */
+interface MahjongResume {
+  level: number;
+  tiles: Tile[];
+  matched: number;
+  pairsTotal: number;
+  errors: number;
+  score: number;
+  shufflesUsed: number;
+  /** Накопленные секунды, а не момент старта: между сессиями настенные часы уходят вперёд. */
+  elapsed: number;
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -180,6 +215,7 @@ export default function MahjongGame() {
   const { popups, spawn } = useScorePopups();
 
   const { isPreset, autostart, isCalm } = useGamePreset();
+  const { profile } = useProfile();
   const lvl = usePersistentLevel('mahjong');   // персист достигнутого уровня между сессиями
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [level, setLevel] = useState(1);
@@ -190,7 +226,12 @@ export default function MahjongGame() {
   const [shufflesUsed, setShufflesUsed] = useState(0);
   // Маджонг в зарядке — полноценный пройденный уровень: следующий вход через
   // зарядку должен продолжать лесенку, а не каждый раз возвращать на L1.
-  useEffect(() => { if (lvl.loaded) setLevel(lvl.level); }, [lvl.loaded, lvl.level]);
+  // ⚠️ `phase !== 'playing'` появилось вместе со слоем незаконченной партии.
+  // Поднятая из хранилища раскладка задаёт СВОЙ уровень (например 12), а
+  // usePersistentLevel догружается позже и своим значением (8) сбивал бы и
+  // подпись в HUD, и бюджет перетасовок — доска от одного уровня, правила от
+  // другого. Пока идёт партия, уровень задаёт только она сама.
+  useEffect(() => { if (lvl.loaded && phase !== 'playing') setLevel(lvl.level); }, [lvl.loaded, lvl.level, phase]);
 
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
@@ -227,6 +268,8 @@ export default function MahjongGame() {
 
   const startGame = () => {
     if (!lvl.loaded) return;
+    // Новая партия заменяет незаконченную: старую пирамиду продолжать уже нечем.
+    if (profile?.id) clearResume(GAME_ID, profile.id).catch(() => {});
     const startLvl = lvl.level;
     scoreRef.current = 0; setScore(0);
     setLevel(startLvl); levelRef.current = startLvl; setLevelBanner(null);
@@ -240,6 +283,75 @@ export default function MahjongGame() {
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
   }, []);
+
+  // ── незаконченная партия ────────────────────────────────────────────────
+  /** Что в этой партии уже сделано руками — то, ради чего и стоит спрашивать при выходе. */
+  const touched = matched > 0 || errors > 0 || selected !== null || shufflesUsed > 0;
+  /** Живая партия: доска на экране, итог ещё не показан. */
+  const liveGame = phase === 'playing' && levelBanner === null && tiles.length > 0;
+
+  const snapshot = (): MahjongResume => ({
+    level, tiles, matched, pairsTotal, errors,
+    score: scoreRef.current, shufflesUsed, elapsed,
+  });
+
+  /** Поднять раскладку из снимка — пирамида оживает ровно такой, какой её оставили. */
+  const applyResume = (r: MahjongResume) => {
+    aliveMaskRef.current = new Array(r.tiles.length).fill(true);
+    setTiles(r.tiles);
+    setLevel(r.level); levelRef.current = r.level;
+    setPairsTotal(r.pairsTotal); setMatched(r.matched); setErrors(r.errors);
+    setShufflesUsed(r.shufflesUsed);
+    scoreRef.current = r.score; setScore(r.score);
+    setSelected(null); setLevelBanner(null);
+    // Секундомер продолжаем с НАКОПЛЕННОГО: от прежнего startTime партия «шла» бы
+    // всё то время, что телефон лежал в кармане.
+    if (timerRef.current) clearInterval(timerRef.current);
+    const start = gameNow() - Math.max(0, r.elapsed) * 1000;
+    setStartTime(start); setElapsed(r.elapsed);
+    timerRef.current = setInterval(() => setElapsed((gameNow() - start) / 1000), 100);
+    setPhase('playing');
+  };
+
+  // Подъём партии при входе на экран. Путь зарядки (autostart) не трогаем: там
+  // человек явно запустил свежий раунд, и startGame сам выбросит старую партию.
+  const bootRef = useRef(false);
+  useEffect(() => {
+    if (autostart || bootRef.current) return;
+    const pid = profile?.id;
+    if (!pid) return;
+    bootRef.current = true;
+    let cancelled = false;
+    loadResume<MahjongResume>(GAME_ID, pid, RESUME_V)
+      .then((saved) => {
+        if (cancelled || !saved || !Array.isArray(saved.tiles) || !saved.tiles.length) return;
+        applyResume(saved);
+      })
+      .catch(() => { /* нет партии — обычный вход через экран настройки */ });
+    return () => { cancelled = true; };
+  }, [profile?.id, autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — разовый подъём партии
+
+  // Автосохранение по ходу партии, с задержкой: подряд идущие касания не должны
+  // бить по хранилищу каждым нажатием.
+  useEffect(() => {
+    if (!liveGame || !touched) return;
+    const pid = profile?.id;
+    if (!pid) return;
+    const snap = snapshot();
+    const tm = setTimeout(() => { saveResume(GAME_ID, pid, RESUME_V, snap).catch(() => {}); }, 400);
+    return () => clearTimeout(tm);
+  }, [tiles, matched, errors, shufflesUsed, liveGame, touched]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  /**
+   * Дописать партию перед уходом. Отложенная запись выше на этом моменте
+   * отменяется своим clearTimeout — поэтому пишем ещё раз здесь, и с ЖИВЫМ
+   * временем, а не с тем, что было на прошлом ходу.
+   */
+  const saveBeforeExit = () => {
+    const pid = profile?.id;
+    if (!pid || !liveGame || !touched) return;
+    saveResume(GAME_ID, pid, RESUME_V, snapshot()).catch(() => {});
+  };
 
   const advanceLevel = (finalTime: number) => {
     hapticSuccess();
@@ -264,6 +376,9 @@ export default function MahjongGame() {
     // таймера здесь больше нет: раньше он спорил с таймером зарядки, и человек
     // видел начавшийся уровень 2 и вылет (репорт Вали на v1.193.0).
     setLevelBanner(done);
+    // Раскладка разобрана — продолжать нечего, иначе «Продолжить» позвало бы
+    // на пустую доску уже пройденного уровня.
+    if (profile?.id) clearResume(GAME_ID, profile.id).catch(() => {});
   };
 
   // Свободен ли тайл с данным индексом среди живых (для тапа и подсветки).
@@ -423,6 +538,9 @@ export default function MahjongGame() {
     <GameShell
       title={t('mahjong')}
       onBack={() => goBackOrHome()}
+      confirmExit={liveGame && touched}
+      resumable
+      onSaveBeforeExit={saveBeforeExit}
       stats={
         <View style={styles.statsRow}>
           <HudBadge icon="flag" value={`${t('unitLevelShort')} ${level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />

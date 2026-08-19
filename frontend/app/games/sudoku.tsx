@@ -511,6 +511,20 @@ export default function SudokuGame() {
   // поэтому сохраняем ещё раз здесь — и с ЖИВЫМ временем, а не с тем, что было на прошлом ходу.
   const liveRef = useRef<{ ok: boolean; pid?: string; snap: () => SudokuResume }>({ ok: false, snap: () => ({} as SudokuResume) });
   liveRef.current = { ok: phase === 'playing' && !over && grid.length > 0, pid: profile?.id, snap: snapshot };
+
+  /**
+   * Есть ли что терять при выходе. Живой партии мало: доска, к которой ещё не
+   * притронулись, ничем не отличается от новой, и вопрос «вы уверены?» на ней —
+   * пустая помеха. Ход, ошибка, подсказка или откат — вот с чего есть что терять.
+   */
+  const liveGame = phase === 'playing' && !over && grid.length > 0;
+  const touched = hist.canUndo || errors > 0 || hintUses > 0 || backtrackCount > 0;
+
+  /** Дописать партию перед уходом — с ЖИВЫМ временем, а не с прошлого хода. */
+  const saveBeforeExit = () => {
+    const l = liveRef.current;
+    if (l.ok && l.pid) saveResume(GAME_ID, l.pid, RESUME_V, l.snap()).catch(() => {});
+  };
   useEffect(() => () => {
     const l = liveRef.current;
     if (l.ok && l.pid) saveResume(GAME_ID, l.pid, RESUME_V, l.snap()).catch(() => {});
@@ -1173,6 +1187,9 @@ export default function SudokuGame() {
       <GameShell
         title={t('sudoku').replace(/\s*\d+\s*[×xX]\s*\d+\s*$/, '') + ` ${N}×${N}`}
         onBack={() => goBackOrHome()}
+        confirmExit={liveGame && touched}
+        resumable
+        onSaveBeforeExit={saveBeforeExit}
         stats={statsEl}
         // ПОРТРЕТ: подсказка, отмена и цвет уезжают наверх, внизу остаются только цифры.
         // Раньше низ держал два ряда управления подряд — клавиатуру и действия под ней;
