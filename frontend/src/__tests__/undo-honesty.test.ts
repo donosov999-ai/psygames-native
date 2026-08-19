@@ -137,6 +137,7 @@ const WITHOUT_UNDO: Record<string, string> = {
   'digit-span.tsx': 'already: ввод в TextInput, системный backspace уже есть',
   'reading-span.tsx': 'already: recall — TextInput с системным backspace',
   'ospan.tsx': 'already: recall — TextInput с системным backspace',
+  'faces-names.tsx': 'probe + reveal: выбор лица, имени и факта И ЕСТЬ ответ на пробу — он сверяется в тот же тик; а откат к фазе изучения дал бы посмотреть карточки заново, то есть отменил бы саму задачу «вспомни»',
   'word-pairs.tsx': 'probe: пары запоминались заранее, тап по правой карточке — ответ',
   'n-back.tsx': 'timing: поток стимулов, окно ответа закрывается само',
   'simon.tsx': 'timing: RT в интерференционном эффекте',
