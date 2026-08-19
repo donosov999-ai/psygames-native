@@ -16,13 +16,15 @@
 import { Platform } from 'react-native';
 import { GAMES } from '@/src/constants/games';
 import type { PlaylistStep, Weekday } from '@/src/services/warmup';
+import { freshGameIds, freshEntries } from '@/src/constants/freshGames';
 
 export type ProfileId =
   | 'odv999'                                              // owner (Денис, full access, locked by master code)
   | 'chess' | 'kids' | 'vasilyeva' | 'nzt48' | 'free'    // themed batch 1 (commercial)
   | 'drivers' | 'seniors' | 'execs' | 'students'         // themed batch 2 (commercial)
   | 'women'                                               // themed batch 3 (v1.4.0)
-  | 'polyglot';                                           // themed batch 4 — изучающие языки
+  | 'polyglot'                                            // themed batch 4 — изучающие языки
+  | 'whatsnew';                                          // витрина нового и обновлённого (не продаётся)
 
 /** UI grouping for Settings screen. All profiles are 'themed' since v1.3.0. */
 export type ProfileGroup = 'personal' | 'themed';
@@ -729,9 +731,55 @@ const POLYGLOT: ProfileDef = {
 // «женский сверху, дальше по частоте, влезть в один экран»). WOMEN первым,
 // затем FREE (воронка), далее по убыванию массовости. ODV999 (owner) идёт
 // первым в массиве, но скрыт из свитчера фильтром tier!=='owner'.
+// ─── 🆕 НОВИНКИ — витрина свежего, не для продажи ───────────────────────
+/**
+ * ЗАЧЕМ ОТДЕЛЬНЫЙ ПРОФИЛЬ. Заказ Дениса: «сделать профиль (новое) и вгонять всё,
+ * что обновлено существенно и сделаны новые упражнения». В каталоге 64 игры, и
+ * свежая работа в нём тонет: человек не находит её и играет то же, что вчера.
+ *
+ * 🔴 СОСТАВ НЕ ЗАШИТ, А СЧИТАЕТСЯ ПО ДАТАМ. Список игр берётся из реестра
+ * `freshGames.ts` по свежести. Зашитый руками список — это «новинки», которые
+ * через три месяца показывают полугодовой давности работу и врут названием.
+ * Здесь запись уходит из профиля сама, удалять её не надо.
+ *
+ * ⚠️ НЕ ПРОДАЁТСЯ. `tier: 'owner'` и нет цены: это витрина, а не набор под
+ * задачу. Продавать «то, что мы недавно трогали» нечестно — состав меняется
+ * каждый релиз, и купивший получил бы каждый месяц другое.
+ */
+const WHATSNEW: ProfileDef = {
+  id: 'whatsnew',
+  person: 'ODV999',            // тот же человек в сессиях: это не отдельная аудитория, а витрина
+  display_name: 'Новинки',
+  emoji: '🆕',
+  color: '#22c55e',
+  description: 'Новое и существенно обновлённое — за последние 3 месяца',
+  long_description: 'Витрина свежей работы: сюда попадают новые упражнения и те, что переделаны существенно — новая механика, новые уровни, переделанный вид. Починки багов сюда не идут, для них есть «Что нового». Состав считается по датам и обновляется сам: игра уходит отсюда через три месяца после правки.',
+  long_description_en: 'A shelf for fresh work: new exercises and those substantially reworked — new mechanics, new levels, a new look. Bug fixes do not go here; they live in “What’s new”. The list is computed from dates and refreshes itself: a game leaves three months after the change.',
+  audience: 'Посмотреть, что нового',
+  audience_en: 'See what changed',
+  session_minutes: '5-15 мин',
+  tier: 'owner',
+  group: 'personal',
+  /**
+   * ⚠️ Считается ОДИН раз при загрузке модуля, а не на каждый показ. Состав
+   * меняется по календарю, то есть не чаще раза в сутки — пересчитывать его на
+   * каждый кадр незачем, а стабильность внутри сессии важнее: список,
+   * меняющийся под рукой, читается как сбой.
+   */
+  allowed_games: freshGameIds(),
+  warmup_enabled: true,
+  financial_brain_day_enabled: false,
+  assessment_enabled: false,
+};
+
+/** Что именно свежего — для показа на карточке профиля и в «Что нового». */
+export const WHATSNEW_ENTRIES = freshEntries;
+
 export const PROFILES: ProfileDef[] = [
   // Owner (Денис, full access, locked by master code) — скрыт из свитчера
   ODV999,
+  // Витрина свежего — не продаётся, состав считается по датам
+  WHATSNEW,
   // Themed — порядок по массовости аудитории (женский → массовые → нишевые)
   WOMEN,      // самая массовая казуальная аудитория
   FREE,       // бесплатный вход-воронка

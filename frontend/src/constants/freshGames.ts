@@ -1,0 +1,113 @@
+/* psygames-fresh-games · VER 1 · 19.08.2026 */
+/**
+ * РЕЕСТР НОВОГО И СУЩЕСТВЕННО ОБНОВЛЁННОГО.
+ *
+ * 🔴 ЗАЧЕМ. Заказ Дениса: «надо будет сделать профиль (новое) и вгонять всё,
+ * что обновлено существенно и сделаны новые упражнения». Без такого места
+ * свежая работа тонет в каталоге из 64 игр: человек её просто не находит и
+ * играет то же, что играл вчера.
+ *
+ * ⚠️ ГЛАВНАЯ ОПАСНОСТЬ ТАКОГО СПИСКА — ПРОТУХАНИЕ. «Новинки», собранные руками
+ * один раз, через три месяца показывают полугодовой давности работу и врут
+ * названием. Поэтому здесь у каждой записи стоит ДАТА, а отбор идёт по свежести,
+ * а не по факту присутствия в списке. Запись не надо удалять — она уходит сама.
+ *
+ * ⚠️ ПОЧЕМУ НЕ ПОЛЕ В `GameConfig`. Каталог описывает, ЧТО за игра (название,
+ * ветка, цвет) — это неизменные свойства. «Когда её трогали в последний раз» —
+ * свойство истории, а не игры, и оно меняется каждый релиз. Смешивать их значит
+ * править каталог при каждой правке любой игры.
+ *
+ * КАК ПОПОЛНЯТЬ. Существенно обновил игру или добавил новую — добавь строчку
+ * СВЕРХУ с сегодняшней датой. «Существенно» — это когда человеку есть смысл
+ * зайти и посмотреть: новая механика, новые уровни, переделанный вид. Починка
+ * бага сюда не идёт, для неё есть `whatsNew.ts`.
+ */
+
+/** Что именно случилось с игрой. */
+export type FreshKind = 'new' | 'updated';
+
+export interface FreshEntry {
+  /** id из каталога `GAMES` — гейт следит, чтобы он существовал. */
+  id: string;
+  /** Когда попало в строй, `YYYY-MM-DD`. */
+  since: string;
+  kind: FreshKind;
+  /** Одной строкой: ради чего заходить. ru — источник истины. */
+  ru: string;
+  en: string;
+}
+
+/**
+ * Свежее — сверху. Порядок в файле роли не играет (сортировка по дате идёт в
+ * коде), но держать его по убыванию удобно глазами.
+ */
+export const FRESH: FreshEntry[] = [
+  {
+    id: 'goods_sort', since: '2026-08-19', kind: 'updated',
+    ru: 'Настоящий шкаф, четыре вида препятствий, цели уровня и перетаскивание пальцем. Разных уровней стало 59 вместо 13',
+    en: 'A real cabinet, four kinds of obstacle, level goals and drag-and-drop. Distinct levels went from 13 to 59',
+  },
+  {
+    id: 'sudoku-fractal', since: '2026-08-19', kind: 'updated',
+    ru: 'Была непроходима вовсе: корень не принимал ввода, а решения не были единственными. Теперь играется целиком, уровней 30',
+    en: 'It was unwinnable outright: the root took no input and solutions were not unique. Now fully playable, 30 levels',
+  },
+  {
+    id: 'find_differences', since: '2026-08-19', kind: 'updated',
+    ru: 'Вечером без обратного отсчёта, а просроченный раунд больше не съедает весь уровень',
+    en: 'No countdown in the evening, and a late round no longer eats the whole level',
+  },
+  {
+    id: 'prl', since: '2026-08-19', kind: 'updated',
+    ru: 'Наконец сказано, что происходит: угадывать не нужно, стороны молча меняются местами',
+    en: 'It finally says what is going on: there is nothing to guess, the sides swap silently',
+  },
+  {
+    id: 'math_slider', since: '2026-08-17', kind: 'new',
+    ru: 'Новая игра: прикидка результата на числовой прямой. Не счёт, а чувство величины',
+    en: 'New game: estimate the result on a number line. Not arithmetic — a sense of magnitude',
+  },
+  {
+    id: 'mahjong', since: '2026-08-19', kind: 'updated',
+    ru: 'Вечером секундомер скрыт: вечерний набор задуман как успокоение, а часы делали обратное',
+    en: 'The stopwatch is hidden in the evening: the evening set exists to wind down, and a clock did the opposite',
+  },
+];
+
+/** Сколько дней запись считается свежей. */
+export const FRESH_DAYS = 90;
+
+/**
+ * Сколько игр показать, даже если всё успело устареть.
+ *
+ * Пустой профиль «Новинки» хуже отсутствующего: карточка обещает игры, а по
+ * кнопке пусто. Поэтому при затишье показываем несколько последних по дате,
+ * не глядя на возраст.
+ */
+export const FRESH_MIN = 4;
+
+/** Разбор `YYYY-MM-DD` без часовых поясов — нам нужен календарь, а не момент. */
+function days(a: string, b: string): number {
+  const p = (s: string) => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d); };
+  return Math.round((p(b) - p(a)) / 86400000);
+}
+
+/** Сегодня в виде `YYYY-MM-DD`. Календарная дата — настенные часы здесь уместны. */
+export function todayISO(now: Date = new Date()): string {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Свежие записи: моложе `FRESH_DAYS`, но не меньше `FRESH_MIN` штук.
+ * Отсортированы от новых к старым.
+ */
+export function freshEntries(today: string = todayISO()): FreshEntry[] {
+  const sorted = [...FRESH].sort((a, b) => (a.since < b.since ? 1 : a.since > b.since ? -1 : 0));
+  const young = sorted.filter((e) => days(e.since, today) <= FRESH_DAYS);
+  return young.length >= FRESH_MIN ? young : sorted.slice(0, Math.min(FRESH_MIN, sorted.length));
+}
+
+/** Только id — этим кормится `allowed_games` профиля «Новинки». */
+export function freshGameIds(today: string = todayISO()): string[] {
+  return freshEntries(today).map((e) => e.id);
+}
