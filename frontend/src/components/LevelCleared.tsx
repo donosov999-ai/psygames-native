@@ -13,6 +13,7 @@ import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
 import { announce } from '@/src/services/a11y';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { hasBoss, isBossLevel } from '@/src/constants/bosses';
+import LevelInterlude from '@/src/components/LevelInterlude';
 
 /**
  * LevelCleared — короткий баннер между уровнями для АВТО-ПОТОКА (по выбору Дениса):
@@ -25,6 +26,23 @@ import { hasBoss, isBossLevel } from '@/src/constants/bosses';
  */
 
 const EYE_REST_SEC = 20;
+/**
+ * ДВЕ ФАЗЫ МЕЖДУ УРОВНЯМИ (заказ Дениса 19.08.2026: «мини-пауза вроде как
+ * человеку, на пару секунд, и движение питомца на новый уровень визуально»).
+ *
+ *   1. КАРТОЧКА над доской — коротко, чтобы человек увидел, ЧТО он собрал.
+ *      Накладной облик выбран Денисом же именно ради этого, и отнимать его
+ *      нельзя: доска в момент победы — половина награды.
+ *   2. ЗАСТАВКА — вертикальная картинка, звёзды и питомец, переходящий на
+ *      следующий уровень. Здесь глаз меняет план после мелкой доски, а
+ *      продвижение показывается наглядно.
+ *
+ * Раньше пауза была одна и пустая: 2.2 с на карточку и сразу следующий уровень.
+ * Уровни от этого слипались в один длинный, а переход по тропинке человек видел
+ * только на экране настроек — то есть не тогда, когда он происходит.
+ */
+const CARD_MS = 1200;
+const INTERLUDE_MS = 2000;
 const LEVELS_HINT_KEY = 'psygames_levels_hint_seen';   // глобальный флаг: подсказку «уровни по порядку» показать один раз на всё приложение
 
 interface Props {
@@ -76,7 +94,13 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
    */
   const gameMode = useGameMode();
   const chainNext = shouldChainNextLevel(gameMode);
-  const [showLevelsHint, setShowLevelsHint] = useState(false);   // одноразовая подпись «уровни по порядку» при первом чистом прохождении
+  const [showLevelsHint, setShowLevelsHint] = useState(false);
+  /**
+   * Заставка положена только там, где следующий уровень запускается САМ. В
+   * зарядке и в свободной партии дальше распоряжается не игра — вклинить туда
+   * двухсекундную картинку значит подрезать чужой сценарий.
+   */
+  const [phase, setPhase] = useState<'card' | 'interlude'>('card');   // одноразовая подпись «уровни по порядку» при первом чистом прохождении
 
   /**
    * ПЛОТНОСТЬ КАРТОЧКИ. Решение Дениса: между обычными уровнями карточка короткая —
@@ -139,8 +163,10 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
     // на следующий шаг сама, свободный режим показывает итог. Свой таймер здесь
     // только сталкивался бы с чужим.
     if (!chainNext) return () => { if (runTimer) clearTimeout(runTimer); };
-    const t = setTimeout(go, autoMs);
-    return () => { clearTimeout(t); if (runTimer) clearTimeout(runTimer); };
+    // Сначала карточка над доской, потом заставка с переходом питомца.
+    const toInterlude = setTimeout(() => setPhase('interlude'), Math.min(autoMs, CARD_MS));
+    const t = setTimeout(go, Math.min(autoMs, CARD_MS) + INTERLUDE_MS);
+    return () => { clearTimeout(toInterlude); clearTimeout(t); if (runTimer) clearTimeout(runTimer); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
@@ -176,6 +202,26 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
           </TouchableOpacity>
         </View>
       </View>
+    );
+  }
+
+  // ─── заставка между уровнями ───
+  // Тап по ней пропускает ожидание: кто хочет играть быстро, не должен ждать
+  // картинку каждый раз. Фон непрозрачный — сквозь пейзаж доска читалась бы кашей.
+  if (phase === 'interlude') {
+    return (
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('skip')}
+        activeOpacity={1} onPress={go}
+        style={[styles.full, { backgroundColor: colors.background }]}>
+        <LevelInterlude
+          level={level}
+          stars={stars}
+          ms={INTERLUDE_MS}
+          doneLine={t('levelDone').replace('{n}', String(level))}
+          nextLine={t('levelStarting').replace('{n}', String(level + 1))}
+          colors={colors}
+        />
+      </TouchableOpacity>
     );
   }
 

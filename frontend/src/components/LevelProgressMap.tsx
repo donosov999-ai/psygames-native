@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutChangeEvent, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, Defs, G, Line, Path, Polygon, RadialGradient, Stop } from 'react-native-svg';
 import PetSprite, { PetAccessory, PetSkin } from '@/src/components/pet/PetSprite';
 import { getPetSkin, getPetAccessory } from '@/src/services/pet';
@@ -7,6 +7,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { getLevelStars, StarsMap } from '@/src/services/levelStars';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { hasBoss, isBossLevel } from '@/src/constants/bosses';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
 /**
  * LevelProgressMap — ТРОПИНКА уровней: цепочка нейронов вдоль аксона, на текущем
@@ -126,8 +127,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
    * После искусственного ресайза ширина сама становилась 391 px — этим и
    * доказано, что дело в первом кадре, а не в вёрстке родителя.
    */
-  const { width: rawWinW } = useWindowDimensions();
-  const winW = rawWinW > 0 ? rawWinW : undefined;
+  const winW = useScreenWidth();
   const scrollRef = useRef<ScrollView>(null);
   const viewW = useRef(0);
 

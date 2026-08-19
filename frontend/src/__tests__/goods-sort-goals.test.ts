@@ -12,6 +12,9 @@
  */
 import { goalPlan, goalMet, goalProgress, levelCfg, clampGoalToLevel } from '@/app/games/goods-sort';
 
+declare const __dirname: string;
+declare function require(m: string): any;
+
 const POOL = 8;                       // товаров в наборе — столько же, сколько в боевых наборах
 const LEVELS = Array.from({ length: 60 }, (_, i) => i + 1);
 
@@ -168,5 +171,54 @@ describe('цели уровня', () => {
       seen.add([cfg.mask.map((b) => (b ? 1 : 0)).join(''), JSON.stringify(cfg.obst), cfg.goal.kind, cfg.goal.count].join('|'));
     }
     expect(seen.size).toBeGreaterThanOrEqual(55);
+  });
+});
+
+/**
+ * ТРИ ДЫРЫ, НАЙДЕННЫЕ РЕСЁРЧЕМ ЖАНРА (субагент, 19.08.2026).
+ *
+ * Все три из одного семейства: игра поощряла то, за что не платила, и давала
+ * бесплатный выход из задачи, которую сама поставила.
+ */
+describe('находки ресёрча закрыты', () => {
+  const src = require('fs').readFileSync(
+    require('path').join(__dirname, '../../app/games/goods-sort.tsx'), 'utf8') as string;
+  const code = src.split('\n').filter((l) => !l.trim().startsWith('*') && !l.trim().startsWith('//')).join('\n');
+
+  /**
+   * Звук `sndCombo` играл, справка обещала «×2, ×3», а каждая тройка давала
+   * ровно 50 — сколько бы их ни ссыпалось разом.
+   */
+  it('комбо оплачивается множителем, а не плоской ставкой', () => {
+    expect(code).toMatch(/gained \+= 50 \* clearedNow/);
+    expect(code).not.toMatch(/scoreRef\.current \+= 50;/);
+  });
+
+  /**
+   * 🔴 Главная из трёх. Бесплатная бесконечная тасовка вместе с гарантией
+   * «всегда минимум две свободные ниши» означала, что планировать не
+   * обязательно НИ НА ОДНОМ уровне: жадная стратегия не может завести в тупик,
+   * а если бы могла — есть бесплатный выход. Одной кнопкой обесценивались все
+   * препятствия и все цели.
+   */
+  it('перемешать стоит ход и выдаётся счётным числом раз', () => {
+    // ⚠️ Проверяем ЧИСЛО, а не то, что оно есть: `[1-9]` пропускало 999 —
+    // то есть «почти бесконечно», ровно ту дыру, которую и чиним (19.08).
+    const n = Number((code.match(/const SHUFFLES_PER_LEVEL = (\d+)/) || [])[1]);
+    expect(n).toBeGreaterThanOrEqual(1);
+    expect(n).toBeLessThanOrEqual(5);
+    expect(code).toMatch(/if \(shuffles <= 0\) \{[^}]*return;/);      // кончились — не работает
+    expect(code).toMatch(/setShuffles\(\(n\) => n - 1\)/);            // расходуется
+    expect(code).toMatch(/movesRef\.current \+= 1; setMoves\(movesRef\.current\);/);  // стоит ход
+    expect(code).toMatch(/setShuffles\(SHUFFLES_PER_LEVEL\)/);        // и обновляется на новом уровне
+  });
+
+  /**
+   * Зелёная рамка «здесь пара» честно показывает «сюда третий». На первых
+   * уровнях это ровно то, что надо объяснить; дальше она снимает половину
+   * зрительного поиска — как раз ту работу, ради которой сюда приходят.
+   */
+  it('подсветка пары обучающая, а не постоянная', () => {
+    expect(code).toMatch(/hasPair\(cell\) && level <= \d/);
   });
 });
