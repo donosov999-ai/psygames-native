@@ -26,6 +26,7 @@
 import {
   N, FEED_CELL, generateFractal, flatten, countSolutionsFast, logicSolve,
   rootEditable, rootSolved, rootUnreachableCells, isUnlocked,
+  logicSolveCalls, resetLogicSolveCalls,
   type FractalPuzzle,
 } from '@/src/services/fractal-sudoku';
 import { fractalLevel, FRACTAL_MAX_LEVEL } from '@/src/services/fractalLevels';
@@ -220,17 +221,45 @@ describe('экран действительно даёт закрыть коре
 });
 
 describe('генерация не вешает экран', () => {
-  it('партия на самом тяжёлом уровне собирается быстрее полусекунды', () => {
-    const times: string[] = [];
-    for (const level of [1, FRACTAL_MAX_LEVEL]) {
-      const t = Date.now();
-      const REP = 8;
-      for (let i = 0; i < REP; i++) generateFractal(level);
-      const ms = (Date.now() - t) / REP;
-      // Бюджет с запасом: телефон медленнее ноутбука в разы, а десять сеток строятся
-      // на старте партии синхронно. Замер 19.08 на Mac: 14 мс на первом, 143 на тридцатом.
-      if (ms > 500) times.push(`уровень ${level}: ${ms.toFixed(0)} мс на партию`);
+  /**
+   * ⚠️ МЕРИМ РАБОТУ, А НЕ ЧАСЫ. Здесь стояло «партия собирается быстрее полусекунды», и
+   * 19.08 на общем прогоне это покраснело: на машине шли три тяжёлых набора разом (load
+   * average 73), и та же партия тридцатого уровня заняла 1016 мс вместо 143 на свободной.
+   * Часы в параллельном прогоне меряют ЗАГРУЗКУ МАШИНЫ, а не код — и гейт начинает врать
+   * про регресс, которого нет. Та же ошибка, от которой лечили самурая: там генератор
+   * обрывал выкалывание по gameNow(), и сложность зависела от быстродействия телефона.
+   *
+   * Прогон логического решателя — единица работы генератора: копание зовёт его на каждое
+   * пробное снятие клетки. Потолок не с потолка: девять дочерних × 4 захода × 82 прогона
+   * плюс корень (2 захода × 82) плюс страховочный проход — около 3200 по построению.
+   * Замер 19.08: максимум 2874 на тридцатом уровне, 371 на первом.
+   */
+  it('партия стоит ограниченного числа прогонов решателя', () => {
+    const over: string[] = [];
+    const seen: string[] = [];
+    for (const [level, cap] of [[1, 700], [15, 4000], [FRACTAL_MAX_LEVEL, 4000]] as [number, number][]) {
+      let worst = 0;
+      for (let i = 0; i < 5; i++) {
+        resetLogicSolveCalls();
+        const t = Date.now();
+        generateFractal(level);
+        const ms = Date.now() - t;
+        const calls = logicSolveCalls();
+        if (calls > worst) worst = calls;
+        if (i === 0) seen.push(`L${level}: ${calls} прогонов, ${ms} мс`);
+      }
+      if (worst > cap) over.push(`уровень ${level}: ${worst} прогонов при потолке ${cap}`);
     }
-    expect(times).toEqual([]);
+    // Миллисекунды печатаем для человека, но НЕ утверждаем: см. шапку блока.
+    console.log('стоимость партии —', seen.join('; '));
+    expect(over).toEqual([]);
+  }, 600000);
+
+  it('счётчик работы живой — иначе потолок сторожит ноль', () => {
+    // Гейт выше зелен вслепую, если счётчик всегда отдаёт ноль.
+    resetLogicSolveCalls();
+    expect(logicSolveCalls()).toBe(0);
+    generateFractal(1);
+    expect(logicSolveCalls()).toBeGreaterThan(100);
   }, 300000);
 });
