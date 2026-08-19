@@ -1217,7 +1217,7 @@ const t: Record<string, string> = {
   "samuraiHowTo": "21×21 棋盘 = 五个数独在角上重叠。填满每格，使每张 9×9 的行、列和 3×3 宫都是 1–9 不重复。用 🔍 切换缩放：整体视图或可滚动的放大视图。",
   "boardBuilding": "正在生成棋盘",
   "boardBuildingSlow": "这一关较难：正在挑选一块无法靠简单扫描解开的棋盘，需要几秒钟。",
-  "boardBuildingAttempt": "第 {n} 次，共 {max} 次",
+  "boardBuildingStep": "第 {n} 步，共 {max} 步",
   "errorsOfMax": "错误 {n}/{max}",
   "zoomIn": "放大",
   "zoomFit": "整个棋盘",

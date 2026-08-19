@@ -1983,10 +1983,11 @@ const translations: Translations = {
   samuraiNextUnlocks: { ru: 'Реши, не превысив лимит ошибок — откроется следующий, сложнее.', en: 'Solve within the mistakes limit — the next unlocks, harder.' },
   samuraiHowTo: { ru: 'Поле 21×21 = пять судоку, перекрытых углами. Заполни каждую клетку так, чтобы в каждой сетке 9×9 строки, столбцы и блоки 3×3 содержали 1–9 без повторов. Кнопкой 🔍 переключай масштаб: «вся фигура» или «крупно со скроллом».', en: 'A 21×21 board = five sudoku overlapping at the corners. Fill every cell so each 9×9 grid has 1–9 with no repeats in rows, columns and 3×3 boxes. Use 🔍 to toggle zoom: whole shape or zoomed-in with scroll.' },
   // --- Ожидание сборки доски (components/BoardBuilding). Общее на все игры, где партию
-  // --- собирает решатель: у самурая это 2.5–6 с на верхних уровнях, у фрактальной похоже.
+  // --- собирает решатель. Замер 20.08.2026 в браузере, самурай, уровень 12: 0.4–0.8 с на
+  // --- маке и 1.9–4.5 с с тротлингом ×6 (примерно средний телефон).
   boardBuilding: { ru: 'Собираем доску', en: 'Building the board' },
   boardBuildingSlow: { ru: 'Уровень сложный: доска подбирается такой, чтобы её нельзя было взять простым перебором. Это несколько секунд.', en: 'This level is hard: we are picking a board that plain scanning will not crack. It takes a few seconds.' },
-  boardBuildingAttempt: { ru: 'Заход {n} из {max}', en: 'Attempt {n} of {max}' },
+  boardBuildingStep: { ru: 'Шаг {n} из {max}', en: 'Step {n} of {max}' },
   errorsOfMax: { ru: 'Ошибок {n}/{max}', en: 'Errors {n}/{max}' },
   zoomIn: { ru: 'Крупно', en: 'Zoom' },
   zoomFit: { ru: 'Всё поле', en: 'Fit' },

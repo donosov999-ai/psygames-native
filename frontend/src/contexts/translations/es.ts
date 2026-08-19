@@ -1217,7 +1217,7 @@ const t: Record<string, string> = {
   "samuraiHowTo": "Un tablero 21×21 = cinco sudokus superpuestos por las esquinas. Rellena cada celda para que en cada cuadrícula 9×9 filas, columnas y bloques 3×3 tengan 1–9 sin repetir. Con 🔍 alterna el zoom: figura entera o ampliado con scroll.",
   "boardBuilding": "Preparando el tablero",
   "boardBuildingSlow": "Este nivel es difícil: buscamos un tablero que no se resuelva con un simple repaso. Tarda unos segundos.",
-  "boardBuildingAttempt": "Intento {n} de {max}",
+  "boardBuildingStep": "Paso {n} de {max}",
   "errorsOfMax": "Errores {n}/{max}",
   "zoomIn": "Ampliar",
   "zoomFit": "Todo el tablero",
