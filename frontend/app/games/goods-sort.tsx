@@ -117,9 +117,12 @@ const CAP = 3;     // вместимость ячейки — 3 товара В�
  * тянется, вбок нет.
  */
 function gridFor(L: number, narrow = false): { cols: number; rows: number } {
-  if (L <= 7) return { cols: 3, rows: 3 };
-  if (L <= 11) return narrow ? { cols: 3, rows: 4 } : { cols: 4, rows: 3 };
-  return narrow ? { cols: 3, rows: 5 } : { cols: 4, rows: 4 };
+  // ⚠️ На телефоне ряды идут ВМЕСТО колонок: вниз экран тянется, вбок нет.
+  // Так шкаф заполняет поле при правильной пропорции ниши, а не растянутыми
+  // коробками. У эталона стартовая доска тоже высокая — 3 колонки на 5 рядов.
+  if (L <= 7) return narrow ? { cols: 3, rows: 4 } : { cols: 3, rows: 3 };
+  if (L <= 11) return narrow ? { cols: 3, rows: 5 } : { cols: 4, rows: 3 };
+  return narrow ? { cols: 3, rows: 6 } : { cols: 4, rows: 4 };
 }
 
 // Сложность по уровню: больше типов + теснее (меньше пустых ячеек для манёвра) + растущая доска.
@@ -394,6 +397,23 @@ export default function GoodsSortGame() {
   const fitsInRow = Math.floor((availH / gridDim.rows - 14) * ITEM_ASPECT);
   const itemSize = Math.max(18, Math.min(112, fitsInCell, fitsInRow));
   const itemH = Math.round(itemSize / ITEM_ASPECT);
+  /**
+   * 🔴 ШКАФ ЗАНИМАЕТ ВСЁ ПОЛЕ, А НЕ ТРЕТЬ ЭКРАНА.
+   *
+   * Денис 19.08: «у них полки занимают всё поле, у нас треть экрана пустая
+   * сверху и снизу». Проверил числом: товар относительно экрана у нас УЖЕ как
+   * в эталоне — 9.3% и там, и там. То есть дело не в размере товара, а в том,
+   * что три ряда по 70px занимали 210px из 440 доступных.
+   *
+   * Ниша тянется по доступной высоте, товар остаётся прежним и стоит на дне —
+   * ровно как в эталоне, где над предметами есть воздух. Растить сам товар
+   * тут нельзя: его ширину держат три штуки в ряд, а не высота экрана.
+   */
+  const SHELF_GAP = 10, HINT_H = 44, SHELF_PAD = 7;
+  const shelfOuter = Math.floor((availH - HINT_H - SHELF_GAP * (gridDim.rows - 1)) / gridDim.rows);
+  // Ниша выше товара примерно на четверть — столько воздуха над предметом в
+  // эталоне. Вдвое выше = пустая коробка, экран заполняется НЕ этим, а рядами.
+  const nicheH = Math.max(itemH + 8, Math.min(Math.round(itemH * 1.25), shelfOuter - SHELF_PAD * 2 - 7));
 
   // Полка целиком: «Полка 4: кола, кола, пусто» — по этой строке незрячий
   // игрок понимает, где уже есть пара и куда нести третий товар.
@@ -410,7 +430,7 @@ export default function GoodsSortGame() {
     return (
       <View key={i}
         style={[styles.cell, {
-          width: cellW, height: itemH + 10,
+          width: cellW, height: nicheH,
           borderColor: canDrop ? '#fbbf24' : close ? '#22c55e' : '#8a5a2b',
           borderWidth: canDrop || close ? 3 : 2,
         }]}>
@@ -533,13 +553,23 @@ export default function GoodsSortGame() {
               setFieldH((prev) => (Math.abs(prev - h) > 8 ? h : prev));
             }}>
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
-            <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }}>
+            {/*
+              🔴 ОДИН ШКАФ, А НЕ СТОПКА ОТДЕЛЬНЫХ ПОЛОК.
+              Денис 19.08: «у них пусто между полками нет, у тебя есть». Верно:
+              в эталоне это цельный короб с сеткой ниш — ряды разделяет доска
+              толщиной в несколько пикселей, а не пустой фон. Отдельные планки с
+              воздухом между ними читаются как таблица, а не как мебель.
+              Поэтому теперь одна рама на все ряды, внутри — сетка без зазоров
+              по вертикали, разделители рисуются самими нишами.
+            */}
+            <LinearGradient colors={['#e8c39a', '#c98f52']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+              style={[styles.cabinet, { width: boardW }]}>
               {Array.from({ length: gridDim.rows }).map((_, row) => (
-                <LinearGradient key={row} colors={['#6b4423', '#4a2e16']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.shelf, { width: boardW }]}>
+                <View key={row} style={styles.shelfRow}>
                   {Array.from({ length: gridDim.cols }).map((_, col) => renderCell(row * gridDim.cols + col))}
-                </LinearGradient>
+                </View>
               ))}
-            </View>
+            </LinearGradient>
             <ScorePopupLayer popups={popups} />
             {/* Итог — общей карточкой поверх полок. Своя плашка не сохраняла звёзды,
                 не считала серию и не тикала глаз-разрядку; всё это живёт в общей.
@@ -631,11 +661,14 @@ const styles = StyleSheet.create({
    *     подчиняются тяжести, иначе полка читается как таблица;
    *   · тонкая светлая линия по верхнему краю ниши = блик на кромке доски.
    */
-  shelf: {
-    flexDirection: 'row', justifyContent: 'center', gap: 6, padding: 7,
-    borderRadius: 10, backgroundColor: '#e2b887',
-    borderBottomWidth: 7, borderBottomColor: '#b07f4a',
+  /** Короб целиком: рама шкафа, внутри ряды ниш без пустот между ними. */
+  cabinet: {
+    borderRadius: 12, padding: 6, gap: 4,
+    borderBottomWidth: 8, borderBottomColor: '#a5713d',
+    shadowColor: '#5a3a18', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
   },
+  /** Ряд ниш. Между рядами только толщина доски (gap короба), а не фон экрана. */
+  shelfRow: { flexDirection: 'row', justifyContent: 'center', gap: 4 },
   cell: {
     borderRadius: 7, justifyContent: 'flex-end', alignItems: 'center',
     backgroundColor: '#c9975f',                 // ниша ТЕМНЕЕ рамы — это и есть глубина
