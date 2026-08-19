@@ -42,7 +42,21 @@ describe('плейлист зарядки: авто-старт', () => {
     const file = path.join(APP, 'games', `${route}.tsx`);
     expect(fs.existsSync(file)).toBe(true);
     const src = read(file);
-    const auto = src.includes('useAutostart(') || /if \(autostart\)\s*start/.test(src);
+    /**
+     * ТРИ ЗАКОННЫХ СПОСОБА, А НЕ ДВА.
+     *
+     * Семь игр, приехавших из лаборатории 19.08.2026, стартуют строкой
+     * `if (autostart) setPhase('playing')` — у них `start()` это и есть
+     * `setAttempt(n + 1); setPhase('playing')`, то есть переход в фазу партии
+     * и есть старт. Гейт этого не знал и краснел на исправных экранах.
+     *
+     * Проверка от этого НЕ слабеет: переход по-прежнему обязан висеть на
+     * `autostart`. Экран, который просто где-то зовёт setPhase('playing'),
+     * условию не отвечает — регулярка требует `if (autostart …)` перед ним.
+     */
+    const auto = src.includes('useAutostart(')
+      || /if \(autostart\)\s*start/.test(src)
+      || /if \(autostart[^)]*\)\s*(?:\{\s*)?(?:start\(|setPhase\('playing'\))/.test(src);
     expect(auto).toBe(true);
   });
 });

@@ -2402,6 +2402,67 @@ const translations: Translations = {
   phonemePairsShort: { ru: 'Фонемы: пары', en: 'Phoneme pairs' },
   phPairsPickHint: { ru: 'Что прозвучало? Выбери слово.', en: 'What did you hear? Pick the word.' },
   phPairsPlayed: { ru: 'Прозвучало: {w}', en: 'Played: {w}' },
+
+  /**
+   * СЕМЬ ИГР ИЗ ЛАБОРАТОРИИ, 19.08.2026. Ключи нужны КАРТОЧКЕ каталога и СПРАВКЕ «?»,
+   * а не самим экранам: партию каждая из семи рисует своим словарём модуля
+   * (`src/games/<игра>/core/i18n.ts`, ru+en). Исключение — «Одна линия»: её гейт
+   * требует перевести шапку и подпись на `t()`, как только ключи заведены.
+   *
+   * ⚠️ Заводить ключ здесь — значит завести его И в десяти локалях
+   * (`src/contexts/translations/*.ts`), иначе `i18n-coverage` роняет прогон.
+   */
+  dotsConnect: { ru: 'Соедини точки', en: 'Dots Connect' },
+  dotsConnectDesc: { ru: 'Соединяйте одинаковые точки непересекающимися путями и заполните всю сетку', en: 'Connect matching dots with non-crossing paths and fill the whole grid' },
+  dotsConnectIntroDesc: {
+    ru: 'Тренирует пространственное планирование: проложите для каждой пары свой путь без пересечений и пустых клеток.',
+    en: 'Trains spatial planning: give every pair its own path without crossings or empty cells.',
+  },
+
+  oneLine: { ru: 'Одна линия', en: 'One Line' },
+  oneLineDesc: { ru: 'Проведите одну непрерывную линию по всем рёбрам, не проходя ни одно дважды', en: 'Draw one continuous line across every edge without using any edge twice' },
+  oneLineIntroDesc: {
+    ru: 'Проведите одну непрерывную линию по каждому ребру графа ровно один раз. В вершины можно возвращаться, а вот пройденное ребро использовать второй раз нельзя. Место, где линии пересеклись на экране, вершиной не является — повернуть там не получится. Тренирует планирование маршрута: почти каждый ход законен сам по себе, но заводит в тупик, из которого остаток рёбер уже не собрать. С уровнями растёт не скорость, а сам граф: больше вершин, треугольники-развилки, запутаннее раскладка, а подсказка допустимого старта исчезает после третьего уровня.',
+    en: 'Draw one continuous line across every edge of the graph exactly once. You may revisit vertices, but an edge you have already used is spent. A place where two lines cross on screen is not a vertex — you cannot turn there. Trains route planning: nearly every move is legal on its own, yet many lead to a dead end from which the remaining edges cannot be collected. Levels grow the graph rather than the speed: more vertices, triangle branches, more tangled layouts, and the hint that marks a legal start disappears after level three.',
+  },
+
+  // ⚠️ facesNamesDesc короткое НАМЕРЕННО: оно стоит подписью на карточке каталога,
+  // где длинный текст обрезается. Развёрнутое — в facesNamesIntroDesc.
+  facesNames: { ru: 'Лица и имена', en: 'Faces & Names' },
+  facesNamesDesc: { ru: 'Свяжи лицо с именем и фактом', en: 'Link a face to a name and a fact' },
+  facesNamesIntroDesc: {
+    ru: 'Ассоциативная память: запомните процедурный портрет, точное имя и факт о человеке, а потом восстановите каждую часть отдельно. Это тот самый бытовой провал «лицо помню, а как зовут — нет»: узнать лицо и достать привязанное к нему слово — разные способности, и вторая проседает первой.',
+    en: 'Associative memory: remember a procedural portrait, an exact name, and a fact about the person, then recall each part separately. This is the everyday failure “I know the face but not the name”: recognising a face and retrieving the word attached to it are different abilities, and the second one goes first.',
+  },
+
+  objectTracker: { ru: 'Трекер объектов', en: 'Object Tracker' },
+  objectTrackerDesc: { ru: 'Следите за отмеченными объектами в движущейся группе и найдите их после остановки', en: 'Track marked objects in a moving group and identify them after motion stops' },
+  objectTrackerIntroDesc: {
+    ru: 'Тренирует динамическое внимание: запомните цели, удерживайте их в поле внимания во время движения и выберите после остановки.',
+    en: 'Trains dynamic attention: memorize the targets, keep track of them during motion, and select them after they stop.',
+  },
+
+  navigator: { ru: 'Навигатор', en: 'Navigator' },
+  navigatorDesc: { ru: 'Запоминайте маршруты, последовательности поворотов и направление к старту', en: 'Remember routes, turn sequences, and the direction back to the start' },
+  navigatorIntroDesc: {
+    ru: 'Тренирует пространственную память: изучите маршрут, мысленно удерживайте карту и восстановите путь или направление домой.',
+    en: 'Trains spatial memory: study a route, maintain the mental map, and reconstruct the path or direction home.',
+  },
+
+  rhythmPitch: { ru: 'Ритм и высота', en: 'Rhythm & Pitch' },
+  rhythmPitchDesc: { ru: 'Повторяйте ритмы и запоминайте последовательности высот — на слух, без микрофона', en: 'Echo rhythms and remember pitch sequences — by ear, no microphone' },
+  rhythmPitchIntroDesc: {
+    ru: 'Сначала короткая калибровка: четыре сигнала, по которым игра узнаёт задержку вашего устройства и громкость. Дальше уровни чередуются: в «эхе ритма» нужно повторить услышанный рисунок ударов в том же времени, в «пути высоты» — определить, выше или ниже второй звук, а затем восстановить последовательность из низких, средних и высоких тонов. Слов в задании нет вовсе, поэтому язык не влияет на сложность. Тренирует слуховую рабочую память и чувство времени. Нужен звук: наушники или колонка.',
+    en: 'A short calibration comes first: four pulses let the game learn your device latency and volume. Then levels alternate: Rhythm Echo asks you to repeat the beat pattern you heard at the same timing, Pitch Path asks whether the second tone was higher or lower and later to rebuild a sequence of low, mid and high tones. There are no words at all, so language does not change the difficulty. Trains auditory working memory and a sense of timing. Sound is required: headphones or a speaker.',
+  },
+
+  memoryPalace: { ru: 'Дворец памяти', en: 'Memory Palace' },
+  memoryPalaceDesc: { ru: 'Разложите предметы по маршруту и вспомните их вперёд и в обратном порядке', en: 'Place items along a route and recall them forward and in reverse' },
+  memoryPalaceIntroDesc: {
+    ru: 'Тренирует метод мест: изучите маршрут, свяжите каждый предмет с местом и восстановите их по местам в обе стороны.',
+    en: 'Trains the method of loci: study a route, tie each item to a place, and recall them by location in both directions.',
+  },
+
   // >>> SCREEN_STRINGS
 };
 

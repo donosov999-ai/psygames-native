@@ -66,13 +66,12 @@ describe('маршруты игр', () => {
    * (проверка ниже). То есть список умеет только сокращаться.
    */
   const AWAITING_CATALOG: Record<string, string> = {
-    'rhythm-pitch': 'G7 «Ритм и высота» (эхо ритма и путь высоты на слух, 31 уровень, без микрофона). Экран и модуль приняты; строка для GAMES, ключи rhythmPitch/rhythmPitchDesc/rhythmPitchIntroDesc и три ключа про звук, справка, место в профилях и ЗАПРЕТ на вечерний набор зарядки — в src/games/rhythm-pitch/INTEGRATION.md',
-    'dots-connect': 'G2 «Соедини точки» (numberlink, 40 уровней). Экран и модуль приняты; строка для GAMES, ключи dotsConnect/dotsConnectDesc/dotsConnectIntroDesc, справка и место в профилях — в src/games/dots-connect/INTEGRATION.md',
-    'one-line': 'G3 «Одна линия» (эйлеров путь по всем рёбрам без повторов, 48 уровней). Экран и модуль приняты; строка для GAMES, ключи oneLine/oneLineDesc/oneLineIntroDesc, справка, место в профилях и шаг зарядки — в src/games/one-line/INTEGRATION.md',
-    'memory-palace': 'G8 «Дворец памяти» (метод мест: маршрут, расстановка предметов, проверка вперёд и назад, 15 уровней). Экран и модуль приняты; строка для GAMES, ключи memoryPalace/memoryPalaceDesc/memoryPalaceIntroDesc, справка, место в профилях и шаг зарядки — в src/games/memory-palace/INTEGRATION.md',
-    'faces-names': 'G4 «Лица и имена» (лицо→имя→факт, 33 уровня). Экран и модуль приняты; строка для GAMES, ключи facesNames/facesNamesDesc/facesNamesIntroDesc, справка и место в профилях — в src/games/faces-names/INTEGRATION.md',
-    'object-tracker': 'G5 «Трекер объектов» (multiple object tracking, 41 уровень). Экран и модуль приняты; строка для GAMES, ключи objectTracker/objectTrackerDesc/objectTrackerIntroDesc и место в профилях — в src/games/object-tracker/INTEGRATION.md',
-    navigator: 'G6 «Навигатор» (мысленная карта маршрута, 33 уровня). Экран и модуль приняты; строка для GAMES, ключи navigator/navigatorDesc/navigatorIntroDesc, справка и место в профилях — в src/games/navigator/INTEGRATION.md',
+    // Пусто с 19.08.2026: семь игр лаборатории (G2 «Соедини точки», G3 «Одна линия»,
+    // G4 «Лица и имена», G5 «Трекер объектов», G6 «Навигатор», G7 «Ритм и высота»,
+    // G8 «Дворец памяти») заведены в каталог, словарь на 12 языков, справку и профили
+    // одним заходом-интегратором. Список оставлен пустым, а не удалён: следующая
+    // партия игр из лаборатории приедет тем же порядком, и убирать механизм,
+    // который только что отработал на семи играх сразу, не за чем.
   };
 
   it('каждый экран игры есть в реестре — иначе игра написана, но недоступна', () => {

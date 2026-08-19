@@ -22,13 +22,13 @@ PsyGames: Konzentration
 
 ## 2. КРАТКОЕ ОПИСАНИЕ — 80 символов
 ```
-Beim ersten Mal merken und dranbleiben. 64 Übungen, offline, ohne Werbung
+Beim ersten Mal merken und dranbleiben. 71 Übungen, offline, ohne Werbung
 ```
 73 символов · рекомендую
 
 Запасной:
 ```
-Gedächtnis, Konzentration, Tempo. 64 Übungen. Offline, ohne Werbung
+Gedächtnis, Konzentration, Tempo. 71 Übungen. Offline, ohne Werbung
 ```
 67 символов
 
@@ -43,7 +43,7 @@ Du hörst eine fremde Sprache und unterscheidest Laute, die vorher nur Rauschen 
 
 Das ist kein Talent, mit dem man geboren wird. Das trainiert man — und hier siehst du, um wie viel.
 
-PsyGames ist Gehirnjogging: Denkspiele, Rätsel und 64 Übungen für Gedächtnis, Aufmerksamkeit und Logik. Kein weiterer IQ-Test, sondern Training mit messbarem Ergebnis.
+PsyGames ist Gehirnjogging: Denkspiele, Rätsel und 71 Übungen für Gedächtnis, Aufmerksamkeit und Logik. Kein weiterer IQ-Test, sondern Training mit messbarem Ergebnis.
 
 GEDÄCHTNISSPIELE
 Trainiere visuelles Gedächtnis mit Corsi-Blöcken, Matrizen und Bildpaaren. Stärke das Arbeitsgedächtnis mit N-Back, Operation Span und Reading Span.
@@ -68,7 +68,7 @@ Gehirn-Apps lädt jeder herunter und löscht sie nach drei Malen — immer diese
 • Tagesaufgabe mit eigener Serie und Erfolge
 
 WAS DRIN IST
-• 64 Übungen für Gedächtnis, Aufmerksamkeit, Logik, Tempo und Kontrolle
+• 71 Übungen für Gedächtnis, Aufmerksamkeit, Logik, Tempo und Kontrolle
 • Aufwärmen per Knopfdruck: morgens, tagsüber, abends und nachts — fertige Sets starten mit den passenden Einstellungen
 • 12 Profile für verschiedene Ziele: Sprachen, Kinder, 50+, Fokus, Reaktion, Gründer und mehr
 • Auswertung mit Radar der Stärken und Schwachstellen

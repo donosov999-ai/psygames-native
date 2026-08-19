@@ -42,6 +42,42 @@ export interface FreshEntry {
  * коде), но держать его по убыванию удобно глазами.
  */
 export const FRESH: FreshEntry[] = [
+  // Семь игр из лаборатории, принятых 19.08.2026 и заведённых в каталог одним заходом.
+  {
+    id: 'memory_palace', since: '2026-08-19', kind: 'new',
+    ru: 'Новая игра: дворец памяти. Раскладываете предметы по маршруту и вспоминаете их вперёд и назад',
+    en: 'New game: memory palace. Place items along a route and recall them forward and in reverse',
+  },
+  {
+    id: 'rhythm_pitch', since: '2026-08-19', kind: 'new',
+    ru: 'Слух вместо зрения: повторить ритм и восстановить путь высот. 31 уровень, микрофон не нужен, слов в задании нет — язык на сложность не влияет',
+    en: 'Hearing instead of sight: echo a rhythm and rebuild a path of pitches. 31 levels, no microphone, no words — language does not change the difficulty',
+  },
+  {
+    id: 'navigator', since: '2026-08-19', kind: 'new',
+    ru: 'Мысленная карта: маршрут, повороты и направление домой — карта при этом повёрнута',
+    en: 'Mental map: route, turns, and the way home — with the map rotated',
+  },
+  {
+    id: 'object_tracker', since: '2026-08-19', kind: 'new',
+    ru: 'Единственное в каталоге внимание к движущемуся: держите глазами помеченные шары, пока вся группа перемешивается, и найдите их после остановки',
+    en: 'The only attention trainer here that follows things in motion: hold the marked balls with your eyes while the whole group mixes, then find them once it stops',
+  },
+  {
+    id: 'faces_names', since: '2026-08-19', kind: 'new',
+    ru: 'Тот самый провал «лицо помню, а как зовут — нет»: лицо, имя и факт спрашивают порознь, и видно, какая половина просела',
+    en: 'The familiar “I know the face but not the name” gap: face, name and fact are asked separately, so you see which half is failing',
+  },
+  {
+    id: 'one_line', since: '2026-08-19', kind: 'new',
+    ru: 'Новая игра: один росчерк по всем рёбрам. Не скорость, а маршрут — половина законных ходов ведёт в тупик',
+    en: 'New game: one stroke across every edge. Not speed but route — half the legal moves lead to a dead end',
+  },
+  {
+    id: 'dots_connect', since: '2026-08-19', kind: 'new',
+    ru: 'Новая игра: 40 уровней numberlink. Жадный первый ход запирает четвёртую пару — цена нетерпения видна сразу',
+    en: 'New game: 40 numberlink levels. A greedy first move locks the fourth pair — impatience shows its price at once',
+  },
   {
     id: 'goods_sort', since: '2026-08-19', kind: 'updated',
     ru: 'Настоящий шкаф, четыре препятствия, цели уровня, перетаскивание, отмена хода и подсказка. С 14-го уровня строгая укладка, с 18-го ниши разной вместимости',

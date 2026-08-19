@@ -81,7 +81,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import OneLineGame from '@/src/games/one-line/OneLineGame';
-import { LEVELS, getOneLineStrings, isPassed, type OneLineMetrics } from '@/src/games/one-line/core/index';
+import { LEVELS, isPassed, type OneLineMetrics } from '@/src/games/one-line/core/index';
 
 /**
  * Градиент игры. Лаборатория предлагала `#7c3aed → #db2777`, и по контрасту он
@@ -126,21 +126,19 @@ export default function OneLineScreen() {
   const [playedLevel, setPlayedLevel] = React.useState(1);
 
   /**
-   * ИМЯ И ОПИСАНИЕ ИГРЫ — ПОКА ИЗ СЛОВАРЯ САМОГО МОДУЛЯ.
+   * ИМЯ И ОПИСАНИЕ ИГРЫ — ИЗ СЛОВАРЯ ПРИЛОЖЕНИЯ (с 19.08.2026).
    *
-   * Ключи `oneLine` / `oneLineDesc` для приложения ещё не заведены: словарь и
-   * каталог — файлы, общие сразу на семь параллельных приёмок, и правит их один
-   * заход-интегратор (точные строки лежат в src/games/one-line/INTEGRATION.md).
-   * Звать словарь приложения за ключом `oneLine` сейчас — значит оставить в коде обращение к несуществующему
-   * ключа: на экране появилось бы слово «oneLine», а гейт словаря покраснел бы.
-   * Поэтому до появления ключей берём подпись у модуля — она ru/en, как и
-   * тексты правил уровня.
+   * Раньше их брали у словаря модуля: ключей `oneLine` / `oneLineDesc` в
+   * приложении не было, а `t()` возвращает незаведённый ключ КАК ЕСТЬ — в шапке
+   * стояло бы слово «oneLine». Заход-интегратор завёл оба ключа на двенадцати
+   * языках, и зеркальная проверка в one-line-integration.test.ts потребовала
+   * перейти на них: у модуля подписи только ru/en, то есть десять языков из
+   * двенадцати остались бы с английской шапкой.
    *
-   * ⚠️ ЭТО ВРЕМЕННО, И ЗАБЫТЬ НЕ ДАДУТ: как только ключ появится в словаре,
-   * one-line-integration.test.ts потребует перейти на словарь приложения —
-   * иначе десять языков из двенадцати так и остались бы с английской подписью.
+   * Словарь модуля никуда не делся — он по-прежнему рисует саму партию
+   * (правила раунда, счётчик рёбер, кнопки). Здесь речь только о шапке экрана
+   * настройки и подписи под номером уровня.
    */
-  const own = getOneLineStrings(language === 'ru' ? 'ru' : 'en');
 
   // Уровень из адреса (шаг зарядки, вызов дня) важнее сохранённого.
   const level = num('level', lvl.level);
@@ -279,7 +277,10 @@ export default function OneLineScreen() {
           accessibilityRole="button" accessibilityLabel={t('back')}>
           <Ionicons name="arrow-back" size={24} color={ON_GRAD.color} />
         </TouchableOpacity>
-        <Text style={styles.title}>{own.title}</Text>
+        {/* Ключи заведены 19.08.2026 — переходим на словарь приложения: в нём
+            двенадцать языков, а в словаре модуля два. Переключение сторожит
+            зеркальная проверка в one-line-integration.test.ts. */}
+        <Text style={styles.title}>{t('oneLine')}</Text>
       </GradientSurface>
 
       <ScrollView contentContainerStyle={styles.body}>
@@ -290,7 +291,7 @@ export default function OneLineScreen() {
 
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{own.rulesBody}</Text>
+          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('oneLineDesc')}</Text>
         </View>
 
         <TouchableOpacity onPress={start} accessibilityRole="button">

@@ -17,6 +17,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillDetailAttention",
     "introKey": "findDiffIntroDesc"
   },
+  "/games/object-tracker": {
+    "nameKey": "objectTracker",
+    "skillKey": "skillAttention",
+    "introKey": "objectTrackerIntroDesc"
+  },
   "/games/eye-gym": {
     "nameKey": "eyeGym",
     "skillKey": "skillEyeRelax",
@@ -62,6 +67,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillListening",
     "introKey": "pseudowordEchoIntroDesc"
   },
+  "/games/rhythm-pitch": {
+    "nameKey": "rhythmPitch",
+    "skillKey": "skillListening",
+    "introKey": "rhythmPitchIntroDesc"
+  },
   "/games/listening-span": {
     "nameKey": "listeningSpan",
     "skillKey": "skillWorkingMemory",
@@ -76,6 +86,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "mnemonics",
     "skillKey": "skillSequence",
     "introKey": "mnemonicsIntroDesc"
+  },
+  "/games/memory-palace": {
+    "nameKey": "memoryPalace",
+    "skillKey": "skillSequence",
+    "introKey": "memoryPalaceIntroDesc"
   },
   "/games/n-back": {
     "nameKey": "nBack",
@@ -96,6 +111,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "picturePairs",
     "skillKey": "skillVisualMemory",
     "introKey": "picturePairsIntroDesc"
+  },
+  "/games/faces-names": {
+    "nameKey": "facesNames",
+    "skillKey": "skillMemory",
+    "introKey": "facesNamesIntroDesc"
   },
   "/games/mahjong": {
     "nameKey": "mahjong",
@@ -121,6 +141,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "spatialSpan",
     "skillKey": "skillVisualMemory",
     "introKey": "spatialSpanIntroDesc"
+  },
+  "/games/navigator": {
+    "nameKey": "navigator",
+    "skillKey": "skillSpatial",
+    "introKey": "navigatorIntroDesc"
   },
   "/games/span": {
     "nameKey": "spanGroup",
@@ -171,6 +196,16 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "towerLondon",
     "skillKey": "skillPlanning",
     "introKey": "towerLondonIntroDesc"
+  },
+  "/games/dots-connect": {
+    "nameKey": "dotsConnect",
+    "skillKey": "skillPlanning",
+    "introKey": "dotsConnectIntroDesc"
+  },
+  "/games/one-line": {
+    "nameKey": "oneLine",
+    "skillKey": "skillPlanning",
+    "introKey": "oneLineIntroDesc"
   },
   "/games/attention-conflict": {
     "nameKey": "attentionConflict",
