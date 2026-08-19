@@ -51,12 +51,12 @@ import {
   N, FEED_CELL, generateFractal, flatten, countSolutionsFast, logicSolve, solveFast,
   rootEditable, rootSolved, rootUnreachableCells, isUnlocked, solvedCount,
   logicSolveCalls, resetLogicSolveCalls,
-  SEED_PUZZLES, transformSeed, FRACTAL_TIERS,
+  SEED_PUZZLES, transformSeed, FRACTAL_TIERS, SEED_RECALL, resetSeedRecall,
   startPlayState, playDigit, revertMove, givenOf,
   type FractalPuzzle, type FractalPlayState,
 } from '@/src/services/fractal-sudoku';
 import {
-  fractalLevel, fractalTier, fractalChildTiers, FRACTAL_MAX_LEVEL,
+  fractalLevel, fractalTier, fractalChildTiers, FRACTAL_MAX_LEVEL, FRACTAL_CHILDREN,
 } from '@/src/services/fractalLevels';
 import { makeRng } from '@/src/services/seed';
 import { countSolutions } from '@/src/services/sudoku-core';
@@ -79,7 +79,24 @@ const LEVELS = FULL ? FULL_LEVELS : FAST_LEVELS;
 const PER_LEVEL = FULL ? 50 : 6;
 const CROSS_LEVELS = FULL ? [1, 10, 20, 30] : [1, 30];
 const COST_RUNS = FULL ? 5 : 3;
-const SEEDS_CHECKED = FULL ? 99 : 8;   // сколько заготовок каждой ступени проверять поимённо
+const SEEDS_CHECKED = FULL ? 999 : 8;   // сколько заготовок каждой ступени проверять поимённо
+
+/**
+ * Ровный срез по ВСЕЙ библиотеке, а не её голова.
+ *
+ * ⚠️ ЗАЧЕМ. Быстрый прогон проверяет восемь заготовок на ступень, и пока это были
+ * `slice(0, 8)`, он смотрел ровно на восемь самых старых — то есть на те, что и так
+ * лежали проверенными. Библиотека выросла с 28 до 64 досок на ступень, и весь прирост
+ * оказался бы вне быстрого прогона: сломанная заготовка №40 краснела бы только под
+ * FRACTAL_FULL=1. Индексы возвращаем настоящие, чтобы в тексте ошибки был номер доски.
+ */
+function spread<T>(arr: readonly T[], n: number): [number, T][] {
+  if (arr.length <= n) return arr.map((v, i) => [i, v] as [number, T]);
+  return Array.from({ length: n }, (_, k) => {
+    const i = Math.round((k * (arr.length - 1)) / (n - 1));
+    return [i, arr[i]] as [number, T];
+  });
+}
 
 const CTX = { N: 9, BR: 3, BC: 3, variant: 'none' as const };
 
@@ -275,10 +292,22 @@ describe('библиотека заготовок и её преобразова
     }
   });
 
+  /**
+   * ⚠️ СВОИМ РЕШАТЕЛЕМ — ВСЮ БИБЛИОТЕКУ, ЧУЖИМ — СРЕЗ, И ЭТО НЕ ЭКОНОМИЯ НА ГЛАВНОМ.
+   *
+   * logicSolve стоит 0.03–0.3 мс, gradePuzzle — 10–27 мс: разница в сто раз, и именно
+   * она когда-то заставила проверять заготовки выборочно. Но выборка — дыра: подложенную
+   * в середину списка фальшивку (доску пятой ступени в списке шестой) быстрый прогон
+   * пропускал, потому что смотрел мимо неё. Поймано ИСПОЛНЕНИЕМ 20.08: поломка №5
+   * встала на позицию 45, и гейт остался зелёным.
+   *
+   * Поэтому дёшево — по КАЖДОЙ доске без исключений, дорого — по ровному срезу.
+   */
   it('каждая заготовка требует СВОЕЙ техники и решается единственным образом', () => {
     const bad: string[] = [];
     for (const tier of [FRACTAL_TIERS.hiddenSubset, FRACTAL_TIERS.xWing]) {
-      for (const [n, s] of SEED_PUZZLES[tier].slice(0, SEEDS_CHECKED).entries()) {
+      const foreign = new Set(spread(SEED_PUZZLES[tier], SEEDS_CHECKED).map(([n]) => n));
+      for (const [n, s] of SEED_PUZZLES[tier].entries()) {
         const flat = Int8Array.from(Array.from(s).map((ch) => (ch === '.' ? 0 : Number(ch))));
         const board = Array.from({ length: 9 }, (_, r) => Array.from({ length: 9 }, (_, c) => flat[r * 9 + c]));
         if (s.length !== 81) bad.push(`t${tier}#${n}: длина строки ${s.length}`);
@@ -288,7 +317,8 @@ describe('библиотека заготовок и её преобразова
         if (!mine.solved || mine.tier !== tier) bad.push(`t${tier}#${n}: свой решатель solved=${mine.solved} tier=${mine.tier}`);
         // 🔴 ГЛАВНОЕ: без верхней техники доска НЕ берётся. Иначе «ступень» декоративна.
         if (logicSolve(flat, tier - 1).solved) bad.push(`t${tier}#${n}: берётся и БЕЗ верхней техники`);
-        // и то же самое — ЧУЖИМ решателем
+        // и то же самое — ЧУЖИМ решателем, но по срезу: он в сто раз дороже
+        if (!foreign.has(n)) continue;
         const g = gradePuzzle(board, CTX, tier);
         if (!g.solved || g.tier !== tier) bad.push(`t${tier}#${n}: градатор solved=${g.solved} tier=${g.tier}`);
         if (gradePuzzle(board, CTX, tier - 1).solved) bad.push(`t${tier}#${n}: градатор взял БЕЗ верхней техники`);
@@ -301,7 +331,7 @@ describe('библиотека заготовок и её преобразова
     const bad: string[] = [];
     const rnd = makeRng('гейт-преобразование');
     for (const tier of [FRACTAL_TIERS.hiddenSubset, FRACTAL_TIERS.xWing]) {
-      for (const [n, s] of SEED_PUZZLES[tier].slice(0, FULL ? 99 : 4).entries()) {
+      for (const [n, s] of spread(SEED_PUZZLES[tier], FULL ? 999 : 4)) {
         for (const center of FULL ? [1, 4, 7, 9] : [3, 8]) {
           const { puzzle, solution } = transformSeed(s, center, rnd);
           const board = Array.from({ length: 9 }, (_, r) => Array.from({ length: 9 }, (_, c) => puzzle[r * 9 + c]));
@@ -333,6 +363,151 @@ describe('библиотека заготовок и её преобразова
     // и все они — та же задача по существу
     expect(views.has(seed.replace(/\./g, '0'))).toBe(false);
   });
+});
+
+/**
+ * РАЗДАЧА ЗАГОТОВОК: ЧЕЛОВЕК НЕ ДОЛЖЕН РЕШАТЬ ОДНУ И ТУ ЖЕ ДОСКУ ДВАЖДЫ.
+ *
+ * ⚠️ ЗАМЕР 19.08.2026 НА ПРЕЖНЕЙ РАЗДАЧЕ (тычок в библиотеку наугад, 28 заготовок на
+ * ступень): отрезок уровней 26–30 — это 45 дочерних сеток, и разных среди них было
+ * 30.4 из 45 (40 прогонов). Каждая третья сетка — уже решённая, просто повёрнутая.
+ * На одном экране из девяти сеток разными были 8.16.
+ *
+ * ⚠️ ПОЧЕМУ ЭТО НЕ ЛЕЧИТСЯ ОДНОЙ БИБЛИОТЕКОЙ. 25 случайных тычков в M досок
+ * сталкиваются по задаче о днях рождения: шанс обойтись без повтора ≈ exp(−300/M).
+ * Чтобы столкновений почти не было, понадобилось бы M в тысячах — это сотни килобайт
+ * в бандле ради второго знака. Поэтому библиотека выросла вдвое (28 → 64 на ступень),
+ * а повторы убрала ПАМЯТЬ РАЗДАЧИ: недавно выданное из выбора исключается.
+ *
+ * ⚠️ ГЛАВНОЕ ЗДЕСЬ — «ТА ЖЕ ДОСКА» СЧИТАЕТСЯ ПО ГРУППЕ ПРЕОБРАЗОВАНИЙ, А НЕ ПО СТРОКЕ.
+ * transformSeed показывает заготовку перекрашенной и переложенной, поэтому две сетки
+ * из одной заготовки в виде строк РАЗНЫЕ — и гейт, сравнивающий строки, был бы зелен
+ * при полностью выродившейся раздаче. Сравниваем канонический вид узора дырок.
+ */
+describe('раздача заготовок не повторяется', () => {
+  /**
+   * Те же перекладки, что делает transformSeed: полосы местами, строки внутри крайних
+   * полос как угодно, в средней меняются 3 и 5 (строка 4 стоит — она кормит корень).
+   * 144 на строки × 144 на столбцы × транспонирование = 41472. Повороты и отражения
+   * входят целиком: и разворот строк, и разворот столбцов этими картами выразимы.
+   *
+   * ⚠️ Своя реализация, а не импорт из скрипта-генератора: гейт обязан уметь опознать
+   * повтор сам, иначе он проверяет скрипт, а не игру.
+   */
+  const lineMaps = (): Int8Array[] => {
+    const perms = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+    const out: Int8Array[] = [];
+    for (const swapBands of [false, true]) for (const a of perms) for (const b of perms) for (const swapMid of [false, true]) {
+      const m = new Int8Array(9);
+      for (let k = 0; k < 3; k++) { m[k] = (swapBands ? 6 : 0) + a[k]; m[6 + k] = (swapBands ? 0 : 6) + b[k]; }
+      m[3] = swapMid ? 5 : 3; m[4] = 4; m[5] = swapMid ? 3 : 5;
+      out.push(m);
+    }
+    return out;
+  };
+  const MAPS = lineMaps();
+
+  /** Канонический вид узора дырок: минимальный из 41472. У всей орбиты он один. */
+  const canon = (bits: Uint8Array): string => {
+    const best = new Uint8Array(81).fill(2);
+    const buf = new Uint8Array(81);
+    for (const rm of MAPS) for (const cm of MAPS) for (let flip = 0; flip < 2; flip++) {
+      for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
+        const rr = flip ? cm[c] : rm[r], cc = flip ? rm[r] : cm[c];
+        buf[rr * 9 + cc] = bits[r * 9 + c];
+      }
+      for (let i = 0; i < 81; i++) {
+        if (buf[i] === best[i]) continue;
+        if (buf[i] < best[i]) best.set(buf);
+        break;
+      }
+    }
+    return best.join('');
+  };
+  const canonOfSeed = (s: string) => canon(Uint8Array.from(Array.from(s, (ch) => (ch === '.' ? 0 : 1))));
+  const canonOfBoard = (b: number[][]) => canon(Uint8Array.from(b.flat().map((v) => (v ? 1 : 0))));
+
+  /** Канон → имя заготовки. Заодно ловит, что в самой библиотеке нет повторов. */
+  const library = new Map<string, string>();
+  const twins: string[] = [];
+  for (const tier of [FRACTAL_TIERS.hiddenSubset, FRACTAL_TIERS.xWing]) {
+    SEED_PUZZLES[tier].forEach((s, i) => {
+      const key = canonOfSeed(s);
+      if (library.has(key)) twins.push(`${library.get(key)} и t${tier}#${i} — одна доска, только повёрнутая`);
+      else library.set(key, `t${tier}#${i}`);
+    });
+  }
+
+  /**
+   * 🔴 СНАЧАЛА ПРОВЕРЯЕМ САМ ИЗМЕРИТЕЛЬ, ПОТОМ ИМ МЕРЯЕМ.
+   *
+   * Все проверки ниже стоят на том, что канон опознаёт повёрнутую доску как ту же.
+   * Канон, который вернул бы вход как есть, сделал бы их зелёными НАВСЕГДА и на любой
+   * раздаче: два вида одной заготовки в виде строк разные. Поэтому измеритель сам
+   * проходит проверку — на развороте строк (он в группе) и на заведомо чужой доске.
+   */
+  it('канон опознаёт поворот как ту же доску, а чужую — как чужую', () => {
+    const lib = SEED_PUZZLES[FRACTAL_TIERS.xWing];
+    const rows = Array.from({ length: 9 }, (_, r) => lib[0].slice(r * 9, r * 9 + 9));
+    const upsideDown = [...rows].reverse().join('');
+    const mirrored = rows.map((row) => [...row].reverse().join('')).join('');
+    expect(upsideDown).not.toBe(lib[0]);                       // строки правда переехали
+    expect(canonOfSeed(upsideDown)).toBe(canonOfSeed(lib[0])); // но доска та же
+    expect(canonOfSeed(mirrored)).toBe(canonOfSeed(lib[0]));
+    expect(canonOfSeed(lib[1])).not.toBe(canonOfSeed(lib[0])); // а вот это другая доска
+  });
+
+  it('в самой библиотеке нет двух заготовок, которые одна и та же доска', () => {
+    expect(twins).toEqual([]);
+  }, 300000);
+
+  it('библиотеки хватает, чтобы память раздачи не упёрлась в дно', () => {
+    // Память держит SEED_RECALL последних, и одновременно в партии раздаётся до девяти.
+    // Если запаса нет, свободных не остаётся, срабатывает фолбэк — и повторы вернутся.
+    const bad: string[] = [];
+    for (const tier of [FRACTAL_TIERS.hiddenSubset, FRACTAL_TIERS.xWing]) {
+      const need = SEED_RECALL + FRACTAL_CHILDREN;
+      if (SEED_PUZZLES[tier].length < need) bad.push(`ступень ${tier}: заготовок ${SEED_PUZZLES[tier].length}, а нужно ≥ ${need}`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('девять сеток одной партии — девять РАЗНЫХ досок', () => {
+    const bad: string[] = [];
+    for (const level of [26, 30]) {
+      const f = generateFractal(level, boardSeed(level, 900));
+      const ids = f.children.map((ch) => library.get(canonOfBoard(ch.puzzle)) ?? 'НЕ ИЗ БИБЛИОТЕКИ');
+      if (ids.includes('НЕ ИЗ БИБЛИОТЕКИ')) bad.push(`уровень ${level}: сетка не из библиотеки`);
+      if (new Set(ids).size !== FRACTAL_CHILDREN) bad.push(`уровень ${level}: разных досок ${new Set(ids).size} из ${FRACTAL_CHILDREN} — ${ids.join(' ')}`);
+    }
+    expect(bad).toEqual([]);
+  }, 300000);
+
+  it('🔴 на уровнях 26–30 подряд ни одна доска не повторяется', () => {
+    // Без сида — ровно так партии собирает экран (sudoku-fractal.tsx: generateFractal(lvl)).
+    // Это не статистика: памяти хватает на все 45 сеток отрезка, поэтому 45 из 45 обязаны
+    // быть разными В КАЖДОМ прогоне, а не «в среднем».
+    resetSeedRecall();
+    const ids: string[] = [];
+    for (let level = 26; level <= 30; level++) {
+      for (const ch of generateFractal(level).children) ids.push(library.get(canonOfBoard(ch.puzzle)) ?? 'НЕ ИЗ БИБЛИОТЕКИ');
+    }
+    expect(ids).toHaveLength(45);
+    expect(ids.filter((k) => k === 'НЕ ИЗ БИБЛИОТЕКИ')).toEqual([]);
+    const repeats = ids.filter((k, i) => ids.indexOf(k) !== i);
+    expect(`повторов на отрезке 26–30: ${repeats.length} (${repeats.join(' ')})`).toBe('повторов на отрезке 26–30: 0 ()');
+  }, 300000);
+
+  it('память раздачи не течёт в сидированный путь: тот же сид — та же партия', () => {
+    // Сид обещает «поделился строкой — у друга та же доска». Если бы память влияла на
+    // выбор заготовки, партия зависела бы от того, во что человек играл до этого.
+    resetSeedRecall();
+    const a = generateFractal(30, 'сид-раздачи-1');
+    generateFractal(30);            // между ними — обычная партия, она память двигает
+    generateFractal(29);
+    const b = generateFractal(30, 'сид-раздачи-1');
+    expect(b.children.map((c) => c.puzzle)).toEqual(a.children.map((c) => c.puzzle));
+  }, 300000);
 });
 
 /**
