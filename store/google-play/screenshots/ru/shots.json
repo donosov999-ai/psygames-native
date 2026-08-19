@@ -1,0 +1,302 @@
+{
+  "lang": "ru",
+  "play": {
+    "W": 1080,
+    "H": 1920,
+    "MIN_SIDE": 320,
+    "MAX_SIDE": 3840,
+    "MAX_RATIO": 2,
+    "MAX_BYTES": 8388608,
+    "MAX_IN_LISTING": 8,
+    "MIN_IN_LISTING": 2
+  },
+  "note": "Снято scripts/store-shots.mjs. Рецепт пересъёмки — в README.md рядом.",
+  "shots": [
+    {
+      "id": "01-catalog",
+      "file": "01-catalog.png",
+      "kind": "app",
+      "gameId": null,
+      "route": "/",
+      "why": "сетка упражнений: карточка обещает 71 тренажёр — здесь их видно. Прокрутка обязательна: без неё в кадр попадают только карточки зарядки над сгибом",
+      "inListing": true,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "bytes": 1029169,
+      "sha256": "35d2f07fd5b91fbd22ab8b24e3a862a80ba4fa8477c54fde62fc61bceb8f1a64",
+      "onField": false,
+      "fieldMarker": "Память",
+      "forbidPattern": "/Выбери первую игру/",
+      "forbidHit": null,
+      "shell": {
+        "toolbar": false,
+        "headerActions": false
+      },
+      "buttons": 78,
+      "textLen": 5863,
+      "steps": [],
+      "lang": "ru",
+      "capturedAt": "2026-08-19T17:46:45.056Z"
+    },
+    {
+      "id": "02-dots-connect",
+      "file": "02-dots-connect.png",
+      "kind": "game",
+      "gameId": "dots_connect",
+      "route": "/games/dots-connect?auto=1",
+      "why": "сетка с символами и путями — сразу понятно, что делают пальцем",
+      "inListing": true,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "bytes": 108137,
+      "sha256": "154dd7709df1465c48e3992b86b112bde50103e564751f624a47944ee44de7a4",
+      "onField": true,
+      "fieldMarker": "Тренировка · 4×4",
+      "forbidPattern": "/Как играть|Уровень \\d+\\/\\d+/i",
+      "forbidHit": null,
+      "shell": {
+        "toolbar": false,
+        "headerActions": false
+      },
+      "buttons": 5,
+      "textLen": 121,
+      "steps": [
+        "Попробовать тренировку"
+      ],
+      "lang": "ru",
+      "capturedAt": "2026-08-19T17:46:51.412Z"
+    },
+    {
+      "id": "03-one-line",
+      "file": "03-one-line.png",
+      "kind": "game",
+      "gameId": "one_line",
+      "route": "/games/one-line?auto=1",
+      "why": "граф с вершинами и счётчиком пройденных рёбер — механика читается без слов",
+      "inListing": true,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "bytes": 99529,
+      "sha256": "c3b68b9b3c1e75d4fe5fe96ca0775681a7b639c92f86cb2a6944b7ebfa9a889e",
+      "onField": true,
+      "fieldMarker": "Пройдено рёбер: 0 из 4",
+      "forbidPattern": "/Как играть|Уровень \\d+\\/\\d+/i",
+      "forbidHit": null,
+      "shell": {
+        "toolbar": false,
+        "headerActions": false
+      },
+      "buttons": 9,
+      "textLen": 259,
+      "steps": [
+        "Попробовать тренировку"
+      ],
+      "lang": "ru",
+      "capturedAt": "2026-08-19T17:46:57.679Z"
+    },
+    {
+      "id": "04-faces-names",
+      "file": "04-faces-names.png",
+      "kind": "game",
+      "gameId": "faces_names",
+      "route": "/games/faces-names?auto=1",
+      "why": "портрет с именем и фактом — узнаваемая житейская задача «забыл, как зовут»",
+      "inListing": true,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "bytes": 74484,
+      "sha256": "822f70f9cd2440a50def8f8c0d223a557be5b258c790b879b444859e32014296",
+      "onField": true,
+      "fieldMarker": "Персонаж 1 из 2",
+      "forbidPattern": "/Как играть|Уровень \\d+\\/\\d+/i",
+      "forbidHit": null,
+      "shell": {
+        "toolbar": false,
+        "headerActions": false
+      },
+      "buttons": 4,
+      "textLen": 129,
+      "steps": [
+        "Начать изучение"
+      ],
+      "lang": "ru",
+      "capturedAt": "2026-08-19T17:47:03.918Z"
+    },
+    {
+      "id": "05-object-tracker",
+      "file": "05-object-tracker.png",
+      "kind": "game",
+      "gameId": "object_tracker",
+      "route": "/games/object-tracker?auto=1",
+      "why": "фаза запоминания целей до движения: видно и объекты, и таймер",
+      "inListing": true,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "bytes": 56398,
+      "sha256": "1d63759156a7d84731bc3254bdd879490250d9120e5fa91763e47eb24e1400d7",
+      "onField": true,
+      "fieldMarker": "Уровень 1 · объектов 4 · целей 1",
+      "forbidPattern": "/Как играть|Уровень \\d+\\/\\d+/i",
+      "forbidHit": null,
+      "shell": {
+        "toolbar": false,
+        "headerActions": false
+      },
+      "buttons": 8,
+      "textLen": 129,
+      "steps": [],
+      "lang": "ru",
+      "capturedAt": "2026-08-19T17:47:07.772Z"
+    },
+    {
+      "id": "06-navigator",
+      "file": "06-navigator.png",
+      "kind": "game",
+      "gameId": "navigator",
+      "route": "/games/navigator?auto=1",
+      "why": "фаза ответа: сетка плюс четыре направления — механика читается без слов",
+      "inListing": true,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "bytes": 76286,
+      "sha256": "c84c414dc7eaad67dc8ab36f13592acb47dd221de1de55e60a6922aa2d3ecd3e",
+      "onField": true,
+      "fieldMarker": "Шаг 1 из 3",
+      "forbidPattern": "/Как играть|Уровень \\d+\\/\\d+/i",
+      "forbidHit": null,
+      "shell": {
+        "toolbar": false,
+        "headerActions": false
+      },
+      "buttons": 7,
+      "textLen": 224,
+      "steps": [
+        "Начать раунд",
+        "Готов — перейти к ответу"
+      ],
+      "lang": "ru",
+      "capturedAt": "2026-08-19T17:47:16.467Z"
+    },
+    {
+      "id": "07-rhythm-pitch",
+      "file": "07-rhythm-pitch.png",
+      "kind": "game",
+      "gameId": "rhythm_pitch",
+      "route": "/games/rhythm-pitch?auto=1",
+      "why": "экран задания на слух; в карточку не идёт — звук на картинке не показать",
+      "inListing": false,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "bytes": 45964,
+      "sha256": "32e11bf45ed1a88f2e26c9b15f76852d922d822f02a12af9c3c535a3d42cdc54",
+      "onField": true,
+      "fieldMarker": "Готовы слушать",
+      "forbidPattern": "/Как играть|Уровень \\d+\\/\\d+|Проверка громкости/i",
+      "forbidHit": null,
+      "shell": {
+        "toolbar": false,
+        "headerActions": false
+      },
+      "buttons": 3,
+      "textLen": 121,
+      "steps": [
+        "Начать",
+        "Запустить калибровку",
+        "Продолжить"
+      ],
+      "lang": "ru",
+      "capturedAt": "2026-08-19T17:47:33.459Z"
+    },
+    {
+      "id": "08-memory-palace",
+      "file": "08-memory-palace.png",
+      "kind": "game",
+      "gameId": "memory_palace",
+      "route": "/games/memory-palace?auto=1",
+      "why": "размещение предметов по местам — самый наглядный «дворец памяти». Прокрутка в ноль: экран сам уезжает к очередному месту и прячет полосу предметов",
+      "inListing": true,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "bytes": 106199,
+      "sha256": "d6b0d20a32db8215393b129e2d4132a7080d43b3cfaa16ff3abadb3c31074bb8",
+      "onField": true,
+      "fieldMarker": "Разместите предметы",
+      "forbidPattern": "/Как играть|Уровень \\d+\\/\\d+/i",
+      "forbidHit": null,
+      "shell": {
+        "toolbar": false,
+        "headerActions": false
+      },
+      "buttons": 14,
+      "textLen": 520,
+      "steps": [
+        "Начать маршрут",
+        "Перейти к размещению"
+      ],
+      "lang": "ru",
+      "capturedAt": "2026-08-19T17:47:43.349Z"
+    },
+    {
+      "id": "09-levels",
+      "file": "09-levels.png",
+      "kind": "app",
+      "gameId": null,
+      "route": "/games/dots-connect",
+      "why": "тропинка уровней: видно, что за игрой стоит длинный маршрут, а не один тест",
+      "inListing": true,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "bytes": 140554,
+      "sha256": "e5bb04cb12c22b46c4b96c6ad3e2511de77559254a47def703289a1e797a3e2c",
+      "onField": false,
+      "fieldMarker": "Уровень 1/40",
+      "forbidPattern": "/Выбери первую игру/",
+      "forbidHit": null,
+      "shell": {
+        "toolbar": false,
+        "headerActions": false
+      },
+      "buttons": 4,
+      "textLen": 569,
+      "steps": [],
+      "lang": "ru",
+      "capturedAt": "2026-08-19T17:47:47.600Z"
+    },
+    {
+      "id": "10-statistics",
+      "file": "10-statistics.png",
+      "kind": "app",
+      "gameId": null,
+      "route": "/statistics",
+      "why": "статистика — чем измеряют прогресс. ⚠️ В КАРТОЧКУ НЕ ИДЁТ: на чистом профиле экран пустой («0 игр», «Сыграйте несколько игр, чтобы увидеть статистику»), и половина кадра — пустота. Наполнить его можно только историей тренировок; выдумывать её для магазина — враньё, а играть недели ради снимка скрипт не может. Решение за Денисом: снять с боевого профиля с историей ЛИБО оставить вне карточки",
+      "inListing": false,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "bytes": 188823,
+      "sha256": "6b07d2b039eccf5dabd1b2f66f2d9d7c3bb7c8b4d485ce4e6bfc7322ed507422",
+      "onField": false,
+      "fieldMarker": "Статистика",
+      "forbidPattern": "/Выбери первую игру/",
+      "forbidHit": null,
+      "shell": {
+        "toolbar": false,
+        "headerActions": false
+      },
+      "buttons": 5,
+      "textLen": 177,
+      "steps": [],
+      "lang": "ru",
+      "capturedAt": "2026-08-19T17:47:51.714Z"
+    }
+  ]
+}
