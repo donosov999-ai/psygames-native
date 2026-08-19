@@ -5,6 +5,7 @@ import PetSprite, { PetAccessory, PetSkin } from '@/src/components/pet/PetSprite
 import { getPetSkin, getPetAccessory } from '@/src/services/pet';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getLevelStars, StarsMap } from '@/src/services/levelStars';
+import { formatBestTime, getLevelBestTimes, showsBestTime, LevelTimes } from '@/src/services/levelTimes';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { hasBoss, isBossLevel } from '@/src/constants/bosses';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
@@ -61,12 +62,37 @@ const WAVE_Y = 76;       // центр волны внутри полотна
 // Без подписи лишние 22 px — пустая полоса внизу карточки: её видно у 47 игр из 48.
 const H_BASE = 128;
 const H_LABEL = 150;
+// Строка лучшего времени добавляет высоту ТОЛЬКО когда время реально есть хотя бы
+// у одного узла. Иначе те же 14 px были бы пустой полосой под тропинкой у всех, кто
+// ещё ничего не прошёл, — ровно та беда, ради которой уже разведены H_BASE и H_LABEL.
+const H_TIME = 14;
 const R = 13;            // радиус обычного узла
 const R_BOSS = 17;       // веха крупнее — её видно издалека
 const PET = 42;
 
+/**
+ * Высота полотна. Отдельной функцией, потому что «пустой полосы быть не должно» —
+ * это поведение, и его проверяют прогоном, а не чтением вёрстки.
+ */
+export function mapHeight(hasLabel: boolean, hasTimes: boolean): number {
+  return (hasLabel ? H_LABEL : H_BASE) + (hasTimes ? H_TIME : 0);
+}
+
 const nodeX = (i: number) => PAD_X + i * GAP;
 const nodeY = (i: number) => WAVE_Y + AMP * Math.sin(i * 0.85);
+
+/**
+ * Верх строки времени — ПОД всем, что уже занято у узла.
+ *
+ * Узел занимает до `nodeY + R_BOSS` (веха крупнее обычного), звёзды идут
+ * центрами на `+11` при радиусе 4 (то есть до `+15`), подпись ступени — с `+20`
+ * при кегле 9 (то есть до `+32` от обычного радиуса). Считаем от R_BOSS, чтобы
+ * одна формула была верна и для вехи, и для обычного узла: иначе на вехе без
+ * подписи время наезжало бы на звёзды.
+ */
+export function timeTop(i: number, hasLabel: boolean): number {
+  return nodeY(i) + R_BOSS + (hasLabel ? 29 : 16);
+}
 
 /** Аксон между узлами: плавные C-сегменты с горизонтальными ручками. */
 function axonPath(from: number, to: number): string {
@@ -151,6 +177,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
   const { t } = useLanguage();   // язык из контекста; проп language остался в Props для совместимости
   const { profile } = useProfile();
   const [stars, setStars] = useState<StarsMap>({});
+  const [times, setTimes] = useState<LevelTimes>({});
   const [skin, setSkin] = useState<PetSkin>('cat');
   const [accessory, setAccessory] = useState<PetAccessory | null>(null);
   /**
@@ -178,6 +205,20 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
     return () => { alive = false; };
   }, [gameId, profile?.id, currentLevel]);
 
+  /**
+   * ЛУЧШЕЕ ВРЕМЯ УРОВНЯ — там, где «быстрее» вообще цель (правило и белый список
+   * игр живут в `levelTimes`, рядом с объяснением каждой строки).
+   *
+   * ⚠️ Проверку зовём ДО чтения истории: у методик и у игр заданной длины
+   * незачем разбирать весь массив партий ради ответа «не показываем».
+   */
+  const timed = showsBestTime(gameId, countsRuns);
+  useEffect(() => {
+    let alive = true;
+    if (timed && profile?.id) getLevelBestTimes(gameId, profile.id).then((m) => { if (alive) setTimes(m); });
+    return () => { alive = false; };
+  }, [gameId, profile?.id, currentLevel, timed]);
+
   // Питомец на тропинке — ТОТ ЖЕ, что у игрока везде: его облик и его аксессуар.
   // Рисовать здесь другого значило бы завести второго персонажа на ровном месте.
   useEffect(() => {
@@ -193,7 +234,14 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
    * Подпись ступени: своя от игры, иначе общая по доле пути. У методик — нет.
    */
   const label = levelLabel ?? (countsRuns ? undefined : (l: number) => t(tierKeyFor(l, maxLevel)));
-  const H = label ? H_LABEL : H_BASE;
+  /**
+   * ⚠️ ВЫСОТУ ДОБАВЛЯЕТ ТОЛЬКО РЕАЛЬНО ВИДИМОЕ ВРЕМЯ. Считаем по узлам, которые
+   * на карте есть (`l <= maxLevel`): рекорд с уровня, до которого эта карта не
+   * дотягивается (игра ужала число уровней, история осталась), не нарисуется
+   * нигде — и полоса под ним была бы пустой.
+   */
+  const hasTimes = Object.keys(times).some((k) => Number(k) <= maxLevel && times[Number(k)] > 0);
+  const H = mapHeight(!!label, hasTimes);
   const sel = Math.min(Math.max(1, currentLevel), maxLevel);   // где стоит питомец = что запустится
   /**
    * ПОТОЛОК ПУТИ — самое высокое, что мы видели за это открытие экрана.
@@ -366,6 +414,35 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
             </Text>
           ))}
 
+          {/**
+            * ЛУЧШЕЕ ВРЕМЯ ПРОЙДЕННОГО УРОВНЯ — самой нижней строкой.
+            *
+            * Показываем только там, где оно есть: узел без времени не получает
+            * ни подписи, ни пустого места под собой (высоту полотна поднимает
+            * `hasTimes`, а не сам факт, что игра умеет считать время).
+            * Цвет приглушённый всегда, включая текущий узел: это не состояние
+            * пути, а справка «вот что ты уже сумел» — спорить за внимание со
+            * ступенью и звёздами ей незачем.
+            */}
+          {hasTimes && Array.from({ length: maxLevel }, (_, i) => {
+            const best = times[i + 1];
+            if (!best) return null;
+            return (
+              <Text
+                key={`tm${i}`}
+                numberOfLines={1}
+                style={[styles.levelTime, {
+                  left: nodeX(i) - GAP / 2,
+                  top: timeTop(i, !!label),
+                  width: GAP,
+                  color: dim,
+                }]}
+              >
+                {formatBestTime(best)}
+              </Text>
+            );
+          })}
+
           {/* Нажимаемые узлы — пройденные и свой потолок (нажатие на него снимает
               переигровку и возвращает на достигнутое). Дальше потолка не пускаем:
               тропинка показывает путь, но не работает лифтом через сложность. */}
@@ -376,7 +453,11 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
               <TouchableOpacity
                 key={`tap${l}`}
                 accessibilityRole="button"
-                accessibilityLabel={`${t('level')} ${l}`}
+                // Скринридеру цифра «2:40» без слова ничего не говорит; ключ
+                // `bestTime` уже есть во всех двенадцати словарях.
+                accessibilityLabel={times[l]
+                  ? `${t('level')} ${l}, ${t('bestTime')} ${formatBestTime(times[l])}`
+                  : `${t('level')} ${l}`}
                 onPress={() => onPickLevel!(l)}
                 style={{ position: 'absolute', left: nodeX(i) - 22, top: nodeY(i) - 22, width: 44, height: 44 }}
               />
@@ -398,4 +479,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 13, fontWeight: '700' },
   hint: { fontSize: 11, fontWeight: '600', marginTop: -2 },
   levelLabel: { position: 'absolute', fontSize: 9, fontWeight: '600', textAlign: 'center' },
+  // Время — тем же кеглем, но без насыщенности подписи ступени: рядом стоят две
+  // строки, и одинаково жирные спорили бы друг с другом за взгляд.
+  levelTime: { position: 'absolute', fontSize: 9, fontWeight: '500', textAlign: 'center' },
 });
