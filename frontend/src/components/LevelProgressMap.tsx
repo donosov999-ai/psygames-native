@@ -111,7 +111,23 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
   const [stars, setStars] = useState<StarsMap>({});
   const [skin, setSkin] = useState<PetSkin>('cat');
   const [accessory, setAccessory] = useState<PetAccessory | null>(null);
-  const { width: winW } = useWindowDimensions();
+  /**
+   * 🔴 НОЛЬ — ЭТО «ШИРИНА ЕЩЁ НЕ ИЗВЕСТНА», А НЕ «ШИРИНА НОЛЬ».
+   *
+   * В веб-сборке (а Android у нас WebView, то есть это и телефон тоже)
+   * `useWindowDimensions()` на ПЕРВОМ кадре отдаёт 0, а обновляется только по
+   * событию `resize` — которого при обычной загрузке экрана не бывает. Ноль
+   * запекался в `maxWidth`, и тропинка схлопывалась в полоску 24 px: подпись
+   * «Уровень 1 / 52» вставала по букве в столбик, узлы с питомцем исчезали.
+   * Держалось до поворота экрана — то есть у большинства навсегда.
+   *
+   * Замер 19.08.2026: сломано было на ВСЕХ проверенных экранах (судоку,
+   * сортировка, Шульте, маджонг, «Запомни цифры», N-назад), 3 загрузки из 3.
+   * После искусственного ресайза ширина сама становилась 391 px — этим и
+   * доказано, что дело в первом кадре, а не в вёрстке родителя.
+   */
+  const { width: rawWinW } = useWindowDimensions();
+  const winW = rawWinW > 0 ? rawWinW : undefined;
   const scrollRef = useRef<ScrollView>(null);
   const viewW = useRef(0);
 
