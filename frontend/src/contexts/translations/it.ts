@@ -1334,7 +1334,7 @@ const t: Record<string, string> = {
   "samuraiHowTo": "Una scacchiera 21×21 = cinque sudoku sovrapposti agli angoli. Riempi ogni cella così che in ogni griglia 9×9 righe, colonne e blocchi 3×3 contengano 1–9 senza ripetizioni. Col 🔍 alterni lo zoom: figura intera o ingrandito con scorrimento.",
   "boardBuilding": "Preparazione della griglia",
   "boardBuildingSlow": "Questo livello è difficile: cerchiamo una griglia che non si risolva con una semplice scansione. Ci vogliono alcuni secondi.",
-  "boardBuildingAttempt": "Tentativo {n} di {max}",
+  "boardBuildingStep": "Passo {n} di {max}",
   "errorsOfMax": "Errori {n}/{max}",
   "zoomIn": "Ingrandisci",
   "zoomFit": "Tutta la griglia",

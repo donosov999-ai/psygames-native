@@ -1334,7 +1334,7 @@ const t: Record<string, string> = {
   "samuraiHowTo": "Une grille 21×21 = cinq sudokus superposés par les coins. Remplis chaque case pour que chaque grille 9×9 ait 1–9 sans répétition en lignes, colonnes et blocs 3×3. Le bouton 🔍 bascule le zoom : figure entière ou agrandi avec défilement.",
   "boardBuilding": "Préparation de la grille",
   "boardBuildingSlow": "Ce niveau est difficile : on cherche une grille qu'un simple balayage ne résout pas. Cela prend quelques secondes.",
-  "boardBuildingAttempt": "Essai {n} sur {max}",
+  "boardBuildingStep": "Étape {n} sur {max}",
   "errorsOfMax": "Erreurs {n}/{max}",
   "zoomIn": "Agrandir",
   "zoomFit": "Toute la grille",

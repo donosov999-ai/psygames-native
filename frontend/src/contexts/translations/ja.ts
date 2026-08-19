@@ -648,7 +648,7 @@ const t: Record<string, string> = {
   "samuraiHowTo": "21×21の盤面＝角で重なる5つの数独。どの9×9グリッドでも行・列・3×3ブロックに1–9が重複なく入るように埋めます。🔍ボタンでズーム切替：全体表示かスクロール付き拡大。",
   "boardBuilding": "盤面を作成中",
   "boardBuildingSlow": "このレベルは難しめです。単純な走査では解けない盤面を選んでいます。数秒かかります。",
-  "boardBuildingAttempt": "{max} 回中 {n} 回目",
+  "boardBuildingStep": "ステップ {n}/{max}",
   "errorsOfMax": "ミス {n}/{max}",
   "zoomIn": "拡大",
   "zoomFit": "全体表示",

@@ -1334,7 +1334,7 @@ const t: Record<string, string> = {
   "samuraiHowTo": "21×21 보드 = 모서리가 겹치는 다섯 개의 스도쿠. 각 9×9 그리드의 행·열·3×3 블록에 1–9가 중복 없이 들어가도록 채우세요. 🔍 버튼으로 전체 보기와 스크롤 확대를 전환합니다.",
   "boardBuilding": "판을 만드는 중",
   "boardBuildingSlow": "이 단계는 어렵습니다. 단순히 훑어서는 풀리지 않는 판을 고르는 중이며, 몇 초 걸립니다.",
-  "boardBuildingAttempt": "{max}회 중 {n}회",
+  "boardBuildingStep": "{max}단계 중 {n}단계",
   "errorsOfMax": "오류 {n}/{max}",
   "zoomIn": "확대",
   "zoomFit": "전체 보기",

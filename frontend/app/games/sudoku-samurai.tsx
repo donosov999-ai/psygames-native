@@ -1,4 +1,4 @@
-/* psygames-game-sudoku-samurai · VER 2 · 20.08.2026 */
+/* psygames-game-sudoku-samurai · VER 3 · 20.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,6 +21,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { saveResume, loadResume, clearResume } from '@/src/services/resume';
+import BoardBuilding, { runSteps, nextFrame, type BuildStatus } from '@/src/components/BoardBuilding';
 import { TECHNIQUE_TIER, type Technique } from '@/src/services/sudoku-grade';
 import { buildSolution, GRID_ORIGINS, isSolved as samuraiSolved } from '@/src/services/samurai';
 import {
@@ -68,7 +69,10 @@ export function samuraiVisibleMarks(mask: number, value: number, cellSize: numbe
 }
 
 type Cell = number; // 0 = empty (та же типизация, что в sudoku.tsx)
-type GamePhase = 'config' | 'playing' | 'cleared' | 'result';
+// 'building' — доска СОБИРАЕТСЯ. Отдельная фаза, а не флажок поверх 'config':
+// на верхних уровнях она длится секунды, и всё это время экран обязан говорить,
+// что идёт работа (см. components/BoardBuilding).
+type GamePhase = 'config' | 'building' | 'playing' | 'cleared' | 'result';
 
 // СИСТЕМА УРОВНЕЙ. Ступень задаётся ТЕХНИКОЙ, которая нужна для решения, а не долей
 // выколотых клеток. Замер 19.08.2026 старого пути (доля 0.42→0.62): на уровнях 1, 3, 5,
@@ -665,6 +669,13 @@ export function minTierOf(puzzle: Cell[][], cap = 5): number {
 }
 
 /**
+ * Состояние выкапывания: доска, сколько снято, какой техникой берётся и сняло ли
+ * что-нибудь последнее прохождение. Торчит наружу, чтобы следующий проход можно
+ * было сделать отдельным вызовом — и отдать между ними кадр экрану.
+ */
+export interface DigState { puzzle: Cell[][]; blanks: number; tier: number; progress: boolean }
+
+/**
  * Выкалывание ОТ ЛОГИКИ. Клетка убирается, только если доска остаётся решаемой
  * техниками не выше `tierMax`. Отсюда сразу три вещи:
  *   • ступень уровня настоящая — потолок техник задаёт уровень, а не число дырок;
@@ -688,16 +699,25 @@ export function minTierOf(puzzle: Cell[][], cap = 5): number {
  * доску, где снять больше нечего вообще, и следующая ступень не открывает ни одной
  * клетки. Замер 19.08.2026: лестница дала ступень 3 в 2 прогонах из 3, обычный
  * жадный проход — в 5 из 5.
+ *
+ * ⚠️ ПРОХОДЫ МОЖНО ДЕЛАТЬ ПО ОДНОМУ. `from` продолжает уже начатую доску, а
+ * `progress` в ответе говорит, сняла ли что-нибудь последняя ходка. Это не ради
+ * красоты: замер 20.08.2026 в браузере (уровень 12, тротлинг ×6 = средний телефон)
+ * — вся сборка 4.5 с уходила в ОДИН проход, и экран всё это время держал одну и ту
+ * же строку, потому что отдать кадр было негде. Разбиение по проходам даёт точку,
+ * где поток отпускается и строка успевает смениться.
  */
 export function digByLogic(
   solution: Cell[][], tierMax: number, blankCap: number, passes = 2,
-): { puzzle: Cell[][]; blanks: number; tier: number } {
-  const puzzle = solution.map((row) => [...row]);
-  let blanks = 0;
-  let tier = 1;
+  from?: DigState,
+): DigState {
+  const puzzle = from ? from.puzzle : solution.map((row) => [...row]);
+  let blanks = from ? from.blanks : 0;
+  let tier = from ? from.tier : 1;
+  let progress = false;
   for (let pass = 0; pass < passes; pass++) {
     if (blanks >= blankCap) break;
-    let progress = false;
+    progress = false;
     // Второй проход не бессмыслен: клетку, отвергнутую в начале прохода, к его концу
     // могло стать можно убрать — доска вокруг неё уже другая.
     for (const [r, c] of shuffle(CELLS)) {
@@ -716,7 +736,7 @@ export function digByLogic(
     }
     if (!progress) break;
   }
-  return { puzzle, blanks, tier };
+  return { puzzle, blanks, tier, progress };
 }
 
 export interface SamuraiLevel {
@@ -728,27 +748,97 @@ export interface SamuraiLevel {
 }
 
 /**
- * Партия уровня: несколько заходов, берём тот, что ближе к полосе уровня. Порядок
- * выкалывания случайный, и ступень от него пляшет — один заход то и дело отдаёт доску
- * легче заказанной.
+ * Сколько заходов генератора может понадобиться на одну партию и из скольких проходов
+ * состоит заход.
  *
- * Заходов ФИКСИРОВАННОЕ число, а не «сколько успеем за N миллисекунд»: бюджет по
- * времени вернул бы ту самую зависимость от железа, ради ухода от которой всё и затевалось.
- * Ранний выход по достижении пола — не по часам, а по результату.
+ * Числа ФИКСИРОВАННЫЕ, а не «сколько успеем за N миллисекунд»: бюджет по времени вернул
+ * бы ту самую зависимость от железа, ради ухода от которой всё и затевалось. Наружу они
+ * торчат потому, что экран показывает человеку номер идущего шага — а показывать можно
+ * только настоящее число из цикла, не выдуманное.
  */
-export function generateSamuraiLevel(level: number, attempts = 2): SamuraiLevel {
+export const BUILD_ATTEMPTS = 2;
+export const DIG_PASSES = 2;
+
+/** Какой из двух заходов оставить: тот, что потребовал более сложной техники. */
+export function betterAttempt(a: SamuraiLevel | null, b: SamuraiLevel): SamuraiLevel {
+  return !a || b.tier > a.tier ? b : a;
+}
+
+/** Хватит ли этой доски для уровня: выше потолка не надо, ниже — пробуем ещё раз. */
+export function attemptEnough(level: number, best: SamuraiLevel): boolean {
+  return best.tier >= levelBand(level).max;
+}
+
+/** Отчёт одного шага сборки: лучшее на сейчас и «дальше не надо». */
+export interface BuildTick { best: SamuraiLevel; done: boolean }
+
+/**
+ * СБОРКА ПАРТИИ ШАГАМИ.
+ *
+ * Шаг = ОДИН проход выкапывания. Заход (новое решение + выкапывание до упора) состоит из
+ * DIG_PASSES проходов, заходов может быть до BUILD_ATTEMPTS — отсюда потолок `steps`.
+ *
+ * 🔴 ЗАЧЕМ ТАКОЕ ДРОБЛЕНИЕ. Замер 20.08.2026 в браузере на уровне 12 (тротлинг ×6 —
+ * примерно средний телефон): сборка занимает 4.5 с и вся целиком укладывается в ОДИН
+ * заход. Пока шагом был заход, экран 4.5 секунды держал одну и ту же строку: отдать
+ * кадр было негде, и сказать «уровень сложный, это надолго» — тоже негде. По проходам
+ * поток отпускается каждые ~0.8–1.2 с (тот же замер), и строка успевает смениться.
+ *
+ * ⚠️ Порядок работы тот же, что у сплошного `digByLogic(solution, max, cap, 2)`: те же
+ * проходы, тот же ранний выход, когда проход не снял ничего. Дробление НЕ меняет
+ * сложность — оно меняет только то, где поток отпускается.
+ *
+ * ⚠️ «Шаг 2 из 4» — это НЕ половина работы. Это «на втором из четырёх возможных»:
+ * сборка может закончиться на любом шаге, как только доска дотянула до потолка уровня.
+ * Ровно поэтому шкалы процентов на экране нет — считать проценты не из чего.
+ */
+export function samuraiBuilder(level: number): { steps: number; step: () => BuildTick } {
   const { max } = levelBand(level);
   // Потолок дырок связывает только ступень 1: выше пол требует копать до упора, и доля
   // пустых клеток там выходит одна и та же (~75%) независимо от того, какая техника нужна.
   const blankCap = max === 1 ? Math.round(CELLS.length * levelParams(level).digRatio) : CELLS.length;
   let best: SamuraiLevel | null = null;
-  for (let a = 0; a < attempts; a++) {
-    const solution = buildSolutionCanvas();
-    const { puzzle, blanks, tier } = digByLogic(solution, max, blankCap);
-    if (!best || tier > best.tier) best = { puzzle, solution, tier, blanks };
-    if (best.tier >= max) break;   // выше потолка не надо, ниже — пробуем ещё раз
+  let solution: Cell[][] | null = null;
+  let dug: DigState | null = null;
+  let pass = 0;
+  return {
+    steps: BUILD_ATTEMPTS * DIG_PASSES,
+    step: (): BuildTick => {
+      if (!solution) { solution = buildSolutionCanvas(); dug = null; pass = 0; }
+      dug = digByLogic(solution, max, blankCap, 1, dug ?? undefined);
+      pass++;
+      const made: SamuraiLevel = { puzzle: dug.puzzle, solution, tier: dug.tier, blanks: dug.blanks };
+      // Заход кончился: проходы вышли или последний ничего не снял — дальше он бесполезен.
+      const attemptOver = pass >= DIG_PASSES || !dug.progress;
+      if (attemptOver) { best = betterAttempt(best, made); solution = null; }
+      const shown = attemptOver ? best! : betterAttempt(best, made);
+      // ⚠️ «Хватит» спрашиваем ТОЛЬКО на конце захода. Спросить в середине — значит
+      // бросить недокопанную доску, как только она дотянула до потолка техник: клеток
+      // на ней осталось бы заметно больше заказанного. Дробление придумано, чтобы
+      // отдавать кадр, а не чтобы менять сложность, — и вот здесь эта разница живёт.
+      return { best: shown, done: attemptOver && attemptEnough(level, shown) };
+    },
+  };
+}
+
+/**
+ * Партия уровня целиком, синхронно. Порядок выкалывания случайный, и ступень от него
+ * пляшет — один заход то и дело отдаёт доску легче заказанной, поэтому заходов больше
+ * одного. Ранний выход по достижении пола — не по часам, а по результату.
+ *
+ * ⚠️ ЭКРАН ЗОВЁТ НЕ ЭТО, а `samuraiBuilder` по шагам: между шагами ему надо отдать кадр
+ * индикатору. Здесь тот же самый строитель, прокрученный до конца без пауз, — он нужен
+ * гейтам и всему, где кадры отдавать некому. Логика сборки одна на оба пути.
+ */
+export function generateSamuraiLevel(level: number, attempts = BUILD_ATTEMPTS): SamuraiLevel {
+  const b = samuraiBuilder(level);
+  const steps = Math.max(1, attempts) * DIG_PASSES;
+  let last: BuildTick | null = null;
+  for (let i = 0; i < steps; i++) {
+    last = b.step();
+    if (last.done) break;
   }
-  return best!;
+  return last!.best;
 }
 
 /** Ключ незаконченной партии. Совпадает с gameId уровня — реестр «Продолжить» ищет по нему. */
@@ -832,13 +922,28 @@ export default function SamuraiSudokuGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  /**
+   * ЧТО СЕЙЧАС ДЕЛАЕТ ГЕНЕРАТОР. Живёт только в фазе 'building'.
+   *
+   * Замер 20.08.2026 в браузере: уровень 12 на маке — 0.39–0.82 с, он же с тротлингом
+   * ×6 (примерно средний телефон) — 1.9–4.5 с. Столько экран раньше молчал.
+   */
+  const [build, setBuild] = useState<BuildStatus>({ step: 1, steps: BUILD_ATTEMPTS * DIG_PASSES, slow: false });
+  /**
+   * Поколение сборки. Пока доска считается, человек может нажать «назад», начать
+   * партию заново или поднять сохранённую — и досчитанная доска не имеет права
+   * встать поверх того, что уже на экране. Счётчик растёт на каждом таком событии,
+   * и заход со старым номером молча выбрасывает свой результат.
+   */
+  const buildRef = useRef(0);
   // Подводка доски к клетке, по которой ткнули на карте. Скроллы вложенные:
   // внешний двигает по горизонтали, внутренний — по вертикали.
   const hScrollRef = useRef<ScrollView | null>(null);
   const vScrollRef = useRef<ScrollView | null>(null);
   const jumpRef = useRef<{ r: number; c: number } | null>(null);
 
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+  // Экран снесли — гасим таймер и обесцениваем идущую сборку: ставить доску некуда.
+  useEffect(() => () => { buildRef.current++; if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   // Подвести доску к клетке, выбранной на карте. Ждём кадр: в момент смены режима
   // скроллы ещё смонтированы под старый размер клетки, и scrollTo уехал бы не туда.
@@ -859,29 +964,66 @@ export default function SamuraiSudokuGame() {
 
   const starsFor = (e: number, h: number): number => (e === 0 && h === 0) ? 3 : (e <= 2 && h <= 1) ? 2 : 1;
 
+  /**
+   * СТАРТ ПАРТИИ. Сначала показать, что идёт работа, и только ПОТОМ работать.
+   *
+   * 🔴 ЗАЧЕМ ТАК, А НЕ ОДНОЙ СТРОКОЙ. Раньше здесь стоял синхронный
+   * `generateSamuraiLevel`, и на верхних уровнях он держал поток до 4.5 секунд:
+   * человек нажал «играть» и смотрел в пустой экран, не понимая, зависло или
+   * думает. Поставить рядом `setPhase('building')` НЕ помогло бы — состояние,
+   * поменянное перед тяжёлым циклом в том же обработчике, не успевает доехать до
+   * экрана и гаснет в том же кадре.
+   *
+   * Поэтому сборка идёт ШАГАМИ (samuraiBuilder), и перед каждым отдаётся кадр
+   * (runSteps + nextFrame). Экран успевает нарисоваться и обновить строку, а счётчик
+   * шагов на ней — настоящий номер из цикла, а не выдуманные проценты.
+   *
+   * ⚠️ ЧАСЫ ПАРТИИ ЗАВОДЯТСЯ ПОСЛЕ СБОРКИ. Возьми `gameNow()` до неё — и человек
+   * получил бы партию, начатую с четырёх секунд на секундомере, ни разу не коснувшись
+   * доски. Это единственная причина, по которой отсчёт стоит именно здесь, внизу.
+   */
   const startGame = () => {
     // Новая партия заменяет незаконченную: старую доску продолжать уже нечем.
     const pidStart = profile?.id;
     if (pidStart) clearResume(GAME_ID, pidStart).catch(() => {});
     hist.reset();
     levelRef.current = lvl.level;
-    const { puzzle: p, solution: s } = generateSamuraiLevel(levelRef.current);
-    setSolution(s);
-    setGrid(p.map((r) => [...r]));
-    setGiven(p.map((r) => r.map((v) => v !== 0)));
-    setMarks(emptyPencilMarks(SIZE));   // новая доска — чистый лист и в карандашном слое
-    setPencil(false);
-    setSelected(null);
-    setErrors(0);
-    setHintUses(0);
-    setOver(false);
-    setZoom('fit');
-    setPhase('playing');
-    const start = gameNow();
-    setStartTime(start);
+    const level = levelRef.current;
+    // Секундомер прошлой партии гасим здесь же: пока идёт сборка, считать нечего.
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     setElapsedTime(0);
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
+    const builder = samuraiBuilder(level);
+    setBuild({ step: 1, steps: builder.steps, slow: false });
+    setPhase('building');
+    const gen = ++buildRef.current;
+    void (async () => {
+      const made = await runSteps<BuildTick>({
+        steps: builder.steps,
+        step: () => builder.step(),
+        enough: (tick) => tick.done,
+        show: (st) => { if (gen === buildRef.current) setBuild(st); },
+        frame: nextFrame,
+        now: gameNow,
+      });
+      if (gen !== buildRef.current) return;   // за время сборки экран ушёл дальше
+      const { puzzle: p, solution: s } = made.best;
+      setSolution(s);
+      setGrid(p.map((r) => [...r]));
+      setGiven(p.map((r) => r.map((v) => v !== 0)));
+      setMarks(emptyPencilMarks(SIZE));   // новая доска — чистый лист и в карандашном слое
+      setPencil(false);
+      setSelected(null);
+      setErrors(0);
+      setHintUses(0);
+      setOver(false);
+      setZoom('fit');
+      setPhase('playing');
+      const start = gameNow();
+      setStartTime(start);
+      setElapsedTime(0);
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
+    })();
   };
 
 
@@ -896,6 +1038,7 @@ export default function SamuraiSudokuGame() {
 
   /** Поднять партию из снимка — доска оживает ровно такой, какой её оставили. */
   const applyResume = (sv: SamuraiResume) => {
+    buildRef.current++;   // доска, что считается прямо сейчас, поверх поднятой партии не встанет
     levelRef.current = sv.level;
     setSolution(sv.solution);
     setGrid(sv.grid);
@@ -932,7 +1075,10 @@ export default function SamuraiSudokuGame() {
     let cancelled = false;
     loadResume<SamuraiResume>(GAME_ID, pid, RESUME_V)
       .then((saved) => {
-        if (cancelled || !saved || !Array.isArray(saved.grid) || saved.grid.length !== SIZE) return;
+        // Пока запись поднималась с диска, человек мог нажать «играть». Сборка идёт
+        // секундами, и старая партия успела бы приехать ей в середину — не воскрешаем.
+        if (cancelled || buildRef.current > 0) return;
+        if (!saved || !Array.isArray(saved.grid) || saved.grid.length !== SIZE) return;
         if (!Array.isArray(saved.solution) || saved.solution.length !== SIZE) return;
         applyResume(saved);
       })
@@ -1170,7 +1316,9 @@ export default function SamuraiSudokuGame() {
           {t('samuraiHowTo')}
         </Text>
       </View>
+      {/* testID — чтобы гейт жал ИМЕННО эту кнопку, а не угадывал её среди узлов тропинки. */}
       <TouchableOpacity
+        testID="samurai-start"
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('playLevelN').replace('{n}', String(lvl.level))}</Text>
@@ -1467,6 +1615,9 @@ export default function SamuraiSudokuGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
+      {/* Доска собирается. Экран говорит об этом словами, а не молчит секундами —
+          и «назад» в шапке остаётся живым: ожидание не превращается в ловушку. */}
+      {phase === 'building' && <BoardBuilding status={build} tint={GRADIENT[0]} />}
       {/* Авто-поток: прошёл уровень чисто → баннер → следующий стартует сам (onContinue) */}
 
       {/* result — только для пресета (запуск из зарядки, уровень не двигаем) */}

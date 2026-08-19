@@ -1217,7 +1217,7 @@ const t: Record<string, string> = {
   "samuraiHowTo": "Ein 21×21-Feld = fünf an den Ecken überlappende Sudokus. Fülle jede Zelle so, dass in jedem 9×9-Gitter Zeilen, Spalten und 3×3-Blöcke 1–9 ohne Wiederholung enthalten. Mit 🔍 wechselst du den Zoom: ganze Figur oder vergrößert mit Scrollen.",
   "boardBuilding": "Das Spielfeld wird aufgebaut",
   "boardBuildingSlow": "Dieses Level ist schwer: Wir suchen ein Feld, das sich nicht durch einfaches Absuchen lösen lässt. Das dauert ein paar Sekunden.",
-  "boardBuildingAttempt": "Versuch {n} von {max}",
+  "boardBuildingStep": "Schritt {n} von {max}",
   "errorsOfMax": "Fehler {n}/{max}",
   "zoomIn": "Vergrößern",
   "zoomFit": "Ganzes Feld",
