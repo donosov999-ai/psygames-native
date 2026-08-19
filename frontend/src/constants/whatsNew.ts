@@ -16,7 +16,7 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
-    version: '1.206.0',
+    version: '1.206.1',
     date: '2026-08-19',
     ru: [
       "Семь новых упражнений — в каталоге стало 71",
@@ -24,7 +24,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       "«Ритм и высота» — первое упражнение на слух, без слов и микрофона",
       "На тропинке видно ступень сложности словом, а не голый номер",
       "Отмена, подсказка и перемешать — отдельным рядом; низ экрана только для ответа",
-      "Самурай и SET спрашивают перед выходом — долгая партия не пропадает",
+      "Самурай, SET и «Сортировка товаров» спрашивают перед выходом — долгая партия не пропадает",
       "«Числовая шкала»: одно подтверждение вместо двух",
       "Дневной перерыв считается с вашим набором упражнений",
       "Тропинка уровней снова видна. Она не показывалась почти нигде: карточка схлопывалась в полоску, подпись «Уровень 1 / 52» вставала по букве в столбик, питомец и звёзды пропадали. Держалось до поворота экрана — то есть у большинства всегда",
@@ -48,7 +48,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       "Rhythm and Pitch — the first exercise for the ear, no words, no microphone",
       "The level path names the difficulty tier in words, not a bare number",
       "Undo, hint and shuffle sit in their own row; the bottom is for answering",
-      "Samurai and SET ask before you leave — a long game is not lost",
+      "Samurai, SET and Sort the Goods ask before you leave — a long game is not lost",
       "Number Line takes one confirmation instead of two",
       "The midday break respects your own set of exercises",
       "The level path is visible again. It was showing almost nowhere: the card collapsed to a sliver, the “Level 1 / 52” caption stacked one letter per line, and the pet and stars vanished. It lasted until you rotated the screen — for most people, forever",
