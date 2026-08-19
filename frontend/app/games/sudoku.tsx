@@ -1265,52 +1265,75 @@ export default function SudokuGame() {
       </View>
     );
     {/* Hint button + biomarker counters */}
+    /**
+     * ⚠️ РЕЖИМЫ ПИСЬМА — ВТОРЫМ РЯДОМ В ПОРТРЕТЕ И ОДНИМ РЯДОМ В ЛАНДШАФТЕ, потому что
+     * в двух раскладках дефицитно РАЗНОЕ.
+     *
+     * В портрете дефицит ширины: четыре капсулы на экране 375 делят строку по 80 точек,
+     * и подпись режется до «Подск…» — на этом уже обжигались (см. GlassButton). Значит
+     * два ряда по две: каждой достаётся 155, обе подписи целые.
+     *
+     * В ландшафте наоборот — дефицит высоты, и он жёстче: доска считается от `height-96`
+     * (бюджет учитывает шапку с ОДНИМ рядом кнопок). Второй ряд отнимает ещё 53 точки, и
+     * на экране 812×375 нижний ряд доски уезжал за край БЕЗ возможности доскроллить:
+     * `boardOverflows` включает прокрутку только в портрете. Замер живой сборки 20.08:
+     * низ доски 427 при высоте окна 375. Зато ширины в ландшафте вдоволь — четыре кнопки
+     * по 195 точек, ничего не режется. Поэтому там один ряд.
+     *
+     * Смысловое деление сохраняется: сначала ДЕЙСТВИЯ (подсказка, отмена), потом — ЧЕМ
+     * сейчас пишет палец. Счётчик пометок на кнопке нужен потому, что при выключённом
+     * карандаше слоя не видно, и без числа непонятно, есть ли там что-нибудь вообще.
+     */
+    const hintBtn = (
+      <GlassButton
+        grow
+        tone="warn"
+        icon="bulb"
+        label={t('btn_hint')}
+        onPress={handleHint}
+        disabled={!selected || hintUses >= hintMax}
+      />
+    );
+    const undoBtn = (
+      <GlassButton
+        grow
+        icon="arrow-undo"
+        label={t('btn_undo')}
+        onPress={handleUndo}
+        disabled={!hist.canUndo}
+      />
+    );
+    const pencilBtn = (
+      <GlassButton
+        grow
+        icon="pencil-outline"
+        label={countPencilMarks(marks) ? `${t('sudokuPencilMode')} ${countPencilMarks(marks)}` : t('sudokuPencilMode')}
+        active={pencil}
+        onPress={() => setPencilMode(!pencil)}
+      />
+    );
+    const paintBtn = (
+      <GlassButton
+        grow
+        icon="color-palette-outline"
+        label={t('sudokuColorMode')}
+        active={paintColor !== null}
+        onPress={() => setPaintMode(paintColor === null)}
+      />
+    );
     const hintEl = (
       <View style={styles.hintBlock}>
-        <View style={styles.hintRow}>
-          <GlassButton
-            grow
-            tone="warn"
-            icon="bulb"
-            label={t('btn_hint')}
-            onPress={handleHint}
-            disabled={!selected || hintUses >= hintMax}
-          />
-          <GlassButton
-            grow
-            icon="arrow-undo"
-            label={t('btn_undo')}
-            onPress={handleUndo}
-            disabled={!hist.canUndo}
-          />
-        </View>
-        {/*
-          ⚠️ РЕЖИМЫ ПИСЬМА — СВОИМ РЯДОМ, а не четвёртой и пятой кнопкой к «Подсказке».
-          В строке из четырёх капсул на экране 375 каждой достаётся 80 точек, и подпись
-          режется до «Подск…» — на этом уже обжигались (см. комментарий в GlassButton).
-          Двумя рядами по две каждой достаётся 155, и обе подписи целые.
-
-          Смысловое деление тут же: сверху ДЕЙСТВИЯ (подсказка, отмена), снизу — ЧЕМ
-          сейчас пишет палец. Счётчик пометок на кнопке нужен потому, что при выключенном
-          карандаше слоя не видно, и без числа непонятно, есть ли там что-нибудь вообще.
-        */}
-        <View style={styles.hintRow}>
-          <GlassButton
-            grow
-            icon="pencil-outline"
-            label={countPencilMarks(marks) ? `${t('sudokuPencilMode')} ${countPencilMarks(marks)}` : t('sudokuPencilMode')}
-            active={pencil}
-            onPress={() => setPencilMode(!pencil)}
-          />
-          <GlassButton
-            grow
-            icon="color-palette-outline"
-            label={t('sudokuColorMode')}
-            active={paintColor !== null}
-            onPress={() => setPaintMode(paintColor === null)}
-          />
-        </View>
-        {pencil && (
+        {landscape ? (
+          <View style={styles.hintRow}>{hintBtn}{undoBtn}{pencilBtn}{paintBtn}</View>
+        ) : (
+          <>
+            <View style={styles.hintRow}>{hintBtn}{undoBtn}</View>
+            <View style={styles.hintRow}>{pencilBtn}{paintBtn}</View>
+          </>
+        )}
+        {/* Подсказку про карандаш показываем только в портрете: в ландшафте каждая
+            строка над доской стоит нижнего ряда клеток (см. арифметику выше). */}
+        {pencil && !landscape && (
           <Text style={[styles.paintHint, { color: colors.textSecondary }]}>{t('sudokuPencilHint')}</Text>
         )}
         {paintColor !== null && (
