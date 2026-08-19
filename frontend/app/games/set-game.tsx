@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -7,7 +7,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
+import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
@@ -43,7 +45,7 @@ type FillType = 'solid' | 'striped' | 'open';
 type ColorType = 'red' | 'green' | 'purple';
 type CountType = 1 | 2 | 3;
 
-interface Card {
+export interface Card {
   shape: ShapeType;
   fill: FillType;
   color: ColorType;
@@ -114,19 +116,22 @@ function findAnySet(cards: Card[]): [number, number, number] | null {
   return null;
 }
 
+/** Карт на столе. Отдельной константой — по ней же сверяется поднятая из хранилища партия. */
+export const SET_BOARD_SIZE = 12;
+
 // Build a board of 12 cards that contains at least one SET (and not too many).
 function buildBoard(): Card[] {
   const deck = shuffle(allCards());
-  let board = deck.slice(0, 12);
+  let board = deck.slice(0, SET_BOARD_SIZE);
   let guard = 0;
   while (!findAnySet(board) && guard < 100) {
-    board = shuffle(allCards()).slice(0, 12);
+    board = shuffle(allCards()).slice(0, SET_BOARD_SIZE);
     guard++;
   }
   return board;
 }
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+export type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 
@@ -138,10 +143,201 @@ function levelParams(level: number): { trials: number; timeLimit: number } {
   return { trials, timeLimit };
 }
 
+/* ─────────────────────── незаконченная партия ───────────────────────
+ *
+ * 🔴 ЧТО ЛОМАЛОСЬ (замер 19.08.2026). Партия здесь — `trials` раскладов подряд
+ * (6 на первом уровне, 15 на десятом), а с L11 на каждый расклад ещё и лимит
+ * времени. Это минуты. Выход с экрана — промах пальцем по «назад» в шапке или
+ * аппаратная «назад» — уводил МОЛЧА и стирал всё: раскладку, счёт верных и
+ * ошибок, номер расклада, накопленное время. Ни вопроса, ни хранения.
+ *
+ * ⚠️ ПОЧЕМУ СНИМОК И ПОДЪЁМ — ОБЫЧНЫЕ ФУНКЦИИ, А НЕ КУСОК КОМПОНЕНТА. Рендерера
+ * компонентов в зависимостях проекта нет (`testMatch` — только `*.test.ts`),
+ * а самое ломкое здесь — АРИФМЕТИКА ВРЕМЕНИ: остаток лимита при подъёме обязан
+ * быть тем же, что был на момент ухода. Ошибись знаком — расклад либо начнётся
+ * заново (бесплатное время), либо окажется просроченным (штраф ни за что), и
+ * чтением исходника это не ловится. Вынесено сюда → гоняется в
+ * `src/__tests__/set-game-resume.test.ts` по-настоящему.
+ *
+ * ⚠️ ЧАСЫ ЗДЕСЬ ИГРОВЫЕ (`gameNow`), а не настенные: пока человек пишет отзыв,
+ * игра держит паузу. Момент `now` приходит снаружи одним аргументом — обе
+ * стороны, и снимок, и подъём, обязаны мерить одними часами.
+ */
+
+/** Ключ незаконченной партии. Совпадает с id в реестре игр — карточка «Продолжить» ищет по нему. */
+export const SET_GAME_ID = 'set_game';
+/** Версия формата снимка. Поменяли набор полей — подняли, старые записи просто не поднимутся. */
+export const SET_RESUME_V = 1;
+/** Задержка отложенной записи: подряд идущие касания не бьют по хранилищу каждым нажатием. */
+const RESUME_DEBOUNCE_MS = 400;
+
+/** Что видно на экране в момент снимка: разбор ошибки, показанный сет или чистое поле. */
+export type SetVerdict = 'none' | 'right' | 'wrong' | 'revealed';
+
+/** Снимок незаконченной партии. Лежит на устройстве, на сервер не уходит. */
+export interface SetResume {
+  level: number;
+  trials: number;
+  round: number;
+  hits: number;
+  errors: number;
+  /** Сам расклад: генерация случайная, по номеру уровня её не воспроизвести. */
+  board: Card[];
+  picked: number[];
+  /** Накопленное ИГРОВОЕ время партии, мс. */
+  elapsedMs: number;
+  /** Лимит на расклад, с (0 = на этом уровне лимита нет). */
+  dealLimitSec: number;
+  /**
+   * Остаток на ТЕКУЩИЙ расклад, мс — то самое, что нельзя ни обнулить, ни
+   * начать заново. `null` = отсчёт в момент ухода не шёл (висел разбор ошибки),
+   * и при подъёме расклад получает полный лимит — ровно как по кнопке «Понятно».
+   */
+  dealLeftMs: number | null;
+  /** Расклад отыгран (сет собран либо показан по таймауту) → при подъёме раздать новый. */
+  freshDeal: boolean;
+}
+
+/** Живая партия — то, что экран знает о себе в момент снимка. */
+export interface SetLiveParty {
+  phase: GamePhase;
+  level: number;
+  trials: number;
+  round: number;
+  hits: number;
+  errors: number;
+  board: Card[];
+  picked: number[];
+  /** Отметка игровых часов, от которой идёт партия. */
+  startedAt: number;
+  dealLimitSec: number;
+  /** Отметка игровых часов, когда истекает расклад; 0 = отсчёта сейчас нет. */
+  dealEndAt: number;
+  verdict: SetVerdict;
+}
+
+/** Поднятая партия: экран раскладывает это по своим состояниям. */
+export interface SetRestored {
+  level: number;
+  trials: number;
+  round: number;
+  hits: number;
+  errors: number;
+  board: Card[];
+  picked: number[];
+  /** Отметка игровых часов, с которой считать общее время партии. */
+  startedAt: number;
+  dealLimitSec: number;
+  /** Куда ставить дедлайн расклада; 0 = лимита нет. */
+  dealEndAt: number;
+  /** Расклад из снимка отыгран — экран обязан раздать свежий. */
+  freshDeal: boolean;
+}
+
+/**
+ * ЕСТЬ ЛИ ЧТО ТЕРЯТЬ. Вопрос при выходе там, где терять нечего, раздражает
+ * сильнее, чем помогает, поэтому «идёт партия» тут не критерий.
+ *
+ * ⚠️ `round > 1`, а не `round > 0`: счёт раскладов ЕДИНИЧНЫЙ (`setRound(1)` в
+ * startGame), так что `round > 0` означало бы «всегда, пока открыта игра» — то
+ * есть вопрос и на свежем раскладе, где не сделано ни одного действия. Смысл
+ * условия — «первый расклад ещё ничего личного не накопил», и на языке
+ * единичного счёта это `round > 1`. Ошибка на ПЕРВОМ раскладе уже считается
+ * (по ✗ решается проход уровня) — поэтому `errors > 0` стоит отдельно.
+ */
+export function setHasSomethingToLose(p: { phase: GamePhase; hits: number; errors: number; round: number }): boolean {
+  if (p.phase !== 'playing') return false;
+  return p.hits > 0 || p.errors > 0 || p.round > 1;
+}
+
+/**
+ * Снимок для хранилища. `null` = сохранять нечего, и это не ошибка: мусорные
+ * записи потом всплывают карточкой «Продолжить» на главной и обещают партию,
+ * которой нет.
+ */
+export function snapshotSetParty(live: SetLiveParty, now: number): SetResume | null {
+  if (!setHasSomethingToLose(live)) return null;
+  if (!Array.isArray(live.board) || live.board.length === 0) return null;
+  // Верный ответ на ПОСЛЕДНЕМ раскладе — партия уже дописывается на сервер
+  // (через 700 мс экран уйдёт в итог). Продолжать нечего.
+  if (live.verdict === 'right' && live.round >= live.trials) return null;
+
+  // Расклад отыгран: сет либо собран, либо показан по таймауту. Класть его в
+  // снимок нельзя — вернувшись, человек получил бы поле с уже известным сетом.
+  const played = live.verdict === 'right' || live.verdict === 'revealed';
+  // Отсчёт идёт только на чистом поле: и разбор ошибки, и показ сета его снимают.
+  const clockRuns = live.verdict === 'none' && live.dealEndAt > 0;
+
+  return {
+    level: live.level,
+    trials: live.trials,
+    // Верный ответ засчитан сразу, а номер расклада двигался бы через 700 мс —
+    // в снимке двигаем сами, иначе тот же расклад пришлось бы играть дважды.
+    round: live.verdict === 'right' ? live.round + 1 : live.round,
+    hits: live.hits,
+    errors: live.errors,
+    board: played ? [] : [...live.board],
+    // Выбранные, но не проверенные карты — состояние руки; после вердикта их и так нет.
+    picked: live.verdict === 'none' ? [...live.picked] : [],
+    elapsedMs: Math.max(0, now - live.startedAt),
+    dealLimitSec: live.dealLimitSec,
+    dealLeftMs: clockRuns ? Math.max(0, live.dealEndAt - now) : null,
+    freshDeal: played,
+  };
+}
+
+const isCardShape = (c: any): c is Card =>
+  !!c && (SHAPES as string[]).includes(c.shape) && (FILLS as string[]).includes(c.fill)
+      && (COLORS as string[]).includes(c.color) && (COUNTS as number[]).includes(c.count);
+
+/**
+ * Поднять партию из снимка. `null` = продолжать нечего (записи нет, она битая
+ * или отыгранная), экран просто заходит через конфиг.
+ *
+ * Часы заводим ЗАДНИМ ЧИСЛОМ на накопленное время: разность `now − startedAt`
+ * сразу даёт настоящую длительность партии, а не срок хранения записи.
+ */
+export function restoreSetParty(saved: SetResume | null | undefined, now: number): SetRestored | null {
+  if (!saved || typeof saved !== 'object') return null;
+  const freshDeal = !!saved.freshDeal;
+  const board = Array.isArray(saved.board) ? saved.board : [];
+  // Свежий расклад экран раздаст сам, поэтому доску из снимка сверяем только
+  // тогда, когда собираемся её показать.
+  if (!freshDeal && (board.length !== SET_BOARD_SIZE || !board.every(isCardShape))) return null;
+
+  const trials = Math.max(1, Math.floor(Number(saved.trials) || 0));
+  const round = Math.min(trials, Math.max(1, Math.floor(Number(saved.round) || 1)));
+  const limit = Math.max(0, Number(saved.dealLimitSec) || 0);
+  // null (разбор висел) → полный лимит. Иначе ровно тот остаток, что был на момент ухода.
+  const leftMs = saved.dealLeftMs === null || saved.dealLeftMs === undefined
+    ? limit * 1000
+    : Math.max(0, Number(saved.dealLeftMs) || 0);
+
+  return {
+    level: Math.max(1, Math.floor(Number(saved.level) || 1)),
+    trials,
+    round,
+    hits: Math.max(0, Math.floor(Number(saved.hits) || 0)),
+    errors: Math.max(0, Math.floor(Number(saved.errors) || 0)),
+    board: freshDeal ? [] : board,
+    // Тройка выбранных карт без вердикта — тупик: togglePick четвёртую не примет,
+    // а проверять уже некому. Поднимаем максимум две.
+    picked: freshDeal ? [] : (Array.isArray(saved.picked) ? saved.picked : [])
+      .filter((i, k, arr) => Number.isInteger(i) && i >= 0 && i < board.length && arr.indexOf(i) === k)
+      .slice(0, 2),
+    startedAt: now - Math.max(0, Number(saved.elapsedMs) || 0),
+    dealLimitSec: limit,
+    // Свежий расклад получает полный лимит — как при обычной раздаче.
+    dealEndAt: limit > 0 ? now + (freshDeal ? limit * 1000 : leftMs) : 0,
+    freshDeal,
+  };
+}
+
 export default function SetGame() {
   const { colors, colorblind } = useTheme();
   const HEX = colorblind ? COLOR_HEX_CB : COLOR_HEX;
   const { t, language } = useLanguage();
+  const { profile } = useProfile();
   const router = useRouter();
 
   const { isPreset, autostart, num, isCalm } = useGamePreset();
@@ -256,19 +452,13 @@ export default function SetGame() {
     armDealClock();   // разбор закрыт — отсчёт пошёл заново, с полного лимита
   };
 
-  const startGame = () => {
-    const p = isPreset ? { trials, timeLimit: 0 } : levelParams(lvl.level);   // уровень рулит: trials → лимит времени на SET
-    levelRef.current = lvl.level;
-    timeLimitRef.current = p.timeLimit;
-    setDealLimit(p.timeLimit);
-    if (!isPreset) setTrials(p.trials);
-    setHits(0); setErrors(0); setRound(1);
-    newRound();
-    setPhase('playing');
-    const start = gameNow();
-    setStartTime(start);
-    // Один тик на всё: и общий секундомер, и остаток на расклад. Часы игровые —
-    // на паузе (виджет отзыва) стоят оба, иначе расклад сгорал бы, пока человек пишет.
+  /**
+   * Один тик на всё: и общий секундомер, и остаток на расклад. Часы игровые —
+   * на паузе (виджет отзыва) стоят оба, иначе расклад сгорал бы, пока человек пишет.
+   * `start` приходит аргументом: у свежей партии это «сейчас», у поднятой из
+   * хранилища — «сейчас минус накопленное», чтобы секундомер продолжил, а не начал.
+   */
+  const runClock = (start: number) => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       const now = gameNow();
@@ -280,6 +470,118 @@ export default function SetGame() {
       }
     }, 100);
   };
+
+  const startGame = () => {
+    // Новая партия заменяет незаконченную: старую раскладку продолжать уже нечем.
+    const pidStart = profile?.id;
+    if (pidStart) clearResume(SET_GAME_ID, pidStart).catch(() => {});
+    const p = isPreset ? { trials, timeLimit: 0 } : levelParams(lvl.level);   // уровень рулит: trials → лимит времени на SET
+    levelRef.current = lvl.level;
+    timeLimitRef.current = p.timeLimit;
+    setDealLimit(p.timeLimit);
+    if (!isPreset) setTrials(p.trials);
+    setHits(0); setErrors(0); setRound(1);
+    newRound();
+    setPhase('playing');
+    const start = gameNow();
+    setStartTime(start);
+    setElapsedTime(0);
+    runClock(start);
+  };
+
+  /** Поднять партию из снимка — стол оживает ровно таким, каким его оставили. */
+  const applyResume = (r: SetRestored) => {
+    levelRef.current = r.level;
+    timeLimitRef.current = r.dealLimitSec;
+    setDealLimit(r.dealLimitSec);
+    setTrials(r.trials);
+    setRound(r.round);
+    setHits(r.hits);
+    setErrors(r.errors);
+    setFeedback(null); setHintBreakdown(null); setHintCardIdx(null); setRevealedSet(null);
+    if (r.freshDeal) {
+      // Прошлый расклад отыгран (сет собран или показан по таймауту) — раздаём новый.
+      setBoard(buildBoard());
+      setPicked([]);
+    } else {
+      setBoard(r.board);
+      setPicked(r.picked);
+    }
+    // ⚠️ Дедлайн ставим САМИ, а не через armDealClock: тот всегда даёт полный лимит,
+    // а здесь обязан остаться ровно тот остаток, что был на момент ухода.
+    dealEndRef.current = r.dealEndAt;
+    setDealLeft(r.dealEndAt > 0 ? Math.max(0, (r.dealEndAt - gameNow()) / 1000) : 0);
+    setStartTime(r.startedAt);
+    setElapsedTime(Math.max(0, (gameNow() - r.startedAt) / 1000));
+    runClock(r.startedAt);
+    setPhase('playing');
+  };
+
+  /** Есть что терять → «назад» спросит, а не выбросит молча (см. setHasSomethingToLose). */
+  const armed = setHasSomethingToLose({ phase, hits, errors, round });
+
+  /**
+   * Живая партия для записи. Читаем через ref, а не из замыкания: снимок обязан
+   * быть свежим на МОМЕНТ ухода, иначе допишем состояние прошлого хода — и
+   * остаток лимита окажется от него же.
+   */
+  const liveRef = useRef<{ pid?: string; snap: () => SetResume | null }>({ snap: () => null });
+  liveRef.current = {
+    pid: profile?.id,
+    snap: () => snapshotSetParty({
+      phase, level: levelRef.current, trials, round, hits, errors, board, picked,
+      startedAt: startTime,
+      dealLimitSec: dealLimit,
+      dealEndAt: dealEndRef.current,
+      verdict: revealedSet ? 'revealed' : feedback === 'right' ? 'right' : feedback === 'wrong' ? 'wrong' : 'none',
+    }, gameNow()),
+  };
+
+  /**
+   * Дописать партию. Зовётся из двух мест: ПЕРЕД вопросом при выходе
+   * (`onSaveBeforeExit` у каркаса) и отложенно по ходу партии. Первое
+   * обязательно: человек видит «партия сохранится» — обещание должно быть уже
+   * выполнено, а не зависеть от того, доживёт ли экран до размонтажа.
+   */
+  const saveParty = useCallback(() => {
+    const { pid, snap } = liveRef.current;
+    if (!pid) return;
+    const s = snap();
+    if (!s) return;
+    saveResume<SetResume>(SET_GAME_ID, pid, SET_RESUME_V, s).catch(() => {});
+  }, []);
+
+  /**
+   * Отложенная запись по ходу партии — страховка на случай, когда экран сносят
+   * мимо всех кнопок (система убила приложение). Пишет ЖИВОЕ состояние в момент
+   * срабатывания, поэтому задержка стоит максимум 400 мс свежести, а не целый ход.
+   */
+  useEffect(() => {
+    if (!armed) return;
+    const tm = setTimeout(saveParty, RESUME_DEBOUNCE_MS);
+    return () => clearTimeout(tm);
+  }, [armed, board, picked, hits, errors, round, feedback, revealedSet, saveParty]);
+
+  /**
+   * Подъём партии при входе. Путь зарядки (autostart) не трогаем: там человек
+   * явно запустил свежий шаг, и поднятая партия подменила бы заданный уровень.
+   */
+  const bootRef = useRef(false);
+  useEffect(() => {
+    if (autostart || bootRef.current) return;
+    const pid = profile?.id;
+    if (!pid) return;
+    bootRef.current = true;
+    let cancelled = false;
+    loadResume<SetResume>(SET_GAME_ID, pid, SET_RESUME_V)
+      .then((saved) => {
+        if (cancelled) return;
+        const live = restoreSetParty(saved, gameNow());
+        if (live) applyResume(live);
+      })
+      .catch(() => { /* нет партии — обычный вход через конфиг */ });
+    return () => { cancelled = true; };
+  }, [profile?.id, autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — разовый подъём партии
 
   const togglePick = (i: number) => {
     if (feedback !== null) return;
@@ -308,6 +610,8 @@ export default function SetGame() {
       if (ok) {
         if (round >= trials) {
           if (timerRef.current) clearInterval(timerRef.current);
+          const pidDone = profile?.id;
+          if (pidDone) clearResume(SET_GAME_ID, pidDone).catch(() => {});   // доиграна — продолжать нечего
           const finalTime = (gameNow() - startTime) / 1000;
           setElapsedTime(finalTime);
           const passed = !isPreset && errors <= 1;
@@ -493,6 +797,16 @@ export default function SetGame() {
         <GameShell
           title={t('setGame')}
           onBack={() => goBackOrHome()}
+          /**
+           * Выход из живой партии больше не молчит. Спрашиваем только когда терять
+           * действительно есть что: на свежем раскладе без единого действия вопрос
+           * был бы шумом (см. setHasSomethingToLose). `resumable` здесь правда —
+           * потому текст и обещает продолжение: партия ложится в хранилище ещё до
+           * вопроса, а не после ответа.
+           */
+          confirmExit={armed}
+          resumable
+          onSaveBeforeExit={saveParty}
           stats={
             <View style={styles.statsRow}>
               {/* Остаток на ТЕКУЩИЙ расклад. Бейдж-пилюля, а не ещё одна серая
