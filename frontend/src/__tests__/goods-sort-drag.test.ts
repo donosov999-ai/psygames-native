@@ -302,8 +302,12 @@ describe('перетаскивание не отменяет тапы и не з
    * обводится как доступная, товар летит в неё и отскакивает.
    */
   it('подсветка ниши считается тем же предикатом, что и ход', () => {
-    expect(code).toMatch(/const canPlaceInto = \(fromCell: number, toCell: number\): boolean =>/);
-    expect(code).toMatch(/cellUsable\(fromCell\) && cellUsable\(toCell\)/);
+    // ⚠️ Смысл, а не запись: предикат может быть и стрелкой в одну строку, и
+    // телом с ранними выходами — важно, что он один и что спрашивает обе стороны.
+    expect(code).toMatch(/const canPlaceInto = \(fromCell: number, toCell: number\)/);
+    const pred = code.slice(code.indexOf('const canPlaceInto'), code.indexOf('const moveItem'));
+    expect(pred).toMatch(/cellUsable\(fromCell\)/);
+    expect(pred).toMatch(/cellUsable\(toCell\)/);
     expect(code).toMatch(/const canDrop = !!held && canPlaceInto\(held\.cell, i\)/);
     expect(moveBody).toMatch(/if \(!canPlaceInto\(fromCell, toCell\)\)/);
   });
