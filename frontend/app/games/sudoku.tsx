@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 2 · 20.08.2026 */
+/* psygames-game-sudoku · VER 3 · 20.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -247,7 +247,7 @@ const GAME_ID = 'sudoku';
  * а реестр вех «потерял» судоку. Литерал остаётся на своём месте, наружу идёт ссылка.
  */
 export const SUDOKU_GAME_ID = GAME_ID;
-const SUDOKU_LAST_LEVEL = 52;
+const SUDOKU_LAST_LEVEL = 57;   // 54–57 — ThermoCage: термометр и клетки-суммы на одной доске
 const SUDOKU_TIER_KEYS: Record<SudokuDifficultyTier, string> = {
   beginner: 'sudokuTierBeginner',
   easy: 'sudokuTierEasy',
@@ -475,7 +475,7 @@ export default function SudokuGame() {
     //     решению взяться неоткуда («игра имеет несколько вариантов победы» — репорты Вали).
     // Если конкретная попытка логического пути не уложилась в бюджет, generateLogical
     // сохраняет безопасный fallback с проверкой единственности.
-    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar } =
+    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar, cages: cg } =
       mode === 'levels'
         ? generateLogical(lvlOverride ?? level, blanks, d.N, d.BR, d.BC, vr, { budgetMs: 2200 }).gen
         : generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
@@ -485,7 +485,14 @@ export default function SudokuGame() {
     setSandwich(sw ?? null);
     setThermo(th ?? null);
     setArrow(ar ?? null);
-    if (mode === 'killer') { const cg = generateCages(s, d.N); setCages(cg.cageOf); setCageSums(cg.sum); setCageAnchors(cg.anchor); } else setCages(null);
+    // ⚠️ КЛЕТКИ-СУММЫ БЕРЁМ ИЗ ГЕНЕРАТОРА, А НЕ СОБИРАЕМ ЗАНОВО. В killer группы можно
+    // нарезать когда угодно — они там украшение поверх классической доски. В ThermoCage
+    // сумма УЧАСТВОВАЛА в проверке единственности вместе с термометром: пересобери её
+    // здесь другой нарезкой — и человек получит подсказки, под которые доску никто не
+    // проверял, то есть второе решение с полным правом.
+    if (mode === 'killer') { const kc = generateCages(s, d.N); setCages(kc.cageOf); setCageSums(kc.sum); setCageAnchors(kc.anchor); }
+    else if (cg) { setCages(cg.cageOf); setCageSums(cg.sum); setCageAnchors(cg.anchor); }
+    else setCages(null);
     setPuzzle(p); setSolution(s);
     setGrid(p.map((r) => [...r]));
     setGiven(p.map((r) => r.map((v) => v !== 0)));
@@ -1040,6 +1047,15 @@ export default function SudokuGame() {
         </TouchableOpacity>
       </View>
     );
+    /**
+     * Клетки-суммы на доске бывают в ДВУХ случаях, и рисуются они одинаково: killer
+     * (группы закрывают всю доску) и ThermoCage (группы — острова, часть подсказок,
+     * остальное говорит термометр). Признак один на обе разметки — иначе условие
+     * `mode === 'killer'` пришлось бы повторить в пяти местах отрисовки, и шестое
+     * забылось бы. `cageOf[r][c] === -1` = клетка вне групп: не тонируем, суммы нет.
+     */
+    const showCages = !!cages && (mode === 'killer' || variant === 'thermocage');
+    const cageAt = (r: number, c: number) => (showCages && cages![r][c] >= 0 ? cages![r][c] : -1);
     const gridEl = (
       // RTL-пин: зеркалирование ломает жирные границы боксов (физический borderRight на логической
       // колонке), сегменты thermo/arrow (физический left «к соседу справа») и SVG-оверлеи
@@ -1071,14 +1087,14 @@ export default function SudokuGame() {
           // Если да — цифру рисуем текстом, иначе картинка выцветает на тонировке.
           const hasDecorBehind = !!(
             (variant === 'evenodd' && parityMarks && parityMarks[r][c] !== 0)
-            || (variant === 'thermo' && thermo && thermo[r][c])
+            || ((variant === 'thermo' || variant === 'thermocage') && thermo && thermo[r][c])
             || (variant === 'arrow' && arrow && arrow[r][c])
             || (variant === 'kropki' && kropki && (
                  (c < N - 1 && kropki.h[r][c] !== 0) || (c > 0 && kropki.h[r][c - 1] !== 0)
                  || (r < N - 1 && kropki.v[r][c] !== 0) || (r > 0 && kropki.v[r - 1][c] !== 0)))
-            || (mode === 'killer' && cages)
+            || cageAt(r, c) >= 0
           );
-          let bg = (mode === 'killer' && cages) ? blendHex(colors.surface, CAGE_ACCENTS[cages[r][c] % CAGE_ACCENTS.length], 0.16) : colors.surface;
+          let bg = cageAt(r, c) >= 0 ? blendHex(colors.surface, CAGE_ACCENTS[cageAt(r, c) % CAGE_ACCENTS.length], 0.16) : colors.surface;
           if (markColor >= 0 && markColor < paintPalette.length) {
             bg = blendHex(bg, paintPalette[markColor], isDark ? 0.34 : 0.24);
           }
@@ -1114,7 +1130,7 @@ export default function SudokuGame() {
                 },
               ]}
             >
-              {variant === 'thermo' && thermo && thermo[r][c] && (() => {
+              {(variant === 'thermo' || variant === 'thermocage') && thermo && thermo[r][c] && (() => {
                 const pn = thermo[r][c]!;
                 const thick = Math.max(3, Math.round(cellSize * 0.16));
                 const col = blendHex(colors.surface, GRADIENT[0], 0.5);
@@ -1184,8 +1200,10 @@ export default function SudokuGame() {
               {/* Карандаш — ПОД суммой клетки killer и под цифрой: сумма и цифра важнее
                   кандидатов, и перекрывать их слой бухгалтерии не имеет права. */}
               {renderMarks(r, c, v)}
-              {mode === 'killer' && cages && cageAnchors[cages[r][c]] === r * N + c && (
-                <Text style={{ position: 'absolute', top: 1, left: 2, fontSize: Math.max(8, Math.round(cellSize * 0.27)), fontWeight: '800', color: colors.text }}>{cageSums[cages[r][c]]}</Text>
+              {/* Сумма — в углу клетки, колба термометра — по центру: на одной клетке
+                  обе разметки не спорят за место. */}
+              {cageAt(r, c) >= 0 && cageAnchors[cageAt(r, c)] === r * N + c && (
+                <Text style={{ position: 'absolute', top: 1, left: 2, fontSize: Math.max(8, Math.round(cellSize * 0.27)), fontWeight: '800', color: colors.text }}>{cageSums[cageAt(r, c)]}</Text>
               )}
               {/* В «чётное/нечётное» клетка залита меткой-кружком/квадратом, и
                   декоративная цифра-картинка поверх тонировки читается как

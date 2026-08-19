@@ -23,7 +23,7 @@
  * остаётся только если сумма между ними может совпасть с подсказкой.
  */
 import {
-  Cell, Variant, ThermoPN, ArrowMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
+  Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
 } from './sudoku-core';
 
 export type Technique =
@@ -46,6 +46,7 @@ export interface GradeCtx {
   regions?: number[][];
   thermo?: ThermoPN;
   arrow?: ArrowMap;
+  cages?: CageMap;                           // клетки-суммы: сумма группы + разные цифры внутри
   parity?: number[][];                       // 1 = чётная, 2 = нечётная, 0 = без метки
   kropki?: { h: number[][]; v: number[][] }; // 2 = чёрная, 1 = белая, 0 = ТОЧКА НЕ ПОКАЗАНА
   sandwich?: { rows: number[]; cols: number[] };
@@ -107,7 +108,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, parity, kropki, sandwich } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -127,7 +128,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
       if (grid[r][c] !== 0) { cand[r][c] = 0; continue; }
       let m = cand[r][c];
       for (const v of bitsOf(m, N)) {
-        let ok = isValid(grid, r, c, v, N, BR, BC, variant, regions, thermo, arrow);
+        let ok = isValid(grid, r, c, v, N, BR, BC, variant, regions, thermo, arrow, cages);
         if (ok && parity && parity[r][c] !== 0) ok = (parity[r][c] === 1) === (v % 2 === 0);
         if (!ok) m &= ~bit(v);
       }
@@ -185,6 +186,49 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
           const next = cand[r][c] & allow;
           if (next !== cand[r][c]) { cand[r][c] = next; changed = true; }
           if (cand[r][c] === 0) return true;
+        }
+        if (!changed) break;
+      }
+    }
+
+    // ── Клетки-суммы: цифры внутри группы разные, и сумма фиксирована. Отсюда два
+    // вывода на кандидатах: поставленная в группе цифра уходит из остальных её клеток,
+    // а границы «сколько осталось набрать» режут кандидаты каждой открытой клетки.
+    // isValid знает то же правило, но только про уже заполненных соседей — по маскам
+    // кандидатов оно работает раньше и сильнее (на этом и стоит связка с термометром:
+    // границы термометра сужают маску, сужение маски двигает границу суммы, и наоборот).
+    if (cages) {
+      const lowAt = (k: number) => atLeast(Math.min(N + 1, Math.max(1, k)));
+      const highAt = (k: number) => atMost(Math.max(0, Math.min(N, k)));
+      for (let pass = 0; pass < 4; pass++) {
+        let changed = false;
+        for (let id = 0; id < cages.cells.length; id++) {
+          const cells = cages.cells[id];
+          if (!cells || !cells.length) continue;
+          let placed = 0, rest = cages.sum[id];
+          const open: [number, number][] = [];
+          for (const [r, c] of cells) {
+            const v = grid[r][c];
+            if (v === 0) { open.push([r, c]); continue; }
+            placed |= bit(v); rest -= v;
+          }
+          for (const [r, c] of open) {
+            const next = cand[r][c] & ~placed;
+            if (next !== cand[r][c]) { cand[r][c] = next; changed = true; }
+            if (next === 0) return true;
+          }
+          for (const [r, c] of open) {
+            let mn = 0, mx = 0;
+            for (const [rr, cc] of open) {
+              if (rr === r && cc === c) continue;
+              const m = cand[rr][cc];
+              if (!m) return true;
+              mn += loVal(m); mx += hiVal(m);
+            }
+            const next = cand[r][c] & lowAt(rest - mx) & highAt(rest - mn);
+            if (next !== cand[r][c]) { cand[r][c] = next; changed = true; }
+            if (next === 0) return true;
+          }
         }
         if (!changed) break;
       }
@@ -503,14 +547,14 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage'];
 
 /** Потолок пустых клеток на 9×9: доска в 74 дырки решается, но заполнять её долго. */
 const MAX_BLANKS_9 = 64;
 
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
-    N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow,
+    N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
     parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich,
   });
 }
@@ -528,7 +572,7 @@ function digByLogic(
   const parity = variant === 'evenodd' ? Array.from({ length: N }, () => Array(N).fill(0)) : undefined;
   let kropki = base.kropki;
   if (variant === 'kropki' && kropki) kropki = thinMarkers({ kropki }, level, variant, N).kropki;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, parity, kropki, sandwich: base.sandwich };
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich: base.sandwich };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,
