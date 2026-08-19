@@ -38,6 +38,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 
@@ -93,6 +94,18 @@ export default function BARTGame() {
   const [popped, setPopped] = useState(false);
   const [history, setHistory] = useState<BalloonRecord[]>([]);
   const [animScale] = useState(new Animated.Value(1));
+  /**
+   * Щадящий режим. Шар раздувается и лопается — это не украшение, а сама суть
+   * задачи: по размеру человек и оценивает накопленный риск. Поэтому размер
+   * меняется по-прежнему, но БЕЗ проезда: `setValue` вместо `timing`. Пульсация
+   * растущего на экране объекта — как раз то, от чего укачивает, а цифра
+   * накачек и риск-метр под шаром сообщают то же самое без движения.
+   */
+  const reducedMotion = useReducedMotion();
+  const sizeTo = (to: number, duration: number) => {
+    if (reducedMotion) { animScale.stopAnimation(); animScale.setValue(to); return; }
+    Animated.timing(animScale, { toValue: to, duration, useNativeDriver: true }).start();
+  };
   const [feedback, setFeedback] = useState<'pop' | 'cash' | null>(null);
 
   // Рефы — источник истины для счётчиков раунда (без stale-closure в setTimeout-цепочке
@@ -216,9 +229,7 @@ export default function BARTGame() {
     const nextPumps = pumps + 1;
     setPumps(nextPumps);
     setPending(nextPumps);
-    Animated.sequence([
-      Animated.timing(animScale, { toValue: 1 + nextPumps * 0.04, duration: 80, useNativeDriver: true }),
-    ]).start();
+    sizeTo(1 + nextPumps * 0.04, 80);
     if (nextPumps >= burstAt) {
       // pop
       setPopped(true);
@@ -226,7 +237,7 @@ export default function BARTGame() {
       setFeedback('pop');
       historyRef.current = [...historyRef.current, { pumps: nextPumps, popped: true }];
       setHistory(historyRef.current);
-      Animated.timing(animScale, { toValue: 0, duration: 200, useNativeDriver: true }).start();
+      sizeTo(0, 200);
       setTimeout(() => {
         if (roundRef.current >= balloonsRef.current) finish();
         else advance();

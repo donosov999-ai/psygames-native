@@ -1,8 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { hapticTap } from './haptics';
+import { settle } from './motion';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
 interface Props {
   label: string;
@@ -32,14 +34,28 @@ export default function JuicyButton({ label, onPress, colors = ['#f857a6', '#ff5
   // Если tint не задан — берём контраст по яркости ВЕРХНЕГО цвета градиента:
   // светлый градиент → тёмный текст (иначе белый на светлом не читается), тёмный → белый.
   const ink = tint ?? (luminance(colors[0]) > 0.6 ? '#1a1a1a' : '#fff');
+  const reduced = useReducedMotion();
   const scale = useRef(new Animated.Value(1)).current;
   const hov = useRef(false);   // десктоп: ховер-подъём при наведении
-  const spring = (to: number) => Animated.spring(scale, { toValue: to, friction: 6, tension: 220, useNativeDriver: true }).start();
+  const spring = (to: number) => settle(scale, to, reduced, { friction: 6, tension: 220 });
+  /**
+   * Щадящий режим делит эти два движения по назначению.
+   * Подъём под курсором — украшение: кнопка и так подсвечена курсором, а
+   * дышащий под мышью прямоугольник — ровно тот раздражитель, от которого
+   * настройку и включают. Гасим целиком: обработчики выходят сразу, поэтому
+   * `hov` остаётся false и покой кнопки — ровно 1.
+   * Вдавливание при нажатии — ответ «нажатие принято», без него непонятно,
+   * сработало ли. Оставляем, но `settle` ставит масштаб мгновенно, без пружины
+   * с перелётом через цель.
+   */
+  // Настройку могли включить, пока курсор уже висит над кнопкой: без сброса
+  // подъём остался бы навсегда, и «щадящий режим» выглядел бы сломанным.
+  useEffect(() => { if (reduced) { hov.current = false; settle(scale, 1, true); } }, [reduced, scale]);
   return (
     <Pressable
       accessibilityRole="button" style={style}
-      onHoverIn={() => { hov.current = true; spring(1.04); }}
-      onHoverOut={() => { hov.current = false; spring(1); }}
+      onHoverIn={() => { if (reduced) return; hov.current = true; spring(1.04); }}
+      onHoverOut={() => { if (reduced) return; hov.current = false; spring(1); }}
       onPressIn={() => spring(0.95)} onPressOut={() => spring(hov.current ? 1.04 : 1)}
       onPress={() => { hapticTap(); onPress(); }}>
       <Animated.View style={[styles.shadow, { transform: [{ scale }] }]}>

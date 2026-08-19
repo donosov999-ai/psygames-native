@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Text, View, StyleSheet } from 'react-native';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
 export interface Popup { id: number; x: number; y: number; text: string; color: string; }
 let _id = 0;
@@ -17,8 +18,28 @@ export function useScorePopups() {
 }
 
 function ScorePopup({ popup }: { popup: Popup }) {
+  const reduced = useReducedMotion();
   const a = useRef(new Animated.Value(0)).current;
-  useEffect(() => { Animated.timing(a, { toValue: 1, duration: 900, useNativeDriver: true }).start(); }, [a]);
+  useEffect(() => {
+    if (reduced) return;
+    Animated.timing(a, { toValue: 1, duration: 900, useNativeDriver: true }).start();
+  }, [a, reduced]);
+
+  /**
+   * Щадящий режим. «+40» — это не украшение, а сообщение «засчитано сорок»:
+   * убрать его совсем значит отнять у человека счёт. Поэтому оставляем текст,
+   * но он просто появляется на месте — без взлёта на 52 точки вверх, без
+   * подпрыгивания масштаба и без затухания. Снимет его тот же таймер на 950 мс,
+   * что и в обычном режиме, так что поведение слоя не меняется.
+   */
+  if (reduced) {
+    return (
+      <View pointerEvents="none" style={[styles.pop, { left: popup.x, top: popup.y }]}>
+        <Text style={[styles.txt, { color: popup.color }]}>{popup.text}</Text>
+      </View>
+    );
+  }
+
   const translateY = a.interpolate({ inputRange: [0, 1], outputRange: [0, -52] });
   const opacity = a.interpolate({ inputRange: [0, 0.15, 0.7, 1], outputRange: [0, 1, 1, 0] });
   const scale = a.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0.4, 1.2, 1] });
