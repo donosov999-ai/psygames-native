@@ -386,6 +386,14 @@ const OBSTACLE_PLANS: ObstaclePlan[] = [
 /** Сколько раз за уровень можно перемешать. Не спасение от тупика — тупика нет. */
 const SHUFFLES_PER_LEVEL = 3;
 
+/**
+ * Подсказок за уровень. Меньше перемешиваний намеренно: перемешивание меняет
+ * расклад и потому спасает, а подсказка ничего не меняет — она отвечает на
+ * вопрос «что делать». Дай их вдоволь, и отвечать на этот вопрос будет игра, а
+ * не человек, ради чего он сюда и пришёл.
+ */
+const HINTS_PER_LEVEL = 3;
+
 const NO_OBSTACLES: ObstaclePlan = { blocked: 0, locked: 0, covered: 0, frozenRow: false };
 
 /**
@@ -536,6 +544,55 @@ export function rowOfNiche(i: number, mask: boolean[], cols: number): number {
     if (seen === i) return Math.floor(pos / cols);
   }
   return 0;
+}
+
+/**
+ * ПОДСКАЗКА: ОДИН ЗАКОННЫЙ ХОД, И ПО ВОЗМОЖНОСТИ ЛУЧШИЙ.
+ *
+ * 🔴 ЗАЧЕМ ИМЕННО «ЛУЧШИЙ», А НЕ ПЕРВЫЙ ПОПАВШИЙСЯ. Подсказку зовут, когда
+ * человек застрял и не видит, что делать. Показать ему любой законный ход —
+ * значит ответить не на тот вопрос: законных ходов на доске десятки, и знание,
+ * что «вот сюда можно положить», ничего не сдвигает. Полезен ход, который
+ * ПРОДВИГАЕТ: собирает тройку, а если такого нет — сводит пару.
+ *
+ * Порядок предпочтения:
+ *   1. ход собирает тройку прямо сейчас;
+ *   2. ход сводит вторую единицу к одинокой — готовит тройку;
+ *   3. любой законный (доска, где нет ни того ни другого, — редкость).
+ *
+ * ⚠️ ФУНКЦИЯ ЧИСТАЯ И СНАРУЖИ КОМПОНЕНТА. Внутри её нельзя было бы проверить
+ * гейтом иначе как чтением исходника, а подсказка, которая врёт, хуже её
+ * отсутствия: человек делает показанный ход и застревает глубже.
+ */
+export interface HintMove { fromCell: number; fromIdx: number; toCell: number }
+
+export function findHint(
+  cells: number[][],
+  usable: (i: number) => boolean,
+  cap: number = CAP,
+): HintMove | null {
+  const legal = (from: number, to: number) =>
+    from !== to && (cells[to]?.length ?? 0) < cap && usable(from) && usable(to);
+
+  let pairMove: HintMove | null = null;
+  let anyMove: HintMove | null = null;
+
+  for (let from = 0; from < cells.length; from++) {
+    const src = cells[from];
+    if (!src?.length || !usable(from)) continue;
+    const idx = src.length - 1;            // взять можно только верхний
+    const type = src[idx];
+    for (let to = 0; to < cells.length; to++) {
+      if (!legal(from, to)) continue;
+      const dst = cells[to];
+      const same = dst.filter((t) => t === type).length;
+      // Тройка собирается прямо сейчас — лучше не бывает, отдаём немедленно.
+      if (same === 2 && dst.length === 2) return { fromCell: from, fromIdx: idx, toCell: to };
+      if (same === 1 && !pairMove) pairMove = { fromCell: from, fromIdx: idx, toCell: to };
+      if (!anyMove) anyMove = { fromCell: from, fromIdx: idx, toCell: to };
+    }
+  }
+  return pairMove ?? anyMove;
 }
 
 export function liveRowsForFreeze(
@@ -802,6 +859,9 @@ export default function GoodsSortGame() {
   const history = useMoveHistory<Snapshot>();
 
   const [shuffles, setShuffles] = useState(SHUFFLES_PER_LEVEL);
+  const [hints, setHints] = useState(HINTS_PER_LEVEL);
+  /** Показанный ход: подсвечен товар и ниша. Гаснет сам — подсказка не должна висеть. */
+  const [hint, setHint] = useState<HintMove | null>(null);
 
   /** Ниши вспыхивают на сборе тройки. В щадящем режиме — короткий показ без плавности. */
   const flashNiches = (cellsHit: number[]) => {
@@ -916,6 +976,7 @@ export default function GoodsSortGame() {
     setGoal(g); goalRef.current = g;
 
     setSel(null); setMoves(0); movesRef.current = 0; setShuffles(SHUFFLES_PER_LEVEL);
+    setHints(HINTS_PER_LEVEL); setHint(null);
     history.reset();   // лента отмены не переживает уровень: чужая доска в неё не годится
     setStartTime(gameNow()); setElapsed(0);
   };
@@ -1058,6 +1119,7 @@ export default function GoodsSortGame() {
     const [item] = ns[fromCell].splice(fromIdx, 1);
     ns[toCell].push(item);
     movesRef.current += 1; setMoves(movesRef.current);
+    setHint(null);   // сходил — подсказка больше не про эту доску
     // каскад: любая ячейка с 3 одинаковыми → собрать (+50). Спокойно, без таймед-комбо.
     let clearedNow = 0; let gained = 0; let again = true;
     const clearedTypes: number[] = [];
@@ -1311,6 +1373,25 @@ export default function GoodsSortGame() {
     hapticTap(); sndPlace();
   };
 
+  /**
+   * Показать один ход. Подсказка НЕ ходит за человека: она подсвечивает товар и
+   * нишу, а перекладывает он сам. Иначе это не подсказка, а автоигра.
+   *
+   * Ход не тратится: подсказка ничего не меняет на доске. Тратится счётчик
+   * подсказок — их три, и это и есть цена.
+   */
+  const showHint = () => {
+    if (hints <= 0 || phase !== 'playing') { hapticTap(); return; }
+    const found = findHint(cells, cellUsable);
+    if (!found) { hapticTap(); return; }
+    setHints((n) => n - 1);
+    setHint(found);
+    setSel(null);
+    hapticTap(); sndPlace();
+    // Гаснет сама: висящая подсказка перестаёт быть подсказкой и становится разметкой.
+    setTimeout(() => setHint(null), 2600);
+  };
+
   const reshuffle = () => {
     const items = cells.flat();
     if (items.length === 0) return;
@@ -1541,8 +1622,9 @@ export default function GoodsSortGame() {
         resizeMode="stretch"
         style={[styles.cell, {
           width: cellW, height: nicheH,
-          borderColor: aimed ? '#f97316' : canDrop ? '#fbbf24' : close ? '#22c55e' : 'transparent',
-          borderWidth: aimed ? 4 : canDrop || close ? 3 : 0,
+          borderColor: hint?.toCell === i ? '#38bdf8'
+            : aimed ? '#f97316' : canDrop ? '#fbbf24' : close ? '#22c55e' : 'transparent',
+          borderWidth: hint?.toCell === i ? 4 : aimed ? 4 : canDrop || close ? 3 : 0,
         }, shakeStyle(i)]}>
         {/* Вспышка на сборе тройки: белая пелена, которая гаснет. Рисуется поверх
             уже опустевшей ниши, поэтому объясняет, ЧТО именно исчезло и откуда. */}
@@ -1565,6 +1647,8 @@ export default function GoodsSortGame() {
         <View pointerEvents="box-none" style={styles.cellRow}>
           {cell.map((tp, s) => {
             const selected = isSelCell && sel?.idx === s;
+            /** Товар, который советует подсказка: подсвечен вместе со своей нишей-целью. */
+            const hinted = hint?.fromCell === i && hint?.fromIdx === s;
             // Товар, который сейчас в руке, на полке гаснет: он нарисован под
             // пальцем, и две копии одного товара читаются как сбой отрисовки.
             const inHand = drag?.cell === i && drag?.idx === s;
@@ -1573,7 +1657,7 @@ export default function GoodsSortGame() {
                 accessibilityRole="button"
                 accessibilityLabel={`${goodName(tp, ru)}, ${t('a11yShelf')} ${i + 1}`}
                 accessibilityState={{ selected }}
-                style={[styles.itemSlot, { width: itemSize, height: itemH }, selected && styles.itemSel, inHand && { opacity: 0.2 }]}>
+                style={[styles.itemSlot, { width: itemSize, height: itemH }, selected && styles.itemSel, hinted && styles.itemHint, inHand && { opacity: 0.2 }]}>
                 {covered.has(`${i}:${s}`) ? (
                   /**
                    * НАКРЫТЫЙ ТОВАР: силуэт есть, что именно — не видно.
@@ -1714,6 +1798,16 @@ export default function GoodsSortGame() {
                 onPress={undoMove} disabled={!history.canUndo} activeOpacity={0.8}
                 style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: history.canUndo ? 1 : 0.4 }]}>
                 <Ionicons name="arrow-undo" size={17} color="#d97706" />
+              </TouchableOpacity>
+              {/* Подсказка — тоже служебное действие, поэтому рядом с отменой.
+                  Остаток на кнопке: цена видна ДО нажатия, а не после. */}
+              <TouchableOpacity
+                accessibilityRole="button" accessibilityLabel={t('btn_hint')}
+                accessibilityState={{ disabled: hints <= 0 }}
+                onPress={showHint} disabled={hints <= 0} activeOpacity={0.8}
+                style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: hints > 0 ? 1 : 0.4 }]}>
+                <Ionicons name="bulb" size={17} color="#0284c7" />
+                <Text style={[styles.hintCount, { color: colors.text }]}>{hints}</Text>
               </TouchableOpacity>
             </View>
           }
@@ -1955,6 +2049,9 @@ const styles = StyleSheet.create({
    * строке читается как сбой вёрстки, а не как продолжение шапки.
    * Размер держим 48 — это общий минимум попадания пальцем.
    */
+  /** Подсказанный товар — голубой, тем же цветом, что и его ниша-цель: пара читается как одно. */
+  itemHint: { backgroundColor: '#e0f2fe', borderWidth: 2, borderColor: '#38bdf8', borderRadius: 8 },
+  hintCount: { fontSize: 13, fontWeight: '800' },
   undoBtn: { minWidth: 56, minHeight: 48, borderRadius: 999, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, flexDirection: 'row', gap: 4 },
   goalLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap', paddingHorizontal: 12, marginBottom: 2 },
   goalText: { fontSize: 13, fontWeight: '700' },
