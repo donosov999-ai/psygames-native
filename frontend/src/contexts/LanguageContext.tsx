@@ -440,8 +440,8 @@ const translations: Translations = {
    * раньше, чем они заработают.
    */
   goodsSortIntroDesc: {
-    ru: 'Тапни товар, потом нишу — переложишь. Собери в одной нише 3 ОДИНАКОВЫХ — они исчезнут. Цель: освободить весь шкаф. В нише помещается три товара, поэтому пара занимает место, пока не найдётся третий — думай, куда класть, а не только что.',
-    en: 'Tap a good, then a niche — that moves it. Gather 3 IDENTICAL goods in one niche and they vanish. Goal: clear the whole cabinet. A niche holds three, so a pair blocks it until the third turns up — think about where you put things, not just what.',
+    ru: "Перетащи товар в нишу — или тапни его, потом нишу. Три одинаковых в одной нише исчезают. Цель у каждого уровня своя и написана над шкафом: убрать всё, собрать названные товары, уложиться в ходы или освободить помеченные ниши. Дальше появляются препятствия — запертые ниши, замки по ходам, накрытые товары, примёрзший ряд. В нише помещается три, поэтому пара занимает место, пока не найдётся третий: думай, куда класть, а не только что.",
+    en: "Drag a good into a niche — or tap it, then the niche. Three identical goods in one niche vanish. Each level states its own goal above the cabinet: clear everything, gather the named goods, stay within the move limit, or free the flagged niches. Later come obstacles — locked niches, timed locks, covered goods, a frozen row. A niche holds three, so a pair blocks it until the third turns up: think about where you put things, not just what.",
   },
   skillPlanningWM: { ru: 'Тренируем: планирование + зрительная память', en: 'Training: planning + visual memory' },
   benefitGoods1: { ru: 'Зрительная рабочая память: что где спрятано', en: 'Visual working memory: what is hidden where' },
