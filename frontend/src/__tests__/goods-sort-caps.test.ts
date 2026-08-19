@@ -10,6 +10,9 @@
  * теснее задуманного, причём МОЛЧА, без единой ошибки. Поэтому здесь главная
  * проверка — сумма ёмкостей не меняется.
  */
+declare const __dirname: string;
+declare function require(m: string): any;
+
 import { capsFor, CAP_MIN, CAP_MAX, MIXED_CAP_FROM, placementOk, tripleIn, removeTriple } from '@/app/games/goods-sort';
 
 const SLOTS = [9, 12, 15, 16, 18];

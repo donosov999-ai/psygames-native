@@ -1169,7 +1169,23 @@ export default function GoodsSortGame() {
 
   // Справка правил уровня: только в личной игре (в зарядке-пресете бейдж скрыт).
   // level — живой стейт партии (растёт по ходу сессии), а не lvl.level.
-  const levelRules = useLevelRules('goods_sort', level, GS_RULES, phase === 'playing' && !isPreset);
+  /**
+   * 🔴 ПРАВИЛО СТРОГОЙ УКЛАДКИ ПОКАЗЫВАЕМ ТОЛЬКО ТАМ, ГДЕ ОНО ДЕЙСТВУЕТ.
+   *
+   * `LevelRule` умеет диапазон «с уровня N», а строгая укладка идёт ЧЕРЕЗ ДВА
+   * НА ТРЕТИЙ — такой формы у диапазона нет. Пока правило просто лежало в
+   * списке с `fromLevel: 14`, бейдж «Строгая укладка» висел на КАЖДОМ уровне с
+   * четырнадцатого и на двух из трёх обещал запрет, которого там нет.
+   *
+   * Найдено живой прокаткой 19.08.2026: L18 и L25 показывали правило, работая
+   * по обычным правилам. Ни один гейт этого не видел — все проверяли, что
+   * правило существует и переведено, а не что оно ПРАВДА на этом уровне.
+   */
+  const rulesHere = useMemo(
+    () => (strictPlacement(level) ? GS_RULES : GS_RULES.filter((r) => r.key !== 'strict')),
+    [level],
+  );
+  const levelRules = useLevelRules('goods_sort', level, rulesHere, phase === 'playing' && !isPreset);
 
   const loadLevel = (L: number) => {
     const cfg = levelCfg(L, poolRef.current.length, narrowRef.current);
