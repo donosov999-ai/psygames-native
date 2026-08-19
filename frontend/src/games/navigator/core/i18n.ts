@@ -8,6 +8,13 @@ import type {
 
 export interface NavigatorStrings {
   title: string;
+  /**
+   * Описание игры для карточки и экрана настроек. Канон ru/en от автора модуля —
+   * ровно тот текст, который уедет в общий словарь ключом `navigatorDesc`
+   * (см. INTEGRATION.md §2). Держим его здесь, чтобы у слова был один источник:
+   * пока ключа в словаре нет, экран берёт текст отсюда.
+   */
+  catalogDesc: string;
   skill: string;
   rulesTitle: string;
   rulesBody: string;
@@ -55,6 +62,7 @@ export interface NavigatorStrings {
 const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
   ru: {
     title: 'Навигатор',
+    catalogDesc: 'Запоминайте маршруты, последовательности поворотов и направление к старту.',
     skill: 'Пространственная навигация и мысленная карта',
     rulesTitle: 'Три способа держать маршрут в уме',
     rulesBody: 'Логический маршрут остаётся тем же, даже когда карта повёрнута.',
@@ -100,6 +108,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
   },
   en: {
     title: 'Navigator',
+    catalogDesc: 'Remember routes, turn sequences, and the direction back to the start.',
     skill: 'Spatial navigation and mental mapping',
     rulesTitle: 'Three ways to hold a route in mind',
     rulesBody: 'The logical route stays the same even when the map rotates.',

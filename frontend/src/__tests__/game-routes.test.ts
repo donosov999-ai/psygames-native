@@ -66,6 +66,7 @@ describe('маршруты игр', () => {
    * (проверка ниже). То есть список умеет только сокращаться.
    */
   const AWAITING_CATALOG: Record<string, string> = {
+    'object-tracker': 'G5 «Трекер объектов» (multiple object tracking, 41 уровень). Экран и модуль приняты; строка для GAMES, ключи objectTracker/objectTrackerDesc/objectTrackerIntroDesc и место в профилях — в src/games/object-tracker/INTEGRATION.md',
     navigator: 'G6 «Навигатор» (мысленная карта маршрута, 33 уровня). Экран и модуль приняты; строка для GAMES, ключи navigator/navigatorDesc/navigatorIntroDesc, справка и место в профилях — в src/games/navigator/INTEGRATION.md',
   };
 

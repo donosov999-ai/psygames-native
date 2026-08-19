@@ -161,6 +161,7 @@ const WITHOUT_UNDO: Record<string, string> = {
   'trail-making.tsx': 'timing: TMT — время прохождения маршрута',
   'proofreading.tsx': 'timing: лимит на корректуру + мгновенная проверка тапа',
   'math-slider.tsx': 'already: ползунок свободно ходит до confirmEstimate',
+  'object-tracker.tsx': 'already: выбор цели — переключатель, повторный тап снимает отметку; проверка идёт только по кнопке «Проверить выбор», так что отменять до неё нечего',
   'navigator.tsx': 'probe: нажатое направление сверяется с маршрутом в тот же тик — промах уже записан лишним шагом, а откат стёр бы саму ошибку вместе с метрикой',
   'counter.tsx': 'already: клетка переключается повторным тапом',
   'number-bonds.tsx': 'already: togglePick снимает выбор, проверка по кнопке',

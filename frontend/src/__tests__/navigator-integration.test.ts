@@ -444,6 +444,43 @@ describe('экран партии живой', () => {
     expect(setter!.index).toBeLessThan(body.indexOf('lvl.reach('));
   });
 
+  /**
+   * 🔴 НА ЭКРАНЕ СЛОВО, А НЕ ИМЯ КЛЮЧА.
+   *
+   * `t()` на ключе, которого нет в словаре, возвращает сам ключ — и в шапке
+   * встаёт «navigator». Ни tsc, ни сличение словарей этого не видят: у ключей
+   * нет типов. Общий гейт словаря это ловит по всему коду; здесь то же самое
+   * прицельно по своему экрану, чтобы поломка называлась своим именем.
+   *
+   * ⚠️ Ключи `navigator` / `navigatorDesc` заводит заход-интегратор вместе с
+   * карточкой каталога (INTEGRATION.md §2). Пока их нет, название и описание
+   * берутся из словаря модуля — и проверка ниже следит, что это НЕ заглушка:
+   * текст обязан быть настоящей строкой на языке человека.
+   */
+  it('🔴 экран не просит у словаря ключей, которых там нет', () => {
+    const dict = read(join(__dirname, '../contexts/LanguageContext.tsx'));
+    const known = new Set([...dict.matchAll(/^ {2}([A-Za-z0-9_]+):\s*\{/gm)].map((m) => m[1]));
+    expect(known.size).toBeGreaterThan(500);
+    const asked = [...read(SCREEN).matchAll(/\bt\(\s*'([a-zA-Z_][a-zA-Z0-9_]*)'\s*\)/g)].map((m) => m[1]);
+    expect(asked.length).toBeGreaterThan(0);
+    expect(asked.filter((k) => !known.has(k))).toEqual([]);
+  });
+
+  it('🔴 название и описание — живые слова, а не заглушка', () => {
+    const ru = getNavigatorStrings('ru');
+    const en = getNavigatorStrings('en');
+    expect(ru.title).toBe('Навигатор');
+    expect(en.title).toBe('Navigator');
+    // Описание — предложение для человека, а не имя ключа и не обрубок.
+    for (const [tag, v] of [['ru', ru.catalogDesc], ['en', en.catalogDesc]] as const) {
+      expect(`${tag}: ${v.length > 40 && /\s/.test(v) && v !== 'navigatorDesc'}`).toBe(`${tag}: true`);
+    }
+    // И экран берёт именно их, а не подставляет своё.
+    const screen = read(SCREEN);
+    expect(screen).toMatch(/\{navStrings\.title\}/);
+    expect(screen).toMatch(/\{navStrings\.catalogDesc\}/);
+  });
+
   it('🔴 primary отдан ЦВЕТОМ ИГРЫ, а не акцентом профиля', () => {
     const screen = read(SCREEN);
     const themeBlock = screen.slice(screen.indexOf('theme={{'), screen.indexOf('gameGradient='));
@@ -453,7 +490,7 @@ describe('экран партии живой', () => {
 });
 
 // Подписи берём из словаря модуля — так же, как их видит человек на кнопке.
-import { getCardinalLabel, getHomeSectorLabel } from '../games/navigator/core/index';
+import { getCardinalLabel, getHomeSectorLabel, getNavigatorStrings } from '../games/navigator/core/index';
 const DIR_LABELS = Object.fromEntries(CARDINAL_DIRECTIONS.map((d) => [d, getCardinalLabel('ru', d)])) as Record<CardinalDirection, string>;
 const HOME_LABELS = Object.fromEntries(HOME_SECTORS.map((s) => [s, getHomeSectorLabel('ru', s)])) as Record<string, string>;
 
