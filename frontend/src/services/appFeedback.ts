@@ -200,6 +200,8 @@ function withTimeout<T>(p: PromiseLike<T>, ms: number, onTimeout: T): Promise<T>
   });
 }
 
+import { gameVersionLabel } from '@/src/constants/gameVersions';
+
 const SHOT_UPLOAD_MS = 12000;
 const AUDIO_UPLOAD_MS = 25000;   // запись до 3 минут — ей нужно больше
 const INSERT_MS = 12000;
@@ -257,6 +259,17 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
       message: args.message.slice(0, 4000),
       screen: (args.screen || '').slice(0, 200) || null,
       game_id: (args.gameId || '').slice(0, 64) || null,
+      /**
+       * 🔴 РЕДАКЦИЯ ЭКРАНА, А НЕ ТОЛЬКО ВЕРСИЯ СБОРКИ. Версия приложения
+       * отвечает на «когда», но не на «что тогда было в этом упражнении».
+       * Репорт Вали 19.08.2026 «всё поплыло» пришёл на сборке 1.204.0 — и по
+       * нему нельзя было сказать, какая тогда была сортировка товаров, потому
+       * что за одну сборку экраны переписывались по несколько раз.
+       *
+       * Берётся из сгенерированного реестра (`scripts/gen-game-versions.mjs`),
+       * то есть из тех же штампов, что стоят первой строкой экранов.
+       */
+      game_ver: gameVersionLabel(args.gameId),
       app_version,
       platform: detectPlatform(),
       device_id: await getDeviceId(),
