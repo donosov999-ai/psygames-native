@@ -744,7 +744,22 @@ export function levelCfg(L: number, poolSize: number, narrow = false) {
    */
   const goal = goalPlan(L);
   const over = Math.max(0, L - 8);
-  const moveLimit = goal.kind === 'moves' && over > 0 ? Math.max(types * 2, types * 3 - over) : 0;
+  /**
+   * 🔴 ПОЛ ЛИМИТА ОБЯЗАН БЫТЬ ВЫШЕ МИНИМУМА, А НЕ РАВЕН ЕМУ.
+   *
+   * Был `types * 2` — и это ровно столько, сколько нужно В ЛУЧШЕМ СЛУЧАЕ: три
+   * штуки каждого товара обязаны сойтись в одной нише, а в худшем раскладе они
+   * лежат по разным, то есть два переноса на тип и ни одним меньше. Значит с
+   * 20-го уровня и дальше уровень проходился ТОЛЬКО безошибочной игрой: ни
+   * одного лишнего хода, ни одной передумки. Замер 19.08.2026 — запас 0 на
+   * уровнях 20, 25, 30, 40, 55, 60 и запас 1 на пятнадцатом.
+   *
+   * Это не сложность, а лотерея: цена одной случайной ошибки — весь уровень.
+   * Коэффициент 2.6 даёт примерно четверть ходов на передумки поверх минимума.
+   */
+  const moveLimit = goal.kind === 'moves' && over > 0
+    ? Math.max(Math.ceil(types * 2.6), types * 3 - over)
+    : 0;
   return { types, spares, moveLimit, cols, rows, slots, mask, obst, usable, goal };
 }
 
@@ -756,7 +771,7 @@ function hasPair(cell: number[]): boolean {
 
 // Раздать по 3 каждого выбранного типа в (slots−spares) ячеек, ≤3 в ячейке, без готовых троек.
 // Всё ВИДИМО — full-information сортировка (не скрытые стопки).
-function generate(pool: number[], types: number, spares: number, slots: number): number[][] {
+export function generate(pool: number[], types: number, spares: number, slots: number): number[][] {
   const chosen = shuffle(pool).slice(0, types);
   const items: number[] = [];
   chosen.forEach((tp) => { for (let k = 0; k < CAP; k++) items.push(tp); });
