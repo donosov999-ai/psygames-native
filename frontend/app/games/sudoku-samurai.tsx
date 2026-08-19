@@ -753,7 +753,6 @@ interface SamuraiResume {
 export default function SamuraiSudokuGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  const ru = language === 'ru';
   // Голый useWindowDimensions в веб-сборке (а Android у нас WebView) отдаёт 0 на первом
   // кадре и обновляется только по resize, которого при загрузке не бывает. У самурая от
   // ширины считается РАЗМЕР КЛЕТКИ — ноль запёк бы доску в невидимую полоску.
@@ -1277,19 +1276,22 @@ export default function SamuraiSudokuGame() {
           <View style={styles.overWrap}>
             <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
               <Text style={styles.overEmoji}>💔</Text>
-              <Text style={[styles.overTitle, { color: colors.text }]}>{ru ? 'Ошибок слишком много' : 'Too many mistakes'}</Text>
+              <Text style={[styles.overTitle, { color: colors.text }]}>{t('samuraiOverTitle')}</Text>
               <Text style={[styles.overSub, { color: colors.textSecondary }]}>
-                {ru ? `Лимит ${levelParams(levelRef.current).maxErrors} ошибок на уровне. Сыграй заново — поле новое.` : `Limit of ${levelParams(levelRef.current).maxErrors} mistakes. Play again — fresh board.`}
+                {t('samuraiOverSub').replace('{n}', String(levelParams(levelRef.current).maxErrors))}
               </Text>
               <TouchableOpacity
                 accessibilityRole="button" style={styles.startBtn} onPress={() => startGame()}>
                 <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-                  <Text style={styles.startBtnText}>{ru ? 'Заново' : 'Restart'}</Text>
+                  <Text style={styles.startBtnText}>{t('restart')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button" onPress={() => setPhase('config')} style={{ marginTop: 10 }}>
-                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{ru ? 'Меню' : 'Menu'}</Text>
+                {/* Ключ назван a11yMenu, но текст в нём тот же «Меню»/«Menu» на все 12
+                    языков. Заводить второй ключ ради красивого имени запрещает гейт
+                    dictionary-duplicates: одно слово — один ключ. */}
+                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('a11yMenu')}</Text>
               </TouchableOpacity>
             </View>
           </View>

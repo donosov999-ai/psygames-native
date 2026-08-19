@@ -37,6 +37,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
+import GameModeSwitch from '@/src/components/GameModeSwitch';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -370,15 +371,6 @@ export default function WcstGame() {
 
   const renderConfig = () => {
     const p = levelParams(lvl.level);
-    const modeBtn = (m: Mode, label: string) => (
-      <TouchableOpacity
-        accessibilityRole="button" style={[styles.modeButton, mode === m
-        ? { backgroundColor: GRADIENT[1] }
-        : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-        onPress={() => setMode(m)}>
-        <Text style={[styles.modeButtonText, { color: mode === m ? '#FFF' : colors.text }]}>{label}</Text>
-      </TouchableOpacity>
-    );
     return (
       <View style={{ flex: 1 }}>
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
@@ -389,17 +381,27 @@ export default function WcstGame() {
         </GradientSurface>
         <GameAbout descriptionKey="wcstIntroDesc" benefits={WCST_BENEFITS} accent={GRADIENT[0]} />
 
-        {/* Режим: Уровни (прогрессия) / Классический (чистая диагностика) */}
-        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
-          <View style={styles.optionButtons}>
-            {modeBtn('level', t('modeLevels'))}
-            {modeBtn('classic', t('modeClassic'))}
-          </View>
-          <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-            {t(mode === 'classic' ? 'wcstModeClassicDesc' : 'wcstModeLevelsDesc')}
-          </Text>
-        </View>
+        {/*
+          Выбор «уровни / свободно» — ОБЩИЙ компонент, тот же, что в судоку, Шульте,
+          глазной гимнастике, PRL и парных картинках. Своя пара кнопок стояла тут с
+          подписью «Классический»: слово верное для методики, но человек видел на
+          шести экранах шесть разных названий одного и того же выбора.
+
+          ⚠️ ВНУТРЕННЕЕ ИМЯ РЕЖИМА ОСТАЛОСЬ 'classic'. Им подписывается прогон в
+          выгрузке замера (mode: `classic_${total}t`), и переименование задним числом
+          разорвало бы историю замеров надвое. Перевод значений — здесь, на границе.
+
+          Строка-пояснение осталась прежней: «Свободно» само по себе не говорит, что
+          в этом режиме правило меняется по стандарту, а число проб задаёт человек.
+        */}
+        <GameModeSwitch
+          mode={mode === 'classic' ? 'free' : 'levels'}
+          onChange={(m) => setMode(m === 'free' ? 'classic' : 'level')}
+          colors={colors}
+          accent={GRADIENT[1]}
+          t={t}
+          hint={t(mode === 'classic' ? 'wcstModeClassicDesc' : 'wcstModeLevelsDesc')}
+        />
 
         {mode === 'classic' ? (
           <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>

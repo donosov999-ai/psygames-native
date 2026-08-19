@@ -12,6 +12,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import GlassButton from '@/src/components/GlassButton';
+import GameModeSwitch from '@/src/components/GameModeSwitch';
 import BossRound, { BossType } from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -854,15 +855,22 @@ export default function SudokuGame() {
           оставалась внизу — два разных места для одного решения «во что играю».
           Теперь оба рядом и всегда на экране. */}
       <View style={styles.configBar}>
-        {([['levels', t('sudokuModeLevels')], ['free', t('sudokuModeFree')], ['killer', 'Killer']] as const).map(([m, lbl]) => (
-          <GlassButton
-            key={m}
-            grow
-            label={lbl}
-            active={mode === m}
-            onPress={() => setMode(m as 'levels' | 'free' | 'killer')}
-          />
-        ))}
+        {/* Выбор «уровни / свободно» — ОБЩИЙ компонент, тот же, что в Шульте, глазной
+            гимнастике, WCST, PRL и парных картинках. Здесь он стоит БЕЗ подложки
+            (bare) и остаётся В ЛИПКОМ НИЗУ рядом с кнопкой «играть»: перенос его
+            наверх карточкой вернул бы ровно то, на что жаловался Денис 12.08 — два
+            разных места для одного решения «во что играю».
+            Killer — третья кнопка в том же ряду: это свободная партия с клетками-
+            суммами, тот же способ играть, тем же жестом. */}
+        <GameModeSwitch
+          mode={mode}
+          onChange={setMode}
+          colors={colors}
+          accent={GRADIENT[0]}
+          t={t}
+          bare
+          extra={[['killer', 'Killer']] as const}
+        />
         <GlassButton
           icon="help-circle-outline"
           accessibilityLabel={t('rulesWord')}
