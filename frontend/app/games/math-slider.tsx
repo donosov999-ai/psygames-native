@@ -88,12 +88,29 @@ export default function MathSliderScreen() {
   const [attempt, setAttempt] = React.useState(0);
   const seed = React.useMemo(() => `math-slider-${level}`, [level]);
 
+  /**
+   * 🔴 УРОВЕНЬ, НА КОТОРОМ ИГРАЛИ, ЗАМОРАЖИВАЕТСЯ ДО ПОДЪЁМА ПОТОЛКА.
+   *
+   * `level` считается из `lvl.level` на каждой отрисовке, а `lvl.reach(level+1)`
+   * поднимает сохранённый уровень РАНЬШЕ, чем рисуется итог. Значит баннер
+   * поздравлял со СЛЕДУЮЩИМ уровнем, а звёзды ложились на ступень, которую
+   * человек ещё не играл: прошёл первый — получил «Уровень 2 пройден» и звёзды
+   * в ячейке двойки.
+   *
+   * Найдено на приёмке соседних игр 19.08.2026 сразу двумя заходами независимо;
+   * та же ошибка нашлась у «Одной линии» и «Навигатора». Здесь она жила с
+   * выпуска G1.
+   */
+  const [playedLevel, setPlayedLevel] = React.useState<number | null>(null);
+  const shownLevel = playedLevel ?? level;
+
   React.useEffect(() => { if (autostart) setPhase('playing'); }, [autostart]);
 
   const onComplete = React.useCallback(async (m: MathSliderMetrics) => {
     const passed = m.accuracy >= PASS_ACCURACY;
     setLast(m);
 
+    setPlayedLevel(level);   // запомнили ДО подъёма потолка — иначе итог уедет на ступень вперёд
     // Пресет и шаг зарядки уровень НЕ двигают — так во всех 36 экранах.
     if (!isPreset && passed && shouldChainNextLevel(mode)) lvl.reach(level + 1);
     else if (!isPreset && !passed) lvl.fail();
@@ -126,7 +143,7 @@ export default function MathSliderScreen() {
   /** Звёзды по точности: она и есть предмет этой игры, ошибки вторичны. */
   const stars = last ? (last.accuracy >= 0.97 ? 3 : last.accuracy >= 0.93 ? 2 : 1) : 1;
 
-  const start = () => { setAttempt((n) => n + 1); setPhase('playing'); };
+  const start = () => { setPlayedLevel(null); setAttempt((n) => n + 1); setPhase('playing'); };
 
   if (phase === 'playing') {
     return (
@@ -195,7 +212,7 @@ export default function MathSliderScreen() {
       </ScrollView>
 
       {phase === 'cleared' && (
-        <LevelCleared gameId="math_slider" level={level} stars={stars}
+        <LevelCleared gameId="math_slider" level={shownLevel} stars={stars}
           passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={start} onStop={() => setPhase('config')} />
