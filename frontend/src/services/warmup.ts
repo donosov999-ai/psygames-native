@@ -340,9 +340,20 @@ const NIGHT_STEPS: PlaylistStep[] = [
   { game_id: 'breathing', game_route: '/games/breathing', difficulty: 'easy', settings: { tech: 'calm478', dim: 1 }, est_duration_sec: 120 },
 ];
 
-/** Дневной перерыв. Фиксированный, от дня недели не зависит. */
-export function buildDayPlaylist(weekday: Weekday): PlaylistMeta {
-  const steps = DAY_STEPS.map((s) => ({ ...s }));
+/**
+ * Дневной перерыв. Фиксированный, от дня недели не зависит.
+ *
+ * 🔴 `allow` ОБЯЗАТЕЛЕН ПО СМЫСЛУ, ХОТЬ И НЕОБЯЗАТЕЛЕН ПО ТИПУ. Утренний, вечерний
+ * и фиксированный наборы фильтруют состав по профилю с самого начала, а дневной —
+ * нет, и это была не мелочь: в наборе стоят `flanker` и `eye_gym`, которых в
+ * профиле «Стандарт» (9 упражнений) НЕТ. То есть перерыв раздавал two из трёх
+ * упражнений мимо профиля — молча и всем.
+ *
+ * Без `allow` берём весь состав: так зовут места, где профиля ещё нет (тесты,
+ * предпросмотр каталога). В приложении зовущий обязан передать фильтр.
+ */
+export function buildDayPlaylist(weekday: Weekday, allow?: AllowFn): PlaylistMeta {
+  const steps = keepAllowed(DAY_STEPS.map((s) => ({ ...s })), allow);
   return {
     duration_min: Math.max(1, Math.round(sumDuration(steps) / 60)),
     weekday, weekday_name: WEEKDAY_NAMES[weekday],
@@ -351,7 +362,18 @@ export function buildDayPlaylist(weekday: Weekday): PlaylistMeta {
   };
 }
 
-/** «Не спится». Один шаг, вне тренировочной механики. */
+/**
+ * «Не спится». Один шаг, вне тренировочной механики.
+ *
+ * ⚠️ ПО ПРОФИЛЮ НЕ ФИЛЬТРУЕТСЯ — И ЭТО РЕШЕНИЕ, А НЕ ЗАБЫВЧИВОСТЬ. Ночь выведена
+ * из тренировочной механики нарочно (`isTrainingSlot`): человек открывает это не
+ * ради прогресса, а потому что не может заснуть. Состав — одно дыхание 4-7-8.
+ * Отфильтровать его по профилю значит показать в три часа ночи пустой экран
+ * (в «Стандарте» `breathing` не разрешён) и превратить помощь со сном в повод
+ * для покупки.
+ *
+ * Если решим гейтить и это — одна строка: `keepAllowed(..., allow)`, как в дне.
+ */
 export function buildNightPlaylist(weekday: Weekday): PlaylistMeta {
   const steps = NIGHT_STEPS.map((s) => ({ ...s }));
   return {
