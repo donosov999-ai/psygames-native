@@ -24,11 +24,51 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
+/**
+ * Правила уровня — по одному на КАЖДУЮ новую механику, ровно на том уровне, где
+ * она впервые появляется. Уровни взяты не на глаз, а из таблиц: цели идут по
+ * `GOAL_PLANS` с шага (L-5)%12, препятствия по `OBSTACLE_PLANS` с (L-6)%10.
+ * Отсюда 5 — названные товары, 6 — запертая ниша, 7 — освободить помеченные,
+ * 8 — накрытый товар, 9 — лимит ходов, 10 — замок, 12 — примёрзший ряд.
+ *
+ * ⚠️ Переставите таблицу — переставьте и `fromLevel`, иначе человек получит
+ * объяснение механики, которой на его уровне ещё нет.
+ */
 const GS_RULES: LevelRule[] = [
+  {
+    key: 'goalpick', fromLevel: 5,
+    ru: { title: 'Цель: собрать названные', rule: 'Теперь у уровня бывает своя цель, и она написана над шкафом. «Собрать тройки» — значит убрать именно те товары, что показаны картинками; остальное можно оставить на полках.', example: 'Пример: 🚩 Собрать тройки: молоко, кола. Собрал обе — уровень пройден, даже если кефир ещё стоит.' },
+    en: { title: 'Goal: gather the named', rule: 'Levels now carry their own goal, written above the cabinet. “Gather triples” means clearing exactly the goods shown — the rest may stay on the shelves.', example: 'Example: 🚩 Gather triples of: milk, cola. Clear both and the level is done, even with kefir still there.' },
+  },
+  {
+    key: 'blocked', fromLevel: 6,
+    ru: { title: 'Запертая ниша', rule: 'Ниша с замком закрыта: класть в неё нельзя. Откроется сама, когда рядом соберётся тройка — освобождай соседей.', example: 'Пример: 🔒 в углу. Собери тройку в соседней нише — замок спадёт.' },
+    en: { title: 'Locked niche', rule: 'A niche with a padlock is shut — nothing goes in. It opens by itself once a triple clears next to it, so free the neighbours.', example: 'Example: 🔒 in the corner. Clear a triple in the adjacent niche and the lock falls off.' },
+  },
+  {
+    key: 'goalfree', fromLevel: 7,
+    ru: { title: 'Цель: освободить ниши', rule: 'Ниши с флажком должны опустеть — выложи из них всё. Что лежит в остальных, для этой цели неважно.', example: 'Пример: 🚩 два флажка. Опустошил обе ниши — уровень пройден.' },
+    en: { title: 'Goal: free the niches', rule: 'Flagged niches must end up empty — move everything out of them. Whatever sits elsewhere does not matter for this goal.', example: 'Example: 🚩 two flags. Empty both niches and the level is done.' },
+  },
+  {
+    key: 'covered', fromLevel: 8,
+    ru: { title: 'Накрытый товар', rule: 'Тёмный силуэт — товар, который не видно. Он всегда лежит НЕ первым: сними тот, что перед ним, и узнаешь, что это.', example: 'Пример: за колой чёрный силуэт. Убрал колу — стало видно кефир.' },
+    en: { title: 'Covered good', rule: 'A dark silhouette is a good you cannot see yet. It is never the front one: take the item in front of it and you will find out what it is.', example: 'Example: a black shape behind the cola. Move the cola and kefir appears.' },
+  },
   {
     key: 'movelimit', fromLevel: 9,
     ru: { title: 'Лимит ходов', rule: 'Теперь на уровень даётся ограниченное число перестановок — трать ходы с умом. Превысил лимит — уровень заново. Счётчик ходов в шапке: сделано/лимит.', example: 'Пример: ⇄ 12/18 — сделано 12 ходов из 18. С каждым уровнем лимит жмёт сильнее.' },
     en: { title: 'Move limit', rule: 'Each level now allows a limited number of moves — spend them wisely. Exceed the limit and the level restarts. The header counter shows used/limit.', example: 'Example: ⇄ 12/18 — 12 of 18 moves used. The limit tightens every level.' },
+  },
+  {
+    key: 'locked', fromLevel: 10,
+    ru: { title: 'Замок по ходам', rule: 'Ниша с часами откроется сама через столько ходов, сколько показывает счётчик. Ждать не обязательно — просто считай её занятой, пока идёт отсчёт.', example: 'Пример: ⏱ 5 — откроется через пять твоих ходов. Каждый ход счётчик убывает.' },
+    en: { title: 'Timed lock', rule: 'A niche with a clock opens by itself after as many moves as the counter shows. No need to wait for it — just treat it as taken while it counts down.', example: 'Example: ⏱ 5 — opens in five of your moves. Every move takes one off.' },
+  },
+  {
+    key: 'frozen', fromLevel: 12,
+    ru: { title: 'Примёрзший ряд', rule: 'Синий ряд не работает: ни взять, ни положить. Оттает, когда ты соберёшь тройку того товара, что примёрз — он показан снежинкой.', example: 'Пример: ❄ ряд внизу примёрз на соке. Собери тройку сока где угодно — ряд оттает.' },
+    en: { title: 'Frozen row', rule: 'A blue row is out of action — nothing in, nothing out. It thaws when you clear a triple of the frozen good, shown by the snowflake.', example: 'Example: ❄ the bottom row is frozen on juice. Clear a triple of juice anywhere and it thaws.' },
   },
 ];
 
@@ -149,6 +189,7 @@ const SHELF_BY_PROFILE: Record<string, ShelfStyle> = {
   seniors: 'oak',          // тёплое и контрастное
   drivers: 'grey',
   odv999: 'walnut',
+  whatsnew: 'birch',       // витрина свежего — светлое нейтральное, как у входного профиля
   free: 'birch',
 };
 
@@ -338,6 +379,9 @@ const OBSTACLE_PLANS: ObstaclePlan[] = [
   { blocked: 0, locked: 0, covered: 3, frozenRow: true },
   { blocked: 1, locked: 1, covered: 2, frozenRow: false },   // всё сразу
 ];
+
+/** Сколько раз за уровень можно перемешать. Не спасение от тупика — тупика нет. */
+const SHUFFLES_PER_LEVEL = 3;
 
 const NO_OBSTACLES: ObstaclePlan = { blocked: 0, locked: 0, covered: 0, frozenRow: false };
 
@@ -698,6 +742,7 @@ export default function GoodsSortGame() {
   const [covered, setCovered] = useState<Set<string>>(() => new Set());
   /** Примёрзший ряд: индекс ряда и тип, тройку которого надо собрать, чтобы растопить. */
   const [frozen, setFrozen] = useState<{ row: number; type: number } | null>(null);
+  const [shuffles, setShuffles] = useState(SHUFFLES_PER_LEVEL);
   const [goal, setGoal] = useState<Goal>({ kind: 'all' });
   const goalRef = useRef<Goal>({ kind: 'all' });
   const { popups, spawn } = useScorePopups();
@@ -781,7 +826,7 @@ export default function GoodsSortGame() {
     }
     setGoal(g); goalRef.current = g;
 
-    setSel(null); setMoves(0); movesRef.current = 0;
+    setSel(null); setMoves(0); movesRef.current = 0; setShuffles(SHUFFLES_PER_LEVEL);
     setStartTime(gameNow()); setElapsed(0);
   };
 
@@ -909,12 +954,22 @@ export default function GoodsSortGame() {
     ns[toCell].push(item);
     movesRef.current += 1; setMoves(movesRef.current);
     // каскад: любая ячейка с 3 одинаковыми → собрать (+50). Спокойно, без таймед-комбо.
-    let clearedNow = 0; let again = true;
+    let clearedNow = 0; let gained = 0; let again = true;
     const clearedTypes: number[] = [];
     while (again) {
       again = false;
       for (let i = 0; i < gridRef.current.slots; i++) {
-        if (threeSame(ns[i])) { clearedTypes.push(ns[i][0]); ns[i] = []; clearedNow += 1; scoreRef.current += 50; again = true; }
+        if (threeSame(ns[i])) {
+          clearedTypes.push(ns[i][0]); ns[i] = []; clearedNow += 1; again = true;
+          /**
+           * 🔴 КОМБО-МНОЖИТЕЛЬ. Раньше каждая тройка давала ровно 50, сколько бы
+           * их ни ссыпалось разом, — при том что звук `sndCombo` играл, а справка
+           * обещала «×2, ×3». То есть игра поощряла звуком то, за что не платила.
+           * Вторая тройка в одном ходу даёт ×2, третья ×3 и дальше: цепочка
+           * стоит дороже той же работы вразбивку, и её есть смысл выстраивать.
+           */
+          gained += 50 * clearedNow;
+        }
       }
     }
     /**
@@ -948,7 +1003,13 @@ export default function GoodsSortGame() {
     }
 
     setCells(ns); setSel(null); setScore(scoreRef.current);
-    if (clearedNow > 0) { setCleared((c) => c + clearedNow); hapticSuccess(); if (clearedNow > 1) sndCombo(clearedNow); spawn(width / 2 - 24, 150, '+' + clearedNow * 50, '#fde047'); }
+    scoreRef.current += gained;
+    if (clearedNow > 0) {
+      setCleared((c) => c + clearedNow); hapticSuccess();
+      if (clearedNow > 1) sndCombo(clearedNow);
+      // Цифра во всплывашке — НАСТОЯЩАЯ прибавка, включая множитель.
+      spawn(width / 2 - 24, 150, (clearedNow > 1 ? `×${clearedNow}  ` : '') + '+' + gained, '#fde047');
+    }
     else hapticTap();
     /**
      * 🔴 УРОВЕНЬ КОНЧАЕТСЯ ПО ЦЕЛИ, А НЕ ПО ПУСТОЙ ДОСКЕ. При цели `pick` на
@@ -1126,6 +1187,22 @@ export default function GoodsSortGame() {
   const reshuffle = () => {
     const items = cells.flat();
     if (items.length === 0) return;
+    /**
+     * 🔴 ПЕРЕМЕШАТЬ СТОИТ ХОД И ВЫДАЁТСЯ ТРИЖДЫ ЗА УРОВЕНЬ.
+     *
+     * Раньше кнопка была бесплатной и бесконечной. Вместе с гарантией «всегда
+     * минимум две свободные ниши» это значило, что ПЛАНИРОВАТЬ НЕ ОБЯЗАТЕЛЬНО
+     * НИ НА ОДНОМ УРОВНЕ: жадная стратегия «собирай пары» не может завести в
+     * тупик, а если бы могла — есть бесплатный выход. Все препятствия и цели
+     * обесценивались одной кнопкой.
+     *
+     * Три раза — не жадность: тупика по построению нет, значит перемешивание
+     * это удобство, а не спасение. Ход списывается, чтобы на уровнях с целью
+     * «уложись в ходы» цена была настоящей.
+     */
+    if (shuffles <= 0) { hapticTap(); return; }
+    setShuffles((n) => n - 1);
+    movesRef.current += 1; setMoves(movesRef.current);
     const slots = gridRef.current.slots;
     const open: number[] = [];
     for (let i = 0; i < slots; i++) if (cellUsable(i)) open.push(i);
@@ -1282,7 +1359,15 @@ export default function GoodsSortGame() {
   const renderCell = (i: number) => {
     const cell = cells[i] || [];
     const isSelCell = sel?.cell === i;
-    const close = hasPair(cell);   // 2 одинаковых → подсказка «положи третий»
+    /**
+     * Подсветка ниши с парой — ОБУЧАЮЩАЯ, а не постоянная. Она честно
+     * показывает «сюда третий», и на первых уровнях это ровно то, что надо
+     * объяснить. Но дальше она снимает половину зрительного поиска: искать
+     * глазами уже не нужно, достаточно идти по зелёным рамкам. В тренажёре это
+     * убирает как раз ту работу, ради которой сюда приходят. С шестого уровня
+     * гаснет — там же, где начинаются препятствия.
+     */
+    const close = hasPair(cell) && level <= 5;
     /**
      * «Что в руке» — общее для обоих способов хода: поднятый пальцем товар или
      * выбранный тапом. Дальше вопрос один и тот же, и отвечает на него один и
@@ -1465,9 +1550,11 @@ export default function GoodsSortGame() {
           }
           toolbar={
             <TouchableOpacity
-              accessibilityRole="button" onPress={reshuffle} activeOpacity={0.8} style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              accessibilityRole="button" onPress={reshuffle} activeOpacity={0.8} disabled={shuffles <= 0}
+              accessibilityState={{ disabled: shuffles <= 0 }}
+              style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: shuffles > 0 ? 1 : 0.45 }]}>
               <Ionicons name="shuffle" size={18} color="#d97706" />
-              <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')}</Text>
+              <Text style={[styles.shuffleText, { color: colors.text }]}>{t('shuffleBtn')} {shuffles}</Text>
             </TouchableOpacity>
           }
         >
