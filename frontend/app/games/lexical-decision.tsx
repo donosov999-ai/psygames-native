@@ -318,8 +318,8 @@ export default function LexicalDecisionGame() {
         scrollableField
         stats={
           <View style={styles.hudRow}>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{idx + 1}/{trials.length}</Text>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>✓ {correctCount} · ✗ {errorsCount}</Text>
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('round')} {idx + 1}/{trials.length}</Text>
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('hud_correct')} {correctCount} · {t('hud_errors')} {errorsCount}</Text>
           </View>
         }
         toolbar={

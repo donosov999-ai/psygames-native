@@ -468,19 +468,19 @@ export default function WcstGame() {
         onBack={() => goBackOrHome()}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-            <Text style={[styles.statText, { color: GRADIENT[1] }]}>↻{perseverative}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
+            <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('hud_repeats')} {perseverative}</Text>
             {/* v1.169 (репорт Вали «в справке каждые 6 карточек, а сменилось после 10»):
                 числа «6» в справке давно нет, но взамен там «после серии верных подряд» —
                 верно и бесполезно. Порог живой: классика 10, по уровням 9 → 3. Поэтому
                 показываем ТЕКУЩИЙ прямо в счётчиках: серия и сколько до смены правила.
                 Статичное число в тексте всё равно разъехалось бы с кодом. */}
             <Text style={[styles.statText, { color: colors.textSecondary }]}>
-              🔥{streak}/{ruleStreakRef.current}
+              {t('hud_streak')} {streak}/{ruleStreakRef.current}
             </Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('unitSecShort')}</Text>
           </View>
         }
         toolbar={

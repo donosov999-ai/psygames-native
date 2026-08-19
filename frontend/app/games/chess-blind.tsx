@@ -554,9 +554,9 @@ export default function ChessBlindGame() {
       onBack={() => goBackOrHome()}
       stats={
         <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{ru ? 'Ур.' : 'Lv'}{levelRef.current}</Text>
-          <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+          <Text style={[styles.statText, { color: colors.text }]}>{t('label_level_short')}{levelRef.current}</Text>
+          <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
+          <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
           {phase === 'quiz' && (
             <Text style={[styles.statText, { color: colors.text }]}>
               {ru ? 'Вопрос' : 'Q'} {qIndex + 1}/{prm.questions}

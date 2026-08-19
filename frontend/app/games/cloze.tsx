@@ -346,11 +346,11 @@ export default function ClozeGame() {
         scrollableField
         stats={
           <View style={styles.hudRow}>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{idx + 1}/{rounds.length}</Text>
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('round')} {idx + 1}/{rounds.length}</Text>
             {timeLimitRef.current > 0 && (
-              <Text style={[styles.hudText, { color: lowTime ? '#f43f5e' : colors.textSecondary }]}>⏱ {timeLeft}</Text>
+              <Text style={[styles.hudText, { color: lowTime ? '#f43f5e' : colors.textSecondary }]}>{t('timeLeftLabel')} {timeLeft}{t('secShort')}</Text>
             )}
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>✓ {correctCount} · ✗ {errorsCount}</Text>
+            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('hud_correct')} {correctCount} · {t('hud_errors')} {errorsCount}</Text>
           </View>
         }
         toolbar={

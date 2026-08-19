@@ -459,9 +459,9 @@ export default function NBackGame() {
           onBack={() => goBackOrHome()}
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{nLevel}-back · {currentIdx + 1}/{trials}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>✓{hits}</Text>
-              <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>✗{misses + falseAlarms}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{nLevel}-back · {t('round')} {currentIdx + 1}/{trials}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('hud_correct')} {hits}</Text>
+              <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>{t('hud_errors')} {misses + falseAlarms}</Text>
               {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
             </View>
           }

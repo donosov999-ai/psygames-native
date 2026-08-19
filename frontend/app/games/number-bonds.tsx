@@ -338,15 +338,15 @@ export default function NumberBondsGame() {
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
             {!isPreset && (
               <Text style={[styles.statText, { color: roundLeft <= 5 ? '#f43f5e' : colors.text }]}>
-                ⏱{Math.ceil(roundLeft)}{t('secShort')}
+                {t('timeLeftLabel')} {Math.ceil(roundLeft)}{t('secShort')}
               </Text>
             )}
-            <Text style={[styles.statText, { color: colors.textSecondary }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
+            <Text style={[styles.statText, { color: colors.textSecondary }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
           </View>
         }
         toolbar={

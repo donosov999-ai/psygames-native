@@ -457,9 +457,9 @@ export default function HanoiGame() {
       }
       stats={
         <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{moves} / {optimal(discs)}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-          <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
+          <Text style={[styles.statText, { color: colors.text }]}>{t('hud_moves')} {moves} / {optimal(discs)}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
+          <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
+          <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
           {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
         </View>
       }

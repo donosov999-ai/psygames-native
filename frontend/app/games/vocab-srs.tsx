@@ -376,7 +376,7 @@ export default function VocabSrsGame() {
         stats={
           <View style={styles.hudRow}>
             <Text style={[styles.hudText, { color: colors.textSecondary }]}>
-              {idx + 1}/{queue.length}
+              {t('round')} {idx + 1}/{queue.length}
             </Text>
             {card.isNew && (
               <View style={[styles.newBadge, { backgroundColor: GRADIENT[0] }]}>
@@ -384,7 +384,7 @@ export default function VocabSrsGame() {
               </View>
             )}
             <Text style={[styles.hudText, { color: colors.textSecondary }]}>
-              ✓ {correctCount} · ✗ {wrongCount}
+              {t('hud_correct')} {correctCount} · {t('hud_errors')} {wrongCount}
             </Text>
           </View>
         }

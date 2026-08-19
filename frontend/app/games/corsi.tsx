@@ -314,13 +314,13 @@ export default function CorsiGame() {
           onBack={() => goBackOrHome()}
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>Span {span}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('hud_span')} {span}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
               {phase === 'show' ? (
-                <Text style={[styles.statText, { color: GRADIENT[1] }]}>Len {seq.length}</Text>
+                <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('lengthLabel')} {seq.length}</Text>
               ) : (
                 <>
-                  <Text style={[styles.statText, { color: GRADIENT[1] }]}>{userSeq.length}/{seq.length}</Text>
-                  <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+                  <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('hud_entered')} {userSeq.length}/{seq.length}</Text>
+                  <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
                 </>
               )}
               {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}

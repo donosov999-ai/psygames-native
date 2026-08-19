@@ -200,10 +200,10 @@ export default function IowaGame() {
         onBack={() => goBackOrHome()}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>Card {round}/{trials}</Text>
-            <Text style={[styles.statText, { color: bank >= 2000 ? '#22c55e' : '#ef4444', fontSize: 16 }]}>${bank}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>+CD: {advCount}</Text>
-            <Text style={[styles.statText, { color: '#ef4444' }]}>-AB: {disCount}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('hud_card')} {round}/{trials}</Text>
+            <Text style={[styles.statText, { color: bank >= 2000 ? '#22c55e' : '#ef4444', fontSize: 16 }]}>{t('hud_bank')} ${bank}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_goodDecks')} {advCount}</Text>
+            <Text style={[styles.statText, { color: '#ef4444' }]}>{t('hud_badDecks')} {disCount}</Text>
           </View>
         }
         toolbar={

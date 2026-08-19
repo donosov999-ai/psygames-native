@@ -483,12 +483,12 @@ export default function FindDifferencesGame() {
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalRounds}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalRounds}</Text>
             {!isCalm && (
-              <Text style={[styles.statText, { color: timeLeft <= 5 ? '#f43f5e' : colors.text }]}>⏱{timeLeft}{t('secShort')}</Text>
+              <Text style={[styles.statText, { color: timeLeft <= 5 ? '#f43f5e' : colors.text }]}>{t('timeLeftLabel')} {timeLeft}{t('secShort')}</Text>
             )}
-            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{foundIdx.size}/{diffIdx.length}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('label_found')} {foundIdx.size}/{diffIdx.length}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
           </View>
         }
       >

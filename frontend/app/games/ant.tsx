@@ -341,15 +341,15 @@ export default function ANTGame() {
         stats={
           <View style={styles.statsCol}>
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{m.meanRt}{t('msShort')}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('reaction')} {m.meanRt}{t('msShort')}</Text>
             </View>
             <View style={[styles.networkRow]}>
-              <Text style={[styles.netText, { color: '#22c55e' }]}>A {m.alerting}</Text>
-              <Text style={[styles.netText, { color: '#fbbf24' }]}>O {m.orienting}</Text>
-              <Text style={[styles.netText, { color: '#ef4444' }]}>E {m.executive}</Text>
+              <Text style={[styles.netText, { color: '#22c55e' }]}>{t('hud_netAlerting')} {m.alerting}{t('msShort')}</Text>
+              <Text style={[styles.netText, { color: '#fbbf24' }]}>{t('hud_netOrienting')} {m.orienting}{t('msShort')}</Text>
+              <Text style={[styles.netText, { color: '#ef4444' }]}>{t('hud_netExecutive')} {m.executive}{t('msShort')}</Text>
             </View>
           </View>
         }

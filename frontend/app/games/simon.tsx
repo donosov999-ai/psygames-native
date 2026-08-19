@@ -339,10 +339,10 @@ export default function SimonGame() {
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{meanRtAll}{t('msShort')}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('reaction')} {meanRtAll}{t('msShort')}</Text>
           </View>
         }
         toolbar={

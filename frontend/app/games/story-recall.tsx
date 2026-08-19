@@ -394,14 +394,14 @@ export default function StoryRecallGame() {
         stats={
           phase === 'reading' ? (
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text, fontSize: 20 }]}>{t('storyReadPhase')} · {readRemaining}s</Text>
+              <Text style={[styles.statText, { color: colors.text, fontSize: 20 }]}>{t('storyReadPhase')} · {t('timeLeftLabel')} {readRemaining}{t('secShort')}</Text>
             </View>
           ) : isDistractor ? (
             <View style={styles.statsRow}>
               <Text style={[styles.statText, { color: colors.text }]}>
-                {phase === 'distractor1' ? t('storyDistractor1') : t('storyDistractor2')} · {distractorRemaining}s
+                {phase === 'distractor1' ? t('storyDistractor1') : t('storyDistractor2')} · {t('timeLeftLabel')} {distractorRemaining}{t('secShort')}
               </Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{distractorScore}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {distractorScore}</Text>
             </View>
           ) : undefined
         }

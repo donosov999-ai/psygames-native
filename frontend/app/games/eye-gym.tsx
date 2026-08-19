@@ -313,8 +313,8 @@ export default function EyeGymGame() {
         onBack={() => goBackOrHome()}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.exStep, { color: colors.textSecondary }]}>{stepIdx + 1}/{steps.length}</Text>
-            <Text style={[styles.exTimer, { color: colors.text }]}>{remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
+            <Text style={[styles.exStep, { color: colors.textSecondary }]}>{t('hud_step')} {stepIdx + 1}/{steps.length}</Text>
+            <Text style={[styles.exTimer, { color: colors.text }]}>{t('timeLeftLabel')} {remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
           </View>
         }
         toolbar={

@@ -264,13 +264,13 @@ export default function SpatialSpanGame() {
           onBack={() => goBackOrHome()}
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>Span {span} · {language === 'ru' ? 'Ур.' : 'Lv'}{lvl.level}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('hud_span')} {span} · {t('label_level_short')}{lvl.level}</Text>
               {phase === 'show' ? (
-                <Text style={[styles.statText, { color: GRADIENT[1] }]}>Len {seq.length}</Text>
+                <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('lengthLabel')} {seq.length}</Text>
               ) : (
-                <Text style={[styles.statText, { color: GRADIENT[1] }]}>{userSeq.length}/{seq.length}</Text>
+                <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('hud_entered')} {userSeq.length}/{seq.length}</Text>
               )}
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{totalErrors}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {totalErrors}</Text>
               <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
             </View>
           }

@@ -275,11 +275,11 @@ export default function MathSprintGame() {
           scrollableField
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>⏱ {timeLeft.toFixed(1)}{t('secShort')}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>★ {score}</Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{correct}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-              {streak >= 3 && <Text style={[styles.statText, { color: '#fbbf24' }]}>🔥{streak}</Text>}
+              <Text style={[styles.statText, { color: colors.text }]}>{t('timeLeftLabel')} {timeLeft.toFixed(1)}{t('secShort')}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('score')} {score}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {correct}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
+              {streak >= 3 && <Text style={[styles.statText, { color: '#fbbf24' }]}>{t('hud_streak')} {streak}</Text>}
               {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
             </View>
           }

@@ -522,10 +522,10 @@ export default function MentalRotationGame() {
           onBack={() => goBackOrHome()}
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}</Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('unitSecShort')}</Text>
               {!isPreset && <LevelRuleBadge lr={levelRules} color={colors.primary} ru={language === 'ru'} />}
             </View>
           }
