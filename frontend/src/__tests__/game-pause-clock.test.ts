@@ -20,37 +20,56 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 beforeEach(__resetGameClock);
 
+/**
+ * ⚠️ СРАВНИВАЕМ С НАСТЕННЫМ ВРЕМЕНЕМ, А НЕ С ЧИСЛОМ ИЗ `sleep`.
+ *
+ * Первая редакция ставила жёсткие границы («меньше 75 мс») в расчёте на то, что
+ * `sleep(40)` спит ровно сорок. Под параллельной нагрузкой — а тесты гоняются
+ * вместе с чужими наборами — таймер просыпается позже, и тест краснел на
+ * ИСПРАВНОМ коде. Замечено соседним агентом 19.08.2026.
+ *
+ * Проверяем то, что и должны: сколько НАСТЕННОГО времени прошло, столько же
+ * должно набежать игрового — минус ровно время простоя. Допуск считается от
+ * измеренного, а не от ожидаемого.
+ */
+const TOL = 25;   // запас на дрожание планировщика под нагрузкой
+
 describe('игровые часы', () => {
   it('без паузы идут вровень с настенными', async () => {
-    const a = gameNow(); const w = Date.now();
+    const g0 = gameNow(); const w0 = Date.now();
     await sleep(40);
-    expect(Math.abs((gameNow() - a) - (Date.now() - w))).toBeLessThan(8);
+    const game = gameNow() - g0, wall = Date.now() - w0;
+    expect(Math.abs(game - wall)).toBeLessThan(TOL);
   });
 
   it('🔴 во время паузы стоят', async () => {
-    const started = gameNow();
+    const g0 = gameNow(); const w0 = Date.now();
     const release = holdGame();
     await sleep(60);
-    const duringPause = gameNow() - started;
+    const game = gameNow() - g0, wall = Date.now() - w0;
     release();
-    expect(duringPause).toBeLessThan(20);        // почти ноль игрового времени
-    expect(heldTotalMs()).toBeGreaterThanOrEqual(50);
+    // Настенных прошло не меньше 60, игровых — почти ноль.
+    expect(wall).toBeGreaterThanOrEqual(50);
+    expect(game).toBeLessThan(TOL);
+    expect(heldTotalMs()).toBeGreaterThanOrEqual(wall - TOL);
   });
 
   it('после снятия идут дальше, а простой не возвращается', async () => {
-    const started = gameNow();
+    const g0 = gameNow(); const w0 = Date.now();
     const release = holdGame();
     await sleep(50);
+    const wallPaused = Date.now() - w0;
     release();
     await sleep(40);
-    const played = gameNow() - started;
-    expect(played).toBeGreaterThanOrEqual(30);
-    expect(played).toBeLessThan(75);             // 50 мс простоя не засчитаны
+    const game = gameNow() - g0, wall = Date.now() - w0;
+    // Игрового набежало ровно столько, сколько настенного ВНЕ паузы.
+    expect(Math.abs(game - (wall - wallPaused))).toBeLessThan(TOL);
+    expect(game).toBeLessThan(wall - 20);        // простой точно не засчитан
   });
 
   /** Поверх отзыва может открыться ещё окно; снятие одного не отпускает все. */
   it('вложенные паузы: часы идут только после последнего снятия', async () => {
-    const started = gameNow();
+    const g0 = gameNow();
     const r1 = holdGame();
     const r2 = holdGame();
     r1();
@@ -58,7 +77,7 @@ describe('игровые часы', () => {
     await sleep(50);
     r2();
     expect(isGameHeld()).toBe(false);
-    expect(gameNow() - started).toBeLessThan(25);
+    expect(gameNow() - g0).toBeLessThan(TOL);
   });
 
   it('двойное снятие не уводит счётчик в минус', () => {
