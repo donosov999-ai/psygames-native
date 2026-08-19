@@ -18,16 +18,8 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const VS_RULES: LevelRule[] = [
-  {
-    key: 'multi', fromLevel: 4, toLevel: 7,
-    ru: { title: 'Несколько целей', rule: 'Теперь в раунде может быть несколько целей — найди ВСЕ, счётчик 🎯 покажет прогресс.', example: 'Пример: 🎯 1/3 — найдена одна цель из трёх.' },
-    en: { title: 'Multiple targets', rule: 'A round can now hold several targets — find ALL of them, the 🎯 counter shows progress.', example: 'Example: 🎯 1/3 — one of three targets found.' },
-  },
-  {
-    key: 'conj', fromLevel: 8,
-    ru: { title: 'Цвет + форма', rule: 'Цель теперь задаётся ДВУМЯ признаками: нужная форма нужного цвета. Та же форма другого цвета — НЕ цель.', example: 'Пример: ищем синюю T. Жёлтая T и синяя L — ловушки.' },
-    en: { title: 'Color + shape', rule: 'The target is now defined by TWO features: the right shape in the right color. Same shape in another color is NOT a target.', example: 'Example: find the blue T. A yellow T and a blue L are decoys.' },
-  },
+  { key: 'multi', fromLevel: 4, toLevel: 7 },   // lr_visual_search_multi_*
+  { key: 'conj', fromLevel: 8 },   // lr_visual_search_conj_*
 ];
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';

@@ -112,11 +112,7 @@ const SENTENCES: SentenceItem[] = [
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
 const READINGSPAN_RULES: LevelRule[] = [
-  {
-    key: 'load', fromLevel: 5,
-    ru: { title: "Предложений больше, чем удержишь подряд", rule: "С этого уровня набор длиннее, чем помещается в голове списком. Смысл теста в этом и есть: проверить предложение и НЕ потерять слова из предыдущих.", example: "Не повторяй слова по кругу — на проверке следующего предложения повтор собьётся. Связывай слова в одну фразу, пусть нелепую." },
-    en: { title: "More sentences than you can hold in a row", rule: "From this level the set is longer than fits in your head as a list. That is exactly what the test measures: judge the sentence and do NOT lose the words from the previous ones.", example: "Do not loop the words in your head — judging the next sentence will break the loop. Tie the words into one phrase, however absurd." },
-  },
+  { key: 'load', fromLevel: 5 },   // lr_reading_span_load_*
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'recall' | 'cleared' | 'result';

@@ -27,11 +27,7 @@ import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const CORSI_RULES: LevelRule[] = [
-  {
-    key: 'reverse', fromLevel: 10,
-    ru: { title: 'Обратный порядок', rule: 'С этого уровня повторяй последовательность В ОБРАТНОМ порядке — от последнего блока к первому.', example: 'Пример: загорелись блоки 1 → 2 → 3 — нажимай 3, 2, 1.' },
-    en: { title: 'Reverse order', rule: 'From this level on, reproduce the sequence in REVERSE — from the last block back to the first.', example: 'Example: blocks flash 1 → 2 → 3 — tap 3, 2, 1.' },
-  },
+  { key: 'reverse', fromLevel: 10 },   // lr_corsi_reverse_*
 ];
 
 const GRADIENT = ['#0083B0', '#00B4DB'];

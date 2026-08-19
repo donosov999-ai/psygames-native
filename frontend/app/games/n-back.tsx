@@ -35,11 +35,7 @@ import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const NB_RULES: LevelRule[] = [
-  {
-    key: 'dual', fromLevel: 9,
-    ru: { title: 'Два потока', rule: 'Теперь ДВА потока сразу: позиция на поле и буква (звук). Совпадение позиции отмечай кнопкой «👁 Position», совпадение буквы — «🔊 Sound». Можно нажать обе.', example: 'Пример (2-back): позиция как 2 шага назад → Position; буква как 2 шага назад → Sound.' },
-    en: { title: 'Two streams', rule: 'Now TWO streams at once: the position on the grid and a letter (sound). Mark a position match with the "👁 Position" button, a letter match with "🔊 Sound". You can tap both.', example: 'Example (2-back): position same as 2 steps ago → Position; letter same as 2 steps ago → Sound.' },
-  },
+  { key: 'dual', fromLevel: 9 },   // lr_n_back_dual_*
 ];
 
 const GRADIENT = ['#5b86e5', '#36d1dc'];

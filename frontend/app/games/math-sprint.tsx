@@ -28,16 +28,8 @@ import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const MS_RULES: LevelRule[] = [
-  {
-    key: 'mult', fromLevel: 3, toLevel: 4,
-    ru: { title: 'Умножение', rule: 'К сложению и вычитанию добавляется умножение (×).', example: 'Пример: 7 × 6 = 42.' },
-    en: { title: 'Multiplication', rule: 'Multiplication (×) joins addition and subtraction.', example: 'Example: 7 × 6 = 42.' },
-  },
-  {
-    key: 'div', fromLevel: 5,
-    ru: { title: 'Деление', rule: 'Теперь встречается и деление (÷) — всегда нацело, без остатка. Умножение (×) тоже остаётся.', example: 'Пример: 42 ÷ 6 = 7.' },
-    en: { title: 'Division', rule: 'Division (÷) now appears — always exact, no remainder. Multiplication (×) stays too.', example: 'Example: 42 ÷ 6 = 7.' },
-  },
+  { key: 'mult', fromLevel: 3, toLevel: 4 },   // lr_math_sprint_mult_*
+  { key: 'div', fromLevel: 5 },   // lr_math_sprint_div_*
 ];
 
 const GRADIENT = ['#fc4a1a', '#f7b733'];

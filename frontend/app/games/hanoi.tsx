@@ -28,16 +28,8 @@ import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const HN_RULES: LevelRule[] = [
-  {
-    key: 'pegs4', fromLevel: 5, toLevel: 9,
-    ru: { title: '4 стержня', rule: 'Теперь стержней четыре. Больше простора для манёвра — но оптимальный путь другой, старые привычки трёх стержней не работают. Цель прежняя: собрать башню на последнем (правом) стержне.', example: 'Пример: лишний стержень = два «буфера» для мелких дисков.' },
-    en: { title: '4 pegs', rule: 'There are now four pegs. More room to maneuver — but the optimal path is different, old 3-peg habits won\'t work. The goal stays the same: rebuild the tower on the last (rightmost) peg.', example: 'Example: the extra peg gives you two "buffers" for small discs.' },
-  },
-  {
-    key: 'pegs5', fromLevel: 10,
-    ru: { title: '5 стержней', rule: 'Стержней уже пять — ещё больше простора для манёвра, но и дисков больше, а оптимальный путь снова другой. Цель прежняя: вся башня на последнем (правом) стержне.', example: 'Пример: три «буфера» — раскладывай мелкие диски параллельно.' },
-    en: { title: '5 pegs', rule: 'Five pegs now — even more room to maneuver, but more discs too, and the optimal path changes again. The goal stays the same: the whole tower on the last (rightmost) peg.', example: 'Example: three "buffers" — park small discs in parallel.' },
-  },
+  { key: 'pegs4', fromLevel: 5, toLevel: 9 },   // lr_hanoi_pegs4_*
+  { key: 'pegs5', fromLevel: 10 },   // lr_hanoi_pegs5_*
 ];
 
 const GRADIENT = ['#a8c0ff', '#3f2b96'];

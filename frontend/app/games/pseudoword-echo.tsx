@@ -47,16 +47,8 @@ const TL_KEY = `psygames_${GAME_ID}_targetlang`;
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
 const PSEUDOWORDECHO_RULES: LevelRule[] = [
-  {
-    key: 'longer6', fromLevel: 5,
-    ru: { title: "Слова стали длиннее", rule: "Было четыре-пять букв, стало шесть-семь. Целиком такое слово в голове уже не удержать — его придётся разбить на слоги.", example: "Пример: было «нолап», стало «вирунтек». Второе держится только по частям." },
-    en: { title: "Longer words now", rule: "It was four or five letters, now it is six or seven. A word this long no longer fits whole — you have to break it into syllables.", example: "Example: it was \"nolap\", now it is \"viruntek\". The second one only holds in pieces." },
-  },
-  {
-    key: 'longer8', fromLevel: 9,
-    ru: { title: "Восемь-девять букв", rule: "Предельная длина. На таком слове решает не память, а то, насколько точно ты расслышал каждый звук.", example: "Варианты ответа теперь различаются одной буквой в середине — там, где слух подводит чаще всего." },
-    en: { title: "Eight or nine letters", rule: "Maximum length. At this size it is not memory that decides but how precisely you heard every sound.", example: "The answer options now differ by one letter in the middle — exactly where hearing fails most often." },
-  },
+  { key: 'longer6', fromLevel: 5 },   // lr_pseudoword_echo_longer6_*
+  { key: 'longer8', fromLevel: 9 },   // lr_pseudoword_echo_longer8_*
 ];
 
 type GamePhase = 'config' | 'playing' | 'cleared' | 'result';
@@ -178,7 +170,6 @@ export default function PseudowordEchoGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const lvl = usePersistentLevel(GAME_ID);
-  const ru = language === 'ru';
 
   const { isPreset, autostart, str } = useGamePreset();
   const [phase, setPhase] = useState<GamePhase>('config');
@@ -317,11 +308,9 @@ export default function PseudowordEchoGame() {
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
         <Ionicons name="headset" size={48} color={ON_GRAD.color} />
-        <Text style={styles.configTitle}>{ru ? 'Эхо: псевдослова' : 'Pseudoword Echo'}</Text>
+        <Text style={styles.configTitle}>{t('pseudowordEcho')}</Text>
         <Text style={styles.configDesc}>
-          {ru
-            ? 'Слушай выдуманное слово и выбери, как оно пишется. Тренирует фонологическую петлю — ключ к росту словаря.'
-            : 'Listen to a made-up word and pick its correct spelling. Trains the phonological loop — the key to vocabulary growth.'}
+          {t('pwEchoConfigDesc')}
         </Text>
       </LinearGradient>
 
@@ -329,7 +318,7 @@ export default function PseudowordEchoGame() {
 
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>
-          {ru ? 'Язык тренировки' : 'Training language'}
+          {t('langToTrain')}
         </Text>
         <View style={styles.optionButtons}>
           {TARGET_LANGS.filter((l) => l.code !== language).map((l) => (
@@ -349,17 +338,14 @@ export default function PseudowordEchoGame() {
           ))}
         </View>
         <Text style={[styles.noteText, { color: colors.textSecondary }]}>
-          {ru ? '中文 и हिन्दी пока не поддерживаются: для них нельзя честно собрать похожие варианты написания на слух.'
-              : '中文 and हिन्दी are not supported yet: sound-alike spelling options can’t be built fairly for those scripts.'}
+          {t('pwEchoUnsupportedNote')}
         </Text>
       </View>
 
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.levelHint, { color: colors.textSecondary }]}>
-          {ru
-            ? `Ур. ${lvl.level} — растёт сам (длиннее слова → больше раундов)`
-            : `Lv ${lvl.level} — grows with results (longer words → more rounds)`}
+          {t('pwEchoLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
 
@@ -367,9 +353,7 @@ export default function PseudowordEchoGame() {
         <View style={[styles.warnCard, { backgroundColor: colors.surface, borderColor: '#f59e0b' }]}>
           <Ionicons name="warning" size={22} color="#f59e0b" />
           <Text style={[styles.warnText, { color: colors.text }]}>
-            {ru
-              ? 'Голос для этого языка не найден на устройстве — озвучка недоступна. Выбери другой язык.'
-              : 'No voice for this language found on this device — audio is unavailable. Pick another language.'}
+            {t('voiceMissing')}
           </Text>
         </View>
       )}
@@ -378,7 +362,7 @@ export default function PseudowordEchoGame() {
         accessibilityRole="button" style={[styles.startBtn, !voiceOk && { opacity: 0.4 }]} onPress={startGame} disabled={!voiceOk}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Ionicons name="play" size={22} color={ON_GRAD.color} />
-          <Text style={styles.startBtnText}>{ru ? 'Начать' : 'Start'}</Text>
+          <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </ScrollView>
@@ -391,7 +375,7 @@ export default function PseudowordEchoGame() {
     const round = playingRound;
     return (
       <GameShell
-        title={ru ? 'Эхо: псевдослова' : 'Pseudoword Echo'}
+        title={t('pseudowordEcho')}
         onBack={() => goBackOrHome()}
         stats={
           <View style={styles.statsRow}>
@@ -412,12 +396,12 @@ export default function PseudowordEchoGame() {
           >
             <Ionicons name="volume-high" size={44} color={GRADIENT[0]} />
             <Text style={[styles.speakerLabel, { color: colors.textSecondary }]}>
-              {ru ? 'Ещё раз' : 'Repeat'}
+              {t('replaySound')}
             </Text>
           </TouchableOpacity>
 
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-            {ru ? 'Выбери написание того, что услышал' : 'Pick the spelling of what you heard'}
+            {t('pwEchoPickSpelling')}
           </Text>
 
           <View style={styles.optionsCol}>
@@ -456,7 +440,7 @@ export default function PseudowordEchoGame() {
           accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{ru ? 'Эхо: псевдослова' : 'Pseudoword Echo'}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('pseudowordEcho')}</Text>
         <View style={{ width: 40 }} />
       </View>
 

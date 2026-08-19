@@ -57,16 +57,8 @@ const SORT_BENEFITS = [
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
 const SEMANTICSORT_RULES: LevelRule[] = [
-  {
-    key: 'three', fromLevel: 4,
-    ru: { title: "Категорий стало три", rule: "До этого выбор был из двух корзин, теперь из трёх. Угадать наугад стало втрое труднее, и слово придётся действительно понять.", example: "Пример: было «еда или животное», стало «фрукт, овощ или животное»." },
-    en: { title: "Three categories now", rule: "Until now you chose between two baskets, now there are three. Guessing blindly got three times harder — you actually have to know the word.", example: "Example: it was \"food or animal\", now it is \"fruit, vegetable or animal\"." },
-  },
-  {
-    key: 'four', fromLevel: 9,
-    ru: { title: "Категорий стало четыре", rule: "Четвёртая корзина. Здесь уже не хватит общего смысла — нужен точный признак слова.", example: "Разница между «фруктом» и «ягодой» на этом уровне решает." },
-    en: { title: "Four categories now", rule: "A fourth basket. General meaning is no longer enough — you need the precise feature of the word.", example: "The difference between \"fruit\" and \"berry\" starts to matter here." },
-  },
+  { key: 'three', fromLevel: 4 },   // lr_semantic_sort_three_*
+  { key: 'four', fromLevel: 9 },   // lr_semantic_sort_four_*
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';

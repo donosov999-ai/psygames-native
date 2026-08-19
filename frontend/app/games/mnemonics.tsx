@@ -51,11 +51,7 @@ const MNEMONICS_BENEFITS = [
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
 const MNEMONICS_RULES: LevelRule[] = [
-  {
-    key: 'method', fromLevel: 7,
-    ru: { title: "Повтор в уме перестал справляться", rule: "С семи-восьми элементов простое проговаривание ряд уже не держит — это предел, он у всех примерно одинаковый. Дальше работает только метод.", example: "Два рабочих: цепочка — связать каждое слово со следующим нелепой картинкой; комната — расставить слова по знакомым местам и потом пройти по ним взглядом." },
-    en: { title: "Repeating in your head stops working", rule: "From seven or eight items, plain repetition no longer holds the list — that is the limit, and it is about the same for everyone. Past it, only a method works.", example: "Two that work: the chain — link each word to the next with an absurd image; the room — place the words around a familiar space and walk it in your mind." },
-  },
+  { key: 'method', fromLevel: 7 },   // lr_mnemonics_method_*
 ];
 
 type GamePhase = 'intro' | 'config' | 'memorize' | 'check' | 'cleared' | 'result';

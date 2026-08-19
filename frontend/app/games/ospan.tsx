@@ -24,11 +24,7 @@ import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const OSPAN_RULES: LevelRule[] = [
-  {
-    key: 'hardmath', fromLevel: 6,
-    ru: { title: 'Счёт сложнее', rule: 'В уравнениях появляется умножение и числа крупнее. Считай внимательно — это отвлекающая задача, буквы между уравнениями всё равно запоминай.', example: 'Пример: 7 × 12 = 84 — верно.' },
-    en: { title: 'Harder math', rule: 'Equations now include multiplication and bigger numbers. Solve carefully — it is the distractor task; keep memorizing the letters in between.', example: 'Example: 7 × 12 = 84 — correct.' },
-  },
+  { key: 'hardmath', fromLevel: 6 },   // lr_ospan_hardmath_*
 ];
 
 const GRADIENT = ['#cb356b', '#bdfff3'];

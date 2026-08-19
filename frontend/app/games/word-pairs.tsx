@@ -48,16 +48,8 @@ const WORD_PAIRS_BENEFITS = [
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
 const WORDPAIRS_RULES: LevelRule[] = [
-  {
-    key: 'faster', fromLevel: 4,
-    ru: { title: "Времени на пару меньше", rule: "Пар с каждым уровнем больше, а секунд на каждую — меньше. На первом уровне пара висит 7 секунд, к десятому около 4, дальше 2,5.", example: "Проговаривать вслух перестаёт хватать примерно с восьмого уровня — связывай пару образом, это быстрее." },
-    en: { title: "Less time per pair", rule: "Every level adds pairs and takes away seconds. A pair is shown for 7 seconds at level 1, about 4 by level 10, then 2.5.", example: "Saying them out loud stops fitting around level 8 — link the pair with an image instead, it is faster." },
-  },
-  {
-    key: 'fifteen', fromLevel: 12,
-    ru: { title: "Пятнадцать пар", rule: "Список дорос до предела — пятнадцать пар. Дальше растёт только скорость показа.", example: "На таком объёме держать пары по отдельности уже нельзя: собирай их в цепочку, где каждая тянет следующую." },
-    en: { title: "Fifteen pairs", rule: "The list has hit its ceiling — fifteen pairs. From here only the pace keeps rising.", example: "At this size you cannot hold pairs separately: chain them so each one pulls the next." },
-  },
+  { key: 'faster', fromLevel: 4 },   // lr_word_pairs_faster_*
+  { key: 'fifteen', fromLevel: 12 },   // lr_word_pairs_fifteen_*
 ];
 
 type GamePhase = 'intro' | 'config' | 'memorize' | 'check' | 'cleared' | 'result';

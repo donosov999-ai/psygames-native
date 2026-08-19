@@ -97,16 +97,8 @@ const DIFF_CFG: Record<Difficulty, Cfg> = {
  * правило показывается СРАЗУ, с первого уровня, а не с какого-то порога.
  */
 const PRL_RULES: LevelRule[] = [
-  {
-    key: 'reversal', fromLevel: 1,
-    ru: { title: 'Угадывать не нужно — нужно замечать', rule: 'Один из двух кругов чаще приносит выигрыш. Какой именно — в начале неизвестно, это выясняется пробами. Через несколько верных выборов подряд стороны МОЛЧА меняются местами: тот, что был хорошим, становится плохим. Никакого сигнала об этом не будет.', example: 'Поэтому две ошибки подряд после долгой удачной серии — это почти наверняка не невезение, а смена правила. Меняйте выбор. Одна ошибка ещё ничего не значит: даже хороший круг иногда обманывает.' },
-    en: { title: 'Not a guessing game — a noticing game', rule: 'One of the two circles pays off more often. Which one is unknown at first — you find out by trying. After a few correct choices in a row the sides SILENTLY swap: the good one becomes the bad one. You will get no warning.', example: 'So two errors in a row after a long good streak is almost never bad luck — it is the rule changing. Switch. A single error means nothing: even the good circle misleads sometimes.' },
-  },
-  {
-    key: 'noisy', fromLevel: 5,
-    ru: { title: 'Обратная связь стала обманчивее', rule: 'Хороший круг перестал быть надёжным: раньше он выигрывал почти всегда, теперь — заметно реже. И смена сторон происходит чаще.', example: 'На таком шуме решать по одному ответу нельзя вообще. Держите в голове последние три-четыре: если проигрышей стало больше, чем выигрышей, — правило сменилось.' },
-    en: { title: 'The feedback got trickier', rule: 'The good circle is no longer reliable: it used to win almost always, now noticeably less often. And the sides swap more frequently.', example: 'At this noise level a single answer tells you nothing. Hold the last three or four in mind: once losses outnumber wins, the rule has flipped.' },
-  },
+  { key: 'reversal', fromLevel: 1 },   // lr_prl_reversal_*
+  { key: 'noisy', fromLevel: 5 },   // lr_prl_noisy_*
 ];
 
 function levelParams(level: number): { rewardProb: number; trialsTotal: number; revMin: number; revMax: number } {
@@ -362,7 +354,7 @@ export default function PRLGame() {
 
         {/* Переключатель режима: уровни (прогрессия) vs классический (чистая диагностика) */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
           <View style={styles.optionButtons}>
             {(['level', 'classic'] as RunMode[]).map((m) => (
               <TouchableOpacity
@@ -371,9 +363,7 @@ export default function PRLGame() {
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setRunMode(m)}>
                 <Text style={[styles.modeButtonText, { color: runMode === m ? '#FFF' : colors.text }]}>
-                  {m === 'level'
-                    ? (language === 'ru' ? 'Уровни — прогрессия' : 'Levels — progression')
-                    : (language === 'ru' ? 'Классический — диагностика' : 'Classic — diagnostic')}
+                  {t(m === 'level' ? 'prlModeLevels' : 'prlModeClassic')}
                 </Text>
               </TouchableOpacity>
             ))}
