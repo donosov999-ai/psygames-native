@@ -81,7 +81,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import OneLineGame from '@/src/games/one-line/OneLineGame';
-import { LEVELS, isPassed, type OneLineMetrics } from '@/src/games/one-line/core/index';
+import { LEVELS, isPassed, type OneLineLocale, type OneLineMetrics } from '@/src/games/one-line/core/index';
 
 /**
  * Градиент игры. Лаборатория предлагала `#7c3aed → #db2777`, и по контрасту он
@@ -236,7 +236,18 @@ export default function OneLineScreen() {
           key={attempt}                 /* новый заход — чистое состояние модуля */
           seed={seed}
           level={level}
-          locale={language === 'ru' ? 'ru' : 'en'}
+          /**
+           * 🔴 ЯЗЫК ОТДАЁМ МОДУЛЮ ЦЕЛИКОМ, А НЕ СХЛОПЫВАЕМ ДО ПАРЫ RU/EN
+           * (19.08.2026). Здесь стояло `language === 'ru' ? 'ru' : 'en'`, и это
+           * тихо сводило на нет весь перевод партии: словарь модуля переведён на
+           * двенадцать языков, но японец, кореец и немец всё равно получали
+           * английский — до словаря их язык просто не доезжал. Ошибка того же
+           * рода, что ловит ci-i18n-hardcode-guard, только на строку раньше: не
+           * «текст выбран тернарником», а «язык выброшен перед выбором текста».
+           * Списки языков приложения и модуля сверяет гейт games-module-i18n,
+           * поэтому приведение не спрячет расхождение.
+           */
+          locale={language as OneLineLocale}
           /**
            * Тему отдаём ЦЕЛИКОМ: ключи OneLineTheme совпадают с ThemeColors один
            * в один, а palette модуля по умолчанию светлая. Единственная подмена —

@@ -14,7 +14,20 @@ export const HOME_SECTORS = [
   'north-west',
 ] as const;
 
-export type NavigatorLocale = 'ru' | 'en';
+/**
+ * ЯЗЫКИ — ВСЕ ДВЕНАДЦАТЬ, А НЕ ПАРА RU/EN. В лаборатории тип был `'ru' | 'en'`,
+ * и модуль со словарём на два языка выдавал немцу, японцу и корейцу английские
+ * «North-east» на кнопках ответа. Список держим ОДИН в один с `type Language`
+ * приложения; сверяется гейтом games-module-i18n.
+ */
+export type NavigatorLocale =
+  | 'ru' | 'en' | 'es' | 'de' | 'zh' | 'hi'
+  | 'pt' | 'fr' | 'it' | 'ja' | 'ko' | 'ar';
+
+/** Порядок неважен, важна полнота: по нему сверяются словари в тестах. */
+export const NAVIGATOR_LOCALES: readonly NavigatorLocale[] = [
+  'ru', 'en', 'es', 'de', 'zh', 'hi', 'pt', 'fr', 'it', 'ja', 'ko', 'ar',
+];
 export type NavigatorMode = typeof NAVIGATOR_MODES[number];
 export type CardinalDirection = typeof CARDINAL_DIRECTIONS[number];
 export type TurnInstruction = typeof TURN_INSTRUCTIONS[number];
