@@ -271,7 +271,7 @@ export default function ReadingSpanGame() {
             <TouchableOpacity
               accessibilityRole="button" style={[styles.startBtn, styles.recallBtn]} onPress={handleRecallSubmit}>
               <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-                <Text style={styles.startBtnText} numberOfLines={1}>{t('validateBtn')}</Text>
+                <Text style={styles.startBtnText} numberOfLines={1}>{t('check')}</Text>
               </GradientSurface>
             </TouchableOpacity>
           )

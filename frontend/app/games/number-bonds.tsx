@@ -353,12 +353,12 @@ export default function NumberBondsGame() {
           <View style={styles.actionsRow}>
             <TouchableOpacity
               accessibilityRole="button" style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]} onPress={() => setPicked([])}>
-              <Text style={[styles.actionTxt, { color: colors.text }]}>{t('clearBtn')}</Text>
+              <Text style={[styles.actionTxt, { color: colors.text }]}>{t('clear')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button" style={styles.actionBtnPrimary} onPress={validate}>
               <LinearGradient colors={GRADIENT as [string, string]} style={styles.actionGrad}>
-                <Text style={styles.actionTxt}>{t('validateBtn')}</Text>
+                <Text style={styles.actionTxt}>{t('check')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>

@@ -140,7 +140,6 @@ const t: Record<string, string> = {
   "typeReversed": "数字を逆順で入力",
   "lengthLabel": "桁数",
   "round": "ラウンド",
-  "validateBtn": "確認",
   "check": "確認",
   "benefitDigit1": "電話番号をその場で覚える",
   "benefitDigit2": "長い住所を頭に保持する",

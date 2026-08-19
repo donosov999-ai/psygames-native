@@ -171,7 +171,7 @@ export default function GameIntro({
           <View style={[styles.modalSheet, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <View style={styles.modalHead}>
               <Text style={[styles.modalTitle, { color: colors.text }]} numberOfLines={2}>{t(nameKey)}</Text>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')}
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('close')}
                 onPress={() => setHelpOpen(false)} style={[styles.modalClose, { backgroundColor: colors.surface }]}>
                 <Ionicons name="close" size={20} color={colors.text} />
               </TouchableOpacity>

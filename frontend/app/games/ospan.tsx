@@ -255,7 +255,7 @@ export default function OSpanGame() {
               <TouchableOpacity
                 accessibilityRole="button" style={[styles.startBtn, styles.recallSubmit]} onPress={handleRecall}>
                 <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-                  <Text style={styles.startBtnText}>{t('validateBtn')}</Text>
+                  <Text style={styles.startBtnText}>{t('check')}</Text>
                 </GradientSurface>
               </TouchableOpacity>
             ) : undefined

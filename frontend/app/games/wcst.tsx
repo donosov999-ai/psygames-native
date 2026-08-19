@@ -474,7 +474,7 @@ export default function WcstGame() {
             <Text style={[styles.statText, { color: colors.textSecondary }]}>
               {t('hud_streak')} {streak}/{ruleStreakRef.current}
             </Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('unitSecShort')}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
           </View>
         }
         toolbar={

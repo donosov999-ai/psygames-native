@@ -417,7 +417,7 @@ export default function WordPairsGame() {
           >
             <Ionicons name="checkmark-circle" size={24} color={ON_GRAD.color} />
             <Text style={styles.startButtonText}>
-              {t('btn_check')}
+              {t('check')}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

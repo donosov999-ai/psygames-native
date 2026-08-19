@@ -288,7 +288,7 @@ export default function FeedbackWidget() {
                 <Text style={[styles.title, { color: colors.text }]}>
                   {t('feedbackTitle')}
                 </Text>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')}
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('close')}
                   onPress={() => setOpen(false)} style={{ padding: 4 }}>
                   <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                 </TouchableOpacity>
@@ -380,7 +380,7 @@ export default function FeedbackWidget() {
                           {rec
                             ? `${t('voiceStop')} · ${Math.floor(recSec / 60)}:${String(recSec % 60).padStart(2, '0')}`
                             : note
-                              ? `${t('voiceAttached')} · ${note.seconds} ${t('unitSecShort')}`
+                              ? `${t('voiceAttached')} · ${note.seconds} ${t('secShort')}`
                               : t('voiceRecord')}
                         </Text>
                         {note && !rec && (

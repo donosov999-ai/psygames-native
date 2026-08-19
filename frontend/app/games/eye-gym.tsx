@@ -225,7 +225,7 @@ export default function EyeGymGame() {
 
       {!byLevel && (<>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('eyeDurationLabel')}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('duration')}</Text>
         <View style={styles.optionButtons}>
           {[{ s: 0.4, k: 'eye1min' }, { s: 1, k: 'eye3min' }, { s: 1.7, k: 'eye5min' }].map((o) => (
             <TouchableOpacity
@@ -253,7 +253,7 @@ export default function EyeGymGame() {
         </View>
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('eyeModeLabel')}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
         <View style={styles.optionButtons}>
           {([['full', 'eyeModeFull'], ['pursuit', 'eyeModePursuit'], ['focus', 'eyeModeFocus'], ['relax', 'eyeModeRelax']] as const).map(([m, k]) => (
             <TouchableOpacity
@@ -299,6 +299,7 @@ export default function EyeGymGame() {
       colors={colors}
       onContinue={() => setPhase('config')}
       onStop={() => goBackOrHome()}
+      stopKind="exit"   // onStop уводит С ЭКРАНА игры (goBackOrHome), а не к настройкам → подпись «На главную»
     />
   );
 

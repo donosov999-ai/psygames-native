@@ -210,7 +210,7 @@ export default function PhonemicFluencyGame() {
       </LinearGradient>
       <GameAbout descriptionKey="phonemicIntroDesc" benefits={FLU_BENEFITS} accent={GRADIENT[0]} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('cptDuration')}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('duration')}</Text>
         <View style={styles.optionButtons}>
           {([60, 90, 120] as const).map((d) => (
             <TouchableOpacity
@@ -224,7 +224,7 @@ export default function PhonemicFluencyGame() {
         </View>
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('phonemicLetter')}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('hud_letter')}</Text>
         <TouchableOpacity
           accessibilityRole="button" onPress={() => setAutoPickLetter(!autoPickLetter)} style={styles.toggleRow}>
           <Ionicons name={autoPickLetter ? 'checkbox' : 'square-outline'} size={20} color={GRADIENT[0]} />
@@ -351,7 +351,9 @@ export default function PhonemicFluencyGame() {
           gradient={GRADIENT}
           language={language}
           colors={colors}
-          onContinue={() => setPhase('config')} onStop={() => goBackOrHome()} />
+          onContinue={() => setPhase('config')} onStop={() => goBackOrHome()}
+          stopKind="exit"   // onStop уводит С ЭКРАНА игры (goBackOrHome), а не к настройкам → подпись «На главную»
+        />
       )}
     </SafeAreaView>
   );

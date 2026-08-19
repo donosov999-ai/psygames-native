@@ -106,7 +106,7 @@ export default function StreakCalendarScreen() {
           <View style={[styles.metricCard, { backgroundColor: colors.surface, borderColor: '#f97316' }]}>
             <Text style={styles.metricEmoji}>🏆</Text>
             <Text style={[styles.metricValue, { color: colors.text }]}>{bestStreak}</Text>
-            <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>{t('streakBest')}</Text>
+            <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>{t('personalBest')}</Text>
           </View>
           <View style={[styles.metricCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={styles.metricEmoji}>📅</Text>

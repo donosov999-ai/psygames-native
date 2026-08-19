@@ -56,7 +56,25 @@ interface Props {
   gameId?: string;          // для персиста звёзд по уровням (psygames_<gameId>_stars_<profileId>)
   comparisonLine?: string;  // свой итог · лучший среди игроков / личный рекорд при офлайне
   onContinue: () => void;   // запустить следующий уровень (passed) / тот же уровень заново (!passed)
-  onStop: () => void;       // выйти (config / домой)
+  onStop: () => void;       // куда именно — говорит stopKind, см. ниже
+  /**
+   * КУДА ВЕДЁТ КНОПКА ОСТАНОВКИ. Подпись обязана совпадать с исходом.
+   *
+   * 🔴 ЧТО БЫЛО СЛОМАНО (аудит 19.08.2026). Кнопка называлась «Остановиться» у всех,
+   * но `onStop` у 54 игр делал `setPhase('config')` — человек оставался в игре, на её
+   * настройках, — а у 8 игр `goBackOrHome()`, то есть выкидывал из игры целиком. Одно
+   * слово, два разных исхода: нажимая «Остановиться» в дыхании, человек рассчитывал
+   * вернуться к настройкам, как везде, и терял экран.
+   *
+   * Развели СЛОВАМИ, а не поведением: менять навигацию восьми игр — это менять их
+   * сценарий, а подпись обязана лишь не врать. Отсюда:
+   *   'config' (по умолчанию) → «Остановиться»: остановили прогон, остались в игре;
+   *   'exit'                  → «На главную»:   ушли с экрана игры.
+   *
+   * ⚠️ Ключ `goHome` уже существовал ровно с этим смыслом (его показывает GameResult
+   * на той же развилке) — нового слова не заводили.
+   */
+  stopKind?: 'config' | 'exit';
   /**
    * Как показывать итог.
    *
@@ -70,7 +88,7 @@ interface Props {
   variant?: 'overlay' | 'screen';
 }
 
-export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, onContinue, onStop, variant = 'screen' }: Props) {
+export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, onContinue, onStop, stopKind = 'config', variant = 'screen' }: Props) {
   const { t, language } = useLanguage();
   const levelWord = t('level');   // внутри эффекта `t` перекрыт локальным таймер-хендлом   // язык берём из контекста; проп language остался в Props для совместимости вызовов из игр
   const { profile } = useProfile();
@@ -293,7 +311,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
             onPress={stop} activeOpacity={0.85}>
             <Ionicons name="stop" size={18} color={colors.text} />
-            <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>
+            <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t(stopKind === 'exit' ? 'goHome' : 'stop')}</Text>
           </TouchableOpacity>
         </View>
       ) : compact ? null : (
@@ -307,7 +325,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
           accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
           onPress={stop} activeOpacity={0.85}>
           <Ionicons name="stop" size={20} color={colors.text} />
-          <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>
+          <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t(stopKind === 'exit' ? 'goHome' : 'stop')}</Text>
         </TouchableOpacity>
       </View>
       )}

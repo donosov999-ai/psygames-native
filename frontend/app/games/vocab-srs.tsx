@@ -484,6 +484,7 @@ export default function VocabSrsGame() {
           colors={colors}
           onContinue={() => setPhase('config')}
           onStop={() => router.push('/')}
+          stopKind="exit"   // onStop уводит С ЭКРАНА игры (router.push('/')), а не к настройкам → подпись «На главную»
         />
       )}
 

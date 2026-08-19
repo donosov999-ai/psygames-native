@@ -35,7 +35,7 @@ export default function LeaderboardModal({ visible, onClose, gameId, colors, gra
             <Text style={[styles.title, { color: colors.text }]}>
               {t('leaderboardTitle')}
             </Text>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yClose')} onPress={onClose}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('close')} onPress={onClose}>
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
