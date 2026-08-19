@@ -26,7 +26,6 @@ if (!SA_JSON) { console.error('GOOGLE_PLAY_SA_JSON not set'); process.exit(1); }
 // пользуется гейт `scripts/release-notes-gate.mjs`, который гоняется ДО сборки.
 // Иначе ошибка чтения всплывает на последнем шаге, когда собрано уже всё.
 const { extractNotes, format, PLAY_NOTES_LIMIT } = require('./whatsnew-notes');
-}
 
 const auth = new google.auth.GoogleAuth({
   credentials: JSON.parse(SA_JSON),
