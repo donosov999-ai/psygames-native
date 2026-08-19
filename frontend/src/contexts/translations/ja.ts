@@ -646,6 +646,9 @@ const t: Record<string, string> = {
   "samuraiLvlParams": "マスの{p}%が空欄 · ミス上限{e} · ヒント{h}回",
   "samuraiNextUnlocks": "ミス上限内で解けば、より難しい次のレベルが解放。",
   "samuraiHowTo": "21×21の盤面＝角で重なる5つの数独。どの9×9グリッドでも行・列・3×3ブロックに1–9が重複なく入るように埋めます。🔍ボタンでズーム切替：全体表示かスクロール付き拡大。",
+  "boardBuilding": "盤面を作成中",
+  "boardBuildingSlow": "このレベルは難しめです。単純な走査では解けない盤面を選んでいます。数秒かかります。",
+  "boardBuildingAttempt": "{max} 回中 {n} 回目",
   "errorsOfMax": "ミス {n}/{max}",
   "zoomIn": "拡大",
   "zoomFit": "全体表示",
@@ -1835,6 +1838,15 @@ const t: Record<string, string> = {
   "historyScopedHint": "プレイ記録はありますが、別の種目または別のプロフィールにあります。すべてのゲームを開いてください。",
   "historyNewTask": "新しい難易度",
   "historyLevelShort": "Lv {n}",
+  "recoTitle": "今日のおすすめ",
+  "recoHint": "今日の3つの練習 — 明日まで変わりません",
+  "recoDoneToday": "今日プレイ済み",
+  "recoWhyComeback": "しばらく遊んでいません",
+  "recoWhyGrowth": "ここが伸びています",
+  "recoWhyBranch": "この分野の練習が最も少ない",
+  "recoWhyFresh": "アプリの新着",
+  "recoWhyCalm": "夜向け — 急がずに",
+  "recoWhyStart": "はじめの一歩に",
   // >>> SCREEN_STRINGS
 };
 export default t;

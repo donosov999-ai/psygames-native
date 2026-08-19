@@ -1215,6 +1215,9 @@ const t: Record<string, string> = {
   "samuraiLvlParams": "隐藏 {p}% 格 · 限 {e} 次错误 · {h} 次提示",
   "samuraiNextUnlocks": "在错误上限内完成，即解锁更难的下一关。",
   "samuraiHowTo": "21×21 棋盘 = 五个数独在角上重叠。填满每格，使每张 9×9 的行、列和 3×3 宫都是 1–9 不重复。用 🔍 切换缩放：整体视图或可滚动的放大视图。",
+  "boardBuilding": "正在生成棋盘",
+  "boardBuildingSlow": "这一关较难：正在挑选一块无法靠简单扫描解开的棋盘，需要几秒钟。",
+  "boardBuildingAttempt": "第 {n} 次，共 {max} 次",
   "errorsOfMax": "错误 {n}/{max}",
   "zoomIn": "放大",
   "zoomFit": "整个棋盘",
@@ -1841,6 +1844,15 @@ const t: Record<string, string> = {
   "historyScopedHint": "你有对局，但属于其他练习或其他档案。打开全部游戏。",
   "historyNewTask": "新难度",
   "historyLevelShort": "第 {n} 关",
+  "recoTitle": "今日推荐",
+  "recoHint": "今天的三个练习 — 明天之前不会变",
+  "recoDoneToday": "今天已练",
+  "recoWhyComeback": "很久没玩了",
+  "recoWhyGrowth": "这里你在进步",
+  "recoWhyBranch": "这个分支练得最少",
+  "recoWhyFresh": "应用新增",
+  "recoWhyCalm": "适合晚上 — 不用赶",
+  "recoWhyStart": "从这里开始",
   // >>> SCREEN_STRINGS
 };
 export default t;

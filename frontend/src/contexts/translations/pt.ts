@@ -1215,6 +1215,9 @@ const t: Record<string, string> = {
   "samuraiLvlParams": "{p}% de células ocultas · limite de {e} erros · {h} dicas",
   "samuraiNextUnlocks": "Resolva sem estourar o limite de erros — o próximo abre, mais difícil.",
   "samuraiHowTo": "Um tabuleiro 21×21 = cinco sudokus sobrepostos pelos cantos. Preencha cada célula para que em cada grade 9×9 linhas, colunas e blocos 3×3 tenham 1–9 sem repetição. Use 🔍 para alternar o zoom: figura inteira ou ampliado com rolagem.",
+  "boardBuilding": "Preparando o tabuleiro",
+  "boardBuildingSlow": "Este nível é difícil: procuramos um tabuleiro que não se resolva por simples varredura. Leva alguns segundos.",
+  "boardBuildingAttempt": "Tentativa {n} de {max}",
   "errorsOfMax": "Erros {n}/{max}",
   "zoomIn": "Ampliar",
   "zoomFit": "Tabuleiro todo",
@@ -1841,6 +1844,15 @@ const t: Record<string, string> = {
   "historyScopedHint": "Você tem partidas, mas em outros exercícios ou em outro perfil. Abra todos os jogos.",
   "historyNewTask": "nova dificuldade",
   "historyLevelShort": "nív. {n}",
+  "recoTitle": "Recomendado hoje",
+  "recoHint": "Três exercícios para hoje — a seleção não muda até amanhã",
+  "recoDoneToday": "Jogado hoje",
+  "recoWhyComeback": "Faz tempo que você não joga",
+  "recoWhyGrowth": "Aqui você está crescendo",
+  "recoWhyBranch": "Este ramo é o menos praticado",
+  "recoWhyFresh": "Novo no app",
+  "recoWhyCalm": "Para a noite — sem pressa",
+  "recoWhyStart": "Um bom ponto de partida",
   // >>> SCREEN_STRINGS
 };
 export default t;

@@ -1332,6 +1332,9 @@ const t: Record<string, string> = {
   "samuraiLvlParams": "칸의 {p}% 숨김 · 실수 한도 {e} · 힌트 {h}회",
   "samuraiNextUnlocks": "실수 한도 내에 풀면 더 어려운 다음 레벨이 열립니다.",
   "samuraiHowTo": "21×21 보드 = 모서리가 겹치는 다섯 개의 스도쿠. 각 9×9 그리드의 행·열·3×3 블록에 1–9가 중복 없이 들어가도록 채우세요. 🔍 버튼으로 전체 보기와 스크롤 확대를 전환합니다.",
+  "boardBuilding": "판을 만드는 중",
+  "boardBuildingSlow": "이 단계는 어렵습니다. 단순히 훑어서는 풀리지 않는 판을 고르는 중이며, 몇 초 걸립니다.",
+  "boardBuildingAttempt": "{max}회 중 {n}회",
   "errorsOfMax": "오류 {n}/{max}",
   "zoomIn": "확대",
   "zoomFit": "전체 보기",
@@ -1836,6 +1839,15 @@ const t: Record<string, string> = {
   "historyScopedHint": "플레이 기록은 있지만 다른 종목이나 다른 프로필에 있습니다. 모든 게임을 열어 보세요.",
   "historyNewTask": "새로운 난이도",
   "historyLevelShort": "{n}단계",
+  "recoTitle": "오늘의 추천",
+  "recoHint": "오늘의 운동 3가지 — 내일까지 바뀌지 않습니다",
+  "recoDoneToday": "오늘 완료",
+  "recoWhyComeback": "오랫동안 하지 않았어요",
+  "recoWhyGrowth": "여기서 성장하고 있어요",
+  "recoWhyBranch": "이 분야가 가장 적게 연습됐어요",
+  "recoWhyFresh": "앱의 새 기능",
+  "recoWhyCalm": "저녁용 — 서두르지 않기",
+  "recoWhyStart": "시작하기 좋아요",
   // >>> SCREEN_STRINGS
 };
 export default t;
