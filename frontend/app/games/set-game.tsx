@@ -623,7 +623,7 @@ const styles = StyleSheet.create({
   exampleCaption: { fontSize: 12, fontWeight: '600', textAlign: 'center', maxWidth: 320 },
   exampleNote: { fontSize: 11, textAlign: 'center', fontStyle: 'italic', maxWidth: 320, marginTop: 2 },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
+  modeButton: { minWidth: 48, minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 , alignItems: 'center'},
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
