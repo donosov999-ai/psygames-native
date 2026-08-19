@@ -1447,7 +1447,7 @@ const t: Record<string, string> = {
   "brHrvNote": "La respiración coherente equilibra el sistema nervioso autónomo. Con la práctica regular aumenta la variabilidad del ritmo cardíaco (HRV), indicador de recuperación y resistencia al estrés.",
   "goodsSort": "Clasificación de Productos",
   "goodsSortDesc": "Agrupa tres productos idénticos en un estante",
-  "goodsSortIntroDesc": "Mueve productos entre pilas: toca una pila para tomar el producto superior, luego otra para colocarlo encima. Junta 3 productos idénticos seguidos arriba para despejarlos con un combo (×2, ×3...). Los otros productos están ocultos detrás del frontal. Despeja todas las pilas para ganar.",
+  "goodsSortIntroDesc": "Toca un producto y luego un hueco: así lo mueves. Reúne 3 IGUALES en un hueco y desaparecen. Objetivo: vaciar toda la estantería. En un hueco caben tres, así que una pareja lo bloquea hasta que aparezca el tercero: piensa dónde colocas, no solo qué.",
   "skillPlanningWM": "Entrenamiento: planificación + memoria visual",
   "benefitGoods1": "Memoria de trabajo visual: qué está oculto y dónde",
   "benefitGoods2": "Planificación de secuencias de movimientos",

@@ -1447,7 +1447,7 @@ const t: Record<string, string> = {
   "brHrvNote": "Kohärentes Atmen bringt das vegetative Nervensystem ins Gleichgewicht. Bei regelmäßiger Praxis steigt die Herzratenvariabilität (HRV) — ein Zeichen für Erholung und Stressresistenz.",
   "goodsSort": "Waren Sortieren",
   "goodsSortDesc": "Gruppiere drei gleiche Waren im Regal",
-  "goodsSortIntroDesc": "Bewege Waren zwischen den Stapeln: Tippe auf einen Stapel, um das oberste Objekt aufzunehmen, und auf einen anderen, um es abzulegen. Sammle 3 gleiche Objekte oben, um sie mit einer Combo (×2, ×3...) zu löschen. Räume alle Stapel ab, um zu gewinnen.",
+  "goodsSortIntroDesc": "Tippe auf eine Ware, dann auf ein Fach — so wird sie umgeräumt. Sammle 3 GLEICHE in einem Fach, dann verschwinden sie. Ziel: das ganze Regal leeren. In ein Fach passen drei, ein Paar blockiert es also, bis der Dritte auftaucht — überlege, wohin du legst, nicht nur was.",
   "skillPlanningWM": "Training: Planung + visuelles Gedächtnis",
   "benefitGoods1": "Visuelles Arbeitsgedächtnis: Was wo versteckt ist",
   "benefitGoods2": "Planung von Zugfolgen",
