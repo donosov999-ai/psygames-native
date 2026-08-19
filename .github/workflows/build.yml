@@ -136,11 +136,24 @@ jobs:
           npx expo export -p web
           mv app.json.bak app.json
 
+      # ⚠️ БРАУЗЕР КЛАДЁМ В КЕШ И СТАВИМ С ТАЙМАУТОМ. 19.08.2026 этот шаг завис
+      # ДВАЖДЫ подряд: 33 минуты в веб-гейтах и 20 минут в smoke, где выел весь
+      # лимит джобы и увёл релиз в «cancelled» — сборки под все платформы были
+      # готовы, а выкладка не состоялась. Виснет системная часть (`--with-deps`
+      # тянет apt), поэтому она отделена, ограничена по времени и не валит шаг:
+      # на ubuntu-latest библиотеки для chromium и так на месте, а без кеша
+      # скачивание браузера повторяется на каждой сборке впустую.
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-v1
       - name: Install Playwright chromium
         working-directory: frontend
         run: |
           npm i -D playwright --legacy-peer-deps
-          npx playwright install --with-deps chromium
+          timeout 300 npx playwright install-deps chromium || echo "системные библиотеки не доставились — идём дальше, на ubuntu-latest они есть"
+          timeout 420 npx playwright install chromium
 
       - name: Поднять сборку
         working-directory: frontend
@@ -207,11 +220,24 @@ jobs:
           sed -i 's|"baseUrl": "/psygames-web"|"baseUrl": ""|' app.json
           npx expo export -p web
           mv app.json.bak app.json
+      # ⚠️ БРАУЗЕР КЛАДЁМ В КЕШ И СТАВИМ С ТАЙМАУТОМ. 19.08.2026 этот шаг завис
+      # ДВАЖДЫ подряд: 33 минуты в веб-гейтах и 20 минут в smoke, где выел весь
+      # лимит джобы и увёл релиз в «cancelled» — сборки под все платформы были
+      # готовы, а выкладка не состоялась. Виснет системная часть (`--with-deps`
+      # тянет apt), поэтому она отделена, ограничена по времени и не валит шаг:
+      # на ubuntu-latest библиотеки для chromium и так на месте, а без кеша
+      # скачивание браузера повторяется на каждой сборке впустую.
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-v1
       - name: Install Playwright chromium
         working-directory: frontend
         run: |
           npm i -D playwright --legacy-peer-deps
-          npx playwright install --with-deps chromium
+          timeout 300 npx playwright install-deps chromium || echo "системные библиотеки не доставились — идём дальше, на ubuntu-latest они есть"
+          timeout 420 npx playwright install chromium
       - name: Serve dist + run smoke
         working-directory: frontend
         run: |
