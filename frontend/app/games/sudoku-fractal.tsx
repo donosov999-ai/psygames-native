@@ -34,7 +34,7 @@
  * (fractal-sudoku.ts, playDigit/revertMove).
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -49,6 +49,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { FRACTAL_MAX_LEVEL, fractalLevel } from '@/src/services/fractalLevels';
 import GlassButton from '@/src/components/GlassButton';
 import { useGameKeyboard, digitKeys } from '@/src/hooks/useGameKeyboard';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
@@ -100,7 +101,14 @@ export default function FractalSudokuScreen() {
    */
   const lvl = usePersistentLevel(GAME_ID);
   const cfg = fractalLevel(lvl.level);
-  const { width } = useWindowDimensions();
+  /**
+   * ⚠️ НЕ ГОЛЫЙ useWindowDimensions. В веб-сборке (а Android у нас WebView, то есть это
+   * и телефон) он на первом кадре отдаёт 0, а обновляется только по `resize`, которого
+   * при обычной загрузке не бывает. От ширины здесь считается РАЗМЕР КЛЕТКИ:
+   * `Math.min(34, Math.floor((Math.min(0, 520) - 48) / 9))` = −6, то есть доска
+   * запекается в клетки отрицательного размера — до поворота экрана, то есть насовсем.
+   */
+  const width = useScreenWidth();
 
   // Лента ходов для отмены. Хранит, ЧТО было в клетке до хода — назад отыгрывает движок.
   // Партия здесь самая длинная в приложении: один промах пальцем не должен стоить часа.

@@ -72,7 +72,6 @@ const DEBT: string[] = [
   'app/games/schulte.tsx',
   'app/games/sdmt.tsx',
   'app/games/spatial-span.tsx',
-  'app/games/sudoku-fractal.tsx',
   'app/games/sudoku.tsx',
   'app/games/switching-task.tsx',
   'app/games/targets.tsx',
