@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
 interface Props {
   icon?: keyof typeof Ionicons.glyphMap;
@@ -16,16 +17,25 @@ interface Props {
 // Объёмный бейдж-пилюля для HUD (уровень/таймер/счёт/цель):
 // градиент-грань + верхний блик + тень = глубина. Не сухой текст.
 export default function HudBadge({ icon, label, value, colors = ['#3b82f6', '#1d4ed8'], tint = '#fff', pop, style }: Props) {
+  const reduced = useReducedMotion();
   const scale = useRef(new Animated.Value(1)).current;
   const first = useRef(true);
   useEffect(() => {
+    /**
+     * Щадящий режим: подпрыгивание гасим целиком. Здесь, в отличие от кнопки,
+     * терять нечего — новое значение уже написано в самом бейдже цифрами, и
+     * человек его видит. Скачок на 16% с последующим качанием пружины ничего
+     * не сообщает, он только тянет взгляд, а прыгающий у края экрана HUD —
+     * классический источник тошноты.
+     */
+    if (reduced) { scale.stopAnimation(); scale.setValue(1); first.current = false; return; }
     if (first.current) { first.current = false; return; }
     if (!pop) return;
     Animated.sequence([
       Animated.timing(scale, { toValue: 1.16, duration: 110, useNativeDriver: true }),
       Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }),
     ]).start();
-  }, [value, pop, scale]);
+  }, [value, pop, reduced, scale]);
   return (
     <Animated.View style={[styles.shadow, { transform: [{ scale }] }, style]}>
       <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.pill}>
