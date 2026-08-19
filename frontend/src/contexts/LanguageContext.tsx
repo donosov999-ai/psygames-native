@@ -432,9 +432,16 @@ const translations: Translations = {
   // Goods Sort (сортировка товаров)
   goodsSort: { ru: 'Сортировка товаров', en: 'Goods Sort' },
   goodsSortDesc: { ru: 'Собери на полке три одинаковых товара', en: 'Group three identical goods on a shelf' },
+  /**
+   * ⚠️ ТЕКСТ ОБЯЗАН ОПИСЫВАТЬ ТУ ИГРУ, КОТОРАЯ ЕСТЬ. Прежняя версия
+   * обещала стопки, спрятанные за передним товаром предметы и комбо ×2/×3 —
+   * ничего из этого в коде нет и не было. Найдено разбором 19.08.2026.
+   * Скрытые слои в плане есть; когда появятся, текст дополним — но не
+   * раньше, чем они заработают.
+   */
   goodsSortIntroDesc: {
-    ru: 'Перекладывай товары между стопками: тапни стопку (возьмёшь верхний товар), затем другую — положишь сверху. Собери НАВЕРХУ 3 одинаковых подряд — они сгорают, идёт комбо (×2, ×3…). За передним товаром прячутся другие — откроются, когда уберёшь передний. Цель — разобрать все стопки.',
-    en: 'Move goods between stacks: tap a stack (you pick up its top good), then another stack to drop it on top. Get 3 identical goods in a row on top — they clear with a combo (×2, ×3…). Other goods hide behind the front one and reveal once you move it. Clear every stack to win.',
+    ru: 'Тапни товар, потом нишу — переложишь. Собери в одной нише 3 ОДИНАКОВЫХ — они исчезнут. Цель: освободить весь шкаф. В нише помещается три товара, поэтому пара занимает место, пока не найдётся третий — думай, куда класть, а не только что.',
+    en: 'Tap a good, then a niche — that moves it. Gather 3 IDENTICAL goods in one niche and they vanish. Goal: clear the whole cabinet. A niche holds three, so a pair blocks it until the third turns up — think about where you put things, not just what.',
   },
   skillPlanningWM: { ru: 'Тренируем: планирование + зрительная память', en: 'Training: planning + visual memory' },
   benefitGoods1: { ru: 'Зрительная рабочая память: что где спрятано', en: 'Visual working memory: what is hidden where' },

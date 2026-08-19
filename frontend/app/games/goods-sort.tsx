@@ -534,6 +534,28 @@ export default function GoodsSortGame() {
     `${t('a11yShelf')} ${i + 1}: ` +
     (cell.length ? cell.map((tp) => goodName(tp, ru)).join(', ') : t('a11yEmpty'));
 
+  /**
+   * 🔴 ТРИ ЗВЕЗДЫ НА ПЕРВЫХ ВОСЬМИ УРОВНЯХ БЫЛИ НЕДОСТИЖИМЫ.
+   *
+   * Было: `moves <= moveLimit * 0.6 ? 3 : 2`, а `moveLimit` до девятого уровня
+   * равен НУЛЮ (лимит ходов включается с L9). Ходов всегда хотя бы один, значит
+   * условие не выполнялось никогда: человек проходил идеально и получал две
+   * звезды. Найдено разбором кода 19.08.2026.
+   *
+   * Там, где лимита нет, считаем от того же, из чего он потом и строится —
+   * `types * 3`: каждой тройке нужно до трёх перекладываний. Это делает
+   * оценку сравнимой по обе стороны девятого уровня, а не разрывной.
+   *
+   * ⚠️ narrowRef обязателен: на телефоне сетка 3×6 (18 ниш), на десктопе 4×4
+   * (16), от этого зависит `types`, а значит и порог. Без него шапка показывала
+   * один лимит, а провал считался по другому — тот же баг, что и в счётчике.
+   */
+  const starsFor = (L: number, moves: number): number => {
+    const cfg = levelCfg(L, poolRef.current.length, narrowRef.current);
+    const reference = cfg.moveLimit > 0 ? cfg.moveLimit : cfg.types * 3;
+    return moves <= reference * 0.6 ? 3 : 2;
+  };
+
   const renderCell = (i: number) => {
     const cell = cells[i] || [];
     const isSelCell = sel?.cell === i;
@@ -665,7 +687,7 @@ export default function GoodsSortGame() {
             <View style={styles.statsRow}>
               <HudBadge icon="pricetag" label={t('goodsLevel')} value={level} colors={['#fbbf24', '#d97706']} tint="#3f2b00" />
               <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
-              <HudBadge icon="swap-horizontal" value={(() => { const ml = levelCfg(level, poolRef.current.length).moveLimit; return ml > 0 ? `${moves}/${ml}` : String(moves); })()} colors={['#94a3b8', '#475569']} />
+              <HudBadge icon="swap-horizontal" value={(() => { const ml = levelCfg(level, poolRef.current.length, narrowRef.current).moveLimit; return ml > 0 ? `${moves}/${ml}` : String(moves); })()} colors={['#94a3b8', '#475569']} />
               <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
               {!isPreset && <LevelRuleBadge lr={levelRules} color="#d97706" ru={language === 'ru'} />}
             </View>
@@ -729,7 +751,7 @@ export default function GoodsSortGame() {
                 <LevelCleared
                   level={levelBanner === -1 ? level : levelBanner}
                   passed={levelBanner !== -1}
-                  stars={movesRef.current <= levelCfg(levelBanner === -1 ? level : levelBanner, poolRef.current.length).moveLimit * 0.6 ? 3 : 2}
+                  stars={starsFor(levelBanner === -1 ? level : levelBanner, movesRef.current)}
                   gradient={GRADIENT}
                   colors={colors}
                   language={language}
