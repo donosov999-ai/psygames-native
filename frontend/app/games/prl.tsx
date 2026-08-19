@@ -50,6 +50,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 
 const GRADIENT = ['#1e3c72', '#2a5298'];
 const PRL_BENEFITS = [
@@ -77,6 +78,31 @@ const DIFF_CFG: Record<Difficulty, Cfg> = {
 // награда зашумляется (rewardProb 0.90 → 0.68), число проб растёт ступенями (30 → 40 → 50).
 // Сама механика парадигмы (вероятностный исход + скрытый reversal) НЕ меняется — только
 // частота реверсала и размах шума награды.
+/**
+ * ЧТО ЗДЕСЬ ПРОИСХОДИТ — ВСЛУХ.
+ *
+ * 🔴 ПОВОД. Репорт тестировщицы 15.08.2026 дословно: «Что значит скрытно
+ * меняется? Как угадать???? Что за тупая игра». Это не каприз, а точное
+ * попадание: правило игры действительно НЕ ОБЪЯСНЕНО, и человек искренне
+ * решил, что от него требуют угадать. На самом деле угадывать не нужно
+ * вообще — нужно заметить смену по обратной связи и переключиться.
+ *
+ * Игра, смысл которой не назван, читается как издевательство. Поэтому первое
+ * правило показывается СРАЗУ, с первого уровня, а не с какого-то порога.
+ */
+const PRL_RULES: LevelRule[] = [
+  {
+    key: 'reversal', fromLevel: 1,
+    ru: { title: 'Угадывать не нужно — нужно замечать', rule: 'Один из двух кругов чаще приносит выигрыш. Какой именно — в начале неизвестно, это выясняется пробами. Через несколько верных выборов подряд стороны МОЛЧА меняются местами: тот, что был хорошим, становится плохим. Никакого сигнала об этом не будет.', example: 'Поэтому две ошибки подряд после долгой удачной серии — это почти наверняка не невезение, а смена правила. Меняйте выбор. Одна ошибка ещё ничего не значит: даже хороший круг иногда обманывает.' },
+    en: { title: 'Not a guessing game — a noticing game', rule: 'One of the two circles pays off more often. Which one is unknown at first — you find out by trying. After a few correct choices in a row the sides SILENTLY swap: the good one becomes the bad one. You will get no warning.', example: 'So two errors in a row after a long good streak is almost never bad luck — it is the rule changing. Switch. A single error means nothing: even the good circle misleads sometimes.' },
+  },
+  {
+    key: 'noisy', fromLevel: 5,
+    ru: { title: 'Обратная связь стала обманчивее', rule: 'Хороший круг перестал быть надёжным: раньше он выигрывал почти всегда, теперь — заметно реже. И смена сторон происходит чаще.', example: 'На таком шуме решать по одному ответу нельзя вообще. Держите в голове последние три-четыре: если проигрышей стало больше, чем выигрышей, — правило сменилось.' },
+    en: { title: 'The feedback got trickier', rule: 'The good circle is no longer reliable: it used to win almost always, now noticeably less often. And the sides swap more frequently.', example: 'At this noise level a single answer tells you nothing. Hold the last three or four in mind: once losses outnumber wins, the rule has flipped.' },
+  },
+];
+
 function levelParams(level: number): { rewardProb: number; trialsTotal: number; revMin: number; revMax: number } {
   const trialsTotal = level <= 4 ? 30 : level <= 8 ? 40 : 50;
   const rewardProb = Math.max(0.68, 0.90 - (level - 1) * 0.022);   // 0.90 → ~0.68 (шумнее)
@@ -104,6 +130,9 @@ export default function PRLGame() {
   const lvl = usePersistentLevel('prl');
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+
+  // Правило показываем при первом входе и даём перечитать по бейджу.
+  const levelRules = useLevelRules('prl', lvl.level, PRL_RULES, phase === 'playing');
   const [runMode, setRunMode] = useState<RunMode>('level');
   // Классический режим (диагностика): пресет-зарядка (isPreset) читает diff из URL.
   const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
@@ -475,6 +504,8 @@ export default function PRLGame() {
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
           {t('prlHint')}
         </Text>
+        <LevelRuleBadge lr={levelRules} color={colors.textSecondary} ru={language === 'ru'} />
+        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </GameShell>
     );
   }

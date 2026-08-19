@@ -178,7 +178,7 @@ export default function MahjongGame() {
   const { width } = useWindowDimensions();
   const { popups, spawn } = useScorePopups();
 
-  const { isPreset, autostart } = useGamePreset();
+  const { isPreset, autostart, isCalm } = useGamePreset();
   const lvl = usePersistentLevel('mahjong');   // персист достигнутого уровня между сессиями
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [level, setLevel] = useState(1);
@@ -428,7 +428,17 @@ export default function MahjongGame() {
           <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
           <HudBadge icon="checkmark-done" value={`${matched}/${pairsTotal}`} colors={['#5eead4', '#0d9488']} pop />
           <HudBadge icon="close" value={errors} colors={['#fb7185', '#e11d48']} />
-          <HudBadge icon="time" value={`${elapsed.toFixed(1)}${t('secShort')}`} colors={['#60a5fa', '#2563eb']} />
+          {/*
+            🔴 В вечернем шаге секундомер ПРЯЧЕМ. Репорт 18.08.2026: «даже на
+            маджонг теперь таймер. Нельзя таймер, но в этом и был смысл вечерней
+            зарядки». Предела времени в маджонге нет и не было — но бегущая
+            цифра на экране торопит ничуть не хуже обратного отсчёта, а вечерний
+            набор задуман ровно наоборот. Время всё равно считается и уезжает
+            в сессию, просто не давит на глаза.
+          */}
+          {!isCalm && (
+            <HudBadge icon="time" value={`${elapsed.toFixed(1)}${t('secShort')}`} colors={['#60a5fa', '#2563eb']} />
+          )}
           {!isPreset && <LevelRuleBadge lr={levelRules} color="#0d9488" ru={language === 'ru'} />}
         </View>
       }

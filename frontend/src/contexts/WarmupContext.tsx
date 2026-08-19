@@ -107,7 +107,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       // rest day — open completion immediately
       router.replace('/warmup-complete' as any);
     } else {
-      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0]) } as any);
+      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot) } as any);
     }
   }, [router, profile, allow]);
 
@@ -127,7 +127,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     if (meta.steps.length === 0) {
       router.replace('/warmup-complete' as any);
     } else {
-      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0]) } as any);
+      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot) } as any);
     }
   }, [router, profile, allow]);
 
@@ -145,7 +145,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       warmupId, sessionTag: meta.slot === 'night' ? 'manual' : 'warmup',
     });
     if (meta.steps.length === 0) router.replace('/warmup-complete' as any);
-    else router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0]) } as any);
+    else router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot) } as any);
   }, [router]);
 
   const startDay = useCallback(() => {

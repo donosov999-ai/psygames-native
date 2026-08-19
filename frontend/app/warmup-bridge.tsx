@@ -53,12 +53,12 @@ export default function WarmupBridge() {
     if (countdown !== 0 || navFiredRef.current || !next) return;
     navFiredRef.current = true;
     if (intervalRef.current) clearInterval(intervalRef.current);
-    router.replace({ pathname: next.game_route, params: stepToParams(next) } as any);
+    router.replace({ pathname: next.game_route, params: stepToParams(next, meta?.slot) } as any);
   }, [countdown]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startNow = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (next) router.replace({ pathname: next.game_route, params: stepToParams(next) } as any);
+    if (next) router.replace({ pathname: next.game_route, params: stepToParams(next, meta?.slot) } as any);
   };
 
   const skip = () => {
@@ -70,7 +70,7 @@ export default function WarmupBridge() {
     setTimeout(() => {
       if (warmup.meta && warmup.currentIdx + 1 < warmup.meta.steps.length) {
         const ns = warmup.meta.steps[warmup.currentIdx + 1];
-        router.replace({ pathname: ns.game_route, params: stepToParams(ns) } as any);
+        router.replace({ pathname: ns.game_route, params: stepToParams(ns, meta?.slot) } as any);
       } else {
         router.replace('/warmup-complete' as any);
       }

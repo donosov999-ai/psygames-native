@@ -34,6 +34,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile, SPRITE_COUNT } from '@/src/constants/pairThemes';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { a11yDecor } from '@/src/services/a11y';
+import { useHeldClock } from '@/src/hooks/useHeldClock';
 
 const GRADIENT = ['#34e89e', '#0f3443'];
 const FIND_BENEFITS = [
@@ -174,7 +175,9 @@ export default function FindDifferencesGame() {
   const { width, height } = useWindowDimensions();
   const sprites = pairSpritesForProfile(profile?.id);
 
-  const { isPreset, autostart, num } = useGamePreset();
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  // Часы, замирающие вместе с игрой: отзыв больше не съедает раунд.
+  const clock = useHeldClock();
   const lvl = usePersistentLevel('find_differences');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
@@ -197,6 +200,11 @@ export default function FindDifferencesGame() {
   const objectCountRef = useRef(14);
   const roundTimeRef = useRef(40);
   const roundsRef = useRef(ROUNDS_PER_LEVEL);
+  /**
+   * Все ли раунды уровня закрыты. Провал одного раунда больше не обрывает
+   * уровень — он лишь помечает, что чистого прохода не будет (см. missRound).
+   */
+  const allRoundsRef = useRef(true);
   const roundRef = useRef(0);
   const hitsRef = useRef(0);
   const errorsRef = useRef(0);
@@ -228,13 +236,50 @@ export default function FindDifferencesGame() {
     setFoundIdx(new Set());
     // Лимит времени раунда: не нашёл все отличия до нуля → уровень не пройден
     roundStartRef.current = Date.now();
+    clock.reset();
     setTimeLeft(roundTimeRef.current);
     if (countdownRef.current) clearInterval(countdownRef.current);
+    /**
+     * 🔴 ВЕЧЕРНИЙ ШАГ — БЕЗ ОБРАТНОГО ОТСЧЁТА.
+     *
+     * Репорт 18.08.2026 дословно: «Это же вечерняя зарядка, а зачем добавили
+     * время, когда есть время хочется сразу торопиться». Она права: вечерний
+     * набор существует ради успокоения перед сном, а сложность здесь росла
+     * СЖИМАЮЩИМСЯ ТАЙМЕРОМ (40с на 1-м уровне → 15с к 14-му) и валила раунд по
+     * нулю. Это и запрещённая у нас ось сложности, и прямое противоречие
+     * замыслу слота.
+     *
+     * В спокойном режиме таймер не заводим вовсе: не «много секунд», а НЕТ
+     * ограничения. Иначе на экране всё равно тикает цифра и всё равно торопит.
+     */
+    if (isCalm) { setTimeLeft(0); return; }
     countdownRef.current = setInterval(() => {
-      const left = roundTimeRef.current - (Date.now() - roundStartRef.current) / 1000;
+      const left = roundTimeRef.current - clock.elapsed(roundStartRef.current);
       setTimeLeft(Math.max(0, Math.ceil(left)));
-      if (left <= 0) finish(false);
+      if (left <= 0) missRound();
     }, 200);
+  };
+
+  /**
+   * 🔴 ВРЕМЯ ВЫШЛО — ЗАКАНЧИВАЕТСЯ РАУНД, А НЕ УРОВЕНЬ.
+   *
+   * Репорт 18.08.2026 дословно: «заканчивается 30 секунд и сразу игра
+   * заканчивается. И больше шансов на повторение не даёт». Так и было: успех
+   * шёл раунд за раундом (3 на уровень), а провал по таймеру звал finish(false)
+   * и обрывал ВЕСЬ уровень — один медленный раунд из трёх съедал два
+   * оставшихся. Человек не получал второй попытки не по правилу, а по недосмотру.
+   *
+   * Теперь просроченный раунд просто не засчитан: уровень идёт дальше, а
+   * чистого прохода уже не будет — `allRoundsRef` про это и помнит.
+   */
+  const missRound = () => {
+    if (finishedRef.current) return;
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    allRoundsRef.current = false;
+    if (roundRef.current >= roundsRef.current) { finish(false); return; }
+    roundRef.current += 1;
+    setRound(roundRef.current);
+    newRound();
   };
 
   const startGame = () => {
@@ -247,6 +292,7 @@ export default function FindDifferencesGame() {
     roundsRef.current = p.rounds;
     setTotalRounds(p.rounds);
     finishedRef.current = false;
+    allRoundsRef.current = true;
     hitsRef.current = 0; errorsRef.current = 0;
     setHits(0); setErrors(0);
     roundRef.current = 1;
@@ -309,7 +355,7 @@ export default function FindDifferencesGame() {
     setElapsedTime(finalTime);
     const h = hitsRef.current, e = errorsRef.current;
     // Проход уровня: все отличия всех раундов найдены до истечения лимита
-    const passed = !isPreset && completedAll;
+    const passed = !isPreset && completedAll && allRoundsRef.current;
     if (passed) lvl.reach(levelRef.current + 1);
     else if (!isPreset) lvl.fail();   // гистерезис понижения (3 провала подряд → −1)
     // Непрерывный поток: и проход, и провал уровня → баннер LevelCleared (при провале
@@ -423,7 +469,9 @@ export default function FindDifferencesGame() {
         stats={
           <View style={styles.statsRow}>
             <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalRounds}</Text>
-            <Text style={[styles.statText, { color: timeLeft <= 5 ? '#f43f5e' : colors.text }]}>⏱{timeLeft}{t('secShort')}</Text>
+            {!isCalm && (
+              <Text style={[styles.statText, { color: timeLeft <= 5 ? '#f43f5e' : colors.text }]}>⏱{timeLeft}{t('secShort')}</Text>
+            )}
             <Text style={[styles.statText, { color: '#22c55e' }]}>✓{foundIdx.size}/{diffIdx.length}</Text>
             <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
           </View>

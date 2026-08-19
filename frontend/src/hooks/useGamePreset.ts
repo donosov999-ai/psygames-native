@@ -50,7 +50,13 @@ export function useGamePreset() {
     return def;
   };
 
-  return { isPreset, autostart, params, str, num, bool };
+  /**
+   * Вечерний шаг зарядки: без гонки. Ставится в stepToParams по СЛОТУ.
+   * Игра, у которой есть обратный отсчёт или видимый секундомер, обязана
+   * убрать их при isCalm — см. репорт «нельзя таймер» от 18.08.2026.
+   */
+  const isCalm = params?.calm === '1';
+  return { isPreset, isCalm, autostart, params, str, num, bool };
 }
 
 /**
