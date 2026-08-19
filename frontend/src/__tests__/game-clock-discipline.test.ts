@@ -23,11 +23,42 @@ const { join } = require('path');
 const DIR = join(__dirname, '../../app/games');
 const FILES: string[] = readdirSync(DIR).filter((f: string) => f.endsWith('.tsx'));
 
-/** Поимённые исключения: настенные часы здесь ПРАВИЛЬНЫ. */
-const CALENDAR_OK: Record<string, string> = {
-  'breathing.tsx': 'вчерашняя календарная дата для подсчёта серии',
-  'vocab-srs.tsx': 'срок следующего повторения — расписание, а не длительность партии',
+/**
+ * Поимённые исключения: настенные часы здесь ПРАВИЛЬНЫ.
+ *
+ * ⚠️ ИСКЛЮЧЕНИЕ ДАЁТСЯ НА ШТУКУ, А НЕ НА ФАЙЛ. Первая редакция писала
+ * `if (CALENDAR_OK[f]) return;` — и файл, попавший в список ради одной
+ * календарной даты, получал амнистию ЦЕЛИКОМ: любой новый `Date.now()` в нём,
+ * хоть замер длительности партии, проходил молча. Дырка ровно того размера,
+ * ради которого гейт и писался.
+ *
+ * Теперь у исключения есть счёт (`count`) и форма: каждая прощённая строка
+ * обязана выглядеть как работа с КАЛЕНДАРЁМ (дата, сутки, час), а не с
+ * длительностью. Прибавится ещё один вызов — красное, даже в этих двух файлах.
+ */
+interface CalendarUse {
+  why: string;
+  /** Сколько вызовов прощаем. Ровно столько и обязано быть — ни больше, ни меньше. */
+  count: number;
+}
+const CALENDAR_OK: Record<string, CalendarUse> = {
+  'breathing.tsx': { why: 'вчерашняя календарная дата для подсчёта серии', count: 1 },
+  'vocab-srs.tsx': { why: 'срок следующего повторения — расписание, а не длительность партии', count: 1 },
 };
+
+/**
+ * Как выглядит работа с календарём: сборка даты, сутки, час. Замер партии так не
+ * пишут — там вычитают отметку начала и делят на секунды.
+ */
+const CALENDAR_SHAPE = /new Date\(|toISOString|getDate\(|setHours\(|86_?400_?000|3_?600_?000/;
+
+/** Строки файла с настенными часами — без комментариев. */
+function wallClockLines(src: string): { line: string; no: number }[] {
+  return src.split('\n')
+    .map((line, i) => ({ line, no: i + 1 }))
+    .filter(({ line }) => line.includes('Date.now()')
+      && !line.trim().startsWith('*') && !line.trim().startsWith('//'));
+}
 
 describe('дисциплина игровых часов', () => {
   it('есть что проверять — иначе тест зелен вслепую', () => {
@@ -38,11 +69,20 @@ describe('дисциплина игровых часов', () => {
     const bad: string[] = [];
     for (const f of FILES) {
       const src = readFileSync(join(DIR, f), 'utf8') as string;
-      src.split('\n').forEach((line, i) => {
-        if (!line.includes('Date.now()')) return;
-        if (line.trim().startsWith('*') || line.trim().startsWith('//')) return;   // комментарий
-        if (CALENDAR_OK[f]) return;
-        bad.push(`${f}:${i + 1} — ${line.trim().slice(0, 80)}`);
+      const uses = wallClockLines(src);
+      const ok = CALENDAR_OK[f];
+      if (!ok) {
+        uses.forEach(({ line, no }) => bad.push(`${f}:${no} — ${line.trim().slice(0, 80)}`));
+        continue;
+      }
+      // Прощаем ровно столько, сколько записано, и только календарные по форме.
+      if (uses.length > ok.count) {
+        bad.push(`${f}: вызовов ${uses.length}, прощено ${ok.count} — новый разбирать поимённо`);
+      }
+      uses.forEach(({ line, no }) => {
+        if (!CALENDAR_SHAPE.test(line)) {
+          bad.push(`${f}:${no} — прощено как календарь, но выглядит как замер: ${line.trim().slice(0, 70)}`);
+        }
       });
     }
     expect(bad).toEqual([]);
@@ -50,12 +90,16 @@ describe('дисциплина игровых часов', () => {
 
   /** Исключение без обоснования — это забытая правка, а не исключение. */
   it('каждое исключение существует и объяснено', () => {
-    for (const [f, why] of Object.entries(CALENDAR_OK)) {
+    const stale: string[] = [];
+    for (const [f, ok] of Object.entries(CALENDAR_OK)) {
       expect(FILES).toContain(f);
-      expect(why.length).toBeGreaterThan(20);
+      expect(ok.why.length).toBeGreaterThan(20);
       const src = readFileSync(join(DIR, f), 'utf8') as string;
-      expect(src.includes('Date.now()')).toBe(true);   // исключение перестало быть нужным — убрать его
+      const n = wallClockLines(src).length;
+      // Меньше объявленного — исключение протухло: часы убрали, а амнистию забыли.
+      if (n < ok.count) stale.push(`${f}: прощено ${ok.count}, а вызовов ${n} — убрать лишнее из списка`);
     }
+    expect(stale).toEqual([]);
   });
 
   /** Кто меряет время — тот берёт часы из общего места, а не заводит свои. */
@@ -81,6 +125,7 @@ describe('дисциплина игровых часов', () => {
     }
     expect(bad).toEqual([]);
   });
+
   /**
    * ⏱ ВРЕМЯ КАК ПРЕДМЕТ ИГРЫ, А НЕ ФОН.
    *
