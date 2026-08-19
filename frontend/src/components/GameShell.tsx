@@ -30,6 +30,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { onGameHold, isGameHeld } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
+import { useExitGuard } from '@/src/hooks/useExitGuard';
 
 /** Ширина зоны, которую занимает плавающая кнопка фидбека снизу (LTR — слева, RTL — справа). */
 const FAB_GUTTER = 66;
@@ -73,12 +74,35 @@ export interface GameShellProps {
    * умещается в одну строку.
    */
   overlay?: React.ReactNode;
+  /**
+   * ЕСТЬ ЧТО ТЕРЯТЬ: партия идёт и в ней уже что-то сделано → «назад» спросит,
+   * а не выбросит молча.
+   *
+   * ⚠️ Флаг задаёт САМА игра, и это принципиально. Каркас не знает, начата ли
+   * партия и сделан ли в ней хоть один ход, а вопрос «вы уверены?» там, где
+   * терять нечего (экран настройки, первый кадр, доигранная партия), раздражает
+   * сильнее, чем помогает. Молчаливых «на всякий случай» здесь быть не должно.
+   */
+  confirmExit?: boolean;
+  /**
+   * Партия переживёт выход (игра положила её в `services/resume`) — меняет текст
+   * вопроса с «пропадёт» на «сохранится». Врать тут нельзя: обещание продолжить
+   * без слоя сохранения хуже, чем честное «потеряется».
+   */
+  resumable?: boolean;
+  /**
+   * Дописать незаконченную партию. Зовётся ПЕРЕД вопросом, перед уходом и при
+   * сносе экрана — то есть и тогда, когда «назад» никто не нажимал (переход
+   * зарядки, убийство приложения системой).
+   */
+  onSaveBeforeExit?: () => void;
   /** Само игровое поле. */
   children: React.ReactNode;
 }
 
 export default function GameShell({
-  title, onBack, stats, headerActions, toolbar, headerRight, scrollableField, overlay, children,
+  title, onBack, stats, headerActions, toolbar, headerRight, scrollableField, overlay,
+  confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -94,6 +118,19 @@ export default function GameShell({
     setPaused(v);
     if (v) announce(t('gamePaused'));
   }), []);
+
+  // Выход из живой партии. Одно место на 61 экран: и кнопка в шапке, и аппаратная
+  // «назад» идут сюда, поэтому мимо проверки из игры не выйдешь.
+  const exitGuard = useExitGuard({
+    armed: !!confirmExit,
+    onExit: onBack,
+    onSave: onSaveBeforeExit,
+  });
+  // Скринридер обязан узнать про вопрос: он перехватывает «назад», и молчание
+  // здесь читается как «кнопка не сработала».
+  React.useEffect(() => {
+    if (exitGuard.asking) announce(t('exitConfirmTitle'));
+  }, [exitGuard.asking]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // Android-сборка — WebView (Platform.OS === 'web'). Клавиатура уменьшает
   // visual viewport, но браузер не всегда докручивает вложенный RN ScrollView
@@ -144,7 +181,7 @@ export default function GameShell({
       {/* Шапка: назад — заголовок — правый слот. Заголовок ужимается, кнопки нет. */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={onBack}
+          onPress={exitGuard.requestExit}
           style={[styles.headerBtn, { backgroundColor: colors.surface }]}
           accessibilityRole="button"
           accessibilityLabel={t('a11yBack')}
@@ -193,6 +230,41 @@ export default function GameShell({
           пауза должна перекрывать всё, включая карточку. */}
       {overlay ? <View style={styles.overlay}>{overlay}</View> : null}
 
+      {/* Вопрос о выходе — выше карточки итога (иначе она перекроет кнопки), но
+          ниже паузы: если человек ушёл писать отзыв, пауза перекрывает всё. */}
+      {exitGuard.asking && (
+        <View style={styles.exitOverlay} pointerEvents="auto">
+          <View style={[styles.exitCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text accessibilityRole="header" testID="exit-confirm-title" style={[styles.exitTitle, { color: colors.text }]}>
+              {t('exitConfirmTitle')}
+            </Text>
+            <Text testID="exit-confirm-body" style={[styles.exitBody, { color: colors.textSecondary }]}>
+              {t(resumable ? 'exitConfirmSaved' : 'exitConfirmLost')}
+            </Text>
+            {/* «Продолжить игру» — первой и залитой: безопасный ответ должен быть
+                и ближе к пальцу, и заметнее, раз сюда попадают промахом. */}
+            <View style={styles.exitButtons}>
+              <TouchableOpacity
+                testID="exit-confirm-stay"
+                accessibilityRole="button"
+                onPress={exitGuard.stay}
+                style={[styles.exitBtn, { backgroundColor: colors.primary }]}
+              >
+                <Text style={[styles.exitBtnText, { color: '#fff' }]}>{t('exitConfirmStay')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="exit-confirm-leave"
+                accessibilityRole="button"
+                onPress={exitGuard.confirmExit}
+                style={[styles.exitBtn, styles.exitBtnGhost, { borderColor: colors.border }]}
+              >
+                <Text style={[styles.exitBtnText, { color: colors.text }]}>{t('exitConfirmLeave')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
       {paused && (
         <View style={styles.pauseOverlay} pointerEvents="auto">
           <View style={[styles.pauseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -210,6 +282,17 @@ const styles = StyleSheet.create({
   // Слой итога. Своего фона нет: затемнение рисует сама карточка — так она решает,
   // насколько глушить доску, а каркас не навязывает.
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 80 },
+  // Вопрос о выходе. zIndex между итогом (80) и паузой (90).
+  exitOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 85, paddingHorizontal: 24 },
+  exitCard: { width: '100%', maxWidth: 380, paddingVertical: 22, paddingHorizontal: 22, borderRadius: 18, borderWidth: 1, gap: 10 },
+  exitTitle: { fontSize: 19, fontWeight: '800' },
+  exitBody: { fontSize: 14, lineHeight: 20 },
+  // Кнопки в колонку: два длинных перевода (немецкий, французский) в строку не
+  // влезают, а ужатая до многоточия кнопка выхода — худшее, что тут может быть.
+  exitButtons: { gap: 10, marginTop: 6 },
+  exitBtn: { minHeight: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 },
+  exitBtnGhost: { borderWidth: 1 },
+  exitBtnText: { fontSize: 16, fontWeight: '700' },
   pauseOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center', zIndex: 90 },
   pauseCard: { paddingVertical: 22, paddingHorizontal: 30, borderRadius: 18, borderWidth: 1, alignItems: 'center', gap: 8 },
   pauseText: { fontSize: 16, fontWeight: '800' },

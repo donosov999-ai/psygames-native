@@ -22,6 +22,7 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 import { pairSpritesForProfile, pairBackForProfile } from '@/src/constants/pairThemes';
 import { FlipCard, HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -57,6 +58,38 @@ const PAIRS_RULES: LevelRule[] = [
 
 type GameMode = 'game' | 'single';
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
+
+/** Ключ незаконченной партии — совпадает с id в реестре игр (карточка «Продолжить»). */
+const GAME_ID = 'picture_pairs';
+
+/** Версия формата снимка: меняешь поля PairsResume — поднимай, иначе старая запись оживит поле без части карт. */
+const RESUME_V = 1;
+
+/**
+ * Снимок недоигранного поля.
+ *
+ * ⚠️ РАСКЛАД ЦЕЛИКОМ, а не «уровень + сколько собрано»: колода тасуется
+ * случайно, по номеру уровня её не воспроизвести. И главное — человек держит в
+ * голове ПОЗИЦИИ увиденных карт; выдать ему другой расклад значит стереть
+ * ровно то, что он и запоминал.
+ *
+ * ⚠️ ЧЕГО ЗДЕСЬ НЕТ: фазы фото-показа. Партия не сохраняется, пока карты лежат
+ * лицом вверх, иначе выход и возврат превращались бы в бесконечный показ —
+ * то есть в способ обойти саму механику уровней 10+.
+ */
+interface PairsResume {
+  mode: GameMode;
+  level: number;
+  pairsCount: number;
+  groupSize: number;
+  cards: Card[];
+  moves: number;
+  matched: number;
+  errors: number;
+  score: number;
+  /** Накопленные секунды: между сессиями настенные часы уходят вперёд. */
+  elapsed: number;
+}
 interface Card {
   id: number;
   symbol: number;   // индекс карточки в наборе спрайтов (пара = одинаковый индекс)
@@ -198,9 +231,14 @@ export default function PicturePairsGame() {
     // Она же решает, запускать ли следующий уровень: своего таймера здесь больше нет,
     // он спорил с таймером зарядки (см. useGameMode).
     setLevelBanner(done);
+    // Поле собрано — продолжать нечего, иначе «Продолжить» позвало бы на
+    // уже разобранный расклад.
+    if (profile?.id) clearResume(GAME_ID, profile.id).catch(() => {});
   };
 
   const startGame = () => {
+    // Новая партия заменяет незаконченную: прежний расклад продолжать уже нечем.
+    if (profile?.id) clearResume(GAME_ID, profile.id).catch(() => {});
     if (mode === 'game') {
       const startLvl = (!isPreset && lvl.loaded) ? lvl.level : 1;   // старт с сохранённого уровня
       scoreRef.current = 0; setScore(0); setLevel(startLvl); setLevelBanner(null);
@@ -216,6 +254,81 @@ export default function PicturePairsGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
   }, []);
+
+  // ── незаконченная партия ────────────────────────────────────────────────
+  /** Что в этой партии уже сделано руками — то, ради чего и стоит спрашивать при выходе. */
+  const touched = moves > 0 || matched > 0 || errors > 0;
+  /**
+   * Живая партия. `!previewActive` здесь не украшение: во время фото-показа все
+   * карты лежат лицом вверх, и снимок такого поля был бы сохранённой шпаргалкой.
+   */
+  const liveGame = phase === 'playing' && !previewActive && cards.length > 0 && levelBanner === null;
+
+  const snapshot = (): PairsResume => ({
+    mode, level, pairsCount, groupSize: groupSizeRef.current,
+    // Недособранную группу закрываем: вернувшийся человек начинает ход заново,
+    // а не получает подсказку из карты, открытой в момент выхода.
+    cards: cards.map((c) => ({ ...c, flipped: c.matched })),
+    moves, matched, errors, score: scoreRef.current, elapsed: elapsedTime,
+  });
+
+  /** Поднять расклад из снимка — поле ровно то, что оставили. */
+  const applyResume = (r: PairsResume) => {
+    setMode(r.mode);
+    setLevel(r.level);
+    setPairsCount(r.pairsCount);
+    groupSizeRef.current = r.groupSize;
+    setCards(r.cards.map((c) => ({ ...c, flipped: c.matched })));
+    setOpenIdx([]); setLocked(false); setPreviewActive(false);
+    setMoves(r.moves); setMatched(r.matched); setErrors(r.errors);
+    scoreRef.current = r.score; setScore(r.score);
+    setLevelBanner(null);
+    if (timerRef.current) clearInterval(timerRef.current);
+    const start = gameNow() - Math.max(0, r.elapsed) * 1000;
+    setStartTime(start); setElapsedTime(r.elapsed);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
+    setPhase('playing');
+  };
+
+  // Подъём партии при входе на экран. Путь зарядки (autostart) не трогаем: там
+  // человек явно запустил свежий раунд, и startGame сам выбросит старую партию.
+  const bootRef = useRef(false);
+  useEffect(() => {
+    if (autostart || bootRef.current) return;
+    const pid = profile?.id;
+    if (!pid) return;
+    bootRef.current = true;
+    let cancelled = false;
+    loadResume<PairsResume>(GAME_ID, pid, RESUME_V)
+      .then((saved) => {
+        if (cancelled || !saved || !Array.isArray(saved.cards) || !saved.cards.length) return;
+        applyResume(saved);
+      })
+      .catch(() => { /* нет партии — обычный вход через экран настройки */ });
+    return () => { cancelled = true; };
+  }, [profile?.id, autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — разовый подъём партии
+
+  // Автосохранение по ходу партии, с задержкой: подряд идущие касания не должны
+  // бить по хранилищу каждым нажатием.
+  useEffect(() => {
+    if (!liveGame || !touched) return;
+    const pid = profile?.id;
+    if (!pid) return;
+    const snap = snapshot();
+    const tm = setTimeout(() => { saveResume(GAME_ID, pid, RESUME_V, snap).catch(() => {}); }, 400);
+    return () => clearTimeout(tm);
+  }, [cards, moves, matched, errors, liveGame, touched]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  /**
+   * Дописать партию перед уходом. Отложенная запись выше на этом моменте
+   * отменяется своим clearTimeout — поэтому пишем ещё раз здесь, и с ЖИВЫМ
+   * временем, а не с тем, что было на прошлом ходу.
+   */
+  const saveBeforeExit = () => {
+    const pid = profile?.id;
+    if (!pid || !liveGame || !touched) return;
+    saveResume(GAME_ID, pid, RESUME_V, snapshot()).catch(() => {});
+  };
 
   const handleCardPress = async (idx: number) => {
     if (locked || cards[idx].matched || cards[idx].flipped) return;
@@ -433,6 +546,9 @@ export default function PicturePairsGame() {
         <GameShell
           title={t('picturePairs')}
           onBack={() => goBackOrHome()}
+          confirmExit={liveGame && touched}
+          resumable
+          onSaveBeforeExit={saveBeforeExit}
           stats={previewActive ? (
             <View style={{ alignItems: 'center', gap: 4, paddingVertical: 8 }}>
               <Text style={{ color: colors.text, fontSize: 22, fontWeight: '900', letterSpacing: 2 }}>
