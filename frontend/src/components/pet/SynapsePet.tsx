@@ -18,6 +18,7 @@ import Svg, {
   Circle, Defs, Ellipse, G, LinearGradient, Path, RadialGradient, Stop,
 } from 'react-native-svg';
 import type { PetStage } from '@/src/services/pet';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
 interface Props {
   stage: PetStage;
@@ -47,11 +48,28 @@ let uidCounter = 0;
 export default function SynapsePet({ stage, size }: Props) {
   const uid = React.useRef(`synapse${++uidCounter}`).current;
   const p = PALETTES[stage];
+  const reduced = useReducedMotion();
 
   // Idle-боб ±3px (как petFloat на сайте). На мини-размерах амплитуду ужимаем,
   // иначе 3px от 30px аватара — уже не «дыхание», а прыжки.
   const bob = React.useRef(new Animated.Value(0)).current;
   React.useEffect(() => {
+    /**
+     * Щадящий режим: боб гасим целиком, и это самое важное место из всех.
+     * Разовый проезд можно переждать, отведя глаза; здесь движение НЕ
+     * заканчивается — персонаж качается всё время, пока открыт экран, и
+     * взгляд за него цепляется помимо воли. Для вестибулярной
+     * чувствительности непрерывная петля хуже любого разового эффекта.
+     *
+     * Терять нечего: «живость» — единственное, что боб сообщал. Стадия,
+     * скин и настроение видны по самой картинке.
+     *
+     * 0.5, а не 0: интерполяция отображает [0,1] в [+amp,-amp], то есть
+     * ровно середина даёт translateY = 0. Поставь мы 0 — питомец замер бы
+     * на три точки ниже своего среднего положения и в шапке съехал бы
+     * относительно соседей.
+     */
+    if (reduced) { bob.stopAnimation(); bob.setValue(0.5); return; }
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(bob, { toValue: 1, duration: 1700, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
@@ -60,7 +78,7 @@ export default function SynapsePet({ stage, size }: Props) {
     );
     loop.start();
     return () => loop.stop();
-  }, [bob]);
+  }, [bob, reduced]);
   const amp = size < 48 ? 1.5 : 3;
   const translateY = bob.interpolate({ inputRange: [0, 1], outputRange: [amp, -amp] });
 

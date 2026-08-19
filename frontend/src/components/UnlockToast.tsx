@@ -14,6 +14,7 @@ import { View, Text, Animated, StyleSheet, DeviceEventEmitter } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { announce } from '@/src/services/a11y';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
 interface UnlockEventDetail {
   gameId: string;
@@ -28,6 +29,15 @@ export default function UnlockToast() {
   const [detail, setDetail] = useState<UnlockEventDetail | null>(null);
   const opacity = React.useRef(new Animated.Value(0)).current;
   const translateY = React.useRef(new Animated.Value(-50)).current;
+  /**
+   * Настройка нужна ВНУТРИ обработчика события, а он живёт в эффекте с пустыми
+   * зависимостями (подписка ставится один раз на всё приложение). Поэтому
+   * значение держим в ref: переподписываться на каждое переключение системного
+   * тумблера — потерять событие, пришедшее ровно между отпиской и подпиской.
+   */
+  const reduced = useReducedMotion();
+  const reducedRef = React.useRef(reduced);
+  reducedRef.current = reduced;
 
   useEffect(() => {
     // Cross-platform event bus (RN DeviceEventEmitter — native iOS/Android + web/Tauri).
@@ -35,19 +45,37 @@ export default function UnlockToast() {
       setDetail(d);
       setVisible(true);
       announce(`${t('label_unlocked')}: ${language === 'en' && d.labelEn ? d.labelEn : d.label}`);
-      Animated.parallel([
-        Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-        Animated.spring(translateY, { toValue: 0, useNativeDriver: true }),
-      ]).start();
+      /**
+       * Щадящий режим: плашка остаётся, выезд сверху исчезает.
+       *
+       * Сообщение «открылся новый уровень» — это награда, ради которой человек
+       * и играл; убрать её значит отнять смысл достижения. А вот наезд полосы
+       * от -50 точек с пружинным доскоком поверх игрового поля — чистая
+       * подача: то же самое читается стоя на месте. Держится плашка те же
+       * 4.5 секунды и уходит так же мгновенно, как пришла.
+       */
+      if (reducedRef.current) {
+        opacity.setValue(1);
+        translateY.setValue(0);
+      } else {
+        Animated.parallel([
+          Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+          Animated.spring(translateY, { toValue: 0, useNativeDriver: true }),
+        ]).start();
+      }
       // Auto-dismiss after 4.5s
       setTimeout(() => {
+        const hide = () => { setVisible(false); setDetail(null); };
+        if (reducedRef.current) {
+          opacity.setValue(0);
+          translateY.setValue(-50);
+          hide();
+          return;
+        }
         Animated.parallel([
           Animated.timing(opacity, { toValue: 0, duration: 250, useNativeDriver: true }),
           Animated.timing(translateY, { toValue: -50, duration: 250, useNativeDriver: true }),
-        ]).start(() => {
-          setVisible(false);
-          setDetail(null);
-        });
+        ]).start(hide);
       }, 4500);
     };
 
