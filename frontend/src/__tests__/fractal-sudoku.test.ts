@@ -29,7 +29,7 @@ describe('связь дочерней сетки с корнем', () => {
   });
 
   it('центр дочерней равен цифре, которую она открывает', () => {
-    const f = generateFractal(40, 40);
+    const f = generateFractal(8);
     for (const ch of f.children) {
       const [rr, rc] = ch.feedsCell;
       expect(ch.solution[FEED_CELL[0]][FEED_CELL[1]]).toBe(f.root.solution[rr][rc]);
@@ -37,7 +37,7 @@ describe('связь дочерней сетки с корнем', () => {
   });
 
   it('клетки корня, которые открываются снизу, в задании пусты — иначе вложенность декоративна', () => {
-    const f = generateFractal(30, 40);
+    const f = generateFractal(8);
     for (let i = 0; i < 9; i++) {
       const [r, c] = rootCellForChild(i);
       expect(`клетка ${r},${c}: ${f.root.puzzle[r][c]}`).toBe(`клетка ${r},${c}: 0`);
@@ -91,7 +91,7 @@ describe('сетка с заданным центром', () => {
 
 describe('размер задачи', () => {
   it('глубина два: корень плюс девять дочерних, не больше', () => {
-    const f = generateFractal(40, 40);
+    const f = generateFractal(8);
     expect(f.children.length).toBe(9);
     // Десять сеток против 6555 у оригинала — сознательный предел: дерево из тысяч
     // на лету не соберётся, а заготовки — отдельная работа.
@@ -99,7 +99,7 @@ describe('размер задачи', () => {
   });
 
   it('подсказки в задании совпадают с решением', () => {
-    const f = generateFractal(45, 45);
+    const f = generateFractal(8);
     const check = (p: number[][], s: number[][]) => {
       for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (p[r][c] !== 0) expect(p[r][c]).toBe(s[r][c]);
     };
@@ -118,7 +118,7 @@ describe('размер задачи', () => {
  */
 describe('порог считает только ходы человека', () => {
   it('нетронутая сетка с подсказками НЕ открыта', () => {
-    const f = generateFractal(50, 45);
+    const f = generateFractal(8);
     for (const ch of f.children) {
       const given = ch.puzzle.map((row) => row.map((v) => v !== 0));
       expect(isUnlocked(ch.puzzle, ch.solution, given)).toBe(false);
@@ -126,12 +126,12 @@ describe('порог считает только ходы человека', () 
   });
 
   it('без маски подсказок порог берётся сам собой — ради этого маска и заведена', () => {
-    const f = generateFractal(50, 45);
+    const f = generateFractal(8);
     expect(isUnlocked(f.children[0].puzzle, f.children[0].solution)).toBe(true);
   });
 
   it('открывается ровно на 17 верных СВОИХ клетках', () => {
-    const f = generateFractal(50, 45);
+    const f = generateFractal(8);
     const ch = f.children[0];
     const given = ch.puzzle.map((row) => row.map((v) => v !== 0));
     const cur = ch.puzzle.map((row) => [...row]);
@@ -154,61 +154,62 @@ describe('порог считает только ходы человека', () 
 /**
  * Уровни фрактальной судоку.
  *
- * ЗАЧЕМ. Игра вышла вообще без уровней — сразу «hard» и всегда одинаково. Уровень
- * крутит два условия: сколько выколото и сколько верных клеток нужно набрать до
- * открытия корневой.
+ * ЗАЧЕМ. Игра вышла вообще без уровней — сразу «hard» и всегда одинаково.
  *
- * ⚠️ ПОРОГ НЕ ДОЛЖЕН ДОРАСТАТЬ ДО ПОЛНОГО РЕШЕНИЯ. Открывать корневую клетку
- * только за полностью решённую дочернюю значит превратить фрактал в девять судоку
- * подряд без единой промежуточной награды — ровно то, ради чего порог и заведён.
- * И порог не может превысить число ВЫКОЛОТЫХ клеток: набрать больше нечем.
+ * ⚠️ И ПЕРВАЯ ВЕРСИЯ УРОВНЕЙ КРУТИЛА НЕ ТУ ОСЬ: «сколько выколото» (38→56) и
+ * «сколько верных клеток набрать» (17→34). Это ровно та ось, на которой сломался
+ * обычный судоку — репорт Вали «с 30 по 34 сложность не меняется». Здесь уровень
+ * поднимает ПОТОЛОК ТЕХНИКИ, которой пазл добивается, а число дырок оставлено
+ * ограничителем. Тест сторожит обе вещи: лестницу техник и то, что порог открытия
+ * задан ДОЛЕЙ (иначе он мог бы превысить число дырок конкретной сетки — и она не
+ * открылась бы никогда, то есть партия стала бы непроходимой).
  */
-import { FRACTAL_MAX_LEVEL, clampFractalLevel, fractalLevel } from '../services/fractalLevels';
+import { FRACTAL_MAX_LEVEL, clampFractalLevel, fractalLevel, fractalTier } from '../services/fractalLevels';
 
 describe('уровни фрактальной судоку', () => {
   const ALL = Array.from({ length: FRACTAL_MAX_LEVEL }, (_, i) => i + 1);
 
   it('есть что проверять — иначе тест зелен вслепую', () => {
-    expect(FRACTAL_MAX_LEVEL).toBeGreaterThanOrEqual(10);
+    expect(FRACTAL_MAX_LEVEL).toBeGreaterThanOrEqual(30);
   });
 
-  it('первый уровень — нынешние условия игры', () => {
-    expect(fractalLevel(1).unlockCells).toBe(UNLOCK_CELLS);
+  it('первый уровень — только голые одиночки, последний — голые пары', () => {
+    expect(fractalLevel(1).tier).toBe(1);
+    expect(fractalLevel(FRACTAL_MAX_LEVEL).tier).toBe(4);
   });
 
-  it('оба параметра растут строго', () => {
-    const flat: string[] = [];
-    for (let n = 2; n <= FRACTAL_MAX_LEVEL; n++) {
-      const p = fractalLevel(n - 1), c = fractalLevel(n);
-      if (c.childBlanks < p.childBlanks) flat.push(`выколото на ${n}: ${p.childBlanks} → ${c.childBlanks}`);
-      if (c.unlockCells < p.unlockCells) flat.push(`порог на ${n}: ${p.unlockCells} → ${c.unlockCells}`);
-    }
-    expect(flat).toEqual([]);
-    expect(fractalLevel(FRACTAL_MAX_LEVEL).childBlanks).toBeGreaterThan(fractalLevel(1).childBlanks);
-    expect(fractalLevel(FRACTAL_MAX_LEVEL).unlockCells).toBeGreaterThan(fractalLevel(1).unlockCells);
+  it('лестница техник не проседает вниз', () => {
+    const drops = ALL.slice(1)
+      .filter((n) => fractalTier(n) < fractalTier(n - 1))
+      .map((n) => `уровень ${n}: ${fractalTier(n - 1)} → ${fractalTier(n)}`);
+    expect(drops).toEqual([]);
   });
 
-  it('порог набираем: он не больше числа выколотых клеток', () => {
-    const impossible = ALL
-      .map((n) => ({ n, ...fractalLevel(n) }))
-      .filter((c) => c.unlockCells > c.childBlanks)
-      .map((c) => `уровень ${c.n}: нужно ${c.unlockCells}, а выколото всего ${c.childBlanks}`);
-    expect(impossible).toEqual([]);
+  it('каждая ступень техники реально встречается — иначе лестница декоративна', () => {
+    expect(new Set(ALL.map(fractalTier))).toEqual(new Set([1, 2, 3, 4]));
   });
 
-  it('награда остаётся промежуточной — порог меньше половины сетки', () => {
+  it('глубина захода в дочернюю растёт строго', () => {
+    const drops = ALL.slice(1)
+      .filter((n) => fractalLevel(n).unlockShare <= fractalLevel(n - 1).unlockShare)
+      .map((n) => `уровень ${n}: доля не выросла`);
+    expect(drops).toEqual([]);
+  });
+
+  it('награда остаётся промежуточной — порог не дорастает до «реши целиком»', () => {
     const tooLate = ALL
-      .map((n) => ({ n, u: fractalLevel(n).unlockCells }))
-      .filter((c) => c.u > 40)
-      .map((c) => `уровень ${c.n}: порог ${c.u} из 81`);
+      .map((n) => ({ n, u: fractalLevel(n).unlockShare }))
+      .filter((c) => c.u > 0.75)
+      .map((c) => `уровень ${c.n}: доля ${c.u.toFixed(2)}`);
     expect(tooLate).toEqual([]);
+    expect(fractalLevel(1).unlockShare).toBeGreaterThan(0.2);   // и не «поставь одну цифру»
   });
 
-  it('сетка не выкалывается в ноль — опоры остаются', () => {
+  it('потолок дырок оставляет опоры', () => {
     const empty = ALL
-      .map((n) => ({ n, b: fractalLevel(n).childBlanks }))
+      .map((n) => ({ n, b: fractalLevel(n).childBlanksCap }))
       .filter((c) => c.b > 64)   // осталось бы меньше 17 подсказок — уже не судоку
-      .map((c) => `уровень ${c.n}: выколото ${c.b} из 81`);
+      .map((c) => `уровень ${c.n}: потолок дырок ${c.b} из 81`);
     expect(empty).toEqual([]);
   });
 
@@ -221,8 +222,8 @@ describe('уровни фрактальной судоку', () => {
       cur[r][c] = sol[r][c];
       if (++put === 20) break outer;
     }
-    expect(isUnlocked(cur, sol, undefined, 17)).toBe(true);    // порог первого уровня взят
-    expect(isUnlocked(cur, sol, undefined, 34)).toBe(false);   // порог верхнего — ещё нет
+    expect(isUnlocked(cur, sol, undefined, 17)).toBe(true);    // низкий порог взят
+    expect(isUnlocked(cur, sol, undefined, 34)).toBe(false);   // высокий — ещё нет
   });
 
   it('мусор на входе не роняет', () => {

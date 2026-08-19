@@ -125,8 +125,8 @@ describe('сид воспроизводит доски мега-боссов', (
   });
 
   it('фрактал: один сид — тот же корень и те же дочерние', () => {
-    const a = generateFractal(45, 45, 'дюна-иней-88');
-    const b = generateFractal(45, 45, 'дюна-иней-88');
+    const a = generateFractal(8, 'дюна-иней-88');
+    const b = generateFractal(8, 'дюна-иней-88');
     expect(a.root).toEqual(b.root);
     expect(a.children).toEqual(b.children);
   });
