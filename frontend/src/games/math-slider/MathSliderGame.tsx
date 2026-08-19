@@ -311,6 +311,40 @@ function MathSliderSession({
     return () => subscription.remove();
   }, [now]);
 
+  /**
+   * 🔴 ОДНО НАЖАТИЕ НА ЗАДАНИЕ, А НЕ ДВА.
+   *
+   * Репорт Дениса 19.08.2026: «после выбора перемещения ползунка, когда нажал
+   * подтвердить, должна быть оценка и запуск следующего задания, а то сейчас
+   * дважды подтверждаешь всё».
+   *
+   * Модуль просил подтвердить оценку, показывал разбор и ЖДАЛ второго нажатия.
+   * На восьми пробах это шестнадцать нажатий вместо восьми, причём второе
+   * ничего не решает — человек уже посмотрел разбор и хочет дальше. Кнопка,
+   * которая ничего не выбирает, перестаёт читаться как выбор и начинает
+   * читаться как помеха.
+   *
+   * Теперь разбор показывается и сам уходит. Кнопка остаётся — кому надо
+   * быстрее, жмёт и не ждёт.
+   *
+   * ⚠️ ПЕРЕХОД ОТ ТРЕНИРОВКИ К ЗАЧЁТУ САМ НЕ УХОДИТ. `training-feedback` — это
+   * граница: дальше идут пробы, которые считаются. Проскочить её автоматически
+   * значит начать замер, пока человек ещё читает, чем тренировка отличалась.
+   *
+   * ⚠️ ХУК СТОИТ ДО ВСЕХ РАННИХ ВОЗВРАТОВ, И ЭТО НЕ ВКУСОВЩИНА. Первая
+   * редакция поставила его рядом с разбором — то есть НИЖЕ пяти `return`
+   * по фазам. На фазе правил хук не вызывался, на фазе разбора вызывался, и
+   * React падал с ошибкой «отрисовано больше хуков, чем в прошлый раз».
+   * Экран показывал «что-то сломалось» вместо игры. Поймано проверкой в
+   * браузере 19.08.2026.
+   */
+  const autoAdvance = session.phase === 'feedback';
+  React.useEffect(() => {
+    if (!autoAdvance) return;
+    const t = setTimeout(() => setSession((current) => advanceSession(current, now())), FEEDBACK_MS);
+    return () => clearTimeout(t);
+  }, [autoAdvance, session.currentIndex]);
+
   if (session.phase === 'disposed') return null;
 
   const restart = () => {
@@ -384,6 +418,7 @@ function MathSliderSession({
   const feedback = feedbackFor(session.phase, session.trainingScore, session.trials);
   const isTraining = session.phase === 'training' || session.phase === 'training-feedback';
   const isFeedback = session.phase === 'training-feedback' || session.phase === 'feedback';
+
   const roundLabel = isTraining
     ? strings.trainingTitle
     : interpolate(strings.roundLabel, { current: session.currentIndex + 1, total: session.questions.length });
@@ -439,6 +474,13 @@ function MathSliderSession({
     </ScrollView>
   );
 }
+
+/**
+ * Сколько держать разбор перед следующей пробой. Столько же, сколько общий
+ * баннер уровня в приложении: меньше — не успеть прочитать знаковую ошибку,
+ * больше — превращается в ожидание.
+ */
+const FEEDBACK_MS = 1800;
 
 export default function MathSliderGame(props: MathSliderGameProps) {
   const trialCount = props.trialCount ?? 8;
