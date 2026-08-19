@@ -1457,7 +1457,7 @@ const t: Record<string, string> = {
   "goalPick": "Junte trios de:",
   "goalMoves": "Esvazie tudo. Jogadas no máximo:",
   "goalFree": "Libere os nichos marcados",
-  "goodsSortHint": "Toque no produto e depois no espaço para movê-lo. Junte 3 IDÊNTICOS no mesmo espaço para eliminá-los. Limpe tudo.",
+  "goodsSortHint": "Arraste um produto até um espaço, ou toque nele e depois no espaço. Junte 3 IDÊNTICOS no mesmo espaço e eles somem. Limpe tudo.",
   "goodsLevel": "Nível",
   "eyeInstrWarmup": "Siga o ponto em cada direção",
   "eyeInstrPursuit": "Acompanhe o ponto com os olhos sem mover a cabeça",
@@ -1562,5 +1562,10 @@ const t: Record<string, string> = {
   "samuraiTitleIntroDesc": "Cinco grades 9×9 ligadas pelos cantos: cada bloco de canto pertence a duas grades ao mesmo tempo. As regras comuns do sudoku valem separadamente em cada grade.\n\nToda a dificuldade está nos blocos compartilhados. Um número colocado no canto muda duas grades de uma vez, então não dá para resolvê-las uma após a outra — você precisa manter as duas em mente.",
   "fractalTitleIntroDesc": "Por trás de cada célula da grade superior há um sudoku inteiro. Resolva o sudoku interno e a resposta vira o número daquela célula na grade de cima.\n\nVocê resolve dois níveis ao mesmo tempo. A grade superior indica qual número é necessário embaixo; a grade interna mostra se ele pode mesmo ser obtido ali. Quando as duas respostas não batem, é preciso voltar e refazer a grade inferior.",
   "attentionConflictIntroDesc": "Isto não é um exercício separado, mas uma encruzilhada: o cartão abre um grupo de testes para conter respostas automáticas.\n\nTodos têm algo em comum: a resposta certa disputa espaço com a que vem por impulso. Ler uma palavra é mais fácil do que dizer a cor em que ela foi escrita. Apertar tudo é mais fácil do que se segurar na hora certa. O treino trabalha exatamente esse intervalo entre o impulso fácil e a ação correta. Escolha lá dentro o teste que você quer.",
+  "exitConfirmTitle": "Sair do jogo?",
+  "exitConfirmSaved": "A partida será salva — volte e continue de onde parou.",
+  "exitConfirmLost": "A partida não será salva: o tabuleiro e o progresso serão perdidos.",
+  "exitConfirmStay": "Continuar jogando",
+  "exitConfirmLeave": "Sair",
 };
 export default t;

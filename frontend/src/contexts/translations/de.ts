@@ -1457,7 +1457,7 @@ const t: Record<string, string> = {
   "goalPick": "Dreiergruppen sammeln von:",
   "goalMoves": "Alles leeren. Höchstens Züge:",
   "goalFree": "Markierte Fächer frei räumen",
-  "goodsSortHint": "Tippe auf eine Ware und dann auf ein Feld zum Verschieben. Sammle 3 GLEICHE in einem Feld. Räume alles ab.",
+  "goodsSortHint": "Zieh eine Ware in ein Fach — oder tippe sie an und dann das Fach. Sammle 3 GLEICHE in einem Fach, sie verschwinden. Räume alles ab.",
   "goodsLevel": "Level",
   "eyeInstrWarmup": "Folge dem Punkt in jede Richtung",
   "eyeInstrPursuit": "Folge dem Punkt mit den Augen, halte den Kopf still",
@@ -1562,5 +1562,10 @@ const t: Record<string, string> = {
   "samuraiTitleIntroDesc": "Fünf 9×9-Raster greifen an den Ecken ineinander: Jeder gemeinsame Eckblock gehört gleichzeitig zu zwei Rastern. In jedem Raster gelten für sich die normalen Sudoku-Regeln.\n\nDie eigentliche Schwierigkeit steckt in den gemeinsamen Blöcken. Eine Zahl in einer Ecke verändert zwei Raster zugleich. Du kannst sie also nicht einfach nacheinander lösen, sondern musst beide gleichzeitig im Blick behalten.",
   "fractalTitleIntroDesc": "Hinter jeder Zelle des oberen Rasters steckt ein vollständiges Sudoku. Löse das verschachtelte Rätsel; seine Antwort wird zur Zahl in der Zelle darüber.\n\nDu arbeitest auf zwei Ebenen gleichzeitig. Das obere Raster zeigt, welche Zahl unten gebraucht wird, das verschachtelte, ob sie dort überhaupt erreichbar ist. Passen die beiden Antworten nicht zusammen, musst du zurück und das untere Rätsel neu angehen.",
   "attentionConflictIntroDesc": "Das ist keine einzelne Übung, sondern eine Auswahlkarte: Sie öffnet eine Gruppe von Tests, in denen du automatische Reaktionen unterdrückst.\n\nAllen gemeinsam ist, dass die richtige Antwort gegen den spontanen Impuls antritt. Ein Wort zu lesen ist leichter, als seine Druckfarbe zu nennen. Alles anzutippen ist leichter, als im richtigen Moment innezuhalten. Trainiert wird genau dieser Abstand zwischen dem einfachen Impuls und der richtigen Handlung. Wähle innen den passenden Test.",
+  "exitConfirmTitle": "Spiel verlassen?",
+  "exitConfirmSaved": "Die Partie wird gespeichert — komm zurück und mach dort weiter, wo du aufgehört hast.",
+  "exitConfirmLost": "Die Partie wird nicht gespeichert: Brett und Fortschritt gehen verloren.",
+  "exitConfirmStay": "Weiterspielen",
+  "exitConfirmLeave": "Verlassen",
 };
 export default t;

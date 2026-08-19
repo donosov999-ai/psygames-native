@@ -266,7 +266,7 @@ const t: Record<string, string> = {
   "goalPick": "Raccogli terne di:",
   "goalMoves": "Svuota tutto. Mosse al massimo:",
   "goalFree": "Libera le nicchie contrassegnate",
-  "goodsSortHint": "Tocca un prodotto, poi una cella — per spostarlo. Riunisci 3 UGUALI in una cella — spariscono. Svuota tutto.",
+  "goodsSortHint": "Trascina un prodotto in una cella — o toccalo, poi la cella. Riunisci 3 UGUALI in una cella e spariscono. Svuota tutto.",
   "goodsLevel": "Livello",
   "eyeInstrWarmup": "Segui il punto in ogni direzione",
   "eyeInstrPursuit": "Segui il punto con gli occhi, testa ferma",
@@ -1557,5 +1557,10 @@ const t: Record<string, string> = {
   "samuraiTitleIntroDesc": "Cinque griglie 9×9 unite agli angoli: ogni blocco d’angolo appartiene a due griglie contemporaneamente. Le normali regole del sudoku valgono separatamente in ciascuna griglia.\n\nTutta la difficoltà sta nei blocchi condivisi. Una cifra inserita in un angolo cambia due griglie nello stesso momento, quindi non puoi risolverle una dopo l’altra: devi tenerle entrambe a mente.",
   "fractalTitleIntroDesc": "Dietro ogni casella della griglia superiore si nasconde un sudoku completo. Risolvi quello annidato e la sua risposta diventa la cifra nella casella in alto.\n\nStai risolvendo due livelli insieme. La griglia superiore indica quale cifra serve in basso; quella annidata dice se lì è davvero possibile ottenerla. Quando le due risposte non coincidono, devi tornare indietro e rifare la griglia inferiore.",
   "attentionConflictIntroDesc": "Non è un esercizio a sé, ma un bivio: la scheda apre un gruppo di test in cui devi inibire una risposta automatica.\n\nHanno tutti una cosa in comune: la risposta corretta compete con quella che viene spontanea. Leggere una parola è più facile che dire il colore con cui è scritta. Premere tutto è più facile che fermarsi al momento giusto. Si allena proprio quello spazio tra l’impulso più facile e l’azione corretta. Scegli all’interno il test che vuoi.",
+  "exitConfirmTitle": "Uscire dal gioco?",
+  "exitConfirmSaved": "La partita verrà salvata: torna e riprendi da dove eri rimasto.",
+  "exitConfirmLost": "La partita non verrà salvata: perderai il tabellone e i progressi.",
+  "exitConfirmStay": "Continua a giocare",
+  "exitConfirmLeave": "Esci",
 };
 export default t;

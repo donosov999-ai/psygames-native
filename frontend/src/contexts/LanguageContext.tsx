@@ -452,7 +452,7 @@ const translations: Translations = {
   goalPick: { ru: "Собрать тройки:", en: "Gather triples of:" },
   goalMoves: { ru: "Убрать всё. Ходов не больше:", en: "Clear all. Moves at most:" },
   goalFree: { ru: "Освободить помеченные ниши", en: "Free the marked niches" },
-  goodsSortHint: { ru: 'Тапни товар, потом ячейку — переложить. Собери 3 ОДИНАКОВЫХ в одной ячейке — исчезнут. Убери всё.', en: 'Tap a good, then a cell — to move it. Gather 3 IDENTICAL in one cell — they vanish. Clear everything.' },
+  goodsSortHint: { ru: "Перетащи товар в нишу — или тапни его, потом нишу. Собери 3 ОДИНАКОВЫХ в одной нише — исчезнут. Убери всё.", en: "Drag a good into a niche — or tap it, then the niche. Gather 3 IDENTICAL in one niche — they vanish. Clear everything." },
   goodsLevel: { ru: 'Уровень', en: 'Level' },
   eyeInstrWarmup: { ru: 'Веди взгляд за точкой по направлениям', en: 'Follow the dot in each direction' },
   eyeInstrPursuit: { ru: 'Следи за точкой глазами, голову не двигай', en: 'Follow the dot with your eyes, keep your head still' },
@@ -1352,6 +1352,12 @@ const translations: Translations = {
   petSynapse: { ru: 'Питомец Синапс', en: 'Synapse pet' },
   petSize: { ru: 'Размер питомца', en: 'Pet size' },
   gamePaused: { ru: '⏸ Пауза — пишете отзыв', en: '⏸ Paused — writing feedback' },
+  // --- выход из живой партии: вопрос вместо молчаливой потери доски, v1.205 ---
+  exitConfirmTitle: { ru: 'Выйти из игры?', en: 'Leave the game?' },
+  exitConfirmSaved: { ru: 'Партия сохранится — вернётесь и продолжите с этого места.', en: 'Your game will be saved — come back and pick up where you left off.' },
+  exitConfirmLost: { ru: 'Партия не сохранится: доска и прогресс пропадут.', en: 'This game will not be saved: the board and your progress will be lost.' },
+  exitConfirmStay: { ru: 'Продолжить игру', en: 'Keep playing' },
+  exitConfirmLeave: { ru: 'Выйти', en: 'Leave' },
   // --- a11y: подписи для скринридеров (VoiceOver/TalkBack), v1.161 ---
   a11yBack:        { ru: 'Назад', en: 'Back' },
   a11yClose:       { ru: 'Закрыть', en: 'Close' },

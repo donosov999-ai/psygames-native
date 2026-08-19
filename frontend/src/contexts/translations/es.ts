@@ -1457,7 +1457,7 @@ const t: Record<string, string> = {
   "goalPick": "Reúne tríos de:",
   "goalMoves": "Vacía todo. Movimientos máximos:",
   "goalFree": "Libera las casillas marcadas",
-  "goodsSortHint": "Toca un producto y luego una casilla para moverlo. Junta 3 IDÉNTICOS en una casilla para despejarlos. Vacía todo.",
+  "goodsSortHint": "Arrastra un producto a una casilla, o tócalo y luego la casilla. Junta 3 IDÉNTICOS en una casilla y desaparecen. Vacía todo.",
   "goodsLevel": "Nivel",
   "eyeInstrWarmup": "Sigue el punto en cada dirección",
   "eyeInstrPursuit": "Sigue el punto con la mirada sin mover la cabeza",
@@ -1562,5 +1562,10 @@ const t: Record<string, string> = {
   "samuraiTitleIntroDesc": "Cinco cuadrículas de 9×9 unidas por las esquinas: cada bloque de esquina pertenece a dos cuadrículas a la vez. Las reglas normales del sudoku se aplican por separado en cada una.\n\nToda la dificultad está en los bloques compartidos. Un número colocado en una esquina cambia dos cuadrículas al mismo tiempo, así que no puedes resolverlas una detrás de otra: tienes que mantener ambas en mente.",
   "fractalTitleIntroDesc": "Detrás de cada casilla de la cuadrícula superior se esconde un sudoku completo. Resuelve el sudoku anidado y su respuesta se convertirá en el número de la casilla de arriba.\n\nResuelves dos niveles a la vez. La cuadrícula superior indica qué número hace falta abajo y la anidada, si realmente es posible obtenerlo allí. Cuando las dos respuestas no encajan, toca volver atrás y replantear la cuadrícula inferior.",
   "attentionConflictIntroDesc": "No es un ejercicio independiente, sino una tarjeta de acceso: abre un grupo de pruebas para frenar respuestas automáticas.\n\nTodas comparten lo mismo: la respuesta correcta compite con la que surge sola. Leer una palabra es más fácil que decir el color con el que está escrita. Pulsarlo todo es más fácil que detenerse a tiempo. Se entrena justo ese espacio entre el impulso fácil y la acción correcta. Elige dentro la prueba que quieras.",
+  "exitConfirmTitle": "¿Salir del juego?",
+  "exitConfirmSaved": "La partida se guardará: vuelve y continúa donde la dejaste.",
+  "exitConfirmLost": "La partida no se guardará: perderás el tablero y tu progreso.",
+  "exitConfirmStay": "Seguir jugando",
+  "exitConfirmLeave": "Salir",
 };
 export default t;
