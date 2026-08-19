@@ -41,6 +41,28 @@ async function loadPrefs() {
 }
 loadPrefs();
 
+/**
+ * ТИХИЙ ВЕЧЕРНИЙ РЕЖИМ.
+ *
+ * 🔴 ЗАЧЕМ ОТДЕЛЬНЫЙ ФЛАГ, А НЕ `setSoundEnabled(false)`. Вечерний и ночной шаг
+ * зарядки задуман как успокоение перед сном — писки там ровно то, чего не надо.
+ * Но выключить общий тумблер значит ПЕРЕЗАПИСАТЬ настройку человека: он включил
+ * звук, а наутро тот молчит, и виноватых нет. Здесь временное глушение поверх,
+ * которое живёт только пока идёт спокойный шаг.
+ *
+ * ⚠️ Правило `calm` до сих пор соблюдали 2 игры из 64 — каждая читала флаг сама
+ * и глушила свой таймер. Звук так чинить нельзя: пришлось бы обойти все 64
+ * экрана и половину забыть. Глушим в одном месте, там же, где звук и рождается.
+ */
+let _calmHush = false;
+
+/** Идёт спокойный шаг — звуки молчат, настройка человека не трогается. */
+export function setCalmHush(v: boolean) { _calmHush = v; }
+export function calmHushNow(): boolean { return _calmHush; }
+
+/** Единственная проверка «звучать ли»: и тумблер человека, и тихий режим. */
+export function soundOn(): boolean { return _soundEnabled && !_calmHush; }
+
 export async function getSoundEnabled(): Promise<boolean> {
   await loadPrefs();
   return _soundEnabled;
@@ -158,23 +180,23 @@ export function hapticEnabledNow(): boolean { return _hapticEnabled; }
 // ─── public API ────────────────────────────────────────────────────────
 
 export function fbCorrect() {
-  if (_soundEnabled) beep(880, 80, 0.08);            // high short ping
+  if (soundOn()) beep(880, 80, 0.08);            // high short ping
   if (_hapticEnabled) vibrate(20);
 }
 
 export function fbWrong() {
-  if (_soundEnabled) beep(220, 200, 0.12);           // low buzz
+  if (soundOn()) beep(220, 200, 0.12);           // low buzz
   if (_hapticEnabled) vibrate([0, 30, 30, 30]);
 }
 
 export function fbStimulus() {
   // subtle tick when stimulus appears (CPT, Posner) — short, very quiet
-  if (_soundEnabled) beep(660, 30, 0.04);
+  if (soundOn()) beep(660, 30, 0.04);
 }
 
 export function fbComplete() {
   // success chime: 3-note arpeggio
-  if (_soundEnabled) {
+  if (soundOn()) {
     beep(523, 100, 0.1);                              // C
     setTimeout(() => beep(659, 100, 0.1), 100);       // E
     setTimeout(() => beep(784, 200, 0.1), 200);       // G
@@ -184,7 +206,7 @@ export function fbComplete() {
 
 export function fbAchievement() {
   // 4-note melody for new achievement
-  if (_soundEnabled) {
+  if (soundOn()) {
     beep(523, 80, 0.12);
     setTimeout(() => beep(659, 80, 0.12), 80);
     setTimeout(() => beep(784, 80, 0.12), 160);
@@ -231,28 +253,28 @@ function glide(from: number, to: number, ms: number, volume: number) {
 }
 
 /** Вдох: тон идёт вверх — как наполнение. */
-export function sndBreathIn()   { if (_soundEnabled) glide(330, 550, 320, 0.07); vibrate(18); }
+export function sndBreathIn()   { if (soundOn()) glide(330, 550, 320, 0.07); vibrate(18); }
 /** Задержка: ровный тихий тон, ничего не происходит. */
-export function sndBreathHold() { if (_soundEnabled) beep(440, 130, 0.045); vibrate([14, 90, 14]); }
+export function sndBreathHold() { if (soundOn()) beep(440, 130, 0.045); vibrate([14, 90, 14]); }
 /** Выдох: тон идёт вниз, длиннее — на нём и расслабляются. */
-export function sndBreathOut()  { if (_soundEnabled) glide(520, 300, 420, 0.07); vibrate(60); }
+export function sndBreathOut()  { if (soundOn()) glide(520, 300, 420, 0.07); vibrate(60); }
 
-export function sndTap()     { if (_soundEnabled) beep(660, 45, 0.05); }
-export function sndCorrect() { if (_soundEnabled) beep(880, 85, 0.09); }
-export function sndWrong()   { if (_soundEnabled) beep(220, 180, 0.11); }
-export function sndWin()     { if (_soundEnabled) { beep(523, 110, 0.1); setTimeout(() => beep(659, 110, 0.1), 100); setTimeout(() => beep(784, 180, 0.1), 200); setTimeout(() => beep(1047, 220, 0.1), 300); } }   // фанфары до-ми-соль-до
-export function sndLose()    { if (_soundEnabled) { beep(392, 170, 0.1); setTimeout(() => beep(330, 170, 0.1), 140); setTimeout(() => beep(262, 230, 0.1), 280); } } // нисходящее
-export function sndToken()   { if (_soundEnabled) { beep(1175, 70, 0.09); setTimeout(() => beep(1568, 120, 0.08), 60); } } // звонкая монетка
-export function sndCombo(n: number) { if (_soundEnabled) { const f = 520 + Math.min(Math.max(n, 0), 8) * 55; beep(f, 90, 0.08); setTimeout(() => beep(Math.round(f * 1.5), 90, 0.07), 50); } }
-export function sndFlip()    { if (_soundEnabled) beep(470, 55, 0.05); }   // свуш переворота
-export function sndMatch()   { if (_soundEnabled) { beep(784, 80, 0.09); setTimeout(() => beep(1047, 110, 0.08), 60); } }
-export function sndPlace()   { if (_soundEnabled) beep(523, 45, 0.06); }   // мягкий тик
+export function sndTap()     { if (soundOn()) beep(660, 45, 0.05); }
+export function sndCorrect() { if (soundOn()) beep(880, 85, 0.09); }
+export function sndWrong()   { if (soundOn()) beep(220, 180, 0.11); }
+export function sndWin()     { if (soundOn()) { beep(523, 110, 0.1); setTimeout(() => beep(659, 110, 0.1), 100); setTimeout(() => beep(784, 180, 0.1), 200); setTimeout(() => beep(1047, 220, 0.1), 300); } }   // фанфары до-ми-соль-до
+export function sndLose()    { if (soundOn()) { beep(392, 170, 0.1); setTimeout(() => beep(330, 170, 0.1), 140); setTimeout(() => beep(262, 230, 0.1), 280); } } // нисходящее
+export function sndToken()   { if (soundOn()) { beep(1175, 70, 0.09); setTimeout(() => beep(1568, 120, 0.08), 60); } } // звонкая монетка
+export function sndCombo(n: number) { if (soundOn()) { const f = 520 + Math.min(Math.max(n, 0), 8) * 55; beep(f, 90, 0.08); setTimeout(() => beep(Math.round(f * 1.5), 90, 0.07), 50); } }
+export function sndFlip()    { if (soundOn()) beep(470, 55, 0.05); }   // свуш переворота
+export function sndMatch()   { if (soundOn()) { beep(784, 80, 0.09); setTimeout(() => beep(1047, 110, 0.08), 60); } }
+export function sndPlace()   { if (soundOn()) beep(523, 45, 0.06); }   // мягкий тик
 // G-геймификация: раздельные звуки (отличны от обычной победы sndWin).
-export function sndLevelUp() { if (_soundEnabled) { beep(523, 90, 0.1); setTimeout(() => beep(659, 90, 0.1), 90); setTimeout(() => beep(784, 100, 0.1), 180); setTimeout(() => beep(1047, 130, 0.11), 280); setTimeout(() => beep(1319, 280, 0.11), 410); } } // 5-нот восходящая фанфара уровня
-export function sndStreak()  { if (_soundEnabled) { beep(880, 70, 0.09); setTimeout(() => beep(1175, 150, 0.09), 70); } } // быстрый яркий чайм стрика
+export function sndLevelUp() { if (soundOn()) { beep(523, 90, 0.1); setTimeout(() => beep(659, 90, 0.1), 90); setTimeout(() => beep(784, 100, 0.1), 180); setTimeout(() => beep(1047, 130, 0.11), 280); setTimeout(() => beep(1319, 280, 0.11), 410); } } // 5-нот восходящая фанфара уровня
+export function sndStreak()  { if (soundOn()) { beep(880, 70, 0.09); setTimeout(() => beep(1175, 150, 0.09), 70); } } // быстрый яркий чайм стрика
 // SND-T: таймер в играх на время — тихий тик последних 5 секунд + сигнал «время вышло».
-export function sndTimerTick() { if (_soundEnabled) beep(1000, 45, 0.045); }
-export function sndTimerEnd()  { if (_soundEnabled) { beep(523, 130, 0.09); setTimeout(() => beep(392, 230, 0.09), 130); } }
+export function sndTimerTick() { if (soundOn()) beep(1000, 45, 0.045); }
+export function sndTimerEnd()  { if (soundOn()) { beep(523, 130, 0.09); setTimeout(() => beep(392, 230, 0.09), 130); } }
 
 // ── Фоновая музыка меню — ГЕНЕРАТИВНЫЙ амбиент, OPT-IN, очень тихо. ──
 //
