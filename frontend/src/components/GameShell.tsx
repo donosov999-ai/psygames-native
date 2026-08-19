@@ -47,7 +47,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
-import { onGameHold, isGameHeld } from '@/src/services/gamePause';
+import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
 
@@ -198,6 +198,20 @@ export default function GameShell({
   React.useEffect(() => {
     if (exitGuard.asking) announce(t('exitConfirmTitle'));
   }, [exitGuard.asking]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  /**
+   * 🔴 ПОКА ВИСИТ ВОПРОС — ИГРА СТОИТ. Без этого «вы уверены?» стоит денег: в SET
+   * с 11-го уровня на расклад даётся 10 секунд, и человек, читающий вопрос,
+   * терял расклад и получал ✗ за то, что задумался над кнопкой «назад». Поймано
+   * живьём заходом по SET 19.08.2026: пока читал вопрос, расклад сгорел.
+   *
+   * ⚠️ Тот же механизм, что у окна отзыва (`holdGame`), а не свой: счётчик пауз
+   * общий, поэтому вопрос поверх открытого отзыва не снимет чужую паузу.
+   */
+  React.useEffect(() => {
+    if (!exitGuard.asking) return;
+    return holdGame();
+  }, [exitGuard.asking]);
 
   // Android-сборка — WebView (Platform.OS === 'web'). Клавиатура уменьшает
   // visual viewport, но браузер не всегда докручивает вложенный RN ScrollView

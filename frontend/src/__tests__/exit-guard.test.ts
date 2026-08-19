@@ -316,6 +316,37 @@ describe('страж выхода — сцепка с экранами', () => {
   });
 });
 
+describe('вопрос о выходе не стоит игроку партии', () => {
+  const SHELL = code(readFileSync(join(ROOT, 'src/components/GameShell.tsx'), 'utf8') as string);
+
+  it('есть что проверять — иначе тест зелен вслепую', () => {
+    expect(SHELL).toContain('exitGuard.asking');
+  });
+
+  /**
+   * 🔴 ПОКА ВИСИТ «ВЫ УВЕРЕНЫ?» — ЧАСЫ ИГРЫ ОБЯЗАНЫ СТОЯТЬ. Иначе вопрос стоит
+   * денег: в SET с 11-го уровня на расклад даётся десять секунд, и человек,
+   * читающий вопрос, терял расклад и получал ✗ за то, что задумался над кнопкой
+   * «назад». Поймано живьём заходом по SET 19.08.2026.
+   *
+   * Проверяем СЦЕПКУ, а не наличие слова: пауза должна ставиться там, где
+   * читается `asking`. `holdGame` где-нибудь в другом конце файла — не то.
+   * Комментарии срезаны (`code`), поэтому рассказ о паузе за паузу не сойдёт.
+   */
+  it('🔴 пока висит вопрос, игра стоит на паузе', () => {
+    const flat = SHELL.replace(/\s+/g, ' ');
+    const at = flat.indexOf('exitGuard.asking) return');
+    const near = at === -1 ? '' : flat.slice(at, at + 120);
+    expect(`сцепка asking→holdGame: ${near.includes('holdGame(')}`).toBe('сцепка asking→holdGame: true');
+  });
+
+  /** Пауза общая на всё приложение: свой счётчик рядом с общим — верный способ его сломать. */
+  it('пауза берётся из общего места, а не заводится своя', () => {
+    expect(SHELL).toContain("from '@/src/services/gamePause'");
+    expect(SHELL).toContain('holdGame');
+  });
+});
+
 describe('вопрос о выходе переведён на все 12 языков', () => {
   const KEYS = ['exitConfirmTitle', 'exitConfirmSaved', 'exitConfirmLost', 'exitConfirmStay', 'exitConfirmLeave'];
   const LOCALES = ['es', 'pt', 'hi', 'zh', 'de', 'fr', 'it', 'ja', 'ko', 'ar'];
