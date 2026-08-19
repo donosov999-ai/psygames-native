@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -20,6 +20,7 @@ import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapt
 import { sndCombo } from '@/src/services/feedback';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { a11yDecor } from '@/src/services/a11y';
+import { useProfile } from '@/src/contexts/ProfileContext';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const GS_RULES: LevelRule[] = [
@@ -100,6 +101,55 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 type Sel = { cell: number; idx: number } | null;
 
 function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/**
+ * ШКАФ — КАРТИНКА, А НЕ ВЁРСТКА.
+ *
+ * 🔴 ПОЧЕМУ. Денис 19.08.2026 про CSS-вариант: «3д не ощущается, что там
+ * глубина — просто закрашенная таблица». Он прав, и у вёрстки здесь потолок:
+ * градиентом можно изобразить углубление, но нельзя — текстуру дерева, боковые
+ * стенки ниши и настоящий свет. Эталон (Sort Match) рисует шкаф картинкой и
+ * кладёт товары поверх; делаем так же.
+ *
+ * ⚠️ НЕ ЦЕЛЫЙ ШКАФ, А ПЛИТКА ОДНОЙ НИШИ. Целая картинка не годится: доска у
+ * нас переменного размера (3×4 … 3×6) и с ДЫРКАМИ (формы уровня), под неё
+ * фон не подрежешь. Плитка вырезана из середины сгенерированного шкафа, то
+ * есть несёт полурейки по всем четырём краям — состыкованные, они дают целые
+ * доски, а дырка формы просто оставляет пустое место.
+ *
+ * Девять стилей нарисованы одной сеткой 3×3 в kie (2K, 12 кредитов) и
+ * нарезаны: assets/images/goods/_styles/. Стиль привязан к профилю — у
+ * «Микро-релакса» шкаф не такой, как у «Шахматиста».
+ */
+const SHELF_TILES = {
+  birch:  require('../../assets/images/shelves/niche-birch.webp'),
+  pine:   require('../../assets/images/shelves/niche-pine.webp'),
+  white:  require('../../assets/images/shelves/niche-white.webp'),
+  oak:    require('../../assets/images/shelves/niche-oak.webp'),
+  mint:   require('../../assets/images/shelves/niche-mint.webp'),
+  pink:   require('../../assets/images/shelves/niche-pink.webp'),
+  grey:   require('../../assets/images/shelves/niche-grey.webp'),
+  walnut: require('../../assets/images/shelves/niche-walnut.webp'),
+  bamboo: require('../../assets/images/shelves/niche-bamboo.webp'),
+} as const;
+
+type ShelfStyle = keyof typeof SHELF_TILES;
+
+/** Профиль → стиль шкафа. Незнакомый профиль получает берёзу. */
+const SHELF_BY_PROFILE: Record<string, ShelfStyle> = {
+  kids: 'mint',            // детям светлое и мягкое
+  vasilyeva: 'pink',       // Валин профиль
+  women: 'pink',           // «Микро-релакс» — тёплый и спокойный
+  nzt48: 'walnut',         // тёмное дерево под серьёзный профиль
+  execs: 'grey',           // предприниматели — сдержанное
+  students: 'pine',
+  chess: 'white',
+  polyglot: 'bamboo',
+  seniors: 'oak',          // тёплое и контрастное
+  drivers: 'grey',
+  odv999: 'walnut',
+  free: 'birch',
+};
 
 const CAP = 3;     // вместимость ячейки — 3 товара ВИДИМЫ (суть оригинала)
 
@@ -286,6 +336,9 @@ function generate(pool: number[], types: number, spares: number, slots: number):
 
 export default function GoodsSortGame() {
   const { colors } = useTheme();
+  const { profile } = useProfile();
+  /** Стиль шкафа берётся от профиля; незнакомый — берёза. */
+  const shelfStyle: ShelfStyle = SHELF_BY_PROFILE[profile?.id ?? 'free'] ?? 'birch';
   const { t, language } = useLanguage();
   const router = useRouter();
   const { width, height } = useWindowDimensions();
@@ -449,7 +502,7 @@ export default function GoodsSortGame() {
 
   // ── вёрстка ──────────────────────────────────────────────────────────
   const boardW = Math.min(width - 24, 900);   // шире → товары крупнее на десктопе
-  const cellW = Math.floor((boardW - 10 * 2 - 10 * (gridDim.cols - 1)) / gridDim.cols);   // cols ячеек-полок в ряд
+  const cellW = Math.floor(boardW / gridDim.cols);   // cols ячеек-полок в ряд
   // Размер товара ограничен И шириной (cols в ряд), И доступной высотой (rows полок) — тянемся по высоте экрана.
   /**
    * 🔴 ВЫСОТУ ПОД ПОЛКИ МЕРЯЕМ, А НЕ УГАДЫВАЕМ.
@@ -521,7 +574,7 @@ export default function GoodsSortGame() {
    * ровно как в эталоне, где над предметами есть воздух. Растить сам товар
    * тут нельзя: его ширину держат три штуки в ряд, а не высота экрана.
    */
-  const SHELF_GAP = 10, HINT_H = 44, SHELF_PAD = 10;
+  const SHELF_GAP = 0, HINT_H = 44, SHELF_PAD = 0;
   const shelfOuter = Math.floor((availH - HINT_H - SHELF_GAP * (gridDim.rows - 1)) / gridDim.rows);
   // Ниша выше товара примерно на четверть — столько воздуха над предметом в
   // эталоне. Вдвое выше = пустая коробка, экран заполняется НЕ этим, а рядами.
@@ -562,33 +615,19 @@ export default function GoodsSortGame() {
     const close = hasPair(cell);   // 2 одинаковых → подсказка «положи третий»
     const canDrop = !!sel && sel.cell !== i && cell.length < CAP;
     return (
-      <LinearGradient key={i}
+      <ImageBackground key={i}
         /**
-         * 🔴 НИША — УГЛУБЛЕНИЕ, А НЕ ЗАКРАШЕННАЯ КЛЕТКА.
-         *
-         * Денис 19.08: «3д не ощущается, что там глубина — просто закрашенная
-         * таблица». Плоская заливка с рамкой глубины не даёт ни при каком цвете.
-         *
-         * Что её создаёт на самом деле, три вещи вместе:
-         *   1. ГРАДИЕНТ ВНУТРЬ. Свет падает сверху, значит верх ниши — в тени от
-         *      собственной кромки, низ — освещённое дно. Тёмный верх → светлый
-         *      низ, а не ровный цвет.
-         *   2. КРОМКА ДОСКИ. Внизу светлая полоса — передний торец полки,
-         *      единственная поверхность, повёрнутая к зрителю и к свету.
-         *   3. ТЕНЬ ПОД ТОВАРОМ на дне ниши: без неё предмет висит в воздухе.
-         *
-         * Рамка выделения осталась, но она теперь поверх объёма, а не вместо него.
+         * Фон ниши — вырезанная плитка нарисованного шкафа. resizeMode="stretch",
+         * а не "cover": полурейки обязаны остаться ровно по краям, иначе
+         * соседние ниши не состыкуются в целые доски.
          */
-        colors={['#8a5f33', '#a97845', '#c99a63', '#dcb079']}
-        locations={[0, 0.18, 0.72, 1]}
-        start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+        source={SHELF_TILES[shelfStyle]}
+        resizeMode="stretch"
         style={[styles.cell, {
           width: cellW, height: nicheH,
           borderColor: canDrop ? '#fbbf24' : close ? '#22c55e' : 'transparent',
           borderWidth: canDrop || close ? 3 : 0,
         }]}>
-        {/* Передний торец полки — светлая кромка, к которой прилипает тень товара. */}
-        <View pointerEvents="none" style={styles.shelfLip} />
         {/* Полка и товары — соседние кнопки, а не button внутри button.
             На web вложенные TouchableOpacity давали hydration-error и могли
             проглатывать тап при переходе вечерней зарядки через Goods Sort. */}
@@ -615,7 +654,7 @@ export default function GoodsSortGame() {
             );
           })}
         </View>
-      </LinearGradient>
+      </ImageBackground>
     );
   };
 
@@ -842,22 +881,27 @@ const styles = StyleSheet.create({
    *
    * Толщина взята долей от ниши: на маленьком экране пропорции сохраняются.
    */
+  /**
+   * Рама шкафа. Зазоров между нишами НЕТ: полурейки нарисованы по краям самой
+   * плитки, и состыкованные плитки дают целые доски. Добавь сюда gap — и между
+   * досками появится щель с фоном экрана, шкаф снова станет таблицей.
+   */
   cabinet: {
-    borderRadius: 14, padding: 10, gap: 10,
+    borderRadius: 14, padding: 0, gap: 0,
     borderBottomWidth: 9, borderBottomColor: '#b98a55',
     shadowColor: '#5a3a18', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
   },
   /** Ряд ниш. Между рядами только толщина доски (gap короба), а не фон экрана. */
-  shelfRow: { flexDirection: 'row', justifyContent: 'center', gap: 10 },
+  shelfRow: { flexDirection: 'row', justifyContent: 'center', gap: 0 },
   cell: {
-    borderRadius: 7, justifyContent: 'flex-end', alignItems: 'center',
+    justifyContent: 'flex-end', alignItems: 'center',
     overflow: 'hidden',                          // тень товара не вылезает из ниши
-  },
-  /** Передний торец доски: светлая полоса на дне ниши, повёрнутая к свету. */
-  shelfLip: {
-    position: 'absolute', left: 0, right: 0, bottom: 0, height: 7,
-    backgroundColor: '#efc794',
-    borderTopWidth: 2, borderTopColor: 'rgba(60,36,14,0.5)',
+    /**
+     * Запасной цвет на время загрузки картинки. Без него первый кадр — дыры
+     * цветом экрана на месте ниш; на медленной сети это видно. Тон взят из
+     * середины берёзовой плитки, чтобы подмена не бросалась в глаза.
+     */
+    backgroundColor: '#a9784a',
   },
   cellDropTarget: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 7 },
   cellRow: { zIndex: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 2, paddingBottom: 3 },
