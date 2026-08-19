@@ -26,12 +26,13 @@
  * а нижняя треть панелей нарисована намеренно спокойной.
  */
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, Animated, Easing, AccessibilityInfo } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import PetSprite, { PetAccessory, PetSkin } from '@/src/components/pet/PetSprite';
 import { getPetSkin, getPetAccessory } from '@/src/services/pet';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
 /**
  * Панели рисуются одним листом и режутся на четыре — так дешевле и так они
@@ -63,17 +64,23 @@ export default function LevelInterlude({ level, stars, ms, nextLine, doneLine, c
   const width = useScreenWidth();
   const [skin, setSkin] = React.useState<PetSkin>('cat');
   const [accessory, setAccessory] = React.useState<PetAccessory | null>(null);
-  const [reduced, setReduced] = React.useState(false);
+  /**
+   * ⚠️ НАСТРОЙКУ «МЕНЬШЕ ДВИЖЕНИЯ» БЕРЁМ ХУКОМ, А НЕ У СИСТЕМЫ НАПРЯМУЮ.
+   *
+   * Первая редакция спрашивала систему сама, и это было тихо неверно дважды.
+   * Во-первых, у react-native-web внутри стоит `resolve(media ? media.matches
+   * : true)` — БЕЗ DOM он отвечает «включено», а DOM'а нет ровно на пререндере
+   * статического экспорта: щадящий режим достался бы всем подряд. Во-вторых,
+   * разового вопроса мало — человек может переключить тумблер на ходу, и
+   * подписка на это есть только в хуке.
+   */
+  const reduced = useReducedMotion();
 
   React.useEffect(() => {
     let alive = true;
     Promise.all([getPetSkin(), getPetAccessory()]).then(([s, a]) => {
       if (alive) { setSkin(s); setAccessory(a); }
     }).catch(() => {});
-    // Уважаем системную настройку «меньше движения»: для части людей плавные
-    // проезды по экрану — не украшение, а тошнота. Питомец тогда просто стоит
-    // на новом узле, и заставка остаётся понятной.
-    AccessibilityInfo.isReduceMotionEnabled?.().then((v) => { if (alive) setReduced(!!v); }).catch(() => {});
     return () => { alive = false; };
   }, []);
 
