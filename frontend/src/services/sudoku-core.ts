@@ -10,7 +10,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage';
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -37,7 +37,7 @@ export function inHyper(r: number, c: number): readonly [number, number] | null 
 const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
   diagonal: 'Diagonal', antiknight: 'Antiknight', hyper: 'Hyper', nonconsec: 'Nonconsec',
   jigsaw: 'Jigsaw', antiking: 'Antiking', evenodd: 'Evenodd', kropki: 'Kropki',
-  sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow',
+  sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow', thermocage: 'Thermocage',
 };
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
@@ -84,8 +84,37 @@ export function generateRegions(N: number): number[][] {
 export function killerBlanks(diff: 'easy' | 'medium' | 'hard'): number {
   return diff === 'easy' ? 44 : diff === 'medium' ? 52 : 60;   // из 81 — cages помогают дедукции, можно больше пустых
 }
+
+/**
+ * КЛЕТКИ-СУММЫ. `cageOf[r][c]` — номер группы, −1 = клетка вне групп (так живёт
+ * ThermoCage: суммы закрывают только часть доски, вторую половину подсказок даёт
+ * термометр).
+ *
+ * ⚠️ `cells` лежит РЯДОМ с картой, а не считается по месту. Правило суммы проверяется
+ * в солвере на КАЖДЫЙ кандидат каждой клетки; собирать состав группы обходом доски —
+ * это N² на вызов, и перебор встаёт. Собрать из снимка партии: `cageCells()`.
+ */
+export interface CageMap { cageOf: number[][]; sum: number[]; anchor: number[]; cells: [number, number][][] }
+
+/** Состав групп по карте — снимок незаконченной партии хранит только cageOf/sum/anchor. */
+export function cageCells(cageOf: number[][], N: number): [number, number][][] {
+  const cells: [number, number][][] = [];
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    const id = cageOf[r][c];
+    if (id < 0) continue;
+    if (!cells[id]) cells[id] = [];
+    cells[id].push([r, c]);
+  }
+  return cells;
+}
+
+/** Собрать CageMap из полей снимка партии (rehydrate после перезапуска приложения). */
+export function cageMapFrom(cageOf: number[][], sum: number[], anchor: number[], N: number): CageMap {
+  return { cageOf, sum, anchor, cells: cageCells(cageOf, N) };
+}
+
 // Разбиение решения на cages: связные группы 2–4 клеток с РАЗНЫМИ цифрами (правило Killer) + сумма каждой.
-export function generateCages(sol: Cell[][], N: number): { cageOf: number[][]; sum: number[]; anchor: number[] } {
+export function generateCages(sol: Cell[][], N: number): CageMap {
   const cageOf: number[][] = Array.from({ length: N }, () => Array(N).fill(-1));
   const sum: number[] = [], anchor: number[] = [];
   let cid = 0;
@@ -125,7 +154,62 @@ export function generateCages(sol: Cell[][], N: number): { cageOf: number[][]; s
     sum[id] = (sum[id] || 0) + sol[r][c];
     anchor[id] = anchor[id] === undefined ? r * N + c : Math.min(anchor[id], r * N + c);
   }
-  return { cageOf, sum, anchor };
+  return { cageOf, sum, anchor, cells: cageCells(cageOf, N) };
+}
+
+/**
+ * ThermoCage: клетки-суммы ОСТРОВАМИ. Берём готовое разбиение `generateCages` и
+ * оставляем только группы, не соприкасающиеся сторонами.
+ *
+ * Почему не всю доску, как в killer:
+ *   · суммы обязаны быть ЧАСТЬЮ подсказок — вторую часть даёт термометр, а залитая
+ *     целиком доска его прячет под тонировкой;
+ *   · подкрас группы на экране берётся из её номера (`id % 6` в sudoku.tsx), поэтому
+ *     две соседние группы могут получить один цвет и слиться в одну. Пока группы не
+ *     касаются сторонами, спутать их нельзя: между ними всегда есть клетка без заливки.
+ *
+ * Группы строятся ИЗ РЕШЕНИЯ (цифры внутри разные, сумма считается по нему) — значит
+ * решение удовлетворяет и суммам, и термометру одновременно, и противоречия на
+ * пересечении двух правил взяться неоткуда.
+ */
+export function generateThermoCages(sol: Cell[][], N: number): CageMap {
+  let best: CageMap | null = null;
+  let bestCells = -1;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const full = generateCages(sol, N);
+    const ids: number[] = [];
+    for (let id = 0; id < full.cells.length; id++) if (full.cells[id] && full.cells[id].length >= 2) ids.push(id);
+    // соседство групп по стороне
+    const adj = new Map<number, Set<number>>();
+    for (let id = 0; id < full.cells.length; id++) if (full.cells[id]) adj.set(id, new Set());
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) for (const [dr, dc] of ORTHO) {
+      const nr = r + dr, nc = c + dc;
+      if (nr < 0 || nr >= N || nc < 0 || nc >= N) continue;
+      const a = full.cageOf[r][c], b = full.cageOf[nr][nc];
+      if (a === b || a < 0 || b < 0) continue;
+      adj.get(a)!.add(b); adj.get(b)!.add(a);
+    }
+    const keep: number[] = [];
+    let covered = 0;
+    for (const id of shuffle(ids)) {
+      if (keep.some((k) => adj.get(id)!.has(k))) continue;
+      keep.push(id); covered += full.cells[id].length;
+    }
+    if (covered <= bestCells) continue;
+    // перенумеровываем оставшиеся подряд: сумма и якорь адресуются номером группы
+    const cageOf: number[][] = Array.from({ length: N }, () => Array(N).fill(-1));
+    keep.forEach((id, i) => { for (const [r, c] of full.cells[id]) cageOf[r][c] = i; });
+    const sum: number[] = [], anchor: number[] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const id = cageOf[r][c];
+      if (id < 0) continue;
+      sum[id] = (sum[id] || 0) + sol[r][c];
+      anchor[id] = anchor[id] === undefined ? r * N + c : Math.min(anchor[id], r * N + c);
+    }
+    best = { cageOf, sum, anchor, cells: cageCells(cageOf, N) };
+    bestCells = covered;
+  }
+  return best!;
 }
 
 // SUDOKU-LVL: уровневая прогрессия. 1–4 = 6×6, 5–8 = 9×9, 9–13 = диагональ, далее фазы-варианты.
@@ -145,7 +229,8 @@ export function levelConfig(level: number): LevelCfg {
   else if (lv >= 38 && lv <= 41) variant = 'sandwich';
   else if (lv >= 42 && lv <= 45) variant = 'thermo';
   else if (lv >= 46 && lv <= 49) variant = 'arrow';
-  else if (lv >= 50) variant = 'jigsaw';
+  else if (lv >= 50 && lv <= 53) variant = 'jigsaw';
+  else if (lv >= 54) variant = 'thermocage';   // ThermoCage: термометр И клетки-суммы на одной доске
   // v1.113.0: ЕДИНАЯ монотонная кривая для всего 9×9-диапазона (было: диагональ росла до 58
   // пустых к L13, затем при смене правила на L14 сбрасывалась на 44 — резкий провал сложности,
   // баг-репорт Вали «как level 20 может быть легче level 12»). Раньше расчёт зависел от variant
@@ -236,7 +321,7 @@ export function generateArrow(N: number): ArrowMap {
   return map;
 }
 
-export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap): boolean {
+export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
   if (variant === 'jigsaw' && regions) {
     const reg = regions[r][c];
@@ -256,7 +341,7 @@ export function isValid(grid: Cell[][], r: number, c: number, val: number, N: nu
     for (const [dr, dc] of ORTHO) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N) { const v = grid[nr][nc]; if (v !== 0 && Math.abs(v - val) === 1) return false; } }
   } else if (variant === 'antiking') {
     for (const [dr, dc] of KING) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
-  } else if (variant === 'thermo' && thermo) {
+  } else if ((variant === 'thermo' || variant === 'thermocage') && thermo) {
     const pn = thermo[r][c];
     if (pn) {
       if (pn.prev) { const pv = grid[pn.prev[0]][pn.prev[1]]; if (pv !== 0 && val <= pv) return false; }   // строго больше предыдущего на термометре
@@ -272,20 +357,41 @@ export function isValid(grid: Cell[][], r: number, c: number, val: number, N: nu
       else { if (asum + empty > N) return false; if (cv !== 0 && asum + empty > cv) return false; }   // прун: мин-сумма ≤ кружок и ≤ N
     }
   }
+  // ⚠️ КЛЕТКИ-СУММЫ ПРОВЕРЯЮТСЯ ОТДЕЛЬНОЙ ВЕТКОЙ, А НЕ ЧЕРЕЗ `else if`. У ThermoCage
+  // на доске два правила РАЗОМ: цепочка термометра и сумма группы. Встань сумма
+  // очередным «иначе-если», термометр забрал бы ход первым — и половина ограничений
+  // просто не проверялась бы, а единственность решения считалась бы по одному правилу.
+  if (cages) {
+    const id = cages.cageOf[r][c];
+    if (id >= 0) {
+      let filled = 0, empty = 0;
+      for (const [rr, cc] of cages.cells[id]) {
+        if (rr === r && cc === c) continue;
+        const v = grid[rr][cc];
+        if (v === 0) { empty++; continue; }
+        if (v === val) return false;   // цифры внутри клетки-суммы не повторяются
+        filled += v;
+      }
+      const rest = cages.sum[id] - filled - val;
+      // Остаток обязан быть набираемым РАЗНЫМИ цифрами: минимум 1+2+…, максимум N+(N−1)+…
+      if (rest < (empty * (empty + 1)) / 2) return false;
+      if (rest > empty * N - (empty * (empty - 1)) / 2) return false;
+    }
+  }
   return true;
 }
 
-export function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], budget?: { steps: number }, thermo?: ThermoPN, arrow?: ArrowMap): boolean {
+export function solve(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], budget?: { steps: number }, thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap): boolean {
   // MRV: заполняем самую ОГРАНИЧЕННУЮ пустую клетку (минимум кандидатов) — почти без бэктрекинга.
   let bR = -1, bC = -1, bCands: number[] | null = null, bCount = N + 1;
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (grid[r][c] === 0) {
     const cands: number[] = [];
-    for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions, thermo, arrow)) cands.push(n);
+    for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions, thermo, arrow, cages)) cands.push(n);
     if (cands.length < bCount) { bCount = cands.length; bR = r; bC = c; bCands = cands; if (bCount === 0) return false; }
   }
   if (bR < 0) return true;   // пустых нет → решено
   if (budget) { if (budget.steps <= 0) return false; budget.steps--; }   // лимит шагов: нерешаемую jigsaw-раскладку бросаем быстро
-  for (const n of shuffle(bCands!)) { grid[bR][bC] = n; if (solve(grid, N, BR, BC, variant, regions, budget, thermo, arrow)) return true; grid[bR][bC] = 0; }
+  for (const n of shuffle(bCands!)) { grid[bR][bC] = n; if (solve(grid, N, BR, BC, variant, regions, budget, thermo, arrow, cages)) return true; grid[bR][bC] = 0; }
   return false;
 }
 
@@ -295,13 +401,13 @@ export function solve(grid: Cell[][], N: number, BR: number, BC: number, variant
  * «не доказали единственность» (клетку при выкалывании не трогаем).
  * Мутирует grid во время обхода, но возвращает его в исходное состояние.
  */
-export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], limit = 2, budget: { steps: number } = { steps: 8000 }, thermo?: ThermoPN, arrow?: ArrowMap): number {
+export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], limit = 2, budget: { steps: number } = { steps: 8000 }, thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap): number {
   let count = 0;
   const walk = (): boolean => {   // true = стоп (достигли limit или кончился бюджет)
     let bR = -1, bC = -1, bCands: number[] | null = null, bCount = N + 1;
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (grid[r][c] === 0) {
       const cands: number[] = [];
-      for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions, thermo, arrow)) cands.push(n);
+      for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions, thermo, arrow, cages)) cands.push(n);
       if (cands.length < bCount) { bCount = cands.length; bR = r; bC = c; bCands = cands; if (bCount === 0) return false; }
     }
     if (bR < 0) { count++; return count >= limit; }
@@ -329,7 +435,10 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // альтернативу, а сверка с зашитым solution засчитывала «ошибку» (нечестно, до
 // потери всех жизней). Добавлены в проверку: теперь дырки копаются только пока
 // БАЗОВОЕ решение единственно → любой верный ход совпадает с solution.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich'];
+// thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
+// правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
+// правилу порознь, вместе может иметь второе решение — и наоборот.
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -358,11 +467,12 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
   let arrow: ArrowMap | undefined;
+  let cages: CageMap | undefined;
   if (variant === 'jigsaw') {
     let ok = false;
     for (let t = 0; t < 60 && !ok; t++) { regions = generateRegions(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'jigsaw', regions, { steps: 1500 }); }   // budget низкий: ~90% раскладок нерешаемы, дешёвый отказ + ретрай
@@ -371,6 +481,14 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
     let ok = false;
     for (let t = 0; t < 60 && !ok; t++) { thermo = generateThermo(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'thermo', undefined, { steps: 2000 }, thermo); }   // ~5 ретраев, констрейн решаем
     if (!ok) { thermo = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }
+  } else if (variant === 'thermocage') {
+    // Порядок важен: сначала решение ПОД термометр, потом суммы ИЗ этого решения.
+    // Обратный порядок (сначала суммы, потом искать решение) — лишний перебор на
+    // ровном месте: любые две системы правил, выведенные из одной сетки, совместимы.
+    let ok = false;
+    for (let t = 0; t < 60 && !ok; t++) { thermo = generateThermo(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'thermo', undefined, { steps: 2000 }, thermo); }
+    if (!ok) { thermo = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }   // без термометра остаются суммы — доска решаемая
+    cages = generateThermoCages(sol, N);
   } else if (variant === 'arrow') {
     let ok = false;
     for (let t = 0; t < 60 && !ok; t++) { arrow = generateArrow(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'arrow', undefined, { steps: 3000 }, undefined, arrow); }   // ~2 ретрая, констрейн-сумма решаем
@@ -383,7 +501,7 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   }
   const puzzle: Cell[][] = sol.map((row) => [...row]);
   const positions = shuffle(Array.from({ length: N * N }, (_, i) => i));
-  const effVariant = (variant === 'jigsaw' && !regions) || (variant === 'thermo' && !thermo) || (variant === 'arrow' && !arrow) ? 'none' : variant;   // фолбэк генерации → чекаем как классику
+  const effVariant = (variant === 'jigsaw' && !regions) || (variant === 'thermo' && !thermo) || (variant === 'arrow' && !arrow) || (variant === 'thermocage' && !cages) ? 'none' : variant;   // фолбэк генерации → чекаем как классику
   if (UNIQUE_CHECKED.includes(effVariant)) {
     // v1.111.0 — dig-with-uniqueness: выкалываем клетку только если решение остаётся
     // ЕДИНСТВЕННЫМ (иначе честный игрок мог поставить цифру второго решения и получить
@@ -398,7 +516,7 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
       const r = Math.floor(p / N), c = p % N;
       const keep = puzzle[r][c];
       puzzle[r][c] = 0;
-      if (countSolutions(puzzle, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow) !== 1) puzzle[r][c] = keep;
+      if (countSolutions(puzzle, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, effVariant === 'thermocage' ? cages : undefined) !== 1) puzzle[r][c] = keep;
       else dug++;
     }
   } else {
@@ -438,5 +556,5 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
     const cols = Array.from({ length: N }, (_, c) => between(sol.map((row) => row[c])));
     sandwich = { rows, cols };
   }
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow };
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages };
 }
