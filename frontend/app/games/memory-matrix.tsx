@@ -17,6 +17,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -73,7 +74,8 @@ export default function MemoryMatrixGame() {
 
   const gate = useLevelGate('memory_matrix');
   const lvl = usePersistentLevel('memory_matrix');   // персист-уровень (уровень = размер сетки − 2)
-  const { isPreset, autostart, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   // Правила уровня: показать при первом входе и дать перечитать по бейджу.

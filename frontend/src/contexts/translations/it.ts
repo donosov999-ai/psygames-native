@@ -1772,6 +1772,13 @@ const t: Record<string, string> = {
   "phPairsPickHint": "Cosa hai sentito? Scegli la parola.",
   "phPairsPlayed": "Pronunciato: {w}",
   "replaySound": "Riascolta",
+  "hint_center_arrow": "Rispondi in base alla freccia CENTRALE: quelle laterali confondono",
+  "choiceRtHint": "Quando appare una freccia, premi il pulsante dello stesso lato",
+  "counterHint": "Tocca i numeri fino a raggiungere la somma richiesta",
+  "picturePairsHint": "Gira due carte alla volta e ricorda dov’è cosa",
+  "schulteHint": "Tocca i numeri in ordine: in alto è indicato quale cercare",
+  "sdmtHint": "Usa la legenda in alto: ogni simbolo ha la sua cifra",
+  "vocabSrsHint": "Scegli la traduzione della parola qui sopra",
   // >>> SCREEN_STRINGS
 };
 export default t;

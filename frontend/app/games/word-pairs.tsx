@@ -22,6 +22,7 @@ import GameShell from '@/src/components/GameShell';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -79,7 +80,8 @@ export default function WordPairsGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const { isPreset, autostart, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (для баннера passed)

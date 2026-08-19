@@ -40,6 +40,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { phonemicLetterPool } from '@/src/services/phonemicFluency';
 import { gameNow } from '@/src/services/gamePause';
 
@@ -71,7 +72,8 @@ export default function PhonemicFluencyGame() {
   const runs = usePersistentLevel('phonemic_fluency');
   const router = useRouter();
 
-  const { isPreset, autostart, num } = useGamePreset();
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [duration, setDuration] = useState<60 | 90 | 120>(() => (num('duration', 60) as 60 | 90 | 120));
   const [letter, setLetter] = useState<string>('');

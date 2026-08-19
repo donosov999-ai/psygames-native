@@ -19,6 +19,7 @@ import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -130,7 +131,8 @@ export default function PicturePairsGame() {
   const cardBack = pairBackForProfile(profile?.id);
   const { popups, spawn } = useScorePopups();
 
-  const { isPreset, autostart, num } = useGamePreset();
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const chainNext = shouldChainNextLevel(useGameMode());
   const lvl = usePersistentLevel('picture_pairs');   // персист достигнутого уровня (раньше сбрасывался на 1)
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
@@ -604,6 +606,11 @@ export default function PicturePairsGame() {
               />
             ))}
           </View>
+          {/* Строка «что делать»: без неё правило видно только в справке, а
+              в справку во время партии не ходят. */}
+          {!previewActive && (
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('picturePairsHint')}</Text>
+          )}
           {/* Итог — общей карточкой поверх поля. Своя плашка не сохраняла звёзды,
               не считала серию и не тикала глаз-разрядку; всё это живёт в общей. */}
           {levelBanner !== null && (
@@ -652,6 +659,7 @@ export default function PicturePairsGame() {
 }
 
 const styles = StyleSheet.create({
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320, marginTop: 12 },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },

@@ -1,0 +1,137 @@
+/**
+ * КРАЯ КАРКАСА: ЗА НИЖНЮЮ ЗОНУ ПЛАТЯТ ОДИН РАЗ, А ВЕРХНИЙ УГОЛ НЕ ЗАНЯТ ДВАЖДЫ.
+ *
+ * ═══ ПУНКТ 39: двойной нижний отступ ═══
+ *
+ * 🔴 ЧТО БЫЛО. Корневой SafeAreaView шёл БЕЗ `edges` — а это значит «все четыре
+ * края», включая нижний. Тулбар при этом ДОПОЛНИТЕЛЬНО клал себе
+ * `paddingBottom: Math.max(insets.bottom, 10)`. Один и тот же отступ считался
+ * дважды.
+ *
+ * ЗАМЕР 19.08.2026 (playwright, 390×844, insets.bottom = 34 подсунуты в скрытый
+ * env(safe-area-*)-элемент react-native-safe-area-context — на вебе библиотека
+ * читает отступы именно с него):
+ *     корень paddingBottom 34 + тулбар paddingBottom 34
+ *     → тулбар кончался на y = 810 при высоте окна 844
+ *     → ПУСТО ПОД КНОПКАМИ 68 px.
+ * После правки тот же замер: 34 + 0 = 34, ровно домашняя полоса.
+ *
+ * ⚠️ ПОЧЕМУ НЕ ВСПЛЫЛО У ТЕСТИРОВЩИКОВ. Android-сборка — Tauri, то есть WebView,
+ * и `env(safe-area-inset-bottom)` там 0. Двойной ноль остаётся нулём. Баг живёт
+ * ровно на iPhone с домашней полосой.
+ *
+ * ═══ ПУНКТ 40: кнопка игры под глобальной «?» ═══
+ *
+ * 🔴 ЧТО БЫЛО. `GameHelpOverlay` смонтирован глобально в _layout и рисует «?»
+ * в правом верхнем углу поверх экрана (`position:absolute`, `right:10`,
+ * ширина 50, `zIndex:100`). Слот шапки `headerRight` стоит там же.
+ *
+ * ЗАМЕР 19.08.2026 (Шульте, единственная игра со своей кнопкой в слоте):
+ *     справка          x 330…380, y 10…71
+ *     «новая таблица»  x 326…374, y 10…58
+ *     перекрытие 92 % площади кнопки, а `document.elementFromPoint` по её
+ *     центру возвращает СПРАВКУ — то есть кнопка игры была не нажимаема вовсе:
+ *     тап по ней открывал справку.
+ *
+ * ⚠️ ПОЧЕМУ НЕ ВСПЛЫЛО. Слот пуст у 63 игр из 64 — накрывать было нечего.
+ *
+ * ⚠️ ГЕЙТ ЧИТАЕТ ИСХОДНИК, А НЕ РИСУЕТ. Рендерера компонентов в зависимостях
+ * проекта нет (`testMatch` — только `*.test.ts`), поэтому здесь проверяются
+ * инварианты каркаса, а числа выше сняты живьём в браузере и записаны, чтобы
+ * следующий не мерил заново.
+ */
+declare const __dirname: string;
+declare function require(m: string): any;
+const fs = require('fs');
+const path = require('path');
+
+const ROOT = path.join(__dirname, '../..');
+const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+
+const SHELL = read('src/components/GameShell.tsx');
+const HELP = read('src/components/GameHelpOverlay.tsx');
+
+/** Открывающий тег корневого SafeAreaView каркаса. */
+const rootTag = (() => {
+  const i = SHELL.indexOf('<SafeAreaView');
+  return i < 0 ? '' : SHELL.slice(i, SHELL.indexOf('>', i) + 1);
+})();
+
+describe('нижняя безопасная зона оплачена один раз', () => {
+  it('есть что проверять — иначе тест зелен вслепую', () => {
+    expect(SHELL).toContain('useSafeAreaInsets()');
+    expect(rootTag).toContain('<SafeAreaView');
+  });
+
+  /**
+   * Корень нижний край НЕ берёт. `edges` обязателен: без него SafeAreaView
+   * добавляет все четыре края, и двойной отступ возвращается молча.
+   */
+  it('🔴 корень не платит за низ: edges задан и «bottom» в нём нет', () => {
+    const m = /edges=\{\[([^\]]*)\]\}/.exec(rootTag);
+    expect(`edges у корня: ${m ? m[1] : 'НЕ ЗАДАН — снова все четыре края'}`)
+      .toBe("edges у корня: 'top', 'left', 'right'");
+  });
+
+  /** Платит тот, кто стоит внизу. Есть тулбар — платит тулбар. */
+  it('🔴 тулбар платит за низ ровно один раз', () => {
+    const i = SHELL.indexOf('styles.toolbar,');
+    const block = SHELL.slice(i, i + 600);
+    expect(block).toMatch(/paddingBottom: Math\.max\(insets\.bottom, 10\)/);
+    // И второй раз того же нигде нет: единственный источник нижнего отступа —
+    // insets.bottom / bottomSafe, и он не должен всплыть в стиле корня.
+    const rootStyle = /root: \{[^}]*\}/.exec(SHELL)?.[0] ?? '';
+    expect(rootStyle).not.toMatch(/padding/);
+  });
+
+  /** Тулбара нет — низ обязано оплатить поле, иначе строка уедет под полосу. */
+  it('🔴 без тулбара за низ платит поле — в обоих его видах', () => {
+    expect(SHELL).toMatch(/toolbar \? null : \{ paddingBottom: 8 \+ bottomSafe \}/);  // скроллящееся
+    expect(SHELL).toMatch(/toolbar \? null : \{ paddingBottom: bottomSafe \}/);       // обычное
+  });
+});
+
+describe('слот шапки не под глобальной справкой', () => {
+  it('есть что проверять — иначе тест зелен вслепую', () => {
+    expect(HELP).toContain('fabWrap');
+    expect(SHELL).toContain('headerRight');
+  });
+
+  /**
+   * Ширина зоны справки в каркасе обязана СОВПАДАТЬ с тем, что справка реально
+   * занимает. Разъедутся — отступ снова окажется меньше кнопки, и накрытие
+   * вернётся частично, что заметить ещё труднее, чем полное.
+   */
+  it('🔴 отступ каркаса равен реальной ширине справки: 50 кнопка + 10 от края', () => {
+    const width = /fabWrap: \{[^}]*width: (\d+)/s.exec(HELP)?.[1];
+    const offset = /rtl \? \{ left: (\d+) \} : \{ right: (\d+) \}/.exec(HELP);
+    const gutter = /const HELP_FAB_GUTTER = (\d+);/.exec(SHELL)?.[1];
+    expect(`${width} + ${offset?.[2]} = ${gutter}`).toBe(`50 + 10 = 60`);
+    // Сторона справки зеркалится — значит и отступ обязан зеркалиться вместе с ней.
+    expect(offset?.[1]).toBe(offset?.[2]);
+  });
+
+  it('🔴 непустой слот отодвинут от края, и в RTL — в другую сторону', () => {
+    expect(SHELL).toMatch(
+      /headerRight \? \(rtl \? \{ marginLeft: HELP_FAB_GUTTER \} : \{ marginRight: HELP_FAB_GUTTER \}\) : null/,
+    );
+  });
+
+  /**
+   * Пустому слоту отступ не нужен: у 63 игр он пуст, и лишние 60 px сдвинули бы
+   * центрированный заголовок на всех экранах ради одной Шульте.
+   */
+  it('пустой слот остаётся без отступа', () => {
+    expect(SHELL).toMatch(/headerRight \? \([^)]*\) : null/);
+  });
+
+  /**
+   * Справка всё ещё висит поверх (zIndex 100) и всё ещё в углу — если её однажды
+   * ПЕРЕНЕСУТ в слот, отступ станет вредным, и эта проверка заставит вспомнить.
+   */
+  it('справка по-прежнему плавающая и глобальная, а не в слоте каркаса', () => {
+    expect(HELP).toMatch(/zIndex: 100/);
+    expect(read('app/_layout.tsx')).toContain('<GameHelpOverlay />');
+    expect(SHELL).not.toContain('<GameHelpOverlay');
+  });
+});

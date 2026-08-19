@@ -1780,6 +1780,13 @@ const t: Record<string, string> = {
   "phPairsPickHint": "क्या सुनाई दिया? शब्द चुनें।",
   "phPairsPlayed": "सुनाई दिया: {w}",
   "replaySound": "फिर सुनें",
+  "hint_center_arrow": "बीच वाले तीर से जवाब दें — किनारे वाले भटकाते हैं",
+  "choiceRtHint": "तीर दिखे तो उसी दिशा का बटन दबाएँ",
+  "counterHint": "संख्याएँ चुनते जाएँ जब तक बताया गया जोड़ न बन जाए",
+  "picturePairsHint": "एक बार में दो कार्ड पलटें और याद रखें कहाँ क्या है",
+  "schulteHint": "क्रम से संख्याओं पर टैप करें — कौन-सी ढूँढनी है, ऊपर लिखा है",
+  "sdmtHint": "ऊपर दी कुंजी देखें: हर चिह्न का अपना अंक है",
+  "vocabSrsHint": "ऊपर दिए शब्द का अनुवाद चुनें",
   // >>> SCREEN_STRINGS
 };
 export default t;

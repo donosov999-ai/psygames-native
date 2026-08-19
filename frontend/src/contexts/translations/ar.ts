@@ -1773,6 +1773,13 @@ const t: Record<string, string> = {
   "phPairsPickHint": "ماذا سمعت؟ اختر الكلمة.",
   "phPairsPlayed": "نُطقت: {w}",
   "replaySound": "استمع مرة أخرى",
+  "hint_center_arrow": "أجب حسب السهم الأوسط — الجانبية تشتّت",
+  "choiceRtHint": "عند ظهور سهم، اضغط الزر في الاتجاه نفسه",
+  "counterHint": "اضغط الأرقام حتى تصل إلى المجموع المطلوب",
+  "picturePairsHint": "اقلب بطاقتين في كل مرة وتذكّر مكان كل صورة",
+  "schulteHint": "اضغط الأرقام بالترتيب — الرقم المطلوب مكتوب في الأعلى",
+  "sdmtHint": "انظر إلى المفتاح في الأعلى: لكل رمز رقمه",
+  "vocabSrsHint": "اختر ترجمة الكلمة في الأعلى",
   // >>> SCREEN_STRINGS
 };
 export default t;

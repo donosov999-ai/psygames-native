@@ -25,6 +25,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 import BossRound from '@/src/components/BossRound';
@@ -107,7 +108,8 @@ export default function SchulteGame() {
   const isThemed = profile.group === 'themed';
 
   // Game configuration
-  const { isPreset, autostart, num } = useGamePreset();
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('schulte_table');
   /**
    * Уровни против свободной партии. Механика тут была всегда — startGame(true)
@@ -935,6 +937,9 @@ export default function SchulteGame() {
               );
             })}
         </View>
+        {/* Строка «что делать»: без неё правило видно только в справке, а
+            в справку во время партии не ходят. */}
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('schulteHint')}</Text>
       </GameShell>
     );
   };
@@ -1012,6 +1017,7 @@ export default function SchulteGame() {
 }
 
 const styles = StyleSheet.create({
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320, marginTop: 12 },
   container: {
     flex: 1,
   },

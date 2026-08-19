@@ -20,6 +20,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { hapticMedium } from '@/src/components/juice/haptics';
 import { sndTap, sndBreathIn, sndBreathHold, sndBreathOut } from '@/src/services/feedback';
@@ -109,7 +110,8 @@ export default function BreathingGame() {
   const { profile } = useProfile();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset, autostart, str, bool } = useGamePreset();
+  const { isPreset, autostart, str, bool, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   // dim=1 приходит шагом ночного набора (см. NIGHT_STEPS в warmup.ts).
   const dim = bool('dim');
   const GRADIENT = dim ? GRADIENT_NIGHT : GRADIENT_DAY;

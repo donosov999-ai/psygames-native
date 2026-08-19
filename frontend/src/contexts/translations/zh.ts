@@ -1777,6 +1777,13 @@ const t: Record<string, string> = {
   "phPairsPickHint": "刚才听到的是什么？选出那个词。",
   "phPairsPlayed": "刚才播放：{w}",
   "replaySound": "再听一次",
+  "hint_center_arrow": "按中间箭头作答，两侧箭头是干扰",
+  "choiceRtHint": "箭头出现时，按同一方向的按钮",
+  "counterHint": "点击数字，凑出上面要求的和",
+  "picturePairsHint": "每次翻两张牌，记住哪张在哪里",
+  "schulteHint": "按顺序点击数字，上方显示当前要找的数",
+  "sdmtHint": "看上方对照表：每个符号对应一个数字",
+  "vocabSrsHint": "选择上方单词的译文",
   // >>> SCREEN_STRINGS
 };
 export default t;

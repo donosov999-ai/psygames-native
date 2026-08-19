@@ -16,6 +16,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -75,7 +76,8 @@ export default function FlankerGame() {
   const router = useRouter();
 
   const lvl = usePersistentLevel('flanker');
-  const { isPreset, autostart, str, num } = useGamePreset();
+  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   // пресет (зарядка) передаёт diff/trials; личная игра рулится уровнем
@@ -326,6 +328,11 @@ export default function FlankerGame() {
             <Text style={{ fontSize: 36, color: colors.textSecondary }}>•</Text>
           )}
         </View>
+        {/* Строка «что делать»: без неё правило видно только в справке, а
+            в справку во время партии не ходят. Ключ ОБЩИЙ с соседней игрой:
+            правило про центральную стрелку у них дословно одно, и разводить
+            его двумя ключами — это ровно те дубли, которые только что схлопывали. */}
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('hint_center_arrow')}</Text>
       </GameShell>
     );
   }
@@ -367,6 +374,7 @@ export default function FlankerGame() {
 }
 
 const styles = StyleSheet.create({
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320, marginTop: 12 },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },

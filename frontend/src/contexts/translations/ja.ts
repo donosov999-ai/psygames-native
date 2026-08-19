@@ -1771,6 +1771,13 @@ const t: Record<string, string> = {
   "phPairsPickHint": "何が聞こえた？ 単語を選んで。",
   "phPairsPlayed": "流れた単語：{w}",
   "replaySound": "もう一度聞く",
+  "hint_center_arrow": "真ん中の矢印で答える。両側は引っかけ",
+  "choiceRtHint": "矢印が出たら、同じ向きのボタンを押す",
+  "counterHint": "数字をタップして、上の合計をつくる",
+  "picturePairsHint": "カードは2枚ずつめくり、どこに何があるか覚える",
+  "schulteHint": "数字を順番にタップ。探す数は上に出ている",
+  "sdmtHint": "上の対応表を見る。記号ごとに数字が決まっている",
+  "vocabSrsHint": "上の単語の訳を選ぶ",
   // >>> SCREEN_STRINGS
 };
 export default t;

@@ -1772,6 +1772,13 @@ const t: Record<string, string> = {
   "phPairsPickHint": "무엇을 들었나요? 단어를 고르세요.",
   "phPairsPlayed": "들린 단어: {w}",
   "replaySound": "다시 듣기",
+  "hint_center_arrow": "가운데 화살표를 보고 답하세요. 양옆은 방해입니다",
+  "choiceRtHint": "화살표가 나오면 같은 방향 버튼을 누르세요",
+  "counterHint": "숫자를 눌러 위에 적힌 합을 만드세요",
+  "picturePairsHint": "카드를 두 장씩 뒤집고 어디에 무엇이 있는지 기억하세요",
+  "schulteHint": "숫자를 순서대로 누르세요. 찾을 숫자는 위에 있습니다",
+  "sdmtHint": "위의 대응표를 보세요. 기호마다 숫자가 정해져 있습니다",
+  "vocabSrsHint": "위 단어의 뜻을 고르세요",
   // >>> SCREEN_STRINGS
 };
 export default t;

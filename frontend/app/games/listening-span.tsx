@@ -13,6 +13,7 @@ import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { speakSequence, ttsAvailable, ttsCancel } from '@/src/services/tts';
 import { useTtsAvailable } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
@@ -77,7 +78,8 @@ export default function ListeningSpanGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
   const lvl = usePersistentLevel(GAME_ID);
-  const { isPreset, autostart, str } = useGamePreset();
+  const { isPreset, autostart, str, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
 
   const defaultTarget = language === 'en' ? 'es' : 'en';
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', defaultTarget));

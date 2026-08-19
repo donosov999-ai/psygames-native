@@ -33,6 +33,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -88,7 +89,8 @@ export default function SdmtGame() {
   const sdmtStim = Math.min(sdmtW * 0.42, 180);
   const router = useRouter();
 
-  const { isPreset, autostart, num } = useGamePreset();
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('sdmt');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
@@ -304,6 +306,9 @@ export default function SdmtGame() {
           }]}>
             <Ionicons name={stim as any} size={sdmtStim * 0.6} color={GRADIENT[1]} />
           </View>
+          {/* Строка «что делать»: без неё правило видно только в справке, а
+              в справку во время партии не ходят. */}
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('sdmtHint')}</Text>
         </View>
       </GameShell>
     );
@@ -347,6 +352,7 @@ export default function SdmtGame() {
 }
 
 const styles = StyleSheet.create({
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320, marginTop: 12 },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
