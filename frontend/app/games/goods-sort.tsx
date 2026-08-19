@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, Easing, PanResponder } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -411,6 +411,49 @@ const OBSTACLE_PLANS: ObstaclePlan[] = [
  * укладкой, обязан иметь решение — гейт перебирает его целиком. Перебор здесь
  * посилен именно потому, что правило режет ветвление: почти все ходы незаконны.
  */
+/**
+ * СМЕШАННАЯ ЁМКОСТЬ НИШ — ЛОМАЕТ АВТОМАТИЗМ «ТРИ И ВСЁ».
+ *
+ * 🔴 ЗАЧЕМ. Когда все ниши одинаковы, через десяток уровней рука ходит сама:
+ * видишь пару — несёшь третий, не глядя. Разбор жанра называет это прямо:
+ * одинаковая ёмкость превращает игру в моторный навык. Ниша на ДВА товара
+ * тройку не вместит вовсе — она только перевалочная; ниша на ЧЕТЫРЕ вмещает
+ * тройку и ещё один лишний, то есть перестаёт очищаться сама собой.
+ *
+ * ⚠️ СУММА ЁМКОСТЕЙ НЕ МЕНЯЕТСЯ, И ЭТО НЕ КРАСОТА, А НЕОБХОДИМОСТЬ. Вся
+ * арифметика решаемости (`spares`, потолок типов, ёмкость за вычетом запертых)
+ * посчитана из «ниш × 3». Урежь общую ёмкость — и уровень станет теснее
+ * задуманного, причём молча. Поэтому ниши меняются ПАРАМИ: одной даём 2,
+ * другой 4, итог прежний.
+ */
+export const CAP_MIN = 2;
+export const CAP_MAX = 4;
+
+/** Со скольких уровней ёмкость перестаёт быть одинаковой. */
+export const MIXED_CAP_FROM = 18;
+
+/**
+ * Ёмкости всех ниш уровня. Детерминированно от уровня — расклад случайный, а
+ * форма доски обязана быть одна и та же при повторе уровня.
+ */
+export function capsFor(L: number, slots: number): number[] {
+  const caps = Array(slots).fill(CAP);
+  if (L < MIXED_CAP_FROM || slots < 6) return caps;
+  // Пар тем больше, чем дальше уровень, но не больше трети доски.
+  const pairs = Math.min(Math.floor(slots / 6), 1 + Math.floor((L - MIXED_CAP_FROM) / 12));
+  // Шаг взаимно прост с типичными размерами доски (9, 12, 15, 16, 18),
+  // иначе узкие и широкие ниши садились бы всегда на одни и те же места.
+  const step = 5;
+  for (let k = 0; k < pairs; k++) {
+    const small = (k * 2 * step + L) % slots;
+    const big = (small + step) % slots;
+    if (small === big || caps[small] !== CAP || caps[big] !== CAP) continue;
+    caps[small] = CAP_MIN;
+    caps[big] = CAP_MAX;
+  }
+  return caps;
+}
+
 export function strictPlacement(L: number): boolean {
   // С 14-го, через два уровня на третий: успевает и надоесть не успевает.
   return L >= 14 && (L - 14) % 3 === 0;
@@ -420,10 +463,33 @@ export function strictPlacement(L: number): boolean {
  * Можно ли класть товар типа `type` в нишу `dst` при данном правиле укладки.
  * Единственное место, где живёт разница между обычным уровнем и строгим.
  */
-export function placementOk(dst: number[], type: number, strict: boolean): boolean {
-  if (dst.length >= CAP) return false;
+export function placementOk(dst: number[], type: number, strict: boolean, cap: number = CAP): boolean {
+  if (dst.length >= cap) return false;
   if (!strict || dst.length === 0) return true;
   return dst[dst.length - 1] === type;
+}
+
+/**
+ * Сбор тройки при смешанной ёмкости: ниша на четыре может держать тройку И
+ * лишний товар, поэтому проверяем не «в нише ровно три одинаковых», а «в нише
+ * ЕСТЬ три одинаковых». Иначе на четырёхместной нише тройка не собиралась бы
+ * никогда — самый обидный вид тихой поломки.
+ *
+ * Возвращает тип, которого набралось три, или null.
+ */
+export function tripleIn(cell: number[]): number | null {
+  const count: Record<number, number> = {};
+  for (const t of cell) {
+    count[t] = (count[t] || 0) + 1;
+    if (count[t] === CAP) return t;
+  }
+  return null;
+}
+
+/** Убрать из ниши тройку одного типа, оставив остальное. */
+export function removeTriple(cell: number[], type: number): number[] {
+  let left = CAP;
+  return cell.filter((t) => (t === type && left > 0 ? (left--, false) : true));
 }
 
 /**
@@ -886,7 +952,7 @@ function hasPair(cell: number[]): boolean {
 
 // Раздать по 3 каждого выбранного типа в (slots−spares) ячеек, ≤3 в ячейке, без готовых троек.
 // Всё ВИДИМО — full-information сортировка (не скрытые стопки).
-export function generate(pool: number[], types: number, spares: number, slots: number): number[][] {
+export function generate(pool: number[], types: number, spares: number, slots: number, caps?: number[]): number[][] {
   const chosen = shuffle(pool).slice(0, types);
   const items: number[] = [];
   chosen.forEach((tp) => { for (let k = 0; k < CAP; k++) items.push(tp); });
@@ -900,10 +966,16 @@ export function generate(pool: number[], types: number, spares: number, slots: n
     for (const it of sh) {
       for (let tries = 0; tries < used; tries++) {
         const c = ci % used; ci++;
-        if (cells[c].length < CAP) { cells[c].push(it); break; }
+        if (cells[c].length < (caps?.[c] ?? CAP)) { cells[c].push(it); break; }
       }
     }
-    cells = shuffle(cells);
+    /**
+     * ⚠️ ПЕРЕМЕШИВАТЬ НИШИ МОЖНО ТОЛЬКО ПРИ ОДИНАКОВОЙ ЁМКОСТИ. Раздача
+     * наполняет ниши по их вместимости, а `shuffle` меняет их местами — и
+     * содержимое четырёхместной могло бы оказаться в двухместной. Молча, и
+     * дальше по всей партии.
+     */
+    if (!caps) cells = shuffle(cells);
     guard++;
   } while (cells.some(threeSame) && guard < 80);
   return cells;
@@ -1091,10 +1163,11 @@ export default function GoodsSortGame() {
      * потому что зависший экран хуже трудного уровня, а отмена и перемешивание
      * у человека на руках.
      */
-    let built = generate(poolRef.current, cfg.types, cfg.spares, cfg.slots);
+    const levelCaps = capsFor(L, cfg.slots);
+    let built = generate(poolRef.current, cfg.types, cfg.spares, cfg.slots, levelCaps);
     if (strictPlacement(L)) {
       for (let tries = 0; tries < 5 && !solvableStrict(built); tries++) {
-        built = generate(poolRef.current, cfg.types, cfg.spares, cfg.slots);
+        built = generate(poolRef.current, cfg.types, cfg.spares, cfg.slots, levelCaps);
       }
     }
     setCells(built);
@@ -1278,13 +1351,18 @@ export default function GoodsSortGame() {
    */
   /** Идёт ли на этом уровне строгая укладка. Одно место, откуда это узнают все. */
   const strict = strictPlacement(level);
+  /** Ёмкости ниш этого уровня. Одинаковые до 18-го, дальше вперемешку. */
+  const caps = useMemo(() => capsFor(level, gridRef.current.slots), [level, gridDim.cols, gridDim.rows]);
+  const capOf = (i: number) => caps[i] ?? CAP;
+  /** Есть ли на этом уровне разные ёмкости — от этого зависит показ насечек. */
+  const mixedCaps = new Set(caps).size > 1;
 
   const canPlaceInto = (fromCell: number, toCell: number): boolean => {
     if (fromCell === toCell) return false;
     if (!cellUsable(fromCell) || !cellUsable(toCell)) return false;
     const src = cells[fromCell];
     if (!src?.length) return false;
-    return placementOk(cells[toCell] ?? [], src[src.length - 1], strict);
+    return placementOk(cells[toCell] ?? [], src[src.length - 1], strict, capOf(toCell));
   };
 
   const moveItem = (fromCell: number, fromIdx: number, toCell: number) => {
@@ -1327,8 +1405,9 @@ export default function GoodsSortGame() {
     while (again) {
       again = false;
       for (let i = 0; i < gridRef.current.slots; i++) {
-        if (threeSame(ns[i])) {
-          clearedTypes.push(ns[i][0]); clearedCells.push(i); ns[i] = []; clearedNow += 1; again = true;
+        const tri = tripleIn(ns[i]);
+        if (tri !== null) {
+          clearedTypes.push(tri); clearedCells.push(i); ns[i] = removeTriple(ns[i], tri); clearedNow += 1; again = true;
           /**
            * 🔴 КОМБО-МНОЖИТЕЛЬ. Раньше каждая тройка давала ровно 50, сколько бы
            * их ни ссыпалось разом, — при том что звук `sndCombo` играл, а справка
@@ -1630,7 +1709,8 @@ export default function GoodsSortGame() {
     const slots = gridRef.current.slots;
     const open: number[] = [];
     for (let i = 0; i < slots; i++) if (cellUsable(i)) open.push(i);
-    const dest = open.length * CAP >= items.length ? open : Array.from({ length: slots }, (_, i) => i);
+    const roomOpen = open.reduce((sum, i) => sum + capOf(i), 0);
+    const dest = roomOpen >= items.length ? open : Array.from({ length: slots }, (_, i) => i);
     const used = Math.min(Math.max(1, dest.length - 2), Math.max(1, Math.ceil(items.length / CAP)));
     let ns: number[][]; let guard = 0;
     do {
@@ -1641,11 +1721,11 @@ export default function GoodsSortGame() {
       for (const it of sh) {
         for (let tr = 0; tr < bins.length; tr++) {
           const c = bins[ci % bins.length]; ci++;
-          if (ns[c].length < CAP) { ns[c].push(it); break; }
+          if (ns[c].length < capOf(c)) { ns[c].push(it); break; }
         }
       }
       guard++;
-    } while (ns.some(threeSame) && guard < 60);
+    } while (ns.some((c) => tripleIn(c) !== null) && guard < 60);
     setCells(ns); setSel(null); hapticTap();
   };
 
@@ -1707,7 +1787,13 @@ export default function GoodsSortGame() {
    * в 1.7 раза больше. Товар растёт в площади вдвое, ничего не переезжая.
    */
   const ITEM_ASPECT = 0.6;                   // ширина/высота, снято с самих спрайтов
-  const fitsInCell = Math.floor((cellW - CELL_GAP * (CAP - 1)) / CAP);
+  /**
+   * ⚠️ РАЗМЕР ТОВАРА СЧИТАЕМ ПО САМОЙ ВМЕСТИТЕЛЬНОЙ НИШЕ УРОВНЯ, а не по CAP.
+   * Со смешанной ёмкостью на доске есть ниши на четыре, и товар, посчитанный
+   * под три, в них не поместится — четвёртый уедет за край.
+   */
+  const capWide = Math.max(...caps, CAP);
+  const fitsInCell = Math.floor((cellW - CELL_GAP * (capWide - 1)) / capWide);
   const fitsInRow = Math.floor((availH / gridDim.rows - 14) * ITEM_ASPECT);
   const itemSize = Math.max(18, Math.min(112, fitsInCell, fitsInRow));
   const itemH = Math.round(itemSize / ITEM_ASPECT);
@@ -1826,6 +1912,21 @@ export default function GoodsSortGame() {
             : aimed ? '#f97316' : canDrop ? '#fbbf24' : close ? '#22c55e' : 'transparent',
           borderWidth: hint?.toCell === i ? 4 : aimed ? 4 : canDrop || close ? 3 : 0,
         }, shakeStyle(i)]}>
+        {/*
+          🔴 СКОЛЬКО ВЛЕЗЕТ — ДОЛЖНО БЫТЬ ВИДНО ДО ХОДА.
+          Со смешанной ёмкостью ниши выглядят одинаково, и человек узнавал бы о
+          вместимости, только не сумев положить, — то есть механика превращалась
+          бы в угадайку. Насечки по низу ниши показывают число мест. Рисуем их
+          только на уровнях со смешанной ёмкостью: там, где все ниши одинаковы,
+          это лишний шум.
+        */}
+        {mixedCaps && (
+          <View pointerEvents="none" style={styles.slots}>
+            {Array.from({ length: capOf(i) }).map((_, k) => (
+              <View key={k} style={[styles.slotMark, k < cell.length && styles.slotTaken]} />
+            ))}
+          </View>
+        )}
         {/* Вспышка на сборе тройки: белая пелена, которая гаснет. Рисуется поверх
             уже опустевшей ниши, поэтому объясняет, ЧТО именно исчезло и откуда. */}
         {flashCells.includes(i) && (
@@ -2274,6 +2375,10 @@ const styles = StyleSheet.create({
   itemHint: { backgroundColor: '#e0f2fe', borderWidth: 2, borderColor: '#38bdf8', borderRadius: 8 },
   hintCount: { fontSize: 13, fontWeight: '800' },
   undoBtn: { minWidth: 56, minHeight: 48, borderRadius: 999, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, flexDirection: 'row', gap: 4 },
+  /** Насечки вместимости: сколько мест в нише и сколько занято. */
+  slots: { position: 'absolute', left: 0, right: 0, bottom: 3, flexDirection: 'row', justifyContent: 'center', gap: 3, zIndex: 3 },
+  slotMark: { width: 7, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.30)' },
+  slotTaken: { backgroundColor: 'rgba(255,236,190,0.85)' },
   goalLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap', paddingHorizontal: 12, marginBottom: 2 },
   goalText: { fontSize: 13, fontWeight: '700' },
   goalGood: { backgroundColor: 'rgba(217,119,6,0.14)', borderRadius: 6, paddingHorizontal: 3, paddingVertical: 1 },
