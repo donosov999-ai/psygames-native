@@ -30,6 +30,7 @@ import { fetchBest, getPersonalBest, submitScore } from '@/src/services/leaderbo
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const NB_RULES: LevelRule[] = [
@@ -158,7 +159,7 @@ export default function NBackGame() {
     statsRef.current = { hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0, aHits: 0, aMisses: 0, aFalseAlarms: 0, aCorrectRejections: 0 };
     setHistory([]); setAudioHistory([]); setCurrentIdx(-1); setActiveCell(null); setActiveLetter('');
     setPhase('playing');
-    setStartTime(Date.now());
+    setStartTime(gameNow());
     setTimeout(() => runTrial([], [], -1), 600);
   };
 
@@ -198,7 +199,7 @@ export default function NBackGame() {
     answeredRef.current = false;
     aAnsweredRef.current = false;
     setWaitingResponse(canMatch);
-    setElapsedTime((Date.now() - startTime) / 1000);
+    setElapsedTime((gameNow() - startTime) / 1000);
 
     // Speak the audio letter (web only — falls through silently on native)
     if (modality === 'dual' && aStim) speakLetter(aStim);
@@ -248,7 +249,7 @@ export default function NBackGame() {
     if (trialTimerRef.current) clearTimeout(trialTimerRef.current);
     // Финальные счётчики берём из рефа, не из устаревшего замыкания таймера (иначе d'/accuracy кривые).
     const { hits, misses, falseAlarms, correctRejections, aHits, aMisses, aFalseAlarms, aCorrectRejections } = statsRef.current;
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
     const totalAnswered = hits + misses + falseAlarms + correctRejections;
     const accuracy = totalAnswered > 0 ? Math.round(((hits + correctRejections) / totalAnswered) * 100) : 0;

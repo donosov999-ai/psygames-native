@@ -19,6 +19,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 /**
  * Слепые шахматы (chess_blind) — тренировка удержания позиции в уме.
@@ -359,16 +360,16 @@ export default function ChessBlindGame() {
     qIndexRef.current = 0; qLockRef.current = false;
     setQIndex(0); setRevealOpt(null); setRevealSq(null); setWrongSq(null);
     setMoveHl(null); setMoveNum(0);
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     setPhase('expose');
 
     // таймер-полоска показа
     const totalMs = p.exposeSec * 1000;
-    const endAt = Date.now() + totalMs;
+    const endAt = gameNow() + totalMs;
     setExposePct(100);
     setExposeLeft(p.exposeSec);
     exposeIvRef.current = setInterval(() => {
-      const leftMs = Math.max(0, endAt - Date.now());
+      const leftMs = Math.max(0, endAt - gameNow());
       setExposePct((leftMs / totalMs) * 100);
       setExposeLeft(Math.ceil(leftMs / 1000));
     }, 100);
@@ -400,7 +401,7 @@ export default function ChessBlindGame() {
   };
 
   const finishGame = () => {
-    const timeSec = (Date.now() - startTimeRef.current) / 1000;
+    const timeSec = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(timeSec);
     const fHits = hitsRef.current;
     const fErrors = errorsRef.current;

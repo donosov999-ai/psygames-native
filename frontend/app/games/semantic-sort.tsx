@@ -25,6 +25,7 @@ import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { SEMANTIC_DISTRACTORS } from '@/src/data/semantic-distractors';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#10b981', '#6366f1'];
 
@@ -160,13 +161,13 @@ export default function SemanticSortGame() {
     correctRef.current = 0;
     errorsRef.current = 0;
     rtSumRef.current = 0;
-    setStartTime(Date.now());
-    shownAtRef.current = Date.now();
+    setStartTime(gameNow());
+    shownAtRef.current = gameNow();
     setPhase('playing');
   };
 
   const finish = async (total: number) => {
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (gameNow() - startTime) / 1000;
     const correct = correctRef.current;
     const errs = errorsRef.current;
     const accuracy = total > 0 ? correct / total : 0;
@@ -207,7 +208,7 @@ export default function SemanticSortGame() {
   const handlePick = (cat: string) => {
     if (picked !== null) return;
     const round = rounds[idx];
-    rtSumRef.current += Date.now() - shownAtRef.current;
+    rtSumRef.current += gameNow() - shownAtRef.current;
     const isCorrect = cat === round.correctCat;
     setPicked(cat);
     if (isCorrect) { hapticSuccess(); correctRef.current += 1; setCorrectCount((c) => c + 1); }
@@ -219,7 +220,7 @@ export default function SemanticSortGame() {
       } else {
         setIdx(next);
         setPicked(null);
-        shownAtRef.current = Date.now();
+        shownAtRef.current = gameNow();
       }
     }, isCorrect ? 350 : 900);
   };

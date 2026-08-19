@@ -58,6 +58,7 @@ import {
 } from '@/src/services/sudoku-core';
 import { generateLogical } from '@/src/services/sudoku-grade';
 import { clearGameContextHelp, publishGameContextHelp } from '@/src/services/gameContextHelp';
+import { gameNow } from '@/src/services/gamePause';
 import {
   emptySudokuCellColors,
   normalizeSudokuCellColors,
@@ -434,9 +435,9 @@ export default function SudokuGame() {
     setBacktrackCount(0);
     setBossWon(null);
     setPhase('playing');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
 
   /** Снимок партии для слоя незаконченной игры. */
@@ -464,11 +465,11 @@ export default function SudokuGame() {
     hist.restore(s.history);
     // Таймер продолжаем с накопленного: настенные часы между сессиями ушли вперёд,
     // и от прежнего startTime партия «шла» бы всё то время, что телефон лежал в кармане.
-    const start = Date.now() - Math.max(0, s.elapsed) * 1000;
+    const start = gameNow() - Math.max(0, s.elapsed) * 1000;
     setStartTime(start);
     setElapsedTime(s.elapsed);
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
     setPhase('playing');
   };
 
@@ -561,7 +562,7 @@ export default function SudokuGame() {
             passed: false,
             game_type: 'sudoku',
             score: 0,
-            time_seconds: (Date.now() - startTime) / 1000,
+            time_seconds: (gameNow() - startTime) / 1000,
             difficulty: mode === 'levels' ? (level <= 4 ? 'easy' : level <= 9 ? 'medium' : 'hard') : difficulty,
             mode: mode === 'levels' ? `level-${level}` : `${N}x${N}`,
             errors: ne,
@@ -582,7 +583,7 @@ export default function SudokuGame() {
     }
     if (complete) {
       if (timerRef.current) clearInterval(timerRef.current);
-      const finalTime = (Date.now() - startTime) / 1000;
+      const finalTime = (gameNow() - startTime) / 1000;
       setElapsedTime(finalTime);
       // SUDOKU-LVL: уровни — сохранить прогресс на следующий уровень (счёт растёт с уровнем)
       const pidDone = profile?.id;

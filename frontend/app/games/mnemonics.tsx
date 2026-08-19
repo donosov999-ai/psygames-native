@@ -24,6 +24,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#4facfe', '#00f2fe'];
 const PENALTY_SECONDS = 15;
@@ -120,11 +121,11 @@ export default function MnemonicsGame() {
     setSelectedOrder([]);
     setErrors(0);
     setPhase('memorize');
-    setStartTime(Date.now());
+    setStartTime(gameNow());
     
-    const start = Date.now();
+    const start = gameNow();
     timerRef.current = setInterval(() => {
-      setElapsedTime((Date.now() - start) / 1000);
+      setElapsedTime((gameNow() - start) / 1000);
     }, 100);
   };
 

@@ -40,6 +40,7 @@ import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#11998e', '#38ef7d'];
 const GO_BENEFITS = [
@@ -123,7 +124,7 @@ export default function GoNoGoGame() {
     const stim: Stim = Math.random() < nogoProbRef.current ? 'nogo' : 'go';
     stimulusRef.current = stim;
     respondedRef.current = false;
-    stimAtRef.current = Date.now();
+    stimAtRef.current = gameNow();
     setStimulus(stim);
     // Окно ответа уровня: истекло без нажатия → miss на go / correct rejection на nogo
     windowTimerRef.current = setTimeout(() => {
@@ -158,7 +159,7 @@ export default function GoNoGoGame() {
     setRound(0);
     setStimulus(null);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     itiTimerRef.current = setTimeout(runTrial, 800);
   };
 
@@ -166,7 +167,7 @@ export default function GoNoGoGame() {
     const stim = stimulusRef.current;
     if (!stim || respondedRef.current) return;
     respondedRef.current = true;
-    const rt = Date.now() - stimAtRef.current;
+    const rt = gameNow() - stimAtRef.current;
     if (stim === 'go') {
       hitsRef.current += 1;
       setHits(hitsRef.current);
@@ -181,7 +182,7 @@ export default function GoNoGoGame() {
 
   const finish = async () => {
     clearAllTimers();
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const h = hitsRef.current, m = missesRef.current, fa = falseAlarmsRef.current, cr = correctRejRef.current;
     const total = h + m + fa + cr;

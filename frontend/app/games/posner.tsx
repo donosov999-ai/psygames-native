@@ -37,6 +37,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#3a6186', '#89253e'];
 const POSNER_BENEFITS = [
@@ -146,7 +147,7 @@ export default function PosnerGame() {
         setShowCue(false);
         const gap = soaMinRef.current + Math.random() * (soaMaxRef.current - soaMinRef.current);
         gapTimerRef.current = setTimeout(() => {
-          stimAtRef.current = Date.now();
+          stimAtRef.current = gameNow();
           answeredRef.current = false;
           setShowTarget(true);
           // Окно ответа уровня: не успел — ошибка-пропуск, проба закрывается сама
@@ -186,13 +187,13 @@ export default function PosnerGame() {
     setRtsByValidity({ valid: [], invalid: [], neutral: [] });
     setRound(1);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     newTrial();
   };
 
   const finish = async () => {
     clearAllTimers();
-    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const totalTime = (gameNow() - startTimeRef.current) / 1000;
     const rts = rtsRef.current;
     const meanV = rts.valid.length ? rts.valid.reduce((a, b) => a + b, 0) / rts.valid.length : 0;
     const meanI = rts.invalid.length ? rts.invalid.reduce((a, b) => a + b, 0) / rts.invalid.length : 0;
@@ -242,7 +243,7 @@ export default function PosnerGame() {
     if (!showTarget || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
-    const rt = Date.now() - stimAtRef.current;
+    const rt = gameNow() - stimAtRef.current;
     const tr = trialRef.current;
     const ok = side === tr.targetSide;
     if (ok) {

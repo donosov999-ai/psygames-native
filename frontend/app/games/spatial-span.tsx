@@ -16,6 +16,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const SS_RULES: LevelRule[] = [
@@ -131,16 +132,16 @@ export default function SpatialSpanGame() {
     setSpan(0); setErrorsAtLen(0); setTotalErrors(0);
     setUserSeq([]);
     setPhase('show');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
     showSequence(p.startSpan);
   };
   useAutostart(autostart, startGame);   // в плейлисте зарядки игра стартует сама
 
   const finish = async (finalSpan: number, finalErrors: number) => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const finalTime = (Date.now() - startTime) / 1000;
+    const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
     const passed = finalSpan >= levelParams(levelRef.current).startSpan;
     if (passed) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень

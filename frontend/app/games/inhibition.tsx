@@ -45,6 +45,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#11998e', '#ee0979'];
 const BENEFITS = [
@@ -163,14 +164,14 @@ export default function InhibitionGame() {
     setGngStim(null);
     setSsSignal('idle'); setSsFeedback(null);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     pushTimer(setTimeout(() => runRound(0), 800));
   };
 
   const finish = async () => {
     clearAllTimers();
     const { h, m, fa, cr, rts: rtsArr } = statsRef.current;
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const total = h + m + fa + cr;
     // Честная accuracy по механике: верные = go-нажатия (h) + верные торможения (cr);
@@ -250,7 +251,7 @@ export default function InhibitionGame() {
     const isGo = Math.random() < 0.7;
     const stim: GngStimulus = isGo ? 'go' : 'nogo';
     setGngStim(stim);
-    gngStimAtRef.current = Date.now();
+    gngStimAtRef.current = gameNow();
     gngRespondedRef.current = false;
 
     pushTimer(setTimeout(() => {
@@ -268,7 +269,7 @@ export default function InhibitionGame() {
   const onGngPress = () => {
     if (gngStim === null || gngRespondedRef.current) return;
     gngRespondedRef.current = true;
-    const rt = Date.now() - gngStimAtRef.current;
+    const rt = gameNow() - gngStimAtRef.current;
     const s = statsRef.current;
     if (gngStim === 'go') {
       updateStats({ ...s, h: s.h + 1, rts: [...s.rts, rt] });
@@ -291,7 +292,7 @@ export default function InhibitionGame() {
     const fixDelay = 600 + Math.random() * 400;
     pushTimer(setTimeout(() => {
       setSsSignal('go');
-      ssGoAtRef.current = Date.now();
+      ssGoAtRef.current = gameNow();
       if (isStop) {
         pushTimer(setTimeout(() => {
           if (!ssRespondedRef.current) setSsSignal('stop');
@@ -326,7 +327,7 @@ export default function InhibitionGame() {
     if (ssRespondedRef.current) return;
     if (ssSignal !== 'go' && ssSignal !== 'stop') return;
     ssRespondedRef.current = true;
-    const rt = Date.now() - ssGoAtRef.current;
+    const rt = gameNow() - ssGoAtRef.current;
     const isStopTrial = ssTrialIsStopRef.current;
     endSsTrial(roundRef.current - 1, isStopTrial ? 'stop_fail' : 'go_hit', rt);
   };

@@ -32,6 +32,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { generatePseudowords, sampleRealWords } from '@/src/services/pseudowords';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#0ea5e9', '#6366f1'];
 
@@ -106,7 +107,7 @@ export default function LexicalDecisionGame() {
   // Показ текущей пробы: фиксируем момент показа + взводим дедлайн уровня.
   const presentTrial = () => {
     answeredRef.current = false;
-    shownAtRef.current = Date.now();
+    shownAtRef.current = gameNow();
     if (windowMsRef.current > 0) {
       deadlineTimerRef.current = setTimeout(() => {
         if (answeredRef.current) return;
@@ -158,7 +159,7 @@ export default function LexicalDecisionGame() {
     hitsRef.current = 0; faRef.current = 0; missRef.current = 0; crRef.current = 0;
     timeoutsRef.current = 0;
     rtSumRef.current = 0; rtCountRef.current = 0;
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     setPhase('playing');
     presentTrial();
   };
@@ -166,7 +167,7 @@ export default function LexicalDecisionGame() {
   const finish = async () => {
     clearAllTimers();
     const total = trialsRef.current.length;
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const accuracy = total > 0 ? correctRef.current / total : 0;
     // Проход уровня: ≥80% верных ответов (таймаут по окну = ошибка)
@@ -213,7 +214,7 @@ export default function LexicalDecisionGame() {
     if (!trial) return;
     answeredRef.current = true;
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
-    const rt = Date.now() - shownAtRef.current;
+    const rt = gameNow() - shownAtRef.current;
     rtSumRef.current += rt;
     rtCountRef.current += 1;
     const isCorrect = saysWord === trial.isWord;

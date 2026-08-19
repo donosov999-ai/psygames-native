@@ -35,6 +35,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import ANAGRAM_DICT from '@/src/constants/anagramWords.json';
+import { gameNow } from '@/src/services/gamePause';
 import {
   type WordEntry,
   ANAGRAM_THEMES,
@@ -114,7 +115,7 @@ export default function AnagramGame() {
   const errorsRef = useRef(0);
   const hintUsesRef = useRef(0);
   const wordDoneRef = useRef(false);            // слово закрыто (собрано или таймаут) — клики/дедлайн игнорим
-  const wordDeadlineAtRef = useRef(0);          // Date.now() дедлайна текущего слова (0 = нет лимита)
+  const wordDeadlineAtRef = useRef(0);          // gameNow() дедлайна текущего слова (0 = нет лимита)
   const startTimeRef = useRef(0);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -186,7 +187,7 @@ export default function AnagramGame() {
     // Лимит времени на слово (верхние уровни): не успел = ошибка, слово закрывается само
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
     if (wordSecRef.current > 0) {
-      wordDeadlineAtRef.current = Date.now() + wordSecRef.current * 1000;
+      wordDeadlineAtRef.current = gameNow() + wordSecRef.current * 1000;
       setWordLeft(wordSecRef.current);
       deadlineTimerRef.current = setTimeout(() => {
         if (wordDoneRef.current) return;
@@ -233,13 +234,13 @@ export default function AnagramGame() {
     usedRef.current.clear();
     setElapsedTime(0);
     setPhase('playing');
-    const start = Date.now();
+    const start = gameNow();
     startTimeRef.current = start;
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setElapsedTime((Date.now() - start) / 1000);
+      setElapsedTime((gameNow() - start) / 1000);
       if (wordDeadlineAtRef.current > 0) {
-        setWordLeft(Math.max(0, Math.ceil((wordDeadlineAtRef.current - Date.now()) / 1000)));
+        setWordLeft(Math.max(0, Math.ceil((wordDeadlineAtRef.current - gameNow()) / 1000)));
       }
     }, 100);
     newRound();
@@ -247,7 +248,7 @@ export default function AnagramGame() {
 
   const finish = async () => {
     clearAllTimers();
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const h = hitsRef.current, e = errorsRef.current;
     const accuracy = trialsRef.current > 0 ? h / trialsRef.current : 0;

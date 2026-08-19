@@ -17,6 +17,7 @@ import BossRound from '@/src/components/BossRound';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#8E2DE2', '#4A00E0'];
 const STROOP2_BENEFITS = [
@@ -156,7 +157,7 @@ export default function StroopEmotionalGame() {
     const tr = makeTrial(language, emoRatioRef.current);
     setTrial(tr);
     stimTimer.current = setTimeout(() => {
-      setStimAt(Date.now());
+      setStimAt(gameNow());
       setShowStim(true);
       deadlineTimer.current = setTimeout(handleTimeout, windowRef.current);
     }, isiBaseRef.current + Math.random() * isiJitterRef.current);
@@ -176,13 +177,13 @@ export default function StroopEmotionalGame() {
     setHits(0); setErrors(0); setRtsByValence({ threat: [], positive: [], neutral: [] });
     setRound(1);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     newTrial();
   };
 
   const finish = async () => {
     if (deadlineTimer.current) clearTimeout(deadlineTimer.current);
-    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const totalTime = (gameNow() - startTimeRef.current) / 1000;
     const allRts = rtsRef.current;
     const meanV = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
     const tMean = meanV(allRts.threat), pMean = meanV(allRts.positive), nMean = meanV(allRts.neutral);
@@ -235,7 +236,7 @@ export default function StroopEmotionalGame() {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
     if (deadlineTimer.current) clearTimeout(deadlineTimer.current);
-    const rt = Date.now() - stimAt;
+    const rt = gameNow() - stimAt;
     const ok = color === trial.color;
     if (ok) {
       hapticSuccess();

@@ -17,6 +17,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
 import { EYE_GYM_MAX_LEVEL, eyeGymLevel, eyeGymLevelMinutes } from '@/src/services/eyeGymLevels';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#43cea2', '#185a9d'];
 const EYE_BENEFITS = [
@@ -140,9 +141,9 @@ export default function EyeGymGame() {
   const startGame = () => {
     setElapsed(0);
     setPhase('exercise');
-    const start = Date.now();
+    const start = gameNow();
     timerRef.current = setInterval(() => {
-      const tt = (Date.now() - start) / 1000;
+      const tt = (gameNow() - start) / 1000;
       if (tt >= totalDur) {
         if (timerRef.current) clearInterval(timerRef.current);
         setElapsed(totalDur);

@@ -28,7 +28,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
-import { GAME_PAUSE_EVENT } from '@/src/services/appFeedback';
+import { onGameHold, isGameHeld } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
 
 /** Ширина зоны, которую занимает плавающая кнопка фидбека снизу (LTR — слева, RTL — справа). */
@@ -89,14 +89,11 @@ export default function GameShell({
   // v1.160: пока открыт отзыв — игра на паузе (репорт Вали «писала отзыв, пауза
   // не наступила, и теперь не понимаю, что за игра»). Оверлей ловит тапы, чтобы
   // не проиграть вслепую, и возвращает контекст после закрытия окна.
-  const [paused, setPaused] = React.useState(false);
-  React.useEffect(() => {
-    const sub = DeviceEventEmitter.addListener(GAME_PAUSE_EVENT, (v: boolean) => {
-      setPaused(!!v);
-      if (v) announce(t('gamePaused'));
-    });
-    return () => sub.remove();
-  }, []);
+  const [paused, setPaused] = React.useState(isGameHeld());
+  React.useEffect(() => onGameHold((v) => {
+    setPaused(v);
+    if (v) announce(t('gamePaused'));
+  }), []);
 
   // Android-сборка — WebView (Platform.OS === 'web'). Клавиатура уменьшает
   // visual viewport, но браузер не всегда докручивает вложенный RN ScrollView

@@ -20,6 +20,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#8e2de2', '#4a00e0'];
 const MATRIX_BENEFITS = [
@@ -171,7 +172,7 @@ export default function MemoryMatrixGame() {
     seriesCountRef.current = isPreset ? 1 : p.seriesCount;
     if (!isPreset) setGridSize(g);
     setHits(0); setErrors(0); setScore(0); setRound(1);
-    setStartTime(Date.now());
+    setStartTime(gameNow());
     newRound(g, 1);   // g явно — setGridSize асинхронен
   };
 
@@ -228,7 +229,7 @@ export default function MemoryMatrixGame() {
       setTimeout(async () => {
         if (round >= totalRounds) {
           if (true) { /* end */ }
-          const finalTime = (Date.now() - startTime) / 1000;
+          const finalTime = (gameNow() - startTime) / 1000;
           setElapsedTime(finalTime);
           const passed = !isPreset && fErrors <= 1;
           if (passed) lvl.reach(levelRef.current + 1);   // чистый прогон → +уровень

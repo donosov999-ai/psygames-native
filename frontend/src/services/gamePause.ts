@@ -25,6 +25,11 @@ const _listeners = new Set<Listener>();
 
 function emit() {
   const p = _depth > 0;
+  // Учёт простоя ведём ЗДЕСЬ, а не в подписчиках: часы обязаны замереть даже
+  // если ни одна игра сейчас не открыта — иначе после возврата в игру
+  // накопленная пауза потеряется.
+  if (p) { if (_pausedAt === null) _pausedAt = Date.now(); }
+  else if (_pausedAt !== null) { _pausedTotal += Date.now() - _pausedAt; _pausedAt = null; }
   _listeners.forEach((l) => { try { l(p); } catch { /* слушатель умер — не наша беда */ } });
 }
 
@@ -49,3 +54,35 @@ export function onGameHold(l: Listener): () => void {
   _listeners.add(l);
   return () => { _listeners.delete(l); };
 }
+
+/**
+ * ИГРОВЫЕ ЧАСЫ. То же самое `Date.now()`, но во время паузы они стоят.
+ *
+ * 🔴 ЗАЧЕМ ОТДЕЛЬНО ОТ `useHeldClock`. Хук хорош внутри одного компонента, но
+ * замена в 37 экранах, где время считается по-разному (где-то от старта раунда,
+ * где-то от старта партии, где-то два отсчёта сразу), потребовала бы разбирать
+ * каждый. `gameNow()` подставляется вместо `Date.now()` один в один — и точка
+ * старта, и текущий момент едут по одним часам, значит разность автоматически
+ * становится игровым временем.
+ *
+ * ⚠️ ОБА КОНЦА ОБЯЗАНЫ БЫТЬ НА ОДНИХ ЧАСАХ. `gameNow() - startedAtWallClock`
+ * даст мусор: начало по настенным, конец по игровым. Меняя файл, меняем ВСЕ
+ * `Date.now()`, которые участвуют в измерении времени, а не первый попавшийся.
+ *
+ * Часы монотонные: они не отматывают назад, а лишь не идут, пока держат паузу.
+ */
+let _pausedTotal = 0;
+let _pausedAt: number | null = null;
+
+export function gameNow(): number {
+  const held = _pausedTotal + (_pausedAt !== null ? Date.now() - _pausedAt : 0);
+  return Date.now() - held;
+}
+
+/** Сколько всего простояли на паузе — для отладки и тестов. */
+export function heldTotalMs(): number {
+  return _pausedTotal + (_pausedAt !== null ? Date.now() - _pausedAt : 0);
+}
+
+/** Сброс часов — только для тестов, в приложении не звать. */
+export function __resetGameClock(): void { _pausedTotal = 0; _pausedAt = null; }

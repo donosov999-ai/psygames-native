@@ -25,6 +25,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#f093fb', '#f5576c'];
 const PENALTY_SECONDS = 15;
@@ -190,12 +191,12 @@ export default function WordPairsGame() {
     setSelectedLeft(null);
     setSelectedRight(null);
     setPhase('memorize');
-    setStartTime(Date.now());
+    setStartTime(gameNow());
 
-    const start = Date.now();
+    const start = gameNow();
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setElapsedTime((Date.now() - start) / 1000);
+      setElapsedTime((gameNow() - start) / 1000);
     }, 100);
 
     // Уровень: авто-переход к проверке по лимиту запоминания (реф, чтобы не поймать stale-стейт)

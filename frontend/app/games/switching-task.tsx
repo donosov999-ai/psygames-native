@@ -34,6 +34,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#7873f5', '#ff6ec4'];
 const SW_BENEFITS = [
@@ -188,7 +189,7 @@ export default function SwitchingTaskGame() {
     trialRef.current = tr;
     setTrial(tr);
     stimTimerRef.current = setTimeout(() => {
-      stimAtRef.current = Date.now();
+      stimAtRef.current = gameNow();
       answeredRef.current = false;
       setShowStim(true);
       // Окно ответа уровня: не успел — ошибка-пропуск, проба закрывается сама
@@ -225,13 +226,13 @@ export default function SwitchingTaskGame() {
     setHits(0); setErrors(0); setRts([]);
     setRound(1);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     newTrial();
   };
 
   const finish = async () => {
     clearAllTimers();
-    const totalTime = (Date.now() - startTimeRef.current) / 1000;
+    const totalTime = (gameNow() - startTimeRef.current) / 1000;
     const allRts = rtsRef.current;
     const swRts = switchRtsRef.current;
     const meanRt = allRts.length ? allRts.reduce((a, b) => a + b, 0) / allRts.length : 0;
@@ -278,7 +279,7 @@ export default function SwitchingTaskGame() {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
-    const rt = Date.now() - stimAtRef.current;
+    const rt = gameNow() - stimAtRef.current;
     const tr = trialRef.current;
     const ok = left === tr.correctLeft;
     if (ok) {

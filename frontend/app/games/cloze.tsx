@@ -32,6 +32,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { CLOZE_PHRASES } from '@/src/constants/clozePhrases';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#f59e0b', '#ef4444'];
 
@@ -117,12 +118,12 @@ export default function ClozeGame() {
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
     if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
     answeredRef.current = false;
-    shownAtRef.current = Date.now();
+    shownAtRef.current = gameNow();
     const limit = timeLimitRef.current;
     if (limit > 0) {
       setTimeLeft(Math.ceil(limit / 1000));
       tickIntervalRef.current = setInterval(() => {
-        setTimeLeft(Math.max(0, Math.ceil((shownAtRef.current + limit - Date.now()) / 1000)));
+        setTimeLeft(Math.max(0, Math.ceil((shownAtRef.current + limit - gameNow()) / 1000)));
       }, 250);
       deadlineTimerRef.current = setTimeout(onTimeout, limit);
     }
@@ -196,7 +197,7 @@ export default function ClozeGame() {
     setPicked(null);
     setCorrectCount(0);
     setErrorsCount(0);
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     setPhase('playing');
     armDeadline();
   };
@@ -204,7 +205,7 @@ export default function ClozeGame() {
   const finish = async () => {
     clearAllTimers();
     const total = roundsRef.current.length;
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const c = correctRef.current;
     const e = errorsRef.current;
@@ -248,7 +249,7 @@ export default function ClozeGame() {
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
     if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
     const round = roundsRef.current[idxRef.current];
-    rtSumRef.current += Date.now() - shownAtRef.current;
+    rtSumRef.current += gameNow() - shownAtRef.current;
     const isCorrect = option === round.answer;
     setPicked(option);
     if (isCorrect) {

@@ -25,6 +25,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#a8edea', '#fed6e3'];
 
@@ -166,11 +167,11 @@ export default function ProofreadingGame() {
     setErrors(0);
     setElapsedTime(0);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
 
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      const elapsed = (Date.now() - startTimeRef.current) / 1000;
+      const elapsed = (gameNow() - startTimeRef.current) / 1000;
       setElapsedTime(elapsed);
       // Лимит времени уровня: не успел — раунд закрывается с тем, что найдено
       if (timeLimitRef.current > 0 && elapsed >= timeLimitRef.current) finish();
@@ -181,7 +182,7 @@ export default function ProofreadingGame() {
     if (finishedRef.current) return;
     finishedRef.current = true;
     if (timerRef.current) clearInterval(timerRef.current);
-    const rawTime = (Date.now() - startTimeRef.current) / 1000;
+    const rawTime = (gameNow() - startTimeRef.current) / 1000;
     const finalTime = timeLimitRef.current > 0 ? Math.min(rawTime, timeLimitRef.current) : rawTime;
     setElapsedTime(finalTime);
 

@@ -18,6 +18,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#7028e4', '#e5b2ca'];
 const PATTERN_BENEFITS = [
@@ -164,9 +165,9 @@ export default function PatternGame() {
     setHits(0); setErrors(0); setRound(1);
     newRound();
     setPhase('playing');
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
 
   const handleAnswer = async (val: number) => {
@@ -178,7 +179,7 @@ export default function PatternGame() {
     setTimeout(async () => {
       if (round >= trials) {
         if (timerRef.current) clearInterval(timerRef.current);
-        const finalTime = (Date.now() - startTime) / 1000;
+        const finalTime = (gameNow() - startTime) / 1000;
         setElapsedTime(finalTime);
         const newHits = correct ? hits + 1 : hits;
         const passed = !isPreset && newHits / trials >= 0.7;

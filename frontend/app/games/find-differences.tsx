@@ -34,7 +34,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { pairSpritesForProfile, SPRITE_COUNT } from '@/src/constants/pairThemes';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { a11yDecor } from '@/src/services/a11y';
-import { useHeldClock } from '@/src/hooks/useHeldClock';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#34e89e', '#0f3443'];
 const FIND_BENEFITS = [
@@ -177,7 +177,15 @@ export default function FindDifferencesGame() {
 
   const { isPreset, autostart, num, isCalm } = useGamePreset();
   // Часы, замирающие вместе с игрой: отзыв больше не съедает раунд.
-  const clock = useHeldClock();
+  /*
+   * Часы игры — общие `gameNow()`, а не отдельный хук.
+   *
+   * Здесь первым появился отдельный хук часов (19.08 утром), и пока он стоял в
+   * одной игре, разницы не было. Но как только остальные 50 экранов перешли на
+   * общие часы, два механизма стали опасны: хук ждёт НАСТЕННУЮ точку старта и
+   * сам вычитает простой. Дай ему точку по игровым часам — пауза вычтется
+   * дважды, и отсчёт побежит быстрее реального. Один источник времени.
+   */
   const lvl = usePersistentLevel('find_differences');
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
@@ -235,8 +243,7 @@ export default function FindDifferencesGame() {
     setDiffIdx(idx);
     setFoundIdx(new Set());
     // Лимит времени раунда: не нашёл все отличия до нуля → уровень не пройден
-    roundStartRef.current = Date.now();
-    clock.reset();
+    roundStartRef.current = gameNow();
     setTimeLeft(roundTimeRef.current);
     if (countdownRef.current) clearInterval(countdownRef.current);
     /**
@@ -254,7 +261,7 @@ export default function FindDifferencesGame() {
      */
     if (isCalm) { setTimeLeft(0); return; }
     countdownRef.current = setInterval(() => {
-      const left = roundTimeRef.current - clock.elapsed(roundStartRef.current);
+      const left = roundTimeRef.current - (gameNow() - roundStartRef.current) / 1000;
       setTimeLeft(Math.max(0, Math.ceil(left)));
       if (left <= 0) missRound();
     }, 200);
@@ -298,7 +305,7 @@ export default function FindDifferencesGame() {
     roundRef.current = 1;
     setRound(1);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     newRound();
   };
 
@@ -351,7 +358,7 @@ export default function FindDifferencesGame() {
     if (finishedRef.current) return;   // защита от гонки «нашёл последнее отличие ↔ время вышло»
     finishedRef.current = true;
     clearAllTimers();
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const h = hitsRef.current, e = errorsRef.current;
     // Проход уровня: все отличия всех раундов найдены до истечения лимита

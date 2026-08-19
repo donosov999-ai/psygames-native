@@ -24,6 +24,7 @@ import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#f7971e', '#ffd200'];
 const STORE_KEY = 'psygames_phoneme_pairs_targetlang';
@@ -225,9 +226,9 @@ export default function PhonemePairsGame() {
     setAnswered(null);
     setIdx(0);
     setElapsedTime(0);
-    const start = Date.now();
+    const start = gameNow();
     startTimeRef.current = start;
-    timerRef.current = setInterval(() => setElapsedTime((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
     setPhase('playing');
   };
 
@@ -249,7 +250,7 @@ export default function PhonemePairsGame() {
 
   const finishRound = async () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const h = hitsRef.current;
     const e = errorsRef.current;

@@ -28,6 +28,7 @@ import BossRound from '@/src/components/BossRound';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#fc466b', '#3f5efb'];
 const STROOP_BENEFITS = [
@@ -115,7 +116,7 @@ export default function StroopGame() {
     wordRef.current = w; inkRef.current = c;
     setWord(w); setInkColor(c);
     answeredRef.current = false;
-    trialStartRef.current = Date.now();
+    trialStartRef.current = gameNow();
     if (windowTimerRef.current) clearTimeout(windowTimerRef.current);
     windowTimerRef.current = setTimeout(handleTimeout, windowMsRef.current);
   };
@@ -143,7 +144,7 @@ export default function StroopGame() {
     if (windowTimerRef.current) clearTimeout(windowTimerRef.current);
     const correctName = modeRef.current === 'ink' ? inkRef.current.name : wordRef.current.name;
     const isCongruent = inkRef.current.name === wordRef.current.name;
-    const rt = Date.now() - trialStartRef.current;
+    const rt = gameNow() - trialStartRef.current;
     if (chosen.name === correctName) {
       hapticSuccess();
       hitsRef.current += 1;
@@ -172,13 +173,13 @@ export default function StroopGame() {
     roundRef.current = 1;
     setHits(0); setErrors(0); setRound(1);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     nextRound();
   };
 
   const finish = async () => {
     if (windowTimerRef.current) clearTimeout(windowTimerRef.current);
-    const finalTime = (Date.now() - startTimeRef.current) / 1000;
+    const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const totalHits = hitsRef.current;
     const totalErrors = errorsRef.current;

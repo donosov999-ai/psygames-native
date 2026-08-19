@@ -20,6 +20,7 @@ import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#2d6a4f', '#95d5b2'];
 const MAHJONG_BENEFITS = [
@@ -219,9 +220,9 @@ export default function MahjongGame() {
     setMatched(0); setErrors(0); setSelected(null);
     setShufflesUsed(0);   // бюджет перетасовок — на уровень, а не на партию
     if (timerRef.current) clearInterval(timerRef.current);
-    const start = Date.now();
+    const start = gameNow();
     setStartTime(start); setElapsed(0);
-    timerRef.current = setInterval(() => setElapsed((Date.now() - start) / 1000), 100);
+    timerRef.current = setInterval(() => setElapsed((gameNow() - start) / 1000), 100);
   };
 
   const startGame = () => {
@@ -294,7 +295,7 @@ export default function MahjongGame() {
       spawn(width / 2 - 16, 120, '+1', '#a7f3d0');
       if (m >= pairsTotal) {
         if (timerRef.current) clearInterval(timerRef.current);
-        const finalTime = (Date.now() - startTime) / 1000;
+        const finalTime = (gameNow() - startTime) / 1000;
         setElapsed(finalTime);
         advanceLevel(finalTime);
       }

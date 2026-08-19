@@ -32,6 +32,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#536976', '#292e49'];
 const VS_BENEFITS = [
@@ -184,7 +185,7 @@ export default function VisualSearchGame() {
   // живой таймер: тикаем пока идёт игра (раньше в шапке показывался прыгающий средний RT — «кривой»)
   useEffect(() => {
     if (phase !== 'playing') return;
-    const id = setInterval(() => setNow(Date.now()), 100);
+    const id = setInterval(() => setNow(gameNow()), 100);
     return () => clearInterval(id);
   }, [phase]);
 
@@ -206,7 +207,7 @@ export default function VisualSearchGame() {
     setFoundCount(0);
     setItems(makeBoard(count, shape, color, tc, conjunction, boardW, boardH));
     setFeedback(null);
-    setStimAt(Date.now());
+    setStimAt(gameNow());
   };
 
   const startGame = () => {
@@ -218,12 +219,12 @@ export default function VisualSearchGame() {
     setHits(0); setErrors(0); setRts([]);
     newRound(1);
     setPhase('playing');
-    setStartTime(Date.now());
+    setStartTime(gameNow());
   };
 
   const finishOrNext = async () => {
     if (roundRef.current >= trials) {
-      const totalTime = (Date.now() - startTime) / 1000;
+      const totalTime = (gameNow() - startTime) / 1000;
       const arr = rtsRef.current;
       const meanRt = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
       const last = levelParams(levelRef.current, trials);
@@ -262,7 +263,7 @@ export default function VisualSearchGame() {
     if (feedback !== null) return;          // окно «верно/неверно» — клики заблокированы
     const it = items[idx];
     if (it.found) return;                   // эту цель уже нашли в этом раунде
-    const rt = Date.now() - stimAt;
+    const rt = gameNow() - stimAt;
     if (it.isTarget) {
       foundRef.current += 1;
       const found = foundRef.current;

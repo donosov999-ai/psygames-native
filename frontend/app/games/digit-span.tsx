@@ -20,6 +20,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const DS_RULES: LevelRule[] = [
@@ -105,7 +106,7 @@ export default function DigitSpanGame() {
     if (!isPreset) setDirection(dirRef.current);
     const startLen = isPreset ? seqLen : p.startLen;
     setCorrectRounds(0); setMaxSpan(0); setRound(1); setErrors(0);
-    setStartTime(Date.now());
+    setStartTime(gameNow());
     setSeqLen(startLen);
     showSequence(startLen);
   };
@@ -171,7 +172,7 @@ export default function DigitSpanGame() {
     setErrors(updatedErrors);
 
     if (!cont || nextLen > 12) {
-      const finalTime = (Date.now() - startTime) / 1000;
+      const finalTime = (gameNow() - startTime) / 1000;
       setElapsedTime(finalTime);
       const passed = !isPreset && updatedCorrect >= 1;
       if (passed) lvl.reach(lvl.level + 1);   // прошёл стартовую длину уровня → +уровень (лесенка длина→скорость→reverse)

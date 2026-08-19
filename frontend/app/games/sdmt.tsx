@@ -36,6 +36,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
+import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#0f2027', '#2c5364'];
 const SDMT_BENEFITS = [
@@ -144,10 +145,10 @@ export default function SdmtGame() {
     setFeedback(null);
     newStim(km);
     setPhase('playing');
-    startTimeRef.current = Date.now();
+    startTimeRef.current = gameNow();
     let lastSec = dur;
     intervalRef.current = setInterval(() => {
-      const left = dur - Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const left = dur - Math.floor((gameNow() - startTimeRef.current) / 1000);
       setRemaining(Math.max(0, left));
       if (left !== lastSec) { lastSec = left; if (left > 0 && left <= 5) sndTimerTick(); }   // SND-T: тик последних 5с
       if (left <= 0) finish();
