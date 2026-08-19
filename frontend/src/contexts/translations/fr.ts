@@ -256,7 +256,7 @@ const t: Record<string, string> = {
   "brHrvNote": "La respiration en cohérence équilibre le système nerveux autonome. Avec une pratique régulière, ta variabilité cardiaque (HRV) augmente — un marqueur de récupération et de résistance au stress.",
   "goodsSort": "Tri de produits",
   "goodsSortDesc": "Réunis trois produits identiques sur l'étagère",
-  "goodsSortIntroDesc": "Touche un produit puis un casier : il change de place. Réunis 3 produits IDENTIQUES dans un casier et ils disparaissent. But : vider toute l'étagère. Un casier contient trois articles, donc une paire le bloque jusqu'à ce que le troisième arrive — réfléchis à l'endroit où tu poses, pas seulement à quoi.",
+  "goodsSortIntroDesc": "Fais glisser un produit dans une niche — ou touche-le, puis la niche. Trois identiques dans une même niche disparaissent. Chaque niveau annonce son objectif au-dessus du meuble : tout vider, réunir les produits nommés, tenir dans la limite de coups ou libérer les niches marquées. Viennent ensuite les obstacles : niches verrouillées, verrous à retardement, produits masqués, rangée gelée. Une niche contient trois articles : une paire la bloque tant que le troisième manque — réfléchis à où tu poses, pas seulement à quoi.",
   "skillPlanningWM": "On entraîne : planification + mémoire visuelle",
   "benefitGoods1": "Mémoire de travail visuelle : savoir ce qui se cache où",
   "benefitGoods2": "Planifier une séquence de coups",
