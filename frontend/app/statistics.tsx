@@ -134,8 +134,10 @@ export default function StatisticsScreen() {
     return unit === 'seconds' ? formatTime(value) : String(Math.round(value));
   };
 
-  /** Вердикт: лучше / хуже / так же / первый раз. Направление уже учтено в сервисе. */
+  /** Вердикт: лучше / хуже / так же / новая сложность / первый раз.
+   *  Направление и «с чем сравнивать» уже решены в сервисе. */
   const verdictText = (e: HistoryEntry): string => {
+    if (e.verdict === 'newTask') return t('historyNewTask');
     if (e.verdict === null || e.diff === null) return t('historyFirstRun');
     if (e.verdict === 'same') return t('historySame');
     return t(e.verdict === 'better' ? 'historyBetter' : 'historyWorse')
@@ -472,11 +474,14 @@ export default function StatisticsScreen() {
                 const cfg = getGameConfig(e.gameType)!;
                 const value = formatResult(e.value, e.unit);
                 const verdict = verdictText(e);
+                // Уровень подписан рядом с вердиктом: без него «новая сложность»
+                // выглядит капризом, а с ним видно, что задача правда сменилась.
+                const level = e.level === null ? '' : t('historyLevelShort').replace('{n}', String(e.level));
                 return (
                   <View
                     key={`${e.timestamp}-${i}`}
                     accessibilityRole="text"
-                    accessibilityLabel={`${t(cfg.nameKey)}, ${timeLabel(e.timestamp)}, ${value}, ${verdict}`}
+                    accessibilityLabel={`${t(cfg.nameKey)}${level ? ', ' + level : ''}, ${timeLabel(e.timestamp)}, ${value}, ${verdict}`}
                     style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9,
                       borderBottomWidth: 1, borderBottomColor: colors.border }}
                   >
@@ -489,7 +494,10 @@ export default function StatisticsScreen() {
                       <Text numberOfLines={1} style={{ color: colors.text, fontSize: 14, fontWeight: '700' }}>
                         {t(cfg.nameKey)}
                       </Text>
-                      <Text style={{ color: verdictColor(e), fontSize: 12, marginTop: 1 }}>{verdict}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 1 }}>
+                        <Text style={{ color: verdictColor(e), fontSize: 12 }}>{verdict}</Text>
+                        {!!level && <Text style={{ color: colors.textSecondary, fontSize: 11 }}>· {level}</Text>}
+                      </View>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
                       <Text style={{ color: colors.text, fontSize: 15, fontWeight: '800', fontVariant: ['tabular-nums'] }}>

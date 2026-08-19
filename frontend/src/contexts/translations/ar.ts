@@ -1835,6 +1835,8 @@ const t: Record<string, string> = {
   "historyEmptyCta": "اختر تمرينًا",
   "historyScopedTitle": "لا يوجد شيء في هذا الملف بعد",
   "historyScopedHint": "لديك جولات، لكنها في تمارين أخرى أو ملف آخر. افتح كل الألعاب.",
+  "historyNewTask": "صعوبة جديدة",
+  "historyLevelShort": "المستوى {n}",
   // >>> SCREEN_STRINGS
 };
 export default t;
