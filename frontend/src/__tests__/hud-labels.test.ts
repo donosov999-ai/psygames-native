@@ -182,14 +182,19 @@ function sameBox(a: number[], b: number[]): boolean {
  */
 const DEBT: Record<string, string> = {};
 
-/** Экраны, где шапку сейчас держат другие правки. Их числа проверяем отдельно. */
-const BUSY: Record<string, string> = {
-  'sudoku.tsx': 'занят соседней правкой (режимы и подсказки судоку)',
-  'sudoku-samurai.tsx': 'занят соседней правкой (самурай)',
-  'sudoku-fractal.tsx': 'занят соседней правкой (фрактал)',
-  'mahjong.tsx': 'занят соседней правкой (маджонг)',
-  'picture-pairs.tsx': 'занят соседней правкой (пары картинок)',
-  'goods-sort.tsx': 'занят соседней правкой (сортировка товаров)',
+/**
+ * ДОЛГ ПО ЗАНЯТЫМ ЭКРАНАМ. Эти шапки в момент правки держали соседние задачи,
+ * поэтому подписи там не доделаны. Чтобы «занят» не превратился в вечную дыру,
+ * число — ПОТОЛОК неподписанных элементов: расти нельзя, опускать можно и нужно.
+ * Дошло до нуля — строчку убирают (за этим следит проверка «долг не протух»).
+ */
+const BUSY: Record<string, { max: number; why: string }> = {
+  'sudoku.tsx': { max: 3, why: 'секундомер, остаток подсказок и счётчик переделок — значками без слова' },
+  'sudoku-samurai.tsx': { max: 1, why: 'секундомер без слова' },
+  'sudoku-fractal.tsx': { max: 3, why: 'счётчик ошибок значком ✗' },
+  'mahjong.tsx': { max: 4, why: 'очки, собранные пары и ошибки — иконка вместо слова' },
+  'picture-pairs.tsx': { max: 4, why: 'весь ряд бейджей без label + счётчик над полем' },
+  'goods-sort.tsx': { max: 3, why: 'очки, ходы, остаток товаров и запас подсказок без слова' },
 };
 
 describe('подписи чисел в шапке игры', () => {
@@ -251,11 +256,24 @@ describe('подписи чисел в шапке игры', () => {
     expect(stale).toEqual([]);
   });
 
-  it('список занятых экранов не протух и объяснён', () => {
-    for (const [f, why] of Object.entries(BUSY)) {
-      expect(FILES).toContain(f);
-      expect(why.length).toBeGreaterThan(15);
+  /** Сколько чисел в шапке экрана до сих пор без слова. */
+  function unlabeled(f: string): number {
+    const all = leaves(statsBlocks(readFileSync(join(GAMES, f), 'utf8') as string).join('\n'));
+    return all.filter((leaf) => hasValue(leaf.text) && !wordSource(leaf.text)
+      && !all.some((o) => o !== leaf && sameBox(o.path, leaf.path)
+        && !hasValue(o.text) && wordSource(o.text) === 'dict')).length;
+  }
+
+  it('🔴 долг занятых экранов не растёт', () => {
+    const bad: string[] = [];
+    for (const [f, v] of Object.entries(BUSY)) {
+      if (!FILES.includes(f)) { bad.push(`${f}: файла нет — убрать из BUSY`); continue; }
+      const now = unlabeled(f);
+      if (now > v.max) bad.push(`${f}: было ${v.max} чисел без слова, стало ${now} — подписывай, а не добавляй`);
+      if (now === 0) bad.push(`${f}: подписан целиком — убрать из BUSY, экран пойдёт в общую проверку`);
+      expect(v.why.length).toBeGreaterThan(15);
     }
+    expect(bad).toEqual([]);
   });
 });
 
