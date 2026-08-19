@@ -315,7 +315,21 @@ export default function GoodsSortGame() {
   const boardW = Math.min(width - 24, 900);   // шире → товары крупнее на десктопе
   const cellW = Math.floor((boardW - 10 * 2 - 8 * (gridDim.cols - 1)) / gridDim.cols);   // cols ячеек-полок в ряд
   // Размер товара ограничен И шириной (cols в ряд), И доступной высотой (rows полок) — тянемся по высоте экрана.
-  const availH = Math.max(180, height - 360);
+  /**
+   * 🔴 ВЫСОТУ ПОД ПОЛКИ МЕРЯЕМ, А НЕ УГАДЫВАЕМ.
+   *
+   * Репорт тестировщицы 18.08.2026: «Половина банок обрезана… как объяснить
+   * словами, не знаю» (со скриншотом). Причина — вот эта строка в прежнем виде:
+   * `height - 360`, где 360 это ЗАШИТЫЙ запас на шапку, счётчики и нижнюю
+   * панель. Стоит хроме оказаться выше (другой шрифт системы, вырез экрана,
+   * две строки счётчиков, клавиатура) — и полок насчитывается больше, чем
+   * влезает: нижний ряд уходит за край и режется ровно пополам.
+   *
+   * Замер честнее любой константы: сколько места контейнер реально дал,
+   * столько и делим. До первого onLayout держим прежнюю оценку — один кадр.
+   */
+  const [fieldH, setFieldH] = useState(0);
+  const availH = Math.max(180, fieldH || height - 360);
   const itemSize = Math.max(40, Math.min(112, Math.floor((cellW - 10) / 3), Math.floor(availH / gridDim.rows) - 26));
 
   // Полка целиком: «Полка 4: кола, кола, пусто» — по этой строке незрячий
@@ -448,7 +462,13 @@ export default function GoodsSortGame() {
             </TouchableOpacity>
           }
         >
-          <View style={styles.fieldCol}>
+          <View style={styles.fieldCol}
+            onLayout={(e) => {
+              const h = Math.round(e.nativeEvent.layout.height);
+              // Пересчитываем только на заметное изменение: иначе дрожание в 1px
+              // гоняет размер товара туда-сюда каждый кадр.
+              setFieldH((prev) => (Math.abs(prev - h) > 8 ? h : prev));
+            }}>
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
             <View style={{ alignItems: 'center', gap: 10, marginTop: 4 }}>
               {Array.from({ length: gridDim.rows }).map((_, row) => (

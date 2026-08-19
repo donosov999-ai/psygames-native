@@ -35,6 +35,7 @@ import {
 import { isRTLLang } from '@/src/services/rtl';
 import { a11yModal } from '@/src/services/a11y';
 import { canRecord, startRecording, SILENCE_PEAK, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
+import { holdGame } from '@/src/services/gamePause';
 
 const KINDS: { key: FeedbackKind; emoji: string; labelKey: string }[] = [
   { key: 'confusion', emoji: '🤷', labelKey: 'fbKindConfusion' },
@@ -52,6 +53,17 @@ export default function FeedbackWidget() {
   const rtl = isRTLLang(language);
 
   const [open, setOpen] = React.useState(false);
+
+  /**
+   * 🔴 ПОКА ОТКРЫТ ОТЗЫВ — ИГРА ЗАМИРАЕТ. Репорт 18.08.2026: «пока я писала
+   * отзыв, игра моя закончилась… несправедливость». Репорт не должен стоить
+   * человеку партии: это единственный канал, по которому мы узнаём о проблемах.
+   */
+  React.useEffect(() => {
+    if (!open) return;
+    const release = holdGame();
+    return release;
+  }, [open]);
   const [kind, setKind] = React.useState<FeedbackKind>('confusion');
   const [text, setText] = React.useState('');
   const [shot, setShot] = React.useState<Blob | null>(null);

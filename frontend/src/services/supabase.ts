@@ -41,6 +41,16 @@ const PROBE_MS = 4000;
 
 let _client: SupabaseClient | null = null;
 let _base = SUPABASE_URL;
+/**
+ * Как выбран адрес — для КОНТЕКСТА РЕПОРТА, а не для логики.
+ *
+ * 🔴 ЗАЧЕМ. Тестировщица написала «работает только с впн» ТРИ РАЗА: 01.08 на
+ * v1.165, 05.08 на v1.183 и 18.08 на v1.203. После первого раза сделан релей —
+ * и он не помог, а понять почему было НЕЧЕМ: `currentSupabaseBase()` написан
+ * «для отладки и отчётов» и не вызывался нигде. Три жалобы подряд, и ни одной
+ * цифры с её телефона. Теперь каждый репорт несёт, каким адресом он доехал.
+ */
+let _how: 'direct' | 'relay-cached' | 'relay-probed' | 'direct-cached' | 'unknown' = 'unknown';
 
 function make(base: string): SupabaseClient {
   return createClient(base, SUPABASE_PUBLISHABLE_KEY, {
@@ -70,6 +80,11 @@ export function getSupabase(): SupabaseClient {
 /** Какой адрес используется сейчас — для отладки и отчётов. */
 export function currentSupabaseBase(): string {
   return _base;
+}
+
+/** Сетевой след для контекста репорта: каким адресом и почему. */
+export function supabaseNetInfo(): { base: 'direct' | 'relay'; how: string } {
+  return { base: _base === SUPABASE_RELAY_URL ? 'relay' : 'direct', how: _how };
 }
 
 async function reachable(base: string): Promise<boolean> {
@@ -102,6 +117,7 @@ export async function pickSupabaseBase(): Promise<string> {
   try {
     saved = await AsyncStorage.getItem(PICKED_KEY);
   } catch {
+    _how = 'unknown';
     activate(SUPABASE_URL);
     return _base;
   }
@@ -109,16 +125,20 @@ export async function pickSupabaseBase(): Promise<string> {
   if (preferredSupabaseBase(saved) === SUPABASE_RELAY_URL) {
     // Не заставляем пользователя из заблокированной сети ждать тот же таймаут
     // на каждом запуске. Relay активен сразу; возврат на direct — фоновый.
+    _how = 'relay-cached';
     activate(SUPABASE_RELAY_URL);
     void reachable(SUPABASE_URL).then((directWorks) => {
       if (!directWorks) return;
+      _how = 'direct';
       activate(SUPABASE_URL);
       AsyncStorage.setItem(PICKED_KEY, SUPABASE_URL).catch(() => {});
     });
     return _base;
   }
 
-  activate((await reachable(SUPABASE_URL)) ? SUPABASE_URL : SUPABASE_RELAY_URL);
+  const directOk = await reachable(SUPABASE_URL);
+  _how = directOk ? 'direct' : 'relay-probed';
+  activate(directOk ? SUPABASE_URL : SUPABASE_RELAY_URL);
   AsyncStorage.setItem(PICKED_KEY, _base).catch(() => {});
   return _base;
 }

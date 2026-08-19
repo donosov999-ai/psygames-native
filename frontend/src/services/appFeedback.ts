@@ -17,7 +17,13 @@
  */
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getSupabase } from '@/src/services/supabase';
+import { getSupabase, supabaseNetInfo } from '@/src/services/supabase';
+
+/** Каким адресом доехал этот репорт — см. пояснение в месте использования. */
+function netTrace(): { net_base: string; net_how: string } {
+  const n = supabaseNetInfo();
+  return { net_base: n.base, net_how: n.how };
+}
 
 export type FeedbackKind = 'bug' | 'idea' | 'confusion' | 'other';
 
@@ -254,6 +260,19 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
       context: {
         ...(args.context ?? {}),
         viewport: detectViewport(),
+        /**
+         * 🔴 СЕТЕВОЙ СЛЕД. Жалоба «работает только с впн» пришла ТРИ РАЗА —
+         * 01.08 (v1.165), 05.08 (v1.183), 18.08 (v1.203). После первой сделан
+         * релей sb.asibots.pro, и он не помог, но понять почему было нечем: ни
+         * один репорт не нёс, каким адресом доехал. Три жалобы, ноль данных.
+         *
+         * net_base — direct или relay. net_how — почему именно он: проба,
+         * запомненный выбор или сбой чтения. net_queued — сколько отзывов
+         * лежало в офлайн-очереди ДО этого: больше нуля значит, что прошлые
+         * отправки не доходили, даже если этот доехал.
+         */
+        ...netTrace(),
+        net_queued: await queuedCount(),
         // audio_peak — пиковый уровень записи, 0..1. Нужен, чтобы немая заметка была
         // видна В БАЗЕ, а не только человеку: две Валины записи приехали на −91 дБ
         // (цифровая тишина), и по метаданным это было не отличить от нормальной.
@@ -295,6 +314,14 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
  * сиротой, а до нас доезжал текст без него.
  */
 const FEEDBACK_QUEUE_KEY = 'psygames_feedback_queue';
+
+/** Длина офлайн-очереди отзывов — сколько прошлых отправок не дошло. */
+async function queuedCount(): Promise<number> {
+  try {
+    const raw = await AsyncStorage.getItem(FEEDBACK_QUEUE_KEY);
+    return raw ? (JSON.parse(raw) as unknown[]).length : 0;
+  } catch { return 0; }
+}
 const QUEUE_MAX = 20;
 
 async function queueFeedback(row: Record<string, unknown>): Promise<void> {
