@@ -46,11 +46,19 @@ import GameShell from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { FRACTAL_MAX_LEVEL, fractalLevel } from '@/src/services/fractalLevels';
+import { FRACTAL_MAX_LEVEL, fractalLevel, fractalTechniqueKey } from '@/src/services/fractalLevels';
 import GlassButton from '@/src/components/GlassButton';
 import { useGameKeyboard, digitKeys } from '@/src/hooks/useGameKeyboard';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
+import {
+  emptySudokuCellColors, normalizeSudokuCellColors, toggleSudokuCellColor,
+  SUDOKU_COLOR_COUNT, type SudokuCellColors,
+} from '@/src/services/sudoku-coloring';
+import {
+  emptyPencilMarks, normalizePencilMarks, togglePencilMark, clearPencilMarks, pencilDigits, countPencilMarks,
+  type PencilMarks,
+} from '@/src/services/pencilMarks';
 import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
 import { gameNow } from '@/src/services/gamePause';
@@ -67,7 +75,32 @@ const GAME_ID = 'sudoku_fractal';
  * Версия формата незаконченной партии. Поднимать при ЛЮБОМ изменении полей снимка:
  * старая запись тогда не подойдёт под новый код и будет молча выброшена, а не уронит экран.
  */
-const RESUME_V = 1;
+const RESUME_V = 2;
+
+/**
+ * Палитра раскраски. Значения те же, что в обычной судоку, — это ОДИН инструмент, и
+ * «фиолетовый» в двух судоку обязан быть одним фиолетовым.
+ *
+ * ⚠️ Продублировано, а не импортировано, потому что живёт константой ВНУТРИ
+ * `app/games/sudoku.tsx`, который сейчас правит другой заход. Когда файл освободится,
+ * обе копии переезжают в `services/sudoku-coloring` — там их место.
+ */
+const CELL_COLORS = ['#8B5CF6', '#0EA5E9', '#22C55E', '#F59E0B', '#EC4899'] as const;
+/** Та же палитра для дальтоников (Okabe–Ito): различима при любом типе дальтонизма. */
+const CELL_COLORS_CB = ['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7'] as const;
+
+/** Цвет подписи ступени: от спокойного к тревожному, шесть ступеней лестницы. */
+const TIER_COLORS = ['#64748b', '#0ea5e9', '#22c55e', '#f59e0b', '#f43f5e', '#a855f7'] as const;
+
+/** Смешать два цвета — метка не закрашивает клетку, а подкрашивает её. */
+function blendHex(base: string, over: string, k: number): string {
+  const hx = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  try {
+    const [r1, g1, b1] = hx(base), [r2, g2, b2] = hx(over);
+    const mix = (a: number, b: number) => Math.round(a + (b - a) * k);
+    return `rgb(${mix(r1, r2)}, ${mix(g1, g2)}, ${mix(b1, b2)})`;
+  } catch { return base; }
+}
 
 /** Клетки корня, которые приходят снизу: руками их не трогают. */
 const FED_KEYS = new Set(Array.from({ length: 9 }, (_, i) => rootCellForChild(i).join(',')));
@@ -82,6 +115,9 @@ interface FractalResume {
   level: number;
   puzzle: FractalPuzzle;
   play: FractalPlayState;
+  /** Пометки и раскраска — по одной сетке на корень и по одной на каждую дочернюю. */
+  marks: { root: PencilMarks; children: PencilMarks[] };
+  paint: { root: SudokuCellColors; children: SudokuCellColors[] };
   errors: number;
   elapsed: number;
   history: ReturnType<ReturnType<typeof useMoveHistory<FractalMove>>['serialize']>;
@@ -89,8 +125,20 @@ interface FractalResume {
 
 const EMPTY_PLAY: FractalPlayState = { rootGrid: [], children: [] };
 
+/**
+ * Чем сейчас пишет палец: цифрой в клетку, карандашной пометкой или цветом.
+ * Один переключатель на три способа — иначе на маленьком экране три кнопки-режима,
+ * и человек не понимает, какой из них включён.
+ */
+type Tool = 'digit' | 'pencil' | 'paint';
+
+const freshMarks = () => ({ root: emptyPencilMarks(N), children: Array.from({ length: 9 }, () => emptyPencilMarks(N)) });
+const freshPaint = () => ({ root: emptySudokuCellColors(N), children: Array.from({ length: 9 }, () => emptySudokuCellColors(N)) });
+const EMPTY_MARKS = freshMarks();
+const EMPTY_PAINT = freshPaint();
+
 export default function FractalSudokuScreen() {
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, colorblind } = useTheme();
   const { t, language } = useLanguage();
   const { profile } = useProfile();
   /**
@@ -129,6 +177,17 @@ export default function FractalSudokuScreen() {
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
   const [rootSel, setRootSel] = useState<{ r: number; c: number } | null>(null);
   const [errors, setErrors] = useState(0);
+  /**
+   * ИНСТРУМЕНТЫ СТРАТЕГИИ. На десяти сетках 9×9 держать кандидатов в голове невозможно —
+   * это не украшение, а то, без чего верхние ступени лестницы техник не решаются вовсе.
+   *
+   * Режим ввода один на все три способа: цифра / пометка / цвет. Три отдельных
+   * переключателя человек путает, а тут ещё и два вида (карта и дочерняя).
+   */
+  const [tool, setTool] = useState<Tool>('digit');
+  const [paintColor, setPaintColor] = useState(0);
+  const [marks, setMarks] = useState<{ root: PencilMarks; children: PencilMarks[] }>(EMPTY_MARKS);
+  const [paint, setPaint] = useState<{ root: SudokuCellColors; children: SudokuCellColors[] }>(EMPTY_PAINT);
   // Итог партии нужен и в рендере результата — держим в состоянии, а не только в аргументе finish().
   const [won, setWon] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -173,6 +232,9 @@ export default function FractalSudokuScreen() {
     setOpenChild(null);
     setSelected(null);
     setRootSel(null);
+    setMarks(freshMarks());
+    setPaint(freshPaint());
+    setTool('digit');
     runTimer(0);
     setPhase('map');
   }, [lvl.level, profile?.id]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -212,8 +274,43 @@ export default function FractalSudokuScreen() {
    * Один ход — и в дочернюю, и в корень. Правило «что можно, что нельзя и что при этом
    * открывается» целиком в движке: экран только озвучивает и считает ошибки.
    */
+  /** Клетка задания — в неё не пишут ни цифру, ни пометку. */
+  const isGiven = (child: number | null, r: number, c: number): boolean =>
+    !puzzle ? true : child === null ? !rootEditable(puzzle.root.puzzle, r, c) : puzzle.children[child].puzzle[r][c] !== 0;
+
+  /**
+   * Карандашная пометка. Пишется В ТУ ЖЕ клетку, что и цифра, но живёт отдельным слоем:
+   * поставленная цифра пометки НЕ СТИРАЕТ, она их лишь перекрывает.
+   *
+   * ⚠️ Так сделано ради отмены. Стирай цифра пометки — откат хода вернул бы клетку, но не
+   * вернул бы стёртое, и «отмена» опять оказалась бы половинчатой. Ровно та ошибка, за
+   * которую тут уже расплачивались: откат обязан возвращать ВСЁ, что ход изменил, — а
+   * проще всего этого добиться, ничего лишнего ходом не меняя.
+   */
+  const mark = (child: number | null, r: number, c: number, digit: number) => {
+    if (!puzzle || phase === 'result' || isGiven(child, r, c)) return;
+    // Стирающая клавиша в режиме карандаша чистит ВСЮ клетку: снимать девять пометок
+    // по одной — это девять нажатий там, где на бумаге одно движение ластиком.
+    const apply = (m: PencilMarks) => (digit === 0 ? clearPencilMarks(m, N, r, c) : togglePencilMark(m, N, r, c, digit));
+    setMarks((prev) => {
+      if (child === null) return { ...prev, root: apply(prev.root) };
+      return { ...prev, children: prev.children.map((m, i) => (i === child ? apply(m) : m)) };
+    });
+  };
+
+  /** Раскраска клетки. Работает и по подсказкам задания: цепочку рассуждений ведут по ним тоже. */
+  const painting = (child: number | null, r: number, c: number) => {
+    if (!puzzle || phase === 'result') return;
+    setPaint((prev) => {
+      if (child === null) return { ...prev, root: toggleSudokuCellColor(prev.root, N, r, c, paintColor) };
+      const children = prev.children.map((m, i) => (i === child ? toggleSudokuCellColor(m, N, r, c, paintColor) : m));
+      return { ...prev, children };
+    });
+  };
+
   const place = (child: number | null, r: number, c: number, n: number) => {
     if (!puzzle || phase === 'result') return;
+    if (tool === 'pencil') { mark(child, r, c, n); return; }
     const res = playDigit(play, puzzle, { child, r, c }, n);
     if (!res) return;   // подсказка, кормящая клетка или повтор той же цифры
     const { next, move } = res;
@@ -314,6 +411,8 @@ export default function FractalSudokuScreen() {
     level: playedLevel,
     puzzle: puzzle as FractalPuzzle,
     play,
+    marks,
+    paint,
     errors,
     elapsed,
     history: hist.serialize(),
@@ -324,6 +423,18 @@ export default function FractalSudokuScreen() {
     setPlayedLevel(s.level);
     setPuzzle(s.puzzle);
     setPlay(s.play);
+    // ⚠️ Пометки и раскраску прогоняем через normalize: запись лежит на устройстве месяц
+    // и переживает обновления. Битая маска нарисовала бы несуществующие цифры, чужой
+    // формат уронил бы экран — потерять пометки не страшно, уронить партию страшно.
+    setMarks({
+      root: normalizePencilMarks(s.marks?.root, N),
+      children: Array.from({ length: 9 }, (_, i) => normalizePencilMarks(s.marks?.children?.[i], N)),
+    });
+    setPaint({
+      root: normalizeSudokuCellColors(s.paint?.root, N),
+      children: Array.from({ length: 9 }, (_, i) => normalizeSudokuCellColors(s.paint?.children?.[i], N)),
+    });
+    setTool('digit');
     setErrors(s.errors);
     setOpenChild(null);
     setSelected(null);
@@ -366,7 +477,7 @@ export default function FractalSudokuScreen() {
     const snap = snapshot();
     const tm = setTimeout(() => { saveResume(GAME_ID, pid, RESUME_V, snap).catch(() => {}); }, 400);
     return () => clearTimeout(tm);
-  }, [play, errors, liveGame]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [play, marks, paint, errors, liveGame]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // Уход с экрана. Отложенная запись выше на этом моменте отменяется своим clearTimeout,
   // поэтому сохраняем ещё раз здесь — и с ЖИВЫМ временем, а не с тем, что было на прошлом ходу.
@@ -431,6 +542,108 @@ export default function FractalSudokuScreen() {
       />
     );
   }
+
+  const palette = colorblind ? CELL_COLORS_CB : CELL_COLORS;
+
+  /**
+   * Общий вид клетки для обоих полей: раскраска фоном, карандашные пометки мелким.
+   * Одна функция на корень и на дочернюю — две копии разъехались бы на первой же правке.
+   */
+  const cellSkin = (which: 'root' | number, r: number, c: number, base: string) => {
+    const layer = which === 'root' ? paint.root : paint.children[which as number];
+    const idx = layer?.[r]?.[c] ?? -1;
+    return idx >= 0 && idx < palette.length ? blendHex(base, palette[idx], isDark ? 0.34 : 0.24) : base;
+  };
+
+  /** Пометки клетки — три ряда по три, как в углу бумажной клетки. */
+  const renderMarks = (which: 'root' | number, r: number, c: number, size: number, value: number) => {
+    if (value !== 0) return null;   // цифра перекрывает пометки, но НЕ стирает их
+    const layer = which === 'root' ? marks.root : marks.children[which as number];
+    const digits = pencilDigits(layer?.[r]?.[c] ?? 0);
+    if (!digits.length) return null;
+    return (
+      <View style={styles.markGrid} pointerEvents="none">
+        {Array.from({ length: 9 }, (_, k) => k + 1).map((d) => (
+          <Text
+            key={d}
+            style={{
+              width: size / 3, height: size / 3, lineHeight: size / 3,
+              fontSize: Math.max(6, size * 0.235), textAlign: 'center',
+              color: digits.includes(d) ? colors.textSecondary : 'transparent',
+            }}
+          >
+            {d}
+          </Text>
+        ))}
+      </View>
+    );
+  };
+
+  /**
+   * Переключатель инструмента и палитра.
+   *
+   * ⚠️ ОДИН переключатель на три способа письма, а не три кнопки-флажка: на телефоне
+   * три независимых режима человек путает и не понимает, куда попадёт следующее нажатие.
+   */
+  const toolbar = (which: 'root' | number) => {
+    // Счётчик пометок на кнопке: слой карандаша невидим, когда режим выключен, и без
+    // числа человек не знает, есть ли там что-то вообще.
+    const written = countPencilMarks(which === 'root' ? marks.root : marks.children[which as number]);
+    return (
+    <>
+    <View style={styles.toolRow}>
+      {([
+        ['digit', 'create-outline', t('digitsLabel')],
+        ['pencil', 'pencil-outline', written ? `${t('sudokuPencilMode')} ${written}` : t('sudokuPencilMode')],
+        ['paint', 'color-palette-outline', t('sudokuColorMode')],
+      ] as [Tool, string, string][]).map(([id, icon, label]) => (
+        <TouchableOpacity
+          key={id}
+          accessibilityRole="button"
+          accessibilityState={{ selected: tool === id }}
+          accessibilityLabel={label}
+          testID={`fractal-tool-${id}`}
+          onPress={() => setTool(id)}
+          style={[styles.toolBtn, {
+            backgroundColor: tool === id ? GRADIENT[1] : colors.surface,
+            borderColor: tool === id ? GRADIENT[1] : colors.border,
+          }]}
+        >
+          <Ionicons name={icon as never} size={15} color={tool === id ? '#FFF' : colors.text} />
+          <Text style={[styles.toolText, { color: tool === id ? '#FFF' : colors.text }]}>{label}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+    {/* ⚠️ Палитра СВОИМ рядом, а не в хвосте инструментов. В общем ряду восемь кнопок
+        по 48 не помещаются в ширину телефона и переносятся вразнобой: один образец
+        остаётся у «Цвета», четыре уезжают вниз — читается как поломка вёрстки.
+        Поймано глазами на сборке 19.08. */}
+    {tool === 'paint' && (
+      <View style={styles.paintRow}>
+        {Array.from({ length: SUDOKU_COLOR_COUNT }, (_, i) => i).map((i) => (
+          <TouchableOpacity
+            key={i}
+            accessibilityRole="button"
+            accessibilityState={{ selected: paintColor === i }}
+            accessibilityLabel={`${t('sudokuColorMode')} ${i + 1}`}
+            testID={`fractal-swatch-${i}`}
+            onPress={() => setPaintColor(i)}
+            style={[styles.swatch, {
+              backgroundColor: blendHex(colors.surface, palette[i], isDark ? 0.62 : 0.44),
+              borderColor: paintColor === i ? colors.text : colors.border,
+            }]}
+          >
+            {paintColor === i && <Ionicons name="checkmark" size={14} color={colors.text} />}
+          </TouchableOpacity>
+        ))}
+      </View>
+    )}
+    </>
+    );
+  };
+
+  /** Подсказка под полем — что делает выбранный инструмент. */
+  const toolHint = tool === 'pencil' ? t('sudokuPencilHint') : tool === 'paint' ? t('sudokuColorHint') : null;
 
   /** Цифровая клавиатура. Одна и та же и для дочерней, и для корня — иначе две копии разъедутся. */
   const renderPad = (onDigit: (n: number) => void) => (
@@ -529,18 +742,21 @@ export default function FractalSudokuScreen() {
                       accessibilityRole="button"
                       accessibilityLabel={`${r + 1}·${c + 1}`}
                       testID={`fractal-root-${r}-${c}`}
-                      disabled={!mine}
-                      onPress={() => setRootSel({ r, c })}
+                      // ⚠️ В режиме цвета кликабельна ЛЮБАЯ клетка, включая подсказки
+                      // задания: цепочку рассуждений ведут и по ним, а не только по пустым.
+                      disabled={!mine && tool !== 'paint'}
+                      onPress={() => { if (tool === 'paint') painting(null, r, c); else setRootSel({ r, c }); }}
                       style={[styles.cell, {
                         width: cell, height: cell,
                         backgroundColor: isSel ? GRADIENT[1]
-                          : fromChild && v === 0 ? (isDark ? '#3a3358' : '#ece9f7')
-                            : colors.surface,
+                          : cellSkin('root', r, c,
+                            fromChild && v === 0 ? (isDark ? '#3a3358' : '#ece9f7') : colors.surface),
                         borderRightWidth: (c + 1) % 3 === 0 ? 2 : 0.5,
                         borderBottomWidth: (r + 1) % 3 === 0 ? 2 : 0.5,
                         borderColor: colors.text,
                       }]}
                     >
+                      {renderMarks('root', r, c, cell, v)}
                       <Text style={{
                         fontSize: cell * 0.5,
                         fontWeight: given ? '800' : '600',
@@ -564,11 +780,12 @@ export default function FractalSudokuScreen() {
               const got = puzzle
                 ? solvedCount(ch.grid, puzzle.children[i].solution, puzzle.children[i].puzzle.map((row) => row.map((v) => v !== 0)))
                 : 0;
+              const tier = puzzle?.children[i].tier ?? 1;
               return (
                 <TouchableOpacity
                   key={i}
                   accessibilityRole="button"
-                  accessibilityLabel={`${t('fractalChildN')} ${i + 1}`}
+                  accessibilityLabel={`${t('fractalChildN')} ${i + 1} · ${t(fractalTechniqueKey(tier) as never)}`}
                   testID={`fractal-tile-${i}`}
                   onPress={() => { setOpenChild(i); setSelected(null); setPhase('child'); }}
                   style={[styles.tile, {
@@ -576,9 +793,18 @@ export default function FractalSudokuScreen() {
                     borderColor: done ? GRADIENT[0] : colors.border,
                   }]}
                 >
-                  <Text style={{ fontSize: 20, fontWeight: '800', color: done ? '#FFF' : colors.text }}>
-                    {done ? '✓' : i + 1}
-                  </Text>
+                  <View style={styles.tileHead}>
+                    <Text style={{ fontSize: 20, fontWeight: '800', color: done ? '#FFF' : colors.text }}>
+                      {done ? '✓' : i + 1}
+                    </Text>
+                    {/* ⚠️ Ступень НАСТОЯЩАЯ, а не объявленная уровнем. С 21-го уровня часть
+                        сеток берётся из библиотеки заготовок, часть копается на месте, и
+                        внутри одной партии они РАЗНЫЕ по построению (fractalLevels, вторая
+                        ось). Плитка, показывающая «что задумано», врала бы каждую партию. */}
+                    <View style={[styles.tierDot, { backgroundColor: TIER_COLORS[Math.min(5, Math.max(0, tier - 1))] }]}>
+                      <Text style={styles.tierDotText}>{tier}</Text>
+                    </View>
+                  </View>
                   <Text style={{ fontSize: 11, color: done ? 'rgba(255,255,255,0.85)' : colors.textSecondary }}>
                     {Math.min(got, puzzle?.children[i].unlockCells ?? 0)}/{puzzle?.children[i].unlockCells ?? 0}
                   </Text>
@@ -595,6 +821,8 @@ export default function FractalSudokuScreen() {
               <Text style={[styles.feedHint, { color: colors.textSecondary, marginTop: 14 }]}>
                 {t('fractalRoot')} {rootFilled}/{rootMine}
               </Text>
+              {toolbar('root')}
+              {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
               {renderPad(placeRootDigit)}
             </>
           )}
@@ -602,6 +830,44 @@ export default function FractalSudokuScreen() {
       </GameShell>
     );
   }
+
+  /**
+   * МИНИ-КАРТА КОРНЯ 9×9 — «где я сейчас».
+   *
+   * ⚠️ ЗАЧЕМ. Партия идёт по девяти дочерним, и, сидя в одной из них, человек терял
+   * связь с целым: чтобы понять, какие уже отданы наверх и какую он решает, надо было
+   * ВЫЙТИ на карту, то есть прервать работу. Здесь корень нарисован целиком, а каждый
+   * его блок покрашен состоянием СВОЕЙ дочерней: решённая, текущая, нетронутая. Связь
+   * «блок корня ↔ дочерняя» тут не метафора, а само устройство игры (rootCellForChild).
+   */
+  const miniMap = (active: number) => (
+    <View style={[styles.mini, { borderColor: colors.border }]} testID="fractal-minimap">
+      {Array.from({ length: N }, (_, r) => (
+        <View key={r} style={styles.miniRow}>
+          {Array.from({ length: N }, (_, c) => {
+            const block = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+            const done = play.children[block]?.done;
+            const here = block === active;
+            const filled = (play.rootGrid[r]?.[c] ?? 0) !== 0;
+            return (
+              <View
+                key={c}
+                testID={`fractal-mini-${r}-${c}`}
+                style={[styles.miniCell, {
+                  width: 7, height: 7,
+                  backgroundColor: here ? GRADIENT[1] : done ? GRADIENT[0] : colors.surface,
+                  opacity: here || done ? (filled ? 1 : 0.75) : filled ? 0.9 : 0.35,
+                  borderRightWidth: (c + 1) % 3 === 0 ? 1 : 0,
+                  borderBottomWidth: (r + 1) % 3 === 0 ? 1 : 0,
+                  borderColor: colors.border,
+                }]}
+              />
+            );
+          })}
+        </View>
+      ))}
+    </View>
+  );
 
   // ── СЕТКА: одна дочерняя во весь экран ──
   const ch = play.children[openChild];
@@ -617,9 +883,16 @@ export default function FractalSudokuScreen() {
       headerActions={actions}
       confirmExit={false}
       stats={
-        <View style={styles.stats}>
-          <Text style={[styles.stat, { color: GRADIENT[1] }]}>{got}/{task.unlockCells} {t('fractalToUnlock')}</Text>
-          <Text style={[styles.stat, { color: '#f43f5e' }]}>✗{errors}</Text>
+        <View style={styles.miniWrap}>
+          {miniMap(openChild)}
+          <View style={styles.stats}>
+            <Text style={[styles.stat, { color: GRADIENT[1] }]}>{got}/{task.unlockCells} {t('fractalToUnlock')}</Text>
+            {/* Настоящий приём ИМЕННО ЭТОЙ сетки: соседние в той же партии бывают легче. */}
+            <Text style={[styles.stat, { color: TIER_COLORS[Math.min(5, Math.max(0, task.tier - 1))] }]}>
+              {t(fractalTechniqueKey(task.tier) as never)}
+            </Text>
+            <Text style={[styles.stat, { color: '#f43f5e' }]}>✗{errors}</Text>
+          </View>
         </View>
       }
     >
@@ -638,15 +911,20 @@ export default function FractalSudokuScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={`${r + 1}·${c + 1}`}
                     testID={`fractal-cell-${r}-${c}`}
-                    onPress={() => { if (!given) setSelected({ r, c }); }}
+                    onPress={() => {
+                      if (tool === 'paint') { painting(openChild, r, c); return; }
+                      if (!given) setSelected({ r, c });
+                    }}
                     style={[styles.cell, {
                       width: cell, height: cell,
-                      backgroundColor: isSel ? GRADIENT[1] : isFeed ? (isDark ? '#3a3358' : '#efedfa') : colors.surface,
+                      backgroundColor: isSel ? GRADIENT[1]
+                        : cellSkin(openChild, r, c, isFeed ? (isDark ? '#3a3358' : '#efedfa') : colors.surface),
                       borderRightWidth: (c + 1) % 3 === 0 ? 2 : 0.5,
                       borderBottomWidth: (r + 1) % 3 === 0 ? 2 : 0.5,
                       borderColor: colors.text,
                     }]}
                   >
+                    {renderMarks(openChild, r, c, cell, v)}
                     <Text style={{
                       fontSize: cell * 0.5,
                       fontWeight: given ? '800' : '600',
@@ -665,6 +943,8 @@ export default function FractalSudokuScreen() {
             видеть, ЧТО он добывает, а не просто закрывать клетки. */}
         <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{t('fractalFeedHint')}</Text>
 
+        {toolbar(openChild)}
+        {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
         {renderPad(placeDigit)}
       </View>
     </GameShell>
@@ -682,9 +962,14 @@ const styles = StyleSheet.create({
   stats: { flexDirection: 'row', gap: 14, justifyContent: 'center' },
   stat: { fontSize: 13, fontWeight: '700' },
   headerActionsRow: { flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },
+  // ⚠️ 48 — НЕ КРАСОТА, А ПОРОГ ПОПАДАНИЯ ПАЛЬЦЕМ (норма Material, гейт
+  // scripts/tap-target-audit.mjs, проход «на поле»). Промах по мелкой кнопке — это не
+  // «не нажалось», а тап по тому, что под ней: здесь под «Отменить» лежит доска, и
+  // промах ставит цифру не туда. justifyContent обязателен: без него содержимое ляжет
+  // к верху коробки и кнопка станет высокой, но пустой снизу.
   undoBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    minHeight: 48, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1,
   },
   undoText: { fontSize: 13, fontWeight: '700' },
 
@@ -695,8 +980,37 @@ const styles = StyleSheet.create({
     width: 92, height: 62, borderRadius: 14, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center', gap: 2,
   },
+  tileHead: { flexDirection: 'row', alignItems: 'center', gap: 5 },
 
   playCol: { alignItems: 'center', gap: 12, marginBottom: 76 },
+  // Пометки: три ряда по три, поверх клетки и БЕЗ перехвата касаний —
+  // палец должен попадать в саму клетку, а не в слой с цифрами.
+  markGrid: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
+  },
+  toolRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 340 },
+  paintRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 8 },
+  // Тот же порог 48: инструменты стоят прямо над цифровой клавиатурой, и промах
+  // мимо «Пометок» попадает в цифру, то есть ставит ход вместо переключения режима.
+  toolBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5,
+    minHeight: 48, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 11, borderWidth: 1,
+  },
+  toolText: { fontSize: 12, fontWeight: '700' },
+  // Образцы цвета стоят в один ряд с инструментами: тот же порог 48, иначе выбор
+  // цвета — самая мелкая мишень на экране, а тыкают в неё десятки раз за партию.
+  swatch: { width: 48, height: 48, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  // Мини-карта: девять блоков корня, каждый — одна дочерняя сетка.
+  miniWrap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  mini: { borderWidth: 1, borderRadius: 3, overflow: 'hidden' },
+  miniRow: { flexDirection: 'row' },
+  miniCell: { alignItems: 'center', justifyContent: 'center' },
+  tierDot: {
+    minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 3,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  tierDotText: { fontSize: 10, fontWeight: '800', color: '#FFF' },
   grid: { borderWidth: 2, borderRadius: 4, overflow: 'hidden' },
   row: { flexDirection: 'row' },
   cell: { alignItems: 'center', justifyContent: 'center' },
