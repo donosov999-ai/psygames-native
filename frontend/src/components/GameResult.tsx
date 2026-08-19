@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { sndWin } from '@/src/services/feedback';
-import { tokenDelta } from '@/src/services/tokens';
+import { freshEarn, onEarn, earnReasonKey, EarnEntry } from '@/src/services/earn';
 import { shareResult } from '@/src/services/share';
 import ResultSparkline from '@/src/components/ResultSparkline';
 import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
@@ -68,8 +68,27 @@ export default function GameResult({
     const outcome = await shareResult(shareText);
     if (outcome === 'copied') { setShareNote(t('shareCopied')); setTimeout(() => setShareNote(null), 2500); }
   };
-  // T1: видимый заработок токенов — ТОТ ЖЕ tokenDelta, что начисляет saveSession (совпадает 1:1)
-  const earned = score !== undefined ? tokenDelta(score, errors ?? 0) : 0;
+  /**
+   * ЗАРАБОТОК ПОКАЗЫВАЕМ ТОТ, ЧТО НАЧИСЛЕН, а не пересчитанный здесь.
+   *
+   * 🔴 Раньше строка считала `tokenDelta(score, errors)` сама. Пока начисление было
+   * ровно этой формулой, числа совпадали; с появлением множителя ×2 и суточной квоты
+   * (`src/services/earn.ts`) собственный подсчёт стал бы врать — показывал бы базу там,
+   * где начислено вдвое, и удвоение там, где квота уже выбрана. Читаем журнал.
+   *
+   * ⚠️ ДВЕ ПОЛОВИНЫ, И ОБЕ НУЖНЫ. Игры зовут `saveSession` РЯДОМ с показом итога, а не
+   * строго до него: у одних запись успевает пройти к монтированию (её отдаёт `freshEarn`),
+   * у других приходит через мгновение (её приносит подписка). Одной половины не хватает
+   * ни там, ни там.
+   *
+   * ⚠️ В демо на сайте начисления нет вовсе (`saveSession` выходит раньше), поэтому
+   * плашка там не рисуется. Прежний вариант показывал демо-игроку «+15 заработано»,
+   * которых никто не начислял.
+   */
+  const [earn, setEarn] = useState<EarnEntry | null>(() => freshEarn());
+  useEffect(() => onEarn(setEarn), []);
+  const earned = earn?.total ?? 0;
+  const whyKey = earn ? earnReasonKey(earn.reason) : null;
   // Звёзды за прохождение (1–3): передан stars — рисуем его, иначе выводим из ошибок (0=3, ≤2=2, иначе 1).
   const shownStars = stars ?? (errors !== undefined ? (errors === 0 ? 3 : errors <= 2 ? 2 : 1) : undefined);
   useEffect(() => { sndWin(); }, []);   // фанфары при показе экрана результата (завершение)
@@ -142,10 +161,24 @@ export default function GameResult({
         )}
 
         {earned > 0 && (
-          <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: onGrad.veil ? 'transparent' : 'rgba(127,127,127,0.16)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999 }}>
-            <Text style={{ fontSize: 22 }}>⭐</Text>
-            <Text style={{ color: fg, fontSize: 20, fontWeight: '900' }}>+{earned}</Text>
-            <Text style={{ color: fgSoft, fontSize: 13, fontWeight: '600' }}>{t('earnedLabel')}</Text>
+          <View style={{ marginTop: 20, alignItems: 'center', gap: 6 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: onGrad.veil ? 'transparent' : 'rgba(127,127,127,0.16)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999 }}>
+              <Text style={{ fontSize: 22 }}>⭐</Text>
+              <Text style={{ color: fg, fontSize: 20, fontWeight: '900' }}>+{earned}</Text>
+              <Text style={{ color: fgSoft, fontSize: 13, fontWeight: '600' }}>{t('earnedLabel')}</Text>
+              {/* Множитель — рядом с числом, а не вместо него: человек должен видеть
+                  и сколько дали, и почему столько. */}
+              {(earn?.multiplier ?? 1) > 1 && (
+                <View style={{ backgroundColor: '#FFD93B', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999 }}>
+                  <Text style={{ color: '#3f2b00', fontSize: 14, fontWeight: '900' }}>×{earn?.multiplier}</Text>
+                </View>
+              )}
+            </View>
+            {whyKey && (
+              <Text style={{ color: fgSoft, fontSize: 13, fontWeight: '700', textAlign: 'center' }} numberOfLines={2}>
+                {t(whyKey)}
+              </Text>
+            )}
           </View>
         )}
         {sparkline && (

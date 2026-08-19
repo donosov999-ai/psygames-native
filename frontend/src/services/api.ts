@@ -9,6 +9,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GAMES } from '@/src/constants/games';
 import { getSupabase, SUPABASE_TABLE } from '@/src/services/supabase';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
+/**
+ * ⚠️ НАЧИСЛЕНИЕ ИМПОРТИРУЕТСЯ ОБЫЧНО, А НЕ `await import(...)`, как соседи ниже.
+ * Ленивый импорт здесь брали от круговой зависимости, но её у этой пары нет: earn
+ * тянет только tokens, cleanRun — только хранилище, и обратно на api не смотрит ни
+ * один. Зато ленивый импорт МОЛЧА НЕ РАБОТАЕТ В ПРОГОНАХ (`A dynamic import callback
+ * was invoked without --experimental-vm-modules`) — и любой гейт на «доиграл партию,
+ * получил очки» был бы зелёным при полностью отключённом начислении. Обычный импорт
+ * делает этот путь проверяемым исполнением.
+ */
+import { recordRound } from '@/src/services/earn';
+import { tickCleanRun } from '@/src/services/cleanRun';
 
 const STORAGE_KEY = 'psygames_sessions';
 // v2 (v1.107.0): форс-ребэкфилл. Синк был мёртв ~2 месяца: клиентский upsert
@@ -515,21 +526,29 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
   } catch { /* праздник некритичен */ }
   all.push(stored);
   await writeAll(all);
-  // Геймификация: начислить токены в ЦЕНТР (победы +, ошибки −), per-profile.
-  // Плюс серия чистых раундов: с 3-го подряд errors===0 — бонус (вне зарядки,
-  // у зарядки свой comboBonus ×1.5 в warmup-complete).
+  // Геймификация: начислить очки в ЦЕНТР и записать партию в журнал заработка.
+  // Правило начисления — целиком в earn.ts (база × множитель, суточная квота
+  // множителя, шаг зарядки без множителя): здесь только вызов, чтобы экономика
+  // не расползлась по экранам. Счётчик чистой серии тикается рядом — он рисует 🔥
+  // на баннере уровня, деньги идут через множитель.
+  //
+  // ⚠️ ЖДЁМ ЗАПИСЬ, а не «выстрелил и забыл». Экран итога показывает НАЧИСЛЕННОЕ
+  // из журнала; пока запись висела в воздухе, ему нечего было бы показать, кроме
+  // собственной копии формулы — то есть второго источника правды.
   try {
     const pid = (globalThis as any).__psygames_active_profile_id as string | undefined;
     if (pid) {
-      const { addTokens, tokenDelta } = await import('@/src/services/tokens');
-      const { tickCleanRun, cleanRunBonus } = await import('@/src/services/cleanRun');
       const clean = (stored.errors ?? 0) === 0 && (stored.score ?? 0) > 0;
-      const run = await tickCleanRun(pid, clean);
-      const warmupActive = (globalThis as any).__psygames_warmup_active === true;
-      const bonus = clean && !warmupActive ? cleanRunBonus(run) : 0;
-      addTokens(pid, tokenDelta(stored.score, stored.errors ?? 0) + bonus).catch(() => {});
+      await tickCleanRun(pid, clean);
+      await recordRound({
+        profileId: pid,
+        game: stored.game_type,
+        score: stored.score,
+        errors: stored.errors,
+        warmupStep: (globalThis as any).__psygames_warmup_active === true,
+      });
     }
-  } catch { /* токены некритичны */ }
+  } catch { /* начисление некритично — партия уже записана */ }
   // Вызов дня: стрик коммитится за завершённый раунд игры вызова (pending пишет
   // startDailyChallenge). Await — чтобы чек ачивок ниже видел свежий стрик.
   try {

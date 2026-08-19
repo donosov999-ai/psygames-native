@@ -50,6 +50,7 @@ import { listResumable, resolveResumableGame } from '@/src/services/resume';
 import { shouldOpenOnboardingPicker } from '@/src/services/onboarding';
 import { recoCards, recoParams } from '@/src/services/recommend';
 import { getSessions, GameSession } from '@/src/services/api';
+import { todayEarnings, TodaySummary, DAY_STREAK_FOR_MULT } from '@/src/services/earn';
 
 const MAX_CONTAINER_WIDTH = 1100;
 const CONTAINER_PADDING = 16;
@@ -142,6 +143,27 @@ function FullHome() {
    */
   const [sessions, setSessions] = useState<GameSession[]>([]);
   const [recoAt, setRecoAt] = useState<number>(() => Date.now());
+  /**
+   * «СЕГОДНЯ» — что сыграно за календарные сутки и сколько это принесло.
+   *
+   * 🔴 ЗАЧЕМ. Магазин с ценами и балансом был, а откуда берутся очки — не сказано нигде:
+   * баланс просто однажды оказывался другим. Начисление, которого человек не видит,
+   * работы не делает.
+   *
+   * ⚠️ ПЕРЕЧИТЫВАЕМ НА ФОКУСЕ, как и всё остальное на этом экране. На Android приложение
+   * живёт в WebView и главный экран остаётся смонтированным сутками — посчитанное один
+   * раз при запуске застыло бы там навсегда (той же болезнью болели подпись «Зарядки» и
+   * набор рекомендаций). Заодно это единственный способ увидеть партию, сыгранную минуту
+   * назад: возврат с игры и есть фокус.
+   */
+  const [today, setToday] = useState<TodaySummary>({ rows: [], total: 0, rounds: 0, dayStreak: 0 });
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    todayEarnings(profile.id)
+      .then((s) => { if (active) setToday(s); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [profile.id]));
   useFocusEffect(useCallback(() => {
     let active = true;
     setRecoAt(Date.now());
@@ -551,6 +573,61 @@ function FullHome() {
           </TouchableOpacity>
         )}
 
+        {/* 📒 «Сегодня» — что сыграно за календарные сутки и сколько принесло.
+            Блок рисуется ВСЕГДА, в том числе на пустом дне: заголовок с приглашением
+            честнее исчезнувшего блока — иначе в день, когда ещё не играли, экран молча
+            теряет строку, и понять, что она вообще бывает, неоткуда. Строка «партий: N»
+            рядом с суммой отвечает на вопрос «за что», а не только «сколько». */}
+        <View style={[styles.todayBlock, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.todayHeader}>
+            <View style={[styles.sectionDot, { backgroundColor: '#f59e0b' }]} />
+            <Ionicons name="today-outline" size={19} color="#f59e0b" />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('today')}</Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={`${t('todayEarnedTitle')}: ${today.total}`}
+              activeOpacity={0.8}
+              onPress={() => router.push('/shop' as any)}
+              style={styles.todayTotalBtn}
+            >
+              <Text style={styles.todayTotalText}>+{today.total} ⭐</Text>
+              <Ionicons name="chevron-forward" size={13} color="#b45309" />
+            </TouchableOpacity>
+          </View>
+          {today.rows.length === 0 ? (
+            <Text style={[styles.todayEmpty, { color: colors.textSecondary }]}>
+              {t('todayEmptyHint')}
+            </Text>
+          ) : (
+            <>
+              {today.rows.map((row) => {
+                const game = GAMES.find((g) => g.id === row.game);
+                return (
+                  <View key={row.game} style={styles.todayRow}>
+                    <Text style={[styles.todayGame, { color: colors.text }]} numberOfLines={1}>
+                      {game ? t(game.nameKey) : row.game}
+                    </Text>
+                    <Text style={[styles.todayRounds, { color: colors.textSecondary }]} numberOfLines={1}>
+                      {t('todayRoundsLabel').replace('{n}', String(row.rounds))}
+                    </Text>
+                    {row.doubled && (
+                      <View style={styles.todayMult}><Text style={styles.todayMultText}>×2</Text></View>
+                    )}
+                    <Text style={[styles.todayGain, { color: colors.text }]}>+{row.total}</Text>
+                  </View>
+                );
+              })}
+              {/* Серия дней показывается только когда она уже даёт множитель: обещать
+                  «за режим — вдвое» на первом дне значило бы обещать несбывшееся. */}
+              {today.dayStreak >= DAY_STREAK_FOR_MULT && (
+                <Text style={[styles.todayEmpty, { color: colors.textSecondary }]}>
+                  {t('todayStreakNote').replace('{n}', String(today.dayStreak))}
+                </Text>
+              )}
+            </>
+          )}
+        </View>
+
         {/* 🎯 «Рекомендуем сегодня» — три упражнения вместо выбора из семидесяти одного.
             Под каждым сказано, ПОЧЕМУ оно здесь: причину считает recommend.ts по партиям
             этого человека, разметка её только показывает. Пустой блок не рисуем вовсе —
@@ -928,6 +1005,21 @@ const styles = StyleSheet.create({
   },
   // Блок рекомендаций: заголовок с подсказкой и ряд карточек. Отступ снизу — тот же,
   // что у карточки «Продолжить», чтобы ритм первого экрана не сбивался.
+  // Блок «Сегодня»: рамка, а не карточка-градиент — он про факт, а не про призыв,
+  // и не должен спорить за внимание с рекомендациями и практиками ниже.
+  todayBlock: { marginBottom: 14, borderWidth: 1, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 10, gap: 6 },
+  todayHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  // Зона нажатия 44 при прежнем виде — отрицательный отступ гасит прибавку (тот же
+  // приём, что у полоски лиг и профильного чипа в шапке).
+  todayTotalBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, minHeight: 44, marginVertical: -12, paddingHorizontal: 10, borderRadius: 100, backgroundColor: '#fbbf2422', borderWidth: 1.5, borderColor: '#f59e0b' },
+  todayTotalText: { color: '#b45309', fontWeight: '900', fontSize: 14 },
+  todayRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  todayGame: { flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: '700' },
+  todayRounds: { fontSize: 12, fontWeight: '600', flexShrink: 1 },
+  todayMult: { backgroundColor: '#fbbf24', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 999 },
+  todayMultText: { color: '#3f2b00', fontSize: 11, fontWeight: '900' },
+  todayGain: { fontSize: 14, fontWeight: '900', minWidth: 34, textAlign: 'right' },
+  todayEmpty: { fontSize: 12.5, fontWeight: '600', lineHeight: 17 },
   recoBlock: { marginBottom: 14, gap: 6 },
   recoHint: { fontSize: 12, fontWeight: '600', marginTop: -2 },
   resumeCopy: { flex: 1, minWidth: 0, gap: 3 },

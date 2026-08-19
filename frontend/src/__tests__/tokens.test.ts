@@ -1,10 +1,14 @@
 /**
- * Чистые функции геймификации: tokenDelta, comboBonus, levelInfo (tokens.ts)
- * и cleanRunBonus (cleanRun.ts). Формулы завязаны на экономику приложения —
- * регресс здесь меняет начисления всем игрокам молча.
+ * Чистые функции геймификации: tokenDelta, comboBonus, levelInfo (tokens.ts).
+ * Формулы завязаны на экономику приложения — регресс здесь меняет начисления
+ * всем игрокам молча.
+ *
+ * ⚠️ Аддитивная надбавка за серию чистых (`cleanRunBonus`) отсюда УБРАНА вместе с
+ * самой надбавкой: за чистоту теперь платит множитель ×2, и проверяется он в
+ * `earn-multiplier.test.ts`. Оставить здесь проверку удалённой формулы значило бы
+ * держать зелёным гейт на механику, которой в приложении нет.
  */
 import { tokenDelta, comboBonus, levelInfo } from '@/src/services/tokens';
-import { cleanRunBonus, CLEAN_RUN_MIN } from '@/src/services/cleanRun';
 
 describe('tokenDelta', () => {
   it('счёт добавляет (score/20, округление), ошибки вычитают', () => {
@@ -60,17 +64,5 @@ describe('levelInfo', () => {
     expect(top.level).toBe(10);
     expect(top.span).toBeNull();
     expect(top.progress).toBe(1);
-  });
-});
-
-describe('cleanRunBonus (серия чистых раундов)', () => {
-  it(`до ${CLEAN_RUN_MIN} подряд — ноль`, () => {
-    expect(cleanRunBonus(0)).toBe(0);
-    expect(cleanRunBonus(CLEAN_RUN_MIN - 1)).toBe(0);
-  });
-  it('с порога растёт и капится на +15', () => {
-    expect(cleanRunBonus(3)).toBe(8);     // 5 + 3
-    expect(cleanRunBonus(10)).toBe(15);   // 5 + 10 (кап)
-    expect(cleanRunBonus(50)).toBe(15);
   });
 });
