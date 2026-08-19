@@ -112,8 +112,6 @@ export default function MemoryMatrixGame() {
   const gridOffsetRef = useRef({ x: 0, y: 0 });          // позиция сетки в окне: pageX/Y → локальные координаты
   const swipedCellsRef = useRef<Set<number>>(new Set()); // клетки, уже обработанные ТЕКУЩИМ жестом (1 toggle на жест)
 
-  const numLit = (n: number) => Math.min(n * n - 1, Math.max(3, 2 + Math.floor(n / 2) + Math.floor(round / 3)));
-
   const newRound = (gs: number, r: number) => {
     const total = gs * gs;
     const two = seriesCountRef.current === 2 && matrixMode === 'static';   // 2 серии — только static
@@ -227,7 +225,6 @@ export default function MemoryMatrixGame() {
       setPhase('feedback');
       setTimeout(async () => {
         if (round >= totalRounds) {
-          if (true) { /* end */ }
           const finalTime = (gameNow() - startTime) / 1000;
           setElapsedTime(finalTime);
           const passed = !isPreset && fErrors <= 1;

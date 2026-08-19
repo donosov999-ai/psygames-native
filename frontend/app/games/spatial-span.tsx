@@ -18,6 +18,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { levelOutcome } from '@/src/services/levelOutcome';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
 
@@ -149,11 +150,25 @@ export default function SpatialSpanGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
-    const passed = finalSpan >= levelParams(levelRef.current).startSpan;
-    if (passed) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
-    else lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
+    /**
+     * ⚠️ ШАГ ЗАРЯДКИ УРОВЕНЬ НЕ ТРОГАЕТ — ни вверх, ни вниз. Так уже сделано у
+     * обоих близнецов (корси и ряд цифр), здесь `!isPreset` был потерян: партия
+     * из плейлиста двигала персональный уровень, то есть он менялся не от
+     * результата человека, а от того, попалась ли ему эта игра в наборе.
+     * Понижение — половина беды похуже: три коротких шага зарядки подряд
+     * роняли ступень, которую человек честно взял на тропинке.
+     *
+     * Фаза идёт в комплекте: с выключенным `passed` баннер уровня сказал бы
+     * «почти, ещё раз» там, где человек ничего не провалил. В пресете —
+     * экран итога, как у близнецов; на следующий шаг зарядка уводит сама
+     * (таймер в WarmupContext после записи сессии).
+     */
+    const out = levelOutcome({ isPreset, cleared: finalSpan >= levelParams(levelRef.current).startSpan });
+    const passed = out.passed;
+    if (out.raiseLevel) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
+    if (out.lowerLevel) lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
     setClearedPassed(passed);
-    setPhase('cleared');   // непрерывный поток: и успех, и провал → баннер (passed рулит текстом), авто-рестарт уровня
+    setPhase(out.phase);   // личная партия — баннер (passed рулит текстом), шаг зарядки — итог
     try {
       await saveSession({
         passed,
