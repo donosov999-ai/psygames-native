@@ -438,6 +438,6 @@ const styles = StyleSheet.create({
   ball: { width: 32, height: 32, borderRadius: 16, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 4 },
   ballShine: { position: 'absolute', top: 4, left: 6, width: 11, height: 8, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.55)' },
   hintText: { fontSize: 12, textAlign: 'center', color: '#888', marginTop: 8 },
-  undoBtn: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 18, paddingVertical: 9, borderRadius: 16, borderWidth: 1 },
+  undoBtn: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 18, paddingVertical: 9, borderRadius: 16, borderWidth: 1 },
   undoBtnText: { fontSize: 14, fontWeight: '700' },
 });

@@ -407,6 +407,6 @@ const styles = StyleSheet.create({
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
   stimBox: { width: 320, height: 130, borderRadius: 16, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   choiceGrid: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 360 },
-  colorBtn: { paddingVertical: 14, paddingHorizontal: 18, borderRadius: 10, minWidth: 80, alignItems: 'center' },
+  colorBtn: { minHeight: 48, paddingVertical: 14, paddingHorizontal: 18, borderRadius: 10, minWidth: 80, alignItems: 'center' , justifyContent: 'center'},
   colorBtnText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
 });
