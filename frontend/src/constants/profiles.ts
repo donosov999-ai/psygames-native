@@ -144,7 +144,9 @@ const CHESS: ProfileDef = {
   sales_hook_source: 'Burgoyne et al., 2016, Intelligence — meta-analysis chess+cognition (r=0.24 fluid intelligence ↔ ELO)',
   price_year: 690,
   group: 'themed',
-  // v1.2.0 «1+1+1+1 + 5 темовых»: covers all 4 categories with 5-game bias on logic
+  // Ядро v1.2.0 «1+1+1+1 + 5 темовых» (covers all 4 categories, bias on logic) + chess_blind
+  // (v1.105.0) + четыре игры лаборатории 19.08.2026. Формула описывает ЯДРО, а не длину
+  // списка: набор рос дважды, и сверять его с «девяткой» больше нельзя.
   allowed_games: [
     // Base (1 per category)
     'corsi',             // memory — spatial WM forward (точнее для шахмат чем N-back)
@@ -157,7 +159,12 @@ const CHESS: ProfileDef = {
     'set_game',          // многомерные признаки
     'sudoku',            // логическая дедукция
     'schulte_table',     // сканирование доски
-    'chess_blind',       // v1.105.0 — слепые шахматы: позиция в голове (идея Дениса)
+    'chess_blind',
+    // +4 из лаборатории 19.08.2026 — все про расчёт наперёд, то есть предмет профиля.
+    'dots_connect',      // logic — жадный первый ход запирает четвёртую пару
+    'one_line',          // logic — ошибка не видна сразу, выстреливает через десять ходов
+    'navigator',         // memory — позиция без доски = маршрут без карты
+    'object_tracker',    // attention — удержать несколько фигур, пока позиция меняется       // v1.105.0 — слепые шахматы: позиция в голове (идея Дениса)
   ],
   morning_playlist: [
     { game_id: 'mental_rotation', game_route: '/games/mental-rotation', difficulty: 'medium', settings: { trials: 10 }, est_duration_sec: 120 },
@@ -193,7 +200,8 @@ const KIDS: ProfileDef = {
   sales_hook_en: '🧒 A learning center in your pocket. 5 minutes after school — visible progress by the end of the term.',
   price_year: 490,
   group: 'themed',
-  // v1.2.0 «1+1+1+1 + 5 темовых»: covers all 4 cats with 5-game bias on action (speed/math) for fun
+  // Ядро v1.2.0 «1+1+1+1 + 5 темовых» (all 4 cats, bias on action — speed/math for fun);
+  // + судоку и три игры лаборатории 19.08.2026. Формула про ЯДРО, а не про длину списка.
   allowed_games: [
     // Base
     'picture_pairs',     // memory — классика
@@ -206,7 +214,14 @@ const KIDS: ProfileDef = {
     'anagrams',          // ещё логика (буквенные пазлы)
     'math_sprint',       // ещё action — счёт-гонка
     'counter',           // ещё action — устный счёт
-    'sudoku',            // v1.124.0: логика-головоломка (6×6 выбирается в игре) — по запросу Дениса
+    'sudoku',
+    // 19.08.2026: правила всех трёх объясняются картинкой, читать не нужно.
+    // ⚠️ Дальняя часть лесенки взрослая (8×8 у точек, 12 вершин у линии, три цели у
+    // трекера); потолка уровня в профиле нет, но тропинка не пускает вперёд без
+    // прохождения — до взрослой части ребёнок доходит своим ходом, а не сразу.
+    'dots_connect',
+    'one_line',
+    'object_tracker',    // «следи за помеченными шариками» — понятно без объяснений            // v1.124.0: логика-головоломка (6×6 выбирается в игре) — по запросу Дениса
   ],
   // kids: только утро. Вечер (экран перед сном ребёнку) намеренно ВЫКЛ — добавить по решению Дениса.
   morning_playlist: [
@@ -250,7 +265,7 @@ const VASILYEVA: ProfileDef = {
   sales_hook_source: 'Edwards et al., 2005, J Gerontol — UFOV training expands visual span 22-35% (10-15 hours practice)',
   price_year: 690,
   group: 'themed',
-  // v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention/speed для скорочтения
+  // Ядро v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention/speed для скорочтения; +трекер 19.08.2026
   allowed_games: [
     // Base
     'reading_span',      // memory — WM при чтении
@@ -262,7 +277,10 @@ const VASILYEVA: ProfileDef = {
     'proofreading',      // ещё внимание — фокус на буквы
     'find_differences',  // ещё внимание — визуальная различительность
     'story_recall',      // ещё память — понимание текста
-    'phonemic_fluency',  // ещё логика — беглость речи
+    'phonemic_fluency',
+    // 19.08.2026: удержать 3-4 цели можно только периферией — центральным не успеть.
+    // Прямая мишень скорочтения, логично рядом с Шульте.
+    'object_tracker',  // ещё логика — беглость речи
   ],
   morning_playlist: [
     { game_id: 'schulte_table', game_route: '/games/schulte',       difficulty: 'medium', settings: { size: 6 }, est_duration_sec: 90 },
@@ -389,7 +407,7 @@ const DRIVERS: ProfileDef = {
   sales_hook_source_en: 'Roenker et al., 2003, Human Factors — speed-of-processing training cuts driving errors by 31% (vs control)',
   price_year: 990,
   group: 'themed',
-  // v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention + reaction
+  // Ядро v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention + reaction; +«Навигатор» 19.08.2026
   allowed_games: [
     // Base
     'n_back',             // memory — удержание контекста (зеркала, скорость)
@@ -401,7 +419,11 @@ const DRIVERS: ProfileDef = {
     'visual_search',      // ещё attention — быстрый scan
     'find_differences',   // ещё attention — микро-различия
     'targets',            // ещё action — реакция на объекты
-    'attention_conflict', // ещё action — тормозим импульс (опасность)
+    'attention_conflict',
+    // 19.08.2026. ⚠️ Оговорка честная: весь остальной набор про скорость реакции, а
+    // «Навигатор» без гонки вовсе. Взят потому, что ориентация на маршруте —
+    // профессиональная задача этой аудитории, а не потому что подходит по темпу.
+    'navigator', // ещё action — тормозим импульс (опасность)
   ],
   morning_playlist: [
     { game_id: 'choice_rt', game_route: '/games/choice-rt', difficulty: 'medium', mode: '4dir', settings: { trials: 20 }, est_duration_sec: 70 },
@@ -438,7 +460,8 @@ const SENIORS: ProfileDef = {
   sales_hook_source: 'ACTIVE trial — Rebok et al., 2014, JAMA Intern Med — 10 hours speed training → effects persist 10+ years (N=2832)',
   price_year: 990,
   group: 'themed',
-  // v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory (профилактика деменции)
+  // Ядро v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory (профилактика деменции);
+  // + четыре игры лаборатории 19.08.2026. Формула описывает ЯДРО, а не длину списка.
   allowed_games: [
     // Base
     'picture_pairs',     // memory — образная
@@ -450,7 +473,15 @@ const SENIORS: ProfileDef = {
     'word_pairs',        // ещё memory — вербальная
     'trail_making',      // ещё logic — executive function
     'counter',           // ещё action — устный счёт (бытовой)
-    'anagrams',          // ещё logic — vocab (когда много читали)
+    'anagrams',
+    // +4 из лаборатории 19.08.2026. Все четыре без часов и без проигрыша по времени —
+    // думать можно сколько нужно. ⚠️ «Ритм и высота» сюда НЕ взята намеренно: верх её
+    // диапазона 880 Гц, а возрастная потеря высоких частот реальна — сначала проверка
+    // на человеке 60+, потом набор.
+    'faces_names',       // ГЛАВНАЯ бытовая жалоба стареющей памяти, и её никто здесь не тренировал
+    'navigator',         // топографическая дезориентация — ранний и самый пугающий признак
+    'memory_palace',     // нагрузка растёт содержанием, а не скоростью
+    'dots_connect',      // ошибка обратима «протянуть назад», проигрыша по времени нет          // ещё logic — vocab (когда много читали)
   ],
   morning_playlist: [
     { game_id: 'schulte_table', game_route: '/games/schulte',       difficulty: 'medium', settings: { size: 5 }, est_duration_sec: 60 },
@@ -459,6 +490,10 @@ const SENIORS: ProfileDef = {
     { game_id: 'number_bonds',  game_route: '/games/number-bonds',  difficulty: 'easy',   settings: { trials: 8 }, est_duration_sec: 80 },
   ],
   evening_playlist: [
+    // 19.08.2026: вечер — её слот. Задержку между изучением и проверкой даёт число
+    // примеров, а не секундомер, поэтому правило «вечером таймеров нет» соблюдено.
+    // Уровень 6: три человека, две помехи, два варианта ответа, фактов ещё нет.
+    { game_id: 'faces_names',   game_route: '/games/faces-names',   difficulty: 'easy',   settings: { level: 6 }, est_duration_sec: 110 },
     { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy',   settings: { pairsCount: 8 }, est_duration_sec: 120 },
     { game_id: 'mnemonics',     game_route: '/games/mnemonics',     difficulty: 'easy',   mode: 'words', settings: { itemCount: 10 }, est_duration_sec: 90 },
     { game_id: 'memory_matrix', game_route: '/games/memory-matrix', difficulty: 'medium', mode: 'static', settings: { size: 4 }, est_duration_sec: 120 },
@@ -487,7 +522,8 @@ const EXECS: ProfileDef = {
   sales_hook_en: '💼 Better decisions under pressure. A mistake costs a million — training costs 15 minutes a day.',
   price_year: 990,
   group: 'themed',
-  // v1.2.0 «1+1+1+1 + 5 темовых»: bias on logic (decisions + risk)
+  // Ядро v1.2.0 «1+1+1+1 + 5 темовых»: bias on logic (decisions + risk);
+  // + четыре игры лаборатории 19.08.2026. Формула описывает ЯДРО, а не длину списка.
   allowed_games: [
     // Base
     'n_back',            // memory — WM под нагрузкой (DUAL внутри)
@@ -499,7 +535,12 @@ const EXECS: ProfileDef = {
     'iowa',              // ещё logic — long-term strategy
     'prl',               // ещё logic — reversal learning (меняющиеся правила)
     'switching_task',    // ещё logic — multitasking
-    'math_sprint',       // ещё action — быстро считать в уме
+    'math_sprint',
+    // +4 из лаборатории 19.08.2026 — дешёвый локальный ход против дорогого глобального.
+    'dots_connect',      // планирование под ограничением ресурса
+    'one_line',          // цена ошибки видна не сразу, а через десять ходов
+    'faces_names',       // имена на переговорах — прикладной навык, а не абстрактная память
+    'memory_palace',     // повестка и порядок пунктов без записи       // ещё action — быстро считать в уме
   ],
   morning_playlist: [
     { game_id: 'switching_task', game_route: '/games/switching-task', difficulty: 'medium', settings: { trials: 20 }, est_duration_sec: 120 },
@@ -508,6 +549,9 @@ const EXECS: ProfileDef = {
     { game_id: 'math_sprint',    game_route: '/games/math-sprint',    difficulty: 'medium', settings: { duration: 60 }, est_duration_sec: 65 },
   ],
   evening_playlist: [
+    // 19.08.2026: имена на переговорах — прикладной навык этой аудитории. Уровень 12:
+    // четыре человека, три помехи, факт уже в деле. Отсчёта в игре нет — вечеру не мешает.
+    { game_id: 'faces_names',  game_route: '/games/faces-names',  difficulty: 'medium', settings: { level: 12 }, est_duration_sec: 170 },
     { game_id: 'tower_london', game_route: '/games/tower-london', difficulty: 'medium', settings: { trials: 5 }, est_duration_sec: 150 },
     { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
     { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy',   mode: 'words', settings: { itemCount: 10 }, est_duration_sec: 90 },
@@ -539,7 +583,8 @@ const STUDENTS: ProfileDef = {
   sales_hook_source: 'Sala & Gobet, 2017, Educational Research Review — cognitive training improves academic outcomes (d=0.30 transfer effect)',
   price_year: 490,
   group: 'themed',
-  // v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory + action (скорость на экзамене)
+  // Ядро v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory + action (скорость на экзамене);
+  // + четыре игры лаборатории 19.08.2026. Формула описывает ЯДРО, а не длину списка.
   allowed_games: [
     // Base
     'reading_span',      // memory — WM при чтении (понимание текста)
@@ -551,7 +596,12 @@ const STUDENTS: ProfileDef = {
     'story_recall',      // ещё memory — удержание прочитанного
     'memory_matrix',     // ещё memory — зрительная (карты, схемы)
     'anagrams',          // ещё logic — вербальная гибкость
-    'counter',           // ещё action — устный счёт
+    'counter',
+    // +4 из лаборатории 19.08.2026.
+    'memory_palace',     // метод мест — учебная техника в чистом виде: списки, определения, порядок
+    'faces_names',       // имена авторов и терминов — то же связывание образа со словом
+    'dots_connect',      // тихая головоломка без таймера, разгрузка между фокус-блоками
+    'one_line',          // логика без языка и без счёта — годится любому факультету           // ещё action — устный счёт
   ],
   morning_playlist: [
     { game_id: 'n_back',         game_route: '/games/n-back',         difficulty: 'medium', settings: { nLevel: 2, modality: 'single', trials: 20 }, est_duration_sec: 90 },
@@ -704,7 +754,10 @@ const POLYGLOT: ProfileDef = {
     // TIER 2 (v1.104.0) — аудио через системный TTS
     'phoneme_pairs',     // attention — различение фонем (минимальные пары на слух)
     'pseudoword_echo',   // memory — фонологическая петля (псевдослова на слух)
-    'listening_span',    // memory — слуховой охват (слова на слух, порядок)
+    'listening_span',
+    // memory — невербальный слух: ритм и высота (просодия, тоновые языки). 19.08.2026.
+    // Три слуховые игры профиля работают через СЛОВО; здесь слух, не опирающийся на язык.
+    'rhythm_pitch',    // memory — слуховой охват (слова на слух, порядок)
   ],
   // v1.23 «Комплексы» — фиксированные утро/вечер (F1, end-to-end demo на полиглоте).
   // targetLang='en' дефолт; если UI=en, игра сама переключит цель (фолбэк в word-pairs).

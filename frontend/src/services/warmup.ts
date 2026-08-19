@@ -199,6 +199,11 @@ const TRAINING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
     { game_id: 'mental_rotation',game_route: '/games/mental-rotation', difficulty: 'easy',   trials: 5,     est_duration_sec: 90 },
     { game_id: 'posner',         game_route: '/games/posner',          difficulty: 'medium', trials: 20,    est_duration_sec: 90 },
     { game_id: 'sdmt',           game_route: '/games/sdmt',            difficulty: 'medium', mode: '60s',   est_duration_sec: 70 },
+    // Внимание к ДВИЖУЩЕМУСЯ — в дне его больше нет ни у кого. level 9 = две цели из
+    // 6-9 объектов: уже не «следи за одним», но ещё без перегруза (INTEGRATION §7).
+    // ⚠️ В вечерний и ночной набор НЕ ставить: раунд нельзя делать вполглаза, а
+    // вечерний слот существует ровно для обратного.
+    { game_id: 'object_tracker', game_route: '/games/object-tracker', difficulty: 'medium', settings: { level: 9 }, est_duration_sec: 60 },
   ],
   // СР — рабочая память. В неделе она иначе НЕ тренируется: n-back, corsi и
   // digit span стоят только в замерах ЧТ/ВС, то есть их меряют, но не качают.
@@ -209,6 +214,23 @@ const TRAINING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
     { game_id: 'corsi',       game_route: '/games/corsi',       difficulty: 'easy',                              est_duration_sec: 90 },
     { game_id: 'digit_span',  game_route: '/games/digit-span',  difficulty: 'easy', mode: 'forward',             est_duration_sec: 90 },
     { game_id: 'anagrams',    game_route: '/games/anagrams',    difficulty: 'easy',                              est_duration_sec: 90 },
+    /**
+     * Две игры лаборатории, 19.08.2026: слуховая рабочая память и метод мест. Обе
+     * про память, обеим место в дне памяти, и обе в неделе не тренируются больше нигде.
+     *
+     * ⚠️ level У «Ритма» ПРИБИТ НАРОЧНО, хотя INTEGRATION §6 уровня не называет.
+     * Без него шаг взял бы сохранённый уровень человека, а на верхних уровнях допуск
+     * ритма сжимается до 34 мс (INTEGRATION §2а: замер показал зачёт 1 партии из 3 уже
+     * на первом уровне). Прибитая третья ступень делает шаг предсказуемым, как у всех.
+     *
+     * 🔴 «Ритм и высота» НЕ идёт в EVENING_BY_WEEKDAY, NIGHT_STEPS и COOLDOWN_POOL:
+     * там calm=1 → soundOn() === false, а звук здесь и есть содержание задания.
+     * Шаг стал бы тупиком — партия не сыграна, сессия не записана, набор стоит.
+     * «Дворец памяти» вечером не запрещён технически, но требует произвольного
+     * усилия на «оживите ассоциации» — это против задачи вечернего набора.
+     */
+    { game_id: 'rhythm_pitch',  game_route: '/games/rhythm-pitch',  difficulty: 'easy', settings: { level: 3 }, est_duration_sec: 90 },
+    { game_id: 'memory_palace', game_route: '/games/memory-palace', difficulty: 'easy', settings: { level: 3 }, est_duration_sec: 180 },
   ],
   // ЧТ — PEAK MEASUREMENT (after BOOST)
   4: FIXED_BATTERY,
@@ -233,6 +255,10 @@ const TRAINING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
     { game_id: 'set_game',       game_route: '/games/set-game',        difficulty: 'medium', trials: 6,             est_duration_sec: 120 },
     { game_id: 'mental_rotation',game_route: '/games/mental-rotation', difficulty: 'medium', trials: 10,            est_duration_sec: 120 },
     { game_id: 'word_pairs',     game_route: '/games/word-pairs',      difficulty: 'easy',   mode: '6 pairs',       est_duration_sec: 90 },
+    // Эйлеров путь: шесть вершин, граф без подсказки старта — собирается за минуту-полторы.
+    // ⚠️ Вечером не ставить: человек упирается в тупик и переигрывает, это активирующая
+    // нагрузка. Та же логика, по которой у маджонга вечером прячут секундомер.
+    { game_id: 'one_line',       game_route: '/games/one-line',        difficulty: 'medium', settings: { level: 6 }, est_duration_sec: 120 },
   ],
   // ВС — BASELINE MEASUREMENT (before BOOST)
   0: FIXED_BATTERY,

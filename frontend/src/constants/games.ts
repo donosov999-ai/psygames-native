@@ -88,6 +88,18 @@ export const GAMES: GameConfig[] = [
     route: '/games/find-differences',
     category: 'attention',
   },
+  // ⚠️ Градиент зашит и в экране (GRADIENT в app/games/object-tracker.tsx): меняешь
+  // здесь — меняй и там, иначе снаружи карточка одного цвета, а внутри игра другого.
+  {
+    id: 'object_tracker',
+    nameKey: 'objectTracker',
+    descKey: 'objectTrackerDesc',
+    skillKey: 'skillAttention',
+    gradient: ['#f59e0b', '#7c3aed'],
+    icon: 'radio-button-on',
+    route: '/games/object-tracker',
+    category: 'attention',
+  },
   {
     id: 'eye_gym',
     nameKey: 'eyeGym',
@@ -186,6 +198,18 @@ export const GAMES: GameConfig[] = [
     route: '/games/pseudoword-echo',
     category: 'memory',
   },
+  // Индиго → бирюза. Предложенный лабораторией #7c3aed→#ec4899 ЗАНЯТ хабом
+  // «Конфликт внимания» — две карточки читались бы близнецами.
+  {
+    id: 'rhythm_pitch',
+    nameKey: 'rhythmPitch',
+    descKey: 'rhythmPitchDesc',
+    skillKey: 'skillListening',
+    gradient: ['#4338ca', '#22d3ee'],
+    icon: 'musical-notes',
+    route: '/games/rhythm-pitch',
+    category: 'memory',
+  },
   {
     id: 'listening_span',
     nameKey: 'listeningSpan',
@@ -215,6 +239,20 @@ export const GAMES: GameConfig[] = [
     gradient: ['#4facfe', '#00f2fe'],
     icon: 'bulb',
     route: '/games/mnemonics',
+    category: 'memory',
+  },
+  // ⚠️ id менять нельзя: этим ключом уже записаны уровень, звёзды, незаконченная
+  // партия и game_type в истории сессий — переименование стирает весь прогресс.
+  // Градиент под вуалью GradientSurface: сплошным цветом белый берёт на фиолетовом
+  // только 4.23, до AA не хватает.
+  {
+    id: 'memory_palace',
+    nameKey: 'memoryPalace',
+    descKey: 'memoryPalaceDesc',
+    skillKey: 'skillSequence',
+    gradient: ['#8b5cf6', '#0f766e'],
+    icon: 'map',
+    route: '/games/memory-palace',
     category: 'memory',
   },
   {
@@ -256,6 +294,18 @@ export const GAMES: GameConfig[] = [
     gradient: ['#f857a6', '#ff5858'],
     icon: 'heart',
     route: '/games/picture-pairs',
+    category: 'memory',
+  },
+  // ⚠️ Градиент менять только с пересчётом: onGradientText считает по ОБОИМ концам,
+  // и тот же цвет уходит внутрь партии подписью на кнопках ответа.
+  {
+    id: 'faces_names',
+    nameKey: 'facesNames',
+    descKey: 'facesNamesDesc',
+    skillKey: 'skillMemory',
+    gradient: ['#7c3f58', '#256f68'],
+    icon: 'people',
+    route: '/games/faces-names',
     category: 'memory',
   },
   // Маджонг-солитёр: ищи парные СВОБОДНЫЕ тайлы в псевдо-3D пирамиде, убирай всё.
@@ -310,6 +360,17 @@ export const GAMES: GameConfig[] = [
     route: '/games/spatial-span',
     category: 'memory',
     hideFromMenu: true, // merged into 'span_group'
+  },
+  // ⚠️ Тот же градиент зашит в экране (GRADIENT в app/games/navigator.tsx).
+  {
+    id: 'navigator',
+    nameKey: 'navigator',
+    descKey: 'navigatorDesc',
+    skillKey: 'skillSpatial',
+    gradient: ['#2563eb', '#14b8a6'],
+    icon: 'compass',
+    route: '/games/navigator',
+    category: 'memory',
   },
   // Group card combining digit_span + corsi + spatial_span
   {
@@ -423,6 +484,30 @@ export const GAMES: GameConfig[] = [
     gradient: ['#3a1c71', '#d76d77'],
     icon: 'git-branch',
     route: '/games/tower-london',
+    category: 'logic',
+  },
+  // ⚠️ Градиент зашит в экране и по нему посчитан цвет текста на плашке: оба конца
+  // берут AA белым (5.17 и 5.47), вуаль не нужна. Меняешь — пересчитывай.
+  {
+    id: 'dots_connect',
+    nameKey: 'dotsConnect',
+    descKey: 'dotsConnectDesc',
+    skillKey: 'skillPlanning',
+    gradient: ['#2563eb', '#0f766e'],
+    icon: 'share-social',
+    route: '/games/dots-connect',
+    category: 'logic',
+  },
+  // ⚠️ Тот же градиент зашит в экране. Левый конец сдвинут с #7c3aed нарочно:
+  // тот совпадал с хабом «Конфликт внимания». Белый даёт 7.90 и 4.60 — вуаль не нужна.
+  {
+    id: 'one_line',
+    nameKey: 'oneLine',
+    descKey: 'oneLineDesc',
+    skillKey: 'skillPlanning',
+    gradient: ['#4338ca', '#db2777'],
+    icon: 'share-social',
+    route: '/games/one-line',
     category: 'logic',
   },
 
