@@ -33,7 +33,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
 import LeaderboardModal from '@/src/components/LeaderboardModal';
-import { fetchBest, getPersonalBest, submitScore } from '@/src/services/leaderboard';
+import { countsForRecord, fetchBest, getPersonalBest, submitScore } from '@/src/services/leaderboard';
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
@@ -313,8 +313,11 @@ export default function SchulteGame() {
     const passed = !isPreset && useLevelRef.current && errsArg <= 2;
     if (passed) lvl.reach(levelRef.current + 1);
     else if (!isPreset && useLevelRef.current) lvl.fail();   // не прошёл чисто по уровню → гистерезис понижения
-    // Лидерборд + спарклайн — только «классика» (иначе время между режимами несравнимо)
-    if (gridSize === 5 && contentMode === 'numbers' && direction === 'forward' && !colorMode && groupCount <= 1 && !reshuffleOnClick) {
+    // Лидерборд + спарклайн — только «классика» (иначе время между режимами несравнимо).
+    // Само условие живёт в services/leaderboard.ts рядом с описанием игры: пока оно
+    // стояло здесь, «какая конфигурация считается» знал только этот экран, и проверить
+    // это исполнением было нечем — теперь это чистая функция, и её гоняет гейт.
+    if (countsForRecord('schulte_table_5x5', { gridSize, contentMode, direction, colorMode, groupCount, reshuffleOnClick })) {
       // UI сразу получает честный офлайн-фолбэк; сеть и сохранённый личный рекорд
       // уточнят строку асинхронно и не задержат переход на экран итога.
       setResultBenchmark({ own: finalTime, best: finalTime, source: 'personal' });

@@ -21,6 +21,8 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LeaderboardModal from '@/src/components/LeaderboardModal';
+import { countsForRecord, submitScore } from '@/src/services/leaderboard';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 
@@ -82,6 +84,7 @@ export default function DigitSpanGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const showTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const levelRef = useRef(1);
   const showMsRef = useRef(700);
@@ -200,6 +203,12 @@ export default function DigitSpanGame() {
           details: { level: levelRef.current, maxSpan: updatedMax, correctRounds: updatedCorrect, finalLength: seqLen },
         });
       } catch (e) { console.error(e); }
+      // Рекорд — только партия первого уровня: длина старта и темп показа выводятся из
+      // уровня, поэтому спан с разных ступеней несравним (см. LEADERBOARD_GAMES.digit_span).
+      // Незачётная партия отваливается молча — человек играл, а не сдавал норматив.
+      if (countsForRecord('digit_span', { isPreset, level: levelRef.current })) {
+        submitScore('digit_span', updatedMax).catch(() => {});   // тихо — лидерборд необязателен
+      }
     } else {
       setSeqLen(correct ? nextLen : seqLen);
       setRound((r) => r + 1);
@@ -217,6 +226,11 @@ export default function DigitSpanGame() {
       </LinearGradient>
       <GameAbout descriptionKey="digitSpanIntroDesc" benefits={DIGIT_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="digit_span" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
+        <Ionicons name="trophy-outline" size={18} color={colors.text} />
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('leaderboardLevel1')}</Text>
+      </TouchableOpacity>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('directionLabel')}</Text>
         <View style={styles.optionButtons}>
@@ -365,6 +379,11 @@ export default function DigitSpanGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
+      <LeaderboardModal
+        visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
+        gameId="digit_span" language={language} colors={colors} gradient={GRADIENT}
+        formatScore={(s) => String(Math.round(s))}
+      />
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
         <LevelCleared gameId="digit_span" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}

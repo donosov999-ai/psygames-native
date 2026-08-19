@@ -1619,6 +1619,10 @@ const translations: Translations = {
   leaguesEmpty: { ru: 'Сыграйте что-нибудь — и лига появится.', en: 'Play something and your league will appear.' },
   leaderboardTitle: { ru: '🏆 Топ игроков', en: '🏆 Leaderboard' },
   leaderboardEmpty: { ru: 'Пока пусто — стань первым!', en: 'Empty so far — be the first!' },
+  // Показывается вместо пустой таблицы: чужих результатов не пришло (нет сети, домен
+  // режется, таблица новой игры ещё пуста), но свой рекорд есть — и пустота вместо него
+  // читалась бы как поломка приложения.
+  leaderboardPersonalOnly: { ru: 'Чужих результатов пока нет. Твой рекорд:', en: 'No other results yet. Your record:' },
   bestAmongPlayers: { ru: 'Лучший среди игроков', en: 'Best among players' },
   levelOfMax: { ru: 'Уровень {n}/{max}', en: 'Level {n}/{max}' },
   // Для проверенных методик (Iowa, RMET, охват) уровень НИЧЕГО не усложняет — он
@@ -1815,6 +1819,10 @@ const translations: Translations = {
   playLevelN: { ru: 'Уровень {n} — играть', en: 'Play level {n}' },
   lvlTargetBtn: { ru: '🎯 Уровень {n} →', en: '🎯 Level {n} →' },
   leaderboardLabel: { ru: 'Топ игроков', en: 'Leaderboard' },
+  // Подпись кнопки в играх с лестницей уровней: в рекорд идёт только партия первого
+  // уровня (единственная конфигурация, одинаковая у всех), и подпись обязана это
+  // сказать — иначе человек сыграет десятый и не поймёт, почему его нет в таблице.
+  leaderboardLevel1: { ru: 'Топ игроков (уровень 1)', en: 'Leaderboard (level 1)' },
   timeIsUp: { ru: 'Время вышло', en: 'Time is up' },
   timeLeftLabel: { ru: 'Осталось', en: 'Time left' },
   themeLabel: { ru: 'Тема', en: 'Theme' },

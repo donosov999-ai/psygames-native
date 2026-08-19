@@ -35,6 +35,8 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LeaderboardModal from '@/src/components/LeaderboardModal';
+import { countsForRecord, submitScore } from '@/src/services/leaderboard';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
@@ -84,6 +86,7 @@ export default function ChoiceRtGame() {
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const [round, setRound] = useState(0);
   const [totalTrials, setTotalTrials] = useState(12);
@@ -207,6 +210,13 @@ export default function ChoiceRtGame() {
         },
       });
     } catch (err) { console.error(err); }
+    // Рекорд — только партия первого уровня (12 проб, две стрелки) и только «12 из 12»:
+    // число альтернатив это закон Хика, RT на двух и четырёх стрелках несравнимо, а в
+    // среднее попадают ТОЛЬКО верные ответы — без гейта выгодно жать наугад и ронять
+    // сомнительные пробы в тайм-аут (см. LEADERBOARD_GAMES.choice_rt).
+    if (countsForRecord('choice_rt', { isPreset, level: levelRef.current, hits: h, trials: totalTrialsRef.current })) {
+      submitScore('choice_rt', Math.round(meanRt)).catch(() => {});   // тихо — лидерборд необязателен
+    }
   };
 
   const handlePress = (chosen: Direction) => {
@@ -244,6 +254,11 @@ export default function ChoiceRtGame() {
         <GameAbout descriptionKey="choiceRtIntroDesc" benefits={CHOICE_BENEFITS} accent={GRADIENT[0]} />
 
         <LevelProgressMap gameId="choice_rt" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
+          <Ionicons name="trophy-outline" size={18} color={colors.text} />
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('leaderboardLevel1')}</Text>
+        </TouchableOpacity>
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}
@@ -371,6 +386,11 @@ export default function ChoiceRtGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
+      <LeaderboardModal
+        visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
+        gameId="choice_rt" language={language} colors={colors} gradient={GRADIENT}
+        formatScore={(s) => `${Math.round(s)} ms`}
+      />
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'gonogo', gradient: GRADIENT as [string, string] }}
