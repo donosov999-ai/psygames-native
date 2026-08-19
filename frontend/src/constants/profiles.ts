@@ -65,7 +65,15 @@ export interface ProfileDef {
    *  - 'paid' = коммерческий themed-профиль (default)
    *  Это меняет ТОЛЬКО визуальное представление в switcher/landing,
    *  не влияет на логику unlock или allowed_games. */
-  tier?: 'trial' | 'paid' | 'owner';
+  /**
+   * ⚠️ `owner` ЗНАЧИТ «СКРЫТ ИЗ ВЫБОРА», а не «не продаётся». Свитчер прячет
+   * такие профили фильтром, и это правильно для ODV999 — он открывается
+   * мастер-кодом. Но «Новинки» я по ошибке пометил так же, желая сказать «не
+   * продаётся», и витрина свежей работы стала невидимой: заведена, переведена,
+   * считает состав по датам — и не показывается никому. Отсюда `showcase`:
+   * виден всем, но не продаётся и не имеет цены.
+   */
+  tier?: 'trial' | 'paid' | 'owner' | 'showcase';
   /** Цена годовой подписки в рублях (v1.8.0). 0 / undefined = бесплатно / не продаётся. */
   price_year?: number;
   /** Опциональная зачёркнутая «старая цена» для psychology (показать со скидкой). */
@@ -811,7 +819,7 @@ const WHATSNEW: ProfileDef = {
   audience: 'Посмотреть, что нового',
   audience_en: 'See what changed',
   session_minutes: '5-15 мин',
-  tier: 'owner',
+  tier: 'showcase',   // виден в выборе, но не продаётся
   group: 'personal',
   /**
    * ⚠️ Считается ОДИН раз при загрузке модуля, а не на каждый показ. Состав
@@ -853,6 +861,24 @@ export const PROFILE_BY_ID: Record<ProfileId, ProfileDef> = PROFILES.reduce((acc
 }, {} as Record<ProfileId, ProfileDef>);
 
 /** Profiles grouped for Settings UI */
+/**
+ * ПОКАЗЫВАТЬ ЛИ ПРОФИЛЬ В ВЫБОРЕ. Одно правило на приложение, а не условие,
+ * переписанное в разметке экрана.
+ *
+ * 🔴 Раньше фильтр жил прямо в свитчере строкой `p.tier !== 'owner'`, и проверить
+ * его было нечем: профиль пропадал из выбора молча, будучи полностью заведённым.
+ * Ровно так исчезли «Новинки» — заведены, переведены, состав считается по датам,
+ * а в списке их нет. Теперь правило вынесено и проверяется исполнением.
+ */
+export function isSwitchable(p: ProfileDef): boolean {
+  return p.tier !== 'owner';
+}
+
+/** Профили, скрытые из выбора НАМЕРЕННО, с причиной. Список закрыт. */
+export const HIDDEN_FROM_SWITCHER: Record<string, string> = {
+  odv999: 'полный доступ владельца, открывается мастер-кодом — в общем списке ему не место',
+};
+
 export const PROFILES_BY_GROUP = {
   personal: PROFILES.filter(p => !p.group || p.group === 'personal'),
   themed:   PROFILES.filter(p => p.group === 'themed'),

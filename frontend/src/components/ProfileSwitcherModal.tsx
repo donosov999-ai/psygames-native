@@ -20,7 +20,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import type { ProfileDef } from '@/src/constants/profiles';
-import { BUNDLE_ALL_THEMED_PRICE, CORPORATE_PACK_PRICE, CORPORATE_PACK_MAX_CODES, isForSale, formatPrice, MONETIZATION_ENABLED, CODE_ENTRY_ENABLED } from '@/src/constants/profiles';
+import { BUNDLE_ALL_THEMED_PRICE, CORPORATE_PACK_PRICE, CORPORATE_PACK_MAX_CODES, isForSale, formatPrice, MONETIZATION_ENABLED, CODE_ENTRY_ENABLED, isSwitchable } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { a11yDecor, a11yModal } from '@/src/services/a11y';
@@ -161,7 +161,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
 
               {/* Grid */}
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start' }}>
-                {allProfiles.filter((p) => p.tier !== 'owner').map((p) => {
+                {allProfiles.filter(isSwitchable).map((p) => {
                   const active = p.id === profile.id;
                   const accessible = isAccessible(p.id);
                   const locked = !accessible;
