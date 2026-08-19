@@ -144,6 +144,8 @@ const ALREADY: Record<string, string> = {
 
 /** Экран не игровой — строке «что делать» неоткуда взяться и незачем. */
 const NOT_A_GAME: Record<string, string> = {
+  'rhythm-pitch.tsx':
+    'экран-обёртка: партию рисует модуль src/games/rhythm-pitch/RhythmPitchGame.tsx, строка живёт там и своя на каждый тип задания (strings.rhythmPrompt «Повторите услышанный ритм», strings.pitchDirectionPrompt «Второй звук был выше или ниже?», strings.pitchSequencePrompt «Повторите путь высот»), а во время звука её место занимает strings.listening; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт rhythm-pitch-integration.test.ts',
   'dots-connect.tsx':
     'экран-обёртка: партию рисует модуль src/games/dots-connect/DotsConnectGame.tsx, строка живёт там (strings.rulesBody + strings.rulesCoverage на правилах, strings.trainingHint на тренировке, roundLabel над доской) вместе со своим словарём; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт dots-connect-integration.test.ts',
   'attention-conflict.tsx': 'хаб: меню из четырёх парадигм, отсюда уходят в саму игру — играть тут не в чем',
