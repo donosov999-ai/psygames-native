@@ -73,7 +73,6 @@ const DEBT: string[] = [
   'app/games/sdmt.tsx',
   'app/games/spatial-span.tsx',
   'app/games/sudoku-fractal.tsx',
-  'app/games/sudoku-samurai.tsx',
   'app/games/sudoku.tsx',
   'app/games/switching-task.tsx',
   'app/games/targets.tsx',
@@ -135,7 +134,7 @@ describe('ширина экрана', () => {
   });
 
   it('долг не растёт', () => {
-    expect(DEBT.length).toBeLessThanOrEqual(35);
+    expect(DEBT.length).toBeLessThanOrEqual(34);
   });
 
   it('каждое исключение существует и объяснено', () => {
