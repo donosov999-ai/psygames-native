@@ -100,6 +100,14 @@ const translations: Translations = {
   finBrainMeta: { ru: 'Iowa→BART→PRL · ~25 мин', en: 'Iowa→BART→PRL · ~25 min' },
 
   // Profiles — display_name + description (consumed via t('profileName_'+id) / t('profileDesc_'+id))
+  /**
+   * ⚠️ Витрина свежего. Ключи заведены НЕ сразу: профиль сперва был скрыт из
+   * выбора (`tier: 'owner'`), и его подписи никто не запрашивал. Как только он
+   * стал виден, человек увидел на карточке сырые `profileName_whatsnew` —
+   * ровно та беда, из-за которой существует гейт битых вызовов словаря.
+   */
+  profileName_whatsnew: { ru: 'Новинки', en: 'What\'s new' },
+  profileDesc_whatsnew: { ru: 'Новое и обновлённое за 3 месяца', en: 'New and reworked over 3 months' },
   profileName_odv999: { ru: 'ODV999', en: 'ODV999' },
   profileDesc_odv999: { ru: 'Все {n} игр · Зарядка · Financial · Assessment', en: 'All {n} games · Warm-up · Financial · Assessment' },
   profileName_chess: { ru: 'Шахматист', en: 'Chess Player' },

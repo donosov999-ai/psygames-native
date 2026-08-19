@@ -39,6 +39,8 @@ const t: Record<string, string> = {
   "profileDesc_vasilyeva": "المجال البصري · سرعة العين · استبقاء النص",
   "profileName_nzt48": "NZT-48 (كامل)",
   "profileDesc_nzt48": "بطارية اختبارات جبهية كاملة · الحد الأقصى",
+  "profileName_whatsnew": "الجديد",
+  "profileDesc_whatsnew": "جديد ومُحدَّث خلال 3 أشهر",
   "profileName_free": "قياسي",
   "profileDesc_free": "٩ تمارين · مجموعة مختارة للبداية",
   "profileName_drivers": "رد الفعل PRO",

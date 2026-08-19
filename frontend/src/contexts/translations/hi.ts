@@ -532,6 +532,8 @@ const t: Record<string, string> = {
   "profileDesc_vasilyeva": "दृष्टि क्षेत्र · नेत्र गति · पाठ धारण",
   "profileName_nzt48": "NZT-48 (पूर्ण)",
   "profileDesc_nzt48": "पूर्ण प्रीफ्रंटल बैटरी · अधिकतम",
+  "profileName_whatsnew": "नया क्या है",
+  "profileDesc_whatsnew": "3 महीनों में नया और बेहतर",
   "profileName_free": "मानक",
   "profileDesc_free": "9 अभ्यास · शुरुआत के लिए चुना गया सेट",
   "profileName_drivers": "रिएक्शन PRO",

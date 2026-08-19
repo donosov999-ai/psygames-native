@@ -12,6 +12,7 @@
  * а ПРАВИЛО, вынесенное из неё, и проверяется исполнением.
  */
 import { PROFILES, isSwitchable, HIDDEN_FROM_SWITCHER, PROFILE_BY_ID } from '@/src/constants/profiles';
+import { translateFor } from '@/src/contexts/LanguageContext';
 
 describe('видимость профилей в выборе', () => {
   it('есть что проверять — иначе тест зелен вслепую', () => {
@@ -44,6 +45,28 @@ describe('видимость профилей в выборе', () => {
     const wn = PROFILE_BY_ID['whatsnew' as never];
     expect(`профиль есть: ${!!wn}`).toBe('профиль есть: true');
     expect(`виден: ${isSwitchable(wn)}`).toBe('виден: true');
+  });
+
+  /**
+   * 🔴 У ВИДИМОГО ПРОФИЛЯ ОБЯЗАНЫ БЫТЬ ПОДПИСИ. Свитчер зовёт их как
+   * `t('profileName_' + id)`, и отсутствующий ключ человек видит на карточке
+   * сырым: «profileName_whatsnew». Ровно это и случилось, когда витрину
+   * показали, — ключи никто не заводил, потому что раньше её никто не
+   * запрашивал. Проверка нужна именно здесь: гейт словаря ловит битые вызовы
+   * по коду, а этот вызов собирается из строки на лету и в код не попадает.
+   */
+  it('🔴 у каждого видимого профиля есть название и описание в словаре', () => {
+    const missing: string[] = [];
+    for (const p of PROFILES) {
+      if (!isSwitchable(p)) continue;
+      for (const key of [`profileName_${p.id}`, `profileDesc_${p.id}`]) {
+        // Спрашиваем ровно то, что увидит человек: перевод, а не наличие ключа
+        // в каком-то объекте. Вернулся сам ключ — значит на карточке будет он.
+        const shown = translateFor('ru', key);
+        if (!shown || shown === key) missing.push(`${p.id}: ${key} не переведён — человек увидит имя ключа`);
+      }
+    }
+    expect(missing).toEqual([]);
   });
 
   /** Витрина не продаётся: у неё не может быть цены. */

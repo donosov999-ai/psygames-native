@@ -529,6 +529,8 @@ const t: Record<string, string> = {
   "profileDesc_vasilyeva": "视野范围 · 眼动速度 · 文本记忆",
   "profileName_nzt48": "NZT-48（完整版）",
   "profileDesc_nzt48": "完整前额叶训练组 · 最大强度",
+  "profileName_whatsnew": "新上线",
+  "profileDesc_whatsnew": "近三个月的新增与改版",
   "profileName_free": "标准",
   "profileDesc_free": "9 项训练 · 为入门精选的一组",
   "profileName_drivers": "反应 PRO",

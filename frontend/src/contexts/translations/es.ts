@@ -529,6 +529,8 @@ const t: Record<string, string> = {
   "profileDesc_vasilyeva": "Campo visual · velocidad ocular · retención del texto",
   "profileName_nzt48": "NZT-48 (completo)",
   "profileDesc_nzt48": "Batería prefrontal completa · máximo",
+  "profileName_whatsnew": "Novedades",
+  "profileDesc_whatsnew": "Nuevo y renovado en 3 meses",
   "profileName_free": "Estándar",
   "profileDesc_free": "9 ejercicios · una selección para empezar",
   "profileName_drivers": "Reacción PRO",
