@@ -529,6 +529,8 @@ const t: Record<string, string> = {
   "profileDesc_vasilyeva": "Blickfeld · Augentempo · Textgedächtnis",
   "profileName_nzt48": "NZT-48 (komplett)",
   "profileDesc_nzt48": "Volle präfrontale Batterie · Maximum",
+  "profileName_whatsnew": "Neuheiten",
+  "profileDesc_whatsnew": "Neu und überarbeitet in 3 Monaten",
   "profileName_free": "Standard",
   "profileDesc_free": "9 Trainer · ein kuratiertes Set für den Start",
   "profileName_drivers": "Reaktion PRO",

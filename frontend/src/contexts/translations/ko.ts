@@ -39,6 +39,8 @@ const t: Record<string, string> = {
   "profileDesc_vasilyeva": "시야 · 시선 이동 속도 · 내용 기억",
   "profileName_nzt48": "NZT-48 (전체)",
   "profileDesc_nzt48": "전전두엽 종합 훈련 · 최고 강도",
+  "profileName_whatsnew": "새 소식",
+  "profileDesc_whatsnew": "최근 3개월 신규·개편",
   "profileName_free": "표준",
   "profileDesc_free": "9가지 훈련 · 시작을 위한 엄선된 구성",
   "profileName_drivers": "반응 PRO",
