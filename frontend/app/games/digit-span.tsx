@@ -25,11 +25,7 @@ import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const DS_RULES: LevelRule[] = [
-  {
-    key: 'reverse', fromLevel: 11,
-    ru: { title: 'Ввод с конца', rule: 'С этого уровня вводи цифры В ОБРАТНОМ порядке — от последней к первой.', example: 'Пример: показано 4 9 2 — вводи 294.' },
-    en: { title: 'Type backwards', rule: 'From this level on, enter the digits in REVERSE order — last digit first.', example: 'Example: shown 4 9 2 — type 294.' },
-  },
+  { key: 'reverse', fromLevel: 11 },   // lr_digit_span_reverse_*
 ];
 
 const GRADIENT = ['#11998e', '#38ef7d'];

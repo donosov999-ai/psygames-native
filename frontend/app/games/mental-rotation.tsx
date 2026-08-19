@@ -65,16 +65,8 @@ const MR_BENEFITS = [
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const MR_RULES: LevelRule[] = [
-  {
-    key: 'axes2', fromLevel: 6, toLevel: 10,
-    ru: { title: 'Две оси вращения', rule: 'Фигуру теперь крутят по ДВУМ осям (X и Y): она может быть наклонена вперёд/назад и вбок, а не просто повёрнута в плоскости экрана.', example: 'Пример: та же фигура, но «завалена» на бок — мысленно наклони её обратно и сравни с эталоном.' },
-    en: { title: 'Two rotation axes', rule: 'The shape is now rotated around TWO axes (X and Y): it can be tilted forward/back and sideways, not just spun flat in the screen plane.', example: 'Example: the same shape but "tipped over" — mentally tilt it back and compare with the reference.' },
-  },
-  {
-    key: 'axes3', fromLevel: 11,
-    ru: { title: 'Три оси и составные повороты', rule: 'Вращение идёт по всем ТРЁМ осям (X+Y+Z), а с 13-го уровня повороты складываются в косые ракурсы. Зеркальная копия по-прежнему НЕ считается поворотом.', example: 'Пример: фигура повёрнута сразу по X, Y и Z — прокручивай её в голове пошагово, ось за осью.' },
-    en: { title: 'Three axes & compound turns', rule: 'Rotation now uses all THREE axes (X+Y+Z), and from level 13 turns combine into oblique views. A mirrored copy still does NOT count as a rotation.', example: 'Example: the shape is turned around X, Y and Z at once — rotate it in your head step by step, axis by axis.' },
-  },
+  { key: 'axes2', fromLevel: 6, toLevel: 10 },   // lr_mental_rotation_axes2_*
+  { key: 'axes3', fromLevel: 11 },   // lr_mental_rotation_axes3_*
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
@@ -471,10 +463,8 @@ export default function MentalRotationGame() {
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
           {(() => {
             const p = levelParams(lvl.level);
-            const axesTxt = p.axes.length === 1 ? (language === 'ru' ? 'ось Z (плоско)' : 'Z axis')
-              : p.axes.length === 2 ? (language === 'ru' ? 'оси X+Y (наклоны)' : 'X+Y axes')
-              : (language === 'ru' ? 'оси X+Y+Z (3D)' : 'X+Y+Z axes');
-            return `${p.minC}–${p.maxC} ${language === 'ru' ? 'кубиков' : 'cubes'} · ${axesTxt}${p.compound ? (language === 'ru' ? ' · косые ракурсы' : ' · oblique') : ''}`;
+            const axesTxt = t(p.axes.length === 1 ? 'mrAxisZ' : p.axes.length === 2 ? 'mrAxisXY' : 'mrAxisXYZ');
+            return `${p.minC}–${p.maxC} ${t('mrCubes')} · ${axesTxt}${p.compound ? ` · ${t('mrOblique')}` : ''}`;
           })()}
         </Text>
         {lvl.level > 1 && (

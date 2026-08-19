@@ -41,16 +41,8 @@ const MATRIX_BENEFITS = [
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
 const MEMORYMATRIX_RULES: LevelRule[] = [
-  {
-    key: 'grid6', fromLevel: 4,
-    ru: { title: "Сетка дошла до предела", rule: "Поле выросло до 6×6 и больше расти не будет. Дальше добавляются клетки, которые надо запомнить, и укорачивается показ.", example: "На большом поле клетки удобнее запоминать не поштучно, а фигурой: «уголок слева», «диагональ»." },
-    en: { title: "The grid has hit its limit", rule: "The board has grown to 6×6 and stops there. What grows from now on is the number of cells to remember, and the display gets shorter.", example: "On a big board it is easier to remember cells as a shape — \"corner on the left\", \"diagonal\" — than one by one." },
-  },
-  {
-    key: 'fast', fromLevel: 9,
-    ru: { title: "Показ короче секунды", rule: "Времени на разглядывание почти не осталось: вспышка длится меньше секунды. Успевает не тот, кто смотрит внимательнее, а тот, кто смотрит в центр и берёт поле целиком.", example: "Не води взглядом по клеткам — не успеешь. Смотри в середину и лови рисунок боковым зрением." },
-    en: { title: "The flash is under a second", rule: "There is almost no time to look: the flash lasts less than a second. It is not the closer look that works but the wider one — centre your gaze and take the board in at once.", example: "Do not scan cell by cell, you will not make it. Look at the middle and catch the pattern with peripheral vision." },
-  },
+  { key: 'grid6', fromLevel: 4 },   // lr_memory_matrix_grid6_*
+  { key: 'fast', fromLevel: 9 },   // lr_memory_matrix_fast_*
 ];
 
 type GamePhase = 'intro' | 'config' | 'showing' | 'input' | 'feedback' | 'cleared' | 'result';

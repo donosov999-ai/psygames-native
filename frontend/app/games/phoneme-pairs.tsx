@@ -157,7 +157,6 @@ export default function PhonemePairsGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const lvl = usePersistentLevel('phoneme_pairs');
-  const ru = language === 'ru';
 
   const { isPreset, autostart, str } = useGamePreset();
 
@@ -320,15 +319,14 @@ export default function PhonemePairsGame() {
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
         <Ionicons name="ear" size={48} color={ON_GRAD.color} />
-        <Text style={styles.configTitle}>{ru ? 'Фонемы: минимальные пары' : 'Phonemes: minimal pairs'}</Text>
+        <Text style={styles.configTitle}>{t('phonemePairs')}</Text>
         <Text style={styles.configDesc}>
-          {ru ? 'Слушай слово и выбери, что прозвучало — ship или sheep? Тренировка фонематического слуха.'
-              : 'Listen to the word and pick what you heard — ship or sheep? Trains phonemic hearing.'}
+          {t('phPairsConfigDesc')}
         </Text>
       </LinearGradient>
       <LevelProgressMap gameId="phoneme_pairs" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{ru ? 'Какой язык учим' : 'Language to train'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('langToTrain')}</Text>
         <View style={styles.optionButtons}>
           {TARGET_LANGS.filter((c) => c !== language).map((c) => (
             <TouchableOpacity
@@ -350,23 +348,21 @@ export default function PhonemePairsGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.optionHint, { color: colors.textSecondary }]}>
-          {ru ? `Ур. ${lvl.level} — растёт сам: больше проб → все пары → без подсказок`
-              : `Lv ${lvl.level} — grows with results: more trials → all pairs → no visual hints`}
+          {t('phPairsLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
       {!voiceOk && (
         <View style={[styles.warnCard, { backgroundColor: colors.surface, borderColor: '#f43f5e' }]}>
           <Ionicons name="volume-mute" size={22} color="#f43f5e" />
           <Text style={[styles.warnText, { color: colors.text }]}>
-            {ru ? `Голос для языка «${LANG_NAMES[tgt]}» не найден на устройстве. Выбери другой язык.`
-                : `No voice for “${LANG_NAMES[tgt]}” found on this device. Pick another language.`}
+            {t('voiceMissingLang').replace('{lang}', LANG_NAMES[tgt])}
           </Text>
         </View>
       )}
       <TouchableOpacity
         accessibilityRole="button" style={[styles.startBtn, !voiceOk && { opacity: 0.4 }]} onPress={startGame} disabled={!voiceOk}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{ru ? 'Начать' : 'Start'}</Text>
+          <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </ScrollView>
@@ -383,7 +379,7 @@ export default function PhonemePairsGame() {
     const wasCorrect = answered !== null && answered === tr.correctIdx;
     return (
       <GameShell
-        title={ru ? 'Фонемы: пары' : 'Phoneme pairs'}
+        title={t('phonemePairsShort')}
         onBack={() => goBackOrHome()}
         stats={
           <View style={styles.statsRow}>
@@ -424,18 +420,18 @@ export default function PhonemePairsGame() {
               disabled={answered !== null}
               activeOpacity={0.8}
             >
-              <Text style={[styles.replayText, { color: colors.text }]}>🔊 {ru ? 'Ещё раз' : 'Play again'}</Text>
+              <Text style={[styles.replayText, { color: colors.text }]}>🔊 {t('replaySound')}</Text>
             </TouchableOpacity>
           </View>
         }
       >
         <View style={styles.fieldCol}>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-            {ru ? 'Что прозвучало? Выбери слово.' : 'What did you hear? Pick the word.'}
+            {t('phPairsPickHint')}
           </Text>
           {p.showWord && answered !== null && (
             <Text style={[styles.revealText, { color: wasCorrect ? '#22c55e' : '#f43f5e' }]}>
-              {(ru ? 'Прозвучало: ' : 'Played: ') + spokenWord}
+              {t('phPairsPlayed').replace('{w}', spokenWord)}
             </Text>
           )}
         </View>
@@ -450,7 +446,7 @@ export default function PhonemePairsGame() {
           accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{ru ? 'Фонемы: пары' : 'Phoneme pairs'}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('phonemePairsShort')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}

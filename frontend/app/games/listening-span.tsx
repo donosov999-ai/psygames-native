@@ -44,11 +44,7 @@ const ROUNDS = 2;
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
 const LISTENINGSPAN_RULES: LevelRule[] = [
-  {
-    key: 'span8', fromLevel: 6,
-    ru: { title: "Восемь слов — предел ряда", rule: "Длиннее ряд не станет: восемь это потолок слуховой памяти почти у всех. Дальше сокращается пауза между словами — с 0,7 секунды до 0,5.", example: "Меньше паузы — меньше времени повторить услышанное про себя, а именно повтор и держит ряд." },
-    en: { title: "Eight words is the ceiling", rule: "The list stops growing here: eight is the limit of auditory span for almost everyone. What shrinks from now on is the gap between words — from 0.7 seconds down to 0.5.", example: "A shorter gap means less time to repeat what you heard in your head — and that repetition is what holds the list." },
-  },
+  { key: 'span8', fromLevel: 6 },   // lr_listening_span_span8_*
 ];
 
 type GamePhase = 'config' | 'listen' | 'recall' | 'cleared' | 'result';
@@ -244,17 +240,14 @@ export default function ListeningSpanGame() {
     } catch (err) { console.error(err); }
   };
 
-  const ru = language === 'ru';
 
   const renderConfig = () => (
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
         <Ionicons name="ear" size={48} color={ON_GRAD.color} />
-        <Text style={styles.configTitle}>{ru ? 'Слуховой охват' : 'Listening Span'}</Text>
+        <Text style={styles.configTitle}>{t('listeningSpan')}</Text>
         <Text style={styles.configDesc}>
-          {ru
-            ? 'Слушай слова на изучаемом языке и повторяй их порядок по памяти. Слух + рабочая память.'
-            : 'Listen to words in your target language and recall them in order. Ear training + working memory.'}
+          {t('lspanConfigDesc')}
         </Text>
       </LinearGradient>
 
@@ -263,14 +256,12 @@ export default function ListeningSpanGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.optionHint, { color: colors.textSecondary }]}>
-          {ru
-            ? `Ур. ${lvl.level} — ${levelParams(lvl.level).span} слов на слух, растёт сам (больше слов → быстрее темп)`
-            : `Lv ${lvl.level} — ${levelParams(lvl.level).span} words by ear, grows with results (more words → faster pace)`}
+          {t('lspanLvlAuto').replace('{n}', String(lvl.level)).replace('{s}', String(levelParams(lvl.level).span))}
         </Text>
       </View>
 
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{ru ? 'Какой язык учим' : 'Language to train'}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('langToTrain')}</Text>
         <View style={styles.optionButtons}>
           {LANGUAGES.filter((l) => l.code !== language).map((l) => (
             <TouchableOpacity
@@ -294,9 +285,7 @@ export default function ListeningSpanGame() {
           <View style={styles.voiceWarn}>
             <Ionicons name="volume-mute" size={18} color="#b45309" />
             <Text style={styles.voiceWarnText}>
-              {ru
-                ? 'Голос для этого языка не найден на устройстве — озвучка не сработает. Выбери другой язык.'
-                : 'No voice for this language found on the device — audio will not play. Pick another language.'}
+              {t('voiceMissing')}
             </Text>
           </View>
         )}
@@ -305,7 +294,7 @@ export default function ListeningSpanGame() {
       <TouchableOpacity
         accessibilityRole="button" style={[styles.startBtn, !voiceOk && { opacity: 0.4 }]} onPress={startGame} disabled={!voiceOk}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{ru ? 'Начать' : 'Start'}</Text>
+          <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </ScrollView>
@@ -315,7 +304,7 @@ export default function ListeningSpanGame() {
   if (phase === 'listen' || phase === 'recall') {
     return (
       <GameShell
-        title={ru ? 'Слуховой охват' : 'Listening Span'}
+        title={t('listeningSpan')}
         onBack={() => goBackOrHome()}
         scrollableField={phase === 'recall'}
         stats={
@@ -331,9 +320,9 @@ export default function ListeningSpanGame() {
           <View style={styles.fieldCol}>
             <View style={[styles.listenBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
               <Text style={styles.listenEmoji}>🔊</Text>
-              <Text style={[styles.listenTitle, { color: colors.text }]}>{ru ? 'Слушай...' : 'Listen...'}</Text>
+              <Text style={[styles.listenTitle, { color: colors.text }]}>{t('lspanListening')}</Text>
               <Text style={[styles.listenCounter, { color: colors.textSecondary }]}>
-                {ru ? 'Слово' : 'Word'} {Math.max(1, spokenIdx)} / {spanRef.current}
+                {t('lspanWord')} {Math.max(1, spokenIdx)} / {spanRef.current}
               </Text>
             </View>
             <View style={styles.dotsRow}>
@@ -348,16 +337,16 @@ export default function ListeningSpanGame() {
               ))}
             </View>
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-              {ru ? 'Запоминай слова и их порядок — экран их не покажет' : 'Memorize the words and their order — the screen will not show them'}
+              {t('lspanMemorizeHint')}
             </Text>
           </View>
         ) : (
           <View style={styles.fieldCol}>
             <Text style={[styles.recallTitle, { color: colors.text }]}>
-              {ru ? 'Что ты услышал?' : 'What did you hear?'}
+              {t('lspanRecallTitle')}
             </Text>
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-              {ru ? `Тапай услышанные слова В ТОМ ЖЕ ПОРЯДКЕ (${picked.length + 1}-е из ${spoken.length})` : `Tap the words you heard IN THE SAME ORDER (${picked.length + 1} of ${spoken.length})`}
+              {t('lspanRecallHint').replace('{i}', String(picked.length + 1)).replace('{n}', String(spoken.length))}
             </Text>
             <View style={styles.wordGrid}>
               {grid.map((w, i) => {
@@ -401,7 +390,7 @@ export default function ListeningSpanGame() {
           accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{ru ? 'Слуховой охват' : 'Listening Span'}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('listeningSpan')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}

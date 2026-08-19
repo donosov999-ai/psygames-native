@@ -47,16 +47,8 @@ const CHESS_BENEFITS = [
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
 const CHESSBLIND_RULES: LevelRule[] = [
-  {
-    key: 'moves', fromLevel: 6,
-    ru: { title: "Фигуры начали ходить", rule: "До пятого уровня позиция замирала, и достаточно было запомнить картинку. С шестого после показа фигуры делают ходы вслепую — и держать надо не картинку, а то, как она изменилась.", example: "Пример: «конь b1 — c3». Двигай его в голове и запоминай новое место, старое больше не считается." },
-    en: { title: "The pieces start moving", rule: "Up to level 5 the position froze and remembering the picture was enough. From level 6 the pieces make blind moves after the display — and what you must hold is not the picture but how it changed.", example: "Example: \"knight b1 to c3\". Move it in your head and remember the new square; the old one no longer counts." },
-  },
-  {
-    key: 'locate', fromLevel: 11,
-    ru: { title: "Вопрос перевернулся", rule: "Раньше спрашивали «что стоит на этой клетке» — ты проверял одно место. Теперь спрашивают «где стоит эта фигура», и искать приходится по всей доске.", example: "Держать позицию списком «клетка → фигура» больше не выйдет. Нужен обратный список: «фигура → клетка»." },
-    en: { title: "The question flips", rule: "It used to ask \"what stands on this square\" — you checked one place. Now it asks \"where does this piece stand\", and you have to search the whole board.", example: "Holding the position as \"square → piece\" stops working. You need the reverse list: \"piece → square\"." },
-  },
+  { key: 'moves', fromLevel: 6 },   // lr_chess_blind_moves_*
+  { key: 'locate', fromLevel: 11 },   // lr_chess_blind_locate_*
 ];
 
 type GamePhase = 'intro' | 'config' | 'expose' | 'mask' | 'quiz' | 'cleared' | 'result';
@@ -113,18 +105,11 @@ function PieceGlyph({ combo, boxW, boxH, fontSize }: {
     </View>
   );
 }
-const RU_NAME: Record<PieceType, { n: string; fem: boolean }> = {
-  K: { n: 'король', fem: false }, Q: { n: 'ферзь', fem: false }, R: { n: 'ладья', fem: true },
-  B: { n: 'слон', fem: false }, N: { n: 'конь', fem: false }, P: { n: 'пешка', fem: true },
-};
-const EN_NAME: Record<PieceType, string> = { K: 'king', Q: 'queen', R: 'rook', B: 'bishop', N: 'knight', P: 'pawn' };
-
-function pieceName(c: Combo, ru: boolean): string {
-  if (ru) {
-    const { n, fem } = RU_NAME[c.type];
-    return `${c.white ? (fem ? 'белая' : 'белый') : (fem ? 'чёрная' : 'чёрный')} ${n}`;
-  }
-  return `${c.white ? 'white' : 'black'} ${EN_NAME[c.type]}`;
+// Название фигуры — ОДНИМ ключом на цвет+фигуру, а не сборкой «цвет» + «фигура».
+// В половине языков прилагательное согласуется с родом («белая ладья», но «белый конь»,
+// la torre blanca / el caballo blanco) — из двух кусков это не склеить.
+function pieceName(c: Combo, t: (k: string) => string): string {
+  return t(`chessPc${c.white ? 'W' : 'B'}${c.type}`);
 }
 
 // Лесенка 15 уровней: сложность ТРУДНОСТЬЮ (фигуры/показ/слепые ходы/тип квиза), не временем
@@ -137,10 +122,10 @@ function levelParams(level: number): { pieces: number; exposeSec: number; moves:
   return { pieces, exposeSec, moves, quizType, questions: 3 };
 }
 
-function stageName(level: number, ru: boolean): string {
-  if (level <= 5) return ru ? 'Вспышка' : 'Flash';
-  if (level <= 10) return ru ? 'Слепые ходы' : 'Blind moves';
-  return ru ? 'Розыск' : 'Locate';
+function stageName(level: number, t: (k: string) => string): string {
+  if (level <= 5) return t('chessStageFlash');
+  if (level <= 10) return t('chessStageBlind');
+  return t('chessStageLocate');
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -300,7 +285,6 @@ function buildQuestions(final: Piece[], quizType: QuizType, questions: number): 
 export default function ChessBlindGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  const ru = language === 'ru';
   const { width, height } = useWindowDimensions();
 
   const lvl = usePersistentLevel('chess_blind');
@@ -559,7 +543,7 @@ export default function ChessBlindGame() {
           <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
           {phase === 'quiz' && (
             <Text style={[styles.statText, { color: colors.text }]}>
-              {ru ? 'Вопрос' : 'Q'} {qIndex + 1}/{prm.questions}
+              {t('chessQuestionShort')} {qIndex + 1}/{prm.questions}
             </Text>
           )}
         </View>
@@ -574,7 +558,7 @@ export default function ChessBlindGame() {
                   key={i}
                   activeOpacity={0.8}
                   onPress={() => answerPick(opt)}
-                  accessibilityRole="button" accessibilityLabel={pieceName(opt, language === 'ru')}
+                  accessibilityRole="button" accessibilityLabel={pieceName(opt, t)}
                   style={[
                     styles.optBtn,
                     { backgroundColor: '#334155', borderColor: isReveal ? '#22c55e' : '#1e293b', borderWidth: isReveal ? 3 : 1 },
@@ -591,15 +575,15 @@ export default function ChessBlindGame() {
       <View style={styles.fieldCol}>
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
           {phase === 'expose'
-            ? `${ru ? 'Запомни позицию' : 'Memorize the position'} · ${exposeLeft}${ru ? 'с' : 's'}`
+            ? `${t('chessHintMemorize')} · ${exposeLeft}${t('unitSecShort')}`
             : phase === 'mask'
             ? (prm.moves > 0
-                ? `${ru ? 'Фигуры ходят вслепую' : 'Blind moves'}: ${moveNum}/${prm.moves}`
-                : (ru ? 'Фигуры скрыты…' : 'Pieces are hidden…'))
+                ? `${t('chessHintBlindMoves')}: ${moveNum}/${prm.moves}`
+                : t('chessHintHidden'))
             : prm.quizType === 'pick'
-            ? (ru ? 'Что стоит на подсвеченной клетке?' : 'What is on the highlighted square?')
+            ? t('chessHintWhatSquare')
             : currentQ
-            ? `${ru ? 'Где' : 'Where is the'} ${pieceName(currentQ.answer, ru)} ${glyphOf(currentQ.answer)}? ${ru ? 'Тапни клетку' : 'Tap the square'}`
+            ? t('chessHintWhereIs').replace('{piece}', pieceName(currentQ.answer, t)).replace('{glyph}', glyphOf(currentQ.answer))
             : ''}
         </Text>
 
@@ -618,10 +602,10 @@ export default function ChessBlindGame() {
   const renderConfig = () => {
     const p = levelParams(lvl.level);
     const descBits = [
-      `${p.pieces} ${ru ? 'фигур' : 'pieces'}`,
-      `${ru ? 'показ' : 'expose'} ${p.exposeSec}${ru ? 'с' : 's'}`,
-      ...(p.moves > 0 ? [`${p.moves} ${ru ? 'ходов вслепую' : 'blind moves'}`] : []),
-      p.quizType === 'pick' ? (ru ? 'вопрос «что здесь?»' : '“what is here?” quiz') : (ru ? 'вопрос «где фигура?»' : '“where is it?” quiz'),
+      `${p.pieces} ${t('chessCfgPieces')}`,
+      `${t('chessCfgExpose')} ${p.exposeSec}${t('unitSecShort')}`,
+      ...(p.moves > 0 ? [`${p.moves} ${t('chessCfgBlindMoves')}`] : []),
+      t(p.quizType === 'pick' ? 'chessCfgQuizPick' : 'chessCfgQuizLocate'),
     ];
     return (
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
@@ -629,16 +613,14 @@ export default function ChessBlindGame() {
           <Text style={styles.configGlyph}>♞</Text>
           <Text style={styles.configTitle}>{t('chessBlind')}</Text>
           <Text style={styles.configDesc}>
-            {ru
-              ? 'Запомни позицию — фигуры замаскируются одинаковыми фишками. Держи в голове, какая фишка что, даже когда они ходят.'
-              : 'Memorize the position — the pieces get masked as identical tokens. Keep track of what each token is, even as they move.'}
+            {t('chessBlindConfigDesc')}
           </Text>
         </LinearGradient>
         <GameAbout descriptionKey="chessBlindIntroDesc" benefits={CHESS_BENEFITS} accent={GRADIENT[0]} />
         <LevelProgressMap gameId="chess_blind" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {stageName(lvl.level, ru)} · {ru ? 'Ур.' : 'Lv'}{lvl.level}
+            {stageName(lvl.level, t)} · {t('label_level_short')}{lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
             {descBits.join(' · ')}

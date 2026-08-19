@@ -307,12 +307,10 @@ export default function BARTGame() {
         {/* ── КЛАССИЧЕСКИЙ режим (диагностика на стандартных параметрах) ── */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {language === 'ru' ? 'Классический замер (диагностика)' : 'Classic run (diagnostic)'}
+            {t('bartClassicTitle')}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-            {language === 'ru'
-              ? 'Фиксированные параметры — чистая метрика склонности к риску.'
-              : 'Fixed parameters — a clean risk-propensity metric.'}
+            {t('bartClassicDesc')}
           </Text>
           <Text style={[styles.optionLabel, { color: colors.text, marginTop: 4 }]}>{t('difficultyLabel')}</Text>
           <View style={styles.optionButtons}>
@@ -343,7 +341,7 @@ export default function BARTGame() {
           <TouchableOpacity
             accessibilityRole="button" style={[styles.classicBtn, { borderColor: GRADIENT[0] }]} onPress={startClassic}>
             <Text style={[styles.classicBtnText, { color: GRADIENT[0] }]}>
-              {language === 'ru' ? 'Классический замер' : 'Classic run'}
+              {t('bartClassicBtn')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -440,15 +438,7 @@ export default function BARTGame() {
               }} />
             </View>
             <Text style={[styles.riskHint, { color: colors.textSecondary }]}>
-              {language === 'ru'
-                ? (nextRisk < 0.10 ? '🟢 Безопасно — копи дальше' :
-                   nextRisk < 0.25 ? '🟡 Внимание — pending растёт' :
-                   nextRisk < 0.50 ? '🟠 Рискованно — может стоит cash?' :
-                   '🔴 Очень опасно — почти гарантированный взрыв')
-                : (nextRisk < 0.10 ? '🟢 Safe — keep banking' :
-                   nextRisk < 0.25 ? '🟡 Caution — pending is growing' :
-                   nextRisk < 0.50 ? '🟠 Risky — maybe cash out?' :
-                   '🔴 Very dangerous — burst almost guaranteed')}
+              {t(nextRisk < 0.10 ? 'bartRiskSafe' : nextRisk < 0.25 ? 'bartRiskCaution' : nextRisk < 0.50 ? 'bartRiskRisky' : 'bartRiskDanger')}
             </Text>
           </View>
         );

@@ -22,11 +22,7 @@ import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const SS_RULES: LevelRule[] = [
-  {
-    key: 'grid5', fromLevel: 11,
-    ru: { title: 'Сетка 5×5', rule: 'Поле выросло до 5×5 — клеток больше, а сами они мельче. Порядок по-прежнему обратный.' },
-    en: { title: '5×5 grid', rule: 'The board grew to 5×5 — more cells, each one smaller. The order is still reversed.' },
-  },
+  { key: 'grid5', fromLevel: 11 },   // lr_spatial_span_grid5_*
 ];
 
 const GRADIENT = ['#1A2980', '#26D0CE'];
@@ -213,7 +209,7 @@ export default function SpatialSpanGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
-          {language === 'ru' ? `Ур. ${lvl.level} — растёт сам (span → скорость показа → сетка 5×5)` : `Lv ${lvl.level} — grows with results (span → show speed → 5×5 grid)`}
+          {t('sspanLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
     </ScrollView>

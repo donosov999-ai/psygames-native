@@ -389,19 +389,13 @@ export default function WcstGame() {
 
         {/* Режим: Уровни (прогрессия) / Классический (чистая диагностика) */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
           <View style={styles.optionButtons}>
-            {modeBtn('level', language === 'ru' ? 'Уровни' : 'Levels')}
-            {modeBtn('classic', language === 'ru' ? 'Классический' : 'Classic')}
+            {modeBtn('level', t('modeLevels'))}
+            {modeBtn('classic', t('modeClassic'))}
           </View>
           <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-            {mode === 'classic'
-              ? (language === 'ru'
-                  ? 'Стандартные параметры: правило меняется после 10 подряд. Для чистой метрики.'
-                  : 'Standard params: rule switches after 10 in a row. For a clean metric.')
-              : (language === 'ru'
-                  ? 'Правило меняется всё чаще с уровнем. Держи персеверативные ошибки низкими.'
-                  : 'Rule switches more often each level. Keep perseverative errors low.')}
+            {t(mode === 'classic' ? 'wcstModeClassicDesc' : 'wcstModeLevelsDesc')}
           </Text>
         </View>
 

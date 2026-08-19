@@ -43,11 +43,7 @@ import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const CPT_RULES: LevelRule[] = [
-  {
-    key: 'lookalike', fromLevel: 11,
-    ru: { title: 'Буквы-ловушки', rule: 'Среди букв всё чаще попадаются похожие на X: K, Y, V, W, N, M. Не жми на них — жди настоящую X (после A).', example: 'Пример: мелькнула K — руки прочь, это не X.' },
-    en: { title: 'Look-alike traps', rule: 'Letters that resemble X now appear more often: K, Y, V, W, N, M. Don\'t tap them — wait for a real X (after A).', example: 'Example: a K flashes by — hands off, it\'s not an X.' },
-  },
+  { key: 'lookalike', fromLevel: 11 },   // lr_cpt_lookalike_*
 ];
 
 const GRADIENT = ['#0f4c75', '#3282b8'];
@@ -436,9 +432,7 @@ export default function CPTGame() {
         >
           <View style={styles.fieldCol}>
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-              {modeRef.current === 'AX'
-                ? (language === 'ru' ? 'Жми только на X, если ПЕРЕД ней была A' : 'Tap X only if it followed A')
-                : (language === 'ru' ? 'Жми на каждую X. Не пропускай!' : 'Tap every X. Don\'t miss!')}
+              {t(modeRef.current === 'AX' ? 'cptTapAX' : 'cptTapX')}
             </Text>
             <TouchableOpacity
               accessibilityRole="button"

@@ -180,7 +180,7 @@ export default function PhonemicFluencyGame() {
         game_type: 'phonemic_fluency',
         score: validWords.length * 10,
         time_seconds: duration,
-        difficulty: language === 'en' ? `letter-${letter}` : `буква-${letter}`,
+        difficulty: `letter-${letter}`,   // машинное значение: от языка интерфейса не зависит (иначе один прогон = две разные строки в статистике)
         mode: `${duration}s`,
         errors: repetitions + wrongLetter + tooShort,
         details: {
