@@ -308,7 +308,15 @@ export default function MemoryPalaceScreen() {
   if (phase === 'playing' || phase === 'cleared') {
     return (
       <GameShell
-        title={t('memoryPalace')}
+        /**
+         * Название и описание берём из СВОЕГО словаря модуля, а не из общего.
+         * Ключи memoryPalace/memoryPalaceDesc заводит заход-интегратор вместе с
+         * карточкой каталога (см. INTEGRATION.md); до тех пор обращение к ним
+         * было бы битым вызовом — гейт dictionary-duplicates ловит такие, и
+         * правильно: на экране человек увидел бы имя ключа вместо названия.
+         * Так же сделано у соседних принятых игр.
+         */
+        title={strings.title}
         onBack={() => goBackOrHome()}
         /**
          * Спрашиваем только когда терять действительно есть что: маршрут
@@ -435,7 +443,7 @@ export default function MemoryPalaceScreen() {
           accessibilityRole="button" accessibilityLabel={t('back')}>
           <Ionicons name="arrow-back" size={24} color={ON_GRAD.color} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('memoryPalace')}</Text>
+        <Text style={styles.title}>{strings.title}</Text>
       </GradientSurface>
 
       <ScrollView contentContainerStyle={styles.body}>
@@ -444,7 +452,7 @@ export default function MemoryPalaceScreen() {
 
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('memoryPalaceDesc')}</Text>
+          <Text style={[styles.hint, { color: colors.textSecondary }]}>{strings.rulesBody}</Text>
           {/* Сколько мест на этом уровне — считает тот же генератор, что и партию:
               подпись со своей формулой разъехалась бы с игрой на первой правке лесенки. */}
           <Text style={[styles.hint, { color: colors.textSecondary }]}>
