@@ -282,25 +282,124 @@ function shapeFor(L: number, cols: number, rows: number): boolean[] {
   return mask;
 }
 
+/**
+ * ПРЕПЯТСТВИЯ — вторая ось сложности после формы доски.
+ *
+ * 🔴 ЗАЧЕМ. Замер генератора: формы подняли разнообразие с 13 разных уровней
+ * до 30, но цель Дениса — 55. Оси, которые растят ЧИСЛО типов и тесноту,
+ * насыщаются к L21 и дальше не дают ничего. Препятствия не насыщаются: они
+ * меняют не количество, а то, КУДА можно ходить.
+ *
+ * ⚠️ ТРИ ИЗ ЧЕТЫРЁХ МЕНЯЮТ ЗАДАЧУ, ОДНО ПРОСТО ДАВИТ. Разделение важное:
+ *   · закрытая ниша  — сужает поле манёвра, надо планировать вокруг;
+ *   · накрытый товар — неполная информация, надо помнить, что открылось;
+ *   · примёрзший ряд — задаёт ПОРЯДОК: сначала нужный тип, потом остальное;
+ *   · замок на N ходов — единственное чистое давление, поэтому он самый
+ *     мягкий и снимается сам, без действий игрока.
+ * Давление у соседей по жанру — не дизайн, а воронка к рекламе; у нас рекламы
+ * нет, поэтому давления берём ровно столько, сколько нужно для ритма.
+ *
+ * 🔴 ПРЕПЯТСТВИЯ НЕ РАНЬШЕ L6. До шестого уровня человек ещё осваивает само
+ * правило «три одинаковых в одной нише». Класть поверх него второе правило —
+ * это не сложность, а каша.
+ */
+type Obstacle =
+  | { kind: 'blocked' }                        // ниша заперта, снимается тройкой в соседней
+  | { kind: 'locked'; movesLeft: number }      // откроется через N ходов, счётчик виден
+  | null;
+
+/** Что показывать на уровне. Пустой набор — препятствий нет. */
+interface ObstaclePlan {
+  blocked: number;      // сколько ниш заперто
+  locked: number;       // сколько ниш под замком по ходам
+  covered: number;      // сколько товаров накрыто
+  frozenRow: boolean;   // примёрзший ряд
+}
+
+/**
+ * Таблица «уровень → препятствия». Не формула: у формулы препятствия
+ * появлялись бы линейно и предсказуемо, а нам нужен ритм — уровень с новым
+ * препятствием, потом передышка, потом два вместе.
+ *
+ * Индекс = (L - 6) по кругу. Первый набор каждого вида идёт ОДИН, чтобы
+ * человек понял правило на чистом примере (правило показывается через
+ * LevelRules при первом появлении).
+ */
+const OBSTACLE_PLANS: ObstaclePlan[] = [
+  { blocked: 1, locked: 0, covered: 0, frozenRow: false },   // знакомство: одна закрытая ниша
+  { blocked: 0, locked: 0, covered: 0, frozenRow: false },   // передышка
+  { blocked: 0, locked: 0, covered: 2, frozenRow: false },   // знакомство: накрытые товары
+  { blocked: 2, locked: 0, covered: 0, frozenRow: false },
+  { blocked: 0, locked: 1, covered: 0, frozenRow: false },   // знакомство: замок по ходам
+  { blocked: 1, locked: 0, covered: 2, frozenRow: false },   // два вместе
+  { blocked: 0, locked: 0, covered: 0, frozenRow: true },    // знакомство: примёрзший ряд
+  { blocked: 2, locked: 1, covered: 0, frozenRow: false },
+  { blocked: 0, locked: 0, covered: 3, frozenRow: true },
+  { blocked: 1, locked: 1, covered: 2, frozenRow: false },   // всё сразу
+];
+
+const NO_OBSTACLES: ObstaclePlan = { blocked: 0, locked: 0, covered: 0, frozenRow: false };
+
+/**
+ * Ряды, которые ЕСТЬ СМЫСЛ морозить.
+ *
+ * Живой ряд = минимум две открытые ниши: маска её не вырезала и замок не занял.
+ * На ряде из одной ниши заморозка ничего не меняет (тройку там всё равно не
+ * собрать), на ряде из дыр — не запрещает ничего, а на ниши под замком ложится
+ * вторым запретом: два значка в одной ячейке. Первый ряд не морозим никогда —
+ * он верхний, с него человек читает доску.
+ *
+ * Вынесено из loadLevel наружу ради гейта: правило решаемости должно
+ * проверяться исполнением, а не чтением исходника глазами теста.
+ */
+export function liveRowsForFreeze(
+  mask: boolean[], obs: (Obstacle | null)[], cols: number, rows: number,
+): number[] {
+  const out: number[] = [];
+  for (let r = 1; r < rows; r++) {
+    let free = 0;
+    for (let c = 0; c < cols; c++) {
+      const i = r * cols + c;
+      if (mask[i] && !obs[i]) free++;
+    }
+    if (free >= 2) out.push(r);
+  }
+  return out;
+}
+
+function obstaclePlan(L: number): ObstaclePlan {
+  if (L < 6) return NO_OBSTACLES;
+  return OBSTACLE_PLANS[(L - 6) % OBSTACLE_PLANS.length];
+}
+
 function levelCfg(L: number, poolSize: number, narrow = false) {
   const { cols, rows } = gridFor(L, narrow);
   const mask = shapeFor(L, cols, rows);
   // ⚠️ Всё дальше считается по СУЩЕСТВУЮЩИМ нишам, а не по габариту доски:
   // иначе фигура с дырками получит столько же товаров, сколько полный прямоугольник.
   const slots = mask.filter(Boolean).length;
-  const typeCeiling = slots - 2;                                 // ≥2 пустых ячейки → всегда решаемо
+  const typeCeiling = slots - 2 - obstaclePlan(L).blocked - obstaclePlan(L).locked;                                 // ≥2 пустых ячейки → всегда решаемо
   const types = Math.min(poolSize, typeCeiling, 4 + Math.floor(L / 2));   // 4 → растёт, выше 7 на больших досках
   // ⚠️ ПУСТЫЕ ЯЧЕЙКИ — ДОЛЕЙ ДОСКИ, А НЕ АБСОЛЮТНЫМ ЧИСЛОМ.
   // Было `6 - ...`: на поле 3×3 это оставляло шесть свободных из девяти — занято три
   // ячейки, две трети поля пустуют, и первый уровень решался без единой мысли.
   // Репорт Вали 12.08 дословно: «даже не все слоты заняты, это просто, какой-то позор».
   // Одно и то же число на доске 9 и на доске 16 означает разное: 67% пустоты против 37%.
-  let spares = Math.max(2, Math.ceil(slots * 0.34) - Math.floor((L - 1) / 4));
-  spares = Math.max(2, Math.min(spares, slots - types));
+  const obst = obstaclePlan(L);
+  /**
+   * 🔴 ЗАПЕРТАЯ НИША НЕ СЧИТАЕТСЯ СВОБОДНОЙ. Решаемость держится на том, что
+   * свободных ниш минимум две — но ниша под замком манёвра не даёт. Значит
+   * запертые надо ВЫЧЕСТЬ из ёмкости и добавить к запасу, иначе уровень с
+   * препятствиями окажется теснее, чем задумано, и может стать нерешаемым.
+   */
+  const shut = obst.blocked + obst.locked;
+  const usable = slots - shut;
+  let spares = Math.max(2, Math.ceil(usable * 0.34) - Math.floor((L - 1) / 4));
+  spares = Math.max(2, Math.min(spares, usable - types));
   // За L8 сложность ещё и ЛИМИТ ХОДОВ (давление эффективности).
   const over = Math.max(0, L - 8);
   const moveLimit = over > 0 ? Math.max(types * 2, types * 3 - over) : 0;   // 0 = без лимита
-  return { types, spares, moveLimit, cols, rows, slots, mask };
+  return { types, spares, moveLimit, cols, rows, slots, mask, obst, usable };
 }
 
 function threeSame(cell: number[]): boolean { return cell.length === 3 && cell[0] === cell[1] && cell[1] === cell[2]; }
@@ -372,6 +471,12 @@ export default function GoodsSortGame() {
   const [gridDim, setGridDim] = useState({ cols: 3, rows: 3 });  // для рендера полок
   /** Маска ниш: true — ниша есть, false — в этом месте доски дырка (форма уровня). */
   const [mask, setMask] = useState<boolean[]>(() => Array(9).fill(true));
+  /** Препятствие на нише: заперта, под замком по ходам, либо ничего. */
+  const [obstacles, setObstacles] = useState<Obstacle[]>([]);
+  /** Накрытые товары: ключ «ниша:позиция». Виден силуэт, не видно что это. */
+  const [covered, setCovered] = useState<Set<string>>(() => new Set());
+  /** Примёрзший ряд: индекс ряда и тип, тройку которого надо собрать, чтобы растопить. */
+  const [frozen, setFrozen] = useState<{ row: number; type: number } | null>(null);
   const { popups, spawn } = useScorePopups();
 
   // Справка правил уровня: только в личной игре (в зарядке-пресете бейдж скрыт).
@@ -383,7 +488,47 @@ export default function GoodsSortGame() {
     gridRef.current = { cols: cfg.cols, rows: cfg.rows, slots: cfg.slots };
     setGridDim({ cols: cfg.cols, rows: cfg.rows });
     setMask(cfg.mask);
-    setCells(generate(poolRef.current, cfg.types, cfg.spares, cfg.slots));
+    const built = generate(poolRef.current, cfg.types, cfg.spares, cfg.slots);
+    setCells(built);
+    /**
+     * Препятствия ставим ПОСЛЕ раскладки и только на подходящие ниши:
+     * запирать можно лишь ПУСТУЮ нишу, иначе товары внутри окажутся
+     * недостижимы и уровень станет нерешаемым.
+     */
+    const obs: Obstacle[] = Array(cfg.slots).fill(null);
+    const empties = built.map((c, i) => (c.length === 0 ? i : -1)).filter((i) => i >= 0);
+    const pick = shuffle(empties);
+    let at = 0;
+    for (let k = 0; k < cfg.obst.blocked && at < pick.length; k++, at++) obs[pick[at]] = { kind: 'blocked' };
+    for (let k = 0; k < cfg.obst.locked && at < pick.length; k++, at++) obs[pick[at]] = { kind: 'locked', movesLeft: 5 + k * 3 };
+    setObstacles(obs);
+
+    // Накрываем товары: только те, что лежат НЕ последними в нише — иначе
+    // человек не сможет даже взять его, не зная, что берёт.
+    const cov = new Set<string>();
+    const spots: string[] = [];
+    built.forEach((c, i) => c.forEach((_, j) => { if (j < c.length - 1) spots.push(`${i}:${j}`); }));
+    shuffle(spots).slice(0, cfg.obst.covered).forEach((k) => cov.add(k));
+    setCovered(cov);
+
+    /**
+     * Примёрзший ряд: тип, тройка которого действительно есть на доске.
+     *
+     * Ряд берём не любой, а ЖИВОЙ: в нём должно остаться минимум две открытые
+     * ниши (маска не вырезала, замок не занял). Иначе заморозка либо ничего не
+     * запрещает — ряд и так дыры, — либо ложится поверх замка: два значка в
+     * одной нише и двойной запрет там, где хватило бы одного. В таблице планов
+     * заморозка сейчас нигде не встречается с замками, но правку планов это
+     * переживёт, а без проверки — нет. Видно на форсированной раскладке
+     * blocked 2 + locked 1 + frozenRow, 19.08.2026.
+     */
+    if (cfg.obst.frozenRow) {
+      const present = Array.from(new Set(built.flat()));
+      const type = present[Math.floor(Math.random() * present.length)] ?? -1;
+      const live = liveRowsForFreeze(cfg.mask, obs, cfg.cols, cfg.rows);
+      const row = live.length ? live[Math.floor(Math.random() * live.length)] : -1;
+      setFrozen(type >= 0 && row >= 0 ? { row, type } : null);
+    } else setFrozen(null);
     setSel(null); setMoves(0); movesRef.current = 0;
     setStartTime(Date.now()); setElapsed(0);
   };
@@ -448,23 +593,96 @@ export default function GoodsSortGame() {
   };
 
   // Переместить КОНКРЕТНЫЙ товар (fromCell, fromIdx) в toCell, если там есть место; затем собрать тройки.
+/** Ряд, в котором лежит ниша с плотным индексом i (нумерация по существующим). */
+  const rowOfCell = (i: number): number => {
+    let seen = -1;
+    for (let pos = 0; pos < mask.length; pos++) {
+      if (!mask[pos]) continue;
+      seen++;
+      if (seen === i) return Math.floor(pos / gridDim.cols);
+    }
+    return 0;
+  };
+
+  /** Соседи ниши по доске — по ним снимается «закрытая ниша». */
+  const neighboursOf = (i: number): number[] => {
+    const dense: number[] = [];
+    mask.forEach((on, pos) => { if (on) dense.push(pos); });
+    const pos = dense[i];
+    if (pos === undefined) return [];
+    const r = Math.floor(pos / gridDim.cols), c = pos % gridDim.cols;
+    const out: number[] = [];
+    [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dr, dc]) => {
+      const nr = r + dr, nc = c + dc;
+      if (nr < 0 || nc < 0 || nr >= gridDim.rows || nc >= gridDim.cols) return;
+      const np = nr * gridDim.cols + nc;
+      const idx = dense.indexOf(np);
+      if (idx >= 0) out.push(idx);
+    });
+    return out;
+  };
+
+  /**
+   * Можно ли трогать нишу. Одна проверка на всё: и на «взять отсюда», и на
+   * «положить сюда». Держать это в одном месте обязательно — иначе однажды
+   * запрет поставят только на одну сторону, и препятствие станет полупрозрачным.
+   */
+  const cellUsable = (i: number): boolean => {
+    if (obstacles[i]) return false;
+    if (frozen && rowOfCell(i) === frozen.row) return false;
+    return true;
+  };
+
   const moveItem = (fromCell: number, fromIdx: number, toCell: number) => {
     if (fromCell === toCell) { setSel(null); return; }
     const src = cells[fromCell];
     if (!src || fromIdx < 0 || fromIdx >= src.length) { setSel(null); return; }
     if (cells[toCell].length >= CAP) { setSel(null); return; }   // нет места
+    // Препятствие запрещает и брать, и класть — проверка одна на обе стороны.
+    if (!cellUsable(fromCell) || !cellUsable(toCell)) { setSel(null); hapticTap(); return; }
     const ns = cells.map((c) => [...c]);
     const [item] = ns[fromCell].splice(fromIdx, 1);
     ns[toCell].push(item);
     movesRef.current += 1; setMoves(movesRef.current);
     // каскад: любая ячейка с 3 одинаковыми → собрать (+50). Спокойно, без таймед-комбо.
     let clearedNow = 0; let again = true;
+    const clearedTypes: number[] = [];
     while (again) {
       again = false;
       for (let i = 0; i < gridRef.current.slots; i++) {
-        if (threeSame(ns[i])) { ns[i] = []; clearedNow += 1; scoreRef.current += 50; again = true; }
+        if (threeSame(ns[i])) { clearedTypes.push(ns[i][0]); ns[i] = []; clearedNow += 1; scoreRef.current += 50; again = true; }
       }
     }
+    /**
+     * СНЯТИЕ ПРЕПЯТСТВИЙ — после каскада, потому что снимает именно СБОР тройки.
+     *   · закрытая ниша открывается, если тройка собралась по соседству;
+     *   · замок тикает каждый ход и открывается сам;
+     *   · примёрзший ряд оттаивает, когда собрана тройка нужного типа;
+     *   · накрытые товары в опустевшей нише больше не прячутся — прятать нечего.
+     */
+    if (obstacles.length) {
+      const next = obstacles.slice();
+      let changed = false;
+      obstacles.forEach((o, i) => {
+        if (!o) return;
+        if (o.kind === 'locked') {
+          const left = o.movesLeft - 1;
+          next[i] = left <= 0 ? null : { kind: 'locked', movesLeft: left };
+          changed = true;
+        } else if (o.kind === 'blocked' && clearedTypes.length) {
+          if (neighboursOf(i).some((n) => ns[n].length === 0 && cells[n].length > 0)) { next[i] = null; changed = true; }
+        }
+      });
+      if (changed) setObstacles(next);
+    }
+    if (frozen && clearedTypes.includes(frozen.type)) setFrozen(null);
+    if (covered.size) {
+      const cov = new Set(covered);
+      let changed = false;
+      ns.forEach((c, i) => { if (c.length === 0) { for (let j = 0; j < CAP; j++) if (cov.delete(`${i}:${j}`)) changed = true; } });
+      if (changed) setCovered(cov);
+    }
+
     setCells(ns); setSel(null); setScore(scoreRef.current);
     if (clearedNow > 0) { setCleared((c) => c + clearedNow); hapticSuccess(); if (clearedNow > 1) sndCombo(clearedNow); spawn(width / 2 - 24, 150, '+' + clearedNow * 50, '#fde047'); }
     else hapticTap();
@@ -649,11 +867,46 @@ export default function GoodsSortGame() {
                 accessibilityLabel={`${goodName(tp, ru)}, ${t('a11yShelf')} ${i + 1}`}
                 accessibilityState={{ selected }}
                 style={[styles.itemSlot, { width: itemSize, height: itemH }, selected && styles.itemSel]}>
-                <GoodIcon type={tp} width={itemSize} height={itemH - 2} />
+                {covered.has(`${i}:${s}`) ? (
+                  /**
+                   * НАКРЫТЫЙ ТОВАР: силуэт есть, что именно — не видно.
+                   * Рисуем ту же картинку с нулевой яркостью (tintColor) —
+                   * форма сохраняется, а значит человек видит, ЧТО там что-то
+                   * стоит и какой оно формы, но не какой это товар. Это и есть
+                   * неполная информация: надо запомнить, что открылось.
+                   */
+                  <Image {...a11yDecor} source={GOOD_SPRITES[tp % GOOD_SPRITES.length]}
+                    style={{ width: itemSize, height: itemH - 2, tintColor: 'rgba(35,20,8,0.82)' }}
+                    resizeMode="contain" />
+                ) : (
+                  <GoodIcon type={tp} width={itemSize} height={itemH - 2} />
+                )}
               </TouchableOpacity>
             );
           })}
         </View>
+
+        {/*
+          ПРЕПЯТСТВИЯ ПОВЕРХ НИШИ. Затемнение + значок: значок говорит ЧТО это,
+          затемнение — что сюда нельзя. Одного значка мало: на беглый взгляд он
+          читается как украшение, а не как запрет.
+        */}
+        {obstacles[i]?.kind === 'blocked' && (
+          <View pointerEvents="none" style={styles.obstacle}>
+            <Ionicons name="lock-closed" size={Math.min(26, itemSize)} color="#f8e3c4" />
+          </View>
+        )}
+        {obstacles[i]?.kind === 'locked' && (
+          <View pointerEvents="none" style={styles.obstacle}>
+            <Ionicons name="time" size={Math.min(22, itemSize)} color="#f8e3c4" />
+            <Text style={styles.obstacleNum}>{(obstacles[i] as { movesLeft: number }).movesLeft}</Text>
+          </View>
+        )}
+        {frozen && rowOfCell(i) === frozen.row && (
+          <View pointerEvents="none" style={[styles.obstacle, styles.frost]}>
+            <Ionicons name="snow" size={Math.min(22, itemSize)} color="#e8f6ff" />
+          </View>
+        )}
       </ImageBackground>
     );
   };
@@ -902,6 +1155,15 @@ const styles = StyleSheet.create({
   },
   /** Ряд ниш. Между рядами только толщина доски (gap короба), а не фон экрана. */
   shelfRow: { flexDirection: 'row', justifyContent: 'center', gap: 9 },
+  /** Слой препятствия: затемнение на всю нишу плюс значок по центру. */
+  obstacle: {
+    position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
+    alignItems: 'center', justifyContent: 'center', gap: 2,
+    backgroundColor: 'rgba(28,16,6,0.62)',
+  },
+  /** Иней — холодный оттенок вместо тёплого, чтобы не путать с замком. */
+  frost: { backgroundColor: 'rgba(120,170,205,0.45)' },
+  obstacleNum: { color: '#f8e3c4', fontSize: 13, fontWeight: '800' },
   cell: {
     borderRadius: 4,
     justifyContent: 'flex-end', alignItems: 'center',
