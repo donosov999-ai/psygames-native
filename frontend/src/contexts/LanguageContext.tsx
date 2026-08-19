@@ -486,8 +486,8 @@ const translations: Translations = {
   sudoku: { ru: 'Судоку', en: 'Sudoku' },
   sudokuDesc: { ru: 'Цифры без повторов в строке, столбце и блоке (6×6 и 9×9)', en: 'Digits with no repeats in each row, column and box (6×6 and 9×9)' },
   sudokuIntroDesc: {
-    ru: 'Заполните сетку так, чтобы цифры встречались ровно один раз в каждой строке, столбце и блоке. Классический логический пазл.\n\n🎚 Уровни — с ростом уровня добавляются правила-варианты:\n• L9 ⟍ диагонали: цифры уникальны и по двум диагоналям\n• L14 ♞ ход коня: равные цифры не на ходу коня\n• L18 ⊞ доп. зоны: ещё 4 квадрата 3×3 без повторов\n• L22 ≠ не подряд: соседи по стороне не отличаются на 1\n• L26 ♚ ход короля: равные не касаются даже по диагонали\n• L30 ◩ чёт/нечёт: □ клетка — чётная цифра, ○ — нечётная\n• L34 ● точки Кропки: белая точка — соседи отличаются на 1, чёрная — вдвое\n• L38 ⊐ сэндвич: число у края — сумма цифр между 1 и 9 в этом ряду\n• L42 🌡 термометры: вдоль термометра цифры растут от колбы\n• L46 ↗ стрелки: цифра в кружке — сумма цифр вдоль стрелки\n• L50 ⧉ кривые блоки: блоки неправильной формы\n\n👑 Killer — поле разбито на группы: цифры в группе дают сумму в её углу и не повторяются.\n\n🆓 Свободно — поле 6×6 или 9×9 без вариантов, с выбором сложности.',
-    en: 'Fill the grid so digits appear exactly once in every row, column and block. The classic logic puzzle.\n\n🎚 Levels — new variant rules unlock as you climb:\n• L9 ⟍ diagonals: digits are also unique on both diagonals\n• L14 ♞ anti-knight: equal digits cannot be a knight move apart\n• L18 ⊞ hyper: 4 extra 3×3 zones with no repeats\n• L22 ≠ non-consecutive: side-neighbours cannot differ by 1\n• L26 ♚ anti-king: equal digits cannot touch even diagonally\n• L30 ◩ even/odd: □ cell = even digit, ○ = odd\n• L34 ● kropki: a white dot means neighbours differ by 1, a black one means double\n• L38 ⊐ sandwich: the number at the edge is the sum of digits between 1 and 9 in that line\n• L42 🌡 thermometers: digits increase along the thermometer, from the bulb\n• L46 ↗ arrows: the digit in the circle is the sum of digits along the arrow\n• L50 ⧉ jigsaw: irregular blocks instead of squares\n\n👑 Killer — the grid splits into cages: digits in a cage add up to the number in its corner and never repeat.\n\n🆓 Free — a 6×6 or 9×9 board with no variants, your choice of difficulty.',
+    ru: 'Заполните сетку так, чтобы цифры встречались ровно один раз в каждой строке, столбце и блоке. Классический логический пазл.\n\n🎚 Уровни — с ростом уровня добавляются правила-варианты:\n• L9 ⟍ диагонали: цифры уникальны и по двум диагоналям\n• L14 ♞ ход коня: равные цифры не на ходу коня\n• L18 ⊞ доп. зоны: ещё 4 квадрата 3×3 без повторов\n• L22 ≠ не подряд: соседи по стороне не отличаются на 1\n• L26 ♚ ход короля: равные не касаются даже по диагонали\n• L30 ◩ чёт/нечёт: □ клетка — чётная цифра, ○ — нечётная\n• L34 ● точки Кропки: белая точка — соседи отличаются на 1, чёрная — вдвое\n• L38 ⊐ сэндвич: число у края — сумма цифр между 1 и 9 в этом ряду\n• L42 🌡 термометры: вдоль термометра цифры растут от колбы\n• L46 ↗ стрелки: цифра в кружке — сумма цифр вдоль стрелки\n• L50 ⧉ кривые блоки: блоки неправильной формы\n• L54 🌡+ термометр и суммы: два правила разом — цепочка растёт от колбы, а группа даёт сумму из угла\n\n👑 Killer — поле разбито на группы: цифры в группе дают сумму в её углу и не повторяются.\n\n🆓 Свободно — поле 6×6 или 9×9 без вариантов, с выбором сложности.',
+    en: 'Fill the grid so digits appear exactly once in every row, column and block. The classic logic puzzle.\n\n🎚 Levels — new variant rules unlock as you climb:\n• L9 ⟍ diagonals: digits are also unique on both diagonals\n• L14 ♞ anti-knight: equal digits cannot be a knight move apart\n• L18 ⊞ hyper: 4 extra 3×3 zones with no repeats\n• L22 ≠ non-consecutive: side-neighbours cannot differ by 1\n• L26 ♚ anti-king: equal digits cannot touch even diagonally\n• L30 ◩ even/odd: □ cell = even digit, ○ = odd\n• L34 ● kropki: a white dot means neighbours differ by 1, a black one means double\n• L38 ⊐ sandwich: the number at the edge is the sum of digits between 1 and 9 in that line\n• L42 🌡 thermometers: digits increase along the thermometer, from the bulb\n• L46 ↗ arrows: the digit in the circle is the sum of digits along the arrow\n• L50 ⧉ jigsaw: irregular blocks instead of squares\n• L54 🌡+ thermo and cages: two rules at once — the chain grows from the bulb, the cage adds up to its corner\n\n👑 Killer — the grid splits into cages: digits in a cage add up to the number in its corner and never repeat.\n\n🆓 Free — a 6×6 or 9×9 board with no variants, your choice of difficulty.',
   },
   difficultyLabel: { ru: 'Сложность', en: 'Difficulty' },
   sudokuTierBeginner: { ru: 'Начинающий', en: 'Beginner' },
@@ -1966,6 +1966,7 @@ const translations: Translations = {
   sudokuVariantSandwich: { ru: '🥪 сэндвич', en: '🥪 sandwich' },
   sudokuVariantThermo: { ru: '🌡 термометр', en: '🌡 thermo' },
   sudokuVariantArrow: { ru: '➳ стрелка', en: '➳ arrow' },
+  sudokuVariantThermocage: { ru: '🌡+ сумма', en: '🌡+ cage' },
   sudokuRuleDiagonal: { ru: 'Цифры уникальны ещё и по двум диагоналям.', en: 'Digits are also unique along both diagonals.' },
   sudokuRuleAntiknight: { ru: 'Одинаковые цифры не стоят на расстоянии хода коня.', en: 'Equal digits cannot be a knight’s move apart.' },
   sudokuRuleHyper: { ru: 'Четыре доп. зоны 3×3 тоже содержат 1–9 без повторов.', en: 'Four extra 3×3 regions also hold 1–9 with no repeats.' },
@@ -1977,6 +1978,7 @@ const translations: Translations = {
   sudokuRuleSandwich: { ru: 'Число у края — сумма цифр между 1 и 9 в этом ряду/столбце.', en: 'Edge number = sum of digits between the 1 and the 9 in that row/column.' },
   sudokuRuleThermo: { ru: 'Вдоль термометра цифры строго растут от колбы.', en: 'Digits strictly increase along each thermometer from the bulb.' },
   sudokuRuleArrow: { ru: 'Цифры вдоль стрелки в сумме равны числу в кружке.', en: 'Digits along the arrow sum to the number in the circle.' },
+  sudokuRuleThermocage: { ru: 'Два правила разом: вдоль термометра цифры строго растут от колбы, а в цветной группе они дают сумму из угла и не повторяются.', en: 'Two rules at once: digits strictly increase along each thermometer from the bulb, and inside a tinted cage they add up to its corner number without repeating.' },
   // Судоку — примеры-подписи в модалке правил (exampleCaption)
   sudokuEx_antiknight: { ru: 'Синяя 3 уже стоит. В красные клетки (буква «Г», как ходит конь) вторую 3 ставить нельзя.', en: 'The blue 3 is placed. Red cells (an “L”, like a knight moves) cannot hold another 3.' },
   sudokuEx_antiking: { ru: 'Синяя 3 стоит. В красные клетки по диагонали вплотную вторую 3 ставить нельзя.', en: 'The blue 3 is placed. Diagonally touching red cells cannot hold another 3.' },
@@ -1988,6 +1990,7 @@ const translations: Translations = {
   sudokuEx_sandwich: { ru: 'Пример: в ряду 1·3·5·9·… число у края = 8, потому что между 1 и 9 стоят 3+5.', en: 'Example: in a row 1·3·5·9·… the edge clue is 8, because 3+5 sit between the 1 and the 9.' },
   sudokuEx_thermo: { ru: 'Пример: по термометру от колбы 2 → 4 → 7 — каждая следующая цифра строго больше.', en: 'Example: along a thermometer 2 → 4 → 7 — each digit is strictly larger than the previous.' },
   sudokuEx_arrow: { ru: 'Пример: в кружке 8, вдоль стрелки 3 и 5 — их сумма равна числу в кружке.', en: 'Example: the circle shows 8, the arrow holds 3 and 5 — they sum to the circle.' },
+  sudokuEx_thermocage: { ru: 'Пример: термометр 2 → 4 → 7 растёт от колбы, а группа с меткой «9» из двух клеток даёт 9 разными цифрами (4 и 5). Клетка может быть и на термометре, и в группе — тогда работают оба правила сразу, и именно это сужает выбор до одной цифры.', en: 'Example: a thermometer runs 2 → 4 → 7 from the bulb, while a 2-cell cage marked “9” holds two different digits summing to 9 (4 and 5). A cell can sit on a thermometer and inside a cage at once — then both rules apply together, and that is what narrows it to a single digit.' },
   sudokuEx_jigsaw: { ru: 'Вместо квадратных блоков — фигурные области. В каждой области цифры 1–9 без повторов.', en: 'Instead of square boxes — irregular regions. Each region holds 1–9 with no repeats.' },
   sudokuEx_killer: { ru: 'Пример: рамка из 2 клеток с меткой «7» — цифры в ней дают в сумме 7 и не повторяются (например 3 и 4).', en: 'Example: a 2-cell cage marked “7” — its digits sum to 7 and don’t repeat (e.g. 3 and 4).' },
   ctaGotIt: { ru: 'ПОНЯТНО', en: 'GOT IT' },
@@ -2527,6 +2530,31 @@ const translations: Translations = {
     ru: 'Тренирует метод мест: изучите маршрут, свяжите каждый предмет с местом и восстановите их по местам в обе стороны.',
     en: 'Trains the method of loci: study a route, tie each item to a place, and recall them by location in both directions.',
   },
+
+  // ── ЦЕЛЬ ДНЯ (карточка на главном экране) ──────────────────────────────────
+  // Своими словами человека, а не наши цитаты: замысел — в шапке
+  // src/services/dailyGoal.ts, показ — src/components/DailyGoalCard.tsx.
+  // ⚠️ dayGoalTodayLine намеренно БЕЗ прошедшего времени («сегодня ты хотел»):
+  // по-русски оно склоняется по роду, а приложение семейное — Валя прочитала бы
+  // мужской род о себе. Именительный оборот работает у всех.
+  dayGoalTitle: { ru: 'Цель дня', en: 'Goal for today' },
+  dayGoalAsk: { ru: 'Ради чего сегодня?', en: 'What is today for?' },
+  dayGoalAskHint: { ru: 'Одна строка своими словами — зачем тебе сегодняшняя тренировка. Её видишь только ты.', en: 'One line in your own words: what today’s training is for. Only you see it.' },
+  dayGoalPlaceholder: { ru: 'Своими словами', en: 'In your own words' },
+  dayGoalSave: { ru: 'Запомнить', en: 'Keep it' },
+  dayGoalExamplesTitle: { ru: 'Так это может звучать:', en: 'It can sound like this:' },
+  dayGoalExample1: { ru: 'не путать имена на встрече', en: 'not mixing up names at the meeting' },
+  dayGoalExample2: { ru: 'держать счёт в уме на кассе', en: 'doing the sums in my head at the till' },
+  dayGoalExample3: { ru: 'не терять мысль на середине фразы', en: 'not losing the thread mid-sentence' },
+  dayGoalTodayLine: { ru: 'Твоя цель на сегодня:', en: 'Your goal for today:' },
+  dayGoalRounds: { ru: 'Партий к ней сегодня: {n}', en: 'Rounds toward it today: {n}' },
+  dayGoalRoundsNone: { ru: 'Партий сегодня пока нет', en: 'No rounds yet today' },
+  dayGoalReview: { ru: 'Как вышло?', en: 'How did it go?' },
+  dayGoalYes: { ru: 'Получилось', en: 'Did it' },
+  dayGoalNo: { ru: 'Не сегодня', en: 'Not today' },
+  dayGoalDoneNote: { ru: 'Отмечено. Завтра спросим снова.', en: 'Noted. We’ll ask again tomorrow.' },
+  dayGoalMissedNote: { ru: 'Бывает. Цель никуда не делась — завтра тоже день.', en: 'That happens. The goal is still there — tomorrow is a day too.' },
+  dayGoalCloseA11y: { ru: 'Убрать карточку цели на сегодня', en: 'Hide the goal card for today' },
 
   // >>> SCREEN_STRINGS
 };

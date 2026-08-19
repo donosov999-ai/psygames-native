@@ -51,6 +51,10 @@ import { shouldOpenOnboardingPicker } from '@/src/services/onboarding';
 import { recoCards, recoParams } from '@/src/services/recommend';
 import { getSessions, GameSession } from '@/src/services/api';
 import { todayEarnings, TodaySummary, DAY_STREAK_FOR_MULT } from '@/src/services/earn';
+import DailyGoalCard from '@/src/components/DailyGoalCard';
+import {
+  loadGoalCard, saveDailyGoal, dismissGoalCard, markGoalOutcome, GoalCardData, GoalOutcome,
+} from '@/src/services/dailyGoal';
 
 const MAX_CONTAINER_WIDTH = 1100;
 const CONTAINER_PADDING = 16;
@@ -164,6 +168,43 @@ function FullHome() {
       .catch(() => {});
     return () => { active = false; };
   }, [profile.id]));
+  /**
+   * 🎯 ЦЕЛЬ ДНЯ — причина открыть приложение, названная самим человеком.
+   *
+   * Все правила (сутки, попрофильность, «закрыл — сегодня не возвращается», отказ
+   * писать пустое) живут в `src/services/dailyGoal.ts`; экран только показывает
+   * готовое состояние и передаёт нажатия обратно. Считать состояние здесь заново
+   * нельзя: правило «ровно сутки» разъехалось бы между двумя местами.
+   *
+   * ⚠️ ПЕРЕЧИТЫВАЕМ НА ФОКУСЕ — той же болезнью болели подпись «Зарядки» и набор
+   * рекомендаций: на Android приложение живёт в WebView, главный экран остаётся
+   * смонтированным сутками, и прочитанное один раз при запуске застыло бы на
+   * вчерашней цели. Заодно это единственный способ увидеть партию, сыгранную минуту
+   * назад: возврат с игры и есть фокус.
+   */
+  const [goalCard, setGoalCard] = useState<GoalCardData>({ state: 'hidden', goal: null });
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    loadGoalCard(profile.id)
+      .then((c) => { if (active) setGoalCard(c); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [profile.id]));
+  // Пустой ввод целью не становится: сервис ничего не пишет и отдаёт null, а карточка
+  // остаётся приглашением — вместо того чтобы весь день показывать пустую строку.
+  const onGoalSave = useCallback(async (raw: string) => {
+    const saved = await saveDailyGoal(profile.id, raw);
+    if (!saved) return;
+    setGoalCard(await loadGoalCard(profile.id));
+  }, [profile.id]);
+  const onGoalDismiss = useCallback(async () => {
+    await dismissGoalCard(profile.id);
+    setGoalCard(await loadGoalCard(profile.id));
+  }, [profile.id]);
+  const onGoalOutcome = useCallback(async (outcome: GoalOutcome) => {
+    await markGoalOutcome(profile.id, outcome);
+    setGoalCard(await loadGoalCard(profile.id));
+  }, [profile.id]);
   useFocusEffect(useCallback(() => {
     let active = true;
     setRecoAt(Date.now());
@@ -572,6 +613,25 @@ function FullHome() {
             <Ionicons name="chevron-forward" size={22} color={resumeGame.gradient[0]} />
           </TouchableOpacity>
         )}
+
+        {/* 🎯 «Цель дня» — одна строка, написанная самим человеком, и что он к ней
+            сегодня сделал. Не цитата и не наш лозунг: сервис не сочиняет ни слова
+            (см. шапку src/services/dailyGoal.ts). Стоит ВЫШЕ блока «Сегодня»
+            намеренно: сначала зачем, потом сколько. Число партий берём из того же
+            журнала, что и «Сегодня», — второго счёта в приложении быть не должно.
+            Закрытая на сегодня карточка не рисуется вовсе (state='hidden' → null),
+            места под собой не оставляет и вернётся только завтра. */}
+        <DailyGoalCard
+          state={goalCard.state}
+          goalText={goalCard.goal?.text ?? null}
+          outcome={goalCard.goal?.outcome ?? null}
+          roundsToday={today.rounds}
+          colors={colors}
+          t={t}
+          onSave={onGoalSave}
+          onDismiss={onGoalDismiss}
+          onOutcome={onGoalOutcome}
+        />
 
         {/* 📒 «Сегодня» — что сыграно за календарные сутки и сколько принесло.
             Блок рисуется ВСЕГДА, в том числе на пустом дне: заголовок с приглашением
