@@ -70,7 +70,7 @@ export default function WarmupPicker() {
   /** Сколько шагов и минут в наборе — показываем на карточке, чтобы выбор был осознанным. */
   const metaFor = React.useCallback((slot: WarmupSlot) => {
     switch (slot) {
-      case 'day':   return buildDayPlaylist(wd);
+      case 'day':   return buildDayPlaylist(wd, (g: string) => isGameAllowed(profile, g));
       case 'night': return buildNightPlaylist(wd);
       case 'evening': {
         const morning = profile.morning_playlist?.length
@@ -80,6 +80,10 @@ export default function WarmupPicker() {
           weekday: wd,
           excludeGameIds: morning.steps.map((s) => s.game_id),
           profileEvening: profile.evening_playlist,
+          // ⚠️ Фильтр был потерян ИМЕННО ЗДЕСЬ, в предпросмотре: сам запуск
+          // (WarmupContext) его передаёт. Карточка обещала пять шагов, набор
+          // шёл из трёх — расхождение читается как поломка счётчика.
+          allow: (g: string) => isGameAllowed(profile, g),
         });
       }
       default:

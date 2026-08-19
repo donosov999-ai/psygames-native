@@ -149,8 +149,10 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const startDay = useCallback(() => {
-    startSlotPlaylist(buildDayPlaylist(getCurrentWeekday()));
-  }, [startSlotPlaylist]);
+    // Фильтр профиля — как в утреннем и вечернем наборах. Без него перерыв
+    // раздавал упражнения, которых в профиле нет.
+    startSlotPlaylist(buildDayPlaylist(getCurrentWeekday(), allow));
+  }, [startSlotPlaylist, allow]);
 
   const startNight = useCallback(() => {
     startSlotPlaylist(buildNightPlaylist(getCurrentWeekday()));
