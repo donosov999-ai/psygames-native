@@ -55,6 +55,7 @@ import NavigatorGame from '@/src/games/navigator/NavigatorGame';
 import {
   LEVELS,
   getNavigatorModeLabel,
+  getNavigatorStrings,
   isPassed,
   navigatorModeForLevel,
   type NavigatorLocale,
@@ -76,6 +77,20 @@ export default function NavigatorScreen() {
   const { colors } = useTheme();
   const { language, t } = useLanguage();
   const locale: NavigatorLocale = language === 'ru' ? 'ru' : 'en';
+  /**
+   * 🔴 НАЗВАНИЕ И ОПИСАНИЕ БЕРЁМ ИЗ МОДУЛЯ, А НЕ ИЗ ОБЩЕГО СЛОВАРЯ — ПОКА.
+   *
+   * Ключей `navigator` / `navigatorDesc` в словаре ещё нет: он общий на все
+   * приёмки сразу, и заводит их один заход-интегратор (INTEGRATION.md §2).
+   * А `t()` на отсутствующем ключе возвращает САМО ИМЯ КЛЮЧА — человек увидел
+   * бы в шапке «navigator», и это не гипотеза: так и было в браузере
+   * 19.08.2026, пока текст сюда не переехал.
+   *
+   * ⚠️ КОГДА КЛЮЧИ ЗАВЕДУТ — вернуть вызовы словаря по ключам `navigator` и
+   * `navigatorDesc`:
+   * в модуле два языка, в словаре двенадцать. Обе строки ниже помечены.
+   */
+  const navStrings = getNavigatorStrings(locale);
   const lvl = usePersistentLevel('navigator');
   const { isPreset, autostart, num, str, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
@@ -227,7 +242,7 @@ export default function NavigatorScreen() {
           accessibilityRole="button" accessibilityLabel={t('a11yBack')}>
           <Ionicons name="arrow-back" size={24} color={ON_GRAD.color} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('navigator')}</Text>
+        <Text style={styles.title}>{navStrings.title}</Text>{/* ← ключ словаря `navigator`, когда заведут */}
       </GradientSurface>
 
       <ScrollView contentContainerStyle={styles.body}>
@@ -237,7 +252,8 @@ export default function NavigatorScreen() {
 
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('navigatorDesc')}</Text>
+          {/* ← ключ словаря `navigatorDesc`, когда заведут */}
+          <Text style={[styles.hint, { color: colors.textSecondary }]}>{navStrings.catalogDesc}</Text>
         </View>
 
         <TouchableOpacity onPress={start} accessibilityRole="button">

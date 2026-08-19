@@ -148,6 +148,8 @@ const NOT_A_GAME: Record<string, string> = {
   'span.tsx': 'хаб: меню из трёх модальностей охвата, играть тут не в чем',
   'math-slider.tsx':
     'экран-обёртка: партию рисует модуль src/games/math-slider/MathSliderGame.tsx, строка живёт там (strings.prompt) вместе со своим словарём',
+  'object-tracker.tsx':
+    'экран-обёртка: партию рисует модуль src/games/object-tracker/ObjectTrackerGame.tsx, строка живёт там (phaseTitle → strings.preview/moving/selection, свой словарь ru/en) и меняется на каждой фазе раунда',
   'navigator.tsx':
     'экран-обёртка: партию рисует модуль src/games/navigator/NavigatorGame.tsx, строка живёт там (strings.routePrompt / turnPrompt / homePrompt — своя на каждый из трёх режимов) вместе со своим словарём',
 };

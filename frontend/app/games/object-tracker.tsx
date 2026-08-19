@@ -1,0 +1,288 @@
+/* psygames-game-object-tracker · VER 1 · 19.08.2026 */
+/**
+ * Трекер объектов — слежение за несколькими целями в толпе одинаковых.
+ *
+ * ПРОИСХОЖДЕНИЕ. Игра G5/8 собрана psygames-codex-mac в отдельной лаборатории
+ * (`~/dev/psygames-game-lab`, ветка `codex/game-object-tracker`, коммит 8bd59ad,
+ * база — d203a4a). Модуль пришёл самодостаточным: чистая физика с шагом 8 мс,
+ * свой валидатор состояния, свой словарь ru/en, свой `isPassed`. Ядро перенесено
+ * один в один в `src/games/object-tracker/core`, адаптер поля переписан под
+ * приложение — что именно изменено, перечислено в его шапке.
+ *
+ * ЧТО ТРЕНИРУЕТ. Multiple Object Tracking (Pylyshyn & Storm, 1988): человек
+ * удерживает 1–5 меченых объектов в толпе неотличимых, пока все двигаются. Это
+ * НЕ поиск (там цель отличается видом) и НЕ объём памяти (там нечего удерживать
+ * в движении) — это ёмкость РАСПРЕДЕЛЁННОГО внимания и способность не отдать
+ * цель соседу в момент сближения. Отдельный навык: за рулём и в толпе работает
+ * именно он.
+ *
+ * СЛОЖНОСТЬ РАСТЁТ СОДЕРЖАНИЕМ ПО ПЯТИ НЕЗАВИСИМЫМ ОСЯМ, а не «то же самое,
+ * но быстрее»: 1–8 — 4–6 объектов и одна цель · 9–16 — до 9 объектов, две цели ·
+ * 17–24 — три цели · 25–32 — двенадцать объектов, четыре цели, скорость выходит
+ * на потолок · 33–40 — пять целей, движение дольше и сближения теснее · 41 —
+ * всё сразу на максимуме. Всего 41 уровень (`LEVELS` в ядре).
+ *
+ * ⚠️ ДЛИННОЕ ДВИЖЕНИЕ — ЭТО НАГРУЗКА, А НЕ ОБРАТНЫЙ ОТСЧЁТ. Выбор целей после
+ * остановки не ограничен по времени вообще: думать можно сколько нужно.
+ *
+ * 🔴 РАУНД ВЕДЁТ МОДУЛЬ, ФИНАЛ — ПРИЛОЖЕНИЕ. Свой экран поздравления у модуля был
+ * и убран: звёзды по уровням, серия чистых прохождений и глаз-разрядка пишутся
+ * ТОЛЬКО в LevelCleared, и своя плашка означала бы тихое выпадение из всей этой
+ * бухгалтерии — ровно как когда-то у маджонга и парных картинок. Гейт
+ * `game-standard` это отбивает.
+ *
+ * 🔴 ДВИЖЕНИЕ ЗАМИРАЕТ ВМЕСТЕ С ОБЩЕЙ ПАУЗОЙ, И ЭТО ДВА РАЗНЫХ КОНЦА.
+ * Для игры про движение пауза острее, чем для любой другой: справку «Правила»
+ * открывают ИМЕННО ТОГДА, когда не поняли, за чем следить, — и, читая, теряли бы
+ * все цели. Длительность партии меряется игровыми часами `gameNow()` (ниже они
+ * отдаются модулю пропом `now`), но ЭТОГО МАЛО: мир двигают дельты кадров
+ * `requestAnimationFrame`, а они тикают мимо любых часов. Экран, который заменил
+ * бы `Date.now()` на `gameNow()` и на этом успокоился, продолжал бы гонять
+ * объекты под окном правил. Второй конец — в `useTrackerLoop`: пауза гасит сам
+ * кадровый цикл.
+ */
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { onGradientText } from '@/src/services/onGradientText';
+import GradientSurface from '@/src/components/GradientSurface';
+import { goBackOrHome } from '@/src/utils/nav';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLanguage } from '@/src/contexts/LanguageContext';
+import { saveSession } from '@/src/services/api';
+import { gameNow } from '@/src/services/gamePause';
+import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
+import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
+import LevelCleared from '@/src/components/LevelCleared';
+import GameResult from '@/src/components/GameResult';
+import ObjectTrackerGame from '@/src/games/object-tracker/ObjectTrackerGame';
+import {
+  LEVELS,
+  getObjectTrackerStrings,
+  isPassed,
+  type ObjectTrackerMetrics,
+} from '@/src/games/object-tracker/core';
+
+const GRADIENT = ['#f59e0b', '#7c3aed'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента:
+// янтарь светлый, фиолетовый тёмный, и одним цветом AA 4.5 на обоих не берётся.
+// GradientSurface кладёт поверх вуаль цветом самого градиента — подробности в
+// шапке src/services/onGradientText.ts.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+
+type Phase = 'config' | 'playing' | 'cleared' | 'result';
+
+export default function ObjectTrackerScreen() {
+  const { colors } = useTheme();
+  const { language, t } = useLanguage();
+  const lvl = usePersistentLevel('object_tracker');
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
+  const mode = useGameMode();
+  const reducedMotion = useReducedMotion();
+  const screenWidth = useScreenWidth();
+
+  const [phase, setPhase] = React.useState<Phase>('config');
+  const [last, setLast] = React.useState<ObjectTrackerMetrics | null>(null);
+  const [clearedPassed, setClearedPassed] = React.useState(false);
+
+  // Уровень из адреса (шаг зарядки, вызов дня) важнее сохранённого.
+  // Потолок 41 — дальше генератор не растёт, и обещать несуществующее нельзя.
+  const level = Math.min(LEVELS, num('level', lvl.level));
+  const locale = language === 'ru' ? 'ru' : 'en';
+  const strings = getObjectTrackerStrings(locale);
+
+  /**
+   * Зерно фиксируем на уровень, а не на каждый заход: перезапуск того же уровня
+   * должен давать ТУ ЖЕ расстановку и ТУ ЖЕ траекторию. Иначе «не получилось —
+   * крутани ещё раз» превращается в лотерею вместо второй попытки, а физика,
+   * которую в лаборатории специально сделали детерминированной, теряет смысл.
+   */
+  const [attempt, setAttempt] = React.useState(0);
+  const seed = React.useMemo(() => `object-tracker-${level}`, [level]);
+
+  React.useEffect(() => { if (autostart) setPhase('playing'); }, [autostart]);
+
+  const onComplete = React.useCallback(async (m: ObjectTrackerMetrics) => {
+    // Порог прохождения считает САМ модуль: точность ≥ 0.60 и не больше одного
+    // ложного выбора. На одноцелевых уровнях это означает точное попадание, на
+    // самых тяжёлых пяти-целевых — право один раз перепутать объект соседом.
+    const passed = isPassed(m);
+    setLast(m);
+
+    // Пресет и шаг зарядки уровень НЕ двигают — так во всех экранах.
+    if (!isPreset && passed && shouldChainNextLevel(mode)) lvl.reach(level + 1);
+    else if (!isPreset && !passed) lvl.fail();
+
+    if (isPreset) setPhase('result');
+    else { setClearedPassed(passed); setPhase('cleared'); }
+
+    try {
+      // Пишем партию ВСЕГДА, и провальную тоже: без записи провала зарядка
+      // считает шаг несделанным и возвращает на него по кругу.
+      await saveSession({
+        passed,
+        game_type: 'object_tracker',
+        score: m.score,
+        time_seconds: Math.round(m.durationMs / 1000),
+        difficulty: level <= 8 ? 'easy' : level <= 24 ? 'medium' : 'hard',
+        mode: `${m.specific.targetCount}of${m.specific.objectCount}`,
+        errors: m.errors,
+        details: {
+          level,
+          accuracy: m.accuracy,
+          object_count: m.specific.objectCount,
+          target_count: m.specific.targetCount,
+          hits: m.specific.hits,
+          // Промах и ложный выбор разведены намеренно: «не нашёл свою цель» и
+          // «уверенно ткнул в чужую» — разные сбои внимания, и лечатся по-разному.
+          misses: m.specific.misses,
+          false_selections: m.specific.falseSelections,
+          // Сколько раз объекты за раунд СБЛИЖАЛИСЬ вплотную: главный источник
+          // потери цели. Без этого числа «ошибся» и «было объективно тесно»
+          // выглядят в статистике одинаково.
+          close_approaches: m.specific.closeApproaches,
+          motion_duration_ms: m.specific.motionDurationMs,
+          reduced_motion: m.specific.reducedMotion,
+          seed: m.seed,
+          generator_version: m.generatorVersion,
+        },
+      });
+    } catch (err) { console.error(err); }
+  }, [isPreset, mode, level, lvl]);
+
+  /**
+   * Звёзды по чистоте выбора: три — ни одной ошибки, две — одна, дальше одна.
+   * Точность здесь дискретна (целей от одной до пяти), поэтому считаем ошибки,
+   * а не проценты: «80%» при двух целях невозможно, а «одна ошибка» — понятно.
+   */
+  const stars = last ? (last.errors === 0 ? 3 : last.errors <= 1 ? 2 : 1) : 1;
+
+  const start = () => { setAttempt((n) => n + 1); setPhase('playing'); };
+
+  if (phase === 'playing') {
+    return (
+      <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
+        <ObjectTrackerGame
+          key={attempt}                 /* новый заход — чистое состояние модуля */
+          seed={seed}
+          level={level}
+          locale={locale}
+          /**
+           * Щадящий режим читаем ОДНИМ общим хуком и передаём внутрь. Модуль сам
+           * систему не спрашивает: `AccessibilityInfo.isReduceMotionEnabled()` в
+           * react-native-web без DOM отвечает `true`, а DOM'а нет ровно на
+           * пререндере статического экспорта — режим включился бы всем подряд.
+           */
+          reducedMotion={reducedMotion}
+          screenWidth={screenWidth}
+          now={gameNow}
+          /**
+           * Тему отдаём ЦЕЛИКОМ, а не три цвета: у нас есть тёмные профили, и
+           * недокрашенная игра была бы светлым пятном посреди тёмного приложения.
+           */
+          theme={{
+            background: colors.background,
+            surface: colors.surface,
+            card: colors.surface,
+            text: colors.text,
+            textSecondary: colors.textSecondary,
+            /**
+             * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им главную
+             * кнопку и кольцо цели. Отдать сюда `colors.primary` значит получить
+             * внутри игры акцент профиля (оранжевый, синий — какой угодно), а
+             * снаружи, на экране настройки, — градиент игры: один экран, две схемы.
+             */
+            primary: GRADIENT[0],
+            border: colors.border,
+            success: colors.success,
+            error: colors.error,
+            warning: colors.warning,
+          }}
+          gameGradient={GRADIENT as [string, string]}
+          onComplete={onComplete}
+          onExit={() => setPhase('config')}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
+      <GradientSurface colors={GRADIENT as [string, string]} style={styles.header}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        {/* 48×48 — не «padding и как выйдет»: у соседней игры ровно здесь вышло 32×34. */}
+        <TouchableOpacity onPress={() => goBackOrHome()} style={styles.back}
+          accessibilityRole="button" accessibilityLabel={t('back')}>
+          <Ionicons name="arrow-back" size={24} color={ON_GRAD.color} />
+        </TouchableOpacity>
+        <Text style={styles.title}>{strings.title}</Text>
+      </GradientSurface>
+
+      <ScrollView contentContainerStyle={styles.body}>
+        <LevelProgressMap gameId="object_tracker" currentLevel={lvl.level} maxLevel={LEVELS}
+          onPickLevel={lvl.pick} colors={colors} language={language} />
+
+        {/*
+          Правила лежат ЗДЕСЬ, а не отдельным экраном внутри модуля: второй экран
+          правил был бы вторым «Начать» подряд и лишним тапом в шаге зарядки.
+          Текст тот же самый, из словаря модуля, — ничего не потеряно.
+        */}
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
+          <Text style={[styles.skill, { color: colors.textSecondary }]}>{strings.skill}</Text>
+          <Text style={[styles.hint, { color: colors.text }]}>{strings.rulesBody}</Text>
+          <Text style={[styles.hint, { color: colors.text }]}>{strings.rulesSelection}</Text>
+          {reducedMotion ? (
+            <Text style={[styles.hint, { color: GRADIENT[1], fontWeight: '800' }]}>
+              {strings.reducedMotionInfo}
+            </Text>
+          ) : null}
+          <Text style={[styles.keys, { color: colors.textSecondary }]}>{strings.keyboardHelp}</Text>
+        </View>
+
+        <TouchableOpacity onPress={start} accessibilityRole="button">
+          <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
+            <Text style={styles.startText}>{t('start')}</Text>
+          </GradientSurface>
+        </TouchableOpacity>
+      </ScrollView>
+
+      {phase === 'cleared' && (
+        <LevelCleared gameId="object_tracker" level={level} stars={stars}
+          passed={clearedPassed}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={start} onStop={() => setPhase('config')} />
+      )}
+      {phase === 'result' && last && (
+        <GameResult
+          score={last.score}
+          time={last.durationMs / 1000}
+          errors={last.errors}
+          onPlayAgain={start} onGoHome={() => goBackOrHome()}
+          gradient={GRADIENT as [string, string]} />
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 10 },
+  back: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  title: { color: ON_GRAD.color, fontSize: 20, fontWeight: '800', flexShrink: 1 },
+  body: { padding: 16, gap: 16 },
+  card: { borderRadius: 18, padding: 16, gap: 8 },
+  level: { fontSize: 18, fontWeight: '800' },
+  skill: { fontSize: 13, fontWeight: '800' },
+  hint: { fontSize: 14, lineHeight: 21 },
+  keys: { fontSize: 12, lineHeight: 18 },
+  startBtn: { borderRadius: 999, paddingVertical: 16, alignItems: 'center' },
+  startText: { color: ON_GRAD.color, fontSize: 17, fontWeight: '800' },
+});
