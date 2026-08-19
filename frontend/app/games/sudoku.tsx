@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -30,6 +31,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Line, Rect } from 'react-native-svg';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 2.39 (норма AA 4.5), стало 4.81.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const CELL_COLORS = ['#8B5CF6', '#0EA5E9', '#22C55E', '#F59E0B', '#EC4899'] as const;
 // Okabe–Ito: отдельная палитра для режима дальтонизма, а не перестановка тех же цветов.
 const CELL_COLORS_CB = ['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7'] as const;
@@ -696,7 +701,7 @@ export default function SudokuGame() {
     <View style={{ flex: 1 }}>
     <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="apps" size={48} color="#FFF" />
+        <Ionicons name="apps" size={48} color={ON_GRAD.color} />
         <Text style={styles.configTitle}>{t('sudoku')}</Text>
         <Text style={styles.configDesc}>{t('sudokuDesc')}</Text>
       </LinearGradient>
@@ -1316,8 +1321,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, marginHorizontal: 8 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -1331,7 +1336,7 @@ const styles = StyleSheet.create({
   stickyFooter: { paddingHorizontal: 16, paddingTop: 10, borderTopWidth: 1 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   playAreaLand: { flexDirection: 'row', gap: 22, alignItems: 'center' },   // landscape: сетка | цифры
   landControls: { gap: 14, alignItems: 'center', justifyContent: 'center' },
   toolbarCol: { flex: 1, alignItems: 'center', gap: 8 },           // portrait: numPad+hint колонкой в тулбаре каркаса

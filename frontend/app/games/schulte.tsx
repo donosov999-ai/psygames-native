@@ -13,6 +13,8 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -36,6 +38,16 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#667eea', '#764ba2'];
+// Оранжевая кнопка «уровень N» — свой градиент, значит и свой цвет текста:
+// одним ON_GRAD тут не обойтись, стиль startButtonText лежит сразу на двух плашках.
+const LEVEL_GRADIENT = ['#f7971e', '#ffd200'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFFFFF' — контраст 3.66 на фиолетовой и 1.45 на оранжевой (норма AA 4.5).
+// Фиолетовую сплошным цветом AA не берёт вовсе: белый даёт 3.66, чёрный 3.30 —
+// поэтому GradientSurface кладёт поверх вуаль цветом самого градиента.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
+const ON_LEVEL = onGradientText(LEVEL_GRADIENT[0], LEVEL_GRADIENT[1]);
 
 // Benefits for intro screen
 const SCHULTE_BENEFITS = [
@@ -448,16 +460,16 @@ export default function SchulteGame() {
   // (Тип/Направление/Цвет/Размер) + hero + кнопка → больше чем 720px высоты часто.
   const renderConfig = () => (
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-      <LinearGradient
+      <GradientSurface
         colors={GRADIENT as [string, string]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.configCard}
       >
-        <Ionicons name="grid" size={48} color="#FFFFFF" />
+        <Ionicons name="grid" size={48} color={ON_GRAD.color} />
         <Text style={styles.configTitle}>{t('schulteTable')}</Text>
         <Text style={styles.configDesc}>{t('schulteTableDesc')}</Text>
-      </LinearGradient>
+      </GradientSurface>
       <GameAbout descriptionKey="schulteIntroDesc" benefits={SCHULTE_BENEFITS} accent={GRADIENT[0]} />
       {!isPreset && (
         <GameModeSwitch mode={playMode} onChange={setPlayMode} colors={colors} accent={GRADIENT[0]} t={t} />
@@ -474,9 +486,9 @@ export default function SchulteGame() {
                и 'auto' раздувал пустую полосу между тропинкой и кнопкой. */
             style={[styles.startButton, { marginTop: 8 }]}
             onPress={() => startGame(true)}>
-            <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
-              <Ionicons name="flag" size={22} color="#FFFFFF" />
-              <Text style={styles.startButtonText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
+            <LinearGradient colors={LEVEL_GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
+              <Ionicons name="flag" size={22} color={ON_LEVEL.color} />
+              <Text style={[styles.startButtonText, { color: ON_LEVEL.color }]}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
             </LinearGradient>
           </TouchableOpacity>
         )}
@@ -824,15 +836,15 @@ export default function SchulteGame() {
 
       <TouchableOpacity
         accessibilityRole="button" style={[styles.startButton, !isPreset && { marginTop: 8 }]} onPress={() => startGame(false)}>
-        <LinearGradient
+        <GradientSurface
           colors={GRADIENT as [string, string]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.startButtonGradient}
         >
-          <Ionicons name="play" size={24} color="#FFFFFF" />
+          <Ionicons name="play" size={24} color={ON_GRAD.color} />
           <Text style={styles.startButtonText}>{!isPreset ? t('freePlay') : t('start')}</Text>
-        </LinearGradient>
+        </GradientSurface>
       </TouchableOpacity>
       </>)}
     </ScrollView>
@@ -1047,11 +1059,11 @@ const styles = StyleSheet.create({
   configTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: ON_GRAD.color,
   },
   configDesc: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+    color: ON_GRAD_SOFT,
   },
   optionCard: {
     padding: 16,
@@ -1107,7 +1119,7 @@ const styles = StyleSheet.create({
   startButtonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: ON_GRAD.color,
   },
   gameHeader: {
     flexDirection: 'row',

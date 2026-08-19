@@ -19,6 +19,8 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -37,6 +39,12 @@ import { a11yDecor } from '@/src/services/a11y';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#34e89e', '#0f3443'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 1.59 (норма AA 4.5), стало 4.51.
+// Сплошным цветом этот градиент AA не берёт ни при каком цвете текста — GradientSurface
+// кладёт поверх вуаль #aef6d8 @0.38 цветом самого градиента. Подробности — в шапке сервиса.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const FIND_BENEFITS = [
   { icon: 'eye-outline', textKey: 'benefitFind1' },
   { icon: 'search-outline', textKey: 'benefitFind2' },
@@ -432,11 +440,11 @@ export default function FindDifferencesGame() {
     const p = levelParams(lvl.level);
     return (
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-          <Ionicons name="search" size={48} color="#FFF" />
+        <GradientSurface colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+          <Ionicons name="search" size={48} color={ON_GRAD.color} />
           <Text style={styles.configTitle}>{t('findDiff')}</Text>
           <Text style={styles.configDesc}>{t('findDiffDesc')}</Text>
-        </LinearGradient>
+        </GradientSurface>
         <GameAbout descriptionKey="findDiffIntroDesc" benefits={FIND_BENEFITS} accent={GRADIENT[0]} />
         <LevelProgressMap gameId="find_differences" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
@@ -459,9 +467,9 @@ export default function FindDifferencesGame() {
         </View>
         <TouchableOpacity
           accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-          <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+          <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
             <Text style={styles.startBtnText}>{t('start')}</Text>
-          </LinearGradient>
+          </GradientSurface>
         </TouchableOpacity>
       </ScrollView>
     );
@@ -551,8 +559,8 @@ const styles = StyleSheet.create({
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -560,7 +568,7 @@ const styles = StyleSheet.create({
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 12 },
   statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },

@@ -20,6 +20,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -35,6 +36,10 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#0ea5e9', '#6366f1'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 2.77 (норма AA 4.5), стало 4.57.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 
 const LD_BENEFITS = [
   { icon: 'flash-outline', textKey: 'benefitLd1' },
@@ -239,9 +244,9 @@ export default function LexicalDecisionGame() {
       <ScrollView style={styles.configScroll} showsVerticalScrollIndicator={false}>
         <View style={styles.configContainer}>
           <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
-            <Ionicons name="flash" size={48} color="#fff" />
-            <Text style={[styles.configTitle, { color: '#fff' }]}>{t('lexicalDecision')}</Text>
-            <Text style={[styles.configDesc, { color: 'rgba(255,255,255,0.8)' }]}>{t('lexicalDecisionDesc')}</Text>
+            <Ionicons name="flash" size={48} color={ON_GRAD.color} />
+            <Text style={[styles.configTitle, { color: ON_GRAD.color }]}>{t('lexicalDecision')}</Text>
+            <Text style={[styles.configDesc, { color: ON_GRAD_SOFT }]}>{t('lexicalDecisionDesc')}</Text>
           </LinearGradient>
           <GameAbout descriptionKey="lexicalDecisionIntroDesc" benefits={LD_BENEFITS} accent={GRADIENT[0]} />
 
@@ -291,8 +296,8 @@ export default function LexicalDecisionGame() {
           <TouchableOpacity
             accessibilityRole="button" style={styles.startButton} onPress={startGame}>
             <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
-              <Ionicons name="play" size={24} color="#fff" />
-              <Text style={[styles.startButtonText, { color: '#fff' }]}>{t('start')}</Text>
+              <Ionicons name="play" size={24} color={ON_GRAD.color} />
+              <Text style={[styles.startButtonText, { color: ON_GRAD.color }]}>{t('start')}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>

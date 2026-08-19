@@ -24,6 +24,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -39,6 +40,10 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#ee0979', '#ff6a00'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 2.87 (норма AA 4.5), стало 4.55.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 // Синергия: каждые BOSS_EVERY пройденных уровней → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 const STOP_BENEFITS = [
@@ -242,7 +247,7 @@ export default function StopSignalGame() {
     return (
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-          <Ionicons name="hand-left" size={48} color="#FFF" />
+          <Ionicons name="hand-left" size={48} color={ON_GRAD.color} />
           <Text style={styles.configTitle}>{t('stopSignal')}</Text>
           <Text style={styles.configDesc}>{t('stopSignalDesc')}</Text>
         </LinearGradient>
@@ -367,8 +372,8 @@ const styles = StyleSheet.create({
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -376,7 +381,7 @@ const styles = StyleSheet.create({
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 16 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
@@ -385,5 +390,5 @@ const styles = StyleSheet.create({
   stimText: { fontSize: 56, fontWeight: '900' },
   goBtnWrap: { borderRadius: 60, overflow: 'hidden' },
   goBtn: { paddingVertical: 22, paddingHorizontal: 80, alignItems: 'center', borderRadius: 60 },
-  goBtnText: { color: '#FFF', fontSize: 22, fontWeight: '900', letterSpacing: 2 },
+  goBtnText: { color: ON_GRAD.color, fontSize: 22, fontWeight: '900', letterSpacing: 2 },
 });

@@ -22,6 +22,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -37,6 +38,10 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#fa709a', '#fee140'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 1.31 (норма AA 4.5), стало 6.00.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 
 const COUNTER_BENEFITS = [
   { icon: 'cart-outline', textKey: 'benefitCounter1' },
@@ -307,7 +312,7 @@ export default function CounterGame() {
             end={{ x: 1, y: 1 }}
             style={styles.configCard}
           >
-            <Ionicons name="add-circle" size={48} color="#FFFFFF" />
+            <Ionicons name="add-circle" size={48} color={ON_GRAD.color} />
             <Text style={styles.configTitle}>{t('counter')}</Text>
             <Text style={styles.configDesc}>{t('counterDesc')}</Text>
           </LinearGradient>
@@ -349,7 +354,7 @@ export default function CounterGame() {
               end={{ x: 1, y: 0 }}
               style={styles.startButtonGradient}
             >
-              <Ionicons name="play" size={24} color="#FFFFFF" />
+              <Ionicons name="play" size={24} color={ON_GRAD.color} />
               <Text style={styles.startButtonText}>{t('start')}</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -549,8 +554,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  configTitle: { fontSize: 24, fontWeight: '700', color: '#FFFFFF' },
-  configDesc: { fontSize: 14, color: 'rgba(255,255,255,0.8)' },
+  configTitle: { fontSize: 24, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 14, color: ON_GRAD_SOFT },
   infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -570,7 +575,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 8,
   },
-  startButtonText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
+  startButtonText: { fontSize: 18, fontWeight: '700', color: ON_GRAD.color },
   // Поле каркаса центрирует детей по оси X — обёртка возвращает блокам всю ширину,
   // а flex даёт сетке забрать оставшееся место (как в старом gameContainer)
   fieldWrap: { flex: 1, alignSelf: 'stretch' },

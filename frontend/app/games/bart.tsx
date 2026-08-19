@@ -30,6 +30,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -43,6 +44,10 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 
 const GRADIENT = ['#ff5e62', '#ff9966'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 2.10 (норма AA 4.5), стало 5.67.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const BART_BENEFITS = [
   { icon: 'speedometer-outline', textKey: 'benefitBart1' },
   { icon: 'analytics-outline',   textKey: 'benefitBart2' },
@@ -270,7 +275,7 @@ export default function BARTGame() {
       <View style={{ flex: 1 }}>
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-          <Ionicons name="warning" size={48} color="#FFF" />
+          <Ionicons name="warning" size={48} color={ON_GRAD.color} />
           <Text style={styles.configTitle}>{t('bart')}</Text>
           <Text style={styles.configDesc}>{t('bartDesc')}</Text>
         </LinearGradient>
@@ -538,8 +543,8 @@ const styles = StyleSheet.create({
   // Отступ слева — под плавающую кнопку отзыва, она висит поверх и накрывала бы её.
   configSticky: { paddingTop: 10, paddingHorizontal: 16, paddingLeft: 68, borderTopWidth: StyleSheet.hairlineWidth },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -547,7 +552,7 @@ const styles = StyleSheet.create({
   modeButtonText: { fontSize: 12, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   classicBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, borderWidth: 1.5, paddingVertical: 12, alignItems: 'center', marginTop: 6 },
   classicBtnText: { fontSize: 14, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 18 },

@@ -19,6 +19,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -40,6 +41,10 @@ import {
 } from '@/src/services/vocab-srs';
 
 const GRADIENT = ['#6366f1', '#8b5cf6'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 4.23 (норма AA 4.5), стало 4.51.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const EASY_RT_MS = 2500;
 
 const VOCAB_BENEFITS = [
@@ -233,9 +238,9 @@ export default function VocabSrsGame() {
           end={{ x: 1, y: 1 }}
           style={styles.configCard}
         >
-          <Ionicons name="school" size={48} color="#fff" />
-          <Text style={[styles.configTitle, { color: '#fff' }]}>{t('vocabSrs')}</Text>
-          <Text style={[styles.configDesc, { color: 'rgba(255,255,255,0.8)' }]}>{t('vocabSrsDesc')}</Text>
+          <Ionicons name="school" size={48} color={ON_GRAD.color} />
+          <Text style={[styles.configTitle, { color: ON_GRAD.color }]}>{t('vocabSrs')}</Text>
+          <Text style={[styles.configDesc, { color: ON_GRAD_SOFT }]}>{t('vocabSrsDesc')}</Text>
         </LinearGradient>
         <GameAbout descriptionKey="vocabSrsIntroDesc" benefits={VOCAB_BENEFITS} accent={GRADIENT[0]} />
 
@@ -347,8 +352,8 @@ export default function VocabSrsGame() {
             end={{ x: 1, y: 0 }}
             style={styles.startButtonGradient}
           >
-            <Ionicons name="play" size={24} color="#fff" />
-            <Text style={[styles.startButtonText, { color: '#fff' }]}>{t('start')}</Text>
+            <Ionicons name="play" size={24} color={ON_GRAD.color} />
+            <Text style={[styles.startButtonText, { color: ON_GRAD.color }]}>{t('start')}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -440,7 +445,7 @@ export default function VocabSrsGame() {
           end={{ x: 1, y: 0 }}
           style={[styles.startButtonGradient, { paddingHorizontal: 40 }]}
         >
-          <Text style={[styles.startButtonText, { color: '#fff' }]}>{t('goHome')}</Text>
+          <Text style={[styles.startButtonText, { color: ON_GRAD.color }]}>{t('goHome')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>

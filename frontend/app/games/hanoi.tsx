@@ -8,6 +8,8 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -18,9 +20,10 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import LevelCleared from '@/src/components/LevelCleared';
-import { useMoveHistory } from '@/src/hooks/useMoveHistory';
+import { useMoveHistory, MoveStackData } from '@/src/hooks/useMoveHistory';
 import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
@@ -38,6 +41,12 @@ const HN_RULES: LevelRule[] = [
 ];
 
 const GRADIENT = ['#a8c0ff', '#3f2b96'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 1.80 (норма AA 4.5), стало 4.55.
+// Сплошным цветом этот градиент AA не берёт ни при каком цвете текста — GradientSurface
+// кладёт поверх вуаль #dce6ff @0.34 цветом самого градиента. Подробности — в шапке сервиса.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 // Базовый тон дисков под профиль — каждый профиль = своя цветовая семья (монохром-стек).
 const DISC_HUE: Record<string, number> = {
   chess: 42, odv999: 45, free: 40, nzt48: 270, seniors: 265, polyglot: 232,
@@ -51,6 +60,31 @@ const HANOI_BENEFITS = [
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type PegMove = { from: number; to: number };
+
+/** Ключ незаконченной партии — совпадает с id в реестре игр (карточка «Продолжить»). */
+const GAME_ID = 'hanoi';
+
+/** Версия формата снимка: меняешь поля HanoiResume — поднимай, иначе старая запись оживит башню без части дисков. */
+const RESUME_V = 1;
+
+/**
+ * Снимок недоигранной башни.
+ *
+ * ⚠️ ПОЧЕМУ ЛЕНТА ХОДОВ ТОЖЕ ЗДЕСЬ. Отмена — часть партии, а не украшение: без
+ * неё вернувшийся человек получает расстановку, из которой уже нельзя откатить
+ * неудачный ход. На 12 дисках оптимум — 4095 ходов, и «отменить нельзя» там
+ * дороже, чем кажется.
+ */
+interface HanoiResume {
+  level: number;
+  discs: number;
+  pegs: number[][];
+  moves: number;
+  errors: number;
+  /** Накопленные секунды: между сессиями настенные часы уходят вперёд. */
+  elapsed: number;
+  history: MoveStackData<PegMove>;
+}
 
 // Уровень (1..15+): L1-4 3 стержня диски 3→6 · L5-9 4 стержня диски 5→9 · L10-15 5 стержней диски 9→12.
 // Больше стержней = новый вызов (короче решение), затем растут диски.
@@ -92,6 +126,8 @@ export default function HanoiGame() {
   const levelRules = useLevelRules('hanoi', lvl.level, HN_RULES, phase === 'playing' && !isPreset);
 
   const startGame = () => {
+    // Новая партия заменяет незаконченную: прежнюю башню продолжать уже нечем.
+    if (profile?.id) clearResume(GAME_ID, profile.id).catch(() => {});
     const p = isPreset ? { discs, pegs: 3 } : levelParams(lvl.level);   // уровень рулит: диски + число стержней
     const d = p.discs;
     levelRef.current = lvl.level;
@@ -244,6 +280,9 @@ export default function HanoiGame() {
       setElapsedTime(finalTime);
       if (!isPreset) lvl.reach(levelRef.current + 1);   // решил пазл → +уровень
       setPhase(isPreset ? 'result' : 'cleared');
+      // Башня собрана — продолжать нечего, иначе «Продолжить» позвало бы на
+      // уже решённую расстановку.
+      if (profile?.id) clearResume(GAME_ID, profile.id).catch(() => {});
       try {
         await saveSession({
           passed: true,   // сессия пишется только когда уровень собран
@@ -294,6 +333,73 @@ export default function HanoiGame() {
     // перебором с бесплатной отменой. Кнопка чинит промах, но ход остаётся попыткой.
   };
 
+  // ── незаконченная партия ────────────────────────────────────────────────
+  /** Что в этой партии уже сделано руками — то, ради чего и стоит спрашивать при выходе. */
+  const touched = moves > 0 || errors > 0;
+  /** Живая партия: башня на экране, победа ещё не засчитана. */
+  const liveGame = phase === 'playing' && pegs.length > 0;
+
+  const snapshot = (): HanoiResume => ({
+    level: levelRef.current, discs, pegs, moves, errors,
+    elapsed: elapsedTime, history: moveHistory.serialize(),
+  });
+
+  /** Поднять башню из снимка — расстановка и лента отмены ровно те, что оставили. */
+  const applyResume = (r: HanoiResume) => {
+    levelRef.current = r.level;
+    setDiscs(r.discs);
+    setPegs(r.pegs.map((peg) => [...peg]));
+    setMoves(r.moves); setErrors(r.errors); setSelected(null);
+    moveHistory.restore(r.history);
+    // Секундомер продолжаем с НАКОПЛЕННОГО: от прежнего startTime партия «шла» бы
+    // всё то время, что телефон лежал в кармане.
+    if (timerRef.current) clearInterval(timerRef.current);
+    const start = gameNow() - Math.max(0, r.elapsed) * 1000;
+    setStartTime(start); setElapsedTime(r.elapsed);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
+    setPhase('playing');
+  };
+
+  // Подъём партии при входе на экран. Путь зарядки (autostart) не трогаем: там
+  // человек явно запустил свежий раунд, и startGame сам выбросит старую партию.
+  const bootRef = useRef(false);
+  useEffect(() => {
+    if (autostart || bootRef.current) return;
+    const pid = profile?.id;
+    if (!pid) return;
+    bootRef.current = true;
+    let cancelled = false;
+    loadResume<HanoiResume>(GAME_ID, pid, RESUME_V)
+      .then((saved) => {
+        if (cancelled || !saved || !Array.isArray(saved.pegs) || saved.pegs.length < 3) return;
+        applyResume(saved);
+      })
+      .catch(() => { /* нет партии — обычный вход через экран настройки */ });
+    return () => { cancelled = true; };
+  }, [profile?.id, autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — разовый подъём партии
+
+  // Автосохранение по ходу партии, с задержкой: подряд идущие касания не должны
+  // бить по хранилищу каждым нажатием.
+  useEffect(() => {
+    if (!liveGame || !touched) return;
+    const pid = profile?.id;
+    if (!pid) return;
+    const snap = snapshot();
+    const tm = setTimeout(() => { saveResume(GAME_ID, pid, RESUME_V, snap).catch(() => {}); }, 400);
+    return () => clearTimeout(tm);
+  }, [pegs, moves, errors, liveGame, touched]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  /**
+   * Дописать партию перед уходом. Отложенная запись выше на этом моменте
+   * отменяется своим clearTimeout — поэтому пишем ещё раз здесь, и с ЖИВЫМ
+   * временем, а не с тем, что было на прошлом ходу.
+   */
+  const saveBeforeExit = () => {
+    const pid = profile?.id;
+    if (!pid || !liveGame || !touched) return;
+    saveResume(GAME_ID, pid, RESUME_V, snapshot()).catch(() => {});
+  };
+
   const pegW = Math.min((width - 36) / (pegs.length + 0.5), 110);   // подгон под число стержней (24→36: паддинг поля GameShell 16×2)
   const discBaseW = pegW * 0.35;
   const discStep = (pegW - discBaseW) / Math.max(discs, 2);
@@ -301,11 +407,11 @@ export default function HanoiGame() {
 
   const renderConfig = () => (
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="extension-puzzle" size={48} color="#FFF" />
+      <GradientSurface colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+        <Ionicons name="extension-puzzle" size={48} color={ON_GRAD.color} />
         <Text style={styles.configTitle}>{t('hanoi')}</Text>
         <Text style={styles.configDesc}>{t('hanoiDesc')}</Text>
-      </LinearGradient>
+      </GradientSurface>
       <GameAbout descriptionKey="hanoiIntroDesc" benefits={HANOI_BENEFITS} accent={GRADIENT[0]} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
@@ -322,9 +428,9 @@ export default function HanoiGame() {
       />
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+        <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
-        </LinearGradient>
+        </GradientSurface>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -334,6 +440,9 @@ export default function HanoiGame() {
     <GameShell
       title={t('hanoi')}
       onBack={() => goBackOrHome()}
+      confirmExit={liveGame && touched}
+      resumable
+      onSaveBeforeExit={saveBeforeExit}
       toolbar={
         <TouchableOpacity
           accessibilityRole="button"
@@ -503,8 +612,8 @@ const styles = StyleSheet.create({
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -513,7 +622,7 @@ const styles = StyleSheet.create({
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   // Поле каркаса центрирует контент; stretch — чтобы стержни распределялись по всей ширине
   fieldCol: { alignSelf: 'stretch', gap: 10 },
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 18, flexWrap: 'wrap' },

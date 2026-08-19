@@ -28,6 +28,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText } from '@/src/services/onGradientText';
+import GradientSurface from '@/src/components/GradientSurface';
 import { goBackOrHome } from '@/src/utils/nav';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -42,6 +44,11 @@ import MathSliderGame from '@/src/games/math-slider/MathSliderGame';
 import type { MathSliderMetrics } from '@/src/games/math-slider/core';
 
 const GRADIENT = ['#5b4ee8', '#12a594'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 3.07 (норма AA 4.5), стало 4.51.
+// Сплошным цветом этот градиент AA не берёт ни при каком цвете текста — GradientSurface
+// кладёт поверх вуаль #a0dbd4 @0.16 цветом самого градиента. Подробности — в шапке сервиса.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 
 /**
  * Порог прохождения — 0.90. Это интеграционное решение, в модуле его нет.
@@ -160,14 +167,14 @@ export default function MathSliderScreen() {
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={GRADIENT as [string, string]} style={styles.header}
+      <GradientSurface colors={GRADIENT as [string, string]} style={styles.header}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
         <TouchableOpacity onPress={() => goBackOrHome()} style={styles.back}
           accessibilityRole="button" accessibilityLabel={t('back')}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color={ON_GRAD.color} />
         </TouchableOpacity>
         <Text style={styles.title}>{t('mathSlider')}</Text>
-      </LinearGradient>
+      </GradientSurface>
 
       <ScrollView contentContainerStyle={styles.body}>
         <LevelProgressMap gameId="math_slider" currentLevel={lvl.level}
@@ -179,9 +186,9 @@ export default function MathSliderScreen() {
         </View>
 
         <TouchableOpacity onPress={start} accessibilityRole="button">
-          <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtn}>
+          <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
             <Text style={styles.startText}>{t('start')}</Text>
-          </LinearGradient>
+          </GradientSurface>
         </TouchableOpacity>
       </ScrollView>
 
@@ -207,11 +214,11 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   back: { padding: 4 },
-  title: { color: '#fff', fontSize: 20, fontWeight: '800' },
+  title: { color: ON_GRAD.color, fontSize: 20, fontWeight: '800' },
   body: { padding: 16, gap: 16 },
   card: { borderRadius: 18, padding: 16, gap: 6 },
   level: { fontSize: 18, fontWeight: '800' },
   hint: { fontSize: 13, lineHeight: 19 },
   startBtn: { borderRadius: 999, paddingVertical: 16, alignItems: 'center' },
-  startText: { color: '#fff', fontSize: 17, fontWeight: '800' },
+  startText: { color: ON_GRAD.color, fontSize: 17, fontWeight: '800' },
 });

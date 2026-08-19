@@ -22,6 +22,8 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -36,6 +38,12 @@ import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#654ea3', '#eaafc8'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 1.83 (норма AA 4.5), стало 4.51.
+// Сплошным цветом этот градиент AA не берёт ни при каком цвете текста — GradientSurface
+// кладёт поверх вуаль #f7dfe9 @0.18 цветом самого градиента. Подробности — в шапке сервиса.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const STORY_BENEFITS = [
   { icon: 'book-outline',         textKey: 'benefitStory1' },
   { icon: 'time-outline',          textKey: 'benefitStory2' },
@@ -336,11 +344,11 @@ export default function StoryRecallGame() {
 
   const renderConfig = () => (
     <View style={styles.configContainer}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="book" size={48} color="#FFF" />
+      <GradientSurface colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+        <Ionicons name="book" size={48} color={ON_GRAD.color} />
         <Text style={styles.configTitle}>{t('story')}</Text>
         <Text style={styles.configDesc}>{t('storyDesc')}</Text>
-      </LinearGradient>
+      </GradientSurface>
       <GameAbout descriptionKey="storyIntroDesc" benefits={STORY_BENEFITS} accent={GRADIENT[0]} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('storyInfo')}</Text>
@@ -357,9 +365,9 @@ export default function StoryRecallGame() {
       />
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+        <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
-        </LinearGradient>
+        </GradientSurface>
       </TouchableOpacity>
     </View>
   );
@@ -417,9 +425,9 @@ export default function StoryRecallGame() {
           ) : isRecall ? (
             <TouchableOpacity
               accessibilityRole="button" style={[styles.startBtn, styles.recallSubmit]} onPress={which === 1 ? submitRecall1 : submitRecall2}>
-              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+              <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
                 <Text style={styles.startBtnText}>{t('storyDone')}</Text>
-              </LinearGradient>
+              </GradientSurface>
             </TouchableOpacity>
           ) : undefined
         }
@@ -519,14 +527,14 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0 },  // крупный шрифт: заголовок ужимается между «назад» и спейсером, не толкает их
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '700' },
   infoText: { fontSize: 13, lineHeight: 19 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   // игровое поле внутри каркаса: колонка на всю ширину, содержимое центрировано
   fieldCol: { width: '100%', maxWidth: 540, alignSelf: 'center', alignItems: 'center', gap: 18 },
   statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },  // крупный шрифт: статы переносятся, а не уезжают за край
