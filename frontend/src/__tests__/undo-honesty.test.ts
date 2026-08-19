@@ -135,6 +135,7 @@ const WITHOUT_UNDO: Record<string, string> = {
   'phoneme-pairs.tsx': 'probe: «одинаково/разно» — ответ на пробу',
   'pseudoword-echo.tsx': 'probe: воспроизведение услышанного — ответ',
   'story-recall.tsx': 'probe: пересказ, правка текста и так своя (TextInput)',
+  'memory-palace.tsx': 'already: до начала проверки расстановку можно двигать и меняться местами сколько угодно — обратимость встроена в саму фазу; в проверке ответ и есть проба (probe), а лишние предметы делают откат подглядыванием',
   'digit-span.tsx': 'already: ввод в TextInput, системный backspace уже есть',
   'reading-span.tsx': 'already: recall — TextInput с системным backspace',
   'ospan.tsx': 'already: recall — TextInput с системным backspace',

@@ -156,6 +156,8 @@ const NOT_A_GAME: Record<string, string> = {
     'экран-обёртка: партию рисует модуль src/games/one-line/OneLineGame.tsx, строка живёт там (strings.rulesRepeat под счётчиком рёбер: «в вершины можно возвращаться, но уже пройденное ребро использовать нельзя») вместе со своим словарём; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт one-line-integration.test.ts',
   'object-tracker.tsx':
     'экран-обёртка: партию рисует модуль src/games/object-tracker/ObjectTrackerGame.tsx, строка живёт там (phaseTitle → strings.preview/moving/selection, свой словарь ru/en) и меняется на каждой фазе раунда',
+  'memory-palace.tsx':
+    'экран-обёртка: партию рисует модуль src/games/memory-palace/MemoryPalaceGame.tsx, строка живёт там и меняется по фазе (strings.routeBody → placeBody → studyBody, а в проверке strings.recallPrompt «Что находилось здесь: {место}?» с именем текущего места) вместе со своим словарём; что она РИСУЕТСЯ В ПАРТИИ, а не в выключенном экране итога модуля, стережёт memory-palace-integration.test.ts',
   'faces-names.tsx':
     'экран-обёртка: партию рисует модуль src/games/faces-names/FacesNamesGame.tsx, строка живёт там и меняется по фазе (strings.recognitionPrompt → namePrompt → factPrompt, плюс strings.interferenceBody на помехе) вместе со своим словарём на 12 языков; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт faces-names-integration.test.ts',
   'navigator.tsx':
@@ -236,10 +238,22 @@ describe('строка «что делать» во время партии', ()
     for (const [f, why] of Object.entries(NOT_A_GAME)) {
       expect(why.length).toBeGreaterThan(30);
       const src = read(`app/games/${f}`);
-      // Признак «партию рисует не этот файл»: игрового каркаса здесь нет.
-      // Появился — экран стал игровым, и строка «что делать» ему уже нужна.
-      expect(`${f}: свой каркас партии — ${src.includes('<GameShell')}`)
-        .toBe(`${f}: свой каркас партии — false`);
+      /**
+       * Признак «партию рисует не этот файл»: игрового каркаса здесь нет.
+       * Появился — экран стал игровым, и строка «что делать» ему уже нужна.
+       *
+       * ⚠️ ОДНО ПОСЛАБЛЕНИЕ, И ОНО ПРО ДЛИННУЮ ПАРТИЮ. «Дворец памяти» ставит
+       * GameShell не ради поля, а ради ВОПРОСА ПРИ ВЫХОДЕ: партия там на минуты,
+       * расстановку придумывает человек, и стереть её молча нельзя (реестр
+       * длинных игр — в exit-guard.test.ts). Каркас при этом остаётся пустой
+       * рамкой: партию, а с ней и строку «что делать», рисует модуль ВНУТРИ
+       * него. Поэтому каркас разрешён ровно тогда, когда внутри него
+       * смонтирован модуль игры — человек строку видит, а стережёт её свой гейт
+       * модуля. Пустой каркас без модуля по-прежнему валит прогон.
+       */
+      const wrapsModule = /<[A-Z]\w*Game\b/.test(playRender(src));
+      expect(`${f}: каркас партии без модуля внутри — ${src.includes('<GameShell') && !wrapsModule}`)
+        .toBe(`${f}: каркас партии без модуля внутри — false`);
     }
     // У обёртки «Прикидки» партию рисует модуль — связь обязана быть видна.
     expect(read('app/games/math-slider.tsx')).toContain('<MathSliderGame');
