@@ -1605,6 +1605,16 @@ const translations: Translations = {
   retry: { ru: 'Ещё раз', en: 'Retry' },
   stop: { ru: 'Остановиться', en: 'Stop' },
 
+  // Заработок за партию: множитель ×2 и блок «Сегодня» на главной (src/services/earn.ts)
+  earnWhyClean: { ru: 'чисто — вдвое', en: 'clean run — double' },
+  earnWhyStreak: { ru: 'серия дней — вдвое', en: 'day streak — double' },
+  earnWhyRepeat: { ru: 'повтор сегодня — без удвоения', en: 'repeat today — no doubling' },
+  earnWhyWarmup: { ru: 'шаг зарядки — бонус в конце комплекса', en: 'warm-up step — bonus at the end' },
+  todayEarnedTitle: { ru: 'Заработано за сегодня', en: 'Earned so far today' },
+  todayEmptyHint: { ru: 'Партий сегодня ещё не было. Сыграй — здесь появится, что и сколько принесло.', en: 'No rounds today yet. Play one — this is where you’ll see what it earned.' },
+  todayRoundsLabel: { ru: 'партий: {n}', en: 'rounds: {n}' },
+  todayStreakNote: { ru: 'Серия {n} дней подряд — за партию вдвое', en: '{n} days in a row — double per round' },
+
   // GameResult / ResultSparkline
   earnedLabel: { ru: 'заработано', en: 'earned' },
   trendOnAverage: { ru: 'как обычно', en: 'right on your average' },

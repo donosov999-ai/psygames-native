@@ -1,8 +1,11 @@
 /**
  * cleanRun — серия чистых раундов подряд (errors === 0), per-profile, персист.
- * Тикается из saveSession (единая точка «раунд завершён»). Бонус за серию
- * начисляется там же, но вне зарядки — у зарядки свой comboBonus ×1.5
- * (warmup-complete), не задваиваем.
+ * Тикается из saveSession (единая точка «раунд завершён»).
+ *
+ * ⚠️ ДЕНЕГ ЗДЕСЬ БОЛЬШЕ НЕТ. Раньше рядом жил `cleanRunBonus` — аддитивная надбавка
+ * +8…+15 за серию, которая начислялась там же. Когда за чистоту ввели множитель ×2
+ * (`src/services/earn.ts`), надбавка стала второй платой за то же самое, и её убрали:
+ * счётчик остался ПОКАЗАТЕЛЕМ (🔥 на баннере уровня), а заработок целиком считает earn.
  *
  * Module-кэш держит синхронно-консистентное значение: в играх setPhase('cleared')
  * стоит ДО await saveSession, поэтому LevelCleared может читать серию в гонке
@@ -36,9 +39,4 @@ export async function tickCleanRun(pid: string, clean: boolean): Promise<number>
   mem = { pid, run };
   try { await AsyncStorage.setItem(KEY_PREFIX + pid, String(run)); } catch {}
   return run;
-}
-
-/** Бонус токенов за чистую серию: с CLEAN_RUN_MIN-го чистого подряд, растёт до +15. */
-export function cleanRunBonus(run: number): number {
-  return run >= CLEAN_RUN_MIN ? 5 + Math.min(run, 10) : 0;
 }

@@ -6,7 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { sndWin } from '@/src/services/feedback';
 import { tickLevelStreak, resetLevelStreak } from '@/src/services/eyeRestTracker';
 import { saveLevelStars } from '@/src/services/levelStars';
-import { getCleanRun, cleanRunBonus } from '@/src/services/cleanRun';
+import { getCleanRun } from '@/src/services/cleanRun';
+import { freshEarn, onEarn, earnReasonKey, EarnEntry } from '@/src/services/earn';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
@@ -101,6 +102,20 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
   const isRest = restRef.current;
   const [restLeft, setRestLeft] = useState(EYE_REST_SEC);
   const [cleanRun, setCleanRun] = useState(0);   // серия чистых раундов (🔥), тикается в saveSession
+  /**
+   * СКОЛЬКО ЗА ЭТУ ПАРТИЮ НАЧИСЛИЛИ. Берётся из журнала (`src/services/earn.ts`), а не
+   * считается здесь: экономика живёт в одном месте, экран её только показывает.
+   *
+   * ⚠️ Именно на этой карточке заканчивается большинство партий — авто-цепочка уровней
+   * ведёт человека мимо полноэкранного итога. Не показать начисление тут значит не
+   * показать его почти никогда.
+   *
+   * ⚠️ Как и в GameResult, нужны обе половины — уже записанное (`freshEarn`, окно
+   * свежести отсекает начисление за ПРЕДЫДУЩИЙ уровень) и подписка на то, что запишется
+   * через мгновение.
+   */
+  const [earn, setEarn] = useState<EarnEntry | null>(() => freshEarn());
+  useEffect(() => onEarn(setEarn), []);
   /**
    * ⚠️ РЕЖИМ ЧИТАЕМ ЗДЕСЬ, А НЕ В КАЖДОЙ ИГРЕ. Этот экран показывают 49 игр; если
    * бы каждая передавала признак пропсом, 49 мест могли бы забыть — и забывали бы,
@@ -264,8 +279,23 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
           <View style={styles.runBadge}>
             <Text style={styles.runText}>
               {t('cleanRunBadge').replace('{n}', String(cleanRun))}
-              {cleanRunBonus(cleanRun) > 0 ? ` · +${cleanRunBonus(cleanRun)} ⭐` : ''}
             </Text>
+          </View>
+        )}
+        {/* Начислено за эту партию. Плашка отдельно от 🔥-серии: серия — это счётчик,
+            а деньги — это деньги, и раньше их складывали в одну строку, отчего
+            выглядело, будто платят за серию. Платят за партию, серия лишь показатель. */}
+        {(earn?.total ?? 0) > 0 && (
+          <View style={styles.earnBadge}>
+            <Text style={styles.earnText}>+{earn?.total} ⭐</Text>
+            {(earn?.multiplier ?? 1) > 1 && (
+              <View style={styles.earnMult}>
+                <Text style={styles.earnMultText}>×{earn?.multiplier}</Text>
+              </View>
+            )}
+            {earn && earnReasonKey(earn.reason) && (
+              <Text style={styles.earnWhy} numberOfLines={1}>{t(earnReasonKey(earn.reason) as string)}</Text>
+            )}
           </View>
         )}
         {comparisonLine && !compact && (
@@ -346,6 +376,13 @@ const styles = StyleSheet.create({
   stars: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   runBadge: { backgroundColor: 'rgba(0,0,0,0.25)', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, marginBottom: 12 },
   runText: { color: '#FFD93B', fontSize: 14, fontWeight: '800' },
+  // Плашка начисления: число · множитель · причина. flexWrap — потому что при системном
+  // крупном шрифте три части в строку не встают, и без переноса причина уезжала за край.
+  earnBadge: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: 'rgba(0,0,0,0.28)', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 14, marginBottom: 12, maxWidth: '100%' },
+  earnText: { color: '#FFFFFF', fontSize: 17, fontWeight: '900' },
+  earnMult: { backgroundColor: '#FFD93B', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 },
+  earnMultText: { color: '#3f2b00', fontSize: 13, fontWeight: '900' },
+  earnWhy: { color: 'rgba(255,255,255,0.88)', fontSize: 12.5, fontWeight: '700', flexShrink: 1 },
   comparisonBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: 'rgba(0,0,0,0.20)', paddingHorizontal: 13, paddingVertical: 8, borderRadius: 14, marginBottom: 12 },
   comparisonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700', textAlign: 'center', flexShrink: 1 },
   next: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
