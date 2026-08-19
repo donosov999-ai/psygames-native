@@ -13,6 +13,10 @@ import {
   N, UNLOCK_CELLS, FEED_CELL, solvedWithCenter, rootCellForChild,
   solvedCount, isUnlocked, generateFractal,
 } from '@/src/services/fractal-sudoku';
+import {
+  FRACTAL_MAX_LEVEL, FRACTAL_TIER_STEPS, FRACTAL_CHILDREN,
+  clampFractalLevel, fractalLevel, fractalTier, fractalTopTierCount, fractalChildTiers,
+} from '../services/fractalLevels';
 
 describe('связь дочерней сетки с корнем', () => {
   it('девять дочерних — по одной на блок корня, все клетки разные', () => {
@@ -29,7 +33,7 @@ describe('связь дочерней сетки с корнем', () => {
   });
 
   it('центр дочерней равен цифре, которую она открывает', () => {
-    const f = generateFractal(8);
+    const f = generateFractal(8, 'тест-фрактал-8');
     for (const ch of f.children) {
       const [rr, rc] = ch.feedsCell;
       expect(ch.solution[FEED_CELL[0]][FEED_CELL[1]]).toBe(f.root.solution[rr][rc]);
@@ -37,7 +41,7 @@ describe('связь дочерней сетки с корнем', () => {
   });
 
   it('клетки корня, которые открываются снизу, в задании пусты — иначе вложенность декоративна', () => {
-    const f = generateFractal(8);
+    const f = generateFractal(8, 'тест-фрактал-8');
     for (let i = 0; i < 9; i++) {
       const [r, c] = rootCellForChild(i);
       expect(`клетка ${r},${c}: ${f.root.puzzle[r][c]}`).toBe(`клетка ${r},${c}: 0`);
@@ -91,7 +95,7 @@ describe('сетка с заданным центром', () => {
 
 describe('размер задачи', () => {
   it('глубина два: корень плюс девять дочерних, не больше', () => {
-    const f = generateFractal(8);
+    const f = generateFractal(8, 'тест-фрактал-8');
     expect(f.children.length).toBe(9);
     // Десять сеток против 6555 у оригинала — сознательный предел: дерево из тысяч
     // на лету не соберётся, а заготовки — отдельная работа.
@@ -99,7 +103,7 @@ describe('размер задачи', () => {
   });
 
   it('подсказки в задании совпадают с решением', () => {
-    const f = generateFractal(8);
+    const f = generateFractal(8, 'тест-фрактал-8');
     const check = (p: number[][], s: number[][]) => {
       for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (p[r][c] !== 0) expect(p[r][c]).toBe(s[r][c]);
     };
@@ -118,7 +122,7 @@ describe('размер задачи', () => {
  */
 describe('порог считает только ходы человека', () => {
   it('нетронутая сетка с подсказками НЕ открыта', () => {
-    const f = generateFractal(8);
+    const f = generateFractal(8, 'тест-фрактал-8');
     for (const ch of f.children) {
       const given = ch.puzzle.map((row) => row.map((v) => v !== 0));
       expect(isUnlocked(ch.puzzle, ch.solution, given)).toBe(false);
@@ -126,12 +130,12 @@ describe('порог считает только ходы человека', () 
   });
 
   it('без маски подсказок порог берётся сам собой — ради этого маска и заведена', () => {
-    const f = generateFractal(8);
+    const f = generateFractal(8, 'тест-фрактал-8');
     expect(isUnlocked(f.children[0].puzzle, f.children[0].solution)).toBe(true);
   });
 
   it('открывается ровно на 17 верных СВОИХ клетках', () => {
-    const f = generateFractal(8);
+    const f = generateFractal(8, 'тест-фрактал-8');
     const ch = f.children[0];
     const given = ch.puzzle.map((row) => row.map((v) => v !== 0));
     const cur = ch.puzzle.map((row) => [...row]);
@@ -164,8 +168,6 @@ describe('порог считает только ходы человека', () 
  * задан ДОЛЕЙ (иначе он мог бы превысить число дырок конкретной сетки — и она не
  * открылась бы никогда, то есть партия стала бы непроходимой).
  */
-import { FRACTAL_MAX_LEVEL, clampFractalLevel, fractalLevel, fractalTier } from '../services/fractalLevels';
-
 describe('уровни фрактальной судоку', () => {
   const ALL = Array.from({ length: FRACTAL_MAX_LEVEL }, (_, i) => i + 1);
 
@@ -173,9 +175,9 @@ describe('уровни фрактальной судоку', () => {
     expect(FRACTAL_MAX_LEVEL).toBeGreaterThanOrEqual(30);
   });
 
-  it('первый уровень — только голые одиночки, последний — голые пары', () => {
+  it('первый уровень — только голые одиночки, последний — X-wing', () => {
     expect(fractalLevel(1).tier).toBe(1);
-    expect(fractalLevel(FRACTAL_MAX_LEVEL).tier).toBe(4);
+    expect(fractalLevel(FRACTAL_MAX_LEVEL).tier).toBe(FRACTAL_TIER_STEPS);
   });
 
   it('лестница техник не проседает вниз', () => {
@@ -186,7 +188,51 @@ describe('уровни фрактальной судоку', () => {
   });
 
   it('каждая ступень техники реально встречается — иначе лестница декоративна', () => {
-    expect(new Set(ALL.map(fractalTier))).toEqual(new Set([1, 2, 3, 4]));
+    expect(new Set(ALL.map(fractalTier))).toEqual(new Set([1, 2, 3, 4, 5, 6]));
+  });
+
+  /**
+   * 🔴 ВТОРАЯ ОСЬ. Ступень техники меняется раз в пять уровней, и внутри ступени
+   * уровни обязаны отличаться ЧЕМ-ТО ЕЩЁ. До 19.08 они отличались только долей
+   * захода в дочернюю — то есть длиной одной и той же работы. Теперь внутри ступени
+   * растёт число сеток, которым верхняя техника действительно нужна.
+   */
+  it('внутри ступени растёт число сеток, требующих верхней техники', () => {
+    const flat: string[] = [];
+    for (let step = 0; step < FRACTAL_TIER_STEPS; step++) {
+      const levels = ALL.filter((n) => fractalTier(n) === step + 1);
+      const counts = levels.map(fractalTopTierCount);
+      if (step === 0) continue;   // на первой ступени верхняя техника единственная — все девять
+      for (let i = 1; i < counts.length; i++) {
+        if (counts[i] <= counts[i - 1]) flat.push(`ступень ${step + 1}, уровень ${levels[i]}: ${counts[i - 1]} → ${counts[i]}`);
+      }
+      if (counts[0] !== 1) flat.push(`ступень ${step + 1} начинается с ${counts[0]} сеток, а не с одной`);
+      if (counts[counts.length - 1] !== FRACTAL_CHILDREN) flat.push(`ступень ${step + 1} кончается на ${counts[counts.length - 1]}, а не на девяти`);
+    }
+    expect(flat).toEqual([]);
+  });
+
+  it('вторая ось не декоративна: соседние уровни ступени дают РАЗНЫЕ наборы потолков', () => {
+    // Если fractalChildTiers перестанет читать topTierCount, наборы схлопнутся в один
+    // и «пять уровней ступени» снова станут одним уровнем, повторённым пять раз.
+    const inStep = ALL.filter((n) => fractalTier(n) === 3);
+    const shapes = new Set(inStep.map((n) => fractalChildTiers(n).join('')));
+    expect(shapes.size).toBe(inStep.length);
+    // и в наборе ровно девять сеток, ни больше ни меньше
+    for (const n of ALL) expect(fractalChildTiers(n).length).toBe(FRACTAL_CHILDREN);
+  });
+
+  it('нижние сетки ступени легче верхних ровно на одну ступень', () => {
+    const bad = ALL.filter((n) => {
+      const t = fractalTier(n);
+      const set = fractalChildTiers(n);
+      const top = set.filter((x) => x === t).length;
+      if (top !== fractalTopTierCount(n)) return true;
+      // на первой ступени понижать некуда — все девять и есть верхняя техника
+      const low = t === 1 ? FRACTAL_CHILDREN - top : set.filter((x) => x === t - 1).length;
+      return top + low !== FRACTAL_CHILDREN;
+    });
+    expect(bad).toEqual([]);
   });
 
   it('глубина захода в дочернюю растёт строго', () => {

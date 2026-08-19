@@ -32,6 +32,12 @@
  *     56 дырках в 37% случаев требует перебора, то есть честной логикой не берётся;
  *   • сложность растёт СОДЕРЖАНИЕМ — какую технику приходится применить.
  *
+ * ⚠️ ДВЕ ВЕРХНИЕ СТУПЕНИ — ЗАГОТОВКИ, А НЕ КОПАНИЕ (правка 19.08.2026, вторая). Замер
+ * показал, что поднять ПОТОЛОК техник мало: сложность задаёт ПОЛ — без какой техники
+ * доска не добивается, — а вслепую скрытая пара и X-wing выпадают в 0.5% досок. Их
+ * берём из проверенной библиотеки и преобразуем автоморфизмами (см. SEED_PUZZLES и
+ * transformSeed) — ровно как карточная колода-первоисточник с её 6555 пазлами.
+ *
  * ⚠️ ПОЧЕМУ СВОЙ РЕШАТЕЛЬ, А НЕ gradePuzzle ИЗ sudoku-grade. Замер: одна оценка
  * gradePuzzle на доске в 50 дырок — 10–27 мс. Проверка нужна на КАЖДОЕ выкалывание
  * (81 раз) и на КАЖДУЮ из десяти сеток: вышло бы 8–20 секунд на партию, то есть
@@ -43,7 +49,7 @@
  */
 import { makeRng, seededShuffle, type Rng } from '@/src/services/seed';
 import { TECHNIQUE_TIER } from '@/src/services/sudoku-grade';
-import { fractalLevel, type FractalLevelCfg } from '@/src/services/fractalLevels';
+import { fractalLevel, fractalChildTiers, type FractalLevelCfg } from '@/src/services/fractalLevels';
 
 export const N = 9;
 const CELLS = N * N;
@@ -116,6 +122,14 @@ const TRIPLE_COL = [0b001001001, 0b010010010, 0b100100100];
 /** Рабочий буфер техники «голая пара/тройка» — чтобы не аллоцировать массив на вызов. */
 const SUBSET_BUF = new Int8Array(9);
 
+/**
+ * Буферы верхних техник. Маска ПОЗИЦИЙ (0..8) внутри зоны/линии, а не массив клеток:
+ * техники зовутся десятки тысяч раз за партию, и push/filter здесь стоили бы дороже
+ * самой логики — ровно та же причина, по которой на маски переведена `locked`.
+ */
+const HIDDEN_SPOTS = new Int32Array(9);   // позиции каждой цифры внутри зоны
+const LINE_SPOTS = new Int32Array(9);     // позиции цифры внутри каждой строки (столбца)
+
 /** 27 зон: девять строк, девять столбцов, девять блоков. */
 const UNITS: number[][] = (() => {
   const u: number[][] = [];
@@ -187,21 +201,73 @@ export function countSolutionsFast(flat: Int8Array, limit = 2): number {
   return count;
 }
 
+/**
+ * Достроить доску до решения. Тот же обход, что в countSolutionsFast, только останов
+ * на первом же ответе и с возвратом заполненной сетки.
+ *
+ * ⚠️ ЗАЧЕМ ОТДЕЛЬНАЯ ФУНКЦИЯ, А НЕ fill(). Замер 19.08: fill() перебирает клетки ПОДРЯД
+ * и на доске в 56 дырок (заготовка верхней ступени) уходит в глубокий откат — партия
+ * тридцатого уровня собиралась 2029 мс при жалких 120 прогонах логики, то есть всё
+ * время уходило именно сюда. Выбор клетки с наименьшим числом кандидатов убирает
+ * откаты: те же партии — 60–90 мс. Ровно та же разница, из-за которой здесь свой
+ * countSolutionsFast вместо штатного перебора ядра.
+ */
+export function solveFast(flat: Int8Array): Int8Array | null {
+  const grid = Int8Array.from(flat);
+  const rows = new Int32Array(N), cols = new Int32Array(N), box = new Int32Array(N);
+  for (let i = 0; i < CELLS; i++) {
+    const v = grid[i];
+    if (!v) continue;
+    const m = 1 << (v - 1), r = (i / N) | 0, c = i % N, b = boxOf(i);
+    if ((rows[r] | cols[c] | box[b]) & m) return null;
+    rows[r] |= m; cols[c] |= m; box[b] |= m;
+  }
+  const walk = (): boolean => {
+    let bi = -1, bm = 0, bn = N + 1;
+    for (let i = 0; i < CELLS; i++) {
+      if (grid[i]) continue;
+      const m = ALL & ~(rows[(i / N) | 0] | cols[i % N] | box[boxOf(i)]);
+      if (m === 0) return false;
+      const n = POPCOUNT[m];
+      if (n < bn) { bn = n; bi = i; bm = m; if (n === 1) break; }
+    }
+    if (bi < 0) return true;   // пустых не осталось — доска собрана
+    const r = (bi / N) | 0, c = bi % N, b = boxOf(bi);
+    let m = bm;
+    while (m) {
+      const t = m & -m; m ^= t;
+      grid[bi] = BIT_TO_DIGIT[t]; rows[r] |= t; cols[c] |= t; box[b] |= t;
+      if (walk()) return true;
+      grid[bi] = 0; rows[r] ^= t; cols[c] ^= t; box[b] ^= t;
+    }
+    return false;
+  };
+  return walk() ? grid : null;
+}
+
 // ─────────────────────── логический решатель (лестница техник) ───────────────────────
 
 /**
  * Ступени берём из общей таблицы sudoku-grade, чтобы «третий уровень» значил одно и
- * то же в обеих играх. Выше naked_subset не поднимаемся: следующие техники стоят
- * дороже, а тридцати уровням хватает четырёх ступеней.
+ * то же в обеих играх.
+ *
+ * ⚠️ ПОЧЕМУ ЛЕСТНИЦА ДОСТРОЕНА ДО ШЕСТИ. В первой версии потолком были голые пары
+ * (ступень 4), и на этом рост кончался: уровни 22–30 были одной и той же задачей,
+ * потому что расти было некуда — ровно та поломка, от которой лечили обычный судоку.
+ * Тридцать уровней требуют тридцати ступенек содержания, а не четырёх ступенек и
+ * двадцати шести повторов. Скрытая пара и X-wing — следующие две настоящие техники
+ * (обе уже есть в градаторе, поэтому обе лестницы по-прежнему меряют одно и то же).
  */
 export const FRACTAL_TIERS = {
   nakedSingle: TECHNIQUE_TIER.naked_single,   // 1 — в клетке остался один кандидат
   hiddenSingle: TECHNIQUE_TIER.hidden_single, // 2 — в зоне цифра помещается только сюда
   locked: TECHNIQUE_TIER.locked,              // 3 — цифра блока заперта в одной строке
   nakedSubset: TECHNIQUE_TIER.naked_subset,   // 4 — голая пара/тройка
+  hiddenSubset: TECHNIQUE_TIER.hidden_subset, // 5 — скрытая пара
+  xWing: TECHNIQUE_TIER.x_wing,               // 6 — X-wing
 } as const;
 
-export const MAX_TIER = FRACTAL_TIERS.nakedSubset;
+export const MAX_TIER = FRACTAL_TIERS.xWing;
 
 export interface LogicResult {
   /** Добита ли доска до конца ВЫНУЖДЕННЫМИ ходами, без единого перебора. */
@@ -409,6 +475,104 @@ export function logicSolve(flat: Int8Array, tierCap: number = MAX_TIER): LogicRe
     return did;
   }
 
+  /**
+   * СКРЫТАЯ ПАРА: две цифры зоны помещаются ровно в две ОДНИ И ТЕ ЖЕ клетки — значит
+   * эти клетки заняты ими, и все прочие кандидаты оттуда вычёркиваются.
+   *
+   * Отличие от голой пары не косметическое: там пара видна прямо в клетке (в ней и так
+   * осталось два кандидата), здесь клетка может держать шесть кандидатов, и пару надо
+   * УВИДЕТЬ по расположению цифр в зоне. Это первый приём, где смотрят не на клетку.
+   *
+   * Берём только ПАРЫ, без троек — ровно как gradePuzzle в sudoku-grade: две лестницы
+   * обязаны мерить одно и то же, иначе «пятая ступень» в двух играх значит разное.
+   */
+  const hiddenSubset = (): boolean => {
+    for (const unit of UNITS) {
+      let live = 0;   // цифры, у которых в зоне ровно две возможные позиции
+      for (let d = 0; d < N; d++) {
+        const b = 1 << d;
+        let s = 0, filled = false;
+        for (let k = 0; k < N; k++) {
+          const i = unit[k];
+          if (grid[i]) { if (grid[i] === d + 1) { filled = true; break; } continue; }
+          if (cand[i] & b) s |= 1 << k;
+        }
+        HIDDEN_SPOTS[d] = filled ? 0 : s;
+        if (!filled && POPCOUNT[s] === 2) live |= b;
+      }
+      for (let a = 0; a < N; a++) {
+        if (!(live & (1 << a))) continue;
+        for (let b2 = a + 1; b2 < N; b2++) {
+          if (!(live & (1 << b2))) continue;
+          if (HIDDEN_SPOTS[a] !== HIDDEN_SPOTS[b2]) continue;
+          const keep = (1 << a) | (1 << b2);
+          const spots = HIDDEN_SPOTS[a];
+          let did = false;
+          for (let k = 0; k < N; k++) {
+            if (!(spots & (1 << k))) continue;
+            const i = unit[k];
+            if (!(cand[i] & ~keep)) continue;
+            cand[i] &= keep;
+            did = true;
+            if (cand[i] === 0) { broken = true; return true; }
+          }
+          // ⚠️ ВЫХОДИМ СРАЗУ ПОСЛЕ ПЕРВОГО СРАБАТЫВАНИЯ. Вычёркивание меняет кандидатов,
+          // а маски позиций посчитаны до него — со старыми масками техника выкинула бы
+          // больше, чем имеет права, и решатель «решил» бы чужую доску (та же грабля,
+          // от которой в `wipe` стоит пересчёт). Общий цикл всё равно вернётся сюда,
+          // сперва пройдя дешёвыми техниками, — и маски пересчитаются с нуля.
+          if (did) return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  /**
+   * X-WING: цифра в двух строках помещается ровно в одни и те же два столбца. Тогда
+   * в этих столбцах она стоит именно в этих строках — из остальных клеток обоих
+   * столбцов её можно вычеркнуть. И зеркально: две строки ↔ два столбца.
+   *
+   * Первая техника, которая смотрит НЕ НА ЗОНУ, а на пересечение двух зон, — потому
+   * и стоит на верхней ступени: до неё все приёмы разбирались внутри одной девятки.
+   */
+  const xWing = (): boolean => {
+    for (let d = 0; d < N; d++) {
+      const b = 1 << d;
+      for (let byRow = 1; byRow >= 0; byRow--) {
+        for (let i = 0; i < N; i++) {
+          let s = 0;
+          for (let j = 0; j < N; j++) {
+            const idx = byRow ? i * N + j : j * N + i;
+            if (!grid[idx] && (cand[idx] & b)) s |= 1 << j;
+          }
+          LINE_SPOTS[i] = POPCOUNT[s] === 2 ? s : 0;   // интересны только линии с двумя местами
+        }
+        for (let i1 = 0; i1 < N; i1++) {
+          if (!LINE_SPOTS[i1]) continue;
+          for (let i2 = i1 + 1; i2 < N; i2++) {
+            if (LINE_SPOTS[i2] !== LINE_SPOTS[i1]) continue;
+            const cross = LINE_SPOTS[i1];
+            let did = false;
+            for (let j = 0; j < N; j++) {
+              if (!(cross & (1 << j))) continue;
+              for (let i = 0; i < N; i++) {
+                if (i === i1 || i === i2) continue;
+                const idx = byRow ? i * N + j : j * N + i;
+                if (grid[idx] || !(cand[idx] & b)) continue;
+                cand[idx] &= ~b;
+                did = true;
+                if (cand[idx] === 0) { broken = true; return true; }
+              }
+            }
+            if (did) return true;   // маски устарели — см. пояснение в hiddenSubset
+          }
+        }
+      }
+    }
+    return false;
+  };
+
   for (;;) {
     if (broken) return { solved: false, tier: TECHNIQUE_TIER.guess };
     if (empty === 0) return { solved: true, tier };
@@ -416,6 +580,8 @@ export function logicSolve(flat: Int8Array, tierCap: number = MAX_TIER): LogicRe
     if (tierCap >= FRACTAL_TIERS.hiddenSingle && hiddenSingle()) { tier = Math.max(tier, FRACTAL_TIERS.hiddenSingle); continue; }
     if (tierCap >= FRACTAL_TIERS.locked && locked()) { tier = Math.max(tier, FRACTAL_TIERS.locked); continue; }
     if (tierCap >= FRACTAL_TIERS.nakedSubset && nakedSubset()) { tier = Math.max(tier, FRACTAL_TIERS.nakedSubset); continue; }
+    if (tierCap >= FRACTAL_TIERS.hiddenSubset && hiddenSubset()) { tier = Math.max(tier, FRACTAL_TIERS.hiddenSubset); continue; }
+    if (tierCap >= FRACTAL_TIERS.xWing && xWing()) { tier = Math.max(tier, FRACTAL_TIERS.xWing); continue; }
     return { solved: false, tier: TECHNIQUE_TIER.guess };
   }
 }
@@ -470,6 +636,176 @@ export function solvedWithCenter(center: number, rnd: Rng = Math.random): Board 
 export function rootCellForChild(i: number): [number, number] {
   const blockRow = Math.floor(i / 3), blockCol = i % 3;
   return [blockRow * 3 + 1, blockCol * 3 + 1];
+}
+
+
+// ─────────────────────── заготовки верхних ступеней ───────────────────────
+
+/**
+ * ЗАГОТОВКИ НА СКРЫТУЮ ПАРУ И X-WING — И ПОЧЕМУ ОНИ ТУТ, А НЕ ГЕНЕРИРУЮТСЯ НА ЛЕТУ.
+ *
+ * ⚠️ ЗАМЕР 19.08.2026, 200 досок на каждый потолок. Копание вслепую (выколоть клетку,
+ * если доска ещё берётся техниками не выше потолка) даёт вот такое распределение
+ * РЕАЛЬНО потребовавшейся техники:
+ *
+ *   потолок 4:  одиночки 139 · связанные 40 · голые пары 21 · выше — 0
+ *   потолок 5:  одиночки 139 · связанные 42 · голые пары 19 · СКРЫТАЯ ПАРА 0
+ *   потолок 6:  одиночки 147 · связанные 36 · голые пары 15 · скрытая пара 1 · X-WING 1
+ *
+ * То есть поднять ПОТОЛОК техник мало: сложность задаёт ПОЛ — без какой техники доска
+ * не добивается, — а вслепую пол пятой ступени берётся в 0.5% случаев. Подъём в гору
+ * (на каждом шаге пробовать k клеток и снимать ту, что даёт технику выше) проверен и
+ * НЕ помогает: при k=8 доля верхних ступеней не выросла, а упала — сложность монотонна
+ * по снятиям, и жадность в начале портит концовку. Честный перебор до попадания —
+ * 5905 досок за 34 секунды на маке; на телефоне это не партия, а зависший экран.
+ *
+ * Поэтому верхние две ступени — ЗАГОТОВКИ, ровно как у карточной колоды-первоисточника
+ * (6555 напечатанных пазлов). Найдены тем же перебором один раз, здесь, и проверены
+ * ЧУЖИМИ реализациями: countSolutions ядра насчитал одно решение у каждой, gradePuzzle
+ * градатора подтвердил и потребовавшуюся технику, и то, что БЕЗ неё доска не берётся.
+ *
+ * ⚠️ ПОВТОРЯЕМОСТИ НЕТ. Заготовка не показывается как есть: перед выдачей её
+ * перекрашивают (перестановка девяти цифр) и перекладывают (перестановки полос и
+ * транспонирование, см. transformSeed). Обе операции — автоморфизмы судоку: правила,
+ * единственность решения и потребная техника от них не меняются, а на глаз это другая
+ * доска. Вариантов у одной заготовки 8! x 41472, около 1.7 млрд.
+ */
+export const SEED_PUZZLES: Record<number, readonly string[]> = {
+  [TECHNIQUE_TIER.hidden_subset]: [
+  '..2.8.9..45......3...94.27..48....37.3.........1..78......52.....7..8.25...6....9',
+  '.....3..5.4.86....5....4.1.2....1.....8...72....79..8..5.2...3...2...6..4...5.9..',
+  '....7.1..72.......1.9...53..5.82...6...5.4.......3..8...1...9.2..8.5.....6214....',
+  '.24.6.5.......3.4......1..9..6..28..83...97.61..3...5...1...4..2...74....8....3..',
+  '.7...6.......4..5..58..72.3..9.1..3..1.6.4..9.8.............4..2..7..6.55......2.',
+  '...64.1....6..72....48...36.8.9......5...3.7.3..578.....5......7..12...5.1....4..',
+  '.92.6..53.....8.426.....1.....9............18....2.43..573..26.1..7.9.....3.....1',
+  '..2..31.....5..8...7.8...5..9...1...6..7.4.2.5...8...32....5...7.....294..1.4...5',
+  '3...8......92...4......42.6.5..318.....6...5.81..2....5.3...1.......3.7....8.5..4',
+  '......7.8..8.19.6.4...8.19..5.......2.....93...7...6.49..836........4.2.3.4..1...',
+  '..4..3.9..17.6.4.8.......1..6.7.9.............9.....54.3..4..2.......8415..1.6..9',
+  '3...1...7.6..74....5.6..1..2....734......35...7........8......26395........4...8.',
+  '8....52697..2......4...1........2.719............7...3.6..1.9.42....8..6..5......',
+  '.3.....48...8.6..2........1.69.7......3..51.......4.....4.67...5..1..72.1...5..9.',
+  '.46.3....5......8....79.....5.......6.4..53.9...8.2.67....13..4.6....9....9....3.',
+  '2..5.........1.9..71....42...7.6..1.86.4......5..27.........1..6....2.4...973..85',
+  '.86..3..5.4.....6.......4.1....8...3...9.....79.13..8...7.......61.9437.....6.2..',
+  '5..7..6...7.23........94..17...........9..3....3.1.5.21.5..3..9..4....2..3...9..6',
+  '...35..2..2....8.3.7..8...1...1..9...684.....3....7...4.9..1.5.....6.7...5...3...',
+  '..853......47....3...2.....4..31.5.......8.7.....5.184.1562....32.....9.........2',
+  '1..6.........9..627..1...8...4.....62..4.........3...5..2.58..4.5..6..9..7....8..',
+  '9.2........62.4..8.45.6..2.5..3..8..6.......9....78...8.4.5.9.21.9....6.........1',
+  '.45..........48..61...3.9..7..8.26.......5.23....1.8...9.4....7..2...5.........1.',
+  '7.3....45.195.......59.4.................23513.86.5........8..7...4...6.6.1..92..',
+  '..8.4..3..4..9......3..1...7.96..4.......52.9..5....6.42..7.39.......1..5..3...46',
+  '9..46.7..6..........43729...5..3...2...1..86..3.8...9.5............4..8..1...9..7',
+  '1.5.64........2..7.....9....52..7.....14..5....63..4.....2....56.....8....4...69.',
+  '.4.....2..5.9.1.34.1.46...56..74...9.......13.92......3......7......5.8..2..3....',
+  ],
+  [TECHNIQUE_TIER.x_wing]: [
+  '....7..26.2.6...898.....4..1...2.9........6...46..5.....1.......598..........2.71',
+  '..62.....8..3.49..9.278....2.....8....1....5..67.1............6...8..7.37.4.....5',
+  '5..2..9.76.....2..71...36.....8..5.31.4...76...........7.91...59..7.24.......8...',
+  '.....76.58.......497.....3.7..68.2.....9...6.....24...5.....9.2..87...41..41.....',
+  '.6487.13.3.....7..........8..17...6..59...........6.2.........551..4.8.38.61...4.',
+  '.3.74....8..............26.6.4..9.2.75...1..3.....7.8......6.371.3.986........8..',
+  '....2198.1...473..8..5......6.4..89.9.5..6........9.1.....7....2..91.5....7..4.2.',
+  '27..9.5...3.2.67....6......4..65.2.9.......579.....3...9..21........7..6.1.4.....',
+  '7....4..2...89....1.96...4.28..7.....4..........9814...........6..2.5.91......73.',
+  '.....93..4.7.5.8......14.579..2...4..7......95....7..8.9........86.....57.4.3..6.',
+  '....79.3....2..6...4....21.3......91..........5..12...2.534...........6..3176....',
+  '1...52...5.4.6.8...2..8.3....1..82..9..2....1...7....4.68..........93....9...6..2',
+  '.....52179......5.15..86...4..62.......9.4.3.....3...1.1..4286.32.....7.....6....',
+  '...........8.....66..79..2.49......87.....6.2.2..85..1.5..1....8...5......43...9.',
+  '.2..7.4..8......1..1.46..92.357.......25.174.....8...5........4..38....62...96...',
+  '34....9.1..54....3.9..3..5....6...8...7...1..95...4.7....9........85..1.7...2....',
+  '....3.14.3....2.6.58.......9.58.1....6...9.8.1.....9..82....45..5.6.......61.4...',
+  '.87.......2658...41.....9..4....3..2.6.8..3....1.2..4....65........7.593..94...26',
+  '.3..8.2...26.458........5.4...9.6.7..9.......3...5..8...871.....1.5....2.......9.',
+  '.......421..4.9..5..9..8....18.7.......3..15.56.......3..7......7.2..6........8.4',
+  '.........1.238..6.6.....892.53.6....2..4........5.39.1...2...3.4.....1.8.7.1..6..',
+  '.......194....2....5..7.........49..3.......6.8..5.....7.4..18...1....2.5..6.7...',
+  '..87....47......6.....2.17.3...6...946......8...1........9.......6.127...4.8.62..',
+  '.95.8....62......3..1...8......9...5.......7.73...6..91..3.9.5.8...6.....4.7..3.6',
+  '..62..4......3.........5.78..9.4.6..4.....1..6..5.....25...7.1..3.....4.....9.2.5',
+  '..6.21.7........3..39.6.52..7...8..............2.3.64..932....72.5.7...98......1.',
+  '......4....18.32......72..54.2.8..3.67....94..9.....6.....9....7846.5......438...',
+  '....95.8.27.......9..8....6.3..........3..8.4...4..5.97..5..1...6391..7..2...3.9.',
+  ],
+};
+
+/** Есть ли для этой ступени заготовки — то есть берётся ли она из библиотеки. */
+const hasSeeds = (tier: number): boolean => (SEED_PUZZLES[tier]?.length ?? 0) > 0;
+
+/**
+ * Заготовка → живая сетка: перекладка полос, транспонирование и перекраска цифр.
+ *
+ * ⚠️ ВСЕ ТРИ ОПЕРАЦИИ — АВТОМОРФИЗМЫ СУДОКУ, поэтому единственность решения и
+ * потребная техника от них не меняются (гейт проверяет и то, и другое НА ВЫХОДЕ —
+ * то есть на уже преобразованной доске, а не на заготовке).
+ *
+ * Перестановки выбраны так, чтобы клетка (4,4) осталась на месте: она кормит корень,
+ * и уехать ей некуда. Внутри полос 0 и 2 строки переставляются как угодно, сами полосы
+ * можно поменять местами, в средней полосе меняются строки 3 и 5 — а строка 4 стоит.
+ * То же по столбцам, плюс транспонирование.
+ */
+export function transformSeed(seedStr: string, center: number, rnd: Rng): { puzzle: Int8Array; solution: Int8Array } {
+  const src = emptyFlat();
+  for (let i = 0; i < CELLS; i++) {
+    const ch = seedStr.charCodeAt(i);
+    src[i] = ch === 46 ? 0 : ch - 48;   // '.' = 46
+  }
+  // Решение восстанавливаем перебором: у заготовки оно единственно (проверено гейтом),
+  // поэтому хранить его вторым столбцом было бы удвоением таблицы без пользы.
+  const sol = solveFast(src);
+  if (!sol) throw new Error('fractal: заготовка не решается');
+
+  const lineMap = (): Int8Array => {
+    const m = new Int8Array(N);
+    const swapBands = rnd() < 0.5;
+    const a = seededShuffle([0, 1, 2], rnd), b = seededShuffle([0, 1, 2], rnd);
+    for (let k = 0; k < 3; k++) {
+      m[k] = (swapBands ? 6 : 0) + a[k];
+      m[6 + k] = (swapBands ? 0 : 6) + b[k];
+    }
+    const swapMid = rnd() < 0.5;
+    m[3] = swapMid ? 5 : 3;
+    m[4] = 4;                            // кормящая строка остаётся на месте
+    m[5] = swapMid ? 3 : 5;
+    return m;
+  };
+  const rowMap = lineMap(), colMap = lineMap();
+  const flip = rnd() < 0.5;
+
+  // Перекраска. Центр обязан стать той цифрой, которой не хватает родителю, — поэтому
+  // случайную перестановку доворачиваем одним обменом, а не подбираем заново.
+  const shuffled = seededShuffle([1, 2, 3, 4, 5, 6, 7, 8, 9], rnd);
+  const was = sol[FEED_INDEX];
+  const at = shuffled.indexOf(center);
+  const tmp = shuffled[was - 1];
+  shuffled[was - 1] = shuffled[at];
+  shuffled[at] = tmp;
+
+  const put = (from: Int8Array): Int8Array => {
+    const out = emptyFlat();
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const v = from[r * N + c];
+      const rr = flip ? colMap[c] : rowMap[r];
+      const cc = flip ? rowMap[r] : colMap[c];
+      out[rr * N + cc] = v ? shuffled[v - 1] : 0;
+    }
+    return out;
+  };
+  return { puzzle: put(src), solution: put(sol) };
+}
+
+/** Дочерняя сетка из библиотеки заготовок — для ступеней, которые вслепую не копаются. */
+function childFromSeed(tier: number, center: number, rnd: Rng): { puzzle: Int8Array; solution: Int8Array; blanks: number; tier: number } {
+  const lib = SEED_PUZZLES[tier];
+  const pick = lib[Math.min(lib.length - 1, Math.floor(rnd() * lib.length))];
+  const { puzzle, solution } = transformSeed(pick, center, rnd);
+  let blanks = 0;
+  for (let i = 0; i < CELLS; i++) if (!puzzle[i]) blanks++;
+  return { puzzle, solution, blanks, tier: logicSolve(puzzle, tier).tier };
 }
 
 // ─────────────────────── копание дырок ───────────────────────
@@ -594,6 +930,122 @@ export function rootUnreachableCells(rootPuzzle: Board): [number, number][] {
   return out;
 }
 
+// ─────────────────────── ход и его отмена ───────────────────────
+
+/**
+ * ХОД И ЕГО ОТКАТ ЖИВУТ ЗДЕСЬ, А НЕ НА ЭКРАНЕ — и это не вкусовщина.
+ *
+ * ⚠️ ЗАЧЕМ. Отмены хода во фрактальной судоку не было ВООБЩЕ (замер 19.08.2026: слово
+ * `useMoveHistory` не встречается в экране ни разу), хотя это самая длинная партия
+ * приложения — десять сеток 9×9, «событие на несколько часов». Час работы не должен
+ * зависеть от одного неточного касания; в обычной судоку и у самурая отмена есть.
+ *
+ * ⚠️ И ПОЧЕМУ ПРАВИЛО ВЫНЕСЕНО В ДВИЖОК. Отменить ход здесь — не «вернуть цифру в
+ * клетку». Ход, добравший дочернюю до порога, ОТКРЫВАЕТ её и отправляет цифру наверх,
+ * в корень. Отмена обязана откатить всё три вещи разом: клетку, признак открытости и
+ * цифру в корне. Отмена, которая вернёт только клетку, оставит корень с цифрой,
+ * которую уже нечем подтвердить, — и это ровно та поломка, что в SET: разметка есть,
+ * кнопка нажимается, а состояние не откатывается. На экране такое не проверить иначе
+ * как глазами; здесь — обычным тестом.
+ */
+
+/** Живое состояние партии: то, что человек наиграл. Задание (puzzle/solution) отдельно. */
+export interface FractalPlayState {
+  rootGrid: Board;
+  children: { grid: Board; done: boolean }[];
+}
+
+/** Один ход. Хранит, ЧТО было в клетке до него, — отыгрывает назад движок. */
+export interface FractalMove {
+  /** Номер дочерней либо null для корня. */
+  child: number | null;
+  r: number;
+  c: number;
+  from: number;
+  to: number;
+  /** Ход открыл дочернюю и отправил цифру наверх — значит отмена обязана это снять. */
+  unlocked: boolean;
+}
+
+/** Подсказки задания: они не редактируются. Считаются от самого задания, не хранятся. */
+export const givenOf = (puzzle: Board): boolean[][] => puzzle.map((row) => row.map((v) => v !== 0));
+
+/** Начальное состояние партии — задание, к которому ещё не притрагивались. */
+export function startPlayState(f: FractalPuzzle): FractalPlayState {
+  return {
+    rootGrid: f.root.puzzle.map((r) => [...r]),
+    children: f.children.map((ch) => ({ grid: ch.puzzle.map((r) => [...r]), done: false })),
+  };
+}
+
+const cloneState = (s: FractalPlayState): FractalPlayState => ({
+  rootGrid: s.rootGrid.map((r) => [...r]),
+  children: s.children.map((c) => ({ grid: c.grid.map((r) => [...r]), done: c.done })),
+});
+
+/**
+ * Поставить цифру (0 = стереть).
+ *
+ * Возвращает null, если ход невозможен ИЛИ ничего не меняет: подсказку задания не
+ * трогают, кормящую клетку корня руками не заполняют, а повторное нажатие той же
+ * цифры не должно ни звучать ошибкой второй раз, ни оставлять в ленте пустой ход,
+ * отмена которого выглядела бы как «кнопка не работает».
+ */
+export function playDigit(
+  state: FractalPlayState,
+  f: FractalPuzzle,
+  target: { child: number | null; r: number; c: number },
+  n: number,
+): { next: FractalPlayState; move: FractalMove } | null {
+  const { child, r, c } = target;
+  if (child === null) {
+    if (!rootEditable(f.root.puzzle, r, c)) return null;
+    const from = state.rootGrid[r][c];
+    if (from === n) return null;
+    const next = cloneState(state);
+    next.rootGrid[r][c] = n;
+    return { next, move: { child: null, r, c, from, to: n, unlocked: false } };
+  }
+
+  const ch = f.children[child];
+  if (!ch || ch.puzzle[r][c] !== 0) return null;   // подсказка задания
+  const from = state.children[child].grid[r][c];
+  if (from === n) return null;
+
+  const next = cloneState(state);
+  next.children[child].grid[r][c] = n;
+
+  let unlocked = false;
+  if (!state.children[child].done
+    && isUnlocked(next.children[child].grid, ch.solution, givenOf(ch.puzzle), ch.unlockCells)) {
+    unlocked = true;
+    next.children[child].done = true;
+    const [rr, rc] = ch.feedsCell;
+    next.rootGrid[rr][rc] = ch.solution[FEED_CELL[0]][FEED_CELL[1]];
+  }
+  return { next, move: { child, r, c, from, to: n, unlocked } };
+}
+
+/**
+ * Отменить ход. Возвращает КЛЕТКУ — и, если этот ход открыл дочернюю, снимает и
+ * открытость, и цифру, которая ушла наверх. Ошибку отмена НЕ возвращает: промах
+ * пальцем чинится, счёт ошибок нет (то же правило, что в обычной судоку и у самурая).
+ */
+export function revertMove(state: FractalPlayState, f: FractalPuzzle, move: FractalMove): FractalPlayState {
+  const next = cloneState(state);
+  if (move.child === null) {
+    next.rootGrid[move.r][move.c] = move.from;
+    return next;
+  }
+  next.children[move.child].grid[move.r][move.c] = move.from;
+  if (move.unlocked) {
+    next.children[move.child].done = false;
+    const [rr, rc] = f.children[move.child].feedsCell;
+    next.rootGrid[rr][rc] = 0;   // цифру принесли снизу — туда же она и уходит
+  }
+  return next;
+}
+
 // ─────────────────────── сборка партии ───────────────────────
 
 /**
@@ -616,23 +1068,37 @@ export function generateFractal(level: number, seed?: string): FractalPuzzle {
   const rootSolution = emptyFlat();
   if (!fill(rootSolution, 0, rnd)) throw new Error('fractal: не удалось собрать корень');
 
+  // Потолки девяти дочерних: часть на верхней ступени уровня, остальные на ступень ниже.
+  // Раскладываем их по плиткам ВРАЗБРОС — при каноническом порядке трудные сетки всегда
+  // оказывались бы в левом верхнем углу карты, и человек выучил бы это за две партии.
+  const wantTiers = fractalChildTiers(cfg.level);
+  const tierSlots = seededShuffle(Array.from({ length: 9 }, (_, i) => i), rnd);
+
   const children: FractalChild[] = [];
   for (let i = 0; i < 9; i++) {
     const [rr, rc] = rootCellForChild(i);
     const center = rootSolution[rr * N + rc];
-    const solution = toFlat(solvedWithCenter(center, rnd));
-    const dug = digToTier(solution, { cap: cfg.childBlanksCap, tier: cfg.tier, forceOut: [FEED_INDEX] }, rnd);
+    const want = wantTiers[tierSlots[i]];
+    // Верхние ступени вслепую не копаются (замер: 0.5% досок) — они из библиотеки
+    // заготовок, преобразованных до неузнаваемости. Нижние копаются на месте.
+    const made = hasSeeds(want)
+      ? childFromSeed(want, center, rnd)
+      : (() => {
+        const solution = toFlat(solvedWithCenter(center, rnd));
+        const dug = digToTier(solution, { cap: cfg.childBlanksCap, tier: want, forceOut: [FEED_INDEX] }, rnd, want >= FRACTAL_TIERS.locked ? 10 : 4);
+        return { puzzle: dug.flat, solution, blanks: dug.blanks, tier: dug.tier };
+      })();
     // Порог — доля от РЕАЛЬНОГО числа дырок, а не фиксированное число. Дырок столько,
     // сколько разрешила логика; фиксированный порог мог бы оказаться выше их числа,
     // и сетка не открылась бы никогда — то есть партия стала бы непроходимой.
-    const unlockCells = Math.max(1, Math.min(dug.blanks, Math.round(dug.blanks * cfg.unlockShare)));
+    const unlockCells = Math.max(1, Math.min(made.blanks, Math.round(made.blanks * cfg.unlockShare)));
     children.push({
-      solution: toBoard(solution),
-      puzzle: toBoard(dug.flat),
+      solution: toBoard(made.solution),
+      puzzle: toBoard(made.puzzle),
       feedsCell: [rr, rc],
-      blanks: dug.blanks,
+      blanks: made.blanks,
       unlockCells,
-      tier: dug.tier,
+      tier: made.tier,
     });
   }
 
