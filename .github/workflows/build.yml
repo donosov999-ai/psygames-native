@@ -46,6 +46,17 @@ jobs:
 
       # v1.110.0: unit-тесты чистых функций (tokens/comboBonus/SRS/daily-challenge).
       # Падение теста блокирует web-deploy и release так же, как tsc.
+      #
+      # v1.205.0: сюда же попадают гейты дисциплины по исходникам — они читают
+      # app/games/*.tsx текстом и потому идут в общем прогоне, отдельного шага не
+      # просят. Что именно стерегут (жать искать по имени упавшего теста):
+      #   game-clock-discipline   — Date.now() в замере длительности партии:
+      #                             при паузе часы тикали дальше, «пока я писала
+      #                             отзыв, игра закончилась»;
+      #   ci-i18n-hardcode-guard  — language === 'ru' ? 'текст' : 'text' в экранах
+      #                             игр: языков 12, а такой тернарник знает два,
+      #                             остальным десяти достаётся английский, и
+      #                             сличение словарей этого не видит в принципе.
       - name: Unit tests (gate)
         working-directory: frontend
         run: npm test -- --ci
@@ -74,6 +85,77 @@ jobs:
       # а в базе под эту версию не помечено ничего.
       - name: Обратный контур — репорты размечены
         run: node scripts/feedback-loop-gate.mjs
+
+  # ─── Гейты на ЖИВОЙ веб-сборке ───────────────────────────────────────
+  # v1.205.0 (19.08.2026). Две проверки, которые в jest не живут в принципе:
+  # там нет вёрстки, а обе ловят именно нарисованный размер.
+  #
+  # 🔴 ЗАЧЕМ ОТДЕЛЬНАЯ ДЖОБА. Оба скрипта уже лежали в scripts/, но их НИКТО НЕ
+  # ЗАПУСКАЛ: чинили руками, проверяли руками, и следующая правка тихо возвращала
+  # беду. first-paint-audit написан 19.08 по находке «тропинка уровней невидима на
+  # 62 экранах из 64» — держалось до поворота экрана, то есть у большинства
+  # навсегда. tap-target-audit до 19.08 ходил только по маршрутам и НИ РАЗУ не
+  # видел игрового поля: он упирался в экран настройки и отчитывался «чисто».
+  #
+  # Идёт на main и на тегах, блокирует release (см. needs у release). На main —
+  # потому что регрессии вёрстки приезжают с обычными правками UI, а не с релизом.
+  # Сборка нужна одна на обе проверки, поэтому они в одной джобе.
+  web-gates:
+    name: Веб-гейты (первый кадр + размер кнопок на поле)
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      # baseUrl="/psygames-web" нужен GH Pages, но локальному serve он ломает пути.
+      # Правим на время экспорта и возвращаем назад, чтобы рабочее дерево не поехало.
+      # На Linux `sed -i` без пустого аргумента (в отличие от macOS).
+      - name: Build web (baseUrl="")
+        working-directory: frontend
+        run: |
+          cp app.json app.json.bak
+          sed -i 's|"baseUrl": "/psygames-web"|"baseUrl": ""|' app.json
+          npx expo export -p web
+          mv app.json.bak app.json
+
+      - name: Install Playwright chromium
+        working-directory: frontend
+        run: |
+          npm i -D playwright --legacy-peer-deps
+          npx playwright install --with-deps chromium
+
+      - name: Поднять сборку
+        working-directory: frontend
+        run: |
+          npx serve dist -l 8127 >/tmp/serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8127 >/dev/null 2>&1 && break; sleep 2; done
+          curl -sf -o /dev/null http://127.0.0.1:8127 || { echo "сборка не поднялась"; cat /tmp/serve.log; exit 1; }
+
+      # Ловит вёрстку, схлопнувшуюся на первом кадре: useWindowDimensions отдаёт 0,
+      # обновляется только по resize, которого при обычной загрузке не бывает —
+      # ноль запекается в maxWidth, подпись встаёт по букве в столбик.
+      - name: Первый кадр — ничего не схлопнулось
+        working-directory: frontend
+        run: node scripts/first-paint-audit.mjs http://127.0.0.1:8127
+
+      # Заходит В ИГРУ (жмёт «Начать»/«Start»/«Уровень N — играть») и меряет то,
+      # по чему стучат всю партию. Известные нарушители перечислены поимённо в
+      # самом скрипте (ROUTE_DEBT/FIELD_DEBT) с обоснованием; долг может только
+      # уменьшаться, новое — красное.
+      - name: Размер кнопок — на экранах и НА ПОЛЕ
+        working-directory: frontend
+        run: node scripts/tap-target-audit.mjs --base=http://127.0.0.1:8127
 
   # ─── Smoke games — ловит mount-краши/ошибки консоли ──────────────────
   # v1.110.0: теперь БЛОКИРУЕТ release (по клику Дениса в аудите 2026-07-04).
@@ -818,7 +900,9 @@ jobs:
 
   # ─── Create GitHub Release if tagged (vX.Y.Z) ─────────────────────────
   release:
-    needs: [macos-arm, windows-x64, android, typecheck, smoke]
+    # v1.205.0: + web-gates — релиз не выходит, если вёрстка схлопнулась на первом
+    # кадре или на поле появились кнопки, в которые не попасть пальцем.
+    needs: [macos-arm, windows-x64, android, typecheck, smoke, web-gates]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
