@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 1 · 19.08.2026 */
+/* psygames-game-sudoku · VER 2 · 20.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -72,8 +72,27 @@ import {
   SudokuCellColors,
   toggleSudokuCellColor,
 } from '@/src/services/sudoku-coloring';
+import {
+  emptyPencilMarks, normalizePencilMarks, pencilInput, routeDigitPress,
+  visiblePencilDigits, countPencilMarks, type PencilMarks,
+} from '@/src/services/pencilMarks';
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+
+/**
+ * КАРАНДАШНЫЕ ПОМЕТКИ. Что видно мелким в клетке.
+ *
+ * Два правила разом, и оба нужны:
+ *   · поставленная цифра ГАСИТ пометки (но не стирает — см. services/pencilMarks);
+ *   · на доске 6×6 цифр всего шесть. Маска приходит из незаконченной партии, которая
+ *     лежит на устройстве месяц; запись от партии 9×9, поднятая на поле 6×6, нарисовала
+ *     бы в клетке семёрку — цифру, которой на этой доске не бывает вовсе.
+ *
+ * Вынесено из компонента, чтобы правило проверялось вызовом, а не чтением разметки.
+ */
+export function sudokuVisibleMarks(mask: number, value: number, N: number): number[] {
+  return visiblePencilDigits(mask, value).filter((d) => d <= N);
+}
 
 // KILLER: подкрас cage-групп (тинт = subtle blend с фоном темы → виден и на свету, и в тьме).
 
@@ -219,6 +238,15 @@ const rhStyles = StyleSheet.create({
 });
 
 const GAME_ID = 'sudoku';
+/**
+ * Тот же ключ наружу — гейт ходит в то же хранилище, что игра.
+ *
+ * ⚠️ Псевдоним смотрит именно в эту сторону, а не наоборот. Соседний гейт вех-боссов
+ * (`bosses.test.ts`) ищет в экране ЛИТЕРАЛ `const GAME_ID = '…'`, и `const GAME_ID =
+ * SUDOKU_GAME_ID` покрасил его 20.08.2026 на пустом месте: игра работала, ключ тот же,
+ * а реестр вех «потерял» судоку. Литерал остаётся на своём месте, наружу идёт ссылка.
+ */
+export const SUDOKU_GAME_ID = GAME_ID;
 const SUDOKU_LAST_LEVEL = 52;
 const SUDOKU_TIER_KEYS: Record<SudokuDifficultyTier, string> = {
   beginner: 'sudokuTierBeginner',
@@ -232,8 +260,12 @@ const SUDOKU_TIER_KEYS: Record<SudokuDifficultyTier, string> = {
 /**
  * Версия формата незаконченной партии. Поднимать при ЛЮБОМ изменении полей SudokuResume:
  * старая запись тогда не подойдёт под новый код и будет молча выброшена, а не уронит экран.
+ *
+ * 3 — 20.08.2026: в снимок добавились карандашные пометки.
  */
-const RESUME_V = 2;
+const RESUME_V = 3;
+/** Та же версия наружу — гейт поднимает партию ровно под ней (см. SUDOKU_GAME_ID). */
+export const SUDOKU_RESUME_V = RESUME_V;
 
 /** Ход: что стояло в клетке до него и что стало. Назад отыгрывает экран, лента только помнит. */
 interface SudokuMove { r: number; c: number; from: Cell; to: Cell }
@@ -255,6 +287,14 @@ interface SudokuResume {
   grid: Cell[][];
   given: boolean[][];
   cellColors: SudokuCellColors;
+  /**
+   * Карандашные пометки — в тот же снимок, что и доска.
+   *
+   * ⚠️ Слой, который теряется при выходе, хуже отсутствующего: человек уходит с
+   * расставленными кандидатами, возвращается — их нет, и вся бухгалтерия партии
+   * восстанавливается заново по памяти, которой уже нет.
+   */
+  marks: PencilMarks;
   regions: number[][] | null;
   cages: number[][] | null;
   cageSums: number[];
@@ -325,6 +365,22 @@ export default function SudokuGame() {
   const [given, setGiven] = useState<boolean[][]>([]);
   const [cellColors, setCellColors] = useState<SudokuCellColors>([]);
   const [paintColor, setPaintColor] = useState<number | null>(null);
+  /**
+   * КАРАНДАШ. Пометки — маска девяти бит на клетку (services/pencilMarks), режим —
+   * отдельный флаг: в нём цифровая клавиатура пишет не в клетку, а в угол.
+   *
+   * ЗАЧЕМ ЭТО ЗДЕСЬ. Выше третьей ступени лестницы техник судоку в уме не решается:
+   * «голая пара» — это два кандидата, которые надо помнить в двух клетках РАЗОМ,
+   * «скрытая пара» — расположение цифры по всей зоне. На бумаге это пишут карандашом
+   * в углу клетки; на экране писать было негде, и вся верхняя половина уровней
+   * решалась перебором вместо техники.
+   *
+   * Карандаш и цвет — ВЗАИМОИСКЛЮЧАЮЩИЕ режимы (см. setPencilMode/setPaintMode ниже):
+   * два включённых режима письма разом означают, что человек не знает, куда попадёт
+   * следующее нажатие.
+   */
+  const [marks, setMarks] = useState<PencilMarks>([]);
+  const [pencil, setPencil] = useState(false);
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
   // Модель провала — свойство РЕЖИМА, а не константа экрана (см. services/failure).
   // Сейчас все режимы судоку короткие → 'standard', три жизни, как было. Длинные режимы
@@ -435,6 +491,8 @@ export default function SudokuGame() {
     setGiven(p.map((r) => r.map((v) => v !== 0)));
     setCellColors(emptySudokuCellColors(d.N));
     setPaintColor(null);
+    setMarks(emptyPencilMarks(d.N));   // новая доска — чистый лист и в карандашном слое
+    setPencil(false);
     setSelected(null);
     setErrors(0);
     setOver(false);
@@ -450,7 +508,7 @@ export default function SudokuGame() {
   /** Снимок партии для слоя незаконченной игры. */
   const snapshot = (): SudokuResume => ({
     mode, level, difficulty, size, variant, dims,
-    puzzle, solution, grid, given, cellColors,
+    puzzle, solution, grid, given, cellColors, marks,
     regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow,
     errors, hintUses, hintMax, backtrackCount,
     elapsed: elapsedTime,
@@ -463,7 +521,12 @@ export default function SudokuGame() {
     setVariant(s.variant); setDims(s.dims);
     setPuzzle(s.puzzle); setSolution(s.solution); setGrid(s.grid); setGiven(s.given);
     setCellColors(normalizeSudokuCellColors(s.cellColors, s.dims.N));
+    // ⚠️ Пометки прогоняем через normalize: запись лежит на устройстве месяц и переживает
+    // обновления приложения. Битая маска нарисовала бы несуществующие цифры, чужой формат
+    // уронил бы экран — потерять пометки не страшно, уронить партию страшно.
+    setMarks(normalizePencilMarks(s.marks, s.dims.N));
     setPaintColor(null);
+    setPencil(false);
     setRegions(s.regions); setCages(s.cages); setCageSums(s.cageSums); setCageAnchors(s.cageAnchors);
     setParityMarks(s.parityMarks); setKropki(s.kropki); setSandwich(s.sandwich);
     setThermo(s.thermo); setArrow(s.arrow);
@@ -507,7 +570,7 @@ export default function SudokuGame() {
     const snap = snapshot();
     const tm = setTimeout(() => { saveResume(GAME_ID, pid, RESUME_V, snap).catch(() => {}); }, 400);
     return () => clearTimeout(tm);
-  }, [grid, cellColors, errors, hintUses, backtrackCount, phase, over]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [grid, cellColors, marks, errors, hintUses, backtrackCount, phase, over]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // Уход с экрана. Отложенная запись выше на этом моменте отменяется своим clearTimeout,
   // поэтому сохраняем ещё раз здесь — и с ЖИВЫМ временем, а не с тем, что было на прошлом ходу.
@@ -520,7 +583,10 @@ export default function SudokuGame() {
    * пустая помеха. Ход, ошибка, подсказка или откат — вот с чего есть что терять.
    */
   const liveGame = phase === 'playing' && !over && grid.length > 0;
-  const touched = hist.canUndo || errors > 0 || hintUses > 0 || backtrackCount > 0;
+  // Расставленные карандашом кандидаты — тоже работа, и немаленькая: на верхних уровнях
+  // их пишут по десять минут, не поставив ни одной цифры. Уйти с ними молча — то же
+  // самое, что уйти с потерянными ходами.
+  const touched = hist.canUndo || errors > 0 || hintUses > 0 || backtrackCount > 0 || countPencilMarks(marks) > 0;
 
   /** Дописать партию перед уходом — с ЖИВЫМ временем, а не с прошлого хода. */
   const saveBeforeExit = () => {
@@ -536,6 +602,17 @@ export default function SudokuGame() {
    * Отмена хода. Возвращает КЛЕТКУ, но НЕ возвращает жизнь: иначе три жизни превращаются
    * в бесконечные и модель сложности рассыпается. Промах пальцем чинится, счёт ошибок —
    * нет. В длинных режимах жизней не будет вовсе (см. services/failure).
+   *
+   * ⚠️ ПОМЕТКИ ЛЕНТА ОТМЕНЫ НЕ ТРОГАЕТ — как во фрактальной судоку, и по той же причине.
+   * Цифра в клетке и карандашный кандидат — разные вещи: цифра это ХОД (тратит ошибку,
+   * проверяет победу), а пометка — бухгалтерия игрока. У пометки уже есть своя отмена, и
+   * она короче ленты: повторный тап по той же цифре снимает её тем же движением, каким
+   * поставил, а стирающая клавиша чистит клетку целиком.
+   *
+   * И обратное тоже держится: цифра пометки НЕ СТИРАЕТ, только гасит (visiblePencilDigits).
+   * Поэтому откат цифры возвращает клетку вместе с кандидатами — отмена не половинчатая.
+   * Стирай цифра пометки, лента обязана была бы их помнить, и одна забытая правка в
+   * `handleNumPress` тихо съедала бы работу за десять минут.
    */
   const handleUndo = () => {
     const m = hist.undo();
@@ -545,6 +622,14 @@ export default function SudokuGame() {
     setGrid(ng);
     setSelected({ r: m.r, c: m.c });
   };
+
+  /**
+   * Режимы письма взаимоисключающие: включили карандаш — цвет гаснет, и наоборот.
+   * Два включённых режима разом означают, что человек не знает, куда попадёт нажатие,
+   * — а он в этот момент смотрит на доску, а не на кнопки.
+   */
+  const setPencilMode = (on: boolean) => { setPencil(on); if (on) setPaintColor(null); };
+  const setPaintMode = (on: boolean) => { setPaintColor(on ? 0 : null); if (on) { setPencil(false); setSelected(null); } };
 
   const handleCellPress = (r: number, c: number) => {
     if (paintColor !== null) {
@@ -556,9 +641,19 @@ export default function SudokuGame() {
   };
 
   const handleNumPress = async (n: number) => {
-    if (!selected) return;
-    const { r, c } = selected;
-    if (given[r][c]) return;
+    // Развилка одна на все судоку (services/pencilMarks): карандаш НЕ становится ходом —
+    // не тратит жизнь, не ложится в ленту отмены и не проверяет доску на победу.
+    const route = routeDigitPress({
+      pencil, hasSelection: !!selected, blocked: over,
+      given: !!selected && given[selected.r][selected.c],
+    });
+    if (route === 'ignore') return;
+    const sel = selected!;
+    if (route === 'pencil') {
+      setMarks((current) => pencilInput(current, N, sel.r, sel.c, n));
+      return;
+    }
+    const { r, c } = sel;
     const previousValue = grid[r][c];
     const ng = grid.map((row) => [...row]);
     ng[r][c] = n;
@@ -708,6 +803,37 @@ export default function SudokuGame() {
   // ли доска в бюджет высоты, и если нет — включаем прокрутку поля. Обрезка невозможна
   // в принципе: не влезло по высоте → доступно скроллом.
   const boardOverflows = !landscape && cellSize * N > height - 330;
+
+  /**
+   * Карандашные пометки в клетке — три в ряд, как в углу бумажной клетки.
+   *
+   * Слоты держим ВСЕГДА на своих местах (отсутствующая цифра рисуется прозрачной): на
+   * бумаге «двойка» всегда во втором углу, и по неподвижной сетке кандидаты читаются
+   * взглядом, а по съезжающему списку — чтением. Ради этого и слоты, и прозрачность.
+   *
+   * Касаний слой не перехватывает (pointerEvents none): палец обязан попадать в клетку,
+   * а не в цифру поверх неё.
+   */
+  const renderMarks = (r: number, c: number, value: Cell) => {
+    const digits = sudokuVisibleMarks(marks[r]?.[c] ?? 0, value, N);
+    if (!digits.length) return null;
+    return (
+      <View style={styles.markGrid} pointerEvents="none">
+        {Array.from({ length: N }, (_, k) => k + 1).map((d) => (
+          <Text
+            key={d}
+            style={{
+              width: cellSize / 3, height: cellSize / 3, lineHeight: cellSize / 3,
+              fontSize: Math.max(6, cellSize * 0.235), textAlign: 'center',
+              color: digits.includes(d) ? colors.textSecondary : 'transparent',
+            }}
+          >
+            {d}
+          </Text>
+        ))}
+      </View>
+    );
+  };
 
   const renderConfig = () => (
     // v1.150: раньше конфиг был голым View → на невысоком экране кнопка «играть»
@@ -1055,6 +1181,9 @@ export default function SudokuGame() {
               {variant === 'kropki' && kropki && r < N - 1 && kropki.v[r][c] !== 0 && (
                 <View style={{ position: 'absolute', width: cellSize * 0.2, height: cellSize * 0.2, borderRadius: cellSize * 0.1, bottom: -cellSize * 0.1, left: cellSize / 2 - cellSize * 0.1, backgroundColor: kropki.v[r][c] === 2 ? '#222222' : '#ffffff', borderWidth: 1.5, borderColor: '#777777', zIndex: 5, pointerEvents: 'none' }} />
               )}
+              {/* Карандаш — ПОД суммой клетки killer и под цифрой: сумма и цифра важнее
+                  кандидатов, и перекрывать их слой бухгалтерии не имеет права. */}
+              {renderMarks(r, c, v)}
               {mode === 'killer' && cages && cageAnchors[cages[r][c]] === r * N + c && (
                 <Text style={{ position: 'absolute', top: 1, left: 2, fontSize: Math.max(8, Math.round(cellSize * 0.27)), fontWeight: '800', color: colors.text }}>{cageSums[cages[r][c]]}</Text>
               )}
@@ -1154,14 +1283,36 @@ export default function SudokuGame() {
             onPress={handleUndo}
             disabled={!hist.canUndo}
           />
+        </View>
+        {/*
+          ⚠️ РЕЖИМЫ ПИСЬМА — СВОИМ РЯДОМ, а не четвёртой и пятой кнопкой к «Подсказке».
+          В строке из четырёх капсул на экране 375 каждой достаётся 80 точек, и подпись
+          режется до «Подск…» — на этом уже обжигались (см. комментарий в GlassButton).
+          Двумя рядами по две каждой достаётся 155, и обе подписи целые.
+
+          Смысловое деление тут же: сверху ДЕЙСТВИЯ (подсказка, отмена), снизу — ЧЕМ
+          сейчас пишет палец. Счётчик пометок на кнопке нужен потому, что при выключенном
+          карандаше слоя не видно, и без числа непонятно, есть ли там что-нибудь вообще.
+        */}
+        <View style={styles.hintRow}>
+          <GlassButton
+            grow
+            icon="pencil-outline"
+            label={countPencilMarks(marks) ? `${t('sudokuPencilMode')} ${countPencilMarks(marks)}` : t('sudokuPencilMode')}
+            active={pencil}
+            onPress={() => setPencilMode(!pencil)}
+          />
           <GlassButton
             grow
             icon="color-palette-outline"
             label={t('sudokuColorMode')}
             active={paintColor !== null}
-            onPress={() => { setPaintColor((current) => current === null ? 0 : null); setSelected(null); }}
+            onPress={() => setPaintMode(paintColor === null)}
           />
         </View>
+        {pencil && (
+          <Text style={[styles.paintHint, { color: colors.textSecondary }]}>{t('sudokuPencilHint')}</Text>
+        )}
         {paintColor !== null && (
           <>
             <View style={styles.paintPalette}>
@@ -1383,6 +1534,12 @@ const styles = StyleSheet.create({
   // alignItems:'stretch' — иначе ряд кнопок сжимается по содержимому и вылезает
   // за экран: на 375px первая капсула уезжала за левый край и обрезалась.
   hintBlock: { alignSelf: 'stretch', alignItems: 'stretch', gap: 5 },
+  // Карандашные пометки: три в ряд поверх клетки и БЕЗ перехвата касаний —
+  // палец должен попадать в саму клетку, а не в слой с цифрами.
+  markGrid: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
+  },
   // Кнопки тянутся по ширине панели поровну (flex: 1) и держат минимум 48 точек по
   // высоте. Было paddingVertical: 8 — около 36 точек, ниже минимума, при котором палец
   // попадает надёжно (44 у Apple, 48 у Material). Промах по «Отменить» в судоку стоит

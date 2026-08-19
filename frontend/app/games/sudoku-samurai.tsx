@@ -1,4 +1,4 @@
-/* psygames-game-sudoku-samurai · VER 1 · 19.08.2026 */
+/* psygames-game-sudoku-samurai · VER 2 · 20.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,6 +23,10 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 import { TECHNIQUE_TIER, type Technique } from '@/src/services/sudoku-grade';
 import { buildSolution, GRID_ORIGINS, isSolved as samuraiSolved } from '@/src/services/samurai';
+import {
+  emptyPencilMarks, normalizePencilMarks, pencilInput, routeDigitPress,
+  visiblePencilDigits, countPencilMarks, type PencilMarks,
+} from '@/src/services/pencilMarks';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
 /** Норма цели для пальца. Ниже неё в рабочем режиме клетка не опускается. */
@@ -41,6 +45,26 @@ function blendHex(base: string, over: string, t: number): string {
 export function cellSizeFor(width: number, zoom: 'fit' | 'zoom'): number {
   const fitCell = Math.floor((Math.min(width, 600) - 36) / SIZE);
   return zoom === 'fit' ? Math.max(12, fitCell) : Math.max(TOUCH_CELL, fitCell * 2);
+}
+
+/**
+ * Ниже этого размера клетки карандашные пометки не рисуются вовсе.
+ *
+ * ⚠️ ЭТО НЕ ВКУСОВЩИНА, А АРИФМЕТИКА. Девять цифр в клетке — это три ряда по три, то
+ * есть цифра в треть клетки. На карте ('fit') клетка 16pt при ширине телефона 390:
+ * цифра вышла бы 5pt — не мелкий текст, а грязь, которая ещё и закрасит саму клетку
+ * и убьёт единственное, ради чего карта существует, — вид всей фигуры из пяти сеток.
+ * Двадцать одна клетка в ряд крупнее не бывает по определению игры (см. cellSizeFor).
+ */
+export const PENCIL_MIN_CELL = 30;
+
+/**
+ * Что видно карандашом в клетке самурая: цифра гасит пометки, а мелкий масштаб —
+ * прячет их целиком. Вынесено из компонента, чтобы правило проверялось вызовом на
+ * НАСТОЯЩЕЙ геометрии (cellSizeFor), а не чтением разметки.
+ */
+export function samuraiVisibleMarks(mask: number, value: number, cellSize: number): number[] {
+  return cellSize >= PENCIL_MIN_CELL ? visiblePencilDigits(mask, value) : [];
 }
 
 type Cell = number; // 0 = empty (та же типизация, что в sudoku.tsx)
@@ -729,8 +753,16 @@ export function generateSamuraiLevel(level: number, attempts = 2): SamuraiLevel 
 
 /** Ключ незаконченной партии. Совпадает с gameId уровня — реестр «Продолжить» ищет по нему. */
 const GAME_ID = 'sudoku_samurai';
-/** Версия формата снимка. Поменяли поля доски — подняли, старые записи просто не поднимутся. */
-const RESUME_V = 1;
+/** Тот же ключ наружу — гейт ходит в то же хранилище, что игра (см. sudoku.tsx о направлении). */
+export const SAMURAI_GAME_ID = GAME_ID;
+/**
+ * Версия формата снимка. Поменяли поля доски — подняли, старые записи просто не поднимутся.
+ *
+ * 2 — 20.08.2026: в снимок добавились карандашные пометки.
+ */
+const RESUME_V = 2;
+/** Та же версия наружу — гейт поднимает партию ровно под ней. */
+export const SAMURAI_RESUME_V = RESUME_V;
 
 /** Ход: что стояло в клетке ДО него. Назад отыгрывает экран, лента только помнит. */
 interface SamuraiMove { r: number; c: number; from: number; to: number }
@@ -745,6 +777,16 @@ interface SamuraiResume {
   solution: Cell[][];
   grid: Cell[][];
   given: boolean[][];
+  /**
+   * Карандашные пометки — ОДНИМ полем 21×21 на всю фигуру, как и сама доска.
+   *
+   * ⚠️ Именно поэтому клетка перекрытия ведёт себя правильно сама собой: она одна в
+   * массиве, значит и набор кандидатов у неё один. Разложи пометки по пяти сеткам — и
+   * в общем блоке появились бы ДВА набора на одну клетку, которые разъезжались бы с
+   * первого же хода. Партия идёт под час на 369 клетках; без пометок она не решается,
+   * а с расходящимися пометками — решается неверно, что хуже.
+   */
+  marks: PencilMarks;
   errors: number;
   hintUses: number;
   elapsed: number;
@@ -772,6 +814,17 @@ export default function SamuraiSudokuGame() {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [given, setGiven] = useState<boolean[][]>([]);
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
+  /**
+   * КАРАНДАШ. Пометки — маска девяти бит на клетку поля 21×21 (services/pencilMarks),
+   * режим — отдельный флаг: в нём цифровая клавиатура пишет не в клетку, а в её угол.
+   *
+   * ЗАЧЕМ ЭТО ЗДЕСЬ ОСТРЕЕ, ЧЕМ ГДЕ-ЛИБО. Пять сеток, 369 клеток, партия под час, и
+   * зоны у самурая ОБЩИЕ: вывод из одной сетки переносится в другую через общий блок.
+   * Держать такую бухгалтерию в голове нельзя физически — без места, куда записать
+   * кандидатов, верхние уровни не решаются, а угадываются.
+   */
+  const [marks, setMarks] = useState<PencilMarks>([]);
+  const [pencil, setPencil] = useState(false);
   const [zoom, setZoom] = useState<'fit' | 'zoom'>('fit');   // дефолт — вся фигура «крест» видна целиком
   const [errors, setErrors] = useState(0);
   const [hintUses, setHintUses] = useState(0);
@@ -816,6 +869,8 @@ export default function SamuraiSudokuGame() {
     setSolution(s);
     setGrid(p.map((r) => [...r]));
     setGiven(p.map((r) => r.map((v) => v !== 0)));
+    setMarks(emptyPencilMarks(SIZE));   // новая доска — чистый лист и в карандашном слое
+    setPencil(false);
     setSelected(null);
     setErrors(0);
     setHintUses(0);
@@ -833,7 +888,7 @@ export default function SamuraiSudokuGame() {
   /** Снимок партии для слоя незаконченной игры. */
   const snapshot = (): SamuraiResume => ({
     level: levelRef.current,
-    solution, grid, given,
+    solution, grid, given, marks,
     errors, hintUses,
     elapsed: elapsedTime,
     history: hist.serialize(),
@@ -845,6 +900,11 @@ export default function SamuraiSudokuGame() {
     setSolution(sv.solution);
     setGrid(sv.grid);
     setGiven(sv.given);
+    // ⚠️ Пометки прогоняем через normalize: запись лежит на устройстве месяц и переживает
+    // обновления приложения. Битая маска нарисовала бы несуществующие цифры, чужой формат
+    // уронил бы экран — потерять пометки не страшно, уронить партию страшно.
+    setMarks(normalizePencilMarks(sv.marks, SIZE));
+    setPencil(false);
     setErrors(sv.errors);
     setHintUses(sv.hintUses);
     setSelected(null);
@@ -889,7 +949,7 @@ export default function SamuraiSudokuGame() {
     const snap = snapshot();
     const tm = setTimeout(() => { saveResume(GAME_ID, pid, RESUME_V, snap).catch(() => {}); }, 400);
     return () => clearTimeout(tm);
-  }, [grid, errors, hintUses, phase, over]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [grid, marks, errors, hintUses, phase, over]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // Уход с экрана. Отложенная запись выше на этом моменте отменяется своим clearTimeout,
   // поэтому сохраняем ещё раз здесь — и с ЖИВЫМ временем, а не с тем, что было на прошлом ходу.
@@ -914,6 +974,12 @@ export default function SamuraiSudokuGame() {
    * Отмена хода. Возвращает КЛЕТКУ, но НЕ возвращает потраченную ошибку: иначе бюджет
    * ошибок превращается в бесконечный и уровень перестаёт что-либо значить. Промах
    * пальцем чинится, счёт ошибок — нет (то же правило, что в обычной судоку).
+   *
+   * ⚠️ ПОМЕТКИ ЛЕНТА ОТМЕНЫ НЕ ТРОГАЕТ — как во фрактальной и обычной судоку, и по той
+   * же причине. Цифра — ХОД (тратит ошибку, проверяет победу), пометка — бухгалтерия
+   * игрока, и своя отмена у неё короче ленты: повторный тап по цифре снимает её тем же
+   * движением, каким поставил. При этом цифра пометки не стирает, а только гасит
+   * (samuraiVisibleMarks), поэтому откат цифры возвращает клетку ВМЕСТЕ с кандидатами.
    */
   const handleUndo = () => {
     if (over) return;
@@ -1004,9 +1070,21 @@ export default function SamuraiSudokuGame() {
   );
 
   const handleNumPress = async (n: number) => {
-    if (!selected || over) return;
-    const { r, c } = selected;
-    if (given[r][c]) return;
+    // Развилка одна на все судоку (services/pencilMarks): карандаш НЕ становится ходом —
+    // не тратит ошибку из бюджета, не ложится в ленту отмены и не проверяет доску на победу.
+    const route = routeDigitPress({
+      pencil, hasSelection: !!selected, blocked: over,
+      given: !!selected && given[selected.r][selected.c],
+    });
+    if (route === 'ignore') return;
+    const sel = selected!;
+    if (route === 'pencil') {
+      // Клетка на стыке сеток — ОДНА клетка поля 21×21, поэтому и набор кандидатов у
+      // неё один: пометка, поставленная «из левой верхней сетки», видна и из центральной.
+      setMarks((current) => pencilInput(current, SIZE, sel.r, sel.c, n));
+      return;
+    }
+    const { r, c } = sel;
     const previous = grid[r][c];
     const ng = grid.map((row) => [...row]);
     ng[r][c] = n;
@@ -1108,6 +1186,9 @@ export default function SamuraiSudokuGame() {
       return <View key={`${r}-${c}`} style={{ width: cellSize, height: cellSize, backgroundColor: 'transparent' }} />;
     }
     const v = grid[r][c];
+    // Кандидаты этой клетки — считаем один раз на клетку: их 369 на поле, а
+    // пересчёт на каждую из девяти цифр стоил бы девяти проходов по маске.
+    const penciled = samuraiVisibleMarks(marks[r]?.[c] ?? 0, v, cellSize);
     const isSel = selected?.r === r && selected?.c === c;
     const sameRow = selected?.r === r || selected?.c === c;
     const sameVal = v !== 0 && selected && grid[selected.r][selected.c] === v;
@@ -1154,6 +1235,26 @@ export default function SamuraiSudokuGame() {
           borderTopWidth: topThick ? 2 : 0,
         }}
       >
+        {/* Карандашные пометки — три в ряд, как в углу бумажной клетки. Слоты стоят на
+            местах всегда (отсутствующая цифра прозрачна): по неподвижной сетке кандидаты
+            читаются взглядом, а по съезжающему списку — чтением. Касаний слой не
+            перехватывает: палец обязан попадать в клетку, а не в цифру поверх неё. */}
+        {penciled.length > 0 && (
+          <View style={styles.markGrid} pointerEvents="none">
+            {Array.from({ length: 9 }, (_, k) => k + 1).map((d) => (
+              <Text
+                key={d}
+                style={{
+                  width: cellSize / 3, height: cellSize / 3, lineHeight: cellSize / 3,
+                  fontSize: Math.max(6, Math.round(cellSize * 0.235)), textAlign: 'center',
+                  color: penciled.includes(d) ? (isSel ? '#FFF' : colors.textSecondary) : 'transparent',
+                }}
+              >
+                {d}
+              </Text>
+            ))}
+          </View>
+        )}
         {v !== 0 && (
           <Text style={{
             color: isSel ? '#FFF' : conflict ? '#b91c1c' : isGiven ? colors.text : GRADIENT[0],
@@ -1176,6 +1277,7 @@ export default function SamuraiSudokuGame() {
 
   const renderPlaying = () => {
     const { maxErrors, hintMax } = levelParams(levelRef.current);
+    const marksWritten = countPencilMarks(marks);
     const statsEl = (
       <View style={styles.statsRow}>
         <Text style={[styles.statText, { color: GRADIENT[0] }]}>{t('label_level_short')}{levelRef.current}</Text>
@@ -1211,6 +1313,26 @@ export default function SamuraiSudokuGame() {
           <Ionicons name="arrow-undo" size={16} color={colors.text} />
           <Text style={[styles.hintBtnText, { color: colors.text }]}>{t('btn_undo')}</Text>
         </TouchableOpacity>
+        {/* КАРАНДАШ. Кнопка ровно того же размера, что соседние (styles.hintBtn, minHeight
+            48): промах мимо неё попадает в «Подсказку» и тратит лимит подсказок — цена
+            промаха здесь выше, чем «не нажалось». Счётчик на подписи нужен потому, что при
+            выключённом карандаше слоя не видно, и без числа непонятно, есть ли там что-то. */}
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t('sudokuPencilMode')}
+          accessibilityState={{ selected: pencil }}
+          testID="samurai-pencil"
+          onPress={() => setPencil((on) => !on)}
+          style={[styles.hintBtn, {
+            backgroundColor: pencil ? GRADIENT[0] : colors.surface,
+            borderWidth: 1, borderColor: pencil ? GRADIENT[0] : colors.border,
+          }]}
+        >
+          <Ionicons name="pencil-outline" size={16} color={pencil ? '#FFF' : colors.text} />
+          <Text style={[styles.hintBtnText, { color: pencil ? '#FFF' : colors.text }]}>
+            {marksWritten ? `${t('sudokuPencilMode')} ${marksWritten}` : t('sudokuPencilMode')}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
     // В режиме 'zoom' оборачиваем поле в 2D-скролл (вложенные ScrollView — работают и в вебе, и нативно).
@@ -1226,6 +1348,14 @@ export default function SamuraiSudokuGame() {
       : <View style={{ alignSelf: 'center' }}>{boardEl}</View>;
 
     const padEl = (
+      <View style={styles.toolbarCol}>
+        {/* Подсказку показываем ТОЛЬКО при включённом карандаше: в выключённом виде это
+            была бы строка, объясняющая то, чего сейчас не происходит. */}
+        {pencil && (
+          <Text numberOfLines={2} style={[styles.pencilHint, { color: colors.textSecondary }]}>
+            {t('sudokuPencilHint')}
+          </Text>
+        )}
       <View style={styles.numPad}>
         {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
           <TouchableOpacity
@@ -1238,6 +1368,7 @@ export default function SamuraiSudokuGame() {
           onPress={() => handleNumPress(0)} style={[styles.numBtn, { backgroundColor: colors.surface }]}>
           <Ionicons name="backspace-outline" size={20} color={colors.text} />
         </TouchableOpacity>
+      </View>
       </View>
     );
 
@@ -1258,12 +1389,13 @@ export default function SamuraiSudokuGame() {
          * молча. Слой сохранения тут был с самого начала, то есть партия и не
          * терялась — но человек об этом не знал и считал, что потерял час.
          *
-         * Спрашиваем не по факту «идёт партия», а по `hist.canUndo`: пока не
-         * сделано ни одного хода, терять нечего, и вопрос был бы шумом на пустом
-         * месте. `resumable` здесь правда — потому и текст обещает продолжение,
-         * а не потерю.
+         * Спрашиваем не по факту «идёт партия», а по сделанной работе: пока не
+         * сделано ни одного хода И не написано ни одной пометки, терять нечего, и
+         * вопрос был бы шумом на пустом месте. Пометки тут наравне с ходами — их
+         * расставляют по десять минут, не поставив ни одной цифры. `resumable`
+         * здесь правда — потому и текст обещает продолжение, а не потерю.
          */
-        confirmExit={phase === 'playing' && !over && hist.canUndo}
+        confirmExit={phase === 'playing' && !over && (hist.canUndo || marksWritten > 0)}
         resumable
         onSaveBeforeExit={saveParty}
       >
@@ -1374,6 +1506,13 @@ const styles = StyleSheet.create({
   headerActionsRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' },
   hintBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16 },
   hintBtnText: { color: '#000', fontSize: 13, fontWeight: '700' },
+  pencilHint: { fontSize: 11, fontWeight: '600', textAlign: 'center', paddingHorizontal: 12 },
+  // Карандашные пометки: три в ряд поверх клетки и БЕЗ перехвата касаний —
+  // палец должен попадать в саму клетку, а не в цифру поверх неё.
+  markGrid: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
+  },
   overWrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.55)', padding: 24, zIndex: 100 },
   overCard: { width: '100%', maxWidth: 340, borderRadius: 20, padding: 24, alignItems: 'center', gap: 6 },
   overEmoji: { fontSize: 46 },
