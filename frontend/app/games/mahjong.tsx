@@ -15,6 +15,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import GameAbout from '@/src/components/GameAbout';
 import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -665,7 +666,21 @@ export default function MahjongGame() {
           {!isPreset && <LevelRuleBadge lr={levelRules} color="#0d9488" ru={language === 'ru'} />}
         </View>
       }
-      toolbar={(() => {
+      /*
+        🔴 ОБЕ КНОПКИ УЕХАЛИ ВНИЗ→ВВЕРХ. Раньше здесь стояло обоснование
+        «низ не занят вводом — плитки жмут прямо на доске, значит служебному
+        внизу самое место». Оно и было той самой ошибкой: низ каркаса во всём
+        приложении означает ОТВЕТ игрока (← → во фланкере, «Слово/Не слово» в
+        лексическом решении), и человек, натренированный теми играми, бил сюда
+        рефлекторно — а тут «Перемешать», которого на уровень всего три.
+        Ни отмена, ни перетасовка ответом не являются: обе тратят лимит и
+        перекладывают доску, то есть трогают ИГРУ. Место им в шапке.
+
+        Побочная выгода замерена на 390×844: две пилюли не влезали в один ряд
+        (перенос по строкам + отступ под кнопку фидбека) и занимали ДВЕ строки
+        нижней полосы — около 180 px, отобранных у доски. Теперь их нет.
+      */
+      headerActions={(() => {
         // Остаток перетасовок виден НА кнопке: ресурс, о котором узнаёшь, только
         // когда он кончился, воспринимается как поломка, а не как правило.
         const budget = levelParams(level).shuffles;
@@ -675,38 +690,18 @@ export default function MahjongGame() {
         const undoLeft = Math.max(0, UNDOS_PER_LEVEL - undosUsed);
         const canUndo = history.canUndo && undoLeft > 0 && levelBanner === null;
         return (
-          <>
-            {/*
-              Отмена стоит В НИЖНЕЙ ПОЛОСЕ, рядом с перетасовкой, а не в шапке.
-              Низ здесь не занят вводом — плитки жмут прямо на доске, — и правило
-              каркаса (`GameShell.headerActions`) велит уносить кнопки наверх только
-              играм со своей клавиатурой. Ровно так же сделано в сортировке товаров.
-            */}
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityState={{ disabled: !canUndo }}
-              accessibilityLabel={`${t('btn_undo')} — ${undoLeft}`}
-              disabled={!canUndo}
-              onPress={undoMove} activeOpacity={0.8}
-              style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: canUndo ? 1 : 0.45 }]}>
-              <Ionicons name="arrow-undo" size={18} color="#d97706" />
-              <Text style={[styles.shuffleText, { color: colors.text }]}>
-                {t('btn_undo')} · {undoLeft}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityState={{ disabled: !can }}
-              accessibilityLabel={left < 0 ? t('shuffleBtn') : `${t('shuffleBtn')} — ${left}`}
-              disabled={!can}
-              onPress={reshuffle} activeOpacity={0.8}
-              style={[styles.shuffleBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: can ? 1 : 0.45 }]}>
-              <Ionicons name="shuffle" size={18} color="#0d9488" />
-              <Text style={[styles.shuffleText, { color: colors.text }]}>
-                {t('shuffleBtn')}{left < 0 ? '' : ` · ${left}`}
-              </Text>
-            </TouchableOpacity>
-          </>
+          <GameAuxBar>
+            <GameAuxAction
+              icon="arrow-undo" tint="#d97706"
+              label={t('btn_undo')} count={undoLeft}
+              disabled={!canUndo} onPress={undoMove}
+            />
+            <GameAuxAction
+              icon="shuffle" tint="#0d9488"
+              label={t('shuffleBtn')} count={left < 0 ? undefined : left}
+              disabled={!can} onPress={reshuffle}
+            />
+          </GameAuxBar>
         );
       })()}
     >
@@ -790,6 +785,9 @@ const styles = StyleSheet.create({
     position: 'absolute', borderRadius: 6, borderWidth: 1.5, justifyContent: 'center', alignItems: 'center',
     shadowColor: '#04341f', shadowRadius: 3, shadowOffset: { width: 1, height: 2 },
   },
+  // ⚠️ Осиротело после разводки слотов: отмена и перетасовка уехали в шапку (GameAuxAction).
+  // Стили ниже (shuffleBtn, shuffleText) больше никем не берутся; оставлены
+  // намеренно — удаление чужого кода в этом проекте только с разрешения.
   shuffleBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1.5, marginTop: 8 },
   shuffleText: { fontSize: 14, fontWeight: '700' },
 });

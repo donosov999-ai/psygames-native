@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -346,17 +347,18 @@ export default function TowerLondonGame() {
         ) : null}
         title={t('towerLondon')}
         onBack={() => goBackOrHome()}
-        toolbar={
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={t('btn_undo')}
-            disabled={!moveHistory.canUndo || feedback !== null}
-            onPress={handleUndo}
-            style={[styles.undoBtn, { backgroundColor: colors.surface, borderColor: colors.border, opacity: moveHistory.canUndo && feedback === null ? 1 : 0.4 }]}
-          >
-            <Ionicons name="arrow-undo" size={18} color={colors.text} />
-            <Text style={[styles.undoBtnText, { color: colors.text }]}>{t('btn_undo')}</Text>
-          </TouchableOpacity>
+        /* То же, что в ханое: отмена возвращает засчитанный ход (шарик снят со
+           штырька, ход посчитан) — служебное действие, место ему в шапке.
+           Ответ игрок даёт на поле, тапом по штырьку; низ каркаса пуст. */
+        headerActions={
+          <GameAuxBar>
+            <GameAuxAction
+              icon="arrow-undo"
+              label={t('btn_undo')}
+              disabled={!moveHistory.canUndo || feedback !== null}
+              onPress={handleUndo}
+            />
+          </GameAuxBar>
         }
         stats={
           <View style={styles.statsRow}>
@@ -438,6 +440,9 @@ const styles = StyleSheet.create({
   ball: { width: 32, height: 32, borderRadius: 16, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 4 },
   ballShine: { position: 'absolute', top: 4, left: 6, width: 11, height: 8, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.55)' },
   hintText: { fontSize: 12, textAlign: 'center', color: '#888', marginTop: 8 },
+  // ⚠️ Осиротело после разводки слотов: «Отменить» уехала в шапку (GameAuxAction).
+  // Стили ниже (undoBtn, undoBtnText) больше никем не берутся; оставлены
+  // намеренно — удаление чужого кода в этом проекте только с разрешения.
   undoBtn: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 18, paddingVertical: 9, borderRadius: 16, borderWidth: 1 },
   undoBtnText: { fontSize: 14, fontWeight: '700' },
 });

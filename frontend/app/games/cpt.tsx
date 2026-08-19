@@ -32,6 +32,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -402,7 +403,7 @@ export default function CPTGame() {
     </ScrollView>
   );
 
-  // игровая фаза — на едином каркасе GameShell (стоп прибит к низу);
+  // игровая фаза — на едином каркасе GameShell (СТОП — служебное, значит в шапке);
   // модалка правил уровня — поверх каркаса (паттерн digit-span)
   if (phase === 'playing') {
     const mins = Math.floor(remaining / 60);
@@ -425,11 +426,16 @@ export default function CPTGame() {
               <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
             </View>
           }
-          toolbar={
-            <TouchableOpacity
-              accessibilityRole="button" style={[styles.stopBtn, { borderColor: '#f43f5e' }]} onPress={stop}>
-              <Text style={[styles.stopBtnText, { color: '#f43f5e' }]}>{t('btn_stop')}</Text>
-            </TouchableOpacity>
+          /* 🔴 САМЫЙ ОСТРЫЙ СЛУЧАЙ ПРАВИЛА СЛОТОВ. Ответ в CPT — тап по окну
+             стимула в ПОЛЕ, и бьют по нему полторы минуты на скорость. Раньше
+             прямо под этим окном, в нижней полосе — той самой, которая во
+             «Фланкере» и «Саймоне» означает ответ, — стоял «СТОП»,
+             заканчивающий сеанс. Промах вниз стоил всей пробы.
+             Теперь «СТОП» в шапке, как и у остальных упражнений с сеансом. */
+          headerActions={
+            <GameAuxBar>
+              <GameAuxAction icon="stop-circle" label={t('btn_stop')} danger onPress={stop} />
+            </GameAuxBar>
           }
         >
           <View style={styles.fieldCol}>
@@ -527,6 +533,9 @@ const styles = StyleSheet.create({
   stimBox: { borderRadius: 28, justifyContent: 'center', alignItems: 'center' },  // размеры задаются инлайном от useWindowDimensions
   stimText: { fontWeight: '900' },                                                // fontSize задаётся инлайном (масштаб окна)
   fixCross: { fontSize: 48, opacity: 0.4 },
+  // ⚠️ Осиротело после разводки слотов: СТОП уехал в шапку (GameAuxAction).
+  // Стили ниже (stopBtn, stopBtnText) больше никем не берутся; оставлены
+  // намеренно — удаление чужого кода в этом проекте только с разрешения.
   stopBtn: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 30, borderRadius: 16, borderWidth: 1 },
   stopBtnText: { fontSize: 14, fontWeight: '700' },
 });

@@ -144,24 +144,24 @@ const ALREADY: Record<string, string> = {
 
 /** Экран не игровой — строке «что делать» неоткуда взяться и незачем. */
 const NOT_A_GAME: Record<string, string> = {
-  'rhythm-pitch.tsx':
-    'экран-обёртка: партию рисует модуль src/games/rhythm-pitch/RhythmPitchGame.tsx, строка живёт там и своя на каждый тип задания (strings.rhythmPrompt «Повторите услышанный ритм», strings.pitchDirectionPrompt «Второй звук был выше или ниже?», strings.pitchSequencePrompt «Повторите путь высот»), а во время звука её место занимает strings.listening; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт rhythm-pitch-integration.test.ts',
   'dots-connect.tsx':
     'экран-обёртка: партию рисует модуль src/games/dots-connect/DotsConnectGame.tsx, строка живёт там (strings.rulesBody + strings.rulesCoverage на правилах, strings.trainingHint на тренировке, roundLabel над доской) вместе со своим словарём; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт dots-connect-integration.test.ts',
   'attention-conflict.tsx': 'хаб: меню из четырёх парадигм, отсюда уходят в саму игру — играть тут не в чем',
   'span.tsx': 'хаб: меню из трёх модальностей охвата, играть тут не в чем',
   'math-slider.tsx':
     'экран-обёртка: партию рисует модуль src/games/math-slider/MathSliderGame.tsx, строка живёт там (strings.prompt) вместе со своим словарём',
-  'one-line.tsx':
-    'экран-обёртка: партию рисует модуль src/games/one-line/OneLineGame.tsx, строка живёт там (strings.rulesRepeat под счётчиком рёбер: «в вершины можно возвращаться, но уже пройденное ребро использовать нельзя») вместе со своим словарём; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт one-line-integration.test.ts',
+  'navigator.tsx':
+    'экран-обёртка: партию рисует модуль src/games/navigator/NavigatorGame.tsx, строка живёт там (strings.routePrompt / turnPrompt / homePrompt — своя на каждый из трёх режимов) вместе со своим словарём',
   'object-tracker.tsx':
     'экран-обёртка: партию рисует модуль src/games/object-tracker/ObjectTrackerGame.tsx, строка живёт там (phaseTitle → strings.preview/moving/selection, свой словарь ru/en) и меняется на каждой фазе раунда',
+  'one-line.tsx':
+    'экран-обёртка: партию рисует модуль src/games/one-line/OneLineGame.tsx, строка живёт там (strings.graphHint под доской и strings.progress «Пройдено рёбер: X из Y») вместе со своим словарём; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт one-line-integration.test.ts',
+  'rhythm-pitch.tsx':
+    'экран-обёртка: партию рисует модуль src/games/rhythm-pitch/RhythmPitchGame.tsx, строка живёт там и своя на каждый тип задания (strings.rhythmPrompt «Повторите услышанный ритм», strings.pitchDirectionPrompt «Второй звук был выше или ниже?», strings.pitchSequencePrompt «Повторите путь высот»), а во время звука её место занимает strings.listening; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт rhythm-pitch-integration.test.ts',
   'memory-palace.tsx':
     'экран-обёртка: партию рисует модуль src/games/memory-palace/MemoryPalaceGame.tsx, строка живёт там и меняется по фазе (strings.routeBody → placeBody → studyBody, а в проверке strings.recallPrompt «Что находилось здесь: {место}?» с именем текущего места) вместе со своим словарём; что она РИСУЕТСЯ В ПАРТИИ, а не в выключенном экране итога модуля, стережёт memory-palace-integration.test.ts',
   'faces-names.tsx':
     'экран-обёртка: партию рисует модуль src/games/faces-names/FacesNamesGame.tsx, строка живёт там и меняется по фазе (strings.recognitionPrompt → namePrompt → factPrompt, плюс strings.interferenceBody на помехе) вместе со своим словарём на 12 языков; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт faces-names-integration.test.ts',
-  'navigator.tsx':
-    'экран-обёртка: партию рисует модуль src/games/navigator/NavigatorGame.tsx, строка живёт там (strings.routePrompt / turnPrompt / homePrompt — своя на каждый из трёх режимов) вместе со своим словарём',
 };
 
 /** Строка модуля «Прикидки» — лежит в чужом файле, но проверяется так же. */

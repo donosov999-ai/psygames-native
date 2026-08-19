@@ -19,6 +19,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useWarmup } from '@/src/contexts/WarmupContext';
@@ -483,7 +484,8 @@ export default function BreathingGame() {
     />
   );
 
-  // дыхательная фаза — на едином каркасе GameShell: счётчики в статс-строке, СТОП прибит к низу
+  // дыхательная фаза — на едином каркасе GameShell: счётчики в статс-строке,
+  // СТОП — служебное действие, поэтому в шапке (низ каркаса значит «ответ игрока»)
   if (phase === 'breathing') {
     const isWim = tech.special === 'wimhof';
     const size = circleMax * scaleNow;
@@ -523,11 +525,14 @@ export default function BreathingGame() {
             )}
           </View>
         }
-        toolbar={
-          <TouchableOpacity
-            accessibilityRole="button" style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
-            <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{t('btn_stop')}</Text>
-          </TouchableOpacity>
+        /* «СТОП» обрывает сеанс — это служебное действие, и по правилу каркаса
+           оно живёт в шапке. Внизу его держать нельзя: нижняя полоса во всём
+           приложении означает ответ игрока, и рефлекс «бей вниз» не должен
+           заканчивать упражнение. Низ у дыхания теперь пуст — круг дышит выше. */
+        headerActions={
+          <GameAuxBar>
+            <GameAuxAction icon="stop-circle" label={t('btn_stop')} danger onPress={stop} />
+          </GameAuxBar>
         }
       >
         {isWim ? (
@@ -674,6 +679,9 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 },
   exStep: { fontSize: 14, fontWeight: '700' },
   exTimer: { fontSize: 16, fontWeight: '800' },
+  // ⚠️ Осиротело после разводки слотов: СТОП уехал в шапку (GameAuxAction).
+  // Стили ниже (stopBtn, stopBtnText) больше никем не берутся; оставлены
+  // намеренно — удаление чужого кода в этом проекте только с разрешения.
   stopBtn: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 30, borderRadius: 16, borderWidth: 1 },
   stopBtnText: { fontSize: 14, fontWeight: '700' },
   circleWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', width: '100%' },

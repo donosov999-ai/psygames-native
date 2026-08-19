@@ -19,6 +19,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
@@ -308,6 +309,25 @@ export default function PatternGame() {
             <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
           </View>
         }
+        /*
+          🔴 КНОПКА ПОДСКАЗКИ УЕХАЛА ИЗ ПОЛЯ В ШАПКУ. Стояла она последней в
+          центрированной колонке — то есть ВПЛОТНУЮ НАД полосой ответов, и
+          выглядела такой же кнопкой, как они. Промах вверх мимо варианта тратил
+          ступень подсказки, а подсказка режет результат.
+          Сама подсказка (класс ряда, потом правило) осталась в поле — это
+          содержимое задания. В шапку ушло только УПРАВЛЕНИЕ ею: подпись меняется
+          по ступеням «Подсказка → Ещё правило → Использована», как и раньше.
+        */
+        headerActions={
+          <GameAuxBar>
+            <GameAuxAction
+              icon="bulb" tint={GRADIENT[0]}
+              label={hintStage === 0 ? t('btn_hint') : hintStage === 1 ? t('hintMoreRule') : t('hintUsed')}
+              disabled={hintStage >= 2 || feedback !== null}
+              onPress={useHint}
+            />
+          </GameAuxBar>
+        }
         toolbar={
           <View style={styles.optionsArea}>
             {options.map((o, i) => (
@@ -342,13 +362,6 @@ export default function PatternGame() {
               {hintStage >= 2 && <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4, textAlign: 'center' }}>{fillParams(t(seq.ruleKey), seq.ruleParams)}</Text>}
             </View>
           )}
-          <TouchableOpacity
-            accessibilityRole="button" onPress={useHint} disabled={hintStage >= 2 || feedback !== null}
-            style={[styles.hintBtn, { borderColor: GRADIENT[0], opacity: (hintStage >= 2 || feedback !== null) ? 0.4 : 1 }]}>
-            <Text style={{ color: GRADIENT[0], fontWeight: '700', fontSize: 14 }}>
-              💡 {hintStage === 0 ? t('btn_hint') : hintStage === 1 ? t('hintMoreRule') : t('hintUsed')}
-            </Text>
-          </TouchableOpacity>
         </View>
       </GameShell>
     );
@@ -419,5 +432,8 @@ const styles = StyleSheet.create({
   optBtn: { paddingVertical: 18, paddingHorizontal: 24, borderRadius: 16, minWidth: 80, alignItems: 'center' },
   optText: { color: '#FFF', fontSize: 22, fontWeight: '800' },
   hintBox: { padding: 12, borderRadius: 10, borderWidth: 1.5, maxWidth: 340, alignItems: 'center' },
+  // ⚠️ Осиротело после разводки слотов: кнопка подсказки уехала в шапку
+  // (GameAuxAction). Стиль ниже больше никем не берётся; оставлен намеренно —
+  // удаление чужого кода в этом проекте только с разрешения.
   hintBtn: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 24, borderRadius: 16, borderWidth: 1.5 },
 });
