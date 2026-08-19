@@ -66,6 +66,7 @@ describe('маршруты игр', () => {
    * (проверка ниже). То есть список умеет только сокращаться.
    */
   const AWAITING_CATALOG: Record<string, string> = {
+    'rhythm-pitch': 'G7 «Ритм и высота» (эхо ритма и путь высоты на слух, 31 уровень, без микрофона). Экран и модуль приняты; строка для GAMES, ключи rhythmPitch/rhythmPitchDesc/rhythmPitchIntroDesc и три ключа про звук, справка, место в профилях и ЗАПРЕТ на вечерний набор зарядки — в src/games/rhythm-pitch/INTEGRATION.md',
     'dots-connect': 'G2 «Соедини точки» (numberlink, 40 уровней). Экран и модуль приняты; строка для GAMES, ключи dotsConnect/dotsConnectDesc/dotsConnectIntroDesc, справка и место в профилях — в src/games/dots-connect/INTEGRATION.md',
     'one-line': 'G3 «Одна линия» (эйлеров путь по всем рёбрам без повторов, 48 уровней). Экран и модуль приняты; строка для GAMES, ключи oneLine/oneLineDesc/oneLineIntroDesc, справка, место в профилях и шаг зарядки — в src/games/one-line/INTEGRATION.md',
     'faces-names': 'G4 «Лица и имена» (лицо→имя→факт, 33 уровня). Экран и модуль приняты; строка для GAMES, ключи facesNames/facesNamesDesc/facesNamesIntroDesc, справка и место в профилях — в src/games/faces-names/INTEGRATION.md',
