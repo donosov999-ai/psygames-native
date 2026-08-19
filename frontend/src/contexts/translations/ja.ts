@@ -731,6 +731,7 @@ const t: Record<string, string> = {
   "goodsSet_drinks": "ドリンク",
   "goodsSet_food": "食べ物",
   "goodsSet_toys": "おもちゃ",
+  "goodsSet_dairy": "乳製品",
   "goodsSet_mix": "ミックス",
   "tooManyMoves": "🔁 手数が多すぎ",
   "mnemMemorizeWords": "{n}個の単語を暗記",

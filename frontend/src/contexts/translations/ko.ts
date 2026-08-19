@@ -1417,6 +1417,7 @@ const t: Record<string, string> = {
   "goodsSet_drinks": "음료",
   "goodsSet_food": "음식",
   "goodsSet_toys": "장난감",
+  "goodsSet_dairy": "유제품",
   "goodsSet_mix": "믹스",
   "tooManyMoves": "🔁 이동이 너무 많아요",
   "mnemMemorizeWords": "단어 {n}개를 외우세요",

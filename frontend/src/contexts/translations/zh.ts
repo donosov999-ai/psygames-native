@@ -1300,6 +1300,7 @@ const t: Record<string, string> = {
   "goodsSet_drinks": "饮料",
   "goodsSet_food": "食物",
   "goodsSet_toys": "玩具",
+  "goodsSet_dairy": "乳制品",
   "goodsSet_mix": "混合",
   "tooManyMoves": "🔁 步数太多",
   "mnemMemorizeWords": "记住 {n} 个词",
