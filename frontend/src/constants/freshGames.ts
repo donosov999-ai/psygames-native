@@ -44,8 +44,18 @@ export interface FreshEntry {
 export const FRESH: FreshEntry[] = [
   {
     id: 'goods_sort', since: '2026-08-19', kind: 'updated',
-    ru: 'Настоящий шкаф, четыре вида препятствий, цели уровня и перетаскивание пальцем. Разных уровней стало 59 вместо 13',
-    en: 'A real cabinet, four kinds of obstacle, level goals and drag-and-drop. Distinct levels went from 13 to 59',
+    ru: 'Настоящий шкаф, четыре препятствия, цели уровня, перетаскивание, отмена хода и подсказка. С 14-го уровня строгая укладка, с 18-го ниши разной вместимости',
+    en: 'A real cabinet, four obstacles, level goals, drag-and-drop, undo and a hint. Strict placing from level 14, niches of different size from 18',
+  },
+  {
+    id: 'sudoku-samurai', since: '2026-08-19', kind: 'updated',
+    ru: 'Ступени сложности стали настоящими: раньше все уровни решались одним приёмом. Плюс автосохранение партии, отмена хода и клетка, в которую можно попасть пальцем',
+    en: 'The difficulty ladder became real: every level used to fall to a single technique. Plus autosave, undo, and a cell you can actually hit with a finger',
+  },
+  {
+    id: 'set_game', since: '2026-08-19', kind: 'updated',
+    ru: 'Видно, сколько осталось на расклад: с 11-го уровня время резалось молча, и уровень терялся по часам, которых никто не показывал',
+    en: 'The per-deal countdown is visible: from level 11 the time was cut silently, and levels were lost to a clock nobody showed',
   },
   {
     id: 'sudoku-fractal', since: '2026-08-19', kind: 'updated',
