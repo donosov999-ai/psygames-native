@@ -21,6 +21,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
+import GameModeSwitch from '@/src/components/GameModeSwitch';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveResume, loadResume, clearResume } from '@/src/services/resume';
@@ -405,29 +406,25 @@ export default function PicturePairsGame() {
   const containerW = Math.min(width - 32, 480);
   const cardSize = (containerW - (cols - 1) * gap) / cols;
 
+  /**
+   * Выбор «уровни / свободно» — ОБЩИЙ компонент, как в судоку, Шульте, глазной
+   * гимнастике, WCST и PRL. Своя пара кнопок «🎮 Игровой / 🎯 Одиночный» стояла
+   * тут с зашитыми ru/en: немцу и корейцу обе подписи приходили по-английски.
+   *
+   * ⚠️ ВНУТРЕННИЕ ИМЕНА РЕЖИМОВ ОСТАЛИСЬ 'game' | 'single'. Их пишет снимок
+   * недоигранной партии (PairsResume.mode, RESUME_V=1): переименуй — и сохранённая
+   * партия оживёт не в том режиме, в каком её бросили. Поэтому перевод значений
+   * туда-обратно делается здесь, на границе с панелью.
+   */
   const renderModeToggle = () => (
-    <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-      <Text style={[styles.optionLabel, { color: colors.text }]}>{language === 'ru' ? 'Режим' : 'Mode'}</Text>
-      <View style={styles.optionButtons}>
-        {(['game', 'single'] as const).map((m) => (
-          <TouchableOpacity
-            accessibilityRole="button" key={m}
-            style={[styles.modeButton, mode === m
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-            onPress={() => setMode(m)}>
-            <Text style={[styles.modeButtonText, { color: mode === m ? '#FFF' : colors.text }]}>
-              {m === 'game' ? (language === 'ru' ? '🎮 Игровой' : '🎮 Game') : (language === 'ru' ? '🎯 Одиночный' : '🎯 Single')}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <Text style={{ color: colors.textSecondary, fontSize: 11, marginTop: 2 }}>
-        {mode === 'game'
-          ? (language === 'ru' ? 'Уровни растут: выиграл — дальше, сложнее. Счёт копится.' : 'Levels ramp: win → next, harder. Score accumulates.')
-          : (language === 'ru' ? 'Один раунд по своим настройкам.' : 'One round, your settings.')}
-      </Text>
-    </View>
+    <GameModeSwitch
+      mode={mode === 'game' ? 'levels' : 'free'}
+      onChange={(m) => setMode(m === 'levels' ? 'game' : 'single')}
+      colors={colors}
+      accent={GRADIENT[0]}
+      t={t}
+      hint={t(mode === 'game' ? 'pairsModeLevelsHint' : 'pairsModeFreeHint')}
+    />
   );
 
   const renderConfig = () => {
@@ -449,8 +446,8 @@ export default function PicturePairsGame() {
             {t('level')} {level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {c.pairs} {language === 'ru' ? 'пар' : 'pairs'}
-            {c.photo ? ` · ${language === 'ru' ? 'фото-память' : 'flash'} ${(c.previewMs / 1000).toFixed(1)}${language === 'ru' ? 'с' : 's'}` : ''}
+            {t('pairsLvlPairs').replace('{n}', String(c.pairs))}
+            {c.photo ? ` · ${t('pairsLvlFlash').replace('{s}', (c.previewMs / 1000).toFixed(1))}` : ''}
           </Text>
           {level > 1 && (
             <TouchableOpacity
@@ -509,9 +506,10 @@ export default function PicturePairsGame() {
                     : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                     onPress={() => setPreviewMs(ms)}>
                     <Text style={[styles.modeButtonText, { color: previewMs === ms ? '#FFF' : colors.text }]}>
-                      {language === 'ru'
-                        ? (ms === 500 ? '0.5с (хард)' : ms === 1500 ? '1.5с (норма)' : '3с (легко)')
-                        : (ms === 500 ? '0.5s (hard)' : ms === 1500 ? '1.5s (normal)' : '3s (easy)')}
+                      {/* Секунды + готовая тройка «Легко/Средне/Сложно» из словаря:
+                          отдельные подписи «хард/норма/легко» были бы четвёртым
+                          названием одной и той же шкалы сложности. */}
+                      {`${ms / 1000}${t('secShort')} (${t(ms === 500 ? 'hard' : ms === 1500 ? 'medium' : 'easy')})`}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -534,7 +532,7 @@ export default function PicturePairsGame() {
       )}
 
       <JuicyButton
-        label={mode === 'game' ? (language === 'ru' ? `Играть — уровень ${level}` : `Play — level ${level}`) : t('start')}
+        label={mode === 'game' ? t('playLevelN').replace('{n}', String(level)) : t('start')}
         icon="play" colors={GRADIENT as [string, string]} onPress={startGame} style={{ marginTop: 8 }} />
     </ScrollView>
     );
@@ -557,22 +555,20 @@ export default function PicturePairsGame() {
                 {t('label_memorize')}
               </Text>
               <Text style={{ color: '#666', fontSize: 12 }}>
-                {language === 'ru'
-                  ? `${(previewMs / 1000).toFixed(1)}с — потом карты закроются`
-                  : `${(previewMs / 1000).toFixed(1)}s — then the cards flip back`}
+                {t('pairsPreviewHint').replace('{s}', (previewMs / 1000).toFixed(1))}
               </Text>
             </View>
           ) : (
             <View style={styles.statsRow}>
               {mode === 'game' && (
-                <HudBadge icon="flag" value={`${language === 'ru' ? 'ур.' : 'lv.'} ${level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
+                <HudBadge icon="flag" value={`${t('label_level_short')} ${level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
               )}
               {mode === 'game' && (
                 <HudBadge icon="star" value={score} colors={['#f59e0b', '#b45309']} pop />
               )}
               <HudBadge icon="checkmark-done" value={`${matched}/${pairsCount}`} colors={['#34d399', '#059669']} pop />
               <HudBadge icon="swap-horizontal" value={moves} colors={['#fb7185', '#e11d48']} />
-              <HudBadge icon="time" value={`${elapsedTime.toFixed(1)}${language === 'ru' ? 'с' : 's'}`} colors={['#60a5fa', '#2563eb']} />
+              <HudBadge icon="time" value={`${elapsedTime.toFixed(1)}${t('secShort')}`} colors={['#60a5fa', '#2563eb']} />
               {mode === 'game' && !isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
             </View>
           )}

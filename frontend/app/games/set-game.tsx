@@ -424,7 +424,7 @@ export default function SetGame() {
         <TouchableOpacity
           accessibilityRole="button" style={styles.exampleHeader} onPress={() => setShowExample((v) => !v)}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {language === 'ru' ? 'Пример: что такое SET' : 'Example: what is a SET'}
+            {t('setExampleTitle')}
           </Text>
           <Ionicons name={showExample ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -432,20 +432,14 @@ export default function SetGame() {
           <View style={styles.exampleBody}>
             <View style={styles.exampleRow}>{EXAMPLE_VALID.map((c) => renderExampleCard(c, '#22c55e'))}</View>
             <Text style={[styles.exampleCaption, { color: '#22c55e' }]}>
-              {language === 'ru'
-                ? '✓ SET: форма и заливка одинаковые у всех, цвет и число — у всех разные'
-                : '✓ SET: shape and fill are the same on all, color and count all differ'}
+              {t('setExampleValid')}
             </Text>
             <View style={styles.exampleRow}>{EXAMPLE_INVALID.map((c) => renderExampleCard(c, '#f43f5e'))}</View>
             <Text style={[styles.exampleCaption, { color: '#f43f5e' }]}>
-              {language === 'ru'
-                ? '✗ Не SET: цвет совпал только у двух (два красных и фиолетовый)'
-                : '✗ Not a SET: color matches on only two cards (two red, one purple)'}
+              {t('setExampleInvalid')}
             </Text>
             <Text style={[styles.exampleNote, { color: colors.textSecondary }]}>
-              {language === 'ru'
-                ? 'Каждый из 4 признаков (форма, цвет, заливка, число) должен быть либо одинаковым у всех трёх карт, либо разным у всех трёх.'
-                : 'Each of the 4 features (shape, color, fill, count) must be either the same on all three cards or different on all three.'}
+              {t('setExampleNote')}
             </Text>
             {/* v1.148: советы по логике поиска (запрос Дениса по волне Вали) */}
             <View style={[styles.tipsBox, { borderColor: colors.border }]}>
@@ -513,10 +507,10 @@ export default function SetGame() {
                   pop={dealLeft <= 5}
                 />
               )}
-              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
               <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
               <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
               {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
             </View>
           }

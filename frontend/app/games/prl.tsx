@@ -46,6 +46,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
+import GameModeSwitch from '@/src/components/GameModeSwitch';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -354,23 +355,24 @@ export default function PRLGame() {
         </LinearGradient>
         <GameAbout descriptionKey="prlIntroDesc" benefits={PRL_BENEFITS} accent={GRADIENT[0]} />
 
-        {/* Переключатель режима: уровни (прогрессия) vs классический (чистая диагностика) */}
-        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
-          <View style={styles.optionButtons}>
-            {(['level', 'classic'] as RunMode[]).map((m) => (
-              <TouchableOpacity
-                accessibilityRole="button" key={m} style={[styles.modeButton, runMode === m
-                ? { backgroundColor: GRADIENT[1] }
-                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-                onPress={() => setRunMode(m)}>
-                <Text style={[styles.modeButtonText, { color: runMode === m ? '#FFF' : colors.text }]}>
-                  {t(m === 'level' ? 'prlModeLevels' : 'prlModeClassic')}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        {/*
+          Выбор «уровни / свободно» — ОБЩИЙ компонент (судоку, Шульте, глазная
+          гимнастика, WCST, парные картинки). Подписи «Уровни — прогрессия» и
+          «Классический — диагностика» переехали из кнопок в строку-пояснение: они
+          объясняют РАЗНИЦУ, а на кнопке должно стоять одно слово, то же самое, что
+          на пяти соседних экранах.
+
+          ⚠️ ВНУТРЕННЕЕ ИМЯ РЕЖИМА ОСТАЛОСЬ 'classic': от него зависит подпись прогона
+          в выгрузке замера, и переименование разорвало бы историю замеров.
+        */}
+        <GameModeSwitch
+          mode={runMode === 'classic' ? 'free' : 'levels'}
+          onChange={(m) => setRunMode(m === 'free' ? 'classic' : 'level')}
+          colors={colors}
+          accent={GRADIENT[1]}
+          t={t}
+          hint={t(runMode === 'classic' ? 'prlModeClassic' : 'prlModeLevels')}
+        />
 
         {runMode === 'level' ? (
           <>
