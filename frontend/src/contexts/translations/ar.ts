@@ -1418,6 +1418,7 @@ const t: Record<string, string> = {
   "goodsSet_drinks": "مشروبات",
   "goodsSet_food": "طعام",
   "goodsSet_toys": "ألعاب",
+  "goodsSet_dairy": "منتجات الألبان",
   "goodsSet_mix": "منوعات",
   "tooManyMoves": "🔁 حركات كثيرة جدًا",
   "mnemMemorizeWords": "احفظ {n} كلمات",

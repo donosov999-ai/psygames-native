@@ -106,3 +106,72 @@ describe('сбор тройки при разной ёмкости', () => {
     expect(placementOk([9, 8, 7, 6], 5, false, CAP_MAX)).toBe(false);
   });
 });
+
+/**
+ * НАБОР НАМЕРЕННО ПОХОЖИХ ТОВАРОВ.
+ *
+ * 🔴 ЗАЧЕМ. Разбор жанра называет перцептивную близость единственной механикой,
+ * которая превращает задачу из «НАЙТИ» в «РАЗЛИЧИТЬ». Во всех прочих наборах
+ * товары отличаются силуэтом и цветом — глаз хватает их периферией, и работа
+ * сводится к моторике. Здесь девять белых предметов одного роста.
+ *
+ * Гейт стережёт две вещи, каждая из которых уже ломалась в этом файле:
+ * спрайт, объявленный без файла (игра покажет пустоту), и набор, для которого
+ * не завели подпись во всех двенадцати языках.
+ */
+describe('набор похожих товаров', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const ROOT = path.join(__dirname, '../..');
+  const GAME = fs.readFileSync(path.join(ROOT, 'app/games/goods-sort.tsx'), 'utf8') as string;
+
+  /** Пул набора читаем ИЗ ЭКРАНА — не из своей копии. */
+  const pool: number[] = (() => {
+    const m = GAME.match(/key: 'dairy'[^\]]*pool: \[([^\]]+)\]/);
+    return m ? m[1].split(',').map((x) => Number(x.trim())) : [];
+  })();
+
+  it('есть что проверять — иначе тест зелен вслепую', () => {
+    expect(pool.length).toBeGreaterThanOrEqual(6);
+  });
+
+  it('каждый спрайт набора объявлен и лежит на диске', () => {
+    const missing: string[] = [];
+    for (const idx of pool) {
+      if (!GAME.includes(`goods/good${idx}.webp`)) { missing.push(`good${idx}: не объявлен в списке спрайтов`); continue; }
+      const f = path.join(ROOT, `assets/images/goods/good${idx}.webp`);
+      if (!fs.existsSync(f)) missing.push(`good${idx}.webp: файла нет`);
+    }
+    expect(missing).toEqual([]);
+  });
+
+  /** Спрайты режутся из общего листа — вылезший фон виден только глазами, а вес ловится тут. */
+  it('спрайты не раздуты', () => {
+    const heavy: string[] = [];
+    for (const idx of pool) {
+      const size = fs.statSync(path.join(ROOT, `assets/images/goods/good${idx}.webp`)).size;
+      if (size > 40 * 1024) heavy.push(`good${idx}.webp: ${Math.round(size / 1024)} КБ`);
+    }
+    expect(heavy).toEqual([]);
+  });
+
+  it('подпись набора есть во всех двенадцати языках', () => {
+    const base = fs.readFileSync(path.join(ROOT, 'src/contexts/LanguageContext.tsx'), 'utf8') as string;
+    expect(base).toMatch(/goodsSet_dairy:\s*\{[^}]*ru:/);
+    expect(base).toMatch(/goodsSet_dairy:\s*\{[^}]*en:/);
+    const dir = path.join(ROOT, 'src/contexts/translations');
+    const bad: string[] = [];
+    for (const f of fs.readdirSync(dir) as string[]) {
+      if (!f.endsWith('.ts')) continue;
+      if (!fs.readFileSync(path.join(dir, f), 'utf8').includes('"goodsSet_dairy"')) bad.push(f);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  /** Смысл набора — в его чистоте: подмешай туда разноцветное, и различать станет нечего. */
+  it('набор не пересекается с прочими — иначе он перестаёт быть трудным', () => {
+    const others = [...GAME.matchAll(/key: '(drinks|food|toys)'[^\]]*pool: \[([^\]]+)\]/g)]
+      .flatMap((m) => m[2].split(',').map((x) => Number(x.trim())));
+    expect(pool.filter((i) => others.includes(i))).toEqual([]);
+  });
+});

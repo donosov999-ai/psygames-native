@@ -115,6 +115,15 @@ const GOOD_SPRITES = [
   require('../../assets/images/goods/good20.webp'), // растение
   require('../../assets/images/goods/good21.webp'), // пингвин
   require('../../assets/images/goods/good22.webp'), // лиса
+  require('../../assets/images/goods/good23.webp'),  // похожие: молоко синее
+  require('../../assets/images/goods/good24.webp'),  // похожие: молоко бледное
+  require('../../assets/images/goods/good25.webp'),  // похожие: кефир
+  require('../../assets/images/goods/good26.webp'),  // похожие: ряженка
+  require('../../assets/images/goods/good27.webp'),  // похожие: питьевой йогурт
+  require('../../assets/images/goods/good28.webp'),  // похожие: топлёное
+  require('../../assets/images/goods/good29.webp'),  // похожие: сметана
+  require('../../assets/images/goods/good30.webp'),  // похожие: сливки
+  require('../../assets/images/goods/good31.webp'),  // похожие: простокваша
 ];
 
 // Наборы товаров — ВЫБОР В МЕНЮ (как в оригинале). Каждый набор = пул индексов спрайтов.
@@ -122,7 +131,19 @@ const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: number[
   { key: 'drinks', ru: 'Напитки', en: 'Drinks', icon: 'wine', pool: [0, 1, 4, 12, 13, 2, 5, 3] },
   { key: 'food', ru: 'Еда', en: 'Food', icon: 'fast-food', pool: [6, 7, 8, 9, 10, 11] },
   { key: 'toys', ru: 'Игрушки', en: 'Toys', icon: 'happy', pool: [14, 15, 16, 17, 18, 19, 20, 21, 22] },
-  { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22] },
+  /**
+   * 🔴 НАМЕРЕННО ПОХОЖИЕ ТОВАРЫ. Разбор жанра: перцептивная близость —
+   * единственная механика, которая превращает задачу из «НАЙТИ» в «РАЗЛИЧИТЬ».
+   * Во всех прочих наборах товары отличаются силуэтом и цветом, и глаз хватает
+   * их периферией; здесь девять белых предметов одного роста, разница только в
+   * цвете этикетки и мелочах формы.
+   *
+   * ⚠️ Набор ТРУДНЕЕ остальных при тех же уровнях, и это честно: сложность
+   * растёт не механикой, а восприятием. Поэтому он отдельным выбором, а не
+   * подмешан в другие.
+   */
+  { key: 'dairy', ru: 'Молочное', en: 'Dairy', icon: 'water', pool: [23, 24, 25, 26, 27, 28, 29, 30, 31] },
+  { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31] },
 ];
 
 // Названия товаров для скринридера. Держим локально ru/en (как pieceName в

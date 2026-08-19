@@ -2054,6 +2054,7 @@ const translations: Translations = {
   goodsSet_drinks: { ru: 'Напитки', en: 'Drinks' },
   goodsSet_food: { ru: 'Еда', en: 'Food' },
   goodsSet_toys: { ru: 'Игрушки', en: 'Toys' },
+  goodsSet_dairy: { ru: 'Молочное', en: 'Dairy' },
   goodsSet_mix: { ru: 'Микс', en: 'Mix' },
   tooManyMoves: { ru: '🔁 Слишком много ходов', en: '🔁 Too many moves' },
 
