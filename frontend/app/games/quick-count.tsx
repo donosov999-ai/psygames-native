@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -32,6 +33,10 @@ import { gameNow } from '@/src/services/gamePause';
 // количества). Идея из разбора данных конкурента (freefocusgames/counting-boxes),
 // реализация с нуля (репо AGPL — код не копировался, только сама задача из когнитивной психологии).
 const GRADIENT = ['#f7971e', '#ffd200'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 1.45 (норма AA 4.5), стало 7.07.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 
 const QUICKCOUNT_BENEFITS = [
   { icon: 'flash-outline', textKey: 'benefitQuickCount1' },
@@ -168,7 +173,7 @@ export default function QuickCountGame() {
   const renderConfig = () => (
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
-        <Ionicons name="flash" size={48} color="#FFF" />
+        <Ionicons name="flash" size={48} color={ON_GRAD.color} />
         <Text style={styles.configTitle}>{t('quickCount')}</Text>
         <Text style={styles.configDesc}>{t('quickCountDesc')}</Text>
       </LinearGradient>
@@ -275,11 +280,11 @@ const styles = StyleSheet.create({
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 16 },
   statsRow: { flexDirection: 'row', gap: 24, justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },

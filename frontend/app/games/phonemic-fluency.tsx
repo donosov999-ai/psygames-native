@@ -28,6 +28,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -43,6 +44,10 @@ import { phonemicLetterPool } from '@/src/services/phonemicFluency';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#16a085', '#f4d03f'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 1.51 (норма AA 4.5), стало 5.06.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const FLU_BENEFITS = [
   { icon: 'chatbubbles-outline',  textKey: 'benefitFlu1' },
   { icon: 'flash-outline',         textKey: 'benefitFlu2' },
@@ -199,7 +204,7 @@ export default function PhonemicFluencyGame() {
   const renderConfig = () => (
     <View style={styles.configContainer}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="chatbubbles" size={48} color="#FFF" />
+        <Ionicons name="chatbubbles" size={48} color={ON_GRAD.color} />
         <Text style={styles.configTitle}>{t('phonemic')}</Text>
         <Text style={styles.configDesc}>{t('phonemicDesc')}</Text>
       </LinearGradient>
@@ -357,8 +362,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700' },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -368,7 +373,7 @@ const styles = StyleSheet.create({
   warning: { fontSize: 12, textAlign: 'center', fontStyle: 'italic', paddingHorizontal: 16, lineHeight: 18 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { flex: 1, alignSelf: 'stretch', paddingVertical: 8, gap: 14, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 24, alignItems: 'center', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '900' },

@@ -25,6 +25,8 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import GradientSurface from '@/src/components/GradientSurface';
 import Svg, { Ellipse, Circle, Path, Rect, G } from 'react-native-svg';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -38,6 +40,12 @@ import LevelCleared from '@/src/components/LevelCleared';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#fc466b', '#a445b2'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 3.37 (норма AA 4.5), стало 4.53.
+// Сплошным цветом этот градиент AA не берёт ни при каком цвете текста — GradientSurface
+// кладёт поверх вуаль #feb5c4 @0.09 цветом самого градиента. Подробности — в шапке сервиса.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const RMET_BENEFITS = [
   { icon: 'eye-outline',          textKey: 'benefitRmet1' },
   { icon: 'people-outline',       textKey: 'benefitRmet2' },
@@ -328,11 +336,11 @@ export default function RMETGame() {
   const renderConfig = () => (
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="eye" size={48} color="#FFF" />
+      <GradientSurface colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+        <Ionicons name="eye" size={48} color={ON_GRAD.color} />
         <Text style={styles.configTitle}>{t('rmet')}</Text>
         <Text style={styles.configDesc}>{t('rmetDesc')}</Text>
-      </LinearGradient>
+      </GradientSurface>
       <GameAbout descriptionKey="rmetIntroDesc" benefits={RMET_BENEFITS} accent={GRADIENT[0]} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
@@ -363,9 +371,9 @@ export default function RMETGame() {
       <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+        <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
-        </LinearGradient>
+        </GradientSurface>
       </TouchableOpacity>
       </View>
     </View>
@@ -468,8 +476,8 @@ const styles = StyleSheet.create({
   // Отступ слева — под плавающую кнопку отзыва, она висит поверх и накрывала бы её.
   configSticky: { paddingTop: 10, paddingHorizontal: 16, paddingLeft: 68, borderTopWidth: StyleSheet.hairlineWidth },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8 },
@@ -478,7 +486,7 @@ const styles = StyleSheet.create({
   warning: { fontSize: 12, textAlign: 'center', fontStyle: 'italic', paddingHorizontal: 16, lineHeight: 18 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 18, maxWidth: 480, width: '100%' },
   statsRow: { flexDirection: 'row', gap: 18, justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },

@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -28,6 +29,10 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#a8edea', '#fed6e3'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 1.32 (норма AA 4.5), стало 11.12.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 
 const PROOFREADING_BENEFITS = [
   { icon: 'document-text-outline', textKey: 'benefitProofreading1' },
@@ -285,8 +290,8 @@ export default function ProofreadingGame() {
           style={styles.configCard}
         >
           <Ionicons name="search" size={48} color="#333" />
-          <Text style={[styles.configTitle, { color: '#333' }]}>{t('proofreading')}</Text>
-          <Text style={[styles.configDesc, { color: 'rgba(0,0,0,0.6)' }]}>{t('proofreadingDesc')}</Text>
+          <Text style={[styles.configTitle, { color: ON_GRAD.color }]}>{t('proofreading')}</Text>
+          <Text style={[styles.configDesc, { color: ON_GRAD_SOFT }]}>{t('proofreadingDesc')}</Text>
         </LinearGradient>
         <GameAbout descriptionKey="proofreadingIntroDesc" benefits={PROOFREADING_BENEFITS} accent={GRADIENT[0]} />
 
@@ -352,7 +357,7 @@ export default function ProofreadingGame() {
             style={styles.startButtonGradient}
           >
             <Ionicons name="play" size={24} color="#333" />
-            <Text style={[styles.startButtonText, { color: '#333' }]}>{t('start')}</Text>
+            <Text style={[styles.startButtonText, { color: ON_GRAD.color }]}>{t('start')}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>

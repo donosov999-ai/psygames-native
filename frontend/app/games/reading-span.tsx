@@ -8,6 +8,8 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -22,6 +24,12 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#1f4037', '#99f2c8'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 1.32 (норма AA 4.5), стало 4.55.
+// Сплошным цветом этот градиент AA не берёт ни при каком цвете текста — GradientSurface
+// кладёт поверх вуаль #d6fae9 @0.32 цветом самого градиента. Подробности — в шапке сервиса.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const RS_BENEFITS = [
   { icon: 'book-outline', textKey: 'benefitRs1' },
   { icon: 'library-outline', textKey: 'benefitRs2' },
@@ -206,11 +214,11 @@ export default function ReadingSpanGame() {
   const renderConfig = () => (
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="book" size={48} color="#FFF" />
+      <GradientSurface colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+        <Ionicons name="book" size={48} color={ON_GRAD.color} />
         <Text style={styles.configTitle}>{t('readingSpan')}</Text>
         <Text style={styles.configDesc}>{t('readingSpanDesc')}</Text>
-      </LinearGradient>
+      </GradientSurface>
       <GameAbout descriptionKey="readingSpanIntroDesc" benefits={RS_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="reading_span" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -223,9 +231,9 @@ export default function ReadingSpanGame() {
       <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+        <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
-        </LinearGradient>
+        </GradientSurface>
       </TouchableOpacity>
       </View>
     </View>
@@ -266,9 +274,9 @@ export default function ReadingSpanGame() {
           ) : (
             <TouchableOpacity
               accessibilityRole="button" style={[styles.startBtn, styles.recallBtn]} onPress={handleRecallSubmit}>
-              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+              <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
                 <Text style={styles.startBtnText} numberOfLines={1}>{t('validateBtn')}</Text>
-              </LinearGradient>
+              </GradientSurface>
             </TouchableOpacity>
           )
         }
@@ -353,8 +361,8 @@ const styles = StyleSheet.create({
   // Отступ слева — под плавающую кнопку отзыва, она висит поверх и накрывала бы её.
   configSticky: { paddingTop: 10, paddingHorizontal: 16, paddingLeft: 68, borderTopWidth: StyleSheet.hairlineWidth },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -362,7 +370,7 @@ const styles = StyleSheet.create({
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   // игровое поле внутри каркаса: колонка на всю ширину, содержимое центрировано
   fieldCol: { width: '100%', maxWidth: 540, alignSelf: 'center', alignItems: 'center', gap: 18 },
   // flexWrap — три счётчика при крупном шрифте переносятся, а не уезжают за край

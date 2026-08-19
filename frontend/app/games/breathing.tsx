@@ -7,6 +7,8 @@ import BreathShape from '@/src/components/breath/BreathShape';
 import { useKeepAwake } from '@/src/hooks/useKeepAwake';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import GradientSurface from '@/src/components/GradientSurface';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -27,6 +29,10 @@ const GRADIENT_DAY = ['#5b86e5', '#36d1dc'];   // спокойный сине-б
 // Ночной вид для сценария «Не спится»: человек открыл это, потому что не может
 // заснуть, и яркий экран в три часа ночи работает против задачи. Приглушаем.
 const GRADIENT_NIGHT = ['#2c3e50', '#4ca1af'];
+// Плашка предупреждения (метод Вима Хофа) — свой, оранжевый градиент.
+const WIM_GRADIENT = ['#f7971e', '#ffd200'];
+// Было зашито '#FFF' — контраст 1.45 (норма AA 4.5).
+const ON_WIM = onGradientText(WIM_GRADIENT[0], WIM_GRADIENT[1]);
 const BREATH_BENEFITS = [
   { icon: 'heart-outline',   textKey: 'benefitBreath1' },
   { icon: 'moon-outline',    textKey: 'benefitBreath2' },
@@ -107,6 +113,12 @@ export default function BreathingGame() {
   // dim=1 приходит шагом ночного набора (см. NIGHT_STEPS в warmup.ts).
   const dim = bool('dim');
   const GRADIENT = dim ? GRADIENT_NIGHT : GRADIENT_DAY;
+  // ⚠️ Градиент здесь выбирается в РАНТАЙМЕ (день/ночь), поэтому цвет текста
+  // нельзя зашить в StyleSheet — он считается тут и подставляется на местах.
+  // Было '#FFF': 1.86 днём и 2.99 ночью (норма AA 4.5). Ночной сплошным цветом
+  // не берётся вовсе (белый 2.99, чёрный 1.91) — GradientSurface кладёт вуаль.
+  const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+  const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
   const warmup = useWarmup();
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
@@ -318,11 +330,11 @@ export default function BreathingGame() {
   const renderConfig = () => (
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
-        <Ionicons name="flower-outline" size={44} color="#FFF" />
-        <Text style={styles.configTitle}>{t('breathing')}</Text>
-        <Text style={styles.configDesc}>{t('breathingDesc')}</Text>
-      </LinearGradient>
+      <GradientSurface colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
+        <Ionicons name="flower-outline" size={44} color={ON_GRAD.color} />
+        <Text style={[styles.configTitle, { color: ON_GRAD.color }]}>{t('breathing')}</Text>
+        <Text style={[styles.configDesc, { color: ON_GRAD_SOFT }]}>{t('breathingDesc')}</Text>
+      </GradientSurface>
       <GameAbout descriptionKey="breathingIntroDesc" benefits={BREATH_BENEFITS} accent={GRADIENT[0]} />
 
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -418,9 +430,9 @@ export default function BreathingGame() {
       <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
-        </LinearGradient>
+        <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+          <Text style={[styles.startBtnText, { color: ON_GRAD.color }]}>{t('start')}</Text>
+        </GradientSurface>
       </TouchableOpacity>
       </View>
     </View>
@@ -428,18 +440,18 @@ export default function BreathingGame() {
 
   const renderWarning = () => (
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer}>
-      <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
-        <Ionicons name="warning-outline" size={44} color="#FFF" />
-        <Text style={styles.configTitle}>{t('brWimWarnTitle')}</Text>
+      <LinearGradient colors={WIM_GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
+        <Ionicons name="warning-outline" size={44} color={ON_WIM.color} />
+        <Text style={[styles.configTitle, { color: ON_WIM.color }]}>{t('brWimWarnTitle')}</Text>
       </LinearGradient>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.warnText, { color: colors.text }]}>{t('brWimWarnBody')}</Text>
       </View>
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startWim}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('brWimAgree')}</Text>
-        </LinearGradient>
+        <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+          <Text style={[styles.startBtnText, { color: ON_GRAD.color }]}>{t('brWimAgree')}</Text>
+        </GradientSurface>
       </TouchableOpacity>
       <TouchableOpacity
         accessibilityRole="button" style={[styles.homeBtn, { borderColor: colors.border }]} onPress={() => setPhase('config')}>
@@ -639,8 +651,9 @@ const styles = StyleSheet.create({
   // Отступ слева — под плавающую кнопку отзыва, она висит поверх и накрывала бы её.
   configSticky: { paddingTop: 10, paddingHorizontal: 16, paddingLeft: 68, borderTopWidth: StyleSheet.hairlineWidth },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  // цвет НЕ здесь: плашек три (день / ночь / предупреждение), у каждой свой — см. места использования
+  configTitle: { fontSize: 22, fontWeight: '700' },
+  configDesc: { fontSize: 13, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -653,7 +666,7 @@ const styles = StyleSheet.create({
   warnText: { fontSize: 14, lineHeight: 21 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 4 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { fontSize: 16, fontWeight: '700' },
   fieldCol: { flex: 1, alignSelf: 'stretch', alignItems: 'center', paddingVertical: 10, gap: 10 },
   statsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 },
   exStep: { fontSize: 14, fontWeight: '700' },

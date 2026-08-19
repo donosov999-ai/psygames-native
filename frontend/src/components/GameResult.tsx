@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import GradientSurface from '@/src/components/GradientSurface';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -23,19 +24,6 @@ interface GameResultProps {
   shareText?: string;   // v1.116.0: если передан — показать кнопку «Поделиться» с этим текстом
   sparkline?: { history: number[]; current: number; lowerIsBetter?: boolean };   // v1.116.0: спарклайн последних сессий
   comparisonLine?: string;   // свой итог · лучший среди игроков / личный рекорд при офлайне
-}
-
-// Перцептивная яркость градиента → на СВЕТЛОМ берём тёмный текст, на тёмном белый.
-// Фикс «белый шрифт на светлом градиенте не читается» (Корректура и пр. светлые игры).
-function gradientIsLight(grad: string[]): boolean {
-  const lum = (hex: string) => {
-    const h = (hex || '').replace('#', '');
-    if (h.length < 6) return 0.5;
-    const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
-    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  };
-  const avg = grad.reduce((s, c) => s + lum(c), 0) / Math.max(1, grad.length);
-  return avg > 0.62;
 }
 
 export default function GameResult({
@@ -64,9 +52,16 @@ export default function GameResult({
   const wuIdx = (warmup.currentIdx ?? 0) + 1;
   const wuTotal = warmup.meta?.steps.length ?? 0;
   const wuLast = inWarmup && wuIdx >= wuTotal;
-  const light = gradientIsLight(gradient);
-  const fg = light ? '#1a1a1a' : '#FFFFFF';
-  const fgSoft = light ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)';
+  // 🔴 Раньше здесь была своя прикидка «светлый ли градиент»: средняя яркость по
+  // формуле 0.299/0.587/0.114 с порогом 0.62, и дальше жёстко #1a1a1a или #FFFFFF.
+  // Две беды. Первая — считалось СРЕДНЕЕ по обоим концам, а текст лежит на обоих:
+  // у «#cb356b→#bdfff3» среднее выглядит светлым, но на малиновом конце тёмная
+  // буква пропадала. Вторая — усреднённая яркость это не контраст WCAG, порог 0.62
+  // взят на глаз. Теперь цвет считает общий onGradientText по ОБОИМ концам, а где
+  // сплошным цветом AA недостижим — GradientSurface кладёт вуаль.
+  const onGrad = onGradientText(gradient[0], gradient[gradient.length - 1]);
+  const fg = onGrad.color;
+  const fgSoft = onGradientTextMuted(onGrad);
 
   const handleShare = async () => {
     if (!shareText) return;
@@ -96,7 +91,7 @@ export default function GameResult({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <LinearGradient
+      <GradientSurface
         colors={gradient as [string, string]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -147,7 +142,7 @@ export default function GameResult({
         )}
 
         {earned > 0 && (
-          <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: light ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.18)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999 }}>
+          <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: onGrad.veil ? 'transparent' : 'rgba(127,127,127,0.16)', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999 }}>
             <Text style={{ fontSize: 22 }}>⭐</Text>
             <Text style={{ color: fg, fontSize: 20, fontWeight: '900' }}>+{earned}</Text>
             <Text style={{ color: fgSoft, fontSize: 13, fontWeight: '600' }}>{t('earnedLabel')}</Text>
@@ -162,7 +157,7 @@ export default function GameResult({
             color={fg}
           />
         )}
-      </LinearGradient>
+      </GradientSurface>
 
       {/* Web-demo: вместо «Играть снова/Домой» — большая CTA «Скачать приложение»
           (все 60+ игр и уровни в приложении) + маленькая «Ещё раз». */}

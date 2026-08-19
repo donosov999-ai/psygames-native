@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -27,6 +28,14 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#4facfe', '#00f2fe'];
+// Оранжевая кнопка «уровень N» — свой градиент, значит и свой цвет текста:
+// одним ON_GRAD тут не обойтись, стиль startButtonText лежит сразу на двух плашках.
+const LEVEL_GRADIENT = ['#f7971e', '#ffd200'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFFFFF' — контраст 1.39 на бирюзовой и 1.45 на оранжевой (норма AA 4.5).
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
+const ON_LEVEL = onGradientText(LEVEL_GRADIENT[0], LEVEL_GRADIENT[1]);
 const PENALTY_SECONDS = 15;
 
 const MNEMONICS_BENEFITS = [
@@ -220,7 +229,7 @@ export default function MnemonicsGame() {
           end={{ x: 1, y: 1 }}
           style={styles.configCard}
         >
-          <Ionicons name="bulb" size={48} color="#FFFFFF" />
+          <Ionicons name="bulb" size={48} color={ON_GRAD.color} />
           <Text style={styles.configTitle}>
             {t('label_mnemonics')}
           </Text>
@@ -316,9 +325,9 @@ export default function MnemonicsGame() {
         {!isPreset && (
           <TouchableOpacity
             accessibilityRole="button" style={styles.startButton} onPress={() => startGame(true)}>
-            <LinearGradient colors={['#f7971e', '#ffd200']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
-              <Ionicons name="flag" size={22} color="#FFFFFF" />
-              <Text style={styles.startButtonText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
+            <LinearGradient colors={LEVEL_GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
+              <Ionicons name="flag" size={22} color={ON_LEVEL.color} />
+              <Text style={[styles.startButtonText, { color: ON_LEVEL.color }]}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
             </LinearGradient>
           </TouchableOpacity>
         )}
@@ -330,7 +339,7 @@ export default function MnemonicsGame() {
             end={{ x: 1, y: 0 }}
             style={styles.startButtonGradient}
           >
-            <Ionicons name="play" size={24} color="#FFFFFF" />
+            <Ionicons name="play" size={24} color={ON_GRAD.color} />
             <Text style={styles.startButtonText}>{!isPreset ? t('freePlay') : t('start')}</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -361,7 +370,7 @@ export default function MnemonicsGame() {
             end={{ x: 1, y: 0 }}
             style={[styles.startButtonGradient, styles.toolbarGrad]}
           >
-            <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
+            <Ionicons name="checkmark-circle" size={24} color={ON_GRAD.color} />
             <Text style={styles.startButtonText}>
               {t('btn_check')}
             </Text>
@@ -539,8 +548,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  configTitle: { fontSize: 24, fontWeight: '700', color: '#FFFFFF' },
-  configDesc: { fontSize: 14, color: 'rgba(255,255,255,0.8)', textAlign: 'center' },
+  configTitle: { fontSize: 24, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 14, color: ON_GRAD_SOFT, textAlign: 'center' },
   infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -578,7 +587,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 8,
   },
-  startButtonText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
+  startButtonText: { fontSize: 18, fontWeight: '700', color: ON_GRAD.color },
   // Кнопка «Проверить» в тулбаре каркаса: тянется на всю ширину ряда
   toolbarBtn: { flex: 1 },
   toolbarGrad: { marginBottom: 0 },

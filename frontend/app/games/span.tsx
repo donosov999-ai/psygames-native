@@ -19,11 +19,16 @@ import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 
 const GRADIENT = ['#0ea5e9', '#10b981'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 2.54 (норма AA 4.5), стало 6.15.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 
 const SUB_GAMES = [
   {
@@ -83,7 +88,7 @@ export default function SpanGame() {
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.heroCard}>
           <GamePreviewBackground />
-          <Ionicons name="albums" size={48} color="#FFF" />
+          <Ionicons name="albums" size={48} color={ON_GRAD.color} />
           <Text style={styles.heroTitle}>{t('spanGroup')}</Text>
           <Text style={styles.heroDesc}>{t('spanGroupDesc')}</Text>
         </LinearGradient>
@@ -124,8 +129,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700' },
   scrollContent: { padding: 16, gap: 14, paddingBottom: 40 },
   heroCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8, overflow: 'hidden' },
-  heroTitle: { fontSize: 22, fontWeight: '700', color: '#FFF', textAlign: 'center', textShadowColor: 'rgba(0,0,0,.55)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 8 },
-  heroDesc: { fontSize: 13, color: '#FFF', opacity: 0.92, textAlign: 'center', lineHeight: 18 },
+  heroTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color, textAlign: 'center', textShadowColor: 'rgba(0,0,0,.55)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 8 },
+  heroDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center', lineHeight: 18 },
   sectionLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: 8, marginLeft: 4 },
   subCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, gap: 14, borderWidth: 1 },
   iconCircle: { width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center' },

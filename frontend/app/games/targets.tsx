@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -25,6 +26,10 @@ import LevelCleared from '@/src/components/LevelCleared';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#ff0844', '#ffb199'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 1.75 (норма AA 4.5), стало 4.58.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 
 const TARGETS_BENEFITS = [
   { icon: 'car-outline', textKey: 'benefitTargets1' },
@@ -362,7 +367,7 @@ export default function TargetsGame() {
           end={{ x: 1, y: 1 }}
           style={styles.configCard}
         >
-          <Ionicons name="disc" size={48} color="#FFFFFF" />
+          <Ionicons name="disc" size={48} color={ON_GRAD.color} />
           <Text style={styles.configTitle}>{t('targets')}</Text>
           <Text style={styles.configDesc}>{t('targetsDesc')}</Text>
         </LinearGradient>
@@ -468,7 +473,7 @@ export default function TargetsGame() {
             end={{ x: 1, y: 0 }}
             style={styles.startButtonGradient}
           >
-            <Ionicons name="play" size={24} color="#FFFFFF" />
+            <Ionicons name="play" size={24} color={ON_GRAD.color} />
             <Text style={styles.startButtonText}>{t('start')}</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -647,8 +652,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  configTitle: { fontSize: 24, fontWeight: '700', color: '#FFFFFF' },
-  configDesc: { fontSize: 14, color: 'rgba(255,255,255,0.8)' },
+  configTitle: { fontSize: 24, fontWeight: '700', color: ON_GRAD.color },
+  configDesc: { fontSize: 14, color: ON_GRAD_SOFT },
   infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -690,7 +695,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 8,
   },
-  startButtonText: { fontSize: 20, fontWeight: '700', color: '#FFFFFF' },
+  startButtonText: { fontSize: 20, fontWeight: '700', color: ON_GRAD.color },
   readyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -773,7 +778,7 @@ const styles = StyleSheet.create({
   clickButtonText: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: ON_GRAD.color,
   },
   hintText: {
     fontSize: 13,

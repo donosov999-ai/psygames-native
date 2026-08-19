@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -27,6 +28,10 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#f7971e', '#ffd200'];
+// Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
+// Было зашито '#FFF' — контраст 1.45 (норма AA 4.5), стало 7.07.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const STORE_KEY = 'psygames_phoneme_pairs_targetlang';
 
 type GamePhase = 'config' | 'playing' | 'cleared' | 'result';
@@ -314,7 +319,7 @@ export default function PhonemePairsGame() {
   const renderConfig = () => (
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
-        <Ionicons name="ear" size={48} color="#FFF" />
+        <Ionicons name="ear" size={48} color={ON_GRAD.color} />
         <Text style={styles.configTitle}>{ru ? 'Фонемы: минимальные пары' : 'Phonemes: minimal pairs'}</Text>
         <Text style={styles.configDesc}>
           {ru ? 'Слушай слово и выбери, что прозвучало — ship или sheep? Тренировка фонематического слуха.'
@@ -484,8 +489,8 @@ const styles = StyleSheet.create({
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF', textAlign: 'center' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color, textAlign: 'center' },
+  configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionHint: { fontSize: 13, fontWeight: '600' },
@@ -496,7 +501,7 @@ const styles = StyleSheet.create({
   warnText: { flex: 1, fontSize: 13, fontWeight: '600', lineHeight: 18 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 18 },
   toolbarCol: { flex: 1, alignItems: 'center', gap: 10 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
