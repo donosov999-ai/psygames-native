@@ -1829,6 +1829,19 @@ const t: Record<string, string> = {
   "memoryPalace": "स्मृति महल",
   "memoryPalaceDesc": "रास्ते पर चीज़ें रखें और उन्हें आगे से भी, उलटे क्रम से भी याद करें",
   "memoryPalaceIntroDesc": "स्थान-विधि का अभ्यास: रास्ता देखें, हर चीज़ को उसकी जगह से बाँधें और जगह-दर-जगह दोनों दिशाओं में याद करें।",
+  "statsTabSummary": "सारांश",
+  "statsTabHistory": "इतिहास",
+  "historyYesterday": "कल",
+  "historyBetter": "{n} बेहतर",
+  "historyWorse": "{n} खराब",
+  "historySame": "पिछली बार जैसा ही",
+  "historyFirstRun": "पहली बार",
+  "historyTailHint": "अभ्यास वाले पिछले {n} दिन दिखाए जा रहे हैं",
+  "historyEmptyTitle": "आपका इतिहास पहली बाज़ी से शुरू होगा",
+  "historyEmptyHint": "यहाँ दिखेगा कि आपने किस दिन क्या खेला और हर नतीजा कैसे बदला — पिछली बार से बेहतर या खराब।",
+  "historyEmptyCta": "अभ्यास चुनें",
+  "historyScopedTitle": "इस प्रोफ़ाइल में अभी कुछ नहीं",
+  "historyScopedHint": "बाज़ियाँ हैं, पर दूसरे अभ्यासों या दूसरी प्रोफ़ाइल में। सभी खेल खोलें।",
   // >>> SCREEN_STRINGS
 };
 export default t;

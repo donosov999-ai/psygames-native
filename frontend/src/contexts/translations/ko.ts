@@ -1821,6 +1821,19 @@ const t: Record<string, string> = {
   "memoryPalace": "기억의 궁전",
   "memoryPalaceDesc": "길을 따라 물건을 놓고 앞으로도 거꾸로도 떠올리세요",
   "memoryPalaceIntroDesc": "장소법을 기릅니다. 길을 익히고 물건마다 자리를 붙인 뒤, 자리를 따라 앞뒤 양쪽으로 떠올립니다.",
+  "statsTabSummary": "요약",
+  "statsTabHistory": "기록",
+  "historyYesterday": "어제",
+  "historyBetter": "{n} 향상",
+  "historyWorse": "{n} 하락",
+  "historySame": "지난번과 같음",
+  "historyFirstRun": "처음",
+  "historyTailHint": "훈련한 최근 {n}일을 표시합니다",
+  "historyEmptyTitle": "기록은 첫 판부터 쌓입니다",
+  "historyEmptyHint": "여기에서 날짜별로 무엇을 했는지, 결과가 지난번보다 나아졌는지 나빠졌는지 볼 수 있습니다.",
+  "historyEmptyCta": "종목 선택",
+  "historyScopedTitle": "이 프로필에는 아직 기록이 없습니다",
+  "historyScopedHint": "플레이 기록은 있지만 다른 종목이나 다른 프로필에 있습니다. 모든 게임을 열어 보세요.",
   // >>> SCREEN_STRINGS
 };
 export default t;
