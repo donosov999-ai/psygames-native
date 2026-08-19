@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, PanResponder } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -485,6 +485,101 @@ export function liveRowsForFreeze(
   return out;
 }
 
+/**
+ * Геометрия шкафа в пикселях — ровно те числа, из которых вёрстка складывает
+ * ниши. Отдельным типом, потому что по ним считает И отрисовка, И попадание
+ * пальца при перетаскивании. Разойдутся — товар поедет не в ту нишу, причём
+ * молча: на глаз промах в одну ячейку от промаха в ноль не отличить.
+ */
+export interface BoardGeom {
+  cols: number; rows: number;
+  /** Ширина ниши и её высота — те же `cellW` / `nicheH`, что уходят в стиль. */
+  cellW: number; nicheH: number;
+  /** `styles.cabinet.padding` — рама короба. */
+  pad: number;
+  /** Зазор между нишами: `cabinet.gap` по вертикали и `shelfRow.gap` по горизонтали (оба 9). */
+  gap: number;
+  /** Полная ширина короба: ряд внутри неё ЦЕНТРИРУЕТСЯ (`shelfRow.justifyContent`). */
+  boardW: number;
+}
+
+/**
+ * Ниша под точкой (x, y), заданной ОТНОСИТЕЛЬНО левого верхнего угла шкафа.
+ * Отдаёт ПЛОТНЫЙ индекс — тот самый, которым пронумерованы `cells`, а не
+ * позицию в сетке: дырки формы ниш не занимают (см. «Дырка в форме — не ниша»).
+ * null — мимо доски или в дырку.
+ *
+ * ⚠️ Зазор между нишами достаётся ЛЕВОЙ/ВЕРХНЕЙ соседке намеренно. Шов шириной
+ * 9px — не промах: человек целил в нишу, а не между ними, и отменять из-за
+ * этого весь жест значит наказывать за точность пальца, а не за ошибку в игре.
+ */
+/**
+ * Левый край первой ниши ряда. Ряд ЦЕНТРИРОВАН, а `cellW` считается через
+ * floor — до трёх пикселей остатка уходит поровну по бокам. Не учтёшь — крайние
+ * ниши промахиваются у самого края доски.
+ */
+function rowLeft(g: BoardGeom): number {
+  const rowW = g.cols * g.cellW + (g.cols - 1) * g.gap;
+  return g.pad + Math.max(0, (g.boardW - 2 * g.pad - rowW) / 2);
+}
+
+export function nicheAtPoint(x: number, y: number, g: BoardGeom, mask: boolean[]): number | null {
+  const relX = x - rowLeft(g), relY = y - g.pad;
+  if (relX < 0 || relY < 0) return null;
+  const col = Math.floor(relX / (g.cellW + g.gap));
+  const row = Math.floor(relY / (g.nicheH + g.gap));
+  if (col >= g.cols || row >= g.rows) return null;
+  const pos = row * g.cols + col;
+  if (!mask[pos]) return null;
+  let idx = 0;
+  for (let k = 0; k < pos; k++) if (mask[k]) idx++;
+  return idx;
+}
+
+/**
+ * Обратный перевод: левый верхний угол ниши с плотным индексом `i`, в тех же
+ * координатах от угла шкафа. Нужен, чтобы понять, за КАКОЙ из трёх товаров
+ * ниши взялись, — товары считаются от края ниши, а не от края доски.
+ *
+ * Пара `nicheAtPoint` ↔ `nicheRect` обязана сходиться: центр ниши `i` должен
+ * опознаваться как ниша `i`. Это и проверяет гейт — на всех формах и сетках.
+ */
+export function nicheRect(i: number, g: BoardGeom, mask: boolean[]): { x: number; y: number } | null {
+  let seen = -1, pos = -1;
+  for (let k = 0; k < mask.length; k++) {
+    if (!mask[k]) continue;
+    seen++;
+    if (seen === i) { pos = k; break; }
+  }
+  if (pos < 0) return null;
+  return {
+    x: rowLeft(g) + (pos % g.cols) * (g.cellW + g.gap),
+    y: g.pad + Math.floor(pos / g.cols) * (g.nicheH + g.gap),
+  };
+}
+
+/**
+ * Какой из товаров ниши под пальцем — индекс внутри `cells[i]`.
+ *
+ * Товары стоят рядом ПО ЦЕНТРУ ниши (`styles.cellRow`), поэтому отсчёт идёт от
+ * края этого ряда, а не от края ниши. За краями ряда берём ближний товар:
+ * замер 19.08 даёт товар шириной от 18px, попасть в такой пальцем нельзя, и
+ * «чуть мимо» обязано брать соседа, а не отменять жест.
+ *
+ * Индекс нужен точный, а не «верхний»: тапом можно вынести средний товар из
+ * трёх, и перетаскивание не имеет права уметь меньше — иначе два способа хода
+ * разойдутся по возможностям.
+ */
+export function itemAtX(
+  xInCell: number, count: number, cellW: number, itemSize: number, gap = 2,
+): number | null {
+  if (count <= 0) return null;
+  const rowW = count * itemSize + (count - 1) * gap;
+  const left = (cellW - rowW) / 2;
+  const i = Math.floor((xInCell - left) / (itemSize + gap));
+  return Math.min(count - 1, Math.max(0, i));
+}
+
 function obstaclePlan(L: number): ObstaclePlan {
   if (L < 6) return NO_OBSTACLES;
   return OBSTACLE_PLANS[(L - 6) % OBSTACLE_PLANS.length];
@@ -784,13 +879,31 @@ export default function GoodsSortGame() {
     return true;
   };
 
+  /**
+   * Ляжет ли то, что в руке, в нишу `toCell`. ОДНА проверка на оба способа
+   * хода — и на сам ход, и на подсветку цели, и на тап, и на перетаскивание.
+   *
+   * ⚠️ Раньше подсветка `canDrop` в `renderCell` считала своё («не та ниша и
+   * есть место») и про препятствия не знала: запертая ниша обводилась жёлтым
+   * как доступная, а ход в неё `moveItem` отвергал. Тапом это читалось как
+   * проглоченное нажатие, а перетаскиванием читалось бы куда хуже — товар
+   * летит в подсвеченную нишу и отскакивает. Поэтому предикат один.
+   */
+  const canPlaceInto = (fromCell: number, toCell: number): boolean =>
+    fromCell !== toCell
+    && (cells[toCell]?.length ?? 0) < CAP
+    && cellUsable(fromCell) && cellUsable(toCell);
+
   const moveItem = (fromCell: number, fromIdx: number, toCell: number) => {
-    if (fromCell === toCell) { setSel(null); return; }
     const src = cells[fromCell];
     if (!src || fromIdx < 0 || fromIdx >= src.length) { setSel(null); return; }
-    if (cells[toCell].length >= CAP) { setSel(null); return; }   // нет места
-    // Препятствие запрещает и брать, и класть — проверка одна на обе стороны.
-    if (!cellUsable(fromCell) || !cellUsable(toCell)) { setSel(null); hapticTap(); return; }
+    if (!canPlaceInto(fromCell, toCell)) {
+      setSel(null);
+      // Отказ ПО ПРЕПЯТСТВИЮ отзывается тычком: «нельзя» должно ощущаться.
+      // Полная ниша и та же самая ниша молчат — там и так видно, почему не вышло.
+      if (fromCell !== toCell && (!cellUsable(fromCell) || !cellUsable(toCell))) hapticTap();
+      return;
+    }
     const ns = cells.map((c) => [...c]);
     const [item] = ns[fromCell].splice(fromIdx, 1);
     ns[toCell].push(item);
@@ -856,6 +969,143 @@ export default function GoodsSortGame() {
     if (sel.cell === cellI) { setSel(null); return; }
     moveItem(sel.cell, sel.idx, cellI);
   };
+
+  // ── перетаскивание ───────────────────────────────────────────────────
+  /**
+   * ПЕРЕТАСКИВАНИЕ — ВТОРОЙ СПОСОБ ХОДА, А НЕ ЗАМЕНА ПЕРВОГО.
+   *
+   * ⚠️ Тапы остаются навсегда. Со скринридером перетащить нельзя в принципе:
+   * озвучка забирает жест себе, а игрок «видит» экран по одной кнопке за раз и
+   * физически не может вести палец по дуге между двумя нишами, которых не
+   * видит. Игра сейчас доступна (`accessibilityRole`/`accessibilityLabel` на
+   * каждой нише и каждом товаре) — отнять единственный доступный ввод ради
+   * нового было бы регрессом, а не улучшением.
+   *
+   * ПОЧЕМУ PanResponder, А НЕ gesture-handler И НЕ Reanimated (оба в зависимостях,
+   * GestureHandlerRootView уже стоит в app/_layout.tsx — то есть выбор реальный):
+   *   · Главный довод против Reanimated: его выигрыш — двигать картинку в UI-потоке
+   *     БЕЗ ре-рендера React. Здесь это не работает: подсветка ниши под пальцем
+   *     считается через `canPlaceInto`, а он читает `cells`/`obstacles`/`frozen`,
+   *     то есть обычный React-стейт. Ре-рендер на каждом движении всё равно будет,
+   *     и платить за него воркл'етами и вторым рантаймом не за что.
+   *   · Главный довод против gesture-handler: его выигрыш — арбитраж с ScrollView.
+   *     Поле здесь НЕ скроллится (`GameShell` без `scrollableField`), спорить не с
+   *     кем. Зато он добавил бы в приложение ВТОРОЙ движок перетаскивания: в
+   *     hanoi.tsx уже живёт PanResponder, и два разных движка — это две разных
+   *     реакции на веб-мышь, на слоп, на прерывание жеста, которые придётся
+   *     держать в согласии руками.
+   *   · За PanResponder: он даёт pageX/pageY в той же системе координат, что и
+   *     `getBoundingClientRect` в вебе, — а Android-сборка это WebView, и попадание
+   *     считается именно там.
+   */
+  const DRAG_SLOP = 8;
+  const boardRef = useRef<View>(null);
+  const boardBox = useRef({ x: 0, y: 0 });
+  const dragPos = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  const [drag, setDrag] = useState<{ cell: number; idx: number; type: number } | null>(null);
+  const [hover, setHover] = useState<number | null>(null);
+  /**
+   * PanResponder создаётся ОДИН раз и замыкает первый рендер намертво. Всё, что
+   * ему нужно знать про текущую партию, кладём в ref и обновляем каждый рендер —
+   * иначе жест считал бы попадание по геометрии первого уровня. Та же грабля, что
+   * описана в hanoi.tsx.
+   */
+  const dragRef = useRef<{ cell: number; idx: number; type: number } | null>(null);
+  const liveRef = useRef({
+    geom: { cols: 3, rows: 3, cellW: 0, nicheH: 0, pad: 9, gap: 9, boardW: 0 } as BoardGeom,
+    itemSize: 0, mask: [] as boolean[], cells: [] as number[][],
+    covered: new Set<string>(),
+    usable: (_i: number): boolean => false,
+    live: false,
+    move: (_f: number, _i: number, _t: number): void => {},
+  });
+
+  /**
+   * Где шкаф на экране. Меряем в момент захвата, а не в onLayout: в вебе
+   * onLayout отдаёт размеры относительно родителя, а жест — координаты окна, и
+   * складывать их нельзя. К первому касанию доска заведомо на месте.
+   */
+  const syncBoardBox = () => {
+    const node: any = boardRef.current;
+    if (!node) return;
+    if (typeof node.getBoundingClientRect === 'function') {
+      const r = node.getBoundingClientRect();
+      boardBox.current = { x: r.left, y: r.top };
+      return;
+    }
+    node.measureInWindow?.((x: number, y: number) => { boardBox.current = { x, y } });
+  };
+
+  /** Ниша под точкой экрана. Вся арифметика — в `nicheAtPoint`, здесь только перевод координат. */
+  const nicheAt = (pageX: number, pageY: number): number | null => {
+    const L = liveRef.current;
+    if (!L.geom.cellW || !L.geom.nicheH) return null;
+    return nicheAtPoint(pageX - boardBox.current.x, pageY - boardBox.current.y, L.geom, L.mask);
+  };
+
+  const pan = useRef(
+    PanResponder.create({
+      // Касание НЕ перехватываем: короткий тап обязан достаться кнопке ниши или
+      // товара — это же путь, которым игру ведёт скринридер. Иначе один тап
+      // обработался бы дважды и ход посчитался бы за два.
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > DRAG_SLOP || Math.abs(g.dy) > DRAG_SLOP,
+      // ⚠️ Без Capture перетаскивания не будет вовсе: TouchableOpacity товара забирает
+      // жест на касании и держит, а родителя система уже не спрашивает. Capture задаёт
+      // вопрос ДО детей — но только после DRAG_SLOP, поэтому тап по-прежнему их.
+      onMoveShouldSetPanResponderCapture: (_e, g) => Math.abs(g.dx) > DRAG_SLOP || Math.abs(g.dy) > DRAG_SLOP,
+
+      onPanResponderGrant: (e) => {
+        const L = liveRef.current;
+        if (!L.live) return;
+        syncBoardBox();
+        const { pageX, pageY } = e.nativeEvent;
+        const cell = nicheAt(pageX, pageY);
+        if (cell === null) return;
+        const stack = L.cells[cell] || [];
+        // Из пустой и из запертой ниши брать нечего. Начать жест, который заведомо
+        // ничем не кончится, хуже, чем не начать: товар «поднимется» и упадёт назад.
+        if (!stack.length || !L.usable(cell)) return;
+        const xInCell = pageX - boardBox.current.x - (nicheRect(cell, L.geom, L.mask)?.x ?? 0);
+        const idx = itemAtX(xInCell, stack.length, L.geom.cellW, L.itemSize);
+        if (idx === null) return;
+        const held = { cell, idx, type: stack[idx] };
+        dragRef.current = held;
+        setDrag(held);
+        setHover(cell);
+        setSel(null);   // перетаскивание — свой режим, старый тап-выбор сбрасываем
+        dragPos.setValue({ x: pageX, y: pageY });
+        hapticTap();
+      },
+
+      onPanResponderMove: (e) => {
+        if (!dragRef.current) return;
+        const { pageX, pageY } = e.nativeEvent;
+        dragPos.setValue({ x: pageX, y: pageY });
+        setHover(nicheAt(pageX, pageY));
+      },
+
+      onPanResponderRelease: (e) => {
+        const held = dragRef.current;
+        dragRef.current = null;
+        setDrag(null); setHover(null);
+        if (!held) return;
+        const target = nicheAt(e.nativeEvent.pageX, e.nativeEvent.pageY);
+        // Мимо доски или в ту же нишу — товар просто возвращается, ход НЕ тратится.
+        if (target === null || target === held.cell) return;
+        /**
+         * 🔴 ХОД ДЕЛАЕТ `moveItem`, И ТОЛЬКО ОН. Своей проверки «а можно ли сюда»
+         * здесь нет намеренно: в `moveItem` сидят и препятствия (`cellUsable`), и
+         * вместимость, и каскад, и счётчик ходов, и снятие замков, и проверка цели.
+         * Заведи копию правил — и однажды перетаскиванием пройдёт то, что тапом не
+         * проходит; со стороны это выглядит не как разные проверки, а как жульничество.
+         */
+        liveRef.current.move(held.cell, held.idx, target);
+      },
+
+      onPanResponderTerminate: () => { dragRef.current = null; setDrag(null); setHover(null); },
+    }),
+  ).current;
 
   // Бустер «перемешать» (как в оригинале) — переразложить оставшиеся товары, подстраховка от тупика.
   /**
@@ -978,6 +1228,28 @@ export default function GoodsSortGame() {
   // эталоне. Вдвое выше = пустая коробка, экран заполняется НЕ этим, а рядами.
   const nicheH = Math.max(itemH + 8, Math.min(Math.round(itemH * 1.25), shelfOuter - SHELF_PAD * 2 - 7));
 
+  /**
+   * Снимок партии для жеста. PanResponder создан один раз и замкнул первый
+   * рендер — сюда кладём то, что он обязан видеть СЕЙЧАС: геометрию (иначе
+   * попадание считалось бы по сетке первого уровня), доску, маску и сам ход.
+   *
+   * ⚠️ Числа берём ТЕ ЖЕ, что уходят в стиль ниши парой строк ниже (`cellW`,
+   * `nicheH`) и в `styles.cabinet` (padding/gap = 9). Отсюда `SHELF_PAD` и
+   * `SHELF_GAP`, а не свои константы: разъедутся — перетаскивание начнёт
+   * промахиваться мимо ниши тем сильнее, чем дальше от левого верхнего угла.
+   */
+  liveRef.current = {
+    geom: { cols: gridDim.cols, rows: gridDim.rows, cellW, nicheH, pad: SHELF_PAD, gap: SHELF_GAP, boardW },
+    itemSize, mask, cells,
+    covered,
+    usable: cellUsable,
+    // Жест обязан звать СВЕЖИЙ moveItem: старый замкнул прошлую доску и переложил бы
+    // товар по позапрошлому состоянию.
+    move: moveItem,
+    // Пока не идёт партия или висит карточка итога — жест выключен целиком.
+    live: phase === 'playing' && levelBanner === null,
+  };
+
   // Полка целиком: «Полка 4: кола, кола, пусто» — по этой строке незрячий
   // игрок понимает, где уже есть пара и куда нести третий товар.
   const ru = language === 'ru';
@@ -1011,7 +1283,15 @@ export default function GoodsSortGame() {
     const cell = cells[i] || [];
     const isSelCell = sel?.cell === i;
     const close = hasPair(cell);   // 2 одинаковых → подсказка «положи третий»
-    const canDrop = !!sel && sel.cell !== i && cell.length < CAP;
+    /**
+     * «Что в руке» — общее для обоих способов хода: поднятый пальцем товар или
+     * выбранный тапом. Дальше вопрос один и тот же, и отвечает на него один и
+     * тот же `canPlaceInto`, а не две похожие формулы.
+     */
+    const held = drag ?? sel;
+    const canDrop = !!held && canPlaceInto(held.cell, i);
+    /** Ниша прямо под пальцем и туда МОЖНО — самая яркая рамка: сюда и ляжет. */
+    const aimed = !!drag && hover === i && canDrop;
     return (
       <ImageBackground key={i}
         /**
@@ -1023,8 +1303,8 @@ export default function GoodsSortGame() {
         resizeMode="stretch"
         style={[styles.cell, {
           width: cellW, height: nicheH,
-          borderColor: canDrop ? '#fbbf24' : close ? '#22c55e' : 'transparent',
-          borderWidth: canDrop || close ? 3 : 0,
+          borderColor: aimed ? '#f97316' : canDrop ? '#fbbf24' : close ? '#22c55e' : 'transparent',
+          borderWidth: aimed ? 4 : canDrop || close ? 3 : 0,
         }]}>
         {/* Полка и товары — соседние кнопки, а не button внутри button.
             На web вложенные TouchableOpacity давали hydration-error и могли
@@ -1041,12 +1321,15 @@ export default function GoodsSortGame() {
         <View pointerEvents="box-none" style={styles.cellRow}>
           {cell.map((tp, s) => {
             const selected = isSelCell && sel?.idx === s;
+            // Товар, который сейчас в руке, на полке гаснет: он нарисован под
+            // пальцем, и две копии одного товара читаются как сбой отрисовки.
+            const inHand = drag?.cell === i && drag?.idx === s;
             return (
               <TouchableOpacity key={s} activeOpacity={0.7} onPress={() => handleItemTap(i, s)}
                 accessibilityRole="button"
                 accessibilityLabel={`${goodName(tp, ru)}, ${t('a11yShelf')} ${i + 1}`}
                 accessibilityState={{ selected }}
-                style={[styles.itemSlot, { width: itemSize, height: itemH }, selected && styles.itemSel]}>
+                style={[styles.itemSlot, { width: itemSize, height: itemH }, selected && styles.itemSel, inHand && { opacity: 0.2 }]}>
                 {covered.has(`${i}:${s}`) ? (
                   /**
                    * НАКРЫТЫЙ ТОВАР: силуэт есть, что именно — не видно.
@@ -1229,6 +1512,14 @@ export default function GoodsSortGame() {
               Поэтому теперь одна рама на все ряды, внутри — сетка без зазоров
               по вертикали, разделители рисуются самими нишами.
             */}
+            {/*
+              Жест висит на ОБЁРТКЕ, а не на самом шкафу: замер положения идёт
+              через `getBoundingClientRect`, а это метод DOM-узла. Обычный View в
+              вебе отдаёт узел ссылкой, LinearGradient — свой компонент, и на нём
+              такой гарантии нет. Обёртка ужимается по шкафу (fieldCol центрирует),
+              так что её прямоугольник и есть прямоугольник доски.
+            */}
+            <View ref={boardRef} {...pan.panHandlers}>
             <LinearGradient colors={['#f6e3c6', '#e0b98a']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
               style={[styles.cabinet, { width: boardW }]}>
               {Array.from({ length: gridDim.rows }).map((_, row) => (
@@ -1252,6 +1543,7 @@ export default function GoodsSortGame() {
                 </View>
               ))}
             </LinearGradient>
+            </View>
             <ScorePopupLayer popups={popups} />
             {/* Итог — общей карточкой поверх полок. Своя плашка не сохраняла звёзды,
                 не считала серию и не тикала глаз-разрядку; всё это живёт в общей.
@@ -1280,6 +1572,29 @@ export default function GoodsSortGame() {
             )}
           </View>
         </GameShell>
+        {/*
+          ТОВАР В РУКЕ. Слой лежит рядом с GameShell, а не внутри поля, потому
+          что жест отдаёт координаты ОКНА (pageX/pageY): корневой View занимает
+          весь экран, и `left:0/top:0` в нём совпадает с началом этих координат.
+          Положи слой внутрь поля — товар уехал бы на высоту шапки.
+          Сдвиг вверх и влево ставит товар НАД пальцем: под пальцем его не видно,
+          а видеть надо — по нему и целятся. pointerEvents='none' обязателен,
+          иначе слой перехватывает собственный жест у доски под ним.
+        */}
+        {drag && (
+          <Animated.View pointerEvents="none"
+            style={[styles.dragLayer, { transform: [{ translateX: dragPos.x }, { translateY: dragPos.y }] }]}>
+            <View style={[styles.dragGhost, { width: itemSize, height: itemH, marginLeft: -itemSize / 2, marginTop: -itemH - 10 }]}>
+              {covered.has(`${drag.cell}:${drag.idx}`) ? (
+                <Image {...a11yDecor} source={GOOD_SPRITES[drag.type % GOOD_SPRITES.length]}
+                  style={{ width: itemSize, height: itemH - 2, tintColor: 'rgba(35,20,8,0.82)' }}
+                  resizeMode="contain" />
+              ) : (
+                <GoodIcon type={drag.type} width={itemSize} height={itemH - 2} />
+              )}
+            </View>
+          </Animated.View>
+        )}
         <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>
     );
@@ -1400,6 +1715,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#a9784a',
   },
   cellDropTarget: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 7 },
+  /** Слой товара в руке — в координатах ОКНА, поэтому от угла корневого View. */
+  dragLayer: { position: 'absolute', left: 0, top: 0, zIndex: 60 },
+  dragGhost: {
+    justifyContent: 'flex-end', alignItems: 'center',
+    transform: [{ scale: 1.12 }],   // чуть крупнее полочного — видно, что предмет поднят
+    shadowColor: '#3a2408', shadowOpacity: 0.45, shadowRadius: 9, shadowOffset: { width: 0, height: 5 }, elevation: 9,
+  },
   cellRow: { zIndex: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 2, paddingBottom: 3 },
   itemSlot: { justifyContent: 'flex-end', alignItems: 'center', borderRadius: 6 },
   itemSel: { backgroundColor: '#fff2c2', borderWidth: 2, borderColor: '#f7971e', transform: [{ translateY: -4 }] },
