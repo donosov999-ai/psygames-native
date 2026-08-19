@@ -69,8 +69,20 @@ describe('отзыв не стоит партии', () => {
   });
 
   /** Гасить интервал мало: время всё равно течёт по Date.now(). */
+  /**
+   * ⚠️ ПРОВЕРЯЕМ СМЫСЛ, А НЕ БУКВУ. Первая редакция требовала дословный вызов
+   * `clock.elapsed(roundStartRef.current)` — имя того механизма часов, который
+   * стоял здесь 19.08 утром. Когда все игры свели к общим `gameNow()`, гейт
+   * покраснел на ПРАВИЛЬНОЙ правке: механизм сменился, поведение улучшилось.
+   * Такой гейт стережёт не игрока, а конкретную строчку, и мешает её чинить.
+   *
+   * Смысл же прост: и точка старта раунда, и текущий момент берутся по часам,
+   * которые стоят во время паузы. Настенные `Date.now()` в отсчёте запрещены.
+   */
   it('отсчёт считает игровое время, а не настенное', () => {
-    expect(diffs).toMatch(/clock\.elapsed\(roundStartRef\.current\)/);
-    expect(diffs).not.toMatch(/roundTimeRef\.current - \(Date\.now\(\)/);
+    const code = diffs.split('\n').filter((l) => !l.trim().startsWith('*') && !l.trim().startsWith('//')).join('\n');
+    expect(code).toMatch(/roundStartRef\.current = gameNow\(\)/);        // старт раунда — по игровым
+    expect(code).toMatch(/roundTimeRef\.current - \(gameNow\(\)/);        // и остаток — по ним же
+    expect(code).not.toMatch(/Date\.now\(\)/);                           // настенных в игре нет вовсе
   });
 });
