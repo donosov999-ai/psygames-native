@@ -387,9 +387,9 @@ export default function PhonemePairsGame() {
         onBack={() => goBackOrHome()}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{idx + 1}/{total} · {ru ? 'Ур.' : 'Lv'}{levelRef.current}</Text>
-            {!p.blind && <Text style={[styles.statText, { color: '#22c55e' }]}>✓ {hits}</Text>}
-            {!p.blind && <Text style={[styles.statText, { color: '#f43f5e' }]}>✗ {errors}</Text>}
+            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {idx + 1}/{total} · {t('label_level_short')}{levelRef.current}</Text>
+            {!p.blind && <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>}
+            {!p.blind && <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>}
           </View>
         }
         toolbar={

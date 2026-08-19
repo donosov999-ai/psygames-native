@@ -321,9 +321,9 @@ export default function ListeningSpanGame() {
         stats={
           <View style={styles.statsRow}>
             <Text style={[styles.statText, { color: colors.text }]}>
-              {ru ? 'Ур.' : 'Lv'}{levelRef.current} · {ru ? 'Раунд' : 'Round'} {round}/{ROUNDS}
+              {t('label_level_short')}{levelRef.current} · {t('round')} {round}/{ROUNDS}
             </Text>
-            {phase === 'recall' && <Text style={[styles.statText, { color: '#f43f5e' }]}>✗ {errors}</Text>}
+            {phase === 'recall' && <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>}
           </View>
         }
       >

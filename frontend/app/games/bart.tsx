@@ -468,10 +468,10 @@ export default function BARTGame() {
         stats={
           <View style={styles.statsRow}>
             <Text style={[styles.statText, { color: colors.text }]}>{t('label_balloon')} {round}/{totalBalloons}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>💰{bank}¢</Text>
-            <Text style={[styles.statText, { color: '#fbbf24' }]}>⏳{pending}¢</Text>
-            <Text style={[styles.statText, { color: '#ef4444' }]}>💥{popCount}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>μ{adjAvg}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_bank')} {bank}¢</Text>
+            <Text style={[styles.statText, { color: '#fbbf24' }]}>{t('hud_atRisk')} {pending}¢</Text>
+            <Text style={[styles.statText, { color: '#ef4444' }]}>{t('hud_pops')} {popCount}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('hud_avgPumps')} {adjAvg}</Text>
           </View>
         }
         toolbar={

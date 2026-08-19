@@ -404,11 +404,11 @@ export default function AnagramGame() {
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{round}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
             {wordSec > 0 && (
-              <Text style={[styles.statText, { color: wordLeft <= 10 ? '#f43f5e' : colors.text }]}>⏱{wordLeft}</Text>
+              <Text style={[styles.statText, { color: wordLeft <= 10 ? '#f43f5e' : colors.text }]}>{t('timeLeftLabel')} {wordLeft}{t('secShort')}</Text>
             )}
           </View>
         }

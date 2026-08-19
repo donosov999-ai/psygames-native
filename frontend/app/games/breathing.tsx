@@ -506,7 +506,7 @@ export default function BreathingGame() {
               <Text style={[styles.exStep, { color: colors.textSecondary }]}>{t('brWimRound')} {wimRound}/{WIM_ROUNDS}</Text>
             ) : (
               <>
-                <Text style={[styles.exStep, { color: colors.textSecondary }]}>{Math.min(cycleNow, totalCycles)}/{totalCycles}</Text>
+                <Text style={[styles.exStep, { color: colors.textSecondary }]}>{t('hud_cycle')} {Math.min(cycleNow, totalCycles)}/{totalCycles}</Text>
                 {/* v1.157 (репорт Вали «выдох слишком длинный, вдох короткий»): показываем
                     ВЫБРАННУЮ технику и её ритм. Тайминги менять нельзя — асимметрия это суть
                     методик (4-7-8 Вейля, physiological sigh: длинный выдох включает
@@ -515,7 +515,7 @@ export default function BreathingGame() {
                 <Text style={[styles.exStep, { color: colors.textSecondary }]} numberOfLines={1}>
                   {t(tech.nameKey)} · {tech.phases.map((p) => p.sec).join('–')}
                 </Text>
-                <Text style={[styles.exTimer, { color: colors.text }]}>{remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
+                <Text style={[styles.exTimer, { color: colors.text }]}>{t('timeLeftLabel')} {remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
               </>
             )}
           </View>

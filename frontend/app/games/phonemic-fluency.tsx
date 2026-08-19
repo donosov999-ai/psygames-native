@@ -275,9 +275,11 @@ export default function PhonemicFluencyGame() {
         onBack={() => goBackOrHome()}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text, fontSize: 24 }]}>{remaining}s</Text>
-            <Text style={[styles.statText, { color: '#22c55e', fontSize: 24 }]}>{validCount}</Text>
+            <Text style={[styles.statText, { color: colors.text, fontSize: 24 }]}>{t('timeLeftLabel')} {remaining}{t('secShort')}</Text>
+            <Text style={[styles.statText, { color: '#22c55e', fontSize: 24 }]}>{t('hud_words')} {validCount}</Text>
             <View style={[styles.letterBox, { borderColor: GRADIENT[0] }]}>
+              {/* Подпись к стимулу: без неё в шапке просто висит большая буква */}
+              <Text style={[styles.letterCap, { color: colors.textSecondary }]}>{t('hud_letter')}</Text>
               <Text style={[styles.letterBig, { color: colors.text }]}>{letter}</Text>
             </View>
           </View>
@@ -378,7 +380,8 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 24, alignItems: 'center', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '900' },
   letterBox: { width: 80, height: 80, borderRadius: 40, borderWidth: 3, justifyContent: 'center', alignItems: 'center' },
-  letterBig: { fontSize: 44, fontWeight: '900' },
+  letterBig: { fontSize: 40, fontWeight: '900' },
+  letterCap: { fontSize: 10, fontWeight: '700', marginBottom: -2 },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
   input: { width: '100%', maxWidth: 380, height: 52, paddingHorizontal: 14, fontSize: 18, borderRadius: 10, borderWidth: 1, fontWeight: '600' },
   addBtn: { minHeight: 48, justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 28, borderRadius: 16 },

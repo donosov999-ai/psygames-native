@@ -17,7 +17,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
-import { hapticSuccess, hapticError } from '@/src/components/juice';
+import { hapticSuccess, hapticError, HudBadge } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
@@ -175,20 +175,56 @@ export default function SetGame() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const levelRef = useRef(1);
   const timeLimitRef = useRef(0);
-  const roundTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * v1.176: ЛИМИТ НА РАСКЛАД БОЛЬШЕ НЕ НЕВИДИМКА.
+   *
+   * 🔴 ЧТО ЛОМАЛОСЬ. С L11 на каждый расклад даётся max(8, 30−(L−10)·4) секунд
+   * (26 с на L11 → 10 с на L15). Не успел — штраф ✗, а проход уровня решается
+   * ровно по числу ошибок. В шапке при этом висел только общий секундомер: он
+   * растёт, а сколько осталось на ТЕКУЩИЙ расклад — не было видно нигде.
+   * Человек терял уровень по часам, которых ему не показали.
+   *
+   * ⚠️ ПОЧЕМУ ЗАМЕНИЛ setTimeout НА ДЕДЛАЙН ПО ИГРОВЫМ ЧАСАМ. Два повода:
+   *  1) setTimeout идёт по настенным часам и НЕ замирает на паузе (gamePause):
+   *     пока человек пишет отзыв, расклад успевал протухнуть. Ровно тот репорт
+   *     «пока я писала отзыв, игра моя закончилась».
+   *  2) Показывать остаток можно только от дедлайна — из setTimeout остаток не
+   *     достать. Один источник правды (`dealEndRef`) лучше двух рассинхронных.
+   */
+  const dealEndRef = useRef(0);                 // отметка игровых часов, когда расклад истекает; 0 = лимита нет
+  const [dealLimit, setDealLimit] = useState(0);  // лимит текущей партии в секундах (0 = его нет) — рулит показом бейджа
+  const [dealLeft, setDealLeft] = useState(0);    // сколько осталось на расклад — то самое, чего не было видно
+  /**
+   * Колбэк таймера обязан видеть СВЕЖУЮ доску. Прежний `setTimeout(() =>
+   * handleTimeout())` захватывал замыкание того рендера, в котором раздавали
+   * расклад, а доска там ещё прошлая — findAnySet считал сет по старой раздаче
+   * и подсвечивал произвольные три карты на новой. Ref всегда указывает на
+   * обработчик последнего рендера.
+   */
+  const timeoutFnRef = useRef<() => void>(() => {});
 
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); if (roundTimerRef.current) clearTimeout(roundTimerRef.current); }, []);
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   // Справка правил уровня: только в личной игре (в зарядке-пресете лимита времени нет, бейдж скрыт)
   const levelRules = useLevelRules('set_game', lvl.level, SG_RULES, phase === 'playing' && !isPreset);
 
   const handleTimeout = () => {
+    dealEndRef.current = 0;    // отсчёт снят: дальше висит разбор, время на него не капает
+    setDealLeft(0);
     setErrors((e) => e + 1);   // не успел найти SET за лимит → штраф
     // Не забираем доску молча: подсвечиваем сет, который тут был, и ждём «Понятно».
     // Так штраф превращается в объяснение, а не в «игра меня обманула».
     const s = findAnySet(board);
     if (s) { setRevealedSet(s); return; }
     newRound();   // теоретически недостижимо — buildBoard гарантирует сет
+  };
+  timeoutFnRef.current = handleTimeout;   // каждый рендер — свежий обработчик для тика часов
+
+  /** Пустить отсчёт на текущий расклад заново (раздача или закрытый разбор ошибки). */
+  const armDealClock = () => {
+    if (timeLimitRef.current <= 0) { dealEndRef.current = 0; setDealLeft(0); return; }
+    dealEndRef.current = gameNow() + timeLimitRef.current * 1000;
+    setDealLeft(timeLimitRef.current);
   };
 
   /** Закрыть показ «вот он был» и раздать новую доску. */
@@ -199,8 +235,7 @@ export default function SetGame() {
 
   const newRound = () => {
     setBoard(buildBoard()); setPicked([]); setFeedback(null); setHintBreakdown(null); setHintCardIdx(null); setRevealedSet(null);
-    if (roundTimerRef.current) clearTimeout(roundTimerRef.current);
-    if (timeLimitRef.current > 0) roundTimerRef.current = setTimeout(() => handleTimeout(), timeLimitRef.current * 1000);   // лимит времени на SET
+    armDealClock();   // лимит времени на SET — теперь виден в шапке
   };
 
   // 💡 Подсветить первую карту любого валидного сета на поле. Бесплатно —
@@ -216,10 +251,7 @@ export default function SetGame() {
     setPicked([]);
     setFeedback(null);
     setHintBreakdown(null);
-    if (timeLimitRef.current > 0) {
-      if (roundTimerRef.current) clearTimeout(roundTimerRef.current);
-      roundTimerRef.current = setTimeout(() => handleTimeout(), timeLimitRef.current * 1000);
-    }
+    armDealClock();   // разбор закрыт — отсчёт пошёл заново, с полного лимита
   };
 
   const startGame = () => {
@@ -232,7 +264,18 @@ export default function SetGame() {
     setPhase('playing');
     const start = gameNow();
     setStartTime(start);
-    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
+    // Один тик на всё: и общий секундомер, и остаток на расклад. Часы игровые —
+    // на паузе (виджет отзыва) стоят оба, иначе расклад сгорал бы, пока человек пишет.
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      const now = gameNow();
+      setElapsedTime((now - start) / 1000);
+      if (dealEndRef.current > 0) {
+        const left = (dealEndRef.current - now) / 1000;
+        setDealLeft(Math.max(0, left));
+        if (left <= 0) timeoutFnRef.current();   // штраф — ровно в тот момент, когда ноль виден на экране
+      }
+    }, 100);
   };
 
   const togglePick = (i: number) => {
@@ -245,7 +288,7 @@ export default function SetGame() {
   };
 
   const checkSet = async (sel: number[]) => {
-    if (roundTimerRef.current) clearTimeout(roundTimerRef.current);   // ответ дан — снять лимит времени
+    dealEndRef.current = 0;   // ответ дан — снять лимит времени на расклад
     const ok = isSet(board[sel[0]], board[sel[1]], board[sel[2]]);
     setFeedback(ok ? 'right' : 'wrong');
     if (ok) { hapticSuccess(); setHits((h) => h + 1); } else {
@@ -455,10 +498,22 @@ export default function SetGame() {
           onBack={() => goBackOrHome()}
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
+              {/* Остаток на ТЕКУЩИЙ расклад. Бейдж-пилюля, а не ещё одна серая
+                  цифра в ряду: по этим секундам начисляется ✗, а по ✗ решается
+                  проход уровня — промахнуться взглядом мимо неё нельзя.
+                  Краснеет на последних 5 с. */}
+              {dealLimit > 0 && (
+                <HudBadge
+                  icon="timer-outline" label={t('timeLeftLabel')}
+                  value={`${Math.ceil(dealLeft)}${t('secShort')}`}
+                  colors={dealLeft <= 5 ? ['#fb7185', '#e11d48'] : ['#60a5fa', '#2563eb']}
+                  pop={dealLeft <= 5}
+                />
+              )}
+              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}{!isPreset ? ` · ${language === 'ru' ? 'Ур.' : 'Lv'}${lvl.level}` : ''}</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{language === 'ru' ? 'с' : 's'}</Text>
               {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
             </View>
           }

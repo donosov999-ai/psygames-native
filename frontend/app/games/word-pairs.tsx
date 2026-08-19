@@ -408,8 +408,8 @@ export default function WordPairsGame() {
             <Ionicons name="time-outline" size={20} color="#FFFFFF" />
             <Text style={styles.timerText}>
               {memorizeLimitSec > 0
-                ? `${Math.max(0, memorizeLimitSec - elapsedTime).toFixed(0)}s`
-                : `${elapsedTime.toFixed(1)}s`}
+                ? `${t('timeLeftLabel')} ${Math.max(0, memorizeLimitSec - elapsedTime).toFixed(0)}${t('secShort')}`
+                : `${t('time')} ${elapsedTime.toFixed(1)}${t('secShort')}`}
             </Text>
           </View>
         </View>

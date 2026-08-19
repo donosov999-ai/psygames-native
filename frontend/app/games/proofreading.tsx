@@ -381,7 +381,7 @@ export default function ProofreadingGame() {
               </View>
             ))}
             <Text style={[styles.targetCount, { color: colors.textSecondary }]}>
-              {foundIndices.size}/{targetIndices.size}
+              {t('label_found')} {foundIndices.size}/{targetIndices.size}
             </Text>
           </View>
           <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
@@ -391,11 +391,11 @@ export default function ProofreadingGame() {
               color: timeLimitRef.current > 0 && timeLimitRef.current - elapsedTime <= 10 ? '#f43f5e' : colors.text,
             }]}>
               {timeLimitRef.current > 0
-                ? `${Math.max(0, Math.ceil(timeLimitRef.current - elapsedTime))}s`
-                : `${Math.floor(elapsedTime)}s`}
+                ? `${t('timeLeftLabel')} ${Math.max(0, Math.ceil(timeLimitRef.current - elapsedTime))}${t('secShort')}`
+                : `${t('time')} ${Math.floor(elapsedTime)}${t('secShort')}`}
             </Text>
             {errors > 0 && (
-              <Text style={[styles.timerText, { color: '#f43f5e' }]}>✗{errors}</Text>
+              <Text style={[styles.timerText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
             )}
           </View>
         </View>

@@ -418,12 +418,12 @@ export default function CPTGame() {
           stats={
             <View style={styles.statsRow}>
               <Text style={[styles.statText, { color: GRADIENT[1], fontSize: 18 }]}>
-                {mins}:{secs.toString().padStart(2, '0')}
+                {t('timeLeftLabel')} {mins}:{secs.toString().padStart(2, '0')}
               </Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>✗o{omissions}</Text>
-              <Text style={[styles.statText, { color: '#fbbf24' }]}>✗c{commissions}</Text>
-              <Text style={[styles.statText, { color: colors.textSecondary }]}>{trialIdx}t</Text>
+              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
+              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_missed')} {omissions}</Text>
+              <Text style={[styles.statText, { color: '#fbbf24' }]}>{t('hud_false')} {commissions}</Text>
+              <Text style={[styles.statText, { color: colors.textSecondary }]}>{t('hud_trials')} {trialIdx}</Text>
               <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
             </View>
           }

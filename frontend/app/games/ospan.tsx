@@ -230,11 +230,11 @@ export default function OSpanGame() {
           stats={
             phase === 'recall' ? undefined : (
               <View style={styles.statsRow}>
-                <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{setSize} · {t('label_level_short')}{lvl.level}</Text>
+                <Text style={[styles.statText, { color: colors.text }]}>{t('hud_step')} {stepIdx + 1}/{setSize} · {t('label_level_short')}{lvl.level}</Text>
                 {phase === 'eq' && (
                   <>
-                    <Text style={[styles.statText, { color: '#22c55e' }]}>✓math {mathHits}</Text>
-                    <Text style={[styles.statText, { color: '#f43f5e' }]}>✗math {mathErrors}</Text>
+                    <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {mathHits}</Text>
+                    <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {mathErrors}</Text>
                     <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
                   </>
                 )}

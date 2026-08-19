@@ -251,9 +251,9 @@ export default function ReadingSpanGame() {
         stats={
           phase === 'playing' ? (
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{stepIdx + 1}/{seq.length}</Text>
-              <Text style={[styles.statText, { color: GRADIENT[1] }]}>📝 {judgeHits}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}с</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('hud_step')} {stepIdx + 1}/{seq.length}</Text>
+              <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('hud_correct')} {judgeHits}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
             </View>
           ) : undefined
         }

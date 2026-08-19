@@ -410,11 +410,11 @@ export default function TrailMakingGame() {
         onBack={() => goBackOrHome()}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{currentIdx}/{nodes.length}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('hud_point')} {currentIdx}/{nodes.length}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
             {/* Лимит времени уровня виден игроку; просрочил — таймер краснеет */}
             <Text style={[styles.statText, { color: timeLimit > 0 && elapsedTime > timeLimit ? '#f43f5e' : colors.text }]}>
-              {elapsedTime.toFixed(1)}{timeLimit > 0 ? `/${timeLimit}` : ''}{t('secShort')}
+              {t('time')} {elapsedTime.toFixed(1)}{timeLimit > 0 ? `/${timeLimit}` : ''}{t('secShort')}
             </Text>
           </View>
         }

@@ -389,9 +389,9 @@ export default function RMETGame() {
         onBack={() => goBackOrHome()}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{round + 1}/{items.length}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round + 1}/{items.length}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
           </View>
         }
         toolbar={it ? (

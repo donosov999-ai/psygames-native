@@ -357,7 +357,7 @@ export default function MnemonicsGame() {
         <View style={styles.gameHeader}>
           <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
             <Ionicons name="time-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.timerText}>{elapsedTime.toFixed(1)}s</Text>
+            <Text style={styles.timerText}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
           </View>
         </View>
       }
@@ -416,7 +416,7 @@ export default function MnemonicsGame() {
         <View style={styles.statsHeader}>
           <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>{elapsedTime.toFixed(1)}s</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
           </View>
           <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>

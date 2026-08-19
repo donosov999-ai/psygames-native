@@ -268,11 +268,11 @@ export default function SdmtGame() {
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: GRADIENT[1] }]}>{remaining}s</Text>
+            <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('timeLeftLabel')} {remaining}{t('secShort')}</Text>
             <Text style={[styles.statText, { color: '#22c55e' }]}>
-              ✓{hits}{targetHits > 0 ? `/${targetHits}` : ''}
+              {t('hud_correct')} {hits}{targetHits > 0 ? `/${targetHits}` : ''}
             </Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>✗{errors}</Text>
+            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
           </View>
         }
         toolbar={

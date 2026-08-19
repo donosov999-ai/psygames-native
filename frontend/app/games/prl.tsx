@@ -482,15 +482,15 @@ export default function PRLGame() {
         onBack={() => { respondLockRef.current = true; goBackOrHome(); }}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{trialIdx}/{totalTrials}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {trialIdx}/{totalTrials}</Text>
             <Text style={[styles.statText, { color: bank >= 100 ? '#22c55e' : '#f43f5e', fontSize: 18 }]}>
-              💰 {bank}¢
+              {t('hud_bank')} {bank}¢
             </Text>
             <Text style={[styles.statText, { color: GRADIENT[1] }]}>
-              R:{blockIndexRef.current}
+              {t('hud_reversals')} {blockIndexRef.current}
             </Text>
             <Text style={[styles.statText, { color: colors.textSecondary }]}>
-              ✓{revealCount}
+              {t('hud_inBlock')} {revealCount}
             </Text>
           </View>
         }

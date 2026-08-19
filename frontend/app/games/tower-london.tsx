@@ -358,10 +358,10 @@ export default function TowerLondonGame() {
         }
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>✓{solved}</Text>
-            <Text style={[styles.statText, { color: GRADIENT[1] }]}>{moves}/{puzzle.minMoves}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
+            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_solved')} {solved}</Text>
+            <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('hud_moves')} {moves}/{puzzle.minMoves}</Text>
+            <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
           </View>
         }
       >

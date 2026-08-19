@@ -199,9 +199,9 @@ export default function QuickCountGame() {
         stats={
           phase === 'answer' ? (
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{trial + 1}/{TRIALS_PER_ROUND}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>✓{correct}</Text>
-              <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>✗{wrong}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {trial + 1}/{TRIALS_PER_ROUND}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('hud_correct')} {correct}</Text>
+              <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>{t('hud_errors')} {wrong}</Text>
             </View>
           ) : undefined
         }
