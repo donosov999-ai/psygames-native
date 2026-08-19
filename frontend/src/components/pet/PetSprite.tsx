@@ -14,6 +14,7 @@ import React from 'react';
 import { Image, View } from 'react-native';
 
 import { a11yDecor } from '@/src/services/a11y';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
 export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep';
 export type PetSkin = 'cat' | 'robot' | 'constellation';
@@ -309,11 +310,28 @@ export default function PetSprite({ state, size = 56, skin = 'cat', accessory = 
 }) {
   const frames = SKINS[skin][state];
   const [frame, setFrame] = React.useState(0);
+  const reduced = useReducedMotion();
   React.useEffect(() => {
     setFrame(0);
+    /**
+     * Щадящий режим: кадры замирают на первом.
+     *
+     * Это ЖИВАЯ вечная петля приложения — питомец перебирает кадры всё время,
+     * пока открыт экран (idle 420 мс, ходьба 140 мс), и показывается он сразу
+     * в трёх местах: гуляка внизу, портрет на /pet, мини-аватар в шапке. Для
+     * вестибулярной чувствительности непрерывное движение хуже любого разового
+     * эффекта: разовый можно переждать, отведя глаза, а это не заканчивается.
+     *
+     * Питомца не убираем — он собеседник, а не украшение: реплики, подсказка
+     * слабой шкалы, тап на экран /pet остаются. Смена состояния (тапнули —
+     * `jump`, погладили — `wave`) тоже работает и по-прежнему видна: меняется
+     * поза, просто без перелистывания. То есть ответ на действие сохраняется,
+     * исчезает только фоновое шевеление.
+     */
+    if (reduced) return;
     const t = setInterval(() => setFrame((f) => (f + 1) % frames.length), FRAME_MS[state]);
     return () => clearInterval(t);
-  }, [state, skin, frames.length]);
+  }, [state, skin, frames.length, reduced]);
 
   /**
    * Все кадры лежат стопкой, анимация — переключение видимости.

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, useWindowDimensions, Platform, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,8 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { gameIcon } from '@/src/constants/gameIcons';
 import { gameThumb, gameThumbOpacity } from '@/src/constants/gameThumbs';
 import { a11yDecor } from '@/src/services/a11y';
+import { settle } from '@/src/components/juice/motion';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
 interface GameCardProps {
   id?: string;
@@ -48,7 +50,16 @@ export default function GameCard({
   const gameImg = gameIcon(id);
   const thumb = gameThumb(id);   // превью-фон карточки (может не быть — тогда как раньше)
   const scale = useRef(new Animated.Value(1)).current;
-  const spring = (to: number) => Animated.spring(scale, { toValue: to, friction: 7, useNativeDriver: true }).start();
+  const reduced = useReducedMotion();
+  const spring = (to: number) => settle(scale, to, reduced, { friction: 7 });
+  /**
+   * Щадящий режим: подъём карточки под курсором гасим целиком. На витрине из
+   * шести десятков игр палец или мышь проходит над десятком карточек подряд,
+   * и каждая под ними дышит — на экране получается волна. Смысла в ней ноль:
+   * что курсор на карточке, видно по самому курсору, а что карточка нажимаемая
+   * — по её роли для скринридера. Тапу отвечает переход на игру.
+   */
+  useEffect(() => { if (reduced) settle(scale, 1, true); }, [reduced, scale]);
   const { t } = useLanguage();
   const { width: winWidth } = useWindowDimensions();
   const isWeb = Platform.OS === 'web';
@@ -99,8 +110,8 @@ export default function GameCard({
       <Pressable
         accessibilityRole="button"
         onPress={onPress}
-        onHoverIn={() => spring(1.03)}
-        onHoverOut={() => spring(1)}
+        onHoverIn={() => { if (!reduced) spring(1.03); }}
+        onHoverOut={() => { if (!reduced) spring(1); }}
         style={{ flex: 1 }}
       >
         <Animated.View style={{ flex: 1, transform: [{ scale }] }}>

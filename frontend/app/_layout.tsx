@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from '@/src/contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from '@/src/contexts/LanguageContext';
 import { applyRTL, isRTLLang } from '@/src/services/rtl';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { WarmupProvider, useWarmup } from '@/src/contexts/WarmupContext';
 import { Platform } from 'react-native';
 import { vibrate } from '@/src/services/feedback';
@@ -77,6 +78,7 @@ function NotificationTapHandler() {
 
 function RootLayoutNav() {
   const { isDark, colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   // RTL-заход (арабский): при смене языка ставим dir/lang на корень документа
   // (web; RN Web I18nManager — заглушка, работает именно document.dir) и флаг
   // I18nManager на нативе. LanguageContext не трогаем — подписка живёт здесь.
@@ -113,8 +115,20 @@ function RootLayoutNav() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: colors.background },
-          // в RTL экраны въезжают слева — направление «вперёд» зеркалится
-          animation: rtl ? 'slide_from_left' : 'slide_from_right',
+          /**
+           * Проезд экрана — движение СМЫСЛОВОЕ: он показывает, что ты ушёл
+           * вглубь, а не оказался на другом экране случайно, и что кнопка
+           * «назад» вернёт по тому же пути. В RTL направление зеркалится:
+           * «вперёд» для арабского — влево.
+           *
+           * В щадящем режиме этот смысл не выбрасываем, а сообщаем мгновенно.
+           * `'none'` у Stack — это НЕ «без перехода»: переход происходит, просто
+           * новый экран встаёт на место сразу, без проезда всей плоскости
+           * поперёк поля зрения. Именно проезд полноэкранного слоя и укачивает,
+           * а «где я оказался» человеку по-прежнему говорят заголовок и стрелка
+           * «назад». Плюс на каждый переход остаются отклик кнопки и звук.
+           */
+          animation: reducedMotion ? 'none' : (rtl ? 'slide_from_left' : 'slide_from_right'),
         }}
       />
       {/* Global level-unlock toast (themed profiles only) */}

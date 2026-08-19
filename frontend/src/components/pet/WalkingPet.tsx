@@ -30,6 +30,7 @@ import {
 import type { PetLine, PetSkill } from '@/src/services/petLines';
 import { getSessions } from '@/src/services/api';
 import { GAMES } from '@/src/constants/games';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
 const PET_SIZE = 56;
 const WALK_SPEED = 34;        // px/с — прогулочный шаг, не спринт
@@ -162,6 +163,7 @@ export default function WalkingPet() {
 
   // Позиция/язык в ref'ах: таймеры-замыкания живут дольше рендера, а
   // перезапускать всю прогулку из-за смены языка или ресайза не хотим.
+  const reduced = useReducedMotion();
   const x = React.useRef(new Animated.Value(40)).current;
   const flip = React.useRef(new Animated.Value(1)).current;   // scaleX: 1 вправо, -1 влево
   const posRef = React.useRef(40);
@@ -237,7 +239,19 @@ export default function WalkingPet() {
       later(speak, SPEECH_MIN + Math.random() * SPEECH_SPAN);
     };
 
-    later(step, 1200);                                    // первый шаг почти сразу
+    /**
+     * Щадящий режим: питомец остаётся, но перестаёт ходить.
+     *
+     * Прогулка — самая тяжёлая петля в приложении: персонаж без конца ездит
+     * поперёк нижнего края, то есть по периферии зрения, где движение
+     * ловится сильнее всего и откуда его не убрать, не уходя с экрана. При
+     * этом сама прогулка ничего не сообщает — это «живость», не сигнал.
+     *
+     * Убирать питомца целиком было бы подменой: он не украшение, а
+     * собеседник — фразы, подсказка слабой шкалы, тап на экран /pet. Всё это
+     * текст и нажатия, они остаются. Стоит на месте и разговаривает.
+     */
+    if (!reduced) later(step, 1200);                      // первый шаг почти сразу
     // Когда заговорить: за сессию ещё не говорил → быстро (4-8 с). Уже говорил →
     // досиживаем ОСТАТОК паузы с прошлого раза, а не полные 20-40 с заново.
     const sinceLast = lastSpokeAt === 0 ? Infinity : Date.now() - lastSpokeAt;
@@ -254,7 +268,7 @@ export default function WalkingPet() {
       flip.stopAnimation();
       setBubble(null);
     };
-  }, [active, x, flip]);
+  }, [active, x, flip, reduced]);
 
   if (!active) return null;
 
