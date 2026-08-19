@@ -1,3 +1,4 @@
+/* psygames-game-prl · VER 1 · 19.08.2026 */
 /**
  * PRL — Probabilistic Reversal Learning
  *

@@ -1,3 +1,4 @@
+/* psygames-game-attention-conflict · VER 1 · 19.08.2026 */
 /**
  * Конфликт внимания — объединяющая страница для ЧЕТЫРЁХ парадигм
  * interference resolution / cognitive control:

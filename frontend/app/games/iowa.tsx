@@ -1,3 +1,4 @@
+/* psygames-game-iowa · VER 1 · 19.08.2026 */
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,

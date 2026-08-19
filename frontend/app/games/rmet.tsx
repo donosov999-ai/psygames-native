@@ -1,3 +1,4 @@
+/* psygames-game-rmet · VER 1 · 19.08.2026 */
 /**
  * RMET — Reading the Mind in the Eyes Test (Baron-Cohen 2001)
  *

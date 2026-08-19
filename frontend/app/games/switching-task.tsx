@@ -1,3 +1,4 @@
+/* psygames-game-switching-task · VER 1 · 19.08.2026 */
 /**
  * Switching Task — переключение между двумя правилами (task switching, switch cost)
  *

@@ -1,3 +1,4 @@
+/* psygames-game-choice-rt · VER 1 · 19.08.2026 */
 /**
  * Choice RT — время реакции выбора (стрелки).
  *

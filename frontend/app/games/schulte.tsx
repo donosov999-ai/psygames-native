@@ -1,3 +1,4 @@
+/* psygames-game-schulte · VER 1 · 19.08.2026 */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,

@@ -1,3 +1,4 @@
+/* psygames-game-bart · VER 1 · 19.08.2026 */
 /**
  * BART — Balloon Analogue Risk Task (Lejuez et al., 2002), клиника склонности к риску.
  *

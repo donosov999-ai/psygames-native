@@ -1,3 +1,4 @@
+/* psygames-game-wcst · VER 1 · 19.08.2026 */
 /**
  * WCST — Wisconsin Card Sorting Test (когнитивная гибкость / set-shifting)
  *

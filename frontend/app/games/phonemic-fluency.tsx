@@ -1,3 +1,4 @@
+/* psygames-game-phonemic-fluency · VER 1 · 19.08.2026 */
 /**
  * Phonemic Fluency (COWAT — Controlled Oral Word Association Test)
  *

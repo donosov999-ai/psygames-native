@@ -1,3 +1,4 @@
+/* psygames-game-posner · VER 1 · 19.08.2026 */
 /**
  * Posner Cueing Task — пространственное внимание (orienting).
  *

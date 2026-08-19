@@ -1,3 +1,4 @@
+/* psygames-game-sdmt · VER 1 · 19.08.2026 */
 /**
  * SDMT — Symbol Digit Modalities Test (processing speed).
  *

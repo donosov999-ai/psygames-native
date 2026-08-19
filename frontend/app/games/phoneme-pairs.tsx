@@ -1,3 +1,4 @@
+/* psygames-game-phoneme-pairs · VER 1 · 19.08.2026 */
 /**
  * Фонемы: минимальные пары (Полиглот, game_id 'phoneme_pairs').
  * TTS произносит ОДНО слово из минимальной пары (ship/sheep) — игрок выбирает
