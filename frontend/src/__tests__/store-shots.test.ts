@@ -37,6 +37,14 @@
  */
 declare const __dirname: string;
 declare function require(m: string): any;
+// Тип Node в проекте не подключён (tsconfig без "types": ["node"]), а разбор PNG
+// без Buffer не написать. Объявляем ровно то, чем пользуемся, — как выше сделано
+// с __dirname и require.
+type NodeBuf = Uint8Array & { copy(target: NodeBuf, targetStart?: number, sourceStart?: number, sourceEnd?: number): number };
+declare const Buffer: {
+  concat(list: Uint8Array[]): NodeBuf;
+  alloc(size: number): NodeBuf;
+};
 const { readFileSync, existsSync, readdirSync } = require('fs');
 const { join } = require('path');
 const { createHash } = require('crypto');
