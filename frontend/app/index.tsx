@@ -48,6 +48,8 @@ import { IS_WEB_DEMO } from '@/src/services/buildTarget';
 import DemoLanding from '@/src/components/DemoLanding';
 import { listResumable, resolveResumableGame } from '@/src/services/resume';
 import { shouldOpenOnboardingPicker } from '@/src/services/onboarding';
+import { recoCards, recoParams } from '@/src/services/recommend';
+import { getSessions, GameSession } from '@/src/services/api';
 
 const MAX_CONTAINER_WIDTH = 1100;
 const CONTAINER_PADDING = 16;
@@ -129,6 +131,31 @@ function FullHome() {
       });
     return () => { active = false; };
   }, [profile.id]));
+  /**
+   * «Рекомендуем сегодня» — партии человека и отметка времени, на которую собран набор.
+   *
+   * ⚠️ ВРЕМЯ ХРАНИТСЯ В СОСТОЯНИИ, А НЕ БЕРЁТСЯ `new Date()` ПРЯМО В РАЗМЕТКЕ. На
+   * Android приложение живёт в WebView и главный экран остаётся смонтированным сутками:
+   * посчитанное один раз при запуске застыло бы там навсегда — ровно так уже застывала
+   * подпись «Зарядки» на времени старта (репорт Дениса 06.08). Перечитываем на каждом
+   * возврате на главную: и партии, и час.
+   */
+  const [sessions, setSessions] = useState<GameSession[]>([]);
+  const [recoAt, setRecoAt] = useState<number>(() => Date.now());
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    setRecoAt(Date.now());
+    getSessions()
+      .then((all) => { if (active) setSessions(all); })
+      .catch(() => { if (active) setSessions([]); });
+    return () => { active = false; };
+  }, [profile.id]));
+  // Профиль отдаём целиком: отбор сам режет каталог по allowed_games. Передавать сюда
+  // готовый список игр нельзя — так протекал дневной перерыв (см. шапку recommend.ts).
+  const reco = useMemo(
+    () => recoCards({ profile, sessions, now: new Date(recoAt) }),
+    [profile, sessions, recoAt],
+  );
   const todayChallenge = useMemo(() => getTodayChallenge(), []);   // ротация игр — детерминировано по дате
 
   // Время суток для подписи кнопки «Зарядка».
@@ -524,6 +551,63 @@ function FullHome() {
           </TouchableOpacity>
         )}
 
+        {/* 🎯 «Рекомендуем сегодня» — три упражнения вместо выбора из семидесяти одного.
+            Под каждым сказано, ПОЧЕМУ оно здесь: причину считает recommend.ts по партиям
+            этого человека, разметка её только показывает. Пустой блок не рисуем вовсе —
+            заголовок над пустотой читается как поломка. */}
+        {reco.length > 0 && (
+          <View style={styles.recoBlock}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionDot, { backgroundColor: colors.primary }]} />
+              <Ionicons name="sparkles-outline" size={20} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('recoTitle')}</Text>
+            </View>
+            <Text style={[styles.recoHint, { color: colors.textSecondary }]} numberOfLines={2}>
+              {t('recoHint')}
+            </Text>
+            <View style={styles.heroRow}>
+              {reco.map(({ pick, game }) => {
+                // Сыграно сегодня — карточка меняет ПОДПИСЬ, а не место: набор заморожен
+                // на сутки, но обещать «давно не играли» после сегодняшней партии нельзя.
+                const whyKey = pick.doneToday ? 'recoDoneToday' : pick.reasonKey;
+                return (
+                  <TouchableOpacity
+                    key={pick.gameId}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t(game.nameKey)} — ${t(whyKey)}`}
+                    style={styles.heroCardWrap}
+                    activeOpacity={0.85}
+                    // Свободный запуск: ни wu, ни auto. Вечером добавляется calm=1 —
+                    // тот же тихий режим, что у вечернего шага зарядки.
+                    onPress={() => router.push({ pathname: game.route, params: recoParams() } as any)}
+                  >
+                    <LinearGradient colors={game.gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+                      <View style={styles.heroTopRow}>
+                        <Ionicons name={game.icon as any} size={26} color="#FFF" />
+                        {pick.doneToday && (
+                          <View style={[styles.heroChipMini, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
+                            <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>✓</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>{t(game.nameKey)}</Text>
+                      <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
+                        {t(whyKey)}
+                      </Text>
+                      <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
+                        <Ionicons name="play" size={14} color="#FFF" />
+                        <Text style={[styles.heroCtaText, { color: '#FFF' }]}>
+                          {t(pick.doneToday ? 'ctaRepeat' : 'ctaStart')}
+                        </Text>
+                      </View>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
         {/* v1.179: ряд ПРАКТИК — Зарядка · Глаза · Дыхание.
             Зарядка теперь ОДНА кнопка вместо двух («Утренняя» + «Вечерний комплекс»):
             подпись меняется по времени суток, выбор набора — на своём экране. За счёт
@@ -842,6 +926,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
+  // Блок рекомендаций: заголовок с подсказкой и ряд карточек. Отступ снизу — тот же,
+  // что у карточки «Продолжить», чтобы ритм первого экрана не сбивался.
+  recoBlock: { marginBottom: 14, gap: 6 },
+  recoHint: { fontSize: 12, fontWeight: '600', marginTop: -2 },
   resumeCopy: { flex: 1, minWidth: 0, gap: 3 },
   resumeTitle: { fontSize: 16, fontWeight: '900' },
   resumeSub: { fontSize: 12, fontWeight: '600' },

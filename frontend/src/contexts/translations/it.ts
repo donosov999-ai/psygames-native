@@ -1332,6 +1332,9 @@ const t: Record<string, string> = {
   "samuraiLvlParams": "{p}% di celle nascoste · limite di {e} errori · {h} indizi",
   "samuraiNextUnlocks": "Risolvilo entro il limite di errori — si sblocca il prossimo, più difficile.",
   "samuraiHowTo": "Una scacchiera 21×21 = cinque sudoku sovrapposti agli angoli. Riempi ogni cella così che in ogni griglia 9×9 righe, colonne e blocchi 3×3 contengano 1–9 senza ripetizioni. Col 🔍 alterni lo zoom: figura intera o ingrandito con scorrimento.",
+  "boardBuilding": "Preparazione della griglia",
+  "boardBuildingSlow": "Questo livello è difficile: cerchiamo una griglia che non si risolva con una semplice scansione. Ci vogliono alcuni secondi.",
+  "boardBuildingAttempt": "Tentativo {n} di {max}",
   "errorsOfMax": "Errori {n}/{max}",
   "zoomIn": "Ingrandisci",
   "zoomFit": "Tutta la griglia",
@@ -1836,6 +1839,15 @@ const t: Record<string, string> = {
   "historyScopedHint": "Le partite ci sono, ma in altri esercizi o in un altro profilo. Apri tutti i giochi.",
   "historyNewTask": "nuova difficoltà",
   "historyLevelShort": "liv. {n}",
+  "recoTitle": "Consigliato oggi",
+  "recoHint": "Tre esercizi per oggi — la selezione non cambia fino a domani",
+  "recoDoneToday": "Giocato oggi",
+  "recoWhyComeback": "Non ci giochi da tempo",
+  "recoWhyGrowth": "Qui stai crescendo",
+  "recoWhyBranch": "Questo ramo è il meno allenato",
+  "recoWhyFresh": "Novità nell’app",
+  "recoWhyCalm": "Per la sera — senza fretta",
+  "recoWhyStart": "Un buon punto di partenza",
   // >>> SCREEN_STRINGS
 };
 export default t;

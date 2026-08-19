@@ -1218,6 +1218,9 @@ const t: Record<string, string> = {
   "samuraiLvlParams": "{p}% कोठरियाँ छिपी · {e} गलतियों की सीमा · {h} संकेत",
   "samuraiNextUnlocks": "गलतियों की सीमा में हल करो — अगला और कठिन स्तर खुलेगा।",
   "samuraiHowTo": "21×21 बोर्ड = कोनों से जुड़े पाँच सुडोकू। हर कोठरी ऐसे भरें कि हर 9×9 ग्रिड की पंक्तियों, स्तंभों और 3×3 ब्लॉकों में 1–9 बिना दोहराव आएँ। 🔍 बटन से ज़ूम बदलें: पूरी आकृति या स्क्रॉल के साथ बड़ा।",
+  "boardBuilding": "बोर्ड तैयार किया जा रहा है",
+  "boardBuildingSlow": "यह स्तर कठिन है: ऐसा बोर्ड चुना जा रहा है जो सामान्य जाँच से हल न हो। इसमें कुछ सेकंड लगते हैं।",
+  "boardBuildingAttempt": "प्रयास {n} / {max}",
   "errorsOfMax": "गलतियाँ {n}/{max}",
   "zoomIn": "बड़ा करें",
   "zoomFit": "पूरा बोर्ड",
@@ -1844,6 +1847,15 @@ const t: Record<string, string> = {
   "historyScopedHint": "बाज़ियाँ हैं, पर दूसरे अभ्यासों या दूसरी प्रोफ़ाइल में। सभी खेल खोलें।",
   "historyNewTask": "नई कठिनाई",
   "historyLevelShort": "स्तर {n}",
+  "recoTitle": "आज के लिए सुझाव",
+  "recoHint": "आज के तीन अभ्यास — कल तक यह चयन नहीं बदलेगा",
+  "recoDoneToday": "आज खेला",
+  "recoWhyComeback": "बहुत दिनों से नहीं खेला",
+  "recoWhyGrowth": "यहाँ आप बढ़ रहे हैं",
+  "recoWhyBranch": "इस शाखा का अभ्यास सबसे कम है",
+  "recoWhyFresh": "ऐप में नया",
+  "recoWhyCalm": "शाम के लिए — बिना जल्दबाजी",
+  "recoWhyStart": "शुरुआत के लिए अच्छा",
   // >>> SCREEN_STRINGS
 };
 export default t;

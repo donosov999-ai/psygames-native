@@ -1215,6 +1215,9 @@ const t: Record<string, string> = {
   "samuraiLvlParams": "{p} % Zellen verdeckt · Limit {e} Fehler · {h} Hinweise",
   "samuraiNextUnlocks": "Löse es im Fehlerlimit — das nächste, schwerere Level öffnet sich.",
   "samuraiHowTo": "Ein 21×21-Feld = fünf an den Ecken überlappende Sudokus. Fülle jede Zelle so, dass in jedem 9×9-Gitter Zeilen, Spalten und 3×3-Blöcke 1–9 ohne Wiederholung enthalten. Mit 🔍 wechselst du den Zoom: ganze Figur oder vergrößert mit Scrollen.",
+  "boardBuilding": "Das Spielfeld wird aufgebaut",
+  "boardBuildingSlow": "Dieses Level ist schwer: Wir suchen ein Feld, das sich nicht durch einfaches Absuchen lösen lässt. Das dauert ein paar Sekunden.",
+  "boardBuildingAttempt": "Versuch {n} von {max}",
   "errorsOfMax": "Fehler {n}/{max}",
   "zoomIn": "Vergrößern",
   "zoomFit": "Ganzes Feld",
@@ -1841,6 +1844,15 @@ const t: Record<string, string> = {
   "historyScopedHint": "Runden gibt es, aber unter anderen Übungen oder einem anderen Profil. Öffne alle Spiele.",
   "historyNewTask": "neue Schwierigkeit",
   "historyLevelShort": "Lv {n}",
+  "recoTitle": "Heute empfohlen",
+  "recoHint": "Drei Übungen für heute — die Auswahl bleibt bis morgen",
+  "recoDoneToday": "Heute gespielt",
+  "recoWhyComeback": "Lange nicht gespielt",
+  "recoWhyGrowth": "Hier wächst du",
+  "recoWhyBranch": "Dieser Bereich kommt am kürzesten",
+  "recoWhyFresh": "Neu in der App",
+  "recoWhyCalm": "Für den Abend — ohne Hetze",
+  "recoWhyStart": "Ein guter Anfang",
   // >>> SCREEN_STRINGS
 };
 export default t;

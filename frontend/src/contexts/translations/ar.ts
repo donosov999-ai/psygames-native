@@ -1333,6 +1333,9 @@ const t: Record<string, string> = {
   "samuraiLvlParams": "{p}٪ من الخانات مخفية · حد {e} أخطاء · {h} تلميحات",
   "samuraiNextUnlocks": "حُلّه دون تجاوز حد الأخطاء ليُفتح المستوى التالي الأصعب.",
   "samuraiHowTo": "لوحة 21×21 = خمسة سودوكو متداخلة عند الزوايا. املأ كل خانة بحيث تحوي الصفوف والأعمدة ومربعات 3×3 في كل شبكة 9×9 الأرقام 1–9 دون تكرار. بزر 🔍 بدّل التكبير: الشكل كاملًا أو مقرّبًا مع التمرير.",
+  "boardBuilding": "يجري تجهيز اللوحة",
+  "boardBuildingSlow": "هذا المستوى صعب: نختار لوحة لا تُحلّ بالمسح البسيط. يستغرق ذلك بضع ثوانٍ.",
+  "boardBuildingAttempt": "المحاولة {n} من {max}",
   "errorsOfMax": "أخطاء {n}/{max}",
   "zoomIn": "تكبير",
   "zoomFit": "اللوحة كاملة",
@@ -1837,6 +1840,15 @@ const t: Record<string, string> = {
   "historyScopedHint": "لديك جولات، لكنها في تمارين أخرى أو ملف آخر. افتح كل الألعاب.",
   "historyNewTask": "صعوبة جديدة",
   "historyLevelShort": "المستوى {n}",
+  "recoTitle": "موصى به اليوم",
+  "recoHint": "ثلاثة تمارين لليوم — لا تتغير حتى الغد",
+  "recoDoneToday": "لعبته اليوم",
+  "recoWhyComeback": "لم تلعبها منذ فترة",
+  "recoWhyGrowth": "هنا أنت تتقدم",
+  "recoWhyBranch": "هذا الفرع هو الأقل تدريبًا",
+  "recoWhyFresh": "جديد في التطبيق",
+  "recoWhyCalm": "للمساء — دون عجلة",
+  "recoWhyStart": "بداية جيدة",
   // >>> SCREEN_STRINGS
 };
 export default t;
