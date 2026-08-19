@@ -150,6 +150,8 @@ const NOT_A_GAME: Record<string, string> = {
     'экран-обёртка: партию рисует модуль src/games/math-slider/MathSliderGame.tsx, строка живёт там (strings.prompt) вместе со своим словарём',
   'object-tracker.tsx':
     'экран-обёртка: партию рисует модуль src/games/object-tracker/ObjectTrackerGame.tsx, строка живёт там (phaseTitle → strings.preview/moving/selection, свой словарь ru/en) и меняется на каждой фазе раунда',
+  'faces-names.tsx':
+    'экран-обёртка: партию рисует модуль src/games/faces-names/FacesNamesGame.tsx, строка живёт там и меняется по фазе (strings.recognitionPrompt → namePrompt → factPrompt, плюс strings.interferenceBody на помехе) вместе со своим словарём на 12 языков; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт faces-names-integration.test.ts',
   'navigator.tsx':
     'экран-обёртка: партию рисует модуль src/games/navigator/NavigatorGame.tsx, строка живёт там (strings.routePrompt / turnPrompt / homePrompt — своя на каждый из трёх режимов) вместе со своим словарём',
 };
