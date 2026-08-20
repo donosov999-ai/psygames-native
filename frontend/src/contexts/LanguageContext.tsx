@@ -1194,6 +1194,18 @@ const translations: Translations = {
   voiceSilent:     { ru: 'Запись получилась немой — микрофон не отдал звук. Проверьте разрешение для приложения и запишите ещё раз, иначе мы услышим тишину.', en: 'The recording came out silent — the microphone gave no sound. Check the app’s permission and record again, otherwise we will just hear silence.' },
   voicePlay:       { ru: 'Прослушать запись', en: 'Play the recording' },
   voiceCheckHint:  { ru: 'Послушайте себя перед отправкой: бывает, что микрофон пишет шум вместо голоса.', en: 'Listen to yourself before sending: sometimes the microphone records noise instead of your voice.' },
+  // Живой уровень во время записи: до v1.209 тишина и речь выглядели одинаково —
+  // бегущие секунды и красный кружок. 13 голосовых из 16 с одного устройства уехали
+  // немыми, и человек узнавал об этом никогда.
+  voiceLevelLabel:   { ru: 'Уровень микрофона', en: 'Microphone level' },
+  voiceLevelHearing: { ru: 'Слышим вас', en: 'We can hear you' },
+  voiceLevelSilence: { ru: 'Тишина — микрофон не отдаёт звук', en: 'Silence — the microphone is giving no sound' },
+  voiceCeilingReached: { ru: 'Запись остановилась сама — дошла до потолка длины. Отправьте как есть или запишите ещё одну.', en: 'The recording stopped on its own — it hit the length limit. Send it as is or record another one.' },
+  // Развилка вместо молчаливой отправки немой записи. Запрета нет: могли говорить
+  // шёпотом или в шумном месте — порог отличает тишину от звука, но не голос от шума.
+  voiceSilentTitle:  { ru: 'Мы вас не слышим', en: 'We cannot hear you' },
+  voiceSendAnyway:   { ru: 'Всё равно отправить', en: 'Send anyway' },
+  voiceWriteInstead: { ru: 'Напишу текстом', en: 'I’ll type it instead' },
   phonemicHint:    { ru: 'Слова на букву "{L}". Жми Enter после каждого', en: 'Words starting with "{L}". Press Enter after each' },
   phonemicPlaceholder: { ru: '{L}...', en: '{L}...' },
   phonemicAdd:     { ru: 'добавить', en: 'add' },

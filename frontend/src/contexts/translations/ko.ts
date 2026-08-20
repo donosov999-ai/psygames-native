@@ -1923,6 +1923,13 @@ const t: Record<string, string> = {
   "sudokuSandwichClueZero": "0은 합이 아닙니다: 여기서는 1과 9 사이에 칸이 없고 둘이 붙어 있습니다.",
   "sudokuColorWhy": "색은 아무것도 풀어 주지 않습니다. 내가 남기는 표시입니다 — 연결이 보이는 칸을 칠하세요.",
   "sudokuUndoWhy": "실행 취소는 칸을 원래대로 되돌립니다: 덮어쓴 숫자도, 가려졌던 메모도. 이미 쓴 실수는 돌려주지 않습니다.",
+  "voiceLevelLabel": "마이크 입력 레벨",
+  "voiceLevelHearing": "잘 들립니다",
+  "voiceLevelSilence": "무음입니다 — 마이크에서 소리가 오지 않습니다",
+  "voiceCeilingReached": "녹음이 저절로 멈췄습니다 — 길이 한도에 도달했습니다. 이대로 보내거나 다시 녹음하세요.",
+  "voiceSilentTitle": "목소리가 들리지 않습니다",
+  "voiceSendAnyway": "그래도 보내기",
+  "voiceWriteInstead": "글로 적을게요",
   // >>> SCREEN_STRINGS
 };
 export default t;

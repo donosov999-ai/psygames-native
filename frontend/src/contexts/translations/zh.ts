@@ -1928,6 +1928,13 @@ const t: Record<string, string> = {
   "sudokuSandwichClueZero": "0 不是和：这里 1 和 9 之间没有格子，它们紧挨着。",
   "sudokuColorWhy": "颜色不解题，它只是你自己的标记：把你看出有关联的格子涂上颜色。",
   "sudokuUndoWhy": "撤销把格子恢复原样：被覆盖的数字和被它遮住的候选数都会回来。已经用掉的错误不会还给你。",
+  "voiceLevelLabel": "麦克风音量",
+  "voiceLevelHearing": "能听到你",
+  "voiceLevelSilence": "一片安静 — 麦克风没有声音",
+  "voiceCeilingReached": "录音自动停止了 — 已到时长上限。可以就这样发送，或者重新录一段。",
+  "voiceSilentTitle": "我们听不到你",
+  "voiceSendAnyway": "仍然发送",
+  "voiceWriteInstead": "我改成打字",
   // >>> SCREEN_STRINGS
 };
 export default t;

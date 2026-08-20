@@ -78,11 +78,28 @@ export default function FeedbackWidget() {
   // доезжает распознавание её телефона — «глубоко запечатательное дыхание»
   // вместо «диафрагмальное». Оригинал звука снимает этот слой потерь.
   const [rec, setRec] = React.useState<Recorder | null>(null);
-  const [recSec, setRecSec] = React.useState(0);
+  /**
+   * 🔴 ЖИВОЙ УРОВЕНЬ, А НЕ ТОЛЬКО СЕКУНДЫ.
+   *
+   * До этого во время записи было видно ровно одно — бегущее время. Немая запись
+   * выглядела ТОЧНО ТАК ЖЕ, как говорящая: те же цифры, тот же красный кружок.
+   * Замер по боевой базе 20.08.2026: с одного устройства 13 голосовых из 16 —
+   * цифровая тишина (235 байт/с против 6300–15000 у нормальной речи), и человек
+   * узнавал об этом никогда. Полоска уровня отвечает на единственный вопрос,
+   * который у него есть: «меня слышно?»
+   *
+   * `peak` — максимум за всю запись, а не мгновенный: подпись не должна мигать
+   * «слышим / не слышим» в паузах между словами.
+   */
+  const [lvl, setLvl] = React.useState({ sec: 0, level: 0, peak: 0 });
   const [note, setNote] = React.useState<VoiceNote | null>(null);
   const [micDenied, setMicDenied] = React.useState(false);
   /** Запись получилась, но звука в ней нет — микрофон не отдал сэмплы. */
   const [micSilent, setMicSilent] = React.useState(false);
+  /** Человек увидел предупреждение о немой записи и решил отправить как есть. */
+  const [silentAck, setSilentAck] = React.useState(false);
+  /** Запись остановилась сама, упершись в потолок длины. */
+  const [ceilingHit, setCeilingHit] = React.useState(false);
 
   /** Проигрывание записи перед отправкой — единственная честная проверка, что голос попал. */
   const [playing, setPlaying] = React.useState(false);
@@ -107,26 +124,50 @@ export default function FeedbackWidget() {
     } catch { setPlaying(false); }
   };
 
+  /**
+   * Забрать запись и оценить её. Отдельно от кнопки, потому что остановить может
+   * не только человек: запись упирается в потолок длины и глохнет сама, и тогда
+   * заметку надо подобрать ровно так же, иначе интерфейс останется «записывающим»
+   * при мёртвом рекордере — ровно то, что случилось с заметкой на 648 секунд.
+   */
+  const recRef = React.useRef<Recorder | null>(null);
+  const finishRecording = async () => {
+    const r = recRef.current;
+    if (!r) return;
+    recRef.current = null;
+    const v = await r.stop();
+    setRec(null); setLvl({ sec: 0, level: 0, peak: 0 });
+    if (v) setNote(v);
+    // Немая запись — не молчим об этом. Две Валины заметки уехали полностью
+    // немыми (замер: −91 дБ, цифровая тишина), и по интерфейсу это выглядело
+    // как успешная отправка. Лучше сказать сразу, чем принять три минуты в пустоту.
+    //
+    // ⚠️ ТОЛЬКО ЕСЛИ УРОВЕНЬ ВООБЩЕ ЗАМЕРЯЛСЯ. `measured: false` означает, что
+    // анализатор не отработал ни разу (нет AudioContext, или он не проснулся), и
+    // тогда peak = 0 — это «не знаем», а не «тишина». Обвинить исправный микрофон
+    // хуже, чем промолчать: человек полезет в настройки разрешений на пустом месте.
+    setMicSilent(!!v && v.measured && v.peak < SILENCE_PEAK);
+  };
+
   const toggleRecord = async () => {
-    if (rec) {
-      const v = await rec.stop();
-      setRec(null); setRecSec(0);
-      if (v) setNote(v);
-      // Немая запись — не молчим об этом. Две Валины заметки уехали полностью
-      // немыми (замер: −91 дБ, цифровая тишина), и по интерфейсу это выглядело
-      // как успешная отправка. Лучше сказать сразу, чем принять три минуты в пустоту.
-      setMicSilent(!!v && v.peak < SILENCE_PEAK);
-      return;
-    }
-    setMicDenied(false); setMicSilent(false);
+    if (recRef.current) { await finishRecording(); return; }
+    setMicDenied(false); setMicSilent(false); setSilentAck(false); setCeilingHit(false);
     try {
       setNote(null);
-      setRec(await startRecording(setRecSec));
+      const r = await startRecording(
+        (sec, level) => setLvl((p) => ({ sec, level, peak: Math.max(p.peak, level) })),
+        () => { setCeilingHit(true); void finishRecording(); },
+      );
+      recRef.current = r;
+      setRec(r);
     } catch {
       // Отказ в микрофоне — не ошибка: человек просто пишет текстом.
       setMicDenied(true);
     }
   };
+
+  /** Убрать запись (крестик или выбор «напишу текстом») — вместе со всеми её ярлыками. */
+  const dropNote = () => { setNote(null); setMicSilent(false); setSilentAck(false); setCeilingHit(false); };
   const [attachShot, setAttachShot] = React.useState(true);
   const [sending, setSending] = React.useState(false);
   const [sent, setSent] = React.useState(false);
@@ -220,13 +261,41 @@ export default function FeedbackWidget() {
    */
   openSheetRef.current = openSheet;
 
-  const submit = async () => {
+  /**
+   * Показать выбор вместо кнопки «Отправить»: запись есть, звука в ней нет, и
+   * человек ещё не сказал, что делать. Не «заблокировать отправку» — именно
+   * развилка, потому что порог отличает тишину от звука, но не голос от шума,
+   * а говорить могли шёпотом.
+   */
+  const askSilent = !!note && micSilent && !silentAck;
+
+  /**
+   * @param ackSilent человек увидел «мы вас не слышим» и выбрал отправить как есть.
+   *
+   * ⚠️ ЯВНЫМ АРГУМЕНТОМ, А НЕ ЧТЕНИЕМ `silentAck`. Кнопка согласия ставит флаг и
+   * тут же зовёт отправку — состояние к этому моменту ещё не перерисовалось, и
+   * чтение `silentAck` вернуло бы старое `false`. Отправка молча не произошла бы.
+   */
+  const submit = async (ackSilent = false) => {
     // Голосом БЕЗ текста — полноценный репорт: ради этого запись и делали.
     // Раньше здесь стояло `if (!text.trim())`, а кнопка при этом была активна,
     // если есть запись, — человек жал «Отправить», не происходило ничего, и он
     // решал, что отзывы не уходят (репорт Rulon, v1.170). Условие должно
     // совпадать с условием доступности кнопки, иначе кнопка врёт.
     if ((!text.trim() && !note) || sending) return;
+    /**
+     * 🔴 НЕМУЮ ЗАПИСЬ НЕ ОТПРАВЛЯЕМ МОЛЧА.
+     *
+     * Мы ЗНАЕМ в момент отправки, что микрофон не отдал звук — уровень замерен и
+     * лежит в `audio_peak`. Раньше это знание уходило в базу, а человеку не
+     * доставалось: он жал «отправить», видел «спасибо» и уходил уверенный, что
+     * рассказал. Ровно против этого и заводился обратный контур.
+     *
+     * Запрета тут нет и быть не может: человек мог говорить шёпотом или в шумном
+     * месте, а порог различает тишину и звук, но не голос и шум. Поэтому —
+     * предупреждение и ВЫБОР, а решает он.
+     */
+    if (note && micSilent && !silentAck && !ackSilent) return;
     setSending(true);
     const res = await sendFeedback({
       kind,
@@ -241,7 +310,7 @@ export default function FeedbackWidget() {
       // ради которого в v1.190 заводили AnalyserNode, до базы не доезжал ни разу.
       // Уровень со стороны сервера считает ffmpeg, но это уже посмертно — а нужен
       // ответ на вопрос «телефон отдал звук или нет» в момент отправки.
-      audio: note ? { blob: note.blob, seconds: note.seconds, mime: note.mime, peak: note.peak } : null,
+      audio: note ? { blob: note.blob, seconds: note.seconds, mime: note.mime, peak: note.peak, measured: note.measured } : null,
       // profile/level — чтобы в репорте было видно, под каким профилем и на
       // каком уровне игры это словили (не гадать по скриншоту).
       context: {
@@ -257,10 +326,17 @@ export default function FeedbackWidget() {
       setOutcome(res);
       setSent(true);
       setText('');   // единственное место, где черновик стирается — после доставки
-      setNote(null);
-      // Дольше 1.3 с: тут теперь есть что прочитать, а не один значок.
-      // Закрыть можно и раньше — крестик остаётся на месте.
-      setTimeout(() => { setOpen(false); setShot(null); }, 3200);
+      setNote(null); setMicSilent(false); setSilentAck(false); setCeilingHit(false);
+      /**
+       * Дольше 1.3 с: тут теперь есть что прочитать, а не один значок.
+       * Закрыть можно и раньше — крестик остаётся на месте.
+       *
+       * ⚠️ ПЛОХУЮ НОВОСТЬ ЧИТАЮТ ДОЛЬШЕ ХОРОШЕЙ. «Спасибо» узнаётся по значку за
+       * долю секунды, а «запись не загрузилась — дошёл только текст» надо прочесть
+       * и понять, что делать дальше. Отдавать на это те же 3.2 секунды — почти то
+       * же самое, что не сказать: человек увидит, что шторка мигнула, и не успеет.
+       */
+      setTimeout(() => { setOpen(false); setShot(null); }, res.audioLost ? 9000 : 3200);
     } else {
       setText((t) => t);   // оставляем текст, чтобы не потерять написанное
       alert(t('feedbackSendFailed'));
@@ -379,7 +455,7 @@ export default function FeedbackWidget() {
                         />
                         <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>
                           {rec
-                            ? `${t('voiceStop')} · ${Math.floor(recSec / 60)}:${String(recSec % 60).padStart(2, '0')}`
+                            ? `${t('voiceStop')} · ${Math.floor(lvl.sec / 60)}:${String(lvl.sec % 60).padStart(2, '0')}`
                             : note
                               ? `${t('voiceAttached')} · ${note.seconds} ${t('secShort')}`
                               : t('voiceRecord')}
@@ -387,10 +463,52 @@ export default function FeedbackWidget() {
                         {note && !rec && (
                           <Ionicons
                             name="close-circle-outline" size={19} color={colors.textSecondary}
-                            onPress={() => setNote(null)}
+                            onPress={dropNote}
                           />
                         )}
                       </TouchableOpacity>
+
+                      {/* 🔴 ЖИВОЙ УРОВЕНЬ — ПОКА ЧЕЛОВЕК ГОВОРИТ, А НЕ ПОСЛЕ.
+                          Единственный вопрос, который у него есть в этот момент, —
+                          «меня слышно?». Раньше ответа не было вообще: тишина и речь
+                          выглядели одинаково (бегущие секунды), и 13 заметок из 16 с
+                          одного устройства уехали немыми, а человек об этом не узнал.
+                          Ширина с запасом ×140: обычная речь даёт пик 0.3–0.7, и без
+                          усиления полоска еле шевелилась бы. */}
+                      {rec && (
+                        <View
+                          accessibilityRole="progressbar"
+                          accessibilityLabel={t('voiceLevelLabel')}
+                          style={[styles.levelTrack, { backgroundColor: colors.card, borderColor: colors.border }]}
+                        >
+                          <View
+                            style={[styles.levelFill, {
+                              width: `${Math.max(2, Math.min(100, Math.round(lvl.level * 140)))}%`,
+                              backgroundColor: lvl.peak >= SILENCE_PEAK ? '#22c55e' : '#b45309',
+                            }]}
+                          />
+                        </View>
+                      )}
+                      {/* Подпись по ПИКУ за запись, а не по мгновенному уровню: иначе
+                          она мигала бы «слышим / не слышим» в паузах между словами.
+                          Про тишину говорим не сразу — первые секунды человек ещё
+                          подносит телефон и молчит. */}
+                      {rec && (lvl.peak >= SILENCE_PEAK || lvl.sec >= 3) && (
+                        <Text style={{
+                          color: lvl.peak >= SILENCE_PEAK ? '#22c55e' : '#b45309',
+                          fontSize: 12, fontWeight: '700',
+                        }}>
+                          {lvl.peak >= SILENCE_PEAK ? t('voiceLevelHearing') : t('voiceLevelSilence')}
+                        </Text>
+                      )}
+                      {/* Потолок длины: запись глохнет сама, и об этом надо сказать —
+                          иначе человек продолжает говорить в мёртвый рекордер. Именно
+                          так вышли заметки на 495, 540 и 648 секунд при потолке 180. */}
+                      {ceilingHit && !rec && (
+                        <Text style={{ color: '#b45309', fontSize: 12, fontWeight: '700' }}>
+                          {t('voiceCeilingReached')}
+                        </Text>
+                      )}
                       {/* Прослушать ДО отправки. Пороги громкости отличают тишину от звука,
                           но не голос от шума: четыре заметки от 07.08 имели пик −1.2 дБ и не
                           содержали речи — щелчки и шорох рук. Человек говорил больше минуты
@@ -414,7 +532,7 @@ export default function FeedbackWidget() {
                       {micDenied && (
                         <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{t('voiceDenied')}</Text>
                       )}
-                      {micSilent && !micDenied && (
+                      {micSilent && !micDenied && !askSilent && (
                         <Text style={{ color: '#b45309', fontSize: 12, fontWeight: '700' }}>{t('voiceSilent')}</Text>
                       )}
                       {note && !rec && !micSilent && (
@@ -440,16 +558,50 @@ export default function FeedbackWidget() {
                     </TouchableOpacity>
                   )}
 
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    onPress={submit}
-                    disabled={(!text.trim() && !note) || sending}
-                    style={[styles.send, { backgroundColor: (text.trim() || note) ? '#ef4444' : colors.border }]}
-                  >
-                    {sending
-                      ? <ActivityIndicator color="#fff" />
-                      : <Text style={styles.sendText}>{t('send')}</Text>}
-                  </TouchableOpacity>
+                  {askSilent ? (
+                    /* 🔴 РАЗВИЛКА ВМЕСТО «ОТПРАВИТЬ». Кнопка отправки здесь не просто
+                       отключена — её нет: отключённая кнопка при живом намерении врёт
+                       ровно так же, как молчаливая отправка (этим уже обжигались,
+                       см. комментарий в submit). Человек видит, ПОЧЕМУ, и выбирает. */
+                    <View style={[styles.silentBox, { borderColor: '#b45309', backgroundColor: colors.card }]}>
+                      <Text style={[styles.silentTitle, { color: '#b45309' }]}>⚠️ {t('voiceSilentTitle')}</Text>
+                      <Text style={{ color: colors.text, fontSize: 12.5, lineHeight: 17 }}>{t('voiceSilent')}</Text>
+                      <View style={styles.silentBtns}>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          onPress={dropNote}
+                          style={[styles.silentBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+                        >
+                          <Text numberOfLines={2} style={[styles.silentBtnText, { color: colors.text }]}>
+                            {t('voiceWriteInstead')}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          onPress={() => { setSilentAck(true); void submit(true); }}
+                          disabled={sending}
+                          style={[styles.silentBtn, { borderColor: '#b45309', backgroundColor: '#b45309' }]}
+                        >
+                          {sending
+                            ? <ActivityIndicator color="#fff" />
+                            : <Text numberOfLines={2} style={[styles.silentBtnText, { color: '#fff' }]}>
+                                {t('voiceSendAnyway')}
+                              </Text>}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      onPress={() => submit()}
+                      disabled={(!text.trim() && !note) || sending}
+                      style={[styles.send, { backgroundColor: (text.trim() || note) ? '#ef4444' : colors.border }]}
+                    >
+                      {sending
+                        ? <ActivityIndicator color="#fff" />
+                        : <Text style={styles.sendText}>{t('send')}</Text>}
+                    </TouchableOpacity>
+                  )}
                 </>
               )}
             </ScrollView>
@@ -504,6 +656,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 10,
     borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 14,
   },
+  // Полоска живого уровня микрофона. Тонкая и во всю ширину — она отвечает на
+  // «меня слышно?», а не претендует на место в вёрстке.
+  levelTrack: {
+    height: 10, borderRadius: 5, borderWidth: 1, overflow: 'hidden',
+    marginBottom: 2, justifyContent: 'center',
+  },
+  levelFill: { height: '100%', borderRadius: 5 },
+  silentBox: { borderWidth: 1.5, borderRadius: 12, padding: 12, gap: 8 },
+  silentTitle: { fontSize: 14, fontWeight: '800' },
+  silentBtns: { flexDirection: 'row', gap: 8, marginTop: 2 },
+  // minHeight 48 — тот же минимум попадания пальцем, что и у плавающей кнопки.
+  silentBtn: {
+    flex: 1, minWidth: 0, minHeight: 48, borderWidth: 1.5, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8, paddingVertical: 10,
+  },
+  silentBtnText: { fontWeight: '800', fontSize: 12.5, textAlign: 'center' },
   send: { paddingVertical: 15, borderRadius: 12, alignItems: 'center' },
   sendText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   thanks: { alignItems: 'center', gap: 10, paddingVertical: 30 },

@@ -161,7 +161,7 @@ interface SendArgs {
   gameId?: string;
   shot?: Blob | null;
   /** Голосовая заметка: оригинал речи, а не то, что расслышал телефон. */
-  audio?: { blob: Blob; seconds: number; mime: string; peak?: number } | null;
+  audio?: { blob: Blob; seconds: number; mime: string; peak?: number; measured?: boolean } | null;
   context?: Record<string, unknown>;
 }
 
@@ -202,9 +202,29 @@ function withTimeout<T>(p: PromiseLike<T>, ms: number, onTimeout: T): Promise<T>
 
 import { gameVersionLabel } from '@/src/constants/gameVersions';
 
-const SHOT_UPLOAD_MS = 12000;
-const AUDIO_UPLOAD_MS = 25000;   // запись до 3 минут — ей нужно больше
 const INSERT_MS = 12000;
+
+/**
+ * 🔴 СКОЛЬКО ЖДАТЬ ЗАЛИВКУ ВЛОЖЕНИЯ — ОТ РАЗМЕРА, А НЕ ПЛОСКОЙ КОНСТАНТОЙ.
+ *
+ * Стояло 12 000 на скриншот и 25 000 на запись, независимо от веса файла, и это не
+ * сходится с арифметикой: 500 КБ на слабой мобильной связи в 50 кбит/с — это 80 секунд,
+ * то есть тайм-аут срабатывал бы на ИСПРАВНОЙ сети.
+ *
+ * Что так и было, видно по хранилищу: замер 20.08.2026 нашёл в бакете скриншотов ЧЕТЫРЕ
+ * осиротевших файла — они долиты, но ни в одной строке репорта на них нет ссылки. Это и
+ * есть брошенная по тайм-ауту заливка, которая потом всё-таки дошла: файл лежит, а
+ * человеку сказано «не загрузилось».
+ *
+ * Базовые 10 с плюс 60 мс на килобайт, дальше потолок: спиннер сверх него человек всё
+ * равно читает как «зависло», и лучше отдать репорт без вложения, чем держать его у
+ * неподвижного экрана.
+ */
+function uploadMs(bytes: number, cap: number): number {
+  return Math.min(cap, 10000 + Math.round((bytes / 1024) * 60));
+}
+const SHOT_CAP_MS = 30000;
+const AUDIO_CAP_MS = 45000;   // запись — это сам репорт, ей ждём дольше скриншота
 
 export async function sendFeedback(args: SendArgs): Promise<SendResult> {
   const hadAudio = !!args.audio?.blob;
@@ -220,17 +240,21 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
 
     // 1) Скриншот в приватный бакет (если снялся). Ошибка загрузки не отменяет фидбек.
     let shot_path: string | null = null;
+    let shot_up: string | null = null;
+    const shot_bytes = args.shot ? args.shot.size : null;
     if (args.shot) {
       try {
         const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.jpg`;
-        const ok = await withTimeout(
+        shot_up = await withTimeout<string>(
           supabase.storage.from(SHOT_BUCKET)
             .upload(name, args.shot, { contentType: 'image/jpeg', upsert: false })
-            .then(({ error }: any) => !error),
-          SHOT_UPLOAD_MS, false,
+            .then(({ error }: any) => (error ? `err:${String(error?.message ?? error).slice(0, 120)}` : 'ok')),
+          uploadMs(args.shot.size, SHOT_CAP_MS), 'timeout',
         );
-        if (ok) shot_path = name;
-      } catch {}
+        if (shot_up === 'ok') shot_path = name;
+      } catch (e: any) {
+        shot_up = `threw:${String(e?.message ?? e).slice(0, 120)}`;
+      }
     }
 
     // 1b) Голосовая заметка — тем же правилом: не загрузилась, репорт всё равно
@@ -238,18 +262,39 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
     // показали «спасибо», человек уверен, что рассказал о проблеме голосом, —
     // и никто никогда не узнает, что до нас доехал только текст.
     let audio_path: string | null = null;
+    /**
+     * 🔴 ПОЧЕМУ ЗАПИСЬ НЕ ДОЕХАЛА — В САМ РЕПОРТ.
+     *
+     * Замер 20.08.2026: три заметки (495, 540 и 648 секунд) приехали с пустым
+     * `audio_path`, и разбирать было НЕЧЕМ. Сироты в бакете отсутствуют — значит
+     * заливка не доходила вовсе; размер тоже ни при чём (самый крупный файл за всё
+     * время — 502 КБ при потолке бакета в 8 МБ). Дальше начинались догадки, потому
+     * что ни размера блоба, ни причины отказа мы не сохраняли НИ РАЗУ.
+     *
+     * Теперь сохраняем: размер, исход и текст ошибки хранилища. Следующий такой
+     * случай — один запрос к базе, а не второй заход археологии.
+     */
+    let audio_up: string | null = null;
+    const audio_bytes = args.audio?.blob ? args.audio.blob.size : null;
     if (args.audio?.blob) {
       try {
-        const { extFor } = await import('@/src/services/voiceNote');
-        const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.${extFor(args.audio.mime)}`;
-        const ok = await withTimeout(
-          supabase.storage.from(AUDIO_BUCKET)
-            .upload(name, args.audio.blob, { contentType: args.audio.mime, upsert: false })
-            .then(({ error }: any) => !error),
-          AUDIO_UPLOAD_MS, false,
-        );
-        if (ok) audio_path = name;
-      } catch {}
+        const { extFor, AUDIO_MAX_BYTES } = await import('@/src/services/voiceNote');
+        if (args.audio.blob.size > AUDIO_MAX_BYTES) {
+          // Потолок бакета известен заранее — незачем ждать отказ хранилища молча.
+          audio_up = 'too_big';
+        } else {
+          const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.${extFor(args.audio.mime)}`;
+          audio_up = await withTimeout<string>(
+            supabase.storage.from(AUDIO_BUCKET)
+              .upload(name, args.audio.blob, { contentType: args.audio.mime, upsert: false })
+              .then(({ error }: any) => (error ? `err:${String(error?.message ?? error).slice(0, 120)}` : 'ok')),
+            uploadMs(args.audio.blob.size, AUDIO_CAP_MS), 'timeout',
+          );
+          if (audio_up === 'ok') audio_path = name;
+        }
+      } catch (e: any) {
+        audio_up = `threw:${String(e?.message ?? e).slice(0, 120)}`;
+      }
     }
 
     // 2) Сам фидбек
@@ -291,10 +336,22 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
          */
         ...netTrace(),
         net_queued: await queuedCount(),
+        // Судьба скриншота — по тем же причинам, что и записи: в бакете нашлись ЧЕТЫРЕ
+        // осиротевших файла (долиты, но ни в одной строке на них нет ссылки), а понять
+        // по репорту, что там случилось, было нельзя.
+        ...(args.shot ? { shot_bytes, shot_up } : null),
         // audio_peak — пиковый уровень записи, 0..1. Нужен, чтобы немая заметка была
         // видна В БАЗЕ, а не только человеку: две Валины записи приехали на −91 дБ
         // (цифровая тишина), и по метаданным это было не отличить от нормальной.
-        ...(args.audio ? { audio_seconds: args.audio.seconds, audio_peak: args.audio.peak ?? null } : null),
+        // audio_measured — отработал ли анализатор вообще. Без него `audio_peak: 0`
+        // читается и как «тишина», и как «замерить не вышло», а это разные диагнозы.
+        // audio_bytes/audio_up — размер и исход заливки, см. пояснение выше.
+        ...(args.audio ? {
+          audio_seconds: args.audio.seconds,
+          audio_peak: args.audio.peak ?? null,
+          audio_measured: args.audio.measured ?? null,
+          audio_bytes, audio_up,
+        } : null),
       },
     };
     const insertFailed = await withTimeout(

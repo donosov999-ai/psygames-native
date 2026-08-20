@@ -1928,6 +1928,13 @@ const t: Record<string, string> = {
   "sudokuSandwichClueZero": "Eine Null ist keine Summe: hier liegt kein Feld zwischen der 1 und der 9, sie stehen nebeneinander.",
   "sudokuColorWhy": "Farbe entscheidet nichts — sie ist deine eigene Markierung: färbe Felder, zwischen denen du einen Zusammenhang siehst.",
   "sudokuUndoWhy": "Rückgängig stellt das Feld wieder her: die überschriebene Ziffer und die dadurch verdeckten Notizen. Einen verbrauchten Fehler gibt es nicht zurück.",
+  "voiceLevelLabel": "Mikrofonpegel",
+  "voiceLevelHearing": "Wir hören dich",
+  "voiceLevelSilence": "Stille — das Mikrofon liefert keinen Ton",
+  "voiceCeilingReached": "Die Aufnahme hat von selbst gestoppt — die Längengrenze ist erreicht. Schick sie so ab oder nimm eine neue auf.",
+  "voiceSilentTitle": "Wir hören dich nicht",
+  "voiceSendAnyway": "Trotzdem senden",
+  "voiceWriteInstead": "Ich schreibe es",
   // >>> SCREEN_STRINGS
 };
 export default t;

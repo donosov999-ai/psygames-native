@@ -1922,6 +1922,13 @@ const t: Record<string, string> = {
   "sudokuSandwichClueZero": "0 は合計ではありません。ここでは 1 と 9 の間にマスがなく、隣り合っています。",
   "sudokuColorWhy": "色は答えを出しません。自分用の目印です — つながりが見えたマスを塗ってください。",
   "sudokuUndoWhy": "取り消すとマスは元に戻ります。上書きした数字も、隠れていたメモも戻ります。使ったミスは戻りません。",
+  "voiceLevelLabel": "マイクの音量レベル",
+  "voiceLevelHearing": "聞こえています",
+  "voiceLevelSilence": "無音です — マイクから音が届いていません",
+  "voiceCeilingReached": "録音は自動で止まりました — 長さの上限です。このまま送るか、もう一度録り直してください。",
+  "voiceSilentTitle": "声が聞こえません",
+  "voiceSendAnyway": "このまま送る",
+  "voiceWriteInstead": "文字で書きます",
   // >>> SCREEN_STRINGS
 };
 export default t;
