@@ -593,6 +593,9 @@ export default function SudokuGame() {
     setGiven(p.map((r) => r.map((v) => v !== 0)));
     setCellColors(emptySudokuCellColors(d.N));
     setPaintColor(null);
+    // Новая доска — новый взгляд: строка над ней говорит правило ЭТОЙ доски, а не
+    // «что вернула отмена» с прошлого уровня.
+    setBoardFocus(null);
     setMarks(emptyPencilMarks(d.N));   // новая доска — чистый лист и в карандашном слое
     setPencil(false);
     setSelected(null);
