@@ -16,6 +16,36 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.207.0',
+    date: '2026-08-20',
+    ru: [
+      "Цель дня: приложение спрашивает, ради чего вы сегодня заходите, и считает партии к ней",
+      "«Рекомендуем сегодня» — три упражнения с причиной у каждого, а не выбор из 71",
+      "Чистая партия платит вдвое, и видно, что и сколько принесло сегодня",
+      "Вкладка истории: что менялось от раза к разу, а не сколько всего сыграно",
+      "Карандашные пометки теперь и в обычной судоку, и в самурае",
+      "Новый вариант судоку: термометр и клетки-суммы на одной доске",
+      "На тропинке под пройденными узлами — ваше лучшее время",
+      "Питомец носит бабочку на шее, а не на пузе и не на хвосте",
+      "Самурай больше не молчит, пока собирает доску: видно, что идёт работа",
+      "Во фрактальной судоку треть досок «уровня 20» была уровнем 16 с другой надписью — теперь ступени настоящие",
+      "На уровнях 26–30 фрактала треть сеток была уже виденной, просто повёрнутой",
+    ],
+    en: [
+      "Goal of the day: the app asks what you came for today and counts rounds toward it",
+      "Recommended today — three exercises, each with a reason, instead of picking from 71",
+      "A clean round pays double, and you can see what earned what today",
+      "History tab: what changed from time to time, not how much you played in total",
+      "Pencil marks now in classic Sudoku and Samurai too",
+      "A new Sudoku variant: thermometers and sum cages on one board",
+      "Your best time now sits under each cleared node on the level path",
+      "The pet wears its bow tie on the neck, not on the belly or the tail",
+      "Samurai no longer goes silent while it builds a board",
+      "In Fractal Sudoku a third of “level 20” boards were level 16 with a different label — the tiers are real now",
+      "On fractal levels 26-30 a third of the grids were ones you had already seen, just rotated",
+    ],
+  },
+  {
     version: '1.206.3',
     date: '2026-08-19',
     ru: [
