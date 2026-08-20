@@ -165,6 +165,8 @@ interface SendArgs {
     blob: Blob; seconds: number; mime: string; peak?: number; measured?: boolean;
     /** Что сказала о себе звуковая дорожка — см. `TrackState` в voiceNote. */
     track?: { muted: boolean; readyState: string; label: string; everMuted: boolean } | null;
+    /** Каким путём открыт микрофон — см. `MicSource` в voiceNote. */
+    source?: string;
   } | null;
   context?: Record<string, unknown>;
 }
@@ -352,6 +354,10 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
         // audio_bytes/audio_up — размер и исход заливки, см. пояснение выше.
         ...(args.audio ? {
           audio_seconds: args.audio.seconds,
+          // audio_mime — в каком контейнере пришла запись. Доезжать до базы он
+          // перестал незаметно (нашёл гейт на полноту полей): по строке нельзя
+          // было отличить webm/opus от mp4, а расшифровка спотыкается именно об это.
+          audio_mime: args.audio.mime ?? null,
           audio_peak: args.audio.peak ?? null,
           audio_measured: args.audio.measured ?? null,
           // audio_track — прямой ответ устройства о микрофоне: `muted` значит
@@ -360,6 +366,12 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
           // OnePlus 8 Pro (13 немых записей из 16) отличить одно от другого
           // можно только так.
           audio_track: args.audio.track ?? null,
+          // audio_source — каким путём открыт микрофон: сырым (обработка выключена)
+          // или обычным. Замер 20.08.2026: из 16 устройств слышимую речь дало одно,
+          // остальные — цифровую тишину на обычном пути. Сырой путь — гипотеза
+          // починки, и без этого поля мы снова 13 дней не сможем сказать,
+          // сработала она или нет. Вместе с audio_peak отвечает прямо.
+          audio_source: args.audio.source ?? null,
           audio_bytes, audio_up,
         } : null),
       },

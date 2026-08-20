@@ -47,6 +47,15 @@ function installMic(opts: {
   muteThenBack?: boolean;
   /** Старый WebView без `getAudioTracks` — спрашивать дорожку нечем. */
   noTrackApi?: boolean;
+  /**
+   * Что слышно, если попросить СЫРОЙ микрофон (обработка выключена). Не задано —
+   * устройство отвечает одинаково на оба запроса, как и было до выбора источника.
+   */
+  rawLevel?: number;
+  /** Сырой микрофон устройство не даёт вовсе — отказ по условиям. */
+  rawFails?: boolean;
+  /** Обработанный микрофон устройство не даёт вовсе. */
+  processedFails?: boolean;
 }) {
   const mode = opts.ctx ?? 'ok';
   let wakes = 0;
@@ -75,7 +84,21 @@ function installMic(opts: {
     setTimeout(() => (globalThis as any).__muteTrackNow(), 5);
     setTimeout(() => { audioTrack.muted = false; }, 12);
   }
-  (globalThis as any).navigator.mediaDevices = { getUserMedia: async () => stream };
+  /** Сырым считается запрос с ЯВНО выключенной обработкой — так его шлёт openMic. */
+  const isRaw = (c: any) => !!c?.audio && typeof c.audio === 'object' && c.audio.echoCancellation === false;
+  const micCalls: string[] = [];
+  (globalThis as any).navigator.mediaDevices = {
+    getUserMedia: async (c: any) => {
+      const raw = isRaw(c);
+      micCalls.push(raw ? 'raw' : 'processed');
+      if (raw && opts.rawFails) throw new Error('OverconstrainedError');
+      if (!raw && opts.processedFails) throw new Error('NotAllowedError');
+      // Одно и то же устройство, но слышно по-разному в зависимости от того,
+      // каким путём его открыли, — ровно это и происходит на Android.
+      stream.__level = raw ? (opts.rawLevel ?? opts.level) : opts.level;
+      return stream;
+    },
+  };
 
   const recs: any[] = [];
   class FakeRec {
@@ -102,11 +125,12 @@ function installMic(opts: {
   (globalThis as any).MediaRecorder = FakeRec;
 
   // 128 = середина шкалы = тишина. Отклонение от неё и есть уровень.
-  const byte = 128 + Math.round(opts.level * 127);
+  // Читаем ЛЕНИВО: уровень зависит от того, каким путём открыли микрофон.
+  const byteNow = () => 128 + Math.round(((stream.__level ?? opts.level) as number) * 127);
   class FakeCtx {
     // Контекст, заведённый после await, приходит suspended — как в реальном Chrome.
     state = 'suspended';
-    createAnalyser() { return { fftSize: 512, getByteTimeDomainData: (b: Uint8Array) => b.fill(byte) }; }
+    createAnalyser() { return { fftSize: 512, getByteTimeDomainData: (b: Uint8Array) => b.fill(byteNow()) }; }
     createMediaStreamSource() { return { connect: () => {} }; }
     close() {}
     resume() {
@@ -120,7 +144,7 @@ function installMic(opts: {
   const w = ((globalThis as any).window = (globalThis as any).window || {});
   w.AudioContext = mode === 'none' ? undefined : FakeCtx;
   w.webkitAudioContext = undefined;
-  return { tracks, recs };
+  return { tracks, recs, micCalls };
 }
 
 describe('живой уровень доходит до интерфейса, пока человек говорит', () => {
@@ -462,5 +486,74 @@ describe('состояние звуковой дорожки', () => {
     const rec = await startRecording();
     const note = await rec.stop();
     expect(note?.track).toBeNull();
+  });
+});
+
+/**
+ * КАКИМ МИКРОФОНОМ СНЯТА ЗАМЕТКА.
+ *
+ * 🔴 ЗАЧЕМ ЭТО ПРОВЕРЯТЬ. Прошлая попытка починить немоту (07.08.2026) состояла в
+ * том, что отказ сделали видимым, а причину оставили гипотезой — и 13 дней никто
+ * не мог сказать, сработало или нет. Теперь путь захвата ВИДЕН в каждой заметке,
+ * и связка «источник + пик» отвечает на вопрос по боевым отчётам. Гейт держит на
+ * месте ровно это: что источник выбирается как задумано и доезжает до заметки.
+ */
+describe('выбор микрофона', () => {
+  afterEach(() => { jest.useRealTimers(); });
+
+  it('🔴 просим СЫРОЙ микрофон — обработанный не трогаем вовсе', async () => {
+    const { micCalls } = installMic({ level: 0.5 });
+    const r = await startRecording();
+    expect(micCalls).toEqual(['raw']);
+    r.cancel();
+  });
+
+  it('🔴 источник уезжает в заметку, а не остаётся догадкой', async () => {
+    installMic({ level: 0.5 });
+    const r = await startRecording();
+    const note = await r.stop();
+    expect(note?.source).toBe('raw');
+  });
+
+  it('🔴 устройство не умеет выключать обработку → идём обычным путём', async () => {
+    const { micCalls } = installMic({ level: 0.5, rawFails: true });
+    const r = await startRecording();
+    const note = await r.stop();
+    expect(micCalls).toEqual(['raw', 'processed']);
+    expect(note?.source).toBe('processed');
+  });
+
+  /**
+   * ⚠️ САМОЕ ВАЖНОЕ ЗДЕСЬ. Отказ в ДОСТУПЕ повторять нельзя: человек получит
+   * второй системный диалог подряд за один тап. Отказ в УСЛОВИЯХ — можно и нужно.
+   * Различие держится по имени ошибки, и без этой проверки оно тихо исчезнет.
+   */
+  it('🔴 человек не дал микрофон — вторым запросом не мучаем', async () => {
+    const { micCalls } = installMic({ level: 0.5 });
+    const md = (globalThis as any).navigator.mediaDevices;
+    const inner = md.getUserMedia;
+    md.getUserMedia = async (c: any) => {
+      await inner(c);                       // считаем попытку
+      const e: any = new Error('нет доступа'); e.name = 'NotAllowedError'; throw e;
+    };
+    await expect(startRecording()).rejects.toThrow('нет доступа');
+    expect(micCalls).toEqual(['raw']);
+  });
+
+  it('и сырой, и обработанный отказали — ошибка уходит наружу, экран объяснится', async () => {
+    installMic({ level: 0.5, rawFails: true, processedFails: true });
+    await expect(startRecording()).rejects.toThrow();
+  });
+
+  it('немая запись на сыром пути всё равно помечена немой — источник не отменяет замер', async () => {
+    jest.useFakeTimers();
+    installMic({ level: 0 });
+    const r = await startRecording();
+    jest.advanceTimersByTime(2000);
+    const p = r.stop();
+    jest.advanceTimersByTime(2000);
+    const note = await p;
+    expect(note?.source).toBe('raw');
+    expect(shouldWarnSilent(note)).toBe(true);
   });
 });
