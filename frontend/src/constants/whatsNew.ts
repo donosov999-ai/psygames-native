@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.211.0',
+    date: '2026-08-21',
+    ru: [
+      "Друзья по коду приглашения: назовите свой код или введите чужой — и сравнивайте рекорды со своим кругом, а не с незнакомцами",
+      "Кнопку отзыва теперь можно переставить: зажмите её и ведите, место запомнится",
+      "Голосовая заметка больше не пропадает, если сеть моргнула при отправке — заливка повторяется вторым путём",
+      "Незаконченная партия возвращается и во фрактальной судоку с самураем — последние две игры из девяти",
+    ],
+    en: [
+      "Friends by invite code: share your code or enter theirs, and compare records with your own circle instead of strangers",
+      "The feedback button can be moved now: press and drag it, and it stays where you put it",
+      "A voice note is no longer lost when the network blinks while sending — the upload retries by a second route",
+      "Your unfinished game now comes back in fractal and samurai sudoku too — the last two of nine",
+    ],
+  },
+  {
     version: '1.210.0',
     date: '2026-08-21',
     ru: [
