@@ -60,6 +60,7 @@ Stroop, Go/No-Go, समयबद्ध गणना और Trail Making से 
 ऐप में क्या है
 • memory, attention, logic, speed और control के 71 अभ्यास
 • सुबह, दिन, शाम और रात के लिए एक टैप में तैयार warm-up
+• डार्क थीम और «नींद न आए» वाला रात का सेट: मंद स्क्रीन पर 4-7-8 साँस, बिना points और बिना streak
 • 12 लक्ष्य-आधारित profiles: languages, kids, 50+, focus, reaction, students और अन्य
 • strengths और सुधार वाले हिस्सों का radar assessment
 • 12 भाषाएँ · ऑफलाइन चलता है · विज्ञापन नहीं · registration नहीं

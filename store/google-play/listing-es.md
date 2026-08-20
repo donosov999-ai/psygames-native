@@ -53,14 +53,15 @@ Muchas apps repiten la misma prueba hasta aburrir. PsyGames ajusta el reto a tu 
 • Cada juego tiene niveles: si aciertas, la dificultad sube; si fallas, espera por ti
 • Las rondas de jefe cambian una regla en momentos clave
 • La racha convierte unos minutos diarios en un hábito
-• Sinapsis, tu mascota, crece con tus entrenamientos y señala qué habilidad necesita trabajo
-• Ganas puntos por precisión y velocidad, con marcos, avatares y títulos para desbloquear
+• Sinapsis, tu mascota, crece con tus entrenamientos y señala qué reforzar
+• Puntos por precisión y velocidad, con marcos, avatares y títulos
 • Hay un reto diario, logros y objetivos claros
 
 QUÉ INCLUYE
 • 71 ejercicios de memoria, atención, lógica, velocidad y control
 • Calentamientos de mañana, tarde y noche listos para empezar con un toque
-• 12 perfiles para metas distintas: idiomas, niños, mayores de 50, enfoque, reacción, estudiantes y más
+• Tema oscuro y un set nocturno para cuando no puedes dormir: respiración 4-7-8, pantalla atenuada, sin puntos ni racha
+• 12 perfiles: idiomas, niños, 50+, enfoque, reacción, estudiantes y más
 • Evaluación con un radar de fortalezas y aspectos por mejorar
 • 12 idiomas · funciona sin conexión · sin anuncios · sin registro
 

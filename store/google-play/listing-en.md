@@ -69,8 +69,9 @@ Everyone downloads a brain app. Most open it three times and delete it — same 
 
 WHAT'S INSIDE
 • 71 exercises for memory, attention, logic, speed and control
-• Warm-up in one button: morning, daytime, evening and night — ready sets launch with the right settings
-• 12 profiles for different goals: languages, kids, 50+, focus, reaction, founders and more
+• Warm-up in one button: morning, daytime, evening and night
+• Dark theme, and a night set for when you can't sleep: 4-7-8 breathing on a dimmed screen, no points, no streak
+• 12 profiles: languages, kids, 50+, focus, reaction, founders and more
 • Assessment with a radar of strengths and weak spots
 • 12 languages · works offline · no ads
 
