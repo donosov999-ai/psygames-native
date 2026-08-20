@@ -38,6 +38,10 @@ jest.mock('@/src/contexts/ProfileContext', () => ({
   useProfile: () => mockCtx,
 }));
 
+declare const __dirname: string;
+const { readFileSync, readdirSync } = require('fs');
+const { join } = require('path');
+
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
@@ -148,5 +152,47 @@ describe('подъём незаконченной партии', () => {
     await flush();
     expect(m.seen).toEqual([null]);
     m.unmount();
+  });
+});
+
+/**
+ * 🔴 ЧТОБЫ ДЕСЯТАЯ ИГРА НЕ ЗАВЕЛА ТУ ЖЕ ОШИБКУ КОПИПАСТОМ.
+ *
+ * Девять игр подняли партию одинаково неверно не потому, что автор не подумал, а
+ * потому, что скопировал соседа. Починка в девяти местах оставляет десятому
+ * экрану ровно ту же возможность — значит чинить надо возможность.
+ *
+ * ⚠️ КОММЕНТАРИИ СРЕЗАЕМ. В этих файлах много объяснений, и в них дословно
+ * встречаются искомые имена: гейт, ищущий по всему тексту, зеленеет от
+ * собственного комментария и перестаёт что-либо проверять.
+ */
+describe('подъём партии — только через общий хук', () => {
+  const dir = join(__dirname, '../../app/games');
+  const games = readdirSync(dir).filter((f: string) => f.endsWith('.tsx'));
+
+  const code = (f: string): string => (readFileSync(join(dir, f), 'utf8') as string)
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+
+  it('есть что проверять — иначе гейт зелен вслепую', () => {
+    expect(games.length).toBeGreaterThanOrEqual(60);
+  });
+
+  it('🔴 ни один экран не зовёт loadResume сам', () => {
+    const guilty = games.filter((f: string) => /\bloadResume\s*[<(]/.test(code(f)));
+    expect(guilty).toEqual([]);
+  });
+
+  it('🔴 кто сохраняет партию — обязан её и поднимать', () => {
+    const forgetful = games.filter((f: string) => {
+      const c = code(f);
+      return /\bsaveResume\s*\(/.test(c) && !/\buseResumeBoot\s*[<(]/.test(c);
+    });
+    expect(forgetful).toEqual([]);
+  });
+
+  it('и таких экранов девять — счёт держим, чтобы гейт не опустел молча', () => {
+    const withBoot = games.filter((f: string) => /\buseResumeBoot\s*[<(]/.test(code(f)));
+    expect(withBoot.length).toBe(9);
   });
 });

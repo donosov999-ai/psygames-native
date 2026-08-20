@@ -20,7 +20,8 @@ import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
-import { saveResume, loadResume, clearResume } from '@/src/services/resume';
+import { saveResume, clearResume } from '@/src/services/resume';
+import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import BoardBuilding, { runSteps, nextFrame, type BuildStatus } from '@/src/components/BoardBuilding';
 import { TECHNIQUE_TIER, type Technique } from '@/src/services/sudoku-grade';
 import { buildSolution, GRID_ORIGINS, isSolved as samuraiSolved } from '@/src/services/samurai';
@@ -1235,25 +1236,14 @@ export default function SamuraiSudokuGame() {
 
   // Поднять незаконченную партию при входе на экран. Путь зарядки (autostart) не трогаем:
   // там человек явно запустил свежий раунд, и startGame сам выбросит старую партию.
-  const bootRef = useRef(false);
-  useEffect(() => {
-    if (autostart || bootRef.current) return;
-    const pid = profile?.id;
-    if (!pid) return;
-    bootRef.current = true;
-    let cancelled = false;
-    loadResume<SamuraiResume>(GAME_ID, pid, RESUME_V)
-      .then((saved) => {
-        // Пока запись поднималась с диска, человек мог нажать «играть». Сборка идёт
-        // секундами, и старая партия успела бы приехать ей в середину — не воскрешаем.
-        if (cancelled || buildRef.current > 0) return;
-        if (!saved || !Array.isArray(saved.grid) || saved.grid.length !== SIZE) return;
-        if (!Array.isArray(saved.solution) || saved.solution.length !== SIZE) return;
-        applyResume(saved);
-      })
-      .catch(() => { /* нет партии — обычный вход через конфиг */ });
-    return () => { cancelled = true; };
-  }, [profile?.id, autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — разовый подъём партии
+  useResumeBoot<SamuraiResume>(GAME_ID, RESUME_V, (saved) => {
+    // Пока запись поднималась с диска, человек мог нажать «играть». Сборка идёт
+    // секундами, и старая партия успела бы приехать ей в середину — не воскрешаем.
+    if (buildRef.current > 0) return;
+    if (!saved || !Array.isArray(saved.grid) || saved.grid.length !== SIZE) return;
+    if (!Array.isArray(saved.solution) || saved.solution.length !== SIZE) return;
+    applyResume(saved);
+  }, autostart);
 
   // Автосохранение по ходу партии. Пишем с задержкой: подряд идущие касания не должны
   // бить по хранилищу каждым нажатием.
