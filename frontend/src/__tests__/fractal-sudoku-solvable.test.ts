@@ -53,10 +53,13 @@ import {
   logicSolveCalls, resetLogicSolveCalls,
   SEED_PUZZLES, transformSeed, FRACTAL_TIERS, SEED_RECALL, resetSeedRecall,
   startPlayState, playDigit, revertMove, givenOf,
+  portalOf, withPortalsResolved, portalSolutions, logicSolveLinked,
+  portalProbeCalls, resetPortalProbeCalls,
   type FractalPuzzle, type FractalPlayState,
 } from '@/src/services/fractal-sudoku';
 import {
   fractalLevel, fractalTier, fractalChildTiers, FRACTAL_MAX_LEVEL, FRACTAL_CHILDREN,
+  fractalPortalCount, FRACTAL_MAX_PORTALS,
 } from '@/src/services/fractalLevels';
 import { makeRng } from '@/src/services/seed';
 import { countSolutions } from '@/src/services/sudoku-core';
@@ -168,6 +171,8 @@ function playToWin(f: FractalPuzzle): string | null {
 
 /** Доля сеток уровня, которым верхняя техника ступени действительно понадобилась. */
 const topShare = new Map<number, number>();
+/** Сколько порталов реально вышло на уровне за все расклады главного цикла. */
+const portalsMade = new Map<number, number>();
 
 describe(`каждый уровень доигрывается до победы, и решение одно (${FULL ? 'полный' : 'быстрый'} прогон)`, () => {
   it(`уровни ${LEVELS.join(', ')} по ${PER_LEVEL} раскладов`, () => {
@@ -192,10 +197,18 @@ describe(`каждый уровень доигрывается до победы
         if (dead.length) bad.push(`${tag}: в корне ${dead.length} мёртвых клеток`);
 
         // 3. Дочерние: одно решение, берётся логикой, не сложнее обещанного уровнем.
+        //
+        // ⚠️ МЕРИМ ДОСКУ С РАЗРЕШЁННЫМ ПОРТАЛОМ, А НЕ НАПЕЧАТАННУЮ. Сетка, которую задел
+        // портал, порознь неоднозначна по построению — в этом вся механика. Требовать от
+        // напечатанного задания «ровно одно решение» значило бы требовать, чтобы порталов
+        // не было. Что портал при этом несущий, а не украшение, проверяется НИЖЕ отдельно
+        // и с обратным знаком. Точно так же уже устроен корень: с девятью цифрами снизу
+        // он однозначен, без них — нет, и обе половины утверждения проверяются порознь.
         for (const [i, ch] of f.children.entries()) {
-          const sols = countSolutionsFast(flatten(ch.puzzle), 2);
+          const board = withPortalsResolved(ch.puzzle, f.portals, i);
+          const sols = countSolutionsFast(flatten(board), 2);
           if (sols !== 1) bad.push(`${tag} дочерняя ${i}: решений ${sols}`);
-          const g = logicSolve(flatten(ch.puzzle), cfg.tier);
+          const g = logicSolve(flatten(board), cfg.tier);
           if (!g.solved) bad.push(`${tag} дочерняя ${i}: логикой уровня не берётся, только перебором`);
           if (ch.tier > cfg.tier) bad.push(`${tag} дочерняя ${i}: техника ${ch.tier} выше обещанной ${cfg.tier}`);
           if (ch.unlockCells > ch.blanks || ch.unlockCells < 1) {
@@ -221,6 +234,47 @@ describe(`каждый уровень доигрывается до победы
         const gotTiers = f.children.map((ch) => ch.tier).sort(byTier).join('');
         const wantTiers = [...wanted].sort(byTier).join('');
         if (gotTiers !== wantTiers) bad.push(`${tag}: заказано ${wantTiers} — вышло ${gotTiers}`);
+
+        // 3в. 🔴 ПОРТАЛЫ: заказ уровня выполнен, концы разведены по РАЗНЫМ сеткам, каждый
+        //     конец действительно выколот, а цифра портала — настоящее решение обеих клеток.
+        if (f.portals.length !== cfg.portals) {
+          bad.push(`${tag}: порталов заказано ${cfg.portals} — вышло ${f.portals.length}`);
+        }
+        const ends = new Map<number, number>();
+        for (const p of f.portals) {
+          if (p.from === p.to) bad.push(`${tag}: портал замкнут сам на себя (сетка ${p.from})`);
+          ends.set(p.from, (ends.get(p.from) ?? 0) + 1);
+          ends.set(p.to, (ends.get(p.to) ?? 0) + 1);
+          const a = f.children[p.from], b = f.children[p.to];
+          if (a.puzzle[p.fromCell[0]][p.fromCell[1]] !== 0 || b.puzzle[p.toCell[0]][p.toCell[1]] !== 0) {
+            bad.push(`${tag}: конец портала ${p.from}↔${p.to} напечатан подсказкой — переносить нечего`);
+          }
+          if (a.solution[p.fromCell[0]][p.fromCell[1]] !== p.digit
+            || b.solution[p.toCell[0]][p.toCell[1]] !== p.digit) {
+            bad.push(`${tag}: портал ${p.from}↔${p.to} обещает цифру ${p.digit}, а в решении другая`);
+          }
+          // 🔴 ОБЕ СТОРОНЫ НЕСУЩИЕ. Порознь ни одна доска цифру не знает — иначе портал
+          //    декорация: одну сторону человек решил бы сам, а вторая получила бы подсказку.
+          if (countSolutionsFast(flatten(a.puzzle), 2) < 2) bad.push(`${tag}: сторона ${p.from} портала однозначна и без него`);
+          if (countSolutionsFast(flatten(b.puzzle), 2) < 2) bad.push(`${tag}: сторона ${p.to} портала однозначна и без него`);
+          // 🔴 И ГЛАВНОЕ — У ПАРЫ РОВНО ОДНО РЕШЕНИЕ.
+          const pairSols = portalSolutions(
+            flatten(a.puzzle), p.fromCell[0] * N + p.fromCell[1],
+            flatten(b.puzzle), p.toCell[0] * N + p.toCell[1],
+          );
+          if (pairSols !== 1) bad.push(`${tag}: у пары ${p.from}↔${p.to} решений ${pairSols}`);
+          // …и пара берётся ВЫНУЖДЕННОЙ ЛОГИКОЙ уровня, а не перебором.
+          if (!logicSolveLinked(
+            flatten(a.puzzle), p.fromCell[0] * N + p.fromCell[1],
+            flatten(b.puzzle), p.toCell[0] * N + p.toCell[1], cfg.tier,
+          ).solved) {
+            bad.push(`${tag}: пара ${p.from}↔${p.to} логикой уровня не берётся, только перебором`);
+          }
+        }
+        for (const [k, v] of ends) {
+          if (v > 1) bad.push(`${tag}: у дочерней ${k} ${v} концов портала — единственность перестаёт раскладываться на пары`);
+        }
+        portalsMade.set(level, (portalsMade.get(level) ?? 0) + f.portals.length);
 
         // 4. Корень с девятью цифрами снизу — ровно одно решение (иначе подсказка врёт).
         const withFeeds = f.root.puzzle.map((r) => [...r]);
@@ -311,6 +365,238 @@ describe(`каждый уровень доигрывается до победы
     // ступени», сравнивать было не с чем.
     expect(`пар начало—конец: ${checked}`).toBe(`пар начало—конец: ${FULL ? 5 : 2}`);
     expect(bad).toEqual([]);
+  });
+
+  /**
+   * 🔴 ТРЕТЬЯ ОСЬ — ПОРТАЛЫ. Заказ таблицы обязан ВЫПОЛНЯТЬСЯ, а не «получаться иногда».
+   * Ровно на этом уже ловились с полом ступени: таблица обещала девять сеток из девяти,
+   * а генератор надеялся и выдавал семь. Здесь то же самое: если портал не находится и
+   * партия молча выходит без него, механики в игре просто нет, а гейт зелен.
+   */
+  it('🔴 порталов вышло столько, сколько заказал уровень', () => {
+    const bad: string[] = [];
+    let withPortals = 0;
+    for (const level of LEVELS) {
+      const want = fractalLevel(level).portals * PER_LEVEL;
+      const got = portalsMade.get(level) ?? 0;
+      if (want > 0) withPortals++;
+      if (got !== want) bad.push(`уровень ${level}: заказано ${want} порталов, вышло ${got}`);
+    }
+    // Без этого проверка зелена вслепую: набор из одних беспортальных уровней ничего не меряет.
+    expect(`уровней с порталами в наборе: ${withPortals}`).toBe(`уровней с порталами в наборе: ${LEVELS.filter((l) => fractalPortalCount(l) > 0).length}`);
+    expect(bad).toEqual([]);
+  });
+});
+
+/**
+ * ПОРТАЛЫ: ВЫВОД, КОТОРОГО НЕТ НИ В ОДНОМ ИЗ ДВУХ ПАЗЛОВ.
+ *
+ * ⚠️ ЧТО ЗДЕСЬ ВООБЩЕ ДОКАЗЫВАЕТСЯ. Портал ценен ровно одним: цифру в его клетке НЕ
+ * ЗНАЕТ НИ ОДНА из двух досок, её даёт только пересечение того, что допускают обе. Это
+ * утверждение легко подменить более слабым и незаметно скатиться в «доставку готового
+ * ответа с соседней доски»: одна доска решается сама, вторая получает от неё подсказку.
+ * Разница не косметическая — во втором случае приёма нет, есть подсказка. Поэтому здесь
+ * меряется именно двусторонность, и меряется ЧУЖИМ решателем.
+ *
+ * ⚠️ И ГЛАВНЫЙ РИСК — ЕДИНСТВЕННОСТЬ РЕШЕНИЯ. Портал добавляет связь между досками;
+ * проверка «у каждой доски одно решение» на неё слепа по построению, а если её просто
+ * снять, появятся партии с двумя решениями — и на экране это выглядит как «правильная
+ * цифра краснеет». Считаем решения ПАРЫ и сверяем с чужим перебором.
+ */
+describe('порталы сшивают два пазла, а не подсказывают', () => {
+  /** Уровни: беспортальный, первый портальный, середина и потолок в четыре портала. */
+  const PORTAL_LEVELS = FULL ? [1, 6, 11, 16, 21, 26, 30] : [1, 6, 16, 30];
+
+  /**
+   * ⚠️ ЧУЖОЙ РЕШАТЕЛЬ ПРОВЕРЯЕТ ТОЛЬКО ТО, ЧТО САМ СТАВИТ. countSolutions ядра (как и
+   * любой наивный перебор) не сверяет ИСХОДНУЮ раскладку: подставь в клетку цифру, уже
+   * стоящую в её строке, — и он спокойно «решит» противоречивую доску. На этом сверка
+   * порталов сначала и покраснела: «у пары два решения» там, где второе противоречиво
+   * по правилам судоку. Поэтому законность подстановки проверяем до неё.
+   */
+  const legal = (b: number[][], r: number, c: number, v: number): boolean => {
+    for (let k = 0; k < N; k++) if (b[r][k] === v || b[k][c] === v) return false;
+    const br = r - (r % 3), bc = c - (c % 3);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (b[br + i][bc + j] === v) return false;
+    return true;
+  };
+
+  /** Какие цифры ДОПУСКАЕТ доска в этой клетке — по чужому перебору, а не по логике. */
+  const houseReach = (b: number[][], [r, c]: [number, number]): number[] => {
+    const out: number[] = [];
+    for (let v = 1; v <= N; v++) {
+      if (!legal(b, r, c, v)) continue;
+      const q = b.map((row) => [...row]);
+      q[r][c] = v;
+      if (houseSolutions(q) >= 1) out.push(v);
+    }
+    return out;
+  };
+
+  it('🔴 ни одна из двух досок цифру не знает, а вместе — знают ровно одну', () => {
+    const bad: string[] = [];
+    const seen: string[] = [];
+    let checked = 0;
+    for (const level of PORTAL_LEVELS) {
+      const cfg = fractalLevel(level);
+      for (let n = 0; n < 2; n++) {
+        const f = generateFractal(level, boardSeed(level, 700 + n));
+        for (const p of f.portals) {
+          checked++;
+          const A = f.children[p.from].puzzle, B = f.children[p.to].puzzle;
+          const reachA = houseReach(A, p.fromCell), reachB = houseReach(B, p.toCell);
+          const common = reachA.filter((v) => reachB.includes(v));
+          const tag = `L${level}#${n} ${p.from}↔${p.to}`;
+          // 1. Порознь — неизвестность. Если бы доска допускала одну цифру, она бы её
+          //    и знала, а портал был бы доставкой готового ответа.
+          if (reachA.length < 2) bad.push(`${tag}: сторона ${p.from} допускает только ${reachA.join(',')} — знает ответ сама`);
+          if (reachB.length < 2) bad.push(`${tag}: сторона ${p.to} допускает только ${reachB.join(',')} — знает ответ сама`);
+          // 2. Вместе — ровно один общий вариант, и он же напечатан в портале.
+          if (common.length !== 1) bad.push(`${tag}: общих цифр ${common.length} (${common.join(',')}) при ${reachA.join(',')} и ${reachB.join(',')}`);
+          else if (common[0] !== p.digit) bad.push(`${tag}: пересечение даёт ${common[0]}, портал обещает ${p.digit}`);
+          // 3. То же самое, но ЛОГИКОЙ уровня, а не перебором: приём должен быть
+          //    доступен человеку. В каждой доске порознь в клетке остаётся минимум два
+          //    кандидата, а пара при этом добивается вынужденными ходами.
+          const outA = new Int32Array(81), outB = new Int32Array(81);
+          const ia = p.fromCell[0] * N + p.fromCell[1], ib = p.toCell[0] * N + p.toCell[1];
+          logicSolve(flatten(A), cfg.tier, { out: outA });
+          logicSolve(flatten(B), cfg.tier, { out: outB });
+          const bits = (m: number) => { let k = 0; while (m) { k += m & 1; m >>= 1; } return k; };
+          if (bits(outA[ia]) < 2) bad.push(`${tag}: логика САМА добивает клетку в сетке ${p.from} — пересекать нечего`);
+          if (bits(outB[ib]) < 2) bad.push(`${tag}: логика САМА добивает клетку в сетке ${p.to} — пересекать нечего`);
+          if (!logicSolveLinked(flatten(A), ia, flatten(B), ib, cfg.tier).solved) {
+            bad.push(`${tag}: пара логикой уровня не добивается`);
+          }
+          if (n === 0) seen.push(`${tag}: ${reachA.join('/')} ∩ ${reachB.join('/')} = ${common.join('')}`);
+        }
+      }
+    }
+    console.log('порталы —', seen.slice(0, 8).join('; '));
+    // Без этого гейт зелен вслепую: набор без порталов проверять нечего.
+    expect(`проверено порталов: ${checked > 0}`).toBe('проверено порталов: true');
+    expect(bad).toEqual([]);
+  }, 900000);
+
+  it('🔴 у пары ровно одно решение — и это подтверждает ЧУЖОЙ перебор', () => {
+    const bad: string[] = [];
+    let checked = 0;
+    for (const level of PORTAL_LEVELS) {
+      for (let n = 0; n < 2; n++) {
+        const f = generateFractal(level, boardSeed(level, 720 + n));
+        for (const p of f.portals) {
+          checked++;
+          const A = f.children[p.from].puzzle, B = f.children[p.to].puzzle;
+          // Решений пары = Σ по цифрам v: (решений A при v) × (решений B при v).
+          // Считаем ЧУЖИМ решателем ядра, не движком игры.
+          let house = 0;
+          for (let v = 1; v <= N && house < 2; v++) {
+            if (!legal(A, p.fromCell[0], p.fromCell[1], v) || !legal(B, p.toCell[0], p.toCell[1], v)) continue;
+            const qa = A.map((r) => [...r]); qa[p.fromCell[0]][p.fromCell[1]] = v;
+            const na = houseSolutions(qa);
+            if (!na) continue;
+            const qb = B.map((r) => [...r]); qb[p.toCell[0]][p.toCell[1]] = v;
+            house += na * houseSolutions(qb);
+          }
+          const mine = portalSolutions(flatten(A), p.fromCell[0] * N + p.fromCell[1], flatten(B), p.toCell[0] * N + p.toCell[1]);
+          if (house !== 1) bad.push(`L${level}#${n} ${p.from}↔${p.to}: ядро насчитало ${house} решений пары`);
+          if (mine !== house) bad.push(`L${level}#${n} ${p.from}↔${p.to}: движок ${mine}, ядро ${house}`);
+        }
+      }
+    }
+    expect(`проверено порталов чужим решателем: ${checked > 0}`).toBe('проверено порталов чужим решателем: true');
+    expect(bad).toEqual([]);
+  }, 900000);
+
+  it('лестница: на первой ступени порталов нет, дальше растут и упираются в потолок', () => {
+    const bad: string[] = [];
+    for (let lvl = 1; lvl <= FRACTAL_MAX_LEVEL; lvl++) {
+      const got = fractalPortalCount(lvl);
+      if (got !== fractalLevel(lvl).portals) bad.push(`уровень ${lvl}: таблица и функция расходятся`);
+      if (fractalTier(lvl) === 1 && got !== 0) bad.push(`уровень ${lvl}: порталы на первой ступени`);
+      if (got > FRACTAL_MAX_PORTALS) bad.push(`уровень ${lvl}: порталов ${got} при потолке ${FRACTAL_MAX_PORTALS}`);
+      if (lvl > 1 && got < fractalPortalCount(lvl - 1)) bad.push(`уровень ${lvl}: порталов стало меньше, чем на ${lvl - 1}`);
+    }
+    // Механика обязана появиться НЕ на первом уровне и НЕ в самом конце.
+    expect(`первый уровень с порталом: ${Array.from({ length: FRACTAL_MAX_LEVEL }, (_, i) => i + 1).find((l) => fractalPortalCount(l) > 0)}`)
+      .toBe('первый уровень с порталом: 6');
+    expect(`уровней с порталами: ${Array.from({ length: FRACTAL_MAX_LEVEL }, (_, i) => i + 1).filter((l) => fractalPortalCount(l) > 0).length}`)
+      .toBe('уровней с порталами: 25');
+    expect(`потолок достигнут на уровне: ${Array.from({ length: FRACTAL_MAX_LEVEL }, (_, i) => i + 1).find((l) => fractalPortalCount(l) === FRACTAL_MAX_PORTALS)}`)
+      .toBe('потолок достигнут на уровне: 21');
+    expect(bad).toEqual([]);
+  });
+
+  /**
+   * 🔴 ХОД ЧЕРЕЗ ПОРТАЛ И ЕГО ОТКАТ. Один ход в портальную клетку меняет ДВЕ доски и
+   * способен добрать до порога ЧУЖУЮ сетку — то есть отправить цифру в корень за сетку,
+   * в которой человек в этот момент даже не находится. Отмена, возвращающая только свою
+   * клетку, оставила бы в корне цифру, которую нечем подтвердить.
+   */
+  it('🔴 цифра ложится в обе клетки портала, а отмена снимает обе', () => {
+    const f = generateFractal(21, boardSeed(21, 740));
+    expect(f.portals.length).toBeGreaterThan(0);
+    const p = f.portals[0];
+    const start = startPlayState(f);
+    const res = playDigit(start, f, { child: p.from, r: p.fromCell[0], c: p.fromCell[1] }, p.digit);
+    expect(res).not.toBeNull();
+    const { next, move } = res!;
+    // цифра встала в обе клетки — потому что клетка одна
+    expect(next.children[p.from].grid[p.fromCell[0]][p.fromCell[1]]).toBe(p.digit);
+    expect(next.children[p.to].grid[p.toCell[0]][p.toCell[1]]).toBe(p.digit);
+    expect(move.mirror?.child).toBe(p.to);
+    // …и отмена снимает обе
+    const back = revertMove(next, f, move);
+    expect(back.children[p.from].grid[p.fromCell[0]][p.fromCell[1]]).toBe(0);
+    expect(back.children[p.to].grid[p.toCell[0]][p.toCell[1]]).toBe(0);
+    // стирание тоже ходит парой: иначе половина клетки осталась бы заполненной
+    const erased = playDigit(next, f, { child: p.to, r: p.toCell[0], c: p.toCell[1] }, 0);
+    expect(erased!.next.children[p.from].grid[p.fromCell[0]][p.fromCell[1]]).toBe(0);
+  });
+
+  it('🔴 ход через портал, открывший ЧУЖУЮ сетку, откатывается вместе с цифрой в корне', () => {
+    // Собираем случай нарочно: добиваем сетку-близнеца до одной клетки от порога, а
+    // последнюю ставим ЧЕРЕЗ ПОРТАЛ, из другой сетки. Само по себе это редкость, но
+    // цена ошибки здесь — корень с цифрой, которую нечем подтвердить.
+    const f = generateFractal(21, boardSeed(21, 760));
+    const p = f.portals[0];
+    const twin = f.children[p.to];
+    let st = startPlayState(f);
+    const spots: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (twin.puzzle[r][c] === 0 && !(r === p.toCell[0] && c === p.toCell[1])) spots.push([r, c]);
+    }
+    for (const [r, c] of spots.slice(0, twin.unlockCells - 1)) {
+      st = playDigit(st, f, { child: p.to, r, c }, twin.solution[r][c])!.next;
+    }
+    expect(st.children[p.to].done).toBe(false);
+    // ход делаем В ДРУГОЙ сетке — а открывается эта
+    const res = playDigit(st, f, { child: p.from, r: p.fromCell[0], c: p.fromCell[1] }, p.digit)!;
+    expect(res.move.mirror?.unlocked).toBe(true);
+    const [rr, rc] = twin.feedsCell;
+    expect(res.next.rootGrid[rr][rc]).not.toBe(0);
+    const back = revertMove(res.next, f, res.move);
+    expect(back.children[p.to].done).toBe(false);
+    expect(back.rootGrid[rr][rc]).toBe(0);
+  });
+
+  it('экран показывает портал, ведёт к близнецу и держит общий карандаш', () => {
+    const src: string = readFileSync(join(__dirname, '../../app/games/sudoku-fractal.tsx'), 'utf8')
+      // ⚠️ Комментарии срезаем ДО поиска: пояснение рядом с кодом читается гейтом как
+      // сам код, и проверка зеленеет на собственном комментарии.
+      .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+    // кольцо на клетке и номер сетки-близнеца
+    expect(src).toContain('portalRing');
+    expect(src).toContain('PORTAL_COLOR');
+    // переход к близнецу — без него пересекать кандидаты человек не станет
+    expect(src).toMatch(/testID="fractal-portal-jump"/);
+    expect(src).toMatch(/setOpenChild\(link\.other\)/);
+    // общий слой карандаша: пометки пишутся в обе половины клетки
+    expect(src).toMatch(/twin\.otherAt\[0\], twin\.otherAt\[1\]/);
+    // ход, открывший чужую сетку, возвращает человека на карту
+    expect(src).toMatch(/move\.mirror\?\.unlocked/);
+    // формат снимка изменился — версия обязана подняться, иначе старая запись оживёт
+    // в новом коде и уронит экран порталами, которых в ней нет
+    expect(src).toMatch(/RESUME_V\s*=\s*3/);
   });
 });
 
@@ -513,7 +799,9 @@ describe('раздача заготовок не повторяется', () => 
     const bad: string[] = [];
     for (const level of [26, 30]) {
       const f = generateFractal(level, boardSeed(level, 900));
-      const ids = f.children.map((ch) => library.get(canonOfBoard(ch.puzzle)) ?? 'НЕ ИЗ БИБЛИОТЕКИ');
+      // Канон берём по доске С РАЗРЕШЁННЫМ ПОРТАЛОМ: портал гасит одну подсказку, и
+      // узор дырок перестаёт совпадать с библиотечным — сверка искала бы то, чего нет.
+      const ids = f.children.map((ch, i) => library.get(canonOfBoard(withPortalsResolved(ch.puzzle, f.portals, i))) ?? 'НЕ ИЗ БИБЛИОТЕКИ');
       if (ids.includes('НЕ ИЗ БИБЛИОТЕКИ')) bad.push(`уровень ${level}: сетка не из библиотеки`);
       if (new Set(ids).size !== FRACTAL_CHILDREN) bad.push(`уровень ${level}: разных досок ${new Set(ids).size} из ${FRACTAL_CHILDREN} — ${ids.join(' ')}`);
     }
@@ -527,7 +815,10 @@ describe('раздача заготовок не повторяется', () => 
     resetSeedRecall();
     const ids: string[] = [];
     for (let level = 26; level <= 30; level++) {
-      for (const ch of generateFractal(level).children) ids.push(library.get(canonOfBoard(ch.puzzle)) ?? 'НЕ ИЗ БИБЛИОТЕКИ');
+      const game = generateFractal(level);
+      game.children.forEach((ch, i) => {
+        ids.push(library.get(canonOfBoard(withPortalsResolved(ch.puzzle, game.portals, i))) ?? 'НЕ ИЗ БИБЛИОТЕКИ');
+      });
     }
     expect(ids).toHaveLength(45);
     expect(ids.filter((k) => k === 'НЕ ИЗ БИБЛИОТЕКИ')).toEqual([]);
@@ -648,11 +939,14 @@ describe('сверка чужими реализациями — чтобы дв
       for (let n = 0; n < 3; n++) {
         const f = generateFractal(level, boardSeed(level, 900 + n));
         for (const [i, ch] of f.children.entries()) {
-          const mine = countSolutionsFast(flatten(ch.puzzle), 2);
-          const house = houseSolutions(ch.puzzle);
+          // Сетку с порталом чужие решатели тоже смотрят с разрешённым порталом: порознь
+          // она неоднозначна нарочно (проверяется отдельным блоком «порталы»).
+          const board = withPortalsResolved(ch.puzzle, f.portals, i);
+          const mine = countSolutionsFast(flatten(board), 2);
+          const house = houseSolutions(board);
           if (mine !== house) bad.push(`L${level}#${n} дочерняя ${i}: свой решатель ${mine}, ядро ${house}`);
           if (house !== 1) bad.push(`L${level}#${n} дочерняя ${i}: ядро насчитало ${house} решений`);
-          const g = gradePuzzle(ch.puzzle, CTX, cap);
+          const g = gradePuzzle(board, CTX, cap);
           if (!g.solved) bad.push(`L${level}#${n} дочерняя ${i}: градатор не решил логикой в пределах ступени ${cap}`);
           // Градатор доводит доску до конца — она обязана совпасть с эталоном.
           if (g.grid && g.grid.some((row, r) => row.some((v, c) => v !== ch.solution[r][c]))) {
@@ -671,7 +965,7 @@ describe('сверка чужими реализациями — чтобы дв
           // «сколько сеток требуют верхней техники» считает воздух.
           if (ch.tier > 1) {
             floors++;
-            if (gradePuzzle(ch.puzzle, CTX, ch.tier - 1).solved) {
+            if (gradePuzzle(board, CTX, ch.tier - 1).solved) {
               bad.push(`L${level}#${n} дочерняя ${i}: ступень ${ch.tier} приписана — градатор берёт доску и без неё`);
             }
           }
@@ -803,9 +1097,20 @@ describe('генерация не вешает экран', () => {
    * ⚠️ И РОВНО ЗДЕСЬ ВИДНО, ЗАЧЕМ ЗАГОТОВКИ: на тридцатом уровне работы стало МЕНЬШЕ, чем
    * на первом (заготовку не надо выкапывать), хотя доска там самая трудная за игру.
    *
-   * ⚠️ ПОТОЛКИ ПРИЖАТЫ К ФАКТУ (замер 20.08.2026, по 50 партий на уровень, худшая):
-   * уровень 1 — 385 прогонов, 15 — 2944, 20 — 6327, 30 — 144. Прежние 900/4600/7800/400
+   * ⚠️ ПОТОЛКИ ПРИЖАТЫ К ФАКТУ (замер 20.08.2026, по 200 партий на уровень, худшая):
+   * уровень 1 — 388 прогонов, 15 — 3140, 20 — 6793, 30 — 183. Прежние 900/4600/7800/400
    * стояли с запасом вдвое и не заметили бы удвоения работы.
+   *
+   * ⚠️ ВТОРАЯ КОЛОНКА — ПОРТАЛЫ, И БЕЗ НЕЁ НОВАЯ РАБОТА БЫЛА БЫ ВНЕ ВСЯКОГО ПОТОЛКА.
+   * Поиск портала не гоняет логику, он СЧИТАЕТ РЕШЕНИЯ (countSolutionsFast), и в счётчик
+   * прогонов не попадает вовсе: сторожи мы только его — цена выросла бы молча. Замер тех
+   * же 200 партий, худшая: уровень 1 — 0 проб (порталов там нет по построению), 15 — 255,
+   * 20 — 375, 30 — 304. На часах это +1 мс на шестом уровне, +6 на пятнадцатом, +101 на
+   * двадцатом и +14 на тридцатом (A/B на одних и тех же сидах против движка без порталов).
+   *
+   * ⚠️ ПОЧЕМУ ПОТОЛОК ПРОБ НА ПЕРВОМ УРОВНЕ РОВНО НОЛЬ. Это не экономия, а утверждение:
+   * на первой ступени порталов нет, и любая проба там означала бы, что генератор их всё
+   * же ищет — то есть таблица уровней и генератор разошлись.
    *
    * Копание с полом («разрушь и пересобери», fractal-sudoku.ts) работу не добавило, а
    * убавило: средняя партия двадцатого уровня — 3510 прогонов против 4622 у прежних
@@ -816,18 +1121,24 @@ describe('генерация не вешает экран', () => {
   it('партия стоит ограниченного числа прогонов решателя', () => {
     const over: string[] = [];
     const seen: string[] = [];
-    for (const [level, cap] of [[1, 500], [15, 3600], [20, 7600], [FRACTAL_MAX_LEVEL, 200]] as [number, number][]) {
-      let worst = 0;
+    const TABLE: [number, number, number][] = [   // уровень, потолок прогонов, потолок проб портала
+      [1, 500, 0], [15, 3600, 400], [20, 7600, 550], [FRACTAL_MAX_LEVEL, 260, 450],
+    ];
+    for (const [level, cap, probeCap] of TABLE) {
+      let worst = 0, worstProbes = 0;
       for (let i = 0; i < COST_RUNS; i++) {
         resetLogicSolveCalls();
+        resetPortalProbeCalls();
         const t = Date.now();
         generateFractal(level, boardSeed(level, 100 + i));
         const ms = Date.now() - t;
-        const calls = logicSolveCalls();
+        const calls = logicSolveCalls(), probes = portalProbeCalls();
         if (calls > worst) worst = calls;
-        if (i === 0) seen.push(`L${level}: ${calls} прогонов, ${ms} мс`);
+        if (probes > worstProbes) worstProbes = probes;
+        if (i === 0) seen.push(`L${level}: ${calls} прогонов + ${probes} проб портала, ${ms} мс`);
       }
       if (worst > cap) over.push(`уровень ${level}: ${worst} прогонов при потолке ${cap}`);
+      if (worstProbes > probeCap) over.push(`уровень ${level}: ${worstProbes} проб портала при потолке ${probeCap}`);
     }
     // Миллисекунды печатаем для человека, но НЕ утверждаем: см. шапку блока.
     console.log('стоимость партии —', seen.join('; '));
@@ -840,5 +1151,13 @@ describe('генерация не вешает экран', () => {
     expect(logicSolveCalls()).toBe(0);
     generateFractal(1, boardSeed(1, 400));
     expect(logicSolveCalls()).toBeGreaterThan(100);
+    // …и то же самое про счётчик проб портала: на беспортальном уровне он обязан
+    // остаться нулём, на портальном — вырасти. Иначе его потолок сторожит пустоту.
+    resetPortalProbeCalls();
+    generateFractal(1, boardSeed(1, 401));
+    expect(`проб на первом уровне: ${portalProbeCalls()}`).toBe('проб на первом уровне: 0');
+    resetPortalProbeCalls();
+    generateFractal(21, boardSeed(21, 401));
+    expect(portalProbeCalls()).toBeGreaterThan(10);
   }, 300000);
 });

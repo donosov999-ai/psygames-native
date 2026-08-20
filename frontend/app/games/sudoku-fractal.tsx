@@ -26,6 +26,14 @@
  * кликабельные, как в дочерней, и цифровая клавиатура на карте — не украшение.
  * Девять «кормящих» клеток руками не заполняются: их приносят снизу, в этом вся игра.
  *
+ * ⚠️ ПОРТАЛЫ — ОДНА КЛЕТКА НА ДВА ПАЗЛА (правка 20.08.2026). С шестого уровня пара
+ * клеток из РАЗНЫХ дочерних сеток объявляется одной и той же клеткой. В задании она
+ * выколота с обеих сторон, и КАЖДАЯ из двух досок порознь неоднозначна: цифру не даёт
+ * ни одна, её даёт пересечение того, что допускают обе. Экран обязан показать это тремя
+ * вещами разом, иначе человек просто упрётся в две нерешаемые сетки: кольцо на самой
+ * клетке с номером сетки-близнеца, кнопка перехода к ней и общий слой карандаша —
+ * пометки, написанные здесь, видны там, потому что клетка одна.
+ *
  * ⚠️ ОТМЕНА ХОДА И НЕЗАКОНЧЕННАЯ ПАРТИЯ (правка 19.08.2026). Не было ни того, ни
  * другого — в самой длинной партии приложения. Час работы стирался одним неточным
  * касанием или одним звонком. Оба слоя общие и уже написаны (`hooks/useMoveHistory`,
@@ -65,7 +73,7 @@ import { sndPlace, sndWrong } from '@/src/services/feedback';
 import { gameNow } from '@/src/services/gamePause';
 import {
   N, FEED_CELL, generateFractal, rootCellForChild, solvedCount, rootEditable, rootSolved,
-  startPlayState, playDigit, revertMove,
+  startPlayState, playDigit, revertMove, portalOf,
   type FractalPuzzle, type FractalPlayState, type FractalMove,
 } from '@/src/services/fractal-sudoku';
 
@@ -76,7 +84,7 @@ const GAME_ID = 'sudoku_fractal';
  * Версия формата незаконченной партии. Поднимать при ЛЮБОМ изменении полей снимка:
  * старая запись тогда не подойдёт под новый код и будет молча выброшена, а не уронит экран.
  */
-const RESUME_V = 2;
+const RESUME_V = 3;
 
 /**
  * Палитра раскраски. Значения те же, что в обычной судоку, — это ОДИН инструмент, и
@@ -89,6 +97,12 @@ const RESUME_V = 2;
 const CELL_COLORS = ['#8B5CF6', '#0EA5E9', '#22C55E', '#F59E0B', '#EC4899'] as const;
 /** Та же палитра для дальтоников (Okabe–Ito): различима при любом типе дальтонизма. */
 const CELL_COLORS_CB = ['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7'] as const;
+
+/**
+ * Цвет портала — один на обе его клетки и НЕ из палитры раскраски: цвет здесь означает
+ * не «я так пометил», а свойство самой доски, и путать эти два языка нельзя.
+ */
+const PORTAL_COLOR = '#06b6d4';
 
 /** Цвет подписи ступени: от спокойного к тревожному, шесть ступеней лестницы. */
 const TIER_COLORS = ['#64748b', '#0ea5e9', '#22c55e', '#f59e0b', '#f43f5e', '#a855f7'] as const;
@@ -292,10 +306,26 @@ export default function FractalSudokuScreen() {
     if (!puzzle || phase === 'result' || isGiven(child, r, c)) return;
     // Стирающая клавиша в режиме карандаша чистит ВСЮ клетку: снимать девять пометок
     // по одной — это девять нажатий там, где на бумаге одно движение ластиком.
-    const apply = (m: PencilMarks) => (digit === 0 ? clearPencilMarks(m, N, r, c) : togglePencilMark(m, N, r, c, digit));
+    const apply = (m: PencilMarks, rr: number, cc: number) =>
+      (digit === 0 ? clearPencilMarks(m, N, rr, cc) : togglePencilMark(m, N, rr, cc, digit));
+    /**
+     * ⚠️ У ПОРТАЛА КАРАНДАШ ОБЩИЙ — и без этого механика не играется. Ответ там даёт
+     * ПЕРЕСЕЧЕНИЕ кандидатов двух досок; держать в голове чужой список, переключая
+     * экраны, человек не станет. Пометки, написанные здесь, обязаны быть видны там —
+     * клетка-то одна. Заодно это и держит два слоя в согласии: пишем всегда в оба.
+     */
+    const link = child === null ? null : portalOf(puzzle.portals ?? [], child);
+    const twin = link && link.at[0] === r && link.at[1] === c ? link : null;
     setMarks((prev) => {
-      if (child === null) return { ...prev, root: apply(prev.root) };
-      return { ...prev, children: prev.children.map((m, i) => (i === child ? apply(m) : m)) };
+      if (child === null) return { ...prev, root: apply(prev.root, r, c) };
+      return {
+        ...prev,
+        children: prev.children.map((m, i) => {
+          if (i === child) return apply(m, r, c);
+          if (twin && i === twin.other) return apply(m, twin.otherAt[0], twin.otherAt[1]);
+          return m;
+        }),
+      };
     });
   };
 
@@ -328,7 +358,10 @@ export default function FractalSudokuScreen() {
 
     // Порог пройден — цифра ушла в корень. Это и есть смысл всей конструкции, поэтому
     // возвращаем на карту: там видно, как заполнилась клетка наверху.
-    if (move.unlocked) {
+    // ⚠️ И ТО ЖЕ САМОЕ, ЕСЛИ ОТКРЫЛАСЬ СЕТКА-БЛИЗНЕЦ. Ход в портальную клетку способен
+    // добрать до порога ЧУЖУЮ доску — на своей при этом не изменится ничего, и событие
+    // прошло бы мимо человека совсем: цифра в корне появилась, а он этого не видел.
+    if (move.unlocked || move.mirror?.unlocked) {
       setOpenChild(null);
       setSelected(null);
       setPhase('map');
@@ -511,6 +544,14 @@ export default function FractalSudokuScreen() {
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={[styles.cardText, { color: colors.text }]}>{t('fractalHowTo')}</Text>
           </View>
+
+          {/* ⚠️ Правило показываем ТОЛЬКО там, где порталы есть. На первой ступени их нет,
+              и рассказ про механику, которой на доске не будет, — это не обучение, а шум. */}
+          {cfg.portals > 0 && (
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: PORTAL_COLOR }]}>
+              <Text style={[styles.cardText, { color: colors.text }]}>{t('fractalPortalRule')}</Text>
+            </View>
+          )}
 
           <LevelProgressMap
             gameId={GAME_ID}
@@ -774,6 +815,7 @@ export default function FractalSudokuScreen() {
 
           <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
             {t('fractalChildren')}
+            {(puzzle?.portals?.length ?? 0) > 0 ? `  ·  ${t('fractalPortals')} ${puzzle?.portals.length}` : ''}
           </Text>
           <View style={styles.tiles}>
             {play.children.map((ch, i) => {
@@ -782,11 +824,15 @@ export default function FractalSudokuScreen() {
                 ? solvedCount(ch.grid, puzzle.children[i].solution, puzzle.children[i].puzzle.map((row) => row.map((v) => v !== 0)))
                 : 0;
               const tier = puzzle?.children[i].tier ?? 1;
+              // Портал видно ещё с карты: иначе человек заходит в сетку, упирается в
+              // неразрешимую доску и не понимает, что она в паре с соседней.
+              const link = puzzle ? portalOf(puzzle.portals ?? [], i) : null;
               return (
                 <TouchableOpacity
                   key={i}
                   accessibilityRole="button"
-                  accessibilityLabel={`${t('fractalChildN')} ${i + 1} · ${t(fractalTechniqueKey(tier) as never)}`}
+                  accessibilityLabel={`${t('fractalChildN')} ${i + 1} · ${t(fractalTechniqueKey(tier) as never)}`
+                    + (link ? ` · ${t('fractalPortal')} ${link.other + 1}` : '')}
                   testID={`fractal-tile-${i}`}
                   onPress={() => { setOpenChild(i); setSelected(null); setPhase('child'); }}
                   style={[styles.tile, {
@@ -805,6 +851,11 @@ export default function FractalSudokuScreen() {
                     <View style={[styles.tierDot, { backgroundColor: TIER_COLORS[Math.min(5, Math.max(0, tier - 1))] }]}>
                       <Text style={styles.tierDotText}>{tier}</Text>
                     </View>
+                    {link && (
+                      <View style={[styles.tierDot, { backgroundColor: PORTAL_COLOR }]} testID={`fractal-tile-portal-${i}`}>
+                        <Text style={styles.tierDotText}>⇄{link.other + 1}</Text>
+                      </View>
+                    )}
                   </View>
                   <Text style={{ fontSize: 11, color: done ? 'rgba(255,255,255,0.85)' : colors.textSecondary }}>
                     {Math.min(got, puzzle?.children[i].unlockCells ?? 0)}/{puzzle?.children[i].unlockCells ?? 0}
@@ -876,6 +927,10 @@ export default function FractalSudokuScreen() {
   const sol = task.solution;
   const got = solvedCount(ch.grid, sol, task.puzzle.map((row) => row.map((v) => v !== 0)));
   const cell = Math.min(38, Math.floor((Math.min(width, 520) - 32) / N));
+  /** Конец портала этой сетки — или null, если её порталы не задели. */
+  // ⚠️ `?? []` не перестраховка: снимок незаконченной партии лежит на устройстве
+  // месяцами, и запись без порталов уронила бы экран на ровном месте.
+  const link = portalOf(puzzle!.portals ?? [], openChild);
 
   return (
     <GameShell
@@ -906,11 +961,14 @@ export default function FractalSudokuScreen() {
                 const wrong = v !== 0 && v !== sol[r][c];
                 const isFeed = r === FEED_CELL[0] && c === FEED_CELL[1];
                 const given = task.puzzle[r][c] !== 0;
+                const isPortal = !!link && link.at[0] === r && link.at[1] === c;
                 return (
                   <TouchableOpacity
                     key={c}
                     accessibilityRole="button"
-                    accessibilityLabel={`${r + 1}·${c + 1}`}
+                    accessibilityLabel={isPortal
+                      ? `${r + 1}·${c + 1} · ${t('fractalPortal')} ${link!.other + 1}`
+                      : `${r + 1}·${c + 1}`}
                     testID={`fractal-cell-${r}-${c}`}
                     onPress={() => {
                       if (tool === 'paint') { painting(openChild, r, c); return; }
@@ -925,6 +983,17 @@ export default function FractalSudokuScreen() {
                       borderColor: colors.text,
                     }]}
                   >
+                    {/* Кольцо — метка САМОЙ ДОСКИ, а не пометка человека, поэтому цвет
+                        свой и не из палитры раскраски. Цифра в углу — номер сетки, где
+                        живёт вторая половина этой же клетки. */}
+                    {isPortal && (
+                      <>
+                        <View pointerEvents="none" style={[styles.portalRing, { borderColor: PORTAL_COLOR }]} />
+                        <Text pointerEvents="none" style={[styles.portalTag, { color: PORTAL_COLOR, fontSize: Math.max(8, cell * 0.26) }]}>
+                          {link!.other + 1}
+                        </Text>
+                      </>
+                    )}
                     {renderMarks(openChild, r, c, cell, v)}
                     <Text style={{
                       fontSize: cell * 0.5,
@@ -943,6 +1012,32 @@ export default function FractalSudokuScreen() {
         {/* Центр подсвечен всегда: именно его цифра уйдёт наверх, и человек должен
             видеть, ЧТО он добывает, а не просто закрывать клетки. */}
         <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{t('fractalFeedHint')}</Text>
+
+        {/* ⚠️ ПЕРЕХОД К БЛИЗНЕЦУ — НЕ УДОБСТВО, А УСЛОВИЕ ИГРАБЕЛЬНОСТИ. Вывод здесь
+            делается сравнением двух списков кандидатов, и путь «назад на карту, найти
+            нужную плитку, войти, вспомнить клетку» человек проделает один раз, а на
+            второй бросит. Кнопка ведёт сразу в клетку-близнеца и выделяет её. */}
+        {link && (
+          <>
+            <Text style={[styles.feedHint, { color: PORTAL_COLOR }]}>{t('fractalPortalHint')}</Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={`${t('fractalPortalGo')} ${link.other + 1}`}
+              testID="fractal-portal-jump"
+              onPress={() => {
+                setOpenChild(link.other);
+                setSelected({ r: link.otherAt[0], c: link.otherAt[1] });
+                setPhase('child');
+              }}
+              style={[styles.portalBtn, { backgroundColor: colors.surface, borderColor: PORTAL_COLOR }]}
+            >
+              <Ionicons name="git-compare-outline" size={16} color={PORTAL_COLOR} />
+              <Text style={[styles.portalBtnText, { color: PORTAL_COLOR }]}>
+                {`${t('fractalPortalGo')} ${link.other + 1}`}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         {toolbar(openChild)}
         {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
@@ -1011,6 +1106,16 @@ const styles = StyleSheet.create({
     minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 3,
     alignItems: 'center', justifyContent: 'center',
   },
+  // Кольцо портала: не заливка, а обводка — цифра в клетке обязана остаться читаемой.
+  portalRing: { position: 'absolute', top: 2, left: 2, right: 2, bottom: 2, borderRadius: 999, borderWidth: 2 },
+  portalTag: { position: 'absolute', top: -1, right: 2, fontWeight: '800' },
+  // Тот же порог 48, что у остальных кнопок «на поле»: под ней лежит доска, и промах
+  // мимо перехода поставит цифру не туда (scripts/tap-target-audit.mjs).
+  portalBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    minHeight: 48, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1,
+  },
+  portalBtnText: { fontSize: 13, fontWeight: '700' },
   tierDotText: { fontSize: 10, fontWeight: '800', color: '#FFF' },
   grid: { borderWidth: 2, borderRadius: 4, overflow: 'hidden' },
   row: { flexDirection: 'row' },
