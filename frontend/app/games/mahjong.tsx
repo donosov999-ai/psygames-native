@@ -1,4 +1,6 @@
 /* psygames-game-mahjong · VER 1 · 19.08.2026 */
+import GradientSurface from '@/src/components/GradientSurface';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView,
@@ -28,6 +30,10 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 
 const GRADIENT = ['#2d6a4f', '#95d5b2'];
+// Тёмно-зелёный `#04341f` был подобран на глаз и на тёмном конце давал 2.17 —
+// сплошным цветом этот градиент AA не берёт вовсе. Цвет и вуаль считает сервис.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const MAHJONG_BENEFITS = [
   { icon: 'search-outline', textKey: 'benefitMahjong1' },
   { icon: 'git-branch-outline', textKey: 'benefitMahjong2' },
@@ -600,11 +606,11 @@ export default function MahjongGame() {
     const p = levelParams(level);
     return (
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
-          <Ionicons name="grid" size={48} color="#04341f" />
-          <Text style={styles.configTitle}>{t('mahjong')}</Text>
-          <Text style={styles.configDesc}>{t('mahjongDesc')}</Text>
-        </LinearGradient>
+        <GradientSurface colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
+          <Ionicons name="grid" size={48} color={ON_GRAD.color} />
+          <Text style={[styles.configTitle, { color: ON_GRAD.color }]}>{t('mahjong')}</Text>
+          <Text style={[styles.configDesc, { color: ON_GRAD_SOFT }]}>{t('mahjongDesc')}</Text>
+        </GradientSurface>
         <GameAbout descriptionKey="mahjongIntroDesc" benefits={MAHJONG_BENEFITS} accent={GRADIENT[0]} />
 
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
@@ -775,8 +781,8 @@ const styles = StyleSheet.create({
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#04341f' },
-  configDesc: { fontSize: 13, color: '#04341f', opacity: 0.85, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700' },
+  configDesc: { fontSize: 13, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   fieldCol: { alignItems: 'center', gap: 8 },   // hint + контейнер слоёв плиток внутри поля каркаса

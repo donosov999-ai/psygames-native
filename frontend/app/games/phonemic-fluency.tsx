@@ -29,7 +29,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -221,7 +221,7 @@ export default function PhonemicFluencyGame() {
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setDuration(d)}>
-              <Text style={[styles.modeButtonText, { color: duration === d ? '#FFF' : colors.text }]}>{d}s</Text>
+              <Text style={[styles.modeButtonText, { color: duration === d ? textOn(GRADIENT[0]) : colors.text }]}>{d}s</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -241,7 +241,7 @@ export default function PhonemicFluencyGame() {
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setLetter(L)}>
-                <Text style={[styles.modeButtonText, { color: letter === L ? '#FFF' : colors.text, fontSize: 16 }]}>{L}</Text>
+                <Text style={[styles.modeButtonText, { color: letter === L ? textOn(GRADIENT[0]) : colors.text, fontSize: 16 }]}>{L}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -306,7 +306,7 @@ export default function PhonemicFluencyGame() {
           />
           <TouchableOpacity
             accessibilityRole="button" style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitWord}>
-            <Text style={styles.addBtnText}>+ {t('phonemicAdd')}</Text>
+            <Text style={[styles.addBtnText, { color: textOn(GRADIENT[0]) }]}>+ {t('phonemicAdd')}</Text>
           </TouchableOpacity>
           <ScrollView style={styles.wordList} contentContainerStyle={styles.wordListInner}>
             {words.slice().reverse().map((w, i) => (

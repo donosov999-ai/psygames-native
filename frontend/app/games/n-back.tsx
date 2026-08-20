@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -395,7 +395,7 @@ export default function NBackGame() {
               ]}
               onPress={() => !locked && setNLevel(n)}
             >
-              <Text style={[styles.modeButtonText, { color: nLevel === n && !locked ? '#FFF' : colors.text }]}>
+              <Text style={[styles.modeButtonText, { color: nLevel === n && !locked ? textOn(GRADIENT[0]) : colors.text }]}>
                 {n}-back{locked ? ' 🔒' : ''}
               </Text>
             </TouchableOpacity>
@@ -417,7 +417,7 @@ export default function NBackGame() {
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setModality(m)}>
-              <Text style={[styles.modeButtonText, { color: modality === m ? '#FFF' : colors.text }]}>
+              <Text style={[styles.modeButtonText, { color: modality === m ? textOn(GRADIENT[0]) : colors.text }]}>
                 {m === 'single' ? '👁 Visual' : '👁 + 🔊 Dual'}
               </Text>
             </TouchableOpacity>
@@ -439,7 +439,7 @@ export default function NBackGame() {
               ]}
               onPress={() => setTrials(n)}
             >
-              <Text style={[styles.modeButtonText, { color: trials === n ? '#FFF' : colors.text }]}>{n}</Text>
+              <Text style={[styles.modeButtonText, { color: trials === n ? textOn(GRADIENT[0]) : colors.text }]}>{n}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -527,7 +527,7 @@ export default function NBackGame() {
             {/* In dual mode show the current letter visually too (for users without audio) */}
             {modality === 'dual' && showWindow && activeLetter && (
               <View style={[styles.letterDisplay, { backgroundColor: GRADIENT[1] }]}>
-                <Text style={styles.letterText}>{activeLetter}</Text>
+                <Text style={[styles.letterText, { color: textOn(GRADIENT[1]) }]}>{activeLetter}</Text>
               </View>
             )}
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>

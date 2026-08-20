@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -344,7 +344,7 @@ export default function PhonemePairsGame() {
               ]}
               onPress={() => pickLang(c)}
             >
-              <Text style={[styles.langBtnText, { color: tgt === c ? '#FFF' : colors.text }]}>{LANG_NAMES[c]}</Text>
+              <Text style={[styles.langBtnText, { color: tgt === c ? textOn(GRADIENT[0]) : colors.text }]}>{LANG_NAMES[c]}</Text>
             </TouchableOpacity>
           ))}
         </View>

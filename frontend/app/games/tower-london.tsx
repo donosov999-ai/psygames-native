@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -303,7 +303,7 @@ export default function TowerLondonGame() {
               ? { backgroundColor: GRADIENT[1] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setDifficulty(d)}>
-              <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>{t(d)}</Text>
+              <Text style={[styles.modeButtonText, { color: difficulty === d ? textOn(GRADIENT[1]) : colors.text }]}>{t(d)}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -317,7 +317,7 @@ export default function TowerLondonGame() {
               ? { backgroundColor: GRADIENT[1] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setTrials(n)}>
-              <Text style={[styles.modeButtonText, { color: trials === n ? '#FFF' : colors.text }]}>{n}</Text>
+              <Text style={[styles.modeButtonText, { color: trials === n ? textOn(GRADIENT[1]) : colors.text }]}>{n}</Text>
             </TouchableOpacity>
           ))}
         </View>

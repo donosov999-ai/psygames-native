@@ -23,7 +23,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -421,8 +421,8 @@ export default function StoryRecallGame() {
                 style={[styles.addBtn, { backgroundColor: '#22c55e', flexDirection: 'row', gap: 6 }]}
                 onPress={skipDistractor}
               >
-                <Ionicons name="checkmark" size={20} color="#FFF" />
-                <Text style={styles.addBtnText}>ГОТОВ К ПЕРЕСКАЗУ</Text>
+                <Ionicons name="checkmark" size={20} color={textOn('#22c55e')} />
+                <Text style={[styles.addBtnText, { color: textOn('#22c55e') }]}>ГОТОВ К ПЕРЕСКАЗУ</Text>
               </TouchableOpacity>
             </>
           ) : isRecall ? (

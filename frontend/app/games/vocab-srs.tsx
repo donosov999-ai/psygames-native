@@ -20,7 +20,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -273,7 +273,7 @@ export default function VocabSrsGame() {
                 ]}
                 onPress={() => setTargetLang(l.code)}
               >
-                <Text style={[styles.sizeButtonText, { color: tgt === l.code ? '#fff' : colors.text }]}>
+                <Text style={[styles.sizeButtonText, { color: tgt === l.code ? textOn(GRADIENT[0]) : colors.text }]}>
                   {l.name}
                 </Text>
               </TouchableOpacity>
@@ -296,7 +296,7 @@ export default function VocabSrsGame() {
                 ]}
                 onPress={() => setNewLimit(n)}
               >
-                <Text style={[styles.sizeButtonText, { color: newLimit === n ? '#fff' : colors.text }]}>{n}</Text>
+                <Text style={[styles.sizeButtonText, { color: newLimit === n ? textOn(GRADIENT[0]) : colors.text }]}>{n}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -317,7 +317,7 @@ export default function VocabSrsGame() {
                 ]}
                 onPress={() => setDirection(d)}
               >
-                <Text style={[styles.sizeButtonText, { color: direction === d ? '#fff' : colors.text }]}>
+                <Text style={[styles.sizeButtonText, { color: direction === d ? textOn(GRADIENT[0]) : colors.text }]}>
                   {label}
                 </Text>
               </TouchableOpacity>
@@ -383,7 +383,7 @@ export default function VocabSrsGame() {
             </Text>
             {card.isNew && (
               <View style={[styles.newBadge, { backgroundColor: GRADIENT[0] }]}>
-                <Text style={styles.newBadgeText}>{t('srsNew')}</Text>
+                <Text style={[styles.newBadgeText, { color: textOn(GRADIENT[0]) }]}>{t('srsNew')}</Text>
               </View>
             )}
             <Text style={[styles.hudText, { color: colors.textSecondary }]}>
@@ -517,7 +517,7 @@ export default function VocabSrsGame() {
                 style={[styles.modalBtn, { backgroundColor: GRADIENT[0] }]}
                 onPress={handleAddWords}
               >
-                <Text style={{ color: '#fff', fontWeight: '700' }}>{t('srsAddBtn')}</Text>
+                <Text style={{ color: textOn(GRADIENT[0]), fontWeight: '700' }}>{t('srsAddBtn')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"

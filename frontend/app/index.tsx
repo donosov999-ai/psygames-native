@@ -1,3 +1,5 @@
+import GradientSurface from '@/src/components/GradientSurface';
+import { textOn, onGradientText, onGradientTextMuted, innerScrim } from '@/src/services/onGradientText';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
@@ -75,6 +77,29 @@ const SLOT_TINT: Record<WarmupSlot, [string, string]> = {
   evening: ['#7b4397', '#dc2430'],
   night:   ['#2c3e50', '#4ca1af'],
 };
+
+/**
+ * ЦВЕТ ТЕКСТА НА БОЛЬШИХ ПЛАШКАХ ГЛАВНОЙ — СЧИТАЕТСЯ.
+ * Здесь стоял зашитый `#FFF`: на `#43cea2→#185a9d` он даёт 1.98, на
+ * `#5b86e5→#36d1dc` — 1.86. Это заголовки карточек «Разминка глаз», «Дыхание»
+ * и «Оценка» на первом экране. Где сплошным цветом AA не берётся, вуаль кладёт
+ * `GradientSurface` — градиент остаётся собой, меняется только глубина.
+ */
+const HERO_EYE = ['#43cea2', '#185a9d'];
+const HERO_BREATH = ['#5b86e5', '#36d1dc'];
+const HERO_ASSESS = ['#7c3aed', '#ec4899'];
+const HERO_FIN = ['#22c55e', '#0d9488'];
+const HERO_FIN_OFF = ['#475569', '#64748b'];
+const ON_EYE = onGradientText(HERO_EYE[0], HERO_EYE[1]);
+const ON_BREATH = onGradientText(HERO_BREATH[0], HERO_BREATH[1]);
+const ON_ASSESS = onGradientText(HERO_ASSESS[0], HERO_ASSESS[1]);
+const ON_EYE_SOFT = onGradientTextMuted(ON_EYE);
+const ON_BREATH_SOFT = onGradientTextMuted(ON_BREATH);
+const ON_ASSESS_SOFT = onGradientTextMuted(ON_ASSESS);
+const ON_FIN = onGradientText(HERO_FIN[0], HERO_FIN[1]);
+const ON_FIN_OFF = onGradientText(HERO_FIN_OFF[0], HERO_FIN_OFF[1]);
+const ON_FIN_SOFT = onGradientTextMuted(ON_FIN);
+const ON_FIN_OFF_SOFT = onGradientTextMuted(ON_FIN_OFF);
 
 export default function HomeScreen() {
   if (IS_WEB_DEMO) return <DemoLanding />;
@@ -220,6 +245,9 @@ function FullHome() {
     [profile, sessions, recoAt],
   );
   const todayChallenge = useMemo(() => getTodayChallenge(), []);   // ротация игр — детерминировано по дате
+  // Градиент вызова дня меняется вместе с игрой — цвет текста считаем от него же.
+  const onChallenge = onGradientText(todayChallenge.game.gradient[0], todayChallenge.game.gradient[todayChallenge.game.gradient.length - 1]);
+  const onChallengeSoft = onGradientTextMuted(onChallenge);
 
   // Время суток для подписи кнопки «Зарядка».
   // ⚠️ РАНЬШЕ считалось ОДИН раз через useMemo(..., []) с рассуждением «экран и так
@@ -228,6 +256,10 @@ function FullHome() {
   // запуска, и утром человек видел ночную зарядку (репорт Дениса 06.08).
   // Пересчитываем на каждом возврате на главную.
   const [slotNow, setSlotNow] = useState<WarmupSlot>(() => currentSlot());
+  // Плашка зарядки перекрашивается по времени суток — цвет текста считаем от того
+  // градиента, который сейчас на экране, а не от одного «представительного».
+  const onSlot = onGradientText(SLOT_TINT[slotNow][0], SLOT_TINT[slotNow][1]);
+  const onSlotSoft = onGradientTextMuted(onSlot);
   useFocusEffect(useCallback(() => { setSlotNow(currentSlot()); }, []));
   const prevTokensRef = useRef<number | null>(null);
   const prevLevelRef = useRef<number | null>(null);
@@ -374,7 +406,7 @@ function FullHome() {
         <View style={{ position: 'absolute', top: 76, left: 0, right: 0, alignItems: 'center', zIndex: 150 }} pointerEvents="none">
           <View style={{ backgroundColor: '#ef4444', paddingHorizontal: 18, paddingVertical: 9, borderRadius: 100, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Text style={{ fontSize: 16 }}>🎁</Text>
-            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>+{streakToast} ⭐</Text>
+            <Text style={{ color: textOn('#ef4444'), fontWeight: '800', fontSize: 14 }}>+{streakToast} ⭐</Text>
           </View>
         </View>
       )}
@@ -707,6 +739,9 @@ function FullHome() {
                 // Сыграно сегодня — карточка меняет ПОДПИСЬ, а не место: набор заморожен
                 // на сутки, но обещать «давно не играли» после сегодняшней партии нельзя.
                 const whyKey = pick.doneToday ? 'recoDoneToday' : pick.reasonKey;
+                // Градиент у каждой рекомендации свой — и цвет текста тоже свой.
+                const onG = onGradientText(game.gradient[0], game.gradient[game.gradient.length - 1]);
+                const onGSoft = onGradientTextMuted(onG);
                 return (
                   <TouchableOpacity
                     key={pick.gameId}
@@ -718,26 +753,26 @@ function FullHome() {
                     // тот же тихий режим, что у вечернего шага зарядки.
                     onPress={() => router.push({ pathname: game.route, params: recoParams() } as any)}
                   >
-                    <LinearGradient colors={game.gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+                    <GradientSurface colors={game.gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
                       <View style={styles.heroTopRow}>
-                        <Ionicons name={game.icon as any} size={26} color="#FFF" />
+                        <Ionicons name={game.icon as any} size={26} color={onG.color} />
                         {pick.doneToday && (
-                          <View style={[styles.heroChipMini, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
-                            <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>✓</Text>
+                          <View style={[styles.heroChipMini, { backgroundColor: innerScrim(onG, 0.35) }]}>
+                            <Text style={[styles.heroChipMiniText, { color: onG.color }]}>✓</Text>
                           </View>
                         )}
                       </View>
-                      <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>{t(game.nameKey)}</Text>
-                      <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
+                      <Text style={[styles.heroTitle, { color: onG.color }]} numberOfLines={2}>{t(game.nameKey)}</Text>
+                      <Text style={[styles.heroSub, { color: onGSoft }]} numberOfLines={3}>
                         {t(whyKey)}
                       </Text>
-                      <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
-                        <Ionicons name="play" size={14} color="#FFF" />
-                        <Text style={[styles.heroCtaText, { color: '#FFF' }]}>
+                      <View style={[styles.heroCta, { backgroundColor: innerScrim(onG, 0.35) }]}>
+                        <Ionicons name="play" size={14} color={onG.color} />
+                        <Text style={[styles.heroCtaText, { color: onG.color }]}>
                           {t(pick.doneToday ? 'ctaRepeat' : 'ctaStart')}
                         </Text>
                       </View>
-                    </LinearGradient>
+                    </GradientSurface>
                   </TouchableOpacity>
                 );
               })}
@@ -757,48 +792,48 @@ function FullHome() {
           <TouchableOpacity
             accessibilityRole="button" style={styles.heroCardWrap}
             onPress={() => router.push('/warmup-picker' as any)} activeOpacity={0.85}>
-            <LinearGradient colors={SLOT_TINT[slotNow]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+            <GradientSurface colors={SLOT_TINT[slotNow]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
               <View style={styles.heroTopRow}>
                 <Image source={FEATURE_ICONS.warmup} style={{ width: 30, height: 30, borderRadius: 8 }} />
                 {streak > 0 && (
-                  <View style={styles.heroChipMini}>
-                    <Text style={styles.heroChipMiniText}>🔥{streak}</Text>
+                  <View style={[styles.heroChipMini, { backgroundColor: innerScrim(onSlot, 0.2) }]}>
+                    <Text style={[styles.heroChipMiniText, { color: onSlot.color }]}>🔥{streak}</Text>
                   </View>
                 )}
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={1}>
+              <Text style={[styles.heroTitle, { color: onSlot.color }]} numberOfLines={1}>
                 {t('warmupPickerTitle')}
               </Text>
-              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
+              <Text style={[styles.heroSub, { color: onSlotSoft }]} numberOfLines={3}>
                 {t('slot' + slotNow.charAt(0).toUpperCase() + slotNow.slice(1))}
                 {' · '}
                 {t('slot' + slotNow.charAt(0).toUpperCase() + slotNow.slice(1) + 'Desc')}
               </Text>
-              <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
+              <View style={[styles.heroCta, { backgroundColor: innerScrim(onSlot, 0.35) }]}>
                 {/* Карточка ведёт на ВЫБОР набора, а не запускает его: «СТАРТ» обещал
                     запуск и обманывал. Значок тоже меняем — стрелка «дальше» вместо
                     «играть», иначе подпись честная, а картинка нет. */}
-                <Ionicons name="chevron-forward" size={14} color="#FFF" />
-                <Text style={[styles.heroCtaText, { color: '#FFF' }]}>{t('ctaChoose')}</Text>
+                <Ionicons name="chevron-forward" size={14} color={onSlot.color} />
+                <Text style={[styles.heroCtaText, { color: onSlot.color }]}>{t('ctaChoose')}</Text>
               </View>
-            </LinearGradient>
+            </GradientSurface>
           </TouchableOpacity>
           )}
 
           {/* 👁 Быстрый перерыв для глаз */}
           <TouchableOpacity
             accessibilityRole="button" style={styles.heroCardWrap} onPress={() => router.push('/games/eye-gym' as any)} activeOpacity={0.85}>
-            <LinearGradient colors={['#43cea2', '#185a9d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+            <GradientSurface colors={HERO_EYE as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
               <View style={styles.heroTopRow}>
                 <Image source={FEATURE_ICONS.eyegym} style={{ width: 34, height: 34, borderRadius: 10 }} />
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>{t('eyeGym')}</Text>
-              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={2}>{t('eyeGymDesc')}</Text>
+              <Text style={[styles.heroTitle, { color: ON_EYE.color }]} numberOfLines={2}>{t('eyeGym')}</Text>
+              <Text style={[styles.heroSub, { color: ON_EYE_SOFT }]} numberOfLines={2}>{t('eyeGymDesc')}</Text>
               <View style={[styles.heroCta, { backgroundColor: '#FFF' }]}>
                 <Ionicons name="play" size={14} color="#185a9d" />
                 <Text style={[styles.heroCtaText, { color: '#185a9d' }]}>{t('ctaStart')}</Text>
               </View>
-            </LinearGradient>
+            </GradientSurface>
           </TouchableOpacity>
 
           {/* 🌬 Дыхание — самостоятельное упражнение, а не только финал вечернего
@@ -806,17 +841,17 @@ function FullHome() {
           <TouchableOpacity
             accessibilityRole="button" style={styles.heroCardWrap}
             onPress={() => router.push('/games/breathing' as any)} activeOpacity={0.85}>
-            <LinearGradient colors={['#5b86e5', '#36d1dc']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+            <GradientSurface colors={HERO_BREATH as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
               <View style={styles.heroTopRow}>
-                <Ionicons name="leaf-outline" size={26} color="#FFF" />
+                <Ionicons name="leaf-outline" size={26} color={ON_BREATH.color} />
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>{t('breathing')}</Text>
-              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>{t('breathingDesc')}</Text>
-              <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
-                <Ionicons name="play" size={14} color="#FFF" />
-                <Text style={[styles.heroCtaText, { color: '#FFF' }]}>{t('ctaStart')}</Text>
+              <Text style={[styles.heroTitle, { color: ON_BREATH.color }]} numberOfLines={2}>{t('breathing')}</Text>
+              <Text style={[styles.heroSub, { color: ON_BREATH_SOFT }]} numberOfLines={3}>{t('breathingDesc')}</Text>
+              <View style={[styles.heroCta, { backgroundColor: innerScrim(ON_BREATH, 0.3) }]}>
+                <Ionicons name="play" size={14} color={ON_BREATH.color} />
+                <Text style={[styles.heroCtaText, { color: ON_BREATH.color }]}>{t('ctaStart')}</Text>
               </View>
-            </LinearGradient>
+            </GradientSurface>
           </TouchableOpacity>
         </View>
 
@@ -829,28 +864,28 @@ function FullHome() {
           {/* 🎯 Ежедневный вызов — ротация игр, детерминировано по дате */}
           <TouchableOpacity
             accessibilityRole="button" style={styles.heroCardWrap} onPress={startDailyChallenge} activeOpacity={0.85}>
-            <LinearGradient colors={todayChallenge.game.gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+            <GradientSurface colors={todayChallenge.game.gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
               <View style={styles.heroTopRow}>
-                <Ionicons name="flash" size={26} color="#FFF" />
-                <View style={styles.heroChipMini}>
-                  <Text style={styles.heroChipMiniText}>
+                <Ionicons name="flash" size={26} color={onChallenge.color} />
+                <View style={[styles.heroChipMini, { backgroundColor: innerScrim(onChallenge, 0.35) }]}>
+                  <Text style={[styles.heroChipMiniText, { color: onChallenge.color }]}>
                     {isChallengeDoneToday(challengeStreak) ? '✓' : '🔥' + challengeStreak.streak}
                   </Text>
                 </View>
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>
+              <Text style={[styles.heroTitle, { color: onChallenge.color }]} numberOfLines={2}>
                 {t('dailyChallenge')}
               </Text>
-              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
+              <Text style={[styles.heroSub, { color: onChallengeSoft }]} numberOfLines={3}>
                 {t(todayChallenge.game.nameKey)} · {t(todayChallenge.difficulty)}
               </Text>
-              <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
-                <Ionicons name="play" size={14} color="#FFF" />
-                <Text style={[styles.heroCtaText, { color: '#FFF' }]}>
+              <View style={[styles.heroCta, { backgroundColor: innerScrim(onChallenge, 0.35) }]}>
+                <Ionicons name="play" size={14} color={onChallenge.color} />
+                <Text style={[styles.heroCtaText, { color: onChallenge.color }]}>
                   {isChallengeDoneToday(challengeStreak) ? t('ctaRepeat') : t('ctaStart')}
                 </Text>
               </View>
-            </LinearGradient>
+            </GradientSurface>
           </TouchableOpacity>
           {/* CARD 2: Assessment (профиль) */}
           {profile.assessment_enabled && (
@@ -860,16 +895,16 @@ function FullHome() {
             onPress={() => warmup.startAssessment()}
             activeOpacity={0.85}
           >
-            <LinearGradient
-              colors={['#7c3aed', '#ec4899']}
+            <GradientSurface
+              colors={HERO_ASSESS as [string, string]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
               style={styles.heroCard}
             >
               <View style={styles.heroTopRow}>
                 <Image source={FEATURE_ICONS.assessment} style={{ width: 30, height: 30, borderRadius: 8 }} />
                 {assessStatus.hasAssessment ? (
-                  <View style={[styles.heroChipMini, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
-                    <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>
+                  <View style={[styles.heroChipMini, { backgroundColor: innerScrim(ON_ASSESS, 0.3) }]}>
+                    <Text style={[styles.heroChipMiniText, { color: ON_ASSESS.color }]}>
                       {assessStatus.daysSince === 0 ? '✓' : `${assessStatus.daysSince}${t('unitDayShort')}`}
                     </Text>
                   </View>
@@ -879,8 +914,8 @@ function FullHome() {
                   </View>
                 )}
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>{t('complexAssessment')}</Text>
-              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
+              <Text style={[styles.heroTitle, { color: ON_ASSESS.color }]} numberOfLines={2}>{t('complexAssessment')}</Text>
+              <Text style={[styles.heroSub, { color: ON_ASSESS_SOFT }]} numberOfLines={3}>
                 {t('assessmentMeta')}
               </Text>
               <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
@@ -889,7 +924,7 @@ function FullHome() {
                   {assessStatus.hasAssessment ? t('ctaRepeat') : t('ctaStart')}
                 </Text>
               </View>
-            </LinearGradient>
+            </GradientSurface>
           </TouchableOpacity>
           )}
 
@@ -902,40 +937,57 @@ function FullHome() {
             disabled={!finCooldown.ready}
             activeOpacity={0.85}
           >
-            <LinearGradient
-              colors={finCooldown.ready ? ['#22c55e', '#0d9488'] : ['#475569', '#64748b']}
+            {/* Две плашки, а не одна с тернарником в `colors`. У готовой и у
+                остывающей карточки ПРОТИВОПОЛОЖНАЯ полярность текста (тёмный на
+                зелёном, светлый на сером) — единого цвета на оба градиента не
+                существует, это арифметика. Разведя состояния по своим плашкам, мы
+                делаем каждую пару «фон + текст» неподвижной и проверяемой счётом;
+                в одной плашке проверка вынуждена была бы гадать, какая ветка
+                какому фону досталась. */}
+            {finCooldown.ready ? (
+            <GradientSurface
+              colors={HERO_FIN as [string, string]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
               style={styles.heroCard}
             >
               <View style={styles.heroTopRow}>
                 <Image source={FEATURE_ICONS.financial} style={{ width: 30, height: 30, borderRadius: 8 }} />
-                {finCooldown.ready ? (
-                  <View style={[styles.heroChipMini, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
-                    <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>🟢</Text>
-                  </View>
-                ) : (
-                  <View style={[styles.heroChipMini, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
-                    <Text style={[styles.heroChipMiniText, { color: '#FFF' }]}>⏳{finCooldown.daysLeft}{t('unitDayShort')}</Text>
-                  </View>
-                )}
+                <View style={[styles.heroChipMini, { backgroundColor: innerScrim(ON_FIN, 0.25) }]}>
+                  <Text style={[styles.heroChipMiniText, { color: ON_FIN.color }]}>🟢</Text>
+                </View>
               </View>
-              <Text style={[styles.heroTitle, { color: '#FFF' }]} numberOfLines={2}>FIN BRAIN</Text>
-              <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.9)' }]} numberOfLines={3}>
+              <Text style={[styles.heroTitle, { color: ON_FIN.color }]} numberOfLines={2}>FIN BRAIN</Text>
+              <Text style={[styles.heroSub, { color: ON_FIN_SOFT }]} numberOfLines={3}>
                 {t('finBrainMeta')}
               </Text>
-              {finCooldown.ready ? (
-                <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
-                  <Ionicons name="play" size={14} color="#22c55e" />
-                  <Text style={[styles.heroCtaText, { color: '#22c55e' }]}>{t('ctaStart')}</Text>
+              <View style={[styles.heroCta, { backgroundColor: innerScrim(ON_FIN, 0.35) }]}>
+                <Ionicons name="play" size={14} color={ON_FIN.color} />
+                <Text style={[styles.heroCtaText, { color: ON_FIN.color }]}>{t('ctaStart')}</Text>
+              </View>
+            </GradientSurface>
+            ) : (
+            <GradientSurface
+              colors={HERO_FIN_OFF as [string, string]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={styles.heroCard}
+            >
+              <View style={styles.heroTopRow}>
+                <Image source={FEATURE_ICONS.financial} style={{ width: 30, height: 30, borderRadius: 8 }} />
+                <View style={[styles.heroChipMini, { backgroundColor: innerScrim(ON_FIN_OFF, 0.3) }]}>
+                  <Text style={[styles.heroChipMiniText, { color: ON_FIN_OFF.color }]}>⏳{finCooldown.daysLeft}{t('unitDayShort')}</Text>
                 </View>
-              ) : (
-                <View style={[styles.heroCta, { backgroundColor: 'rgba(0,0,0,0.4)' }]}>
-                  <Text style={[styles.heroCtaText, { color: 'rgba(255,255,255,0.75)' }]}>
-                    {t('ctaWait')}
-                  </Text>
-                </View>
-              )}
-            </LinearGradient>
+              </View>
+              <Text style={[styles.heroTitle, { color: ON_FIN_OFF.color }]} numberOfLines={2}>FIN BRAIN</Text>
+              <Text style={[styles.heroSub, { color: ON_FIN_OFF_SOFT }]} numberOfLines={3}>
+                {t('finBrainMeta')}
+              </Text>
+              <View style={[styles.heroCta, { backgroundColor: innerScrim(ON_FIN_OFF, 0.35) }]}>
+                <Text style={[styles.heroCtaText, { color: ON_FIN_OFF_SOFT }]}>
+                  {t('ctaWait')}
+                </Text>
+              </View>
+            </GradientSurface>
+            )}
           </TouchableOpacity>
           )}
 

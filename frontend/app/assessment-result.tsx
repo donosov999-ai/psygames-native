@@ -8,6 +8,8 @@
  *  4. "Apply to playlist" button — saves user profile + (future) modulates warmup playlist
  */
 
+import GradientSurface from '@/src/components/GradientSurface';
+import { textOn, onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import Svg, { Polygon, Line, Circle, Text as SvgText, G } from 'react-native-svg';
@@ -28,6 +30,9 @@ import { getAiInsight, toneForProfile } from '@/src/services/aiInsight';
 import type { GameSession } from '@/src/services/api';
 
 const GRADIENT = ['#7c3aed', '#ec4899'];
+// Текст на плашке итога считаем по ОБОИМ концам: зашитый белый давал 3.53.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 
 export default function AssessmentResultScreen() {
   const router = useRouter();
@@ -107,11 +112,11 @@ export default function AssessmentResultScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.hero}>
+        <GradientSurface colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.hero}>
           <Text style={styles.heroEmoji}>🎯</Text>
-          <Text style={styles.heroTitle}>{t('cogProfileTitle')}</Text>
-          <Text style={styles.heroSubtitle}>{result.date} · {t('domains12')}</Text>
-        </LinearGradient>
+          <Text style={[styles.heroTitle, { color: ON_GRAD.color }]}>{t('cogProfileTitle')}</Text>
+          <Text style={[styles.heroSubtitle, { color: ON_GRAD_SOFT }]}>{result.date} · {t('domains12')}</Text>
+        </GradientSurface>
 
         {/* Radar chart */}
         <View style={[styles.section, { alignItems: 'center' }]}>
@@ -179,16 +184,16 @@ export default function AssessmentResultScreen() {
           {!applied ? (
             <TouchableOpacity
               accessibilityRole="button" style={styles.btn} onPress={applyToProfile}>
-              <LinearGradient colors={GRADIENT as [string, string]} style={styles.btnGrad}>
-                <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                <Text style={styles.btnText}>{t('saveProfileBtn')}</Text>
-              </LinearGradient>
+              <GradientSurface colors={GRADIENT as [string, string]} style={styles.btnGrad}>
+                <Ionicons name="checkmark-circle" size={20} color={ON_GRAD.color} />
+                <Text style={[styles.btnText, { color: ON_GRAD.color }]}>{t('saveProfileBtn')}</Text>
+              </GradientSurface>
             </TouchableOpacity>
           ) : (
             <View style={[styles.btn, { backgroundColor: '#22c55e' }]}>
               <View style={styles.btnGrad}>
-                <Ionicons name="checkmark" size={20} color="#FFF" />
-                <Text style={styles.btnText}>{t('profileSavedBtn')}</Text>
+                <Ionicons name="checkmark" size={20} color={textOn('#22c55e')} />
+                <Text style={[styles.btnText, { color: textOn('#22c55e') }]}>{t('profileSavedBtn')}</Text>
               </View>
             </View>
           )}

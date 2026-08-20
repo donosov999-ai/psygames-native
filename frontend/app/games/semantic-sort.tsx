@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -267,7 +267,7 @@ export default function SemanticSortGame() {
                 ]}
                 onPress={() => setTargetLang(l.code)}
               >
-                <Text style={[styles.sizeButtonText, { color: tgt === l.code ? '#fff' : colors.text }]}>{l.name}</Text>
+                <Text style={[styles.sizeButtonText, { color: tgt === l.code ? textOn(GRADIENT[0]) : colors.text }]}>{l.name}</Text>
               </TouchableOpacity>
             ))}
           </View>

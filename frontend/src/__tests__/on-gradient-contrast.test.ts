@@ -39,10 +39,8 @@ const GAMES = join(ROOT, 'app/games');
  * посмотрел и решил, а не забыл. Список закрыт, растить его нельзя (см. тесты ниже).
  */
 const KNOWN_BAD: Record<string, string> = {
-  'sudoku-fractal.tsx': 'файл занят соседним агентом (генератор фрактальной судоку) — чинится следом',
-  'sudoku-samurai.tsx': 'файл занят соседним агентом (самурай) — чинится следом',
-  'set-game.tsx': 'файл занят соседним агентом — чинится следом',
-  'mahjong.tsx': 'файл занят соседним агентом — чинится следом',
+  'sudoku-fractal.tsx': 'вне наряда захода по контрасту 20.08.2026: правка `app/games/sudoku*.tsx` ему запрещена. Беда прежняя — зашитый #FFF на #5b4d9e→#7f7fd5 даёт 3.56',
+  'sudoku-samurai.tsx': 'вне наряда захода по контрасту 20.08.2026: правка `app/games/sudoku*.tsx` ему запрещена. Зашитый #FFF на #7f7fd5→#86a8e7 даёт 2.39',
 };
 
 // ─────────────────────────── разбор исходника ───────────────────────────
@@ -240,14 +238,21 @@ describe('контраст текста поверх градиентов', () =
     for (const [f, why] of Object.entries(KNOWN_BAD)) {
       if (!existsSync(join(GAMES, f))) { stale.push(`${f}: файла нет — убрать из списка`); continue; }
       if (why.length < 25) stale.push(`${f}: причина написана для галочки`);
-      const stillBroken = RESULT.bad.some((b) => b.file === f) || RESULT.unresolved.some((u) => u.startsWith(f));
+      // ⚠️ «Сломан» — это и голый градиент, которому нужна вуаль: такой файл
+      //    проваливает проверку ниже, но в `bad` не попадает, и без этой строки
+      //    исключение объявлялось протухшим ровно для того файла, ради которого
+      //    и заведено.
+      const src = readFileSync(join(GAMES, f), 'utf8') as string;
+      const scope = evaluate(src);
+      const naked = surfaces(src, scope).some((x) => x.tag === 'LinearGradient' && bestSolid(x.ends[0], x.ends[1]) < AA_NORMAL);
+      const stillBroken = naked || RESULT.bad.some((b) => b.file === f) || RESULT.unresolved.some((u) => u.startsWith(f));
       if (!stillBroken) stale.push(`${f}: уже чинен — убрать из списка исключений`);
     }
     expect(stale).toEqual([]);
   });
 
   it('список исключений не растёт', () => {
-    expect(Object.keys(KNOWN_BAD).length).toBeLessThanOrEqual(4);
+    expect(Object.keys(KNOWN_BAD).length).toBeLessThanOrEqual(2);
   });
 
   /**

@@ -1,4 +1,5 @@
 /* psygames-daily-goal-card · VER 1 · 20.08.2026 */
+import { textOn } from '@/src/services/onGradientText';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -145,7 +146,7 @@ export default function DailyGoalCard({
               onPress={() => onOutcome('done')}
               style={[styles.primary, { backgroundColor: '#22c55e' }]}
             >
-              <Text style={[styles.primaryText, { color: '#fff' }]}>{t('dayGoalYes')}</Text>
+              <Text style={[styles.primaryText, { color: textOn('#22c55e') }]}>{t('dayGoalYes')}</Text>
             </TouchableOpacity>
             {/* «Не сегодня» — такая же обычная кнопка, как соседняя: ни красного цвета,
                 ни знака беды. Ответ «нет» здесь не хуже ответа «да». */}

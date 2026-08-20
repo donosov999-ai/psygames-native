@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -524,12 +524,12 @@ export default function SchulteGame() {
             <Ionicons
               name="calculator-outline"
               size={20}
-              color={contentMode === 'numbers' ? '#FFFFFF' : colors.text}
+              color={contentMode === 'numbers' ? textOn(GRADIENT[0]) : colors.text}
             />
             <Text
               style={[
                 styles.modeButtonText,
-                { color: contentMode === 'numbers' ? '#FFFFFF' : colors.text },
+                { color: contentMode === 'numbers' ? textOn(GRADIENT[0]) : colors.text },
               ]}
             >
               {t('label_digits_numbers')}
@@ -547,12 +547,12 @@ export default function SchulteGame() {
             <Ionicons
               name="text-outline"
               size={20}
-              color={contentMode === 'letters' ? '#FFFFFF' : colors.text}
+              color={contentMode === 'letters' ? textOn(GRADIENT[0]) : colors.text}
             />
             <Text
               style={[
                 styles.modeButtonText,
-                { color: contentMode === 'letters' ? '#FFFFFF' : colors.text },
+                { color: contentMode === 'letters' ? textOn(GRADIENT[0]) : colors.text },
               ]}
             >
               {t('label_letters')}
@@ -571,12 +571,12 @@ export default function SchulteGame() {
             <Ionicons
               name="shuffle-outline"
               size={20}
-              color={contentMode === 'mixed' ? '#FFFFFF' : colors.text}
+              color={contentMode === 'mixed' ? textOn(GRADIENT[0]) : colors.text}
             />
             <Text
               style={[
                 styles.modeButtonText,
-                { color: contentMode === 'mixed' ? '#FFFFFF' : colors.text },
+                { color: contentMode === 'mixed' ? textOn(GRADIENT[0]) : colors.text },
               ]}
             >
               {t('label_mixed_1a2b')}
@@ -604,7 +604,7 @@ export default function SchulteGame() {
                   ]}
                   onPress={() => setScript(id)}
                 >
-                  <Text style={[styles.sizeButtonText, { color: script === id ? '#FFFFFF' : colors.text }]}>
+                  <Text style={[styles.sizeButtonText, { color: script === id ? textOn(GRADIENT[0]) : colors.text }]}>
                     {t(SCRIPTS[id].labelKey)}
                   </Text>
                 </TouchableOpacity>
@@ -633,9 +633,9 @@ export default function SchulteGame() {
               <Ionicons
                 name="arrow-forward-outline"
                 size={20}
-                color={direction === 'forward' ? '#FFFFFF' : colors.text}
+                color={direction === 'forward' ? textOn(GRADIENT[0]) : colors.text}
               />
-              <Text style={[styles.modeButtonText, { color: direction === 'forward' ? '#FFFFFF' : colors.text }]}>
+              <Text style={[styles.modeButtonText, { color: direction === 'forward' ? textOn(GRADIENT[0]) : colors.text }]}>
                 {contentMode === 'numbers'
                   ? '1 → 25'
                   : `${SCRIPTS[script].chars[0]} → ${SCRIPTS[script].chars[SCRIPTS[script].chars.length - 1]}`}
@@ -653,9 +653,9 @@ export default function SchulteGame() {
               <Ionicons
                 name="arrow-back-outline"
                 size={20}
-                color={direction === 'backward' ? '#FFFFFF' : colors.text}
+                color={direction === 'backward' ? textOn(GRADIENT[0]) : colors.text}
               />
-              <Text style={[styles.modeButtonText, { color: direction === 'backward' ? '#FFFFFF' : colors.text }]}>
+              <Text style={[styles.modeButtonText, { color: direction === 'backward' ? textOn(GRADIENT[0]) : colors.text }]}>
                 {contentMode === 'numbers'
                   ? '25 → 1'
                   : `${SCRIPTS[script].chars[SCRIPTS[script].chars.length - 1]} → ${SCRIPTS[script].chars[0]}`}
@@ -671,8 +671,8 @@ export default function SchulteGame() {
                 ]}
                 onPress={() => setDirection('center-out')}
               >
-                <Ionicons name="radio-button-on-outline" size={20} color={direction === 'center-out' ? '#FFFFFF' : colors.text} />
-                <Text style={[styles.modeButtonText, { color: direction === 'center-out' ? '#FFFFFF' : colors.text }]}>
+                <Ionicons name="radio-button-on-outline" size={20} color={direction === 'center-out' ? textOn(GRADIENT[0]) : colors.text} />
+                <Text style={[styles.modeButtonText, { color: direction === 'center-out' ? textOn(GRADIENT[0]) : colors.text }]}>
                   {t('schulteCenterOut')}
                 </Text>
               </TouchableOpacity>
@@ -702,7 +702,7 @@ export default function SchulteGame() {
                 ]}
                 onPress={() => setGroupCount(gc)}
               >
-                <Text style={[styles.sizeButtonText, { color: groupCount === gc ? '#FFFFFF' : colors.text }]}>
+                <Text style={[styles.sizeButtonText, { color: groupCount === gc ? textOn(GRADIENT[0]) : colors.text }]}>
                   {gc === 1 ? t('classicLabel') : `${gc}`}
                 </Text>
               </TouchableOpacity>
@@ -725,14 +725,14 @@ export default function SchulteGame() {
             style={[styles.modeButton, !reshuffleOnClick && { backgroundColor: GRADIENT[0] }, reshuffleOnClick && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
             onPress={() => setReshuffleOnClick(false)}
           >
-            <Text style={[styles.modeButtonText, { color: !reshuffleOnClick ? '#FFFFFF' : colors.text }]}>{t('label_off')}</Text>
+            <Text style={[styles.modeButtonText, { color: !reshuffleOnClick ? textOn(GRADIENT[0]) : colors.text }]}>{t('label_off')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             accessibilityRole="button"
             style={[styles.modeButton, reshuffleOnClick && { backgroundColor: GRADIENT[0] }, !reshuffleOnClick && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
             onPress={() => setReshuffleOnClick(true)}
           >
-            <Text style={[styles.modeButtonText, { color: reshuffleOnClick ? '#FFFFFF' : colors.text }]}>{t('label_on')}</Text>
+            <Text style={[styles.modeButtonText, { color: reshuffleOnClick ? textOn(GRADIENT[0]) : colors.text }]}>{t('label_on')}</Text>
           </TouchableOpacity>
         </View>
         <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
@@ -769,7 +769,7 @@ export default function SchulteGame() {
                 <Text
                   style={[
                     styles.sizeButtonText,
-                    { color: gridSize === size && !isDisabled ? '#FFFFFF' : colors.text },
+                    { color: gridSize === size && !isDisabled ? textOn(GRADIENT[0]) : colors.text },
                   ]}
                 >
                   {size}x{size}{levelLocked ? ' 🔒' : ''}
@@ -802,12 +802,12 @@ export default function SchulteGame() {
             <Ionicons
               name="contrast-outline"
               size={20}
-              color={!colorMode ? '#FFFFFF' : colors.text}
+              color={!colorMode ? textOn(GRADIENT[0]) : colors.text}
             />
             <Text
               style={[
                 styles.modeButtonText,
-                { color: !colorMode ? '#FFFFFF' : colors.text },
+                { color: !colorMode ? textOn(GRADIENT[0]) : colors.text },
               ]}
             >
               {t('bwMode')}
@@ -825,12 +825,12 @@ export default function SchulteGame() {
             <Ionicons
               name="color-palette-outline"
               size={20}
-              color={colorMode ? '#FFFFFF' : colors.text}
+              color={colorMode ? textOn(GRADIENT[0]) : colors.text}
             />
             <Text
               style={[
                 styles.modeButtonText,
-                { color: colorMode ? '#FFFFFF' : colors.text },
+                { color: colorMode ? textOn(GRADIENT[0]) : colors.text },
               ]}
             >
               {t('colorMode')}

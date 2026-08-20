@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -264,9 +264,9 @@ export default function MnemonicsGame() {
               <Ionicons
                 name="document-text-outline"
                 size={22}
-                color={mode === 'words' ? '#FFFFFF' : colors.text}
+                color={mode === 'words' ? textOn(GRADIENT[0]) : colors.text}
               />
-              <Text style={[styles.modeButtonText, { color: mode === 'words' ? '#FFFFFF' : colors.text }]}>
+              <Text style={[styles.modeButtonText, { color: mode === 'words' ? textOn(GRADIENT[0]) : colors.text }]}>
                 {t('label_words')}
               </Text>
             </TouchableOpacity>
@@ -282,9 +282,9 @@ export default function MnemonicsGame() {
               <Ionicons
                 name="calculator-outline"
                 size={22}
-                color={mode === 'numbers' ? '#FFFFFF' : colors.text}
+                color={mode === 'numbers' ? textOn(GRADIENT[0]) : colors.text}
               />
-              <Text style={[styles.modeButtonText, { color: mode === 'numbers' ? '#FFFFFF' : colors.text }]}>
+              <Text style={[styles.modeButtonText, { color: mode === 'numbers' ? textOn(GRADIENT[0]) : colors.text }]}>
                 {t('catVocab_numbers')}
               </Text>
             </TouchableOpacity>
@@ -311,7 +311,7 @@ export default function MnemonicsGame() {
                 <Text
                   style={[
                     styles.countButtonText,
-                    { color: itemCount === count ? '#FFFFFF' : colors.text },
+                    { color: itemCount === count ? textOn(GRADIENT[0]) : colors.text },
                   ]}
                 >
                   {count}
@@ -355,8 +355,8 @@ export default function MnemonicsGame() {
       stats={
         <View style={styles.gameHeader}>
           <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
-            <Ionicons name="time-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.timerText}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
+            <Ionicons name="time-outline" size={20} color={textOn(GRADIENT[0])} />
+            <Text style={[styles.timerText, { color: textOn(GRADIENT[0]) }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
           </View>
         </View>
       }

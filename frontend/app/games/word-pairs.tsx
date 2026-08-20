@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -341,7 +341,7 @@ export default function WordPairsGame() {
               ]}
               onPress={() => setMode(m)}
             >
-              <Text style={[styles.modeButtonText, { color: mode === m ? '#FFFFFF' : colors.text }]}>
+              <Text style={[styles.modeButtonText, { color: mode === m ? textOn(GRADIENT[0]) : colors.text }]}>
                 {label}
               </Text>
             </TouchableOpacity>
@@ -366,7 +366,7 @@ export default function WordPairsGame() {
                   ]}
                   onPress={() => setTargetLang(l.code)}
                 >
-                  <Text style={[styles.langButtonText, { color: targetLang === l.code ? '#FFFFFF' : colors.text }]}>
+                  <Text style={[styles.langButtonText, { color: targetLang === l.code ? textOn(GRADIENT[0]) : colors.text }]}>
                     {l.name}
                   </Text>
                 </TouchableOpacity>
@@ -400,8 +400,8 @@ export default function WordPairsGame() {
       stats={
         <View style={styles.gameHeader}>
           <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
-            <Ionicons name="time-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.timerText}>
+            <Ionicons name="time-outline" size={20} color={textOn(GRADIENT[0])} />
+            <Text style={[styles.timerText, { color: textOn(GRADIENT[0]) }]}>
               {memorizeLimitSec > 0
                 ? `${t('timeLeftLabel')} ${Math.max(0, memorizeLimitSec - elapsedTime).toFixed(0)}${t('secShort')}`
                 : `${t('time')} ${elapsedTime.toFixed(1)}${t('secShort')}`}

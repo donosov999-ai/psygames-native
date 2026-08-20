@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import GradientSurface from '@/src/components/GradientSurface';
+import { onGradientText, onGradientTextMuted, innerScrim, accentOn, AA_LARGE } from '@/src/services/onGradientText';
 import { sndWin } from '@/src/services/feedback';
 import { tickLevelStreak, resetLevelStreak } from '@/src/services/eyeRestTracker';
 import { saveLevelStars } from '@/src/services/levelStars';
@@ -27,6 +29,10 @@ import LevelInterlude from '@/src/components/LevelInterlude';
  */
 
 const EYE_REST_SEC = 20;
+/** Передышка для глаз рисуется СВОИМ градиентом, не игровым — цвет текста считаем отдельно. */
+const REST_GRADIENT = ['#43cea2', '#185a9d'];
+const ON_REST = onGradientText(REST_GRADIENT[0], REST_GRADIENT[1]);
+const ON_REST_SOFT = onGradientTextMuted(ON_REST);
 /**
  * ДВЕ ФАЗЫ МЕЖДУ УРОВНЯМИ (заказ Дениса 19.08.2026: «мини-пауза вроде как
  * человеку, на пару секунд, и движение питомца на новый уровень визуально»).
@@ -91,6 +97,22 @@ interface Props {
 
 export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, onContinue, onStop, stopKind = 'config', variant = 'screen' }: Props) {
   const { t, language } = useLanguage();
+  /**
+   * ЦВЕТ ТЕКСТА НА КАРТОЧКЕ СЧИТАЕТСЯ, А НЕ ЗАШИТ.
+   * Здесь лежал `#FFFFFF` — у всех 71 игры разом, потому что градиент приходит
+   * пропом. Замер 20.08.2026 по ОБОИМ концам: `#ee9ca7→#ffdde1` (анаграммы) —
+   * 1.26, `#a8edea→#fed6e3` (корректура) — 1.32, то есть белым по белому, и это
+   * заголовок в 26 pt, на котором заканчивается БОЛЬШИНСТВО партий: авто-цепочка
+   * уровней ведёт мимо полноэкранного итога. Считает общий сервис по обоим концам,
+   * а где сплошным цветом AA недостижим — `GradientSurface` кладёт вуаль.
+   */
+  const onGrad = onGradientText(gradient[0], gradient[gradient.length - 1]);
+  const fg = onGrad.color;
+  const fgSoft = onGradientTextMuted(onGrad);
+  const scrim = innerScrim(onGrad);
+  // Золото серии и звёзд — только там, где оно видно (на светлых градиентах оно пропадает).
+  const gold = accentOn(onGrad, '#FFD93B');
+  const goldIcon = accentOn(onGrad, '#FFD93B', AA_LARGE);
   const levelWord = t('level');   // внутри эффекта `t` перекрыт локальным таймер-хендлом   // язык берём из контекста; проп language остался в Props для совместимости вызовов из игр
   const { profile } = useProfile();
   const firedRef = useRef(false);
@@ -218,14 +240,14 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
   if (isRest) {
     return (
       <View style={rootStyle}>
-        <LinearGradient colors={['#43cea2', '#185a9d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
-          <Ionicons name="eye-outline" size={56} color="#FFFFFF" />
-          <Text style={styles.title}>{t('eyeBreakTitle')}</Text>
-          <Text style={styles.restHint}>
+        <GradientSurface colors={REST_GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
+          <Ionicons name="eye-outline" size={56} color={ON_REST.color} />
+          <Text style={[styles.title, { color: ON_REST.color }]}>{t('eyeBreakTitle')}</Text>
+          <Text style={[styles.restHint, { color: ON_REST_SOFT }]}>
             {t('eyeBreakHint')}
           </Text>
-          <Text style={styles.restTimer}>{restLeft}</Text>
-        </LinearGradient>
+          <Text style={[styles.restTimer, { color: ON_REST.color }]}>{restLeft}</Text>
+        </GradientSurface>
         <View style={styles.btns}>
           <TouchableOpacity
             accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
@@ -263,21 +285,21 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
   // lvl.level, который при провале не рос). Убирает «обрыв» — поток не кидает в тупик.
   return (
     <View style={rootStyle}>
-      <LinearGradient colors={gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={cardStyle}>
+      <GradientSurface colors={gradient as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={cardStyle}>
         <Text style={styles.emoji}>{passed ? '🎉' : '💪'}</Text>
-        <Text style={styles.title}>
+        <Text style={[styles.title, { color: fg }]}>
           {t(passed ? 'levelDone' : 'levelAlmost').replace('{n}', String(level))}
         </Text>
         {passed && (
           <View style={styles.stars}>
             {[1, 2, 3].map((i) => (
-              <Ionicons key={i} name={i <= stars ? 'star' : 'star-outline'} size={36} color={i <= stars ? '#FFD93B' : 'rgba(255,255,255,0.5)'} />
+              <Ionicons key={i} name={i <= stars ? 'star' : 'star-outline'} size={36} color={i <= stars ? goldIcon : fgSoft} />
             ))}
           </View>
         )}
         {passed && cleanRun >= 2 && (
-          <View style={styles.runBadge}>
-            <Text style={styles.runText}>
+          <View style={[styles.runBadge, { backgroundColor: scrim }]}>
+            <Text style={[styles.runText, { color: gold }]}>
               {t('cleanRunBadge').replace('{n}', String(cleanRun))}
             </Text>
           </View>
@@ -286,38 +308,38 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             а деньги — это деньги, и раньше их складывали в одну строку, отчего
             выглядело, будто платят за серию. Платят за партию, серия лишь показатель. */}
         {(earn?.total ?? 0) > 0 && (
-          <View style={styles.earnBadge}>
-            <Text style={styles.earnText}>+{earn?.total} ⭐</Text>
+          <View style={[styles.earnBadge, { backgroundColor: scrim }]}>
+            <Text style={[styles.earnText, { color: fg }]}>+{earn?.total} ⭐</Text>
             {(earn?.multiplier ?? 1) > 1 && (
               <View style={styles.earnMult}>
                 <Text style={styles.earnMultText}>×{earn?.multiplier}</Text>
               </View>
             )}
             {earn && earnReasonKey(earn.reason) && (
-              <Text style={styles.earnWhy} numberOfLines={1}>{t(earnReasonKey(earn.reason) as string)}</Text>
+              <Text style={[styles.earnWhy, { color: fgSoft }]} numberOfLines={1}>{t(earnReasonKey(earn.reason) as string)}</Text>
             )}
           </View>
         )}
         {comparisonLine && !compact && (
-          <View style={styles.comparisonBadge}>
-            <Ionicons name="people-outline" size={17} color="#FFFFFF" />
-            <Text style={styles.comparisonText}>{comparisonLine}</Text>
+          <View style={[styles.comparisonBadge, { backgroundColor: scrim }]}>
+            <Ionicons name="people-outline" size={17} color={fg} />
+            <Text style={[styles.comparisonText, { color: fg }]}>{comparisonLine}</Text>
           </View>
         )}
         {/* Web-demo: авто-старта следующего уровня нет — строку «Запускаю уровень N+1» не показываем */}
         {!IS_WEB_DEMO && (
-          <Text style={styles.next}>
+          <Text style={[styles.next, { color: fgSoft }]}>
             {passed
               ? t('levelStarting').replace('{n}', String(level + 1))
               : t('sameLevelRetry')}
           </Text>
         )}
         {passed && showLevelsHint && (
-          <Text style={styles.levelsHint}>
+          <Text style={[styles.levelsHint, { color: fgSoft }]}>
             {t('levelsInOrderHint')}
           </Text>
         )}
-      </LinearGradient>
+      </GradientSurface>
       {IS_WEB_DEMO ? (
         // Демо: тот же CTA-блок, что и в GameResult — большая «Скачать приложение
         // — все 60+ игр и уровни» + маленькие «Ещё раз» и «Стоп».
@@ -372,23 +394,23 @@ const styles = StyleSheet.create({
   // стороны съедали поле целиком, и накладка переставала быть накладкой.
   cardOverlay: { maxWidth: 340, padding: 22, borderRadius: 20 },
   emoji: { fontSize: 56 },
-  title: { fontSize: 26, fontWeight: '800', color: '#FFFFFF', marginTop: 12, marginBottom: 16, textAlign: 'center' },
+  title: { fontSize: 26, fontWeight: '800', marginTop: 12, marginBottom: 16, textAlign: 'center' },
   stars: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  runBadge: { backgroundColor: 'rgba(0,0,0,0.25)', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, marginBottom: 12 },
-  runText: { color: '#FFD93B', fontSize: 14, fontWeight: '800' },
+  runBadge: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, marginBottom: 12 },
+  runText: { fontSize: 14, fontWeight: '800' },
   // Плашка начисления: число · множитель · причина. flexWrap — потому что при системном
   // крупном шрифте три части в строку не встают, и без переноса причина уезжала за край.
-  earnBadge: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: 'rgba(0,0,0,0.28)', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 14, marginBottom: 12, maxWidth: '100%' },
-  earnText: { color: '#FFFFFF', fontSize: 17, fontWeight: '900' },
+  earnBadge: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 14, marginBottom: 12, maxWidth: '100%' },
+  earnText: { fontSize: 17, fontWeight: '900' },
   earnMult: { backgroundColor: '#FFD93B', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 },
   earnMultText: { color: '#3f2b00', fontSize: 13, fontWeight: '900' },
-  earnWhy: { color: 'rgba(255,255,255,0.88)', fontSize: 12.5, fontWeight: '700', flexShrink: 1 },
-  comparisonBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: 'rgba(0,0,0,0.20)', paddingHorizontal: 13, paddingVertical: 8, borderRadius: 14, marginBottom: 12 },
-  comparisonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700', textAlign: 'center', flexShrink: 1 },
-  next: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
-  levelsHint: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.75)', textAlign: 'center', marginTop: 10, lineHeight: 18 },   // одноразовая подпись про порядок уровней
-  restHint: { fontSize: 15, fontWeight: '500', color: 'rgba(255,255,255,0.92)', textAlign: 'center', marginBottom: 12, lineHeight: 21 },
-  restTimer: { fontSize: 52, fontWeight: '900', color: '#FFFFFF' },
+  earnWhy: { fontSize: 12.5, fontWeight: '700', flexShrink: 1 },
+  comparisonBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 13, paddingVertical: 8, borderRadius: 14, marginBottom: 12 },
+  comparisonText: { fontSize: 14, fontWeight: '700', textAlign: 'center', flexShrink: 1 },
+  next: { fontSize: 15, fontWeight: '600' },
+  levelsHint: { fontSize: 13, fontWeight: '600', textAlign: 'center', marginTop: 10, lineHeight: 18 },   // одноразовая подпись про порядок уровней
+  restHint: { fontSize: 15, fontWeight: '500', textAlign: 'center', marginBottom: 12, lineHeight: 21 },
+  restTimer: { fontSize: 52, fontWeight: '900' },
   btns: { width: '100%', marginTop: 24 },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 16, marginBottom: 8 },
   btnText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', flexShrink: 1 },   // крупный шрифт: усечь, не выдавить за кнопку

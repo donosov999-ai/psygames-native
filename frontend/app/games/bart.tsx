@@ -21,6 +21,7 @@
  * lose-shift — пост-взрывная адаптация риска), независимо от режима.
  */
 
+import GradientSurface from '@/src/components/GradientSurface';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated,
@@ -31,7 +32,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -49,6 +50,13 @@ const GRADIENT = ['#ff5e62', '#ff9966'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
 // Было зашито '#FFF' — контраст 2.10 (норма AA 4.5), стало 5.67.
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+// Тело шара — свой градиент (объём), и число накачек лежит прямо на нём.
+// Зашитый белый давал 2.05 на целом шаре и 2.77 на лопнувшем: цифра, ради которой
+// человек и решает «качать ещё или забрать», читалась хуже всего в конце партии.
+const BALLOON = ['#ff9a8b', GRADIENT[0], '#c73e42'];
+const BALLOON_POP = ['#f87171', '#ef4444', '#b91c1c'];
+const ON_BALLOON = onGradientText(BALLOON[0], BALLOON[BALLOON.length - 1]);
+const ON_BALLOON_POP = onGradientText(BALLOON_POP[0], BALLOON_POP[BALLOON_POP.length - 1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const BART_BENEFITS = [
   { icon: 'speedometer-outline', textKey: 'benefitBart1' },
@@ -323,7 +331,7 @@ export default function BARTGame() {
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setDifficulty(d)}>
-                <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
+                <Text style={[styles.modeButtonText, { color: difficulty === d ? textOn(GRADIENT[0]) : colors.text }]}>
                   {t(d)} (max~{MAX_BURST_BY_DIFF[d]})
                 </Text>
               </TouchableOpacity>
@@ -337,7 +345,7 @@ export default function BARTGame() {
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setBalloons(n)}>
-                <Text style={[styles.modeButtonText, { color: balloons === n ? '#FFF' : colors.text }]}>{n}</Text>
+                <Text style={[styles.modeButtonText, { color: balloons === n ? textOn(GRADIENT[0]) : colors.text }]}>{n}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -377,8 +385,8 @@ export default function BARTGame() {
           {/* нитка — тонкая линия из-под узелка (позади тела по слою) */}
           {!popped && <View style={[styles.balloonString, { top: balloonSize * 1.2 + 8 }]} pointerEvents="none" />}
           {/* тело шара: диагональный градиент даёт объём (светлее сверху-слева → темнее снизу-справа) */}
-          <LinearGradient
-            colors={feedback === 'pop' ? ['#f87171', '#ef4444', '#b91c1c'] : ['#ff9a8b', GRADIENT[0], '#c73e42']}
+          <GradientSurface
+            colors={(feedback === 'pop' ? BALLOON_POP : BALLOON) as [string, string, string]}
             start={{ x: 0.25, y: 0.05 }} end={{ x: 0.85, y: 1 }}
             style={{
               width: balloonSize, height: balloonSize * 1.2, borderRadius: balloonSize / 2,
@@ -397,9 +405,9 @@ export default function BARTGame() {
                 transform: [{ rotate: '-18deg' }],
               }} />
             )}
-            {!popped && <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '900' }}>{pumps}</Text>}
-            {feedback === 'pop' && <Text style={{ color: '#FFF', fontSize: 32 }}>💥</Text>}
-          </LinearGradient>
+            {!popped && <Text style={{ color: ON_BALLOON.color, fontSize: 18, fontWeight: '900' }}>{pumps}</Text>}
+            {feedback === 'pop' && <Text style={{ color: ON_BALLOON_POP.color, fontSize: 32 }}>💥</Text>}
+          </GradientSurface>
           {/* узелок — маленький треугольник вершиной вниз под шаром */}
           {!popped && (
             <View pointerEvents="none" style={{
@@ -473,15 +481,15 @@ export default function BARTGame() {
               accessibilityRole="button" disabled={popped || feedback !== null}
               style={[styles.actionBtn, { backgroundColor: GRADIENT[0], opacity: popped || feedback ? 0.5 : 1 }]}
               onPress={pump}>
-              <Ionicons name="add-circle" size={22} color="#FFF" />
-              <Text style={styles.actionText}>{t('bartPump')}</Text>
+              <Ionicons name="add-circle" size={22} color={textOn(GRADIENT[0])} />
+              <Text style={[styles.actionText, { color: textOn(GRADIENT[0]) }]}>{t('bartPump')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button" disabled={popped || feedback !== null || pumps === 0}
               style={[styles.actionBtn, { backgroundColor: '#22c55e', opacity: popped || feedback || pumps === 0 ? 0.5 : 1 }]}
               onPress={cashOut}>
-              <Ionicons name="cash" size={22} color="#FFF" />
-              <Text style={styles.actionText}>{t('bartCash')}</Text>
+              <Ionicons name="cash" size={22} color={textOn('#22c55e')} />
+              <Text style={[styles.actionText, { color: textOn('#22c55e') }]}>{t('bartCash')}</Text>
             </TouchableOpacity>
           </View>
         }

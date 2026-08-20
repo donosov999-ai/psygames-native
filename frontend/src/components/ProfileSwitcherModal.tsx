@@ -11,6 +11,7 @@
  *    кнопками «Ввести код» / «Запросить в Telegram»
  */
 
+import { textOn } from '@/src/services/onGradientText';
 import React from 'react';
 import {
   View, Text, Modal, TouchableOpacity, ScrollView, Alert, Linking, TextInput, Image,
@@ -214,7 +215,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                           paddingHorizontal: 8,
                           borderRadius: 100,
                         }}>
-                          <Text style={{ fontSize: 11, color: '#fff', fontWeight: '800' }}>
+                          <Text style={{ fontSize: 11, color: textOn('#10b981'), fontWeight: '800' }}>
                             {formatPrice(p.price_year)}/год
                           </Text>
                         </View>
@@ -232,8 +233,8 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                           {/* Не «FREE»: бесплатно сейчас всё, и обещать этим словом
                               нечего. Бейдж говорит единственное, чем профиль
                               отличается от соседей по сетке, — он открыт без кода. */}
-                          <Ionicons name="lock-open" size={10} color="#fff" />
-                          <Text style={{ fontSize: 10, color: '#fff', fontWeight: '900' }}>
+                          <Ionicons name="lock-open" size={10} color={textOn('#22c55e')} />
+                          <Text style={{ fontSize: 10, color: textOn('#22c55e'), fontWeight: '900' }}>
                             {t('badgeNoCode')}
                           </Text>
                         </View>
@@ -470,8 +471,8 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                           onPress={() => buyProfileViaTelegram(detailProfile)}
                           style={{ backgroundColor: '#10b981', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}
                         >
-                          <Ionicons name="cart" size={18} color="#fff" />
-                          <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>Оформить за {formatPrice(detailProfile.price_year)}</Text>
+                          <Ionicons name="cart" size={18} color={textOn('#10b981')} />
+                          <Text style={{ color: textOn('#10b981'), fontWeight: '800', fontSize: 15 }}>Оформить за {formatPrice(detailProfile.price_year)}</Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -560,7 +561,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
               <TouchableOpacity
                 accessibilityRole="button" onPress={tryRedeem}
                 style={{ paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#10b981', borderRadius: 8 }}>
-                <Text style={{ color: '#fff', fontWeight: '700' }}>Разблокировать</Text>
+                <Text style={{ color: textOn('#10b981'), fontWeight: '700' }}>Разблокировать</Text>
               </TouchableOpacity>
             </View>
           </View>

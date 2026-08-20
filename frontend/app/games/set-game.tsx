@@ -1,4 +1,6 @@
 /* psygames-game-set-game · VER 1 · 19.08.2026 */
+import GradientSurface from '@/src/components/GradientSurface';
+import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,6 +36,10 @@ const SG_RULES: LevelRule[] = [
 ];
 
 const GRADIENT = ['#43cea2', '#185a9d'];
+// Сплошным цветом этот градиент AA не берёт (белый 1.98, чёрный 2.99) —
+// GradientSurface кладёт вуаль цветом самого градиента, цвет текста считает сервис.
+const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const SET_BENEFITS = [
   { icon: 'eye-outline', textKey: 'benefitSet1' },
   { icon: 'layers-outline', textKey: 'benefitSet2' },
@@ -718,11 +724,11 @@ export default function SetGame() {
   const renderConfig = () => (
     <ScrollView showsVerticalScrollIndicator={false}>
     <View style={styles.configContainer}>
-      <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
-        <Ionicons name="shapes" size={48} color="#FFF" />
-        <Text style={styles.configTitle}>{t('setGame')}</Text>
-        <Text style={styles.configDesc}>{t('setGameDesc')}</Text>
-      </LinearGradient>
+      <GradientSurface colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
+        <Ionicons name="shapes" size={48} color={ON_GRAD.color} />
+        <Text style={[styles.configTitle, { color: ON_GRAD.color }]}>{t('setGame')}</Text>
+        <Text style={[styles.configDesc, { color: ON_GRAD_SOFT }]}>{t('setGameDesc')}</Text>
+      </GradientSurface>
       <GameAbout descriptionKey="setGameIntroDesc" benefits={SET_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="set_game" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -772,9 +778,9 @@ export default function SetGame() {
       </View>
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
-        </LinearGradient>
+        <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+          <Text style={[styles.startBtnText, { color: ON_GRAD.color }]}>{t('start')}</Text>
+        </GradientSurface>
       </TouchableOpacity>
     </View>
     </ScrollView>
@@ -928,8 +934,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700' },
   configContainer: { padding: 16, gap: 14 },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
-  configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },
+  configTitle: { fontSize: 22, fontWeight: '700' },
+  configDesc: { fontSize: 13, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   exampleHeader: { minHeight: 48,  flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -942,7 +948,7 @@ const styles = StyleSheet.create({
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  startBtnText: { fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 12 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },

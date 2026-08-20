@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -219,7 +219,7 @@ export default function MathSprintGame() {
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 }]}
               onPress={() => !locked && setDifficulty(d)}>
-              <Text style={[styles.modeButtonText, { color: difficulty === d && !locked ? '#FFF' : colors.text }]}>
+              <Text style={[styles.modeButtonText, { color: difficulty === d && !locked ? textOn(GRADIENT[0]) : colors.text }]}>
                 {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')}{locked ? ' 🔒' : ''}
               </Text>
             </TouchableOpacity>
@@ -241,7 +241,7 @@ export default function MathSprintGame() {
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setDuration(n)}>
-              <Text style={[styles.modeButtonText, { color: duration === n ? '#FFF' : colors.text }]}>{n}{t('secShort')}</Text>
+              <Text style={[styles.modeButtonText, { color: duration === n ? textOn(GRADIENT[0]) : colors.text }]}>{n}{t('secShort')}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -281,7 +281,7 @@ export default function MathSprintGame() {
           toolbar={
             <TouchableOpacity
               accessibilityRole="button" onPress={submit} style={[styles.submitBtn, { backgroundColor: GRADIENT[0] }]}>
-              <Text style={styles.submitText}>{t('check')}</Text>
+              <Text style={[styles.submitText, { color: textOn(GRADIENT[0]) }]}>{t('check')}</Text>
             </TouchableOpacity>
           }
         >

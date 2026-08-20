@@ -1,3 +1,4 @@
+import { textOn } from '@/src/services/onGradientText';
 import React from 'react';
 import {
   View,
@@ -498,7 +499,7 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 accessibilityRole="button" onPress={tryRedeem}
                 style={{ minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#10b981', borderRadius: 8 }}>
-                <Text style={{ color: '#fff', fontWeight: '700' }}>{t('welcomeUnlock')}</Text>
+                <Text style={{ color: textOn('#10b981'), fontWeight: '700' }}>{t('welcomeUnlock')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -620,7 +621,7 @@ export default function SettingsScreen() {
                         onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
                         style={{ backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
                       >
-                        <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>🔑 {t('btn_already_have_code')}</Text>
+                        <Text style={{ color: textOn('#10b981'), fontWeight: '800', fontSize: 15 }}>🔑 {t('btn_already_have_code')}</Text>
                       </TouchableOpacity>
                       )}
                       {/* v1.30.2: запрос кода в Telegram скрыт в App-Store-режиме (anti-steering). */}

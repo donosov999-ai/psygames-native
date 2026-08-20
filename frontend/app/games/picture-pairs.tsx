@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -472,7 +472,7 @@ export default function PicturePairsGame() {
                     ? { backgroundColor: GRADIENT[0] }
                     : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: lock ? 0.5 : 1 }]}
                   onPress={() => !lock && setPairsCount(n)}>
-                  <Text style={[styles.modeButtonText, { color: pairsCount === n && !lock ? '#FFF' : colors.text }]}>
+                  <Text style={[styles.modeButtonText, { color: pairsCount === n && !lock ? textOn(GRADIENT[0]) : colors.text }]}>
                     {n}{lock ? ' 🔒' : ''}
                   </Text>
                 </TouchableOpacity>
@@ -506,7 +506,7 @@ export default function PicturePairsGame() {
                     ? { backgroundColor: GRADIENT[0] }
                     : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                     onPress={() => setPreviewMs(ms)}>
-                    <Text style={[styles.modeButtonText, { color: previewMs === ms ? '#FFF' : colors.text }]}>
+                    <Text style={[styles.modeButtonText, { color: previewMs === ms ? textOn(GRADIENT[0]) : colors.text }]}>
                       {/* Секунды + готовая тройка «Легко/Средне/Сложно» из словаря:
                           отдельные подписи «хард/норма/легко» были бы четвёртым
                           названием одной и той же шкалы сложности. */}

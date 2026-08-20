@@ -34,7 +34,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -364,7 +364,7 @@ export default function InhibitionGame() {
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setSubMode(m)}>
-                <Text style={[styles.modeButtonText, { color: subMode === m ? '#FFF' : colors.text }]}>
+                <Text style={[styles.modeButtonText, { color: subMode === m ? textOn(GRADIENT[0]) : colors.text }]}>
                   {m === 'go_no_go' ? t('goNoGo') : m === 'stop_signal' ? t('stopSignal') : t('mixedMode')}
                 </Text>
               </TouchableOpacity>

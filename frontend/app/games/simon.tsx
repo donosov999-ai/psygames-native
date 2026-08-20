@@ -35,7 +35,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -353,10 +353,10 @@ export default function SimonGame() {
              обязана остаться физически слева — иначе конгруэнтность проб Саймона инвертируется */
           <View style={styles.toolbarLtr}>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { backgroundColor: COLOR_BLUE }]} onPress={() => handleAnswer('left')}>
-              <Ionicons name="arrow-back" size={32} color="#FFF" />
+              <Ionicons name="arrow-back" size={32} color={textOn(COLOR_BLUE)} />
             </TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { backgroundColor: COLOR_RED }]} onPress={() => handleAnswer('right')}>
-              <Ionicons name="arrow-forward" size={32} color="#FFF" />
+              <Ionicons name="arrow-forward" size={32} color={textOn(COLOR_RED)} />
             </TouchableOpacity>
           </View>
         }

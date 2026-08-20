@@ -23,7 +23,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -331,7 +331,7 @@ export default function SwitchingTaskGame() {
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setMode(m.key)}>
-                <Text style={[styles.modeButtonText, { color: mode === m.key ? '#FFF' : colors.text }]}>{t('switchMode_' + m.key)}</Text>
+                <Text style={[styles.modeButtonText, { color: mode === m.key ? textOn(GRADIENT[0]) : colors.text }]}>{t('switchMode_' + m.key)}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -409,11 +409,11 @@ export default function SwitchingTaskGame() {
           <View style={[styles.choiceRow, { flex: 1, maxWidth: stStim }]}>
             <TouchableOpacity
               accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: GRADIENT[0], flex: 1 }]} onPress={() => handleAnswer(true)}>
-              <Text style={styles.choiceTextSmall}>← {meta.left}</Text>
+              <Text style={[styles.choiceTextSmall, { color: textOn(GRADIENT[0]) }]}>← {meta.left}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: GRADIENT[1], flex: 1 }]} onPress={() => handleAnswer(false)}>
-              <Text style={styles.choiceTextSmall}>{meta.right} →</Text>
+              <Text style={[styles.choiceTextSmall, { color: textOn(GRADIENT[1]) }]}>{meta.right} →</Text>
             </TouchableOpacity>
           </View>
         }
