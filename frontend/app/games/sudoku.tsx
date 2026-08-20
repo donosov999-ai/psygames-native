@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 3 · 20.08.2026 */
+/* psygames-game-sudoku · VER 4 · 20.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -78,6 +78,9 @@ import {
   toggleSudokuCellColor,
 } from '@/src/services/sudoku-coloring';
 import {
+  sudokuBoardHint, sudokuClueText, type SudokuHintFocus,
+} from '@/src/services/sudoku-board-hint';
+import {
   emptyPencilMarks, normalizePencilMarks, pencilInput, routeDigitPress,
   visiblePencilDigits, countPencilMarks, type PencilMarks,
 } from '@/src/services/pencilMarks';
@@ -108,6 +111,22 @@ export function sudokuVisibleMarks(mask: number, value: number, N: number): numb
 const DIGIT_TINT = ['#e8564f', '#ef8f27', '#e7c229', '#4fb455', '#2fa3a8', '#3f7fd5', '#7f5ad5', '#c94fa8', '#8a6f4f'] as const;
 
 const CAGE_ACCENTS = ['#7f7fd5', '#86a8e7', '#d58a7f', '#7fd5a8', '#d5c97f', '#b07fd5'] as const;
+
+/**
+ * СТРОКА-ОБЪЯСНЕНИЕ НАД ДОСКОЙ — три строки текста ФИКСИРОВАННОЙ высоты.
+ *
+ * ⚠️ Высота именно фиксированная, и это не мелочь вёрстки. Текст в строке меняется на
+ * ходу (правило доски → что значит число у края → зачем цвет → что вернула отмена), а
+ * длина у этих текстов разная. Плавающая высота двигала бы доску под пальцем в момент,
+ * когда человек целится в клетку. Три строки — по самому длинному правилу (ThermoCage,
+ * 130 символов при ширине доски ~337): меньше — обрезание правила многоточием.
+ *
+ * ⚠️ И ЭТУ ВЫСОТУ ОБЯЗАН ВЫЧЕСТЬ БЮДЖЕТ ДОСКИ (см. cellSize ниже). Репорт Вали с
+ * уровня 29 «где нижняя строка????» — ровно про это: доска считается от остатка высоты
+ * экрана, и любая новая строка над ней срезает нижний ряд клеток, если про неё забыть.
+ */
+const BOARD_HINT_TEXT_H = 45;
+const BOARD_HINT_H = BOARD_HINT_TEXT_H + 6;
 
 // Босс-веха: каждые 3 уровня — короткий раунд с резко другим правилом (bag-рандом, без повторов подряд).
 const BOSS_EVERY = 3;
@@ -389,6 +408,13 @@ export default function SudokuGame() {
   const [given, setGiven] = useState<boolean[][]>([]);
   const [cellColors, setCellColors] = useState<SudokuCellColors>([]);
   const [paintColor, setPaintColor] = useState<number | null>(null);
+  /**
+   * НА ЧТО ЧЕЛОВЕК СМОТРИТ ПРЯМО СЕЙЧАС — для строки-объяснения над доской.
+   * null = ни на что особенное, строка показывает правило доски. Лестница приоритета
+   * и сами тексты — в services/sudoku-board-hint (там же разбор, почему не окно).
+   * В незаконченную партию НЕ пишем: это взгляд, а не состояние доски.
+   */
+  const [boardFocus, setBoardFocus] = useState<SudokuHintFocus>(null);
   /**
    * КАРАНДАШ. Пометки — маска девяти бит на клетку (services/pencilMarks), режим —
    * отдельный флаг: в нём цифровая клавиатура пишет не в клетку, а в угол.
@@ -701,6 +727,9 @@ export default function SudokuGame() {
     ng[m.r][m.c] = m.from;
     setGrid(ng);
     setSelected({ r: m.r, c: m.c });
+    // Нажали отмену — строка над доской говорит, ЧТО вернулось и что ошибка остаётся
+    // потраченной. Про это никто не сказал, и со стороны кнопка выглядела бесполезной.
+    setBoardFocus({ kind: 'undo' });
   };
 
   /**
@@ -708,10 +737,15 @@ export default function SudokuGame() {
    * Два включённых режима разом означают, что человек не знает, куда попадёт нажатие,
    * — а он в этот момент смотрит на доску, а не на кнопки.
    */
-  const setPencilMode = (on: boolean) => { setPencil(on); if (on) setPaintColor(null); };
-  const setPaintMode = (on: boolean) => { setPaintColor(on ? 0 : null); if (on) { setPencil(false); setSelected(null); } };
+  // ⚠️ Гашение взгляда идёт ПЕРВЫМ, а не между вызовами: гейт sudoku-pencil стережёт
+  // взаимоисключение режимов письма по цельному куску `setPencil(on); if (on)
+  // setPaintColor(null)`, и вставка внутрь читалась бы как потерянное правило.
+  const setPencilMode = (on: boolean) => { setBoardFocus(null); setPencil(on); if (on) setPaintColor(null); };
+  const setPaintMode = (on: boolean) => { setBoardFocus(null); setPaintColor(on ? 0 : null); if (on) { setPencil(false); setSelected(null); } };
 
   const handleCellPress = (r: number, c: number) => {
+    // Ткнули в доску — объяснение числа у края больше не про то, на что смотрят.
+    setBoardFocus(null);
     if (paintColor !== null) {
       setCellColors((current) => toggleSudokuCellColor(current, N, r, c, paintColor));
       return;
@@ -734,6 +768,13 @@ export default function SudokuGame() {
       return;
     }
     const { r, c } = sel;
+    /**
+     * ПЕРВЫЙ ХОД — единственный момент, когда «Отменить» из серой становится живой,
+     * и ровно тогда возникает вопрос «зачем она вообще» (репорт Вали 19.08.2026:
+     * «какая-то бесполезная кнопка»). Отвечаем в строке над доской в этот момент, а
+     * дальше строка сама возвращается к правилу — следующий ход её гасит.
+     */
+    setBoardFocus(hist.canUndo ? null : { kind: 'undo' });
     const previousValue = grid[r][c];
     const ng = grid.map((row) => [...row]);
     ng[r][c] = n;
@@ -892,16 +933,40 @@ export default function SudokuGame() {
   const landscape = width > height;
   // Ширинные бюджеты подогнаны под каркас GameShell (поле имеет paddingHorizontal 16×2):
   // портрет 28→36 (34 = 32 паддинга + 4 рамка сетки), landscape 210→240 (паддинг + gap 22 + цифры сбоку).
+  /**
+   * Колонка чисел у левого края сэндвича — тоже часть доски и тоже просит ширины
+   * (0.6 клетки, см. clueGutter ниже). Без неё в бюджете доска 9×9 занимала 359 точек
+   * в поле шириной 343 и вылезала за оба края (замер живой сборки 20.08.2026).
+   */
+  const clueCols = variant === 'sandwich' ? 0.6 : 0;
   const cellSize = landscape
-    ? Math.max(16, Math.floor(Math.min((height - 96) / N, (width - 240) / N, 92)))
-    : Math.max(14, Math.floor(Math.min((width - 36) / N, (height - 330) / N, 92)));
-  // v1.164 (репорт Вали ур.29 «где нижняя строка????»): floor в Math.max не даёт
-  // ячейке ужаться ниже 14px, поэтому на невысоком экране (или при крупном системном
-  // шрифте, когда шапка и счётчики съедают больше) доска перерастает поле и нижний ряд
-  // просто обрезается — доскроллить некуда, поле у каркаса не скроллится. Считаем, влезла
-  // ли доска в бюджет высоты, и если нет — включаем прокрутку поля. Обрезка невозможна
-  // в принципе: не влезло по высоте → доступно скроллом.
-  const boardOverflows = !landscape && cellSize * N > height - 330;
+    ? Math.max(16, Math.floor(Math.min((height - 96 - BOARD_HINT_H) / N, (width - 240) / (N + clueCols), 92)))
+    : Math.max(14, Math.floor(Math.min((width - 36) / (N + clueCols), (height - 330 - BOARD_HINT_H) / N, 92)));
+  /**
+   * 🔴 ПОЛЕ ПРОКРУЧИВАЕТСЯ ВСЕГДА, А НЕ «КОГДА ДОСКА НЕ ВЛЕЗЛА».
+   *
+   * Задача та же, что у v1.164 (репорт Вали ур.29 «где нижняя строка????»): floor в
+   * Math.max не даёт ячейке ужаться ниже 14px, поэтому на невысоком экране доска
+   * перерастает поле и нижний ряд просто обрезается. Обрезка невозможна, пока поле
+   * прокручивается, — вопрос лишь в том, КОГДА прокрутку включать.
+   *
+   * Было условие `!landscape && cellSize * N > height - 330`, то есть догадка о том,
+   * сколько высоты съедает всё остальное. Догадка протухла: замеры живой сборки
+   * 20.08.2026 дают обвязку 202 точки, клавиатуру 134–204 (число рядов зависит от
+   * ширины доски: цифры переносятся) и ещё 76 отступа под плавающей кнопкой отзыва —
+   * от 426 до 496 вместо 330. Поле каркаса центрирует содержимое, поэтому не влезшая
+   * колонка расползалась ВВЕРХ и накрывала собой ряд кнопок: в ландшафте (812×375)
+   * `elementFromPoint` в центре «Отменить» возвращал доску, а не кнопку — то есть
+   * кнопка была недоступна пальцу. Это вторая половина репорта Вали «перекрывает
+   * кнопку отменить»: перекрывал не цвет, а сама доска.
+   *
+   * Чинить константу бессмысленно — она обязана знать про число рядов клавиатуры,
+   * высоту шапки и системные отступы, то есть повторять раскладку числом. Прокрутка
+   * поля разворачивает содержимое от верха и центрирует его, когда оно влезает
+   * (`fieldScrollContent`: flexGrow 1 + justifyContent center), — значит включённая
+   * зря она не стоит ничего, а выключенная зря стоит недоступных кнопок.
+   */
+  const fieldScrolls = true;
 
   /**
    * Карандашные пометки в клетке — три в ряд, как в углу бумажной клетки.
@@ -1191,23 +1256,82 @@ export default function SudokuGame() {
      */
     const showCages = !!cages && (mode === 'killer' || variant === 'thermocage');
     const cageAt = (r: number, c: number) => (showCages && cages![r][c] >= 0 ? cages![r][c] : -1);
+    /**
+     * СТРОКА-ОБЪЯСНЕНИЕ НАД ДОСКОЙ.
+     *
+     * 🔴 ТРИ РЕПОРТА ВАЛИ ОТ 19.08.2026 — ОДНА ДЫРА. «Что значит сумма от одного до
+     * девяти с краю, сумма чего, из чего сумма» (сэндвич, уровень 38), «зачем появилась
+     * кнопка отменить, какая-то бесполезная» и «зачем нужно каким-то цветом выделять
+     * клетки, что это даёт вообще непонятно». Механику добавляют — объяснения на экране
+     * нет. Оно есть, но в окне правил, которое показывается один раз при входе и
+     * закрывается кнопкой «ПОНЯТНО»; вопрос человек задаёт ПОЗЖЕ и глядя НА ДОСКУ.
+     * Поэтому ответ живёт здесь, а не во втором окне: закрывать нечего.
+     *
+     * Что показать сейчас — решает сервис (services/sudoku-board-hint), а не эта
+     * разметка: вариантов у судоку двенадцать, лестницу приоритета надо прогонять
+     * тестом на каждом и на всех 12 языках.
+     */
+    const hintFocus: SudokuHintFocus = boardFocus ?? (paintColor !== null ? { kind: 'paint' } : null);
+    const boardHint = sudokuBoardHint(
+      { variant, killer: mode === 'killer', N, focus: hintFocus }, language,
+    );
+    const clueGutter = Math.round(cellSize * 0.6);
+    const clueBg = blendHex(colors.background, GRADIENT[0], isDark ? 0.26 : 0.16);
     const gridEl = (
       // RTL-пин: зеркалирование ломает жирные границы боксов (физический borderRight на логической
       // колонке), сегменты thermo/arrow (физический left «к соседу справа») и SVG-оверлеи
       // (диагональ/клетки рисуются в физических координатах поверх перевёрнутой сетки)
       <View style={{ alignSelf: 'center', writingDirection: 'ltr' } as any}>
+        <Text
+          numberOfLines={3}
+          style={[styles.boardHint, {
+            color: colors.textSecondary,
+            // Ширина — по доске, но не шире поля каркаса (у него paddingHorizontal 16×2).
+            // Замер живой сборки 20.08 без ограничения: доска 9×9 с колонкой подсказок
+            // даёт 359 при ширине окна 375, и строка вылезала за оба края экрана.
+            width: Math.min(
+              width - 36,
+              cellSize * N + 4 + (variant === 'sandwich' && sandwich ? clueGutter : 0),
+            ),
+          }]}
+        >
+          {boardHint}
+        </Text>
         {variant === 'sandwich' && sandwich && (
-          <View style={{ flexDirection: 'row', marginLeft: Math.round(cellSize * 0.6), marginBottom: 2 }}>
+          <View style={{ flexDirection: 'row', marginLeft: clueGutter, marginBottom: 2 }}>
             {sandwich.cols.map((s, c) => (
-              <Text key={`sc${c}`} style={{ width: cellSize, textAlign: 'center', fontSize: 11, fontWeight: '700', color: colors.textSecondary }}>{s}</Text>
+              // Число у края — не часть доски, а подсказка про неё, и по нему можно
+              // ткнуть: строка выше расскажет, что значит ИМЕННО ЭТО число. Плашка
+              // нужна, чтобы число не читалось как цифра в клетке.
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={sudokuClueText({ axis: 'col', index: c, sum: s }, language)}
+                key={`sc${c}`}
+                activeOpacity={0.6}
+                hitSlop={{ top: 10, bottom: 4, left: 2, right: 2 }}
+                onPress={() => setBoardFocus({ kind: 'clue', clue: { axis: 'col', index: c, sum: s } })}
+                style={[styles.edgeClue, { width: cellSize - 4, backgroundColor: clueBg }]}
+              >
+                <Text style={[styles.edgeClueText, { color: colors.textSecondary }]}>{s}</Text>
+              </TouchableOpacity>
             ))}
           </View>
         )}
         <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
           {variant === 'sandwich' && sandwich && (
-            <View style={{ width: Math.round(cellSize * 0.6) }}>
+            <View style={{ width: clueGutter }}>
               {sandwich.rows.map((s, r) => (
-                <Text key={`sr${r}`} style={{ height: cellSize, lineHeight: cellSize, textAlign: 'center', fontSize: 11, fontWeight: '700', color: colors.textSecondary }}>{s}</Text>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={sudokuClueText({ axis: 'row', index: r, sum: s }, language)}
+                  key={`sr${r}`}
+                  activeOpacity={0.6}
+                  hitSlop={{ top: 2, bottom: 2, left: 8, right: 2 }}
+                  onPress={() => setBoardFocus({ kind: 'clue', clue: { axis: 'row', index: r, sum: s } })}
+                  style={[styles.edgeClue, { width: clueGutter - 4, height: cellSize - 4, backgroundColor: clueBg }]}
+                >
+                  <Text style={[styles.edgeClueText, { color: colors.textSecondary }]}>{s}</Text>
+                </TouchableOpacity>
               ))}
             </View>
           )}
@@ -1428,10 +1552,10 @@ export default function SudokuGame() {
      *
      * В ландшафте наоборот — дефицит высоты, и он жёстче: доска считается от `height-96`
      * (бюджет учитывает шапку с ОДНИМ рядом кнопок). Второй ряд отнимает ещё 53 точки, и
-     * на экране 812×375 нижний ряд доски уезжал за край БЕЗ возможности доскроллить:
-     * `boardOverflows` включает прокрутку только в портрете. Замер живой сборки 20.08:
-     * низ доски 427 при высоте окна 375. Зато ширины в ландшафте вдоволь — четыре кнопки
-     * по 195 точек, ничего не режется. Поэтому там один ряд.
+     * на экране 812×375 нижний ряд доски уезжал за край. Доскроллить теперь есть куда —
+     * поле каркаса прокручивается в обеих раскладках (см. fieldScrolls), — но ряд всё
+     * равно один: ширины в ландшафте вдоволь, четыре кнопки по 195 точек, ничего не
+     * режется, а высота остаётся дефицитом.
      *
      * Смысловое деление сохраняется: сначала ДЕЙСТВИЯ (подсказка, отмена), потом — ЧЕМ
      * сейчас пишет палец. Счётчик пометок на кнопке нужен потому, что при выключённом
@@ -1447,11 +1571,20 @@ export default function SudokuGame() {
         disabled={!selected || hintUses >= hintMax}
       />
     );
+    /**
+     * ЧИСЛО НА КНОПКЕ — ровно тем же приёмом, что счётчик пометок на карандаше.
+     * Со стороны «Отменить» читалась как дубль «нажать ту же цифру ещё раз» (репорт
+     * Вали), и число — самый дешёвый способ показать, что это ЛЕНТА, а не однократное
+     * стирание текущей клетки: назад можно уйти на столько ходов, сколько написано.
+     * Лента живёт в ref, а не в состоянии, поэтому длину читаем на каждой отрисовке —
+     * она случается на каждом ходу, потому что ход меняет доску.
+     */
+    const undoDepth = hist.serialize().past.length;
     const undoBtn = (
       <GlassButton
         grow
         icon="arrow-undo"
-        label={t('btn_undo')}
+        label={undoDepth ? `${t('btn_undo')} ${undoDepth}` : t('btn_undo')}
         onPress={handleUndo}
         disabled={!hist.canUndo}
       />
@@ -1541,7 +1674,7 @@ export default function SudokuGame() {
         // пустота почти в пол-экрана, и рука тянулась вниз через весь телефон.
         // Теперь цифры идут сразу под доской, где на них и смотрят.
         toolbar={undefined}
-        scrollableField={boardOverflows}
+        scrollableField={fieldScrolls}
       >
         {landscape ? (
           <View style={styles.playAreaLand}>
@@ -1704,6 +1837,11 @@ const styles = StyleSheet.create({
   // Нижний отступ поднимает колонку над плавающей кнопкой отзыва: она висит
   // в левом нижнем углу поверх экрана и накрывала вторую строку клавиш.
   playAreaCol: { alignItems: 'center', gap: 14, marginBottom: 76 },
+  // Высота ФИКСИРОВАННАЯ (BOARD_HINT_TEXT_H): текст в строке меняется на ходу, а доска
+  // под ней двигаться не должна — см. разбор у константы.
+  boardHint: { height: BOARD_HINT_TEXT_H, fontSize: 12, lineHeight: 15, fontWeight: '600', textAlign: 'center', marginBottom: 6 },
+  edgeClue: { alignItems: 'center', justifyContent: 'center', marginHorizontal: 2, marginVertical: 2, paddingVertical: 2, borderRadius: 5 },
+  edgeClueText: { fontSize: 11, fontWeight: '700' },
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr' },
   numBtn: { width: 64, height: 64, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   numText: { color: '#FFF', fontSize: 26, fontWeight: '800' },
