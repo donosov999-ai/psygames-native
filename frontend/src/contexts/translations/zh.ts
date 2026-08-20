@@ -1341,6 +1341,7 @@ const t: Record<string, string> = {
   "goodsSet_toys": "玩具",
   "goodsSet_dairy": "乳制品",
   "goodsSet_mix": "混合",
+  "goodsSetAlike": "相似",
   "tooManyMoves": "🔁 步数太多",
   "mnemMemorizeWords": "记住 {n} 个词",
   "mnemMemorizeNumbers": "记住 {n} 个数",
@@ -1921,6 +1922,12 @@ const t: Record<string, string> = {
   "abilityPracticeOn": "已开启：本局不计入",
   "abilityPracticeNote": "没有积分、不影响等级、不进统计",
   "abilityPracticeSpent": "试练局——本局未被记录到任何地方",
+  "sudokuSandwichZeroNote": "边上的 0 表示 1 和 9 之间没有任何格子——它们紧挨着。",
+  "sudokuSandwichClueRow": "行旁边的 {n}：该行中 1 和 9 之间那些数字的和。",
+  "sudokuSandwichClueCol": "列上方的 {n}：该列中 1 和 9 之间那些数字的和。",
+  "sudokuSandwichClueZero": "0 不是和：这里 1 和 9 之间没有格子，它们紧挨着。",
+  "sudokuColorWhy": "颜色不解题，它只是你自己的标记：把你看出有关联的格子涂上颜色。",
+  "sudokuUndoWhy": "撤销把格子恢复原样：被覆盖的数字和被它遮住的候选数都会回来。已经用掉的错误不会还给你。",
   // >>> SCREEN_STRINGS
 };
 export default t;

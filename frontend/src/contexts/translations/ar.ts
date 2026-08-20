@@ -1459,6 +1459,7 @@ const t: Record<string, string> = {
   "goodsSet_toys": "ألعاب",
   "goodsSet_dairy": "منتجات الألبان",
   "goodsSet_mix": "منوعات",
+  "goodsSetAlike": "متشابهة",
   "tooManyMoves": "🔁 حركات كثيرة جدًا",
   "mnemMemorizeWords": "احفظ {n} كلمات",
   "mnemMemorizeNumbers": "احفظ {n} أعدادًا",
@@ -1917,6 +1918,12 @@ const t: Record<string, string> = {
   "abilityPracticeOn": "مُفعّل: هذه الجولة لا تُحتسب",
   "abilityPracticeNote": "لا نقاط ولا مستوى ولا إحصاءات",
   "abilityPracticeSpent": "جولة تجريبية — لم تُسجَّل هذه الجولة في أي مكان",
+  "sudokuSandwichZeroNote": "الصفر عند الحافة يعني أنه لا توجد أي خانة بين 1 و9 — فهما متجاوران.",
+  "sudokuSandwichClueRow": "الرقم {n} بجانب الصف هو مجموع الأرقام الواقعة بين 1 و9 في ذلك الصف.",
+  "sudokuSandwichClueCol": "الرقم {n} فوق العمود هو مجموع الأرقام الواقعة بين 1 و9 في ذلك العمود.",
+  "sudokuSandwichClueZero": "الصفر ليس مجموعًا: لا توجد هنا خانة بين 1 و9، فهما متجاوران.",
+  "sudokuColorWhy": "اللون لا يحل شيئًا، إنه علامتك الخاصة: لوّن الخانات التي ترى بينها صلة.",
+  "sudokuUndoWhy": "التراجع يعيد الخانة كما كانت: الرقم الذي كتبته فوق غيره والملاحظات التي أخفاها. أما الخطأ المستهلك فلا يُعاد.",
   // >>> SCREEN_STRINGS
 };
 export default t;

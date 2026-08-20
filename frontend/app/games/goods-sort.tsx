@@ -1,6 +1,6 @@
 /* psygames-game-goods-sort · VER 1 · 19.08.2026 */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, Easing, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, Easing, PanResponder, DimensionValue } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -129,11 +129,25 @@ const GOOD_SPRITES = [
   require('../../assets/images/goods/good31.webp'),  // похожие: простокваша
 ];
 
-// Наборы товаров — ВЫБОР В МЕНЮ (как в оригинале). Каждый набор = пул индексов спрайтов.
-const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: number[] }[] = [
-  { key: 'drinks', ru: 'Напитки', en: 'Drinks', icon: 'wine', pool: [0, 1, 4, 12, 13, 2, 5, 3] },
-  { key: 'food', ru: 'Еда', en: 'Food', icon: 'fast-food', pool: [6, 7, 8, 9, 10, 11] },
-  { key: 'toys', ru: 'Игрушки', en: 'Toys', icon: 'happy', pool: [14, 15, 16, 17, 18, 19, 20, 21, 22] },
+/**
+ * Наборы товаров — ВЫБОР В МЕНЮ (как в оригинале). Каждый набор = пул индексов спрайтов.
+ *
+ * 🔴 `preview` ≠ `pool.slice(...)`. Витрина набора обязана показывать, ЧЕМ он
+ * отличается от соседнего, а начало пула этого не делает: у «Микса» первые
+ * четыре индекса — кола, лимонад, кефир, молоко, то есть четыре бутылки, и
+ * набор «всё сразу» выглядел на экране ровно как «Напитки». Поэтому витрина
+ * задаётся руками: первыми идут максимально НЕПОХОЖИЕ предметы набора, чтобы
+ * с трёх штук читалась тема. У «Молочного» правило перевёрнуто намеренно —
+ * там первыми идут самые неразличимые бутылки, потому что именно это и есть
+ * суть набора (см. разбор ниже).
+ */
+const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: number[]; preview: number[]; alike?: true }[] = [
+  { key: 'drinks', ru: 'Напитки', en: 'Drinks', icon: 'wine', pool: [0, 1, 4, 12, 13, 2, 5, 3],
+    preview: [0, 4, 13, 1, 12, 5] },                       // кола · сок · коктейль · лимонад · виноград · йогурт
+  { key: 'food', ru: 'Еда', en: 'Food', icon: 'fast-food', pool: [6, 7, 8, 9, 10, 11],
+    preview: [6, 9, 10, 7, 8, 11] },                       // банан · чипсы · хлеб · яблоко · шоколад · паста
+  { key: 'toys', ru: 'Игрушки', en: 'Toys', icon: 'happy', pool: [14, 15, 16, 17, 18, 19, 20, 21, 22],
+    preview: [14, 15, 21, 17, 18, 22] },                   // мишка · кактус · пингвин · зайка · цыплёнок · лиса
   /**
    * 🔴 НАМЕРЕННО ПОХОЖИЕ ТОВАРЫ. Разбор жанра: перцептивная близость —
    * единственная механика, которая превращает задачу из «НАЙТИ» в «РАЗЛИЧИТЬ».
@@ -145,9 +159,98 @@ const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: number[
    * растёт не механикой, а восприятием. Поэтому он отдельным выбором, а не
    * подмешан в другие.
    */
-  { key: 'dairy', ru: 'Молочное', en: 'Dairy', icon: 'water', pool: [23, 24, 25, 26, 27, 28, 29, 30, 31] },
-  { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31] },
+  { key: 'dairy', ru: 'Молочное', en: 'Dairy', icon: 'water', pool: [23, 24, 25, 26, 27, 28, 29, 30, 31],
+    preview: [23, 24, 25, 26, 27, 28], alike: true },      // витрина ЧЕСТНО пугает: шесть почти одинаковых бутылок
+  { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
+    preview: [0, 9, 14, 23, 6, 21] },                      // по одному из каждой темы: напиток · еда · игрушка · молочка · фрукт · игрушка
 ];
+
+/* ───────────────── раскладка выбора набора (чистая арифметика) ─────────────────
+ *
+ * 🔴 ЧТО ЛОМАЛОСЬ (репорт Вали 19.08.2026, сборка 1.206.3): «это что за уродливое
+ * перечисление товаров кровь из глаз просто».
+ *
+ * Замер живой сборки подтвердил дословно. Пять наборов стояли одним рядом, и на
+ * телефоне карточка набора получалась 58.8px шириной (390px экран) и 52.8px
+ * (360px). Внутрь неё верстался ряд из четырёх миниатюр 18×28 — то есть 75px
+ * содержимого в 53-59px карточке. Ряд не ужимался и не обрезался, он ВЫЛЕЗАЛ:
+ * на 360px — по 11.1px за каждый край, из-за чего полоска соседней карточки
+ * НАКЛАДЫВАЛАСЬ на эту на 14.2px. Пять наборов читались как одна смазанная лента.
+ * Названия туда тоже не влезали: «Напитки» 53.5px, «Игрушки» 56px, «Молочное»
+ * 63.5px против 52.8px карточки — три подписи из пяти шире своего места.
+ *
+ * ⚠️ ПОЧЕМУ НЕ «ПРОСТО УМЕНЬШИТЬ ЧИСЛО МИНИАТЮР». Потому что подписи не влезали
+ * ТОЖЕ, а слово «Молочное» на 52.8px не ужать: перенести его негде (одно слово),
+ * а кегль пришлось бы ронять до нечитаемого. Ряд из пяти на телефоне нежизнеспособен
+ * по ширине сам по себе — считать надо было не миниатюры, а карточку.
+ *
+ * СКОЛЬКО НАДО. Порог взят не на глаз, а замером САМОЙ ИГРЫ: на доске первого
+ * уровня при экране 360px товар рисуется в коробке 32×51px — это размер, при
+ * котором игра САМА требует различать товары. Витрина набора не имеет права быть
+ * мельче: иначе выбирать просят по картинке хуже той, по которой потом играть.
+ * Отсюда GOOD_ONBOARD_W/H — пол для миниатюры в выборе.
+ *
+ * ⚠️ Сравнивать надо КОРОБКИ, а не ширину картинки: спрайты разной пропорции
+ * (кола 208×365 = 0.57, мишка 201×251 = 0.80, кефир 140×365 = 0.38), а
+ * resizeMode="contain" вписывает картинку в коробку. Если коробка витрины не
+ * меньше игровой ПО ОБЕИМ сторонам, то для ЛЮБОЙ пропорции нарисованный размер
+ * min(w, h·r) тоже не меньше игрового. Поэтому гейт проверяет коробку — этого
+ * достаточно, и не надо разбирать webp-заголовки.
+ */
+
+/** Товар на доске 1-го уровня при экране 360px — замер живой сборки 20.08.2026. */
+export const GOOD_ONBOARD_W = 32;
+export const GOOD_ONBOARD_H = 51;
+
+/** Сколько наборов в ряду. Нечётный последний добирается пустым местом, а не растягивается. */
+export const SET_COLS = 2;
+/** Сколько товаров в витрине. Трёх хватает на тему, больше — снова лента. */
+export const THUMBS_PER_CARD = 3;
+
+/**
+ * 🔴 РАЗМЕР МИНИАТЮРЫ НЕ СЧИТАЕТСЯ ОТ ШИРИНЫ ОКНА — ЕГО ДАЁТ FLEX.
+ *
+ * Первая версия правки считала ширину миниатюры из `useWindowDimensions()`.
+ * Живая сборка ответила React #418: страницы экспортируются ПРЕДРЕНДЕРОМ, а в
+ * предрендере окна нет и `width` приходит нулём. Сервер клал в разметку
+ * `width:-22px`, клиент — `width:38px`, и гидрация расходилась. В сборке «до»
+ * ошибки не было, потому что там размер стоял числом.
+ *
+ * Поэтому в разметке нет НИ ОДНОГО размера, посчитанного от окна: ряд витрины
+ * растягивается `flex`, высота держится `aspectRatio`. Разметка одинакова при
+ * любом окне — гидрации нечему расходиться, а раскладка всё равно тянется.
+ *
+ * `setThumbBox` — исполняемое описание того, ЧТО этот flex даст на конкретной
+ * ширине. Разметка её не зовёт (иначе вернулась бы #418), её зовёт гейт: чтобы
+ * порог «не мельче товара на доске» проверялся числом, а не на глаз.
+ */
+const SCREEN_PAD = 16;   // configContainer.padding
+const CARD_PAD = 16;     // optionCard.padding
+const SET_GAP = 8;       // setRow.gap — между карточками наборов
+const BTN_EDGE = 2 + 8;  // setBtn: borderWidth + paddingHorizontal, с одной стороны
+const THUMB_GAP = 4;     // setPreview.gap
+
+/** Что flex даст миниатюре при окне `win`. Модель раскладки для гейта. */
+export function setThumbBox(win: number): { w: number; h: number } {
+  const cardW = (win - SCREEN_PAD * 2 - CARD_PAD * 2 - SET_GAP * (SET_COLS - 1)) / SET_COLS;
+  const w = (cardW - BTN_EDGE * 2 - THUMB_GAP * (THUMBS_PER_CARD - 1)) / THUMBS_PER_CARD;
+  return { w, h: w * (GOOD_ONBOARD_H / GOOD_ONBOARD_W) };
+}
+
+/**
+ * Наборы рядами по `cols`. Неполный последний ряд добирается `null`-местами:
+ * карточки во всех рядах обязаны быть одной ширины, иначе «Микс» получил бы
+ * миниатюры крупнее соседей и сравнивать наборы стало бы не с чем.
+ */
+export function setRows<T>(items: T[], cols: number = SET_COLS): (T | null)[][] {
+  const rows: (T | null)[][] = [];
+  for (let i = 0; i < items.length; i += cols) {
+    const row: (T | null)[] = items.slice(i, i + cols);
+    while (row.length < cols) row.push(null);
+    rows.push(row);
+  }
+  return rows;
+}
 
 // Названия товаров для скринридера. Держим локально ru/en (как pieceName в
 // chess-blind) вместо 23 ключей × 12 языков: игроку важно РАЗЛИЧАТЬ товары,
@@ -157,7 +260,7 @@ const GOOD_NAMES_EN = ['cola','lemonade','kefir','milk','juice','yogurt','banana
 const goodName = (type: number, ru: boolean) =>
   (ru ? GOOD_NAMES_RU : GOOD_NAMES_EN)[type % GOOD_NAMES_EN.length];
 
-function GoodIcon({ type, width, height }: { type: number; width: number; height: number }) {
+function GoodIcon({ type, width, height }: { type: number; width: DimensionValue; height: DimensionValue }) {
   return (
     <Image
       {...a11yDecor}
@@ -2539,25 +2642,41 @@ export default function GoodsSortGame() {
       </LinearGradient>
       <GameAbout descriptionKey="goodsSortIntroDesc" benefits={GOODS_BENEFITS} accent={GRADIENT[0]} />
 
-      {/* ВЫБОР ТОВАРОВ — как в оригинале */}
+      {/*
+        ВЫБОР ТОВАРОВ. Рядами по два, а не пятёркой в строку: на телефоне пятёрка
+        даёт карточку в 53-59px, куда не влезают ни узнаваемая миниатюра, ни слово
+        «Молочное» (разбор с замерами — у setThumbBox). Размеров в пикселях здесь
+        нет намеренно: ширину миниатюры даёт flex, высоту — aspectRatio.
+      */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('goodsSetsLabel')}</Text>
-        <View style={styles.setRow}>
-          {GOOD_SETS.map((s) => {
-            const on = setKey === s.key;
-            return (
-              <TouchableOpacity
-                accessibilityRole="button" key={s.key} activeOpacity={0.85} onPress={() => { setSetKey(s.key); hapticTap(); }}
-                style={[styles.setBtn, { borderColor: on ? GRADIENT[0] : colors.border, backgroundColor: on ? '#fff7e0' : colors.card }]}>
-                <Ionicons name={s.icon} size={22} color={on ? '#d97706' : colors.textSecondary} />
-                <Text style={[styles.setBtnText, { color: on ? '#92600a' : colors.textSecondary }]}>{t('goodsSet_' + s.key)}</Text>
-                <View style={styles.setPreview}>
-                  {s.pool.slice(0, 4).map((p) => <GoodIcon key={p} type={p} width={18} height={28} />)}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {setRows(GOOD_SETS).map((row, ri) => (
+          <View key={`setrow${ri}`} style={styles.setRow}>
+            {row.map((s, ci) => {
+              if (!s) return <View key={`gap${ci}`} pointerEvents="none" style={[styles.setBtn, styles.setBtnGhost]} />;
+              const on = setKey === s.key;
+              const sub = `🛒 ${s.pool.length}${s.alike ? ` · ${t('goodsSetAlike')}` : ''}`;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button" accessibilityState={{ selected: on }}
+                  accessibilityLabel={`${t('goodsSet_' + s.key)} — ${sub}`}
+                  key={s.key} activeOpacity={0.85} onPress={() => { setSetKey(s.key); hapticTap(); }}
+                  style={[styles.setBtn, { borderColor: on ? GRADIENT[0] : colors.border, backgroundColor: on ? '#fff7e0' : colors.card }]}>
+                  <View style={styles.setPreview}>
+                    {s.preview.slice(0, THUMBS_PER_CARD).map((p) => (
+                      <View key={p} style={styles.setThumb}><GoodIcon type={p} width="100%" height="100%" /></View>
+                    ))}
+                  </View>
+                  <View style={styles.setNameRow}>
+                    <Ionicons name={s.icon} size={15} color={on ? '#d97706' : colors.textSecondary} />
+                    <Text style={[styles.setBtnText, { color: on ? '#92600a' : colors.textSecondary }]}>{t('goodsSet_' + s.key)}</Text>
+                  </View>
+                  <Text style={[styles.setBtnSub, { color: on ? '#a97a1f' : colors.textSecondary }]}>{sub}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ))}
       </View>
 
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
@@ -2847,9 +2966,26 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   setRow: { flexDirection: 'row', gap: 8 },
-  setBtn: { minHeight: 48, justifyContent: 'center', flex: 1, borderRadius: 16, borderWidth: 2, paddingVertical: 10, paddingHorizontal: 6, alignItems: 'center', gap: 4 },
-  setBtnText: { fontSize: 12, fontWeight: '700' },
-  setPreview: { flexDirection: 'row', gap: 1, marginTop: 2 },
+  /**
+   * ⚠️ paddingHorizontal и borderWidth здесь ОБЯЗАНЫ совпадать с BTN_EDGE, а
+   * gap в setPreview — с THUMB_GAP: по этим числам считается размер миниатюры.
+   * Разойдутся — витрина снова вылезет за карточку, и молча.
+   */
+  setBtn: { minHeight: 48, flex: 1, borderRadius: 16, borderWidth: 2, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'center', gap: 4, overflow: 'hidden' },
+  /**
+   * Пустое место вместо пятого набора. 🔴 Это ТОТ ЖЕ setBtn, только прозрачный,
+   * а не пустой View с flex:1. Замер живой сборки: у flex-элемента с basis 0
+   * пол ширины — его padding+border, и голый View был на 20px «легче» карточки.
+   * Ряд делился 169/149, «Микс» получал миниатюры 47px против 43.7px у соседей —
+   * то есть наборы опять становилось не с чем сравнивать глазом.
+   */
+  setBtnGhost: { borderColor: 'transparent', backgroundColor: 'transparent' },
+  setNameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  setBtnText: { fontSize: 13, fontWeight: '700' },
+  setBtnSub: { fontSize: 11, fontWeight: '600' },
+  setPreview: { flexDirection: 'row', gap: 4, alignSelf: 'stretch' },
+  /** Ширину даёт flex, высоту — пропорция игрового товара. Пикселей здесь нет. */
+  setThumb: { flex: 1, aspectRatio: GOOD_ONBOARD_W / GOOD_ONBOARD_H, minHeight: GOOD_ONBOARD_H },
   fieldCol: { flex: 1, alignSelf: 'stretch', justifyContent: 'center', gap: 8, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   hintText: { fontSize: 12, textAlign: 'center' },

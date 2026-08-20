@@ -1341,6 +1341,7 @@ const t: Record<string, string> = {
   "goodsSet_toys": "Juguetes",
   "goodsSet_dairy": "Lácteos",
   "goodsSet_mix": "Mix",
+  "goodsSetAlike": "parecidos",
   "tooManyMoves": "🔁 Demasiados movimientos",
   "mnemMemorizeWords": "Memoriza {n} palabras",
   "mnemMemorizeNumbers": "Memoriza {n} números",
@@ -1921,6 +1922,12 @@ const t: Record<string, string> = {
   "abilityPracticeOn": "Activado: esta partida no cuenta",
   "abilityPracticeNote": "Ni puntos, ni nivel, ni estadísticas",
   "abilityPracticeSpent": "Intento de prueba: esta partida no se ha registrado en ningún sitio",
+  "sudokuSandwichZeroNote": "Un cero en el borde significa que no hay ninguna casilla entre el 1 y el 9: están pegados.",
+  "sudokuSandwichClueRow": "{n} junto a la fila: es la suma de las cifras que están entre el 1 y el 9 de esa fila.",
+  "sudokuSandwichClueCol": "{n} encima de la columna: es la suma de las cifras que están entre el 1 y el 9 de esa columna.",
+  "sudokuSandwichClueZero": "Un cero no es una suma: aquí no hay ninguna casilla entre el 1 y el 9, están pegados.",
+  "sudokuColorWhy": "El color no resuelve nada: es tu propia marca; pinta las casillas entre las que ves una relación.",
+  "sudokuUndoWhy": "Deshacer devuelve la casilla como estaba: la cifra sobrescrita y las notas que ocultaba. El error gastado no se devuelve.",
   // >>> SCREEN_STRINGS
 };
 export default t;

@@ -1344,6 +1344,7 @@ const t: Record<string, string> = {
   "goodsSet_toys": "खिलौने",
   "goodsSet_dairy": "डेयरी",
   "goodsSet_mix": "मिक्स",
+  "goodsSetAlike": "एक जैसे",
   "tooManyMoves": "🔁 बहुत ज़्यादा चालें",
   "mnemMemorizeWords": "{n} शब्द याद करें",
   "mnemMemorizeNumbers": "{n} संख्याएँ याद करें",
@@ -1924,6 +1925,12 @@ const t: Record<string, string> = {
   "abilityPracticeOn": "चालू: यह खेल गिना नहीं जाएगा",
   "abilityPracticeNote": "न अंक, न स्तर, न आँकड़े",
   "abilityPracticeSpent": "अभ्यास प्रयास — यह खेल कहीं दर्ज नहीं हुआ",
+  "sudokuSandwichZeroNote": "किनारे पर 0 का मतलब है कि 1 और 9 के बीच कोई खाना नहीं है — वे अगल-बगल हैं।",
+  "sudokuSandwichClueRow": "पंक्ति के बगल में {n} — उस पंक्ति में 1 और 9 के बीच पड़ने वाले अंकों का योग।",
+  "sudokuSandwichClueCol": "स्तंभ के ऊपर {n} — उस स्तंभ में 1 और 9 के बीच पड़ने वाले अंकों का योग।",
+  "sudokuSandwichClueZero": "0 योग नहीं है: यहाँ 1 और 9 के बीच कोई खाना नहीं है, वे अगल-बगल हैं।",
+  "sudokuColorWhy": "रंग कुछ हल नहीं करता — यह आपका अपना निशान है: उन खानों को रंगें जिनके बीच आपको संबंध दिखता है।",
+  "sudokuUndoWhy": "पूर्ववत करने पर खाना पहले जैसा हो जाता है: ऊपर लिखा गया अंक और उससे छिपे निशान वापस आ जाते हैं। खर्च हुई गलती वापस नहीं मिलती।",
   // >>> SCREEN_STRINGS
 };
 export default t;

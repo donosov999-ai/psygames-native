@@ -1458,6 +1458,7 @@ const t: Record<string, string> = {
   "goodsSet_toys": "Jouets",
   "goodsSet_dairy": "Produits laitiers",
   "goodsSet_mix": "Mix",
+  "goodsSetAlike": "similaires",
   "tooManyMoves": "🔁 Trop de coups",
   "mnemMemorizeWords": "Mémorise {n} mots",
   "mnemMemorizeNumbers": "Mémorise {n} nombres",
@@ -1916,6 +1917,12 @@ const t: Record<string, string> = {
   "abilityPracticeOn": "Activé : cette partie ne compte pas",
   "abilityPracticeNote": "Ni points, ni niveau, ni statistiques",
   "abilityPracticeSpent": "Essai libre — cette partie n’a été enregistrée nulle part",
+  "sudokuSandwichZeroNote": "Un zéro au bord signifie qu’aucune case ne se trouve entre le 1 et le 9 : ils sont côte à côte.",
+  "sudokuSandwichClueRow": "{n} à côté de la ligne : c’est la somme des chiffres placés entre le 1 et le 9 de cette ligne.",
+  "sudokuSandwichClueCol": "{n} au-dessus de la colonne : c’est la somme des chiffres placés entre le 1 et le 9 de cette colonne.",
+  "sudokuSandwichClueZero": "Un zéro n’est pas une somme : ici aucune case ne se trouve entre le 1 et le 9, ils sont côte à côte.",
+  "sudokuColorWhy": "La couleur ne résout rien : c’est ta propre marque ; colore les cases entre lesquelles tu vois un lien.",
+  "sudokuUndoWhy": "Annuler remet la case comme elle était : le chiffre écrasé et les notes qu’il masquait. Une erreur déjà comptée n’est pas rendue.",
   // >>> SCREEN_STRINGS
 };
 export default t;

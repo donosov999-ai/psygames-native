@@ -1341,6 +1341,7 @@ const t: Record<string, string> = {
   "goodsSet_toys": "Spielzeug",
   "goodsSet_dairy": "Milchprodukte",
   "goodsSet_mix": "Mix",
+  "goodsSetAlike": "ähnlich",
   "tooManyMoves": "🔁 Zu viele Züge",
   "mnemMemorizeWords": "Präge dir {n} Wörter ein",
   "mnemMemorizeNumbers": "Präge dir {n} Zahlen ein",
@@ -1921,6 +1922,12 @@ const t: Record<string, string> = {
   "abilityPracticeOn": "An: Diese Runde zählt nicht",
   "abilityPracticeNote": "Keine Punkte, kein Level, keine Statistik",
   "abilityPracticeSpent": "Probelauf — diese Runde wurde nirgends gespeichert",
+  "sudokuSandwichZeroNote": "Eine Null am Rand bedeutet: zwischen der 1 und der 9 liegt kein Feld — sie stehen nebeneinander.",
+  "sudokuSandwichClueRow": "{n} neben der Zeile — das ist die Summe der Ziffern zwischen der 1 und der 9 in dieser Zeile.",
+  "sudokuSandwichClueCol": "{n} über der Spalte — das ist die Summe der Ziffern zwischen der 1 und der 9 in dieser Spalte.",
+  "sudokuSandwichClueZero": "Eine Null ist keine Summe: hier liegt kein Feld zwischen der 1 und der 9, sie stehen nebeneinander.",
+  "sudokuColorWhy": "Farbe entscheidet nichts — sie ist deine eigene Markierung: färbe Felder, zwischen denen du einen Zusammenhang siehst.",
+  "sudokuUndoWhy": "Rückgängig stellt das Feld wieder her: die überschriebene Ziffer und die dadurch verdeckten Notizen. Einen verbrauchten Fehler gibt es nicht zurück.",
   // >>> SCREEN_STRINGS
 };
 export default t;
