@@ -50,6 +50,7 @@
  * любой цифры.
  */
 import { localDateKey } from '@/src/services/warmup';
+import { sessionGameType } from '@/src/constants/games';
 
 /** Минимум полей сессии, который нужен истории. Полный `GameSession` тянет за собой
  *  Supabase и AsyncStorage — здесь это ни к чему (тот же приём, что в analytics.ts). */
@@ -161,6 +162,29 @@ export function compare(unit: HistoryUnit, value: number, prev: number): History
   return better ? 'better' : 'worse';
 }
 
+/**
+ * КАКАЯ ЭТО ИГРА — первое поле ключа задачи и подпись строки в истории.
+ *
+ * ⚠️ ЧЕТВЁРТАЯ ЛОВУШКА КЛЮЧА, И ОНА ХУЖЕ ОСТАЛЬНЫХ ТРЁХ. Дорога и уровень хотя бы
+ * лежат каждый в своём поле; здесь же в одном поле `game_type` до 20.08.2026 лежали
+ * ДВЕ РАЗНЫЕ ИГРЫ. Самурай писал партии в корзину `sudoku` со своим номером уровня,
+ * так что уровень 5 классической 9×9 и уровень 5 самурая на 369 клетках были для
+ * ключа одной и той же задачей: история объявляла «хуже на 2500 очков» человеку,
+ * который просто перешёл с самурая на обычную доску (базы очков 4000 против 1500).
+ *
+ * ⚠️ ПРИЗНАК ИДЁТ В ТО ЖЕ ПОЛЕ, А НЕ ШЕСТЫМ РЯДОМ. Соблазн приписать к ключу ещё одну
+ * часть («самурай / не самурай») велик и неверен: это не настройка партии, как дорога
+ * или уровень, а другая ИГРА. В поле игры она и должна стоять — тогда её видят разом и
+ * ключ, и подпись строки, и `seenGames` («упражнение знакомо»), и вердикт `newTask`.
+ * Отдельная часть ключа починила бы сравнение и оставила бы подпись врать.
+ *
+ * Само правило разбора живёт в каталоге (`sessionGameType`) — там же, где сказано,
+ * под каким именем какая игра пишет партии.
+ */
+export function entryGame(s: HistorySession): string {
+  return sessionGameType(s);
+}
+
 /** Уровень партии, если игра его пишет. Он же — главная часть ключа задачи. */
 export function entryLevel(s: HistorySession): number | null {
   const lv = Number(s.details?.level);
@@ -197,10 +221,11 @@ export function entryRoad(s: HistorySession): string {
 /**
  * ЧТО ИМЕННО человек играл: упражнение + уровень + дорога сложности + настройки.
  * Сравнивать между собой можно только партии с одинаковым ключом — 5×5 и 6×6 это
- * разные задачи, а не прогресс; лёгкая и тяжёлая дорога — тем более.
+ * разные задачи, а не прогресс; лёгкая и тяжёлая дорога — тем более; а классическая
+ * судоку и самурай — вообще разные игры, хоть и лежали в одной корзине.
  */
 export function taskKey(s: HistorySession): string {
-  return [s.game_type ?? '', entryLevel(s) ?? '', entryRoad(s), s.difficulty ?? '', s.mode ?? ''].join('|');
+  return [entryGame(s), entryLevel(s) ?? '', entryRoad(s), s.difficulty ?? '', s.mode ?? ''].join('|');
 }
 
 /** Сколько дней показываем. Экран рисует список целиком, без виртуализации, а у
@@ -237,7 +262,7 @@ export function buildTrainingHistory(
   const byDay = new Map<string, HistoryEntry[]>();
 
   for (const { s, t } of dated) {
-    const gameType = s.game_type as string;
+    const gameType = entryGame(s);
     const { value, unit } = entryValue(s);
     const key = taskKey(s);
     const prev = lastByTask.has(key) ? (lastByTask.get(key) as number) : null;

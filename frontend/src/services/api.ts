@@ -6,7 +6,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GAMES } from '@/src/constants/games';
+import { GAMES, sessionGameType } from '@/src/constants/games';
 import { getSupabase, SUPABASE_TABLE } from '@/src/services/supabase';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
 /**
@@ -118,6 +118,22 @@ function migrateSession(s: GameSession): GameSession {
       mode: s.mode || (s.game_type === 'word_mnemonics' ? 'words' : 'numbers'),
     };
   }
+  /**
+   * РАЗВЕДЕНИЕ САМУРАЯ ЗАДНИМ ЧИСЛОМ — ТОЙ ЖЕ МЕХАНИКОЙ, ЧТО И ПЕРЕИМЕНОВАНИЕ ВЫШЕ.
+   *
+   * До 20.08.2026 самурай писал в корзину `sudoku` со своим номером уровня, и такие
+   * партии лежат на устройствах людей. Правило разбора — в каталоге
+   * (`sessionGameType`), здесь только одна точка его применения: ВСЕ читатели
+   * истории — сводка, лучшее время уровня, нагрузка ветки, достижения, восстановление
+   * уровня — ходят сюда через `readAll`, и разбирать записи в каждом из них по
+   * отдельности значило бы завести шесть копий одного правила.
+   *
+   * ⚠️ Разбор не разовый и не «миграцией при обновлении»: он считается при каждом
+   * чтении. Разовая переписка хранилища не пережила бы ни отката версии, ни
+   * восстановления из бэкапа, ни синка со второго устройства.
+   */
+  const bucket = sessionGameType(s);
+  if (bucket !== s.game_type) return { ...s, game_type: bucket };
   return s;
 }
 
@@ -274,6 +290,9 @@ const DETAILS_SCHEMAS: Record<string, Record<string, FieldType>> = {
   proofreading:      { hits: 'number', errors: 'number' },
   set_game:          { hits: 'number', errors: 'number' },
   sudoku:            { errors: 'number' },
+  // Своя строка, а не «покрыт судоку»: до разведения корзин самурай проверялся схемой
+  // соседа случайно, и после переезда молча остался бы без проверки вообще.
+  sudoku_samurai:    { errors: 'number' },
   trail_making:      { hits: 'number', errors: 'number' },
   word_pairs:        { hits: 'number', errors: 'number' },
   mahjong:           { level: 'number', pairs: 'optional_number', layers: 'optional_number' },
