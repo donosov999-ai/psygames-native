@@ -22,6 +22,7 @@
  * отдаёт только число.
  */
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -34,6 +35,71 @@ const TESTER_MARKERS = /репорт|тестировщик|тестер|из ч
 
 const version = JSON.parse(readFileSync(join(ROOT, 'frontend/package.json'), 'utf8')).version;
 const changelog = readFileSync(join(ROOT, 'CHANGELOG.md'), 'utf8');
+
+const post = (fn, body) => fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    apikey: PUBLISHABLE_KEY,
+    Authorization: `Bearer ${PUBLISHABLE_KEY}`,
+  },
+  body: JSON.stringify(body),
+});
+
+/**
+ * 🔴 ПРОВЕРКА ПО КОММИТАМ — ЗАКРЫВАЕТ ДЫРУ, В КОТОРУЮ ГЕЙТ САМ ПРИЗНАВАЛСЯ.
+ *
+ * Ниже написано: «если правку по репорту вообще не упомянуть в changelog —
+ * зацепиться не за что». 21.08.2026 через эту дыру прошли ЧЕТЫРЕ репорта: три
+ * про правила судоку и один про выбор набора товаров. Все были починены в
+ * v1.209.0 и ни один не помечен — авторы не узнали.
+ *
+ * Но связь-то была, и не в changelog, а в коммите: `850e5606` дословно называет
+ * id отчёта, по которому сделан. Там она и живёт естественно — пишешь починку,
+ * ссылаешься на репорт. Значит и спрашивать надо оттуда.
+ *
+ * ⚠️ ПОЧЕМУ ЭТО НЕ ЛОМАЕТСЯ НА СТАРЫХ КОММИТАХ. Проверяется только «помечен ли»,
+ * а помеченный проходит всегда. Захватить лишние коммиты не страшно — страшно
+ * недобрать, поэтому при неудаче с тегом берём просто последние сто.
+ */
+const UUID = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
+
+function commitMessagesSincePreviousRelease() {
+  const versions = [...changelog.matchAll(/^## \[(\d+\.\d+\.\d+)\]/gm)].map((m) => m[1]);
+  const prev = versions.find((v) => v !== version);
+  const range = prev ? [`v${prev}..HEAD`] : ['-n', '100'];
+  return execFileSync('git', ['log', ...range, '--format=%B'], { cwd: ROOT, encoding: 'utf8' });
+}
+
+try {
+  const ids = [...new Set((commitMessagesSincePreviousRelease().match(UUID) || []).map((x) => x.toLowerCase()))];
+  if (ids.length) {
+    const r = await post('psygames_reports_unmarked', { p_ids: ids });
+    if (r.ok) {
+      const unmarked = (await r.json()).map((x) => x.id);
+      if (unmarked.length) {
+        console.error(`
+❌ обратный контур: коммиты этого релиза ссылаются на ${unmarked.length} репорт(ов),
+   которые НЕ помечены починенными. Автор репорта ничего не узнает.
+
+   Пометить (текст ответа — на языке, на котором человек ПИСАЛ):
+
+   update public.app_feedback set
+     status = 'fixed', fixed_in_version = '${version}', fixed_at = now(),
+     fix_note = '<что именно изменилось, словами автора репорта>'
+   where id in (${unmarked.map((x) => `'${x}'`).join(', ')});
+`);
+        process.exit(1);
+      }
+      console.log(`✅ обратный контур: ${ids.length} репорт(ов) из коммитов помечены`);
+    } else {
+      console.warn(`⚠️  обратный контур: не смог сверить репорты из коммитов (${r.status}) — эта половина гейта пропущена`);
+    }
+  }
+} catch (e) {
+  // Мелкий клон в CI, нет тега, нет git — это не повод валить релиз.
+  console.warn(`⚠️  обратный контур: коммиты не прочитались (${String(e?.message || e).split('\n')[0]}) — эта половина гейта пропущена`);
+}
 
 // Раздел текущей версии: от её заголовка до следующего "## ["
 const start = changelog.indexOf(`## [${version}]`);
