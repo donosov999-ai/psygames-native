@@ -28,15 +28,39 @@ describe('замер уровня доезжает до отчёта', () => {
    * ронял четвёртое — `audio_peak` в контексте был null у ВСЕХ 26 голосовых. Замер
    * делался и выбрасывался.
    */
-  it('виджет передаёт peak, а не только blob/seconds/mime', () => {
+  /**
+   * ⚠️ ПРЕЖНЯЯ РЕДАКЦИЯ ПРОВЕРЯЛА ОДНО ПОЛЕ ПОИМЁННО — и ровно поэтому не
+   * защищала ни от чего: следующее добавленное поле выпало бы так же тихо, как
+   * выпал `peak`. Теперь список полей берётся ИЗ САМОГО ТИПА `VoiceNote`, и
+   * добавить в заметку поле, не доведя его до отчёта, нельзя: гейт назовёт его
+   * по имени. `blob` — сам файл, он уезжает заливкой, а не контекстом.
+   */
+  const noteFields = (): string[] => {
+    const src = read('services/voiceNote.ts');
+    const body = src.slice(src.indexOf('export interface VoiceNote {'));
+    const decl = body.slice(0, body.indexOf('\n}'));
+    const clean = decl.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+    return [...clean.matchAll(/^\s*(\w+)\??:/gm)].map((m) => m[1]);
+  };
+
+  it('есть что проверять — иначе гейт зелен вслепую', () => {
+    expect(noteFields()).toEqual(expect.arrayContaining(['blob', 'seconds', 'peak', 'track', 'source']));
+  });
+
+  it('🔴 виджет передаёт ВСЕ поля заметки, а не те, что вспомнил автор', () => {
     const src = read('components/FeedbackWidget.tsx');
     const m = src.match(/audio: note \? \{([^}]*)\}/);
     expect(m).toBeTruthy();
-    expect(m![1]).toContain('peak');
+    const missing = noteFields().filter((f) => !new RegExp(`\\b${f}\\b`).test(m![1]));
+    expect(missing).toEqual([]);
   });
 
-  it('отправка кладёт peak в контекст репорта', () => {
-    expect(read('services/appFeedback.ts')).toContain('audio_peak: args.audio.peak');
+  it('🔴 отправка кладёт в контекст репорта каждое поле, кроме самого файла', () => {
+    const src = read('services/appFeedback.ts');
+    const missing = noteFields()
+      .filter((f) => f !== 'blob')
+      .filter((f) => !new RegExp(`audio_${f}\\s*:`).test(src));
+    expect(missing).toEqual([]);
   });
 
   /** Немая запись обязана быть ВИДНА человеку сразу, а не выглядеть удачной отправкой. */
