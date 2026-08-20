@@ -228,10 +228,18 @@ describe('партии через развилку не теряются', () =>
     expect(wrong).toEqual([]);
   });
 
-  it('у двух досок ключ записи и id карточки нарочно разные, и это записано', () => {
+  /**
+   * ⚠️ У САМУРАЯ ЗДЕСЬ СТОЯЛО `sudoku` — И ЭТО БЫЛА НЕ ОПЕЧАТКА, А ЗАПИСАННАЯ БЕДА:
+   * две разные игры делили одну корзину со своими номерами уровней. Разведено
+   * 20.08.2026, подробности и проба на старые записи — в `sudoku-buckets.test.ts`.
+   * Здесь остаётся то, ради чего раздел вообще есть: у каждой доски своё имя корзины.
+   */
+  it('у трёх досок ключи записи разные, и ни один не совпадает с чужим', () => {
     expect(sessionTypeOf(byId.get('sudoku-fractal') as GameConfig)).toBe('sudoku_fractal');
-    expect(sessionTypeOf(byId.get('sudoku-samurai') as GameConfig)).toBe('sudoku');
+    expect(sessionTypeOf(byId.get('sudoku-samurai') as GameConfig)).toBe('sudoku_samurai');
     expect(sessionTypeOf(byId.get('sudoku') as GameConfig)).toBe('sudoku');
+    const buckets = BOARDS.map((id) => sessionTypeOf(byId.get(id) as GameConfig));
+    expect(new Set(buckets).size).toBe(BOARDS.length);
   });
 
   /**
