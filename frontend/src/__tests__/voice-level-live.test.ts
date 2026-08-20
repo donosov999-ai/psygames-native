@@ -56,6 +56,10 @@ function installMic(opts: {
   rawFails?: boolean;
   /** Обработанный микрофон устройство не даёт вовсе. */
   processedFails?: boolean;
+  /** Что отвечает `navigator.permissions` про микрофон. */
+  permission?: string;
+  /** Микрофоны, которые видит браузер: `true` — у устройства есть ИМЯ. */
+  devices?: boolean[];
 }) {
   const mode = opts.ctx ?? 'ok';
   let wakes = 0;
@@ -84,6 +88,15 @@ function installMic(opts: {
     setTimeout(() => (globalThis as any).__muteTrackNow(), 5);
     setTimeout(() => { audioTrack.muted = false; }, 12);
   }
+  /**
+   * Система отвечает на прямые вопросы о доступе: разрешение и список устройств.
+   * ИМЕНА у устройств `enumerateDevices` отдаёт ровно при выданном доступе —
+   * на этом и держится различие «не дали» против «дали, но молчит».
+   */
+  (globalThis as any).navigator.permissions = {
+    query: async () => ({ state: opts.permission ?? 'granted' }),
+  };
+
   /** Сырым считается запрос с ЯВНО выключенной обработкой — так его шлёт openMic. */
   const isRaw = (c: any) => !!c?.audio && typeof c.audio === 'object' && c.audio.echoCancellation === false;
   const micCalls: string[] = [];
@@ -98,6 +111,9 @@ function installMic(opts: {
       stream.__level = raw ? (opts.rawLevel ?? opts.level) : opts.level;
       return stream;
     },
+    enumerateDevices: async () => (opts.devices ?? [true]).map((named, i) => ({
+      kind: 'audioinput', deviceId: `d${i}`, label: named ? `Микрофон ${i}` : '',
+    })),
   };
 
   const recs: any[] = [];
@@ -566,5 +582,43 @@ describe('выбор микрофона', () => {
     const note = await p;
     expect(note?.source).toBe('raw');
     expect(shouldWarnSilent(note)).toBe(true);
+  });
+});
+
+/**
+ * СПРОСИТЬ СИСТЕМУ НАПРЯМУЮ — ЕДИНСТВЕННОЕ, ЧЕГО МЫ ЕЩЁ НЕ ДЕЛАЛИ.
+ *
+ * 🔴 ЗАЧЕМ ПРОВЕРЯТЬ ИСПОЛНЕНИЕМ, А НЕ ПОЛЕМ В ОТЧЁТЕ. Гейт полноты требует,
+ * чтобы поле `access` доехало до базы, — но не требует, чтобы его НАПОЛНИЛИ.
+ * Поломка «совсем не спрашивать систему» оставалась зелёной: поле уезжало
+ * пустым и читалось бы как «старый WebView». Ровно так и выглядит измерение,
+ * которого нет.
+ */
+describe('прямой вопрос системе о микрофоне', () => {
+  it('🔴 заметка несёт ответ системы, а не пустоту', async () => {
+    installMic({ level: 0.5, permission: 'granted', devices: [true, true] });
+    const r = await startRecording();
+    const note = await r.stop();
+    expect(note?.access).toEqual({ permission: 'granted', inputs: 2, named: 2 });
+  });
+
+  /**
+   * 🔴 ТОТ САМЫЙ РАЗЛИЧИТЕЛЬ. Устройства видны, имён нет — значит поток отдали,
+   * а доступа на самом деле нет. Именно так выглядела дорожка в первом отчёте
+   * на 1.210.0: живая, не `muted`, с пустым `label` и нулевым пиком.
+   */
+  it('🔴 устройства есть, имён нет — это видно в заметке', async () => {
+    installMic({ level: 0, permission: 'prompt', devices: [false, false] });
+    const r = await startRecording();
+    const note = await r.stop();
+    expect(note?.access).toEqual({ permission: 'prompt', inputs: 2, named: 0 });
+  });
+
+  it('система не умеет отвечать — так и пишем, а не выдумываем', async () => {
+    installMic({ level: 0.5 });
+    delete (globalThis as any).navigator.permissions;
+    const r = await startRecording();
+    const note = await r.stop();
+    expect(note?.access?.permission).toBe('unsupported');
   });
 });

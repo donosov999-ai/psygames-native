@@ -399,7 +399,7 @@ export default function FeedbackWidget() {
       // ради которого в v1.190 заводили AnalyserNode, до базы не доезжал ни разу.
       // Уровень со стороны сервера считает ffmpeg, но это уже посмертно — а нужен
       // ответ на вопрос «телефон отдал звук или нет» в момент отправки.
-      audio: note ? { blob: note.blob, seconds: note.seconds, mime: note.mime, peak: note.peak, measured: note.measured, track: note.track, source: note.source } : null,
+      audio: note ? { blob: note.blob, seconds: note.seconds, mime: note.mime, peak: note.peak, measured: note.measured, track: note.track, source: note.source, access: note.access } : null,
       // profile/level — чтобы в репорте было видно, под каким профилем и на
       // каком уровне игры это словили (не гадать по скриншоту).
       context: {
