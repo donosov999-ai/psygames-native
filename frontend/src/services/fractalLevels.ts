@@ -117,6 +117,33 @@ export interface FractalLevelCfg {
   rootBlanksCap: number;
   /** Какую долю выколотых клеток надо набрать верными, чтобы дочерняя отдала цифру наверх. */
   unlockShare: number;
+  /**
+   * Сколько порталов сшивает дочерние сетки между собой. Третья ось: не «какая техника»
+   * и не «сколько сеток её требуют», а НАСКОЛЬКО ПАЗЛЫ ЗАВЯЗАНЫ ДРУГ НА ДРУГА.
+   */
+  portals: number;
+}
+
+/**
+ * Порталов на уровень: 0 на первой ступени, дальше 1 → 2 → 3 → 4 и потолок.
+ *
+ * ⚠️ ПОЧЕМУ НЕ С ПЕРВОГО УРОВНЯ. Первая ступень — единственное место, где человек учит
+ * само устройство фрактала: девять дочерних кормят корень. Свалить туда ещё и связь
+ * между дочерними значит не научить ни тому, ни другому.
+ *
+ * ⚠️ И ПОЧЕМУ НЕ «ТОЛЬКО НА ВЕРХНИХ». Партия здесь идёт часами, и уровень 21 — это
+ * десятки часов игры. Механика, которую видно с 21-го, не существует для почти всех.
+ * Шестой уровень — первый, где человек уже прошёл целую ступень и знает правила игры;
+ * с него порталы есть на 25 уровнях из 30.
+ *
+ * ⚠️ ПОТОЛОК ЧЕТЫРЕ — НЕ ВКУСОВЩИНА. У каждой дочерней не больше одного конца портала
+ * (иначе единственность решения партии перестаёт раскладываться в произведение по
+ * независимым парам, см. fractal-sudoku.ts, portalSolutions), а сеток девять.
+ */
+export const FRACTAL_MAX_PORTALS = 4;
+
+export function fractalPortalCount(level: number): number {
+  return Math.max(0, Math.min(FRACTAL_MAX_PORTALS, fractalTier(level) - 1));
 }
 
 export function clampFractalLevel(level: number): number {
@@ -176,6 +203,7 @@ export function fractalLevel(level: number): FractalLevelCfg {
     childBlanksCap: tier === 1 ? lerp(CHILD_BLANKS_MIN, CHILD_BLANKS_MAX, inFirstStep) : NO_CAP,
     rootBlanksCap: lerp(ROOT_BLANKS_MIN, ROOT_BLANKS_MAX, k),
     unlockShare: UNLOCK_SHARE_MIN + k * (UNLOCK_SHARE_MAX - UNLOCK_SHARE_MIN),
+    portals: fractalPortalCount(n),
   };
 }
 

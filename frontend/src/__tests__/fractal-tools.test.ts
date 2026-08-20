@@ -23,7 +23,9 @@ import {
 import {
   emptySudokuCellColors, toggleSudokuCellColor, normalizeSudokuCellColors, SUDOKU_COLOR_COUNT,
 } from '@/src/services/sudoku-coloring';
-import { generateFractal, rootCellForChild, N } from '@/src/services/fractal-sudoku';
+import {
+  generateFractal, rootCellForChild, portalOf, withPortalsResolved, N,
+} from '@/src/services/fractal-sudoku';
 import {
   fractalTechniqueKey, FRACTAL_TECHNIQUE_KEYS, FRACTAL_TIER_STEPS, fractalLevel,
 } from '@/src/services/fractalLevels';
@@ -121,20 +123,41 @@ describe('🔴 подпись сложности не врёт: сверка с 
    * месте, и внутри одной партии они разные по построению (вторая ось сложности).
    * Подпись «как задумано» врала бы каждую партию.
    */
+  /**
+   * ⚠️ СТУПЕНЬ МЕРЯЕТСЯ НА ДОСКЕ С РАЗРЕШЁННЫМ ПОРТАЛОМ, А НЕ НА НАПЕЧАТАННОЙ. Сетка,
+   * которую задел портал, ПОРОЗНЬ не решается вообще — цифру в портальной клетке даёт
+   * только соседний пазл. Спроси у градатора ступень напечатанного задания, и он честно
+   * ответит «только перебором» у КАЖДОЙ такой сетки, то есть подпись стала бы невозможной.
+   * Ровно так же уже устроен корень: его ступень считается по доске с девятью цифрами
+   * снизу, а печатается он без них.
+   */
   it('ступень каждой сетки подтверждается gradePuzzle', () => {
     const bad: string[] = [];
+    let withPortal = 0;
     for (const level of [1, 15, 23, 30]) {
       const f = generateFractal(level, `гейт-подпись-${level}`);
       for (const [i, ch] of f.children.entries()) {
-        const g = gradePuzzle(ch.puzzle, CTX, ch.tier);
+        const board = withPortalsResolved(ch.puzzle, f.portals, i);
+        const g = gradePuzzle(board, CTX, ch.tier);
         if (!g.solved) bad.push(`L${level}#${i}: градатор не решил в пределах подписанной ступени ${ch.tier}`);
         if (g.solved && g.tier !== ch.tier) bad.push(`L${level}#${i}: подпись ${ch.tier}, градатор ${g.tier}`);
         // и БЕЗ подписанной техники доска не берётся — иначе подпись завышена
-        if (ch.tier > 1 && gradePuzzle(ch.puzzle, CTX, ch.tier - 1).solved) {
+        if (ch.tier > 1 && gradePuzzle(board, CTX, ch.tier - 1).solved) {
           bad.push(`L${level}#${i}: подписана ступень ${ch.tier}, а берётся и без неё`);
+        }
+        // 🔴 …а НАПЕЧАТАННОЕ задание сетки с порталом ЧУЖОЙ решатель не добивает НИЧЕМ,
+        //    даже с потолком выше всякой техники: это и есть доказательство, что портал
+        //    несущий, а не украшение поверх и так решаемой доски.
+        if (portalOf(f.portals, i)) {
+          withPortal++;
+          if (gradePuzzle(ch.puzzle, CTX, 9).solved) {
+            bad.push(`L${level}#${i}: сетка с порталом решается и без него — портал декоративен`);
+          }
         }
       }
     }
+    // Без этого проверка портала зелена вслепую: на уровнях без порталов сверять нечего.
+    expect(`сеток с порталом: ${withPortal > 0}`).toBe('сеток с порталом: true');
     expect(bad).toEqual([]);
   }, 600000);
 
