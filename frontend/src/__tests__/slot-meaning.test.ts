@@ -60,10 +60,21 @@ const DIR = join(ROOT, 'app/games');
 const read = (rel: string): string => readFileSync(join(ROOT, rel), 'utf8') as string;
 const game = (f: string): string => readFileSync(join(DIR, f), 'utf8') as string;
 
-/** Экраны игр, стоящие на каркасе. Список берётся с диска — не из этого файла. */
+/**
+ * Экраны игр, стоящие на каркасе. Список берётся с диска — не из этого файла.
+ *
+ * ⚠️ КОММЕНТАРИИ СРЕЗАЕМ. Экран-развилка судоку объясняет в шапке, ПОЧЕМУ каркаса у
+ * него нет, — и одного слова `GameShell` в этом объяснении хватило, чтобы гейт счёл
+ * его игрой на каркасе и потребовал решить, что означает низ экрана, которого нет.
+ * Ровно тот же класс ошибки, что гейт ловит у других: вывод из формулировки, а не
+ * из кода.
+ */
+const stripComments = (s: string): string =>
+  s.replace(/\{?\/\*[\s\S]*?\*\/\}?/g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+
 const SHELL_GAMES: string[] = readdirSync(DIR)
   .filter((f: string) => f.endsWith('.tsx'))
-  .filter((f: string) => game(f).includes('GameShell'))
+  .filter((f: string) => stripComments(game(f)).includes('GameShell'))
   .sort();
 
 /**

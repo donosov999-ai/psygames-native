@@ -155,7 +155,7 @@ export async function checkNewAchievements(ctx: Context): Promise<Achievement[]>
   const unlockedIds = new Set(unlocked.map(u => u.id));
   const newly: Achievement[] = [];
   // Special handling for 'all_categories' / 'all_44_games'
-  const { GAMES, CATEGORY_ORDER } = await import('@/src/constants/games');
+  const { GAMES, CATEGORY_ORDER, HUB_GAME_IDS, sessionTypeOf } = await import('@/src/constants/games');
   const playedCategories = new Set<string>();
   const playedIds = new Set(ctx.sessions.map(s => s.game_type));
   for (const s of ctx.sessions) {
@@ -163,14 +163,22 @@ export async function checkNewAchievements(ctx: Context): Promise<Achievement[]>
     if (g) playedCategories.add(g.category);
   }
   // Хабы-группы не сохраняют сессий — «весь каталог» = все остальные записи GAMES.
-  const HUBS = new Set(['span_group', 'attention_conflict']);
+  // Список выводится из каталога, а не выписан поимённо (разбор — у поля `hub`).
+  const HUBS = new Set(HUB_GAME_IDS);
   for (const a of ACHIEVEMENTS) {
     if (unlockedIds.has(a.id)) continue;
     let pass = false;
     if (a.id === 'all_categories') {
       pass = CATEGORY_ORDER.every(c => playedCategories.has(c));
     } else if (a.id === 'all_44_games') {
-      pass = GAMES.filter(g => !HUBS.has(g.id)).every(g => playedIds.has(g.id));
+      /**
+       * ⚠️ СРАВНИВАЕМ ПО КЛЮЧУ ЗАПИСИ ПАРТИИ, А НЕ ПО `id` КАРТОЧКИ. У двух судоку
+       * они разные, и достижение «весь каталог» было НЕДОСТИЖИМО в принципе:
+       * `sudoku-fractal` в списке партий не появляется никогда — фрактальная пишет
+       * `sudoku_fractal`. Условие выполнялось бы только у того, кто сыграл во всё и
+       * всё равно ничего бы не получил.
+       */
+      pass = GAMES.filter(g => !HUBS.has(g.id)).every(g => playedIds.has(sessionTypeOf(g)));
     } else {
       pass = evalCondition(a.id, ctx);
     }

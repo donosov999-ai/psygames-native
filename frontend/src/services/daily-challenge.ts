@@ -5,12 +5,14 @@
  * Запуск — через тот же URL-preset механизм, что и зарядка (useGamePreset/stepToParams).
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GAMES, GameConfig } from '@/src/constants/games';
+import { GAMES, GameConfig, HUB_GAME_IDS } from '@/src/constants/games';
 import { Difficulty } from '@/src/services/warmup';
 
 // Восстановление (дыхание) — не «вызов», исключаем из ротации.
 // Хабы-группы — не игры: не сохраняют сессию (стрик не закоммитится) и не принимают сложность.
-const GROUP_HUBS = ['span_group', 'attention_conflict'];
+// Список выводится из каталога: пять мест знали хабы поимённо, и третий хаб обязан
+// был попасть в каждое (разбор — у поля `hub` в constants/games).
+const GROUP_HUBS: readonly string[] = HUB_GAME_IDS;
 function eligibleGames(): GameConfig[] {
   return GAMES.filter((g) => !g.hideFromMenu && g.category !== 'recovery' && !GROUP_HUBS.includes(g.id));
 }

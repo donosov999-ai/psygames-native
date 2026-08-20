@@ -507,6 +507,22 @@ const translations: Translations = {
     ru: 'У каждой дороги свой счёт уровней. Взятое на тяжёлой засчитывается и на лёгких, обратно — нет. Дорогу выбирают до партии.',
     en: 'Each road keeps its own level count. Levels beaten on a harder road count on the easier ones, never the other way round. Pick the road before the game.',
   },
+
+  // Хаб судоку (games/sudoku-hub.tsx): одна карточка каталога на три доски.
+  sudokuGroup:     { ru: 'Судоку: три доски',            en: 'Sudoku: three boards' },
+  sudokuGroupDesc: { ru: 'Классическая, самурай и фрактальная', en: 'Classic, samurai and fractal' },
+  sudokuPickBoard: { ru: 'Выбери доску',                 en: 'Choose a board' },
+  sudokuTypeClassic: { ru: 'Одна сетка · 57 ступеней',   en: 'One grid · 57 steps' },
+  sudokuTypeSamurai: { ru: 'Пять сеток, сцепленных углами', en: 'Five grids locked at the corners' },
+  sudokuTypeFractal: { ru: 'Сетка внутри каждой клетки',  en: 'A grid inside every cell' },
+  sudokuGroupFootnote: {
+    ru: 'Правило у всех трёх одно: цифра не повторяется в строке, столбце и блоке. Различается доска. У каждой свой счёт уровней и своя история — партии не смешиваются.',
+    en: 'All three share one rule: a digit never repeats in a row, a column or a box. What differs is the board. Each keeps its own level count and its own history — games are never mixed.',
+  },
+  sudokuGroupIntroDesc: {
+    ru: 'Это не отдельное упражнение, а развилка: карточка открывает три доски одной головоломки. Правило у всех одно — цифра не повторяется в строке, столбце и блоке.\n\nКлассическая доска растёт лестницей: с уровнями приходят правила-варианты, а дорога сложности задаёт, насколько трудной техникой берётся ступень. Самурай и фрактальная — длинные формы, они живут часами: у самурая пять сеток делят угловые блоки, у фрактальной ответ вложенной сетки становится цифрой в клетке верхней. Выбери доску внутри.',
+    en: 'This is not an exercise but a fork: the card opens three boards of one puzzle. The rule is the same in all of them — a digit never repeats in a row, a column or a box.\n\nThe classic board climbs a ladder: levels bring variant rules, and the difficulty road sets how hard a technique each step demands. Samurai and fractal are long forms that live for hours: samurai has five grids sharing corner blocks, while in the fractal one the answer of a nested grid becomes the digit in the cell above. Pick a board inside.',
+  },
   easy: { ru: 'Легко', en: 'Easy' },
   medium: { ru: 'Средне', en: 'Medium' },
   hard: { ru: 'Сложно', en: 'Hard' },

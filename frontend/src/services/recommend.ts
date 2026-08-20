@@ -61,7 +61,7 @@
  * Флаг НЕ несёт ни `wu`, ни `auto`: это по-прежнему свободный запуск, уровни растут,
  * intro показывается (контракт точек входа — entry-points-contract.test.ts).
  */
-import { GAMES, GameCategory, GameConfig } from '@/src/constants/games';
+import { GAMES, GameCategory, GameConfig, HUB_GAME_IDS, sessionTypeOf } from '@/src/constants/games';
 import { ProfileDef, filterAllowedGames } from '@/src/constants/profiles';
 import { freshGameIds, todayISO } from '@/src/constants/freshGames';
 import {
@@ -102,8 +102,13 @@ export const RECO_EVENING_BANNED: readonly GameCategory[] = ['action', 'intuitio
  * как `digit_span`. Значит «ветке достаётся меньше всего» показывалось бы на хабе вечно и
  * не гасло бы даже после десяти партий. Тот же отсев по той же причине сделан у вызова
  * дня (`eligibleGames` в daily-challenge.ts).
+ *
+ * ⚠️ СПИСОК ВЫВОДИТСЯ ИЗ КАТАЛОГА, А НЕ ПЕРЕЧИСЛЕН ЗДЕСЬ. Раньше здесь стояли два
+ * имени строками, и такой же список лежал ещё в четырёх местах. Третий хаб (судоку,
+ * 20.08.2026) обязан был попасть во все пять; забытая копия отдала бы человеку меню
+ * под подписью «этой ветке достаётся меньше всего» — и не погасла бы никогда.
  */
-export const RECO_GROUP_HUBS: readonly string[] = ['span_group', 'attention_conflict'];
+export const RECO_GROUP_HUBS: readonly string[] = HUB_GAME_IDS;
 
 /**
  * С чего начинает тот, у кого истории нет. Порядок = порядок показа.
@@ -113,10 +118,17 @@ export const RECO_GROUP_HUBS: readonly string[] = ['span_group', 'attention_conf
  * Остальные — обычные игры, каждая отсеивается по `allowed_games` как все.
  *
  * Отбор внутри списка: понятное без объяснений (парные картинки), классика, которую
- * человек ищет по названию (Шульте), и знакомая всем головоломка (судоку).
+ * человек ищет по названию (Шульте), и знакомая всем головоломка.
+ *
+ * ⚠️ ЗДЕСЬ СТОЯЛО `sudoku`, И 20.08.2026 ОНО УМЕРЛО БЫ МОЛЧА. Судоку переехала под
+ * карточку-развилку и стала `hideFromMenu`, а набор собирается из пула, откуда
+ * скрытое вычеркнуто первой же строкой. Имя осталось бы в списке, выглядело бы
+ * рабочим и не выдавалось бы никогда. Головоломку заменила ханойская башня — такая
+ * же узнаваемая классика, и она в пуле. Живучесть каждого имени в этом списке теперь
+ * проверяется прогоном (sudoku-hub.test.ts), чтобы следующая такая смерть краснела.
  */
 export const RECO_STARTERS: readonly string[] = [
-  'picture_pairs', 'schulte_table', 'sudoku', 'memory_matrix', 'breathing',
+  'picture_pairs', 'schulte_table', 'hanoi', 'memory_matrix', 'breathing',
 ];
 
 /** Почему упражнение попало в блок. */
@@ -309,7 +321,15 @@ export function recommendToday(input: RecoInput): RecoPick[] {
      * Знаменатель при этом остаётся размером ПУЛА: он отвечает на другой вопрос —
      * сколько упражнений этой ветки мы вообще можем предложить.
      */
-    const catOf = new Map<string, GameCategory>(GAMES.map((g) => [g.id, g.category]));
+    /**
+     * ⚠️ КЛЮЧ КАРТЫ — ТОТ, ПОД КОТОРЫМ ИГРА ПИШЕТ ПАРТИЮ, А НЕ ЕЁ `id`. У 69 карточек
+     * это одно и то же, у двух судоку — нет: фрактальная лежит в каталоге как
+     * `sudoku-fractal`, а партии пишет под `sudoku_fractal`. Из-за одного символа её
+     * тренировки не попадали в нагрузку ветки ВООБЩЕ — человек, играющий её каждый
+     * день, для этого блока логику не тренировал ни разу. Ровно та же беда, что уже
+     * чинилась выше для игр, спрятанных за хабом, только тише.
+     */
+    const catOf = new Map<string, GameCategory>(GAMES.map((g) => [sessionTypeOf(g), g.category]));
     const load = new Map<GameCategory, number>();
     for (const { s, t } of before) {
       if (t < windowStart) continue;

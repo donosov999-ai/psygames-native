@@ -100,8 +100,29 @@ async function gameRoutes() {
   return [...src.matchAll(/route:\s*'([^']+)'/g)].map((m) => m[1]);
 }
 
-/** Экраны-развилки: поля у них нет, они разводят по соседним играм. */
-const HUB_ROUTES = new Set(['/games/span', '/games/attention-conflict']);
+/**
+ * Экраны-развилки: поля у них нет, они разводят по соседним играм.
+ *
+ * ⚠️ СПИСОК ЧИТАЕТСЯ ИЗ КАТАЛОГА, А НЕ ЗАШИТ ЗДЕСЬ. Раньше два маршрута стояли
+ * строками, и такой же список лежал ещё в четырёх местах кода. Хаб, забытый в этом
+ * файле, ломается особенно неприятно: аудит идёт искать на нём игровое поле,
+ * которого там нет и быть не должно, и отчитывается красным про исправный экран.
+ * Карточка помечена в каталоге признаком `hub: true` — его и вычитываем.
+ */
+async function hubRoutes() {
+  const raw = await fs.readFile(path.join(ROOT, 'src/constants/games.ts'), 'utf8');
+  // Комментарии срезаем: слово `hub: true` в тексте объяснения не должно считаться
+  // пометкой карточки — на этом в проекте уже обжигались не раз.
+  const src = raw.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+  const out = new Set();
+  for (const m of src.matchAll(/\n {2}\{\n([\s\S]*?)\n {2}\},/g)) {
+    if (!/^\s*hub:\s*true,?\s*$/m.test(m[1])) continue;
+    const r = /route:\s*'([^']+)'/.exec(m[1]);
+    if (r) out.add(r[1]);
+  }
+  if (!out.size) throw new Error('в каталоге не найдено ни одной карточки-хаба — разбор сломался, а слепой аудит опаснее отсутствующего');
+  return out;
+}
 
 const countButtons = () => document.querySelectorAll('[role="button"], button').length;
 
@@ -201,6 +222,7 @@ const READ_SLOTS = () => {
 async function main() {
   const { expected: AUX_EXPECTED, auxKeys, debt: DEBT, draftOk: DRAFT_OK } = await registry();
   const LABELS = await auxLabels(auxKeys);
+  const HUB_ROUTES = await hubRoutes();
   let routes = (await gameRoutes()).filter((r) => !HUB_ROUTES.has(r));
   if (ONLY) routes = routes.filter((r) => ONLY.some((o) => r.endsWith('/' + o) || r === o));
 

@@ -42,6 +42,8 @@ export const GAME_ICONS: Record<string, any> = {
   set_game: require('../../assets/images/game_icons/set_game.webp'),
   simon: require('../../assets/images/game_icons/simon.webp'),
   span_group: require('../../assets/images/game_icons/span_group.webp'),
+  // Развилка судоку берёт иконку судоку: она ведёт именно туда.
+  sudoku_group: require('../../assets/images/game_icons/sudoku.webp'),
   spatial_span: require('../../assets/images/game_icons/spatial_span.webp'),
   stop_signal: require('../../assets/images/game_icons/stop_signal.webp'),
   story_recall: require('../../assets/images/game_icons/story_recall.webp'),
