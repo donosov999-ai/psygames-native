@@ -15,11 +15,19 @@
  * экран обязан монтировать карточку с обработчиками и не имеет права заслонять её
  * `{false && …}`.
  *
- * ЧЕТЫРЕ ОБЯЗАТЕЛЬСТВА, названные словами (порядок = порядок describe ниже):
+ * ПЯТЬ ОБЯЗАТЕЛЬСТВ, названных словами (порядок = порядок describe ниже):
  *   1. цель живёт ровно сутки и не протекает в следующий день;
  *   2. закрытая карточка не возвращается в тот же день;
  *   3. чужой профиль не видит чужую цель;
- *   4. пустой ввод не сохраняется как цель — ни в сервисе, ни по кнопке.
+ *   4. пустой ввод не сохраняется как цель — ни в сервисе, ни по кнопке;
+ *   5. за достигнутую цель платят — и только за неё, только раз в календарные сутки,
+ *      только в день с партиями, а за честное «не сегодня» не снимают ничего.
+ *
+ * ⚠️ ПЯТОЕ ОБЯЗАТЕЛЬСТВО ПРОВЕРЯЕТСЯ НАСТОЯЩИМ КОШЕЛЬКОМ. Начисление, проверенное
+ * возвращённым объектом, зелено и при неработающих деньгах: `markGoalOutcome` может
+ * вернуть `reward: 25` и не позвать `addTokens` вовсе. Поэтому каждый случай ниже
+ * снимает баланс через `getTokens` ДО и ПОСЛЕ, а партии кладёт настоящим
+ * `recordRound` — тем же, которым их кладёт игра.
  */
 import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -31,6 +39,8 @@ import {
   saveDailyGoal,
 } from '@/src/services/dailyGoal';
 import { slotForHour } from '@/src/services/warmup';
+import { DAY_GOAL_REWARD, MULTIPLIER, recordRound, todayEarnings } from '@/src/services/earn';
+import { getTokens, TOKEN_DELTA_CAP } from '@/src/services/tokens';
 
 declare const __dirname: string;
 declare function require(id: string): any;
@@ -50,6 +60,18 @@ const DAY = new Date(2026, 7, 20, 13, 0, 0);
 const EVENING = new Date(2026, 7, 20, 21, 0, 0);
 const NEXT_DAY = new Date(2026, 7, 21, 9, 0, 0);
 const NEXT_NIGHT = new Date(2026, 7, 21, 0, 30, 0);   // уже следующие сутки, хоть и «ночью»
+const NEXT_EVENING = new Date(2026, 7, 21, 21, 0, 0);
+
+/**
+ * Код без комментариев — для проверок по исходнику.
+ *
+ * ⚠️ ЗАЧЕМ. Слово, написанное в комментарии, зеленит проверку на исправность кода:
+ * шапка этого захода честно объясняет, что кошелёк перечитывается после отметки, — и
+ * проверка «в обработчике есть setTokens» прошла бы даже с пустым обработчиком.
+ */
+const code = (rel: string) => read(rel)
+  .replace(/\/\*[\s\S]*?\*\//g, ' ')
+  .replace(/(^|[^:])\/\/.*$/gm, '$1');
 
 beforeEach(async () => { await AsyncStorage.clear(); });
 
@@ -250,6 +272,226 @@ describe('🔴 пустой ввод не сохраняется как цель
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 🔴 ОБЯЗАТЕЛЬСТВО 5. ЗА ДОСТИГНУТУЮ ЦЕЛЬ ПЛАТЯТ — И НИ ЗА ЧТО НЕ НАКАЗЫВАЮТ.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Настоящая партия настоящим журналом: «чистая дорогая», база 50 → ×2 = 100 ⭐. */
+const play = (who: string, when: Date, game = 'corsi') =>
+  recordRound({ profileId: who, game, score: 1000, errors: 0, warmupStep: false, now: when });
+
+/** Насколько изменился кошелёк за время действия. Знак существенен: минуса быть не может. */
+async function walletDelta(who: string, act: () => Promise<unknown>): Promise<number> {
+  const before = await getTokens(who);
+  await act();
+  return (await getTokens(who)) - before;
+}
+
+describe('🔴 награда за достигнутую цель', () => {
+  it('есть что проверять: награда положительна и МЕНЬШЕ лучшей партии', () => {
+    // Иначе отметить цель выгоднее, чем сыграть, — и партии обесценены той самой
+    // наградой, которая должна была к ним подтолкнуть.
+    expect(DAY_GOAL_REWARD).toBeGreaterThan(0);
+    expect(DAY_GOAL_REWARD).toBeLessThan(TOKEN_DELTA_CAP * MULTIPLIER);
+  });
+
+  it('🔴 «получилось» в день с партиями — кошелёк вырос РОВНО на награду', async () => {
+    await play(DENIS, DAY);
+    await saveDailyGoal(DENIS, 'не путать имена на планёрке', DAY);
+    let marked: DailyGoal | null = null;
+    const delta = await walletDelta(DENIS, async () => {
+      marked = await markGoalOutcome(DENIS, 'done', EVENING);
+    });
+    expect(delta).toBe(DAY_GOAL_REWARD);
+    expect((marked as any)?.reward).toBe(DAY_GOAL_REWARD);
+  });
+
+  it('🔴 «не сегодня» не стоит НИЧЕГО: ни очков, ни серии, ни журнала', async () => {
+    await play(DENIS, DAY);
+    await saveDailyGoal(DENIS, 'дочитать главу без телефона', DAY);
+    const wasDay = await todayEarnings(DENIS, DAY);
+    let marked: DailyGoal | null = null;
+    const delta = await walletDelta(DENIS, async () => {
+      marked = await markGoalOutcome(DENIS, 'not_today', EVENING);
+    });
+    // Ноль, а не «чуть меньше»: честный ответ не может быть дороже молчания.
+    expect(delta).toBe(0);
+    expect((marked as any)?.reward).toBe(0);
+    const now = await todayEarnings(DENIS, EVENING);
+    expect(`${now.total}/${now.rounds}/${now.dayStreak}`)
+      .toBe(`${wasDay.total}/${wasDay.rounds}/${wasDay.dayStreak}`);
+  });
+
+  it('🔴 ответ «не сегодня» при этом ЗАПИСЫВАЕТСЯ — не платим, но и не отмахиваемся', async () => {
+    await saveDailyGoal(DENIS, 'спокойно провести вечер', DAY);
+    await markGoalOutcome(DENIS, 'not_today', EVENING);
+    const card = await loadGoalCard(DENIS, EVENING);
+    expect(`${card.state} / ${card.goal?.outcome}`).toBe('closed / not_today');
+  });
+
+  it('🔴 «получилось» БЕЗ ЕДИНОЙ ПАРТИИ сегодня — очков нет', async () => {
+    // Цель ставится словами и отмечается самим человеком: без факта тренировки это
+    // очки за одно нажатие, а не за результат.
+    await saveDailyGoal(DENIS, 'считать сдачу в уме', DAY);
+    let marked: DailyGoal | null = null;
+    const delta = await walletDelta(DENIS, async () => {
+      marked = await markGoalOutcome(DENIS, 'done', EVENING);
+    });
+    expect(delta).toBe(0);
+    expect(`${(marked as any)?.outcome} / ${(marked as any)?.reward}`).toBe('done / 0');
+  });
+
+  it('одна партия — уже достаточно: порог именно «играл / не играл»', async () => {
+    await play(DENIS, MORNING);
+    await saveDailyGoal(DENIS, 'цель', DAY);
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', EVENING)))
+      .toBe(DAY_GOAL_REWARD);
+  });
+
+  it('🔴 партия, не принёсшая ни очка, тоже считается тренировкой', async () => {
+    // Журнал пишет и нулевые партии («Сегодня» показывает ЧТО сыграно). Награда
+    // спрашивает про факт тренировки, а не про её доходность.
+    await recordRound({ profileId: DENIS, game: 'stroop', score: 0, errors: 3, warmupStep: false, now: DAY });
+    await saveDailyGoal(DENIS, 'цель', DAY);
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', EVENING)))
+      .toBe(DAY_GOAL_REWARD);
+  });
+
+  it('🔴 ПОВТОРНАЯ отметка не начисляет второй раз — сколько ни жми', async () => {
+    await play(DENIS, DAY);
+    await saveDailyGoal(DENIS, 'цель', DAY);
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', EVENING)))
+      .toBe(DAY_GOAL_REWARD);
+    const again = await walletDelta(DENIS, async () => {
+      for (let i = 0; i < 5; i++) await markGoalOutcome(DENIS, 'done', EVENING);
+    });
+    expect(again).toBe(0);
+  });
+
+  /**
+   * 🔴 ЭТА ПРОВЕРКА ПОЯВИЛАСЬ ОТ ЖИВОЙ ПОЛОМКИ (20.08.2026, сборка в браузере).
+   *
+   * Все проверки выше жали кнопку ПО ОЧЕРЕДИ — и были зелены, пока двойной тап по
+   * «Получилось» на настоящем экране не начислил 50 ⭐ вместо 25. Записанная отметка
+   * гонку не ловит: между чтением записи и её записью два `await`, и обе половины
+   * успевают увидеть пустой исход. Разница между «нажал дважды» и «нажал, подождал,
+   * нажал» — ровно та, которую последовательный гейт не видит.
+   */
+  it('🔴 два нажатия В ОДИН ТИК платят один раз, а не дважды', async () => {
+    await play(DENIS, DAY);
+    await saveDailyGoal(DENIS, 'цель', DAY);
+    const delta = await walletDelta(DENIS, () => Promise.all([
+      markGoalOutcome(DENIS, 'done', EVENING),
+      markGoalOutcome(DENIS, 'done', EVENING),
+    ]));
+    expect(delta).toBe(DAY_GOAL_REWARD);
+    expect((await loadDailyGoal(DENIS, EVENING))?.reward).toBe(DAY_GOAL_REWARD);
+  });
+
+  it('🔴 пять одновременных нажатий — тоже одна награда', async () => {
+    await play(DENIS, DAY);
+    await saveDailyGoal(DENIS, 'цель', DAY);
+    const delta = await walletDelta(DENIS, () => Promise.all(
+      [1, 2, 3, 4, 5].map(() => markGoalOutcome(DENIS, 'done', EVENING)),
+    ));
+    expect(delta).toBe(DAY_GOAL_REWARD);
+  });
+
+  it('замок снимается: после одновременных нажатий следующий день оплачивается нормально', async () => {
+    await play(DENIS, DAY);
+    await saveDailyGoal(DENIS, 'первая', DAY);
+    await Promise.all([markGoalOutcome(DENIS, 'done', EVENING), markGoalOutcome(DENIS, 'done', EVENING)]);
+    await play(DENIS, NEXT_DAY);
+    await saveDailyGoal(DENIS, 'вторая', NEXT_DAY);
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', NEXT_EVENING)))
+      .toBe(DAY_GOAL_REWARD);
+  });
+
+  it('🔴 одновременные нажатия РАЗНЫХ профилей не блокируют друг друга', async () => {
+    // Замок обязан быть по профилю: общий на всех означал бы, что отметка Вали
+    // молча возвращает Денису его же результат — и наоборот.
+    await play(DENIS, DAY); await play(VALYA, DAY);
+    await saveDailyGoal(DENIS, 'его', DAY);
+    await saveDailyGoal(VALYA, 'её', DAY);
+    const [d, v] = await Promise.all([
+      markGoalOutcome(DENIS, 'done', EVENING),
+      markGoalOutcome(VALYA, 'not_today', EVENING),
+    ]);
+    expect(`${d?.text}/${d?.reward} · ${v?.text}/${v?.reward}`)
+      .toBe(`его/${DAY_GOAL_REWARD} · её/0`);
+    expect(await getTokens(VALYA)).toBe(100);   // только партия, награды нет
+  });
+
+  it('🔴 второй ответ не переписывает первый — исход за сутки один', async () => {
+    await play(DENIS, DAY);
+    await saveDailyGoal(DENIS, 'цель', DAY);
+    await markGoalOutcome(DENIS, 'done', EVENING);
+    const delta = await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'not_today', EVENING));
+    expect(delta).toBe(0);
+    const rec = await loadDailyGoal(DENIS, EVENING);
+    expect(`${rec?.outcome} / ${rec?.reward}`).toBe(`done / ${DAY_GOAL_REWARD}`);
+  });
+
+  it('🔴 «не сегодня» первым — «получилось» следом уже не оплачивается', async () => {
+    await play(DENIS, DAY);
+    await saveDailyGoal(DENIS, 'цель', DAY);
+    await markGoalOutcome(DENIS, 'not_today', EVENING);
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', EVENING))).toBe(0);
+    expect((await loadDailyGoal(DENIS, EVENING))?.outcome).toBe('not_today');
+  });
+
+  it('🔴 партии ВЧЕРА не оплачивают СЕГОДНЯШНЮЮ цель — день календарный', async () => {
+    // Проверка на «сутки с момента»: партия была 15 часов назад, но в прошлых сутках.
+    await play(DENIS, EVENING);                       // 20-е, 21:00
+    await saveDailyGoal(DENIS, 'новая цель', NEXT_DAY);   // 21-е, 09:00
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', NEXT_EVENING)))
+      .toBe(0);
+  });
+
+  it('🔴 час назад, но во вчерашних сутках — не оплачивает: граница календарная', async () => {
+    // Самый узкий случай: партия в 23:30, отметка в 00:31 — час разницы. «Последние
+    // 24 часа» засчитали бы её, календарный день — нет, и правило здесь календарное.
+    await play(DENIS, new Date(2026, 7, 20, 23, 30, 0));
+    const justAfterMidnight = new Date(2026, 7, 21, 0, 31, 0);
+    await saveDailyGoal(DENIS, 'цель новых суток', justAfterMidnight);
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', justAfterMidnight)))
+      .toBe(0);
+  });
+
+  it('🔴 новые сутки — новая награда: правило не «один раз и навсегда»', async () => {
+    await play(DENIS, DAY);
+    await saveDailyGoal(DENIS, 'первая', DAY);
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', EVENING)))
+      .toBe(DAY_GOAL_REWARD);
+    await play(DENIS, NEXT_DAY);
+    await saveDailyGoal(DENIS, 'вторая', NEXT_DAY);
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', NEXT_EVENING)))
+      .toBe(DAY_GOAL_REWARD);
+  });
+
+  it('🔴 вчерашняя цель не оплачивается задним числом', async () => {
+    await play(DENIS, DAY);
+    await saveDailyGoal(DENIS, 'вчерашняя', DAY);
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', NEXT_DAY))).toBe(0);
+  });
+
+  it('🔴 награда попадает в СВОЙ кошелёк — на семейном устройстве это не мелочь', async () => {
+    await play(DENIS, DAY);
+    await play(VALYA, DAY);
+    await saveDailyGoal(DENIS, 'цель', DAY);
+    const valyaBefore = await getTokens(VALYA);
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', EVENING)))
+      .toBe(DAY_GOAL_REWARD);
+    expect(await getTokens(VALYA)).toBe(valyaBefore);
+  });
+
+  it('🔴 партии ВАЛИ не оплачивают цель ДЕНИСА', async () => {
+    await play(VALYA, DAY);
+    await saveDailyGoal(DENIS, 'цель', DAY);
+    expect(await walletDelta(DENIS, () => markGoalOutcome(DENIS, 'done', EVENING))).toBe(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ПОВЕДЕНИЕ КАРТОЧКИ. Настоящий рендер и настоящие нажатия, а не чтение разметки.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -274,6 +516,8 @@ const DICT: Record<string, string> = {
   dayGoalNo: 'Не сегодня',
   dayGoalDoneNote: 'Отмечено. Завтра спросим снова.',
   dayGoalMissedNote: 'Бывает. Цель никуда не делась — завтра тоже день.',
+  dayGoalRewardNote: '+{n} ⭐ за достигнутую цель',
+  dayGoalRewardNeedsRound: 'Очки за цель начисляют в день, когда были партии.',
   dayGoalCloseA11y: 'Убрать карточку цели на сегодня',
 };
 const t = (k: string) => DICT[k] ?? k;
@@ -282,6 +526,7 @@ interface CardProps {
   state: DayGoalCardState;
   goalText?: string | null;
   outcome?: 'done' | 'not_today' | null;
+  reward?: number | null;
   roundsToday?: number;
   onSave?: (raw: string) => void;
   onDismiss?: () => void;
@@ -292,7 +537,7 @@ function render(props: CardProps) {
   let r: any;
   TestRenderer.act(() => {
     r = TestRenderer.create(React.createElement(DailyGoalCard as any, {
-      goalText: null, outcome: null, roundsToday: 0, colors: COLORS, t,
+      goalText: null, outcome: null, reward: null, roundsToday: 0, colors: COLORS, t,
       onSave: () => {}, onDismiss: () => {}, onOutcome: () => {}, ...props,
     }));
   });
@@ -486,6 +731,59 @@ describe('карточка: цель задана', () => {
     }
   });
 
+  /**
+   * 🔴 ДЕНЬГИ НА ЭКРАНЕ — ПОСЛЕ ОТВЕТА, А НЕ ДО НЕГО.
+   *
+   * Цель человек отмечает сам, проверить его некому. Ценник рядом со словом
+   * «Получилось» покупал бы не результат, а нужный ответ, — и довод, ради которого
+   * карточку изначально сделали без денег, сбылся бы в первый же вечер. Поэтому:
+   * в вопросе о деньгах не говорят вовсе, а сумму показывают уже свершившимся фактом.
+   */
+  it('🔴 на кнопках исхода нет ни суммы, ни звёздочки — ответ не покупается', () => {
+    const r = render({ state: 'review', goalText: 'цель' });
+    for (const label of ['Получилось', 'Не сегодня']) {
+      // Один и тот же текст приходит дважды (обёртка + хост-узел) — сводим, иначе
+      // проверка краснела бы на устройстве дерева, а не на подписи кнопки.
+      const txt = [...new Set(subtreeText(button(r, label)).split(' | '))].join(' | ');
+      expect(`${label}: «${txt}»`).toBe(`${label}: «${label}»`);
+    }
+    TestRenderer.act(() => r.unmount());
+  });
+
+  it('🔴 до ответа о награде не сказано ни слова — ни днём, ни вечером', () => {
+    for (const state of ['active', 'review'] as DayGoalCardState[]) {
+      const html = shown(render({ state, goalText: 'цель', outcome: null, reward: null }));
+      expect(`${state}: ${html.includes('⭐')}`).toBe(`${state}: false`);
+      expect(`${state}: ${html.includes(DICT.dayGoalRewardNeedsRound)}`).toBe(`${state}: false`);
+    }
+  });
+
+  it('🔴 начислено — сказано сколько, настоящим числом из записи', () => {
+    const html = shown(render({
+      state: 'closed', goalText: 'цель', outcome: 'done', reward: DAY_GOAL_REWARD,
+    }));
+    expect(html).toContain(`+${DAY_GOAL_REWARD} ⭐ за достигнутую цель`);
+    // Подстановка живая: другое число покажется другим числом, а не «{n}».
+    expect(shown(render({ state: 'closed', goalText: 'ц', outcome: 'done', reward: 7 })))
+      .toContain('+7 ⭐ за достигнутую цель');
+    expect(html).not.toContain('{n}');
+  });
+
+  it('🔴 не начислено (партий не было) — сказано правило, а не «ты не заработал»', () => {
+    const html = shown(render({ state: 'closed', goalText: 'цель', outcome: 'done', reward: 0 }));
+    expect(html).toContain(DICT.dayGoalRewardNeedsRound);
+    expect(html).not.toContain('⭐');
+  });
+
+  it('🔴 у «не сегодня» о деньгах не говорят ВООБЩЕ — упущенное и есть штраф', () => {
+    for (const reward of [0, null, DAY_GOAL_REWARD]) {
+      const html = shown(render({ state: 'closed', goalText: 'цель', outcome: 'not_today', reward }));
+      expect(`${reward}: ${html.includes(DICT.dayGoalMissedNote)}`).toBe(`${reward}: true`);
+      expect(`${reward}: ${html.includes('⭐')}`).toBe(`${reward}: false`);
+      expect(`${reward}: ${html.includes(DICT.dayGoalRewardNeedsRound)}`).toBe(`${reward}: false`);
+    }
+  });
+
   it('отмеченный итог заменяет вопрос, а не добавляется к нему', () => {
     const html = shown(render({ state: 'closed', goalText: 'цель', outcome: 'done' }));
     expect(html).toContain(DICT.dayGoalDoneNote);
@@ -525,6 +823,29 @@ describe('карточка доезжает до главного экрана',
     expect(/\{\s*false\s*&&/.test(src)).toBe(false);
   });
 
+  it('🔴 начисленное доезжает до карточки — иначе «+25 ⭐» не покажется никогда', () => {
+    const el = code('app/index.tsx');
+    const at = el.indexOf('<DailyGoalCard');
+    expect(el.slice(at, el.indexOf('/>', at))).toContain('reward=');
+  });
+
+  /**
+   * ⚠️ ЭТА ПРОВЕРКА ПОЯВИЛАСЬ ОТ ПОЛОМКИ. Число в шапке главной перечитывается ТОЛЬКО
+   * на фокусе, а исход отмечают, никуда не уходя. Без явного перечитывания карточка
+   * говорила бы «+25 ⭐», а баланс рядом оставался прежним до следующего захода — и
+   * начисление выглядело бы враньём. Ищем по исходнику БЕЗ комментариев: слово
+   * «setTokens» есть и в объяснении рядом.
+   */
+  it('🔴 после отметки исхода кошелёк в шапке перечитывается, а не ждёт фокуса', () => {
+    const src = code('app/index.tsx');
+    const at = src.indexOf('const onGoalOutcome');
+    expect(at).toBeGreaterThan(-1);
+    const body = src.slice(at, src.indexOf('}, [profile.id]);', at));
+    expect(`markGoalOutcome: ${body.includes('markGoalOutcome')}`).toBe('markGoalOutcome: true');
+    expect(`getTokens: ${body.includes('getTokens')}`).toBe('getTokens: true');
+    expect(`setTokens: ${body.includes('setTokens')}`).toBe('setTokens: true');
+  });
+
   it('число партий берётся из того же журнала, что и блок «Сегодня» — второго счёта нет', () => {
     const src = home();
     const el = src.slice(src.indexOf('<DailyGoalCard'), src.indexOf('/>', src.indexOf('<DailyGoalCard')));
@@ -550,6 +871,7 @@ describe('подписи карточки переведены', () => {
     'notNow', 'dayGoalExamplesTitle', 'dayGoalExample1', 'dayGoalExample2', 'dayGoalExample3',
     'dayGoalTodayLine', 'dayGoalRounds', 'dayGoalRoundsNone', 'dayGoalReview', 'dayGoalYes',
     'dayGoalNo', 'dayGoalDoneNote', 'dayGoalMissedNote', 'dayGoalCloseA11y',
+    'dayGoalRewardNote', 'dayGoalRewardNeedsRound',
   ];
 
   it('компонент просит ровно эти ключи и ни одного сверх', () => {

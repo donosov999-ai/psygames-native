@@ -226,9 +226,22 @@ function FullHome() {
     await dismissGoalCard(profile.id);
     setGoalCard(await loadGoalCard(profile.id));
   }, [profile.id]);
+  /**
+   * Отметка исхода — единственное место главной, где деньги приходят БЕЗ ухода с
+   * экрана. Число в шапке обновляется на фокусе, поэтому без явного перечитывания
+   * кошелька карточка показывала бы «+25 ⭐», а баланс рядом — прежний, до следующего
+   * захода. Сколько начислено, спрашиваем у записи, а не считаем здесь заново:
+   * правило награды одно и живёт в earn.ts.
+   */
   const onGoalOutcome = useCallback(async (outcome: GoalOutcome) => {
-    await markGoalOutcome(profile.id, outcome);
+    const marked = await markGoalOutcome(profile.id, outcome);
     setGoalCard(await loadGoalCard(profile.id));
+    if ((marked?.reward ?? 0) > 0) {
+      const v = await getTokens(profile.id);
+      prevTokensRef.current = v;      // иначе фокус-эффект зазвонит ещё раз за то же
+      setTokens(v);
+      sndToken();
+    }
   }, [profile.id]);
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -657,6 +670,7 @@ function FullHome() {
           state={goalCard.state}
           goalText={goalCard.goal?.text ?? null}
           outcome={goalCard.goal?.outcome ?? null}
+          reward={goalCard.goal?.reward ?? null}
           roundsToday={today.rounds}
           colors={colors}
           t={t}

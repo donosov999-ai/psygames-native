@@ -30,6 +30,14 @@ import {
  * 3. ПРИМЕРЫ — ТЕКСТ, А НЕ КНОПКИ. Нажимаемый пример подставил бы НАШУ формулировку
  *    и превратил бы «человек называет свою причину» в выбор из трёх наших. Они стоят
  *    подписью под полем и показывают жанр: короткая бытовая причина.
+ *
+ * 4. 🔴 СУММА НАГРАДЫ НЕ СТОИТ НА КНОПКАХ ИСХОДА. За достигнутую цель платят
+ *    (`DAY_GOAL_REWARD`, earn.ts), но «+25 ⭐» рядом со словом «Получилось» — это
+ *    ценник за нужный ответ: цель человек отмечает сам, проверить его некому, и
+ *    подписанная кнопка покупает не результат, а нажатие. Число показывается ПОСЛЕ
+ *    ответа, в закрытой карточке, — тогда оно сообщает о случившемся, а не торгуется.
+ *    У ответа «не сегодня» разговора о деньгах нет вовсе: ни суммы, ни упоминания
+ *    упущенного — «ты не получил очков» и есть тот самый штраф, которого мы не ставим.
  */
 
 interface Props {
@@ -37,6 +45,8 @@ interface Props {
   /** Строка человека. null — цели на сегодня нет. Наших текстов здесь не бывает. */
   goalText: string | null;
   outcome: GoalOutcome | null;
+  /** Начислено за достигнутую цель. 0/null — не начислялось (см. запрет 4 в шапке). */
+  reward?: number | null;
   /** Сколько партий сыграно сегодня — факт из журнала, не оценка. */
   roundsToday: number;
   colors: any;
@@ -47,7 +57,7 @@ interface Props {
 }
 
 export default function DailyGoalCard({
-  state, goalText, outcome, roundsToday, colors, t, onSave, onDismiss, onOutcome,
+  state, goalText, outcome, reward, roundsToday, colors, t, onSave, onDismiss, onOutcome,
 }: Props) {
   const [draft, setDraft] = useState('');
   // Хук объявлен ДО выхода: ранний return выше сломал бы порядок хуков при смене состояния.
@@ -162,9 +172,23 @@ export default function DailyGoalCard({
       )}
 
       {state === 'closed' && (
-        <Text style={[styles.note, { color: colors.textSecondary }]}>
-          {t(outcome === 'done' ? 'dayGoalDoneNote' : 'dayGoalMissedNote')}
-        </Text>
+        <>
+          <Text style={[styles.note, { color: colors.textSecondary }]}>
+            {t(outcome === 'done' ? 'dayGoalDoneNote' : 'dayGoalMissedNote')}
+          </Text>
+          {/* Разговор о деньгах — только у достигнутой цели. У «не сегодня» его нет:
+              см. запрет 4 в шапке. Начислено — говорим сколько; не начислено — говорим
+              правило («очки за цель дают в день с партиями»), а не «ты не заработал». */}
+          {outcome === 'done' && ((reward ?? 0) > 0 ? (
+            <Text style={[styles.reward, { color: '#b45309' }]}>
+              {t('dayGoalRewardNote').replace('{n}', String(reward))}
+            </Text>
+          ) : (
+            <Text style={[styles.note, { color: colors.textSecondary }]}>
+              {t('dayGoalRewardNeedsRound')}
+            </Text>
+          ))}
+        </>
       )}
     </View>
   );
@@ -191,4 +215,5 @@ const styles = StyleSheet.create({
   goal: { fontSize: 16, fontWeight: '800', lineHeight: 21 },
   rounds: { fontSize: 12, fontWeight: '600' },
   note: { fontSize: 13, fontWeight: '600', lineHeight: 18 },
+  reward: { fontSize: 14, fontWeight: '800', lineHeight: 19 },
 });

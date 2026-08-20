@@ -30,12 +30,20 @@
  * сверяет дату записи с сегодняшней и молча отдаёт null: вчерашняя строка не
  * протечёт в новый день, даже если её никто не стирал.
  *
+ * ⚠️ ЗА ДОСТИГНУТУЮ ЦЕЛЬ ПЛАТИМ, ЗА ЧЕСТНОЕ «НЕ СЕГОДНЯ» — НЕ ШТРАФУЕМ (20.08.2026,
+ * решение Дениса). Три условия держат награду от превращения в раздачу за нажатие:
+ * платим только за «получилось», только в день, где партии реально были, и только один
+ * раз за календарные сутки. Сумма и её обоснование замером — `DAY_GOAL_REWARD` в
+ * `earn.ts`; здесь — момент начисления (`markGoalOutcome`).
+ *
  * ⚠️ ХРАНИЛИЩЕ — ПОПРОФИЛЬНОЕ. Устройство семейное: на нём Денис, Валя и Алекс.
  * Цель одного не должна показываться другому — ни как своя, ни как чужая. Ключ
  * несёт id профиля, и это единственное, что отделяет одну цель от другой.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { slotForHour } from '@/src/services/warmup';
+import { goalReward, roundsToday } from '@/src/services/earn';
+import { addTokens } from '@/src/services/tokens';
 
 /** Одна строка. Длиннее не поместится на карточке, а обрезать на экране — врать. */
 export const DAY_GOAL_MAX_LEN = 90;
@@ -66,6 +74,12 @@ export interface DailyGoal {
   /** Вечерний итог. null — ещё не спрашивали либо не ответил. */
   outcome: GoalOutcome | null;
   outcomeAt?: string;
+  /**
+   * Сколько начислено за достигнутую цель. 0 — не начислялось И СЕГОДНЯ УЖЕ НЕ БУДЕТ:
+   * поле пишется вместе с исходом, а исход за сутки отмечается один раз.
+   * Отсутствует у записей, сделанных до появления награды, — читать через `?? 0`.
+   */
+  reward?: number;
 }
 
 /**
@@ -77,6 +91,12 @@ export interface DailyGoal {
  *   closed — итог отмечен: строка + нейтральная пометка.
  */
 export type DayGoalCardState = 'hidden' | 'ask' | 'active' | 'review' | 'closed';
+
+/**
+ * Отметки исхода, которые прямо сейчас в полёте, — по профилю. Замок на время одного
+ * начисления, не состояние: живёт ровно до конца записи и стирается в обеих развязках.
+ */
+const marking = new Map<string, Promise<DailyGoal | null>>();
 
 const GOAL_PREFIX = 'psygames_day_goal_';
 const DISMISS_PREFIX = 'psygames_day_goal_dismissed_';
@@ -166,16 +186,62 @@ export async function saveDailyGoal(profileId: string, raw: string, now: Date = 
 }
 
 /**
- * Вечерний итог. Отмечается ТОЛЬКО у сегодняшней цели: вчерашняя не должна
- * закрываться задним числом — вчера уже прошло, и отметка о нём ничего не меняет.
+ * Вечерний итог — И ЕДИНСТВЕННОЕ МЕСТО, ГДЕ ЦЕЛЬ ПРЕВРАЩАЕТСЯ В ОЧКИ.
+ *
+ * Отмечается ТОЛЬКО у сегодняшней цели: вчерашняя не должна закрываться задним числом —
+ * вчера уже прошло, и отметка о нём ничего не меняет.
+ *
+ * 🔴 ИСХОД ОТМЕЧАЕТСЯ ОДИН РАЗ В СУТКИ. Повторный вызов возвращает уже записанное и не
+ * трогает ни хранилище, ни кошелёк. Иначе «получилось» стало бы кнопкой с бесконечным
+ * начислением: карточка её после ответа не показывает, но сервис обязан держаться сам —
+ * между показом и деньгами не должно быть ни одного «ну этого не случится».
+ *
+ * 🔴 ДВА НАЖАТИЯ В ОДИН ТИК — ЭТО НЕ ТЕОРИЯ, ЭТО ЖИВАЯ ПРОВЕРКА 20.08.2026. Отметка
+ * «получилось» двойным тапом начислила 50 ⭐ вместо 25: обе половины успели прочитать
+ * запись ДО того, как первая её записала, обе увидели пустой `outcome` и обе заплатили.
+ * Записанная отметка от гонки не спасает — чтение и запись разделены двумя `await`.
+ * Поэтому вызовы одного профиля сведены в ОДИН полёт: второй тап получает промис
+ * первого, а не начинает свой. Хранимая отметка закрывает всё остальное — повтор после
+ * перезапуска, возврат на экран, следующий вечер.
+ *
+ * 🔴 СНАЧАЛА ЗАПИСЬ, ПОТОМ ДЕНЬГИ. Отметка в записи и есть предохранитель от второго
+ * начисления, поэтому она обязана лечь на диск ПЕРВОЙ. В обратном порядке сбой между
+ * двумя шагами оставил бы оплаченную, но не отмеченную цель — то есть открытый кран.
+ *
+ * ⚠️ ЗА «НЕ СЕГОДНЯ» НЕ СНИМАЕТСЯ НИЧЕГО. Здесь нет и не будет вызова, уменьшающего
+ * баланс, серию или множитель: правило и его обоснование — в шапке `earn.ts`.
  */
-export async function markGoalOutcome(
+export function markGoalOutcome(
   profileId: string, outcome: GoalOutcome, now: Date = new Date(),
+): Promise<DailyGoal | null> {
+  const running = marking.get(profileId);
+  if (running) return running;
+  const p = applyGoalOutcome(profileId, outcome, now);
+  marking.set(profileId, p);
+  return p.then(
+    (r) => { marking.delete(profileId); return r; },
+    (e) => { marking.delete(profileId); throw e; },
+  );
+}
+
+async function applyGoalOutcome(
+  profileId: string, outcome: GoalOutcome, now: Date,
 ): Promise<DailyGoal | null> {
   const goal = await loadDailyGoal(profileId, now);
   if (!goal) return null;
-  const next: DailyGoal = { ...goal, outcome, outcomeAt: now.toISOString() };
+  // Исход за эти сутки уже стоит — возвращаем как есть, второй отметки не бывает.
+  if (goal.outcome) return goal;
+  const decision = goalReward({
+    outcome,
+    // Факт тренировки — из общего журнала, не из отдельного счётчика.
+    roundsToday: await roundsToday(profileId, now),
+    alreadyMarked: false,
+  });
+  const next: DailyGoal = {
+    ...goal, outcome, outcomeAt: now.toISOString(), reward: decision.amount,
+  };
   try { await AsyncStorage.setItem(dayGoalKey(profileId), JSON.stringify(next)); } catch {}
+  if (decision.amount > 0) await addTokens(profileId, decision.amount);
   return next;
 }
 
