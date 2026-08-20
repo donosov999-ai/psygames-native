@@ -19,6 +19,7 @@ const { readFileSync, readdirSync } = require('fs');
 const { join } = require('path');
 
 import { pickTarget } from '../services/levelPick';
+import { reachRoadLevel } from '../services/sudoku-roads';
 
 const GAMES_DIR = join(__dirname, '../../app/games');
 const read = (p: string): string => readFileSync(p, 'utf8');
@@ -87,9 +88,20 @@ describe('переигровка не портит прогресс', () => {
     expect(bad).toEqual([]);
   });
 
-  /** Судоку хранит уровень своим ключом — там та же защита руками. */
+  /**
+   * Судоку хранит уровень своими ключами — с 20.08.2026 их три, по одному на дорогу
+   * сложности (services/sudoku-roads). Защита от срезанного потолка переехала внутрь
+   * `reachRoadLevel`, и здесь она проверяется ВЫЗОВОМ, а не совпадением строки: текст
+   * в экране можно переписать как угодно, лишь бы правило осталось.
+   */
   it('судоку пишет в хранилище максимум, а не сыгранный + 1', () => {
-    expect(game('sudoku.tsx')).toContain('const nextBest = Math.max(best, level + 1);');
+    // Переигровка третьего уровня при взятых двадцати не должна срезать потолок.
+    expect(reachRoadLevel({ normal: 21 }, 'normal', 4)).toEqual({ normal: 21 });
+    // А настоящее продвижение — обязано его поднять.
+    expect(reachRoadLevel({ normal: 21 }, 'normal', 22)).toEqual({ normal: 22 });
+    // И экран обязан ходить через это правило, а не писать уровень прямо.
+    expect(game('sudoku.tsx')).toContain('reachRoadLevel(');
+    expect(game('sudoku.tsx')).not.toMatch(/setItem\(sudokuLevelKey\([^)]*\), String\(level \+ 1\)\)/);
     expect(game('sudoku.tsx')).not.toMatch(/setItem\(`psygames_sudoku_level_\$\{pidDone\}`, String\(level \+ 1\)\)/);
   });
 });

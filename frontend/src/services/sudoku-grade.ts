@@ -562,11 +562,15 @@ function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, varian
 /** Одна попытка копания от логики. Возвращает null, если вариант не по этому пути. */
 function digByLogic(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant, deadline: number,
+  tierMax?: number,
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number } | null {
   const base = generatePuzzle(0, N, BR, BC, variant);   // blanks=0 → только решение и структура варианта
   const sol = base.solution;
   const puzzle = sol.map((row) => [...row]);
-  const { max } = targetTier(level);
+  // Потолок техники приходит СНАРУЖИ, когда партия идёт по дороге сложности
+  // (services/sudoku-roads): у «полегче» он на ступень ниже, у «пожёстче» — выше.
+  // Не передали — прежняя полоса уровня, ровно как было до появления дорог.
+  const max = tierMax ?? targetTier(level).max;
   const dens = markerDensity(level, variant);
 
   const parity = variant === 'evenodd' ? Array.from({ length: N }, () => Array(N).fill(0)) : undefined;
@@ -618,17 +622,24 @@ function digByLogic(
  */
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
-  opts: { budgetMs?: number } = {},
+  opts: { budgetMs?: number; tier?: { min: number; max: number } } = {},
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean } {
   const budget = opts.budgetMs ?? 2200;
   const until = Date.now() + budget;
-  const { min, max } = targetTier(level);
+  /**
+   * Полоса техник — целевая сложность партии. Обычно её задаёт уровень; дорога
+   * сложности (services/sudoku-roads) передаёт свою, сдвинутую на ступень.
+   *
+   * ⚠️ Полосу принимаем ГОТОВОЙ, а не считаем здесь по названию дороги: знание о
+   * дорогах живёт в одном файле, и градатор не должен обрастать вторым его экземпляром.
+   */
+  const { min, max } = opts.tier ?? targetTier(level);
   const dist = (t: number) => (t < min ? min - t : t > max ? t - max : 0);
 
   if (LOGIC_VARIANTS.includes(variant)) {
     let best: { gen: GeneratedPuzzle; grade: Grade; dug: number } | null = null;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const r = digByLogic(level, blanksCap, N, BR, BC, variant, until);
+      const r = digByLogic(level, blanksCap, N, BR, BC, variant, until, max);
       if (r && (!best || dist(r.grade.tier) < dist(best.grade.tier))) best = r;
       if (best && dist(best.grade.tier) === 0) break;
       if (Date.now() > until) break;

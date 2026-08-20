@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -60,10 +60,15 @@ const SUDOKU_BENEFITS = [
 // v1.111.0: чистое ядро судоку (типы, варианты, генерация с unique-check) вынесено в сервис.
 import {
   Cell, Variant, ThermoPN, ArrowMap, SudokuDifficultyTier,
-  dimsForSize, blanksFor, killerBlanks, generateCages, levelConfig,
+  dimsForSize, blanksFor, killerBlanks, generateCages,
   sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
 } from '@/src/services/sudoku-core';
 import { generateLogical } from '@/src/services/sudoku-grade';
+import {
+  DEFAULT_SUDOKU_ROAD, SUDOKU_ROADS, SUDOKU_ROAD_NAME_KEY, SudokuRoad,
+  effectiveRoadLevel, effectiveRoadLevels, isSudokuRoad, reachRoadLevel,
+  roadLevelConfig, roadTier, sudokuLevelKey, sudokuRoadKey, type RoadLevels,
+} from '@/src/services/sudoku-roads';
 import { clearGameContextHelp, publishGameContextHelp } from '@/src/services/gameContextHelp';
 import { gameNow } from '@/src/services/gamePause';
 import {
@@ -262,8 +267,11 @@ const SUDOKU_TIER_KEYS: Record<SudokuDifficultyTier, string> = {
  * старая запись тогда не подойдёт под новый код и будет молча выброшена, а не уронит экран.
  *
  * 3 — 20.08.2026: в снимок добавились карандашные пометки.
+ * 4 — 20.08.2026: в снимок добавилась дорога сложности. Поднять было ОБЯЗАНО: партия
+ *     без дороги поднялась бы как обычная, и человек, оставивший доску на «пожёстче»,
+ *     дорешал бы её с чужим лимитом подсказок и записал результат не на ту лестницу.
  */
-const RESUME_V = 3;
+const RESUME_V = 4;
 /** Та же версия наружу — гейт поднимает партию ровно под ней (см. SUDOKU_GAME_ID). */
 export const SUDOKU_RESUME_V = RESUME_V;
 
@@ -278,6 +286,8 @@ interface SudokuMove { r: number; c: number; from: Cell; to: Cell }
 interface SudokuResume {
   mode: 'levels' | 'free' | 'killer';
   level: number;
+  /** Дорога сложности партии — внутри партии не меняется, см. services/sudoku-roads. */
+  road: SudokuRoad;
   difficulty: 'easy' | 'medium' | 'hard';
   size: 6 | 9;
   variant: Variant;
@@ -347,7 +357,21 @@ export default function SudokuGame() {
    * тропинки на уровень 3 при пройденных двадцати — и сборка тройки записала бы
    * четвёрку, срезав семнадцать уровней. Пишем максимум.
    */
-  const [best, setBest] = useState(1);
+  const [best, setBest] = useState(1);   // потолок ВЫБРАННОЙ дороги (см. effectiveRoadLevel)
+  /**
+   * ДОРОГА СЛОЖНОСТИ. Выбирается ДО партии и внутри партии не меняется — как сложность
+   * в файтинге: выбрал и играешь. Правила и перенос пройденного — services/sudoku-roads.
+   */
+  const [road, setRoad] = useState<SudokuRoad>(DEFAULT_SUDOKU_ROAD);
+  /**
+   * СОБСТВЕННЫЕ счётчики всех трёх дорог, как они лежат в хранилище.
+   *
+   * ⚠️ Держим сырые счётчики, а не показываемые уровни. Показываемый уровень дороги —
+   * это максимум её счётчика и счётчиков дорог тяжелее, и считать его надо КАЖДЫЙ раз
+   * заново: иначе «взял 20 на тяжёлой» перестанет догонять лёгкую, если человек уже
+   * успел на неё сходить (разбор — в шапке services/sudoku-roads).
+   */
+  const [roadLevels, setRoadLevels] = useState<RoadLevels>({});
   const [variant, setVariant] = useState<Variant>('none');   // активный вариант-правило текущей партии
   const [regions, setRegions] = useState<number[][] | null>(null);   // jigsaw: карта регионов текущей партии
   const [cages, setCages] = useState<number[][] | null>(null);       // killer: cageId каждой клетки
@@ -427,15 +451,51 @@ export default function SudokuGame() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  // SUDOKU-LVL: подтянуть сохранённый уровень профиля
+  // SUDOKU-LVL: подтянуть сохранённые уровни ВСЕХ дорог и ту, на которой человек был.
+  // Читаем все три счётчика сразу: показываемый уровень любой дороги выводится из них
+  // всех (перенос пройденного вниз по сложности), поэтому по одному их читать нечем.
   useEffect(() => {
     const pid = profile?.id;
     if (!pid) return;
-    AsyncStorage.getItem(`psygames_sudoku_level_${pid}`).then((v) => {
-      const n = parseInt(v || '1', 10);
-      if (n >= 1) { setLevel(n); setBest(n); }   // заход в игру — всегда с достигнутого
+    let cancelled = false;
+    Promise.all([
+      AsyncStorage.multiGet(SUDOKU_ROADS.map((r) => sudokuLevelKey(pid, r))),
+      AsyncStorage.getItem(sudokuRoadKey(pid)),
+    ]).then(([pairs, savedRoad]) => {
+      if (cancelled) return;
+      const levels: RoadLevels = {};
+      SUDOKU_ROADS.forEach((r, i) => {
+        const n = parseInt((pairs[i] && pairs[i][1]) || '1', 10);
+        if (Number.isFinite(n) && n >= 1) levels[r] = n;
+      });
+      const chosen = isSudokuRoad(savedRoad) ? savedRoad : DEFAULT_SUDOKU_ROAD;
+      const reached = effectiveRoadLevel(levels, chosen);
+      setRoadLevels(levels);
+      setRoad(chosen);
+      setLevel(reached);   // заход в игру — всегда с достигнутого на ЭТОЙ дороге
+      setBest(reached);
     }).catch(() => {});
+    return () => { cancelled = true; };
   }, [profile?.id]);
+
+  /**
+   * Сменить дорогу МЕЖДУ партиями можно, внутри партии — нет (переключатель живёт
+   * только на экране настроек).
+   *
+   * ⚠️ ПОЧЕМУ ВООБЩЕ МОЖНО. Запрет означал бы, что человек, выбравший тяжёлую дорогу и
+   * упёршийся, застрял навсегда. А дыры «прогнать лестницу полегче» тут нет по
+   * устройству: у лёгкой дороги свой счётчик, и вверх пройденное не переносится —
+   * сколько по ней ни иди, тяжёлая не сдвинется ни на ступень.
+   */
+  const switchRoad = (next: SudokuRoad) => {
+    if (next === road) return;
+    const reached = effectiveRoadLevel(roadLevels, next);
+    setRoad(next);
+    setLevel(reached);
+    setBest(reached);
+    const pid = profile?.id;
+    if (pid) AsyncStorage.setItem(sudokuRoadKey(pid), next).catch(() => {});
+  };
 
   const startGame = (lvlOverride?: number) => {
     // Новая партия заменяет незаконченную: старую доску продолжать уже нечем.
@@ -445,7 +505,10 @@ export default function SudokuGame() {
     let d: { N: number; BR: number; BC: number };
     let blanks: number, vr: Variant = 'none', hMax = 3;
     if (mode === 'levels') {
-      const cfg = levelConfig(lvlOverride ?? level);
+      // Параметры ступени берёт ДОРОГА: у «полегче» на доске меньше дырок и больше
+      // подсказок, у «пожёстче» — наоборот. Размер поля и правило варианта одинаковы
+      // на всех дорогах, иначе ступени перестали бы быть сравнимыми между собой.
+      const cfg = roadLevelConfig(lvlOverride ?? level, road);
       d = { N: cfg.N, BR: cfg.BR, BC: cfg.BC };
       blanks = cfg.blanks; vr = cfg.variant; hMax = cfg.hintMax;
     } else if (mode === 'killer') {
@@ -477,7 +540,13 @@ export default function SudokuGame() {
     // сохраняет безопасный fallback с проверкой единственности.
     const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar, cages: cg } =
       mode === 'levels'
-        ? generateLogical(lvlOverride ?? level, blanks, d.N, d.BR, d.BC, vr, { budgetMs: 2200 }).gen
+        // Полоса техник — тоже от дороги: это ГЛАВНАЯ ось сложности судоку, число
+        // дырок на уровнях выше восьмого генератор всё равно задаёт сам (см. `cap`
+        // в sudoku-grade). Без сдвига полосы «полегче» было бы обещанием без вещества.
+        ? generateLogical(lvlOverride ?? level, blanks, d.N, d.BR, d.BC, vr, {
+          budgetMs: 2200,
+          tier: roadTier(lvlOverride ?? level, road),
+        }).gen
         : generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
     setRegions(rg ?? null);
     setParityMarks(pa ?? null);
@@ -514,7 +583,7 @@ export default function SudokuGame() {
 
   /** Снимок партии для слоя незаконченной игры. */
   const snapshot = (): SudokuResume => ({
-    mode, level, difficulty, size, variant, dims,
+    mode, level, road, difficulty, size, variant, dims,
     puzzle, solution, grid, given, cellColors, marks,
     regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow,
     errors, hintUses, hintMax, backtrackCount,
@@ -525,6 +594,10 @@ export default function SudokuGame() {
   /** Поднять партию из снимка — доска оживает ровно такой, какой её оставили. */
   const applyResume = (s: SudokuResume) => {
     setMode(s.mode); setLevel(s.level); setDifficulty(s.difficulty); setSize(s.size);
+    // Дорогу поднимаем ИЗ СНИМКА, а не из выбранной сейчас: доска перед человеком
+    // сгенерирована под ту дорогу, на которой он её бросил, и дорешать её обязан тот
+    // же лимит подсказок. Записать партию не на ту лестницу — та же беда.
+    if (isSudokuRoad(s.road)) setRoad(s.road);
     setVariant(s.variant); setDims(s.dims);
     setPuzzle(s.puzzle); setSolution(s.solution); setGrid(s.grid); setGiven(s.given);
     setCellColors(normalizeSudokuCellColors(s.cellColors, s.dims.N));
@@ -689,7 +762,7 @@ export default function SudokuGame() {
             difficulty: mode === 'levels' ? (level <= 4 ? 'easy' : level <= 9 ? 'medium' : 'hard') : difficulty,
             mode: mode === 'levels' ? `level-${level}` : `${N}x${N}`,
             errors: ne,
-            details: { errors: ne, completed: false, failed_out: true, ...(mode === 'levels' ? { level, variant } : {}) },
+            details: { errors: ne, completed: false, failed_out: true, ...(mode === 'levels' ? { level, variant, road } : {}) },
           }).catch((e) => console.error(e));
         }
       }
@@ -711,10 +784,19 @@ export default function SudokuGame() {
       // SUDOKU-LVL: уровни — сохранить прогресс на следующий уровень (счёт растёт с уровнем)
       const pidDone = profile?.id;
       if (mode === 'levels' && pidDone) {
-        // Максимум, а не level + 1: переигранный лёгкий уровень не должен срезать потолок.
-        const nextBest = Math.max(best, level + 1);
-        setBest(nextBest);
-        AsyncStorage.setItem(`psygames_sudoku_level_${pidDone}`, String(nextBest)).catch(() => {});
+        /**
+         * Пишем в СОБСТВЕННЫЙ счётчик своей дороги, и только в него.
+         *
+         * Лёгкие дороги подтянутся сами при чтении (`effectiveRoadLevel`): взял 12 на
+         * тяжёлой — двенадцатый засчитан и на лёгкой. Тяжёлые не подтянет никто, и это
+         * ровно то, чего мы хотим: пройти лестницу «полегче» и получить «пожёстче»
+         * пройденной нельзя. Максимум, а не `level + 1`: переигранный лёгкий уровень не
+         * должен срезать потолок.
+         */
+        const nextLevels = reachRoadLevel(roadLevels, road, level + 1);
+        setRoadLevels(nextLevels);
+        setBest(effectiveRoadLevel(nextLevels, road));
+        AsyncStorage.setItem(sudokuLevelKey(pidDone, road), String(nextLevels[road])).catch(() => {});
       }
       if (pidDone) clearResume(GAME_ID, pidDone).catch(() => {});   // доиграна — продолжать нечего
       const baseScore = mode === 'levels' ? 1500 + level * 150 : 2000;
@@ -732,7 +814,17 @@ export default function SudokuGame() {
             errors, completed: true,
             hint_uses: hintUses,
             backtrack_count: backtrackCount,
-            ...(mode === 'levels' ? { level, variant } : {}),
+            /**
+             * ⚠️ ДОРОГА В ЗАПИСИ ПАРТИИ ОБЯЗАТЕЛЬНА. Уровень 12 на лёгкой и уровень 12
+             * на тяжёлой — разные задачи (разная полоса техник, разные подсказки).
+             * Без этого поля история сравнила бы их между собой и объявила бы «хуже на
+             * 300 очков» человеку, который просто перешёл на тяжёлую дорогу. В ключ
+             * задачи поле попадает через `entryRoad` (services/trainingHistory).
+             *
+             * Пишем ВСЕГДА и явно, включая `normal`: читать запись должно быть можно,
+             * не зная, что «пусто значит обычная».
+             */
+            ...(mode === 'levels' ? { level, variant, road } : {}),
           },
         });
       } catch (e) { console.error(e); }
@@ -873,8 +965,46 @@ export default function SudokuGame() {
         <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
       </TouchableOpacity>
 
+      {/*
+        ВЫБОР ДОРОГИ. Стоит ВЫШЕ карточки уровня намеренно: дорога определяет, что вообще
+        значит «уровень 12», поэтому решение принимают в этом порядке — сперва дорога,
+        потом ступень на ней.
+
+        ⚠️ РЯДОМ С КАЖДОЙ ДОРОГОЙ ЕЁ УРОВЕНЬ, И ВИДЕН ОН ДО ВЫБОРА. Правило «пройденное
+        переносится вниз по сложности и не переносится вверх» без этих трёх чисел
+        существует, но решения по нему принять нельзя: человек не знает, что теряет и
+        что получает, пока не ткнёт.
+      */}
       {mode === 'levels' && (() => {
-        const cfg = levelConfig(level);
+        const reached = effectiveRoadLevels(roadLevels);
+        return (
+          <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{t('sudokuRoadLabel')}</Text>
+            <View style={styles.optionButtons}>
+              {SUDOKU_ROADS.map((r) => (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  key={r}
+                  accessibilityState={{ selected: road === r }}
+                  onPress={() => switchRoad(r)}
+                  style={[styles.modeButton, road === r
+                    ? { backgroundColor: GRADIENT[0] }
+                    : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}>
+                  <Text style={[styles.modeButtonText, { color: road === r ? textOn(GRADIENT[0]) : colors.text }]}>
+                    {t(SUDOKU_ROAD_NAME_KEY[r])} · {t('label_level_short')}{reached[r]}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 17 }}>
+              {t('sudokuRoadHint')}
+            </Text>
+          </View>
+        );
+      })()}
+
+      {mode === 'levels' && (() => {
+        const cfg = roadLevelConfig(level, road);
         const tierLabel = (value: number) => t(SUDOKU_TIER_KEYS[sudokuDifficultyTier(value)]);
         return (
           <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -923,7 +1053,7 @@ export default function SudokuGame() {
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setSize(s)}>
-                <Text style={[styles.modeButtonText, { color: size === s ? '#FFF' : colors.text }]}>{s}×{s}</Text>
+                <Text style={[styles.modeButtonText, { color: size === s ? textOn(GRADIENT[0]) : colors.text }]}>{s}×{s}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -939,7 +1069,7 @@ export default function SudokuGame() {
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setDifficulty(d)}>
-                <Text style={[styles.modeButtonText, { color: difficulty === d ? '#FFF' : colors.text }]}>
+                <Text style={[styles.modeButtonText, { color: difficulty === d ? textOn(GRADIENT[0]) : colors.text }]}>
                   {d === 'easy' ? t('easy') : d === 'medium' ? t('medium') : t('hard')}
                 </Text>
               </TouchableOpacity>
@@ -957,7 +1087,7 @@ export default function SudokuGame() {
               style={[styles.modeButton, digitMode === m
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}>
-              <Text style={[styles.modeButtonText, { color: digitMode === m ? '#FFF' : colors.text }]}>{lbl}</Text>
+              <Text style={[styles.modeButtonText, { color: digitMode === m ? textOn(GRADIENT[0]) : colors.text }]}>{lbl}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -1028,7 +1158,12 @@ export default function SudokuGame() {
   const renderPlaying = () => {
     const statsEl = (
       <View style={styles.statsRow}>
-        {mode === 'levels' && <Text style={[styles.statText, { color: GRADIENT[0] }]}>{t('label_level_short')}{level}</Text>}
+        {mode === 'levels' && (
+          <Text style={[styles.statText, { color: GRADIENT[0] }]}>
+            {t('label_level_short')}{level}
+            {road !== DEFAULT_SUDOKU_ROAD ? ` · ${t(SUDOKU_ROAD_NAME_KEY[road])}` : ''}
+          </Text>
+        )}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('errors')} {formatErrorCount(failure, errors)}</Text>
         <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
         {/* Счётчик переделок переехал сюда из ряда действий: он показатель, а не кнопка,
