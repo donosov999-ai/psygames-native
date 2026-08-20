@@ -1,4 +1,4 @@
-/* psygames-game-faces-names · VER 1 · 19.08.2026 */
+/* psygames-game-faces-names · VER 2 · 20.08.2026 */
 /**
  * Лица и имена — связать процедурный портрет с точным именем и фактом.
  *
@@ -49,6 +49,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
+import GameShell from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
@@ -120,6 +121,12 @@ export default function FacesNamesScreen() {
   const [attempt, setAttempt] = React.useState(0);
   const seed = React.useMemo(() => `faces-names-${level}`, [level]);
 
+  /**
+   * Есть ли что терять — решает МОДУЛЬ (`hasSomethingToLose`), экран только
+   * держит ответ и отдаёт каркасу: про фазы раунда каркас не знает.
+   */
+  const [armed, setArmed] = React.useState(false);
+
   React.useEffect(() => { if (autostart) setPhase('playing'); }, [autostart]);
 
   const onComplete = React.useCallback(async (m: FacesNamesMetrics) => {
@@ -180,54 +187,81 @@ export default function FacesNamesScreen() {
    */
   const stars = last ? (last.accuracy >= 0.95 ? 3 : last.accuracy >= 0.85 ? 2 : 1) : 1;
 
-  const start = () => { setAttempt((n) => n + 1); setPhase('playing'); };
+  const start = () => { setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
+
+  /** Уйти в экран настройки — сюда ведёт и «назад» каркаса, и конец партии. */
+  const leaveToConfig = React.useCallback(() => { setArmed(false); setPhase('config'); }, []);
 
   if (phase === 'playing') {
     return (
-      <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-        <FacesNamesGame
-          key={attempt}                 /* новый заход — чистое состояние модуля */
-          seed={seed}
-          level={level}
-          locale={asLocale(language)}
-          /**
-           * Время партии — по ИГРОВЫМ часам: пока человек пишет отзыв, они стоят.
-           * Настенные `Date.now` внутри модуля запрещены и пропсом не подставлены
-           * по умолчанию — забыть эту строку нельзя, тип не даст.
-           */
-          now={gameNow}
-          /**
-           * Тему отдаём ЦЕЛИКОМ, а не три цвета: у модуля палитра по умолчанию
-           * светлая, а у нас есть тёмные профили — недокрашенная игра была бы
-           * белым пятном посреди тёмного приложения.
-           */
-          theme={{
-            background: colors.background,
-            surface: colors.surface,
-            card: colors.surface,
-            text: colors.text,
-            textSecondary: colors.textSecondary,
-            border: colors.border,
+      /**
+       * 🔴 ОБЩИЙ КАРКАС, А НЕ ГОЛАЯ РАМКА. Раньше партия висела в пустом
+       * SafeAreaView: выйти можно было только через кнопку на экране правил или
+       * через свою паузу модуля, а окно отзыва поверх игры её не
+       * останавливало — человек дописывал отзыв и возвращался к незнакомому
+       * лицу. Каркас даёт и место выхода с вопросом, и плашку паузы.
+       */
+      <GameShell
+        title={gameStrings.title}
+        onBack={leaveToConfig}
+        /**
+         * Спрашиваем только когда терять есть что: на экране правил ещё ничего
+         * не показано и уходим молча. С первого заученного лица — уже нет:
+         * набор выпадет тот же, а вот минута запоминания не вернётся.
+         */
+        confirmExit={armed}
+      >
+        <View style={styles.stage}>
+          <FacesNamesGame
+            key={attempt}                 /* новый заход — чистое состояние модуля */
+            seed={seed}
+            level={level}
+            locale={asLocale(language)}
             /**
-             * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им
-             * главные кнопки партии. Отдай сюда `colors.primary` — внутри игры
-             * кнопки станут акцентом профиля (оранжевым, синим — каким угодно),
-             * а снаружи, на экране настроек, останется градиент игры: один
-             * экран, две разные схемы.
+             * Время партии — по ИГРОВЫМ часам: пока человек пишет отзыв, они стоят.
+             * Настенные `Date.now` внутри модуля запрещены и пропсом не подставлены
+             * по умолчанию — забыть эту строку нельзя, тип не даст.
              */
-            primary: GRADIENT[0],
-            /** Текст на этой кнопке — тот же, что и на плашке: посчитан, а не «белый». */
-            onPrimary: ON_GRAD.color,
-            success: colors.success,
-            error: colors.error,
-            warning: colors.warning,
-          }}
-          gameGradient={GRADIENT as [string, string]}
-          gameGradientText={ON_GRAD.color}
-          onComplete={onComplete}
-          onExit={() => setPhase('config')}
-        />
-      </SafeAreaView>
+            now={gameNow}
+            /**
+             * Тему отдаём ЦЕЛИКОМ, а не три цвета: у модуля палитра по умолчанию
+             * светлая, а у нас есть тёмные профили — недокрашенная игра была бы
+             * белым пятном посреди тёмного приложения.
+             */
+            theme={{
+              background: colors.background,
+              surface: colors.surface,
+              card: colors.surface,
+              text: colors.text,
+              textSecondary: colors.textSecondary,
+              border: colors.border,
+              /**
+               * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им
+               * главные кнопки партии. Отдай сюда `colors.primary` — внутри игры
+               * кнопки станут акцентом профиля (оранжевым, синим — каким угодно),
+               * а снаружи, на экране настроек, останется градиент игры: один
+               * экран, две разные схемы.
+               */
+              primary: GRADIENT[0],
+              /** Текст на этой кнопке — тот же, что и на плашке: посчитан, а не «белый». */
+              onPrimary: ON_GRAD.color,
+              success: colors.success,
+              error: colors.error,
+              warning: colors.warning,
+            }}
+            gameGradient={GRADIENT as [string, string]}
+            gameGradientText={ON_GRAD.color}
+            onComplete={onComplete}
+            onProgress={setArmed}
+            /**
+             * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Его кнопки
+             * «Выход» (на правилах и на своей паузе) уводили бы МИМО вопроса при
+             * выходе — тем самым способом, от которого вопрос и защищает. Выход
+             * теперь один: «назад» в шапке каркаса, он же ловит аппаратную.
+             */
+          />
+        </View>
+      </GameShell>
     );
   }
 
@@ -279,6 +313,15 @@ export default function FacesNamesScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  /**
+   * Поле каркаса раздвинуто до краёв экрана: `paddingHorizontal: 16` каркаса —
+   * умолчание для игр, которые рисуют содержимое прямо в нём, а модуль свои
+   * отступы и максимальную ширину карточки считает сам. Двойной отступ ужал бы
+   * портрет на 32 px без причины. `alignSelf: 'stretch'` + отрицательные поля
+   * дают ровно исходную ширину: растянутый элемент занимает
+   * `ширина_родителя − 32 − (−16) − (−16)` и начинается с `16 + (−16) = 0`.
+   */
+  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -16 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   // 48×48 — норма попадания пальцем; у «Прикидки» здесь стоял padding 4 и кнопка
   // выходила 32×34, из-за чего аудит держал по ней долг. Повторять не будем.

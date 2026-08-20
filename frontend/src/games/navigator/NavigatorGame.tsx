@@ -1,4 +1,4 @@
-/* psygames-game-navigator · VER 1 · 19.08.2026 */
+/* psygames-game-navigator · VER 2 · 20.08.2026 */
 /**
  * Navigator — партия. Адаптер лабораторного модуля G6 под приложение.
  *
@@ -122,7 +122,35 @@ export interface NavigatorGameProps {
   /** Игровые часы. Обязательны: см. п. 4 в шапке. */
   now: () => number;
   onComplete?: (result: NavigatorMetrics) => void;
+  /**
+   * Есть ли ПРЯМО СЕЙЧАС что терять — см. `hasSomethingToLose` ниже. Экран
+   * держит этот флаг и отдаёт каркасу: вопрос при выходе задаётся только там,
+   * где партия уже что-то накопила.
+   */
+  onProgress?: (armed: boolean) => void;
+  /**
+   * Своя кнопка «Выход» (правила и своя пауза модуля). НЕОБЯЗАТЕЛЬНА, и это
+   * принципиально: когда модуль стоит внутри `GameShell`, выход из партии один —
+   * «назад» в шапке каркаса, и он проходит через вопрос «партия пропадёт».
+   * Вторая кнопка рядом уводила бы МИМО вопроса.
+   */
   onExit?: () => void;
+}
+
+/**
+ * 🔴 ЕСТЬ ЛИ ЧТО ТЕРЯТЬ ПРИ ВЫХОДЕ.
+ *
+ * Флаг встаёт с началом раунда, а не с первого ответа, — и это осознанно.
+ * Показ маршрута («study») и есть та работа, которую человек делает головой:
+ * он ведёт путь по клеткам и держит повороты. Уйти на середине показа —
+ * потерять ровно её; повтор партии даст ТОТ ЖЕ маршрут (зерно фиксировано
+ * уровнем), но заново смотреть придётся всё.
+ *
+ * Экран правил не считается: там ещё ничего не показано.
+ */
+export function hasSomethingToLose(session: NavigatorSession): boolean {
+  const active = session.phase === 'paused' ? session.pausedFrom : session.phase;
+  return active === 'study' || active === 'delay' || active === 'recall';
 }
 
 const DIRECTION_GLYPHS: Record<CardinalDirection, string> = {
@@ -444,6 +472,7 @@ function NavigatorSessionView({
   gameGradientText,
   now,
   onComplete,
+  onProgress,
   onExit,
 }: NavigatorGameProps) {
   const strings = getNavigatorStrings(locale);
@@ -462,6 +491,14 @@ function NavigatorSessionView({
     });
     return () => subscription.remove();
   }, [now]);
+
+  /**
+   * Наверх уходит ГОТОВЫЙ ОТВЕТ «есть что терять», а не сама партия: экрану
+   * незачем разбирать фазы модуля, а модулю — знать про каркас. Зависимость —
+   * булево, а не `session`: иначе setState экрана дёргался бы на каждый шаг.
+   */
+  const armed = hasSomethingToLose(session);
+  React.useEffect(() => { onProgress?.(armed); }, [armed, onProgress]);
 
   React.useEffect(() => {
     if (session.phase === 'result' && session.result && !completionReported.current) {

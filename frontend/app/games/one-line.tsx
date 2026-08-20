@@ -1,4 +1,4 @@
-/* psygames-game-one-line · VER 1 · 19.08.2026 */
+/* psygames-game-one-line · VER 2 · 20.08.2026 */
 /**
  * One Line — «Одна линия»: провести один непрерывный росчерк по ВСЕМ рёбрам
  * графа, не пройдя ни одно дважды (эйлеров путь).
@@ -77,6 +77,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
+import GameShell from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
@@ -153,6 +154,12 @@ export default function OneLineScreen() {
   const seed = React.useMemo(() => `one-line-${level}`, [level]);
 
   /**
+   * Есть ли что терять — решает МОДУЛЬ (`hasSomethingToLose`), экран только
+   * держит ответ и отдаёт каркасу: про фазы раунда каркас не знает.
+   */
+  const [armed, setArmed] = React.useState(false);
+
+  /**
    * Часы партии. Обёрнуты в useCallback по двум причинам сразу.
    *   1. Модуль держит `now` в зависимостях эффекта, который подписывается на
    *      AppState. Отдать сюда новую стрелку на каждый рендер — переподписка
@@ -227,56 +234,83 @@ export default function OneLineScreen() {
    */
   const stars = last ? (last.accuracy >= 0.97 ? 3 : last.accuracy >= 0.9 ? 2 : 1) : 1;
 
-  const start = () => { setAttempt((n) => n + 1); setPhase('playing'); };
+  const start = () => { setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
+
+  /** Уйти в экран настройки — сюда ведёт и «назад» каркаса, и конец партии. */
+  const leaveToConfig = React.useCallback(() => { setArmed(false); setPhase('config'); }, []);
 
   if (phase === 'playing') {
     return (
-      <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-        <OneLineGame
-          key={attempt}                 /* новый заход — чистое состояние модуля */
-          seed={seed}
-          level={level}
-          /**
-           * 🔴 ЯЗЫК ОТДАЁМ МОДУЛЮ ЦЕЛИКОМ, А НЕ СХЛОПЫВАЕМ ДО ПАРЫ RU/EN
-           * (19.08.2026). Здесь стояло `language === 'ru' ? 'ru' : 'en'`, и это
-           * тихо сводило на нет весь перевод партии: словарь модуля переведён на
-           * двенадцать языков, но японец, кореец и немец всё равно получали
-           * английский — до словаря их язык просто не доезжал. Ошибка того же
-           * рода, что ловит ci-i18n-hardcode-guard, только на строку раньше: не
-           * «текст выбран тернарником», а «язык выброшен перед выбором текста».
-           * Списки языков приложения и модуля сверяет гейт games-module-i18n,
-           * поэтому приведение не спрячет расхождение.
-           */
-          locale={language as OneLineLocale}
-          /**
-           * Тему отдаём ЦЕЛИКОМ: ключи OneLineTheme совпадают с ThemeColors один
-           * в один, а palette модуля по умолчанию светлая. Единственная подмена —
-           * primary, см. шапку файла.
-           */
-          theme={{
-            background: colors.background,
-            surface: colors.surface,
-            card: colors.card,
-            text: colors.text,
-            textSecondary: colors.textSecondary,
-            border: colors.border,
-            primary: GRADIENT[0],
-            success: colors.success,
-            error: colors.error,
-            warning: colors.warning,
-          }}
-          gameGradient={GRADIENT as [string, string]}
-          gameGradientText={ON_GRAD.color}
-          /**
-           * 🔴 Свой экран итога модуля НЕ показываем — иначе звёзды, серия и
-           * глаз-разрядка не запишутся. Подробности в шапке файла.
-           */
-          showOwnResults={false}
-          now={now}
-          onComplete={onComplete}
-          onExit={() => setPhase('config')}
-        />
-      </SafeAreaView>
+      /**
+       * 🔴 ОБЩИЙ КАРКАС, А НЕ ГОЛАЯ РАМКА. Раньше партия висела в пустом
+       * SafeAreaView, и это стоило двух вещей сразу: выйти можно было только
+       * кнопкой «Выход» на экране правил модуля (из партии — вообще никак,
+       * аппаратной «назад» на вебе нет), а окно отзыва поверх игры её не
+       * останавливало. Каркас даёт и место выхода с вопросом, и плашку паузы.
+       */
+      <GameShell
+        title={t('oneLine')}
+        onBack={leaveToConfig}
+        /**
+         * Спрашиваем только когда терять есть что: правила, тренировочный круг
+         * и партия без единого хода уходят молча — граф фиксирован уровнем и
+         * вернётся таким же. Первое пройденное ребро — уже нет.
+         */
+        confirmExit={armed}
+      >
+        <View style={styles.stage}>
+          <OneLineGame
+            key={attempt}                 /* новый заход — чистое состояние модуля */
+            seed={seed}
+            level={level}
+            /**
+             * 🔴 ЯЗЫК ОТДАЁМ МОДУЛЮ ЦЕЛИКОМ, А НЕ СХЛОПЫВАЕМ ДО ПАРЫ RU/EN
+             * (19.08.2026). Здесь стояло `language === 'ru' ? 'ru' : 'en'`, и это
+             * тихо сводило на нет весь перевод партии: словарь модуля переведён на
+             * двенадцать языков, но японец, кореец и немец всё равно получали
+             * английский — до словаря их язык просто не доезжал. Ошибка того же
+             * рода, что ловит ci-i18n-hardcode-guard, только на строку раньше: не
+             * «текст выбран тернарником», а «язык выброшен перед выбором текста».
+             * Списки языков приложения и модуля сверяет гейт games-module-i18n,
+             * поэтому приведение не спрячет расхождение.
+             */
+            locale={language as OneLineLocale}
+            /**
+             * Тему отдаём ЦЕЛИКОМ: ключи OneLineTheme совпадают с ThemeColors один
+             * в один, а palette модуля по умолчанию светлая. Единственная подмена —
+             * primary, см. шапку файла.
+             */
+            theme={{
+              background: colors.background,
+              surface: colors.surface,
+              card: colors.card,
+              text: colors.text,
+              textSecondary: colors.textSecondary,
+              border: colors.border,
+              primary: GRADIENT[0],
+              success: colors.success,
+              error: colors.error,
+              warning: colors.warning,
+            }}
+            gameGradient={GRADIENT as [string, string]}
+            gameGradientText={ON_GRAD.color}
+            /**
+             * 🔴 Свой экран итога модуля НЕ показываем — иначе звёзды, серия и
+             * глаз-разрядка не запишутся. Подробности в шапке файла.
+             */
+            showOwnResults={false}
+            now={now}
+            onComplete={onComplete}
+            onProgress={setArmed}
+            /**
+             * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Кнопка «Выход»
+             * на экране правил модуля уводила бы МИМО вопроса при выходе — тем
+             * самым способом, от которого вопрос и защищает. Выход теперь один:
+             * «назад» в шапке каркаса, он же перехватывает аппаратную.
+             */
+          />
+        </View>
+      </GameShell>
     );
   }
 
@@ -332,6 +366,15 @@ export default function OneLineScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  /**
+   * Поле каркаса раздвинуто до краёв экрана: `paddingHorizontal: 16` каркаса —
+   * умолчание для игр, которые рисуют содержимое прямо в нём, а модуль свои
+   * отступы и максимальную ширину доски считает сам. Двойной отступ ужал бы
+   * граф на 32 px без причины. `alignSelf: 'stretch'` + отрицательные поля
+   * дают ровно исходную ширину: растянутый элемент занимает
+   * `ширина_родителя − 32 − (−16) − (−16)` и начинается с `16 + (−16) = 0`.
+   */
+  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -16 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   // 48×48, а не padding вокруг иконки. Скопировать шапку G1 дословно было
   // соблазнительно, но у неё `padding: 4` даёт 32×34 — это её единственная

@@ -53,6 +53,14 @@ const ROOT = join(__dirname, '../..');
 const SCREEN = join(ROOT, 'app/games/dots-connect.tsx');
 const MODULE_UI = join(ROOT, 'src/games/dots-connect/DotsConnectGame.tsx');
 const screen = (): string => readFileSync(SCREEN, 'utf8') as string;
+/**
+ * ⚠️ КОММЕНТАРИИ СРЕЗАЕМ ПЕРЕД ПОИСКОМ. В этом проекте слово в комментарии
+ * держало проверку зелёной шесть раз за два дня: рассказ о механизме считался
+ * механизмом. Здесь это особенно легко — обоснования пропов пишутся прямо
+ * внутри разметки.
+ */
+const stripComments = (src: string): string =>
+  src.replace(/\{?\/\*[\s\S]*?\*\/\}?/g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
 const moduleUi = (): string => readFileSync(MODULE_UI, 'utf8') as string;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -416,16 +424,33 @@ describe('«Соедини точки» — экран подключён так
   });
 
   /**
-   * ВЫХОД ИЗ ПАРТИИ СУЩЕСТВУЕТ. Модуль рисует свою кнопку выхода ТОЛЬКО на
-   * экране правил. Пропустив правила, человек оказался бы в партии без единого
-   * способа уйти: пауза даёт только «продолжить» и «заново», а на вебе (Android
-   * у нас WebView) аппаратной «назад» под рукой нет.
+   * ВЫХОД ИЗ ПАРТИИ СУЩЕСТВУЕТ, И ОН НЕ МОЛЧАЛИВЫЙ.
+   *
+   * Модуль рисует свою кнопку выхода ТОЛЬКО на экране правил. Пропустив
+   * правила, человек оказался бы в партии без единого способа уйти: своя пауза
+   * даёт «продолжить» и «заново», а на вебе (Android у нас WebView) аппаратной
+   * «назад» под рукой нет.
+   *
+   * ⚠️ ПРИЗНАК ПЕРЕПИСАН 20.08.2026 ВМЕСТЕ С МЕХАНИЗМОМ. Раньше выход давала
+   * своя шапка экрана (`accessibilityLabel={t('back')}` + `setPhase('config')`)
+   * — и уводила МОЛЧА: один промах по стрелке стирал проложенные пути. Теперь
+   * партия стоит на общем каркасе, выход даёт его шапка, и он проходит через
+   * вопрос «партия пропадёт». Проверяем ту же СПОСОБНОСТЬ, но по новому месту:
+   * каркас есть, ему передан обработчик ухода, и вопрос при выходе включён.
+   * Проверка стала строже — раньше «уводит молча» её устраивало.
    */
-  it('🔴 из живой партии есть выход', () => {
+  it('🔴 из живой партии есть выход, и он спрашивает', () => {
     const src = screen();
     const play = src.slice(src.indexOf("if (phase === 'playing')"), src.indexOf('<DotsConnectGame'));
-    expect(play).toContain('accessibilityLabel={t(\'back\')}');
-    expect(/onPress=\{[^}]*setPhase\('config'\)/.test(play)).toBe(true);
+    const body = stripComments(play);
+    expect(body).toContain('<GameShell');
+    // Уход ведёт на экран настройки — тем же путём, что вёл выход модуля.
+    expect(/onBack=\{/.test(body)).toBe(true);
+    expect(/const leaveToConfig[^\n]*setPhase\('config'\)/.test(stripComments(src))).toBe(true);
+    // И он не молчаливый: вопрос при выходе включён живым флагом, а не literal false.
+    const confirm = /confirmExit=\{([^}]*)\}/.exec(body);
+    expect(`confirmExit: ${confirm?.[1] ?? 'нет'}`).not.toBe('confirmExit: нет');
+    expect(`confirmExit: ${confirm?.[1]}`).not.toBe('confirmExit: false');
   });
 
   /** Кнопка «назад» — 48×48. У соседней «Прикидки» здесь 32×34, и это её долг. */
@@ -458,7 +483,16 @@ describe('«Соедини точки» — что делать, написан�
   it('🔴 правило игры рисуется в той ветке, что видна во время партии', () => {
     const ui = moduleUi();
     // Ветка правил: что соединять и — главное — что сетку надо занять ЦЕЛИКОМ.
-    const rules = ui.slice(ui.indexOf("session.phase === 'rules'"), ui.indexOf("session.phase === 'paused'"));
+    /**
+     * ⚠️ СРЕЗ ПО САМОЙ ВЕТКЕ, А НЕ ПО ПЕРВОМУ УПОМИНАНИЮ ФАЗЫ. Раньше границы
+     * искались по голым `session.phase === 'rules'` / `'paused'` — и первая же
+     * функция в файле, помянувшая `'paused'` выше веток рендера
+     * (`hasSomethingToLose`), схлопнула срез в пустую строку. Пустая строка
+     * ничего не содержит, и гейт покраснел на исправном модуле. Теперь якорь —
+     * `if (session.phase === '…') {`, то есть сама ветка отрисовки.
+     */
+    const rules = ui.slice(ui.indexOf("if (session.phase === 'rules') {"), ui.indexOf("if (session.phase === 'paused') {"));
+    expect(rules.length).toBeGreaterThan(0);   // срез не схлопнулся — иначе проверки ниже слепы
     expect(rules).toContain('strings.rulesBody');
     expect(rules).toContain('strings.rulesCoverage');
     // Ветка партии: подпись раунда и подсказка тренировки над самой доской.

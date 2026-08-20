@@ -72,7 +72,35 @@ export interface DotsConnectGameProps {
   skipIntro?: boolean;
   now?: () => number;
   onComplete?: (result: DotsMetrics) => void;
+  /**
+   * Есть ли ПРЯМО СЕЙЧАС что терять — см. `hasSomethingToLose` ниже. Экран
+   * держит этот флаг и отдаёт каркасу: вопрос при выходе задаётся только там,
+   * где партия уже что-то накопила.
+   */
+  onProgress?: (armed: boolean) => void;
+  /**
+   * Своя кнопка «Выход» на экране правил. НЕОБЯЗАТЕЛЬНА, и это принципиально:
+   * когда модуль стоит внутри `GameShell`, выход из партии один — «назад» в
+   * шапке каркаса, и он проходит через вопрос «партия пропадёт». Вторая кнопка
+   * рядом уводила бы МИМО вопроса.
+   */
   onExit?: () => void;
+}
+
+/**
+ * 🔴 ЕСТЬ ЛИ ЧТО ТЕРЯТЬ ПРИ ВЫХОДЕ.
+ *
+ * Считается только НАСТОЯЩАЯ партия и только с первого проложенного шага:
+ *   · правила и тренировочная сетка 3×3 — это секунды и повторяются нажатием,
+ *     вопрос там был бы вопросом ни о чём;
+ *   · партия без единого хода тоже пуста: зерно фиксировано номером уровня,
+ *     повторный вход даёт ТУ ЖЕ раскладку.
+ * А вот проложенные пути не воспроизвести ничем: их человек выстраивал головой.
+ */
+export function hasSomethingToLose(session: DotsSession): boolean {
+  const inRound = session.phase === 'playing'
+    || (session.phase === 'paused' && session.pausedFrom === 'playing');
+  return inRound && session.forwardMoves > 0;
 }
 
 function sameCell(left: Cell, right: Cell): boolean {
@@ -354,6 +382,7 @@ function DotsConnectSession({
   skipIntro = false,
   now = Date.now,
   onComplete,
+  onProgress,
   onExit,
 }: DotsConnectGameProps) {
   const strings = getDotsStrings(locale);
@@ -369,6 +398,16 @@ function DotsConnectSession({
       onComplete?.(session.result);
     }
   }, [onComplete, session.phase, session.result]);
+
+  /**
+   * Наверх уходит ГОТОВЫЙ ОТВЕТ «есть что терять», а не сама партия: экрану
+   * незачем разбирать фазы модуля, а модулю — знать про каркас.
+   *
+   * ⚠️ Зависимость — булево, а не `session`: партия меняется на каждом касании,
+   * и эффект от неё дёргал бы setState экрана на каждый ход.
+   */
+  const armed = hasSomethingToLose(session);
+  React.useEffect(() => { onProgress?.(armed); }, [armed, onProgress]);
 
   React.useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
