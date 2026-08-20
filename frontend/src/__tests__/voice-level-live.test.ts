@@ -19,7 +19,7 @@ declare function require(m: string): any;
 const { readFileSync } = require('fs');
 const { join } = require('path');
 
-import { startRecording, MAX_RECORD_SEC, SILENCE_PEAK, AUDIO_MAX_BYTES } from '@/src/services/voiceNote';
+import { shouldWarnSilent, startRecording, MAX_RECORD_SEC, SILENCE_PEAK, AUDIO_MAX_BYTES, type VoiceNote } from '@/src/services/voiceNote';
 
 const SRC = join(__dirname, '..');
 const read = (p: string): string => readFileSync(join(SRC, p), 'utf8') as string;
@@ -37,11 +37,44 @@ function code(p: string): string {
 }
 
 /** Фейковый микрофон: `level` — что «слышит» анализатор, 0 = цифровая тишина. */
-function installMic(opts: { level: number; ctx?: 'ok' | 'stuck' | 'none' | 'lazy'; deafStop?: boolean }) {
+function installMic(opts: {
+  level: number; ctx?: 'ok' | 'stuck' | 'none' | 'lazy'; deafStop?: boolean;
+  /** Дорожка помечена `muted` с самого начала: система звук не отдаёт. */
+  muted?: boolean;
+  /** Дорожку заглушили ПОСРЕДИ записи — звонок, другое приложение. */
+  muteAfter?: boolean;
+  /** Заглушили посреди записи и ВЕРНУЛИ до остановки. */
+  muteThenBack?: boolean;
+  /** Старый WebView без `getAudioTracks` — спрашивать дорожку нечем. */
+  noTrackApi?: boolean;
+}) {
   const mode = opts.ctx ?? 'ok';
   let wakes = 0;
-  const tracks = [{ stop: jest.fn(), kind: 'audio' }];
-  const stream = { getTracks: () => tracks };
+  const listeners: Record<string, Array<() => void>> = {};
+  const audioTrack: any = {
+    stop: jest.fn(), kind: 'audio',
+    muted: !!opts.muted, readyState: 'live', label: 'Фейковый микрофон',
+    addEventListener: (ev: string, fn: () => void) => { (listeners[ev] ??= []).push(fn); },
+  };
+  const tracks = [audioTrack];
+  const stream: any = { getTracks: () => tracks };
+  if (!opts.noTrackApi) stream.getAudioTracks = () => tracks;
+  /** Заглушить дорожку на ходу — ровно так это делает система. */
+  (globalThis as any).__muteTrackNow = () => {
+    audioTrack.muted = true;
+    for (const fn of listeners.mute ?? []) fn();
+  };
+  if (opts.muteAfter) setTimeout(() => (globalThis as any).__muteTrackNow(), 5);
+  /**
+   * ⚠️ ЗАГЛУШИЛИ И ВЕРНУЛИ — тот случай, ради которого подписка и нужна.
+   * Звонок кончился, микрофон отдали обратно, и К МОМЕНТУ ОСТАНОВКИ дорожка
+   * снова здорова. Снимок состояния на выходе тут покажет «всё хорошо», а в
+   * файле — дыра. Поймать это можно только тем, что мы слушали событие.
+   */
+  if (opts.muteThenBack) {
+    setTimeout(() => (globalThis as any).__muteTrackNow(), 5);
+    setTimeout(() => { audioTrack.muted = false; }, 12);
+  }
   (globalThis as any).navigator.mediaDevices = { getUserMedia: async () => stream };
 
   const recs: any[] = [];
@@ -260,8 +293,43 @@ describe('интерфейс показывает уровень и не отп�
     expect(src).toContain("t('voiceWriteInstead')");
   });
 
-  it('порог применяется только к замеренной записи', () => {
-    expect(widget()).toContain('v.measured && v.peak < SILENCE_PEAK');
+  /**
+   * 🔴 ПРАВИЛО ПРОВЕРЯЕТСЯ ВЫЗОВОМ, А НЕ ПОИСКОМ СТРОКИ В ЭКРАНЕ.
+   *
+   * Прежняя редакция искала в исходнике виджета дословное
+   * `v.measured && v.peak < SILENCE_PEAK`. Она держалась ровно до тех пор, пока
+   * условие не переехало в функцию, — и покраснела на ПРАВИЛЬНОЙ правке, ничего
+   * при этом не проверив по существу. Хуже того, поломка «решать только по пику»
+   * оставалась зелёной: сама-то строка была на месте.
+   *
+   * Теперь зовём `shouldWarnSilent` и требуем от него четырёх ответов подряд.
+   * Экран это же правило и вызывает — отдельная проверка ниже следит, чтобы он
+   * не завёл своё.
+   */
+  it('🔴 правило предупреждения даёт верный ответ на все четыре случая', () => {
+    const note = (o: Partial<VoiceNote>): VoiceNote => ({
+      blob: {} as Blob, seconds: 5, mime: 'audio/webm',
+      peak: 0.5, measured: true, track: null, ...o,
+    } as VoiceNote);
+    const cases: Array<[string, boolean]> = [
+      [`замер дал тишину: ${shouldWarnSilent(note({ peak: 0, measured: true }))}`, true],
+      [`замера не было — не знаем, молчим: ${shouldWarnSilent(note({ peak: 0, measured: false }))}`, false],
+      [`дорожка зажата, замера нет: ${shouldWarnSilent(note({ peak: 0, measured: false, track: { muted: true, readyState: 'live', label: '', everMuted: true } }))}`, true],
+      [`всё исправно: ${shouldWarnSilent(note({}))}`, false],
+    ];
+    expect(cases.map(([t]) => t)).toEqual([
+      'замер дал тишину: true',
+      'замера не было — не знаем, молчим: false',
+      'дорожка зажата, замера нет: true',
+      'всё исправно: false',
+    ]);
+  });
+
+  /** Экран обязан звать общее правило, а не заводить своё условие рядом. */
+  it('🔴 экран решает общим правилом, а не своим условием', () => {
+    const w = widget();
+    expect(`зовёт правило: ${/shouldWarnSilent\s*\(/.test(w)}`).toBe('зовёт правило: true');
+    expect(`своего порога нет: ${!/peak\s*<\s*SILENCE_PEAK/.test(w)}`).toBe('своего порога нет: true');
   });
 
   /**
@@ -331,5 +399,68 @@ describe('почему запись не долетела — записывае
   it('на плохую новость даётся больше времени, чем на «спасибо»', () => {
     expect(code('components/FeedbackWidget.tsx'))
       .toContain('res.audioLost ? 9000 : 3200');
+  });
+});
+
+
+/**
+ * 🔴 ДОРОЖКА ОТВЕЧАЕТ О СЕБЕ САМА — И ЭТО ДРУГОЙ ИСТОЧНИК, ЧЕМ ПИК.
+ *
+ * Пик — наш вывод из сэмплов: «нули, значит звука нет». Он требует анализатора и
+ * проснувшегося AudioContext, и на секунду опаздывает. `muted` у дорожки — прямой
+ * ответ устройства «звук не отдаю», читается в момент старта и работает там, где
+ * замер невозможен вовсе.
+ *
+ * Ради этого всё и затевалось: на OnePlus 8 Pro 13 записей из 16 приехали немыми,
+ * человек говорил до восьми минут. Android в таком случае НЕ бросает ошибку —
+ * поток отдаёт, файл пишет, дорожку помечает `muted`.
+ */
+describe('состояние звуковой дорожки', () => {
+  it('🔴 зажатый системой микрофон виден сразу, без анализатора', async () => {
+    installMic({ level: 0, ctx: 'none', muted: true });
+    const rec = await startRecording();
+    const note = await rec.stop();
+    expect(`muted: ${note?.track?.muted}`).toBe('muted: true');
+    // Замера нет вовсе — и всё равно знаем, что микрофон молчит.
+    expect(`measured: ${note?.measured}`).toBe('measured: false');
+  });
+
+  it('🔴 микрофон отобрали ПОСРЕДИ записи — на старте было чисто', async () => {
+    installMic({ level: 0.5, muteAfter: true });
+    const rec = await startRecording();
+    await new Promise((r) => setTimeout(r, 30));
+    const note = await rec.stop();
+    expect(`был заглушён: ${note?.track?.everMuted}`).toBe('был заглушён: true');
+  });
+
+  /**
+   * 🔴 ЗАГЛУШИЛИ И ВЕРНУЛИ. Единственный случай, который ловится ТОЛЬКО подпиской:
+   * на старте дорожка здорова, на остановке снова здорова, а в середине записи
+   * была дыра. Проверка без этого случая зеленела и без подписки — я на этом
+   * попался, когда ломал её в первый раз.
+   */
+  it('🔴 заглушили и вернули — дыра в середине записи не пропадает', async () => {
+    installMic({ level: 0.5, muteThenBack: true });
+    const rec = await startRecording();
+    await new Promise((r) => setTimeout(r, 30));
+    const note = await rec.stop();
+    expect(`на выходе дорожка здорова: ${note?.track?.muted === false}`).toBe('на выходе дорожка здорова: true');
+    expect(`но дыра записана: ${note?.track?.everMuted}`).toBe('но дыра записана: true');
+    expect(`и человека предупредят: ${shouldWarnSilent(note)}`).toBe('и человека предупредят: true');
+  });
+
+  it('исправный микрофон дорожку не оговаривает', async () => {
+    installMic({ level: 0.5 });
+    const rec = await startRecording();
+    const note = await rec.stop();
+    expect(`muted: ${note?.track?.muted} everMuted: ${note?.track?.everMuted}`)
+      .toBe('muted: false everMuted: false');
+  });
+
+  it('старый WebView без getAudioTracks — «не знаем», а не «всё хорошо»', async () => {
+    installMic({ level: 0.5, noTrackApi: true });
+    const rec = await startRecording();
+    const note = await rec.stop();
+    expect(note?.track).toBeNull();
   });
 });

@@ -161,7 +161,11 @@ interface SendArgs {
   gameId?: string;
   shot?: Blob | null;
   /** Голосовая заметка: оригинал речи, а не то, что расслышал телефон. */
-  audio?: { blob: Blob; seconds: number; mime: string; peak?: number; measured?: boolean } | null;
+  audio?: {
+    blob: Blob; seconds: number; mime: string; peak?: number; measured?: boolean;
+    /** Что сказала о себе звуковая дорожка — см. `TrackState` в voiceNote. */
+    track?: { muted: boolean; readyState: string; label: string; everMuted: boolean } | null;
+  } | null;
   context?: Record<string, unknown>;
 }
 
@@ -350,6 +354,12 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
           audio_seconds: args.audio.seconds,
           audio_peak: args.audio.peak ?? null,
           audio_measured: args.audio.measured ?? null,
+          // audio_track — прямой ответ устройства о микрофоне: `muted` значит
+          // «система звук не отдаёт», `ended` — дорожку отобрали на ходу. Пик
+          // это НАШ вывод из сэмплов, а здесь говорит само устройство, и на
+          // OnePlus 8 Pro (13 немых записей из 16) отличить одно от другого
+          // можно только так.
+          audio_track: args.audio.track ?? null,
           audio_bytes, audio_up,
         } : null),
       },

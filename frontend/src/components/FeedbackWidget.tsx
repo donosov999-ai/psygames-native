@@ -35,7 +35,7 @@ import {
 } from '@/src/services/appFeedback';
 import { isRTLLang } from '@/src/services/rtl';
 import { a11yModal } from '@/src/services/a11y';
-import { canRecord, startRecording, SILENCE_PEAK, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
+import { canRecord, startRecording, shouldWarnSilent, SILENCE_PEAK, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
 import { holdGame } from '@/src/services/gamePause';
 
 const KINDS: { key: FeedbackKind; emoji: string; labelKey: string }[] = [
@@ -146,7 +146,13 @@ export default function FeedbackWidget() {
     // анализатор не отработал ни разу (нет AudioContext, или он не проснулся), и
     // тогда peak = 0 — это «не знаем», а не «тишина». Обвинить исправный микрофон
     // хуже, чем промолчать: человек полезет в настройки разрешений на пустом месте.
-    setMicSilent(!!v && v.measured && v.peak < SILENCE_PEAK);
+    //
+    // ⚠️ ВТОРОЙ, НЕЗАВИСИМЫЙ ПОВОД — САМА ДОРОЖКА. Пик это вывод из сэмплов, а
+    // `muted` — прямой ответ устройства «звук не отдаю». Он не требует ни
+    // анализатора, ни проснувшегося AudioContext, поэтому работает там, где
+    // замер невозможен, и именно он ловит случай «микрофон отобрали посреди
+    // записи»: на старте было тихо-нормально, а в файле половина пустоты.
+    setMicSilent(shouldWarnSilent(v));
   };
 
   const toggleRecord = async () => {
@@ -310,7 +316,7 @@ export default function FeedbackWidget() {
       // ради которого в v1.190 заводили AnalyserNode, до базы не доезжал ни разу.
       // Уровень со стороны сервера считает ffmpeg, но это уже посмертно — а нужен
       // ответ на вопрос «телефон отдал звук или нет» в момент отправки.
-      audio: note ? { blob: note.blob, seconds: note.seconds, mime: note.mime, peak: note.peak, measured: note.measured } : null,
+      audio: note ? { blob: note.blob, seconds: note.seconds, mime: note.mime, peak: note.peak, measured: note.measured, track: note.track } : null,
       // profile/level — чтобы в репорте было видно, под каким профилем и на
       // каком уровне игры это словили (не гадать по скриншоту).
       context: {
