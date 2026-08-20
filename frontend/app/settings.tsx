@@ -1,20 +1,8 @@
 import { textOn } from '@/src/services/onGradientText';
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Switch,
-  Modal,
-  TextInput,
-  Alert,
-  Linking,
-  PanResponder,
-  DeviceEventEmitter,
-  Platform,
-  useWindowDimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Modal, TextInput, Linking, PanResponder, DeviceEventEmitter, Platform, useWindowDimensions } from 'react-native';
+// ⚠️ Alert — НЕ из react-native: в вебе (а Android у нас WebView) он пустой метод.
+import { Alert } from '@/src/services/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Redirect } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';

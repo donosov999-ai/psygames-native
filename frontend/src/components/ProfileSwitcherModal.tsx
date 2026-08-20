@@ -13,9 +13,9 @@
 
 import { textOn } from '@/src/services/onGradientText';
 import React from 'react';
-import {
-  View, Text, Modal, TouchableOpacity, ScrollView, Alert, Linking, TextInput, Image,
-} from 'react-native';
+import { View, Text, Modal, TouchableOpacity, ScrollView, Linking, TextInput, Image } from 'react-native';
+// ⚠️ Alert — НЕ из react-native: в вебе (а Android у нас WebView) он пустой метод.
+import { Alert } from '@/src/services/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';

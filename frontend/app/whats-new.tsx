@@ -3,7 +3,9 @@
  * (запрос Дениса 23.07: «после обновления список что нового + история версий»).
  */
 import React from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+// ⚠️ Alert — НЕ из react-native: в вебе (а Android у нас WebView) он пустой метод.
+import { Alert } from '@/src/services/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { goBackOrHome } from '@/src/utils/nav';
