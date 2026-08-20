@@ -16,6 +16,28 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.208.0',
+    date: '2026-08-20',
+    ru: [
+      "Судоку: три дороги сложности. Выбираете до партии, у каждой свой прогресс; пройденное на тяжёлой засчитывается и на лёгкой, обратно — нет",
+      "Три судоку теперь под одним входом, а не тремя карточками среди семидесяти",
+      "Очки наконец есть на что потратить в самой партии: вторая жизнь, пробный заход и щит серии",
+      "Белый текст на цветных плашках стал читаемым — в 68 местах он был почти белым по белому",
+      "Шесть новых игр встают на паузу, пока вы пишете отзыв, и спрашивают перед выходом",
+      "В «Трекере объектов» шары больше не улетают, пока открыто окно отзыва",
+      "Фрактальная судоку наконец засчитывается в ветку логики — из-за одного символа в имени её партии не считались нигде",
+    ],
+    en: [
+      "Sudoku: three difficulty roads. You pick before the game, each keeps its own progress; what you cleared on hard counts on easy, never the other way",
+      "The three Sudokus now sit behind one entry instead of three cards among seventy",
+      "Points are finally worth spending inside a round: second life, practice run and streak shield",
+      "White text on coloured panels is readable — in 68 places it was nearly white on white",
+      "Six new games now pause while you write feedback, and ask before you leave",
+      "In Object Tracker the balls no longer fly on while the feedback window is open",
+      "Fractal Sudoku finally counts toward the logic branch — one character in its name kept its rounds out of everything",
+    ],
+  },
+  {
     version: '1.207.0',
     date: '2026-08-20',
     ru: [
