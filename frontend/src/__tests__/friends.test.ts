@@ -82,15 +82,44 @@ describe('🔴 три пустоты не путаются между собой
 
 describe('добавление по коду', () => {
   it('🔴 сервер вернул друга — добавлен', async () => {
-    mockRpc.mockResolvedValue({ data: [{ f_id: 'b', f_name: 'Тихий Барсук' }], error: null });
+    mockRpc.mockResolvedValue({ data: [{ f_id: 'b', f_name: 'Тихий Барсук', reason: 'added', circle_max: 50 }], error: null });
     const r = await addFriendByCode('2gun-3t');
     expect(r).toEqual({ kind: 'added', friend: { id: 'b', name: 'Тихий Барсук' } });
     expect(mockRpc).toHaveBeenCalledWith('psygames_add_friend', { p_player_id: 'игрок-1', p_code: '2GUN3T' });
   });
 
   it('🔴 такого кода нет — так и говорим, а не «нет связи»', async () => {
-    mockRpc.mockResolvedValue({ data: [], error: null });
+    mockRpc.mockResolvedValue({ data: [{ reason: 'not-found', circle_max: 50 }], error: null });
     expect((await addFriendByCode('ZZZZZZ')).kind).toBe('not-found');
+  });
+
+  /**
+   * 🔴 ТРИ ОТКАЗА, КОТОРЫЕ РАНЬШЕ БЫЛИ ОДНИМ. Сервер возвращал пусто и когда кода
+   * нет, и когда код СВОЙ СОБСТВЕННЫЙ, и когда круг полон, — экран во всех трёх
+   * случаях говорил «такого кода нет». В двух случаях из трёх это была неправда.
+   */
+  it('🔴 свой собственный код — это не «кода нет»', async () => {
+    mockRpc.mockResolvedValue({ data: [{ reason: 'self', circle_max: 50 }], error: null });
+    expect((await addFriendByCode('2GUN3T')).kind).toBe('self');
+  });
+
+  it('🔴 круг полон — это не «кода нет», и предел приходит С СЕРВЕРА', async () => {
+    mockRpc.mockResolvedValue({ data: [{ reason: 'full', circle_max: 50 }], error: null });
+    const r = await addFriendByCode('2GUN3T');
+    expect(r).toEqual({ kind: 'full', max: 50 });
+  });
+
+  /** Предел не переписан в клиент числом: что сервер сказал, то и покажем. */
+  it('🔴 предел круга не выдуман клиентом', async () => {
+    mockRpc.mockResolvedValue({ data: [{ reason: 'full', circle_max: 7 }], error: null });
+    const r = await addFriendByCode('2GUN3T');
+    expect(r.kind === 'full' && r.max).toBe(7);
+  });
+
+  /** Старый сервер без `reason` — для человека это просто «код не подошёл». */
+  it('ответ без причины не роняет экран', async () => {
+    mockRpc.mockResolvedValue({ data: [{ f_id: 'b', f_name: 'Барсук' }], error: null });
+    expect((await addFriendByCode('2GUN3T')).kind).toBe('not-found');
   });
 
   it('🔴 сеть отвалилась — это НЕ «кода нет»', async () => {

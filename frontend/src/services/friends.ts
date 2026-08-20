@@ -76,11 +76,23 @@ export async function getMyInviteCode(): Promise<string | null> {
   }
 }
 
-/** Чем кончилась попытка добавить друга. Три исхода, и у каждого свой текст. */
+/**
+ * Чем кончилась попытка добавить друга.
+ *
+ * 🔴 ПОЧЕМУ ИСХОДОВ ПЯТЬ, А НЕ ТРИ. Первая редакция считала «не добавилось»
+ * одним случаем и говорила «такого кода нет» — а сервер молча возвращал пусто
+ * ЧЕТЫРЬМЯ разными способами. Человек, набравший свой собственный код, слышал,
+ * что кода не существует; человек с полным кругом — то же самое. Это ровно тот
+ * грех, за который мы ругаем соседей: разные причины под одной фразой.
+ */
 export type AddResult =
   | { kind: 'added'; friend: { id: string; name: string } }
-  /** Кода нет, он свой собственный или круг уже полон — сервер молча вернул пусто. */
+  /** Такого кода правда нет ни у кого. */
   | { kind: 'not-found' }
+  /** Это его собственный код. */
+  | { kind: 'self' }
+  /** Круг уже полон; `max` приходит С СЕРВЕРА, а не переписан сюда числом. */
+  | { kind: 'full'; max: number }
   | { kind: 'offline' };
 
 export async function addFriendByCode(raw: string): Promise<AddResult> {
@@ -92,9 +104,19 @@ export async function addFriendByCode(raw: string): Promise<AddResult> {
       p_player_id: await getPlayerId(), p_code: code,
     });
     if (error) return { kind: 'offline' };
-    const row = Array.isArray(data) ? data[0] : data;
-    if (!row?.f_id) return { kind: 'not-found' };
-    return { kind: 'added', friend: { id: String(row.f_id), name: String(row.f_name ?? '') } };
+    const row: any = Array.isArray(data) ? data[0] : data;
+    switch (String(row?.reason ?? '')) {
+      case 'added':
+        return { kind: 'added', friend: { id: String(row.f_id), name: String(row.f_name ?? '') } };
+      case 'self':
+        return { kind: 'self' };
+      case 'full':
+        return { kind: 'full', max: Number(row.circle_max) || 0 };
+      default:
+        // `not-found`, `bad-code` и старый сервер без `reason` — для человека
+        // это одно и то же: код не подошёл.
+        return { kind: 'not-found' };
+    }
   } catch {
     return { kind: 'offline' };
   }
