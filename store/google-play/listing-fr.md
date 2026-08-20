@@ -60,6 +60,7 @@ PsyGames adapte la difficulté et rend l'évolution visible.
 CE QUE CONTIENT L'APPLICATION
 • 71 exercices de mémoire, d'attention, de logique, de vitesse et de contrôle
 • Des échauffements matin, journée, soir et nuit, prêts en un geste
+• Thème sombre et un set de nuit quand le sommeil ne vient pas : respiration 4-7-8, écran atténué, sans points ni série
 • 12 profils selon l'objectif : langues, enfants, 50+, concentration, réaction, étudiants et plus
 • Une évaluation avec un radar des points forts et des capacités à travailler
 • 12 langues · fonctionne hors ligne · sans publicité · sans inscription

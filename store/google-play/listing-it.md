@@ -36,13 +36,13 @@ Non è un talento riservato a pochi. Si può allenare — e qui puoi misurare i 
 PsyGames offre giochi mentali, rompicapo e 71 esercizi per memoria, attenzione, logica e rapidità. Non è l'ennesimo test che indovina il tuo QI, ma pratica quotidiana con risultati misurabili.
 
 GIOCHI DI MEMORIA
-Allena la memoria visiva con blocchi di Corsi, matrici, coppie e storie. Rafforza la memoria di lavoro con N-back, Operation Span e Reading Span. Osserva uno schema, tienilo a mente e riproducilo più tardi.
+Allena la memoria visiva con blocchi di Corsi, matrici, coppie e storie. Rafforza la memoria di lavoro con N-back, Operation Span e Reading Span. Osserva uno schema e riproducilo più tardi.
 
 ATTENZIONE E CONCENTRAZIONE
-Migliora la concentrazione con tabelle di Schulte, trova le differenze, compiti di Posner e Flanker. Resta su un'attività anche tra notifiche, rumore e interruzioni.
+Migliora la concentrazione con tabelle di Schulte, trova le differenze, compiti di Posner e Flanker. Resta sull'attività tra notifiche, rumore e interruzioni.
 
 LOGICA E ROMPICAPI
-Risolvi giochi di logica: Sudoku con 12 varianti di regole, Torre di Hanoi, Torre di Londra, SET e anagrammi. Pianifica più mosse prima di seguire la prima risposta ovvia.
+Risolvi giochi di logica: Sudoku con 12 varianti di regole, Torre di Hanoi, Torre di Londra, SET e anagrammi. Pianifica più mosse prima della risposta ovvia.
 
 VELOCITÀ DI PENSIERO E REAZIONE
 Allena riflessi, calcolo mentale e controllo cognitivo con Stroop, Go/No-Go, operazioni a tempo e Trail Making. Rispondi più velocemente senza perdere precisione.
@@ -53,15 +53,16 @@ Molte app ripetono sempre la stessa prova e non mostrano il cambiamento. PsyGame
 • Livelli in ogni gioco: se riesci, la difficoltà sale; se sbagli, ti aspetta
 • I round boss introducono una svolta nelle tappe importanti
 • La serie quotidiana trasforma pochi minuti in un'abitudine
-• Sinapsi, il tuo compagno, cresce con gli allenamenti e indica cosa rinforzare
+• Sinapsi cresce con gli allenamenti e indica cosa rinforzare
 • Precisione e velocità danno punti, cornici, avatar e titoli
 • Sfida giornaliera e traguardi mantengono chiaro il prossimo obiettivo
 
 COSA TROVI NELL'APP
 • 71 esercizi per memoria, attenzione, logica, velocità e controllo
 • Riscaldamenti mattina, giorno, sera e notte pronti con un tocco
-• 12 profili per obiettivi diversi: lingue, bambini, 50+, concentrazione, reazione, studenti e altro
-• Una valutazione con radar dei punti forti e delle capacità da migliorare
+• Tema scuro e un set notturno per quando non arriva il sonno: respirazione 4-7-8, schermo attenuato, senza punti né serie
+• 12 profili: lingue, bambini, 50+, concentrazione, reazione, studenti e altro
+• Valutazione con radar di punti forti e capacità da migliorare
 • 12 lingue · funziona offline · senza pubblicità · senza registrazione
 
 NON È UN GIOCO CHE INVENTA IL PUNTEGGIO

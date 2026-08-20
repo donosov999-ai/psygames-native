@@ -62,22 +62,23 @@ Gehirn-Apps lädt jeder herunter und löscht sie nach drei Malen — immer diese
 
 • Level in jeder Übung. Geschafft — die Schwierigkeit steigt; verfehlt — sie wartet auf dich
 • Boss-Runden an Meilensteinen: dieselbe Regel, überraschend gedreht
-• Serie: einen Tag ausgelassen, wieder von vorn. Simpler Trick, wirkt besser als Vorsätze
+• Serie: einen Tag ausgelassen, wieder von vorn — besser als gute Vorsätze
 • Synapse, dein Begleiter, wächst mit deinem Training und zeigt, was hinterherhinkt
-• Punkte für Genauigkeit und Tempo, Shop mit Rahmen, Avataren und Titeln
+• Punkte für Genauigkeit und Tempo; Shop mit Rahmen und Titeln
 • Tagesaufgabe mit eigener Serie und Erfolge
 
 WAS DRIN IST
 • 71 Übungen für Gedächtnis, Aufmerksamkeit, Logik, Tempo und Kontrolle
-• Aufwärmen per Knopfdruck: morgens, tagsüber, abends und nachts — fertige Sets starten mit den passenden Einstellungen
-• 12 Profile für verschiedene Ziele: Sprachen, Kinder, 50+, Fokus, Reaktion, Gründer und mehr
+• Aufwärmen per Knopfdruck: morgens, tagsüber, abends und nachts
+• Dunkles Design und ein Set für schlaflose Nächte: 4-7-8-Atmung, gedimmter Bildschirm, ohne Punkte und Serie
+• 12 Profile: Sprachen, Kinder, 50+, Fokus, Reaktion, Gründer und mehr
 • Auswertung mit Radar der Stärken und Schwachstellen
 • 12 Sprachen · funktioniert offline · ohne Werbung
 
 KEIN GEHIRNJOGGING-SPIELZEUG
 Hinter jeder Übung steht ein validiertes Paradigma, keine erfundene Mechanik. Schulte-Tabellen — Suchtempo und Aufmerksamkeitsumfang. Der Stroop-Test — die automatische Reaktion unterdrücken: Farbe nennen, nicht das Wort lesen. N-Back — Arbeitsgedächtnis, das meistuntersuchte Paradigma im kognitiven Training. Corsi-Block-Test — visuell-räumliches Gedächtnis. Trail Making, Turm von London, Türme von Hanoi, SET, Go/No-Go, Flanker, WCST, Posner-Aufgabe und fünfzig weitere.
 
-Deshalb bedeutet die Zahl auf dem Bildschirm etwas. Du siehst nicht "Level 7", sondern wie weit genau du gekommen bist.
+Deshalb bedeutet die Zahl auf dem Bildschirm etwas: nicht "Level 7", sondern wie weit du gekommen bist.
 
 ENTWICKLER, DIE ANTWORTEN
 Feedback-Knopf direkt in der App: schreiben oder einsprechen, der Screenshot hängt sich automatisch an. Wenn eine Korrektur erscheint, zeigt dir die App, was wegen DEINER Meldung geändert wurde und in welcher Version.

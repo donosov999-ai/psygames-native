@@ -60,6 +60,7 @@ Muitos apps repetem o mesmo desafio até cansar. PsyGames ajusta a dificuldade e
 O QUE TEM NO APP
 • 71 exercícios de memória, atenção, lógica, velocidade e controle
 • Aquecimentos de manhã, tarde e noite prontos para começar com um toque
+• Tema escuro e um conjunto noturno para quando o sono não vem: respiração 4-7-8, tela suave, sem pontos nem sequência
 • 12 perfis para objetivos diferentes: idiomas, crianças, 50+, foco, reação, estudantes e mais
 • Avaliação com radar de pontos fortes e habilidades a desenvolver
 • 12 idiomas · funciona offline · sem anúncios · sem cadastro
