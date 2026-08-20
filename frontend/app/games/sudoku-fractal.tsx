@@ -68,7 +68,8 @@ import {
   emptyPencilMarks, normalizePencilMarks, togglePencilMark, clearPencilMarks, pencilDigits, countPencilMarks,
   type PencilMarks,
 } from '@/src/services/pencilMarks';
-import { saveResume, loadResume, clearResume } from '@/src/services/resume';
+import { saveResume, clearResume } from '@/src/services/resume';
+import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
 import { gameNow } from '@/src/services/gamePause';
 import {
@@ -483,22 +484,12 @@ export default function FractalSudokuScreen() {
   };
 
   // Поднять незаконченную партию при входе на экран — разово.
-  const bootRef = useRef(false);
-  useEffect(() => {
-    if (bootRef.current) return;
-    const pid = profile?.id;
-    if (!pid) return;
-    bootRef.current = true;
-    let cancelled = false;
-    loadResume<FractalResume>(GAME_ID, pid, RESUME_V)
-      .then((saved) => {
-        if (cancelled || !saved?.puzzle?.children || saved.puzzle.children.length !== 9) return;
-        if (!saved.play?.rootGrid?.length || saved.play.children?.length !== 9) return;
-        applyResume(saved);
-      })
-      .catch(() => { /* нет партии — обычный вход через конфиг */ });
-    return () => { cancelled = true; };
-  }, [profile?.id]);   // eslint-disable-line react-hooks/exhaustive-deps -- разовый подъём партии
+  // Фрактал в зарядку не попадает — своего пути `autostart` у него нет.
+  useResumeBoot<FractalResume>(GAME_ID, RESUME_V, (saved) => {
+    if (!saved?.puzzle?.children || saved.puzzle.children.length !== 9) return;
+    if (!saved.play?.rootGrid?.length || saved.play.children?.length !== 9) return;
+    applyResume(saved);
+  }, false);
 
   const liveGame = phase !== 'config' && phase !== 'result' && !!puzzle;
 
