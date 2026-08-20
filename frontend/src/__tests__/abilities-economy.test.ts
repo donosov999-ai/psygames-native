@@ -44,6 +44,7 @@ import {
 } from '@/src/services/abilities';
 import { COSMETICS } from '@/src/services/cosmetics';
 import { MULTIPLIER } from '@/src/services/earn';
+import * as tokensModule from '@/src/services/tokens';
 import {
   TOKEN_DELTA_CAP,
   addTokens,
@@ -257,6 +258,24 @@ describe('способности: кошелёк', () => {
     expect(over.reason).toBe('full');
     expect(await getTokens(pid)).toBe(balance);
     expect(await getAbilityCount(pid, 'streak_shield')).toBe(a.max);
+  });
+
+  /**
+   * 🔴 НАЙДЕНО ПОЛОМКОЙ ГЕЙТА. Первая версия этой проверки ловила только «денег не
+   * хватило» — а между «хватило по балансу» и «списание прошло» есть зазор: очки
+   * могут уйти на косметику, пока покупка способности в полёте. С вырезанным
+   * отказом по `!paid` штука выдавалась даром, и гейт оставался зелёным.
+   */
+  it('списание не прошло — штуки не появляется и деньги на месте', async () => {
+    const pid = 'wallet-payfail';
+    await addTokens(pid, 1000);
+    const before = await getTokens(pid);
+    const spy = jest.spyOn(tokensModule, 'spendTokens').mockResolvedValue(false);
+    const r = await buyAbility(pid, 'second_life');
+    spy.mockRestore();
+    expect(r.ok).toBe(false);
+    expect(await getAbilityCount(pid, 'second_life')).toBe(0);
+    expect(await getTokens(pid)).toBe(before);
   });
 
   it('несуществующая способность не продаётся и не тратится', async () => {
