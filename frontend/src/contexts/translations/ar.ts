@@ -1924,6 +1924,13 @@ const t: Record<string, string> = {
   "sudokuSandwichClueZero": "الصفر ليس مجموعًا: لا توجد هنا خانة بين 1 و9، فهما متجاوران.",
   "sudokuColorWhy": "اللون لا يحل شيئًا، إنه علامتك الخاصة: لوّن الخانات التي ترى بينها صلة.",
   "sudokuUndoWhy": "التراجع يعيد الخانة كما كانت: الرقم الذي كتبته فوق غيره والملاحظات التي أخفاها. أما الخطأ المستهلك فلا يُعاد.",
+  "voiceLevelLabel": "مستوى الميكروفون",
+  "voiceLevelHearing": "نسمعك",
+  "voiceLevelSilence": "صمت — الميكروفون لا يعطي صوتًا",
+  "voiceCeilingReached": "توقّف التسجيل من تلقاء نفسه — بلغ الحدّ الأقصى للمدة. أرسله كما هو أو سجّل واحدًا جديدًا.",
+  "voiceSilentTitle": "لا نسمعك",
+  "voiceSendAnyway": "أرسل على أي حال",
+  "voiceWriteInstead": "سأكتبها بدلًا من ذلك",
   // >>> SCREEN_STRINGS
 };
 export default t;

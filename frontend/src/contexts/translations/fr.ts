@@ -1923,6 +1923,13 @@ const t: Record<string, string> = {
   "sudokuSandwichClueZero": "Un zéro n’est pas une somme : ici aucune case ne se trouve entre le 1 et le 9, ils sont côte à côte.",
   "sudokuColorWhy": "La couleur ne résout rien : c’est ta propre marque ; colore les cases entre lesquelles tu vois un lien.",
   "sudokuUndoWhy": "Annuler remet la case comme elle était : le chiffre écrasé et les notes qu’il masquait. Une erreur déjà comptée n’est pas rendue.",
+  "voiceLevelLabel": "Niveau du micro",
+  "voiceLevelHearing": "On t’entend",
+  "voiceLevelSilence": "Silence — le micro ne donne aucun son",
+  "voiceCeilingReached": "L’enregistrement s’est arrêté tout seul : limite de durée atteinte. Envoie-le tel quel ou refais-en un.",
+  "voiceSilentTitle": "On ne t’entend pas",
+  "voiceSendAnyway": "Envoyer quand même",
+  "voiceWriteInstead": "Je vais l’écrire",
   // >>> SCREEN_STRINGS
 };
 export default t;
