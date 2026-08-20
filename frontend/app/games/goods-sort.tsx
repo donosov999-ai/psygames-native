@@ -142,10 +142,12 @@ const GOOD_SPRITES = [
  * суть набора (см. разбор ниже).
  */
 const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: number[]; preview: number[]; alike?: true }[] = [
-  { key: 'drinks', ru: 'Напитки', en: 'Drinks', icon: 'wine', pool: [0, 1, 4, 12, 13, 2, 5, 3],
-    preview: [0, 4, 13, 1, 12, 5] },                       // кола · сок · коктейль · лимонад · виноград · йогурт
+  { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
+    preview: [0, 9, 14, 23, 6, 21] },                      // по одному из каждой темы: напиток · еда · игрушка · молочка · фрукт · игрушка
   { key: 'food', ru: 'Еда', en: 'Food', icon: 'fast-food', pool: [6, 7, 8, 9, 10, 11],
     preview: [6, 9, 10, 7, 8, 11] },                       // банан · чипсы · хлеб · яблоко · шоколад · паста
+  { key: 'drinks', ru: 'Напитки', en: 'Drinks', icon: 'wine', pool: [0, 1, 4, 12, 13, 2, 5, 3],
+    preview: [0, 4, 13, 1, 12, 5] },                       // кола · сок · коктейль · лимонад · виноград · йогурт
   { key: 'toys', ru: 'Игрушки', en: 'Toys', icon: 'happy', pool: [14, 15, 16, 17, 18, 19, 20, 21, 22],
     preview: [14, 15, 21, 17, 18, 22] },                   // мишка · кактус · пингвин · зайка · цыплёнок · лиса
   /**
@@ -161,9 +163,77 @@ const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: number[
    */
   { key: 'dairy', ru: 'Молочное', en: 'Dairy', icon: 'water', pool: [23, 24, 25, 26, 27, 28, 29, 30, 31],
     preview: [23, 24, 25, 26, 27, 28], alike: true },      // витрина ЧЕСТНО пугает: шесть почти одинаковых бутылок
-  { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
-    preview: [0, 9, 14, 23, 6, 21] },                      // по одному из каждой темы: напиток · еда · игрушка · молочка · фрукт · игрушка
 ];
+
+/* ───────────────── когда набор ОТКРЫВАЕТСЯ (вывод, а не назначение) ─────────────────
+ *
+ * Решение Дениса 20.08.2026: наборы открываются по прогрессу. Порог не назначен
+ * вкусом — он ВЫВЕДЕН из замера самой игры.
+ *
+ * ЗАМЕР. Число видов товара в партии считается как
+ *     types = min(размер пула, потолок доски, typeBudget(L))
+ * то есть пул упирается в игру только тогда, когда бюджет уровня его перерастёт.
+ * До этого набор из шести видов и набор из тридцати двух дают на доске ОДНО И ТО
+ * ЖЕ число видов — они механически неразличимы, разница только в картинках.
+ *
+ * Отсюда порог: набор открывается на первом уровне, где его пул начинает
+ * упираться, — `poolBitesAt(размер пула)`:
+ *     «Еда» (6 видов) → уровень 6 · «Напитки» (8) → 10 · «Игрушки» и
+ *     «Молочное» (9) → 12.
+ * Самый широкий набор («Микс», 32) не упирается никогда: он и ЕСТЬ «сколько
+ * уровень позволит», точка отсчёта для всех остальных. Поэтому он открыт с
+ * первого уровня — иначе играть было бы нечем.
+ *
+ * ⚠️ Порог НЕ хранится в наборе числом. Поменяется пул — порог переедет сам,
+ * и это ровно то свойство, которое держит гейт: связь «пул → уровень» нельзя
+ * разорвать, не уронив проверку.
+ *
+ * ПОРЯДОК КАРТОЧЕК — по возрастанию порога: открытое сверху, замки ниже.
+ */
+
+/**
+ * Сколько видов товара позволяет уровень. Единственное место, где живёт это
+ * число: по нему считается и раздача (`levelCfg`), и порог открытия набора.
+ * Разъедутся — порог перестанет совпадать с тем, где набор правда меняется.
+ */
+export function typeBudget(L: number): number { return 4 + Math.floor(L / 2); }
+
+/** Первый уровень, на котором пул из `poolSize` видов начинает УПИРАТЬСЯ в игру. */
+export function poolBitesAt(poolSize: number): number {
+  for (let L = 1; L <= 1000; L++) if (typeBudget(L) > poolSize) return L;
+  return 1000;
+}
+
+/** Самый широкий пул — он и есть «сколько уровень позволит». */
+export const WIDEST_POOL = Math.max(...GOOD_SETS.map((s) => s.pool.length));
+
+/** Ключи наборов В ПОРЯДКЕ ПОКАЗА — по возрастанию порога открытия. */
+export const GOOD_SETS_KEYS: string[] = GOOD_SETS.map((s) => s.key);
+
+/** Сколько видов товара в наборе. Из этого числа и выводится его порог. */
+export const GOOD_SET_POOL_SIZE = (key: string): number =>
+  GOOD_SETS.find((s) => s.key === key)?.pool.length ?? 0;
+
+/** С какого уровня набор открыт. Самый широкий — с первого: он точка отсчёта. */
+export function setUnlockLevel(key: string): number {
+  const s = GOOD_SETS.find((x) => x.key === key);
+  if (!s) return 1;
+  return s.pool.length >= WIDEST_POOL ? 1 : poolBitesAt(s.pool.length);
+}
+
+/**
+ * Можно ли ВЫБРАТЬ набор. `reached` — достигнутый потолок (`lvl.best`), а не
+ * уровень, на котором играют: переигровка лёгкого уровня не имеет права отбирать
+ * наборы, заработанные выше.
+ *
+ * 🔴 `granted` — набор УЖЕ НАЧАТОЙ партии. Поднятый склад продолжается своим
+ * набором, даже если по нынешнему уровню тот ещё не открыт (партию сохранили на
+ * двенадцатом, три провала опустили потолок до одиннадцатого — отбирать начатое
+ * нельзя). Ровно поэтому подъём партии про открытость вообще не спрашивает.
+ */
+export function setAvailable(key: string, reached: number, granted?: string | null): boolean {
+  return key === granted || reached >= setUnlockLevel(key);
+}
 
 /* ───────────────── раскладка выбора набора (чистая арифметика) ─────────────────
  *
@@ -1025,7 +1095,9 @@ export function levelCfg(L: number, poolSize: number, narrow = false) {
   // иначе фигура с дырками получит столько же товаров, сколько полный прямоугольник.
   const slots = mask.filter(Boolean).length;
   const typeCeiling = slots - 2 - obstaclePlan(L).blocked - obstaclePlan(L).locked;                                 // ≥2 пустых ячейки → всегда решаемо
-  const types = Math.min(poolSize, typeCeiling, 4 + Math.floor(L / 2));   // 4 → растёт, выше 7 на больших досках
+  const types = Math.min(poolSize, typeCeiling, typeBudget(L));   // 4 → растёт, выше 7 на больших досках
+  // ⚠️ `typeBudget` — то же число, по которому считается порог открытия набора
+  // (см. poolBitesAt). Развести их значит открыть набор не там, где он меняется.
   // ⚠️ ПУСТЫЕ ЯЧЕЙКИ — ДОЛЕЙ ДОСКИ, А НЕ АБСОЛЮТНЫМ ЧИСЛОМ.
   // Было `6 - ...`: на поле 3×3 это оставляло шесть свободных из девяти — занято три
   // ячейки, две трети поля пустуют, и первый уровень решался без единой мысли.
@@ -1465,7 +1537,19 @@ export default function GoodsSortGame() {
   const chainNext = shouldChainNextLevel(useGameMode());
   const lvl = usePersistentLevel('goods_sort');   // персист достигнутого уровня (раньше сбрасывался на 1)
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
-  const [setKey, setSetKey] = useState('drinks');
+  /**
+   * Набор по умолчанию — ПЕРВЫЙ в списке, и он же самый широкий: только он
+   * открыт с первого уровня (см. setUnlockLevel). Ставить сюда тематический
+   * набор нельзя — на первом уровне он закрыт, и человек упёрся бы в замок,
+   * который сам себе и выбрал.
+   */
+  const [setKey, setSetKey] = useState(GOOD_SETS[0].key);
+  /**
+   * Набор поднятой партии. Его не отбирают: пока идёт начатое, карточка своего
+   * набора остаётся выбранной и живой, даже если по нынешнему потолку она уже
+   * закрыта.
+   */
+  const [grantedSet, setGrantedSet] = useState<string | null>(null);
   const poolRef = useRef<number[]>(GOOD_SETS[0].pool);
   useEffect(() => { poolRef.current = (GOOD_SETS.find((s) => s.key === setKey) || GOOD_SETS[0]).pool; }, [setKey]);
 
@@ -1772,6 +1856,8 @@ export default function GoodsSortGame() {
   const applyResume = (r: GoodsRestored) => {
     resumedRef.current = true;
     setSetKey(r.setKey);
+    // 🔴 Про открытость здесь НЕ спрашиваем — начатую партию не отбирают.
+    setGrantedSet(r.setKey);
     // Пул ставим сразу, не дожидаясь эффекта на setKey: по нему считается
     // следующий уровень, а эффект приедет только в следующем рендере.
     poolRef.current = (GOOD_SETS.find((s) => s.key === r.setKey) || GOOD_SETS[0]).pool;
@@ -2633,6 +2719,15 @@ export default function GoodsSortGame() {
     );
   };
 
+  /**
+   * ПО КАКОМУ УРОВНЮ СЧИТАТЬ ОТКРЫТОЕ. Берём ДОСТИГНУТЫЙ потолок (`lvl.best`),
+   * а не тот, на котором сейчас играют: `lvl.level` отдаёт выбранный на тропинке
+   * уровень, и переигровка третьего после честной двенадцатки отобрала бы все
+   * наборы разом. Второго счётчика прогресса тут нет и не заводится — только
+   * usePersistentLevel('goods_sort'), тот же, что двигает саму игру.
+   */
+  const reachedLevel = Math.max(lvl.best, level);
+
   const renderConfig = () => (
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
@@ -2655,23 +2750,35 @@ export default function GoodsSortGame() {
             {row.map((s, ci) => {
               if (!s) return <View key={`gap${ci}`} pointerEvents="none" style={[styles.setBtn, styles.setBtnGhost]} />;
               const on = setKey === s.key;
+              const open = setAvailable(s.key, reachedLevel, grantedSet);
+              const when = t('goodsSetFromLevel').replace('{n}', String(setUnlockLevel(s.key)));
               const sub = `🛒 ${s.pool.length}${s.alike ? ` · ${t('goodsSetAlike')}` : ''}`;
               return (
                 <TouchableOpacity
-                  accessibilityRole="button" accessibilityState={{ selected: on }}
-                  accessibilityLabel={`${t('goodsSet_' + s.key)} — ${sub}`}
+                  accessibilityRole="button" accessibilityState={{ selected: on, disabled: !open }}
+                  accessibilityLabel={`${t('goodsSet_' + s.key)} — ${sub}${open ? '' : ` · ${when}`}`}
+                  disabled={!open}
                   key={s.key} activeOpacity={0.85} onPress={() => { setSetKey(s.key); hapticTap(); }}
                   style={[styles.setBtn, { borderColor: on ? GRADIENT[0] : colors.border, backgroundColor: on ? '#fff7e0' : colors.card }]}>
                   <View style={styles.setPreview}>
                     {s.preview.slice(0, THUMBS_PER_CARD).map((p) => (
-                      <View key={p} style={styles.setThumb}><GoodIcon type={p} width="100%" height="100%" /></View>
+                      <View key={p} style={[styles.setThumb, open ? null : styles.setThumbLocked]}><GoodIcon type={p} width="100%" height="100%" /></View>
                     ))}
                   </View>
                   <View style={styles.setNameRow}>
-                    <Ionicons name={s.icon} size={15} color={on ? '#d97706' : colors.textSecondary} />
+                    <Ionicons name={open ? s.icon : 'lock-closed'} size={15} color={on ? '#d97706' : colors.textSecondary} />
                     <Text style={[styles.setBtnText, { color: on ? '#92600a' : colors.textSecondary }]}>{t('goodsSet_' + s.key)}</Text>
                   </View>
                   <Text style={[styles.setBtnSub, { color: on ? '#a97a1f' : colors.textSecondary }]}>{sub}</Text>
+                  {/*
+                    🔴 ЗАКРЫТАЯ КАРТОЧКА ГОВОРИТ СРОК, А НЕ ПРОСТО СЕРЕЕТ. Что
+                    откроется — видно по витрине, имени и числу видов (строка
+                    выше, она остаётся у всех). Когда — вот эта строка. Обещание
+                    без срока раздражает сильнее, чем отсутствие набора.
+                  */}
+                  {!open && (
+                    <Text style={[styles.setBtnWhen, { color: colors.textSecondary }]}>{when}</Text>
+                  )}
                 </TouchableOpacity>
               );
             })}
@@ -2983,9 +3090,16 @@ const styles = StyleSheet.create({
   setNameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   setBtnText: { fontSize: 13, fontWeight: '700' },
   setBtnSub: { fontSize: 11, fontWeight: '600' },
+  /** Срок открытия закрытого набора — строка обязана быть читаемой, а не «серой». */
+  setBtnWhen: { fontSize: 11, fontWeight: '700' },
   setPreview: { flexDirection: 'row', gap: 4, alignSelf: 'stretch' },
   /** Ширину даёт flex, высоту — пропорция игрового товара. Пикселей здесь нет. */
   setThumb: { flex: 1, aspectRatio: GOOD_ONBOARD_W / GOOD_ONBOARD_H, minHeight: GOOD_ONBOARD_H },
+  /**
+   * Витрина закрытого набора приглушена, но НЕ спрятана: человек обязан видеть,
+   * ЧТО ему откроется. Размер миниатюры тот же — иначе карточки в ряду поедут.
+   */
+  setThumbLocked: { opacity: 0.45 },
   fieldCol: { flex: 1, alignSelf: 'stretch', justifyContent: 'center', gap: 8, alignItems: 'center' },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   hintText: { fontSize: 12, textAlign: 'center' },

@@ -760,6 +760,7 @@ const t: Record<string, string> = {
   "goodsSet_dairy": "乳製品",
   "goodsSet_mix": "ミックス",
   "goodsSetAlike": "そっくり",
+  "goodsSetFromLevel": "レベル{n}から",
   "tooManyMoves": "🔁 手数が多すぎ",
   "mnemMemorizeWords": "{n}個の単語を暗記",
   "mnemMemorizeNumbers": "{n}個の数字を暗記",

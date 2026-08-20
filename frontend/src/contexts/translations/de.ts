@@ -1342,6 +1342,7 @@ const t: Record<string, string> = {
   "goodsSet_dairy": "Milchprodukte",
   "goodsSet_mix": "Mix",
   "goodsSetAlike": "ähnlich",
+  "goodsSetFromLevel": "ab Level {n}",
   "tooManyMoves": "🔁 Zu viele Züge",
   "mnemMemorizeWords": "Präge dir {n} Wörter ein",
   "mnemMemorizeNumbers": "Präge dir {n} Zahlen ein",
