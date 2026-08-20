@@ -1341,6 +1341,7 @@ const t: Record<string, string> = {
   "goodsSet_toys": "Brinquedos",
   "goodsSet_dairy": "Laticínios",
   "goodsSet_mix": "Mix",
+  "goodsSetAlike": "parecidos",
   "tooManyMoves": "🔁 Movimentos demais",
   "mnemMemorizeWords": "Memorize {n} palavras",
   "mnemMemorizeNumbers": "Memorize {n} números",
@@ -1921,6 +1922,12 @@ const t: Record<string, string> = {
   "abilityPracticeOn": "Ativado: esta partida não conta",
   "abilityPracticeNote": "Sem pontos, sem nível, sem estatísticas",
   "abilityPracticeSpent": "Rodada de teste — esta partida não foi registrada em lugar nenhum",
+  "sudokuSandwichZeroNote": "Um zero na borda significa que não há nenhuma casa entre o 1 e o 9: eles ficam lado a lado.",
+  "sudokuSandwichClueRow": "{n} ao lado da linha: é a soma dos dígitos que ficam entre o 1 e o 9 dessa linha.",
+  "sudokuSandwichClueCol": "{n} acima da coluna: é a soma dos dígitos que ficam entre o 1 e o 9 dessa coluna.",
+  "sudokuSandwichClueZero": "Um zero não é uma soma: aqui não há nenhuma casa entre o 1 e o 9, eles ficam lado a lado.",
+  "sudokuColorWhy": "A cor não resolve nada: é a sua própria marca; pinte as casas entre as quais você vê uma ligação.",
+  "sudokuUndoWhy": "Desfazer devolve a casa como estava: o dígito sobrescrito e as anotações que ele escondeu. O erro gasto não volta.",
   // >>> SCREEN_STRINGS
 };
 export default t;

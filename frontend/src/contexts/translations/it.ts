@@ -1458,6 +1458,7 @@ const t: Record<string, string> = {
   "goodsSet_toys": "Giocattoli",
   "goodsSet_dairy": "Latticini",
   "goodsSet_mix": "Mix",
+  "goodsSetAlike": "simili",
   "tooManyMoves": "🔁 Troppe mosse",
   "mnemMemorizeWords": "Memorizza {n} parole",
   "mnemMemorizeNumbers": "Memorizza {n} numeri",
@@ -1916,6 +1917,12 @@ const t: Record<string, string> = {
   "abilityPracticeOn": "Attivo: questa partita non conta",
   "abilityPracticeNote": "Né punti, né livello, né statistiche",
   "abilityPracticeSpent": "Prova libera: questa partita non è stata registrata da nessuna parte",
+  "sudokuSandwichZeroNote": "Uno zero al bordo significa che tra l’1 e il 9 non c’è nessuna casella: sono affiancati.",
+  "sudokuSandwichClueRow": "{n} accanto alla riga: è la somma delle cifre che stanno tra l’1 e il 9 di quella riga.",
+  "sudokuSandwichClueCol": "{n} sopra la colonna: è la somma delle cifre che stanno tra l’1 e il 9 di quella colonna.",
+  "sudokuSandwichClueZero": "Uno zero non è una somma: qui tra l’1 e il 9 non c’è nessuna casella, sono affiancati.",
+  "sudokuColorWhy": "Il colore non risolve nulla: è un tuo segno; colora le caselle tra cui vedi un legame.",
+  "sudokuUndoWhy": "Annulla riporta la casella com’era: la cifra sovrascritta e gli appunti che aveva nascosto. L’errore speso non torna indietro.",
   // >>> SCREEN_STRINGS
 };
 export default t;

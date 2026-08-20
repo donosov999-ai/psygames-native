@@ -759,6 +759,7 @@ const t: Record<string, string> = {
   "goodsSet_toys": "おもちゃ",
   "goodsSet_dairy": "乳製品",
   "goodsSet_mix": "ミックス",
+  "goodsSetAlike": "そっくり",
   "tooManyMoves": "🔁 手数が多すぎ",
   "mnemMemorizeWords": "{n}個の単語を暗記",
   "mnemMemorizeNumbers": "{n}個の数字を暗記",
@@ -1915,6 +1916,12 @@ const t: Record<string, string> = {
   "abilityPracticeOn": "オン：この局は記録されません",
   "abilityPracticeNote": "ポイントもレベルも統計も動きません",
   "abilityPracticeSpent": "お試しプレイ：この局はどこにも記録されていません",
+  "sudokuSandwichZeroNote": "端の 0 は、1 と 9 の間にマスが 1 つもない（隣り合っている）という意味です。",
+  "sudokuSandwichClueRow": "行の横の {n} は、その行で 1 と 9 の間にある数字の合計です。",
+  "sudokuSandwichClueCol": "列の上の {n} は、その列で 1 と 9 の間にある数字の合計です。",
+  "sudokuSandwichClueZero": "0 は合計ではありません。ここでは 1 と 9 の間にマスがなく、隣り合っています。",
+  "sudokuColorWhy": "色は答えを出しません。自分用の目印です — つながりが見えたマスを塗ってください。",
+  "sudokuUndoWhy": "取り消すとマスは元に戻ります。上書きした数字も、隠れていたメモも戻ります。使ったミスは戻りません。",
   // >>> SCREEN_STRINGS
 };
 export default t;

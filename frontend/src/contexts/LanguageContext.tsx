@@ -2047,6 +2047,14 @@ const translations: Translations = {
   sudokuEx_thermocage: { ru: 'Пример: термометр 2 → 4 → 7 растёт от колбы, а группа с меткой «9» из двух клеток даёт 9 разными цифрами (4 и 5). Клетка может быть и на термометре, и в группе — тогда работают оба правила сразу, и именно это сужает выбор до одной цифры.', en: 'Example: a thermometer runs 2 → 4 → 7 from the bulb, while a 2-cell cage marked “9” holds two different digits summing to 9 (4 and 5). A cell can sit on a thermometer and inside a cage at once — then both rules apply together, and that is what narrows it to a single digit.' },
   sudokuEx_jigsaw: { ru: 'Вместо квадратных блоков — фигурные области. В каждой области цифры 1–9 без повторов.', en: 'Instead of square boxes — irregular regions. Each region holds 1–9 with no repeats.' },
   sudokuEx_killer: { ru: 'Пример: рамка из 2 клеток с меткой «7» — цифры в ней дают в сумме 7 и не повторяются (например 3 и 4).', en: 'Example: a 2-cell cage marked “7” — its digits sum to 7 and don’t repeat (e.g. 3 and 4).' },
+  // Судоку — строка-объяснение над доской (services/sudoku-board-hint).
+  // Отвечает там, где спрашивают: на доске, а не в окне правил, которое уже закрыли.
+  sudokuSandwichZeroNote: { ru: 'Ноль у края — между 1 и 9 нет ни одной клетки: они стоят вплотную.', en: 'A zero at the edge means no cell sits between the 1 and the 9 — they are adjacent.' },
+  sudokuSandwichClueRow: { ru: '{n} у края строки — столько в сумме дают цифры, стоящие между 1 и 9 в этой строке.', en: '{n} beside the row — that is the sum of the digits sitting between the 1 and the 9 in this row.' },
+  sudokuSandwichClueCol: { ru: '{n} над столбцом — столько в сумме дают цифры, стоящие между 1 и 9 в этом столбце.', en: '{n} above the column — that is the sum of the digits sitting between the 1 and the 9 in this column.' },
+  sudokuSandwichClueZero: { ru: 'Ноль — это не сумма: между 1 и 9 здесь нет ни одной клетки, они стоят вплотную.', en: 'A zero is not a sum: no cell sits between the 1 and the 9 here — they are adjacent.' },
+  sudokuColorWhy: { ru: 'Цвет ничего не решает — это твоя пометка: помечай клетки, между которыми видишь связь.', en: 'Color decides nothing — it is your own marker: tint the cells you see a link between.' },
+  sudokuUndoWhy: { ru: 'Отмена возвращает клетку как было: и перезаписанную цифру, и погашенные ею пометки. Потраченную ошибку не вернёт.', en: 'Undo puts the cell back as it was: the digit you typed over and the marks it hid. It does not give back a spent mistake.' },
   ctaGotIt: { ru: 'ПОНЯТНО', en: 'GOT IT' },
 
   // Судоку-самурай
@@ -2226,6 +2234,9 @@ const translations: Translations = {
   goodsSet_toys: { ru: 'Игрушки', en: 'Toys' },
   goodsSet_dairy: { ru: 'Молочное', en: 'Dairy' },
   goodsSet_mix: { ru: 'Микс', en: 'Mix' },
+  // Пометка на «Молочном»: набор намеренно собран из неразличимых бутылок, и
+  // человек имеет право узнать это ДО старта, а не на третьем уровне.
+  goodsSetAlike: { ru: 'похожи', en: 'look-alike' },
   tooManyMoves: { ru: '🔁 Слишком много ходов', en: '🔁 Too many moves' },
 
   // Мнемоника / матрица памяти / n-back / анаграммы

@@ -1458,6 +1458,7 @@ const t: Record<string, string> = {
   "goodsSet_toys": "장난감",
   "goodsSet_dairy": "유제품",
   "goodsSet_mix": "믹스",
+  "goodsSetAlike": "비슷함",
   "tooManyMoves": "🔁 이동이 너무 많아요",
   "mnemMemorizeWords": "단어 {n}개를 외우세요",
   "mnemMemorizeNumbers": "숫자 {n}개를 외우세요",
@@ -1916,6 +1917,12 @@ const t: Record<string, string> = {
   "abilityPracticeOn": "켜짐: 이 판은 집계되지 않습니다",
   "abilityPracticeNote": "점수도 레벨도 통계도 없습니다",
   "abilityPracticeSpent": "연습 시도 — 이 판은 어디에도 기록되지 않았습니다",
+  "sudokuSandwichZeroNote": "가장자리의 0은 1과 9 사이에 칸이 하나도 없다는 뜻입니다 — 둘이 붙어 있습니다.",
+  "sudokuSandwichClueRow": "행 옆의 {n} — 그 행에서 1과 9 사이에 있는 숫자들의 합입니다.",
+  "sudokuSandwichClueCol": "열 위의 {n} — 그 열에서 1과 9 사이에 있는 숫자들의 합입니다.",
+  "sudokuSandwichClueZero": "0은 합이 아닙니다: 여기서는 1과 9 사이에 칸이 없고 둘이 붙어 있습니다.",
+  "sudokuColorWhy": "색은 아무것도 풀어 주지 않습니다. 내가 남기는 표시입니다 — 연결이 보이는 칸을 칠하세요.",
+  "sudokuUndoWhy": "실행 취소는 칸을 원래대로 되돌립니다: 덮어쓴 숫자도, 가려졌던 메모도. 이미 쓴 실수는 돌려주지 않습니다.",
   // >>> SCREEN_STRINGS
 };
 export default t;
