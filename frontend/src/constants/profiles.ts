@@ -14,7 +14,7 @@
  */
 
 import { Platform } from 'react-native';
-import { GAMES } from '@/src/constants/games';
+import { GAMES, isHubGame } from '@/src/constants/games';
 import type { PlaylistStep, Weekday } from '@/src/services/warmup';
 import { freshGameIds, freshEntries } from '@/src/constants/freshGames';
 
@@ -94,7 +94,17 @@ export interface ProfileDef {
 
 // v1.154 (аудит): публичное число игр — ВЫЧИСЛЯЕМОЕ из каталога, а не «48»
 // хардкодом (реально в каталоге больше, число дрейфовало). Единый источник.
-export const PUBLIC_GAME_COUNT = GAMES.length;
+//
+// ⚠️ РАЗВИЛКИ НЕ СЧИТАЮТСЯ. `GAMES.length` включает три экрана-развилки
+// (охват памяти, конфликт внимания, судоку) — они не упражнения, а выбор из
+// соседних, и содержимое каждой уже посчитано отдельными записями. Считать их
+// значит обещать одно и то же дважды: 20.08.2026 профиль владельца и свитчер
+// говорили «72 тренажёра» при 69 настоящих.
+//
+// Правило то же, что на первом экране приложения (`app/onboarding.tsx`), и
+// теперь оно ОДНО: два разных числа в одном приложении — это не округление,
+// а разные обещания в разных местах.
+export const PUBLIC_GAME_COUNT = GAMES.filter((g) => !isHubGame(g.id)).length;
 
 // ─── 🛠 ODV999 — Денис, locked by master code ────────────────────────────
 // Все игры разблокированы. Master code = тот же что для NZT staticrypt.
