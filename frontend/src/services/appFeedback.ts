@@ -17,12 +17,61 @@
  */
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getSupabase, supabaseNetInfo } from '@/src/services/supabase';
+import { getSupabase, supabaseNetInfo, altSupabase, altBaseName } from '@/src/services/supabase';
 
 /** Каким адресом доехал этот репорт — см. пояснение в месте использования. */
 function netTrace(): { net_base: string; net_how: string } {
   const n = supabaseNetInfo();
   return { net_base: n.base, net_how: n.how };
+}
+
+/**
+ * ПОВТОРЯТЬ ЛИ ЗАЛИВКУ ФАЙЛА ВТОРЫМ АДРЕСОМ.
+ *
+ * 🔴 ЗАЧЕМ ВООБЩЕ ПОВТОР. 20.08.2026 у тестировщицы строка репорта прошла ЧЕРЕЗ
+ * РЕЛЕЙ, а заливка голосовой заметки — 15 299 байт живой речи, у немых записей
+ * поток 235 байт/с — упала с `Failed to fetch`; скриншот тем же. Попытка была
+ * одна: сеть моргнула — рассказ о проблеме потерян навсегда, а человек увидел
+ * «спасибо».
+ *
+ * Проверено вручную, прежде чем чинить: релей проносит заливку 15 КБ так же, как
+ * прямой адрес (оба 200), предполётный запрос на обоих одинаков, ограничения
+ * тела на релее нет. Значит виноват не адрес, а единственность попытки.
+ *
+ * ⚠️ ПОВТОРЯЕМ НЕ ВСЁ ПОДРЯД. Отказ по существу — файл с таким именем уже есть,
+ * нет бакета, не хватает прав, файл больше потолка — вторым адресом не лечится:
+ * повтор только съест время человека, который ждёт отправки. Повторяем ровно
+ * сетевые исходы.
+ */
+export function shouldRetryUpload(outcome: string): boolean {
+  if (outcome === 'ok' || outcome.startsWith('ok')) return false;
+  return /Failed to fetch|NetworkError|network|timeout|aborted|ECONN|TypeError/i.test(outcome);
+}
+
+/**
+ * Заливка с одной повторной попыткой другим адресом. Исход второй попытки
+ * уезжает в репорт вместе с именем адреса — иначе мы снова будем гадать,
+ * помогла она или нет.
+ */
+export async function uploadWithRetry(
+  attempt: (client: any) => Promise<string>,
+  first: any,
+  alt: () => any,
+  altName: string,
+): Promise<string> {
+  let out: string;
+  try {
+    out = await attempt(first);
+  } catch (e: any) {
+    out = `threw:${String(e?.message ?? e).slice(0, 120)}`;
+  }
+  if (!shouldRetryUpload(out)) return out;
+  try {
+    const second = await attempt(alt());
+    return second === 'ok' ? `ok-${altName}` : `${out} → ${altName}:${second}`;
+  } catch (e: any) {
+    return `${out} → ${altName}:threw:${String(e?.message ?? e).slice(0, 60)}`;
+  }
 }
 
 export type FeedbackKind = 'bug' | 'idea' | 'confusion' | 'other';
@@ -244,23 +293,26 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
       app_version = (Constants.expoConfig?.version || '').slice(0, 32) || null;
     } catch {}
 
+    const putFile = (
+      bucket: string, name: string, blob: Blob, contentType: string, capMs: number,
+    ): Promise<string> => uploadWithRetry(
+      (client) => withTimeout<string>(
+        client.storage.from(bucket)
+          .upload(name, blob, { contentType, upsert: false })
+          .then(({ error }: any) => (error ? `err:${String(error?.message ?? error).slice(0, 120)}` : 'ok')),
+        uploadMs(blob.size, capMs), 'timeout',
+      ),
+      supabase, altSupabase, altBaseName(),
+    );
+
     // 1) Скриншот в приватный бакет (если снялся). Ошибка загрузки не отменяет фидбек.
     let shot_path: string | null = null;
     let shot_up: string | null = null;
     const shot_bytes = args.shot ? args.shot.size : null;
     if (args.shot) {
-      try {
-        const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.jpg`;
-        shot_up = await withTimeout<string>(
-          supabase.storage.from(SHOT_BUCKET)
-            .upload(name, args.shot, { contentType: 'image/jpeg', upsert: false })
-            .then(({ error }: any) => (error ? `err:${String(error?.message ?? error).slice(0, 120)}` : 'ok')),
-          uploadMs(args.shot.size, SHOT_CAP_MS), 'timeout',
-        );
-        if (shot_up === 'ok') shot_path = name;
-      } catch (e: any) {
-        shot_up = `threw:${String(e?.message ?? e).slice(0, 120)}`;
-      }
+      const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.jpg`;
+      shot_up = await putFile(SHOT_BUCKET, name, args.shot, 'image/jpeg', SHOT_CAP_MS);
+      if (shot_up.startsWith('ok')) shot_path = name;
     }
 
     // 1b) Голосовая заметка — тем же правилом: не загрузилась, репорт всё равно
@@ -290,13 +342,8 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
           audio_up = 'too_big';
         } else {
           const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.${extFor(args.audio.mime)}`;
-          audio_up = await withTimeout<string>(
-            supabase.storage.from(AUDIO_BUCKET)
-              .upload(name, args.audio.blob, { contentType: args.audio.mime, upsert: false })
-              .then(({ error }: any) => (error ? `err:${String(error?.message ?? error).slice(0, 120)}` : 'ok')),
-            uploadMs(args.audio.blob.size, AUDIO_CAP_MS), 'timeout',
-          );
-          if (audio_up === 'ok') audio_path = name;
+          audio_up = await putFile(AUDIO_BUCKET, name, args.audio.blob, args.audio.mime, AUDIO_CAP_MS);
+          if (audio_up.startsWith('ok')) audio_path = name;
         }
       } catch (e: any) {
         audio_up = `threw:${String(e?.message ?? e).slice(0, 120)}`;
