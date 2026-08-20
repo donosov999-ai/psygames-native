@@ -254,6 +254,20 @@ export default function FriendsScreen() {
           {added?.kind === 'not-found' && (
             <Text style={[styles.note, { color: colors.error }]}>{t('friendsNotFound')}</Text>
           )}
+          {/*
+            ⚠️ СВОЙ КОД И ПОЛНЫЙ КРУГ — ОТДЕЛЬНЫЕ ФРАЗЫ, А НЕ «КОДА НЕТ». Сервер
+            раньше возвращал пусто одинаково во всех случаях, и человек, набравший
+            собственный код, слышал, что кода не существует. Предел круга берём
+            ИЗ ОТВЕТА сервера: число, переписанное сюда руками, разойдётся молча.
+          */}
+          {added?.kind === 'self' && (
+            <Text style={[styles.note, { color: colors.error }]}>{t('friendsSelfCode')}</Text>
+          )}
+          {added?.kind === 'full' && (
+            <Text style={[styles.note, { color: colors.error }]}>
+              {t('friendsCircleFull').replace('{n}', String(added.max))}
+            </Text>
+          )}
           {added?.kind === 'offline' && (
             <Text style={[styles.note, { color: colors.error }]}>{t('friendsAddOffline')}</Text>
           )}

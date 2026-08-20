@@ -1760,7 +1760,11 @@ const translations: Translations = {
   // 🔴 «Кода нет» и «нет связи» — РАЗНЫЕ беды: в первом случае ищут опечатку,
   // во втором ждать нечего. Один текст на оба заставил бы искать опечатку в
   // правильном коде.
-  friendsNotFound: { ru: 'Такого кода нет. Проверьте знаки: их шесть, и похожих друг на друга 0, O, 1, I, L в коде не бывает. Свой собственный код тоже не подойдёт.', en: 'No such code. Check the characters: there are six, and the look-alikes 0, O, 1, I and L never appear in a code. Your own code will not work either.' },
+  friendsNotFound: { ru: 'Такого кода нет. Проверьте знаки: их шесть, и похожих друг на друга 0, O, 1, I, L в коде не бывает.', en: 'No such code. Check the characters: there are six, and the look-alikes 0, O, 1, I and L never appear in a code.' },
+  // ⚠️ Свой код и полный круг РАНЬШЕ говорили «такого кода нет» — сервер возвращал
+  // пусто одинаково во всех случаях. Это была неправда в двух случаях из трёх.
+  friendsSelfCode: { ru: 'Это ваш собственный код — им зовут вас. Дайте его тому, кого приглашаете, а сюда впишите код, который он назовёт вам.', en: 'That is your own code — it is how others invite you. Share it with the person you are inviting, and type the code they give you here.' },
+  friendsCircleFull: { ru: 'В круге уже {n} человек — это предел. Уберите кого-то, чтобы добавить нового.', en: 'Your circle already holds {n} — that is the limit. Remove someone to make room.' },
   friendsAddOffline: { ru: 'Сервер не ответил — код мы даже не проверили. Это не «кода нет»: повторите, когда будет связь.', en: 'The server did not answer — the code was never even checked. This is not “no such code”: try again when you have a connection.' },
   friendsTableTitle: { ru: 'Круг в одной игре', en: 'Your circle in one game' },
   friendsViewOffline: { ru: 'Спросить сервер не вышло. Это не значит, что круг пуст — просто сейчас нет связи.', en: 'We could not ask the server. That does not mean the circle is empty — there is simply no connection now.' },
