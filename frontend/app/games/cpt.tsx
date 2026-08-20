@@ -41,6 +41,7 @@ import BossRound from '@/src/components/BossRound';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { levelOutcome } from '@/src/services/levelOutcome';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
 
@@ -319,17 +320,36 @@ export default function CPTGame() {
     // прохождение уровня: высокая доля hits + мало commission → следующий уровень
     const accuracy = targets.length ? totalHits / targets.length : 0;
     const commissionRate = nonTargets.length ? totalCommissions / nonTargets.length : 0;
-    const passed = accuracy >= 0.7 && commissionRate <= 0.3;
-    if (passed) lvl.reach(levelRef.current + 1);
-    else lvl.fail();   // гистерезис: 3 провала подряд → уровень -1
+    /**
+     * ⚠️ ШАГ ЗАРЯДКИ УРОВЕНЬ НЕ ТРОГАЕТ — ни вверх, ни вниз. `isPreset` здесь доставали
+     * из хука и не использовали нигде, кроме авто-старта: партия из плейлиста двигала
+     * персональный уровень, то есть он менялся не от результата человека, а от того,
+     * попалась ли ему эта игра в наборе.
+     *
+     * «Партия та же» оправданием не работает: доску по `levelParams(lvl.level)` играют и
+     * Симон, и Познер, и стоп-сигнал — вся ближайшая родня по механике, — и все они
+     * уровень в пресете замораживают. Одна CPT была исключением, и это не решение, а
+     * пропуск. Понижение — половина беды похуже: шаг CPT стоит в КОНЦЕ длинной серии,
+     * намеренно на утомлении (см. CPT_STEP в `services/warmup.ts`), поэтому промахи там
+     * системно чаще — три таких набора подряд роняли ступень, взятую на тропинке.
+     *
+     * Фаза идёт в комплекте: с выключенным `passed` баннер уровня сказал бы «почти,
+     * ещё раз» там, где человек ничего не провалил. В пресете — экран итога; на
+     * следующий шаг зарядка уводит сама (таймер в WarmupContext после записи сессии).
+     * Босс отпадает там же: веха висит на подъёме уровня, а его в зарядке нет.
+     */
+    const out = levelOutcome({ isPreset, cleared: accuracy >= 0.7 && commissionRate <= 0.3 });
+    const passed = out.passed;
+    if (out.raiseLevel) lvl.reach(levelRef.current + 1);
+    if (out.lowerLevel) lvl.fail();   // гистерезис: 3 провала подряд → уровень -1
     // непрерывный поток: и проход, и провал → баннер LevelCleared (passed=false = «почти, ещё раз» + рестарт того же уровня), без тупика GameResult
-    if (passed && levelRef.current % BOSS_EVERY === 0) {
+    if (out.raiseLevel && levelRef.current % BOSS_EVERY === 0) {
       // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
       setClearedPassed(true);
       setPhase('boss');
     } else {
       setClearedPassed(passed);
-      setPhase('cleared');
+      setPhase(out.phase);   // личная партия — баннер уровня, шаг зарядки — итог
     }
 
     try {
