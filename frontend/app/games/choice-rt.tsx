@@ -24,7 +24,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -296,7 +296,7 @@ export default function ChoiceRtGame() {
     <TouchableOpacity key={d} accessibilityRole="button"
       accessibilityLabel={t(`a11y${d.charAt(0).toUpperCase()}${d.slice(1)}`)}
       style={[styles.padBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handlePress(d)}>
-      <Ionicons name={ARROW_ICON[d] as any} size={32} color="#FFF" />
+      <Ionicons name={ARROW_ICON[d] as any} size={32} color={textOn(GRADIENT[0])} />
     </TouchableOpacity>
   );
 

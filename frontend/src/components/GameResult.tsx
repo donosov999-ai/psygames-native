@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import GradientSurface from '@/src/components/GradientSurface';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, accentOn, AA_LARGE } from '@/src/services/onGradientText';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -122,7 +122,7 @@ export default function GameResult({
         {shownStars !== undefined && (
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
             {[1, 2, 3].map((i) => (
-              <Ionicons key={i} name={i <= shownStars ? 'star' : 'star-outline'} size={40} color={i <= shownStars ? '#FFD93B' : fgSoft} />
+              <Ionicons key={i} name={i <= shownStars ? 'star' : 'star-outline'} size={40} color={i <= shownStars ? accentOn(onGrad, '#FFD93B', AA_LARGE) : fgSoft} />
             ))}
           </View>
         )}

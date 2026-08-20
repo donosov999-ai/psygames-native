@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, useWindowDimensions, Platform, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import GradientSurface from '@/src/components/GradientSurface';
+import { onGradientText, onGradientTextMuted, innerScrim, accentOn, relativeLuminance } from '@/src/services/onGradientText';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -29,20 +31,6 @@ interface GameCardProps {
   starsInfo?: { completed: number };
 }
 
-/** Перцептивная яркость градиента: светлый → тёмный текст, тёмный → белый.
- *  Фикс читаемости карточек со светлыми градиентами (корректура/анаграммы/счёт/
- *  мишени и т.п.) — особенно заметно на светлых темах профилей. */
-function gradientIsLight(grad: string[]): boolean {
-  const lum = (hex: string) => {
-    const h = (hex || '').replace('#', '');
-    if (h.length < 6) return 0.5;
-    const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
-    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  };
-  const avg = grad.reduce((s, c) => s + lum(c), 0) / Math.max(1, grad.length);
-  return avg > 0.62;
-}
-
 export default function GameCard({
   id, nameKey, descKey, skillKey, gradient, icon, onPress, width, height, starsInfo,
 }: GameCardProps) {
@@ -64,13 +52,29 @@ export default function GameCard({
   const { width: winWidth } = useWindowDimensions();
   const isWeb = Platform.OS === 'web';
 
-  // Адаптивный контраст контента под яркость градиента карточки.
-  const light = gradientIsLight(gradient);
-  const fg = light ? '#1a1a1a' : '#FFFFFF';
-  const fgSoft = light ? 'rgba(0,0,0,0.62)' : 'rgba(255,255,255,0.8)';
-  const iconBg = light ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.2)';
-  const badgeBg = light ? 'rgba(0,0,0,0.10)' : 'rgba(0,0,0,0.2)';
-  const badgeFg = light ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.9)';
+  /**
+   * КОНТРАСТ КАРТОЧКИ СЧИТАЕТСЯ ОБЩИМ СЕРВИСОМ, А НЕ ПРИКИДКОЙ НА МЕСТЕ.
+   *
+   * Здесь жила своя формула яркости — телевизионные веса 0.299/0.587/0.114,
+   * СРЕДНЕЕ по концам градиента и порог 0.62 на глаз, дальше жёстко `#1a1a1a`
+   * или `#FFFFFF`. Две ошибки разом:
+   *   · веса не те. WCAG считает светлоту иначе (0.2126/0.7152/0.0722 по
+   *     линеаризованным каналам), и решение «светлый/тёмный» расходилось;
+   *   · СРЕДНЕЕ по концам врёт. Надпись лежит поперёк карточки и попадает на весь
+   *     размах: у `#0083B0→#00B4DB` среднее «тёмное» → белый текст → 2.46 на
+   *     светлом конце. У `#06b6d4→#3b82f6` — 2.43. Это витрина: по ней человек
+   *     выбирает игру.
+   * Теперь цвет считает `onGradientText` по ОБОИМ концам, а где сплошным цветом
+   * AA недостижим — `GradientSurface` кладёт вуаль.
+   */
+  const onGrad = onGradientText(gradient[0], gradient[gradient.length - 1]);
+  const fg = onGrad.color;
+  const fgSoft = onGradientTextMuted(onGrad);
+  // «Светлая карточка» — это та, на которой считанный текст вышел ТЁМНЫМ.
+  const light = relativeLuminance(fg) < relativeLuminance(onGrad.ends[0]);
+  const iconBg = innerScrim(onGrad, 0.16);
+  const badgeBg = innerScrim(onGrad, 0.2);
+  const badgeFg = fgSoft;
 
   // Fallback (когда GameCard используется ВНЕ index.tsx grid) — 2 столбца fluid
   const fallbackWidth = Math.min((winWidth - 48) / 2, 180);
@@ -115,7 +119,7 @@ export default function GameCard({
         style={{ flex: 1 }}
       >
         <Animated.View style={{ flex: 1, transform: [{ scale }] }}>
-        <LinearGradient
+        <GradientSurface
           colors={gradient as [string, string]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -164,11 +168,11 @@ export default function GameCard({
           {starsInfo && starsInfo.completed > 0 && (
             // flexShrink:0 — звёзды не сжимаем, ужимается соседний skill-бейдж
             <View style={[styles.skillBadge, { backgroundColor: badgeBg, flexShrink: 0 }]}>
-              <Text style={[styles.skillText, { color: '#FFD93B' }]} numberOfLines={1}>⭐ {Math.min(starsInfo.completed, 15)}/15</Text>
+              <Text style={[styles.skillText, { color: accentOn(onGrad, '#FFD93B') }]} numberOfLines={1}>⭐ {Math.min(starsInfo.completed, 15)}/15</Text>
             </View>
           )}
         </View>
-        </LinearGradient>
+        </GradientSurface>
         </Animated.View>
       </Pressable>
     </View>
@@ -206,11 +210,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: 0.2,
-    color: '#FFFFFF',
   },
   description: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.8)',
     lineHeight: 14,
   },
   badgeRow: {
@@ -222,7 +224,6 @@ const styles = StyleSheet.create({
   skillBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
@@ -232,7 +233,6 @@ const styles = StyleSheet.create({
   skillText: {
     fontSize: 10,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.9)',
     flexShrink: 1,
   },
 });

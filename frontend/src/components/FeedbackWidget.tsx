@@ -14,6 +14,7 @@
  * ВАЖНО: скриншот снимается ДО открытия шторки, иначе в кадр попадёт сама
  * шторка, а не экран, на который жалуется тестировщик.
  */
+import { textOn } from '@/src/services/onGradientText';
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
@@ -276,8 +277,8 @@ export default function FeedbackWidget() {
         style={[styles.fab, rtl ? { right: 14 } : { left: 14 }, { bottom: insets.bottom + 92, backgroundColor: '#ef4444' }]}
       >
         {capturing
-          ? <ActivityIndicator size="small" color="#fff" />
-          : <Ionicons name="chatbubble-ellipses" size={19} color="#fff" />}
+          ? <ActivityIndicator size="small" color={textOn('#ef4444')} />
+          : <Ionicons name="chatbubble-ellipses" size={19} color={textOn('#ef4444')} />}
       </TouchableOpacity>
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
@@ -345,7 +346,7 @@ export default function FeedbackWidget() {
                           <Text style={{ fontSize: 15 }}>{k.emoji}</Text>
                           {/* flexShrink+numberOfLines: при крупном шрифте подпись
                               усекается внутри трети-кнопки, а не ломает ряд */}
-                          <Text numberOfLines={1} style={{ color: on ? '#fff' : colors.text, fontWeight: '700', fontSize: 12, flexShrink: 1 }}>
+                          <Text numberOfLines={1} style={{ color: on ? textOn('#ef4444') : colors.text, fontWeight: '700', fontSize: 12, flexShrink: 1 }}>
                             {t(k.labelKey)}
                           </Text>
                         </TouchableOpacity>

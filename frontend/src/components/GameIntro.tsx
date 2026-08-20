@@ -8,7 +8,8 @@ import {
   Modal,
   Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import GradientSurface from '@/src/components/GradientSurface';
+import { onGradientText, onGradientTextMuted, innerScrim, textOn } from '@/src/services/onGradientText';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -45,6 +46,16 @@ export default function GameIntro({
   onStart,
   onBack,
 }: GameIntroProps) {
+  /**
+   * ЦВЕТ НА ГЕРОЙСКОЙ ПЛАШКЕ СЧИТАЕТСЯ ОТ ТОГО ГРАДИЕНТА, ЧТО ПРИШЁЛ ПРОПОМ.
+   * Здесь стоял `#FFFFFF` — название игры в 26 pt на градиенте КАЖДОЙ игры.
+   * На светлых палитрах это 1.32 (`#a8edea→#fed6e3`) и 1.26 (`#ee9ca7→#ffdde1`),
+   * то есть белым по белому — ровно на том экране, где человек решает, играть ли.
+   * ⚠️ Тень под буквой контраст НЕ поднимает: она размывает край, а WCAG считает
+   * светлоту. Тень остаётся как украшение, читаемость держит вычисленный цвет.
+   */
+  const onGrad = onGradientText(gradient[0], gradient[gradient.length - 1]);
+  const onGradSoft = onGradientTextMuted(onGrad);
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const [helpOpen, setHelpOpen] = React.useState(false);
@@ -87,7 +98,7 @@ export default function GameIntro({
         showsVerticalScrollIndicator={false}
       >
         {/* Hero Card */}
-        <LinearGradient
+        <GradientSurface
           colors={gradient as [string, string]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -98,15 +109,15 @@ export default function GameIntro({
             <Image {...a11yDecor} source={heroImg} style={styles.heroImage} />
           ) : (
             <View style={styles.iconContainer}>
-              <Ionicons name={icon as any} size={48} color="#FFFFFF" />
+              <Ionicons name={icon as any} size={48} color={onGrad.color} />
             </View>
           )}
-          <Text style={styles.gameName}>{t(nameKey)}</Text>
-          <View style={styles.skillBadge}>
-            <Ionicons name="fitness-outline" size={16} color="#FFFFFF" style={styles.skillIcon} />
-            <Text style={styles.skillText}>{t(skillKey)}</Text>
+          <Text style={[styles.gameName, { color: onGrad.color }]}>{t(nameKey)}</Text>
+          <View style={[styles.skillBadge, { backgroundColor: innerScrim(onGrad, 0.3) }]}>
+            <Ionicons name="fitness-outline" size={16} color={onGrad.color} style={styles.skillIcon} />
+            <Text style={[styles.skillText, { color: onGradSoft }]}>{t(skillKey)}</Text>
           </View>
-        </LinearGradient>
+        </GradientSurface>
 
         {/* Description */}
         <View style={[styles.descriptionCard, { backgroundColor: colors.surface }]}>
@@ -185,7 +196,7 @@ export default function GameIntro({
             </ScrollView>
             <TouchableOpacity
               accessibilityRole="button" onPress={() => setHelpOpen(false)} style={[styles.modalOk, { backgroundColor: gradient[0] }]}>
-              <Text style={styles.modalOkText}>OK</Text>
+              <Text style={[styles.modalOkText, { color: textOn(gradient[0]) }]}>OK</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -248,7 +259,6 @@ const styles = StyleSheet.create({
   gameName: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 12,
     textShadowColor: 'rgba(0, 0, 0, 0.55)',
@@ -258,7 +268,6 @@ const styles = StyleSheet.create({
   skillBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(8, 7, 20, 0.46)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -269,7 +278,6 @@ const styles = StyleSheet.create({
   skillText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   descriptionCard: {
     padding: 20,

@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -261,8 +261,8 @@ export default function ReadingSpanGame() {
             <View style={styles.judgeRow}>
               <TouchableOpacity
                 accessibilityRole="button" style={[styles.judgeBtn, { backgroundColor: '#22c55e' }]} onPress={() => handleJudge(true)}>
-                <Ionicons name="checkmark" size={28} color="#FFF" />
-                <Text style={styles.judgeText} numberOfLines={2}>{t('makesSense')}</Text>
+                <Ionicons name="checkmark" size={28} color={textOn('#22c55e')} />
+                <Text style={[styles.judgeText, { color: textOn('#22c55e') }]} numberOfLines={2}>{t('makesSense')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button" style={[styles.judgeBtn, { backgroundColor: '#f43f5e' }]} onPress={() => handleJudge(false)}>

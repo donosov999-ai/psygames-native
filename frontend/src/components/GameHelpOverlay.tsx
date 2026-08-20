@@ -1,3 +1,4 @@
+import { textOn, onSolidText, onGradientTextMuted } from '@/src/services/onGradientText';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Platform, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -134,6 +135,16 @@ export default function GameHelpOverlay() {
   );
 
   const accent = colors.primary || '#a855f7';
+  /**
+   * АКЦЕНТ ПРОФИЛЯ — ТОЖЕ СПЛОШНАЯ ЗАЛИВКА, И НА НЁМ ТОЖЕ НАДО ЧИТАТЬ.
+   * Здесь был зашит `#fff`: на янтаре владельца (`#fbbf24`) это 1.67, на зелёном
+   * детского профиля (`#10b981`) — 2.54. Кнопка справки висит на КАЖДОМ игровом
+   * экране, и подпись «Правила» под ней была нечитаема у половины профилей.
+   * Заливку не трогаем — акцент узнаваем; считается только цвет текста.
+   */
+  const onAccent = onSolidText(accent);
+  const accentFg = onAccent.color;
+  const accentFgSoft = onGradientTextMuted(onAccent);
   const openHelp = () => { setCoach(false); setOpen(true); };
 
   return (
@@ -147,9 +158,9 @@ export default function GameHelpOverlay() {
         style={[styles.fabWrap, rtl ? { left: 10 } : { right: 10 }, { top: insets.top + 10 }]}
       >
         <View style={[styles.fabCircle, { backgroundColor: accent }]}>
-          <Ionicons name="help-circle" size={26} color="#fff" />
+          <Ionicons name="help-circle" size={26} color={accentFg} />
         </View>
-        <Text style={[styles.fabLabel, { backgroundColor: accent }]} numberOfLines={1}>
+        <Text style={[styles.fabLabel, { backgroundColor: accent, color: accentFg }]} numberOfLines={1}>
           {t('btn_rules')}
         </Text>
       </TouchableOpacity>
@@ -167,10 +178,10 @@ export default function GameHelpOverlay() {
           <View style={[styles.coachBubble, { backgroundColor: accent }]}>
             {/* тап по тексту = сразу открыть справку, не заставляя целиться в «?» */}
             <TouchableOpacity activeOpacity={0.85} onPress={openHelp} accessibilityRole="button">
-              <Text style={styles.coachText}>{t('helpCoachText')}</Text>
+              <Text style={[styles.coachText, { color: accentFg }]}>{t('helpCoachText')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setCoach(false)} style={styles.coachOk} accessibilityRole="button">
-              <Text style={styles.coachOkText}>{t('btn_got_it')}</Text>
+              <Text style={[styles.coachOkText, { color: accentFgSoft }]}>{t('btn_got_it')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -271,7 +282,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   fabLabel: {
-    color: '#fff',
     fontWeight: '800',
     fontSize: 10,
     marginTop: 3,
@@ -301,9 +311,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
-  coachText: { color: '#fff', fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  coachOk: { alignSelf: 'flex-end', marginTop: 8, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.22)' },
-  coachOkText: { color: '#fff', fontSize: 13, fontWeight: '800' },
+  coachText: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  coachOk: { alignSelf: 'flex-end', marginTop: 8, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 10 },
+  coachOkText: { fontSize: 13, fontWeight: '800' },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center', padding: 18 },
   sheet: { width: '100%', maxWidth: 520, maxHeight: '82%', borderRadius: 20, borderWidth: 1, padding: 20 },
   sheetHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },

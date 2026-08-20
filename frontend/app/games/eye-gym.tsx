@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -236,7 +236,7 @@ export default function EyeGymGame() {
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setScale(o.s)}>
-              <Text style={[styles.modeButtonText, { color: scale === o.s ? '#FFF' : colors.text }]}>{t(o.k)}</Text>
+              <Text style={[styles.modeButtonText, { color: scale === o.s ? textOn(GRADIENT[0]) : colors.text }]}>{t(o.k)}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -250,7 +250,7 @@ export default function EyeGymGame() {
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setSpeed(o.v)}>
-              <Text style={[styles.modeButtonText, { color: speed === o.v ? '#FFF' : colors.text }]}>{t(o.k)}</Text>
+              <Text style={[styles.modeButtonText, { color: speed === o.v ? textOn(GRADIENT[0]) : colors.text }]}>{t(o.k)}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -264,7 +264,7 @@ export default function EyeGymGame() {
               ? { backgroundColor: GRADIENT[0] }
               : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => setMode(m)}>
-              <Text style={[styles.modeButtonText, { color: mode === m ? '#FFF' : colors.text }]}>{t(k)}</Text>
+              <Text style={[styles.modeButtonText, { color: mode === m ? textOn(GRADIENT[0]) : colors.text }]}>{t(k)}</Text>
             </TouchableOpacity>
           ))}
         </View>

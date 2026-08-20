@@ -1,3 +1,5 @@
+import GradientSurface from '@/src/components/GradientSurface';
+import { onGradientText, onGradientTextMuted, innerScrim } from '@/src/services/onGradientText';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -25,6 +27,16 @@ const REMINDER_PROMPT_FLAG = 'psygames_reminder_prompt_dismissed';
 
 const GRADIENT_GOLD = ['#fbbf24', '#f59e0b'];
 const GRADIENT_GREEN = ['#22c55e', '#0d9488'];
+const GRADIENT_REMIND = ['#8b5cf6', '#6366f1'];
+// Зашитый белый на зелёной плашке серии давал 2.28 — считаем по обоим концам.
+const ON_GREEN = onGradientText(GRADIENT_GREEN[0], GRADIENT_GREEN[1]);
+const ON_GREEN_SOFT = onGradientTextMuted(ON_GREEN);
+const ON_REMIND = onGradientText(GRADIENT_REMIND[0], GRADIENT_REMIND[1]);
+const GRADIENT_STOPPED = ['#94a3b8', '#64748b'];
+const ON_GOLD = onGradientText(GRADIENT_GOLD[0], GRADIENT_GOLD[1]);
+const ON_GOLD_SOFT = onGradientTextMuted(ON_GOLD);
+const ON_STOPPED = onGradientText(GRADIENT_STOPPED[0], GRADIENT_STOPPED[1]);
+const ON_STOPPED_SOFT = onGradientTextMuted(ON_STOPPED);
 
 export default function WarmupComplete() {
   const router = useRouter();
@@ -179,22 +191,39 @@ export default function WarmupComplete() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Hero header */}
-        <LinearGradient
-          colors={(completed ? GRADIENT_GOLD : ['#94a3b8', '#64748b']) as [string, string]}
+        {/* Две плашки, а не тернарник в `colors`: у золотой и у серой РАЗНАЯ
+            глубина, единого цвета текста на оба градиента нет (чёрный на `#64748b`
+            даёт 4.41 — мимо), а серой нужна лёгкая вуаль. Разведя состояния, мы
+            делаем каждую пару «фон + текст» неподвижной и проверяемой счётом. */}
+        {completed ? (
+        <GradientSurface
+          colors={GRADIENT_GOLD as [string, string]}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={styles.hero}>
-          <Text style={styles.heroEmoji}>{completed ? '🎉' : '⏸'}</Text>
-          <Text style={styles.heroTitle}>{completed ? t('warmupDoneTitle') : t('warmupStoppedTitle')}</Text>
-          <Text style={styles.heroSubtitle}>
+          <Text style={styles.heroEmoji}>🎉</Text>
+          <Text style={[styles.heroTitle, { color: ON_GOLD.color }]}>{t('warmupDoneTitle')}</Text>
+          <Text style={[styles.heroSubtitle, { color: ON_GOLD_SOFT }]}>
             {metaWeekday} · {metaSlot} · {elapsedMin}:{elapsedSecRem.toString().padStart(2, '0')}
           </Text>
-          {isPersonalBest && completed && (
-            <View style={styles.pbBadge}>
-              <Ionicons name="trophy" size={16} color="#fbbf24" />
-              <Text style={styles.pbText}>{t('personalBest')}</Text>
+          {isPersonalBest && (
+            <View style={[styles.pbBadge, { backgroundColor: innerScrim(ON_GOLD, 0.2) }]}>
+              <Ionicons name="trophy" size={16} color={ON_GOLD.color} />
+              <Text style={[styles.pbText, { color: ON_GOLD.color }]}>{t('personalBest')}</Text>
             </View>
           )}
-        </LinearGradient>
+        </GradientSurface>
+        ) : (
+        <GradientSurface
+          colors={GRADIENT_STOPPED as [string, string]}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={styles.hero}>
+          <Text style={styles.heroEmoji}>⏸</Text>
+          <Text style={[styles.heroTitle, { color: ON_STOPPED.color }]}>{t('warmupStoppedTitle')}</Text>
+          <Text style={[styles.heroSubtitle, { color: ON_STOPPED_SOFT }]}>
+            {metaWeekday} · {metaSlot} · {elapsedMin}:{elapsedSecRem.toString().padStart(2, '0')}
+          </Text>
+        </GradientSurface>
+        )}
 
         {/* Per-game breakdown */}
         <View style={styles.section}>
@@ -257,13 +286,13 @@ export default function WarmupComplete() {
 
         {/* Streak */}
         {streak > 0 && (
-          <LinearGradient colors={GRADIENT_GREEN as [string, string]} style={styles.streakCard}>
+          <GradientSurface colors={GRADIENT_GREEN as [string, string]} style={styles.streakCard}>
             <Text style={styles.streakEmoji}>🔥</Text>
             <View>
-              <Text style={styles.streakValue}>{(streak === 1 ? t('streakDayOne') : t('streakDaysMany')).replace('{n}', String(streak))}</Text>
-              <Text style={styles.streakLabel}>{t('dontBreakStreak')}</Text>
+              <Text style={[styles.streakValue, { color: ON_GREEN.color }]}>{(streak === 1 ? t('streakDayOne') : t('streakDaysMany')).replace('{n}', String(streak))}</Text>
+              <Text style={[styles.streakLabel, { color: ON_GREEN_SOFT }]}>{t('dontBreakStreak')}</Text>
             </View>
-          </LinearGradient>
+          </GradientSurface>
         )}
 
         {/* Brain today verdict */}
@@ -289,10 +318,10 @@ export default function WarmupComplete() {
             </Text>
             <TouchableOpacity
               accessibilityRole="button" style={styles.reminderBtn} onPress={enableReminders}>
-              <LinearGradient colors={['#8b5cf6', '#6366f1']} style={styles.btnGrad}>
-                <Ionicons name="notifications" size={18} color="#FFF" />
-                <Text style={[styles.btnText, { color: '#FFF', paddingVertical: 0 }]}>{t('ctaEnable')}</Text>
-              </LinearGradient>
+              <GradientSurface colors={GRADIENT_REMIND as [string, string]} style={styles.btnGrad}>
+                <Ionicons name="notifications" size={18} color={ON_REMIND.color} />
+                <Text style={[styles.btnText, { color: ON_REMIND.color, paddingVertical: 0 }]}>{t('ctaEnable')}</Text>
+              </GradientSurface>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button" onPress={dismissReminders}>
@@ -336,10 +365,10 @@ const styles = StyleSheet.create({
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
   hero: { padding: 22, borderRadius: 16, alignItems: 'center', gap: 6 },
   heroEmoji: { fontSize: 44 },
-  heroTitle: { color: '#000', fontSize: 22, fontWeight: '900', letterSpacing: 2, textAlign: 'center' },
-  heroSubtitle: { color: 'rgba(0,0,0,0.7)', fontSize: 13, fontWeight: '700' },
-  pbBadge: { marginTop: 8, flexDirection: 'row', gap: 6, backgroundColor: 'rgba(0,0,0,0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  pbText: { color: '#000', fontSize: 12, fontWeight: '800' },
+  heroTitle: { fontSize: 22, fontWeight: '900', letterSpacing: 2, textAlign: 'center' },
+  heroSubtitle: { fontSize: 13, fontWeight: '700' },
+  pbBadge: { marginTop: 8, flexDirection: 'row', gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  pbText: { fontSize: 12, fontWeight: '800' },
   section: { gap: 8 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginLeft: 4 },
   row: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 10, gap: 10 },
