@@ -30,3 +30,26 @@ export function useScreenWidth(): number {
   const { width } = useWindowDimensions();
   return width > 0 ? width : FALLBACK_SCREEN_W;
 }
+
+/** Высота обычного телефона — парная к `FALLBACK_SCREEN_W`. */
+export const FALLBACK_SCREEN_H = 844;
+
+/**
+ * РАЗМЕР ЭКРАНА ЦЕЛИКОМ — та же защита, что и у ширины.
+ *
+ * 🔴 ЗАЧЕМ ЗДЕСЬ, А НЕ ОТДЕЛЬНЫМ ФАЙЛОМ. Ловушка одна и та же, и в шапке выше
+ * прямо сказано: защита живёт в одном месте. Второй файл с тем же нулём на
+ * первом кадре — это третий раз наступить на те же грабли, только красивее.
+ *
+ * Высота нужна там, где считают положение от НИЗА экрана: ноль в высоте не
+ * сжимает вёрстку, а уводит элемент в противоположный угол. Так 21.08.2026
+ * перетащенная кнопка отзыва после перезагрузки оказывалась в левом верхнем
+ * углу вместо своего места — доля экрана умножалась на нулевую высоту.
+ */
+export function useScreenSize(): { w: number; h: number } {
+  const { width, height } = useWindowDimensions();
+  return {
+    w: width > 0 ? width : FALLBACK_SCREEN_W,
+    h: height > 0 ? height : FALLBACK_SCREEN_H,
+  };
+}

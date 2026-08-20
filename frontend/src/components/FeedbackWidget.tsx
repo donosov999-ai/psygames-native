@@ -18,8 +18,15 @@ import { textOn } from '@/src/services/onGradientText';
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
-  ActivityIndicator, ScrollView, DeviceEventEmitter,
+  ActivityIndicator, ScrollView, DeviceEventEmitter, PanResponder,
 } from 'react-native';
+import {
+  FAB_SIZE, readSpot, toSpot, spotToPixels, isDrag, type FabSpot,
+} from '@/src/services/fabPosition';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
+
+/** Где человек оставил кнопку отзыва. Доля экрана, не пиксели — см. fabPosition. */
+const FAB_SPOT_KEY = 'psygames_feedback_fab_spot';
 import { DEVCHAT_VISIBLE_EVENT } from '@/src/services/pet';
 import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -54,6 +61,82 @@ export default function FeedbackWidget() {
   const rtl = isRTLLang(language);
 
   const [open, setOpen] = React.useState(false);
+
+  /**
+   * ПЕРЕТАСКИВАНИЕ КНОПКИ. Просьба тестировщика 17.07.2026: «Кнопку чата для
+   * отправки репорта можно сделать перемещаемой: нажимаем держим таким. Позиция
+   * запомнилась». Кнопка висит на КАЖДОМ экране и у каждого закрывает своё:
+   * жалоба пришла из игры, где она легла на поле.
+   *
+   * ⚠️ ПОКА НЕ ПЕРЕТАСКИВАЛИ — НИЧЕГО НЕ МЕНЯЕТСЯ. `spot === null` оставляет
+   * ровно прежние стили (левый нижний угол, отступ от системной панели). Так
+   * правка не может сдвинуть кнопку тем, кто её не трогал.
+   */
+  const [spot, setSpot] = React.useState<FabSpot | null>(null);
+  const [drag, setDrag] = React.useState<{ dx: number; dy: number } | null>(null);
+  /**
+   * ⚠️ РАЗМЕР ЭКРАНА — ТОЛЬКО ЧЕРЕЗ ОБЩИЙ ХУК. Своя подписка на `Dimensions`
+   * здесь уже стояла и уже сломалась: на первом кадре размер нулевой, доля
+   * умножалась на ноль, и после перезагрузки перетащенная кнопка оказывалась
+   * в левом верхнем углу (проверено живьём 21.08.2026: 344×360 → 6×6).
+   */
+  const win = useScreenSize();
+  React.useEffect(() => {
+    AsyncStorage.getItem(FAB_SPOT_KEY).then((raw) => setSpot(readSpot(raw))).catch(() => {});
+  }, []);
+
+  /** Где кнопка сейчас — с учётом пальца, который её ведёт. */
+  const placed = spot ? spotToPixels(spot, win, insets) : null;
+  const live = placed && drag
+    ? { left: placed.left + drag.dx, top: placed.top + drag.dy }
+    : placed;
+
+  /**
+   * ⚠️ ПОРОГ, А НЕ УДЕРЖАНИЕ ПО ТАЙМЕРУ. Обычный тап обязан открывать окно
+   * отзыва; забирать жест по таймеру значит делать открытие лотереей «успел
+   * отпустить». Пока палец не сдвинулся на порог, жест целиком остаётся у
+   * кнопки, и `onPress` срабатывает как раньше.
+   */
+  const spotRef = React.useRef<FabSpot | null>(null);
+  spotRef.current = spot;
+  const baseRef = React.useRef<{ left: number; top: number } | null>(null);
+  const winRef = React.useRef(win);
+  winRef.current = win;
+  const insetsRef = React.useRef(insets);
+  insetsRef.current = insets;
+
+  const pan = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      /**
+       * 🔴 ПЕРЕХВАТ, А НЕ ОБЫЧНЫЙ ЗАПРОС. Жест начинается на самой кнопке, и
+       * ответчиком становится она — обычный `onMoveShouldSetPanResponder` у
+       * родителя в этом случае не спрашивают вовсе. Проверено живьём: с ним
+       * кнопка не двигалась ни на пиксель, а перетаскивание засчитывалось как
+       * тап и открывало окно отзыва. Перехват на фазе всплытия вниз забирает
+       * жест у кнопки, но ТОЛЬКО после порога — тап по-прежнему её.
+       */
+      onMoveShouldSetPanResponderCapture: (_e, g) => isDrag(g.dx, g.dy),
+      onPanResponderGrant: () => {
+        const w = winRef.current;
+        const i = insetsRef.current;
+        baseRef.current = spotRef.current
+          ? spotToPixels(spotRef.current, w, i)
+          // Первый перенос: отсчитываем от того места, где кнопка висела по умолчанию.
+          : { left: 14, top: w.h - i.bottom - 92 - FAB_SIZE };
+      },
+      onPanResponderMove: (_e, g) => setDrag({ dx: g.dx, dy: g.dy }),
+      onPanResponderRelease: (_e, g) => {
+        const b = baseRef.current;
+        setDrag(null);
+        if (!b) return;
+        const next = toSpot(b.left + g.dx, b.top + g.dy, winRef.current);
+        setSpot(next);
+        AsyncStorage.setItem(FAB_SPOT_KEY, JSON.stringify(next)).catch(() => {});
+      },
+      onPanResponderTerminate: () => setDrag(null),
+    }),
+  ).current;
 
   /**
    * 🔴 ПОКА ОТКРЫТ ОТЗЫВ — ИГРА ЗАМИРАЕТ. Репорт 18.08.2026: «пока я писала
@@ -351,17 +434,27 @@ export default function FeedbackWidget() {
 
   return (
     <>
+      <View
+        {...pan.panHandlers}
+        style={[
+          styles.fab,
+          live
+            ? { left: live.left, top: live.top }
+            : [rtl ? { right: 14 } : { left: 14 }, { bottom: insets.bottom + 92 }],
+        ]}
+      >
       <TouchableOpacity
         accessibilityRole="button"
         onPress={openSheet}
         activeOpacity={0.85}
         accessibilityLabel={t('feedbackFabLabel')}
-        style={[styles.fab, rtl ? { right: 14 } : { left: 14 }, { bottom: insets.bottom + 92, backgroundColor: '#ef4444' }]}
+        style={[styles.fabInner, { backgroundColor: '#ef4444' }, drag ? { opacity: 1 } : null]}
       >
         {capturing
           ? <ActivityIndicator size="small" color={textOn('#ef4444')} />
           : <Ionicons name="chatbubble-ellipses" size={19} color={textOn('#ef4444')} />}
       </TouchableOpacity>
+      </View>
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
         <View {...a11yModal} style={styles.backdrop}>
@@ -623,8 +716,14 @@ const styles = StyleSheet.create({
   // («Справка»/«Начать» на интро-экранах игр — проверено вживую: на bottom+16
   // кнопка налезала на «Справку»). «?»-оверлей висит с противоположной стороны
   // сверху — туда не лезем.
+  /** Обёртка держит МЕСТО и жест переноса; вид — у `fabInner`. */
   fab: {
     position: 'absolute',
+    width: 48,
+    height: 48,
+    zIndex: 100,
+  },
+  fabInner: {
     /**
      * ⚠️ 48 — общий минимум попадания пальцем. Кнопка висит на КАЖДОМ экране
      * приложения, и промах по ней означает не «не нажалось», а тап по тому, что
@@ -636,7 +735,6 @@ const styles = StyleSheet.create({
     opacity: 0.92,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 100,
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 6,
