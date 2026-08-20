@@ -141,7 +141,7 @@ describe('🔴 рекомендуется только разрешённое п
      *     и проверку — она сравнивала пустое с пустым. Отсюда имена ниже написаны
      *     ПРЯМО, а константа сверяется с ними.
      */
-    const HUBS = ['span_group', 'attention_conflict'];
+    const HUBS = ['span_group', 'attention_conflict', 'sudoku_group'];
     expect([...RECO_GROUP_HUBS].sort()).toEqual([...HUBS].sort());
     const p = profile('odv999');
     expect(filterAllowedGames(p).map((g) => g.id)).toEqual(expect.arrayContaining(HUBS));

@@ -75,6 +75,9 @@ const THUMBS: Record<string, any> = {
   stroop: require('../../assets/images/gamethumbs/stroop.webp'),
   stroop_emotional: require('../../assets/images/gamethumbs/stroop_emotional.webp'),
   sudoku: require('../../assets/images/gamethumbs/sudoku.webp'),
+  // Развилка на три доски показывает ту же сетку — своей картинки ей не нужно:
+  // карточка ведёт в судоку, и превью говорит об этом точнее любой новой графики.
+  sudoku_group: require('../../assets/images/gamethumbs/sudoku.webp'),
   switching_task: require('../../assets/images/gamethumbs/switching_task.webp'),
   targets: require('../../assets/images/gamethumbs/targets.webp'),
   tower_london: require('../../assets/images/gamethumbs/tower_london.webp'),

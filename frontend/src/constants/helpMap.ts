@@ -157,6 +157,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillProblemSolving",
     "introKey": "hanoiIntroDesc"
   },
+  "/games/sudoku-hub": {
+    "nameKey": "sudokuGroup",
+    "skillKey": "skillLogic",
+    "introKey": "sudokuGroupIntroDesc"
+  },
   "/games/sudoku": {
     "nameKey": "sudoku",
     "skillKey": "skillLogic",

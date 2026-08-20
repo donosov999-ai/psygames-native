@@ -33,6 +33,34 @@ export interface GameConfig {
   category: GameCategory;
   /** Hide from main menu (still accessible by route via warmup/playlists/group cards) */
   hideFromMenu?: boolean;
+  /**
+   * КАРТОЧКА-ХАБ: не упражнение, а развилка на соседние игры.
+   *
+   * 🔴 ЗАЧЕМ ПРИЗНАК, А НЕ СПИСОК ИМЁН. Список хабов был выписан ПЯТЬ раз — в
+   * рекомендациях, в вызове дня, в достижениях, на онбординге и в живом аудите
+   * слотов. Пока хабов было два, пять копий совпадали; третий хаб (судоку) должен
+   * был попасть в каждую, и любая забытая копия ломалась бы МОЛЧА и по-своему:
+   * рекомендация звала бы в меню под подписью «этой ветке достаётся меньше», вызов
+   * дня выдал бы экран, который не умеет записать партию, а достижение «весь
+   * каталог» стало бы недостижимым навсегда. Теперь признак живёт при карточке, а
+   * все пятеро читают `HUB_GAME_IDS`.
+   */
+  hub?: boolean;
+  /**
+   * Под каким `game_type` эта игра ПИШЕТ ПАРТИИ, если он не совпадает с `id`.
+   *
+   * ⚠️ ЗАЧЕМ. Счётчики нагрузки, достижения и история узнают игру по `game_type`
+   * записанной партии, а каталог — по `id`. У 69 игр из 71 это одна и та же строка,
+   * и расхождение двух оставшихся не видно ничем: код собирается, экран работает.
+   * Фрактальная судоку пишет `sudoku_fractal`, а в каталоге лежит под
+   * `sudoku-fractal` — через дефис. Из-за одного символа её партии не попадали в
+   * нагрузку ветки логики ВООБЩЕ: человек, играющий её каждый день, для блока
+   * «рекомендуем сегодня» логику не тренировал ни разу.
+   *
+   * Самурай сложнее: он нарочно пишет в корзину `sudoku` (общая лестница уровней,
+   * см. долг в services/levelTimes). Здесь это сказано вслух, а не додумывается.
+   */
+  sessionType?: string;
 }
 
 export const CATEGORY_ORDER: GameCategory[] = [
@@ -382,6 +410,7 @@ export const GAMES: GameConfig[] = [
     icon: 'albums',
     route: '/games/span',
     category: 'memory',
+    hub: true,
   },
 
   // LOGIC / REASONING
@@ -395,6 +424,21 @@ export const GAMES: GameConfig[] = [
     route: '/games/hanoi',
     category: 'logic',
   },
+  // Карточка-развилка на три доски судоку. Стоит первой из четырёх записей судоку:
+  // это единственный вход, остальные три скрыты и открываются отсюда.
+  {
+    id: 'sudoku_group',
+    nameKey: 'sudokuGroup',
+    descKey: 'sudokuGroupDesc',
+    skillKey: 'skillLogic',
+    // Тёмная пара семейства судоку: сплошной цвет текста берёт AA (7.00), вуаль не
+    // нужна. Светлая пара #5b4d9e→#86a8e7 давала 3.00 — поймано гейтом контраста.
+    gradient: ['#3b2f7a', '#5b4d9e'],
+    icon: 'apps',
+    route: '/games/sudoku-hub',
+    category: 'logic',
+    hub: true,
+  },
   {
     id: 'sudoku',
     nameKey: 'sudoku',
@@ -404,6 +448,7 @@ export const GAMES: GameConfig[] = [
     icon: 'apps',
     route: '/games/sudoku',
     category: 'logic',
+    hideFromMenu: true, // merged into 'sudoku_group'
   },
   // Самурай стоит сразу за судоку намеренно: это её длинная форма, и человек находит
   // её в тот момент, когда обычная 9×9 уже даётся легко.
@@ -422,6 +467,8 @@ export const GAMES: GameConfig[] = [
     icon: 'grid',
     route: '/games/sudoku-samurai',
     category: 'logic',
+    hideFromMenu: true, // merged into 'sudoku_group'
+    sessionType: 'sudoku',   // партии самурая нарочно ложатся в корзину обычной судоку
   },
   // Фрактальная судоку — вторая длинная форма после самурая. Стоит рядом с ними
   // намеренно: обе живут часами, и человек находит их там, где ищет «что-то
@@ -435,6 +482,8 @@ export const GAMES: GameConfig[] = [
     icon: 'git-network',
     route: '/games/sudoku-fractal',
     category: 'logic',
+    hideFromMenu: true, // merged into 'sudoku_group'
+    sessionType: 'sudoku_fractal',   // id через дефис, а партия пишется через подчёркивание
   },
   {
     id: 'anagrams',
@@ -522,6 +571,7 @@ export const GAMES: GameConfig[] = [
     icon: 'layers',
     route: '/games/attention-conflict',
     category: 'action',
+    hub: true,
   },
   // Group card: Go/No-Go + Stop-Signal (action restraint vs cancellation)
   {
@@ -832,6 +882,32 @@ export const GAMES: GameConfig[] = [
     category: 'recovery',
   },
 ];
+
+/**
+ * ЕДИНЫЙ СПИСОК КАРТОЧЕК-ХАБОВ. Выводится из самого каталога — второго списка имён
+ * в проекте больше нет.
+ *
+ * 🔴 ЗАЧЕМ. Отдельным списком хабы были выписаны пять раз (рекомендации, вызов дня,
+ * достижения, онбординг, живой аудит слотов). Пока их было два, копии совпадали;
+ * третий обязан попасть во все пять, и забытая копия ломается молча — разбор в
+ * комментарии к полю `hub` выше.
+ */
+export const HUB_GAME_IDS: readonly string[] = GAMES.filter((g) => g.hub).map((g) => g.id);
+
+/** Хаб ли это — меню, а не упражнение. */
+export function isHubGame(id: string): boolean {
+  return HUB_GAME_IDS.includes(id);
+}
+
+/**
+ * Под каким `game_type` игра пишет партии. Совпадает с `id` у 69 карточек из 72 и
+ * НЕ совпадает у двух судоку — разбор в комментарии к полю `sessionType` выше.
+ * Всё, что считает партии человека, обязано спрашивать игру этой функцией, а не
+ * брать `id` напрямую.
+ */
+export function sessionTypeOf(g: GameConfig): string {
+  return g.sessionType ?? g.id;
+}
 
 // Russian words for word games
 export const RUSSIAN_WORDS = [

@@ -35,8 +35,25 @@ const CATALOG = join(__dirname, '../constants/games.ts');
 /**
  * Карточки-хабы: они не упражнения, а развилки на настоящие игры. Прогресса у них
  * нет и быть не должно — он у тех трёх-четырёх, куда хаб уводит.
+ *
+ * ⚠️ СПИСОК ВЫВОДИТСЯ ИЗ КАТАЛОГА, А НЕ ВЫПИСАН ЗДЕСЬ. Имена хабов лежали в пяти
+ * местах кода и в этом гейте шестым; третий хаб (судоку, 20.08.2026) обязан был
+ * попасть в каждое. Карточка помечена признаком `hub: true` — его и читаем, а
+ * комментарии срезаем, чтобы слово из объяснения не сошло за пометку.
  */
-const HUBS = new Set(['span.tsx', 'attention-conflict.tsx']);
+function hubScreens(): Set<string> {
+  const raw: string = readFileSync(CATALOG, 'utf8');
+  const src = raw.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+  const out = new Set<string>();
+  for (const m of src.matchAll(/\n {2}\{\n([\s\S]*?)\n {2}\},/g)) {
+    if (!/^\s*hub:\s*true,?\s*$/m.test(m[1])) continue;
+    const r = /route:\s*'\/games\/([a-z0-9-]+)'/.exec(m[1]);
+    if (r) out.add(`${r[1]}.tsx`);
+  }
+  if (!out.size) throw new Error('в каталоге не найдено ни одной карточки-хаба — разбор сломался');
+  return out;
+}
+const HUBS = hubScreens();
 
 /** Экраны игр из каталога — берём маршруты, а не всё подряд в папке. */
 function catalogScreens(): string[] {

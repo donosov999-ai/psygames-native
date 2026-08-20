@@ -74,6 +74,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'stroop-emotional': { ver: 1, date: '19.08.2026' },
   'stroop': { ver: 1, date: '19.08.2026' },
   'sudoku-fractal': { ver: 1, date: '19.08.2026' },
+  'sudoku-hub': { ver: 1, date: '20.08.2026' },
   'sudoku-samurai': { ver: 3, date: '20.08.2026' },
   'sudoku': { ver: 3, date: '20.08.2026' },
   'switching-task': { ver: 1, date: '19.08.2026' },

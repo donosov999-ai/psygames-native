@@ -37,6 +37,7 @@ const files: string[] = fs.readdirSync(GAMES).filter((f: string) => f.endsWith('
 const NOT_A_GAME: Record<string, string> = {
   'attention-conflict.tsx': 'хаб: меню четырёх парадигм, звука на экране нет — ни своего, ни от карточки итога',
   'span.tsx': 'хаб: меню трёх модальностей охвата, звука на экране нет',
+  'sudoku-hub.tsx': 'хаб: меню трёх досок судоку, звука на экране нет — ни своего, ни от карточки итога',
 };
 
 /**

@@ -18,15 +18,17 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
-import { GAMES } from '@/src/constants/games';
+import { GAMES, isHubGame } from '@/src/constants/games';
 import { getTodayChallenge, challengeToParams, setPendingChallenge } from '@/src/services/daily-challenge';
 import { requestReminderPermission, applyReminders, saveReminderSettings, DEFAULT_REMINDERS } from '@/src/services/reminders';
 import { gameThumb } from '@/src/constants/gameThumbs';
 import { a11yDecor } from '@/src/services/a11y';
 import { getOnboardingGames, hasPickedOnboarding, markOnboardingPicked } from '@/src/services/onboarding';
 
-// Играбельные игры = всё, кроме карточек-хабов (span_group, attention_conflict — внутри них скрытые подигры).
-const GAME_COUNT = GAMES.filter((g) => !['span_group', 'attention_conflict'].includes(g.id)).length;
+// Играбельные игры = всё, кроме карточек-хабов (внутри них скрытые подигры).
+// Список хабов выводится из каталога: раньше он был выписан здесь поимённо и при
+// появлении третьего хаба обещал бы на одно упражнение больше, чем есть.
+const GAME_COUNT = GAMES.filter((g) => !isHubGame(g.id)).length;
 
 interface Slide {
   emoji: string;
