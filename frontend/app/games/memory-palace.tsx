@@ -57,7 +57,8 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
-import { saveResume, loadResume, clearResume } from '@/src/services/resume';
+import {saveResume, clearResume} from '@/src/services/resume';
+import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import { gameNow } from '@/src/services/gamePause';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
@@ -220,26 +221,14 @@ export default function MemoryPalaceScreen() {
    * явно запустил свежий раунд, и старую партию поднимать нельзя — она бы
    * подменила заданный шагом уровень.
    */
-  const bootRef = React.useRef(false);
-  React.useEffect(() => {
-    if (autostart || bootRef.current) return;
-    const pid = profile?.id;
-    if (!pid) return;
-    bootRef.current = true;
-    let cancelled = false;
-    loadResume<MemoryPalaceResume>(MEMORY_PALACE_GAME_ID, pid, MEMORY_PALACE_RESUME_V)
-      .then((saved) => {
-        if (cancelled) return;
-        const live = restoreFromResume(saved, gameNow());
-        if (!live) return;
-        sessionRef.current = live.session;
-        setArmed(true);
-        setParty({ seed: live.seed, level: live.level, restored: live.session });
-        setPhase('playing');
-      })
-      .catch(() => { /* нет партии — обычный вход через экран настройки */ });
-    return () => { cancelled = true; };
-  }, [profile?.id, autostart]);
+  useResumeBoot<MemoryPalaceResume>(MEMORY_PALACE_GAME_ID, MEMORY_PALACE_RESUME_V, (saved) => {
+    const live = restoreFromResume(saved, gameNow());
+    if (!live) return;
+    sessionRef.current = live.session;
+    setArmed(true);
+    setParty({ seed: live.seed, level: live.level, restored: live.session });
+    setPhase('playing');
+  }, autostart);
 
   /**
    * Начать партию. Зерно СВЕЖЕЕ на каждый заход — почему именно так (и почему

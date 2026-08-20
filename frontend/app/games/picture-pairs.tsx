@@ -25,7 +25,8 @@ import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
-import { saveResume, loadResume, clearResume } from '@/src/services/resume';
+import {saveResume, clearResume} from '@/src/services/resume';
+import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import { pairSpritesForProfile, pairBackForProfile } from '@/src/constants/pairThemes';
 import { FlipCard, HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -296,21 +297,10 @@ export default function PicturePairsGame() {
 
   // Подъём партии при входе на экран. Путь зарядки (autostart) не трогаем: там
   // человек явно запустил свежий раунд, и startGame сам выбросит старую партию.
-  const bootRef = useRef(false);
-  useEffect(() => {
-    if (autostart || bootRef.current) return;
-    const pid = profile?.id;
-    if (!pid) return;
-    bootRef.current = true;
-    let cancelled = false;
-    loadResume<PairsResume>(GAME_ID, pid, RESUME_V)
-      .then((saved) => {
-        if (cancelled || !saved || !Array.isArray(saved.cards) || !saved.cards.length) return;
-        applyResume(saved);
-      })
-      .catch(() => { /* нет партии — обычный вход через экран настройки */ });
-    return () => { cancelled = true; };
-  }, [profile?.id, autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — разовый подъём партии
+  useResumeBoot<PairsResume>(GAME_ID, RESUME_V, (saved) => {
+    if (!saved || !Array.isArray(saved.cards) || !saved.cards.length) return;
+    applyResume(saved);
+  }, autostart);
 
   // Автосохранение по ходу партии, с задержкой: подряд идущие касания не должны
   // бить по хранилищу каждым нажатием.
