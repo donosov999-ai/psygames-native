@@ -1345,6 +1345,7 @@ const t: Record<string, string> = {
   "goodsSet_dairy": "डेयरी",
   "goodsSet_mix": "मिक्स",
   "goodsSetAlike": "एक जैसे",
+  "goodsSetFromLevel": "स्तर {n} से",
   "tooManyMoves": "🔁 बहुत ज़्यादा चालें",
   "mnemMemorizeWords": "{n} शब्द याद करें",
   "mnemMemorizeNumbers": "{n} संख्याएँ याद करें",

@@ -1342,6 +1342,7 @@ const t: Record<string, string> = {
   "goodsSet_dairy": "乳制品",
   "goodsSet_mix": "混合",
   "goodsSetAlike": "相似",
+  "goodsSetFromLevel": "第 {n} 关开启",
   "tooManyMoves": "🔁 步数太多",
   "mnemMemorizeWords": "记住 {n} 个词",
   "mnemMemorizeNumbers": "记住 {n} 个数",

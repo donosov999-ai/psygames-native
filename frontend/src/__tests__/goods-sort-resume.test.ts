@@ -351,7 +351,8 @@ describe('сортировка — мусор из хранилища не по�
 
   it('незнакомый набор товаров не роняет партию — спрайты лежат своими номерами', () => {
     const { snap } = roundTrip();
-    expect(restoreGoodsParty({ ...snap, setKey: 'мясное' }, NOW)!.setKey).toBe('drinks');
+    // Первый в списке — самый широкий «Микс»: единственный открытый с 1-го уровня.
+    expect(restoreGoodsParty({ ...snap, setKey: 'мясное' }, NOW)!.setKey).toBe('mix');
   });
 });
 

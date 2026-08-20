@@ -156,7 +156,9 @@ describe('выбор набора: раскладка рядами', () => {
     // и наборы стало бы не с чем сравнивать глазом.
     const rows = setRows(previews().map((p) => p.key));
     expect(rows.map((r) => r.length)).toEqual([SET_COLS, SET_COLS, SET_COLS]);
-    expect(rows[2]).toEqual(['mix', null]);
+    // Порядок наборов с 20.08.2026 — по возрастанию порога открытия
+    // (mix 1 · food 6 · drinks 10 · toys 12 · dairy 12), см. goods-sort-unlock.
+    expect(rows[2]).toEqual(['dairy', null]);
     // ⚠️ Пустое место обязано быть ТЕМ ЖЕ setBtn, только прозрачным: у flex-элемента
     // с basis 0 пол ширины — его padding+border, и голый View «легче» карточки на 20px.
     // Замер живой сборки до фикса: ряд делился 169/149, миниатюры «Микса» 47px против 43.7px.
@@ -195,7 +197,8 @@ describe('выбор набора влияет на трудность, а не 
 
   it('пулы наборов разного размера', () => {
     const sizes = previews().map((p) => `${p.key}:${p.pool.length}`);
-    expect(sizes).toEqual(['drinks:8', 'food:6', 'toys:9', 'dairy:9', 'mix:32']);
+    // Читаются в порядке показа: от самого широкого (открыт сразу) к узким.
+    expect(sizes).toEqual(['mix:32', 'food:6', 'drinks:8', 'toys:9', 'dairy:9']);
   });
 
   it('на 12-м уровне разные наборы дают разное число видов товара', () => {
