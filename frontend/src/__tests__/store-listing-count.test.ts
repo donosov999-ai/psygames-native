@@ -1,118 +1,405 @@
+/* psygames-store-listing-count · VER 2 · 20.08.2026 */
 /**
- * Число упражнений в карточках магазинов обязано совпадать с каталогом.
+ * СКОЛЬКО УПРАЖНЕНИЙ ОБЕЩАНО В МАГАЗИНАХ — СЧИТАЕТСЯ ПО КАТАЛОГУ, А НЕ ПИШЕТСЯ РУКОЙ.
  *
- * ЗАЧЕМ. Карточки Google Play обновляются автоматически при пуше в store/, и в них
- * на двенадцати языках написано «N упражнений». Каталог растёт: за один день
- * 12.08.2026 в него добавились судоку-самурай и фрактальная судоку, и «61» в живых
- * описаниях мгновенно стало неправдой — на витрине магазина, а не в коде.
+ * ЗАЧЕМ. Карточки магазинов на пятнадцати файлах и двенадцати языках говорят человеку
+ * «N упражнений». Каталог растёт, карточки — нет, и расхождение не видно НИКОМУ: код
+ * собирается, тесты зелёные, приложение работает. Врёт только текст, который читают
+ * перед установкой, и опровергнуть его человек может за минуту, пересчитав карточки.
  *
- * Такое расхождение не видно никому: код собирается, тесты зелёные, приложение
- * работает. Врёт только текст, который читают перед установкой. Поэтому — тестом.
+ * 🔴 ЧЕМУ РАВНО ЧЕСТНОЕ ЧИСЛО. В `GAMES` 72 записи, но три несут `hub: true`
+ * (`span_group`, `sudoku_group`, `attention_conflict`) — это не упражнения, а развилки:
+ * экраны `app/games/span.tsx`, `sudoku-hub.tsx`, `attention-conflict.tsx` состоят из
+ * выбора режима и редиректа, своей партии не пишут, а их содержимое посчитано
+ * ОТДЕЛЬНЫМИ записями (`digit_span`/`corsi`/`spatial_span`, три судоку,
+ * `stroop`/`stroop_emotional`/`flanker`/`simon`). Засчитать ещё и развилку — посчитать
+ * одно и то же дважды. Правило не выдумано здесь: ровно так считает онбординг
+ * приложения, и это сверяется ниже — чтобы витрина и первый экран не разъехались.
  *
- * ⚠️ СЧИТАЕМ ВСЕ ЗАПИСИ, включая hideFromMenu. Скрытые не показываются карточками
- * в каталоге, но человек их получает: они запускаются зарядками и групповыми
- * экранами. Обещать только видимые значило бы занижать то, что куплено.
+ * ⚠️ Скрытые из меню (`hideFromMenu`) СЧИТАЮТСЯ. Карточкой в каталоге они не видны, но
+ * человек их получает: они запускаются зарядками и развилками. Обещать только видимые
+ * значило бы занижать то, что куплено.
+ *
+ * 🔴 ПОЧЕМУ ПРЕДЫДУЩАЯ ВЕРСИЯ ГЕЙТА БЫЛА ЗЕЛЕНА ПРИ ЗАВЕДОМО НЕВЕРНЫХ ЧИСЛАХ — ТРИ
+ * ДЫРЫ, КАЖДАЯ ЗАКРЫТА ЗДЕСЬ ОТДЕЛЬНО:
+ *
+ *   1. КОНСТАНТА ДОЛГА. В гейте жило `LISTING_BEHIND = 1`, и ожидаемым числом было
+ *      «каталог минус один». То есть гейт не сверял витрину с каталогом, а РАЗРЕШАЛ ей
+ *      отставать — ровно на ту величину, на которую она отставала. Никакой константы
+ *      долга здесь больше нет и быть не может: ожидаемое число берётся из каталога.
+ *
+ *   2. МАРКЕРЫ, ПОДОГНАННЫЕ ПОД МЕСТА, ГДЕ ЧИСЛО СЛУЧАЙНО СОВПАДАЛО. Проверялись
+ *      только числа, приклеенные ВПЛОТНУЮ к слову-маркеру, а маркеры были подобраны
+ *      узко: `種類の脳トレ`, `種。`, `项练习`, `가지 훈련`, `अभ्यास`. Стоило вставить
+ *      между числом и существительным одно слово — и число переставало проверяться.
+ *      Так пять локалей годами носили «63»: `63種類を収録`, `63 项记忆…练习`,
+ *      `63가지 두뇌 훈련`, `63 ब्रेन ट्रेनिंग अभ्यास` — каждое мимо своего маркера,
+ *      при том что в соседней строке того же файла стояло проверявшееся «71».
+ *      Здесь наоборот: маркеры ШИРОКИЕ (любое слово про упражнение/игру/тренировку на
+ *      двенадцати языках), и проверяется КАЖДОЕ двух-трёхзначное число такой строки.
+ *
+ *   3. ЧИСЛА, КОТОРЫЕ НЕ ПРО УПРАЖНЕНИЯ, ГЛУШИЛИ ГЕЙТ. Первая версия ловила «12 языков»
+ *      и «12 вариантов правил» и от этого сузила маркеры до подгонки (см. п.2). Правильный
+ *      выход — не сужать поиск, а НАЗВАТЬ такие числа: `EXPLAINED` ниже. Список закрыт,
+ *      каждое значение сверено с кодом, и в нём не может оказаться самого числа
+ *      упражнений — иначе через него пролезло бы протухшее.
+ *
+ * ⚠️ КОММЕНТАРИИ СРЕЗАЮТСЯ ДО ПОИСКА. Верное число, написанное в `<!-- ... -->` рядом с
+ * неверным в живом тексте, не должно ни зеленить проверку, ни изображать «маркеры на
+ * месте». На этом в проекте попадались много раз: проверку держало СЛОВО В КОММЕНТАРИИ.
+ *
+ * ⚠️ ЧИТАЕТСЯ ТОЛЬКО ПРОДАЮЩИЙ ТЕКСТ — то, что уедет в магазин: ```-блоки и `код`-вставки
+ * (в этих файлах поля карточки лежат именно так, «готовые к копированию»), а для CSV —
+ * значения колонок. Разбор и заметки под текстом читают свои, а не покупатели, и числа
+ * там живут своей жизнью (лимиты полей, размеры списков тегов Google, даты).
+ *
+ * ЧТО ЛОМАЛИ, ЧТОБЫ УБЕДИТЬСЯ, ЧТО КРАСНЕЕТ (и что из этого встроено навсегда):
+ *   · число в одной карточке разошлось с каталогом на ±1 — встроено, `staleFor`;
+ *   · число протухло в ОДНОМ файле из пятнадцати — встроено, по каждому файлу отдельно;
+ *   · каталог вырос, а карточки не тронули — встроено, синтетический каталог `+1`;
+ *   · верное число спрятано в комментарии рядом с неверным в тексте — встроено;
+ *   · текст переписали так, что маркеры перестали совпадать — встроено (счёт совпадений);
+ *   · описание вышло за 4000 символов Play — проверяется ниже.
  */
 declare const __dirname: string;
-declare function require(m: string): any;
-const { readFileSync, readdirSync, existsSync } = require('fs');
-const { join } = require('path');
+declare function require(id: string): any;
 
-const ROOT = join(__dirname, '../../..');
-const GAMES_TS = join(__dirname, '../constants/games.ts');
+const fs = require('fs');
+const path = require('path');
 
-/** Число записей в реестре игр. */
-function catalogueSize(): number {
-  const src: string = readFileSync(GAMES_TS, 'utf8');
-  const body = src.slice(src.indexOf('export const GAMES'));
-  return (body.match(/^\s{2}\{\s*$/gm) || []).length;
-}
+import { GAMES, isHubGame } from '../constants/games';
+import { PROFILES, isSwitchable } from '../constants/profiles';
+import { LANGUAGES } from '../contexts/LanguageContext';
 
-function listingFiles(): string[] {
-  const out: string[] = [];
-  for (const dir of ['store/google-play', 'store/windows']) {
-    const p = join(ROOT, dir);
-    if (!existsSync(p)) continue;
-    for (const f of readdirSync(p)) {
-      if (f.startsWith('listing-') && f.endsWith('.md')) out.push(join(p, f));
-    }
-  }
-  return out;
-}
+const ROOT = path.join(__dirname, '../../..');
+const FRONT = path.join(__dirname, '../..');
 
 /**
- * 🔴 НА СКОЛЬКО ЗАПИСЕЙ ВИТРИНА ОТСТАЁТ ОТ КАТАЛОГА — ИЗВЕСТНЫЙ ДОЛГ, ТОЛЬКО ВНИЗ.
- *
- * 20.08.2026 в каталог приехала карточка-развилка судоку: один вход на три доски
- * (`sudoku_group`). Записей стало 72, на витрине написано 71 — и это ПРАВДА, которую
- * надо донести до store/**, а не спрятать.
- *
- * Почему долг, а не правка текста: `store/**` в этот день держит заход по ночной теме
- * (там правятся описания и скриншоты), и трогать его чужими руками — тот самый молчаливый
- * перезатир, от которого в этом проекте уже разъезжались общие файлы. Число обязано
- * стать 72 — это единственное, что нужно сделать: 44 совпадения в 15 файлах
- * `store/google-play/listing-*.md` и `store/windows/listing-*.md`.
- *
- * ⚠️ Долг только УМЕНЬШАЕТСЯ и протухнуть не может: как только витрина догонит каталог,
- * проверка ниже покраснеет и потребует опустить константу до нуля. Обратно её уже не
- * поднять — новая карточка без правки витрины снова уронит прогон.
+ * ЕДИНСТВЕННЫЙ ИСТОЧНИК ЧИСЛА. Каталог минус развилки — то же правило, что в онбординге.
+ * Считается из ЖИВОГО каталога (импорт), а не из подсчёта скобок в тексте `games.ts`:
+ * текстовый счётчик не отличает упражнение от развилки и именно поэтому давал 72.
  */
-const LISTING_BEHIND = 1;
+const EXERCISES = GAMES.filter((g) => !isHubGame(g.id)).length;
 
-describe('карточки магазинов', () => {
-  it('есть что проверять — иначе тест зелен вслепую', () => {
-    expect(listingFiles().length).toBeGreaterThanOrEqual(12);
-    expect(catalogueSize()).toBeGreaterThan(50);
+/** Файлы витрины. Список закрыт: новый язык, не внесённый сюда, ловится проверкой ниже. */
+const SHOPS: { file: string; play: boolean }[] = [
+  ...['ru', 'en', 'de', 'es', 'fr', 'it', 'pt', 'hi', 'zh', 'ja', 'ko', 'ar'].map((l) => ({
+    file: `store/google-play/listing-${l}.md`,
+    play: true,
+  })),
+  { file: 'store/windows/listing-en.md', play: false },
+  { file: 'store/windows/listing-ru.md', play: false },
+  { file: 'store/windows/store-listing.csv', play: false },
+  { file: 'store/appstore/listing.md', play: false },
+];
+
+/** Лимит поля «Полное описание» в Play. */
+const PLAY_DESC_LIMIT = 4000;
+
+/**
+ * Слова про упражнение / игру / тренировку на всех двенадцати языках. Берутся ВСЕ разом
+ * для любого файла: маркер чужого языка лишним не будет, а вот забытый в своём — дыра.
+ * Корни, а не словоформы: «69 упражнений», «69 упражнения», «69 Übungen» одинаково видны.
+ */
+const MARKERS = [
+  'упражнени', 'тренаж', 'тренировк', 'игр',
+  'exercise', 'game', 'trainer', 'training',
+  'übung', 'spiel',
+  'ejercicio', 'juego', 'entrenamiento',
+  'exercice', 'jeu', 'entraînement',
+  'esercizi', 'gioco', 'giochi', 'allenament',
+  'exercício', 'jogo', 'treino', 'treinamento',
+  'अभ्यास', 'खेल', 'ट्रेनिंग', 'प्रशिक्षण',
+  // ⚠️ Счётные слова CJK берём БЕЗ уточнения: краткое описание ja говорит «69種。» —
+  // не «種類», не «脳トレ». Ровно этот зазор гейт и проспал бы, а поймала проверка
+  // «гейт видит каждое вхождение» ниже. Родовое «12種類の言語» теперь не мешает: 12
+  // объяснено, а не выпилено сужением маркера.
+  '练习', '游戏', '训练', '项', '种',
+  '種', '脳トレ', 'ゲーム', 'トレーニング',
+  '훈련', '게임', '가지',
+  'تمرين', 'تمار', 'لعب', 'تدريب',
+];
+
+/**
+ * ЧИСЛА, КОТОРЫЕ СТОЯТ РЯДОМ С УПРАЖНЕНИЯМИ, НО УПРАЖНЕНИЯ НЕ СЧИТАЮТ.
+ * Список закрыт и каждое значение сверено с кодом отдельной проверкой ниже. Это
+ * единственная законная лазейка гейта, поэтому она короткая и охраняемая.
+ */
+const EXPLAINED: Record<number, string> = {
+  12: 'языки приложения / профили в выборе / варианты правил судоку — по коду все три равны 12',
+  50: '«50+» — возрастной сегмент в блоке «для кого», а не счёт упражнений',
+};
+
+/** Двух- и трёхзначные: счёт упражнений заведомо в этом диапазоне, а «4 категории» — нет. */
+const NUMBER = /(?<![0-9])([0-9]{2,3})(?![0-9])/g;
+
+/**
+ * ПРОДАЮЩИЙ ТЕКСТ ФАЙЛА — то, что уедет в магазин, без разбора и без комментариев.
+ * Для .md: ```-блоки (поля карточки) плюс `код`-вставки (в App Store подзаголовок и
+ * промо-текст лежат именно так). Для .csv: значения колонок без имени поля — иначе
+ * `ProductFeatures12` подсунуло бы гейту «12» на ровном месте.
+ */
+function shippingCopy(file: string, src: string): string {
+  if (file.endsWith('.csv')) {
+    return src
+      .split('\n')
+      .map((l) => l.replace(/^[A-Za-z][A-Za-z0-9]*,(Text|Type),/, ''))
+      .join('\n');
+  }
+  const noComments = src.replace(/<!--[\s\S]*?-->/g, '');
+  const out: string[] = [];
+  const fence = /```[a-z]*\n([\s\S]*?)\n```/g;
+  let m: RegExpExecArray | null;
+  while ((m = fence.exec(noComments)) !== null) out.push(m[1]);
+  const rest = noComments.replace(fence, '');
+  const inline = /`([^`\n]+)`/g;
+  while ((m = inline.exec(rest)) !== null) out.push(m[1]);
+  return out.join('\n');
+}
+
+/** Строка, приведённая к виду для поиска: бренд убран (в «PsyGames» сидит маркер `game`). */
+function probe(line: string): string {
+  return line.toLowerCase().replace(/psygames/g, '');
+}
+
+/** Все проверяемые числа файла: каждое двух-трёхзначное со строки, где помянуто упражнение. */
+function numbersIn(file: string, src: string): number[] {
+  const found: number[] = [];
+  for (const line of shippingCopy(file, src).split('\n')) {
+    const p = probe(line);
+    if (!MARKERS.some((w) => p.includes(w))) continue;
+    for (const hit of p.matchAll(NUMBER)) found.push(Number(hit[1]));
+  }
+  return found;
+}
+
+/** Претензии к файлу: что за число и чем оно должно было быть. Пусто = витрина не врёт. */
+function staleFor(file: string, src: string, expected: number): string[] {
+  return numbersIn(file, src)
+    .filter((n) => n !== expected && EXPLAINED[n] === undefined)
+    .map((n) => `${file}: ${n} вместо ${expected}`);
+}
+
+const read = (file: string): string => fs.readFileSync(path.join(ROOT, file), 'utf8');
+
+/**
+ * Сколько раз число стоит в продающем тексте — считаем НАПРЯМУЮ, мимо маркеров.
+ * Это вторая, независимая линейка: если она разойдётся со счётом через маркеры,
+ * значит какое-то обещание покупателю гейт не проверяет вовсе.
+ */
+function occurrencesInCopy(file: string, src: string, n: number): number {
+  const re = new RegExp(`(?<![0-9])${n}(?![0-9])`, 'g');
+  return (shippingCopy(file, src).match(re) || []).length;
+}
+
+/** Все вхождения верного числа заменены на соседнее — так протухает одна локаль. */
+function spoil(src: string, n: number): string {
+  return src.replace(new RegExp(`(?<![0-9])${n}(?![0-9])`, 'g'), String(n + 1));
+}
+
+/** Полное описание Play = самый длинный ```-блок карточки. */
+function playDescription(md: string): string {
+  const blocks: string[] = [];
+  const re = /```[a-z]*\n([\s\S]*?)\n```/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(md)) !== null) blocks.push(m[1]);
+  return blocks.length ? blocks.reduce((a, b) => (b.length > a.length ? b : a)) : '';
+}
+
+describe('карточки магазинов: есть что проверять', () => {
+  it('все файлы витрины на месте и ни один не забыт в списке', () => {
+    for (const s of SHOPS) {
+      expect(`${s.file}: ${fs.existsSync(path.join(ROOT, s.file))}`).toBe(`${s.file}: true`);
+    }
+    // Завели тринадцатый язык, а в гейт не внесли — гейт про это скажет сам.
+    const onDisk: string[] = fs
+      .readdirSync(path.join(ROOT, 'store/google-play'))
+      .filter((f: string) => f.startsWith('listing-') && f.endsWith('.md'))
+      .map((f: string) => `store/google-play/${f}`)
+      .sort();
+    expect(onDisk).toEqual(SHOPS.filter((s) => s.play).map((s) => s.file).sort());
   });
 
-  it('обещанное число упражнений совпадает с каталогом', () => {
-    const n = catalogueSize();
-
-    /**
-     * Слова-маркеры «упражнение» на всех двенадцати языках. Проверяем ТОЛЬКО числа,
-     * стоящие прямо перед ними: иначе тест ловит лимиты символов («80 символов»),
-     * возраст аудитории («50+») и прочие числа, к счёту игр отношения не имеющие —
-     * первый вариант так и сделал и покраснел на ровном месте.
-     */
-    const MARKERS = [
-      'упражнени', 'exercise', 'Übung', 'ejercicio', 'exercice', 'esercizi',
-      'exercício', '種類の脳トレ', '種。', '项练习', '가지 훈련', 'अभ्यास', 'تمرين',
-    ];
-    // ⚠️ Общие счётные слова сюда не годятся. Первая версия взяла японское 「種」
-    // и хинди «तरह» — и поймала «12 種類の言語» и «12 तरह के नियमों» (число языков
-    // и число вариантов правил судоку), объявив их неверным счётом упражнений.
-    // Маркер должен указывать на УПРАЖНЕНИЯ, а не на «штуки» вообще.
-    const re = new RegExp(`(?<!\\d)(\\d{2})(?!\\d)[\\s]{0,2}(${MARKERS.join('|')})`, 'g');
-
-    const expected = n - LISTING_BEHIND;
-    const wrong: string[] = [];
-    const numbers: number[] = [];
-    for (const f of listingFiles()) {
-      const text: string = readFileSync(f, 'utf8');
-      for (const m of text.matchAll(re)) {
-        numbers.push(Number(m[1]));
-        if (Number(m[1]) !== expected) wrong.push(`${f.split('/store/')[1]}: ${m[1]} вместо ${expected}`);
-      }
-    }
-
-    // Если маркеры перестали совпадать (текст переписали) — тест обязан упасть,
-    // а не тихо позеленеть, ничего не проверив.
-    expect(`совпадений маркера: ${numbers.length > 20}`).toBe('совпадений маркера: true');
-
-    // Долг погашен — витрина догнала каталог. Красное здесь означает уборку, а не поломку.
-    const caughtUp = LISTING_BEHIND > 0 && numbers.length > 0 && numbers.every((x) => x === n);
-    expect(caughtUp ? `витрина догнала каталог (${n}) — опусти LISTING_BEHIND до 0` : 'долг на месте')
-      .toBe('долг на месте');
-
-    expect(wrong).toEqual([]);
+  it('каталог отличает упражнение от развилки', () => {
+    expect(GAMES.length).toBeGreaterThan(50);
+    const hubs = GAMES.filter((g) => isHubGame(g.id)).length;
+    // Пропадёт признак `hub` из модели — гейт станет считать развилки упражнениями молча.
+    expect(`развилок в каталоге: ${hubs > 0}`).toBe('развилок в каталоге: true');
+    expect(EXERCISES).toBe(GAMES.length - hubs);
+    expect(EXERCISES).toBeGreaterThanOrEqual(10);   // диапазон, в котором ищутся числа
+    expect(EXERCISES).toBeLessThanOrEqual(999);
   });
 
   /**
-   * Долг обязан быть НАЗВАН, а не просто существовать: без этой проверки константу
-   * можно поднять до любого числа и получить вечно зелёный прогон при витрине,
-   * отставшей на десяток карточек.
+   * Витрина и первый экран приложения обязаны считать ОДНО И ТО ЖЕ. Онбординг уже
+   * считает правильно (`GAMES.filter((g) => !isHubGame(g.id))`) — если там правило
+   * перепишут, покупатель получит одно число в магазине и другое при запуске.
    */
-  it('долг витрины не больше одной карточки', () => {
-    expect(`витрина отстаёт на ${LISTING_BEHIND}`).toBe(`витрина отстаёт на ${Math.min(LISTING_BEHIND, 1)}`);
+  it('правило счёта — то же, что у онбординга приложения', () => {
+    const onboarding: string = fs.readFileSync(path.join(FRONT, 'app/onboarding.tsx'), 'utf8');
+    expect(onboarding.replace(/\s+/g, ' ')).toContain('GAMES.filter((g) => !isHubGame(g.id)).length');
+  });
+
+  it('в каждом файле витрины нашлось что проверять', () => {
+    const blind: string[] = [];
+    for (const s of SHOPS) {
+      const n = numbersIn(s.file, read(s.file)).length;
+      if (n === 0) blind.push(`${s.file}: маркеры не совпали ни разу — текст переписали, гейт ослеп`);
+    }
+    expect(blind).toEqual([]);
+    const total = SHOPS.reduce((a, s) => a + numbersIn(s.file, read(s.file)).length, 0);
+    expect(`проверяемых чисел: ${total >= 40}`).toBe('проверяемых чисел: true');
+  });
+});
+
+describe('карточки магазинов: обещанное число упражнений', () => {
+  it('совпадает с каталогом во всех пятнадцати файлах', () => {
+    const wrong: string[] = [];
+    for (const s of SHOPS) wrong.push(...staleFor(s.file, read(s.file), EXERCISES));
+    expect(wrong).toEqual([]);
+  });
+
+  it('названо в каждой из двенадцати локалей Play, а не только в паре', () => {
+    const silent: string[] = [];
+    for (const s of SHOPS.filter((x) => x.play)) {
+      const hits = numbersIn(s.file, read(s.file)).filter((n) => n === EXERCISES).length;
+      if (hits === 0) silent.push(`${s.file}: числа упражнений в продающем тексте нет вовсе`);
+    }
+    expect(silent).toEqual([]);
+  });
+
+  it('описание Play влезает в лимит', () => {
+    const over: string[] = [];
+    for (const s of SHOPS.filter((x) => x.play)) {
+      const n = playDescription(read(s.file)).length;
+      if (n > PLAY_DESC_LIMIT) over.push(`${s.file}: ${n} из ${PLAY_DESC_LIMIT}`);
+    }
+    expect(over).toEqual([]);
+  });
+});
+
+/**
+ * ГЕЙТ, КОТОРЫЙ ДОКАЗЫВАЕТ, ЧТО УМЕЕТ КРАСНЕТЬ.
+ *
+ * Проверки выше зелены и когда всё честно, и когда детектор сломан. Ниже тот же
+ * детектор натравлен на ЗАВЕДОМО ИСПОРЧЕННЫЙ вход — и обязан ругаться. Порча делается
+ * на ЖИВЫХ файлах, а не на выдуманном примере: выдуманный переживёт любую переделку
+ * текста, живой — нет.
+ */
+describe('карточки магазинов: гейт ломается, когда должен', () => {
+  it('каталог вырос или усох на единицу — краснеет каждый файл', () => {
+    for (const delta of [1, -1]) {
+      const missed: string[] = [];
+      for (const s of SHOPS) {
+        if (staleFor(s.file, read(s.file), EXERCISES + delta).length === 0) {
+          missed.push(`${s.file}: расхождение на ${delta} прошло незамеченным`);
+        }
+      }
+      expect(missed).toEqual([]);
+    }
+  });
+
+  /**
+   * 🔴 САМАЯ ЦЕННАЯ ПРОВЕРКА НАБОРА, и не тавтология: маркеры считают одно, а прямой
+   * поиск по продающему тексту — другое. Разошлись — значит какое-то «N упражнений»
+   * покупатель читает, а гейт не проверяет. Именно так и вскрылось, что японское
+   * краткое описание говорит «69種。» мимо всех маркеров: число стояло на витрине и
+   * не проверялось ничем.
+   */
+  it('гейт видит КАЖДОЕ вхождение числа в продающем тексте, а не часть', () => {
+    const blind: string[] = [];
+    for (const s of SHOPS) {
+      const src = read(s.file);
+      const byMarkers = numbersIn(s.file, src).filter((n) => n === EXERCISES).length;
+      const inCopy = occurrencesInCopy(s.file, src, EXERCISES);
+      if (byMarkers !== inCopy) {
+        blind.push(`${s.file}: в тексте ${inCopy} обещаний, гейт проверяет ${byMarkers}`);
+      }
+    }
+    expect(blind).toEqual([]);
+  });
+
+  it('число протухло в ОДНОМ файле из пятнадцати — виден именно он', () => {
+    const missed: string[] = [];
+    for (const s of SHOPS) {
+      const cry = staleFor(s.file, spoil(read(s.file), EXERCISES), EXERCISES);
+      if (cry.length === 0) missed.push(`${s.file}: протухшая локаль не поймана`);
+      // Остальные файлы при этом обязаны молчать — иначе гейт не показывает виновного.
+      for (const other of SHOPS) {
+        if (other.file === s.file) continue;
+        if (staleFor(other.file, read(other.file), EXERCISES).length !== 0) {
+          missed.push(`${other.file}: шумит, хотя портили ${s.file}`);
+        }
+      }
+    }
+    expect(missed).toEqual([]);
+  });
+
+  it('верное число в комментарии не выгораживает неверное в тексте', () => {
+    const missed: string[] = [];
+    for (const s of SHOPS.filter((x) => !x.file.endsWith('.csv'))) {
+      const spoiled =
+        spoil(read(s.file), EXERCISES) +
+        `\n<!--\n\`\`\`\nВсего ${EXERCISES} упражнений — сверено с каталогом\n\`\`\`\n-->\n`;
+      if (staleFor(s.file, spoiled, EXERCISES).length === 0) {
+        missed.push(`${s.file}: комментарий прикрыл ложь в тексте`);
+      }
+      // И наоборот: комментарий не должен изображать, будто в файле есть что проверять.
+      const onlyComment = `# Пусто\n<!--\n\`\`\`\n${EXERCISES} упражнений\n\`\`\`\n-->\n`;
+      if (numbersIn(s.file, onlyComment).length !== 0) {
+        missed.push(`${s.file}: число из комментария зачлось за обещание`);
+      }
+    }
+    expect(missed).toEqual([]);
+  });
+
+  it('разбор под текстом карточку не зеленит и не пачкает', () => {
+    // Заметка для своих с любым числом — не продающий текст, гейту она безразлична.
+    const note = '\n\nЗаметка: раньше в каталоге было 48 упражнений, потом 71.\n';
+    for (const s of SHOPS.filter((x) => !x.file.endsWith('.csv'))) {
+      expect(staleFor(s.file, read(s.file) + note, EXERCISES)).toEqual([]);
+    }
+    // ...но то же самое ВНУТРИ поля карточки — уже ложь покупателю.
+    const inField = '\n\n```\nВнутри: 48 упражнений на память\n```\n';
+    expect(staleFor(SHOPS[0].file, read(SHOPS[0].file) + inField, EXERCISES).length).toBeGreaterThan(0);
+  });
+
+  it('описание, вылезшее за лимит Play, ловится', () => {
+    const md = read('store/google-play/listing-ru.md');
+    const fat = md.replace(playDescription(md), playDescription(md) + 'ы'.repeat(PLAY_DESC_LIMIT));
+    expect(playDescription(fat).length).toBeGreaterThan(PLAY_DESC_LIMIT);
+  });
+});
+
+/**
+ * ОБЪЯСНЁННЫЕ ЧИСЛА — ЕДИНСТВЕННАЯ ЛАЗЕЙКА ГЕЙТА, И ОНА ПРИШПИЛЕНА К КОДУ.
+ * Пока «12» значит языки, профили и варианты правил — оно законно стоит рядом с
+ * упражнениями. Разъедется хоть одно — здесь и узнаем, а не из отзыва в магазине.
+ */
+describe('карточки магазинов: числа не про упражнения — названы и сверены', () => {
+  it('в списке объяснённых нет самого числа упражнений', () => {
+    expect(
+      EXPLAINED[EXERCISES] === undefined
+        ? 'лазейки нет'
+        : `${EXERCISES} объявлено объяснённым — через него пролезет любое протухшее число`,
+    ).toBe('лазейки нет');
+  });
+
+  it('«12» — это языки, профили и варианты правил судоку', () => {
+    expect(`языков: ${LANGUAGES.length}`).toBe('языков: 12');
+    expect(`профилей в выборе: ${PROFILES.filter(isSwitchable).length}`).toBe('профилей в выборе: 12');
+
+    // Variant — тип, в рантайме его нет; читаем объявление из исходника.
+    const core: string = fs.readFileSync(path.join(FRONT, 'src/services/sudoku-core.ts'), 'utf8');
+    const decl = /export type Variant =([^;]+);/.exec(core);
+    expect(`объявление Variant найдено: ${decl !== null}`).toBe('объявление Variant найдено: true');
+    const variants = (decl![1].match(/'[a-z]+'/g) || []).filter((v) => v !== "'none'");
+    expect(`вариантов правил судоку: ${variants.length}`).toBe('вариантов правил судоку: 12');
+  });
+
+  it('каждое объяснённое число объяснено словами, а не молча', () => {
+    for (const [n, why] of Object.entries(EXPLAINED)) {
+      expect(`${n}: ${why.length > 20}`).toBe(`${n}: true`);
+    }
   });
 });
