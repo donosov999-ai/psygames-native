@@ -1745,6 +1745,36 @@ const translations: Translations = {
   // режется, таблица новой игры ещё пуста), но свой рекорд есть — и пустота вместо него
   // читалась бы как поломка приложения.
   leaderboardPersonalOnly: { ru: 'Чужих результатов пока нет. Твой рекорд:', en: 'No other results yet. Your record:' },
+  // Друзья по коду приглашения (app/friends.tsx). Круг — это ВИД на уже
+  // опубликованные очки: новых личных данных не заводится ни одного поля, и
+  // тексты обязаны обещать ровно это, а не «друг тренировался сегодня».
+  friendsTitle: { ru: 'Друзья', en: 'Friends' },
+  friendsMyCode: { ru: 'Ваш код приглашения', en: 'Your invite code' },
+  friendsMyCodeHint: { ru: 'Продиктуйте или покажите этот код. Кто введёт его у себя — окажется в вашем круге, а вы в его: связь всегда взаимна.', en: 'Read this code out or show it. Whoever enters it lands in your circle, and you land in theirs: the link always goes both ways.' },
+  // Кода нет на экране — человек решит, что его не выдали. Говорим про связь.
+  friendsCodeOffline: { ru: 'Код не пришёл — сервер не ответил. Он никуда не делся: загляните сюда, когда будет связь.', en: 'The code did not arrive — the server did not answer. It is not lost: look again when you have a connection.' },
+  friendsAddTitle: { ru: 'Код друга', en: 'A friend\'s code' },
+  friendsCodePlaceholder: { ru: 'Шесть знаков', en: 'Six characters' },
+  friendsAddBtn: { ru: 'Добавить в круг', en: 'Add to circle' },
+  friendsAdded: { ru: '{name} теперь в вашем круге — и вы в его.', en: '{name} is in your circle now — and you are in theirs.' },
+  // 🔴 «Кода нет» и «нет связи» — РАЗНЫЕ беды: в первом случае ищут опечатку,
+  // во втором ждать нечего. Один текст на оба заставил бы искать опечатку в
+  // правильном коде.
+  friendsNotFound: { ru: 'Такого кода нет. Проверьте знаки: их шесть, и похожих друг на друга 0, O, 1, I, L в коде не бывает. Свой собственный код тоже не подойдёт.', en: 'No such code. Check the characters: there are six, and the look-alikes 0, O, 1, I and L never appear in a code. Your own code will not work either.' },
+  friendsAddOffline: { ru: 'Сервер не ответил — код мы даже не проверили. Это не «кода нет»: повторите, когда будет связь.', en: 'The server did not answer — the code was never even checked. This is not “no such code”: try again when you have a connection.' },
+  friendsTableTitle: { ru: 'Круг в одной игре', en: 'Your circle in one game' },
+  friendsViewOffline: { ru: 'Спросить сервер не вышло. Это не значит, что круг пуст — просто сейчас нет связи.', en: 'We could not ask the server. That does not mean the circle is empty — there is simply no connection now.' },
+  friendsViewNoFriends: { ru: 'В круге пока никого. Дайте свой код тому, с кем хотите сравнивать результаты.', en: 'Nobody in your circle yet. Give your code to whoever you want to compare results with.' },
+  friendsViewNobodyPlayed: { ru: 'В «{game}» из круга ещё никто не играл. Выберите другую игру или позовите их сыграть.', en: 'Nobody in your circle has played “{game}” yet. Pick another game, or invite them to play it.' },
+  friendsMe: { ru: 'вы', en: 'you' },
+  friendsScoresOnly: { ru: 'Здесь только очки зачётных партий — те, что вы сами отправили в таблицу рекордов. Дни тренировок и их история остаются на устройстве и на сервер не уходят.', en: 'Only scores from qualifying runs are shown here — the ones you sent to the record table yourself. Training days and their history stay on your device and never leave it.' },
+  friendsCircle: { ru: 'Ваш круг · {n}', en: 'Your circle · {n}' },
+  friendsRemove: { ru: 'Убрать из круга', en: 'Remove from circle' },
+  // Разрыв взаимен — так устроен сервер. Не сказать об этом значит дать человеку
+  // убрать себя из чужого круга, думая, что он правит только свой.
+  friendsRemoveMutual: { ru: 'Разорвать связь с {name}? Связь взаимна: вы исчезнете и из его круга тоже.', en: 'Break the link with {name}? The link is mutual: you will disappear from their circle as well.' },
+  friendsRemoveConfirm: { ru: 'Разорвать', en: 'Break the link' },
+  friendsRemoveFailed: { ru: 'Разорвать не вышло — сервер не ответил. Связь осталась как была.', en: 'The link could not be broken — the server did not answer. It stayed as it was.' },
   bestAmongPlayers: { ru: 'Лучший среди игроков', en: 'Best among players' },
   levelOfMax: { ru: 'Уровень {n}/{max}', en: 'Level {n}/{max}' },
   // Для проверенных методик (Iowa, RMET, охват) уровень НИЧЕГО не усложняет — он

@@ -475,27 +475,49 @@ function FullHome() {
                 <Text style={{ color: colors.text, fontWeight: '900', fontSize: 13 }}>🔥{streak}</Text>
               </TouchableOpacity>
             </View>
-            {lvl.span !== null && (
-              /* Полоска прогресса ведёт в лиги: она и так означает «сколько до следующей
-                 ступени», так что это её место по смыслу. Отдельную кнопку в шапку не
-                 добавляем — там уже тесно, и каждый лишний значок отодвигает игры вниз. */
-              /* Зона нажатия — настоящие 44 точки по высоте, полоска рисуется ВНУТРИ неё.
-                 Раньше здесь было 104×4 плюс hitSlop, и замер 12.08 показал, что попасть
-                 в лиги почти нельзя: hitSlop на вебе пустышка (см. примечание выше), то
-                 есть цель была ровно 4 точки высотой. Отрицательный отступ по вертикали
-                 гасит прибавку, чтобы шапка не разъехалась: растёт зона, не раскладка. */
+            {/* Друзья встали НА ЯРУС ЛИГ, а не шестым значком в ряд назначений, и это
+                замер, а не вкус. На 360 dp ряду достаётся 320 точек: пять зон по 44 —
+                это 220, плюс база чипа профиля 120 = 340, и flexWrap ломает ряд ЦЕЛИКОМ
+                (перенос в вёрстке считается по базам ДО ужимания, поэтому чип не
+                сожмётся, а уедет). Замер живой сборки 21.08: шапка 44 → 90 точек, ровно
+                тот ярус в полсотни, который убирали в v1.122.0.
+                Здесь же ярус лиг занят полоской в 104 точки при колонке в 156 — слева от
+                неё пустует 52, и кнопка в 44 встаёт без единой лишней точки по ширине.
+                По высоте: отступ полоски ослаблен с −20 до −11, чтобы значок не залезал
+                под плашку очков (её видимый край на 5 точек ниже её же коробки). Ярус
+                стал 22 точки вместо 4, вся шапка выросла на 9 — против 46 у переноса. */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <TouchableOpacity
                 accessibilityRole="button"
-                accessibilityLabel={t('leaguesTitle')}
+                accessibilityLabel={t('friendsTitle')}
                 activeOpacity={0.8}
-                onPress={() => router.push('/leagues' as any)}
-                style={{ width: 104, height: 44, marginVertical: -20, justifyContent: 'center' }}
+                onPress={() => router.push('/friends' as any)}
+                style={{ width: 44, height: 44, marginVertical: -11, alignItems: 'center', justifyContent: 'center' }}
               >
-                <View style={{ height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden' }}>
-                  <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 4, backgroundColor: colors.primary }} />
-                </View>
+                <Ionicons name="people" size={18} color={colors.primary} />
               </TouchableOpacity>
-            )}
+              {lvl.span !== null && (
+                /* Полоска прогресса ведёт в лиги: она и так означает «сколько до следующей
+                   ступени», так что это её место по смыслу. Отдельную кнопку в шапку не
+                   добавляем — там уже тесно, и каждый лишний значок отодвигает игры вниз. */
+                /* Зона нажатия — настоящие 44 точки по высоте, полоска рисуется ВНУТРИ неё.
+                   Раньше здесь было 104×4 плюс hitSlop, и замер 12.08 показал, что попасть
+                   в лиги почти нельзя: hitSlop на вебе пустышка (см. примечание выше), то
+                   есть цель была ровно 4 точки высотой. Отрицательный отступ по вертикали
+                   гасит прибавку: растёт зона, не раскладка. */
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={t('leaguesTitle')}
+                  activeOpacity={0.8}
+                  onPress={() => router.push('/leagues' as any)}
+                  style={{ width: 104, height: 44, marginVertical: -11, justifyContent: 'center' }}
+                >
+                  <View style={{ height: 4, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden' }}>
+                    <View style={{ width: `${Math.round(lvl.progress * 100)}%`, height: 4, backgroundColor: colors.primary }} />
+                  </View>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
           {/* Мини-аватар питомца «Синапс» → /pet. Шапка недавно чинена на адаптивность:
               аватар с фикс-шириной и flexShrink:0, ужиматься продолжает ТОЛЬКО лого (flex:1) */}
