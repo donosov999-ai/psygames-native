@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.209.0',
+    date: '2026-08-20',
+    ru: [
+      "Судоку объясняет свои правила на доске: что такое сумма у края, зачем отмена хода и что даёт подсветка клеток",
+      "Голосовой отзыв больше не пропадает молча: видно, слышит ли вас приложение, и запись не отправится немой",
+      "Вечером тихо во всех играх набора, а не только в тех, на которые жаловались: у судоку убран секундомер, победный звук молчит",
+      "Выбор набора товаров стало видно: миниатюры выросли втрое и перестали налезать друг на друга",
+      "Самурай перестал смешивать свои партии с обычной судоку — время и уровни двух игр больше не в одной куче",
+      "Шаг зарядки больше не может уронить ваш уровень: два упражнения делали это молча",
+    ],
+    en: [
+      "Sudoku explains its own rules on the board: what the edge sums mean, why undo exists, what cell colouring does",
+      "A voice note no longer vanishes silently: you can see whether the app hears you, and a silent recording will not be sent",
+      "Evenings are quiet in every game of the set, not only the ones that were complained about: Sudoku drops its stopwatch, the win sound stays off",
+      "The goods set picker is legible: thumbnails grew threefold and stopped overlapping",
+      "Samurai no longer mixes its rounds with plain Sudoku — times and levels of the two games are separate",
+      "A warm-up step can no longer drop your level: two exercises were doing it silently",
+    ],
+  },
+  {
     version: '1.208.0',
     date: '2026-08-20',
     ru: [
