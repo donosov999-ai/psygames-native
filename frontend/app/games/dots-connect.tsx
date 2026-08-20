@@ -1,4 +1,4 @@
-/* psygames-game-dots-connect · VER 1 · 19.08.2026 */
+/* psygames-game-dots-connect · VER 2 · 20.08.2026 */
 /**
  * Соедини точки — пути между парами, которые обязаны занять ВСЮ сетку.
  *
@@ -62,6 +62,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
+import GameShell from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
@@ -142,6 +143,11 @@ export default function DotsConnectScreen() {
    */
   const [attempt, setAttempt] = React.useState(0);
   const [withIntro, setWithIntro] = React.useState(true);
+  /**
+   * Есть ли что терять — решает МОДУЛЬ (`hasSomethingToLose`), экран только
+   * держит ответ и отдаёт каркасу: про фазы раунда каркас не знает.
+   */
+  const [armed, setArmed] = React.useState(false);
 
   React.useEffect(() => { if (autostart) setPhase('playing'); }, [autostart]);
 
@@ -202,75 +208,100 @@ export default function DotsConnectScreen() {
 
   /** intro=true — через правила и тренировку; false — сразу партия. */
   const start = (intro: boolean) => {
+    setArmed(false);
     setWithIntro(intro);
     setAttempt((n) => n + 1);
     setPhase('playing');
   };
 
+  /** Уйти в экран настройки — сюда ведёт и «назад» каркаса, и конец партии. */
+  const leaveToConfig = React.useCallback(() => { setArmed(false); setPhase('config'); }, []);
+
   if (phase === 'playing') {
     return (
-      <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-        {/* Своя шапка: без неё выход из партии есть только на экране правил. */}
-        <GradientSurface colors={GRADIENT as [string, string]} style={styles.header}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-          <TouchableOpacity onPress={() => setPhase('config')} style={styles.back}
-            accessibilityRole="button" accessibilityLabel={t('back')}>
-            <Ionicons name="arrow-back" size={24} color={ON_GRAD.color} />
-          </TouchableOpacity>
-          <Text style={styles.title}>{strings.title}</Text>
-        </GradientSurface>
-        <DotsConnectGame
-          key={attempt}                 /* новый заход — чистое состояние модуля */
-          seed={seed}
-          level={level}
-          locale={locale}
-          /**
-           * 🔴 Свой экран поздравления модуля выключен: итог уровня рисует
-           * LevelCleared, и только он ведёт звёзды, серию и глаз-разрядку.
-           */
-          showOwnResults={false}
-          skipIntro={!withIntro}
-          /**
-           * 🔴 Игровые часы вместо настенных. Модуль по умолчанию берёт
-           * `Date.now`, и тогда время партии продолжало бы идти, пока человек
-           * пишет отзыв поверх игры. Оба конца отсчёта (старт партии и момент
-           * завершения) модуль берёт из ЭТОЙ функции, значит разность
-           * автоматически становится игровым временем.
-           */
-          now={gameNow}
-          /**
-           * Тему отдаём ЦЕЛИКОМ, а не три цвета: у модуля палитра по умолчанию
-           * своя, и в тёмных профилях недокрашенная игра была бы белым пятном.
-           * Ключи модуля совпадают с ThemeColors один в один.
-           */
-          theme={{
-            background: colors.background,
-            surface: colors.surface,
-            card: colors.card,
-            text: colors.text,
-            textSecondary: colors.textSecondary,
+      /**
+       * 🔴 ОБЩИЙ КАРКАС ВМЕСТО СВОЕЙ ШАПКИ. Своя шапка сюда была поставлена
+       * потому, что без неё из партии не выйти вовсе; но она давала ровно
+       * кнопку — и уводила МОЛЧА, стирая проложенные пути одним промахом.
+       * Каркас даёт то же место выхода плюс две вещи, которых своя рамка не
+       * умела: вопрос «партия пропадёт» и плашку паузы, пока человек пишет
+       * отзыв, — до этого игра под окном отзыва просто продолжала идти.
+       *
+       * ⚠️ Градиентная шапка при этом ушла, и это осознанно: на 61 экране из 67
+       * шапка партии выглядит одинаково (стрелка — название — правый слот), и
+       * своя раскраска здесь ценой была бы ровно то же расхождение, ради
+       * лечения которого каркас и заведён.
+       */
+      <GameShell
+        title={strings.title}
+        onBack={leaveToConfig}
+        /**
+         * Спрашиваем только когда терять есть что: правила, тренировочный круг
+         * и партия без единого хода уходят молча — раскладка фиксирована
+         * уровнем и вернётся такой же. Первый проложенный путь — уже нет.
+         */
+        confirmExit={armed}
+      >
+        <View style={styles.stage}>
+          <DotsConnectGame
+            key={attempt}                 /* новый заход — чистое состояние модуля */
+            seed={seed}
+            level={level}
+            locale={locale}
             /**
-             * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им свою
-             * плашку и главную кнопку. Отдать сюда `colors.primary` значит: внутри
-             * игры кнопка станет акцентом профиля (оранжевым, синим — каким
-             * угодно), а снаружи, на экране настроек, останется градиент игры.
-             * Один экран, две разные схемы.
+             * 🔴 Свой экран поздравления модуля выключен: итог уровня рисует
+             * LevelCleared, и только он ведёт звёзды, серию и глаз-разрядку.
              */
-            primary: GRADIENT[0],
-            // Надпись на этой кнопке — по расчёту контраста, а не `background`:
-            // в тёмных профилях чёрный на #2563eb даёт 4.06 при норме 4.5.
-            primaryText: ON_GRAD.color,
-            border: colors.border,
-            success: colors.success,
-            error: colors.error,
-            warning: colors.warning,
-          }}
-          gameGradient={GRADIENT as [string, string]}
-          gameGradientText={ON_GRAD.color}
-          onComplete={onComplete}
-          onExit={() => setPhase('config')}
-        />
-      </SafeAreaView>
+            showOwnResults={false}
+            skipIntro={!withIntro}
+            /**
+             * 🔴 Игровые часы вместо настенных. Модуль по умолчанию берёт
+             * `Date.now`, и тогда время партии продолжало бы идти, пока человек
+             * пишет отзыв поверх игры. Оба конца отсчёта (старт партии и момент
+             * завершения) модуль берёт из ЭТОЙ функции, значит разность
+             * автоматически становится игровым временем.
+             */
+            now={gameNow}
+            /**
+             * Тему отдаём ЦЕЛИКОМ, а не три цвета: у модуля палитра по умолчанию
+             * своя, и в тёмных профилях недокрашенная игра была бы белым пятном.
+             * Ключи модуля совпадают с ThemeColors один в один.
+             */
+            theme={{
+              background: colors.background,
+              surface: colors.surface,
+              card: colors.card,
+              text: colors.text,
+              textSecondary: colors.textSecondary,
+              /**
+               * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им свою
+               * плашку и главную кнопку. Отдать сюда `colors.primary` значит: внутри
+               * игры кнопка станет акцентом профиля (оранжевым, синим — каким
+               * угодно), а снаружи, на экране настроек, останется градиент игры.
+               * Один экран, две разные схемы.
+               */
+              primary: GRADIENT[0],
+              // Надпись на этой кнопке — по расчёту контраста, а не `background`:
+              // в тёмных профилях чёрный на #2563eb даёт 4.06 при норме 4.5.
+              primaryText: ON_GRAD.color,
+              border: colors.border,
+              success: colors.success,
+              error: colors.error,
+              warning: colors.warning,
+            }}
+            gameGradient={GRADIENT as [string, string]}
+            gameGradientText={ON_GRAD.color}
+            onComplete={onComplete}
+            onProgress={setArmed}
+            /**
+             * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Кнопка «Выход»
+             * на экране правил модуля уводила бы МИМО вопроса при выходе — тем
+             * самым способом, от которого вопрос и защищает. Выход теперь один:
+             * «назад» в шапке каркаса, он же перехватывает аппаратную.
+             */
+          />
+        </View>
+      </GameShell>
     );
   }
 
@@ -338,6 +369,15 @@ export default function DotsConnectScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  /**
+   * Поле каркаса раздвинуто до краёв экрана: `paddingHorizontal: 16` каркаса —
+   * умолчание для игр, которые рисуют содержимое прямо в нём, а модуль свои
+   * отступы (и максимальную ширину доски) считает сам. Двойной отступ ужал бы
+   * сетку на 32 px без всякой причины. `alignSelf: 'stretch'` + отрицательные
+   * поля дают ровно исходную ширину: растянутый элемент занимает
+   * `ширина_родителя − 32 − (−16) − (−16)` и начинается с `16 + (−16) = 0`.
+   */
+  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -16 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 8, paddingVertical: 6 },
   // 48×48 — норма Material и ровно то, что стоит на 63 играх из 64. У «Прикидки»
   // здесь padding 4 при иконке 24, то есть 32×34, и это записано в долг аудита

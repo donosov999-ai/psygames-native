@@ -1,4 +1,4 @@
-/* psygames-game-object-tracker · VER 1 · 19.08.2026 */
+/* psygames-game-object-tracker · VER 2 · 20.08.2026 */
 /**
  * Трекер объектов — слежение за несколькими целями в толпе одинаковых.
  *
@@ -58,6 +58,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
+import GameShell from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
@@ -92,6 +93,12 @@ export default function ObjectTrackerScreen() {
   const [phase, setPhase] = React.useState<Phase>('config');
   const [last, setLast] = React.useState<ObjectTrackerMetrics | null>(null);
   const [clearedPassed, setClearedPassed] = React.useState(false);
+  /**
+   * Есть ли что терять — решает МОДУЛЬ (`hasSomethingToLose`), экран только
+   * держит ответ и отдаёт каркасу. Каркас про фазы раунда не знает и знать не
+   * должен, а «вы уверены?» на показе целей был бы вопросом ни о чём.
+   */
+  const [armed, setArmed] = React.useState(false);
 
   // Уровень из адреса (шаг зарядки, вызов дня) важнее сохранённого.
   // Потолок 41 — дальше генератор не растёт, и обещать несуществующее нельзя.
@@ -180,52 +187,84 @@ export default function ObjectTrackerScreen() {
    */
   const stars = last ? (last.errors === 0 ? 3 : last.errors <= 1 ? 2 : 1) : 1;
 
-  const start = () => { setAttempt((n) => n + 1); setPhase('playing'); };
+  const start = () => { setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
+
+  /** Уйти в экран настройки — сюда ведёт и «назад» каркаса, и конец партии. */
+  const leaveToConfig = React.useCallback(() => { setArmed(false); setPhase('config'); }, []);
 
   if (phase === 'playing') {
     return (
-      <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-        <ObjectTrackerGame
-          key={attempt}                 /* новый заход — чистое состояние модуля */
-          seed={seed}
-          level={level}
-          locale={locale}
-          /**
-           * Щадящий режим читаем ОДНИМ общим хуком и передаём внутрь. Модуль сам
-           * систему не спрашивает: `AccessibilityInfo.isReduceMotionEnabled()` в
-           * react-native-web без DOM отвечает `true`, а DOM'а нет ровно на
-           * пререндере статического экспорта — режим включился бы всем подряд.
-           */
-          reducedMotion={reducedMotion}
-          screenWidth={screenWidth}
-          now={gameNow}
-          /**
-           * Тему отдаём ЦЕЛИКОМ, а не три цвета: у нас есть тёмные профили, и
-           * недокрашенная игра была бы светлым пятном посреди тёмного приложения.
-           */
-          theme={{
-            background: colors.background,
-            surface: colors.surface,
-            card: colors.surface,
-            text: colors.text,
-            textSecondary: colors.textSecondary,
+      /**
+       * 🔴 ОБЩИЙ КАРКАС, А НЕ СВОЯ РАМКА. Через него игра получает то, чего у
+       * неё не было: плашку паузы, пока человек пишет отзыв, и вопрос при
+       * выходе. Своя рамка (SafeAreaView + модуль) не давала ни того, ни другого.
+       *
+       * ⚠️ ДЛЯ ЭТОЙ ИГРЫ ПАУЗА ДОРОЖЕ, ЧЕМ ДЛЯ ОСТАЛЬНЫХ. Кадровый цикл
+       * `useTrackerLoop` замирал по общей паузе и раньше — но БЕЗ каркаса
+       * человек видел просто застывшее поле без единого слова о том, почему оно
+       * встало. Плашка каркаса это объясняет и заодно ловит тапы, чтобы вслепую
+       * не ткнуть в объект.
+       */
+      <GameShell
+        title={strings.title}
+        /** «Назад» ведёт на экран настройки — туда же, куда вёл выход модуля. */
+        onBack={leaveToConfig}
+        /**
+         * Спрашиваем ровно тогда, когда терять есть что: на показе целей выход
+         * молчит (зерно фиксировано уровнем, повтор даёт ту же расстановку), а
+         * с началом движения — уже нет, слежение глазами повтором не вернуть.
+         */
+        confirmExit={armed}
+      >
+        <View style={styles.stage}>
+          <ObjectTrackerGame
+            key={attempt}                 /* новый заход — чистое состояние модуля */
+            seed={seed}
+            level={level}
+            locale={locale}
             /**
-             * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им главную
-             * кнопку и кольцо цели. Отдать сюда `colors.primary` значит получить
-             * внутри игры акцент профиля (оранжевый, синий — какой угодно), а
-             * снаружи, на экране настройки, — градиент игры: один экран, две схемы.
+             * Щадящий режим читаем ОДНИМ общим хуком и передаём внутрь. Модуль сам
+             * систему не спрашивает: `AccessibilityInfo.isReduceMotionEnabled()` в
+             * react-native-web без DOM отвечает `true`, а DOM'а нет ровно на
+             * пререндере статического экспорта — режим включился бы всем подряд.
              */
-            primary: GRADIENT[0],
-            border: colors.border,
-            success: colors.success,
-            error: colors.error,
-            warning: colors.warning,
-          }}
-          gameGradient={GRADIENT as [string, string]}
-          onComplete={onComplete}
-          onExit={() => setPhase('config')}
-        />
-      </SafeAreaView>
+            reducedMotion={reducedMotion}
+            screenWidth={screenWidth}
+            now={gameNow}
+            /**
+             * Тему отдаём ЦЕЛИКОМ, а не три цвета: у нас есть тёмные профили, и
+             * недокрашенная игра была бы светлым пятном посреди тёмного приложения.
+             */
+            theme={{
+              background: colors.background,
+              surface: colors.surface,
+              card: colors.surface,
+              text: colors.text,
+              textSecondary: colors.textSecondary,
+              /**
+               * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им главную
+               * кнопку и кольцо цели. Отдать сюда `colors.primary` значит получить
+               * внутри игры акцент профиля (оранжевый, синий — какой угодно), а
+               * снаружи, на экране настройки, — градиент игры: один экран, две схемы.
+               */
+              primary: GRADIENT[0],
+              border: colors.border,
+              success: colors.success,
+              error: colors.error,
+              warning: colors.warning,
+            }}
+            gameGradient={GRADIENT as [string, string]}
+            onComplete={onComplete}
+            onProgress={setArmed}
+            /**
+             * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Своя кнопка
+             * «Выход» в шапке модуля уводила бы МИМО вопроса при выходе — то есть
+             * ровно тем способом, от которого вопрос и защищает. Выход теперь один
+             * на экран: «назад» в шапке каркаса, и он же перехватывает аппаратную.
+             */
+          />
+        </View>
+      </GameShell>
     );
   }
 
@@ -290,6 +329,21 @@ export default function ObjectTrackerScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  /**
+   * ПОЛЕ КАРКАСА РАЗДВИНУТО ДО КРАЁВ ЭКРАНА.
+   *
+   * Каркас кладёт полю `paddingHorizontal: 16` — разумное умолчание для игр,
+   * которые рисуют содержимое прямо в нём. Наш модуль свои отступы считает сам
+   * и, главное, меряет квадрат поля от ШИРИНЫ ЭКРАНА (`screenWidth - 16`).
+   * Оставить отступ каркаса значит либо обрезать поле на 32 px справа, либо
+   * ужать его на те же 32 — на 390-точечном телефоне это 9 % площади слежения,
+   * то есть прямая потеря того, ради чего в игру играют.
+   *
+   * `alignSelf: 'stretch'` + отрицательные поля дают ровно исходную ширину:
+   * растянутый элемент занимает `ширина_родителя − 32 − (−16) − (−16)`, то есть
+   * всю ширину, и начинается с `16 + (−16) = 0`.
+   */
+  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -16 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 10 },
   back: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   title: { color: ON_GRAD.color, fontSize: 20, fontWeight: '800', flexShrink: 1 },

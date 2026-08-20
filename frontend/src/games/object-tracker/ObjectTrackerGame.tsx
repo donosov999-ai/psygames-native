@@ -1,4 +1,4 @@
-/* psygames-object-tracker-game · VER 1 · 19.08.2026 */
+/* psygames-object-tracker-game · VER 2 · 20.08.2026 */
 /**
  * «Трекер объектов» — игровое поле. Адаптер поверх чистого ядра из `core/`.
  *
@@ -113,7 +113,36 @@ export interface ObjectTrackerGameProps {
   theme: ObjectTrackerTheme;
   gameGradient: readonly [string, string];
   onComplete: (result: ObjectTrackerMetrics) => void;
-  onExit: () => void;
+  /**
+   * Есть ли ПРЯМО СЕЙЧАС что терять — см. `hasSomethingToLose` ниже. Экран
+   * держит этот флаг и отдаёт каркасу: вопрос при выходе задаётся только там,
+   * где партия уже что-то накопила.
+   */
+  onProgress?: (armed: boolean) => void;
+  /**
+   * Своя кнопка «Выход». НЕОБЯЗАТЕЛЬНА, и это принципиально: когда модуль стоит
+   * внутри `GameShell`, выход из партии один — кнопка «назад» в шапке каркаса,
+   * и она проходит через вопрос «партия пропадёт». Вторая кнопка рядом уводила
+   * бы МИМО вопроса, то есть ровно тем способом, от которого вопрос защищает.
+   */
+  onExit?: () => void;
+}
+
+/**
+ * 🔴 ЕСТЬ ЛИ ЧТО ТЕРЯТЬ ПРИ ВЫХОДЕ.
+ *
+ * `preview` не считается: цели ещё только показывают, зерно партии зафиксировано
+ * номером уровня, и повторный вход даёт ТУ ЖЕ расстановку — не потеряно ничего,
+ * а «вы уверены?» на пустом месте раздражает сильнее, чем помогает.
+ *
+ * С началом движения теряется то, чего повтором не вернуть: человек ВЁЛ цели
+ * глазами, и это единственное, ради чего игра существует. Фаза выбора — тот же
+ * случай: удержанные цели живут только в голове, на экране их нет.
+ */
+export function hasSomethingToLose(session: ObjectTrackerSession): boolean {
+  return session.phase === 'moving'
+    || session.phase === 'selection'
+    || (session.phase === 'paused' && session.pausedFrom !== 'preview' && session.pausedFrom !== null);
 }
 
 /** Поле квадратное. 640 — потолок для десктопа, чтобы объекты не разъезжались по монитору. */
@@ -265,6 +294,7 @@ function ObjectTrackerRound({
   theme,
   gameGradient,
   onComplete,
+  onProgress,
   onExit,
 }: ObjectTrackerGameProps) {
   const strings = getObjectTrackerStrings(locale);
@@ -312,6 +342,17 @@ function ObjectTrackerRound({
       onComplete(session.result);
     }
   }, [onComplete, session.phase, session.result]);
+
+  /**
+   * Наверх уходит ГОТОВЫЙ ОТВЕТ «есть что терять», а не сама партия.
+   *
+   * ⚠️ Зависимость — булево, а не `session`. Во время движения состояние
+   * меняется на КАЖДОМ кадре: эффект с зависимостью от сессии дёргал бы
+   * setState экрана шестьдесят раз в секунду и перерисовывал бы весь каркас
+   * вместе с полем. Флаг же переключается ровно дважды за раунд.
+   */
+  const armed = hasSomethingToLose(session);
+  React.useEffect(() => { onProgress?.(armed); }, [armed, onProgress]);
 
   // Уходим с экрана — состояние сессии гасим явно, чтобы отложенный кадр не
   // дописал мир уже мёртвой партии.
@@ -365,7 +406,8 @@ function ObjectTrackerRound({
             })}
           </Text>
         </View>
-        <ActionButton label={strings.exit} theme={theme} secondary compact onPress={onExit} />
+        {/* Под каркасом выход один — «назад» в шапке, через вопрос. См. проп `onExit`. */}
+        {onExit ? <ActionButton label={strings.exit} theme={theme} secondary compact onPress={onExit} /> : null}
       </View>
 
       <Text accessibilityLiveRegion="polite" style={[styles.progress, { color: theme.textSecondary }]}>

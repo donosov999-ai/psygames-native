@@ -1,4 +1,4 @@
-/* psygames-game-navigator · VER 1 · 19.08.2026 */
+/* psygames-game-navigator · VER 2 · 20.08.2026 */
 /**
  * Navigator — «Навигатор»: мысленная карта маршрута.
  *
@@ -48,6 +48,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
+import GameShell from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
@@ -141,6 +142,12 @@ export default function NavigatorScreen() {
   const [attempt, setAttempt] = React.useState(0);
   const seed = React.useMemo(() => `navigator-${level}`, [level]);
 
+  /**
+   * Есть ли что терять — решает МОДУЛЬ (`hasSomethingToLose`), экран только
+   * держит ответ и отдаёт каркасу: про фазы раунда каркас не знает.
+   */
+  const [armed, setArmed] = React.useState(false);
+
   React.useEffect(() => { if (autostart) setPhase('playing'); }, [autostart]);
 
   const onComplete = React.useCallback(async (m: NavigatorMetrics) => {
@@ -204,48 +211,75 @@ export default function NavigatorScreen() {
     return last.accuracy >= 0.97 ? 3 : last.accuracy >= 0.9 ? 2 : 1;
   }, [last]);
 
-  const start = () => { setAttempt((n) => n + 1); setPhase('playing'); };
+  const start = () => { setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
+
+  /** Уйти в экран настройки — сюда ведёт и «назад» каркаса, и конец партии. */
+  const leaveToConfig = React.useCallback(() => { setArmed(false); setPhase('config'); }, []);
 
   if (phase === 'playing') {
     return (
-      <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-        <NavigatorGame
-          key={attempt}                 /* новый заход — чистое состояние модуля */
-          seed={seed}
-          level={level}
-          mode={roundMode}
-          locale={locale}
-          /**
-           * Тему отдаём ЦЕЛИКОМ, а не три цвета: у модуля палитра по умолчанию
-           * светлая, а у нас есть тёмные профили — недокрашенная игра была бы
-           * белым пятном посреди тёмного приложения.
-           */
-          theme={{
-            background: colors.background,
-            surface: colors.surface,
-            card: colors.card,
-            text: colors.text,
-            textSecondary: colors.textSecondary,
-            border: colors.border,
+      /**
+       * 🔴 ОБЩИЙ КАРКАС, А НЕ ГОЛАЯ РАМКА. Раньше партия висела в пустом
+       * SafeAreaView: выйти можно было только через кнопку на экране правил или
+       * через свою паузу модуля, а окно отзыва поверх игры её не
+       * останавливало — маршрут показывался в пустоту, пока человек писал.
+       * Каркас даёт и место выхода с вопросом, и плашку паузы.
+       */
+      <GameShell
+        title={navStrings.title}
+        onBack={leaveToConfig}
+        /**
+         * Спрашиваем только когда терять есть что: на экране правил уходим
+         * молча, а с началом показа маршрута — уже нет. Маршрут выпадет тот же
+         * (зерно фиксировано уровнем), но пройти его глазами придётся заново.
+         */
+        confirmExit={armed}
+      >
+        <View style={styles.stage}>
+          <NavigatorGame
+            key={attempt}                 /* новый заход — чистое состояние модуля */
+            seed={seed}
+            level={level}
+            mode={roundMode}
+            locale={locale}
             /**
-             * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им свою
-             * главную кнопку и глифы. Если отдать сюда `colors.primary`, внутри
-             * игры всё станет акцентом профиля (оранжевым, синим — каким
-             * угодно), а снаружи, на экране настроек, останется градиент игры:
-             * один экран, две разные схемы.
+             * Тему отдаём ЦЕЛИКОМ, а не три цвета: у модуля палитра по умолчанию
+             * светлая, а у нас есть тёмные профили — недокрашенная игра была бы
+             * белым пятном посреди тёмного приложения.
              */
-            primary: GRADIENT[0],
-            success: colors.success,
-            error: colors.error,
-            warning: colors.warning,
-          }}
-          gameGradient={GRADIENT as [string, string]}
-          gameGradientText={ON_GRAD.color}
-          now={gameNow}                 /* часы партии стоят, пока человек пишет отзыв */
-          onComplete={onComplete}
-          onExit={() => setPhase('config')}
-        />
-      </SafeAreaView>
+            theme={{
+              background: colors.background,
+              surface: colors.surface,
+              card: colors.card,
+              text: colors.text,
+              textSecondary: colors.textSecondary,
+              border: colors.border,
+              /**
+               * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им свою
+               * главную кнопку и глифы. Если отдать сюда `colors.primary`, внутри
+               * игры всё станет акцентом профиля (оранжевым, синим — каким
+               * угодно), а снаружи, на экране настроек, останется градиент игры:
+               * один экран, две разные схемы.
+               */
+              primary: GRADIENT[0],
+              success: colors.success,
+              error: colors.error,
+              warning: colors.warning,
+            }}
+            gameGradient={GRADIENT as [string, string]}
+            gameGradientText={ON_GRAD.color}
+            now={gameNow}                 /* часы партии стоят, пока человек пишет отзыв */
+            onComplete={onComplete}
+            onProgress={setArmed}
+            /**
+             * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Его кнопки
+             * «Выход» (на правилах и на своей паузе) уводили бы МИМО вопроса при
+             * выходе — тем самым способом, от которого вопрос и защищает. Выход
+             * теперь один: «назад» в шапке каркаса, он же ловит аппаратную.
+             */
+          />
+        </View>
+      </GameShell>
     );
   }
 
@@ -298,6 +332,15 @@ export default function NavigatorScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  /**
+   * Поле каркаса раздвинуто до краёв экрана: `paddingHorizontal: 16` каркаса —
+   * умолчание для игр, которые рисуют содержимое прямо в нём, а модуль меряет
+   * доску от ШИРИНЫ ЭКРАНА (`screenW − 24`). Оставить отступ каркаса значит
+   * либо обрезать сетку, либо ужать её на 32 px. `alignSelf: 'stretch'` +
+   * отрицательные поля дают ровно исходную ширину: растянутый элемент занимает
+   * `ширина_родителя − 32 − (−16) − (−16)` и начинается с `16 + (−16) = 0`.
+   */
+  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -16 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 },
   // 48×48 — общий размер кнопки «Назад» на 63 экранах из 64. У «Прикидки»
   // здесь стоял padding: 4, и аудит попадания пальцем нашёл 32×34; повторять

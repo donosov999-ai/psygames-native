@@ -1,4 +1,4 @@
-/* psygames-rhythm-pitch-module · VER 1 · 19.08.2026 */
+/* psygames-rhythm-pitch-module · VER 2 · 20.08.2026 */
 /**
  * МОДУЛЬ ИГРЫ «РИТМ И ВЫСОТА» — привезён из лаборатории как есть.
  *
@@ -87,7 +87,42 @@ export interface RhythmPitchGameProps {
   audioEngine?: ToneAudioEngine | null;
   now?: () => number;
   onComplete?: (result: RhythmPitchMetrics) => void;
+  /**
+   * Есть ли ПРЯМО СЕЙЧАС что терять — см. `hasSomethingToLose` ниже. Экран
+   * держит этот флаг и отдаёт каркасу: вопрос при выходе задаётся только там,
+   * где партия уже что-то накопила.
+   */
+  onProgress?: (armed: boolean) => void;
+  /**
+   * Своя кнопка «Выход» (правила, экран «звук недоступен», свой итог).
+   * НЕОБЯЗАТЕЛЬНА, и это принципиально: когда модуль стоит внутри `GameShell`,
+   * выход из партии один — «назад» в шапке каркаса, и он проходит через вопрос
+   * «партия пропадёт». Вторая кнопка рядом уводила бы МИМО вопроса.
+   */
   onExit?: () => void;
+}
+
+/**
+ * 🔴 ЕСТЬ ЛИ ЧТО ТЕРЯТЬ ПРИ ВЫХОДЕ.
+ *
+ * Дороже всего здесь ПОДСТРОЙКА ЗАДЕРЖКИ: человек отстукивает метроном, и из
+ * этих ударов считается поправка, по которой потом судят весь ритм. Потерять её
+ * — потерять минуту и начать с того же места. Поэтому флаг встаёт с первого
+ * удара подстройки, а дальше держится всем, что уже прозвучало или отвечено.
+ *
+ * `ready` без единого удара не считается: там ещё ничего не сыграно, а зерно
+ * фиксировано уровнем — повторный вход даст то же задание.
+ */
+export function hasSomethingToLose(session: RhythmPitchSession): boolean {
+  const active = session.phase === 'paused' ? session.pausedFrom : session.phase;
+  if (active !== 'calibration' && active !== 'ready' && active !== 'playback' && active !== 'response') return false;
+  return active === 'playback'
+    || active === 'response'
+    || session.calibrationComplete
+    || session.calibrationTaps.length > 0
+    || session.rhythmTaps.length > 0
+    || session.pitchDirectionResponse !== null
+    || session.pitchSequenceResponse.length > 0;
 }
 
 function monotonicNow(): number {
@@ -213,6 +248,7 @@ function RhythmPitchSessionView({
   audioEngine,
   now = monotonicNow,
   onComplete,
+  onProgress,
   onExit,
 }: RhythmPitchGameProps) {
   const strings = getRhythmPitchStrings(locale);
@@ -241,6 +277,14 @@ function RhythmPitchSessionView({
   React.useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  /**
+   * Наверх уходит ГОТОВЫЙ ОТВЕТ «есть что терять», а не сама партия: экрану
+   * незачем разбирать фазы модуля, а модулю — знать про каркас. Зависимость —
+   * булево, а не `session`: иначе setState экрана дёргался бы на каждый удар.
+   */
+  const armed = hasSomethingToLose(session);
+  React.useEffect(() => { onProgress?.(armed); }, [armed, onProgress]);
 
   const stopAndPause = React.useCallback(() => {
     audioGeneration.current += 1;

@@ -1,4 +1,4 @@
-/* psygames-faces-names-game · VER 1 · 19.08.2026 */
+/* psygames-faces-names-game · VER 2 · 20.08.2026 */
 /**
  * ПАРТИЯ «ЛИЦА И ИМЕНА»: изучение → помеха → узнавание → имя → факт.
  *
@@ -103,7 +103,34 @@ export interface FacesNamesGameProps {
   /** Игровые часы (`gameNow`). Обязателен: настенные здесь запрещены. */
   now: () => number;
   onComplete?: (result: FacesNamesMetrics) => void;
+  /**
+   * Есть ли ПРЯМО СЕЙЧАС что терять — см. `hasSomethingToLose` ниже. Экран
+   * держит этот флаг и отдаёт каркасу: вопрос при выходе задаётся только там,
+   * где партия уже что-то накопила.
+   */
+  onProgress?: (armed: boolean) => void;
+  /**
+   * Своя кнопка «Выход» (правила и своя пауза модуля). НЕОБЯЗАТЕЛЬНА, и это
+   * принципиально: когда модуль стоит внутри `GameShell`, выход из партии один —
+   * «назад» в шапке каркаса, и он проходит через вопрос «партия пропадёт».
+   * Вторая кнопка рядом уводила бы МИМО вопроса.
+   */
   onExit?: () => void;
+}
+
+/**
+ * 🔴 ЕСТЬ ЛИ ЧТО ТЕРЯТЬ ПРИ ВЫХОДЕ.
+ *
+ * Здесь дороже всего НЕ ответы, а заучивание: человек минуту разглядывает лица
+ * и повторяет имена, и это единственное, чего повтором партии не вернуть —
+ * набор-то фиксирован уровнем и выпадет тот же. Поэтому флаг встаёт с ПЕРВОГО
+ * пройденного знакомства, а не с первого ответа.
+ *
+ * Экран правил не считается: там ещё ничего не показано.
+ */
+export function hasSomethingToLose(session: FacesNamesSession): boolean {
+  if (session.phase === 'rules' || session.phase === 'result' || session.phase === 'disposed') return false;
+  return session.studyIndex > 0 || session.answers.length > 0 || session.interferenceIndex > 0;
 }
 
 function ActionButton({
@@ -253,6 +280,7 @@ function FacesNamesSessionView({
   gameGradientText,
   now,
   onComplete,
+  onProgress,
   onExit,
 }: FacesNamesGameProps) {
   const strings = getFacesNamesStrings(locale);
@@ -270,6 +298,14 @@ function FacesNamesSessionView({
       onComplete?.(session.result);
     }
   }, [onComplete, session.phase, session.result]);
+
+  /**
+   * Наверх уходит ГОТОВЫЙ ОТВЕТ «есть что терять», а не сама партия: экрану
+   * незачем разбирать фазы модуля, а модулю — знать про каркас. Зависимость —
+   * булево, а не `session`: иначе setState экрана дёргался бы на каждый ход.
+   */
+  const armed = hasSomethingToLose(session);
+  React.useEffect(() => { onProgress?.(armed); }, [armed, onProgress]);
 
   React.useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {

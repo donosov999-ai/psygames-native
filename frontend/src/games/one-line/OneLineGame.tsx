@@ -56,7 +56,35 @@ export interface OneLineGameProps {
   showOwnResults?: boolean;
   now?: () => number;
   onComplete?: (result: OneLineMetrics) => void;
+  /**
+   * Есть ли ПРЯМО СЕЙЧАС что терять — см. `hasSomethingToLose` ниже. Экран
+   * держит этот флаг и отдаёт каркасу: вопрос при выходе задаётся только там,
+   * где партия уже что-то накопила.
+   */
+  onProgress?: (armed: boolean) => void;
+  /**
+   * Своя кнопка «Выход». НЕОБЯЗАТЕЛЬНА, и это принципиально: когда модуль стоит
+   * внутри `GameShell`, выход из партии один — «назад» в шапке каркаса, и он
+   * проходит через вопрос «партия пропадёт». Вторая кнопка рядом уводила бы
+   * МИМО вопроса, то есть ровно тем способом, от которого вопрос защищает.
+   */
   onExit?: () => void;
+}
+
+/**
+ * 🔴 ЕСТЬ ЛИ ЧТО ТЕРЯТЬ ПРИ ВЫХОДЕ.
+ *
+ * Считается только НАСТОЯЩАЯ партия и только с первого пройденного ребра:
+ *   · правила и тренировочный круг из четырёх рёбер — это секунды и
+ *     повторяются нажатием, вопрос там был бы вопросом ни о чём;
+ *   · партия без единого хода тоже пуста: зерно фиксировано номером уровня,
+ *     повторный вход даёт ТОТ ЖЕ граф.
+ * А вот пройденный маршрут не воспроизвести ничем — в нём и есть вся работа.
+ */
+export function hasSomethingToLose(session: OneLineSession): boolean {
+  const inRound = session.phase === 'playing'
+    || (session.phase === 'paused' && session.pausedFrom === 'playing');
+  return inRound && session.edgeTrail.length > 0;
 }
 
 function ActionButton({
@@ -368,6 +396,7 @@ function OneLineSessionView({
   showOwnResults = true,
   now = Date.now,
   onComplete,
+  onProgress,
   onExit,
 }: OneLineGameProps) {
   const strings = getOneLineStrings(locale);
@@ -385,6 +414,16 @@ function OneLineSessionView({
       onComplete?.(session.result);
     }
   }, [onComplete, session.phase, session.result]);
+
+  /**
+   * Наверх уходит ГОТОВЫЙ ОТВЕТ «есть что терять», а не сама партия: экрану
+   * незачем разбирать фазы модуля, а модулю — знать про каркас.
+   *
+   * ⚠️ Зависимость — булево, а не `session`: партия меняется на каждом касании,
+   * и эффект от неё дёргал бы setState экрана на каждый ход.
+   */
+  const armed = hasSomethingToLose(session);
+  React.useEffect(() => { onProgress?.(armed); }, [armed, onProgress]);
 
   React.useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {

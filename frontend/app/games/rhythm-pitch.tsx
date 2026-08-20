@@ -1,4 +1,4 @@
-/* psygames-game-rhythm-pitch · VER 1 · 19.08.2026 */
+/* psygames-game-rhythm-pitch · VER 2 · 20.08.2026 */
 /**
  * Ритм и высота — эхо ритма и путь высот, на слух и без микрофона.
  *
@@ -68,6 +68,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
+import GameShell from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
@@ -171,6 +172,12 @@ export default function RhythmPitchScreen() {
   const [attempt, setAttempt] = React.useState(0);
   const seed = React.useMemo(() => `rhythm-pitch-${level}`, [level]);
 
+  /**
+   * Есть ли что терять — решает МОДУЛЬ (`hasSomethingToLose`), экран только
+   * держит ответ и отдаёт каркасу: про фазы раунда каркас не знает.
+   */
+  const [armed, setArmed] = React.useState(false);
+
   React.useEffect(() => {
     let alive = true;
     getSoundEnabled().then((v) => { if (alive) setSoundPref(v); }).catch(() => { if (alive) setSoundPref(true); });
@@ -245,49 +252,77 @@ export default function RhythmPitchScreen() {
 
   const stars = last ? starsFor(last.accuracy) : 1;
 
-  const start = () => { setAttempt((n) => n + 1); setPhase('playing'); };
+  const start = () => { setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
   const turnSoundOn = () => { void setSoundEnabled(true); setSoundPref(true); };
+
+  /** Уйти в экран настройки — сюда ведёт и «назад» каркаса, и конец партии. */
+  const leaveToConfig = React.useCallback(() => { setArmed(false); setPhase('config'); }, []);
 
   if (phase === 'playing') {
     return (
-      <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-        <RhythmPitchGame
-          key={attempt}                 /* новый заход — чистое состояние модуля */
-          seed={seed}
-          level={level}
-          mode={presetMode}
-          locale={locale}
-          /**
-           * Тему отдаём ЦЕЛИКОМ, а не три цвета: у модуля нет палитры по
-           * умолчанию, а профили у нас бывают тёмные.
-           */
-          theme={{
-            background: colors.background,
-            surface: colors.surface,
-            card: colors.card,
-            text: colors.text,
-            textSecondary: colors.textSecondary,
-            border: colors.border,
+      /**
+       * 🔴 ОБЩИЙ КАРКАС, А НЕ ГОЛАЯ РАМКА. Раньше партия висела в пустом
+       * SafeAreaView: выйти можно было только через кнопку на экране правил, а
+       * окно отзыва поверх игры её не останавливало — ритм тут меряется в
+       * миллисекундах, и партия под окном отзыва становилась заведомо
+       * проигранной. Каркас даёт и место выхода с вопросом, и плашку паузы.
+       */
+      <GameShell
+        title={strings.title}
+        onBack={leaveToConfig}
+        /**
+         * Спрашиваем только когда терять есть что: на правилах уходим молча, а
+         * с первого удара подстройки — уже нет. Задание выпадет то же (зерно
+         * фиксировано уровнем), но поправку задержки придётся набивать заново.
+         */
+        confirmExit={armed}
+      >
+        <View style={styles.stage}>
+          <RhythmPitchGame
+            key={attempt}                 /* новый заход — чистое состояние модуля */
+            seed={seed}
+            level={level}
+            mode={presetMode}
+            locale={locale}
             /**
-             * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им
-             * заголовок и главную кнопку. Отдать сюда `colors.primary` значит
-             * получить внутри игры оранжевую (или синюю — какую угодно) шапку,
-             * а снаружи, на экране настроек, градиент игры: один экран, две схемы.
+             * Тему отдаём ЦЕЛИКОМ, а не три цвета: у модуля нет палитры по
+             * умолчанию, а профили у нас бывают тёмные.
              */
-            primary: GRADIENT[0],
-            success: colors.success,
-            error: colors.error,
-            warning: colors.warning,
-          }}
-          gameGradient={GRADIENT as unknown as readonly [string, string]}
-          gameGradientText={ON_GRAD.color}
-          showOwnResults={false}
-          audioEngine={engine}
-          now={gameNow}
-          onComplete={onComplete}
-          onExit={() => setPhase('config')}
-        />
-      </SafeAreaView>
+            theme={{
+              background: colors.background,
+              surface: colors.surface,
+              card: colors.card,
+              text: colors.text,
+              textSecondary: colors.textSecondary,
+              border: colors.border,
+              /**
+               * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им
+               * заголовок и главную кнопку. Отдать сюда `colors.primary` значит
+               * получить внутри игры оранжевую (или синюю — какую угодно) шапку,
+               * а снаружи, на экране настроек, градиент игры: один экран, две схемы.
+               */
+              primary: GRADIENT[0],
+              success: colors.success,
+              error: colors.error,
+              warning: colors.warning,
+            }}
+            gameGradient={GRADIENT as unknown as readonly [string, string]}
+            gameGradientText={ON_GRAD.color}
+            showOwnResults={false}
+            audioEngine={engine}
+            now={gameNow}
+            onComplete={onComplete}
+            onProgress={setArmed}
+            /**
+             * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Его кнопки
+             * «Выход» уводили бы МИМО вопроса при выходе — тем самым способом, от
+             * которого вопрос и защищает. Выход теперь один: «назад» в шапке
+             * каркаса, он же ловит аппаратную. Тупика это не создаёт: на экране
+             * «звук недоступен» шапка каркаса стоит ровно там же.
+             */
+          />
+        </View>
+      </GameShell>
     );
   }
 
@@ -363,6 +398,16 @@ export default function RhythmPitchScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  /**
+   * Поле каркаса раздвинуто до краёв экрана: `paddingHorizontal: 16` каркаса —
+   * умолчание для игр, которые рисуют содержимое прямо в нём, а модуль свои
+   * отступы и максимальную ширину карточек считает сам. Двойной отступ ужал бы
+   * площадку для удара на 32 px — по ней бьют пальцем в такт, и лишнего края
+   * ей взять неоткуда. `alignSelf: 'stretch'` + отрицательные поля дают ровно
+   * исходную ширину: растянутый элемент занимает
+   * `ширина_родителя − 32 − (−16) − (−16)` и начинается с `16 + (−16) = 0`.
+   */
+  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -16 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   back: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   title: { color: ON_GRAD.color, fontSize: 20, fontWeight: '800' },
