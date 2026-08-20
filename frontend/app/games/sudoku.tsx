@@ -19,6 +19,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/constants/digitThemes';
@@ -356,7 +357,8 @@ export default function SudokuGame() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset, autostart, str } = useGamePreset();
+  const { isPreset, autostart, str, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечер и ночь: победный звук общей карточки молчит
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   // Открываемся сразу на настройках: описание переехало в сворачиваемый блок наверху
   // (см. GameAbout). Раньше до игры было два экрана подряд, и второй раз человек
@@ -1233,7 +1235,13 @@ export default function SudokuGame() {
           </Text>
         )}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('errors')} {formatErrorCount(failure, errors)}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
+        {/* ⚠️ Вечером и ночью секундомера НЕТ. Вечерний набор задуман как
+            успокоение перед сном, и репорт тестировщицы дословно об этом: «это
+            же вечерняя зарядка, а зачем добавили время, когда есть время
+            хочется сразу торопиться». Маджонг так уже делал, судоку — нет. */}
+        {!isCalm && (
+          <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
+        )}
         {/* Счётчик переделок переехал сюда из ряда действий: он показатель, а не кнопка,
             и там отбирал ширину у трёх капсул, из-за чего первая уезжала за край экрана. */}
         {/* Остаток подсказок и число переделок — показатели, а не подписи на кнопках:

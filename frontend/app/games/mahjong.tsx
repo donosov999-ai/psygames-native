@@ -21,6 +21,7 @@ import GameShell from '@/src/components/GameShell';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import GameAbout from '@/src/components/GameAbout';
 import { useAutostart, useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
@@ -276,6 +277,7 @@ export default function MahjongGame() {
   const { popups, spawn } = useScorePopups();
 
   const { isPreset, autostart, isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечер и ночь: победный звук общей карточки тоже молчит
   const { profile } = useProfile();
   const lvl = usePersistentLevel('mahjong');   // персист достигнутого уровня между сессиями
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
