@@ -16,6 +16,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { levelOutcome } from '@/src/services/levelOutcome';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
@@ -79,7 +80,7 @@ function makeEquation(hard: boolean): Equation {
 export default function OSpanGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
-  const { isCalm } = useGamePreset();
+  const { isPreset, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('ospan');   // персист-уровень = setSize − 2
   const router = useRouter();
@@ -171,11 +172,27 @@ export default function OSpanGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
-    const passed = e === 0;
-    if (passed) lvl.reach(levelRef.current + 1);   // чистый recall всех букв → +уровень
-    else lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
+    /**
+     * ⚠️ ШАГ ЗАРЯДКИ УРОВЕНЬ НЕ ТРОГАЕТ — ни вверх, ни вниз. Экран уже знал про зарядку
+     * (`isCalm` — вечерний шаг без писка), но про уровень не спрашивал: партия из
+     * плейлиста двигала бы персональный уровень, то есть он менялся бы не от результата
+     * человека, а от того, попалась ли ему эта игра в наборе. Своя мерка «ноль ошибок в
+     * recall» строгая — понижение прилетало бы почти с каждого чужого шага.
+     *
+     * ⚠️ СЕЙЧАС ЭТО ЗАЩИТА ВПЕРЁД, А НЕ ПОЧИНКА ЖИВОГО. В плейлистах шага `ospan` нет
+     * (в `services/warmup.ts` его маршрута нет, в `constants/profiles.ts` он только в
+     * `allowed_games`), да и авто-старта у экрана нет — то есть `isPreset` сегодня всегда
+     * false и поведение не меняется. Как только шаг заведут, уровень уже не поедет.
+     *
+     * Фаза идёт в комплекте: с выключенным `passed` баннер уровня сказал бы «почти,
+     * ещё раз» там, где человек ничего не провалил.
+     */
+    const out = levelOutcome({ isPreset, cleared: e === 0 });
+    const passed = out.passed;
+    if (out.raiseLevel) lvl.reach(levelRef.current + 1);   // чистый recall всех букв → +уровень
+    if (out.lowerLevel) lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
     setClearedPassed(passed);
-    setPhase('cleared');   // непрерывный поток: и проход, и провал → баннер уровня с авто-рестартом
+    setPhase(out.phase);   // непрерывный поток: и проход, и провал → баннер уровня с авто-рестартом; зарядка — итог
     try {
       await saveSession({
         passed,
