@@ -496,6 +496,17 @@ const translations: Translations = {
   sudokuTierHard: { ru: 'Сложный', en: 'Hard' },
   sudokuTierExpert: { ru: 'Экспертный', en: 'Expert' },
   sudokuTierExtreme: { ru: 'Крайность', en: 'Extreme' },
+
+  // Дороги сложности судоку (services/sudoku-roads): три отдельные лестницы, а не
+  // скидка к одной. Число рядом с названием — уровень этой дороги, видимый ДО выбора.
+  sudokuRoadLabel:  { ru: 'Дорога сложности', en: 'Difficulty road' },
+  sudokuRoadEasy:   { ru: 'Полегче',  en: 'Easier' },
+  sudokuRoadNormal: { ru: 'Обычная',  en: 'Standard' },
+  sudokuRoadHard:   { ru: 'Пожёстче', en: 'Harder' },
+  sudokuRoadHint: {
+    ru: 'У каждой дороги свой счёт уровней. Взятое на тяжёлой засчитывается и на лёгких, обратно — нет. Дорогу выбирают до партии.',
+    en: 'Each road keeps its own level count. Levels beaten on a harder road count on the easier ones, never the other way round. Pick the road before the game.',
+  },
   easy: { ru: 'Легко', en: 'Easy' },
   medium: { ru: 'Средне', en: 'Medium' },
   hard: { ru: 'Сложно', en: 'Hard' },
