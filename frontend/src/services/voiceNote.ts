@@ -89,6 +89,65 @@ export interface VoiceNote {
    * поле уезжает в репорт. Без него мы снова будем гадать по сэмплам.
    */
   source: MicSource;
+  /** Что система думает о нашем доступе к микрофону. См. `MicAccess`. */
+  access: MicAccess | null;
+}
+
+/**
+ * ЧТО СИСТЕМА ДУМАЕТ О НАШЕМ ДОСТУПЕ К МИКРОФОНУ.
+ *
+ * 🔴 ЗАЧЕМ, ЕСЛИ ЕСТЬ ПИК И ЕСТЬ ДОРОЖКА. Замер 21.08.2026, первый отчёт на
+ * 1.210.0: `audio_source: raw` (сырой микрофон, как и задумано), `audio_peak: 0`,
+ * дорожка живая и НЕ `muted`, файл 8493 байта залился. То есть гипотеза, ради
+ * которой этот релиз и делался — «обработка звука уводит захват на путь, где
+ * Android отдаёт нули», — НЕ ПОДТВЕРДИЛАСЬ: сырой путь дал ту же тишину.
+ *
+ * Единственное новое, что сказала дорожка: `label` ПУСТОЙ. В Chromium имя
+ * устройства появляется только когда доступ к микрофону выдан по-настоящему;
+ * пустое имя при живой дорожке — признак того, что поток отдали, а устройство
+ * за ним не стоит.
+ *
+ * Признак косвенный, поэтому спрашиваем прямо и обе стороны сразу:
+ *   · что говорит `navigator.permissions` про микрофон;
+ *   · сколько микрофонов видит браузер и у скольких есть ИМЯ — имена
+ *     `enumerateDevices` отдаёт РОВНО при выданном доступе, и «устройств
+ *     несколько, имён ноль» отличает «не дали» от «дали, но молчит».
+ *
+ * ⚠️ ЭТО ИЗМЕРЕНИЕ, А НЕ ПОЧИНКА. Ничего не меняет в записи и ничего не чинит —
+ * следующий отчёт просто ответит на вопрос, вместо того чтобы задать новый.
+ */
+export interface MicAccess {
+  /** `granted` / `denied` / `prompt` / `unsupported` / `error`. */
+  permission: string;
+  /** Сколько микрофонов видит браузер. */
+  inputs: number;
+  /** У скольких из них есть имя. Ноль при непустом `inputs` — доступа нет. */
+  named: number;
+}
+
+/** Спрашиваем систему напрямую. Любая осечка — это `error`, а не молчание. */
+export async function askMicAccess(): Promise<MicAccess> {
+  let permission = 'unsupported';
+  try {
+    const q = (navigator as any).permissions?.query;
+    if (q) {
+      const st = await (navigator as any).permissions.query({ name: 'microphone' as any });
+      permission = String(st?.state ?? 'unsupported');
+    }
+  } catch {
+    permission = 'error';
+  }
+  let inputs = 0;
+  let named = 0;
+  try {
+    const list = await navigator.mediaDevices.enumerateDevices();
+    for (const d of list) {
+      if (d.kind !== 'audioinput') continue;
+      inputs++;
+      if (String(d.label ?? '').trim()) named++;
+    }
+  } catch { /* старый WebView — останутся нули */ }
+  return { permission, inputs, named };
 }
 
 /** Состояние звуковой дорожки: что о себе сказало само устройство. */
@@ -228,6 +287,13 @@ export async function startRecording(
   const { stream } = mic;
 
   /**
+   * Спрашиваем систему о доступе СРАЗУ, не дожидаясь конца записи: `label` у
+   * устройств `enumerateDevices` живёт ровно пока доступ выдан, а к моменту
+   * сборки заметки дорожка уже остановлена (`readyState: ended`).
+   */
+  const accessAsked: Promise<MicAccess | null> = askMicAccess().catch(() => null);
+
+  /**
    * Спрашиваем дорожку о ней самой. Делать это надо ДО записи: `muted` на старте
    * означает, что система звук не отдаёт, и говорить человеку об этом надо
    * сейчас, а не по итогам замера через секунду.
@@ -350,6 +416,10 @@ export async function startRecording(
       measured: reads > 0,
       track: trackState(),
       source: mic.source,
+      // Наполняется в `finish`: ответ системы приходит своим темпом, и у короткой
+      // записи заметка успела бы собраться раньше него — поле уехало бы пустым
+      // и читалось как «старый WebView». Поймано проверкой исполнением.
+      access: null,
     };
   };
 
@@ -366,8 +436,18 @@ export async function startRecording(
   const finish = () => {
     if (!endedAt) endedAt = Date.now();
     release();
-    settle?.(buildNote());
+    const done2 = settle;
     settle = null;
+    if (!done2) return;
+    const note = buildNote();
+    if (!note) { done2(null); return; }
+    /**
+     * ⚠️ ОТВЕТ СИСТЕМЫ ДОЖИДАЕМСЯ ЗДЕСЬ, А НЕ НА СТАРТЕ. На старте это была бы
+     * задержка перед записью у ВСЕХ; здесь — уже после того, как человек нажал
+     * «стоп», и стоит она те же пару тактов. Опрос запущен в начале, пока
+     * дорожка жива: `enumerateDevices` отдаёт имена ровно при выданном доступе.
+     */
+    accessAsked.then((a) => { note.access = a; done2(note); }).catch(() => done2(note));
   };
   rec.onstop = () => {
     finish();
