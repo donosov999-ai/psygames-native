@@ -1586,6 +1586,33 @@ const translations: Translations = {
   shopAvatarSection: { ru: '👤 Аватары — своя иконка профиля вместо стандартного бейджа.', en: '👤 Avatars — your own profile icon instead of the default badge.' },
   shopEarnHint: { ru: 'Очки копятся за игры, стрики и ачивки.', en: 'Tokens are earned from games, streaks and achievements.' },
 
+  // ── Расходуемые способности (src/services/abilities.ts). Штучный товар за те же
+  //    очки, что и косметика: не подсказка, а возврат партии/серии. ──────────
+  shopAbilitySection: { ru: '⚡ Способности — расходуются штуками. Они не решают задачу за тебя: возвращают партию и серию.', en: '⚡ Abilities — consumable, one at a time. They never solve the task for you: they give a round or a streak back.' },
+  shopAbilityHint: { ru: 'Способность стоит дороже, чем может принести партия, — купить её ради заработка нельзя.', en: 'Every ability costs more than a round can ever pay out — you can never buy one to earn.' },
+  a11yCatAbility: { ru: 'Способности', en: 'Abilities' },
+  abName_second_life: { ru: 'Вторая жизнь', en: 'Second life' },
+  abDesc_second_life: { ru: '«Мишени»: партия не обрывается на последней жизни. Одна на партию, и уровень за такую партию не растёт.', en: 'Targets: the round does not end on your last life. One per round, and that round will not raise your level.' },
+  abName_practice_run: { ru: 'Пробный заход', en: 'Practice run' },
+  abDesc_practice_run: { ru: 'Замерные игры: партия не записывается никуда — ни очков, ни уровня, ни статистики. Пробуй без последствий.', en: 'Measured games: the round is recorded nowhere — no tokens, no level, no stats. Experiment without consequences.' },
+  abName_streak_shield: { ru: 'Щит серии', en: 'Streak shield' },
+  abDesc_streak_shield: { ru: 'Вернуть серию дней, оборванную пропуском. Работает только в тот день, когда серия оборвалась.', en: 'Bring back a day streak broken by one missed day. Works only on the day the streak broke.' },
+  abilityInWallet: { ru: 'в кошельке: {n}', en: 'in your wallet: {n}' },
+  abilityFull: { ru: 'Полный запас', en: 'Wallet full' },
+  abilityUse: { ru: 'Применить', en: 'Use' },
+  abilitySpentNote: { ru: 'Списано {n} ⭐', en: '{n} ⭐ spent' },
+  abilityStreakIntact: { ru: 'Серия цела — восстанавливать нечего. Щит остался в кошельке.', en: 'Your streak is intact — nothing to restore. The shield stays in your wallet.' },
+  abilityStreakRestored: { ru: 'Серия восстановлена: {n} дней подряд', en: 'Streak restored: {n} days in a row' },
+  abilityStreakStale: { ru: 'Щит чинит серию только в день обрыва — этот уже прошёл.', en: 'The shield only mends a streak on the day it broke — that day has passed.' },
+  abilityNoneLeft: { ru: 'В кошельке ничего не осталось', en: 'Nothing left in your wallet' },
+  abilityLifeOffer: { ru: 'Жизни кончились. Продолжить партию?', en: 'Out of lives. Continue the round?' },
+  abilityLifeTake: { ru: 'Потратить одну', en: 'Spend one' },
+  abilityLifeDecline: { ru: 'Закончить партию', en: 'End the round' },
+  abilityLifeSpentNote: { ru: 'Вторая жизнь потрачена — уровень за эту партию не растёт', en: 'Second life spent — this round will not raise your level' },
+  abilityPracticeOn: { ru: 'Включён: партия не в зачёт', en: 'On: this round will not count' },
+  abilityPracticeNote: { ru: 'Ни очков, ни уровня, ни статистики', en: 'No tokens, no level, no stats' },
+  abilityPracticeSpent: { ru: 'Пробный заход — партия никуда не записана', en: 'Practice run — this round was recorded nowhere' },
+
   // Onboarding
   onbPickGameTitle: { ru: 'Выбери первую игру', en: 'Choose your first game' },
   onbPickGameBody: { ru: 'Не будем начинать с лекции. Выбери, что хочется попробовать прямо сейчас.', en: 'No lecture first. Pick what you want to try right now.' },

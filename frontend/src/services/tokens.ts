@@ -34,9 +34,18 @@ export async function addTokens(profileId: string, delta: number): Promise<numbe
 // но не отнимают из кошелька. Верхний потолок 50 — чтобы high-score игры не фармили
 // несопоставимо больше коротких (аудит: разные шкалы очков давали +40..+50 в одних
 // и почти ноль в других). Итог: заработок за сессию всегда в [0, 50].
+/**
+ * Потолок начисления за партию. Вынесен в константу нарочно: на нём стоит цена
+ * расходуемых способностей (`src/services/abilities.ts`) — способность обязана стоить
+ * дороже, чем партия вообще способна принести, иначе её покупают ради заработка,
+ * а не ради партии. Пока число было зашито в формулу литералом, эту связь нельзя
+ * было ни увидеть, ни проверить.
+ */
+export const TOKEN_DELTA_CAP = 50;
+
 export function tokenDelta(score: number, errors: number): number {
   const raw = Math.round((score || 0) / 20) - (errors || 0);
-  return Math.max(0, Math.min(50, raw));
+  return Math.max(0, Math.min(TOKEN_DELTA_CAP, raw));
 }
 
 /**
@@ -95,22 +104,108 @@ export function levelInfo(tokens: number): LevelInfo {
 const STREAK_KEY = 'psygames_streak_v1';
 function dayStr(d: Date): string { return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
 
-/** Отметка дня: идемпотентно за сутки. Возвращает стрик + начисленный бонус (0 если уже заходил сегодня). */
+/** Бонус за отметку дня. Отдельной функцией — на ней же считается потолок «Щита серии». */
+export function checkInAward(streak: number): number {
+  return 10 + Math.min(Math.max(streak, 0), 7) * 5;   // бонус растёт со стриком (cap на 7 дне)
+}
+
+/** Оборванная серия: что именно потеряно и в какой день это обнаружено. */
+export interface BrokenStreak { len: number; at: string }
+interface StreakRec { last: string; streak: number; broken?: BrokenStreak }
+
+/**
+ * Сколько очков стоит оборванная серия — максимум, который может вернуть «Щит серии».
+ *
+ * Считается ПО ТОЙ ЖЕ формуле `checkInAward`, а не числом: цена щита стоит на этой
+ * величине, и разъехаться им нельзя. Смысл: серия на потолке платит `checkInAward(7)`
+ * в день; после обрыва она отрастает заново, и разница за эти дни и есть потеря.
+ */
+export function checkInStreakMaxLoss(): number {
+  const top = checkInAward(7);
+  let loss = 0;
+  for (let day = 1; day <= 7; day++) loss += top - checkInAward(day);
+  return loss;
+}
+
+/**
+ * Отметка дня: идемпотентно за сутки. Возвращает стрик + начисленный бонус (0 если
+ * уже заходил сегодня).
+ *
+ * ⚠️ ОБРЫВ ЗАПОМИНАЕТСЯ. Раньше при пропуске дня прежняя длина серии просто
+ * затиралась единицей, и восстановить её было нечем — «у меня было 24 дня» не
+ * подтверждалось ничем, кроме памяти человека. Теперь потерянная длина и день, в
+ * который обрыв обнаружен, ложатся в `broken`; ими и пользуется «Щит серии»
+ * (`repairCheckInStreak`). Успешное продолжение серии `broken` стирает — иначе
+ * щит однажды восстановил бы серию, оборванную полгода назад.
+ */
 export async function dailyCheckIn(profileId: string): Promise<{ streak: number; awarded: number; isNew: boolean }> {
   try {
     const raw = await AsyncStorage.getItem(STREAK_KEY);
-    const data: Record<string, { last: string; streak: number }> = raw ? JSON.parse(raw) : {};
-    const rec = data[profileId] || { last: '', streak: 0 };
+    const data: Record<string, StreakRec> = raw ? JSON.parse(raw) : {};
+    const rec: StreakRec = data[profileId] || { last: '', streak: 0 };
     const today = dayStr(new Date());
     if (rec.last === today) return { streak: rec.streak, awarded: 0, isNew: false };
     const y = new Date(); y.setDate(y.getDate() - 1);
-    const streak = rec.last === dayStr(y) ? rec.streak + 1 : 1;   // вчера → продолжаем, иначе сброс
-    const awarded = 10 + Math.min(streak, 7) * 5;                 // бонус растёт со стриком (cap на 7 дне)
-    data[profileId] = { last: today, streak };
+    const continued = rec.last === dayStr(y);
+    const streak = continued ? rec.streak + 1 : 1;                // вчера → продолжаем, иначе сброс
+    const awarded = checkInAward(streak);
+    // Обрыв записываем, только если было что рвать: серия из одного дня — не потеря.
+    const broken: BrokenStreak | undefined = continued
+      ? rec.broken
+      : (rec.streak >= 2 ? { len: rec.streak, at: today } : undefined);
+    data[profileId] = broken ? { last: today, streak, broken } : { last: today, streak };
     AsyncStorage.setItem(STREAK_KEY, JSON.stringify(data)).catch(() => {});
     await addTokens(profileId, awarded);
     return { streak, awarded, isNew: true };
   } catch { return { streak: 0, awarded: 0, isNew: false }; }
+}
+
+export type StreakRepairReason = 'restored' | 'intact' | 'stale';
+
+export interface StreakRepair { ok: boolean; streak: number; restoredFrom: number; reason: StreakRepairReason }
+
+/**
+ * Что вернёт «Щит серии», если потратить его прямо сейчас. Читает, не пишет —
+ * магазину нужно ПОКАЗАТЬ человеку, что произойдёт, до того как он потратит штуку.
+ */
+export async function checkInStreakRepairable(profileId: string, now: Date = new Date()): Promise<BrokenStreak | null> {
+  if (!profileId) return null;
+  try {
+    const raw = await AsyncStorage.getItem(STREAK_KEY);
+    const data: Record<string, StreakRec> = raw ? JSON.parse(raw) : {};
+    const b = data[profileId]?.broken;
+    return b && b.at === dayStr(now) ? b : null;
+  } catch { return null; }
+}
+
+/**
+ * Восстановить оборванную серию захода.
+ *
+ * ⚠️ ТОЛЬКО В ДЕНЬ ОБРЫВА. Иначе щит, купленный в пятницу, чинил бы серию,
+ * оборванную в понедельник, — то есть дорисовывал бы четыре дня, которых не было.
+ * Правило узкое нарочно: щит закрывает ОДИН пропущенный день, а не отпуск.
+ *
+ * ⚠️ ЩИТ ВОЗВРАЩАЕТ СЕРИЮ, А НЕ ДЕНЬГИ. Сегодняшний бонус уже начислен по сброшенной
+ * серии и не пересчитывается: иначе щит стал бы способом купить очки за очки.
+ */
+export async function repairCheckInStreak(profileId: string, now: Date = new Date()): Promise<StreakRepair> {
+  const miss: StreakRepair = { ok: false, streak: 0, restoredFrom: 0, reason: 'intact' };
+  if (!profileId) return miss;
+  try {
+    const raw = await AsyncStorage.getItem(STREAK_KEY);
+    const data: Record<string, StreakRec> = raw ? JSON.parse(raw) : {};
+    const rec = data[profileId];
+    if (!rec) return miss;
+    const broken = rec.broken;
+    if (!broken) return { ...miss, streak: rec.streak };
+    if (broken.at !== dayStr(now)) return { ...miss, streak: rec.streak, reason: 'stale' };
+    // Оборванная серия + сегодняшний день: человек тренировался broken.len дней,
+    // пропустил один и пришёл сегодня — честное продолжение это broken.len + 1.
+    const streak = broken.len + 1;
+    data[profileId] = { last: rec.last, streak };
+    await AsyncStorage.setItem(STREAK_KEY, JSON.stringify(data));
+    return { ok: true, streak, restoredFrom: broken.len, reason: 'restored' };
+  } catch { return miss; }
 }
 
 export async function getStreak(profileId: string): Promise<number> {

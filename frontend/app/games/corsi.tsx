@@ -1,5 +1,5 @@
 /* psygames-game-corsi · VER 1 · 19.08.2026 */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, useWindowDimensions
@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -28,6 +28,8 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { getAbilityCount, useAbility } from '@/src/services/abilities';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const CORSI_RULES: LevelRule[] = [
@@ -82,7 +84,48 @@ export default function CorsiGame() {
   const boardScale = Math.min((width - 24) / BOARD_W, (height - 300) / BOARD_H, 1.5);
 
   const gate = useLevelGate('corsi');
-  const lvl = usePersistentLevel('corsi');   // персист-уровень (как у судоку)
+  const lvl = usePersistentLevel('corsi');
+  /**
+   * ── ПРОБНЫЙ ЗАХОД (расходуемая способность, `src/services/abilities.ts`) ────
+   *
+   * ПОЧЕМУ ИМЕННО В ЗАМЕРНЫХ ИГРАХ. Здесь лимит ошибок И ЕСТЬ измерение: спан — это
+   * докуда человек дошёл до двух ошибок на одной длине. Лишняя попытка врала бы прямо
+   * в биомаркер, поэтому «второй жизни» тут нет и не будет. Продаётся ОБРАТНОЕ:
+   * право сыграть так, чтобы партия не записалась НИКУДА — ни очков, ни уровня, ни
+   * статистики, ни лидерборда. Это не поблажка, а отказ от награды: заработать на
+   * пробном заходе нельзя ни при каком результате.
+   *
+   * ⚠️ РЕШЕНИЕ ПРИНИМАЕТСЯ ДО ПЕРВОГО СТИМУЛА (`practiceRef` снимается в startGame).
+   * Иначе можно было бы посмотреть на результат и задним числом решить, засчитывать
+   * его или нет, — то есть выбирать себе статистику.
+   *
+   * ⚠️ ШТУКА СПИСЫВАЕТСЯ НА ФИНИШЕ, А НЕ НА СТАРТЕ. Партия, брошенная на середине,
+   * платной быть не должна; выбрать удачный исход это всё равно не даёт — решение
+   * уже принято, и списание идёт по флагу, снятому до начала.
+   */
+  const { profile } = useProfile();
+  const [practiceLeft, setPracticeLeft] = useState(0);     // остаток в кошельке — виден ДО траты
+  const [practiceArmed, setPracticeArmed] = useState(false); // переключатель на экране настроек
+  const [practiceUsed, setPracticeUsed] = useState(false);   // партия прошла как пробная
+  const practiceRef = useRef(false);                         // решение, снятое на старте партии
+  const reloadPractice = useCallback(async () => {
+    const pid = profile?.id;
+    setPracticeLeft(pid ? await getAbilityCount(pid, 'practice_run') : 0);
+  }, [profile?.id]);
+  useEffect(() => { reloadPractice(); }, [reloadPractice]);
+
+  /** Списать пробный заход, если он был заявлен до партии. true — партию НЕ записываем. */
+  const settlePracticeRun = async (): Promise<boolean> => {
+    if (!practiceRef.current) return false;
+    practiceRef.current = false;
+    const pid = profile?.id;
+    const ok = !!pid && await useAbility(pid, 'practice_run');
+    setPracticeArmed(false);
+    setPracticeUsed(ok);
+    await reloadPractice();
+    return ok;
+  };
+   // персист-уровень (как у судоку)
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
@@ -119,6 +162,10 @@ export default function CorsiGame() {
   }, []);
 
   const startGame = () => {
+    // Решение «этот заход не в зачёт» фиксируется ЗДЕСЬ, до первого стимула.
+    // В шаге зарядки пробный заход бессмыслен: он и так не двигает уровень.
+    practiceRef.current = !isPreset && practiceArmed && practiceLeft > 0;
+    setPracticeUsed(false);
     const effLevel = lvl.level;
     const p = levelParams(effLevel);
     levelRef.current = effLevel;
@@ -170,7 +217,14 @@ export default function CorsiGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
-    const passed = !isPreset && finalSpan >= levelParams(levelRef.current).startSpan;
+    // ⚠️ ПРОБНЫЙ ЗАХОД РАЗБИРАЕТСЯ ПЕРВЫМ: партия вне зачёта не двигает лестницу
+    // ни вверх, ни вниз и не оставляет записи нигде (сессия, очки, лидерборд).
+    const practice = await settlePracticeRun();
+    const passed = !practice && !isPreset && finalSpan >= levelParams(levelRef.current).startSpan;
+    if (practice) {
+      setPhase('result');   // уровень не двигался — баннеру уровня сказать нечего
+      return;
+    }
     if (passed) lvl.reach(levelRef.current + 1);   // прошёл стартовый span уровня → +уровень
     else if (!isPreset) lvl.fail();   // не прошёл → гистерезис понижения (3 провала подряд → level-1)
     try {
@@ -237,6 +291,27 @@ export default function CorsiGame() {
       </LinearGradient>
       <GameAbout descriptionKey="corsiIntroDesc" benefits={CORSI_BENEFITS} accent={GRADIENT[0]} />
       <LevelProgressMap gameId="corsi" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      {/* ПРОБНЫЙ ЗАХОД — расходуемая способность (`src/services/abilities.ts`).
+          ⚠️ Остаток показывается ВСЕГДА, включая ноль: до траты человек обязан видеть,
+          что у него есть и что произойдёт. Переключатель гаснет на нулевом кошельке. */}
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('abName_practice_run')}</Text>
+        <Text style={[styles.modeButtonText, { color: colors.textSecondary, marginBottom: 8 }]}>
+          {`${t('abilityPracticeNote')} · ${t('abilityInWallet').replace('{n}', String(practiceLeft))}`}
+        </Text>
+        <TouchableOpacity
+          accessibilityRole="button" accessibilityState={{ selected: practiceArmed }}
+          disabled={practiceLeft <= 0}
+          onPress={() => setPracticeArmed((v) => !v)}
+          style={[styles.modeButton, {
+            backgroundColor: practiceArmed ? GRADIENT[0] : colors.background,
+            borderColor: colors.border, borderWidth: 1, opacity: practiceLeft > 0 ? 1 : 0.5,
+          }]}>
+          <Text style={[styles.modeButtonText, { color: practiceArmed ? '#FFFFFF' : colors.text }]}>
+            {practiceArmed ? t('abilityPracticeOn') : t('abName_practice_run')}
+          </Text>
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity
         accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
         <Ionicons name="trophy-outline" size={18} color={colors.text} />
@@ -254,7 +329,7 @@ export default function CorsiGame() {
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: locked ? 0.5 : 1 }]}
               onPress={() => !locked && setMode(m)}>
-              <Text style={[styles.modeButtonText, { color: mode === m && !locked ? '#FFF' : colors.text }]}>
+              <Text style={[styles.modeButtonText, { color: mode === m && !locked ? textOn(GRADIENT[0]) : colors.text }]}>
                 {m === 'forward' ? t('forward') : t('backward')}{locked ? ' 🔒' : ''}
               </Text>
             </TouchableOpacity>
@@ -380,12 +455,15 @@ export default function CorsiGame() {
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
+      {/* Итог пробного захода словами: очки списаны, партия никуда не записана —
+          `comparisonLine` это готовый слот GameResult под одну строку под счётом. */}
       {phase === 'result' && (
         <GameResult
           score={Math.max(0, span * 200 - errors * 50) + (bossWon ? 100 : 0)}
           stars={bossWon === true ? 3 : undefined}
           time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
+          comparisonLine={practiceUsed ? t('abilityPracticeSpent') : undefined}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>

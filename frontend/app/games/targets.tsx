@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -26,6 +26,8 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { gameNow } from '@/src/services/gamePause';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { getAbilityCount, useAbility } from '@/src/services/abilities';
 
 const GRADIENT = ['#ff0844', '#ffb199'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -74,6 +76,41 @@ export default function TargetsGame() {
   const [prevCircleColor, setPrevCircleColor] = useState<string | null>(null);
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   const [feedback, setFeedback] = useState<'hit' | 'miss' | 'wrong' | null>(null);
+
+  /**
+   * ── ВТОРАЯ ЖИЗНЬ (расходуемая способность, `src/services/abilities.ts`) ──────
+   *
+   * ПОЧЕМУ ИМЕННО ЗДЕСЬ И БОЛЬШЕ НИГДЕ. «Мишени» — единственная игра каталога, где
+   * жизни это игровая условность, а не измеряемая величина: в сессию уходят
+   * `mean_rt`/`std_rt`/`hits`, а сами жизни выдаются пачкой на старте и ДОБАВЛЯЮТСЯ
+   * на переходе уровня (`getLifeBonus`). В корси, ряде цифр и клетках лимит ошибок —
+   * это и есть замер (спан = докуда дошёл до двух ошибок), там лишняя попытка врёт
+   * прямо в биомаркер; в сортировке лимит ходов — сама головоломка. Реестр с
+   * причинами держит гейт `abilities-economy.test.ts`.
+   *
+   * ЧТО ЭТО НЕ ДЕЛАЕТ. Не подсказывает, не замедляет темп, не возвращает промах.
+   * Партия просто не обрывается — а дальше играть ровно так же трудно.
+   *
+   * ⚠️ ЛЕСТНИЦА ЗАМИРАЕТ. Партия с купленной жизнью НЕ двигает сохранённый уровень
+   * (`ladderFrozenRef`): иначе за 120⭐ покупалась бы ступень, которую человек не взял,
+   * — то есть ровно обход лестницы сложности, ради запрета которого всё и писалось.
+   */
+  const { profile } = useProfile();
+  const [secondLives, setSecondLives] = useState(0);   // остаток в кошельке — виден ДО траты
+  const [deathOffer, setDeathOffer] = useState(false); // партия замерла: жизни кончились, ждём решения
+  const [lifeSpent, setLifeSpent] = useState(false);   // в этой партии жизнь уже потрачена
+  const secondLivesRef = useRef(0);                    // остаток для колбэков таймеров (те же stale-замыкания)
+  const usedLifeRef = useRef(false);                   // одна жизнь на партию, не больше
+  const spendingRef = useRef(false);                   // одно нажатие — одно списание
+  const ladderFrozenRef = useRef(false);               // купленная жизнь замораживает рост уровня
+
+  const reloadSecondLives = useCallback(async () => {
+    const pid = profile?.id;
+    const n = pid ? await getAbilityCount(pid, 'second_life') : 0;
+    secondLivesRef.current = n;
+    setSecondLives(n);
+  }, [profile?.id]);
+  useEffect(() => { reloadSecondLives(); }, [reloadSecondLives]);
 
   const roundsPerLevel = 10;
 
@@ -183,6 +220,10 @@ export default function TargetsGame() {
     roundRef.current = 0;
     levelRef.current = startLvl;        // стартовый уровень (сохранённый или из конфига)
     gameOverRef.current = false;
+    usedLifeRef.current = false;      // жизнь даётся одна на ПАРТИЮ — новая партия обнуляет
+    ladderFrozenRef.current = false;
+    setLifeSpent(false);
+    setDeathOffer(false);
     isTargetRef.current = false;
     prevColorRef.current = null;
     rtRef.current = [];
@@ -228,11 +269,7 @@ export default function TargetsGame() {
       livesRef.current -= 1;
       setLives(livesRef.current);
 
-      if (livesRef.current <= 0) {
-        gameOverRef.current = true;
-        schedule(endGame, 500);
-        return;
-      }
+      if (livesRef.current <= 0) { onOutOfLives(); return; }
     }
 
     schedule(() => {
@@ -251,11 +288,7 @@ export default function TargetsGame() {
       livesRef.current -= 1;
       setLives(livesRef.current);
 
-      if (livesRef.current <= 0) {
-        gameOverRef.current = true;
-        schedule(endGame, 500);
-        return;
-      }
+      if (livesRef.current <= 0) { onOutOfLives(); return; }
 
       schedule(() => {
         setFeedback(null);
@@ -279,7 +312,8 @@ export default function TargetsGame() {
         roundRef.current = 0;
         livesRef.current += getLifeBonus(levelRef.current);
         setLevel(levelRef.current);
-        if (!isPreset) lvl.reach(levelRef.current);   // сохранить достигнутый уровень между сессиями
+        // ⚠️ Купленная жизнь лестницу не двигает — ступень остаётся заработанной.
+        if (!isPreset && !ladderFrozenRef.current) lvl.reach(levelRef.current);   // сохранить достигнутый уровень между сессиями
         setLives(livesRef.current);
       } else {
         // Все уровни пройдены
@@ -332,6 +366,53 @@ export default function TargetsGame() {
     }
     
     setPhase('result');
+  };
+
+  /**
+   * Жизни кончились. Есть штука в кошельке и в этой партии её ещё не тратили —
+   * партия не заканчивается, а ЗАМИРАЕТ и спрашивает.
+   *
+   * ⚠️ Автосписания нет нарочно. Списать молча — значит забрать 120⭐ у человека,
+   * который, может, и хотел закончить: остаток и цена показываются до нажатия.
+   */
+  const onOutOfLives = () => {
+    gameOverRef.current = true;
+    clearAllTimers();
+    if (secondLivesRef.current > 0 && !usedLifeRef.current) { setDeathOffer(true); return; }
+    schedule(endGame, 500);
+  };
+
+  /**
+   * Потратить штуку и продолжить.
+   *
+   * ⚠️ ТРИ ЗАСОВА, И ВСЕ НУЖНЫ: `usedLifeRef` — одна жизнь на партию; `spendingRef` —
+   * второе нажатие, пока первое ещё в полёте, не проходит; само списание
+   * (`useAbility`) неделимо и вернёт false, если штуки уже нет. Разрешение
+   * продолжать даёт ИМЕННО списание, а не проверка остатка до него.
+   */
+  const takeSecondLife = async () => {
+    const pid = profile?.id;
+    if (!pid || spendingRef.current || usedLifeRef.current) return;
+    spendingRef.current = true;
+    let ok = false;
+    try { ok = await useAbility(pid, 'second_life'); }
+    finally { spendingRef.current = false; }
+    await reloadSecondLives();
+    if (!ok) return;                  // штуки не оказалось — предложение остаётся на экране
+    usedLifeRef.current = true;
+    ladderFrozenRef.current = true;
+    setLifeSpent(true);
+    livesRef.current = 1;
+    setLives(1);
+    gameOverRef.current = false;
+    setDeathOffer(false);
+    setFeedback(null);
+    schedule(nextRound, 400);
+  };
+
+  const declineSecondLife = () => {
+    setDeathOffer(false);
+    schedule(endGame, 200);
   };
 
   // Кнопка «МИШЕНЬ!» статична, но лежит в том же поддереве, что и фигуры/HUD,
@@ -399,9 +480,9 @@ export default function TargetsGame() {
               <Ionicons
                 name="grid-outline"
                 size={20}
-                color={mode === 'field' ? '#FFFFFF' : colors.text}
+                color={mode === 'field' ? textOn(GRADIENT[0]) : colors.text}
               />
-              <Text style={[styles.modeButtonText, { color: mode === 'field' ? '#FFFFFF' : colors.text }]}>
+              <Text style={[styles.modeButtonText, { color: mode === 'field' ? textOn(GRADIENT[0]) : colors.text }]}>
                 {t('field')}
               </Text>
             </TouchableOpacity>
@@ -417,9 +498,9 @@ export default function TargetsGame() {
               <Ionicons
                 name="sparkles-outline"
                 size={20}
-                color={mode === 'joker' ? '#FFFFFF' : colors.text}
+                color={mode === 'joker' ? textOn(GRADIENT[0]) : colors.text}
               />
-              <Text style={[styles.modeButtonText, { color: mode === 'joker' ? '#FFFFFF' : colors.text }]}>
+              <Text style={[styles.modeButtonText, { color: mode === 'joker' ? textOn(GRADIENT[0]) : colors.text }]}>
                 {t('joker')}
               </Text>
             </TouchableOpacity>
@@ -451,7 +532,7 @@ export default function TargetsGame() {
                 <Text
                   style={[
                     styles.levelButtonText,
-                    { color: level === lvl ? '#FFFFFF' : colors.text },
+                    { color: level === lvl ? textOn(GRADIENT[0]) : colors.text },
                   ]}
                 >
                   {lvl}
@@ -578,6 +659,43 @@ export default function TargetsGame() {
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
           {t('hint_targets_tap_if')}
         </Text>
+
+        {/* ⚠️ ОСТАТОК ПОКАЗЫВАЕТСЯ ВСЕГДА, ВКЛЮЧАЯ НОЛЬ. Строка `{n > 0 && …}` в
+            исходнике выглядит живой, а на экране её нет ровно у того, кто ещё ничего
+            не покупал. Это же и есть «видно ДО того, как потратил»: цену и остаток
+            человек читает заранее, а не в момент, когда партия уже висит на волоске. */}
+        <Text style={[styles.lifeWalletLine, { color: colors.textSecondary }]}>
+          {`${t('abName_second_life')} · ${t('abilityInWallet').replace('{n}', String(secondLives))}`}
+        </Text>
+        {lifeSpent ? (
+          <Text style={[styles.lifeWalletLine, { color: colors.textSecondary }]}>
+            {t('abilityLifeSpentNote')}
+          </Text>
+        ) : null}
+
+        {/* Предложение второй жизни. Партия в этот момент ЗАМОРОЖЕНА (таймеры сняты
+            в onOutOfLives), поэтому решение принимается без спешки. */}
+        {deathOffer ? (
+          <View style={[styles.lifeOffer, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
+            <Text style={[styles.lifeOfferTitle, { color: colors.text }]}>{t('abilityLifeOffer')}</Text>
+            <Text style={[styles.lifeWalletLine, { color: colors.textSecondary }]}>
+              {t('abilityInWallet').replace('{n}', String(secondLives))}
+            </Text>
+            <View style={styles.lifeOfferRow}>
+              <TouchableOpacity
+                accessibilityRole="button" onPress={takeSecondLife} disabled={secondLives <= 0}
+                style={[styles.lifeOfferBtn, { backgroundColor: GRADIENT[0], opacity: secondLives > 0 ? 1 : 0.5 }]}>
+                {/* Цвет подписи считает textOn по самой заливке — белым по светлой кнопке не видно. */}
+                <Text style={[styles.lifeOfferBtnText, { color: textOn(GRADIENT[0]) }]}>{t('abilityLifeTake')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityRole="button" onPress={declineSecondLife}
+                style={[styles.lifeOfferBtn, { borderColor: colors.border, borderWidth: 1.5 }]}>
+                <Text style={[styles.lifeOfferBtnText, { color: colors.text }]}>{t('abilityLifeDecline')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
       </View>
     </GameShell>
   );
@@ -788,4 +906,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
   },
+  // Кошелёк второй жизни и само предложение — см. блок «ВТОРАЯ ЖИЗНЬ» выше.
+  lifeWalletLine: { fontSize: 12, lineHeight: 1.5 * 12, textAlign: 'center', marginTop: 6 },
+  lifeOffer: { marginTop: 12, borderRadius: 16, borderWidth: 1.5, padding: 14, gap: 4 },
+  lifeOfferTitle: { fontSize: 15, lineHeight: 1.4 * 15, fontWeight: '800', textAlign: 'center' },
+  lifeOfferRow: { flexDirection: 'row', gap: 10, marginTop: 10, justifyContent: 'center', flexWrap: 'wrap' },
+  // minHeight 48 — единый минимум зоны нажатия по приложению (tap-target-audit).
+  lifeOfferBtn: { minHeight: 48, paddingHorizontal: 18, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  lifeOfferBtnText: { fontSize: 14, fontWeight: '800' },
 });

@@ -9,7 +9,10 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { useProfile } from '@/src/contexts/ProfileContext';
-import { getTokens, spendTokens } from '@/src/services/tokens';
+import { getTokens, spendTokens, checkInStreakRepairable, repairCheckInStreak } from '@/src/services/tokens';
+import {
+  ABILITIES, Ability, AbilityCounts, buyAbility, getAbilityCounts, useAbility,
+} from '@/src/services/abilities';
 import {
   COSMETICS, Cosmetic, getUnlocked, unlockCosmetic, getEquipped, equipCosmetic, unequipCosmetic,
 } from '@/src/services/cosmetics';
@@ -31,6 +34,10 @@ export default function ShopScreen() {
   const [soundPack, setSoundPackState] = useState<string | null>(null);   // SND-P: текущий звук-пак (глобально)
   const [petAcc, setPetAcc] = useState<string | null>(null);              // аксессуар питомца (глобально, как скин)
   const [cat, setCat] = useState<string | null>(null);                    // v1.155: фильтр категорий (null = все) — магазин был длинной лентой (аудит)
+  const [abilities, setAbilities] = useState<AbilityCounts>({});          // расходуемые способности: сколько штук в кошельке
+  // Что произошло с последней покупкой/тратой. ⚠️ Молча списывать нельзя: очки уходят,
+  // а на экране меняется только число в углу — этого мало, чтобы понять, что случилось.
+  const [note, setNote] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     const pid = profile?.id;
@@ -40,6 +47,7 @@ export default function ShopScreen() {
     setEquipped(await getEquipped(pid));
     setSoundPackState(await getSoundPack());
     setPetAcc(await getPetAccessory());
+    setAbilities(await getAbilityCounts(pid));
   }, [profile?.id]);
 
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
@@ -51,6 +59,45 @@ export default function ShopScreen() {
     const ok = await spendTokens(pid, c.cost);
     if (ok) { await unlockCosmetic(pid, c.id); sndToken(); await reload(); }
     else sndWrong();
+  };
+
+  /**
+   * Купить штуку способности. Причина отказа проговаривается: «не хватает очков» и
+   * «в кошельке уже максимум» — разные ответы, и кнопка, молчащая на оба, врёт.
+   */
+  const buyAb = async (a: Ability) => {
+    const pid = profile?.id;
+    if (!pid) return;
+    const r = await buyAbility(pid, a.id);
+    if (r.ok) {
+      sndToken();
+      setNote(`${t('abilitySpentNote').replace('{n}', String(a.cost))} · ${t(a.nameKey)} ×${r.count}`);
+    } else {
+      sndWrong();
+      setNote(r.reason === 'full' ? t('abilityFull') : t('needMoreTokens'));
+    }
+    await reload();
+  };
+
+  /**
+   * Применить «Щит серии» прямо из кошелька.
+   *
+   * ⚠️ СНАЧАЛА СМОТРИМ, ЕСТЬ ЛИ ЧТО ЧИНИТЬ, И ТОЛЬКО ПОТОМ ТРАТИМ. При обратном
+   * порядке нажатие на целой серии съедало бы щит впустую — самая обидная из
+   * возможных трат: заплатил и ничего не произошло.
+   */
+  const useShield = async () => {
+    const pid = profile?.id;
+    if (!pid) return;
+    const broken = await checkInStreakRepairable(pid);
+    if (!broken) { sndWrong(); setNote(t('abilityStreakIntact')); return; }
+    if (!(await useAbility(pid, 'streak_shield'))) { sndWrong(); setNote(t('abilityNoneLeft')); return; }
+    const r = await repairCheckInStreak(pid);
+    sndToken();
+    setNote(r.ok
+      ? t('abilityStreakRestored').replace('{n}', String(r.streak))
+      : t('abilityStreakStale'));
+    await reload();
   };
 
   const toggleEquip = async (c: Cosmetic) => {
@@ -78,6 +125,50 @@ export default function ShopScreen() {
     await setPetAccessory(next);
     setPetAcc(next);
     sndTap();
+  };
+
+  /**
+   * Строка расходуемой способности.
+   *
+   * ⚠️ ОСТАТОК ПОКАЗЫВАЕТСЯ ВСЕГДА, В ТОМ ЧИСЛЕ НУЛЕВОЙ. Строка вида
+   * `{count > 0 && <Text>…</Text>}` выглядит в исходнике живой, а на экране её нет
+   * ровно у того, кто ещё ничего не купил, — то есть у всех, кому она и нужна.
+   */
+  const renderAbility = (a: Ability) => {
+    const have = abilities[a.id] ?? 0;
+    const canAfford = balance >= a.cost;
+    const full = have >= a.max;
+    const usable = a.id === 'streak_shield';   // единственная, что применяется здесь; остальные тратятся в партии
+    return (
+      <View key={a.id} style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}>
+        <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+          <Ionicons name={a.icon as any} size={22} color={colors.primary} />
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{t(a.nameKey)}</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 16 }}>{t(a.descKey)}</Text>
+          <Text style={{ color: colors.text, fontSize: 13, fontWeight: '700', marginTop: 3 }}>
+            {`${a.cost} ⭐ · ${t('abilityInWallet').replace('{n}', String(have))}`}
+          </Text>
+        </View>
+        <View style={{ gap: 6, flexShrink: 0 }}>
+          <TouchableOpacity
+            accessibilityRole="button" onPress={() => buyAb(a)} disabled={!canAfford || full}
+            style={[styles.btn, { backgroundColor: canAfford && !full ? colors.primary : colors.border, opacity: canAfford && !full ? 1 : 0.6 }]}>
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>
+              {full ? t('abilityFull') : canAfford ? t('buy') : t('needMoreTokens')}
+            </Text>
+          </TouchableOpacity>
+          {usable ? (
+            <TouchableOpacity
+              accessibilityRole="button" onPress={useShield} disabled={have <= 0}
+              style={[styles.btn, { backgroundColor: 'transparent', borderColor: colors.primary, borderWidth: 1.5, opacity: have > 0 ? 1 : 0.5 }]}>
+              <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 13 }}>{t('abilityUse')}</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </View>
+    );
   };
 
   const renderItem = (c: Cosmetic) => {
@@ -158,7 +249,8 @@ export default function ShopScreen() {
           длинной лентой без навигации (аудит). null = показать все секции. */}
       <View style={styles.catRow}>
         {([
-          [null, 'apps', 'a11yCatAll'], ['accent', 'color-palette', 'a11yCatAccent'], ['sound', 'musical-notes', 'a11yCatSound'],
+          [null, 'apps', 'a11yCatAll'], ['ability', 'flash', 'a11yCatAbility'],
+          ['accent', 'color-palette', 'a11yCatAccent'], ['sound', 'musical-notes', 'a11yCatSound'],
           ['frame', 'scan', 'a11yCatFrame'], ['title', 'pricetag', 'a11yCatTitle'], ['avatar', 'person', 'a11yCatAvatar'], ['pet', 'paw', 'a11yCatPet'],
         ] as const).map(([c, icon, labelKey]) => {
           const on = cat === c;
@@ -173,12 +265,35 @@ export default function ShopScreen() {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
+        {/* Отчёт о последней покупке/трате. Держится до следующего действия — списание
+            очков человек обязан увидеть словами, а не догадаться по числу в углу. */}
+        {note ? (
+          <View style={[styles.note, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
+            <Text style={{ color: colors.text, fontSize: 13, lineHeight: 1.5 * 13 }}>{note}</Text>
+          </View>
+        ) : null}
+
+        {/* СПОСОБНОСТИ — расходники, идут первыми: их берут ради партии, а не ради вида.
+            Секция рисуется БЕЗУСЛОВНО (фильтр решает только показ), чтобы кошелёк
+            нельзя было потерять из виду, пока в нём пусто. */}
+        {(!cat || cat === 'ability') ? (
+          <>
+            <Text style={[styles.section, { color: colors.textSecondary, marginTop: 0 }]}>{t('shopAbilitySection')}</Text>
+            {ABILITIES.map(renderAbility)}
+            <Text style={[styles.hint, { color: colors.textSecondary, marginTop: 4, marginBottom: 6 }]}>
+              {t('shopAbilityHint')}
+            </Text>
+          </>
+        ) : null}
+
         {([
           ['accent', 'shopAccentSection'], ['sound', 'shopSoundSection'], ['frame', 'shopFrameSection'],
           ['title', 'shopTitleSection'], ['avatar', 'shopAvatarSection'], ['pet', 'shopPetSection'],
         ] as const).filter(([type]) => !cat || cat === type).map(([type, sectionKey], i) => (
           <React.Fragment key={type}>
-            <Text style={[styles.section, { color: colors.textSecondary, marginTop: i === 0 ? 0 : 20 }]}>
+            {/* Первая косметическая секция прижата к верху, только если над ней ничего
+                нет: при показе всех разделов выше стоят способности. */}
+            <Text style={[styles.section, { color: colors.textSecondary, marginTop: i === 0 && cat && cat !== 'ability' ? 0 : 20 }]}>
               {t(sectionKey)}
             </Text>
             {COSMETICS.filter((c) => c.type === type).map(renderItem)}
@@ -211,4 +326,5 @@ const styles = StyleSheet.create({
   // скруглённые углы, единые по приложению.
   btn: { paddingHorizontal: 16, paddingVertical: 10, minHeight: 48, justifyContent: 'center', borderRadius: 16, minWidth: 92, alignItems: 'center', flexShrink: 0 },
   hint: { fontSize: 12, lineHeight: 1.5 * 12, marginTop: 14, textAlign: 'center' },
+  note: { borderRadius: 14, borderWidth: 1.5, padding: 12, marginBottom: 14 },
 });
