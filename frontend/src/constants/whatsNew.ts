@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.210.0',
+    date: '2026-08-21',
+    ru: [
+      "Незаконченная партия снова возвращается: в девяти играх она поднималась только у профиля по умолчанию, у остальных пропадала",
+      "Голосовой отзыв записывается напрямую с микрофона — обработка звука на части телефонов отдавала пустую дорожку",
+      "Во фрактальной судоку появились порталы: клетка живёт в двух сетках сразу, и вывод существует только между ними",
+      "За достигнутую цель дня начисляются очки — если в этот день была хотя бы одна партия",
+      "Самый сложный самурай стал по-настоящему сложным: верхняя полоса теперь требует голых пар, а не как повезёт",
+      "Наборы товаров открываются по уровню: до шестого они все одинаковы, и раньше открывать нечего",
+    ],
+    en: [
+      "Your unfinished game comes back again: in nine games it was restored only for the default profile and lost for everyone else",
+      "Voice feedback now records straight from the microphone — audio processing returned an empty track on some phones",
+      "Fractal sudoku gained portals: one cell lives in two grids at once, and the deduction exists only between them",
+      "Reaching your daily goal now earns points — provided you actually played that day",
+      "The hardest samurai is genuinely hard now: the top band requires naked pairs instead of whatever turned up",
+      "Goods sets unlock by level: below level six they are all identical, so there is nothing to unlock earlier",
+    ],
+  },
+  {
     version: '1.209.0',
     date: '2026-08-20',
     ru: [
