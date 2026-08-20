@@ -28,7 +28,8 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 import { useGameKeyboard, digitKeys } from '@/src/hooks/useGameKeyboard';
-import { saveResume, loadResume, clearResume } from '@/src/services/resume';
+import {saveResume, clearResume} from '@/src/services/resume';
+import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import { failurePolicy, formatErrorCount, isOver as isFailOver } from '@/src/services/failure';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Line, Rect } from 'react-native-svg';
@@ -656,21 +657,10 @@ export default function SudokuGame() {
 
   // Поднять незаконченную партию при входе на экран. Не трогаем путь зарядки (autostart):
   // там человек явно запустил свежий раунд, и startGame сам выбросит старую партию.
-  const bootRef = useRef(false);
-  useEffect(() => {
-    if (autostart || bootRef.current) return;
-    const pid = profile?.id;
-    if (!pid) return;
-    bootRef.current = true;
-    let cancelled = false;
-    loadResume<SudokuResume>(GAME_ID, pid, RESUME_V)
-      .then((saved) => {
-        if (cancelled || !saved || !Array.isArray(saved.grid) || !saved.grid.length) return;
-        applyResume(saved);
-      })
-      .catch(() => { /* нет партии — обычный вход через интро */ });
-    return () => { cancelled = true; };
-  }, [profile?.id, autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — разовый подъём партии
+  useResumeBoot<SudokuResume>(GAME_ID, RESUME_V, (saved) => {
+    if (!saved || !Array.isArray(saved.grid) || !saved.grid.length) return;
+    applyResume(saved);
+  }, autostart);
 
   // Автосохранение по ходу партии. Записываем с задержкой: подряд идущие касания
   // не должны бить по хранилищу каждым нажатием.

@@ -27,7 +27,8 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { a11yDecor } from '@/src/services/a11y';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { gameNow } from '@/src/services/gamePause';
-import { saveResume, loadResume, clearResume } from '@/src/services/resume';
+import {saveResume, clearResume} from '@/src/services/resume';
+import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 /**
@@ -1940,22 +1941,10 @@ export default function GoodsSortGame() {
    * Подъём партии при входе. Путь зарядки (autostart) не трогаем: там человек
    * явно запустил свежий шаг, и поднятая партия подменила бы заданный уровень.
    */
-  const bootRef = useRef(false);
-  useEffect(() => {
-    if (autostart || bootRef.current) return;
-    const pid = profile?.id;
-    if (!pid) return;
-    bootRef.current = true;
-    let cancelled = false;
-    loadResume<GoodsResume>(GS_GAME_ID, pid, GS_RESUME_V)
-      .then((saved) => {
-        if (cancelled) return;
-        const live = restoreGoodsParty(saved, gameNow());
-        if (live) applyResume(live);
-      })
-      .catch(() => { /* нет партии — обычный вход через настройку */ });
-    return () => { cancelled = true; };
-  }, [profile?.id, autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — разовый подъём партии
+  useResumeBoot<GoodsResume>(GS_GAME_ID, GS_RESUME_V, (saved) => {
+    const live = restoreGoodsParty(saved, gameNow());
+    if (live) applyResume(live);
+  }, autostart);
 
   const advanceLevel = () => {
     /**

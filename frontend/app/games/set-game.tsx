@@ -12,7 +12,8 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
-import { saveResume, loadResume, clearResume } from '@/src/services/resume';
+import {saveResume, clearResume} from '@/src/services/resume';
+import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
@@ -573,22 +574,10 @@ export default function SetGame() {
    * Подъём партии при входе. Путь зарядки (autostart) не трогаем: там человек
    * явно запустил свежий шаг, и поднятая партия подменила бы заданный уровень.
    */
-  const bootRef = useRef(false);
-  useEffect(() => {
-    if (autostart || bootRef.current) return;
-    const pid = profile?.id;
-    if (!pid) return;
-    bootRef.current = true;
-    let cancelled = false;
-    loadResume<SetResume>(SET_GAME_ID, pid, SET_RESUME_V)
-      .then((saved) => {
-        if (cancelled) return;
-        const live = restoreSetParty(saved, gameNow());
-        if (live) applyResume(live);
-      })
-      .catch(() => { /* нет партии — обычный вход через конфиг */ });
-    return () => { cancelled = true; };
-  }, [profile?.id, autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — разовый подъём партии
+  useResumeBoot<SetResume>(SET_GAME_ID, SET_RESUME_V, (saved) => {
+    const live = restoreSetParty(saved, gameNow());
+    if (live) applyResume(live);
+  }, autostart);
 
   const togglePick = (i: number) => {
     if (feedback !== null) return;
