@@ -39,15 +39,17 @@ declare function require(id: string): any;
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveSession } from '@/src/services/api';
-import { getTokens } from '@/src/services/tokens';
+import { getTokens, TOKEN_DELTA_CAP } from '@/src/services/tokens';
 import * as cleanRun from '@/src/services/cleanRun';
 import {
   earnForRound,
   earnReasonKey,
+  goalReward,
   recordRound,
   streakFromDays,
   todayEarnings,
   dayKey,
+  DAY_GOAL_REWARD,
   MULTIPLIER,
   MULT_ROUNDS_PER_GAME_PER_DAY,
   DAY_STREAK_FOR_MULT,
@@ -460,6 +462,65 @@ describe('блок «Сегодня» на главном экране', () => {
     expect(r).toContain('todayRoundsLabel');
     expect(r).toContain('row.total');
     expect(r).toContain('today.total');
+  });
+});
+
+// ── 7б. Цель дня: единственное начисление не за партию ───────────────────────
+
+/**
+ * ⚠️ ЗДЕСЬ ТОЛЬКО ЧИСТОЕ ПРАВИЛО — «сколько положено». Что оно доходит до кошелька,
+ * что платит один раз в сутки и что берёт факт тренировки из настоящего журнала,
+ * проверяется исполнением в `daily-goal.test.ts`: правило может быть безупречным и
+ * не вызываться вовсе — этой болезнью болел и сам множитель (см. шапку файла).
+ */
+describe('награда за цель дня', () => {
+  const decide = (over: Partial<Parameters<typeof goalReward>[0]> = {}) =>
+    goalReward({ outcome: 'done', roundsToday: 3, alreadyMarked: false, ...over });
+
+  it('🔴 достигнутая цель в день с партиями — платим объявленное', () => {
+    expect(decide()).toEqual({ amount: DAY_GOAL_REWARD, reason: 'paid' });
+  });
+
+  it('🔴 «не сегодня» — РОВНО НОЛЬ, а не отрицательное', () => {
+    // Отрицательной суммы в этом правиле не бывает ни при каком наборе входов:
+    // честный ответ, стоящий денег, — это плата за враньё.
+    const r = decide({ outcome: 'not_today' });
+    expect(r).toEqual({ amount: 0, reason: 'notToday' });
+    for (const rounds of [0, 1, 50]) {
+      expect(`${rounds}: ${decide({ outcome: 'not_today', roundsToday: rounds }).amount}`)
+        .toBe(`${rounds}: 0`);
+    }
+  });
+
+  it('🔴 без партий сегодня — ноль даже за «получилось»', () => {
+    expect(decide({ roundsToday: 0 })).toEqual({ amount: 0, reason: 'noRounds' });
+    expect(decide({ roundsToday: -1 }).amount).toBe(0);
+  });
+
+  it('🔴 исход за сутки уже отмечен — второй раз не платим', () => {
+    expect(decide({ alreadyMarked: true })).toEqual({ amount: 0, reason: 'alreadyPaid' });
+  });
+
+  it('🔴 награда меньше лучшей партии — иначе отметка обесценивает игру', () => {
+    // Потолок партии: база 50 × множитель 2 = 100. Награда обязана быть заметно ниже.
+    expect(DAY_GOAL_REWARD).toBeGreaterThan(0);
+    expect(DAY_GOAL_REWARD).toBeLessThan(TOKEN_DELTA_CAP * MULTIPLIER);
+    // И привязана к потолку, а не написана числом: правка экономики её тянет за собой.
+    expect(DAY_GOAL_REWARD).toBe(Math.round(TOKEN_DELTA_CAP / 2));
+  });
+
+  it('🔴 в правиле награды нет ни одной ветки, уменьшающей баланс', () => {
+    const outcomes = ['done', 'not_today'] as const;
+    const worst: number[] = [];
+    for (const outcome of outcomes) {
+      for (const roundsToday of [0, 1, 7]) {
+        for (const alreadyMarked of [false, true]) {
+          worst.push(goalReward({ outcome, roundsToday, alreadyMarked }).amount);
+        }
+      }
+    }
+    expect(Math.min(...worst)).toBe(0);
+    expect(Math.max(...worst)).toBe(DAY_GOAL_REWARD);
   });
 });
 

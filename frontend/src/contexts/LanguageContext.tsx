@@ -84,6 +84,11 @@ const translations: Translations = {
   fractalOpened: { ru: 'Открыто', en: 'Opened' },
   fractalToUnlock: { ru: 'до открытия', en: 'to unlock' },
   fractalFeedHint: { ru: 'Подсвеченная клетка в центре — та самая цифра, которая уйдёт в корневую сетку', en: 'The highlighted centre cell is the digit that will move up into the root grid' },
+  fractalPortal: { ru: 'Портал', en: 'Portal' },
+  fractalPortals: { ru: 'Порталы', en: 'Portals' },
+  fractalPortalGo: { ru: 'В сетку', en: 'Go to grid' },
+  fractalPortalHint: { ru: 'Клетка с кольцом — одна и та же в двух сетках сразу. Порознь ни одна из них цифру не выдаёт: сузьте кандидатов здесь, сузьте там — ответ даст пересечение.', en: 'A ringed cell is one and the same cell in two grids at once. Neither grid names its digit alone: narrow the candidates here, narrow them there, and the answer is what both allow.' },
+  fractalPortalRule: { ru: 'С шестого уровня появляются порталы: пара клеток из РАЗНЫХ нижних сеток — на деле одна клетка. Ни одна из двух сеток не решается сама по себе; цифру даёт только то, что обе про неё допускают. Это вывод, которого нет ни в одном из пазлов по отдельности.', en: 'From level six portals appear: a pair of cells in DIFFERENT lower grids is really one cell. Neither of the two grids can be solved on its own; the digit comes only from what both of them allow. That is an inference neither puzzle holds by itself.' },
   ctaStart: { ru: 'СТАРТ', en: 'START' },
   // Карточка зарядки ведёт на ВЫБОР набора, а не запускает его. Подпись «СТАРТ»
   // обещала запуск — Валя об этом и писала: «заходишь в „не спится“, а там все
@@ -2635,6 +2640,11 @@ const translations: Translations = {
   dayGoalNo: { ru: 'Не сегодня', en: 'Not today' },
   dayGoalDoneNote: { ru: 'Отмечено. Завтра спросим снова.', en: 'Noted. We’ll ask again tomorrow.' },
   dayGoalMissedNote: { ru: 'Бывает. Цель никуда не делась — завтра тоже день.', en: 'That happens. The goal is still there — tomorrow is a day too.' },
+  // ⚠️ Награда показывается ПОСЛЕ ответа и только у достигнутой цели: суммы на кнопках
+  // исхода нет намеренно (запрет 4 в шапке DailyGoalCard.tsx). У «не сегодня» разговора
+  // о деньгах нет вовсе — упоминание упущенного и было бы штрафом за честность.
+  dayGoalRewardNote: { ru: '+{n} ⭐ за достигнутую цель', en: '+{n} ⭐ for the goal you reached' },
+  dayGoalRewardNeedsRound: { ru: 'Очки за цель начисляют в день, когда были партии.', en: 'Goal points come on a day with rounds played.' },
   dayGoalCloseA11y: { ru: 'Убрать карточку цели на сегодня', en: 'Hide the goal card for today' },
 
   // >>> SCREEN_STRINGS
