@@ -1,5 +1,7 @@
 /* psygames-game-n-back · VER 1 · 19.08.2026 */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { speak } from '@/src/services/tts';
+import { useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import {
   View,
   Text,
@@ -57,18 +59,13 @@ type Modality = 'single' | 'dual';   // single = visual only (legacy); dual = vi
 
 const AUDIO_LETTERS = ['B', 'D', 'F', 'H', 'K', 'L', 'M', 'Q', 'R', 'T'];   // consonants only — no confusion with positions
 
-function speakLetter(letter: string) {
-  if (typeof window === 'undefined') return;
-  const synth = (window as any).speechSynthesis;
-  if (!synth) return;
-  try {
-    synth.cancel();
-    const utt = new (window as any).SpeechSynthesisUtterance(letter);
-    utt.rate = 1.2;
-    utt.volume = 0.6;
-    synth.speak(utt);
-  } catch {}
-}
+/**
+ * ⚠️ ВТОРОГО ИСТОЧНИКА ПРАВДЫ ПРО РЕЧЬ БОЛЬШЕ НЕТ. Здесь жила своя озвучка мимо
+ * `services/tts.ts`: она не спрашивала ни про голос языка, ни про общий тумблер
+ * звука. Человек выключал звук — второй поток двойного n-back продолжал
+ * говорить, а починка в общем сервисе сюда не доезжала по устройству.
+ */
+const speakLetter = (letter: string) => { void speak(letter, 'en', 1.2); };
 
 // Уровень (1..15+): L1-5 single N=1→5 · L6-8 single N=5 быстрее (ISI↓) · L9-15 DUAL (визуал+звук, классика Jaeggi) N растёт.
 function levelParams(level: number): { N: number; modality: Modality; showMs: number; gapMs: number } {
@@ -111,6 +108,8 @@ export default function NBackGame() {
   const [nLevel, setNLevel] = useState(() => num('nLevel', 1));
   const [trials, setTrials] = useState(() => num('trials', 20));
   const [modality, setModality] = useState<Modality>(() => (str('modality', 'single') as Modality));
+  /** Речь — второй поток двойного режима. Нельзя говорить — нельзя и двойной. */
+  const ttsBlock = useTtsBlock('en');
   const [history, setHistory] = useState<number[]>([]);
   const [audioHistory, setAudioHistory] = useState<string[]>([]);
   const [currentIdx, setCurrentIdx] = useState(-1);
@@ -154,7 +153,13 @@ export default function NBackGame() {
       showMsRef.current = p.showMs;
       gapMsRef.current = p.gapMs;
       setNLevel(p.N);
-      setModality(p.modality);
+      /**
+       * 🔴 БЕЗ РЕЧИ ДВОЙНОЙ РЕЖИМ — ЭТО ОБМАН СЧЁТА. Итог берётся по ХУДШЕМУ из
+       * двух потоков (`Math.min` ниже), а немой слуховой поток даёт нули: человек
+       * с выключенным звуком проваливал бы уровень, ничего не сделав неверно.
+       * Пока говорить нельзя — играем одним потоком и честно об этом пишем.
+       */
+      setModality(ttsBlock === null ? p.modality : 'single');
     }
     setHits(0); setMisses(0); setFalseAlarms(0); setCorrectRejections(0);
     setBossWon(null);

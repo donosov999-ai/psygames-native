@@ -1806,6 +1806,7 @@ const t: Record<string, string> = {
   "lspanLvlAuto": "Nv {n} — {s} palabras de oído, crece solo (más palabras → ritmo más rápido)",
   "langToTrain": "Qué idioma aprendemos",
   "voiceMissing": "No hay voz para este idioma en el dispositivo: no habrá audio. Elige otro idioma.",
+  "voiceSoundOff": "El sonido está apagado y este ejercicio habla. Actívalo en los ajustes.",
   "voiceMissingLang": "No hay voz para «{lang}» en este dispositivo. Elige otro idioma.",
   "lspanListening": "Escucha...",
   "lspanWord": "Palabra",

@@ -1800,6 +1800,7 @@ const t: Record<string, string> = {
   "lspanLvlAuto": "Lv {n} — 音声で {s} 語、成績で自動成長（語数増加 → テンポ加速）",
   "langToTrain": "学習する言語",
   "voiceMissing": "この言語の音声が端末に見つかりません — 読み上げできません。別の言語を選んでください。",
+  "voiceSoundOff": "音がオフです。この練習は音声を使います。設定でオンにしてください。",
   "voiceMissingLang": "「{lang}」の音声が端末に見つかりません。別の言語を選んでください。",
   "lspanListening": "聞いて…",
   "lspanWord": "単語",

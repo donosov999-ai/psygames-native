@@ -1806,6 +1806,7 @@ const t: Record<string, string> = {
   "lspanLvlAuto": "第 {n} 级——听 {s} 个单词，随成绩自动提升（单词更多 → 节奏更快）",
   "langToTrain": "训练哪种语言",
   "voiceMissing": "设备上没有这种语言的语音——无法朗读。请换一种语言。",
+  "voiceSoundOff": "声音已关闭，而这个练习需要发音。请在设置中打开。",
   "voiceMissingLang": "设备上没有「{lang}」的语音。请换一种语言。",
   "lspanListening": "请听……",
   "lspanWord": "单词",
