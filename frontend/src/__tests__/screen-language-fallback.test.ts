@@ -87,3 +87,58 @@ describe('запасной язык экрана', () => {
     expect(wrong).toEqual([]);
   });
 });
+
+/**
+ * ДОЛГ: экран верхнего уровня → сколько мест ещё говорят на двух языках и почему.
+ * Число — ПОТОЛОК: вырасти нельзя, уменьшить можно и нужно.
+ *
+ * 🔴 ЗАЧЕМ ОТДЕЛЬНЫЙ УЧЁТ. У игр такой же учёт довёл долг до НУЛЯ — там теперь
+ * запрещено вообще всё зашитое. Экраны верхнего уровня в тот гейт не входили, и
+ * их долг рос невидимо. Здесь он назван поимённо и не может вырасти молча.
+ *
+ * ⚠️ ОСТАВШИЕСЯ МЕСТА — НЕ ЛЕНЬ, А ДАННЫЕ. Текст лежит в справочниках с полями
+ * `_ru`/`_en` (имена и описания 30 достижений, названия доменов замера, продающие
+ * тексты 12 профилей, записи «что нового»). Их перевод — работа над данными на
+ * десять языков, а не переезд строки в словарь, и решение о ней за владельцем.
+ */
+const TWO_LANG_DEBT: Record<string, { max: number; why: string }> = {
+  'achievements.tsx': { max: 3, why: 'cat.label_*, a.name_*, a.desc_* — 30 достижений и разделы лежат в справочнике с полями _ru/_en' },
+  'assessment-result.tsx': { max: 2, why: 'dom.label_* — названия доменов замера в справочнике с полями _ru/_en' },
+  'settings.tsx': { max: 4, why: 'audience, sales_hook, long_description, session_minutes — продающие тексты 12 профилей' },
+  'whats-new.tsx': { max: 1, why: 'e.ru/e.en — сами записи «что нового» пишутся на двух языках; перевод каждой версии на 12 языков это редакторское решение' },
+  'pet.tsx': { max: 1, why: 'не строка: `const ru = …` для РУССКОЙ плюрализации (три формы), словарём не заменяется' },
+};
+
+describe('долг двуязычных строк на экранах верхнего уровня', () => {
+  const top = screens().filter((s) => !s.name.startsWith('games/'));
+
+  const twoLangCount = (src: string): number =>
+    (src.match(/language === 'ru'/g) || []).length;
+
+  it('🔴 долг не вырос: где было столько-то, столько и осталось', () => {
+    const grown: string[] = [];
+    for (const { name, src } of top) {
+      const n = twoLangCount(src);
+      const cap = TWO_LANG_DEBT[name]?.max ?? 0;
+      if (n > cap) grown.push(`${name}: ${n} > потолка ${cap}`);
+    }
+    expect(grown).toEqual([]);
+  });
+
+  it('🔴 в учёте нет записей про экраны, где долг уже выплачен', () => {
+    const stale: string[] = [];
+    for (const [name, { max }] of Object.entries(TWO_LANG_DEBT)) {
+      const scr = top.find((s) => s.name === name);
+      if (!scr) { stale.push(`${name}: файла нет — запись убрать`); continue; }
+      const n = twoLangCount(scr.src);
+      if (n < max) stale.push(`${name}: осталось ${n}, потолок ${max} — опустить`);
+    }
+    expect(stale).toEqual([]);
+  });
+
+  it('у каждой записи долга есть причина, а не отметка', () => {
+    for (const [name, { why }] of Object.entries(TWO_LANG_DEBT)) {
+      expect(`${name}: ${why.length > 40}`).toBe(`${name}: true`);
+    }
+  });
+});

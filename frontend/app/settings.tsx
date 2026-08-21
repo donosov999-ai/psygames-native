@@ -890,7 +890,7 @@ export default function SettingsScreen() {
           accessibilityRole="button" style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={() => router.push('/achievements' as any)}>
           <View style={styles.settingInfo}>
             <Ionicons name="trophy" size={24} color="#fbbf24" />
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('a11yAchievements')}</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('achievementsTitle')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
