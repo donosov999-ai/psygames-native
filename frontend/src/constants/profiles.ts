@@ -960,5 +960,18 @@ export function isGameAllowed(profile: ProfileDef, gameId: string): boolean {
 
 export function filterAllowedGames(profile: ProfileDef) {
   if (profile.allowed_games === 'all') return GAMES;
-  return GAMES.filter(g => ALWAYS_ALLOWED.has(g.id) || (profile.allowed_games as string[]).includes(g.id));
+  const allowed = new Set(profile.allowed_games as string[]);
+  /**
+   * 🔴 РАЗВИЛКА ОТКРЫТА, ЕСЛИ ОТКРЫТА ХОТЬ ОДНА ИГРА ЗА НЕЙ.
+   *
+   * Профиль перечисляет УПРАЖНЕНИЯ, а не то, как они сгруппированы в меню. Когда
+   * три судоку свели в один вход (21.08.2026), профили «Микро-релакс», «Дети» и
+   * «Шахматист» продолжали разрешать `sudoku` — но карточку с меню убрали, а
+   * развилки в их списках не было, и судоку пропало у всех троих. Дописать
+   * развилку в три списка значит ждать того же от следующей: правило надёжнее.
+   */
+  const openHubs = new Set(
+    GAMES.filter(g => g.mergedInto && allowed.has(g.id)).map(g => g.mergedInto as string),
+  );
+  return GAMES.filter(g => ALWAYS_ALLOWED.has(g.id) || allowed.has(g.id) || openHubs.has(g.id));
 }
