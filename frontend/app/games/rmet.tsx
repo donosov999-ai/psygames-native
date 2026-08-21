@@ -286,7 +286,7 @@ export default function RMETGame() {
 
   const nextTrial = (idx: number, list: EyeItem[]) => {
     const it = list[idx];
-    const opts = language === 'en' ? it.options_en : it.options_ru;
+    const opts = language === 'ru' ? it.options_ru : it.options_en;
     setShuffledOpts(shuffle(opts));
     setRound(idx);
     setFeedback(null);
@@ -296,7 +296,7 @@ export default function RMETGame() {
   const handleAnswer = (chosen: string) => {
     if (feedback !== null) return;
     const it = items[round];
-    const correct = chosen === (language === 'en' ? it.correct_en : it.correct_ru);
+    const correct = chosen === (language === 'ru' ? it.correct_ru : it.correct_en);
     const rt = gameNow() - stimAtRef.current;
     setFeedback({ chosen, correct });
     if (correct) {
@@ -387,7 +387,7 @@ export default function RMETGame() {
   // игровая фаза — на едином каркасе GameShell: слова-ответы прибиты к низу
   if (phase === 'playing') {
     const it = items[round];
-    const correctWord = it ? (language === 'en' ? it.correct_en : it.correct_ru) : '';
+    const correctWord = it ? (language === 'ru' ? it.correct_ru : it.correct_en) : '';
     return (
       <GameShell
         title={t('rmet')}

@@ -11,6 +11,31 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { ACHIEVEMENTS, getUnlocked, UnlockedRecord } from '@/src/services/achievements';
 
+/**
+ * ДАТА ОТКРЫТИЯ — ПО-ЧЕЛОВЕЧЕСКИ, А НЕ КАК В ХРАНИЛИЩЕ.
+ *
+ * 🔴 ЧТО БЫЛО. На карточке стояло `2026-08-21` — ключ хранения, показанный
+ * человеку как есть. Формат машинный и одинаковый для всех двенадцати языков:
+ * немец, японец и араб видят его в том же виде, в каком он лежит в памяти.
+ *
+ * ⚠️ ПОЧЕМУ НЕ `new Date(строка)`. Разбор `YYYY-MM-DD` даёт ПОЛНОЧЬ UTC, и
+ * восточнее Гринвича дата съезжает на день назад — достижение, взятое утром
+ * первого числа, показалось бы взятым тридцать первого. Собираем дату из частей
+ * как местную.
+ *
+ * Непонятную строку возвращаем как есть: показать сырое лучше, чем «Invalid Date».
+ */
+export function humanDate(key: string, language: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(key || ''));
+  if (!m) return String(key || '');
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  try {
+    return d.toLocaleDateString(language, { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return String(key);
+  }
+}
+
 export default function AchievementsScreen() {
   // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
   if (isWebDemo()) return <Redirect href="/" />;
@@ -48,7 +73,7 @@ export default function AchievementsScreen() {
         </TouchableOpacity>
         {/* flexShrink+numberOfLines: длинный заголовок со счётчиком при крупном шрифте не толкает кнопку за край */}
         <Text style={[styles.title, { color: colors.text, flexShrink: 1, minWidth: 0, textAlign: 'center' }]} numberOfLines={1}>
-          🏆 {language === 'en' ? 'Achievements' : 'Достижения'} {unlocked.length}/{ACHIEVEMENTS.length}
+          🏆 {language === 'ru' ? 'Достижения' : 'Achievements'} {unlocked.length}/{ACHIEVEMENTS.length}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -57,7 +82,7 @@ export default function AchievementsScreen() {
         {CATEGORIES.map(cat => (
           <View key={cat.key} style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {language === 'en' ? cat.label_en : cat.label_ru}
+              {language === 'ru' ? cat.label_ru : cat.label_en}
             </Text>
             <View style={styles.grid}>
               {(grouped[cat.key] || []).map(a => {
@@ -75,13 +100,13 @@ export default function AchievementsScreen() {
                         узкая по построению (две в ряд), и длинные названия в неё
                         в одну строку не влезают ни при каком шрифте. */}
                     <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
-                      {language === 'en' ? a.name_en : a.name_ru}
+                      {language === 'ru' ? a.name_ru : a.name_en}
                     </Text>
                     <Text style={[styles.cardDesc, { color: colors.textSecondary }]} numberOfLines={2}>
-                      {language === 'en' ? a.desc_en : a.desc_ru}
+                      {language === 'ru' ? a.desc_ru : a.desc_en}
                     </Text>
                     {date && (
-                      <Text style={[styles.cardDate, { color: '#fbbf24' }]}>{date}</Text>
+                      <Text style={[styles.cardDate, { color: '#fbbf24' }]}>{humanDate(date, language)}</Text>
                     )}
                   </View>
                 );
@@ -90,9 +115,9 @@ export default function AchievementsScreen() {
           </View>
         ))}
         <Text style={[styles.footer, { color: colors.textSecondary }]}>
-          {language === 'en'
-            ? `Achievements are checked after each game. ${ACHIEVEMENTS.length - unlocked.length} left.`
-            : `Достижения проверяются после каждой игры. ${ACHIEVEMENTS.length - unlocked.length} осталось.`}
+          {language === 'ru'
+            ? `Достижения проверяются после каждой игры. ${ACHIEVEMENTS.length - unlocked.length} осталось.`
+            : `Achievements are checked after each game. ${ACHIEVEMENTS.length - unlocked.length} left.`}
         </Text>
       </ScrollView>
     </SafeAreaView>
