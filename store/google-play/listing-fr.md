@@ -23,7 +23,7 @@ Mémoire, concentration et logique : 69 exercices hors ligne, sans publicité
 
 ---
 
-## 3. ПОЛНОЕ ОПИСАНИЕ — 4000 символов (3831 использовано)
+## 3. ПОЛНОЕ ОПИСАНИЕ — 4000 символов (3966 использовано)
 
 ```
 Vous terminez un chapitre et pouvez en restituer l'essentiel sans le rouvrir.
@@ -39,7 +39,7 @@ JEUX DE MÉMOIRE
 Entraînez la mémoire visuelle avec Corsi, les matrices et les paires. Renforcez la mémoire de travail avec N-back, Operation Span et Reading Span.
 
 ATTENTION ET CONCENTRATION
-Travaillez votre concentration avec les tables de Schulte, le jeu des différences, Posner et Flanker, malgré les interruptions.
+Travaillez la concentration avec les tables de Schulte, le jeu des différences, Posner et Flanker, malgré les interruptions.
 
 LOGIQUE ET CASSE-TÊTES
 Résolvez Sudoku avec 12 variantes, tours de Hanoï, tour de Londres, SET et anagrammes. Apprenez à prévoir plusieurs coups.
@@ -61,27 +61,29 @@ CE QUE CONTIENT L'APPLICATION
 • 69 exercices de mémoire, d'attention, de logique, de vitesse et de contrôle
 • Des échauffements matin, journée, soir et nuit, prêts en un geste
 • Thème sombre et un set de nuit quand le sommeil ne vient pas : respiration 4-7-8, écran atténué, sans points ni série
-• 12 profils selon l'objectif : langues, enfants, 50+, concentration, réaction, étudiants et plus
-• Une évaluation avec un radar des points forts et des capacités à travailler
+• 12 profils : langues, enfants, 50+, concentration, réaction, étudiants et plus
+• Une évaluation avec un radar des forces et des capacités à travailler
 • 12 langues · fonctionne hors ligne · sans publicité · sans inscription
 
 PAS UN JEU QUI INVENTE VOTRE SCORE
-Chaque exercice s'appuie sur un paradigme reconnu. Les tables de Schulte travaillent la recherche visuelle et l'attention. Stroop demande d'inhiber la réponse automatique : nommer la couleur, sans lire le mot. N-back cible la mémoire de travail ; Corsi, la mémoire visuospatiale ; Trail Making, l'alternance ; les tours de Londres et de Hanoï, la planification. Vous trouverez aussi SET, Go/No-Go, Flanker, WCST, Posner et bien d'autres tâches.
+Chaque exercice s'appuie sur un paradigme reconnu. Les tables de Schulte travaillent la recherche visuelle et l'attention. Stroop demande d'inhiber la réponse automatique : nommer la couleur, sans lire le mot. N-back cible la mémoire de travail ; Corsi, la mémoire visuospatiale ; Trail Making, l'alternance ; Londres et Hanoï, la planification. Vous trouverez aussi SET, Go/No-Go, Flanker, WCST, Posner et d'autres tâches.
 
-Le chiffre à l'écran a donc un contexte : vous ne regardez pas seulement un « niveau 7 », mais l'évolution de votre propre résultat.
+Le chiffre à l'écran a donc un contexte : pas seulement un « niveau 7 », mais l'évolution de votre propre résultat.
 
 UNE ÉQUIPE QUI RÉPOND
 Envoyez un retour écrit ou vocal depuis l'application ; la capture d'écran est jointe automatiquement. Lorsqu'un correctif sort, l'application indique ce que votre message a fait changer et dans quelle version.
 
+Chaque exercice porte un numéro de révision : il part avec votre signalement et augmente quand l'exercice est refait.
+
 POUR QUI
-• Adultes qui doivent rester concentrés malgré les sollicitations
-• Personnes de 50 ans et plus qui veulent entraîner mémoire et réaction simplement
-• Enfants dès 7 ans, avec un profil dédié au calcul, à la mémoire et à l'attention
+• Adultes : rester concentré malgré les sollicitations
+• 50 ans et plus : entraîner mémoire et réaction simplement
+• Enfants dès 7 ans : profil dédié au calcul, à la mémoire et à l'attention
 • Étudiants et personnes apprenant une langue
 • Amateurs d'échecs, de lecture rapide et de défis mentaux
 
 HONNÊTES SUR LA SCIENCE
-L'entraînement améliore de manière fiable les tâches pratiquées et les compétences proches (transfert proche). Nous ne promettons PAS une hausse du QI : le transfert vers « l'intelligence générale » reste discuté scientifiquement. Nous proposons des outils validés et une vision claire et mesurable de vos progrès.
+L'entraînement améliore de manière fiable les tâches pratiquées et les compétences proches (transfert proche). Nous ne promettons PAS une hausse du QI : le transfert vers « l'intelligence générale » reste discuté. Nous proposons des outils validés et une vision mesurable de vos progrès.
 
-Ouvrez et jouez. La progression reste sur votre appareil. La synchronisation anonyme dans le cloud est facultative, sans nom ni adresse e-mail.
+Ouvrez et jouez. La progression reste sur votre appareil. La synchronisation anonyme dans le cloud est facultative, sans nom ni e-mail.
 ```

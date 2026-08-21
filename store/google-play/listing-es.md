@@ -23,7 +23,7 @@ Memoria, concentración y rapidez mental. 69 ejercicios offline, sin anuncios
 
 ---
 
-## 3. ПОЛНОЕ ОПИСАНИЕ — 4000 символов (3919 использовано)
+## 3. ПОЛНОЕ ОПИСАНИЕ — 4000 символов (3954 использовано)
 
 ```
 Terminas un capítulo y puedes explicarlo sin volver atrás.
@@ -33,16 +33,16 @@ Escuchas otro idioma y separas sonidos que antes parecían iguales.
 
 No es un don reservado a unos pocos. Se entrena, y aquí puedes medir cuánto avanzas.
 
-PsyGames es entrenamiento cerebral: juegos mentales, rompecabezas y 69 ejercicios de memoria, atención y lógica para tu cerebro. No es otro test para adivinar tu IQ: es práctica con resultados visibles.
+PsyGames es entrenamiento cerebral: juegos mentales, rompecabezas y 69 ejercicios de memoria, atención y lógica. No es otro test para adivinar tu IQ: es práctica con resultados visibles.
 
 JUEGOS DE MEMORIA
-Entrena la memoria visual con bloques de Corsi, matrices, parejas e historias. Refuerza la memoria de trabajo con N-back, Operation Span y Reading Span. Observa un patrón, retenlo y recupéralo después.
+Entrena la memoria visual con bloques de Corsi, matrices, parejas e historias. Refuerza la memoria de trabajo con N-back, Operation Span y Reading Span.
 
 ATENCIÓN Y CONCENTRACIÓN
-Practica el enfoque con tablas de Schulte, encuentra las diferencias, la tarea de Posner y Flanker. Aprende a mantener la concentración cuando llegan mensajes, ruido o interrupciones.
+Practica el enfoque con tablas de Schulte, encuentra las diferencias, la tarea de Posner y Flanker. Mantén la concentración entre mensajes, ruido e interrupciones.
 
 LÓGICA Y ROMPECABEZAS
-Resuelve juegos de lógica: Sudoku con 12 variantes de reglas, Torres de Hanói, Torre de Londres, SET y anagramas. Piensa varios movimientos antes de elegir la respuesta más evidente.
+Resuelve juegos de lógica: Sudoku con 12 variantes de reglas, Torres de Hanói, Torre de Londres, SET y anagramas. Piensa varios movimientos antes de la respuesta más evidente.
 
 RAPIDEZ MENTAL Y REACCIÓN
 Entrena reflejos, cálculo mental y control cognitivo con Stroop, Go/No-Go, operaciones contrarreloj y Trail Making. Decide más rápido sin sacrificar precisión.
@@ -73,15 +73,17 @@ Por eso el número de la pantalla tiene contexto: no solo ves “nivel 7”, ves
 UN EQUIPO QUE RESPONDE
 Envía comentarios por texto o voz desde la app; la captura se adjunta automáticamente. Cuando se publica una corrección, la app indica qué cambió gracias a tu mensaje y en qué versión.
 
+Cada ejercicio lleva su propio número de revisión: viaja con tu informe y sube cuando ese ejercicio se rehace.
+
 PARA QUIÉN
 • Personas que necesitan concentrarse entre notificaciones e interrupciones
-• Mayores de 50 que quieren ejercitar memoria y reacción sin menús complicados
-• Niños desde 7 años, con un perfil propio para cálculo, memoria y atención
+• Mayores de 50: memoria y reacción sin menús complicados
+• Niños desde 7 años: perfil propio para cálculo, memoria y atención
 • Estudiantes y quienes aprenden idiomas
 • Aficionados al ajedrez, la lectura rápida y los retos mentales
 
 HONESTOS CON LA CIENCIA
-El entrenamiento mejora de forma fiable las tareas practicadas y habilidades cercanas (transferencia próxima). NO prometemos aumentar el IQ: la transferencia a la “inteligencia general” sigue siendo discutida científicamente. Ofrecemos instrumentos validados y una imagen clara y medible de tu progreso.
+El entrenamiento mejora de forma fiable las tareas practicadas y habilidades cercanas (transferencia próxima). NO prometemos aumentar el IQ: la transferencia a la “inteligencia general” sigue siendo discutida. Ofrecemos instrumentos validados y una imagen medible de tu progreso.
 
 Abre y juega. El progreso se guarda en tu dispositivo. La sincronización anónima en la nube es opcional: sin nombre y sin correo electrónico.
 ```

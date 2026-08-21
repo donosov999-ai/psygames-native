@@ -34,7 +34,7 @@ Memory, focus, thinking speed. 69 exercises. Offline, no ads
 
 ---
 
-## 3. ПОЛНОЕ ОПИСАНИЕ — 4000 символов (3911 использовано)
+## 3. ПОЛНОЕ ОПИСАНИЕ — 4000 символов (3974 использовано)
 ```
 Read a page — and you still know what was on it.
 Hold three tasks in your head and drop none of them.
@@ -60,10 +60,10 @@ Train reaction time, mental math and cognitive control with Stroop, Go/No-Go, ti
 WHY YOU WON'T QUIT IN THREE DAYS
 Everyone downloads a brain app. Most open it three times and delete it — same drills, no visible progress. This one is built differently.
 
-• Levels in every game. Nail it and difficulty rises; miss and it waits for you. Always at your edge, never past it
+• Levels in every game. Nail it and difficulty rises; miss and it waits for you
 • Boss rounds at milestones: same rule, unexpected twist
-• Streak. Skip a day, start over. A blunt trick, but it beats good intentions
-• Synapse, your pet, lives on the screen, grows with your training and points at what's lagging
+• Streak. Skip a day, start over — it beats good intentions
+• Synapse, your pet, grows with your training and points at what's lagging
 • Points for accuracy and speed, a shop with frames, avatars and titles
 • Daily challenge with its own streak, plus achievements
 
@@ -76,22 +76,24 @@ WHAT'S INSIDE
 • 12 languages · works offline · no ads
 
 THIS IS NOT A BRAIN-GAME TOY
-Behind every exercise is a validated paradigm, not invented mechanics. Schulte tables — search speed and attention span. The Stroop test — suppressing the automatic response: name the colour, don't read the word. N-back — working memory, the most studied paradigm in cognitive training. The Corsi block test — visuospatial memory. Trail Making — switching between sequences. Tower of London and Tower of Hanoi — planning several steps ahead. Plus SET, Go/No-Go, Flanker, WCST, the Posner cueing task and fifty more.
+Behind every exercise is a validated paradigm, not invented mechanics. Schulte tables — search speed and attention span. The Stroop test — suppressing the automatic response: name the colour, don't read the word. N-back — working memory, the most studied paradigm in cognitive training. The Corsi block test — visuospatial memory. Trail Making — switching between sequences. Tower of London and Tower of Hanoi — planning several steps ahead. Plus SET, Go/No-Go, Flanker, WCST, Posner and fifty more.
 
 That's why the number on screen means something. You're not watching "level 7" — you're watching yourself improve.
 
 DEVELOPERS WHO ANSWER
 A feedback button lives inside the app: write or speak, and a screenshot attaches automatically. When a fix ships, the app tells you exactly what changed because of YOUR message and in which version.
 
+Every exercise carries its own revision number: it travels with your report and goes up when that exercise is rebuilt.
+
 WHO IT'S FOR
-• Adults — holding focus in work where you're interrupted every five minutes
-• 50+ — memory and reaction speed, regularly and without fiddly settings
+• Adults — holding focus where you're interrupted every five minutes
+• 50+ — memory and reaction speed, without fiddly settings
 • Kids 7+ — counting, memory and attention as a game, in a dedicated profile
 • Students and language learners — concentration, foreign sounds and memory for words
-• Chess players, speed readers and anyone training decisions under pressure
+• Chess players, speed readers and anyone deciding under pressure
 
 HONEST ABOUT THE SCIENCE
-Training reliably improves the trained tasks and closely related skills (near transfer). We do NOT promise an IQ boost — transfer to "general intelligence" is scientifically disputed. What we give you is validated instruments and a clear, measurable picture of progress. That's the difference from brain-game toys.
+Training reliably improves the trained tasks and closely related skills (near transfer). We do NOT promise an IQ boost — transfer to "general intelligence" is scientifically disputed. What we give you is validated instruments and a measurable picture of progress. That's the difference from brain-game toys.
 
 NO SIGN-UP
 Open it and play. Progress is stored on your device. Optional anonymous cloud sync — no name, no email.
