@@ -73,7 +73,7 @@ export default function AchievementsScreen() {
         </TouchableOpacity>
         {/* flexShrink+numberOfLines: длинный заголовок со счётчиком при крупном шрифте не толкает кнопку за край */}
         <Text style={[styles.title, { color: colors.text, flexShrink: 1, minWidth: 0, textAlign: 'center' }]} numberOfLines={1}>
-          🏆 {language === 'ru' ? 'Достижения' : 'Achievements'} {unlocked.length}/{ACHIEVEMENTS.length}
+          🏆 {t('achievementsTitle')} {unlocked.length}/{ACHIEVEMENTS.length}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -115,9 +115,7 @@ export default function AchievementsScreen() {
           </View>
         ))}
         <Text style={[styles.footer, { color: colors.textSecondary }]}>
-          {language === 'ru'
-            ? `Достижения проверяются после каждой игры. ${ACHIEVEMENTS.length - unlocked.length} осталось.`
-            : `Achievements are checked after each game. ${ACHIEVEMENTS.length - unlocked.length} left.`}
+          {t('achievementsFooter').replace('{n}', String(ACHIEVEMENTS.length - unlocked.length))}
         </Text>
       </ScrollView>
     </SafeAreaView>

@@ -67,7 +67,6 @@ const translations: Translations = {
   // Home — hero cards (complexes) + header
   homeSwitchHint: { ru: 'нажми на чип чтобы сменить профиль', en: 'tap the chip to switch profile' },
   a11ySwitchProfile: { ru: 'Сменить профиль', en: 'Switch profile' },
-  a11yAchievements: { ru: 'Достижения', en: 'Achievements' },
   complexWarmup: { ru: 'ЗАРЯДКА', en: 'WARM-UP' },
   complexEvening: { ru: 'ПЕРЕД СНОМ', en: 'BEFORE SLEEP' },
   complexAssessment: { ru: 'ОЦЕНКА', en: 'ASSESSMENT' },
@@ -1644,6 +1643,14 @@ const translations: Translations = {
   abilityInWallet: { ru: 'в кошельке: {n}', en: 'in your wallet: {n}' },
   abilityFull: { ru: 'Полный запас', en: 'Wallet full' },
   abilityUse: { ru: 'Применить', en: 'Use' },
+  // Экран достижений: заголовок и подпись жили строками прямо в экране и знали
+  // два языка из двенадцати. Данные (имена и описания достижений) всё ещё на
+  // двух — это отдельный долг, он под учётом в ci-i18n-hardcode-guard.
+  // Одно слово на три места: заголовок экрана, подпись в настройках и метка
+  // для скринридера. Раньше жило под именем `a11yAchievements` — имя врало,
+  // потому что строка была видимой в двух местах из трёх.
+  achievementsTitle: { ru: 'Достижения', en: 'Achievements' },
+  achievementsFooter: { ru: 'Достижения проверяются после каждой игры. {n} осталось.', en: 'Achievements are checked after each game. {n} left.' },
   abilitySpentNote: { ru: 'Списано {n} ⭐', en: '{n} ⭐ spent' },
   abilityStreakIntact: { ru: 'Серия цела — восстанавливать нечего. Щит остался в кошельке.', en: 'Your streak is intact — nothing to restore. The shield stays in your wallet.' },
   abilityStreakRestored: { ru: 'Серия восстановлена: {n} дней подряд', en: 'Streak restored: {n} days in a row' },

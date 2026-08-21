@@ -584,7 +584,7 @@ function FullHome() {
             accessibilityRole="button"
             style={styles.iconButton}
             onPress={() => router.push('/achievements' as any)}
-            accessibilityLabel={t('a11yAchievements')}
+            accessibilityLabel={t('achievementsTitle')}
           >
             <View style={[styles.iconCircle, { backgroundColor: colors.surface }]}>
               <Ionicons name="trophy" size={18} color="#fbbf24" />
