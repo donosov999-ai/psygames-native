@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.213.0',
+    date: '2026-08-21',
+    ru: [
+      "«Прикидка» больше не теряет партию молча: «назад» спрашивает, а пока пишешь отзыв — партия и её часы стоят",
+    ],
+    en: [
+      "Math Slider no longer loses your game silently: back asks first, and while you write feedback the game and its clock are paused",
+    ],
+  },
+  {
     version: '1.212.0',
     date: '2026-08-21',
     ru: [
