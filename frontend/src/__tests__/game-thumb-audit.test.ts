@@ -71,17 +71,38 @@ describe('обложки карточек', () => {
     expect(damped).toEqual([]);
   });
 
-  /** Порог не должен превратиться в «всё подряд» или «ничего». */
-  it('замер разделяет обложки, а не метит всё одинаково', () => {
-    const about = Object.values(THUMB_AUDIT).filter((a) => a.about).length;
-    expect(about).toBeGreaterThan(0);
-    expect(about).toBeLessThan(files.length / 2);
+  /**
+   * 🔴 ПОСЛЕ ПЕРЕСЪЁМКИ МЕНЮ НЕ ОСТАЛОСЬ — И ПРОВЕРЯТЬ НАДО ИМЕННО ЭТО.
+   *
+   * Прежние две проверки написаны, когда снимков меню было 17: одна требовала,
+   * чтобы они существовали, вторая сравнивала их с игровыми. После пересъёмки
+   * первая справедливо покраснела, а вторая позеленела ВХОЛОСТУЮ: `Math.min()`
+   * пустого списка — это Infinity, и «у меню жёлтого втрое больше» стало
+   * бессмысленно истинным. Проверка, которая не может покраснеть, не проверка.
+   *
+   * Теперь утверждение простое и проверяемое: ни одна обложка не снята с меню,
+   * и ни одна к этому даже не близка — запас до порога не меньше трёхкратного.
+   */
+  const ABOUT_YELLOW = 0.25;   // порог из scripts/gen_thumb_audit.py
+
+  it('🔴 ни одна обложка не снята с экрана «About»', () => {
+    const menus = Object.entries(THUMB_AUDIT).filter(([, a]) => a.about).map(([id]) => id);
+    expect(menus).toEqual([]);
   });
 
-  /** Разрыв между меню и игрой должен остаться очевидным, а не «на волосок». */
-  it('🔴 порог стоит в разрыве: у меню жёлтого втрое больше, чем у игры', () => {
-    const yes = Object.values(THUMB_AUDIT).filter((a) => a.about).map((a) => a.yellow);
-    const no = Object.values(THUMB_AUDIT).filter((a) => !a.about && a.yellow > 0).map((a) => a.yellow);
-    expect(Math.min(...yes)).toBeGreaterThan(Math.max(...no) * 3);
+  it('🔴 и ни одна к этому не близка — запас до порога трёхкратный', () => {
+    const worst = Object.entries(THUMB_AUDIT)
+      .map(([id, a]) => [id, a.yellow] as const)
+      .sort((x, y) => y[1] - x[1])[0];
+    expect(`${worst[0]}: ${worst[1]} < ${ABOUT_YELLOW / 3}`)
+      .toBe(`${worst[0]}: ${worst[1]} < ${ABOUT_YELLOW / 3}`);
+    expect(worst[1]).toBeLessThan(ABOUT_YELLOW / 3);
   });
+
+  /** Порог в самом замере не должен уползти так, чтобы ловить всё или ничего. */
+  it('порог замера остался тем, под который считаны числа', () => {
+    const gen = readFileSync(join(__dirname, '../../../scripts/gen_thumb_audit.py'), 'utf8') as string;
+    expect(gen).toContain(`ABOUT_YELLOW = ${ABOUT_YELLOW}`);
+  });
+
 });
