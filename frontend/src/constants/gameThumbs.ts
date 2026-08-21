@@ -1,3 +1,4 @@
+import { THUMB_AUDIT } from '@/src/constants/gameThumbAudit';
 // Превью игр для фона карточки. 48 взяты готовыми с промо-сайта psy-games.pro
 // (public/gamethumbs) — их уже отрисовали для страницы «Все 48 тренажёров».
 // Ещё 13 (breathing, chess_blind, cloze, eye_gym, goods_sort, lexical_decision,
@@ -96,6 +97,27 @@ export function gameThumb(id?: string) {
 // карточки (скрин Дениса 22.07). Им фактуру глушим сильнее.
 const SUBTLE_IDS = new Set(['story_recall', 'reading_span', 'mnemonics', 'proofreading', 'cloze']);
 
+/**
+ * 🔴 ОБЛОЖКИ, НА КОТОРЫХ СНЯТА НЕ ИГРА, А МЕНЮ.
+ *
+ * 21.08.2026: 17 обложек из 48 оказались снимками экрана «About Game» — заголовок,
+ * панель «How it works», кнопки Help и Start. На карточке этот текст просвечивает
+ * ПОД её собственным названием, и человек читает два текста поверх друг друга.
+ * Часть снимков вдобавок устарела: на них две стрелки «назад» подряд, которых в
+ * приложении давно нет.
+ *
+ * ⚠️ ЭТО ЗАГЛУШКА, А НЕ ПОЧИНКА. Настоящее лечение — переснять эти обложки с
+ * игрового экрана; до тех пор глушим их так же, как текстовые игры, потому что
+ * бледная фактура лучше читаемого чужого меню. Список НЕ рукописный: он берётся
+ * из замера `THUMB_AUDIT` (жёлтая кнопка Help внизу — примета экрана About), и
+ * гейт `game-thumb-audit.test.ts` не даст ни забыть новую такую обложку, ни
+ * оставить глушение на обложке, которую уже пересняли.
+ */
+const ABOUT_SHOT_IDS = new Set(
+  Object.entries(THUMB_AUDIT).filter(([, a]) => a.about).map(([id]) => id),
+);
+
 export function gameThumbOpacity(id?: string): number {
-  return id && SUBTLE_IDS.has(id) ? 0.1 : 0.22;
+  if (!id) return 0.22;
+  return SUBTLE_IDS.has(id) || ABOUT_SHOT_IDS.has(id) ? 0.1 : 0.22;
 }

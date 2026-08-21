@@ -1,0 +1,83 @@
+/* psygames-game-thumb-audit · VER 1 · 21.08.2026 · СГЕНЕРИРОВАНО, РУКАМИ НЕ ПРАВИТЬ */
+/**
+ * ЧТО ИЗОБРАЖЕНО НА ОБЛОЖКЕ КАРТОЧКИ — игра или экран «About Game».
+ *
+ * Источник — сами файлы обложек. Пересобрать: python3 scripts/gen_thumb_audit.py
+ * Правило и порог объяснены там же.
+ *
+ * `sha` — отпечаток файла. Заменили обложку, не пересчитав этот файл, — гейт
+ * `game-thumb-audit.test.ts` покраснеет: иначе запись про «меню» пережила бы
+ * замену обложки на игровую и глушила бы её зря.
+ */
+export interface ThumbAudit { about: boolean; yellow: number; sha: string }
+
+export const THUMB_AUDIT: Record<string, ThumbAudit> = {
+  "anagrams": { about: false, yellow: 0.0, sha: '5fee444ebfe8' },
+  "ant": { about: true, yellow: 0.2219, sha: '85ba1b6cb617' },
+  "attention_conflict": { about: false, yellow: 0.0, sha: '1d20453b7f3d' },
+  "bart": { about: true, yellow: 0.2289, sha: 'bba0b0189a55' },
+  "breathing": { about: false, yellow: 0.0, sha: 'c6a800345256' },
+  "chess_blind": { about: false, yellow: 0.0, sha: '4f6b59c70209' },
+  "choice_rt": { about: false, yellow: 0.0121, sha: 'b6306a32fcc7' },
+  "cloze": { about: false, yellow: 0.0, sha: '9c19c9b846e6' },
+  "corsi": { about: false, yellow: 0.0, sha: '3932f5499846' },
+  "counter": { about: true, yellow: 0.3411, sha: 'd1bf35e3a423' },
+  "cpt": { about: true, yellow: 0.2219, sha: 'fe0ece0af686' },
+  "digit_span": { about: false, yellow: 0.0, sha: '98c50d701f48' },
+  "dots_connect": { about: false, yellow: 0.0, sha: 'fca0c03b55e1' },
+  "eye_gym": { about: false, yellow: 0.0, sha: 'f4fbc9b8dfd8' },
+  "faces_names": { about: false, yellow: 0.0, sha: '3333f773328d' },
+  "find_differences": { about: false, yellow: 0.0, sha: '38fa993966f3' },
+  "flanker": { about: false, yellow: 0.0, sha: '9b8e02a9f9fd' },
+  "go_no_go": { about: false, yellow: 0.0, sha: 'bd8968bb1bed' },
+  "goods_sort": { about: false, yellow: 0.0, sha: '4b9089c43274' },
+  "hanoi": { about: false, yellow: 0.0, sha: '7eb3b3ad0869' },
+  "inhibition": { about: true, yellow: 0.2219, sha: 'e5f0edf144e0' },
+  "iowa": { about: true, yellow: 0.2219, sha: '284fb518416f' },
+  "lexical_decision": { about: false, yellow: 0.0, sha: '1f71d102abbf' },
+  "listening_span": { about: false, yellow: 0.0, sha: 'cfb6b9e4a159' },
+  "mahjong": { about: false, yellow: 0.0, sha: 'b553031fe86e' },
+  "math_sprint": { about: false, yellow: 0.0, sha: 'd172a025b300' },
+  "memory_matrix": { about: false, yellow: 0.0, sha: '3433ea279f66' },
+  "memory_palace": { about: false, yellow: 0.0, sha: '5e1adacd0b96' },
+  "mental_rotation": { about: false, yellow: 0.0, sha: '4ef0447cf7a3' },
+  "mnemonics": { about: false, yellow: 0.0, sha: '3a03ba4e712d' },
+  "n_back": { about: false, yellow: 0.0, sha: '8b1c8c134ea7' },
+  "navigator": { about: false, yellow: 0.0, sha: 'f78d5531a190' },
+  "number_bonds": { about: false, yellow: 0.0, sha: '5588c92d79f7' },
+  "object_tracker": { about: false, yellow: 0.0, sha: '0bf873ee20bc' },
+  "one_line": { about: false, yellow: 0.0, sha: 'eed5e3d82f86' },
+  "ospan": { about: true, yellow: 0.2218, sha: 'ddc3fad35a82' },
+  "pattern": { about: false, yellow: 0.0, sha: '2658ff8e4a1a' },
+  "phoneme_pairs": { about: false, yellow: 0.0, sha: 'fc249b244df8' },
+  "phonemic_fluency": { about: false, yellow: 0.0, sha: '41dad40ca604' },
+  "picture_pairs": { about: false, yellow: 0.0, sha: '8bf468e26a4b' },
+  "posner": { about: true, yellow: 0.2218, sha: '6b65ae36fcfd' },
+  "prl": { about: true, yellow: 0.2218, sha: '44e20e008399' },
+  "proofreading": { about: false, yellow: 0.0, sha: '3c1220d18da6' },
+  "pseudoword_echo": { about: false, yellow: 0.0, sha: 'de5ded55eb85' },
+  "quick_count": { about: false, yellow: 0.0, sha: '8789558576df' },
+  "reading_span": { about: false, yellow: 0.0, sha: '74d24b9647a4' },
+  "rhythm_pitch": { about: false, yellow: 0.0, sha: 'f78cea3ed2de' },
+  "rmet": { about: true, yellow: 0.2221, sha: '57392bb3d00c' },
+  "schulte_table": { about: false, yellow: 0.0, sha: '2aba2188e1b5' },
+  "sdmt": { about: false, yellow: 0.0, sha: '48ff9fdd4b63' },
+  "semantic_sort": { about: false, yellow: 0.0, sha: '944931c21b0c' },
+  "set_game": { about: false, yellow: 0.0, sha: '3d6ea867a88d' },
+  "simon": { about: true, yellow: 0.2218, sha: 'b3078791cc80' },
+  "span_group": { about: false, yellow: 0.0, sha: '376a6920961b' },
+  "spatial_span": { about: true, yellow: 0.2219, sha: 'c408e525382b' },
+  "stop_signal": { about: true, yellow: 0.222, sha: '8567f9eb6414' },
+  "story_recall": { about: true, yellow: 0.2219, sha: '109ac13c26c8' },
+  "stroop": { about: true, yellow: 0.2218, sha: '825dfea0be97' },
+  "stroop_emotional": { about: true, yellow: 0.2219, sha: '4cefbd0e6819' },
+  "sudoku": { about: false, yellow: 0.0, sha: '81f08d481829' },
+  "switching_task": { about: false, yellow: 0.0, sha: '6851f812ed05' },
+  "targets": { about: false, yellow: 0.0, sha: '467b766d681c' },
+  "tower_london": { about: false, yellow: 0.0, sha: 'a59403eb4727' },
+  "trail_making": { about: false, yellow: 0.0, sha: '0e8491553cf4' },
+  "visual_search": { about: false, yellow: 0.0, sha: '8a81fed8e8b3' },
+  "vocab_srs": { about: false, yellow: 0.0, sha: '1c175c458a65' },
+  "wcst": { about: true, yellow: 0.2219, sha: '8b8b2e096d84' },
+  "word_pairs": { about: false, yellow: 0.0, sha: 'a2356cda0000' },
+};
