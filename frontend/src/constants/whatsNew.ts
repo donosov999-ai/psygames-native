@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.218.0',
+    date: '2026-08-21',
+    ru: [
+      "Лестница между уровнями встала по центру экрана, а строка «запускаю следующий» перестала липнуть к нижней ступени",
+    ],
+    en: [
+      "The between-levels ladder is centred now, and the “starting next level” line no longer crowds the bottom step",
+    ],
+  },
+  {
     version: '1.217.0',
     date: '2026-08-21',
     ru: [
