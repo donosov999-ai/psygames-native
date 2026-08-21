@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.221.0',
+    date: '2026-08-21',
+    ru: [
+      "Семнадцать карточек показывали снимок меню вместо игры — теперь на обложке видно, во что играешь",
+    ],
+    en: [
+      "Seventeen cards showed a screenshot of a menu instead of the game — the cover now shows what you actually play",
+    ],
+  },
+  {
     version: '1.220.0',
     date: '2026-08-21',
     ru: [
