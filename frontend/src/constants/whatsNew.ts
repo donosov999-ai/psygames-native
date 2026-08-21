@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.227.0',
+    date: '2026-08-22',
+    ru: [
+      "Сырые игры больше не попадают в зарядку и в вызов дня — вчера их убрали с витрины, но три дороги к ним остались открытыми",
+    ],
+    en: [
+      "Raw games no longer show up in warm-ups or the daily challenge — they left the shelf yesterday, but three paths to them stayed open",
+    ],
+  },
+  {
     version: '1.226.0',
     date: '2026-08-22',
     ru: [
