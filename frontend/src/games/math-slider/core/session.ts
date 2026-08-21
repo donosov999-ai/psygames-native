@@ -165,3 +165,18 @@ export function disposeSession(session: MathSliderSession): MathSliderSession {
     trialStartedAt: null,
   };
 }
+
+/**
+ * ЕСТЬ ЛИ ЧТО ТЕРЯТЬ ПРИ ВЫХОДЕ.
+ *
+ * 🔴 ПОЧЕМУ ЧИСТОЙ ФУНКЦИЕЙ ОТ ПАРТИИ, А НЕ ФЛАЖКОМ В ЭКРАНЕ. Флажок, поднятый
+ * колбэком, нельзя прогнать: он одинаково выглядит и когда работает, и когда
+ * отвечает «да» всегда. Предикат от состояния гоняется на живой партии —
+ * свежая обязана дать «нечего», партия после подтверждённого ответа — «есть».
+ * Гейт `module-games-guard` этого и требует.
+ *
+ * ⚠️ Тренировочный круг НЕ считается: он вне зачёта и вернётся таким же.
+ */
+export function mathSliderArmed(session: MathSliderSession): boolean {
+  return session.trials.length > 0;
+}
