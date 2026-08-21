@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.224.0',
+    date: '2026-08-21',
+    ru: [
+      "Судоку вернулось в «Микро-релакс», «Дети» и «Шахматист», а Корси — в «Шахматист»: их убрал с меню наш же вход-развилка",
+    ],
+    en: [
+      "Sudoku is back in Micro-relax, Kids and Chess Player, and Corsi is back in Chess Player: our own hub entry had hidden them from the menu",
+    ],
+  },
+  {
     version: '1.223.0',
     date: '2026-08-21',
     ru: [

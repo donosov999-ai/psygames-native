@@ -34,6 +34,21 @@ export interface GameConfig {
   /** Hide from main menu (still accessible by route via warmup/playlists/group cards) */
   hideFromMenu?: boolean;
   /**
+   * ЗА КАКОЙ РАЗВИЛКОЙ ЖИВЁТ ЭТА ИГРА, если её убрали из меню.
+   *
+   * 🔴 ЗАЧЕМ ПОЛЕМ, А НЕ КОММЕНТАРИЕМ. 21.08.2026 три судоку свели в один вход и
+   * пометили `hideFromMenu`, а принадлежность к развилке осталась НАДПИСЬЮ
+   * «merged into 'sudoku_group'». Отбор по профилю читает данные, а не надписи:
+   * профили «Микро-релакс», «Дети» и «Шахматист» перечисляют в разрешённом
+   * `sudoku`, самой развилки в их списках нет — и судоку пропало у всех троих.
+   * Ни один гейт этого не заметил: каждая половина по отдельности была верна.
+   *
+   * Теперь принадлежность — данные, и `filterAllowedGames` показывает развилку,
+   * если профилю разрешена ХОТЬ ОДНА игра за ней. Списки профилей править не
+   * надо: они говорят про упражнения, а не про то, как те сгруппированы в меню.
+   */
+  mergedInto?: string;
+  /**
    * КАРТОЧКА-ХАБ: не упражнение, а развилка на соседние игры.
    *
    * 🔴 ЗАЧЕМ ПРИЗНАК, А НЕ СПИСОК ИМЁН. Список хабов был выписан ПЯТЬ раз — в
@@ -309,7 +324,8 @@ export const GAMES: GameConfig[] = [
     icon: 'call',
     route: '/games/digit-span',
     category: 'memory',
-    hideFromMenu: true, // merged into 'span_group'
+    hideFromMenu: true,
+    mergedInto: 'span_group', // merged into 'span_group'
   },
   {
     id: 'memory_matrix',
@@ -373,7 +389,8 @@ export const GAMES: GameConfig[] = [
     icon: 'grid',
     route: '/games/corsi',
     category: 'memory',
-    hideFromMenu: true, // merged into 'span_group'
+    hideFromMenu: true,
+    mergedInto: 'span_group', // merged into 'span_group'
   },
   {
     id: 'ospan',
@@ -394,7 +411,8 @@ export const GAMES: GameConfig[] = [
     icon: 'apps',
     route: '/games/spatial-span',
     category: 'memory',
-    hideFromMenu: true, // merged into 'span_group'
+    hideFromMenu: true,
+    mergedInto: 'span_group', // merged into 'span_group'
   },
   // ⚠️ Тот же градиент зашит в экране (GRADIENT в app/games/navigator.tsx).
   {
@@ -455,7 +473,8 @@ export const GAMES: GameConfig[] = [
     icon: 'apps',
     route: '/games/sudoku',
     category: 'logic',
-    hideFromMenu: true, // merged into 'sudoku_group'
+    hideFromMenu: true,
+    mergedInto: 'sudoku_group',
   },
   // Самурай стоит сразу за судоку намеренно: это её длинная форма, и человек находит
   // её в тот момент, когда обычная 9×9 уже даётся легко.
@@ -474,7 +493,8 @@ export const GAMES: GameConfig[] = [
     icon: 'grid',
     route: '/games/sudoku-samurai',
     category: 'logic',
-    hideFromMenu: true, // merged into 'sudoku_group'
+    hideFromMenu: true,
+    mergedInto: 'sudoku_group',
     sessionType: 'sudoku_samurai',   // id через дефис, а партия пишется через подчёркивание
   },
   // Фрактальная судоку — вторая длинная форма после самурая. Стоит рядом с ними
@@ -489,7 +509,8 @@ export const GAMES: GameConfig[] = [
     icon: 'git-network',
     route: '/games/sudoku-fractal',
     category: 'logic',
-    hideFromMenu: true, // merged into 'sudoku_group'
+    hideFromMenu: true,
+    mergedInto: 'sudoku_group',
     sessionType: 'sudoku_fractal',   // id через дефис, а партия пишется через подчёркивание
   },
   {
@@ -600,7 +621,8 @@ export const GAMES: GameConfig[] = [
     icon: 'eye',
     route: '/games/stroop',
     category: 'action',
-    hideFromMenu: true, // merged into 'attention_conflict'
+    hideFromMenu: true,
+    mergedInto: 'attention_conflict', // merged into 'attention_conflict'
   },
   {
     id: 'go_no_go',
@@ -611,7 +633,8 @@ export const GAMES: GameConfig[] = [
     icon: 'pause-circle',
     route: '/games/go-no-go',
     category: 'action',
-    hideFromMenu: true, // merged into 'inhibition'
+    hideFromMenu: true,
+    mergedInto: 'attention_conflict', // merged into 'inhibition'
   },
   {
     id: 'stop_signal',
@@ -622,7 +645,8 @@ export const GAMES: GameConfig[] = [
     icon: 'hand-left',
     route: '/games/stop-signal',
     category: 'action',
-    hideFromMenu: true, // merged into 'inhibition'
+    hideFromMenu: true,
+    mergedInto: 'attention_conflict', // merged into 'inhibition'
   },
   {
     id: 'trail_making',
@@ -663,7 +687,8 @@ export const GAMES: GameConfig[] = [
     icon: 'flash',
     route: '/games/flanker',
     category: 'action',
-    hideFromMenu: true, // merged into 'attention_conflict'
+    hideFromMenu: true,
+    mergedInto: 'attention_conflict', // merged into 'attention_conflict'
   },
   {
     id: 'stroop_emotional',
@@ -674,7 +699,8 @@ export const GAMES: GameConfig[] = [
     icon: 'heart-dislike',
     route: '/games/stroop-emotional',
     category: 'action',
-    hideFromMenu: true, // merged into 'attention_conflict'
+    hideFromMenu: true,
+    mergedInto: 'attention_conflict', // merged into 'attention_conflict'
   },
   {
     id: 'bart',
@@ -874,7 +900,8 @@ export const GAMES: GameConfig[] = [
     icon: 'flash',
     route: '/games/simon',
     category: 'action',
-    hideFromMenu: true, // v1.9.1 — merged into 'attention_conflict' (4-я парадигма
+    hideFromMenu: true,
+    mergedInto: 'attention_conflict', // v1.9.1 — merged into 'attention_conflict' (4-я парадигма
                         // interference resolution рядом со Stroop/Flanker)
   },
   // RECOVERY (восстановление — не-когнитивные передышки)
