@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, Redirect } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -264,7 +265,7 @@ export default function ShopScreen() {
         })}
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: FAB_CLEARANCE }} showsVerticalScrollIndicator={false}>
         {/* Отчёт о последней покупке/трате. Держится до следующего действия — списание
             очков человек обязан увидеть словами, а не догадаться по числу в углу. */}
         {note ? (

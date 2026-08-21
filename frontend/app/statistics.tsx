@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Redirect } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -612,7 +613,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 96,   // v1.158: место под гуляющего питомца
+    paddingBottom: FAB_CLEARANCE,
     marginBottom: 16,
   },
   aiCard: { padding: 14, borderRadius: 12, borderWidth: 1.5, gap: 6, marginBottom: 14 },
