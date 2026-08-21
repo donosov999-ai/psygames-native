@@ -13,14 +13,26 @@ import {
   type GeneratedDotsPuzzle,
 } from './types';
 
-const PAIR_STYLES = [
+/**
+ * ЦВЕТА ПАР — РАЗВЕДЕНЫ ЗАМЕРОМ, А НЕ ПОДОБРАНЫ НА ГЛАЗ.
+ *
+ * 🔴 ЧТО БЫЛО. `#0f766e` спорил с `#047857` (разница по CIELAB ΔE 15.9), а
+ * `#9d174d` с `#be123c` (22.8). На доске 4×4 из трёх пар две оказывались
+ * «двумя красными» — снимок 21.08.2026. Символ (● против ✖) их различал, но
+ * цвет — нет, а цвет человек читает первым.
+ *
+ * Замена подобрана перебором с двумя условиями сразу: максимум МИНИМАЛЬНОГО
+ * расстояния по всей палитре и контраст белого значка не ниже 4.5. Минимум по
+ * палитре вырос с 15.9 до 30.1; сторожит `dots-palette.test.ts`.
+ */
+export const DOTS_PAIR_STYLES = [
   { color: '#be123c', symbol: '●' },
   { color: '#1d4ed8', symbol: '■' },
   { color: '#047857', symbol: '▲' },
   { color: '#7e22ce', symbol: '◆' },
   { color: '#b45309', symbol: '★' },
-  { color: '#0f766e', symbol: '✚' },
-  { color: '#9d174d', symbol: '✖' },
+  { color: '#4d7c0f', symbol: '✚' },
+  { color: '#701a75', symbol: '✖' },
   { color: '#334155', symbol: '⬢' },
 ] as const;
 
@@ -101,7 +113,7 @@ export function generateDotsPuzzle(seed: string, level: number): GeneratedDotsPu
   const { order, construction } = constructionOrder(size, rng);
   assertTraversal(order, size);
   const lengths = segmentLengths(order.length, pairCount, rng);
-  const styles = shuffle(rng, PAIR_STYLES).slice(0, pairCount);
+  const styles = shuffle(rng, DOTS_PAIR_STYLES).slice(0, pairCount);
   const pairs: DotsPair[] = [];
   const solution: GeneratedDotsPuzzle['solution'] = {};
   let cursor = 0;
@@ -111,7 +123,7 @@ export function generateDotsPuzzle(seed: string, level: number): GeneratedDotsPu
     const path = order.slice(cursor, cursor + length).map((cell) => ({ ...cell }));
     const first = path[0] as Cell;
     const last = path[path.length - 1] as Cell;
-    const style = styles[index] as (typeof PAIR_STYLES)[number];
+    const style = styles[index] as (typeof DOTS_PAIR_STYLES)[number];
     const pairId = `pair-${index + 1}`;
     pairs.push({
       id: pairId,
