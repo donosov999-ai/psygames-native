@@ -793,15 +793,29 @@ jobs:
           # рапортовал успех, оставив мост никогда не установленным. Поймано прогоном
           # патча на заготовке, а не чтением. Требуем перевод строки СРАЗУ после
           # скобок — у объявления там `{`.
+          # ⚠️ СТАВИМ В ДВУХ МЕСТАХ, И ЭТО НЕ ПЕРЕСТРАХОВКА. `addJavascriptInterface`
+          # действует со СЛЕДУЮЩЕЙ загрузки страницы: интерфейс, привязанный к уже
+          # загруженной странице, в ней не появится. Инсеты публикуются после
+          # раскладки, то есть заведомо после начала загрузки — поставленный только
+          # там мост был бы невидим для живой страницы. Ровно это и вышло: v1.214.0
+          # уехала, и первый же отчёт принёс прежнее `named: 0`.
+          #
+          # Поэтому РАННЯЯ привязка сразу после super.onCreate (WebView к этому
+          # моменту уже создан родителем, страница ещё не загружена) плюс поздняя на
+          # инсетах — на случай, если раннего WebView в дереве ещё нет. Повторная
+          # привязка тем же именем безвредна: она заменяет предыдущую.
+          points = 0
+          sup = re.compile(r'\n(\s*)super\.onCreate\(savedInstanceState\)\n')
+          if sup.search(s):
+              s = sup.sub(lambda m: f'\n{m.group(1)}super.onCreate(savedInstanceState)\n{m.group(1)}psyInstallMicBridge()\n', s, count=1)
+              points += 1
           call = re.compile(r'\n(\s*)clampTextZoom\(\)\n')
           if call.search(s):
               s = call.sub(lambda m: f'\n{m.group(1)}clampTextZoom()\n{m.group(1)}psyInstallMicBridge()\n', s, count=1)
-          else:
-              # Запасной якорь: сразу после super.onCreate.
-              sup = re.compile(r'\n(\s*)super\.onCreate\(savedInstanceState\)\n')
-              if not sup.search(s):
-                  print('ERROR: некуда поставить мост — нет ни вызова clampTextZoom, ни super.onCreate'); sys.exit(1)
-              s = sup.sub(lambda m: f'\n{m.group(1)}super.onCreate(savedInstanceState)\n{m.group(1)}psyInstallMicBridge()\n', s, count=1)
+              points += 1
+          if points == 0:
+              print('ERROR: некуда поставить мост — нет ни super.onCreate, ни вызова clampTextZoom'); sys.exit(1)
+          print(f'мост привязан в {points} местах (ранняя привязка обязательна: интерфейс действует со следующей загрузки)')
 
           # Проверяем ВЫЗОВ (строка целиком), а не имя: имя есть и в объявлении.
           if not re.search(r'\n\s*psyInstallMicBridge\(\)\n', s) or 'PsyNativeBridge' not in s:
