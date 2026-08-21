@@ -123,3 +123,50 @@ describe('Струп при дальтонизме', () => {
   });
 
 });
+
+/**
+ * ТОТ ЖЕ ВОПРОС К «ПОИСКУ»: с 8-го уровня цель задаётся парой «форма + цвет»,
+ * дистрактор делит с ней ровно один признак — значит цвет там несёт смысл
+ * наравне с формой, и флаг обязан действовать.
+ *
+ * ⚠️ ЧЕСТНО О МАСШТАБЕ: обычная тройка проходит частые виды (дейтеранопия 34.7,
+ * протанопия 45.1) и валится только на тританопии — 14.8. Вид редкий, но играть
+ * человеку с ним было нечем, а флаг не помогал никак.
+ */
+describe('Поиск при дальтонизме', () => {
+  const src = (readFileSync(join(__dirname, '../../app/games/visual-search.tsx'), 'utf8') as string)
+    .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const palette = (name: string): string[] => {
+    const m = src.match(new RegExp(name + "[^=]*=\\s*\\[([^\\]]*)\\]"));
+    return m ? [...m[1].matchAll(/'(#[0-9a-f]{6})'/gi)].map((x) => x[1]) : [];
+  };
+
+  it('есть что проверять — иначе гейт зелен вслепую', () => {
+    expect(palette('COLORS_ALL')).toHaveLength(3);
+    expect(palette('COLORS_CB')).toHaveLength(3);
+  });
+
+  it('🔴 экран читает флаг и берёт вторую палитру', () => {
+    expect(/colorblind\s*\}\s*=\s*useTheme\(\)/.test(src)).toBe(true);
+    expect(src).toContain('colorblind ? COLORS_CB : COLORS_ALL');
+    // и доска строится ВЫБРАННОЙ палитрой, а не глобальной
+    expect(src).toContain('boardH, PALETTE)');
+  });
+
+  it('🔴 палитра дальтонизма различима при каждом из трёх видов', () => {
+    const bad = Object.keys(SIM)
+      .map((k) => [k, minDelta(palette('COLORS_CB'), k)] as const)
+      .filter(([, d]) => d < MIN_DELTA_E)
+      .map(([k, d]) => `${k}: ΔE ${d.toFixed(1)}`);
+    expect(bad).toEqual([]);
+  });
+
+  /** Белый занят обычным режимом, где цвет не значит ничего: спутать нельзя. */
+  it('🔴 ни один цвет конъюнкции не сливается с нейтральным белым', () => {
+    const close = palette('COLORS_CB')
+      .map((c) => [c, Math.min(...[undefined, ...Object.keys(SIM)].map((k) => minDelta([c, '#ffffff'], k as any)))] as const)
+      .filter(([, d]) => d < 20)
+      .map(([c, d]) => `${c}: до белого ΔE ${d.toFixed(1)}`);
+    expect(close).toEqual([]);
+  });
+});
