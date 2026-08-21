@@ -54,6 +54,51 @@ const COLORS_DEF = [
   { name: 'yellow', ru: 'ЖЁЛТЫЙ', en: 'YELLOW', hex: '#eab308' },
 ];
 
+/**
+ * ЧЕРНИЛА ДЛЯ ДАЛЬТОНИЗМА — ИНАЧЕ ЗАДАЧА НЕРЕШАЕМА В ПРИНЦИПЕ.
+ *
+ * 🔴 ЧТО БЫЛО. В настройках написано дословно: «Действует там, где цвет несёт
+ * смысл: судоку, SET, Струп, Висконсинский тест, Башня Лондона». Из пяти
+ * названных четыре флаг читают, а Струп — НЕ ЧИТАЛ ВОВСЕ. Обещание было, кода
+ * не было.
+ *
+ * И это не мелочь: в Струпе надо назвать ЦВЕТ ЧЕРНИЛ. Замер обычной палитры с
+ * имитацией дальтонизма: при дейтеранопии минимальная разница между четырьмя
+ * цветами ΔE 11.0, при протанопии 8.4 — два цвета из четырёх сливаются, и
+ * человек не может ответить правильно даже теоретически.
+ *
+ * ⚠️ ЦВЕТА НЕЛЬЗЯ БРАТЬ ЛЮБЫЕ. Кнопки называются «красный, синий, зелёный,
+ * жёлтый», и чернила обязаны читаться ЭТИМИ ЖЕ словами: чёрный или розовый
+ * развели бы цвета лучше всего и сделали бы игру бессмысленной. Поэтому подбор
+ * шёл внутри имени: перебор оттенков, у каждого имени свои, с максимумом
+ * минимальной разницы по трём видам дальтонизма сразу.
+ *
+ * Итог: минимум ΔE вырос с 8.4 до 28.8 (дейтеранопия 29.5, протанопия 30.7,
+ * тританопия 28.8). Сторожит `stroop-colorblind.test.ts`.
+ */
+const COLORS_CB = [
+  { name: 'red', ru: 'КРАСНЫЙ', en: 'RED', hex: '#c1272d' },
+  { name: 'blue', ru: 'СИНИЙ', en: 'BLUE', hex: '#0072b2' },
+  { name: 'green', ru: 'ЗЕЛЁНЫЙ', en: 'GREEN', hex: '#006644' },
+  { name: 'yellow', ru: 'ЖЁЛТЫЙ', en: 'YELLOW', hex: '#f0e442' },
+];
+
+/**
+ * ПОДПИСЬ НА КНОПКЕ — ПО КОНТРАСТУ, А НЕ ВСЕГДА БЕЛАЯ.
+ *
+ * 🔴 Замер 22.08.2026: белым по кнопкам выходило 3.8 / 3.7 / 2.3 / 1.9 — НИ ОДНА
+ * из четырёх не брала норму 4.5. На жёлтой подпись почти не читалась у всех, а
+ * не только у дальтоников. Цвет текста выбирается по светлоте фона.
+ */
+export function stroopLabelColor(hex: string): string {
+  const lin = (c: number) => (c / 255 <= 0.04045 ? c / 255 / 12.92 : (((c / 255) + 0.055) / 1.055) ** 2.4);
+  const [r, g, b] = [1, 3, 5].map((i) => lin(parseInt(hex.slice(i, i + 2), 16)));
+  const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return 1.05 / (L + 0.05) >= (L + 0.05) / 0.05 ? '#FFFFFF' : '#111111';
+}
+
+export const STROOP_PALETTES = { normal: COLORS_DEF, colorblind: COLORS_CB };
+
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type Mode = 'word' | 'ink';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
@@ -71,7 +116,8 @@ function levelParams(level: number): { trials: number; windowMs: number; incongr
 }
 
 export default function StroopGame() {
-  const { colors } = useTheme();
+  const { colors, colorblind } = useTheme();
+  const PALETTE = colorblind ? COLORS_CB : COLORS_DEF;
   const { t, language } = useLanguage();
   const router = useRouter();
 
@@ -82,8 +128,8 @@ export default function StroopGame() {
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'ink') === 'word' ? 'word' : 'ink'));
-  const [word, setWord] = useState(COLORS_DEF[0]);
-  const [inkColor, setInkColor] = useState(COLORS_DEF[1]);
+  const [word, setWord] = useState(PALETTE[0]);
+  const [inkColor, setInkColor] = useState(PALETTE[1]);
   const [round, setRound] = useState(0);
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -102,8 +148,8 @@ export default function StroopGame() {
   const missesRef = useRef(0);
   const rtsCongruentRef = useRef<number[]>([]);
   const rtsIncongruentRef = useRef<number[]>([]);
-  const wordRef = useRef(COLORS_DEF[0]);
-  const inkRef = useRef(COLORS_DEF[1]);
+  const wordRef = useRef(PALETTE[0]);
+  const inkRef = useRef(PALETTE[1]);
   const trialStartRef = useRef(0);
   const startTimeRef = useRef(0);
   const answeredRef = useRef(false);
@@ -117,10 +163,10 @@ export default function StroopGame() {
 
   const nextRound = () => {
     if (stoppedRef.current) return;
-    const w = COLORS_DEF[Math.floor(Math.random() * 4)];
+    const w = PALETTE[Math.floor(Math.random() * 4)];
     let c;
     if (Math.random() < incongruentRef.current) {
-      do { c = COLORS_DEF[Math.floor(Math.random() * 4)]; } while (c.name === w.name);
+      do { c = PALETTE[Math.floor(Math.random() * 4)]; } while (c.name === w.name);
     } else {
       c = w;
     }
@@ -321,14 +367,14 @@ export default function StroopGame() {
         }
         toolbar={
           <View style={styles.answersGrid}>
-            {COLORS_DEF.map((c) => (
+            {PALETTE.map((c) => (
               <TouchableOpacity
                 accessibilityRole="button"
                 key={c.name}
                 style={[styles.answerBtn, { backgroundColor: c.hex }]}
                 onPress={() => handleAnswer(c)}
               >
-                <Text style={styles.answerText}>{language === 'ru' ? c.ru : c.en}</Text>
+                <Text style={[styles.answerText, { color: stroopLabelColor(c.hex) }]}>{language === 'ru' ? c.ru : c.en}</Text>
               </TouchableOpacity>
             ))}
           </View>
