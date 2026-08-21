@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.217.0',
+    date: '2026-08-21',
+    ru: [
+      "В профиле «Скорочтение» появилась мнемоника слов и чисел — по вашему отзыву: быстро прочитать и ничего не удержать не результат",
+    ],
+    en: [
+      "The speed-reading profile now includes mnemonics for words and numbers — from your feedback: reading fast and retaining nothing is not a result",
+    ],
+  },
+  {
     version: '1.216.0',
     date: '2026-08-21',
     ru: [
