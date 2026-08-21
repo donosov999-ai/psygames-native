@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.223.0',
+    date: '2026-08-21',
+    ru: [
+      "Заголовок и подпись на экране достижений переведены на все двенадцать языков — раньше десяти из них доставался английский",
+    ],
+    en: [
+      "The achievements screen header and footer are translated into all twelve languages — ten of them used to get English",
+    ],
+  },
+  {
     version: '1.222.0',
     date: '2026-08-21',
     ru: [
