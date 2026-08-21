@@ -107,6 +107,34 @@ function sameCell(left: Cell, right: Cell): boolean {
   return left.row === right.row && left.col === right.col;
 }
 
+/**
+ * КУДА ТЯНЕТСЯ ПУТЬ ИЗ ЭТОЙ КЛЕТКИ — вверх, вниз, влево, вправо.
+ *
+ * 🔴 ЗАЧЕМ. Игра называется «Соедини точки», а рисовала залитые квадраты: конец
+ * пары — клетка целиком в цвет, путь — та же клетка под прозрачностью. Денис
+ * 21.08.2026 дословно: «мы сводим огромные квадратики, а там просто линии».
+ * Ни точек, ни линий на экране не было вовсе.
+ *
+ * Чтобы нарисовать ЛЕНТУ, а не заливку, надо знать соседей по пути. Путь хранится
+ * упорядоченным списком клеток, поэтому соседи — это предыдущая и следующая
+ * клетка, и только они: диагоналей в этой игре нет, а совпадение по строке или
+ * столбцу без соседства по списку означало бы другой виток того же пути.
+ */
+function pathArmsAt(path: readonly Cell[] | undefined, cell: Cell) {
+  const arms = { up: false, down: false, left: false, right: false };
+  if (!path) return arms;
+  const at = path.findIndex((c) => sameCell(c, cell));
+  if (at < 0) return arms;
+  for (const near of [path[at - 1], path[at + 1]]) {
+    if (!near) continue;
+    if (near.col === cell.col && near.row === cell.row - 1) arms.up = true;
+    if (near.col === cell.col && near.row === cell.row + 1) arms.down = true;
+    if (near.row === cell.row && near.col === cell.col - 1) arms.left = true;
+    if (near.row === cell.row && near.col === cell.col + 1) arms.right = true;
+  }
+  return arms;
+}
+
 function endpointPairAt(puzzle: DotsPuzzle, cell: Cell): DotsPair | null {
   return puzzle.pairs.find((pair) => pair.endpoints.some((endpoint) => sameCell(endpoint, cell))) ?? null;
 }
@@ -342,6 +370,8 @@ function DotsBoard({
             const owner = occupiedId ? pairById.get(occupiedId) : endpointPair;
             const endpoint = Boolean(endpointPair);
             const selected = sameCell(cursor, cell);
+            const arms = occupiedId ? pathArmsAt(session.paths[occupiedId], cell) : null;
+            const band = owner ? { backgroundColor: owner.color } : null;
             return (
               <View
                 key={`cell-${row}-${col}`}
@@ -349,18 +379,27 @@ function DotsBoard({
                 importantForAccessibility="no-hide-descendants"
                 style={[
                   styles.cell,
+                  // Клетка остаётся НЕЙТРАЛЬНОЙ: цвет несёт линия и точка, а не
+                  // заливка. Заливка съедала сетку и превращала поле в мозаику.
                   { borderColor: theme.border, backgroundColor: theme.surface },
-                  owner && { backgroundColor: colorWithAlpha(owner.color, endpoint ? 'ff' : '2b') },
                   selected && { borderColor: theme.warning, borderWidth: 3 },
                 ]}
               >
-                {owner ? (
-                  <Text style={[
-                    endpoint ? styles.endpointSymbol : styles.pathSymbol,
-                    { color: endpoint ? gameGradientText : owner.color },
-                  ]}>
-                    {owner.symbol}
-                  </Text>
+                {arms && band ? (
+                  <>
+                    {arms.up ? <View style={[styles.armUp, band]} /> : null}
+                    {arms.down ? <View style={[styles.armDown, band]} /> : null}
+                    {arms.left ? <View style={[styles.armLeft, band]} /> : null}
+                    {arms.right ? <View style={[styles.armRight, band]} /> : null}
+                    <View style={[styles.joint, band]} />
+                  </>
+                ) : null}
+                {endpoint && owner ? (
+                  /* Конец пары — КРУГЛАЯ ТОЧКА, а не клетка в цвет. Символ внутри
+                     остаётся: цвет дублируется формой ради дальтонизма (ТЗ 4.2). */
+                  <View style={[styles.dot, { backgroundColor: owner.color }]}>
+                    <Text style={[styles.dotSymbol, { color: gameGradientText }]}>{owner.symbol}</Text>
+                  </View>
                 ) : null}
               </View>
             );
@@ -572,6 +611,20 @@ const styles = StyleSheet.create({
   board: { width: '100%', maxWidth: 620, alignSelf: 'center', aspectRatio: 1, borderWidth: 2, borderRadius: 18, overflow: 'hidden' },
   boardRow: { flex: 1, flexDirection: 'row' },
   cell: { flex: 1, aspectRatio: 1, borderWidth: 0.5, alignItems: 'center', justifyContent: 'center' },
+  /**
+   * Лента пути. Доли, а не пиксели: клетка на телефоне 48 px, на планшете вдвое
+   * шире, и лента обязана расти вместе с ней. 34% ширины — читается как линия и
+   * не сливается с соседней при полном поле.
+   */
+  armUp: { position: 'absolute', left: '33%', width: '34%', top: 0, height: '58%' },
+  armDown: { position: 'absolute', left: '33%', width: '34%', bottom: 0, height: '58%' },
+  armLeft: { position: 'absolute', top: '33%', height: '34%', left: 0, width: '58%' },
+  armRight: { position: 'absolute', top: '33%', height: '34%', right: 0, width: '58%' },
+  /** Стык в центре: без него поворот пути выглядит разорванным. */
+  joint: { position: 'absolute', left: '33%', top: '33%', width: '34%', height: '34%' },
+  /** Точка конца пары — поверх ленты, поэтому рисуется последней. */
+  dot: { width: '62%', aspectRatio: 1, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+  dotSymbol: { fontSize: 18, lineHeight: 22, fontWeight: '900', textAlign: 'center' },
   endpointSymbol: { fontSize: 24, lineHeight: 30, fontWeight: '900', textAlign: 'center' },
   pathSymbol: { fontSize: 15, lineHeight: 20, fontWeight: '900', textAlign: 'center' },
   successCard: { maxWidth: 620, alignSelf: 'center' },
