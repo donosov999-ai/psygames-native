@@ -951,6 +951,20 @@ export const GAMES: GameConfig[] = [
 export const HUB_GAME_IDS: readonly string[] = GAMES.filter((g) => g.hub).map((g) => g.id);
 
 /** Хаб ли это — меню, а не упражнение. */
+/**
+ * ЛЕЖИТ ЛИ ИГРА В ПЕСОЧНИЦЕ — один вопрос для всех, кто подсовывает игру человеку.
+ *
+ * 🔴 ЗАЧЕМ ФУНКЦИЕЙ. 22.08.2026 песочницу завели и закрыли ей ОДНУ дверь из
+ * четырёх — каталог главного экрана. Мимо остались вызов дня, выбор первой игры
+ * в онбординге и шаги зарядки, где четыре сырые игры зашиты прямо в плейлисты.
+ * Человек получал сырое, не заходя в каталог вовсе.
+ *
+ * Проверять поле руками в каждом сервисе — тот же способ пропустить пятую дверь.
+ */
+export function isSandboxGame(id: string): boolean {
+  return GAMES.some((g) => g.id === id && g.sandbox === true);
+}
+
 export function isHubGame(id: string): boolean {
   return HUB_GAME_IDS.includes(id);
 }

@@ -14,7 +14,10 @@ import { Difficulty } from '@/src/services/warmup';
 // был попасть в каждое (разбор — у поля `hub` в constants/games).
 const GROUP_HUBS: readonly string[] = HUB_GAME_IDS;
 function eligibleGames(): GameConfig[] {
-  return GAMES.filter((g) => !g.hideFromMenu && g.category !== 'recovery' && !GROUP_HUBS.includes(g.id));
+  // ⚠️ И НЕ ПЕСОЧНИЦА. Вызов дня показывается ВСЕМ и не спрашивает профиль:
+  // сырая игра оттуда попала бы к людям мимо всех фильтров каталога.
+  return GAMES.filter((g) => !g.hideFromMenu && !g.sandbox
+    && g.category !== 'recovery' && !GROUP_HUBS.includes(g.id));
 }
 
 function dayKey(date: Date): string {

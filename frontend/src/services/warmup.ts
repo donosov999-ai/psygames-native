@@ -10,6 +10,7 @@
  *   const playlist = buildMorningWarmupPlaylist({ duration: 5|10|15, weekday: 0..6 })
  */
 
+import { isSandboxGame } from '@/src/constants/games';
 import { GameSession } from '@/src/services/api';
 import { translateFor } from '@/src/contexts/LanguageContext';
 
@@ -163,8 +164,23 @@ function trainingSetFor(weekday: Weekday): PlaylistStep[] {
  * вызовы, которые про профиль ничего не знают, работают как раньше.
  */
 type AllowFn = (gameId: string) => boolean;
-const keepAllowed = (steps: PlaylistStep[], allow?: AllowFn): PlaylistStep[] =>
-  allow ? steps.filter((s) => allow(s.game_id)) : steps;
+
+/**
+ * 🔴 ПЕСОЧНИЦА ВЫРЕЗАЕТСЯ ВСЕГДА, ДАЖЕ БЕЗ ФИЛЬТРА ПРОФИЛЯ.
+ *
+ * Отбор по профилю приходит снаружи и по умолчанию пропускает всё — а главный
+ * экран строит утреннюю зарядку БЕЗ него (`app/index.tsx`). При этом четыре
+ * сырые игры зашиты прямо в плейлисты: `memory_palace`, `object_tracker`,
+ * `one_line`, `rhythm_pitch`. То есть человек получал сырое в зарядке, вообще
+ * не заходя в каталог, и никакой профиль его от этого не спасал.
+ *
+ * Поэтому здесь ДВА среза, а не один: профиль — по желанию зовущего, песочница —
+ * безусловно. Вернуть игру в зарядку можно одним снятием пометки в каталоге.
+ */
+const keepAllowed = (steps: PlaylistStep[], allow?: AllowFn): PlaylistStep[] => {
+  const shown = steps.filter((s) => !isSandboxGame(s.game_id));
+  return allow ? shown.filter((s) => allow(s.game_id)) : shown;
+};
 
 
 // FIXED MEASUREMENT BATTERY — same setup for ЧТ peak and ВС baseline (allows lifelong comparison).
