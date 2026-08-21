@@ -41,6 +41,14 @@ const { readFileSync, readdirSync, existsSync } = require('fs');
 const { join } = require('path');
 
 import {
+  createMathSliderSession,
+  confirmEstimate as confirmMathEstimate,
+  setEstimate as setMathEstimate,
+  startTraining as startMathTraining,
+  advanceSession as advanceMathSession,
+  mathSliderArmed,
+} from '@/src/games/math-slider/core';
+import {
   createDotsSession,
   startRound as startDotsRound,
   beginPath as beginDotsPath,
@@ -204,6 +212,18 @@ function walkOneLineEdge(round: OneLineSession): OneLineSession {
  * терять» и как выглядит свежая.
  */
 const LIVE_PREDICATES: Record<string, { fresh: () => boolean; busy: () => boolean; why: string }> = {
+  'math-slider.tsx': {
+    why: 'первый ПОДТВЕРЖДЁННЫЙ ответ в зачёте (тренировочный круг не в счёт — он вернётся таким же)',
+    fresh: () => mathSliderArmed(createMathSliderSession({ seed: 'guard', level: 4, trialCount: 3 })),
+    busy: () => {
+      // Проходим тренировочный круг и подтверждаем ПЕРВЫЙ зачётный ответ.
+      let sess = startMathTraining(createMathSliderSession({ seed: 'guard', level: 4, trialCount: 3 }), 1_000);
+      sess = confirmMathEstimate(setMathEstimate(sess, 5), 1_100);   // тренировка
+      sess = advanceMathSession(sess, 1_200);                        // в зачёт
+      sess = confirmMathEstimate(setMathEstimate(sess, 5), 1_300);   // первый зачётный
+      return mathSliderArmed(sess);
+    },
+  },
   'dots-connect.tsx': {
     why: 'первый проложенный сегмент пути',
     fresh: () => dotsArmed(startDotsRound(createDotsSession({ seed: 'guard', level: 6 }), 1_000)),
@@ -287,13 +307,21 @@ const NO_SHELL_OK: Record<string, string> = {};
  * молча гасит проверку.
  */
 const DEBT: Record<string, string> = {
-  'math-slider.tsx':
-    '«Прикидка» — седьмая лабораторная обёртка, найденная этим гейтом, а не глазами: своя рамка, '
-    + 'ни паузы, ни вопроса при выходе, модулю отдан свой onExit. Заход 20.08.2026 переселял ШЕСТЬ '
-    + 'игр другой приёмки и в этот файл не лез: правка чужого экрана затёрла бы параллельную работу. '
-    + 'Чинится тем же рецептом: <GameShell confirmExit={armed}> вокруг модуля, onProgress вместо onExit',
+  /**
+   * ПУСТО — И ЭТО НЕ ЗАБЫВЧИВОСТЬ, А ЗАКРЫТЫЙ ДОЛГ. Здесь стоял `math-slider.tsx`:
+   * седьмая лабораторная обёртка, найденная этим гейтом, а не глазами. Заход
+   * 20.08.2026 переселял ШЕСТЬ игр другой приёмки и в тот файл не лез, чтобы не
+   * затереть параллельную работу.
+   *
+   * Закрыт 21.08.2026 тем самым рецептом, что был здесь записан:
+   * `<GameShell confirmExit={armed}>` вокруг модуля, `onProgress` вместо `onExit`.
+   * Модуль получил `onProgress` — сигнал о первом подтверждённом ответе, потому
+   * что отличить «партия без единого ответа» от «есть что терять» снаружи нельзя.
+   *
+   * Проверка «долг не растёт» ниже держит эту пустоту: отложить следующую игру
+   * строкой здесь нельзя без правки ожидания, а правка ожидания видна в разборе.
+   */
 };
-
 /**
  * Экраны, где своя кнопка выхода модуля НЕ дыра, — поимённо и с разбором.
  *
@@ -474,7 +502,7 @@ describe('экраны-обёртки лабораторных модулей', 
 
   /** Долг не растёт: отложить «на потом» ещё одну игру строкой здесь нельзя. */
   it('🔴 долг не растёт', () => {
-    expect(Object.keys(DEBT)).toEqual(['math-slider.tsx']);
+    expect(Object.keys(DEBT)).toEqual([]);
   });
 
   /**

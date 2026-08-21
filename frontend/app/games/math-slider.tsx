@@ -26,6 +26,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import GameShell from '@/src/components/GameShell';
+import { gameNow } from '@/src/services/gamePause';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText } from '@/src/services/onGradientText';
@@ -143,11 +145,25 @@ export default function MathSliderScreen() {
   /** Звёзды по точности: она и есть предмет этой игры, ошибки вторичны. */
   const stars = last ? (last.accuracy >= 0.97 ? 3 : last.accuracy >= 0.93 ? 2 : 1) : 1;
 
-  const start = () => { setPlayedLevel(null); setAttempt((n) => n + 1); setPhase('playing'); };
+  /** Хоть один ответ подтверждён — выход теперь что-то отнимает. */
+  const [armed, setArmed] = React.useState(false);
+  const start = () => { setPlayedLevel(null); setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
 
   if (phase === 'playing') {
     return (
-      <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
+      /**
+       * 🔴 ОБЩИЙ КАРКАС, А НЕ СВОЙ. Экран рисовал партию в голом SafeAreaView, и
+       * из-за этого не имел двух вещей, которые каркас даёт всем: партия НЕ
+       * вставала на паузу, пока открыто окно отзыва (человек пишет о проблеме, а
+       * время идёт), и «назад» уводил молча, стирая начатую партию без вопроса.
+       * Шесть игр вылечили этим же каркасом 20.08.2026 — эту пропустили.
+       */
+      <GameShell
+        title={t('mathSlider')}
+        onBack={() => setPhase('config')}
+        /** Спрашиваем, только когда терять есть что: см. `onProgress` ниже. */
+        confirmExit={armed}
+      >
         <MathSliderGame
           key={attempt}                 /* новый заход — чистое состояние модуля */
           seed={seed}
@@ -177,10 +193,23 @@ export default function MathSliderScreen() {
             danger: colors.error,
             focus: colors.warning,
           }}
+          /**
+           * 🔴 ЧАСЫ ПАРТИИ — ИГРОВЫЕ, А НЕ НАСТЕННЫЕ. Каркас ставит партию на
+           * паузу, пока открыто окно отзыва, но модуль со своим `Date.now`
+           * продолжал бы считать время: человек пишет о проблеме, а прикидка
+           * «думалась» всё это время. Пауза без игровых часов — половина паузы.
+           */
+          now={gameNow}
           onComplete={onComplete}
-          onExit={() => setPhase('config')}
+          onProgress={setArmed}
+          /**
+           * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Его кнопка
+           * «Выход» уводила бы МИМО вопроса при выходе — тем самым способом, от
+           * которого вопрос и защищает. Выход теперь один: «назад» в шапке
+           * каркаса, он же перехватывает аппаратную.
+           */
         />
-      </SafeAreaView>
+      </GameShell>
     );
   }
 

@@ -19,6 +19,7 @@ import {
   getCurrentQuestion,
   getMathSliderStrings,
   interpolate,
+  mathSliderArmed,
   pauseSession,
   restartSession,
   resumeSession,
@@ -65,6 +66,15 @@ export interface MathSliderGameProps {
   now?: () => number;
   onComplete?: (result: MathSliderMetrics) => void;
   onExit?: () => void;
+  /**
+   * Есть ли что терять при выходе — по состоянию партии, а не по флажку.
+   *
+   * 🔴 ЗАЧЕМ. Экран спрашивает при выходе только когда терять есть что: партия
+   * без единого ответа вернётся точно такой же, и вопрос был бы лишним трением.
+   * Отличить одно от другого снаружи нельзя — знает только партия, поэтому сюда
+   * уезжает `mathSliderArmed(session)`, чистая функция, которую гейт гоняет.
+   */
+  onProgress?: (armed: boolean) => void;
 }
 
 interface NumberLineProps {
@@ -289,10 +299,18 @@ function MathSliderSession({
   now = Date.now,
   onComplete,
   onExit,
+  onProgress,
 }: MathSliderGameProps) {
   const theme = React.useMemo(() => ({ ...DEFAULT_THEME, ...themeOverrides }), [themeOverrides]);
   const strings = getMathSliderStrings(locale);
   const [session, setSession] = React.useState(() => createMathSliderSession({ seed, level, trialCount }));
+
+  /**
+   * Сообщаем экрану, есть ли что терять. Через эффект, а не из обновления
+   * состояния: побочный вызов внутри редьюсера React вправе выполнить дважды.
+   */
+  const armed = mathSliderArmed(session);
+  React.useEffect(() => { onProgress?.(armed); }, [armed]);
   const completedRef = React.useRef(false);
 
   React.useEffect(() => {
