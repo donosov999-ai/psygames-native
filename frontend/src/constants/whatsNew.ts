@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.215.0',
+    date: '2026-08-21',
+    ru: [
+      "Заставка между уровнями: питомец поднимается по лестнице снизу вверх, и рядом видны пройденные ступени, а не только последний переход",
+    ],
+    en: [
+      "Between-levels screen: the pet now climbs the ladder upward, and the steps you already passed stay in view — not just the last hop",
+    ],
+  },
+  {
     version: '1.214.0',
     date: '2026-08-21',
     ru: [
