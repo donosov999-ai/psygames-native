@@ -216,6 +216,8 @@ interface SendArgs {
     track?: { muted: boolean; readyState: string; label: string; everMuted: boolean } | null;
     /** Каким путём открыт микрофон — см. `MicSource` в voiceNote. */
     source?: string;
+    /** Чем кончился запрос разрешения у системы — см. `micGate` в voiceNote. */
+    micGate?: string;
     /** Что система думает о доступе к микрофону — см. `MicAccess` в voiceNote. */
     access?: { permission: string; inputs: number; named: number } | null;
   } | null;
@@ -421,6 +423,10 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
           // починки, и без этого поля мы снова 13 дней не сможем сказать,
           // сработала она или нет. Вместе с audio_peak отвечает прямо.
           audio_source: args.audio.source ?? null,
+          // audio_micGate — какой веткой пошёл запрос разрешения: моста нет,
+          // выдано или отказано. Без него первый же неудачный отчёт не даёт
+          // отличить «мост не встал» от «человек отказал», а это разные починки.
+          audio_micGate: args.audio.micGate ?? null,
           // audio_access — прямой ответ системы: выдан ли доступ к микрофону и
           // видит ли браузер ИМЕНА устройств (имена появляются ровно при выданном
           // доступе). 21.08.2026 первый отчёт на 1.210.0 показал, что сырой

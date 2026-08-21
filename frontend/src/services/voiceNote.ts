@@ -91,6 +91,16 @@ export interface VoiceNote {
   source: MicSource;
   /** Что система думает о нашем доступе к микрофону. См. `MicAccess`. */
   access: MicAccess | null;
+  /**
+   * Чем кончился разговор с системой о разрешении: `no-bridge` (моста нет —
+   * веб, десктоп или сборка без нативной части), `granted`, `denied`.
+   *
+   * 🔴 ЗАЧЕМ. 21.08.2026 я выпустил запрос разрешения и НЕ записал, какой веткой
+   * он пошёл. Первый же отчёт показал, что разрешения по-прежнему нет, — и
+   * отличить «мост не встал» от «человек отказал» стало нечем. Это две разные
+   * починки, и без этого поля выбор между ними снова был бы гаданием.
+   */
+  micGate: string;
 }
 
 /**
@@ -336,7 +346,7 @@ export async function startRecording(
   onTick?: (sec: number, level: number) => void,
   onAutoStop?: () => void,
 ): Promise<Recorder> {
-  await ensureMicPermission();
+  const micGate = await ensureMicPermission();
   const mic = await openMic();
   const { stream } = mic;
 
@@ -470,6 +480,7 @@ export async function startRecording(
       measured: reads > 0,
       track: trackState(),
       source: mic.source,
+      micGate,
       // Наполняется в `finish`: ответ системы приходит своим темпом, и у короткой
       // записи заметка успела бы собраться раньше него — поле уехало бы пустым
       // и читалось как «старый WebView». Поймано проверкой исполнением.

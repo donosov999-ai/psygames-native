@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.216.0',
+    date: '2026-08-21',
+    ru: [
+      "Голосовые отзывы: вторая попытка починить микрофон — разрешение теперь запрашивается раньше, до загрузки страницы",
+    ],
+    en: [
+      "Voice feedback: second attempt at the microphone — the permission bridge is now attached before the page loads",
+    ],
+  },
+  {
     version: '1.215.0',
     date: '2026-08-21',
     ru: [
