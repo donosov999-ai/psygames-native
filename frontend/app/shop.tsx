@@ -22,6 +22,32 @@ import { avatarImage } from '@/src/constants/avatars';
 import { sndToken, sndTap, sndWrong, sndCorrect, getSoundPack, setSoundPack as applySoundPack } from '@/src/services/feedback';
 import { a11yDecor } from '@/src/services/a11y';
 
+/**
+ * ЧТО ПОКАЗЫВАЮТ ДВЕ КНОПКИ КАРТОЧКИ СПОСОБНОСТИ — одним решением на обе.
+ *
+ * 🔴 ЗАЧЕМ ФУНКЦИЕЙ. Кнопки жили каждая своей жизнью, и недоступность у них
+ * выглядела ПО-РАЗНОМУ на одной карточке: «Buy» честно серела (`colors.border`),
+ * а «Use» при нуле в кошельке оставалась акцентной — только гасла до 0.5. Она
+ * была отключена по-настоящему (`disabled`), но читалась как рабочая, и человек
+ * жал по ней, не понимая, почему ничего не происходит.
+ *
+ * Найдено осмотром 21.08.2026: в кошельке 0 щитов, а «Применить» выглядит живой.
+ *
+ * ⚠️ ПОЧЕМУ РЕШЕНИЕ ОТДЕЛЬНО ОТ ЦВЕТА. Цвет — это следствие; проверять надо
+ * решение. Здесь возвращается СОСТОЯНИЕ каждой кнопки, а экран уже красит по
+ * нему, и гейт проверяет таблицу состояний, а не то, какой оттенок подставлен.
+ */
+export type BuyState = 'buy' | 'need-more' | 'full';
+export type UseState = 'ready' | 'empty' | null;
+
+export function abilityButtons(
+  { have, max, cost, balance, usable }:
+  { have: number; max: number; cost: number; balance: number; usable: boolean },
+): { buy: BuyState; use: UseState } {
+  const buy: BuyState = have >= max ? 'full' : balance >= cost ? 'buy' : 'need-more';
+  return { buy, use: usable ? (have > 0 ? 'ready' : 'empty') : null };
+}
+
 export default function ShopScreen() {
   // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
   if (isWebDemo()) return <Redirect href="/" />;
@@ -137,9 +163,11 @@ export default function ShopScreen() {
    */
   const renderAbility = (a: Ability) => {
     const have = abilities[a.id] ?? 0;
-    const canAfford = balance >= a.cost;
-    const full = have >= a.max;
     const usable = a.id === 'streak_shield';   // единственная, что применяется здесь; остальные тратятся в партии
+    const st = abilityButtons({ have, max: a.max, cost: a.cost, balance, usable });
+    const canAfford = st.buy === 'buy';
+    const full = st.buy === 'full';
+    const useReady = st.use === 'ready';
     return (
       <View key={a.id} style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}>
         <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
@@ -162,9 +190,15 @@ export default function ShopScreen() {
           </TouchableOpacity>
           {usable ? (
             <TouchableOpacity
-              accessibilityRole="button" onPress={useShield} disabled={have <= 0}
-              style={[styles.btn, { backgroundColor: 'transparent', borderColor: colors.primary, borderWidth: 1.5, opacity: have > 0 ? 1 : 0.5 }]}>
-              <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 13 }}>{t('abilityUse')}</Text>
+              accessibilityRole="button" onPress={useShield} disabled={!useReady}
+              style={[styles.btn, {
+                backgroundColor: 'transparent',
+                // Недоступна — серым, как и «Buy» рядом: акцентный цвет на одной
+                // карточке не может означать и «можно», и «нельзя».
+                borderColor: useReady ? colors.primary : colors.border,
+                borderWidth: 1.5, opacity: useReady ? 1 : 0.6,
+              }]}>
+              <Text style={{ color: useReady ? colors.primary : colors.textSecondary, fontWeight: '800', fontSize: 13 }}>{t('abilityUse')}</Text>
             </TouchableOpacity>
           ) : null}
         </View>
