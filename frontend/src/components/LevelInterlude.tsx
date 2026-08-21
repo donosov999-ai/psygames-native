@@ -31,7 +31,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import PetSprite, { PetAccessory, PetSkin } from '@/src/components/pet/PetSprite';
 import { getPetSkin, getPetAccessory } from '@/src/services/pet';
-import { useScreenWidth } from '@/src/hooks/useScreenWidth';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
 /**
@@ -67,13 +67,33 @@ interface Props {
   colors: any;
 }
 
+/**
+ * ОКНО СТУПЕНЕЙ ЗАСТАВКИ — до четырёх, кончая следующей.
+ *
+ * 🔴 ПОЧЕМУ ЭКСПОРТИРУЕТСЯ. Гейт обязан гонять ЭТУ функцию, а не свою копию
+ * формулы. Первая редакция проверки считала окно сама — и осталась зелёной,
+ * когда я нарочно сломал компонент до одного перехода: тест проверял свойства
+ * формулы, а не то, что компонент ею пользуется. Один источник, а не два.
+ *
+ * Ниже единицы ступеней не бывает, поэтому на первых уровнях окно короче: на
+ * переходе 1→2 видно две ступени, на 2→3 — три, дальше всегда четыре.
+ */
+export function interludeSteps(level: number): number[] {
+  const from = Math.max(1, level - 2);
+  const out: number[] = [];
+  for (let n = from; n <= level + 1; n++) out.push(n);
+  return out;
+}
+
 const PET = 46;
+/** Ступень — круг: вертикальная лестница из овалов читается как список, а не как путь. */
+const NODE = 36;
 
 export default function LevelInterlude({ level, stars, ms, nextLine, doneLine, colors }: Props) {
   // ⚠️ НЕ `useWindowDimensions()` НАПРЯМУЮ: на первом кадре он отдаёт 0, и
   // `Math.min(0 - 80, 280)` даёт −80 — дорожка схлопывается со 280 px до 105.
   // Проверено здесь же 19.08.2026, через час после той же беды в тропинке.
-  const width = useScreenWidth();
+  const { w: width, h: screenH } = useScreenSize();
   const [skin, setSkin] = React.useState<PetSkin>('cat');
   const [accessory, setAccessory] = React.useState<PetAccessory | null>(null);
   /**
@@ -116,11 +136,47 @@ export default function LevelInterlude({ level, stars, ms, nextLine, doneLine, c
 
   const panel = PANELS[Math.max(0, level) % PANELS.length];
 
-  // Дорожка внизу: от узла «пройден» к узлу «следующий».
-  const trackW = Math.min(width - 80, 280);
-  // Едет от левого узла до правого: минус ширина самого питомца, иначе он
-  // уползёт за узел и встанет мимо.
-  const shift = walk.interpolate({ inputRange: [0, 1], outputRange: [0, Math.max(0, trackW - PET)] });
+  /**
+   * ЛЕСТНИЦА СТУПЕНЕЙ — СНИЗУ ВВЕРХ, И НЕ ОДНА СТУПЕНЬ, А НЕСКОЛЬКО.
+   *
+   * 🔴 ДВЕ ПРАВКИ ПО ЗАМЕЧАНИЮ ДЕНИСА 21.08.2026, дословно: «питомец должен
+   * двигаться снизу экрана по этой дорожке пути вверх, а не вбок» и «почему
+   * показывается только один шаг уровней, типа 2-3, а 1 шаг уже не виден».
+   *
+   * ⚠️ ВВЕРХ — ЭТО НЕ ВКУС. Подъём читается как рост сам по себе: движение вверх
+   * означает продвижение в любой игре, где есть уровни, и объяснять это не надо.
+   * Ход вбок такого смысла не несёт — он читается как «перешёл», а не «поднялся».
+   * Заодно вертикаль совпадает с формой самой картинки: панели нарисованы под
+   * телефон (720×1222), и лестница идёт вдоль кадра, а не поперёк.
+   *
+   * ⚠️ ПОЧЕМУ ВИДНЫ ПРОЙДЕННЫЕ, А НЕ ТОЛЬКО ПЕРЕХОД. Два узла показывали
+   * СОБЫТИЕ («из 2 в 3») и не показывали ПУТЬ. Пройденные ступени под ногами —
+   * это единственное место в заставке, где видно, сколько уже сделано; без них
+   * каждый переход выглядит одинаково, на каком бы уровне человек ни был.
+   *
+   * Окно — до четырёх ступеней, кончая следующей. На первых уровнях их меньше
+   * просто потому, что позади меньше: на переходе 1→2 видно две, на 2→3 — три,
+   * дальше всегда четыре. Ниже единицы ступеней нет.
+   */
+  const steps = interludeSteps(level);
+
+  /**
+   * Высота лестницы — доля экрана, а не число: на маленьком телефоне
+   * фиксированные 300 съели бы место под текстом, на большом лестница из
+   * четырёх ступеней выглядела бы прижатой к низу.
+   */
+  const trackH = Math.max(170, Math.min(Math.round(screenH * 0.42), 300));
+  /**
+   * Шаг между центрами ступеней. Считаем сами, а не измеряем разметку: питомцу
+   * надо стартовать ДО первого кадра, а размеры приезжают после onLayout —
+   * на кадр позже он прыгнул бы с места.
+   */
+  const gap = steps.length > 1 ? (trackH - steps.length * NODE) / (steps.length - 1) : 0;
+  const segment = NODE + gap;
+  /** Питомец стоит на только что пройденной — предпоследней снизу. */
+  const startFromBottom = (steps.length - 2) * segment + (NODE - PET) / 2;
+  // Вверх — это МИНУС по вертикали: экранная ось смотрит вниз.
+  const shift = walk.interpolate({ inputRange: [0, 1], outputRange: [0, -segment] });
 
   return (
     <ImageBackground source={panel} style={styles.root} resizeMode="cover">
@@ -152,15 +208,34 @@ export default function LevelInterlude({ level, stars, ms, nextLine, doneLine, c
           порядок сама и не зависит от того, как каркас считает начало отсчёта.
           Абсолютным остаётся ровно один элемент — питомец, которому и надо ехать.
         */}
-        <View style={[styles.track, { width: trackW }]}>
-          <View style={[styles.node, styles.nodeDone]}><Text style={styles.nodeText}>{level}</Text></View>
+        <View style={[styles.track, { height: trackH }]}>
           {/* Пунктир рисуем точками, а не Svg: одна линия не стоит ещё одного
-              модуля в дереве зависимостей. */}
-          <View style={styles.dots}>
-            {Array.from({ length: 9 }).map((_, i) => <View key={i} style={styles.dot} />)}
+              модуля в дереве зависимостей. Число точек — от высоты, иначе на
+              большом экране пунктир разредился бы в отдельные крапинки. */}
+          <View style={styles.dots} pointerEvents="none">
+            {Array.from({ length: Math.max(6, Math.round(trackH / 22)) }).map((_, i) => (
+              <View key={i} style={styles.dot} />
+            ))}
           </View>
-          <View style={[styles.node, styles.nodeNext]}><Text style={styles.nodeText}>{level + 1}</Text></View>
-          <Animated.View style={[styles.pet, { transform: [{ translateX: shift }] }]} pointerEvents="none">
+          {/*
+            ⚠️ СТУПЕНИ СТРОЯТСЯ `column-reverse`, А НЕ ABSOLUTE-КООРДИНАТАМИ.
+            Первая редакция (горизонтальная) ставила узлы через `position:absolute`
+            + `left`, и в веб-сборке они разъехались задом наперёд. Порядок должна
+            задавать сама раскладка: при `column-reverse` первый ребёнок оказывается
+            ВНИЗУ, поэтому массив идёт по возрастанию — младшая ступень внизу,
+            следующая наверху, и перепутать нельзя.
+          */}
+          <View style={styles.ladder}>
+            {steps.map((n) => (
+              <View key={n} style={[styles.node, n <= level ? styles.nodeDone : styles.nodeNext]}>
+                <Text style={styles.nodeText}>{n}</Text>
+              </View>
+            ))}
+          </View>
+          <Animated.View
+            style={[styles.pet, { bottom: startFromBottom, transform: [{ translateY: shift }] }]}
+            pointerEvents="none"
+          >
             <PetSprite state={reduced ? 'idle' : 'walk'} size={PET} skin={skin} accessory={accessory} />
           </Animated.View>
         </View>
@@ -187,15 +262,24 @@ const styles = StyleSheet.create({
    * снимком 19.08.2026.
    */
   bottom: { alignItems: 'center', paddingBottom: 132, gap: 14 },
-  track: { height: PET + 30, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
-  dots: { flex: 1, marginBottom: 11, height: 4, flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' },
+  // Лестница: столбец ступеней слева, питомец справа от него — так цифры не закрыты.
+  track: { width: NODE + 12 + PET },
+  dots: {
+    position: 'absolute', left: NODE / 2 - 2, top: 0, bottom: 0, width: 4,
+    alignItems: 'center', justifyContent: 'space-evenly',
+  },
   dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.75)' },
-  node: { width: 34, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
+  ladder: {
+    position: 'absolute', left: 0, top: 0, bottom: 0, width: NODE,
+    flexDirection: 'column-reverse', alignItems: 'center', justifyContent: 'space-between',
+  },
+  node: { width: NODE, height: NODE, borderRadius: NODE / 2, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
   nodeDone: { backgroundColor: 'rgba(52,211,153,0.92)', borderColor: '#ffffff' },
   nodeNext: { backgroundColor: 'rgba(0,0,0,0.5)', borderColor: 'rgba(255,255,255,0.85)' },
   nodeText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
   // Питомец едет поверх дорожки: он один и обязан двигаться, остальное стоит.
-  pet: { position: 'absolute', bottom: 24, left: 0 },
+  // Питомец идёт поверх лестницы: он один и обязан двигаться, ступени стоят.
+  pet: { position: 'absolute', left: NODE + 12 },
   next: {
     color: 'rgba(255,255,255,0.95)', fontSize: 14, fontWeight: '700', textAlign: 'center', paddingHorizontal: 24,
     textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6,
