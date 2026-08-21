@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.225.0',
+    date: '2026-08-22',
+    ru: [
+      "«Соедини точки» наконец про точки: концы пар — кружки, путь — линия, а не залитые квадраты",
+      "Струп теперь играется при дальтонизме: раньше два цвета из четырёх сливались, и верный ответ был невозможен",
+      "Семь сырых игр убраны с глаз в песочницу — в наборах остаётся только отработанное",
+    ],
+    en: [
+      "Connect the Dots is finally about dots: endpoints are circles and the path is a line, not filled squares",
+      "Stroop is now playable with colour blindness: two of the four inks used to merge, making a correct answer impossible",
+      "Seven raw games moved into a sandbox — the sets now hold only finished exercises",
+    ],
+  },
+  {
     version: '1.224.0',
     date: '2026-08-21',
     ru: [
