@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.220.0',
+    date: '2026-08-21',
+    ru: [
+      "Достижения: у «Тормоза стального» вместо имени поля из кода появилось человеческое описание, а длинные названия перестали обрезаться",
+    ],
+    en: [
+      "Achievements: Iron inhibition now reads like a sentence instead of an internal field name, and long titles no longer get clipped",
+    ],
+  },
+  {
     version: '1.219.0',
     date: '2026-08-21',
     ru: [

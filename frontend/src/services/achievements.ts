@@ -46,7 +46,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   // QUALITY
   { id: 'perfect_warmup', name_ru: 'Идеальная Зарядка',name_en: 'Perfect Warmup', desc_ru: 'Завершить серию без ошибок', desc_en: 'Complete a warmup with 0 errors', emoji: '⭐', category: 'quality' },
   { id: 'fast_schulte',   name_ru: 'Скорость Шульте', name_en: 'Schulte Speed', desc_ru: 'Schulte 5×5 < 30 сек',      desc_en: 'Schulte 5×5 under 30s', emoji: '🚀', category: 'quality' },
-  { id: 'flanker_low',    name_ru: 'Тормоз стальной', name_en: 'Iron inhibition',desc_ru: 'flanker_effect < 30мс',     desc_en: 'flanker_effect under 30ms', emoji: '🛡️', category: 'quality' },
+  { id: 'flanker_low',    name_ru: 'Тормоз стальной', name_en: 'Iron inhibition',desc_ru: 'Фланкер: помехи тормозят меньше чем на 30 мс', desc_en: 'Flanker: distractors cost you under 30 ms', emoji: '🛡️', category: 'quality' },
   { id: 'corsi_7',        name_ru: 'Span 7 Corsi',    name_en: 'Span 7 Corsi',  desc_ru: 'Достигни Corsi span = 7',   desc_en: 'Reach Corsi span 7', emoji: '🧠', category: 'quality' },
   { id: 'cpt_no_omission',name_ru: 'CPT 0 пропусков', name_en: 'CPT no misses', desc_ru: 'Заверши CPT без omission errors', desc_en: 'Complete CPT with 0 omissions', emoji: '👁️', category: 'quality' },
   // v1.108.0 — за фичи июня-июля: вызов дня, дыхание, слепые шахматы, полиглот, чистые серии

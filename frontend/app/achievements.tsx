@@ -70,7 +70,11 @@ export default function AchievementsScreen() {
                     borderColor: isUnlocked ? '#fbbf24' : colors.border,
                   }]}>
                     <Text style={[styles.cardEmoji, { opacity: isUnlocked ? 1 : 0.5 }]}>{a.emoji}</Text>
-                    <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={1}>
+                    {/* ⚠️ ДВЕ СТРОКИ, А НЕ ОДНА. При одной «Memory grandmaster»
+                        обрезался в «Memory grand…» — снимок 21.08.2026. Карточка
+                        узкая по построению (две в ряд), и длинные названия в неё
+                        в одну строку не влезают ни при каком шрифте. */}
+                    <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
                       {language === 'en' ? a.name_en : a.name_ru}
                     </Text>
                     <Text style={[styles.cardDesc, { color: colors.textSecondary }]} numberOfLines={2}>
