@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Redirect } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
   backButton: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '800' },
   placeholder: { width: 44 },
-  scroll: { padding: 16, gap: 18, maxWidth: 720, alignSelf: 'center', width: '100%' , paddingBottom: 96 },
+  scroll: { padding: 16, gap: 18, maxWidth: 720, alignSelf: 'center', width: '100%' , paddingBottom: FAB_CLEARANCE },
   section: { gap: 10 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginLeft: 4 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' },

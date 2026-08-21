@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { isWebDemo } from '@/src/services/buildTarget';
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
   headerButton: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   headerPlaceholder: { width: 44 },
   title: { fontSize: 19, fontWeight: '900', flexShrink: 1, textAlign: 'center' },
-  scroll: { width: '100%', maxWidth: 620, alignSelf: 'center', paddingHorizontal: 16, paddingBottom: 96, gap: 12 },
+  scroll: { width: '100%', maxWidth: 620, alignSelf: 'center', paddingHorizontal: 16, paddingBottom: FAB_CLEARANCE, gap: 12 },
   metrics: { flexDirection: 'row', gap: 8 },
   metricCard: { flex: 1, minWidth: 0, minHeight: 112, borderRadius: 16, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
   metricEmoji: { fontSize: 22 },

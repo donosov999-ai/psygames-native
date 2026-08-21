@@ -6,6 +6,7 @@ import React from 'react';
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 // ⚠️ Alert — НЕ из react-native: в вебе (а Android у нас WebView) он пустой метод.
 import { Alert } from '@/src/services/alert';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '800' },
-  scroll: { padding: 16, gap: 12, maxWidth: 560, alignSelf: 'center', width: '100%' , paddingBottom: 96 },
+  scroll: { padding: 16, gap: 12, maxWidth: 560, alignSelf: 'center', width: '100%' , paddingBottom: FAB_CLEARANCE },
   checkBtn: { minHeight: 48, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 16, paddingVertical: 13 },
   checkText: { color: '#fff', fontSize: 14, fontWeight: '800' },
   card: { borderWidth: 1, borderRadius: 14, padding: 14, gap: 6 },

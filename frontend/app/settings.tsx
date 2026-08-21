@@ -1,4 +1,5 @@
 import { textOn } from '@/src/services/onGradientText';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, Modal, TextInput, Linking, PanResponder, DeviceEventEmitter, Platform, useWindowDimensions } from 'react-native';
 // ⚠️ Alert — НЕ из react-native: в вебе (а Android у нас WebView) он пустой метод.
@@ -317,7 +318,7 @@ export default function SettingsScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 96 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: FAB_CLEARANCE }}>
       {/* Profile Selector (E1) */}
       <View style={[styles.profileSection, { backgroundColor: colors.surface }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>

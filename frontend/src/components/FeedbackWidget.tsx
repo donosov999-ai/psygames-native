@@ -21,7 +21,7 @@ import {
   ActivityIndicator, ScrollView, DeviceEventEmitter, PanResponder,
 } from 'react-native';
 import {
-  FAB_SIZE, readSpot, toSpot, spotToPixels, isDrag, type FabSpot,
+  FAB_SIZE, FAB_BOTTOM, readSpot, toSpot, spotToPixels, isDrag, type FabSpot,
 } from '@/src/services/fabPosition';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 
@@ -123,7 +123,7 @@ export default function FeedbackWidget() {
         baseRef.current = spotRef.current
           ? spotToPixels(spotRef.current, w, i)
           // Первый перенос: отсчитываем от того места, где кнопка висела по умолчанию.
-          : { left: 14, top: w.h - i.bottom - 92 - FAB_SIZE };
+          : { left: 14, top: w.h - i.bottom - FAB_BOTTOM - FAB_SIZE };
       },
       onPanResponderMove: (_e, g) => setDrag({ dx: g.dx, dy: g.dy }),
       onPanResponderRelease: (_e, g) => {
@@ -440,7 +440,7 @@ export default function FeedbackWidget() {
           styles.fab,
           live
             ? { left: live.left, top: live.top }
-            : [rtl ? { right: 14 } : { left: 14 }, { bottom: insets.bottom + 92 }],
+            : [rtl ? { right: 14 } : { left: 14 }, { bottom: insets.bottom + FAB_BOTTOM }],
         ]}
       >
       <TouchableOpacity

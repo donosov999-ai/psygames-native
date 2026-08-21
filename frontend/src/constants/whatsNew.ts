@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.219.0',
+    date: '2026-08-21',
+    ru: [
+      "Кнопка отзыва и питомец больше не закрывают текст внизу экрана: в магазине под ними пропадала строка про очки, в лигах — заголовок и название лиги",
+    ],
+    en: [
+      "The feedback button and the pet no longer cover text at the bottom: the shop hid its tokens line, the leagues screen hid a heading and a league name",
+    ],
+  },
+  {
     version: '1.218.0',
     date: '2026-08-21',
     ru: [

@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { isWebDemo } from '@/src/services/buildTarget';
@@ -142,7 +143,10 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8 },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { flex: 1, fontSize: 18, fontWeight: '800', textAlign: 'center' },
-  body: { padding: 16, gap: 10, paddingBottom: 40 },
+  // ⚠️ Отступ снизу — общая мера занятого угла (кнопка отзыва + питомец), а не
+  // подобранное число: снимок 21.08.2026 показал кнопку прямо на заголовке
+  // «Заработанные рамки» и на плашке лиги, а питомца — на нижней строке.
+  body: { padding: 16, gap: 10, paddingBottom: FAB_CLEARANCE },
   card: { borderRadius: 14, borderWidth: 1, padding: 16, alignItems: 'center', gap: 2 },
   ptsLabel: { fontSize: 12.5, letterSpacing: 0.4, textTransform: 'uppercase' },
   pts: { fontSize: 40, fontWeight: '900', fontVariant: ['tabular-nums'] },
