@@ -60,6 +60,24 @@ const NEUTRAL_STROKE = '#ffffff';
  *  образец стал рисоваться белым по белому — см. комментарий у плашки ниже. */
 const FIELD_BG = '#1f2937';
 const COLORS_ALL: string[] = ['#60a5fa', '#fbbf24', '#f472b6'];   // голубой / янтарь / розовый — различимы на тёмном поле
+/**
+ * ЦВЕТА КОНЪЮНКЦИИ ПРИ ДАЛЬТОНИЗМЕ.
+ *
+ * 🔴 ЗАЧЕМ. С 8-го уровня цель задаётся ПАРОЙ «форма + цвет», и цвет тут несёт
+ * смысл наравне с формой: дистрактор делит с целью ровно один признак, поэтому
+ * различать цвета обязательно. Флаг дальтонизма экран не читал вовсе.
+ *
+ * ⚠️ ЧЕСТНО О МАСШТАБЕ. Обычная тройка НЕ так плоха, как звучало: замер с
+ * имитацией даёт дейтеранопию 34.7 и протанопию 45.1 — оба выше порога, частые
+ * виды дальтонизма её проходят. Проваливается только тританопия: 14.8, голубой
+ * с розовым сливаются. Это редкий вид, но человеку с ним играть нечем, а флаг
+ * ему не помогает никак.
+ *
+ * Тройка подобрана перебором с тремя условиями сразу: различимость при всех трёх
+ * видах (стало 34.6), светлота под тёмное поле и запас до белого — белый занят
+ * обычным режимом, где цвет не значит ничего.
+ */
+const COLORS_CB: string[] = ['#56b4e9', '#fc8d62', '#e78ac3'];
 const CONJ_FROM_LEVEL = 8;                                        // с L8 включается конъюнкция
 
 // «Найди фигуру такого цвета и формы» (конъюнкция) — инлайн-карта языков
@@ -103,7 +121,7 @@ function levelParams(level: number, round: number): { count: number; targetCount
   return { count, targetCount, conjunction };
 }
 
-function makeBoard(count: number, targetShape: Shape, targetColor: string, targetCount: number, conjunction: boolean, w: number, h: number): Item[] {
+function makeBoard(count: number, targetShape: Shape, targetColor: string, targetCount: number, conjunction: boolean, w: number, h: number, palette: string[] = COLORS_ALL): Item[] {
   const cols = Math.ceil(Math.sqrt(count * (w / h)));
   const rows = Math.ceil(count / cols);
   const cellW = w / cols;
@@ -116,7 +134,7 @@ function makeBoard(count: number, targetShape: Shape, targetColor: string, targe
   // targetCount РАЗНЫХ ячеек назначаем целями
   const targetSet = new Set(shuffle(picked.map((_, i) => i)).slice(0, targetCount));
   const otherShapes = SHAPES_ALL.filter((s) => s !== targetShape);
-  const otherColors = COLORS_ALL.filter((c) => c !== targetColor);
+  const otherColors = palette.filter((c) => c !== targetColor);
   const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
   return picked.map((s, i) => {
     const isT = targetSet.has(i);
@@ -140,7 +158,9 @@ function makeBoard(count: number, targetShape: Shape, targetColor: string, targe
 }
 
 export default function VisualSearchGame() {
-  const { colors } = useTheme();
+  const { colors, colorblind } = useTheme();
+  /** Цвет здесь несёт смысл с 8-го уровня — палитра обязана считаться с дальтонизмом. */
+  const PALETTE = colorblind ? COLORS_CB : COLORS_ALL;
   const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -195,7 +215,7 @@ export default function VisualSearchGame() {
   const newRound = (r: number) => {
     const { count, targetCount: tc, conjunction } = levelParams(levelRef.current, r);
     const shape = SHAPES_ALL[Math.floor(Math.random() * SHAPES_ALL.length)];
-    const color = conjunction ? COLORS_ALL[Math.floor(Math.random() * COLORS_ALL.length)] : NEUTRAL_STROKE;
+    const color = conjunction ? PALETTE[Math.floor(Math.random() * PALETTE.length)] : NEUTRAL_STROKE;
     roundRef.current = r;
     targetCountRef.current = tc;
     conjRef.current = conjunction;
@@ -205,7 +225,7 @@ export default function VisualSearchGame() {
     setTargetColor(color);
     setTargetCount(tc);
     setFoundCount(0);
-    setItems(makeBoard(count, shape, color, tc, conjunction, boardW, boardH));
+    setItems(makeBoard(count, shape, color, tc, conjunction, boardW, boardH, PALETTE));
     setFeedback(null);
     setStimAt(gameNow());
   };
