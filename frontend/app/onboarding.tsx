@@ -18,7 +18,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
-import { GAMES, isHubGame } from '@/src/constants/games';
+import { PUBLIC_GAME_COUNT } from '@/src/constants/profiles';
 import { getTodayChallenge, challengeToParams, setPendingChallenge } from '@/src/services/daily-challenge';
 import { requestReminderPermission, applyReminders, saveReminderSettings, DEFAULT_REMINDERS } from '@/src/services/reminders';
 import { gameThumb } from '@/src/constants/gameThumbs';
@@ -28,7 +28,13 @@ import { getOnboardingGames, hasPickedOnboarding, markOnboardingPicked } from '@
 // Играбельные игры = всё, кроме карточек-хабов (внутри них скрытые подигры).
 // Список хабов выводится из каталога: раньше он был выписан здесь поимённо и при
 // появлении третьего хаба обещал бы на одно упражнение больше, чем есть.
-const GAME_COUNT = GAMES.filter((g) => !isHubGame(g.id)).length;
+/**
+ * ⚠️ ЧИСЛО БЕРЁТСЯ ИЗ ОДНОГО ИСТОЧНИКА, А НЕ СЧИТАЕТСЯ ЗАНОВО. Правило жило в трёх
+ * местах разом — здесь, в профилях и в гейте витрины, — и 22.08.2026 разошлось:
+ * профили перестали считать песочницу, а экран и гейт продолжали. Покупатель
+ * увидел бы одно число в магазине и другое при запуске.
+ */
+const GAME_COUNT = PUBLIC_GAME_COUNT;
 
 interface Slide {
   emoji: string;

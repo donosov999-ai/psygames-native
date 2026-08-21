@@ -34,6 +34,21 @@ export interface GameConfig {
   /** Hide from main menu (still accessible by route via warmup/playlists/group cards) */
   hideFromMenu?: boolean;
   /**
+   * ПЕСОЧНИЦА: игра доделана до работающей, но игровая динамика слабая.
+   *
+   * 🔴 ЗАЧЕМ ОТДЕЛЬНОЕ ПОНЯТИЕ. Денис 22.08.2026 прошёл восемь новых игр:
+   * «почти все не соответствуют тому, что должно было быть… им пока место в
+   * песочнице». Такие игры нельзя ни выбрасывать (работа сделана, дорабатывать
+   * есть с чего), ни держать вперемешку с отработанными: человек открывает
+   * приложение и получает сырое наравне с готовым, а мы получаем отзывы про
+   * недоделки вместо отзывов про суть.
+   *
+   * Песочница — не свалка, а полка: игра доступна тому, кто хочет пробовать, но
+   * не идёт ни в профили обычных людей, ни в счёт «сколько у нас упражнений».
+   * Обещать в магазине то, что сами считаем сырым, нельзя.
+   */
+  sandbox?: boolean;
+  /**
    * ЗА КАКОЙ РАЗВИЛКОЙ ЖИВЁТ ЭТА ИГРА, если её убрали из меню.
    *
    * 🔴 ЗАЧЕМ ПОЛЕМ, А НЕ КОММЕНТАРИЕМ. 21.08.2026 три судоку свели в один вход и
@@ -142,6 +157,7 @@ export const GAMES: GameConfig[] = [
   // здесь — меняй и там, иначе снаружи карточка одного цвета, а внутри игра другого.
   {
     id: 'object_tracker',
+    sandbox: true,   // сырая динамика, см. поле `sandbox`
     nameKey: 'objectTracker',
     descKey: 'objectTrackerDesc',
     skillKey: 'skillAttention',
@@ -252,6 +268,7 @@ export const GAMES: GameConfig[] = [
   // «Конфликт внимания» — две карточки читались бы близнецами.
   {
     id: 'rhythm_pitch',
+    sandbox: true,   // сырая динамика, см. поле `sandbox`
     nameKey: 'rhythmPitch',
     descKey: 'rhythmPitchDesc',
     skillKey: 'skillListening',
@@ -297,6 +314,7 @@ export const GAMES: GameConfig[] = [
   // только 4.23, до AA не хватает.
   {
     id: 'memory_palace',
+    sandbox: true,   // сырая динамика, см. поле `sandbox`
     nameKey: 'memoryPalace',
     descKey: 'memoryPalaceDesc',
     skillKey: 'skillSequence',
@@ -351,6 +369,7 @@ export const GAMES: GameConfig[] = [
   // и тот же цвет уходит внутрь партии подписью на кнопках ответа.
   {
     id: 'faces_names',
+    sandbox: true,   // сырая динамика, см. поле `sandbox`
     nameKey: 'facesNames',
     descKey: 'facesNamesDesc',
     skillKey: 'skillMemory',
@@ -417,6 +436,7 @@ export const GAMES: GameConfig[] = [
   // ⚠️ Тот же градиент зашит в экране (GRADIENT в app/games/navigator.tsx).
   {
     id: 'navigator',
+    sandbox: true,   // сырая динамика, см. поле `sandbox`
     nameKey: 'navigator',
     descKey: 'navigatorDesc',
     skillKey: 'skillSpatial',
@@ -567,6 +587,7 @@ export const GAMES: GameConfig[] = [
   // берут AA белым (5.17 и 5.47), вуаль не нужна. Меняешь — пересчитывай.
   {
     id: 'dots_connect',
+    sandbox: true,   // сырая динамика, см. поле `sandbox`
     nameKey: 'dotsConnect',
     descKey: 'dotsConnectDesc',
     skillKey: 'skillPlanning',
@@ -579,6 +600,7 @@ export const GAMES: GameConfig[] = [
   // тот совпадал с хабом «Конфликт внимания». Белый даёт 7.90 и 4.60 — вуаль не нужна.
   {
     id: 'one_line',
+    sandbox: true,   // сырая динамика, см. поле `sandbox`
     nameKey: 'oneLine',
     descKey: 'oneLineDesc',
     skillKey: 'skillPlanning',
