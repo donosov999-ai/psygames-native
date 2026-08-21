@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.212.0',
+    date: '2026-08-21',
+    ru: [
+      "Сообщения приложения снова видны: подтверждение копирования, итог переноса прогресса и разговор про обновление молчали на всех устройствах",
+      "Круг друзей объясняет отказ по-человечески: свой собственный код и переполненный круг больше не выдаются за «такого кода нет»",
+    ],
+    en: [
+      "The app's messages are visible again: copy confirmation, the result of a progress transfer and the whole update conversation were silent on every device",
+      "The friends circle explains a refusal honestly: your own code and a full circle are no longer reported as “no such code”",
+    ],
+  },
+  {
     version: '1.211.0',
     date: '2026-08-21',
     ru: [
