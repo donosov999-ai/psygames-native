@@ -67,6 +67,7 @@ declare function require(id: string): any;
 const fs = require('fs');
 const path = require('path');
 
+import { PUBLIC_GAME_COUNT } from '@/src/constants/profiles';
 import { GAMES, isHubGame } from '../constants/games';
 import { PROFILES, isSwitchable } from '../constants/profiles';
 import { LANGUAGES } from '../contexts/LanguageContext';
@@ -79,7 +80,8 @@ const FRONT = path.join(__dirname, '../..');
  * Считается из ЖИВОГО каталога (импорт), а не из подсчёта скобок в тексте `games.ts`:
  * текстовый счётчик не отличает упражнение от развилки и именно поэтому давал 72.
  */
-const EXERCISES = GAMES.filter((g) => !isHubGame(g.id)).length;
+/** Одно число на приложение и на витрину: считает `profiles.ts`, остальные берут. */
+const EXERCISES = PUBLIC_GAME_COUNT;
 
 /** Файлы витрины. Список закрыт: новый язык, не внесённый сюда, ловится проверкой ниже. */
 const SHOPS: { file: string; play: boolean }[] = [
@@ -225,7 +227,10 @@ describe('карточки магазинов: есть что проверят�
     const hubs = GAMES.filter((g) => isHubGame(g.id)).length;
     // Пропадёт признак `hub` из модели — гейт станет считать развилки упражнениями молча.
     expect(`развилок в каталоге: ${hubs > 0}`).toBe('развилок в каталоге: true');
-    expect(EXERCISES).toBe(GAMES.length - hubs);
+    // ⚠️ И песочница: игру, которую сами держим сырой, витрина обещать не должна.
+    const sandbox = GAMES.filter((g) => (g as any).sandbox).length;
+    expect(`в песочнице: ${sandbox > 0}`).toBe('в песочнице: true');
+    expect(EXERCISES).toBe(GAMES.length - hubs - sandbox);
     expect(EXERCISES).toBeGreaterThanOrEqual(10);   // диапазон, в котором ищутся числа
     expect(EXERCISES).toBeLessThanOrEqual(999);
   });
@@ -235,9 +240,17 @@ describe('карточки магазинов: есть что проверят�
    * считает правильно (`GAMES.filter((g) => !isHubGame(g.id))`) — если там правило
    * перепишут, покупатель получит одно число в магазине и другое при запуске.
    */
-  it('правило счёта — то же, что у онбординга приложения', () => {
+  /**
+   * 🔴 РАНЬШЕ ЗДЕСЬ СВЕРЯЛИ ФОРМУЛУ, А НАДО — ИСТОЧНИК. Правило счёта стояло в трёх
+   * файлах одинаковым текстом, и проверка «формула совпадает» это одобряла. 22.08.2026
+   * профили перестали считать песочницу, а экран и витрина продолжили: три копии
+   * разошлись, и проверка формулы была бессильна по устройству. Теперь требуется,
+   * чтобы экран НЕ считал сам, а брал общее число.
+   */
+  it('🔴 экран не считает упражнения сам, а берёт общее число', () => {
     const onboarding: string = fs.readFileSync(path.join(FRONT, 'app/onboarding.tsx'), 'utf8');
-    expect(onboarding.replace(/\s+/g, ' ')).toContain('GAMES.filter((g) => !isHubGame(g.id)).length');
+    expect(onboarding).toContain('PUBLIC_GAME_COUNT');
+    expect(onboarding.replace(/\s+/g, ' ')).not.toContain('GAMES.filter((g) => !isHubGame(g.id)).length');
   });
 
   it('в каждом файле витрины нашлось что проверять', () => {
@@ -416,11 +429,27 @@ describe('карточки магазинов: числа не про упраж
  * Проверка ИСПОЛНЕНИЕМ: берём число из кода, а не из текста про него.
  */
 describe('число упражнений одно на всё приложение', () => {
-  it('🔴 публичное число не считает развилки', () => {
-    const { PUBLIC_GAME_COUNT } = require('@/src/constants/profiles');
+  /**
+   * ⚠️ С 22.08.2026 ВЫЧИТАЕТСЯ ЕЩЁ И ПЕСОЧНИЦА. Денис прошёл восемь новых игр и
+   * семь из них признал сырыми: «им пока место в песочнице». Обещать в магазине
+   * и в описании профиля то, что сами держим недоделанным, нельзя — число обязано
+   * падать честно, а не оставаться красивым.
+   */
+  it('🔴 публичное число не считает ни развилки, ни песочницу', () => {
+    const { PUBLIC_GAME_COUNT, SANDBOX_GAME_COUNT } = require('@/src/constants/profiles');
     const { GAMES, isHubGame } = require('@/src/constants/games');
     const hubs = GAMES.filter((g: any) => isHubGame(g.id)).length;
-    expect(`развилок: ${hubs > 0}`).toBe('развилок: true');   // иначе проверка слепа
-    expect(PUBLIC_GAME_COUNT).toBe(GAMES.length - hubs);
+    const sandbox = GAMES.filter((g: any) => g.sandbox).length;
+    expect(`развилок: ${hubs > 0}`).toBe('развилок: true');       // иначе проверка слепа
+    expect(`в песочнице: ${sandbox > 0}`).toBe('в песочнице: true');
+    expect(SANDBOX_GAME_COUNT).toBe(sandbox);
+    expect(PUBLIC_GAME_COUNT).toBe(GAMES.length - hubs - sandbox);
+  });
+
+  /** Развилка и песочница — разные вещи: развилку не считаем как меню, песочницу как сырое. */
+  it('🔴 ни одна игра не помечена и развилкой, и песочницей сразу', () => {
+    const { GAMES, isHubGame } = require('@/src/constants/games');
+    const both = GAMES.filter((g: any) => g.sandbox && isHubGame(g.id)).map((g: any) => g.id);
+    expect(both).toEqual([]);
   });
 });

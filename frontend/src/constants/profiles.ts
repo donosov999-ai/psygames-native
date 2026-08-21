@@ -30,6 +30,14 @@ export type ProfileId =
 export type ProfileGroup = 'personal' | 'themed';
 
 export interface ProfileDef {
+  /**
+   * Пускать ли этот профиль в песочницу — к играм со слабой динамикой.
+   *
+   * По умолчанию НЕТ: человек, открывший приложение, обязан видеть только
+   * отработанное. Просят её явно те, кто пробует новое — владелец и профиль
+   * «Новинки».
+   */
+  allow_sandbox?: boolean;
   id: ProfileId;
   person: string;             // exactly the value stored in cognitive_sessions.person
   display_name: string;
@@ -104,7 +112,17 @@ export interface ProfileDef {
 // Правило то же, что на первом экране приложения (`app/onboarding.tsx`), и
 // теперь оно ОДНО: два разных числа в одном приложении — это не округление,
 // а разные обещания в разных местах.
-export const PUBLIC_GAME_COUNT = GAMES.filter((g) => !isHubGame(g.id)).length;
+/**
+ * СКОЛЬКО У НАС УПРАЖНЕНИЙ — СЧИТАЕМ ТОЛЬКО ОТРАБОТАННЫЕ.
+ *
+ * Развилки (`hub`) не упражнения, а меню — их не считали и раньше. С 22.08.2026
+ * не считаем и песочницу: игру, которую сами держим сырой, нельзя обещать в
+ * магазине и в описании профиля. Число падает честно, а не остаётся красивым.
+ */
+export const PUBLIC_GAME_COUNT = GAMES.filter((g) => !isHubGame(g.id) && !g.sandbox).length;
+
+/** Сколько лежит в песочнице — чтобы это было видно числом, а не на глаз. */
+export const SANDBOX_GAME_COUNT = GAMES.filter((g) => g.sandbox).length;
 
 // ─── 🛠 ODV999 — Денис, locked by master code ────────────────────────────
 // Все игры разблокированы. Master code = тот же что для NZT staticrypt.
@@ -112,6 +130,7 @@ export const PUBLIC_GAME_COUNT = GAMES.filter((g) => !isHubGame(g.id)).length;
 // в themed (требует код) чтобы личные данные не светились публично.
 
 const ODV999: ProfileDef = {
+  allow_sandbox: true,
   id: 'odv999',
   person: 'ODV999',
   display_name: 'ODV999',
@@ -833,6 +852,7 @@ const POLYGLOT: ProfileDef = {
  */
 const WHATSNEW: ProfileDef = {
   id: 'whatsnew',
+  allow_sandbox: true,   // витрина нового — единственное место, где песочница уместна людям
   person: 'ODV999',            // тот же человек в сессиях: это не отдельная аудитория, а витрина
   display_name: 'Новинки',
   emoji: '🆕',
@@ -973,5 +993,16 @@ export function filterAllowedGames(profile: ProfileDef) {
   const openHubs = new Set(
     GAMES.filter(g => g.mergedInto && allowed.has(g.id)).map(g => g.mergedInto as string),
   );
-  return GAMES.filter(g => ALWAYS_ALLOWED.has(g.id) || allowed.has(g.id) || openHubs.has(g.id));
+  /**
+   * 🔴 ПЕСОЧНИЦА НЕ ПОПАДАЕТ К ЧЕЛОВЕКУ САМА. Профили перечисляли эти игры ещё
+   * до того, как их признали сырыми (24 упоминания в списках). Вычищать списки
+   * руками значило бы потерять эту работу и не суметь вернуть игру одним словом,
+   * когда её доведут. Поэтому фильтр: в песочницу пускает только профиль, который
+   * СПЕЦИАЛЬНО её просит — `allow_sandbox`.
+   */
+  const wantsSandbox = profile.allow_sandbox === true;
+  return GAMES.filter(g => {
+    if (g.sandbox && !wantsSandbox) return false;
+    return ALWAYS_ALLOWED.has(g.id) || allowed.has(g.id) || openHubs.has(g.id);
+  });
 }
