@@ -19,7 +19,7 @@ declare function require(m: string): any;
 const { readFileSync } = require('fs');
 const { join } = require('path');
 
-import { shouldWarnSilent, startRecording, MAX_RECORD_SEC, SILENCE_PEAK, AUDIO_MAX_BYTES, type VoiceNote } from '@/src/services/voiceNote';
+import { shouldWarnSilent, startRecording, ensureMicPermission, MAX_RECORD_SEC, SILENCE_PEAK, AUDIO_MAX_BYTES, type VoiceNote } from '@/src/services/voiceNote';
 
 const SRC = join(__dirname, '..');
 const read = (p: string): string => readFileSync(join(SRC, p), 'utf8') as string;
@@ -621,4 +621,56 @@ describe('прямой вопрос системе о микрофоне', () =>
     const note = await r.stop();
     expect(note?.access?.permission).toBe('unsupported');
   });
+});
+
+/**
+ * РАЗРЕШЕНИЕ У СИСТЕМЫ СПРАШИВАЕМ САМИ.
+ *
+ * 🔴 ЗАЧЕМ. Боевые отчёты v1.211.0 принесли `{ inputs: 3, named: 0 }` — три
+ * микрофонных входа видны, ни одного с именем. Имена пусты ровно пока у страницы
+ * нет разрешения. Объявить `RECORD_AUDIO` в манифесте мало: на Android 6+ его
+ * надо ЗАПРОСИТЬ во время работы, и три недели этого не делал никто.
+ */
+describe('разрешение на микрофон', () => {
+  const setBridge = (b: any) => { (globalThis as any).window = { ...((globalThis as any).window ?? {}), PsyNative: b }; };
+  afterEach(() => { const w = (globalThis as any).window; if (w) delete w.PsyNative; });
+
+  it('моста нет (веб, десктоп, старая сборка) — ничего не делаем', async () => {
+    expect(await ensureMicPermission(50)).toBe('no-bridge');
+  });
+
+  it('🔴 разрешение уже есть — системный диалог человеку не показываем', async () => {
+    const requestMic = jest.fn();
+    setBridge({ micState: () => 'granted', requestMic });
+    expect(await ensureMicPermission(50)).toBe('granted');
+    expect(requestMic).not.toHaveBeenCalled();
+  });
+
+  it('🔴 разрешения нет — просим у системы', async () => {
+    let state = 'denied';
+    const requestMic = jest.fn(() => { state = 'granted'; });
+    setBridge({ micState: () => state, requestMic });
+    expect(await ensureMicPermission(2_000)).toBe('granted');
+    expect(requestMic).toHaveBeenCalledTimes(1);
+  });
+
+  it('🔴 человек не ответил — не висим вечно, идём дальше', async () => {
+    setBridge({ micState: () => 'denied', requestMic: jest.fn() });
+    const t0 = Date.now();
+    expect(await ensureMicPermission(600)).toBe('denied');
+    expect(Date.now() - t0).toBeLessThan(3_000);
+  });
+
+  it('🔴 запись спрашивает разрешение ДО того, как просит микрофон у браузера', async () => {
+    const order: string[] = [];
+    setBridge({ micState: () => 'denied', requestMic: () => order.push('спросили систему') });
+    const { micCalls } = installMic({ level: 0.5 });
+    const md = (globalThis as any).navigator.mediaDevices;
+    const inner = md.getUserMedia;
+    md.getUserMedia = async (c: any) => { order.push('попросили микрофон'); return inner(c); };
+    const r = await startRecording();
+    expect(order[0]).toBe('спросили систему');
+    expect(micCalls.length).toBeGreaterThan(0);
+    r.cancel();
+  }, 30_000);
 });

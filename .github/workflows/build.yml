@@ -721,6 +721,96 @@ jobs:
           echo '--- MainActivity.kt after patch ---'
           cat "$MAIN"
 
+      - name: Микрофон — спросить разрешение у СИСТЕМЫ, а не только объявить
+        working-directory: src-tauri
+        run: |
+          # 🔴 ЗАЧЕМ. Голосовые заметки приезжали немыми с 15 устройств из 16 —
+          # цифровая тишина, пик −91 дБ, три недели подряд. Причину искали в записи
+          # и не нашли: getUserMedia отдаёт поток, дорожка живая, muted=false,
+          # MediaRecorder пишет валидный файл правильной длительности из нулей.
+          #
+          # Ответ дала диагностика, уехавшая в v1.211.0. Два боевых отчёта принесли
+          # прямой ответ системы:  {"inputs": 3, "named": 0, "permission": "unsupported"}
+          # Три микрофонных входа видны, и НИ ОДНОГО С ИМЕНЕМ. По спецификации имена
+          # устройств пусты ровно до тех пор, пока у страницы нет действующего
+          # разрешения на микрофон. Значит разрешения у приложения нет — при том, что
+          # RECORD_AUDIO объявлен в манифесте с v1.170.
+          #
+          # ⚠️ ОБЪЯВИТЬ ≠ ПОЛУЧИТЬ. На Android 6+ опасное разрешение надо ещё
+          # ЗАПРОСИТЬ во время работы, и никто этого не делал. Расчёт был на wry:
+          # его WebChromeClient на AUDIO_CAPTURE сам просит RECORD_AUDIO. В бою этот
+          # путь не сработал ни на одном устройстве, и спорить с фактом нечем.
+          #
+          # ⚠️ ПОЧЕМУ НЕ НА СТАРТЕ. Тренажёр памяти, спрашивающий микрофон при первом
+          # запуске, выглядит как приложение, которое подслушивает. Спрашиваем в
+          # момент, когда человек сам собрался записать голосом, — мост зовёт запрос
+          # из окна отзыва. Пока не позвали, дело обстоит ровно как сегодня.
+          #
+          # ⚠️ ЧТО ОТКРЫВАЕТ МОСТ. Ровно два метода без аргументов: спросить состояние
+          # и показать системный диалог. Ни файлов, ни данных, ни возврата чего-либо
+          # чувствительного. WebView грузит только наши собственные ассеты.
+          MAIN=$(find gen/android -name MainActivity.kt | head -1)
+          if [ -z "$MAIN" ]; then echo "ERROR: MainActivity.kt not found"; exit 1; fi
+          python3 - "$MAIN" <<'PYEOF'
+          import sys, re
+          p = sys.argv[1]
+          s = open(p).read()
+          if 'psyRequestMic' in s:
+              print('mic bridge already present'); sys.exit(0)
+
+          bridge = (
+              '\n  // ── Микрофон: мост в WebView ────────────────────────────────\n'
+              '  private fun psyMicGranted(): Boolean =\n'
+              '    android.os.Build.VERSION.SDK_INT < 23 ||\n'
+              '    checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) ==\n'
+              '      android.content.pm.PackageManager.PERMISSION_GRANTED\n'
+              '\n  private fun psyRequestMic() {\n'
+              '    if (android.os.Build.VERSION.SDK_INT < 23 || psyMicGranted()) return\n'
+              '    try { requestPermissions(arrayOf(android.Manifest.permission.RECORD_AUDIO), 4711) }\n'
+              '    catch (e: Throwable) {}\n'
+              '  }\n'
+              '\n  inner class PsyNativeBridge {\n'
+              '    @android.webkit.JavascriptInterface\n'
+              '    fun micState(): String = if (psyMicGranted()) "granted" else "denied"\n'
+              '    @android.webkit.JavascriptInterface\n'
+              '    fun requestMic() { runOnUiThread { psyRequestMic() } }\n'
+              '  }\n'
+              '\n  private fun psyInstallMicBridge() {\n'
+              '    val wv = findWebView(findViewById(android.R.id.content)) ?: return\n'
+              '    try { wv.addJavascriptInterface(PsyNativeBridge(), "PsyNative") } catch (e: Throwable) {}\n'
+              '  }\n'
+          )
+          i = s.rfind('}')
+          s = s[:i] + bridge + s[i:]
+
+          # Ставим мост тогда же, когда уже зовётся clampTextZoom: в этот момент
+          # WebView в дереве уже есть, раньше его может не быть вовсе.
+          #
+          # ⚠️ ЯКОРЬ — ВЫЗОВ, А НЕ ОБЪЯВЛЕНИЕ. Первая редакция искала
+          # `\n\s*clampTextZoom\(\)` и попадала в строку `private fun clampTextZoom() {`,
+          # то есть в объявление. Хуже другое: проверка ниже искала подстроку
+          # `psyInstallMicBridge()` — а она есть в ОБЪЯВЛЕНИИ моста, поэтому патч
+          # рапортовал успех, оставив мост никогда не установленным. Поймано прогоном
+          # патча на заготовке, а не чтением. Требуем перевод строки СРАЗУ после
+          # скобок — у объявления там `{`.
+          call = re.compile(r'\n(\s*)clampTextZoom\(\)\n')
+          if call.search(s):
+              s = call.sub(lambda m: f'\n{m.group(1)}clampTextZoom()\n{m.group(1)}psyInstallMicBridge()\n', s, count=1)
+          else:
+              # Запасной якорь: сразу после super.onCreate.
+              sup = re.compile(r'\n(\s*)super\.onCreate\(savedInstanceState\)\n')
+              if not sup.search(s):
+                  print('ERROR: некуда поставить мост — нет ни вызова clampTextZoom, ни super.onCreate'); sys.exit(1)
+              s = sup.sub(lambda m: f'\n{m.group(1)}super.onCreate(savedInstanceState)\n{m.group(1)}psyInstallMicBridge()\n', s, count=1)
+
+          # Проверяем ВЫЗОВ (строка целиком), а не имя: имя есть и в объявлении.
+          if not re.search(r'\n\s*psyInstallMicBridge\(\)\n', s) or 'PsyNativeBridge' not in s:
+              print('ERROR: mic bridge patch failed to apply'); sys.exit(1)
+          open(p, 'w').write(s)
+          print('MainActivity patched: mic permission bridge')
+          PYEOF
+          grep -n "psyRequestMic\|PsyNative\|psyInstallMicBridge" "$MAIN" || { echo "ERROR: bridge not found after patch"; exit 1; }
+
       - name: Patch build.gradle.kts with signing config
         working-directory: src-tauri
         run: |

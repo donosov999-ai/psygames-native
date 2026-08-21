@@ -256,6 +256,59 @@ const RAW_AUDIO: MediaStreamConstraints = {
 const PROCESSED_AUDIO: MediaStreamConstraints = { audio: true };
 
 /**
+ * СПРОСИТЬ РАЗРЕШЕНИЕ У СИСТЕМЫ — ДО ТОГО, КАК ПРОСИТЬ МИКРОФОН У БРАУЗЕРА.
+ *
+ * 🔴 ЗАЧЕМ. Три недели голосовые приезжали немыми с 15 устройств из 16. Причину
+ * искали в записи и не нашли: поток отдаётся, дорожка живая, `muted` не выставлен,
+ * файл валидный и правильной длительности — из нулей.
+ *
+ * Ответ дала диагностика, уехавшая в v1.211.0. Боевые отчёты принесли прямой
+ * ответ системы: `{ inputs: 3, named: 0, permission: 'unsupported' }` — три
+ * микрофонных входа видны, и НИ ОДНОГО С ИМЕНЕМ. Имена устройств пусты ровно до
+ * тех пор, пока у страницы нет действующего разрешения на микрофон. Значит
+ * разрешения нет — при том, что `RECORD_AUDIO` объявлен в манифесте с v1.170.
+ *
+ * ⚠️ ОБЪЯВИТЬ ≠ ПОЛУЧИТЬ. На Android 6+ опасное разрешение надо ещё ЗАПРОСИТЬ во
+ * время работы. Расчёт был на wry (его WebChromeClient просит сам) — в бою этот
+ * путь не сработал ни на одном устройстве, и спорить с фактом нечем. Поэтому
+ * запрос идёт через мост `PsyNative`, который ставит нативная часть сборки.
+ *
+ * ⚠️ ЗДЕСЬ НЕТ МОСТА — И ЭТО НОРМАЛЬНО. Веб, десктоп и старые сборки моста не
+ * имеют: тогда ничего не делаем и идём как раньше. Отказ человека тоже не
+ * тупик — просто пойдём дальше и предупредим по пику, как сегодня.
+ */
+interface PsyNativeBridge {
+  micState?: () => string;
+  requestMic?: () => void;
+}
+
+/** Сколько ждём ответа человека на системный диалог, прежде чем идти дальше. */
+export const MIC_GRANT_WAIT_MS = 15_000;
+const MIC_POLL_MS = 250;
+
+const nap = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+const bridge = (): PsyNativeBridge | null =>
+  (typeof window !== 'undefined' ? ((window as any).PsyNative ?? null) : null);
+
+/**
+ * @param waitMs потолок ожидания — параметр, а не только константа: без него
+ *               проверка «человек не ответил» шла бы пятнадцать секунд.
+ */
+export async function ensureMicPermission(waitMs = MIC_GRANT_WAIT_MS): Promise<string> {
+  const n = bridge();
+  if (typeof n?.micState !== 'function' || typeof n?.requestMic !== 'function') return 'no-bridge';
+  if (n.micState() === 'granted') return 'granted';
+  n.requestMic();
+  const until = Date.now() + waitMs;
+  while (Date.now() < until) {
+    await nap(MIC_POLL_MS);
+    if (n.micState() === 'granted') return 'granted';
+  }
+  return 'denied';
+}
+
+/**
  * ОТКАЗ В ДОСТУПЕ И ОТКАЗ В УСЛОВИЯХ — РАЗНЫЕ ВЕЩИ.
  *
  * Человек не дал микрофон → повторять запрос нельзя: он получит второй системный
@@ -283,6 +336,7 @@ export async function startRecording(
   onTick?: (sec: number, level: number) => void,
   onAutoStop?: () => void,
 ): Promise<Recorder> {
+  await ensureMicPermission();
   const mic = await openMic();
   const { stream } = mic;
 
