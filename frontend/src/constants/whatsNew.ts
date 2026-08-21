@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.226.0',
+    date: '2026-08-22',
+    ru: [
+      "Выключенный звук больше не игнорируется речью: упражнение честно скажет, что ему нужен звук, вместо того чтобы молчать",
+      "Двойной n-back не включается без речи — раньше немой поток обнулял результат ни за что",
+      "«Поиск» считается с дальтонизмом: цвета конъюнкции разведены под все три вида",
+    ],
+    en: [
+      "Sound off is no longer ignored by speech: the exercise says it needs sound instead of going quiet",
+      "Dual n-back no longer starts without speech — a mute stream used to zero your result for nothing",
+      "Visual Search respects colour blindness: the conjunction colours now separate under all three types",
+    ],
+  },
+  {
     version: '1.225.0',
     date: '2026-08-22',
     ru: [
