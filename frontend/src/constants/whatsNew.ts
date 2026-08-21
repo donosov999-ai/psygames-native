@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.222.0',
+    date: '2026-08-21',
+    ru: [
+      "Экран достижений говорил по-русски со всеми, кроме англичан — теперь на своём языке, и дата открытия по-человечески",
+      "В магазине кнопка «Применить» выглядела рабочей, когда применять нечего",
+    ],
+    en: [
+      "The achievements screen spoke Russian to everyone but English speakers — now it uses your language, and the unlock date reads like a date",
+      "In the shop, the Use button looked ready when there was nothing to use",
+    ],
+  },
+  {
     version: '1.221.0',
     date: '2026-08-21',
     ru: [
