@@ -23,7 +23,7 @@ Memória, foco e raciocínio: 69 exercícios offline e sem anúncios
 
 ---
 
-## 3. ПОЛНОЕ ОПИСАНИЕ — 4000 символов (3807 использовано)
+## 3. ПОЛНОЕ ОПИСАНИЕ — 4000 символов (3942 использовано)
 
 ```
 Você termina um capítulo e consegue contar o que leu sem voltar às páginas.
@@ -36,7 +36,7 @@ Isso não é um dom de nascença. Dá para treinar — e aqui você mede a evolu
 PsyGames é treinamento cerebral: jogos mentais, quebra-cabeças e 69 exercícios de memória, foco e lógica para o seu cérebro. Não é mais um teste que inventa seu QI: é prática com resultado acompanhado.
 
 JOGOS DE MEMÓRIA
-Treine memória visual com blocos de Corsi, matrizes, pares e histórias. Fortaleça a memória de trabalho com N-back, Operation Span e Reading Span. Observe um padrão, mantenha-o na mente e reproduza depois.
+Treine memória visual com blocos de Corsi, matrizes, pares e histórias. Fortaleça a memória de trabalho com N-back, Operation Span e Reading Span.
 
 FOCO E CONCENTRAÇÃO
 Pratique atenção com tabelas de Schulte, jogo dos erros, tarefa de Posner e Flanker. Continue no que importa mesmo quando chegam mensagens, barulho e interrupções.
@@ -61,7 +61,7 @@ O QUE TEM NO APP
 • 69 exercícios de memória, atenção, lógica, velocidade e controle
 • Aquecimentos de manhã, tarde e noite prontos para começar com um toque
 • Tema escuro e um conjunto noturno para quando o sono não vem: respiração 4-7-8, tela suave, sem pontos nem sequência
-• 12 perfis para objetivos diferentes: idiomas, crianças, 50+, foco, reação, estudantes e mais
+• 12 perfis: idiomas, crianças, 50+, foco, reação, estudantes e mais
 • Avaliação com radar de pontos fortes e habilidades a desenvolver
 • 12 idiomas · funciona offline · sem anúncios · sem cadastro
 
@@ -73,15 +73,17 @@ Por isso a pontuação tem contexto: você não vê apenas “nível 7”, mas a
 DESENVOLVEDORES QUE RESPONDEM
 Envie uma mensagem por texto ou voz dentro do app; a captura de tela é anexada automaticamente. Quando a correção sai, o app mostra o que mudou por causa do seu relato e em qual versão.
 
+Cada exercício tem o seu número de revisão: ele vai junto com o seu relato e sobe quando o exercício é refeito.
+
 PARA QUEM
 • Quem precisa manter o foco entre notificações e interrupções
-• Pessoas 50+ que querem exercitar memória e reação sem configurações complicadas
-• Crianças a partir de 7 anos, com perfil próprio de cálculo, memória e atenção
+• Pessoas 50+: memória e reação sem configurações complicadas
+• Crianças a partir de 7 anos: perfil próprio de cálculo, memória e atenção
 • Estudantes e pessoas aprendendo idiomas
 • Quem gosta de xadrez, leitura dinâmica e desafios mentais
 
 HONESTIDADE SOBRE A CIÊNCIA
-O treino melhora de forma confiável as tarefas praticadas e habilidades próximas. NÃO prometemos aumentar o QI: a transferência para a “inteligência geral” ainda é discutida pela ciência. Oferecemos instrumentos validados e uma visão clara e mensurável do seu progresso.
+O treino melhora de forma confiável as tarefas praticadas e habilidades próximas. NÃO prometemos aumentar o QI: a transferência para a “inteligência geral” ainda é discutida. Oferecemos instrumentos validados e uma visão mensurável do seu progresso.
 
 Abra e jogue. O progresso fica salvo no aparelho. A sincronização anônima na nuvem é opcional: sem nome e sem e-mail.
 ```
