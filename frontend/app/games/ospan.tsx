@@ -115,7 +115,7 @@ export default function OSpanGame() {
     if (timerRef.current) clearInterval(timerRef.current);
   }, []);
 
-  const letterPool = language === 'en' ? LETTERS_EN : LETTERS_RU;
+  const letterPool = language === 'ru' ? LETTERS_RU : LETTERS_EN;
 
   const startGame = () => {
     // уровень рулит: размер набора → сложность счёта → скорость показа буквы
