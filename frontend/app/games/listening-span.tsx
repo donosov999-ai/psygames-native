@@ -16,7 +16,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { speakSequence, ttsAvailable, ttsCancel } from '@/src/services/tts';
-import { useTtsAvailable } from '@/src/hooks/useTtsAvailable';
+import { useTtsAvailable, useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import GameResult from '@/src/components/GameResult';
@@ -138,7 +138,9 @@ export default function ListeningSpanGame() {
     AsyncStorage.setItem(TARGETLANG_KEY, code).catch(() => {});
   };
 
-  const voiceOk = useTtsAvailable(targetLang);
+  const ttsBlock = useTtsBlock(targetLang);
+  /** Играть можно, только если молчать не по чему: и голос есть, и звук включён. */
+  const voiceOk = ttsBlock === null;
 
   const startGame = () => {
     const tl = targetLang === language ? defaultTarget : targetLang;
@@ -288,7 +290,7 @@ export default function ListeningSpanGame() {
           <View style={styles.voiceWarn}>
             <Ionicons name="volume-mute" size={18} color="#b45309" />
             <Text style={styles.voiceWarnText}>
-              {t('voiceMissing')}
+              {t(ttsBlock === 'sound-off' ? 'voiceSoundOff' : 'voiceMissing')}
             </Text>
           </View>
         )}

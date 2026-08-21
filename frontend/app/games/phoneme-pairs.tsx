@@ -21,7 +21,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
-import { useTtsAvailable } from '@/src/hooks/useTtsAvailable';
+import { useTtsAvailable, useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
@@ -191,7 +191,9 @@ export default function PhonemePairsGame() {
 
   // язык тренировки не должен совпадать с языком интерфейса
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
-  const voiceOk = useTtsAvailable(tgt);
+  const ttsBlock = useTtsBlock(tgt);
+  /** Играть можно, только если молчать не по чему: и голос есть, и звук включён. */
+  const voiceOk = ttsBlock === null;
 
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -359,7 +361,7 @@ export default function PhonemePairsGame() {
         <View style={[styles.warnCard, { backgroundColor: colors.surface, borderColor: '#f43f5e' }]}>
           <Ionicons name="volume-mute" size={22} color="#f43f5e" />
           <Text style={[styles.warnText, { color: colors.text }]}>
-            {t('voiceMissingLang').replace('{lang}', LANG_NAMES[tgt])}
+            {ttsBlock === 'sound-off' ? t('voiceSoundOff') : t('voiceMissingLang').replace('{lang}', LANG_NAMES[tgt])}
           </Text>
         </View>
       )}

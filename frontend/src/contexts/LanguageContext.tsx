@@ -2581,6 +2581,10 @@ const translations: Translations = {
   lspanLvlAuto: { ru: 'Ур. {n} — {s} слов на слух, растёт сам (больше слов → быстрее темп)', en: 'Lv {n} — {s} words by ear, grows with results (more words → faster pace)' },
   langToTrain: { ru: 'Какой язык учим', en: 'Language to train' },
   voiceMissing: { ru: 'Голос для этого языка не найден на устройстве — озвучка не сработает. Выбери другой язык.', en: 'No voice for this language found on the device — audio will not play. Pick another language.' },
+  // ⚠️ Отдельно от voiceMissing нарочно: «нет голоса в системе» и «звук выключен»
+  // лечатся по-разному, и одно сообщение на оба случая отправляет половину людей
+  // ставить голос вместо того, чтобы тронуть тумблер.
+  voiceSoundOff: { ru: 'Звук выключен, а это упражнение говорит. Включите звук в настройках.', en: 'Sound is off, and this exercise speaks. Turn sound on in settings.' },
   voiceMissingLang: { ru: 'Голос для языка «{lang}» не найден на устройстве. Выбери другой язык.', en: 'No voice for “{lang}” found on this device. Pick another language.' },
   lspanListening: { ru: 'Слушай...', en: 'Listen...' },
   lspanWord: { ru: 'Слово', en: 'Word' },

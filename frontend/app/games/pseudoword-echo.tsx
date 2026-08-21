@@ -24,7 +24,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
-import { useTtsAvailable } from '@/src/hooks/useTtsAvailable';
+import { useTtsAvailable, useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import { generatePseudowords } from '@/src/services/pseudowords';
 import GameResult from '@/src/components/GameResult';
@@ -197,7 +197,9 @@ export default function PseudowordEchoGame() {
 
   // валидный целевой язык: не совпадает с языком интерфейса
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
-  const voiceOk = useTtsAvailable(tgt);
+  const ttsBlock = useTtsBlock(tgt);
+  /** Играть можно, только если молчать не по чему: и голос есть, и звук включён. */
+  const voiceOk = ttsBlock === null;
 
   // сохранённый выбор языка тренировки (пресет из зарядки имеет приоритет)
   useEffect(() => {
@@ -356,7 +358,7 @@ export default function PseudowordEchoGame() {
         <View style={[styles.warnCard, { backgroundColor: colors.surface, borderColor: '#f59e0b' }]}>
           <Ionicons name="warning" size={22} color="#f59e0b" />
           <Text style={[styles.warnText, { color: colors.text }]}>
-            {t('voiceMissing')}
+            {t(ttsBlock === 'sound-off' ? 'voiceSoundOff' : 'voiceMissing')}
           </Text>
         </View>
       )}

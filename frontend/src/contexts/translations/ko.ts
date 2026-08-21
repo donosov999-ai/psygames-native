@@ -1801,6 +1801,7 @@ const t: Record<string, string> = {
   "lspanLvlAuto": "Lv {n} — 듣기 단어 {s}개, 결과에 따라 자동 상승 (단어 증가 → 빠른 속도)",
   "langToTrain": "학습할 언어",
   "voiceMissing": "이 언어의 음성을 기기에서 찾을 수 없어요 — 소리가 나오지 않아요. 다른 언어를 고르세요.",
+  "voiceSoundOff": "소리가 꺼져 있습니다. 이 훈련은 음성을 사용합니다. 설정에서 켜 주세요.",
   "voiceMissingLang": "‘{lang}’ 음성을 이 기기에서 찾을 수 없어요. 다른 언어를 고르세요.",
   "lspanListening": "들어보세요…",
   "lspanWord": "단어",
