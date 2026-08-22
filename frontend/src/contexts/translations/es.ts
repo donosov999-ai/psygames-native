@@ -1483,6 +1483,7 @@ const t: Record<string, string> = {
   "goalMoves": "Vacía todo. Movimientos máximos:",
   "goalFree": "Libera las casillas marcadas",
   "goodsSortHint": "Arrastra un producto a una casilla, o tócalo y luego la casilla. Junta 3 IDÉNTICOS en una casilla y desaparecen. Vacía todo.",
+  "goodsSortDeadEnd": "No quedan movimientos: no hay dónde colocar nada. Deshaz algunos movimientos o baraja.",
   "goodsLevel": "Nivel",
   "eyeInstrWarmup": "Sigue el punto en cada dirección",
   "eyeInstrPursuit": "Sigue el punto con la mirada sin mover la cabeza",

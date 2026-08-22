@@ -270,6 +270,7 @@ const t: Record<string, string> = {
   "goalMoves": "Svuota tutto. Mosse al massimo:",
   "goalFree": "Libera le nicchie contrassegnate",
   "goodsSortHint": "Trascina un prodotto in una cella — o toccalo, poi la cella. Riunisci 3 UGUALI in una cella e spariscono. Svuota tutto.",
+  "goodsSortDeadEnd": "Non ci sono più mosse: non c’è dove mettere nulla. Annulla qualche mossa o mescola.",
   "goodsLevel": "Livello",
   "eyeInstrWarmup": "Segui il punto in ogni direzione",
   "eyeInstrPursuit": "Segui il punto con gli occhi, testa ferma",

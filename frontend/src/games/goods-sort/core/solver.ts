@@ -139,3 +139,29 @@ export function unreachableTypes(board: Board): number[] {
 export function pendingTriple(board: Board): boolean {
   return board.cells.some((c) => tripleIn(c) !== null);
 }
+
+/**
+ * ТУПИК НА ЖИВОЙ ДОСКЕ.
+ *
+ * ⚠️ ЖИВАЯ — ЭТО НЕ ВСЯ. Ниши под замком, под препятствием и вырезанные маской
+ * ходов не дают: считать их значит вечно находить несуществующий ход и никогда
+ * не объявлять тупик. Поэтому мёртвые ниши сюда приходят отдельным списком и
+ * опустошаются перед подсчётом.
+ *
+ * И разобранная доска тупиком НЕ считается: там ходов нет потому, что всё
+ * сделано. Сказать человеку «ходов больше нет» в момент победы — обиднее, чем
+ * промолчать.
+ */
+export function isDeadEnd(board: Board, usable: readonly boolean[], strict: boolean): boolean {
+  /**
+   * ⚠️ У НЕДОСТУПНОЙ НИШИ МЕСТ НОЛЬ, А НЕ ПРОСТО ПУСТО. Первая редакция обнуляла
+   * только содержимое, оставляя вместимость: запертая ниша продолжала считаться
+   * местом, куда можно положить, и тупик не наступал никогда. Недоступна — значит
+   * ни взять, ни положить.
+   */
+  const cells = board.cells.map((c, i) => (usable[i] === false ? [] : [...c]));
+  const caps = board.caps.map((cap, i) => (usable[i] === false ? 0 : cap));
+  const live = { cells, caps } as Board;
+  if (isCleared(live)) return false;
+  return !hasAnyMove(live, strict);
+}

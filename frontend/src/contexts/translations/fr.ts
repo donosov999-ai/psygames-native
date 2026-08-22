@@ -270,6 +270,7 @@ const t: Record<string, string> = {
   "goalMoves": "Tout vider. Coups au maximum :",
   "goalFree": "Libérer les niches marquées",
   "goodsSortHint": "Fais glisser un produit dans une case — ou touche-le, puis la case. Réunis 3 IDENTIQUES dans une case, ils disparaissent. Vide tout.",
+  "goodsSortDeadEnd": "Plus aucun coup possible : nulle part où poser. Annule quelques coups ou mélange.",
   "goodsLevel": "Niveau",
   "eyeInstrWarmup": "Suis le point dans chaque direction",
   "eyeInstrPursuit": "Suis le point des yeux, garde la tête immobile",

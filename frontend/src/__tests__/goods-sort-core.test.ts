@@ -18,7 +18,7 @@ import {
   tripleIn, removeTriple, canPlace, collapseTriples, moveTop, freeNiches, TRIPLE,
 } from '@/src/games/goods-sort/core/board';
 import {
-  solveStrict, solvableStrict, hasAnyMove, hintMove, pendingTriple,
+  solveStrict, solvableStrict, hasAnyMove, hintMove, pendingTriple, isDeadEnd,
 } from '@/src/games/goods-sort/core/solver';
 
 const B = (cells: number[][], caps: number[]) => makeBoard(cells, caps);
@@ -166,5 +166,91 @@ describe('🔴 тупик распознаётся — этого не было 
   it('сложенная тройка на доске видна отдельно', () => {
     expect(pendingTriple(B([[4, 4, 4]], [3]))).toBe(true);
     expect(pendingTriple(B([[4, 4]], [3]))).toBe(false);
+  });
+});
+
+declare const __dirname: string;
+declare function require(m: string): any;
+
+describe('🔴 тупик считается по ЖИВОЙ доске', () => {
+  const ALL = (n: number) => Array(n).fill(true);
+
+  it('ходы есть — тупика нет', () => {
+    expect(isDeadEnd(B([[1], [1, 1], []], [3, 3, 3]), ALL(3), true)).toBe(false);
+  });
+
+  it('ходов нет — тупик', () => {
+    expect(isDeadEnd(B([[1, 2], [3, 4], [5, 6]], [2, 2, 2]), ALL(3), true)).toBe(true);
+  });
+
+  /**
+   * 🔴 МЁРТВЫЕ НИШИ НЕ СЧИТАЮТСЯ. Ниша под замком ходов не даёт: считать её
+   * значит вечно находить несуществующий ход и никогда не объявлять тупик.
+   */
+  it('ниша под замком тупик не отменяет', () => {
+    const b = B([[1, 2], [3, 4], []], [2, 2, 3]);
+    expect(isDeadEnd(b, ALL(3), true)).toBe(false);          // третья свободна — ход есть
+    expect(isDeadEnd(b, [true, true, false], true)).toBe(true);  // она заперта — ходов нет
+  });
+
+  /**
+   * 🔴 РАЗОБРАННАЯ ДОСКА ТУПИКОМ НЕ СЧИТАЕТСЯ. Там ходов нет потому, что всё
+   * сделано. Сказать «ходов больше нет» в момент победы обиднее, чем промолчать.
+   */
+  it('победа тупиком не объявляется', () => {
+    expect(isDeadEnd(B([[], [], []], [3, 3, 3]), ALL(3), true)).toBe(false);
+  });
+
+  /**
+   * 🔴 ИЗ ЗАПЕРТОЙ НИШИ НЕ ВЗЯТЬ. Первая редакция проверяла только ниши ПУСТЫЕ и
+   * потому не ловила вторую половину правила: товар в запертой нише продолжал
+   * считаться доступным для хода, и тупик снова не наступал.
+   */
+  it('товар в запертой нише ходом не считается', () => {
+    /**
+     * ⚠️ СЛУЧАЙ ВЫБРАН ТАК, ЧТОБЫ ОН ПРАВДА РАЗЛИЧАЛ. Первая редакция брала
+     * `[[7], []]` и ждала «ход есть» — но переложить одинокий товар в пустую
+     * нишу это не ход: тройку из одной штуки не собрать, доска не меняется.
+     * Код был прав, ожидание — нет.
+     */
+    const b = B([[7], [7]], [3, 3]);
+    expect(isDeadEnd(b, [true, true], true)).toBe(false);      // семёрку можно сложить к семёрке
+    expect(isDeadEnd(b, [false, true], true)).toBe(true);      // первая заперта — складывать нечего
+  });
+
+  it('доска, живая только из-за запертых ниш, — всё равно тупик', () => {
+    const b = B([[1, 2], [], []], [2, 3, 3]);
+    expect(isDeadEnd(b, [true, false, false], true)).toBe(true);
+  });
+
+  it('без строгой укладки тупик наступает позже', () => {
+    const b = B([[1], [2], []], [3, 3, 3]);
+    expect(isDeadEnd(b, ALL(3), true)).toBe(true);
+    expect(isDeadEnd(b, ALL(3), false)).toBe(false);
+  });
+});
+
+describe('🔴 тупик доезжает до экрана', () => {
+  const read = (rel: string): string => require('fs').readFileSync(
+    require('path').join(__dirname, rel), 'utf8',
+  ) as string;
+  const code = (src: string): string =>
+    src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const screen = code(read('../../app/games/goods-sort.tsx'));
+
+  it('экран берёт расчёт из ядра, а не считает свой', () => {
+    expect(screen).toMatch(/isDeadEnd\(/);
+  });
+
+  it('тупик РИСУЕТСЯ, а не лежит в состоянии мёртвым грузом', () => {
+    expect(screen).toMatch(/\{deadEnd \?/);
+    expect(screen).toMatch(/goodsSortDeadEnd/);
+  });
+
+  it('сообщение вытесняет и правило игры, и цель — оно важнее', () => {
+    const at = screen.indexOf('{deadEnd ?');
+    const hint = screen.indexOf("t('goodsSortHint')");
+    expect(at).toBeGreaterThan(0);
+    expect(at).toBeLessThan(hint);
   });
 });
