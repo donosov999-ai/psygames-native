@@ -393,6 +393,7 @@ const t: Record<string, string> = {
   "bartDesc": "Encha o balão ou sacar o prêmio",
   "iowaDesc": "Aprenda a evitar os baralhos desvantajosos",
   "stroopEmotionalDesc": "Cor da fonte vs significado da palavra",
+  "stroopEmoLangFallback": "Palavras com carga emocional existem por enquanto só em russo e inglês: a rodada usará inglês. Se você não lê, será um Stroop comum.",
   "spatialSpanDesc": "Reproduza a sequência ao contrário",
   "posnerIntroDesc": "Uma cruz de fixação no centro. Primeiro aparece uma pista (seta) em um lado, depois um alvo. A pista costuma ser válida, mas pode enganar (inválida) ou ser neutra. Reaja ao lado do alvo. Métrica: efeito de validade = TR(inválida) − TR(válida) — índice de orientação da atenção.",
   "antIntroDesc": "O teste Fan-Posner mede 3 redes de atenção simultaneamente: alerta (prontidão), orientação (espacial), executiva (resolução de conflito via flanker). Cada tentativa combina: pista (nenhuma/central/dupla/espacial) + alvo (seta com flankers congruentes/incongruentes). 3 biomarcadores de uma só vez.",
