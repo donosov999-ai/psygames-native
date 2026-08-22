@@ -32,6 +32,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { MIN_TRIALS_FOR_LEVEL } from '@/app/games/cpt';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView
@@ -153,6 +154,7 @@ export default function PRLGame() {
   const consecutiveCorrectRef = useRef(0);            // for reversal trigger
   const blockIndexRef = useRef(0);                    // increments on each reversal
   const trialInBlockRef = useRef(0);
+  /** Сколько проб делает партию партией. Общий порог с тестом внимания. */
   const trialsRef = useRef<TrialRecord[]>([]);
   const startTimeRef = useRef(0);
   const respondLockRef = useRef(false);
@@ -251,7 +253,7 @@ export default function PRLGame() {
     }, 600);
   };
 
-  const finish = async () => {
+  const finish = async (stoppedEarly = false) => {
     respondLockRef.current = true;
     const classic = classicRef.current;
     const trials = trialsRef.current;
@@ -302,7 +304,14 @@ export default function PRLGame() {
     const passed = !classic && adaptAcc >= PASS_ACC;
     const stars = adaptAcc >= 0.8 ? 3 : adaptAcc >= 0.65 ? 2 : 1;
 
-    if (!classic) {
+    /**
+     * 🔴 «СТОП» СЧИТАЛСЯ ПРОВАЛОМ. Человек, которому позвонили на середине,
+     * получал минус к гистерезису — хотя не сделал ничего неправильно. В тесте
+     * внимания та же кнопка была наоборот бесплатным левел-апом: один перекос,
+     * два разных знака. Оборванная партия уровень НЕ ДВИГАЕТ ни в какую сторону.
+     */
+    const enoughTrials = !stoppedEarly && trialsRef.current.length >= MIN_TRIALS_FOR_LEVEL;
+    if (!classic && enoughTrials) {
       if (passed) lvl.reach(levelRef.current + 1);
       else lvl.fail();   // гистерезис: 3 провала подряд → уровень -1
     }
@@ -340,7 +349,7 @@ export default function PRLGame() {
     } catch (e) { console.error(e); }
   };
 
-  const stop = () => { if (phase === 'playing') finish(); };
+  const stop = () => { if (phase === 'playing') finish(true); };   // оборвали руками — не провал
 
   // ─── render ──────────────────────────────────────────────────────────
 
