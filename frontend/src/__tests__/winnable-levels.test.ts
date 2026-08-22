@@ -18,6 +18,7 @@
  */
 import { SPRITE_COUNT } from '@/src/constants/pairThemes';
 import { levelCfg } from '@/app/games/picture-pairs';
+import { levelParams, answerChoices } from '@/app/games/quick-count';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -67,5 +68,51 @@ describe('🔴 счётчик победы берётся из доски, а н
 
   it('и больше не приходит из конфига', () => {
     expect(screen).not.toMatch(/setPairsCount\(pairs\)/);
+  });
+});
+
+describe('«Быстрый счёт»: верный ответ всегда есть на экране', () => {
+  /**
+   * 🔴 ДИАПАЗОН ПЕРЕВОРАЧИВАЛСЯ С СОРОКОВОГО УРОВНЯ: нижняя граница росла без
+   * потолка, верхняя упиралась в двадцать. На 43-м кнопка оставалась одна при
+   * четырёх возможных ответах, на 45-м кнопок не оставалось НИ ОДНОЙ — партия
+   * вставала намертво. Тот же класс, что у «Пар»: уровень просит того, чего
+   * экран дать не может.
+   */
+  it('🔴 нижняя граница никогда не обгоняет верхнюю — сто уровней подряд', () => {
+    const bad: string[] = [];
+    for (let L = 1; L <= 100; L += 1) {
+      const p = levelParams(L);
+      if (p.minN > p.maxN) bad.push(`L${L}: ${p.minN}..${p.maxN} перевёрнут`);
+      if (p.maxN - p.minN < 2) bad.push(`L${L}: разброс ${p.maxN - p.minN} — угадывание, а не счёт`);
+    }
+    expect(bad.slice(0, 5)).toEqual([]);
+  });
+
+  it('🔴 кнопки накрывают ВЕСЬ возможный ответ', () => {
+    const bad: string[] = [];
+    for (let L = 1; L <= 100; L += 1) {
+      const p = levelParams(L);
+      const buttons = new Set(answerChoices(p));
+      for (let n = p.minN; n <= p.maxN; n += 1) {
+        if (!buttons.has(n)) bad.push(`L${L}: ответа ${n} нет на экране`);
+      }
+      if (buttons.size < 3) bad.push(`L${L}: кнопок ${buttons.size}`);
+    }
+    expect(bad.slice(0, 5)).toEqual([]);
+  });
+
+  it('на 45-м — том самом — кнопки есть', () => {
+    expect(answerChoices(levelParams(45)).length).toBeGreaterThanOrEqual(3);
+  });
+
+  /** ⚠️ Проверка проверки: прежняя формула на 45-м давала ноль кнопок. */
+  it('прежняя формула эту проверку бы завалила', () => {
+    const raw = (L: number) => {
+      const base = 3 + Math.floor((L - 1) / 2);
+      const spread = 2 + Math.floor(L / 5);
+      return { minN: base, maxN: Math.min(20, base + spread) };
+    };
+    expect(raw(45).minN).toBeGreaterThan(raw(45).maxN);
   });
 });
