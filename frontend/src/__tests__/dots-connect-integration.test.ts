@@ -260,9 +260,21 @@ describe('«Соедини точки» — ядро делает то, на ч�
   it('🔴 сложность растёт полем и парами, а не сокращением времени', () => {
     const size = (l: number) => generateDotsPuzzle(`p-${l}`, l).size;
     const pairs = (l: number) => generateDotsPuzzle(`p-${l}`, l).pairCount;
-    expect(size(1)).toBe(4);
-    expect(size(LEVELS)).toBe(8);
-    for (const [a, b] of [[1, 7], [7, 13], [13, 19], [19, 25]]) {
+    /**
+     * ⚠️ ЧИСЛА ОБНОВЛЕНЫ ПОД ГЕНЕРАТОР v2 (22.08.2026). Было: `size(1) === 4`,
+     * `size(LEVELS) === 8` и рост размера на ступенях 1→7→13→19→25. Это и было
+     * замером старой болезни: стартовая доска 4×4 на три пары, потолок 8×8 на
+     * восемь пар и пятнадцать одинаковых уровней в хвосте. Ступени подъёма
+     * стали короче (по три уровня), поэтому и контрольные точки другие. Разбор
+     * всей кривой и обратная сторона («поле не стоит на месте») — в
+     * `dots-flow.test.ts`, здесь остаётся сама мысль: сложность несёт
+     * СОДЕРЖАНИЕ доски, а не сокращение времени.
+     */
+    expect(size(1)).toBe(5);
+    expect(pairs(1)).toBe(4);
+    expect(Math.max(...Array.from({ length: LEVELS }, (_, i) => size(i + 1)))).toBe(10);
+    expect(pairs(LEVELS)).toBe(14);
+    for (const [a, b] of [[1, 4], [4, 7], [7, 10], [10, 13]]) {
       expect(`L${a}=${size(a)} < L${b}=${size(b)}`).toBe(`L${a}=${size(a)} < L${b}=${size(b + 0)}`);
       expect(size(b)).toBeGreaterThan(size(a));
     }

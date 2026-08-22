@@ -1,4 +1,4 @@
-import { generateDotsPuzzle } from './generator';
+import { generateDotsPuzzle, generateDotsTrainingPuzzle } from './generator';
 import {
   cellKey,
   clonePaths,
@@ -48,7 +48,8 @@ export function createDotsSession(config: DotsSessionConfig): DotsSession {
   };
   return {
     config: safeConfig,
-    trainingPuzzle: generateDotsPuzzle(`${safeConfig.seed}-training`, 1),
+    // Тренировка ЖИВЁТ ОТДЕЛЬНО ОТ ЛЕСЕНКИ: см. generateDotsTrainingPuzzle.
+    trainingPuzzle: generateDotsTrainingPuzzle(`${safeConfig.seed}-training`),
     puzzle: generateDotsPuzzle(safeConfig.seed, safeConfig.level),
     phase: 'rules',
     pausedFrom: null,
