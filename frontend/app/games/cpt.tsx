@@ -363,10 +363,15 @@ export default function CPTGame() {
      * Досчитать пробы за него нельзя, а гадать нечестно.
      */
     const played = trialsRef.current.length;
-    const enough = !stoppedEarly && played >= MIN_TRIALS_FOR_LEVEL;
-    const out = enough
-      ? levelOutcome({ isPreset, cleared: accuracy >= 0.7 && commissionRate <= 0.3 })
-      : { passed: false, raiseLevel: false, lowerLevel: false, phase: 'result' as const };
+    /**
+     * 🔴 «СТОП» БЫЛ БЕСПЛАТНЫМ ЛЕВЕЛ-АПОМ. Партия длится девяносто секунд, а
+     * зачёт считался по накопленному: дождался первой цели, тапнул, нажал
+     * «СТОП» — точность 1/1, ложных тревог ноль, уровень взят за десять секунд.
+     * Замер: в 100 % прогонов. Правило «обрыв уровень не двигает» живёт в
+     * `levelOutcome`, а не здесь: иначе следующая игра решит по-своему.
+     */
+    const aborted = stoppedEarly || played < MIN_TRIALS_FOR_LEVEL;
+    const out = levelOutcome({ isPreset, aborted, cleared: accuracy >= 0.7 && commissionRate <= 0.3 });
     const passed = out.passed;
     if (out.raiseLevel) lvl.reach(levelRef.current + 1);
     if (out.lowerLevel) lvl.fail();   // гистерезис: 3 провала подряд → уровень -1
