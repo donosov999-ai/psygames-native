@@ -60,7 +60,7 @@ interface Story {
   read_seconds: number;
 }
 
-const STORIES: Story[] = [
+export const STORIES: Story[] = [
   {
     ru: 'Анна Морозова работает в больнице на улице Ленина. Вчера вечером она вышла с работы в 8 часов и пошла домой пешком. По дороге она встретила старого друга Михаила, который рассказал, что выиграл 500 тысяч рублей в лотерею. Они вместе зашли в кафе на углу и заказали пиццу. Михаил пообещал купить Анне новый велосипед в подарок.',
     en: 'Anna Miller works at the hospital on Maple Street. Yesterday evening she left work at 8 oclock and walked home. On the way she met an old friend Thomas, who told her he won 500 thousand dollars in the lottery. They went together to the cafe on the corner and ordered a pizza. Thomas promised to buy Anna a new bicycle as a gift.',
@@ -92,7 +92,7 @@ const STORIES: Story[] = [
   {
     ru: 'Татьяна Лебедева — врач-стоматолог в клинике «Жемчуг» на Невском проспекте 78. В пятницу к ней пришёл пациент с острой зубной болью. Операция длилась 45 минут и стоила 8500 рублей. После работы Татьяна забрала дочь Машу из детского сада «Радуга» и купила ей мороженое.',
     en: 'Tanya Brooks is a dentist at the Pearl clinic at 78 Chestnut Avenue. On Friday a patient came with acute toothache. The surgery lasted 45 minutes and cost 850 dollars. After work Tanya picked up her daughter Molly from kindergarten Rainbow and bought her an ice cream.',
-    keywords_ru: ['Татьяна','Лебедева','стоматолог','Жемчуг','Невском','78','пятницу','пациент','зубной','45','минут','8500','дочь','Машу','садa','Радуга','мороженое'],
+    keywords_ru: ['Татьяна','Лебедева','стоматолог','Жемчуг','Невском','78','пятницу','пациент','зубной','45','минут','8500','дочь','Машу','сада','Радуга','мороженое'],
     keywords_en: ['Tanya','Brooks','dentist','Pearl','Chestnut','78','Friday','patient','toothache','45','minutes','850','daughter','Molly','kindergarten','Rainbow','ice'],
     read_seconds: 32,
   },
@@ -180,6 +180,52 @@ type GamePhase = 'intro' | 'config' | 'reading' | 'distractor1' | 'recall1' | 'd
 const DISTRACTOR1_SEC = 30;   // short delay before immediate recall
 const DISTRACTOR2_SEC = 90;   // longer delay before delayed recall
 
+/** Стем ключа — то, по чему идёт сравнение с пересказом. */
+export const storyStem = (kw: string): string =>
+  kw.toLowerCase().slice(0, Math.max(4, Math.min(kw.length, 5)));
+
+/**
+ * КЛЮЧИ, КОТОРЫЕ РЕАЛЬНО МОЖНО НАБРАТЬ ПОРОЗНЬ — и числитель, и знаменатель берут их.
+ *
+ * 🔴 ЧТО БЫЛО. Считали по одному списку, делили на другой. Сравнение идёт по стему в
+ * 4–5 букв, а в списках лежали ключи, у которых стем ОДИН:
+ *
+ *   «миллионов» и «миллиона» → оба «милли»: одно написанное слово засчитывалось ДВАЖДЫ;
+ *   «9» дважды в одном рассказе (234 пассажира и 9 членов экипажа, 9 часов полёта) →
+ *   в множество попадал один, а делили на 18 → безупречный пересказ давал 17/18.
+ *
+ * Оба перекоса тихие: человек получал «ошибку» за идеальную работу либо лишний балл за
+ * половину. Заявленный биомаркер `retention_rate` считался по искажённым числителю И
+ * знаменателю сразу.
+ *
+ * Отбрасываем и вложенные стемы: если один стем — начало другого, одно слово подошло бы
+ * к обоим, и это снова двойной счёт.
+ */
+export function storyKeys(keywords: readonly string[]): string[] {
+  const kept: string[] = [];
+  const stems: string[] = [];
+  for (const kw of keywords) {
+    const st = storyStem(kw);
+    if (stems.some((prev) => prev === st || st.startsWith(prev) || prev.startsWith(st))) continue;
+    stems.push(st);
+    kept.push(kw);
+  }
+  return kept;
+}
+
+/** Сколько ключей рассказа названо в пересказе. Сравнение по стему (4–5 букв). */
+export function countStoryMatches(text: string, keywords: readonly string[]): number {
+  const words = text.toLowerCase().split(/[\s,;.!?]+/).filter(Boolean);
+  const matched = new Set<string>();
+  for (const kw of storyKeys(keywords)) {
+    const stem = storyStem(kw);
+    for (const w of words) {
+      if (w.startsWith(stem)) { matched.add(stem); break; }
+    }
+  }
+  return matched.size;
+}
+
 export default function StoryRecallGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
@@ -216,21 +262,11 @@ export default function StoryRecallGame() {
 
   useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
 
-  // Match a recall text against keywords using stem-match (4-char prefix)
-  const countMatches = (text: string, keywords: string[]): number => {
-    const words = text.toLowerCase().split(/[\s,;.!?]+/).filter(Boolean);
-    const matched = new Set<string>();
-    for (const kw of keywords) {
-      const stem = kw.toLowerCase().slice(0, Math.max(4, Math.min(kw.length, 5)));
-      for (const w of words) {
-        if (w.startsWith(stem)) {
-          matched.add(kw.toLowerCase());
-          break;
-        }
-      }
-    }
-    return matched.size;
-  };
+  /**
+   * Совпадения пересказа с ключами. Правило одно на игру (`countStoryMatches`) — и по
+   * нему же считается знаменатель, иначе они снова разъедутся.
+   */
+  const countMatches = (text: string, keywords: string[]): number => countStoryMatches(text, keywords);
 
   const startGame = () => {
     const s = STORIES[Math.floor(Math.random() * STORIES.length)];
@@ -314,7 +350,7 @@ export default function StoryRecallGame() {
     const hits = countMatches(recall2Text, kws);
     setRecall2Hits(hits);
     setPhase('result');
-    const total = kws.length;
+    const total = storyKeys(kws).length;
     const immediatePct = total > 0 ? (recall1Hits / total) : 0;
     const delayedPct = total > 0 ? (hits / total) : 0;
     const retention = immediatePct > 0 ? delayedPct / immediatePct : 0;
@@ -503,7 +539,7 @@ export default function StoryRecallGame() {
           Звёзды здесь НАСТОЯЩИЕ: доля деталей, переживших помеху. Отложенный
           пересказ — то, ради чего упражнение и делается, поэтому считаем по нему. */}
       {phase === 'result' && (() => {
-        const total = (language === 'ru' ? story.keywords_ru.length : story.keywords_en.length);
+        const total = storyKeys(language === 'ru' ? story.keywords_ru : story.keywords_en).length;
         const kept = total > 0 ? recall2Hits / total : 0;
         const stars = kept >= 0.7 ? 3 : kept >= 0.4 ? 2 : 1;
         return (
