@@ -38,8 +38,17 @@ export function validateEulerGraph(puzzle: OneLinePuzzle): GraphValidation {
     const key = edgeKey(edge.a, edge.b);
     if (topology.has(key)) issues.push(`parallel edge ${key}`);
     topology.add(key);
-    degrees[edge.a] = (degrees[edge.a] ?? 0) + 1;
-    degrees[edge.b] = (degrees[edge.b] ?? 0) + 1;
+    /**
+     * 🔴 СТЕПЕНЬ СЧИТАЕТСЯ ПО ПРОХОДАМ, А НЕ ПО РЁБРАМ. Двойное ребро проходится
+     * ДВАЖДЫ, значит каждой своей вершине оно добавляет два, а не один. Пока
+     * считалось по рёбрам, отросток с двойным ребром делал обе свои вершины
+     * нечётными — и правильный по построению уровень объявлялся нерешаемым
+     * (поймано на 25-м уровне 22.08.2026). Правило Эйлера говорит про проходы;
+     * ребро и проход перестали быть одним и тем же, когда появилось двойное.
+     */
+    const uses = edgeUses(edge);
+    degrees[edge.a] = (degrees[edge.a] ?? 0) + uses;
+    degrees[edge.b] = (degrees[edge.b] ?? 0) + uses;
     adjacency.get(edge.a)?.push(edge.b);
     adjacency.get(edge.b)?.push(edge.a);
   }
@@ -120,18 +129,32 @@ export function findEulerTrail(puzzle: OneLinePuzzle, requestedStart?: string): 
 }
 
 export function validateEulerSolution(puzzle: OneLinePuzzle, solution: EulerSolution): boolean {
-  if (solution.edgeIds.length !== puzzle.edges.length
-    || solution.vertexIds.length !== puzzle.edges.length + 1) return false;
-  if (new Set(solution.edgeIds).size !== puzzle.edges.length) return false;
+  /**
+   * 🔴 ПРОВЕРКА ЖИВЁТ ПО ПРОХОДАМ, А НЕ ПО РЁБРАМ. Прежняя редакция требовала
+   * «каждое ребро ровно один раз, направление неважно» — это было верно ровно до
+   * появления двойных и односторонних рёбер. 22.08.2026 генератор начал их
+   * ставить, и проверка объявила нерешаемыми 43 уровня из 108, ни один из
+   * которых нерешаемым не был.
+   */
+  const total = totalEdgeUses(puzzle.edges);
+  if (solution.edgeIds.length !== total
+    || solution.vertexIds.length !== total + 1) return false;
+
   const edgeById = new Map(puzzle.edges.map((edge) => [edge.id, edge]));
+  const used = new Map<string, number>();
   for (let index = 0; index < solution.edgeIds.length; index += 1) {
     const edge = edgeById.get(solution.edgeIds[index] as string);
     const from = solution.vertexIds[index];
     const to = solution.vertexIds[index + 1];
     if (!edge || !from || !to) return false;
-    if (!((edge.a === from && edge.b === to) || (edge.a === to && edge.b === from))) return false;
+    // Направление: по одностороннему назад хода нет.
+    if (!edgeAllowsDirection(edge, from, to)) return false;
+    const done = (used.get(edge.id) ?? 0) + 1;
+    if (done > edgeUses(edge)) return false;          // прошли лишний раз
+    used.set(edge.id, done);
   }
-  return true;
+  // И каждое ребро пройдено СТОЛЬКО РАЗ, СКОЛЬКО ПОЛОЖЕНО — не меньше.
+  return puzzle.edges.every((edge) => (used.get(edge.id) ?? 0) === edgeUses(edge));
 }
 
 /**
