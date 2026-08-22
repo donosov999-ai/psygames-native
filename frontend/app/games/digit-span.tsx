@@ -128,6 +128,11 @@ export default function DigitSpanGame() {
   const [maxSpan, setMaxSpan] = useState(0);
   const [round, setRound] = useState(0);
   const [errors, setErrors] = useState(0);
+  /**
+   * Ошибки на ТЕКУЩЕЙ длине. Ref, а не состояние: решение об остановке принимается
+   * внутри того же обработчика, что и запись, — состояние туда не успело бы доехать.
+   */
+  const errorsAtLenRef = useRef(0);
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);
@@ -163,6 +168,7 @@ export default function DigitSpanGame() {
     if (!isPreset) setDirection(dirRef.current);
     const startLen = isPreset ? seqLen : p.startLen;
     setCorrectRounds(0); setMaxSpan(0); setRound(1); setErrors(0);
+    errorsAtLenRef.current = 0;   // новая партия — счёт ошибок на длине с нуля
     setStartTime(gameNow());
     setSeqLen(startLen);
     showSequence(startLen);
@@ -214,16 +220,31 @@ export default function DigitSpanGame() {
     let updatedMax = maxSpan;
     let updatedCorrect = correctRounds;
     let updatedErrors = errors;
+    // Ошибки НА ТЕКУЩЕЙ ДЛИНЕ: обнуляются, как только длина взята.
+    let atLenErrors = errorsAtLenRef.current;
 
     if (correct) {
       updatedCorrect += 1;
       updatedMax = Math.max(updatedMax, seqLen);
       nextLen = seqLen + 1;
+      atLenErrors = 0;
     } else {
       updatedErrors += 1;
-      // 2 errors at same length => stop
-      if (errors >= 1 || round >= 12) cont = false;
+      /**
+       * 🔴 ПРАВИЛО НЕ СООТВЕТСТВОВАЛО СОБСТВЕННОМУ КОММЕНТАРИЮ. Написано «две ошибки
+       * НА ОДНОЙ ДЛИНЕ», а стояло `errors >= 1` — то есть две ошибки ЗА ВСЮ ПАРТИЮ:
+       * общий счётчик не сбрасывался на успехе. Ошибся на длине 4, взял её со второго
+       * раза, ошибся на 5 — партия окончена, хотя на пятёрке это была ПЕРВАЯ попытка.
+       *
+       * Спан — это докуда человек дошёл до двух ошибок на одной длине; так устроен
+       * «Спан по клеткам» рядом (`errorsAtLen`, сброс на успехе) и так устроена сама
+       * методика. Модель игрока показывает недомер около 0,1 спана — немного, но это
+       * ЗАМЕРЯЕМАЯ величина, и врать в ней нельзя даже на десятую.
+       */
+      atLenErrors += 1;
+      if (atLenErrors >= 2 || round >= 12) cont = false;
     }
+    errorsAtLenRef.current = atLenErrors;
     setCorrectRounds(updatedCorrect);
     setMaxSpan(updatedMax);
     setErrors(updatedErrors);
