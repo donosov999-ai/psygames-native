@@ -1223,7 +1223,7 @@ const t: Record<string, string> = {
   "sudokuRuleAntiking": "相同数字连对角线也不能相邻（王步）。",
   "sudokuRuleEvenodd": "□ 表示偶数，○ 表示奇数：形状提示奇偶。",
   "sudokuRuleKropki": "白点：两格相差 1。黑点：一格是另一格的两倍。",
-  "sudokuRuleSandwich": "边上的数 = 该行/列中 1 和 9 之间数字的和。",
+  "sudokuRuleSandwich": "边上的数字是该行（列）中数字 1 所在格与数字 9 所在格之间各数之和。1 和 9 本身不计入。零表示两者相邻。",
   "sudokuRuleThermo": "沿温度计从球端起数字严格递增。",
   "sudokuRuleArrow": "箭头上数字之和等于圆圈中的数。",
   "sudokuRuleThermocage": "两条规则同时生效：沿温度计从球端起数字严格递增；在彩色笼子里，数字之和等于角上的数，且不重复。",

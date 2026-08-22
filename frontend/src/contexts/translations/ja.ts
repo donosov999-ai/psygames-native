@@ -641,7 +641,7 @@ const t: Record<string, string> = {
   "sudokuRuleAntiking": "同じ数字は斜めでも隣接できません（キングの動き）。",
   "sudokuRuleEvenodd": "□は偶数、○は奇数 — 形がパリティを教えます。",
   "sudokuRuleKropki": "白ドット：差1。黒ドット：一方が他方の2倍。",
-  "sudokuRuleSandwich": "端の数字＝その行/列の1と9の間にある数字の合計。",
+  "sudokuRuleSandwich": "端の数字は、その行（列）で 1 のマスと 9 のマスの間にある数字の合計です。1 と 9 自身は含みません。ゼロは隣り合っていることを意味します。",
   "sudokuRuleThermo": "温度計に沿って球から数字が厳密に増加します。",
   "sudokuRuleArrow": "矢印上の数字の合計が丸の中の数になります。",
   "sudokuRuleThermocage": "ルールは二つ同時です：温度計に沿って球側から数字が厳密に増え、色付きケージの中では角の数になる合計を、重複なしでつくります。",

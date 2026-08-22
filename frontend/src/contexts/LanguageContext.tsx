@@ -2087,7 +2087,7 @@ const translations: Translations = {
   sudokuRuleAntiking: { ru: 'Одинаковые цифры не касаются даже по диагонали (ход короля).', en: 'Equal digits cannot touch even diagonally (a king’s move).' },
   sudokuRuleEvenodd: { ru: '□ — чётная цифра, ○ — нечётная: форма подсказывает чётность.', en: '□ even, ○ odd — the shape hints each cell’s parity.' },
   sudokuRuleKropki: { ru: 'Белая точка между клетками — соседние ±1, чёрная — одно вдвое больше.', en: 'White dot between cells: consecutive (±1). Black dot: one is double the other.' },
-  sudokuRuleSandwich: { ru: 'Число у края — сумма цифр между 1 и 9 в этом ряду/столбце.', en: 'Edge number = sum of digits between the 1 and the 9 in that row/column.' },
+  sudokuRuleSandwich: { ru: 'Число у края — сумма цифр, стоящих МЕЖДУ клеткой с единицей и клеткой с девяткой в этом ряду. Сами 1 и 9 не считаются. Ноль значит, что они стоят вплотную.', en: 'The edge number is the sum of the digits sitting BETWEEN the cell holding 1 and the cell holding 9 in that line. The 1 and the 9 themselves are not counted. Zero means they are next to each other.' },
   sudokuRuleThermo: { ru: 'Вдоль термометра цифры строго растут от колбы.', en: 'Digits strictly increase along each thermometer from the bulb.' },
   sudokuRuleArrow: { ru: 'Цифры вдоль стрелки в сумме равны числу в кружке.', en: 'Digits along the arrow sum to the number in the circle.' },
   sudokuRuleThermocage: { ru: 'Два правила разом: вдоль термометра цифры строго растут от колбы, а в цветной группе они дают сумму из угла и не повторяются.', en: 'Two rules at once: digits strictly increase along each thermometer from the bulb, and inside a tinted cage they add up to its corner number without repeating.' },

@@ -1340,7 +1340,7 @@ const t: Record<string, string> = {
   "sudokuRuleAntiking": "Cifre uguali non si toccano nemmeno in diagonale (mossa del re).",
   "sudokuRuleEvenodd": "□ — cifra pari, ○ — dispari: la forma svela la parità.",
   "sudokuRuleKropki": "Punto bianco tra celle: consecutivi (±1). Punto nero: uno è il doppio dell’altro.",
-  "sudokuRuleSandwich": "Numero al bordo = somma delle cifre tra l’1 e il 9 di quella riga/colonna.",
+  "sudokuRuleSandwich": "Il numero al bordo è la somma delle cifre comprese TRA la casella con l’1 e la casella con il 9 di quella linea. L’1 e il 9 non si contano. Zero significa che sono adiacenti.",
   "sudokuRuleThermo": "Lungo il termometro le cifre crescono strettamente dal bulbo.",
   "sudokuRuleArrow": "Le cifre lungo la freccia sommano al numero nel cerchio.",
   "sudokuRuleThermocage": "Due regole insieme: lungo il termometro le cifre crescono strettamente dal bulbo, e in una gabbia colorata danno la somma indicata nel suo angolo senza ripetersi.",
