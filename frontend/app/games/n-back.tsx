@@ -36,6 +36,12 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
+import {
+  accuracyPercent,
+  getNBackStrings,
+  signalDetection,
+  type NBackCounts,
+} from '@/src/games/n-back/core';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const NB_RULES: LevelRule[] = [
@@ -58,6 +64,23 @@ const BOSS_EVERY = 3;   // веха-босс каждые 3 уровня (рез
 type Modality = 'single' | 'dual';   // single = visual only (legacy); dual = visual + audio (Brain Workshop style)
 
 const AUDIO_LETTERS = ['B', 'D', 'F', 'H', 'K', 'L', 'M', 'Q', 'R', 'T'];   // consonants only — no confusion with positions
+
+/**
+ * РАЗБОР ОТВЕТОВ ПАРТИИ — ТО, ЧТО ВИДИТ ЧЕЛОВЕК.
+ *
+ * 🔴 ЧТО БЫЛО СЛОМАНО. d′ считался верно и уходил в сессию полем `d_prime`, но
+ * на экране его не было ни разу: человеку показывали одну долю верных ответов.
+ * А голая точность в n-back смешивает два разных умения — заметить повтор и не
+ * нажать на новом. 90% может означать и отличную партию, и осторожное «почти
+ * всегда молчу»: правильные отказы набегают сами. Число, по которому нельзя
+ * отличить одно от другого, не говорит человеку ничего о его игре.
+ *
+ * ⚠️ ДВА ПОТОКА ХРАНЯТСЯ ПОРОЗНЬ. В двойном режиме повтор клетки и повтор буквы
+ * выпадают независимо; общий d′ по смешанным пробам физически бессмыслен.
+ * `audio` = null — слухового потока в этой партии не было (одиночный режим).
+ */
+type ChannelReadout = { accuracy: number; dPrime: number };
+type RoundReadout = { dual: boolean; visual: ChannelReadout; audio: ChannelReadout | null };
 
 /**
  * ⚠️ ВТОРОГО ИСТОЧНИКА ПРАВДЫ ПРО РЕЧЬ БОЛЬШЕ НЕТ. Здесь жила своя озвучка мимо
@@ -95,6 +118,7 @@ export default function NBackGame() {
   const lvl = usePersistentLevel('n_back');   // персист-уровень = N (1-back=L1, 2-back=L2…)
   const { profile } = useProfile();
   const [accuracyHistory, setAccuracyHistory] = useState<number[]>([]);
+  const [readout, setReadout] = useState<RoundReadout | null>(null);   // точность и d′ последней партии — для показа человеку
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
@@ -167,6 +191,7 @@ export default function NBackGame() {
     setHits(0); setMisses(0); setFalseAlarms(0); setCorrectRejections(0);
     setBossWon(null);
     setResultBenchmark(null);
+    setReadout(null);   // числа прошлой партии не должны висеть поверх новой
     setAHits(0); setAMisses(0); setAFalseAlarms(0); setACorrectRejections(0);
     statsRef.current = { hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0, aHits: 0, aMisses: 0, aFalseAlarms: 0, aCorrectRejections: 0 };
     setHistory([]); setAudioHistory([]); setCurrentIdx(-1); setActiveCell(null); setActiveLetter('');
@@ -263,13 +288,13 @@ export default function NBackGame() {
     const { hits, misses, falseAlarms, correctRejections, aHits, aMisses, aFalseAlarms, aCorrectRejections } = statsRef.current;
     const finalTime = (gameNow() - startTime) / 1000;
     setElapsedTime(finalTime);
-    const totalAnswered = hits + misses + falseAlarms + correctRejections;
-    const accuracy = totalAnswered > 0 ? Math.round(((hits + correctRejections) / totalAnswered) * 100) : 0;
+    const visualCounts: NBackCounts = { hits, misses, falseAlarms, correctRejections };
+    const audioCounts: NBackCounts = { hits: aHits, misses: aMisses, falseAlarms: aFalseAlarms, correctRejections: aCorrectRejections };
+    const accuracy = accuracyPercent(visualCounts, 0);
     // Dual-режим: раньше проход уровня гейтился ТОЛЬКО визуальным каналом — можно было
     // игнорировать звук и всё равно левелапиться. Jaeggi-скоринг: итог = МИН(визуал, аудио),
     // не средний — иначе один провальный канал маскируется хорошим другим.
-    const audioTotalAnswered = aHits + aMisses + aFalseAlarms + aCorrectRejections;
-    const audioAccuracy = audioTotalAnswered > 0 ? Math.round(((aHits + aCorrectRejections) / audioTotalAnswered) * 100) : 100;
+    const audioAccuracy = accuracyPercent(audioCounts, 100);   // 100 при пустом канале: итог берётся минимумом, ноль завалил бы уровень ни за что
     const combinedAccuracy = modality === 'dual' ? Math.min(accuracy, audioAccuracy) : accuracy;
     const passed = !isPreset && combinedAccuracy >= 80;
     const ownLeaderboardLevel = passed ? levelRef.current + 1 : Math.max(1, lvl.level);
@@ -287,35 +312,30 @@ export default function NBackGame() {
       }
     }
     else if (!isPreset) lvl.fail();   // не прошёл уровень → гистерезис понижения (3 провала подряд → level-1)
-    // Signal Detection Theory: d' = z(hit_rate) - z(false_alarm_rate)
-    // Hit rate = hits / (hits + misses); False alarm rate = falseAlarms / (falseAlarms + correctRejections)
-    // Apply log-linear correction to avoid infinity (Snodgrass & Corwin 1988): add 0.5 to numerator, 1 to denominator
-    const hitTrials = hits + misses;
-    const faTrials = falseAlarms + correctRejections;
-    const hitRate = hitTrials > 0 ? (hits + 0.5) / (hitTrials + 1) : 0.5;
-    const faRate = faTrials > 0 ? (falseAlarms + 0.5) / (faTrials + 1) : 0.5;
-    // Inverse normal CDF approximation (Beasley-Springer-Moro)
-    const zScore = (p: number): number => {
-      // simple approximation good enough for d-prime: rational approximation
-      const a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
-      const b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
-      const c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
-      const d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
-      const pLow = 0.02425, pHigh = 1 - pLow;
-      let q, r;
-      if (p < pLow) { q = Math.sqrt(-2 * Math.log(p)); return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
-      if (p <= pHigh) { q = p - 0.5; r = q*q; return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1); }
-      q = Math.sqrt(-2 * Math.log(1 - p));
-      return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
-    };
-    const dPrime = Number((zScore(hitRate) - zScore(faRate)).toFixed(2));
-
-    // Audio stream metrics (only meaningful in dual mode)
-    const aHitTrials = aHits + aMisses;
-    const aFaTrials = aFalseAlarms + aCorrectRejections;
-    const aHitRate = aHitTrials > 0 ? (aHits + 0.5) / (aHitTrials + 1) : 0.5;
-    const aFaRate = aFaTrials > 0 ? (aFalseAlarms + 0.5) / (aFaTrials + 1) : 0.5;
-    const aDPrime = modality === 'dual' ? Number((zScore(aHitRate) - zScore(aFaRate)).toFixed(2)) : null;
+    /**
+     * d′ — ТЕОРИЯ ОБНАРУЖЕНИЯ СИГНАЛА, СЧИТАЕТ ОБЩИЙ МОДУЛЬ.
+     *
+     * Формула и коэффициенты уехали в `src/games/n-back/core/dprime.ts` целиком,
+     * байт в байт: раньше они жили внутри этого обработчика вместе с локальной
+     * аппроксимацией обратной нормали, и проверить одно число можно было только
+     * подняв весь экран с таймерами, речью и хранилищем. Числа не менялись —
+     * иначе сохранённые `d_prime` прошлых партий перестали бы сравниваться.
+     *
+     * ⚠️ Каждый поток считается СВОИМ вызовом: пробы клетки и буквы независимы,
+     * и общий d′ по смешанным пробам не значит ничего. Лог-линейная поправка
+     * (Снодграсс–Корвин) применена внутри ядра к ОБОИМ каналам — она же
+     * защищает от деления на ноль на пустой партии.
+     */
+    const visualSignal = signalDetection(visualCounts);
+    const audioSignal = modality === 'dual' ? signalDetection(audioCounts) : null;
+    const dPrime = visualSignal.dPrime;
+    const aDPrime = audioSignal ? audioSignal.dPrime : null;
+    // На экран уходит РОВНО то же число, что и в сессию, — не пересчитанное заново при отрисовке.
+    setReadout({
+      dual: modality === 'dual',
+      visual: { accuracy, dPrime: visualSignal.dPrime },
+      audio: audioSignal ? { accuracy: audioAccuracy, dPrime: audioSignal.dPrime } : null,
+    });
 
     try {
       await saveSession({
@@ -331,8 +351,8 @@ export default function NBackGame() {
           level: levelRef.current,
           hits, misses, falseAlarms, correctRejections, accuracy,
           d_prime: dPrime,
-          hit_rate: Number(hitRate.toFixed(3)),
-          false_alarm_rate: Number(faRate.toFixed(3)),
+          hit_rate: Number(visualSignal.hitRate.toFixed(3)),
+          false_alarm_rate: Number(visualSignal.falseAlarmRate.toFixed(3)),
           modality,
           ...(modality === 'dual' ? {
             audio_hits: aHits,
@@ -550,6 +570,30 @@ export default function NBackGame() {
     );
   }
 
+  /**
+   * ЧТО ПОКАЗАТЬ ЧЕЛОВЕКУ ПОСЛЕ ПАРТИИ: точность И d′, а не одну точность.
+   *
+   * ⚠️ В двойном режиме — четыре числа, по два на поток, и это не педантизм.
+   * Каналы независимы, и человек, который отлично ведёт клетки и не слышит
+   * букв, обязан увидеть это порознь: усреднённая пара сказала бы «вроде
+   * ничего» ровно там, где половина игры не работает.
+   */
+  const nbStrings = getNBackStrings(language);
+  const readoutMetrics = readout
+    ? (readout.dual && readout.audio
+        ? [
+            { label: `${nbStrings.accuracy} · ${nbStrings.channelVisual}`, value: `${readout.visual.accuracy}%`, icon: 'eye-outline' },
+            { label: `${nbStrings.dPrime} · ${nbStrings.channelVisual}`, value: readout.visual.dPrime.toFixed(2), icon: 'analytics-outline' },
+            { label: `${nbStrings.accuracy} · ${nbStrings.channelAudio}`, value: `${readout.audio.accuracy}%`, icon: 'volume-high-outline' },
+            { label: `${nbStrings.dPrime} · ${nbStrings.channelAudio}`, value: readout.audio.dPrime.toFixed(2), icon: 'analytics-outline' },
+          ]
+        : [
+            { label: nbStrings.accuracy, value: `${readout.visual.accuracy}%`, icon: 'eye-outline' },
+            { label: nbStrings.dPrime, value: readout.visual.dPrime.toFixed(2), icon: 'analytics-outline' },
+          ])
+    : undefined;
+  const readoutNote = readoutMetrics ? [nbStrings.dPrimeHint, nbStrings.dPrimeWhy] : undefined;
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -580,12 +624,32 @@ export default function NBackGame() {
             : undefined}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
+      {/* Баннер уровня — единственный итог, который человек видит в обычной игре:
+          полноэкранный GameResult достаётся только пресетам («Вызов дня», зарядка).
+          Поэтому разбор ответов висит и здесь, отдельной полосой под баннером. */}
+      {phase === 'cleared' && readoutMetrics && readoutNote && (
+        <View style={[styles.readoutStrip, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+          <View style={styles.readoutRow}>
+            {readoutMetrics.map((m) => (
+              <View key={m.label} style={styles.readoutItem}>
+                <Text style={[styles.readoutLabel, { color: colors.textSecondary }]}>{m.label}</Text>
+                <Text style={[styles.readoutValue, { color: colors.text }]}>{m.value}</Text>
+              </View>
+            ))}
+          </View>
+          {readoutNote.map((line) => (
+            <Text key={line} style={[styles.readoutNote, { color: colors.textSecondary }]}>{line}</Text>
+          ))}
+        </View>
+      )}
       {phase === 'result' && (
         <GameResult
           score={hits * 10 - falseAlarms * 5 + (bossWon ? 50 : 0)}
           stars={bossWon === true ? 3 : undefined}
           time={elapsedTime}
           errors={misses + falseAlarms}
+          metrics={readoutMetrics}
+          metricsNote={readoutNote}
           onPlayAgain={() => setPhase('config')}
           onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]}
@@ -634,4 +698,11 @@ const styles = StyleSheet.create({
   letterDisplay: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' },
   letterText: { color: '#FFF', fontSize: 38, fontWeight: '900' },
   hintText: { fontSize: 12, textAlign: 'center' },
+  // Разбор ответов под баннером уровня: LevelCleared занимает flex:1, полоса садится под ним.
+  readoutStrip: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 10, borderTopWidth: StyleSheet.hairlineWidth, gap: 6 },
+  readoutRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 18 },
+  readoutItem: { alignItems: 'center', minWidth: 76 },
+  readoutLabel: { fontSize: 11.5, fontWeight: '600', textAlign: 'center' },
+  readoutValue: { fontSize: 19, fontWeight: '800', marginTop: 2 },
+  readoutNote: { fontSize: 12, lineHeight: 16, textAlign: 'center' },
 });

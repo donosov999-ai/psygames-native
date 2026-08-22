@@ -24,6 +24,21 @@ interface GameResultProps {
   shareText?: string;   // v1.116.0: если передан — показать кнопку «Поделиться» с этим текстом
   sparkline?: { history: number[]; current: number; lowerIsBetter?: boolean };   // v1.116.0: спарклайн последних сессий
   comparisonLine?: string;   // свой итог · лучший среди игроков / личный рекорд при офлайне
+  /**
+   * ПОКАЗАТЕЛИ СВОЕЙ ИГРЫ — необязательный второй ряд под временем и счётом.
+   *
+   * ⚠️ ЗАЧЕМ ДАННЫМИ, А НЕ ГОТОВОЙ РАЗМЕТКОЙ. Экран лежит на градиенте, и цвет
+   * текста здесь не выбирают, а СЧИТАЮТ по обоим его концам (onGradientText).
+   * Пусти сюда чужой JSX — и каждая игра начала бы красить подписи сама, мимо
+   * этого расчёта; ровно так тут когда-то и оказался зашитый `#FFFFFF`.
+   * Поэтому игра отдаёт подпись, значение и имя иконки, а цвет остаётся общим.
+   *
+   * Свойство необязательное: не передали — ряда нет, и для остальных игр экран
+   * не меняется ни на пиксель.
+   */
+  metrics?: { label: string; value: string; icon?: string }[];
+  /** Строки-пояснения под рядом: что показатель значит и как его читать. */
+  metricsNote?: string[];
 }
 
 export default function GameResult({
@@ -37,6 +52,8 @@ export default function GameResult({
   shareText,
   sparkline,
   comparisonLine,
+  metrics,
+  metricsNote,
 }: GameResultProps) {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -152,6 +169,26 @@ export default function GameResult({
             </View>
           )}
         </View>
+
+        {metrics && metrics.length > 0 && (
+          <View style={styles.statsContainer}>
+            {metrics.map((m) => (
+              <View key={m.label} style={styles.statItem}>
+                {m.icon ? <Ionicons name={m.icon as any} size={24} color={fg} /> : null}
+                <Text style={[styles.statLabel, { color: fgSoft }]}>{m.label}</Text>
+                <Text style={[styles.statValue, { color: fg }]}>{m.value}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {metricsNote && metricsNote.length > 0 && (
+          <View style={styles.metricsNotes}>
+            {metricsNote.map((line) => (
+              <Text key={line} style={[styles.metricsNoteText, { color: fgSoft }]}>{line}</Text>
+            ))}
+          </View>
+        )}
 
         {comparisonLine && (
           <View style={styles.comparisonBadge}>
@@ -313,6 +350,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.16)',
   },
   comparisonText: { fontSize: 14, fontWeight: '700', textAlign: 'center', flexShrink: 1 },
+  metricsNotes: { width: '100%', marginTop: 12, gap: 4 },
+  metricsNoteText: { fontSize: 12.5, lineHeight: 17, fontWeight: '600', textAlign: 'center' },
   statItem: {
     alignItems: 'center',
     minWidth: 80,
