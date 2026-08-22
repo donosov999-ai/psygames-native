@@ -100,16 +100,24 @@ describe('🔴 тупик виден, а не замалчивается', () =>
    * месте бодро подсвечивала соседей, будто всё в порядке.
    */
   it('заведомо загубленный путь честно называется тупиком', () => {
-    const houseIndex = AUTHORED_LEVELS.findIndex((l) => l.shape === 'house');
-    const puzzle = asPuzzle(houseIndex);
-    // Ищем любой ход, после которого завершения нет.
+    /**
+     * ⚠️ ФИГУРУ ИЩЕМ ПО СВОЙСТВУ, А НЕ ПО ИМЕНИ. Раньше здесь стоял «домик» по
+     * названию — набор фигур переписали, имя пропало, и гейт свалился на пустом
+     * месте. Нужна не конкретная фигура, а ЛЮБАЯ, где первый же ход способен
+     * загубить партию: именно про такой случай и должна честно сказать подсказка.
+     */
+    let puzzle: OneLinePuzzle | null = null;
     let found: { vertexTrail: string[]; edgeTrail: string[] } | null = null;
-    for (const edge of puzzle.edges) {
-      const trail = { vertexTrail: [edge.a, edge.b], edgeTrail: [edge.id] };
-      if (nextMoveFrom(puzzle, trail.vertexTrail, trail.edgeTrail).deadEnd) { found = trail; break; }
+    for (let i = 0; i < AUTHORED_LEVELS.length && !found; i += 1) {
+      const p = asPuzzle(i);
+      for (const edge of p.edges) {
+        const trail = { vertexTrail: [edge.a, edge.b], edgeTrail: [edge.id] };
+        if (nextMoveFrom(p, trail.vertexTrail, trail.edgeTrail).deadEnd) { puzzle = p; found = trail; break; }
+      }
     }
     expect(found).not.toBeNull();
-    const hint = nextMoveFrom(puzzle, (found as NonNullable<typeof found>).vertexTrail, (found as NonNullable<typeof found>).edgeTrail);
+    expect(puzzle).not.toBeNull();
+    const hint = nextMoveFrom(puzzle as OneLinePuzzle, (found as NonNullable<typeof found>).vertexTrail, (found as NonNullable<typeof found>).edgeTrail);
     expect(hint.deadEnd).toBe(true);
     expect(hint.vertexId).toBeNull();
   });

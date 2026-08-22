@@ -13,38 +13,74 @@
  * ⚠️ ТЕСТ СТЕРЕЖЁТ ИМЕННО ЭТО, а не «числа побольше». Легко «усложнить» игру,
  * навалив пар: счётчик вырастет, ощущение — нет.
  */
-import { mahjongLevel, canShuffle, shufflesLeft } from '../services/mahjongLevels';
+import { mahjongLevel, canShuffle, shufflesLeft, FULL_SET_PAIRS } from '../services/mahjongLevels';
 
 describe('уровни маджонга', () => {
   it('есть что проверять — иначе тест зелен вслепую', () => {
     expect(mahjongLevel(1).pairs).toBeGreaterThan(0);
   });
 
-  it('слои растут вверх — не только количество плиток', () => {
-    expect(mahjongLevel(3).layers).toBe(1);
-    expect(mahjongLevel(8).layers).toBe(2);
-    expect(mahjongLevel(13).layers).toBe(3);
-    expect(mahjongLevel(18).layers).toBe(4);   // раньше здесь оставалось 3
-    expect(mahjongLevel(25).layers).toBe(5);
+  /**
+   * 🔴 ПЛОСКИХ РАСКЛАДОК НЕ БЫВАЕТ. Второй уровень выдавал один слой и десять плиток
+   * прямоугольником: ни одного перекрытия, то есть нет ровно того, из чего маджонг
+   * состоит. Свободна там любая плитка, и «выбери свободную» превращается в «тапни
+   * две одинаковые» — другая игра под тем же именем.
+   */
+  it('🔴 маджонг начинается с горки, а не с плоской выкладки', () => {
+    for (let n = 1; n <= 40; n++) {
+      expect(`ур.${n}: слоёв ${mahjongLevel(n).layers} ≥ 2`).toBe(`ур.${n}: слоёв ${Math.max(2, mahjongLevel(n).layers)} ≥ 2`);
+    }
   });
 
-  it('пары не проседают ни на одном стыке диапазонов', () => {
+  it('слои растут вверх — не только количество плиток', () => {
+    expect(mahjongLevel(2).layers).toBe(2);
+    expect(mahjongLevel(6).layers).toBe(3);
+    expect(mahjongLevel(12).layers).toBe(4);
+    expect(mahjongLevel(20).layers).toBe(5);
+    expect(mahjongLevel(30).layers).toBe(5);
+  });
+
+  /**
+   * Плотность — вторая половина того же: настоящий набор маджонга это 144 плитки,
+   * то есть 72 пары. Игра не обязана начинать с полного набора, но и десятью
+   * плитками маджонг не бывает.
+   */
+  it('🔴 плиток столько, что это маджонг, а не разминка', () => {
+    expect(`первый уровень: пар ${mahjongLevel(1).pairs} ≥ 10`).toBe(`первый уровень: пар ${Math.max(10, mahjongLevel(1).pairs)} ≥ 10`);
+    expect(`двадцатый: пар ${mahjongLevel(20).pairs} ≥ 60`).toBe(`двадцатый: пар ${Math.max(60, mahjongLevel(20).pairs)} ≥ 60`);
+  });
+
+  /**
+   * ⚠️ РОСТ ДО НАБОРА, А НЕ БЕСКОНЕЧНО. Прежняя редакция требовала строгого роста на
+   * всех уровнях подряд — то есть обязывала однажды выложить больше плиток, чем их
+   * есть в маджонге. Потолок — классический набор в 144 плитки; после него сложность
+   * несут слои и теснота. Просадка по-прежнему запрещена.
+   */
+  it('пары не проседают ни на одном стыке и растут до полного набора', () => {
     const drops: string[] = [];
-    for (let n = 2; n <= 40; n++) {
+    for (let n = 2; n <= 60; n++) {
       const prev = mahjongLevel(n - 1).pairs, cur = mahjongLevel(n).pairs;
-      if (cur <= prev) drops.push(`уровень ${n}: ${prev} → ${cur}`);
+      if (cur < prev) drops.push(`уровень ${n}: ${prev} → ${cur}`);
+      if (cur > FULL_SET_PAIRS) drops.push(`уровень ${n}: ${cur} пар — больше классического набора`);
     }
     expect(drops).toEqual([]);
+    // и до набора действительно доходим
+    expect(mahjongLevel(40).pairs).toBe(FULL_SET_PAIRS);
+    // а до этого растём на каждом уровне
+    for (let n = 2; n <= 25; n++) {
+      expect(`ур.${n}: ${mahjongLevel(n).pairs} > ${mahjongLevel(n - 1).pairs}`)
+        .toBe(`ур.${n}: ${mahjongLevel(n).pairs} > ${Math.min(mahjongLevel(n - 1).pairs, mahjongLevel(n).pairs - 1)}`);
+    }
   });
 
-  it('первые пять уровней — перетасовка без лимита (человек учит правило)', () => {
-    for (let n = 1; n <= 5; n++) expect(mahjongLevel(n).shuffles).toBe(-1);
+  it('первые уровни — перетасовка без лимита (человек учит правило)', () => {
+    for (let n = 1; n <= 3; n++) expect(mahjongLevel(n).shuffles).toBe(-1);
     expect(canShuffle(mahjongLevel(1).shuffles, 99)).toBe(true);
     expect(shufflesLeft(mahjongLevel(1).shuffles, 99)).toBe(-1);
   });
 
   it('дальше перетасовка — ресурс, и он ужимается', () => {
-    expect(mahjongLevel(6).shuffles).toBe(3);
+    expect(mahjongLevel(4).shuffles).toBe(3);
     expect(mahjongLevel(12).shuffles).toBe(2);
     expect(mahjongLevel(20).shuffles).toBe(1);
     // и он действительно кончается
@@ -56,7 +92,7 @@ describe('уровни маджонга', () => {
 
   it('лимит нигде не растёт с уровнем — иначе выше становится ЛЕГЧЕ', () => {
     const grows: string[] = [];
-    for (let n = 7; n <= 40; n++) {
+    for (let n = 5; n <= 40; n++) {
       const prev = mahjongLevel(n - 1).shuffles, cur = mahjongLevel(n).shuffles;
       if (prev >= 0 && cur > prev) grows.push(`уровень ${n}: ${prev} → ${cur}`);
     }
@@ -64,9 +100,9 @@ describe('уровни маджонга', () => {
   });
 
   it('мусор на входе не роняет', () => {
-    expect(mahjongLevel(0).layers).toBe(1);
-    expect(mahjongLevel(-5).layers).toBe(1);
-    expect(mahjongLevel(NaN).layers).toBe(1);
+    expect(mahjongLevel(0).layers).toBe(2);
+    expect(mahjongLevel(-5).layers).toBe(2);
+    expect(mahjongLevel(NaN).layers).toBe(2);
   });
 });
 

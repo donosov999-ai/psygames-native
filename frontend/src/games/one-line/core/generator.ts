@@ -1,4 +1,4 @@
-import { authoredLevel } from './authored';
+import { AUTHORED_LEVEL_COUNT, authoredLevel } from './authored';
 import { visualCrossingCount } from './geometry';
 import {
   createRng,
@@ -30,11 +30,19 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+/**
+ * Сколько точек на уровне.
+ *
+ * 🔴 СЧИТАЕМ ОТ КОНЦА РИСОВАННЫХ, А НЕ ОТ НОМЕРА. Лестница из восьми ступеней по
+ * три уровня заканчивалась на двадцать четвёртом — ровно там, где раньше кончались
+ * рисованные фигуры. Фигур стало двадцать четыре, и первый же сгенерированный
+ * уровень стал выходить СРАЗУ НА ПОТОЛКЕ: двенадцать точек после девяти у последней
+ * рисованной, и дальше расти нечему. Ступень должна отмеряться от того места, где
+ * генератор ВСТУПАЕТ, — тогда переход от рисунка к генерации плавный.
+ */
 function targetVertexCount(level: number): number {
-  const index = Math.min(
-    VERTEX_PROGRESSION.length - 1,
-    Math.floor((Math.max(1, level) - 1) / 3),
-  );
+  const step = Math.max(1, level - AUTHORED_LEVEL_COUNT);
+  const index = Math.min(VERTEX_PROGRESSION.length - 1, Math.floor((step - 1) / 3));
   return VERTEX_PROGRESSION[index] as number;
 }
 
@@ -238,7 +246,7 @@ function addEdgeKinds(
   // Сколько приправы позволяет уровень: одна стрелка с 13-го, дальше по одной
   // за десяток, но не больше десятой части рёбер.
   const arrows = Math.min(
-    Math.max(0, Math.floor((level - 12) / 10) + (level >= 13 ? 1 : 0)),
+    Math.max(0, Math.floor((level - AUTHORED_LEVEL_COUNT) / 10) + (level > AUTHORED_LEVEL_COUNT ? 1 : 0)),
     Math.floor(edges.length / 10),
   );
   if (arrows > 0) {
@@ -263,7 +271,15 @@ function addEdgeKinds(
 
   // Двойное — отростком: из точки пути выходит ребро в НОВУЮ вершину и
   // проходится туда и обратно. Чётность обеих вершин не меняется.
-  const doubles = level >= 18 ? Math.min(1 + Math.floor((level - 18) / 15), 3) : 0;
+  /**
+   * ⚠️ ЛЕСТНИЦА ПРИПРАВЫ СЧИТАЕТСЯ ОТ КОНЦА РИСОВАННЫХ, А НЕ ОТ НОМЕРА УРОВНЯ.
+   * Пока фигур было двенадцать, «с восемнадцатого» означало «через шесть уровней
+   * после рисованных». Фигур стало двадцать четыре — и та же цифра стала означать
+   * «сразу», то есть первый же сгенерированный уровень выходил с приправой. Считаем
+   * от `AUTHORED_LEVEL_COUNT`: правило про ОТСТУП, а не про абсолютный номер.
+   */
+  const past = level - AUTHORED_LEVEL_COUNT;
+  const doubles = past >= 6 ? Math.min(1 + Math.floor((past - 6) / 15), 3) : 0;
   for (let k = 0; k < doubles; k += 1) {
     const at = 1 + Math.floor(rng() * Math.max(1, vertexIds.length - 2));
     const hub = vertexIds[at];
