@@ -16,6 +16,30 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.232.0',
+    date: '2026-08-23',
+    ru: [
+      "«Оценка» и FIN BRAIN переехали в «Зарядку»: обе — не игра, а набор игр подряд с одним итогом, то есть ровно то, чем зарядка и является. Раньше это были два входа в один и тот же механизм",
+      "Шульте научился идти серией: три блока на ОДНОМ поле — сперва по порядку, потом с чередованием двух рядов, потом поиск пары с нужной суммой. Разница во времени между блоками и показывает, чего вам стоит переключение и удержание в уме",
+      "«Цифровой ряд»: третий режим — вводить цифры по возрастанию; подача голосом вместо экрана; взятая длина и рекорд видны прямо в партии, а не только в конце; в свободной игре можно менять темп показа",
+      "«Ментальная ротация»: два новых задания — угадать вид фигуры сверху и понять, какой куб сложится из выкройки. После промаха фигура сама проворачивается до правильного ответа, шаг за шагом — видно, почему он правильный",
+      "«Ментальная ротация»: две фигуры набора оказались поворотами друг друга — то есть «неправильный» вариант иногда был вторым правильным. Фигура заменена",
+      "«Соединение точек»: можно посмотреть решение. Партия после этого не засчитывается — подсмотреть можно, купить прогресс нельзя",
+      "n-back показывает d′ — величину, которая отделяет настоящее различение от везения. Точность в процентах смешивает попадания с угадыванием: 90% бывает и у отличной игры, и у осторожного молчуна",
+      "Струп: кнопки ответа стали просто цветными плашками. Подписи возвращали в ответ чтение слова — то самое, что этот тест как раз и гасит",
+    ],
+    en: [
+      "Assessment and FIN BRAIN moved into Warm-up: neither is a game, both are a run of games with a single result — exactly what the warm-up is. They used to be two doors into the same machine",
+      "Schulte can now run as a series: three blocks on ONE field — in order, then alternating two rows, then finding a pair with a given sum. The time difference between blocks is what shows the cost of switching and of holding a number in mind",
+      "Digit span: a third mode — enter the digits in ascending order; spoken digits instead of the screen; your span and record are visible during the round, not only at the end; in free play you can change the pace",
+      "Mental rotation: two new tasks — pick the top view of a shape, and tell which cube a flat net folds into. After a miss the reference shape rotates itself to the right answer, step by step, so you see why it is right",
+      "Mental rotation: two shapes in the set turned out to be rotations of each other — meaning a «wrong» option was sometimes a second right one. The shape was replaced",
+      "Dots connect: you can reveal the solution. The round then does not count — looking is allowed, buying progress is not",
+      "n-back now shows d′, the number that separates real discrimination from luck. Percent accuracy mixes hits with guessing: 90% fits both a great round and a cautious player who rarely answers",
+      "Stroop: the answer buttons are plain colour patches now. The labels put word-reading back into the answer — the very thing this test is meant to suppress",
+    ],
+  },
+  {
     version: '1.231.0',
     date: '2026-08-22',
     ru: [
