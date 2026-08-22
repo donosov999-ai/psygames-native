@@ -913,7 +913,7 @@ function FullHome() {
               карточками значило иметь два входа в один и тот же движок плейлистов
               (`WarmupContext`) и объяснять человеку разницу, которой нет.
               Теперь вход один: карточка «Зарядка» → /warmup-picker, раздел «Серии».
-              Стережёт `series-live-in-warmup.test.ts`. */
+              Стережёт `series-live-in-warmup.test.ts`. */}
 
         </View>
 
