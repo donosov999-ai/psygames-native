@@ -236,13 +236,18 @@ jobs:
         run: node scripts/slot-audit.mjs --base=http://127.0.0.1:8127
 
   # ─── Smoke games — ловит mount-краши/ошибки консоли ──────────────────
-  # v1.110.0: теперь БЛОКИРУЕТ release (по клику Дениса в аудите 2026-07-04).
-  # Только на тегах (на релизах, когда важно), чтобы не жечь минуты на каждый main.
+  # v1.110.0: БЛОКИРУЕТ release (по клику Дениса в аудите 2026-07-04).
+  #
+  # 🔴 23.08.2026 СНЯТ ТЕГ-ГЕЙТ. Была строка `if: startsWith(github.ref,
+  # 'refs/tags/v')` — smoke шёл только на релизах. А веб уезжает пользователям
+  # с main (`web-deploy` ниже), и до сегодняшнего дня он уезжал, пройдя ровно
+  # `tsc` и `jest`: НИ ОДНА проверка, которая открывает игры, до выкладки не
+  # доходила. Тег-гейт экономил минуты на том единственном прогоне, ради
+  # которого всё и заведено.
   smoke:
-    name: Smoke games (gate on tags)
+    name: Smoke games (main + tags)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    if: startsWith(github.ref, 'refs/tags/v')
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v6
       - name: Setup Node
@@ -284,7 +289,13 @@ jobs:
         run: |
           npx serve dist -l 8081 >/tmp/serve.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://localhost:8081 >/dev/null 2>&1 && break; sleep 2; done
-          BASE=http://localhost:8081 GAMES_DIR=./app/games node scripts/smoke-games.mjs
+          # 🔴 START=1 ОБЯЗАТЕЛЕН. Без него скрипт открывает роут, ждёт 1,6 с и
+          # собирает консоль — кнопку «Начать» он не нажимает НИ РАЗУ, то есть
+          # «страница открылась» выдавалось за «в игру можно играть». История
+          # этого класса: у goods-sort 19.08 встал гейт решаемости, а 22.08
+          # нашлись 57 непроходимых уровней из 200 — гейт был зелёным, потому
+          # что не исполнял код игры.
+          BASE=http://localhost:8081 GAMES_DIR=./app/games START=1 node scripts/smoke-games.mjs
 
   # ─── macOS Apple Silicon ──────────────────────────────────────────────
   macos-arm:
@@ -1032,7 +1043,10 @@ jobs:
     name: Web → psygames-web GH Pages
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [typecheck]   # v1.156: отвязано от натива (теперь тег-only) — web-деплой гейтит tsc
+    # 23.08.2026: было `needs: [typecheck]` — и это единственное, что стояло
+    # между правкой в main и живым вебом. Теперь выкладку держат ещё и smoke
+    # (заход В КАЖДУЮ игру) и веб-гейты (первый кадр + размер кнопок на поле).
+    needs: [typecheck, smoke, web-gates]
     if: github.ref == 'refs/heads/main'  # only main branch deploys
     steps:
       - uses: actions/checkout@v6
