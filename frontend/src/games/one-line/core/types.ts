@@ -137,6 +137,12 @@ export interface OneLineSession {
    * проигрыш — повод откатить ходы, пока время не кончилось само.
    */
   hintDeadEnd: boolean;
+  /**
+   * Сколько раз подряд человек ткнул не в ту вершину, ища, откуда начать. Это НЕ
+   * ошибка и в зачёт не идёт — но экран по этому счётчику показывает, что старт
+   * есть не везде, а то поиск выглядит как «игра не отвечает».
+   */
+  startRejected: number;
   startedAt: number | null;
   pauseStartedAt: number | null;
   pausedMs: number;

@@ -39,6 +39,7 @@ function emptyRound(
     edgeTrail: [],
     hintVertexIds: [],
     hintDeadEnd: false,
+    startRejected: 0,
     startedAt: phase === 'playing' ? now : null,
     pauseStartedAt: null,
     pausedMs: 0,
@@ -64,6 +65,7 @@ export function createOneLineSession(config: OneLineSessionConfig): OneLineSessi
     edgeTrail: [],
     hintVertexIds: [],
     hintDeadEnd: false,
+    startRejected: 0,
     startedAt: null,
     pauseStartedAt: null,
     pausedMs: 0,
@@ -121,6 +123,7 @@ function finishIfComplete(session: OneLineSession, now: number): OneLineSession 
     phase: 'result',
     hintVertexIds: [],
     hintDeadEnd: false,
+    startRejected: 0,
     result: scoreOneLineCompletion(session.puzzle, {
       durationMs: Math.max(0, now - session.startedAt - session.pausedMs),
       undoCount: session.undoCount,
@@ -170,6 +173,7 @@ export function expireOneLineSession(session: OneLineSession, now: number): OneL
     phase: 'result',
     hintVertexIds: [],
     hintDeadEnd: false,
+    startRejected: 0,
     result: scoreOneLineCompletion(session.puzzle, {
       durationMs: elapsed,
       undoCount: session.undoCount,
@@ -199,11 +203,24 @@ export function selectOneLineVertex(
   const puzzle = getCurrentOneLinePuzzle(session);
   if (!puzzle.vertices.some((vertex) => vertex.id === vertexId)) return invalidMove(session);
   if (session.vertexTrail.length === 0) {
+    /**
+     * 🔴 ВЫБОР СТАРТА — НЕ ОШИБКА, И ДЕНЕГ ЗА НЕГО НЕ БЕРЁМ.
+     *
+     * Раньше касание не той вершины шло в `invalidMoves` → в точность → в зачёт
+     * уровня. То есть человек, ещё не начавший играть и просто ищущий, откуда
+     * тянуть, УЖЕ терял зачёт — и молча: на экране ничего не происходило. На
+     * половине уровней (там, где нечётных вершин ровно две) начать можно только
+     * с двух точек из десяти, и найти их можно единственным способом — потыкать.
+     *
+     * Обе игры-образца пускают начать откуда угодно и бесплатно. Здесь мы отказ
+     * оставляем — иначе задача станет нерешаемой и человек упрётся, — но НЕ
+     * штрафуем и говорим причину (`startRejected` доедет до экрана).
+     */
     const validation = validateEulerGraph(puzzle);
     if (validation.oddVertexIds.length === 2 && !validation.oddVertexIds.includes(vertexId)) {
-      return invalidMove(session);
+      return { ...session, startRejected: session.startRejected + 1 };
     }
-    return { ...session, vertexTrail: [vertexId], hintVertexIds: [] };
+    return { ...session, vertexTrail: [vertexId], hintVertexIds: [], startRejected: 0 };
   }
 
   const from = session.vertexTrail[session.vertexTrail.length - 1] as string;
@@ -216,6 +233,7 @@ export function selectOneLineVertex(
     edgeTrail: [...session.edgeTrail, edgeId],
     hintVertexIds: [],
     hintDeadEnd: false,
+    startRejected: 0,
   }, now);
 }
 
@@ -258,6 +276,7 @@ export function undoOneLineMove(session: OneLineSession): OneLineSession {
     edgeTrail: session.edgeTrail.slice(0, Math.max(0, session.edgeTrail.length - 1)),
     hintVertexIds: [],
     hintDeadEnd: false,
+    startRejected: 0,
     undoCount: session.undoCount + 1,
   };
 }
@@ -270,6 +289,7 @@ export function pauseOneLineSession(session: OneLineSession, now: number): OneLi
     pausedFrom: session.phase,
     hintVertexIds: [],
     hintDeadEnd: false,
+    startRejected: 0,
     pauseStartedAt: now,
   };
 }
@@ -303,6 +323,7 @@ export function disposeOneLineSession(session: OneLineSession): OneLineSession {
     edgeTrail: [],
     hintVertexIds: [],
     hintDeadEnd: false,
+    startRejected: 0,
     startedAt: null,
     pauseStartedAt: null,
   };

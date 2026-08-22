@@ -1,4 +1,5 @@
 import type { OneLineMetrics, OneLinePuzzle } from './types';
+import { totalEdgeUses } from './validator';
 
 export const ONE_LINE_PASS_ACCURACY = 0.8;
 
@@ -35,7 +36,13 @@ export function scoreOneLineCompletion(
   puzzle: OneLinePuzzle,
   input: OneLineScoringInput,
 ): OneLineMetrics {
-  const edgeCount = puzzle.edges.length;
+  /**
+   * 🔴 СЧИТАЕМ ПРОХОДЫ, А НЕ РЁБРА. С появлением двойных рёбер число рёбер
+   * перестало быть числом ходов: у ключа шесть рёбер и восемь проходов. Точность
+   * при этом делилась на ШЕСТЬ — то есть уровни с двойными рёбрами тайно требовали
+   * играть чище остальных, и заметить это можно было только сравнив зачёты.
+   */
+  const edgeCount = totalEdgeUses(puzzle.edges);
   const errors = input.undoCount + input.invalidMoves;
   const weightedCorrections = errors + input.hintsUsed * 0.5;
   const accuracy = clamp(edgeCount / Math.max(1, edgeCount + weightedCorrections), 0, 1);

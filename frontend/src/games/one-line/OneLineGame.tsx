@@ -700,6 +700,20 @@ function OneLineSessionView({
       </View>
       {training ? <Text style={[styles.trainingHint, { color: theme.textSecondary }]}>{strings.trainingHint}</Text> : null}
       {/*
+        🔴 ТО, ЧТО СЧИТАЛОСЬ, НО ДО ЧЕЛОВЕКА НЕ ДОЕЗЖАЛО.
+        Подсказка умеет доказать, что фигуру отсюда уже не закрыть, — и это то
+        единственное, чем мы лучше обеих игр-образцов. Признак лежал в сессии,
+        был покрыт проверкой и НЕ ВЫВОДИЛСЯ никуда: человек по-прежнему молотился
+        в тупик, пока не кончится время. Найдено разбором 22.08.2026.
+        Рядом — отказ старта: начать можно не с любой точки, и молчание в ответ
+        на касание выглядит как «игра не отвечает».
+      */}
+      {session.hintDeadEnd ? (
+        <Text style={[styles.trainingHint, { color: theme.error }]}>{strings.deadEnd}</Text>
+      ) : session.startRejected > 0 ? (
+        <Text style={[styles.trainingHint, { color: theme.textSecondary }]}>{strings.startElsewhere}</Text>
+      ) : null}
+      {/*
         ЦЕНА ОШИБКИ ВИДНА, А НЕ ТОЛЬКО ПОСЧИТАНА.
         Ход в несоседнюю вершину модуль отвергал МОЛЧА: линия не двигалась,
         счётчик исправлений рос, и на нём же держится порог прохождения уровня.

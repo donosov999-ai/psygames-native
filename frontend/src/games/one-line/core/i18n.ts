@@ -50,6 +50,10 @@ export interface OneLineStrings {
    * само, без слова рядом — подпись рядом с крупной цифрой лишь отнимает место.
    */
   scoreLabel: string;
+  /** Подсказка сказала: отсюда фигуру уже не закрыть. */
+  deadEnd: string;
+  /** Человек ищет, откуда начать, а начать можно не отовсюду. */
+  startElsewhere: string;
   vertexLabel: string;
   startMarker: string;
   currentMarker: string;
@@ -94,6 +98,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: 'Выбирайте соседние вершины касанием, перетаскиванием или клавиатурой.',
     progress: 'Пройдено рёбер: {used} из {total}',
     scoreLabel: 'Очки',
+    deadEnd: "Отсюда фигуру уже не закрыть — отмени несколько ходов",
+    startElsewhere: "Начать можно не с любой точки: попробуй другую",
     vertexLabel: 'Вершина {number}',
     startMarker: 'Допустимый старт',
     currentMarker: 'Текущая вершина',
@@ -131,6 +137,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: 'Choose adjacent vertices by touch, drag, or keyboard.',
     progress: 'Edges used: {used} of {total}',
     scoreLabel: 'Score',
+    deadEnd: "From here the figure can no longer be closed — undo a few moves",
+    startElsewhere: "Not every dot can start the line: try another",
     vertexLabel: 'Vertex {number}',
     startMarker: 'Valid start',
     currentMarker: 'Current vertex',
@@ -168,6 +176,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: 'Elige vértices vecinos tocando, arrastrando o con el teclado.',
     progress: 'Aristas recorridas: {used} de {total}',
     scoreLabel: 'Puntos',
+    deadEnd: "Desde aquí ya no se puede cerrar la figura: deshaz algunos movimientos",
+    startElsewhere: "No se puede empezar en cualquier punto: prueba otro",
     vertexLabel: 'Vértice {number}',
     startMarker: 'Salida válida',
     currentMarker: 'Vértice actual',
@@ -205,6 +215,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: 'Wähle benachbarte Knoten per Tippen, Ziehen oder Tastatur.',
     progress: 'Gezogene Kanten: {used} von {total}',
     scoreLabel: 'Punkte',
+    deadEnd: "Von hier lässt sich die Figur nicht mehr schließen — mach einige Züge rückgängig",
+    startElsewhere: "Nicht jeder Punkt kann der Anfang sein: probiere einen anderen",
     vertexLabel: 'Knoten {number}',
     startMarker: 'Gültiger Start',
     currentMarker: 'Aktueller Knoten',
@@ -242,6 +254,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: '用点按、拖动或键盘选择相邻的顶点。',
     progress: '已走过的边：{total} 条中的 {used} 条',
     scoreLabel: '分数',
+    deadEnd: "从这里已经无法完成图形——请撤销几步",
+    startElsewhere: "并非每个点都能作为起点：换一个试试",
     vertexLabel: '顶点 {number}',
     startMarker: '可用起点',
     currentMarker: '当前顶点',
@@ -279,6 +293,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: 'पड़ोसी बिंदु छूकर, खींचकर या कुंजीपटल से चुनें।',
     progress: 'पार किए किनारे: {total} में से {used}',
     scoreLabel: 'अंक',
+    deadEnd: "यहाँ से आकृति अब पूरी नहीं हो सकती — कुछ चालें वापस लें",
+    startElsewhere: "हर बिंदु से शुरुआत नहीं हो सकती: दूसरा आज़माएँ",
     vertexLabel: 'बिंदु {number}',
     startMarker: 'सही शुरुआत',
     currentMarker: 'मौजूदा बिंदु',
@@ -316,6 +332,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: 'Escolha vértices vizinhos por toque, arrasto ou teclado.',
     progress: 'Arestas percorridas: {used} de {total}',
     scoreLabel: 'Pontos',
+    deadEnd: "Daqui a figura já não pode ser fechada — desfaça alguns movimentos",
+    startElsewhere: "Nem todo ponto pode iniciar a linha: tente outro",
     vertexLabel: 'Vértice {number}',
     startMarker: 'Partida válida',
     currentMarker: 'Vértice atual',
@@ -353,6 +371,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: 'Choisissez des sommets voisins au doigt, au glissé ou au clavier.',
     progress: 'Arêtes parcourues : {used} sur {total}',
     scoreLabel: 'Points',
+    deadEnd: "D’ici, la figure ne peut plus être fermée — annulez quelques coups",
+    startElsewhere: "Tous les points ne peuvent pas commencer la ligne : essayez un autre",
     vertexLabel: 'Sommet {number}',
     startMarker: 'Départ valable',
     currentMarker: 'Sommet actuel',
@@ -390,6 +410,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: 'Scegli i vertici vicini con il tocco, il trascinamento o la tastiera.',
     progress: 'Lati percorsi: {used} di {total}',
     scoreLabel: 'Punti',
+    deadEnd: "Da qui la figura non può più essere chiusa — annulla alcune mosse",
+    startElsewhere: "Non tutti i punti possono iniziare la linea: provane un altro",
     vertexLabel: 'Vertice {number}',
     startMarker: 'Partenza valida',
     currentMarker: 'Vertice attuale',
@@ -427,6 +449,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: 'となりの点をタップ、ドラッグ、またはキーボードで選びます。',
     progress: '通った辺：{total} 本中 {used} 本',
     scoreLabel: 'スコア',
+    deadEnd: "ここからでは図形を閉じられません — 何手か戻してください",
+    startElsewhere: "どの点からでも始められるわけではありません。別の点を試してください",
     vertexLabel: '点 {number}',
     startMarker: '使える出発点',
     currentMarker: '今いる点',
@@ -464,6 +488,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: '이웃한 점을 눌러서, 끌어서, 또는 키보드로 고르세요.',
     progress: '지난 변: {total}개 중 {used}개',
     scoreLabel: '점수',
+    deadEnd: "여기서는 도형을 완성할 수 없습니다 — 몇 수 되돌리세요",
+    startElsewhere: "모든 점에서 시작할 수 있는 것은 아닙니다: 다른 점을 시도하세요",
     vertexLabel: '점 {number}',
     startMarker: '시작할 수 있는 점',
     currentMarker: '지금 있는 점',
@@ -501,6 +527,8 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphHint: 'اختر الرؤوس المجاورة باللمس أو السحب أو لوحة المفاتيح.',
     progress: 'الأضلاع المقطوعة: {used} من {total}',
     scoreLabel: 'النقاط',
+    deadEnd: "لم يعد بالإمكان إغلاق الشكل من هنا — تراجع بضع خطوات",
+    startElsewhere: "لا يمكن البدء من أي نقطة: جرّب نقطة أخرى",
     vertexLabel: 'رأس {number}',
     startMarker: 'بداية صالحة',
     currentMarker: 'الرأس الحالي',
