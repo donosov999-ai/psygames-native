@@ -16,6 +16,38 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.230.0',
+    date: '2026-08-22',
+    ru: [
+      "Маджонг перестал быть плоским: раньше на втором уровне лежали десять плиток в один слой — это не маджонг, там нечего разбирать. Теперь горка с первого уровня, семь разных силуэтов (черепаха, пирамида, крепость, мост, паук, бабочка, ромб) и полный набор в 144 плитки к сороковому",
+      "Маджонг показывает, сколько пар ещё можно собрать: каждая третья партия упиралась в мёртвую доску, и игра об этом никак не сообщала",
+      "«Соедини точки» стала настоящей игрой: поле от 5×5 к 10×10, четырнадцать цветов вместо восьми, и уровень засчитывается только когда линии закрыли всю доску",
+      "«Одна линия»: двадцать четыре рисованные фигуры вместо двенадцати, и первая — не треугольник из трёх точек, а настоящий узор",
+      "Новый режим «Филворды» в «Корректурной пробе»: поле букв, слово выделяется пальцем, уровень закрыт, когда разобрана каждая буква",
+      "Судоку выше сорок первого уровня: доска теперь гарантированно берётся логикой без перебора, а двадцать уровней подряд перестали быть неотличимыми друг от друга",
+      "Судоку больше не замирает молча на тяжёлых уровнях — пока доска собирается, экран говорит об этом и не отнимает кнопку «назад»",
+      "Самурай перестал наказывать вслепую: почти половина неверных цифр отнимала жизнь, не оставляя на доске ни одной пометки",
+      "«Вызов дня» больше не играет первый уровень у всех — уровень успевает загрузиться до старта",
+      "Тропинка уровней дотягивается до достигнутого: пройденное выше пятнадцатого можно переиграть, раньше его просто не было на карте",
+      "Партии перестали теряться: при одновременной записи из двенадцати сохранялась одна",
+      "Сортировка товаров: подсказка больше не показывает ход, который игра сама же отвергнет, а доска не приезжает с уже сложенной тройкой",
+    ],
+    en: [
+      "Mahjong stopped being flat: level two used to lay out ten tiles in a single layer — that is not mahjong, there is nothing to dismantle. Now it is a proper pile from level one, with seven silhouettes (turtle, pyramid, fortress, bridge, spider, butterfly, diamond) and the full 144-tile set by level forty",
+      "Mahjong shows how many pairs are still available: every third game used to reach a dead board with no word from the game",
+      "Dots Connect became a real game: the grid grows from 5×5 to 10×10, fourteen colours instead of eight, and a level counts only when the lines cover the whole board",
+      "One Line: twenty-four hand-drawn figures instead of twelve, and the first is a real pattern rather than a three-dot triangle",
+      "A new Fillwords mode inside Proofreading: a grid of letters, words traced with a finger, the level cleared when every letter is used",
+      "Sudoku above level forty-one: a board is now guaranteed to be solvable by logic without guessing, and twenty levels in a row stopped being indistinguishable",
+      "Sudoku no longer freezes silently on hard levels — while the board is being built the screen says so and keeps the back button alive",
+      "Samurai stopped punishing blind: nearly half of all wrong digits took a life without leaving a single mark on the board",
+      "The Daily Challenge no longer plays level one for everyone — the level now loads before the game starts",
+      "The level path reaches what you have achieved: anything cleared above fifteen can be replayed, it simply was not on the map before",
+      "Games stopped getting lost: of twelve simultaneous saves only one survived",
+      "Goods sort: the hint no longer points at a move the game itself refuses, and the board no longer arrives with a triple already made",
+    ],
+  },
+  {
     version: '1.229.0',
     date: '2026-08-22',
     ru: [
