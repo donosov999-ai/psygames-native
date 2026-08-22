@@ -468,6 +468,7 @@ const t: Record<string, string> = {
   "benefitPrl3": "Finanzentscheidungen (Iowa+BART+PRL)",
   "phonemic": "Phonematische Flüssigkeit (COWAT)",
   "phonemicDesc": "Nenne in 60 s max. Wörter zu einem Buchstaben",
+  "phonemicScriptFallback": "Die Aufgabe läuft im lateinischen Alphabet: Buchstaben-Flüssigkeit funktioniert in deiner Schrift anders. Schreibe die Wörter lateinisch.",
   "phonemicIntroDesc": "COWAT (Controlled Oral Word Association Test) — klassischer Test der Wortflüssigkeit. Nenne in 60 s maximal viele Wörter, die mit einem vorgegebenen Buchstaben beginnen. Keine Eigennamen, keine Wiederholungen. Biomarker: word_count, mean_inter_word_sec (Zeit zwischen Wörtern — höher = schwierigerer lexikalischer Zugriff), first_half vs. second_half (Ausdauer). Direktes Maß des lexikalischen Zugriffs unter Zeitdruck — entscheidend für Reden vor Publikum und Verhandlungen.",
   "phonemicAutoPick": "Zufälliger Buchstabe",
   "phonemicRules": "Regeln: nur Gattungsnamen, Länge ≥ 2, keine Wiederholungen",

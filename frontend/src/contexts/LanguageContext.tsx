@@ -1189,6 +1189,7 @@ const translations: Translations = {
   // Round 7 — C2 Phonemic Fluency
   phonemic:        { ru: 'Беглость речи (COWAT)',           en: 'Phonemic Fluency (COWAT)' },
   phonemicDesc:    { ru: 'Назови максимум слов на букву за 60с', en: 'Name max words on a letter in 60s' },
+  phonemicScriptFallback: { ru: 'Задание идёт на латинице: беглость «на букву» в вашей письменности ставится иначе. Называйте слова латиницей.', en: 'The task runs in the Latin alphabet: letter-based fluency works differently in your script. Type words in Latin letters.' },
   phonemicIntroDesc: {
     ru: 'COWAT (Controlled Oral Word Association Test) — классический тест беглости речи. За 60 сек называй максимум слов, начинающихся с заданной буквы. Запрещены имена собственные и повторы. Биомаркеры: word_count, mean_inter_word_sec (время между словами — выше = труднее доступ к лексикону), first_half vs second_half (выносливость). Прямая мера лексической доступности под временным давлением — критично для публичных выступлений и переговоров.',
     en: 'COWAT (Controlled Oral Word Association Test) — classic verbal fluency test. In 60s name max words starting with a given letter. No proper names, no repetitions. Biomarkers: word_count, mean_inter_word_sec (time between words — higher = harder lexical access), first_half vs second_half (endurance). Direct measure of lexical access under time pressure — critical for public speaking and negotiations.'

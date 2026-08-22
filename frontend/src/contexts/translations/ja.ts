@@ -1424,6 +1424,7 @@ const t: Record<string, string> = {
   "listeningSpanDesc": "聞いた単語を、順番どおりに答える",
   "ospanDesc": "式を解きながら文字を覚える",
   "phonemicDesc": "60秒でその文字から始まる単語をできるだけ多く",
+  "phonemicScriptFallback": "この課題はラテン文字で行います。頭文字による流暢性はあなたの文字体系では成り立ちません。ラテン文字で入力してください。",
   "vocabSrsDesc": "間隔をあけた復習で単語を覚える",
   "iowaHint": "山を選ぶ · どれが得かを学ぶ",
   "storyRecallPlaceholder": "名前、数、場所、行動…",
