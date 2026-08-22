@@ -73,7 +73,7 @@ import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
 import { gameNow } from '@/src/services/gamePause';
 import {
-  N, FEED_CELL, generateFractal, rootCellForChild, solvedCount, rootEditable, rootSolved,
+  N, FEED_CELL, conflictsInChild, generateFractal, rootCellForChild, solvedCount, rootEditable, rootSolved,
   startPlayState, playDigit, revertMove, portalOf,
   type FractalPuzzle, type FractalPlayState, type FractalMove,
 } from '@/src/services/fractal-sudoku';
@@ -107,6 +107,9 @@ const CELL_COLORS_CB = ['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7'] a
 const TIME_CAP = 1800;
 /** Пол победы: добитая партия не может стоить столько же, сколько брошенная. */
 const WIN_FLOOR = 300;
+
+/** Сколько висит строка «здесь пока не определить». */
+const UNDECIDED_MS = 2600;
 
 const PORTAL_COLOR = '#06b6d4';
 
@@ -198,6 +201,12 @@ export default function FractalSudokuScreen() {
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
   const [rootSel, setRootSel] = useState<{ r: number; c: number } | null>(null);
   const [errors, setErrors] = useState(0);
+  /**
+   * Клетка, которую задача ещё не определяет. Не ошибка — неопределённость, и
+   * говорить о ней надо словами: цвет тут соврал бы про правило.
+   */
+  const [undecided, setUndecided] = useState(false);
+  const undecidedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /**
    * ИНСТРУМЕНТЫ СТРАТЕГИИ. На десяти сетках 9×9 держать кандидатов в голове невозможно —
    * это не украшение, а то, без чего верхние ступени лестницы техник не решаются вовсе.
@@ -362,10 +371,33 @@ export default function FractalSudokuScreen() {
     const { next, move } = res;
 
     if (n !== 0) {
+      /**
+       * 🔴 ОШИБКА — ТОЛЬКО ДОКАЗУЕМАЯ. Дочерняя сетка ПОРОЗНЬ неоднозначна нарочно:
+       * ответ там даёт пересечение допустимых наборов двух досок, и до разрешения
+       * портала клетка честно не определена. А игра сверяла цифру с хранимым
+       * решением и наказывала за ЛЮБОЕ расхождение. Замер на 25-м уровне: 838
+       * пустых клеток из 1140 (73,5 %) принимают цифру, отличную от решения, не
+       * нарушая ни одного правила — три четверти доски карали за законный ход.
+       *
+       * Теперь ошибка засчитывается, когда цифра нарушает видимое правило: уже
+       * стоит в строке, столбце или блоке. Неопределённость задачи объясняется
+       * словами (строка про портал), а не красным цветом и не отнятой звездой.
+       */
       const right = child === null
         ? puzzle.root.solution[r][c] === n
         : puzzle.children[child].solution[r][c] === n;
-      if (right) sndPlace(); else { sndWrong(); setErrors((e) => e + 1); }
+      const provable = child === null
+        ? !right
+        : conflictsInChild(play.children[child].grid, r, c, n);
+      if (right) sndPlace();
+      else if (provable) { sndWrong(); setErrors((e) => e + 1); }
+      else {
+        // Не ошибка: задача здесь ещё не определена. Говорим об этом прямо.
+        sndPlace();
+        setUndecided(true);
+        if (undecidedTimerRef.current) clearTimeout(undecidedTimerRef.current);
+        undecidedTimerRef.current = setTimeout(() => setUndecided(false), UNDECIDED_MS);
+      }
     }
 
     hist.push(move);
@@ -973,7 +1005,14 @@ export default function FractalSudokuScreen() {
             <View key={r} style={styles.row}>
               {row.map((v, c) => {
                 const isSel = selected?.r === r && selected?.c === c;
-                const wrong = v !== 0 && v !== sol[r][c];
+                /**
+                 * 🔴 КРАСНЫМ — ТОЛЬКО ДОКАЗУЕМО НЕВЕРНОЕ. Сверка с хранимым решением
+                 * красила три четверти доски: дочерняя сетка порознь неоднозначна
+                 * нарочно, и цифра, не нарушающая ни одного правила, ошибкой не
+                 * является. Красим то же, за что считается ошибка, — иначе цвет и
+                 * счётчик говорили бы разное.
+                 */
+                const wrong = v !== 0 && conflictsInChild(ch.grid, r, c, v);
                 const isFeed = r === FEED_CELL[0] && c === FEED_CELL[1];
                 const given = task.puzzle[r][c] !== 0;
                 const isPortal = !!link && link.at[0] === r && link.at[1] === c;
@@ -1035,6 +1074,11 @@ export default function FractalSudokuScreen() {
         {link && (
           <>
             <Text style={[styles.feedHint, { color: PORTAL_COLOR }]}>{t('fractalPortalHint')}</Text>
+            {undecided && (
+              <Text style={[styles.feedHint, { color: PORTAL_COLOR }]} accessibilityLiveRegion="polite">
+                {t('fractalUndecided')}
+              </Text>
+            )}
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel={`${t('fractalPortalGo')} ${link.other + 1}`}

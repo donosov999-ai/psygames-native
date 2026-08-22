@@ -527,6 +527,7 @@ const t: Record<string, string> = {
   "fractalPortals": "传送门",
   "fractalPortalGo": "前往盘面",
   "fractalPortalHint": "带圆环的格子，其实是同时存在于两个盘面里的同一个格子。单看任何一个盘面都定不下它的数字：在这边缩小候选，在那边也缩小，两边都允许的那个数就是答案。",
+  "fractalUndecided": "这一格尚未确定：该数字不违反任何规则，但也无法推出。这不是错误——请先解开传送门。",
   "fractalPortalRule": "从第六关起出现传送门：分处不同下层盘面的两个格子，其实是同一个格子。这两个盘面都无法单独解出；数字只能由两边共同允许的结果得出。这是任何一个盘面单独都给不出的推理。",
   "ctaChoose": "选择",
   "ctaRepeat": "重复",
