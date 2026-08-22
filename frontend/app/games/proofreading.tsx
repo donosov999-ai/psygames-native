@@ -1,11 +1,12 @@
-/* psygames-game-proofreading · VER 1 · 19.08.2026 */
-import React, { useState, useEffect, useRef } from 'react';
+/* psygames-game-proofreading · VER 2 · 22.08.2026 */
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  PanResponder,
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
-import { useLanguage } from '@/src/contexts/LanguageContext';
+import { LANGUAGES, useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -29,6 +30,26 @@ import BossRound from '@/src/components/BossRound';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
+import {
+  FILLWORDS_INK,
+  FILLWORDS_LOCALES,
+  applyTrace,
+  createFillwordsSession,
+  fillwordsLevel,
+  generateFillwords,
+  getFillwordsStrings,
+  interpolate,
+  isCleared,
+  isFillwordsLocale,
+  lettersLeft,
+  stepTrace,
+  takeHint,
+  tintForFoundOrder,
+  type FillwordsHint,
+  type FillwordsPuzzle,
+  type FillwordsSession,
+} from '@/src/games/fillwords/core';
 
 const GRADIENT = ['#a8edea', '#fed6e3'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -45,6 +66,32 @@ const PROOFREADING_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
+
+/**
+ * ДВА ЗАДАНИЯ НА ОДНОМ ЭКРАНЕ: КОРРЕКТУРА И ФИЛВОРДЫ.
+ *
+ * ПОЧЕМУ ФИЛВОРДЫ ЖИВУТ ЗДЕСЬ, А НЕ ОТДЕЛЬНОЙ ИГРОЙ. Задача у них одна и та же:
+ * СКАНИРОВАНИЕ БУКВЕННОГО ПОЛЯ. В корректуре человек ищет заданный знак среди
+ * похожих, в филвордах — осмысленную цепочку среди тех же букв. Разное только
+ * то, что считается целью; поле, размер, лимит времени, лесенка уровней и
+ * бухгалтерия результата общие. Заводить вторую игру значило бы копировать
+ * весь экран ради одной подмены правила — и потом чинить их по отдельности.
+ *
+ * ⚠️ ЭТО НЕ ТОТ ЖЕ ПЕРЕКЛЮЧАТЕЛЬ, ЧТО «УРОВНИ / СВОБОДНО». Здесь меняется
+ * ЗАДАНИЕ, а не способ задать параметры: лесенка уровней работает в обоих
+ * режимах и в обоих задаёт партию целиком. Поэтому общая панель
+ * `GameModeSwitch` тут не при чём (реестр `game-mode-switch.test.ts` прямо
+ * говорит, что этому экрану она не положена), а кнопки режима сделаны тем же
+ * рядом, что и уже стоящий на экране выбор письменности.
+ */
+type TaskMode = 'letters' | 'fillwords';
+
+/**
+ * Подсказок на уровень филвордов. Три, и каждая идёт в звёзды наравне с
+ * промахом: подсказка обязана стоить, иначе ею проходят уровень целиком, а
+ * ценность прохождения обнуляется.
+ */
+const FILLWORDS_HINTS = 3;
 
 // Уровень 1..15 (паттерн cpt/simon): ручные селекторы строк/колонок заменены
 // уровневым режимом. Ось усложнения:
@@ -88,6 +135,55 @@ export default function ProofreadingGame() {
   const [lastStars, setLastStars] = useState(3);
   const [clearedPassed, setClearedPassed] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ── Филворды ──────────────────────────────────────────────────────────────
+  const fwStrings = getFillwordsStrings(language);
+  /**
+   * Есть ли словарь ЯЗЫКА ИНТЕРФЕЙСА. Нет — режим не предлагается вовсе, а
+   * вместо кнопки человек читает, почему и на каких языках он есть. Показать
+   * кнопку и выдать по ней пустое поле было бы хуже, чем не показывать её.
+   */
+  const fwAvailable = isFillwordsLocale(language);
+  const [taskMode, setTaskMode] = useState<TaskMode>('letters');
+  /** Зерно поля. Меняется на каждый новый раунд — иначе повтор уровня даст ту же раскладку. */
+  const [fwSeed, setFwSeed] = useState(() => Math.floor(Math.random() * 1e9) + 1);
+  const [fwSession, setFwSession] = useState<FillwordsSession | null>(null);
+  /** Клетки, по которым сейчас ведут палец (черновик ответа, ещё не сдан). */
+  const [fwTrace, setFwTrace] = useState<number[]>([]);
+  const [fwHint, setFwHint] = useState<FillwordsHint | null>(null);
+  // Рефы: обработчик жеста и колбэк таймера живут вне ре-рендеров — state в них устарел бы.
+  const fwSessionRef = useRef<FillwordsSession | null>(null);
+  const fwTraceRef = useRef<number[]>([]);
+  const fwRoundRef = useRef(false);
+  /** Двигался ли палец: тапы линию НАБИРАЮТ, а сдаёт её только протягивание. */
+  const fwDragRef = useRef(false);
+
+  /**
+   * ПОЛЕ СОБИРАЕТСЯ ЗАРАНЕЕ, А НЕ ПО НАЖАТИЮ «НАЧАТЬ». Две причины, обе видны
+   * человеку: на экране настройки показано ЧИСЛО СЛОВ этого уровня — а узнать
+   * его можно только собрав раскладку; и сборка (перебор гамильтонова пути) не
+   * попадает в первые секунды партии, когда уже идёт отсчёт времени.
+   *
+   * ⚠️ Здесь же граница честности: при `fwAvailable === false` поле не
+   * собирается вовсе — `generateFillwords` на языке без словаря бросает, и
+   * ловить это исключение молча значило бы вернуть тот самый пустой экран.
+   */
+  const fwPuzzle = useMemo<FillwordsPuzzle | null>(() => {
+    if (!fwAvailable) return null;
+    const cfg = fillwordsLevel(lvl.level);
+    return generateFillwords({
+      rows: cfg.rows,
+      cols: cfg.cols,
+      locale: language,
+      seed: fwSeed,
+      maxWordLen: cfg.maxWordLen,
+    });
+  }, [fwAvailable, language, lvl.level, fwSeed]);
+
+  /** Языки, на которых словарь есть — их имена, а не коды: человеку читать. */
+  const fwLangNames = FILLWORDS_LOCALES
+    .map((code) => LANGUAGES.find((l) => l.code === code)?.name || code)
+    .join(', ');
 
   // Рефы — таймер лимита времени живёт вне ре-рендеров, state в его колбэке
   // был бы устаревшим (паттерн cpt/simon).
@@ -156,8 +252,33 @@ export default function ProofreadingGame() {
   };
 
   const startGame = () => {
+    /**
+     * Филворды идут только в личной игре и только там, где есть словарь.
+     *
+     * ⚠️ ЗАРЯДКА ОСТАЁТСЯ НА БУКВАХ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Пресет зарядки
+     * приходит со своими размерами поля и без лимита времени, а его сценарий
+     * рассчитан по времени всей связки упражнений. Подменить ему задание значит
+     * подменить длительность шага — человек получит зарядку, которая не влезает
+     * в обещанные минуты.
+     */
+    const fillwordsRound = !isPreset && taskMode === 'fillwords' && fwPuzzle !== null;
     let r: number, c: number;
-    if (isPreset) {
+    if (fillwordsRound) {
+      const puzzle = fwPuzzle as FillwordsPuzzle;
+      const cfg = fillwordsLevel(lvl.level);
+      r = cfg.rows; c = cfg.cols;
+      setRows(r); setCols(c);
+      timeLimitRef.current = cfg.timeLimitSec;
+      minFoundPctRef.current = 1;              // поле разбирается целиком, порога «≥N%» тут нет
+      const session = createFillwordsSession(puzzle);
+      fwSessionRef.current = session;
+      setFwSession(session);
+      fwTraceRef.current = [];
+      setFwTrace([]);
+      setFwHint(null);
+      targetTotalRef.current = puzzle.words.length;
+      foundRef.current = 0;
+    } else if (isPreset) {
       // Пресет зарядки: размеры из warmup-параметров, без лимита времени (как раньше)
       r = rows; c = cols;
       timeLimitRef.current = 0;
@@ -169,12 +290,13 @@ export default function ProofreadingGame() {
       timeLimitRef.current = p.timeLimitSec;
       minFoundPctRef.current = p.minFoundPct;
     }
+    fwRoundRef.current = fillwordsRound;
     levelRef.current = lvl.level;
     rowsRef.current = r;
     colsRef.current = c;
     errorsRef.current = 0;
     finishedRef.current = false;
-    generateGrid(r, c);
+    if (!fillwordsRound) generateGrid(r, c);
     setErrors(0);
     setElapsedTime(0);
     setPhase('playing');
@@ -201,10 +323,24 @@ export default function ProofreadingGame() {
     const found = foundRef.current;
     const missed = Math.max(0, total - found);
     const errs = errorsRef.current;
-    // Проход уровня: найдено ≥N% целей до истечения лимита (допуск пропусков сужается с уровнем)
-    const passed = !isPreset && total > 0 && found >= Math.ceil(total * minFoundPctRef.current);
-    // Звёзды: 0 промахов (пропуски+ложные клики) = 3, ≤2 = 2, иначе 1
-    const mistakes = missed + errs;
+    /** Подсказка — цена уровня: в звёздах она стоит столько же, сколько промах. */
+    const hintsTaken = fwRoundRef.current && fwSessionRef.current ? fwSessionRef.current.hints : 0;
+    /**
+     * ПРОХОД УРОВНЯ СЧИТАЕТСЯ ПО-РАЗНОМУ, И ЭТО ГЛАВНОЕ ОТЛИЧИЕ ДВУХ ЗАДАНИЙ.
+     *
+     * В корректуре есть допуск: нашёл ≥N% целей — уровень взят. В филвордах
+     * допуска нет и быть не может: поле либо разобрано ЦЕЛИКОМ, либо нет.
+     * Оставшиеся буквы — это не «почти собрал», это нерешённое поле, и зачесть
+     * его значило бы отменить единственное правило филвордов.
+     */
+    const passed = fwRoundRef.current
+      ? fwSessionRef.current !== null && isCleared(fwSessionRef.current)
+      : !isPreset && total > 0 && found >= Math.ceil(total * minFoundPctRef.current);
+    // Звёзды: 0 промахов (пропуски+ложные клики+подсказки) = 3, ≤2 = 2, иначе 1
+    const mistakes = missed + errs + hintsTaken;
+    // Следующее поле — с новым зерном. Без этого повтор того же уровня выдавал бы
+    // ту же раскладку, а вторая попытка превращалась бы в проверку памяти.
+    if (fwRoundRef.current) setFwSeed(Math.floor(Math.random() * 1e9) + 1);
     setLastStars(mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1);
     // Пресет зарядки — статистика в GameResult (уровень не трогаем).
     // Уровневый проход — всегда общий баннер LevelCleared: passed=true → следующий,
@@ -243,6 +379,10 @@ export default function ProofreadingGame() {
           rows: rowsRef.current,
           cols: colsRef.current,
           time_limit_sec: timeLimitRef.current,
+          // Режим задания в разборе результатов: две разные задачи под одним game_type
+          task_mode: fwRoundRef.current ? 'fillwords' : 'letters',
+          hints: hintsTaken,
+          letters_left: fwRoundRef.current && fwSessionRef.current ? lettersLeft(fwSessionRef.current) : 0,
         },
       });
     } catch (error) {
@@ -284,6 +424,140 @@ export default function ProofreadingGame() {
   const cellSize = Math.max(22, Math.min(widthBased, heightBased, 72));   // clamp 22-72px
   const gridWidth = cellSize * cols;
 
+  // ── Филворды: ведение пальца по буквам ────────────────────────────────────
+  /** Идёт ли сейчас партия филвордов (решает, что рисовать в поле). */
+  const fwPlaying = taskMode === 'fillwords' && !isPreset && fwSession !== null;
+
+  /**
+   * Клетка под пальцем. Шаг сетки равен `cellSize`: у клеток `margin: 1` внутри
+   * этого шага, поэтому делить надо на шаг, а не на видимую ширину плитки —
+   * иначе к правому краю накопится сдвиг на целую клетку.
+   */
+  const fwCellFromPoint = (x: number, y: number): number => {
+    const col = Math.min(cols - 1, Math.max(0, Math.floor(x / cellSize)));
+    const row = Math.min(rows - 1, Math.max(0, Math.floor(y / cellSize)));
+    return row * cols + col;
+  };
+
+  /** Черновик линии держим в рефе И в state: реф читает жест, state рисует. */
+  const fwSetTrace = (next: number[]) => { fwTraceRef.current = next; setFwTrace(next); };
+
+  /**
+   * Слово засчитывается В ТОТ ЖЕ МИГ, когда линия его накрыла, — не дожидаясь,
+   * пока человек отпустит палец.
+   *
+   * ⚠️ Это безопасно ровно потому, что раскладка — РАЗБИЕНИЕ: клетки слов не
+   * пересекаются, значит недостроенная линия одного слова физически не может
+   * совпасть с полным путём другого. Будь раскладка «словами в шуме», ранний
+   * зачёт съедал бы чужие буквы на полпути.
+   */
+  const fwCommit = (next: number[]) => {
+    const session = fwSessionRef.current;
+    if (!session) return;
+    const step = applyTrace(session, next);
+    if (!step.trace.ok) { fwSetTrace(next); return; }
+    hapticSuccess();
+    fwSessionRef.current = step.session;
+    setFwSession(step.session);
+    foundRef.current = step.session.found.length;
+    fwSetTrace([]);
+    const takenIndex = step.trace.wordIndex;
+    // Подсказка гаснет вместе со словом, которое показывала.
+    setFwHint((h) => (h && h.wordIndex === takenIndex ? null : h));
+    if (isCleared(step.session)) finish();
+  };
+
+  /**
+   * Один шаг линии, откуда бы он ни пришёл — от пальца или от тапа. Само
+   * ПРАВИЛО шага живёт в ядре (`stepTrace`): экран только сообщает клетку и
+   * решает, что делать с новым черновиком.
+   */
+  const fwStep = (cell: number) => {
+    const session = fwSessionRef.current;
+    const path = fwTraceRef.current;
+    if (!session || finishedRef.current) return;
+    const next = stepTrace(session, path, cell);
+    if (next.length === path.length) return;         // шаг незаконный или на месте
+    if (next.length < path.length) { fwSetTrace(next); return; }   // стёрли хвост
+    fwCommit(next);
+  };
+
+  /**
+   * ⚠️ ТАП ТОЖЕ ВЕДЁТ ЛИНИЮ, И ЭТО НЕ УКРАШЕНИЕ. Поле лежит в СКРОЛЛЯЩЕМСЯ
+   * каркасе (`scrollableField`), а скролл и протягивание пальца спорят за один
+   * и тот же жест. Там, где спор выиграет скролл, у человека останется рабочий
+   * способ собрать слово: коснуться первой буквы, потом соседней, и так далее.
+   */
+  const fwBegin = (cell: number) => {
+    const session = fwSessionRef.current;
+    if (!session || finishedRef.current) return;
+    const path = fwTraceRef.current;
+    // Касание НЕ рядом с концом линии начинает новую: человек передумал и взялся
+    // за другое слово, а не продолжает старое через полполя.
+    if (path.length > 0 && stepTrace(session, path, cell).length !== path.length) { fwStep(cell); return; }
+    fwSetTrace(session.owner[cell] === -1 ? [cell] : []);
+  };
+
+  const fwExtend = (cell: number) => {
+    fwDragRef.current = true;
+    fwStep(cell);
+  };
+
+  const fwRelease = () => {
+    const session = fwSessionRef.current;
+    const path = fwTraceRef.current;
+    const dragged = fwDragRef.current;
+    fwDragRef.current = false;
+    // Линия, набранная ТАПАМИ, при отпускании не сдаётся: человек ещё набирает,
+    // и штрафовать его за каждую промежуточную букву было бы наказанием за
+    // выбранный способ ввода. Сданная линия — только протянутая пальцем.
+    if (!dragged) return;
+    fwSetTrace([]);
+    if (!session || finishedRef.current || path.length < 2) return;
+    const step = applyTrace(session, path);
+    // Попадание уже засчитано в fwCommit по ходу ведения — сюда доходит только промах.
+    if (!step.trace.ok && step.trace.reason === 'no-match') {
+      hapticError();
+      fwSessionRef.current = step.session;
+      setFwSession(step.session);
+      errorsRef.current = step.session.mistakes;
+      setErrors(errorsRef.current);
+    }
+  };
+
+  /**
+   * ⚠️ Обработчик собирается на каждый рендер НАМЕРЕННО. Он замыкает геометрию
+   * поля (`cellSize`, `cols`, `rows`), а она меняется при повороте экрана и на
+   * новом уровне: запомненный однажды обработчик считал бы клетку по старому
+   * размеру и попадал бы мимо букв.
+   */
+  const fwPan = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (e) => {
+      fwDragRef.current = false;
+      fwBegin(fwCellFromPoint(e.nativeEvent.locationX, e.nativeEvent.locationY));
+    },
+    onPanResponderMove: (e) => fwExtend(fwCellFromPoint(e.nativeEvent.locationX, e.nativeEvent.locationY)),
+    onPanResponderRelease: fwRelease,
+    onPanResponderTerminate: fwRelease,
+    onPanResponderTerminationRequest: () => false,
+  });
+
+  const fwHintsLeft = Math.max(0, FILLWORDS_HINTS - (fwSession ? fwSession.hints : 0));
+  const fwFound = fwSession ? fwSession.found.length : 0;
+  const fwTotalWords = fwSession ? fwSession.puzzle.words.length : 0;
+  const fwLettersLeft = fwSession ? lettersLeft(fwSession) : 0;
+
+  const fwTakeHint = () => {
+    const session = fwSessionRef.current;
+    if (!session || finishedRef.current || session.hints >= FILLWORDS_HINTS) return;
+    const taken = takeHint(session);
+    fwSessionRef.current = taken.session;
+    setFwSession(taken.session);
+    setFwHint(taken.hint);
+  };
+
   const renderConfig = () => {
     const p = levelParams(lvl.level);
     return (
@@ -304,11 +578,52 @@ export default function ProofreadingGame() {
         <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            {t('desc_proofreading')}
+            {taskMode === 'fillwords' ? fwStrings.rules : t('desc_proofreading')}
           </Text>
         </View>
 
-        {/* Скрипт-режимы (Полиглот v1.27.0): 6 письменностей + цифры */}
+        {/* Задание: искать знак (корректура) или слово (филворды). Ряд кнопок — тот
+            же, что у письменностей ниже: на этом экране режимы всегда так и выбирали. */}
+        {fwAvailable ? (
+          <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
+            <View style={styles.optionButtons}>
+              {(['letters', 'fillwords'] as const).map((m) => (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: taskMode === m }}
+                  key={m}
+                  style={[
+                    styles.sizeButton,
+                    taskMode === m && { backgroundColor: GRADIENT[0] },
+                    taskMode !== m && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                  ]}
+                  onPress={() => setTaskMode(m)}
+                >
+                  <Text style={[styles.sizeButtonText, { color: taskMode === m ? '#333' : colors.text }]}>
+                    {m === 'fillwords' ? fwStrings.modeName : t('proofreading')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ) : (
+          /* 🔴 ЧЕСТНЫЙ ОТКАЗ ВМЕСТО ПУСТОГО ЭКРАНА. Филворды живут на словах, а
+             словарь есть не на всех двенадцати языках. Молча спрятать режим —
+             значит оставить человека гадать, почему у соседа он есть; показать
+             кнопку и выдать пустое поле — ещё хуже. Пишем прямо: чего не хватает
+             и где режим уже работает. */
+          <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
+            <Ionicons name="language-outline" size={24} color={colors.textSecondary} />
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+              {interpolate(fwStrings.noDictionary, { langs: fwLangNames })}
+            </Text>
+          </View>
+        )}
+
+        {/* Скрипт-режимы (Полиглот v1.27.0): 6 письменностей + цифры.
+            У филвордов письменность задаёт язык слов, а не выбор человека, — ряд прячем. */}
+        {taskMode === 'letters' && (
         <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
             {t('scriptLabel')}
@@ -332,6 +647,7 @@ export default function ProofreadingGame() {
             ))}
           </View>
         </View>
+        )}
 
         {/* Уровневый режим вместо ручных селекторов строк/колонок (паттерн cpt/simon) */}
         <LevelProgressMap bestLevel={lvl.best} gameId="proofreading" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
@@ -340,11 +656,20 @@ export default function ProofreadingGame() {
             {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {t('proofLvlParams').replace('{r}', String(p.rows)).replace('{c}', String(p.cols)).replace('{w}', String(p.timeLimitSec))}
+            {taskMode === 'fillwords' && fwPuzzle
+              ? interpolate(fwStrings.levelLine, {
+                rows: fwPuzzle.rows,
+                cols: fwPuzzle.cols,
+                words: fwPuzzle.words.length,
+                sec: fillwordsLevel(lvl.level).timeLimitSec,
+              })
+              : t('proofLvlParams').replace('{r}', String(p.rows)).replace('{c}', String(p.cols)).replace('{w}', String(p.timeLimitSec))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {t('proofPass').replace('{p}', String(Math.round(p.minFoundPct * 100)))}
+            {taskMode === 'fillwords'
+              ? fwStrings.pass
+              : t('proofPass').replace('{p}', String(Math.round(p.minFoundPct * 100)))}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity
@@ -377,8 +702,29 @@ export default function ProofreadingGame() {
       title={t('proofreading')}
       onBack={() => goBackOrHome()}
       scrollableField
+      headerActions={fwPlaying ? (
+        /* Подсказка — СЛУЖЕБНОЕ действие (тратит ресурс уровня), поэтому она в
+           шапке, а не в нижней полосе: правило слотов каркаса, см. GameShell. */
+        <GameAuxBar>
+          <GameAuxAction
+            icon="bulb-outline" tint="#0d9488"
+            label={t('btn_hint')} count={fwHintsLeft}
+            disabled={fwHintsLeft === 0} onPress={fwTakeHint}
+          />
+        </GameAuxBar>
+      ) : undefined}
       stats={
         <View style={styles.gameHeader}>
+          {fwPlaying ? (
+            /* Числа шапки подписаны словами из общего словаря: «Слова 3/7»,
+               «Буквы 18». Своих ключей на это не заводим — эти уже переведены. */
+            <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.targetLabel, { color: colors.text }]}>{t('label_words')}</Text>
+              <Text style={[styles.fwCount, { color: colors.text }]}>{fwFound}/{fwTotalWords}</Text>
+              <Text style={[styles.targetLabel, { color: colors.text }]}>{t('label_letters')}</Text>
+              <Text style={[styles.fwCount, { color: colors.text }]}>{fwLettersLeft}</Text>
+            </View>
+          ) : (
           <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.targetLabel, { color: colors.text }]}>{t('find')}:</Text>
             {targetLetters.map((tl, i) => (
@@ -390,6 +736,7 @@ export default function ProofreadingGame() {
               {t('label_found')} {foundIndices.size}/{targetIndices.size}
             </Text>
           </View>
+          )}
           <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
             <Ionicons name="time-outline" size={18} color={colors.text} />
             {/* На уровне — обратный отсчёт лимита (красный на последних 10с); в пресете — секундомер */}
@@ -407,6 +754,53 @@ export default function ProofreadingGame() {
         </View>
       }
     >
+      {fwPlaying ? (
+        <View style={styles.fwField}>
+          {/* Строка «что делать» — над полем, как у лабораторных модулей. */}
+          <Text style={[styles.fwTask, { color: colors.textSecondary }]}>{fwStrings.task}</Text>
+          <View style={[styles.gridContainer, { width: gridWidth }]} {...fwPan.panHandlers}>
+            {(fwSession as FillwordsSession).puzzle.letters.map((letter, index) => {
+              const session = fwSession as FillwordsSession;
+              const owner = session.owner[index];
+              const traced = fwTrace.indexOf(index) >= 0;
+              const hinted = fwHint !== null && fwHint.cells.indexOf(index) >= 0;
+              // Разобранное слово остаётся на поле СВОИМ цветом: видно, что уже
+              // съедено, и не приходится держать это в голове.
+              const takenTint = owner >= 0 ? tintForFoundOrder(session.found.indexOf(owner)) : colors.surface;
+              return (
+                <View
+                  key={index}
+                  accessible
+                  accessibilityLabel={letter}
+                  style={[
+                    styles.cell,
+                    {
+                      width: cellSize - 2,
+                      height: cellSize - 2,
+                      backgroundColor: traced ? GRADIENT[0] : takenTint,
+                      borderWidth: hinted ? 2 : 0,
+                      borderColor: '#b45309',
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.cellText,
+                      {
+                        fontSize: Math.min(cellSize * 0.5, 24),
+                        color: traced ? '#333' : owner >= 0 ? FILLWORDS_INK : colors.text,
+                        fontWeight: traced || owner >= 0 ? '700' : '500',
+                      },
+                    ]}
+                  >
+                    {letter}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      ) : (
       <View style={[styles.gridContainer, { width: gridWidth }]}>
         {grid.map((letter, index) => {
           const isTarget = targetIndices.has(index);
@@ -443,6 +837,7 @@ export default function ProofreadingGame() {
           );
         })}
       </View>
+      )}
     </GameShell>
   );
 
@@ -602,4 +997,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   cellText: {},
+  // Филворды: поле с строкой задания над сеткой
+  fwField: { alignItems: 'center', width: '100%' },
+  fwTask: { fontSize: 14, textAlign: 'center', marginBottom: 8, paddingHorizontal: 8 },
+  fwCount: { fontSize: 16, fontWeight: '700' },
 });
