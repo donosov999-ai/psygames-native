@@ -45,6 +45,11 @@ const e = (index: number, a: number, b: number, kind: EdgeKind): GraphEdge => (
 );
 
 export const AUTHORED_LEVELS: AuthoredLevel[] = [
+  // kite: точек 5, рёбер 7
+  { shape: 'kite',
+    vertices: [v(0, 0.5, 0.12), v(1, 0.192, 0.446), v(2, 0.808, 0.446), v(3, 0.5, 0.88), v(4, 0.5, 0.446)],
+    edges: [e(0, 0, 2, 'single'), e(1, 1, 3, 'single'), e(2, 2, 3, 'single'), e(3, 0, 4, 'single'), e(4, 4, 3, 'single'), e(5, 1, 4, 'single'), e(6, 4, 2, 'single')],
+    solution: ['v2', 'v0', 'v4', 'v3', 'v1', 'v4', 'v2', 'v3'] },
   // envelope: точек 5, рёбер 8
   { shape: 'envelope',
     vertices: [v(0, 0.12, 0.835), v(1, 0.88, 0.835), v(2, 0.88, 0.455), v(3, 0.12, 0.455), v(4, 0.5, 0.165)],
@@ -55,6 +60,26 @@ export const AUTHORED_LEVELS: AuthoredLevel[] = [
     vertices: [v(0, 0.5, 0.534), v(1, 0.5, 0.131), v(2, 0.88, 0.399), v(3, 0.735, 0.869), v(4, 0.265, 0.869), v(5, 0.12, 0.399)],
     edges: [e(0, 0, 2, 'single'), e(1, 0, 3, 'single'), e(2, 0, 4, 'single'), e(3, 0, 5, 'single'), e(4, 1, 2, 'single'), e(5, 2, 3, 'single'), e(6, 4, 5, 'single'), e(7, 5, 1, 'single')],
     solution: ['v2', 'v0', 'v3', 'v2', 'v1', 'v5', 'v0', 'v4', 'v5'] },
+  // arrow: точек 7, рёбер 8
+  { shape: 'arrow',
+    vertices: [v(0, 0.12, 0.5), v(1, 0.458, 0.5), v(2, 0.458, 0.204), v(3, 0.458, 0.796), v(4, 0.88, 0.5), v(5, 0.669, 0.331), v(6, 0.669, 0.669)],
+    edges: [e(0, 0, 1, 'single'), e(1, 1, 2, 'single'), e(2, 1, 3, 'single'), e(3, 2, 4, 'single'), e(4, 3, 4, 'single'), e(5, 5, 4, 'single'), e(6, 6, 4, 'single'), e(7, 5, 6, 'single')],
+    solution: ['v0', 'v1', 'v2', 'v4', 'v5', 'v6', 'v4', 'v3', 'v1'] },
+  // anchor: точек 7, рёбер 8
+  { shape: 'anchor',
+    vertices: [v(0, 0.5, 0.12), v(1, 0.5, 0.428), v(2, 0.5, 0.88), v(3, 0.171, 0.634), v(4, 0.829, 0.634), v(5, 0.295, 0.428), v(6, 0.705, 0.428)],
+    edges: [e(0, 0, 1, 'single'), e(1, 1, 2, 'single'), e(2, 2, 3, 'single'), e(3, 5, 1, 'single'), e(4, 1, 6, 'single'), e(5, 4, 2, 'single'), e(6, 5, 6, 'single'), e(7, 3, 4, 'single')],
+    solution: ['v0', 'v1', 'v5', 'v6', 'v1', 'v2', 'v3', 'v4', 'v2'] },
+  // gate: точек 7, рёбер 8
+  { shape: 'gate',
+    vertices: [v(0, 0.141, 0.88), v(1, 0.141, 0.289), v(2, 0.5, 0.12), v(3, 0.859, 0.289), v(4, 0.859, 0.88), v(5, 0.5, 0.289), v(6, 0.5, 0.584)],
+    edges: [e(0, 1, 2, 'single'), e(1, 2, 3, 'single'), e(2, 3, 4, 'single'), e(3, 1, 5, 'single'), e(4, 5, 3, 'single'), e(5, 6, 0, 'single'), e(6, 6, 4, 'single'), e(7, 0, 4, 'single')],
+    solution: ['v3', 'v2', 'v1', 'v5', 'v3', 'v4', 'v6', 'v0', 'v4'] },
+  // clover: точек 7, рёбер 9
+  { shape: 'clover',
+    vertices: [v(0, 0.5, 0.5), v(1, 0.5, 0.12), v(2, 0.88, 0.5), v(3, 0.5, 0.88), v(4, 0.12, 0.5), v(5, 0.746, 0.254), v(6, 0.254, 0.746)],
+    edges: [e(0, 0, 1, 'single'), e(1, 1, 5, 'single'), e(2, 5, 2, 'single'), e(3, 2, 0, 'single'), e(4, 0, 3, 'single'), e(5, 3, 6, 'single'), e(6, 6, 4, 'single'), e(7, 4, 0, 'single'), e(8, 3, 4, 'single')],
+    solution: ['v3', 'v0', 'v1', 'v5', 'v2', 'v0', 'v4', 'v6', 'v3', 'v4'] },
   // house-cross: точек 5, рёбер 10
   { shape: 'house-cross',
     vertices: [v(0, 0.12, 0.856), v(1, 0.88, 0.856), v(2, 0.88, 0.476), v(3, 0.12, 0.476), v(4, 0.5, 0.144)],
@@ -75,75 +100,120 @@ export const AUTHORED_LEVELS: AuthoredLevel[] = [
     vertices: [v(0, 0.12, 0.5), v(1, 0.393, 0.247), v(2, 0.393, 0.753), v(3, 0.705, 0.305), v(4, 0.705, 0.695), v(5, 0.88, 0.5)],
     edges: [e(0, 0, 1, 'single'), e(1, 0, 2, 'single'), e(2, 1, 2, 'single'), e(3, 1, 3, 'single'), e(4, 2, 4, 'single'), e(5, 3, 4, 'single'), e(6, 3, 5, 'single'), e(7, 4, 5, 'single'), e(8, 1, 4, 'single'), e(9, 2, 3, 'single')],
     solution: ['v0', 'v1', 'v2', 'v4', 'v3', 'v1', 'v4', 'v5', 'v3', 'v2', 'v0'] },
+  // tent: точек 6, рёбер 10
+  { shape: 'tent',
+    vertices: [v(0, 0.5, 0.12), v(1, 0.151, 0.88), v(2, 0.849, 0.88), v(3, 0.336, 0.51), v(4, 0.664, 0.51), v(5, 0.5, 0.88)],
+    edges: [e(0, 0, 1, 'single'), e(1, 0, 2, 'single'), e(2, 1, 2, 'single'), e(3, 3, 4, 'single'), e(4, 0, 3, 'single'), e(5, 0, 4, 'single'), e(6, 1, 3, 'single'), e(7, 2, 4, 'single'), e(8, 3, 5, 'single'), e(9, 4, 5, 'single')],
+    solution: ['v1', 'v0', 'v2', 'v1', 'v3', 'v4', 'v0', 'v3', 'v5', 'v4', 'v2'] },
   // butterfly: точек 7, рёбер 10
   { shape: 'butterfly',
     vertices: [v(0, 0.5, 0.5), v(1, 0.141, 0.204), v(2, 0.141, 0.796), v(3, 0.859, 0.204), v(4, 0.859, 0.796), v(5, 0.5, 0.12), v(6, 0.5, 0.88)],
-    edges: [e(0, 0, 1, 'single'), e(1, 1, 2, 'single'), e(2, 2, 0, 'single'), e(3, 0, 3, 'single'), e(4, 3, 4, 'single'), e(5, 4, 0, 'single'), e(6, 0, 5, 'single'), e(7, 0, 6, 'single'), e(8, 5, 3, 'single'), e(9, 6, 4, 'single')],
-    solution: ['v3', 'v0', 'v1', 'v2', 'v0', 'v4', 'v3', 'v5', 'v0', 'v6', 'v4'] },
+    edges: [e(0, 0, 1, 'single'), e(1, 1, 2, 'single'), e(2, 2, 0, 'single'), e(3, 0, 3, 'single'), e(4, 3, 4, 'single'), e(5, 4, 0, 'single'), e(6, 0, 5, 'single'), e(7, 0, 6, 'single'), e(8, 5, 3, 'double'), e(9, 6, 4, 'single')],
+    solution: ['v4', 'v3', 'v0', 'v1', 'v2', 'v0', 'v4', 'v6', 'v0', 'v5', 'v3', 'v5'] },
   // snowflake: точек 7, рёбер 10
   { shape: 'snowflake',
     vertices: [v(0, 0.5, 0.5), v(1, 0.5, 0.12), v(2, 0.833, 0.31), v(3, 0.833, 0.69), v(4, 0.5, 0.88), v(5, 0.168, 0.69), v(6, 0.168, 0.31)],
-    edges: [e(0, 0, 1, 'single'), e(1, 0, 2, 'single'), e(2, 0, 3, 'single'), e(3, 0, 4, 'single'), e(4, 0, 5, 'single'), e(5, 0, 6, 'single'), e(6, 1, 2, 'single'), e(7, 3, 4, 'single'), e(8, 4, 5, 'single'), e(9, 6, 1, 'single')],
-    solution: ['v1', 'v0', 'v2', 'v1', 'v6', 'v0', 'v3', 'v4', 'v0', 'v5', 'v4'] },
+    edges: [e(0, 0, 1, 'double'), e(1, 0, 2, 'single'), e(2, 0, 3, 'single'), e(3, 0, 4, 'single'), e(4, 0, 5, 'single'), e(5, 0, 6, 'single'), e(6, 1, 2, 'single'), e(7, 3, 4, 'single'), e(8, 4, 5, 'single'), e(9, 6, 1, 'single')],
+    solution: ['v0', 'v1', 'v2', 'v0', 'v3', 'v4', 'v0', 'v6', 'v1', 'v0', 'v5', 'v4'] },
+  // boat: точек 7, рёбер 10
+  { shape: 'boat',
+    vertices: [v(0, 0.12, 0.6), v(1, 0.88, 0.6), v(2, 0.28, 0.84), v(3, 0.72, 0.84), v(4, 0.5, 0.6), v(5, 0.5, 0.16), v(6, 0.72, 0.38)],
+    edges: [e(0, 0, 1, 'single'), e(1, 0, 2, 'double'), e(2, 2, 3, 'single'), e(3, 3, 1, 'single'), e(4, 0, 4, 'single'), e(5, 4, 1, 'single'), e(6, 4, 5, 'single'), e(7, 5, 6, 'single'), e(8, 6, 4, 'single'), e(9, 5, 1, 'single')],
+    solution: ['v2', 'v0', 'v1', 'v3', 'v2', 'v0', 'v4', 'v1', 'v5', 'v4', 'v6', 'v5'] },
+  // shield: точек 7, рёбер 10
+  { shape: 'shield',
+    vertices: [v(0, 0.5, 0.12), v(1, 0.177, 0.31), v(2, 0.823, 0.31), v(3, 0.177, 0.614), v(4, 0.823, 0.614), v(5, 0.5, 0.88), v(6, 0.5, 0.462)],
+    edges: [e(0, 0, 1, 'single'), e(1, 0, 2, 'single'), e(2, 3, 5, 'single'), e(3, 4, 5, 'single'), e(4, 1, 6, 'single'), e(5, 2, 6, 'single'), e(6, 3, 6, 'single'), e(7, 4, 6, 'single'), e(8, 0, 6, 'double'), e(9, 5, 6, 'single')],
+    solution: ['v5', 'v3', 'v6', 'v1', 'v0', 'v2', 'v6', 'v4', 'v5', 'v6', 'v0', 'v6'] },
+  // flower: точек 7, рёбер 10
+  { shape: 'flower',
+    vertices: [v(0, 0.5, 0.5), v(1, 0.5, 0.12), v(2, 0.827, 0.31), v(3, 0.827, 0.69), v(4, 0.5, 0.88), v(5, 0.173, 0.69), v(6, 0.173, 0.31)],
+    edges: [e(0, 0, 1, 'single'), e(1, 0, 2, 'single'), e(2, 0, 3, 'single'), e(3, 0, 4, 'single'), e(4, 5, 0, 'oneway'), e(5, 0, 6, 'single'), e(6, 5, 6, 'single'), e(7, 2, 3, 'single'), e(8, 4, 5, 'single'), e(9, 6, 1, 'single')],
+    solution: ['v5', 'v0', 'v1', 'v6', 'v0', 'v2', 'v3', 'v0', 'v4', 'v5', 'v6'] },
   // twin-house: точек 8, рёбер 10
   { shape: 'twin-house',
     vertices: [v(0, 0.12, 0.833), v(1, 0.5, 0.833), v(2, 0.88, 0.833), v(3, 0.12, 0.5), v(4, 0.5, 0.5), v(5, 0.88, 0.5), v(6, 0.31, 0.167), v(7, 0.69, 0.167)],
-    edges: [e(0, 0, 1, 'single'), e(1, 1, 2, 'single'), e(2, 0, 3, 'single'), e(3, 2, 5, 'single'), e(4, 3, 4, 'single'), e(5, 4, 5, 'single'), e(6, 3, 6, 'single'), e(7, 6, 4, 'single'), e(8, 4, 7, 'single'), e(9, 7, 5, 'single')],
+    edges: [e(0, 0, 1, 'single'), e(1, 1, 2, 'single'), e(2, 3, 0, 'oneway'), e(3, 2, 5, 'single'), e(4, 3, 4, 'single'), e(5, 4, 5, 'single'), e(6, 3, 6, 'single'), e(7, 6, 4, 'single'), e(8, 4, 7, 'single'), e(9, 7, 5, 'single')],
     solution: ['v3', 'v0', 'v1', 'v2', 'v5', 'v4', 'v3', 'v6', 'v4', 'v7', 'v5'] },
   // horseshoe: точек 8, рёбер 10
   { shape: 'horseshoe',
     vertices: [v(0, 0.12, 0.846), v(1, 0.12, 0.444), v(2, 0.299, 0.154), v(3, 0.701, 0.154), v(4, 0.88, 0.444), v(5, 0.88, 0.846), v(6, 0.5, 0.444), v(7, 0.5, 0.846)],
-    edges: [e(0, 0, 1, 'single'), e(1, 2, 3, 'single'), e(2, 4, 5, 'single'), e(3, 0, 7, 'single'), e(4, 7, 5, 'single'), e(5, 1, 6, 'single'), e(6, 6, 4, 'single'), e(7, 2, 6, 'single'), e(8, 6, 3, 'single'), e(9, 6, 7, 'single')],
+    edges: [e(0, 0, 1, 'single'), e(1, 2, 3, 'single'), e(2, 4, 5, 'single'), e(3, 0, 7, 'single'), e(4, 7, 5, 'single'), e(5, 6, 1, 'oneway'), e(6, 6, 4, 'single'), e(7, 2, 6, 'single'), e(8, 6, 3, 'single'), e(9, 6, 7, 'single')],
     solution: ['v6', 'v1', 'v0', 'v7', 'v5', 'v4', 'v6', 'v2', 'v3', 'v6', 'v7'] },
+  // net: точек 8, рёбер 10
+  { shape: 'net',
+    vertices: [v(0, 0.12, 0.12), v(1, 0.5, 0.12), v(2, 0.88, 0.12), v(3, 0.12, 0.522), v(4, 0.5, 0.522), v(5, 0.88, 0.522), v(6, 0.31, 0.88), v(7, 0.69, 0.88)],
+    edges: [e(0, 1, 0, 'oneway'), e(1, 1, 2, 'single'), e(2, 4, 5, 'single'), e(3, 0, 3, 'single'), e(4, 1, 4, 'single'), e(5, 2, 5, 'single'), e(6, 3, 6, 'single'), e(7, 7, 5, 'single'), e(8, 4, 6, 'single'), e(9, 4, 7, 'single')],
+    solution: ['v1', 'v0', 'v3', 'v6', 'v4', 'v5', 'v2', 'v1', 'v4', 'v7', 'v5'] },
   // diamond: точек 7, рёбер 11
   { shape: 'diamond',
     vertices: [v(0, 0.12, 0.38), v(1, 0.35, 0.18), v(2, 0.65, 0.18), v(3, 0.88, 0.38), v(4, 0.35, 0.56), v(5, 0.65, 0.56), v(6, 0.5, 0.82)],
-    edges: [e(0, 0, 1, 'single'), e(1, 1, 2, 'single'), e(2, 2, 3, 'single'), e(3, 0, 3, 'single'), e(4, 0, 4, 'single'), e(5, 4, 5, 'single'), e(6, 5, 3, 'single'), e(7, 4, 6, 'single'), e(8, 5, 6, 'single'), e(9, 0, 6, 'single'), e(10, 3, 6, 'single')],
+    edges: [e(0, 0, 1, 'oneway'), e(1, 1, 2, 'single'), e(2, 2, 3, 'single'), e(3, 0, 3, 'single'), e(4, 4, 0, 'oneway'), e(5, 4, 5, 'single'), e(6, 5, 3, 'single'), e(7, 4, 6, 'single'), e(8, 5, 6, 'single'), e(9, 0, 6, 'single'), e(10, 3, 6, 'single')],
     solution: ['v4', 'v0', 'v1', 'v2', 'v3', 'v0', 'v6', 'v4', 'v5', 'v3', 'v6', 'v5'] },
   // ladder: точек 8, рёбер 11
   { shape: 'ladder',
     vertices: [v(0, 0.233, 0.12), v(1, 0.767, 0.12), v(2, 0.233, 0.387), v(3, 0.767, 0.387), v(4, 0.233, 0.654), v(5, 0.767, 0.654), v(6, 0.233, 0.88), v(7, 0.767, 0.88)],
-    edges: [e(0, 0, 1, 'single'), e(1, 2, 3, 'single'), e(2, 4, 5, 'single'), e(3, 6, 7, 'single'), e(4, 0, 2, 'single'), e(5, 2, 4, 'single'), e(6, 4, 6, 'single'), e(7, 1, 3, 'single'), e(8, 3, 5, 'single'), e(9, 0, 3, 'single'), e(10, 4, 7, 'single')],
+    edges: [e(0, 0, 1, 'oneway'), e(1, 2, 3, 'single'), e(2, 4, 5, 'single'), e(3, 6, 7, 'single'), e(4, 0, 2, 'single'), e(5, 2, 4, 'single'), e(6, 4, 6, 'single'), e(7, 1, 3, 'oneway'), e(8, 3, 5, 'single'), e(9, 0, 3, 'single'), e(10, 4, 7, 'single')],
     solution: ['v0', 'v1', 'v3', 'v2', 'v0', 'v3', 'v5', 'v4', 'v6', 'v7', 'v4', 'v2'] },
   // bridge: точек 8, рёбер 11
   { shape: 'bridge',
     vertices: [v(0, 0.12, 0.68), v(1, 0.31, 0.415), v(2, 0.5, 0.32), v(3, 0.69, 0.415), v(4, 0.88, 0.68), v(5, 0.31, 0.68), v(6, 0.5, 0.68), v(7, 0.69, 0.68)],
-    edges: [e(0, 0, 1, 'single'), e(1, 1, 2, 'single'), e(2, 3, 4, 'single'), e(3, 0, 5, 'single'), e(4, 5, 6, 'single'), e(5, 6, 7, 'double'), e(6, 7, 4, 'single'), e(7, 1, 5, 'single'), e(8, 2, 6, 'single'), e(9, 3, 7, 'single'), e(10, 5, 7, 'single')],
-    solution: ['v1', 'v0', 'v5', 'v6', 'v7', 'v4', 'v3', 'v7', 'v5', 'v1', 'v2', 'v6', 'v7'] },
+    edges: [e(0, 1, 0, 'oneway'), e(1, 1, 2, 'single'), e(2, 3, 4, 'single'), e(3, 0, 5, 'oneway'), e(4, 5, 6, 'single'), e(5, 6, 7, 'single'), e(6, 7, 4, 'single'), e(7, 1, 5, 'single'), e(8, 2, 6, 'single'), e(9, 3, 7, 'single'), e(10, 5, 7, 'single')],
+    solution: ['v1', 'v0', 'v5', 'v6', 'v7', 'v4', 'v3', 'v7', 'v5', 'v1', 'v2', 'v6'] },
   // crystal: точек 7, рёбер 12
   { shape: 'crystal',
     vertices: [v(0, 0.5, 0.12), v(1, 0.229, 0.355), v(2, 0.771, 0.355), v(3, 0.229, 0.663), v(4, 0.771, 0.663), v(5, 0.5, 0.88), v(6, 0.5, 0.509)],
-    edges: [e(0, 0, 1, 'single'), e(1, 0, 2, 'single'), e(2, 1, 2, 'single'), e(3, 1, 3, 'double'), e(4, 2, 4, 'single'), e(5, 3, 4, 'single'), e(6, 3, 5, 'single'), e(7, 4, 5, 'single'), e(8, 1, 6, 'single'), e(9, 2, 6, 'single'), e(10, 3, 6, 'single'), e(11, 4, 6, 'single')],
-    solution: ['v1', 'v0', 'v2', 'v1', 'v3', 'v4', 'v2', 'v6', 'v1', 'v3', 'v5', 'v4', 'v6', 'v3'] },
+    edges: [e(0, 0, 1, 'oneway'), e(1, 0, 2, 'single'), e(2, 1, 2, 'oneway'), e(3, 1, 3, 'single'), e(4, 2, 4, 'single'), e(5, 3, 4, 'single'), e(6, 3, 5, 'single'), e(7, 4, 5, 'single'), e(8, 1, 6, 'single'), e(9, 2, 6, 'single'), e(10, 3, 6, 'single'), e(11, 4, 6, 'single')],
+    solution: ['v0', 'v1', 'v2', 'v4', 'v3', 'v1', 'v6', 'v3', 'v5', 'v4', 'v6', 'v2', 'v0'] },
+  // lantern: точек 7, рёбер 12
+  { shape: 'lantern',
+    vertices: [v(0, 0.5, 0.12), v(1, 0.259, 0.342), v(2, 0.741, 0.342), v(3, 0.259, 0.676), v(4, 0.741, 0.676), v(5, 0.5, 0.88), v(6, 0.5, 0.509)],
+    edges: [e(0, 0, 1, 'oneway'), e(1, 0, 2, 'single'), e(2, 1, 2, 'oneway'), e(3, 1, 3, 'single'), e(4, 2, 4, 'single'), e(5, 3, 4, 'single'), e(6, 3, 5, 'single'), e(7, 4, 5, 'single'), e(8, 1, 6, 'single'), e(9, 2, 6, 'single'), e(10, 3, 6, 'single'), e(11, 4, 6, 'single')],
+    solution: ['v0', 'v1', 'v2', 'v4', 'v3', 'v1', 'v6', 'v3', 'v5', 'v4', 'v6', 'v2', 'v0'] },
   // crown: точек 8, рёбер 12
   { shape: 'crown',
     vertices: [v(0, 0.12, 0.77), v(1, 0.88, 0.77), v(2, 0.12, 0.39), v(3, 0.32, 0.59), v(4, 0.5, 0.23), v(5, 0.68, 0.59), v(6, 0.88, 0.39), v(7, 0.5, 0.77)],
-    edges: [e(0, 0, 1, 'single'), e(1, 0, 2, 'single'), e(2, 2, 3, 'single'), e(3, 3, 4, 'single'), e(4, 4, 5, 'single'), e(5, 5, 6, 'single'), e(6, 6, 1, 'single'), e(7, 0, 7, 'single'), e(8, 7, 1, 'single'), e(9, 5, 7, 'single'), e(10, 4, 7, 'single'), e(11, 1, 5, 'single')],
+    edges: [e(0, 0, 1, 'oneway'), e(1, 0, 2, 'single'), e(2, 2, 3, 'single'), e(3, 3, 4, 'single'), e(4, 4, 5, 'single'), e(5, 5, 6, 'single'), e(6, 1, 6, 'oneway'), e(7, 0, 7, 'single'), e(8, 7, 1, 'single'), e(9, 5, 7, 'single'), e(10, 4, 7, 'single'), e(11, 1, 5, 'single')],
     solution: ['v0', 'v1', 'v6', 'v5', 'v4', 'v3', 'v2', 'v0', 'v7', 'v1', 'v5', 'v7', 'v4'] },
   // fir: точек 8, рёбер 12
   { shape: 'fir',
     vertices: [v(0, 0.5, 0.12), v(1, 0.3, 0.42), v(2, 0.7, 0.42), v(3, 0.2, 0.66), v(4, 0.8, 0.66), v(5, 0.12, 0.88), v(6, 0.88, 0.88), v(7, 0.5, 0.88)],
-    edges: [e(0, 0, 1, 'single'), e(1, 0, 2, 'single'), e(2, 1, 2, 'single'), e(3, 1, 3, 'single'), e(4, 2, 4, 'single'), e(5, 3, 4, 'single'), e(6, 3, 5, 'single'), e(7, 4, 6, 'double'), e(8, 5, 7, 'single'), e(9, 7, 6, 'single'), e(10, 1, 7, 'single'), e(11, 2, 7, 'single')],
-    solution: ['v3', 'v1', 'v0', 'v2', 'v1', 'v7', 'v5', 'v3', 'v4', 'v2', 'v7', 'v6', 'v4', 'v6'] },
+    edges: [e(0, 1, 0, 'oneway'), e(1, 0, 2, 'single'), e(2, 1, 2, 'single'), e(3, 3, 1, 'oneway'), e(4, 2, 4, 'single'), e(5, 3, 4, 'single'), e(6, 3, 5, 'single'), e(7, 4, 6, 'single'), e(8, 5, 7, 'single'), e(9, 7, 6, 'single'), e(10, 1, 7, 'single'), e(11, 2, 7, 'single')],
+    solution: ['v3', 'v1', 'v0', 'v2', 'v1', 'v7', 'v5', 'v3', 'v4', 'v2', 'v7', 'v6', 'v4'] },
+  // castle: точек 8, рёбер 12
+  { shape: 'castle',
+    vertices: [v(0, 0.12, 0.82), v(1, 0.12, 0.42), v(2, 0.34, 0.42), v(3, 0.34, 0.18), v(4, 0.56, 0.18), v(5, 0.56, 0.42), v(6, 0.88, 0.42), v(7, 0.88, 0.82)],
+    edges: [e(0, 0, 1, 'oneway'), e(1, 1, 2, 'oneway'), e(2, 2, 3, 'single'), e(3, 3, 4, 'single'), e(4, 4, 5, 'single'), e(5, 5, 6, 'single'), e(6, 6, 7, 'single'), e(7, 7, 0, 'single'), e(8, 1, 5, 'single'), e(9, 2, 6, 'single'), e(10, 0, 5, 'single'), e(11, 1, 6, 'single')],
+    solution: ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v0', 'v5', 'v1', 'v6', 'v2'] },
   // web: точек 7, рёбер 13
   { shape: 'web',
     vertices: [v(0, 0.5, 0.5), v(1, 0.5, 0.12), v(2, 0.83, 0.31), v(3, 0.83, 0.69), v(4, 0.5, 0.88), v(5, 0.17, 0.69), v(6, 0.17, 0.31)],
-    edges: [e(0, 1, 2, 'oneway'), e(1, 3, 4, 'single'), e(2, 4, 5, 'single'), e(3, 6, 1, 'single'), e(4, 0, 1, 'single'), e(5, 0, 2, 'single'), e(6, 0, 3, 'single'), e(7, 0, 4, 'single'), e(8, 0, 5, 'single'), e(9, 0, 6, 'single'), e(10, 1, 3, 'single'), e(11, 3, 5, 'single'), e(12, 5, 1, 'single')],
+    edges: [e(0, 1, 2, 'oneway'), e(1, 3, 4, 'single'), e(2, 4, 5, 'single'), e(3, 6, 1, 'single'), e(4, 0, 1, 'single'), e(5, 2, 0, 'oneway'), e(6, 0, 3, 'single'), e(7, 0, 4, 'single'), e(8, 0, 5, 'single'), e(9, 0, 6, 'single'), e(10, 1, 3, 'single'), e(11, 3, 5, 'single'), e(12, 5, 1, 'single')],
     solution: ['v1', 'v2', 'v0', 'v1', 'v6', 'v0', 'v3', 'v4', 'v5', 'v3', 'v1', 'v5', 'v0', 'v4'] },
+  // rails: точек 8, рёбер 13
+  { shape: 'rails',
+    vertices: [v(0, 0.183, 0.12), v(1, 0.817, 0.12), v(2, 0.183, 0.373), v(3, 0.817, 0.373), v(4, 0.183, 0.627), v(5, 0.817, 0.627), v(6, 0.183, 0.88), v(7, 0.817, 0.88)],
+    edges: [e(0, 0, 1, 'oneway'), e(1, 2, 3, 'single'), e(2, 4, 5, 'single'), e(3, 6, 7, 'single'), e(4, 0, 2, 'single'), e(5, 2, 4, 'single'), e(6, 4, 6, 'single'), e(7, 1, 3, 'oneway'), e(8, 3, 5, 'single'), e(9, 5, 7, 'single'), e(10, 0, 3, 'single'), e(11, 2, 5, 'single'), e(12, 4, 7, 'single')],
+    solution: ['v0', 'v1', 'v3', 'v2', 'v0', 'v3', 'v5', 'v4', 'v2', 'v5', 'v7', 'v6', 'v4', 'v7'] },
+  // zigzag: точек 8, рёбер 13
+  { shape: 'zigzag',
+    vertices: [v(0, 0.12, 0.709), v(1, 0.31, 0.31), v(2, 0.5, 0.709), v(3, 0.69, 0.31), v(4, 0.88, 0.709), v(5, 0.5, 0.272), v(6, 0.31, 0.728), v(7, 0.69, 0.728)],
+    edges: [e(0, 0, 1, 'oneway'), e(1, 1, 2, 'single'), e(2, 2, 3, 'single'), e(3, 3, 4, 'single'), e(4, 1, 5, 'single'), e(5, 5, 3, 'single'), e(6, 6, 0, 'oneway'), e(7, 6, 2, 'single'), e(8, 2, 7, 'single'), e(9, 7, 4, 'single'), e(10, 6, 5, 'single'), e(11, 5, 7, 'single'), e(12, 1, 3, 'single')],
+    solution: ['v6', 'v0', 'v1', 'v2', 'v3', 'v4', 'v7', 'v2', 'v6', 'v5', 'v1', 'v3', 'v5', 'v7'] },
   // lattice23: точек 9, рёбер 13
   { shape: 'lattice23',
     vertices: [v(0, 0.12, 0.144), v(1, 0.5, 0.144), v(2, 0.88, 0.144), v(3, 0.12, 0.524), v(4, 0.5, 0.524), v(5, 0.88, 0.524), v(6, 0.12, 0.856), v(7, 0.5, 0.856), v(8, 0.88, 0.856)],
-    edges: [e(0, 1, 0, 'oneway'), e(1, 1, 2, 'single'), e(2, 3, 4, 'single'), e(3, 4, 5, 'single'), e(4, 6, 7, 'single'), e(5, 7, 8, 'single'), e(6, 0, 3, 'single'), e(7, 3, 6, 'single'), e(8, 1, 4, 'single'), e(9, 4, 7, 'single'), e(10, 2, 5, 'single'), e(11, 5, 8, 'single'), e(12, 3, 7, 'single')],
+    edges: [e(0, 1, 0, 'oneway'), e(1, 1, 2, 'single'), e(2, 3, 4, 'single'), e(3, 4, 5, 'single'), e(4, 6, 7, 'single'), e(5, 7, 8, 'single'), e(6, 0, 3, 'oneway'), e(7, 3, 6, 'single'), e(8, 1, 4, 'single'), e(9, 4, 7, 'single'), e(10, 2, 5, 'single'), e(11, 5, 8, 'single'), e(12, 3, 7, 'single')],
     solution: ['v1', 'v0', 'v3', 'v4', 'v5', 'v2', 'v1', 'v4', 'v7', 'v6', 'v3', 'v7', 'v8', 'v5'] },
   // octa-cross: точек 9, рёбер 13
   { shape: 'octa-cross',
     vertices: [v(0, 0.331, 0.12), v(1, 0.669, 0.12), v(2, 0.88, 0.331), v(3, 0.88, 0.669), v(4, 0.669, 0.88), v(5, 0.331, 0.88), v(6, 0.12, 0.669), v(7, 0.12, 0.331), v(8, 0.5, 0.5)],
-    edges: [e(0, 0, 1, 'oneway'), e(1, 1, 2, 'single'), e(2, 2, 3, 'single'), e(3, 3, 4, 'single'), e(4, 4, 5, 'single'), e(5, 5, 6, 'single'), e(6, 6, 7, 'single'), e(7, 7, 0, 'single'), e(8, 8, 0, 'single'), e(9, 8, 2, 'single'), e(10, 8, 4, 'single'), e(11, 8, 6, 'single'), e(12, 2, 4, 'single')],
+    edges: [e(0, 0, 1, 'oneway'), e(1, 1, 2, 'oneway'), e(2, 2, 3, 'single'), e(3, 3, 4, 'single'), e(4, 4, 5, 'single'), e(5, 5, 6, 'single'), e(6, 6, 7, 'single'), e(7, 7, 0, 'single'), e(8, 8, 0, 'single'), e(9, 8, 2, 'single'), e(10, 8, 4, 'single'), e(11, 8, 6, 'single'), e(12, 2, 4, 'single')],
     solution: ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v0', 'v8', 'v2', 'v4', 'v8', 'v6'] },
   // mesh33: точек 9, рёбер 13
   { shape: 'mesh33',
     vertices: [v(0, 0.12, 0.12), v(1, 0.5, 0.12), v(2, 0.88, 0.12), v(3, 0.12, 0.5), v(4, 0.5, 0.5), v(5, 0.88, 0.5), v(6, 0.12, 0.88), v(7, 0.5, 0.88), v(8, 0.88, 0.88)],
-    edges: [e(0, 1, 2, 'single'), e(1, 3, 4, 'single'), e(2, 4, 5, 'single'), e(3, 7, 6, 'oneway'), e(4, 7, 8, 'single'), e(5, 0, 3, 'single'), e(6, 1, 4, 'single'), e(7, 4, 7, 'single'), e(8, 5, 8, 'single'), e(9, 0, 4, 'single'), e(10, 4, 8, 'single'), e(11, 2, 4, 'single'), e(12, 4, 6, 'single')],
+    edges: [e(0, 1, 2, 'single'), e(1, 3, 4, 'single'), e(2, 4, 5, 'single'), e(3, 7, 6, 'oneway'), e(4, 7, 8, 'single'), e(5, 0, 3, 'single'), e(6, 1, 4, 'single'), e(7, 4, 7, 'single'), e(8, 5, 8, 'single'), e(9, 0, 4, 'single'), e(10, 4, 8, 'single'), e(11, 2, 4, 'single'), e(12, 6, 4, 'oneway')],
     solution: ['v7', 'v6', 'v4', 'v3', 'v0', 'v4', 'v5', 'v8', 'v7', 'v4', 'v1', 'v2', 'v4', 'v8'] },
   // pinwheel: точек 9, рёбер 13
   { shape: 'pinwheel',
@@ -155,6 +225,16 @@ export const AUTHORED_LEVELS: AuthoredLevel[] = [
     vertices: [v(0, 0.12, 0.162), v(1, 0.5, 0.162), v(2, 0.88, 0.162), v(3, 0.12, 0.5), v(4, 0.5, 0.5), v(5, 0.88, 0.5), v(6, 0.12, 0.838), v(7, 0.5, 0.838), v(8, 0.88, 0.838)],
     edges: [e(0, 1, 0, 'oneway'), e(1, 1, 2, 'single'), e(2, 1, 4, 'single'), e(3, 3, 4, 'single'), e(4, 4, 5, 'single'), e(5, 3, 6, 'single'), e(6, 4, 7, 'single'), e(7, 5, 8, 'single'), e(8, 7, 8, 'single'), e(9, 0, 4, 'oneway'), e(10, 4, 8, 'single'), e(11, 2, 4, 'single'), e(12, 4, 6, 'single')],
     solution: ['v1', 'v0', 'v4', 'v1', 'v2', 'v4', 'v3', 'v6', 'v4', 'v5', 'v8', 'v7', 'v4', 'v8'] },
+  // spiral: точек 9, рёбер 13
+  { shape: 'spiral',
+    vertices: [v(0, 0.5, 0.5), v(1, 0.5, 0.12), v(2, 0.88, 0.5), v(3, 0.5, 0.88), v(4, 0.12, 0.5), v(5, 0.221, 0.221), v(6, 0.779, 0.221), v(7, 0.779, 0.779), v(8, 0.221, 0.779)],
+    edges: [e(0, 1, 6, 'single'), e(1, 6, 2, 'single'), e(2, 7, 2, 'oneway'), e(3, 3, 7, 'oneway'), e(4, 3, 8, 'single'), e(5, 8, 4, 'single'), e(6, 4, 5, 'single'), e(7, 5, 1, 'single'), e(8, 0, 1, 'single'), e(9, 0, 3, 'single'), e(10, 0, 2, 'single'), e(11, 0, 4, 'single'), e(12, 1, 2, 'single')],
+    solution: ['v3', 'v7', 'v2', 'v6', 'v1', 'v5', 'v4', 'v8', 'v3', 'v0', 'v1', 'v2', 'v0', 'v4'] },
+  // cross: точек 9, рёбер 13
+  { shape: 'cross',
+    vertices: [v(0, 0.5, 0.5), v(1, 0.5, 0.12), v(2, 0.88, 0.5), v(3, 0.5, 0.88), v(4, 0.12, 0.5), v(5, 0.26, 0.26), v(6, 0.74, 0.26), v(7, 0.74, 0.74), v(8, 0.26, 0.74)],
+    edges: [e(0, 0, 1, 'oneway'), e(1, 0, 2, 'single'), e(2, 3, 0, 'oneway'), e(3, 0, 4, 'single'), e(4, 1, 5, 'single'), e(5, 1, 6, 'single'), e(6, 2, 6, 'single'), e(7, 2, 7, 'single'), e(8, 3, 7, 'single'), e(9, 3, 8, 'single'), e(10, 4, 8, 'single'), e(11, 4, 5, 'single'), e(12, 1, 2, 'single')],
+    solution: ['v3', 'v0', 'v1', 'v5', 'v4', 'v0', 'v2', 'v6', 'v1', 'v2', 'v7', 'v3', 'v8', 'v4'] },
   // twin-envelope: точек 8, рёбер 14
   { shape: 'twin-envelope',
     vertices: [v(0, 0.12, 0.753), v(1, 0.5, 0.753), v(2, 0.88, 0.753), v(3, 0.12, 0.482), v(4, 0.5, 0.482), v(5, 0.88, 0.482), v(6, 0.31, 0.247), v(7, 0.69, 0.247)],
