@@ -343,7 +343,7 @@ export default function RhythmPitchScreen() {
       <ScrollView contentContainerStyle={styles.body}>
         {/* Тропинка во всю длину лестницы: у модуля 31 ступень, а у карты по
             умолчанию 15 — без этого человек видел бы путь вдвое короче настоящего. */}
-        <LevelProgressMap gameId="rhythm_pitch" currentLevel={lvl.level} maxLevel={LEVELS}
+        <LevelProgressMap bestLevel={lvl.best} gameId="rhythm_pitch" currentLevel={lvl.level} maxLevel={LEVELS}
           onPickLevel={lvl.pick} colors={colors} language={language} />
 
         <View style={[styles.card, { backgroundColor: colors.surface }]}>

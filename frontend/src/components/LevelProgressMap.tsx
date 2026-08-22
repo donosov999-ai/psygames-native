@@ -35,7 +35,19 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 interface Props {
   gameId: string;
   currentLevel: number;   // usePersistentLevel(...).level
-  maxLevel?: number;      // по умолчанию 15 (программа «≥15 уровней»)
+  /**
+   * Потолок карты. Не указан — берём `LADDER_MIN`, но карта в любом случае
+   * дотягивается до достигнутого (см. `bestLevel`).
+   */
+  maxLevel?: number;
+  /**
+   * 🔴 ДОСТИГНУТЫЙ ПОТОЛОК. Без него тропинка обрывалась на пятнадцатом у сорока
+   * шести игр: `currentLevel` — это ВЫБРАННЫЙ уровень, и стоило человеку вернуться
+   * на пройденный, карта схлопывалась до него — дороги обратно вверх на ней уже не
+   * было. Переиграть выше нельзя, а часть игр не умеет и понижать: оба пути назад
+   * оказывались отрезаны.
+   */
+  bestLevel?: number;
   colors: any;
   language: string;
   levelLabel?: (level: number) => string;
@@ -173,7 +185,34 @@ export function tierKeyFor(level: number, maxLevel: number): string {
   return TIER_KEYS[idx];
 }
 
-export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, colors, levelLabel, onPickLevel, countsRuns }: Props) {
+/** Программа обещает «≥15 уровней» — короче этого карту не рисуем. */
+export const LADDER_MIN = 15;
+
+/**
+ * ДОКУДА ТЯНЕТСЯ ТРОПИНКА.
+ *
+ * 🔴 ЧТО БЫЛО. Потолок брался только из `maxLevel`, а его не передавали сорок шесть
+ * экранов из шестидесяти девяти — то есть карта обрывалась на пятнадцатом. Дальше
+ * пятнадцатого не было ни узла: переиграть пройденное нельзя, потому что его нет на
+ * карте. А `currentLevel` — это ВЫБРАННЫЙ уровень: вернувшись на пройденный, человек
+ * схлопывал карту до него и терял дорогу обратно вверх. У части игр понижения нет
+ * вовсе (и правильно: сложность нормированной методики не крутят), так что карта
+ * была для них единственным путём назад — и он обрывался.
+ *
+ * Правило: карта тянется до самого дальнего из трёх — объявленного игрой потолка,
+ * достигнутого и того, где человек стоит сейчас.
+ */
+export function ladderCap(maxLevel: number | undefined, currentLevel: number, bestLevel?: number): number {
+  return Math.max(maxLevel ?? LADDER_MIN, currentLevel, bestLevel ?? 0);
+}
+
+export default function LevelProgressMap({ gameId, currentLevel, maxLevel, bestLevel, colors, levelLabel, onPickLevel, countsRuns }: Props) {
+  /**
+   * Потолок карты — самое дальнее из трёх: заявленный игрой, достигнутый и тот, где
+   * человек стоит сейчас. Иначе карта обрезает саму себя: у игры без объявленного
+   * потолка это пятнадцатый уровень, а у игры с переигровкой — выбранный.
+   */
+  const cap = ladderCap(maxLevel, currentLevel, bestLevel);
   const { t } = useLanguage();   // язык из контекста; проп language остался в Props для совместимости
   const { profile } = useProfile();
   const [stars, setStars] = useState<StarsMap>({});
@@ -233,16 +272,16 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
   /**
    * Подпись ступени: своя от игры, иначе общая по доле пути. У методик — нет.
    */
-  const label = levelLabel ?? (countsRuns ? undefined : (l: number) => t(tierKeyFor(l, maxLevel)));
+  const label = levelLabel ?? (countsRuns ? undefined : (l: number) => t(tierKeyFor(l, cap)));
   /**
    * ⚠️ ВЫСОТУ ДОБАВЛЯЕТ ТОЛЬКО РЕАЛЬНО ВИДИМОЕ ВРЕМЯ. Считаем по узлам, которые
-   * на карте есть (`l <= maxLevel`): рекорд с уровня, до которого эта карта не
+   * на карте есть (`l <= cap`): рекорд с уровня, до которого эта карта не
    * дотягивается (игра ужала число уровней, история осталась), не нарисуется
    * нигде — и полоса под ним была бы пустой.
    */
-  const hasTimes = Object.keys(times).some((k) => Number(k) <= maxLevel && times[Number(k)] > 0);
+  const hasTimes = Object.keys(times).some((k) => Number(k) <= cap && times[Number(k)] > 0);
   const H = mapHeight(!!label, hasTimes);
-  const sel = Math.min(Math.max(1, currentLevel), maxLevel);   // где стоит питомец = что запустится
+  const sel = Math.min(Math.max(1, currentLevel), cap);   // где стоит питомец = что запустится
   /**
    * ПОТОЛОК ПУТИ — самое высокое, что мы видели за это открытие экрана.
    *
@@ -260,7 +299,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
   // на прохождение №3» — бессмыслица, там нечего переигрывать.
   const canPick = !!onPickLevel && !countsRuns;
   const replaying = canPick && sel < reached;
-  const totalW = PAD_X * 2 + (maxLevel - 1) * GAP;
+  const totalW = PAD_X * 2 + (cap - 1) * GAP;
   const withBoss = hasBoss(gameId);
 
   // Лента сама встаёт на текущем уровне: иначе при 52 уровнях судоку человек видит
@@ -281,13 +320,13 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
     ? t('runsCompleted').replace('{n}', String(reached - 1))
     // Показываем ВЫБРАННЫЙ уровень, а не потолок: подпись обязана совпадать с тем,
     // что запустит кнопка «Начать», иначе она врёт ровно в момент переигровки.
-    : t('levelOfMax').replace('{n}', String(sel)).replace('{max}', String(maxLevel));
+    : t('levelOfMax').replace('{n}', String(sel)).replace('{max}', String(cap));
 
   const dim = colors.textSecondary;
   const accent = colors.primary;
 
   const nodes = [];
-  for (let l = 1; l <= maxLevel; l++) {
+  for (let l = 1; l <= cap; l++) {
     const i = l - 1;
     const s = stars[l] || 0;
     const passed = l < reached || s > 0;
@@ -362,7 +401,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
             {/* аксон впереди — пунктир: путь ещё не проложен.
                 ⚠️ Считаем от ПОТОЛКА, а не от питомца: на переигровке питомец стоит
                 позади, но участок до его рекорда пройден и пунктиром быть не должен. */}
-            <Path d={axonPath(reached - 1, maxLevel - 1)} fill="none" stroke={dim} strokeWidth={4}
+            <Path d={axonPath(reached - 1, cap - 1)} fill="none" stroke={dim} strokeWidth={4}
               strokeLinecap="round" strokeDasharray="2 9" opacity={0.55} />
             {/* аксон позади — сплошной, по нему бежит импульс */}
             <Path d={axonPath(0, reached - 1)} fill="none" stroke={accent} strokeWidth={4} strokeLinecap="round" />
@@ -374,7 +413,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
             {nodes}
 
             {/* звёзды под пройденными + подпись уровня */}
-            {Array.from({ length: maxLevel }, (_, i) => {
+            {Array.from({ length: cap }, (_, i) => {
               const l = i + 1;
               const s = stars[l] || 0;
               if (!s) return null;
@@ -399,7 +438,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
           </View>
 
           {/* Подписи уровней (судоку передаёт «лёгкий/средний/…») — под звёздами. */}
-          {label && Array.from({ length: maxLevel }, (_, i) => (
+          {label && Array.from({ length: cap }, (_, i) => (
             <Text
               key={`lb${i}`}
               numberOfLines={1}
@@ -424,7 +463,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
             * пути, а справка «вот что ты уже сумел» — спорить за внимание со
             * ступенью и звёздами ей незачем.
             */}
-          {hasTimes && Array.from({ length: maxLevel }, (_, i) => {
+          {hasTimes && Array.from({ length: cap }, (_, i) => {
             const best = times[i + 1];
             if (!best) return null;
             return (
@@ -446,7 +485,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel = 15, 
           {/* Нажимаемые узлы — пройденные и свой потолок (нажатие на него снимает
               переигровку и возвращает на достигнутое). Дальше потолка не пускаем:
               тропинка показывает путь, но не работает лифтом через сложность. */}
-          {canPick && Array.from({ length: maxLevel }, (_, i) => {
+          {canPick && Array.from({ length: cap }, (_, i) => {
             const l = i + 1;
             if (l > reached && !(stars[l] || 0)) return null;
             return (

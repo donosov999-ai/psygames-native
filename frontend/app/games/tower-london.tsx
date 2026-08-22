@@ -296,7 +296,7 @@ export default function TowerLondonGame() {
         <Text style={styles.configDesc}>{t('towerLondonDesc')}</Text>
       </GradientSurface>
       <GameAbout descriptionKey="towerLondonIntroDesc" benefits={TOL_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="tower_london" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="tower_london" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
         <View style={styles.optionButtons}>

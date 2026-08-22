@@ -250,7 +250,7 @@ export default function FlankerGame() {
         <Text style={styles.configDesc}>{t('flankerDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="flankerIntroDesc" benefits={FL_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="flanker" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="flanker" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
           {t('level')} {lvl.level}

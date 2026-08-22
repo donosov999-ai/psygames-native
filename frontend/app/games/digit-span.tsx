@@ -284,7 +284,7 @@ export default function DigitSpanGame() {
         <Text style={styles.configDesc}>{t('digitSpanDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="digitSpanIntroDesc" benefits={DIGIT_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="digit_span" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="digit_span" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       {/* ПРОБНЫЙ ЗАХОД — расходуемая способность (`src/services/abilities.ts`).
           ⚠️ Остаток показывается ВСЕГДА, включая ноль: до траты человек обязан видеть,
           что у него есть и что произойдёт. Переключатель гаснет на нулевом кошельке. */}

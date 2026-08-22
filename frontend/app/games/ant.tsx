@@ -304,7 +304,7 @@ export default function ANTGame() {
         </LinearGradient>
         <GameAbout descriptionKey="antIntroDesc" benefits={ANT_BENEFITS} accent={GRADIENT[0]} />
 
-        <LevelProgressMap gameId="ant" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="ant" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

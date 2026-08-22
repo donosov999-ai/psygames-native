@@ -425,7 +425,7 @@ export default function BreathingGame() {
         </View>
       )}
 
-      <LevelProgressMap
+      <LevelProgressMap bestLevel={runs.best}
         gameId="breathing"
         currentLevel={runs.level}
         maxLevel={Math.max(15, runs.level)}

@@ -248,7 +248,7 @@ export default function GoNoGoGame() {
           <Text style={styles.configDesc}>{t('goNoGoDesc')}</Text>
         </LinearGradient>
         <GameAbout descriptionKey="goNoGoIntroDesc" benefits={GO_BENEFITS} accent={GRADIENT[0]} />
-        <LevelProgressMap gameId="go_no_go" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="go_no_go" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

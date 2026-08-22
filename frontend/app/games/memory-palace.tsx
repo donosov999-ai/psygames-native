@@ -455,7 +455,7 @@ export default function MemoryPalaceScreen() {
       </GradientSurface>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <LevelProgressMap gameId={MEMORY_PALACE_GAME_ID} currentLevel={lvl.level}
+        <LevelProgressMap bestLevel={lvl.best} gameId={MEMORY_PALACE_GAME_ID} currentLevel={lvl.level}
           onPickLevel={lvl.pick} colors={colors} language={language} />
 
         <View style={[styles.card, { backgroundColor: colors.surface }]}>

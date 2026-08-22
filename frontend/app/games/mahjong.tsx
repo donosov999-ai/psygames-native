@@ -690,7 +690,7 @@ export default function MahjongGame() {
           )}
         </View>
 
-        <LevelProgressMap
+        <LevelProgressMap bestLevel={lvl.best}
           gameId="mahjong"
           currentLevel={level}
           maxLevel={Math.max(15, level, lvl.best)}

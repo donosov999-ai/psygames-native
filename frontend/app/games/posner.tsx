@@ -293,7 +293,7 @@ export default function PosnerGame() {
         </LinearGradient>
         <GameAbout descriptionKey="posnerIntroDesc" benefits={POSNER_BENEFITS} accent={GRADIENT[0]} />
 
-        <LevelProgressMap gameId="posner" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="posner" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

@@ -209,7 +209,7 @@ export default function QuickCountGame() {
         <Text style={styles.configDesc}>{t('quickCountDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="quickCountIntroDesc" benefits={QUICKCOUNT_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="quick_count" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="quick_count" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>

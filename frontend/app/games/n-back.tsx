@@ -379,7 +379,7 @@ export default function NBackGame() {
         <Text style={styles.configDesc}>{t('nBackDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="nBackIntroDesc" benefits={N_BACK_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="n_back" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="n_back" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <TouchableOpacity
         accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
         <Ionicons name="trophy-outline" size={18} color={colors.text} />

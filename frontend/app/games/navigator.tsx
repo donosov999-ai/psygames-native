@@ -298,7 +298,7 @@ export default function NavigatorScreen() {
       </GradientSurface>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <LevelProgressMap gameId="navigator" currentLevel={lvl.level} maxLevel={LEVELS}
+        <LevelProgressMap bestLevel={lvl.best} gameId="navigator" currentLevel={lvl.level} maxLevel={LEVELS}
           levelLabel={(n) => getNavigatorModeLabel(locale, navigatorModeForLevel(n))}
           onPickLevel={lvl.pick} colors={colors} language={language} />
 

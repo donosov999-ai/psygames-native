@@ -238,7 +238,7 @@ export default function SemanticSortGame() {
         </LinearGradient>
         <GameAbout descriptionKey="semanticSortIntroDesc" benefits={SORT_BENEFITS} accent={GRADIENT[0]} />
 
-        <LevelProgressMap gameId="semantic_sort" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="semantic_sort" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', marginBottom: 12 }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

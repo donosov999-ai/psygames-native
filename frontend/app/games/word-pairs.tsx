@@ -303,7 +303,7 @@ export default function WordPairsGame() {
       </LinearGradient>
       <GameAbout descriptionKey="wordPairsIntroDesc" benefits={WORD_PAIRS_BENEFITS} accent={GRADIENT[0]} />
 
-      <LevelProgressMap gameId="word_pairs" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="word_pairs" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', marginBottom: 12 }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
           {t('level')} {lvl.level}

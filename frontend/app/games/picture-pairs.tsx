@@ -537,7 +537,7 @@ export default function PicturePairsGame() {
 
       {/* Тропинка — только в режиме уровней: в свободной партии уровня нет. */}
       {mode === 'game' && (
-        <LevelProgressMap
+        <LevelProgressMap bestLevel={lvl.best}
           gameId="picture_pairs"
           currentLevel={level}
           maxLevel={Math.max(15, level, lvl.best)}

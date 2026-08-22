@@ -293,7 +293,7 @@ export default function CorsiGame() {
         <Text style={styles.configDesc}>{t('corsiDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="corsiIntroDesc" benefits={CORSI_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="corsi" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="corsi" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       {/* ПРОБНЫЙ ЗАХОД — расходуемая способность (`src/services/abilities.ts`).
           ⚠️ Остаток показывается ВСЕГДА, включая ноль: до траты человек обязан видеть,
           что у него есть и что произойдёт. Переключатель гаснет на нулевом кошельке. */}

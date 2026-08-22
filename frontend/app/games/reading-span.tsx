@@ -222,7 +222,7 @@ export default function ReadingSpanGame() {
         <Text style={styles.configDesc}>{t('readingSpanDesc')}</Text>
       </GradientSurface>
       <GameAbout descriptionKey="readingSpanIntroDesc" benefits={RS_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="reading_span" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="reading_span" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>

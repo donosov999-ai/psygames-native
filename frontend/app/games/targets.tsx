@@ -618,7 +618,7 @@ export default function TargetsGame() {
           </View>
         </View>
 
-        <LevelProgressMap
+        <LevelProgressMap bestLevel={lvl.best}
           gameId="targets"
           currentLevel={lvl.level} onPickLevel={lvl.pick}
           maxLevel={Math.max(15, lvl.level)}

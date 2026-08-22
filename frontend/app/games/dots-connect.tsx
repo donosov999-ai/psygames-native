@@ -321,7 +321,7 @@ export default function DotsConnectScreen() {
 
       <ScrollView contentContainerStyle={styles.body}>
         {/* maxLevel из модуля: по умолчанию тропинка рисует 15 узлов, а тут их 40. */}
-        <LevelProgressMap gameId="dots_connect" currentLevel={lvl.level} maxLevel={LEVELS}
+        <LevelProgressMap bestLevel={lvl.best} gameId="dots_connect" currentLevel={lvl.level} maxLevel={LEVELS}
           onPickLevel={lvl.pick} colors={colors} language={language} />
 
         <View style={[styles.card, { backgroundColor: colors.surface }]}>

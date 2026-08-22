@@ -1107,6 +1107,7 @@ export default function SudokuGame() {
               gameId={GAME_ID}
               currentLevel={level}
               maxLevel={Math.max(SUDOKU_LAST_LEVEL, best)}
+              bestLevel={best}
               colors={colors}
               language={language}
               levelLabel={tierLabel}

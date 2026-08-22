@@ -452,7 +452,7 @@ export default function FindDifferencesGame() {
           <Text style={styles.configDesc}>{t('findDiffDesc')}</Text>
         </GradientSurface>
         <GameAbout descriptionKey="findDiffIntroDesc" benefits={FIND_BENEFITS} accent={GRADIENT[0]} />
-        <LevelProgressMap gameId="find_differences" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="find_differences" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

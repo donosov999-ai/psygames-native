@@ -316,7 +316,7 @@ export default function ClozeGame() {
             </View>
           </View>
 
-          <LevelProgressMap gameId="cloze" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+          <LevelProgressMap bestLevel={lvl.best} gameId="cloze" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12, alignItems: 'center', gap: 6 }]}>
             <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
               {t('level')} {lvl.level}

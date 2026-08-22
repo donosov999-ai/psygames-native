@@ -284,7 +284,7 @@ export default function ObjectTrackerScreen() {
       </GradientSurface>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <LevelProgressMap gameId="object_tracker" currentLevel={lvl.level} maxLevel={LEVELS}
+        <LevelProgressMap bestLevel={lvl.best} gameId="object_tracker" currentLevel={lvl.level} maxLevel={LEVELS}
           onPickLevel={lvl.pick} colors={colors} language={language} />
 
         {/*
