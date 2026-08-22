@@ -82,6 +82,17 @@ function levelParams(level: number): { durationSec: number; isiMs: number; mode:
   return { durationSec, isiMs: Math.max(500, 800 - (level - 11) * 75), mode: 'AX', confusableRatio: Math.min(0.5, 0.15 + (level - 11) * 0.09), targetRate: 0.32 };
 }
 
+/**
+ * Сколько проб надо сыграть, чтобы партия считалась партией.
+ *
+ * Взято от длины: при самом медленном темпе (1500 мс) за девяносто секунд
+ * выходит около шестидесяти проб, при быстром — около ста восьмидесяти.
+ * Сорок — это заведомо больше «дождался первой цели и вышел», но заметно меньше
+ * полной партии: человек, у которого сел телефон на восьмидесятой секунде, свой
+ * уровень получит.
+ */
+export const MIN_TRIALS_FOR_LEVEL = 40;
+
 function pickDistractor(confusableRatio: number): string {
   if (confusableRatio > 0 && Math.random() < confusableRatio) return CONFUSABLE[Math.floor(Math.random() * CONFUSABLE.length)];
   return LETTERS_NON_X[Math.floor(Math.random() * LETTERS_NON_X.length)];
@@ -275,7 +286,7 @@ export default function CPTGame() {
   };
   useAutostart(autostart, startGame);   // в плейлисте зарядки игра стартует сама
 
-  const finish = async () => {
+  const finish = async (stoppedEarly = false) => {
     stoppedRef.current = true;
     clearAllTimers();
     setLetterVisible(false);
@@ -338,7 +349,24 @@ export default function CPTGame() {
      * следующий шаг зарядка уводит сама (таймер в WarmupContext после записи сессии).
      * Босс отпадает там же: веха висит на подъёме уровня, а его в зарядке нет.
      */
-    const out = levelOutcome({ isPreset, cleared: accuracy >= 0.7 && commissionRate <= 0.3 });
+    /**
+     * 🔴 «СТОП» БЫЛ БЕСПЛАТНЫМ ЛЕВЕЛ-АПОМ. Партия длится девяносто секунд, а
+     * зачёт считался по накопленному: дождался первой цели, тапнул, нажал
+     * «СТОП» — точность 1/1, ложных тревог ноль, уровень взят за десять секунд.
+     * Замер: в 100 % прогонов.
+     *
+     * ⚠️ И ПРОВАЛОМ ЭТО ТОЖЕ НЕ ЯВЛЯЕТСЯ. В «вероятностном выборе» та же кнопка
+     * означала провал — противоположный перекос той же природы. Человек, которому
+     * позвонили, ничего не сделал неправильно.
+     *
+     * Правило: оборванная партия уровень НЕ ДВИГАЕТ — ни вверх, ни вниз.
+     * Досчитать пробы за него нельзя, а гадать нечестно.
+     */
+    const played = trialsRef.current.length;
+    const enough = !stoppedEarly && played >= MIN_TRIALS_FOR_LEVEL;
+    const out = enough
+      ? levelOutcome({ isPreset, cleared: accuracy >= 0.7 && commissionRate <= 0.3 })
+      : { passed: false, raiseLevel: false, lowerLevel: false, phase: 'result' as const };
     const passed = out.passed;
     if (out.raiseLevel) lvl.reach(levelRef.current + 1);
     if (out.lowerLevel) lvl.fail();   // гистерезис: 3 провала подряд → уровень -1
@@ -380,7 +408,7 @@ export default function CPTGame() {
 
   const stop = () => {
     if (phase !== 'playing') return;
-    finish();
+    finish(true);   // оборвали руками — уровень по такой партии не двигается
   };
 
   // ─── render ──────────────────────────────────────────────────────────
