@@ -21,6 +21,9 @@
  */
 import { generateSamuraiLevel, gridsOf, samuraiCellWrong } from '@/app/games/sudoku-samurai';
 
+declare const __dirname: string;
+declare function require(id: string): any;
+
 type Cell = number;
 const LEVELS = [4, 12, 25];
 
