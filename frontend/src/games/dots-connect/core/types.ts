@@ -49,14 +49,35 @@ export interface DotsPuzzle {
   construction: DotsConstruction;
   generatorVersion: typeof DOTS_CONNECT_GENERATOR_VERSION;
   pairs: DotsPair[];
+  /**
+   * 🔴 РАЗДАЧА НЕСЁТ ПОЛНЫЕ ПУТИ ПАР, А НЕ ТОЛЬКО ИХ КОНЦЫ.
+   *
+   * ЧТО БЫЛО. Поле `solution` лежало этажом ниже — в `GeneratedDotsPuzzle`, а
+   * наружу (в `getCurrentPuzzle`, в доску, в экран) уезжал `DotsPuzzle` БЕЗ
+   * него. То есть генератор знал ответ в момент раздачи — он строит доску от
+   * гамильтонова пути и режет его на пары, — а игра этого ответа не видела: она
+   * получала два конца каждой пары и всё. Человек, который встал, мог только
+   * бросить уровень и НЕ УЗНАТЬ, как было. У образца (SPAN, дуэли по
+   * Numberlink) в тренировочном режиме ровно наоборот: «застряли? найдите
+   * решение и изучите закономерность».
+   *
+   * ПОЧЕМУ ПОЛЕ ОБЯЗАТЕЛЬНОЕ, А НЕ `solution?`. Необязательное поле означало бы
+   * «решение бывает, а бывает нет», и показ пришлось бы обвешивать проверками
+   * на пустоту в трёх местах. Решение есть ВСЕГДА и по построению (см.
+   * `buildPuzzle`), поэтому тип говорит то же самое.
+   */
+  solution: DotsSolution;
 }
 
 export type DotsPaths = Record<string, Cell[]>;
 export type DotsSolution = DotsPaths;
 
-export interface GeneratedDotsPuzzle extends DotsPuzzle {
-  solution: DotsSolution;
-}
+/**
+ * Раздача прямо из генератора. Отдельным именем оставлена ради читаемости
+ * подписей (`generateDotsPuzzle` возвращает именно её), но отличий от
+ * `DotsPuzzle` больше нет: решение теперь несёт сама раздача.
+ */
+export type GeneratedDotsPuzzle = DotsPuzzle;
 
 export interface SolutionValidation {
   valid: boolean;
@@ -74,6 +95,15 @@ export interface DotsMetrics {
   score: number;
   seed: string;
   generatorVersion: typeof DOTS_CONNECT_GENERATOR_VERSION;
+  /**
+   * 🔴 РЕШЕНИЕ СМОТРЕЛИ — ПАРТИЯ НЕ В ЗАЧЁТ. Метка едет в метрике, а не остаётся
+   * в состоянии экрана, ровно по той же причине, что и `details.level`: экран
+   * читает результат ПОСЛЕ того, как модуль ушёл со сцены, и любое соседнее
+   * состояние к этому моменту уже может быть переставлено. Порог прохождения
+   * (`isPassed`) читает эту метку, поэтому «подсмотрел и обвёл» уровень не
+   * поднимает и в общую бухгалтерию как пройденный не уходит.
+   */
+  solutionShown: boolean;
   details: {
     level: number;
   };
@@ -113,6 +143,16 @@ export interface DotsSession {
   pausedFrom: DotsDrawingPhase | null;
   paths: DotsPaths;
   activePairId: string | null;
+  /**
+   * ЛАТЧ: решение этой ЗАЧЁТНОЙ доски показывали хоть раз. Обратно не гаснет —
+   * ни от «скрыть», ни от «Заново» (перезапуск даёт ТУ ЖЕ раскладку, зерно
+   * фиксировано номером уровня, так что «подсмотрел → перезапустил → обвёл»
+   * было бы бесплатным прохождением). Гаснет только вместе с самой доской:
+   * новый заход с экрана уровня — новая сессия.
+   */
+  solutionShown: boolean;
+  /** Показана ли подложка решения ПРЯМО СЕЙЧАС. Это переключатель показа. */
+  solutionVisible: boolean;
   history: DotsPaths[];
   startedAt: number | null;
   pauseStartedAt: number | null;

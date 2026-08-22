@@ -13,23 +13,28 @@ import {
 import {
   advanceFromTraining,
   beginPath,
+  canRevealDotsSolution,
   createDotsSession,
+  dotsRevealedSolution,
   endPath,
   extendPath,
   getCurrentPuzzle,
   getDotsStrings,
   interpolate,
   occupiedPairAt,
+  pathOwnerAt,
   pauseSession,
   restartSession,
   resumeSession,
   startRound,
   startTraining,
+  toggleDotsSolution,
   undoPath,
   type Cell,
   type DotsLocale,
   type DotsMetrics,
   type DotsPair,
+  type DotsPaths,
   type DotsPuzzle,
   type DotsSession,
 } from './core/index';
@@ -79,12 +84,40 @@ export interface DotsConnectGameProps {
    */
   onProgress?: (armed: boolean) => void;
   /**
+   * 🔴 СЛУЖЕБНОЕ ДЕЙСТВИЕ ПАРТИИ — НАВЕРХ, ЧТОБЫ ЭКРАН НАРИСОВАЛ ЕГО В ШАПКЕ.
+   *
+   * Правило каркаса: низ экрана означает ОТВЕТ игрока (здесь отвечают пальцем
+   * прямо по сетке), а всё, что трогает игру помимо ответа, живёт в шапке. Показ
+   * решения трогает игру сильнее всего на свете — он снимает уровень с зачёта, —
+   * значит рисовать его самому под доской модуль не имеет права.
+   *
+   * Состояние партии при этом остаётся у модуля: наружу уходит ГОТОВОЕ действие
+   * и его текущее положение, а не сессия. Экран не разбирает фазы модуля, модуль
+   * не знает про каркас — тот же договор, что у `onProgress`.
+   */
+  onAux?: (aux: DotsAuxControls) => void;
+  /**
    * Своя кнопка «Выход» на экране правил. НЕОБЯЗАТЕЛЬНА, и это принципиально:
    * когда модуль стоит внутри `GameShell`, выход из партии один — «назад» в
    * шапке каркаса, и он проходит через вопрос «партия пропадёт». Вторая кнопка
    * рядом уводила бы МИМО вопроса.
    */
   onExit?: () => void;
+}
+
+/** Служебное действие партии, отданное экрану для показа В ШАПКЕ каркаса. */
+export interface DotsAuxControls {
+  /** Подложка решения сейчас на доске (кнопка предлагает «скрыть»). */
+  solutionVisible: boolean;
+  /**
+   * Показывать нечего: правила, пауза, итог, замороженная тренировка. Кнопка при
+   * этом ОСТАЁТСЯ в шапке и гаснет — исчезающее и появляющееся служебное
+   * действие человек читает как поломку, а живой аудит слотов — как мёртвый
+   * перенос.
+   */
+  disabled: boolean;
+  /** Показать или скрыть решение. Первый показ снимает партию с зачёта. */
+  toggleSolution: () => void;
 }
 
 /**
@@ -199,6 +232,12 @@ function ActionButton({
 interface DotsBoardProps {
   session: DotsSession;
   puzzle: DotsPuzzle;
+  /**
+   * Подложка решения. Пустой объект — подложки нет. Приходит готовой из ядра
+   * (`dotsRevealedSolution`), чтобы «показанное решение» и «решение раздачи»
+   * не могли разъехаться: источник один и у доски, и у проверки.
+   */
+  solutionPaths: DotsPaths;
   locale: DotsLocale;
   theme: DotsConnectTheme;
   gameGradientText: string;
@@ -214,6 +253,7 @@ interface DotsBoardProps {
 function DotsBoard({
   session,
   puzzle,
+  solutionPaths,
   locale,
   theme,
   gameGradientText,
@@ -372,6 +412,16 @@ function DotsBoard({
             const selected = sameCell(cursor, cell);
             const arms = occupiedId ? pathArmsAt(session.paths[occupiedId], cell) : null;
             const band = owner ? { backgroundColor: owner.color } : null;
+            /*
+              ПОДЛОЖКА РЕШЕНИЯ. Своей ленты не заменяет и не перекрывает: рисуется
+              ПЕРВОЙ и вдвое тоньше (16% ширины клетки против 34%), полупрозрачным
+              цветом пары. Значит на клетке, где путь игрока разошёлся с решением,
+              видно ОБА — а ради этого сравнения показ и затевался.
+            */
+            const solutionId = pathOwnerAt(solutionPaths, cell);
+            const solutionPair = solutionId ? pairById.get(solutionId) : null;
+            const solutionArms = solutionId ? pathArmsAt(solutionPaths[solutionId], cell) : null;
+            const ghost = solutionPair ? { backgroundColor: colorWithAlpha(solutionPair.color, '80') } : null;
             return (
               <View
                 key={`cell-${row}-${col}`}
@@ -385,6 +435,19 @@ function DotsBoard({
                   selected && { borderColor: theme.warning, borderWidth: 3 },
                 ]}
               >
+                {solutionArms && ghost ? (
+                  <View
+                    testID={`dots-solution-${row}-${col}`}
+                    pointerEvents="none"
+                    style={StyleSheet.absoluteFill}
+                  >
+                    {solutionArms.up ? <View style={[styles.ghostUp, ghost]} /> : null}
+                    {solutionArms.down ? <View style={[styles.ghostDown, ghost]} /> : null}
+                    {solutionArms.left ? <View style={[styles.ghostLeft, ghost]} /> : null}
+                    {solutionArms.right ? <View style={[styles.ghostRight, ghost]} /> : null}
+                    <View style={[styles.ghostJoint, ghost]} />
+                  </View>
+                ) : null}
                 {arms && band ? (
                   <>
                     {arms.up ? <View style={[styles.armUp, band]} /> : null}
@@ -422,6 +485,7 @@ function DotsConnectSession({
   now = Date.now,
   onComplete,
   onProgress,
+  onAux,
   onExit,
 }: DotsConnectGameProps) {
   const strings = getDotsStrings(locale);
@@ -447,6 +511,22 @@ function DotsConnectSession({
    */
   const armed = hasSomethingToLose(session);
   React.useEffect(() => { onProgress?.(armed); }, [armed, onProgress]);
+
+  /**
+   * 🔴 СЛУЖЕБНОЕ ДЕЙСТВИЕ УЕЗЖАЕТ В ШАПКУ КАРКАСА, А НЕ РИСУЕТСЯ ПОД ДОСКОЙ.
+   *
+   * ⚠️ Ссылка на действие обязана быть СТАБИЛЬНОЙ, и это не украшение: без
+   * `useCallback` каждый рендер модуля отдавал бы экрану новый объект, экран
+   * писал бы его в состояние, тот вызывал бы новый рендер — и партия крутилась
+   * бы в петле на каждом касании доски. Зависимость ровно одна и сама
+   * неизменна: `setSession` от `useState` за жизнь компонента не меняется.
+   */
+  const toggleSolution = React.useCallback(() => { setSession(toggleDotsSolution); }, [setSession]);
+  const canReveal = canRevealDotsSolution(session);
+  const solutionVisible = session.solutionVisible;
+  React.useEffect(() => {
+    onAux?.({ solutionVisible, disabled: !canReveal, toggleSolution });
+  }, [canReveal, onAux, solutionVisible, toggleSolution]);
 
   React.useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
@@ -586,10 +666,23 @@ function DotsConnectSession({
         ]} />
       </View>
       <Text style={[styles.hudGoal, { color: theme.textSecondary }]}>{strings.hudGoal}</Text>
+      {/*
+        🔴 ЦЕНА ПОКАЗА НАЗВАНА ВСЛУХ И ОСТАЁТСЯ НА ЭКРАНЕ. Метка `solutionShown`
+        не гаснет от «скрыть» и переживает «Заново» — значит и надпись обязана
+        держаться до конца партии, а не мигнуть один раз. Иначе человек доиграет
+        уровень, увидит «не пройден» и решит, что игра сломалась.
+        Показываем только на ЗАЧЁТНОЙ доске: тренировка в результат не идёт вовсе.
+      */}
+      {session.solutionShown && !training ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.solutionNote, { color: theme.warning }]}>
+          {strings.solutionNote}
+        </Text>
+      ) : null}
       <DotsBoard
         key={`${puzzle.id}:${trainingComplete ? 'complete' : 'active'}`}
         session={session}
         puzzle={puzzle}
+        solutionPaths={dotsRevealedSolution(session)}
         locale={locale}
         theme={theme}
         gameGradientText={gameGradientText}
@@ -650,6 +743,7 @@ const styles = StyleSheet.create({
   hudTrack: { width: '100%', maxWidth: 620, alignSelf: 'center', height: 6, borderRadius: 999, overflow: 'hidden' },
   hudFill: { height: '100%', borderRadius: 999 },
   hudGoal: { fontSize: 12, textAlign: 'center' },
+  solutionNote: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   board: { width: '100%', maxWidth: 620, alignSelf: 'center', aspectRatio: 1, borderWidth: 2, borderRadius: 18, overflow: 'hidden' },
   boardRow: { flex: 1, flexDirection: 'row' },
   cell: { flex: 1, aspectRatio: 1, borderWidth: 0.5, alignItems: 'center', justifyContent: 'center' },
@@ -664,6 +758,17 @@ const styles = StyleSheet.create({
   armRight: { position: 'absolute', top: '33%', height: '34%', right: 0, width: '58%' },
   /** Стык в центре: без него поворот пути выглядит разорванным. */
   joint: { position: 'absolute', left: '33%', top: '33%', width: '34%', height: '34%' },
+  /**
+   * Лента ПОДЛОЖКИ РЕШЕНИЯ — те же доли, но 16% вместо 34% и цвет под альфой.
+   * Тоньше своей ленты ровно затем, чтобы обе читались на одной клетке: если бы
+   * подложка была той же ширины, свой путь просто закрыл бы её, и сравнить
+   * «где я свернул не туда» было бы не с чем.
+   */
+  ghostUp: { position: 'absolute', left: '42%', width: '16%', top: 0, height: '58%' },
+  ghostDown: { position: 'absolute', left: '42%', width: '16%', bottom: 0, height: '58%' },
+  ghostLeft: { position: 'absolute', top: '42%', height: '16%', left: 0, width: '58%' },
+  ghostRight: { position: 'absolute', top: '42%', height: '16%', right: 0, width: '58%' },
+  ghostJoint: { position: 'absolute', left: '42%', top: '42%', width: '16%', height: '16%' },
   /** Точка конца пары — поверх ленты, поэтому рисуется последней. */
   dot: { width: '62%', aspectRatio: 1, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
   dotSymbol: { fontSize: 18, lineHeight: 22, fontWeight: '900', textAlign: 'center' },
