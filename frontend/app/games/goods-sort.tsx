@@ -1079,11 +1079,22 @@ export function dealBoard(L: number, pool: number[], narrow = false): {
   const caps = capsFor(L, cfg.slots);
   // Пустых оставляем С ЗАПАСОМ под препятствия: `spares` — это то, что должно
   // ОСТАТЬСЯ свободным ПОСЛЕ них, а не до.
+  /**
+   * 🔴 ДОСКА НЕ РАЗДАЁТСЯ С ГОТОВОЙ ТРОЙКОЙ. Замер по 300 раздач на уровень: с
+   * двадцатого — там появляются ниши на четыре — 5,3 % досок приезжали с уже
+   * сложенной тройкой (L20 — 5,3 %, L26 — 4,7 %, L38 — 6,0 %). Она схлопывается
+   * сама первым же касанием: человек получает очко и место в нише ни за что, а
+   * задача становится короче ровно на три товара — при том, что счёт и звёзды
+   * считаются так, будто он их разобрал.
+   *
+   * Условие проверяем ВМЕСТЕ с решаемостью: иначе вторая пересборка вернула бы
+   * доску, забракованную первой.
+   */
+  const dealtWrong = (b: number[][]): boolean =>
+    b.some((cell) => tripleIn(cell) !== null) || (strictPlacement(L) && !solvableStrict(b, caps));
   let cells = generate(pool, cfg.types, cfg.spares + shut, cfg.slots, caps);
-  if (strictPlacement(L)) {
-    for (let tries = 0; tries < 5 && !solvableStrict(cells, caps); tries++) {
-      cells = generate(pool, cfg.types, cfg.spares + shut, cfg.slots, caps);
-    }
+  for (let tries = 0; tries < 8 && dealtWrong(cells); tries++) {
+    cells = generate(pool, cfg.types, cfg.spares + shut, cfg.slots, caps);
   }
   const obstacles: Obstacle[] = Array(cfg.slots).fill(null);
   const empties = cells.map((c, i) => (c.length === 0 ? i : -1)).filter((i) => i >= 0);
@@ -2385,8 +2396,25 @@ export default function GoodsSortGame() {
    */
   const showHint = () => {
     if (hints <= 0 || phase !== 'playing') { hapticTap(); return; }
-    const found = findHint(cells, cellUsable);
-    if (!found) { hapticTap(); return; }
+    /**
+     * 🔴 ПОДСКАЗКА ЗОВЁТ РЕШАТЕЛЬ, А НЕ СВОЮ ФОРМУЛУ. Прежний `findHint` не знал ни
+     * про строгую укладку, ни про настоящие ёмкости ниш: он звался с ёмкостью по
+     * умолчанию (три) и предлагал ход в нишу на две. Человек тратил одну из трёх
+     * подсказок, тащил товар туда, куда показали, — и не происходило ничего.
+     *
+     * ⚠️ И ПРОВЕРЯЕМ ХОД ТЕМ ЖЕ, ЧЕМ ИГРА ЕГО ПРИНИМАЕТ. Решатель считает доску по
+     * своим правилам (в частности, схлопывает тройки по ходу), и расхождение с
+     * экраном возможно. Пропускаем подсказку через `canPlaceInto` — ту самую
+     * функцию, которая решает, случится ли перекладывание. Так «подсказка, которую
+     * игра отвергает» невозможна по построению, а не по надежде.
+     */
+    const solved = hintMove(makeBoard(cells, capsFor(level, cells.length)));
+    const fromSolver: HintMove | null = solved && cellUsable(solved.from) && cellUsable(solved.to)
+      && canPlaceInto(solved.from, solved.to)
+      ? { fromCell: solved.from, fromIdx: (cells[solved.from]?.length ?? 1) - 1, toCell: solved.to }
+      : null;
+    const found = fromSolver ?? findHint(cells, cellUsable);
+    if (!found || !canPlaceInto(found.fromCell, found.toCell)) { hapticTap(); return; }
     setHints((n) => n - 1);
     setHint(found);
     setSel(null);
