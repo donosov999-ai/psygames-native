@@ -29,6 +29,7 @@ import {
   type OneLineMetrics,
 } from '@/src/games/one-line/core/index';
 import { AUTHORED_LEVEL_COUNT } from '@/src/games/one-line/core/authored';
+import { oneLineScoreAt, oneLineTimeLimitMs } from '@/src/games/one-line/core/scoring';
 import OneLineGame from '@/src/games/one-line/OneLineGame';
 import { onGradientText, contrastRatio, AA_NORMAL } from '@/src/services/onGradientText';
 
@@ -50,6 +51,14 @@ const code: string = src
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Все строки-подписи из отрисованного дерева, склеенные в одну. */
+/**
+ * ⚠️ СМОНТИРОВАННОЕ СНИМАЕМ. Счёт партии сползает сам, по таймеру, — значит экран
+ * продолжает тикать и после того, как случай закончился. Незакрытый тик стучит уже
+ * в свёрнутое окружение Jest и валит весь набор посторонней ошибкой.
+ */
+let mounted: { unmount: () => void }[] = [];
+afterEach(() => { mounted.forEach((t) => { try { t.unmount(); } catch { /* уже снят */ } }); mounted = []; });
+
 function renderedText(node: any, acc: string[] = []): string[] {
   if (node == null || node === false) return acc;
   if (typeof node === 'string') { acc.push(node); return acc; }
@@ -124,6 +133,7 @@ function playThroughUi(opts: { seed: string; level: number; showOwnResults: bool
       now: () => clock,
       onComplete: (m: OneLineMetrics) => results.push(m),
     }));
+    mounted.push(tree);
   });
 
   const vertexLabel = (puzzle: any, id: string) =>
@@ -172,6 +182,7 @@ function playPartial(opts: { seed: string; level: number; moves: string[] }) {
       gameGradient: ['#4338ca', '#db2777'], gameGradientText: '#ffffff',
       showOwnResults: false, now: () => clock, onComplete: () => undefined,
     }));
+    mounted.push(tree);
   });
   const label = (puzzle: any, id: string) =>
     `Вершина ${puzzle.vertices.findIndex((v: any) => v.id === id) + 1}`;
@@ -183,6 +194,8 @@ function playPartial(opts: { seed: string; level: number; moves: string[] }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+
+
 
 describe('«Одна линия»: партия действительно доигрывается через интерфейс', () => {
   it('🔴 полный обход графа доводит партию до результата ровно один раз', () => {
@@ -326,11 +339,55 @@ describe('«Одна линия»: сложность растёт содерж�
     expect(generateOneLinePuzzle('one-line-4', 4).startHintVertexId).toBeNull();
   });
 
-  it('🔴 таймера как оси сложности нет: в ядре и в UI нет ни одного счётчика времени', () => {
+  /**
+   * 🔴 ЭТА ПРОВЕРКА РАНЬШЕ ЗАПРЕЩАЛА ТАЙМЕР ВОВСЕ, И ЭТО БЫЛО ОБОСНОВАННОЕ РЕШЕНИЕ:
+   * сложность должна расти содержанием задачи, а не спешкой. 22.08.2026 Денис его
+   * ОТМЕНИЛ, разобрав игру-образец: там одно число делает две работы сразу — торопит
+   * и уходит в рекорд уровня. Прежний довод бил не по таймеру как таковому, а по
+   * таймеру КАК ОСИ СЛОЖНОСТИ: когда трудность уровня растёт сокращением времени, а
+   * задача остаётся прежней.
+   *
+   * Поэтому запрет заменён, а не снят. Правила теперь такие:
+   *   · счёт сползает по ЧАСАМ, а не накоплением по кадрам (на слабом телефоне
+   *     накопление шло бы медленнее — игра становилась бы легче там, где и так тяжелее);
+   *   · доска не перерисовывается каждый кадр ради целой цифры;
+   *   · время не является осью сложности: лимит ОДИН на все уровни, сорок восьмой
+   *     не душат теми же секундами, что и первый;
+   *   · истёкшее время НЕ понижает уровень — иначе наказывали бы за раздумье.
+   */
+  it('🔴 счёт сползает по часам, а не накоплением по кадрам', () => {
+    const scoring: string = readFileSync(join(__dirname, '../games/one-line/core/scoring.ts'), 'utf8');
+    // Величина выводится из времени: одно и то же время даёт один и тот же счёт,
+    // сколько бы раз ни спросили и сколько бы кадров ни прошло.
+    const a = oneLineScoreAt(30_000);
+    const b = oneLineScoreAt(30_000);
+    expect(a).toBe(b);
+    expect(oneLineScoreAt(0)).toBeGreaterThan(oneLineScoreAt(30_000));
+    expect(scoring).not.toMatch(/requestAnimationFrame/);
+  });
+
+  it('🔴 доска не перерисовывается каждый кадр ради целой цифры', () => {
     const mod: string = readFileSync(join(__dirname, '../games/one-line/OneLineGame.tsx'), 'utf8');
-    const core: string = ['session', 'generator', 'scoring']
-      .map((f) => readFileSync(join(__dirname, `../games/one-line/core/${f}.ts`), 'utf8')).join('\n');
-    expect(`${mod}\n${core}`).not.toMatch(/setInterval|setTimeout|requestAnimationFrame/);
+    expect(mod).not.toMatch(/requestAnimationFrame/);
+    const tick = /setInterval\([^,]+,\s*(\d+)\)/.exec(mod);
+    expect(tick).not.toBeNull();
+    // Реже раза в 10 мс — то есть не покадрово; и не реже секунды, иначе цифра дёргается.
+    expect(Number((tick as RegExpExecArray)[1])).toBeGreaterThanOrEqual(100);
+    expect(Number((tick as RegExpExecArray)[1])).toBeLessThanOrEqual(1000);
+  });
+
+  it('🔴 время НЕ ось сложности: лимит один и тот же на первом и на последнем уровне', () => {
+    // Лимит вообще не зависит от уровня — функция его не принимает.
+    expect(oneLineTimeLimitMs.length).toBe(0);
+    expect(oneLineTimeLimitMs()).toBeGreaterThan(0);
+  });
+
+  it('🔴 истёкшее время уровень не понижает', () => {
+    const screen: string = readFileSync(join(__dirname, '../../app/games/one-line.tsx'), 'utf8');
+    const body = screen.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+    // Понижение обязано быть обусловлено признаком «время вышло».
+    expect(body).toMatch(/timedOut/);
+    expect(body).toMatch(/!passed && !timedOut\) lvl\.fail\(\)/);
   });
 
   it('любой уровень собирается в один непрерывный росчерк — иначе задача нерешаема', () => {

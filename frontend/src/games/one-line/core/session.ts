@@ -1,5 +1,10 @@
 import { generateOneLinePuzzle } from './generator';
-import { scoreOneLineCompletion } from './scoring';
+import {
+  ONE_LINE_START_SCORE,
+  oneLineScoreAt,
+  oneLineTimeIsUp,
+  scoreOneLineCompletion,
+} from './scoring';
 import type {
   GeneratedOneLinePuzzle,
   OneLineDrawingPhase,
@@ -117,6 +122,55 @@ function finishIfComplete(session: OneLineSession, now: number): OneLineSession 
       undoCount: session.undoCount,
       hintsUsed: session.hintsUsed,
       invalidMoves: session.invalidMoves,
+    }),
+  };
+}
+
+/**
+ * Сколько партия уже идёт. Пауза не считается — иначе прочитанные правила съедали бы
+ * счёт, и «Правила» превращались бы в наказание за любопытство.
+ */
+export function elapsedOneLineMs(session: OneLineSession, now: number): number {
+  if (session.startedAt === null) return 0;
+  // На паузе часы стоят: замирают на том мгновении, когда её включили.
+  const running = session.phase === 'paused' && session.pauseStartedAt !== null
+    ? session.pauseStartedAt
+    : now;
+  return Math.max(0, running - session.startedAt - session.pausedMs);
+}
+
+/** Что показывать на счётчике прямо сейчас. Тренировочный круг не торопим. */
+export function oneLineScoreNow(session: OneLineSession, now: number): number {
+  if (session.phase !== 'playing') return ONE_LINE_START_SCORE;
+  return Math.max(0, Math.round(oneLineScoreAt(elapsedOneLineMs(session, now))));
+}
+
+/**
+ * ВРЕМЯ ВЫШЛО — ПАРТИЯ ОКОНЧЕНА, НО УРОВЕНЬ НЕ ПОНИЖАЕТСЯ.
+ *
+ * ⚠️ ЗДЕСЬ ОДНО ОСОЗНАННОЕ ОТСТУПЛЕНИЕ ОТ ОБРАЗЦА, И ВОТ ПОЧЕМУ. У образца
+ * лестницы уровней нет вовсе: проиграл — переиграл тот же уровень, потерял только
+ * очки. У нас лестница есть, и обычный провал уровень понижает. Сложи одно с
+ * другим — и человек, который сел ДУМАТЬ над трудной фигурой, окажется наказан
+ * откатом назад именно за то, что думал. Это ровно та беда, из-за которой длинные
+ * партии вынесли в отдельную политику провала (см. `services/failure`).
+ *
+ * Поэтому цена медленной партии — обнулённый счёт, а не потерянный уровень.
+ */
+export function expireOneLineSession(session: OneLineSession, now: number): OneLineSession {
+  if (session.phase !== 'playing' || session.startedAt === null) return session;
+  const elapsed = elapsedOneLineMs(session, now);
+  if (!oneLineTimeIsUp(elapsed)) return session;
+  return {
+    ...session,
+    phase: 'result',
+    hintVertexIds: [],
+    result: scoreOneLineCompletion(session.puzzle, {
+      durationMs: elapsed,
+      undoCount: session.undoCount,
+      hintsUsed: session.hintsUsed,
+      invalidMoves: session.invalidMoves,
+      timedOut: true,
     }),
   };
 }

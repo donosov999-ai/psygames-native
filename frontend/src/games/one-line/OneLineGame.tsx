@@ -21,12 +21,14 @@ import {
   advanceFromOneLineTraining,
   createOneLineSession,
   disposeOneLineSession,
+  expireOneLineSession,
   getCurrentOneLinePuzzle,
   getOneLineStrings,
   hintOneLineMove,
   interpolateOneLine,
   edgeTargetVertex,
   nearestVertex,
+  oneLineScoreNow,
   pauseOneLineSession,
   restartOneLineSession,
   resumeOneLineSession,
@@ -532,6 +534,29 @@ function OneLineSessionView({
 }: OneLineGameProps) {
   const strings = getOneLineStrings(locale);
   const [session, setSession] = React.useState(() => createOneLineSession({ seed, level }));
+
+  /**
+   * ТИК СЧЁТЧИКА. Очки сползают сами по себе, без ходов игрока, поэтому экран
+   * обязан перерисовываться по часам, а не по нажатиям.
+   *
+   * ⚠️ ЧЕТЫРЕ РАЗА В СЕКУНДУ, А НЕ КАЖДЫЙ КАДР. Число на экране целое: чаще
+   * четырёх раз оно всё равно не меняется, а каждый кадр это перерисовка всей
+   * доски ради цифры. Сама величина берётся из ЧАСОВ, а не накапливается по
+   * тикам, — пропущенный тик ничего не искажает.
+   */
+  const [clockTick, setClockTick] = React.useState(0);
+  React.useEffect(() => {
+    if (session.phase !== 'playing') return undefined;
+    const timer = setInterval(() => setClockTick((value) => value + 1), 250);
+    return () => clearInterval(timer);
+  }, [session.phase]);
+
+  React.useEffect(() => {
+    if (session.phase !== 'playing') return;
+    setSession((current) => expireOneLineSession(current, now()));
+  }, [clockTick, now, session.phase]);
+
+  const scoreLeft = oneLineScoreNow(session, now());
   const sessionRef = React.useRef(session);
   const completedRef = React.useRef(false);
 
@@ -654,6 +679,20 @@ function OneLineSessionView({
         <View style={styles.titleBlock}>
           <Text accessibilityRole="header" style={[styles.gameTitle, { color: theme.text }]}>{strings.title}</Text>
           <Text style={[styles.round, { color: theme.textSecondary }]}>{roundLabel}</Text>
+          {session.phase === 'playing' ? (
+            /*
+              ОДНО ЧИСЛО ВМЕСТО ДВУХ. Это и таймер, и награда: оно сползает к нулю и
+              оно же уходит в рекорд уровня. Отдельные «время» и «очки» рядом
+              заставили бы выбирать, на какое смотреть.
+              Краснеет на последней трети — предупреждение до того, как стало поздно.
+            */
+            <Text
+              accessibilityLabel={`${strings.scoreLabel}: ${scoreLeft}`}
+              style={[styles.scoreLeft, { color: scoreLeft <= 30 ? theme.error : theme.text }]}
+            >
+              {scoreLeft}
+            </Text>
+          ) : null}
         </View>
         {!trainingComplete ? (
           <ActionButton label={strings.pause} theme={theme} secondary onPress={() => setSession((current) => pauseOneLineSession(current, now()))} />
@@ -749,6 +788,7 @@ const styles = StyleSheet.create({
   vertexTarget: { position: 'absolute', width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
   hintedVertex: { borderWidth: 6 },
   vertexText: { fontSize: 15, fontWeight: '900', textAlign: 'center' },
+  scoreLeft: { fontSize: 30, fontWeight: '900', textAlign: 'left', marginTop: 2 },
   successCard: { maxWidth: 620, alignSelf: 'center' },
   metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
   metric: { minWidth: 140, flexGrow: 1, flexBasis: '45%', padding: 12, alignItems: 'center', gap: 4 },
