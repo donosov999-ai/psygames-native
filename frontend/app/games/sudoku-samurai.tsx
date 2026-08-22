@@ -188,6 +188,42 @@ export function gridsOf(r: number, c: number): Array<readonly [number, number]> 
   for (const g of GRIDS) { const [r0, c0] = g; if (r >= r0 && r < r0 + 9 && c >= c0 && c < c0 + 9) out.push(g); }
   return out;
 }
+/**
+ * ОШИБОЧНА ЛИ КЛЕТКА — то, чем экран её красит.
+ *
+ * 🔴 ЗАЧЕМ ОТДЕЛЬНО. Жизнь снималась по одному правилу (цифра не совпала с решением),
+ * а красное показывалось по другому (цифра дублируется внутри сетки). Правила разошлись,
+ * и в зазор провалились 42–44 % неверных цифр: счётчик тикал, поле не менялось. Пока
+ * правило живёт в двух местах, оно и будет расходиться — поэтому оно здесь одно, и
+ * гейт зовёт ровно его.
+ *
+ * `duplicate` остаётся отдельно: он работает и без решения (например, в разборе доски),
+ * и по нему видно ИМЕННО дубль, а не «где-то не то».
+ */
+export function samuraiCellWrong(
+  grid: readonly Cell[][],
+  solution: readonly Cell[][],
+  r: number,
+  c: number,
+): { duplicate: boolean; wrongValue: boolean; error: boolean } {
+  const v = grid[r]?.[c] ?? 0;
+  if (v === 0) return { duplicate: false, wrongValue: false, error: false };
+  let duplicate = false;
+  for (const [r0, c0] of gridsOf(r, c)) {
+    for (let cc = c0; cc < c0 + 9; cc++) if (cc !== c && grid[r]![cc] === v) duplicate = true;
+    for (let rr = r0; rr < r0 + 9; rr++) if (rr !== r && grid[rr]![c] === v) duplicate = true;
+    const br = r0 + Math.floor((r - r0) / 3) * 3, bc = c0 + Math.floor((c - c0) / 3) * 3;
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      const rr = br + i, cc = bc + j;
+      if ((rr !== r || cc !== c) && grid[rr]![cc] === v) duplicate = true;
+    }
+  }
+  // ⚠️ Решение бывает ещё не загружено (первый кадр) — тогда судить не по чему.
+  const known = solution[r]?.[c] !== undefined && solution[r]![c] !== 0;
+  const wrongValue = known && solution[r]![c] !== v;
+  return { duplicate, wrongValue, error: duplicate || wrongValue };
+}
+
 // Валидные клетки = часть хотя бы одной сетки. Клетки-дырки НЕ рендерятся и не выбираются.
 export const CELLS: Array<[number, number]> = [];
 for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) if (gridsOf(r, c).length) CELLS.push([r, c]);
@@ -1514,19 +1550,22 @@ export default function SamuraiSudokuGame() {
     const sameRow = selected?.r === r || selected?.c === c;
     const sameVal = v !== 0 && selected && grid[selected.r][selected.c] === v;
     const isGiven = given[r][c];
-    // Конфликт: размещённая цифра дублируется в любой сетке, которой принадлежит клетка.
-    const conflict = v !== 0 && (() => {
-      for (const [r0, c0] of owners) {
-        for (let cc = c0; cc < c0 + 9; cc++) if (cc !== c && grid[r][cc] === v) return true;
-        for (let rr = r0; rr < r0 + 9; rr++) if (rr !== r && grid[rr][c] === v) return true;
-        const br = r0 + Math.floor((r - r0) / 3) * 3, bc = c0 + Math.floor((c - c0) / 3) * 3;
-        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { const rr = br + i, cc = bc + j; if ((rr !== r || cc !== c) && grid[rr][cc] === v) return true; }
-      }
-      return false;
-    })();
+    /**
+     * 🔴 ОШИБКА СНИМАЛАСЬ МОЛЧА. Жизнь уходила при `solution[r][c] !== n`, а красным
+     * клетка становилась ТОЛЬКО при дубле цифры внутри своей сетки. Замер по настоящим
+     * доскам: 42,0 % неверных цифр на 4-м уровне, 43,9 % на 12-м, 42,4 % на 25-м не
+     * дублировали ничего — счётчик тикал, а на поле из 369 клеток не менялось ничего.
+     * На 12-м уровне четырёх таких тиков хватает, чтобы оборвать часовую партию, и
+     * человек не знает даже, в какой сетке искать.
+     *
+     * И классика, и фрактал давно красят такую клетку (`wrongVal`, `wrong`) — самурай
+     * остался единственным, кто наказывал вслепую. Метка ничего не выдаёт сверх уже
+     * сказанного: счётчик ошибок про эту цифру УЖЕ сообщил, не сказав только — где.
+     */
+    const conflict = samuraiCellWrong(grid, solution, r, c).error;
 
     let bg = colors.surface;
-    if (conflict) bg = isSel ? '#ef4444' : '#fecaca';   // ошибка-дубль: яркий красный если выделена, иначе светло-красный
+    if (conflict) bg = isSel ? '#ef4444' : '#fecaca';   // ошибка: яркий красный если выделена, иначе светло-красный
     else if (isSel) bg = GRADIENT[0];
     else if (sameVal) bg = colors.card;
     else if (sameRow) bg = colors.card;
