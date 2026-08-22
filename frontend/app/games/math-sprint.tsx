@@ -171,6 +171,27 @@ export default function MathSprintGame() {
     else { setClearedPassed(passed); setPhase('cleared'); }   // уровневый проход ИЛИ провал → баннер (passed=true звёзды / false «почти, ещё раз» + авто-рестарт того же уровня)
   };
 
+  /** Свежая `submit` для авто-приёма: эффект не должен ловить старое замыкание. */
+  const submitRef = useRef<() => void>(() => {});
+
+  /**
+   * 🔴 ВЕРНЫЙ ОТВЕТ ПРИНИМАЕТСЯ САМ. Игра ждала «Проверить» даже когда набранное
+   * число УЖЕ равно ответу — спорить не о чем, а человек тянется к кнопке. На
+   * счётном упражнении со секундомером это ещё и время в замер.
+   *
+   * ⚠️ ПРИНИМАЕМ ТОЛЬКО СОВПАДЕНИЕ. Неверное число само не отвергается: человек
+   * мог не дописать (набирает 15, а по дороге показалось 1). Кнопка остаётся —
+   * она для «я закончил, проверь», а не для «подтверди очевидное».
+   *
+   * ⚠️ Ложного срабатывания на приставке не бывает: верное значение ровно одно, и
+   * пока набранное ему не равно, ничего не происходит.
+   */
+  useEffect(() => {
+    if (!problem || userAnswer === '' || feedback !== null) return;
+    if (parseInt(userAnswer, 10) === problem.answer) submitRef.current();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userAnswer, problem, feedback]);
+
   const submit = () => {
     if (!problem || userAnswer === '') return;
     const ans = parseInt(userAnswer, 10);
@@ -198,7 +219,9 @@ export default function MathSprintGame() {
       setFeedback(null);
       inputRef.current?.focus();   // десктоп: вернуть фокус в поле, чтобы печатать дальше без клика мышью
     }, 250);
-  };
+  }
+  submitRef.current = submit;
+;
 
   const renderConfig = () => (
     <View style={{ flex: 1 }}>

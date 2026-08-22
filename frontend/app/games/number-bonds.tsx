@@ -259,12 +259,33 @@ export default function NumberBondsGame() {
     } catch (err) { console.error(err); }
   };
 
+  /** Свежая `validate` для авто-приёма: эффект не должен ловить старое замыкание. */
+  const validateRef = useRef<() => void>(() => {});
+
   const togglePick = (idx: number) => {
     if (feedback !== null || solvedRef.current) return;
     setPicked((p) => p.includes(idx) ? p.filter((i) => i !== idx) : [...p, idx]);
   };
 
   const sumPicked = picked.reduce((s, i) => s + (puzzle.chips[i] ?? 0), 0);
+
+  /**
+   * 🔴 ВЕРНЫЙ ОТВЕТ ПРИНИМАЕТСЯ САМ. Игра ждала нажатия «Проверить» даже тогда,
+   * когда ответ уже СОБРАН и однозначен: сумма выбранных фишек равна цели, спорить
+   * не о чем. Человек складывает 10 и 5, видит зелёную пятнадцать — и всё равно
+   * должен тянуться к кнопке. Лишний шаг между «решил» и «засчитано» читается как
+   * «игра не заметила», а на замерном упражнении ещё и съедает время в секундомер.
+   *
+   * ⚠️ ПРИНИМАЕМ ТОЛЬКО ВЕРНОЕ. Автоматически отвергать неверную сумму нельзя:
+   * человек мог не закончить набор, и мгновенная ошибка отняла бы у него право
+   * доложить фишку. Поэтому кнопка остаётся — она для «я закончил, проверь», а не
+   * для «подтверди очевидное».
+   */
+  React.useEffect(() => {
+    if (phase !== 'playing' || feedback !== null || solvedRef.current) return;
+    if (picked.length >= 2 && sumPicked === puzzle.target) validateRef.current();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [picked, sumPicked, puzzle.target, phase, feedback]);
 
   const validate = () => {
     if (feedback !== null || solvedRef.current) return;
@@ -294,6 +315,8 @@ export default function NumberBondsGame() {
       fbTimerRef.current = setTimeout(() => { setPicked([]); setFeedback(null); }, 700);
     }
   };
+
+  validateRef.current = validate;
 
   const renderConfig = () => {
     const p = levelParams(lvl.level);

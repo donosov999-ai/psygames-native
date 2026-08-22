@@ -267,7 +267,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
     return (
       <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('skip')}
         activeOpacity={1} onPress={go}
-        style={[styles.full, { backgroundColor: colors.background }]}>
+        style={[styles.interludeFull, { backgroundColor: colors.background }]}>
         <LevelInterlude
           level={level}
           stars={stars}
@@ -387,6 +387,19 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
 
 const styles = StyleSheet.create({
   full: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  /**
+   * 🔴 ЗАСТАВКЕ МЕЖДУ УРОВНЯМИ НУЖЕН ВЕСЬ ЭКРАН, А НЕ СЕРЕДИНА.
+   *
+   * Она рисовалась в обёртке `full`, у которой `alignItems: 'center'` и отступ 20.
+   * Ребёнок без явной ширины при `alignItems: 'center'` СЖИМАЕТСЯ ПО СОДЕРЖИМОМУ,
+   * а не растягивается: пейзаж с питомцем оказывался узкой полосой посреди экрана,
+   * сдвинутой вбок, да ещё и с рамкой в двадцать точек по краю. Замечание Дениса
+   * дословно: «картинка съезжала вбок и рисовалась криво или частично на экране».
+   *
+   * Обычному баннеру уровня центрирование и отступ нужны — он карточка. Заставке
+   * нужен полный кадр, поэтому у неё своя обёртка, а не общая.
+   */
+  interludeFull: { flex: 1, alignSelf: 'stretch', width: '100%' },
   // Накладной облик: затемняем доску, но не прячем — она и есть награда.
   overlayRoot: { backgroundColor: 'rgba(0,0,0,0.45)' },
   card: { width: '100%', borderRadius: 24, padding: 32, alignItems: 'center' },
