@@ -17,6 +17,7 @@ import GameModeSwitch from '@/src/components/GameModeSwitch';
 import BossRound, { BossType } from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import BoardBuilding, { runSteps, nextFrame, type BuildStatus } from '@/src/components/BoardBuilding';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -66,7 +67,7 @@ import {
   sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
   rejectionReason,
 } from '@/src/services/sudoku-core';
-import { generateLogical } from '@/src/services/sudoku-grade';
+import { generateLogical, logicalBuilder } from '@/src/services/sudoku-grade';
 import {
   DEFAULT_SUDOKU_ROAD, SUDOKU_ROADS, SUDOKU_ROAD_NAME_KEY, SudokuRoad,
   effectiveRoadLevel, effectiveRoadLevels, isSudokuRoad, reachRoadLevel,
@@ -88,7 +89,7 @@ import {
   visiblePencilDigits, countPencilMarks, type PencilMarks,
 } from '@/src/services/pencilMarks';
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'building' | 'playing' | 'boss' | 'cleared' | 'result';
 
 /**
  * КАРАНДАШНЫЕ ПОМЕТКИ. Что видно мелким в клетке.
@@ -369,6 +370,12 @@ export default function SudokuGame() {
   // (см. GameAbout). Раньше до игры было два экрана подряд, и второй раз человек
   // пролистывал то, что прочитал в первый.
   const [phase, setPhase] = useState<GamePhase>('config');
+  /**
+   * Состояние сборки доски. Верхние уровни собираются десятками секунд (замер: 29,2 с
+   * на 53-м), и раньше человек всё это время смотрел в неподвижный экран.
+   */
+  const [build, setBuild] = useState<BuildStatus>({ step: 1, steps: 1, slow: false });
+  const buildRef = useRef(0);
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const bossTypeRef = useRef<BossType>('lightning');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(() => (str('diff', 'medium') as 'easy' | 'medium' | 'hard'));
@@ -580,16 +587,41 @@ export default function SudokuGame() {
     //     решению взяться неоткуда («игра имеет несколько вариантов победы» — репорты Вали).
     // Если конкретная попытка логического пути не уложилась в бюджет, generateLogical
     // сохраняет безопасный fallback с проверкой единственности.
-    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar, cages: cg } =
-      mode === 'levels'
-        // Полоса техник — тоже от дороги: это ГЛАВНАЯ ось сложности судоку, число
-        // дырок на уровнях выше восьмого генератор всё равно задаёт сам (см. `cap`
-        // в sudoku-grade). Без сдвига полосы «полегче» было бы обещанием без вещества.
-        ? generateLogical(lvlOverride ?? level, blanks, d.N, d.BR, d.BC, vr, {
-          budgetMs: 2200,
-          tier: roadTier(lvlOverride ?? level, road),
-        }).gen
-        : generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
+    /**
+     * 🔴 СБОРКА ИДЁТ ШАГАМИ, А НЕ ОДНОЙ СТРОКОЙ. Замер по настоящим доскам: 0,8 с на
+     * 38-м уровне, 4,0 с на 42-м, 9,7 с на 50-м и 29,2 с на 53-м. Синхронный вызов
+     * держал поток всё это время — человек нажал «играть» и смотрел в неподвижный
+     * экран, не понимая, думает игра или повисла. Поставить рядом «идёт сборка» не
+     * помогло бы: состояние, поменянное перед тяжёлым циклом в том же обработчике,
+     * не доезжает до экрана. Тот же шов уже стоит у самурая.
+     */
+    const buildBoard = async () => {
+      if (mode !== 'levels') return generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
+      // Полоса техник — тоже от дороги: это ГЛАВНАЯ ось сложности судоку, число
+      // дырок на уровнях выше восьмого генератор всё равно задаёт сам (см. `cap`
+      // в sudoku-grade). Без сдвига полосы «полегче» было бы обещанием без вещества.
+      const lv = lvlOverride ?? level;
+      const builder = logicalBuilder(lv, blanks, d.N, d.BR, d.BC, vr, {
+        budgetMs: 2200, tier: roadTier(lv, road),
+      });
+      setBuild({ step: 1, steps: builder.steps, slow: false });
+      setPhase('building');
+      const gen = ++buildRef.current;
+      const made = await runSteps({
+        steps: builder.steps,
+        step: () => builder.step(),
+        enough: (r) => builder.enough(r),
+        show: (st) => { if (gen === buildRef.current) setBuild(st); },
+        frame: nextFrame,
+        now: gameNow,
+      });
+      return gen === buildRef.current ? made.gen : null;
+    };
+
+    void (async () => {
+    const built = await buildBoard();
+    if (built === null) return;   // за время сборки экран ушёл дальше
+    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar, cages: cg } = built;
     setRegions(rg ?? null);
     setParityMarks(pa ?? null);
     setKropki(kr ?? null);
@@ -623,7 +655,9 @@ export default function SudokuGame() {
     setPhase('playing');
     const start = gameNow();
     setStartTime(start);
+    if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
+    })();
   };
 
   /** Снимок партии для слоя незаконченной игры. */
@@ -1734,6 +1768,18 @@ export default function SudokuGame() {
   // Доска остаётся на экране и после победы: заполненная сетка — это и есть
   // награда, ради неё решали. Карточка итога висит ПОВЕРХ неё (решение Дениса:
   // «делать карточку над всей доской, чтобы было оттуда и оттуда полезное»).
+  /**
+   * Доска собирается. Экран говорит об этом словами, а не молчит десятками секунд —
+   * и «назад» остаётся живым: ожидание не должно превращаться в ловушку.
+   */
+  if (phase === 'building') {
+    return (
+      <GameShell title={t('sudoku').replace(/\s*\d+\s*[×xX]\s*\d+\s*$/, '')} onBack={() => { buildRef.current++; setPhase('config'); }} confirmExit={false}>
+        <BoardBuilding status={build} tint={GRADIENT[0]} />
+      </GameShell>
+    );
+  }
+
   if (phase === 'playing' || phase === 'cleared') {
     return (
       <View style={{ flex: 1 }}>
