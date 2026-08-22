@@ -292,8 +292,8 @@ describe('раунд играется по-настоящему', () => {
     await TestRenderer.act(async () => { press(r, RU.playCalibration); });
     /**
      * Стучим вместе с сигналами — но с ЗАДЕРЖКОЙ, как настоящий человек с
-     * настоящей колонкой: ровно её калибровка и должна вычесть. Без двух
-     * замеров калибровка не засчитывается вовсе.
+     * настоящей колонкой: ровно её калибровка и должна вычесть. Настройка
+     * засчитывается, только если отстучали ВСЕ щелчки.
      */
     const LATENCY = 60;
     const pulses = engine.plans[0].plan.expectedTimesMs;
@@ -303,8 +303,16 @@ describe('раунд играется по-настоящему', () => {
      * бы одну и ту же метку времени, и проверка мерила бы не то. На этом здесь
      * уже споткнулись — поправка вышла 280 мс вместо 60.
      */
-    await TestRenderer.act(async () => { clock = (pulses[0] as number) + LATENCY; press(r, RU.calibrationTap); });
-    await TestRenderer.act(async () => { clock = (pulses[1] as number) + LATENCY; press(r, RU.calibrationTap); });
+    /**
+     * ⚠️ НАЖИМАЕМ НА КАЖДЫЙ ЩЕЛЧОК. Раньше здесь стучали дважды из четырёх, и это
+     * засчитывалось: правило требовало всего двух замеров. Но по неполному набору
+     * задержку не восстановить — «пропустил первый щелчок» и «у колонки лаг в
+     * пол-такта» выглядят одинаково, и игра выбирала второе, отнимая две трети
+     * у каждой следующей партии. Теперь настройка принимается только целиком.
+     */
+    for (const pulse of pulses) {
+      await TestRenderer.act(async () => { clock = (pulse as number) + LATENCY; press(r, RU.calibrationTap); });
+    }
     await TestRenderer.act(async () => { engine.plans[0].finish(); });
     expect(texts(r).some((t) => t.includes('Калибровка готова'))).toBe(true);
 
