@@ -346,6 +346,16 @@ describe('раунд играется по-настоящему', () => {
     expect(results[0].accuracy).toBeCloseTo(1, 5);
     expect(results[0].specific.meanTimingErrorMs).toBe(0);
     expect(results[0].specific.calibrationOffsetMs).toBe(LATENCY);
+
+    /**
+     * 🔴 И ОБРАТНАЯ СТОРОНА — БЕЗ НЕЁ ПРОВЕРКА ОДНОСТОРОННЯЯ. 22.08.2026 мутация
+     * «isPassed возвращает true ВСЕГДА» осталась ЗЕЛЁНОЙ: гейт спрашивал только
+     * «верная игра засчитана?», а на этот вопрос беспорожная функция отвечает
+     * правильно. Значит порога могло не быть вовсе, и уровень рос бы от любой
+     * партии. Берём ТЕ ЖЕ настоящие метрики и роняем точность через порог.
+     */
+    expect(isPassed({ ...results[0], accuracy: 0.69 })).toBe(false);
+    expect(isPassed({ ...results[0], accuracy: 0.70 })).toBe(true);
     // 🔴 Свой экран поздравления модуль НЕ показывает: сцена отдана приложению.
     expect(r.toJSON()).toBeNull();
 

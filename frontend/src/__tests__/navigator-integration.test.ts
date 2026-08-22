@@ -110,6 +110,16 @@ describe('поворот карты — только облик, ответ то
     expect(failed).toEqual([]);
     // Проверка не должна быть зелена вслепую: повороты обязаны реально встретиться.
     expect([...seen].sort((a, b) => a - b)).toEqual([0, 90, 180, 270]);
+
+    /**
+     * 🔴 И ОБРАТНАЯ СТОРОНА. 22.08.2026 мутация «isPassed возвращает true ВСЕГДА»
+     * осталась ЗЕЛЁНОЙ: спрашивалось только «верный путь засчитан?», а на это
+     * беспорожная функция отвечает правильно. Роняем точность через порог на тех
+     * же настоящих метриках — зачёта быть не должно.
+     */
+    const routeM = walkRoute(createNavigatorSession({ seed: 'nav-a', level: 1 }), clock.now).result as NavigatorMetrics;
+    expect(isPassed({ ...routeM, accuracy: 0.79 })).toBe(false);
+    expect(isPassed({ ...routeM, accuracy: 0.80 })).toBe(true);
   });
 
   /**
@@ -157,6 +167,15 @@ describe('поворот карты — только облик, ответ то
         bad.push(`ур.${level}: выбран ${m.specific.selectedHomeSector}, а верен ${s.round.correctHomeSector}`);
       }
       if (!isPassed(m)) bad.push(`ур.${level}: верный сектор не засчитан (${m.specific.angularErrorDeg}°)`);
+      /**
+       * 🔴 ОБРАТНАЯ СТОРОНА ДЛЯ ВТОРОГО РЕЖИМА: у «направления на дом» свой порог —
+       * половина сектора, 22.5°. Промах шире обязан НЕ засчитываться, иначе
+       * тыкать можно куда угодно.
+       */
+      const sp = m.specific;
+      if (isPassed({ ...m, specific: { ...sp, angularErrorDeg: 22.6 } })) bad.push(`ур.${level}: промах 22.6° засчитан`);
+      if (!isPassed({ ...m, specific: { ...sp, angularErrorDeg: 22.5 } })) bad.push(`ур.${level}: ровно 22.5° не засчитано`);
+      if (isPassed({ ...m, specific: { ...sp, angularErrorDeg: null } })) bad.push(`ур.${level}: ответа не было, а засчитано`);
     }
     expect(bad).toEqual([]);
   });
