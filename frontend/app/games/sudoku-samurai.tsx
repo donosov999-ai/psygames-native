@@ -13,7 +13,7 @@ import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useGameKeyboard, digitKeys } from '@/src/hooks/useGameKeyboard';
 import { sndPlace, sndWrong } from '@/src/services/feedback';
 import { gameNow } from '@/src/services/gamePause';
@@ -1166,7 +1166,10 @@ export default function SamuraiSudokuGame() {
   }, [zoom, width]);
 
   // Пресет (запуск из зарядки) — авто-старт, без изменения уровня (как в других играх).
-  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
+  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
+  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps
 
   const starsFor = (e: number, h: number): number => (e === 0 && h === 0) ? 3 : (e <= 2 && h <= 1) ? 2 : 1;
 

@@ -17,6 +17,7 @@ import NativeInsetBridge from '@/src/components/NativeInsetBridge';
 import { pickSupabaseBase } from '@/src/services/supabase';
 import { flushFeedbackQueue } from '@/src/services/appFeedback';
 import { startSessionCloudSync } from '@/src/services/api';
+import { warmLevelCache } from '@/src/services/levelCache';
 import UnlockToast from '@/src/components/UnlockToast';
 import AppErrorBoundary from '@/src/components/AppErrorBoundary';
 import UpdateGate from '@/src/components/UpdateGate';
@@ -164,6 +165,13 @@ export default function RootLayout() {
   // Cloud не участвует в критическом пути старта. Сначала монтируем локальные
   // экраны/игры, затем выбираем direct/relay и только после этого запускаем
   // migration + две outbox-очереди. Ни один из промисов не блокирует UI.
+  /**
+   * ⚠️ УРОВНИ ЧИТАЕМ СРАЗУ, БЕЗ ЗАДЕРЖКИ. Это не фон, а критический путь: пока
+   * уровни не прочитаны, любой автостарт («Вызов дня», онбординг) видит первый
+   * уровень вместо достигнутого. Одно пакетное чтение на весь запуск.
+   */
+  React.useEffect(() => { void warmLevelCache(); }, []);
+
   React.useEffect(() => {
     let cancelled = false;
     const timer = setTimeout(() => {

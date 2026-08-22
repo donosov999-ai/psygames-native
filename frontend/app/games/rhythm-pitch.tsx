@@ -65,7 +65,7 @@ import { saveSession } from '@/src/services/api';
 import { getSoundEnabled, setSoundEnabled } from '@/src/services/feedback';
 import { gameNow } from '@/src/services/gamePause';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import GameShell from '@/src/components/GameShell';
@@ -203,9 +203,10 @@ export default function RhythmPitchScreen() {
 
   // Автостарт (шаг зарядки, вызов дня) ждёт ответа про звук: иначе успеет
   // прыгнуть в игру раньше, чем выяснится, что играть в тишину нечем.
-  React.useEffect(() => {
-    if (autostart && soundPref !== null && !muted) setPhase('playing');
-  }, [autostart, soundPref, muted]);
+  // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
+  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
+  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
+  useAutostartWhenReady(() => autostart && soundPref !== null && !muted && lvl.loaded, () => setPhase('playing'));
 
   const onComplete = React.useCallback(async (m: RhythmPitchMetrics) => {
     const passed = isPassed(m);

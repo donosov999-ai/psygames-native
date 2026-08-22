@@ -40,7 +40,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -135,7 +135,10 @@ export default function BARTGame() {
   const historyRef = useRef<BalloonRecord[]>([]);
 
   // Запуск из зарядки — классический прогон на стандартных параметрах (диагностика).
-  useEffect(() => { if (autostart) startClassic(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
+  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
+  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => startClassic()); // eslint-disable-line react-hooks/exhaustive-deps
 
   const resetBalloon = () => {
     setBurstAt(1 + Math.floor(Math.random() * maxBurstRef.current));

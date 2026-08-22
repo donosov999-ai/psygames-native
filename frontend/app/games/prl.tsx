@@ -52,7 +52,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -170,7 +170,10 @@ export default function PRLGame() {
 
   useEffect(() => () => { respondLockRef.current = true; }, []);
   // Запуск из зарядки → авто-старт классическим (чистая метрика, уровень не трогается).
-  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
+  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
+  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startGame = () => {
     const classic = isPreset || runMode === 'classic';

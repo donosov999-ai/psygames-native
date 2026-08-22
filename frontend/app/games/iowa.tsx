@@ -16,7 +16,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
-import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -98,7 +98,10 @@ export default function IowaGame() {
     setRound(1);
     setPhase('playing');
   };
-  useAutostart(autostart, startGame);   // в плейлисте зарядки игра стартует сама
+    // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
+  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
+  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
+  useAutostartWhenReady(() => autostart && runs.loaded, () => startGame());
 
   const finish = async (finalBank: number, finalPicks: typeof picks) => {
     const advantageous = finalPicks.filter(p => p.deck === 'C' || p.deck === 'D').length;

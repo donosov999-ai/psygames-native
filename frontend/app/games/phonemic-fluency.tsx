@@ -40,7 +40,7 @@ import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
-import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
+import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import {
   phonemicLetterPool, phonemicScriptFor, phonemicScriptIsFallback,
@@ -126,9 +126,10 @@ export default function PhonemicFluencyGame() {
   // LanguageProvider стартует с EN и затем асинхронно читает RU/другой язык.
   // Раньше COWAT успевал выбрать латинскую букву, а валидировал уже кириллицу:
   // серия формально шла, но ни одно русское слово не могло быть принято.
-  useAutostart(autostart && languageReady, startGame);
-
-  // Word validation rules (no random gibberish)
+    // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
+  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
+  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
+  useAutostartWhenReady(() => autostart && languageReady && runs.loaded, () => startGame());
   /**
    * ⚠️ ПИСЬМЕННОСТЬ ПРИХОДИТ ИЗ ОДНОГО МЕСТА (`phonemicScriptFor`) — той же
    * функции, по которой выбрана буква задания. Раньше буква выбиралась в

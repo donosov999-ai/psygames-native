@@ -16,7 +16,9 @@ describe.each(['mahjong.tsx', 'goods-sort.tsx'])('%s — уровень в за�
   const src = read(file);
 
   it('ждёт загрузки persistent level перед auto-start', () => {
-    expect(src).toContain('useAutostart(autostart && lvl.loaded, startGame)');
+    // Форма шва общая для всех экранов (см. playlist-autostart) — здесь важно, что
+    // условие содержит готовность уровня, а не то, как именно оно записано.
+    expect(src).toMatch(/useAutostart(?:WhenReady)?\([^;]*lvl\.loaded/);
   });
 
   it('стартует с восстановленного lvl.level', () => {

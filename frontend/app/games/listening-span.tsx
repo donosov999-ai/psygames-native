@@ -13,7 +13,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { speakSequence, ttsAvailable, ttsCancel } from '@/src/services/tts';
 import { useTtsAvailable, useTtsBlock } from '@/src/hooks/useTtsAvailable';
@@ -128,10 +128,10 @@ export default function ListeningSpanGame() {
   }, []);
 
   // авто-старт из зарядки
-  useEffect(() => {
-    if (autostart) startGame();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
+  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
+  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame());
 
   const chooseTargetLang = (code: string) => {
     setTargetLang(code);
