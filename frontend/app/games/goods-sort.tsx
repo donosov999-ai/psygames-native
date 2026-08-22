@@ -1089,6 +1089,45 @@ function obstaclePlan(L: number): ObstaclePlan {
   return OBSTACLE_PLANS[(L - 6) % OBSTACLE_PLANS.length];
 }
 
+/**
+ * РАЗДАЧА ДОСКИ ЦЕЛИКОМ: товары И препятствия, в одном месте.
+ *
+ * 🔴 ЗАЧЕМ ВЫНЕСЕНО. Раньше это лежало внутри экрана, и гарантия «свободных ниш
+ * минимум две» разъехалась именно потому, что считалась в двух местах: конфиг
+ * закладывал запас, экран передавал его раздаче, а препятствия потом садились
+ * на те же пустые ниши. Обе половины по отдельности написаны правильно — вместе
+ * давали ноль свободных на 57 уровнях из 200.
+ *
+ * ⚠️ И ПРОВЕРИТЬ ЭТО БЫЛО НЕЧЕМ: гейт не может смонтировать экран, поэтому
+ * повторял расчёт у себя — то есть проверял СВОЮ копию формулы, а не игру.
+ * Теперь и экран, и гейт зовут одно и то же.
+ */
+export function dealBoard(L: number, pool: number[], narrow = false): {
+  cfg: ReturnType<typeof levelCfg>;
+  cells: number[][];
+  obstacles: Obstacle[];
+  freeNiches: number;
+} {
+  const cfg = levelCfg(L, pool.length, narrow);
+  const shut = cfg.obst.blocked + cfg.obst.locked;
+  const caps = capsFor(L, cfg.slots);
+  // Пустых оставляем С ЗАПАСОМ под препятствия: `spares` — это то, что должно
+  // ОСТАТЬСЯ свободным ПОСЛЕ них, а не до.
+  let cells = generate(pool, cfg.types, cfg.spares + shut, cfg.slots, caps);
+  if (strictPlacement(L)) {
+    for (let tries = 0; tries < 5 && !solvableStrict(cells); tries++) {
+      cells = generate(pool, cfg.types, cfg.spares + shut, cfg.slots, caps);
+    }
+  }
+  const obstacles: Obstacle[] = Array(cfg.slots).fill(null);
+  const empties = cells.map((c, i) => (c.length === 0 ? i : -1)).filter((i) => i >= 0);
+  const pick = shuffle(empties);
+  let at = 0;
+  for (let k = 0; k < cfg.obst.blocked && at < pick.length; k++, at++) obstacles[pick[at]] = { kind: 'blocked' };
+  for (let k = 0; k < cfg.obst.locked && at < pick.length; k++, at++) obstacles[pick[at]] = { kind: 'locked', movesLeft: 5 + k * 3 };
+  return { cfg, cells, obstacles, freeNiches: empties.length - at };
+}
+
 export function levelCfg(L: number, poolSize: number, narrow = false) {
   const { cols, rows } = gridFor(L, narrow);
   const mask = shapeFor(L, cols, rows);
@@ -1763,25 +1802,17 @@ export default function GoodsSortGame() {
      * у человека на руках.
      */
     moveLimitRef.current = cfg.moveLimit;   // лимит уровня фиксируется вместе с доской
-    const levelCaps = capsFor(L, cfg.slots);
-    let built = generate(poolRef.current, cfg.types, cfg.spares, cfg.slots, levelCaps);
-    if (strictPlacement(L)) {
-      for (let tries = 0; tries < 5 && !solvableStrict(built); tries++) {
-        built = generate(poolRef.current, cfg.types, cfg.spares, cfg.slots, levelCaps);
-      }
-    }
-    setCells(built);
     /**
-     * Препятствия ставим ПОСЛЕ раскладки и только на подходящие ниши:
-     * запирать можно лишь ПУСТУЮ нишу, иначе товары внутри окажутся
-     * недостижимы и уровень станет нерешаемым.
+     * Раздача и препятствия — одним вызовом (`dealBoard`). Это не косметика:
+     * гарантия «свободных ниш минимум две» держится на том, что запас под
+     * препятствия и сами препятствия считаются В ОДНОМ месте. Пока они стояли
+     * порознь, они молча вычитали из одного и того же — 57 уровней из 200
+     * оставались вовсе без свободной ниши.
      */
-    const obs: Obstacle[] = Array(cfg.slots).fill(null);
-    const empties = built.map((c, i) => (c.length === 0 ? i : -1)).filter((i) => i >= 0);
-    const pick = shuffle(empties);
-    let at = 0;
-    for (let k = 0; k < cfg.obst.blocked && at < pick.length; k++, at++) obs[pick[at]] = { kind: 'blocked' };
-    for (let k = 0; k < cfg.obst.locked && at < pick.length; k++, at++) obs[pick[at]] = { kind: 'locked', movesLeft: 5 + k * 3 };
+    const deal = dealBoard(L, poolRef.current, narrowRef.current);
+    const built = deal.cells;
+    setCells(built);
+    const obs = deal.obstacles;
     setObstacles(obs);
 
     // Накрываем товары: только те, что лежат НЕ последними в нише — иначе

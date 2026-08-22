@@ -62,12 +62,29 @@ describe('сортировка: звёзды и лимит честные', () =
    * считает по одной сетке, а провал по другой.
    */
   it('ни один вызов levelCfg в экране не забыл про узкий экран', () => {
+    /**
+     * ⚠️ ФЛАГ МОЖНО НЕ ТОЛЬКО ПОДСТАВИТЬ, НО И ПРОБРОСИТЬ. 22.08.2026 раздача
+     * доски вынесена в общую функцию `dealBoard(L, pool, narrow)`, которая берёт
+     * флаг параметром и передаёт дальше — она его НЕ забывает. Прежняя редакция
+     * требовала буквального `narrowRef.current` в каждом вызове и покраснела на
+     * правильной правке. Проверяем смысл: флаг либо подставлен, либо проброшен —
+     * и `dealBoard` в экране обязана зваться с `narrowRef.current`.
+     */
     const bad: string[] = [];
     for (const m of game.matchAll(/levelCfg\(([^)]*)\)/g)) {
       const args = m[1];
       if (args.startsWith('L: number')) continue;          // само объявление
-      if (!/narrowRef\.current/.test(args)) bad.push(`levelCfg(${args})`);
+      if (/narrowRef\.current/.test(args)) continue;       // подставлен на месте
+      if (/\bnarrow\b/.test(args)) continue;               // проброшен параметром
+      bad.push(`levelCfg(${args})`);
     }
     expect(bad).toEqual([]);
+
+    // И сама общая раздача обязана получать живой флаг, а не значение по умолчанию.
+    for (const m of game.matchAll(/dealBoard\(([^)]*)\)/g)) {
+      const args = m[1];
+      if (args.startsWith('L: number')) continue;
+      expect(`dealBoard(${args})`).toMatch(/narrowRef\.current/);
+    }
   });
 });
