@@ -16,6 +16,28 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.231.0',
+    date: '2026-08-22',
+    ru: [
+      "«Одна линия» перестала быть клубком: раньше игра нарочно выбирала самую запутанную раскладку — 196 пересечений линий на доску против одного у рисованных фигур. Теперь рисунок читается, фигур сорок вместо двенадцати, а уровней восемьдесят вместо сорока восьми",
+      "«Одна линия»: линия тянется за пальцем, и каждый взятый отрезок отзывается тиком",
+      "Маджонг: копий одного рисунка стало четыре, как в настоящем наборе — раньше на верхних уровнях их было двенадцать, и пара находилась взглядом мгновенно",
+      "Судоку показывает приём ИМЕННО этой доски, а не ярлык по номеру уровня: слово «extreme» стояло на двадцати четырёх уровнях подряд и на шести разных правилах",
+      "«Мишени»: купленная вторая жизнь больше не открывает уровни — доиграть она помогает, а прогресс за неё не покупается",
+      "«Спан цифр» останавливался после двух ошибок за всю партию вместо двух на одной длине — из-за этого спан замерялся короче настоящего",
+      "Батарея оценки берёт партию, сыгранную в предписанных настройках: раньше «Спан цифр» назад на трудной шёл в отчёт как прямой на средней и сравнивался с чужой нормой",
+    ],
+    en: [
+      "One Line stopped being a tangle: the game used to deliberately pick the most crossed layout — 196 line crossings per board against one in the hand-drawn figures. The drawing is readable now, there are forty figures instead of twelve and eighty levels instead of forty-eight",
+      "One Line: the line follows your finger, and every segment you take answers with a click",
+      "Mahjong: four copies of each design, as in a real set — the upper levels used to have twelve, and a pair was spotted instantly",
+      "Sudoku shows the technique THIS board actually needs instead of a label derived from the level number: the word «extreme» covered twenty-four levels in a row and six different rules",
+      "Targets: a purchased second life no longer unlocks levels — it helps you finish the round, it does not buy progress",
+      "Digit span used to stop after two errors in the whole game instead of two at the same length, which measured the span shorter than it is",
+      "The assessment battery now takes a round played in the prescribed setup: digit span backward on hard used to enter the report as forward on medium and be compared against the wrong norm",
+    ],
+  },
+  {
     version: '1.230.0',
     date: '2026-08-22',
     ru: [
