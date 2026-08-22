@@ -54,3 +54,67 @@ export function nearestVertex(
   }
   return nearest;
 }
+
+/**
+ * КУДА ВЕДЁТ ПАЛЕЦ — ПО РЕБРУ, А НЕ ПО ПОПАДАНИЮ В ТОЧКУ.
+ *
+ * 🔴 ЧТО БЫЛО ДО 22.08.2026. Ход выбирался ближайшей вершиной в 38 пикселях от
+ * пальца (`nearestVertex`), без всякой связи с тем, есть ли туда ребро и вёл ли
+ * человек ВДОЛЬ него. Отсюда две беды сразу:
+ *   · играть приходилось попаданием в кружки, а не рисованием линии — от игры про
+ *     «начерти одним росчерком» оставалось «ткни по очереди в семь кнопок»;
+ *   · палец, проехавший мимо чужой точки, звал ход, которого нет, и партия
+ *     засчитывала ОШИБКУ. То есть игра наказывала за движение пальцем — за то
+ *     самое, чего от человека и хочет.
+ *
+ * ⚠️ ПОЧЕМУ ДОПУСК СЧИТАЕТСЯ ВБОК, А НЕ УГЛОМ. Угловой допуск ведёт себя
+ * противоположно ожиданию: на коротком ребре те же пять градусов — это пара
+ * пикселей (не попасть), на длинном — половина экрана (задеть соседнее ребро).
+ * Человек же чувствует не угол, а «насколько я промахнулся мимо линии». Поэтому
+ * порог здесь — расстояние от пальца до ПРЯМОЙ ребра, одинаковое в пикселях на
+ * любой длине.
+ *
+ * Три условия, и каждое закрывает свою ошибку:
+ *   1. палец ушёл почти до конца ребра — иначе ход засчитывался бы от касания;
+ *   2. палец идёт ВПЕРЁД по ребру — иначе движение назад читалось бы как ход
+ *      вперёд: вбок оно отклоняется ровно так же мало;
+ *   3. отклонение вбок меньше порога — «я веду по этой линии, а не по соседней».
+ * Из подходящих берётся БЛИЖАЙШАЯ вершина: на развилке из одной точки выигрывает
+ * то ребро, которое человек уже прошёл целиком.
+ */
+export interface EdgeTargetOptions {
+  /** Радиус вершины в тех же единицах, что координаты (у нас — доли доски). */
+  radius: number;
+  /** Допуск вбок, в радиусах вершины. */
+  angleBias?: number;
+  /** За сколько радиусов до конца ребра ход засчитывается. */
+  commitBias?: number;
+}
+
+export function edgeTargetVertex(
+  from: GraphVertex,
+  neighbours: readonly GraphVertex[],
+  pointerX: number,
+  pointerY: number,
+  { radius, angleBias = 1.35, commitBias = 1.5 }: EdgeTargetOptions,
+): GraphVertex | null {
+  const px = pointerX - from.x;
+  const py = pointerY - from.y;
+  const pointerLength = Math.hypot(px, py);
+  if (pointerLength <= 0) return null;
+
+  let target: GraphVertex | null = null;
+  let targetDistance = Number.POSITIVE_INFINITY;
+  for (const vertex of neighbours) {
+    const vx = vertex.x - from.x;
+    const vy = vertex.y - from.y;
+    const distance = Math.hypot(vx, vy);
+    if (distance <= 0 || distance >= targetDistance) continue;
+    if (pointerLength <= distance - radius * commitBias) continue;      // 1. дошёл до конца
+    if ((px * vx + py * vy) / distance <= 0) continue;                   // 2. идёт вперёд
+    if (Math.abs(px * vy - py * vx) / distance >= radius * angleBias) continue;   // 3. не сбился вбок
+    target = vertex;
+    targetDistance = distance;
+  }
+  return target;
+}

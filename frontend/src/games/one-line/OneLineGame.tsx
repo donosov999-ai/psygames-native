@@ -19,6 +19,7 @@ import {
   getOneLineStrings,
   hintOneLineMove,
   interpolateOneLine,
+  edgeTargetVertex,
   nearestVertex,
   pauseOneLineSession,
   restartOneLineSession,
@@ -207,12 +208,51 @@ function OneLineBoard({
     onSelect(vertexId);
   }, [currentId, disabled, onSelect]);
 
-  const selectAtPoint = React.useCallback((x: number, y: number) => {
-    if (disabled || boardSize <= 0) return;
+  /**
+   * Соседи, до которых ЕЩЁ есть непройденное ребро. Именно из них выбирается ход:
+   * вершина без ребра не должна попадать под палец вовсе, иначе движение по доске
+   * зовёт несуществующий ход и партия засчитывает ошибку (см. `edgeTargetVertex`).
+   */
+  const openNeighbours = React.useMemo(() => {
+    if (!currentId) return [] as typeof puzzle.vertices;
+    const ids = new Set<string>();
+    for (const edge of puzzle.edges) {
+      if (usedEdges.has(edge.id)) continue;
+      if (edge.a === currentId) ids.add(edge.b);
+      else if (edge.b === currentId) ids.add(edge.a);
+    }
+    return puzzle.vertices.filter((vertex) => ids.has(vertex.id));
+  }, [currentId, puzzle.edges, puzzle.vertices, usedEdges]);
+
+  /**
+   * ПЕРВОЕ КАСАНИЕ — выбор, откуда начать: тут вести ещё не по чему, поэтому
+   * работает попадание в точку. Дальше в дело вступает только движение вдоль ребра.
+   */
+  const startAtPoint = React.useCallback((x: number, y: number) => {
+    if (disabled || boardSize <= 0 || currentId) return;
     const vertex = nearestVertex(puzzle.vertices, x / boardSize, y / boardSize, 38 / boardSize);
-    if (!vertex || currentId === vertex.id) return;
+    if (!vertex) return;
     choose(vertex.id);
   }, [boardSize, choose, currentId, disabled, puzzle.vertices]);
+
+  const dragToPoint = React.useCallback((x: number, y: number) => {
+    if (disabled || boardSize <= 0) return;
+    const from = currentId ? byId.get(currentId) : null;
+    if (!from) return;
+    const target = edgeTargetVertex(
+      from,
+      openNeighbours,
+      x / boardSize,
+      y / boardSize,
+      { radius: 24 / boardSize },
+    );
+    if (target) choose(target.id);
+  }, [boardSize, byId, choose, currentId, disabled, openNeighbours]);
+
+  const selectAtPoint = React.useCallback((x: number, y: number) => {
+    if (currentId) dragToPoint(x, y);
+    else startAtPoint(x, y);
+  }, [currentId, dragToPoint, startAtPoint]);
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => !disabled,
