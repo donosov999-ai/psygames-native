@@ -32,6 +32,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { levelOutcome } from '@/src/services/levelOutcome';
 import { MIN_TRIALS_FOR_LEVEL } from '@/app/games/cpt';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -310,11 +311,21 @@ export default function PRLGame() {
      * внимания та же кнопка была наоборот бесплатным левел-апом: один перекос,
      * два разных знака. Оборванная партия уровень НЕ ДВИГАЕТ ни в какую сторону.
      */
-    const enoughTrials = !stoppedEarly && trialsRef.current.length >= MIN_TRIALS_FOR_LEVEL;
-    if (!classic && enoughTrials) {
-      if (passed) lvl.reach(levelRef.current + 1);
-      else lvl.fail();   // гистерезис: 3 провала подряд → уровень -1
-    }
+    /**
+     * Правило обрыва — общее (`levelOutcome`), чтобы игры не решали каждая своё.
+     *
+     * ⚠️ ПРИЗНАК ЗАРЯДКИ ПЕРЕДАЁМ НАСТОЯЩИЙ. Первая правка вписала сюда
+     * `isPreset: false` — и шаг зарядки снова получил право ронять уровень.
+     * Поймал гейт `warmup-level-drift`: экран сразу попал в список должников.
+     *
+     * ⚠️ И РЕШАЕТ ТОЛЬКО ПРАВИЛО. Вторая правка оставила рядом своё `!classic &&`
+     * — дубль той же мысли в двух местах: правило уже возвращает false на зарядке.
+     * Ветвимся прямо по ответу, без второго условия сбоку.
+     */
+    const aborted = stoppedEarly || trialsRef.current.length < MIN_TRIALS_FOR_LEVEL;
+    const outcome = levelOutcome({ isPreset: classic, cleared: passed, aborted });
+    if (outcome.raiseLevel) lvl.reach(levelRef.current + 1);
+    if (outcome.lowerLevel) lvl.fail();   // гистерезис: 3 провала подряд → уровень -1
     // Непрерывный поток: уровневый режим → баннер LevelCleared (passed=false = «почти, ещё раз»
     // + рестарт того же уровня), без тупика. Классика/пресет → экран статистики GameResult.
     setClearedPassed(passed);

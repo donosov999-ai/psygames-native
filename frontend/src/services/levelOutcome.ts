@@ -25,6 +25,19 @@ export interface LevelOutcomeInput {
   isPreset: boolean;
   /** Взял ли человек планку уровня — по мерке самой игры. */
   cleared: boolean;
+  /**
+   * Партию оборвали руками, не доиграв.
+   *
+   * 🔴 ЗАЧЕМ ОТДЕЛЬНОЕ СОСТОЯНИЕ. Обрыв — это НЕ провал и НЕ победа, и оба
+   * толкования уже успели навредить: в тесте внимания «СТОП» после первой цели
+   * давал уровень за десять секунд вместо девяноста (точность 1/1), а в
+   * «вероятностном выборе» та же кнопка засчитывалась провалом — человек,
+   * которому позвонили, терял ступень ни за что.
+   *
+   * Правило живёт ЗДЕСЬ, а не в экранах: иначе следующая игра решит по-своему,
+   * и мы получим третий знак у той же кнопки.
+   */
+  aborted?: boolean;
 }
 
 export interface LevelOutcome {
@@ -43,7 +56,12 @@ export interface LevelOutcome {
  * — дальше `out.raiseLevel && lvl.reach(n + 1)`, `out.lowerLevel && lvl.fail()`,
  * `setPhase(out.phase)`.
  */
-export function levelOutcome({ isPreset, cleared }: LevelOutcomeInput): LevelOutcome {
+export function levelOutcome({ isPreset, cleared, aborted }: LevelOutcomeInput): LevelOutcome {
+  if (aborted) {
+    // Оборванная партия уровень не двигает: досчитать её за человека нельзя,
+    // а гадать нечестно.
+    return { passed: false, raiseLevel: false, lowerLevel: false, phase: 'result' };
+  }
   if (isPreset) {
     // Шаг зарядки не трогает уровень ни вверх, ни вниз и заканчивается итогом
     // партии: зарядка сама уводит на следующий шаг через пару секунд.

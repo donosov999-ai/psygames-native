@@ -16,6 +16,7 @@
  * за человека нельзя, а гадать нечестно.
  */
 import { MIN_TRIALS_FOR_LEVEL } from '@/app/games/cpt';
+import { levelOutcome } from '@/src/services/levelOutcome';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -41,13 +42,28 @@ describe('🔴 тест внимания: «СТОП» больше не даё�
     expect(screen).toMatch(/finish\(true\)/);
   });
 
-  it('исход считается только при сыгранной партии', () => {
-    expect(screen).toMatch(/const enough = !stoppedEarly && played >= MIN_TRIALS_FOR_LEVEL/);
-    expect(screen).toMatch(/enough\s*\?\s*levelOutcome/);
+  it('обрыв считается и передаётся в ОБЩЕЕ правило исхода', () => {
+    expect(screen).toMatch(/const aborted = stoppedEarly \|\| played < MIN_TRIALS_FOR_LEVEL/);
+    expect(screen).toMatch(/levelOutcome\(\{ isPreset, aborted,/);
   });
 
-  it('при обрыве уровень не двигается НИ ВВЕРХ, НИ ВНИЗ', () => {
-    expect(screen).toMatch(/raiseLevel: false, lowerLevel: false/);
+  /**
+   * ⚠️ ПРАВИЛО ЖИВЁТ В ОБЩЕЙ ФУНКЦИИ, А НЕ В ЭКРАНЕ. Первая редакция этой
+   * проверки искала ветку прямо в игре — и стоило вынести решение в
+   * `levelOutcome`, как она покраснела на ПРАВИЛЬНОЙ правке. Хуже: вынесенное
+   * правило она бы не заметила вовсе, если бы экран его обошёл.
+   */
+  it('при обрыве уровень не двигается — проверено вызовом', () => {
+    const out = levelOutcome({ isPreset: false, cleared: true, aborted: true });
+    expect(out.raiseLevel).toBe(false);
+    expect(out.lowerLevel).toBe(false);
+    const bad = levelOutcome({ isPreset: false, cleared: false, aborted: true });
+    expect(bad.lowerLevel).toBe(false);
+  });
+
+  it('доигранная партия по-прежнему двигает уровень в обе стороны', () => {
+    expect(levelOutcome({ isPreset: false, cleared: true }).raiseLevel).toBe(true);
+    expect(levelOutcome({ isPreset: false, cleared: false }).lowerLevel).toBe(true);
   });
 });
 
@@ -58,9 +74,21 @@ describe('🔴 вероятностный выбор: «СТОП» больше 
     expect(screen).toMatch(/finish\(true\)/);
   });
 
-  it('понижение и повышение обусловлены сыгранной партией', () => {
-    expect(screen).toMatch(/enoughTrials = !stoppedEarly && trialsRef\.current\.length >= MIN_TRIALS_FOR_LEVEL/);
-    expect(screen).toMatch(/if \(!classic && enoughTrials\)/);
+  it('понижение и повышение идут через ОБЩЕЕ правило', () => {
+    expect(screen).toMatch(/const aborted = stoppedEarly \|\| trialsRef\.current\.length < MIN_TRIALS_FOR_LEVEL/);
+    expect(screen).toMatch(/levelOutcome\(\{[^}]*aborted \}\)/);
+    expect(screen).toMatch(/if \(outcome\.raiseLevel\) lvl\.reach/);
+    expect(screen).toMatch(/if \(outcome\.lowerLevel\) lvl\.fail/);
+  });
+
+  /**
+   * 🔴 ПРИЗНАК ЗАРЯДКИ ОБЯЗАН БЫТЬ НАСТОЯЩИМ. Первая правка вписала сюда
+   * `isPreset: false`, и шаг зарядки снова получил право ронять уровень —
+   * поймал гейт `warmup-level-drift`. Закрепляем, чтобы не вернулось.
+   */
+  it('признак зарядки не захардкожен', () => {
+    expect(screen).toMatch(/isPreset: classic/);
+    expect(screen).not.toMatch(/isPreset: false/);
   });
 
   it('порог берётся ОБЩИЙ, а не заводится свой', () => {
