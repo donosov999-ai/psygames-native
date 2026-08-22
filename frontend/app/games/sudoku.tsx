@@ -68,6 +68,7 @@ import {
   rejectionReason,
 } from '@/src/services/sudoku-core';
 import { generateLogical, logicalBuilder } from '@/src/services/sudoku-grade';
+import { fractalTechniqueKey } from '@/src/services/fractalLevels';
 import {
   DEFAULT_SUDOKU_ROAD, SUDOKU_ROADS, SUDOKU_ROAD_NAME_KEY, SudokuRoad,
   effectiveRoadLevel, effectiveRoadLevels, isSudokuRoad, reachRoadLevel,
@@ -375,6 +376,17 @@ export default function SudokuGame() {
    * на 53-м), и раньше человек всё это время смотрел в неподвижный экран.
    */
   const [build, setBuild] = useState<BuildStatus>({ step: 1, steps: 1, slow: false });
+  /**
+   * 🔴 НАСТОЯЩИЙ ПРИЁМ ЭТОЙ ДОСКИ, А НЕ ЯРЛЫК ПО НОМЕРУ УРОВНЯ. На экране стоял
+   * `sudokuDifficultyTier(level)` — он выводится из номера (подсказки, дырки,
+   * вариант) и про доску, которую сейчас раздали, не знает ничего. Замер: ярлык
+   * `extreme` накрывает уровни 34–57 — ДВАДЦАТЬ ЧЕТЫРЕ уровня и ШЕСТЬ разных
+   * правил одним словом, притом что настоящая ступень одной и той же доски гуляет
+   * от второй до шестой. Самурай и фрактал давно показывают ступень, посчитанную
+   * градатором для КОНКРЕТНОЙ сетки («Настоящий приём ИМЕННО ЭТОЙ сетки»);
+   * классика осталась единственной, где число было для красоты.
+   */
+  const [boardTier, setBoardTier] = useState<number | null>(null);
   const buildRef = useRef(0);
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const bossTypeRef = useRef<BossType>('lightning');
@@ -596,7 +608,9 @@ export default function SudokuGame() {
      * не доезжает до экрана. Тот же шов уже стоит у самурая.
      */
     const buildBoard = async () => {
-      if (mode !== 'levels') return generatePuzzle(blanks, d.N, d.BR, d.BC, vr);
+      // Вне режима уровней ступень не считается: там доска не от логики, и честнее
+      // не показывать ничего, чем показать чужое число.
+      if (mode !== 'levels') { setBoardTier(null); return generatePuzzle(blanks, d.N, d.BR, d.BC, vr); }
       // Полоса техник — тоже от дороги: это ГЛАВНАЯ ось сложности судоку, число
       // дырок на уровнях выше восьмого генератор всё равно задаёт сам (см. `cap`
       // в sudoku-grade). Без сдвига полосы «полегче» было бы обещанием без вещества.
@@ -615,7 +629,9 @@ export default function SudokuGame() {
         frame: nextFrame,
         now: gameNow,
       });
-      return gen === buildRef.current ? made.gen : null;
+      if (gen !== buildRef.current) return null;
+      setBoardTier(made.grade.solved ? made.grade.tier : null);
+      return made.gen;
     };
 
     void (async () => {
@@ -1280,6 +1296,12 @@ export default function SudokuGame() {
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>
             {t('label_level_short')}{level}
             {road !== DEFAULT_SUDOKU_ROAD ? ` · ${t(SUDOKU_ROAD_NAME_KEY[road])}` : ''}
+          </Text>
+        )}
+        {/* Приём ЭТОЙ доски — посчитанный градатором, а не выведенный из номера уровня. */}
+        {boardTier !== null && (
+          <Text style={[styles.statText, { color: colors.textSecondary }]}>
+            {t(fractalTechniqueKey(boardTier) as never)}
           </Text>
         )}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('errors')} {formatErrorCount(failure, errors)}</Text>
