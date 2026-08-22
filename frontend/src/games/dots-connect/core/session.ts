@@ -22,13 +22,32 @@ function isDrawingPhase(phase: DotsSession['phase']): phase is DotsDrawingPhase 
   return phase === 'training' || phase === 'playing';
 }
 
-function emptyRound(session: DotsSession, phase: DotsDrawingPhase, now: number | null): DotsSession {
+/**
+ * Чистый круг на той же сессии.
+ *
+ * ⚠️ `keepSolutionShown` — НЕ ФЛАГ УДОБСТВА, А РАЗВИЛКА ЧЕСТНОСТИ. Круг заводится
+ * из четырёх мест, и решение «помнить ли, что решение смотрели» у них разное:
+ *   · `restartSession` зачётной партии — ПОМНИТЬ. Зерно фиксировано номером
+ *     уровня, «Заново» даёт ТУ ЖЕ раскладку, и забывчивость здесь означала бы
+ *     схему «подсмотрел → заново → обвёл по памяти → уровень взят»;
+ *   · тренировка и переход из неё в партию — ЗАБЫТЬ. Тренировочная доска 4×4 —
+ *     другая доска и в зачёт не идёт вовсе; тащить её подсказку в партию значило
+ *     бы наказывать за то, что человек разобрался с правилом.
+ */
+function emptyRound(
+  session: DotsSession,
+  phase: DotsDrawingPhase,
+  now: number | null,
+  keepSolutionShown: boolean,
+): DotsSession {
   return {
     ...session,
     phase,
     pausedFrom: null,
     paths: {},
     activePairId: null,
+    solutionShown: keepSolutionShown && session.solutionShown,
+    solutionVisible: false,
     history: [],
     startedAt: phase === 'playing' ? now : null,
     pauseStartedAt: null,
@@ -55,6 +74,8 @@ export function createDotsSession(config: DotsSessionConfig): DotsSession {
     pausedFrom: null,
     paths: {},
     activePairId: null,
+    solutionShown: false,
+    solutionVisible: false,
     history: [],
     startedAt: null,
     pauseStartedAt: null,
@@ -109,13 +130,14 @@ function finishIfComplete(session: DotsSession, now: number): DotsSession {
       backtracks: session.backtracks,
       undoCount: session.undoCount,
       invalidMoves: session.invalidMoves,
+      solutionShown: session.solutionShown,
     }),
   };
 }
 
 export function startTraining(session: DotsSession): DotsSession {
   if (session.phase !== 'rules') return session;
-  return emptyRound(session, 'training', null);
+  return emptyRound(session, 'training', null, false);
 }
 
 /**
@@ -130,12 +152,12 @@ export function startTraining(session: DotsSession): DotsSession {
  */
 export function startRound(session: DotsSession, now: number): DotsSession {
   if (session.phase !== 'rules') return session;
-  return emptyRound(session, 'playing', now);
+  return emptyRound(session, 'playing', now, false);
 }
 
 export function advanceFromTraining(session: DotsSession, now: number): DotsSession {
   if (session.phase !== 'training-complete') return session;
-  return emptyRound(session, 'playing', now);
+  return emptyRound(session, 'playing', now, false);
 }
 
 export function beginPath(session: DotsSession, cell: Cell): DotsSession {
@@ -245,6 +267,58 @@ export function undoPath(session: DotsSession): DotsSession {
   };
 }
 
+/**
+ * 🔴 ПОКАЗ РЕШЕНИЯ — ДОСТУПЕН ТОЛЬКО ПОКА ДОСКУ РИСУЮТ.
+ *
+ * На правилах решения ещё нет на экране (доски нет вовсе), на паузе и на итоге
+ * доску уже не ведут, а тренировочный круг после победы (`training-complete`)
+ * заморожен. Кнопка в шапке живёт всегда — но там, где показывать нечего, она
+ * гаснет: исчезающая и появляющаяся кнопка в шапке читается как поломка.
+ */
+export function canRevealDotsSolution(session: DotsSession): boolean {
+  return isDrawingPhase(session.phase);
+}
+
+/**
+ * ПОКАЗАТЬ / СКРЫТЬ РЕШЕНИЕ ТЕКУЩЕЙ ДОСКИ.
+ *
+ * 🔴 ПОЧЕМУ ПОДЛОЖКА, А НЕ «ЗАПОЛНИТЬ ДОСКУ ЗА ИГРОКА». Соблазн был записать
+ * решение прямо в `paths`: одна строка, и доска сразу правильная. Но тогда
+ * пропадали бы СВОИ пути — то самое, ради чего человек и открывает ответ
+ * («где я запер себе клетку?»), — а партия оказывалась бы собранной чужими
+ * руками и заканчивалась бы в тот же миг. Поэтому решение ложится ОТДЕЛЬНЫМ
+ * слоем: свои пути остаются поверх, партия продолжается, сравнивать можно.
+ *
+ * 🔴 ЛАТЧ СТАВИТСЯ ТОЛЬКО НА ЗАЧЁТНОЙ ДОСКЕ И ТОЛЬКО ВПЕРЁД. Второе нажатие
+ * прячет подложку, но метку не снимает: увиденное обратно не убирается, и
+ * «показал → скрыл → уровень чистый» было бы дырой размером во всю игру.
+ */
+export function toggleDotsSolution(session: DotsSession): DotsSession {
+  if (!canRevealDotsSolution(session)) return session;
+  const nextVisible = !session.solutionVisible;
+  return {
+    ...session,
+    solutionVisible: nextVisible,
+    solutionShown: session.solutionShown || (session.phase === 'playing' && nextVisible),
+    // Ведение пути обрывается: подложка появилась прямо под пальцем, и
+    // «дотянуть на автомате» после этого значило бы вести уже по чужому пути.
+    activePairId: nextVisible ? null : session.activePairId,
+  };
+}
+
+/**
+ * ЧТО ИМЕННО НАРИСОВАНО ПОДЛОЖКОЙ ПРЯМО СЕЙЧАС.
+ *
+ * ⚠️ ЕДИНСТВЕННЫЙ ИСТОЧНИК И ДЛЯ ДОСКИ, И ДЛЯ ПРОВЕРКИ. Доска рисует ровно то,
+ * что вернула эта функция, и проверка читает её же — иначе «показанное решение»
+ * и «решение из генератора» разъехались бы молча, и гейт стерёг бы не то, что
+ * видит человек. Пустой объект означает «подложки нет».
+ */
+export function dotsRevealedSolution(session: DotsSession): DotsPaths {
+  if (!session.solutionVisible || !canRevealDotsSolution(session)) return {};
+  return clonePaths(getCurrentPuzzle(session).solution);
+}
+
 export function pauseSession(session: DotsSession, now: number): DotsSession {
   if (!isDrawingPhase(session.phase)) return session;
   return {
@@ -273,7 +347,8 @@ export function restartSession(session: DotsSession, now: number): DotsSession {
   const training = session.phase === 'training'
     || session.phase === 'training-complete'
     || (session.phase === 'paused' && session.pausedFrom === 'training');
-  return emptyRound(session, training ? 'training' : 'playing', training ? null : now);
+  // Зачётную доску перезапускаем ПОМНЯ подсмотр, тренировочную — начисто.
+  return emptyRound(session, training ? 'training' : 'playing', training ? null : now, !training);
 }
 
 export function disposeSession(session: DotsSession): DotsSession {

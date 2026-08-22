@@ -58,6 +58,19 @@ export interface DotsStrings {
   hudCoverage: string;
   /** Пояснение под счётчиками: победа только при полном покрытии. */
   hudGoal: string;
+  /**
+   * Подпись служебной кнопки в ШАПКЕ, пока решение спрятано.
+   *
+   * ⚠️ Подписи показа решения живут ЗДЕСЬ, а не в общем словаре приложения, по
+   * той же причине, что и счётчики выше: базовые ru/en в `LanguageContext`
+   * лежат инлайном, и ключ, заведённый только в оверлеях, вернул бы русскому и
+   * англичанину САМО ИМЯ КЛЮЧА на кнопке.
+   */
+  showSolution: string;
+  /** Та же кнопка, когда подложка решения уже на доске. */
+  hideSolution: string;
+  /** Цена показа, названная вслух прямо на доске: партия больше не в зачёт. */
+  solutionNote: string;
 }
 
 const STRINGS: Record<DotsLocale, DotsStrings> = {
@@ -96,6 +109,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: 'Ходы',
     hudCoverage: 'Покрытие',
     hudGoal: 'Уровень засчитан только при покрытии 100%.',
+    showSolution: 'Показать решение',
+    hideSolution: 'Скрыть решение',
+    solutionNote: 'Решение показано — этот уровень не засчитается.',
   },
   en: {
     title: 'Connect the Dots',
@@ -132,6 +148,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: 'Moves',
     hudCoverage: 'Coverage',
     hudGoal: 'A level counts only at 100% coverage.',
+    showSolution: 'Show solution',
+    hideSolution: 'Hide solution',
+    solutionNote: 'Solution shown — this level will not count.',
   },
   es: {
     title: 'Une los puntos',
@@ -168,6 +187,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: 'Movimientos',
     hudCoverage: 'Cobertura',
     hudGoal: 'El nivel cuenta solo con una cobertura del 100%.',
+    showSolution: 'Mostrar solución',
+    hideSolution: 'Ocultar solución',
+    solutionNote: 'Solución mostrada: este nivel no contará.',
   },
   pt: {
     title: 'Ligue os pontos',
@@ -204,6 +226,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: 'Movimentos',
     hudCoverage: 'Cobertura',
     hudGoal: 'O nível só conta com 100% de cobertura.',
+    showSolution: 'Mostrar solução',
+    hideSolution: 'Ocultar solução',
+    solutionNote: 'Solução mostrada — este nível não vai contar.',
   },
   de: {
     title: 'Punkte verbinden',
@@ -240,6 +265,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: 'Züge',
     hudCoverage: 'Abdeckung',
     hudGoal: 'Ein Level zählt erst bei 100% Abdeckung.',
+    showSolution: 'Lösung zeigen',
+    hideSolution: 'Lösung ausblenden',
+    solutionNote: 'Lösung gezeigt — dieses Level zählt nicht.',
   },
   fr: {
     title: 'Relie les points',
@@ -276,6 +304,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: 'Coups',
     hudCoverage: 'Couverture',
     hudGoal: 'Un niveau ne compte qu’à 100% de couverture.',
+    showSolution: 'Montrer la solution',
+    hideSolution: 'Masquer la solution',
+    solutionNote: 'Solution affichée — ce niveau ne comptera pas.',
   },
   it: {
     title: 'Unisci i punti',
@@ -312,6 +343,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: 'Mosse',
     hudCoverage: 'Copertura',
     hudGoal: 'Il livello vale solo con copertura al 100%.',
+    showSolution: 'Mostra la soluzione',
+    hideSolution: 'Nascondi la soluzione',
+    solutionNote: 'Soluzione mostrata: questo livello non conterà.',
   },
   zh: {
     title: '连点成线',
@@ -348,6 +382,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: '步数',
     hudCoverage: '覆盖率',
     hudGoal: '覆盖率达到 100% 才算通关。',
+    showSolution: '显示答案',
+    hideSolution: '隐藏答案',
+    solutionNote: '已看答案 — 本关不计入成绩。',
   },
   ja: {
     title: '点つなぎ',
@@ -384,6 +421,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: '手数',
     hudCoverage: '埋まり具合',
     hudGoal: '埋まり具合 100% でのみクリアになります。',
+    showSolution: '答えを見る',
+    hideSolution: '答えを隠す',
+    solutionNote: '答えを見たので、このレベルはクリア扱いになりません。',
   },
   ko: {
     title: '점 잇기',
@@ -420,6 +460,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: '수',
     hudCoverage: '채움',
     hudGoal: '채움 100%일 때만 레벨이 인정됩니다.',
+    showSolution: '정답 보기',
+    hideSolution: '정답 숨기기',
+    solutionNote: '정답을 봤으므로 이 레벨은 인정되지 않습니다.',
   },
   hi: {
     title: 'बिंदु जोड़ो',
@@ -456,6 +499,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: 'चालें',
     hudCoverage: 'भराव',
     hudGoal: 'स्तर तभी गिना जाता है जब भराव 100% हो।',
+    showSolution: 'हल दिखाएँ',
+    hideSolution: 'हल छिपाएँ',
+    solutionNote: 'हल देख लिया — यह स्तर नहीं गिना जाएगा।',
   },
   ar: {
     title: 'صِل النقاط',
@@ -492,6 +538,9 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudMoves: 'الخطوات',
     hudCoverage: 'التغطية',
     hudGoal: 'لا يُحتسب المستوى إلا بتغطية 100%.',
+    showSolution: 'إظهار الحل',
+    hideSolution: 'إخفاء الحل',
+    solutionNote: 'ظهر الحل — لن يُحتسب هذا المستوى.',
   },
 };
 
