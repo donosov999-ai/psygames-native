@@ -62,6 +62,25 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 // Синергия (пилот): каждые BOSS_EVERY уровней лесенки прошёл таблицу → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 type ContentMode = 'numbers' | 'letters' | 'mixed';
+
+/**
+ * Наибольшая сетка, которую алфавит вообще может обслужить.
+ *
+ * 🔴 «Смешанному» потолок не ставился вовсе. Шульте-Горбов раскладывает половину
+ * клеток цифрами, половину буквами: на 10×10 это пятьдесят букв, а латиница даёт
+ * 26, кириллица 33 — не подходит НИ ОДИН алфавит. Партия не завершалась, а
+ * таймера у Шульте нет: экран висел, пока человек не уйдёт сам.
+ *
+ * Экспортируется, чтобы гейт звал ЭТОТ расчёт, а не переписывал его у себя.
+ */
+export function maxGridFor(mode: ContentMode, alphabetSize: number): number {
+  if (mode === 'numbers') return 10;
+  for (let n = 10; n >= 2; n -= 1) {
+    const need = mode === 'letters' ? n * n : Math.ceil((n * n) / 2);
+    if (need <= alphabetSize) return n;
+  }
+  return 2;
+}
 /** v1.10.0: направление поиска. 'forward' = 1→25 / А→Я, 'backward' = 25→1 / Я→А.
  *  'center-out' (v1.116.0, свободный режим, только numbers): от центра наружу — 13,14,12,15,11...
  *  Для mixed (Шульте-Горбов) backward/center-out не применяются (нелогично). */
@@ -155,11 +174,23 @@ export default function SchulteGame() {
 
   // letters: сетка не может быть больше алфавита (greek 24 < 5×5 — скрыт фильтром чипов);
   // кламп защищает и старый кейс «выбрал 8×8, потом переключился на буквы»
-  const lettersMaxSize = Math.floor(Math.sqrt(SCRIPTS[script].chars.length));
+  /**
+   * 🔴 «СМЕШАННОМУ» ТОЖЕ НУЖНЫ БУКВЫ, И ПОТОЛОК ЕМУ НЕ СТАВИЛСЯ.
+   *
+   * Шульте-Горбов раскладывает половину клеток цифрами, половину буквами. На
+   * сетке 10×10 это пятьдесят букв, а латиница даёт 26, кириллица 33 — не
+   * подходит НИ ОДИН алфавит. Ограничение стояло только для режима «буквы», а
+   * «смешанный» пускали до десяти: партия не завершалась, а таймера у Шульте
+   * нет — экран висел до тех пор, пока человек не уйдёт сам.
+   *
+   * Потолок считается от того, сколько знаков реально нужно: буквам все клетки,
+   * смешанному — половина с округлением вверх.
+   */
+  const maxSizeFor = (mode: ContentMode): number => maxGridFor(mode, SCRIPTS[script].chars.length);
+  const lettersMaxSize = maxSizeFor('letters');
   useEffect(() => {
-    if (contentMode === 'letters' && gridSize > lettersMaxSize) {
-      setGridSize(lettersMaxSize);
-    }
+    const cap = maxSizeFor(contentMode);
+    if (gridSize > cap) setGridSize(cap);
   }, [contentMode, script]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Level-progression: which grid sizes are unlocked for this themed profile?
@@ -746,7 +777,7 @@ export default function SchulteGame() {
         <View style={styles.optionButtons}>
           {[5, 6, 7, 8, 9, 10].map((size) => {
             // Limit max size for letters mode based on selected script length
-            const maxSize = contentMode === 'letters' ? lettersMaxSize : 10;
+            const maxSize = maxSizeFor(contentMode);
             const modeDisabled = size > maxSize;
             // Level-progression lock (themed profiles only)
             const sizeKey = `${size}x${size}`;
