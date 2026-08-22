@@ -150,6 +150,34 @@ async function readAll(): Promise<GameSession[]> {
   }
 }
 
+/**
+ * ОЧЕРЕДЬ ЗАПИСИ ПАРТИЙ.
+ *
+ * 🔴 ПАРТИИ ТЕРЯЛИСЬ ПАЧКАМИ. Сохранение устроено как «прочитал весь журнал →
+ * дописал в конец → записал весь журнал обратно». Два сохранения, начатые
+ * одновременно, читают ОДИН И ТОТ ЖЕ журнал, и второе затирает первое. Замер:
+ * двенадцать одновременных сохранений → в журнале осталась ОДНА партия,
+ * одиннадцать исчезли бесследно.
+ *
+ * Это не редкость: шаг зарядки досохраняется, пока следующая игра уже
+ * записывает свою партию; вызов дня коммитит стрик рядом; экран сохраняет
+ * партию и на завершении, и при уходе. А журнал — не просто история: из него
+ * ВОССТАНАВЛИВАЕТСЯ УРОВЕНЬ при потере локального ключа (getMaxLevelFromSessions).
+ * Потерянная партия — это ещё и потерянный прогресс.
+ *
+ * Чиним очередью: чтение-правка-запись идут строго друг за другом. Поток один,
+ * поэтому достаточно цепочки промисов — блокировки не нужны.
+ */
+let writeQueue: Promise<unknown> = Promise.resolve();
+
+/** Выполнить правку журнала, не пересекаясь с другими правками. */
+function inWriteQueue<T>(job: () => Promise<T>): Promise<T> {
+  const run = writeQueue.then(job, job);
+  // Хвост очереди не должен рваться из-за неудачи одной правки.
+  writeQueue = run.then(() => undefined, () => undefined);
+  return run;
+}
+
 async function writeAll(sessions: GameSession[]): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
@@ -533,18 +561,35 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
     return stored;
   }
   validateSession(stored);   // non-blocking schema check (warnings only)
-  const all = await readAll();
+  /**
+   * ⚠️ ЧТЕНИЕ И ЗАПИСЬ — ОДНОЙ ОЧЕРЕДЬЮ, И ПОВТОР НЕ НАЧИСЛЯЕТСЯ ДВАЖДЫ.
+   * Возвращаем `null`, если партия с таким `id` уже в журнале: экран, сохранивший
+   * одну и ту же партию дважды (на завершении и при уходе), иначе получал две
+   * записи и ДВА начисления очков за один раунд.
+   */
+  const all = await inWriteQueue(async () => {
+    const log = await readAll();
+    if (log.some((s) => s.id && s.id === stored.id)) return null;
+    log.push(stored);
+    await writeAll(log);
+    return log;
+  });
+  if (all === null) return stored;   // уже записана — второй раз ничего не начисляем
   // Рекорд игры (до записи новой сессии): питомец празднует немедленно.
   // Минимум 3 прошлые сессии этой игры — иначе «рекорд» на первой же партии.
   try {
-    const prev = all.filter((s) => s.game_type === stored.game_type);
+    /**
+     * ⚠️ БЕЗ ТОЛЬКО ЧТО ЗАПИСАННОЙ ПАРТИИ. С появлением очереди журнал возвращается
+     * УЖЕ С НЕЙ, и сравнение «мой счёт выше максимума» стало сравнением счёта с
+     * самим собой — рекорд не срабатывал бы никогда. Поймано сразу же: замер
+     * рекорда после правки очереди.
+     */
+    const prev = all.filter((s) => s.game_type === stored.game_type && s.id !== stored.id);
     if (prev.length >= 3 && (stored.score ?? 0) > Math.max(...prev.map((s) => s.score ?? 0))) {
       const { markRecord } = await import('@/src/services/pet');
       markRecord().catch(() => {});
     }
   } catch { /* праздник некритичен */ }
-  all.push(stored);
-  await writeAll(all);
   // Геймификация: начислить очки в ЦЕНТР и записать партию в журнал заработка.
   // Правило начисления — целиком в earn.ts (база × множитель, суточная квота
   // множителя, шаг зарядки без множителя): здесь только вызов, чтобы экономика
