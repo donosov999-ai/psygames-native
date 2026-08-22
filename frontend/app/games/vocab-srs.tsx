@@ -58,6 +58,35 @@ const VOCAB_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'playing' | 'result' | 'done';
 type Direction = 'recognize' | 'recall'; // recognize: L2→родной · recall: родной→L2
 
+/**
+ * Варианты ответа: верный плюс до трёх отвлекающих, вперемешку.
+ *
+ * 🔴 ЗДЕСЬ ПРИЛОЖЕНИЕ ВИСЛО НАМЕРТВО. Прежний код добирал отвлекающие циклом,
+ * пока `distractors.size < candidates.length`. Но кандидаты считались С
+ * ПОВТОРАМИ, а набор отвлекающих — множество, без них. Два одинаковых перевода
+ * в словаре (в своём словаре это обычное дело) — и условие выхода не
+ * выполнялось НИКОГДА: длина два, размер множества один, цикл вечный. Экран не
+ * отвечал, приложение приходилось убивать.
+ *
+ * Цикла больше нет вовсе: берём УНИКАЛЬНЫХ кандидатов и перемешиваем.
+ * Завершение гарантировано устройством, а не удачей.
+ *
+ * Экспортируется, чтобы гейт мог это доказать на словаре с повторами.
+ */
+export function buildOptions(right: string, poolWords: readonly string[]): string[] {
+  const candidates = [...new Set(poolWords.filter((w) => w && w !== right))];
+  for (let i = candidates.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
+  const opts = [right, ...candidates.slice(0, 3)];
+  for (let i = opts.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [opts[i], opts[j]] = [opts[j], opts[i]];
+  }
+  return opts;
+}
+
 export default function VocabSrsGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -112,17 +141,7 @@ export default function VocabSrsGame() {
 
   const makeOptions = (card: CardRef, poolArg: { base: string; target: string }[]) => {
     const field = direction === 'recognize' ? 'base' : 'target';
-    const right = card[field];
-    const distractors = new Set<string>();
-    const candidates = poolArg.map((p) => p[field]).filter((w) => w && w !== right);
-    while (distractors.size < 3 && distractors.size < candidates.length) {
-      distractors.add(candidates[Math.floor(Math.random() * candidates.length)]);
-    }
-    const opts = [right, ...distractors];
-    for (let i = opts.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [opts[i], opts[j]] = [opts[j], opts[i]];
-    }
+    const opts = buildOptions(card[field], poolArg.map((p) => p[field]));
     setOptions(opts);
     setPicked(null);
     shownAtRef.current = gameNow();
