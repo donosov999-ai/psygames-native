@@ -602,6 +602,34 @@ const BUILD_WAIT_MS = 6000;
 /** Потолок пустых клеток на 9×9: доска в 74 дырки решается, но заполнять её долго. */
 const MAX_BLANKS_9 = 64;
 
+/**
+ * РЕШАТЕЛЬ ПРИШЁЛ К ТОЙ ЖЕ ДОСКЕ, ЧТО И ГЕНЕРАТОР?
+ *
+ * 🔴 СЕТЬ БЫЛА НАТЯНУТА ТОЛЬКО НА БУМАГЕ. У поля `Grade.grid` написано прямо:
+ * «если пруннинг где-то неверен, решатель "решит" ЧУЖУЮ сетку и объявит
+ * единственность там, где её нет». На этом допущении стоит вся единственность
+ * режима уровней («решение единственно по построению»). А читалось это поле по
+ * всему коду в ОДНОМ месте — в проверке фрактала. Копание классической судоку
+ * принимало выкалывание по одному только `solved` и в доску решателя не смотрело.
+ *
+ * Проверка стоит 81 сравнение на шаг — против молчаливой потери единственности,
+ * которая у игрока звучит как «оба варианта были возможны».
+ *
+ * ⚠️ Доска нерешённая сравнению не подлежит: `grid` там нет вовсе, и «нет
+ * расхождения» означало бы «мы не смотрели». Такой случай — не совпадение, а отказ.
+ */
+export function solvedSameBoard(grade: Grade, solution: Cell[][]): boolean {
+  if (!grade.solved || !grade.grid) return false;
+  for (let r = 0; r < solution.length; r++) {
+    const row = grade.grid[r];
+    if (!row) return false;
+    for (let c = 0; c < (solution[r] as Cell[]).length; c++) {
+      if (row[c] !== (solution[r] as Cell[])[c]) return false;
+    }
+  }
+  return true;
+}
+
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
@@ -658,7 +686,8 @@ function digByLogic(
       puzzle[r][c] = 0;
       if (parity) parity[r][c] = Math.random() < dens ? (sol[r][c] % 2 === 0 ? 1 : 2) : 0;
       const g = gradePuzzle(puzzle, ctx);
-      if (!g.solved || g.tier > max) { puzzle[r][c] = keep; if (parity) parity[r][c] = 0; }
+      // Сеть безопасности: решатель обязан прийти К ТОЙ ЖЕ доске (см. solvedSameBoard).
+      if (!g.solved || g.tier > max || !solvedSameBoard(g, sol)) { puzzle[r][c] = keep; if (parity) parity[r][c] = 0; }
       else { dug++; removed++; }
     }
     if (removed === 0 || dug >= cap || Date.now() > deadline) break;

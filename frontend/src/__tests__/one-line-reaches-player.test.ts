@@ -124,8 +124,8 @@ describe('🔴 точность считает проходы, а не рёбр�
    * У ключа шесть рёбер и восемь проходов: два ребра двойные. Точность делилась на
    * ШЕСТЬ — то есть уровни с двойными рёбрами тайно требовали играть чище прочих.
    */
-  it('уровень с двойными рёбрами не строже соседей', () => {
-    const withDouble = generateOneLinePuzzle('x', 9);
+  it('уровень с двойными рёбрами не строже соседей (двойное — с 13-й фигуры)', () => {
+    const withDouble = generateOneLinePuzzle('x', 13);
     expect(withDouble.edges.some((e) => e.kind === 'double')).toBe(true);
     const passes = totalEdgeUses(withDouble.edges);
     expect(passes).toBeGreaterThan(withDouble.edges.length);
@@ -142,7 +142,7 @@ describe('🔴 точность считает проходы, а не рёбр�
   });
 
   it('знаменатель — это число ПРОХОДОВ', () => {
-    const p = generateOneLinePuzzle('x', 9);
+    const p = generateOneLinePuzzle('x', 13);
     const passes = totalEdgeUses(p.edges);
     const m = scoreOneLineCompletion(p, { durationMs: 0, undoCount: 1, hintsUsed: 0, invalidMoves: 0 });
     expect(m.accuracy).toBeCloseTo(passes / (passes + 1), 6);

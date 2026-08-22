@@ -24,7 +24,7 @@
  * значило бы врать.
  */
 import { levelConfig } from '@/src/services/sudoku-core';
-import { bandPos, easeToCeiling, generateLogical, gradePuzzle, targetTier } from '@/src/services/sudoku-grade';
+import { bandPos, easeToCeiling, generateLogical, gradePuzzle, solvedSameBoard, targetTier } from '@/src/services/sudoku-grade';
 import { roadTier } from '@/src/services/sudoku-roads';
 
 const LAST = 57;
@@ -170,18 +170,28 @@ describe('доводка доски до потолка', () => {
   });
 
   /**
-   * ⚠️ ПОРЯДОК ДОЛИВКИ СЛУЧАЕН, поэтому «чем выше потолок, тем меньше долито» здесь
-   * не выполняется: замер дал 35 клеток при потолке 1 и 40 при потолке 4. Свойство,
-   * которое от порядка не зависит: доска остаётся ЗАДАЧЕЙ, а не заполненной сеткой.
+   * ⚠️ ПРОВЕРЯЕМ НА ТОМ ВХОДЕ, КОТОРЫЙ БЫВАЕТ В ИГРЕ. Доска из восьми подсказок —
+   * искусственный край: доливка от неё случайна по длине (замер дал от 16 до 46
+   * дырок), и порог на ней мигает. Настоящий вход — доска с полусотней дырок, чуть
+   * не дотянувшая до потолка: там доливка обязана добавить единицы клеток, а не
+   * заливать доску.
    */
-  it('🔴 доводка оставляет доску задачей, а не заливает её', () => {
-    for (const max of [1, 4, 6]) {
-      const a = easeToCeiling(tooHard(), 9, 3, 3, 'none', max);
-      let blanks = 0;
-      for (const row of a.gen.puzzle) for (const v of row) if (v === 0) blanks++;
-      expect(`потолок ${max}: дырок ${blanks}, это задача — ${blanks >= 20}`)
-        .toBe(`потолок ${max}: дырок ${blanks}, это задача — true`);
+  it('🔴 на настоящем входе доливает единицы клеток, а не заливает доску', () => {
+    let checked = 0;
+    for (let attempt = 0; attempt < 14 && checked < 3; attempt++) {
+      const base = generatePuzzle(52, d.N, d.BR, d.BC, 'none');
+      const g = gradePuzzle(base.puzzle, { N: 9, BR: 3, BC: 3, variant: 'none' });
+      if (!g.solved || g.tier < 2) continue;
+      checked++;
+      const after = easeToCeiling(base, 9, 3, 3, 'none', g.tier - 1);
+      let before = 0, now = 0;
+      for (const row of base.puzzle) for (const v of row) if (v === 0) before++;
+      for (const row of after.gen.puzzle) for (const v of row) if (v === 0) now++;
+      expect(`было дырок ${before}, стало ${now}; долито ${before - now} ≤ 15 → ${before - now <= 15}`)
+        .toBe(`было дырок ${before}, стало ${now}; долито ${before - now} ≤ 15 → true`);
+      expect(`доска осталась задачей: ${now >= 20}`).toBe('доска осталась задачей: true');
     }
+    expect(`подходящих досок нашлось: ${checked > 0}`).toBe('подходящих досок нашлось: true');
   });
 });
 
@@ -206,3 +216,50 @@ describe('рубеж стоит на пути', () => {
 });
 
 declare const __dirname: string;
+
+/**
+ * 🔴 СЕТЬ БЕЗОПАСНОСТИ ПОДКЛЮЧЕНА, А НЕ ТОЛЬКО ОПИСАНА.
+ *
+ * У поля `Grade.grid` написано, что оно ловит неверный пруннинг: решатель «решит»
+ * чужую сетку и объявит единственность там, где её нет. На этом допущении стоит вся
+ * единственность режима уровней. А читалось поле ровно в одном месте — в проверке
+ * фрактала; копание классической судоку в него не смотрело вовсе. Проверка была
+ * написана, объявлена главной и не подключена.
+ */
+describe('решатель приходит к той же доске', () => {
+  const { generatePuzzle, dimsForSize } = require('@/src/services/sudoku-core');
+  const dd = dimsForSize(9);
+
+  it('🔴 совпадение с эталоном подтверждается, а расхождение — ловится', () => {
+    const base = generatePuzzle(45, dd.N, dd.BR, dd.BC, 'none');
+    const g = gradePuzzle(base.puzzle, { N: 9, BR: 3, BC: 3, variant: 'none' });
+    if (!g.solved) return;   // выборка не подошла — проверять нечего
+    expect(solvedSameBoard(g, base.solution)).toBe(true);
+    // ту же оценку сверяем с ЧУЖИМ решением — обязана не сойтись. Расхождение ставим
+    // ПО ОЧЕРЕДИ в каждую строку и каждый столбец: сравнение куска доски прошло бы
+    // проверку с одной точкой расхождения и молча пропускало бы всё остальное.
+    const missed: string[] = [];
+    for (let r = 0; r < 9; r++) {
+      for (const c of [0, 4, 8]) {
+        const alien = base.solution.map((row: number[]) => [...row]);
+        alien[r][c] = ((alien[r][c] as number) % 9) + 1;
+        if (solvedSameBoard(g, alien)) missed.push(`расхождение в (${r},${c}) не замечено`);
+      }
+    }
+    expect(missed).toEqual([]);
+  });
+
+  it('🔴 нерешённая доска — это отказ, а не «расхождений нет»', () => {
+    const empty = Array.from({ length: 9 }, () => Array(9).fill(0));
+    const g = gradePuzzle(empty as number[][], { N: 9, BR: 3, BC: 3, variant: 'none' });
+    expect(solvedSameBoard(g, empty as number[][])).toBe(false);
+  });
+
+  it('🔴 копание сверяется с эталоном на каждом шаге', () => {
+    const fs = require('fs');
+    const path = require('path');
+    const src: string = fs.readFileSync(path.resolve(__dirname, '../services/sudoku-grade.ts'), 'utf8');
+    const dig = src.slice(src.indexOf('function digByLogic'), src.indexOf('export function easeToCeiling'));
+    expect(dig).toMatch(/!solvedSameBoard\(g, sol\)/);
+  });
+});

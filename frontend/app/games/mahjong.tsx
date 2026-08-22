@@ -46,12 +46,12 @@ const MAHJONG_BENEFITS = [
 // Главное, что игрок не понимает — правило СВОБОДНОЙ плитки, поэтому оно в обоих текстах.
 const MAHJONG_RULES: LevelRule[] = [
   {
-    key: 'layers2', fromLevel: 6, toLevel: 10,
+    key: 'layers2', fromLevel: 1, toLevel: 3,
     ru: { title: 'Два слоя', rule: 'Плитки теперь лежат в 2 слоя. Брать можно только СВОБОДНУЮ плитку: на ней никто не лежит И у неё открыт левый или правый край. Тусклые плитки заблокированы.', example: 'Пример: плитка под другой плиткой или зажатая соседями с обоих боков — не нажимается, сначала освободи её.' },
     en: { title: 'Two layers', rule: 'Tiles now stack in 2 layers. You can only pick a FREE tile: nothing lies on it AND its left or right side is open. Dimmed tiles are blocked.', example: 'Example: a tile under another tile, or squeezed by neighbors on both sides, cannot be tapped — free it first.' },
   },
   {
-    key: 'layers3', fromLevel: 11, toLevel: 15,
+    key: 'layers3', fromLevel: 4, toLevel: 8,
     ru: { title: 'Три слоя', rule: 'Пирамида теперь в 3 слоя. Правило то же: свободна плитка, на которой НИЧЕГО не лежит и у которой открыт левый ИЛИ правый край. Разбирай пирамиду сверху вниз.', example: 'Пример: нижняя плитка станет доступна, когда снимешь всё, что её накрывает, и один её бок открыт.' },
     en: { title: 'Three layers', rule: 'The pyramid now has 3 layers. Same rule: a tile is free when NOTHING lies on it and its left OR right side is open. Dismantle the pyramid top-down.', example: 'Example: a bottom tile becomes available once everything covering it is removed and one of its sides is open.' },
   },
@@ -59,12 +59,12 @@ const MAHJONG_RULES: LevelRule[] = [
   // «Три слоя» стояло без верхней границы, и на 18 уровне игра объясняла три слоя,
   // выкладывая четыре — та самая «молчаливая механика», ради которой правила и заведены.
   {
-    key: 'layers4', fromLevel: 16, toLevel: 22,
+    key: 'layers4', fromLevel: 9, toLevel: 14,
     ru: { title: 'Четыре слоя', rule: 'Слоёв стало 4, и перетасовка теперь одна на уровень. Правило свободной плитки не меняется — меняется цена ошибки: снимать надо сверху и с краёв, иначе запрёшь низ.', example: 'Пример: пара в самом низу может стать недоступной, если разобрать середину не с того края. Смотри на два хода вперёд.' },
     en: { title: 'Four layers', rule: 'Four layers now, and you get one shuffle per level. The free-tile rule is unchanged — what changes is the cost of a mistake: clear from the top and the edges, or you will lock the bottom.', example: 'Example: a bottom pair can become unreachable if you open the middle from the wrong side. Think two moves ahead.' },
   },
   {
-    key: 'layers5', fromLevel: 23,
+    key: 'layers5', fromLevel: 15,
     ru: { title: 'Пять слоёв', rule: 'Пять слоёв — верх пирамиды узкий, низ широкий. Перетасовка одна. Здесь уже нельзя брать любую доступную пару: почти каждый снятый тайл открывает или запирает что-то ниже.', example: 'Пример: две одинаковые плитки свободны, но одна из них держит крышку над последней парой — бери ту, что не держит.' },
     en: { title: 'Five layers', rule: 'Five layers — a narrow top over a wide base. One shuffle. You can no longer take just any available pair: almost every tile you remove opens or locks something below.', example: 'Example: two identical tiles are free, but one of them caps the last pair — take the other one.' },
   },
@@ -174,26 +174,62 @@ const levelParams = mahjongLevel;
 // ── Построение позиций пирамиды ──────────────────────────────────────
 // Сетка с ПОЛУШАГОМ (x,y в «полуклетках»): тайл занимает 2×2 полуклетки.
 // Верхний слой смещён к центру и поднят, образуя классическую «черепаху».
+/**
+ * ПОЗИЦИИ РАСКЛАДКИ.
+ *
+ * 🔴 БЫЛА СТОПКА ПРЯМОУГОЛЬНИКОВ. Каждый слой заполнялся строками слева направо,
+ * пока не наберётся нужное число, — то есть получался прямоугольник, а на нижних
+ * уровнях (один слой) просто ряд плиток. Маджонг узнаётся по СИЛУЭТУ: широкий низ,
+ * узкий верх, скошенные края. Прямоугольник читается как «доска для запоминания»,
+ * а не как горка, которую разбирают.
+ *
+ * Слой = ромб: в средней строке широко, к краям сужается. Верхний слой вложен в
+ * нижний со сдвигом внутрь — отсюда и перекрытия, на которых держится всё правило
+ * свободной плитки.
+ */
+function layerCells(cols: number, rows: number): { x: number; y: number }[] {
+  const out: { x: number; y: number }[] = [];
+  const mid = (rows - 1) / 2;
+  for (let r = 0; r < rows; r++) {
+    // Ширина строки: полная в середине, к краям убывает — получается ромб.
+    const shrink = Math.round(Math.abs(r - mid));
+    const w = Math.max(2, cols - shrink * 2);
+    const off = Math.round((cols - w) / 2);
+    for (let c = 0; c < w; c++) out.push({ x: (off + c) * 2, y: r * 2 });
+  }
+  return out;
+}
+
 // Возвращает ровно needTiles позиций (needTiles = pairs*2, всегда чётно).
 function buildPositions(layers: number, needTiles: number, cols: number): { x: number; y: number; layer: number }[] {
   // Распределяем тайлы по слоям ПИРАМИДАЛЬНО (нижний слой больше верхних): веса layers..1.
-  // Раньше slice(0,needTiles) брал только нижний слой → раскладка выходила плоской.
   const weights: number[] = [];
-  for (let k = 0; k < layers; k++) weights.push(layers - k);   // напр. 3,2,1
+  for (let k = 0; k < layers; k++) weights.push(layers - k);
   const wsum = weights.reduce((a, b) => a + b, 0);
   const positions: { x: number; y: number; layer: number }[] = [];
   for (let layer = 0; layer < layers; layer++) {
     const target = layer === layers - 1
       ? Math.max(2, needTiles - positions.length)              // верхний слой добирает остаток
       : Math.max(2, Math.round((needTiles * weights[layer]) / wsum));
-    const layerCols = Math.max(2, cols - layer * 2);           // верхние слои уже → пирамида, и центрированы (inset=layer)
-    let placed = 0, r = 0;
-    while (placed < target) {
-      for (let c = 0; c < layerCols && placed < target; c++) {
-        positions.push({ x: (layer + c) * 2, y: (layer + r) * 2, layer });
-        placed++;
+    const layerCols = Math.max(2, cols - layer * 2);
+    // Строк берём с запасом: ромб отдаёт меньше клеток, чем cols×rows.
+    const rows = Math.max(3, Math.ceil(target / Math.max(2, layerCols - 1)) + 2);
+    const cells = layerCells(layerCols, rows);
+    for (let i = 0; i < cells.length && positions.length < needTiles; i++) {
+      const cell = cells[i] as { x: number; y: number };
+      // Верхний слой вложен внутрь нижнего: отсюда перекрытия и правило свободной плитки.
+      positions.push({ x: cell.x + layer * 2, y: cell.y + layer * 2, layer });
+      if (positions.length >= (layer === layers - 1 ? needTiles : positions.length + target - 1) && i + 1 >= target) break;
+    }
+  }
+  // Не добрали (ромбы кончились) — досыпаем в нижний слой, он самый широкий.
+  if (positions.length < needTiles) {
+    const wide = layerCells(cols, Math.ceil(needTiles / Math.max(2, cols - 1)) + 4);
+    for (let i = 0; i < wide.length && positions.length < needTiles; i++) {
+      const cell = wide[i] as { x: number; y: number };
+      if (!positions.some((p) => p.layer === 0 && p.x === cell.x && p.y === cell.y)) {
+        positions.push({ x: cell.x, y: cell.y, layer: 0 });
       }
-      r++;
     }
   }
   if (positions.length % 2 === 1) positions.pop();             // чётность для пар
