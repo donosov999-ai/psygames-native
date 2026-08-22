@@ -24,7 +24,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'corsi': { ver: 1, date: '19.08.2026' },
   'counter': { ver: 1, date: '19.08.2026' },
   'cpt': { ver: 1, date: '19.08.2026' },
-  'digit-span': { ver: 1, date: '19.08.2026' },
+  'digit-span': { ver: 2, date: '23.08.2026' },
   'dots-connect': { ver: 4, date: '23.08.2026' },
   'eye-gym': { ver: 1, date: '19.08.2026' },
   'faces-names': { ver: 2, date: '20.08.2026' },
