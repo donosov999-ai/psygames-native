@@ -16,6 +16,7 @@ import {
   edgeAllowsDirection,
   edgeHasUsesLeft,
   edgeUseCounts,
+  nextMoveFrom,
   totalEdgeUses,
   validateEulerGraph,
   validateEulerSolution,
@@ -37,6 +38,7 @@ function emptyRound(
     vertexTrail: [],
     edgeTrail: [],
     hintVertexIds: [],
+    hintDeadEnd: false,
     startedAt: phase === 'playing' ? now : null,
     pauseStartedAt: null,
     pausedMs: 0,
@@ -61,6 +63,7 @@ export function createOneLineSession(config: OneLineSessionConfig): OneLineSessi
     vertexTrail: [],
     edgeTrail: [],
     hintVertexIds: [],
+    hintDeadEnd: false,
     startedAt: null,
     pauseStartedAt: null,
     pausedMs: 0,
@@ -117,6 +120,7 @@ function finishIfComplete(session: OneLineSession, now: number): OneLineSession 
     ...session,
     phase: 'result',
     hintVertexIds: [],
+    hintDeadEnd: false,
     result: scoreOneLineCompletion(session.puzzle, {
       durationMs: Math.max(0, now - session.startedAt - session.pausedMs),
       undoCount: session.undoCount,
@@ -165,6 +169,7 @@ export function expireOneLineSession(session: OneLineSession, now: number): OneL
     ...session,
     phase: 'result',
     hintVertexIds: [],
+    hintDeadEnd: false,
     result: scoreOneLineCompletion(session.puzzle, {
       durationMs: elapsed,
       undoCount: session.undoCount,
@@ -210,6 +215,7 @@ export function selectOneLineVertex(
     vertexTrail: [...session.vertexTrail, vertexId],
     edgeTrail: [...session.edgeTrail, edgeId],
     hintVertexIds: [],
+    hintDeadEnd: false,
   }, now);
 }
 
@@ -218,24 +224,28 @@ export function hintOneLineMove(session: OneLineSession): OneLineSession {
   const puzzle = getCurrentOneLinePuzzle(session);
   const validation = validateEulerGraph(puzzle);
   let hintVertexIds: string[];
+  /** Из этого места фигуру уже не закрыть — честнее сказать, чем молчать. */
+  let deadEnd = false;
   if (session.vertexTrail.length === 0) {
     hintVertexIds = validation.oddVertexIds.length === 2
       ? validation.oddVertexIds
       : puzzle.vertices.filter((vertex) => (validation.degrees[vertex.id] ?? 0) > 0).map((vertex) => vertex.id);
   } else {
-    const current = session.vertexTrail[session.vertexTrail.length - 1] as string;
-    const counts = edgeUseCounts(session.edgeTrail);
-    hintVertexIds = [...new Set(puzzle.edges.flatMap((edge) => {
-      if (!edgeHasUsesLeft(edge, counts)) return [];
-      // По одностороннему подсказываем только вперёд: назад хода нет.
-      if (edgeAllowsDirection(edge, current, edge.b) && edge.a === current) return [edge.b];
-      if (edgeAllowsDirection(edge, current, edge.a) && edge.b === current) return [edge.a];
-      return [];
-    }))].sort();
+    /**
+     * ОДИН ХОД, А НЕ СПИСОК СОСЕДЕЙ. Прежняя подсказка подсвечивала всех, до кого
+     * есть ребро; на плотной фигуре это половина доски, и почти все подсвеченные
+     * ходы ведут в тупик. Человек платил за подсказку и получал перечисление того,
+     * что и так видит. Теперь ход ищется решателем ОТ ТЕКУЩЕГО МЕСТА — работает и
+     * после того, как человек свернул со «своего» маршрута.
+     */
+    const hint = nextMoveFrom(puzzle, session.vertexTrail, session.edgeTrail);
+    deadEnd = hint.deadEnd;
+    hintVertexIds = hint.vertexId ? [hint.vertexId] : [];
   }
   return {
     ...session,
     hintVertexIds,
+    hintDeadEnd: deadEnd,
     hintsUsed: session.hintsUsed + 1,
   };
 }
@@ -247,6 +257,7 @@ export function undoOneLineMove(session: OneLineSession): OneLineSession {
     vertexTrail: session.vertexTrail.slice(0, -1),
     edgeTrail: session.edgeTrail.slice(0, Math.max(0, session.edgeTrail.length - 1)),
     hintVertexIds: [],
+    hintDeadEnd: false,
     undoCount: session.undoCount + 1,
   };
 }
@@ -258,6 +269,7 @@ export function pauseOneLineSession(session: OneLineSession, now: number): OneLi
     phase: 'paused',
     pausedFrom: session.phase,
     hintVertexIds: [],
+    hintDeadEnd: false,
     pauseStartedAt: now,
   };
 }
@@ -290,6 +302,7 @@ export function disposeOneLineSession(session: OneLineSession): OneLineSession {
     vertexTrail: [],
     edgeTrail: [],
     hintVertexIds: [],
+    hintDeadEnd: false,
     startedAt: null,
     pauseStartedAt: null,
   };
