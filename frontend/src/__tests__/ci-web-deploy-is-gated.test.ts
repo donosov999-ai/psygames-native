@@ -79,4 +79,23 @@ describe('выкладка веба', () => {
   it('веб-деплой по-прежнему идёт только с main', () => {
     expect(jobs()['web-deploy'].if).toContain("refs/heads/main");
   });
+
+  /**
+   * 🔴 ЛИНТА В СБОРКЕ НЕ БЫЛО ВООБЩЕ. Скрипт `lint` лежал в package.json с
+   * самого начала, и ни один workflow его не звал (задача 0940eb0a, п.3).
+   * Поставлен храповиком: долг может только уменьшаться — разбор в шапке
+   * `scripts/lint-ratchet.mjs`. Держит РЕЛИЗ, а не выкладку веба: долг стиля не
+   * повод уронить работающий сайт, но повод не выпускать сборку.
+   */
+  it('линт в сборке есть и держит релиз', () => {
+    const j = jobs();
+    const has = 'lint' in j;
+    const inRelease = (j['release'].needs ?? []).includes('lint');
+    expect(`джоба линта есть — ${has} · релиз стоит на ней — ${inRelease}`)
+      .toBe('джоба линта есть — true · релиз стоит на ней — true');
+  });
+
+  it('линт зовут храповиком, а не голым eslint', () => {
+    expect(src()).toContain('scripts/lint-ratchet.mjs');
+  });
 });
