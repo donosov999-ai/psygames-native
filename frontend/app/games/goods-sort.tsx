@@ -708,7 +708,23 @@ export function removeTriple(cell: number[], type: number): number[] {
  * такому же товару, потом в пустую нишу. Жадность здесь безопасна — она лишь
  * ускоряет нахождение, а полный откат оставлен.
  */
-export function solvableStrict(start: number[][], budget = 20000): boolean {
+/**
+ * 🔴 РЕШАТЕЛЬ ОБЯЗАН ЗНАТЬ ПРО ЁМКОСТИ НИШ.
+ *
+ * Раньше он считал ВСЕ ниши по три. С 18-го уровня ниши бывают на два и на
+ * четыре (`capsFor`), и выходило два вранья сразу: он разрешал себе положить
+ * третий товар в нишу на ДВА, и не замечал тройку в нише на ЧЕТЫРЕ (та ждала
+ * ровно трёх предметов в ячейке, а их там четыре).
+ *
+ * Замер разбора 22.08.2026: решение, которым доска признавалась проходимой,
+ * содержало невозможный ход на 69–100 % досок уровней 20+. То есть строгий
+ * уровень мог не иметь решения, и заметить это было нечем — проверка сама себе
+ * это разрешала.
+ *
+ * `caps` не передали — считаем все по три, как было: старые вызовы не ломаем.
+ */
+export function solvableStrict(start: number[][], caps?: number[], budget = 20000): boolean {
+  const capAt = (i: number) => caps?.[i] ?? CAP;
   const seen = new Set<string>();
   let nodes = 0;
 
@@ -717,8 +733,10 @@ export function solvableStrict(start: number[][], budget = 20000): boolean {
     while (again) {
       again = false;
       for (let i = 0; i < b.length; i++) {
-        const c = b[i];
-        if (c.length === CAP && c.every((t) => t === c[0])) { b[i] = []; again = true; }
+        // Тройку ищем ПО СОДЕРЖИМОМУ, а не по заполненности: в нише на четыре
+        // тройка лежит рядом с четвёртым предметом, и прежняя проверка её не видела.
+        const t = tripleIn(b[i]);
+        if (t !== null) { b[i] = removeTriple(b[i], t); again = true; }
       }
     }
   };
@@ -739,7 +757,7 @@ export function solvableStrict(start: number[][], budget = 20000): boolean {
       if (!src.length) continue;
       const type = src[src.length - 1];
       for (let to = 0; to < b.length; to++) {
-        if (to === from || !placementOk(b[to], type, true)) continue;
+        if (to === from || !placementOk(b[to], type, true, capAt(to))) continue;
         const dst = b[to];
         // 0 — собирает тройку, 1 — кладём к такому же, 2 — в пустую.
         const rank = dst.length === CAP - 1 && dst[0] === type ? 0 : dst.length ? 1 : 2;
@@ -1115,7 +1133,7 @@ export function dealBoard(L: number, pool: number[], narrow = false): {
   // ОСТАТЬСЯ свободным ПОСЛЕ них, а не до.
   let cells = generate(pool, cfg.types, cfg.spares + shut, cfg.slots, caps);
   if (strictPlacement(L)) {
-    for (let tries = 0; tries < 5 && !solvableStrict(cells); tries++) {
+    for (let tries = 0; tries < 5 && !solvableStrict(cells, caps); tries++) {
       cells = generate(pool, cfg.types, cfg.spares + shut, cfg.slots, caps);
     }
   }
@@ -2451,21 +2469,68 @@ export default function GoodsSortGame() {
     for (let i = 0; i < slots; i++) if (cellUsable(i)) open.push(i);
     const roomOpen = open.reduce((sum, i) => sum + capOf(i), 0);
     const dest = roomOpen >= items.length ? open : Array.from({ length: slots }, (_, i) => i);
-    const used = Math.min(Math.max(1, dest.length - 2), Math.max(1, Math.ceil(items.length / CAP)));
-    let ns: number[][]; let guard = 0;
+    /**
+     * 🔴 ЗДЕСЬ ПЕРЕМЕШИВАНИЕ ТЕРЯЛО ТОВАР, И ТЕРЯЛО МОЛЧА.
+     *
+     * Число корзин считалось как `items.length / CAP`, то есть «все ниши по
+     * три». С 18-го уровня ниши бывают на ДВА (`capsFor`, `CAP_MIN`), и корзин
+     * выходило меньше, чем нужно: товар, которому не нашлось места, не клался
+     * НИКУДА — внутренний цикл просто заканчивался.
+     *
+     * Замер разбора 22.08.2026: 14–48 % нажатий теряли одну-две штуки. И это не
+     * косметика: у типа оставалось две копии, тройка не собиралась НИКОГДА, и на
+     * целях «убрать всё» уровень становился непроходимым — 47 % партий на 27-м
+     * уровне, 48 % на 42-м, 44 % на 54-м. Человек видит две одинаковые банки,
+     * которые ничем не убрать, и счётчик товаров, который вдруг стал меньше.
+     *
+     * Теперь корзины набираются по СОВОКУПНОЙ ёмкости, а не по числу, и в конце
+     * стоит прямая сверка: не сошлось — берём все ниши и раскладываем заново.
+     * Потерять товар молча нельзя.
+     */
+    const pickBins = (pool: number[]): number[] => {
+      const order = shuffle(pool);
+      const bins: number[] = [];
+      let room = 0;
+      for (const i of order) {
+        if (room >= items.length) break;
+        bins.push(i);
+        room += capOf(i);
+      }
+      return bins;
+    };
+    let ns: number[][] = []; let guard = 0;
     do {
       const sh = shuffle(items);
-      const bins = shuffle(dest).slice(0, Math.max(used, Math.ceil(items.length / CAP)));
+      // Со второй половины попыток берём ВСЕ ниши: значит выборкой не сошлось.
+      const bins = guard < 30 ? pickBins(dest) : Array.from({ length: slots }, (_, i) => i);
       ns = Array.from({ length: slots }, () => [] as number[]);
       let ci = 0;
+      let lost = 0;
       for (const it of sh) {
-        for (let tr = 0; tr < bins.length; tr++) {
+        let placed = false;
+        for (let tr = 0; tr < bins.length && !placed; tr++) {
           const c = bins[ci % bins.length]; ci++;
-          if (ns[c].length < capOf(c)) { ns[c].push(it); break; }
+          if (ns[c].length < capOf(c)) { ns[c].push(it); placed = true; }
         }
+        if (!placed) lost++;
       }
       guard++;
-    } while (ns.some((c) => tripleIn(c) !== null) && guard < 60);
+      if (lost === 0 && !ns.some((c) => tripleIn(c) !== null)) break;
+    } while (guard < 60);
+    /**
+     * Последняя защита: если и за шестьдесят заходов расклад не сошёлся —
+     * раскладываем подряд по всем нишам. Доска может выйти скучнее, но НИ ОДИН
+     * товар не пропадёт, а пропажа хуже скуки: она делает уровень непроходимым.
+     */
+    if (ns.flat().length !== items.length) {
+      ns = Array.from({ length: slots }, () => [] as number[]);
+      let at = 0;
+      for (const it of shuffle(items)) {
+        while (at < slots && ns[at].length >= capOf(at)) at++;
+        if (at >= slots) break;
+        ns[at].push(it);
+      }
+    }
     setCells(ns); setSel(null); hapticTap();
   };
 

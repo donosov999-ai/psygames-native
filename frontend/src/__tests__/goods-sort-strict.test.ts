@@ -20,7 +20,10 @@
 declare const __dirname: string;
 declare function require(m: string): any;
 
-import { levelCfg, generate, strictPlacement, placementOk, solvableStrict } from '@/app/games/goods-sort';
+import { levelCfg, generate, strictPlacement, placementOk, solvableStrict,
+  dealBoard,
+  capsFor,
+} from '@/app/games/goods-sort';
 
 const POOL = [0, 1, 2, 3, 4, 5, 6, 7];
 describe('правило укладки', () => {
@@ -57,17 +60,46 @@ describe('правило укладки', () => {
    * нет. Иначе «оптимизацию» можно снять, и никто не заметит, пока экран не
    * начнёт задумываться на раздаче.
    */
+  /**
+   * ⚠️ ДОСКУ БЕРЁМ НАСТОЯЩУЮ, С ЁМКОСТЯМИ. Прежняя редакция звала `generate` без
+   * `caps` — то есть все ниши выходили по три, и разные ёмкости (с 18-го уровня)
+   * не проверялись ВООБЩЕ. Именно поэтому решатель, считавший все ниши по три,
+   * прожил незамеченным: гейт кормил его ровно тем миром, в котором он прав.
+   */
   it('решение находится и при жёстко урезанном бюджете перебора', () => {
     const slow: string[] = [];
     for (let L = 14; L <= 30; L++) {
       if (!strictPlacement(L)) continue;
       for (const narrow of [false, true]) {
-        const cfg = levelCfg(L, POOL.length, narrow);
-        const board = generate(POOL, cfg.types, cfg.spares, cfg.slots);
-        if (!solvableStrict(board, 1500)) slow.push(`L${L}${narrow ? ' узкий' : ''}: 1500 узлов не хватило`);
+        const { cells, cfg } = dealBoard(L, POOL, narrow);
+        const caps = capsFor(L, cfg.slots);
+        /**
+         * ⚠️ БЮДЖЕТ ПОДНЯТ С 1500 ДО 6000, И ВОТ ПОЧЕМУ. Прежнее число
+         * откалибровано на досках, где ВСЕ ниши по три — гейт звал `generate`
+         * без ёмкостей. На настоящих досках с 18-го уровня ниши бывают на два и
+         * на четыре: состояний больше, тройки складываются реже, перебор честно
+         * дороже. Замер: при 1500 сходилось 8–9 досок из 10, при 20000 — 10 из
+         * 10 на всех трёх проблемных уровнях. 6000 держит запас и всё ещё далеко
+         * от рабочих 20000, то есть смысл проверки — «порядок ходов не снят» —
+         * сохраняется.
+         */
+        if (!solvableStrict(cells, caps, 6000)) slow.push(`L${L}${narrow ? ' узкий' : ''}: 6000 узлов не хватило`);
       }
     }
     expect(slow).toEqual([]);
+  });
+
+  /**
+   * 🔴 РАЗНЫЕ ЁМКОСТИ ВООБЩЕ ВСТРЕЧАЮТСЯ — иначе всё выше беспредметно и
+   * повторит ту же ошибку: проверять мир, в котором дефекта нет по построению.
+   */
+  it('на строгих уровнях правда есть ниши не по три', () => {
+    let mixed = 0;
+    for (let L = 18; L <= 60; L++) {
+      const cfg = levelCfg(L, POOL.length);
+      if (new Set(capsFor(L, cfg.slots)).size > 1) mixed += 1;
+    }
+    expect(mixed).toBeGreaterThan(10);
   });
 
   /** 🔴 ГЛАВНОЕ: каждый выданный расклад имеет решение. */
@@ -78,9 +110,10 @@ describe('правило укладки', () => {
     for (const L of levels) {
       for (const narrow of [false, true]) {
         const cfg = levelCfg(L, POOL.length, narrow);
+        const caps = capsFor(L, cfg.slots);
         for (let t = 0; t < 5; t++) {
-          const board = generate(POOL, cfg.types, cfg.spares, cfg.slots);
-          if (!solvableStrict(board)) { bad.push(`L${L}${narrow ? ' узкий' : ''}: расклад ${t} нерешаем`); break; }
+          const { cells } = dealBoard(L, POOL, narrow);
+          if (!solvableStrict(cells, caps)) { bad.push(`L${L}${narrow ? ' узкий' : ''}: расклад ${t} нерешаем`); break; }
         }
       }
     }
