@@ -1,4 +1,4 @@
-/* psygames-speech-sound-toggle · VER 1 · 22.08.2026 */
+/* psygames-speech-sound-toggle · VER 2 · 22.08.2026 */
 /**
  * РЕЧЬ СЧИТАЕТСЯ СО ЗВУКОМ — И МОЛЧИТ ЧЕСТНО, А НЕ ВТИХУЮ.
  *
@@ -18,6 +18,10 @@
  * голос; «звук выключен» — тронуть тумблер. Одно сообщение на оба случая
  * отправляло половину людей чинить не то.
  */
+jest.mock('@/src/services/feedback', () => ({ soundOn: jest.fn(() => true) }));
+import { ttsBlockedReason } from '@/src/services/tts';
+import { soundOn } from '@/src/services/feedback';
+
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync } = require('fs');
@@ -41,10 +45,51 @@ describe('речь и тумблер звука', () => {
     expect(code(read('src/services/tts.ts'))).toContain('ttsBlockedReason');
   });
 
-  it('🔴 сервис речи спрашивает про звук, а не только про голос', () => {
-    const src = code(read('src/services/tts.ts'));
-    expect(src).toContain('soundOn');
-    expect(/if \(!soundOn\(\)\) return 'sound-off';/.test(src)).toBe(true);
+  /**
+   * 🔴 ПОЧЕМУ ЗДЕСЬ ГОНЯЕТСЯ ФУНКЦИЯ, А НЕ ИЩЕТСЯ СТРОЧКА В ИСХОДНИКЕ.
+   * Прежняя редакция сверяла текст `if (!soundOn()) return 'sound-off';` глазами
+   * регулярки — и ровно поэтому НЕ ЗАМЕТИЛА, когда 22.08.2026 из сервиса убрали
+   * СОСЕДНЮЮ ветку про отсутствие голоса: буква про звук на месте, гейт зелёный,
+   * а половина причины пропала. Поэтому обе ветки теперь проверяются вызовом.
+   */
+  describe('🔴 обе причины молчания различаются вызовом, а не текстом исходника', () => {
+    const withVoices = (langs: string[] | null) => {
+      const w = (globalThis as any).window || ((globalThis as any).window = {});
+      w.speechSynthesis = langs === null ? undefined
+        : { getVoices: () => langs.map((l) => ({ lang: l })) };
+    };
+    const setSound = (on: boolean) => (soundOn as jest.Mock).mockReturnValue(on);
+    afterEach(() => { withVoices(['en-US']); setSound(true); });
+
+    it('звук включён и голос языка есть — молчать не из-за чего', () => {
+      withVoices(['en-US']); setSound(true);
+      expect(ttsBlockedReason('en')).toBe(null);
+    });
+
+    it('звук выключен — причина «звук», человеку нужен тумблер', () => {
+      withVoices(['en-US']); setSound(false);
+      expect(ttsBlockedReason('en')).toBe('sound-off');
+    });
+
+    it('голоса языка нет — причина «голос», человеку нужен голос в системе', () => {
+      withVoices(['de-DE']); setSound(true);
+      expect(ttsBlockedReason('en')).toBe('no-voice');
+    });
+
+    it('синтеза нет вовсе — тоже «голос», а не тишина без объяснения', () => {
+      withVoices(null); setSound(true);
+      expect(ttsBlockedReason('en')).toBe('no-voice');
+    });
+
+    /**
+     * Порядок причин — не вкусовщина. Когда сломано И то и другое, называть надо
+     * ТУ, что человек чинит сам одним нажатием. Отправить его ставить системный
+     * голос, когда у него просто выключен звук, — это отправить чинить не то.
+     */
+    it('сломано и то и другое — называется тумблер, он ближе к руке', () => {
+      withVoices(['de-DE']); setSound(false);
+      expect(ttsBlockedReason('en')).toBe('sound-off');
+    });
   });
 
   it('🔴 второго источника правды про речь больше нет', () => {
