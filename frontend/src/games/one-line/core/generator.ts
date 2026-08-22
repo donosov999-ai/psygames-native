@@ -8,6 +8,7 @@ import {
   type Rng,
 } from './rng';
 import {
+  type EulerSolution,
   ONE_LINE_GENERATOR_VERSION,
   type GeneratedOneLinePuzzle,
   type GraphEdge,
@@ -78,7 +79,16 @@ function addOptionalTriangles(
   rng: Rng,
   level: number,
 ): void {
-  const desired = clamp(Math.floor((level - 9) / 8) + 1, 0, 3);
+  /**
+   * 🔴 РОСТ НЕ ДОЛЖЕН КОНЧАТЬСЯ НА ДВАДЦАТЬ ПЯТОМ. Прежний потолок в три
+   * треугольника достигался к 25-му уровню, а число вершин упирается в
+   * двенадцать к 22-му — то есть 27 уровней из 48 давали ОДИН И ТОТ ЖЕ граф,
+   * только перетасованный. Замер разбора 22.08.2026.
+   *
+   * Треугольник добавляет каждой своей вершине по два ребра, значит чётность не
+   * меняется и росчерк остаётся возможным. Поэтому растить ими безопасно.
+   */
+  const desired = clamp(Math.floor((level - 9) / 5) + 1, 0, 7);
   for (let triangle = 0; triangle < desired; triangle += 1) {
     let added = false;
     for (let attempt = 0; attempt < 80 && !added; attempt += 1) {
@@ -207,6 +217,76 @@ function authoredPuzzle(level: number, seed: string): GeneratedOneLinePuzzle | n
   };
 }
 
+/**
+ * Приправа: одностороннее и двойное ребро поверх уже готового росчерка.
+ *
+ * Доля растёт с уровнем и остаётся МАЛОЙ. У игры-образца на 808 рёбер всего 13
+ * двойных и 12 односторонних — три процента. Приправа работает, пока её мало:
+ * доска из одних стрелок это уже не «одна линия», а лабиринт.
+ */
+function addEdgeKinds(
+  draft: OneLinePuzzle,
+  solution: EulerSolution,
+  level: number,
+  rng: Rng,
+): { vertices: GraphVertex[]; edges: GraphEdge[]; solution: EulerSolution } {
+  const vertices = draft.vertices.map((v) => ({ ...v }));
+  const edges = draft.edges.map((e) => ({ ...e }));
+  const vertexIds = [...solution.vertexIds];
+  const edgeIds = [...solution.edgeIds];
+
+  // Сколько приправы позволяет уровень: одна стрелка с 13-го, дальше по одной
+  // за десяток, но не больше десятой части рёбер.
+  const arrows = Math.min(
+    Math.max(0, Math.floor((level - 12) / 10) + (level >= 13 ? 1 : 0)),
+    Math.floor(edges.length / 10),
+  );
+  if (arrows > 0) {
+    const byId = new Map(edges.map((e) => [e.id, e]));
+    const steps = shuffle(rng, edgeIds.map((id, at) => ({ id, at })));
+    let done = 0;
+    for (const step of steps) {
+      if (done >= arrows) break;
+      const edge = byId.get(step.id);
+      if (!edge || edge.kind) continue;
+      const from = vertexIds[step.at];
+      const to = vertexIds[step.at + 1];
+      if (!from || !to) continue;
+      // Ребро проходится ровно один раз — иначе стрелка запретила бы второй проход.
+      if (edgeIds.filter((x) => x === step.id).length !== 1) continue;
+      edge.a = from;
+      edge.b = to;
+      edge.kind = 'oneway';
+      done += 1;
+    }
+  }
+
+  // Двойное — отростком: из точки пути выходит ребро в НОВУЮ вершину и
+  // проходится туда и обратно. Чётность обеих вершин не меняется.
+  const doubles = level >= 18 ? Math.min(1 + Math.floor((level - 18) / 15), 3) : 0;
+  for (let k = 0; k < doubles; k += 1) {
+    const at = 1 + Math.floor(rng() * Math.max(1, vertexIds.length - 2));
+    const hub = vertexIds[at];
+    if (!hub) continue;
+    const anchor = vertices.find((v) => v.id === hub);
+    if (!anchor) continue;
+    // Отросток ставим рядом с точкой, но внутри доски и не поверх соседей.
+    const angle = rng() * Math.PI * 2;
+    const x = Math.min(0.92, Math.max(0.08, anchor.x + Math.cos(angle) * 0.16));
+    const y = Math.min(0.92, Math.max(0.08, anchor.y + Math.sin(angle) * 0.16));
+    if (vertices.some((v) => Math.hypot(v.x - x, v.y - y) < 0.13)) continue;
+    const tip: GraphVertex = { id: `v${vertices.length}`, x, y };
+    const edge: GraphEdge = { id: `e${edges.length}`, a: hub, b: tip.id, kind: 'double' };
+    vertices.push(tip);
+    edges.push(edge);
+    // Вставляем «сходил и вернулся» ровно там, где путь проходит через точку.
+    vertexIds.splice(at + 1, 0, tip.id, hub);
+    edgeIds.splice(at, 0, edge.id, edge.id);
+  }
+
+  return { vertices, edges, solution: { vertexIds, edgeIds } };
+}
+
 export function generateOneLinePuzzle(seed: string, requestedLevel: number): GeneratedOneLinePuzzle {
   const normalizedSeed = normalizeSeed(seed);
   const level = Math.max(1, Math.floor(requestedLevel));
@@ -250,7 +330,28 @@ export function generateOneLinePuzzle(seed: string, requestedLevel: number): Gen
   if (!solution || !validateEulerSolution(draft, solution)) {
     throw new Error('Independent Euler solver could not consume every generated edge');
   }
-  const startHintVertexId = level <= 3 ? (solution.vertexIds[0] ?? null) : null;
+  /**
+   * 🔴 НОВЫЕ ВИДЫ РЁБЕР ПОЯВЛЯЮТСЯ И У ГЕНЕРАТОРА, А НЕ ТОЛЬКО В РИСОВАННЫХ.
+   *
+   * До 22.08.2026 двойных и односторонних рёбер генератор не ставил ВООБЩЕ: они
+   * жили только в двенадцати рисованных уровнях, а дальше словарь механик
+   * схлопывался ровно там, где должен расти. Человек знакомился со стрелкой на
+   * одиннадцатом уровне и больше не видел её никогда.
+   *
+   * ⚠️ БЕЗОПАСНОСТЬ ПО ПОСТРОЕНИЮ, А НЕ ПО ПРОВЕРКЕ. Смешанный граф (со
+   * стрелками) правилом чётности не описывается, и доказать решаемость перебором
+   * дорого. Поэтому оба вида добавляются так, что УЖЕ НАЙДЕННЫЙ путь остаётся
+   * рабочим:
+   *   · одностороннее делается из ребра, которое путь и так проходит, и
+   *     направление берётся то, в котором он его проходит — вариантов у игрока
+   *     становится меньше, но решение остаётся;
+   *   · двойное подвешивается новой вершиной: из точки пути выходит отросток,
+   *     который проходится туда и обратно. Чётность обеих вершин не меняется.
+   */
+  const spiced = addEdgeKinds(draft, solution, level, rng);
+  const startHintVertexId = level <= 3 ? (spiced.solution.vertexIds[0] ?? null) : null;
+  draft.vertices = spiced.vertices;
+  draft.edges = spiced.edges;
   draft.startHintVertexId = startHintVertexId;
   draft.difficulty = puzzleDifficulty(
     level,
@@ -260,7 +361,7 @@ export function generateOneLinePuzzle(seed: string, requestedLevel: number): Gen
     draft.isCircuit,
     startHintVertexId !== null,
   );
-  return { ...draft, solution };
+  return { ...draft, solution: spiced.solution };
 }
 
 export function publicOneLinePuzzle(puzzle: GeneratedOneLinePuzzle): OneLinePuzzle {

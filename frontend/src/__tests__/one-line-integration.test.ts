@@ -29,6 +29,7 @@ import {
   type OneLineMetrics,
 } from '@/src/games/one-line/core/index';
 import { AUTHORED_LEVEL_COUNT } from '@/src/games/one-line/core/authored';
+import { totalEdgeUses } from '@/src/games/one-line/core/validator';
 import { oneLineScoreAt, oneLineTimeLimitMs } from '@/src/games/one-line/core/scoring';
 import OneLineGame from '@/src/games/one-line/OneLineGame';
 import { onGradientText, contrastRatio, AA_NORMAL } from '@/src/services/onGradientText';
@@ -396,8 +397,12 @@ describe('«Одна линия»: сложность растёт содерж�
       const v = validateEulerGraph(p);
       expect(`уровень ${lv}: связен=${v.connected}, нечётных=${v.oddVertexIds.length}`)
         .toBe(`уровень ${lv}: связен=true, нечётных=${p.isCircuit ? 0 : 2}`);
-      // Решение, найденное ядром, съедает ВСЕ рёбра.
-      expect(p.solution.edgeIds.length).toBe(p.edges.length);
+      /**
+       * Решение съедает все ПРОХОДЫ, а не рёбра: двойное ребро проходится
+       * дважды, и с 18-го уровня генератор их ставит. Прежнее сравнение с числом
+       * рёбер покраснело ровно на этом (25-й уровень, 22.08.2026).
+       */
+      expect(p.solution.edgeIds.length).toBe(totalEdgeUses(p.edges));
     }
   });
 });
