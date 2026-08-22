@@ -39,6 +39,46 @@ export function isFree(tiles: Tile[], alive: boolean[], i: number): boolean {
 }
 
 /**
+ * КТО ИМЕННО ДЕРЖИТ ПЛИТКУ.
+ *
+ * 🔴 ЗАЧЕМ. Игра умела сказать «эта плитка занята» и «доска встала», но не умела
+ * показать ВИНОВНЫХ. Человек тычет в пару одинаковых рисунков, ничего не
+ * происходит, и он не понимает, что мешает: правило свободной плитки читается в
+ * справке, но на доске из шестидесяти плиток глазами его не применить.
+ * «Заблокирована» без «кем» — это отказ без объяснения, тот же класс, что молчащая
+ * судоку и молчащий самурай.
+ *
+ * Возвращаем ровно тех, кто отвечает за отказ, и ничего сверх:
+ *   • накрывающие сверху — их придётся снять в любом случае;
+ *   • боковые соседи — ТОЛЬКО если заперты ОБА бока. Один сосед плитку не держит:
+ *     свободна она уже тогда, когда открыт хоть один край. Подсветить одного —
+ *     значит соврать про правило.
+ */
+export function blockersOf(tiles: Tile[], alive: boolean[], i: number): number[] {
+  const t = tiles[i];
+  if (!t || !alive[i]) return [];
+  const above: number[] = [];
+  for (let j = 0; j < tiles.length; j++) {
+    if (!alive[j] || j === i) continue;
+    const o = tiles[j] as Tile;
+    if (o.layer > t.layer && overlaps(o, t)) above.push(j);
+  }
+  const left: number[] = [];
+  const right: number[] = [];
+  for (let j = 0; j < tiles.length; j++) {
+    if (!alive[j] || j === i) continue;
+    const o = tiles[j] as Tile;
+    if (o.layer !== t.layer) continue;
+    if (Math.abs(o.y - t.y) >= 2) continue;
+    if (Math.abs(o.x - (t.x - 2)) < 1) left.push(j);
+    if (Math.abs(o.x - (t.x + 2)) < 1) right.push(j);
+  }
+  // Бока виноваты только вместе: открытый край снимает запрет целиком.
+  const sides = left.length > 0 && right.length > 0 ? left.concat(right) : [];
+  return above.concat(sides);
+}
+
+/**
  * Свобода СРАЗУ ДЛЯ ВСЕХ плиток одним проходом.
  *
  * Зачем не звать `isFree` в цикле: он сам обходит доску, и цикл поверх него даёт

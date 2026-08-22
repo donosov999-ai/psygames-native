@@ -29,7 +29,7 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {saveResume, clearResume} from '@/src/services/resume';
-import { availablePairs, freeFlags, isFree, tilePlacement, type Tile } from '@/src/games/mahjong/board';
+import { availablePairs, blockersOf, freeFlags, isFree, tilePlacement, type Tile } from '@/src/games/mahjong/board';
 import { buildPositions, silhouetteForLevel, type SilhouetteKey } from '@/src/games/mahjong/silhouettes';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 
@@ -102,6 +102,9 @@ const SYMBOLS = [
 
 /** Копий одного рисунка в настоящем наборе. Больше — уже не маджонг. */
 export const MAX_COPIES = 4;
+
+/** Сколько держится подсветка виновных плиток. Дольше — она станет разметкой. */
+const BLOCKERS_MS = 1600;
 
 /** Сколько рисунков в наборе — наружу ради проверок. */
 export const SYMBOL_COUNT = SYMBOLS.length;
@@ -343,6 +346,14 @@ export default function MahjongGame() {
 
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
+  /**
+   * 🔴 КТО ДЕРЖИТ ПЛИТКУ — ПОКАЗЫВАЕМ, А НЕ ОСТАВЛЯЕМ ДОГАДЫВАТЬСЯ. Тап по занятой
+   * плитке отвечал только вибрацией: «нельзя» есть, «почему» нет. Правило свободной
+   * плитки написано в справке, но на доске из шестидесяти штук глазами его не
+   * применить. Теперь тап подсвечивает ровно тех, кто её держит.
+   */
+  const [blockers, setBlockers] = useState<number[]>([]);
+  const blockersTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [matched, setMatched] = useState(0);          // снятых пар
   const [pairsTotal, setPairsTotal] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -510,10 +521,21 @@ export default function MahjongGame() {
   // Свободен ли тайл с данным индексом среди живых (для тапа и подсветки).
   const tileFree = (i: number) => isFree(tiles, aliveMaskRef.current, i);
 
+  // Экран сняли — гасим подсветку виновных: ставить её некуда.
+  useEffect(() => () => { if (blockersTimerRef.current) clearTimeout(blockersTimerRef.current); }, []);
+
   const handleTilePress = (i: number) => {
     if (phase !== 'playing') return;
     if (!aliveMaskRef.current[i]) return;
-    if (!tileFree(i)) { hapticError(); return; }   // занят — не реагирует
+    if (!tileFree(i)) {
+      // Занята — вибрируем И показываем виновных: отказ без объяснения читается
+      // как «не нажалось», а не как «правило не пускает».
+      hapticError();
+      setBlockers(blockersOf(tiles, aliveMaskRef.current, i));
+      if (blockersTimerRef.current) clearTimeout(blockersTimerRef.current);
+      blockersTimerRef.current = setTimeout(() => setBlockers([]), BLOCKERS_MS);
+      return;
+    }
     if (selected === null) { setSelected(i); hapticTap(); return; }
     if (selected === i) { setSelected(null); return; }   // снять выбор
 
@@ -680,6 +702,7 @@ export default function MahjongGame() {
   const renderTile = (tt: Tile, i: number) => {
     const free = tileFree(i);
     const sel = selected === i;
+    const blames = blockers.includes(i);
     const { left, top } = tilePlacement(tt, maxLayer, half, layerOffset);
     return (
       <TouchableOpacity
@@ -692,14 +715,16 @@ export default function MahjongGame() {
           {
             width: tileW, height: tileH, left, top,
             zIndex: tt.layer * 100 + tt.y,
-            backgroundColor: sel ? '#fde68a' : free ? '#f8fafc' : '#cbd5e1',
-            borderColor: sel ? '#f59e0b' : free ? '#94a3b8' : '#94a3b8',
-            opacity: free ? 1 : 0.6,
+            backgroundColor: blames ? '#fecaca' : sel ? '#fde68a' : free ? '#f8fafc' : '#cbd5e1',
+            borderColor: blames ? '#dc2626' : sel ? '#f59e0b' : '#94a3b8',
+            borderWidth: blames ? 3 : 1.5,
+            // Виновную видно даже в нижнем слое: приглушение снимаем.
+            opacity: blames ? 1 : free ? 1 : 0.6,
             shadowOpacity: 0.25 + tt.layer * 0.06,
           },
         ]}
       >
-        <Text style={{ fontSize: tileW * 0.5, opacity: free ? 1 : 0.7 }}>{SYMBOLS[tt.symbol] ?? '🀄'}</Text>
+        <Text style={{ fontSize: tileW * 0.5, opacity: blames || free ? 1 : 0.7 }}>{SYMBOLS[tt.symbol] ?? '🀄'}</Text>
       </TouchableOpacity>
     );
   };
