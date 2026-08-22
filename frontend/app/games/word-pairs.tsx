@@ -21,7 +21,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
-import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
+import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -354,7 +354,15 @@ export default function WordPairsGame() {
               {t('label_translate')}: {LANGUAGES.find(l => l.code === language)?.name} →
             </Text>
             <View style={styles.optionButtons}>
-              {LANGUAGES.filter(l => l.code !== language).map(l => (
+              /*
+                🔴 ПРЕДЛАГАЕМ ТОЛЬКО ТЕ ЯЗЫКИ, НА КОТОРЫХ ЕСТЬ СЛОВАРЬ.
+                Раньше выбор строился из всех двенадцати языков приложения, а
+                словарь покрывает семь: на французском игра запускалась и
+                оказывалась пустой — «выбери 1-е из 0», а в зарядке экран
+                оставался мёртвым навсегда, без шапки и без «назад».
+                Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
+              */
+              {LANGUAGES.filter(l => l.code !== language && hasVocab(l.code)).map(l => (
                 <TouchableOpacity
                   accessibilityRole="button"
                   key={l.code}

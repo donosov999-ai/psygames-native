@@ -18,7 +18,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { speakSequence, ttsAvailable, ttsCancel } from '@/src/services/tts';
 import { useTtsAvailable, useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
-import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
+import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -122,7 +122,7 @@ export default function ListeningSpanGame() {
   useEffect(() => {
     if (isPreset) return;
     AsyncStorage.getItem(TARGETLANG_KEY).then((v) => {
-      if (v && v !== language && LANGUAGES.some((l) => l.code === v)) setTargetLang(v);
+      if (v && v !== language && hasVocab(v)) setTargetLang(v);   // забытый язык без словаря не воскрешаем
     }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -268,7 +268,15 @@ export default function ListeningSpanGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('langToTrain')}</Text>
         <View style={styles.optionButtons}>
-          {LANGUAGES.filter((l) => l.code !== language).map((l) => (
+          /*
+                🔴 ПРЕДЛАГАЕМ ТОЛЬКО ТЕ ЯЗЫКИ, НА КОТОРЫХ ЕСТЬ СЛОВАРЬ.
+                Раньше выбор строился из всех двенадцати языков приложения, а
+                словарь покрывает семь: на французском игра запускалась и
+                оказывалась пустой — «выбери 1-е из 0», а в зарядке экран
+                оставался мёртвым навсегда, без шапки и без «назад».
+                Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
+              */
+              {LANGUAGES.filter((l) => l.code !== language && hasVocab(l.code)).map((l) => (
             <TouchableOpacity
               accessibilityRole="button"
               key={l.code}

@@ -9,7 +9,7 @@
  *    односимвольные пропускаются (любой одиночный иероглиф — реальное слово).
  * Каждый результат фильтруется от ВСЕХ реальных словоформ языка в словаре.
  */
-import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
+import { TRANSLATION_VOCAB, VOCAB_LANGS } from '@/src/constants/translationVocab';
 
 const VOWELS: Record<string, string> = {
   en: 'aeiou',
@@ -84,7 +84,33 @@ function swapHanzi(word: string, pool: string[]): string {
 }
 
 /** count псевдослов целевого языка; не совпадают ни с одним словом словаря. */
-export function generatePseudowords(lang: string, count: number): string[] {
+/**
+ * ЯЗЫКИ, НА КОТОРЫХ ПСЕВДОСЛОВА ПРАВДА ПОЛУЧАЮТСЯ.
+ *
+ * 🔴 ЗДЕСЬ Я ЕДВА НЕ СДЕЛАЛ ХУЖЕ. Сначала список выводился из таблиц гласных и
+ * согласных — их пять, — и хинди из выбора пропал. А проверка исполнением
+ * показала, что на хинди псевдослова СТРОЯТСЯ: у него свой путь, буквенные
+ * таблицы ему не нужны. То есть моё ограничение молча убирало рабочий язык.
+ *
+ * Поэтому список выводится не из таблиц, а из РЕЗУЛЬТАТА: язык годится, если
+ * генератор на нём правда что-то выдаёт. Так он остаётся верным при любой
+ * будущей правке внутренностей — и когда добавят таблицы, и когда добавят новый
+ * путь.
+ */
+/** Правда ли на этом языке хоть что-то получается. Отдельно — чтобы проверялось. */
+export function producesPseudowords(lang: string): boolean {
+  try {
+    return generatePseudowordsUnchecked(lang, 3).length > 0;
+  } catch { return false; }
+}
+
+export const PSEUDOWORD_LANGS: readonly string[] = VOCAB_LANGS.filter(producesPseudowords);
+
+export function hasPseudowords(lang: string): boolean {
+  return PSEUDOWORD_LANGS.includes(lang);
+}
+
+function generatePseudowordsUnchecked(lang: string, count: number): string[] {
   const words = realWords(lang);
   const realSet = new Set(words.map((w) => w.toLowerCase()));
   const hanziPool = lang === 'zh' ? Array.from(new Set(words.flatMap((w) => [...w]))) : [];
@@ -114,4 +140,9 @@ export function sampleRealWords(lang: string, count: number): string[] {
     [words[i], words[j]] = [words[j], words[i]];
   }
   return words.slice(0, count);
+}
+
+/** Публичный вход: тот же генератор, но имя не меняем ради вызывающих. */
+export function generatePseudowords(lang: string, count: number): string[] {
+  return generatePseudowordsUnchecked(lang, count);
 }
