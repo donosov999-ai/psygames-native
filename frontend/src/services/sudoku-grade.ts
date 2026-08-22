@@ -281,6 +281,9 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
       for (const byRow of [true, false]) {
         const targets = byRow ? sandwich.rows : sandwich.cols;
         for (let i = 0; i < N; i++) {
+          // ⚠️ −1 = подсказка НЕ показана (см. thinSandwich). Считать по ней нельзя:
+          // игрок её не видит, и доска, взятая через неё, была бы оценена не по той задаче.
+          if ((targets[i] as number) < 0) continue;
           const cells = line(i, byRow);
           const has = (k: number, v: number) => {
             const [rr, cc] = cells[k];
@@ -491,6 +494,34 @@ function combos(arr: number[], k: number): number[][] {
  * низ — ПОЛ («легче не выпускаем»), и именно пол чинит жалобу «34-й легче 19-го»:
  * у 34-го пол выше, чем потолок у 19-го, так что перепрыгнуть вниз уже нельзя.
  */
+/**
+ * Место уровня ВНУТРИ полосы своего варианта: 0 — первый уровень правила, 3 — последний.
+ * Полосы вариантов идут по четыре начиная с 38-го (сэндвич, термометры, стрелки, джигсо,
+ * ThermoCage); ниже 38-го считать нечего — там полоса техник и так меняется чаще.
+ */
+export function bandPos(level: number): number {
+  const lv = Math.max(1, level);
+  return lv < 38 ? 0 : (lv - 38) % 4;
+}
+
+/**
+ * Целевая полоса техник уровня.
+ *
+ * 🔴 ВЫШЕ 37-го ДВАДЦАТЬ УРОВНЕЙ БЫЛИ НЕОТЛИЧИМЫ. Полоса возвращала одно и то же
+ * `{4, 6}` на всё от 38-го до 57-го, число дырок упиралось в потолок 58 ещё на 29-м,
+ * а правило варианта меняется раз в четыре уровня. Замер по `levelConfig` + `targetTier`:
+ * на отрезке 30..57 всего СЕМЬ различимых наборов, и с 38-го внутри каждой четвёрки
+ * не отличается ровно ничего — ни клетки, ни техники, ни подсказки. Человек проходил
+ * 39-й и получал 40-й, который не отличается от него ничем, кроме номера.
+ *
+ * Лечим полосой: внутри четвёрки цель растёт от «голые пары» к «X-wing». Это не
+ * косметика — потолок ПРЯМО управляет копанием (клетка не выкалывается, если поднимает
+ * ступень выше потолка), поэтому доска действительно становится труднее.
+ *
+ * ⚠️ Пол остаётся ЦЕЛЬЮ, а не гарантией, и это написано честно: на термометрах он
+ * достижим не всегда (замер: 0 из 12 досок 45-го уровня дотянули до четвёртой ступени).
+ * Гарантируется ПОТОЛОК — доска берётся логикой и перебора не требует.
+ */
 export function targetTier(level: number): { min: number; max: number } {
   const lv = Math.max(1, level);
   if (lv <= 4) return { min: 1, max: 1 };    // 6×6, только голые одиночки
@@ -499,7 +530,8 @@ export function targetTier(level: number): { min: number; max: number } {
   if (lv <= 21) return { min: 3, max: 3 };   // связанные кандидаты
   if (lv <= 29) return { min: 3, max: 4 };   // голые пары/тройки
   if (lv <= 37) return { min: 4, max: 5 };   // скрытые пары
-  return { min: 4, max: 6 };                 // выше x-wing не поднимаемся: дальше растит сам вариант
+  // 38+: четыре ступени внутри каждой полосы варианта — 3..4, 4..5, 5..6, 6..6.
+  return [{ min: 3, max: 4 }, { min: 4, max: 5 }, { min: 5, max: 6 }, { min: 6, max: 6 }][bandPos(lv)] as { min: number; max: number };
 }
 
 /**
@@ -549,6 +581,24 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  */
 const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage'];
 
+/**
+ * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
+ * не позволяет, а прибавки к ступени после третьего прохода замер уже не показывает.
+ */
+const DIG_PASSES = 3;
+
+/** Сколько досок пробует запасной путь, прежде чем отдать лучшую по расстоянию до полосы. */
+const FALLBACK_ATTEMPTS = 6;
+
+/** Сколько заходов делает пошаговый сборщик, прежде чем отдать лучшее из найденного. */
+const BUILD_STEPS = 4;
+
+/**
+ * Сколько ждём доску, прежде чем взять лучшее из найденного. Потолок ступени этим
+ * сроком НЕ уступается — только пол: доска выше потолка логикой не берётся вовсе.
+ */
+const BUILD_WAIT_MS = 6000;
+
 /** Потолок пустых клеток на 9×9: доска в 74 дырки решается, но заполнять её долго. */
 const MAX_BLANKS_9 = 64;
 
@@ -576,7 +626,10 @@ function digByLogic(
   const parity = variant === 'evenodd' ? Array.from({ length: N }, () => Array(N).fill(0)) : undefined;
   let kropki = base.kropki;
   if (variant === 'kropki' && kropki) kropki = thinMarkers({ kropki }, level, variant, N).kropki;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich: base.sandwich };
+  // Сэндвич-подсказки прореживаем ДО копания: доска обязана проверяться ровно той
+  // задачей, которую увидит человек (см. thinSandwich).
+  const sandwich = thinSandwich(base.sandwich, level, variant);
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,
@@ -587,21 +640,34 @@ function digByLogic(
     ? blanksCap
     : (N === 9 ? MAX_BLANKS_9 : N * N);
   let dug = 0;
-  for (const p of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
-    if (dug >= cap || Date.now() > deadline) break;
-    const r = Math.floor(p / N), c = p % N;
-    const keep = puzzle[r][c];
-    puzzle[r][c] = 0;
-    if (parity) parity[r][c] = Math.random() < dens ? (sol[r][c] % 2 === 0 ? 1 : 2) : 0;
-    const g = gradePuzzle(puzzle, ctx);
-    if (!g.solved || g.tier > max) { puzzle[r][c] = keep; if (parity) parity[r][c] = 0; }
-    else dug++;
+  /**
+   * 🔴 ПРОХОДОВ НЕСКОЛЬКО, А НЕ ОДИН. Клетка, которую нельзя было убрать в начале
+   * (доска ещё не «созрела»), часто убирается позже — когда рядом уже пусто и работают
+   * другие техники. Один проход по случайному порядку останавливался на первом же
+   * плато, и доска выходила ЛЕГЧЕ своей полосы: замер по настоящим доскам показал на
+   * 42-м уровне ступени 3, 2, 3 при 26-м уровне 3, 3, 4 — то есть «сложнее» оказалось
+   * проще. Повторяем проходы, пока целый проход не перестанет убирать хоть что-нибудь.
+   */
+  for (let pass = 0; pass < DIG_PASSES; pass++) {
+    let removed = 0;
+    for (const p of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
+      if (dug >= cap || Date.now() > deadline) break;
+      const r = Math.floor(p / N), c = p % N;
+      if (puzzle[r][c] === 0) continue;   // уже выколота на прошлом проходе
+      const keep = puzzle[r][c];
+      puzzle[r][c] = 0;
+      if (parity) parity[r][c] = Math.random() < dens ? (sol[r][c] % 2 === 0 ? 1 : 2) : 0;
+      const g = gradePuzzle(puzzle, ctx);
+      if (!g.solved || g.tier > max) { puzzle[r][c] = keep; if (parity) parity[r][c] = 0; }
+      else { dug++; removed++; }
+    }
+    if (removed === 0 || dug >= cap || Date.now() > deadline) break;
   }
   // Порог — «получилась ли вообще задача», а не «дотянули ли до идеала». Доска на 30 дырок
   // это нормальное судоку; гнать её на дорогой путь ради лишних клеток не стоит: замер
   // показал 4–20 с на пазл для nonconsec именно там.
   if (dug < Math.min(cap, blanksCap, 30)) return null;
-  const gen: GeneratedPuzzle = { ...base, puzzle, parity, kropki };
+  const gen: GeneratedPuzzle = { ...base, puzzle, parity, kropki, sandwich };
   return { gen, grade: gradePuzzle(puzzle, ctx), dug };
 }
 
@@ -620,6 +686,128 @@ function digByLogic(
  * Внутри бюджета делаем несколько заходов и берём тот, что ближе к полосе уровня:
  * порядок выкалывания случайный, и от него сложность заметно пляшет.
  */
+/**
+ * СБОРКА ДОСКИ ПО ШАГАМ — чтобы экран не замирал.
+ *
+ * 🔴 ЗАЧЕМ. `generateLogical` синхронна, и на верхних уровнях она держит поток
+ * ДЕСЯТКИ СЕКУНД. Замер по настоящим доскам (Mac, 5 партий на уровень):
+ *
+ *     L38 сэндвич     худшее  0,8 с
+ *     L42 термометры  худшее  4,0 с
+ *     L50 джигсо      худшее  9,7 с
+ *     L53 джигсо      худшее 29,2 с
+ *
+ * Двадцать девять секунд человек смотрит в неподвижный экран и не знает, думает
+ * игра или повисла. Поставить рядом «идёт сборка» нельзя: состояние, поменянное
+ * перед тяжёлым циклом в том же обработчике, не доезжает до экрана.
+ *
+ * Шаг = ОДИН заход генератора. Между шагами экран получает кадр (`runSteps`),
+ * рисует строку ожидания и показывает честный номер захода. Ровно так уже собран
+ * самурай (`samuraiBuilder`) — здесь тот же шов, а не второй его экземпляр.
+ */
+/**
+ * ДОВЕСТИ ДОСКУ ДО ПОТОЛКА — последний рубеж, работающий всегда.
+ *
+ * 🔴 ЗАЧЕМ. Запасной путь пробует несколько досок и берёт лучшую, но «лучшая из
+ * плохих» всё равно бывает выше потолка: на джигсо гейт мигал именно так — то
+ * зелёный, то ступень 9 (перебор). Пока это «почти всегда», это не гарантия.
+ *
+ * Возвращаем в доску по одной клетке из решения, пока она не станет браться
+ * логикой в пределах потолка. Такое всегда достижимо: полностью заполненная
+ * доска берётся голыми одиночками, то есть первой ступенью. Цена — несколько
+ * лишних подсказок на редкой доске; плата за обратное — партия, которую нельзя
+ * решить, и человек, который не понимает, что упёрся не он.
+ */
+export function easeToCeiling(
+  gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant, max: number,
+): { gen: GeneratedPuzzle; grade: Grade } {
+  let grade = gradeOf(gen, N, BR, BC, variant);
+  if (grade.solved && grade.tier <= max) return { gen, grade };
+  const puzzle = gen.puzzle.map((row) => [...row]);
+  const blanks = shuffle(
+    Array.from({ length: N * N }, (_, i) => i).filter((i) => puzzle[Math.floor(i / N)][i % N] === 0),
+  );
+  for (const idx of blanks) {
+    const r = Math.floor(idx / N), c = idx % N;
+    puzzle[r][c] = gen.solution[r][c];
+    const next = { ...gen, puzzle };
+    grade = gradeOf(next, N, BR, BC, variant);
+    if (grade.solved && grade.tier <= max) return { gen: next, grade };
+  }
+  return { gen: { ...gen, puzzle }, grade };
+}
+
+export function logicalBuilder(
+  level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
+  opts: { budgetMs?: number; tier?: { min: number; max: number } } = {},
+): {
+  steps: number;
+  step: () => { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean };
+  enough: (r: { grade: Grade; fellBack: boolean }) => boolean;
+} {
+  const { min, max } = opts.tier ?? targetTier(level);
+  const dist = (t: number) => (t < min ? min - t : t > max ? t - max : 0);
+  const perStep = Math.max(400, Math.round((opts.budgetMs ?? 2200) / 2));
+  /**
+   * ⚠️ ОЖИДАНИЕ ТОЖЕ ИМЕЕТ ЦЕНУ. Узкая цель верхних ступеней (на последнем уровне
+   * полосы это `6..6`) достижима редко, и без этого срока сборщик честно выбирал бы
+   * все заходы до единого: замер дал 25,5 с на 50-м уровне. Доска чуть легче
+   * задуманной играется; доска, которой ждут полминуты, — нет.
+   */
+  const deadline = Date.now() + BUILD_WAIT_MS;
+  let best: { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean } | null = null;
+
+  return {
+    steps: BUILD_STEPS,
+    step: () => {
+      const r = generateLogical(level, blanksCap, N, BR, BC, variant, { budgetMs: perStep, tier: { min, max } });
+      const over = !r.grade.solved || r.grade.tier > max;
+      const bestOver = best ? (!best.grade.solved || best.grade.tier > max) : true;
+      // Доска выше потолка проигрывает любой доске в полосе — даже более далёкой от пола.
+      if (!best || (bestOver && !over) || (bestOver === over && dist(r.grade.tier) < dist(best.grade.tier))) best = r;
+      return best;
+    },
+    /**
+     * ⚠️ ПОТОЛОК — УСЛОВИЕ ОСТАНОВКИ, ПОЛ — НЕТ. Доска выше потолка логикой не
+     * берётся: её отдавать нельзя, и ради этого стоит потратить ещё заход. Доска
+     * ниже пола просто легче задуманного — она играется, и держать человека ради
+     * лишней ступени было бы хуже, чем отдать ему партию.
+     */
+    enough: (r) => r.grade.solved && r.grade.tier <= max
+      && (dist(r.grade.tier) === 0 || Date.now() > deadline),
+  };
+}
+
+/**
+ * Прореживание сэндвич-подсказок по месту уровня в полосе.
+ *
+ * 🔴 ЗАЧЕМ. Четыре уровня сэндвича (38–41) выдавали ступень 4 и только 4 — полоса
+ * техник их не разводила, потому что все восемнадцать подсказок показаны всегда и
+ * задача целиком определяется ими. Убирая часть, мы заставляем добирать остальное
+ * обычными техниками — и уровни внутри полосы наконец отличаются друг от друга.
+ *
+ * −1 значит «эта подсказка не показана»: ноль там законное значение (единица и
+ * девятка стоят рядом), поэтому отдельный признак обязателен.
+ */
+export function thinSandwich(
+  sw: { rows: number[]; cols: number[] } | undefined, level: number, variant: Variant,
+): { rows: number[]; cols: number[] } | undefined {
+  if (!sw || variant !== 'sandwich') return sw;
+  const keep = SANDWICH_KEEP[bandPos(level)] as number;
+  if (keep >= 1) return sw;
+  const hide = (line: number[]): number[] => {
+    const idx = shuffle(Array.from({ length: line.length }, (_, i) => i));
+    const drop = Math.round(line.length * (1 - keep));
+    const out = [...line];
+    for (let k = 0; k < drop; k++) out[idx[k] as number] = -1;
+    return out;
+  };
+  return { rows: hide(sw.rows), cols: hide(sw.cols) };
+}
+
+/** Доля показанных сэндвич-подсказок по месту в полосе: дальше — меньше подарков. */
+const SANDWICH_KEEP = [1, 0.78, 0.56, 0.34];
+
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
   opts: { budgetMs?: number; tier?: { min: number; max: number } } = {},
@@ -647,12 +835,47 @@ export function generateLogical(
     if (best) return { ...best, fellBack: false };
   }
 
-  // Вариант не по логическому пути (или логика не потянула) — прежний путь ядра,
-  // ровно как сегодня в проде. Пробовали ускорить его логическим пре-фильтром перед
-  // countSolutions: на nonconsec это дало доску БЕЗ ЕДИНОЙ пустой клетки — проверка
-  // единственности там упирается в бюджет шагов и откатывает каждое выкалывание.
-  const gen = thinMarkers(generatePuzzle(blanksCap, N, BR, BC, variant), level, variant, N);
+  /**
+   * Вариант не по логическому пути (или логика не потянула) — прежний путь ядра.
+   * Пробовали ускорить его логическим пре-фильтром перед countSolutions: на nonconsec
+   * это дало доску БЕЗ ЕДИНОЙ пустой клетки — проверка единственности там упирается в
+   * бюджет шагов и откатывает каждое выкалывание.
+   *
+   * 🔴 НО ПОТОЛОК ТЕПЕРЬ ДЕРЖИМ И ЗДЕСЬ. Логический путь потолок соблюдает по
+   * построению: он откатывает любое выкалывание, поднявшее ступень выше `max`. А
+   * запасной не проверял ступень ВООБЩЕ — и именно он выдавал доски, которые логикой
+   * не берутся совсем (ступень 9 = только перебор). Замер по настоящим доскам:
+   *
+   *     джигсо L50: 1 доска из 10 выше потолка — ВСЕ по запасному пути
+   *     джигсо L53: 1 из 10 — по запасному
+   *     ThermoCage L54: 1 из 10 — по запасному
+   *
+   * Трижды из трёх виноват был запасной путь. Доска, которую нельзя взять логикой, —
+   * это не «сложный уровень», а сломанная задача: игрок упирается в неё и не знает,
+   * что упёрся не он. Поэтому берём лучшую попытку из нескольких, а не первую попавшуюся.
+   */
+  const fbUntil = Date.now() + Math.max(600, Math.round(budget * 0.6));
+  let fb: { gen: GeneratedPuzzle; grade: Grade } | null = null;
+  for (let attempt = 0; attempt < FALLBACK_ATTEMPTS; attempt++) {
+    const raw = thinMarkers(generatePuzzle(blanksCap, N, BR, BC, variant), level, variant, N);
+    const g = { ...raw, sandwich: thinSandwich(raw.sandwich, level, variant) };
+    const grade = gradeOf(g, N, BR, BC, variant);
+    if (!fb || dist(grade.tier) < dist(fb.grade.tier)) fb = { gen: g, grade };
+    /**
+     * ⚠️ ПОКА ДОСКА ВЫШЕ ПОТОЛКА — ЧАСЫ НЕ АРГУМЕНТ. Первая редакция этой правки
+     * обрывалась по бюджету и всё равно отдавала ступень 9: одна попытка джигсо
+     * дороже отведённого времени, и цикл выходил после неё же. Потолок — это
+     * гарантия («доска берётся логикой»), а не пожелание; за секунду ожидания
+     * платить можно, за нерешаемую доску — нет. Пол полосы, наоборот, уступаем
+     * времени: слишком лёгкая доска играется, просто хуже.
+     */
+    const over = !fb.grade.solved || fb.grade.tier > max;
+    if (!over && (dist(fb.grade.tier) === 0 || Date.now() > fbUntil)) break;
+  }
+  // Последний рубеж: доска обязана браться логикой, даже если все заходы дали хуже.
+  const eased = easeToCeiling((fb as { gen: GeneratedPuzzle; grade: Grade }).gen, N, BR, BC, variant, max);
+  const gen = eased.gen;
   let left = 0;
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (gen.puzzle[r][c] === 0) left++;
-  return { gen, grade: gradeOf(gen, N, BR, BC, variant), dug: left, fellBack: true };
+  return { gen, grade: eased.grade, dug: left, fellBack: true };
 }
