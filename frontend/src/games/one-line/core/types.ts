@@ -132,6 +132,11 @@ export interface OneLineSession {
   vertexTrail: string[];
   edgeTrail: string[];
   hintVertexIds: string[];
+  /**
+   * Последняя подсказка сказала: отсюда фигуру уже не закрыть. Не ошибка и не
+   * проигрыш — повод откатить ходы, пока время не кончилось само.
+   */
+  hintDeadEnd: boolean;
   startedAt: number | null;
   pauseStartedAt: number | null;
   pausedMs: number;

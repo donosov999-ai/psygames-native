@@ -206,3 +206,83 @@ export function validateAuthoredSolution(
   }
   return issues;
 }
+
+/**
+ * ЧТО ДЕЛАТЬ ОТСЮДА — ОДИН ХОД, А НЕ СПИСОК СОСЕДЕЙ.
+ *
+ * 🔴 ЧЕМ БЫЛА ПЛОХА ПРЕЖНЯЯ ПОДСКАЗКА. Она подсвечивала ВСЕХ соседей, до которых
+ * ещё есть ребро. На плотной фигуре это половина доски — и, что хуже, почти все
+ * подсвеченные ходы ведут в тупик. Человек платит за подсказку и получает
+ * перечисление того, что и так видит.
+ *
+ * ⚠️ ПОЧЕМУ НЕ ПРОСТО «СЛЕДУЮЩИЙ ИЗ СОХРАНЁННОГО ПУТИ», КАК В ОБРАЗЦЕ. Там
+ * подсказка тычет в заготовленное решение и молча ломается, стоит человеку
+ * свернуть с него на первом же ходу: дальше она показывает шаги чужого маршрута.
+ * Здесь решение ищется ОТ ТЕКУЩЕГО МЕСТА — то есть работает и после того, как
+ * человек пошёл своим путём.
+ *
+ * ⚠️ И ГЛАВНОЕ, ЧЕГО У ОБРАЗЦА НЕТ ВОВСЕ: если завершить фигуру отсюда уже
+ * НЕЛЬЗЯ, это видно сразу. Сейчас человек может забрести в тупик и молотиться в
+ * него, пока не кончится время, ни разу не узнав, что проиграл двадцать ходов
+ * назад. Честный ответ «отсюда не закрыть» дороже вежливого молчания.
+ */
+export interface NextMoveHint {
+  /** Куда идти. `null` — отсюда фигуру уже не закрыть. */
+  vertexId: string | null;
+  /** Тупик: продолжения нет ни одного. */
+  deadEnd: boolean;
+}
+
+export function nextMoveFrom(
+  puzzle: OneLinePuzzle,
+  vertexTrail: readonly string[],
+  edgeTrail: readonly string[],
+  budget = 200_000,
+): NextMoveHint {
+  const from = vertexTrail[vertexTrail.length - 1];
+  if (!from) return { vertexId: null, deadEnd: false };
+
+  const counts = new Map<string, number>();
+  for (const id of edgeTrail) counts.set(id, (counts.get(id) ?? 0) + 1);
+  const remaining = totalEdgeUses(puzzle.edges) - edgeTrail.length;
+  if (remaining <= 0) return { vertexId: null, deadEnd: false };
+
+  let steps = 0;
+  let exhausted = false;
+
+  /** Есть ли ХОТЬ ОДНО завершение из этой вершины. Перебор с возвратом. */
+  const canFinish = (at: string, left: number): boolean => {
+    if (left === 0) return true;
+    if (steps++ > budget) { exhausted = true; return false; }
+    for (const edge of puzzle.edges) {
+      if (!edgeHasUsesLeft(edge, counts)) continue;
+      const to = edgeAllowsDirection(edge, at, edge.b) && edge.a === at ? edge.b
+        : edgeAllowsDirection(edge, at, edge.a) && edge.b === at ? edge.a
+          : null;
+      if (to === null) continue;
+      counts.set(edge.id, (counts.get(edge.id) ?? 0) + 1);
+      const ok = canFinish(to, left - 1);
+      counts.set(edge.id, (counts.get(edge.id) ?? 1) - 1);
+      if (ok) return true;
+    }
+    return false;
+  };
+
+  for (const edge of puzzle.edges) {
+    if (!edgeHasUsesLeft(edge, counts)) continue;
+    const to = edgeAllowsDirection(edge, from, edge.b) && edge.a === from ? edge.b
+      : edgeAllowsDirection(edge, from, edge.a) && edge.b === from ? edge.a
+        : null;
+    if (to === null) continue;
+    counts.set(edge.id, (counts.get(edge.id) ?? 0) + 1);
+    const ok = canFinish(to, remaining - 1);
+    counts.set(edge.id, (counts.get(edge.id) ?? 1) - 1);
+    if (ok) return { vertexId: to, deadEnd: false };
+  }
+
+  /**
+   * Перебор упёрся в потолок — молчим про тупик. Сказать «отсюда не закрыть», не
+   * досчитав, значит соврать; лучше не дать подсказки, чем дать ложную.
+   */
+  return { vertexId: null, deadEnd: !exhausted };
+}
