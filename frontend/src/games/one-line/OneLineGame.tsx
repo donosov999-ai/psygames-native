@@ -11,6 +11,7 @@ import {
   type AccessibilityActionEvent,
 } from 'react-native';
 import Svg, { Line, Polygon } from 'react-native-svg';
+import { sndPlace } from '@/src/services/feedback';
 import {
   edgeAllowsDirection,
   edgeHasUsesLeft,
@@ -231,6 +232,9 @@ function OneLineBoard({
   const choose = React.useCallback((vertexId: string) => {
     if (disabled || currentId === vertexId) return;
     setCursorId(vertexId);
+    // Взятое ребро отзывается тиком: у образцов каждый шаг слышно, и это половина
+    // ощущения «линия идёт». Тише звука нет — глушится общим переключателем.
+    sndPlace();
     onSelect(vertexId);
   }, [currentId, disabled, onSelect]);
 
@@ -254,6 +258,14 @@ function OneLineBoard({
    * ПЕРВОЕ КАСАНИЕ — выбор, откуда начать: тут вести ещё не по чему, поэтому
    * работает попадание в точку. Дальше в дело вступает только движение вдоль ребра.
    */
+  /**
+   * 🔴 ЛИНИИ ЗА ПАЛЬЦЕМ НЕ БЫЛО. Отрезок появлялся, только когда точка уже взята:
+   * между ними палец ехал по пустому экрану, и было непонятно, ведёт он линию или
+   * просто мажет. У образцов линия тянется за пальцем всё время — по ней и видно,
+   * что игра тебя слышит.
+   */
+  const [dragPoint, setDragPoint] = React.useState<{ x: number; y: number } | null>(null);
+
   const startAtPoint = React.useCallback((x: number, y: number) => {
     if (disabled || boardSize <= 0 || currentId) return;
     const vertex = nearestVertex(puzzle.vertices, x / boardSize, y / boardSize, 38 / boardSize);
@@ -283,16 +295,17 @@ function OneLineBoard({
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => !disabled,
     onMoveShouldSetPanResponder: () => !disabled,
-    onPanResponderGrant: (event) => selectAtPoint(
-      event.nativeEvent.locationX,
-      event.nativeEvent.locationY,
-    ),
-    onPanResponderMove: (event) => selectAtPoint(
-      event.nativeEvent.locationX,
-      event.nativeEvent.locationY,
-    ),
-    onPanResponderRelease: () => undefined,
-    onPanResponderTerminate: () => undefined,
+    onPanResponderGrant: (event) => {
+      setDragPoint({ x: event.nativeEvent.locationX, y: event.nativeEvent.locationY });
+      selectAtPoint(event.nativeEvent.locationX, event.nativeEvent.locationY);
+    },
+    onPanResponderMove: (event) => {
+      setDragPoint({ x: event.nativeEvent.locationX, y: event.nativeEvent.locationY });
+      selectAtPoint(event.nativeEvent.locationX, event.nativeEvent.locationY);
+    },
+    // Палец убрали — резинка гаснет, иначе она осталась бы висеть до следующего касания.
+    onPanResponderRelease: () => setDragPoint(null),
+    onPanResponderTerminate: () => setDragPoint(null),
     onPanResponderTerminationRequest: () => false,
   });
 
@@ -465,6 +478,20 @@ function OneLineBoard({
             />
           );
         })}
+        {/* Резинка от текущей точки к пальцу. Рисуется последней — поверх рёбер. */}
+        {(() => {
+          if (!dragPoint || !currentId) return null;
+          const from = byId.get(currentId);
+          if (!from) return null;
+          return (
+            <Line
+              x1={from.x * boardSize} y1={from.y * boardSize}
+              x2={dragPoint.x} y2={dragPoint.y}
+              stroke={theme.primary} strokeWidth={4} strokeLinecap="round"
+              strokeDasharray="7 7" opacity={0.85}
+            />
+          );
+        })()}
       </Svg>
       {puzzle.vertices.map((vertex, index) => {
         const isCurrent = currentId === vertex.id;

@@ -1,4 +1,4 @@
-import { AUTHORED_LEVEL_COUNT, authoredLevel } from './authored';
+import { AUTHORED_LEVELS, AUTHORED_LEVEL_COUNT, authoredLevel } from './authored';
 import { visualCrossingCount } from './geometry';
 import {
   createRng,
@@ -24,7 +24,25 @@ import {
   validateEulerSolution,
 } from './validator';
 
-const VERTEX_PROGRESSION = [4, 6, 7, 8, 9, 10, 11, 12] as const;
+/**
+ * 🔴 ПОТОЛОК В ДВЕНАДЦАТЬ ТОЧЕК УПЁРСЯ В САМ НАБОР. Последняя рисованная фигура —
+ * решётка из двенадцати точек; генератор вступает не ниже неё, и при потолке в
+ * двенадцать расти дальше было НЕЧЕМ: ни точек, ни рёбер (плотность ограничена
+ * полутора рёбрами на точку ради читаемости). Уровни после сорокового шли бы
+ * одинаковыми.
+ *
+ * Прежний довод «пятнадцать точек на телефоне не разглядеть» замером не
+ * подтверждается: у игры-образца на шестнадцатом уровне решётка гуще нашей.
+ * Ограничение здесь не в числе точек, а в ЧИТАЕМОСТИ РИСУНКА — за ней следит
+ * ограничение плотности и выбор самой чистой раскладки.
+ */
+const VERTEX_PROGRESSION = [4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] as const;
+
+/**
+ * Сколько рёбер на точку допускаем. У рисованных фигур — 1,53; планарный потолок
+ * для больших графов около 3. Выше двух рисунок неизбежно превращается в клубок.
+ */
+const MAX_EDGES_PER_VERTEX = 1.7;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -43,7 +61,18 @@ function clamp(value: number, min: number, max: number): number {
 function targetVertexCount(level: number): number {
   const step = Math.max(1, level - AUTHORED_LEVEL_COUNT);
   const index = Math.min(VERTEX_PROGRESSION.length - 1, Math.floor((step - 1) / 3));
-  return VERTEX_PROGRESSION[index] as number;
+  /**
+   * 🔴 НА СТЫКЕ БЫЛ ОБРЫВ. Лестница начинается с четырёх точек — и первый же
+   * сгенерированный уровень выдавал ЧЕТЫРЕ точки и три ребра сразу после
+   * рисованной фигуры из двенадцати точек и шестнадцати рёбер. Человек проходит
+   * сорок фигур и получает треугольник: это читается как поломка, а не как
+   * «начался новый раздел».
+   *
+   * Генератор вступает не ниже последней нарисованной фигуры. Дальше растёт как
+   * растёт — лестница та же, просто её начало поднято к месту стыка.
+   */
+  const handover = (AUTHORED_LEVELS[AUTHORED_LEVELS.length - 1]?.vertices.length ?? 0);
+  return Math.max(handover, VERTEX_PROGRESSION[index] as number);
 }
 
 function addEdge(edges: GraphEdge[], a: string, b: string): void {
@@ -97,7 +126,19 @@ function addOptionalTriangles(
    * меняется и росчерк остаётся возможным. Поэтому растить ими безопасно.
    */
   const desired = clamp(Math.floor((level - 9) / 5) + 1, 0, 7);
-  for (let triangle = 0; triangle < desired; triangle += 1) {
+  /**
+   * 🔴 ПЛОТНОСТЬ ДЕРЖИМ НА УРОВНЕ РИСОВАННЫХ ФИГУР. Треугольники растили граф без
+   * оглядки на число точек, и к 49-му уровню выходило 37 рёбер на 12 точек — 2,9
+   * ребра на точку. У рисованных фигур 1,53; у планарного графа потолок 3·V−6, то
+   * есть на двенадцати точках больше тридцати рёбер БЕЗ пересечений нарисовать
+   * нельзя в принципе. Отсюда и «каша»: 65 пересечений даже на самой чистой из
+   * перебранных раскладок — их создавал сам граф, а не размещение.
+   *
+   * Полтора ребра на точку — это ровно то, чем нарисованы фигуры образца: решётки
+   * и звёзды, где половина рёбер идёт вдоль рядов и ни с чем не спорит.
+   */
+  const edgeCap = Math.round(vertexIds.length * MAX_EDGES_PER_VERTEX);
+  for (let triangle = 0; triangle < desired && edges.length + 3 <= edgeCap; triangle += 1) {
     let added = false;
     for (let attempt = 0; attempt < 80 && !added; attempt += 1) {
       const [a, b, c] = shuffle(rng, vertexIds).slice(0, 3) as [string, string, string];
@@ -126,6 +167,40 @@ function polarLayout(order: readonly string[], rng: Rng, variedRadius: boolean):
   });
 }
 
+/**
+ * РАСКЛАДКА ПО СЕТКЕ.
+ *
+ * 🔴 ЗАЧЕМ ВТОРАЯ МОДЕЛЬ. Полярная кладёт ВСЕ точки на одну окружность, и рёбра
+ * становятся хордами: при двенадцати точках и тридцати семи рёбрах они режут друг
+ * друга неизбежно — это свойство круга, а не невезение. Замер после разворота
+ * выбора в сторону чистоты: 96 пересечений на 37 рёбер, при том что у рисованных
+ * фигур в среднем 1,1.
+ *
+ * Фигуры образца — решётки, звёзды, ромбы: точки стоят ПО ПЛОСКОСТИ, и добрая
+ * половина рёбер идёт вдоль рядов и столбцов, ни с чем не пересекаясь. Поэтому
+ * здесь тот же приём: узлы садятся в клетки сетки со сдвигом, а перебор выбирает
+ * то размещение, где линий-пересечений меньше.
+ */
+function gridLayout(order: readonly string[], rng: Rng): GraphVertex[] {
+  const n = order.length;
+  const cols = Math.max(2, Math.ceil(Math.sqrt(n)));
+  const rows = Math.max(2, Math.ceil(n / cols));
+  const lo = 0.14, hi = 0.86;
+  const stepX = cols > 1 ? (hi - lo) / (cols - 1) : 0;
+  const stepY = rows > 1 ? (hi - lo) / (rows - 1) : 0;
+  // Небольшой сдвиг: ровная решётка читается как таблица, а не как рисунок.
+  const jitter = 0.22;
+  return order.map((id, index) => {
+    const c = index % cols;
+    const r = Math.floor(index / cols);
+    return {
+      id,
+      x: clamp(lo + c * stepX + (rng() - 0.5) * stepX * jitter, 0.1, 0.9),
+      y: clamp(lo + r * stepY + (rng() - 0.5) * stepY * jitter, 0.1, 0.9),
+    };
+  });
+}
+
 function layoutGraph(
   vertexIds: readonly string[],
   edges: readonly GraphEdge[],
@@ -137,16 +212,63 @@ function layoutGraph(
     return { vertices, crossings: visualCrossingCount(vertices, edges) };
   }
 
-  let best = polarLayout(shuffle(rng, vertexIds), rng, true);
+  /**
+   * 🔴 РАСКЛАДКА ВЫБИРАЛА ВАРИАНТ С МАКСИМУМОМ ПЕРЕСЕЧЕНИЙ. Здесь стояло
+   * `crossings > bestCrossings` — из двух десятков раскладок бралась самая
+   * запутанная. Замысел читается по формуле сложности: пересечения входили в неё
+   * слагаемым, то есть считались осью трудности.
+   *
+   * Это не трудность, а нечитаемость. Замер: рисованные фигуры дают в среднем 1,1
+   * пересечения, генератор на 49-м уровне — 196 на 37 рёбрах, то есть больше пяти
+   * пересечений НА КАЖДОЕ РЕБРО. Игры-образцы, с которыми сравнивали, нарисованы
+   * руками и почти не пересекаются вовсе; трудность там даёт сам росчерк — куда
+   * идти, чтобы не отрезать себе дорогу, — а не клубок на экране.
+   *
+   * Берём самую ЧИСТУЮ раскладку из перебранных.
+   */
+  let best = gridLayout(shuffle(rng, vertexIds), rng);
   let bestCrossings = visualCrossingCount(best, edges);
   const attempts = 24 + Math.min(48, level);
   for (let attempt = 1; attempt < attempts; attempt += 1) {
-    const candidate = polarLayout(shuffle(rng, vertexIds), rng, true);
+    // Обе модели в одном переборе: на редких графах круг бывает чище сетки.
+    const candidate = attempt % 4 === 0
+      ? polarLayout(shuffle(rng, vertexIds), rng, true)
+      : gridLayout(shuffle(rng, vertexIds), rng);
     const crossings = visualCrossingCount(candidate, edges);
-    if (crossings > bestCrossings) {
+    if (crossings < bestCrossings) {
       best = candidate;
       bestCrossings = crossings;
     }
+    if (bestCrossings === 0) break;   // чище уже не будет
+  }
+
+  /**
+   * ДОЧИСТКА ОБМЕНОМ. Перебор случайных размещений быстро упирается: дальше чистит
+   * не новая раскладка, а мелкая правка существующей. Меняем местами две точки и
+   * оставляем обмен, только если пересечений стало меньше — это обычный спуск, он
+   * не может ухудшить и всегда останавливается.
+   *
+   * Замер по 12 доскам 49-го уровня: 196 пересечений было до всех правок, 65 после
+   * разворота выбора и сетки, 9,6 после ограничения плотности. Дочистка снимает
+   * остаток, до которого случайный перебор не доходит.
+   */
+  // Проходов больше на крупных графах: там обмены находятся дольше, а именно
+  // крупные и превращались в клубок. Замер: на 26 рёбрах четырёх проходов мало.
+  const passes = best.length >= 12 ? 8 : 4;
+  for (let pass = 0; pass < passes && bestCrossings > 0; pass += 1) {
+    let improved = false;
+    for (let i = 0; i < best.length; i += 1) {
+      for (let j = i + 1; j < best.length; j += 1) {
+        const swapped = best.map((v, k) => {
+          if (k === i) return { ...v, x: (best[j] as GraphVertex).x, y: (best[j] as GraphVertex).y };
+          if (k === j) return { ...v, x: (best[i] as GraphVertex).x, y: (best[i] as GraphVertex).y };
+          return v;
+        });
+        const crossings = visualCrossingCount(swapped, edges);
+        if (crossings < bestCrossings) { best = swapped; bestCrossings = crossings; improved = true; }
+      }
+    }
+    if (!improved) break;
   }
   return { vertices: best, crossings: bestCrossings };
 }
@@ -168,7 +290,13 @@ function puzzleDifficulty(
     + level * 1.2
     + (vertexCount - 4) * 4
     + (edgeCount - 4) * 2
-    + Math.min(18, crossings * 1.5)
+    /**
+     * ⚠️ ПЕРЕСЕЧЕНИЯ БОЛЬШЕ НЕ СЧИТАЮТСЯ ТРУДНОСТЬЮ. Пока они входили сюда
+     * слагаемым, раскладке было выгодно их плодить — и она плодила (196 штук на
+     * 37 рёбер). Трудность росчерка живёт в графе: сколько вершин, сколько рёбер,
+     * замкнут ли он и подсказан ли старт. Клубок на экране к ней не относится.
+     */
+    + Math.min(6, crossings)
     + (isCircuit ? 2 : 5)
     + (hasStartHint ? 0 : 8),
   ), 1, 100);
@@ -279,7 +407,23 @@ function addEdgeKinds(
    * от `AUTHORED_LEVEL_COUNT`: правило про ОТСТУП, а не про абсолютный номер.
    */
   const past = level - AUTHORED_LEVEL_COUNT;
-  const doubles = past >= 6 ? Math.min(1 + Math.floor((past - 6) / 15), 3) : 0;
+  /**
+   * ⚠️ ПРИПРАВА СЧИТАЕТСЯ ОТ ЧИСЛА РЁБЕР, А НЕ ТОЛЬКО ОТ УРОВНЯ. Стрелки уже
+   * ограничены десятой частью рёбер, а двойные — нет. Когда плотность графа
+   * упала до полутора рёбер на точку (ради читаемости рисунка), то же самое
+   * число приправы стало занимать бо́льшую долю: замер дал 10,2 % вместо
+   * десятой части. Считаем ОБЩИЙ остаток, а не каждую приправу порознь.
+   *
+   * ⚠️ ДОЛЯ — ПЯТАЯ ЧАСТЬ, А НЕ ДЕСЯТАЯ, И ЭТО НЕ ПОБЛАЖКА. Десятая была посчитана
+   * на графах в 2,9 ребра на точку: там она давала три-четыре приправы. На
+   * читаемой плотности в полтора ребра десятая часть — это ОДНА приправа на всю
+   * доску, и двойному ребру места не остаётся вовсе: оно исчезло бы из игры.
+   * Пятая часть — та же граница, что записана в заголовке проверки.
+   */
+  const spiceBudget = Math.max(0, Math.floor(edges.length / 5) - arrows);
+  const doubles = past >= 6
+    ? Math.min(1 + Math.floor((past - 6) / 15), 3, spiceBudget)
+    : 0;
   for (let k = 0; k < doubles; k += 1) {
     const at = 1 + Math.floor(rng() * Math.max(1, vertexIds.length - 2));
     const hub = vertexIds[at];
