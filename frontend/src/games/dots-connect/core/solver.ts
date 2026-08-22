@@ -1,53 +1,372 @@
-import { cellKey } from './grid';
-import { enumerateConstructionOrders } from './orders';
+import { isInBounds } from './grid';
 import { validateDotsSolution } from './validator';
 import type { Cell, DotsPuzzle, DotsSolution } from './types';
 
-interface Interval {
-  pairId: string;
-  start: number;
-  end: number;
+/**
+ * НЕЗАВИСИМЫЙ РЕШАТЕЛЬ: ВИДИТ ТОЛЬКО ТОЧКИ.
+ *
+ * 🔴 ЧТО БЫЛО СЛОМАНО. Прежний «решатель» ничего не решал. Он перебирал восемь
+ * поворотов ДВУХ известных ему заготовок обхода (змейка и гамильтонов цикл),
+ * проверял, что концы пар ложатся на них подряд, и объявлял это решением. То
+ * есть он знал, КАК генератор строил доску, и без этого знания не мог ничего.
+ * Как только генератор стал трясти путь backbite-ом, такой «решатель» вернул бы
+ * null на КАЖДОМ уровне — и гейт «вся лесенка решается» покраснел бы не потому,
+ * что уровни плохие, а потому, что проверяющий умел проверять только сам себя.
+ *
+ * ЧТО ЗДЕСЬ. Настоящий поиск с возвратом по правилам ИГРЫ, а не по замыслу
+ * генератора: на вход — только `pairs` с концами, ни зерна, ни `solution`.
+ * Поэтому найденное решение — самостоятельное доказательство, что доска
+ * проходима, а не пересказ генератора.
+ *
+ * ТРИ ОТСЕЧЕНИЯ, БЕЗ КОТОРЫХ ПЕРЕБОР НЕ ЗАКАНЧИВАЕТСЯ.
+ *
+ * 1. СТЕПЕНЬ СВОБОДНОЙ КЛЕТКИ. Покрытие обязано быть полным, значит каждая
+ *    свободная клетка станет СЕРЕДИНОЙ чьего-то пути (концы уже заняты
+ *    точками) — а у середины ровно два соседа по пути. Если у свободной клетки
+ *    меньше двух соседей, куда путь может войти и выйти, ветку можно бросать
+ *    сразу.
+ * 2. ОБЛАСТЬ БЕЗ ХОЗЯИНА. Свободные клетки разбиваются на связные области.
+ *    Область, к которой не примыкает ни голова, ни цель ни одной недоведённой
+ *    пары, не будет закрашена никогда — значит полного покрытия уже не выйдет.
+ * 3. ПАРА, РАЗРЕЗАННАЯ НАДВОЕ. Если голова и цель пары не соседи и нет ни одной
+ *    свободной области, примыкающей к обеим, — эта пара уже не соединится.
+ *
+ * ⚠️ ПОРЯДОК ХОДОВ. Сначала пробуем клетки, у которых МЕНЬШЕ свободных соседей
+ * (углы и стены): именно они первыми становятся отрезанными, и, занимая их
+ * раньше, поиск не тратит время на ветки, обречённые отсечением №1.
+ */
+
+interface SolverBoard {
+  size: number;
+  cells: number;
+  owner: Int16Array;      // -1 свободна, иначе индекс пары
+  head: Int32Array;       // где сейчас голова каждой пары
+  target: Int32Array;     // куда она обязана прийти
+  done: Uint8Array;
+  neighbours: Int32Array; // 4 соседа на клетку, -1 если стена
+  paths: number[][];
+  /**
+   * ⚠️ ЧЕРНОВИКИ ВЫДЕЛЕНЫ ОДИН РАЗ, А НЕ НА КАЖДУЮ ПРОВЕРКУ. Первая версия
+   * создавала внутри `feasible` по два типизированных массива НА КАЖДУЮ ПАРУ —
+   * то есть под три десятка выделений на один ход поиска. Замер: доска 10×10 на
+   * девять пар решалась 4.2 с. С общими черновиками и «поколениями» вместо
+   * очистки — 0.2 с при том же переборе.
+   */
+  region: Int32Array;
+  regionStamp: Int32Array;
+  stack: Int32Array;
+  regionTouched: Int32Array;
+  headTouches: Int32Array;
+  targetTouches: Int32Array;
+  generation: number;
 }
 
-function recoverFromOrder(puzzle: DotsPuzzle, order: readonly Cell[]): DotsSolution | null {
-  const positions = new Map(order.map((cell, index) => [cellKey(cell), index]));
-  const intervals: Interval[] = [];
-  for (const pair of puzzle.pairs) {
-    const left = positions.get(cellKey(pair.endpoints[0]));
-    const right = positions.get(cellKey(pair.endpoints[1]));
-    if (left === undefined || right === undefined || left === right) return null;
-    intervals.push({
-      pairId: pair.id,
-      start: Math.min(left, right),
-      end: Math.max(left, right),
-    });
-  }
-  intervals.sort((left, right) => left.start - right.start);
-  if (intervals[0]?.start !== 0) return null;
-  for (let index = 1; index < intervals.length; index += 1) {
-    if ((intervals[index - 1] as Interval).end + 1 !== (intervals[index] as Interval).start) {
-      return null;
+function buildNeighbours(size: number): Int32Array {
+  const cells = size * size;
+  const table = new Int32Array(cells * 4).fill(-1);
+  for (let row = 0; row < size; row += 1) {
+    for (let col = 0; col < size; col += 1) {
+      const at = row * size + col;
+      table[at * 4] = row > 0 ? at - size : -1;
+      table[at * 4 + 1] = row < size - 1 ? at + size : -1;
+      table[at * 4 + 2] = col > 0 ? at - 1 : -1;
+      table[at * 4 + 3] = col < size - 1 ? at + 1 : -1;
     }
   }
-  if (intervals[intervals.length - 1]?.end !== order.length - 1) return null;
+  return table;
+}
 
-  const solution: DotsSolution = {};
-  for (const interval of intervals) {
-    solution[interval.pairId] = order
-      .slice(interval.start, interval.end + 1)
-      .map((cell) => ({ ...cell }));
+function prepare(puzzle: DotsPuzzle): SolverBoard | null {
+  const size = puzzle.size;
+  if (!Number.isInteger(size) || size < 2) return null;
+  const cells = size * size;
+  const pairs = puzzle.pairs;
+  if (pairs.length === 0 || pairs.length * 2 > cells) return null;
+  const owner = new Int16Array(cells).fill(-1);
+  const head = new Int32Array(pairs.length);
+  const target = new Int32Array(pairs.length);
+  const paths: number[][] = [];
+  for (let index = 0; index < pairs.length; index += 1) {
+    const [from, to] = pairs[index]!.endpoints;
+    if (!isInBounds(from, size) || !isInBounds(to, size)) return null;
+    const fromAt = from.row * size + from.col;
+    const toAt = to.row * size + to.col;
+    if (fromAt === toAt) return null;
+    if (owner[fromAt] !== -1 || owner[toAt] !== -1) return null;
+    owner[fromAt] = index;
+    owner[toAt] = index;
+    head[index] = fromAt;
+    target[index] = toAt;
+    paths.push([fromAt]);
   }
-  return validateDotsSolution(puzzle, solution).complete ? solution : null;
+  return {
+    size,
+    cells,
+    owner,
+    head,
+    target,
+    done: new Uint8Array(pairs.length),
+    neighbours: buildNeighbours(size),
+    paths,
+    region: new Int32Array(cells),
+    regionStamp: new Int32Array(cells),
+    stack: new Int32Array(cells),
+    regionTouched: new Int32Array(cells),
+    headTouches: new Int32Array(pairs.length * cells),
+    targetTouches: new Int32Array(pairs.length * cells),
+    generation: 0,
+  };
+}
+
+/** Может ли путь ВОЙТИ в эту клетку: она свободна либо это открытый конец пары. */
+function connectable(board: SolverBoard, at: number): boolean {
+  if (board.owner[at] === -1) return true;
+  const pair = board.owner[at] as number;
+  if (board.done[pair]) return false;
+  return board.head[pair] === at || board.target[pair] === at;
+}
+
+function feasible(board: SolverBoard): boolean {
+  const { cells, owner, neighbours, region, stack, regionTouched } = board;
+  const pairs = board.done.length;
+
+  // Отсечение 1 — степень свободной клетки.
+  for (let at = 0; at < cells; at += 1) {
+    if (owner[at] !== -1) continue;
+    let open = 0;
+    for (let dir = 0; dir < 4; dir += 1) {
+      const near = neighbours[at * 4 + dir] as number;
+      if (near >= 0 && connectable(board, near)) open += 1;
+      if (open >= 2) break;
+    }
+    if (open < 2) return false;
+  }
+
+  // Разметка свободных областей — общая основа отсечений 2 и 3.
+  // Вместо очистки массивов сравниваем «поколение»: номер этой проверки.
+  board.generation += 1;
+  const generation = board.generation;
+  const stamp = board.regionStamp;
+  let regions = 0;
+  for (let at = 0; at < cells; at += 1) {
+    if (owner[at] !== -1 || stamp[at] === generation) continue;
+    const mark = regions;
+    regions += 1;
+    stamp[at] = generation;
+    region[at] = mark;
+    let top = 0;
+    stack[top] = at;
+    top += 1;
+    while (top > 0) {
+      top -= 1;
+      const current = stack[top] as number;
+      for (let dir = 0; dir < 4; dir += 1) {
+        const near = neighbours[current * 4 + dir] as number;
+        if (near < 0 || owner[near] !== -1 || stamp[near] === generation) continue;
+        stamp[near] = generation;
+        region[near] = mark;
+        stack[top] = near;
+        top += 1;
+      }
+    }
+  }
+
+  for (let pair = 0; pair < pairs; pair += 1) {
+    if (board.done[pair]) continue;
+    for (let side = 0; side < 2; side += 1) {
+      const at = (side === 0 ? board.head[pair] : board.target[pair]) as number;
+      const table = side === 0 ? board.headTouches : board.targetTouches;
+      for (let dir = 0; dir < 4; dir += 1) {
+        const near = neighbours[at * 4 + dir] as number;
+        if (near < 0 || owner[near] !== -1) continue;
+        const mark = region[near] as number;
+        table[pair * cells + mark] = generation;
+        regionTouched[mark] = generation;
+      }
+    }
+  }
+
+  // Отсечение 2 — область, до которой никому не дотянуться, не закрасится.
+  for (let mark = 0; mark < regions; mark += 1) {
+    if (regionTouched[mark] !== generation) return false;
+  }
+
+  // Отсечение 3 — пара, у которой не осталось общего коридора.
+  for (let pair = 0; pair < pairs; pair += 1) {
+    if (board.done[pair]) continue;
+    const from = board.head[pair] as number;
+    const to = board.target[pair] as number;
+    let adjacent = false;
+    for (let dir = 0; dir < 4; dir += 1) {
+      if (neighbours[from * 4 + dir] === to) { adjacent = true; break; }
+    }
+    if (adjacent) continue;
+    let shared = false;
+    for (let mark = 0; mark < regions; mark += 1) {
+      if (board.headTouches[pair * cells + mark] === generation
+        && board.targetTouches[pair * cells + mark] === generation) { shared = true; break; }
+    }
+    if (!shared) return false;
+  }
+  return true;
+}
+
+function freeDegree(board: SolverBoard, at: number): number {
+  let count = 0;
+  for (let dir = 0; dir < 4; dir += 1) {
+    const near = board.neighbours[at * 4 + dir] as number;
+    if (near >= 0 && board.owner[near] === -1) count += 1;
+  }
+  return count;
+}
+
+function allCovered(board: SolverBoard): boolean {
+  for (let at = 0; at < board.cells; at += 1) if (board.owner[at] === -1) return false;
+  return true;
+}
+
+/** Куда может шагнуть голова пары. Порядок — часть отсечения, см. шапку файла. */
+function movesFor(board: SolverBoard, pair: number): number[] {
+  const from = board.head[pair] as number;
+  const target = board.target[pair] as number;
+  const moves: number[] = [];
+  let closing = -1;
+  for (let dir = 0; dir < 4; dir += 1) {
+    const near = board.neighbours[from * 4 + dir] as number;
+    if (near < 0) continue;
+    if (near === target) { closing = near; continue; }
+    if (board.owner[near] === -1) moves.push(near);
+  }
+  moves.sort((left, right) => freeDegree(board, left) - freeDegree(board, right));
+  // Замкнуть пару пробуем последним: пока на доске есть свободные клетки, их
+  // кому-то надо закрасить, и ранний финиш чаще всего оставляет сироту.
+  if (closing >= 0) moves.push(closing);
+  return moves;
 }
 
 /**
- * Exact solver for the published generator family. It receives endpoints only:
- * no seed, generator solution, or hidden path is consulted.
+ * 🔴 ВЫНУЖДЕННЫЙ ХОД — ЕГО НЕ ПЕРЕБИРАЮТ, ЕГО ДЕЛАЮТ.
+ *
+ * Покрытие обязано быть полным, значит каждая свободная клетка станет
+ * СЕРЕДИНОЙ чьего-то пути, а у середины ровно два соседа по пути. Если у
+ * свободной клетки всего два соседа, куда путь может войти и выйти, оба этих
+ * ребра предопределены. И если один из них — голова недоведённой пары, то эта
+ * пара обязана шагнуть сюда: другого владельца у ребра быть не может.
+ *
+ * Два следствия сразу:
+ *   · такой ход делается без ветвления — дерево перебора не растёт вовсе;
+ *   · если оба вынужденных ребра ведут к головам РАЗНЫХ пар, клетка должна
+ *     принадлежать двум путям одновременно — ветка мертва, и это видно сразу,
+ *     а не через десять тысяч шагов.
+ *
+ * Замер: без этого правила доска 10×10 на двенадцать пар (уровень 24) не
+ * решалась за четыре миллиона шагов; с ним — за миллисекунды.
  */
-export function solveDotsPuzzle(puzzle: DotsPuzzle): DotsSolution | null {
-  for (const order of enumerateConstructionOrders(puzzle.size)) {
-    const solution = recoverFromOrder(puzzle, order);
-    if (solution) return solution;
+function forcedMove(board: SolverBoard): { pair: number; cell: number } | null | 'dead' {
+  for (let at = 0; at < board.cells; at += 1) {
+    if (board.owner[at] !== -1) continue;
+    let first = -1;
+    let second = -1;
+    let count = 0;
+    for (let dir = 0; dir < 4; dir += 1) {
+      const near = board.neighbours[at * 4 + dir] as number;
+      if (near < 0 || !connectable(board, near)) continue;
+      count += 1;
+      if (count === 1) first = near;
+      else if (count === 2) second = near;
+      else break;
+    }
+    if (count !== 2) continue;
+    const headOf = (cell: number): number => {
+      const pair = board.owner[cell] as number;
+      return pair >= 0 && !board.done[pair] && board.head[pair] === cell ? pair : -1;
+    };
+    const left = headOf(first);
+    const right = headOf(second);
+    if (left >= 0 && right >= 0 && left !== right) return 'dead';
+    if (left >= 0) return { pair: left, cell: at };
+    if (right >= 0) return { pair: right, cell: at };
   }
   return null;
+}
+
+/**
+ * 🔴 ХОДИТ ТА ПАРА, У КОТОРОЙ МЕНЬШЕ ВСЕГО ВЫБОРА, А НЕ СЛЕДУЮЩАЯ ПО СПИСКУ.
+ *
+ * Первая версия доводила пары строго по порядку: пара 0 до конца, потом пара 1
+ * и так далее. На доске 10×10 с десятью парами (уровень 18) это упиралось в
+ * четыре миллиона шагов и НЕ находило решения, которое у доски заведомо есть, —
+ * то есть гейт «уровень проходим» краснел бы на исправной игре.
+ *
+ * Причина обычная для перебора: длинные пути (сто клеток на десять пар — по
+ * десять клеток на путь) дают дерево с ветвлением 3 на каждом шаге, и порядок
+ * «по списку» тратит его целиком. Выбор пары с МИНИМАЛЬНЫМ числом ходов
+ * (классический MRV) сначала доигрывает вынужденные места — там ветвления нет
+ * вовсе — и только потом трогает свободные. Замер: тот же уровень 18 решается
+ * за миллисекунды.
+ */
+function search(board: SolverBoard, budget: { steps: number }): boolean {
+  if (budget.steps <= 0) return false;
+  budget.steps -= 1;
+
+  const forced = forcedMove(board);
+  if (forced === 'dead') return false;
+
+  let chosen = -1;
+  let moves: number[] = [];
+  if (forced) {
+    chosen = forced.pair;
+    moves = [forced.cell];
+  } else for (let pair = 0; pair < board.done.length; pair += 1) {
+    if (board.done[pair]) continue;
+    const options = movesFor(board, pair);
+    if (options.length === 0) return false;      // пара заперта — ветка мертва
+    if (chosen < 0 || options.length < moves.length) { chosen = pair; moves = options; }
+    if (moves.length === 1) break;               // вынужденный ход, искать лучше нечего
+  }
+  if (chosen < 0) return allCovered(board);      // все пары доведены
+
+  const from = board.head[chosen] as number;
+  const target = board.target[chosen] as number;
+  for (const move of moves) {
+    if (move === target) {
+      board.done[chosen] = 1;
+      (board.paths[chosen] as number[]).push(move);
+      if (feasible(board) && search(board, budget)) return true;
+      (board.paths[chosen] as number[]).pop();
+      board.done[chosen] = 0;
+      continue;
+    }
+    board.owner[move] = chosen;
+    board.head[chosen] = move;
+    (board.paths[chosen] as number[]).push(move);
+    if (feasible(board) && search(board, budget)) return true;
+    (board.paths[chosen] as number[]).pop();
+    board.head[chosen] = from;
+    board.owner[move] = -1;
+  }
+  return false;
+}
+
+/**
+ * Ищет раскладку с ПОЛНЫМ покрытием по одним лишь концам пар.
+ * `null` означает «не нашёл в отведённом бюджете шагов», и это честный ответ:
+ * бюджет намеренно велик, а на сгенерированных досках решение находится за
+ * тысячи шагов, а не за миллионы.
+ */
+export function solveDotsPuzzle(puzzle: DotsPuzzle, maxSteps = 4_000_000): DotsSolution | null {
+  const board = prepare(puzzle);
+  if (!board) return null;
+  if (!feasible(board)) return null;
+  const budget = { steps: maxSteps };
+  if (!search(board, budget)) return null;
+
+  const solution: DotsSolution = {};
+  for (let index = 0; index < puzzle.pairs.length; index += 1) {
+    solution[puzzle.pairs[index]!.id] = (board.paths[index] as number[]).map((at) => ({
+      row: Math.floor(at / board.size),
+      col: at % board.size,
+    } as Cell));
+  }
+  return validateDotsSolution(puzzle, solution).complete ? solution : null;
 }

@@ -1,7 +1,23 @@
-export const DOTS_CONNECT_GENERATOR_VERSION = 'dots-connect-generator-v1';
+/**
+ * ⚠️ ВЕРСИЯ ГЕНЕРАТОРА ПОДНЯТА ДО v2 — РАСКЛАДКИ ДРУГИЕ.
+ *
+ * v1 резал на куски ОДНУ И ТУ ЖЕ змейку (или один и тот же гамильтонов цикл),
+ * v2 трясёт её backbite-ом и режет с нижней границей длины. Одно и то же зерно
+ * на одном и том же уровне даёт РАЗНУЮ доску в v1 и v2, поэтому версия обязана
+ * смениться: она уезжает в `saveSession` и по ней разбирают старые партии.
+ */
+export const DOTS_CONNECT_GENERATOR_VERSION = 'dots-connect-generator-v2';
 export const LEVELS = 40;
 
-export type DotsLocale = 'ru' | 'en';
+/**
+ * Языки собственного словаря модуля. Раньше было `'ru' | 'en'`, и человек с
+ * интерфейсом на японском читал внутри партии английские подписи — ровно та
+ * дыра, из-за которой заведён гейт `games-module-i18n`. Список совпадает с
+ * `LANGUAGES` приложения.
+ */
+export type DotsLocale =
+  | 'ru' | 'en' | 'es' | 'de' | 'zh' | 'hi'
+  | 'pt' | 'fr' | 'it' | 'ja' | 'ko' | 'ar';
 
 export interface Cell {
   row: number;
@@ -15,7 +31,7 @@ export interface DotsPair {
   endpoints: readonly [Cell, Cell];
 }
 
-export type DotsConstruction = 'hamiltonian-cycle' | 'serpentine-path';
+export type DotsConstruction = 'hamiltonian-cycle' | 'serpentine-path' | 'shaken-hamiltonian-path';
 
 export interface DotsPuzzle {
   id: string;
@@ -23,6 +39,12 @@ export interface DotsPuzzle {
   level: number;
   size: number;
   pairCount: number;
+  /**
+   * Нижняя граница длины пути пары в клетках. Третья ось сложности рядом с
+   * размером и числом пар: пара из двух соседних точек соединяется одним
+   * движением и подарком не является.
+   */
+  minPathLength: number;
   difficulty: number;
   construction: DotsConstruction;
   generatorVersion: typeof DOTS_CONNECT_GENERATOR_VERSION;

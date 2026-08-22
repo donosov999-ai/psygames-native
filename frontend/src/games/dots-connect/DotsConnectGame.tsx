@@ -524,6 +524,10 @@ function DotsConnectSession({
   }
 
   const puzzle = getCurrentPuzzle(session);
+  const covered = coveredCellCount(session);
+  const total = puzzle.size * puzzle.size;
+  // Округляем ВНИЗ: 99.6% обязаны читаться как 99, а не как «100, но не принято».
+  const coveragePercent = Math.floor((covered / total) * 100);
   const training = session.phase === 'training' || session.phase === 'training-complete';
   const trainingComplete = session.phase === 'training-complete';
   const roundLabel = training
@@ -550,6 +554,38 @@ function DotsConnectSession({
         ) : null}
       </View>
       {training ? <Text style={[styles.trainingHint, { color: theme.textSecondary }]}>{strings.trainingHint}</Text> : null}
+      {/*
+        🔴 СЧЁТЧИКИ НАД ДОСКОЙ — «ХОДЫ» И «ПОКРЫТИЕ».
+        Пока их не было, главное правило игры не было видно НИГДЕ во время
+        партии: соединив все пары и оставив дырки, человек просто продолжал
+        сидеть перед доской, на которой «вроде всё соединено», и не понимал,
+        почему уровень не засчитан. Покрытие в процентах показывает ровно то
+        условие, по которому партия закрывается (см. validateDotsSolution:
+        `complete` требует occupied.size === totalCells), а счётчик ходов —
+        цену, которой это далось.
+        `accessibilityLiveRegion` — чтобы озвучка проговаривала рост покрытия:
+        для незрячего это единственный способ понять, что дырки ещё есть.
+      */}
+      <View style={styles.hudRow} accessibilityLiveRegion="polite">
+        <Text style={[styles.hudItem, { color: theme.textSecondary }]}>
+          {strings.hudMoves}{' '}
+          <Text style={[styles.hudValue, { color: theme.text }]}>{session.forwardMoves}</Text>
+        </Text>
+        <Text style={[styles.hudItem, { color: theme.textSecondary }]}>
+          {strings.hudCoverage}{' '}
+          <Text style={[styles.hudValue, { color: covered === total ? theme.success : theme.text }]}>
+            {coveragePercent}%
+          </Text>
+        </Text>
+      </View>
+      {/* Полоска — та же величина глазами: «сколько ещё пусто» читается быстрее числа. */}
+      <View style={[styles.hudTrack, { backgroundColor: theme.border }]}>
+        <View style={[
+          styles.hudFill,
+          { width: `${coveragePercent}%`, backgroundColor: covered === total ? theme.success : theme.primary },
+        ]} />
+      </View>
+      <Text style={[styles.hudGoal, { color: theme.textSecondary }]}>{strings.hudGoal}</Text>
       <DotsBoard
         key={`${puzzle.id}:${trainingComplete ? 'complete' : 'active'}`}
         session={session}
@@ -608,6 +644,12 @@ const styles = StyleSheet.create({
   gameTitle: { fontSize: 17, fontWeight: '900' },
   round: { fontSize: 13, fontWeight: '700', marginTop: 2 },
   trainingHint: { fontSize: 14, textAlign: 'center' },
+  hudRow: { width: '100%', flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 18 },
+  hudItem: { fontSize: 14, fontWeight: '600' },
+  hudValue: { fontSize: 17, fontWeight: '900' },
+  hudTrack: { width: '100%', maxWidth: 620, alignSelf: 'center', height: 6, borderRadius: 999, overflow: 'hidden' },
+  hudFill: { height: '100%', borderRadius: 999 },
+  hudGoal: { fontSize: 12, textAlign: 'center' },
   board: { width: '100%', maxWidth: 620, alignSelf: 'center', aspectRatio: 1, borderWidth: 2, borderRadius: 18, overflow: 'hidden' },
   boardRow: { flex: 1, flexDirection: 'row' },
   cell: { flex: 1, aspectRatio: 1, borderWidth: 0.5, alignItems: 'center', justifyContent: 'center' },
