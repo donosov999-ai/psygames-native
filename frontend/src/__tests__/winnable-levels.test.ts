@@ -20,6 +20,7 @@ import { SPRITE_COUNT } from '@/src/constants/pairThemes';
 import { levelCfg } from '@/app/games/picture-pairs';
 import { levelParams, answerChoices } from '@/app/games/quick-count';
 import { maxGridFor } from '@/app/games/schulte';
+import { emoLangFor, emoWordsFor, makeTrial, EMO_LANGS } from '@/app/games/stroop-emotional';
 import { SCRIPTS, SCRIPT_IDS } from '@/src/constants/scripts';
 
 declare const __dirname: string;
@@ -173,5 +174,64 @@ describe('🔴 потолок Шульте доезжает до кнопок в
   it('и выбранный размер подрезается при смене режима или алфавита', () => {
     expect(screen).toMatch(/const cap = maxSizeFor\(contentMode\)/);
     expect(screen).toMatch(/gridSize > cap\) setGridSize\(cap\)/);
+  });
+});
+
+describe('«Эмоциональный Струп»: игра не падает ни на одном языке', () => {
+  /**
+   * 🔴 ПАДАЛА ПРИ СТАРТЕ НА ДЕСЯТИ ЯЗЫКАХ ИЗ ДВЕНАДЦАТИ. Наборы слов есть только
+   * для русского и английского, а язык приходил из `useLanguage() as any` —
+   * приведение заглушило компилятор, и на французском набор оказывался
+   * `undefined`. Выбор случайного слова из `undefined` роняет экран.
+   */
+  const ALL = ['ru', 'en', 'es', 'de', 'zh', 'hi', 'pt', 'fr', 'it', 'ja', 'ko', 'ar'];
+
+  it('🔴 для любого языка приложения находится рабочий набор слов', () => {
+    for (const lang of ALL) {
+      expect(`${lang} → ${emoLangFor(lang)}`).toBe(`${lang} → ${EMO_LANGS.includes(lang as never) ? lang : 'en'}`);
+      expect(EMO_LANGS).toContain(emoLangFor(lang));
+    }
+  });
+
+  it('🔴 слова находятся для КАЖДОГО языка и каждой окраски', () => {
+    const bad: string[] = [];
+    for (const lang of ALL) {
+      for (const valence of ['threat', 'positive', 'neutral'] as const) {
+        const words = emoWordsFor(valence, lang);
+        if (!Array.isArray(words) || words.length < 5) bad.push(`${lang}/${valence}: ${words?.length ?? 'нет'}`);
+      }
+    }
+    expect(bad.slice(0, 5)).toEqual([]);
+  });
+
+  it('🔴 САМА ПРОБА собирается на любом языке и не падает', () => {
+    const bad: string[] = [];
+    for (const lang of ALL) {
+      for (const ratio of [0, 0.5, 1]) {
+        for (let i = 0; i < 20; i += 1) {
+          try {
+            const tr = makeTrial(lang, ratio);
+            if (!tr.word || typeof tr.word !== 'string') bad.push(`${lang}: слова нет`);
+          } catch (e) { bad.push(`${lang}: упало — ${String(e).slice(0, 40)}`); }
+        }
+      }
+    }
+    expect(bad.slice(0, 3)).toEqual([]);
+  });
+
+  it('поддержанные языки не подменяются', () => {
+    for (const lang of EMO_LANGS) expect(emoLangFor(lang)).toBe(lang);
+  });
+
+  it('мусор на входе экран не роняет', () => {
+    expect(EMO_LANGS).toContain(emoLangFor(''));
+    expect(EMO_LANGS).toContain(emoLangFor('не-язык'));
+  });
+
+  it('🔴 подмена языка названа игроку, а не сделана молча', () => {
+    const screen = read('../../app/games/stroop-emotional.tsx')
+      .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+    expect(screen).toMatch(/emoLangFor\(language\) !== language/);
+    expect(screen).toMatch(/stroopEmoLangFallback/);
   });
 });

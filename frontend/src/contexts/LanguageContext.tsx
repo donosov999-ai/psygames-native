@@ -2187,6 +2187,7 @@ const translations: Translations = {
   stroopPass: { ru: 'Проход уровня: точность ≥85% (не успел ответить = ошибка)', en: 'To pass: ≥85% accuracy (missing the response window counts as an error)' },
   stroopEmoLvlParams: { ru: '{n} слов · окно ответа {w} с · эмоциональных слов {p}%', en: '{n} words · {w} s to answer · {p}% emotional words' },
   stroopEmoPass: { ru: 'Проход уровня: назвать цвет верно в ≥80% слов (не успел — ошибка)', en: 'To pass: name the ink color correctly on ≥80% of words (timeout counts as an error)' },
+  stroopEmoLangFallback: { ru: "Заряженные слова есть пока только по-русски и по-английски — проба пойдёт на английских. Если язык вам незнаком, это будет обычный Струп.", en: "Charged words exist only in Russian and English for now — the run will use English. If you do not read it, this becomes a plain Stroop." },
   posnerLvlParams: { ru: '{n} проб · подсказка верна ~{p}% · окно ответа {w} с', en: '{n} trials · cue valid ~{p}% · {w} s response window' },
   antLvlParams: { ru: '{n} проб · конфликтных ~{p}% · окно ответа {w} с · паузы всё непредсказуемее', en: '{n} trials · ~{p}% conflict · {w} s response window · less predictable pauses' },
   switchLvlParams: { ru: '{n} проб · переключений ~{p}% · окно ответа {w} с', en: '{n} trials · ~{p}% switches · {w} s response window' },
