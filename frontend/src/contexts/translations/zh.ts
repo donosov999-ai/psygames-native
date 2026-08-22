@@ -1224,6 +1224,7 @@ const t: Record<string, string> = {
   "sudokuRuleEvenodd": "□ 表示偶数，○ 表示奇数：形状提示奇偶。",
   "sudokuRuleKropki": "白点：两格相差 1。黑点：一格是另一格的两倍。",
   "sudokuRuleSandwich": "边上的数字是该行（列）中数字 1 所在格与数字 9 所在格之间各数之和。1 和 9 本身不计入。零表示两者相邻。",
+  "sudokuWhyNotLocal": "这个数字与相邻格并不直接冲突，但这一格应填另一个数。请通盘看这一行、这一列和这个宫。",
   "sudokuRuleThermo": "沿温度计从球端起数字严格递增。",
   "sudokuRuleArrow": "箭头上数字之和等于圆圈中的数。",
   "sudokuRuleThermocage": "两条规则同时生效：沿温度计从球端起数字严格递增；在彩色笼子里，数字之和等于角上的数，且不重复。",

@@ -1224,6 +1224,7 @@ const t: Record<string, string> = {
   "sudokuRuleEvenodd": "□ — dígito par, ○ — impar: la forma revela la paridad.",
   "sudokuRuleKropki": "Punto blanco entre celdas: consecutivos (±1). Punto negro: uno es el doble del otro.",
   "sudokuRuleSandwich": "El número del borde es la suma de las cifras situadas ENTRE la casilla con el 1 y la casilla con el 9 de esa línea. El 1 y el 9 no se cuentan. Cero significa que están juntos.",
+  "sudokuWhyNotLocal": "Esta cifra no choca directamente con sus vecinas, pero aquí va otra. Mira la fila, la columna y el cuadro enteros.",
   "sudokuRuleThermo": "A lo largo del termómetro los dígitos crecen estrictamente desde el bulbo.",
   "sudokuRuleArrow": "Los dígitos a lo largo de la flecha suman el número del círculo.",
   "sudokuRuleThermocage": "Dos reglas a la vez: a lo largo del termómetro los dígitos crecen estrictamente desde el bulbo, y dentro de una jaula de color suman el número de su esquina sin repetirse.",

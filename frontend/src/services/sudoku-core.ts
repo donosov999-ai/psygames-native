@@ -577,15 +577,71 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
  * Если цифра проходит по строке, столбцу и боксу, но не совпала с решением —
  * значит её отвергло ДОПОЛНИТЕЛЬНОЕ правило варианта, и назвать его обязаны мы.
  */
+export interface RejectionContext {
+  regions?: number[][];
+  thermo?: ThermoPN;
+  arrow?: ArrowMap;
+  cages?: CageMap;
+  parity?: number[][];
+  kropki?: { h: number[][]; v: number[][] };
+}
+
 export function rejectionReason(
   grid: Cell[][], r: number, c: number, n: number, N: number, BR: number, BC: number,
-  variant: Variant, lang: string,
+  variant: Variant, lang: string, ctx: RejectionContext = {},
 ): string {
-  if (variant === 'none') return '';
-  // Базовое правило нарушено — конфликт человек видит сам, подсвечен на доске.
   const test = grid.map((row) => [...row]);
   test[r][c] = 0;
+
+  // 1. Базовое правило нарушено — конфликт человек видит сам, доска его подсвечивает.
   if (!isValid(test, r, c, n, N, BR, BC, 'none')) return '';
-  // Прошло по строке/столбцу/боксу — значит отказало правило варианта. Его и называем.
-  return variantRule(variant, lang);
+
+  // 2. Правило варианта нарушено ДОКАЗУЕМО — вот теперь называем именно его.
+  if (variant !== 'none') {
+    if (!isValid(test, r, c, n, N, BR, BC, variant, ctx.regions, ctx.thermo, ctx.arrow, ctx.cages)) {
+      return variantRule(variant, lang);
+    }
+    // Метки движок не проверяет — проверяем здесь, руками и точно.
+    if (variant === 'evenodd' && ctx.parity) {
+      const mark = ctx.parity[r]?.[c] ?? 0;                       // 1 = чёт, 2 = нечет, 0 = метки нет
+      if ((mark === 1 && n % 2 !== 0) || (mark === 2 && n % 2 === 0)) return variantRule(variant, lang);
+    }
+    if (variant === 'kropki' && ctx.kropki) {
+      const okDot = (dot: number, a: number, b: number): boolean => {
+        if (dot === 1) return Math.abs(a - b) === 1;              // белая: разница в единицу
+        if (dot === 2) return a === b * 2 || b === a * 2;         // чёрная: вдвое
+        return true;                                              // точки нет — ограничения нет
+      };
+      const near: [number, number, number][] = [
+        [r, c - 1, ctx.kropki.h[r]?.[c - 1] ?? 0],
+        [r, c + 1, ctx.kropki.h[r]?.[c] ?? 0],
+        [r - 1, c, ctx.kropki.v[r - 1]?.[c] ?? 0],
+        [r + 1, c, ctx.kropki.v[r]?.[c] ?? 0],
+      ];
+      for (const [nr, nc, dot] of near) {
+        const other = test[nr]?.[nc] ?? 0;
+        if (dot && other && !okDot(dot, n, other)) return variantRule(variant, lang);
+      }
+    }
+  }
+
+  /**
+   * 3. ДОКАЗАТЬ ВИНУ НЕЧЕМ — И ТОГДА МЫ ЕЁ НЕ ПРИПИСЫВАЕМ.
+   *
+   * 🔴 ПЕРВАЯ РЕДАКЦИЯ ЭТОЙ ФУНКЦИИ ВРАЛА. Она рассуждала так: «цифра прошла по
+   * строке, столбцу и боксу — значит виноват вариант». Это неверно: цифра может
+   * быть законной по ВСЕМ правилам и просто не совпадать с решением, потому что
+   * в этой клетке стоит другая по цепочке выводов. Замер разбора 22.08.2026:
+   * ложных обвинений в сэндвиче 100 %, кропки 95,7 %, термометре 95,2 %,
+   * джигсо 91,9 %. Человек терял жизнь и читал «нарушено правило сэндвича» там,
+   * где сэндвич эту цифру РАЗРЕШАЕТ.
+   *
+   * Уверенно неправильное объяснение хуже молчания: молчание человек спишет на
+   * скупость игры, а ложное обвинение — на её глупость, и перестанет верить всем
+   * подсказкам разом.
+   *
+   * Поэтому здесь честный ответ: конфликт есть, но он НЕ МЕСТНЫЙ — соседей
+   * проверять бесполезно, надо смотреть строку, столбец и квадрат целиком.
+   */
+  return translateFor(lang, 'sudokuWhyNotLocal');
 }

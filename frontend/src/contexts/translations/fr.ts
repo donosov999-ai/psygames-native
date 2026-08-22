@@ -1341,6 +1341,7 @@ const t: Record<string, string> = {
   "sudokuRuleEvenodd": "□ — chiffre pair, ○ — impair : la forme révèle la parité.",
   "sudokuRuleKropki": "Point blanc entre cases : consécutifs (±1). Point noir : l’un est le double de l’autre.",
   "sudokuRuleSandwich": "Le nombre au bord est la somme des chiffres situés ENTRE la case du 1 et la case du 9 de cette ligne. Le 1 et le 9 ne comptent pas. Zéro signifie qu’ils sont côte à côte.",
+  "sudokuWhyNotLocal": "Ce chiffre n’entre pas directement en conflit avec ses voisins, mais c’est un autre qui va ici. Regarde la ligne, la colonne et le bloc en entier.",
   "sudokuRuleThermo": "Le long du thermomètre, les chiffres croissent strictement depuis le bulbe.",
   "sudokuRuleArrow": "Les chiffres le long de la flèche totalisent le nombre du cercle.",
   "sudokuRuleThermocage": "Deux règles à la fois : le long du thermomètre les chiffres croissent strictement depuis le bulbe, et dans une cage colorée ils totalisent le nombre de son coin sans se répéter.",
