@@ -1,3 +1,4 @@
+import { authoredLevel } from './authored';
 import { visualCrossingCount } from './geometry';
 import {
   createRng,
@@ -14,6 +15,8 @@ import {
   type OneLinePuzzle,
 } from './types';
 import {
+  edgeAllowsDirection,
+  edgeHasUsesLeft,
   edgeKey,
   findEulerTrail,
   validateEulerGraph,
@@ -153,9 +156,62 @@ function puzzleDifficulty(
   ), 1, 100);
 }
 
+/**
+ * РИСОВАННЫЙ УРОВЕНЬ ИДЁТ ПЕРВЫМ, ГЕНЕРАТОР ПОДХВАТЫВАЕТ ДАЛЬШЕ.
+ *
+ * Первые двенадцать уровней — фигуры руками (домик, конверт, звезда, ключ): их
+ * человек узнаёт и запоминает, а генератор такого не даёт — правильный граф это
+ * ещё не рисунок. Кончились рисованные — дальше бесконечно считает генератор.
+ *
+ * ⚠️ ФИГУРА НЕ ЗАВИСИТ ОТ ЗЕРНА. Один и тот же номер уровня — одна и та же
+ * фигура у всех: иначе «тот, где звезда» перестаёт быть общим языком, и разговор
+ * про уровень теряет смысл. Зерно продолжает решать всё, что дальше двенадцатого.
+ */
+function authoredPuzzle(level: number, seed: string): GeneratedOneLinePuzzle | null {
+  const authored = authoredLevel(level);
+  if (!authored) return null;
+  const draft: OneLinePuzzle = {
+    id: `one-line:authored:${authored.shape}`,
+    seed,
+    level,
+    difficulty: 1,
+    vertices: authored.vertices,
+    edges: authored.edges,
+    visualCrossings: visualCrossingCount(authored.vertices, authored.edges),
+    isCircuit: authored.solution[0] === authored.solution[authored.solution.length - 1],
+    startHintVertexId: level <= 3 ? (authored.solution[0] ?? null) : null,
+    generatorVersion: ONE_LINE_GENERATOR_VERSION,
+  };
+  const edgeIds: string[] = [];
+  for (let step = 1; step < authored.solution.length; step += 1) {
+    const from = authored.solution[step - 1] as string;
+    const to = authored.solution[step] as string;
+    const taken = new Map<string, number>();
+    for (const id of edgeIds) taken.set(id, (taken.get(id) ?? 0) + 1);
+    const edge = draft.edges.find((candidate) => (
+      edgeAllowsDirection(candidate, from, to) && edgeHasUsesLeft(candidate, taken)
+    ));
+    if (edge) edgeIds.push(edge.id);
+  }
+  return {
+    ...draft,
+    difficulty: puzzleDifficulty(
+      level,
+      draft.vertices.length,
+      draft.edges.length,
+      draft.visualCrossings,
+      draft.isCircuit,
+      draft.startHintVertexId !== null,
+    ),
+    solution: { vertexIds: authored.solution, edgeIds },
+  };
+}
+
 export function generateOneLinePuzzle(seed: string, requestedLevel: number): GeneratedOneLinePuzzle {
   const normalizedSeed = normalizeSeed(seed);
   const level = Math.max(1, Math.floor(requestedLevel));
+  const authored = authoredPuzzle(level, normalizedSeed);
+  if (authored) return authored;
   const rng = createRng(`${normalizedSeed}:${level}:${ONE_LINE_GENERATOR_VERSION}`);
   const vertexIds = ['v0', 'v1', 'v2', 'v3'];
   const edges: GraphEdge[] = [];

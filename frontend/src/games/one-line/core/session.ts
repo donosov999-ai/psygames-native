@@ -7,7 +7,14 @@ import type {
   OneLineSession,
   OneLineSessionConfig,
 } from './types';
-import { validateEulerGraph, validateEulerSolution } from './validator';
+import {
+  edgeAllowsDirection,
+  edgeHasUsesLeft,
+  edgeUseCounts,
+  totalEdgeUses,
+  validateEulerGraph,
+  validateEulerSolution,
+} from './validator';
 
 function isDrawingPhase(phase: OneLineSession['phase']): phase is OneLineDrawingPhase {
   return phase === 'training' || phase === 'playing';
@@ -73,21 +80,26 @@ function invalidMove(session: OneLineSession): OneLineSession {
   return { ...session, invalidMoves: session.invalidMoves + 1 };
 }
 
+/**
+ * Каким ребром можно пройти отсюда туда. Учитывает и остаток проходов (двойное
+ * ребро закрывается только со второго раза), и направление (по одностороннему
+ * назад хода нет вовсе).
+ */
 function edgeBetween(
   puzzle: OneLinePuzzle,
   from: string,
   to: string,
-  used: ReadonlySet<string>,
+  counts: ReadonlyMap<string, number>,
 ): string | null {
   return puzzle.edges.find((edge) => (
-    !used.has(edge.id)
-    && ((edge.a === from && edge.b === to) || (edge.a === to && edge.b === from))
+    edgeHasUsesLeft(edge, counts) && edgeAllowsDirection(edge, from, to)
   ))?.id ?? null;
 }
 
 function finishIfComplete(session: OneLineSession, now: number): OneLineSession {
   const puzzle = getCurrentOneLinePuzzle(session);
-  if (session.edgeTrail.length !== puzzle.edges.length) return session;
+  // Считаем ПРОХОДЫ, а не рёбра: двойное закрывается только со второго раза.
+  if (session.edgeTrail.length !== totalEdgeUses(puzzle.edges)) return session;
   if (!validateEulerSolution(puzzle, {
     vertexIds: session.vertexTrail,
     edgeIds: session.edgeTrail,
@@ -137,7 +149,7 @@ export function selectOneLineVertex(
 
   const from = session.vertexTrail[session.vertexTrail.length - 1] as string;
   if (from === vertexId) return session;
-  const edgeId = edgeBetween(puzzle, from, vertexId, new Set(session.edgeTrail));
+  const edgeId = edgeBetween(puzzle, from, vertexId, edgeUseCounts(session.edgeTrail));
   if (!edgeId) return invalidMove(session);
   return finishIfComplete({
     ...session,
@@ -158,11 +170,12 @@ export function hintOneLineMove(session: OneLineSession): OneLineSession {
       : puzzle.vertices.filter((vertex) => (validation.degrees[vertex.id] ?? 0) > 0).map((vertex) => vertex.id);
   } else {
     const current = session.vertexTrail[session.vertexTrail.length - 1] as string;
-    const used = new Set(session.edgeTrail);
+    const counts = edgeUseCounts(session.edgeTrail);
     hintVertexIds = [...new Set(puzzle.edges.flatMap((edge) => {
-      if (used.has(edge.id)) return [];
-      if (edge.a === current) return [edge.b];
-      if (edge.b === current) return [edge.a];
+      if (!edgeHasUsesLeft(edge, counts)) return [];
+      // По одностороннему подсказываем только вперёд: назад хода нет.
+      if (edgeAllowsDirection(edge, current, edge.b) && edge.a === current) return [edge.b];
+      if (edgeAllowsDirection(edge, current, edge.a) && edge.b === current) return [edge.a];
       return [];
     }))].sort();
   }
