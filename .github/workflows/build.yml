@@ -235,6 +235,32 @@ jobs:
         working-directory: frontend
         run: node scripts/slot-audit.mjs --base=http://127.0.0.1:8127
 
+  # ─── Линт — храповиком, а не «всё или ничего» ────────────────────────
+  # 🔴 23.08.2026: скрипт `lint` лежал в package.json с самого начала, и НИ ОДИН
+  # workflow его не звал — линта в сборке не было вообще (задача 0940eb0a, п.3).
+  # Замер на чистом дереве: 597 ошибок, 416 предупреждений. Блокирующий шаг
+  # положил бы каждую сборку в тот же день, и его сняли бы к вечеру. Поэтому
+  # храповик: краснеет, если долг ВЫРОС, и краснеет же, если долг заметно упал,
+  # а потолок не опустили. Разбор — в шапке самого скрипта.
+  lint:
+    name: Линт (долг не растёт)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+      - name: Долг линта не вырос
+        working-directory: frontend
+        run: node scripts/lint-ratchet.mjs
+
   # ─── Smoke games — ловит mount-краши/ошибки консоли ──────────────────
   # v1.110.0: БЛОКИРУЕТ release (по клику Дениса в аудите 2026-07-04).
   #
@@ -1111,7 +1137,7 @@ jobs:
   release:
     # v1.205.0: + web-gates — релиз не выходит, если вёрстка схлопнулась на первом
     # кадре или на поле появились кнопки, в которые не попасть пальцем.
-    needs: [macos-arm, windows-x64, android, typecheck, smoke, web-gates]
+    needs: [macos-arm, windows-x64, android, typecheck, smoke, web-gates, lint]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
