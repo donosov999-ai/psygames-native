@@ -45,6 +45,11 @@ export interface OneLineStrings {
   graphLabel: string;
   graphHint: string;
   progress: string;
+  /**
+   * Подпись к сползающему счёту. Читается только голосом: на экране число стоит
+   * само, без слова рядом — подпись рядом с крупной цифрой лишь отнимает место.
+   */
+  scoreLabel: string;
   vertexLabel: string;
   startMarker: string;
   currentMarker: string;
@@ -88,6 +93,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: 'Граф для непрерывной линии',
     graphHint: 'Выбирайте соседние вершины касанием, перетаскиванием или клавиатурой.',
     progress: 'Пройдено рёбер: {used} из {total}',
+    scoreLabel: 'Очки',
     vertexLabel: 'Вершина {number}',
     startMarker: 'Допустимый старт',
     currentMarker: 'Текущая вершина',
@@ -124,6 +130,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: 'Continuous-line graph',
     graphHint: 'Choose adjacent vertices by touch, drag, or keyboard.',
     progress: 'Edges used: {used} of {total}',
+    scoreLabel: 'Score',
     vertexLabel: 'Vertex {number}',
     startMarker: 'Valid start',
     currentMarker: 'Current vertex',
@@ -160,6 +167,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: 'Grafo para el trazo continuo',
     graphHint: 'Elige vértices vecinos tocando, arrastrando o con el teclado.',
     progress: 'Aristas recorridas: {used} de {total}',
+    scoreLabel: 'Puntos',
     vertexLabel: 'Vértice {number}',
     startMarker: 'Salida válida',
     currentMarker: 'Vértice actual',
@@ -196,6 +204,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: 'Graph für die durchgehende Linie',
     graphHint: 'Wähle benachbarte Knoten per Tippen, Ziehen oder Tastatur.',
     progress: 'Gezogene Kanten: {used} von {total}',
+    scoreLabel: 'Punkte',
     vertexLabel: 'Knoten {number}',
     startMarker: 'Gültiger Start',
     currentMarker: 'Aktueller Knoten',
@@ -232,6 +241,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: '一笔画用的图',
     graphHint: '用点按、拖动或键盘选择相邻的顶点。',
     progress: '已走过的边：{total} 条中的 {used} 条',
+    scoreLabel: '分数',
     vertexLabel: '顶点 {number}',
     startMarker: '可用起点',
     currentMarker: '当前顶点',
@@ -268,6 +278,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: 'एक ही रेखा का आरेख',
     graphHint: 'पड़ोसी बिंदु छूकर, खींचकर या कुंजीपटल से चुनें।',
     progress: 'पार किए किनारे: {total} में से {used}',
+    scoreLabel: 'अंक',
     vertexLabel: 'बिंदु {number}',
     startMarker: 'सही शुरुआत',
     currentMarker: 'मौजूदा बिंदु',
@@ -304,6 +315,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: 'Grafo para o traço contínuo',
     graphHint: 'Escolha vértices vizinhos por toque, arrasto ou teclado.',
     progress: 'Arestas percorridas: {used} de {total}',
+    scoreLabel: 'Pontos',
     vertexLabel: 'Vértice {number}',
     startMarker: 'Partida válida',
     currentMarker: 'Vértice atual',
@@ -340,6 +352,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: 'Graphe pour le trait continu',
     graphHint: 'Choisissez des sommets voisins au doigt, au glissé ou au clavier.',
     progress: 'Arêtes parcourues : {used} sur {total}',
+    scoreLabel: 'Points',
     vertexLabel: 'Sommet {number}',
     startMarker: 'Départ valable',
     currentMarker: 'Sommet actuel',
@@ -376,6 +389,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: 'Grafo per il tratto continuo',
     graphHint: 'Scegli i vertici vicini con il tocco, il trascinamento o la tastiera.',
     progress: 'Lati percorsi: {used} di {total}',
+    scoreLabel: 'Punti',
     vertexLabel: 'Vertice {number}',
     startMarker: 'Partenza valida',
     currentMarker: 'Vertice attuale',
@@ -412,6 +426,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: '一筆書きの図形',
     graphHint: 'となりの点をタップ、ドラッグ、またはキーボードで選びます。',
     progress: '通った辺：{total} 本中 {used} 本',
+    scoreLabel: 'スコア',
     vertexLabel: '点 {number}',
     startMarker: '使える出発点',
     currentMarker: '今いる点',
@@ -448,6 +463,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: '한붓그리기 도형',
     graphHint: '이웃한 점을 눌러서, 끌어서, 또는 키보드로 고르세요.',
     progress: '지난 변: {total}개 중 {used}개',
+    scoreLabel: '점수',
     vertexLabel: '점 {number}',
     startMarker: '시작할 수 있는 점',
     currentMarker: '지금 있는 점',
@@ -484,6 +500,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     graphLabel: 'شكل الخط الواحد',
     graphHint: 'اختر الرؤوس المجاورة باللمس أو السحب أو لوحة المفاتيح.',
     progress: 'الأضلاع المقطوعة: {used} من {total}',
+    scoreLabel: 'النقاط',
     vertexLabel: 'رأس {number}',
     startMarker: 'بداية صالحة',
     currentMarker: 'الرأس الحالي',

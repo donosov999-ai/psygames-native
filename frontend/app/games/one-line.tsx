@@ -184,9 +184,22 @@ export default function OneLineScreen() {
     setPlayedLevel(doneLevel);
     setLast(m);
 
+    /**
+     * ⚠️ ИСТЁКШЕЕ ВРЕМЯ УРОВЕНЬ НЕ ПОНИЖАЕТ, И ЭТО НЕ ПОБЛАЖКА.
+     *
+     * Очки здесь сползают сами (см. `oneLineScoreAt`), и ноль означает «слишком
+     * долго думал». У игры-образца, откуда взят этот счётчик, лестницы уровней НЕТ
+     * вовсе: проиграл — переиграл тот же уровень, потерял только очки. У нас
+     * лестница есть. Сложи одно с другим — и человек, севший ДУМАТЬ над трудной
+     * фигурой, откатится назад именно за то, что думал. Ровно та беда, из-за
+     * которой длинные партии вынесли в отдельную политику провала (`services/failure`).
+     *
+     * Цена медленной партии — обнулённый счёт, а не потерянный уровень.
+     */
+    const timedOut = m.specific.timedOut === true;
     // Пресет и шаг зарядки уровень НЕ двигают — так во всех экранах.
     if (!isPreset && passed && shouldChainNextLevel(mode)) lvl.reach(level + 1);
-    else if (!isPreset && !passed) lvl.fail();
+    else if (!isPreset && !passed && !timedOut) lvl.fail();
 
     if (isPreset) setPhase('result');
     else { setClearedPassed(passed); setPhase('cleared'); }
