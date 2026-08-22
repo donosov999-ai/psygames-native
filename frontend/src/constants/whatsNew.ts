@@ -16,6 +16,34 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.229.0',
+    date: '2026-08-22',
+    ru: [
+      "«Беглость речи» не работала вообще: счёт всегда выходил нулём, а на десяти языках игра просила слова той письменностью, которую сама же и не принимала",
+      "Словарь с интервальным повторением намертво вешал приложение, если у двух слов совпадал перевод",
+      "Выбор языка предлагал одиннадцать, а словарей хватало на семь: четыре игры вставали, и в зарядке из такого экрана нельзя было даже выйти",
+      "«Мишени»: с 21-го уровня мишень появлялась в каждом раунде — жать всегда было безошибочной стратегией; и экран поздравлял победой после полного проигрыша",
+      "Кнопка «Стоп» больше не решает судьбу уровня по-своему в каждой игре: оборванная партия не двигает уровень ни вверх, ни вниз",
+      "«Ритм и высота»: один пропущенный удар в середине обнулял партию, тот же пропуск в конце стоил одной шестой — теперь ошибка стоит одинаково, где бы ни случилась",
+      "Настройка задержки звука перестала угадывать по неполному набору щелчков: раньше промах по первому щелчку молча отнимал две трети у каждой следующей партии",
+      "Судоку-самурай перестал наказывать вслепую: почти половина неверных цифр отнимала жизнь, не оставляя на доске ни одной пометки",
+      "«Пересказ»: одно ключевое слово было написано с латинской буквой внутри и не набиралось ни при какой раскладке; и безупречный пересказ мог дать «ошибку» из-за повторов в списке ключей",
+      "«Тропинки»: на небольших экранах узлы налезали друг на друга в девяти раскладках из десяти — узел прятался под соседом и не нажимался",
+    ],
+    en: [
+      "Verbal fluency did not work at all: the score always came out zero, and in ten languages the game asked for words in a script it refused to accept",
+      "The spaced-repetition vocabulary froze the app outright when two words shared a translation",
+      "The language picker offered eleven languages while only seven had dictionaries: four games stalled, and in a warm-up step that screen had no way out",
+      "Targets: from level 21 a target appeared in every round, making «always press» a flawless strategy; and the screen congratulated you after a complete loss",
+      "The Stop button no longer decides a level's fate differently in every game: an interrupted round moves the level neither up nor down",
+      "Rhythm and pitch: one missed beat in the middle zeroed the round while the same miss at the end cost a sixth — a mistake now costs the same wherever it happens",
+      "Audio latency calibration no longer guesses from an incomplete set of clicks: missing the first click used to silently cost two thirds of every later round",
+      "Samurai sudoku stopped punishing blind: nearly half of all wrong digits took a life without leaving a single mark on the board",
+      "Story recall: one keyword was spelled with a Latin letter inside and could not be typed on any keyboard; and a flawless retelling could still register an «error» because of duplicates in the key list",
+      "Trails: on smaller screens nodes overlapped in nine layouts out of ten — a node hid under its neighbour and could not be tapped",
+    ],
+  },
+  {
     version: '1.228.0',
     date: '2026-08-22',
     ru: [
