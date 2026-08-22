@@ -64,6 +64,7 @@ import {
   Cell, Variant, ThermoPN, ArrowMap, SudokuDifficultyTier,
   dimsForSize, blanksFor, killerBlanks, generateCages,
   sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
+  rejectionReason,
 } from '@/src/services/sudoku-core';
 import { generateLogical } from '@/src/services/sudoku-grade';
 import {
@@ -443,6 +444,15 @@ export default function SudokuGame() {
   const hist = useMoveHistory<SudokuMove>();
   const [hintMax, setHintMax] = useState(3);   // лимит подсказок (меньше на высоких уровнях)
   const [errors, setErrors] = useState(0);
+  /**
+   * ПОЧЕМУ ЦИФРА НЕ ПОДОШЛА. По отчётам Вали 22.08.2026 (три подряд за ночь,
+   * «я писала о нём раз 10 уже», «удаляю программу»): она ставила цифру, игра
+   * отвечала ошибкой, а по всем правилам, которые она знает, цифра подходила.
+   * Замер показал, что генератор исправен — 31 доска сэндвича из 32 правда
+   * неоднозначна как ОБЫЧНОЕ судоку, и ни одна не неоднозначна по ВИДИМЫМ
+   * правилам. Пазл честный, а человек об этом не знает. Значит виновато молчание.
+   */
+  const [rejectWhy, setRejectWhy] = useState('');
   const [over, setOver] = useState(false);   // жизни кончились (3 ошибки) → game over + рестарт
   const [rulesOpen, setRulesOpen] = useState(false);   // v1.111.0: справка правил уровня (тап по бейджу / авто при первом входе)
   const [hintUses, setHintUses] = useState(0);
@@ -776,7 +786,11 @@ export default function SudokuGame() {
     setGrid(ng);
     hist.push({ r, c, from: previousValue, to: n });
     if (n !== 0) { (solution[r][c] === n) ? hapticSuccess() : hapticError(); }   // верно: звук+вибро; неверно: звук+вибро
+    if (n !== 0 && solution[r][c] === n) setRejectWhy('');
     if (n !== 0 && solution[r][c] !== n) {
+      // Цифра прошла по строке, столбцу и боксу — значит её отвергло правило
+      // варианта, и назвать его обязаны мы, а не оставлять человека гадать.
+      setRejectWhy(rejectionReason(ng, r, c, n, N, BR, BC, variant, language));
       const ne = errors + 1;
       setErrors(ne);
       if (isFailOver(failure, ne)) {                 // жизни кончились → game over
@@ -1296,7 +1310,17 @@ export default function SudokuGame() {
             ),
           }]}
         >
-          {boardHint}
+          {/*
+            🔴 ПРИЧИНА ОТКАЗА ВАЖНЕЕ ОБЫЧНОЙ ПОДСКАЗКИ, ПОЭТОМУ ВЫТЕСНЯЕТ ЕЁ.
+            Отчёты Вали 22.08.2026, три подряд за ночь: «оба варианта были
+            возможны», «почему 9 неверно, я писала о нём раз 10 уже», «удаляю
+            программу». Замер показал, что генератор ИСПРАВЕН: 31 доска сэндвича
+            из 32 правда неоднозначна как обычное судоку, и ни одна не
+            неоднозначна по видимым правилам. То есть пазл честный — молчала игра.
+            Строка живёт до следующей верной цифры: убирать по таймеру значит
+            прятать ответ от того, кто читает медленно.
+          */}
+          {rejectWhy || boardHint}
         </Text>
         {variant === 'sandwich' && sandwich && (
           <View style={{ flexDirection: 'row', marginLeft: clueGutter, marginBottom: 2 }}>
