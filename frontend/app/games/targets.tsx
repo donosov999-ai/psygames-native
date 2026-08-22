@@ -47,10 +47,80 @@ type GameMode = 'field' | 'joker';
 const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
 
 // Уровень (1..15+): темп появления↑ (delay↓) + число квадратов↑ (труднее найти совпадение). Размер цели↓ — фаза 2.
+/**
+ * 🔴 ДОЛЯ МИШЕНЕЙ ЗАДАЁТСЯ, А НЕ ВЫПАДАЕТ СЛУЧАЙНО.
+ *
+ * Раньше «мишень» получалась сама собой: если среди круга и квадратов нашлось
+ * повторяющийся цвет. Число квадратов росло без потолка, цветов семь — и с
+ * 21-го уровня фигур становилось ВОСЕМЬ. По принципу Дирихле совпадение
+ * обязано быть: вероятность мишени ровно 1.0000, и стратегия «жать всегда»
+ * становилась безошибочной. Проба на торможение переставала мерить торможение.
+ *
+ * В нормальной пробе go/no-go доля мишеней — ЗАДАННЫЙ параметр, а не следствие
+ * арифметики. Поэтому сначала решаем, мишень это или нет, и уже под решение
+ * подбираем цвета.
+ */
+const TARGET_RATE = 0.5;
+
 function levelParams(level: number): { delay: number; numSquares: number } {
   const delay = Math.max(450, 2100 - level * 120);          // L1≈1980мс → L14≈450мс
-  const numSquares = 2 + Math.floor((level - 1) / 4);        // L1-4=2 → L5-8=3 → L9-12=4 → L13+=5
+  // Потолок: круг плюс квадраты обязаны помещаться в палитру, иначе «не мишень»
+  // невозможно построить в принципе.
+  const wanted = 2 + Math.floor((level - 1) / 4);
+  const numSquares = Math.min(wanted, COLORS.length - 1);
   return { delay, numSquares };
+}
+
+/**
+ * Цвета раунда под заданный исход. `null` в `prevColor` — первый раунд «джокера»,
+ * там мишени быть не может.
+ */
+export function buildRoundColors(
+  numSquares: number,
+  mode: 'field' | 'joker',
+  wantTarget: boolean,
+  prevColor: string | null,
+  palette: readonly string[] = COLORS,
+): { circle: string; squares: string[]; isTarget: boolean } {
+  const pick = () => palette[Math.floor(Math.random() * palette.length)] as string;
+  const shuffled = [...palette].sort(() => Math.random() - 0.5);
+
+  if (mode === 'joker') {
+    const circle = pick();
+    if (wantTarget && prevColor) {
+      // Мишень: прежний цвет круга обязан встретиться среди квадратов.
+      const squares = Array.from({ length: numSquares }, () => pick());
+      squares[Math.floor(Math.random() * numSquares)] = prevColor;
+      return { circle, squares, isTarget: true };
+    }
+    // Не мишень: прежнего цвета среди квадратов быть не должно.
+    const allowed = palette.filter((c) => c !== prevColor);
+    const squares = Array.from({ length: numSquares }, () =>
+      allowed[Math.floor(Math.random() * allowed.length)] as string);
+    return { circle, squares, isTarget: false };
+  }
+
+  if (wantTarget) {
+    // Мишень: ровно одна пара одинаковых среди круга и квадратов.
+    const distinct = shuffled.slice(0, numSquares + 1);
+    const circle = distinct[0] as string;
+    const squares = distinct.slice(1) as string[];
+    /**
+     * Дублируем цвет из ДРУГОГО места — иначе присваивание может оказаться
+     * «сам себе», и совпадения не выйдет вовсе. Первая редакция выбирала
+     * источник и место независимо и на двух квадратах промахивалась.
+     * Индексы: 0 — круг, 1..n — квадраты.
+     */
+    const to = Math.floor(Math.random() * numSquares);          // куда кладём
+    const others = Array.from({ length: numSquares + 1 }, (_, i) => i).filter((i) => i !== to + 1);
+    const from = others[Math.floor(Math.random() * others.length)] as number;
+    squares[to] = (from === 0 ? circle : squares[from - 1]) as string;
+    return { circle, squares, isTarget: true };
+  }
+
+  // Не мишень: все цвета разные. Возможно только пока фигур не больше палитры.
+  const distinct = shuffled.slice(0, numSquares + 1);
+  return { circle: distinct[0] as string, squares: distinct.slice(1) as string[], isTarget: false };
 }
 
 export default function TargetsGame() {
@@ -122,6 +192,12 @@ export default function TargetsGame() {
   const roundRef = useRef(0);
   const livesRef = useRef(3);
   const gameOverRef = useRef(false);
+  /**
+   * 🔴 ОШИБКИ СЧИТАЛИСЬ, НО В ИСТОРИЮ ШЁЛ НОЛЬ. В партию писалось `errors: 0`
+   * константой, поэтому у «Мишеней» в истории ВСЕГДА ноль ошибок — сравнить
+   * себя с собой было нечем, а любой отчёт по этой игре врал.
+   */
+  const errorsRef = useRef(0);
   const isTargetRef = useRef(false);
   const prevColorRef = useRef<string | null>(null);
   const showTimeRef = useRef(0);                 // момент показа стимула — нужен только для RT, не для рендера
@@ -172,25 +248,19 @@ export default function TargetsGame() {
     const newShapes: { type: 'circle' | 'square'; color: string }[] = [];
     
     // Generate circle
-    const circleColor = COLORS[Math.floor(Math.random() * COLORS.length)];
-    newShapes.push({ type: 'circle', color: circleColor });
-    
-    // Generate N squares (число растёт с уровнем)
     const ns = levelParams(levelRef.current).numSquares;
-    const squareColors = Array.from({ length: ns }, () => COLORS[Math.floor(Math.random() * COLORS.length)]);
-    squareColors.forEach((c) => newShapes.push({ type: 'square', color: c }));
+    /**
+     * Раунд строится ПОД ЗАДУМАННЫЙ исход, а не наоборот. Прежде «мишень»
+     * получалась сама собой из совпадения цветов, и с 21-го уровня фигур
+     * становилось больше, чем цветов, — совпадение делалось неизбежным.
+     */
+    const wantTarget = Math.random() < TARGET_RATE;
+    const round = buildRoundColors(ns, mode === 'field' ? 'field' : 'joker', wantTarget, prevColorRef.current);
+    const circleColor = round.circle;
+    newShapes.push({ type: 'circle', color: circleColor });
+    round.squares.forEach((c) => newShapes.push({ type: 'square', color: c }));
+    const target = round.isTarget;
 
-    // Determine if this is a target
-    let target = false;
-    if (mode === 'field') {
-      // Field: target если есть ЛЮБОЕ совпадение цвета среди {круг, квадраты}
-      const all = [circleColor, ...squareColors];
-      target = new Set(all).size < all.length;
-    } else {
-      // Joker: target если цвет ПРЕДЫДУЩЕГО круга встречается среди квадратов
-      target = !!prevColorRef.current && squareColors.includes(prevColorRef.current);
-    }
-    
     prevColorRef.current = circleColor;
     isTargetRef.current = target;
     showTimeRef.current = gameNow();
@@ -216,6 +286,7 @@ export default function TargetsGame() {
     scoreRef.current = 0;
     setScore(0);
     livesRef.current = 3 + getLifeBonus(startLvl);
+    errorsRef.current = 0;
     setLives(livesRef.current);
     roundRef.current = 0;
     levelRef.current = startLvl;        // стартовый уровень (сохранённый или из конфига)
@@ -267,6 +338,7 @@ export default function TargetsGame() {
       // Wrong click
       setFeedback('wrong');
       livesRef.current -= 1;
+      errorsRef.current += 1;
       setLives(livesRef.current);
 
       if (livesRef.current <= 0) { onOutOfLives(); return; }
@@ -286,6 +358,7 @@ export default function TargetsGame() {
       // Missed a target
       setFeedback('miss');
       livesRef.current -= 1;
+      errorsRef.current += 1;
       setLives(livesRef.current);
 
       if (livesRef.current <= 0) { onOutOfLives(); return; }
@@ -350,7 +423,7 @@ export default function TargetsGame() {
         time_seconds: avgReaction / 1000,
         difficulty: `Level ${levelRef.current}`,
         mode: mode,
-        errors: 0,
+        errors: errorsRef.current,
         details: {
           // Резерв прогресса: getMaxLevelFromSessions восстановит уровень отсюда,
           // если локальный ключ потерян (переустановка, сброс профиля).
@@ -734,6 +807,13 @@ export default function TargetsGame() {
           <LevelCleared
             gameId="targets"
             level={lvl.level}
+            /**
+             * 🔴 ПОЗДРАВЛЯЛИ ПОБЕДОЙ ПОСЛЕ ПОЛНОГО ПРОИГРЫША. Признак «пройдено»
+             * не передавался, а умолчание у экрана итога — «да»: человек сливал
+             * все жизни и получал «🎉 Уровень пройден» с победным звуком и
+             * засчитанной серией. Теперь исход приходит настоящий.
+             */
+            passed={!gameOverRef.current}
             stars={stars}
             gradient={GRADIENT}
             language={language}
