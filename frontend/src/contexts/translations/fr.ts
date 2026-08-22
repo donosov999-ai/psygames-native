@@ -346,6 +346,8 @@ const t: Record<string, string> = {
   "mahjongDesc": "Retire les tuiles libres par paires",
   "mahjongIntroDesc": "Le solitaire mahjong classique. Les tuiles sont empilées en pyramide. Une tuile est LIBRE si rien ne la couvre ET que son côté gauche OU droit est dégagé. Touche deux tuiles libres au même symbole — la paire disparaît. Les tuiles bloquées sont assombries et ne réagissent pas. Objectif — retirer TOUTES les tuiles. Bloqué ? Le bouton « Mélanger » redistribue les tuiles restantes. Les niveaux montent : plus de tuiles et plus de couches.",
   "mahjongHint": "Touche deux tuiles LIBRES identiques — la paire s'en va. Libre = rien dessus et un côté dégagé.",
+  "mahjongPairsOpen": "Libres",
+  "mahjongNoPairs": "Aucune paire disponible — le plateau est bloqué. Mélangez ou annulez un coup.",
   "skillVisualSearch": "On entraîne : la recherche visuelle",
   "benefitMahjong1": "Chercher des paires parmi une foule de tuiles",
   "benefitMahjong2": "Planifier quelles tuiles libérer d'abord",

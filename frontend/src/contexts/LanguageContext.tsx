@@ -580,6 +580,19 @@ const translations: Translations = {
     en: 'Classic mahjong solitaire. Tiles are stacked in a pyramid. A tile is FREE when nothing covers it from above AND its left OR right side is open. Tap two free tiles with the same symbol — the pair disappears. Blocked tiles are dimmed and do not respond. Goal — clear EVERY tile. Stuck? The "Shuffle" button reshuffles the remaining tiles. Levels ramp up: more tiles and more layers.',
   },
   mahjongHint: { ru: 'Тапни два СВОБОДНЫХ одинаковых тайла — пара уйдёт. Свободен = сверху пусто и открыт край.', en: 'Tap two FREE matching tiles — the pair clears. Free = nothing on top and a side is open.' },
+  /**
+   * СЧЁТЧИК ДОСТУПНЫХ ПАР в шапке маджонга + сообщение о вставшей доске.
+   *
+   * 🔴 ЗАЧЕМ. Верхний по полезности отзыв к Vita Mahjong (100 млн установок) —
+   * жалоба на то, что из игры убрали окошко «сколько пар ещё можно собрать»: без
+   * него человек жмёт перетасовку ВСЛЕПУЮ. У нас перетасовок одна-три на уровень,
+   * то есть слепое нажатие стоит дороже, чем в образце.
+   */
+  mahjongPairsOpen: { ru: 'Доступно', en: 'Open' },
+  mahjongNoPairs: {
+    ru: 'Доступных пар нет — доска встала. Перемешай или отмени ход.',
+    en: 'No pairs available — the board is stuck. Shuffle or undo a move.',
+  },
   skillVisualSearch: { ru: 'Тренируем: зрительный поиск', en: 'Training: visual search' },
   benefitMahjong1: { ru: 'Зрительный поиск пар среди множества тайлов', en: 'Visual search for pairs among many tiles' },
   benefitMahjong2: { ru: 'Планирование: какие тайлы открыть раньше', en: 'Planning which tiles to free up first' },

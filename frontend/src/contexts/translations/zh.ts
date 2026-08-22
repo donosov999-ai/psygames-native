@@ -1512,6 +1512,8 @@ const t: Record<string, string> = {
   "mahjongDesc": "消除两张未被遮挡的相同麻将牌",
   "mahjongIntroDesc": "经典麻将牌阵接龙。牌张堆叠成金字塔状。当上方无遮挡且左侧或右侧未被阻挡时，该牌即为自由牌。点击两张具有相同图案的自由牌即可消除。被阻挡的牌呈暗色且无法点击。消除全部牌即获胜。",
   "mahjongHint": "点击两张 未被遮挡 的相同牌即可消除。自由牌 = 上方无遮盖且至少一侧敞开。",
+  "mahjongPairsOpen": "可配对",
+  "mahjongNoPairs": "没有可以配对的牌 — 棋盘卡住了。请洗牌或撤销一步。",
   "skillVisualSearch": "训练：视觉搜索能力",
   "benefitMahjong1": "在众多牌张中快速进行视觉搜索与匹配",
   "benefitMahjong2": "规划解开底层牌张的优先顺序",

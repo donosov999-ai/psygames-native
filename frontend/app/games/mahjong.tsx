@@ -29,6 +29,8 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {saveResume, clearResume} from '@/src/services/resume';
+import { availablePairs, freeFlags, isFree, tilePlacement, type Tile } from '@/src/games/mahjong/board';
+import { buildPositions, silhouetteForLevel, type SilhouetteKey } from '@/src/games/mahjong/silhouettes';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 
 const GRADIENT = ['#2d6a4f', '#95d5b2'];
@@ -74,7 +76,15 @@ const MAHJONG_RULES: LevelRule[] = [
 const SYMBOLS = ['🀄', '🎋', '🌸', '🐉', '🀙', '⭐', '🍀', '🔥', '💎', '🌙', '🎴', '🐲'];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result';
-export interface Tile { id: number; x: number; y: number; layer: number; symbol: number; }
+
+/**
+ * Плитка, правило свободы и счётчик доступных пар переехали в
+ * `src/games/mahjong/board.ts` — их зовут и силуэты, и проверки, и шапка, а тянуть
+ * ради них весь экран с роутером и контекстами незачем. Реэкспорт оставлен: старые
+ * импорты `from '@/app/games/mahjong'` работают как работали.
+ */
+export type { Tile };
+export { isFree, availablePairs };
 
 /** Ключ незаконченной партии — совпадает с id в реестре игр (карточка «Продолжить»). */
 const GAME_ID = 'mahjong';
@@ -171,96 +181,19 @@ function shuffle<T>(arr: T[]): T[] {
 // и объяснение, почему вверх растим слои, а не количество плиток.
 const levelParams = mahjongLevel;
 
-// ── Построение позиций пирамиды ──────────────────────────────────────
-// Сетка с ПОЛУШАГОМ (x,y в «полуклетках»): тайл занимает 2×2 полуклетки.
-// Верхний слой смещён к центру и поднят, образуя классическую «черепаху».
+// ── Построение позиций раскладки ─────────────────────────────────────
 /**
- * ПОЗИЦИИ РАСКЛАДКИ.
+ * СИЛУЭТ РАСКЛАДКИ — в `src/games/mahjong/silhouettes.ts`.
  *
- * 🔴 БЫЛА СТОПКА ПРЯМОУГОЛЬНИКОВ. Каждый слой заполнялся строками слева направо,
- * пока не наберётся нужное число, — то есть получался прямоугольник, а на нижних
- * уровнях (один слой) просто ряд плиток. Маджонг узнаётся по СИЛУЭТУ: широкий низ,
- * узкий верх, скошенные края. Прямоугольник читается как «доска для запоминания»,
- * а не как горка, которую разбирают.
+ * 🔴 ЧТО БЫЛО ЗДЕСЬ. Одна функция `layerCells`, рисовавшая РОМБ, и `buildPositions`,
+ * складывавшая ромбы стопкой со сдвигом на клетку вбок. Силуэт был ровно один: любая
+ * доска первого уровня и любая сорокового отличались только числом плиток. У
+ * образцов (Vita Mahjong, Mahjong Blast) витринная строка — «сотни раскладок», и
+ * держится она на форме, а не на количестве.
  *
- * Слой = ромб: в средней строке широко, к краям сужается. Верхний слой вложен в
- * нижний со сдвигом внутрь — отсюда и перекрытия, на которых держится всё правило
- * свободной плитки.
+ * Теперь форм семь (черепаха, пирамида, крепость, бабочка, мост, паук, ромб), уровень
+ * выбирает свою по номеру, и соседние уровни никогда не совпадают по виду.
  */
-function layerCells(cols: number, rows: number): { x: number; y: number }[] {
-  const out: { x: number; y: number }[] = [];
-  const mid = (rows - 1) / 2;
-  for (let r = 0; r < rows; r++) {
-    // Ширина строки: полная в середине, к краям убывает — получается ромб.
-    const shrink = Math.round(Math.abs(r - mid));
-    const w = Math.max(2, cols - shrink * 2);
-    const off = Math.round((cols - w) / 2);
-    for (let c = 0; c < w; c++) out.push({ x: (off + c) * 2, y: r * 2 });
-  }
-  return out;
-}
-
-// Возвращает ровно needTiles позиций (needTiles = pairs*2, всегда чётно).
-function buildPositions(layers: number, needTiles: number, cols: number): { x: number; y: number; layer: number }[] {
-  // Распределяем тайлы по слоям ПИРАМИДАЛЬНО (нижний слой больше верхних): веса layers..1.
-  const weights: number[] = [];
-  for (let k = 0; k < layers; k++) weights.push(layers - k);
-  const wsum = weights.reduce((a, b) => a + b, 0);
-  const positions: { x: number; y: number; layer: number }[] = [];
-  for (let layer = 0; layer < layers; layer++) {
-    const target = layer === layers - 1
-      ? Math.max(2, needTiles - positions.length)              // верхний слой добирает остаток
-      : Math.max(2, Math.round((needTiles * weights[layer]) / wsum));
-    const layerCols = Math.max(2, cols - layer * 2);
-    // Строк берём с запасом: ромб отдаёт меньше клеток, чем cols×rows.
-    const rows = Math.max(3, Math.ceil(target / Math.max(2, layerCols - 1)) + 2);
-    const cells = layerCells(layerCols, rows);
-    for (let i = 0; i < cells.length && positions.length < needTiles; i++) {
-      const cell = cells[i] as { x: number; y: number };
-      // Верхний слой вложен внутрь нижнего: отсюда перекрытия и правило свободной плитки.
-      positions.push({ x: cell.x + layer * 2, y: cell.y + layer * 2, layer });
-      if (positions.length >= (layer === layers - 1 ? needTiles : positions.length + target - 1) && i + 1 >= target) break;
-    }
-  }
-  // Не добрали (ромбы кончились) — досыпаем в нижний слой, он самый широкий.
-  if (positions.length < needTiles) {
-    const wide = layerCells(cols, Math.ceil(needTiles / Math.max(2, cols - 1)) + 4);
-    for (let i = 0; i < wide.length && positions.length < needTiles; i++) {
-      const cell = wide[i] as { x: number; y: number };
-      if (!positions.some((p) => p.layer === 0 && p.x === cell.x && p.y === cell.y)) {
-        positions.push({ x: cell.x, y: cell.y, layer: 0 });
-      }
-    }
-  }
-  if (positions.length % 2 === 1) positions.pop();             // чётность для пар
-  return positions;
-}
-
-// «Перекрывает ли» позиция верхнего слоя позицию нижнего (тайл 2×2 в полуклетках).
-function overlaps(a: { x: number; y: number }, b: { x: number; y: number }): boolean {
-  return Math.abs(a.x - b.x) < 2 && Math.abs(a.y - b.y) < 2;
-}
-
-// Свободен ли тайл i среди ОСТАВШИХСЯ: (а) сверху нет перекрывающего, (б) слева ИЛИ справа открыто.
-export function isFree(tiles: Tile[], alive: boolean[], i: number): boolean {
-  const t = tiles[i];
-  // (а) ничего на слое выше, перекрывающего позицию
-  for (let j = 0; j < tiles.length; j++) {
-    if (!alive[j] || j === i) continue;
-    if (tiles[j].layer > t.layer && overlaps(tiles[j], t)) return false;
-  }
-  // (б) сосед на ТОМ ЖЕ слое вплотную слева / справа (та же y-полоса, x±2)
-  let blockedL = false, blockedR = false;
-  for (let j = 0; j < tiles.length; j++) {
-    if (!alive[j] || j === i) continue;
-    if (tiles[j].layer !== t.layer) continue;
-    if (Math.abs(tiles[j].y - t.y) < 2) {
-      if (Math.abs(tiles[j].x - (t.x - 2)) < 1) blockedL = true;
-      if (Math.abs(tiles[j].x - (t.x + 2)) < 1) blockedR = true;
-    }
-  }
-  return !(blockedL && blockedR);
-}
 
 // ── Генерация РЕШАЕМОЙ раскладки («обратный» метод) ──────────────────
 // 1) Берём позиции пирамиды. 2) Повторно выбираем ДВЕ свободные позиции и
@@ -275,13 +208,15 @@ export function isFree(tiles: Tile[], alive: boolean[], i: number): boolean {
 export interface MahjongDeal { tiles: Tile[]; peelOrder: [number, number][] }
 
 /** Пустой ответ = собрать разбираемую доску не вышло, надо пересобрать. */
-export function generate(layers: number, pairs: number, cols: number): Tile[] {
-  return generateDeal(layers, pairs, cols).tiles;
+export function generate(layers: number, pairs: number, cols: number, shape: SilhouetteKey = 'diamond'): Tile[] {
+  return generateDeal(layers, pairs, cols, shape).tiles;
 }
 
-export function generateDeal(layers: number, pairs: number, cols: number): MahjongDeal {
+export function generateDeal(
+  layers: number, pairs: number, cols: number, shape: SilhouetteKey = 'diamond',
+): MahjongDeal {
   const need = pairs * 2;
-  let pos = buildPositions(layers, need, cols);
+  let pos = buildPositions(layers, need, cols, shape);
   // Подгоняем чётность: число позиций должно быть чётным и == need (или близко).
   if (pos.length % 2 === 1) pos = pos.slice(0, pos.length - 1);
   const total = pos.length;
@@ -300,9 +235,12 @@ export function generateDeal(layers: number, pairs: number, cols: number): Mahjo
 
   let guard = 0;
   for (let p = 0; p < realPairs; p++) {
-    // собрать индексы свободных живых позиций
+    // Свободные живые позиции. `freeFlags` — тот же ответ, что и `isFree` в цикле,
+    // но за один обход доски: на 144 плитках сборка уровня становится вдвое короче,
+    // а главное — экран, генератор и счётчик в шапке считают свободу ОДНИМ кодом.
+    const flags = freeFlags(baseTiles, alive);
     const free: number[] = [];
-    for (let i = 0; i < total; i++) if (alive[i] && isFree(baseTiles, alive, i)) free.push(i);
+    for (let i = 0; i < total; i++) if (flags[i]) free.push(i);
     if (free.length < 2) {
       /**
        * 🔴 ЗДЕСЬ ЛОМАЛАСЬ ВСЯ ГАРАНТИЯ РЕШАЕМОСТИ, И ЛОМАЛАСЬ ТИХО.
@@ -395,14 +333,18 @@ export default function MahjongGame() {
     /**
      * ⚠️ ПЕРЕСОБИРАЕМ, ПОКА РАСКЛАД НЕ ВЫЙДЕТ РАЗБИРАЕМЫМ. Сборка снятием пар
      * иногда упирается в тупик (см. `generate`) — это её природа, а не поломка.
-     * Двадцать попыток с запасом: неудача случается у одного расклада из девяти
-     * в худшей точке, значит двадцать подряд — это один шанс на десять в
-     * девятнадцатой степени. Если и они не дали, отдаём последнюю: зависший
-     * экран хуже трудной доски.
+     * Двадцать попыток с запасом: замер 22.08.2026 по 200 сборок на каждый из семи
+     * силуэтов дал худшее 25 % (пирамида, 20 уровень), значит двадцать подряд —
+     * это 0,25²⁰ ≈ 10⁻¹². Если и они не дали, отдаём последнюю: зависший экран
+     * хуже трудной доски.
      */
-    let deck = generate(p.layers, p.pairs, p.cols);
+    // Силуэт задаётся НОМЕРОМ уровня: соседние уровни выглядят по-разному, а один
+    // и тот же уровень — всегда одинаково (иначе поднятая из хранилища партия
+    // оживала бы в другой форме).
+    const shape = silhouetteForLevel(L);
+    let deck = generate(p.layers, p.pairs, p.cols, shape);
     for (let tries = 0; tries < 20 && deck.length === 0; tries++) {
-      deck = generate(p.layers, p.pairs, p.cols);
+      deck = generate(p.layers, p.pairs, p.cols, shape);
     }
     aliveMaskRef.current = new Array(deck.length).fill(true);
     setTiles(deck);
@@ -629,8 +571,9 @@ export default function MahjongGame() {
       const realPairs = total / 2;
       const symSeq = shuffle(Array.from({ length: realPairs }, (_, k) => k % SYMBOLS.length));
       for (let p = 0; p < realPairs; p++) {
+        const flags = freeFlags(baseTiles, alive);
         const free: number[] = [];
-        for (let i = 0; i < total; i++) if (alive[i] && isFree(baseTiles, alive, i)) free.push(i);
+        for (let i = 0; i < total; i++) if (flags[i]) free.push(i);
         if (free.length < 2) return null;          // расстановка не вышла — пробуем заново
         const sh = shuffle(free);
         const a = sh[0], b = sh[1];
@@ -660,6 +603,33 @@ export default function MahjongGame() {
     setTiles(next); setSelected(null); hapticTap();
   };
 
+  /**
+   * СКОЛЬКО ПАР МОЖНО СНЯТЬ ПРЯМО СЕЙЧАС — цифра в шапку.
+   *
+   * 🔴 ЗАЧЕМ ЭТО ПОЯВИЛОСЬ. Верхний по полезности отзыв к Vita Mahjong (100 млн
+   * установок) — жалоба на то, что из игры убрали окошко «сколько пар ещё можно
+   * собрать»: без него человек жмёт перетасовку ВСЛЕПУЮ, не понимая, доска встала
+   * или он просто не видит пару. У нас перетасовка расходуемая (одна-три на
+   * уровень), значит цена слепого нажатия ещё выше.
+   *
+   * ЗАМЕР 22.08.2026: случайный разбор (берём любую доступную пару) упирается в НОЛЬ
+   * ходов в 31 % партий на 6 уровне, 38 % на 12-м, 44 % на 20-м — по 100 партий на
+   * уровень. Каждая третья партия доходила до состояния, о котором игра не сообщала
+   * ничем: плитки на месте, тапы не работают, объяснения нет.
+   *
+   * Считает `availablePairs` из ядра доски — ТЕМ ЖЕ кодом, которым экран решает,
+   * нажимается ли плитка. Своя формула здесь разошлась бы с доской при первой же
+   * правке правила свободы, и цифра начала бы врать.
+   *
+   * useMemo по `tiles`: массив пересобирается на каждом снятии пары, отмене и
+   * перетасовке — то есть ровно тогда, когда число и меняется.
+   */
+  const openPairs = React.useMemo(
+    () => availablePairs(tiles, aliveMaskRef.current), [tiles],
+  );
+  /** Ходов нет. Молчать об этом нельзя: человек будет жать плитки, думая, что промахивается. */
+  const boardStuck = openPairs === 0 && tiles.length > 0 && levelBanner === null;
+
   // ── вёрстка пирамиды ─────────────────────────────────────────────────
   // Габариты поля в полуклетках → размер тайла под ширину экрана.
   const maxHalfX = tiles.reduce((m, t) => Math.max(m, t.x + 2), 2);
@@ -672,11 +642,13 @@ export default function MahjongGame() {
   const boardPxW = maxHalfX * half + (levelParams(level).layers) * layerOffset;
   const boardPxH = maxHalfY * half + (levelParams(level).layers) * layerOffset;
 
+  // Самый верхний занятый слой — от него считается подъём плиток (см. tilePlacement).
+  const maxLayer = tiles.reduce((m, t) => Math.max(m, t.layer), 0);
+
   const renderTile = (tt: Tile, i: number) => {
     const free = tileFree(i);
     const sel = selected === i;
-    const left = tt.x * half + tt.layer * layerOffset;
-    const top = tt.y * half - tt.layer * layerOffset;
+    const { left, top } = tilePlacement(tt, maxLayer, half, layerOffset);
     return (
       <TouchableOpacity
         accessibilityRole="button"
@@ -756,6 +728,16 @@ export default function MahjongGame() {
           <HudBadge icon="flag" value={`${t('unitLevelShort')} ${level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
           <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
           <HudBadge icon="checkmark-done" value={`${matched}/${pairsTotal}`} colors={['#5eead4', '#0d9488']} pop />
+          {/*
+            Счётчик доступных пар. Ноль обязан ЧИТАТЬСЯ как «доска встала», а не
+            молчать: поэтому на нуле пилюля краснеет, а под доской встаёт прямая
+            строка о том, что делать (см. `boardStuck` ниже).
+          */}
+          <HudBadge
+            icon="git-compare" label={t('mahjongPairsOpen')} value={openPairs}
+            colors={boardStuck ? ['#fb7185', '#e11d48'] : ['#c4b5fd', '#7c3aed']}
+            pop
+          />
           <HudBadge icon="close" value={errors} colors={['#fb7185', '#e11d48']} />
           {/*
             🔴 В вечернем шаге секундомер ПРЯЧЕМ. Репорт 18.08.2026: «даже на
@@ -811,7 +793,9 @@ export default function MahjongGame() {
       })()}
     >
       <View style={styles.fieldCol}>
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mahjongHint')}</Text>
+        <Text style={[styles.hintText, boardStuck ? styles.hintStuck : null, { color: boardStuck ? '#e11d48' : colors.textSecondary }]}>
+          {boardStuck ? t('mahjongNoPairs') : t('mahjongHint')}
+        </Text>
         <View style={{ width: boardPxW, height: boardPxH, alignSelf: 'center', marginTop: 6 }}>
           {tiles.map((tt, i) => renderTile(tt, i))}
         </View>
@@ -886,6 +870,7 @@ const styles = StyleSheet.create({
   fieldCol: { alignItems: 'center', gap: 8 },   // hint + контейнер слоёв плиток внутри поля каркаса
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap' },
   hintText: { fontSize: 12, textAlign: 'center' },
+  hintStuck: { fontSize: 13, fontWeight: '700' },   // доска встала — строка обязана быть заметнее обычной подсказки
   tile: {
     position: 'absolute', borderRadius: 6, borderWidth: 1.5, justifyContent: 'center', alignItems: 'center',
     shadowColor: '#04341f', shadowRadius: 3, shadowOffset: { width: 1, height: 2 },
