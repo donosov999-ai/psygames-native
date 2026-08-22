@@ -715,6 +715,7 @@ const t: Record<string, string> = {
   "benefitPrl3": "Decisioni finanziarie (Iowa+BART+PRL)",
   "phonemic": "Fluenza fonemica (COWAT)",
   "phonemicDesc": "Più parole possibili con una lettera in 60s",
+  "phonemicScriptFallback": "Il compito usa l’alfabeto latino: la fluenza «per lettera» funziona diversamente nella tua scrittura. Scrivi le parole in latino.",
   "phonemicIntroDesc": "COWAT (Controlled Oral Word Association Test) — il classico test di fluenza verbale. In 60 secondi nomina più parole possibili che iniziano con la lettera data. Vietati i nomi propri e le ripetizioni. Biomarcatori: word_count, mean_inter_word_sec (tempo tra le parole — più alto = accesso lessicale più difficile), first_half vs second_half (resistenza). Misura diretta dell'accesso lessicale sotto pressione — cruciale per parlare in pubblico e negoziare.",
   "phonemicAutoPick": "Lettera casuale",
   "phonemicRules": "Regole: solo nomi comuni, lunghezza ≥ 2, senza ripetizioni",

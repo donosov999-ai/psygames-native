@@ -715,6 +715,7 @@ const t: Record<string, string> = {
   "benefitPrl3": "금융 의사결정 (아이오와+BART+PRL)",
   "phonemic": "음소 유창성 (COWAT)",
   "phonemicDesc": "60초 안에 주어진 글자로 시작하는 단어를 최대한 많이 말해요",
+  "phonemicScriptFallback": "이 과제는 라틴 문자로 진행됩니다. 첫 글자 기반 유창성은 당신의 문자에서는 다르게 작동합니다. 라틴 문자로 입력하세요.",
   "phonemicIntroDesc": "COWAT(Controlled Oral Word Association Test)는 고전적인 언어 유창성 검사예요. 60초 안에 주어진 글자로 시작하는 단어를 최대한 많이 말하세요. 고유명사와 중복 단어는 허용되지 않아요. 주요 지표: word_count, mean_inter_word_sec(단어 사이 시간으로, 길수록 어휘 접근이 어려움), first_half와 second_half 비교(지속력). 시간 압박 상황에서 어휘에 접근하는 능력을 직접 측정하며 발표와 협상에 중요해요.",
   "phonemicAutoPick": "무작위 글자",
   "phonemicRules": "규칙: 두 글자 이상의 보통명사만, 중복 금지",

@@ -42,7 +42,10 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostart } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
-import { phonemicLetterPool } from '@/src/services/phonemicFluency';
+import {
+  phonemicLetterPool, phonemicScriptFor, phonemicScriptIsFallback,
+  type PhonemicScript,
+} from '@/src/services/phonemicFluency';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#16a085', '#f4d03f'];
@@ -82,6 +85,13 @@ export default function PhonemicFluencyGame() {
 
   const [input, setInput] = useState('');
   const [words, setWords] = useState<{word: string, ts: number, valid: boolean, reason?: string}[]>([]);
+  /**
+   * 🔴 СЧЁТ ВСЕГДА БЫЛ НУЛЁМ, И ВОТ ПОЧЕМУ. Партию заканчивает ТАЙМЕР, а его
+   * колбэк создан в момент старта и держит `words` таким, каким тот был тогда —
+   * пустым. Сколько бы слов человек ни назвал, в итог уходило ноль.
+   * Тот же класс, что у n-back с устаревшим замыканием.
+   */
+  const wordsRef = useRef<{word: string, ts: number, valid: boolean, reason?: string}[]>([]);
   const [remaining, setRemaining] = useState(60);
 
   const startTimeRef = useRef(0);
@@ -119,7 +129,13 @@ export default function PhonemicFluencyGame() {
   useAutostart(autostart && languageReady, startGame);
 
   // Word validation rules (no random gibberish)
-  const isValidWord = (raw: string, letter: string, lang: 'ru' | 'en'): { valid: boolean; reason?: string } => {
+  /**
+   * ⚠️ ПИСЬМЕННОСТЬ ПРИХОДИТ ИЗ ОДНОГО МЕСТА (`phonemicScriptFor`) — той же
+   * функции, по которой выбрана буква задания. Раньше буква выбиралась в
+   * сервисе, а проверка спрашивала «язык === ru?» здесь: для французского буква
+   * выходила кириллической, проверка латинской, и принять слово было НЕЛЬЗЯ.
+   */
+  const isValidWord = (raw: string, letter: string, lang: PhonemicScript): { valid: boolean; reason?: string } => {
     if (raw.length < 3) return { valid: false, reason: 'too_short' };
     if (raw.length > 30) return { valid: false, reason: 'too_long' };
     if (raw[0].toUpperCase() !== letter) return { valid: false, reason: 'wrong_letter' };
@@ -141,24 +157,25 @@ export default function PhonemicFluencyGame() {
     setInput('');
     if (!raw) return;
     const ts = gameNow();
-    let result = isValidWord(raw, letter, language as 'ru' | 'en');
+    let result = isValidWord(raw, letter, phonemicScriptFor(language));
     let valid = result.valid;
     let reason: string | undefined = result.reason;
-    if (valid && words.some(w => w.word === raw && w.valid)) {
+    if (valid && wordsRef.current.some(w => w.word === raw && w.valid)) {
       valid = false;
       reason = 'repetition';
     }
-    setWords(prev => [...prev, { word: raw, ts, valid, reason }]);
+    setWords(prev => { const next = [...prev, { word: raw, ts, valid, reason }]; wordsRef.current = next; return next; });
   };
 
   const finish = async () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     setPhase('result');
 
-    const validWords = words.filter(w => w.valid);
-    const repetitions = words.filter(w => !w.valid && w.reason === 'repetition').length;
-    const wrongLetter = words.filter(w => !w.valid && w.reason === 'wrong_letter').length;
-    const tooShort = words.filter(w => !w.valid && w.reason === 'too_short').length;
+    const said = wordsRef.current;   // ← из ref, а не из состояния: таймер видит устаревшее
+    const validWords = said.filter(w => w.valid);
+    const repetitions = said.filter(w => !w.valid && w.reason === 'repetition').length;
+    const wrongLetter = said.filter(w => !w.valid && w.reason === 'wrong_letter').length;
+    const tooShort = said.filter(w => !w.valid && w.reason === 'too_short').length;
 
     // mean inter-word interval (only on valid)
     let meanInter = 0;
@@ -210,6 +227,15 @@ export default function PhonemicFluencyGame() {
         <Ionicons name="chatbubbles" size={48} color={ON_GRAD.color} />
         <Text style={styles.configTitle}>{t('phonemic')}</Text>
         <Text style={styles.configDesc}>{t('phonemicDesc')}</Text>
+        {/*
+          🔴 ПОДМЕНА ПИСЬМЕННОСТИ НАЗЫВАЕТСЯ ВСЛУХ. Беглость «на букву П» в
+          иероглифах, кане, деванагари и арабице не ставится — письменность
+          устроена иначе. Задание идёт на латинице, и человек должен знать об
+          этом ДО начала, а не гадать, почему его слова не принимаются.
+        */}
+        {phonemicScriptIsFallback(language) ? (
+          <Text style={styles.configDesc}>{t('phonemicScriptFallback')}</Text>
+        ) : null}
       </LinearGradient>
       <GameAbout descriptionKey="phonemicIntroDesc" benefits={FLU_BENEFITS} accent={GRADIENT[0]} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>

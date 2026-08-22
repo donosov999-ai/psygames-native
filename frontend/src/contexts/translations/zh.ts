@@ -468,6 +468,7 @@ const t: Record<string, string> = {
   "benefitPrl3": "金融决策（Iowa+BART+PRL）",
   "phonemic": "音素流畅性（COWAT）",
   "phonemicDesc": "60 秒内说出以某字母开头的最多单词",
+  "phonemicScriptFallback": "本任务使用拉丁字母：按首字母的流畅性在你的文字中并不适用。请用拉丁字母输入单词。",
   "phonemicIntroDesc": "COWAT（受控口头词语联想测验）——经典的言语流畅性测试。在 60 秒内说出以给定字母开头的最多单词。不能用专有名词，不能重复。生物标志物：word_count、mean_inter_word_sec（单词之间的间隔——越高表示词汇提取越难）、first_half vs second_half（耐力）。对时间压力下词汇提取的直接测量——对公开演讲和谈判至关重要。",
   "phonemicAutoPick": "随机字母",
   "phonemicRules": "规则：仅限普通名词，长度 ≥ 2，不能重复",
