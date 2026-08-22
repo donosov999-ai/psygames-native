@@ -270,6 +270,7 @@ const t: Record<string, string> = {
   "goalMoves": "すべて片づける。手数の上限：",
   "goalFree": "印のついた棚を空ける",
   "goodsSortHint": "商品をマスへドラッグ、またはタップしてからマスをタップ。同じ商品を1つのマスに3つそろえると消えます。すべて片づけましょう。",
+  "goodsSortDeadEnd": "動かせる手がありません。置く場所がありません。何手か戻すか、シャッフルしてください。",
   "goodsLevel": "レベル",
   "eyeInstrWarmup": "点を各方向へ目で追う",
   "eyeInstrPursuit": "頭を動かさず、目で点を追う",

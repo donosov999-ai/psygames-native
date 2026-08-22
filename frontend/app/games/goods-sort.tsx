@@ -402,6 +402,12 @@ const SHELF_BY_PROFILE: Record<string, ShelfStyle> = {
   free: 'birch',
 };
 
+import {
+  canPlace, makeBoard,
+  tripleIn as coreTripleIn, removeTriple as coreRemoveTriple,
+} from '@/src/games/goods-sort/core/board';
+import { solvableStrict as coreSolvable, isDeadEnd, hintMove } from '@/src/games/goods-sort/core/solver';
+
 const CAP = 3;     // вместимость ячейки — 3 товара ВИДИМЫ (суть оригинала)
 
 // Доска РАСТЁТ с уровнем: L1-7 3×3 (9), L8-11 4×3 (12), L12+ 4×4 (16) → больше типов на верхах.
@@ -662,9 +668,8 @@ export function strictPlacement(L: number): boolean {
  * Единственное место, где живёт разница между обычным уровнем и строгим.
  */
 export function placementOk(dst: number[], type: number, strict: boolean, cap: number = CAP): boolean {
-  if (dst.length >= cap) return false;
-  if (!strict || dst.length === 0) return true;
-  return dst[dst.length - 1] === type;
+  // Одна ниша — частный случай доски: правило укладки живёт в ядре целиком.
+  return canPlace(makeBoard([dst], [cap]), 0, type, strict);
 }
 
 /**
@@ -675,20 +680,15 @@ export function placementOk(dst: number[], type: number, strict: boolean, cap: n
  *
  * Возвращает тип, которого набралось три, или null.
  */
-export function tripleIn(cell: number[]): number | null {
-  const count: Record<number, number> = {};
-  for (const t of cell) {
-    count[t] = (count[t] || 0) + 1;
-    if (count[t] === CAP) return t;
-  }
-  return null;
-}
+/**
+ * ⚠️ ЛОГИКА ЖИВЁТ В ЯДРЕ (`src/games/goods-sort/core/board.ts`). Здесь только
+ * прежние имена, чтобы экран и гейты не переписывать разом. Две копии одного
+ * правила — ровно то, из-за чего четыре дефекта 22.08.2026 и прожили незаметно.
+ */
+export const tripleIn = coreTripleIn;
 
 /** Убрать из ниши тройку одного типа, оставив остальное. */
-export function removeTriple(cell: number[], type: number): number[] {
-  let left = CAP;
-  return cell.filter((t) => (t === type && left > 0 ? (left--, false) : true));
-}
+export const removeTriple = coreRemoveTriple;
 
 /**
  * ЕСТЬ ЛИ У РАСКЛАДА РЕШЕНИЕ ПОД СТРОГОЙ УКЛАДКОЙ.
@@ -724,60 +724,8 @@ export function removeTriple(cell: number[], type: number): number[] {
  * `caps` не передали — считаем все по три, как было: старые вызовы не ломаем.
  */
 export function solvableStrict(start: number[][], caps?: number[], budget = 20000): boolean {
-  const capAt = (i: number) => caps?.[i] ?? CAP;
-  const seen = new Set<string>();
-  let nodes = 0;
-
-  const collapse = (b: number[][]) => {
-    let again = true;
-    while (again) {
-      again = false;
-      for (let i = 0; i < b.length; i++) {
-        // Тройку ищем ПО СОДЕРЖИМОМУ, а не по заполненности: в нише на четыре
-        // тройка лежит рядом с четвёртым предметом, и прежняя проверка её не видела.
-        const t = tripleIn(b[i]);
-        if (t !== null) { b[i] = removeTriple(b[i], t); again = true; }
-      }
-    }
-  };
-  // Ниши равноправны: состояние — отсортированный список содержимого.
-  const key = (b: number[][]) => b.map((c) => c.join('.')).sort().join('|');
-
-  const walk = (b: number[][]): boolean => {
-    if (b.every((c) => c.length === 0)) return true;
-    if (++nodes > budget) return false;
-    const k = key(b);
-    if (seen.has(k)) return false;
-    seen.add(k);
-
-    type Try = { from: number; to: number; rank: number };
-    const tries: Try[] = [];
-    for (let from = 0; from < b.length; from++) {
-      const src = b[from];
-      if (!src.length) continue;
-      const type = src[src.length - 1];
-      for (let to = 0; to < b.length; to++) {
-        if (to === from || !placementOk(b[to], type, true, capAt(to))) continue;
-        const dst = b[to];
-        // 0 — собирает тройку, 1 — кладём к такому же, 2 — в пустую.
-        const rank = dst.length === CAP - 1 && dst[0] === type ? 0 : dst.length ? 1 : 2;
-        tries.push({ from, to, rank });
-      }
-    }
-    tries.sort((x, y) => x.rank - y.rank);
-    for (const t of tries) {
-      const nb = b.map((c) => [...c]);
-      nb[t.from].pop();
-      nb[t.to].push(b[t.from][b[t.from].length - 1]);
-      collapse(nb);
-      if (walk(nb)) return true;
-    }
-    return false;
-  };
-
-  const first = start.map((c) => [...c]);
-  collapse(first);
-  return walk(first);
+  const board = makeBoard(start, caps ?? start.map(() => CAP));
+  return coreSolvable(board, budget);
 }
 
 /** Сколько раз за уровень можно перемешать. Не спасение от тупика — тупика нет. */
@@ -2112,6 +2060,21 @@ export default function GoodsSortGame() {
   /** Ёмкости ниш этого уровня. Одинаковые до 18-го, дальше вперемешку. */
   const caps = useMemo(() => capsFor(level, gridRef.current.slots), [level, gridDim.cols, gridDim.rows]);
   const capOf = (i: number) => caps[i] ?? CAP;
+
+  /**
+   * 🔴 ДОСКА ВСТАЛА — И ОБ ЭТОМ НАДО СКАЗАТЬ. Проверки тупика в игре не было
+   * ВООБЩЕ: под строгой укладкой доска может встать, и человек тыкал в мёртвую
+   * доску, не понимая, что произошло. Тот же симптом, что 22.08.2026 нашёлся в
+   * маджонге и в «Дворце памяти» — игра не отвечает и не объясняет.
+   *
+   * Считаем на живой доске: ниши под замком и вырезанные маской в расчёт не
+   * идут, потому что ходить в них нельзя.
+   */
+  const deadEnd = useMemo(() => {
+    if (cells.length === 0) return false;
+    const board = makeBoard(cells, caps.slice(0, cells.length));
+    return isDeadEnd(board, cells.map((_, i) => cellUsable(i)), strict);
+  }, [cells, caps, obstacles, strict, frozen]);
   /** Есть ли на этом уровне разные ёмкости — от этого зависит показ насечек. */
   const mixedCaps = new Set(caps).size > 1;
 
@@ -2991,7 +2954,17 @@ export default function GoodsSortGame() {
               не сообщал никто. Первые четыре уровня цель одна и та же (убрать
               всё), поэтому там оставляем правило игры.
             */}
-            {level < 5 ? (
+            {/*
+              🔴 ТУПИК НАЗЫВАЕТСЯ ВСЛУХ И ВЫТЕСНЯЕТ ВСЁ ОСТАЛЬНОЕ. Проверки тупика
+              в игре не было вовсе: доска могла встать, и человек тыкал в мёртвую
+              доску, не понимая, что произошло. Сообщение важнее и цели, и правила
+              игры — они отвечают на вопрос, которого сейчас нет.
+            */}
+            {deadEnd ? (
+              <Text style={[styles.hintText, { color: colors.error, fontWeight: '700' }]}>
+                {t('goodsSortDeadEnd')}
+              </Text>
+            ) : level < 5 ? (
               <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('goodsSortHint')}</Text>
             ) : (
               <View style={styles.goalLine}>

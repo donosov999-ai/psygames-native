@@ -462,6 +462,7 @@ const translations: Translations = {
   goalMoves: { ru: "Убрать всё. Ходов не больше:", en: "Clear all. Moves at most:" },
   goalFree: { ru: "Освободить помеченные ниши", en: "Free the marked niches" },
   goodsSortHint: { ru: "Перетащи товар в нишу — или тапни его, потом нишу. Собери 3 ОДИНАКОВЫХ в одной нише — исчезнут. Убери всё.", en: "Drag a good into a niche — or tap it, then the niche. Gather 3 IDENTICAL in one niche — they vanish. Clear everything." },
+  goodsSortDeadEnd: { ru: "Ходов больше нет: переложить некуда. Отмени несколько ходов или перемешай.", en: "No moves left: nowhere to put anything. Undo a few moves or shuffle." },
   goodsLevel: { ru: 'Уровень', en: 'Level' },
   eyeInstrWarmup: { ru: 'Веди взгляд за точкой по направлениям', en: 'Follow the dot in each direction' },
   eyeInstrPursuit: { ru: 'Следи за точкой глазами, голову не двигай', en: 'Follow the dot with your eyes, keep your head still' },

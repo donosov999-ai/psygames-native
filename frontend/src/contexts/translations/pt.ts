@@ -1483,6 +1483,7 @@ const t: Record<string, string> = {
   "goalMoves": "Esvazie tudo. Jogadas no máximo:",
   "goalFree": "Libere os nichos marcados",
   "goodsSortHint": "Arraste um produto até um espaço, ou toque nele e depois no espaço. Junte 3 IDÊNTICOS no mesmo espaço e eles somem. Limpe tudo.",
+  "goodsSortDeadEnd": "Não há mais jogadas: não há onde colocar nada. Desfaça algumas jogadas ou embaralhe.",
   "goodsLevel": "Nível",
   "eyeInstrWarmup": "Siga o ponto em cada direção",
   "eyeInstrPursuit": "Acompanhe o ponto com os olhos sem mover a cabeça",

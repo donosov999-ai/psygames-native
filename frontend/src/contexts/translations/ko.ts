@@ -270,6 +270,7 @@ const t: Record<string, string> = {
   "goalMoves": "모두 비우기. 최대 이동 수:",
   "goalFree": "표시된 칸 비우기",
   "goodsSortHint": "물건을 칸으로 끌어다 놓거나, 물건을 누른 뒤 칸을 누르세요. 한 칸에 같은 물건 3개를 모으면 사라져요. 전부 비우세요.",
+  "goodsSortDeadEnd": "더 이상 움직일 수 없습니다: 놓을 곳이 없습니다. 몇 수 되돌리거나 섞으세요.",
   "goodsLevel": "레벨",
   "eyeInstrWarmup": "각 방향으로 점을 따라가세요",
   "eyeInstrPursuit": "머리는 고정하고 눈으로 점을 따라가세요",
