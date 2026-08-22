@@ -74,7 +74,7 @@ describe('экран показывает посчитанную ступень'
    */
   it('🔴 показанная ступень совпадает с оценкой той самой доски', () => {
     for (const lv of [12, 26, 41]) {
-      const c = levelConfig(lv) as { N: number; BR: number; BC: number; variant: never; blanks: number };
+      const c = levelConfig(lv);
       const r = generateLogical(lv, c.blanks, c.N, c.BR, c.BC, c.variant, {
         budgetMs: 2200, tier: roadTier(lv, 'normal'),
       });

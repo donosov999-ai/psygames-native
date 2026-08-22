@@ -109,10 +109,36 @@ export function extractMetric(session: GameSession, metricKey: string): number |
   return null;
 }
 
+/**
+ * ПАРТИЯ ПОДХОДИТ БАТАРЕЕ, ТОЛЬКО ЕСЛИ СЫГРАНА В ТЕХ ЖЕ НАСТРОЙКАХ.
+ *
+ * 🔴 ЧТО БЫЛО. Партия выбиралась по одному `game_type`. А батарея предписывает
+ * ТОЧНЫЕ настройки: «Спан цифр» — medium и forward, n-back — 2-back, тест внимания
+ * — 4min, SDMT — 60s. Нормы (`norm_mean`, `norm_std`) собраны именно под них.
+ * Человек играл «Спан цифр» НАЗАД на трудной настройке — и эта партия шла в оценку
+ * как результат прямого спана на средней, то есть сравнивалась с чужой нормой. Ни в
+ * отчёте, ни на экране этого не видно: число выглядит как измерение.
+ *
+ * История такую же задачу давно различает — `taskKey` в trainingHistory склеивает
+ * упражнение + уровень + дорогу + настройки, и там прямо написано: «5×5 и 6×6 это
+ * разные задачи, а не прогресс». Здесь тот же принцип и та же причина.
+ *
+ * ⚠️ ТРЕБУЕМ ТО, ЧТО БАТАРЕЯ ПРЕДПИСАЛА, И НИЧЕГО СВЕРХ. Шаг без настройки ничего и
+ * не проверяет: лишнее требование сделало бы все домены «нет данных», а это хуже
+ * неточности — отчёт стал бы пустым.
+ */
+export function sessionFitsStep(session: GameSession, step: PlaylistStep | undefined): boolean {
+  if (!step) return true;
+  if (step.difficulty && session.difficulty !== step.difficulty) return false;
+  if (step.mode && session.mode !== step.mode) return false;
+  return true;
+}
+
 export function scoreSessions(sessions: GameSession[]): AssessmentResult {
   const scores: DomainScore[] = [];
   for (const dom of DOMAINS) {
-    const s = sessions.find(x => x.game_type === dom.game_id);
+    const step = ASSESSMENT_PLAYLIST.find(x => x.game_id === dom.game_id);
+    const s = sessions.find(x => x.game_type === dom.game_id && sessionFitsStep(x, step));
     if (!s) {
       // missing session — assume average
       scores.push({ domain: dom.id, raw_value: dom.norm_mean, z_score: 0, percentile: 50, level: 'avg' });
