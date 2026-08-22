@@ -346,6 +346,8 @@ const t: Record<string, string> = {
   "mahjongDesc": "Elimina le coppie di tessere libere",
   "mahjongIntroDesc": "Il classico solitario mahjong. Le tessere sono impilate a piramide. Una tessera è LIBERA quando niente la copre da sopra E il suo lato sinistro O destro è aperto. Tocca due tessere libere con lo stesso simbolo — la coppia sparisce. Le tessere bloccate sono scurite e non rispondono. Obiettivo — eliminare TUTTE le tessere. Bloccato? Il pulsante \"Mescola\" rimescola le tessere rimaste. I livelli crescono: più tessere e più strati.",
   "mahjongHint": "Tocca due tessere LIBERE uguali — la coppia sparisce. Libera = niente sopra e un lato aperto.",
+  "mahjongPairsOpen": "Libere",
+  "mahjongNoPairs": "Nessuna coppia disponibile — il tavolo è bloccato. Mescola o annulla una mossa.",
   "skillVisualSearch": "Alleni: ricerca visiva",
   "benefitMahjong1": "Ricerca visiva delle coppie tra tante tessere",
   "benefitMahjong2": "Pianifichi quali tessere liberare per prime",

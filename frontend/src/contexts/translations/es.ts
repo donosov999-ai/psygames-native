@@ -1512,6 +1512,8 @@ const t: Record<string, string> = {
   "mahjongDesc": "Elimina fichas libres iguales",
   "mahjongIntroDesc": "Solitario Mahjong clásico. Las fichas están apiladas en pirámide. Una ficha está LIBRE cuando nada la cubre arriba Y tiene libre su lado izquierdo O derecho. Toca dos fichas libres con el mismo símbolo para eliminarlas. Las fichas bloqueadas se atenúan. Despeja TODAS para ganar. ¿Bloqueado? El botón «Mezclar» reordena las fichas restantes.",
   "mahjongHint": "Toca dos fichas LIBRES iguales para eliminarlas. Libre = sin nada encima y con un lado abierto.",
+  "mahjongPairsOpen": "Libres",
+  "mahjongNoPairs": "No hay pares disponibles: el tablero está bloqueado. Baraja o deshaz una jugada.",
   "skillVisualSearch": "Entrenamiento: búsqueda visual",
   "benefitMahjong1": "Búsqueda visual de parejas entre múltiples fichas",
   "benefitMahjong2": "Planificación de qué fichas liberar primero",

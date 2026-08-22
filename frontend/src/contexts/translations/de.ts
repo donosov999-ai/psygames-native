@@ -1512,6 +1512,8 @@ const t: Record<string, string> = {
   "mahjongDesc": "Entferne freie gleiche Spielsteine",
   "mahjongIntroDesc": "Klassisches Mahjong-Solitär. Die Steine sind als Pyramide aufgebaut. Ein Stein ist FREI, wenn er oben nicht verdeckt ist UND links ODER rechts frei liegt. Tippe auf zwei freie Steine mit gleichem Symbol zum Entfernen. Räume ALLE Steine ab.",
   "mahjongHint": "Tippe auf zwei FREIE gleiche Steine. Frei = oben frei und mindestens eine Seite offen.",
+  "mahjongPairsOpen": "Frei",
+  "mahjongNoPairs": "Keine Paare verfügbar — das Brett steckt fest. Mische oder mach einen Zug rückgängig.",
   "skillVisualSearch": "Training: Visuelle Suche",
   "benefitMahjong1": "Visuelle Suche nach Paaren unter vielen Steinen",
   "benefitMahjong2": "Vorausplanung, welche Steine zuerst freigelegt werden",

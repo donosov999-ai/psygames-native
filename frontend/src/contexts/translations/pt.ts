@@ -1512,6 +1512,8 @@ const t: Record<string, string> = {
   "mahjongDesc": "Remova peças livres iguais",
   "mahjongIntroDesc": "Paciência Mahjong clássico. As peças ficam empilhadas em pirâmide. Uma peça está LIVRE se nada a cobre acima E o lado esquerdo OU direito está aberto. Toque em duas peças livres com o mesmo símbolo para eliminá-las. Peças bloqueadas ficam escurecidas. Limpe TODAS para vencer.",
   "mahjongHint": "Toque em duas peças LIVRES idênticas para limpá-las. Livre = topo livre e pelo menos um lado aberto.",
+  "mahjongPairsOpen": "Livres",
+  "mahjongNoPairs": "Não há pares disponíveis — o tabuleiro travou. Embaralhe ou desfaça uma jogada.",
   "skillVisualSearch": "Treino: busca visual",
   "benefitMahjong1": "Busca visual de pares entre várias peças",
   "benefitMahjong2": "Planejamento de quais peças liberar primeiro",
