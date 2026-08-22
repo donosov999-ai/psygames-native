@@ -54,10 +54,35 @@ interface Dot { x: number; y: number }
 
 // Уровень: диапазон количества точек растёт, время показа падает. Дно 300мс —
 // ниже человек физически не успевает даже мельком зафиксировать взглядом.
-function levelParams(level: number): { minN: number; maxN: number; exposureMs: number } {
-  const base = 3 + Math.floor((level - 1) / 2);
+/** Больше двадцати точек на экране телефона не различить — это потолок задачи. */
+const MAX_DOTS = 20;
+
+/**
+ * 🔴 ДИАПАЗОН ПЕРЕВОРАЧИВАЛСЯ С СОРОКОВОГО УРОВНЯ. Нижняя граница росла без
+ * потолка, верхняя упиралась в двадцать — и с L40 нижняя обгоняла верхнюю.
+ * Последствия росли: на 43-м верного ответа на экране почти никогда не было
+ * (кнопка одна, ответ из четырёх возможных), на 45-м кнопок не оставалось
+ * НИ ОДНОЙ — партия вставала намертво.
+ *
+ * Теперь потолок держит ОБЕ границы, и между ними всегда остаётся хотя бы три
+ * возможных ответа: иначе это уже не счёт, а угадывание одной кнопки.
+ */
+export function levelParams(level: number): { minN: number; maxN: number; exposureMs: number } {
   const spread = 2 + Math.floor(level / 5);
-  return { minN: base, maxN: Math.min(20, base + spread), exposureMs: Math.max(300, 900 - level * 40) };
+  const wanted = 3 + Math.floor((level - 1) / 2);
+  const maxN = Math.min(MAX_DOTS, wanted + spread);
+  const minN = Math.max(2, Math.min(wanted, maxN - 2));
+  return { minN, maxN, exposureMs: Math.max(300, 900 - level * 40) };
+}
+
+/**
+ * Кнопки ответа. Обязаны накрывать ВЕСЬ возможный диапазон плюс запас с обеих
+ * сторон — иначе верного ответа на экране может не оказаться.
+ */
+export function answerChoices(p: { minN: number; maxN: number }): number[] {
+  const lo = Math.max(1, p.minN - 2);
+  const hi = p.maxN + 2;
+  return Array.from({ length: hi - lo + 1 }, (_, i) => lo + i);
 }
 
 // Раскидать N точек без наложения (rejection sampling, лимит попыток — не зависать).
@@ -194,7 +219,7 @@ export default function QuickCountGame() {
   // игровые фазы (вспышка и ответ) — на едином каркасе GameShell (кнопки-варианты прибиты к низу)
   if (phase === 'flash' || phase === 'answer') {
     const p = levelParams(levelRef.current);
-    const choices = Array.from({ length: p.maxN + 3 - Math.max(1, p.minN - 2) }, (_, i) => Math.max(1, p.minN - 2) + i);
+    const choices = answerChoices(p);
     return (
       <GameShell
         title={t('quickCount')}
