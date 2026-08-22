@@ -28,6 +28,7 @@ import {
   validateEulerGraph,
   type OneLineMetrics,
 } from '@/src/games/one-line/core/index';
+import { AUTHORED_LEVEL_COUNT } from '@/src/games/one-line/core/authored';
 import OneLineGame from '@/src/games/one-line/OneLineGame';
 import { onGradientText, contrastRatio, AA_NORMAL } from '@/src/services/onGradientText';
 
@@ -267,17 +268,57 @@ describe('«Одна линия»: сложность растёт содерж�
     expect(code).toContain('maxLevel={LEVELS}');
   });
 
-  it('🔴 граф растёт по уровням: вершины, рёбра, обманки-пересечения', () => {
+  /**
+   * ⚠️ РОСТ ГЕНЕРАТОРА МЕРЯЕТСЯ НА ЕГО УРОВНЯХ. Первые двенадцать теперь рисованные,
+   * и требовать от них «чистой раскладки» бессмысленно: конверт пересекается ПО
+   * ОПРЕДЕЛЕНИЮ — этим он и конверт. Прежняя редакция брала второй уровень и упала
+   * на песочных часах, у которых диагонали крестом: верное срабатывание не на том
+   * материале. Поэтому проверка разведена надвое.
+   */
+  it('🔴 граф генератора растёт по уровням: вершины, рёбра, обманки-пересечения', () => {
     const at = (lv: number) => generateOneLinePuzzle(`one-line-${lv}`, lv);
-    const small = at(2);
-    const mid = at(12);
+    const small = at(AUTHORED_LEVEL_COUNT + 1);
+    const mid = at(20);
     const big = at(40);
+    /**
+     * ⚠️ ЧИСЛО ВЕРШИН УПИРАЕТСЯ В ПОТОЛОК (VERTEX_PROGRESSION кончается на 12), и это
+     * НАРОЧНО: пятнадцать точек на телефоне уже не разглядеть. Поэтому дальше растут
+     * рёбра и запутанность раскладки, а не число точек — сравниваем то, что реально
+     * обязано расти, а не то, что удобно написать.
+     */
     expect(small.vertices.length).toBeLessThan(mid.vertices.length);
-    expect(mid.vertices.length).toBeLessThan(big.vertices.length);
+    expect(mid.vertices.length).toBeLessThanOrEqual(big.vertices.length);
+    expect(mid.edges.length).toBeLessThan(big.edges.length);
     expect(small.edges.length).toBeLessThan(big.edges.length);
-    // На первых уровнях раскладка чистая, дальше её нарочно запутывают.
-    expect(small.visualCrossings).toBe(0);
+    expect(small.visualCrossings).toBeLessThan(big.visualCrossings);
     expect(big.visualCrossings).toBeGreaterThan(0);
+  });
+
+  /**
+   * 🔴 РИСОВАННАЯ ДЮЖИНА — СВОЯ ЛЕСТНИЦА. Она ВЕДЁТ, а не просто растёт: сначала
+   * восемь уровней чистого росчерка, потом двойное ребро, потом одностороннее.
+   * Так же устроен образец — приправа работает, пока её мало.
+   */
+  it('🔴 рисованные уровни: приправа появляется поздно и остаётся редкой', () => {
+    const kinds = (lv: number) => generateOneLinePuzzle('x', lv).edges.map((e) => e.kind ?? 'single');
+    for (let lv = 1; lv <= 8; lv += 1) {
+      expect(kinds(lv).every((k) => k === 'single')).toBe(true);
+    }
+    const all = Array.from({ length: AUTHORED_LEVEL_COUNT }, (_, i) => kinds(i + 1)).flat();
+    expect(all).toContain('double');
+    expect(all).toContain('oneway');
+    // Не больше трети — иначе это уже не приправа, а другая игра.
+    expect(all.filter((k) => k !== 'single').length).toBeLessThan(all.length / 3);
+  });
+
+  /** Один номер уровня — одна фигура у всех, иначе «тот, где звезда» ничего не значит. */
+  it('🔴 рисованная фигура не зависит от зерна', () => {
+    for (let lv = 1; lv <= AUTHORED_LEVEL_COUNT; lv += 1) {
+      const a = generateOneLinePuzzle('seed-one', lv);
+      const b = generateOneLinePuzzle('seed-two', lv);
+      expect(a.vertices).toEqual(b.vertices);
+      expect(a.edges).toEqual(b.edges);
+    }
   });
 
   it('🔴 подсказка старта гаснет после третьего уровня — иначе ступени нет', () => {
