@@ -158,7 +158,26 @@ export function formatUnlockHint(
  * Extracts the metric value from a finished session that maps to the
  * unlock condition's metric type.
  */
+/**
+ * ПАРТИЯ С КУПЛЕННОЙ ПОМОЩЬЮ НЕ ОТКРЫВАЕТ УРОВНИ.
+ *
+ * 🔴 ЗАЧЕМ. «Мишени» продают вторую жизнь, и это ЗАМЕРНАЯ игра: в партию пишутся
+ * среднее время реакции и его разброс, а по `mean_rt` открывается содержимое.
+ * Уровень в самой игре при покупке уже замораживался (`ladderFrozenRef`), а
+ * разблокировка — нет: человек умирал на тридцатом раунде, докупал жизнь, доигрывал
+ * до шестидесятого и открывал то, чего не взял. Замер продлённой партии — это не
+ * его замер, и покупать им прогресс нельзя.
+ *
+ * Правило записано рядом со «Спаном по клеткам»: в замерных играх второй жизни быть
+ * не должно, продаётся ОБРАТНОЕ — право сыграть так, чтобы партия никуда не пошла.
+ * Пока вторая жизнь существует, партия с ней помечается и в счёт не идёт.
+ */
+export function assistedRound(session: GameSession): boolean {
+  return ((session.details ?? {}) as { assisted?: unknown }).assisted === true;
+}
+
 function extractMetric(session: GameSession, metric: UnlockCondition['metric']): number | null {
+  if (assistedRound(session)) return null;   // купленная помощь — не замер
   const d = session.details ?? {};
   switch (metric) {
     case 'time_seconds_max':
