@@ -306,7 +306,7 @@ export default function NumberBondsGame() {
         </LinearGradient>
         <GameAbout descriptionKey="numberBondsIntroDesc" benefits={NB_BENEFITS} accent={GRADIENT[0]} />
 
-        <LevelProgressMap gameId="number_bonds" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="number_bonds" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

@@ -287,7 +287,7 @@ export default function LexicalDecisionGame() {
             </View>
           </View>
 
-          <LevelProgressMap gameId="lexical_decision" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+          <LevelProgressMap bestLevel={lvl.best} gameId="lexical_decision" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
 
           {/* Карточка уровня: параметры + видимый критерий прохода + сброс ↺1 (паттерн cpt/simon) */}
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginTop: 12, marginBottom: 12, alignItems: 'center', gap: 6 }]}>

@@ -400,7 +400,7 @@ export default function PRLGame() {
 
         {runMode === 'level' ? (
           <>
-            <LevelProgressMap gameId="prl" currentLevel={lvl.level} onPickLevel={lvl.pick} maxLevel={12} colors={colors} language={language} />
+            <LevelProgressMap bestLevel={lvl.best} gameId="prl" currentLevel={lvl.level} onPickLevel={lvl.pick} maxLevel={12} colors={colors} language={language} />
             <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
               <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
                 {t('level')} {lvl.level}

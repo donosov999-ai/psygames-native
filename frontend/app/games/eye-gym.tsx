@@ -219,7 +219,7 @@ export default function EyeGymGame() {
       <GameModeSwitch mode={playMode} onChange={setPlayMode} colors={colors} accent={GRADIENT[0]} t={t} />
 
       {byLevel && (
-        <LevelProgressMap
+        <LevelProgressMap bestLevel={lvl.best}
           gameId="eye_gym"
           currentLevel={lvl.level} onPickLevel={lvl.pick}
           maxLevel={EYE_GYM_MAX_LEVEL}

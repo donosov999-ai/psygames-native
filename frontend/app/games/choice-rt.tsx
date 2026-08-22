@@ -257,7 +257,7 @@ export default function ChoiceRtGame() {
         </LinearGradient>
         <GameAbout descriptionKey="choiceRtIntroDesc" benefits={CHOICE_BENEFITS} accent={GRADIENT[0]} />
 
-        <LevelProgressMap gameId="choice_rt" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="choice_rt" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <TouchableOpacity
           accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
           <Ionicons name="trophy-outline" size={18} color={colors.text} />

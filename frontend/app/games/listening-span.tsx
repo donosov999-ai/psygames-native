@@ -256,7 +256,7 @@ export default function ListeningSpanGame() {
         </Text>
       </LinearGradient>
 
-      <LevelProgressMap gameId={GAME_ID} currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId={GAME_ID} currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
 
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>

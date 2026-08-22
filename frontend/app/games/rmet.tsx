@@ -364,7 +364,7 @@ export default function RMETGame() {
       <Text style={[styles.warning, { color: colors.textSecondary }]}>
         {t('rmetNote')}
       </Text>
-      <LevelProgressMap
+      <LevelProgressMap bestLevel={runs.best}
         gameId="rmet"
         currentLevel={runs.level}
         maxLevel={Math.max(15, runs.level)}

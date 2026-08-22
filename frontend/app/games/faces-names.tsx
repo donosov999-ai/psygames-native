@@ -280,7 +280,7 @@ export default function FacesNamesScreen() {
       </GradientSurface>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <LevelProgressMap gameId="faces_names" currentLevel={lvl.level}
+        <LevelProgressMap bestLevel={lvl.best} gameId="faces_names" currentLevel={lvl.level}
           onPickLevel={lvl.pick} maxLevel={Math.max(FACES_NAMES_LEVELS, lvl.best)}
           colors={colors} language={language} />
 

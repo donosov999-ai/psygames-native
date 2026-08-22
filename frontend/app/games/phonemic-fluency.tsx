@@ -277,7 +277,7 @@ export default function PhonemicFluencyGame() {
       <Text style={[styles.warning, { color: colors.textSecondary }]}>
         {t('phonemicRules')}
       </Text>
-            <LevelProgressMap
+            <LevelProgressMap bestLevel={runs.best}
         gameId="phonemic_fluency"
         currentLevel={runs.level}
         maxLevel={Math.max(15, runs.level)}

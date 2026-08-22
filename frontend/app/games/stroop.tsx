@@ -302,7 +302,7 @@ export default function StroopGame() {
           <Text style={styles.configDesc}>{t('stroopDesc')}</Text>
         </GradientSurface>
         <GameAbout descriptionKey="stroopIntroDesc" benefits={STROOP_BENEFITS} accent={GRADIENT[0]} />
-        <LevelProgressMap gameId="stroop" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="stroop" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

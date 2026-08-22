@@ -280,7 +280,7 @@ export default function SpatialSpanGame() {
         <Text style={styles.configDesc}>{t('spatialSpanDesc')}</Text>
       </GradientSurface>
       <GameAbout descriptionKey="spatialSpanIntroDesc" benefits={SS_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="spatial_span" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="spatial_span" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       {/* ПРОБНЫЙ ЗАХОД — расходуемая способность (`src/services/abilities.ts`).
           ⚠️ Остаток показывается ВСЕГДА, включая ноль: до траты человек обязан видеть,
           что у него есть и что произойдёт. Переключатель гаснет на нулевом кошельке. */}

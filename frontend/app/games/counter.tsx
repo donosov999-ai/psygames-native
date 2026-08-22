@@ -331,7 +331,7 @@ export default function CounterGame() {
             </Text>
           </View>
 
-          <LevelProgressMap gameId="counter" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+          <LevelProgressMap bestLevel={lvl.best} gameId="counter" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
 
           {/* Карточка уровня: параметры + видимый критерий прохода + сброс ↺1 */}
           <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', gap: 6, marginTop: 12 }]}>

@@ -178,7 +178,7 @@ export default function IowaGame() {
           ))}
         </View>
       </View>
-      <LevelProgressMap
+      <LevelProgressMap bestLevel={runs.best}
         gameId="iowa"
         currentLevel={runs.level}
         maxLevel={Math.max(15, runs.level)}

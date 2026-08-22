@@ -544,7 +544,7 @@ export default function FractalSudokuScreen() {
             </View>
           )}
 
-          <LevelProgressMap
+          <LevelProgressMap bestLevel={lvl.best}
             gameId={GAME_ID}
             currentLevel={lvl.level} onPickLevel={lvl.pick}
             maxLevel={FRACTAL_MAX_LEVEL}

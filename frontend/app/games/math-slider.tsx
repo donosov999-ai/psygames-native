@@ -228,7 +228,7 @@ export default function MathSliderScreen() {
       </GradientSurface>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <LevelProgressMap gameId="math_slider" currentLevel={lvl.level}
+        <LevelProgressMap bestLevel={lvl.best} gameId="math_slider" currentLevel={lvl.level}
           onPickLevel={lvl.pick} colors={colors} language={language} />
 
         <View style={[styles.card, { backgroundColor: colors.surface }]}>

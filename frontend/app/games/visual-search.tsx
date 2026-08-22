@@ -323,7 +323,7 @@ export default function VisualSearchGame() {
         <Text style={styles.configDesc}>{t('visualSearchDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="visualSearchIntroDesc" benefits={VS_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="visual_search" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="visual_search" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>

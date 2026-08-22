@@ -2862,7 +2862,7 @@ export default function GoodsSortGame() {
           </TouchableOpacity>
         )}
       </View>
-      <LevelProgressMap
+      <LevelProgressMap bestLevel={lvl.best}
         gameId="goods_sort"
         currentLevel={level}
         maxLevel={Math.max(15, level, lvl.best)}

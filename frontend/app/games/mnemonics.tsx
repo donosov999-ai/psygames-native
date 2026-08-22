@@ -240,7 +240,7 @@ export default function MnemonicsGame() {
           </Text>
         </LinearGradient>
         <GameAbout descriptionKey="mnemonicsIntroDesc" benefits={MNEMONICS_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="mnemonics" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="mnemonics" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
 
         <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
           <Ionicons name="information-circle-outline" size={24} color={colors.primary} />

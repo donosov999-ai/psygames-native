@@ -209,7 +209,7 @@ export default function MathSprintGame() {
         <Text style={styles.configDesc}>{t('mathSprintDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="mathSprintIntroDesc" benefits={MATH_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="math_sprint" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="math_sprint" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
         <View style={styles.optionButtons}>

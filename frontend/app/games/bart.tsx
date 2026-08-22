@@ -296,7 +296,7 @@ export default function BARTGame() {
         <GameAbout descriptionKey="bartIntroDesc" benefits={BART_BENEFITS} accent={GRADIENT[0]} />
 
         {/* ── УРОВНЕВЫЙ режим (по умолчанию) ── */}
-        <LevelProgressMap gameId="bart" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="bart" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

@@ -334,7 +334,7 @@ export default function ProofreadingGame() {
         </View>
 
         {/* Уровневый режим вместо ручных селекторов строк/колонок (паттерн cpt/simon) */}
-        <LevelProgressMap gameId="proofreading" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="proofreading" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', gap: 6, marginTop: 12, marginBottom: 12 }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}

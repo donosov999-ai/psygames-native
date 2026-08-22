@@ -347,7 +347,7 @@ export default function OneLineScreen() {
       <ScrollView contentContainerStyle={styles.body}>
         {/* Тропинка на все 48 ступеней: число берём из ядра, а не вбиваем — растянут
             прогрессию в модуле, и тропинка вырастет сама. */}
-        <LevelProgressMap gameId="one_line" currentLevel={lvl.level} maxLevel={LEVELS}
+        <LevelProgressMap bestLevel={lvl.best} gameId="one_line" currentLevel={lvl.level} maxLevel={LEVELS}
           onPickLevel={lvl.pick} colors={colors} language={language} />
 
         <View style={[styles.card, { backgroundColor: colors.surface }]}>

@@ -408,7 +408,7 @@ export default function HanoiGame() {
           {t('hanoiLvlAuto').replace('{n}', String(lvl.level))}
         </Text>
       </View>
-      <LevelProgressMap
+      <LevelProgressMap bestLevel={lvl.best}
         gameId="hanoi"
         currentLevel={lvl.level} onPickLevel={lvl.pick}
         maxLevel={Math.max(15, lvl.level)}

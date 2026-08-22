@@ -429,7 +429,7 @@ export default function CPTGame() {
         <Text style={styles.configDesc}>{t('cptDesc')}</Text>
       </GradientSurface>
       <GameAbout descriptionKey="cptIntroDesc" benefits={CPT_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap gameId="cpt" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="cpt" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
           {t('level')} {lvl.level}

@@ -369,7 +369,7 @@ export default function VocabSrsGame() {
           )}
         </TouchableOpacity>
 
-        <LevelProgressMap
+        <LevelProgressMap bestLevel={runs.best}
           gameId="vocab_srs"
           currentLevel={runs.level}
           maxLevel={Math.max(15, runs.level)}

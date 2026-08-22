@@ -333,7 +333,7 @@ export default function PhonemePairsGame() {
           {t('phPairsConfigDesc')}
         </Text>
       </LinearGradient>
-      <LevelProgressMap gameId="phoneme_pairs" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="phoneme_pairs" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('langToTrain')}</Text>
         <View style={styles.optionButtons}>
