@@ -527,6 +527,7 @@ const t: Record<string, string> = {
   "fractalPortals": "Portales",
   "fractalPortalGo": "Ir a la cuadrícula",
   "fractalPortalHint": "Una casilla con anillo es una misma casilla en dos cuadrículas a la vez. Ninguna de las dos revela su dígito por separado: reduce los candidatos aquí, redúcelos allí, y la respuesta es lo que ambas admiten.",
+  "fractalUndecided": "Esta casilla aún no está determinada: la cifra no infringe ninguna regla, pero tampoco se deduce. No es un error: resuelve primero el portal.",
   "fractalPortalRule": "Desde el nivel seis aparecen los portales: dos casillas de cuadrículas inferiores DISTINTAS son en realidad una sola casilla. Ninguna de las dos cuadrículas se resuelve por sí sola; el dígito solo surge de lo que ambas admiten. Es una deducción que no existe dentro de ninguno de los dos rompecabezas.",
   "ctaChoose": "ELEGIR",
   "ctaRepeat": "REPETIR",

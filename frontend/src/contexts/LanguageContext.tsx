@@ -87,6 +87,7 @@ const translations: Translations = {
   fractalPortals: { ru: 'Порталы', en: 'Portals' },
   fractalPortalGo: { ru: 'В сетку', en: 'Go to grid' },
   fractalPortalHint: { ru: 'Клетка с кольцом — одна и та же в двух сетках сразу. Порознь ни одна из них цифру не выдаёт: сузьте кандидатов здесь, сузьте там — ответ даст пересечение.', en: 'A ringed cell is one and the same cell in two grids at once. Neither grid names its digit alone: narrow the candidates here, narrow them there, and the answer is what both allow.' },
+  fractalUndecided: { ru: 'Здесь задача пока не определена: цифра не нарушает ни одного правила, но и не выводится. Это не ошибка — сначала разрешите портал.', en: 'This cell is not decided yet: the digit breaks no rule, but it does not follow either. That is not a mistake — resolve the portal first.' },
   fractalPortalRule: { ru: 'С шестого уровня появляются порталы: пара клеток из РАЗНЫХ нижних сеток — на деле одна клетка. Ни одна из двух сеток не решается сама по себе; цифру даёт только то, что обе про неё допускают. Это вывод, которого нет ни в одном из пазлов по отдельности.', en: 'From level six portals appear: a pair of cells in DIFFERENT lower grids is really one cell. Neither of the two grids can be solved on its own; the digit comes only from what both of them allow. That is an inference neither puzzle holds by itself.' },
   ctaStart: { ru: 'СТАРТ', en: 'START' },
   // Карточка зарядки ведёт на ВЫБОР набора, а не запускает его. Подпись «СТАРТ»

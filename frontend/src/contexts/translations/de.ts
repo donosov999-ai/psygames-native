@@ -527,6 +527,7 @@ const t: Record<string, string> = {
   "fractalPortals": "Portale",
   "fractalPortalGo": "Zu Gitter",
   "fractalPortalHint": "Eine umringte Zelle ist ein und dieselbe Zelle in zwei Gittern zugleich. Keines der beiden nennt ihre Ziffer allein: Grenze die Kandidaten hier ein, grenze sie dort ein — die Antwort ist, was beide zulassen.",
+  "fractalUndecided": "Dieses Feld ist noch nicht bestimmt: Die Ziffer verletzt keine Regel, folgt aber auch nicht. Das ist kein Fehler — löse zuerst das Portal auf.",
   "fractalPortalRule": "Ab Stufe sechs gibt es Portale: Zwei Zellen in VERSCHIEDENEN unteren Gittern sind in Wahrheit eine einzige Zelle. Keines der beiden Gitter lässt sich für sich allein lösen; die Ziffer ergibt sich nur aus dem, was beide zulassen. Das ist ein Schluss, den kein Rätsel für sich enthält.",
   "ctaChoose": "AUSWÄHLEN",
   "ctaRepeat": "NOCHMAL",

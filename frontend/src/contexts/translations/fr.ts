@@ -22,6 +22,7 @@ const t: Record<string, string> = {
   "fractalPortals": "Portails",
   "fractalPortalGo": "Aller à la grille",
   "fractalPortalHint": "Une case cerclée est une seule et même case dans deux grilles à la fois. Aucune des deux ne donne son chiffre seule : réduisez les candidats ici, réduisez-les là — la réponse est ce que les deux autorisent.",
+  "fractalUndecided": "Cette case n’est pas encore déterminée : le chiffre ne viole aucune règle, mais ne s’en déduit pas non plus. Ce n’est pas une erreur — résolvez d’abord le portail.",
   "fractalPortalRule": "À partir du niveau six apparaissent les portails : deux cases de grilles inférieures DIFFÉRENTES ne font en réalité qu'une seule case. Aucune des deux grilles ne se résout seule ; le chiffre ne vient que de ce que les deux autorisent. C'est une déduction qu'aucune des deux grilles ne contient à elle seule.",
   "ctaChoose": "CHOISIR",
   "ctaRepeat": "REFAIRE",

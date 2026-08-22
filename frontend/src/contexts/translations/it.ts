@@ -22,6 +22,7 @@ const t: Record<string, string> = {
   "fractalPortals": "Portali",
   "fractalPortalGo": "Vai alla griglia",
   "fractalPortalHint": "Una casella cerchiata è una sola e medesima casella in due griglie insieme. Nessuna delle due rivela la cifra da sola: restringi i candidati qui, restringili là, e la risposta è ciò che entrambe ammettono.",
+  "fractalUndecided": "Questa casella non è ancora determinata: la cifra non viola alcuna regola, ma non ne discende. Non è un errore: risolvi prima il portale.",
   "fractalPortalRule": "Dal sesto livello compaiono i portali: due caselle di griglie inferiori DIVERSE sono in realtà una casella sola. Nessuna delle due griglie si risolve da sé; la cifra nasce solo da ciò che entrambe ammettono. È una deduzione che nessuno dei due schemi contiene per conto proprio.",
   "ctaChoose": "SCEGLI",
   "ctaRepeat": "RIPETI",

@@ -527,6 +527,7 @@ const t: Record<string, string> = {
   "fractalPortals": "Portais",
   "fractalPortalGo": "Ir para a grade",
   "fractalPortalHint": "Uma célula com anel é a mesma célula em duas grades ao mesmo tempo. Nenhuma delas revela o dígito sozinha: reduza os candidatos aqui, reduza-os ali, e a resposta é o que ambas permitem.",
+  "fractalUndecided": "Esta casa ainda não está determinada: o dígito não viola nenhuma regra, mas também não decorre dela. Não é um erro — resolva primeiro o portal.",
   "fractalPortalRule": "A partir do nível seis surgem os portais: duas células de grades inferiores DIFERENTES são, na verdade, uma só célula. Nenhuma das duas grades se resolve sozinha; o dígito vem apenas do que ambas permitem. É uma dedução que não existe dentro de nenhum dos dois quebra-cabeças.",
   "ctaChoose": "ESCOLHER",
   "ctaRepeat": "REPETIR",
