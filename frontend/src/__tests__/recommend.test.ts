@@ -83,6 +83,22 @@ describe('рекомендации: есть что проверять', () => {
   it('вычёркиваемые вечером категории существуют в каталоге', () => {
     const cats = new Set(GAMES.map((g) => g.category));
     expect(RECO_EVENING_BANNED.filter((c) => !cats.has(c))).toEqual([]);
+
+    /**
+     * 🔴 И ПОТОЛОК НА САМ СПИСОК. 22.08.2026 мутация «запретить вечером ещё и
+     * память» осталась ЗЕЛЁНОЙ: все проверки вечера ВЫВОДЯТ ожидание из этого же
+     * списка, поэтому обе стороны уезжают вместе и расхождения не видно. Список
+     * может расти молча, пока вечером не останется предлагать нечего.
+     *
+     * Запрет вечером — про возбуждение перед сном, а не про «поменьше занятий».
+     * Поэтому: три опоры вечерней тренировки трогать нельзя, и хотя бы половина
+     * каталога обязана оставаться доступной.
+     */
+    for (const core of ['memory', 'attention', 'recovery'] as const) {
+      expect(RECO_EVENING_BANNED).not.toContain(core);
+    }
+    const evening = GAMES.filter((g) => !RECO_EVENING_BANNED.includes(g.category));
+    expect(evening.length).toBeGreaterThanOrEqual(GAMES.length / 2);
   });
 });
 
