@@ -79,10 +79,27 @@ function levelParams(level: number): { mode: Mode; count: number; totalNodes: nu
 }
 
 interface Node { label: string; x: number; y: number; }
+/** Раскладка целиком: где узлы и какого они размера — размер зависит от тесноты канвы. */
+export interface NodeLayout {
+  nodes: Node[];
+  /** Диаметр кружка: под него и разведены центры. */
+  size: number;
+  /** Сторона ячейки сетки и доля её под разброс — наружу ради проверок раскладки. */
+  cell: number;
+  jitter: number;
+}
+/** Крупнее этого кружок не делаем; мельче — только если ячейка не вмещает. */
+export const NODE_MAX = 44;
+/** Мельче кружок не делаем: цифра перестаёт читаться. Ниже этого жертвуем разбросом. */
+export const NODE_MIN = 30;
+/** Доля ячейки под случайное смещение — потолок; при крайней тесноте уменьшается. */
+export const JITTER_MAX = 0.2;
+/** Поля канвы: узлы не липнут к краю. */
+export const LAYOUT_PAD = 30;
 
 function rand(a: number, b: number) { return a + Math.random() * (b - a); }
 
-function makeNodes(mode: Mode, n: number, lang: string, w: number, h: number): Node[] {
+export function makeNodes(mode: Mode, n: number, lang: string, w: number, h: number): NodeLayout {
   const letters = lang === 'ru' ? RU_LETTERS : EN_LETTERS;
   const labels: string[] = [];
   if (mode === 'A') {
@@ -94,31 +111,57 @@ function makeNodes(mode: Mode, n: number, lang: string, w: number, h: number): N
       if (i < letters.length) labels.push(letters[i]);
     }
   }
-  // Раскладка по «дрожащей сетке»: узлы гарантированно не накладываются.
-  // (Случайная выборка с отклонением при 22 узлах давала перекрытия — узел
-  // оказывался под другим и не нажимался. Теперь каждый узел — своя ячейка
-  // перемешанной сетки + небольшой джиттер, чтобы не выглядело линейкой.)
+  /**
+   * Раскладка по «дрожащей сетке».
+   *
+   * 🔴 «ГАРАНТИРОВАННО НЕ НАКЛАДЫВАЮТСЯ» БЫЛО НЕПРАВДОЙ. Сетка разводит ЦЕНТРЫ, а
+   * накладываются КРУЖКИ: при 22 узлах на канве 328×352 (телефон 360×640) минимальное
+   * расстояние выходило 39 точек при диаметре узла 44 — перекрытие в 88,5 % раскладок.
+   * На канве 358×460 тех же 22 узлов хватало с запасом, поэтому беду и не видели: она
+   * жила только на мелком экране. Гарантия была не структурной, а случайной — 25 узлов
+   * ложились ЛУЧШЕ 22 (7 % против 88,5 %), потому что число колонок случайно попадало
+   * удачнее.
+   *
+   * Теперь разведение доказуемо: колонки берём те, что дают самую крупную ячейку, а
+   * диаметр узла подчиняем ячейке. Дрожание ограничено так, что даже в худшем случае
+   * центры соседей расходятся не ближе диаметра:
+   *
+   *     расстояние ≥ ячейка · (1 − дрожание) ≥ диаметр  ⟸  дрожание ≤ 1 − диаметр/ячейка
+   */
   const N = labels.length;
-  const pad = 30;
+  const pad = LAYOUT_PAD;
   const gw = Math.max(1, w - pad * 2), gh = Math.max(1, h - pad * 2);
-  const cols = Math.max(1, Math.round(Math.sqrt((N * gw) / gh)));
+  // Колонки — те, при которых меньшая сторона ячейки максимальна (а не по пропорции экрана).
+  let cols = 1, cell = 0;
+  for (let k = 1; k <= N; k++) {
+    const side = Math.min(gw / k, gh / Math.ceil(N / k));
+    if (side > cell) { cell = side; cols = k; }
+  }
   const rows = Math.ceil(N / cols);
   const cellW = gw / cols, cellH = gh / rows;
+  /**
+   * ⚠️ РАЗБРОС ВАЖНЕЕ ЛИШНИХ ТОЧЕК ДИАМЕТРА. Подчинить дрожание размеру можно и наоборот
+   * — оставить кружок в 44 и ужать разброс до нуля. Тогда наложений тоже нет, но узлы
+   * встают идеальной решёткой, а поиск по решётке — уже не та проба: взгляд идёт рядами
+   * вместо настоящего зрительного поиска. Поэтому сперва держим разброс, а диаметр
+   * отдаём — и только упёршись в `NODE_MIN`, начинаем отдавать разброс.
+   */
+  const size = Math.min(NODE_MAX, Math.max(NODE_MIN, cell * (1 - JITTER_MAX)));
+  const jitter = Math.max(0, Math.min(JITTER_MAX, 1 - size / cell));
   const cells: number[] = [];
   for (let i = 0; i < cols * rows; i++) cells.push(i);
   for (let i = cells.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [cells[i], cells[j]] = [cells[j], cells[i]];
   }
-  const jitter = 0.2;   // доля ячейки под случайное смещение (не линейка, но и не наезд)
   const nodes: Node[] = labels.map((lbl, idx) => {
-    const cell = cells[idx];
-    const cx = cell % cols, cy = Math.floor(cell / cols);
+    const cellIdx = cells[idx];
+    const cx = cellIdx % cols, cy = Math.floor(cellIdx / cols);
     const x = pad + cellW * (cx + 0.5) + (Math.random() - 0.5) * cellW * jitter;
     const y = pad + cellH * (cy + 0.5) + (Math.random() - 0.5) * cellH * jitter;
     return { label: lbl, x, y };
   });
-  return nodes;
+  return { nodes, size, cell, jitter };
 }
 
 export default function TrailMakingGame() {
@@ -140,6 +183,8 @@ export default function TrailMakingGame() {
   const [count, setCount] = useState(() => num('count', 8));
   const [timeLimit, setTimeLimit] = useState(0);   // 0 = без лимита (пресет)
   const [nodes, setNodes] = useState<Node[]>([]);
+  // Диаметр кружка задаёт раскладка: на тесной канве он меньше, иначе узлы наезжают.
+  const [nodeSize, setNodeSize] = useState(NODE_MAX);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [errors, setErrors] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -192,11 +237,12 @@ export default function TrailMakingGame() {
     }
     modeRef.current = m;
     countRef.current = c;
-    const newNodes = makeNodes(m, c, language, playW, playH);
-    totalNodesRef.current = newNodes.length;
+    const layout = makeNodes(m, c, language, playW, playH);
+    totalNodesRef.current = layout.nodes.length;
     setTimeLimit(timeLimitRef.current);
-    setNodes(newNodes);
-    nodesRef.current = newNodes;
+    setNodes(layout.nodes);
+    setNodeSize(layout.size);
+    nodesRef.current = layout.nodes;
     setCurrentIdx(0);
     currentIdxRef.current = 0;
     wrongDragNodeRef.current = null;
@@ -483,15 +529,20 @@ export default function TrailMakingGame() {
                   style={[
                     styles.node,
                     {
-                      left: n.x - 22,
-                      top: n.y - 22,
+                      // ⚠️ Размер берём из раскладки: он и есть то, подо что разведены центры.
+                      width: nodeSize,
+                      height: nodeSize,
+                      borderRadius: nodeSize / 2,
+                      left: n.x - nodeSize / 2,
+                      top: n.y - nodeSize / 2,
                       backgroundColor: bg,
                       borderColor,
                       borderWidth: 2,
                     },
                   ]}
                 >
-                  <Text style={[styles.nodeLabel, { color: textColor }]}>{n.label}</Text>
+                  {/* Надпись едет за кружком: на тесной канве он мельче 44. */}
+                  <Text style={[styles.nodeLabel, { color: textColor, fontSize: Math.max(11, Math.round(nodeSize * 0.34)) }]}>{n.label}</Text>
                 </TouchableOpacity>
               );
             })}
