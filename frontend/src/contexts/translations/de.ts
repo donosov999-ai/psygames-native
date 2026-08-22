@@ -1224,6 +1224,7 @@ const t: Record<string, string> = {
   "sudokuRuleEvenodd": "□ — gerade Ziffer, ○ — ungerade: Die Form verrät die Parität.",
   "sudokuRuleKropki": "Weißer Punkt zwischen Zellen: benachbart (±1). Schwarzer Punkt: eine ist das Doppelte.",
   "sudokuRuleSandwich": "Die Zahl am Rand ist die Summe der Ziffern ZWISCHEN dem Feld mit der 1 und dem Feld mit der 9 in dieser Linie. Die 1 und die 9 zählen nicht mit. Null heißt, sie stehen nebeneinander.",
+  "sudokuWhyNotLocal": "Diese Ziffer widerspricht ihren Nachbarn nicht direkt — hier gehört aber eine andere hin. Sieh dir Zeile, Spalte und Block als Ganzes an.",
   "sudokuRuleThermo": "Entlang des Thermometers steigen die Ziffern streng von der Kugel an.",
   "sudokuRuleArrow": "Die Ziffern entlang des Pfeils ergeben die Zahl im Kreis.",
   "sudokuRuleThermocage": "Zwei Regeln zugleich: entlang des Thermometers steigen die Ziffern streng von der Kugel an, und in einem farbigen Käfig ergeben sie die Zahl in seiner Ecke, ohne sich zu wiederholen.",

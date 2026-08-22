@@ -1341,6 +1341,7 @@ const t: Record<string, string> = {
   "sudokuRuleEvenodd": "□는 짝수, ○는 홀수: 모양이 힌트입니다.",
   "sudokuRuleKropki": "흰 점: 연속(±1). 검은 점: 한쪽이 다른 쪽의 2배.",
   "sudokuRuleSandwich": "가장자리의 숫자는 그 줄에서 1이 있는 칸과 9가 있는 칸 사이에 있는 숫자들의 합입니다. 1과 9 자체는 포함하지 않습니다. 0은 둘이 서로 붙어 있다는 뜻입니다.",
+  "sudokuWhyNotLocal": "이 숫자는 이웃과 직접 충돌하지는 않지만, 이 칸에는 다른 숫자가 들어갑니다. 행과 열, 박스 전체를 보세요.",
   "sudokuRuleThermo": "온도계를 따라 구 부분부터 숫자가 엄격히 증가합니다.",
   "sudokuRuleArrow": "화살표 위 숫자 합이 원 안의 숫자와 같습니다.",
   "sudokuRuleThermocage": "규칙이 두 개 동시에: 온도계를 따라 구근 쪽에서부터 숫자가 엄격히 커지고, 색칠된 케이지 안에서는 모서리 숫자만큼 합이 되며 숫자가 겹치지 않습니다.",

@@ -790,7 +790,13 @@ export default function SudokuGame() {
     if (n !== 0 && solution[r][c] !== n) {
       // Цифра прошла по строке, столбцу и боксу — значит её отвергло правило
       // варианта, и назвать его обязаны мы, а не оставлять человека гадать.
-      setRejectWhy(rejectionReason(ng, r, c, n, N, BR, BC, variant, language));
+      setRejectWhy(rejectionReason(ng, r, c, n, N, BR, BC, variant, language, {
+        regions: regions ?? undefined,
+        thermo: thermo ?? undefined,
+        arrow: arrow ?? undefined,
+        parity: parityMarks ?? undefined,
+        kropki: kropki ?? undefined,
+      }));
       const ne = errors + 1;
       setErrors(ne);
       if (isFailOver(failure, ne)) {                 // жизни кончились → game over
