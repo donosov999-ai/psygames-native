@@ -1340,7 +1340,7 @@ const t: Record<string, string> = {
   "sudokuRuleAntiking": "Deux chiffres identiques ne se touchent pas, même en diagonale (mouvement du roi).",
   "sudokuRuleEvenodd": "□ — chiffre pair, ○ — impair : la forme révèle la parité.",
   "sudokuRuleKropki": "Point blanc entre cases : consécutifs (±1). Point noir : l’un est le double de l’autre.",
-  "sudokuRuleSandwich": "Nombre au bord = somme des chiffres entre le 1 et le 9 de la ligne/colonne.",
+  "sudokuRuleSandwich": "Le nombre au bord est la somme des chiffres situés ENTRE la case du 1 et la case du 9 de cette ligne. Le 1 et le 9 ne comptent pas. Zéro signifie qu’ils sont côte à côte.",
   "sudokuRuleThermo": "Le long du thermomètre, les chiffres croissent strictement depuis le bulbe.",
   "sudokuRuleArrow": "Les chiffres le long de la flèche totalisent le nombre du cercle.",
   "sudokuRuleThermocage": "Deux règles à la fois : le long du thermomètre les chiffres croissent strictement depuis le bulbe, et dans une cage colorée ils totalisent le nombre de son coin sans se répéter.",

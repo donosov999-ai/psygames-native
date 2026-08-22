@@ -1223,7 +1223,7 @@ const t: Record<string, string> = {
   "sudokuRuleAntiking": "Dígitos iguais não se tocam nem na diagonal (movimento de rei).",
   "sudokuRuleEvenodd": "□ — dígito par, ○ — ímpar: a forma revela a paridade.",
   "sudokuRuleKropki": "Ponto branco entre células: consecutivos (±1). Ponto preto: um é o dobro do outro.",
-  "sudokuRuleSandwich": "O número na borda = soma dos dígitos entre o 1 e o 9 daquela linha/coluna.",
+  "sudokuRuleSandwich": "O número na borda é a soma dos dígitos que ficam ENTRE a casa com o 1 e a casa com o 9 dessa linha. O 1 e o 9 não são contados. Zero significa que estão lado a lado.",
   "sudokuRuleThermo": "Ao longo do termômetro os dígitos crescem estritamente a partir do bulbo.",
   "sudokuRuleArrow": "Os dígitos ao longo da flecha somam o número do círculo.",
   "sudokuRuleThermocage": "Duas regras ao mesmo tempo: ao longo do termômetro os dígitos crescem estritamente a partir do bulbo, e dentro de uma gaiola colorida somam o número do seu canto sem se repetir.",
