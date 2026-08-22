@@ -51,6 +51,37 @@ const COLOR_HEX: Record<string, string> = { red: '#ef4444', green: '#22c55e', bl
 const COLOR_HEX_CB: Record<string, string> = { red: '#d55e00', green: '#009e73', blue: '#0072b2', yellow: '#f0e442' };
 
 interface WordSet { ru: string[]; en: string[]; }
+
+/** Языки, для которых у нас есть эмоционально заряженные слова. */
+export const EMO_LANGS = ['ru', 'en'] as const;
+export type EmoLang = (typeof EMO_LANGS)[number];
+
+/**
+ * 🔴 ИГРА ПАДАЛА ПРИ СТАРТЕ НА ДЕСЯТИ ЯЗЫКАХ ИЗ ДВЕНАДЦАТИ.
+ *
+ * Наборы слов есть только для русского и английского, а язык приходил из
+ * `useLanguage() as any` — приведение заглушило компилятор, и на французском
+ * `WORDS[valence]['fr']` оказывался `undefined`. Выбор случайного слова из
+ * `undefined` роняет экран.
+ *
+ * ⚠️ ПОЧЕМУ ЗАПАСНОЙ ЯЗЫК, А НЕ СКРЫТИЕ ИГРЫ. Эмоциональный Струп меряет,
+ * насколько заряженное слово мешает называть цвет. Для человека, который слова
+ * не понимает, заряд теряется и проба вырождается в обычный Струп — но она хотя
+ * бы ИДЁТ, а не падает. Экран об этом честно предупреждает: подменять смысл
+ * молча было бы хуже падения.
+ */
+export function emoLangFor(lang: string): EmoLang {
+  return (EMO_LANGS as readonly string[]).includes(lang) ? (lang as EmoLang) : 'en';
+}
+
+/**
+ * Набор слов нужной окраски для любого языка приложения. Экспортируется, чтобы
+ * гейт проверял ИМЕННО ЭТОТ путь: проверять `emoLangFor` в одиночку мало —
+ * можно починить пересчёт языка и всё равно брать слова по сырому.
+ */
+export function emoWordsFor(valence: Valence, lang: string): string[] {
+  return WORDS[valence][emoLangFor(lang)];
+}
 const WORDS: Record<Valence, WordSet> = {
   threat: {
     ru: ['смерть','боль','опасность','страх','удар','война','рана','кровь','авария','угроза','ужас','паника'],
@@ -85,13 +116,17 @@ function levelParams(level: number): { trials: number; answerWindowMs: number; e
   };
 }
 
-function makeTrial(lang: 'ru' | 'en', emotionalRatio: number): Trial {
+/**
+ * Одна проба. Экспортируется ради гейта: проверять помощников по отдельности
+ * мало — можно починить их и всё равно обойти в самой пробе.
+ */
+export function makeTrial(lang: string, emotionalRatio: number): Trial {
   // Доля эмоционально заряженных слов растёт с уровнем; нейтральные остаются базой интерференции.
   // Внутри эмоциональной доли перевес к threat (главный источник конфликта в Emotional Stroop).
   const valence: Valence = Math.random() < emotionalRatio
     ? (Math.random() < 0.6 ? 'threat' : 'positive')
     : 'neutral';
-  const word = rndItem(WORDS[valence][lang]);
+  const word = rndItem(emoWordsFor(valence, lang));
   const color = rndItem(COLORS_RGB);
   return { word, valence, color };
 }
@@ -277,6 +312,15 @@ export default function StroopEmotionalGame() {
           <Ionicons name="heart-dislike" size={48} color={ON_GRAD.color} />
           <Text style={styles.configTitle}>{t('stroopEmotional')}</Text>
           <Text style={styles.configDesc}>{t('stroopEmotionalDesc')}</Text>
+          {/*
+            🔴 ПОДМЕНА ЯЗЫКА НАЗЫВАЕТСЯ ВСЛУХ. Слова есть только по-русски и
+            по-английски; на остальных языках проба идёт на английских словах, и
+            заряд для человека, который их не понимает, теряется. Молчать об этом
+            значит выдавать обычный Струп за эмоциональный.
+          */}
+          {emoLangFor(language) !== language ? (
+            <Text style={[styles.configDesc, { opacity: 0.85 }]}>{t('stroopEmoLangFallback')}</Text>
+          ) : null}
         </LinearGradient>
         <GameAbout descriptionKey="stroopEmotionalIntroDesc" benefits={STROOP2_BENEFITS} accent={GRADIENT[0]} />
         <LevelProgressMap gameId="stroop_emotional" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
