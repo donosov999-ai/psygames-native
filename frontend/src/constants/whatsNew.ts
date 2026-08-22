@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.228.0',
+    date: '2026-08-22',
+    ru: [
+      "Судоку больше не отнимает жизнь молча: если цифра не подошла, игра говорит, какое правило её не пускает — а когда доказать нечем, честно пишет, что конфликт не местный",
+      "Правило «сэндвича» переписано: «сумма цифр между 1 и 9» читалось как «цифр от 1 до 9» (а их сумма всегда 45), и подсказка выглядела бессмысленной",
+      "Маджонг: 4–11% раскладов были неразбираемы, и перетасовка не спасала — теперь расклад пересобирается, а неудачная перетасовка не тратится",
+      "Сортировка товаров: 57 уровней из 200 выдавались без единой свободной ниши, перемешивание теряло товар, а доска могла молча встать — всё это починено, и про тупик теперь говорят вслух",
+      "«Дворец памяти» отвечает на касание места, а не только предмета — порядок теперь любой",
+      "«Одна линия»: линия рисуется пальцем вдоль ребра, появились двойные и односторонние рёбра, двенадцать рисованных фигур и счёт, который сползает к нулю",
+    ],
+    en: [
+      "Sudoku no longer takes a life in silence: when a digit is refused, the game names the rule that blocks it — and when it cannot prove one, it honestly says the conflict is not local",
+      "The sandwich rule was rewritten: «sum of digits between 1 and 9» read as «digits 1 through 9» (which always add to 45), making the clue look meaningless",
+      "Mahjong: 4–11% of deals were unsolvable and shuffling did not help — deals are now rebuilt, and a failed shuffle is not spent",
+      "Goods sort: 57 levels out of 200 shipped without a single free niche, shuffling lost goods, and the board could silently lock — all fixed, and dead ends are now announced",
+      "Memory Palace responds to tapping a spot, not only an item — either order works now",
+      "One Line: the line follows your finger along the edge, double and one-way edges appeared, twelve hand-drawn shapes, and a score that drains to zero",
+    ],
+  },
+  {
     version: '1.227.0',
     date: '2026-08-22',
     ru: [
