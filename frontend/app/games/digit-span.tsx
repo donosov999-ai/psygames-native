@@ -1,4 +1,4 @@
-/* psygames-game-digit-span · VER 1 · 19.08.2026 */
+/* psygames-game-digit-span · VER 2 · 23.08.2026 */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
@@ -23,11 +23,14 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LeaderboardModal from '@/src/components/LeaderboardModal';
-import { countsForRecord, submitScore } from '@/src/services/leaderboard';
+import { countsForRecord, getPersonalBest, submitScore } from '@/src/services/leaderboard';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getAbilityCount, useAbility } from '@/src/services/abilities';
+import { speakSequence, ttsCancel, type TtsBlock } from '@/src/services/tts';
+import { useTtsBlock } from '@/src/hooks/useTtsAvailable';
+import { getDigitSpanStrings } from '@/src/games/digit-span/core/i18n';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const DS_RULES: LevelRule[] = [
@@ -46,7 +49,21 @@ const DIGIT_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'showing' | 'input' | 'cleared' | 'result';
-type Direction = 'forward' | 'backward';
+/**
+ * Три классических порядка ответа. `ascending` — это Digit Sequencing из батареи
+ * BACS (и режим «по возрастанию» в тренажёрах Google Play): показали 5-2-8-1 —
+ * человек вводит 1-2-5-8. Задача та же память плюс перестроение ряда в уме.
+ */
+export type Direction = 'forward' | 'backward' | 'ascending';
+export const DIRECTIONS: Direction[] = ['forward', 'backward', 'ascending'];
+
+/** Чем подан стимул: цифру ВИДНО или её СЛЫШНО. */
+export type Delivery = 'screen' | 'voice';
+export const DELIVERIES: Delivery[] = ['screen', 'voice'];
+
+/** Ступени темпа показа. Живые только в свободной партии — см. showTiming. */
+export type Pace = 'slow' | 'normal' | 'fast';
+export const PACE_STEPS: Pace[] = ['slow', 'normal', 'fast'];
 
 // Уровень (1..15+): L1-6 длина 4→9 · L7-10 длина 9 + показ быстрее · L11+ обязательный обратный ввод.
 // Сложность растёт ТРУДНОСТЬЮ (скорость, реверс), а не просто длиной за пределом памяти.
@@ -57,6 +74,72 @@ function levelParams(level: number): { startLen: number; showMs: number; gapMs: 
   const gapMs = Math.max(550, 1100 - fast * 70);
   const reverse = level >= 11;                            // L11+ — обязательный обратный ввод
   return { startLen, showMs, gapMs, reverse };
+}
+
+/**
+ * ОЖИДАЕМЫЙ ОТВЕТ — ОДНО МЕСТО НА ВСЕ ТРИ РЕЖИМА.
+ *
+ * ⚠️ Правило обязано быть общим и для разбора ввода, и для строки «было: …»
+ * после ошибки. Пока их было два (`dir === 'forward' ? seq : reverse`,
+ * повторённое в разметке), любой новый режим разъезжался ровно посередине:
+ * ответ считался бы по одному правилу, а показывался по другому — человек видел
+ * бы «было 1258» и не понимал, за что ему засчитали ошибку на 1258.
+ *
+ * ⚠️ ПОВТОРЯЮЩИЕСЯ ЦИФРЫ СОРТИРОВКЕ НЕ МЕШАЮТ: 5-2-5-1 по возрастанию — это
+ * 1-2-5-5 и ничто другое, порядок ввода однозначен.
+ */
+export function expectedDigits(seq: number[], dir: Direction): number[] {
+  if (dir === 'backward') return [...seq].reverse();
+  if (dir === 'ascending') return [...seq].sort((a, b) => a - b);
+  return [...seq];
+}
+
+/** Темп: сколько цифра держится на экране и через сколько приходит следующая. */
+const PACE_MS: Record<Pace, { showMs: number; gapMs: number }> = {
+  slow: { showMs: 1000, gapMs: 1600 },
+  normal: { showMs: 700, gapMs: 1100 },   // прежний темп свободной партии — он и по умолчанию
+  fast: { showMs: 450, gapMs: 750 },
+};
+
+/**
+ * ТЕМП ПАРТИИ. В личной игре его целиком задаёт уровень, и ползунок туда не
+ * достаёт НАРОЧНО: рекорд «Цифрового ряда» берётся ровно с первого уровня
+ * (`countsForRecord`, см. LEADERBOARD_GAMES.digit_span), потому что спан с
+ * разной подачей несравним. Дай крутить темп там — и таблица станет таблицей
+ * самого медленного показа, а не памяти.
+ */
+export function showTiming(o: { isPreset: boolean; level: number; pace: Pace }): { showMs: number; gapMs: number } {
+  if (!o.isPreset) {
+    const p = levelParams(o.level);
+    return { showMs: p.showMs, gapMs: p.gapMs };
+  }
+  return PACE_MS[o.pace];
+}
+
+/**
+ * ЧЕМ ПОДАЁМ НА САМОМ ДЕЛЕ. Голос обещать нельзя, пока говорить нечем: «выбрал
+ * голос — и тишина» это упражнение вообще без стимула. Причина у человека перед
+ * глазами (`voiceNoVoice` / `voiceSoundOff` — они разные и лечатся по-разному),
+ * а партия идёт экраном. Требование шапки `src/services/tts.ts`: честная
+ * заглушка, а НЕ беззвучное молчание.
+ */
+export function effectiveDelivery(chosen: Delivery, block: TtsBlock): Delivery {
+  return chosen === 'voice' && block === null ? 'voice' : 'screen';
+}
+
+/**
+ * ЧТО СТОИТ РЕКОРДОМ В ШАПКЕ ПО ХОДУ ПАРТИИ. Взятая только что длина — уже
+ * рекорд, если эта партия в рекорд идёт.
+ *
+ * ⚠️ А ЕСЛИ НЕ ИДЁТ — НЕ ДВИГАЕМ ДАЖЕ НА ЭКРАНЕ. Свободная партия, партия
+ * голосом и пробный заход никуда не записываются; показать в них «рекорд 9»
+ * значит показать число, которого назавтра не окажется нигде.
+ */
+export function hudRecord(stored: number | null, span: number, counts: boolean): number | null {
+  if (!counts) return stored;
+  // Рекорда ещё не было и брать нечего — это «—», а не выдуманный ноль.
+  if (stored === null) return span > 0 ? span : null;
+  return Math.max(stored, span);
 }
 
 export default function DigitSpanGame() {
@@ -114,7 +197,31 @@ export default function DigitSpanGame() {
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const ds = getDigitSpanStrings(language);   // подписи партии — свой словарь модуля на 12 языков
   const [direction, setDirection] = useState<Direction>(() => (str('mode', 'forward') as Direction));
+  const [delivery, setDelivery] = useState<Delivery>(() => (str('delivery', 'screen') as Delivery));
+  /**
+   * ⚠️ Ступень темпа приезжает из URL шага зарядки, поэтому она ПРОВЕРЯЕТСЯ:
+   * незнакомое слово в параметре означало бы `showMs: undefined` и показ,
+   * заведённый на NaN, — то есть партию, в которой цифры не появляются вовсе.
+   */
+  const [pace, setPace] = useState<Pace>(() => {
+    const v = str('pace', 'normal') as Pace;
+    return PACE_STEPS.includes(v) ? v : 'normal';
+  });
+  /**
+   * Почему говорить сейчас нельзя — и нельзя ли вообще. Две причины лечатся
+   * по-разному (поставить голос против включить звук), поэтому и хранится
+   * причина, а не «да/нет».
+   */
+  const ttsBlock = useTtsBlock(language);
+  const voiceOk = ttsBlock === null;
+  /** Личный рекорд — тем же источником, что и таблица лидеров (LeaderboardModal). */
+  const [personalBest, setPersonalBest] = useState<number | null>(null);
+  const reloadBest = useCallback(() => {
+    getPersonalBest('digit_span').then(setPersonalBest).catch(() => {});
+  }, []);
+  useEffect(() => { reloadBest(); }, [reloadBest]);
   // Справка правил уровня (в зарядке-пресете не показываем — там свой поток).
   // enabled на input: во время показа цифр модалка закрыла бы их.
   const levelRules = useLevelRules('digit_span', lvl.level, DS_RULES, phase === 'input' && !isPreset);
@@ -142,9 +249,24 @@ export default function DigitSpanGame() {
   const showMsRef = useRef(700);
   const gapMsRef = useRef(1100);
   const dirRef = useRef<Direction>('forward');
+  const deliveryRef = useRef<Delivery>('screen');
+  /** Номер живой озвучки: уход с экрана и новый раунд обрывают предыдущую. */
+  const runIdRef = useRef(0);
+  /**
+   * ЧТО ЗА ПАРТИЯ ИДЁТ — СОСТОЯНИЕМ, А НЕ РЕФОМ. Рефы решают ход партии (их читают
+   * таймеры и обработчики), но ОТРИСОВКЕ нужны те же ответы, а читать `ref.current`
+   * во время рендера нельзя: кадр не перерисуется, когда значение поменяется.
+   * Оба снимаются на старте партии — там же, где принимаются сами решения.
+   */
+  const [voiceRound, setVoiceRound] = useState(false);
+  const [roundCounts, setRoundCounts] = useState(false);
 
   useEffect(() => {
-    return () => { if (showTimerRef.current) clearInterval(showTimerRef.current); };
+    return () => {
+      runIdRef.current = -1;   // недоговорённая последовательность не должна доиграть в пустоту
+      ttsCancel();
+      if (showTimerRef.current) clearInterval(showTimerRef.current);
+    };
   }, []);
 
   const generateSeq = (len: number) => {
@@ -158,14 +280,26 @@ export default function DigitSpanGame() {
     // В шаге зарядки пробный заход бессмыслен: он и так не двигает уровень.
     practiceRef.current = !isPreset && practiceArmed && practiceLeft > 0;
     setPracticeUsed(false);
-    // личная игра → уровень рулит (длина → скорость → reverse); пресет → выбранные стартовая длина/направление
+    // личная игра → уровень рулит (длина → скорость → reverse); пресет → выбранные стартовая длина/направление/темп
     const effLevel = isPreset ? 1 : lvl.level;
     const p = levelParams(effLevel);
     levelRef.current = effLevel;
-    showMsRef.current = isPreset ? 700 : p.showMs;
-    gapMsRef.current = isPreset ? 1100 : p.gapMs;
+    const timing = showTiming({ isPreset, level: effLevel, pace });
+    showMsRef.current = timing.showMs;
+    gapMsRef.current = timing.gapMs;
     dirRef.current = isPreset ? direction : (p.reverse ? 'backward' : 'forward');
     if (!isPreset) setDirection(dirRef.current);
+    // Голос — только если говорить есть чем. Иначе партия идёт экраном, а причина
+    // молчания уже написана на экране настроек (ds.voiceNoVoice / ds.voiceSoundOff).
+    deliveryRef.current = effectiveDelivery(delivery, ttsBlock);
+    setVoiceRound(deliveryRef.current === 'voice');
+    /**
+     * Идёт ли ЭТА партия в рекорд — решается здесь, теми же правилами, какими она
+     * будет записываться на финише (`countsForRecord` + подача экраном + не пробный
+     * заход). Иначе шапка пообещает рекорд партии, которая не пойдёт никуда.
+     */
+    setRoundCounts(countsForRecord('digit_span', { isPreset, level: effLevel })
+      && deliveryRef.current === 'screen' && !practiceRef.current);
     const startLen = isPreset ? seqLen : p.startLen;
     setCorrectRounds(0); setMaxSpan(0); setRound(1); setErrors(0);
     errorsAtLenRef.current = 0;   // новая партия — счёт ошибок на длине с нуля
@@ -182,6 +316,24 @@ export default function DigitSpanGame() {
     setLastFeedback(null);
     submittingRef.current = false;
     setPhase('showing');
+    const myRun = ++runIdRef.current;
+    if (deliveryRef.current === 'voice') {
+      /**
+       * ГОЛОСОМ. Цифры произносятся по одной голосом системы; на экране в это
+       * время смотреть не на что — и там об этом прямо написано (`ds.listening`),
+       * а не пустое поле. Пауза между цифрами — тот же gapMs, что и у показа.
+       */
+      (async () => {
+        for (let i = 0; i < seq.length; i++) {
+          if (runIdRef.current !== myRun) return;   // ушли с экрана или начался новый раунд
+          setShowIdx(-2);
+          await speakSequence([String(seq[i])], language, gapMsRef.current);
+        }
+        if (runIdRef.current !== myRun) return;
+        setPhase('input');
+      })();
+      return;
+    }
     let i = 0;
     showTimerRef.current = setInterval(() => {
       if (i >= seq.length) {
@@ -211,7 +363,7 @@ export default function DigitSpanGame() {
   }, [userInput, phase, seqLen]);
 
   const handleSubmit = async () => {
-    const expected = dirRef.current === 'forward' ? sequence : [...sequence].reverse();
+    const expected = expectedDigits(sequence, dirRef.current);
     const expectedStr = expected.join('');
     const correct = userInput === expectedStr;
     setLastFeedback(correct ? 'right' : 'wrong');
@@ -279,14 +431,19 @@ export default function DigitSpanGame() {
             difficulty: direction,
             mode: `start${seqLen}`,
             errors: updatedErrors,
-            details: { level: levelRef.current, maxSpan: updatedMax, correctRounds: updatedCorrect, finalLength: seqLen },
+            details: {
+              level: levelRef.current, maxSpan: updatedMax, correctRounds: updatedCorrect, finalLength: seqLen,
+              direction: dirRef.current, delivery: deliveryRef.current,
+            },
           });
         } catch (e) { console.error(e); }
         // Рекорд — только партия первого уровня: длина старта и темп показа выводятся из
         // уровня, поэтому спан с разных ступеней несравним (см. LEADERBOARD_GAMES.digit_span).
+        // ⚠️ И только ЭКРАНОМ: услышанный ряд — другая задача (слуховой охват против
+        // зрительного), складывать их в одну таблицу значит сравнивать разное.
         // Незачётная партия отваливается молча — человек играл, а не сдавал норматив.
-        if (countsForRecord('digit_span', { isPreset, level: levelRef.current })) {
-          submitScore('digit_span', updatedMax).catch(() => {});   // тихо — лидерборд необязателен
+        if (countsForRecord('digit_span', { isPreset, level: levelRef.current }) && deliveryRef.current === 'screen') {
+          submitScore('digit_span', updatedMax).then(reloadBest).catch(() => {});   // тихо — лидерборд необязателен
         }
       }
     } else {
@@ -295,6 +452,9 @@ export default function DigitSpanGame() {
       setTimeout(() => showSequence(correct ? nextLen : seqLen), 600);
     }
   };
+
+  /** Что показать рекордом в шапке: незачётная партия его не двигает даже на экране. */
+  const shownRecord = hudRecord(personalBest, maxSpan, roundCounts);
 
   const renderConfig = () => (
     <View style={{ flex: 1 }}>
@@ -335,11 +495,12 @@ export default function DigitSpanGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('directionLabel')}</Text>
         <View style={styles.optionButtons}>
-          {(['forward', 'backward'] as Direction[]).map((d) => {
+          {DIRECTIONS.map((d) => {
             const locked = gate.isLocked(d);
             return (
             <TouchableOpacity
-              accessibilityRole="button"
+              accessibilityRole="button" accessibilityState={{ selected: direction === d }}
+              testID={`ds-mode-${d}`}
               key={d}
               disabled={locked}
               style={[
@@ -351,7 +512,7 @@ export default function DigitSpanGame() {
               onPress={() => !locked && setDirection(d)}
             >
               <Text style={[styles.modeButtonText, { color: direction === d && !locked ? textOn(GRADIENT[0]) : colors.text }]}>
-                {d === 'forward' ? t('directionForward') : t('directionBackward')}{locked ? ' 🔒' : ''}
+                {d === 'forward' ? t('directionForward') : d === 'backward' ? t('directionBackward') : ds.directionAscending}{locked ? ' 🔒' : ''}
               </Text>
             </TouchableOpacity>
             );
@@ -383,10 +544,85 @@ export default function DigitSpanGame() {
           ))}
         </View>
       </View>
+      {/* ПОДАЧА СТИМУЛА: цифру видно или её слышно. Услышанный ряд — классическая
+          форма пробы (её и держат в руках при живом тестировании), а заодно это
+          единственный способ сыграть, не глядя в экран. */}
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{ds.deliveryLabel}</Text>
+        <View style={styles.optionButtons}>
+          {DELIVERIES.map((d) => {
+            const off = d === 'voice' && !voiceOk;
+            return (
+              <TouchableOpacity
+                accessibilityRole="button" accessibilityState={{ selected: delivery === d, disabled: off }}
+                testID={`ds-delivery-${d}`}
+                key={d}
+                disabled={off}
+                style={[
+                  styles.modeButton,
+                  delivery === d && !off
+                    ? { backgroundColor: GRADIENT[0] }
+                    : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: off ? 0.5 : 1 },
+                ]}
+                onPress={() => !off && setDelivery(d)}
+              >
+                <Text style={[styles.modeButtonText, { color: delivery === d && !off ? textOn(GRADIENT[0]) : colors.text }]}>
+                  {d === 'screen' ? ds.deliveryScreen : ds.deliveryVoice}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        {/* ⚠️ ЗАГЛУШКА ЧЕСТНАЯ, А НЕ БЕЗЗВУЧНОЕ МОЛЧАНИЕ (требование шапки services/tts).
+            Причины две и лечатся они по-разному: голоса нет в системе против звук
+            выключен человеком. Одно сообщение на оба случая отправило бы половину
+            людей чинить не то. */}
+        {!voiceOk && (
+          <View style={styles.voiceWarn}>
+            <Ionicons name="volume-mute" size={18} color="#b45309" />
+            <Text testID="ds-voice-warning" style={styles.voiceWarnText}>
+              {ttsBlock === 'sound-off' ? ds.voiceSoundOff : ds.voiceNoVoice}
+            </Text>
+          </View>
+        )}
+      </View>
+      {/* ТЕМП ПОКАЗА — ТОЛЬКО В СВОБОДНОЙ ПАРТИИ.
+          В игре по уровням темп выводится из уровня и рычага человеку не даётся:
+          рекорд берётся с первого уровня, и спан, набранный на медленном показе,
+          в одной таблице со спаном на быстром — это сравнение разного. Здесь же
+          партия в рекорд не идёт вовсе, поэтому крутить темп можно свободно. */}
+      {isPreset && (
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{ds.paceLabel}</Text>
+          <View style={styles.optionButtons}>
+            {PACE_STEPS.map((p) => (
+              <TouchableOpacity
+                accessibilityRole="button" accessibilityState={{ selected: pace === p }}
+                testID={`ds-pace-${p}`}
+                key={p}
+                style={[
+                  styles.modeButton,
+                  pace === p
+                    ? { backgroundColor: GRADIENT[0] }
+                    : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                ]}
+                onPress={() => setPace(p)}
+              >
+                <Text style={[styles.modeButtonText, { color: pace === p ? textOn(GRADIENT[0]) : colors.text }]}>
+                  {p === 'slow' ? ds.paceSlow : p === 'normal' ? ds.paceNormal : ds.paceFast}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, fontStyle: 'italic' }}>
+            {ds.paceLevelNote}
+          </Text>
+        </View>
+      )}
     </ScrollView>
       <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
       <TouchableOpacity
-        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
+        accessibilityRole="button" testID="ds-start" style={styles.startBtn} onPress={startGame}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
           <Text style={styles.startBtnText}>{t('start')}</Text>
         </LinearGradient>
@@ -403,30 +639,46 @@ export default function DigitSpanGame() {
           title={t('digitSpan')}
           onBack={() => goBackOrHome()}
           stats={
-            phase === 'showing' ? (
-              <Text style={[styles.statText, { color: colors.textSecondary }]}>{t('memorize')} ({seqLen})</Text>
-            ) : (
-              <View style={styles.statsRow}>
+            <View style={styles.statsRow}>
+              {phase === 'showing' ? (
+                <Text style={[styles.statText, { color: colors.textSecondary }]}>{t('memorize')} ({seqLen})</Text>
+              ) : (
                 <Text style={[styles.statText, { color: colors.textSecondary }]}>
                   {t('lengthLabel')}: {seqLen} · {t('round')} {round}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}
                 </Text>
-                {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
-              </View>
-            )
+              )}
+              {/* ОХВАТ И РЕКОРД ВИДНО ПО ХОДУ ПАРТИИ, А НЕ НА ЭКРАНЕ ИТОГА.
+                  Спан — это и есть результат «Цифрового ряда», и человек, идущий
+                  по длинам, обязан видеть, где он сейчас и докуда доходил раньше:
+                  иначе «дальше или хватит» решается вслепую. Рекорд — тот же
+                  источник, что у таблицы лидеров (getPersonalBest). */}
+              <Text testID="ds-span-record" style={[styles.statText, { color: colors.text }]}>
+                {t('hud_span')} {maxSpan} · {t('personalBest')} {shownRecord === null ? '—' : shownRecord}
+              </Text>
+              {!isPreset && phase === 'input' && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+            </View>
           }
         >
           {phase === 'showing' ? (
-            <View style={styles.digitArea}>
-              <Text style={[styles.bigDigit, { color: colors.text }]}>
-                {showIdx >= 0 && showIdx < sequence.length ? sequence[showIdx] : ' '}
-              </Text>
-            </View>
+            voiceRound ? (
+              <View style={styles.digitArea}>
+                <Ionicons name="volume-high" size={64} color={GRADIENT[0]} />
+                <Text testID="ds-listening" style={[styles.statText, { color: colors.text }]}>{ds.listening}</Text>
+              </View>
+            ) : (
+              <View style={styles.digitArea}>
+                <Text testID="ds-digit" style={[styles.bigDigit, { color: colors.text }]}>
+                  {showIdx >= 0 && showIdx < sequence.length ? sequence[showIdx] : ' '}
+                </Text>
+              </View>
+            )
           ) : (
             <View style={styles.fieldCol}>
               <Text style={[styles.statText, { color: colors.text }]}>
-                {direction === 'forward' ? t('typeAsShown') : t('typeReversed')}
+                {direction === 'ascending' ? ds.typeAscending : direction === 'backward' ? t('typeReversed') : t('typeAsShown')}
               </Text>
               <TextInput
+                testID="ds-input"
                 value={userInput}
                 onChangeText={(s) => setUserInput(s.replace(/[^0-9]/g, '').slice(0, seqLen))}
                 keyboardType="numeric"
@@ -457,7 +709,7 @@ export default function DigitSpanGame() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
                   <Ionicons name="close-circle" size={28} color="#f43f5e" />
                   <Text style={{ color: '#f43f5e', fontSize: 16, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }}>
-                    {t('label_was')}: {(direction === 'forward' ? sequence : [...sequence].reverse()).join('')}
+                    {t('label_was')}: {expectedDigits(sequence, direction).join('')}
                   </Text>
                 </View>
               )}
@@ -525,6 +777,13 @@ const styles = StyleSheet.create({
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   modeButton: { minWidth: 48, minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
+  // Заглушка «почему сейчас без голоса» — жёлтая плашка, как в «Слуховом охвате»:
+  // одна беда, один вид, одно место, куда человек привык смотреть.
+  voiceWarn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10,
+    borderRadius: 8, backgroundColor: '#fef3c7',
+  },
+  voiceWarnText: { flex: 1, fontSize: 12, fontWeight: '600', color: '#b45309' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
