@@ -1,4 +1,4 @@
-/* psygames-game-schulte · VER 1 · 19.08.2026 */
+/* psygames-game-schulte · VER 2 · 23.08.2026 */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
@@ -38,6 +38,17 @@ import { countsForRecord, fetchBest, getPersonalBest, submitScore } from '@/src/
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  recordBlock, seriesComplete, seriesDiffs, seriesSession, startSeries,
+  type SeriesRun,
+} from '@/src/services/series';
+import {
+  SCHULTE_SERIES_PLAN, afterSeriesRun, blockDone, blockKeyAt, blockTarget, buildSchulteField,
+  getSchulteSeriesStrings, interpolate, nextBlock, openBlock, pairSum, parseSeriesProgress,
+  pressSeriesCell, seriesEntry, EMPTY_SERIES_PROGRESS,
+  type SchulteBlockKey, type SchulteSeriesProgress, type SchulteSeriesState, type SeriesOutcome,
+} from '@/src/games/schulte/core';
 
 const GRADIENT = ['#667eea', '#764ba2'];
 // Оранжевая кнопка «уровень N» — свой градиент, значит и свой цвет текста:
@@ -58,9 +69,28 @@ const SCHULTE_BENEFITS = [
   { icon: 'search-outline', textKey: 'benefitSchulte3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+/**
+ * `series` — блок серии на поле · `interlude` — врезка со сменой правила между
+ * блоками · `seriesResult` — разбор с разностями. Обычная партия ('playing') их
+ * не касается: серия это РЕЖИМ этого же экрана, а не вторая игра рядом.
+ */
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result'
+  | 'series' | 'interlude' | 'seriesResult';
 // Синергия (пилот): каждые BOSS_EVERY уровней лесенки прошёл таблицу → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
+/**
+ * Врезка между блоками (§11.2, глубина 2): 2–3 секунды на прочтение нового
+ * правила. Она НЕ входит во время блока — часы блока стартуют, когда врезка
+ * ушла, иначе её длительность села бы прямо в разность.
+ */
+const INTERLUDE_MS = 2500;
+/**
+ * У серии свой `game_type`: три блока с чужим правилом — не таблица Шульте.
+ * Под общим ключом эта запись поехала бы и в лидерборд, и в восстановление
+ * уровня (`getMaxLevelFromSessions` читает `details.level`), где `level` серии
+ * означает размер поля, а не ступень лесенки.
+ */
+const SERIES_GAME_TYPE = 'schulte_series';
 type ContentMode = 'numbers' | 'letters' | 'mixed';
 
 /**
@@ -128,7 +158,9 @@ export default function SchulteGame() {
   const isThemed = profile.group === 'themed';
 
   // Game configuration
-  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, num, bool, isCalm } = useGamePreset();
+  /** Шаг зарядки может попросить именно серию: `?series=1` (см. §11 — пилот живёт на зарядке). */
+  const seriesPreset = bool('series');
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('schulte_table');
   /**
@@ -144,7 +176,12 @@ export default function SchulteGame() {
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame(false)); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  // ⚠️ Серия ждёт ЕЩЁ И свой прогресс: без него автостарт посадил бы человека на
+  // минимальное поле, даже если блоки давно выросли (та же беда, что с уровнем).
+  useAutostartWhenReady(
+    () => autostart && lvl.loaded && (!seriesPreset || seriesLoaded),
+    () => (seriesPreset ? beginSeries() : startGame(false)),
+  ); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [gridSize, setGridSize] = useState(() => num('size', 5));
   const [colorMode, setColorMode] = useState(false);
   const [contentMode, setContentMode] = useState<ContentMode>('numbers');
@@ -226,6 +263,33 @@ export default function SchulteGame() {
   const [cellColors, setCellColors] = useState<string[]>([]);
   const [sequence, setSequence] = useState<(number | string)[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // СЕРИЯ БЛОКОВ (пилот §11): три правила подряд по ОДНОМУ полю.
+  // Ход партии и правила блоков живут в `src/games/schulte/core`, замер и
+  // уровень — в `src/services/series.ts`. Здесь только состояние экрана.
+  // ───────────────────────────────────────────────────────────────────────────
+  const seriesStrings = getSchulteSeriesStrings(language);
+  const [seriesState, setSeriesState] = useState<SchulteSeriesState | null>(null);
+  const [seriesProgress, setSeriesProgress] = useState<SchulteSeriesProgress>(EMPTY_SERIES_PROGRESS);
+  const [seriesLoaded, setSeriesLoaded] = useState(false);
+  const [seriesOutcome, setSeriesOutcome] = useState<SeriesOutcome | null>(null);
+  const [seriesFinished, setSeriesFinished] = useState<SeriesRun | null>(null);
+  /** Прогон серии живёт в ref: блоки дописываются из обработчиков нажатий. */
+  const seriesRunRef = useRef<SeriesRun | null>(null);
+  const blockStartRef = useRef(0);
+  /** Блок открыт и ещё не записан — чтобы выход во время врезки не записал его дважды. */
+  const blockOpenRef = useRef(false);
+  const seriesKey = `psygames_schulte_series_${(profile as any)?.id ?? 'default'}`;
+
+  useEffect(() => {
+    let alive = true;
+    AsyncStorage.getItem(seriesKey)
+      .then((raw) => { if (alive) setSeriesProgress(parseSeriesProgress(raw)); })
+      .catch(() => {})
+      .then(() => { if (alive) setSeriesLoaded(true); });
+    return () => { alive = false; };
+  }, [seriesKey]);
 
   // Cell colors for color mode
   const COLORS = [
@@ -416,6 +480,176 @@ export default function SchulteGame() {
     }
   };
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // СЕРИЯ БЛОКОВ — ход партии
+  // ───────────────────────────────────────────────────────────────────────────
+
+  /** Какое поле человек уже держит в ОБЫЧНОМ Шульте — стартовый уровень блока «поиск». */
+  const ladderSize = (): number => levelParams(lvl.level).gridSize;
+
+  const blockLabel = (key: SchulteBlockKey): string => (
+    key === 'order' ? seriesStrings.blockOrder
+      : key === 'alternate' ? seriesStrings.blockAlternate
+        : seriesStrings.blockSum
+  );
+
+  const blockRule = (key: SchulteBlockKey, total: number): string => interpolate(
+    key === 'order' ? seriesStrings.ruleOrder
+      : key === 'alternate' ? seriesStrings.ruleAlternate
+        : seriesStrings.ruleSum,
+    { last: total, sum: pairSum(total) },
+  );
+
+  /** Часы блока. Каждый блок мерится отдельно — из этих времён и берутся разности. */
+  const beginBlockClock = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    const start = gameNow();
+    blockStartRef.current = start;
+    blockOpenRef.current = true;
+    setStartTime(start);
+    setElapsedTime(0);
+    timerRef.current = setInterval(() => {
+      setElapsedTime((gameNow() - start) / 1000);
+    }, 100);
+  };
+
+  /**
+   * Старт серии. Поле собирается ОДИН раз на все три блока — в этом весь замер:
+   * перегенерируй его между блоками, и в разность попадёт разница полей.
+   */
+  const beginSeries = () => {
+    const entry = seriesEntry(seriesProgress, ladderSize());
+    const field = buildSchulteField(entry.level);
+    seriesRunRef.current = startSeries(SERIES_GAME_TYPE, entry.level, SCHULTE_SERIES_PLAN, gameNow());
+    setSeriesOutcome(null);
+    setSeriesFinished(null);
+    setSeriesState(openBlock(field, 0));
+    beginBlockClock();
+    setPhase('series');
+  };
+
+  /** Конец серии: одна сессия с массивом блоков внутри, разности — только у полной. */
+  const finishSeries = async (run: SeriesRun, show: boolean) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    blockOpenRef.current = false;
+    const outcome = afterSeriesRun(seriesProgress, run, ladderSize());
+    setSeriesProgress(outcome.progress);
+    AsyncStorage.setItem(seriesKey, JSON.stringify(outcome.progress)).catch(() => {});
+    setSeriesOutcome(outcome);
+    setSeriesFinished(run);
+    seriesRunRef.current = null;
+    setPhase(show ? 'seriesResult' : 'config');
+    try {
+      await saveSession({
+        ...seriesSession(run),
+        passed: seriesComplete(run),
+        difficulty: `${run.level}x${run.level}`,
+      });
+    } catch (error) {
+      console.error('Error saving series session:', error);
+    }
+  };
+
+  /** Блок доигран (или оборван): дописываем его в прогон и решаем, что дальше. */
+  const closeBlock = (state: SchulteSeriesState, done: boolean) => {
+    const run = seriesRunRef.current;
+    if (!run || !blockOpenRef.current) return;
+    if (timerRef.current) clearInterval(timerRef.current);
+    blockOpenRef.current = false;
+    const updated = recordBlock(run, {
+      key: blockKeyAt(state.blockIndex),
+      timeMs: gameNow() - blockStartRef.current,
+      errors: state.errors,
+      done,
+    });
+    seriesRunRef.current = updated;
+    const isLast = state.blockIndex >= SCHULTE_SERIES_PLAN.length - 1;
+    if (done && !isLast) { setPhase('interlude'); return; }
+    finishSeries(updated, true);
+  };
+
+  /**
+   * Уход из серии посреди неё. Блоки пишем как есть — человек играл, это его
+   * время, — но `series_complete: false` и НИКАКИХ разностей (§11.5).
+   */
+  const leaveSeries = (show: boolean) => {
+    const run = seriesRunRef.current;
+    if (!run) return;
+    if (blockOpenRef.current && seriesState) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      blockOpenRef.current = false;
+      const updated = recordBlock(run, {
+        key: blockKeyAt(seriesState.blockIndex),
+        timeMs: gameNow() - blockStartRef.current,
+        errors: seriesState.errors,
+        done: false,
+      });
+      seriesRunRef.current = updated;
+      finishSeries(updated, show);
+      return;
+    }
+    finishSeries(run, show);
+  };
+
+  const onSeriesCell = (index: number) => {
+    if (!seriesState) return;
+    const step = pressSeriesCell(seriesState, index);
+    if (step.result === 'hit') hapticSuccess();
+    else if (step.result === 'miss') hapticError();
+    setSeriesState(step.state);
+    if (step.result === 'hit' && blockDone(step.state)) closeBlock(step.state, true);
+  };
+
+  /**
+   * Врезка сама уводит в следующий блок — по ТОМУ ЖЕ полю (`nextBlock` переносит
+   * его как есть). Часы блока стартуют здесь, поэтому 2,5 секунды чтения правила
+   * в замер не попадают.
+   */
+  useEffect(() => {
+    if (phase !== 'interlude' || !seriesState) return;
+    const id = setTimeout(() => {
+      setSeriesState(nextBlock(seriesState));
+      beginBlockClock();
+      setPhase('series');
+    }, INTERLUDE_MS);
+    return () => clearTimeout(id);
+    // Врезка живёт ровно одну фазу: зависимости — фаза и состояние блока, часы
+    // заводятся ВНУТРИ таймаута, поэтому больше эффекту ничего не нужно.
+  }, [phase, seriesState]);
+
+  // Зеркало состояния в ref — только для ухода с экрана: обработчик размонтажа
+  // регистрируется один раз и до state текущего кадра иначе не дотянется.
+  const seriesStateRef = useRef<SchulteSeriesState | null>(null);
+  useEffect(() => { seriesStateRef.current = seriesState; }, [seriesState]);
+
+  /**
+   * УХОД МИМО КНОПОК (аппаратная «назад», переключение вкладки) серию не теряет:
+   * блоки сыграны, это время человека. Пишем их так же, как при выходе кнопкой —
+   * `series_complete: false` и без разностей. Состояние здесь не трогаем: экран
+   * уже уходит, а `seriesRunRef` обнуляется в `finishSeries`, поэтому доигранная
+   * серия вторую запись не получит.
+   */
+  useEffect(() => () => {
+    const run = seriesRunRef.current;
+    if (!run) return;
+    const state = seriesStateRef.current;
+    const partial = blockOpenRef.current && state
+      ? recordBlock(run, {
+        key: blockKeyAt(state.blockIndex),
+        timeMs: gameNow() - blockStartRef.current,
+        errors: state.errors,
+        done: false,
+      })
+      : run;
+    seriesRunRef.current = null;
+    if (partial.blocks.length === 0) return;   // серию, которую не начинали, писать нечем
+    saveSession({
+      ...seriesSession(partial),
+      passed: seriesComplete(partial),
+      difficulty: `${partial.level}x${partial.level}`,
+    }).catch(() => {});
+  }, []);
+
   // Реролл позиций (не значений/цепочки поиска) после верного клика — «убегающая цель».
   const reshufflePositions = () => {
     setGrid((prevGrid) => {
@@ -489,11 +723,21 @@ export default function SchulteGame() {
   // v1.29.1 (мобайл): сетка тянется на ВСЮ ширину экрана — потолок 60px делал её
   // мелкой по центру (390px телефон, 5×5: было 316px). Лимит по высоте (хедер+HUD ≈ 230)
   // не даёт вылезти в ландшафте/десктопе; 120 — мягкий потолок для больших окон.
-  const cellSize = Math.min(
-    (windowDimensions.width - 32 - (gridSize - 1) * 4) / gridSize,
-    (windowDimensions.height - 230 - (gridSize - 1) * 4) / gridSize,
+  // Размер клетки считается ОТ СТОРОНЫ поля: у серии своя сторона (уровень серии),
+  // и переписывать ту же арифметику второй раз значило бы развести их со временем.
+  const cellSizeFor = (side: number): number => Math.min(
+    (windowDimensions.width - 32 - (side - 1) * 4) / side,
+    (windowDimensions.height - 230 - (side - 1) * 4) / side,
     120
   );
+  const cellSize = cellSizeFor(gridSize);
+
+  /**
+   * С какого поля пойдёт серия и какие поля у блоков сейчас. Считается ДО входа,
+   * потому что человеку это надо показать ЗАРАНЕЕ: старт с минимума молча
+   * читается как откат прогресса (§12.5).
+   */
+  const seriesDoor = seriesEntry(seriesProgress, levelParams(lvl.level).gridSize);
 
   // v1.13.3: ScrollView вокруг configContainer — на Windows / маленьких экранах
   // кнопка «Старт» уходила за viewport, не достать. Schulte имеет 4+ optionCard
@@ -531,6 +775,36 @@ export default function SchulteGame() {
               <Text style={[styles.startButtonText, { color: ON_LEVEL.color }]}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
             </LinearGradient>
           </TouchableOpacity>
+        )}
+        {/* СЕРИЯ БЛОКОВ (пилот §11). Под кнопкой — с какого поля она начнётся и
+            какие поля у блоков сейчас: иначе старт с минимума читается как откат. */}
+        {!isPreset && (
+          <View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              style={[styles.startButton, { marginTop: 8 }]}
+              onPress={() => beginSeries()}>
+              <GradientSurface
+                colors={GRADIENT as [string, string]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.startButtonGradient}
+              >
+                <Ionicons name="layers-outline" size={22} color={ON_GRAD.color} />
+                <Text style={styles.startButtonText}>{seriesStrings.entry}</Text>
+              </GradientSurface>
+            </TouchableOpacity>
+            <Text style={[styles.seriesNote, { color: colors.text }]}>
+              {interpolate(seriesStrings.startsAt, { size: seriesDoor.level })}
+            </Text>
+            <Text style={[styles.seriesNote, { color: colors.textSecondary }]}>
+              {interpolate(seriesStrings.yourLevels, {
+                order: `${seriesDoor.perBlock.order}×${seriesDoor.perBlock.order}`,
+                alternate: `${seriesDoor.perBlock.alternate}×${seriesDoor.perBlock.alternate}`,
+                sum: `${seriesDoor.perBlock.sum}×${seriesDoor.perBlock.sum}`,
+              })}
+            </Text>
+          </View>
         )}
       </>)}
       <TouchableOpacity
@@ -982,8 +1256,118 @@ export default function SchulteGame() {
     );
   };
 
+  /**
+   * БЛОК СЕРИИ. Сетка та же, что в обычной партии, но клетки берутся из
+   * `seriesState.field` — ЕДИНСТВЕННОГО поля на все три блока. Меняется только
+   * правило: что искать, говорит шапка, а как — строка под полем.
+   */
+  const renderSeries = () => {
+    if (!seriesState) return null;
+    const key = blockKeyAt(seriesState.blockIndex);
+    const side = seriesState.field.size;
+    const total = seriesState.field.cells.length;
+    const cs = cellSizeFor(side);
+    // Подпись искомого — ключ словаря, а не ветка с текстом: в блоке счёта ищут
+    // СУММУ, которой на поле нет, и «Найдите: 26» читалось бы как обещание клетки.
+    const targetLabelKey = key === 'sum' ? 'label_find_sum' : 'find';
+
+    return (
+      <GameShell
+        title={seriesStrings.entry}
+        onBack={() => { leaveSeries(false); goBackOrHome(); }}
+        headerRight={
+          <TouchableOpacity
+            accessibilityRole="button" accessibilityLabel={t('a11yNewTable')}
+            style={[styles.backButton, { backgroundColor: colors.surface }]}
+            onPress={() => leaveSeries(true)}
+          >
+            <Ionicons name="refresh" size={24} color={colors.text} />
+          </TouchableOpacity>
+        }
+        stats={
+          <View style={styles.gameHeader}>
+            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t(targetLabelKey)}</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{blockTarget(seriesState)}</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{formatTime(elapsedTime)}</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
+              <Text style={[styles.statValue, { color: seriesState.errors > 0 ? colors.error : colors.text }]}>{seriesState.errors}</Text>
+            </View>
+          </View>
+        }
+      >
+        <Text style={[styles.seriesBlockLine, { color: colors.textSecondary }]}>
+          {`${interpolate(seriesStrings.blockOf, { n: seriesState.blockIndex + 1, total: SCHULTE_SERIES_PLAN.length })} · ${blockLabel(key)}`}
+        </Text>
+        <View style={[styles.grid, { width: cs * side + (side - 1) * 4 }]}>
+          {seriesState.field.cells.map((value, index) => {
+            const isTaken = seriesState.taken[index];
+            // Первая клетка пары подсвечена: без этого человек не видит, что уже выбрал.
+            const isPending = seriesState.pending === index;
+            return (
+              <TouchableOpacity
+                accessibilityRole="button"
+                key={index}
+                style={[
+                  styles.cell,
+                  {
+                    width: cs,
+                    height: cs,
+                    backgroundColor: isPending ? GRADIENT[0] : isTaken ? colors.border : colors.surface,
+                    opacity: isTaken ? 0.3 : 1,
+                  },
+                ]}
+                onPress={() => !isTaken && onSeriesCell(index)}
+                disabled={isTaken}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.cellText,
+                    { fontSize: cs * 0.4, color: isPending ? textOn(GRADIENT[0]) : colors.text },
+                  ]}
+                >
+                  {value}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{blockRule(key, total)}</Text>
+      </GameShell>
+    );
+  };
+
+  /**
+   * ВРЕЗКА между блоками. Её работа — назвать новое правило и сказать главное:
+   * поле НЕ менялось. Без этой фразы смена правила читается как новая игра, и
+   * серия распадается на три упражнения подряд.
+   */
+  const renderInterlude = () => {
+    if (!seriesState) return null;
+    const nextKey = blockKeyAt(seriesState.blockIndex + 1);
+    const total = seriesState.field.cells.length;
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.interlude}>
+          <Ionicons name="swap-horizontal" size={44} color={GRADIENT[0]} />
+          <Text style={[styles.interludeTitle, { color: colors.text }]}>{seriesStrings.ruleChanges}</Text>
+          <Text style={[styles.interludeBlock, { color: colors.text }]}>{blockLabel(nextKey)}</Text>
+          <Text style={[styles.interludeRule, { color: colors.textSecondary }]}>{blockRule(nextKey, total)}</Text>
+          <Text style={[styles.interludeSame, { color: colors.textSecondary }]}>{seriesStrings.sameField}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  };
 
   if (phase === 'playing') return renderGame();
+  if (phase === 'series') return renderSeries();
+  if (phase === 'interlude') return renderInterlude();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -1032,6 +1416,73 @@ export default function SchulteGame() {
           onStop={() => setPhase('config')}
         />
       )}
+      {/* РАЗБОР СЕРИИ. Главное здесь не очки, а две разности: T₂−T₁ и T₃−T₁.
+          У неполной серии их нет ВООБЩЕ — вместо чисел говорим об этом прямо. */}
+      {phase === 'seriesResult' && seriesFinished && (
+        <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+          <GradientSurface
+            colors={GRADIENT as [string, string]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.configCard}
+          >
+            <Ionicons name="layers-outline" size={44} color={ON_GRAD.color} />
+            <Text style={styles.configTitle}>{seriesStrings.seriesDone}</Text>
+          </GradientSurface>
+          {(() => {
+            const diffs = seriesDiffs(seriesFinished);
+            if (!diffs) {
+              return (
+                <Text style={[styles.seriesNote, { color: colors.error }]}>{seriesStrings.notFinished}</Text>
+              );
+            }
+            // Имена разностей собирает ядро из ключей блоков — не переписываем их строкой.
+            const base = SCHULTE_SERIES_PLAN[0];
+            const signed = (ms: number): string => `${ms > 0 ? '+' : ''}${(ms / 1000).toFixed(1)} ${t('seconds')}`;
+            return (
+              <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.seriesRow, { color: colors.text }]}>
+                  {`${seriesStrings.speed}: ${(seriesFinished.blocks[0].timeMs / 1000).toFixed(1)} ${t('seconds')}`}
+                </Text>
+                <Text style={[styles.seriesRow, { color: colors.text }]}>
+                  {`${seriesStrings.switchCost}: ${signed(diffs[`${SCHULTE_SERIES_PLAN[1]}_minus_${base}`])}`}
+                </Text>
+                <Text style={[styles.seriesRow, { color: colors.text }]}>
+                  {`${seriesStrings.holdCost}: ${signed(diffs[`${SCHULTE_SERIES_PLAN[2]}_minus_${base}`])}`}
+                </Text>
+              </View>
+            );
+          })()}
+          {seriesOutcome && (
+            <Text style={[styles.seriesNote, { color: colors.textSecondary }]}>
+              {seriesOutcome.raised
+                ? interpolate(seriesStrings.levelUp, { size: seriesOutcome.nextLevel })
+                : interpolate(seriesStrings.heldBy, {
+                  block: blockLabel(seriesOutcome.weakest),
+                  runs: Math.max(1, seriesOutcome.runsLeft),
+                })}
+            </Text>
+          )}
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.startButton, { marginTop: 8 }]} onPress={() => beginSeries()}>
+            <GradientSurface
+              colors={GRADIENT as [string, string]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.startButtonGradient}
+            >
+              <Ionicons name="refresh" size={22} color={ON_GRAD.color} />
+              <Text style={styles.startButtonText}>{seriesStrings.again}</Text>
+            </GradientSurface>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}
+            onPress={() => setPhase('config')}>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{seriesStrings.leave}</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
       {phase === 'result' && (
         <GameResult
           time={elapsedTime}
@@ -1056,6 +1507,15 @@ export default function SchulteGame() {
 
 const styles = StyleSheet.create({
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320, marginTop: 12 },
+  // ── серия блоков ──
+  seriesNote: { fontSize: 13, lineHeight: 18, marginBottom: 6, paddingHorizontal: 4 },
+  seriesBlockLine: { fontSize: 13, fontWeight: '600', marginBottom: 8, textAlign: 'center' },
+  seriesRow: { fontSize: 15, marginBottom: 6 },
+  interlude: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 10 },
+  interludeTitle: { fontSize: 15, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1 },
+  interludeBlock: { fontSize: 26, fontWeight: '700', textAlign: 'center' },
+  interludeRule: { fontSize: 16, textAlign: 'center', lineHeight: 22 },
+  interludeSame: { fontSize: 14, textAlign: 'center', fontStyle: 'italic' },
   container: {
     flex: 1,
   },

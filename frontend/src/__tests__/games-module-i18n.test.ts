@@ -75,6 +75,11 @@ import {
   getOneLineStrings,
   type OneLineLocale,
 } from '@/src/games/one-line/core';
+import {
+  SCHULTE_SERIES_LOCALES,
+  SchulteSeriesLocale,
+  getSchulteSeriesStrings,
+} from '@/src/games/schulte/core/i18n';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -206,6 +211,14 @@ const MODULES: ModuleUnderTest[] = [
     id: 'one-line',
     locales: ONE_LINE_LOCALES,
     strings: (l: OneLineLocale) => getOneLineStrings(l) as any,
+    labels: [],
+  },
+  {
+    // Серия из трёх блоков Шульте (23.08.2026). Строки живут внутри партии,
+    // общему словарю приложения они не нужны — отсюда свой модульный словарь.
+    id: 'schulte',
+    locales: SCHULTE_SERIES_LOCALES,
+    strings: (l: SchulteSeriesLocale) => getSchulteSeriesStrings(l) as any,
     labels: [],
   },
 ];
@@ -517,8 +530,24 @@ describe('экраны игр отдают модулю все двенадца�
       const screen = stripComments(read(join(APP, 'games', `${mod.id}.tsx`)));
       const collapsed = /language\s*===\s*'ru'\s*\?\s*'ru'\s*:\s*'en'/.test(screen);
       expect(`${mod.id}: схлопывает язык — ${collapsed}`).toBe(`${mod.id}: схлопывает язык — false`);
-      // И язык действительно доезжает: экран отдаёт модулю проп locale.
-      expect(screen).toMatch(/locale=\{/);
+      /**
+       * И язык действительно доезжает до словаря. Путей до него ДВА, и оба честные:
+       *   · экран рисует компонент модуля и отдаёт ему проп `locale={…}`;
+       *   · экран зовёт словарь напрямую — `getXСтроки(language)`.
+       * Второй путь появился 23.08.2026 у серии Шульте: там словарь нужен самому
+       * экрану, компонента модуля нет вовсе, и требование пропа означало бы
+       * «заведи лишний компонент, чтобы пройти проверку».
+       *
+       * ⚠️ ВТОРОЙ ПУТЬ ЗАСЧИТЫВАЕТСЯ ТОЛЬКО С ПЕРЕМЕННОЙ ЯЗЫКА. Вызов с литералом
+       * (`getXСтроки('ru')`) — то же схлопывание, что и тернарник выше, только
+       * записанное короче; он обязан краснеть.
+       */
+      const viaProp = /locale=\{/.test(screen);
+      const directCalls = screen.match(/\bget[A-Za-z]*Strings\(([^)]*)\)/g) || [];
+      const viaLanguage = directCalls.some((c) => /\(\s*language\b/.test(c));
+      const viaLiteral = directCalls.some((c) => /\(\s*['"]/.test(c));
+      expect(`${mod.id}: язык доезжает — ${viaProp || viaLanguage} · зашит литералом — ${viaLiteral}`)
+        .toBe(`${mod.id}: язык доезжает — true · зашит литералом — false`);
     });
   }
 });
