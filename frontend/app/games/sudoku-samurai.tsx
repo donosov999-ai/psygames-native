@@ -915,6 +915,11 @@ export interface SamuraiLevel {
  * случае человек ждёт дольше — и всё это время видит индикатор (components/BoardBuilding).
  */
 export const BUILD_ATTEMPTS = 12;
+/** Потолок штрафа за время: самурай идёт час, это не спешка. */
+export const SAMURAI_TIME_CAP = 1500;
+/** Пол победы: добитая партия не равна брошенной. */
+export const SAMURAI_WIN_FLOOR = 300;
+
 export const DIG_SLICES = 3;
 
 /**
@@ -1369,7 +1374,13 @@ export default function SamuraiSudokuGame() {
          * его — значит через один релиз потерять сам ключ к ним.
          */
         game_type: GAME_ID,
-        score: Math.max(0, Math.round(4000 + levelRef.current * 150 - errors * 50 - finalTime * 2 - hintCount * 60)),
+        /**
+         * 🔴 ТО ЖЕ, ЧТО У ФРАКТАЛА: счёт схлопывался в ноль на длинной партии.
+         * Две секунды за секунду без предела — ноль наступал через 34,6 минуты на
+         * первом уровне, при том что шапка `samurai.ts` обещает «партия идёт час».
+         * Штраф за время насыщается, у победы есть пол.
+         */
+        score: Math.max(SAMURAI_WIN_FLOOR, Math.round(4000 + levelRef.current * 150 - errors * 50 - Math.min(finalTime, SAMURAI_TIME_CAP) * 2 - hintCount * 60)),
         time_seconds: finalTime,
         difficulty: `Level ${levelRef.current}`,
         mode: `samurai-level-${levelRef.current}`,
@@ -1838,7 +1849,7 @@ export default function SamuraiSudokuGame() {
       {/* result — только для пресета (запуск из зарядки, уровень не двигаем) */}
       {phase === 'result' && (
         <GameResult
-          score={Math.max(0, Math.round(4000 + levelRef.current * 150 - errors * 50 - elapsedTime * 2 - hintUses * 60))}
+          score={Math.max(SAMURAI_WIN_FLOOR, Math.round(4000 + levelRef.current * 150 - errors * 50 - Math.min(elapsedTime, SAMURAI_TIME_CAP) * 2 - hintUses * 60))}
           time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
