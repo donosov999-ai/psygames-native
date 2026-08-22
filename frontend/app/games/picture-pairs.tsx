@@ -27,7 +27,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {saveResume, clearResume} from '@/src/services/resume';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
-import { pairSpritesForProfile, pairBackForProfile } from '@/src/constants/pairThemes';
+import { SPRITE_COUNT, pairSpritesForProfile, pairBackForProfile } from '@/src/constants/pairThemes';
 import { FlipCard, HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
@@ -104,13 +104,29 @@ interface Card {
 // Кривая сложности «Игрового режима» (эндлесс, как в Goods Sort):
 //  • уровни 1-9 — растёт число пар 4→12 (классическая память, без флеша);
 //  • с 10-го — пар 12 + фото-память с убывающим флешем 3000→500мс (память под нагрузкой).
-function levelCfg(L: number): { pairs: number; groupSize: number; photo: boolean; previewMs: number } {
+/**
+ * Параметры уровня. Экспортируется, чтобы гейт мог позвать ЭТОТ расчёт, а не
+ * разбирать исходник регуляркой: разбор ломается на верной правке и перестаёт
+ * что-либо стеречь.
+ */
+export function levelCfg(L: number): { pairs: number; groupSize: number; photo: boolean; previewMs: number } {
   // Сложность: L1-9 пары 4→12 · L10-12 ТРОЙКИ (3 одинаковых на символ) · L13-15 ЧЕТВЁРКИ.
   // groupSize = сколько копий каждого символа нужно открыть. previewMs ещё короче с уровнем.
   const groupSize = L <= 9 ? 2 : L <= 12 ? 3 : 4;
-  const pairs = L <= 9 ? Math.min(12, 3 + L)           // число ГРУПП: L1-9 пары 4→12
+  /**
+   * 🔴 ЧИСЛО ГРУПП НЕ МОЖЕТ ПРЕВЫСИТЬ ЧИСЛО КАРТИНОК. Спрайтов в наборе ровно
+   * двенадцать (SPRITE_COUNT), а формула с 22-го уровня просила тринадцать: колода
+   * собиралась из двенадцати, а победа сверялась с числом из конфига — и партия
+   * НЕ ЗАВЕРШАЛАСЬ НИКОГДА. Все карты открыты, ходов нет, счётчик висит «12/13».
+   * Игра при этом не скрыта из меню и стоит в ротации «Вызова дня».
+   *
+   * Тот же дефект, что чинился во фрактальном судоку: победа сверялась с
+   * конфигом, а не с доской.
+   */
+  const wanted = L <= 9 ? Math.min(12, 3 + L)           // число ГРУПП: L1-9 пары 4→12
               : L <= 12 ? 4 + (L - 10)                  // L10-12 троек 4,5,6 (12,15,18 карт)
-              : 4 + (L - 13);                            // L13-15 четвёрок 4,5,6 (16,20,24 карт)
+              : 4 + (L - 13);                            // L13+ четвёрок, но не больше набора
+  const pairs = Math.min(wanted, SPRITE_COUNT);
   const previewMs = Math.max(250, 800 - L * 40);        // показ быстрее с уровнем
   return { pairs, groupSize, photo: true, previewMs };
 }
@@ -182,10 +198,16 @@ export default function PicturePairsGame() {
 
   // Запустить один раунд с заданным конфигом (общий для обоих режимов).
   const startRound = (pairs: number, groupSize: number, photo: boolean, pms: number) => {
-    setPairsCount(pairs);
     groupSizeRef.current = groupSize;
     setPreviewMs(pms || previewMs);
     const deck = buildDeck(pairs, groupSize);
+    /**
+     * 🔴 СЧЁТЧИК ПОБЕДЫ БЕРЁТСЯ ИЗ СОБРАННОЙ КОЛОДЫ, А НЕ ИЗ КОНФИГА. Пока он
+     * приходил из конфига, любое расхождение между «сколько просили» и «сколько
+     * получилось» делало партию незавершаемой — и заметить это можно было только
+     * доиграв до неё. Теперь расхождение невозможно по построению.
+     */
+    setPairsCount(new Set(deck.map((c) => c.symbol)).size);
     setOpenIdx([]); setMoves(0); setMatched(0); setErrors(0); setLocked(false);
     setPhase('playing');
     if (photo) {
