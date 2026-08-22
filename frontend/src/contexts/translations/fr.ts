@@ -637,6 +637,7 @@ const t: Record<string, string> = {
   "bartDesc": "Gonfle le ballon ou encaisse",
   "iowaDesc": "Apprends à éviter les paquets perdants",
   "stroopEmotionalDesc": "Couleur de la police vs sens du mot",
+  "stroopEmoLangFallback": "Les mots à charge émotionnelle n’existent pour l’instant qu’en russe et en anglais : la série se fera en anglais. Si tu ne le lis pas, ce sera un Stroop ordinaire.",
   "spatialSpanDesc": "Reproduis la séquence à l'envers",
   "posnerIntroDesc": "Une croix de fixation au centre. D'abord un indice (flèche) apparaît d'un côté, puis la cible. L'indice est souvent valide, mais peut tromper (invalide) ou être neutre. Réagis du côté de la cible. Métrique : effet de validité = TR(invalide) − TR(valide) — indice de l'orientation de l'attention.",
   "antIntroDesc": "Le test de Fan-Posner mesure 3 réseaux attentionnels à la fois : alerte (vigilance), orientation (spatiale), exécutif (résolution de conflit via flanker). Chaque essai combine : indice (aucun/central/double/spatial) + cible (flèche avec flankers congruents/incongruents). 3 biomarqueurs d'un coup.",

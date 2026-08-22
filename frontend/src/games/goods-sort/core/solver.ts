@@ -43,8 +43,21 @@ export function solveStrict(start: Board, budget = 20000): SolveResult {
   let exhausted = false;
   let firstMove: { from: number; to: number } | null = null;
 
+  /**
+   * ⚠️ ГЛУБИНА ОГРАНИЧЕНА, ИНАЧЕ ПАДАЕТ СТЕК. Перебор идёт вглубь и только потом
+   * возвращается: при бюджете в двадцать тысяч узлов цепочка вызовов может стать
+   * такой же длины и уронить приложение — `Maximum call stack size exceeded`.
+   * Поймано мигающей проверкой 22.08.2026: доски случайные, и падало не каждый
+   * прогон, отчего выглядело как «иногда».
+   *
+   * Потолок берём с большим запасом от разумной партии: перекладываний в ней
+   * заведомо меньше пятисот, а дальше это уже не решение, а блуждание.
+   */
+  const MAX_DEPTH = 500;
+
   const walk = (board: Board, depth: number): boolean => {
     if (isCleared(board)) return true;
+    if (depth >= MAX_DEPTH) { exhausted = true; return false; }
     if (++nodes > budget) { exhausted = true; return false; }
     const key = stateKey(board);
     if (seen.has(key)) return false;

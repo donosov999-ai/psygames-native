@@ -1368,6 +1368,7 @@ const t: Record<string, string> = {
   "flankerDesc": "まん中の矢印に反応する",
   "reproduceBackward": "逆の順番で再現",
   "stroopEmotionalDesc": "文字の色と語の意味の食いちがい",
+  "stroopEmoLangFallback": "感情を帯びた語は今のところロシア語と英語のみです。この回は英語で行います。読めない場合は通常のストループになります。",
   "benefitCpt2": "衝動の制御（Xは止まる）",
   "skillSocial": "きたえる力：社会的認知",
   "benefitGoNoGo2": "速くて正確な反応",

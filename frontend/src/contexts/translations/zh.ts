@@ -393,6 +393,7 @@ const t: Record<string, string> = {
   "bartDesc": "给气球打气或兑现",
   "iowaDesc": "学会避开不利的牌堆",
   "stroopEmotionalDesc": "字体颜色 vs 词义",
+  "stroopEmoLangFallback": "带情绪色彩的词目前只有俄语和英语版本，本轮将使用英语。若你不读英语，这就成了普通的斯特鲁普测验。",
   "spatialSpanDesc": "倒序重现序列",
   "posnerIntroDesc": "中央有一个注视十字。先在一侧出现一个提示（箭头），然后出现目标。提示通常有效，但可能误导（无效）或为中性。对目标所在一侧做出反应。指标：有效性效应 = RT(无效) − RT(有效)——定向注意的指数。",
   "antIntroDesc": "Fan-Posner 测试同时测量 3 个注意网络：警觉（准备状态）、定向（空间）、执行（通过 flanker 解决冲突）。一次试验组合了：提示（无/中心/双重/空间）+ 目标（带一致/不一致侧翼的箭头）。一次测出 3 项生物标志物。",

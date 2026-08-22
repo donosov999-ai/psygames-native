@@ -637,6 +637,7 @@ const t: Record<string, string> = {
   "bartDesc": "Gonfia il palloncino o incassa",
   "iowaDesc": "Impara a evitare i mazzi svantaggiosi",
   "stroopEmotionalDesc": "Colore del testo vs significato della parola",
+  "stroopEmoLangFallback": "Le parole con carica emotiva esistono per ora solo in russo e inglese: la prova userà l’inglese. Se non lo leggi, diventerà uno Stroop normale.",
   "spatialSpanDesc": "Riproduci la sequenza al contrario",
   "posnerIntroDesc": "Una croce di fissazione al centro. Prima appare un indizio (freccia) su un lato, poi il bersaglio. L'indizio di solito è valido, ma può ingannare (invalido) o essere neutro. Reagisci al lato del bersaglio. Metrica: validity effect = RT(invalido) − RT(valido) — indice dell'orientamento dell'attenzione.",
   "antIntroDesc": "Il test di Fan-Posner misura 3 reti dell'attenzione insieme: alerting (prontezza), orienting (spaziale), executive (risoluzione dei conflitti via flanker). Ogni prova combina: indizio (nessuno/centrale/doppio/spaziale) + bersaglio (freccia con flanker congruenti/incongruenti). 3 biomarcatori in un colpo solo.",

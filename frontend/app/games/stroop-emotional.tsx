@@ -318,8 +318,10 @@ export default function StroopEmotionalGame() {
             заряд для человека, который их не понимает, теряется. Молчать об этом
             значит выдавать обычный Струп за эмоциональный.
           */}
+          {/* Без приглушения: гейт контраста показал 3.79 при норме 4.5 — предупреждение,
+              которое плохо читается, не предупреждение. */}
           {emoLangFor(language) !== language ? (
-            <Text style={[styles.configDesc, { opacity: 0.85 }]}>{t('stroopEmoLangFallback')}</Text>
+            <Text style={styles.configDesc}>{t('stroopEmoLangFallback')}</Text>
           ) : null}
         </LinearGradient>
         <GameAbout descriptionKey="stroopEmotionalIntroDesc" benefits={STROOP2_BENEFITS} accent={GRADIENT[0]} />

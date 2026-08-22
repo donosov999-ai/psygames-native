@@ -393,6 +393,7 @@ const t: Record<string, string> = {
   "bartDesc": "Ballon aufpumpen oder Gewinn sichern",
   "iowaDesc": "Lerne, nachteilige Stapel zu meiden",
   "stroopEmotionalDesc": "Schriftfarbe vs. Wortbedeutung",
+  "stroopEmoLangFallback": "Emotional aufgeladene Wörter gibt es bisher nur auf Russisch und Englisch — der Durchgang läuft auf Englisch. Wenn du es nicht liest, wird daraus ein einfacher Stroop.",
   "spatialSpanDesc": "Folge rückwärts wiedergeben",
   "posnerIntroDesc": "Ein Fixationskreuz in der Mitte. Zuerst erscheint ein Hinweis (Pfeil) auf einer Seite, dann ein Ziel. Der Hinweis ist meist gültig, kann aber täuschen (ungültig) oder neutral sein. Reagiere auf die Zielseite. Kennwert: Validitätseffekt = RZ(ungültig) − RZ(gültig) — Index der orientierenden Aufmerksamkeit.",
   "antIntroDesc": "Der Fan-Posner-Test misst 3 Aufmerksamkeitsnetzwerke gleichzeitig: Alarmierung (Bereitschaft), Orientierung (räumlich), exekutive Kontrolle (Konfliktlösung per Flanker). Ein Durchgang kombiniert: Hinweis (kein/zentral/doppelt/räumlich) + Ziel (Pfeil mit kongruenten/inkongruenten Flankern). 3 Biomarker auf einmal.",

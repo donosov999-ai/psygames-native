@@ -393,6 +393,7 @@ const t: Record<string, string> = {
   "bartDesc": "Infla el globo o cobra",
   "iowaDesc": "Aprende a evitar los mazos desfavorables",
   "stroopEmotionalDesc": "Color de la fuente vs significado de la palabra",
+  "stroopEmoLangFallback": "Las palabras con carga emocional existen por ahora solo en ruso e inglés: la prueba usará inglés. Si no lo lees, será un Stroop normal.",
   "spatialSpanDesc": "Reproduce la secuencia al revés",
   "posnerIntroDesc": "Una cruz de fijación en el centro. Primero aparece una señal (flecha) a un lado, luego un objetivo. La señal suele ser válida, pero puede engañar (inválida) o ser neutra. Reacciona al lado del objetivo. Métrica: efecto de validez = TR(inválida) − TR(válida) — índice de orientación de la atención.",
   "antIntroDesc": "La prueba Fan-Posner mide 3 redes atencionales a la vez: alerta (preparación), orientación (espacial), ejecutiva (resolución de conflictos mediante flankers). Un ensayo combina: señal (ninguna/central/doble/espacial) + objetivo (flecha con flancos congruentes/incongruentes). 3 biomarcadores de una sola vez.",
