@@ -236,3 +236,32 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'here',   ru: 'здесь',      es: 'aquí',     pt: 'aqui',     de: 'hier',    zh: '这里',  hi: 'यहाँ', cat: 'basics' },
   { en: 'there',  ru: 'там',        es: 'allí',     pt: 'lá',       de: 'dort',    zh: '那里',  hi: 'वहाँ', cat: 'basics' },
 ];
+
+/**
+ * ЯЗЫКИ, НА КОТОРЫХ СЛОВАРЬ РЕАЛЬНО ЕСТЬ — ВЫВОДЯТСЯ ИЗ НЕГО САМОГО.
+ *
+ * 🔴 ЧТО БЫЛО. Экраны словесных игр предлагали выбрать любой из двенадцати
+ * языков приложения (`LANGUAGES`), а словарь покрывает семь. Для французского,
+ * итальянского, японского, корейского и арабского слов НЕТ — игра запускалась и
+ * оказывалась пустой: «выбери 1-е из 0», а в зарядке экран оставался мёртвым
+ * навсегда, без шапки и без «назад».
+ *
+ * ⚠️ ПОЧЕМУ СПИСОК ВЫЧИСЛЯЕТСЯ, А НЕ ВПИСАН РУКАМИ. Вписанный разъедется с
+ * первым же добавленным языком, и заметит это опять игрок. Здесь список — это
+ * ПОСЛЕДСТВИЕ содержимого словаря: добавили колонку во все записи — язык
+ * появился в выборе сам; забыли в половине — не появился, и никто не пострадал.
+ */
+export function vocabLangsOf(entries: readonly Record<string, string>[]): string[] {
+  const first = entries[0];
+  if (!first) return [];
+  const candidates = Object.keys(first).filter((k) => k !== 'cat');
+  return candidates.filter((lang) =>
+    entries.every((entry) => typeof entry[lang] === 'string' && entry[lang].length > 0));
+}
+
+export const VOCAB_LANGS: readonly string[] = vocabLangsOf(TRANSLATION_VOCAB);
+
+/** Есть ли на этом языке словарь. */
+export function hasVocab(lang: string): boolean {
+  return VOCAB_LANGS.includes(lang);
+}

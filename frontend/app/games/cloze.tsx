@@ -33,7 +33,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
-import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
+import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
 import { CLOZE_PHRASES } from '@/src/constants/clozePhrases';
 import { gameNow } from '@/src/services/gamePause';
 
@@ -288,7 +288,15 @@ export default function ClozeGame() {
               {LANGUAGES.find((l) => l.code === language)?.name} →
             </Text>
             <View style={styles.optionButtons}>
-              {LANGUAGES.filter((l) => l.code !== language).map((l) => (
+              /*
+                🔴 ПРЕДЛАГАЕМ ТОЛЬКО ТЕ ЯЗЫКИ, НА КОТОРЫХ ЕСТЬ СЛОВАРЬ.
+                Раньше выбор строился из всех двенадцати языков приложения, а
+                словарь покрывает семь: на французском игра запускалась и
+                оказывалась пустой — «выбери 1-е из 0», а в зарядке экран
+                оставался мёртвым навсегда, без шапки и без «назад».
+                Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
+              */
+              {LANGUAGES.filter((l) => l.code !== language && hasVocab(l.code)).map((l) => (
                 <TouchableOpacity
                   accessibilityRole="button"
                   key={l.code}
