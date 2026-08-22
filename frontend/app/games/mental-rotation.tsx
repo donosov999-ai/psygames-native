@@ -1,33 +1,48 @@
-/* psygames-game-mental-rotation · VER 1 · 19.08.2026 */
+/* psygames-game-mental-rotation · VER 2 · 23.08.2026 */
 /**
- * Mental Rotation — 3D Shepard-Metzler version (Round 7 upgrade)
+ * Mental Rotation — три вида пространственных заданий на одной геометрии
  *
- * Парадигма (Shepard & Metzler 1971): субъект видит эталонную 3D-фигуру и
- * варианты — повёрнутые версии и зеркальные копии. Выбрать ту что является
- * ВАЛИДНЫМ ПОВОРОТОМ эталона (не зеркалом, не другой фигурой).
+ * Парадигма (Shepard & Metzler 1971): человек видит эталонную 3D-фигуру и
+ * варианты — повёрнутые копии и зеркала. Выбрать ту, что является ВАЛИДНЫМ
+ * ПОВОРОТОМ эталона. Это ядро игры, и оно осталось прежним.
  *
- * Ключевой биомаркер: `angle_response_slope` — линейная регрессия RT по углу
- * поворота. Чем меньше slope (мс/градус), тем быстрее ментальная ротация.
- * Тренируется → slope падает → измеримый прогресс.
+ * ЧТО ДОБАВЛЕНО (редакция 2, 23.08.2026) — ещё два вида заданий и разбор ответа:
  *
- * Implementation:
- *  - Фигуры из unit-cubes (4-8 кубиков) с координатами (x,y,z)
- *  - 3D-поворот через композицию 90°-rotations вокруг X/Y/Z
- *  - Различение валидной ротации vs зеркала через все 24 ориентации
- *  - Изометрическая проекция в SVG (3 видимые грани каждого куба с разной заливкой)
+ *  1. ПРОЕКЦИЯ. «Как эта фигура выглядит сверху / спереди / справа?» Варианты —
+ *     плоские сетки клеток. Правильная ВЫЧИСЛЯЕТСЯ из тех же координат кубиков
+ *     (`projectShape`), неверные — проекция вдоль другой оси либо проекция
+ *     фигуры с одним переставленным кубиком: то, что человек и правда путает.
+ *  2. РАЗВЁРТКА. «Какой кубик сложится из этой выкройки?» Сборка считается
+ *     катящимся по выкройке кубиком (`foldNet`), а не таблицей, выписанной
+ *     руками. Подделки — зеркальная сборка и перестановка двух граней.
+ *  3. РАЗБОР ОТВЕТА. После промаха эталон ПРОВОРАЧИВАЕТСЯ шаг за шагом к
+ *     правильному варианту: видно, ПОЧЕМУ он правильный. Раньше человек видел
+ *     только красную рамку и не узнавал ничего.
  *
- * Difficulty:
- *  - easy:   4 cubes, 1 ось поворота (Z only), углы 90°
- *  - medium: 5-6 cubes, 2 оси поворота (X+Y), углы 90°
- *  - hard:   7-8 cubes, 3 оси (X+Y+Z), углы 90° + случайная композиция
+ * 🔴 БИОМАРКЕР НЕ ИСПОРЧЕН СМЕСЬЮ ЗАДАНИЙ. Ключевая величина игры —
+ * `angle_response_slope`, линейная регрессия RT по углу поворота (мс/градус).
+ * Угол определён ТОЛЬКО у поворотных проб; сложи в ту же регрессию время ответа
+ * на проекцию — и наклон станет шумом, который выглядит как измерение. Поэтому
+ * вид задания пишется в КАЖДУЮ запись пробы, отбор точек живёт в ядре
+ * (`slopeSamples`), а доля поворотных проб в партии не опускается ниже 60%.
+ *
+ * Реализация геометрии вынесена в `src/games/mental-rotation/core` — там же
+ * лежат её доказательства (`src/__tests__/mental-rotation-tasks.test.ts`):
+ * проекция сверяется с множеством проекций кубиков, сборка выкройки — с
+ * настоящим кубом, зеркальный вариант — перебором всех 24 ориентаций.
+ *
+ * Difficulty (уровни):
+ *  - L1-5:   4-5 кубиков, ось Z, 3 варианта; с L3 подмешивается проекция
+ *  - L6-10:  5-6 кубиков, оси X+Y, 4 варианта; с L5 подмешивается развёртка
+ *  - L11-15: 6-8 кубиков, оси X+Y+Z, с L13 составные (косые) ракурсы
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView
 } from 'react-native';
-import Svg, { Polygon, G } from 'react-native-svg';
+import Svg, { Polygon, G, Rect } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -39,6 +54,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
@@ -48,6 +64,31 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
+import {
+  angleResponseSlope,
+  buildTask,
+  getMentalRotationStrings,
+  gridSize,
+  interpolateMentalRotation,
+  levelParams,
+  meanSlopeRt,
+  netCellKey,
+  netSize,
+  planTaskKinds,
+  rotationReplay,
+  slopeSamples,
+  taskKindCounts,
+  type Axis,
+  type Cell2D,
+  type CubeNet,
+  type FaceMap,
+  type FaceMark,
+  type MentalRotationLocale,
+  type MentalRotationTask,
+  type Shape,
+  type TaskKind,
+  type TrialRecord,
+} from '@/src/games/mental-rotation/core';
 
 const GRADIENT = ['#5614b0', '#dbd65c'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -59,6 +100,8 @@ const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 // Цвет 3D-фигур: тёмно-фиолетовый GRADIENT[0] сливался с тёмной темой (образец не виден).
 // Светлый насыщенный фиолет читается и на светлой, и на тёмной теме.
 const SHAPE_BASE = '#9B6BFF';
+const OK_COLOR = '#22c55e';
+const BAD_COLOR = '#f43f5e';
 const MR_BENEFITS = [
   { icon: 'cube-outline', textKey: 'benefitMr1' },
   { icon: 'sync-outline', textKey: 'benefitMr2' },
@@ -72,178 +115,6 @@ const MR_RULES: LevelRule[] = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
-type Difficulty = 'easy' | 'medium' | 'hard';
-type Cube = [number, number, number];   // [x, y, z]
-type Shape = Cube[];
-
-// ─── 3D math ──────────────────────────────────────────────────────────────
-
-function rotateX([x, y, z]: Cube): Cube { return [x, -z, y]; }
-function rotateY([x, y, z]: Cube): Cube { return [z, y, -x]; }
-function rotateZ([x, y, z]: Cube): Cube { return [-y, x, z]; }
-
-function applyRotation(shape: Shape, axis: 'x' | 'y' | 'z', times: number): Shape {
-  const fn = axis === 'x' ? rotateX : axis === 'y' ? rotateY : rotateZ;
-  let r = shape;
-  for (let i = 0; i < ((times % 4) + 4) % 4; i++) r = r.map(fn);
-  return r;
-}
-
-function normalize(shape: Shape): Shape {
-  if (shape.length === 0) return shape;
-  const minX = Math.min(...shape.map(c => c[0]));
-  const minY = Math.min(...shape.map(c => c[1]));
-  const minZ = Math.min(...shape.map(c => c[2]));
-  return shape.map(([x, y, z]) => [x - minX, y - minY, z - minZ] as Cube);
-}
-
-function shapeKey(shape: Shape): string {
-  return shape.map(c => c.join(',')).sort().join('|');
-}
-
-// True if `b` is a valid 3D rotation (not mirror) of `a`
-function isValidRotation(a: Shape, b: Shape): boolean {
-  const targetKey = shapeKey(normalize(a));
-  for (let rx = 0; rx < 4; rx++) {
-    for (let ry = 0; ry < 4; ry++) {
-      for (let rz = 0; rz < 4; rz++) {
-        let cand = b;
-        for (let i = 0; i < rx; i++) cand = cand.map(rotateX);
-        for (let i = 0; i < ry; i++) cand = cand.map(rotateY);
-        for (let i = 0; i < rz; i++) cand = cand.map(rotateZ);
-        if (shapeKey(normalize(cand)) === targetKey) return true;
-      }
-    }
-  }
-  return false;
-}
-
-function mirror(shape: Shape): Shape {
-  return shape.map(([x, y, z]) => [-x, y, z] as Cube);
-}
-
-// Base Shepard-Metzler-like shapes (4-8 cubes each)
-const SHAPES_LIB: Shape[] = [
-  // L (4)
-  [[0,0,0],[1,0,0],[2,0,0],[2,1,0]],
-  // T (5)
-  [[0,0,0],[1,0,0],[2,0,0],[1,1,0],[1,2,0]],
-  // Z (4)
-  [[0,0,0],[1,0,0],[1,1,0],[2,1,0]],
-  // Step (5)
-  [[0,0,0],[1,0,0],[1,1,0],[2,1,0],[2,2,0]],
-  // 3D step into Z (5)
-  [[0,0,0],[1,0,0],[1,0,1],[1,1,1],[2,1,1]],
-  // U (5)
-  [[0,0,0],[0,1,0],[0,2,0],[1,2,0],[2,2,0]],
-  // Plus on Z (6)
-  [[1,0,0],[0,1,0],[1,1,0],[2,1,0],[1,2,0],[1,1,1]],
-  // Snake 3D (6)
-  [[0,0,0],[1,0,0],[1,1,0],[1,1,1],[2,1,1],[2,2,1]],
-  // Branch (6)
-  [[0,0,0],[1,0,0],[2,0,0],[2,1,0],[2,1,1],[2,2,1]],
-  // Big L (5)
-  [[0,0,0],[1,0,0],[2,0,0],[3,0,0],[3,1,0]],
-  // Stair 3D (7)
-  [[0,0,0],[1,0,0],[1,1,0],[2,1,0],[2,1,1],[3,1,1],[3,2,1]],
-  // Cross 3D (7)
-  [[1,0,0],[1,1,0],[1,2,0],[0,1,0],[2,1,0],[1,1,1],[1,1,2]],
-];
-
-function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
-
-// Уровень → параметры фигуры. numCubes 4→8 плавно; оси Z→XY→XYZ; compound (косые ракурсы) на верхах.
-//   L1-5  — ось Z (плоская ротация), кубы 4→5
-//   L6-10 — +XY (наклоны), кубы 5→6
-//   L11-15— +XYZ (полная 3D), кубы 6→8 + составные повороты (косые ракурсы)
-function levelParams(level: number): { minC: number; maxC: number; axes: ('x' | 'y' | 'z')[]; optionCount: number; compound: boolean } {
-  if (level <= 5)  return { minC: 4, maxC: level <= 2 ? 4 : 5, axes: ['z'],           optionCount: 3, compound: false };
-  if (level <= 10) return { minC: 5, maxC: level <= 7 ? 5 : 6, axes: ['x', 'y'],      optionCount: 4, compound: false };
-  return { minC: 6, maxC: Math.min(8, 6 + Math.floor((level - 11) / 2)), axes: ['x', 'y', 'z'], optionCount: 4, compound: level >= 13 };
-}
-
-interface TrialOption { shape: Shape; isMatch: boolean; rotationLabel: string; angleSum: number; }
-
-function makeTrial(level: number): { base: Shape; options: TrialOption[]; correctIdx: number } {
-  const p = levelParams(level);
-  const candidates = SHAPES_LIB.filter(s => s.length >= p.minC && s.length <= p.maxC);
-  const base = rndItem(candidates);
-  const axes = p.axes;
-  const optionCount = p.optionCount;
-
-  // Generate the CORRECT option: random rotation around allowed axes.
-  // For HARD: also chain extra rotations producing effective 45°/135° equivalents
-  // (composition of 90° steps across multiple axes simulates oblique rotations,
-  // forcing more difficult mental rotation — Shepard-Metzler classic).
-  const buildRandomRotation = (): { shape: Shape; label: string; angleSum: number } => {
-    let rot = base;
-    let angleSum = 0;
-    const labels: string[] = [];
-    for (const axis of axes) {
-      const k = 1 + Math.floor(Math.random() * 3);  // 90/180/270 (skip 0)
-      for (let i = 0; i < k; i++) rot = rot.map(axis === 'x' ? rotateX : axis === 'y' ? rotateY : rotateZ);
-      angleSum += k * 90;
-      labels.push(`${axis.toUpperCase()}${k * 90}°`);
-    }
-    // compound (L13-15): add extra cross-axis rotation for ~45°/135° effective oblique views
-    if (p.compound && Math.random() < 0.65) {
-      const extraAxis = (['x','y','z'] as const)[Math.floor(Math.random() * 3)];
-      const k = 1 + Math.floor(Math.random() * 2);
-      for (let i = 0; i < k; i++) {
-        rot = rot.map(extraAxis === 'x' ? rotateX : extraAxis === 'y' ? rotateY : rotateZ);
-      }
-      angleSum += k * 90;
-      labels.push(`${extraAxis.toUpperCase()}${k * 90}°⊕`);
-    }
-    return { shape: normalize(rot), label: labels.join(' '), angleSum };
-  };
-
-  const correct = buildRandomRotation();
-  const opts: TrialOption[] = [
-    { shape: correct.shape, isMatch: true, rotationLabel: correct.label, angleSum: correct.angleSum },
-  ];
-
-  // Generate distractors: mirror or another shape (rotated)
-  let attempts = 0;
-  while (opts.length < optionCount && attempts < 50) {
-    attempts++;
-    const useMirror = Math.random() < 0.55;
-    if (useMirror) {
-      // mirrored base, then rotated
-      let cand = mirror(base);
-      const k = 1 + Math.floor(Math.random() * 3);
-      for (const axis of axes) {
-        for (let i = 0; i < k; i++) cand = cand.map(axis === 'x' ? rotateX : axis === 'y' ? rotateY : rotateZ);
-      }
-      cand = normalize(cand);
-      // make sure it's NOT actually a valid rotation of base (some shapes are achiral)
-      if (isValidRotation(base, cand)) continue;
-      // also avoid duplicates among options
-      if (opts.some(o => shapeKey(o.shape) === shapeKey(cand))) continue;
-      opts.push({ shape: cand, isMatch: false, rotationLabel: 'mirror', angleSum: 0 });
-    } else {
-      // different shape, rotated
-      const other = rndItem(candidates.filter(s => s !== base));
-      let cand = other;
-      const k = 1 + Math.floor(Math.random() * 3);
-      for (const axis of axes) {
-        for (let i = 0; i < k; i++) cand = cand.map(axis === 'x' ? rotateX : axis === 'y' ? rotateY : rotateZ);
-      }
-      cand = normalize(cand);
-      if (isValidRotation(base, cand)) continue;  // unlikely but possible if shapes overlap
-      if (opts.some(o => shapeKey(o.shape) === shapeKey(cand))) continue;
-      opts.push({ shape: cand, isMatch: false, rotationLabel: 'other', angleSum: 0 });
-    }
-  }
-
-  // Shuffle
-  for (let i = opts.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [opts[i], opts[j]] = [opts[j], opts[i]];
-  }
-  const correctIdx = opts.findIndex(o => o.isMatch);
-  return { base, options: opts, correctIdx };
-}
 
 // ─── isometric projection + SVG render ────────────────────────────────────
 
@@ -252,10 +123,78 @@ const ISO_X_DY = Math.sin(Math.PI / 6);   // 0.5
 const ISO_Z_DX = -Math.cos(Math.PI / 6);
 const ISO_Z_DY = Math.sin(Math.PI / 6);
 
-function project([x, y, z]: Cube, scale: number, ox: number, oy: number) {
+interface Pt { sx: number; sy: number }
+
+function project([x, y, z]: [number, number, number], scale: number, ox: number, oy: number): Pt {
   const sx = ox + (x * ISO_X_DX + z * ISO_Z_DX) * scale;
   const sy = oy + (-y + x * ISO_X_DY + z * ISO_Z_DY) * scale * 1.0;
   return { sx, sy };
+}
+
+/** Восемь углов кубика с началом в (x,y,z). Порядок важен: по нему собраны грани. */
+function cubeCorners([x, y, z]: [number, number, number]): [number, number, number][] {
+  return [
+    [x, y, z], [x + 1, y, z], [x + 1, y + 1, z], [x, y + 1, z],
+    [x, y, z + 1], [x + 1, y, z + 1], [x + 1, y + 1, z + 1], [x, y + 1, z + 1],
+  ];
+}
+
+/**
+ * Видимые грани кубика и рамка для значка на каждой.
+ *
+ * `fill` — четыре угла грани в порядке обхода; `a/b/d` — угол-начало и два
+ * направления, по которым значок кладётся на грань (`a` — левый верхний,
+ * `b` — «вправо» вдоль грани, `d` — «вниз» по экрану). Без этой рамки значок
+ * пришлось бы рисовать в экранных координатах, и на скошенной грани он поехал бы
+ * мимо неё.
+ */
+const FACE_FRAME = {
+  up:    { fill: [3, 2, 6, 7], a: 7, b: 3, d: 6 },
+  front: { fill: [4, 5, 6, 7], a: 7, b: 6, d: 4 },
+  right: { fill: [1, 5, 6, 2], a: 6, b: 2, d: 5 },
+} as const;
+
+/**
+ * Значки на гранях — очертанием, а не цветом (дальтонизм + разная заливка
+ * граней). Координаты в долях грани: (0,0) — левый верх, (1,1) — правый низ.
+ */
+const MARK_SHAPES: Record<FaceMark, { points: [number, number][]; hollow?: boolean }> = {
+  dot: { points: ringPoints(0.3) },
+  ring: { points: ringPoints(0.32), hollow: true },
+  square: { points: [[0.26, 0.26], [0.74, 0.26], [0.74, 0.74], [0.26, 0.74]] },
+  triangle: { points: [[0.5, 0.2], [0.8, 0.76], [0.2, 0.76]] },
+  plus: { points: [[0.42, 0.2], [0.58, 0.2], [0.58, 0.42], [0.8, 0.42], [0.8, 0.58], [0.58, 0.58], [0.58, 0.8], [0.42, 0.8], [0.42, 0.58], [0.2, 0.58], [0.2, 0.42], [0.42, 0.42]] },
+  bar: { points: [[0.16, 0.43], [0.84, 0.43], [0.84, 0.57], [0.16, 0.57]] },
+};
+
+function ringPoints(r: number): [number, number][] {
+  const pts: [number, number][] = [];
+  for (let i = 0; i < 14; i++) {
+    const a = (i / 14) * Math.PI * 2;
+    pts.push([0.5 + r * Math.cos(a), 0.5 + r * Math.sin(a)]);
+  }
+  return pts;
+}
+
+/** Цвет значка. Вторичный признак: форма различает и без него. */
+const MARK_COLORS: Record<FaceMark, string> = {
+  dot: '#1f2937',
+  ring: '#b91c1c',
+  square: '#1d4ed8',
+  triangle: '#15803d',
+  plus: '#7c2d12',
+  bar: '#6b21a8',
+};
+
+/** Значок, положенный на грань: точки в долях грани → экранные координаты. */
+function markPolygon(mark: FaceMark, a: Pt, b: Pt, d: Pt): string {
+  return MARK_SHAPES[mark].points
+    .map(([u, v]) => {
+      const sx = a.sx + u * (b.sx - a.sx) + v * (d.sx - a.sx);
+      const sy = a.sy + u * (b.sy - a.sy) + v * (d.sy - a.sy);
+      return `${sx},${sy}`;
+    })
+    .join(' ');
 }
 
 function renderShape(shape: Shape, size: number, baseColor: string) {
@@ -288,31 +227,124 @@ function renderShape(shape: Shape, size: number, baseColor: string) {
     <Svg width={size} height={size}>
       <G>
         {sorted.map((cube, i) => {
-          const corners: Cube[] = [
-            [cube[0],   cube[1],   cube[2]],
-            [cube[0]+1, cube[1],   cube[2]],
-            [cube[0]+1, cube[1]+1, cube[2]],
-            [cube[0],   cube[1]+1, cube[2]],
-            [cube[0],   cube[1],   cube[2]+1],
-            [cube[0]+1, cube[1],   cube[2]+1],
-            [cube[0]+1, cube[1]+1, cube[2]+1],
-            [cube[0],   cube[1]+1, cube[2]+1],
-          ];
-          const p = corners.map(c => project(c, scale, ox, oy));
-          // Three visible faces share the near corner (1,1,1) = corners[6].
-          // Each visible face = z=max OR y=max OR x=max.
-          // Top face (y=max): corners 3,2,6,7
-          const topPts  = [p[3], p[2], p[6], p[7]].map(q => `${q.sx},${q.sy}`).join(' ');
-          // Front face (z=max, the face FACING the viewer): corners 4,5,6,7
-          // (NOT z=min — that's the back face, invisible).
-          const frontPts= [p[4], p[5], p[6], p[7]].map(q => `${q.sx},${q.sy}`).join(' ');
-          // Right face (x=max): corners 1,5,6,2
-          const rightPts= [p[1], p[5], p[6], p[2]].map(q => `${q.sx},${q.sy}`).join(' ');
+          const p = cubeCorners(cube).map(c => project(c, scale, ox, oy));
+          // Три видимые грани сходятся в ближнем углу (1,1,1) = corners[6]:
+          // верх (y=max), перед (z=max — та, что СМОТРИТ на зрителя, не z=min),
+          // право (x=max).
+          const topPts   = FACE_FRAME.up.fill.map(k => `${p[k].sx},${p[k].sy}`).join(' ');
+          const frontPts = FACE_FRAME.front.fill.map(k => `${p[k].sx},${p[k].sy}`).join(' ');
+          const rightPts = FACE_FRAME.right.fill.map(k => `${p[k].sx},${p[k].sy}`).join(' ');
           return (
             <G key={i}>
               <Polygon points={frontPts} fill={colorFront} stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" />
               <Polygon points={rightPts} fill={colorRight} stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" />
               <Polygon points={topPts}   fill={colorTop}   stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" />
+            </G>
+          );
+        })}
+      </G>
+    </Svg>
+  );
+}
+
+/**
+ * Один кубик со значками на трёх видимых гранях — вариант ответа в пробе на
+ * развёртку. Заливка граней светлее, чем у фигур: по ней читаются значки, а
+ * объём держит обводка.
+ */
+function renderMarkedCube(faces: FaceMap, size: number, baseColor: string) {
+  const scale = size / 2.5;
+  const p = cubeCorners([0, 0, 0]).map(c => project(c, scale, size / 2, size / 2));
+  const stroke = shadeColor(baseColor, -0.62);
+  const shades: Record<keyof typeof FACE_FRAME, string> = {
+    up: baseColor,
+    front: shadeColor(baseColor, -0.12),
+    right: shadeColor(baseColor, -0.24),
+  };
+  return (
+    <Svg width={size} height={size}>
+      <G>
+        {(Object.keys(FACE_FRAME) as (keyof typeof FACE_FRAME)[]).map((face) => {
+          const frame = FACE_FRAME[face];
+          const mark = faces[face];
+          return (
+            <G key={face}>
+              <Polygon
+                points={frame.fill.map(k => `${p[k].sx},${p[k].sy}`).join(' ')}
+                fill={shades[face]} stroke={stroke} strokeWidth={1.5} strokeLinejoin="round"
+              />
+              <Polygon
+                points={markPolygon(mark, p[frame.a], p[frame.b], p[frame.d])}
+                fill={MARK_SHAPES[mark].hollow ? 'none' : MARK_COLORS[mark]}
+                stroke={MARK_COLORS[mark]}
+                strokeWidth={MARK_SHAPES[mark].hollow ? 2.4 : 0.8}
+                strokeLinejoin="round"
+              />
+            </G>
+          );
+        })}
+      </G>
+    </Svg>
+  );
+}
+
+/**
+ * Плоская сетка — вариант ответа в пробе на проекцию. Рисуется ВЕСЬ габарит:
+ * пустые клетки показаны рамкой, иначе «дырка» внутри фигуры была бы неотличима
+ * от края и два разных ответа выглядели бы одинаково.
+ */
+function renderGrid(cells: Cell2D[], size: number, fill: string, edge: string) {
+  const { cols, rows } = gridSize(cells);
+  const cell = (size * 0.86) / Math.max(cols, rows, 2);
+  const ox = (size - cols * cell) / 2;
+  const oy = (size - rows * cell) / 2;
+  const filled = new Set(cells.map(c => `${c.col},${c.row}`));
+  const all: Cell2D[] = [];
+  for (let row = 0; row < rows; row++) for (let col = 0; col < cols; col++) all.push({ col, row });
+  return (
+    <Svg width={size} height={size}>
+      <G>
+        {all.map((c) => (
+          <Rect
+            key={`${c.col},${c.row}`}
+            x={ox + c.col * cell} y={oy + c.row * cell}
+            width={cell} height={cell}
+            fill={filled.has(`${c.col},${c.row}`) ? fill : 'none'}
+            stroke={edge} strokeWidth={1.2}
+          />
+        ))}
+      </G>
+    </Svg>
+  );
+}
+
+/** Выкройка: шесть помеченных квадратов на листе. */
+function renderNet(net: CubeNet, markOfCell: Record<string, FaceMark>, size: number, faceFill: string, edge: string) {
+  const { cols, rows } = netSize(net);
+  const cell = (size * 0.9) / Math.max(cols, rows);
+  const ox = (size - cols * cell) / 2;
+  const oy = (size - rows * cell) / 2;
+  return (
+    <Svg width={size} height={size}>
+      <G>
+        {net.cells.map((c) => {
+          const key = netCellKey(c);
+          const mark = markOfCell[key];
+          const x = ox + c.col * cell;
+          const y = oy + c.row * cell;
+          const a: Pt = { sx: x, sy: y };
+          const b: Pt = { sx: x + cell, sy: y };
+          const d: Pt = { sx: x, sy: y + cell };
+          return (
+            <G key={key}>
+              <Rect x={x} y={y} width={cell} height={cell} fill={faceFill} stroke={edge} strokeWidth={1.4} />
+              <Polygon
+                points={markPolygon(mark, a, b, d)}
+                fill={MARK_SHAPES[mark].hollow ? 'none' : MARK_COLORS[mark]}
+                stroke={MARK_COLORS[mark]}
+                strokeWidth={MARK_SHAPES[mark].hollow ? 2.4 : 0.8}
+                strokeLinejoin="round"
+              />
             </G>
           );
         })}
@@ -339,6 +371,11 @@ export default function MentalRotationGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
+  const strings = getMentalRotationStrings(language as MentalRotationLocale);
+  // Разбор поворота — это движение. Человеку, попросившему систему «меньше
+  // движения», кадры показываются все сразу и без проезда: смысл сохранён,
+  // мельтешения нет.
+  const reduceMotion = useReducedMotion();
 
   const lvl = usePersistentLevel('mental_rotation');
   const { isPreset, autostart, num, isCalm } = useGamePreset();
@@ -351,29 +388,58 @@ export default function MentalRotationGame() {
   const [trials, setTrials] = useState(() => num('trials', 10));
 
   const [round, setRound] = useState(0);
-  const [trial, setTrial] = useState(() => makeTrial(1));
+  // План партии: какой пробе быть каким заданием. Считается один раз на старте —
+  // иначе доля поворотных проб (на них держится биомаркер) плавала бы от броска
+  // к броску и в короткой партии могла бы обнулиться.
+  const planRef = useRef<TaskKind[]>([]);
+  const [task, setTask] = useState<MentalRotationTask>(() => buildTask('rotation', 1, Math.random));
   const levelRef = useRef(1);
-  const [hits, setHits] = useState(0);
-  const [errors, setErrors] = useState(0);
+  // Единственный журнал партии: вид задания, угол, время, верно/нет. Из него
+  // считаются и счётчики на экране, и наклон RT по углу — двух источников правды
+  // тут быть не должно.
+  const [records, setRecords] = useState<TrialRecord[]>([]);
   const [feedback, setFeedback] = useState<{ idx: number; ok: boolean } | null>(null);
+  const [reviewStep, setReviewStep] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);
   const [startTime, setStartTime] = useState(0);
   const [trialStartTime, setTrialStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [angleRtPairs, setAngleRtPairs] = useState<{ angle: number; rt: number }[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const advanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const hits = records.filter(r => r.correct).length;
+  const errors = records.length - hits;
+  // Разбор показывается после ПРОМАХА: верный ответ объяснять нечего, а лишняя
+  // задержка на верном ответе ломает темп партии и портит замер времени.
+  const reviewing = feedback !== null && !feedback.ok;
+  const frames = useMemo(() => (task.kind === 'rotation' ? rotationReplay(task) : []), [task]);
 
   // Справка правил уровня (в пресете не всплываем — там свой поток)
   const levelRules = useLevelRules('mental_rotation', lvl.level, MR_RULES, phase === 'playing' && !isPreset);
 
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+  useEffect(() => () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (advanceRef.current) clearTimeout(advanceRef.current);
+  }, []);
+
+  // Прокрутка кадров разбора. Шаг крупный (850 мс): поворот надо успеть увидеть,
+  // а не проводить глазами смазанное движение.
+  useEffect(() => {
+    if (!reviewing || frames.length < 2) return;
+    if (reduceMotion) { setReviewStep(frames.length - 1); return; }
+    const id = setInterval(() => {
+      setReviewStep((s) => (s + 1 < frames.length ? s + 1 : s));
+    }, 850);
+    return () => clearInterval(id);
+  }, [reviewing, frames, reduceMotion]);
 
   const startGame = () => {
     levelRef.current = lvl.level;
-    setHits(0); setErrors(0); setRound(1);
-    setAngleRtPairs([]);
-    setTrial(makeTrial(lvl.level));
+    setRecords([]); setRound(1);
+    planRef.current = planTaskKinds(lvl.level, trials, Math.random);
+    setTask(buildTask(planRef.current[0] ?? 'rotation', lvl.level, Math.random));
     setFeedback(null);
+    setReviewStep(0);
     setPhase('playing');
     const start = gameNow();
     setStartTime(start);
@@ -381,74 +447,102 @@ export default function MentalRotationGame() {
     timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
 
-  const computeSlope = (pairs: { angle: number; rt: number }[]): number => {
-    if (pairs.length < 2) return 0;
-    const n = pairs.length;
-    const sumX = pairs.reduce((s, p) => s + p.angle, 0);
-    const sumY = pairs.reduce((s, p) => s + p.rt, 0);
-    const sumXY = pairs.reduce((s, p) => s + p.angle * p.rt, 0);
-    const sumXX = pairs.reduce((s, p) => s + p.angle * p.angle, 0);
-    const denom = n * sumXX - sumX * sumX;
-    if (denom === 0) return 0;
-    return (n * sumXY - sumX * sumY) / denom;
+  const finishGame = async (log: TrialRecord[]) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    const finalTime = (gameNow() - startTime) / 1000;
+    setElapsedTime(finalTime);
+    const newHits = log.filter(r => r.correct).length;
+    const newErrors = log.length - newHits;
+    // Наклон и среднее время — по ОДНОЙ И ТОЙ ЖЕ выборке: верные поворотные
+    // пробы с известным углом. Проекция и развёртка в неё не попадают.
+    const slope = Number(angleResponseSlope(log).toFixed(2));
+    const passed = newHits / trials >= 0.7;
+    if (isPreset) {
+      setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
+    } else {
+      if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
+      setClearedPassed(passed);
+      setPhase('cleared');   // непрерывный поток: провал → тот же уровень ещё раз, без тупика
+    }
+    try {
+      await saveSession({
+        passed,
+        game_type: 'mental_rotation',
+        score: Math.max(0, newHits * 100 - newErrors * 30 - Math.floor(finalTime)),
+        time_seconds: finalTime,
+        difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
+        mode: `lvl${levelRef.current}-3D`,
+        errors: newErrors,
+        details: {
+          level: levelRef.current,
+          hits: newHits,
+          errors: newErrors,
+          trials,
+          mean_rt: meanSlopeRt(log),
+          angle_response_slope: slope,
+          // На скольких пробах посчитан наклон и из чего вообще состояла партия —
+          // без этого нельзя отличить «наклон 0, потому что человек ровный» от
+          // «наклон 0, потому что точек было меньше двух».
+          slope_trials: slopeSamples(log).length,
+          task_kinds: taskKindCounts(log),
+          version: '3D',
+        },
+      });
+    } catch (e) { console.error(e); }
   };
 
-  const handlePick = async (idx: number) => {
-    if (feedback !== null) return;
-    const ok = idx === trial.correctIdx;
-    const rt = gameNow() - trialStartTime;
-    const correctAngle = trial.options[trial.correctIdx]?.angleSum || 90;
-    setFeedback({ idx, ok });
-    if (ok) {
-      setHits(h => h + 1);
-      setAngleRtPairs(arr => [...arr, { angle: correctAngle, rt }]);
-    } else setErrors(e => e + 1);
+  const advance = (log: TrialRecord[]) => {
+    if (advanceRef.current) { clearTimeout(advanceRef.current); advanceRef.current = null; }
+    if (log.length >= trials) { void finishGame(log); return; }
+    setRound(log.length + 1);
+    setTask(buildTask(planRef.current[log.length] ?? 'rotation', levelRef.current, Math.random));
+    setFeedback(null);
+    setReviewStep(0);
+    setTrialStartTime(gameNow());
+  };
 
-    setTimeout(async () => {
-      if (round >= trials) {
-        if (timerRef.current) clearInterval(timerRef.current);
-        const finalTime = (gameNow() - startTime) / 1000;
-        setElapsedTime(finalTime);
-        const newHits = hits + (ok ? 1 : 0);
-        const newErrors = errors + (ok ? 0 : 1);
-        const finalPairs = ok ? [...angleRtPairs, { angle: correctAngle, rt }] : angleRtPairs;
-        const slope = Number(computeSlope(finalPairs).toFixed(2));
-        const meanRt = finalPairs.length ? Math.round(finalPairs.reduce((s, p) => s + p.rt, 0) / finalPairs.length) : 0;
-        const passed = newHits / trials >= 0.7;
-        if (isPreset) {
-          setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
-        } else {
-          if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
-          setClearedPassed(passed);
-          setPhase('cleared');   // непрерывный поток: провал → тот же уровень ещё раз, без тупика
-        }
-        try {
-          await saveSession({
-            passed,
-            game_type: 'mental_rotation',
-            score: Math.max(0, newHits * 100 - newErrors * 30 - Math.floor(finalTime)),
-            time_seconds: finalTime,
-            difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
-            mode: `lvl${levelRef.current}-3D`,
-            errors: newErrors,
-            details: {
-              level: levelRef.current,
-              hits: newHits,
-              errors: newErrors,
-              trials,
-              mean_rt: meanRt,
-              angle_response_slope: slope,
-              version: '3D',
-            },
-          });
-        } catch (e) { console.error(e); }
-      } else {
-        setRound(r => r + 1);
-        setTrial(makeTrial(levelRef.current));
-        setFeedback(null);
-        setTrialStartTime(gameNow());
-      }
-    }, 700);
+  const handlePick = (idx: number) => {
+    if (feedback !== null) return;
+    const ok = idx === task.correctIdx;
+    const rt = gameNow() - trialStartTime;
+    // Угол есть только у поворотной пробы. У проекции и развёртки он равен нулю,
+    // и отбор в ядре такие записи в регрессию не берёт.
+    const record: TrialRecord = {
+      kind: task.kind,
+      angle: task.kind === 'rotation' ? task.angleSum : 0,
+      rt,
+      correct: ok,
+    };
+    const log = [...records, record];
+    setRecords(log);
+    setFeedback({ idx, ok });
+    setReviewStep(0);
+    // Верно — короткая пауза и дальше. Промах — разбор, и закрывает его человек
+    // кнопкой: чтение поворота торопить нельзя.
+    if (ok) advanceRef.current = setTimeout(() => advance(log), 700);
+  };
+
+  const kindWord = (kind: TaskKind): string => (
+    kind === 'rotation' ? strings.taskRotation : kind === 'projection' ? strings.taskProjection : strings.taskNet
+  );
+  const axisWord = (axis: Axis): string => (
+    axis === 'x' ? strings.axisX : axis === 'y' ? strings.axisY : strings.axisZ
+  );
+  /** Подпись под вариантом после ответа: чем он хорош или плох. */
+  const optionNote = (opt: { isMatch: boolean; flaw: string }): string => {
+    if (!feedback) return '';
+    if (opt.isMatch) return strings.optionCorrect;
+    if (opt.flaw === 'mirror') return strings.optionMirror;
+    if (opt.flaw === 'other') return strings.optionOther;
+    if (opt.flaw === 'other-view') return strings.optionOtherView;
+    if (opt.flaw === 'edited-shape') return strings.optionEditedShape;
+    if (opt.flaw === 'swap') return strings.optionSwap;
+    return '';
+  };
+  const optionBorder = (i: number): string => {
+    if (!feedback) return colors.border;
+    if (i === task.correctIdx) return OK_COLOR;      // правильный подсвечивается ВСЕГДА
+    return feedback.idx === i ? BAD_COLOR : colors.border;
   };
 
   const renderConfig = () => (
@@ -473,6 +567,7 @@ export default function MentalRotationGame() {
             return `${p.minC}–${p.maxC} ${t('mrCubes')} · ${axesTxt}${p.compound ? ` · ${t('mrOblique')}` : ''}`;
           })()}
         </Text>
+        <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>{strings.kindsSummary}</Text>
         {lvl.level > 1 && (
           <TouchableOpacity
             accessibilityRole="button" accessibilityLabel={t('a11yResetLevel')} onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -519,45 +614,108 @@ export default function MentalRotationGame() {
           stats={
             <View style={styles.statsRow}>
               <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}</Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
+              <Text style={[styles.statText, { color: OK_COLOR }]}>{t('hud_correct')} {hits}</Text>
+              <Text style={[styles.statText, { color: BAD_COLOR }]}>{t('hud_errors')} {errors}</Text>
               <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
               {!isPreset && <LevelRuleBadge lr={levelRules} color={colors.primary} ru={language === 'ru'} />}
             </View>
           }
           toolbar={
             <View style={styles.optionsRow}>
-              {trial.options.map((opt, i) => {
-                const fb = feedback?.idx === i
-                  ? (feedback.ok ? '#22c55e' : '#f43f5e')
-                  : null;
-                return (
-                  <TouchableOpacity
-                    accessibilityRole="button" key={i}
-                    disabled={feedback !== null}
-                    onPress={() => handlePick(i)}
-                    style={[styles.optionBox, {
-                      backgroundColor: colors.surface,
-                      borderColor: fb || colors.border,
-                      borderWidth: fb ? 3 : 1,
-                    }]}
-                  >
-                    {renderShape(opt.shape, optSize, GRADIENT[1])}
-                    <Text style={[styles.optionLabel2, { color: colors.textSecondary }]}>
-                      {opt.isMatch && feedback ? '✓ rotation' : feedback && opt.rotationLabel === 'mirror' ? '✗ mirror' : ''}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+              {task.options.map((opt, i) => (
+                <TouchableOpacity
+                  accessibilityRole="button" key={i}
+                  accessibilityLabel={interpolateMentalRotation(strings.a11yOption, { n: i + 1 })}
+                  disabled={feedback !== null}
+                  onPress={() => handlePick(i)}
+                  style={[styles.optionBox, {
+                    backgroundColor: colors.surface,
+                    borderColor: optionBorder(i),
+                    borderWidth: feedback ? 3 : 1,
+                  }]}
+                >
+                  {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1])}
+                  {task.kind === 'projection' && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
+                  {task.kind === 'net' && renderMarkedCube((opt as { faces: FaceMap }).faces, optSize, GRADIENT[1])}
+                  <Text style={[styles.optionLabel2, { color: colors.textSecondary }]}>
+                    {optionNote(opt)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           }
         >
           <View style={styles.fieldCol}>
-            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('mentalRotationHint')}</Text>
+            {/* Вид задания подписан в поле, а не в шапке: шапка — про счётчики,
+                а смена задания посреди партии должна быть видна рядом с вопросом. */}
+            <Text style={[styles.taskBadge, { color: colors.text, borderColor: colors.border }]}>
+              {strings.taskLabel}: {kindWord(task.kind)}
+            </Text>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+              {task.kind === 'rotation'
+                ? t('mentalRotationHint')
+                : task.kind === 'projection'
+                  ? interpolateMentalRotation(strings.projectionPrompt, {
+                      view: task.view === 'top' ? strings.viewTop : task.view === 'front' ? strings.viewFront : strings.viewSide,
+                    })
+                  : strings.netPrompt}
+            </Text>
             <View style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }]}>
-              {renderShape(trial.base, baseSize, SHAPE_BASE)}
-              <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>{t('label_reference')}</Text>
+              {task.kind === 'net'
+                ? renderNet(task.net, task.markOfCell, baseSize, '#F3F0FF', SHAPE_BASE)
+                : renderShape(
+                    task.kind === 'rotation'
+                      ? (frames[reviewStep]?.shape ?? task.base)   // в разборе эталон сам поворачивается
+                      : task.shape,
+                    baseSize, SHAPE_BASE,
+                  )}
+              <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>
+                {task.kind === 'net' ? strings.taskNet : t('label_reference')}
+              </Text>
             </View>
+            {reviewing && (
+              <View style={[styles.reviewBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.reviewTitle, { color: colors.text }]}>{strings.reviewTitle}</Text>
+                <Text style={[styles.reviewHint, { color: colors.textSecondary }]}>
+                  {task.kind === 'rotation'
+                    ? strings.reviewRotationHint
+                    : task.kind === 'projection' ? strings.reviewProjectionHint : strings.reviewNetHint}
+                </Text>
+                {task.kind === 'rotation' && (
+                  <ScrollView
+                    horizontal showsHorizontalScrollIndicator={false}
+                    style={styles.frameScroll} contentContainerStyle={styles.frameRow}
+                  >
+                    {frames.map((f, i) => (
+                      <View
+                        key={i}
+                        style={[styles.frameBox, {
+                          borderColor: i === reviewStep ? OK_COLOR : colors.border,
+                          opacity: i <= reviewStep ? 1 : 0.3,
+                        }]}
+                      >
+                        {renderShape(f.shape, 42, SHAPE_BASE)}
+                      </View>
+                    ))}
+                  </ScrollView>
+                )}
+                {task.kind === 'rotation' && frames[reviewStep]?.axis && (
+                  <Text style={[styles.reviewStepText, { color: colors.text }]}>
+                    {interpolateMentalRotation(strings.reviewStep, {
+                      n: reviewStep,
+                      axis: axisWord(frames[reviewStep].axis as Axis),
+                    })}
+                  </Text>
+                )}
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  onPress={() => advance(records)}
+                  style={[styles.nextBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
+                >
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>{strings.reviewNext}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </GameShell>
         <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
@@ -619,13 +777,24 @@ const styles = StyleSheet.create({
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
-  fieldCol: { alignItems: 'center', gap: 16 },
+  fieldCol: { alignItems: 'center', gap: 12 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
+  taskBadge: { fontSize: 12, fontWeight: '800', borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 3, overflow: 'hidden' },
   baseBox: { padding: 12, borderRadius: 16, borderWidth: 2, alignItems: 'center' },
   baseLabel: { fontSize: 11, fontWeight: '700', marginTop: 4 },
   optionsRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 480 },
   optionBox: { padding: 8, borderRadius: 12, alignItems: 'center', gap: 4, minWidth: 120 },
-  optionLabel2: { fontSize: 11, fontWeight: '600', minHeight: 14 },
+  optionLabel2: { fontSize: 11, fontWeight: '600', minHeight: 14, textAlign: 'center' },
+  // Разбор ответа: живёт в поле, а не в нижней полосе — низ в этой игре занят
+  // ответом игрока, и служебному действию там не место (см. slot-meaning).
+  reviewBox: { padding: 10, borderRadius: 14, borderWidth: 1, alignItems: 'center', gap: 6, maxWidth: 360 },
+  reviewTitle: { fontSize: 13, fontWeight: '800' },
+  reviewHint: { fontSize: 12, textAlign: 'center' },
+  frameScroll: { maxHeight: 62 },
+  frameRow: { flexDirection: 'row', gap: 6, alignItems: 'center', paddingHorizontal: 2 },
+  frameBox: { borderWidth: 2, borderRadius: 8, padding: 2 },
+  reviewStepText: { fontSize: 12, fontWeight: '700' },
+  nextBtn: { minHeight: 40, justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
 });
