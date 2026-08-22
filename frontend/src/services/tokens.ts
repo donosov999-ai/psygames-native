@@ -117,13 +117,19 @@ interface StreakRec { last: string; streak: number; broken?: BrokenStreak }
  * Сколько очков стоит оборванная серия — максимум, который может вернуть «Щит серии».
  *
  * Считается ПО ТОЙ ЖЕ формуле `checkInAward`, а не числом: цена щита стоит на этой
- * величине, и разъехаться им нельзя. Смысл: серия на потолке платит `checkInAward(7)`
+ * величине, и разъехаться им нельзя.
+ *
+ * ⚠️ ПОЧЕМУ ФОРМУЛА ПРИХОДИТ ПАРАМЕТРОМ, А НЕ БЕРЁТСЯ ИЗ СОСЕДНЕЙ СТРОЧКИ. Иначе
+ * «выведено, а не вписано» нечем доказать: проверка пересчитывает ту же сумму и
+ * совпадает с вписанным числом ровно так же, как с посчитанным (22.08.2026 именно
+ * на этом мутация `return 105` осталась зелёной). С параметром достаточно подать
+ * ДРУГУЮ формулу: плоская обязана дать ноль потери, крутая — больше нынешней. Смысл: серия на потолке платит `checkInAward(7)`
  * в день; после обрыва она отрастает заново, и разница за эти дни и есть потеря.
  */
-export function checkInStreakMaxLoss(): number {
-  const top = checkInAward(7);
+export function checkInStreakMaxLoss(award: (streak: number) => number = checkInAward): number {
+  const top = award(7);
   let loss = 0;
-  for (let day = 1; day <= 7; day++) loss += top - checkInAward(day);
+  for (let day = 1; day <= 7; day++) loss += top - award(day);
   return loss;
 }
 

@@ -7,7 +7,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveResume, loadResume, clearResume, listResumable, resolveResumableGame, RESUME_MAX_AGE_MS } from '@/src/services/resume';
-import { createMoveStack } from '@/src/services/moveStack';
+import { createMoveStack, MAX_HISTORY } from '@/src/services/moveStack';
 import { failurePolicy, formatErrorCount, isOver, livesLeft, STANDARD_LIVES } from '@/src/services/failure';
 
 const GAME = 'sudoku';
@@ -126,6 +126,26 @@ describe('moveStack — отмена хода', () => {
     expect(s.undo()).toBe(3);
     expect(s.undo()).toBe(2);
     expect(s.undo()).toBeNull();   // ход 1 вытеснен
+  });
+
+  /**
+   * 🔴 ПОТОЛОК ПО УМОЛЧАНИЮ ТОЖЕ ДОЛЖЕН БЫТЬ ПОТОЛКОМ. 22.08.2026 мутация
+   * «MAX_HISTORY = 200000» осталась зелёной: срез проверялся только на стеке с
+   * ЯВНЫМ пределом 3, а значение по умолчанию не трогал никто. Лента уезжает в
+   * незаконченную партию целиком (`serialize` → AsyncStorage), поэтому раздутый
+   * потолок — это не «на всякий случай побольше», а распухший слепок в хранилище
+   * у каждого, кто не доиграл.
+   */
+  it('потолок по умолчанию действительно срезает', () => {
+    const s = createMoveStack<number>();
+    for (let i = 0; i <= MAX_HISTORY; i++) s.push(i);
+    expect(s.serialize().past).toHaveLength(MAX_HISTORY);
+    expect(s.serialize().past[0]).toBe(1);   // самый старый вытеснен, а не самый свежий
+  });
+
+  it('потолок в разумной полосе: длиннее любой партии, но не распухает', () => {
+    expect(MAX_HISTORY).toBeGreaterThanOrEqual(120);   // судоку 9×9: 81 клетка + пометки и правки
+    expect(MAX_HISTORY).toBeLessThanOrEqual(1000);     // выше — слепок незаконченной партии в хранилище
   });
 
   it('лента переживает укладку в партию и подъём обратно', () => {
