@@ -19,6 +19,8 @@
 import { SPRITE_COUNT } from '@/src/constants/pairThemes';
 import { levelCfg } from '@/app/games/picture-pairs';
 import { levelParams, answerChoices } from '@/app/games/quick-count';
+import { maxGridFor } from '@/app/games/schulte';
+import { SCRIPTS, SCRIPT_IDS } from '@/src/constants/scripts';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -114,5 +116,62 @@ describe('«Быстрый счёт»: верный ответ всегда ес
       return { minN: base, maxN: Math.min(20, base + spread) };
     };
     expect(raw(45).minN).toBeGreaterThan(raw(45).maxN);
+  });
+});
+
+describe('Шульте: сетка не больше, чем позволяет алфавит', () => {
+  /**
+   * 🔴 «СМЕШАННОМУ» ПОТОЛОК НЕ СТАВИЛСЯ ВОВСЕ. Шульте-Горбов раскладывает
+   * половину клеток цифрами, половину буквами: на 10×10 это пятьдесят букв, а
+   * латиница даёт 26, кириллица 33 — не подходит НИ ОДИН алфавит. Ограничение
+   * стояло только для режима «буквы». Партия не завершалась, а таймера у Шульте
+   * нет: экран висел, пока человек не уйдёт сам.
+   *
+   * Третий случай одного класса за час, вместе с «Парами» и «Быстрым счётом».
+   */
+  it('🔴 для каждого алфавита и режима потолок ЧЕСТНЫЙ', () => {
+    const bad: string[] = [];
+    for (const id of SCRIPT_IDS) {
+      const chars = SCRIPTS[id].chars.length;
+      for (const mode of ['letters', 'mixed'] as const) {
+        const n = maxGridFor(mode, chars);
+        const need = mode === 'letters' ? n * n : Math.ceil((n * n) / 2);
+        if (need > chars) bad.push(`${id}/${mode}: сетка ${n}×${n} просит ${need} из ${chars}`);
+        if (n < 2) bad.push(`${id}/${mode}: сетки нет вовсе`);
+      }
+    }
+    expect(bad.slice(0, 5)).toEqual([]);
+  });
+
+  it('цифрам алфавит не нужен — там потолок общий', () => {
+    expect(maxGridFor('numbers', 0)).toBe(10);
+  });
+
+  it('🔴 латиница «смешанным» не тянет десятку', () => {
+    // 10×10 = 100 клеток, половина буквами = 50; латиницы 26.
+    expect(maxGridFor('mixed', 26)).toBeLessThan(10);
+  });
+
+  it('огромный алфавит десятку тянет — потолок не занижен', () => {
+    expect(maxGridFor('mixed', 999)).toBe(10);
+    expect(maxGridFor('letters', 999)).toBe(10);
+  });
+});
+
+describe('🔴 потолок Шульте доезжает до кнопок выбора сетки', () => {
+  const screen = read('../../app/games/schulte.tsx')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+
+  it('кнопки размера гасятся по потолку РЕЖИМА, а не только букв', () => {
+    expect(screen).toMatch(/maxSizeFor\(contentMode\)/);
+  });
+
+  it('прежнее правило «только для букв» не вернулось', () => {
+    expect(screen).not.toMatch(/contentMode === 'letters' \? lettersMaxSize : 10/);
+  });
+
+  it('и выбранный размер подрезается при смене режима или алфавита', () => {
+    expect(screen).toMatch(/const cap = maxSizeFor\(contentMode\)/);
+    expect(screen).toMatch(/gridSize > cap\) setGridSize\(cap\)/);
   });
 });
