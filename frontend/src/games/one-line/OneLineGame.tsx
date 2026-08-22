@@ -10,7 +10,13 @@ import {
   View,
   type AccessibilityActionEvent,
 } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
+import Svg, { Line, Polygon } from 'react-native-svg';
+import {
+  edgeAllowsDirection,
+  edgeHasUsesLeft,
+  edgeUseCounts,
+  totalEdgeUses,
+} from '@/src/games/one-line/core/validator';
 import {
   advanceFromOneLineTraining,
   createOneLineSession,
@@ -198,7 +204,25 @@ function OneLineBoard({
     () => new Map(puzzle.vertices.map((vertex) => [vertex.id, vertex])),
     [puzzle.vertices],
   );
-  const usedEdges = React.useMemo(() => new Set(session.edgeTrail), [session.edgeTrail]);
+  /** Сколько раз каждое ребро пройдено: двойному одного раза мало. */
+  const edgeCounts = React.useMemo(() => edgeUseCounts(session.edgeTrail), [session.edgeTrail]);
+
+  /**
+   * НОМЕР ПО ПОРЯДКУ ПРОХОДА, А НЕ НОМЕР ТОЧКИ В СПИСКЕ.
+   *
+   * Раньше на каждой точке стояло её место в массиве — число, которое человеку не
+   * говорит ничего и при этом выглядит как подсказка. Теперь цифра появляется
+   * только на пройденных и означает «сюда я пришёл таким-то шагом»: по ней видно
+   * СВОЙ маршрут и понятно, где линия завернула. Если вернулся в ту же точку —
+   * остаётся первый номер: путь читается по возрастанию, а не мельтешит.
+   */
+  const visitOrder = React.useMemo(() => {
+    const order = new Map<string, number>();
+    session.vertexTrail.forEach((id, index) => {
+      if (!order.has(id)) order.set(id, index + 1);
+    });
+    return order;
+  }, [session.vertexTrail]);
   const hinted = React.useMemo(() => new Set(session.hintVertexIds), [session.hintVertexIds]);
   const currentId = session.vertexTrail[session.vertexTrail.length - 1] ?? null;
 
@@ -217,12 +241,12 @@ function OneLineBoard({
     if (!currentId) return [] as typeof puzzle.vertices;
     const ids = new Set<string>();
     for (const edge of puzzle.edges) {
-      if (usedEdges.has(edge.id)) continue;
-      if (edge.a === currentId) ids.add(edge.b);
-      else if (edge.b === currentId) ids.add(edge.a);
+      if (!edgeHasUsesLeft(edge, edgeCounts)) continue;
+      if (edgeAllowsDirection(edge, currentId, edge.b) && edge.a === currentId) ids.add(edge.b);
+      else if (edgeAllowsDirection(edge, currentId, edge.a) && edge.b === currentId) ids.add(edge.a);
     }
     return puzzle.vertices.filter((vertex) => ids.has(vertex.id));
-  }, [currentId, puzzle.edges, puzzle.vertices, usedEdges]);
+  }, [currentId, edgeCounts, puzzle.edges, puzzle.vertices]);
 
   /**
    * ПЕРВОЕ КАСАНИЕ — выбор, откуда начать: тут вести ещё не по чему, поэтому
@@ -323,7 +347,7 @@ function OneLineBoard({
 
   const valueText = interpolateOneLine(strings.progress, {
     used: session.edgeTrail.length,
-    total: puzzle.edges.length,
+    total: totalEdgeUses(puzzle.edges),
   });
 
   return (
@@ -367,16 +391,74 @@ function OneLineBoard({
           const a = byId.get(edge.a);
           const b = byId.get(edge.b);
           if (!a || !b) return null;
-          const used = usedEdges.has(edge.id);
+          const done = edgeCounts.get(edge.id) ?? 0;
+          const need = edge.kind === 'double' ? 2 : 1;
+          const closed = done >= need;
+          const x1 = a.x * boardSize;
+          const y1 = a.y * boardSize;
+          const x2 = b.x * boardSize;
+          const y2 = b.y * boardSize;
+          const stroke = closed ? theme.primary : theme.border;
+          const width = closed ? 7 : 4;
+
+          if (edge.kind === 'double') {
+            /**
+             * Двойное — ДВЕ полосы рядом, а не одна пунктирная. Пунктир человек
+             * читает как «недоделано», а здесь надо прочитать «пройти дважды».
+             * Первый проход гасит одну полосу — остаток виден без счётчика.
+             */
+            const length = Math.hypot(x2 - x1, y2 - y1) || 1;
+            const offX = (-(y2 - y1) / length) * 4;
+            const offY = ((x2 - x1) / length) * 4;
+            return (
+              <React.Fragment key={edge.id}>
+                <Line
+                  x1={x1 + offX} y1={y1 + offY} x2={x2 + offX} y2={y2 + offY}
+                  stroke={done >= 1 ? theme.primary : theme.border}
+                  strokeWidth={done >= 1 ? 6 : 3} strokeLinecap="round"
+                />
+                <Line
+                  x1={x1 - offX} y1={y1 - offY} x2={x2 - offX} y2={y2 - offY}
+                  stroke={done >= 2 ? theme.primary : theme.border}
+                  strokeWidth={done >= 2 ? 6 : 3} strokeLinecap="round"
+                />
+              </React.Fragment>
+            );
+          }
+
+          if (edge.kind === 'oneway') {
+            /**
+             * Одностороннее — стрелка на середине. Назад по нему хода нет вовсе,
+             * и человек должен видеть это ДО того, как упрётся: молча не пустить —
+             * значит оставить его гадать, сломана игра или он сам не понял.
+             */
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            const length = Math.hypot(x2 - x1, y2 - y1) || 1;
+            const dirX = (x2 - x1) / length;
+            const dirY = (y2 - y1) / length;
+            const size = 9;
+            const tipX = midX + dirX * size;
+            const tipY = midY + dirY * size;
+            const wingX = -dirY * size * 0.62;
+            const wingY = dirX * size * 0.62;
+            return (
+              <React.Fragment key={edge.id}>
+                <Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={stroke} strokeWidth={width} strokeLinecap="round" />
+                <Polygon
+                  points={`${tipX},${tipY} ${midX - dirX * size * 0.4 + wingX},${midY - dirY * size * 0.4 + wingY} ${midX - dirX * size * 0.4 - wingX},${midY - dirY * size * 0.4 - wingY}`}
+                  fill={closed ? theme.primary : theme.textSecondary}
+                />
+              </React.Fragment>
+            );
+          }
+
           return (
             <Line
               key={edge.id}
-              x1={a.x * boardSize}
-              y1={a.y * boardSize}
-              x2={b.x * boardSize}
-              y2={b.y * boardSize}
-              stroke={used ? theme.primary : theme.border}
-              strokeWidth={used ? 7 : 4}
+              x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke={stroke}
+              strokeWidth={width}
               strokeLinecap="round"
             />
           );
@@ -387,6 +469,7 @@ function OneLineBoard({
         const isHint = hinted.has(vertex.id);
         const isStart = session.vertexTrail.length === 0 && puzzle.startHintVertexId === vertex.id;
         const isCursor = cursorId === vertex.id;
+        const visited = visitOrder.has(vertex.id);
         const markers = [
           isStart ? strings.startMarker : '',
           isCurrent ? strings.currentMarker : '',
@@ -407,17 +490,25 @@ function OneLineBoard({
               {
                 left: vertex.x * boardSize - 24,
                 top: vertex.y * boardSize - 24,
-                backgroundColor: isCurrent ? theme.primary : theme.surface,
-                borderColor: isHint || isStart ? theme.warning : theme.primary,
+                /**
+                 * Точка ЗАЛИТА и без обводки: в образце это сплошной кружок, и он
+                 * читается мгновенно, а кольцо с толстым краем спорит с линией за
+                 * внимание — глаз цепляется за обводку вместо самой фигуры.
+                 * Пройденная гаснет: видно, где линия уже была.
+                 */
+                backgroundColor: isCurrent
+                  ? theme.primary
+                  : (isHint || isStart) ? theme.warning
+                  : visited ? theme.textSecondary
+                  : theme.primary,
               },
-              (isHint || isStart) && styles.hintedVertex,
               isCursor && { shadowColor: theme.warning, shadowOpacity: 1, shadowRadius: 0 },
               isCursor && ({ outlineColor: theme.warning, outlineStyle: 'solid', outlineWidth: 3 } as any),
               pressed && styles.pressed,
             ]}
           >
-            <Text style={[styles.vertexText, { color: isCurrent ? gameGradientText : theme.text }]}>
-              {index + 1}
+            <Text style={[styles.vertexText, { color: isCurrent ? gameGradientText : theme.surface }]}>
+              {visitOrder.get(vertex.id) ?? ''}
             </Text>
           </Pressable>
         );
@@ -578,7 +669,7 @@ function OneLineSessionView({
         приложению это не стоит ни одного нового ключа на двенадцать языков.
       */}
       <Text accessibilityLiveRegion="polite" style={[styles.progress, { color: theme.textSecondary }]}>
-        {interpolateOneLine(strings.progress, { used: session.edgeTrail.length, total: puzzle.edges.length })}
+        {interpolateOneLine(strings.progress, { used: session.edgeTrail.length, total: totalEdgeUses(puzzle.edges) })}
         {corrections > 0 ? ` · ${strings.corrections}: ${corrections}` : ''}
       </Text>
       {/*
@@ -651,9 +742,11 @@ const styles = StyleSheet.create({
   trainingHint: { fontSize: 14, textAlign: 'center' },
   progress: { fontSize: 13, fontWeight: '800', textAlign: 'center' },
   fieldRule: { fontSize: 13, lineHeight: 18, textAlign: 'center', paddingHorizontal: 8 },
-  board: { width: '100%', maxWidth: 620, alignSelf: 'center', aspectRatio: 1, borderWidth: 2, borderRadius: 20, overflow: 'hidden', position: 'relative' },
+  // Доска БЕЗ рамки: фигура должна висеть в поле, а не сидеть в коробке —
+  // рамка спорит с линией и делает поле теснее, чем оно есть.
+  board: { width: '100%', maxWidth: 620, alignSelf: 'center', aspectRatio: 1, overflow: 'hidden', position: 'relative' },
   svg: { position: 'absolute', left: 0, top: 0 },
-  vertexTarget: { position: 'absolute', width: 48, height: 48, borderRadius: 24, borderWidth: 4, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  vertexTarget: { position: 'absolute', width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
   hintedVertex: { borderWidth: 6 },
   vertexText: { fontSize: 15, fontWeight: '900', textAlign: 'center' },
   successCard: { maxWidth: 620, alignSelf: 'center' },
