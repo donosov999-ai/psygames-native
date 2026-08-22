@@ -47,6 +47,8 @@ export interface MemoryPalaceStrings {
   placeTitle: string;
   placeBody: string;
   selectedItem: string;
+  /** Человек начал с МЕСТА, а не с предмета — тоже законный порядок. */
+  selectedLocus: string;
   chooseItem: string;
   placeAt: string;
   emptyLocus: string;
@@ -104,6 +106,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: 'Разместите предметы',
     placeBody: 'Выберите предмет, затем место. Выбранный ранее предмет можно перенести; занятые места поменяются содержимым.',
     selectedItem: 'Выбрано: {item}',
+    selectedLocus: 'Выбрано место: {name}. Теперь выбери предмет',
     chooseItem: 'Сначала выберите предмет',
     placeAt: 'Положить в место {order}: {name}',
     emptyLocus: 'Пусто',
@@ -159,6 +162,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: 'Place the items',
     placeBody: 'Choose an item, then a locus. You can move an assigned item; occupied loci exchange contents.',
     selectedItem: 'Selected: {item}',
+    selectedLocus: 'Spot chosen: {name}. Now pick an item',
     chooseItem: 'Choose an item first',
     placeAt: 'Place at locus {order}: {name}',
     emptyLocus: 'Empty',
@@ -214,6 +218,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: 'Coloca los objetos',
     placeBody: 'Elige un objeto y luego un lugar. Un objeto ya colocado se puede mover; dos lugares ocupados intercambian su contenido.',
     selectedItem: 'Elegido: {item}',
+    selectedLocus: 'Lugar elegido: {name}. Ahora elige un objeto',
     chooseItem: 'Elige primero un objeto',
     placeAt: 'Colocar en el lugar {order}: {name}',
     emptyLocus: 'Vacío',
@@ -269,6 +274,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: 'Verteile die Gegenstände',
     placeBody: 'Wähle einen Gegenstand, dann einen Ort. Ein gesetzter Gegenstand lässt sich versetzen; belegte Orte tauschen ihren Inhalt.',
     selectedItem: 'Gewählt: {item}',
+    selectedLocus: 'Platz gewählt: {name}. Wähle nun einen Gegenstand',
     chooseItem: 'Wähle zuerst einen Gegenstand',
     placeAt: 'An Ort {order} legen: {name}',
     emptyLocus: 'Leer',
@@ -324,6 +330,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: '摆放物品',
     placeBody: '先选物品，再选地方。已经放好的物品可以挪走；两个占着的地方会交换内容。',
     selectedItem: '已选：{item}',
+    selectedLocus: '已选位置：{name}。现在选择一件物品',
     chooseItem: '请先选一件物品',
     placeAt: '放到第 {order} 处：{name}',
     emptyLocus: '空着',
@@ -379,6 +386,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: 'चीज़ें रखें',
     placeBody: 'पहले चीज़ चुनें, फिर जगह। रखी हुई चीज़ हटाई जा सकती है; भरी हुई दो जगहें आपस में सामान बदल लेती हैं।',
     selectedItem: 'चुना: {item}',
+    selectedLocus: 'स्थान चुना: {name}। अब कोई वस्तु चुनें',
     chooseItem: 'पहले कोई चीज़ चुनें',
     placeAt: 'जगह {order} पर रखें: {name}',
     emptyLocus: 'ख़ाली',
@@ -434,6 +442,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: 'Distribua os objetos',
     placeBody: 'Escolha um objeto e depois um lugar. Um objeto já posto pode ser movido; dois lugares ocupados trocam de conteúdo.',
     selectedItem: 'Escolhido: {item}',
+    selectedLocus: 'Lugar escolhido: {name}. Agora escolha um objeto',
     chooseItem: 'Escolha primeiro um objeto',
     placeAt: 'Pôr no lugar {order}: {name}',
     emptyLocus: 'Vazio',
@@ -489,6 +498,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: 'Placez les objets',
     placeBody: 'Choisissez un objet, puis un lieu. Un objet déjà posé peut être déplacé ; deux lieux occupés échangent leur contenu.',
     selectedItem: 'Choisi : {item}',
+    selectedLocus: 'Emplacement choisi : {name}. Choisis maintenant un objet',
     chooseItem: 'Choisissez d’abord un objet',
     placeAt: 'Poser au lieu {order} : {name}',
     emptyLocus: 'Vide',
@@ -544,6 +554,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: 'Disponi gli oggetti',
     placeBody: 'Scegli un oggetto, poi un luogo. Un oggetto già posato si può spostare; due luoghi occupati si scambiano il contenuto.',
     selectedItem: 'Scelto: {item}',
+    selectedLocus: 'Posto scelto: {name}. Ora scegli un oggetto',
     chooseItem: 'Scegli prima un oggetto',
     placeAt: 'Metti nel luogo {order}: {name}',
     emptyLocus: 'Vuoto',
@@ -599,6 +610,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: '品物を置く',
     placeBody: '品物を選び、次に場所を選びます。置いた品物は動かせます。ふさがった場所どうしは中身を入れ替えます。',
     selectedItem: '選択中：{item}',
+    selectedLocus: '場所を選びました：{name}。次に品物を選んでください',
     chooseItem: 'まず品物を選んでください',
     placeAt: '{order} 番目の場所に置く：{name}',
     emptyLocus: '空き',
@@ -654,6 +666,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: '물건 놓기',
     placeBody: '물건을 고르고 자리를 고르세요. 놓은 물건은 옮길 수 있고, 찬 자리끼리는 내용이 서로 바뀝니다.',
     selectedItem: '고름: {item}',
+    selectedLocus: '장소 선택: {name}. 이제 물건을 고르세요',
     chooseItem: '먼저 물건을 고르세요',
     placeAt: '{order}번째 자리에 놓기: {name}',
     emptyLocus: '비어 있음',
@@ -709,6 +722,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     placeTitle: 'وزّع الأشياء',
     placeBody: 'اختر شيئاً ثم موضعاً. الشيء الموضوع يمكن نقله، والموضعان المشغولان يتبادلان محتواهما.',
     selectedItem: 'المختار: {item}',
+    selectedLocus: 'تم اختيار المكان: {name}. اختر الآن غرضًا',
     chooseItem: 'اختر شيئاً أولاً',
     placeAt: 'ضَعه في الموضع {order}: {name}',
     emptyLocus: 'فارغ',

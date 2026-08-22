@@ -33,6 +33,7 @@ export function createMemoryPalaceSession(config: MemoryPalaceSessionConfig): Me
     placements: Array.from({ length: round.lociCount }, () => null),
     finalizedPlacements: null,
     selectedPlacementItemId: null,
+    selectedPlacementLocusIndex: null,
     placementChanges: 0,
     recallIndex: 0,
     forwardResponses: [],
@@ -64,9 +65,41 @@ export function selectPlacementItem(
   if (session.phase !== 'place' || !session.round.targetItems.some((item) => item.id === itemId)) {
     return session;
   }
+  /**
+   * ЕСЛИ МЕСТО УЖЕ ВЫБРАНО — КЛАДЁМ ТУДА СРАЗУ. Тот же ход, что и в обратном
+   * порядке: человек показал, куда, а теперь — что.
+   */
+  const locus = session.selectedPlacementLocusIndex;
+  if (locus !== null) {
+    return placeItemAtLocus({ ...session, selectedPlacementLocusIndex: null }, itemId, locus);
+  }
   return {
     ...session,
     selectedPlacementItemId: session.selectedPlacementItemId === itemId ? null : itemId,
+  };
+}
+
+/** Общая укладка: кто и куда. Порядок выбора на неё не влияет. */
+function placeItemAtLocus(
+  session: MemoryPalaceSession,
+  itemId: string,
+  locusIndex: number,
+): MemoryPalaceSession {
+  const placements = [...session.placements];
+  const currentIndex = placements.indexOf(itemId);
+  if (currentIndex === locusIndex) {
+    return { ...session, selectedPlacementItemId: null, selectedPlacementLocusIndex: null };
+  }
+  const targetOccupant = placements[locusIndex] ?? null;
+  if (currentIndex >= 0) placements[currentIndex] = targetOccupant;
+  placements[locusIndex] = itemId;
+  const isRevision = currentIndex >= 0 || targetOccupant !== null;
+  return {
+    ...session,
+    placements,
+    selectedPlacementItemId: null,
+    selectedPlacementLocusIndex: null,
+    placementChanges: session.placementChanges + Number(isRevision),
   };
 }
 
@@ -76,23 +109,25 @@ export function placeSelectedItemAtLocus(
 ): MemoryPalaceSession {
   const selected = session.selectedPlacementItemId;
   if (session.phase !== 'place'
-    || selected === null
     || !Number.isInteger(locusIndex)
     || locusIndex < 0
     || locusIndex >= session.round.lociCount) return session;
-  const placements = [...session.placements];
-  const currentIndex = placements.indexOf(selected);
-  if (currentIndex === locusIndex) return { ...session, selectedPlacementItemId: null };
-  const targetOccupant = placements[locusIndex] ?? null;
-  if (currentIndex >= 0) placements[currentIndex] = targetOccupant;
-  placements[locusIndex] = selected;
-  const isRevision = currentIndex >= 0 || targetOccupant !== null;
-  return {
-    ...session,
-    placements,
-    selectedPlacementItemId: null,
-    placementChanges: session.placementChanges + Number(isRevision),
-  };
+  /**
+   * 🔴 ПРЕДМЕТ ЕЩЁ НЕ ВЫБРАН — ЗАПОМИНАЕМ МЕСТО, А НЕ МОЛЧИМ.
+   *
+   * Раньше здесь стоял `selected === null → return session`: касание места до
+   * выбора предмета не делало ничего и ничего не говорило. Отчёт Вали 22.08.2026
+   * «нажимаю разное, не запускается, не выбирается» — это ровно оно. Человек
+   * думает «вот сюда положу вазу», то есть начинает с МЕСТА, и это такой же
+   * законный порядок.
+   */
+  if (selected === null) {
+    return {
+      ...session,
+      selectedPlacementLocusIndex: session.selectedPlacementLocusIndex === locusIndex ? null : locusIndex,
+    };
+  }
+  return placeItemAtLocus(session, selected, locusIndex);
 }
 
 export function memoryPalacePlacementComplete(session: MemoryPalaceSession): boolean {
@@ -107,6 +142,7 @@ export function confirmMemoryPalacePlacements(session: MemoryPalaceSession): Mem
     ...session,
     phase: 'study',
     selectedPlacementItemId: null,
+    selectedPlacementLocusIndex: null,
     finalizedPlacements: session.placements as string[],
   };
 }
@@ -222,6 +258,7 @@ export function pauseMemoryPalaceSession(
     pausedFrom: session.phase,
     pauseStartedAt: now,
     selectedPlacementItemId: null,
+    selectedPlacementLocusIndex: null,
   };
 }
 
@@ -254,6 +291,7 @@ export function restartMemoryPalaceSession(
     placements: Array.from({ length: session.round.lociCount }, () => null),
     finalizedPlacements: null,
     selectedPlacementItemId: null,
+    selectedPlacementLocusIndex: null,
     placementChanges: 0,
     recallIndex: 0,
     forwardResponses: [],
@@ -273,6 +311,7 @@ export function disposeMemoryPalaceSession(session: MemoryPalaceSession): Memory
     placements: [],
     finalizedPlacements: null,
     selectedPlacementItemId: null,
+    selectedPlacementLocusIndex: null,
     recallIndex: 0,
     forwardResponses: [],
     reverseResponses: [],

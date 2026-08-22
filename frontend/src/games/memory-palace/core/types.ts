@@ -136,6 +136,16 @@ export interface MemoryPalaceSession {
   placements: (string | null)[];
   finalizedPlacements: string[] | null;
   selectedPlacementItemId: string | null;
+  /**
+   * Выбранное МЕСТО, когда человек начал с него, а не с предмета.
+   *
+   * 🔴 ОТЧЁТ ВАЛИ 22.08.2026: «нажимаю разное, не запускается, не выбирается».
+   * Раскладка требовала строгого порядка — сперва предмет, потом место, — и
+   * касание места до выбора предмета молча не делало НИЧЕГО. Человек, который
+   * думает «вот сюда положу вазу», упирался в игру, которая не отвечает, и не
+   * узнавал почему. Теперь порядок любой.
+   */
+  selectedPlacementLocusIndex: number | null;
   placementChanges: number;
   recallIndex: number;
   forwardResponses: string[];

@@ -353,7 +353,7 @@ function PalaceScene({
             gameGradient={gameGradient}
             gameGradientText={gameGradientText}
             selectedItem={selectedItem}
-            highlighted={highlightedLocusId === locus.id}
+            highlighted={highlightedLocusId === locus.id || session.selectedPlacementLocusIndex === index}
             onPress={onLocusPress ? () => onLocusPress(index) : undefined}
           />
         ))}
@@ -622,11 +622,25 @@ function MemoryPalaceSessionView({
             ))}
           </View>
           <Text accessibilityLiveRegion="polite" style={[styles.selectedText, { color: theme.text }]}>
+            {/*
+              🔴 ВЫБОР ВИДЕН, С КАКОЙ БЫ СТОРОНЫ ЧЕЛОВЕК НИ НАЧАЛ. Отчёт Вали
+              22.08.2026 «нажимаю разное, не запускается, не выбирается»: касание
+              МЕСТА до выбора предмета молча не делало ничего. Теперь оно
+              выбирает место — и строка обязана про это сказать, иначе выбор
+              снова невидим и жалоба вернётся дословно.
+            */}
             {session.selectedPlacementItemId
               ? interpolateMemoryPalace(strings.selectedItem, {
                 item: getItemLabel(findPalaceItem(session, session.selectedPlacementItemId)!, locale),
               })
-              : strings.chooseItem}
+              : session.selectedPlacementLocusIndex !== null
+                ? interpolateMemoryPalace(strings.selectedLocus, {
+                  name: getLocusLabel(
+                    session.round.loci[session.selectedPlacementLocusIndex] as PalaceLocus,
+                    locale,
+                  ),
+                })
+                : strings.chooseItem}
           </Text>
         </>
       ) : null}
