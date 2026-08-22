@@ -35,9 +35,7 @@ import { filterAllowedGames } from '@/src/constants/profiles';
 import {
   buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
   currentSlot, WarmupSlot,
-  getFinancialCooldown, FINANCIAL_COOLDOWN_DAYS,
 } from '@/src/services/warmup';
-import { getAssessmentStatus } from '@/src/services/assessment';
 import WhatsNewModal from '@/src/components/WhatsNewModal';
 import { checkForUpdateDaily, updateUrl } from '@/src/services/appUpdates';
 import { Linking } from 'react-native';
@@ -87,19 +85,10 @@ const SLOT_TINT: Record<WarmupSlot, [string, string]> = {
  */
 const HERO_EYE = ['#43cea2', '#185a9d'];
 const HERO_BREATH = ['#5b86e5', '#36d1dc'];
-const HERO_ASSESS = ['#7c3aed', '#ec4899'];
-const HERO_FIN = ['#22c55e', '#0d9488'];
-const HERO_FIN_OFF = ['#475569', '#64748b'];
 const ON_EYE = onGradientText(HERO_EYE[0], HERO_EYE[1]);
 const ON_BREATH = onGradientText(HERO_BREATH[0], HERO_BREATH[1]);
-const ON_ASSESS = onGradientText(HERO_ASSESS[0], HERO_ASSESS[1]);
 const ON_EYE_SOFT = onGradientTextMuted(ON_EYE);
 const ON_BREATH_SOFT = onGradientTextMuted(ON_BREATH);
-const ON_ASSESS_SOFT = onGradientTextMuted(ON_ASSESS);
-const ON_FIN = onGradientText(HERO_FIN[0], HERO_FIN[1]);
-const ON_FIN_OFF = onGradientText(HERO_FIN_OFF[0], HERO_FIN_OFF[1]);
-const ON_FIN_SOFT = onGradientTextMuted(ON_FIN);
-const ON_FIN_OFF_SOFT = onGradientTextMuted(ON_FIN_OFF);
 
 export default function HomeScreen() {
   if (IS_WEB_DEMO) return <DemoLanding />;
@@ -117,8 +106,6 @@ function FullHome() {
   const [duration, setDuration] = useState<5 | 10 | 15>(5);
   const [history, setHistory] = useState<WarmupHistoryEntry[]>([]);
   const [streak, setStreak] = useState(0);
-  const [finCooldown, setFinCooldown] = useState<{ ready: boolean; daysLeft: number; lastDate: string | null }>({ ready: true, daysLeft: 0, lastDate: null });
-  const [assessStatus, setAssessStatus] = useState<{ hasAssessment: boolean; daysSince: number | null; lastDate: string | null }>({ hasAssessment: false, daysSince: null, lastDate: null });
 
   const [achievementsCount, setAchievementsCount] = useState(0);
   // v1.7.0: ProfileSwitcherModal — открывается из шапки (профиль-чип или 👤 кнопка)
@@ -325,10 +312,6 @@ function FullHome() {
       if (!active) return;
       setHistory(h);
       setStreak(computeStreak(h));
-      const fc = await getFinancialCooldown();
-      setFinCooldown(fc);
-      const as = await getAssessmentStatus();
-      setAssessStatus(as);
       const unlocked = await getUnlocked();
       setAchievementsCount(unlocked.length);
     })();
@@ -923,109 +906,14 @@ function FullHome() {
               </View>
             </GradientSurface>
           </TouchableOpacity>
-          {/* CARD 2: Assessment (профиль) */}
-          {profile.assessment_enabled && (
-          <TouchableOpacity
-            accessibilityRole="button"
-            style={styles.heroCardWrap}
-            onPress={() => warmup.startAssessment()}
-            activeOpacity={0.85}
-          >
-            <GradientSurface
-              colors={HERO_ASSESS as [string, string]}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={styles.heroCard}
-            >
-              <View style={styles.heroTopRow}>
-                <Image source={FEATURE_ICONS.assessment} style={{ width: 30, height: 30, borderRadius: 8 }} />
-                {assessStatus.hasAssessment ? (
-                  <View style={[styles.heroChipMini, { backgroundColor: innerScrim(ON_ASSESS, 0.3) }]}>
-                    <Text style={[styles.heroChipMiniText, { color: ON_ASSESS.color }]}>
-                      {assessStatus.daysSince === 0 ? '✓' : `${assessStatus.daysSince}${t('unitDayShort')}`}
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={[styles.heroChipMini, { backgroundColor: '#fbbf24' }]}>
-                    <Text style={[styles.heroChipMiniText, { color: '#000' }]}>★</Text>
-                  </View>
-                )}
-              </View>
-              <Text style={[styles.heroTitle, { color: ON_ASSESS.color }]} numberOfLines={2}>{t('complexAssessment')}</Text>
-              <Text style={[styles.heroSub, { color: ON_ASSESS_SOFT }]} numberOfLines={3}>
-                {t('assessmentMeta')}
-              </Text>
-              <View style={[styles.heroCta, { backgroundColor: '#000' }]}>
-                <Ionicons name="play" size={14} color="#ec4899" />
-                <Text style={[styles.heroCtaText, { color: '#ec4899' }]}>
-                  {assessStatus.hasAssessment ? t('ctaRepeat') : t('ctaStart')}
-                </Text>
-              </View>
-            </GradientSurface>
-          </TouchableOpacity>
-          )}
-
-          {/* CARD 3: Financial Brain Day */}
-          {profile.financial_brain_day_enabled && (
-          <TouchableOpacity
-            accessibilityRole="button"
-            style={styles.heroCardWrap}
-            onPress={finCooldown.ready ? () => warmup.startFinancialBattery() : undefined}
-            disabled={!finCooldown.ready}
-            activeOpacity={0.85}
-          >
-            {/* Две плашки, а не одна с тернарником в `colors`. У готовой и у
-                остывающей карточки ПРОТИВОПОЛОЖНАЯ полярность текста (тёмный на
-                зелёном, светлый на сером) — единого цвета на оба градиента не
-                существует, это арифметика. Разведя состояния по своим плашкам, мы
-                делаем каждую пару «фон + текст» неподвижной и проверяемой счётом;
-                в одной плашке проверка вынуждена была бы гадать, какая ветка
-                какому фону досталась. */}
-            {finCooldown.ready ? (
-            <GradientSurface
-              colors={HERO_FIN as [string, string]}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={styles.heroCard}
-            >
-              <View style={styles.heroTopRow}>
-                <Image source={FEATURE_ICONS.financial} style={{ width: 30, height: 30, borderRadius: 8 }} />
-                <View style={[styles.heroChipMini, { backgroundColor: innerScrim(ON_FIN, 0.25) }]}>
-                  <Text style={[styles.heroChipMiniText, { color: ON_FIN.color }]}>🟢</Text>
-                </View>
-              </View>
-              <Text style={[styles.heroTitle, { color: ON_FIN.color }]} numberOfLines={2}>FIN BRAIN</Text>
-              <Text style={[styles.heroSub, { color: ON_FIN_SOFT }]} numberOfLines={3}>
-                {t('finBrainMeta')}
-              </Text>
-              <View style={[styles.heroCta, { backgroundColor: innerScrim(ON_FIN, 0.35) }]}>
-                <Ionicons name="play" size={14} color={ON_FIN.color} />
-                <Text style={[styles.heroCtaText, { color: ON_FIN.color }]}>{t('ctaStart')}</Text>
-              </View>
-            </GradientSurface>
-            ) : (
-            <GradientSurface
-              colors={HERO_FIN_OFF as [string, string]}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={styles.heroCard}
-            >
-              <View style={styles.heroTopRow}>
-                <Image source={FEATURE_ICONS.financial} style={{ width: 30, height: 30, borderRadius: 8 }} />
-                <View style={[styles.heroChipMini, { backgroundColor: innerScrim(ON_FIN_OFF, 0.3) }]}>
-                  <Text style={[styles.heroChipMiniText, { color: ON_FIN_OFF.color }]}>⏳{finCooldown.daysLeft}{t('unitDayShort')}</Text>
-                </View>
-              </View>
-              <Text style={[styles.heroTitle, { color: ON_FIN_OFF.color }]} numberOfLines={2}>FIN BRAIN</Text>
-              <Text style={[styles.heroSub, { color: ON_FIN_OFF_SOFT }]} numberOfLines={3}>
-                {t('finBrainMeta')}
-              </Text>
-              <View style={[styles.heroCta, { backgroundColor: innerScrim(ON_FIN_OFF, 0.35) }]}>
-                <Text style={[styles.heroCtaText, { color: ON_FIN_OFF_SOFT }]}>
-                  {t('ctaWait')}
-                </Text>
-              </View>
-            </GradientSurface>
-            )}
-          </TouchableOpacity>
-          )}
+          {/* v1.232: «Оценка» и FIN BRAIN УБРАНЫ ОТСЮДА — они переехали в «Зарядку».
+              Решение Дениса 23.08.2026: «перенести в зарядку всё, что идёт сериями».
+              Обе — не игра, а ПОСЛЕДОВАТЕЛЬНОСТЬ игр с общим прогоном и одним итогом,
+              то есть ровно то же, чем является зарядка. Держать их отдельными
+              карточками значило иметь два входа в один и тот же движок плейлистов
+              (`WarmupContext`) и объяснять человеку разницу, которой нет.
+              Теперь вход один: карточка «Зарядка» → /warmup-picker, раздел «Серии».
+              Стережёт `series-live-in-warmup.test.ts`. */
 
         </View>
 

@@ -30,26 +30,51 @@ import {
   WarmupSlot, currentSlot, isTrainingSlot,
   buildDayPlaylist, buildNightPlaylist, buildEveningWarmupPlaylist,
   buildFixedPlaylist, buildMorningWarmupPlaylist, getCurrentWeekday,
+  getFinancialCooldown,
 } from '@/src/services/warmup';
+import { getAssessmentStatus } from '@/src/services/assessment';
+import { SERIES_KEYS, SeriesKey, seriesPlaylist, seriesStarter, seriesProfileFlag } from '@/src/services/warmupEntries';
 import { a11yBtn, a11yModal } from '@/src/services/a11y';
 import { goBackOrHome } from '@/src/utils/nav';
 
 const ORDER: WarmupSlot[] = ['morning', 'day', 'evening', 'night'];
 
-const ICON: Record<WarmupSlot, keyof typeof Ionicons.glyphMap> = {
+/**
+ * СЕРИИ — второй раздел этого же экрана (v1.232, решение Дениса 23.08.2026:
+ * «перенести в зарядку всё, что идёт сериями»).
+ *
+ * Почему они здесь, а не отдельными карточками на главной, где жили раньше:
+ * «Оценка» и FIN BRAIN — не игры, а ПОСЛЕДОВАТЕЛЬНОСТИ игр с общим прогоном и
+ * одним итогом. Это ровно то, чем является зарядка, и крутятся они на том же
+ * движке (`WarmupContext`). Два входа в один движок — это не выбор, а лишний
+ * вопрос человеку; вход стал один.
+ *
+ * ⚠️ ЧЕМ СЕРИЯ ОТЛИЧАЕТСЯ ОТ СЛОТА, и это написано на карточке. Слот — разминка
+ * по времени суток, состав в нём плавает. Серия — ЗАМЕР: состав фиксирован, и
+ * менять его нельзя, иначе замеры разных дней несравнимы.
+ */
+type PickKey = WarmupSlot | SeriesKey;
+
+const ICON: Record<PickKey, keyof typeof Ionicons.glyphMap> = {
   morning: 'sunny-outline',
   day: 'partly-sunny-outline',
   evening: 'moon-outline',
   night: 'bed-outline',
+  assessment: 'analytics-outline',
+  financial: 'trending-up-outline',
 };
 
 /** Своя палитра у каждого слота — время суток должно читаться до текста. */
-const TINT: Record<WarmupSlot, [string, string]> = {
+const TINT: Record<PickKey, [string, string]> = {
   morning: ['#f7b733', '#fc4a1a'],
   day:     ['#43cea2', '#185a9d'],
   evening: ['#7b4397', '#dc2430'],
   night:   ['#2c3e50', '#4ca1af'],
+  assessment: ['#7c3aed', '#ec4899'],
+  financial:  ['#22c55e', '#0d9488'],
 };
+
+const isSeries = (k: PickKey): k is SeriesKey => k === 'assessment' || k === 'financial';
 
 export default function WarmupPicker() {
   const { colors } = useTheme();
@@ -62,14 +87,36 @@ export default function WarmupPicker() {
 
   // Предвыбор по часам. Считаем ОДИН раз при открытии: если человек сидит на
   // экране в 17:59, переключать выбор у него под пальцем нельзя.
-  const [picked, setPickedRaw] = React.useState<WarmupSlot>(() => currentSlot());
+  const [picked, setPickedRaw] = React.useState<PickKey>(() => currentSlot());
   const [helpOpen, setHelpOpen] = React.useState(false);
+  // Состояние серий приехало сюда вместе с карточками с главной.
+  const [finCooldown, setFinCooldown] = React.useState<{ ready: boolean; daysLeft: number }>({ ready: true, daysLeft: 0 });
+  const [assessDays, setAssessDays] = React.useState<number | null>(null);
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      const fc = await getFinancialCooldown().catch(() => null);
+      const as = await getAssessmentStatus().catch(() => null);
+      if (!alive) return;
+      if (fc) setFinCooldown({ ready: fc.ready, daysLeft: fc.daysLeft });
+      if (as) setAssessDays(as.hasAssessment ? as.daysSince : null);
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  /** Какие серии доступны профилю. Гейт тот же, что был на главной. */
+  const seriesShown = React.useMemo(
+    () => SERIES_KEYS.filter((k) => Boolean((profile as any)[seriesProfileFlag(k)])),
+    [profile.assessment_enabled, profile.financial_brain_day_enabled],
+  );
 
   const wd = getCurrentWeekday();
 
   /** Сколько шагов и минут в наборе — показываем на карточке, чтобы выбор был осознанным. */
-  const metaFor = React.useCallback((slot: WarmupSlot) => {
+  const metaFor = React.useCallback((slot: PickKey) => {
     switch (slot) {
+      case 'assessment':
+      case 'financial':  return seriesPlaylist(slot);
       case 'day':   return buildDayPlaylist(wd, (g: string) => isGameAllowed(profile, g));
       case 'night': return buildNightPlaylist(wd);
       case 'evening': {
@@ -97,8 +144,18 @@ export default function WarmupPicker() {
   // день пуст; предвыбранное по часам «Утро» показывало бы «0 игр», а «Начать»
   // уводило бы сразу на экран завершения. Пустые слоты гасим и не даём выбрать,
   // а предвыбор при необходимости сдвигаем на ближайший непустой.
-  const isEmpty = React.useCallback((slot: WarmupSlot) => metaFor(slot).steps.length === 0, [metaFor]);
-  const setPicked = (slot: WarmupSlot) => { if (!isEmpty(slot)) setPickedRaw(slot); };
+  //
+  // ⚠️ У СЕРИИ «ПУСТО» ЗНАЧИТ ДРУГОЕ. Набор оценки и финансовой батареи задан
+  // жёстко и пустым не бывает — недоступной серию делает ОСТЫВАНИЕ: FIN BRAIN
+  // повторяют не раньше чем через положенный срок, иначе замер меряет память о
+  // прошлом прогоне, а не решения. Внешне это то же самое: карточка гаснет и не
+  // берётся, а на ней написано, сколько ждать.
+  const isEmpty = React.useCallback((slot: PickKey) => {
+    if (slot === 'financial') return !finCooldown.ready;
+    if (slot === 'assessment') return false;
+    return metaFor(slot).steps.length === 0;
+  }, [metaFor, finCooldown.ready]);
+  const setPicked = (slot: PickKey) => { if (!isEmpty(slot)) setPickedRaw(slot); };
 
   React.useEffect(() => {
     if (!isEmpty(picked)) return;
@@ -109,6 +166,10 @@ export default function WarmupPicker() {
   const launch = () => {
     if (isEmpty(picked)) return;   // страховка: кнопка и так заблокирована
     switch (picked) {
+      // Пускатель берём из общего списка, а не выбираем здесь заново: иначе
+      // экран и проверка расходятся молча.
+      case 'assessment':
+      case 'financial':  (warmup[seriesStarter(picked)] as () => void)(); break;
       case 'day':     warmup.startDay(); break;
       case 'night':   warmup.startNight(); break;
       case 'evening': warmup.startEvening(); break;
@@ -116,7 +177,66 @@ export default function WarmupPicker() {
     }
   };
 
+  /** Заголовок и подпись карточки: у слотов они из словаря слотов, у серий — свои. */
+  const cap = (k: WarmupSlot) => 'slot' + k.charAt(0).toUpperCase() + k.slice(1);
+  const titleOf = (k: PickKey) => (k === 'assessment' ? t('complexAssessment') : k === 'financial' ? 'FIN BRAIN' : t(cap(k)));
+  const descOf = (k: PickKey) => (k === 'assessment' ? t('assessmentMeta') : k === 'financial' ? t('finBrainMeta') : t(cap(k) + 'Desc'));
+
   const narrow = width < 380;
+
+  const renderCard = (slot: PickKey) => {
+    const on = picked === slot;
+    const meta = metaFor(slot);
+    const off = isEmpty(slot);
+    const mins = Math.max(1, Math.round(meta.est_total_sec / 60));
+    const series = isSeries(slot);
+    return (
+      <TouchableOpacity
+        key={slot}
+        accessibilityRole="radio"
+        accessibilityState={{ selected: on }}
+        accessibilityLabel={`${titleOf(slot)}. ${descOf(slot)}`}
+        onPress={() => setPicked(slot)}
+        disabled={off}
+        activeOpacity={0.85}
+        style={[styles.card, {
+          opacity: off ? 0.45 : 1,
+          backgroundColor: colors.surface,
+          borderColor: on ? TINT[slot][0] : colors.border,
+          borderWidth: on ? 2 : 1,
+        }]}
+      >
+        <View style={[styles.icon, { backgroundColor: TINT[slot][0] + '22' }]}>
+          <Ionicons name={ICON[slot]} size={narrow ? 20 : 24} color={TINT[slot][0]} />
+        </View>
+        <View style={styles.cardBody}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{titleOf(slot)}</Text>
+          <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{descOf(slot)}</Text>
+          <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
+            {slot === 'financial' && !finCooldown.ready
+              ? `${t('ctaWait')}: ${finCooldown.daysLeft}${t('unitDayShort')}`
+              : off
+                ? t('restDay')
+                : `${t('unitGames')}: ${meta.steps.length} · ~${mins} ${t('unitMin')}`}
+          </Text>
+          {/* Пишем это на самой карточке, а не мелким шрифтом внизу экрана:
+              человек должен понимать до запуска, что стрик тут не растёт. */}
+          {!series && !isTrainingSlot(slot as WarmupSlot) && (
+            <Text style={[styles.cardNote, { color: TINT[slot][1] }]}>{t('slotNightNote')}</Text>
+          )}
+          {/* У серии своя приписка: состав фиксирован, иначе замеры разных дней
+              несравнимы. Это не оговорка мелким шрифтом, а условие, на котором
+              вся серия держится. */}
+          {series && (
+            <Text style={[styles.cardNote, { color: TINT[slot][1] }]}>
+              {slot === 'assessment' && assessDays !== null ? `${t('seriesFixedNote')} · ${assessDays}${t('unitDayShort')}` : t('seriesFixedNote')}
+            </Text>
+          )}
+        </View>
+        {on && <Ionicons name="checkmark-circle" size={22} color={TINT[slot][0]} />}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={[styles.wrap, { backgroundColor: colors.background, paddingTop: insets.top + 8 }]}>
@@ -130,50 +250,15 @@ export default function WarmupPicker() {
       <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('warmupPickerHint')}</Text>
 
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-        {ORDER.map((slot) => {
-          const on = picked === slot;
-          const meta = metaFor(slot);
-          const empty = meta.steps.length === 0;
-          const mins = Math.max(1, Math.round(meta.est_total_sec / 60));
-          return (
-            <TouchableOpacity
-              key={slot}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: on }}
-              accessibilityLabel={`${t('slot' + slot.charAt(0).toUpperCase() + slot.slice(1))}. ${t('slot' + slot.charAt(0).toUpperCase() + slot.slice(1) + 'Desc')}`}
-              onPress={() => setPicked(slot)}
-              disabled={empty}
-              activeOpacity={0.85}
-              style={[styles.card, {
-                opacity: empty ? 0.45 : 1,
-                backgroundColor: colors.surface,
-                borderColor: on ? TINT[slot][0] : colors.border,
-                borderWidth: on ? 2 : 1,
-              }]}
-            >
-              <View style={[styles.icon, { backgroundColor: TINT[slot][0] + '22' }]}>
-                <Ionicons name={ICON[slot]} size={narrow ? 20 : 24} color={TINT[slot][0]} />
-              </View>
-              <View style={styles.cardBody}>
-                <Text style={[styles.cardTitle, { color: colors.text }]}>
-                  {t('slot' + slot.charAt(0).toUpperCase() + slot.slice(1))}
-                </Text>
-                <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>
-                  {t('slot' + slot.charAt(0).toUpperCase() + slot.slice(1) + 'Desc')}
-                </Text>
-                <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-                  {empty ? t('restDay') : `${t('unitGames')}: ${meta.steps.length} · ~${mins} ${t('unitMin')}`}
-                </Text>
-                {/* Пишем это на самой карточке, а не мелким шрифтом внизу экрана:
-                    человек должен понимать до запуска, что стрик тут не растёт. */}
-                {!isTrainingSlot(slot) && (
-                  <Text style={[styles.cardNote, { color: TINT[slot][1] }]}>{t('slotNightNote')}</Text>
-                )}
-              </View>
-              {on && <Ionicons name="checkmark-circle" size={22} color={TINT[slot][0]} />}
-            </TouchableOpacity>
-          );
-        })}
+        {ORDER.map(renderCard)}
+
+        {seriesShown.length > 0 && (
+          <View style={styles.groupHead}>
+            <Text style={[styles.groupTitle, { color: colors.text }]}>{t('seriesGroup')}</Text>
+            <Text style={[styles.groupNote, { color: colors.textSecondary }]}>{t('seriesGroupNote')}</Text>
+          </View>
+        )}
+        {seriesShown.map(renderCard)}
       </ScrollView>
 
       {/* Нижний тулбар — как на экране «Об игре»: слева справка, справа запуск. */}
@@ -248,6 +333,9 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 15.5, fontWeight: '800' },
   cardDesc: { fontSize: 12.5, lineHeight: 17 },
   cardMeta: { fontSize: 11.5, fontWeight: '600', marginTop: 1 },
+  groupHead: { paddingTop: 18, paddingBottom: 6, gap: 2 },
+  groupTitle: { fontSize: 15, fontWeight: '700' },
+  groupNote: { fontSize: 12, lineHeight: 17 },
   cardNote: { fontSize: 11.5, fontWeight: '700', marginTop: 3, lineHeight: 15 },
   bar: { flexDirection: 'row', gap: 10, paddingHorizontal: 14, paddingTop: 10, borderTopWidth: 1 },
   helpBtn: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 13, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1 },
