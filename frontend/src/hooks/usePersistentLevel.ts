@@ -43,6 +43,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { getMaxLevelFromSessions } from '@/src/services/api';
 import { pickTarget } from '@/src/services/levelPick';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
+import { cachedLevelValue, rememberLevelValue, warmLevelCache } from '@/src/services/levelCache';
 
 const FAIL_STREAK_THRESHOLD = 3;
 
@@ -62,9 +63,21 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
   const pid = (profile as any)?.id ?? 'default';
   const key = `psygames_${gameId}_level_${pid}`;
   const failKey = `psygames_${gameId}_failstreak_${pid}`;
-  const [level, setLevelState] = useState(initial);
-  const [loaded, setLoaded] = useState(false);
-  const levelRef = useRef(initial);
+  /**
+   * ⚠️ ЕСЛИ УРОВЕНЬ УЖЕ ЗНАЕМ — ОТВЕЧАЕМ ПЕРВЫМ ЖЕ КАДРОМ. Асинхронное чтение не
+   * может успеть до эффектов монтирования, поэтому автостарт видел `initial`
+   * вместо достигнутого и играл первый уровень человеку с двенадцатым. Тёплый кэш
+   * (`levelCache`) читает все уровни одним заходом на старте приложения, и здесь
+   * остаётся только взять готовое. Холодный кэш ведёт себя как раньше.
+   */
+  const cachedRaw = IS_WEB_DEMO ? undefined : cachedLevelValue(key);
+  const cachedLevel = cachedRaw === undefined ? null : (() => {
+    const n = parseInt(cachedRaw || '', 10);
+    return n >= 1 ? n : null;
+  })();
+  const [level, setLevelState] = useState(cachedLevel ?? initial);
+  const [loaded, setLoaded] = useState(cachedLevel !== null);
+  const levelRef = useRef(cachedLevel ?? initial);
   const failStreakRef = useRef(0);
   // Выбор на тропинке. ⚠️ Только в памяти: перезапуск приложения обязан вернуть
   // человека на достигнутое, иначе забытая переигровка тихо занижает сложность.
@@ -85,7 +98,9 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
       return;
     }
     let cancelled = false;
-    setLoaded(false);
+    // Прогрев мог не успеть стартовать (глубокая ссылка прямо в игру) — толкаем его.
+    void warmLevelCache();
+    if (cachedLevelValue(key) === undefined) setLoaded(false);
     Promise.all([AsyncStorage.getItem(key), AsyncStorage.getItem(failKey)]).then(async ([v, f]) => {
       if (cancelled) return;
       const n = parseInt(v || '', 10);
@@ -105,7 +120,7 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
         } catch { /* нет истории → initial */ }
         levelRef.current = restored;
         setLevelState(restored);
-        if (restored > 1) AsyncStorage.setItem(key, String(restored)).catch(() => {});
+        if (restored > 1) { rememberLevelValue(key, String(restored)); AsyncStorage.setItem(key, String(restored)).catch(() => {}); }
       }
       failStreakRef.current = parseInt(f || '', 10) || 0;
       setLoaded(true);
@@ -116,6 +131,7 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
   const setFailStreak = (n: number) => {
     failStreakRef.current = n;
     if (IS_WEB_DEMO) return;   // демо: запись прогресса выключена
+    rememberLevelValue(failKey, String(n));
     AsyncStorage.setItem(failKey, String(n)).catch(() => {});
   };
 
@@ -123,7 +139,7 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
     const lv = Math.max(1, Math.round(n));
     levelRef.current = lv;
     setLevelState(lv);
-    if (!IS_WEB_DEMO) AsyncStorage.setItem(key, String(lv)).catch(() => {});   // демо: без записи
+    if (!IS_WEB_DEMO) { rememberLevelValue(key, String(lv)); AsyncStorage.setItem(key, String(lv)).catch(() => {}); }   // демо: без записи
     setFailStreak(0);
     clearPick();
   };

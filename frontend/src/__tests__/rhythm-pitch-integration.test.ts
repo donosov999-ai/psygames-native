@@ -434,9 +434,13 @@ describe('экран: решения приёмки, которые ломают
   });
 
   it('🔴 автостарт из зарядки ждёт ответа про звук, а не прыгает в тишину', () => {
-    const autostart = SCREEN.slice(SCREEN.indexOf('if (autostart'), SCREEN.indexOf('const onComplete'));
-    expect(autostart).toMatch(/soundPref !== null/);
-    expect(autostart).toMatch(/!muted/);
+    // Условие автостарта переехало в общий шов `useAutostartWhenReady` (он же ждёт
+    // загрузки уровня) — берём именно его условие, а не кусок файла по границам.
+    const cond = /useAutostartWhenReady\(\(\) =>([\s\S]*?),\s*\(\) =>/.exec(SCREEN)?.[1] ?? '';
+    expect(cond).toMatch(/soundPref !== null/);
+    expect(cond).toMatch(/!muted/);
+    // и заодно — что готовность уровня из шва не потерялась
+    expect(cond).toMatch(/lvl\.loaded/);
   });
 
   it('🔴 плашка итога подписана СЫГРАННЫМ уровнем, а не уже поднятым', () => {

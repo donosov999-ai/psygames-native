@@ -74,7 +74,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { gameNow } from '@/src/services/gamePause';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import GameShell from '@/src/components/GameShell';
@@ -170,7 +170,10 @@ export default function OneLineScreen() {
    */
   const now = React.useCallback(() => gameNow(), []);
 
-  React.useEffect(() => { if (autostart) setPhase('playing'); }, [autostart]);
+  // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
+  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
+  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => setPhase('playing'));
 
   const onComplete = React.useCallback(async (m: OneLineMetrics) => {
     const passed = isPassed(m);

@@ -61,7 +61,7 @@ import {saveResume, clearResume} from '@/src/services/resume';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import { gameNow } from '@/src/services/gamePause';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
@@ -243,7 +243,10 @@ export default function MemoryPalaceScreen() {
     setPhase('playing');
   }, [level]);
 
-  React.useEffect(() => { if (autostart) start(); }, [autostart]);   // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
+  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
+  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => start());   // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const leaveToConfig = React.useCallback(() => {
     sessionRef.current = null;

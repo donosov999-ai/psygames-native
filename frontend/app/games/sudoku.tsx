@@ -18,7 +18,7 @@ import BossRound, { BossType } from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
-import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -361,7 +361,10 @@ export default function SudokuGame() {
 
   const { isPreset, autostart, str, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечер и ночь: победный звук общей карточки молчит
-  useEffect(() => { if (autostart) startGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+    // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
+  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
+  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
+  useAutostartWhenReady(() => autostart, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   // Открываемся сразу на настройках: описание переехало в сворачиваемый блок наверху
   // (см. GameAbout). Раньше до игры было два экрана подряд, и второй раз человек
   // пролистывал то, что прочитал в первый.
