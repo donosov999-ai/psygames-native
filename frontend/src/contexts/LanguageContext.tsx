@@ -712,8 +712,8 @@ const translations: Translations = {
   chessBlind: { ru: 'Слепые шахматы', en: 'Blindfold Chess' },
   chessBlindDesc: { ru: 'Фигуры скрыты — держи позицию в голове', en: 'Pieces are hidden — hold the position in your head' },
   chessBlindIntroDesc: {
-    ru: 'Позиция показывается на несколько секунд — запомни, какая фигура где. Потом все фигуры превращаются в одинаковые фишки, а на высоких уровнях ещё и ходят. Отвечай, что стоит на клетке, или находи фигуру вслепую. Так шахматисты тренируют расчёт вариантов и игру вслепую: позиция живёт в голове, а не на доске.',
-    en: 'A position is shown for a few seconds — memorize which piece stands where. Then every piece turns into an identical token, and at higher levels they start moving. Answer what stands on a square, or locate a piece blind. This is how chess players train calculation and blindfold play: the position lives in your head, not on the board.',
+    ru: 'Позиция показывается на несколько секунд — запомни, какая фигура где. Потом все фигуры превращаются в одинаковые фишки, а на высоких уровнях ещё и ходят. Отвечай, что стоит на клетке, или находи фигуру вслепую. ⚠️ Фигуры расставлены случайно, поэтому проба меряет зрительно-пространственную память, а не шахматный расчёт: на случайной расстановке преимущество опытного игрока как раз исчезает — это давно показано и используется как контрольное условие.',
+    en: 'A position is shown for a few seconds — memorize which piece stands where. Then every piece turns into an identical token, and at higher levels they start moving. Answer what stands on a square, or locate a piece blind. ⚠️ The pieces are placed at random, so this measures visuospatial memory, not chess calculation: on a random placement the expert advantage is precisely what disappears — a long-established finding, used as a control condition.',
   },
   benefitChessBlind1: { ru: 'Расчёт вариантов без передвижения фигур', en: 'Calculate lines without moving pieces' },
   benefitChessBlind2: { ru: 'Шаг к игре вслепую', en: 'A step toward blindfold play' },

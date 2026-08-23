@@ -1526,7 +1526,7 @@ const t: Record<string, string> = {
   "benefitMahjong3": "Konzentration und Liebe zum Detail",
   "chessBlind": "Blindschach",
   "chessBlindDesc": "Figuren sind verdeckt: Halte die Stellung im Kopf",
-  "chessBlindIntroDesc": "Eine Stellung wird wenige Sekunden gezeigt: Präge dir ein, wo welche Figur steht. Dann werden alle Figuren zu gleichen Spielsteinen. Antworte, was auf einem Feld steht, oder finde eine Figur blind.",
+  "chessBlindIntroDesc": "Die Stellung wird einige Sekunden gezeigt — präge dir ein, welche Figur wo steht. Danach werden alle Figuren zu gleichen Spielsteinen, in hohen Stufen ziehen sie zusätzlich. Antworte, was auf einem Feld steht, oder finde eine Figur blind. ⚠️ Die Figuren stehen zufällig, also misst das visuell-räumliches Gedächtnis, nicht Schachberechnung: bei zufälliger Aufstellung verschwindet der Vorteil des Geübten gerade — ein alter Befund, der als Kontrollbedingung dient.",
   "benefitChessBlind1": "Berechnung von Varianten ohne Ausführen der Züge",
   "benefitChessBlind2": "Schritt zum Blindspielen",
   "benefitChessBlind3": "Mentale Vorstellung von Bildern für jeden Bereich",
