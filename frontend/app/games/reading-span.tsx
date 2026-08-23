@@ -1,4 +1,4 @@
-/* psygames-game-reading-span · VER 1 · 19.08.2026 */
+/* psygames-game-reading-span · VER 2 · 23.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
@@ -24,6 +24,8 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { pickFresh } from '@/src/services/freshPool';
 
 const GRADIENT = ['#1f4037', '#99f2c8'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -119,11 +121,11 @@ const READINGSPAN_RULES: LevelRule[] = [
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'recall' | 'cleared' | 'result';
 
-function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
 export default function ReadingSpanGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
+  const { profile } = useProfile();
   const lvl = usePersistentLevel('reading_span');   // персист-уровень = setSize − 2
   const router = useRouter();
 
@@ -152,12 +154,23 @@ export default function ReadingSpanGame() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
-  const startGame = () => {
+  const startGame = async () => {
     // уровень рулит размером набора (число слов держать = реальная нагрузка памяти; растёт без жёсткого потолка)
     const sz = isPreset ? setSize : Math.min(SENTENCES.length, 2 + lvl.level);   // L1=3, дальше +1/уровень
     levelRef.current = lvl.level;
     if (!isPreset) setSetSize(sz);
-    const picked = shuffle(SENTENCES).slice(0, sz);
+    /**
+     * 🔴 СНАЧАЛА ТО, ЧЕГО ЧЕЛОВЕК ЕЩЁ НЕ ВИДЕЛ. Раньше стояло `shuffle(SENTENCES).slice(0, sz)`
+     * без всякой памяти между сессиями, и повтор начинался сразу: замер (симуляция 400
+     * прогонов) — к 10-й сессии на 8-м уровне уже виденных 49%, на 12-м 59%.
+     * Здесь это портит не настроение, а САМУ задачу: игрок судит, осмысленно ли
+     * предложение, и во второй раз он не понимает его, а вспоминает вердикт —
+     * проверка понимания превращается в проверку узнавания, причём по времени и
+     * очкам это выглядит как рост. Разбор и цифры — в шапке `services/freshPool`.
+     * ⚠️ Запас всё те же 62 предложения: сервис убирает ПРЕЖДЕВРЕМЕННЫЙ повтор, а не
+     * повтор вообще. Больше материала требует перевода (сейчас два языка из двенадцати).
+     */
+    const { picked } = await pickFresh('reading_span', profile?.id, SENTENCES, sz, (it) => it.en);
     setSeq(picked);
     setStepIdx(0);
     setJudgments([]);
