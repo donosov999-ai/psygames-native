@@ -1,4 +1,4 @@
-/* psygames-game-chess-blind · VER 1 · 19.08.2026 */
+/* psygames-game-chess-blind · VER 2 · 23.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -23,6 +23,46 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  recordBlock, seriesComplete, seriesSession, startSeries,
+  type SeriesRun,
+} from '@/src/services/series';
+import {
+  BOARD_SIDE,
+  CHESS_SERIES_PLAN,
+  EMPTY_CHESS_PROGRESS,
+  afterSeriesRun,
+  answerLabels,
+  answerQuestion,
+  blockDone,
+  blockHeader,
+  blockInterlude,
+  blockKeyAt,
+  blockTitle,
+  currentQuestion,
+  getChessBlindStrings,
+  isLightSquare,
+  memorizeLine,
+  nextBlock,
+  openBlock,
+  parseChessProgress,
+  pieceGlyph,
+  positionForLevel,
+  questionText,
+  seriesEntry,
+  seriesIntro,
+  seriesRecap,
+  levelMoveLine,
+  squareName,
+  truthLabel,
+  type ChessPosition,
+  type ChessSeriesOutcome,
+  type ChessSeriesProgress,
+  type ChessSeriesState,
+  type RecallQuestion,
+} from '@/src/games/chess-blind/core';
 
 /**
  * Слепые шахматы (chess_blind) — тренировка удержания позиции в уме.
@@ -53,7 +93,39 @@ const CHESSBLIND_RULES: LevelRule[] = [
   { key: 'locate', fromLevel: 11 },   // lr_chess_blind_locate_*
 ];
 
-type GamePhase = 'intro' | 'config' | 'expose' | 'mask' | 'quiz' | 'cleared' | 'result';
+/**
+ * `series` — блок серии · `interlude` — врезка со сменой правила между блоками ·
+ * `seriesResult` — разбор с разностями. Обычная партия ('expose'/'mask'/'quiz')
+ * их не касается: серия это РЕЖИМ этого же экрана, а не вторая игра рядом.
+ */
+type GamePhase = 'intro' | 'config' | 'expose' | 'mask' | 'quiz' | 'cleared' | 'result'
+  | 'series' | 'interlude' | 'seriesResult';
+
+/**
+ * Врезка между блоками: 2–3 секунды на прочтение нового правила. Она НЕ входит
+ * во время блока — часы блока стартуют, когда врезка ушла, иначе её длительность
+ * села бы прямо в разность T₂ − T₁.
+ */
+const INTERLUDE_MS = 2500;
+/**
+ * Сколько показывают позицию в блоке «память». Число ОДНО на все уровни, и это
+ * решение: сделай показ длиннее на густой доске — и T₃ на разных уровнях станет
+ * мерить ещё и щедрость показа. Трудность растёт числом фигур, показ постоянен.
+ *
+ * 🔴 ПОКАЗ НЕ ВХОДИТ В ЗАМЕР БЛОКА, И НАЧИНАЕТ ЕГО ЧЕЛОВЕК. Часы блока «память»
+ * стартуют, когда позицию УБРАЛИ: иначе в T₃ попало бы время разглядывания,
+ * одинаковое по правилу и разное по тому, отвлёкся ли человек в этот момент.
+ */
+const RECALL_EXPOSE_MS = 8000;
+/**
+ * У серии свой `game_type`: три правила на одной позиции — не партия вслепую.
+ * Под общим ключом эта запись поехала бы и в лидерборд, и в восстановление
+ * уровня (`getMaxLevelFromSessions` читает `details.level`), где `level` серии
+ * означает полосу по числу фигур, а не ступень лесенки.
+ */
+const SERIES_GAME_TYPE = 'chess_blind_series';
+/** Что сейчас на экране в блоке «память»: ждём готовности → показ → вопросы. */
+type RecallStage = 'ready' | 'memorize' | 'ask';
 type PieceType = 'K' | 'Q' | 'R' | 'B' | 'N' | 'P';
 type QuizType = 'pick' | 'locate';
 
@@ -288,14 +360,28 @@ export default function ChessBlindGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const { width, height } = useWindowDimensions();
+  const { profile } = useProfile();
 
   const lvl = usePersistentLevel('chess_blind');
-  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, num, bool, isCalm } = useGamePreset();
+  /**
+   * Шаг «Зарядки» может попросить именно СЕРИЮ: `?series=1`.
+   *
+   * 🔴 БЕЗ ЧТЕНИЯ ПАРАМЕТРА МАРШРУТ БЕСПОЛЕЗЕН. Ровно это уже случилось с
+   * корректуркой: запись в «Зарядке» была, параметра экран не читал — и человек
+   * попадал в обычную партию, думая, что играет серию.
+   */
+  const seriesPreset = bool('series');
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  // ⚠️ Серия ждёт ЕЩЁ И свой прогресс: без него автостарт посадил бы человека на
+  // самую бедную доску, даже если блоки давно выросли (та же беда, что с уровнем).
+  useAutostartWhenReady(
+    () => autostart && lvl.loaded && (!seriesPreset || seriesLoaded),
+    () => (seriesPreset ? beginSeries() : startGame()),
+  ); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   // Правила уровня: показать при первом входе и дать перечитать по бейджу.
@@ -331,11 +417,252 @@ export default function ChessBlindGame() {
     timersRef.current.forEach(clearTimeout);
     timersRef.current = [];
     if (exposeIvRef.current) { clearInterval(exposeIvRef.current); exposeIvRef.current = null; }
+    // Часы блока серии — тот же одноразовый интервал: уходя с экрана, гасим и его.
+    if (seriesIvRef.current) { clearInterval(seriesIvRef.current); seriesIvRef.current = null; }
   };
   useEffect(() => () => clearTimers(), []);   // очистка всех таймеров на unmount
 
   const cellSize = Math.floor(Math.min(width - 36, height - 360, 480) / 8);   // 24→36: поле GameShell имеет paddingHorizontal 16×2
   const boardSize = cellSize * 8;
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // СЕРИЯ ИЗ ТРЁХ БЛОКОВ НА ОДНОЙ ПОЗИЦИИ
+  //
+  // Правила блоков, вопросы, уровень и подписи живут в `src/games/chess-blind/core`,
+  // замер серии — в `src/services/series.ts`. Здесь только состояние экрана:
+  //
+  //   поле   → T₁ координатная работа
+  //   конь   → T₂ − T₁ цена правила хода
+  //   память → T₃ − T₁ цена удержания
+  //
+  // 🔴 ПОЗИЦИЯ БЕРЁТСЯ РОВНО ОДИН РАЗ — в `beginSeries`. Между блоками ходит
+  // `nextBlock`, у которого доступа к источнику позиций нет вовсе: переносить
+  // ему нечего, кроме уже выбранной. Позови экран `positionForLevel` ещё раз на
+  // старте блока — он выглядел бы совершенно исправным, а в разность T₂ − T₁
+  // тихо поехала бы разница ПОЗИЦИЙ.
+  //
+  // 🔴 ОТВЕТ ВЕЗДЕ ДВОИЧНЫЙ, ОДНО КАСАНИЕ. Меню вариантов хоть в одном блоке — и
+  // разность начнёт мерить набор ответа, а не добавленное требование.
+  // ───────────────────────────────────────────────────────────────────────────
+  const chessStrings = getChessBlindStrings(language);
+  const [seriesState, setSeriesState] = useState<ChessSeriesState | null>(null);
+  /** Состояние СЛЕДУЮЩЕГО блока: собирается на входе во врезку, чтобы она называла его правило. */
+  const [nextSeriesState, setNextSeriesState] = useState<ChessSeriesState | null>(null);
+  const [seriesProgress, setSeriesProgress] = useState<ChessSeriesProgress>(EMPTY_CHESS_PROGRESS);
+  const [seriesLoaded, setSeriesLoaded] = useState(false);
+  const [seriesOutcome, setSeriesOutcome] = useState<ChessSeriesOutcome | null>(null);
+  const [seriesFinished, setSeriesFinished] = useState<SeriesRun | null>(null);
+  const [recallStage, setRecallStage] = useState<RecallStage>('ask');
+  /** Неверные ответы блока «память» — для разбора: что стояло на поле НА САМОМ ДЕЛЕ. */
+  const [recallMisses, setRecallMisses] = useState<RecallQuestion[]>([]);
+  const [seriesTime, setSeriesTime] = useState(0);
+  /** Прогон серии живёт в ref: блоки дописываются из обработчиков нажатий. */
+  const seriesRunRef = useRef<SeriesRun | null>(null);
+  const seriesStateRef = useRef<ChessSeriesState | null>(null);
+  const blockStartRef = useRef(0);
+  /** Блок открыт и ещё не записан — чтобы выход во время врезки не записал его дважды. */
+  const blockOpenRef = useRef(false);
+  const seriesIvRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const seriesKey = `psygames_chess_blind_series_${(profile as any)?.id ?? 'default'}`;
+
+  useEffect(() => {
+    let alive = true;
+    AsyncStorage.getItem(seriesKey)
+      .then((raw) => { if (!alive) return; setSeriesProgress(parseChessProgress(raw)); setSeriesLoaded(true); })
+      .catch(() => { if (alive) setSeriesLoaded(true); });
+    return () => { alive = false; };
+  }, [seriesKey]);
+
+  const setSeries = (next: ChessSeriesState | null) => { seriesStateRef.current = next; setSeriesState(next); };
+
+  /** С какой полосы пойдёт серия и какие уровни у блоков сейчас — считается ДО входа. */
+  const seriesDoor = seriesEntry(seriesProgress);
+  const seriesIntroText = seriesIntro(chessStrings, seriesDoor.band, seriesDoor.perBlock);
+
+  /** Часы блока. Каждый блок мерится отдельно — из этих времён и берутся разности. */
+  const beginBlockClock = () => {
+    if (seriesIvRef.current) clearInterval(seriesIvRef.current);
+    const start = gameNow();
+    blockStartRef.current = start;
+    blockOpenRef.current = true;
+    setSeriesTime(0);
+    seriesIvRef.current = setInterval(() => { setSeriesTime((gameNow() - start) / 1000); }, 100);
+  };
+
+  const stopBlockClock = () => {
+    if (seriesIvRef.current) { clearInterval(seriesIvRef.current); seriesIvRef.current = null; }
+  };
+
+  /** Старт серии. Позиция берётся ОДИН раз на все три блока — в этом весь замер. */
+  const beginSeries = () => {
+    clearTimers();
+    const entry = seriesEntry(seriesProgress);
+    const picked = positionForLevel(entry.level);
+    seriesRunRef.current = startSeries(SERIES_GAME_TYPE, entry.level, CHESS_SERIES_PLAN, gameNow());
+    setSeriesOutcome(null);
+    setSeriesFinished(null);
+    setNextSeriesState(null);
+    setRecallMisses([]);
+    setRecallStage('ask');
+    setSeries(openBlock(picked.position, 0, entry.level));
+    beginBlockClock();
+    setPhase('series');
+  };
+
+  /** Конец серии: ОДНА сессия с массивом блоков внутри, разности — только у полной. */
+  const finishSeries = async (run: SeriesRun, show: boolean) => {
+    stopBlockClock();
+    clearTimers();
+    blockOpenRef.current = false;
+    const outcome = afterSeriesRun(seriesProgress, run);
+    setSeriesProgress(outcome.progress);
+    AsyncStorage.setItem(seriesKey, JSON.stringify(outcome.progress)).catch(() => {});
+    setSeriesOutcome(outcome);
+    setSeriesFinished(run);
+    seriesRunRef.current = null;
+    setPhase(show ? 'seriesResult' : 'config');
+    try {
+      await saveSession({
+        ...seriesSession(run),
+        passed: seriesComplete(run),
+        difficulty: `L${run.level}`,
+      });
+    } catch (error) {
+      console.error('Error saving series session:', error);
+    }
+  };
+
+  /** Блок доигран (или оборван): дописываем его в прогон и решаем, что дальше. */
+  const closeBlock = (state: ChessSeriesState, done: boolean) => {
+    const run = seriesRunRef.current;
+    if (!run || !blockOpenRef.current) return;
+    stopBlockClock();
+    blockOpenRef.current = false;
+    const updated = recordBlock(run, {
+      key: blockKeyAt(state.blockIndex),
+      timeMs: gameNow() - blockStartRef.current,
+      errors: state.errors,
+      done,
+    });
+    seriesRunRef.current = updated;
+    const isLast = state.blockIndex >= CHESS_SERIES_PLAN.length - 1;
+    if (done && !isLast) {
+      // ТА ЖЕ позиция — `nextBlock` переносит её как есть, выбирать заново нечего.
+      setNextSeriesState(nextBlock(state));
+      setPhase('interlude');
+      return;
+    }
+    finishSeries(updated, true);
+  };
+
+  /**
+   * Уход из серии посреди неё. Блоки пишем как есть — человек играл, это его
+   * время, — но `series_complete: false` и НИКАКИХ разностей.
+   */
+  const leaveSeries = (show: boolean) => {
+    const run = seriesRunRef.current;
+    if (!run) return;
+    const state = seriesStateRef.current;
+    if (blockOpenRef.current && state) {
+      stopBlockClock();
+      blockOpenRef.current = false;
+      const updated = recordBlock(run, {
+        key: blockKeyAt(state.blockIndex),
+        timeMs: gameNow() - blockStartRef.current,
+        errors: state.errors,
+        done: false,
+      });
+      seriesRunRef.current = updated;
+      finishSeries(updated, show);
+      return;
+    }
+    finishSeries(run, show);
+  };
+
+  /** Ответ «да»/«нет». Одно касание — во всех трёх блоках одинаково. */
+  const onSeriesAnswer = (said: boolean) => {
+    const state = seriesStateRef.current;
+    if (!state || !blockOpenRef.current) return;
+    const asked = currentQuestion(state);
+    const step = answerQuestion(state, said);
+    if (step.result === 'ignored') return;
+    if (step.result === 'hit') sndCorrect();
+    else {
+      sndWrong();
+      // Что было на самом деле — понадобится в разборе; вопрос уже отвечен.
+      if (asked && asked.kind === 'recall') setRecallMisses((prev) => [...prev, asked]);
+    }
+    setSeries(step.state);
+    if (blockDone(step.state)) closeBlock(step.state, true);
+  };
+
+  /**
+   * Показ позиции в блоке «память» начинает ЧЕЛОВЕК, а не таймер: иначе в замер
+   * попало бы то, отвлёкся ли он в этот момент. Часы блока стартуют, когда
+   * позицию убрали.
+   */
+  const beginRecallExposure = () => {
+    setRecallStage('memorize');
+    const totalMs = RECALL_EXPOSE_MS;
+    const endAt = gameNow() + totalMs;
+    setExposePct(100);
+    setExposeLeft(Math.ceil(totalMs / 1000));
+    exposeIvRef.current = setInterval(() => {
+      const leftMs = Math.max(0, endAt - gameNow());
+      setExposePct((leftMs / totalMs) * 100);
+      setExposeLeft(Math.ceil(leftMs / 1000));
+    }, 100);
+    later(() => {
+      if (exposeIvRef.current) { clearInterval(exposeIvRef.current); exposeIvRef.current = null; }
+      setRecallStage('ask');
+      beginBlockClock();
+    }, totalMs);
+  };
+
+  /**
+   * Врезка сама уводит в следующий блок — по ТОЙ ЖЕ позиции. Часы блока
+   * стартуют здесь, поэтому 2,5 секунды чтения правила в замер не попадают.
+   * У блока «память» часы ждут ещё дольше: сперва человек смотрит позицию.
+   */
+  useEffect(() => {
+    if (phase !== 'interlude' || !nextSeriesState) return;
+    const id = setTimeout(() => {
+      setSeries(nextSeriesState);
+      setNextSeriesState(null);
+      if (blockKeyAt(nextSeriesState.blockIndex) === 'recall') setRecallStage('ready');
+      else { setRecallStage('ask'); beginBlockClock(); }
+      setPhase('series');
+    }, INTERLUDE_MS);
+    return () => clearTimeout(id);
+    // Врезка живёт ровно одну фазу: зависимости — фаза и заготовленный блок.
+  }, [phase, nextSeriesState]);
+
+  /**
+   * УХОД МИМО КНОПОК (аппаратная «назад», переключение вкладки) серию не теряет:
+   * блоки сыграны, это время человека. Пишем их так же, как при выходе кнопкой —
+   * `series_complete: false` и без разностей. `seriesRunRef` обнуляется в
+   * `finishSeries`, поэтому доигранная серия вторую запись не получит.
+   */
+  useEffect(() => () => {
+    const run = seriesRunRef.current;
+    if (!run) return;
+    const state = seriesStateRef.current;
+    const partial = blockOpenRef.current && state
+      ? recordBlock(run, {
+        key: blockKeyAt(state.blockIndex),
+        timeMs: gameNow() - blockStartRef.current,
+        errors: state.errors,
+        done: false,
+      })
+      : run;
+    seriesRunRef.current = null;
+    if (partial.blocks.length === 0) return;   // серию, которую не начинали, писать нечем
+    saveSession({
+      ...seriesSession(partial),
+      passed: seriesComplete(partial),
+      difficulty: `L${partial.level}`,
+    }).catch(() => {});
+  }, []);
 
   const startGame = () => {
     clearTimers();
@@ -535,6 +862,180 @@ export default function ChessBlindGame() {
     );
   };
 
+  // ─── доска серии ───
+  /**
+   * ПОЗИЦИЯ СЕРИИ НА ДОСКЕ. Клетка подписана своим именем («e4») — это и подпись
+   * для читалки экрана, и единственный честный способ прочитать расстановку с
+   * ОТРИСОВАННОГО дерева: сравнить её поэлементно между блоками.
+   *
+   * ⚠️ ФИГУРА РИСУЕТСЯ ОДНИМ ЗНАКОМ ИЗ ЯДРА (`pieceGlyph`), а не своим набором
+   * глифов экрана: иначе на доске стояло бы одно, а вопрос спрашивал бы про
+   * другое, и разошлись бы они молча. Контраст даёт обводка тенью, а не второй
+   * набор символов.
+   */
+  const renderSeriesBoard = (position: ChessPosition) => (
+    // RTL-пин: доска канонически LTR (a-файл слева) — зеркальная нарушает нотацию.
+    <View style={{ width: boardSize, height: boardSize, borderRadius: 6, overflow: 'hidden', writingDirection: 'ltr' } as any}>
+      {Array.from({ length: BOARD_SIDE }).map((_, row) => (
+        <View key={row} style={{ flexDirection: 'row' }}>
+          {Array.from({ length: BOARD_SIDE }).map((_, col) => {
+            // Наш индекс считается СНИЗУ ВВЕРХ (0 = a1), а рисуем сверху вниз.
+            const index = (BOARD_SIDE - 1 - row) * BOARD_SIDE + col;
+            const piece = position.squares[index];
+            const light = isLightSquare(index);
+            return (
+              <View
+                key={col}
+                accessible
+                accessibilityLabel={squareName(index)}
+                style={{
+                  width: cellSize,
+                  height: cellSize,
+                  backgroundColor: light ? '#9c7a5b' : '#6b4f3a',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {piece ? (
+                  <Text
+                    style={[styles.seriesGlyph, {
+                      fontSize: Math.round(cellSize * 0.78),
+                      lineHeight: cellSize,
+                      color: piece.color === 'w' ? '#f8fafc' : '#111827',
+                      textShadowColor: piece.color === 'w' ? '#0f172a' : '#f8fafc',
+                    }]}
+                  >
+                    {pieceGlyph(piece)}
+                  </Text>
+                ) : null}
+              </View>
+            );
+          })}
+        </View>
+      ))}
+    </View>
+  );
+
+  /**
+   * БЛОК СЕРИИ. Вопрос — строкой, ответ — двумя кнопками, и так во всех трёх
+   * блоках: одинаковый ввод и есть то, что делает разности сравнимыми.
+   *
+   * 🔴 ДОСКИ ВО ВРЕМЯ ВОПРОСОВ НЕТ, И ЭТО НЕ ЭКОНОМИЯ МЕСТА. Нарисуй её — и
+   * блок «поле» перестанет мерить работу в уме: цвет клеток видно глазами, а
+   * «одного ли цвета a3 и f6» превратится в поиск двух клеток на картинке.
+   * Позицию показывают дважды и оба раза ВНЕ замера: во врезке между блоками и
+   * перед вопросами блока «память».
+   */
+  const renderSeries = () => {
+    const state = seriesState;
+    if (!state) return null;
+    const header = blockHeader(chessStrings, state);
+    const labels = answerLabels(chessStrings);
+    const question = currentQuestion(state);
+    const asking = recallStage === 'ask' && !!question;
+    return (
+      <GameShell
+        title={chessStrings.entry}
+        onBack={() => { leaveSeries(false); goBackOrHome(); }}
+        headerRight={
+          <TouchableOpacity
+            accessibilityRole="button" accessibilityLabel={t('exitConfirmLeave')}
+            style={[styles.backBtn, { backgroundColor: colors.surface }]}
+            onPress={() => leaveSeries(true)}
+          >
+            <Ionicons name="close" size={24} color={colors.text} />
+          </TouchableOpacity>
+        }
+        stats={
+          <View style={styles.statsRow}>
+            <Text style={[styles.statText, { color: colors.text }]}>
+              {`${t('chessQuestionShort')} ${Math.min(state.step + 1, state.questions.length)}/${state.questions.length}`}
+            </Text>
+            <Text style={[styles.statText, { color: colors.text }]}>
+              {`${t('time')} ${Math.floor(seriesTime)}${t('secShort')}`}
+            </Text>
+            <Text style={[styles.statText, { color: state.errors > 0 ? '#f43f5e' : colors.text }]}>
+              {`${t('hud_errors')} ${state.errors}`}
+            </Text>
+          </View>
+        }
+        toolbar={asking ? (
+          <View style={styles.answerRow}>
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.answerBtn, { backgroundColor: '#166534' }]}
+              onPress={() => onSeriesAnswer(true)}
+            >
+              <Text style={styles.answerText}>{labels.yes}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.answerBtn, { backgroundColor: '#7f1d1d' }]}
+              onPress={() => onSeriesAnswer(false)}
+            >
+              <Text style={styles.answerText}>{labels.no}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : undefined}
+      >
+        <View style={styles.fieldCol}>
+          <Text style={[styles.seriesBlockLine, { color: colors.textSecondary }]}>
+            {`${header.counter} · ${header.title}`}
+          </Text>
+          {asking && question ? (
+            <>
+              <Text style={[styles.seriesQuestion, { color: colors.text }]}>
+                {questionText(chessStrings, question)}
+              </Text>
+              <Text style={[styles.hintText, { color: colors.textSecondary }]}>{header.rule}</Text>
+            </>
+          ) : recallStage === 'ready' ? (
+            <>
+              <Text style={[styles.seriesQuestion, { color: colors.text }]}>{t('label_ready')}</Text>
+              <Text style={[styles.hintText, { color: colors.textSecondary }]}>{memorizeLine(chessStrings)}</Text>
+              <TouchableOpacity accessibilityRole="button" style={styles.startBtn} onPress={beginRecallExposure}>
+                <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                  <Text style={styles.startBtnText}>{t('start')}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </>
+          ) : recallStage === 'memorize' ? (
+            <>
+              <Text style={[styles.seriesQuestion, { color: colors.text }]}>
+                {`${memorizeLine(chessStrings)} · ${exposeLeft}${t('secShort')}`}
+              </Text>
+              <View style={[styles.barTrack, { width: boardSize, backgroundColor: colors.surface }]}>
+                <View style={[styles.barFill, { width: `${exposePct}%` }]} />
+              </View>
+              {renderSeriesBoard(state.position)}
+            </>
+          ) : null}
+        </View>
+      </GameShell>
+    );
+  };
+
+  /**
+   * ВРЕЗКА между блоками. Её работа — назвать новое правило и сказать главное:
+   * позиция НЕ менялась. Слова об этом мало — позиция тут же и показана, а стоит
+   * этот показ ноль: врезка лежит между часами двух блоков, в замер не входит.
+   */
+  const renderInterlude = () => {
+    const next = nextSeriesState;
+    if (!next) return null;
+    const card = blockInterlude(chessStrings, next);
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.interlude}>
+          <Ionicons name="swap-horizontal" size={44} color={GRADIENT[0]} />
+          <Text style={[styles.interludeTitle, { color: colors.text }]}>{card.heading}</Text>
+          <Text style={[styles.interludeBlock, { color: colors.text }]}>{card.title}</Text>
+          <Text style={[styles.interludeRule, { color: colors.textSecondary }]}>{card.rule}</Text>
+          <Text style={[styles.interludeSame, { color: colors.textSecondary }]}>{card.same}</Text>
+          {renderSeriesBoard(next.position)}
+        </View>
+      </SafeAreaView>
+    );
+  };
+
   // ─── игровой экран (expose / mask / quiz) — на едином каркасе GameShell ───
   // Статы — в props каркаса; кнопки-глифы pick-квиза — в прибитом нижнем тулбаре
   // (эталон math-sprint); RTL-пин на контейнере доски сохранён внутри renderBoard.
@@ -638,15 +1139,33 @@ export default function ChessBlindGame() {
             <Text style={styles.startBtnText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
           </LinearGradient>
         </TouchableOpacity>
+        {/* СЕРИЯ ИЗ ТРЁХ БЛОКОВ. Под кнопкой — с какой полосы она начнётся и какие
+            уровни у блоков сейчас: иначе старт с минимума читается как откат. */}
+        {!isPreset && (
+          <View>
+            <TouchableOpacity
+              accessibilityRole="button" style={styles.startBtn} onPress={() => beginSeries()}>
+              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                <Text style={styles.startBtnText}>{seriesIntroText.entry}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <Text style={[styles.seriesNote, { color: colors.text }]}>{seriesIntroText.startsAt}</Text>
+            <Text style={[styles.seriesNote, { color: colors.textSecondary }]}>{seriesIntroText.yourLevels}</Text>
+          </View>
+        )}
       </ScrollView>
     );
   };
 
   // Игровые фазы — на едином каркасе GameShell (без самодельной шапки).
   if (phase === 'expose' || phase === 'mask' || phase === 'quiz') {
-    return renderPlay();
-        <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
+    // ⚠️ Окно правил — ВНУТРИ возвращаемого дерева, а не строкой после `return`:
+    // там оно недостижимо, а хук всё равно ставит флаг «правило показано», и
+    // объяснение уровня человек не увидит уже никогда.
+    return (<>{renderPlay()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>);
   }
+  if (phase === 'series') return (<>{renderSeries()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>);
+  if (phase === 'interlude') return (<>{renderInterlude()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -669,6 +1188,81 @@ export default function ChessBlindGame() {
         <GameResult score={hits * 150 - errors * 50} time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
+      )}
+      {/* РАЗБОР СЕРИИ. Главное здесь не очки, а T₁/T₂/T₃ и две разности: цена
+          правила хода и цена удержания. У неполной серии разностей нет ВООБЩЕ —
+          вместо чисел говорим об этом прямо. */}
+      {phase === 'seriesResult' && seriesFinished && (
+        <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+          {(() => {
+            const recap = seriesRecap(chessStrings, seriesFinished);
+            const sec = (ms: number): string => `${(ms / 1000).toFixed(1)} ${t('seconds')}`;
+            const signed = (ms: number): string => `${ms > 0 ? '+' : ''}${sec(ms)}`;
+            return (
+              <>
+                <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
+                  <Ionicons name="layers-outline" size={44} color={ON_GRAD.color} />
+                  <Text style={styles.configTitle}>{recap.title}</Text>
+                </LinearGradient>
+                {/* T₁, T₂, T₃ — время каждого блока как оно есть. */}
+                <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+                  {seriesFinished.blocks.map((b, i) => (
+                    <Text key={b.key} style={[styles.seriesRow, { color: colors.text }]}>
+                      {`${i + 1}. ${blockTitle(chessStrings, blockKeyAt(i))}: ${sec(b.timeMs)}`}
+                    </Text>
+                  ))}
+                </View>
+                {recap.note ? (
+                  <Text style={[styles.seriesNote, { color: '#f43f5e' }]}>{recap.note}</Text>
+                ) : (
+                  // Разности собирает ядро из ключей блоков — не переписываем их строкой.
+                  <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+                    {recap.rows.map((row, i) => (
+                      <Text key={row.key} style={[styles.seriesRow, { color: colors.text }]}>
+                        {`${row.label}: ${i === 0 ? sec(row.ms) : signed(row.ms)}`}
+                      </Text>
+                    ))}
+                  </View>
+                )}
+                {/* Что стояло на поле НА САМОМ ДЕЛЕ — там, где ответ был неверным.
+                    Без этого блок «память» ничему не учит: человек знает, что
+                    ошибся, и не знает, чем. */}
+                {recallMisses.length > 0 && (
+                  <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+                    <Text style={[styles.optionLabel, { color: colors.text }]}>{t('errors')}</Text>
+                    {recallMisses.map((q) => (
+                      <Text key={q.square} style={[styles.seriesRow, { color: colors.textSecondary }]}>
+                        {`${squareName(q.square)} — ${truthLabel(chessStrings, q)}`}
+                      </Text>
+                    ))}
+                  </View>
+                )}
+              </>
+            );
+          })()}
+          {seriesOutcome && (
+            <Text style={[styles.seriesNote, { color: colors.textSecondary }]}>
+              {levelMoveLine(chessStrings, {
+                raised: seriesOutcome.raised,
+                band: seriesOutcome.band,
+                weakest: seriesOutcome.weakest,
+                runsLeft: Math.max(1, seriesOutcome.runsLeft),
+              })}
+            </Text>
+          )}
+          <TouchableOpacity accessibilityRole="button" style={styles.startBtn} onPress={() => beginSeries()}>
+            <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+              <Text style={styles.startBtnText}>{t('retry')}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}
+            onPress={() => setPhase('config')}
+          >
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{t('back')}</Text>
+          </TouchableOpacity>
+        </ScrollView>
       )}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
     </SafeAreaView>
@@ -702,4 +1296,18 @@ const styles = StyleSheet.create({
   hlOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderWidth: 3, borderRadius: 4 },
   optionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
   optBtn: { width: 64, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  // ── серия из трёх блоков ──
+  seriesGlyph: { textAlign: 'center', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 3 },
+  seriesBlockLine: { fontSize: 13, fontWeight: '600', textAlign: 'center' },
+  seriesQuestion: { fontSize: 22, fontWeight: '700', textAlign: 'center', lineHeight: 30 },
+  seriesRow: { fontSize: 15 },
+  seriesNote: { fontSize: 13, lineHeight: 18, paddingHorizontal: 4 },
+  answerRow: { flexDirection: 'row', gap: 12, justifyContent: 'center' },
+  answerBtn: { minWidth: 128, minHeight: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
+  answerText: { color: '#f8fafc', fontSize: 20, fontWeight: '700' },
+  interlude: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, gap: 10 },
+  interludeTitle: { fontSize: 15, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1 },
+  interludeBlock: { fontSize: 26, fontWeight: '700', textAlign: 'center' },
+  interludeRule: { fontSize: 16, textAlign: 'center', lineHeight: 22 },
+  interludeSame: { fontSize: 14, textAlign: 'center', fontStyle: 'italic' },
 });

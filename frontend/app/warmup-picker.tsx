@@ -33,7 +33,7 @@ import {
   getFinancialCooldown,
 } from '@/src/services/warmup';
 import { getAssessmentStatus } from '@/src/services/assessment';
-import { SERIES_KEYS, SeriesKey, seriesPlaylist, seriesStarter, seriesProfileFlag, seriesKind, seriesRoute, seriesBlockCount } from '@/src/services/warmupEntries';
+import { SERIES_KEYS, SeriesKey, seriesPlaylist, seriesStarter, seriesProfileFlag, seriesKind, seriesRoute, seriesBlockCount, seriesGameId } from '@/src/services/warmupEntries';
 import { a11yBtn, a11yModal } from '@/src/services/a11y';
 import { goBackOrHome } from '@/src/utils/nav';
 
@@ -64,6 +64,7 @@ const ICON: Record<PickKey, keyof typeof Ionicons.glyphMap> = {
   financial: 'trending-up-outline',
   'schulte-blocks': 'grid-outline',
   'proofreading-blocks': 'text-outline',
+  'chess-blocks': 'apps-outline',
 };
 
 /** Своя палитра у каждого слота — время суток должно читаться до текста. */
@@ -76,6 +77,7 @@ const TINT: Record<PickKey, [string, string]> = {
   financial:  ['#22c55e', '#0d9488'],
   'schulte-blocks':      ['#0ea5e9', '#4338ca'],
   'proofreading-blocks': ['#f59e0b', '#b45309'],
+  'chess-blocks':        ['#64748b', '#1e293b'],
 };
 
 const isSeries = (k: PickKey): k is SeriesKey => (SERIES_KEYS as readonly string[]).includes(k);
@@ -113,7 +115,7 @@ export default function WarmupPicker() {
     () => SERIES_KEYS.filter((k) => {
       const flag = seriesProfileFlag(k);
       // Серия блоков — обычная игра, своего флага у неё нет; спрашиваем каталог профиля.
-      if (!flag) return isGameAllowed(profile, k.replace('-blocks', ''));
+      if (!flag) { const id = seriesGameId(k); return id ? isGameAllowed(profile, id) : false; }
       return Boolean((profile as any)[flag]);
     }),
     [profile.assessment_enabled, profile.financial_brain_day_enabled],
@@ -202,6 +204,7 @@ export default function WarmupPicker() {
     if (k === 'financial') return 'FIN BRAIN';
     if (k === 'schulte-blocks') return t('schulteTable');
     if (k === 'proofreading-blocks') return t('proofreading');
+    if (k === 'chess-blocks') return t('chessBlind');
     return t(cap(k as WarmupSlot));
   };
   const descOf = (k: PickKey) => {
