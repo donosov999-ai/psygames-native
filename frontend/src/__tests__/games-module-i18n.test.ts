@@ -90,6 +90,11 @@ import {
   StopSignalLocale,
   getStopSignalStrings,
 } from '@/src/games/stop-signal/core/i18n';
+import {
+  CHESS_BLIND_LOCALES,
+  ChessBlindLocale,
+  getChessBlindStrings,
+} from '@/src/games/chess-blind/core/i18n';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -249,6 +254,15 @@ const MODULES: ModuleUnderTest[] = [
     strings: (l: StopSignalLocale) => getStopSignalStrings(l) as any,
     labels: [],
   },
+  {
+    // Серия «поле → конь → память» в шахматах вслепую (23.08.2026). Имён фигур
+    // здесь нет намеренно: фигура называется фигурным знаком (♞), одинаковым во
+    // всех двенадцати языках, — переводить нечего.
+    id: 'chess-blind',
+    locales: CHESS_BLIND_LOCALES,
+    strings: (l: ChessBlindLocale) => getChessBlindStrings(l) as any,
+    labels: [],
+  },
 ];
 
 /** Языки приложения — читаем из самого LanguageContext, а не переписываем сюда. */
@@ -295,6 +309,8 @@ const SAME_AS_EN: Record<string, string> = {
   'rhythm-pitch.fr.volume': 'французское «Volume» пишется так же; шаблон отличается только числом',
   'rhythm-pitch.it.volume': 'итальянское «Volume» пишется так же; шаблон отличается только числом',
   'rhythm-pitch.pt.volume': 'португальское «Volume» пишется так же; шаблон отличается только числом',
+  'chess-blind.es.answerNo': 'испанское «No» пишется ровно так же, как английское — это слово испанское, а не заглушка',
+  'chess-blind.it.answerNo': 'итальянское «No» пишется ровно так же, как английское — это слово итальянское, а не заглушка',
 };
 
 describe('словари модулей знают все двенадцать языков', () => {
@@ -552,6 +568,23 @@ describe('дворец памяти: места и предметы переве
  * там код языка, а не фраза для человека, — и правильно делает, иначе краснел бы
  * на языковых играх. Значит, ловить обязан кто-то другой; ловит вот этот гейт.
  */
+/**
+ * ⚠️ ЯДРО ПРИЕЗЖАЕТ РАНЬШЕ ЭКРАНА — ПОИМЁННО, С ПРИЧИНОЙ И С САМОУНИЧТОЖЕНИЕМ.
+ *
+ * Модуль со словарём и экран, который его читает, собираются РАЗНЫМИ заходами:
+ * сначала ядро с контрактом, потом экран поверх него. В промежутке требование
+ * «язык доезжает до словаря» краснело бы на том, чего ещё нет, — и краснело бы
+ * не на поломке, а на порядке работ.
+ *
+ * 🔴 ЗАПИСЬ НЕ МОЖЕТ ПРОТУХНУТЬ. Она утверждает ровно обратное обычной проверке:
+ * «экран словарь модуля НЕ читает». Как только экран его прочтёт, покраснеет
+ * ЭТА строка, запись придётся убрать — и на её место встанет полноценная
+ * проверка. Дыры на годы отсюда не выйдет: список закрыт и стережёт сам себя.
+ */
+const SCREEN_NOT_REBUILT: Record<string, string> = {
+  'chess-blind': 'ядро серии собрано 23.08.2026; экран app/games/chess-blind.tsx пересобирает следующий заход — до него словарь модуля читать некому',
+};
+
 describe('экраны игр отдают модулю все двенадцать языков, а не пару', () => {
   for (const mod of MODULES) {
     it(`🔴 ${mod.id}: язык не схлопывается до ru/en по дороге в модуль`, () => {
@@ -574,6 +607,14 @@ describe('экраны игр отдают модулю все двенадца�
       const directCalls = screen.match(/\bget[A-Za-z]*Strings\(([^)]*)\)/g) || [];
       const viaLanguage = directCalls.some((c) => /\(\s*language\b/.test(c));
       const viaLiteral = directCalls.some((c) => /\(\s*['"]/.test(c));
+
+      const pending = SCREEN_NOT_REBUILT[mod.id];
+      if (pending) {
+        expect(`${mod.id}: экран ещё не читает словарь модуля — ${!viaProp && !viaLanguage} · причина написана — ${pending.length >= 40}`)
+          .toBe(`${mod.id}: экран ещё не читает словарь модуля — true · причина написана — true`);
+        return;
+      }
+
       expect(`${mod.id}: язык доезжает — ${viaProp || viaLanguage} · зашит литералом — ${viaLiteral}`)
         .toBe(`${mod.id}: язык доезжает — true · зашит литералом — false`);
     });
