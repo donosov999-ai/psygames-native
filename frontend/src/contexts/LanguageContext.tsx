@@ -71,6 +71,8 @@ const translations: Translations = {
   complexEvening: { ru: 'ПЕРЕД СНОМ', en: 'BEFORE SLEEP' },
   complexAssessment: { ru: 'ОЦЕНКА', en: 'ASSESSMENT' },
   seriesGroup: { ru: 'Серии', en: 'Series' },
+  seriesBlocksMeta: { ru: 'Три правила подряд на одном поле', en: 'Three rules in a row on one field' },
+  seriesBlocksCount: { ru: 'Блоков', en: 'Blocks' },
   seriesGroupNote: { ru: 'Набор упражнений подряд с одним итогом', en: 'A fixed run of exercises with a single result' },
   seriesFixedNote: { ru: 'Состав неизменен — иначе замеры несравнимы', en: 'Fixed set — otherwise measurements can’t be compared' },
   restDay: { ru: 'Сегодня набора нет', en: 'No set today' },

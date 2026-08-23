@@ -55,7 +55,13 @@ describe('точки входа: метки не путаются', () => {
 
   it('свободный запуск не несёт ни одной метки — экраны сами показывают intro', () => {
     // Контракт «пустых» параметров: их формирует не код, а отсутствие параметров в URL.
-    // Здесь фиксируем, что метки ставятся РОВНО в трёх местах, и больше нигде.
+    // Здесь фиксируем, что метки ставятся РОВНО в перечисленных местах, и больше нигде.
+    //
+    // 23.08.2026 в список добавлен `warmupEntries.ts` — «Зарядка» научилась
+    // запускать СЕРИЮ БЛОКОВ (три таблицы Шульте, три режима корректурки). Она
+    // ставит `auto: '1'`, но НЕ `wu: '1'`, и это принципиально: шаг зарядки
+    // уровень не двигает, а серия блоков ведёт свой уровень по модели C — под
+    // `wu` её прогресс встал бы намертво. Разбор — в шапке того модуля.
     const all = [
       ...walk(path.resolve(SRC, 'services')),
       ...walk(path.resolve(SRC, 'hooks')),
@@ -64,7 +70,7 @@ describe('точки входа: метки не путаются', () => {
     const wuSetters = all.filter((f) => /\bwu:\s*'1'/.test(read(f)));
     const autoSetters = all.filter((f) => /\bauto:\s*'1'/.test(read(f)));
     expect(wuSetters.map(base)).toEqual(['warmup.ts']);
-    expect(autoSetters.map(base)).toEqual(['daily-challenge.ts', 'onboarding.tsx']);
+    expect(autoSetters.map(base)).toEqual(['daily-challenge.ts', 'warmupEntries.ts', 'onboarding.tsx']);
   });
 });
 

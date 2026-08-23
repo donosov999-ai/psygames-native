@@ -6,6 +6,8 @@ const t: Record<string, string> = {
   "a11ySwitchProfile": "تبديل الملف الشخصي",
   "complexWarmup": "الإحماء",
   "complexEvening": "قبل النوم",
+  "seriesBlocksMeta": "ثلاث قواعد متتالية على اللوحة نفسها",
+  "seriesBlocksCount": "الكتل",
   "seriesGroup": "السلاسل",
   "seriesGroupNote": "سلسلة ثابتة من التمارين بنتيجة واحدة",
   "seriesFixedNote": "المجموعة ثابتة — وإلا تعذّرت مقارنة القياسات",

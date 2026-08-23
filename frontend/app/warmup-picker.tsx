@@ -33,7 +33,7 @@ import {
   getFinancialCooldown,
 } from '@/src/services/warmup';
 import { getAssessmentStatus } from '@/src/services/assessment';
-import { SERIES_KEYS, SeriesKey, seriesPlaylist, seriesStarter, seriesProfileFlag } from '@/src/services/warmupEntries';
+import { SERIES_KEYS, SeriesKey, seriesPlaylist, seriesStarter, seriesProfileFlag, seriesKind, seriesRoute, seriesBlockCount } from '@/src/services/warmupEntries';
 import { a11yBtn, a11yModal } from '@/src/services/a11y';
 import { goBackOrHome } from '@/src/utils/nav';
 
@@ -62,6 +62,8 @@ const ICON: Record<PickKey, keyof typeof Ionicons.glyphMap> = {
   night: 'bed-outline',
   assessment: 'analytics-outline',
   financial: 'trending-up-outline',
+  'schulte-blocks': 'grid-outline',
+  'proofreading-blocks': 'text-outline',
 };
 
 /** Своя палитра у каждого слота — время суток должно читаться до текста. */
@@ -72,9 +74,11 @@ const TINT: Record<PickKey, [string, string]> = {
   night:   ['#2c3e50', '#4ca1af'],
   assessment: ['#7c3aed', '#ec4899'],
   financial:  ['#22c55e', '#0d9488'],
+  'schulte-blocks':      ['#0ea5e9', '#4338ca'],
+  'proofreading-blocks': ['#f59e0b', '#b45309'],
 };
 
-const isSeries = (k: PickKey): k is SeriesKey => k === 'assessment' || k === 'financial';
+const isSeries = (k: PickKey): k is SeriesKey => (SERIES_KEYS as readonly string[]).includes(k);
 
 export default function WarmupPicker() {
   const { colors } = useTheme();
@@ -106,7 +110,12 @@ export default function WarmupPicker() {
 
   /** Какие серии доступны профилю. Гейт тот же, что был на главной. */
   const seriesShown = React.useMemo(
-    () => SERIES_KEYS.filter((k) => Boolean((profile as any)[seriesProfileFlag(k)])),
+    () => SERIES_KEYS.filter((k) => {
+      const flag = seriesProfileFlag(k);
+      // Серия блоков — обычная игра, своего флага у неё нет; спрашиваем каталог профиля.
+      if (!flag) return isGameAllowed(profile, k.replace('-blocks', ''));
+      return Boolean((profile as any)[flag]);
+    }),
     [profile.assessment_enabled, profile.financial_brain_day_enabled],
   );
 
@@ -116,7 +125,7 @@ export default function WarmupPicker() {
   const metaFor = React.useCallback((slot: PickKey) => {
     switch (slot) {
       case 'assessment':
-      case 'financial':  return seriesPlaylist(slot);
+      case 'financial':  return seriesPlaylist(slot)!;
       case 'day':   return buildDayPlaylist(wd, (g: string) => isGameAllowed(profile, g));
       case 'night': return buildNightPlaylist(wd);
       case 'evening': {
@@ -153,6 +162,7 @@ export default function WarmupPicker() {
   const isEmpty = React.useCallback((slot: PickKey) => {
     if (slot === 'financial') return !finCooldown.ready;
     if (slot === 'assessment') return false;
+    if (isSeries(slot)) return false;   // серия блоков всегда доступна: остывания у неё нет
     return metaFor(slot).steps.length === 0;
   }, [metaFor, finCooldown.ready]);
   const setPicked = (slot: PickKey) => { if (!isEmpty(slot)) setPickedRaw(slot); };
@@ -169,7 +179,15 @@ export default function WarmupPicker() {
       // Пускатель берём из общего списка, а не выбираем здесь заново: иначе
       // экран и проверка расходятся молча.
       case 'assessment':
-      case 'financial':  (warmup[seriesStarter(picked)] as () => void)(); break;
+      case 'financial':  (warmup[seriesStarter(picked)!] as () => void)(); break;
+      // Серия блоков — одна игра, её ведёт сам экран игры. `auto=1`, а не `wu=1`:
+      // разбор в шапке `services/warmupEntries`.
+      case 'schulte-blocks':
+      case 'proofreading-blocks': {
+        const route = seriesRoute(picked)!;
+        router.push({ pathname: route.pathname as any, params: route.params });
+        break;
+      }
       case 'day':     warmup.startDay(); break;
       case 'night':   warmup.startNight(); break;
       case 'evening': warmup.startEvening(); break;
@@ -179,14 +197,25 @@ export default function WarmupPicker() {
 
   /** Заголовок и подпись карточки: у слотов они из словаря слотов, у серий — свои. */
   const cap = (k: WarmupSlot) => 'slot' + k.charAt(0).toUpperCase() + k.slice(1);
-  const titleOf = (k: PickKey) => (k === 'assessment' ? t('complexAssessment') : k === 'financial' ? 'FIN BRAIN' : t(cap(k)));
-  const descOf = (k: PickKey) => (k === 'assessment' ? t('assessmentMeta') : k === 'financial' ? t('finBrainMeta') : t(cap(k) + 'Desc'));
+  const titleOf = (k: PickKey) => {
+    if (k === 'assessment') return t('complexAssessment');
+    if (k === 'financial') return 'FIN BRAIN';
+    if (k === 'schulte-blocks') return t('schulte');
+    if (k === 'proofreading-blocks') return t('proofreading');
+    return t(cap(k as WarmupSlot));
+  };
+  const descOf = (k: PickKey) => {
+    if (k === 'assessment') return t('assessmentMeta');
+    if (k === 'financial') return t('finBrainMeta');
+    if (isSeries(k) && seriesKind(k) === 'blocks') return t('seriesBlocksMeta');
+    return t(cap(k as WarmupSlot) + 'Desc');
+  };
 
   const narrow = width < 380;
 
   const renderCard = (slot: PickKey) => {
     const on = picked === slot;
-    const meta = metaFor(slot);
+    const meta = isSeries(slot) && seriesKind(slot) === 'blocks' ? { steps: [], est_total_sec: 0 } as any : metaFor(slot);
     const off = isEmpty(slot);
     const mins = Math.max(1, Math.round(meta.est_total_sec / 60));
     const series = isSeries(slot);
@@ -215,9 +244,11 @@ export default function WarmupPicker() {
           <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
             {slot === 'financial' && !finCooldown.ready
               ? `${t('ctaWait')}: ${finCooldown.daysLeft}${t('unitDayShort')}`
-              : off
-                ? t('restDay')
-                : `${t('unitGames')}: ${meta.steps.length} · ~${mins} ${t('unitMin')}`}
+              : series && seriesKind(slot as SeriesKey) === 'blocks'
+                ? `${t('seriesBlocksCount')}: ${seriesBlockCount(slot as SeriesKey)}`
+                : off
+                  ? t('restDay')
+                  : `${t('unitGames')}: ${meta.steps.length} · ~${mins} ${t('unitMin')}`}
           </Text>
           {/* Пишем это на самой карточке, а не мелким шрифтом внизу экрана:
               человек должен понимать до запуска, что стрик тут не растёт. */}

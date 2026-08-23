@@ -514,6 +514,8 @@ const t: Record<string, string> = {
   "a11ySwitchProfile": "प्रोफ़ाइल बदलें",
   "complexWarmup": "वार्म-अप",
   "complexEvening": "सोने से पहले",
+  "seriesBlocksMeta": "एक ही बोर्ड पर लगातार तीन नियम",
+  "seriesBlocksCount": "खंड",
   "seriesGroup": "शृंखलाएँ",
   "seriesGroupNote": "तय क्रम में अभ्यासों की एक शृंखला, परिणाम एक ही",
   "seriesFixedNote": "सेट तय है — बदलने पर मापें तुलनीय नहीं रहतीं",
