@@ -200,7 +200,7 @@ export default function WarmupPicker() {
   const titleOf = (k: PickKey) => {
     if (k === 'assessment') return t('complexAssessment');
     if (k === 'financial') return 'FIN BRAIN';
-    if (k === 'schulte-blocks') return t('schulte');
+    if (k === 'schulte-blocks') return t('schulteTable');
     if (k === 'proofreading-blocks') return t('proofreading');
     return t(cap(k as WarmupSlot));
   };

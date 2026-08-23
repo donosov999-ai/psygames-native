@@ -1,4 +1,4 @@
-/* psygames-game-posner · VER 1 · 19.08.2026 */
+/* psygames-game-posner · VER 2 · 23.08.2026 */
 /**
  * Posner Cueing Task — пространственное внимание (orienting).
  *
@@ -8,11 +8,12 @@
  * перенацеливания внимания).
  *
  * Уровни (persist, по паттерну cpt/simon): ручные селекторы сложности и числа проб
- * заменены на usePersistentLevel('posner') + levelParams. Ось усложнения:
- *   - валидность подсказки падает 80% → 50% (подсказка чаще врёт = труднее ей доверять)
+ * заменены на usePersistentLevel('posner') + levelParams. Ось усложнения — ТЕМП и ОБЪЁМ:
  *   - интервал cue→target варьируется сильнее: узкий 150-250мс → широкий 80-700мс
  *   - окно ответа сокращается 2200мс → 900мс (не успел = ошибка-пропуск)
- *   - число проб растёт ступенями 12 → 16 → 20
+ *   - число проб растёт ступенями 24 → 30 → 36
+ *   - валидность подсказки ФИКСИРОВАНА (VER 2): она и есть условие, при котором
+ *     ориентирование вообще существует, см. блок над VALID_RATIO
  * Проход уровня: ≥80% верных ответов за раунд → LevelCleared (авто-поток).
  */
 
@@ -59,27 +60,52 @@ type Side = 'left' | 'right';
 
 interface Trial { cueDir: Side | null; targetSide: Side; validity: CueValidity; }
 
-const NEUTRAL_RATIO = 0.15;   // доля нейтральных проб фиксирована — меняется только valid/invalid баланс
+/**
+ * ВАЛИДНОСТЬ ПОДСКАЗКИ — КОНСТАНТА ПАРАДИГМЫ, А НЕ РУЧКА СЛОЖНОСТИ.
+ *
+ * 🔴 БЫЛО: `validRatio = max(0.5, 0.8 - (level-1)*0.022)` — к пятнадцатому уровню
+ * подсказка валидна в половине случаев. Ровно на 50 % она перестаёт нести
+ * информацию: сдвигать внимание заранее незачем, эндогенного ориентирования нет
+ * ПО ПОСТРОЕНИЮ, и `validity_effect_ms` обязан выйти в ноль. Это не «труднее» —
+ * это отсутствие парадигмы. И читается такой ноль наоборот: в батарее оценки
+ * (`assessment.ts`, домен attention_orient, норма 50±30, меньше = лучше) он даёт
+ * z ≈ +1.7 и подпись «сильное ориентирование» — чем выше уровень, тем «лучше».
+ *
+ * То же правило записано в `iowa.tsx`: методика с популяционными нормами
+ * осмысленна только потому, что условие у всех одинаковое.
+ *
+ * Канон Познера — 80/20 среди направленных подсказок. Здесь доля нейтральных
+ * (без направления) 15 %, поэтому валидных 70 % от ВСЕХ проб, то есть
+ * 0.7/0.85 ≈ 82 % среди направленных — внутри канона. Вес сложности перенесён на
+ * интервал cue→target, окно ответа и число проб (`levelParams` ниже).
+ * Сторожит `conflict-ratio-is-not-difficulty.test.ts`.
+ */
+export const VALID_RATIO = 0.7;   // доля валидных подсказок от всех проб
+const NEUTRAL_RATIO = 0.15;       // доля нейтральных проб («+», направления нет)
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 
-// Уровень 1..15 (ось — по образцу cpt): валидность подсказки падает (подсказка чаще
-// врёт), интервал cue→target варьируется сильнее (цель труднее «поймать» по ритму),
-// окно ответа сокращается, число проб растёт ступенями.
-function levelParams(level: number): { trials: number; validRatio: number; windowMs: number; soaMinMs: number; soaMaxMs: number } {
-  const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
-  const validRatio = Math.max(0.5, 0.8 - (level - 1) * 0.022);   // 80% → 50%
+// Уровень 1..15 (ось — по образцу cpt): интервал cue→target варьируется сильнее
+// (цель труднее «поймать» по ритму), окно ответа сокращается, число проб растёт
+// ступенями. Доли типов подсказок осью сложности НЕ являются — см. VALID_RATIO.
+export function levelParams(level: number): { trials: number; windowMs: number; soaMinMs: number; soaMaxMs: number } {
+  const trials = level <= 5 ? 24 : level <= 10 ? 30 : 36;
   const windowMs = Math.max(900, 2200 - (level - 1) * 95);       // 2200мс → 900мс
   const soaMinMs = Math.max(80, 150 - (level - 1) * 5);          // пауза cue→target: от 150-250мс
   const soaMaxMs = Math.min(700, 250 + (level - 1) * 33);        //   до 80-700мс (сильное дрожание)
-  return { trials, validRatio, windowMs, soaMinMs, soaMaxMs };
+  return { trials, windowMs, soaMinMs, soaMaxMs };
 }
 
-function makeTrial(validRatio: number): Trial {
+/**
+ * Проба уровня. Уровень стоит в подписи НАМЕРЕННО, хотя доли типов подсказок от
+ * него не зависят: гейт спрашивает игру по уровням и считает долю информативных
+ * подсказок по реально сгенерированным пробам, а не по строчке в исходнике.
+ */
+export function makeTrial(level: number): Trial {
   const r = Math.random();
   let validity: CueValidity;
-  if (r < validRatio) validity = 'valid';
-  else if (r < validRatio + NEUTRAL_RATIO) validity = 'neutral';
+  if (r < VALID_RATIO) validity = 'valid';
+  else if (r < VALID_RATIO + NEUTRAL_RATIO) validity = 'neutral';
   else validity = 'invalid';
   const targetSide: Side = Math.random() < 0.5 ? 'left' : 'right';
   let cueDir: Side | null;
@@ -105,7 +131,7 @@ export default function PosnerGame() {
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
 
   const [round, setRound] = useState(0);
-  const [totalTrials, setTotalTrials] = useState(12);
+  const [totalTrials, setTotalTrials] = useState(24);
   const [trial, setTrial] = useState<Trial>({ cueDir: null, targetSide: 'left', validity: 'neutral' });
   const [showCue, setShowCue] = useState(false);
   const [showTarget, setShowTarget] = useState(false);
@@ -119,11 +145,10 @@ export default function PosnerGame() {
   // Рефы — таймерная цепочка (cue → пауза → target → дедлайн → следующая проба)
   // живёт вне ре-рендеров, state в её колбэках был бы устаревшим (паттерн cpt/simon).
   const levelRef = useRef(1);
-  const validRatioRef = useRef(0.8);
   const windowMsRef = useRef(2200);
   const soaMinRef = useRef(150);
   const soaMaxRef = useRef(250);
-  const totalTrialsRef = useRef(12);
+  const totalTrialsRef = useRef(24);
   const roundRef = useRef(0);
   const hitsRef = useRef(0);
   const errorsRef = useRef(0);
@@ -148,7 +173,7 @@ export default function PosnerGame() {
 
   const newTrial = () => {
     setShowCue(false); setShowTarget(false); setFeedback(null);
-    const tr = makeTrial(validRatioRef.current);
+    const tr = makeTrial(levelRef.current);
     trialRef.current = tr;
     setTrial(tr);
     cueTimerRef.current = setTimeout(() => {
@@ -185,7 +210,6 @@ export default function PosnerGame() {
   const startGame = () => {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
-    validRatioRef.current = p.validRatio;
     windowMsRef.current = p.windowMs;
     soaMinRef.current = p.soaMinMs;
     soaMaxRef.current = p.soaMaxMs;
@@ -299,7 +323,7 @@ export default function PosnerGame() {
             {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {t('posnerLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(p.validRatio * 100))).replace('{w}', (p.windowMs / 1000).toFixed(1))}
+            {t('posnerLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(VALID_RATIO * 100))).replace('{w}', (p.windowMs / 1000).toFixed(1))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>

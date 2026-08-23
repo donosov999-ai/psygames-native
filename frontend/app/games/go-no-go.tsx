@@ -1,17 +1,18 @@
-/* psygames-game-go-no-go · VER 1 · 19.08.2026 */
+/* psygames-game-go-no-go · VER 2 · 23.08.2026 */
 /**
  * Go/No-Go — классика инхибиторного контроля.
  *
- * Парадигма: на круге вспыхивает GO (зелёный, ~60-80% проб) или NO (красный).
+ * Парадигма: на круге вспыхивает GO (зелёный, 75% проб) или NO (красный, 25%).
  * GO → тапнуть как можно быстрее, NO → удержаться (ничего не жать).
  * Ошибки честно по механике: пропуск GO (miss) И тап на NO (false alarm).
  *
  * Уровни (persist, паттерн cpt/simon): ручной селектор числа проб заменён на
- * usePersistentLevel('go_no_go') + levelParams. Ось усложнения:
+ * usePersistentLevel('go_no_go') + levelParams. Ось усложнения — ТЕМП и ОБЪЁМ:
  *   - окно ответа сокращается 1100мс → 550мс (жать надо всё быстрее)
- *   - доля no-go растёт 20% → ~42% (частые торможения на высоком темпе)
  *   - темп предъявления ускоряется: пауза между пробами 600-1000мс → 280-460мс
- *   - число проб растёт ступенями 24 → 30 → 36
+ *   - число проб растёт ступенями 24 → 32 → 40
+ *   - доля no-go ФИКСИРОВАНА на 25% (VER 2): преобладающая реакция и есть то,
+ *     что тормозят, см. блок над NOGO_PROB
  * Проход уровня: ≥80% верных проб (hits + correct rejections) → LevelCleared (авто-поток).
  *
  * v-fix: прежняя версия держала счётчики в state и параметрах runRound —
@@ -61,17 +62,45 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 const BOSS_EVERY = 3;
 type Stim = 'go' | 'nogo';
 
-// Уровень 1..15: окно ответа сокращается, доля no-go растёт (частые торможения
-// при высоком темпе), межпробная пауза сжимается, число проб растёт ступенями.
-function levelParams(level: number): {
-  trials: number; nogoProb: number; windowMs: number; itiMinMs: number; itiJitterMs: number;
+/**
+ * ДОЛЯ ЗАПРЕТНЫХ ПРОБ — КОНСТАНТА ПАРАДИГМЫ, А НЕ РУЧКА СЛОЖНОСТИ.
+ *
+ * 🔴 БЫЛО: `nogoProb = min(0.42, 0.20 + (level-1)*0.016)` — к пятнадцатому уровню
+ * почти половина проб запретные. Go/No-Go меряет торможение ПРЕОБЛАДАЮЩЕЙ
+ * реакции: смысл в том, что «жать» успевает стать привычкой, и её приходится
+ * ломать. При 42 % запретных привычки не возникает вовсе — тормозить нечего, и
+ * ложные тревоги перестают означать импульсивность: они становятся обычными
+ * ошибками выбора из двух почти равных вариантов. Ручка «сложнее» отменяла
+ * измеряемое явление.
+ *
+ * То же правило записано в `iowa.tsx`: методика осмысленна только потому, что
+ * условие у всех одинаковое. Канон — 20-25 % no-go; взято 25 %: три нажатия на
+ * одно удержание, привычка складывается, а запретных проб хватает, чтобы ложные
+ * тревоги было на чём считать. Вес сложности перенесён на окно ответа, темп
+ * предъявления и число проб (`levelParams` ниже).
+ * Сторожит `conflict-ratio-is-not-difficulty.test.ts`.
+ */
+export const NOGO_PROB = 0.25;
+
+/**
+ * Стимул пробы. Уровень стоит в подписи НАМЕРЕННО, хотя доля запретных от него не
+ * зависит: гейт спрашивает игру по уровням и считает долю преобладающей реакции
+ * по реально сгенерированным пробам, а не по строчке в исходнике.
+ */
+export function pickStim(level: number): Stim {
+  return Math.random() < NOGO_PROB ? 'nogo' : 'go';
+}
+
+// Уровень 1..15: окно ответа сокращается, межпробная пауза сжимается (темп
+// предъявления), число проб растёт ступенями. Доли типов проб — не ось.
+export function levelParams(level: number): {
+  trials: number; windowMs: number; itiMinMs: number; itiJitterMs: number;
 } {
-  const trials = level <= 5 ? 24 : level <= 10 ? 30 : 36;
-  const nogoProb = Math.min(0.42, 0.20 + (level - 1) * 0.016);   // 20% → ~42%
+  const trials = level <= 5 ? 24 : level <= 10 ? 32 : 40;
   const windowMs = Math.max(550, 1100 - (level - 1) * 40);       // 1100мс → 550мс
   const itiMinMs = Math.max(280, 600 - (level - 1) * 24);        // пауза 600мс → 280мс
   const itiJitterMs = Math.max(180, 400 - (level - 1) * 16);     // джиттер 400мс → 180мс
-  return { trials, nogoProb, windowMs, itiMinMs, itiJitterMs };
+  return { trials, windowMs, itiMinMs, itiJitterMs };
 }
 
 export default function GoNoGoGame() {
@@ -101,7 +130,6 @@ export default function GoNoGoGame() {
   // Рефы — таймерная цепочка (стимул → окно → пауза → следующая проба) живёт
   // вне ре-рендеров; state в её колбэках был бы устаревшим (паттерн simon/cpt).
   const levelRef = useRef(1);
-  const nogoProbRef = useRef(0.2);
   const windowMsRef = useRef(1100);
   const itiMinRef = useRef(600);
   const itiJitterRef = useRef(400);
@@ -132,7 +160,7 @@ export default function GoNoGoGame() {
     if (roundRef.current >= totalTrialsRef.current) { finish(); return; }
     roundRef.current += 1;
     setRound(roundRef.current);
-    const stim: Stim = Math.random() < nogoProbRef.current ? 'nogo' : 'go';
+    const stim: Stim = pickStim(levelRef.current);
     stimulusRef.current = stim;
     respondedRef.current = false;
     stimAtRef.current = gameNow();
@@ -154,7 +182,6 @@ export default function GoNoGoGame() {
   const startGame = () => {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
-    nogoProbRef.current = p.nogoProb;
     windowMsRef.current = p.windowMs;
     itiMinRef.current = p.itiMinMs;
     itiJitterRef.current = p.itiJitterMs;
@@ -231,7 +258,7 @@ export default function GoNoGoGame() {
           accuracy: Math.round(accuracy * 100),
           avgRT,
           n_trials: total,
-          nogo_rate: Number(nogoProbRef.current.toFixed(2)),
+          nogo_rate: NOGO_PROB,
           window_ms: windowMsRef.current,
         },
       });
@@ -254,7 +281,7 @@ export default function GoNoGoGame() {
             {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {t('goNoGoLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(p.nogoProb * 100))).replace('{w}', (p.windowMs / 1000).toFixed(2))}
+            {t('goNoGoLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(NOGO_PROB * 100))).replace('{w}', (p.windowMs / 1000).toFixed(2))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
