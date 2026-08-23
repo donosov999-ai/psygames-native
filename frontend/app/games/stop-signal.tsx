@@ -1,21 +1,41 @@
-/* psygames-game-stop-signal · VER 1 · 19.08.2026 */
+/* psygames-game-stop-signal · VER 2 · 23.08.2026 */
 /**
  * Stop-Signal Task — классика inhibitory control (response inhibition).
  *
  * Парадигма: после фиксации появляется сигнал GO — надо нажать кнопку как можно
- * быстрее. В части проб через SSD мс после GO появляется СТОП-сигнал (✋) —
+ * быстрее. В части проб через задержку после GO появляется СТОП-сигнал (✋) —
  * ответ надо подавить (не нажимать). Нажатие на стоп-пробе = failed inhibition
  * (в т.ч. если нажал ДО появления стопа — как в реальном SST, любой ответ на
  * стоп-пробе считается провалом торможения). Пропуск GO = omission-ошибка.
  *
- * Уровни (persist, по паттерну cpt/simon): ручные селекторы сложности и числа
- * проб заменены на usePersistentLevel('stop_signal') + levelParams. Ось усложнения:
- *   - SSD растёт 150мс → 430мс (стоп-сигнал появляется ПОЗЖЕ — ответ уже
- *     запущен, тормозить труднее; race model)
- *   - доля стоп-проб растёт 20% → 40%
- *   - окно ответа сокращается 1400мс → 700мс (темп: медлить с GO тоже нельзя)
- *   - число проб ступенями 12 → 16 → 20
- * Проход уровня: ≥80% верных проб → LevelCleared (авто-поток к следующему).
+ * 🔴 РЕДАКЦИЯ 2 (23.08.2026) — ЗАКРЫТ §2.1 РЕЕСТРА ДЕФЕКТОВ. Было:
+ * `ssd = min(430, 150 + (level−1)*20)` — задержка стоп-сигнала назначалась
+ * НОМЕРОМ УРОВНЯ, лестницы не было. Из-за этого у быстрого игрока торможение
+ * срывалось почти всегда, у медленного удавалось почти всегда, и «счёт» мерил
+ * базовую скорость реакции, а не торможение. Игра называлась «торможение» и
+ * торможения не измеряла — при этом выдавала правдоподобное число, поэтому
+ * никто не замечал.
+ *
+ * Стало:
+ *   · задержка ходит по лестнице 1-вверх/1-вниз (старт 250 мс, шаг 50 мс,
+ *     границы 50…700 мс) и сходится к доле удавшихся торможений ≈ 50%
+ *     у ЛЮБОГО игрока — см. `src/games/stop-signal/core/ladder.ts`;
+ *   · главное число игры — SSRT методом интеграции, и оно НЕ ВЫДАЁТСЯ, когда
+ *     условия применимости не выполнены: вместо правдоподобного числа человек
+ *     получает причину — см. `core/ssrt.ts`;
+ *   · доля стоп-проб 25% вместо прежних 40% (§1 реестра: при 40% преобладающей
+ *     реакции нет, тормозить нечего);
+ *   · уровень крутит ТЕМП и ОКНО ОТВЕТА, задержку не трогает вовсе.
+ *
+ * ⚠️ ЛЕСТНИЦА И ПРОБЫ ПЕРЕЖИВАЮТ ПАРТИЮ (`core/persist.ts`). В партии 12…20
+ * проб, стоп-проб из них три-пять — за один заход лестница не доходит до точки
+ * схождения физически. Поэтому ступень и окно проб хранятся между заходами, как
+ * и в настоящем стоп-сигнале, где SSD не сбрасывается между блоками.
+ *
+ * ⚠️ ПАРТИИ ДО ЭТОЙ РЕДАКЦИИ НЕСРАВНИМЫ С НОВЫМИ, и дело не только в счёте:
+ * поменялась сама задача (доля стоп-проб, происхождение задержки, темп). Поэтому
+ * `mode` теперь `lvl<N>-ssrt`, а не `lvl<N>` — ключ задачи в истории тренировок
+ * (`trainingHistory.taskKey`) от этого расходится, и старое с новым не смешается.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -40,6 +60,23 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
+import {
+  EMPTY_LADDER,
+  MIN_STOP_TRIALS,
+  appendTrials,
+  countStopTrials,
+  estimateSsrt,
+  fillTemplate,
+  getStopSignalStrings,
+  levelParams,
+  loadLadder,
+  nextSsd,
+  saveLadder,
+  type LadderState,
+  type SsrtEstimate,
+  type StopSignalStrings,
+  type StopSignalTrial,
+} from '@/src/games/stop-signal/core';
 
 const GRADIENT = ['#ee0979', '#ff6a00'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -58,30 +95,65 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 type SignalState = 'idle' | 'go' | 'stop' | 'feedback';
 type TrialOutcome = 'go_hit' | 'go_miss' | 'stop_ok' | 'stop_fail';
 
-// Уровень 1..15 (непрерывный маппинг бывшей DIFF-таблицы easy/medium/hard):
-//   - ssd растёт (стоп-сигнал позже = ответ уже запущен = тормозить труднее)
-//   - доля стоп-проб растёт (нельзя расслабиться в «всегда жми»)
-//   - окно ответа сокращается (темп: тянуть с GO тоже нельзя)
-function levelParams(level: number): { trials: number; stopProb: number; ssd: number; goWindow: number } {
-  const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;         // 12 → 16 → 20
-  const ssd = Math.min(430, 150 + (level - 1) * 20);              // 150мс → 430мс
-  const stopProb = Math.min(0.4, 0.2 + (level - 1) * 0.015);      // 20% → 40%
-  const goWindow = Math.max(700, 1400 - (level - 1) * 50);        // 1400мс → 700мс
-  return { trials, stopProb, ssd, goWindow };
+/**
+ * Причина, по которой числа не будет, — человеческим текстом. Каждая ветка
+ * называет СВОЁ условие применимости: «оценка ненадёжна» без причины ничем не
+ * лучше выдуманного числа, потому что не подсказывает, что делать дальше.
+ */
+function doubtLine(strings: StopSignalStrings, est: SsrtEstimate): string {
+  switch (est.doubt) {
+    case 'tooFewStopTrials':
+      return fillTemplate(strings.doubtFewStops, { have: est.stopTrials, need: MIN_STOP_TRIALS });
+    case 'tooManyOmissions':
+      return fillTemplate(strings.doubtOmissions, {
+        pct: Math.round((est.goOmissions / Math.max(1, est.goTrials)) * 100),
+      });
+    case 'pRespondOffTarget':
+      return fillTemplate(strings.doubtOffTarget, { pct: Math.round(est.pInhibit * 100) });
+    case 'raceModelViolated':
+      return strings.doubtRaceViolated;
+    default:
+      return strings.doubtNoData;   // проб нет вовсе — ни стоп-проб, ни ответов GO
+  }
 }
 
 export default function StopSignalGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
+  const strings = getStopSignalStrings(language);
 
   const { isPreset, autostart, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('stop_signal');
+
+  // Лестница задержки: ступень + окно проб. Приезжает из хранилища асинхронно,
+  // поэтому автостарт ждёт и её тоже — иначе первая партия дня пошла бы с 250 мс
+  // человеку, у которого лестница давно стоит на 500.
+  const [ladder, setLadder] = useState<LadderState>(EMPTY_LADDER);
+  const [ladderLoaded, setLadderLoaded] = useState(false);
+  const [estimate, setEstimate] = useState<SsrtEstimate>(() => estimateSsrt([]));
+  const ssdRef = useRef(EMPTY_LADDER.ssdMs);
+  const poolRef = useRef<StopSignalTrial[]>([]);
+  const runTrialsRef = useRef<StopSignalTrial[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    void loadLadder().then((state) => {
+      if (!alive) return;
+      ssdRef.current = state.ssdMs;
+      poolRef.current = state.trials;
+      setLadder(state);
+      setEstimate(estimateSsrt(state.trials));
+      setLadderLoaded(true);
+    });
+    return () => { alive = false; };
+  }, []);
+
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useAutostartWhenReady(() => autostart && lvl.loaded && ladderLoaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);
@@ -99,9 +171,11 @@ export default function StopSignalGame() {
   // Рефы — таймерная цепочка (фиксация → GO → стоп/дедлайн → следующая проба)
   // живёт вне ре-рендеров, state в её колбэках был бы устаревшим (паттерн simon/cpt).
   const levelRef = useRef(1);
-  const stopProbRef = useRef(0.2);
-  const ssdRef = useRef(150);
+  const stopProbRef = useRef(0.25);
   const goWindowRef = useRef(1400);
+  const fixMinRef = useRef(700);
+  const fixJitterRef = useRef(700);
+  const interTrialRef = useRef(600);
   const totalTrialsRef = useRef(12);
   const roundRef = useRef(0);
   const hitsRef = useRef(0);
@@ -109,6 +183,7 @@ export default function StopSignalGame() {
   const correctStopsRef = useRef(0);
   const rtsRef = useRef<number[]>([]);
   const trialIsStopRef = useRef(false);
+  const trialSsdRef = useRef(EMPTY_LADDER.ssdMs);   // ступень, назначенная ЭТОЙ пробе
   const goAtRef = useRef<number>(0);
   const respondedRef = useRef<boolean>(false);
   const startTimeRef = useRef(0);
@@ -128,12 +203,15 @@ export default function StopSignalGame() {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
     stopProbRef.current = p.stopProb;
-    ssdRef.current = p.ssd;
-    goWindowRef.current = p.goWindow;
+    goWindowRef.current = p.goWindowMs;
+    fixMinRef.current = p.fixMinMs;
+    fixJitterRef.current = p.fixJitterMs;
+    interTrialRef.current = p.interTrialMs;
     totalTrialsRef.current = p.trials;
     setTotalTrials(p.trials);
     hitsRef.current = 0; errorsRef.current = 0; correctStopsRef.current = 0;
     rtsRef.current = [];
+    runTrialsRef.current = [];
     roundRef.current = 1;
     setHits(0); setErrors(0); setCorrectStops(0); setRts([]);
     setRound(1);
@@ -150,8 +228,20 @@ export default function StopSignalGame() {
     const finalRts = rtsRef.current;
     const meanRt = finalRts.length ? finalRts.reduce((a, b) => a + b, 0) / finalRts.length : 0;
     const total = totalTrialsRef.current;
+
+    // Пробы партии доливаются в окно замера, ступень лестницы сохраняется как есть.
+    const pool = appendTrials(poolRef.current, runTrialsRef.current);
+    poolRef.current = pool;
+    const nextState: LadderState = { ssdMs: ssdRef.current, trials: pool };
+    setLadder(nextState);
+    void saveLadder(nextState);
+    const est = estimateSsrt(pool);
+    setEstimate(est);
+
     // Проход уровня: ≥80% верных проб (верная = go_hit или stop_ok;
-    // ошибки — ОБЕ по механике: пропуск GO и нажатие на стоп-пробе)
+    // ошибки — ОБЕ по механике: пропуск GO и нажатие на стоп-пробе).
+    // ⚠️ Порог прохождения НЕ трогает SSRT: лестница держит долю торможений
+    // около половины у всех, поэтому мерилом прохождения она быть не может.
     const accuracy = total > 0 ? (h + cs) / total : 0;
     const passed = accuracy >= 0.8;
     if (isPreset) {
@@ -172,10 +262,12 @@ export default function StopSignalGame() {
       await saveSession({
         passed,
         game_type: 'stop_signal',
-        score: Math.max(0, Math.round(h * 50 + cs * 100 - e * 60 - meanRt * 0.1)),
+        // Очки партии — это ОЧКИ, а не биомаркер: они кормят монеты и звёзды.
+        // Биомаркер лежит в details.ssrt_ms и берётся только оттуда.
+        score: Math.max(0, Math.round(h * 50 + cs * 100 - e * 60)),
         time_seconds: totalTime,
         difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
-        mode: `lvl${levelRef.current}`,
+        mode: `lvl${levelRef.current}-ssrt`,
         errors: e,
         details: {
           level: levelRef.current,
@@ -184,7 +276,16 @@ export default function StopSignalGame() {
           correct_stops: cs,
           accuracy: Math.round(accuracy * 100),
           n_trials: total,
-          ssd_ms: ssdRef.current,
+          // ─── замер торможения ───
+          biomarker: 'ssrt_ms',
+          ssrt_method: est.method,
+          ssrt_ms: est.ssrtMs,                 // null = условия применимости не выполнены
+          ssrt_doubt: est.doubt,
+          ssd_ms: ssdRef.current,              // ступень лестницы, а НЕ параметр уровня
+          mean_ssd_ms: est.meanSsdMs,
+          p_inhibit: Math.round(est.pInhibit * 100),
+          pool_trials: est.goTrials + est.stopTrials,
+          pool_stop_trials: est.stopTrials,
         },
       });
     } catch (err) { console.error(err); }
@@ -193,37 +294,51 @@ export default function StopSignalGame() {
   const nextTrial = () => {
     const isStop = Math.random() < stopProbRef.current;
     trialIsStopRef.current = isStop;
+    trialSsdRef.current = ssdRef.current;
     setSignal('idle');
     setFeedback(null);
     respondedRef.current = false;
 
-    const fixDelay = 700 + Math.random() * 700;
+    const fixDelay = fixMinRef.current + Math.random() * fixJitterRef.current;
     goTimerRef.current = setTimeout(() => {
       setSignal('go');
       goAtRef.current = gameNow();
-      // schedule stop signal if applicable (SSD уровня)
+      // стоп-сигнал приходит через ступень ЛЕСТНИЦЫ (не через параметр уровня)
       if (isStop) {
         stopTimerRef.current = setTimeout(() => {
           if (!respondedRef.current) setSignal('stop');
-        }, ssdRef.current);
+        }, trialSsdRef.current);
       }
       // end trial window (окно ответа уровня)
       endTimerRef.current = setTimeout(() => {
         if (respondedRef.current) return;
         // No press — Go = miss; Stop = correct inhibition
-        endTrial(isStop ? 'stop_ok' : 'go_miss', 0);
+        endTrial(isStop ? 'stop_ok' : 'go_miss', null);
       }, goWindowRef.current);
     }, fixDelay);
   };
 
-  const endTrial = (outcome: TrialOutcome, rt: number) => {
+  const endTrial = (outcome: TrialOutcome, rt: number | null) => {
     if (stopTimerRef.current) clearTimeout(stopTimerRef.current);
     if (endTimerRef.current) clearTimeout(endTimerRef.current);
     let fb: 'right' | 'wrong' = 'right';
-    if (outcome === 'go_hit')   { hitsRef.current += 1; rtsRef.current = [...rtsRef.current, rt]; fb = 'right'; }
+    if (outcome === 'go_hit')   { hitsRef.current += 1; rtsRef.current = [...rtsRef.current, rt as number]; fb = 'right'; }
     if (outcome === 'go_miss')  { errorsRef.current += 1; fb = 'wrong'; }
     if (outcome === 'stop_ok')  { correctStopsRef.current += 1; fb = 'right'; }
     if (outcome === 'stop_fail'){ errorsRef.current += 1; fb = 'wrong'; }
+
+    const isStop = outcome === 'stop_ok' || outcome === 'stop_fail';
+    runTrialsRef.current = [...runTrialsRef.current, {
+      isStop,
+      ssdMs: isStop ? trialSsdRef.current : null,
+      rtMs: rt,
+      goWindowMs: goWindowRef.current,
+    }];
+    // ⚠️ Шаг лестницы делается ТОЛЬКО по стоп-пробе и в ОБЕ стороны: удержался —
+    // вверх (труднее), сорвался — вниз. Односторонний шаг увёл бы задержку в
+    // потолок и вернул бы ровно ту дыру, ради которой лестницу заводили.
+    if (isStop) ssdRef.current = nextSsd(ssdRef.current, outcome === 'stop_ok');
+
     setHits(hitsRef.current); setErrors(errorsRef.current); setCorrectStops(correctStopsRef.current);
     setRts([...rtsRef.current]);
     setSignal('feedback'); setFeedback(fb);
@@ -233,7 +348,7 @@ export default function StopSignalGame() {
       roundRef.current += 1;
       setRound(roundRef.current);
       nextTrial();
-    }, 600);
+    }, interTrialRef.current);
   };
 
   const onPressGo = () => {
@@ -247,6 +362,8 @@ export default function StopSignalGame() {
   };
 
   const meanRt = rts.length ? Math.round(rts.reduce((a, b) => a + b, 0) / rts.length) : 0;
+  const poolStops = countStopTrials(ladder.trials);
+  const ssrtValue = estimate.ssrtMs === null ? '—' : `${estimate.ssrtMs}${t('msShort')}`;
 
   const renderConfig = () => {
     const p = levelParams(lvl.level);
@@ -263,8 +380,14 @@ export default function StopSignalGame() {
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}
           </Text>
+          {/* Параметры уровня БЕЗ задержки: она принадлежит лестнице, а не уровню. */}
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {t('stopSignalLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(p.stopProb * 100))).replace('{d}', String(p.ssd)).replace('{w}', (p.goWindow / 1000).toFixed(1))}
+            {fillTemplate(strings.lvlParams, {
+              n: p.trials,
+              p: Math.round(p.stopProb * 100),
+              w: (p.goWindowMs / 1000).toFixed(1),
+              f: (p.fixMinMs / 1000).toFixed(1),
+            })}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
@@ -277,6 +400,50 @@ export default function StopSignalGame() {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* ЗАМЕР ТОРМОЖЕНИЯ — то, ради чего игра существует. */}
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text, fontSize: 16 }]}>{strings.ladderTitle}</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13 }}>{strings.ladderHint}</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13 }}>{strings.raceHint}</Text>
+          {/* 🔴 Ступень НЕ показывается во время партии — и вот почему. */}
+          <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{strings.ssdHidden}</Text>
+
+          <View style={styles.measureRow}>
+            <Text style={[styles.measureLabel, { color: colors.textSecondary }]}>{strings.ssdLabel}</Text>
+            <Text style={[styles.measureValue, { color: colors.text }]}>{ladder.ssdMs}{t('msShort')}</Text>
+          </View>
+          <View style={styles.measureRow}>
+            <Text style={[styles.measureLabel, { color: colors.textSecondary }]}>{strings.inhibitionLabel}</Text>
+            <Text style={[styles.measureValue, { color: colors.text }]}>{Math.round(estimate.pInhibit * 100)}%</Text>
+          </View>
+          <View style={styles.measureRow}>
+            <Text style={[styles.measureLabel, { color: colors.textSecondary }]}>{strings.goRtLabel}</Text>
+            <Text style={[styles.measureValue, { color: colors.text }]}>{estimate.meanGoRtMs}{t('msShort')}</Text>
+          </View>
+          <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+            {fillTemplate(strings.poolLabel, { n: ladder.trials.length, stop: poolStops })}
+          </Text>
+
+          {estimate.trustworthy ? (
+            <>
+              <View style={styles.measureRow}>
+                <Text style={[styles.measureLabel, { color: colors.text, fontWeight: '700' }]}>{strings.ssrtLabel}</Text>
+                <Text style={[styles.measureValue, { color: GRADIENT[0], fontSize: 20 }]}>{ssrtValue}</Text>
+              </View>
+              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{strings.ladderStable}</Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{strings.ssrtHint}</Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{strings.methodNote}</Text>
+            </>
+          ) : (
+            <>
+              {/* Правдоподобное число здесь было бы враньём — вместо него причина. */}
+              <Text style={{ color: colors.text, fontSize: 13, fontWeight: '700' }}>{strings.ssrtUnsure}</Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{doubtLine(strings, estimate)}</Text>
+            </>
+          )}
+        </View>
+
         <TouchableOpacity
           accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
           <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
@@ -361,10 +528,19 @@ export default function StopSignalGame() {
       )}
       {phase === 'result' && (
         <GameResult
-          score={Math.max(0, Math.round(hits * 50 + correctStops * 100 - errors * 60 - meanRt * 0.1))}
+          score={Math.max(0, Math.round(hits * 50 + correctStops * 100 - errors * 60))}
           time={meanRt / 1000} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
-          gradient={GRADIENT as [string, string]} />
+          gradient={GRADIENT as [string, string]}
+          metrics={[
+            { label: strings.ssrtLabel, value: ssrtValue, icon: 'hand-left-outline' },
+            { label: strings.ssdLabel, value: `${ladder.ssdMs}${t('msShort')}`, icon: 'timer-outline' },
+            { label: strings.inhibitionLabel, value: `${Math.round(estimate.pInhibit * 100)}%`, icon: 'pause-circle-outline' },
+          ]}
+          metricsNote={estimate.trustworthy
+            ? [strings.ssrtHint, strings.methodNote]
+            : [strings.ssrtUnsure, doubtLine(strings, estimate)]}
+        />
       )}
     </SafeAreaView>
   );
@@ -385,6 +561,9 @@ const styles = StyleSheet.create({
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
+  measureRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
+  measureLabel: { fontSize: 13, flexShrink: 1 },
+  measureValue: { fontSize: 15, fontWeight: '700' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },

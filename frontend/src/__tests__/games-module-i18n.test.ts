@@ -85,6 +85,11 @@ import {
   ProofSeriesLocale,
   getProofSeriesStrings,
 } from '@/src/games/proofreading/core/i18n';
+import {
+  STOP_SIGNAL_LOCALES,
+  StopSignalLocale,
+  getStopSignalStrings,
+} from '@/src/games/stop-signal/core/i18n';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -233,6 +238,15 @@ const MODULES: ModuleUnderTest[] = [
     id: 'proofreading',
     locales: PROOF_SERIES_LOCALES,
     strings: (l: ProofSeriesLocale) => getProofSeriesStrings(l) as any,
+    labels: [],
+  },
+  {
+    // Замер торможения в стоп-сигнале (23.08.2026). Подписи лестницы задержки и
+    // SSRT нужны одному экрану; в общем словаре приложения их нет намеренно —
+    // тот файл держит все игры и правится параллельными заходами.
+    id: 'stop-signal',
+    locales: STOP_SIGNAL_LOCALES,
+    strings: (l: StopSignalLocale) => getStopSignalStrings(l) as any,
     labels: [],
   },
 ];
