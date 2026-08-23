@@ -67,7 +67,7 @@ import {
   sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
   rejectionReason,
 } from '@/src/services/sudoku-core';
-import { generateLogical, gradePuzzle, logicalBuilder } from '@/src/services/sudoku-grade';
+import { gradePuzzle, logicalBuilder } from '@/src/services/sudoku-grade';
 import { bankBoardForLevel, bankPickForLevel, BANK_N } from '@/src/services/sudoku-bank';
 import { fractalTechniqueKey } from '@/src/services/fractalLevels';
 import {

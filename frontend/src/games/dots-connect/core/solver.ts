@@ -370,3 +370,383 @@ export function solveDotsPuzzle(puzzle: DotsPuzzle, maxSteps = 4_000_000): DotsS
   }
   return validateDotsSolution(puzzle, solution).complete ? solution : null;
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// СТУПЕНИ РАССУЖДЕНИЯ — ЧЕМ ДОСКА ТРУДНА, А НЕ КАКОГО ОНА РАЗМЕРА
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * 🔴 ЗАЧЕМ ЭТО ВООБЩЕ. До сих пор сложность «Соедини точки» задавалась ТОЛЬКО
+ * строением доски: размер 5→10, число пар 4→14, нижняя длина пути 3→5
+ * (`dotsLevelPlan`). Ни одна из трёх осей не говорит, СКОЛЬКО РАССУЖДЕНИЯ
+ * доска требует: большая доска может закрываться вслепую, а маленькая требовать
+ * плана. Числа замера — в шапке `dots-difficulty-ladder.test.ts`.
+ *
+ * ПРИЁМ ВЗЯТ У SIMON TATHAM (`puzzles/tracks.c`, MIT). Там решатель принимает
+ * СТУПЕНЬ (`tracks_solve(state, diff)`), более трудный вывод включается только
+ * при `diff >= DIFF_TRICKY`, а генератор (`add_clues(state, rs, diff)`) достраивает
+ * доску, пока её не решит решатель ЗАДАННОЙ ступени. Смысл приёма: сложность —
+ * это КАКАЯ ТЕХНИКА НУЖНА, и это ПРОВЕРЯЕТСЯ решателем, а не обещается формулой.
+ * Код Тэтхэма на C и сюда не переносился — перенесён приём.
+ *
+ * СПИСОК СТУПЕНЕЙ (аналог его `DIFFLIST`) — снизу вверх. Следующая ступень
+ * («коридоры», «парность», проба глубиной в два хода) вписывается сюда одной
+ * строкой: и генератор, и гейт работают со СПИСКОМ, а не с зашитыми именами.
+ */
+export const DOTS_TIERS = ['forced', 'contradiction', 'search'] as const;
+export type DotsTier = (typeof DOTS_TIERS)[number];
+
+/** Номер ступени в списке: чем больше, тем труднее требуемая техника. */
+export function dotsTierRank(tier: DotsTier): number {
+  return DOTS_TIERS.indexOf(tier);
+}
+
+/**
+ * СТУПЕНЬ «ВЫНУЖДЕННЫЙ» — РАССУЖДЕНИЕ ПО РЁБРАМ, БЕЗ ЕДИНОЙ ДОГАДКИ.
+ *
+ * 🔴 ПОЧЕМУ НЕ «ВЕДЁМ ПУТЬ ОТ ТОЧКИ». Первая редакция этой ступени растила путь
+ * от головы пары и делала ход, только если альтернативы нет. Замер 23.08.2026:
+ * так закрывалось 0 досок из 100 НА КАЖДОМ уровне — не потому, что доски
+ * трудные, а потому, что рассуждение было слепым: пока голова не упёрлась в
+ * стену, вынужденных ходов почти не бывает, и ступень не отличала ничего от
+ * ничего.
+ *
+ * ЧТО ЗДЕСЬ. Человек за такой доской рассуждает не «куда пойдёт голова», а
+ * «сколько рёбер сходится в клетке». Условие полного покрытия даёт ровно две
+ * жёсткие цифры:
+ *   · клетка-точка лежит на КОНЦЕ своего пути → у неё ровно ОДНО ребро;
+ *   · любая другая клетка лежит в СЕРЕДИНЕ чьего-то пути → ровно ДВА ребра.
+ * Отсюда три правила, каждое — «альтернативы нет»:
+ *   A. рёбер уже столько, сколько нужно → все остальные ЗАПРЕЩЕНЫ;
+ *   B. проведённых плюс нерешённых ровно столько, сколько нужно → все
+ *      нерешённые ОБЯЗАНЫ быть проведены (тупик, который надо закрыть);
+ *   C. ребро, замыкающее кольцо или сшивающее куски РАЗНЫХ пар, невозможно →
+ *      запрещено.
+ * Правила гоняются до неподвижной точки. Застряли — доска требует перебора.
+ *
+ * ⚠️ ДОГАДОК ЗДЕСЬ НЕТ И БЫТЬ НЕ ДОЛЖНО. Как только сюда попадёт «а попробуем
+ * первое попавшееся ребро», ступень `forced` сравняется с `search`, лесенка
+ * станет декоративной, а гейт этого не увидит — он спрашивает решателя. Ровно
+ * поэтому гейт разбирает вынужденные ходы СВОИМ кодом, а не этим.
+ */
+interface EdgeBoard {
+  size: number;
+  cells: number;
+  need: Int8Array;      // требуемая степень клетки: 1 у точки, 2 у остальных
+  dotOf: Int16Array;    // индекс пары, если клетка — точка, иначе -1
+  drawn: Int8Array;     // сколько рёбер уже проведено
+  open: Int8Array;      // сколько рёбер ещё не решено
+  edge: Int8Array;      // 0 не решено · 1 проведено · 2 запрещено
+  edgeFrom: Int32Array;
+  edgeTo: Int32Array;
+  edgeIds: Int32Array;  // список настоящих рёбер сетки
+  edgeCount: number;
+  parent: Int32Array;   // объединение кусков, уже сшитых рёбрами
+  colour: Int16Array;   // пара, которой принадлежит кусок (по корню), иначе -1
+}
+
+/** Ребро между соседними клетками: горизонтальное `at*2`, вертикальное `at*2+1`. */
+function edgeBetween(from: number, to: number, size: number): number {
+  if (to === from + 1) return from * 2;
+  if (to === from - 1) return to * 2;
+  if (to === from + size) return from * 2 + 1;
+  return to * 2 + 1;
+}
+
+function buildEdgeBoard(puzzle: DotsPuzzle): EdgeBoard | null {
+  const size = puzzle.size;
+  if (!Number.isInteger(size) || size < 2) return null;
+  const cells = size * size;
+  const dotOf = new Int16Array(cells).fill(-1);
+  for (let index = 0; index < puzzle.pairs.length; index += 1) {
+    const [from, to] = puzzle.pairs[index]!.endpoints;
+    for (const end of [from, to]) {
+      if (!isInBounds(end, size)) return null;
+      const at = end.row * size + end.col;
+      if (dotOf[at] !== -1) return null;
+      dotOf[at] = index;
+    }
+  }
+  const need = new Int8Array(cells);
+  const open = new Int8Array(cells);
+  for (let at = 0; at < cells; at += 1) need[at] = dotOf[at] >= 0 ? 1 : 2;
+
+  const edge = new Int8Array(cells * 2).fill(2);
+  const edgeFrom = new Int32Array(cells * 2).fill(-1);
+  const edgeTo = new Int32Array(cells * 2).fill(-1);
+  const edgeIds = new Int32Array(cells * 2);
+  let edgeCount = 0;
+  for (let row = 0; row < size; row += 1) {
+    for (let col = 0; col < size; col += 1) {
+      const at = row * size + col;
+      if (col < size - 1) {
+        const id = at * 2;
+        edge[id] = 0; edgeFrom[id] = at; edgeTo[id] = at + 1;
+        edgeIds[edgeCount] = id; edgeCount += 1;
+        open[at] += 1; open[at + 1] += 1;
+      }
+      if (row < size - 1) {
+        const id = at * 2 + 1;
+        edge[id] = 0; edgeFrom[id] = at; edgeTo[id] = at + size;
+        edgeIds[edgeCount] = id; edgeCount += 1;
+        open[at] += 1; open[at + size] += 1;
+      }
+    }
+  }
+  const parent = new Int32Array(cells);
+  const colour = new Int16Array(cells).fill(-1);
+  for (let at = 0; at < cells; at += 1) {
+    parent[at] = at;
+    colour[at] = dotOf[at];
+  }
+  return {
+    size, cells, need, dotOf, drawn: new Int8Array(cells), open, edge,
+    edgeFrom, edgeTo, edgeIds, edgeCount, parent, colour,
+  };
+}
+
+function findRoot(board: EdgeBoard, at: number): number {
+  let root = at;
+  while (board.parent[root] !== root) root = board.parent[root] as number;
+  let walk = at;
+  while (board.parent[walk] !== root) {
+    const next = board.parent[walk] as number;
+    board.parent[walk] = root;
+    walk = next;
+  }
+  return root;
+}
+
+/** Провести ребро. `false` — противоречие: доска в этой ветке невозможна. */
+function drawEdge(board: EdgeBoard, id: number): boolean {
+  if (board.edge[id] === 1) return true;
+  if (board.edge[id] === 2) return false;
+  const from = board.edgeFrom[id] as number;
+  const to = board.edgeTo[id] as number;
+  board.edge[id] = 1;
+  board.drawn[from] += 1; board.open[from] -= 1;
+  board.drawn[to] += 1; board.open[to] -= 1;
+  if (board.drawn[from] > board.need[from] || board.drawn[to] > board.need[to]) return false;
+  const left = findRoot(board, from);
+  const right = findRoot(board, to);
+  if (left === right) return false;                                  // кольцо
+  const leftColour = board.colour[left] as number;
+  const rightColour = board.colour[right] as number;
+  if (leftColour >= 0 && rightColour >= 0 && leftColour !== rightColour) return false;
+  board.parent[left] = right;
+  board.colour[right] = rightColour >= 0 ? rightColour : leftColour;
+  return true;
+}
+
+/** Запретить ребро. `false` — противоречие: клетке нечем набрать свою степень. */
+function banEdge(board: EdgeBoard, id: number): boolean {
+  if (board.edge[id] === 2) return true;
+  if (board.edge[id] === 1) return false;
+  const from = board.edgeFrom[id] as number;
+  const to = board.edgeTo[id] as number;
+  board.edge[id] = 2;
+  board.open[from] -= 1; board.open[to] -= 1;
+  if (board.drawn[from] + board.open[from] < board.need[from]) return false;
+  if (board.drawn[to] + board.open[to] < board.need[to]) return false;
+  return true;
+}
+
+function edgesOf(board: EdgeBoard, at: number, out: number[]): void {
+  out.length = 0;
+  const { size } = board;
+  const row = Math.floor(at / size);
+  const col = at % size;
+  if (row > 0) out.push(edgeBetween(at, at - size, size));
+  if (row < size - 1) out.push(edgeBetween(at, at + size, size));
+  if (col > 0) out.push(edgeBetween(at, at - 1, size));
+  if (col < size - 1) out.push(edgeBetween(at, at + 1, size));
+}
+
+/** Гоняет правила A, B, C до неподвижной точки. `false` — противоречие. */
+function propagate(board: EdgeBoard): boolean {
+  const around: number[] = [];
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let at = 0; at < board.cells; at += 1) {
+      const drawn = board.drawn[at] as number;
+      const open = board.open[at] as number;
+      const need = board.need[at] as number;
+      if (drawn > need || drawn + open < need) return false;
+      if (open === 0) continue;
+      if (drawn === need) {                                          // правило A
+        edgesOf(board, at, around);
+        for (const id of around) {
+          if (board.edge[id] !== 0) continue;
+          if (!banEdge(board, id)) return false;
+          changed = true;
+        }
+      } else if (drawn + open === need) {                            // правило B
+        edgesOf(board, at, around);
+        for (const id of around) {
+          if (board.edge[id] !== 0) continue;
+          if (!drawEdge(board, id)) return false;
+          changed = true;
+        }
+      }
+    }
+    for (let index = 0; index < board.edgeCount; index += 1) {       // правило C
+      const id = board.edgeIds[index] as number;
+      if (board.edge[id] !== 0) continue;
+      const left = findRoot(board, board.edgeFrom[id] as number);
+      const right = findRoot(board, board.edgeTo[id] as number);
+      const leftColour = board.colour[left] as number;
+      const rightColour = board.colour[right] as number;
+      if (left !== right && !(leftColour >= 0 && rightColour >= 0 && leftColour !== rightColour)) continue;
+      if (!banEdge(board, id)) return false;
+      changed = true;
+    }
+  }
+  return true;
+}
+
+/** Собирает пути из проведённых рёбер. `null` — рёбра ещё не сложились в пути. */
+function readEdgePaths(board: EdgeBoard, puzzle: DotsPuzzle): DotsSolution | null {
+  const solution: DotsSolution = {};
+  const around: number[] = [];
+  for (let index = 0; index < puzzle.pairs.length; index += 1) {
+    const start = puzzle.pairs[index]!.endpoints[0];
+    const startAt = start.row * board.size + start.col;
+    const path: number[] = [startAt];
+    let previous = -1;
+    let current = startAt;
+    for (let guard = 0; guard <= board.cells; guard += 1) {
+      if (current !== startAt && board.dotOf[current] === index) break;
+      edgesOf(board, current, around);
+      let next = -1;
+      for (const id of around) {
+        if (board.edge[id] !== 1) continue;
+        const other = (board.edgeFrom[id] as number) === current
+          ? (board.edgeTo[id] as number)
+          : (board.edgeFrom[id] as number);
+        if (other === previous) continue;
+        next = other;
+        break;
+      }
+      if (next < 0) return null;
+      path.push(next);
+      previous = current;
+      current = next;
+    }
+    if (board.dotOf[current] !== index || current === startAt) return null;
+    solution[puzzle.pairs[index]!.id] = path.map((at) => ({
+      row: Math.floor(at / board.size),
+      col: at % board.size,
+    } as Cell));
+  }
+  return solution;
+}
+
+function isSettled(board: EdgeBoard): boolean {
+  for (let at = 0; at < board.cells; at += 1) {
+    if (board.drawn[at] !== board.need[at]) return false;
+  }
+  return true;
+}
+
+function cloneEdgeBoard(board: EdgeBoard): EdgeBoard {
+  return {
+    ...board,
+    drawn: board.drawn.slice(),
+    open: board.open.slice(),
+    edge: board.edge.slice(),
+    parent: board.parent.slice(),
+    colour: board.colour.slice(),
+  };
+}
+
+function solveForced(puzzle: DotsPuzzle): DotsSolution | null {
+  const board = buildEdgeBoard(puzzle);
+  if (!board) return null;
+  if (!propagate(board)) return null;
+  if (!isSettled(board)) return null;                                // застряли
+  return readEdgePaths(board, puzzle);
+}
+
+/**
+ * СТУПЕНЬ «ОТ ПРОТИВНОГО» — ТОЖЕ БЕЗ ДОГАДОК, НО НА ХОД ГЛУБЖЕ.
+ *
+ * Человек, у которого прямые правила кончились, рассуждает так: «допустим,
+ * это ребро проведено — тогда вон та клетка остаётся без пары, значит ребра
+ * здесь НЕТ». Вывод получается такой же жёсткий, как у правил A/B/C: это не
+ * попытка угадать, это доказательство от противного глубиной в один ход.
+ *
+ * ⚠️ ОТЛИЧИЕ ОТ ПЕРЕБОРА. Перебор ставит предположение и ЖИВЁТ в нём, пока не
+ * упрётся, а упёршись — откатывается и пробует другое; человек так за доской не
+ * играет, он это место просто угадывает. Здесь предположение живёт ровно до
+ * ответа «противоречие / не противоречие» и всегда откатывается: доска
+ * меняется только тогда, когда противоречие ДОКАЗАНО. Ни одной догадки в
+ * итоговом решении не остаётся.
+ */
+function solveByContradiction(puzzle: DotsPuzzle): DotsSolution | null {
+  const board = buildEdgeBoard(puzzle);
+  if (!board) return null;
+  if (!propagate(board)) return null;
+  /**
+   * ⚠️ ПОТОЛОК ПРОБ — НЕ БЮДЖЕТ, А СТРАХОВКА ОТ ЗАВИСАНИЯ, И ОН ЗАВЕДОМО
+   * НЕДОСТИЖИМ. Проход по всем рёбрам стоит не больше 2E проб и либо доказывает
+   * хотя бы одно ребро, либо заканчивает ступень; доказанных рёбер не больше E.
+   * Значит проб не больше 2E², и потолок ниже этого числа означал бы «ступень
+   * зависит от константы» — а тогда чужой разбор в гейте имел бы полное право
+   * разойтись с этим решателем. Пусть лучше страховка никогда не срабатывает.
+   */
+  const maxTrials = 2 * board.edgeCount * board.edgeCount + 1;
+  let trials = 0;
+  while (!isSettled(board)) {
+    let progress = false;
+    for (let index = 0; index < board.edgeCount; index += 1) {
+      const id = board.edgeIds[index] as number;
+      if (board.edge[id] !== 0) continue;
+      if (trials >= maxTrials) return null;
+      trials += 1;
+      const asDrawn = cloneEdgeBoard(board);
+      if (!drawEdge(asDrawn, id) || !propagate(asDrawn)) {
+        if (!banEdge(board, id) || !propagate(board)) return null;
+        progress = true;
+        continue;
+      }
+      const asBanned = cloneEdgeBoard(board);
+      if (!banEdge(asBanned, id) || !propagate(asBanned)) {
+        if (!drawEdge(board, id) || !propagate(board)) return null;
+        progress = true;
+      }
+    }
+    if (!progress) return null;                                      // застряли
+  }
+  return readEdgePaths(board, puzzle);
+}
+
+/**
+ * Решает доску РОВНО НА ЗАДАННОЙ СТУПЕНИ: техники выше указанной выключены.
+ * `null` значит «этой ступени не хватило» — содержательный ответ, а не ошибка:
+ * по нему генератор и отбирает доску для уровня.
+ */
+export function solveDotsPuzzleAt(
+  puzzle: DotsPuzzle,
+  tier: DotsTier,
+  maxSteps = 4_000_000,
+): DotsSolution | null {
+  if (tier === 'search') return solveDotsPuzzle(puzzle, maxSteps);
+  const solution = tier === 'forced'
+    ? solveForced(puzzle)
+    : solveByContradiction(puzzle);
+  if (!solution) return null;
+  return validateDotsSolution(puzzle, solution).complete ? solution : null;
+}
+
+/**
+ * САМАЯ НИЗКАЯ СТУПЕНЬ, КОТОРОЙ ДОСКА ПОДДАЁТСЯ — это и есть её сложность по
+ * требуемому рассуждению. `null` — не поддалась ни одной; для наших досок это
+ * означало бы поломку: решение у них есть по построению.
+ */
+export function dotsPuzzleTier(puzzle: DotsPuzzle, maxSteps = 4_000_000): DotsTier | null {
+  for (const tier of DOTS_TIERS) {
+    if (solveDotsPuzzleAt(puzzle, tier, maxSteps)) return tier;
+  }
+  return null;
+}

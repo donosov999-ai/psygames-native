@@ -1,4 +1,4 @@
-/* psygames-game-dots-connect · VER 4 · 23.08.2026 */
+/* psygames-game-dots-connect · VER 5 · 23.08.2026 */
 /**
  * Соедини точки — пути между парами, которые обязаны занять ВСЮ сетку.
  *
