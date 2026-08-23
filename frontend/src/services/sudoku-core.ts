@@ -583,13 +583,113 @@ export function solve(grid: Cell[][], N: number, BR: number, BC: number, variant
  * «не доказали единственность» (клетку при выкалывании не трогаем).
  * Мутирует grid во время обхода, но возвращает его в исходное состояние.
  */
-export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], limit = 2, budget: { steps: number } = { steps: 8000 }, thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap): number {
+/**
+ * ОВЕРЛЕИ — ПОДСКАЗКИ, КОТОРЫЕ ВИДИТ ИГРОК, НО НЕ ЗНАЛ ДВИЖОК.
+ *
+ * 🔴 Что было (`TODO(unique)`, снят 23.08.2026). Метки чётности, точки кропки и суммы
+ * сэндвича раздаются игроку, но `isValid` про них не знает — значит единственность
+ * считалась по БАЗОВОЙ судоку. Подсказка отдавалась даром и никогда не могла оправдать
+ * снятие лишней цифры. А/Б на ОДНИХ решениях и одном порядке копания, по 6 досок:
+ *   чётность 56,0 → 66,7 пустых · кропки 56,0 → 70,0 · сэндвич 56,2 → 67,0
+ *
+ * 🔴 И ГЛАВНАЯ ЛОВУШКА, НА КОТОРОЙ Я УЖЕ ОДИН РАЗ СЛОМАЛСЯ. Копать надо ТЕМИ ЖЕ
+ * подсказками, что увидит человек. Первая редакция копала полным набором меток, а
+ * `thinMarkers` прятал часть ПОСЛЕ — и доска, единственная для движка, оказывалась
+ * неоднозначной для игрока. Гейт `sudoku-unique-levels` тут же выдал «L30 evenodd →
+ * решений 2»: ровно тот баг, который нашла Валя и ради которого проверку и заводили.
+ * Поэтому прореживание передаётся ВНУТРЬ генератора (`thin`), а не применяется после.
+ *
+ * ⚠️ ОТСУТСТВИЕ ТОЧКИ — НЕ ПОДСКАЗКА. Показываются не все грани, поэтому пустая грань
+ * не означает «связи нет». Проверяем ТОЛЬКО показанные.
+ * ⚠️ СЭНДВИЧ ПРОВЕРЯЕТСЯ, ТОЛЬКО КОГДА УЧАСТОК ДОСТРОЕН: сумма строго между 1 и 9
+ * известна лишь когда обе стоят и всё между ними заполнено.
+ */
+export interface Overlays {
+  parity?: number[][];                        // 1 = чёт, 2 = нечет, 0 = метки нет
+  kropki?: { h: number[][]; v: number[][] };  // 2 = чёрная, 1 = белая, 0 = НЕ ПОКАЗАНА
+  sandwich?: { rows: number[]; cols: number[] };
+}
+
+/** Полные оверлеи из решения — до прореживания. */
+export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant): Overlays {
+  if (variant === 'evenodd') {
+    const parity = Array.from({ length: N }, () => Array(N).fill(0));
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) parity[r][c] = sol[r][c] % 2 === 0 ? 1 : 2;
+    return { parity };
+  }
+  if (variant === 'kropki') {
+    const dot = (a: number, b: number) => (Math.max(a, b) === 2 * Math.min(a, b) ? 2 : Math.abs(a - b) === 1 ? 1 : 0);
+    const h = Array.from({ length: N }, () => Array(N).fill(0));
+    const v = Array.from({ length: N }, () => Array(N).fill(0));
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (c < N - 1) h[r][c] = dot(sol[r][c], sol[r][c + 1]);
+      if (r < N - 1) v[r][c] = dot(sol[r][c], sol[r + 1][c]);
+    }
+    return { kropki: { h, v } };
+  }
+  if (variant === 'sandwich') {
+    const between = (line: number[]) => {
+      const i1 = line.indexOf(1), i9 = line.indexOf(9);
+      if (i1 < 0 || i9 < 0) return 0;
+      const [a, b] = i1 < i9 ? [i1, i9] : [i9, i1];
+      let t = 0; for (let k = a + 1; k < b; k++) t += line[k];
+      return t;
+    };
+    return { sandwich: { rows: sol.map((row) => between(row)), cols: Array.from({ length: N }, (_, c) => between(sol.map((row) => row[c]))) } };
+  }
+  return {};
+}
+
+/** Не нарушает ли цифра `n` в клетке (r,c) ПОКАЗАННЫЕ игроку подсказки. */
+export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: number, ov?: Overlays): boolean {
+  if (!ov) return true;
+
+  if (ov.parity) {
+    const m = ov.parity[r][c];
+    if (m === 1 && n % 2 !== 0) return false;
+    if (m === 2 && n % 2 === 0) return false;
+  }
+
+  if (ov.kropki) {
+    const rel = (d: number, a: number, b: number) => (d === 2 ? Math.max(a, b) === 2 * Math.min(a, b) : Math.abs(a - b) === 1);
+    const edges: [number, number, number][] = [];
+    if (c < N - 1) edges.push([ov.kropki.h[r][c], r, c + 1]);
+    if (c > 0) edges.push([ov.kropki.h[r][c - 1], r, c - 1]);
+    if (r < N - 1) edges.push([ov.kropki.v[r][c], r + 1, c]);
+    if (r > 0) edges.push([ov.kropki.v[r - 1][c], r - 1, c]);
+    for (const [d, nr, nc] of edges) {
+      if (d === 0) continue;                                          // точки НЕ показано — ничего не утверждаем
+      const nb = grid[nr][nc];
+      if (nb !== 0 && !rel(d, n, nb)) return false;
+    }
+  }
+
+  if (ov.sandwich) {
+    const check = (line: number[], want: number): boolean => {
+      if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
+      const i1 = line.indexOf(1), i9 = line.indexOf(9);
+      if (i1 < 0 || i9 < 0) return true;
+      const [a, b] = i1 < i9 ? [i1, i9] : [i9, i1];
+      let t = 0;
+      for (let k = a + 1; k < b; k++) { if (line[k] === 0) return true; t += line[k]; }
+      return t === want;
+    };
+    const row = grid[r].slice(); row[c] = n;
+    if (!check(row, ov.sandwich.rows[r])) return false;
+    const col = grid.map((x) => x[c]); col[r] = n;
+    if (!check(col, ov.sandwich.cols[c])) return false;
+  }
+
+  return true;
+}
+
+export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], limit = 2, budget: { steps: number } = { steps: 8000 }, thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap, ov?: Overlays): number {
   let count = 0;
   const walk = (): boolean => {   // true = стоп (достигли limit или кончился бюджет)
     let bR = -1, bC = -1, bCands: number[] | null = null, bCount = N + 1;
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (grid[r][c] === 0) {
       const cands: number[] = [];
-      for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions, thermo, arrow, cages)) cands.push(n);
+      for (let n = 1; n <= N; n++) if (isValid(grid, r, c, n, N, BR, BC, variant, regions, thermo, arrow, cages) && overlayOk(grid, r, c, n, N, ov)) cands.push(n);
       if (cands.length < bCount) { bCount = cands.length; bR = r; bC = c; bCands = cands; if (bCount === 0) return false; }
     }
     if (bR < 0) { count++; return count >= limit; }
@@ -649,7 +749,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none'): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -687,6 +787,14 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
     solve(sol, N, BR, BC, variant);
   }
   const puzzle: Cell[][] = sol.map((row) => [...row]);
+  /**
+   * 🔴 ОВЕРЛЕИ СЧИТАЮТСЯ ДО КОПАНИЯ, И УЖЕ ПРОРЕЖЁННЫМИ. Копаем ровно тем набором
+   * подсказок, который увидит человек: `thin` приходит от вызывающего (плотность
+   * зависит от уровня, см. `markerDensity`). Прежде метки резались ПОСЛЕ генерации,
+   * и доска, единственная для движка, оказывалась неоднозначной для игрока —
+   * «L30 evenodd → решений 2», тот самый репорт Вали.
+   */
+  const ov = thin ? thin(overlaysFromSolution(sol, N, variant)) : overlaysFromSolution(sol, N, variant);
   const positions = shuffle(Array.from({ length: N * N }, (_, i) => i));
   const effVariant = (variant === 'jigsaw' && !regions) || (variant === 'thermo' && !thermo) || (variant === 'arrow' && !arrow) || (variant === 'thermocage' && !cages) ? 'none' : variant;   // фолбэк генерации → чекаем как классику
   if (UNIQUE_CHECKED.includes(effVariant)) {
@@ -703,7 +811,7 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
       const r = Math.floor(p / N), c = p % N;
       const keep = puzzle[r][c];
       puzzle[r][c] = 0;
-      if (countSolutions(puzzle, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, effVariant === 'thermocage' ? cages : undefined) !== 1) puzzle[r][c] = keep;
+      if (countSolutions(puzzle, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, effVariant === 'thermocage' ? cages : undefined, ov) !== 1) puzzle[r][c] = keep;
       else dug++;
     }
   } else {
@@ -712,37 +820,11 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
       puzzle[Math.floor(p / N)][p % N] = 0;
     }
   }
-  let parity: number[][] | undefined;
-  if (variant === 'evenodd') {   // помечаем ~55% пустых клеток их чётностью: 1 = чёт (квадрат), 2 = нечёт (круг)
-    parity = Array.from({ length: N }, () => Array(N).fill(0));
-    const blank: [number, number][] = [];
-    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (puzzle[r][c] === 0) blank.push([r, c]);
-    for (const [r, c] of shuffle(blank).slice(0, Math.round(blank.length * 0.55))) parity[r][c] = sol[r][c] % 2 === 0 ? 1 : 2;
-  }
-  let kropki: { h: number[][]; v: number[][] } | undefined;
-  if (variant === 'kropki') {   // точки из решения: 2 = чёрная (одно вдвое больше), 1 = белая (±1), 0 = нет
-    const dot = (a: number, b: number) => (Math.max(a, b) === 2 * Math.min(a, b) ? 2 : Math.abs(a - b) === 1 ? 1 : 0);
-    const h = Array.from({ length: N }, () => Array(N).fill(0));   // h[r][c]: грань между (r,c) и (r,c+1)
-    const vrt = Array.from({ length: N }, () => Array(N).fill(0)); // vrt[r][c]: грань между (r,c) и (r+1,c)
-    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
-      if (c < N - 1) h[r][c] = dot(sol[r][c], sol[r][c + 1]);
-      if (r < N - 1) vrt[r][c] = dot(sol[r][c], sol[r + 1][c]);
-    }
-    kropki = { h, v: vrt };
-  }
-  let sandwich: { rows: number[]; cols: number[] } | undefined;
-  if (variant === 'sandwich') {   // сумма цифр СТРОГО между позициями 1 и 9 в ряду/столбце
-    const between = (line: number[]) => {
-      const i1 = line.indexOf(1), i9 = line.indexOf(9);
-      if (i1 < 0 || i9 < 0) return 0;
-      const [a, b] = i1 < i9 ? [i1, i9] : [i9, i1];
-      let s = 0; for (let k = a + 1; k < b; k++) s += line[k];
-      return s;
-    };
-    const rows = sol.map((row) => between(row));
-    const cols = Array.from({ length: N }, (_, c) => between(sol.map((row) => row[c])));
-    sandwich = { rows, cols };
-  }
+  // Метка на ЗАПОЛНЕННОЙ клетке ничего не добавляет — цифра и так видна. Снимаем её
+  // из показа; на копание это не влияет, там она уже отработала как ограничение.
+  const parity = ov.parity ? ov.parity.map((row, r) => row.map((m, c) => (puzzle[r][c] === 0 ? m : 0))) : undefined;
+  const kropki = ov.kropki;
+  const sandwich = ov.sandwich;
   return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages };
 }
 
