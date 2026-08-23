@@ -24,20 +24,19 @@
  * ⚠️ НИЧЕГО СЛУЧАЙНОГО. Все зёрна в файле записаны буквами. Проверка, раздающая через
  * `Math.random`, бывает зелёной локально и красной в сборке — этой ценой уже платили.
  */
-/* eslint-disable @typescript-eslint/no-var-requires */
-// Тот же приём, что в sudoku-high-levels.test.ts: tsconfig не подключает типы node
-// (`types: ["jest"]`), поэтому fs/path объявляются вручную, а не тянут @types/node.
-declare function require(id: string): any;
-declare const __dirname: string;
-const fs = require('fs');
-const path = require('path');
-
 import {
   BANK_BC, BANK_BR, BANK_N, RATING_LADDER, SUDOKU_BANK,
   bankBoardForLevel, bankPool, bankRatingForLevel,
 } from '@/src/services/sudoku-bank';
 import { levelConfig } from '@/src/services/sudoku-core';
 import { gradePuzzle, targetTier } from '@/src/services/sudoku-grade';
+
+// Тот же приём, что в sudoku-high-levels.test.ts: tsconfig не подключает типы node
+// (`types: ["jest"]`), поэтому fs/path объявляются вручную, а не тянут @types/node.
+declare function require(id: string): any;
+declare const __dirname: string;
+const fs = require('fs');
+const path = require('path');
 
 /** Последний уровень игры — тот же, что сторожит гейт уровней. */
 const LAST_LEVEL = 57;

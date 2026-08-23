@@ -1,6 +1,7 @@
 import { isAdjacent } from './grid';
 import { randomHamiltonianPath } from './orders';
 import { createRng, normalizeSeed, randomInt, shuffle, type Rng } from './rng';
+import { DOTS_TIERS, dotsTierRank, solveDotsPuzzleAt, type DotsTier } from './solver';
 import {
   DOTS_CONNECT_GENERATOR_VERSION,
   LEVELS,
@@ -105,7 +106,7 @@ export interface DotsLevelPlan {
  */
 const LEVEL_PLAN: readonly (readonly [size: number, pairs: number, minLen: number])[] = [
   [5, 4, 3], [5, 4, 3], [5, 5, 3],        // 1–3    знакомство: доска уже плотная
-  [6, 5, 3], [6, 6, 3], [6, 6, 3],        // 4–6
+  [6, 6, 3], [6, 6, 3], [6, 6, 3],        // 4–6    ⚠️ шесть пар, а не пять — см. ниже
   [7, 6, 3], [7, 7, 3], [7, 7, 3],        // 7–9
   [8, 7, 3], [8, 8, 3], [8, 8, 3],        // 10–12
   [9, 9, 3], [9, 9, 3], [9, 10, 3],       // 13–15  потолок «ступеньками» достигнут
@@ -120,8 +121,34 @@ const LEVEL_PLAN: readonly (readonly [size: number, pairs: number, minLen: numbe
   [10, 14, 5],                            // 40
 ];
 
+/**
+ * ⚠️ ПОЧЕМУ НА ЧЕТВЁРТОМ УРОВНЕ ШЕСТЬ ПАР, А НЕ ПЯТЬ (правка 23.08.2026).
+ * Уровням 4–6 назначена ступень «от противного» (`dotsLevelTier`), то есть
+ * доска обязана ВЫВОДИТЬСЯ, а выводимость держится на плотности: чем длиннее
+ * пути, тем меньше в клетках вынужденного. 6×6 на ПЯТЬ пар — самая разреженная
+ * доска в этой полосе (средний путь 7.2 клетки), и отбор доски нужной ступени
+ * стоил там 235 мс в среднем и 1.3 с в худшем случае — на глазах у человека,
+ * при открытии уровня. С шестью парами (средний путь 6) то же самое стоит 96 мс
+ * и 0.3 с. Правило «число пар только растёт» не нарушено: на третьем уровне их
+ * пять, на пятом и шестом — тоже шесть.
+ */
+
 /** Тренировочная доска. Маленькая — она учит ПРАВИЛУ, а не сложности. */
 export const DOTS_TRAINING_PLAN: DotsLevelPlan = { size: 4, pairCount: 4, minPathLength: 3 };
+
+/**
+ * ⚠️ ТРЕНИРОВКА ОБЯЗАНА БЫТЬ ВЫВОДИМОЙ ЦЕЛИКОМ. Она учит правилу «занять всю
+ * сетку», и доска, где без догадки не обойтись, учила бы ровно обратному —
+ * «тыкай, потом разберёшься». Ступень тут не для сложности, а для честности
+ * обучения.
+ */
+export const DOTS_TRAINING_TIER: DotsTier = 'forced';
+
+/**
+ * Сколько раз пересобирать доску, добиваясь нужной ступени. Не бюджет качества,
+ * а страховка от вечного цикла: по замеру хватает десятков попыток.
+ */
+export const DOTS_TIER_ATTEMPTS = 4_000;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -139,16 +166,57 @@ export function dotsLevelPlan(level: number): DotsLevelPlan {
 }
 
 /**
+ * СТУПЕНЬ РАССУЖДЕНИЯ, НАЗНАЧЕННАЯ УРОВНЮ, — ЧЕТВЁРТАЯ ОСЬ ЛЕСЕНКИ.
+ *
+ * 🔴 ЧТО БЫЛО. Три оси таблицы выше (размер, число пар, длина пути) описывают
+ * РАЗМЕР задачи и молчат о том, сколько на доске надо СООБРАЗИТЬ. Замер
+ * 23.08.2026 показал, во что это вылилось: доля досок, закрываемых одними
+ * вынужденными ходами, была 2/60 на первом уровне и 0/60 на десятом,
+ * двадцатом, тридцатом и сороковом — то есть ВСЯ лесенка, от первого уровня до
+ * сорокового, стояла на одной и той же верхней ступени «без догадки не
+ * закрыть». По рассуждению лесенки не было вовсе.
+ *
+ * ЧТО СТАЛО. Уровню назначается ступень, и генератор обязан выдать доску именно
+ * этой ступени (см. `buildForTier`). Границы взяты не с потолка, а по замеру
+ * достижимости (числа — в шапке `dots-difficulty-ladder.test.ts`):
+ *   · 5×5 — досок, закрываемых вынужденно, 3–16%, отбор стоит 4–20 мс в среднем;
+ *   · 6×6 — 2–3%, отбор 39–50 мс в среднем, до 180 мс в худшем случае;
+ *   · 7×7 и выше — 0 из 300: доска, целиком выводимая без догадок, там просто
+ *     не встречается, и требовать её значило бы вешать человека на минуту.
+ * Отсюда: 1–3 «вынужденный», 4–6 «от противного», 7–40 «перебор».
+ *
+ * ⚠️ ТАБЛИЦЕЙ, А НЕ ЦЕПОЧКОЙ `if`. Четвёртая ступень (если появится в
+ * `DOTS_TIERS`) вписывается сюда одной строкой.
+ */
+const TIER_PLAN: readonly (readonly [upToLevel: number, tier: DotsTier])[] = [
+  [3, 'forced'],
+  [6, 'contradiction'],
+  [LEVELS, 'search'],
+];
+
+export function dotsLevelTier(level: number): DotsTier {
+  const safeLevel = Math.max(1, Math.floor(level) || 1);
+  for (const [upTo, tier] of TIER_PLAN) if (safeLevel <= upTo) return tier;
+  return (TIER_PLAN[TIER_PLAN.length - 1] as readonly [number, DotsTier])[1];
+}
+
+/**
  * Нормализованная сложность 0..1. Считается ТОЛЬКО из величин, которые по
- * таблице растут монотонно (номер уровня, число пар, нижняя длина пути).
- * Размер поля сюда не входит намеренно: наверху он колеблется по замыслу, и
- * тянуть его в скаляр значило бы получить «сложность то вверх, то вниз».
+ * таблице растут монотонно (номер уровня, число пар, нижняя длина пути,
+ * ступень рассуждения). Размер поля сюда не входит намеренно: наверху он
+ * колеблется по замыслу, и тянуть его в скаляр значило бы получить «сложность
+ * то вверх, то вниз».
+ *
+ * ⚠️ СТУПЕНЬ БЕРЁТСЯ ПО УРОВНЮ, А НЕ ПО ФАКТУ ДОСКИ. Сложность — свойство
+ * ЗАМЫСЛА уровня, и она обязана быть одинаковой у всех досок этого уровня;
+ * фактическая ступень конкретной доски лежит отдельно, в `puzzle.tier`.
  */
 function difficultyOf(level: number, plan: DotsLevelPlan): number {
   const levelPart = clamp((level - 1) / (LEVELS - 1), 0, 1);
   const pairPart = clamp((plan.pairCount - 4) / (DOTS_MAX_PAIRS - 4), 0, 1);
   const lengthPart = clamp((plan.minPathLength - 3) / 2, 0, 1);
-  return round(levelPart * 0.5 + pairPart * 0.35 + lengthPart * 0.15);
+  const tierPart = clamp(dotsTierRank(dotsLevelTier(level)) / (DOTS_TIERS.length - 1), 0, 1);
+  return round(levelPart * 0.45 + pairPart * 0.3 + lengthPart * 0.1 + tierPart * 0.15);
 }
 
 /**
@@ -248,6 +316,9 @@ function buildPuzzle(
     pairCount: plan.pairCount,
     minPathLength: plan.minPathLength,
     difficulty,
+    // ⚠️ ЗАГЛУШКА. Настоящую ступень ставит `buildForTier` — ПО ЗАМЕРУ этой самой
+    // доски решателем. Здесь она ещё не известна, а поле обязательное.
+    tier: 'search',
     construction: 'shaken-hamiltonian-path',
     generatorVersion: DOTS_CONNECT_GENERATOR_VERSION,
     pairs: shuffle(rng, pairs),
@@ -255,17 +326,72 @@ function buildPuzzle(
   };
 }
 
+/**
+ * КАКОЙ СТУПЕНИ ТРЕБУЕТ ЭТА ДОСКА. Идём по списку ступеней снизу вверх и берём
+ * первую, которой доска поддалась.
+ *
+ * ⚠️ ВЕРХНЮЮ СТУПЕНЬ НЕ ПРОВЕРЯЕМ ПЕРЕБОРОМ, И ЭТО НЕ ЛЕНЬ. Решение у доски
+ * есть ПО ПОСТРОЕНИЮ: она нарезана из гамильтонова пути, и само решение лежит в
+ * `solution`. Гонять здесь полный перебор (до 90 мс на 10×10) значило бы
+ * доказывать уже доказанное — и делать это на глазах у человека при каждой
+ * пересборке. Что решение НАХОДИТСЯ независимым решателем по одним лишь точкам,
+ * проверяет гейт `dots-flow`, а не игрок своим ожиданием.
+ */
+function tierOfPuzzle(puzzle: GeneratedDotsPuzzle): DotsTier {
+  const last = DOTS_TIERS[DOTS_TIERS.length - 1] as DotsTier;
+  for (const tier of DOTS_TIERS) {
+    if (tier === last) break;
+    if (solveDotsPuzzleAt(puzzle, tier)) return tier;
+  }
+  return last;
+}
+
+/**
+ * СОБРАЛ → ПРОВЕРИЛ РЕШАТЕЛЕМ → НЕ ТА СТУПЕНЬ → ПЕРЕСОБРАЛ. Приём Тэтхэма
+ * (`add_clues(state, rs, diff)` в `tracks.c`): доска считается готовой не тогда,
+ * когда она собралась, а тогда, когда её решает решатель ЗАДАННОЙ ступени.
+ *
+ * ⚠️ ПОПЫТКА НОМЕРУЕТСЯ В ЗЕРНЕ. Иначе повтор того же уровня давал бы другую
+ * доску, а зерно у уровня фиксировано номером: «подсмотрел → перезапустил →
+ * обвёл» стало бы бесплатным прохождением.
+ *
+ * ⚠️ ЧТО ЕСЛИ НЕ ПОПАЛИ ЗА ВСЕ ПОПЫТКИ. Отдаём первую собранную доску и пишем в
+ * `tier` ЕЁ НАСТОЯЩУЮ ступень, а не заказанную: раздача не имеет права врать о
+ * себе. По замеру такого не случается — самая редкая ступень на своём уровне
+ * встречается у 2% досок, то есть вероятность промаха за 4000 попыток около
+ * 1e-35, — но молча выдать чужую ступень хуже, чем выдать честную.
+ */
+function buildForTier(
+  seedKey: string,
+  level: number,
+  plan: DotsLevelPlan,
+  difficulty: number,
+  id: string,
+  seed: string,
+  wanted: DotsTier,
+): GeneratedDotsPuzzle {
+  let fallback: GeneratedDotsPuzzle | null = null;
+  for (let attempt = 0; attempt < DOTS_TIER_ATTEMPTS; attempt += 1) {
+    const puzzle = buildPuzzle(`${seedKey}|try${attempt}`, level, plan, difficulty, id, seed);
+    const tier = tierOfPuzzle(puzzle);
+    if (tier === wanted) return { ...puzzle, tier };
+    if (!fallback) fallback = { ...puzzle, tier };
+  }
+  return fallback as GeneratedDotsPuzzle;
+}
+
 export function generateDotsPuzzle(seed: string, level: number): GeneratedDotsPuzzle {
   const normalizedSeed = normalizeSeed(seed);
   const safeLevel = Math.max(1, Math.floor(level));
   const plan = dotsLevelPlan(safeLevel);
-  return buildPuzzle(
+  return buildForTier(
     `${normalizedSeed}|${safeLevel}|${DOTS_CONNECT_GENERATOR_VERSION}`,
     safeLevel,
     plan,
     difficultyOf(safeLevel, plan),
     `${normalizedSeed}:${safeLevel}`,
     normalizedSeed,
+    dotsLevelTier(safeLevel),
   );
 }
 
@@ -280,13 +406,14 @@ export function generateDotsPuzzle(seed: string, level: number): GeneratedDotsPu
  */
 export function generateDotsTrainingPuzzle(seed: string): GeneratedDotsPuzzle {
   const normalizedSeed = normalizeSeed(seed);
-  return buildPuzzle(
+  return buildForTier(
     `${normalizedSeed}|training|${DOTS_CONNECT_GENERATOR_VERSION}`,
     1,
     DOTS_TRAINING_PLAN,
     0,
     `${normalizedSeed}:training`,
     normalizedSeed,
+    DOTS_TRAINING_TIER,
   );
 }
 
