@@ -56,7 +56,7 @@ import {
   type ProofField,
   type ProofSeriesState,
 } from '@/src/games/proofreading/core';
-import { FILLWORDS_LOCALES, isCleared, lettersLeft, wordPool } from '@/src/games/fillwords/core';
+import { FILLWORDS_LOCALES, createFillwordsSession, isCleared, lettersLeft, takeHint, wordPool } from '@/src/games/fillwords/core';
 import { STABLE_RUNS, recordBlock, seriesDiffs, seriesSession, startSeries } from '@/src/services/series';
 
 declare const __dirname: string;
@@ -611,6 +611,16 @@ function dragAlong(r: any, path: readonly number[], side: number) {
 }
 
 /** Что показывает шапка блока: «взято / всего». Читаем то же, что видит человек. */
+/** Английская подпись кнопки подсказки — тот же ключ, что видит человек. */
+const EN_HINT = 'Hint';
+
+/** Сколько подсказок осталось по ШАПКЕ: «Hint · 3» → 3. */
+function hudHints(r: any): number {
+  const m = /Hint[^\d]*(\d+)/.exec(joined(r.root));
+  if (!m) throw new Error('счётчик подсказок в шапке не найден');
+  return Number(m[1]);
+}
+
 function hudProgress(r: any): string {
   const m = /(\d+)\/(\d+)/.exec(joined(r.root));
   if (!m) throw new Error('счётчик блока в шапке не найден');
@@ -805,3 +815,95 @@ describe('экран: серия идёт по одному полю и пише
     } finally { TestRenderer.act(() => r.unmount()); }
   });
 });
+
+describe('серия: подсказка и читаемый счётчик', () => {
+  // ⚠️ Та же оснастка, что у соседнего рендер-раздела: без фиксированного `Math.random`
+  // экран собирает СВОЁ поле, тапы уходят мимо и блок не сменяется (первый прогон дал
+  // «Errors 6» и застрял на блоке «Знак»).
+  let hintRandomSpy: any;
+  beforeEach(() => {
+    jest.useFakeTimers();
+    hintRandomSpy = jest.spyOn(Math, 'random').mockReturnValue(FIXED_RANDOM);
+  });
+  afterEach(() => {
+    hintRandomSpy.mockRestore();
+    jest.useRealTimers();
+  });
+
+  /**
+   * Репорт Дениса 23.08.2026 по живой сборке v1.236.0: «непонятно, сколько слов ждёт
+   * система, нет подсказок решения — короче, не доделано явно».
+   * Нашлось два разных корня, и оба здесь:
+   *   · у серии СВОЙ `GameShell`, и слот `headerActions` в нём не заполняли — кнопки
+   *     подсказки не было ВОВСЕ, при том что в одиночной игре она есть;
+   *   · подпись «Найдено» и число уносило в разные концы шапки (`marginLeft: 'auto'`
+   *     на самом числе), и пара не читалась как пара.
+   */
+  const screen = readFileSync(join(ROOT, 'app/games/proofreading.tsx'), 'utf8') as string;
+
+  it('проба на сам срез: файл экрана прочитан и непуст', () => {
+    expect(screen.length).toBeGreaterThan(5000);
+    expect(screen).toContain('PROOF_SERIES_PLAN');
+  });
+
+  it('🔴 подсказка серии работает на партии, собранной блоками, и тратит ресурс', () => {
+    const field = buildProofField('ru', 5, 17);
+    let session = createFillwordsSession(field.puzzle);
+    const before = session.hints;
+    const taken = takeHint(session);
+    expect(taken.hint).not.toBeNull();
+    expect(taken.hint!.cells.length).toBe(2);          // две клетки — направление, не решение
+    expect(taken.session.hints).toBe(before + 1);      // ресурс потрачен
+    // подсказанные клетки принадлежат ОДНОМУ ненайденному слову
+    const w = taken.session.puzzle.words[taken.hint!.wordIndex];
+    for (const c of taken.hint!.cells) expect(w.path).toContain(c);
+    expect(taken.session.found).not.toContain(taken.hint!.wordIndex);
+    session = taken.session;
+  });
+
+  it('🔴 подсказка берёт САМОЕ КОРОТКОЕ ненайденное — толчок, а не «пройти уровень»', () => {
+    const field = buildProofField('ru', 5, 42);
+    const session = createFillwordsSession(field.puzzle);
+    const taken = takeHint(session);
+    const lens = session.puzzle.words.map((w) => w.path.length);
+    expect(session.puzzle.words[taken.hint!.wordIndex].path.length).toBe(Math.min(...lens));
+  });
+
+  /**
+   * ⚠️ ЭТА ПРОВЕРКА БЫЛА ТЕКСТОВОЙ И НЕ ЛОВИЛА НИЧЕГО. Сначала здесь стояло «в файле
+   * экрана есть `headerActions=` и `serTakeHint`». Мутация `isSign ? … : (…)` →
+   * `true ? undefined : (…)` — то есть подсказка выключена НАСОВСЕМ — оставила оба
+   * слова на месте (в мёртвой ветке), и 43 проверки из 43 остались зелёными.
+   * Поэтому проверяется РЕНДЕР: кнопки нет в блоке «Знак» и она есть в блоке «Слово».
+   */
+  it('🔴 кнопка подсказки: в блоке «Знак» её нет, в блоке «Слово» — есть', async () => {
+    const f = buildProofField(LOCALE, PROOF_MIN_SIZE, SCREEN_SEED);
+    const r = await mountProof();
+    try {
+      pressLabel(r, EN.entry);
+      expect(joined(r.root)).toContain(EN.blockSign);
+      const hintIn = (): number => r.root.findAll((n: any) => (
+        typeof n.props?.onPress === 'function' && joined(n).includes(EN_HINT)
+      ), OUTER).length;
+      expect(hintIn()).toBe(0);                       // блок «Знак» — искать нечего
+
+      for (const cell of f.signCells) tapCell(r, cell);
+      await advance(INTERLUDE);
+      expect(joined(r.root)).toContain(EN.blockWord);
+      expect(hintIn()).toBe(1);                       // блок «Слово» — подсказка на месте
+
+      const before = hudHints(r);
+      pressLabel(r, EN_HINT);
+      expect(hudHints(r)).toBe(before - 1);           // ресурс потрачен, а не нарисован
+    } finally {
+      r.unmount();
+    }
+  });
+
+  it('🔴 подпись и число держатся вместе — число не уносит к другому краю', () => {
+    expect(screen).toContain('foundPair');
+    // на самом числе внутри пары отступ снят, иначе оно снова уедет
+    expect(screen).toContain("marginLeft: 0");
+  });
+});
+
