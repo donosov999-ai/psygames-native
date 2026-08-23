@@ -42,7 +42,7 @@
 |---|---|
 | **Репо (единственный источник)** | `donosov999-ai/psygames-native` — 🔴 **ПУБЛИЧНЫЙ** (значилось «private» — ошибка, проверено 03.08) |
 | **Рабочая копия** | `~/dev/psygames` (реальная папка). `~/Downloads/Code claude/psygames` — **симлинк** на неё, не отдельный клон → рассинхрона быть не может |
-| **Стек** | Expo Router + React Native 0.85 + react-native-web; Tauri 2 для десктопа |
+| **Стек** | Expo Router + React Native 0.85 + react-native-web; **Tauri 2 — и десктоп, И Android** (нативной RN-сборки нет: папок `android/`/`ios/` не существует, значит везде исполняется вебвью, а не Hermes) |
 | **Веб-деплой** | `psy-games.pro/play` (авто из CI, baseUrl `/psygames-web`) + `/downloads` |
 | **Промо-сайт** | `psy-games.pro` — отдельный проект `~/dev/psygames-astro` (Astro, Contabo) |
 | **Supabase** | проект `personal-nzt` — сессии, фидбек, словари (идентификаторы в `PROJECT_REF.md`) |
