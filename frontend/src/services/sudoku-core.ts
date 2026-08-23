@@ -321,6 +321,188 @@ export function generateArrow(N: number): ArrowMap {
   return map;
 }
 
+/**
+ * 🔴 ГЕОМЕТРИЯ ВЫВОДИТСЯ ИЗ ГОТОВОГО РЕШЕНИЯ, А НЕ ИЩЕТСЯ ПОД НЕЁ РЕШЕНИЕ.
+ *
+ * Как было. `generateThermo`/`generateArrow`/`generateRegions` рисуют фигуру ВСЛЕПУЮ,
+ * и дальше `generatePuzzle` до шестидесяти раз пытается найти сетку, которая под неё
+ * подойдёт. Замер 23.08.2026: одна такая укладка термометра стоила 2 443–5 432 мс,
+ * у джигсо в комментарии прямо стояло «~90% раскладок нерешаемы». Это и была вся
+ * секундная цена сборки — не оценщик техник, как я считал раньше.
+ *
+ * Как стало. Сначала обычное решение (20–36 мс), потом фигура кладётся ПО нему:
+ * термометр идёт только в соседа с большей цифрой, стрелка набирает ровно сумму
+ * кружка, регион джигсо принимает только новую для себя цифру. Проверять нечего —
+ * фигура согласована с решением по построению, ретраев ноль.
+ * Замер того же шага: 2 443 мс → 0,078 мс.
+ *
+ * Порядок не выдуман: ровно так уже работал `generateThermoCages` («сначала решение
+ * ПОД термометр, потом суммы ИЗ этого решения») — здесь он просто доведён до конца,
+ * потому что и сам термометр незачем искать перебором.
+ *
+ * ⚠️ Возврат `null` = не сложилось. Вызывающий обязан иметь запасной путь: у джигсо
+ * рост регионов может упереться в тупик, и тогда честнее откатиться на старый способ,
+ * чем отдать доску с дырявым разбиением.
+ */
+export function thermoFromSolution(sol: Cell[][], N: number): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const paths: [number, number][][] = [];
+  for (let attempt = 0; attempt < 40 && paths.length < 6; attempt++) {
+    const starts: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c]) starts.push([r, c]);
+    if (!starts.length) break;
+    const [sr, sc] = starts[Math.floor(Math.random() * starts.length)];
+    const len = 3 + Math.floor(Math.random() * 3);   // 3..5, как было
+    const path: [number, number][] = [[sr, sc]]; let cr = sr, cc = sc;
+    for (let s = 1; s < len; s++) {
+      // ЕДИНСТВЕННОЕ отличие от прежнего обхода: сосед обязан нести цифру БОЛЬШЕ текущей.
+      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
+          && !path.some(([pr, pc]) => pr === nr && pc === nc)
+          && sol[nr][nc] > sol[cr][cc]);
+      if (!nb.length) break;
+      const [nr, nc] = nb[Math.floor(Math.random() * nb.length)];
+      path.push([nr, nc]); cr = nr; cc = nc;
+    }
+    if (path.length >= 3) { paths.push(path); for (const [r, c] of path) used[r][c] = true; }
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+export function arrowFromSolution(sol: Cell[][], N: number): ArrowMap {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const groups: [number, number][][] = [];
+  for (let attempt = 0; attempt < 60 && groups.length < 6; attempt++) {
+    const starts: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c] && sol[r][c] >= 3) starts.push([r, c]);   // кружку нужно ≥2 слагаемых, минимум 1+2
+    if (!starts.length) break;
+    const [sr, sc] = starts[Math.floor(Math.random() * starts.length)];
+    const target = sol[sr][sc];
+    // Набираем стрелку, пока сумма не станет РОВНО цифрой кружка. Ветвление мелкое
+    // (≤4 соседа, длина ≤3), поэтому обычный обход с возвратом, без эвристик.
+    const path: [number, number][] = [[sr, sc]];
+    let found: [number, number][] | null = null;
+    const walk = (cr: number, cc: number, sum: number) => {
+      if (found) return;
+      if (sum === target && path.length >= 3) { found = path.slice(); return; }
+      if (sum >= target || path.length > 4) return;
+      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
+          && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      for (const [nr, nc] of shuffle(nb)) {
+        path.push([nr, nc]);
+        walk(nr, nc, sum + sol[nr][nc]);
+        path.pop();
+        if (found) return;
+      }
+    };
+    walk(sr, sc, 0);
+    if (found) { groups.push(found); for (const [r, c] of found as [number, number][]) used[r][c] = true; }
+  }
+  const map: ArrowMap = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const g of groups) {
+    const circle = g[0], arrows = g.slice(1);
+    for (let k = 0; k < g.length; k++) {
+      const [r, c] = g[k];
+      map[r][c] = { circle, arrows, isCircle: k === 0, prev: k > 0 ? g[k - 1] : null, next: k < g.length - 1 ? g[k + 1] : null };
+    }
+  }
+  return map;
+}
+
+/** Разбиение на N связных областей по N клеток, где внутри области все цифры решения РАЗНЫЕ.
+ *  `null` = рост упёрся в тупик за отведённые попытки; вызывающий откатывается на старый путь. */
+export function regionsFromSolution(sol: Cell[][], N: number): number[][] | null {
+  // 🔴 СТАРТУЕМ С ЗАВЕДОМО ВЕРНОГО РАЗБИЕНИЯ И НЕ ВЫХОДИМ ИЗ ВЕРНЫХ. Обычные блоки
+  // судоку УЖЕ дают ровно то, что нужно джигсо: девять связных областей по девять
+  // клеток, и внутри каждой все цифры разные (это и есть правило судоку). Дальше
+  // меняем местами пограничные клетки двух соседних областей — ход принимается,
+  // только если обе остаются связными и обе сохраняют девять разных цифр.
+  //
+  // ⚠️ Почему не рост с нуля. Пробовал двумя способами — по одной области целиком
+  // (провал 7 из 8) и все разом по кругу (провал 30 из 30). Причина у обоих одна:
+  // к концу роста у каждой области уже есть почти все девять цифр, и оставшейся
+  // клетке некуда приткнуться — её цифра занята у всех соседей. Ход от готового
+  // разбиения этой ямы не имеет вовсе: неверного состояния не существует.
+  const inv = N === 9 ? [3, 3] : [2, 3];
+  const [bR, bC] = inv;
+  const reg: number[][] = Array.from({ length: N }, () => Array(N).fill(0));
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) reg[r][c] = Math.floor(r / bR) * (N / bC) + Math.floor(c / bC);
+
+  const cellsOf = (id: number): [number, number][] => {
+    const out: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (reg[r][c] === id) out.push([r, c]);
+    return out;
+  };
+  const connected = (cs: [number, number][]): boolean => {
+    const key = (r: number, c: number) => r * N + c;
+    const set = new Set(cs.map(([r, c]) => key(r, c)));
+    const seen = new Set([key(cs[0][0], cs[0][1])]);
+    const q: [number, number][] = [cs[0]];
+    while (q.length) {
+      const [r, c] = q.pop() as [number, number];
+      for (const [dr, dc] of ORTHO) {
+        const nr = r + dr, nc = c + dc, k = key(nr, nc);
+        if (set.has(k) && !seen.has(k)) { seen.add(k); q.push([nr, nc]); }
+      }
+    }
+    return seen.size === cs.length;
+  };
+
+  // 🔴 ХОД — ОБМЕН ДВУХ КЛЕТОК С ОДИНАКОВОЙ ЦИФРОЙ. Обычный обмен соседей невозможен
+  // по построению, и это стоит записать, чтобы не переоткрывать: область содержит все
+  // девять цифр, поэтому, отдав клетку с цифрой d, она обязана получить обратно ИМЕННО
+  // d — иначе цифра задвоится. А две ортогонально соседние клетки судоку лежат в одной
+  // строке или столбце и одинаковыми быть не могут. Первая редакция меняла именно
+  // соседей и дала 0 удачных ходов из 30 досок — разбиение осталось блоками.
+  // Поэтому меняем не соседей, а любые две клетки одной цифры, каждая из которых стоит
+  // на границе с чужой областью: A отдаёт d и получает d, B тоже — счёт цифр сходится.
+  const border = (r: number, c: number, other: number): boolean =>
+    ORTHO.some(([dr, dc]) => { const nr = r + dr, nc = c + dc; return nr >= 0 && nr < N && nc >= 0 && nc < N && reg[nr][nc] === other; });
+
+  // Крутим, пока форма достаточно не разойдётся с блоками: при малом смещении
+  // (первый замер дал минимум 4 клетки из 81) джигсо визуально неотличим от обычного
+  // судоку, и правило варианта перестаёт что-либо значить.
+  // ⚠️ Порог четверть доски, а не треть: цепочка обменов упирается в потолок около
+  // 28 клеток из 81, и цель 27 держала цикл до конца бюджета (81 мс) да ещё роняла
+  // 6 досок из 30 в отказ. Четверть берётся быстро и с запасом до потолка.
+  const boxOf = (r: number, c: number) => Math.floor(r / bR) * (N / bC) + Math.floor(c / bC);
+  const displaced = () => { let d = 0; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (reg[r][c] !== boxOf(r, c)) d++; return d; };
+  const TARGET = Math.round(N * N / 4);
+  const moves = N * N * 24;
+  let done = 0;
+  // Несколько заходов: цепочка обменов случайна, и редкий заход (замер: 4 из 30) глохнет,
+  // не добрав смещения. Заход стоит ~11 мс, а отказ роняет джигсо на старый слепой путь
+  // ценой 20+ с (замер: одна доска L53 из шести стоила 22 430 мс) — поэтому заходов
+  // восемь, а не три: дешевле повторить здесь, чем один раз уйти в фолбэк.
+  for (let round = 0; round < 8 && displaced() < TARGET; round++)
+  for (let m = 0; m < moves && displaced() < TARGET; m++) {
+    const d = 1 + Math.floor(Math.random() * N);
+    const spots: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (sol[r][c] === d) spots.push([r, c]);
+    const pair = shuffle(spots);
+    let moved = false;
+    for (let i = 0; i < pair.length && !moved; i++) for (let j = i + 1; j < pair.length && !moved; j++) {
+      const [r1, c1] = pair[i], [r2, c2] = pair[j];
+      const a1 = reg[r1][c1], b1 = reg[r2][c2];
+      if (a1 === b1) continue;
+      if (!border(r1, c1, b1) || !border(r2, c2, a1)) continue;
+      reg[r1][c1] = b1; reg[r2][c2] = a1;
+      if (connected(cellsOf(a1)) && connected(cellsOf(b1))) { moved = true; done++; }
+      else { reg[r1][c1] = a1; reg[r2][c2] = b1; }
+    }
+  }
+  // Разбиение верно при любом числе удавшихся ходов (стартовое уже верно), но доска,
+  // оставшаяся блоками, — это обычное судоку с чужой подписью. Такую не отдаём.
+  if (done < N || displaced() < Math.round(TARGET * 0.7)) return null;
+  return reg;
+}
+
 export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
   if (variant === 'jigsaw' && regions) {
@@ -474,25 +656,30 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   let arrow: ArrowMap | undefined;
   let cages: CageMap | undefined;
   if (variant === 'jigsaw') {
-    let ok = false;
-    for (let t = 0; t < 60 && !ok; t++) { regions = generateRegions(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'jigsaw', regions, { steps: 1500 }); }   // budget низкий: ~90% раскладок нерешаемы, дешёвый отказ + ретрай
-    if (!ok) { regions = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }   // редкий фолбэк на классику
+    // 🔴 ПОРЯДОК ОБРАЩЁН (23.08.2026): сначала обычное решение, потом разбиение ПО нему.
+    // Прежний путь рисовал регионы вслепую и до 60 раз искал сетку под них — «~90%
+    // раскладок нерешаемы» стояло тут же в комментарии. Разбор — в шапке
+    // `regionsFromSolution`. Старый путь остался запасным: рост регионов может упереться.
+    solve(sol, N, BR, BC, 'none');
+    regions = regionsFromSolution(sol, N) ?? undefined;
+    if (!regions) {
+      let ok = false;
+      for (let t = 0; t < 60 && !ok; t++) { regions = generateRegions(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'jigsaw', regions, { steps: 1500 }); }
+      if (!ok) { regions = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }   // редкий фолбэк на классику
+    }
   } else if (variant === 'thermo') {
-    let ok = false;
-    for (let t = 0; t < 60 && !ok; t++) { thermo = generateThermo(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'thermo', undefined, { steps: 2000 }, thermo); }   // ~5 ретраев, констрейн решаем
-    if (!ok) { thermo = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }
+    solve(sol, N, BR, BC, 'none');
+    thermo = thermoFromSolution(sol, N);
   } else if (variant === 'thermocage') {
-    // Порядок важен: сначала решение ПОД термометр, потом суммы ИЗ этого решения.
-    // Обратный порядок (сначала суммы, потом искать решение) — лишний перебор на
+    // Порядок важен: сначала решение, потом И термометр, И суммы ИЗ этого решения.
+    // Обратный порядок (сначала фигура, потом искать решение) — лишний перебор на
     // ровном месте: любые две системы правил, выведенные из одной сетки, совместимы.
-    let ok = false;
-    for (let t = 0; t < 60 && !ok; t++) { thermo = generateThermo(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'thermo', undefined, { steps: 2000 }, thermo); }
-    if (!ok) { thermo = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }   // без термометра остаются суммы — доска решаемая
+    solve(sol, N, BR, BC, 'none');
+    thermo = thermoFromSolution(sol, N);
     cages = generateThermoCages(sol, N);
   } else if (variant === 'arrow') {
-    let ok = false;
-    for (let t = 0; t < 60 && !ok; t++) { arrow = generateArrow(N); for (const row of sol) row.fill(0); ok = solve(sol, N, BR, BC, 'arrow', undefined, { steps: 3000 }, undefined, arrow); }   // ~2 ретрая, констрейн-сумма решаем
-    if (!ok) { arrow = undefined; for (const row of sol) row.fill(0); solve(sol, N, BR, BC, 'none'); }
+    solve(sol, N, BR, BC, 'none');
+    arrow = arrowFromSolution(sol, N);
   } else if (variant === 'nonconsec' && N === 9) {
     const g = buildNonconsecSolution();   // строим формулой, перебор тут не тот инструмент — см. комментарий выше
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) sol[r][c] = g[r][c];
