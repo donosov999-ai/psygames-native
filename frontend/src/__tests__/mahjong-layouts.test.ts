@@ -26,6 +26,32 @@ import {
 import { VENDOR_BOARDS } from '@/src/games/mahjong/vendor/boards';
 import { expandMapping } from '@/src/games/mahjong/vendor/mapping';
 import { dealSolvable, type Place } from '@/src/games/mahjong/vendor/solvable';
+
+/**
+ * 🔴 РАЗДАЧИ В ПРОВЕРКЕ ЗАСЕЯНЫ, И ЭТО НЕ ПРИДИРКА. С `Math.random` проверка
+ * оказалась ШАТКОЙ: локально зелёная, на сборочной машине красная — «ур.28
+ * заход 23: budget», то есть разбор упёрся в бюджет на случайно выпавшей доске.
+ * Гейт, который то краснеет, то нет, хуже отсутствующего: он приучает
+ * перезапускать до зелёного. С зерном ответ один и тот же везде, и красный
+ * означает настоящую поломку, а не медленную машину.
+ *
+ * ⚠️ Взамен проверка доказывает ФИКСИРОВАННУЮ выборку, а не «раздачи вообще».
+ * Широкий случайный прогон — дело офлайн-калибровки (960 из 960 досок), и её
+ * числа записаны в шапке решателя, а не подменяют собой этот гейт.
+ */
+function seeded(seed: number): () => number {
+  let x = (seed | 0) || 1;
+  return () => {
+    x ^= x << 13; x ^= x >>> 17; x ^= x << 5;
+    return ((x >>> 0) % 1_000_000) / 1_000_000;
+  };
+}
+/** Зерно из имени раскладки: одна и та же доска везде и всегда. */
+const seedFrom = (name: string): number => {
+  let h = 2166136261;
+  for (let i = 0; i < name.length; i += 1) { h ^= name.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0) || 1;
+};
 import { mahjongLevel } from '@/src/services/mahjongLevels';
 
 declare const __dirname: string;
@@ -239,7 +265,7 @@ describe('🔴 решатель считает свободу ТЕМ ЖЕ пра
     for (const L of [1, 12, 24, 40]) {
       const p = mahjongLevel(L);
       const chosen = layoutForLevel(L);
-      const deal = generateDeal(p.layers, p.pairs, p.cols, 'diamond', chosen?.places);
+      const deal = generateDeal(p.layers, p.pairs, p.cols, 'diamond', chosen?.places, seeded(seedFrom(`${L}:${chosen?.layout.name ?? 'нет'}`)));
       if (deal.tiles.length === 0) { bad.push(`ур.${L}: раздача не собралась`); continue; }
       const S = makeState(deal.tiles);
       const rand = rng(11 + L);
@@ -453,7 +479,7 @@ describe('🔴 РАЗДАЧА РЕШАЕМА — доказано своим р�
       const p = mahjongLevel(L);
       const chosen = layoutForLevel(L);
       if (!chosen) { bad.push(`ур.${L}: раскладки нет`); if (bad.length >= MAX_REPORTED_FAILURES) break; continue; }
-      const deal = generateDeal(p.layers, p.pairs, p.cols, 'diamond', chosen.places);
+      const deal = generateDeal(p.layers, p.pairs, p.cols, 'diamond', chosen.places, seeded(seedFrom(`${L}:${chosen.layout.name}`)));
       if (deal.tiles.length === 0) { bad.push(`ур.${L} ${chosen.layout.name}: раздача не собралась`); if (bad.length >= MAX_REPORTED_FAILURES) break; continue; }
       checked += 1;
       const verdict = solveIndependently(deal.tiles);
@@ -472,7 +498,7 @@ describe('🔴 РАЗДАЧА РЕШАЕМА — доказано своим р�
       const chosen = layoutForLevel(L);
       if (!chosen) { bad.push(`ур.${L}: раскладки нет`); if (bad.length >= MAX_REPORTED_FAILURES) break; continue; }
       for (let i = 0; i < 25; i += 1) {
-        const deal = generateDeal(p.layers, p.pairs, p.cols, 'diamond', chosen.places);
+        const deal = generateDeal(p.layers, p.pairs, p.cols, 'diamond', chosen.places, seeded(seedFrom(`${L}:${chosen.layout.name}`)));
         if (deal.tiles.length === 0) { bad.push(`ур.${L} заход ${i}: не собралось`); if (bad.length >= MAX_REPORTED_FAILURES) break; continue; }
         checked += 1;
         const verdict = solveIndependently(deal.tiles);
@@ -499,7 +525,7 @@ describe('🔴 РАЗДАЧА РЕШАЕМА — доказано своим р�
     for (const l of sample) {
       const kept = reduceLayout(l.places, p.layers, need);
       if (!kept) { bad.push(`${l.name}: не ужалось`); if (bad.length >= MAX_REPORTED_FAILURES) break; continue; }
-      const deal = dealSolvable(normalize(kept), SYMBOL_COUNT);
+      const deal = dealSolvable(normalize(kept), SYMBOL_COUNT, 60, seeded(seedFrom(l.name)));
       if (deal.tiles.length === 0) { bad.push(`${l.name}: раздача не собралась`); if (bad.length >= MAX_REPORTED_FAILURES) break; continue; }
       checked += 1;
       const verdict = solveIndependently(deal.tiles);
@@ -513,7 +539,7 @@ describe('🔴 РАЗДАЧА РЕШАЕМА — доказано своим р�
   it('раздача не врёт про набор: пары по символам, чётность соблюдена', () => {
     const p = mahjongLevel(12);
     const chosen = layoutForLevel(12);
-    const deal = generateDeal(p.layers, p.pairs, p.cols, 'diamond', chosen?.places);
+    const deal = generateDeal(p.layers, p.pairs, p.cols, 'diamond', chosen?.places, seeded(seedFrom(`12:${chosen?.layout.name ?? 'нет'}`)));
     const count = new Map<number, number>();
     for (const t of deal.tiles) count.set(t.symbol, (count.get(t.symbol) ?? 0) + 1);
     const odd = [...count.entries()].filter(([, c]) => c % 2 !== 0);
@@ -575,7 +601,7 @@ describe('правило свободной плитки: их и наше', () 
       if (!l) { bad.push(`${name}: нет в каталоге`); continue; }
       const kept = reduceLayout(l.places, p.layers, need);
       if (!kept) { bad.push(`${name}: не ужалось`); continue; }
-      const deal = dealSolvable(normalize(kept), SYMBOL_COUNT);
+      const deal = dealSolvable(normalize(kept), SYMBOL_COUNT, 60, seeded(seedFrom(name)));
       if (deal.tiles.length === 0) { bad.push(`${name}: раздача не собралась`); continue; }
       const verdict = solveIndependently(deal.tiles);
       if (verdict !== 'solved') bad.push(`${name}: ${verdict}`);

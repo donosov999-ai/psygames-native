@@ -256,12 +256,20 @@ export function generate(
  */
 export function generateDeal(
   layers: number, pairs: number, cols: number, shape: SilhouetteKey = 'diamond', places?: Place[],
+  /**
+   * ⚠️ ИСТОЧНИК СЛУЧАЙНОСТИ — ПАРАМЕТР, И ЭТО РАДИ ПРОВЕРОК, А НЕ РАДИ ИГРЫ.
+   * В бою остаётся `Math.random`. Без этого проверка решаемости раздавала доски
+   * случайно и оказалась шаткой: локально зелёная, на сборочной машине красная
+   * («ур.28 заход 23: budget»). Гейт, который то краснеет, то нет, приучает
+   * перезапускать до зелёного — это хуже, чем гейта не иметь.
+   */
+  rnd: () => number = Math.random,
 ): MahjongDeal {
   const need = pairs * 2;
   const pos: Place[] = places && places.length >= 2
     ? places
     : buildPositions(layers, need, cols, shape);
-  return dealSolvable(pos, SYMBOLS.length);
+  return dealSolvable(pos, SYMBOLS.length, undefined, rnd);
 }
 
 export default function MahjongGame() {
