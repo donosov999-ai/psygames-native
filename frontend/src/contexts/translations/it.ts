@@ -428,7 +428,7 @@ const t: Record<string, string> = {
   "srsNew": "nuova",
   "chessBlind": "Scacchi alla cieca",
   "chessBlindDesc": "I pezzi sono nascosti — tieni la posizione in testa",
-  "chessBlindIntroDesc": "La posizione viene mostrata per qualche secondo — memorizza quale pezzo sta dove. Poi tutti i pezzi diventano gettoni identici e, ai livelli alti, si muovono. Rispondi cosa c’è su una casa, o individua un pezzo alla cieca. ⚠️ I pezzi sono disposti a caso, quindi questo misura la memoria visuo-spaziale, non il calcolo scacchistico: con una disposizione casuale il vantaggio dell’esperto è proprio ciò che sparisce — risultato noto, usato come condizione di controllo.",
+  "chessBlindIntroDesc": "DUE MODI. Una serie di tre compiti su UNA posizione da una partita vera: confrontare due case per colore, poi se un cavallo va dall’una all’altra in N mosse, poi se un pezzo nominato stava su una casa. La differenza di tempo tra i compiti mostra quanto costa applicare la regola della mossa e quanto costa tenere la posizione in testa. Durante le domande non c’è scacchiera: vive nella mente, altrimenti non è una misura. Il secondo modo è quello di prima: la posizione appare per qualche secondo, poi i pezzi diventano gettoni identici. ⚠️ Lì la disposizione è casuale e misura la memoria visuo-spaziale, non il calcolo scacchistico.",
   "benefitChessBlind1": "Calcoli le varianti senza muovere i pezzi",
   "benefitChessBlind2": "Un passo verso il gioco alla cieca",
   "benefitChessBlind3": "Tenere un'immagine nella mente — utile ovunque",
