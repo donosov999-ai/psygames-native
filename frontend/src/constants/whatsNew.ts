@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.236.0',
+    date: '2026-08-23',
+    ru: [
+      "Судоку: классика выдаётся мгновенно — было до трёх секунд ожидания",
+      "Судоку с термометрами и джигсо: вдвое меньше ждать, а верхние уровни стали по-настоящему сложными",
+      "«Соединение точек»: первые шесть уровней решаются рассуждением, а не перебором",
+      "«Чтение с удержанием»: предложения не повторяются, пока не кончится запас",
+    ],
+    en: [
+      "Sudoku: classic boards appear instantly — it used to take up to three seconds",
+      "Sudoku with thermometers and jigsaw: half the wait, and top levels are genuinely hard now",
+      "Dot Connect: the first six levels are solved by reasoning, not by trying options",
+      "Reading Span: sentences no longer repeat until the pool runs out",
+    ],
+  },
+  {
     version: '1.235.0',
     date: '2026-08-23',
     ru: [
