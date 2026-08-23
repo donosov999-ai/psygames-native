@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 4 · 20.08.2026 */
+/* psygames-game-sudoku · VER 5 · 23.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -67,7 +67,8 @@ import {
   sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
   rejectionReason,
 } from '@/src/services/sudoku-core';
-import { generateLogical, logicalBuilder } from '@/src/services/sudoku-grade';
+import { generateLogical, gradePuzzle, logicalBuilder } from '@/src/services/sudoku-grade';
+import { bankBoardForLevel, bankPickForLevel, BANK_N } from '@/src/services/sudoku-bank';
 import { fractalTechniqueKey } from '@/src/services/fractalLevels';
 import {
   DEFAULT_SUDOKU_ROAD, SUDOKU_ROADS, SUDOKU_ROAD_NAME_KEY, SudokuRoad,
@@ -611,10 +612,34 @@ export default function SudokuGame() {
       // Вне режима уровней ступень не считается: там доска не от логики, и честнее
       // не показывать ничего, чем показать чужое число.
       if (mode !== 'levels') { setBoardTier(null); return generatePuzzle(blanks, d.N, d.BR, d.BC, vr); }
+      /**
+       * 🔴 КЛАССИКА 9×9 — ИЗ БАНКА, А НЕ ОТ ГЕНЕРАТОРА. Замер 23.08.2026: сборка от
+       * логики промахивалась мимо своей ступени в 15 случаях из 27 и тратила на
+       * промах по 3–4,5 с. Банк отдаёт доску с ПОСЧИТАННЫМ рейтингом за доли
+       * миллисекунды, поэтому здесь нет ни шагов сборки, ни экрана ожидания —
+       * ждать нечего (разбор и таблица уровень→полоса: services/sudoku-bank).
+       *
+       * ⚠️ ТОЛЬКО КЛАССИКА. Диагональ, джигсо, термометры, стрелки, сэндвич,
+       * ThermoCage в банке не лежат — им остаётся своя генерация, ниже.
+       *
+       * ⚠️ ЗЕРНО — ПРОФИЛЬ. Один и тот же человек, вернувшись на пройденный уровень,
+       * получит ту же доску; у другого профиля порядок свой. Обход полосы по кругу
+       * дал бы общий для всех список из сорока досок и узнавание через полтора месяца.
+       */
+      const lv = lvlOverride ?? level;
+      if (vr === 'none' && d.N === BANK_N) {
+        const shift = road === 'easy' ? -1 : road === 'hard' ? 1 : 0;
+        const picked = bankBoardForLevel(lv, profile?.id ?? 'guest', shift);
+        // Оценщик техник остаётся — но теперь он ОПИСЫВАЕТ выданную доску, а не
+        // назначает ей сложность. Выше SE 3.6 наша лестница техник кончается, и
+        // подпись честно не показывается вовсе (см. шапку services/sudoku-bank).
+        const g = gradePuzzle(picked.puzzle, { N: d.N, BR: d.BR, BC: d.BC, variant: 'none' });
+        setBoardTier(g.solved ? g.tier : null);
+        return { puzzle: picked.puzzle, solution: picked.solution };
+      }
       // Полоса техник — тоже от дороги: это ГЛАВНАЯ ось сложности судоку, число
       // дырок на уровнях выше восьмого генератор всё равно задаёт сам (см. `cap`
       // в sudoku-grade). Без сдвига полосы «полегче» было бы обещанием без вещества.
-      const lv = lvlOverride ?? level;
       const builder = logicalBuilder(lv, blanks, d.N, d.BR, d.BC, vr, {
         budgetMs: 2200, tier: roadTier(lv, road),
       });
@@ -1139,11 +1164,22 @@ export default function SudokuGame() {
       {mode === 'levels' && (() => {
         const cfg = roadLevelConfig(level, road);
         const tierLabel = (value: number) => t(SUDOKU_TIER_KEYS[sudokuDifficultyTier(value)]);
+        /**
+         * ⚠️ У КЛАССИКИ ЧИСЛО ПУСТЫХ БЕРЁТСЯ У ДОСКИ, А НЕ У НАСТРОЙКИ УРОВНЯ. Доска
+         * приходит из банка готовой (см. `buildBoard`), и её 44–58 пустых клеток с
+         * `cfg.blanks` не совпадают — карточка обещала бы 34, а человек получал бы 50.
+         * Доска выбирается детерминированно по уровню, зерну и дороге, поэтому назвать
+         * её настоящее число можно ДО партии, а не после.
+         */
+        const bankShift = road === 'easy' ? -1 : road === 'hard' ? 1 : 0;
+        const blanksShown = cfg.variant === 'none' && cfg.N === BANK_N
+          ? bankPickForLevel(level, profile?.id ?? 'guest', bankShift).blanks
+          : cfg.blanks;
         return (
           <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
             <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')} {level} · {tierLabel(level)}</Text>
             <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
-              {cfg.N}×{cfg.N}{` · ${t('blanksLabel')} ${cfg.blanks} · ${t('hintsLabel')} ${cfg.hintMax}`}{cfg.variant !== 'none' ? ` · ${variantLabel(cfg.variant, language)}` : ''}
+              {cfg.N}×{cfg.N}{` · ${t('blanksLabel')} ${blanksShown} · ${t('hintsLabel')} ${cfg.hintMax}`}{cfg.variant !== 'none' ? ` · ${variantLabel(cfg.variant, language)}` : ''}
             </Text>
             {cfg.variant !== 'none' && (
               <Text style={{ color: GRADIENT[0], fontSize: 12, marginTop: 3, fontWeight: '600' }}>
