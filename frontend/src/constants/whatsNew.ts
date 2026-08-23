@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.235.0',
+    date: '2026-08-23',
+    ru: [
+      "«Шахматы вслепую» перестали быть памятью на случайные фигуры. Теперь это три задания подряд на ОДНОЙ позиции из настоящей партии: сравнить два поля по цвету, понять, дойдёт ли конь за столько-то ходов, вспомнить, что стояло на поле. Разница во времени между заданиями и показывает, чего вам стоит правило хода и чего — держать позицию в голове",
+      "Позиции взяты из базы реальных партий: на случайной расстановке памяти не за что зацепиться, и такая проба меряет только объём",
+      "Доски во время вопросов на экране нет — она живёт в голове, иначе это не проверка визуализации",
+      "Маджонг: 34 разные раскладки вместо семи, нарисованных формулой. И главное — раздача теперь собирается так, что доска гарантированно разбирается: мёртвых раскладов больше нет по построению, а не по проверке",
+    ],
+    en: [
+      "Blindfold Chess is no longer memory for random pieces. It is now three tasks in a row on ONE position from a real game: compare two squares by colour, tell whether a knight gets there in so many moves, recall what stood on a square. The time difference between tasks is what shows the cost of the move rule and the cost of holding the position in your head",
+      "The positions come from a database of real games: on a random placement memory has nothing to grip, and such a test measures only raw capacity",
+      "There is no board on screen during the questions — it lives in your head, otherwise it is not a visualization test",
+      "Mahjong: 34 different layouts instead of seven drawn by formula. And more importantly, deals are now built so the board is guaranteed to clear: dead boards are gone by construction, not by a check",
+    ],
+  },
+  {
     version: '1.234.0',
     date: '2026-08-23',
     ru: [

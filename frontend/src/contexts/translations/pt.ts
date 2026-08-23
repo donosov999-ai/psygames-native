@@ -1526,7 +1526,7 @@ const t: Record<string, string> = {
   "benefitMahjong3": "Foco e atenção aos detalhes",
   "chessBlind": "Xadrez às Cegas",
   "chessBlindDesc": "As peças estão ocultas: mantenha a posição na memória",
-  "chessBlindIntroDesc": "A posição é mostrada por alguns segundos — memorize qual peça está onde. Depois todas viram fichas idênticas e, nos níveis altos, ainda se movem. Responda o que está numa casa ou localize uma peça às cegas. ⚠️ As peças são colocadas ao acaso, então isto mede memória visuoespacial, não cálculo enxadrístico: numa disposição aleatória a vantagem do especialista é justamente o que desaparece — achado antigo, usado como condição de controle.",
+  "chessBlindIntroDesc": "DOIS MODOS. Uma série de três tarefas sobre UMA posição de uma partida real: comparar duas casas pela cor, depois se um cavalo vai de uma à outra em N lances, depois se uma peça citada estava numa casa. A diferença de tempo entre tarefas mostra o que custa aplicar a regra do lance e o que custa manter a posição na cabeça. Durante as perguntas não há tabuleiro: ele vive na sua mente, senão não é medição. O segundo modo é o anterior: a posição aparece por alguns segundos e as peças viram fichas idênticas. ⚠️ Ali a disposição é aleatória e mede memória visuoespacial, não cálculo enxadrístico.",
   "benefitChessBlind1": "Cálculo de lances sem mover as peças",
   "benefitChessBlind2": "Passo importante para o xadrez às cegas",
   "benefitChessBlind3": "Visualização mental de cenários para qualquer área",
