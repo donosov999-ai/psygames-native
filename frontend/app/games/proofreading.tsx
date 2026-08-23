@@ -1,4 +1,4 @@
-/* psygames-game-proofreading · VER 2 · 22.08.2026 */
+/* psygames-game-proofreading · VER 3 · 23.08.2026 */
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
@@ -50,6 +50,40 @@ import {
   type FillwordsPuzzle,
   type FillwordsSession,
 } from '@/src/games/fillwords/core';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import {
+  recordBlock,
+  seriesComplete,
+  seriesDiffs,
+  seriesSession,
+  startSeries,
+  type SeriesRun,
+} from '@/src/services/series';
+import {
+  EMPTY_PROOF_PROGRESS,
+  PROOF_SENSE_LOCALES,
+  PROOF_SERIES_PLAN,
+  afterProofSeries,
+  blockDone,
+  blockKeyAt,
+  blockStep,
+  blockStepsTotal,
+  buildProofField,
+  getProofSeriesStrings,
+  isSenseLocale,
+  nextBlock,
+  openBlock,
+  parseProofProgress,
+  pressSignCell,
+  pressWordTrace,
+  proofSeriesEntry,
+  type ProofBlockKey,
+  type ProofField,
+  type ProofSeriesOutcome,
+  type ProofSeriesProgress,
+  type ProofSeriesState,
+} from '@/src/games/proofreading/core';
 
 const GRADIENT = ['#a8edea', '#fed6e3'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -63,9 +97,28 @@ const PROOFREADING_BENEFITS = [
   { icon: 'shield-checkmark-outline', textKey: 'benefitProofreading3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
+/**
+ * `series` — блок серии на общем поле · `interlude` — врезка со сменой правила
+ * между блоками · `seriesResult` — разбор с разностями. Обычная партия
+ * ('playing') их не видит: у неё своя лесенка и свой лимит времени.
+ */
+type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result'
+  | 'series' | 'interlude' | 'seriesResult';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
+
+/**
+ * Врезка между блоками: назвать новое правило и сказать, что поле прежнее.
+ * Часы блока стартуют ПОСЛЕ неё, поэтому чтение правила в замер не попадает.
+ */
+const INTERLUDE_MS = 2500;
+
+/**
+ * Серия пишется ОТДЕЛЬНЫМ типом партии. Смешать её с обычной корректурой нельзя:
+ * там одно поле и один результат, здесь три блока и две разности — сложенные в
+ * одну кучу, они дали бы среднее по несравнимым величинам.
+ */
+const SERIES_GAME_TYPE = 'proofreading_series';
 
 /**
  * ДВА ЗАДАНИЯ НА ОДНОМ ЭКРАНЕ: КОРРЕКТУРА И ФИЛВОРДЫ.
@@ -110,6 +163,7 @@ function levelParams(level: number): { rows: number; cols: number; timeLimitSec:
 export default function ProofreadingGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const { profile } = useProfile();
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
@@ -119,7 +173,11 @@ export default function ProofreadingGame() {
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  // ⚠️ Глушилка правила деталей не принимает: «react-hooks/exhaustive-deps —
+  // пресет → авто-старт» читается линтером как ИМЯ правила целиком, такого
+  // правила нет, и вся строка превращалась в ошибку линта на ровном месте.
+  // Пояснение живёт комментарием, а глушить здесь нечего.
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame());
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   // rows/cols из пресета зарядки; в личной игре перезаписываются параметрами уровня
   const [rows, setRows] = useState(() => num('rows', 14));
@@ -428,17 +486,6 @@ export default function ProofreadingGame() {
   /** Идёт ли сейчас партия филвордов (решает, что рисовать в поле). */
   const fwPlaying = taskMode === 'fillwords' && !isPreset && fwSession !== null;
 
-  /**
-   * Клетка под пальцем. Шаг сетки равен `cellSize`: у клеток `margin: 1` внутри
-   * этого шага, поэтому делить надо на шаг, а не на видимую ширину плитки —
-   * иначе к правому краю накопится сдвиг на целую клетку.
-   */
-  const fwCellFromPoint = (x: number, y: number): number => {
-    const col = Math.min(cols - 1, Math.max(0, Math.floor(x / cellSize)));
-    const row = Math.min(rows - 1, Math.max(0, Math.floor(y / cellSize)));
-    return row * cols + col;
-  };
-
   /** Черновик линии держим в рефе И в state: реф читает жест, state рисует. */
   const fwSetTrace = (next: number[]) => { fwTraceRef.current = next; setFwTrace(next); };
 
@@ -525,24 +572,6 @@ export default function ProofreadingGame() {
     }
   };
 
-  /**
-   * ⚠️ Обработчик собирается на каждый рендер НАМЕРЕННО. Он замыкает геометрию
-   * поля (`cellSize`, `cols`, `rows`), а она меняется при повороте экрана и на
-   * новом уровне: запомненный однажды обработчик считал бы клетку по старому
-   * размеру и попадал бы мимо букв.
-   */
-  const fwPan = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (e) => {
-      fwDragRef.current = false;
-      fwBegin(fwCellFromPoint(e.nativeEvent.locationX, e.nativeEvent.locationY));
-    },
-    onPanResponderMove: (e) => fwExtend(fwCellFromPoint(e.nativeEvent.locationX, e.nativeEvent.locationY)),
-    onPanResponderRelease: fwRelease,
-    onPanResponderTerminate: fwRelease,
-    onPanResponderTerminationRequest: () => false,
-  });
 
   const fwHintsLeft = Math.max(0, FILLWORDS_HINTS - (fwSession ? fwSession.hints : 0));
   const fwFound = fwSession ? fwSession.found.length : 0;
@@ -557,6 +586,345 @@ export default function ProofreadingGame() {
     setFwSession(taken.session);
     setFwHint(taken.hint);
   };
+
+  // ── Серия из трёх блоков: знак → слово → смысл ────────────────────────────
+  /**
+   * ТРИ ЗАДАНИЯ НА ОДНОМ И ТОМ ЖЕ ПОЛЕ БУКВ, И В ЭТОМ ВЕСЬ ЗАМЕР.
+   *
+   * 🔴 Аддитивный метод (Стернберг): каждый следующий блок добавляет РОВНО ОДНО
+   * требование, и тогда разность времён — цена добавленного звена:
+   *   знак  → T₁ зрительный поиск
+   *   слово → T₂ − T₁ цена сегментации (границы слова в буквенном шуме)
+   *   смысл → T₃ − T₂ цена семантической классификации
+   * Всё это держится на том, что поле ОДНО. Поэтому его собирает `beginSeries`
+   * ровно один раз, а переходы между блоками идут через `nextBlock` ядра — там
+   * генератора нет вовсе, переносить нечего, кроме уже собранного поля.
+   */
+  const seriesStrings = getProofSeriesStrings(language);
+  /**
+   * Есть ли у языка интерфейса словарь С КАТЕГОРИЯМИ. Нет — серия не
+   * предлагается вовсе, а вместо кнопки человек читает, чего не хватает и где
+   * режим уже работает. Спрятать кнопку молча — оставить его гадать.
+   */
+  const senseAvailable = isSenseLocale(language);
+  const senseLangNames = PROOF_SENSE_LOCALES
+    .map((code) => LANGUAGES.find((l) => l.code === code)?.name || code)
+    .join(', ');
+
+  const [seriesState, setSeriesState] = useState<ProofSeriesState | null>(null);
+  const [seriesProgress, setSeriesProgress] = useState<ProofSeriesProgress>(EMPTY_PROOF_PROGRESS);
+  const [seriesOutcome, setSeriesOutcome] = useState<ProofSeriesOutcome | null>(null);
+  const [seriesFinished, setSeriesFinished] = useState<SeriesRun | null>(null);
+  /**
+   * Зерно поля серии. Живёт состоянием и сдвигается ПОСЛЕ каждой серии: иначе
+   * второй прогон подряд выдал бы ту же раскладку, и вместо замера вышла бы
+   * проверка памяти на уже разобранное поле.
+   */
+  const [seriesSeed, setSeriesSeed] = useState(() => Math.floor(Math.random() * 1e9) + 1);
+  /** Клетки, по которым сейчас ведут линию в блоках «Слово» и «Смысл». */
+  const [serTrace, setSerTrace] = useState<number[]>([]);
+  // Рефы: обработчики жеста и колбэк часов живут вне ре-рендеров — state в них
+  // устарел бы. Состояние блока зеркалим в реф на КАЖДОЙ записи, а не эффектом:
+  // палец успевает дать второй шаг раньше, чем эффект догонит кадр.
+  const seriesStateRef = useRef<ProofSeriesState | null>(null);
+  const seriesRunRef = useRef<SeriesRun | null>(null);
+  const blockStartRef = useRef(0);
+  const blockOpenRef = useRef(false);
+  const serTraceRef = useRef<number[]>([]);
+  const serDragRef = useRef(false);
+
+  const seriesKey = `psygames_proofreading_series_${(profile as any)?.id ?? 'default'}`;
+  useEffect(() => {
+    let alive = true;
+    AsyncStorage.getItem(seriesKey)
+      .then((raw) => { if (alive) setSeriesProgress(parseProofProgress(raw)); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [seriesKey]);
+
+  /** Какое поле человек уже держит в одиночных филвордах — стартовый уровень блока «Слово». */
+  const ladderSize = (): number => fillwordsLevel(lvl.level).rows;
+  const seriesDoor = proofSeriesEntry(seriesProgress, ladderSize());
+
+  const blockLabel = (key: ProofBlockKey): string => (
+    key === 'sign' ? seriesStrings.blockSign
+      : key === 'word' ? seriesStrings.blockWord
+        : seriesStrings.blockSense
+  );
+
+  /**
+   * Правило блока. Имя категории берётся из ОБЩЕГО словаря (`catVocab_<cat>`):
+   * «Животные» и «Еда» там уже переведены на двенадцать языков, и заводить
+   * второй такой список в модуле значило бы поссорить их при первой же правке.
+   */
+  const blockRule = (key: ProofBlockKey, field: ProofField): string => interpolate(
+    key === 'sign' ? seriesStrings.ruleSign
+      : key === 'word' ? seriesStrings.ruleWord
+        : seriesStrings.ruleSense,
+    { sign: field.signs.join(' · '), cat: t(`catVocab_${field.category}`) },
+  );
+
+  const setSeries = (next: ProofSeriesState | null) => { seriesStateRef.current = next; setSeriesState(next); };
+  const serSetTrace = (next: number[]) => { serTraceRef.current = next; setSerTrace(next); };
+
+  /** Часы блока. Каждый блок мерится отдельно — из этих времён и берутся разности. */
+  const beginBlockClock = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    const start = gameNow();
+    blockStartRef.current = start;
+    blockOpenRef.current = true;
+    setElapsedTime(0);
+    timerRef.current = setInterval(() => { setElapsedTime((gameNow() - start) / 1000); }, 100);
+  };
+
+  /**
+   * Старт серии. Поле собирается ОДИН раз на все три блока — в этом весь замер:
+   * пересобери его между блоками, и в разность поедет разница полей.
+   */
+  const beginSeries = () => {
+    if (!senseAvailable) return;
+    const entry = proofSeriesEntry(seriesProgress, ladderSize());
+    const field = buildProofField(language, entry.level, seriesSeed);
+    setSeriesSeed((seed) => seed + 1);
+    seriesRunRef.current = startSeries(SERIES_GAME_TYPE, entry.level, PROOF_SERIES_PLAN, gameNow());
+    setSeriesOutcome(null);
+    setSeriesFinished(null);
+    serSetTrace([]);
+    setSeries(openBlock(field, 0));
+    beginBlockClock();
+    setPhase('series');
+  };
+
+  /** Конец серии: ОДНА сессия с массивом блоков внутри, разности — только у полной. */
+  const finishSeries = async (run: SeriesRun, show: boolean) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    blockOpenRef.current = false;
+    const outcome = afterProofSeries(seriesProgress, run, ladderSize());
+    setSeriesProgress(outcome.progress);
+    AsyncStorage.setItem(seriesKey, JSON.stringify(outcome.progress)).catch(() => {});
+    setSeriesOutcome(outcome);
+    setSeriesFinished(run);
+    seriesRunRef.current = null;
+    setPhase(show ? 'seriesResult' : 'config');
+    try {
+      await saveSession({
+        ...seriesSession(run),
+        passed: seriesComplete(run),
+        difficulty: `${run.level}x${run.level}`,
+      });
+    } catch (error) {
+      console.error('Error saving series session:', error);
+    }
+  };
+
+  /** Блок доигран (или оборван): дописываем его в прогон и решаем, что дальше. */
+  const closeBlock = (state: ProofSeriesState, done: boolean) => {
+    const run = seriesRunRef.current;
+    if (!run || !blockOpenRef.current) return;
+    if (timerRef.current) clearInterval(timerRef.current);
+    blockOpenRef.current = false;
+    const updated = recordBlock(run, {
+      key: blockKeyAt(state.blockIndex),
+      timeMs: gameNow() - blockStartRef.current,
+      errors: state.errors,
+      done,
+    });
+    seriesRunRef.current = updated;
+    const isLast = state.blockIndex >= PROOF_SERIES_PLAN.length - 1;
+    if (done && !isLast) { setPhase('interlude'); return; }
+    finishSeries(updated, true);
+  };
+
+  /**
+   * Уход из серии посреди неё. Блоки пишем как есть — человек играл, это его
+   * время, — но `series_complete: false` и НИКАКИХ разностей.
+   */
+  const leaveSeries = (show: boolean) => {
+    const run = seriesRunRef.current;
+    if (!run) return;
+    const state = seriesStateRef.current;
+    if (blockOpenRef.current && state) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      blockOpenRef.current = false;
+      const updated = recordBlock(run, {
+        key: blockKeyAt(state.blockIndex),
+        timeMs: gameNow() - blockStartRef.current,
+        errors: state.errors,
+        done: false,
+      });
+      seriesRunRef.current = updated;
+      finishSeries(updated, show);
+      return;
+    }
+    finishSeries(run, show);
+  };
+
+  /** Нажатие по клетке в блоке «Знак». Промах подсвечивается — как в обычной корректуре. */
+  const onSignCell = (index: number) => {
+    // Состояние, а не реф: нажатие приходит между кадрами, и `seriesState`
+    // здесь всегда свежий. Реф нужен только жесту — там события успевают
+    // прилететь пачкой внутри одного кадра.
+    if (!seriesState) return;
+    const step = pressSignCell(seriesState, index);
+    if (step.result === 'ignored') return;
+    if (step.result === 'hit') hapticSuccess();
+    else {
+      hapticError();
+      setWrongFlash(index);
+      setTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);
+    }
+    setSeries(step.state);
+    if (step.result === 'hit' && blockDone(step.state)) closeBlock(step.state, true);
+  };
+
+  /**
+   * Врезка сама уводит в следующий блок — по ТОМУ ЖЕ полю (`nextBlock` переносит
+   * его как есть). Часы блока стартуют здесь, поэтому секунды чтения правила в
+   * замер не попадают.
+   */
+  useEffect(() => {
+    if (phase !== 'interlude' || !seriesState) return;
+    const id = setTimeout(() => {
+      setSeries(nextBlock(seriesState));
+      serSetTrace([]);
+      beginBlockClock();
+      setPhase('series');
+    }, INTERLUDE_MS);
+    return () => clearTimeout(id);
+    // Врезка живёт ровно одну фазу: зависимости — фаза и состояние блока, часы
+    // заводятся ВНУТРИ таймаута, поэтому больше эффекту ничего не нужно.
+  }, [phase, seriesState]);
+
+  /**
+   * УХОД МИМО КНОПОК (аппаратная «назад», переключение вкладки) серию не теряет:
+   * блоки сыграны, это время человека. Пишем их так же, как при выходе кнопкой —
+   * `series_complete: false` и без разностей. `seriesRunRef` обнуляется в
+   * `finishSeries`, поэтому доигранная серия вторую запись не получит.
+   */
+  useEffect(() => () => {
+    const run = seriesRunRef.current;
+    if (!run) return;
+    const state = seriesStateRef.current;
+    const partial = blockOpenRef.current && state
+      ? recordBlock(run, {
+        key: blockKeyAt(state.blockIndex),
+        timeMs: gameNow() - blockStartRef.current,
+        errors: state.errors,
+        done: false,
+      })
+      : run;
+    seriesRunRef.current = null;
+    if (partial.blocks.length === 0) return;   // серию, которую не начинали, писать нечем
+    saveSession({
+      ...seriesSession(partial),
+      passed: seriesComplete(partial),
+      difficulty: `${partial.level}x${partial.level}`,
+    }).catch(() => {});
+  }, []);
+
+  // Геометрия поля серии считается отдельно от обычной сетки: там rows×cols из
+  // уровня корректуры (до 16×12), здесь квадрат 5×5…8×8.
+  const seriesSide = seriesState ? seriesState.field.size : 1;
+  const seriesCell = Math.max(24, Math.min(
+    Math.floor(Math.min(width - 24, 760) / seriesSide),
+    Math.floor(Math.max(200, height - 260) / seriesSide),
+    72,
+  ));
+
+  /**
+   * Слово засчитывается в тот же миг, когда линия его накрыла. Промах — только
+   * на отпускании: пока палец ведут, «слова тут нет» ещё не ответ, а полпути.
+   */
+  const serCommit = (next: number[]) => {
+    const state = seriesStateRef.current;
+    if (!state) return;
+    const step = pressWordTrace(state, next);
+    if (step.result !== 'hit') { serSetTrace(next); return; }
+    hapticSuccess();
+    setSeries(step.state);
+    serSetTrace([]);
+    if (blockDone(step.state)) closeBlock(step.state, true);
+  };
+
+  const serStep = (cell: number) => {
+    const state = seriesStateRef.current;
+    if (!state || blockKeyAt(state.blockIndex) === 'sign') return;
+    const path = serTraceRef.current;
+    const next = stepTrace(state.session, path, cell);
+    if (next.length === path.length) return;                       // шаг незаконный или на месте
+    if (next.length < path.length) { serSetTrace(next); return; }  // стёрли хвост
+    serCommit(next);
+  };
+
+  const serBegin = (cell: number) => {
+    const state = seriesStateRef.current;
+    if (!state || blockKeyAt(state.blockIndex) === 'sign') return;
+    const path = serTraceRef.current;
+    if (path.length > 0 && stepTrace(state.session, path, cell).length !== path.length) { serStep(cell); return; }
+    serSetTrace(state.session.owner[cell] === -1 ? [cell] : []);
+  };
+
+  const serRelease = () => {
+    const state = seriesStateRef.current;
+    const path = serTraceRef.current;
+    const dragged = serDragRef.current;
+    serDragRef.current = false;
+    // Линия, набранная ТАПАМИ, при отпускании не сдаётся: человек ещё набирает.
+    if (!dragged) return;
+    serSetTrace([]);
+    if (!state || path.length < 2) return;
+    const step = pressWordTrace(state, path);
+    // Попадание уже засчитано в serCommit по ходу ведения — сюда доходит промах.
+    if (step.result === 'miss') {
+      hapticError();
+      setSeries(step.state);
+    }
+  };
+
+  /**
+   * ОДИН обработчик жеста на ОБА поля — одиночных филвордов и серии.
+   *
+   * ⚠️ Он собирается на каждый рендер НАМЕРЕННО: замыкает геометрию поля, а она
+   * меняется и при повороте экрана, и при переходе в серию (там квадрат 5×5…8×8
+   * вместо сетки корректуры до 16×12). Запомненный однажды обработчик считал бы
+   * клетку по старому размеру и попадал бы мимо букв.
+   *
+   * ⚠️ И он ОДИН, а не два рядом: правило ведения линии у филвордов и у серии
+   * обязано быть одно (оно и живёт в ядре — `stepTrace`), а два обработчика
+   * разошлись бы при первой же правке одного из них. Имя прежнее (`fwPan`):
+   * на него смотрит гейт «жест привязан к сетке» (`fillwords-screen.test.ts`).
+   */
+  const tracingSeries = phase === 'series';
+  const traceCell = tracingSeries ? seriesCell : cellSize;
+  const traceCols = tracingSeries ? seriesSide : cols;
+  const traceRows = tracingSeries ? seriesSide : rows;
+  /**
+   * Клетка под пальцем. Шаг сетки равен размеру клетки: у плиток `margin: 1`
+   * ВНУТРИ этого шага, поэтому делить надо на шаг, а не на видимую ширину
+   * плитки — иначе к правому краю накопится сдвиг на целую клетку.
+   */
+  const traceCellFromPoint = (x: number, y: number): number => {
+    const col = Math.min(traceCols - 1, Math.max(0, Math.floor(x / traceCell)));
+    const row = Math.min(traceRows - 1, Math.max(0, Math.floor(y / traceCell)));
+    return row * traceCols + col;
+  };
+  const fwPan = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (e) => {
+      const cell = traceCellFromPoint(e.nativeEvent.locationX, e.nativeEvent.locationY);
+      if (tracingSeries) { serDragRef.current = false; serBegin(cell); }
+      else { fwDragRef.current = false; fwBegin(cell); }
+    },
+    onPanResponderMove: (e) => {
+      const cell = traceCellFromPoint(e.nativeEvent.locationX, e.nativeEvent.locationY);
+      if (tracingSeries) { serDragRef.current = true; serStep(cell); }
+      else fwExtend(cell);
+    },
+    onPanResponderRelease: () => (tracingSeries ? serRelease() : fwRelease()),
+    onPanResponderTerminate: () => (tracingSeries ? serRelease() : fwRelease()),
+    onPanResponderTerminationRequest: () => false,
+  });
 
   const renderConfig = () => {
     const p = levelParams(lvl.level);
@@ -678,6 +1046,47 @@ export default function ProofreadingGame() {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* СЕРИЯ ИЗ ТРЁХ БЛОКОВ — отдельная дверь, а не третья кнопка режима.
+            Режимы выше меняют ЗАДАНИЕ одной партии, серия меняет саму партию:
+            три задания подряд по одному полю и один общий разбор. */}
+        {senseAvailable ? (
+          <View style={[styles.optionCard, { backgroundColor: colors.surface, gap: 6, marginBottom: 12 }]}>
+            <TouchableOpacity
+              accessibilityRole="button" style={styles.startButton} onPress={() => beginSeries()}>
+              <LinearGradient
+                colors={GRADIENT as [string, string]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.startButtonGradient}
+              >
+                <Ionicons name="layers-outline" size={22} color="#333" />
+                <Text style={[styles.startButtonText, { color: ON_GRAD.color }]}>{seriesStrings.entry}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <Text style={[styles.seriesNote, { color: colors.text }]}>
+              {interpolate(seriesStrings.startsAt, { size: seriesDoor.level })}
+            </Text>
+            {/* Прежние поля блоков названы ЯВНО: старт с минимума иначе читается
+                как откат прогресса. */}
+            <Text style={[styles.seriesNote, { color: colors.textSecondary }]}>
+              {interpolate(seriesStrings.yourLevels, {
+                sign: `${seriesDoor.perBlock.sign}×${seriesDoor.perBlock.sign}`,
+                word: `${seriesDoor.perBlock.word}×${seriesDoor.perBlock.word}`,
+                sense: `${seriesDoor.perBlock.sense}×${seriesDoor.perBlock.sense}`,
+              })}
+            </Text>
+          </View>
+        ) : (
+          /* 🔴 ЧЕСТНЫЙ ОТКАЗ ВМЕСТО СПРЯТАННОЙ КНОПКИ. Блок «Смысл» живёт на
+             словаре С КАТЕГОРИЯМИ, а он есть не на всех двенадцати языках. */
+          <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
+            <Ionicons name="layers-outline" size={24} color={colors.textSecondary} />
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+              {interpolate(seriesStrings.noSense, { langs: senseLangNames })}
+            </Text>
+          </View>
+        )}
 
         <TouchableOpacity
           accessibilityRole="button" style={styles.startButton} onPress={startGame}>
@@ -803,7 +1212,8 @@ export default function ProofreadingGame() {
       ) : (
       <View style={[styles.gridContainer, { width: gridWidth }]}>
         {grid.map((letter, index) => {
-          const isTarget = targetIndices.has(index);
+          // Цель до нажатия НЕ подсвечивается — в этом вся проба: её надо
+          // увидеть самому. Поэтому здесь только «уже найдено».
           const isFound = foundIndices.has(index);
 
           return (
@@ -842,7 +1252,136 @@ export default function ProofreadingGame() {
   );
 
 
+  /**
+   * БЛОК СЕРИИ. Сетка та же, что в обычной партии, но буквы берутся из
+   * `seriesState.field.puzzle` — ЕДИНСТВЕННОГО поля на все три блока. Меняется
+   * только правило: что искать, говорит шапка, а как — строка под полем.
+   *
+   * ⚠️ Ввод у блоков разный по необходимости, а не по вкусу: знак закрывают
+   * нажатием на клетку, слово — линией по клеткам. Поэтому в блоке «Знак» клетки
+   * нажимаемые, а обработчик жеста к полю не подключён вовсе.
+   */
+  const renderSeries = () => {
+    if (!seriesState) return null;
+    const field = seriesState.field;
+    const key = blockKeyAt(seriesState.blockIndex);
+    const isSign = key === 'sign';
+    const done = blockStep(seriesState);
+    const total = blockStepsTotal(field, key);
+    return (
+      <GameShell
+        title={seriesStrings.entry}
+        onBack={() => { leaveSeries(false); goBackOrHome(); }}
+        headerRight={
+          <TouchableOpacity
+            accessibilityRole="button" accessibilityLabel={seriesStrings.leave}
+            style={[styles.backButton, { backgroundColor: colors.surface }]}
+            onPress={() => leaveSeries(true)}
+          >
+            <Ionicons name="close" size={24} color={colors.text} />
+          </TouchableOpacity>
+        }
+        stats={
+          <View style={styles.gameHeader}>
+            <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.targetLabel, { color: colors.text }]}>{blockLabel(key)}</Text>
+              {isSign && field.signs.map((sign, i) => (
+                <View key={sign} style={[styles.targetChip, { backgroundColor: i === 0 ? '#34d399' : '#fbbf24' }]}>
+                  <Text style={styles.targetChipText}>{sign}</Text>
+                </View>
+              ))}
+              {/* Слово рядом с числом — правило шапки (`hud-labels`): «3/6» без
+                  подписи читается как что угодно. Ключ общий, уже переведённый. */}
+              <Text style={[styles.targetLabel, { color: colors.textSecondary }]}>{t('label_found')}</Text>
+              <Text style={[styles.targetCount, { color: colors.textSecondary }]}>{done}/{total}</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
+              <Ionicons name="time-outline" size={18} color={colors.text} />
+              <Text style={[styles.timerText, { color: colors.text }]}>
+                {`${t('time')} ${Math.floor(elapsedTime)}${t('secShort')}`}
+              </Text>
+              {seriesState.errors > 0 && (
+                <Text style={[styles.timerText, { color: '#f43f5e' }]}>{t('hud_errors')} {seriesState.errors}</Text>
+              )}
+            </View>
+          </View>
+        }
+      >
+        <Text style={[styles.seriesBlockLine, { color: colors.textSecondary }]}>
+          {`${interpolate(seriesStrings.blockOf, { n: seriesState.blockIndex + 1, total: PROOF_SERIES_PLAN.length })} · ${blockLabel(key)}`}
+        </Text>
+        <View
+          style={[styles.gridContainer, { width: seriesCell * seriesSide }]}
+          {...(isSign ? {} : fwPan.panHandlers)}
+        >
+          {field.puzzle.letters.map((letter, index) => {
+            const owner = seriesState.session.owner[index];
+            const traced = serTrace.indexOf(index) >= 0;
+            const closed = isSign ? seriesState.taken[index] : owner >= 0;
+            const tint = isSign
+              ? (closed ? GRADIENT[0] : wrongFlash === index ? '#f43f5e' : colors.surface)
+              : (traced ? GRADIENT[0] : owner >= 0 ? tintForFoundOrder(seriesState.session.found.indexOf(owner)) : colors.surface);
+            const ink = isSign
+              ? (closed ? '#333' : wrongFlash === index ? '#fff' : colors.text)
+              : (traced ? '#333' : owner >= 0 ? FILLWORDS_INK : colors.text);
+            const box = {
+              width: seriesCell - 2,
+              height: seriesCell - 2,
+              backgroundColor: tint,
+            };
+            const text = {
+              fontSize: Math.min(seriesCell * 0.5, 24),
+              color: ink,
+              fontWeight: (closed || traced ? '700' : '500') as '700' | '500',
+            };
+            return isSign ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                key={index}
+                style={[styles.cell, box]}
+                onPress={() => onSignCell(index)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.cellText, text]}>{letter}</Text>
+              </TouchableOpacity>
+            ) : (
+              <View key={index} accessible accessibilityLabel={letter} style={[styles.cell, box]}>
+                <Text style={[styles.cellText, text]}>{letter}</Text>
+              </View>
+            );
+          })}
+        </View>
+        <Text style={[styles.fwTask, { color: colors.textSecondary }]}>{blockRule(key, field)}</Text>
+      </GameShell>
+    );
+  };
+
+  /**
+   * ВРЕЗКА между блоками. Её работа — назвать новое правило и сказать главное:
+   * поле НЕ менялось. Без этой фразы смена правила читается как новая игра, и
+   * серия распадается на три упражнения подряд.
+   */
+  const renderInterlude = () => {
+    if (!seriesState) return null;
+    const nextKey = blockKeyAt(seriesState.blockIndex + 1);
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.interlude}>
+          <Ionicons name="swap-horizontal" size={44} color={GRADIENT[0]} />
+          <Text style={[styles.interludeTitle, { color: colors.text }]}>{seriesStrings.ruleChanges}</Text>
+          <Text style={[styles.interludeBlock, { color: colors.text }]}>{blockLabel(nextKey)}</Text>
+          <Text style={[styles.interludeRule, { color: colors.textSecondary }]}>
+            {blockRule(nextKey, seriesState.field)}
+          </Text>
+          <Text style={[styles.interludeSame, { color: colors.textSecondary }]}>{seriesStrings.sameField}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  };
+
   if (phase === 'playing') return renderGame();
+  if (phase === 'series') return renderSeries();
+  if (phase === 'interlude') return renderInterlude();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -879,6 +1418,76 @@ export default function ProofreadingGame() {
           onContinue={() => startGame()}
           onStop={() => setPhase('config')}
         />
+      )}
+      {/* РАЗБОР СЕРИИ. Главное здесь не очки, а две разности: цена сегментации и
+          цена смысла. У неполной серии их нет ВООБЩЕ — вместо чисел говорим об
+          этом прямо. */}
+      {phase === 'seriesResult' && seriesFinished && (
+        <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+          <LinearGradient
+            colors={GRADIENT as [string, string]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.configCard}
+          >
+            <Ionicons name="layers-outline" size={44} color={ON_GRAD.color} />
+            <Text style={[styles.configTitle, { color: ON_GRAD.color }]}>{seriesStrings.seriesDone}</Text>
+          </LinearGradient>
+          {(() => {
+            const diffs = seriesDiffs(seriesFinished);
+            if (!diffs) {
+              return <Text style={[styles.seriesNote, { color: '#f43f5e' }]}>{seriesStrings.notFinished}</Text>;
+            }
+            // Имена разностей собирает ядро из ключей блоков — не переписываем их строкой.
+            const base = PROOF_SERIES_PLAN[0];
+            const segment = diffs[`${PROOF_SERIES_PLAN[1]}_minus_${base}`];
+            const sense = diffs[`${PROOF_SERIES_PLAN[2]}_minus_${base}`];
+            const signed = (ms: number): string => `${ms > 0 ? '+' : ''}${(ms / 1000).toFixed(1)} ${t('seconds')}`;
+            return (
+              <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.seriesRow, { color: colors.text }]}>
+                  {`${seriesStrings.signSpeed}: ${(seriesFinished.blocks[0].timeMs / 1000).toFixed(1)} ${t('seconds')}`}
+                </Text>
+                <Text style={[styles.seriesRow, { color: colors.text }]}>
+                  {`${seriesStrings.segmentCost}: ${signed(segment)}`}
+                </Text>
+                {/* Цена смысла — это T₃−T₂, а ядро отдаёт обе разности от ПЕРВОГО
+                    блока. Считаем её из них: (T₃−T₁) − (T₂−T₁). Так у неполной
+                    серии цена смысла не появится ни при каких обстоятельствах —
+                    разностей там нет вовсе, и вычитать нечего. */}
+                <Text style={[styles.seriesRow, { color: colors.text }]}>
+                  {`${seriesStrings.senseCost}: ${signed(sense - segment)}`}
+                </Text>
+              </View>
+            );
+          })()}
+          {seriesOutcome && (
+            <Text style={[styles.seriesNote, { color: colors.textSecondary }]}>
+              {seriesOutcome.raised
+                ? interpolate(seriesStrings.levelUp, { size: seriesOutcome.nextLevel })
+                : interpolate(seriesStrings.heldBy, {
+                  block: blockLabel(seriesOutcome.weakest),
+                  runs: Math.max(1, seriesOutcome.runsLeft),
+                })}
+            </Text>
+          )}
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.startButton, { marginTop: 8 }]} onPress={() => beginSeries()}>
+            <LinearGradient
+              colors={GRADIENT as [string, string]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.startButtonGradient}
+            >
+              <Ionicons name="refresh" size={22} color="#333" />
+              <Text style={[styles.startButtonText, { color: ON_GRAD.color }]}>{seriesStrings.again}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button" style={{ alignItems: 'center', paddingVertical: 12 }} onPress={() => setPhase('config')}>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>{seriesStrings.leave}</Text>
+          </TouchableOpacity>
+        </ScrollView>
       )}
       {phase === 'result' && (
         <GameResult
@@ -1001,4 +1610,13 @@ const styles = StyleSheet.create({
   fwField: { alignItems: 'center', width: '100%' },
   fwTask: { fontSize: 14, textAlign: 'center', marginBottom: 8, paddingHorizontal: 8 },
   fwCount: { fontSize: 16, fontWeight: '700' },
+  // Серия блоков: строка «Блок n из 3», врезка между блоками, строки разбора
+  seriesBlockLine: { fontSize: 14, textAlign: 'center', marginBottom: 8 },
+  seriesNote: { fontSize: 14, textAlign: 'center' },
+  seriesRow: { fontSize: 16, fontWeight: '600', paddingVertical: 4 },
+  interlude: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 24 },
+  interludeTitle: { fontSize: 16, fontWeight: '600' },
+  interludeBlock: { fontSize: 26, fontWeight: '800', textAlign: 'center' },
+  interludeRule: { fontSize: 16, textAlign: 'center' },
+  interludeSame: { fontSize: 14, textAlign: 'center', marginTop: 8 },
 });

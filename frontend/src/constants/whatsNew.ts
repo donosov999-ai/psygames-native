@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.233.0',
+    date: '2026-08-23',
+    ru: [
+      "Корректурка пошла серией из трёх режимов на ОДНОМ поле: сперва найти букву, потом найти в той же сетке слова, потом — только слова нужной категории. Разница во времени между режимами показывает, чего вам стоит разбить строку на слова и чего стоит понять их смысл",
+      "В режиме «Смысл» на поле лежат и нужные слова, и чужие — причём такой же длины. Иначе достаточно было бы найти любое слово, не думая о смысле",
+    ],
+    en: [
+      "Proofreading now runs as a series of three modes on ONE field: first find a letter, then find words in the same grid, then only words of a given category. The time difference between modes shows what it costs you to split a string into words, and what it costs to grasp their meaning",
+      "In the «meaning» mode the grid holds both the wanted words and foreign ones — of the same length. Otherwise finding any word would be enough, with no thinking about meaning",
+    ],
+  },
+  {
     version: '1.232.0',
     date: '2026-08-23',
     ru: [

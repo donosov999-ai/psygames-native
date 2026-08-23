@@ -80,6 +80,11 @@ import {
   SchulteSeriesLocale,
   getSchulteSeriesStrings,
 } from '@/src/games/schulte/core/i18n';
+import {
+  PROOF_SERIES_LOCALES,
+  ProofSeriesLocale,
+  getProofSeriesStrings,
+} from '@/src/games/proofreading/core/i18n';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -219,6 +224,15 @@ const MODULES: ModuleUnderTest[] = [
     id: 'schulte',
     locales: SCHULTE_SERIES_LOCALES,
     strings: (l: SchulteSeriesLocale) => getSchulteSeriesStrings(l) as any,
+    labels: [],
+  },
+  {
+    // Серия «знак → слово → смысл» в корректурке (23.08.2026). Имён категорий
+    // здесь нет намеренно: они уже переведены в общем словаре ключами
+    // `catVocab_<cat>`, и второй такой список разошёлся бы с первым.
+    id: 'proofreading',
+    locales: PROOF_SERIES_LOCALES,
+    strings: (l: ProofSeriesLocale) => getProofSeriesStrings(l) as any,
     labels: [],
   },
 ];
