@@ -1,14 +1,15 @@
-/* psygames-game-stroop · VER 2 · 23.08.2026 */
+/* psygames-game-stroop · VER 3 · 23.08.2026 */
 /**
  * Stroop — классический тест интерференции (цвет чернил vs значение слова).
  *
  * VER 2: ответ — ЦВЕТНАЯ ПЛАШКА БЕЗ ПОДПИСИ. Подписанные варианты возвращали в
  * ответ то самое чтение, которое проба гасит; разбор — у самой полосы ответов.
  *
- * Система уровней (по паттерну cpt.tsx): сложность растёт ТРУДНОСТЬЮ, не временем:
+ * VER 3: доля конфликтных проб перестала быть ручкой сложности — см. блок над
+ * INCONGRUENT_RATIO. Сложность растёт ТЕМПОМ и ОБЪЁМОМ:
  *   - окно ответа на пробу сокращается с уровнем (3.5с → 1.2с);
- *   - доля конфликтных проб (incongruent: слово ≠ цвет чернил) растёт (50% → 90%);
- *   - на верхних уровнях (11+) растёт число трейлов (20 → 30).
+ *   - число проб растёт (20 → 24 → 34);
+ *   - доля конфликтных проб ФИКСИРОВАНА на 50%.
  * Просрочка окна ответа = ошибка (miss). Проход уровня: точность ≥85% за раунд.
  *
  * Биомаркеры: mean RT congruent/incongruent, interference_ms (Stroop effect).
@@ -107,15 +108,51 @@ type Mode = 'word' | 'ink';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 
-// Маппинг уровня (1..15) в параметры сложности:
-//   L1-5  — окно 3500→2840мс, конфликтных 50→62%, 20 трейлов
-//   L6-10 — окно 2675→2015мс, конфликтных 65→77%, 20 трейлов
-//   L11-15— окно 1850→1200мс, конфликтных 80→90%, трейлы 22→30
-function levelParams(level: number): { trials: number; windowMs: number; incongruentRatio: number } {
-  const trials = level <= 10 ? 20 : Math.min(30, 20 + (level - 10) * 2);
+export type StroopColor = typeof COLORS_DEF[0];
+
+/**
+ * ДОЛЯ КОНФЛИКТНЫХ ПРОБ — КОНСТАНТА ПАРАДИГМЫ, А НЕ РУЧКА СЛОЖНОСТИ.
+ *
+ * 🔴 БЫЛО: `incongruentRatio = min(0.9, 0.5 + (level-1)*0.03)` — к пятнадцатому
+ * уровню девять проб из десяти конфликтные. Струп меряет РАЗНИЦУ времён между
+ * конгруэнтными и конфликтными пробами (`interference_ms`), то есть величину
+ * измеряемого эффекта задаёт сама доля: при 90 % конфликтных на конгруэнтные
+ * остаётся 10 % — из тридцати проб это три штуки, и среднее по трём наблюдениям
+ * превращается в шум. Ручка «сложнее» уменьшала ровно то, ради чего игра есть.
+ *
+ * То же правило записано в `iowa.tsx`: методика с популяционными нормами
+ * осмысленна только потому, что условие у всех одинаковое. Крутить его значило бы
+ * сломать сравнимость и превратить проверенную методику в придуманную механику.
+ *
+ * Канон Струпа — равные доли, 50/50. Вес сложности перенесён на окно ответа и
+ * число проб (`levelParams` ниже). Сторожит `conflict-ratio-is-not-difficulty.test.ts`.
+ */
+export const INCONGRUENT_RATIO = 0.5;
+
+export interface StroopTrial { word: StroopColor; ink: StroopColor; congruent: boolean }
+
+/**
+ * Проба уровня. Уровень стоит в подписи НАМЕРЕННО, хотя доля конфликтных от него
+ * не зависит: гейт спрашивает игру «что ты даёшь на первом и на пятнадцатом» и
+ * считает долю конгруэнтных по реально сгенерированным пробам, а не по строчке в
+ * исходнике. Вернётся зависимость от уровня — гейт покраснеет.
+ */
+export function makeTrial(level: number, palette: StroopColor[] = COLORS_DEF): StroopTrial {
+  const word = palette[Math.floor(Math.random() * palette.length)];
+  if (Math.random() >= INCONGRUENT_RATIO) return { word, ink: word, congruent: true };
+  let ink = word;
+  while (ink.name === word.name) ink = palette[Math.floor(Math.random() * palette.length)];
+  return { word, ink, congruent: false };
+}
+
+// Маппинг уровня (1..15) в параметры сложности — темп и объём:
+//   L1-5  — окно 3500→2840мс, 20 проб
+//   L6-10 — окно 2675→2015мс, 24 пробы
+//   L11-15— окно 1850→1200мс, проб 26→34
+export function levelParams(level: number): { trials: number; windowMs: number } {
+  const trials = level <= 5 ? 20 : level <= 10 ? 24 : Math.min(34, 24 + (level - 10) * 2);
   const windowMs = Math.max(1200, 3500 - (level - 1) * 165);
-  const incongruentRatio = Math.min(0.9, 0.5 + (level - 1) * 0.03);
-  return { trials, windowMs, incongruentRatio };
+  return { trials, windowMs };
 }
 
 export default function StroopGame() {
@@ -146,7 +183,6 @@ export default function StroopGame() {
   const levelRef = useRef(1);
   const trialsRef = useRef(20);
   const windowMsRef = useRef(3500);
-  const incongruentRef = useRef(0.5);
   const modeRef = useRef<Mode>('ink');
   const roundRef = useRef(0);
   const hitsRef = useRef(0);
@@ -169,13 +205,7 @@ export default function StroopGame() {
 
   const nextRound = () => {
     if (stoppedRef.current) return;
-    const w = PALETTE[Math.floor(Math.random() * 4)];
-    let c;
-    if (Math.random() < incongruentRef.current) {
-      do { c = PALETTE[Math.floor(Math.random() * 4)]; } while (c.name === w.name);
-    } else {
-      c = w;
-    }
+    const { word: w, ink: c } = makeTrial(levelRef.current, PALETTE);
     wordRef.current = w; inkRef.current = c;
     setWord(w); setInkColor(c);
     answeredRef.current = false;
@@ -228,7 +258,6 @@ export default function StroopGame() {
     levelRef.current = lvl.level;
     trialsRef.current = isPreset ? num('trials', p.trials) : p.trials;
     windowMsRef.current = p.windowMs;
-    incongruentRef.current = p.incongruentRatio;
     modeRef.current = mode;
     stoppedRef.current = false;
     hitsRef.current = 0; errorsRef.current = 0; missesRef.current = 0;
@@ -285,7 +314,7 @@ export default function StroopGame() {
           misses: missesRef.current,
           accuracy: Math.round(accuracy * 100),
           window_ms: windowMsRef.current,
-          incongruent_ratio: incongruentRef.current,
+          incongruent_ratio: INCONGRUENT_RATIO,
           mean_rt_congruent: meanCongr,
           mean_rt_incongruent: meanIncongr,
           interference_ms: interferenceMs,
@@ -311,7 +340,7 @@ export default function StroopGame() {
             {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {t('stroopLvlParams').replace('{n}', String(p.trials)).replace('{w}', (p.windowMs / 1000).toFixed(1)).replace('{p}', String(Math.round(p.incongruentRatio * 100)))}
+            {t('stroopLvlParams').replace('{n}', String(p.trials)).replace('{w}', (p.windowMs / 1000).toFixed(1)).replace('{p}', String(Math.round(INCONGRUENT_RATIO * 100)))}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
             {t('stroopPass')}

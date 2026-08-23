@@ -1,4 +1,4 @@
-/* psygames-game-simon · VER 1 · 19.08.2026 */
+/* psygames-game-simon · VER 2 · 23.08.2026 */
 /**
  * Simon Task (v1.9.0 — 48-я игра, классика inhibitory control)
  *
@@ -21,10 +21,12 @@
  * Simon = пространственный конфликт (позиция стимула vs нужная сторона ответа).
  *
  * Уровни (persist, по паттерну cpt): ручной селектор сложности заменён на
- * usePersistentLevel('simon') + levelParams. Ось усложнения:
- *   - доля конфликтных (incongruent) проб растёт 35% → 80%
+ * usePersistentLevel('simon') + levelParams. Ось усложнения — ТЕМП и ОБЪЁМ:
  *   - окно ответа сокращается 2600мс → 920мс (не успел = ошибка-пропуск)
- *   - число проб растёт ступенями 12 → 16 → 20
+ *   - пауза перед стимулом сжимается 500-1100мс → 250-450мс (темп подачи)
+ *   - число проб растёт ступенями 16 → 20 → 24
+ *   - доля конфликтных проб ФИКСИРОВАНА на 50% (VER 2): она задаёт величину
+ *     самого Simon-эффекта, см. блок над INCONGRUENT_PROB
  * Проход уровня: ≥80% верных ответов за раунд → LevelCleared (авто-поток).
  */
 
@@ -82,18 +84,43 @@ interface Trial {
 /** Правильная сторона ответа по цвету: blue→left, red→right */
 const correctSide = (c: StimColor): Position => (c === 'blue' ? 'left' : 'right');
 
-// Уровень 1..15: доля конфликтных проб растёт, окно ответа сокращается,
-// число проб растёт ступенями (12 → 16 → 20).
-function levelParams(level: number): { trials: number; incongruentProb: number; windowMs: number } {
-  const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
-  const incongruentProb = Math.min(0.8, 0.35 + (level - 1) * 0.032);   // 35% → 80%
-  const windowMs = Math.max(900, 2600 - (level - 1) * 120);            // 2600мс → 920мс
-  return { trials, incongruentProb, windowMs };
+/**
+ * ДОЛЯ КОНФЛИКТНЫХ ПРОБ — КОНСТАНТА ПАРАДИГМЫ, А НЕ РУЧКА СЛОЖНОСТИ.
+ *
+ * 🔴 БЫЛО: 35 % → 80 % с уровнем. Simon-эффект = RT_несовпадающих −
+ * RT_совпадающих, то есть измеряемая величина держится на ОБЕИХ половинах:
+ * задрав долю конфликтных до 80 %, из двадцати проб оставляем четыре
+ * совпадающие — вычитаемое считается по четырём наблюдениям и становится шумом.
+ * Хуже того, при 80 % конфликтных «несовпадение» перестаёт быть исключением:
+ * пространственная привычка, которую эффект и меряет, просто не успевает
+ * сложиться, и эффект уменьшается сам по себе. Ручка «сложнее» уменьшала ровно
+ * то, ради чего игра существует.
+ *
+ * То же правило записано в `iowa.tsx`: методика осмысленна только потому, что
+ * условие у всех одинаковое. Канон Simon — равные доли, 50/50; вес сложности
+ * перенесён на окно ответа, темп подачи и число проб (`levelParams` ниже).
+ * Сторожит `conflict-ratio-is-not-difficulty.test.ts`.
+ */
+export const INCONGRUENT_PROB = 0.5;
+
+// Уровень 1..15: окно ответа сокращается, темп подачи растёт (пауза перед
+// стимулом сжимается), число проб растёт ступенями (16 → 20 → 24).
+export function levelParams(level: number): { trials: number; windowMs: number; preMinMs: number; preJitterMs: number } {
+  const trials = level <= 5 ? 16 : level <= 10 ? 20 : 24;
+  const windowMs = Math.max(900, 2600 - (level - 1) * 120);    // 2600мс → 920мс
+  const preMinMs = Math.max(250, 500 - (level - 1) * 18);      // пауза до стимула 500 → 250мс
+  const preJitterMs = Math.max(200, 600 - (level - 1) * 29);   // дрожание паузы 600 → 200мс
+  return { trials, windowMs, preMinMs, preJitterMs };
 }
 
-function makeTrial(incongruentProb: number): Trial {
+/**
+ * Проба уровня. Уровень стоит в подписи НАМЕРЕННО, хотя доля конфликтных от него
+ * не зависит: гейт спрашивает игру по уровням и считает долю совпадающих проб по
+ * реально сгенерированным пробам, а не по строчке в исходнике.
+ */
+export function makeTrial(level: number): Trial {
   const color: StimColor = Math.random() < 0.5 ? 'blue' : 'red';
-  const isIncongruent = Math.random() < incongruentProb;
+  const isIncongruent = Math.random() < INCONGRUENT_PROB;
   const correct = correctSide(color);
   const position: Position = isIncongruent
     ? (correct === 'left' ? 'right' : 'left')
@@ -118,7 +145,7 @@ export default function SimonGame() {
   const [clearedPassed, setClearedPassed] = useState(true);
 
   const [round, setRound] = useState(0);
-  const [totalTrials, setTotalTrials] = useState(12);
+  const [totalTrials, setTotalTrials] = useState(16);
   const [trial, setTrial] = useState<Trial>({ color: 'blue', position: 'left', kind: 'congruent' });
   const [showStim, setShowStim] = useState(false);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
@@ -130,9 +157,10 @@ export default function SimonGame() {
   // Рефы — таймерная цепочка (стимул → дедлайн → следующая проба) живёт вне
   // ре-рендеров, state в её колбэках был бы устаревшим (паттерн cpt/quick-count).
   const levelRef = useRef(1);
-  const incongruentProbRef = useRef(0.35);
   const windowMsRef = useRef(2600);
-  const totalTrialsRef = useRef(12);
+  const preMinRef = useRef(500);
+  const preJitterRef = useRef(600);
+  const totalTrialsRef = useRef(16);
   const roundRef = useRef(0);
   const hitsRef = useRef(0);
   const errorsRef = useRef(0);
@@ -154,7 +182,7 @@ export default function SimonGame() {
 
   const newTrial = () => {
     setShowStim(false); setFeedback(null);
-    const tr = makeTrial(incongruentProbRef.current);
+    const tr = makeTrial(levelRef.current);
     trialRef.current = tr;
     setTrial(tr);
     stimTimerRef.current = setTimeout(() => {
@@ -170,7 +198,7 @@ export default function SimonGame() {
         setFeedback('wrong');
         fbTimerRef.current = setTimeout(advance, 350);
       }, windowMsRef.current);
-    }, 500 + Math.random() * 600);
+    }, preMinRef.current + Math.random() * preJitterRef.current);
   };
 
   const advance = () => {
@@ -183,8 +211,9 @@ export default function SimonGame() {
   const startGame = () => {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
-    incongruentProbRef.current = p.incongruentProb;
     windowMsRef.current = p.windowMs;
+    preMinRef.current = p.preMinMs;
+    preJitterRef.current = p.preJitterMs;
     totalTrialsRef.current = p.trials;
     setTotalTrials(p.trials);
     hitsRef.current = 0; errorsRef.current = 0;
@@ -308,7 +337,7 @@ export default function SimonGame() {
             {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {t('simonLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(p.incongruentProb * 100))).replace('{w}', (p.windowMs / 1000).toFixed(1))}
+            {t('simonLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(INCONGRUENT_PROB * 100))).replace('{w}', (p.windowMs / 1000).toFixed(1))}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>

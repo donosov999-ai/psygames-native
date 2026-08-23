@@ -1,9 +1,14 @@
-/* psygames-game-cpt · VER 1 · 19.08.2026 */
+/* psygames-game-cpt · VER 2 · 23.08.2026 */
 /**
  * CPT — Continuous Performance Test (Conners Not-X variant)
  *
- * Парадигма: каждые 1-2 секунды появляется буква. Subject должен ТАПНУТЬ на
- * любую букву КРОМЕ X (X = non-target — надо подавить ответ). 80% targets, 20% X.
+ * Парадигма: каждые 1-2 секунды появляется буква. Тапнуть надо на X (в AX-режиме —
+ * на X, которой предшествовала A), на все прочие буквы ответ подавляется.
+ * Цель РЕДКА — 20 % проб, см. блок над TARGET_RATE.
+ *
+ * ⚠️ VER 2: прежняя шапка описывала обратную задачу («тапнуть на любую букву
+ * КРОМЕ X, 80 % targets») — экран так не работал ни одного дня: подпись игроку
+ * `cptTapX` говорит «жми на каждую X», и `isTarget` в коде стоит на X.
  *
  * Биомаркеры (классика ADHD-диагностики, Conners CPT-3):
  *   - omission_errors    — пропущенные targets (внимание упало)
@@ -71,15 +76,52 @@ const LETTERS_NON_X = ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','
 const CONFUSABLE = ['K','Y','V','W','N','M'];   // угловатые буквы — похожи на X при беглом взгляде
 const STIM_DURATION = 250;          // буква видна 250мс
 
-// Сложность РАСТЁТ НЕ ВРЕМЕНЕМ (длительность фикс ~90с — короткие сессии не скучают), а ТРУДНОСТЬЮ задачи:
+/**
+ * РЕДКОСТЬ ЦЕЛИ — КОНСТАНТА ПАРАДИГМЫ, А НЕ РУЧКА СЛОЖНОСТИ.
+ *
+ * 🔴 БЫЛО: `targetRate` 0.28 на L1-5 и 0.32 дальше — то есть с уровнем цель
+ * становилась ЧАЩЕ. Проба бдительности держится ровно на обратном: ответ обязан
+ * быть исключением, а не фоном. Пропуск (omission) означает падение внимания
+ * только тогда, когда нажатие редкое и требует его удерживать; при трети целей
+ * это уже обычная скоростная задача, и `vigilance_decrement` меряет усталость
+ * пальца, а не внимания.
+ *
+ * То же правило записано в `iowa.tsx`: методика с популяционными нормами
+ * осмысленна только потому, что условие у всех одинаковое.
+ *
+ * Канон — 10-20 % целей; взято 20 %, верх диапазона: партия длится 90 секунд, за
+ * неё выходит 30-90 проб, и на 10 % целей осталось бы 3-9 попаданий, а по ним
+ * считаются и `mean_rt`, и `rt_variability` (домен attention_sustained в
+ * `assessment.ts`, норма 0.20±0.08). Сторожит `conflict-ratio-is-not-difficulty.test.ts`.
+ */
+export const TARGET_RATE = 0.2;
+/** Доля подсказок A, которые замыкаются целью X. Остальные — ловушка AY. */
+const AX_COMPLETION = 0.7;
+/**
+ * Как часто ставить подсказку A, чтобы доля целей осталась ровно TARGET_RATE.
+ * Вывод: A идёт только после «не-A», значит доля букв A равна a = A_CUE·(1−a),
+ * то есть a = A_CUE/(1+A_CUE); доля целей = a·AX_COMPLETION. Приравняли к
+ * TARGET_RATE → A_CUE = T/(C−T).
+ *
+ * ⚠️ Прежняя редакция брала одну и ту же вероятность и на подсказку, и на её
+ * замыкание, поэтому в AX-режиме реальная доля целей была p²/(1+p) ≈ 8 % при
+ * заявленных 32 %: на верхних уровнях за партию выходило 4-5 целей, и CV-RT
+ * считался по четырём числам.
+ */
+const A_CUE_RATE = TARGET_RATE / (AX_COMPLETION - TARGET_RATE);
+/** X без предшествующей A — ловушка на commission (доля от «прочих» проб). */
+const BX_LURE = 0.18;
+
+// Сложность РАСТЁТ НЕ ВРЕМЕНЕМ (длительность фикс ~90с — короткие сессии не скучают)
+// и НЕ долей целей, а ТРУДНОСТЬЮ задачи:
 //   L1-5  — классический X-CPT (жми на X), ISI 1500→900 (темп растёт)
 //   L6-10 — AX-CPT (жми на X ТОЛЬКО если перед ней была A — нагрузка на рабочую память), ISI 1100→850
 //   L11-15— AX-CPT + ISI 800→500 + растущая доля похожих на X дистракторов (перцептивная нагрузка)
-function levelParams(level: number): { durationSec: number; isiMs: number; mode: 'X' | 'AX'; confusableRatio: number; targetRate: number } {
+export function levelParams(level: number): { durationSec: number; isiMs: number; mode: 'X' | 'AX'; confusableRatio: number } {
   const durationSec = 90;
-  if (level <= 5)  return { durationSec, isiMs: Math.max(900, 1500 - (level - 1) * 150), mode: 'X',  confusableRatio: 0, targetRate: 0.28 };
-  if (level <= 10) return { durationSec, isiMs: Math.max(850, 1100 - (level - 6) * 60),  mode: 'AX', confusableRatio: 0, targetRate: 0.32 };
-  return { durationSec, isiMs: Math.max(500, 800 - (level - 11) * 75), mode: 'AX', confusableRatio: Math.min(0.5, 0.15 + (level - 11) * 0.09), targetRate: 0.32 };
+  if (level <= 5)  return { durationSec, isiMs: Math.max(900, 1500 - (level - 1) * 150), mode: 'X',  confusableRatio: 0 };
+  if (level <= 10) return { durationSec, isiMs: Math.max(850, 1100 - (level - 6) * 60),  mode: 'AX', confusableRatio: 0 };
+  return { durationSec, isiMs: Math.max(500, 800 - (level - 11) * 75), mode: 'AX', confusableRatio: Math.min(0.5, 0.15 + (level - 11) * 0.09) };
 }
 
 /**
@@ -93,16 +135,34 @@ function levelParams(level: number): { durationSec: number; isiMs: number; mode:
  */
 export const MIN_TRIALS_FOR_LEVEL = 40;
 
-function pickDistractor(confusableRatio: number): string {
+// В AX-режиме A — это подсказка, а не наполнитель: случайная A из общего банка
+// заводила бы незапланированную пару и ломала долю целей, поэтому её исключаем.
+const LETTERS_FILLER = LETTERS_NON_X.filter((l) => l !== 'A');
+
+function pickDistractor(confusableRatio: number, avoidA = false): string {
   if (confusableRatio > 0 && Math.random() < confusableRatio) return CONFUSABLE[Math.floor(Math.random() * CONFUSABLE.length)];
-  return LETTERS_NON_X[Math.floor(Math.random() * LETTERS_NON_X.length)];
+  const bank = avoidA ? LETTERS_FILLER : LETTERS_NON_X;
+  return bank[Math.floor(Math.random() * bank.length)];
 }
 // Continuous-AX: target X строится через предшествующую A; редкая X-без-A = ловушка (commission).
-function pickNextLetter(mode: 'X' | 'AX', confusableRatio: number, targetRate: number, prev: string): string {
-  if (mode === 'X') return Math.random() < targetRate ? 'X' : pickDistractor(confusableRatio);
-  if (Math.random() < targetRate) return prev === 'A' ? 'X' : 'A';   // строим пару A→X
-  if (prev !== 'A' && Math.random() < 0.18) return 'X';              // X без A = ловушка-commission
-  return pickDistractor(confusableRatio);
+function pickNextLetter(mode: 'X' | 'AX', confusableRatio: number, prev: string): string {
+  if (mode === 'X') return Math.random() < TARGET_RATE ? 'X' : pickDistractor(confusableRatio);
+  // подсказка и её замыкание разведены — только так доля целей равна TARGET_RATE
+  if (prev === 'A') return Math.random() < AX_COMPLETION ? 'X' : pickDistractor(confusableRatio, true);
+  if (Math.random() < A_CUE_RATE) return 'A';                        // ставим подсказку
+  if (Math.random() < BX_LURE) return 'X';                           // X без A = ловушка-commission
+  return pickDistractor(confusableRatio, true);
+}
+
+/**
+ * Проба уровня: буква и «надо ли на неё жать». Уровень входит целиком — гейт
+ * спрашивает игру по уровням и считает РЕАЛЬНУЮ долю целей по сгенерированному
+ * потоку, а не читает константу глазами.
+ */
+export function makeTrial(level: number, prev: string): { letter: string; isTarget: boolean } {
+  const { mode, confusableRatio } = levelParams(level);
+  const letter = pickNextLetter(mode, confusableRatio, prev);
+  return { letter, isTarget: mode === 'X' ? letter === 'X' : letter === 'X' && prev === 'A' };
 }
 
 interface TrialRecord {
@@ -159,8 +219,6 @@ export default function CPTGame() {
   const levelRef = useRef(1);
   const isiRef = useRef(1500);
   const modeRef = useRef<'X' | 'AX'>('X');
-  const confusableRef = useRef(0);
-  const targetRateRef = useRef(0.28);
   const durationSecRef = useRef(90);
   const prevLetterRef = useRef('');
 
@@ -186,8 +244,7 @@ export default function CPTGame() {
       if (stoppedRef.current) return;
       // выбрать стимул по режиму уровня; isTarget = «нужно ли жать»
       const prev = prevLetterRef.current;
-      const letter = pickNextLetter(modeRef.current, confusableRef.current, targetRateRef.current, prev);
-      const isTgt = modeRef.current === 'X' ? letter === 'X' : (letter === 'X' && prev === 'A');
+      const { letter, isTarget: isTgt } = makeTrial(levelRef.current, prev);
       prevLetterRef.current = letter;
       const trial: TrialRecord = {
         letter,
@@ -264,8 +321,6 @@ export default function CPTGame() {
     levelRef.current = lvl.level;
     isiRef.current = p.isiMs;
     modeRef.current = p.mode;
-    confusableRef.current = p.confusableRatio;
-    targetRateRef.current = p.targetRate;
     durationSecRef.current = p.durationSec;
     prevLetterRef.current = '';
     stoppedRef.current = false;
