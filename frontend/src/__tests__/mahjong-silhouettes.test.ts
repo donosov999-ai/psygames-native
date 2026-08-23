@@ -256,9 +256,17 @@ describe('экран берёт форму по уровню, а не одну �
     src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
   const screen = code(read('../../app/games/mahjong.tsx'));
 
-  it('загрузка уровня спрашивает силуэт и отдаёт его генератору', () => {
+  /**
+   * ⚠️ ПРАВКА 23.08.2026. Форма доски переехала из формул в БИБЛИОТЕКУ раскладок
+   * (`src/games/mahjong/layouts.ts` — 84 рисованные вручную доски из ffalt/mah,
+   * MIT). Силуэт остался ЗАПАСНЫМ путём и передаётся по-прежнему: если для уровня
+   * годной раскладки не нашлось, места рисует формула. Проверка сторожит ОБА
+   * конца провода — уберут раскладку или уберут запасной путь, станет красно.
+   */
+  it('загрузка уровня берёт раскладку по уровню и отдаёт её генератору', () => {
     expect(screen).toMatch(/const shape = silhouetteForLevel\(L\)/);
-    expect(screen).toMatch(/generate\(p\.layers, p\.pairs, p\.cols, shape\)/);
+    expect(screen).toMatch(/const layout = layoutForLevel\(L\)/);
+    expect(screen).toMatch(/generate\(p\.layers, p\.pairs, p\.cols, shape, layout\?\.places\)/);
   });
 
   it('своей геометрии на экране больше нет — она в ядре', () => {

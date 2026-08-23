@@ -1,4 +1,4 @@
-/* psygames-game-mahjong · VER 1 · 19.08.2026 */
+/* psygames-game-mahjong · VER 2 · 23.08.2026 */
 import GradientSurface from '@/src/components/GradientSurface';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import React, { useState, useEffect, useRef } from 'react';
@@ -29,8 +29,10 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {saveResume, clearResume} from '@/src/services/resume';
-import { availablePairs, blockersOf, freeFlags, isFree, tilePlacement, type Tile } from '@/src/games/mahjong/board';
+import { availablePairs, blockersOf, isFree, tilePlacement, type Tile } from '@/src/games/mahjong/board';
 import { buildPositions, silhouetteForLevel, type SilhouetteKey } from '@/src/games/mahjong/silhouettes';
+import { layoutForLevel } from '@/src/games/mahjong/layouts';
+import { dealSolvable, type Place } from '@/src/games/mahjong/vendor/solvable';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 
 const GRADIENT = ['#2d6a4f', '#95d5b2'];
@@ -206,12 +208,6 @@ interface MahjongSnapshot {
  */
 const UNDOS_PER_LEVEL = 3;
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
-  return a;
-}
-
 // Параметры уровня живут в services/mahjongLevels.ts — там же лимит перетасовок
 // и объяснение, почему вверх растим слои, а не количество плиток.
 const levelParams = mahjongLevel;
@@ -243,74 +239,29 @@ const levelParams = mahjongLevel;
 export interface MahjongDeal { tiles: Tile[]; peelOrder: [number, number][] }
 
 /** Пустой ответ = собрать разбираемую доску не вышло, надо пересобрать. */
-export function generate(layers: number, pairs: number, cols: number, shape: SilhouetteKey = 'diamond'): Tile[] {
-  return generateDeal(layers, pairs, cols, shape).tiles;
+export function generate(
+  layers: number, pairs: number, cols: number, shape: SilhouetteKey = 'diamond', places?: Place[],
+): Tile[] {
+  return generateDeal(layers, pairs, cols, shape, places).tiles;
 }
 
+/**
+ * РАЗДАЧА УРОВНЯ. `places` — места из библиотеки раскладок (`layouts.ts`); без них
+ * места рисует силуэт, как раньше.
+ *
+ * 🔴 САМА РАЗДАЧА ПЕРЕЕХАЛА В `vendor/solvable.ts` (алгоритм ffalt/mah, MIT). Здесь
+ * стояла его самодельная копия, и повторы при неудаче жили в ЭКРАНЕ: любой второй
+ * вызывающий — перетасовка, проверка — получал гарантию слабее, чем думал. Теперь
+ * «доска решаема» держит та функция, которая это обещает.
+ */
 export function generateDeal(
-  layers: number, pairs: number, cols: number, shape: SilhouetteKey = 'diamond',
+  layers: number, pairs: number, cols: number, shape: SilhouetteKey = 'diamond', places?: Place[],
 ): MahjongDeal {
   const need = pairs * 2;
-  let pos = buildPositions(layers, need, cols, shape);
-  // Подгоняем чётность: число позиций должно быть чётным и == need (или близко).
-  if (pos.length % 2 === 1) pos = pos.slice(0, pos.length - 1);
-  const total = pos.length;
-  const realPairs = total / 2;
-
-  // alive-маска по позициям; symbolOf[i] заполняем парами в обратном порядке снятия.
-  const baseTiles: Tile[] = pos.map((p, i) => ({ id: i, x: p.x, y: p.y, layer: p.layer, symbol: -1 }));
-  const alive = new Array(total).fill(true);
-  const symbolOf = new Array(total).fill(-1);
-
-  // последовательность символов: каждая из realPairs пар = символ (цикл по SYMBOLS).
-  const symSeq = shuffle(Array.from({ length: realPairs }, (_, k) => k % SYMBOLS.length));
-
-  /** Кто и в каком порядке снимался: обратный порядок — решение доски. */
-  const peelOrder: [number, number][] = [];
-
-  let guard = 0;
-  for (let p = 0; p < realPairs; p++) {
-    // Свободные живые позиции. `freeFlags` — тот же ответ, что и `isFree` в цикле,
-    // но за один обход доски: на 144 плитках сборка уровня становится вдвое короче,
-    // а главное — экран, генератор и счётчик в шапке считают свободу ОДНИМ кодом.
-    const flags = freeFlags(baseTiles, alive);
-    const free: number[] = [];
-    for (let i = 0; i < total; i++) if (flags[i]) free.push(i);
-    if (free.length < 2) {
-      /**
-       * 🔴 ЗДЕСЬ ЛОМАЛАСЬ ВСЯ ГАРАНТИЯ РЕШАЕМОСТИ, И ЛОМАЛАСЬ ТИХО.
-       *
-       * Расклад собирается СНЯТИЕМ пар: пока каждая пара снимается со свободных
-       * позиций, обратный порядок и есть готовое решение. Прежний «запасной путь»
-       * при нехватке свободных брал любые две живые — и клал на них один символ.
-       * Обратный порядок переставал быть решением, а доска становилась
-       * неразбираемой: замер разбора 22.08.2026 — оставшиеся две позиции в 100 %
-       * случаев вертикальная стопка, верхняя накрывает нижнюю, взять такую пару
-       * нельзя НИКОГДА.
-       *
-       * Нерешаемых досок выходило: 9-й уровень 11,2 %, 10-й 8,7 %, 11-й 7,7 %,
-       * 6-й 7,5 %. Хуже всего ровно там, где перетасовка только что стала
-       * платной. И перетасовка не спасала: 2000 прогонов на такой доске — ноль
-       * решаемых. Для человека это выглядело как зависшее приложение: ходов нет,
-       * сообщения нет, кнопки не помогают.
-       *
-       * Правильный ответ — не выкручиваться, а ПРИЗНАТЬ неудачу и пересобрать.
-       * Так же поступает игра-образец. Возвращаем пустое, решение принимает
-       * вызывающий.
-       */
-      return { tiles: [], peelOrder: [] };
-    }
-    const sh = shuffle(free);
-    const a = sh[0], b = sh[1];
-    symbolOf[a] = symbolOf[b] = symSeq[p];
-    alive[a] = alive[b] = false;
-    peelOrder.push([a, b]);
-    if (++guard > total * 4) break;
-  }
-  return {
-    tiles: baseTiles.map((t, i) => ({ ...t, symbol: symbolOf[i] >= 0 ? symbolOf[i] : 0 })),
-    peelOrder,
-  };
+  const pos: Place[] = places && places.length >= 2
+    ? places
+    : buildPositions(layers, need, cols, shape);
+  return dealSolvable(pos, SYMBOLS.length);
 }
 
 export default function MahjongGame() {
@@ -385,9 +336,16 @@ export default function MahjongGame() {
     // и тот же уровень — всегда одинаково (иначе поднятая из хранилища партия
     // оживала бы в другой форме).
     const shape = silhouetteForLevel(L);
-    let deck = generate(p.layers, p.pairs, p.cols, shape);
+    /**
+     * РАСКЛАДКА — ИЗ БИБЛИОТЕКИ (84 рисованные вручную доски, ffalt/mah, MIT).
+     * Силуэт остаётся запасным путём: если для уровня годной раскладки не нашлось,
+     * места рисует формула, как раньше. Пустой экран не показываем ни при каком
+     * раскладе.
+     */
+    const layout = layoutForLevel(L);
+    let deck = generate(p.layers, p.pairs, p.cols, shape, layout?.places);
     for (let tries = 0; tries < 20 && deck.length === 0; tries++) {
-      deck = generate(p.layers, p.pairs, p.cols, shape);
+      deck = generate(p.layers, p.pairs, p.cols, shape, layout?.places);
     }
     aliveMaskRef.current = new Array(deck.length).fill(true);
     setTiles(deck);
@@ -618,27 +576,13 @@ export default function MahjongGame() {
      * отберёт ресурс впустую.
      */
     const dealSymbols = (): number[] | null => {
-      const total = positions.length - (positions.length % 2);
-      const baseTiles: Tile[] = positions.slice(0, total).map((p, i) => ({ id: i, x: p.x, y: p.y, layer: p.layer, symbol: -1 }));
-      const alive = new Array(total).fill(true);
-      const symbolOf = new Array(total).fill(-1);
-      const realPairs = total / 2;
-      const symSeq = shuffle(Array.from({ length: realPairs }, (_, k) => k % SYMBOLS.length));
-      for (let p = 0; p < realPairs; p++) {
-        const flags = freeFlags(baseTiles, alive);
-        const free: number[] = [];
-        for (let i = 0; i < total; i++) if (flags[i]) free.push(i);
-        if (free.length < 2) return null;          // расстановка не вышла — пробуем заново
-        const sh = shuffle(free);
-        const a = sh[0], b = sh[1];
-        symbolOf[a] = symbolOf[b] = symSeq[p];
-        alive[a] = alive[b] = false;
-      }
-      return symbolOf;
+      // Тот же раздатчик, что и на старте уровня: перетасовка обязана давать
+      // ТАКУЮ ЖЕ гарантию, а не свою копию алгоритма, которая с ним разъедется.
+      const deal = dealSolvable(positions, SYMBOLS.length, 20);
+      return deal.tiles.length === 0 ? null : deal.tiles.map((t) => t.symbol);
     };
 
-    let symbolOf: number[] | null = null;
-    for (let tries = 0; tries < 20 && symbolOf === null; tries++) symbolOf = dealSymbols();
+    const symbolOf: number[] | null = dealSymbols();
     if (symbolOf === null) return;                 // ресурс не тратим
 
     setShufflesUsed((n) => n + 1);
@@ -689,7 +633,17 @@ export default function MahjongGame() {
   const maxHalfX = tiles.reduce((m, t) => Math.max(m, t.x + 2), 2);
   const maxHalfY = tiles.reduce((m, t) => Math.max(m, t.y + 2), 2);
   const boardW = Math.min(width - 36, 460);   // 24→36: поле GameShell имеет paddingHorizontal 16×2
-  const half = Math.max(14, Math.floor(boardW / Math.max(8, maxHalfX)));   // размер полуклетки в px
+  /**
+   * ⚠️ ДЕЛИМ НА ШИРИНУ ВМЕСТЕ СО СДВИГОМ СЛОЁВ, А НИЖНИЙ ПОЛ — 10, А НЕ 14.
+   *
+   * Прежние силуэты рисовались на 8-12 колонках (до 24 полуклеток) и в 460 px
+   * влезали всегда, поэтому пол 14 никогда не срабатывал. Раскладки библиотеки
+   * доходят до 26 полуклеток: при поле 14 доска шириной 26×14 = 364 px + сдвиг
+   * слоёв вылезала бы за контейнер и обрезалась по краю. Пол оставлен (на первом
+   * кадре веб-сборки `width` приходит нулём — см. screen-width-guard), но опущен
+   * до 10: это 18 px на плитку, ещё читаемо.
+   */
+  const half = Math.max(10, Math.floor(boardW / Math.max(8, maxHalfX + 2)));   // размер полуклетки в px
   const tileW = half * 2 - 2;
   const tileH = half * 2 - 2;
   const layerOffset = Math.max(3, Math.round(half * 0.35));   // псевдо-3D смещение слоя
