@@ -428,7 +428,7 @@ const t: Record<string, string> = {
   "srsNew": "nouveau",
   "chessBlind": "Échecs à l'aveugle",
   "chessBlindDesc": "Les pièces sont cachées — garde la position en tête",
-  "chessBlindIntroDesc": "Une position s'affiche quelques secondes — mémorise quelle pièce est où. Puis toutes les pièces deviennent des jetons identiques, et aux niveaux élevés elles se mettent à bouger. Réponds ce qui occupe une case, ou localise une pièce à l'aveugle. C'est ainsi que les joueurs d'échecs travaillent le calcul de variantes et le jeu à l'aveugle : la position vit dans la tête, pas sur l'échiquier.",
+  "chessBlindIntroDesc": "La position est montrée quelques secondes — retiens quelle pièce est où. Ensuite toutes les pièces deviennent des jetons identiques et, aux niveaux élevés, elles bougent. Réponds ce qui occupe une case, ou localise une pièce à l’aveugle. ⚠️ Les pièces sont placées au hasard : cela mesure la mémoire visuo-spatiale, pas le calcul échiquéen — sur un placement aléatoire, l’avantage de l’expert est précisément ce qui disparaît, résultat ancien utilisé comme condition de contrôle.",
   "benefitChessBlind1": "Calculer des variantes sans bouger les pièces",
   "benefitChessBlind2": "Un pas vers le jeu à l'aveugle",
   "benefitChessBlind3": "Garder une image en tête — dans tout domaine",

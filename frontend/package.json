@@ -27,6 +27,7 @@
     "@tauri-apps/plugin-updater": "^2.10.1",
     "axios": "^1.13.4",
     "babel-plugin-module-resolver": "^5.0.2",
+    "chess.js": "^1.4.0",
     "expo": "^56.0.0",
     "expo-blur": "~56.0.3",
     "expo-constants": "~56.0.18",
