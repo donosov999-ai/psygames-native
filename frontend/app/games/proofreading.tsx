@@ -1,4 +1,4 @@
-/* psygames-game-proofreading · VER 3 · 23.08.2026 */
+/* psygames-game-proofreading · VER 4 · 23.08.2026 */
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
@@ -223,6 +223,7 @@ export default function ProofreadingGame() {
   /** Клетки, по которым сейчас ведут палец (черновик ответа, ещё не сдан). */
   const [fwTrace, setFwTrace] = useState<number[]>([]);
   const [fwHint, setFwHint] = useState<FillwordsHint | null>(null);
+  const [serHint, setSerHint] = useState<FillwordsHint | null>(null);
   // Рефы: обработчик жеста и колбэк таймера живут вне ре-рендеров — state в них устарел бы.
   const fwSessionRef = useRef<FillwordsSession | null>(null);
   const fwTraceRef = useRef<number[]>([]);
@@ -626,6 +627,28 @@ export default function ProofreadingGame() {
     .join(', ');
 
   const [seriesState, setSeriesState] = useState<ProofSeriesState | null>(null);
+
+  /**
+   * 🔴 ПОДСКАЗКА В СЕРИИ. Её тут не было вовсе: у серии свой `GameShell`, и слот
+   * `headerActions` в нём просто не заполняли. Человек, вставший на поле букв, не имел
+   * НИКАКОГО хода — только смотреть. Репорт Дениса 23.08.2026: «непонятно, сколько слов
+   * ждёт система, нет подсказок решения — короче, не доделано явно».
+   * Механика та же, что в одиночной игре (`takeHint`): показываются ДВЕ клетки самого
+   * короткого ненайденного слова — направление змейки, дальше человек ведёт сам.
+   * ⚠️ Взятая подсказка идёт в `session.hints` того же объекта, что и замер блока,
+   * поэтому в итог серии она попадает сама — отдельного счётчика заводить не нужно.
+   */
+  const serHintsLeft = Math.max(0, FILLWORDS_HINTS - (seriesState ? seriesState.session.hints : 0));
+  const serTakeHint = () => {
+    if (!seriesState || serHintsLeft === 0) return;
+    const taken = takeHint(seriesState.session);
+    if (!taken.hint) return;
+    // ⚠️ Через `setSeries`, а не `setSeriesState`: обёртка держит ещё и реф, который
+    // читают обработчики жеста. Мимо неё реф остался бы со старой партией.
+    setSeries({ ...seriesState, session: taken.session });
+    setSerHint(taken.hint);
+  };
+
   const [seriesProgress, setSeriesProgress] = useState<ProofSeriesProgress>(EMPTY_PROOF_PROGRESS);
   const [seriesLoaded, setSeriesLoaded] = useState(false);
   const [seriesOutcome, setSeriesOutcome] = useState<ProofSeriesOutcome | null>(null);
@@ -679,7 +702,14 @@ export default function ProofreadingGame() {
     { sign: field.signs.join(' · '), cat: t(`catVocab_${field.category}`) },
   );
 
-  const setSeries = (next: ProofSeriesState | null) => { seriesStateRef.current = next; setSeriesState(next); };
+  const setSeries = (next: ProofSeriesState | null) => {
+    // Подсказка гаснет, когда её слово собрано или начался другой блок: висящая
+    // подсветка на уже закрытых клетках читалась бы как «здесь ещё что-то есть».
+    const prev = seriesStateRef.current;
+    if (!next || !prev || next.blockIndex !== prev.blockIndex || next.session.found.length !== prev.session.found.length) setSerHint(null);
+    seriesStateRef.current = next;
+    setSeriesState(next);
+  };
   const serSetTrace = (next: number[]) => { serTraceRef.current = next; setSerTrace(next); };
 
   /** Часы блока. Каждый блок мерится отдельно — из этих времён и берутся разности. */
@@ -1296,6 +1326,17 @@ export default function ProofreadingGame() {
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
         }
+        headerActions={isSign ? undefined : (
+          /* Подсказка — служебное действие, поэтому в шапке (правило слотов GameShell).
+             В блоке «Знак» её нет: там искать нечего, знаки названы прямо в шапке. */
+          <GameAuxBar>
+            <GameAuxAction
+              icon="bulb-outline" tint="#0d9488"
+              label={t('btn_hint')} count={serHintsLeft}
+              disabled={serHintsLeft === 0} onPress={serTakeHint}
+            />
+          </GameAuxBar>
+        )}
         stats={
           <View style={styles.gameHeader}>
             <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
@@ -1305,10 +1346,16 @@ export default function ProofreadingGame() {
                   <Text style={styles.targetChipText}>{sign}</Text>
                 </View>
               ))}
-              {/* Слово рядом с числом — правило шапки (`hud-labels`): «3/6» без
-                  подписи читается как что угодно. Ключ общий, уже переведённый. */}
-              <Text style={[styles.targetLabel, { color: colors.textSecondary }]}>{t('label_found')}</Text>
-              <Text style={[styles.targetCount, { color: colors.textSecondary }]}>{done}/{total}</Text>
+              {/* 🔴 ПОДПИСЬ И ЧИСЛО — ОДНОЙ ГРУППОЙ. Комментарий тут стоял верный
+                  («3/6» без подписи читается как что угодно), а стиль `targetCount`
+                  нёс `marginLeft: 'auto'` и уносил число к другому краю: получалось
+                  «Поиск слов  Найдено» слева и «0/7» справа, и пара не читалась как
+                  пара. Репорт Дениса 23.08.2026: «непонятно, сколько слов ждёт
+                  система». Теперь к краю уезжает ГРУППА, а подпись держится числа. */}
+              <View style={styles.foundPair}>
+                <Text style={[styles.targetLabel, { color: colors.textSecondary }]}>{t('label_found')}</Text>
+                <Text style={[styles.targetCount, { color: colors.textSecondary, marginLeft: 0 }]}>{done}/{total}</Text>
+              </View>
             </View>
             <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
               <Ionicons name="time-outline" size={18} color={colors.text} />
@@ -1333,9 +1380,10 @@ export default function ProofreadingGame() {
             const owner = seriesState.session.owner[index];
             const traced = serTrace.indexOf(index) >= 0;
             const closed = isSign ? seriesState.taken[index] : owner >= 0;
+            const hinted = !isSign && serHint !== null && serHint.cells.indexOf(index) >= 0 && owner < 0;
             const tint = isSign
               ? (closed ? GRADIENT[0] : wrongFlash === index ? '#f43f5e' : colors.surface)
-              : (traced ? GRADIENT[0] : owner >= 0 ? tintForFoundOrder(seriesState.session.found.indexOf(owner)) : colors.surface);
+              : (traced ? GRADIENT[0] : owner >= 0 ? tintForFoundOrder(seriesState.session.found.indexOf(owner)) : hinted ? '#99f6e4' : colors.surface);
             const ink = isSign
               ? (closed ? '#333' : wrongFlash === index ? '#fff' : colors.text)
               : (traced ? '#333' : owner >= 0 ? FILLWORDS_INK : colors.text);
@@ -1600,6 +1648,8 @@ const styles = StyleSheet.create({
   },
   targetChipText: { fontSize: 20, fontWeight: '800', color: '#1a1a1a' },
   targetCount: { fontSize: 15, fontWeight: '600', marginLeft: 'auto' },
+  /** Подпись и число держатся вместе, а к краю уезжают ВДВО�ём — см. шапку серии. */
+  foundPair: { flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 'auto' },
   statBox: {
     flexDirection: 'row',
     alignItems: 'center',
