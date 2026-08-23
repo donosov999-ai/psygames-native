@@ -1,4 +1,4 @@
-/* psygames-game-chess-blind · VER 2 · 23.08.2026 */
+/* psygames-game-chess-blind · VER 3 · 23.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -23,6 +23,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
+import { nextUnanswered } from '@/src/games/chess-blind/core/blocks';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -153,12 +154,15 @@ const OUTLINE_OFFSETS: ReadonlyArray<readonly [number, number]> = [
 // заливки. Белые: светлая заливка + тёмная обводка; чёрные: тёмная заливка +
 // светлая обводка → фигура контрастна и на светлых, и на тёмных клетках доски.
 // Работает одинаково на web (Tauri-WebView) и native, без нетипизированного CSS.
-function PieceGlyph({ combo, boxW, boxH, fontSize }: {
+function PieceGlyph({ combo, boxW, boxH, fontSize, onLight }: {
   combo: Combo; boxW: number; boxH: number; fontSize: number;
+  /** Глиф стоит на СВЕТЛОЙ подложке. Тогда контраст задаёт подложка, а не сторона
+   *  фигуры: иначе белая фигура со светлой заливкой на светлой плашке исчезает. */
+  onLight?: boolean;
 }) {
   const glyph = glyphOf(combo);
-  const fill = combo.white ? '#f8fafc' : '#111827';
-  const stroke = combo.white ? '#0f172a' : '#f8fafc';
+  const fill = onLight === undefined ? (combo.white ? '#f8fafc' : '#111827') : (onLight ? '#0f172a' : '#f8fafc');
+  const stroke = onLight === undefined ? (combo.white ? '#0f172a' : '#f8fafc') : (onLight ? '#f8fafc' : '#0f172a');
   const o = Math.max(1.4, Math.round(fontSize * 0.055));   // толщина обводки ∝ размеру
   return (
     <View pointerEvents="none" style={{ width: boxW, height: boxH }}>
@@ -410,6 +414,18 @@ export default function ChessBlindGame() {
   const prmRef = useRef(levelParams(1));
   const questionsRef = useRef<Question[]>([]);
   const qIndexRef = useRef(0);
+  /**
+   * 🔴 ОТВЕЧАТЬ МОЖНО В ЛЮБОМ ПОРЯДКЕ. Раньше игра сама вела по клеткам 1/3 → 2/3 → 3/3,
+   * и человек, помнящий вторую и третью, обязан был сперва промахнуться по первой.
+   * Репорт Дениса 23.08.2026: «нельзя вручную выбрать те, что помнишь — он навязывает
+   * свою последовательность». Теперь подсвечены ВСЕ неотвеченные клетки, тап выбирает,
+   * про какую отвечаешь; по умолчанию выбрана первая неотвеченная, поэтому у того, кто
+   * ничего не выбирает, поведение прежнее.
+   * ⚠️ Набор клеток и их число НЕ меняются — меняется только порядок. Иначе поехала бы
+   * сама мера: разности между блоками считаются на одинаковых заданиях.
+   */
+  const answeredRef = useRef<Set<number>>(new Set());
+  const [answeredTick, setAnsweredTick] = useState(0);
   const qLockRef = useRef(false);
   const hitsRef = useRef(0);
   const errorsRef = useRef(0);
@@ -684,7 +700,7 @@ export default function ChessBlindGame() {
     setDispPieces(pos.map((x) => ({ ...x })));
     hitsRef.current = 0; errorsRef.current = 0;
     setHits(0); setErrors(0);
-    qIndexRef.current = 0; qLockRef.current = false;
+    qIndexRef.current = 0; qLockRef.current = false; answeredRef.current = new Set(); setAnsweredTick(0);
     setQIndex(0); setRevealOpt(null); setRevealSq(null); setWrongSq(null);
     setMoveHl(null); setMoveNum(0);
     startTimeRef.current = gameNow();
@@ -758,11 +774,24 @@ export default function ChessBlindGame() {
 
   const nextQuestion = () => {
     setRevealOpt(null); setRevealSq(null); setWrongSq(null);
-    const ni = qIndexRef.current + 1;
-    if (ni >= questionsRef.current.length) { finishGame(); return; }
+    answeredRef.current.add(qIndexRef.current);
+    setAnsweredTick((x) => x + 1);
+    // Следующий НЕОТВЕЧЕННЫЙ, а не следующий по счёту: человек мог отвечать вразнобой.
+    const ni = nextUnanswered(qIndexRef.current, questionsRef.current.length, answeredRef.current);
+    if (ni < 0) { finishGame(); return; }
     qIndexRef.current = ni;
     setQIndex(ni);
     qLockRef.current = false;
+  };
+
+  /** Тап по подсвеченной клетке в режиме «что стоит» — выбрать, про какую отвечаем. */
+  const selectQuestionAt = (sq: number) => {
+    if (qLockRef.current) return;
+    const idx = questionsRef.current.findIndex((q, i) => q.sq === sq && !answeredRef.current.has(i));
+    if (idx < 0) return;
+    qIndexRef.current = idx;
+    setQIndex(idx);
+    setRevealOpt(null); setRevealSq(null); setWrongSq(null);
   };
 
   // 'pick': тап по кнопке-глифу
@@ -811,7 +840,13 @@ export default function ChessBlindGame() {
     const showPieces = phase === 'expose';
     const bySq = new Map<number, Piece>();
     dispPieces.forEach((p) => bySq.set(p.sq, p));
-    const pickTargetSq = phase === 'quiz' && prm.quizType === 'pick' && currentQ ? currentQ.sq : -1;
+    const isPick = phase === 'quiz' && prm.quizType === 'pick';
+    const pickTargetSq = isPick && currentQ ? currentQ.sq : -1;
+    // Все ещё не отвеченные клетки — подсвечены бледнее выбранной и кликабельны.
+    const pendingSqs = new Set<number>(
+      isPick ? questionsRef.current.filter((_, i) => !answeredRef.current.has(i)).map((q) => q.sq) : [],
+    );
+    void answeredTick;   // перерисовка после ответа: набор живёт в ref
 
     return (
       // RTL-пин: шахматная доска канонически LTR (a-файл слева, светлая клетка справа внизу) —
@@ -826,7 +861,8 @@ export default function ChessBlindGame() {
               const coordColor = isLight ? '#5d4433' : '#c9b29a';
               let hl: string | null = null;
               if (moveHl && (moveHl.from === sq || moveHl.to === sq)) hl = '#fbbf24';
-              if (pickTargetSq === sq) hl = '#38bdf8';
+              if (pendingSqs.has(sq)) hl = '#38bdf880';   // ждёт ответа — бледная рамка
+              if (pickTargetSq === sq) hl = '#38bdf8';       // выбранная сейчас — яркая
               if (revealSq === sq) hl = '#22c55e';
               if (wrongSq === sq) hl = '#f43f5e';
               const p = bySq.get(sq);
@@ -835,8 +871,8 @@ export default function ChessBlindGame() {
                   accessibilityRole="button"
                   key={c}
                   activeOpacity={0.8}
-                  onPress={() => answerLocate(sq)}
-                  disabled={!(phase === 'quiz' && prm.quizType === 'locate')}
+                  onPress={() => (isPick ? selectQuestionAt(sq) : answerLocate(sq))}
+                  disabled={!(phase === 'quiz' && (prm.quizType === 'locate' || (isPick && pendingSqs.has(sq))))}
                   style={{ width: cellSize, height: cellSize, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
                 >
                   {c === 0 && <Text style={[styles.coord, { top: 1, left: 2, color: coordColor }]}>{8 - r}</Text>}
@@ -1055,7 +1091,10 @@ export default function ChessBlindGame() {
           <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
           {phase === 'quiz' && (
             <Text style={[styles.statText, { color: colors.text }]}>
-              {t('chessQuestionShort')} {qIndex + 1}/{prm.questions}
+              {/* ⚠️ Отвечать можно вразнобой, поэтому счётчик показывает ПРОГРЕСС
+                   (сколько закрыто), а не номер выбранной клетки: с номером он прыгал
+                   бы 1/3 → 3/3 → 2/3 при тапе по другой клетке и читался как ошибка. */}
+              {t('chessQuestionShort')} {answeredTick}/{prm.questions}
             </Text>
           )}
         </View>
@@ -1073,10 +1112,21 @@ export default function ChessBlindGame() {
                   accessibilityRole="button" accessibilityLabel={pieceName(opt, t)}
                   style={[
                     styles.optBtn,
-                    { backgroundColor: '#334155', borderColor: isReveal ? '#22c55e' : '#1e293b', borderWidth: isReveal ? 3 : 1 },
+                    {
+                      // 🔴 СТОРОНА ФИГУРЫ — ЦВЕТОМ САМОЙ ПЛАШКИ. Раньше у всех шести кнопок
+                      // был один тёмный фон #334155, и белую фигуру от чёрной отличала
+                      // только инверсия заливки и обводки. На тёмной плашке это читается
+                      // как «сплошная светлая» против «светлого контура» — репорт Дениса
+                      // 23.08.2026: «не выглядит как белый, и чёрный король — проблема с
+                      // различением чёрных и белых фигур». Теперь сторону несёт плашка,
+                      // тип — форма глифа, и каналы независимы.
+                      backgroundColor: opt.white ? '#e2e8f0' : '#1e293b',
+                      borderColor: isReveal ? '#22c55e' : (opt.white ? '#94a3b8' : '#475569'),
+                      borderWidth: isReveal ? 3 : 2,
+                    },
                   ]}
                 >
-                  <PieceGlyph combo={opt} boxW={60} boxH={48} fontSize={40} />
+                  <PieceGlyph combo={opt} boxW={60} boxH={48} fontSize={40} onLight={opt.white} />
                 </TouchableOpacity>
               );
             })}

@@ -14,7 +14,7 @@
 declare const __dirname: string;
 declare function require(id: string): any;
 
-import { SERIES_KEYS, PLAYLIST_SERIES, BLOCK_SERIES, seriesKind, seriesPlaylist, seriesStarter, seriesProfileFlag, seriesRoute, seriesBlockCount, seriesGameId } from '@/src/services/warmupEntries';
+import { launchPlanFor, SERIES_KEYS, PLAYLIST_SERIES, BLOCK_SERIES, seriesKind, seriesPlaylist, seriesStarter, seriesProfileFlag, seriesRoute, seriesBlockCount, seriesGameId } from '@/src/services/warmupEntries';
 import { GAMES } from '@/src/constants/games';
 import { buildAssessmentPlaylist, buildFinancialBatteryPlaylist } from '@/src/services/warmup';
 
@@ -125,7 +125,14 @@ describe('вход в серию — только через зарядку', ()
   it('экран зарядки берёт список серий из общего модуля, а не заводит свой', () => {
     expect(picker).toContain("from '@/src/services/warmupEntries'");
     expect(picker).toContain('SERIES_KEYS');
-    expect(picker).toContain('seriesStarter(picked)');
+    // ⚠️ Раньше здесь требовалось `seriesStarter(picked)` — то есть чтобы экран САМ
+    // разбирал вид серии. Именно так и появился баг: рядом стоял список `case` с
+    // двумя ключами серий блоков из трёх, и третья уходила в `default`. Теперь план
+    // запуска отдаёт реестр (`launchPlanFor`), а экран его исполняет.
+    expect(picker).toContain('launchPlanFor');
+    // И у экрана НЕТ своего перечня ключей серий блоков — перечислять их негде,
+    // значит и разойтись с реестром нечему.
+    for (const key of BLOCK_SERIES) expect(picker).not.toContain(`case '${key}'`);
   });
 
   /**
@@ -155,5 +162,39 @@ describe('вход в серию — только через зарядку', ()
   it('срез действительно читает файлы, а не пустоту', () => {
     expect(`главная ${home.length > 10000} · зарядка ${picker.includes('startEvening')}`)
       .toBe('главная true · зарядка true');
+  });
+});
+
+describe('запуск серии: реестр решает, экран исполняет', () => {
+  it('🔴 у КАЖДОЙ серии из реестра есть план запуска — ни одна не проваливается', () => {
+    // Дыра, которую эта проверка закрывает: в `warmup-picker` стоял список `case`
+    // с двумя ключами серий блоков из трёх, и `chess-blocks` уходил в `default` —
+    // вместо серии запускалась обычная зарядка из пяти игр. Реестр при этом был
+    // ПОЛОН, поэтому проверки реестра молчали: расходился с ним ЭКРАН.
+    for (const key of SERIES_KEYS) {
+      const plan = launchPlanFor(key);
+      expect(plan).toBeTruthy();
+      if (plan.kind === 'playlist') {
+        expect(['startAssessment', 'startFinancialBattery']).toContain(plan.starter);
+      } else {
+        expect(plan.pathname.startsWith('/games/')).toBe(true);
+        expect(plan.params.auto).toBe('1');
+        expect(plan.params.series).toBe('1');   // именно серия, а не одиночный шаг зарядки
+      }
+    }
+  });
+
+  it('🔴 вид плана совпадает с видом серии — плейлист не уедет на маршрут и наоборот', () => {
+    for (const key of SERIES_KEYS) {
+      expect(launchPlanFor(key).kind).toBe(seriesKind(key) === 'playlist' ? 'playlist' : 'route');
+    }
+  });
+
+  it('🔴 у серий блоков маршруты РАЗНЫЕ — иначе две серии ведут в одну игру', () => {
+    const paths = BLOCK_SERIES.map((k) => {
+      const p = launchPlanFor(k);
+      return p.kind === 'route' ? p.pathname : '';
+    });
+    expect(new Set(paths).size).toBe(BLOCK_SERIES.length);
   });
 });

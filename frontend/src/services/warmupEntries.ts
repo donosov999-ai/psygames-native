@@ -105,3 +105,28 @@ export function seriesProfileFlag(key: SeriesKey): 'assessment_enabled' | 'finan
   if (key === 'financial') return 'financial_brain_day_enabled';
   return null;   // серии блоков — обычные игры, отдельного флага у них нет
 }
+
+/**
+ * ЧТО ДЕЛАТЬ ПРИ ЗАПУСКЕ СЕРИИ — решает РЕЕСТР, а не экран.
+ *
+ * 🔴 Зачем вынесено. В `app/warmup-picker.tsx` стоял `switch` со списком ключей серий
+ * блоков, и в нём было два ключа из трёх: `chess-blocks` проваливался в `default` и
+ * запускал обычную зарядку из пяти игр вместо серии. Репорт Дениса 23.08.2026:
+ * «серия не запускается по кнопке». Список `case` — ручная копия реестра, и расходится
+ * она МОЛЧА: ни типы, ни проверки реестра такого не ловят, потому что реестр-то полон.
+ * Теперь план запуска отдаёт реестр, а экран только исполняет — забыть ключ негде.
+ */
+export type LaunchPlan =
+  | { kind: 'playlist'; starter: 'startAssessment' | 'startFinancialBattery' }
+  | { kind: 'route'; pathname: string; params: Record<string, string> };
+
+export function launchPlanFor(key: SeriesKey): LaunchPlan {
+  if (seriesKind(key) === 'playlist') {
+    const starter = seriesStarter(key);
+    if (!starter) throw new Error(`серия-плейлист ${key} без пускателя`);
+    return { kind: 'playlist', starter };
+  }
+  const route = seriesRoute(key);
+  if (!route) throw new Error(`серия блоков ${key} без маршрута`);
+  return { kind: 'route', pathname: route.pathname, params: route.params };
+}
