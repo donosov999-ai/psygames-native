@@ -56,7 +56,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'picture-pairs': { ver: 1, date: '19.08.2026' },
   'posner': { ver: 1, date: '19.08.2026' },
   'prl': { ver: 1, date: '19.08.2026' },
-  'proofreading': { ver: 2, date: '22.08.2026' },
+  'proofreading': { ver: 3, date: '23.08.2026' },
   'pseudoword-echo': { ver: 1, date: '19.08.2026' },
   'quick-count': { ver: 1, date: '19.08.2026' },
   'reading-span': { ver: 1, date: '19.08.2026' },
