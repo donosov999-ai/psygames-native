@@ -24,6 +24,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
+  Overlays,
 } from './sudoku-core';
 
 export type Technique =
@@ -571,6 +572,43 @@ export function thinMarkers<T extends { parity?: number[][]; kropki?: { h: numbe
   return gen;
 }
 
+/**
+ * ПРОРЕЖИВАНИЕ, КОТОРОЕ УХОДИТ ВНУТРЬ ГЕНЕРАТОРА.
+ *
+ * 🔴 Зачем так, а не `thinMarkers` после генерации. Копать надо ТЕМИ ЖЕ подсказками,
+ * что увидит человек. Пока метки резались после, доска выходила единственной для
+ * движка и неоднозначной для игрока — гейт выдавал «L30 evenodd → решений 2», ровно
+ * репорт Вали. Теперь генератор получает эту функцию и прореживает ДО копания.
+ */
+export function overlayThinner(level: number, variant: Variant, N: number): (ov: Overlays) => Overlays {
+  const dens = markerDensity(level, variant);
+  return (ov) => {
+    const out: Overlays = { ...ov };
+    if (out.parity && dens < 1) {
+      const marked: [number, number][] = [];
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (out.parity[r][c] !== 0) marked.push([r, c]);
+      const copy = out.parity.map((row) => [...row]);
+      for (const [r, c] of shuffle(marked).slice(Math.round(marked.length * dens))) copy[r][c] = 0;
+      out.parity = copy;
+    }
+    if (out.kropki && dens < 1) {
+      const dots: ['h' | 'v', number, number][] = [];
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+        if (c < N - 1 && out.kropki.h[r][c] !== 0) dots.push(['h', r, c]);
+        if (r < N - 1 && out.kropki.v[r][c] !== 0) dots.push(['v', r, c]);
+      }
+      const h = out.kropki.h.map((row) => [...row]);
+      const v = out.kropki.v.map((row) => [...row]);
+      for (const [k, r, c] of (shuffle(dots) as ['h' | 'v', number, number][]).slice(Math.round(dots.length * dens))) {
+        if (k === 'h') h[r][c] = 0; else v[r][c] = 0;
+      }
+      out.kropki = { h, v };
+    }
+    out.sandwich = thinSandwich(out.sandwich, level, variant);
+    return out;
+  };
+}
+
 export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
 
 /**
@@ -891,8 +929,11 @@ export function generateLogical(
   const fbUntil = Date.now() + Math.max(600, Math.round(budget * 0.6));
   let fb: { gen: GeneratedPuzzle; grade: Grade } | null = null;
   for (let attempt = 0; attempt < FALLBACK_ATTEMPTS; attempt++) {
-    const raw = thinMarkers(generatePuzzle(blanksCap, N, BR, BC, variant), level, variant, N);
-    const g = { ...raw, sandwich: thinSandwich(raw.sandwich, level, variant) };
+    // ⚠️ Прореживание уходит ВНУТРЬ генератора: копать надо теми же подсказками,
+    // что увидит человек. Прежде тут стояли `thinMarkers` и `thinSandwich` ПОСЛЕ
+    // генерации — и доска, единственная для движка, оказывалась неоднозначной для
+    // игрока («L30 evenodd → решений 2»). Разбор в шапке `overlayThinner`.
+    const g = generatePuzzle(blanksCap, N, BR, BC, variant, overlayThinner(level, variant, N));
     const grade = gradeOf(g, N, BR, BC, variant);
     if (!fb || dist(grade.tier) < dist(fb.grade.tier)) fb = { gen: g, grade };
     /**
