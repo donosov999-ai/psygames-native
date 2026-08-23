@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.234.0',
+    date: '2026-08-23',
+    ru: [
+      "Шесть упражнений мерили не то, что обещали. Чем выше был уровень, тем меньше становилась величина, ради которой упражнение существует: в Струпе на верхних уровнях почти не оставалось обычных проб, без которых интерференцию не с чем сравнить. Теперь сложность растёт темпом и объёмом, а не подменой состава проб",
+      "«Стоп-сигнал» назывался торможением и торможения не измерял: у быстрого человека сигнал успевал остановить его в 14% случаев, у медленного в 99% — то есть игра мерила скорость руки. Теперь задержка подстраивается под вас и сходится к половине удачных торможений у любого",
+      "Внимание (CPT): первые три уровня нельзя было пройти в принципе — за отведённое время физически не набиралось нужного числа проб. Исправлено",
+      "Внимание (CPT): целей на деле было втрое меньше обещанного, а описание игры говорило про обратную задачу — «жми на всё кроме X», чего игра никогда не делала",
+      "Серии Шульте и корректурки появились в «Зарядке» рядом с «Оценкой» и FIN BRAIN. Серию корректурки до этого нельзя было запустить ниоткуда, кроме кнопки внутри самой игры",
+    ],
+    en: [
+      "Six exercises were not measuring what they promised. The higher the level, the smaller the very quantity the exercise exists for: in Stroop the upper levels left almost no ordinary trials, and without them interference has nothing to compare against. Difficulty now grows through pace and volume, not by swapping the mix of trials",
+      "Stop-signal was called inhibition and did not measure inhibition: a fast person was stopped in 14% of trials, a slow one in 99% — the game measured hand speed. The delay now adapts to you and converges to half successful stops for anyone",
+      "Attention (CPT): the first three levels could not be passed at all — the allotted time physically did not fit the required number of trials. Fixed",
+      "Attention (CPT): there were three times fewer targets than stated, and the game description described the opposite task — «tap everything except X», which the game never did",
+      "The Schulte and proofreading series now sit in Warm-up next to Assessment and FIN BRAIN. The proofreading series previously could not be started from anywhere but a button inside the game itself",
+    ],
+  },
+  {
     version: '1.233.0',
     date: '2026-08-23',
     ru: [
