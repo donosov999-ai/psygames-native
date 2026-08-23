@@ -167,7 +167,16 @@ export default function ProofreadingGame() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
-  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, str, num, bool, isCalm } = useGamePreset();
+  /**
+   * Зарядка может попросить именно СЕРИЮ: `?series=1`.
+   *
+   * 🔴 БЕЗ ЭТОГО СЕРИЮ КОРРЕКТУРКИ НЕЛЬЗЯ БЫЛО ЗАПУСТИТЬ ИЗВНЕ ВООБЩЕ — только
+   * руками с экрана игры. У Шульте параметр был с первого дня, у корректурки его
+   * забыли, и «Зарядка» вела в обычную партию вместо серии. Добавлено 23.08.2026
+   * по замечанию Дениса: «а он где вообще?».
+   */
+  const seriesPreset = bool('series');
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('proofreading');
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
@@ -177,7 +186,12 @@ export default function ProofreadingGame() {
   // пресет → авто-старт» читается линтером как ИМЯ правила целиком, такого
   // правила нет, и вся строка превращалась в ошибку линта на ровном месте.
   // Пояснение живёт комментарием, а глушить здесь нечего.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame());
+  // ⚠️ Серия ждёт ЕЩЁ И своего прогресса: он приезжает из хранилища асинхронно, а
+  // стартовый размер поля выводится из него. Стартовать раньше — сесть не на своё поле.
+  useAutostartWhenReady(
+    () => autostart && lvl.loaded && (!seriesPreset || seriesLoaded),
+    () => (seriesPreset ? beginSeries() : startGame()),
+  );
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   // rows/cols из пресета зарядки; в личной игре перезаписываются параметрами уровня
   const [rows, setRows] = useState(() => num('rows', 14));
@@ -613,6 +627,7 @@ export default function ProofreadingGame() {
 
   const [seriesState, setSeriesState] = useState<ProofSeriesState | null>(null);
   const [seriesProgress, setSeriesProgress] = useState<ProofSeriesProgress>(EMPTY_PROOF_PROGRESS);
+  const [seriesLoaded, setSeriesLoaded] = useState(false);
   const [seriesOutcome, setSeriesOutcome] = useState<ProofSeriesOutcome | null>(null);
   const [seriesFinished, setSeriesFinished] = useState<SeriesRun | null>(null);
   /**
@@ -637,8 +652,8 @@ export default function ProofreadingGame() {
   useEffect(() => {
     let alive = true;
     AsyncStorage.getItem(seriesKey)
-      .then((raw) => { if (alive) setSeriesProgress(parseProofProgress(raw)); })
-      .catch(() => {});
+      .then((raw) => { if (!alive) return; setSeriesProgress(parseProofProgress(raw)); setSeriesLoaded(true); })
+      .catch(() => { if (alive) setSeriesLoaded(true); });
     return () => { alive = false; };
   }, [seriesKey]);
 

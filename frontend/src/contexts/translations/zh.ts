@@ -511,6 +511,8 @@ const t: Record<string, string> = {
   "a11ySwitchProfile": "切换档案",
   "complexWarmup": "热身",
   "complexEvening": "睡前",
+  "seriesBlocksMeta": "同一张表上连续三种规则",
+  "seriesBlocksCount": "区块",
   "seriesGroup": "系列",
   "seriesGroupNote": "一组固定的练习，只给一个总结果",
   "seriesFixedNote": "内容固定，改了各天的测量就无法比较",

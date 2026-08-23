@@ -6,6 +6,8 @@ const t: Record<string, string> = {
   "a11ySwitchProfile": "프로필 전환",
   "complexWarmup": "워밍업",
   "complexEvening": "잠들기 전",
+  "seriesBlocksMeta": "같은 판에서 세 규칙을 연달아",
+  "seriesBlocksCount": "블록",
   "seriesGroup": "시리즈",
   "seriesGroupNote": "정해진 순서의 연습을 이어서 하고 결과는 하나",
   "seriesFixedNote": "구성 고정 — 바뀌면 날짜별 측정을 비교할 수 없음",
