@@ -18,7 +18,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'attention-conflict': { ver: 1, date: '19.08.2026' },
   'bart': { ver: 1, date: '19.08.2026' },
   'breathing': { ver: 1, date: '19.08.2026' },
-  'chess-blind': { ver: 2, date: '23.08.2026' },
+  'chess-blind': { ver: 3, date: '23.08.2026' },
   'choice-rt': { ver: 1, date: '19.08.2026' },
   'cloze': { ver: 1, date: '19.08.2026' },
   'corsi': { ver: 1, date: '19.08.2026' },

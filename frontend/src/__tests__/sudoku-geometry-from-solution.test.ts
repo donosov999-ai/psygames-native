@@ -151,8 +151,15 @@ describe('геометрия варианта выводится из решен
     const cfg = levelConfig(40);
     expect(cfg.variant).toBe('sandwich');
     const blanks: number[] = [];
+    // ⚠️ БЮДЖЕТ ЗАВЕДОМО ЩЕДРЫЙ, а не боевые 2200 мс. Проверяется ПОТОЛОК (снято ли
+    // исключение `variant === 'sandwich'` из лимита пустых), а не скорость машины.
+    // С боевым бюджетом проверка была шаткой: при полном прогоне тесты идут
+    // параллельно, бюджет съедается, копание не доходит — один прогон дал 53 клетки
+    // при 60 минимальных в спокойном замере (16 досок: 60,61,61,62,62,63×7,64×3).
+    // Шаткая проверка хуже отсутствующей: она краснеет на чужой нагрузке и приучает
+    // не смотреть на красное.
     for (let i = 0; i < 4; i++) {
-      const b = logicalBuilder(40, cfg.blanks, cfg.N, cfg.BR, cfg.BC, cfg.variant, { budgetMs: 2200 });
+      const b = logicalBuilder(40, cfg.blanks, cfg.N, cfg.BR, cfg.BC, cfg.variant, { budgetMs: 30000 });
       let made: ReturnType<typeof b.step> | null = null;
       for (let s = 0; s < b.steps; s++) { made = b.step(); if (b.enough(made)) break; }
       if (!made) continue;
@@ -162,5 +169,5 @@ describe('геометрия варианта выводится из решен
     }
     expect(blanks.length).toBeGreaterThanOrEqual(3);
     expect(Math.max(...blanks)).toBeGreaterThan(58);
-  }, 120000);
+  }, 300000);
 });

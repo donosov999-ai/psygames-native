@@ -33,7 +33,7 @@ import {
   getFinancialCooldown,
 } from '@/src/services/warmup';
 import { getAssessmentStatus } from '@/src/services/assessment';
-import { SERIES_KEYS, SeriesKey, seriesPlaylist, seriesStarter, seriesProfileFlag, seriesKind, seriesRoute, seriesBlockCount, seriesGameId } from '@/src/services/warmupEntries';
+import { SERIES_KEYS, SeriesKey, seriesPlaylist, seriesProfileFlag, seriesKind, seriesBlockCount, seriesGameId, launchPlanFor } from '@/src/services/warmupEntries';
 import { a11yBtn, a11yModal } from '@/src/services/a11y';
 import { goBackOrHome } from '@/src/utils/nav';
 
@@ -177,19 +177,24 @@ export default function WarmupPicker() {
 
   const launch = () => {
     if (isEmpty(picked)) return;   // страховка: кнопка и так заблокирована
-    switch (picked) {
-      // Пускатель берём из общего списка, а не выбираем здесь заново: иначе
-      // экран и проверка расходятся молча.
-      case 'assessment':
-      case 'financial':  (warmup[seriesStarter(picked)!] as () => void)(); break;
+    /**
+     * 🔴 СЕРИИ РАЗБИРАЮТСЯ ПО РЕЕСТРУ, А НЕ СПИСКОМ `case`. Здесь стояли ровно два
+     * ключа серий блоков — `schulte-blocks` и `proofreading-blocks`, — а в реестре
+     * их три. Третья, `chess-blocks`, проваливалась в `default` и запускала обычную
+     * зарядку из пяти игр вместо серии. Репорт Дениса 23.08.2026: «серия не
+     * запускается по кнопке, слепые шахматы запускает [не то]».
+     * ⚠️ Список `case` — ручная копия реестра, и расходится она молча. Теперь
+     * ветка выбирается по `seriesKind`, и новая серия работает без правки экрана.
+     */
+    if ((SERIES_KEYS as readonly string[]).includes(picked)) {
+      const plan = launchPlanFor(picked as SeriesKey);
       // Серия блоков — одна игра, её ведёт сам экран игры. `auto=1`, а не `wu=1`:
       // разбор в шапке `services/warmupEntries`.
-      case 'schulte-blocks':
-      case 'proofreading-blocks': {
-        const route = seriesRoute(picked)!;
-        router.push({ pathname: route.pathname as any, params: route.params });
-        break;
-      }
+      if (plan.kind === 'playlist') (warmup[plan.starter] as () => void)();
+      else router.push({ pathname: plan.pathname as any, params: plan.params });
+      return;
+    }
+    switch (picked) {
       case 'day':     warmup.startDay(); break;
       case 'night':   warmup.startNight(); break;
       case 'evening': warmup.startEvening(); break;
