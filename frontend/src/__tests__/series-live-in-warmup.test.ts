@@ -14,7 +14,8 @@
 declare const __dirname: string;
 declare function require(id: string): any;
 
-import { SERIES_KEYS, PLAYLIST_SERIES, BLOCK_SERIES, seriesKind, seriesPlaylist, seriesStarter, seriesProfileFlag, seriesRoute, seriesBlockCount } from '@/src/services/warmupEntries';
+import { SERIES_KEYS, PLAYLIST_SERIES, BLOCK_SERIES, seriesKind, seriesPlaylist, seriesStarter, seriesProfileFlag, seriesRoute, seriesBlockCount, seriesGameId } from '@/src/services/warmupEntries';
+import { GAMES } from '@/src/constants/games';
 import { buildAssessmentPlaylist, buildFinancialBatteryPlaylist } from '@/src/services/warmup';
 
 const fs = require('fs');
@@ -23,10 +24,27 @@ const ROOT = path.join(__dirname, '../..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf8') as string;
 
 describe('серии как значения', () => {
-  it('серий четыре: две плейлистом и две блоками', () => {
-    expect([...SERIES_KEYS]).toEqual(['assessment', 'financial', 'schulte-blocks', 'proofreading-blocks']);
+  it('серий пять: две плейлистом и три блоками', () => {
+    expect([...SERIES_KEYS]).toEqual(['assessment', 'financial', 'schulte-blocks', 'proofreading-blocks', 'chess-blocks']);
     expect([...PLAYLIST_SERIES]).toEqual(['assessment', 'financial']);
-    expect([...BLOCK_SERIES]).toEqual(['schulte-blocks', 'proofreading-blocks']);
+    expect([...BLOCK_SERIES]).toEqual(['schulte-blocks', 'proofreading-blocks', 'chess-blocks']);
+  });
+
+  /**
+   * 🔴 ЭТА ПРОБА ЗАВЕДЕНА ПО СЛЕДАМ СОБСТВЕННОЙ ОШИБКИ. Экран выводил игру серии
+   * из ключа обрезкой суффикса: `'schulte-blocks'` → `'schulte'`. В каталоге игра
+   * зовётся `schulte_table`, и разрешение проверялось на несуществующий
+   * идентификатор. На полном профиле `isGameAllowed` отвечает «да» всем подряд,
+   * поэтому наружу это не вылезало — а на профиле с ограниченным набором карточка
+   * серии пряталась бы при разрешённой игре. Сверяем с КАТАЛОГОМ, а не с догадкой.
+   */
+  it('каждая серия блоков названа идентификатором, который ЕСТЬ в каталоге игр', () => {
+    const known = new Set(GAMES.map((g: { id: string }) => g.id));
+    const bad = BLOCK_SERIES.map((k) => ({ k, id: seriesGameId(k) }))
+      .filter(({ id }) => !id || !known.has(id))
+      .map(({ k, id }) => `${k}→${id ?? 'null'}`);
+    expect(`серий с несуществующей игрой: ${bad.length ? bad.join(', ') : 'нет'}`)
+      .toBe('серий с несуществующей игрой: нет');
   });
 
   /**
@@ -44,6 +62,7 @@ describe('серии как значения', () => {
       'financial:playlist:без',
       'schulte-blocks:blocks:маршрут',
       'proofreading-blocks:blocks:маршрут',
+      'chess-blocks:blocks:маршрут',
     ]);
   });
 
@@ -60,7 +79,7 @@ describe('серии как значения', () => {
   });
 
   it('в серии блоков ровно три блока, у плейлистовой блоков нет', () => {
-    expect(SERIES_KEYS.map(seriesBlockCount)).toEqual([null, null, 3, 3]);
+    expect(SERIES_KEYS.map(seriesBlockCount)).toEqual([null, null, 3, 3, 3]);
   });
 
   it('набор серии-плейлиста — тот же самый, что строит движок зарядки', () => {
@@ -76,8 +95,8 @@ describe('серии как значения', () => {
   });
 
   it('у каждой серии свой пускатель и свой ключ профиля — не общий на двоих', () => {
-    expect(SERIES_KEYS.map(seriesStarter)).toEqual(['startAssessment', 'startFinancialBattery', null, null]);
-    expect(SERIES_KEYS.map(seriesProfileFlag)).toEqual(['assessment_enabled', 'financial_brain_day_enabled', null, null]);
+    expect(SERIES_KEYS.map(seriesStarter)).toEqual(['startAssessment', 'startFinancialBattery', null, null, null]);
+    expect(SERIES_KEYS.map(seriesProfileFlag)).toEqual(['assessment_enabled', 'financial_brain_day_enabled', null, null, null]);
   });
 
   it('финансовая батарея — это Iowa, BART и PRL, а не что попало', () => {
@@ -124,6 +143,7 @@ describe('вход в серию — только через зарядку', ()
     const screens = {
       'schulte-blocks': read('app/games/schulte.tsx'),
       'proofreading-blocks': read('app/games/proofreading.tsx'),
+      'chess-blocks': read('app/games/chess-blind.tsx'),
     } as Record<string, string>;
     const missing = Object.entries(screens)
       .filter(([, src]) => !/bool\('series'\)/.test(src) || !/beginSeries\(\)/.test(src))

@@ -32,13 +32,13 @@
  */
 import { buildAssessmentPlaylist, buildFinancialBatteryPlaylist, PlaylistMeta } from '@/src/services/warmup';
 
-export const SERIES_KEYS = ['assessment', 'financial', 'schulte-blocks', 'proofreading-blocks'] as const;
+export const SERIES_KEYS = ['assessment', 'financial', 'schulte-blocks', 'proofreading-blocks', 'chess-blocks'] as const;
 export type SeriesKey = typeof SERIES_KEYS[number];
 
 /** Серии-плейлисты — цепочка разных игр под управлением `WarmupContext`. */
 export const PLAYLIST_SERIES = ['assessment', 'financial'] as const;
 /** Серии блоков — одна игра, три правила на одном поле. */
-export const BLOCK_SERIES = ['schulte-blocks', 'proofreading-blocks'] as const;
+export const BLOCK_SERIES = ['schulte-blocks', 'proofreading-blocks', 'chess-blocks'] as const;
 
 export type SeriesKind = 'playlist' | 'blocks';
 
@@ -72,12 +72,31 @@ export function seriesStarter(key: SeriesKey): 'startAssessment' | 'startFinanci
 export function seriesRoute(key: SeriesKey): { pathname: string; params: Record<string, string> } | null {
   if (key === 'schulte-blocks') return { pathname: '/games/schulte', params: { auto: '1', series: '1' } };
   if (key === 'proofreading-blocks') return { pathname: '/games/proofreading', params: { auto: '1', series: '1' } };
+  if (key === 'chess-blocks') return { pathname: '/games/chess-blind', params: { auto: '1', series: '1' } };
   return null;
 }
 
 /** Из скольких блоков состоит серия. У серии-плейлиста блоков нет. */
 export function seriesBlockCount(key: SeriesKey): number | null {
   return seriesKind(key) === 'blocks' ? 3 : null;
+}
+
+/**
+ * Какой игрой серия блоков числится в каталоге.
+ *
+ * 🔴 ЗДЕСЬ БЫЛА МОЯ ОШИБКА. Первая редакция выводила игру из ключа обрезкой
+ * суффикса: `'schulte-blocks'.replace('-blocks','')` → `'schulte'`. А в каталоге
+ * игра зовётся `schulte_table`, и `isGameAllowed` на неё отвечала «нет». На полном
+ * профиле проверка возвращает «да» всем подряд, поэтому наружу это не вылезло —
+ * но на профиле с ограниченным набором карточка серии пряталась бы при
+ * разрешённой игре. Соответствие теперь ЯВНОЕ, а гейт проверяет, что каждый
+ * названный здесь идентификатор ЕСТЬ в каталоге.
+ */
+export function seriesGameId(key: SeriesKey): string | null {
+  if (key === 'schulte-blocks') return 'schulte_table';
+  if (key === 'proofreading-blocks') return 'proofreading';
+  if (key === 'chess-blocks') return 'chess_blind';
+  return null;   // серия-плейлист игрой каталога не является
 }
 
 /** Какая настройка профиля открывает серию. Гейт тот же, что был на главной. */
