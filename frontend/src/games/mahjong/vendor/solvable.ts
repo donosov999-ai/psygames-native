@@ -60,10 +60,22 @@ export function pairedPlaces(places: Place[]): Place[] {
   return places.length % 2 === 0 ? places : places.slice(0, -1);
 }
 
-function shuffled<T>(arr: T[]): T[] {
+/**
+ * 🔴 НАША ПРАВКА К ЗАИМСТВОВАННОМУ КОДУ (23.08.2026): источник случайности стал
+ * ПАРАМЕТРОМ. В бою по-прежнему `Math.random`, поведение не изменилось.
+ *
+ * Зачем: проверка решаемости раздавала доски случайно и оказалась ШАТКОЙ —
+ * локально зелёная, на сборочной машине красная («ур.28 заход 23: budget»).
+ * Гейт, который то краснеет, то нет, хуже отсутствующего: он приучает
+ * перезапускать до зелёного. С зерном проверка даёт один и тот же ответ везде,
+ * и если он красный — это настоящая поломка, а не медленная машина.
+ */
+export type Rng = () => number;
+
+function shuffled<T>(arr: T[], rnd: Rng): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rnd() * (i + 1));
     [a[i], a[j]] = [a[j] as T, a[i] as T];
   }
   return a;
@@ -84,7 +96,7 @@ const MAX_RUNS = 60;
  * ОДИН ЗАХОД: симулируем разбор полной доски, попутно раздавая символы.
  * Пустой ответ — заход упёрся в «свободных меньше двух», надо пересобрать.
  */
-function dealOnce(places: Place[], symbolCount: number): Deal {
+function dealOnce(places: Place[], symbolCount: number, rnd: Rng): Deal {
   const total = places.length;
   const pairs = total / 2;
   const tiles: Tile[] = places.map((p, i) => ({ id: i, x: p.x, y: p.y, layer: p.layer, symbol: -1 }));
@@ -92,7 +104,7 @@ function dealOnce(places: Place[], symbolCount: number): Deal {
   const peelOrder: [number, number][] = [];
   // Каждая из pairs пар получает символ по кругу: на полном наборе (72 пары,
   // 36 рисунков) выходит ровно по 4 плитки на рисунок — классический набор.
-  const symSeq = shuffled(Array.from({ length: pairs }, (_, k) => k % symbolCount));
+  const symSeq = shuffled(Array.from({ length: pairs }, (_, k) => k % symbolCount), rnd);
 
   for (let p = 0; p < pairs; p++) {
     const flags = freeFlags(tiles, alive);
@@ -100,7 +112,7 @@ function dealOnce(places: Place[], symbolCount: number): Deal {
     for (let i = 0; i < total; i++) if (flags[i]) free.push(i);
     // Их `if (freestones.length < 2) return []` — заход провален, выкручиваться нельзя.
     if (free.length < 2) return { tiles: [], peelOrder: [] };
-    const pick = shuffled(free);
+    const pick = shuffled(free, rnd);
     const a = pick[0] as number;
     const b = pick[1] as number;
     const sym = symSeq[p] as number;
@@ -121,11 +133,11 @@ function dealOnce(places: Place[], symbolCount: number): Deal {
  * сама. Раньше повторы были в экране, и любой второй вызывающий (перетасовка,
  * проверка) получал гарантию слабее, чем думал.
  */
-export function dealSolvable(places: Place[], symbolCount: number, maxRuns: number = MAX_RUNS): Deal {
+export function dealSolvable(places: Place[], symbolCount: number, maxRuns: number = MAX_RUNS, rnd: Rng = Math.random): Deal {
   const even = pairedPlaces(places);
   if (even.length < 2 || symbolCount < 1) return { tiles: [], peelOrder: [] };
   for (let run = 0; run < Math.max(1, maxRuns); run++) {
-    const deal = dealOnce(even, symbolCount);
+    const deal = dealOnce(even, symbolCount, rnd);
     if (deal.tiles.length > 0) return deal;
   }
   return { tiles: [], peelOrder: [] };

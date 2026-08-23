@@ -181,7 +181,12 @@ export default function SchulteGame() {
   useAutostartWhenReady(
     () => autostart && lvl.loaded && (!seriesPreset || seriesLoaded),
     () => (seriesPreset ? beginSeries() : startGame(false)),
-  ); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  );
+  // ⚠️ ГЛУШИЛКА ПРАВИЛА ЗДЕСЬ НЕ РАБОТАЛА. Пояснение через тире линтер читает как
+  // часть ИМЕНИ правила: такого правила нет, глушилка не глушила ничего и сама
+  // становилась ошибкой линта. Пояснение живёт обычным комментарием: список
+  // зависимостей намеренно неполон — эффект обязан сработать один раз на
+  // готовности, а не пересобираться на каждое изменение замыканий.
   const [gridSize, setGridSize] = useState(() => num('size', 5));
   const [colorMode, setColorMode] = useState(false);
   const [contentMode, setContentMode] = useState<ContentMode>('numbers');
