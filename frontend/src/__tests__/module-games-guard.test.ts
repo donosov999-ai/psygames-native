@@ -35,10 +35,6 @@
  * проверку зелёной шесть раз: рассказ о механизме считался механизмом. Здесь
  * это особенно легко — обоснования пропов пишутся прямо внутри разметки.
  */
-declare const __dirname: string;
-declare function require(m: string): any;
-const { readFileSync, readdirSync, existsSync } = require('fs');
-const { join } = require('path');
 
 import {
   createMathSliderSession,
@@ -56,6 +52,14 @@ import {
   startTraining as startDotsTraining,
 } from '@/src/games/dots-connect/core';
 import { hasSomethingToLose as dotsArmed } from '@/src/games/dots-connect/DotsConnectGame';
+import { hasSomethingToLose as pauseArmed } from '@/src/games/pause/ui/PausePracticesGame';
+import {
+  createPracticePlan as createPausePlan,
+  createPracticeSession as createPauseSession,
+  startPracticeSession as startPauseSession,
+  getDefaultPracticeSets as pauseDefaults,
+  getRequiredWarnings as pauseWarnings,
+} from '@/src/games/pause/core/engine';
 
 import {
   createOneLineSession,
@@ -95,6 +99,11 @@ import {
   recordCalibrationTap,
 } from '@/src/games/rhythm-pitch/core';
 import { hasSomethingToLose as rhythmArmed } from '@/src/games/rhythm-pitch/RhythmPitchGame';
+
+declare const __dirname: string;
+declare function require(m: string): any;
+const { readFileSync, readdirSync, existsSync } = require('fs');
+const { join } = require('path');
 
 const ROOT = join(__dirname, '../..');
 const GAMES_DIR = join(ROOT, 'app/games');
@@ -211,7 +220,20 @@ function walkOneLineEdge(round: OneLineSession): OneLineSession {
  * Ключ — файл экрана, значение — как довести партию до состояния «есть что
  * терять» и как выглядит свежая.
  */
+function pausePlan() {
+  const selections = pauseDefaults().slice(0, 1).map((s) => ({ setId: s.id }));
+  return createPausePlan({
+    mode: 'solo', selections, durationMs: 5 * 60_000, locale: 'ru',
+    guideMode: 'visual', context: 'home', acknowledgedWarnings: pauseWarnings(selections),
+  });
+}
+
 const LIVE_PREDICATES: Record<string, { fresh: () => boolean; busy: () => boolean; why: string }> = {
+  'pause.tsx': {
+    why: 'практика пошла: сессия перешла в running — человек уже дышит, и десять минут молча не стираются',
+    fresh: () => pauseArmed(createPauseSession(pausePlan())),
+    busy: () => pauseArmed(startPauseSession(createPauseSession(pausePlan()), 1_000)),
+  },
   'math-slider.tsx': {
     why: 'первый ПОДТВЕРЖДЁННЫЙ ответ в зачёте (тренировочный круг не в счёт — он вернётся таким же)',
     fresh: () => mathSliderArmed(createMathSliderSession({ seed: 'guard', level: 4, trialCount: 3 })),

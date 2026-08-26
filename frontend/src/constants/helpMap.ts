@@ -202,6 +202,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillPlanning",
     "introKey": "towerLondonIntroDesc"
   },
+  "/games/pause": {
+    "nameKey": "pause",
+    "skillKey": "skillRecovery",
+    "introKey": "pauseIntroDesc"
+  },
   "/games/dots-connect": {
     "nameKey": "dotsConnect",
     "skillKey": "skillPlanning",
