@@ -183,11 +183,49 @@ const HEX = /^#[0-9a-fA-F]{3,8}$/;
  * всё, что не годится в имя параметра.
  */
 const RESERVED = new Set('default,delete,new,class,function,return,var,let,const,in,of,do,if,else,for,while,switch,case,break,continue,this,typeof,void,with,try,catch,finally,throw,import,export,extends,super,yield,await,null,true,false,enum'.split(','));
+
+/**
+ * 🔴 ЧТО ЗДЕСЬ ОБЕЗВРЕЖИВАЕТСЯ И ПОЧЕМУ ЭТО СТОИЛО ЦЕЛОГО ВЫПУСКА.
+ *
+ * `evalIn` — последний рубеж разбора цвета: он ВЫПОЛНЯЕТ выражение, чтобы узнать,
+ * что реально получится на экране. Пропуском служила проверка «похоже на вызов
+ * функции»: `^[\w$]+\s*\(`. Под неё попадает не только `textOn(GRADIENT[0])`, но и
+ * любая строка кода, начинающаяся с вызова, — например снятая из экрана
+ * `setInterval(() => setNow(gameNow()), 100)`.
+ *
+ * И она НЕ ПРОСТО вычислялась — она заводила НАСТОЯЩИЙ таймер. Через 100 мс он
+ * срабатывал уже вне всякой области видимости, `setNow` там нет, и Node падал
+ * необработанным `ReferenceError`, унося ВЕСЬ прогон вместе с процессом.
+ *
+ * Цена: выпуск v1.240.0 26.08.2026. Джоба упала → `release` и «Android → Google
+ * Play» были ПРОПУЩЕНЫ → сборка не доехала до магазина, а `version.json` остался
+ * на 1.236.0, и приложение четыре выпуска подряд считало себя свежим.
+ * ⚠️ И падение ПЛАВАЮЩЕЕ: сработает таймер или нет — зависит от того, жив ли ещё
+ * процесс через 100 мс. Локально те же 3580 проверок проходили зелёными.
+ *
+ * Поэтому таймеры и сеть подставляются пустышками ПАРАМЕТРАМИ функции: внутри
+ * вычисляемого выражения они перекрывают глобальные, и любой такой вызов
+ * становится безвредным. Цветом ничего из этого быть не может по определению.
+ */
+const БЕЗВРЕДНО = () => undefined;
+const ПОБОЧНЫЕ = [
+  'setInterval', 'setTimeout', 'setImmediate', 'clearInterval', 'clearTimeout',
+  'requestAnimationFrame', 'requestIdleCallback', 'queueMicrotask',
+  'fetch', 'XMLHttpRequest', 'Worker', 'importScripts',
+];
+
 function evalIn(scope: Record<string, any>, expr: string): any {
   const keys = Object.keys(scope).filter((k) => /^[A-Za-z_$][\w$]*$/.test(k) && !RESERVED.has(k));
+  // Имена из модуля важнее: если файл сам экспортирует `fetch`, перекрывать нечего.
+  const глушим = ПОБОЧНЫЕ.filter((n) => !keys.includes(n));
   // eslint-disable-next-line no-new-func
-  return new Function(...keys, `return (${expr});`)(...keys.map((k) => scope[k]));
+  return new Function(...keys, ...глушим, `return (${expr});`)(
+    ...keys.map((k) => scope[k]), ...глушим.map(() => БЕЗВРЕДНО),
+  );
 }
+
+/** Открыто для проверки: гейт обязан уметь доказать, что глушилка работает. */
+export const __evalInДляПроверки = evalIn;
 
 /** Выражение цвета → hex. Литерал берём как есть, путь `ON_FILL.color` — вычисляем. */
 function resolveColor(expr: string, scope: Record<string, any>): string | null {
