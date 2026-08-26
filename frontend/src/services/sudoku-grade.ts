@@ -24,7 +24,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig, UnequalMap,
+  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk,
 } from './sudoku-core';
 
 export type Technique =
@@ -34,11 +34,12 @@ export type Technique =
   | 'naked_subset'    // голая пара/тройка
   | 'hidden_subset'   // скрытая пара
   | 'sandwich_sum'    // вывод из суммы между позициями 1 и 9
+  | 'towers_clue'     // вывод из подсказки «сколько зданий видно с края»
   | 'x_wing'          // X-wing
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
-  naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, sandwich_sum: 4, hidden_subset: 5, x_wing: 6, guess: 9,
+  naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, sandwich_sum: 4, towers_clue: 4, hidden_subset: 5, x_wing: 6, guess: 9,
 };
 
 export interface GradeCtx {
@@ -53,6 +54,8 @@ export interface GradeCtx {
   sandwich?: { rows: number[]; cols: number[] };
   /** Знаки неравенства между соседями: 0 нет, 1 первая МЕНЬШЕ, 2 БОЛЬШЕ. */
   unequal?: UnequalMap;
+  /** Небоскрёбы: сколько зданий видно с каждого края. 0 = подсказки нет. */
+  towers?: TowersMap;
 }
 
 export interface Grade {
@@ -111,7 +114,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -133,6 +136,26 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     return true;
   };
 
+  /**
+   * Не нарушает ли цифра подсказки с краёв. Ряд может быть НЕПОЛНЫМ, поэтому
+   * `towersLineOk` сверяет границы: сколько видно минимум сейчас и сколько может
+   * стать максимум, если оставшиеся клетки окажутся видимыми.
+   *
+   * 🔴 ИМЕННО ЗДЕСЬ РЕШАЕТСЯ, СЛОЖНЫЙ ЛИ ВАРИАНТ. У неравенств (проверено 26.08)
+   * знак работал фильтром по УЖЕ известному соседу и доску только облегчал. Здесь
+   * подсказка ограничивает ВЕСЬ ряд и не требует ни одной заполненной клетки:
+   * «1» значит, что самое высокое стоит первым, «N» — что ряд строго возрастает.
+   * Так ли это выйдет на нашей лестнице — покажет замер потолка, а не это рассуждение.
+   */
+  const towersOk = (g: Cell[][], r: number, c: number, v: number, tw: TowersMap): boolean => {
+    const row = [...g[r]]; row[c] = v;
+    const col = g.map((rw) => rw[c]); col[r] = v;
+    return towersLineOk(row, tw.left[r])
+      && towersLineOk([...row].reverse(), tw.right[r])
+      && towersLineOk(col, tw.top[c])
+      && towersLineOk([...col].reverse(), tw.bottom[c]);
+  };
+
   const kropkiOk = (d: number, a: number, b: number) => (d === 2 ? Math.max(a, b) === 2 * Math.min(a, b) : Math.abs(a - b) === 1);
 
   /** Пересчёт кандидатов по всей информации, которая есть у игрока. true = противоречие. */
@@ -144,6 +167,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         let ok = isValid(grid, r, c, v, N, BR, BC, variant, regions, thermo, arrow, cages);
         if (ok && parity && parity[r][c] !== 0) ok = (parity[r][c] === 1) === (v % 2 === 0);
         if (ok && unequal) ok = unequalOk(grid, r, c, v, N, unequal);
+        if (ok && towers) ok = towersOk(grid, r, c, v, towers);
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -330,6 +354,50 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
       // Само применение суммы — техника игрока, а не «бесплатный» refilter. Без bump
       // пазл, решённый через sandwich, ошибочно оценивался как набор простых одиночек.
       if (usedSandwich) bump('sandwich_sum');
+    }
+
+    /**
+     * НЕБОСКРЁБЫ: ВЫЧЁРКИВАНИЕ ПО ПОДСКАЗКЕ С КРАЯ.
+     *
+     * 🔴 БЕЗ ЭТОГО ВАРИАНТ НЕ РЕШАЛСЯ ВООБЩЕ. Проверка `towersOk` выше только
+     * ОТСЕИВАЕТ неверное — она не даёт вывода, и замер 26.08 дал ступень −1
+     * (решатель не закрыл доску) на пяти досках из шести. Подсказка обязана не
+     * запрещать, а ВЫЧЁРКИВАТЬ кандидатов, иначе она бесполезна как техника.
+     *
+     * Правило границы, из которого всё следует: если с края видно `k` зданий, то
+     * здание на позиции `i` (считая от края, с нуля) не может быть выше
+     * `N - k + 1 + i`. Иначе оно заслонит слишком многих и видимых окажется меньше `k`.
+     * Крайние случаи выпадают отсюда сами: `k = 1` → первая клетка ровно `N`;
+     * `k = N` → ряд строго возрастает, на позиции `i` стоит `i + 1`.
+     */
+    let usedTowers = false;
+    if (towers) {
+      const lines: [number[], number, [number, number][]][] = [];
+      for (let r = 0; r < N; r++) {
+        const cells: [number, number][] = Array.from({ length: N }, (_, c) => [r, c] as [number, number]);
+        lines.push([[towers.left[r]], 0, cells]);
+        lines.push([[towers.right[r]], 0, [...cells].reverse()]);
+      }
+      for (let c = 0; c < N; c++) {
+        const cells: [number, number][] = Array.from({ length: N }, (_, r) => [r, c] as [number, number]);
+        lines.push([[towers.top[c]], 0, cells]);
+        lines.push([[towers.bottom[c]], 0, [...cells].reverse()]);
+      }
+      for (const [clueBox, , cells] of lines) {
+        const k = clueBox[0];
+        if (!k) continue;
+        for (let i = 0; i < cells.length; i++) {
+          const [rr, cc] = cells[i];
+          if (grid[rr][cc] !== 0) continue;
+          const maxVal = N - k + 1 + i;
+          if (maxVal >= N) continue;                     // ограничения нет
+          const allowed = atMost(maxVal);
+          const next = cand[rr][cc] & allowed;
+          if (next !== cand[rr][cc]) { cand[rr][cc] = next; usedTowers = true; }
+          if (next === 0) return true;
+        }
+      }
+      if (usedTowers) bump('towers_clue');
     }
 
     if (kropki) {
@@ -804,7 +872,8 @@ function digByLogic(
   // применяется внутри `generatePuzzle`), поэтому копаем ровно тем набором, который
   // увидит человек — та же дисциплина, что у сэндвича и кропки.
   const unequal = (base as { unequal?: UnequalMap }).unequal;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal };
+  const towers = (base as { towers?: TowersMap }).towers;
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,

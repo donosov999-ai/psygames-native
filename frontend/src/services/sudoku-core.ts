@@ -10,7 +10,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers';
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -39,6 +39,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
   jigsaw: 'Jigsaw', antiking: 'Antiking', evenodd: 'Evenodd', kropki: 'Kropki',
   sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow', thermocage: 'Thermocage',
   unequal: 'Unequal',
+  towers: 'Towers',
 };
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
@@ -565,7 +566,68 @@ export function unequalFromSolution(sol: Cell[][], N: number, density: number): 
   return { h, v };
 }
 
-export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap, unequal?: UnequalMap): boolean {
+/**
+ * НЕБОСКРЁБЫ (towers / skyscrapers) — ПОДСКАЗКА С КРАЯ: СКОЛЬКО ЗДАНИЙ ВИДНО.
+ *
+ * Цифра в клетке — высота здания. Подсказка на краю строки или столбца говорит,
+ * сколько зданий видно, если смотреть с этого края: здание видно, когда оно выше
+ * ВСЕХ стоящих перед ним. Добавленное требование ровно одно — надо мысленно
+ * выстроить ряд по высоте, а не искать позицию (§25.1 плана слияния).
+ *
+ * 🔴 ЧЕМ ЭТО ОТЛИЧАЕТСЯ ОТ НЕРАВЕНСТВ, КОТОРЫЕ ОКАЗАЛИСЬ ЛЁГКИМИ. Знак между
+ * соседями работает фильтром по УЖЕ известной клетке. Подсказка небоскрёбов
+ * ограничивает ВЕСЬ ряд сразу и не требует ни одной заполненной клетки: «1» значит,
+ * что самое высокое здание стоит первым, «N» — что ряд строго возрастает. То есть
+ * она сужает, а не облегчает. Так ли это на нашей лестнице — решает замер, а не
+ * это рассуждение.
+ *
+ * Подсказки лежат по четырём краям, каждая длиной N; 0 = подсказки НЕТ.
+ * `top[c]` — взгляд вниз по столбцу c, `bottom[c]` — вверх, `left[r]` — вправо по
+ * строке r, `right[r]` — влево.
+ */
+export type TowersMap = { top: number[]; bottom: number[]; left: number[]; right: number[] };
+
+/** Сколько зданий видно в ряду с начала. Ряд обязан быть полным. */
+export function visibleCount(line: readonly number[]): number {
+  let seen = 0;
+  let tallest = 0;
+  for (const v of line) { if (v > tallest) { seen++; tallest = v; } }
+  return seen;
+}
+
+export function towersFromSolution(sol: Cell[][], N: number): TowersMap {
+  const top: number[] = [], bottom: number[] = [], left: number[] = [], right: number[] = [];
+  for (let c = 0; c < N; c++) {
+    const col = sol.map((row) => row[c]);
+    top.push(visibleCount(col));
+    bottom.push(visibleCount([...col].reverse()));
+  }
+  for (let r = 0; r < N; r++) {
+    left.push(visibleCount(sol[r]));
+    right.push(visibleCount([...sol[r]].reverse()));
+  }
+  return { top, bottom, left, right };
+}
+
+/**
+ * Нарушает ли ряд свою подсказку. Ряд может быть НЕПОЛНЫМ (нули = пусто), и это
+ * главное место, где легко ошибиться: считать видимость по неполному ряду нельзя,
+ * поэтому проверяются ГРАНИЦЫ — сколько видно минимум и максимум при любом
+ * заполнении оставшихся клеток.
+ *
+ * ⚠️ Оценка сверху намеренно грубая: каждая пустая клетка МОЖЕТ оказаться видимой.
+ * Грубая, но ЧЕСТНАЯ: она никогда не отбросит верную доску, а только пропустит
+ * часть неверных — их поймает проверка полного ряда.
+ */
+export function towersLineOk(line: readonly number[], clue: number): boolean {
+  if (clue === 0) return true;
+  if (line.every((v) => v !== 0)) return visibleCount(line) === clue;
+  let seen = 0, tallest = 0, blanks = 0;
+  for (const v of line) { if (v === 0) { blanks++; continue; } if (v > tallest) { seen++; tallest = v; } }
+  return clue >= seen && clue <= seen + blanks;
+}
+
+export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap, unequal?: UnequalMap, towers?: TowersMap): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
   if (variant === 'jigsaw' && regions) {
     const reg = regions[r][c];
@@ -590,6 +652,13 @@ export function isValid(grid: Cell[][], r: number, c: number, val: number, N: nu
     if (c > 0 && unequal.h[r][c - 1] !== 0) { const o = grid[r][c - 1]; if (o !== 0 && !cmp(o, val, unequal.h[r][c - 1])) return false; }
     if (r < N - 1 && unequal.v[r][c] !== 0) { const o = grid[r + 1][c]; if (o !== 0 && !cmp(val, o, unequal.v[r][c])) return false; }
     if (r > 0 && unequal.v[r - 1][c] !== 0) { const o = grid[r - 1][c]; if (o !== 0 && !cmp(o, val, unequal.v[r - 1][c])) return false; }
+  } else if (variant === 'towers' && towers) {
+    const row = [...grid[r]]; row[c] = val;
+    const col = grid.map((rw) => rw[c]); col[r] = val;
+    if (!towersLineOk(row, towers.left[r])) return false;
+    if (!towersLineOk([...row].reverse(), towers.right[r])) return false;
+    if (!towersLineOk(col, towers.top[c])) return false;
+    if (!towersLineOk([...col].reverse(), towers.bottom[c])) return false;
   } else if (variant === 'antiking') {
     for (const [dr, dc] of KING) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
   } else if ((variant === 'thermo' || variant === 'thermocage') && thermo) {
@@ -679,6 +748,8 @@ export interface Overlays {
   sandwich?: { rows: number[]; cols: number[] };
   /** Знаки неравенства между соседями: 0 нет, 1 первая МЕНЬШЕ, 2 БОЛЬШЕ. */
   unequal?: UnequalMap;
+  /** Небоскрёбы: сколько зданий видно с каждого края. 0 = подсказки нет. */
+  towers?: TowersMap;
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -697,6 +768,9 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
       if (r < N - 1) v[r][c] = dot(sol[r][c], sol[r + 1][c]);
     }
     return { kropki: { h, v } };
+  }
+  if (variant === 'towers') {
+    return { towers: towersFromSolution(sol, N) };
   }
   if (variant === 'unequal') {
     // Знаки СРАЗУ все; сколько показать — решает прореживание уровня, как у кропки.
@@ -749,6 +823,17 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
     if (c > 0 && ov.unequal.h[r][c - 1] !== 0) { const o = grid[r][c - 1]; if (o !== 0 && !cmp(o, n, ov.unequal.h[r][c - 1])) return false; }
     if (r < N - 1 && ov.unequal.v[r][c] !== 0) { const o = grid[r + 1][c]; if (o !== 0 && !cmp(n, o, ov.unequal.v[r][c])) return false; }
     if (r > 0 && ov.unequal.v[r - 1][c] !== 0) { const o = grid[r - 1][c]; if (o !== 0 && !cmp(o, n, ov.unequal.v[r - 1][c])) return false; }
+  }
+  if (ov.towers) {
+    // Подсказка с края — ПОКАЗАННАЯ информация, значит единственность обязана
+    // считаться с ней. Ряд может быть неполным, поэтому `towersLineOk` проверяет
+    // границы, а не готовое число видимых.
+    const row = [...grid[r]]; row[c] = n;
+    const col = grid.map((rw) => rw[c]); col[r] = n;
+    if (!towersLineOk(row, ov.towers.left[r])) return false;
+    if (!towersLineOk([...row].reverse(), ov.towers.right[r])) return false;
+    if (!towersLineOk(col, ov.towers.top[c])) return false;
+    if (!towersLineOk([...col].reverse(), ov.towers.bottom[c])) return false;
   }
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
@@ -806,7 +891,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -835,7 +920,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -912,7 +997,8 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const kropki = ov.kropki;
   const sandwich = ov.sandwich;
   const unequal = ov.unequal;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal };
+  const towers = ov.towers;
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers };
 }
 
 /**
