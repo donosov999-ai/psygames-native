@@ -62,7 +62,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'quick-count': { ver: 1, date: '19.08.2026' },
   'reading-span': { ver: 2, date: '23.08.2026' },
   'rhythm-pitch': { ver: 2, date: '20.08.2026' },
-  'rmet': { ver: 1, date: '19.08.2026' },
+  'rmet': { ver: 2, date: '27.08.2026' },
   'schulte': { ver: 2, date: '23.08.2026' },
   'sdmt': { ver: 1, date: '19.08.2026' },
   'semantic-sort': { ver: 1, date: '19.08.2026' },
