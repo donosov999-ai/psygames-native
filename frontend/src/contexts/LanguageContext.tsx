@@ -2634,6 +2634,9 @@ const translations: Translations = {
    * ⚠️ Заводить ключ здесь — значит завести его И в десяти локалях
    * (`src/contexts/translations/*.ts`), иначе `i18n-coverage` роняет прогон.
    */
+  pause: { ru: 'Пауза', en: 'Pause' },
+  pauseDesc: { ru: 'Дыхание, глаза, лицо, расслабление и подвижность — короткая телесная пауза без оценок', en: 'Breathing, eyes, face, relaxation and mobility — a short body pause with no scoring' },
+  pauseIntroDesc: { ru: 'Выберите обстановку, минуты и что делать — приложение проведёт по шагам. Здесь ничего не измеряется и не оценивается: это отдых, а не проба.', en: 'Choose the setting, the minutes and what to practise — the app guides you step by step. Nothing here is measured or scored: this is rest, not a test.' },
   dotsConnect: { ru: 'Соедини точки', en: 'Dots Connect' },
   dotsConnectDesc: { ru: 'Соединяйте одинаковые точки непересекающимися путями и заполните всю сетку', en: 'Connect matching dots with non-crossing paths and fill the whole grid' },
   dotsConnectIntroDesc: {

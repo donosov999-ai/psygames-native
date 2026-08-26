@@ -144,6 +144,7 @@ const ALREADY: Record<string, string> = {
 
 /** Экран не игровой — строке «что делать» неоткуда взяться и незачем. */
 const NOT_A_GAME: Record<string, string> = {
+  'pause.tsx': 'хаб: меню телесных практик — выбирают обстановку, длительность и наборы, играть тут не во что; во время самой практики указание рисует модуль src/games/pause/ui/PausePracticesGame.tsx из подписи текущего шага',
   'dots-connect.tsx':
     'экран-обёртка: партию рисует модуль src/games/dots-connect/DotsConnectGame.tsx, строка живёт там (strings.rulesBody + strings.rulesCoverage на правилах, strings.trainingHint на тренировке, roundLabel над доской) вместе со своим словарём; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт dots-connect-integration.test.ts',
   'attention-conflict.tsx': 'хаб: меню из четырёх парадигм, отсюда уходят в саму игру — играть тут не в чем',
