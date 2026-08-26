@@ -1354,3 +1354,57 @@ jobs:
           AAB_PATH: ./aab/PsyGames-android.aab
           VERSION_NAME: ${{ github.ref_name }}
         run: node .github/scripts/deploy_play.js
+
+  # ─── Доставка: дошло ли до людей ──────────────────────────────────────
+  # 🔴 ЗАЧЕМ ОТДЕЛЬНАЯ ДЖОБА, ЕСЛИ ВСЁ ВИДНО В СПИСКЕ.
+  #
+  # Разбор 27.08.2026: из восьми последних тегов до Google Play доехали ТРИ.
+  # И ни один провал не был замечен — потому что смотреть надо было в список
+  # джоб, а туда никто не смотрит. Два способа спрятаться:
+  #   · `continue-on-error: true` у play-deploy — джоба красная, ПРОГОН зелёный;
+  #   · пропуск: упал typecheck → release и заливка в Play `skipped`, а
+  #     пропущенная джоба в списке выглядит безобиднее красной. Результат тот же:
+  #     выпуска нет.
+  #
+  # Эта джоба сводит все три пути доставки тега в ОДИН ответ «дошло / не дошло» и
+  # роняет прогон, если хоть один не доехал. Тег без выпуска перестаёт выглядеть
+  # успешным.
+  #
+  # ⚠️ `if: always()` обязателен: без него джоба сама пропускается ровно тогда,
+  # когда нужна больше всего — когда упало то, от чего она зависит.
+  delivery-check:
+    name: 🚚 Доставка — дошло ли до людей
+    runs-on: ubuntu-latest
+    # ⚠️ web-deploy СЮДА НЕ ВХОДИТ, и это проверено, а не предположено: у него
+    # стоит `if: github.ref == 'refs/heads/main'`, то есть на теге он не бежит
+    # никогда и его результат ВСЕГДА `skipped`. Включи его — и эта джоба краснела
+    # бы на КАЖДОМ выпуске, то есть стала бы шумом на второй же день.
+    needs: [release, google-play, play-deploy]
+    if: always() && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Свести три пути доставки в один ответ
+        env:
+          R_RELEASE: ${{ needs.release.result }}
+          R_PLAY: ${{ needs.google-play.result }}
+          R_DEMO: ${{ needs.play-deploy.result }}
+        run: |
+          echo "тег: $GITHUB_REF_NAME"
+          echo "  GitHub Release     : $R_RELEASE"
+          echo "  Google Play        : $R_PLAY"
+          echo "  веб-демо /play     : $R_DEMO"
+          echo ""
+          MISSED=""
+          # ⚠️ Проверяем НЕ на 'failure', а на «не success»: пропуск это тоже
+          # недоставка, и именно он трижды прошёл незамеченным.
+          [ "$R_RELEASE" = "success" ] || MISSED="$MISSED GitHub-Release($R_RELEASE)"
+          [ "$R_PLAY"    = "success" ] || MISSED="$MISSED Google-Play($R_PLAY)"
+          [ "$R_DEMO"    = "success" ] || MISSED="$MISSED веб-демо($R_DEMO)"
+          if [ -n "$MISSED" ]; then
+            echo "::error title=ВЫПУСК НЕ ДОШЁЛ ДО ЛЮДЕЙ::$GITHUB_REF_NAME —$MISSED"
+            echo "🔴 НЕ ДОСТАВЛЕНО:$MISSED"
+            echo ""
+            echo "   ⚠️ Тег перезапускать НЕЛЬЗЯ: Play принимает каждый versionCode один раз."
+            echo "   Чинить причину и поднимать patch-версию — см. PROJECT_REF.md §5."
+            exit 1
+          fi
+          echo "✅ выпуск $GITHUB_REF_NAME дошёл всеми тремя путями"
