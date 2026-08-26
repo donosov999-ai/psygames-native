@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.239.1',
+    date: '2026-08-26',
+    ru: [
+      'Фон профиля заливает весь экран, а не полосу сверху — и на телефоне тоже',
+      '«Пауза» переименована в «Глаза и дыхание»: главное вынесено в заголовок',
+    ],
+    en: [
+      'The profile background fills the whole screen instead of a strip at the top — on phones too',
+      'Pause is now called Eyes & breathing: what matters moved into the title',
+    ],
+  },
+  {
     version: '1.239.0',
     date: '2026-08-26',
     ru: [
