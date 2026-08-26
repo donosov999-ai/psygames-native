@@ -1,0 +1,83 @@
+/**
+ * ГЕОМЕТРИЯ ДОСКИ ХАНОЯ — ТРЕБОВАНИЯ ИЗ ТЗ, А НЕ «НА ГЛАЗ».
+ *
+ * ТЗ 22.08.2026 составлено по скриншоту Дениса: доска занимала около четверти
+ * полезной высоты, сверху висела пустота на пол-экрана; стержни были тонкими
+ * серыми линиями, а не предметами; диски все одного фиолетового и почти
+ * одинаковой ширины.
+ *
+ * ⚠️ ПРОВЕРЯЕТСЯ ИСХОДНИК, А НЕ КАРТИНКА. Снимок экрана показал бы больше, но
+ * сравнивать его нечем и он ломается от любой смены темы. Числа же названы в ТЗ
+ * прямо, и их можно держать: высота диска, толщина стержня, разброс ширин,
+ * доля высоты экрана. Каждое требование ниже — цитата приёмки.
+ */
+declare const __dirname: string;
+declare function require(id: string): any;
+
+const fs = require('fs');
+const path = require('path');
+const ИСХОДНИК: string = fs.readFileSync(path.resolve(__dirname, '../../app/games/hanoi.tsx'), 'utf8');
+
+/** Значение числового поля стиля: `disc: { height: 28,` → 28. */
+function поле(стиль: string, имя: string): number | null {
+  const блок = new RegExp(`\\n  ${стиль}: \\{([^}]*)\\}`).exec(ИСХОДНИК);
+  if (!блок) return null;
+  const m = new RegExp(`${имя}:\\s*([\\d.]+)`).exec(блок[1]);
+  return m ? Number(m[1]) : null;
+}
+
+describe('доска ханоя — требования ТЗ', () => {
+  it('3.1 высота доски считается от экрана, а не прибита числом', () => {
+    // Было `minHeight: 220` и всё; стало — доля высоты окна.
+    expect(ИСХОДНИК).toMatch(/const boardH = Math\.max\(\d+, Math\.round\(\(height - \d+\) \* 0\.6[0-9]?\)\)/);
+    expect(ИСХОДНИК).toContain('minHeight: boardH');
+  });
+
+  it('3.2 стержень — предмет: не тоньше 8 px и не бледнее половины', () => {
+    expect(`ширина стержня: ${поле('pole', 'width')}`).toBe(`ширина стержня: ${поле('pole', 'width')}`);
+    expect(поле('pole', 'width')).toBeGreaterThanOrEqual(8);
+    expect(поле('pole', 'opacity')).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it('3.2 основание — общая платформа, а не чёрточка под каждым стержнем', () => {
+    expect(поле('boardBase', 'height')).toBeGreaterThanOrEqual(10);
+    expect(ИСХОДНИК).toContain('styles.boardBase');
+  });
+
+  it('3.3 диски разного цвета, палитра дальтоник-совместимая', () => {
+    // Прежде цвет брался из одного тона профиля: `hsl(${baseHue}, …)`.
+    expect(ИСХОДНИК).not.toContain('baseHue');
+    const набор = /const DISC_COLORS: Array<\[string, string\]> = \[([\s\S]*?)\];/.exec(ИСХОДНИК);
+    expect(набор).not.toBeNull();
+    const тонов = (набор![1].match(/\['#/g) || []).length;
+    expect(`тонов в палитре: ${тонов}`).toBe(`тонов в палитре: ${тонов}`);
+    expect(тонов).toBeGreaterThanOrEqual(5);
+    // Тона Окабэ — Ито: те же, что в stroop как COLORS_CB.
+    for (const тон of ['#0072b2', '#d55e00', '#006644', '#f0e442']) {
+      expect(набор![1]).toContain(тон);
+    }
+  });
+
+  it('3.4 высота диска не меньше 28 px', () => {
+    expect(поле('disc', 'height')).toBeGreaterThanOrEqual(28);
+  });
+
+  it('3.4 ширина диска от 40% до 90% зоны стержня', () => {
+    expect(ИСХОДНИК).toMatch(/const discBaseW = pegW \* 0\.40;/);
+    expect(ИСХОДНИК).toMatch(/const discMaxW = pegW \* 0\.90;/);
+    // Шаг обязан делиться на (discs − 1), иначе самый большой диск не дойдёт до 90%.
+    expect(ИСХОДНИК).toContain('(discMaxW - discBaseW) / Math.max(discs - 1, 1)');
+  });
+
+  it('3.5 тень под диском — была и осталась', () => {
+    expect(поле('disc', 'shadowOpacity')).toBeGreaterThan(0);
+  });
+
+  it('3.7 «Ошибок 0» не красным, когда ошибок нет', () => {
+    expect(ИСХОДНИК).toContain("color: errors > 0 ? '#f43f5e' : colors.textSecondary");
+  });
+
+  it('3.8 подсказка управления исчезает после первого хода', () => {
+    expect(ИСХОДНИК).toMatch(/\{moves === 0 && \(\s*<Text style=\{\[styles\.hintText/);
+  });
+});
