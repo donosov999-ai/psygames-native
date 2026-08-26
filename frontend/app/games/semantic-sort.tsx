@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
+import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -29,6 +30,7 @@ import { SEMANTIC_DISTRACTORS } from '@/src/data/semantic-distractors';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
+import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
 
 const GRADIENT = ['#10b981', '#6366f1'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -69,6 +71,7 @@ interface Round { word: string; correctCat: string; cats: string[] }
 export default function SemanticSortGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const { profile } = useProfile();
   const router = useRouter();
 
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
@@ -76,7 +79,7 @@ export default function SemanticSortGame() {
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => { void startGame(); }); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const [roundsCount, setRoundsCount] = useState(() => num('rounds', 15));
@@ -105,7 +108,7 @@ export default function SemanticSortGame() {
 
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
 
-  const startGame = () => {
+  const startGame = async () => {
     // Уровневый режим: число раундов и категорий-дистракторов из levelParams.
     // Пресет зарядки — ручные rounds/cats из URL-параметров.
     const useLevel = !isPreset;
@@ -129,11 +132,34 @@ export default function SemanticSortGame() {
     const cats = Array.from(byCat.keys()).filter((c) => byCat.get(c)!.length >= 3);
     const effCats = Math.min(cpr, cats.length);   // не больше, чем есть категорий
 
+    /**
+     * 🔴 СЛОВА БЕРУТСЯ БЕЗ ПОВТОРОВ — И ВНУТРИ СЕССИИ, И МЕЖДУ НИМИ.
+     *
+     * Было: на каждый раунд случайная категория, из неё случайное слово. Ничто не
+     * мешало выпасть одному слову дважды ЗА ОДНУ ПАРТИЮ, а между партиями памяти
+     * не было вовсе. Замер 26.08.2026 по 10 сессиям: уже виденных 24% на первом
+     * уровне и 33% на одиннадцатом — при запасе в 189 слов, которого хватило бы
+     * на дюжину партий подряд без единого повтора.
+     *
+     * ⚠️ Здесь повтор дороже, чем кажется: игра проверяет, знает ли человек
+     * ЗНАЧЕНИЕ слова. Увидев его второй раз, он не разбирает значение заново —
+     * он вспоминает, куда клал в прошлый раз. Проба превращается в проверку
+     * памяти, то есть меряет не то, ради чего заведена.
+     *
+     * Порядок обращён: сначала отбираем слова, потом у каждого берём его
+     * категорию. Логика «коварных» дистракторов ниже не тронута.
+     */
+    const wordsPool = TRANSLATION_VOCAB.filter((w) => w[tgt] && w.cat && cats.includes(w.cat));
+    const seenWords = await readSeen('semantic_sort_words', profile?.id);
+    const freshRes = pickFreshFrom(wordsPool, rc, seenWords, (w) => String(w.en), Math.random);
+    await writeSeen('semantic_sort_words', profile?.id, freshRes.seen);
+
     const newRounds: Round[] = [];
     for (let r = 0; r < rc; r++) {
-      const correctCat = cats[Math.floor(Math.random() * cats.length)];
-      const pool = byCat.get(correctCat)!;
-      const word = pool[Math.floor(Math.random() * pool.length)];
+      const entry = freshRes.picked[r];
+      if (!entry) break;
+      const correctCat = String(entry.cat);
+      const word = String(entry[tgt]);
       const others = cats.filter((c) => c !== correctCat);
       for (let i = others.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -285,7 +311,7 @@ export default function SemanticSortGame() {
         </View>
 
         <TouchableOpacity
-          accessibilityRole="button" style={styles.startButton} onPress={startGame}>
+          accessibilityRole="button" style={styles.startButton} onPress={() => { void startGame(); }}>
           <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
             <Ionicons name="play" size={24} color={ON_GRAD.color} />
             <Text style={[styles.startButtonText, { color: ON_GRAD.color }]}>{t('start')}</Text>
@@ -374,7 +400,7 @@ export default function SemanticSortGame() {
           language={language}
           colors={colors}
           passed={clearedPassed}
-          onContinue={() => startGame()}
+          onContinue={() => { void startGame(); }}
           onStop={() => setPhase('config')}
         />
       )}
