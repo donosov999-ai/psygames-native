@@ -465,11 +465,17 @@ describe('язык годится для «Смысла» тогда и толь
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Каркас GameShell спрашивает безопасные поля — без метрик он падает на монтаже. */
+import { INTERLUDE_MS } from '@/src/components/LevelCleared';
+
 const METRICS = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } };
 /** ⚠️ Только внешние совпадения: TouchableOpacity отдаёт второй узел с теми же пропами. */
 const OUTER = { deep: false };
-/** Длительность врезки — ровно как в экране (см. INTERLUDE_MS). */
-const INTERLUDE = 2500;
+/**
+ * Длительность врезки берётся ИЗ ЭКРАНА, а не переписывается сюда.
+ * ⚠️ Здесь стояла копия `2500` с подписью «ровно как в экране», а в экране было
+ * `2000` — зеркало разошлось и выглядело сверенным. Импорт снимает этот класс.
+ */
+const INTERLUDE = INTERLUDE_MS;
 /**
  * Зерно, которое экран возьмёт при монтаже: `useState(() => Math.floor(random * 1e9) + 1)`.
  * Подменяем ГПСЧ, чтобы знать раскладку заранее — иначе жест вести некуда.
@@ -703,16 +709,30 @@ describe('экран: серия идёт по одному полю и пише
       expect((s.details.blocks as any[]).map((b) => b.key)).toEqual(['sign', 'word', 'sense']);
       expect(s.details.series_complete).toBe(true);
       expect(s.details.level).toBe(PROOF_MIN_SIZE);
-      // Разности — из времён блоков, а не из воздуха: часы двигали ровно на столько,
-      // и врезка (2,5 с) в блок не попала.
-      expect(s.details.diffs).toEqual({ word_minus_sign: 40_000, sense_minus_sign: 65_000 });
+      /**
+       * Разности — из времён блоков, а не из воздуха: часы двигали ровно на столько.
+       * ⚠️ ЗДЕСЬ СТОЯЛО «врезка в блок не попала» — НЕВЕРНО. Она в разности ВХОДИТ,
+       * и это вскрылось, когда длительность врезки подняли с 2500 до 3500 мс:
+       * оба числа уехали ровно на добавленную секунду. Комментарий уверял в
+       * обратном и жил рядом с числами, которые его опровергали.
+       * Поэтому ожидание выражено ЧЕРЕЗ константу: измени длительность врезки —
+       * проверка останется верной, а не потребует подгонки чисел руками.
+       */
+      const WAS_INTERLUDE = 2500;   // при котором были измерены 40 с и 65 с
+      expect(s.details.diffs).toEqual({
+        word_minus_sign: 40_000 - WAS_INTERLUDE + INTERLUDE,
+        sense_minus_sign: 65_000 - WAS_INTERLUDE + INTERLUDE,
+      });
       // 🔴 И разбор ПОКАЗЫВАЕТ обе цены, причём цену смысла — как T₃−T₂ (65−40),
       // а не как разность от первого блока: иначе она была бы 65 с и врала бы
       // на всю цену сегментации.
       const report = joined(r.root);
       expect(report).toContain(EN.seriesDone);
       expect(report).toContain(`${EN.signSpeed}: 30.0`);
-      expect(report).toContain(`${EN.segmentCost}: +40.0`);
+      // Та же цифра, что в `diffs` выше, и по той же причине зависит от врезки.
+      // Цена смысла (+25.0) от неё НЕ зависит: это T₃−T₂, врезка входит в обе.
+      const segment = ((40_000 - WAS_INTERLUDE + INTERLUDE) / 1000).toFixed(1);
+      expect(report).toContain(`${EN.segmentCost}: +${segment}`);
       expect(report).toContain(`${EN.senseCost}: +25.0`);
       // И доигранная серия не получает ВТОРУЮ запись при уходе с экрана.
       await TestRenderer.act(async () => { r.unmount(); });
