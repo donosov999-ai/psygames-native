@@ -418,25 +418,35 @@ function FullHome() {
       {profileBg !== undefined && (
         <Image
           source={profileBg}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300 }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           resizeMode="cover"
         />
       )}
       {/* Налёт цветом ТЕМЫ — он показывает купленный цвет интерфейса, поэтому
           остаётся и поверх фото, только слабее (30% → 18%): без него смена цвета
           на главной стала бы незаметной, а такой репорт уже был 02.08. */}
-      <LinearGradient colors={[colors.primary + (profileBg !== undefined ? '2E' : '4D'), 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: profileBg !== undefined ? 300 : 260 }} pointerEvents="none" />
-      {/* 🔴 РАСТВОРЕНИЕ НИЗА ФОТО В ФОН ТЕМЫ. Без него снимок обрывался ровной
-          горизонтальной линией посреди экрана — на скриншоте 26.08 это выглядело
-          как оторванный край. Заодно чинит ЧИТАЕМОСТЬ: подзаголовок «Train Your
-          Brain · …» идёт цветом темы и на светлом небе сливался; ниже 55% высоты
-          он снова лежит на обычном фоне приложения, а не на картинке. */}
+      <LinearGradient colors={[colors.primary + (profileBg !== undefined ? '2E' : '4D'), 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 260 }} pointerEvents="none" />
+      {/* 🔴 ФОТО ЗАЛИВАЕТ ВЕСЬ ЭКРАН, А НЕ ПОЛОСУ СВЕРХУ.
+          Репорт Дениса 26.08.2026 по живой сборке: «картинка на заднем фоне не во
+          весь экран, а должна всё заливать собой, и на телефон тоже, так во всех
+          профилях». Раньше снимок жил в полосе 300 px и обрывался — отсюда и
+          «right: 0, height: 300», и растворение низа, которое эту полосу прятало.
+          Теперь `bottom: 0`: картинка кроет экран целиком на любой ширине.
+
+          ⚠️ ПОВЕРХ ОБЯЗАТЕЛЬНА ВУАЛЬ, И ЭТО НЕ ВОЗВРАТ К «МРАЧНОМУ». Затемнение
+          v1 было ВПЕЧЕНО В ФАЙЛ до полной черноты — не отменить и не подкрутить.
+          Здесь вуаль лежит в коде цветом ТЕМЫ и неравномерна: наверху её нет
+          вовсе (шапка идёт по чистому снимку), к трети экрана она набирает силу,
+          дальше держит ровно. Ниже лежат карточки со своими фонами, и картинка
+          читается между ними текстурой, а не подложкой под текстом.
+          Без вуали внизу белый текст на светлом снимке нечитаем: яркость фонов
+          169–233 из 255, замер в шапке `profileBackgrounds`. */}
       {profileBg !== undefined && (
         <LinearGradient
-          colors={['transparent', 'transparent', colors.background]}
-          locations={[0, 0.46, 1]}
+          colors={['transparent', colors.background + 'D9', colors.background + 'F0']}
+          locations={[0, 0.32, 0.62]}
           start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300 }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           pointerEvents="none"
         />
       )}
