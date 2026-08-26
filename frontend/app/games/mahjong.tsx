@@ -658,8 +658,26 @@ export default function MahjongGame() {
   const boardPxW = maxHalfX * half + (levelParams(level).layers) * layerOffset;
   const boardPxH = maxHalfY * half + (levelParams(level).layers) * layerOffset;
 
-  // Самый верхний занятый слой — от него считается подъём плиток (см. tilePlacement).
-  const maxLayer = tiles.reduce((m, t) => Math.max(m, t.layer), 0);
+  /**
+   * 🔴 ВЕРХНИЙ СЛОЙ — ПОСТОЯННАЯ УРОВНЯ, А НЕ МАКСИМУМ ПО ОСТАВШИМСЯ ПЛИТКАМ.
+   *
+   * Репорт Дениса 26.08.2026 со скриншотами: «в маджонге будто уровни прыгают,
+   * открывается странно — не по уровням, а будто прыгают».
+   *
+   * Здесь стояло `tiles.reduce((m, t) => Math.max(m, t.layer), 0)`, то есть
+   * максимум по ТЕКУЩИМ плиткам. `tilePlacement` считает подъём как
+   * `(maxLayer - t.layer) * layerOffset`. Пока верхний слой цел — всё ровно; но
+   * стоит снять с него ПОСЛЕДНЮЮ плитку, и `maxLayer` падает на единицу, а
+   * вместе с ним РАЗОМ съезжает вниз ВСЯ доска: каждая уцелевшая плитка меняет
+   * `top` на `layerOffset`. Человек снял одну пару — прыгнуло всё поле.
+   *
+   * Слои нумеруются с нуля (`silhouettes.ts:369` кладёт `layer: k`), поэтому
+   * верхний индекс это `layers - 1`. Величина постоянна на весь уровень по
+   * построению — значит прыгать нечему. Та же `levelParams(level).layers` уже
+   * используется двумя строками выше для высоты доски, так что запас под подъём
+   * зарезервирован даже если силуэт занял не все слои.
+   */
+  const maxLayer = levelParams(level).layers - 1;
 
   const renderTile = (tt: Tile, i: number) => {
     const free = tileFree(i);
