@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.239.3',
+    date: '2026-08-26',
+    ru: [
+      'Экран перехода между уровнями: картинка занимала половину экрана и обрывалась — теперь кроет его целиком',
+    ],
+    en: [
+      'Level transition screen: the artwork covered only half the screen and cut off — now it fills it completely',
+    ],
+  },
+  {
     version: '1.239.2',
     date: '2026-08-26',
     ru: [
