@@ -1,3 +1,4 @@
+/* psygames-navigator-session · VER 1 · 19.08.2026 */
 import { navigatorModeForLevel, generateNavigatorRound } from './generator';
 import { unrotateCardinal, unrotateHomeSector } from './geometry';
 import {

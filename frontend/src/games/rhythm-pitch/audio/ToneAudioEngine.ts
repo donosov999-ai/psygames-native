@@ -1,3 +1,4 @@
+/* psygames-rhythm-pitch-tone-audio-engine · VER 1 · 19.08.2026 */
 import type { RhythmPitchRound } from '../core/types';
 
 export interface AudioPlaybackPlan {

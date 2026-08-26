@@ -1,3 +1,4 @@
+/* psygames-object-tracker-core-index · VER 1 · 19.08.2026 */
 export * from './generator';
 export * from './i18n';
 export * from './physics';

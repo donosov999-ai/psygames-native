@@ -1,3 +1,4 @@
+/* psygames-faces-names-generator · VER 1 · 19.08.2026 */
 import {
   FACT_LIBRARY,
   SYNTHETIC_PERSON_LIBRARY,

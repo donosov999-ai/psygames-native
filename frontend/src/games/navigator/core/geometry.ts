@@ -1,3 +1,4 @@
+/* psygames-navigator-geometry · VER 1 · 19.08.2026 */
 import {
   CARDINAL_DIRECTIONS,
   HOME_SECTORS,

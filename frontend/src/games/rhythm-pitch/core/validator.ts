@@ -1,3 +1,4 @@
+/* psygames-rhythm-pitch-validator · VER 1 · 19.08.2026 */
 import type { RhythmPitchRound } from './types';
 
 export const COMFORTABLE_MIN_FREQUENCY_HZ = 196;

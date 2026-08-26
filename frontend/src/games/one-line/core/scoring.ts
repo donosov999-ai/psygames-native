@@ -1,3 +1,4 @@
+/* psygames-one-line-scoring · VER 3 · 22.08.2026 */
 import type { OneLineMetrics, OneLinePuzzle } from './types';
 import { totalEdgeUses } from './validator';
 

@@ -1,3 +1,4 @@
+/* psygames-math-slider-i18n · VER 1 · 17.08.2026 */
 import type { MathSliderLocale } from './types';
 
 export interface MathSliderStrings {

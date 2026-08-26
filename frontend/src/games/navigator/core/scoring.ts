@@ -1,3 +1,4 @@
+/* psygames-navigator-scoring · VER 1 · 19.08.2026 */
 import { angularDifference, homeSectorAngle } from './geometry';
 import type {
   HomeSector,

@@ -1,3 +1,4 @@
+/* psygames-memory-palace-types · VER 3 · 22.08.2026 */
 export const MEMORY_PALACE_GENERATOR_VERSION = 'memory-palace-generator-v1';
 export const LEVELS = 15;
 export const RECALL_DIRECTIONS = ['forward', 'reverse'] as const;

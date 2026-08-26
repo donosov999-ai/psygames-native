@@ -1,3 +1,4 @@
+/* psygames-pause-integration · VER 1 · 26.08.2026 */
 import type { GuideCue, PracticeResult } from './engine';
 
 export type IllustrationKey =

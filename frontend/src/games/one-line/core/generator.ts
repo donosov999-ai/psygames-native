@@ -1,3 +1,4 @@
+/* psygames-one-line-generator · VER 5 · 22.08.2026 */
 import { AUTHORED_LEVELS, AUTHORED_LEVEL_COUNT, authoredLevel } from './authored';
 import { visualCrossingCount } from './geometry';
 import {

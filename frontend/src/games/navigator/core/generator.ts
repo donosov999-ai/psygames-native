@@ -1,3 +1,4 @@
+/* psygames-navigator-generator · VER 1 · 19.08.2026 */
 import {
   bearingDegrees,
   cardinalNeighbors,

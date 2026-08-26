@@ -1,3 +1,4 @@
+/* psygames-faces-names-types · VER 1 · 19.08.2026 */
 export const FACES_NAMES_GENERATOR_VERSION = 'faces-names-generator-v1';
 export const LEVELS = 33;
 

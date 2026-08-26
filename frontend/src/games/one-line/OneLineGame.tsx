@@ -1,3 +1,4 @@
+/* psygames-one-line-game · VER 7 · 22.08.2026 */
 import React from 'react';
 import {
   AppState,

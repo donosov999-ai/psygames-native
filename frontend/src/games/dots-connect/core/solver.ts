@@ -1,3 +1,4 @@
+/* psygames-dots-connect-solver · VER 3 · 23.08.2026 */
 import { isInBounds } from './grid';
 import { validateDotsSolution } from './validator';
 import type { Cell, DotsPuzzle, DotsSolution } from './types';

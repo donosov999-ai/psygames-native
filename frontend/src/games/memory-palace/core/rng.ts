@@ -1,3 +1,4 @@
+/* psygames-memory-palace-rng · VER 1 · 19.08.2026 */
 export type Rng = () => number;
 
 export function hashSeed(seed: string): number {

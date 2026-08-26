@@ -1,3 +1,4 @@
+/* psygames-faces-names-synthetic-face · VER 1 · 19.08.2026 */
 import React from 'react';
 import { View } from 'react-native';
 import Svg, {

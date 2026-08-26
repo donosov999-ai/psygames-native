@@ -1,3 +1,4 @@
+/* psygames-object-tracker-generator · VER 1 · 19.08.2026 */
 import { createRng, normalizeSeed, shuffle } from './rng';
 import {
   OBJECT_TRACKER_GENERATOR_VERSION,

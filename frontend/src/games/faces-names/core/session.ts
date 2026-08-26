@@ -1,3 +1,4 @@
+/* psygames-faces-names-session · VER 1 · 19.08.2026 */
 import { generateFacesNamesPuzzle, personById } from './generator';
 import { scoreFacesNamesCompletion } from './scoring';
 import type {

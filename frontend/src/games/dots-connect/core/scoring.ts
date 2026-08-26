@@ -1,3 +1,4 @@
+/* psygames-dots-connect-scoring · VER 2 · 23.08.2026 */
 import type { DotsMetrics, DotsPuzzle } from './types';
 
 export const DOTS_CONNECT_PASS_ACCURACY = 0.8;

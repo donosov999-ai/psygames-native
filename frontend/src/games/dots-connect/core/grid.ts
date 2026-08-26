@@ -1,3 +1,4 @@
+/* psygames-dots-connect-grid · VER 1 · 19.08.2026 */
 import type { Cell, DotsPaths } from './types';
 
 export function cellKey(cell: Cell): string {

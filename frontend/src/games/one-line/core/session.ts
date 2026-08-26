@@ -1,3 +1,4 @@
+/* psygames-one-line-session · VER 5 · 22.08.2026 */
 import { generateOneLinePuzzle } from './generator';
 import {
   ONE_LINE_START_SCORE,

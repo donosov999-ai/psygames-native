@@ -1,3 +1,4 @@
+/* psygames-dots-connect-orders · VER 2 · 22.08.2026 */
 import { cellKey } from './grid';
 import { randomInt, type Rng } from './rng';
 import type { Cell } from './types';

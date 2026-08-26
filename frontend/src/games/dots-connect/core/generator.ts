@@ -1,3 +1,4 @@
+/* psygames-dots-connect-generator · VER 4 · 23.08.2026 */
 import { isAdjacent } from './grid';
 import { randomHamiltonianPath } from './orders';
 import { createRng, normalizeSeed, randomInt, shuffle, type Rng } from './rng';

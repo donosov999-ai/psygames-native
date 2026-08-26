@@ -1,3 +1,4 @@
+/* psygames-rhythm-pitch-generator · VER 1 · 19.08.2026 */
 import { createRng, normalizeSeed, randomInt, shuffle } from './rng';
 import {
   RHYTHM_PITCH_GENERATOR_VERSION,

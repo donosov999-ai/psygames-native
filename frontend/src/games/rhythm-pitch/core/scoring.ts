@@ -1,3 +1,4 @@
+/* psygames-rhythm-pitch-scoring · VER 2 · 22.08.2026 */
 import type {
   PitchDirection,
   PitchPathRound,
