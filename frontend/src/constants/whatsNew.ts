@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.238.0',
+    date: '2026-08-26',
+    ru: [
+      'У каждого профиля свой фон главной: у «Предпринимателей» утренний город, у «Шахматиста» солнечная доска, у «Микро-релакса» шёлк',
+      'Значки профилей перерисованы и стали читаемыми в мелком размере; надпись PsyGames больше не тонет в тёмной плашке',
+      '«Гимнастика глаз» и «Дыхание» слились в одну кнопку «Пауза» — обе остались практиками внутри неё, а третьей встал «Вызов дня»',
+      'Судоку: новый вариант «Небоскрёбы» — цифра это высота здания, подсказка с края говорит, сколько зданий видно',
+    ],
+    en: [
+      'Every profile now has its own home background: a morning city for Entrepreneurs, a sunlit board for the Chess Player, silk for Micro-relax',
+      'Profile badges redrawn to stay readable at small sizes, and the PsyGames wordmark no longer sinks into a dark plate',
+      'Eye gym and Breathing merged into a single Pause button — both remain practices inside it, and Daily challenge took the third slot',
+      'Sudoku: a new Towers variant — a digit is a building height, and the edge clue says how many buildings are visible',
+    ],
+  },
+  {
     version: '1.237.0',
     date: '2026-08-26',
     ru: [
