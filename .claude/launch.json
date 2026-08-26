@@ -4,8 +4,20 @@
     {
       "name": "psygames-web",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "cd frontend && npx expo start --web --port 8081"],
+      "runtimeArgs": [
+        "-c",
+        "cd frontend && npx expo start --web --port 8081"
+      ],
       "port": 8081
+    },
+    {
+      "name": "psygames-dist",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd frontend/dist && python3 -m http.server 8099"
+      ],
+      "port": 8099
     }
   ]
 }
