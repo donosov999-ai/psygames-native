@@ -47,7 +47,16 @@
  */
 const PROJECT = 'iuvvheeocobhiothfgei';
 const REST = `https://${PROJECT}.supabase.co`;
-const SHOT_BUCKET = 'feedback-shots';
+/**
+ * 🔴 У КАЖДОЙ ТАБЛИЦЫ СВОЙ БАКЕТ, И НА ЭТОМ Я УЖЕ ОБЖЁГСЯ.
+ * Первая редакция брала `feedback-shots` для всего. Отзывы приложения читались,
+ * а у багфикса скриншоты лежат в `bug-shots` — подписанная ссылка не выписывалась,
+ * `shotUrl` уходил в null, и разбор шёл БЕЗ КАРТИНКИ, отчитавшись успехом.
+ * Замер 26.08.2026: `bug_reports` — неразобранных 0, а скринов непрочитано 32.
+ * Ровно та тихая смерть, ради которой писалась проверка здоровья, и она её
+ * проглядела, потому что смотрела только `app_feedback`.
+ */
+const SHOT_BUCKET = { app_feedback: 'feedback-shots', bug_reports: 'bug-shots' };
 const LLM_BASE = process.env.OPENROUTER_BASE_URL || 'https://llm.asibots.pro/api/v1';
 /**
  * ⚠️ ИМЯ МОДЕЛИ ВЗЯТО ИЗ ЖИВОГО СПИСКА МОСТА, А НЕ ПО ПАМЯТИ. Первый заход стоял
@@ -80,15 +89,23 @@ const sb = (path, init = {}) => fetch(`${REST}${path}`, {
   },
 });
 
-/** Подписанная ссылка на приватный скриншот — бакет наружу не открываем. */
-async function signedShot(path) {
-  const r = await sb(`/storage/v1/object/sign/${SHOT_BUCKET}/${path}`, {
+/**
+ * Подписанная ссылка на приватный скриншот — бакет наружу не открываем.
+ * ⚠️ БРОСАЕТ, А НЕ ВОЗВРАЩАЕТ null. Раньше неудача выписки молча превращалась в
+ * «картинки нет», и репорт уезжал разобранным без неё. Скриншот ЕСТЬ в записи —
+ * значит его недоступность это ошибка разбора, а не отсутствие вложения.
+ */
+async function signedShot(source, path) {
+  const bucket = SHOT_BUCKET[source];
+  if (!bucket) throw new Error(`неизвестный источник «${source}» — не знаю, из какого бакета брать скрин`);
+  const r = await sb(`/storage/v1/object/sign/${bucket}/${path}`, {
     method: 'POST',
     body: JSON.stringify({ expiresIn: 600 }),
   });
-  if (!r.ok) return null;
+  if (!r.ok) throw new Error(`скрин ${bucket}/${path} → ${r.status} ${(await r.text()).slice(0, 120)}`);
   const { signedURL } = await r.json();
-  return signedURL ? `${REST}/storage/v1${signedURL}` : null;
+  if (!signedURL) throw new Error(`скрин ${bucket}/${path}: подписанная ссылка пуста`);
+  return `${REST}/storage/v1${signedURL}`;
 }
 
 const SCHEMA = `{
@@ -186,7 +203,20 @@ ${SCHEMA}`,
   const raw = j.choices?.[0]?.message?.content ?? '';
   const m = raw.match(/\{[\s\S]*\}/);
   if (!m) throw new Error(`модель не вернула JSON: ${raw.slice(0, 160)}`);
-  return safeParse(m[0], raw);
+  const parsed = safeParse(m[0], raw);
+  /**
+   * 🔴 СТОИМОСТЬ ПИШЕТСЯ В РАЗБОР, ЧТОБЫ НЕ ОТВЕЧАТЬ ОЦЕНКОЙ.
+   * 26.08.2026 Денис спросил «сколько обходится», и ответить пришлось прикидкой
+   * по прайсу — расход не записывался нигде. Прикидка на вопрос про деньги это
+   * плохой ответ. Теперь модель и токены лежат при каждом репорте, и следующий
+   * такой вопрос закрывается одним `select`.
+   */
+  parsed._расход = {
+    модель: j.model || MODEL,
+    вход: j.usage?.prompt_tokens ?? null,
+    выход: j.usage?.completion_tokens ?? null,
+  };
+  return parsed;
 }
 
 async function main() {
@@ -199,10 +229,9 @@ async function main() {
   for (const it of items) {
     const label = `${String(it.created_at).slice(0, 16)} · ${it.screen || it.url || '—'}`;
     let shotUrl = null;
-    if (it.shot_path) shotUrl = await signedShot(it.shot_path);
-
     let parsed, err = null;
     try {
+      if (it.shot_path) shotUrl = await signedShot(it.source, it.shot_path);
       parsed = await analyse(it, shotUrl);
     } catch (e) {
       err = String(e.message || e).slice(0, 300);
