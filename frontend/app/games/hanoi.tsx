@@ -1,4 +1,4 @@
-/* psygames-game-hanoi · VER 1 · 19.08.2026 */
+/* psygames-game-hanoi · VER 2 · 27.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -29,6 +29,7 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import LevelCleared from '@/src/components/LevelCleared';
 import { useMoveHistory, MoveStackData } from '@/src/hooks/useMoveHistory';
 import { gameNow } from '@/src/services/gamePause';
+import { frameStewart, hanoiScore, hanoiStars } from '@/src/games/hanoi/optimal';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const HN_RULES: LevelRule[] = [
@@ -44,10 +45,31 @@ const GRADIENT = ['#a8c0ff', '#3f2b96'];
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 // Базовый тон дисков под профиль — каждый профиль = своя цветовая семья (монохром-стек).
-const DISC_HUE: Record<string, number> = {
-  chess: 42, odv999: 45, free: 40, nzt48: 270, seniors: 265, polyglot: 232,
-  women: 330, kids: 145, drivers: 22, execs: 175, students: 30, vasilyeva: 200,
-};
+/**
+ * ЦВЕТ ДИСКА — ПО РАЗМЕРУ, А НЕ ОДИН НА ВСЮ БАШНЮ.
+ *
+ * 🔴 ЧТО БЫЛО: все диски одного тона профиля, различались только светлотой и
+ * шириной. Порядок приходилось читать шириной — а это ровно та работа, которую
+ * башня и должна была оставить планированию, а не восприятию.
+ *
+ * ⚠️ ПАЛИТРА ДАЛЬТОНИК-СОВМЕСТИМАЯ и взята НЕ из головы: тона Окабэ — Ито, те же
+ * четыре, что уже стоят в `stroop.tsx` как `COLORS_CB` (там посчитан ΔE), плюс
+ * оранжевый и фиолетовый из того же набора. Ряд подобран так, чтобы соседние
+ * диски различались и при дейтеранопии, и в оттенках серого.
+ *
+ * ⚠️ Цветов шесть, а дисков бывает до двенадцати — тона повторяются по кругу.
+ * Это осознанно: соседние по размеру диски всегда разного цвета, а совпадение
+ * первого и седьмого не мешает, они никогда не лежат рядом.
+ */
+const DISC_COLORS: Array<[string, string]> = [
+  ['#3a97d4', '#0072b2'],   // синий
+  ['#e59f3f', '#d55e00'],   // оранжевый
+  ['#2f8f6a', '#006644'],   // зелёный
+  ['#f4ea72', '#f0e442'],   // жёлтый
+  ['#cf6f9b', '#cc79a7'],   // розово-пурпурный
+  ['#7fa8d8', '#56638a'],   // сине-серый
+];
+
 const HANOI_BENEFITS = [
   { icon: 'extension-puzzle-outline', textKey: 'benefitHanoi1' },
   { icon: 'analytics-outline', textKey: 'benefitHanoi2' },
@@ -95,7 +117,7 @@ export default function HanoiGame() {
   const { profile } = useProfile();
   const { t, language } = useLanguage();
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
 
   const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
@@ -116,7 +138,35 @@ export default function HanoiGame() {
   const levelRef = useRef(1);
   const moveHistory = useMoveHistory<PegMove>();
 
-  const optimal = (n: number) => Math.pow(2, n) - 1;
+  /**
+   * 🔴 ВРЕМЯ ДО ПЕРВОГО ХОДА — ПОЛОВИНА ИЗМЕРЕНИЯ, И ЕГО НЕ ПИСАЛИ ВОВСЕ.
+   * В канонической методике башенных задач (Shallice, Башня Лондона) смотрят не
+   * только на число ходов, но и на то, СКОЛЬКО ЧЕЛОВЕК ДУМАЛ ПЕРЕД НАЧАЛОМ. Два
+   * игрока с одинаковыми двадцатью ходами — это разные люди, если один думал
+   * тридцать секунд, а другой начал тыкать сразу.
+   * ⚠️ Хранится в ref, а не в состоянии: перерисовка на первом же ходе не должна
+   * зависеть от этого числа, а состояние вызвало бы лишний проход.
+   */
+  const firstMoveAtRef = useRef<number | null>(null);
+  /**
+   * Отмены. Ход при отмене НЕ уменьшается — это решение прежней редакции и оно
+   * верное (иначе задача решалась бы перебором с бесплатным откатом). Но само
+   * число отмен не писалось никуда, а это прямой показатель «планировал или
+   * пробовал»: при равном числе ходов десять отмен и ноль — разные стратегии.
+   */
+  const undoCountRef = useRef(0);
+
+  /**
+   * 🔴 МИНИМУМ СЧИТАЕТСЯ ПО ЧИСЛУ СТЕРЖНЕЙ. Здесь стояло `2ⁿ − 1` — формула ТРЁХ
+   * стержней, а уровни дают три только до L4: с L5 их четыре, с L10 — пять.
+   * Замер расхождения: L5 показывали 31 вместо 13, L9 — 511 вместо 41, L13 —
+   * 4095 вместо 47, то есть в 87 раз. Из-за этого в шапке висела недостижимая
+   * цель, звёзды с L5 всегда были три (любое решение «укладывалось» в завышенный
+   * минимум), а счёт раздувался примерно до 200 000 из задуманной тысячи.
+   * ⚠️ `pegs` здесь — доска (массив стержней), поэтому число стержней это
+   * `pegs.length`. В пресете «Зарядки» их всегда три, и формула сходится к прежней.
+   */
+  const optimal = (n: number) => frameStewart(n, Math.max(3, pegs.length));
 
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
@@ -136,6 +186,8 @@ export default function HanoiGame() {
     setPegs([initial, ...Array.from({ length: p.pegs - 1 }, () => [] as number[])]);   // N стержней, диски на первом
     setSelected(null);
     setMoves(0);
+    firstMoveAtRef.current = null;
+    undoCountRef.current = 0;
     setErrors(0);
     moveHistory.reset();
     setPhase('playing');
@@ -271,6 +323,8 @@ export default function HanoiGame() {
     np[to].push(np[from].pop()!);
     setPegs(np);
     moveHistory.push({ from, to });
+    // Первый ход — засекаем задержку планирования ровно один раз за партию.
+    if (firstMoveAtRef.current === null) firstMoveAtRef.current = gameNow();
     setMoves((m) => m + 1);
     setSelected(null);
     // Победа — все диски на ПОСЛЕДНЕМ стержне (работает для 3/4/5 стержней)
@@ -287,12 +341,26 @@ export default function HanoiGame() {
         await saveSession({
           passed: true,   // сессия пишется только когда уровень собран
           game_type: 'hanoi',
-          score: Math.max(0, Math.round(1000 - (moves + 1 - optimal(discs)) * 50 - finalTime)),
+          score: hanoiScore(moves + 1, optimal(discs), finalTime),
           time_seconds: finalTime,
           difficulty: `${discs} discs`,
           mode: 'classic',
           errors,
-          details: { level: levelRef.current, moves: moves + 1, optimal: optimal(discs) },
+          details: {
+            level: levelRef.current,
+            moves: moves + 1,
+            optimal: optimal(discs),
+            pegs: pegs.length,
+            /**
+             * ⚠️ `null`, а не 0, если первого хода не случилось. Ноль здесь читался
+             * бы как «начал мгновенно» — то есть как отличный результат планирования
+             * ровно там, где данных нет.
+             */
+            first_move_latency_ms: firstMoveAtRef.current === null
+              ? null
+              : Math.round(firstMoveAtRef.current - startTime),
+            undo_count: undoCountRef.current,
+          },
         });
       } catch (e) { console.error(e); }
     }
@@ -320,6 +388,7 @@ export default function HanoiGame() {
 
   const handleUndo = () => {
     const move = moveHistory.undo();
+    if (move) undoCountRef.current += 1;
     if (!move) return;
     setPegs((current) => {
       const next = current.map((peg) => [...peg]);
@@ -390,9 +459,24 @@ export default function HanoiGame() {
   };
 
   const pegW = Math.min((width - 36) / (pegs.length + 0.5), 110);   // подгон под число стержней (24→36: паддинг поля GameShell 16×2)
-  const discBaseW = pegW * 0.35;
-  const discStep = (pegW - discBaseW) / Math.max(discs, 2);
-  const baseHue = DISC_HUE[profile?.id ?? ''] ?? 215;
+  /**
+   * 🔴 РАЗБРОС ШИРИН БЫЛ СЛИШКОМ МАЛ. Было 0.35 → 1.0 зоны стержня, и соседние
+   * диски отличались на считанные пиксели — на двенадцати дисках шаг выходил
+   * меньше трёх. Требование: от 40% до 90%, то есть весь ряд занимает половину
+   * ширины зоны и различается заметно.
+   */
+  /**
+   * 🔴 ДОСКА ЗАНИМАЕТ НЕ МЕНЬШЕ 60% ПОЛЕЗНОЙ ВЫСОТЫ. Замер 22.08.2026 (десктоп):
+   * было около 25%, сверху пустота на пол-экрана. Высота была прибита числом 220,
+   * то есть не зависела от экрана вовсе.
+   * ⚠️ 0.62 от высоты окна минус 210 — это шапка каркаса, строка статистики,
+   * подсказка и нижние отступы. Число снято с разметки, а не подобрано на глаз;
+   * нижняя граница 220 оставлена для очень низких окон, где 62% дают меньше.
+   */
+  const boardH = Math.max(220, Math.round((height - 210) * 0.62));
+  const discBaseW = pegW * 0.40;
+  const discMaxW = pegW * 0.90;
+  const discStep = (discMaxW - discBaseW) / Math.max(discs - 1, 1);
 
   const renderConfig = () => (
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
@@ -449,7 +533,9 @@ export default function HanoiGame() {
       stats={
         <View style={styles.statsRow}>
           <Text style={[styles.statText, { color: colors.text }]}>{t('hud_moves')} {moves} / {optimal(discs)}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
+          {/* 🔴 Тревожный цвет только когда есть о чём тревожиться. «Ошибок 0»
+              красным — это упрёк за отсутствие ошибок. */}
+          <Text style={[styles.statText, { color: errors > 0 ? '#f43f5e' : colors.textSecondary }]}>{t('hud_errors')} {errors}</Text>
           <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
           {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
         </View>
@@ -482,7 +568,7 @@ export default function HanoiGame() {
               },
             ]}
           >
-            <View style={styles.pegStack}>
+            <View style={[styles.pegStack, { minHeight: boardH }]}>
               {/* ЗАЧЕМ: в peg[] индекс 0 = НИЗ стержня, последний элемент = ВЕРХ
                   (handlePegPress берёт top = from[from.length - 1]). Колонка RN рисует детей
                   сверху вниз, поэтому массив разворачиваем: без reverse широкий диск оказывался
@@ -495,23 +581,23 @@ export default function HanoiGame() {
                 .map((size) => (
                 <LinearGradient
                   key={size}
-                  colors={[
-                    `hsl(${baseHue}, 68%, ${Math.min(82, 55 + (size / discs) * 28)}%)`,
-                    `hsl(${baseHue}, 74%, ${Math.max(34, 42 + (size / discs) * 18)}%)`,
-                  ]}
+                  colors={DISC_COLORS[(size - 1) % DISC_COLORS.length]}
                   start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-                  style={[styles.disc, { width: discBaseW + size * discStep }]}
+                  style={[styles.disc, { width: discBaseW + (size - 1) * discStep }]}
                 >
                   <View style={styles.discShine} pointerEvents="none" />
                   <Text style={styles.discLabel} numberOfLines={1}>{size}</Text>
                 </LinearGradient>
               ))}
-              <View style={[styles.pole, { backgroundColor: colors.text }]} />
+              <View style={[styles.pole, { backgroundColor: colors.text, height: boardH - 20 }]} />
               <View style={[styles.pegBase, { backgroundColor: colors.text, width: pegW - 12 }]} />
             </View>
           </TouchableOpacity>
         ))}
       </View>
+      {/* 🔴 ЕДИНАЯ ПЛАТФОРМА под всеми стержнями. Прежде под каждым стержнем была
+          своя чёрточка, и башня читалась тремя обрубками, а не одним предметом. */}
+      <View style={[styles.boardBase, { backgroundColor: colors.text }]} />
       {/* Диск в руке. Рисуется поверх всего и следует за пальцем; смещение на половину
           ширины и на высоту диска ставит его ПОД палец, а не под него центром — иначе
           собственный палец закрывает то, что несёшь. pointerEvents='none', чтобы диск
@@ -525,10 +611,7 @@ export default function HanoiGame() {
           ]}
         >
           <LinearGradient
-            colors={[
-              `hsl(${baseHue}, 68%, ${Math.min(82, 55 + (dragging.size / discs) * 28)}%)`,
-              `hsl(${baseHue}, 74%, ${Math.max(34, 42 + (dragging.size / discs) * 18)}%)`,
-            ]}
+            colors={DISC_COLORS[(dragging.size - 1) % DISC_COLORS.length]}
             start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
             style={[
               styles.disc,
@@ -544,7 +627,11 @@ export default function HanoiGame() {
           </LinearGradient>
         </Animated.View>
       )}
-      <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('hanoiHint')}</Text>
+      {/* Подсказка управления нужна ровно до первого хода: дальше человек уже
+          умеет, а строка продолжает занимать высоту, которой не хватает башне. */}
+      {moves === 0 && (
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('hanoiHint')}</Text>
+      )}
       </View>
     </GameShell>
   );
@@ -560,7 +647,7 @@ export default function HanoiGame() {
           <View style={StyleSheet.absoluteFill as any} pointerEvents="box-none">
             <LevelCleared
           variant="overlay" gameId="hanoi" level={levelRef.current}
-          stars={moves <= optimal(discs) ? 3 : moves <= Math.ceil(optimal(discs) * 1.5) ? 2 : 1}
+          stars={hanoiStars(moves, optimal(discs))}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
           </View>
@@ -586,7 +673,7 @@ export default function HanoiGame() {
 
       {phase === 'result' && (
         <GameResult
-          score={Math.max(0, Math.round(1000 - (moves - optimal(discs)) * 50 - elapsedTime))}
+          score={hanoiScore(moves, optimal(discs), elapsedTime)}
           time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
@@ -625,16 +712,38 @@ const styles = StyleSheet.create({
   // RTL-пин: правило «вся башня на последнем (правом) стержне» — порядок стержней не зеркалится
   pegsArea: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end', paddingBottom: 12, writingDirection: 'ltr' },
   pegContainer: { borderWidth: 3, borderRadius: 8, paddingBottom: 4 },
+  /**
+   * 🔴 ВЫСОТА СТОПКИ СЧИТАЕТСЯ ОТ ЭКРАНА, А НЕ ПРИБИТА К 220.
+   * Замер 22.08.2026 (десктоп): доска занимала около четверти полезной высоты,
+   * сверху висела пустота на пол-экрана. Пустота — не воздух, а брошенный экран.
+   * Число задаётся в разметке через `boardH`; здесь остаётся только нижняя
+   * граница на случай очень низкого окна.
+   */
   pegStack: { alignItems: 'center', justifyContent: 'flex-end', position: 'relative', minHeight: 220 },
-  pole: { position: 'absolute', width: 6, height: 200, bottom: 4, borderRadius: 3, opacity: 0.3 },
-  pegBase: { height: 8, borderRadius: 4 },
+  /**
+   * 🔴 СТЕРЖЕНЬ — ПРЕДМЕТ, А НЕ ЛИНИЯ. Было 6 px при непрозрачности 0.3, то есть
+   * бледная нитка: башня выглядела висящей в воздухе. Стало 10 px и 0.55 —
+   * требование ТЗ «≥ 8 px», взято с запасом, потому что на телефоне пиксель
+   * плотнее и 8 читается тоньше, чем на десктопе.
+   * Высота тоже перестала быть прибитой: её задаёт разметка от высоты доски.
+   */
+  pole: { position: 'absolute', width: 10, bottom: 4, borderRadius: 5, opacity: 0.55 },
+  /**
+   * Основание. Было три отдельные чёрточки под каждым стержнем; теперь платформа
+   * общая — она рисуется одной полосой под всей доской (`boardBase`), а эта
+   * оставлена как утолщение под самим стержнем, чтобы стык читался.
+   */
+  pegBase: { height: 10, borderRadius: 5, opacity: 0.75 },
+  /** Единая платформа под всеми стержнями — то, на чём башня стоит. */
+  boardBase: { height: 12, borderRadius: 6, marginTop: -6, opacity: 0.55 },
   // Слой в координатах ОКНА: жест отдаёт pageX/pageY, поэтому и слой абсолютный от края
   // экрана, иначе диск улетал бы на величину отступов родителя.
   dragLayer: { position: 'absolute', left: 0, top: 0, zIndex: 50 },
   discDragged: { marginTop: -34, opacity: 0.95, shadowOpacity: 0.45, shadowRadius: 8, elevation: 8 },
-  disc: { height: 22, marginTop: 2, borderRadius: 7, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  /* 🔴 Высота диска 22 → 28 px: требование ТЗ, ниже палец не различает соседние. */
+  disc: { height: 28, marginTop: 3, borderRadius: 7, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   discShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%', backgroundColor: 'rgba(255,255,255,0.28)' },
-  discLabel: { position: 'absolute', left: 0, right: 0, top: 3, textAlign: 'center', fontSize: 12, fontWeight: '800', color: 'rgba(25,15,0,0.62)' },
+  discLabel: { position: 'absolute', left: 0, right: 0, top: 6, textAlign: 'center', fontSize: 12, fontWeight: '800', color: 'rgba(25,15,0,0.62)' },
   hintText: { fontSize: 12, textAlign: 'center' },
   // ⚠️ Осиротело после разводки слотов: «Отменить» уехала в шапку (GameAuxAction).
   // Стили ниже (undoBtn, undoBtnText) больше никем не берутся; оставлены
