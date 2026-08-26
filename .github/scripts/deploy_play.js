@@ -89,8 +89,55 @@ async function main() {
     await pub.edits.commit({ packageName: PACKAGE, editId });
     console.log(`✅ ${VERSION_NAME} → ${TRACKS.join(', ')}`);
   } catch (err) {
-    console.error('❌', err.message);
-    if (err.response) console.error(JSON.stringify(err.response.data, null, 2));
+    /**
+     * 🔴 ОТКАЗ PLAY НАДО ПЕРЕВОДИТЬ НА ЧЕЛОВЕЧЕСКИЙ, ИНАЧЕ ЕГО ЧИТАЮТ НЕВЕРНО.
+     *
+     * Разбор 27.08.2026. Из восьми последних тегов до магазина доехали три, и ДВА
+     * из пяти провалов — v1.237.0 и v1.239.2 — упали вот с чем:
+     *     "status": "PERMISSION_DENIED", "reason": "forbidden"
+     *     "message": "Version code 1237000 has already been used."
+     * Наверху дампа стоит PERMISSION_DENIED, и месяц это читалось как «сломался
+     * доступ сервисного аккаунта». А на самом деле доступ в порядке: Play просто
+     * не принимает ПОВТОРНУЮ заливку того же versionCode.
+     *
+     * Откуда берётся повтор: тег перезапустили. Сборка по тому же тегу даёт ту же
+     * версию, значит тот же versionCode, значит отказ. Перезапуск тега в этом
+     * проекте — не «повторить попытку», а «гарантированно не выпустить».
+     *
+     * ⚠️ И ВЫХОДИМ МЫ ВСЁ РАВНО С ОШИБКОЙ, хотя соблазн выйти нулём есть: раз код
+     * «уже использован», значит когда-то доехал. Но если тег ПЕРЕДВИНУЛИ на новый
+     * код, то в магазине лежит СТАРАЯ сборка под этим номером, а новая не уехала
+     * никуда. Тихий успех здесь означал бы ровно ту потерю выпуска, ради которой
+     * всё это и разбирается.
+     */
+    const данные = err.response ? err.response.data : null;
+    const текст = JSON.stringify(данные || err.message || '');
+    const уже = /has already been used/.test(текст);
+
+    if (уже) {
+      const код = (/Version code (\d+) has already been used/.exec(текст) || [])[1] || '?';
+      console.error('::error title=Версия уже была залита::Play отказал НЕ по правам, хотя в ответе стоит PERMISSION_DENIED.');
+      console.error('');
+      console.error(`❌ versionCode ${код} уже использован в Google Play.`);
+      console.error(`   Тег ${VERSION_NAME} собирается второй раз — а Play принимает каждый номер версии РОВНО ОДИН РАЗ.`);
+      console.error('');
+      console.error('   ЧТО ЭТО ЗНАЧИТ: если тег просто перезапустили, в магазине уже лежит эта сборка —');
+      console.error('   заливать нечего. Если тег ПЕРЕДВИНУЛИ на новый код, новая сборка НЕ УЕХАЛА и не уедет:');
+      console.error('   номер занят навсегда.');
+      console.error('');
+      console.error('   ЧИНИТЬ ТАК: поднять patch-версию в трёх манифестах (app.json, package.json,');
+      console.error('   src-tauri/tauri.conf.json), добавить запись в CHANGELOG.md и whatsNew.ts, новый тег.');
+      console.error('   ⚠️ Перезапускать тег бессмысленно — упадёт здесь же.');
+    } else if (/PERMISSION_DENIED|forbidden|invalid_grant|unauthorized/i.test(текст)) {
+      console.error('::error title=Play не пустил сервисный аккаунт::Похоже на настоящий отказ в доступе, а не на повтор версии.');
+      console.error('❌', err.message);
+      console.error('   Проверить: срок жизни ключа GOOGLE_PLAY_SA_JSON, права аккаунта в Play Console,');
+      console.error('   не отозван ли доступ к приложению', PACKAGE);
+    } else {
+      console.error('::error title=Заливка в Play не удалась::' + String(err.message).slice(0, 180));
+      console.error('❌', err.message);
+    }
+    if (данные) console.error(JSON.stringify(данные, null, 2));
     await pub.edits.delete({ packageName: PACKAGE, editId }).catch(() => {});
     process.exit(1);
   }
