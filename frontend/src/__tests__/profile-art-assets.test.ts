@@ -35,7 +35,7 @@ function idsIn(src: string, marker: string): string[] {
 
 /** Есть ли в webp альфа-канал: чанк ALPH или формат VP8L. */
 function webpHasAlpha(file: string): boolean {
-  const buf: Buffer = fs.readFileSync(file);
+  const buf = fs.readFileSync(file);
   const head = buf.subarray(0, Math.min(buf.length, 64)).toString('latin1');
   return head.includes('ALPH') || head.includes('VP8L');
 }
