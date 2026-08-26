@@ -158,7 +158,12 @@ describe('геометрия варианта выводится из решен
     // при 60 минимальных в спокойном замере (16 досок: 60,61,61,62,62,63×7,64×3).
     // Шаткая проверка хуже отсутствующей: она краснеет на чужой нагрузке и приучает
     // не смотреть на красное.
-    for (let i = 0; i < 4; i++) {
+    // ⚠️ ЗАХОДОВ ВОСЕМЬ, А НЕ ЧЕТЫРЕ. Даже со щедрым бюджетом проверка мигнула
+    // дважды за день на полном прогоне: копание идёт по НАСТЕННЫМ часам, тесты
+    // идут параллельно, и отдельный заход не добирает дырок. Проверяется МАКСИМУМ
+    // по заходам, поэтому лишние заходы делают её устойчивее, а не мягче: планка
+    // «глубже 58» остаётся той же.
+    for (let i = 0; i < 8; i++) {
       const b = logicalBuilder(40, cfg.blanks, cfg.N, cfg.BR, cfg.BC, cfg.variant, { budgetMs: 30000 });
       let made: ReturnType<typeof b.step> | null = null;
       for (let s = 0; s < b.steps; s++) { made = b.step(); if (b.enough(made)) break; }
@@ -167,7 +172,7 @@ describe('геометрия варианта выводится из решен
       for (const row of made.gen.puzzle) for (const v of row) if (v === 0) z++;
       blanks.push(z);
     }
-    expect(blanks.length).toBeGreaterThanOrEqual(3);
+    expect(blanks.length).toBeGreaterThanOrEqual(6);
     expect(Math.max(...blanks)).toBeGreaterThan(58);
   }, 300000);
 });
