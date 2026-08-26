@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.240.1',
+    date: '2026-08-27',
+    ru: [
+      'Заставка между уровнями могла уронить игру на некоторых экранах — награда за пройденный уровень больше не пропадает',
+    ],
+    en: [
+      'The between-levels screen could crash the game on some screens — the reward for finishing a level no longer disappears',
+    ],
+  },
+  {
     version: '1.240.0',
     date: '2026-08-26',
     ru: [
