@@ -10,7 +10,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal';
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -38,6 +38,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
   diagonal: 'Diagonal', antiknight: 'Antiknight', hyper: 'Hyper', nonconsec: 'Nonconsec',
   jigsaw: 'Jigsaw', antiking: 'Antiking', evenodd: 'Evenodd', kropki: 'Kropki',
   sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow', thermocage: 'Thermocage',
+  unequal: 'Unequal',
 };
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
@@ -231,6 +232,32 @@ export function levelConfig(level: number): LevelCfg {
   else if (lv >= 46 && lv <= 49) variant = 'arrow';
   else if (lv >= 50 && lv <= 53) variant = 'jigsaw';
   else if (lv >= 54) variant = 'thermocage';   // ThermoCage: термометр И клетки-суммы на одной доске
+  /**
+   * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
+   *
+   * Движок варианта готов и проверен: знаки выводятся из решения
+   * (`unequalFromSolution`), правило стоит в `isValid`, единственность считается СО
+   * знаками (`overlayOk`), оценщик их знает, прореживание по уровням работает.
+   * Решение удовлетворяет своим знакам — 0 нарушений на 4 досках.
+   *
+   * ⚠️ НО ВАРИАНТ ОКАЗАЛСЯ ЛЁГКИМ, И ЭТО ЗАМЕРЕНО, А НЕ ПРЕДПОЛОЖЕНО:
+   *   L58 знаков 43 → ступени 1,1,1,1,1 · пустых 38
+   *   L59 знаков 35 → 2,1,1,1,1 · пустых 44
+   *   L60 знаков 27 → 1,1,1,1,1 · пустых 38
+   *   L61 знаков 22 → 1,2,1,2,1 · пустых 42
+   * Ступень 1–2 при ЛЮБОЙ плотности знаков, и копается 38–44 клетки против 58–64 у
+   * остальных вариантов. Поставить такой вариант в конец лестницы значит уронить
+   * сложность на последних уровнях — ровно тот дефект, который чинили этим же днём
+   * (см. `VARIANT_TIER_CEILING`). Поэтому уровней ему не дано.
+   *
+   * ПОЧЕМУ ТАК ВЫШЛО — и это главное для того, кто вернётся. Знаки работают у нас
+   * как ФИЛЬТР по уже известным соседям, а настоящая сила футосики в ЦЕПОЧКАХ:
+   * «a < b < c в одной строке» вычёркивает крайние значения ещё до того, как хоть
+   * одна из трёх клеток заполнена. Такой техники в лестнице `TECHNIQUE_TIER` нет, и
+   * пока её нет, знаки только ОБЛЕГЧАЮТ доску, а не усложняют.
+   * Что нужно, чтобы вариант заслужил уровни: добавить технику «цепочка неравенств»
+   * в лестницу и перемерить потолок. Тогда же решить, куда его ставить.
+   */
   // v1.113.0: ЕДИНАЯ монотонная кривая для всего 9×9-диапазона (было: диагональ росла до 58
   // пустых к L13, затем при смене правила на L14 сбрасывалась на 44 — резкий провал сложности,
   // баг-репорт Вали «как level 20 может быть легче level 12»). Раньше расчёт зависел от variant
@@ -503,7 +530,42 @@ export function regionsFromSolution(sol: Cell[][], N: number): number[][] | null
   return reg;
 }
 
-export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap): boolean {
+/**
+ * НЕРАВЕНСТВА (футосики) — ЗНАКИ МЕЖДУ СОСЕДЯМИ.
+ *
+ * Правило одно: там, где показан знак, левая (верхняя) клетка строго больше или
+ * строго меньше правой (нижней). Ровно одно добавленное требование — отношение
+ * ПОРЯДКА между соседями, а не позиция и не сумма (§25.1 плана слияния).
+ *
+ * ⚠️ ЗНАКИ ВЫВОДЯТСЯ ИЗ ГОТОВОГО РЕШЕНИЯ. Это тот же порядок, который 26.08.2026
+ * дал ×122 на укладке термометра: рисовать ограничение вслепую и потом искать под
+ * него сетку — лишний перебор на ровном месте. Здесь искать нечего вовсе: у любой
+ * пары соседей отношение уже определено решением, знак только показывает его.
+ *
+ * `h[r][c]` — грань между (r,c) и (r,c+1); `v[r][c]` — между (r,c) и (r+1,c).
+ * 0 = знака НЕТ (о паре ничего не сказано), 1 = первая МЕНЬШЕ второй, 2 = БОЛЬШЕ.
+ * ⚠️ Отсутствие знака НЕ означает «равны» — равных соседей в судоку не бывает.
+ * Это же должно быть сказано в правилах варианта, иначе человек примет пустую
+ * грань за подсказку.
+ */
+export type UnequalMap = { h: number[][]; v: number[][] };
+
+export function unequalFromSolution(sol: Cell[][], N: number, density: number): UnequalMap {
+  const h = Array.from({ length: N }, () => Array(N).fill(0));
+  const v = Array.from({ length: N }, () => Array(N).fill(0));
+  const edges: [number[][], number, number, number, number][] = [];
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    if (c < N - 1) edges.push([h, r, c, r, c + 1]);
+    if (r < N - 1) edges.push([v, r, c, r + 1, c]);
+  }
+  const keep = Math.max(1, Math.round(edges.length * Math.min(1, Math.max(0, density))));
+  for (const [map, ar, ac, br, bc] of shuffle(edges).slice(0, keep)) {
+    map[ar][ac] = sol[ar][ac] < sol[br][bc] ? 1 : 2;
+  }
+  return { h, v };
+}
+
+export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap, unequal?: UnequalMap): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
   if (variant === 'jigsaw' && regions) {
     const reg = regions[r][c];
@@ -521,6 +583,13 @@ export function isValid(grid: Cell[][], r: number, c: number, val: number, N: nu
     const h = inHyper(r, c); if (h) { const [hr, hc] = h; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (grid[hr + i][hc + j] === val) return false; }
   } else if (variant === 'nonconsec') {
     for (const [dr, dc] of ORTHO) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N) { const v = grid[nr][nc]; if (v !== 0 && Math.abs(v - val) === 1) return false; } }
+  } else if (variant === 'unequal' && unequal) {
+    // Знак проверяется в обе стороны: и как левая клетка пары, и как правая.
+    const cmp = (mine: number, other: number, sign: number) => (sign === 1 ? mine < other : mine > other);
+    if (c < N - 1 && unequal.h[r][c] !== 0) { const o = grid[r][c + 1]; if (o !== 0 && !cmp(val, o, unequal.h[r][c])) return false; }
+    if (c > 0 && unequal.h[r][c - 1] !== 0) { const o = grid[r][c - 1]; if (o !== 0 && !cmp(o, val, unequal.h[r][c - 1])) return false; }
+    if (r < N - 1 && unequal.v[r][c] !== 0) { const o = grid[r + 1][c]; if (o !== 0 && !cmp(val, o, unequal.v[r][c])) return false; }
+    if (r > 0 && unequal.v[r - 1][c] !== 0) { const o = grid[r - 1][c]; if (o !== 0 && !cmp(o, val, unequal.v[r - 1][c])) return false; }
   } else if (variant === 'antiking') {
     for (const [dr, dc] of KING) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
   } else if ((variant === 'thermo' || variant === 'thermocage') && thermo) {
@@ -608,6 +677,8 @@ export interface Overlays {
   parity?: number[][];                        // 1 = чёт, 2 = нечет, 0 = метки нет
   kropki?: { h: number[][]; v: number[][] };  // 2 = чёрная, 1 = белая, 0 = НЕ ПОКАЗАНА
   sandwich?: { rows: number[]; cols: number[] };
+  /** Знаки неравенства между соседями: 0 нет, 1 первая МЕНЬШЕ, 2 БОЛЬШЕ. */
+  unequal?: UnequalMap;
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -626,6 +697,10 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
       if (r < N - 1) v[r][c] = dot(sol[r][c], sol[r + 1][c]);
     }
     return { kropki: { h, v } };
+  }
+  if (variant === 'unequal') {
+    // Знаки СРАЗУ все; сколько показать — решает прореживание уровня, как у кропки.
+    return { unequal: unequalFromSolution(sol, N, 1) };
   }
   if (variant === 'sandwich') {
     const between = (line: number[]) => {
@@ -664,6 +739,17 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
     }
   }
 
+  if (ov.unequal) {
+    // Знак — такая же ПОКАЗАННАЯ подсказка, как точка кропки: единственность обязана
+    // считаться с ним. Без этой ветки доска была бы единственной для движка и
+    // неоднозначной для человека — ровно тот баг, что уже приходил от Вали на 30-м
+    // уровне по маркерным вариантам.
+    const cmp = (a: number, b: number, sign: number) => (sign === 1 ? a < b : a > b);
+    if (c < N - 1 && ov.unequal.h[r][c] !== 0) { const o = grid[r][c + 1]; if (o !== 0 && !cmp(n, o, ov.unequal.h[r][c])) return false; }
+    if (c > 0 && ov.unequal.h[r][c - 1] !== 0) { const o = grid[r][c - 1]; if (o !== 0 && !cmp(o, n, ov.unequal.h[r][c - 1])) return false; }
+    if (r < N - 1 && ov.unequal.v[r][c] !== 0) { const o = grid[r + 1][c]; if (o !== 0 && !cmp(n, o, ov.unequal.v[r][c])) return false; }
+    if (r > 0 && ov.unequal.v[r - 1][c] !== 0) { const o = grid[r - 1][c]; if (o !== 0 && !cmp(o, n, ov.unequal.v[r - 1][c])) return false; }
+  }
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -720,7 +806,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -749,7 +835,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -825,7 +911,8 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const parity = ov.parity ? ov.parity.map((row, r) => row.map((m, c) => (puzzle[r][c] === 0 ? m : 0))) : undefined;
   const kropki = ov.kropki;
   const sandwich = ov.sandwich;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages };
+  const unequal = ov.unequal;
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal };
 }
 
 /**

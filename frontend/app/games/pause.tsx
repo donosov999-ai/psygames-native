@@ -316,7 +316,11 @@ const styles = StyleSheet.create({
   h: { fontSize: 16, fontWeight: '600', marginTop: 10 },
   p: { fontSize: 14 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, minHeight: 44, justifyContent: 'center' },
+  // ⚠️ И ШИРИНА, А НЕ ТОЛЬКО ВЫСОТА. Стояло `minHeight: 44` — и этого хватало всем
+  // чипам, кроме числовых: «3» и «5» с боковыми отступами по 14 дают ~40 px ширины.
+  // Поймал живой гейт размеров на собранном вебе («/games/pause — 2 шт.»), а не глаз:
+  // на экране разница в четыре пикселя не видна, а пальцем промахиваешься.
+  chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' },
   chipText: { fontSize: 14, fontWeight: '500' },
   setRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 12, borderWidth: 1, minHeight: 44 },
   setText: { flex: 1, gap: 2 },
