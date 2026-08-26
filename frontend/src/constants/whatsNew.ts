@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.237.0',
+    date: '2026-08-26',
+    ru: [
+      "Новое упражнение «Пауза»: дыхание, глаза, лицо, расслабление и подвижность — короткий телесный отдых без оценок",
+      "Судоку: уровень больше не обещает сложность, которую не может выдать — доска чаще соответствует своей ступени",
+      "Судоку: доска с двумя решениями больше не пройдёт — вы не потеряете жизнь за верный ход",
+      "«Сортировка слов» перестала повторять слова: раньше одно могло выпасть дважды за партию",
+    ],
+    en: [
+      "New exercise «Pause»: breathing, eyes, face, relaxation and mobility — a short body rest with no scoring",
+      "Sudoku: a level no longer promises a difficulty it cannot deliver — boards match their rung far more often",
+      "Sudoku: a board with two solutions can no longer slip through — you won't lose a life for a correct move",
+      "Word Sort stopped repeating words: one could previously appear twice in a single round",
+    ],
+  },
+  {
     version: '1.236.0',
     date: '2026-08-23',
     ru: [
