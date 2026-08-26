@@ -63,6 +63,8 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 const BOSS_EVERY = 3;   // веха-босс каждые 3 уровня (резкая смена: рабочая память → счёт)
 type Modality = 'single' | 'dual';   // single = visual only (legacy); dual = visual + audio (Brain Workshop style)
 
+import { buildNbackSequence } from '@/src/games/nback/sequence';
+
 const AUDIO_LETTERS = ['B', 'D', 'F', 'H', 'K', 'L', 'M', 'Q', 'R', 'T'];   // consonants only — no confusion with positions
 
 /**
@@ -134,6 +136,9 @@ export default function NBackGame() {
   const levelRules = useLevelRules('n_back', lvl.level, NB_RULES, phase === 'playing' && !isPreset);
   const [nLevel, setNLevel] = useState(() => num('nLevel', 1));
   const [trials, setTrials] = useState(() => num('trials', 20));
+  /** Заготовленные блоки: зрительный и слуховой. Строятся в `startGame`. */
+  const seqRef = useRef<ReturnType<typeof buildNbackSequence> | null>(null);
+  const audioSeqRef = useRef<ReturnType<typeof buildNbackSequence> | null>(null);
   const [modality, setModality] = useState<Modality>(() => (str('modality', 'single') as Modality));
   /** Речь — второй поток двойного режима. Нельзя говорить — нельзя и двойной. */
   const ttsBlock = useTtsBlock('en');
@@ -197,6 +202,21 @@ export default function NBackGame() {
     setHistory([]); setAudioHistory([]); setCurrentIdx(-1); setActiveCell(null); setActiveLetter('');
     setPhase('playing');
     setStartTime(gameNow());
+    /**
+     * 🔴 ПОСЛЕДОВАТЕЛЬНОСТЬ ГОТОВИТСЯ ЦЕЛИКОМ ДО ПЕРВОГО СТИМУЛА.
+     * Раньше стимулы собирались по одному прямо при подаче, и отказ от
+     * случайного совпадения делался ВТОРЫМ броском монеты — оно выживало с
+     * вероятностью около 1/17. Заявленные 30% целей превращались в ~34%, и доля
+     * плавала от блока к блоку, из-за чего d′ двух блоков были несравнимы.
+     * Разбор и квота — в `src/games/nback/sequence.ts`.
+     *
+     * ⚠️ N берём из `p.N`, а не из состояния `nLevel`: `setNLevel` асинхронный, и
+     * на этом же месте уже спотыкались с таймером на 600 мс. Здесь нужна
+     * величина ЭТОЙ партии, а не та, что успела примениться.
+     */
+    const nForBlock = isPreset ? nLevel : levelParams(lvl.level).N;
+    seqRef.current = buildNbackSequence(trials, nForBlock, 9, Math.random);
+    audioSeqRef.current = buildNbackSequence(trials, nForBlock, AUDIO_LETTERS.length, Math.random);
     setTimeout(() => runTrial([], [], -1), 600);
   };
 
@@ -207,23 +227,18 @@ export default function NBackGame() {
       return;
     }
     const canMatch = newIdx >= nLevel;
-    // Visual stimulus: 30% match
-    let vStim: number;
-    if (canMatch && Math.random() < 0.3) {
-      vStim = vHist[newIdx - nLevel];
-    } else {
-      do { vStim = Math.floor(Math.random() * 9); }
-      while (canMatch && vStim === vHist[newIdx - nLevel] && Math.random() < 0.5);
-    }
-    // Audio stimulus (only in dual mode): also ~30% match
+    /**
+     * Стимул БЕРЁТСЯ из заготовленного блока, а не бросается сейчас. Доля целей
+     * и число луров заданы точно (`src/games/nback/sequence.ts`).
+     * ⚠️ Запасной путь оставлен на случай, если блок почему-то не готов: пустой
+     * экран посреди партии хуже, чем один случайный стимул. Но это именно
+     * запасной путь, а не прежний способ подачи.
+     */
+    const vStim = seqRef.current?.items[newIdx] ?? Math.floor(Math.random() * 9);
     let aStim = '';
     if (modality === 'dual') {
-      if (canMatch && Math.random() < 0.3) {
-        aStim = aHist[newIdx - nLevel];
-      } else {
-        do { aStim = AUDIO_LETTERS[Math.floor(Math.random() * AUDIO_LETTERS.length)]; }
-        while (canMatch && aStim === aHist[newIdx - nLevel] && Math.random() < 0.5);
-      }
+      const ai = audioSeqRef.current?.items[newIdx];
+      aStim = ai !== undefined ? AUDIO_LETTERS[ai] : AUDIO_LETTERS[Math.floor(Math.random() * AUDIO_LETTERS.length)];
     }
     const newVHist = [...vHist, vStim];
     const newAHist = [...aHist, aStim];
