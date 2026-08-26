@@ -1,5 +1,5 @@
 // Генератор умных дистракторов для «Сортировки слов» (semantic-sort, V3).
-// Офлайн-предрасчёт: эмбеддинги считаются ОДИН раз через brainkit (bge-m3, 37.60.245.18),
+// Офлайн-предрасчёт: эмбеддинги считаются ОДИН раз через brainkit (bge-m3),
 // в приложение попадает готовая таблица src/data/semantic-distractors.ts.
 //
 // Для каждого слова словаря TRANSLATION_VOCAB (в каждом из 7 языков) берём топ похожих
@@ -9,7 +9,9 @@
 // На категорию — не больше PER_CAT_CAP слов, чтобы в топ-8 попадало ≥3 разных категорий.
 //
 // Запуск: node scripts/gen-semantic-distractors.mjs
-// Эндпоинт: POST {BRAINKIT_EMBED_URL | http://37.60.245.18:8080/embed} {"texts": [...]}
+// Эндпоинт: POST $BRAINKIT_EMBED_URL {"texts": [...]}
+// ⚠️ Адрес узла ЗДЕСЬ НЕ ЗАПИСАН и записан быть не может: репозиторий публичный.
+//    Задать перед запуском: BRAINKIT_EMBED_URL=http://<узел>:<порт>/embed
 //   → {"model": "BAAI/bge-m3", "embeddings": [[...1024]]}
 // Если brainkit недоступен — пишет пустую заглушку (только если таблицы ещё нет) и падает с exit 1.
 import { readFileSync, writeFileSync, existsSync } from 'fs';
@@ -19,7 +21,13 @@ import { dirname, join } from 'path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC = join(__dirname, '../src/constants/translationVocab.ts');
 const OUT = join(__dirname, '../src/data/semantic-distractors.ts');
-const EMBED_URL = process.env.BRAINKIT_EMBED_URL || 'http://37.60.245.18:8080/embed';
+const EMBED_URL = process.env.BRAINKIT_EMBED_URL;
+if (!EMBED_URL) {
+  // Значением по умолчанию здесь стоял адрес узла — в публичном репозитории
+  // это выдавало и хост, и открытый порт. Теперь адрес приходит снаружи.
+  console.error('нужен BRAINKIT_EMBED_URL, например http://<узел>:<порт>/embed');
+  process.exit(1);
+}
 const TOP_N = 8;        // слов-дистракторов на целевое слово
 const PER_CAT_CAP = 3;  // максимум слов одной категории в топе (гарантия ≥3 разных категорий)
 const BATCH = 32;       // текстов на один запрос /embed

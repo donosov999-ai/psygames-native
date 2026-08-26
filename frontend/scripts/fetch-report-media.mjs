@@ -18,8 +18,7 @@
  * личное — переписка, имена, содержимое экрана телефона. Правильный доступ —
  * подписанная ссылка сервисным ключом, то есть этим скриптом.
  *
- * ЧТОБЫ ЗАРАБОТАЛО, нужен сервисный ключ в ~/.sdt_secrets/supabase_db.json:
- *   { "personal-nzt": { …, "service_role_key": "sb_secret_…" } }
+ * ЧТОБЫ ЗАРАБОТАЛО, нужен сервисный ключ в переменной SUPABASE_SERVICE_KEY.
  * Взять его: Supabase → Project Settings → API keys → service_role.
  * 🔴 Ключ обходит RLS — в репозиторий, в чат и в логи он не попадает НИКОГДА,
  * только в этот файл, который лежит вне git.
@@ -29,7 +28,6 @@
  *   node scripts/fetch-report-media.mjs <id-репорта>
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 const PROJECT = 'iuvvheeocobhiothfgei';
@@ -37,17 +35,21 @@ const REST = `https://${PROJECT}.supabase.co`;
 const OUT = join(process.cwd(), '.report-media');
 
 function serviceKey() {
-  const p = join(homedir(), '.sdt_secrets', 'supabase_db.json');
-  let cfg;
-  try { cfg = JSON.parse(readFileSync(p, 'utf8')); } catch {
-    fail(`нет файла ${p}`);
-  }
-  const k = cfg['personal-nzt']?.service_role_key;
+  /**
+   * 🔴 КЛЮЧ ПРИХОДИТ ТОЛЬКО ЧЕРЕЗ ОКРУЖЕНИЕ.
+   * Здесь читался файл по прямому пути в домашней папке. Сам ключ в репозиторий
+   * не попадал, но ПУТЬ К ХРАНИЛИЩУ попадал — а репозиторий публичный, и такая
+   * строка говорит постороннему, где на машине владельца лежат все секреты.
+   * Запасной вариант убран нарочно: пока он был, соблазн не задавать переменную
+   * оставался, а с ним оставалась и строка. Сторожит `no-infra-in-public-repo`.
+   */
+  const k = process.env.SUPABASE_SERVICE_KEY;
   if (!k) {
     fail(
-      `в ${p} нет поля service_role_key у personal-nzt.\n` +
-      `  Взять: Supabase → Project Settings → API keys → service_role.\n` +
-      `  Положить туда же, рядом с connection_string. В git и в чат ключ не несём.`,
+      'нужен сервисный ключ в SUPABASE_SERVICE_KEY.\n' +
+      '  Взять: Supabase → Project Settings → API keys → service_role.\n' +
+      '  Запуск: SUPABASE_SERVICE_KEY="sb_secret_…" node scripts/fetch-report-media.mjs --last 5\n' +
+      '  🔴 Ключ обходит RLS — в git, в чат и в логи он не попадает НИКОГДА.',
     );
   }
   return k;
