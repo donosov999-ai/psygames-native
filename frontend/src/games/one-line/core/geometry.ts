@@ -1,3 +1,4 @@
+/* psygames-one-line-geometry · VER 2 · 22.08.2026 */
 import type { GraphEdge, GraphVertex } from './types';
 
 function cross(a: GraphVertex, b: GraphVertex, c: GraphVertex): number {

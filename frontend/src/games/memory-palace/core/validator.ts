@@ -1,3 +1,4 @@
+/* psygames-memory-palace-validator · VER 1 · 19.08.2026 */
 import { FIXED_PALACE_ROUTE } from './content';
 import { LEVELS, type MemoryPalaceRound } from './types';
 

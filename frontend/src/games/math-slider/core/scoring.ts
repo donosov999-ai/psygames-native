@@ -1,3 +1,4 @@
+/* psygames-math-slider-scoring · VER 1 · 17.08.2026 */
 import { roundNumber } from './expression';
 import {
   MATH_SLIDER_GENERATOR_VERSION,

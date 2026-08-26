@@ -1,3 +1,4 @@
+/* psygames-math-slider-expression · VER 1 · 17.08.2026 */
 import type { MathExpression, MathSliderLocale } from './types';
 
 const EPSILON = 1e-9;

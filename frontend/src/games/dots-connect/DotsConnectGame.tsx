@@ -1,3 +1,4 @@
+/* psygames-dots-connect-game · VER 5 · 23.08.2026 */
 import React from 'react';
 import {
   AppState,

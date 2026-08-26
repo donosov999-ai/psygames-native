@@ -1,3 +1,4 @@
+/* psygames-faces-names-validator · VER 1 · 19.08.2026 */
 import { factById } from './content';
 import type { FacesNamesPuzzle, FacesNamesValidation } from './types';
 

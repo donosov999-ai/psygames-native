@@ -1,3 +1,4 @@
+/* psygames-navigator-input · VER 1 · 19.08.2026 */
 import { homeSectorForBearing } from './geometry';
 import type {
   CardinalDirection,

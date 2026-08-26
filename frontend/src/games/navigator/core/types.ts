@@ -1,3 +1,4 @@
+/* psygames-navigator-types · VER 2 · 19.08.2026 */
 export const NAVIGATOR_GENERATOR_VERSION = 'navigator-generator-v1';
 export const LEVELS = 33;
 export const NAVIGATOR_MODES = ['route-recall', 'turn-sequence', 'home-direction'] as const;

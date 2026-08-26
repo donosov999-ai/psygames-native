@@ -1,3 +1,4 @@
+/* psygames-object-tracker-types · VER 2 · 19.08.2026 */
 export const OBJECT_TRACKER_GENERATOR_VERSION = 'object-tracker-generator-v1';
 export const TRACKER_OBJECT_RADIUS = 0.068;
 export const LEVELS = 41;

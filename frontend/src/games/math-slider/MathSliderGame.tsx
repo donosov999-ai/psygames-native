@@ -1,3 +1,4 @@
+/* psygames-math-slider-game · VER 3 · 21.08.2026 */
 import React from 'react';
 import {
   AppState,

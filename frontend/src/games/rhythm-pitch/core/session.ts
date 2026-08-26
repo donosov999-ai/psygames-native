@@ -1,3 +1,4 @@
+/* psygames-rhythm-pitch-session · VER 1 · 19.08.2026 */
 import { generateRhythmPitchRound, rhythmPitchModeForLevel } from './generator';
 import {
   estimateLatencyOffset,

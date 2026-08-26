@@ -1,3 +1,4 @@
+/* psygames-object-tracker-session · VER 1 · 19.08.2026 */
 import { generateObjectTrackerRound } from './generator';
 import { advanceTrackerWorld, cloneTrackerWorld } from './physics';
 import { scoreObjectTrackerCompletion } from './scoring';

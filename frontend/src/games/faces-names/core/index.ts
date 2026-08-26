@@ -1,3 +1,4 @@
+/* psygames-faces-names-core-index · VER 1 · 19.08.2026 */
 export * from './types';
 export * from './rng';
 export * from './content';

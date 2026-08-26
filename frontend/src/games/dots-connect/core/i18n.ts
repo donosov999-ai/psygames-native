@@ -1,3 +1,4 @@
+/* psygames-dots-connect-i18n · VER 3 · 23.08.2026 */
 import type { DotsLocale } from './types';
 
 /**

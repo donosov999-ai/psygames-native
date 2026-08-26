@@ -1,3 +1,4 @@
+/* psygames-memory-palace-session · VER 2 · 22.08.2026 */
 import { generateMemoryPalaceRound } from './generator';
 import { scoreMemoryPalaceCompletion } from './scoring';
 import {

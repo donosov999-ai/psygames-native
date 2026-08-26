@@ -1,3 +1,4 @@
+/* psygames-one-line-types · VER 7 · 22.08.2026 */
 export const ONE_LINE_GENERATOR_VERSION = 'one-line-generator-v1';
 /**
  * 🔴 СОРОК ИЗ СОРОКА ВОСЬМИ СТАЛИ РИСОВАННЫМИ. Пока фигур было двенадцать,

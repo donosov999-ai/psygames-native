@@ -1,3 +1,4 @@
+/* psygames-one-line-validator · VER 4 · 22.08.2026 */
 import type {
   EulerSolution,
   GraphEdge,

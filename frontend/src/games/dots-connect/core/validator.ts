@@ -1,3 +1,4 @@
+/* psygames-dots-connect-validator · VER 1 · 19.08.2026 */
 import { cellKey, isAdjacent, isInBounds, sameCell } from './grid';
 import type {
   Cell,

@@ -1,3 +1,4 @@
+/* psygames-memory-palace-generator · VER 1 · 19.08.2026 */
 import { FIXED_PALACE_ROUTE, PALACE_ITEM_LIBRARY } from './content';
 import { createRng, normalizeSeed, shuffle } from './rng';
 import {

@@ -1,3 +1,4 @@
+/* psygames-math-slider-core-index · VER 1 · 17.08.2026 */
 export * from './types';
 export * from './rng';
 export * from './expression';

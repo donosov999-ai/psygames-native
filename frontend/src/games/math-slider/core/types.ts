@@ -1,3 +1,4 @@
+/* psygames-math-slider-types · VER 1 · 17.08.2026 */
 export const MATH_SLIDER_GENERATOR_VERSION = 'math-slider-generator-v1';
 
 export type MathSliderLocale = 'ru' | 'en';

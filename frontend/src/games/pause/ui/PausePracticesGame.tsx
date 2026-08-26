@@ -1,3 +1,4 @@
+/* psygames-pause-practices-game · VER 1 · 26.08.2026 */
 import React from 'react';
 import {
   AppState,

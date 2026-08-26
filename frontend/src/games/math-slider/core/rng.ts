@@ -1,3 +1,4 @@
+/* psygames-math-slider-rng · VER 1 · 17.08.2026 */
 export type Rng = () => number;
 
 /** FNV-1a followed by mulberry32: same seed means the same sequence everywhere. */

@@ -1,3 +1,4 @@
+/* psygames-rhythm-pitch-types · VER 2 · 19.08.2026 */
 export const RHYTHM_PITCH_GENERATOR_VERSION = 'rhythm-pitch-generator-v1';
 export const LEVELS = 31;
 export const RHYTHM_PITCH_MODES = ['rhythm-echo', 'pitch-path'] as const;

@@ -47,7 +47,7 @@ import { useReducedMotion } from '@/src/hooks/useReducedMotion';
  * к десятому человек видел каждую панель уже трижды. Восемь стоят 512 КБ на все
  * — дешевле одного спрайтового набора игры.
  */
-import { useProfile } from '@/src/contexts/ProfileContext';
+import { useProfileOptional } from '@/src/contexts/ProfileContext';
 import { profileRoad, isOwnCityLevel, ROAD_LIST } from '@/src/constants/profileRoads';
 
 const PANELS = [
@@ -153,7 +153,7 @@ export default function LevelInterlude({ level, stars, ms, nextLine, doneLine, c
    * просто не срабатывает и идёт общий набор — подставлять чужой город нельзя,
    * это ровно та подмена, из-за которой награда обесценивается.
    */
-  const { profile } = useProfile();
+  const profile = useProfileOptional()?.profile ?? null;
   const own = profileRoad(profile?.id);
   const pool = [...PANELS, ...ROAD_LIST];
   const panel = own !== undefined && isOwnCityLevel(level)

@@ -1,3 +1,4 @@
+/* psygames-object-tracker-physics · VER 1 · 19.08.2026 */
 import type {
   ObjectTrackerRound,
   TrackerObjectState,

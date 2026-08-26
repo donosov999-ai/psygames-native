@@ -1,3 +1,4 @@
+/* psygames-dots-connect-session · VER 3 · 23.08.2026 */
 import { generateDotsPuzzle, generateDotsTrainingPuzzle } from './generator';
 import {
   cellKey,

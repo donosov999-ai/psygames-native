@@ -1,3 +1,4 @@
+/* psygames-pause-image-effects · VER 1 · 26.08.2026 */
 import type { VisualGuideFrame } from './engine';
 
 /**

@@ -1,3 +1,4 @@
+/* psygames-math-slider-generator · VER 1 · 17.08.2026 */
 import { binary, evaluateExpression, literal, roundNumber } from './expression';
 import { createRng, normalizeSeed, pick, randomInt, type Rng } from './rng';
 import {

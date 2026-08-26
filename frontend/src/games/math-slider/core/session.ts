@@ -1,3 +1,4 @@
+/* psygames-math-slider-session · VER 2 · 21.08.2026 */
 import { generateMathSliderQuestions, generateTrainingQuestion } from './generator';
 import { aggregateMathSliderMetrics, scoreEstimate } from './scoring';
 import type {

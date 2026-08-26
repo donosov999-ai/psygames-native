@@ -1,4 +1,4 @@
-/* psygames-game-navigator · VER 2 · 20.08.2026 */
+/* psygames-navigator-game · VER 2 · 20.08.2026 */
 /**
  * Navigator — партия. Адаптер лабораторного модуля G6 под приложение.
  *
