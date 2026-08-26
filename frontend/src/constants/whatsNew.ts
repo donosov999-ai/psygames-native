@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.239.2',
+    date: '2026-08-26',
+    ru: ['Фон профиля наконец кроет весь экран — раньше он рисовался в натуральную величину и обрывался полосой'],
+    en: ['The profile background finally covers the whole screen — it used to render at its natural size and cut off as a strip'],
+  },
+  {
     version: '1.239.1',
     date: '2026-08-26',
     ru: [
