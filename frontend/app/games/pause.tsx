@@ -177,7 +177,7 @@ export default function PauseGame() {
   if (phase === 'playing') {
     return (
       <GameShell
-        title={tr({ ru: 'Пауза', en: 'Pause' })}
+        title={tr({ ru: 'Глаза и дыхание', en: 'Eyes & breathing' })}
         onBack={() => setPhase('config')}
         /**
          * 🔴 ВОПРОС ПРИ ВЫХОДЕ ВЗВЕДЁН ЖИВЫМ ВЫРАЖЕНИЕМ, А НЕ КОНСТАНТОЙ.
@@ -210,7 +210,7 @@ export default function PauseGame() {
   }
 
   return (
-    <GameShell title={tr({ ru: 'Пауза', en: 'Pause' })} onBack={() => goBackOrHome()}>
+    <GameShell title={tr({ ru: 'Глаза и дыхание', en: 'Eyes & breathing' })} onBack={() => goBackOrHome()}>
       <ScrollView contentContainerStyle={styles.body}>
         {phase === 'result' && last && (
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
