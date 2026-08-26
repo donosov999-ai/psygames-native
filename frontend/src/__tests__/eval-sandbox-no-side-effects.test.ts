@@ -24,14 +24,14 @@ import { __evalInДляПроверки as evalIn } from './solid-fill-contrast.
 
 describe('песочница вычисления цвета', () => {
   it('🔴 setInterval внутри выражения НЕ заводит настоящий таймер', () => {
-    const настоящий = global.setInterval;
+    const настоящий = globalThis.setInterval;
     let заведено = 0;
-    (global as any).setInterval = (...a: any[]) => { заведено += 1; return настоящий(...(a as [any, any])); };
+    (globalThis as any).setInterval = (...a: any[]) => { заведено += 1; return настоящий(...(a as [any, any])); };
     try {
       // Ровно та строка, что уронила выпуск.
       evalIn({}, 'setInterval(() => setNow(gameNow()), 100)');
     } finally {
-      global.setInterval = настоящий;
+      globalThis.setInterval = настоящий;
     }
     expect(заведено).toBe(0);
   });
@@ -42,10 +42,10 @@ describe('песочница вычисления цвета', () => {
   });
 
   it('fetch внутри выражения не уходит в сеть', () => {
-    const настоящий = (global as any).fetch;
+    const настоящий = (globalThis as any).fetch;
     let вызовов = 0;
-    (global as any).fetch = () => { вызовов += 1; return Promise.resolve(); };
-    try { evalIn({}, 'fetch("https://example.com")'); } finally { (global as any).fetch = настоящий; }
+    (globalThis as any).fetch = () => { вызовов += 1; return Promise.resolve(); };
+    try { evalIn({}, 'fetch("https://example.com")'); } finally { (globalThis as any).fetch = настоящий; }
     expect(вызовов).toBe(0);
   });
 
