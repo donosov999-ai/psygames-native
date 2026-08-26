@@ -101,6 +101,54 @@ const SCHEMA = `{
   "чего_не_хватает": "какого сведения не хватает, чтобы чинить; '' если хватает"
 }`;
 
+/**
+ * 🔴 РАЗБОР JSON НЕ ДОЛЖЕН ПАДАТЬ ИЗ-ЗА ОДНОГО СИМВОЛА.
+ * Замер 26.08.2026: из 183 репортов один упал с «Bad escaped character in JSON
+ * at position 122». Модель описывала скриншот и поставила внутри строки символ,
+ * который JSON внутри строк не терпит. Репорт остался неразобранным целиком.
+ *
+ * ⚠️ ПЕРВАЯ ПОЧИНКА СДЕЛАЛА ХУЖЕ, И ЭТО ЗАПИСАНО НАРОЧНО. Я заэкранировал
+ * управляющие символы ВЕЗДЕ одним `replace`, включая переводы строк МЕЖДУ
+ * полями — а вне строк они законный пробел. Текст перестал быть JSON вовсе:
+ * `Expected property name at position 1`. Урок общий: «почистить на всякий
+ * случай» без разбора границ портит здоровое вместе с битым.
+ *
+ * Поэтому здесь проход посимвольный, со знанием, внутри мы строки или снаружи.
+ * Чинится ровно два случая И ТОЛЬКО ВНУТРИ строк: недопустимая escape-пара и
+ * сырой управляющий символ. Снаружи не трогается ничего.
+ */
+function repairJson(text) {
+  const VALID = new Set(['"', '\\', '/', 'b', 'f', 'n', 'r', 't', 'u']);
+  let out = '';
+  let inStr = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (!inStr) {
+      if (ch === '"') inStr = true;
+      out += ch;
+      continue;
+    }
+    if (ch === '\\') {
+      const next = text[i + 1];
+      if (VALID.has(next)) { out += ch + next; i++; }
+      else out += '\\\\';              // одиночный слэш — экранируем его самого
+      continue;
+    }
+    if (ch === '"') { inStr = false; out += ch; continue; }
+    const code = ch.charCodeAt(0);
+    if (code < 0x20) { out += `\\u${code.toString(16).padStart(4, '0')}`; continue; }
+    out += ch;
+  }
+  return out;
+}
+
+function safeParse(text, raw) {
+  try { return JSON.parse(text); } catch { /* ниже одна попытка починки */ }
+  try { return JSON.parse(repairJson(text)); } catch (e) {
+    throw new Error(`JSON не разобрался даже после починки: ${e.message} · ${raw.slice(0, 120)}`);
+  }
+}
+
 async function analyse(item, shotUrl) {
   const parts = [];
   if (item.message) parts.push(`Текст отзыва (цитата): «${item.message}»`);
@@ -138,7 +186,7 @@ ${SCHEMA}`,
   const raw = j.choices?.[0]?.message?.content ?? '';
   const m = raw.match(/\{[\s\S]*\}/);
   if (!m) throw new Error(`модель не вернула JSON: ${raw.slice(0, 160)}`);
-  return JSON.parse(m[0]);
+  return safeParse(m[0], raw);
 }
 
 async function main() {

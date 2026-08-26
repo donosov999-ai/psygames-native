@@ -442,7 +442,7 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
       INSERT_MS, true,   // не ответили вовремя — считаем недоставленным и кладём в очередь
     );
     if (insertFailed) {
-      await queueFeedback(row);
+      await queueFeedback(row, 'insert-failed-or-timeout');
       // Запись уже в хранилище и путь уехал в очередь вместе со строкой —
       // с точки зрения человека голос не потерян, просто ждёт связи.
       return { ok: false, queued: true, audioSent: !!audio_path, audioLost: hadAudio && !audio_path };
@@ -472,6 +472,14 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
  * сиротой, а до нас доезжал текст без него.
  */
 const FEEDBACK_QUEUE_KEY = 'psygames_feedback_queue';
+/**
+ * 🔴 СЧЁТЧИК ПОТЕРЯННЫХ НАВСЕГДА. Очередь обрезается по `QUEUE_MAX`, и до сих пор
+ * лишнее просто исчезало: `slice(-QUEUE_MAX)` молча выбрасывал самые старые.
+ * Человек при этом видел «сохранено, дошлём», а сообщение переставало
+ * существовать. Теперь выброшенное считается и уезжает с первым же дошедшим
+ * отзывом — иначе «до нас не дошло» и «мы это выкинули» неразличимы.
+ */
+const FEEDBACK_DROPPED_KEY = 'psygames_feedback_dropped';
 
 /** Длина офлайн-очереди отзывов — сколько прошлых отправок не дошло. */
 async function queuedCount(): Promise<number> {
@@ -482,13 +490,29 @@ async function queuedCount(): Promise<number> {
 }
 const QUEUE_MAX = 20;
 
-async function queueFeedback(row: Record<string, unknown>): Promise<void> {
+async function queueFeedback(row: Record<string, unknown>, why?: string): Promise<void> {
   try {
     const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
     const raw = await AsyncStorage.getItem(FEEDBACK_QUEUE_KEY);
     const list: Record<string, unknown>[] = raw ? JSON.parse(raw) : [];
+    /**
+     * 🔴 ШТАМП ЗАДЕРЖКИ. Раньше строка ложилась в очередь как есть, и когда она
+     * наконец доезжала, у неё стояло время ВСТАВКИ, а не время, когда человек
+     * нажал «отправить». Отзыв, пролежавший трое суток, выглядел свежим, и по
+     * данным нельзя было понять ни что связь рвалась, ни насколько надолго.
+     * `queued_at` кладём в `context` — это единственное поле, которое доезжает
+     * до базы целиком и не требует миграции.
+     */
+    const ctx = (row.context && typeof row.context === 'object' ? row.context : {}) as Record<string, unknown>;
+    row.context = { ...ctx, queued_at: new Date().toISOString(), queue_attempts: 0, queue_why: why ?? null };
     list.push(row);
-    await AsyncStorage.setItem(FEEDBACK_QUEUE_KEY, JSON.stringify(list.slice(-QUEUE_MAX)));
+    const kept = list.slice(-QUEUE_MAX);
+    const dropped = list.length - kept.length;
+    if (dropped > 0) {
+      const was = Number((await AsyncStorage.getItem(FEEDBACK_DROPPED_KEY)) || 0);
+      await AsyncStorage.setItem(FEEDBACK_DROPPED_KEY, String(was + dropped));
+    }
+    await AsyncStorage.setItem(FEEDBACK_QUEUE_KEY, JSON.stringify(kept));
   } catch { /* не смогли сохранить — хуже уже не сделаем */ }
 }
 
@@ -502,11 +526,37 @@ export async function flushFeedbackQueue(): Promise<number> {
     const supabase = getSupabase();
     const left: Record<string, unknown>[] = [];
     let sent = 0;
+    /**
+     * 🔴 СКОЛЬКО МЫ ВЫБРОСИЛИ — ДОЕЗЖАЕТ С ПЕРВЫМ ЖЕ ДОШЕДШИМ. Иначе о потерях
+     * знает только телефон, а он нам ничего не рассказывает. Счётчик обнуляется
+     * ТОЛЬКО после подтверждённой доставки: не дошло — цифра не потеряна.
+     */
+    const dropped = Number((await AsyncStorage.getItem(FEEDBACK_DROPPED_KEY)) || 0);
+    let droppedReported = false;
+
     for (const row of list) {
+      const ctx = (row.context && typeof row.context === 'object' ? row.context : {}) as Record<string, unknown>;
+      const queuedAt = typeof ctx.queued_at === 'string' ? Date.parse(ctx.queued_at) : NaN;
+      row.context = {
+        ...ctx,
+        queue_attempts: Number(ctx.queue_attempts ?? 0) + 1,
+        // Задержка доставки в секундах: по ней видно, что связь рвалась, и насколько.
+        queued_seconds: Number.isNaN(queuedAt) ? null : Math.round((Date.now() - queuedAt) / 1000),
+        ...(dropped > 0 && !droppedReported ? { queue_dropped_total: dropped } : {}),
+      };
       const { error } = await supabase.from('app_feedback').insert(row);
-      if (error) { left.push(row); } else { sent++; }
+      if (error) {
+        // Причину последнего отказа держим при строке: без неё повторные
+        // неудачи неразличимы, и чинить нечего.
+        row.context = { ...(row.context as Record<string, unknown>), queue_last_error: String(error.message ?? error).slice(0, 200) };
+        left.push(row);
+      } else {
+        sent++;
+        if (dropped > 0) droppedReported = true;
+      }
     }
     await AsyncStorage.setItem(FEEDBACK_QUEUE_KEY, JSON.stringify(left));
+    if (droppedReported) await AsyncStorage.setItem(FEEDBACK_DROPPED_KEY, '0');
     return sent;
   } catch {
     return 0;
