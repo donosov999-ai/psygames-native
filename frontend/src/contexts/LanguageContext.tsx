@@ -1264,11 +1264,11 @@ const translations: Translations = {
   benefitStory3:   { ru: 'Бизнес-встречи / детали',   en: 'Business meetings / details' },
 
   // Round 7 — C5 RMET
-  rmet:            { ru: 'Reading Mind in Eyes',   en: 'Reading the Mind in the Eyes' },
-  rmetDesc:        { ru: 'Угадай эмоцию по глазам', en: 'Guess emotion from the eyes' },
+  rmet:            { ru: 'Прочти эмоцию',   en: 'Read the emotion' },
+  rmetDesc:        { ru: 'Угадай, что человек чувствует', en: 'Guess what the person feels' },
   rmetIntroDesc: {
-    ru: 'Reading the Mind in the Eyes Test (Baron-Cohen 2001) — классический тест cognitive empathy / Theory of Mind. Видишь выражение глаз и краткое описание, выбираешь одну эмоцию из 4. Норма для оригинального 36-trial: 22-30 правильных. Биомаркер accuracy. Критично для переговоров и публичной коммуникации — мера декодирования эмоционального состояния собеседника.',
-    en: 'Reading the Mind in the Eyes Test (Baron-Cohen 2001) — classic cognitive empathy / Theory of Mind test. See eye expression + brief context, pick one emotion from 4. Normal range for original 36-trial: 22-30 correct. Biomarker: accuracy. Critical for negotiations and public communication — measures decoding of partner emotional state.'
+    ru: 'Упражнение ПО МОТИВАМ парадигмы распознавания эмоций по глазам (Baron-Cohen, 2001) — это не сам тест. Там фотографии глаз и 36 пунктов; здесь свой материал и 18. Значит нормы оригинала сюда НЕ переносятся, и сравнивать себя с ними нельзя. Показываем выражение и короткий контекст, ты выбираешь одну эмоцию из четырёх. Мерка — точность. Полезно там, где надо считывать состояние собеседника: переговоры, публичная речь.',
+    en: 'An exercise INSPIRED BY the eyes-based emotion recognition paradigm (Baron-Cohen, 2001) — it is not that test. The original uses photographs of eyes and 36 items; this one uses its own material and 18. So the original norms do NOT carry over here and you should not compare yourself against them. You see an expression and a short context, and pick one emotion out of four. The measure is accuracy. Useful wherever you must read another person’s state: negotiation, public speaking.',
   },
   rmetNote:        { ru: 'Замена для оригинала с фотографиями: схематичные рисованные глаза. Психометрически направление верное, точные нормы могут отличаться.',
                     en: 'Substitute for the original photo set: schematic drawn eyes. Psychometric direction valid; exact norms may differ.' },
@@ -1323,7 +1323,16 @@ const translations: Translations = {
   btn_replay_tutorial: { ru: 'Показать туториал заново', en: 'Replay the tutorial' },
   btn_save_backup: { ru: 'Сохранить бэкап прогресса', en: 'Save progress backup' },
   btn_restore_backup: { ru: 'Восстановить из бэкапа', en: 'Restore from backup' },
-  label_validated_paradigms: { ru: '48 валидированных парадигм', en: '48 validated paradigms' },
+  /**
+   * 🔴 БЫЛО 48. Стало 47, потому что одна игра парадигмой НЕ была: упражнение на
+   * распознавание эмоций числилось как тест Reading the Mind in the Eyes
+   * (Baron-Cohen, 2001), хотя в оригинале фотографии глаз и 36 пунктов, а у нас
+   * свой материал и 18. Нормы оригинала к нему неприменимы, значит и в счёт
+   * валидированных он не входит. Переименовано и переписано во всех 12 языках.
+   * ⚠️ Оставшиеся 47 УНАСЛЕДОВАНЫ и поштучно не проверены — это отдельная
+   * задача про 24 неописанные игры. Цифра должна быть правдой, а не круглой.
+   */
+  label_validated_paradigms: { ru: '47 валидированных парадигм', en: '47 validated paradigms' },
   hint_profile_tap_telegram: { ru: 'Клик по профилю → детали + запрос кода в Telegram', en: 'Tap a profile → details + request a code on Telegram' },
   hint_profile_tap_unlock: { ru: 'Клик по профилю → детали и разблокировка кодом', en: 'Tap a profile → details and unlock with a code' },
   btn_hint: { ru: 'Подсказка', en: 'Hint' },
