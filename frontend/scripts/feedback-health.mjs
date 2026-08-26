@@ -80,13 +80,23 @@ try {
   const t = await q(`app_feedback?select=id&is_robot=eq.false&audio_path=not.is.null&transcript=is.null&created_at=lt.${ago(STUCK_TRANSCRIBE_H)}&limit=1`);
   add('расшифровка', (t.total ?? 0) === 0, t.total, `застряло записей: ${t.total} (порог ${STUCK_TRANSCRIBE_H} ч)`);
 
-  // 3. Зрение: скриншоты, которые никто не прочитал.
-  const v = await q(`app_feedback?select=id&is_robot=eq.false&shot_path=not.is.null&shot_caption=is.null&created_at=lt.${ago(STUCK_VISION_H)}&limit=1`);
-  add('зрение', (v.total ?? 0) === 0, v.total, `непрочитанных скриншотов: ${v.total} (порог ${STUCK_VISION_H} ч)`);
+  /**
+   * 3–4. Зрение и разбор — ПО ОБЕИМ ТАБЛИЦАМ.
+   * ⚠️ Первая редакция смотрела только `app_feedback` и проглядела настоящую
+   * поломку: работник для ВСЕГО брал бакет `feedback-shots`, а у багфикса скрины
+   * лежат в `bug-shots`. Ссылка не выписывалась, разбор шёл БЕЗ картинки и
+   * отчитывался успехом — 32 непрочитанных скриншота при «неразобранных 0».
+   * Проверка, которая смотрит половину конвейера, врёт про здоровье целого.
+   */
+  for (const t of ['app_feedback', 'bug_reports']) {
+    const v = await q(`${t}?select=id&is_robot=eq.false&shot_path=not.is.null&shot_caption=is.null&created_at=lt.${ago(STUCK_VISION_H)}&limit=1`);
+    add(`зрение · ${t === 'app_feedback' ? 'отзывы' : 'багфикс'}`, (v.total ?? 0) === 0, v.total,
+      `непрочитанных скриншотов: ${v.total} (порог ${STUCK_VISION_H} ч)`);
 
-  // 4. Разбор: очередь не должна копиться.
-  const i = await q(`app_feedback?select=id&is_robot=eq.false&intake_at=is.null&created_at=lt.${ago(STUCK_INTAKE_H)}&limit=1`);
-  add('разбор', (i.total ?? 0) === 0, i.total, `неразобранных старше суток: ${i.total}`);
+    const i = await q(`${t}?select=id&is_robot=eq.false&intake_at=is.null&created_at=lt.${ago(STUCK_INTAKE_H)}&limit=1`);
+    add(`разбор · ${t === 'app_feedback' ? 'отзывы' : 'багфикс'}`, (i.total ?? 0) === 0, i.total,
+      `неразобранных старше суток: ${i.total}`);
+  }
 
   // 5. Обратный контур: починили, а человеку не сказали.
   const f = await q('app_feedback?select=id&is_robot=eq.false&fixed_in_version=not.is.null&fix_note=is.null&limit=1');
@@ -105,7 +115,7 @@ const broken = checks.filter((c) => !c.ok);
 if (JSON_OUT) {
   console.log(JSON.stringify({ здоров: broken.length === 0, проверки: checks }, null, 2));
 } else {
-  for (const c of checks) console.log(`${c.ok ? '✅' : '🔴'} ${c.имя.padEnd(16)} ${c.что}`);
+  for (const c of checks) console.log(`${c.ok ? '✅' : '🔴'} ${c.имя.padEnd(22)} ${c.что}`);
   console.log('');
   if (broken.length) {
     // ГРОМКО: перечислить поимённо, а не «есть проблемы».
