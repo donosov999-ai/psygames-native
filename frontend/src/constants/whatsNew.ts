@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.240.2',
+    date: '2026-08-27',
+    ru: [
+      'Ханойская башня: цель по ходам была завышена — на поздних уровнях показывалось 4095 вместо 47, и три звезды давались за любое решение. Теперь минимум считается честно',
+      'Ханойская башня стала видна: доска во весь экран, диски разного цвета по размеру и крупнее, стержни читаются как предмет',
+    ],
+    en: [
+      'Tower of Hanoi: the move target was inflated — later levels showed 4095 instead of 47, and three stars were given for any solution. The minimum is now computed honestly',
+      'Tower of Hanoi is finally visible: full-height board, discs coloured by size and larger, pegs read as objects',
+    ],
+  },
+  {
     version: '1.240.1',
     date: '2026-08-27',
     ru: [
