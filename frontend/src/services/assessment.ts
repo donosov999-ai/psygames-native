@@ -50,7 +50,10 @@ export const DOMAINS: DomainInfo[] = [
   { id: 'risk',               label_ru: 'Риск/решения',          label_en: 'Risk/decisions',   game_id: 'bart',           metric: 'adj_avg_pumps',          norm_mean: 30,   norm_std: 10,   higher_is_better: true },
 ];
 
-// SHORT-version playlist for the assessment battery (~12 min total).
+// SHORT-version playlist for the assessment battery.
+// 🔴 ДЛИТЕЛЬНОСТЬ СЧИТАЕТСЯ, А НЕ ЗАЯВЛЯЕТСЯ. Замер 23.08.2026: 12 шагов = 1160 с = 19,3 мин,
+// а в шапке и на карточке «Зарядки» стояло «~12 мин» — расхождение 7 минут, видное человеку.
+// Живая цифра: sum(est_duration_sec) <!-- живая: grep -oE 'est_duration_sec: [0-9]+' src/services/assessment.ts | grep -oE '[0-9]+' | awk '{s+=$1} END {print int(s/60)}' -->
 // Uses minimum trial counts that still give a stable biomarker reading.
 export const ASSESSMENT_PLAYLIST: PlaylistStep[] = [
   { game_id: 'digit_span',      game_route: '/games/digit-span',       difficulty: 'medium', mode: 'forward',   est_duration_sec: 60 },
