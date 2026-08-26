@@ -106,7 +106,7 @@ function FullHome() {
    * «предприниматели — лого херово видно» (замер: logo7 яркостью 71 из 255).
    * Таблица и разбор — в `profileLogos.ts`.
    */
-  const logoPlateBg = logoPlateFor(profile?.id) === 'dark' ? '#12151AE0' : '#FFFFFFE6';
+  const logoPlateBg = logoPlateFor(profile?.id) === 'dark' ? '#12151AC7' : '#FFFFFFD1';
   const eveningMeta = buildEveningWarmupPlaylist({ weekday: getCurrentWeekday(), profileEvening: profile.evening_playlist });   // вечер: ротация по дню (или профильный фикс)
   const { width: winWidth } = useWindowDimensions();
   const [duration, setDuration] = useState<5 | 10 | 15>(5);
@@ -573,7 +573,12 @@ function FullHome() {
               // чтобы шапка не разъехалась. Тот же приём, что у полоски лиг.
               minHeight: 44,
               marginVertical: -6,
-              backgroundColor: profile.color + '22',
+              /* 🔴 НАД ФОТО ЧИП ЗАЛИВАЕТСЯ В ПОЛНУЮ СИЛУ. Было `+'22'` — 13%
+                 прозрачности, то есть почти ничего: белая подпись «Шахматист»
+                 ложилась прямо на светлое дерево доски и сливалась (жалоба
+                 Дениса 26.08: «сверху текст сливается с фоном, контраст нужен»).
+                 Цвет берётся ЕГО ЖЕ — профильный, опознаваемость не теряется. */
+              backgroundColor: profileBg !== undefined ? profile.color + 'F2' : profile.color + '22',
               borderWidth: frameColor ? 2.5 : 1.5,
               borderColor: frameColor ?? profile.color + '88',
               paddingVertical: 5,
@@ -590,14 +595,18 @@ function FullHome() {
             ) : (
               <Text style={{ fontSize: 14 }}>{profile.emoji}</Text>
             )}
-            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13, flexShrink: 1 }} numberOfLines={1}>
+            {/* Цвет подписи — автоподбором под заливку чипа, а не `colors.text`:
+                на профильной заливке светлого оттенка белым читать нечего. */}
+            <Text style={{ color: profileBg !== undefined ? textOn(profile.color) : colors.text, fontWeight: '700', fontSize: 13, flexShrink: 1 }} numberOfLines={1}>
               {t('profileName_' + profile.id)}
             </Text>
-            <Ionicons name="chevron-down" size={14} color={colors.text} />
+            <Ionicons name="chevron-down" size={14} color={profileBg !== undefined ? textOn(profile.color) : colors.text} />
           </TouchableOpacity>
           {/* Титул из магазина — подпись под чипом (когда надет) */}
           {titleLabel && (
-            <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: '700', marginTop: -2, marginLeft: 2 }}>
+            <Text style={[{ fontSize: 11, fontWeight: '700', marginTop: -2, marginLeft: 2 }, profileBg !== undefined
+              ? { color: '#151A21', textShadowColor: 'rgba(255,255,255,0.9)', textShadowRadius: 6, textShadowOffset: { width: 0, height: 0 } }
+              : { color: colors.textSecondary }]}>
               {titleLabel}
             </Text>
           )}
