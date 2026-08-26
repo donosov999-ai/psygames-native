@@ -22,7 +22,8 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import GameCard from '@/src/components/GameCard';
 import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
-import { logoForProfile } from '@/src/constants/profileLogos';
+import { profileBackground } from '@/src/constants/profileBackgrounds';
+import { logoForProfile, logoPlateFor } from '@/src/constants/profileLogos';
 import { getEquippedFrameColor, getEquippedTitle, getEquippedAvatarKey } from '@/src/services/cosmetics';
 import { avatarImage } from '@/src/constants/avatars';
 import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
@@ -84,11 +85,8 @@ const SLOT_TINT: Record<WarmupSlot, [string, string]> = {
  * `GradientSurface` — градиент остаётся собой, меняется только глубина.
  */
 const HERO_EYE = ['#43cea2', '#185a9d'];
-const HERO_BREATH = ['#5b86e5', '#36d1dc'];
 const ON_EYE = onGradientText(HERO_EYE[0], HERO_EYE[1]);
-const ON_BREATH = onGradientText(HERO_BREATH[0], HERO_BREATH[1]);
 const ON_EYE_SOFT = onGradientTextMuted(ON_EYE);
-const ON_BREATH_SOFT = onGradientTextMuted(ON_BREATH);
 
 export default function HomeScreen() {
   if (IS_WEB_DEMO) return <DemoLanding />;
@@ -101,6 +99,14 @@ function FullHome() {
   const router = useRouter();
   const warmup = useWarmup();
   const { profile, ready: profileReady } = useProfile();
+  const profileBg = profileBackground(profile?.id);
+  /**
+   * Плашка под вордмарком — по САМОМУ ЗНАКУ, а не по теме. Раньше здесь стоял
+   * `colors.surface + 'CC'`: на тёмной теме тёмная плашка под тёмным лого, и
+   * «предприниматели — лого херово видно» (замер: logo7 яркостью 71 из 255).
+   * Таблица и разбор — в `profileLogos.ts`.
+   */
+  const logoPlateBg = logoPlateFor(profile?.id) === 'dark' ? '#12151AE0' : '#FFFFFFE6';
   const eveningMeta = buildEveningWarmupPlaylist({ weekday: getCurrentWeekday(), profileEvening: profile.evening_playlist });   // вечер: ротация по дню (или профильный фикс)
   const { width: winWidth } = useWindowDimensions();
   const [duration, setDuration] = useState<5 | 10 | 15>(5);
@@ -397,7 +403,43 @@ function FullHome() {
           выглядела впустую («поменяла интерфейс на розовый — незаметно, что их не видно»,
           репорт 02.08). Выше поднимать нельзя — под ней лежат карточки игр со своими
           градиентами, и сильная подложка начала бы с ними спорить. */}
-      <LinearGradient colors={[colors.primary + '4D', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 260 }} pointerEvents="none" />
+      {/**
+        * 🔴 ФОН ПОД ПРОФИЛЬ, А НЕ ОДНА ЗАЛИВКА НА ВСЕХ. Просьба Дениса 26.08.2026:
+        * «фон не нравится, чтобы вместо заливки была картинка в низком разрешении
+        * на тему» и «я наоборот в предпринимателях хочу уйти от чёрного».
+        * Разбор, замеры контраста и вес — в шапке `constants/profileBackgrounds`.
+        *
+        * ⚠️ ЗАЛИВКА ЦВЕТОМ ОСТАЛАСЬ ПОВЕРХ КАРТИНКИ И НЕ УДАЛЕНА. Она показывает
+        * КУПЛЕННЫЙ цвет интерфейса, и без неё покупка снова стала бы незаметной —
+        * ровно репорт 02.08 («поменяла интерфейс на розовый, а не видно»). Поэтому
+        * поверх фото она идёт слабее (30% → 18%): цвет читается, картинку не топит.
+        * У профилей без своего фона всё остаётся как было, на прежних 30%.
+        */}
+      {profileBg !== undefined && (
+        <Image
+          source={profileBg}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300 }}
+          resizeMode="cover"
+        />
+      )}
+      {/* Налёт цветом ТЕМЫ — он показывает купленный цвет интерфейса, поэтому
+          остаётся и поверх фото, только слабее (30% → 18%): без него смена цвета
+          на главной стала бы незаметной, а такой репорт уже был 02.08. */}
+      <LinearGradient colors={[colors.primary + (profileBg !== undefined ? '2E' : '4D'), 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: profileBg !== undefined ? 300 : 260 }} pointerEvents="none" />
+      {/* 🔴 РАСТВОРЕНИЕ НИЗА ФОТО В ФОН ТЕМЫ. Без него снимок обрывался ровной
+          горизонтальной линией посреди экрана — на скриншоте 26.08 это выглядело
+          как оторванный край. Заодно чинит ЧИТАЕМОСТЬ: подзаголовок «Train Your
+          Brain · …» идёт цветом темы и на светлом небе сливался; ниже 55% высоты
+          он снова лежит на обычном фоне приложения, а не на картинке. */}
+      {profileBg !== undefined && (
+        <LinearGradient
+          colors={['transparent', 'transparent', colors.background]}
+          locations={[0, 0.46, 1]}
+          start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300 }}
+          pointerEvents="none"
+        />
+      )}
       {streakToast !== null && (
         <View style={{ position: 'absolute', top: 76, left: 0, right: 0, alignItems: 'center', zIndex: 150 }} pointerEvents="none">
           <View style={{ backgroundColor: '#ef4444', paddingHorizontal: 18, paddingVertical: 9, borderRadius: 100, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -427,7 +469,7 @@ function FullHome() {
             {/* v1.128.0: лого стояло ВПРИТЫК к плашке (maxWidth 174 = ровно её внутренняя
                 ширина) — крайние буквы читались как «срезанные» (репорт). Убрали maxWidth
                 у Image, добавили полям воздуха, скругление ≤ паддинга — углы не съедает. */}
-            <View style={{ alignSelf: 'flex-start', maxWidth: 190, width: '100%', backgroundColor: colors.surface + 'CC', borderRadius: 10, paddingHorizontal: 11, paddingVertical: 5, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } }}>
+            <View style={{ alignSelf: 'flex-start', maxWidth: 190, width: '100%', backgroundColor: logoPlateBg, borderRadius: 10, paddingHorizontal: 11, paddingVertical: 5, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } }}>
               <Image source={logoForProfile(profile?.id)} accessibilityLabel="PsyGames" style={{ height: 40, width: '100%' }} resizeMode="contain" />
             </View>
           </View>
@@ -607,7 +649,18 @@ function FullHome() {
         {/* v1.122.0: подпись — ОТДЕЛЬНОЙ строкой во всю ширину. Раньше делила ряд с 5 иконками
             (252px жёстких) → на 375px тексту оставалось ~83px, и он вставал в столбик,
             разрываясь посреди слова. При системном крупном шрифте съедал пол-экрана. */}
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={3}>
+        {/* 🔴 ПОДЗАГОЛОВОК ЛЕЖИТ НА ФОТО, А НЕ НА ФОНЕ ТЕМЫ. Цвет `textSecondary`
+            рассчитан на ровную заливку и на светлом снимке сливался (проверено на
+            профиле «Шахматист»: подпись шла поверх светлого дерева доски).
+            Тёмный цвет со СВЕТЛЫМ ореолом выбран потому, что снимок неоднороден:
+            у шахмат рядом и белые, и тёмные клетки — одной заливкой их не покрыть,
+            а обводка читается на обеих. Без фото всё остаётся как было. */}
+        <Text
+          style={[styles.subtitle, profileBg !== undefined
+            ? { color: '#151A21', textShadowColor: 'rgba(255,255,255,0.9)', textShadowRadius: 6, textShadowOffset: { width: 0, height: 0 } }
+            : { color: colors.textSecondary }]}
+          numberOfLines={3}
+        >
           {t('trainYourBrain')} · {t('homeSwitchHint')}
         </Text>
         {/* v1.148: баннер «доступно обновление» (тихая автопроверка раз в сутки) */}
@@ -839,47 +892,31 @@ function FullHome() {
           </TouchableOpacity>
           )}
 
-          {/* 👁 Быстрый перерыв для глаз */}
+          {/* 🌿 ПАУЗА — одна кнопка вместо двух: «Гимнастика глаз» и «Дыхание».
+              Просьба Дениса 26.08.2026: «надо слить в одну кнопку Гимнастику глаз
+              и дыхание, третьей кнопкой можно поставить Вызов дня».
+              Слияние НЕ выдумано под кнопку: `breathing` и `eye-gym` — это две из
+              двадцати двух практик модуля «Пауза» (`src/games/pause`), рядом с
+              лицом, осанкой, подвижностью и расслаблением. То есть две карточки на
+              главной вели в два подмножества одного и того же набора, а подпись
+              `pauseDesc` уже перечисляла и дыхание, и глаза.
+              Отдельные экраны /games/eye-gym и /games/breathing НЕ удалены: они
+              остаются в разделах и в «Зарядке», убран только дубль на главной. */}
           <TouchableOpacity
-            accessibilityRole="button" style={styles.heroCardWrap} onPress={() => router.push('/games/eye-gym' as any)} activeOpacity={0.85}>
+            accessibilityRole="button" style={styles.heroCardWrap}
+            onPress={() => router.push('/games/pause' as any)} activeOpacity={0.85}>
             <GradientSurface colors={HERO_EYE as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
               <View style={styles.heroTopRow}>
-                <Image source={FEATURE_ICONS.eyegym} style={{ width: 34, height: 34, borderRadius: 10 }} />
+                <Ionicons name="leaf-outline" size={26} color={ON_EYE.color} />
               </View>
-              <Text style={[styles.heroTitle, { color: ON_EYE.color }]} numberOfLines={2}>{t('eyeGym')}</Text>
-              <Text style={[styles.heroSub, { color: ON_EYE_SOFT }]} numberOfLines={2}>{t('eyeGymDesc')}</Text>
+              <Text style={[styles.heroTitle, { color: ON_EYE.color }]} numberOfLines={2}>{t('pause')}</Text>
+              <Text style={[styles.heroSub, { color: ON_EYE_SOFT }]} numberOfLines={3}>{t('pauseDesc')}</Text>
               <View style={[styles.heroCta, { backgroundColor: '#FFF' }]}>
                 <Ionicons name="play" size={14} color="#185a9d" />
                 <Text style={[styles.heroCtaText, { color: '#185a9d' }]}>{t('ctaStart')}</Text>
               </View>
             </GradientSurface>
           </TouchableOpacity>
-
-          {/* 🌬 Дыхание — самостоятельное упражнение, а не только финал вечернего
-              набора: в комплексе оно остаётся третьим шагом (решение Дениса 03.08). */}
-          <TouchableOpacity
-            accessibilityRole="button" style={styles.heroCardWrap}
-            onPress={() => router.push('/games/breathing' as any)} activeOpacity={0.85}>
-            <GradientSurface colors={HERO_BREATH as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
-              <View style={styles.heroTopRow}>
-                <Ionicons name="leaf-outline" size={26} color={ON_BREATH.color} />
-              </View>
-              <Text style={[styles.heroTitle, { color: ON_BREATH.color }]} numberOfLines={2}>{t('breathing')}</Text>
-              <Text style={[styles.heroSub, { color: ON_BREATH_SOFT }]} numberOfLines={3}>{t('breathingDesc')}</Text>
-              <View style={[styles.heroCta, { backgroundColor: innerScrim(ON_BREATH, 0.3) }]}>
-                <Ionicons name="play" size={14} color={ON_BREATH.color} />
-                <Text style={[styles.heroCtaText, { color: ON_BREATH.color }]}>{t('ctaStart')}</Text>
-              </View>
-            </GradientSurface>
-          </TouchableOpacity>
-        </View>
-
-        {/* === 3 HERO CARDS in a row (compact) === (each gated by profile) */}
-        <View style={styles.heroRow}>
-
-          {/* v1.179: «Утренняя зарядка» и «Вечерний комплекс» отсюда УБРАНЫ —
-              они схлопнуты в одну кнопку «Зарядка» в ряду практик выше, набор
-              выбирается на /warmup-picker. Здесь остались испытания и замеры. */}
           {/* 🎯 Ежедневный вызов — ротация игр, детерминировано по дате */}
           <TouchableOpacity
             accessibilityRole="button" style={styles.heroCardWrap} onPress={startDailyChallenge} activeOpacity={0.85}>
@@ -906,16 +943,15 @@ function FullHome() {
               </View>
             </GradientSurface>
           </TouchableOpacity>
-          {/* v1.232: «Оценка» и FIN BRAIN УБРАНЫ ОТСЮДА — они переехали в «Зарядку».
-              Решение Дениса 23.08.2026: «перенести в зарядку всё, что идёт сериями».
-              Обе — не игра, а ПОСЛЕДОВАТЕЛЬНОСТЬ игр с общим прогоном и одним итогом,
-              то есть ровно то же, чем является зарядка. Держать их отдельными
-              карточками значило иметь два входа в один и тот же движок плейлистов
-              (`WarmupContext`) и объяснять человеку разницу, которой нет.
-              Теперь вход один: карточка «Зарядка» → /warmup-picker, раздел «Серии».
-              Стережёт `series-live-in-warmup.test.ts`. */}
-
         </View>
+
+        {/* v1.238: ВТОРОГО РЯДА КАРТОЧЕК БОЛЬШЕ НЕТ.
+            В нём оставался ровно один жилец — «Вызов дня»: «Оценка» и FIN BRAIN
+            уехали в «Зарядку» ещё в v1.232 (решение Дениса 23.08.2026 — «перенести
+            в зарядку всё, что идёт сериями»). Ряд из одной карточки растягивал её
+            на треть экрана и держал заголовок ряда ради пустоты.
+            Теперь «Вызов дня» стоит третьим в ряду выше — там, где Денис его и
+            просил 26.08.2026: «третьей кнопкой можно поставить Вызов дня». */}
 
         {/* === Manual category sections === */}
         {CATEGORY_ORDER.map((cat) => {
