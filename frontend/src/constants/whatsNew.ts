@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.240.0',
+    date: '2026-08-26',
+    ru: [
+      'Экран между уровнями стал наградой: девять новых городов — шахматный, сладкий, книжный, розовый и другие; свой город профиля приходит вехой',
+      'Переход держится дольше — успеваешь рассмотреть картину, а не только заметить её',
+    ],
+    en: [
+      'The between-levels screen is now a reward: nine new cities — chess, candy, book, rose and more; your profile city returns as a milestone',
+      'The transition lasts longer — enough time to actually look at the artwork',
+    ],
+  },
+  {
     version: '1.239.3',
     date: '2026-08-26',
     ru: [

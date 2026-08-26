@@ -18,8 +18,21 @@ const { join } = require('path');
 const SRC = readFileSync(join(__dirname, '../components/LevelInterlude.tsx'), 'utf8') as string;
 const DIR = join(__dirname, '../../assets/images/interlude');
 
-/** Список панелей читаем ИЗ ЭКРАНА, а не из своей копии. */
-const PANELS: string[] = [...SRC.matchAll(/interlude\/([\w-]+\.webp)/g)].map((m) => m[1]);
+/**
+ * Список панелей читаем ИЗ ЭКРАНА, а не из своей копии.
+ *
+ * ⚠️ РЕЕСТРОВ ДВА, И ЭТО ВЫЯСНИЛОСЬ КРАСНОТОЙ. 26.08.2026 к прежним восьми
+ * пейзажам добавились девять городов профилей — они лежат в той же папке, но
+ * объявлены в `constants/profileRoads.ts`, а не в экране. Проверка «на диске нет
+ * панелей мимо списка» тут же покраснела, и правильно: файл, не попавший ни в
+ * один реестр, — это либо забытая уборка, либо картинка, которую забыли
+ * подключить. Ослаблять её нельзя, поэтому читаются ОБА источника.
+ */
+const ROADS_SRC = readFileSync(join(__dirname, '../constants/profileRoads.ts'), 'utf8') as string;
+const PANELS: string[] = [
+  ...[...SRC.matchAll(/interlude\/([\w-]+\.webp)/g)].map((m) => m[1]),
+  ...[...ROADS_SRC.matchAll(/interlude\/([\w-]+\.webp)/g)].map((m) => m[1]),
+];
 
 
 /**

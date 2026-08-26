@@ -47,6 +47,9 @@ import { useReducedMotion } from '@/src/hooks/useReducedMotion';
  * к десятому человек видел каждую панель уже трижды. Восемь стоят 512 КБ на все
  * — дешевле одного спрайтового набора игры.
  */
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { profileRoad, isOwnCityLevel, ROAD_LIST } from '@/src/constants/profileRoads';
+
 const PANELS = [
   require('../../assets/images/interlude/meadow.webp'),
   require('../../assets/images/interlude/forest.webp'),
@@ -134,7 +137,28 @@ export default function LevelInterlude({ level, stars, ms, nextLine, doneLine, c
     return () => a.stop();
   }, [ms, reduced, walk]);
 
-  const panel = PANELS[Math.max(0, level) % PANELS.length];
+  /**
+   * 🔴 КАРТИНКА ПЕРЕХОДА — ЭТО НАГРАДА, А НЕ ЗАСТАВКА.
+   * Денис 26.08.2026: «переход между уровнями — это награда, редкая картинка,
+   * ради которой человек делал упражнение».
+   *
+   * Отсюда два правила, и второе неочевидно:
+   * 1. Каждый уровень даёт ДРУГУЮ картину. Набор общий — восемь прежних пейзажей
+   *    плюс девять новых городов профилей, итого 17.
+   * 2. Свой город профиля возвращается ВЕХОЙ (первый уровень и каждый пятый), а
+   *    не показывается всегда. Одна и та же картинка на каждом уровне перестаёт
+   *    быть подарком к четвёртому разу — редкость создаётся чередованием.
+   *
+   * ⚠️ Если у профиля своего города нет (`free`, `odv999`, `whatsnew`), веха
+   * просто не срабатывает и идёт общий набор — подставлять чужой город нельзя,
+   * это ровно та подмена, из-за которой награда обесценивается.
+   */
+  const { profile } = useProfile();
+  const own = profileRoad(profile?.id);
+  const pool = [...PANELS, ...ROAD_LIST];
+  const panel = own !== undefined && isOwnCityLevel(level)
+    ? own
+    : pool[Math.max(0, level) % pool.length];
 
   /**
    * ЛЕСТНИЦА СТУПЕНЕЙ — СНИЗУ ВВЕРХ, И НЕ ОДНА СТУПЕНЬ, А НЕСКОЛЬКО.
