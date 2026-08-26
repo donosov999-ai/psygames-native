@@ -1,4 +1,4 @@
-/* psygames-game-word-pairs · VER 1 · 19.08.2026 */
+/* psygames-game-word-pairs · VER 2 · 23.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -29,6 +29,8 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
 
 const GRADIENT = ['#f093fb', '#f5576c'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -79,6 +81,7 @@ const maxErrorsAllowed = (pairCount: number) => Math.floor(pairCount / 4);
 export default function WordPairsGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const { profile } = useProfile();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
@@ -128,43 +131,38 @@ export default function WordPairsGame() {
     setTargetLang((cur) => (cur === language ? (language === 'en' ? 'es' : 'en') : cur));
   }, [language]);
 
-  const generatePairs = (count: number) => {
+  /**
+   * 🔴 СНАЧАЛА ТО, ЧЕГО ЧЕЛОВЕК ЕЩЁ НЕ ВИДЕЛ. Раньше обе ветки просто тасовали список
+   * без всякой памяти между сессиями, а словарь переводов — 189 записей на ЧЕТЫРЕ
+   * игры. Замер (симуляция 300 прогонов, 8 пар за сессию): за 10 сессий уже виденных
+   * 31%, за 30 сессий 63%. Разбор — в шапке `services/freshPool`.
+   * ⚠️ Запас у КАЖДОГО режима свой: «перевод» и «слова» тянут из разных списков, и
+   * общий запас означал бы, что игра в один режим выедает материал другого.
+   */
+  const generatePairs = async (count: number): Promise<WordPair[]> => {
     if (mode === 'translation') {
       const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
-      const vocab = [...TRANSLATION_VOCAB];
-      for (let i = vocab.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [vocab[i], vocab[j]] = [vocab[j], vocab[i]];
-      }
-      const transPairs: WordPair[] = [];
-      for (let i = 0; i < count && i < vocab.length; i++) {
-        transPairs.push({
-          id: i,
-          word1: vocab[i][language] || vocab[i].en,
-          word2: vocab[i][tgt] || vocab[i].en,
-        });
-      }
-      return transPairs;
+      const seen = await readSeen('word_pairs_translation', profile?.id);
+      const res = pickFreshFrom(TRANSLATION_VOCAB, count, seen, (e) => e.en);
+      await writeSeen('word_pairs_translation', profile?.id, res.seen);
+      return res.picked.map((e, i) => ({
+        id: i,
+        word1: e[language] || e.en,
+        word2: e[tgt] || e.en,
+      }));
     }
-    const words = language === 'ru' ? [...RUSSIAN_WORDS] : [...ENGLISH_WORDS];
-    // Shuffle words
-    for (let i = words.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [words[i], words[j]] = [words[j], words[i]];
-    }
-
+    const all = language === 'ru' ? RUSSIAN_WORDS : ENGLISH_WORDS;
+    const seen = await readSeen(`word_pairs_words_${language}`, profile?.id);
+    const res = pickFreshFrom(all, count * 2, seen, (w) => w);
+    await writeSeen(`word_pairs_words_${language}`, profile?.id, res.seen);
     const newPairs: WordPair[] = [];
     for (let i = 0; i < count; i++) {
-      newPairs.push({
-        id: i,
-        word1: words[i * 2],
-        word2: words[i * 2 + 1],
-      });
+      newPairs.push({ id: i, word1: res.picked[i * 2], word2: res.picked[i * 2 + 1] });
     }
     return newPairs;
   };
 
-  const startGame = () => {
+  const startGame = async () => {
     // Уровневый режим (persist): число пар и лимит запоминания из levelParams.
     // Пресет зарядки — ручной pairCount, без лимита времени.
     const useLevel = !isPreset;
@@ -182,7 +180,7 @@ export default function WordPairsGame() {
       count = pairCount;
       setMemorizeLimitSec(0);
     }
-    const newPairs = generatePairs(count);
+    const newPairs = await generatePairs(count);
     pairsRef.current = newPairs;
     checkStartedRef.current = false;
     setPairs(newPairs);

@@ -1,4 +1,4 @@
-/* psygames-game-listening-span · VER 1 · 19.08.2026 */
+/* psygames-game-listening-span · VER 2 · 23.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
@@ -25,6 +25,8 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
 
 const GRADIENT = ['#4776E6', '#8E54E9'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -67,17 +69,18 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-// count уникальных слов целевого языка из общего словаря
-function pickWords(targetLang: string, count: number): string[] {
+/** Все уникальные слова целевого языка из общего словаря — мешок, из которого берём. */
+function wordPool(targetLang: string): string[] {
   const pool = TRANSLATION_VOCAB
     .map((e) => e[targetLang])
     .filter((w): w is string => typeof w === 'string' && w.length > 0);
-  return shuffle(Array.from(new Set(pool))).slice(0, count);
+  return Array.from(new Set(pool));
 }
 
 export default function ListeningSpanGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as any;
+  const { profile } = useProfile();
   const lvl = usePersistentLevel(GAME_ID);
   const { isPreset, autostart, str, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
@@ -162,9 +165,19 @@ export default function ListeningSpanGame() {
     beginRound();
   };
 
-  const beginRound = () => {
+  const beginRound = async () => {
     const span = spanRef.current;
-    const words = pickWords(tlRef.current, span * 2);   // span услышанных + span дистракторов
+    /**
+     * 🔴 СНАЧАЛА ТО, ЧЕГО ЧЕЛОВЕК ЕЩЁ НЕ СЛЫШАЛ. Раньше был обычный `shuffle` без
+     * памяти между сессиями, а общий словарь — 189 слов на ЧЕТЫРЕ игры. Замер
+     * (симуляция 300 прогонов): за 10 сессий уже слышанных 13%, за 30 сессий 35%.
+     * Разбор и цифры соседей — в шапке `services/freshPool`.
+     */
+    const pool = wordPool(tlRef.current);
+    const seen = await readSeen('listening_span', profile?.id);
+    const res = pickFreshFrom(pool, span * 2, seen, (w) => w);
+    await writeSeen('listening_span', profile?.id, res.seen);
+    const words = res.picked;   // span услышанных + span дистракторов
     const spokenWords = words.slice(0, span);
     setSpoken(spokenWords);
     setGrid(shuffle(words));

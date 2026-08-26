@@ -12,7 +12,7 @@
  * ⚠️ Проверки ведут СВОЙ счёт повторов, а не спрашивают сервис. Хранилище не трогаем —
  * проверяется чистый `pickFreshFrom`, поэтому зёрна фиксированы и `Math.random` нет.
  */
-import { pickFreshFrom } from '@/src/services/freshPool';
+import { pickFreshFrom, poolKey } from '@/src/services/freshPool';
 
 /** Свой генератор с зерном — раздача обязана быть воспроизводимой. */
 function seeded(seed: number): () => number {
@@ -103,5 +103,46 @@ describe('запас невиданного', () => {
     const res = pickFreshFrom(items(5), 0, ['s1'], keyOf, seeded(1));
     expect(res.picked).toEqual([]);
     expect(res.seen).toEqual(['s1']);
+  });
+});
+
+describe('запасы не пересекаются', () => {
+  /**
+   * 🔴 Общий словарь переводов — 189 записей на ЧЕТЫРЕ игры. Замер повтора при
+   * обычном перемешивании (симуляция 300 прогонов):
+   *   парные слова (8 пар = 16 слов): за 10 сессий 31%, за 30 сессий 63%
+   *   пропуски (16):                  31% / 64%
+   *   сортировка слов (15):           29% / 61%
+   *   аудиторный размах (6):          13% / 35%
+   * Поэтому запас заведён каждой игре свой: общий означал бы, что партия в одну игру
+   * выедает материал соседней, и «невиданное» кончалось бы вчетверо быстрее.
+   * ⚠️ У «парных слов» ДВА режима на разных списках («перевод» и «слова») — у них
+   * тоже запасы раздельные, иначе один режим выедал бы другой.
+   */
+  it('🔴 разные игры и режимы — разные ключи хранилища', () => {
+    const keys = [
+      poolKey('reading_span', 'odv'),
+      poolKey('listening_span', 'odv'),
+      poolKey('word_pairs_translation', 'odv'),
+      poolKey('word_pairs_words_ru', 'odv'),
+      poolKey('word_pairs_words_en', 'odv'),
+    ];
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it('🔴 запас у каждого ПРОФИЛЯ свой — чужой прогресс не съедает мой', () => {
+    expect(poolKey('reading_span', 'odv')).not.toBe(poolKey('reading_span', 'valya'));
+    expect(poolKey('reading_span', undefined)).toBe(poolKey('reading_span', 'guest'));
+  });
+
+  it('🔴 запас одной игры не влияет на выдачу другой', () => {
+    const all = items(20);
+    const rng = seeded(555);
+    // «видели» первые 10 в одной игре — на другую игру это влиять не должно
+    const seenA = all.slice(0, 10).map(keyOf);
+    const inB = pickFreshFrom(all, 10, [], keyOf, rng);        // у B свой, пустой запас
+    const fromSeenA = inB.picked.filter((it) => seenA.includes(keyOf(it))).length;
+    expect(inB.wrapped).toBe(false);
+    expect(fromSeenA).toBeGreaterThan(0);   // B спокойно берёт то, что видели в A
   });
 });

@@ -36,7 +36,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'inhibition': { ver: 1, date: '19.08.2026' },
   'iowa': { ver: 1, date: '19.08.2026' },
   'lexical-decision': { ver: 1, date: '19.08.2026' },
-  'listening-span': { ver: 1, date: '19.08.2026' },
+  'listening-span': { ver: 2, date: '23.08.2026' },
   'mahjong': { ver: 2, date: '23.08.2026' },
   'math-slider': { ver: 2, date: '17.08.2026' },
   'math-sprint': { ver: 1, date: '19.08.2026' },
@@ -84,7 +84,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'visual-search': { ver: 1, date: '19.08.2026' },
   'vocab-srs': { ver: 1, date: '19.08.2026' },
   'wcst': { ver: 1, date: '19.08.2026' },
-  'word-pairs': { ver: 1, date: '19.08.2026' },
+  'word-pairs': { ver: 2, date: '23.08.2026' },
 };
 
 /** Редакция экрана по его id. `null`, если экран не проштампован. */
