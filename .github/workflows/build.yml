@@ -1249,6 +1249,17 @@ jobs:
             put version.json -o $CONTABO_REMOTE_DIR/version.json;
             bye"
           echo "OK version.json -> $VER (бейдж на /download подхватит через fetch)"
+          # 🔴 ПРОЧИТАТЬ ОБРАТНО, А НЕ ПОВЕРИТЬ. Шаг стоит под continue-on-error, и
+          # ровно поэтому его провал был НЕВИДИМ: 26.08.2026 файл три выпуска подряд
+          # отдавал 1.236.0, пока приложение считало эту версию свежей. «Команда не
+          # упала» и «файл на месте» — разные утверждения; проверяем второе.
+          sleep 3
+          LIVE=$(curl -fsS --max-time 20 "https://psy-games.pro/version.json" || echo "")
+          echo "прод отдаёт: $LIVE"
+          case "$LIVE" in
+            *"\"$VER\""*) echo "✅ version.json на проде совпал с тегом" ;;
+            *) echo "::error title=version.json не обновился::прод отдаёт «$LIVE», ждали $VER — приложение НЕ УЗНАЕТ о выпуске"; exit 1 ;;
+          esac
 
   # ─── Web → Contabo psy-games.pro/play (на тегах) ──────────────────────
   # Билдит web с baseUrl=/play и заливает на Contabo /play по SFTP.
@@ -1287,6 +1298,9 @@ jobs:
           # GitHub Releases не годится — репо приватный.
           printf '{"version": "%s"}\n' "${GITHUB_REF_NAME#v}" > frontend/dist/version.json
           cat frontend/dist/version.json
+          # ⚠️ Здесь только КЛАДЁМ файл в сборку; проверка чтением — после заливки,
+          # отдельным шагом ниже. Разделено намеренно: провалиться может как сборка,
+          # так и заливка, и путать их значит чинить не то.
 
       - name: SFTP dist → Contabo /play
         env:
