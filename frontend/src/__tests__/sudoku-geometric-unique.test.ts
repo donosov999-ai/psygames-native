@@ -80,13 +80,36 @@ function countOwn(
   return found;
 }
 
+/**
+ * ⚠️ ДОСКА СТРОИТСЯ ОДИН РАЗ НА УРОВЕНЬ И ПЕРЕИСПОЛЬЗУЕТСЯ.
+ *
+ * Первая редакция звала сборщик в каждой проверке — десять сборок на четыре
+ * уровня, 47 секунд на этот файл. На CI, где машина медленнее, шаг тестов
+ * упёрся в десятиминутный лимит и был УБИТ: в логе нет ни одной строки итога,
+ * только «Terminate orphan process (npm test --ci)». То есть выпуск встал не
+ * из-за красной проверки, а из-за того, что мой же гейт не уложился во время.
+ *
+ * Кеш ничего не ослабляет: проверки смотрят на РАЗНЫЕ свойства ОДНОЙ доски, и
+ * гонять ради каждой свежую сборку незачем. Разнообразие досок даёт не повтор
+ * внутри файла, а то, что генератор случаен и на каждом прогоне доска новая.
+ */
+type BuiltBoard = {
+  cfg: ReturnType<typeof levelConfig>;
+  gen: { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap };
+};
+const built = new Map<number, BuiltBoard>();
+
 function buildAt(level: number) {
+  const cached = built.get(level);
+  if (cached) return cached;
   const cfg = levelConfig(level);
   const b = logicalBuilder(level, cfg.blanks, cfg.N, cfg.BR, cfg.BC, cfg.variant, { budgetMs: 4000 });
   let made: ReturnType<typeof b.step> | null = null;
   for (let s = 0; s < b.steps; s++) { made = b.step(); if (b.enough(made)) break; }
   if (!made) throw new Error(`уровень ${level}: сборщик не отдал доску`);
-  return { cfg, gen: made.gen };
+  const out: BuiltBoard = { cfg, gen: made.gen };
+  built.set(level, out);
+  return out;
 }
 
 /** Верхние уровни каждого из четырёх геометрических вариантов. */
