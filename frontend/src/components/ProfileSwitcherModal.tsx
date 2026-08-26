@@ -313,7 +313,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   Корпоративная подписка
                 </Text>
                 <Text style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginBottom: 10, lineHeight: 15 }}>
-                  До {CORPORATE_PACK_MAX_CODES} кодов · 48 валидированных парадигм · безналичная оплата · договор · закрывающие документы
+                  До {CORPORATE_PACK_MAX_CODES} кодов · 47 валидированных парадигм · безналичная оплата · договор · закрывающие документы
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginBottom: 10 }}>
                   <Text style={{ fontSize: 22, fontWeight: '900', color: '#fbbf24' }}>{formatPrice(CORPORATE_PACK_PRICE)}</Text>
