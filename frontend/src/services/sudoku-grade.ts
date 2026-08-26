@@ -24,7 +24,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig,
+  Overlays, levelConfig, UnequalMap,
 } from './sudoku-core';
 
 export type Technique =
@@ -51,6 +51,8 @@ export interface GradeCtx {
   parity?: number[][];                       // 1 = чётная, 2 = нечётная, 0 = без метки
   kropki?: { h: number[][]; v: number[][] }; // 2 = чёрная, 1 = белая, 0 = ТОЧКА НЕ ПОКАЗАНА
   sandwich?: { rows: number[]; cols: number[] };
+  /** Знаки неравенства между соседями: 0 нет, 1 первая МЕНЬШЕ, 2 БОЛЬШЕ. */
+  unequal?: UnequalMap;
 }
 
 export interface Grade {
@@ -109,7 +111,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -121,6 +123,16 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
   let hardest: Technique = 'naked_single';
   const bump = (t: Technique) => { const tr = TECHNIQUE_TIER[t]; if (tr > maxTier) { maxTier = tr; hardest = t; } };
 
+  /** Не нарушает ли цифра показанные знаки — по УЖЕ известным соседям. */
+  const unequalOk = (g: Cell[][], r: number, c: number, v: number, n: number, uq: UnequalMap): boolean => {
+    const cmp = (a: number, b: number, sign: number) => (sign === 1 ? a < b : a > b);
+    if (c < n - 1 && uq.h[r][c] !== 0) { const o = g[r][c + 1]; if (o !== 0 && !cmp(v, o, uq.h[r][c])) return false; }
+    if (c > 0 && uq.h[r][c - 1] !== 0) { const o = g[r][c - 1]; if (o !== 0 && !cmp(o, v, uq.h[r][c - 1])) return false; }
+    if (r < n - 1 && uq.v[r][c] !== 0) { const o = g[r + 1][c]; if (o !== 0 && !cmp(v, o, uq.v[r][c])) return false; }
+    if (r > 0 && uq.v[r - 1][c] !== 0) { const o = g[r - 1][c]; if (o !== 0 && !cmp(o, v, uq.v[r - 1][c])) return false; }
+    return true;
+  };
+
   const kropkiOk = (d: number, a: number, b: number) => (d === 2 ? Math.max(a, b) === 2 * Math.min(a, b) : Math.abs(a - b) === 1);
 
   /** Пересчёт кандидатов по всей информации, которая есть у игрока. true = противоречие. */
@@ -131,6 +143,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
       for (const v of bitsOf(m, N)) {
         let ok = isValid(grid, r, c, v, N, BR, BC, variant, regions, thermo, arrow, cages);
         if (ok && parity && parity[r][c] !== 0) ok = (parity[r][c] === 1) === (v % 2 === 0);
+        if (ok && unequal) ok = unequalOk(grid, r, c, v, N, unequal);
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -614,6 +627,10 @@ export function targetTier(level: number): { min: number; max: number } {
 export function markerDensity(level: number, variant: Variant): number {
   if (variant === 'evenodd') return [0.40, 0.34, 0.28, 0.22][Math.min(3, Math.max(0, level - 30))];
   if (variant === 'kropki') return [0.32, 0.28, 0.24, 0.20][Math.min(3, Math.max(0, level - 34))];
+  // Неравенства: 144 грани на доске, поэтому доли мелкие. Числа поставлены по замеру
+  // достижимой ступени, а не на глаз — см. VARIANT_TIER_CEILING и гейт
+  // sudoku-tier-reachable. Полоса 58–61: чем дальше, тем меньше сказано.
+  if (variant === 'unequal') return [0.30, 0.24, 0.19, 0.15][Math.min(3, Math.max(0, level - 58))];
   return 1;
 }
 
@@ -660,6 +677,24 @@ export function overlayThinner(level: number, variant: Variant, N: number): (ov:
       const copy = out.parity.map((row) => [...row]);
       for (const [r, c] of shuffle(marked).slice(Math.round(marked.length * dens))) copy[r][c] = 0;
       out.parity = copy;
+    }
+    if (out.unequal && dens < 1) {
+      // Знаков на доске 9×9 ровно 144 — по грани между каждой парой соседей. Показать
+      // все значит решить доску за игрока: замер 26.08 дал 58 выколотых клеток при
+      // полном наборе знаков, то есть задача целиком определяется ими.
+      // Прореживаем так же, как точки кропки: сложность внутри полосы задаётся тем,
+      // СКОЛЬКО сказано, а техника при этом одна и та же.
+      const signs: ['h' | 'v', number, number][] = [];
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+        if (c < N - 1 && out.unequal.h[r][c] !== 0) signs.push(['h', r, c]);
+        if (r < N - 1 && out.unequal.v[r][c] !== 0) signs.push(['v', r, c]);
+      }
+      const h = out.unequal.h.map((row) => [...row]);
+      const v = out.unequal.v.map((row) => [...row]);
+      for (const [kind, r, c] of shuffle(signs).slice(Math.round(signs.length * dens))) {
+        if (kind === 'h') h[r][c] = 0; else v[r][c] = 0;
+      }
+      out.unequal = { h, v };
     }
     if (out.kropki && dens < 1) {
       const dots: ['h' | 'v', number, number][] = [];
@@ -765,7 +800,11 @@ function digByLogic(
   // Сэндвич-подсказки прореживаем ДО копания: доска обязана проверяться ровно той
   // задачей, которую увидит человек (см. thinSandwich).
   const sandwich = thinSandwich(base.sandwich, level, variant);
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich };
+  // Знаки неравенства приходят из генератора УЖЕ прорежёнными (`overlayThinner`
+  // применяется внутри `generatePuzzle`), поэтому копаем ровно тем набором, который
+  // увидит человек — та же дисциплина, что у сэндвича и кропки.
+  const unequal = (base as { unequal?: UnequalMap }).unequal;
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,

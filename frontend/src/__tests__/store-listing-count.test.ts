@@ -70,6 +70,7 @@ const path = require('path');
 import { PUBLIC_GAME_COUNT } from '@/src/constants/profiles';
 import { GAMES, isHubGame } from '../constants/games';
 import { PROFILES, isSwitchable } from '../constants/profiles';
+import { levelConfig } from '@/src/services/sudoku-core';
 import { LANGUAGES } from '../contexts/LanguageContext';
 
 const ROOT = path.join(__dirname, '../../..');
@@ -402,12 +403,26 @@ describe('карточки магазинов: числа не про упраж
     expect(`языков: ${LANGUAGES.length}`).toBe('языков: 12');
     expect(`профилей в выборе: ${PROFILES.filter(isSwitchable).length}`).toBe('профилей в выборе: 12');
 
-    // Variant — тип, в рантайме его нет; читаем объявление из исходника.
-    const core: string = fs.readFileSync(path.join(FRONT, 'src/services/sudoku-core.ts'), 'utf8');
-    const decl = /export type Variant =([^;]+);/.exec(core);
-    expect(`объявление Variant найдено: ${decl !== null}`).toBe('объявление Variant найдено: true');
-    const variants = (decl![1].match(/'[a-z]+'/g) || []).filter((v) => v !== "'none'");
-    expect(`вариантов правил судоку: ${variants.length}`).toBe('вариантов правил судоку: 12');
+    /**
+     * 🔴 СЧИТАЕМ ИГРАБЕЛЬНЫЕ ВАРИАНТЫ, А НЕ ЧЛЕНЫ ТИПА.
+     *
+     * Здесь читалось объявление `type Variant` из исходника. 26.08.2026 в тип
+     * добавились «неравенства» — движок собран и проверен, но УРОВНЕЙ ему не дано
+     * (замер: ступень 1–2 при любой плотности знаков, разбор в `sudoku-core.ts`).
+     * Гейт покраснел на «13 вместо 12», хотя в карточке магазина «12» осталось
+     * ПРАВДОЙ: человек по-прежнему играет двенадцать наборов правил.
+     *
+     * Тип — это то, что умеет движок; карточка обещает то, во что можно сыграть.
+     * Сверять карточку с типом значит краснеть на каждой заготовке в работе.
+     * Поэтому считаем варианты, до которых доходит `levelConfig` на реальной
+     * лестнице уровней.
+     */
+    const playable = new Set<string>();
+    for (let lv = 1; lv <= 200; lv++) {
+      const v = String(levelConfig(lv).variant);
+      if (v !== 'none') playable.add(v);
+    }
+    expect(`вариантов правил судоку: ${playable.size}`).toBe('вариантов правил судоку: 12');
   });
 
   it('каждое объяснённое число объяснено словами, а не молча', () => {
