@@ -28,7 +28,7 @@
  */
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import Svg, { Circle, Ellipse, G, Path, Polyline } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 
 /** Снимки тела и поз. Требуются статически: Metro не умеет динамический require. */
 const IMAGES = {
@@ -290,7 +290,7 @@ const PHASED_SETS = new Set(['pelvic-floor', 'isometrics', 'abdomen']);
 const EYE_RX = 45;
 const EYE_RY = 38;
 const EYE_CY = 46;
-const EYE_DIRECTIONS: ReadonlyArray<readonly [number, number]> = [
+const EYE_DIRECTIONS: readonly (readonly [number, number])[] = [
   [0, -1], [0.707, -0.707], [1, 0], [0.707, 0.707],
   [0, 1], [-0.707, 0.707], [-1, 0], [-0.707, -0.707],
 ];
@@ -371,8 +371,8 @@ function EyeVisual({ cue, t }: { cue: VisualCue; t: VisualTheme }) {
   );
 }
 
-function polygonVertices(sides: number): Array<{ x: number; y: number }> {
-  const out: Array<{ x: number; y: number }> = [];
+function polygonVertices(sides: number): { x: number; y: number }[] {
+  const out: { x: number; y: number }[] = [];
   for (let i = 0; i < sides; i++) {
     const angle = -Math.PI / 2 + (TAU * i) / sides;
     out.push({ x: TIMING_CX + TIMING_R * Math.cos(angle), y: TIMING_CY + TIMING_R * Math.sin(angle) });

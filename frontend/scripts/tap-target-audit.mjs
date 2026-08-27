@@ -353,11 +353,77 @@ async function auditRoutes(page, routes) {
   return bad;
 }
 
+/**
+ * 🔴 ЭКРАНЫ, ЧЬЁ ПОЛЕ ЖИВЁТ ВО ВСТРОЕННОЙ СТРАНИЦЕ (`<iframe>`).
+ *
+ * «Пауза» с 27.08.2026 показывает страницу «Умного будильника» целиком — в
+ * родительском документе кнопки входа НЕТ, и второй проход падал «кнопка входа
+ * не найдена». Записать её развилкой было бы враньём: поле существует, просто в
+ * дочернем кадре. Поэтому аудит заходит В КАДР: жмёт старт страницы,
+ * подтверждает обязательные предупреждения (в этом же месте их подтверждает
+ * человек) и меряет кнопки, по которым стучат всю партию, — тем же MEASURE.
+ */
+const EMBEDDED_FIELD = {
+  '/games/pause': {
+    framePart: '/warmup/',
+    reason: 'поле — встроенная страница «Зарядки»; вход и замер идут внутри кадра',
+  },
+};
+
+async function auditEmbeddedField(page, route, spec) {
+  const frame = page.frames().find((f) => f.url().includes(spec.framePart));
+  if (!frame) return { route, failed: `встроенная страница ${spec.framePart} не загрузилась` };
+  const старт = () => frame.evaluate(() => {
+    const кнопка = document.getElementById('start-practice');
+    if (кнопка) кнопка.click();
+    return Boolean(кнопка);
+  });
+  if (!(await старт().catch(() => false))) return { route, failed: 'в кадре нет кнопки старта (#start-practice)' };
+  await page.waitForTimeout(600);
+  /**
+   * Предупреждения безопасности: аудит подтверждает их так же, как человек, —
+   * галочкой «я прочитал», после чего старт жмётся повторно.
+   *
+   * ⚠️ ЖМЁМ ТОЛЬКО ГАЛОЧКУ ПРЕДУПРЕЖДЕНИЙ, ПО ОДНОЙ, С ПЕРЕСЪЁМОМ УЗЛА.
+   * Первая редакция кликала все чекбоксы одним проходом — и не входила в
+   * партию: каждый клик перерисовывает страницу, список узлов протухает, и
+   * третий клик бьёт по отсоединённому узлу. Заодно первые два клика щёлкали
+   * ЧУЖИЕ тумблеры планировщика (Mastered solo / Experimental sets), которые
+   * аудит трогать не должен вовсе.
+   */
+  for (let i = 0; i < 4; i++) {
+    const осталось = await frame.evaluate(() => {
+      const бокс = [...document.querySelectorAll('input[type=checkbox]')].find((x) =>
+        !x.checked && x.offsetParent
+        && /warning|предупрежд/i.test((x.closest('label') || x.parentElement || {}).textContent || ''));
+      if (бокс) бокс.click();
+      return Boolean(бокс);
+    }).catch(() => false);
+    if (!осталось) break;
+    await page.waitForTimeout(300);
+  }
+  await старт().catch(() => {});
+  const вошли = await frame.waitForFunction(
+    () => document.body.classList.contains('is-practice-running'),
+    { timeout: 8000 },
+  ).then(() => true).catch(() => false);
+  if (!вошли) return { route, failed: 'кадр не вошёл в партию (is-practice-running не поднялся)' };
+  await page.waitForTimeout(800);
+  const small = await frame.evaluate(MEASURE, MIN_FIELD);
+  return { route, label: 'start-practice (в кадре)', small };
+}
+
 /** ПРОХОД 2 — на поле: жмём «Начать» и меряем то, по чему стучат всю партию. */
 async function auditField(page, routes) {
   const results = [];
   for (const route of routes) {
     if (HUB_ROUTES[route]) { results.push({ route, hub: true }); continue; }
+    if (EMBEDDED_FIELD[route]) {
+      await open(page, route, { needButtons: false });
+      await page.waitForTimeout(1500);
+      results.push(await auditEmbeddedField(page, route, EMBEDDED_FIELD[route]));
+      continue;
+    }
     const rendered = await open(page, route);
     if (!rendered) { results.push({ route, failed: 'экран не отрисовался за два захода' }); continue; }
     await dismissCoach(page);

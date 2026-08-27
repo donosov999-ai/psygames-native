@@ -23,7 +23,7 @@
  * Значит страница доступна по обычному пути на каждой платформе, и вводить
  * зависимость `react-native-webview` не за чем.
  */
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { isGameHeld, onGameHold } from '@/src/services/gamePause';
 
@@ -78,6 +78,7 @@ function кореньПриложения(): string {
 
 /** Адрес встроенной страницы «Зарядки» с темой и языком приложения. */
 function страницаЗарядки(theme: string, locale: string, набор?: string | null): string {
+  if (typeof location === 'undefined') return '';
   const адрес = new URL(`${кореньПриложения()}warmup/index.html`, location.href);
   адрес.searchParams.set('embed', '1');
   адрес.searchParams.set('theme', theme);
@@ -88,6 +89,16 @@ function страницаЗарядки(theme: string, locale: string, набо�
 
 export default function WarmupPage({ theme, locale, set, onOutcome, onReady }: Props) {
   const рамка = useRef<HTMLIFrameElement | null>(null);
+  /**
+   * 🔴 ДВА ПРОХОДА РАДИ ГИДРАЦИИ. Экспорт Expo пререндерит маршрут статикой,
+   * и в этом HTML рамки НЕТ (`location` в Node отсутствует). Если клиент
+   * нарисует рамку первым же проходом, дерево не совпадёт с серверным и React
+   * уронит гидрацию — смоук ловил её как «Minified React error #419» на
+   * каждом открытии экрана. Поэтому первый клиентский проход тоже пустой, а
+   * рамка появляется эффектом — после сверки деревьев.
+   */
+  const [готов, поднять] = useState(false);
+  useEffect(() => { поднять(true); }, []);
   const адрес = useMemo(
     () => (Platform.OS === 'web' ? страницаЗарядки(theme, locale, set) : ''),
     [theme, locale, set],
@@ -152,6 +163,8 @@ export default function WarmupPage({ theme, locale, set, onOutcome, onReady }: P
       </View>
     );
   }
+
+  if (!готов) return <View style={styles.заглушка} />;
 
   return React.createElement('iframe', {
     ref: рамка,
