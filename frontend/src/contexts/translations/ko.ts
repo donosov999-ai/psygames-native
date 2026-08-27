@@ -1967,6 +1967,7 @@ const t: Record<string, string> = {
   "voiceLevelHearing": "잘 들립니다",
   "voiceLevelSilence": "무음입니다 — 마이크에서 소리가 오지 않습니다",
   "voiceCeilingReached": "녹음이 저절로 멈췄습니다 — 길이 한도에 도달했습니다. 이대로 보내거나 다시 녹음하세요.",
+  "voiceStaleWebView": "이 기기의 시스템 WebView가 오래된 것 같습니다(Chrome {v}). 마이크 권한이 있어도 녹음이 무음으로 저장됩니다. Google Play에서 «Android System WebView» 앱을 업데이트한 뒤 다시 녹음해 주세요.",
   "voiceSilentTitle": "목소리가 들리지 않습니다",
   "voiceSendAnyway": "그래도 보내기",
   "voiceWriteInstead": "글로 적을게요",

@@ -198,6 +198,31 @@ export function shouldWarnSilent(note: VoiceNote | null | undefined): boolean {
   return note.measured && note.peak < SILENCE_PEAK;
 }
 
+/**
+ * УСТАРЕВШИЙ ANDROID WEBVIEW — ГЛАВНЫЙ ИЗВЕСТНЫЙ ПОЖИРАТЕЛЬ ГОЛОСА.
+ *
+ * 🔴 ЗАМЕР 28.08.2026 по всем голосовым базы: 45 немых записей (−91 дБ, поток
+ * 237 Б/с — opus на тишине) пришли с ОДНОГО устройства — OnePlus 8 Pro,
+ * Android 11, WebView Chrome/90 (2021 год). При этом mic granted (мост
+ * подтверждает), дорожка не muted — разрешение НИ ПРИ ЧЁМ, звук съедает сам
+ * стек записи старого WebView. Все живые записи — WebView 91+ (Pixel/Chrome 91,
+ * Xiaomi/Samsung/Poco Chrome 150, пики −15…0 дБ).
+ *
+ * Совет «проверьте разрешение» для этого случая ЛОЖНЫЙ — разрешение выдано.
+ * Правильный совет один: обновить «Android System WebView» в Play. Порог 100
+ * мягкий: живой Chrome/91 тоже получит подсказку, и это не вред — обновление
+ * WebView безвредно и полезно, а формулировка говорит «может не работать».
+ */
+export const STALE_WEBVIEW_BELOW = 100;
+
+export function staleWebViewMajor(ua: string = typeof navigator !== 'undefined' ? navigator.userAgent : ''): number | null {
+  if (!/;\s*wv\)/.test(ua) || !/Android/.test(ua)) return null;   // не Android-WebView — не наш случай
+  const m = /Chrome\/(\d+)/.exec(ua);
+  if (!m) return null;
+  const major = Number(m[1]);
+  return major < STALE_WEBVIEW_BELOW ? major : null;
+}
+
 /** Поддерживает ли эта сборка запись вообще (старый WebView, десктоп без микрофона). */
 export function canRecord(): boolean {
   return (

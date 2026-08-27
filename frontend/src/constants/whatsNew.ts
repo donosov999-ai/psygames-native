@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.248.1',
+    date: '2026-08-28',
+    ru: [
+      'Голосовые отзывы: если запись выходит немой из-за устаревшего системного WebView, приложение теперь называет настоящую причину и шаг — обновить «Android System WebView» в Play (раньше советовало проверить разрешение, которое и так выдано)',
+    ],
+    en: [
+      'Voice feedback: when a recording comes out silent because of an outdated system WebView, the app now names the real cause and the fix — update “Android System WebView” in Play (it used to suggest checking a permission that was already granted)',
+    ],
+  },
+  {
     version: '1.248.0',
     date: '2026-08-28',
     ru: [

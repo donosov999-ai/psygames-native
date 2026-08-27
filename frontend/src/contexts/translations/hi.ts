@@ -1975,6 +1975,7 @@ const t: Record<string, string> = {
   "voiceLevelHearing": "आपकी आवाज़ आ रही है",
   "voiceLevelSilence": "सन्नाटा — माइक से कोई आवाज़ नहीं आ रही",
   "voiceCeilingReached": "रिकॉर्डिंग अपने आप रुक गई — अवधि की सीमा आ गई। इसे ऐसे ही भेजें या नई रिकॉर्ड करें।",
+  "voiceStaleWebView": "लगता है इस डिवाइस का सिस्टम WebView पुराना है (Chrome {v}) — माइक्रोफ़ोन की अनुमति मिलने पर भी रिकॉर्डिंग मौन आती है। Google Play में «Android System WebView» ऐप अपडेट करें और फिर से रिकॉर्ड करें।",
   "voiceSilentTitle": "हमें आपकी आवाज़ नहीं सुनाई दे रही",
   "voiceSendAnyway": "फिर भी भेजें",
   "voiceWriteInstead": "मैं लिखकर भेजूँगा",

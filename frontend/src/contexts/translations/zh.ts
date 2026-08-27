@@ -1972,6 +1972,7 @@ const t: Record<string, string> = {
   "voiceLevelHearing": "能听到你",
   "voiceLevelSilence": "一片安静 — 麦克风没有声音",
   "voiceCeilingReached": "录音自动停止了 — 已到时长上限。可以就这样发送，或者重新录一段。",
+  "voiceStaleWebView": "该设备的系统 WebView 似乎过旧(Chrome {v})——即使已授予麦克风权限,录音也会是无声的。请在 Google Play 中更新「Android System WebView」应用后重新录制。",
   "voiceSilentTitle": "我们听不到你",
   "voiceSendAnyway": "仍然发送",
   "voiceWriteInstead": "我改成打字",

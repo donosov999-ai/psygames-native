@@ -1967,6 +1967,7 @@ const t: Record<string, string> = {
   "voiceLevelHearing": "On t’entend",
   "voiceLevelSilence": "Silence — le micro ne donne aucun son",
   "voiceCeilingReached": "L’enregistrement s’est arrêté tout seul : limite de durée atteinte. Envoie-le tel quel ou refais-en un.",
+  "voiceStaleWebView": "Le WebView système de cet appareil semble obsolète (Chrome {v}) : les enregistrements sortent muets alors que l’accès au micro est accordé. Mettez à jour « Android System WebView » dans Google Play et réenregistrez.",
   "voiceSilentTitle": "On ne t’entend pas",
   "voiceSendAnyway": "Envoyer quand même",
   "voiceWriteInstead": "Je vais l’écrire",

@@ -1972,6 +1972,7 @@ const t: Record<string, string> = {
   "voiceLevelHearing": "Te oímos",
   "voiceLevelSilence": "Silencio: el micrófono no da sonido",
   "voiceCeilingReached": "La grabación se detuvo sola: llegó al límite de duración. Envíala así o graba otra.",
+  "voiceStaleWebView": "Parece que este dispositivo tiene el WebView del sistema desactualizado (Chrome {v}): las grabaciones salen mudas aunque el acceso al micrófono está concedido. Actualiza «Android System WebView» en Google Play y graba de nuevo.",
   "voiceSilentTitle": "No te oímos",
   "voiceSendAnyway": "Enviar igualmente",
   "voiceWriteInstead": "Lo escribo",

@@ -674,3 +674,40 @@ describe('разрешение на микрофон', () => {
     r.cancel();
   }, 30_000);
 });
+
+/**
+ * УСТАРЕВШИЙ WEBVIEW — детектор пожирателя голоса (28.08.2026).
+ * Замер по базе: 45 немых записей (−91 дБ) — один OnePlus 8 Pro, WebView
+ * Chrome/90, при granted и не-muted дорожке. Живые записи — 91+ (Pixel 91,
+ * прочие 150). Детектор зовёт вещи по имени вместо ложного «проверьте
+ * разрешение», и подсказка существует на всех двенадцати языках.
+ */
+describe('устаревший WebView', () => {
+  const { staleWebViewMajor, STALE_WEBVIEW_BELOW } = require('@/src/services/voiceNote');
+  const UA_ONEPLUS = 'Mozilla/5.0 (Linux; Android 11; OnePlus8Pro Build/QKR1.191246.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/90.0.4430.210 Mobile Safari/537.36';
+  const UA_XIAOMI = 'Mozilla/5.0 (Linux; Android 13; M2102J20SG; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/150.0.0.0 Mobile Safari/537.36';
+  const UA_DESKTOP = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36';
+
+  it('живой немой кейс ловится, живой здоровый и десктоп — нет', () => {
+    expect(staleWebViewMajor(UA_ONEPLUS)).toBe(90);      // тот самый OnePlus
+    expect(staleWebViewMajor(UA_XIAOMI)).toBeNull();     // свежий WebView
+    expect(staleWebViewMajor(UA_DESKTOP)).toBeNull();    // Chrome 90, но НЕ Android-WebView
+    expect(STALE_WEBVIEW_BELOW).toBe(100);
+  });
+
+  it('подсказка существует в базовом словаре и всех десяти оверлеях', () => {
+    const fs2 = require('fs');
+    const path2 = require('path');
+    const base = fs2.readFileSync(path2.join(__dirname, '..', 'contexts', 'LanguageContext.tsx'), 'utf8');
+    expect(base.includes('voiceStaleWebView:')).toBe(true);
+    for (const lang of ['ar', 'de', 'es', 'fr', 'hi', 'it', 'ja', 'ko', 'pt', 'zh']) {
+      const overlay = fs2.readFileSync(path2.join(__dirname, '..', 'contexts', 'translations', `${lang}.ts`), 'utf8');
+      expect(`${lang}: ${overlay.includes('"voiceStaleWebView"')}`).toBe(`${lang}: true`);
+    }
+  });
+
+  it('виджет предпочитает точную причину общей', () => {
+    const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'components', 'FeedbackWidget.tsx'), 'utf8');
+    expect(src).toMatch(/staleWebViewMajor\(\) !== null \? t\('voiceStaleWebView'\)/);
+  });
+});

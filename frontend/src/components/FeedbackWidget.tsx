@@ -42,7 +42,7 @@ import {
 } from '@/src/services/appFeedback';
 import { isRTLLang } from '@/src/services/rtl';
 import { a11yModal } from '@/src/services/a11y';
-import { canRecord, startRecording, shouldWarnSilent, SILENCE_PEAK, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
+import { staleWebViewMajor, canRecord, startRecording, shouldWarnSilent, SILENCE_PEAK, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
 import { holdGame } from '@/src/services/gamePause';
 
 const KINDS: { key: FeedbackKind; emoji: string; labelKey: string }[] = [
@@ -632,7 +632,9 @@ export default function FeedbackWidget() {
                         <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{t('voiceDenied')}</Text>
                       )}
                       {micSilent && !micDenied && !askSilent && (
-                        <Text style={{ color: '#b45309', fontSize: 12, fontWeight: '700' }}>{t('voiceSilent')}</Text>
+                        <Text style={{ color: '#b45309', fontSize: 12, fontWeight: '700' }}>
+                          {staleWebViewMajor() !== null ? t('voiceStaleWebView').replace('{v}', String(staleWebViewMajor())) : t('voiceSilent')}
+                        </Text>
                       )}
                       {note && !rec && !micSilent && (
                         <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{t('voiceCheckHint')}</Text>
@@ -664,7 +666,12 @@ export default function FeedbackWidget() {
                        см. комментарий в submit). Человек видит, ПОЧЕМУ, и выбирает. */
                     <View style={[styles.silentBox, { borderColor: '#b45309', backgroundColor: colors.card }]}>
                       <Text style={[styles.silentTitle, { color: '#b45309' }]}>⚠️ {t('voiceSilentTitle')}</Text>
-                      <Text style={{ color: colors.text, fontSize: 12.5, lineHeight: 17 }}>{t('voiceSilent')}</Text>
+                      {/* Замер 28.08: все 45 немых записей — один OnePlus с WebView Chrome/90
+                          при ВЫДАННОМ разрешении. Совет «проверьте разрешение» там ложный;
+                          называем настоящую причину и настоящий шаг — обновить WebView. */}
+                      <Text style={{ color: colors.text, fontSize: 12.5, lineHeight: 17 }}>
+                        {staleWebViewMajor() !== null ? t('voiceStaleWebView').replace('{v}', String(staleWebViewMajor())) : t('voiceSilent')}
+                      </Text>
                       <View style={styles.silentBtns}>
                         <TouchableOpacity
                           accessibilityRole="button"
