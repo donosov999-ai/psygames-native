@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="version" content="0.1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#10141f" />
+    <meta
+      name="description"
+      content="Локальный интерфейс умного будильника PsyGames с задачами пробуждения и утренней зарядкой."
+    />
+    <title>PsyGames · Умный будильник</title>
+    <link rel="stylesheet" href="./styles.css" />
+      <link rel="stylesheet" href="./embed.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content" data-i18n="skip">К содержанию</a>
+
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand" aria-label="PsyGames Smart Alarm">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span class="brand-copy">
+            <strong>PsyGames</strong>
+            <small data-i18n="productName">Умный будильник</small>
+          </span>
+          <span class="app-version" id="app-version" aria-label="Версия приложения">v0.1.0-local</span>
+        </div>
+
+        <div class="topbar-status" id="platform-summary" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span data-i18n="checkingPlatform">Проверяем платформу…</span>
+        </div>
+
+        <div class="topbar-actions">
+          <button class="icon-button language-toggle" id="language-toggle" type="button" aria-label="Switch language">
+            <span id="language-label">EN</span>
+          </button>
+          <button class="icon-button" id="theme-toggle" type="button" aria-label="Сменить тему">
+            <span class="theme-icon" aria-hidden="true">◐</span>
+          </button>
+        </div>
+      </header>
+
+      <nav class="primary-nav" aria-label="Основные разделы">
+        <button class="nav-item is-active" type="button" data-tab="alarms" aria-current="page">
+          <span class="nav-glyph" aria-hidden="true">07:30</span>
+          <span data-i18n="alarms">Будильники</span>
+        </button>
+        <button class="nav-item" type="button" data-tab="recharge">
+          <span class="nav-glyph nav-glyph--motion" aria-hidden="true">↗</span>
+          <span data-i18n="recharge">Зарядка</span>
+        </button>
+        <button class="nav-item" type="button" data-tab="history">
+          <span class="nav-glyph" aria-hidden="true">✓</span>
+          <span data-i18n="history">История</span>
+        </button>
+      </nav>
+
+      <main id="main-content" tabindex="-1">
+        <section class="page-panel is-active" id="panel-alarms" data-panel="alarms" aria-labelledby="alarms-title">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow" data-i18n="localMorning">Локальное утро</p>
+              <h1 id="alarms-title" data-i18n="alarmsTitle">Проснуться — и сразу включиться</h1>
+              <p class="page-lead" data-i18n="alarmsLead">Сигнал останавливается после короткой когнитивной задачи или по безопасному лимиту.</p>
+            </div>
+            <button class="button button--primary" type="button" data-action="add-alarm">
+              <span aria-hidden="true">＋</span>
+              <span data-i18n="addAlarm">Добавить будильник</span>
+            </button>
+          </div>
+
+          <div class="hero-grid">
+            <article class="next-alarm-card gradient-card" id="next-alarm-card">
+              <div class="card-kicker">
+                <span data-i18n="nextAlarm">Следующий сигнал</span>
+                <span class="soft-badge" id="next-alarm-status">—</span>
+              </div>
+              <div class="next-alarm-time" id="next-alarm-time">—:—</div>
+              <div class="next-alarm-meta" id="next-alarm-meta" data-i18n="noAlarmScheduled">Нет активного расписания</div>
+              <div class="hero-actions">
+                <button class="button button--light" id="test-next-alarm" type="button" disabled>
+                  <span aria-hidden="true">▶</span>
+                  <span data-i18n="testNow">Проверить сейчас</span>
+                </button>
+                <span class="hero-note" data-i18n="testNote">Ручной тест запускает тот же fail-safe сценарий</span>
+              </div>
+            </article>
+
+            <article class="reliability-card surface-card" aria-labelledby="reliability-title">
+              <div class="section-heading-row">
+                <div>
+                  <p class="eyebrow" data-i18n="honestStatus">Честный статус</p>
+                  <h2 id="reliability-title" data-i18n="permissions">Разрешения и надёжность</h2>
+                </div>
+                <span class="capability-score" id="capability-score">—</span>
+              </div>
+              <div class="capability-list" id="capability-list" aria-live="polite"></div>
+              <button class="button button--secondary button--full" id="permissions-action" type="button">
+                <span data-i18n="configurePermissions">Настроить разрешения</span>
+              </button>
+            </article>
+          </div>
+
+          <div class="content-grid">
+            <section class="alarm-section" aria-labelledby="saved-alarms-title">
+              <div class="section-heading-row section-heading-row--wide">
+                <div>
+                  <p class="eyebrow" data-i18n="schedule">Расписание</p>
+                  <h2 id="saved-alarms-title" data-i18n="yourAlarms">Ваши будильники</h2>
+                </div>
+                <span class="count-badge" id="alarm-count">0</span>
+              </div>
+              <div class="alarm-list" id="alarm-list"></div>
+            </section>
+
+            <aside class="safety-card surface-card" aria-labelledby="safety-title">
+              <span class="safety-symbol" aria-hidden="true">∞</span>
+              <p class="eyebrow" data-i18n="failSafe">Fail-safe</p>
+              <h2 id="safety-title" data-i18n="safetyTitle">Сигнал не будет звучать бесконечно</h2>
+              <p data-i18n="safetyCopy">Лимит попыток, непрерывного и общего времени работает независимо от результата задачи.</p>
+              <ul class="check-list">
+                <li data-i18n="safetyEscape">Кнопка безопасного выхода всегда на экране</li>
+                <li data-i18n="safetySnooze">Отсрочка ограничена настройками</li>
+                <li data-i18n="safetyNoScore">Ошибки не превращаются в оценку здоровья</li>
+              </ul>
+            </aside>
+          </div>
+        </section>
+
+        <section class="page-panel" id="panel-recharge" data-panel="recharge" aria-labelledby="recharge-title" hidden>
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow" data-i18n="afterWake">После пробуждения</p>
+              <h1 id="recharge-title" data-i18n="rechargeTitle">Соберите утреннюю зарядку</h1>
+              <p class="page-lead" data-i18n="rechargeLead">Чистый планировщик PsyGames сам проверяет предупреждения, опыт и допустимые параллельные сочетания.</p>
+            </div>
+            <div class="catalog-count" id="catalog-count">—</div>
+          </div>
+
+          <section class="planner-card surface-card" aria-labelledby="planner-title">
+            <div class="section-heading-row section-heading-row--wide">
+              <div>
+                <p class="eyebrow" data-i18n="planner">Планировщик</p>
+                <h2 id="planner-title" data-i18n="sessionFormat">Формат сессии</h2>
+              </div>
+              <span class="engine-badge" data-i18n="pureEngine">Pure engine</span>
+            </div>
+
+            <div class="planner-controls">
+              <fieldset class="segmented-field">
+                <legend data-i18n="mode">Режим</legend>
+                <div class="segmented" id="plan-mode">
+                  <button type="button" data-plan-mode="solo"><span data-i18n="solo">Отдельно</span></button>
+                  <button type="button" data-plan-mode="parallel"><span data-i18n="parallel">Параллельно</span></button>
+                  <button class="is-active" type="button" data-plan-mode="charge"><span data-i18n="route">Маршрут</span></button>
+                </div>
+              </fieldset>
+
+              <label class="select-field">
+                <span data-i18n="duration">Длительность</span>
+                <select id="plan-duration">
+                  <option value="60000">1 min</option>
+                  <option value="120000" selected>2 min</option>
+                  <option value="300000">5 min</option>
+                  <option value="480000">8 min</option>
+                </select>
+              </label>
+
+              <label class="select-field">
+                <span data-i18n="context">Контекст</span>
+                <select id="plan-context">
+                  <option value="home" data-i18n-option="home">Дома</option>
+                  <option value="desk-visible" data-i18n-option="desk">За столом</option>
+                  <option value="desk-invisible" data-i18n-option="discreet">Незаметно</option>
+                </select>
+              </label>
+
+              <label class="select-field">
+                <span data-i18n="guide">Подсказка</span>
+                <select id="plan-guide">
+                  <option value="both" data-i18n-option="both">Экран + звук</option>
+                  <option value="visual" data-i18n-option="visual">Только экран</option>
+                  <option value="audio" data-i18n-option="audio">Только звук</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="planner-switches">
+              <label class="switch-row">
+                <input id="mastery-toggle" type="checkbox" />
+                <span class="switch-ui" aria-hidden="true"></span>
+                <span>
+                  <strong data-i18n="masteryTitle">Освоено отдельно</strong>
+                  <small data-i18n="masteryCopy">Подтверждаю минимум три самостоятельных завершения выбранных наборов</small>
+                </span>
+              </label>
+              <label class="switch-row">
+                <input id="experimental-toggle" type="checkbox" />
+                <span class="switch-ui" aria-hidden="true"></span>
+                <span>
+                  <strong data-i18n="experimentalTitle">Экспериментальные наборы</strong>
+                  <small data-i18n="experimentalCopy">Включить локальные кандидаты без продуктовых обещаний</small>
+                </span>
+              </label>
+            </div>
+          </section>
+
+          <div class="catalog-toolbar">
+            <label class="search-field">
+              <span class="visually-hidden" data-i18n="searchCatalog">Поиск по каталогу</span>
+              <span aria-hidden="true">⌕</span>
+              <input id="catalog-search" type="search" autocomplete="off" data-i18n-placeholder="searchCatalog" placeholder="Поиск по каталогу" />
+            </label>
+            <div class="selection-summary" id="selection-summary" aria-live="polite"></div>
+          </div>
+
+          <section aria-labelledby="catalog-title">
+            <div class="section-heading-row section-heading-row--wide">
+              <div>
+                <p class="eyebrow" data-i18n="fullCatalog">Полный каталог</p>
+                <h2 id="catalog-title" data-i18n="choosePractices">Выберите практики</h2>
+              </div>
+              <span class="catalog-note" data-i18n="catalogRuntime">Загружено из pause-practices core</span>
+            </div>
+            <div class="practice-catalog" id="practice-catalog"></div>
+          </section>
+
+          <section class="plan-review surface-card" id="plan-review" aria-labelledby="plan-review-title">
+            <div class="section-heading-row section-heading-row--wide">
+              <div>
+                <p class="eyebrow" data-i18n="engineCheck">Проверка движка</p>
+                <h2 id="plan-review-title" data-i18n="planReady">План готовится</h2>
+              </div>
+              <span class="plan-status" id="plan-status">—</span>
+            </div>
+            <div id="plan-preview"></div>
+            <div id="safety-gates"></div>
+            <div class="plan-actions">
+              <button class="button button--primary" id="start-practice" type="button" disabled>
+                <span aria-hidden="true">▶</span>
+                <span data-i18n="startRecharge">Начать зарядку</span>
+              </button>
+              <p data-i18n="completionPrivacy">Сохраняются только завершение и время — без медицинской оценки.</p>
+            </div>
+          </section>
+        </section>
+
+        <section class="page-panel" id="panel-history" data-panel="history" aria-labelledby="history-title" hidden>
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow" data-i18n="localOnly">Только на устройстве</p>
+              <h1 id="history-title" data-i18n="historyTitle">История пробуждений</h1>
+              <p class="page-lead" data-i18n="historyLead">Нейтральная запись факта: когда сигнал остановлен и какие практики завершены.</p>
+            </div>
+          </div>
+
+          <div class="stats-grid" id="history-stats"></div>
+          <section class="history-card surface-card" aria-labelledby="recent-history-title">
+            <div class="section-heading-row section-heading-row--wide">
+              <div>
+                <p class="eyebrow" data-i18n="timeline">Хронология</p>
+                <h2 id="recent-history-title" data-i18n="recentEvents">Последние события</h2>
+              </div>
+            </div>
+            <div class="history-list" id="history-list"></div>
+          </section>
+          <aside class="privacy-strip">
+            <strong data-i18n="privacyTitle">Приватность по умолчанию</strong>
+            <span data-i18n="privacyCopy">Нет аккаунта, рекламы, облака и сетевых запросов. Браузерный preview очищается при закрытии страницы.</span>
+          </aside>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <span data-i18n="footerBoundary">Локальный wellness-инструмент · не медицинское устройство</span>
+        <span data-i18n="footerPrivacy">Без сети · без аккаунта · без рекламы</span>
+      </footer>
+    </div>
+
+    <dialog class="editor-dialog" id="alarm-editor" aria-labelledby="editor-title">
+      <form id="alarm-form" method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow" data-i18n="alarmSettings">Настройки сигнала</p>
+            <h2 id="editor-title" data-i18n="newAlarm">Новый будильник</h2>
+          </div>
+          <button class="icon-button" type="button" data-action="close-editor" aria-label="Закрыть">×</button>
+        </div>
+
+        <div class="editor-grid">
+          <label class="field field--wide">
+            <span data-i18n="label">Название</span>
+            <input name="label" maxlength="48" required />
+          </label>
+          <label class="field">
+            <span data-i18n="time">Время</span>
+            <input name="time" type="time" required />
+          </label>
+          <label class="field">
+            <span data-i18n="task">Задача пробуждения</span>
+            <select name="taskMode">
+              <option value="first-warmup" data-i18n-option="firstWarmup">Первый блок зарядки</option>
+              <option value="weak-domain" data-i18n-option="weakDomain">Слабый домен, иначе зарядка</option>
+              <option value="schulte_table" data-i18n-option="schulte">Таблица Шульте 3×3</option>
+              <option value="choice_rt" data-i18n-option="choiceRt">Выбор направления</option>
+            </select>
+          </label>
+        </div>
+
+        <fieldset class="weekday-fieldset">
+          <legend data-i18n="weekdays">Дни недели</legend>
+          <div id="weekday-picker" class="weekday-picker"></div>
+        </fieldset>
+
+        <div class="editor-grid editor-grid--safety">
+          <label class="field">
+            <span data-i18n="attempts">Попыток</span>
+            <input name="maxFailedAttempts" type="number" min="1" max="10" value="3" required />
+          </label>
+          <label class="field">
+            <span data-i18n="maxMinutes">Лимит сигнала, мин</span>
+            <input name="maxRingMinutes" type="number" min="1" max="30" value="5" required />
+          </label>
+          <label class="field">
+            <span data-i18n="snoozes">Отсрочек</span>
+            <input name="maxSnoozes" type="number" min="0" max="5" value="2" required />
+          </label>
+          <label class="field">
+            <span data-i18n="snoozeMinutes">Повтор через, мин</span>
+            <input name="snoozeMinutes" type="number" min="1" max="30" value="5" required />
+          </label>
+        </div>
+
+        <label class="switch-row editor-switch">
+          <input name="enabled" type="checkbox" checked />
+          <span class="switch-ui" aria-hidden="true"></span>
+          <span>
+            <strong data-i18n="enabled">Будильник включён</strong>
+            <small data-i18n="enabledCopy">Выключенный остаётся в списке, но не планируется</small>
+          </span>
+        </label>
+
+        <div class="browser-boundary">
+          <strong data-i18n="browserPreview">Браузерный предпросмотр</strong>
+          <span data-i18n="browserPreviewCopy">Закрытие страницы удаляет локальное расписание. Это не системный будильник.</span>
+        </div>
+
+        <div class="dialog-actions">
+          <button class="button button--danger button--ghost" id="delete-alarm" type="button" hidden data-i18n="delete">Удалить</button>
+          <span class="dialog-actions-spacer"></span>
+          <button class="button button--secondary" type="button" data-action="close-editor" data-i18n="cancel">Отмена</button>
+          <button class="button button--primary" type="submit" data-i18n="save">Сохранить</button>
+        </div>
+      </form>
+    </dialog>
+
+    <section class="immersive-layer" id="challenge-layer" role="dialog" aria-modal="true" aria-labelledby="challenge-title" hidden>
+      <div class="challenge-shell">
+        <header class="challenge-header">
+          <div>
+            <p class="eyebrow" data-i18n="wakeCheck">Проверка пробуждения</p>
+            <h2 id="challenge-title" data-i18n="proveAwake">Покажите, что вы проснулись</h2>
+          </div>
+          <div class="challenge-limits" id="challenge-limits"></div>
+        </header>
+        <div class="challenge-notice">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span data-i18n="alarmActive">Сигнал активен. Fail-safe остановит его по первому достигнутому лимиту.</span>
+        </div>
+        <div class="challenge-stage" id="challenge-stage" aria-live="polite"></div>
+        <footer class="challenge-actions">
+          <button class="button button--secondary" id="challenge-snooze" type="button">
+            <span data-i18n="snooze">Отложить</span>
+          </button>
+          <button class="button button--danger" id="challenge-escape" type="button">
+            <span data-i18n="safeStop">Безопасно остановить</span>
+          </button>
+        </footer>
+      </div>
+    </section>
+
+    <section class="immersive-layer offer-layer" id="recharge-offer" role="dialog" aria-modal="true" aria-labelledby="offer-title" hidden>
+      <div class="offer-card">
+        <span class="offer-mark" aria-hidden="true">✓</span>
+        <p class="eyebrow" data-i18n="alarmDismissed">Сигнал остановлен</p>
+        <h2 id="offer-title" data-i18n="continueMorning">Продолжить утреннюю зарядку?</h2>
+        <p data-i18n="continueMorningCopy">Откроем безопасный маршрут из каталога PsyGames. Ничего не запускается без проверки предупреждений.</p>
+        <div class="countdown-row">
+          <span data-i18n="autoOpen">Автопереход к плану через</span>
+          <strong id="offer-countdown">8</strong>
+          <span data-i18n="seconds">с</span>
+        </div>
+        <div class="offer-actions">
+          <button class="button button--primary" id="continue-recharge" type="button" data-i18n="openRecharge">Открыть зарядку</button>
+          <button class="button button--secondary" id="dismiss-recharge" type="button" data-i18n="notNow">Не сейчас</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="immersive-layer practice-layer" id="practice-layer" role="dialog" aria-modal="true" aria-labelledby="practice-title" hidden>
+      <div class="practice-shell">
+        <header class="practice-header">
+          <div>
+            <p class="eyebrow" data-i18n="morningRecharge">Утренняя зарядка</p>
+            <h2 id="practice-title">—</h2>
+          </div>
+          <button class="icon-button" id="practice-exit" type="button" aria-label="Закрыть">×</button>
+        </header>
+        <div class="practice-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span id="practice-progress-bar"></span>
+        </div>
+        <div class="practice-clock" id="practice-clock">0:00</div>
+        <div class="practice-cues" id="practice-cues" aria-live="polite"></div>
+        <p class="practice-safety" data-i18n="generalStop">Остановитесь при боли, головокружении, онемении или выраженном дискомфорте.</p>
+        <footer class="practice-actions">
+          <button class="button button--secondary" id="practice-pause" type="button" data-i18n="pause">Пауза</button>
+          <button class="button button--danger button--ghost" id="practice-stop" type="button" data-i18n="finishWithoutRecord">Выйти без записи</button>
+        </footer>
+      </div>
+    </section>
+
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+    <script type="module" src="./app/app.mjs"></script>
+      <script src="./embed.js" defer></script>
+  </body>
+</html>

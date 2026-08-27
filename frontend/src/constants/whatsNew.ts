@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.242.0',
+    date: '2026-08-27',
+    ru: [
+      'Зарядка перенесена из «Умного будильника» целиком: её планировщик, её картинки, её траектория взгляда, её параллельный режим — а не пересобранная копия',
+      'Гимнастика глаз снова водит взглядом за движущейся точкой: в пересобранной версии на её месте оказалась фигура дыхания',
+      'Пауза приложения останавливает и практику: свернули или вышли — время стоит',
+    ],
+    en: [
+      'The warm-up now comes whole from the Smart Alarm: its planner, its artwork, its gaze path, its parallel mode — not a rebuilt copy',
+      'Eye gym leads the gaze along a moving dot again; the rebuilt version had a breathing figure in its place',
+      'Pausing the app pauses the practice: minimise or step away and the clock stops',
+    ],
+  },
+  {
     version: '1.241.0',
     date: '2026-08-27',
     ru: [
