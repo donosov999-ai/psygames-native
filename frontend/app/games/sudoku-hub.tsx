@@ -1,4 +1,4 @@
-/* psygames-game-sudoku-hub · VER 1 · 20.08.2026 */
+/* psygames-game-sudoku-hub · VER 2 · 27.08.2026 */
 /**
  * Судоку — развилка на три доски одной головоломки:
  *  - классическая (`/games/sudoku`): одна сетка 6×6 или 9×9, 57 ступеней лестницы
@@ -67,6 +67,27 @@ const SUB_GAMES = [
     nameKey: 'fractalTitle' as const,
     descKey: 'fractalDesc' as const,
     typeKey: 'sudokuTypeFractal' as const,
+  },
+  /**
+   * Небоскрёбы и неравенства — РЕЖИМЫ классической доски (задача 70b58bbe):
+   * карточка ведёт на тот же экран с ?mode=…, у каждого своя мини-лестница на
+   * 8 ступеней и свой счётчик. Партии пишутся под game_type='sudoku' с
+   * mode='towers-N'/'unequal-N' — это режимы одной доски, как killer, а не
+   * отдельные доски с прогрессом (за то и различие с самураем/фракталом).
+   */
+  {
+    route: '/games/sudoku?mode=towers',
+    icon: 'business' as const,
+    nameKey: 'sudokuTowersTitle' as const,
+    descKey: 'sudokuTowersHubDesc' as const,
+    typeKey: 'sudokuTypeTowers' as const,
+  },
+  {
+    route: '/games/sudoku?mode=unequal',
+    icon: 'swap-vertical' as const,
+    nameKey: 'sudokuUnequalTitle' as const,
+    descKey: 'sudokuUnequalHubDesc' as const,
+    typeKey: 'sudokuTypeUnequal' as const,
   },
 ];
 

@@ -292,10 +292,13 @@ describe('экран развилки: меню, а не партия', () => {
     }
   });
 
-  it('с развилки только уходят — три перехода и кнопка назад', () => {
+  it('с развилки только уходят — пять переходов и кнопка назад', () => {
     expect([...SCREEN.matchAll(/router\.push\(/g)].length).toBeGreaterThanOrEqual(1);
     expect(SCREEN).toContain('goBackOrHome()');
-    expect([...SCREEN.matchAll(/route:\s*'\/games\//g)].length).toBe(3);
+    // 27.08.2026 (70b58bbe): к трём доскам добавились карточки режимов классической
+    // доски — «Небоскрёбы» и «Неравенства» (?mode=…). Смысл гейта не тронут:
+    // отсюда ТОЛЬКО уходят, и каждый уход — в семейство судоку.
+    expect([...SCREEN.matchAll(/route:\s*'\/games\//g)].length).toBe(5);
   });
 
   it('веб-демо уводит сразу на классическую доску и не теряет query', () => {
@@ -317,7 +320,12 @@ describe('экран развилки: меню, а не партия', () => {
 describe('новые подписи переведены на все двенадцать языков', () => {
   const LOCALES = ['de', 'es', 'pt', 'fr', 'it', 'zh', 'ja', 'ko', 'hi', 'ar'];
   const KEYS = ['sudokuGroup', 'sudokuGroupDesc', 'sudokuPickBoard', 'sudokuTypeClassic',
-    'sudokuTypeSamurai', 'sudokuTypeFractal', 'sudokuGroupFootnote', 'sudokuGroupIntroDesc'];
+    'sudokuTypeSamurai', 'sudokuTypeFractal', 'sudokuGroupFootnote', 'sudokuGroupIntroDesc',
+    // Карточки и правила режимов towers/unequal (70b58bbe): подписи, описания,
+    // тексты правил и примеры обязаны существовать на всех двенадцати языках.
+    'sudokuTowersTitle', 'sudokuUnequalTitle', 'sudokuTowersHubDesc', 'sudokuUnequalHubDesc',
+    'sudokuTypeTowers', 'sudokuTypeUnequal', 'sudokuVariantTowers', 'sudokuVariantUnequal',
+    'sudokuRuleTowers', 'sudokuRuleUnequal', 'sudokuEx_towers', 'sudokuEx_unequal'];
 
   it.each(LOCALES)('в локали %s переведены все подписи развилки', (loc) => {
     const src = read(`src/contexts/translations/${loc}.ts`);

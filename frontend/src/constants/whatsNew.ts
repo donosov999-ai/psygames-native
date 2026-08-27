@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.244.0',
+    date: '2026-08-27',
+    ru: [
+      'Судоку: два новых режима в развилке — «Небоскрёбы» (6×6, подсказки на краях: сколько зданий видно) и «Неравенства» (знаки между клетками, цепочки сравнений). У каждого своя лестница на 8 ступеней',
+      'Судоку: решатель выучил цепочки неравенств и нижнюю границу небоскрёбов — сложность обоих режимов посчитана честно, по замеру',
+    ],
+    en: [
+      'Sudoku: two new modes in the hub — Towers (6×6, edge clues: how many buildings you can see) and Futoshiki (signs between cells, chains of comparisons). Each has its own 8-step ladder',
+      'Sudoku: the solver learned inequality chains and the towers lower bound — both modes are graded honestly, by measurement',
+    ],
+  },
+  {
     version: '1.243.1',
     date: '2026-08-27',
     ru: [

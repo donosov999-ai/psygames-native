@@ -35,11 +35,12 @@ export type Technique =
   | 'hidden_subset'   // скрытая пара
   | 'sandwich_sum'    // вывод из суммы между позициями 1 и 9
   | 'towers_clue'     // вывод из подсказки «сколько зданий видно с края»
+  | 'unequal_chain'   // цепочка неравенств: границы протянуты через ПУСТЫХ соседей
   | 'x_wing'          // X-wing
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
-  naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, sandwich_sum: 4, towers_clue: 4, hidden_subset: 5, x_wing: 6, guess: 9,
+  naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, sandwich_sum: 4, towers_clue: 4, unequal_chain: 4, hidden_subset: 5, x_wing: 6, guess: 9,
 };
 
 export interface GradeCtx {
@@ -229,6 +230,50 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
       }
     }
 
+    /**
+     * ── ЦЕПОЧКА НЕРАВЕНСТВ: границы протянуты через ПУСТЫХ соседей.
+     *
+     * 🔴 РОВНО ЭТОГО ВАРИАНТУ НЕ ХВАТАЛО, ЧТОБЫ ЗАСЛУЖИТЬ УРОВНИ (замер 26.08:
+     * ступень 1–2 при любой плотности знаков). `unequalOk` выше фильтрует по УЖЕ
+     * известным соседям — а сила футосики в цепочках: «a < b < c» в строке режет
+     * крайние значения до того, как заполнена хоть одна клетка. Здесь то же
+     * правило работает по МАСКАМ кандидатов: «a < b» значит hi(a) ≤ hi(b)−1 и
+     * lo(b) ≥ lo(a)+1, и прогон до неподвижной точки протягивает границу вдоль
+     * всей цепочки (цепочка длиной ≤ N сходится за ≤ N проходов — граница за
+     * проход продвигается минимум на одно звено).
+     *
+     * ⚠️ ТЕХНИКОЙ (`unequal_chain`) считается только вывод через ПУСТОГО соседа:
+     * срез по заполненному — тот же старый фильтр, игроку он даётся даром, и
+     * bump по нему завысил бы ступень ровно так, как её раньше занижали.
+     */
+    if (unequal) {
+      let usedChain = false;
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          if (grid[r][c] !== 0) continue;
+          let m = cand[r][c];
+          // Четыре грани клетки; знак 1 = «левая/верхняя МЕНЬШЕ правой/нижней».
+          const edges: [number, number, boolean][] = [];   // [соседR, соседC, я_меньше]
+          if (c < N - 1 && unequal.h[r][c] !== 0) edges.push([r, c + 1, unequal.h[r][c] === 1]);
+          if (c > 0 && unequal.h[r][c - 1] !== 0) edges.push([r, c - 1, unequal.h[r][c - 1] !== 1]);
+          if (r < N - 1 && unequal.v[r][c] !== 0) edges.push([r + 1, c, unequal.v[r][c] === 1]);
+          if (r > 0 && unequal.v[r - 1][c] !== 0) edges.push([r - 1, c, unequal.v[r - 1][c] !== 1]);
+          for (const [nr, nc, iAmLess] of edges) {
+            const empty = grid[nr][nc] === 0;
+            const om = empty ? cand[nr][nc] : bit(grid[nr][nc]);
+            if (!om) return true;
+            const next = m & (iAmLess ? atMost(hiVal(om) - 1) : atLeast(loVal(om) + 1));
+            if (next !== m) { m = next; changed = true; if (empty) usedChain = true; }
+          }
+          cand[r][c] = m;
+          if (m === 0) return true;
+        }
+        if (!changed) break;
+      }
+      if (usedChain) bump('unequal_chain');
+    }
+
     // ── Клетки-суммы: цифры внутри группы разные, и сумма фиксирована. Отсюда два
     // вывода на кандидатах: поставленная в группе цифра уходит из остальных её клеток,
     // а границы «сколько осталось набрать» режут кандидаты каждой открытой клетки.
@@ -386,6 +431,22 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
       for (const [clueBox, , cells] of lines) {
         const k = clueBox[0];
         if (!k) continue;
+        /**
+         * ⚠️ «k=1 → первая клетка ровно N» ВЕРХНЕЙ ГРАНИЦЕЙ НЕ ВЫВОДИТСЯ: при
+         * k=1, i=0 формула даёт ≤N — пустое ограничение. Это НИЖНЯЯ граница
+         * (первое здание заслоняет все прочие → оно самое высокое), и до
+         * 27.08.2026 её в коде не было, хотя комментарий её обещал. Ловится
+         * собранным примером в гейте sudoku-towers («подсказка 1 слева →
+         * в первой клетке шестёрка»).
+         */
+        if (k === 1) {
+          const [rr, cc] = cells[0];
+          if (grid[rr][cc] === 0) {
+            const next = cand[rr][cc] & bit(N);
+            if (next !== cand[rr][cc]) { cand[rr][cc] = next; usedTowers = true; }
+            if (next === 0) return true;
+          }
+        }
         for (let i = 0; i < cells.length; i++) {
           const [rr, cc] = cells[i];
           if (grid[rr][cc] !== 0) continue;
@@ -675,6 +736,22 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
    * Прежняя пятёрка снята с досок ДО подъёма снятием подсказок.
    */
   jigsaw: 6, thermocage: 5,
+  /**
+   * ⚠️ ДВА ВАРИАНТА ВНЕ ОСНОВНОЙ ЛЕСТНИЦЫ — живут мини-лестницами режимов
+   * (services/sudoku-modes). Потолок 4 < вершины лестницы 6, поэтому после
+   * джигсо им места нет: running-max обещаний потребовал бы недостижимого.
+   *
+   * unequal 4 (замер 27.08.2026, ПОСЛЕ появления техники `unequal_chain`;
+   * до неё ступень была 1–2 при любой плотности): лучшая плотность 0.30 —
+   * тиры [4,2,4,2,2,2,3,3], четвёрка дважды из восьми (критерий «хотя бы
+   * две доски» — впритык), пятёрка одна на 32 доски по всем плотностям.
+   *
+   * towers 4 (замер 27.08.2026, случайная копка — боевой путь режима,
+   * 40 досок на глубину): b=18 → решено 31/40, тиры [1×6, 4×25];
+   * b=20 → 20/40, [1×3, 4×17]. Выше четвёрки не выпало ни разу —
+   * towers_clue (ступень 4) и есть вся глубина варианта.
+   */
+  unequal: 4, towers: 4,
 };
 
 export function targetTier(level: number): { min: number; max: number } {
@@ -731,10 +808,25 @@ export function monotonicBandForLevel(level: number): { min: number; max: number
 export function markerDensity(level: number, variant: Variant): number {
   if (variant === 'evenodd') return [0.40, 0.34, 0.28, 0.22][Math.min(3, Math.max(0, level - 30))];
   if (variant === 'kropki') return [0.32, 0.28, 0.24, 0.20][Math.min(3, Math.max(0, level - 34))];
-  // Неравенства: 144 грани на доске, поэтому доли мелкие. Числа поставлены по замеру
-  // достижимой ступени, а не на глаз — см. VARIANT_TIER_CEILING и гейт
-  // sudoku-tier-reachable. Полоса 58–61: чем дальше, тем меньше сказано.
-  if (variant === 'unequal') return [0.30, 0.24, 0.19, 0.15][Math.min(3, Math.max(0, level - 58))];
+  /**
+   * Неравенства: 144 грани на доске, поэтому доли мелкие. Ключи — ступени
+   * мини-лестницы режима (1..8, services/sudoku-modes); в основной лестнице
+   * вариант не живёт (потолок 4 < вершины лестницы 6).
+   *
+   * ⚠️ ОСЬ ИЗ ДВУХ ФАЗ, И ОБЕ ГРАНИЦЫ ЗАМЕРЕНЫ (27.08.2026):
+   *   · ДОСТИЖИМОСТЬ ступени растёт СО знаками: цепочка работает только там,
+   *     где знаки есть (0.30 → четвёрки, 0.15 → максимум тройка при цели 6).
+   *     Знак — не подарок, а сама головоломка. Поэтому вход в фазу цепочек
+   *     (ступень 3) — на САМОЙ ЩЕДРОЙ доле 0.30.
+   *   · СЛОЖНОСТЬ ПРИ ФИКСИРОВАННОЙ ступени 4 растёт с ДЕФИЦИТОМ знаков —
+   *     тот же приём, что прореживание сэндвич-подсказок: техника та же,
+   *     а мест, где её применить, всё меньше. Отсюда спад 0.30 → 0.19 в хвосте.
+   *   · Промежуточной полосы 2..3 у варианта ПОЧТИ НЕТ: любой вывод цепочкой —
+   *     это сразу ступень 4, а доски, где знаки молчат, выходят на 1. Замер:
+   *     полоса 2..3 при 0.19 дала 0 попаданий из 8 (сплошные единицы) — копатель
+   *     откатывал каждое выкалывание, будившее цепочку (tier > max).
+   */
+  if (variant === 'unequal') return [0.15, 0.15, 0.30, 0.30, 0.24, 0.24, 0.19, 0.19][Math.min(7, Math.max(0, level - 1))];
   return 1;
 }
 
@@ -881,6 +973,12 @@ function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, varian
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
     parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich,
+    // ⚠️ Знаки и краевые подсказки ОБЯЗАНЫ доходить до оценщика. До 27.08.2026 их
+    // здесь не было, и запасной путь оценивал unequal/towers вслепую: та же доска
+    // давала «ступень 2, hidden_single» без карты и «ступень 4, unequal_chain» с ней.
+    // (В типе GeneratedPuzzle полей нет — как и в digByLogic, читаем через каст.)
+    unequal: (gen as { unequal?: UnequalMap }).unequal,
+    towers: (gen as { towers?: TowersMap }).towers,
   });
 }
 

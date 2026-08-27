@@ -1035,6 +1035,8 @@ export interface RejectionContext {
   cages?: CageMap;
   parity?: number[][];
   kropki?: { h: number[][]; v: number[][] };
+  unequal?: UnequalMap;
+  towers?: TowersMap;
 }
 
 export function rejectionReason(
@@ -1049,7 +1051,7 @@ export function rejectionReason(
 
   // 2. Правило варианта нарушено ДОКАЗУЕМО — вот теперь называем именно его.
   if (variant !== 'none') {
-    if (!isValid(test, r, c, n, N, BR, BC, variant, ctx.regions, ctx.thermo, ctx.arrow, ctx.cages)) {
+    if (!isValid(test, r, c, n, N, BR, BC, variant, ctx.regions, ctx.thermo, ctx.arrow, ctx.cages, ctx.unequal, ctx.towers)) {
       return variantRule(variant, lang);
     }
     // Метки движок не проверяет — проверяем здесь, руками и точно.
