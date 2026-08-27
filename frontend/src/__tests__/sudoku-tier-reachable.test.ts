@@ -38,7 +38,15 @@ import { levelConfig } from '@/src/services/sudoku-core';
  */
 const MEASURED_CEILING: Record<string, number> = {
   diagonal: 5, antiknight: 6, hyper: 4, nonconsec: 4, antiking: 4,
-  evenodd: 4, kropki: 5, sandwich: 4, thermo: 5, arrow: 5, jigsaw: 5, thermocage: 5,
+  evenodd: 4, kropki: 5, sandwich: 4, thermo: 5, arrow: 5,
+  /**
+   * jigsaw 5 → 6, распечатка замера 27.08.2026 (боевой бюджет 1100 мс, L53,
+   * 20 досок, ПОСЛЕ появления liftByClueRemoval):
+   *   тиры [4,4,5,6,6,5,4,6,5,5,6,4,6,4,6,4,4,6,4,4] — шестёрок 7 из 20.
+   * Критерий словаря «хотя бы две доски» выполнен с запасом; до подъёма
+   * снятием подсказок шестёрка была 2/20 и потолок честно стоял на 5.
+   */
+  jigsaw: 6, thermocage: 5,
 };
 
 const LAST_LEVEL = 57;

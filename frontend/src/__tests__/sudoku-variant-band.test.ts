@@ -25,9 +25,19 @@ describe('вариантный потолок ступени', () => {
     expect(effectiveBand('thermo' as never, { min: 2, max: 3 })).toEqual({ min: 2, max: 3 });
   });
 
-  it('🔴 варианты с достижимой шестёркой не клэмпятся (jigsaw дал 6 в свободном прогоне)', () => {
-    for (const variant of ['jigsaw', 'none', 'sandwich', 'hyper'] as const) {
-      expect(effectiveBand(variant as never, { min: 5, max: 6 })).toEqual({ min: 5, max: 6 });
+  it('🔴 jigsaw после lift достигает шестёрки массово (12/20) — его потолок поднят, полоса цела', () => {
+    expect(effectiveBand('jigsaw' as never, { min: 5, max: 6 })).toEqual({ min: 5, max: 6 });
+  });
+
+  it('классика без потолка проходит нетронутой', () => {
+    expect(effectiveBand('none' as never, { min: 5, max: 6 })).toEqual({ min: 5, max: 6 });
+  });
+
+  it('🔴 sandwich и hyper клэмпятся своими потолками из замеров 26.08 (оба — 4)', () => {
+    // Раньше их лотерею не ловили: старый механизм опускал только пол, max
+    // оставался недостижимым. Теперь 5..6 честно складывается в 3..4.
+    for (const variant of ['sandwich', 'hyper'] as const) {
+      expect(effectiveBand(variant as never, { min: 5, max: 6 })).toEqual({ min: 3, max: 4 });
     }
   });
 });
