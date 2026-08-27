@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.248.0',
+    date: '2026-08-28',
+    ru: [
+      'Темы профилей: карта уровней в каждой игре получила подложку в духе твоего профиля — один и тот же луг с тропинкой у шахматиста графитовый, у детей витражный, у НЗТ-48 рентгеновский (11 тем)',
+    ],
+    en: [
+      'Profile themes: every game’s level map got an underlay in your profile’s mood — the same meadow path is graphite for chess, stained-glass for kids, X-ray for NZT-48 (11 themes)',
+    ],
+  },
+  {
     version: '1.247.0',
     date: '2026-08-28',
     ru: [
