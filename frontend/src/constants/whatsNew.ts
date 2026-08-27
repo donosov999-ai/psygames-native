@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.246.0',
+    date: '2026-08-28',
+    ru: [
+      'Рекорды видны везде, где собираются: все шесть игр лидерборда показывают на итоге строку «свой · лучший среди игроков» (реакция, тропинка, спаны, корси — раньше слали рекорды молча)',
+      'Без сети строка честно показывает личный рекорд',
+    ],
+    en: [
+      'Records now show where they are collected: all six leaderboard games display “yours · best among players” on the result screen (reaction, trails, spans, corsi used to submit silently)',
+      'Offline the line honestly falls back to your personal best',
+    ],
+  },
+  {
     version: '1.245.0',
     date: '2026-08-27',
     ru: [

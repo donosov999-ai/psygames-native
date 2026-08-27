@@ -73,6 +73,8 @@ interface Props {
   autoMs?: number;          // авто-старт следующего (по умолчанию 2200мс)
   gameId?: string;          // для персиста звёзд по уровням (psygames_<gameId>_stars_<profileId>)
   comparisonLine?: string;  // свой итог · лучший среди игроков / личный рекорд при офлайне
+  /** Рекорд-строка лидерборда — отдельным слотом, тем же правилом, что в GameResult. */
+  recordLine?: string;
   onContinue: () => void;   // запустить следующий уровень (passed) / тот же уровень заново (!passed)
   onStop: () => void;       // куда именно — говорит stopKind, см. ниже
   /**
@@ -106,7 +108,7 @@ interface Props {
   variant?: 'overlay' | 'screen';
 }
 
-export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, onContinue, onStop, stopKind = 'config', variant = 'screen' }: Props) {
+export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, recordLine, onContinue, onStop, stopKind = 'config', variant = 'screen' }: Props) {
   const { t, language } = useLanguage();
   /**
    * ЦВЕТ ТЕКСТА НА КАРТОЧКЕ СЧИТАЕТСЯ, А НЕ ЗАШИТ.
@@ -329,6 +331,12 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             {earn && earnReasonKey(earn.reason) && (
               <Text style={[styles.earnWhy, { color: fgSoft }]} numberOfLines={1}>{t(earnReasonKey(earn.reason) as string)}</Text>
             )}
+          </View>
+        )}
+        {recordLine && !compact && (
+          <View style={[styles.comparisonBadge, { backgroundColor: scrim }]}>
+            <Ionicons name="trophy-outline" size={17} color={fg} />
+            <Text style={[styles.comparisonText, { color: fg }]}>{recordLine}</Text>
           </View>
         )}
         {comparisonLine && !compact && (

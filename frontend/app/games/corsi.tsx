@@ -1,4 +1,4 @@
-/* psygames-game-corsi · VER 1 · 19.08.2026 */
+/* psygames-game-corsi · VER 2 · 28.08.2026 */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -19,7 +19,8 @@ import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LeaderboardModal from '@/src/components/LeaderboardModal';
-import { countsForRecord, submitScore } from '@/src/services/leaderboard';
+import { countsForRecord } from '@/src/services/leaderboard';
+import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmark';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -133,6 +134,7 @@ export default function CorsiGame() {
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const record = useRecordBenchmark('corsi');
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'forward') as Mode));
   // Справка правил уровня (в зарядке-пресете не показываем — там свой поток).
@@ -245,7 +247,10 @@ export default function CorsiGame() {
     // Рекорд — только партия первого уровня: стартовый спан и темп показа выводятся из
     // уровня, поэтому спан с разных ступеней несравним (см. LEADERBOARD_GAMES.corsi).
     if (countsForRecord('corsi', { isPreset, level: levelRef.current })) {
-      submitScore('corsi', finalSpan).catch(() => {});   // тихо — лидерборд необязателен
+      // Рекорд-строка на итог + отправка — одним хуком (офлайн-фолбэк внутри).
+      record.report(finalSpan);
+    } else {
+      record.reset();
     }
     // веха-босс: при чистом прохождении каждые BOSS_EVERY уровней → битва (память → счёт)
     if (passed && levelRef.current % BOSS_EVERY === 0) { setClearedPassed(true); setBossWon(null); setPhase('boss'); }
@@ -454,7 +459,7 @@ export default function CorsiGame() {
           onComplete={(win) => { setBossWon(win); setPhase('cleared'); }} />
       )}
       {phase === 'cleared' && (
-        <LevelCleared gameId="corsi" level={levelRef.current} passed={clearedPassed} stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
+        <LevelCleared gameId="corsi" level={levelRef.current} passed={clearedPassed} recordLine={record.benchmark ? recordLineFor('corsi', record.benchmark, t) : undefined} stars={bossWon === true ? 3 : (errors === 0 ? 3 : errors <= 2 ? 2 : 1)}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
@@ -462,6 +467,7 @@ export default function CorsiGame() {
           `comparisonLine` это готовый слот GameResult под одну строку под счётом. */}
       {phase === 'result' && (
         <GameResult
+          recordLine={record.benchmark ? recordLineFor('corsi', record.benchmark, t) : undefined}
           score={Math.max(0, span * 200 - errors * 50) + (bossWon ? 100 : 0)}
           stars={bossWon === true ? 3 : undefined}
           time={elapsedTime} errors={errors}

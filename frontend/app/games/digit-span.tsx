@@ -1,4 +1,4 @@
-/* psygames-game-digit-span · VER 2 · 23.08.2026 */
+/* psygames-game-digit-span · VER 3 · 28.08.2026 */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
@@ -23,7 +23,8 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LeaderboardModal from '@/src/components/LeaderboardModal';
-import { countsForRecord, getPersonalBest, submitScore } from '@/src/services/leaderboard';
+import { countsForRecord, getPersonalBest } from '@/src/services/leaderboard';
+import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmark';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -197,6 +198,7 @@ export default function DigitSpanGame() {
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const record = useRecordBenchmark('digit_span');
   const ds = getDigitSpanStrings(language);   // подписи партии — свой словарь модуля на 12 языков
   const [direction, setDirection] = useState<Direction>(() => (str('mode', 'forward') as Direction));
   const [delivery, setDelivery] = useState<Delivery>(() => (str('delivery', 'screen') as Delivery));
@@ -452,7 +454,11 @@ export default function DigitSpanGame() {
         // зрительного), складывать их в одну таблицу значит сравнивать разное.
         // Незачётная партия отваливается молча — человек играл, а не сдавал норматив.
         if (countsForRecord('digit_span', { isPreset, level: levelRef.current }) && deliveryRef.current === 'screen') {
-          submitScore('digit_span', updatedMax).then(reloadBest).catch(() => {});   // тихо — лидерборд необязателен
+          // Рекорд-строка на итог + отправка — одним хуком; reloadBest обновляет шапку.
+          record.report(updatedMax);
+          reloadBest();
+        } else {
+          record.reset();
         }
       }
     } else {
@@ -748,7 +754,7 @@ export default function DigitSpanGame() {
       />
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
-        <LevelCleared gameId="digit_span" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+        <LevelCleared gameId="digit_span" level={levelRef.current} recordLine={record.benchmark ? recordLineFor('digit_span', record.benchmark, t) : undefined} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
@@ -756,7 +762,7 @@ export default function DigitSpanGame() {
       {/* Итог пробного захода словами: очки списаны, партия никуда не записана —
           `comparisonLine` это готовый слот GameResult под одну строку под счётом. */}
       {phase === 'result' && (
-        <GameResult score={maxSpan * 10} time={elapsedTime} errors={errors}
+        <GameResult recordLine={record.benchmark ? recordLineFor('digit_span', record.benchmark, t) : undefined} score={maxSpan * 10} time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           comparisonLine={practiceUsed ? t('abilityPracticeSpent') : undefined}
           gradient={GRADIENT as [string, string]} />
