@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.240.3',
+    date: '2026-08-27',
+    ru: [
+      '«Слепые шахматы» стали «Доской в уме»: позиции теперь из настоящих партий, а не случайная россыпь фигур — на случайной расстановке тренировать было нечего',
+      'В режиме розыска больше не бывает партий, где вопросов меньше трёх',
+    ],
+    en: [
+      'Blindfold Chess is now Board in Mind: positions come from real games instead of a random scatter of pieces — a random placement had nothing to train',
+      'The search mode no longer produces games with fewer than three questions',
+    ],
+  },
+  {
     version: '1.240.2',
     date: '2026-08-27',
     ru: [
