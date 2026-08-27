@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutChangeEvent } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutChangeEvent, Image } from 'react-native';
 import Svg, { Circle, Defs, G, Line, Path, Polygon, RadialGradient, Stop } from 'react-native-svg';
 import PetSprite, { PetAccessory, PetSkin } from '@/src/components/pet/PetSprite';
 import { getPetSkin, getPetAccessory } from '@/src/services/pet';
@@ -9,6 +9,7 @@ import { formatBestTime, getLevelBestTimes, showsBestTime, LevelTimes } from '@/
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { hasBoss, isBossLevel } from '@/src/constants/bosses';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
+import { themeArtFor } from '@/src/constants/profileThemes';
 
 /**
  * LevelProgressMap — ТРОПИНКА уровней: цепочка нейронов вдоль аксона, на текущем
@@ -388,6 +389,17 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel, bestL
         accessibilityLabel={heading}
       >
         <View style={{ width: totalW, height: H }}>
+          {/* ТЕМА ПРОФИЛЯ — подложка тропинки (движок тем c4fc6173): один и тот же
+              луг у каждого профиля обработан своим рецептом НА СБОРКЕ. Непрозрачность
+              низкая нарочно: подложка задаёт настроение, узлы и подписи читаются
+              поверх как раньше. resizeMode cover — арт вертикальный (720×1222), а
+              полоса карты горизонтальная. Декорация: от чтения экрана скрыта. */}
+          <Image
+            source={themeArtFor(profile?.id)}
+            style={{ position: 'absolute', left: 0, top: 0, width: totalW, height: H, opacity: 0.16, borderRadius: 10 }}
+            resizeMode="cover"
+            accessible={false}
+          />
           <Svg width={totalW} height={H}>
             <Defs>
               {/* id уникален по игре: на web все Svg живут в одном DOM, и одинаковый

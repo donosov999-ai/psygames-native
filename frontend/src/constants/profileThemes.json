@@ -1,0 +1,51 @@
+{
+  "__comment": "Тема профиля = рецепт из src/games/pause/core/imageEffects.ts, применяемый К БАЗОВОМУ арту НА СБОРКЕ (scripts/build-profile-art.mjs). Пары черновые (28.08.2026), меняются одной строкой + перегенерация. Ключи-профили сверяет гейт profile-themes.test.ts.",
+  "base": "assets/images/interlude/meadow.webp",
+  "outDir": "assets/images/level-map-themes",
+  "themes": {
+    "odv999": {
+      "effect": "fractal-julia",
+      "why": "личный профиль — фрактал"
+    },
+    "chess": {
+      "effect": "black-white",
+      "why": "доска"
+    },
+    "kids": {
+      "effect": "colour-glass",
+      "why": "витраж, ярко"
+    },
+    "vasilyeva": {
+      "effect": "kaleidoscope",
+      "why": "авторский арт"
+    },
+    "nzt48": {
+      "effect": "xray",
+      "why": "биохакинг, рентген"
+    },
+    "free": {
+      "effect": "water-colour",
+      "why": "нейтрально-мягкий"
+    },
+    "drivers": {
+      "effect": "color-planes",
+      "why": "скорость, сдвиг каналов"
+    },
+    "seniors": {
+      "effect": "blur",
+      "why": "мягко и спокойно; зерно brightness-noise весило 225 КБ в webp"
+    },
+    "execs": {
+      "effect": "emboss",
+      "why": "металл, тиснение"
+    },
+    "students": {
+      "effect": "sharpen",
+      "why": "чёткость"
+    },
+    "women": {
+      "effect": "mosaic",
+      "why": "смальта"
+    }
+  }
+}
