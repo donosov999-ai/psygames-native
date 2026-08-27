@@ -224,7 +224,14 @@ export class AlarmSession {
         this.state = result.state;
         let nativeOverride = false;
         for (const command of result.commands) {
-            if (nativeOverride && (command.type === 'record-outcome' || command.type === 'continue-warmup'))
+            /**
+             * Д7 ревью 27.08.2026: `schedule` тоже глушится нативным терминалом.
+             * Раньше глушились только record-outcome и continue-warmup, а снуз
+             * ПРОДОЛЖАЛ выполняться: состояние уже fail-safe-stopped, но OS-alarm
+             * на +N минут заряжался — сохранённый runtime и заряженный будильник
+             * расходились, и через N минут звонил «никто».
+             */
+            if (nativeOverride && (command.type === 'record-outcome' || command.type === 'continue-warmup' || command.type === 'schedule'))
                 continue;
             if (command.type === 'stop-alert') {
                 const stopped = await this.bridge.stopAlert(command.occurrenceId, command.reason);
@@ -235,7 +242,9 @@ export class AlarmSession {
                 this.callbacks.onStopped(stopped.outcome.reason, this.state);
                 continue;
             }
-            await this.applyCommand(command, this.state);
+            const принят = await this.applyCommand(command, this.state);
+            if (принят === 'native-terminal')
+                return;
         }
         this.callbacks.onState(this.state);
         if (this.state.phase !== 'challenge')
@@ -243,7 +252,7 @@ export class AlarmSession {
     }
     async applyCommand(command, resultState) {
         if (!this.envelope)
-            return;
+            return undefined;
         if (command.type === 'persist') {
             await this.bridge.saveRuntime(this.envelope.spec.id, command.checkpoint ?? resultState);
         }
@@ -258,10 +267,37 @@ export class AlarmSession {
             this.callbacks.onSnoozed(resultState);
         }
         else if (command.type === 'arm-native-fail-safe') {
-            await this.bridge.armWatchdog(command.occurrenceId, command.deadlineWallMs);
+            /**
+             * Д8 ревью 27.08.2026: реджект на терминальном occurrence никем не
+             * ловился. arm-native-fail-safe идёт ПЕРЕД start-alert, поэтому один
+             * голый reject пропускал И сигнал, И открытие задачи — экран замирал.
+             * Отказ здесь означает одно из двух: нативная сторона уже закрыла этот
+             * occurrence (штатно — сверяемся и принимаем её терминал) либо мост
+             * сломан (не штатно — тогда пишем отказ, но задачу всё равно открываем:
+             * лучше задача без сторожа, чем звонок без кнопки).
+             */
+            try {
+                await this.bridge.armWatchdog(command.occurrenceId, command.deadlineWallMs);
+            }
+            catch (error) {
+                // ⚠️ Не через reconcileNativeTerminal(): тот работает только в фазе
+                // challenge, а сюда реджект приходит ДО неё — терминал ищем напрямую.
+                // Принятый терминал ОБРЫВАЕТ весь apply: оставшиеся команды (включая
+                // open-challenge) принадлежат ветке, которой больше нет.
+                if (await this.adoptNativeTerminal(command.occurrenceId))
+                    return 'native-terminal';
+                console.error('smart-alarm: armWatchdog отказал вне терминала', error);
+            }
         }
         else if (command.type === 'start-alert') {
-            await this.bridge.startAlert(command.occurrenceId);
+            try {
+                await this.bridge.startAlert(command.occurrenceId);
+            }
+            catch (error) {
+                if (await this.adoptNativeTerminal(command.occurrenceId))
+                    return 'native-terminal';
+                console.error('smart-alarm: startAlert отказал вне терминала', error);
+            }
         }
         else if (command.type === 'open-challenge') {
             this.callbacks.onChallenge(command.task, resultState);
@@ -285,6 +321,22 @@ export class AlarmSession {
         if (this.tickHandle !== null)
             globalThis.clearInterval(this.tickHandle);
         this.tickHandle = null;
+    }
+    /**
+     * Д8: принять нативный терминал ПО КОНКРЕТНОМУ occurrence, без оглядки на
+     * фазу. Нужен реджектам armWatchdog/startAlert — они приходят до фазы
+     * challenge, где общий reconcileNativeTerminal() отказывается работать.
+     */
+    async adoptNativeTerminal(occurrenceId) {
+        const outcome = (await this.bridge.listOutcomes().catch(() => []))
+            .find((candidate) => candidate.occurrenceId === occurrenceId);
+        if (!outcome || !this.state)
+            return false;
+        this.state = reconcileNativeTerminal(this.state, outcome);
+        this.clearTicker();
+        this.callbacks.onStopped(outcome.reason, this.state);
+        this.callbacks.onState(this.state);
+        return true;
     }
     async reconcileNativeTerminal() {
         if (!this.state?.occurrence || this.state.phase !== 'challenge')

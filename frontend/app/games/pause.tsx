@@ -33,13 +33,13 @@
  * перевод приедет, — чтобы модуль не забыли включить в общий гейт словарей.
  */
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { goBackOrHome } from '@/src/utils/nav';
 import { useKeepAwake } from '@/src/hooks/useKeepAwake';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameShell from '@/src/components/GameShell';
+import GameResult from '@/src/components/GameResult';
 import WarmupPage, { type WarmupOutcome } from '@/src/games/pause/ui/WarmupPage';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -58,8 +58,11 @@ import {
 
 type Phase = 'config' | 'playing' | 'result';
 
+/** Градиент концовки — глубокий зелёный практик: не совпадает ни с «Дыханием», ни с «Глазами». */
+const GRADIENT = ['#0f766e', '#134e4a'];
+
 export default function PauseGame() {
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { language } = useLanguage();
   useKeepAwake(true);
 
@@ -216,48 +219,31 @@ export default function PauseGame() {
    * человек, только что закончивший зарядку, попадал в ХУДШУЮ копию того, из
    * чего вышел. Осталась карточка итога и одна кнопка — вернуться на страницу.
    */
+  /**
+   * 🔴 КОНЦОВКА — СТАНДАРТНАЯ, КАК У ОСТАЛЬНЫХ ИГР (Денис, 27.08, по скрину:
+   * «окончание упражнения — интерфейса нет, сделай стандартно»). Раньше здесь
+   * была самодельная карточка «Пауза окончена» на пустом экране. Теперь —
+   * общий GameResult на градиенте: время, ряд показателей, «Ещё раз»/«Домой».
+   *
+   * ⚠️ Очков и звёзд НЕТ нарочно: практику никто не оценивает, очки были бы
+   * выдумкой (правило сохранения: только завершение и время). Показатели —
+   * факт: минуты и наборы.
+   */
   return (
-    <GameShell title={tr({ ru: 'Глаза и дыхание', en: 'Eyes & breathing' })} onBack={() => goBackOrHome()}>
-      <ScrollView contentContainerStyle={styles.body}>
-        {last && (
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.h, { color: colors.text }]}>
-              {tr({ ru: 'Пауза окончена', en: 'Pause complete' })}
-            </Text>
-            <Text style={[styles.p, { color: colors.textSecondary }]}>
-              {tr({ ru: 'Минут', en: 'Minutes' })}: {Math.round(last.durationMs / 60_000)} · {tr({ ru: 'наборов', en: 'sets' })}: {last.completedSetIds.length}
-            </Text>
-          </View>
-        )}
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel={tr({ ru: 'Ещё раз', en: 'Again' })}
-          onPress={() => { setLast(null); setStarted(false); setPhase('config'); }}
-          style={[styles.chip, { borderColor: colors.primary, backgroundColor: colors.primary + '22', alignSelf: 'center', paddingHorizontal: 24, paddingVertical: 12 }]}
-        >
-          <Text style={{ color: colors.text, fontWeight: '600' }}>{tr({ ru: 'Ещё раз', en: 'Again' })}</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </GameShell>
+    <GameResult
+      time={last ? Math.round(last.durationMs / 1000) : 0}
+      gradient={GRADIENT}
+      metrics={[
+        { label: tr({ ru: 'Минут', en: 'Minutes' }), value: String(last ? Math.round(last.durationMs / 60_000) : 0), icon: 'time-outline' },
+        { label: tr({ ru: 'Наборов', en: 'Sets' }), value: String(last ? last.completedSetIds.length : 0), icon: 'body-outline' },
+      ]}
+      metricsNote={[tr({
+        ru: 'Сохраняются только завершение и время — без оценок.',
+        en: 'Only completion and time are recorded — no scoring.',
+      })]}
+      onPlayAgain={() => { setLast(null); setStarted(false); setPhase('config'); }}
+      onGoHome={() => goBackOrHome()}
+    />
   );
 }
 
-const styles = StyleSheet.create({
-  body: { padding: 16, gap: 10, paddingBottom: 40 },
-  card: { padding: 16, borderRadius: 14, borderWidth: 1, gap: 6 },
-  h: { fontSize: 16, fontWeight: '600', marginTop: 10 },
-  p: { fontSize: 14 },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  // ⚠️ И ШИРИНА, А НЕ ТОЛЬКО ВЫСОТА. Стояло `minHeight: 44` — и этого хватало всем
-  // чипам, кроме числовых: «3» и «5» с боковыми отступами по 14 дают ~40 px ширины.
-  // Поймал живой гейт размеров на собранном вебе («/games/pause — 2 шт.»), а не глаз:
-  // на экране разница в четыре пикселя не видна, а пальцем промахиваешься.
-  chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' },
-  chipText: { fontSize: 14, fontWeight: '500' },
-  setRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 12, borderWidth: 1, minHeight: 44 },
-  setText: { flex: 1, gap: 2 },
-  setTitle: { fontSize: 15, fontWeight: '600' },
-  setSummary: { fontSize: 13 },
-  start: { marginTop: 18, padding: 16, borderRadius: 14, alignItems: 'center', minHeight: 44, justifyContent: 'center' },
-  startText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-});
