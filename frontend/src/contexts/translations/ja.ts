@@ -1966,6 +1966,7 @@ const t: Record<string, string> = {
   "voiceLevelHearing": "聞こえています",
   "voiceLevelSilence": "無音です — マイクから音が届いていません",
   "voiceCeilingReached": "録音は自動で止まりました — 長さの上限です。このまま送るか、もう一度録り直してください。",
+  "voiceStaleWebView": "この端末のシステムWebViewが古いようです(Chrome {v})。マイクの許可はあるのに録音が無音になります。Google Playで「Android System WebView」を更新して、もう一度録音してください。",
   "voiceSilentTitle": "声が聞こえません",
   "voiceSendAnyway": "このまま送る",
   "voiceWriteInstead": "文字で書きます",

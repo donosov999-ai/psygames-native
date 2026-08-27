@@ -1968,6 +1968,7 @@ const t: Record<string, string> = {
   "voiceLevelHearing": "نسمعك",
   "voiceLevelSilence": "صمت — الميكروفون لا يعطي صوتًا",
   "voiceCeilingReached": "توقّف التسجيل من تلقاء نفسه — بلغ الحدّ الأقصى للمدة. أرسله كما هو أو سجّل واحدًا جديدًا.",
+  "voiceStaleWebView": "يبدو أن WebView النظام على هذا الجهاز قديم (Chrome {v}) — تخرج التسجيلات صامتة رغم منح إذن الميكروفون. حدّث تطبيق «Android System WebView» من Google Play وسجّل مرة أخرى.",
   "voiceSilentTitle": "لا نسمعك",
   "voiceSendAnyway": "أرسل على أي حال",
   "voiceWriteInstead": "سأكتبها بدلًا من ذلك",

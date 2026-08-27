@@ -1228,6 +1228,7 @@ const translations: Translations = {
   voiceCeilingReached: { ru: 'Запись остановилась сама — дошла до потолка длины. Отправьте как есть или запишите ещё одну.', en: 'The recording stopped on its own — it hit the length limit. Send it as is or record another one.' },
   // Развилка вместо молчаливой отправки немой записи. Запрета нет: могли говорить
   // шёпотом или в шумном месте — порог отличает тишину от звука, но не голос от шума.
+  voiceStaleWebView: { ru: "Похоже, на этом устройстве устарел системный WebView (Chrome {v}) — из-за этого запись выходит немой, хотя доступ к микрофону выдан. Обновите приложение «Android System WebView» в Google Play и запишите ещё раз.", en: "This device seems to run an outdated system WebView (Chrome {v}) — recordings come out silent even though microphone access is granted. Update the “Android System WebView” app in Google Play and record again." },
   voiceSilentTitle:  { ru: 'Мы вас не слышим', en: 'We cannot hear you' },
   voiceSendAnyway:   { ru: 'Всё равно отправить', en: 'Send anyway' },
   voiceWriteInstead: { ru: 'Напишу текстом', en: 'I’ll type it instead' },
