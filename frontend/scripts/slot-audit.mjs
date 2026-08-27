@@ -237,12 +237,60 @@ async function main() {
   await page.goto(BASE + '/', { waitUntil: 'networkidle' });
   await page.waitForTimeout(2500);
 
+  /**
+   * 🔴 ЭКРАНЫ, ЧЬЁ ПОЛЕ ЖИВЁТ ВО ВСТРОЕННОЙ СТРАНИЦЕ (`<iframe>`).
+   *
+   * «Пауза» с 27.08.2026 показывает страницу «Умного будильника» целиком —
+   * кнопки входа в родительском документе НЕТ, и аудит падал «кнопка входа не
+   * найдена». Поле существует, просто в дочернем кадре: вход делается ВНУТРИ
+   * кадра (старт → галочка предупреждений → старт, как жмёт человек), а СЛОТЫ
+   * по-прежнему меряются У РОДИТЕЛЯ — каркас с шапкой и низом принадлежит
+   * приложению, и правило «низ означает ответ игрока» спрашивается с него же.
+   * Разметка входа снята с самой страницы: `#start-practice`, галочка ищется
+   * по тексту предупреждения, по одной, с пересъёмом узла (клик перерисовывает
+   * страницу — протухший список узлов уже кусал tap-target-audit).
+   */
+  const EMBEDDED_FIELD = {
+    '/games/pause': { framePart: '/warmup/' },
+  };
+
+  async function enterEmbedded(route, spec) {
+    const frame = page.frames().find((f) => f.url().includes(spec.framePart));
+    if (!frame) return null;
+    const старт = () => frame.evaluate(() => {
+      const кнопка = document.getElementById('start-practice');
+      if (кнопка) кнопка.click();
+      return Boolean(кнопка);
+    }).catch(() => false);
+    if (!(await старт())) return null;
+    await page.waitForTimeout(600);
+    for (let i = 0; i < 4; i++) {
+      const осталось = await frame.evaluate(() => {
+        const бокс = [...document.querySelectorAll('input[type=checkbox]')].find((x) =>
+          !x.checked && x.offsetParent
+          && /warning|предупрежд/i.test((x.closest('label') || x.parentElement || {}).textContent || ''));
+        if (бокс) бокс.click();
+        return Boolean(бокс);
+      }).catch(() => false);
+      if (!осталось) break;
+      await page.waitForTimeout(300);
+    }
+    await старт();
+    const вошли = await frame.waitForFunction(
+      () => document.body.classList.contains('is-practice-running'),
+      { timeout: 8000 },
+    ).then(() => true).catch(() => false);
+    return вошли ? 'start-practice (в кадре)' : null;
+  }
+
   const results = [];
   for (const route of routes) {
     if (!(await open(page, route))) { results.push({ route, failed: 'экран не отрисовался за два захода' }); continue; }
     await dismissCoach(page);
-    const start = await pressStart(page);
-    if (!start) { results.push({ route, failed: 'кнопка входа не найдена' }); continue; }
+    const start = EMBEDDED_FIELD[route]
+      ? await enterEmbedded(route, EMBEDDED_FIELD[route])
+      : await pressStart(page);
+    if (!start) { results.push({ route, failed: EMBEDDED_FIELD[route] ? 'кадр не вошёл в партию' : 'кнопка входа не найдена' }); continue; }
     const slots = await page.evaluate(READ_SLOTS);
     results.push({ route, label: start, ...slots });
   }
