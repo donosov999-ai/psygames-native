@@ -88,7 +88,6 @@ function подставка(поиск: string) {
     addEventListener: () => {},
     parent: родитель,
     MutationObserver: class {
-      constructor(_: unknown) { /* обратный вызов здесь не нужен */ }
       observe() { наблюдает = true; }
     },
     setInterval: () => 0,

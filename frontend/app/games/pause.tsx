@@ -34,7 +34,6 @@
  */
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { goBackOrHome } from '@/src/utils/nav';
 import { useKeepAwake } from '@/src/hooks/useKeepAwake';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -42,12 +41,9 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameShell from '@/src/components/GameShell';
 import WarmupPage, { type WarmupOutcome } from '@/src/games/pause/ui/WarmupPage';
-import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
-import { gameNow } from '@/src/services/gamePause';
 import {
-  PausePracticesGame,
   PRACTICE_CATALOG,
   getDefaultPracticeSets,
   type PauseLocale,
@@ -58,22 +54,7 @@ import {
   type PracticeSelection,
 } from '@/src/games/pause';
 
-const GRADIENT = ['#0f766e', '#134e4a'];   // глубокий зелёный: не совпадает ни с «Дыханием», ни с «Глазами»
 
-/** Длительности паузы. Пятнадцать минут — потолок: дальше это уже не пауза. */
-const DURATIONS_MIN = [3, 5, 10, 15] as const;
-
-const CONTEXT_LABEL: Record<PracticeContext, { ru: string; en: string }> = {
-  'desk-invisible': { ru: 'За столом, незаметно', en: 'At the desk, unnoticed' },
-  'desk-visible': { ru: 'За столом, можно двигаться', en: 'At the desk, movement fine' },
-  home: { ru: 'Дома, свободно', en: 'At home, free' },
-};
-
-const MODE_LABEL: Record<PlanMode, { ru: string; en: string }> = {
-  solo: { ru: 'По одной', en: 'One at a time' },
-  parallel: { ru: 'Параллельно', en: 'In parallel' },
-  charge: { ru: 'Зарядка подряд', en: 'Charge sequence' },
-};
 
 type Phase = 'config' | 'playing' | 'result';
 
@@ -82,16 +63,15 @@ export default function PauseGame() {
   const { language } = useLanguage();
   useKeepAwake(true);
 
-  const { isPreset, autostart, num, str, isCalm } = useGamePreset();
+  const { autostart, str, isCalm } = useGamePreset();
   useCalmHush(isCalm);
 
   const locale: PauseLocale = language === 'ru' ? 'ru' : 'en';
   const tr = useCallback((pair: { ru: string; en: string }) => pair[locale], [locale]);
 
   const [phase, setPhase] = useState<Phase>('config');
-  const [minutes, setMinutes] = useState<number>(() => num('minutes', 5));
-  const [context, setContext] = useState<PracticeContext>(() => (str('context', 'desk-visible') as PracticeContext));
-  const [mode, setMode] = useState<PlanMode>(() => (str('mode', 'solo') as PlanMode));
+  const [context] = useState<PracticeContext>(() => (str('context', 'desk-visible') as PracticeContext));
+  const [mode] = useState<PlanMode>(() => (str('mode', 'solo') as PlanMode));
   /**
    * 🔴 НАБОР МОЖНО ПОПРОСИТЬ ССЫЛКОЙ — `?set=breathing`.
    *
@@ -103,7 +83,7 @@ export default function PauseGame() {
    * ⚠️ Проверяем, что запрошенный набор существует: чужая ссылка с опечаткой не
    * должна оставлять экран с пустым выбором и мёртвой кнопкой «Начать».
    */
-  const [chosen, setChosen] = useState<readonly PracticeSetId[]>(() => {
+  const [chosen] = useState<readonly PracticeSetId[]>(() => {
     const запрошен = str('set');
     if (запрошен && PRACTICE_CATALOG.some((s) => s.id === запрошен)) {
       return [запрошен as PracticeSetId];
@@ -137,28 +117,7 @@ export default function PauseGame() {
   const start = useCallback(() => { if (selections.length) { setStarted(false); setPhase('playing'); } }, [selections.length]);
   useAutostartWhenReady(() => autostart && selections.length > 0, () => start());
 
-  /**
-   * 🔴 В ОДИНОЧНОМ РЕЖИМЕ НАБОР РОВНО ОДИН — ЭТО ПРАВИЛО ЯДРА, А НЕ ВКУС.
-   * `validatePlanRequest` возвращает `INVALID_SELECTION_COUNT`, если в `solo`
-   * пришло больше одного. Первая редакция этого экрана клала по умолчанию два
-   * набора: план не собрался бы НИКОГДА, а человек видел бы кнопку «Начать»,
-   * которая молча ничего не делает. Поймал гейт `pause-shared-core`, не я.
-   * Поэтому здесь выбор ведёт себя как переключатель в solo и как галочки в
-   * остальных режимах.
-   */
-  const toggle = useCallback((id: PracticeSetId) => {
-    setChosen((prev) => {
-      if (mode === 'solo') return prev.includes(id) ? prev : [id];
-      return prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-    });
-  }, [mode]);
 
-  // Смена режима на одиночный обязана обрезать выбор, иначе останется прежний
-  // список из нескольких наборов и старт снова окажется мёртвым.
-  const chooseMode = useCallback((m: PlanMode) => {
-    setMode(m);
-    if (m === 'solo') setChosen((prev) => (prev.length > 1 ? prev.slice(0, 1) : prev));
-  }, []);
 
   /**
    * Итог приходит от встроенной страницы: дошла сессия до конца или человек
@@ -184,40 +143,7 @@ export default function PauseGame() {
     });
   }, [mode, context, chosen]);
 
-  const onComplete = useCallback((result: PracticeResult) => {
-    setStarted(false);   // практика дошла до конца — терять нечего, вопрос снимаем
-    setLast(result);
-    setPhase('result');
-    // 🔴 СОХРАНЯЕМ ТОЛЬКО ФАКТ И ДЛИТЕЛЬНОСТЬ. Ни «качества выполнения», ни
-    // придуманной пользы: практику никто не оценивает, и очки здесь были бы
-    // выдумкой. `score` = минуты, чтобы таблица не показывала ноль.
-    void saveSession({
-      game_type: 'pause',
-      score: Math.round(result.durationMs / 60_000),
-      time_seconds: Math.round(result.durationMs / 1000),
-      mode,
-      difficulty: context,
-      details: {
-        sets: [...result.completedSetIds],
-        interrupted: result.interruptedCount,
-        plan_id: result.planId,
-      },
-    });
-  }, [mode, context]);
 
-  const theme = useMemo(() => ({
-    background: colors.background,
-    surface: colors.surface,
-    surfaceMuted: colors.surface,
-    text: colors.text,
-    textSecondary: colors.textSecondary,
-    border: colors.border,
-    primary: colors.primary,
-    secondary: colors.textSecondary,
-    success: colors.success,
-    danger: colors.error,
-    focus: colors.primary,
-  }), [colors]);
 
   // 🔴 ПРАКТИКА ИДЁТ ВНУТРИ КАРКАСА, А НЕ ВМЕСТО НЕГО. Первая редакция возвращала
   // модуль отдельным экраном мимо `GameShell` — и на время практики пропадали и

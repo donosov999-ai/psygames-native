@@ -268,8 +268,10 @@ select:disabled {
 
 .icon-button {
   display: inline-grid;
-  min-width: 44px;
-  min-height: 44px;
+  /* 48 — порог касания на игровом поле (аудит psygames, порог MIN_FIELD);
+     этими кнопками стучат всю партию, 44 было на волосок ниже. */
+  min-width: 48px;
+  min-height: 48px;
   padding: 0 11px;
   color: var(--text);
   border: 1px solid var(--border);
@@ -413,7 +415,8 @@ h3 {
 
 .button {
   display: inline-flex;
-  min-height: 46px;
+  /* 48 — тот же порог касания, что у .icon-button выше. */
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   gap: 9px;

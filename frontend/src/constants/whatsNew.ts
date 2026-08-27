@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.242.2',
+    date: '2026-08-27',
+    ru: [
+      'Экран зарядки открывается без ошибки при загрузке (гидрация)',
+      'Кнопки «Пауза», «Выйти» и «Закрыть» во время практики стали крупнее — 48 пикселей, порог касания',
+    ],
+    en: [
+      'The warm-up screen opens without a load-time error (hydration)',
+      'The Pause, Exit and Close buttons during practice are larger now — 48 px, the tap-target threshold',
+    ],
+  },
+  {
     version: '1.242.1',
     date: '2026-08-27',
     ru: [
