@@ -54,8 +54,9 @@ import {
   puzzlePiecesBand,
   puzzlePosition,
   questionText,
-  screenIndex,
-  LOCATE_MIN_UNIQUE,
+  puzzleLevelParams,
+  puzzleMinUnique,
+  toScreenPieces,
   seriesEntry,
   seriesIntro,
   seriesRecap,
@@ -66,14 +67,34 @@ import {
   type ChessSeriesOutcome,
   type ChessSeriesProgress,
   type ChessSeriesState,
+  type PuzzlePiece,
+  type PuzzlePieceType,
+  type PuzzleQuizType,
   type RecallQuestion,
 } from '@/src/games/chess-blind/core';
 
 /**
- * Слепые шахматы (chess_blind) — тренировка удержания позиции в уме.
- * Позиция показывается → все фигуры маскируются одинаковыми фишками →
- * (на старших уровнях фигуры вслепую ходят) → квиз: «что стоит здесь?» / «где фигура X?».
- * Подготовка к игре вслепую: игрок держит в голове, какая фишка что.
+ * ТРЕНАЖЁР ВИЗУАЛИЗАЦИИ ДОСКИ (`chess_blind`) — два режима на одном экране.
+ *
+ * ПАРТИЯ (лесенка 1–15): позицию показали → фигуры замаскировались одинаковыми
+ * фишками → на старших уровнях фишки вслепую ходят → квиз «что стоит здесь?» и
+ * «где фигура X?». Ручки трудности: число фигур, длина показа, слепые ходы, тип
+ * квиза.
+ *
+ * СЕРИЯ (три блока на ОДНОЙ позиции): цвет полей → ход коня → память о позиции.
+ * Каждый следующий блок добавляет РОВНО ОДНО требование, и разность времён —
+ * цена добавленного звена. Состояние серии ведётся ниже по файлу, правила — в
+ * `src/games/chess-blind/core`.
+ *
+ * 🔴 ЭТО ТРЕНАЖЁР, А НЕ ВОСПРОИЗВЕДЕНИЕ МЕТОДИКИ, И НАЗЫВАТЬСЯ ОН ДОЛЖЕН ТАК ЖЕ.
+ * Имя «слепые шахматы» тянуло за собой заявку на парадигму Chase & Simon (1973),
+ * которой здесь нет и не было: у них случайная расстановка — это КОНТРОЛЬНОЕ
+ * условие, где эффект знания структуры ГАСИТСЯ, а игра до 27.08.2026 расставляла
+ * фигуры именно случайно. То есть носила имя методики, воспроизводя её контроль
+ * (реестр: `PSYGAMES_DEFECTS.md` §239). Расстановка вылечена — материал берётся
+ * из заготовленного офлайн корпуса живых позиций; заявка на парадигму снята
+ * вместе с ней, и разности блоков серии не называются «оценкой мозга»: T₂ − T₁ —
+ * цена ОДНОГО правила в ЭТОЙ партии на ЭТОЙ позиции, и ничего сверх того.
  */
 
 const GRADIENT = ['#334155', '#0f172a'];   // шахматный тёмный
@@ -131,10 +152,14 @@ const RECALL_EXPOSE_MS = 8000;
 const SERIES_GAME_TYPE = 'chess_blind_series';
 /** Что сейчас на экране в блоке «память»: ждём готовности → показ → вопросы. */
 type RecallStage = 'ready' | 'memorize' | 'ask';
-type PieceType = 'K' | 'Q' | 'R' | 'B' | 'N' | 'P';
-type QuizType = 'pick' | 'locate';
+// Виды фигур и сама фигура — типы ЯДРА, не вторая их запись: там же лежит сборка
+// `toScreenPieces`, применяющая переворот координат, и расходиться им нельзя.
+type PieceType = PuzzlePieceType;
+// Тот же тип, что у ядра, — не вторая его запись: два независимых списка видов
+// квиза разъезжаются молча (tsc их структурное совпадение принимает и молчит).
+type QuizType = PuzzleQuizType;
 
-interface Piece { id: number; type: PieceType; white: boolean; sq: number }  // sq: 0..63, row0 = 8-я горизонталь (верх)
+type Piece = PuzzlePiece;   // sq: 0..63, row0 = 8-я горизонталь (верх)
 interface Combo { type: PieceType; white: boolean }
 interface Move { pieceId: number; from: number; to: number }
 interface Question { sq: number; answer: Combo; options: Combo[] }
@@ -194,15 +219,17 @@ function pieceName(c: Combo, t: (k: string) => string): string {
   return t(`chessPc${c.white ? 'W' : 'B'}${c.type}`);
 }
 
-// Лесенка 15 уровней: сложность ТРУДНОСТЬЮ (фигуры/показ/слепые ходы/тип квиза), не временем
-function levelParams(level: number): { pieces: number; exposeSec: number; moves: number; quizType: QuizType; questions: number } {
-  const L = Math.max(1, Math.min(15, level));
-  const pieces =    [4, 6, 8, 10, 12,  6, 6, 6, 8, 8,  10, 10, 12, 10, 12][L - 1];
-  const exposeSec = [8, 8, 7, 6, 5,    8, 8, 8, 8, 8,   8, 7, 7, 6, 6][L - 1];
-  const moves =     [0, 0, 0, 0, 0,    2, 3, 4, 4, 6,   6, 8, 8, 10, 12][L - 1];
-  const quizType: QuizType = L >= 11 ? 'locate' : 'pick';
-  return { pieces, exposeSec, moves, quizType, questions: 3 };
-}
+/**
+ * Лесенка 15 уровней: сложность ТРУДНОСТЬЮ (фигуры / показ / слепые ходы / тип
+ * квиза), не временем и не долей проб.
+ *
+ * ⚠️ САМА ТАБЛИЦА ЖИВЁТ В `core/puzzle.ts`, А НЕ ЗДЕСЬ (переехала 27.08.2026).
+ * По ней выбирается МАТЕРИАЛ партии — позиция из корпуса и требование к числу
+ * уникальных фигур, — а до файла маршрута проба не дотягивается: наружу он
+ * отдаёт только компонент. Гейту пришлось бы держать копию чисел рядом с собой,
+ * а копия зеленеет сама по себе.
+ */
+const levelParams = puzzleLevelParams;
 
 function stageName(level: number, t: (k: string) => string): string {
   if (level <= 5) return t('chessStageFlash');
@@ -227,35 +254,6 @@ function shuffle<T>(arr: readonly T[]): T[] {
   return out;
 }
 
-/**
- * ПОЗИЦИЯ ЯДРА → ФИГУРЫ В ТОМ ВИДЕ, В КАКОМ ИХ РИСУЕТ ДОСКА ЭКРАНА.
- *
- * 🔴 ЗДЕСЬ ЖИВЁТ ПЕРЕВОРОТ ПО ВЕРТИКАЛИ, И ЭТО ЕДИНСТВЕННОЕ ОПАСНОЕ МЕСТО
- * ПЕРЕХОДА. Сетка экрана считается строками сверху вниз (строка 0 — восьмая
- * горизонталь), индекс ядра — снизу вверх (0 = a1). Сам переворот вынесен в
- * `screenIndex` из `core/board.ts` — туда же, где лежит перевод из `chess.js`, —
- * потому что перевёрнутая доска содержит ровно столько же фигур, сохраняет цвета
- * клеток и на глаз выглядит нормальной: увидеть ошибку можно только пробой,
- * сверяющей ИМЯ поля.
- *
- * ⚠️ ВИДЫ ФИГУР У ЯДРА СТРОЧНЫЕ ('n'), У ЭКРАНА ПРОПИСНЫЕ ('N') — это две разные
- * записи, сложившиеся независимо: ядро повторяет запись FEN, экран — ключи
- * глифов. Перевод в одну строку здесь, а не переименование в одном из слоёв:
- * ключи `chessPcW*`/`chessPcB*` общего словаря приложения собраны на прописных.
- */
-function toScreenPieces(position: ChessPosition): Piece[] {
-  const out: Piece[] = [];
-  position.squares.forEach((cell, index) => {
-    if (!cell) return;
-    out.push({
-      id: out.length + 1,
-      type: cell.type.toUpperCase() as PieceType,
-      white: cell.color === 'w',
-      sq: screenIndex(index),
-    });
-  });
-  return out;
-}
 
 const DIRS_ROOK = [[0, 1], [0, -1], [1, 0], [-1, 0]];
 const DIRS_BISHOP = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
@@ -713,7 +711,7 @@ export default function ChessBlindGame() {
     // пешками, ладья на линии. Ровно тот же вывод второй раз пришёл со стороны:
     // конкурент Dawikk держит свои 5000 задач заготовленными, а не считает их на
     // телефоне (разбор — `PSYGAMES_MERGE_PLAN.md` §21).
-    const picked = puzzlePosition(p.pieces, p.quizType === 'locate' ? LOCATE_MIN_UNIQUE : 2);
+    const picked = puzzlePosition(p.pieces, puzzleMinUnique(p.quizType));
     piecesOnBoardRef.current = picked.pieces;
     const pos = toScreenPieces(picked.position);
     const { moves, final } = generateMoves(pos, p.moves);
