@@ -1,12 +1,34 @@
-/* psygames-warmup-embed · VER 1 · 27.08.2026 */
+/* psygames-warmup-embed · VER 2 · 27.08.2026 */
 /**
- * Страница «Зарядки» внутри psygames: своей шапки и вкладок у неё быть не должно
- * — их даёт приложение. Прячет их `embed.js`, здесь только отступы, которые эта
- * шапка держала, и запрет на горизонтальную прокрутку внутри окна.
+ * ВСТРОЕННАЯ «ЗАРЯДКА» В ОБЩЕМ ДИЗАЙНЕ PSYGAMES.
+ *
+ * 🔴 КАК ЭТО РАБОТАЕТ. Страница будильника целиком построена на CSS-переменных
+ * (`--bg`, `--surface`, `--primary`, …) и несёт СВОЮ айдентику: тёмно-синюю,
+ * с фиолетовым акцентом и шрифтом Inter. Внутри psygames она выглядела чужой —
+ * Денис: «надо подключенную зарядку стилизовать под общий дизайн».
+ *
+ * Стилизация = перекрыть переменные палитрой psygames под `body.is-embedded`.
+ * Ни одного правила вглубь разметки: перекрашивается вся страница разом, и
+ * следующая пересборка будильника ничего не ломает — этот файл свой,
+ * `sync-warmup-page.mjs` его сохраняет.
+ *
+ * Палитра снята с `src/contexts/ThemeContext.tsx` (значения продублированы
+ * здесь литералами — CSS приложения сюда не дотягивается):
+ *   светлая: фон #F5F5F7 · карточка #FFFFFF · текст #1C1C1E · акцент #007AFF
+ *   тёмная:  фон #000000 · карточка #1C1C1E · текст #FFFFFF · акцент #0A84FF
+ * Шрифт psygames — системный (-apple-system), а не Inter.
+ *
+ * ⚠️ Класс `is-embedded` стоит и на <html> (его ставит `embed.js`): переменные
+ * живут на корне, а `:has()` на старых Android WebView ненадёжен.
+ * Тему выбирает ПРИЛОЖЕНИЕ: `?theme=` → `embed.js` → `data-theme` на <html>.
+ * Светлая тема у страницы своя и без нас, но её палитра — будильника, не
+ * psygames, поэтому перекрываем ОБЕ.
  */
+
 body.is-embedded {
   padding-top: 0;
   overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 body.is-embedded .app-shell {
@@ -16,4 +38,50 @@ body.is-embedded .app-shell {
 /* Слой самой практики раскрывается на всё окно — как в отдельном приложении. */
 body.is-embedded .practice-shell {
   min-height: 100vh;
+}
+
+/* ─── Тёмная тема psygames (по умолчанию: data-theme="dark" или не задан) ─── */
+html.is-embedded:not([data-theme='light']) {
+  --bg: #000000;
+  --bg-elevated: #1c1c1e;
+  --surface: rgba(28, 28, 30, 0.94);
+  --surface-strong: #1c1c1e;
+  --surface-soft: rgba(255, 255, 255, 0.07);
+  --text: #ffffff;
+  --text-muted: #aeaeb2;
+  --text-faint: #8e8e93;
+  --border: #38383a;
+  --border-strong: #48484a;
+  --primary: #0a84ff;
+  --primary-strong: #0060df;
+  --primary-soft: rgba(10, 132, 255, 0.16);
+  --success: #30d158;
+  --warning: #ffd60a;
+  --danger: #ff453a;
+  --danger-soft: rgba(255, 69, 58, 0.14);
+  --focus: #ffd60a;
+}
+
+/* ─── Светлая тема psygames ─── */
+html.is-embedded[data-theme='light'] {
+  --bg: #f5f5f7;
+  --bg-elevated: #ffffff;
+  --surface: rgba(255, 255, 255, 0.96);
+  --surface-strong: #ffffff;
+  --surface-soft: rgba(28, 28, 30, 0.05);
+  --text: #1c1c1e;
+  --text-muted: #6e6e73;
+  --text-faint: #8e8e93;
+  --border: #e5e5ea;
+  --border-strong: #d1d1d6;
+  --primary: #007aff;
+  --primary-strong: #0060df;
+  --primary-soft: rgba(0, 122, 255, 0.1);
+  --success: #34c759;
+  --warning: #ff9500;
+  --danger: #ff3b30;
+  --danger-soft: rgba(255, 59, 48, 0.1);
+  --focus: #ff9500;
+  /* Тень будильника рассчитана на тёмный фон — на светлом она грязнит карточки. */
+  --shadow: 0 18px 44px rgba(28, 28, 30, 0.12);
 }

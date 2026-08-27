@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.242.3',
+    date: '2026-08-27',
+    ru: [
+      'Зарядка теперь в общем дизайне приложения: те же цвета, карточки и шрифт в светлой и тёмной теме',
+      'Светлая тема приложения раньше не доходила до зарядки — экран оставался тёмным; исправлено',
+    ],
+    en: [
+      'The warm-up now follows the app-wide design: same colors, cards and font in light and dark themes',
+      'The app light theme previously never reached the warm-up — the screen stayed dark; fixed',
+    ],
+  },
+  {
     version: '1.242.2',
     date: '2026-08-27',
     ru: [

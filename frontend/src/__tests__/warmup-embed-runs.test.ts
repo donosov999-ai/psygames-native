@@ -75,7 +75,9 @@ function подставка(поиск: string) {
   const document: any = {
     readyState: 'complete',
     body,
-    documentElement: { dataset: {}, lang: 'ru' },
+    // stylизация под psygames вешает класс и на корень — подставка обязана
+    // его принять, иначе честный запуск падал бы на ровном месте.
+    documentElement: { dataset: {}, lang: 'ru', classList: { add: () => {}, remove: () => {}, contains: () => false } },
     getElementById: (id: string) => узлы[id] ?? null,
     querySelector: () => null,
     querySelectorAll: () => [],
