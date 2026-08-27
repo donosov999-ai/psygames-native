@@ -1,0 +1,19 @@
+/* psygames-warmup-embed · VER 1 · 27.08.2026 */
+/**
+ * Страница «Зарядки» внутри psygames: своей шапки и вкладок у неё быть не должно
+ * — их даёт приложение. Прячет их `embed.js`, здесь только отступы, которые эта
+ * шапка держала, и запрет на горизонтальную прокрутку внутри окна.
+ */
+body.is-embedded {
+  padding-top: 0;
+  overflow-x: hidden;
+}
+
+body.is-embedded .app-shell {
+  padding-top: 12px;
+}
+
+/* Слой самой практики раскрывается на всё окно — как в отдельном приложении. */
+body.is-embedded .practice-shell {
+  min-height: 100vh;
+}

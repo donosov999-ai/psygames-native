@@ -275,6 +275,102 @@ const PHASE_MAX = 8;
 /** У этих наборов есть настоящий повторяющийся цикл фаз — им многоугольник. */
 const PHASED_SETS = new Set(['pelvic-floor', 'isometrics', 'abdomen']);
 
+/* ───────────────────────── ГИМНАСТИКА ГЛАЗ ─────────────────────────
+ * 🔴 ЗДЕСЬ БЫЛА ПОДМЕНА. Сначала я отдал `eye-gym` фигуру дыхания — потому что
+ * в карте рисовалок будильника (`soloVisualRenderers`) гимнастики глаз НЕТ, и
+ * набор выглядел «необслуженным». На деле у него в будильнике своя, отдельная
+ * механика — `renderEyeLayer`: мишень, которая ЕЗДИТ по полю, и глаз её ведёт.
+ * Смысл упражнения именно в движении мишени; дыхательная фигура его не даёт.
+ * Замерено 27.08.2026 поиском `renderEye` в `app.mjs` — 4 совпадения, из них
+ * функция на строке 1219.
+ *
+ * Координаты в ПРОЦЕНТАХ поля, как в оригинале: радиусы 45 и 38, центр по
+ * вертикали 46 — чтобы траектории совпали один в один.
+ */
+const EYE_RX = 45;
+const EYE_RY = 38;
+const EYE_CY = 46;
+const EYE_DIRECTIONS: ReadonlyArray<readonly [number, number]> = [
+  [0, -1], [0.707, -0.707], [1, 0], [0.707, 0.707],
+  [0, 1], [-0.707, 0.707], [-1, 0], [-0.707, -0.707],
+];
+
+type EyeSpot = { x: number; y: number; variant: 'moving' | 'focus' | 'hidden' | 'pulse' };
+
+/** Где сейчас мишень. Порт `calculatedEyePosition` шаг в шаг. */
+function eyeSpot(cue: VisualCue): EyeSpot {
+  const progress = Math.max(0, Math.min(1, cue.progress));
+  switch (cue.stepId) {
+    case 'directions': {
+      const фаза = progress * EYE_DIRECTIONS.length;
+      const i = Math.floor(фаза) % EYE_DIRECTIONS.length;
+      const доля = фаза - Math.floor(фаза);
+      const from = EYE_DIRECTIONS[i];
+      const to = EYE_DIRECTIONS[(i + 1) % EYE_DIRECTIONS.length];
+      const eased = доля * доля * (3 - 2 * доля);
+      return {
+        x: 50 + EYE_RX * (from[0] + (to[0] - from[0]) * eased),
+        y: EYE_CY + EYE_RY * (from[1] + (to[1] - from[1]) * eased),
+        variant: 'moving',
+      };
+    }
+    case 'horizontal':
+      return { x: 50 + EYE_RX * Math.sin(TAU * 3 * progress), y: EYE_CY, variant: 'moving' };
+    case 'vertical':
+      return { x: 50, y: EYE_CY + EYE_RY * Math.sin(TAU * 3 * progress), variant: 'moving' };
+    case 'circle': {
+      const a = TAU * 3 * progress;
+      return { x: 50 + EYE_RX * Math.cos(a), y: EYE_CY + EYE_RY * Math.sin(a), variant: 'moving' };
+    }
+    case 'figure-eight': {
+      const a = TAU * 2 * progress;
+      return { x: 50 + EYE_RX * Math.sin(a), y: EYE_CY + EYE_RY * Math.sin(a) * Math.cos(a), variant: 'moving' };
+    }
+    case 'converge':
+      return { x: 50, y: 8 + 38 * progress, variant: 'focus' };
+    case 'far-focus':
+      return { x: 50, y: 42, variant: 'hidden' };
+    case 'focus':
+      return { x: 50, y: 42, variant: 'focus' };
+    default:
+      return { x: 50, y: EYE_CY, variant: cue.stepId === 'palming' ? 'hidden' : 'pulse' };
+  }
+}
+
+function EyeVisual({ cue, t }: { cue: VisualCue; t: VisualTheme }) {
+  const spot = eyeSpot(cue);
+  // «Ладони на глазах» и «смотреть вдаль» мишени НЕ показывают: в эти шаги
+  // глаз никуда не ведут. У будильника это `variant: 'hidden'` + затемнение.
+  const затемнить = cue.stepId === 'palming';
+  const крупная = spot.variant === 'focus';
+  const d = крупная ? 46 : 34;
+  return (
+    <View style={[styles.eyeField, { backgroundColor: затемнить ? t.line : t.surface }]}>
+      {spot.variant !== 'hidden' ? (
+        <View
+          style={{
+            position: 'absolute',
+            left: `${spot.x}%`,
+            top: `${spot.y}%`,
+            width: d,
+            height: d,
+            marginLeft: -d / 2,
+            marginTop: -d / 2,
+            borderRadius: d / 2,
+            borderWidth: 2,
+            borderColor: 'rgba(255,255,255,0.92)',
+            backgroundColor: крупная ? 'transparent' : t.active,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {!крупная ? <View style={styles.eyePupil} /> : null}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 function polygonVertices(sides: number): Array<{ x: number; y: number }> {
   const out: Array<{ x: number; y: number }> = [];
   for (let i = 0; i < sides; i++) {
@@ -384,7 +480,7 @@ const RENDERERS: Record<string, React.ComponentType<{ cue: VisualCue; t: VisualT
   abdomen: AbdomenVisual,
   feldenkrais: FeldenkraisVisual,
   breathing: BreathingVisual,
-  'eye-gym': BreathingVisual,
+  'eye-gym': EyeVisual,
 };
 
 /** Есть ли у набора своя картинка. Нужно экрану, чтобы не резервировать пустое место. */
@@ -408,4 +504,6 @@ const styles = StyleSheet.create({
   stage: { width: '100%', aspectRatio: 600 / 390, marginBottom: 12 },
   stack: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   bodyImage: { width: '100%', height: '100%' },
+  eyeField: { flex: 1, width: '100%', borderRadius: 12, overflow: 'hidden' },
+  eyePupil: { width: 9, height: 9, borderRadius: 4.5, backgroundColor: '#fff' },
 });

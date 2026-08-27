@@ -17,6 +17,15 @@
  * достижения и глубокие ссылки у живых игроков. Слияние — отдельное решение с
  * миграцией, а не побочный эффект переноса. Пока хаб добавлен рядом.
  *
+ * 🔴 ВИД ПОКАЗЫВАЕТСЯ СТРАНИЦЕЙ БУДИЛЬНИКА ЦЕЛИКОМ (27.08.2026). Здесь был свой
+ * планировщик и свой экран практики, где на месте картинки стоял один значок.
+ * В будильнике вид проработан полностью — картинки, траектория взгляда, рамка
+ * времени по фазам, параллельный режим, предупреждения. Попытка перенести это
+ * по частям, переписав рисовалки на `react-native-svg`, дала расхождение уже на
+ * первом замере: гимнастика глаз получила фигуру дыхания вместо своей
+ * движущейся мишени. Поэтому берётся готовая сборка страницы целиком —
+ * `scripts/sync-warmup-page.mjs` → `public/warmup`, показ `ui/WarmupPage.tsx`.
+ *
  * ⚠️ ЯЗЫКОВ ДВА, А НЕ ДВЕНАДЦАТЬ. Ядро несёт 156 шагов с подписями на `ru`/`en`
  * (`PauseLocale`), приложение говорит на двенадцати. Это ЗНАЕМАЯ дыра, а не
  * недосмотр: перевод 156 шагов — работа канала переводов, заведена задачей.
@@ -32,6 +41,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameShell from '@/src/components/GameShell';
+import WarmupPage, { type WarmupOutcome } from '@/src/games/pause/ui/WarmupPage';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -82,7 +92,24 @@ export default function PauseGame() {
   const [minutes, setMinutes] = useState<number>(() => num('minutes', 5));
   const [context, setContext] = useState<PracticeContext>(() => (str('context', 'desk-visible') as PracticeContext));
   const [mode, setMode] = useState<PlanMode>(() => (str('mode', 'solo') as PlanMode));
-  const [chosen, setChosen] = useState<readonly PracticeSetId[]>(() => getDefaultPracticeSets().slice(0, 1).map((s) => s.id));
+  /**
+   * 🔴 НАБОР МОЖНО ПОПРОСИТЬ ССЫЛКОЙ — `?set=breathing`.
+   *
+   * Появилось 27.08.2026, когда «Дыхание» и «Гимнастика глаз» перестали быть
+   * отдельными карточками и стали дверями СЮДА. Без этого дверь вела бы в общий
+   * хаб с набором по умолчанию, и человек, нажавший «Дыхание», получал бы не то,
+   * что просил.
+   *
+   * ⚠️ Проверяем, что запрошенный набор существует: чужая ссылка с опечаткой не
+   * должна оставлять экран с пустым выбором и мёртвой кнопкой «Начать».
+   */
+  const [chosen, setChosen] = useState<readonly PracticeSetId[]>(() => {
+    const запрошен = str('set');
+    if (запрошен && PRACTICE_CATALOG.some((s) => s.id === запрошен)) {
+      return [запрошен as PracticeSetId];
+    }
+    return getDefaultPracticeSets().slice(0, 1).map((s) => s.id);
+  });
   const [last, setLast] = useState<PracticeResult | null>(null);
   /**
    * ⚠️ МОДУЛЮ БОЛЬШЕ НЕ ПЕРЕДАЁТСЯ `onExit`. Его собственная кнопка «Выход»
@@ -133,6 +160,30 @@ export default function PauseGame() {
     if (m === 'solo') setChosen((prev) => (prev.length > 1 ? prev.slice(0, 1) : prev));
   }, []);
 
+  /**
+   * Итог приходит от встроенной страницы: дошла сессия до конца или человек
+   * вышел без записи. Выход без записи НЕ сохраняем — так же, как и раньше.
+   */
+  const onOutcome = useCallback((outcome: WarmupOutcome) => {
+    if (!outcome.completed) { setStarted(false); return; }
+    setStarted(false);
+    setLast({
+      planId: 'warmup-page',
+      durationMs: outcome.durationMs,
+      completedSetIds: chosen,
+      interruptedCount: 0,
+    } as PracticeResult);
+    setPhase('result');
+    void saveSession({
+      game_type: 'pause',
+      score: Math.round(outcome.durationMs / 60_000),
+      time_seconds: Math.round(outcome.durationMs / 1000),
+      mode,
+      difficulty: context,
+      details: { sets: [...chosen], interrupted: 0, plan_id: 'warmup-page' },
+    });
+  }, [mode, context, chosen]);
+
   const onComplete = useCallback((result: PracticeResult) => {
     setStarted(false);   // практика дошла до конца — терять нечего, вопрос снимаем
     setLast(result);
@@ -174,11 +225,26 @@ export default function PauseGame() {
   // системного жеста. Поймал гейт `game-task-line` («каркас партии без модуля
   // внутри»), и он же объясняет, почему каркас нужен именно здесь: партия на
   // минуты, и молча оборвать её нельзя.
-  if (phase === 'playing') {
+  /**
+   * 🔴 СВОЙ ПЛАНИРОВЩИК УБРАН — ОН ДУБЛИРОВАЛ ПЛАНИРОВЩИК СТРАНИЦЫ.
+   *
+   * Первая сборка переноса оставила оба: сначала выбор обстановки/минут/наборов
+   * в приложении, потом ТОТ ЖЕ выбор внутри страницы. Два одинаковых экрана
+   * подряд — это не «перенесли», это «положили рядом».
+   *
+   * Ведёт страница: её планировщик богаче (полный каталог, программа у каждого
+   * набора, поиск, «освоено отдельно», экспериментальные наборы) и он же
+   * держит предупреждения безопасности. Экран приложения остаётся каркасом:
+   * заголовок, «назад» с вопросом, сохранение итога.
+   *
+   * ⚠️ Разбор итога (`phase === 'result'`) НЕ трогаем: он показывается после
+   * завершения и ведёт к повторному заходу.
+   */
+  if (phase !== 'result') {
     return (
       <GameShell
         title={tr({ ru: 'Глаза и дыхание', en: 'Eyes & breathing' })}
-        onBack={() => setPhase('config')}
+        onBack={() => goBackOrHome()}
         /**
          * 🔴 ВОПРОС ПРИ ВЫХОДЕ ВЗВЕДЁН ЖИВЫМ ВЫРАЖЕНИЕМ, А НЕ КОНСТАНТОЙ.
          * `started` поднимается, как только модуль отдал первый сигнал хода:
@@ -188,22 +254,22 @@ export default function PauseGame() {
          */
         confirmExit={started}
       >
-        <PausePracticesGame
-          request={{
-            mode,
-            selections,
-            durationMs: minutes * 60_000,
-            locale,
-            guideMode: 'visual',
-            context,
-          }}
-          theme={theme}
-          // ⚠️ ЧАСЫ ИГРОВЫЕ, А НЕ НАСТЕННЫЕ. По `Date.now` практика продолжала бы
-          // идти, пока приложение свёрнуто или открыт вопрос при выходе: человек
-          // вернулся бы к «уже всё» вместо своих десяти минут.
-          now={gameNow}
-          onProgress={markStarted}
-          onComplete={onComplete}
+        {/*
+          🔴 ЗДЕСЬ БЫЛ СВОЙ ЭКРАН ПРАКТИКИ. Он рисовал текст, часы и один значок
+          на месте картинки. Теперь показывается страница будильника целиком:
+          её планировщик, её картинки, её рамка времени, её предупреждения.
+          Итог — через `onOutcome`, сохранение осталось прежним.
+
+          ⚠️ Предупреждения безопасности подтверждает ЧЕЛОВЕК внутри страницы.
+          Проставлять их снаружи нельзя: галочка «я прочитал» не должна ставиться
+          кодом.
+        */}
+        <WarmupPage
+          theme={colors.background === '#FFFFFF' ? 'light' : 'dark'}
+          locale={locale}
+          set={str('set') || null}
+          onReady={markStarted}
+          onOutcome={onOutcome}
         />
       </GameShell>
     );
