@@ -1,4 +1,4 @@
-/* psygames-game-mahjong · VER 2 · 23.08.2026 */
+/* psygames-game-mahjong · VER 3 · 27.08.2026 */
 import GradientSurface from '@/src/components/GradientSurface';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import React, { useState, useEffect, useRef } from 'react';
@@ -10,7 +10,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
-import { mahjongLevel, canShuffle, shufflesLeft } from '@/src/services/mahjongLevels';
+import { mahjongLevel, mahjongHidden, canShuffle, shufflesLeft } from '@/src/services/mahjongLevels';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -29,7 +29,7 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {saveResume, clearResume} from '@/src/services/resume';
-import { availablePairs, blockersOf, isFree, tilePlacement, type Tile } from '@/src/games/mahjong/board';
+import { availablePairs, blockersOf, coveredFromAbove, isFree, tilePlacement, type Tile } from '@/src/games/mahjong/board';
 import { buildPositions, silhouetteForLevel, type SilhouetteKey } from '@/src/games/mahjong/silhouettes';
 import { layoutForLevel } from '@/src/games/mahjong/layouts';
 import { dealSolvable, type Place } from '@/src/games/mahjong/vendor/solvable';
@@ -67,6 +67,13 @@ const MAHJONG_RULES: LevelRule[] = [
     ru: { title: 'Четыре слоя', rule: 'Слоёв стало 4, и перетасовка теперь одна на уровень. Правило свободной плитки не меняется — меняется цена ошибки: снимать надо сверху и с краёв, иначе запрёшь низ.', example: 'Пример: пара в самом низу может стать недоступной, если разобрать середину не с того края. Смотри на два хода вперёд.' },
     en: { title: 'Four layers', rule: 'Four layers now, and you get one shuffle per level. The free-tile rule is unchanged — what changes is the cost of a mistake: clear from the top and the edges, or you will lock the bottom.', example: 'Example: a bottom pair can become unreachable if you open the middle from the wrong side. Think two moves ahead.' },
   },
+  /**
+   * СКРЫТАЯ ИНФОРМАЦИЯ (ec15d176, §20): каждый третий уровень с десятого лица
+   * накрытых плиток прячет — правило объясняется на первом таком уровне.
+   * Тексты ТОЛЬКО в словаре (lr_mahjong_hidden_*): инлайн ru/en в новых
+   * правилах запрещён — он знает два языка из двенадцати.
+   */
+  { key: 'hidden', fromLevel: 10, toLevel: 10 },
   {
     key: 'layers5', fromLevel: 15,
     ru: { title: 'Пять слоёв', rule: 'Пять слоёв — верх пирамиды узкий, низ широкий. Перетасовка одна. Здесь уже нельзя брать любую доступную пару: почти каждый снятый тайл открывает или запирает что-то ниже.', example: 'Пример: две одинаковые плитки свободны, но одна из них держит крышку над последней парой — бери ту, что не держит.' },
@@ -165,6 +172,13 @@ interface MahjongResume {
    * недоигранные пирамиды ради одного счётчика.
    */
   undosUsed?: number;
+  /**
+   * Метрики скрытого режима (ec15d176) — та же история, что undosUsed: поле
+   * ДОБАВЛЕНО и необязательно, у старых записей его нет, читается с дефолтом,
+   * RESUME_V не поднят. Без него «выйти-зайти» обнуляло бы счётчик пересмотров
+   * и время первого хода на скрытом уровне.
+   */
+  hiddenStats?: { firstMoveMs: number | null; planRevisions: number; movesBeforeFirstReveal: number | null; moves: number };
 }
 
 /**
@@ -324,6 +338,13 @@ export default function MahjongGame() {
 
   // alive по id (для рендера/логики свободы из текущих tiles)
   const aliveMaskRef = useRef<boolean[]>([]);
+  /**
+   * МЕТРИКИ СКРЫТОГО РЕЖИМА (ec15d176, §20.4) — те же три, что в goods-sort:
+   * сколько думал до первого хода · сколько раз пересматривал план (отмены) ·
+   * сколько ходов сделал до первого вскрытия лица. «Ходы сверх минимума» здесь
+   * не считаются и не считались: минимума при неполной информации не существует.
+   */
+  const hiddenStatsRef = useRef({ firstMoveMs: null as number | null, planRevisions: 0, movesBeforeFirstReveal: null as number | null, moves: 0 });
 
   // Справка правил уровня (в пресете не всплываем — там свой поток).
   // levelBanner === null: не открывать модалку поверх баннера «Уровень N ✓» — пусть покажется на новой раскладке.
@@ -361,6 +382,7 @@ export default function MahjongGame() {
     setMatched(0); setErrors(0); setSelected(null);
     setShufflesUsed(0);   // бюджет перетасовок — на уровень, а не на партию
     setUndosUsed(0);      // и бюджет отмен тоже: новая пирамида — новые три попытки
+    hiddenStatsRef.current = { firstMoveMs: null, planRevisions: 0, movesBeforeFirstReveal: null, moves: 0 };
     history.reset();      // чужая раскладка в ленте отмены не годится
     if (timerRef.current) clearInterval(timerRef.current);
     const start = gameNow();
@@ -398,6 +420,7 @@ export default function MahjongGame() {
   const snapshot = (): MahjongResume => ({
     level, tiles, matched, pairsTotal, errors,
     score: scoreRef.current, shufflesUsed, elapsed, undosUsed,
+    hiddenStats: { ...hiddenStatsRef.current },
   });
 
   /** Поднять раскладку из снимка — пирамида оживает ровно такой, какой её оставили. */
@@ -409,6 +432,7 @@ export default function MahjongGame() {
     setShufflesUsed(r.shufflesUsed);
     // `?? 0` — у записи, сделанной до появления отмены, поля просто нет (см. MahjongResume).
     setUndosUsed(r.undosUsed ?? 0);
+    hiddenStatsRef.current = r.hiddenStats ?? { firstMoveMs: null, planRevisions: 0, movesBeforeFirstReveal: null, moves: 0 };
     /**
      * Ленту снимков через хранилище НЕ тащим, и это не забывчивость: доска
      * поднимается ровно такой, какой её оставили, а откатывать ходы прошлой
@@ -466,7 +490,16 @@ export default function MahjongGame() {
       passed: true,   // сессия пишется только когда уровень собран
       game_type: 'mahjong', score: scoreRef.current, time_seconds: finalTime,
       difficulty: done <= 5 ? 'easy' : done <= 10 ? 'medium' : 'hard', mode: `lvl${done}`, errors,
-      details: { level: done, pairs: p.pairs, layers: p.layers },
+      // Скрытый уровень пишет три метрики §20.4; «ходов сверх минимума» нет ни в
+      // одном режиме — минимума при неполной информации не существует.
+      details: mahjongHidden(done)
+        ? {
+            level: done, pairs: p.pairs, layers: p.layers, hidden_info: true,
+            time_to_first_move_ms: hiddenStatsRef.current.firstMoveMs,
+            plan_revisions: hiddenStatsRef.current.planRevisions,
+            moves_before_first_reveal: hiddenStatsRef.current.movesBeforeFirstReveal,
+          }
+        : { level: done, pairs: p.pairs, layers: p.layers },
     }).catch((e) => console.error(e));
     const next = done + 1;
     setLevel(next); levelRef.current = next;
@@ -511,6 +544,24 @@ export default function MahjongGame() {
       // пересобирается), и восстановить его можно только из целого снимка.
       history.push({ tiles, matched, score: scoreRef.current });
       const a = selected, b = i;
+      // Метрики скрытого режима — ДО правки доски: «вскрылось ли лицо» отвечает
+      // сравнение «был накрыт → перестал», а после фильтрации массива старых
+      // индексов уже нет. Проверяем только соседей снятой пары: вскрыться могла
+      // лишь плитка, которую держали a или b.
+      if (mahjongHidden(levelRef.current)) {
+        const st = hiddenStatsRef.current;
+        st.moves += 1;
+        if (st.firstMoveMs === null) st.firstMoveMs = Math.round(gameNow() - startTime);
+        if (st.movesBeforeFirstReveal === null) {
+          const aliveAfter = aliveMaskRef.current.map((v, idx) => v && idx !== a && idx !== b);
+          const uncovered = tiles.some((t2, idx) => {
+            if (!aliveAfter[idx]) return false;
+            if (!coveredFromAbove(tiles, aliveMaskRef.current, idx)) return false;   // и так был открыт
+            return !coveredFromAbove(tiles, aliveAfter, idx);                        // вскрылся этой парой
+          });
+          if (uncovered) st.movesBeforeFirstReveal = st.moves - 1;
+        }
+      }
       aliveMaskRef.current[a] = false;
       aliveMaskRef.current[b] = false;
       setTiles((ts) => ts.filter((_, idx) => idx !== a && idx !== b)
@@ -554,6 +605,7 @@ export default function MahjongGame() {
     const snap = history.undo();
     if (!snap) return;
     setUndosUsed((n) => n + 1);
+    if (mahjongHidden(levelRef.current)) hiddenStatsRef.current.planRevisions += 1;
     // Маска строится по ДЛИНЕ снимка: после снятия она пересобиралась сплошь живой
     // под укороченный массив, и та же логика верна в обратную сторону.
     aliveMaskRef.current = new Array(snap.tiles.length).fill(true);
@@ -683,6 +735,15 @@ export default function MahjongGame() {
     const free = tileFree(i);
     const sel = selected === i;
     const blames = blockers.includes(i);
+    /**
+     * СКРЫТАЯ ИНФОРМАЦИЯ (ec15d176): на скрытых уровнях лицо накрытой плитки —
+     * «?». Смещение слоёв и так прячет символ лишь НАПОЛОВИНУ при полуперекрытии —
+     * этого хватало, чтобы планировать по выглядывающим половинкам; режим прячет
+     * честно. Зажатая с боков, но не накрытая плитка лицо показывает: соседние
+     * лица в жизни видны. Подсветка виновных лицо не открывает — она про то,
+     * КТО держит, а не что под ним.
+     */
+    const masked = mahjongHidden(levelRef.current) && coveredFromAbove(tiles, aliveMaskRef.current, i);
     const { left, top } = tilePlacement(tt, maxLayer, half, layerOffset);
     return (
       <TouchableOpacity
@@ -704,7 +765,7 @@ export default function MahjongGame() {
           },
         ]}
       >
-        <Text style={{ fontSize: tileW * 0.5, opacity: blames || free ? 1 : 0.7 }}>{SYMBOLS[tt.symbol] ?? '🀄'}</Text>
+        <Text style={{ fontSize: tileW * 0.5, opacity: blames || free ? 1 : 0.7 }}>{masked ? '?' : (SYMBOLS[tt.symbol] ?? '🀄')}</Text>
       </TouchableOpacity>
     );
   };

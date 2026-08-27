@@ -1,4 +1,4 @@
-/* psygames-game-targets · VER 1 · 19.08.2026 */
+/* psygames-game-targets · VER 2 · 27.08.2026 */
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
@@ -421,6 +421,10 @@ export default function TargetsGame() {
 
     try {
       await saveSession({
+        // Исход у игры ЕСТЬ и экран результата его уже показывает
+        // (passed={!gameOverRef.current}) — запись отставала от UI и не несла
+        // бита. Тот же смысл, что на экране: жизни кончились = не прошёл.
+        passed: !gameOverRef.current,
         game_type: 'targets',
         score: scoreRef.current,
         time_seconds: avgReaction / 1000,

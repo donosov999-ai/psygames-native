@@ -1,13 +1,18 @@
 /**
  * G1 — Initial Skill Assessment
  *
- * 12-game cognitive battery (~19 min) covering 12 domains. Run once at first
+ * 12-game cognitive battery (~15 min) covering 12 domains. Run once at first
  * use OR every 3 months to recalibrate. Output: per-domain z-scores against
  * either population norms (where available) or personal history (after 2nd run).
  *
  * 🔴 «~12 мин» в этой шапке было ЗАЯВЛЕНО, а не посчитано. Замер 27.08.2026:
- * sum(est_duration_sec по ASSESSMENT_PLAYLIST) = 60+60+70+70+240+70+70+90+90+90+70+180
- * = 1160 с = 19,3 мин — расхождение с шапкой 7 минут, видное человеку на секундомере.
+ * сумма была 1160 с = 19,3 мин — расхождение с шапкой 7 минут, видное на
+ * секундомере. Тогда же батарея ужата по bed1249e (cpt 240→120: спад бдительности
+ * виден ко второй минуте; bart 180→120: десять шаров короче трёх минут; спаны
+ * останавливаются адаптивно — «две ошибки на длине»). Теперь:
+ * sum(est_duration_sec по ASSESSMENT_PLAYLIST) = 60+60+70+70+120+70+70+90+90+90+70+120
+ * = 980 с = 16,3 мин; быстрый ЕЖЕДНЕВНЫЙ снимок живёт отдельно — ядро зарядки
+ * SNAPSHOT_CORE (services/warmup, 5 доменов, ≈6 мин).
  * Число в шапке обязано совпадать с суммой шагов; дрейф ловит
  * src/__tests__/assessment-metrics.test.ts («шапка не врёт про длительность»).
  *
@@ -85,7 +90,12 @@ export const ASSESSMENT_PLAYLIST: PlaylistStep[] = [
   { game_id: 'corsi',           game_route: '/games/corsi',            difficulty: 'medium', mode: 'forward',   est_duration_sec: 60 },
   { game_id: 'n_back',          game_route: '/games/n-back',           difficulty: 'medium', trials: 15, mode: '2-back', est_duration_sec: 70 },
   { game_id: 'posner',          game_route: '/games/posner',           difficulty: 'medium', trials: 15,        est_duration_sec: 70 },
-  { game_id: 'cpt',             game_route: '/games/cpt',              difficulty: 'medium', mode: '4min',      est_duration_sec: 240 },
+  /**
+   * CPT 4 мин → 2 мин (bed1249e, 27.08.2026): спад бдительности виден уже ко
+   * второй минуте, а четырёхминутный шаг съедал 21% всей батареи. presetDurationSec
+   * в cpt.tsx разбирает '<N>min' — партия запишется под mode '2min'.
+   */
+  { game_id: 'cpt',             game_route: '/games/cpt',              difficulty: 'medium', mode: '2min',      est_duration_sec: 120 },
   { game_id: 'sdmt',            game_route: '/games/sdmt',             difficulty: 'medium', mode: '60s',       est_duration_sec: 70 },
   { game_id: 'flanker',         game_route: '/games/flanker',          difficulty: 'medium', trials: 15,        est_duration_sec: 70 },
   { game_id: 'switching_task',  game_route: '/games/switching-task',   difficulty: 'medium', trials: 15,        est_duration_sec: 90 },
@@ -100,7 +110,9 @@ export const ASSESSMENT_PLAYLIST: PlaylistStep[] = [
    * settings.balloons=10 доезжает через stepToParams → num('balloons') в bart.tsx,
    * mode '10b' совпадает с тем, что игра запишет. Сторожит assessment-metrics.test.ts.
    */
-  { game_id: 'bart',            game_route: '/games/bart',             difficulty: 'medium', mode: '10b', settings: { balloons: 10 }, est_duration_sec: 180 },
+  // est 180 → 120 (bed1249e): десять шаров реально короче трёх минут; норма под
+  // шарик 1..32 уже починена (27.08), так что резать дальше — только в шум.
+  { game_id: 'bart',            game_route: '/games/bart',             difficulty: 'medium', mode: '10b', settings: { balloons: 10 }, est_duration_sec: 120 },
 ];
 
 export interface DomainScore {
