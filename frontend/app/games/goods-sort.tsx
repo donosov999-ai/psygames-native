@@ -1,4 +1,4 @@
-/* psygames-game-goods-sort · VER 2 · 27.08.2026 · +скрытая информация (§20) */
+/* psygames-game-goods-sort · VER 2 · 27.08.2026 */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, Easing, PanResponder, DimensionValue } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
