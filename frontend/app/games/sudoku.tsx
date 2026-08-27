@@ -1,8 +1,8 @@
-/* psygames-game-sudoku · VER 6 · 23.08.2026 */
+/* psygames-game-sudoku · VER 7 · 27.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -62,12 +62,15 @@ const SUDOKU_BENEFITS = [
 
 // v1.111.0: чистое ядро судоку (типы, варианты, генерация с unique-check) вынесено в сервис.
 import {
-  Cell, Variant, ThermoPN, ArrowMap, SudokuDifficultyTier,
+  Cell, Variant, ThermoPN, ArrowMap, SudokuDifficultyTier, UnequalMap, TowersMap,
   dimsForSize, blanksFor, killerBlanks, generateCages,
   sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
   rejectionReason,
 } from '@/src/services/sudoku-core';
 import { gradePuzzle, logicalBuilder } from '@/src/services/sudoku-grade';
+// Небоскрёбы и неравенства — режимы со своими мини-лестницами (решение 70b58bbe:
+// в 57-ступенчатую лестницу оба не помещаются по замеренным причинам — разбор в шапке сервиса).
+import { SideMode, sideModeBuilder, sideStepCount, type SideBoard } from '@/src/services/sudoku-modes';
 import { bankBoardForLevel, bankPickForLevel, BANK_N } from '@/src/services/sudoku-bank';
 import { fractalTechniqueKey } from '@/src/services/fractalLevels';
 import {
@@ -309,7 +312,8 @@ interface SudokuMove { r: number; c: number; from: Cell; to: Cell }
  * или термометров доска станет нерешаемой), счётчики и ленту ходов.
  */
 interface SudokuResume {
-  mode: 'levels' | 'free' | 'killer';
+  mode: 'levels' | 'free' | 'killer' | SideMode;
+  /** Для режимов towers/unequal здесь лежит СТУПЕНЬ их мини-лестницы. */
   level: number;
   /** Дорога сложности партии — внутри партии не меняется, см. services/sudoku-roads. */
   road: SudokuRoad;
@@ -339,6 +343,9 @@ interface SudokuResume {
   sandwich: { rows: number[]; cols: number[] } | null;
   thermo: ThermoPN | null;
   arrow: ArrowMap | null;
+  /** Поля режимов towers/unequal; в старых снимках отсутствуют — читать с ?? null. */
+  unequal?: UnequalMap | null;
+  towers?: TowersMap | null;
   errors: number;
   hintUses: number;
   hintMax: number;
@@ -393,8 +400,15 @@ export default function SudokuGame() {
   const bossTypeRef = useRef<BossType>('lightning');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(() => (str('diff', 'medium') as 'easy' | 'medium' | 'hard'));
   const [size, setSize] = useState<6 | 9>(6);   // C2: явный размер поля (свободный режим)
-  const [mode, setMode] = useState<'levels' | 'free' | 'killer'>('levels');   // уровни (дефолт) / свободно / killer
+  const [mode, setMode] = useState<'levels' | 'free' | 'killer' | SideMode>('levels');   // уровни (дефолт) / свободно / killer / небоскрёбы / неравенства
   const [level, setLevel] = useState(1);
+  /**
+   * СТУПЕНИ МИНИ-ЛЕСТНИЦ режимов towers/unequal — счётчики отдельные от основной
+   * лестницы (та живёт дорогами, см. roadLevels). В партии режима поле `level`
+   * несёт текущую ступень; здесь — достигнутые потолки для возврата и записи.
+   */
+  const [sideSteps, setSideSteps] = useState<Record<SideMode, number>>({ towers: 1, unequal: 1 });
+  const [sideStepsLoaded, setSideStepsLoaded] = useState(false);   // ?mode= из хаба ждёт загрузки счётчиков
   /**
    * Достигнутый ПОТОЛОК — отдельно от того, на чём сейчас играем.
    *
@@ -428,6 +442,8 @@ export default function SudokuGame() {
   const [sandwich, setSandwich] = useState<{ rows: number[]; cols: number[] } | null>(null);   // sandwich: суммы у краёв рядов/столбцов
   const [thermo, setThermo] = useState<ThermoPN | null>(null);   // thermo: prev/next-карта термометров
   const [arrow, setArrow] = useState<ArrowMap | null>(null);   // arrow: кружок (сумма) + стрелка
+  const [unequalMap, setUnequalMap] = useState<UnequalMap | null>(null);   // unequal: знаки </> на гранях
+  const [towersMap, setTowersMap] = useState<TowersMap | null>(null);   // towers: числа видимости на четырёх краях
   const [dims, setDims] = useState({ N: 6, BR: 2, BC: 3 });
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<Cell[][]>([]);
@@ -518,7 +534,7 @@ export default function SudokuGame() {
   // всех (перенос пройденного вниз по сложности), поэтому по одному их читать нечем.
   useEffect(() => {
     const pid = profile?.id;
-    if (!pid) return;
+    if (!pid) { setSideStepsLoaded(true); return; }   // гость: ступени по умолчанию — применять можно сразу
     let cancelled = false;
     Promise.all([
       AsyncStorage.multiGet(SUDOKU_ROADS.map((r) => sudokuLevelKey(pid, r))),
@@ -537,8 +553,37 @@ export default function SudokuGame() {
       setLevel(reached);   // заход в игру — всегда с достигнутого на ЭТОЙ дороге
       setBest(reached);
     }).catch(() => {});
+    // Ступени мини-лестниц режимов — свои счётчики, дороги их не касаются.
+    AsyncStorage.multiGet([`psygames_sudoku_towers_step_${pid}`, `psygames_sudoku_unequal_step_${pid}`]).then((pairs) => {
+      if (cancelled) return;
+      const read = (v: string | null, cap: number) => {
+        const n = parseInt(v || '1', 10);
+        return Number.isFinite(n) ? Math.min(cap, Math.max(1, n)) : 1;
+      };
+      setSideSteps({
+        towers: read(pairs[0]?.[1] ?? null, sideStepCount('towers')),
+        unequal: read(pairs[1]?.[1] ?? null, sideStepCount('unequal')),
+      });
+      setSideStepsLoaded(true);
+    }).catch(() => { if (!cancelled) setSideStepsLoaded(true); });
     return () => { cancelled = true; };
   }, [profile?.id]);
+
+  /**
+   * Вход из хаба со своим режимом: карточки «Небоскрёбы»/«Неравенства» ведут сюда
+   * с ?mode=…. Применяем ОДИН раз и после загрузки счётчиков ступеней, иначе
+   * setLevel стартовал бы с единицы и тут же был бы перетёрт загрузкой.
+   */
+  const routeParams = useLocalSearchParams<{ mode?: string }>();
+  const routeModeApplied = useRef(false);
+  useEffect(() => {
+    if (routeModeApplied.current || !sideStepsLoaded) return;
+    const m = routeParams.mode;
+    if (m !== 'towers' && m !== 'unequal') return;
+    routeModeApplied.current = true;
+    setMode(m);
+    setLevel(sideSteps[m]);
+  }, [routeParams.mode, sideSteps, sideStepsLoaded]);
 
   /**
    * Сменить дорогу МЕЖДУ партиями можно, внутри партии — нет (переключатель живёт
@@ -576,6 +621,12 @@ export default function SudokuGame() {
     } else if (mode === 'killer') {
       d = dimsForSize(9);
       blanks = killerBlanks(difficulty);
+    } else if (mode === 'towers' || mode === 'unequal') {
+      // Мини-лестницы режимов: башни живут на 6×6 (на 9×9 вариант не решается —
+      // замер в шапке sudoku-modes), неравенства — на 9×9. Глубину и полосу техник
+      // задаёт ступень, копает сборщик — blanks здесь не используется.
+      d = dimsForSize(mode === 'towers' ? 6 : 9);
+      blanks = 0; vr = mode;
     } else {
       d = dimsForSize(size);
       blanks = blanksFor(size, difficulty);
@@ -609,6 +660,25 @@ export default function SudokuGame() {
      * не доезжает до экрана. Тот же шов уже стоит у самурая.
      */
     const buildBoard = async () => {
+      // Мини-лестницы режимов: сборщик той же формы, что logicalBuilder, — те же
+      // кадры «идёт сборка». Башни собираются мгновенно, неравенства — заходами.
+      if (mode === 'towers' || mode === 'unequal') {
+        const builder = sideModeBuilder(mode, lvlOverride ?? level);
+        setBuild({ step: 1, steps: builder.steps, slow: false });
+        setPhase('building');
+        const genSide = ++buildRef.current;
+        const made: SideBoard = await runSteps({
+          steps: builder.steps,
+          step: () => builder.step(),
+          enough: (b) => builder.enough(b),
+          show: (st) => { if (genSide === buildRef.current) setBuild(st); },
+          frame: nextFrame,
+          now: gameNow,
+        });
+        if (genSide !== buildRef.current) return null;
+        setBoardTier(made.tier);
+        return made;
+      }
       // Вне режима уровней ступень не считается: там доска не от логики, и честнее
       // не показывать ничего, чем показать чужое число.
       if (mode !== 'levels') { setBoardTier(null); return generatePuzzle(blanks, d.N, d.BR, d.BC, vr); }
@@ -662,13 +732,17 @@ export default function SudokuGame() {
     void (async () => {
     const built = await buildBoard();
     if (built === null) return;   // за время сборки экран ушёл дальше
-    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar, cages: cg } = built;
+    const { puzzle: p, solution: s, regions: rg, parity: pa, kropki: kr, sandwich: sw, thermo: th, arrow: ar, cages: cg } = built as typeof built & { regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: import('@/src/services/sudoku-core').CageMap };
     setRegions(rg ?? null);
     setParityMarks(pa ?? null);
     setKropki(kr ?? null);
     setSandwich(sw ?? null);
     setThermo(th ?? null);
     setArrow(ar ?? null);
+    // Карты режимов towers/unequal: на прочих досках их нет — чистим до null.
+    const sideMaps = built as { unequal?: UnequalMap; towers?: TowersMap };
+    setUnequalMap(sideMaps.unequal ?? null);
+    setTowersMap(sideMaps.towers ?? null);
     // ⚠️ КЛЕТКИ-СУММЫ БЕРЁМ ИЗ ГЕНЕРАТОРА, А НЕ СОБИРАЕМ ЗАНОВО. В killer группы можно
     // нарезать когда угодно — они там украшение поверх классической доски. В ThermoCage
     // сумма УЧАСТВОВАЛА в проверке единственности вместе с термометром: пересобери её
@@ -706,6 +780,7 @@ export default function SudokuGame() {
     mode, level, road, difficulty, size, variant, dims,
     puzzle, solution, grid, given, cellColors, marks,
     regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow,
+    unequal: unequalMap, towers: towersMap,
     errors, hintUses, hintMax, backtrackCount,
     elapsed: elapsedTime,
     history: hist.serialize(),
@@ -730,6 +805,7 @@ export default function SudokuGame() {
     setRegions(s.regions); setCages(s.cages); setCageSums(s.cageSums); setCageAnchors(s.cageAnchors);
     setParityMarks(s.parityMarks); setKropki(s.kropki); setSandwich(s.sandwich);
     setThermo(s.thermo); setArrow(s.arrow);
+    setUnequalMap(s.unequal ?? null); setTowersMap(s.towers ?? null);   // старые снимки полей не имеют
     setErrors(s.errors); setHintUses(s.hintUses); setHintMax(s.hintMax); setBacktrackCount(s.backtrackCount);
     setSelected(null); setOver(false); setBossWon(null);
     hist.restore(s.history);
@@ -874,6 +950,8 @@ export default function SudokuGame() {
         arrow: arrow ?? undefined,
         parity: parityMarks ?? undefined,
         kropki: kropki ?? undefined,
+        unequal: unequalMap ?? undefined,
+        towers: towersMap ?? undefined,
       }));
       const ne = errors + 1;
       setErrors(ne);
@@ -894,9 +972,9 @@ export default function SudokuGame() {
             score: 0,
             time_seconds: (gameNow() - startTime) / 1000,
             difficulty: mode === 'levels' ? (level <= 4 ? 'easy' : level <= 9 ? 'medium' : 'hard') : difficulty,
-            mode: mode === 'levels' ? `level-${level}` : `${N}x${N}`,
+            mode: mode === 'levels' ? `level-${level}` : (mode === 'towers' || mode === 'unequal') ? `${mode}-${level}` : `${N}x${N}`,
             errors: ne,
-            details: { errors: ne, completed: false, failed_out: true, ...(mode === 'levels' ? { level, variant, road } : {}) },
+            details: { errors: ne, completed: false, failed_out: true, ...(mode === 'levels' ? { level, variant, road } : (mode === 'towers' || mode === 'unequal') ? { level, variant } : {}) },
           }).catch((e) => console.error(e));
         }
       }
@@ -932,8 +1010,17 @@ export default function SudokuGame() {
         setBest(effectiveRoadLevel(nextLevels, road));
         AsyncStorage.setItem(sudokuLevelKey(pidDone, road), String(nextLevels[road])).catch(() => {});
       }
+      // Мини-лестницы режимов: продвигаем СВОЙ счётчик (максимум — переигровка не
+      // срезает), в пределах длины лестницы.
+      if ((mode === 'towers' || mode === 'unequal') && pidDone) {
+        const nextStep = Math.min(sideStepCount(mode), Math.max(sideSteps[mode], level + 1));
+        setSideSteps((prev) => ({ ...prev, [mode]: nextStep }));
+        setLevel(nextStep);
+        AsyncStorage.setItem(`psygames_sudoku_${mode}_step_${pidDone}`, String(nextStep)).catch(() => {});
+      }
       if (pidDone) clearResume(GAME_ID, pidDone).catch(() => {});   // доиграна — продолжать нечего
-      const baseScore = mode === 'levels' ? 1500 + level * 150 : 2000;
+      // Ступени мини-лестниц оцениваются той же формулой, что уровни: рост награды со ступенью.
+      const baseScore = (mode === 'levels' || mode === 'towers' || mode === 'unequal') ? 1500 + level * 150 : 2000;
       try {
         await saveSession({
           passed: true,   // сессия пишется только когда уровень собран
@@ -942,7 +1029,10 @@ export default function SudokuGame() {
           score: Math.max(0, Math.round(baseScore - errors * 50 - finalTime * 2 - hintUses * 50)),
           time_seconds: finalTime,
           difficulty: mode === 'levels' ? (level <= 4 ? 'easy' : level <= 9 ? 'medium' : 'hard') : difficulty,
-          mode: mode === 'levels' ? `level-${level}${variant !== 'none' ? '-' + variant : ''}` : mode === 'killer' ? `killer-${difficulty}` : `${N}x${N}`,
+          mode: mode === 'levels' ? `level-${level}${variant !== 'none' ? '-' + variant : ''}`
+            : mode === 'killer' ? `killer-${difficulty}`
+            : (mode === 'towers' || mode === 'unequal') ? `${mode}-${level}`
+            : `${N}x${N}`,
           errors,
           details: {
             errors, completed: true,
@@ -958,7 +1048,7 @@ export default function SudokuGame() {
              * Пишем ВСЕГДА и явно, включая `normal`: читать запись должно быть можно,
              * не зная, что «пусто значит обычная».
              */
-            ...(mode === 'levels' ? { level, variant, road } : {}),
+            ...(mode === 'levels' ? { level, variant, road } : (mode === 'towers' || mode === 'unequal') ? { level, variant } : {}),
           },
         });
       } catch (e) { console.error(e); }
@@ -1031,7 +1121,7 @@ export default function SudokuGame() {
    * (0.6 клетки, см. clueGutter ниже). Без неё в бюджете доска 9×9 занимала 359 точек
    * в поле шириной 343 и вылезала за оба края (замер живой сборки 20.08.2026).
    */
-  const clueCols = variant === 'sandwich' ? 0.6 : 0;
+  const clueCols = variant === 'sandwich' ? 0.6 : variant === 'towers' ? 1.2 : 0;   // towers: колонки видимости с ОБОИХ краёв
   const cellSize = landscape
     ? Math.max(16, Math.floor(Math.min((height - 96 - BOARD_HINT_H) / N, (width - 240) / (N + clueCols), 92)))
     : Math.max(14, Math.floor(Math.min((width - 36) / (N + clueCols), (height - 330 - BOARD_HINT_H) / N, 92)));
@@ -1298,12 +1388,23 @@ export default function SudokuGame() {
             суммами, тот же способ играть, тем же жестом. */}
         <GameModeSwitch
           mode={mode}
-          onChange={setMode}
+          onChange={(m) => {
+            setMode(m);
+            // У мини-лестниц режимов свой счётчик ступени; у уровней — дорога.
+            if (m === 'towers' || m === 'unequal') setLevel(sideSteps[m]);
+            else if (m === 'levels') setLevel(effectiveRoadLevel(roadLevels, road));
+          }}
           colors={colors}
           accent={GRADIENT[0]}
           t={t}
           bare
-          extra={[['killer', 'Killer']] as const}
+          extra={[
+            ['killer', 'Killer'],
+            // Короткие имена из хаба, не variantLabel с эмодзи: в ряду пять кнопок,
+            // и «🏙 небоскрёбы» не влезает даже со второй строкой.
+            ['towers', t('sudokuTowersTitle')],
+            ['unequal', t('sudokuUnequalTitle')],
+          ] as const}
         />
         <GlassButton
           icon="help-circle-outline"
@@ -1318,7 +1419,7 @@ export default function SudokuGame() {
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={() => startGame()}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{mode === 'levels' ? t('playLevelN').replace('{n}', String(level)) : t('start')}</Text>
+          <Text style={styles.startBtnText}>{(mode === 'levels' || mode === 'towers' || mode === 'unequal') ? t('playLevelN').replace('{n}', String(level)) : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>
@@ -1332,6 +1433,11 @@ export default function SudokuGame() {
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>
             {t('label_level_short')}{level}
             {road !== DEFAULT_SUDOKU_ROAD ? ` · ${t(SUDOKU_ROAD_NAME_KEY[road])}` : ''}
+          </Text>
+        )}
+        {(mode === 'towers' || mode === 'unequal') && (
+          <Text style={[styles.statText, { color: GRADIENT[0] }]}>
+            {variantLabel(mode, language)} · {t('label_level_short')}{level}/{sideStepCount(mode)}
           </Text>
         )}
         {/* Приём ЭТОЙ доски — посчитанный градатором, а не выведенный из номера уровня. */}
@@ -1408,7 +1514,7 @@ export default function SudokuGame() {
             // даёт 359 при ширине окна 375, и строка вылезала за оба края экрана.
             width: Math.min(
               width - 36,
-              cellSize * N + 4 + (variant === 'sandwich' && sandwich ? clueGutter : 0),
+              cellSize * N + 4 + (variant === 'sandwich' && sandwich ? clueGutter : 0) + (variant === 'towers' && towersMap ? clueGutter * 2 : 0),
             ),
           }]}
         >
@@ -1424,6 +1530,18 @@ export default function SudokuGame() {
           */}
           {rejectWhy || boardHint}
         </Text>
+        {/* НЕБОСКРЁБЫ: числа видимости на всех четырёх краях. Ряд/колонка — тем же
+            стилем edgeClue, что суммы сэндвича; подсказка не кнопка (правило одно
+            на все числа и живёт в справке по бейджу варианта). */}
+        {variant === 'towers' && towersMap && (
+          <View style={{ flexDirection: 'row', marginLeft: clueGutter, marginBottom: 2 }}>
+            {towersMap.top.map((k, tc) => (
+              <View key={`tt${tc}`} style={[styles.edgeClue, { width: cellSize - 4, backgroundColor: clueBg }]}>
+                <Text style={[styles.edgeClueText, { color: colors.textSecondary }]}>{k || ''}</Text>
+              </View>
+            ))}
+          </View>
+        )}
         {variant === 'sandwich' && sandwich && (
           <View style={{ flexDirection: 'row', marginLeft: clueGutter, marginBottom: 2 }}>
             {sandwich.cols.map((s, c) => (
@@ -1445,6 +1563,15 @@ export default function SudokuGame() {
           </View>
         )}
         <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+          {variant === 'towers' && towersMap && (
+            <View style={{ width: clueGutter }}>
+              {towersMap.left.map((k, tr) => (
+                <View key={`tl${tr}`} style={[styles.edgeClue, { width: clueGutter - 4, height: cellSize - 4, backgroundColor: clueBg }]}>
+                  <Text style={[styles.edgeClueText, { color: colors.textSecondary }]}>{k || ''}</Text>
+                </View>
+              ))}
+            </View>
+          )}
           {variant === 'sandwich' && sandwich && (
             <View style={{ width: clueGutter }}>
               {sandwich.rows.map((s, r) => (
@@ -1583,6 +1710,19 @@ export default function SudokuGame() {
               {variant === 'kropki' && kropki && r < N - 1 && kropki.v[r][c] !== 0 && (
                 <View style={{ position: 'absolute', width: cellSize * 0.2, height: cellSize * 0.2, borderRadius: cellSize * 0.1, bottom: -cellSize * 0.1, left: cellSize / 2 - cellSize * 0.1, backgroundColor: kropki.v[r][c] === 2 ? '#222222' : '#ffffff', borderWidth: 1.5, borderColor: '#777777', zIndex: 5, pointerEvents: 'none' }} />
               )}
+              {/* НЕРАВЕНСТВА: знак на грани — та же пилюля, что точка кропки, только с
+                  символом. Горизонталь: h=1 значит «эта < правой» → '<'. Вертикаль:
+                  v=1 значит «эта < нижней» → '∧' (остриё указывает на меньшую). */}
+              {variant === 'unequal' && unequalMap && c < N - 1 && unequalMap.h[r][c] !== 0 && (
+                <View style={{ position: 'absolute', width: cellSize * 0.36, height: cellSize * 0.36, borderRadius: cellSize * 0.18, right: -cellSize * 0.18, top: cellSize / 2 - cellSize * 0.18, backgroundColor: colors.surface, borderWidth: 1, borderColor: '#777777', alignItems: 'center', justifyContent: 'center', zIndex: 5, pointerEvents: 'none' }}>
+                  <Text style={{ fontSize: Math.max(9, Math.round(cellSize * 0.26)), fontWeight: '800', color: colors.text }}>{unequalMap.h[r][c] === 1 ? '<' : '>'}</Text>
+                </View>
+              )}
+              {variant === 'unequal' && unequalMap && r < N - 1 && unequalMap.v[r][c] !== 0 && (
+                <View style={{ position: 'absolute', width: cellSize * 0.36, height: cellSize * 0.36, borderRadius: cellSize * 0.18, bottom: -cellSize * 0.18, left: cellSize / 2 - cellSize * 0.18, backgroundColor: colors.surface, borderWidth: 1, borderColor: '#777777', alignItems: 'center', justifyContent: 'center', zIndex: 5, pointerEvents: 'none' }}>
+                  <Text style={{ fontSize: Math.max(9, Math.round(cellSize * 0.26)), fontWeight: '800', color: colors.text }}>{unequalMap.v[r][c] === 1 ? '∧' : '∨'}</Text>
+                </View>
+              )}
               {/* Карандаш — ПОД суммой клетки killer и под цифрой: сумма и цифра важнее
                   кандидатов, и перекрывать их слой бухгалтерии не имеет права. */}
               {renderMarks(r, c, v)}
@@ -1640,7 +1780,25 @@ export default function SudokuGame() {
           </Svg>
         )}
           </View>
+          {variant === 'towers' && towersMap && (
+            <View style={{ width: clueGutter, marginLeft: 2 }}>
+              {towersMap.right.map((k, tr) => (
+                <View key={`trr${tr}`} style={[styles.edgeClue, { width: clueGutter - 4, height: cellSize - 4, backgroundColor: clueBg }]}>
+                  <Text style={[styles.edgeClueText, { color: colors.textSecondary }]}>{k || ''}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
+        {variant === 'towers' && towersMap && (
+          <View style={{ flexDirection: 'row', marginLeft: clueGutter, marginTop: 2 }}>
+            {towersMap.bottom.map((k, tc) => (
+              <View key={`tb${tc}`} style={[styles.edgeClue, { width: cellSize - 4, backgroundColor: clueBg }]}>
+                <Text style={[styles.edgeClueText, { color: colors.textSecondary }]}>{k || ''}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     );
     const padEl = (

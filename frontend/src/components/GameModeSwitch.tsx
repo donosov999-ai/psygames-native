@@ -107,9 +107,12 @@ const styles = StyleSheet.create({
   card: { borderRadius: 12, padding: 12 },
   // В чужом ряду панель обязана делить ширину с соседом (кнопка справки в судоку).
   bare: { flex: 1, minWidth: 0 },
-  row: { flexDirection: 'row', gap: 8 },
+  // Перенос строк: судоку выставляет ПЯТЬ режимов, и flex:1 в одном ряду резал бы
+  // каждому по ~60 точек — подписи в труху. С minWidth 96 лишние кнопки уходят на
+  // вторую строку; играм с 2–3 режимами перенос не срабатывает — им как было.
+  row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   // 48 — минимальный размер, при котором палец попадает уверенно (аудит кнопок).
-  btn: { flex: 1, minWidth: 0, minHeight: 48, justifyContent: 'center', alignItems: 'center', borderRadius: 12, paddingHorizontal: 8 },
+  btn: { flex: 1, minWidth: 96, minHeight: 48, justifyContent: 'center', alignItems: 'center', borderRadius: 12, paddingHorizontal: 8 },
   // Подпись НЕ обрезаем в одну строку: у немецкого «Freies Spiel» и корейского
   // «자유 플레이» она длиннее английской, и обрезка съела бы слово целиком.
   label: { fontSize: 15, fontWeight: '700', textAlign: 'center' },
