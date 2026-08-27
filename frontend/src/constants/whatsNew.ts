@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.241.0',
+    date: '2026-08-27',
+    ru: [
+      'Зарядка получила картинки: тело с подсвеченной зоной, снимки поз, фигура дыхания — раньше на месте картинки стоял один значок',
+      'Время шага теперь идёт рамкой вокруг картинки, а у практик со сжатием и отпусканием рамка многоугольная: сторона = фаза',
+      'Секунды текущего шага видно прямо у его названия',
+    ],
+    en: [
+      'The warm-up got its artwork: a body with the working zone lit, posture photos, a breathing figure — there used to be a single glyph instead',
+      'Step time now runs as a frame around the artwork; for squeeze-and-release practices the frame is a polygon: one side per phase',
+      'Seconds left in the current step are shown right next to its name',
+    ],
+  },
+  {
     version: '1.240.3',
     date: '2026-08-27',
     ru: [
