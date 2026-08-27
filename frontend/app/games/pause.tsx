@@ -275,10 +275,18 @@ export default function PauseGame() {
     );
   }
 
+  /**
+   * 🔴 РАЗБОР ИТОГА — И ДВЕРЬ ОБРАТНО В СТРАНИЦУ, А НЕ В СТАРЫЙ ПЛАНИРОВЩИК.
+   *
+   * До 27.08.2026 после завершения показывался прежний экран приложения: выбор
+   * обстановки, минут, режима и наборов. Он дублировал планировщик страницы, и
+   * человек, только что закончивший зарядку, попадал в ХУДШУЮ копию того, из
+   * чего вышел. Осталась карточка итога и одна кнопка — вернуться на страницу.
+   */
   return (
     <GameShell title={tr({ ru: 'Глаза и дыхание', en: 'Eyes & breathing' })} onBack={() => goBackOrHome()}>
       <ScrollView contentContainerStyle={styles.body}>
-        {phase === 'result' && last && (
+        {last && (
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={[styles.h, { color: colors.text }]}>
               {tr({ ru: 'Пауза окончена', en: 'Pause complete' })}
@@ -288,89 +296,14 @@ export default function PauseGame() {
             </Text>
           </View>
         )}
-
-        <Text style={[styles.h, { color: colors.text }]}>{tr({ ru: 'Где вы сейчас', en: 'Where you are' })}</Text>
-        <View style={styles.row}>
-          {(Object.keys(CONTEXT_LABEL) as PracticeContext[]).map((c) => (
-            <TouchableOpacity
-              key={c}
-              accessibilityRole="button"
-              accessibilityLabel={tr(CONTEXT_LABEL[c])}
-              onPress={() => setContext(c)}
-              style={[styles.chip, { borderColor: context === c ? colors.primary : colors.border, backgroundColor: context === c ? colors.primary + '22' : 'transparent' }]}
-            >
-              <Text style={[styles.chipText, { color: colors.text }]}>{tr(CONTEXT_LABEL[c])}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={[styles.h, { color: colors.text }]}>{tr({ ru: 'Сколько минут', en: 'How many minutes' })}</Text>
-        <View style={styles.row}>
-          {DURATIONS_MIN.map((m) => (
-            <TouchableOpacity
-              key={m}
-              accessibilityRole="button"
-              accessibilityLabel={`${m}`}
-              onPress={() => setMinutes(m)}
-              style={[styles.chip, { borderColor: minutes === m ? colors.primary : colors.border, backgroundColor: minutes === m ? colors.primary + '22' : 'transparent' }]}
-            >
-              <Text style={[styles.chipText, { color: colors.text }]}>{m}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={[styles.h, { color: colors.text }]}>{tr({ ru: 'Как вести', en: 'How to run' })}</Text>
-        <View style={styles.row}>
-          {(Object.keys(MODE_LABEL) as PlanMode[]).map((m) => (
-            <TouchableOpacity
-              key={m}
-              accessibilityRole="button"
-              accessibilityLabel={tr(MODE_LABEL[m])}
-              onPress={() => chooseMode(m)}
-              style={[styles.chip, { borderColor: mode === m ? colors.primary : colors.border, backgroundColor: mode === m ? colors.primary + '22' : 'transparent' }]}
-            >
-              <Text style={[styles.chipText, { color: colors.text }]}>{tr(MODE_LABEL[m])}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={[styles.h, { color: colors.text }]}>
-          {tr({ ru: 'Что делаем', en: 'What to practise' })} · {selections.length}
-        </Text>
-        {available.map((set) => {
-          const on = chosen.includes(set.id);
-          return (
-            <TouchableOpacity
-              key={set.id}
-              accessibilityRole="button"
-              accessibilityLabel={set.title[locale]}
-              onPress={() => toggle(set.id)}
-              style={[styles.setRow, { borderColor: on ? colors.primary : colors.border, backgroundColor: colors.surface }]}
-            >
-              <Ionicons
-                name={mode === 'solo' ? (on ? 'radio-button-on' : 'radio-button-off') : (on ? 'checkbox' : 'square-outline')}
-                size={20}
-                color={on ? colors.primary : colors.textSecondary}
-              />
-              <View style={styles.setText}>
-                <Text style={[styles.setTitle, { color: colors.text }]}>{set.title[locale]}</Text>
-                <Text style={[styles.setSummary, { color: colors.textSecondary }]}>{set.summary[locale]}</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel={tr({ ru: 'Начать паузу', en: 'Start the pause' })}
-          disabled={!selections.length}
-          onPress={start}
-          style={[styles.start, { backgroundColor: selections.length ? colors.primary : colors.border }]}
+          accessibilityLabel={tr({ ru: 'Ещё раз', en: 'Again' })}
+          onPress={() => { setLast(null); setStarted(false); setPhase('config'); }}
+          style={[styles.chip, { borderColor: colors.primary, backgroundColor: colors.primary + '22', alignSelf: 'center', paddingHorizontal: 24, paddingVertical: 12 }]}
         >
-          <Text style={styles.startText}>{tr({ ru: 'Начать', en: 'Start' })}</Text>
+          <Text style={{ color: colors.text, fontWeight: '600' }}>{tr({ ru: 'Ещё раз', en: 'Again' })}</Text>
         </TouchableOpacity>
-
-        {!isPreset && <GameAbout descriptionKey="pauseDesc" accent={GRADIENT[0]} />}
       </ScrollView>
     </GameShell>
   );
