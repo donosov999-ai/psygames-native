@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.247.0',
+    date: '2026-08-28',
+    ru: [
+      'Лидерборд вырос до девяти игр: «Иди/стой» (реакция чистой партии), Ханой (время при минимуме ходов) и Счёт (десять раундов без ошибки) — со своими таблицами топа и рекорд-строкой на итоге',
+    ],
+    en: [
+      'Leaderboard grew to nine games: Go/No-Go (clean-run reaction), Hanoi (time at minimum moves) and Counter (ten flawless rounds) — each with its own top list and a record line on the result screen',
+    ],
+  },
+  {
     version: '1.246.0',
     date: '2026-08-28',
     ru: [

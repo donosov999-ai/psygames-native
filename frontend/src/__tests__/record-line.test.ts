@@ -25,6 +25,9 @@ const SCREEN_OF: Record<string, string> = {
   corsi: 'corsi.tsx',
   trail_making: 'trail-making.tsx',
   choice_rt: 'choice-rt.tsx',
+  go_no_go: 'go-no-go.tsx',
+  hanoi: 'hanoi.tsx',
+  counter: 'counter.tsx',
 };
 
 const t = (k: string) => ({ seconds: 'с', msShort: 'мс', bestAmongPlayers: 'Лучший среди игроков', personalBest: 'Личный рекорд' }[k] ?? k);

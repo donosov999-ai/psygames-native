@@ -1,4 +1,4 @@
-/* psygames-game-hanoi · VER 2 · 27.08.2026 */
+/* psygames-game-hanoi · VER 3 · 28.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -14,6 +14,9 @@ import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { countsForRecord } from '@/src/services/leaderboard';
+import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmark';
+import LeaderboardModal from '@/src/components/LeaderboardModal';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
@@ -127,6 +130,8 @@ export default function HanoiGame() {
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const record = useRecordBenchmark('hanoi');
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [discs, setDiscs] = useState(() => num('discs', 4));
   const [pegs, setPegs] = useState<number[][]>([[], [], []]);
   const [selected, setSelected] = useState<number | null>(null);
@@ -333,6 +338,13 @@ export default function HanoiGame() {
       const finalTime = (gameNow() - startTime) / 1000;
       setElapsedTime(finalTime);
       if (!isPreset) lvl.reach(levelRef.current + 1);   // решил пазл → +уровень
+      // Рекорд: время решения 3 дисков РОВНО за 7 ходов (минимум) на уровне 1 —
+      // пин по минимуму делает время единственной осью (LEADERBOARD_GAMES.hanoi).
+      if (countsForRecord('hanoi', { isPreset, level: levelRef.current, moves: moves + 1, optimal: optimal(discs) })) {
+        record.report(finalTime);
+      } else {
+        record.reset();
+      }
       setPhase(isPreset ? 'result' : 'cleared');
       // Башня собрана — продолжать нечего, иначе «Продолжить» позвало бы на
       // уже решённую расстановку.
@@ -486,6 +498,11 @@ export default function HanoiGame() {
         <Text style={styles.configDesc}>{t('hanoiDesc')}</Text>
       </GradientSurface>
       <GameAbout descriptionKey="hanoiIntroDesc" benefits={HANOI_BENEFITS} accent={GRADIENT[0]} />
+      <TouchableOpacity
+        accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
+        <Ionicons name="trophy-outline" size={18} color={colors.text} />
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('leaderboardLevel1')}</Text>
+      </TouchableOpacity>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.optionHint, { color: colors.textSecondary }]}>
@@ -646,6 +663,7 @@ export default function HanoiGame() {
         {phase === 'cleared' && (
           <View style={StyleSheet.absoluteFill as any} pointerEvents="box-none">
             <LevelCleared
+          recordLine={record.benchmark ? recordLineFor('hanoi', record.benchmark, t) : undefined}
           variant="overlay" gameId="hanoi" level={levelRef.current}
           stars={hanoiStars(moves, optimal(discs))}
           gradient={GRADIENT} language={language} colors={colors}
@@ -669,10 +687,16 @@ export default function HanoiGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
+      <LeaderboardModal
+        visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
+        gameId="hanoi" language={language} colors={colors} gradient={GRADIENT}
+        formatScore={(s) => `${s.toFixed(1)}s`}
+      />
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
 
       {phase === 'result' && (
         <GameResult
+          recordLine={record.benchmark ? recordLineFor('hanoi', record.benchmark, t) : undefined}
           score={hanoiScore(moves, optimal(discs), elapsedTime)}
           time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}

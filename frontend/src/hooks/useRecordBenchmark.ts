@@ -46,6 +46,9 @@ const FORMAT: Record<LeaderboardGameId, (v: number, t: (k: string) => string) =>
   n_back: (v) => `N=${Math.round(v)}`,
   digit_span: (v) => String(Math.round(v)),
   corsi: (v) => String(Math.round(v)),
+  go_no_go: (v, t) => `${Math.round(v)} ${t('msShort')}`,
+  hanoi: (v, t) => `${v.toFixed(1)} ${t('seconds')}`,
+  counter: (v, t) => `${v.toFixed(1)} ${t('seconds')}`,
 };
 
 /** Готовая строка под счёт: «свой · лучший среди игроков: … / личный рекорд: …». */

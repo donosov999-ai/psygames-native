@@ -146,6 +146,30 @@ export const LEADERBOARD_GAMES = {
     config: 'уровень 1 (12 проб, две стрелки, окно 2000 мс) и 12 верных из 12',
     why: 'число альтернатив — это закон Хика, RT на двух и четырёх стрелках несравнимо в принципе; «12 из 12» обязательно, потому что в среднее попадают только верные ответы: без гейта выгодно жать наугад и ронять сомнительные пробы в тайм-аут',
   },
+  go_no_go: {
+    better: 'less',
+    min: 150,
+    max: 1100,
+    metric: 'средний RT по go-пробам, миллисекунды',
+    config: 'уровень 1 (24 пробы, окно 1100 мс, no-go 25%) и ЧИСТАЯ партия: 0 пропусков go и 0 ложных нажатий',
+    why: 'окно и темп выводятся из уровня — RT с разных ступеней несравним; чистота обязательна, потому что в среднее идут только пойманные go: без неё выгодно жать всё подряд (ложные не штрафуют среднее) или пропускать медленные пробы',
+  },
+  hanoi: {
+    better: 'less',
+    min: 1.5,
+    max: 120,
+    metric: 'время решения, секунды',
+    config: 'уровень 1 (3 диска, 3 стержня) и решение РОВНО за 7 ходов — математический минимум',
+    why: 'число дисков и стержней задаёт уровень, время между конфигурациями несравнимо; пин «ровно минимум ходов» делает время единственной осью — иначе быстрое тыканье лишними ходами обгоняло бы обдуманное решение',
+  },
+  counter: {
+    better: 'less',
+    min: 5,
+    max: 150,
+    metric: 'время десяти раундов, секунды',
+    config: 'уровень 1 (сетка 3×3, лимит раунда 15 с, 10 раундов) и все 10 решены без единой ошибки',
+    why: 'размер сетки и лимит выводятся из уровня; «10 из 10 без ошибок» обязательно, потому что перебор суммы и просрочка не останавливают партию — без гейта время выигрывалось бы бросанием безнадёжных раундов',
+  },
 } as const satisfies Record<string, LeaderboardGameSpec>;
 
 export type LeaderboardGameId = keyof typeof LEADERBOARD_GAMES;
@@ -165,6 +189,9 @@ export interface RecordRunShape {
   corsi: { isPreset: boolean; level: number };
   trail_making: { isPreset: boolean; level: number; errors: number };
   choice_rt: { isPreset: boolean; level: number; hits: number; trials: number };
+  go_no_go: { isPreset: boolean; level: number; misses: number; falseAlarms: number };
+  hanoi: { isPreset: boolean; level: number; moves: number; optimal: number };
+  counter: { isPreset: boolean; level: number; hits: number; errors: number };
 }
 
 /**
@@ -183,6 +210,9 @@ const ELIGIBLE: { [K in LeaderboardGameId]: (run: RecordRunShape[K]) => boolean 
   corsi: (r) => !r.isPreset && r.level === 1,
   trail_making: (r) => !r.isPreset && r.level === 1 && r.errors === 0,
   choice_rt: (r) => !r.isPreset && r.level === 1 && r.trials > 0 && r.hits === r.trials,
+  go_no_go: (r) => !r.isPreset && r.level === 1 && r.misses === 0 && r.falseAlarms === 0,
+  hanoi: (r) => !r.isPreset && r.level === 1 && r.optimal > 0 && r.moves === r.optimal,
+  counter: (r) => !r.isPreset && r.level === 1 && r.hits === 10 && r.errors === 0,
 };
 
 /**
