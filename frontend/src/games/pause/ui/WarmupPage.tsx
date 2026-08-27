@@ -92,10 +92,17 @@ export default function WarmupPage({ theme, locale, set, onOutcome, onReady }: P
     () => (Platform.OS === 'web' ? страницаЗарядки(theme, locale, set) : ''),
     [theme, locale, set],
   );
+  /**
+   * ⚠️ Свежие обработчики держим в ссылках, но обновляем их В ЭФФЕКТЕ, а не в
+   * теле отрисовки: правка `current` во время отрисовки — ошибка `react-hooks/refs`.
+   * Подписка на сообщения ставится один раз и обязана видеть последний обработчик.
+   */
   const итог = useRef(onOutcome);
-  итог.current = onOutcome;
   const готово = useRef(onReady);
-  готово.current = onReady;
+  useEffect(() => {
+    итог.current = onOutcome;
+    готово.current = onReady;
+  }, [onOutcome, onReady]);
 
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return undefined;

@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.242.1',
+    date: '2026-08-27',
+    ru: [
+      'Завершённая зарядка теперь записывается: до этого пройденная до конца сессия уходила в историю как выход без записи',
+      'Возврат из фона снова запускает практику — раньше она оставалась на паузе навсегда',
+      'После завершения показывается итог и «Ещё раз», а не старый экран выбора',
+    ],
+    en: [
+      'A finished warm-up is now recorded: until now a fully completed session went into history as an exit without recording',
+      'Returning from the background resumes the practice again — it used to stay paused forever',
+      'After finishing you get the result and “Again”, not the old picker screen',
+    ],
+  },
+  {
     version: '1.242.0',
     date: '2026-08-27',
     ru: [
