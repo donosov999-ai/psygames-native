@@ -125,6 +125,17 @@ function makeSequence(level: number): Sequence {
   return genArithmetic();   // практически недостижимо
 }
 
+/**
+ * 🔴 ШАГ ЗАРЯДКИ/ОЦЕНКИ ИГРАЕТ ФИКСИРОВАННЫЙ ПРЕСЕТ, А НЕ ЛИЧНЫЙ УРОВЕНЬ.
+ * Было `lvl.level` и в пресете: игрок 1-го уровня решал арифметические ряды,
+ * игрок 13-го — чередующиеся, а доля верных обеих партий сравнивалась с ОДНОЙ
+ * нормой (hit_rate 0.8±0.2, assessment.ts). Паттерн — flanker.tsx:144: тир шага →
+ * середина полосы своей difficulty-раскладки (≤5 easy · ≤10 medium · ≥11 hard);
+ * партия запишется с difficulty шага (medium=8 → 'medium', класс — Фибоначчи),
+ * и sessionFitsStep её опознает. Число проб задаёт шаг (assessment: 5).
+ */
+export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
+
 function makeOptions(answer: number, count = 4): number[] {
   const opts = new Set<number>([answer]);
   while (opts.size < count) {
@@ -142,7 +153,7 @@ export default function PatternGame() {
   const router = useRouter();
 
   const lvl = usePersistentLevel('pattern');
-  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
@@ -175,7 +186,9 @@ export default function PatternGame() {
   };
 
   const startGame = () => {
-    levelRef.current = lvl.level;
+    // личная игра → уровень рулит; пресет (зарядка/оценка) → фикс-уровень тира.
+    // Паттерн flanker.tsx:144; см. PRESET_LEVEL_BY_DIFF выше.
+    levelRef.current = isPreset ? (PRESET_LEVEL_BY_DIFF[str('diff', 'medium')] ?? 8) : lvl.level;
     hintUsedRef.current = false;
     setHits(0); setErrors(0); setRound(1);
     newRound();
@@ -214,7 +227,13 @@ export default function PatternGame() {
             difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
             mode: `lvl${levelRef.current}`,
             errors: errors + (correct ? 0 : 1),
-            details: { level: levelRef.current, hits: newHits, errors: errors + (correct ? 0 : 1), trials, hint_used: hintUsedRef.current },
+            details: {
+              level: levelRef.current, hits: newHits, errors: errors + (correct ? 0 : 1), trials, hint_used: hintUsedRef.current,
+              // 🔴 Биомаркер мышления — ДОЛЯ, а не сырые попадания: число проб выбирает
+              // игрок (5/10/15), и 12 из 15 при норме «4±1 из 5» давало z=+8 просто за
+              // длину партии. Норма в assessment.ts пересчитана в hit_rate 0.8±0.2.
+              hit_rate: trials > 0 ? Number((newHits / trials).toFixed(3)) : 0,
+            },
           });
         } catch (e) { console.error(e); }
       } else {

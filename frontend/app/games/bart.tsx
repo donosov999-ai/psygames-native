@@ -69,7 +69,15 @@ type Difficulty = 'easy' | 'medium' | 'hard';
 
 // КЛАССИЧЕСКИЙ пресет — стандартные параметры парадигмы для диагностики.
 // average burst = MAX/2; на pump'е MAX-1 P(burst)=1.
-const MAX_BURST_BY_DIFF: Record<Difficulty, number> = { easy: 64, medium: 32, hard: 16 };
+//
+// 🔴 НОРМА БАТАРЕИ ПРИВЯЗАНА К ЭТОЙ ТАБЛИЦЕ. Батарея запускает classic medium
+// (diff-параметр шага) → шар 1..32; burstAt равномерен, EV(k)=k·(32−k)/32,
+// оптимум k*=16. Норма adj_avg_pumps в assessment.ts обязана быть 16±5 — стояло
+// «30±10» (литературный BART 1..128), и рациональный игрок получал z=−1,4 за
+// правильную игру. Экспорт — чтобы assessment-metrics.test.ts сверял норму с
+// диапазоном, который реально запускается, а не с запомненной цифрой.
+// Число шаров пресета задаёт шаг (assessment: settings.balloons=10 → mode '10b').
+export const MAX_BURST_BY_DIFF: Record<Difficulty, number> = { easy: 64, medium: 32, hard: 16 };
 
 // УРОВНЕВЫЙ режим: риск/размах растут с уровнем (~12 ступеней).
 //   maxBurst  16 → 128 (шире диапазон точки взрыва = выше ставки и соблазн)

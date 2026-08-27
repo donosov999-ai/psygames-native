@@ -1,4 +1,4 @@
-/* psygames-game-goods-sort · VER 1 · 19.08.2026 */
+/* psygames-game-goods-sort · VER 2 · 27.08.2026 · +скрытая информация (§20) */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, Easing, PanResponder, DimensionValue } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -347,6 +347,22 @@ function GoodIcon({ type, width, height }: { type: number; width: DimensionValue
   );
 }
 
+/**
+ * «?» скрытого товара (§20). Тон коробки — та же глубинная темень, что у
+ * силуэта накрытого (rgba(35,20,8,…)): «скрытое» читается одним цветом во всех
+ * механиках; знак — сливочный, как значки препятствий (#f8e3c4). Кегль знака
+ * считается от коробки, а не зашит: товар на телефоне бывает 18 пикселей, и
+ * постоянный кегль вылезал бы за нишу. a11yDecor обязателен — подпись несёт
+ * кнопка товара («?», полка N), а не внутренности коробки.
+ */
+function UnknownGood({ width, height }: { width: number; height: number }) {
+  return (
+    <View {...a11yDecor} style={[styles.unknownBox, { width, height }]}>
+      <Text style={[styles.unknownMark, { fontSize: Math.max(13, Math.round(Math.min(width * 0.62, height * 0.5))) }]}>?</Text>
+    </View>
+  );
+}
+
 export type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 type Sel = { cell: number; idx: number } | null;
 
@@ -661,6 +677,193 @@ export function capsFor(L: number, slots: number): number[] {
 export function strictPlacement(L: number): boolean {
   // С 14-го, через два уровня на третий: успевает и надоесть не успевает.
   return L >= 14 && (L - 14) % 3 === 0;
+}
+
+/* ───────────────── СКРЫТАЯ ИНФОРМАЦИЯ — шестая механика (§20 плана слияния) ─────────────────
+ *
+ * Источник: разбор конкурента «Ханойская башня Сорта» (mobirix), §20
+ * PSYGAMES_MERGE_PLAN.md. Под верхними товарами ниши стоит «?»: что в глубине —
+ * видно только когда снимешь то, что спереди.
+ *
+ * 🔴 ПОЧЕМУ ЭТО ОТДЕЛЬНАЯ МЕХАНИКА, А НЕ ДЕКОРАЦИЯ. Обычная сортировка
+ * ПОЛНОСТЬЮ наблюдаема — весь файл выше на это опирается дословно (см. довод у
+ * бесплатной отмены: «все товары на виду, исход хода считается заранее»).
+ * Со скрытыми товарами оптимальный план построить нельзя: приходится
+ * вскрывать → узнавать → перестраивать. Природа нагрузки меняется с «выполни
+ * оптимальный план» на «планируй под неопределённостью и пересматривай» —
+ * такого нет ни в одной из шести осей сложности этой игры.
+ *
+ * ⚠️ РАЗДАЧУ РЕЖИМ НЕ МЕНЯЕТ. §20.5 меряет «цену неопределённости» как
+ * разность результата при полной и при скрытой информации на СОПОСТАВИМЫХ
+ * досках — доска обязана оставаться той же, меняется только видимость.
+ */
+
+/**
+ * С какого уровня приходит скрытая информация. Шестнадцатый — между строгой
+ * укладкой (14) и смешанной ёмкостью (18): верх лесенки и так вводит по новой
+ * механике раз в два уровня, режим встаёт в свой свободный такт.
+ */
+export const HIDDEN_FROM = 16;
+
+/**
+ * Идёт ли на уровне режим скрытой информации. Включение — по уровню, как у
+ * всех усложнений этой игры (образец — strictPlacement): никаких переключателей
+ * в настройке, механика приходит сама на верхних уровнях.
+ *
+ * 🔴 РИТМ «ЧЕРЕЗ ДВА НА ТРЕТИЙ» СО СДВИГОМ +2 ОТ СТРОГОЙ УКЛАДКИ — это не
+ * вкус, а арифметика: (L−14)%3=0 и (L−16)%3=0 несовместимы, режимы НИКОГДА не
+ * совпадают. Стек двух режимов был бы кашей (та же причина, по которой
+ * препятствий нет до L6), а тупики строгой укладки вслепую — не сложность,
+ * а лотерея: тупик там надо ВИДЕТЬ за два-три хода, скрытость это отменяет.
+ *
+ * 🔴 ЦЕЛЬ «УЛОЖИСЬ В ХОДЫ» ИСКЛЮЧЕНА (§20.4): лимит ходов — это минимум,
+ * объявленный целью, а минимума при неполной информации не существует.
+ * Первый реальный отвод — L25: кандидат ритма, но цель moves. Проверка
+ * исполняется, а не украшает (мутация «убери отвод» краснит гейт на L25).
+ *
+ * ⚠️ ДОЛГ ВНЕ ЭТОГО ФАЙЛА: правило уровня (LevelRule key 'hidden', fromLevel
+ * HIDDEN_FROM) требует словаря на 12 языках — ключи lr_goods_sort_hidden_title
+ * / _rule / _example в LanguageContext.tsx, иначе гейт level-rules-i18n красный.
+ * Словарь занят другой правкой; до внесения ключей механика объясняет себя
+ * знаком «?» на самих товарах. Готовые ru/en для словаря:
+ *   title:   «Скрытая информация» / “Hidden information”
+ *   rule:    «Что в глубине ниши — не видно: там стоит „?“. Товар открывается,
+ *            когда перед ним никого не останется. Минимума ходов у такого
+ *            уровня нет, счёт ходов ни с чем не сравнивается — вскрывай,
+ *            узнавай и перестраивай план.» / “What sits deep in a niche is
+ *            unknown — it shows as ‘?’. A good opens up once nothing stands in
+ *            front of it. No move minimum exists here, so the move count is not
+ *            judged — uncover, learn, replan.”
+ *   example: «Пример: в нише „?“ и кола. Убрал колу — „?“ открылся: там кефир.»
+ *            / “Example: a niche holds ‘?’ and a cola. Move the cola and the
+ *            ‘?’ opens: it was kefir.”
+ * Вместе с ключами добавить в GS_RULES запись { key: 'hidden', fromLevel:
+ * HIDDEN_FROM } и в rulesHere — фильтр по hiddenInfo(level), как у 'strict'.
+ */
+export function hiddenInfo(L: number): boolean {
+  if (L < HIDDEN_FROM || (L - HIDDEN_FROM) % 3 !== 0) return false;
+  return goalPlan(L).kind !== 'moves';
+}
+
+/**
+ * Ключи скрытых мест раздачи: всё, что лежит НЕ спереди («ниша:позиция»).
+ * Тот же список, из которого «накрытый товар» (L8) выбирает себе выборку —
+ * источник один, чтобы «что вообще можно спрятать» не разъехалось между двумя
+ * механиками скрытости.
+ */
+export function hideDeepSpots(cells: number[][]): string[] {
+  const out: string[] = [];
+  cells.forEach((c, i) => c.forEach((_, j) => { if (j < c.length - 1) out.push(`${i}:${j}`); }));
+  return out;
+}
+
+/**
+ * Перенос ключей скрытости через изъятие товара (fromCell, fromIdx).
+ *
+ * 🔴 КЛЮЧИ ПОЗИЦИОННЫЕ, А ПОЗИЦИИ СДВИГАЮТСЯ. splice убирает товар из середины
+ * ряда, всё правее съезжает на единицу — а ключи до сих пор оставались на
+ * месте: в [скрытый, скрытый, видимый] изъятие среднего дарило его ключ
+ * ВИДИМОМУ товару, вставшему на ту позицию, и тот темнел на глазах. При двух
+ * накрытых на доску это жило незаметно, при «скрыто всё в глубине» стреляло бы
+ * через ход.
+ *
+ * Ключ самого изъятого умирает: товар ложится в цель ПОСЛЕДНИМ, то есть
+ * спереди, а спереди скрытых не бывает — «выкопать ?» и есть его вскрытие.
+ */
+export function shiftCoveredAfterTake(covered: Iterable<string>, fromCell: number, fromIdx: number): string[] {
+  const out: string[] = [];
+  for (const k of Array.from(covered)) {
+    const [i, j] = k.split(':').map(Number);
+    if (i !== fromCell) { out.push(k); continue; }
+    if (j === fromIdx) continue;
+    out.push(j > fromIdx ? `${i}:${j - 1}` : k);
+  }
+  return out;
+}
+
+/**
+ * ВСКРЫТИЕ: перед кем никого не осталось — тот виден. Правило одно на обе
+ * механики скрытости, и на «?», и на силуэты накрытого: справка накрытого с
+ * восьмого уровня так и обещает («сними тот, что перед ним, и узнаешь, что
+ * это»), а код до этой правки держал силуэт до полного опустошения ниши — то
+ * есть правило на экране расходилось с игрой.
+ *
+ * Пустую нишу отдельно чистить не надо: у неё len−1 = −1, любой ключ ≥ 0
+ * оказывается «спереди или дальше» и снимается этим же условием.
+ *
+ * ⚠️ ПОСЛЕ КАСКАДА КЛЮЧИ НЕ ПЕРЕСЧИТЫВАЮТСЯ, И ЭТО НЕ ДЫРА: тройка забирает из
+ * ниши три товара, при ёмкостях 2–4 там остаётся максимум один — а единственный
+ * всегда спереди, и его ключ снимает эта же проверка.
+ */
+export function revealUncovered(covered: Iterable<string>, cells: number[][]): string[] {
+  const out: string[] = [];
+  for (const k of Array.from(covered)) {
+    const [i, j] = k.split(':').map(Number);
+    if (j < (cells[i]?.length ?? 0) - 1) out.push(k);
+  }
+  return out;
+}
+
+/**
+ * ЭТАЛОН ХОДОВ УРОВНЯ — единственное место, где он считается. По нему меряются
+ * и звёзды (starsFor), и moves_over_min в записи сессии: два своих эталона
+ * однажды разъехались бы, и оценка на экране спорила бы с оценкой в данных.
+ * Где лимита нет — types × 3: каждой тройке нужно до трёх перекладываний
+ * (тот же расчёт, из которого лимит потом и строится).
+ */
+export function moveReference(cfg: { moveLimit: number; types: number }): number {
+  return cfg.moveLimit > 0 ? cfg.moveLimit : cfg.types * 3;
+}
+
+/**
+ * ЗАМЕРЫ ПАРТИИ СКРЫТОЙ ИНФОРМАЦИИ — §20.4: что меряем ВМЕСТО ходов сверх
+ * минимума.
+ *   · firstMoveMs — сколько думал до первого хода, зная, что информации не хватает;
+ *   · planRevisions — пересмотры плана: отмены и возвраты (товар едет назад);
+ *   · movesBeforeFirstReveal — ходов к моменту первого вскрытия, включая
+ *     вскрывший: исследует сначала или лезет напролом.
+ * null = событие не наступило либо партия поднята из снимка без замеров.
+ */
+export interface HiddenRunStats {
+  firstMoveMs: number | null;
+  planRevisions: number;
+  movesBeforeFirstReveal: number | null;
+}
+
+/** Чистый лист замеров — им начинается каждый уровень. */
+export const EMPTY_HIDDEN_STATS: HiddenRunStats = { firstMoveMs: null, planRevisions: 0, movesBeforeFirstReveal: null };
+
+/**
+ * details СЕССИИ — единственное место, где решается, какие числа уходят в запись.
+ *
+ * 🔴 §20.4 — ПРАВИЛО ИЗМЕРЕНИЯ, БЕЗ КОТОРОГО РЕЖИМ ВРЁТ. Обычный уровень пишет
+ * moves_over_min — расстояние до эталона (бывает отрицательным: эталон это «до
+ * трёх ходов на тройку», а не точный минимум). На уровне скрытой информации
+ * минимума НЕ СУЩЕСТВУЕТ: оптимальная стратегия зависит от того, что
+ * вскроется. Поэтому поля moves_over_min там НЕТ ВООБЩЕ — не ноль и не null,
+ * а отсутствует: ноль читался бы как «сыграл без лишних ходов», null — как
+ * «замер сломался». Вместо него — три замера §20.4. Сырой счётчик moves
+ * остаётся в обоих: он факт, а не сравнение с несуществующим эталоном.
+ *
+ * Разность §20.5 (цена неопределённости) собирается потом из ПАР сессий —
+ * обычной и скрытой на сопоставимых досках; раздачу режим не меняет.
+ */
+export function sessionDetails(
+  level: number,
+  moves: number,
+  hidden: boolean,
+  reference: number,
+  stats: HiddenRunStats = EMPTY_HIDDEN_STATS,
+): Record<string, number | boolean | null> {
+  if (!hidden) return { level, moves, moves_over_min: moves - reference };
+  return {
+    level,
+    moves,
+    hidden_info: true,
+    time_to_first_move_ms: stats.firstMoveMs,
+    plan_revisions: stats.planRevisions,
+    moves_before_first_reveal: stats.movesBeforeFirstReveal,
+  };
 }
 
 /**
@@ -1273,6 +1476,13 @@ export interface GoodsResume {
   history: MoveStackData<Snapshot>;
   /** Накопленное ИГРОВОЕ время партии, мс. */
   elapsedMs: number;
+  /**
+   * Замеры §20.4 уровня скрытой информации. Поле ДОБАВЛЕНО в формат v1 без
+   * подъёма версии осознанно: старый снимок без поля поднимается с пустыми
+   * замерами (норм-функция подставит null), а подъём номера выбросил бы всем
+   * живые партии — цена выше, чем недомер трёх чисел у редких старых записей.
+   */
+  hiddenStats?: HiddenRunStats;
 }
 
 /** Живая партия — то, что экран знает о себе в момент снимка. */
@@ -1301,6 +1511,11 @@ export interface GoodsLiveParty {
   history: MoveStackData<Snapshot>;
   /** Отметка игровых часов, от которой идёт уровень. */
   startedAt: number;
+  /**
+   * Замеры §20.4. Опционально: снимок обязан сниматься и там, где замеров нет
+   * (обычный уровень, старый вызов) — недостающее уезжает пустым листом.
+   */
+  hiddenStats?: HiddenRunStats;
 }
 
 /** Поднятая партия: экран раскладывает это по своим состояниям. */
@@ -1327,6 +1542,8 @@ export interface GoodsRestored {
   history: MoveStackData<Snapshot>;
   /** Отметка игровых часов, с которой считать время уровня. */
   startedAt: number;
+  /** Замеры §20.4 — какими их оставили. У старых снимков поля нет → пустой лист. */
+  hiddenStats: HiddenRunStats;
 }
 
 /** Ниша: массив типов товаров, не длиннее самой вместительной ниши в игре. */
@@ -1351,6 +1568,21 @@ const normCovered = (list: any, cells: number[][]): string[] =>
     const [i, j] = k.split(':').map(Number);
     return i < cells.length && j < cells[i].length;
   });
+
+/**
+ * Число-или-null из хранилища. Мусор превращаем в null («замера нет»), а не в
+ * ноль: ноль — это ЗАМЕРЕННОЕ значение («думал ноль миллисекунд»), и подставить
+ * его вместо утерянного значит выдумать данные.
+ */
+const normNullableCount = (v: any): number | null =>
+  v === null || v === undefined || !Number.isFinite(Number(v)) ? null : Math.max(0, Math.round(Number(v)));
+
+/** Замеры §20.4 из хранилища. Отсутствие поля законно — снимок старого формата. */
+const normHiddenStats = (h: any): HiddenRunStats => ({
+  firstMoveMs: normNullableCount(h?.firstMoveMs),
+  planRevisions: Math.max(0, Math.floor(Number(h?.planRevisions) || 0)),
+  movesBeforeFirstReveal: normNullableCount(h?.movesBeforeFirstReveal),
+});
 
 /** Примёрзший ряд. Ряд вне доски — то же, что заморозки нет. */
 const normFrozen = (f: any, rows: number): { row: number; type: number } | null => {
@@ -1465,6 +1697,9 @@ export function snapshotGoodsParty(live: GoodsLiveParty, now: number): GoodsResu
     // Шаги ленты создаются заново на каждый ход и не правятся на месте — копии массивов хватает.
     history: { past: [...live.history.past], future: [...live.history.future] },
     elapsedMs: Math.max(0, now - live.startedAt),
+    // Замеры §20.4 — иначе выход с экрана посреди скрытого уровня стирал бы
+    // «когда был первый ход», и details доигранного уровня врали бы null.
+    hiddenStats: { ...(live.hiddenStats ?? EMPTY_HIDDEN_STATS) },
   };
 }
 
@@ -1545,6 +1780,7 @@ export function restoreGoodsParty(saved: GoodsResume | null | undefined, now: nu
       future: (Array.isArray(rawHistory.future) ? rawHistory.future : []).map(step).filter(keep),
     },
     startedAt: now - Math.max(0, Number(saved.elapsedMs) || 0),
+    hiddenStats: normHiddenStats(saved.hiddenStats),
   };
 }
 
@@ -1616,6 +1852,20 @@ export default function GoodsSortGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const scoreRef = useRef(0); const movesRef = useRef(0);
+  /**
+   * Замеры §20.4 — в ref, а не в состоянии: рендеру они не нужны, а нужны
+   * обработчику хода В МОМЕНТ события — к концу уровня «когда был первый ход»
+   * уже не восстановить. lastMove — служебная память для ловли возврата (тот
+   * же товар поехал обратно тем же ребром); замером не является и в снимок
+   * партии не пишется.
+   *
+   * ⚠️ ОТМЕНА ХОДА ЗАМЕРЫ НЕ ОТКАТЫВАЕТ. Пересмотр плана — свершившийся факт
+   * партии, и именно его мы считаем; откатывайся счётчик вместе с доской —
+   * каждая отмена стирала бы сама себя из статистики.
+   */
+  const hiddenStatsRef = useRef<HiddenRunStats & { lastMove: { from: number; to: number; type: number } | null }>(
+    { ...EMPTY_HIDDEN_STATS, lastMove: null },
+  );
   /** Узкий экран (телефон): сетка ограничивается тремя колонками. 560px — граница,
    *  за которой четвёртая колонка перестаёт душить товар. */
   const narrowRef = useRef(false);
@@ -1794,10 +2044,16 @@ export default function GoodsSortGame() {
 
     // Накрываем товары: только те, что лежат НЕ последними в нише — иначе
     // человек не сможет даже взять его, не зная, что берёт.
-    const cov = new Set<string>();
-    const spots: string[] = [];
-    built.forEach((c, i) => c.forEach((_, j) => { if (j < c.length - 1) spots.push(`${i}:${j}`); }));
-    shuffle(spots).slice(0, cfg.obst.covered).forEach((k) => cov.add(k));
+    /**
+     * Режим скрытой информации (§20): в глубине скрыто ВСЁ, а не выборка из
+     * плана препятствий — covered-план на таких уровнях поглощён режимом
+     * (его 2–3 накрытия — подмножество «всей глубины», добавлять нечего).
+     * Раздача при этом ТА ЖЕ, что у обычного уровня: §20.5 сравнивает результат
+     * при полной и при скрытой информации на сопоставимых досках, менять
+     * генерацию под режим значило бы сравнивать несравнимое.
+     */
+    const spots = hideDeepSpots(built);
+    const cov = new Set<string>(hiddenInfo(L) ? spots : shuffle(spots).slice(0, cfg.obst.covered));
     setCovered(cov);
 
     let frozenRow = -1;
@@ -1850,6 +2106,8 @@ export default function GoodsSortGame() {
     setSel(null); setMoves(0); movesRef.current = 0; setShuffles(SHUFFLES_PER_LEVEL);
     setHints(HINTS_PER_LEVEL); setHint(null);
     history.reset();   // лента отмены не переживает уровень: чужая доска в неё не годится
+    // Замеры §20.4 начинаются заново вместе с уровнем — чужая партия в них не годится тем более.
+    hiddenStatsRef.current = { ...EMPTY_HIDDEN_STATS, lastMove: null };
     setStartTime(gameNow()); setElapsed(0);
   };
 
@@ -1903,6 +2161,9 @@ export default function GoodsSortGame() {
     setCleared(r.cleared);
     setShuffles(r.shuffles); setHints(r.hints); setHint(null);
     history.restore(r.history);
+    // Замеры §20.4 поднимаются, какими их оставили; lastMove не хранится —
+    // сравнивать «возврат» через границу выхода из приложения не с чем.
+    hiddenStatsRef.current = { ...r.hiddenStats, lastMove: null };
     setSel(null); setLevelBanner(null);
     setStartTime(r.startedAt); setElapsed(0);
     setPhase('playing');
@@ -1933,6 +2194,12 @@ export default function GoodsSortGame() {
       canUndo: history.canUndo,
       history: history.serialize(),
       startedAt: startTime,
+      // lastMove отрезаем: это служебная память обработчика, а не замер.
+      hiddenStats: {
+        firstMoveMs: hiddenStatsRef.current.firstMoveMs,
+        planRevisions: hiddenStatsRef.current.planRevisions,
+        movesBeforeFirstReveal: hiddenStatsRef.current.movesBeforeFirstReveal,
+      },
     }, gameNow()),
   };
 
@@ -1991,7 +2258,21 @@ export default function GoodsSortGame() {
           passed: false,
           game_type: 'goods_sort', score: scoreRef.current, time_seconds: (gameNow() - startTime) / 1000,
           difficulty: level < 5 ? 'easy' : level < 10 ? 'medium' : 'hard', mode: `lvl${level}`, errors: 0,
-          details: { moves: movesRef.current, level, move_limit_exceeded: true },
+          /**
+           * details — тем же sessionDetails, что и у победы: два места сборки
+           * однажды разъехались бы. Скрытый уровень сюда не попадает ПО
+           * ПОСТРОЕНИЮ (лимит бывает только у цели «ходы», а hiddenInfo её
+           * исключает) — hiddenInfo(level) здесь структурная страховка на
+           * случай перестройки таблиц, а не живая ветка.
+           */
+          details: {
+            ...sessionDetails(
+              level, movesRef.current, hiddenInfo(level),
+              moveReference(levelCfg(level, poolRef.current.length, narrowRef.current)),
+              hiddenStatsRef.current,
+            ),
+            move_limit_exceeded: true,
+          },
         }).catch((e) => console.error(e));
         return;
       }
@@ -2002,13 +2283,27 @@ export default function GoodsSortGame() {
     hapticSuccess();
     const done = level;
     const finalTime = (gameNow() - startTime) / 1000;
-    scoreRef.current += Math.max(50, 300 - movesRef.current * 4);
+    const hiddenDone = hiddenInfo(done);
+    /**
+     * §20.4: бонус за уровень не судит ходы там, где минимума не существует.
+     * «300 − 4·ходы» — суждение о ходах против невидимого бюджета; на скрытом
+     * уровне разведочный ход — работа режима, а не расточительность, и штраф
+     * за него был бы счётом ходов сверх минимума через задний двор. Вместо
+     * формулы — середина той же вилки [50…300], одна на всех.
+     */
+    scoreRef.current += hiddenDone ? 150 : Math.max(50, 300 - movesRef.current * 4);
     setScore(scoreRef.current);
     saveSession({
       passed: true,   // сессия пишется только когда уровень собран
       game_type: 'goods_sort', score: scoreRef.current, time_seconds: finalTime,
       difficulty: done < 5 ? 'easy' : done < 10 ? 'medium' : 'hard', mode: `lvl${done}`, errors: 0,
-      details: { moves: movesRef.current, level: done },
+      // На скрытом уровне вместо moves_over_min уходят три замера §20.4 —
+      // весь выбор полей живёт в sessionDetails, см. разбор там.
+      details: sessionDetails(
+        done, movesRef.current, hiddenDone,
+        moveReference(levelCfg(done, poolRef.current.length, narrowRef.current)),
+        hiddenStatsRef.current,
+      ),
     }).catch((e) => console.error(e));
     const next = done + 1;
     setLevel(next);
@@ -2071,6 +2366,8 @@ export default function GoodsSortGame() {
    */
   /** Идёт ли на этом уровне строгая укладка. Одно место, откуда это узнают все. */
   const strict = strictPlacement(level);
+  /** Идёт ли режим скрытой информации (§20). Тоже одно место — по образцу strict. */
+  const hiddenHere = hiddenInfo(level);
   /** Ёмкости ниш этого уровня. Одинаковые до 18-го, дальше вперемешку. */
   const caps = useMemo(() => capsFor(level, gridRef.current.slots), [level, gridDim.cols, gridDim.rows]);
   const capOf = (i: number) => caps[i] ?? CAP;
@@ -2133,6 +2430,20 @@ export default function GoodsSortGame() {
     flyItem(item, covered.has(`${fromCell}:${fromIdx}`), fromCell, toCell);
     movesRef.current += 1; setMoves(movesRef.current);
     setHint(null);   // сходил — подсказка больше не про эту доску
+    /**
+     * Замеры §20.4 снимаются В МОМЕНТ события. Время до первого хода — сколько
+     * человек планировал, зная, что информации не хватает; часы игровые
+     * (gameNow), те же, что меряют уровень. Возврат — тот же товар едет
+     * обратно по тому же ребру: план пересмотрен руками, без кнопки отмены.
+     */
+    if (hiddenHere) {
+      const st = hiddenStatsRef.current;
+      if (st.firstMoveMs === null) st.firstMoveMs = Math.max(0, Math.round(gameNow() - startTime));
+      if (st.lastMove && st.lastMove.to === fromCell && st.lastMove.from === toCell && st.lastMove.type === item) {
+        st.planRevisions += 1;
+      }
+      st.lastMove = { from: fromCell, to: toCell, type: item };
+    }
     // каскад: любая ячейка с 3 одинаковыми → собрать (+50). Спокойно, без таймед-комбо.
     let clearedNow = 0; let gained = 0; let again = true;
     const clearedTypes: number[] = [];
@@ -2178,10 +2489,23 @@ export default function GoodsSortGame() {
     }
     if (frozen && clearedTypes.includes(frozen.type)) setFrozen(null);
     if (covered.size) {
-      const cov = new Set(covered);
-      let changed = false;
-      ns.forEach((c, i) => { if (c.length === 0) { for (let j = 0; j < CAP; j++) if (cov.delete(`${i}:${j}`)) changed = true; } });
-      if (changed) setCovered(cov);
+      /**
+       * Ключи скрытости едут вслед за товарами: сдвиг позиций после изъятия,
+       * затем вскрытие всех, перед кем никого (пустые ниши то же условие
+       * чистит само). Прежняя чистка «только когда ниша опустела» держала
+       * силуэт на товаре, давно вставшем спереди, — расходясь со справкой
+       * накрытого товара; вскрытие по фронту чинит и её, и «?» режима §20.
+       */
+      const nextCov = revealUncovered(shiftCoveredAfterTake(covered, fromCell, fromIdx), ns);
+      // Первое вскрытие: ключи в этом переходе только умирают, поэтому
+      // «стало меньше» = «что-то вскрылось». Вскрывший ход входит в счёт.
+      if (hiddenHere && hiddenStatsRef.current.movesBeforeFirstReveal === null && nextCov.length < covered.size) {
+        hiddenStatsRef.current.movesBeforeFirstReveal = movesRef.current;
+      }
+      // Сдвиг может переименовать ключи, не меняя их числа, — сравниваем состав, а не размер.
+      if (nextCov.length !== covered.size || nextCov.some((k) => !covered.has(k))) {
+        setCovered(new Set(nextCov));
+      }
     }
 
     setCells(ns); setSel(null); setScore(scoreRef.current);
@@ -2384,6 +2708,19 @@ export default function GoodsSortGame() {
     scoreRef.current = snap.score; setScore(snap.score);
     setCleared(snap.cleared);
     setSel(null);
+    /**
+     * §20.4: отмена = пересмотр плана. Снимок вернул и скрытость — вскрытое
+     * отменённым ходом снова «?». К ДОСКЕ это честно (частичный откат хуже
+     * отсутствия отката: ключи скрытости позиционные и обязаны совпадать с
+     * той доской, которую вернули), а довод «отмена бесплатна, потому что
+     * перебором ничего не разведаешь» на скрытом уровне не работает — здесь
+     * разведка «сходил-посмотрел-отменил» реальна. Прятать её не надо: она
+     * и есть пересмотр плана, и счётчик её считает.
+     */
+    if (hiddenHere) {
+      hiddenStatsRef.current.planRevisions += 1;
+      hiddenStatsRef.current.lastMove = null;   // сравнивать возврат через отмену не с чем
+    }
     hapticTap(); sndPlace();
   };
 
@@ -2458,6 +2795,13 @@ export default function GoodsSortGame() {
     });
     setShuffles((n) => n - 1);
     movesRef.current += 1; setMoves(movesRef.current);
+    // §20.4: перетасовка тоже трата хода — и тоже может оказаться первым
+    // действием раздумья; а «возврат» после неё сравнивать не с чем.
+    if (hiddenHere) {
+      const st = hiddenStatsRef.current;
+      if (st.firstMoveMs === null) st.firstMoveMs = Math.max(0, Math.round(gameNow() - startTime));
+      st.lastMove = null;
+    }
     const slots = gridRef.current.slots;
     const open: number[] = [];
     for (let i = 0; i < slots; i++) if (cellUsable(i)) open.push(i);
@@ -2525,6 +2869,16 @@ export default function GoodsSortGame() {
         ns[at].push(it);
       }
     }
+    /**
+     * §20: тасовка перемешала и вскрытое — где теперь что лежит, неизвестно
+     * заново, поэтому прячется вся глубина, как при раздаче. Это честно:
+     * скрытость привязана к МЕСТУ, а не к товару, и после переезда знание
+     * «в третьей нише под колой кефир» больше ничего не значит.
+     * (Выборочные накрытия обычных уровней тасовка исторически не трогает —
+     * их ключи после переезда глядят в случайные места; отдельный долг,
+     * который эта правка не решает, чтобы не менять два режима разом.)
+     */
+    if (hiddenHere) setCovered(new Set(hideDeepSpots(ns)));
     setCells(ns); setSel(null); hapticTap();
   };
 
@@ -2639,9 +2993,17 @@ export default function GoodsSortGame() {
   // Полка целиком: «Полка 4: кола, кола, пусто» — по этой строке незрячий
   // игрок понимает, где уже есть пара и куда нести третий товар.
   const ru = language === 'ru';
+  /**
+   * Имя товара для скринридера. Скрытый и накрытый НЕ называются: назвать —
+   * значит выдать незрячему то, что зрячему не показано, и вся механика
+   * неполной информации для него исчезнет. «?» язык-нейтрален (озвучивается
+   * самим скринридером на языке системы), словаря не требует.
+   */
+  const spokenGood = (i: number, s: number, tp: number): string =>
+    covered.has(`${i}:${s}`) ? '?' : goodName(tp, ru);
   const cellLabel = (i: number, cell: number[]) =>
     `${t('a11yShelf')} ${i + 1}: ` +
-    (cell.length ? cell.map((tp) => goodName(tp, ru)).join(', ') : t('a11yEmpty'));
+    (cell.length ? cell.map((tp, s) => spokenGood(i, s, tp)).join(', ') : t('a11yEmpty'));
 
   /**
    * 🔴 ТРИ ЗВЕЗДЫ НА ПЕРВЫХ ВОСЬМИ УРОВНЯХ БЫЛИ НЕДОСТИЖИМЫ.
@@ -2660,8 +3022,18 @@ export default function GoodsSortGame() {
    * один лимит, а провал считался по другому — тот же баг, что и в счётчике.
    */
   const starsFor = (L: number, moves: number): number => {
+    /**
+     * 🔴 §20.4: на уровне скрытой информации звёзды НЕ считаются от ходов.
+     * Эталона нет, а «недодать звезду за лишние ходы» — это и есть посчитать
+     * ходы сверх минимума, только через чёрный ход: любая формула от moves
+     * была бы тем самым запрещённым сравнением. Поэтому константа — полный
+     * зачёт за пройденный уровень; две звезды константой читались бы как
+     * «где-то недожал» без единого способа дожать.
+     */
+    if (hiddenInfo(L)) return 3;
     const cfg = levelCfg(L, poolRef.current.length, narrowRef.current);
-    const reference = cfg.moveLimit > 0 ? cfg.moveLimit : cfg.types * 3;
+    // Эталон — общий с moves_over_min в записи сессии (moveReference).
+    const reference = moveReference(cfg);
     return moves <= reference * 0.6 ? 3 : 2;
   };
 
@@ -2757,10 +3129,20 @@ export default function GoodsSortGame() {
             return (
               <TouchableOpacity key={s} activeOpacity={0.7} onPress={() => handleItemTap(i, s)}
                 accessibilityRole="button"
-                accessibilityLabel={`${goodName(tp, ru)}, ${t('a11yShelf')} ${i + 1}`}
+                accessibilityLabel={`${spokenGood(i, s, tp)}, ${t('a11yShelf')} ${i + 1}`}
                 accessibilityState={{ selected }}
                 style={[styles.itemSlot, { width: itemSize, height: itemH }, selected && styles.itemSel, hinted && styles.itemHint, inHand && { opacity: 0.2 }, arriving && { opacity: 0 }]}>
                 {covered.has(`${i}:${s}`) ? (
+                  hiddenHere ? (
+                    /**
+                     * «?» РЕЖИМА СКРЫТОЙ ИНФОРМАЦИИ (§20) — не силуэт. Силуэт
+                     * оставляет форму, то есть половину ответа (бутылку от
+                     * мишки отличит и тень); здесь неизвестен даже контур.
+                     * Рисовать скрытое силуэтом значило бы тихо ослабить режим
+                     * до «накрытого товара» с восьмого уровня.
+                     */
+                    <UnknownGood width={itemSize} height={itemH - 2} />
+                  ) : (
                   /**
                    * НАКРЫТЫЙ ТОВАР: силуэт есть, что именно — не видно.
                    * Рисуем ту же картинку с нулевой яркостью (tintColor) —
@@ -2771,6 +3153,7 @@ export default function GoodsSortGame() {
                   <Image {...a11yDecor} source={GOOD_SPRITES[tp % GOOD_SPRITES.length]}
                     style={{ width: itemSize, height: itemH - 2, tintColor: 'rgba(35,20,8,0.82)' }}
                     resizeMode="contain" />
+                  )
                 ) : (
                   <GoodIcon type={tp} width={itemSize} height={itemH - 2} />
                 )}
@@ -3113,9 +3496,16 @@ export default function GoodsSortGame() {
             ],
           }]}>
             <View style={{ transform: [{ translateX: -itemSize / 2 }, { translateY: -itemH / 2 }] }}>
+              {/* Скрытый летит «?», а не силуэтом: тип вскрывается ПРИБЫТИЕМ на
+                  фронт ниши-цели, и показать его в полёте значило бы вскрыть
+                  на 200 мс раньше — а на скорости полёта это уже подглядка. */}
               {fly.covered ? (
+                hiddenHere ? (
+                  <UnknownGood width={itemSize} height={itemH - 2} />
+                ) : (
                 <Image {...a11yDecor} source={GOOD_SPRITES[fly.type % GOOD_SPRITES.length]}
                   style={{ width: itemSize, height: itemH - 2, tintColor: 'rgba(35,20,8,0.82)' }} resizeMode="contain" />
+                )
               ) : (
                 <GoodIcon type={fly.type} width={itemSize} height={itemH - 2} />
               )}
@@ -3126,10 +3516,16 @@ export default function GoodsSortGame() {
           <Animated.View pointerEvents="none"
             style={[styles.dragLayer, { transform: [{ translateX: dragPos.x }, { translateY: dragPos.y }] }]}>
             <View style={[styles.dragGhost, { width: itemSize, height: itemH, marginLeft: -itemSize / 2, marginTop: -itemH - 10 }]}>
+              {/* Под пальцем скрытый — тоже «?»: поднять товар ещё не значит
+                  вскрыть, вскрывает только укладка (см. полёт выше). */}
               {covered.has(`${drag.cell}:${drag.idx}`) ? (
+                hiddenHere ? (
+                  <UnknownGood width={itemSize} height={itemH - 2} />
+                ) : (
                 <Image {...a11yDecor} source={GOOD_SPRITES[drag.type % GOOD_SPRITES.length]}
                   style={{ width: itemSize, height: itemH - 2, tintColor: 'rgba(35,20,8,0.82)' }}
                   resizeMode="contain" />
+                )
               ) : (
                 <GoodIcon type={drag.type} width={itemSize} height={itemH - 2} />
               )}
@@ -3321,4 +3717,15 @@ const styles = StyleSheet.create({
   cellRow: { zIndex: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 2, paddingBottom: 3 },
   itemSlot: { justifyContent: 'flex-end', alignItems: 'center', borderRadius: 6 },
   itemSel: { backgroundColor: '#fff2c2', borderWidth: 2, borderColor: '#f7971e', transform: [{ translateY: -4 }] },
+  /**
+   * Коробка «?» (§20): темень без контура товара, только знак. Светлая обводка
+   * в четверть силы отделяет коробку от тёмной глубины ниши — иначе на
+   * ореховом шкафу «?» сливался бы с задней стенкой.
+   */
+  unknownBox: {
+    justifyContent: 'center', alignItems: 'center', borderRadius: 6,
+    backgroundColor: 'rgba(35,20,8,0.82)',
+    borderWidth: 1.5, borderColor: 'rgba(248,227,196,0.35)',
+  },
+  unknownMark: { color: '#f8e3c4', fontWeight: '800' },
 });

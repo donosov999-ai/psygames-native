@@ -80,9 +80,12 @@ describe('отбор партии под шаг батареи', () => {
       game_type: s.game_id,
       difficulty: s.difficulty ?? 'medium',
       mode: s.mode ?? undefined,
+      // hit_rate вместо сырых hits и adj_avg_pumps под шар 1..32 — метрики батареи
+      // починены 27.08.2026 (см. assessment-metrics.test.ts: доля не зависит от числа
+      // проб, норма BART = EV-оптимум запускаемого диапазона).
       details: { maxSpan: 9, span: 6, d_prime: 2, validity_effect_ms: 40, rt_variability: 0.15,
-        rate_per_min: 60, flanker_effect_ms: 50, switch_cost_ms: 120, hits: 5,
-        angle_response_slope: 6, word_count: 18, adj_avg_pumps: 35 },
+        rate_per_min: 60, flanker_effect_ms: 50, switch_cost_ms: 120, hit_rate: 0.9,
+        angle_response_slope: 6, word_count: 18, adj_avg_pumps: 20 },
     }));
     const res = scoreSessions(sessions);
     const withStep = DOMAINS.filter((d) => ASSESSMENT_PLAYLIST.some((s) => s.game_id === d.game_id));

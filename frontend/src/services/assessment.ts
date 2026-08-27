@@ -1,9 +1,15 @@
 /**
  * G1 — Initial Skill Assessment
  *
- * 12-game cognitive battery (~12 min) covering 12 domains. Run once at first
+ * 12-game cognitive battery (~19 min) covering 12 domains. Run once at first
  * use OR every 3 months to recalibrate. Output: per-domain z-scores against
  * either population norms (where available) or personal history (after 2nd run).
+ *
+ * 🔴 «~12 мин» в этой шапке было ЗАЯВЛЕНО, а не посчитано. Замер 27.08.2026:
+ * sum(est_duration_sec по ASSESSMENT_PLAYLIST) = 60+60+70+70+240+70+70+90+90+90+70+180
+ * = 1160 с = 19,3 мин — расхождение с шапкой 7 минут, видное человеку на секундомере.
+ * Число в шапке обязано совпадать с суммой шагов; дрейф ловит
+ * src/__tests__/assessment-metrics.test.ts («шапка не врёт про длительность»).
  *
  * Used for:
  *   1. Radar chart visualization of strengths/weaknesses
@@ -44,16 +50,35 @@ export const DOMAINS: DomainInfo[] = [
   { id: 'processing_speed',   label_ru: 'Скорость обработки',    label_en: 'Speed',            game_id: 'sdmt',           metric: 'rate_per_min',           norm_mean: 50,   norm_std: 15,   higher_is_better: true },
   { id: 'inhibition',         label_ru: 'Тормозный контроль',    label_en: 'Inhibition',       game_id: 'flanker',        metric: 'flanker_effect_ms',      norm_mean: 70,   norm_std: 30,   higher_is_better: false },
   { id: 'flexibility',        label_ru: 'Гибкость',              label_en: 'Flexibility',      game_id: 'switching_task', metric: 'switch_cost_ms',         norm_mean: 150,  norm_std: 80,   higher_is_better: false },
-  { id: 'reasoning',          label_ru: 'Мышление',              label_en: 'Reasoning',        game_id: 'pattern',        metric: 'hits',                   norm_mean: 4,    norm_std: 1,    higher_is_better: true },
+  /**
+   * 🔴 РАССУЖДЕНИЕ МЕРЯЕТСЯ ДОЛЕЙ, А НЕ СЫРЫМИ ПОПАДАНИЯМИ. Норма «4±1» была
+   * снята с батарейных 5 проб, а число проб в игре выбирает ИГРОК (5/10/15):
+   * 12 верных из 15 (та же точность 80%) давало z = (12−4)/1 = +8 → «гений»
+   * только за длину партии. Метрика — hit_rate = hits/trials (пишет pattern.tsx),
+   * норма пересчитана из той же «4 из 5»: mean 4/5 = 0.8, std 1/5 = 0.2.
+   */
+  { id: 'reasoning',          label_ru: 'Мышление',              label_en: 'Reasoning',        game_id: 'pattern',        metric: 'hit_rate',               norm_mean: 0.8,  norm_std: 0.2,  higher_is_better: true },
   { id: 'spatial',            label_ru: 'Пространств. ротация',  label_en: 'Spatial rotation', game_id: 'mental_rotation',metric: 'angle_response_slope',   norm_mean: 8,    norm_std: 4,    higher_is_better: false },
   { id: 'verbal_fluency',     label_ru: 'Беглость речи',         label_en: 'Verbal fluency',   game_id: 'phonemic_fluency',metric: 'word_count',            norm_mean: 14,   norm_std: 5,    higher_is_better: true },
-  { id: 'risk',               label_ru: 'Риск/решения',          label_en: 'Risk/decisions',   game_id: 'bart',           metric: 'adj_avg_pumps',          norm_mean: 30,   norm_std: 10,   higher_is_better: true },
+  /**
+   * 🔴 НОРМА ОБЯЗАНА СООТВЕТСТВОВАТЬ ЗАПУСКАЕМОМУ ШАРУ. «30±10» — норма
+   * литературного BART с диапазоном взрыва 1..128, а батарея запускает classic
+   * medium = 1..32 (bart.tsx, MAX_BURST_BY_DIFF.medium). В коде burstAt равномерен
+   * на 1..max, шар переживает k накачек с P=(max−k)/max, EV(k)=k·(max−k)/max —
+   * максимум в k*=max/2=16. Рациональный игрок, играющий оптимум, при старой
+   * норме получал z=(16−30)/10=−1,4 → «слабый риск-профиль» ЗА ПРАВИЛЬНУЮ игру.
+   * mean = EV-оптимум 16; std = 5 (коэффициент вариации старой нормы 10/30≈1/3
+   * сохранён: 16/3≈5.3→5). Вывод и цифры сторожит assessment-metrics.test.ts.
+   */
+  { id: 'risk',               label_ru: 'Риск/решения',          label_en: 'Risk/decisions',   game_id: 'bart',           metric: 'adj_avg_pumps',          norm_mean: 16,   norm_std: 5,    higher_is_better: true },
 ];
 
 // SHORT-version playlist for the assessment battery.
-// 🔴 ДЛИТЕЛЬНОСТЬ СЧИТАЕТСЯ, А НЕ ЗАЯВЛЯЕТСЯ. Замер 23.08.2026: 12 шагов = 1160 с = 19,3 мин,
-// а в шапке и на карточке «Зарядки» стояло «~12 мин» — расхождение 7 минут, видное человеку.
-// Живая цифра: sum(est_duration_sec) <!-- живая: grep -oE 'est_duration_sec: [0-9]+' src/services/assessment.ts | grep -oE '[0-9]+' | awk '{s+=$1} END {print int(s/60)}' -->
+// 🔴 ДЛИТЕЛЬНОСТЬ СЧИТАЕТСЯ, А НЕ ЗАЯВЛЯЕТСЯ. Замер 23.08.2026 (перепроверен 27.08):
+// 12 шагов = 1160 с = 19,3 мин, а в шапке и на карточке «Зарядки» стояло «~12 мин» —
+// расхождение 7 минут, видное человеку. Живая цифра:
+//   grep -oE 'est_duration_sec: [0-9]+' src/services/assessment.ts | grep -oE '[0-9]+$' | awk '{s+=$1} END {print s" сек = "s/60" мин"}'
+// Дрейф суммы против шапки ловит assessment-metrics.test.ts.
 // Uses minimum trial counts that still give a stable biomarker reading.
 export const ASSESSMENT_PLAYLIST: PlaylistStep[] = [
   { game_id: 'digit_span',      game_route: '/games/digit-span',       difficulty: 'medium', mode: 'forward',   est_duration_sec: 60 },
@@ -67,7 +92,15 @@ export const ASSESSMENT_PLAYLIST: PlaylistStep[] = [
   { game_id: 'pattern',         game_route: '/games/pattern',          difficulty: 'medium', trials: 5,         est_duration_sec: 90 },
   { game_id: 'mental_rotation', game_route: '/games/mental-rotation',  difficulty: 'medium', trials: 5,         est_duration_sec: 90 },
   { game_id: 'phonemic_fluency',game_route: '/games/phonemic-fluency', difficulty: 'medium', mode: '60s',       est_duration_sec: 70 },
-  { game_id: 'bart',            game_route: '/games/bart',             difficulty: 'medium', mode: '10 balloons', est_duration_sec: 180 },
+  /**
+   * 🔴 ШАГ ОБЯЗАН ОПИСЫВАТЬ ПАРТИЮ ТАК, КАК ЕЁ ЗАПИШЕТ ИГРА. Стояло mode: '10 balloons',
+   * а bart.tsx пишет mode как `${шаров}b` — и сам параметр шаров НЕ передавался,
+   * classic-прогон играл дефолтные 15. Итог: sessionFitsStep не опознавал НИ ОДНУ
+   * bart-партию (`'15b' !== '10 balloons'`), домен «риск» всегда получал z=0.
+   * settings.balloons=10 доезжает через stepToParams → num('balloons') в bart.tsx,
+   * mode '10b' совпадает с тем, что игра запишет. Сторожит assessment-metrics.test.ts.
+   */
+  { game_id: 'bart',            game_route: '/games/bart',             difficulty: 'medium', mode: '10b', settings: { balloons: 10 }, est_duration_sec: 180 },
 ];
 
 export interface DomainScore {

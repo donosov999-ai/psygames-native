@@ -69,8 +69,9 @@ const MODES: { key: StimMode; ru: string; en: string }[] = [
 ];
 
 // Уровень 1..15: частота переключений правил растёт, окно ответа сокращается,
-// число проб растёт ступенями (12 → 16 → 20).
-function levelParams(level: number): { trials: number; switchProb: number; windowMs: number } {
+// число проб растёт ступенями (12 → 16 → 20). Экспорт — гейт assessment-metrics
+// считает параметры пресета той же функцией, которой играет экран.
+export function levelParams(level: number): { trials: number; switchProb: number; windowMs: number } {
   const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
   const switchProb = Math.min(0.75, 0.30 + (level - 1) * 0.032);   // 30% → 75%
   const windowMs = Math.max(1400, 3400 - (level - 1) * 145);       // 3400мс → 1400мс
@@ -78,6 +79,40 @@ function levelParams(level: number): { trials: number; switchProb: number; windo
 }
 
 function midFor(mode: StimMode): number { return mode === 'num3' ? 500 : 50; }
+
+/**
+ * 🔴 ЦЕНА ПЕРЕКЛЮЧЕНИЯ — РАЗНОСТЬ SWITCH- И REPEAT-ПРОБ, А НЕ SWITCH И «ВСЕХ».
+ *
+ * Стояло `swMean - meanRt`, где meanRt — среднее ПО ВСЕМ верным пробам, switch
+ * в том числе. Общее среднее = p·swMean + (1−p)·repMean (p — доля switch-проб),
+ * поэтому старая формула давала (1−p)·(swMean − repMean) — цена занижена ровно
+ * в (1−p) раз. Замер: swRts=[900,900], repRts=[700,700,700] → канон 200 мс,
+ * старая формула 120 мс (занижение 40% при p=0.4). Чем выше уровень (p растёт
+ * к 0.75), тем сильнее врало: на p=0.75 метрика показывала четверть настоящей.
+ * Канон соседа: flanker_effect_ms = incongMean − congMean (flanker.tsx) — та же
+ * разность двух подмножеств. Сторожит assessment-metrics.test.ts (мутация
+ * «вернуть meanRt» валит тест).
+ *
+ * Пустое подмножество (партия без switch- или без repeat-проб) — цены нет,
+ * возвращаем 0, а не разность со случайным нулём.
+ */
+export function switchCostMs(switchRts: number[], repeatRts: number[]): number {
+  if (!switchRts.length || !repeatRts.length) return 0;
+  const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
+  return Math.round(mean(switchRts) - mean(repeatRts));
+}
+
+/**
+ * 🔴 ШАГ ЗАРЯДКИ/ОЦЕНКИ ИГРАЕТ ФИКСИРОВАННЫЙ ПРЕСЕТ, А НЕ ЛИЧНЫЙ УРОВЕНЬ.
+ * Было `levelParams(lvl.level)` и в пресете: игрок 1-го уровня сдавал оценку при
+ * 30% переключений и окне 3400мс, игрок 15-го — при 75% и 1400мс, а z-скор обеих
+ * партий считался против ОДНОЙ нормы (switch_cost 150±80, assessment.ts).
+ * Паттерн — flanker.tsx:144 (тир зарядки → середина полосы уровней своей же
+ * difficulty-раскладки: ≤5 easy · ≤10 medium · ≥11 hard). medium=8 даёт
+ * switchProb 0.524 ≈ канонические 50% переключений, окно 2385мс, и партия
+ * запишется с difficulty 'medium' — как предписывает шаг батареи (sessionFitsStep).
+ */
+export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
 
 // Метаданные задания (cue + подписи кнопок + что подсветить) по режиму и индексу задания (0/1).
 // v1.137: тексты в словаре (cue*/ans*), через translateFor — работают все 12 языков.
@@ -129,7 +164,7 @@ export default function SwitchingTaskGame() {
   const stStim = Math.min(width - 36, 320);
   const router = useRouter();
 
-  const { isPreset, autostart, str, isCalm } = useGamePreset();
+  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('switching_task');
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
@@ -162,6 +197,8 @@ export default function SwitchingTaskGame() {
   const errorsRef = useRef(0);
   const rtsRef = useRef<number[]>([]);
   const switchRtsRef = useRef<number[]>([]);
+  // repeat-пробы отдельно: switch cost = swMean − repMean (см. switchCostMs выше)
+  const repeatRtsRef = useRef<number[]>([]);
   const trialRef = useRef<Trial>({ taskIdx: 0, num: 0, letter: '', full: '', correctLeft: true, isSwitch: false });
   const stimAtRef = useRef(0);
   const answeredRef = useRef(false);
@@ -223,14 +260,17 @@ export default function SwitchingTaskGame() {
   };
 
   const startGame = () => {
-    const p = levelParams(lvl.level);
-    levelRef.current = lvl.level;
+    // личная игра → уровень рулит; пресет (зарядка/оценка) → фикс-уровень тира,
+    // число проб задаёт шаг (assessment: 15). Паттерн flanker.tsx:144.
+    const effLevel = isPreset ? (PRESET_LEVEL_BY_DIFF[str('diff', 'medium')] ?? 8) : lvl.level;
+    const p = levelParams(effLevel);
+    levelRef.current = effLevel;
     switchProbRef.current = p.switchProb;
     windowMsRef.current = p.windowMs;
-    totalTrialsRef.current = p.trials;
-    setTotalTrials(p.trials);
+    totalTrialsRef.current = isPreset ? num('trials', p.trials) : p.trials;
+    setTotalTrials(totalTrialsRef.current);
     hitsRef.current = 0; errorsRef.current = 0;
-    rtsRef.current = []; switchRtsRef.current = [];
+    rtsRef.current = []; switchRtsRef.current = []; repeatRtsRef.current = [];
     lastTaskRef.current = null;
     answeredRef.current = false;
     roundRef.current = 1;
@@ -245,9 +285,7 @@ export default function SwitchingTaskGame() {
     clearAllTimers();
     const totalTime = (gameNow() - startTimeRef.current) / 1000;
     const allRts = rtsRef.current;
-    const swRts = switchRtsRef.current;
     const meanRt = allRts.length ? allRts.reduce((a, b) => a + b, 0) / allRts.length : 0;
-    const swMean = swRts.length ? swRts.reduce((a, b) => a + b, 0) / swRts.length : 0;
     const h = hitsRef.current, e = errorsRef.current;
     const accuracy = totalTrialsRef.current > 0 ? h / totalTrialsRef.current : 0;
     // Проход уровня: ≥80% верных за раунд (пропуски по окну = ошибки)
@@ -278,7 +316,8 @@ export default function SwitchingTaskGame() {
         details: {
           level: levelRef.current,
           mean_rt: Math.round(meanRt),
-          switch_cost_ms: Math.round(swMean - meanRt),
+          // канон: разность switch- и repeat-проб; было swMean − meanRt (занижено в (1−p) раз)
+          switch_cost_ms: switchCostMs(switchRtsRef.current, repeatRtsRef.current),
           accuracy: Math.round(accuracy * 100),
           n_trials: totalTrialsRef.current,
         },
@@ -299,6 +338,7 @@ export default function SwitchingTaskGame() {
       setHits(hitsRef.current);
       rtsRef.current.push(rt);
       if (tr.isSwitch) switchRtsRef.current.push(rt);
+      else repeatRtsRef.current.push(rt);   // repeat-пробы — второе плечо switch cost
       setRts([...rtsRef.current]);
     } else {
       hapticError();

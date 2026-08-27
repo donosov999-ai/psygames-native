@@ -63,7 +63,26 @@ const BOSS_EVERY = 3;
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-interface KeyMap { sym: string; digit: number; }
+export interface KeyMap { sym: string; digit: number; }
+
+/**
+ * ЛЕГЕНДА СИМВОЛ→ЦИФРА ПЕРЕМЕШИВАЕТСЯ НА КАЖДЫЙ ЗАПУСК — И В ОЦЕНКЕ ТОЖЕ.
+ *
+ * SDMT меряет скорость обработки, только пока соответствие НЕВЫУЧЕНО: заученная
+ * легенда превращает тест в замер моторики, и quarterly-переоценка (assessment.ts)
+ * показывала бы «рост скорости», который на деле — память. Здесь перемешаны ОБА
+ * конца соответствия (и порядок символов, и их цифры — 9!≈362 880 раскладок на
+ * полном наборе), вызов стоит в startGame, то есть свежая раскладка выдаётся
+ * каждой партии, включая isPreset. Аудит 22.08.2026 записал «легенда неизменна» —
+ * перепроверка 27.08 по этим строкам дефекта не нашла (двойной shuffle стоял с
+ * VER 1 от 19.08); функция поднята из компонента и экспортирована, чтобы свойство
+ * держал тест (assessment-metrics.test.ts), а не комментарий.
+ */
+export function buildKeymap(count: number): KeyMap[] {
+  const syms = shuffle(SYMBOLS).slice(0, count);
+  const digits = shuffle([1,2,3,4,5,6,7,8,9]).slice(0, count);
+  return syms.map((sym, i) => ({ sym, digit: digits[i] }));
+}
 
 // Уровень 1..15: символов больше (5→9), раунд короче (60→45с), требуемый темп
 // растёт ~14 → ~36 верных/мин. Цель раунда = темп × длительность.
@@ -128,12 +147,6 @@ export default function SdmtGame() {
   };
 
   useEffect(() => () => clearAllTimers(), []);
-
-  const buildKeymap = (count: number) => {
-    const syms = shuffle(SYMBOLS).slice(0, count);
-    const digits = shuffle([1,2,3,4,5,6,7,8,9]).slice(0, count);
-    return syms.map((sym, i) => ({ sym, digit: digits[i] }));
-  };
 
   const newStim = (km: KeyMap[]) => {
     setStim(km[Math.floor(Math.random() * km.length)].sym);
