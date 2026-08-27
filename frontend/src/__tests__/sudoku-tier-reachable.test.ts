@@ -27,7 +27,7 @@
  * варианта. Числа потолков живут в `sudoku-grade.ts` и снабжены раскладками
  * замера; сам замер повторяется руками, когда меняется генератор.
  */
-import { targetTier } from '@/src/services/sudoku-grade';
+import { targetTier, effectiveBand } from '@/src/services/sudoku-grade';
 import { levelConfig } from '@/src/services/sudoku-core';
 
 /**
@@ -72,11 +72,24 @@ describe('лестница судоку требует только достиж
     expect(bad).toEqual([]);
   });
 
-  it('🔴 потолок цели НЕ опущен — редкая трудная доска должна приниматься', () => {
-    // Если бы правка резала и верхнюю границу, сборщик начал бы отвергать те самые
-    // доски, ради которых всё делалось. Верх полосы обязан остаться прежним.
-    const tops = [41, 45, 49, 53, 57].map((lv) => targetTier(lv).max);
-    for (const max of tops) expect(max).toBe(6);
+  it('🔴 верх полосы каждого варианта равен его потолку — редкая трудная доска принимается', () => {
+    /**
+     * ⚠️ ПЕРЕПИСАН 27.08.2026 вместе с уходом «пилы». Прежде тест требовал
+     * СЫРОЙ targetTier(top).max === 6 на верхних уровнях блоков — это кодировало
+     * пилу «каждый вариант дорастает до 6..6», которой больше нет: рамка
+     * глобальная, а закон полосы — effectiveBand. Смысл теста сохранён и
+     * усилен: на верхнем уровне своего блока каждый вариант обязан ПРИНИМАТЬ
+     * свою самую трудную достижимую доску, то есть max эффективной полосы
+     * равен замеренному потолку варианта, а не занижен рамкой.
+     */
+    for (const lv of [33, 37, 41, 45, 49, 53, 57]) {
+      const variant = String(levelConfig(lv).variant);
+      const eff = effectiveBand(variant as never, targetTier(lv));
+      const ceiling = MEASURED_CEILING[variant];
+      if (ceiling === undefined) continue;
+      expect(`L${lv} ${variant}: max ${eff.max}`).toBe(`L${lv} ${variant}: max ${Math.min(ceiling, targetTier(lv).max)}`);
+      expect(eff.max).toBeGreaterThanOrEqual(Math.min(ceiling, 5));
+    }
   });
 
   it('🔴 полоса остаётся полосой: пол не выше потолка внутри самой цели', () => {
