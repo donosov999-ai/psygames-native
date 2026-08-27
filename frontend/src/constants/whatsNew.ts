@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.242.5',
+    date: '2026-08-27',
+    ru: [
+      'Зарядка: рамка времени и стрелки сжатия перекрашены в зелёный — фиолетовые сливались с картинкой тела',
+      'Зарядка: окончание практики — стандартный экран результата, как у остальных игр (время, минуты, наборы, «Ещё раз» и «Домой»)',
+    ],
+    en: [
+      'Warm-up: the timing frame and squeeze arrows are now green — purple blended into the body artwork',
+      'Warm-up: the session ending is the standard result screen like every other game (time, minutes, sets, Retry and Home)',
+    ],
+  },
+  {
     version: '1.242.4',
     date: '2026-08-27',
     ru: [
