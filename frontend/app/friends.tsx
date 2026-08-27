@@ -78,6 +78,9 @@ const NAME_KEY: Record<LeaderboardGameId, string> = {
   corsi: 'corsi',
   trail_making: 'trailMaking',
   choice_rt: 'choiceRt',
+  go_no_go: 'goNoGo',
+  hanoi: 'hanoi',
+  counter: 'counter',
 };
 
 /**
@@ -95,6 +98,9 @@ const FORMAT: Record<LeaderboardGameId, (s: number) => string> = {
   corsi: (s) => String(Math.round(s)),
   trail_making: (s) => `${s.toFixed(1)}s`,
   choice_rt: (s) => `${Math.round(s)} ms`,
+  go_no_go: (s) => `${Math.round(s)} ms`,
+  hanoi: (s) => `${s.toFixed(1)}s`,
+  counter: (s) => `${s.toFixed(1)}s`,
 };
 
 /** Код диктуют голосом и переписывают с чужого экрана — читаем группами по три. */

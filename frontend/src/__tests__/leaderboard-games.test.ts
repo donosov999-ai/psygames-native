@@ -55,6 +55,9 @@ const DIRECTION_BY_MEANING: Record<LeaderboardGameId, 'less' | 'more'> = {
   corsi: 'more',               // длина ряда блоков
   trail_making: 'less',        // секунды на маршрут
   choice_rt: 'less',           // миллисекунды реакции
+  go_no_go: 'less',            // миллисекунды реакции по go
+  hanoi: 'less',               // секунды решения при минимуме ходов
+  counter: 'less',             // секунды десяти безошибочных раундов
 };
 
 const ALL_IDS = Object.keys(LEADERBOARD_GAMES) as LeaderboardGameId[];
@@ -102,6 +105,33 @@ const RUNS: { [K in LeaderboardGameId]: { ok: any; bad: Record<string, any> } } 
       'второй уровень (больше узлов)': { level: 2 },
       'восьмой уровень (Trail-B, буквы)': { level: 8 },
       'партия с ошибкой': { errors: 1 },
+    },
+  },
+  go_no_go: {
+    ok: { isPreset: false, level: 1, misses: 0, falseAlarms: 0 },
+    bad: {
+      'шаг зарядки': { isPreset: true },
+      'второй уровень (окно короче)': { level: 2 },
+      'пропущенный go': { misses: 1 },
+      'ложное нажатие': { falseAlarms: 1 },
+    },
+  },
+  hanoi: {
+    ok: { isPreset: false, level: 1, moves: 7, optimal: 7 },
+    bad: {
+      'шаг зарядки': { isPreset: true },
+      'второй уровень (4 диска)': { level: 2 },
+      'лишний ход (8 при минимуме 7)': { moves: 8 },
+      'нулевой минимум (битые данные)': { optimal: 0, moves: 0 },
+    },
+  },
+  counter: {
+    ok: { isPreset: false, level: 1, hits: 10, errors: 0 },
+    bad: {
+      'шаг зарядки': { isPreset: true },
+      'второй уровень': { level: 2 },
+      'решено девять из десяти': { hits: 9 },
+      'перебор суммы по пути': { errors: 1 },
     },
   },
   choice_rt: {

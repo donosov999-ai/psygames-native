@@ -1,4 +1,4 @@
-/* psygames-game-go-no-go · VER 2 · 23.08.2026 */
+/* psygames-game-go-no-go · VER 3 · 28.08.2026 */
 /**
  * Go/No-Go — классика инхибиторного контроля.
  *
@@ -34,6 +34,9 @@ import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientTe
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { countsForRecord } from '@/src/services/leaderboard';
+import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmark';
+import LeaderboardModal from '@/src/components/LeaderboardModal';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
@@ -117,6 +120,8 @@ export default function GoNoGoGame() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const record = useRecordBenchmark('go_no_go');
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [round, setRound] = useState(0);
   const [totalTrials, setTotalTrials] = useState(24);
   const [stimulus, setStimulus] = useState<Stim | null>(null);
@@ -229,6 +234,13 @@ export default function GoNoGoGame() {
     const avgRT = rts.length ? Math.round(rts.reduce((s, x) => s + x, 0) / rts.length) : 0;
     // Проход уровня: ≥80% верных проб (пропуск GO и тап на NO — обе ошибки)
     const passed = accuracy >= 0.8;
+    // Рекорд: средний RT по go при ЧИСТОЙ партии уровня 1 — окно и темп выводятся
+    // из уровня, а без чистоты выгодно жать всё подряд (см. LEADERBOARD_GAMES.go_no_go).
+    if (avgRT > 0 && countsForRecord('go_no_go', { isPreset, level: levelRef.current, misses: m, falseAlarms: fa })) {
+      record.report(avgRT);
+    } else {
+      record.reset();
+    }
     if (isPreset) {
       setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
     } else {
@@ -276,6 +288,11 @@ export default function GoNoGoGame() {
         </LinearGradient>
         <GameAbout descriptionKey="goNoGoIntroDesc" benefits={GO_BENEFITS} accent={GRADIENT[0]} />
         <LevelProgressMap bestLevel={lvl.best} gameId="go_no_go" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
+          <Ionicons name="trophy-outline" size={18} color={colors.text} />
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('leaderboardLevel1')}</Text>
+        </TouchableOpacity>
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}
@@ -356,6 +373,11 @@ export default function GoNoGoGame() {
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
+      <LeaderboardModal
+        visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
+        gameId="go_no_go" language={language} colors={colors} gradient={GRADIENT}
+        formatScore={(s) => `${Math.round(s)} ms`}
+      />
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'oddletter', gradient: GRADIENT as [string, string] }}
@@ -365,13 +387,13 @@ export default function GoNoGoGame() {
         />
       )}
       {phase === 'cleared' && (
-        <LevelCleared gameId="go_no_go" level={levelRef.current} passed={clearedPassed}
+        <LevelCleared gameId="go_no_go" level={levelRef.current} passed={clearedPassed} recordLine={record.benchmark ? recordLineFor('go_no_go', record.benchmark, t) : undefined}
           stars={(misses + falseAlarms) === 0 ? 3 : (misses + falseAlarms) <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && (
-        <GameResult score={hits * 10 - falseAlarms * 10} time={elapsedTime} errors={misses + falseAlarms}
+        <GameResult recordLine={record.benchmark ? recordLineFor('go_no_go', record.benchmark, t) : undefined} score={hits * 10 - falseAlarms * 10} time={elapsedTime} errors={misses + falseAlarms}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}

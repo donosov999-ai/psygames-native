@@ -107,7 +107,9 @@ describe('экран «Друзья»: есть что проверять', () =
     // Срезка комментариев обязана что-то срезать: если шапка уцелела, весь
     // разбор ниже идёт по тексту объяснений, а не по коду.
     expect(read(SCREEN).length - SRC.length).toBeGreaterThan(2000);
-    expect(GAME_IDS.length).toBe(6);
+    // 28.08.2026: девять — этап 2 ade9a298 добавил go_no_go, hanoi, counter
+    // (сервер + спеки + модалки на экранах). Число живое, из LEADERBOARD_GAMES.
+    expect(GAME_IDS.length).toBe(9);
   });
 });
 
@@ -214,7 +216,7 @@ describe('разрыв связи предупреждает о взаимнос
   });
 });
 
-describe('шесть зачётных игр показаны и считаны в тех же единицах', () => {
+describe('зачётные игры показаны и считаны в тех же единицах', () => {
   const GAMES_DIR = join(ROOT, 'app/games');
 
   /** Экран игры → её `formatScore`, отданный `LeaderboardModal`. */

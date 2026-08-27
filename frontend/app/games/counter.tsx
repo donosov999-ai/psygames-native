@@ -1,4 +1,4 @@
-/* psygames-game-counter · VER 1 · 19.08.2026 */
+/* psygames-game-counter · VER 2 · 28.08.2026 */
 /**
  * Counter — «Собери сумму» (устный счёт): сетка чисел, кликами собери заданную сумму.
  *
@@ -27,6 +27,9 @@ import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientTe
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { countsForRecord } from '@/src/services/leaderboard';
+import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmark';
+import LeaderboardModal from '@/src/components/LeaderboardModal';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
@@ -104,6 +107,8 @@ export default function CounterGame() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
+  const record = useRecordBenchmark('counter');
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [gridSize, setGridSize] = useState(3);
   const [grid, setGrid] = useState<Cell[]>([]);
   const [targetSum, setTargetSum] = useState(0);
@@ -225,6 +230,13 @@ export default function CounterGame() {
     const accuracy = totalRoundsRef.current > 0 ? hits / totalRoundsRef.current : 0;
     // Проход уровня: решено ≥80% раундов (просрочка = провал раунда)
     const passed = accuracy >= PASS_ACCURACY;
+    // Рекорд: время десяти раундов 3×3 без единой ошибки на уровне 1 — «10 из 10»
+    // обязательно, иначе время выигрывается бросанием раундов (LEADERBOARD_GAMES.counter).
+    if (countsForRecord('counter', { isPreset, level: levelRef.current, hits, errors: errorsRef.current })) {
+      record.report(finalTime);
+    } else {
+      record.reset();
+    }
     if (isPreset) {
       setPhase('result');                       // пресет/свободный режим — экран статистики
     } else {
@@ -334,6 +346,11 @@ export default function CounterGame() {
           <LevelProgressMap bestLevel={lvl.best} gameId="counter" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
 
           {/* Карточка уровня: параметры + видимый критерий прохода + сброс ↺1 */}
+          <TouchableOpacity
+            accessibilityRole="button" style={[styles.optionCard, { backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]} onPress={() => setShowLeaderboard(true)}>
+            <Ionicons name="trophy-outline" size={18} color={colors.text} />
+            <Text style={[styles.optionLabel, { color: colors.text }]}>{t('leaderboardLevel1')}</Text>
+          </TouchableOpacity>
           <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center', gap: 6, marginTop: 12 }]}>
             <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
               {t('level')} {lvl.level}
@@ -502,6 +519,11 @@ export default function CounterGame() {
       </View>
 
       {phase === 'config' && renderConfig()}
+      <LeaderboardModal
+        visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
+        gameId="counter" language={language} colors={colors} gradient={GRADIENT}
+        formatScore={(s) => `${s.toFixed(1)}s`}
+      />
       {phase === 'boss' && (
         <BossRound
           config={{ type: 'counting', gradient: GRADIENT as [string, string] }}
@@ -512,6 +534,7 @@ export default function CounterGame() {
       )}
       {phase === 'cleared' && (
         <LevelCleared
+          recordLine={record.benchmark ? recordLineFor('counter', record.benchmark, t) : undefined}
           gameId="counter"
           level={levelRef.current}
           stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
@@ -525,6 +548,7 @@ export default function CounterGame() {
       )}
       {phase === 'result' && (
         <GameResult
+          recordLine={record.benchmark ? recordLineFor('counter', record.benchmark, t) : undefined}
           time={elapsedTime}
           score={score}
           errors={errors}
