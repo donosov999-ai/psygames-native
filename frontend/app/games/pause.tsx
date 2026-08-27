@@ -59,7 +59,7 @@ import {
 type Phase = 'config' | 'playing' | 'result';
 
 export default function PauseGame() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { language } = useLanguage();
   useKeepAwake(true);
 
@@ -191,7 +191,14 @@ export default function PauseGame() {
           кодом.
         */}
         <WarmupPage
-          theme={colors.background === '#FFFFFF' ? 'light' : 'dark'}
+          /**
+           * 🔴 ПРИЗНАК ТЕМЫ — `isDark` ИЗ КОНТЕКСТА, А НЕ СРАВНЕНИЕ ЦВЕТА.
+           * Первая редакция сверяла фон с '#FFFFFF', а светлый фон приложения
+           * — '#F5F5F7': условие было ложно ВСЕГДА, и страница жила в тёмной
+           * теме даже в светлом приложении. Замер 27.08.2026 — скриншот Mac:
+           * светлая главная, чёрный экран зарядки.
+           */
+          theme={isDark ? 'dark' : 'light'}
           locale={locale}
           set={str('set') || null}
           onReady={markStarted}

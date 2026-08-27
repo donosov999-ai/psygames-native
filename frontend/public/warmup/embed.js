@@ -48,6 +48,9 @@
       зарядка.style.display = '';
     }
     document.body.classList.add('is-embedded');
+    // Класс и на корне: палитра psygames в embed.css перекрывает переменные
+    // именно на <html>, где они объявлены, — без ненадёжного :has().
+    document.documentElement.classList.add('is-embedded');
   }
 
   /** Тема и язык приходят от psygames — страница не решает их сама. */
