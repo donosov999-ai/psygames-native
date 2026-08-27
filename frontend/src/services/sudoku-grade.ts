@@ -668,7 +668,13 @@ export function bandPos(level: number): number {
  */
 const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
   diagonal: 5, antiknight: 6, hyper: 4, nonconsec: 4, antiking: 4,
-  evenodd: 4, kropki: 5, sandwich: 4, thermo: 5, arrow: 5, jigsaw: 5, thermocage: 5,
+  evenodd: 4, kropki: 5, sandwich: 4, thermo: 5, arrow: 5,
+  /**
+   * jigsaw 5 → 6 (27.08.2026): после liftByClueRemoval шестёрка стала
+   * достижима МАССОВО — 12/20 боевых досок в полосе 5..6 (было 2/20).
+   * Прежняя пятёрка снята с досок ДО подъёма снятием подсказок.
+   */
+  jigsaw: 6, thermocage: 5,
 };
 
 export function targetTier(level: number): { min: number; max: number } {
@@ -1301,19 +1307,27 @@ const SANDWICH_KEEP = [1, 0.78, 0.56, 0.34];
  * дешевле. Прогрессию внутри вариантов дальше ведёт ось плотности подсказок
  * (`markerDensity`), а не недостижимая ступень.
  */
-const VARIANT_TIER_CAP: Partial<Record<Variant, number>> = { thermo: 5, thermocage: 5 };
-
 /**
  * Эффективная полоса = запрошенная, клэмпнутая вариантным потолком. Один
  * источник для generateLogical и logicalBuilder — чтобы клэмп нельзя было
  * забыть в одном из двух (первая редакция ровно так и попала: клэмп лёг в
  * builder, а generateLogical остался со старой полосой, и в тирах мелькали
  * «невозможные» шестёрки thermo).
+ *
+ * 🔴 СЛОВАРЬ ОДИН — VARIANT_TIER_CEILING, а не второй рядом. Первая редакция
+ * завела собственный VARIANT_TIER_CAP{thermo,thermocage}, не открыв носитель:
+ * потолок по замерам 26.08 УЖЕ лежал выше по файлу. Разница была не в данных,
+ * а в применении: старый клэмпил только ПОЛ (min = min(band.min, ceiling)),
+ * оставляя max лотерейным — L45 thermo с полосой 5..6 жёг 961 мс/доска ради
+ * 3/20 попаданий. Теперь клэмпится и MAX; пол держится хотя бы на ступень ниже
+ * потолка, чтобы полоса не схлопывалась в редкую верхнюю ступень (thermo:
+ * пятёрка достижима, но не массова — 4..5 даёт 15/20 при 193 мс).
  */
 export function effectiveBand(variant: Variant, band: { min: number; max: number }): { min: number; max: number } {
-  const cap = VARIANT_TIER_CAP[variant];
-  if (cap === undefined) return band;
-  return { min: Math.min(band.min, Math.max(1, cap - 1)), max: Math.min(band.max, cap) };
+  const cap = VARIANT_TIER_CEILING[variant];
+  if (cap === undefined || band.max <= cap) return band;
+  const max = cap;
+  return { min: Math.min(band.min, Math.max(1, max - 1)), max };
 }
 
 export function generateLogical(
