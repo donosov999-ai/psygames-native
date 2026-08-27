@@ -981,6 +981,10 @@ const t: Record<string, string> = {
   "tapNodeToReplay": "Tippe auf einen abgeschlossenen Knoten, um ihn zu wiederholen und mehr Sterne zu holen",
   "replayingLevel": "Wiederholst Level {n} · Bestwert {best}",
   "bossTitle": "BOSS",
+  "megaBossTitle": "Mega-Boss: Samurai",
+  "megaBossOffer": "Fünf verschränkte 9×9-Felder — eine einstündige Partie mit Speichern & Fortsetzen. Deine Stufe zählt bereits; Ablehnen kostet nichts.",
+  "megaBossGo": "In den Kampf",
+  "megaBossBadge": "Mega-Boss",
   "bossDefeated": "🏆 Boss besiegt! +⭐",
   "bossSurvived": "Der Boss hat standgehalten — weiter geht's",
   // web-demo (добавлено вручную к автогенерату — при регенерации воркфлоу включить эти ключи в базу)

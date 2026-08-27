@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.249.0',
+    date: '2026-08-28',
+    ru: [
+      'Судоку: каждый 15-й уровень — МЕГА-БОСС: приглашение в самурая (пять сцепленных досок, партия на час с сохранением). Отказ ничего не отнимает — уровень уже засчитан',
+    ],
+    en: [
+      'Sudoku: every 15th level is a MEGA-BOSS — an invitation to Samurai (five interlocked grids, an hour-long run with save & resume). Declining costs nothing — your level is already counted',
+    ],
+  },
+  {
     version: '1.248.1',
     date: '2026-08-28',
     ru: [

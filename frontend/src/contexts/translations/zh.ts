@@ -981,6 +981,10 @@ const t: Record<string, string> = {
   "tapNodeToReplay": "点击已完成的节点即可重玩并获得更多星星",
   "replayingLevel": "正在重玩第 {n} 关 · 最高 {best}",
   "bossTitle": "BOSS",
+  "megaBossTitle": "超级头目:武士",
+  "megaBossOffer": "五张相互咬合的 9×9 棋盘——一小时的对局,支持保存与继续。你的等级已被计入;拒绝不会损失任何东西。",
+  "megaBossGo": "迎战",
+  "megaBossBadge": "超级头目",
   "bossDefeated": "🏆 BOSS 被击败！+⭐",
   "bossSurvived": "BOSS 挺住了——继续前进",
   // web-demo (добавлено вручную к автогенерату — при регенерации воркфлоу включить эти ключи в базу)

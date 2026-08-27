@@ -1103,6 +1103,10 @@ const t: Record<string, string> = {
   "tapNodeToReplay": "완료한 노드를 눌러 다시 도전하고 별을 더 얻으세요",
   "replayingLevel": "레벨 {n} 재도전 중 · 최고 {best}",
   "bossTitle": "보스",
+  "megaBossTitle": "메가 보스: 사무라이",
+  "megaBossOffer": "서로 맞물린 다섯 개의 9×9 판 — 저장과 이어하기가 있는 한 시간짜리 대국. 레벨은 이미 인정되었고, 거절해도 잃는 것은 없습니다.",
+  "megaBossGo": "도전",
+  "megaBossBadge": "메가 보스",
   "bossDefeated": "🏆 보스 격파! +⭐",
   "bossSurvived": "보스가 버텼어요 — 계속 가요",
   // web-demo (добавлено вручную к автогенерату — при регенерации воркфлоу включить эти ключи в базу)
