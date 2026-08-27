@@ -400,6 +400,10 @@ const t: Record<string, string> = {
   "tapNodeToReplay": "クリア済みのノードをタップすると再挑戦して星を増やせます",
   "replayingLevel": "レベル {n} に再挑戦中 · 最高 {best}",
   "bossTitle": "ボス",
+  "megaBossTitle": "メガボス:サムライ",
+  "megaBossOffer": "連結された5枚の9×9盤 — セーブと再開つきの1時間勝負。レベルはすでにカウント済み。断っても失うものはない。",
+  "megaBossGo": "挑む",
+  "megaBossBadge": "メガボス",
   "bossDefeated": "🏆 ボス撃破！+⭐",
   "bossSurvived": "ボスは倒せず — 先へ進もう",
   // web-demo (добавлено вручную к автогенерату — при регенерации воркфлоу включить эти ключи в базу)

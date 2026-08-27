@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 7 · 27.08.2026 */
+/* psygames-game-sudoku · VER 8 · 28.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -94,7 +94,7 @@ import {
   visiblePencilDigits, countPencilMarks, type PencilMarks,
 } from '@/src/services/pencilMarks';
 
-type GamePhase = 'intro' | 'config' | 'building' | 'playing' | 'boss' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'building' | 'playing' | 'boss' | 'megaboss' | 'cleared' | 'result';
 
 /**
  * КАРАНДАШНЫЕ ПОМЕТКИ. Что видно мелким в клетке.
@@ -139,6 +139,19 @@ const BOARD_HINT_H = BOARD_HINT_TEXT_H + 6;
 
 // Босс-веха: каждые 3 уровня — короткий раунд с резко другим правилом (bag-рандом, без повторов подряд).
 const BOSS_EVERY = 3;
+/**
+ * МЕГА-БОСС — САМУРАЙ КАК ВЕХА-СОБЫТИЕ (идея Дениса 10.08: «фрактал и самурай —
+ * мега-боссы, их надо проходить очень долго»). Каждый пятнадцатый уровень ВМЕСТО
+ * обычного босса приходит приглашение в самурая: пять сцепленных досок, партия
+ * на час, с сохранением. Пятнадцать кратно BOSS_EVERY нарочно: мега вытесняет
+ * обычного босса на своей вехе, а не встаёт рядом с ним.
+ *
+ * ⚠️ Три блокера из разбора 10.08 закрыты ДО этого шага и порознь: доска
+ * сохраняется (SudokuResume), отмена есть (useMoveHistory), модель провала
+ * длинных режимов написана (failure 'longform' — у самурая ошибки партию не
+ * обрывают). Фрактал-мега — после самурая, и только если самурай зайдёт.
+ */
+const MEGA_BOSS_EVERY = 15;
 const SUDOKU_BOSS_BAG: BossType[] = [];
 function nextSudokuBoss(): BossType {
   if (SUDOKU_BOSS_BAG.length === 0) SUDOKU_BOSS_BAG.push(...shuffle(['finderror', 'lightning', 'completeline'] as BossType[]));
@@ -1055,7 +1068,10 @@ export default function SudokuGame() {
       // Веха-босс: каждые BOSS_EVERY уровней (режим levels) → битва с боссом ВМЕСТО результата.
       // Обычный уровень (не веха) в режиме levels → cleared-баннер общего авто-потока
       // («Уровень N ✓» → следующий стартует сам). Free/killer → полноэкранный GameResult.
-      if (mode === 'levels' && level % BOSS_EVERY === 0) {
+      if (mode === 'levels' && level % MEGA_BOSS_EVERY === 0) {
+        // Мега вытесняет обычного босса: проверка стоит ПЕРВОЙ, потому что 15 кратно 3.
+        setPhase('megaboss');
+      } else if (mode === 'levels' && level % BOSS_EVERY === 0) {
         bossTypeRef.current = nextSudokuBoss();
         setBossWon(null);
         setPhase('boss');
@@ -2062,6 +2078,26 @@ export default function SudokuGame() {
           colors={colors}
           onComplete={(win) => { setBossWon(win); setPhase('result'); }}
         />
+      )}
+      {phase === 'megaboss' && (
+        /* Приглашение, а не принуждение: партия на час — человек вправе пойти позже.
+           Уровень уже засчитан выше (reachRoadLevel до выбора фазы), «Позже» ничего
+           не отнимает. «В бой» уводит в самурая с меткой вехи — экран судоку
+           возвращается на конфиг, чтобы после часа в самурае не встретить
+           застывший оверлей. */
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 14, zIndex: 40 }]}>
+          <Text style={{ fontSize: 44 }}>⚔️</Text>
+          <Text style={{ fontSize: 24, fontWeight: '800', color: colors.text, textAlign: 'center' }}>{t('megaBossTitle')}</Text>
+          <Text style={{ fontSize: 14.5, lineHeight: 21, color: colors.textSecondary, textAlign: 'center', maxWidth: 420 }}>{t('megaBossOffer')}</Text>
+          <TouchableOpacity accessibilityRole="button" style={styles.startBtn} onPress={() => { setPhase('config'); router.push(`/games/sudoku-samurai?megaboss=${level}` as never); }}>
+            <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+              <Text style={styles.startBtnText}>{t('megaBossGo')}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" onPress={() => setPhase('cleared')}>
+            <Text style={{ color: colors.textSecondary, fontSize: 15, fontWeight: '600', padding: 8 }}>{t('updLater')}</Text>
+          </TouchableOpacity>
+        </View>
       )}
       {phase === 'result' && mode === 'free' && (
         <GameResult score={Math.max(0, Math.round(2000 - errors * 50 - elapsedTime * 2))}

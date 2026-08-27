@@ -981,6 +981,10 @@ const t: Record<string, string> = {
   "tapNodeToReplay": "Toca un nodo completado para repetirlo y ganar más estrellas",
   "replayingLevel": "Repitiendo el nivel {n} · récord {best}",
   "bossTitle": "JEFE",
+  "megaBossTitle": "Megajefe: Samurái",
+  "megaBossOffer": "Cinco tableros 9×9 entrelazados: una partida de una hora con guardado y reanudación. Tu nivel ya cuenta; rechazar no cuesta nada.",
+  "megaBossGo": "A la batalla",
+  "megaBossBadge": "Megajefe",
   "bossDefeated": "🏆 ¡Jefe derrotado! +⭐",
   "bossSurvived": "El jefe resistió — seguimos",
   // web-demo (добавлено вручную к автогенерату — при регенерации воркфлоу включить эти ключи в базу)

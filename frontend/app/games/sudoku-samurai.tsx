@@ -1,8 +1,9 @@
-/* psygames-game-sudoku-samurai · VER 4 · 20.08.2026 */
+/* psygames-game-sudoku-samurai · VER 5 · 28.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackOrHome } from '@/src/utils/nav';
+import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -1084,6 +1085,13 @@ interface SamuraiResume {
 }
 
 export default function SamuraiSudokuGame() {
+  /**
+   * МЕГА-БОСС: вход с вехи классической лестницы (sudoku.tsx, MEGA_BOSS_EVERY).
+   * Метка меняет только ПОДАЧУ (бейдж в шапке) и запись партии
+   * (details.megaboss_from) — сама доска и правила самурая не трогаются:
+   * он и есть испытание.
+   */
+  const megabossFrom = Number((useLocalSearchParams<{ megaboss?: string }>().megaboss) ?? '') || null;
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   // Голый useWindowDimensions в веб-сборке (а Android у нас WebView) отдаёт 0 на первом
@@ -1385,7 +1393,13 @@ export default function SamuraiSudokuGame() {
         difficulty: `Level ${levelRef.current}`,
         mode: `samurai-level-${levelRef.current}`,
         errors,
-        details: { errors, completed: true, samurai: true, level: levelRef.current, hint_uses: hintCount },
+        details: {
+          // Веха классической лестницы: «пришёл мега-боссом с уровня N», а не сам.
+          errors, completed: true, samurai: true, level: levelRef.current, hint_uses: hintCount,
+          // Веха классической лестницы: «пришёл мега-боссом с уровня N», а не сам.
+          // Спред стоит ПОСЛЕ признака samurai: гейт корзин ищет его в details до
+          // первой закрывающей скобки, а спред скобку несёт.
+          ...(megabossFrom ? { megaboss_from: megabossFrom } : {}) },
       });
     } catch (e) { console.error(e); }
     setPhase(passed ? 'cleared' : 'result');
@@ -1837,7 +1851,7 @@ export default function SamuraiSudokuGame() {
           accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('samuraiTitle')}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{megabossFrom ? `⚔️ ${t('megaBossBadge')}` : t('samuraiTitle')}</Text>
         <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}

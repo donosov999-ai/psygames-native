@@ -1828,6 +1828,10 @@ const translations: Translations = {
   tapNodeToReplay: { ru: 'Нажми на пройденный узел — переиграть и добрать звёзды', en: 'Tap a completed node to replay it and earn more stars' },
   replayingLevel: { ru: 'Переигрываешь уровень {n} · рекорд {best}', en: 'Replaying level {n} · best {best}' },
   bossTitle: { ru: 'БОСС', en: 'BOSS' },
+  megaBossTitle: { ru: "Мега-босс: Самурай", en: "Mega-boss: Samurai" },
+  megaBossOffer: { ru: "Пять сцепленных досок 9×9 — партия на час, с сохранением: можно уйти и вернуться. Уровень уже засчитан, отказ ничего не отнимает.", en: "Five interlocked 9×9 grids — an hour-long run with save & resume. Your level is already counted; declining costs nothing." },
+  megaBossGo: { ru: "В бой", en: "Fight" },
+  megaBossBadge: { ru: "Мега-босс", en: "Mega-boss" },
   bossDefeated: { ru: '🏆 Босс повержен! +⭐', en: '🏆 Boss defeated! +⭐' },
   bossSurvived: { ru: 'Босс устоял — идём дальше', en: 'Boss survived — moving on' },
 
