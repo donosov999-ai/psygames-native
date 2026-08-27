@@ -1,4 +1,4 @@
-/* psygames-game-chess-blind · VER 3 · 23.08.2026 */
+/* psygames-game-chess-blind · VER 4 · 27.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -51,7 +51,11 @@ import {
   parseChessProgress,
   pieceGlyph,
   positionForLevel,
+  puzzlePiecesBand,
+  puzzlePosition,
   questionText,
+  screenIndex,
+  LOCATE_MIN_UNIQUE,
   seriesEntry,
   seriesIntro,
   seriesRecap,
@@ -206,53 +210,51 @@ function stageName(level: number, t: (k: string) => string): string {
   return t('chessStageLocate');
 }
 
-function shuffle<T>(arr: T[]): T[] {
-  for (let i = arr.length - 1; i > 0; i--) {
+/**
+ * Перемешивание. ⚠️ КОПИЯ, А НЕ АРГУМЕНТ: до 27.08.2026 функция тасовала
+ * переданный массив на месте и возвращала его же. Все семь вызовов на сегодня
+ * передают свежий массив или копию и потому не страдали — но реестр дефектов
+ * держит эту строку в списке ловушек (`PSYGAMES_DEFECTS.md` §153: «не копирует
+ * массив, мутирует аргумент»), потому что следующий вызов с живым массивом
+ * испортил бы его молча. Копия стоит одну строку.
+ */
+function shuffle<T>(arr: readonly T[]): T[] {
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [out[i], out[j]] = [out[j], out[i]];
   }
-  return arr;
+  return out;
 }
 
-// Пул добора (кроме королей) на каждый цвет
-const POOL: PieceType[] = ['Q', 'R', 'R', 'B', 'B', 'N', 'N', 'P', 'P', 'P', 'P'];
-
-// Генерация позиции: оба короля обязательно; пешки не на 1-й/8-й горизонтали; все на разных клетках.
-// forLocate: ферзь форсируется в добор каждого цвета → минимум 4 уникальные фигуры (2K + 2Q) для «розыска».
-function generatePosition(count: number, forLocate: boolean): Piece[] {
-  const rest = Math.max(0, count - 2);
-  const nWhite = Math.ceil(rest / 2);
-  const nBlack = rest - nWhite;
-  const draw = (n: number): PieceType[] => {
-    const pool = shuffle([...POOL]);
-    if (forLocate) {
-      const qi = pool.indexOf('Q');
-      pool.splice(qi, 1);
-      pool.unshift('Q');   // ферзь гарантированно в доборе (в пуле он один → максимум 1 на цвет)
-    }
-    return pool.slice(0, n);
-  };
-  const combos: Combo[] = [
-    { type: 'K', white: true }, { type: 'K', white: false },
-    ...draw(nWhite).map((t) => ({ type: t, white: true })),
-    ...draw(nBlack).map((t) => ({ type: t, white: false })),
-  ];
-  const used = new Set<number>();
-  const pieces: Piece[] = [];
-  let id = 1;
-  for (const c of combos) {
-    const candidates: number[] = [];
-    for (let s = 0; s < 64; s++) {
-      if (used.has(s)) continue;
-      const row = Math.floor(s / 8);
-      if (c.type === 'P' && (row === 0 || row === 7)) continue;   // пешки не на крайних горизонталях
-      candidates.push(s);
-    }
-    const sq = candidates[Math.floor(Math.random() * candidates.length)];
-    used.add(sq);
-    pieces.push({ id: id++, type: c.type, white: c.white, sq });
-  }
-  return pieces;
+/**
+ * ПОЗИЦИЯ ЯДРА → ФИГУРЫ В ТОМ ВИДЕ, В КАКОМ ИХ РИСУЕТ ДОСКА ЭКРАНА.
+ *
+ * 🔴 ЗДЕСЬ ЖИВЁТ ПЕРЕВОРОТ ПО ВЕРТИКАЛИ, И ЭТО ЕДИНСТВЕННОЕ ОПАСНОЕ МЕСТО
+ * ПЕРЕХОДА. Сетка экрана считается строками сверху вниз (строка 0 — восьмая
+ * горизонталь), индекс ядра — снизу вверх (0 = a1). Сам переворот вынесен в
+ * `screenIndex` из `core/board.ts` — туда же, где лежит перевод из `chess.js`, —
+ * потому что перевёрнутая доска содержит ровно столько же фигур, сохраняет цвета
+ * клеток и на глаз выглядит нормальной: увидеть ошибку можно только пробой,
+ * сверяющей ИМЯ поля.
+ *
+ * ⚠️ ВИДЫ ФИГУР У ЯДРА СТРОЧНЫЕ ('n'), У ЭКРАНА ПРОПИСНЫЕ ('N') — это две разные
+ * записи, сложившиеся независимо: ядро повторяет запись FEN, экран — ключи
+ * глифов. Перевод в одну строку здесь, а не переименование в одном из слоёв:
+ * ключи `chessPcW*`/`chessPcB*` общего словаря приложения собраны на прописных.
+ */
+function toScreenPieces(position: ChessPosition): Piece[] {
+  const out: Piece[] = [];
+  position.squares.forEach((cell, index) => {
+    if (!cell) return;
+    out.push({
+      id: out.length + 1,
+      type: cell.type.toUpperCase() as PieceType,
+      white: cell.color === 'w',
+      sq: screenIndex(index),
+    });
+  });
+  return out;
 }
 
 const DIRS_ROOK = [[0, 1], [0, -1], [1, 0], [-1, 0]];
@@ -412,6 +414,13 @@ export default function ChessBlindGame() {
 
   const levelRef = useRef(1);
   const prmRef = useRef(levelParams(1));
+  /**
+   * Фигур НА ДОСКЕ в этой партии. Не то же самое, что `prm.pieces`: тот —
+   * ЗАПРОС уровня, а корпус отдаёт позицию в полосе ±1 (почему именно так —
+   * замер в `PUZZLE_PIECES_TOLERANCE`). В отчёт сессии уходит эта цифра, иначе
+   * `details.pieces` рассказывал бы про запрос, а не про то, что человек видел.
+   */
+  const piecesOnBoardRef = useRef(0);
   const questionsRef = useRef<Question[]>([]);
   const qIndexRef = useRef(0);
   /**
@@ -693,7 +702,20 @@ export default function ChessBlindGame() {
     prmRef.current = p;
     setPrm(p);
 
-    const pos = generatePosition(p.pieces, p.quizType === 'locate');
+    // 🔴 ПОЗИЦИЯ ЗАГОТОВЛЕНА ОФЛАЙН, А НЕ СОБРАНА СЕЙЧАС. До 27.08.2026 здесь
+    // стоял `generatePosition` — 4–12 фигур, разбросанных `Math.random()` в
+    // момент нажатия. Это КОНТРОЛЬНОЕ условие Chase & Simon (1973): на случайной
+    // расстановке памяти не за что зацепиться, и преимущество опытного игрока
+    // ИСЧЕЗАЕТ — то есть игра меряла голый зрительно-пространственный объём,
+    // дублируя «Клетки» и «Матрицу памяти» фишками в форме коней
+    // (`PSYGAMES_DEFECTS.md` §239). Теперь материал — выборка задач Lichess (CC0,
+    // 2000 живых позиций), общая с серией: пешечные цепи, король за своими
+    // пешками, ладья на линии. Ровно тот же вывод второй раз пришёл со стороны:
+    // конкурент Dawikk держит свои 5000 задач заготовленными, а не считает их на
+    // телефоне (разбор — `PSYGAMES_MERGE_PLAN.md` §21).
+    const picked = puzzlePosition(p.pieces, p.quizType === 'locate' ? LOCATE_MIN_UNIQUE : 2);
+    piecesOnBoardRef.current = picked.pieces;
+    const pos = toScreenPieces(picked.position);
     const { moves, final } = generateMoves(pos, p.moves);
     questionsRef.current = buildQuestions(final, p.quizType, p.questions);
 
@@ -760,7 +782,8 @@ export default function ChessBlindGame() {
       difficulty: `L${levelRef.current}`,
       mode: p.quizType,
       errors: fErrors,
-      details: { level: levelRef.current, hits: fHits, errors: fErrors, pieces: p.pieces, moves: p.moves, quiz_type: p.quizType },
+      // `pieces` — сколько фигур СТОЯЛО, а не сколько просил уровень: см. piecesOnBoardRef.
+      details: { level: levelRef.current, hits: fHits, errors: fErrors, pieces: piecesOnBoardRef.current, moves: p.moves, quiz_type: p.quizType },
     }).catch((e) => console.error(e));
     // Уровневый режим: и проход, и недобор → общий баннер LevelCleared (passed=false = «почти, ещё раз», авто-рестарт).
     // Пресет/свободный режим — как было: экран статистики GameResult.
@@ -1163,8 +1186,13 @@ export default function ChessBlindGame() {
   // ─── конфиг ───
   const renderConfig = () => {
     const p = levelParams(lvl.level);
+    // Полоса, а не число: корпус отдаёт позицию в пределах ±1 от запроса уровня,
+    // и написать «4 фигуры», выдав пять, — мелкое враньё, которое ловится первым
+    // же пересчётом на доске. Ни одного нового ключа словаря это не требует:
+    // «3–5» собирается из цифр, слово «фигур» уже есть.
+    const piecesBand = puzzlePiecesBand(p.pieces);
     const descBits = [
-      `${p.pieces} ${t('chessCfgPieces')}`,
+      `${piecesBand.min}–${piecesBand.max} ${t('chessCfgPieces')}`,
       `${t('chessCfgExpose')} ${p.exposeSec}${t('secShort')}`,
       ...(p.moves > 0 ? [`${p.moves} ${t('chessCfgBlindMoves')}`] : []),
       t(p.quizType === 'pick' ? 'chessCfgQuizPick' : 'chessCfgQuizLocate'),
