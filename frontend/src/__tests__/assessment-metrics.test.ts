@@ -36,11 +36,13 @@ import { buildKeymap } from '@/app/games/sdmt';
 // ─── 1. Шапка не врёт про длительность ────────────────────────────────────
 
 describe('длительность батареи', () => {
-  it('сумма est_duration_sec равна числу из шапки (1160 с ≈ 19 мин), а не «~12 мин»', () => {
+  it('сумма est_duration_sec равна числу из шапки (980 с ≈ 16 мин), а не «~12 мин»', () => {
     const total = ASSESSMENT_PLAYLIST.reduce((s, x) => s + x.est_duration_sec, 0);
     // Поменял шаги — поменяй ШАПКУ assessment.ts (и карточку «Зарядки»), потом это число.
-    expect(`${total} c = ${(total / 60).toFixed(1)} мин`).toBe('1160 c = 19.3 мин');
-    expect(Math.round(total / 60)).toBe(19);
+    // 27.08.2026 (bed1249e): 1160 → 980 — cpt '4min'→'2min' (спад бдительности
+    // виден ко второй минуте), bart est 180→120 (десять шаров короче трёх минут).
+    expect(`${total} c = ${(total / 60).toFixed(1)} мин`).toBe('980 c = 16.3 мин');
+    expect(Math.round(total / 60)).toBe(16);
   });
 });
 
@@ -208,7 +210,7 @@ describe('фиксированные конфигурации пресета (о
     const saved: Record<string, GameSession> = {
       switching_task: { game_type: 'switching_task', score: 0, time_seconds: 60, difficulty: 'medium', mode: 'mix·lvl8' },
       posner: { game_type: 'posner', score: 0, time_seconds: 60, difficulty: 'medium', mode: 'lvl8' },
-      cpt: { game_type: 'cpt', score: 0, time_seconds: 240, difficulty: 'medium', mode: '4min' },
+      cpt: { game_type: 'cpt', score: 0, time_seconds: 120, difficulty: 'medium', mode: '2min' },   // шаг батареи '2min' с 27.08 (bed1249e)
       n_back: { game_type: 'n_back', score: 0, time_seconds: 70, difficulty: 'medium', mode: '2-back' },
       mental_rotation: { game_type: 'mental_rotation', score: 0, time_seconds: 90, difficulty: 'medium', mode: 'lvl8-3D' },
       pattern: { game_type: 'pattern', score: 0, time_seconds: 90, difficulty: 'medium', mode: 'lvl8' },

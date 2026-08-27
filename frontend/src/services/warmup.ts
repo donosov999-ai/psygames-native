@@ -145,7 +145,7 @@ function trainingSetFor(weekday: Weekday): PlaylistStep[] {
   for (let i = 0; i < 7; i++) {
     const d = (((weekday - i) % 7) + 7) % 7 as Weekday;
     const set = TRAINING_BY_WEEKDAY[d];
-    if (set && set !== FIXED_BATTERY) return set;
+    if (set && set !== SNAPSHOT_CORE) return set;
   }
   return TRAINING_BY_WEEKDAY[1];      // недостижимо: понедельник всегда свой
 }
@@ -183,15 +183,41 @@ const keepAllowed = (steps: PlaylistStep[], allow?: AllowFn): PlaylistStep[] => 
 };
 
 
-// FIXED MEASUREMENT BATTERY — same setup for ЧТ peak and ВС baseline (allows lifelong comparison).
-const FIXED_BATTERY: PlaylistStep[] = [
-  { game_id: 'schulte_table',  game_route: '/games/schulte',         difficulty: 'medium', mode: '5x5',          est_duration_sec: 60, is_fixed_baseline: true },
-  { game_id: 'n_back',         game_route: '/games/n-back',          difficulty: 'medium', trials: 20, mode: '2-back', est_duration_sec: 90, is_fixed_baseline: true },
-  { game_id: 'flanker',        game_route: '/games/flanker',         difficulty: 'medium', trials: 20,           est_duration_sec: 90, is_fixed_baseline: true },
-  { game_id: 'switching_task', game_route: '/games/switching-task',  difficulty: 'medium', trials: 20,           est_duration_sec: 120, is_fixed_baseline: true },
-  { game_id: 'sdmt',           game_route: '/games/sdmt',            difficulty: 'medium', mode: '60s',          est_duration_sec: 70, is_fixed_baseline: true },
-  { game_id: 'digit_span',     game_route: '/games/digit-span',      difficulty: 'medium', mode: 'forward',      est_duration_sec: 90, is_fixed_baseline: true },
+/**
+ * 🔴 ЯДРО ЗАРЯДКИ = БЫСТРЫЙ СНИМОК (задача bed1249e, решение Дениса 22.08:
+ * «оценка почти 15 минут, утомительно»). Пять доменов, выбранных по
+ * «домен важен × метрика починена» (все пять починены 27.08, v1.243.0):
+ *   corsi — пространственная РП · sdmt — скорость обработки · flanker —
+ *   торможение · mental_rotation — преобразование · switching_task — гибкость.
+ *
+ * Человек не делает «оценку» — он делает утреннюю зарядку, а она же меряет.
+ *
+ * 🔴 УСЛОВИЕ, БЕЗ КОТОРОГО ВСЁ РАЗВАЛИТСЯ: ядро идёт в НЕИЗМЕННОЙ конфигурации —
+ * тот же размер, то же число проб, тот же порядок, каждый день. Изменится
+ * конфигурация → замеры несравнимы между днями → кривая прогресса = шум.
+ * Конфиги совпадают с ASSESSMENT_PLAYLIST (после починки метрик игры пресета
+ * стартуют в фиксированной постановке, не на личном уровне — isPreset-ветки).
+ *
+ * ⚠️ Числа est честные, по шагам батареи: сумма 380 с ≈ 6,3 мин, а не
+ * маркетинговые «пять минут по 60 c на игру» из ТЗ. Резать пробы ради цифры 5
+ * запрещает само ТЗ (часть 5: короткая проба даёт шум). Если по часам снимок
+ * не влезет в желаемое — решение «что резать: пробы или домен» за Денисом.
+ */
+export const SNAPSHOT_CORE: PlaylistStep[] = [
+  { game_id: 'corsi',           game_route: '/games/corsi',           difficulty: 'medium', mode: 'forward', est_duration_sec: 60, is_fixed_baseline: true },
+  { game_id: 'sdmt',            game_route: '/games/sdmt',            difficulty: 'medium', mode: '60s',     est_duration_sec: 70, is_fixed_baseline: true },
+  { game_id: 'flanker',         game_route: '/games/flanker',         difficulty: 'medium', trials: 15,      est_duration_sec: 70, is_fixed_baseline: true },
+  { game_id: 'mental_rotation', game_route: '/games/mental-rotation', difficulty: 'medium', trials: 5,       est_duration_sec: 90, is_fixed_baseline: true },
+  { game_id: 'switching_task',  game_route: '/games/switching-task',  difficulty: 'medium', trials: 15,      est_duration_sec: 90, is_fixed_baseline: true },
 ];
+
+/**
+ * ⚠️ FIXED_BATTERY (шесть игр, 490 с, только ЧТ/ВС) ЗАМЕНЕНА ядром SNAPSHOT_CORE
+ * 27.08.2026 (bed1249e): два канона замера рядом — это два несравнимых ряда, и
+ * человек не понимал, какой из них «настоящий». Ряды старой батареи в истории
+ * сравнимы сами с собой; новый ряд ядра начинается со дня замены. Теги
+ * ЧТ/ВС (peak/baseline — до/после стека) живут как жили: меняется НАБОР, не смысл.
+ */
 
 // PER-WEEKDAY TRAINING playlists (5-min default), tuned per the agreed schedule.
 //
@@ -249,7 +275,7 @@ const TRAINING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
     { game_id: 'memory_palace', game_route: '/games/memory-palace', difficulty: 'easy', settings: { level: 3 }, est_duration_sec: 180 },
   ],
   // ЧТ — PEAK MEASUREMENT (after BOOST)
-  4: FIXED_BATTERY,
+  4: SNAPSHOT_CORE,
   // ПТ — Inhibition Stack (D3) + Mental Rotation (2× из 3×/нед для слабого места)
   //   flanker    = spatial interference
   //   stroop     = lexical interference
@@ -277,7 +303,7 @@ const TRAINING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
     { game_id: 'one_line',       game_route: '/games/one-line',        difficulty: 'medium', settings: { level: 6 }, est_duration_sec: 120 },
   ],
   // ВС — BASELINE MEASUREMENT (before BOOST)
-  0: FIXED_BATTERY,
+  0: SNAPSHOT_CORE,
 };
 
 // ВЕЧЕРНЯЯ РОТАЦИЯ (перед сном) — 7 дней, РАЗНЫЕ каждый вечер (раньше был фикс из 4 игр).
@@ -482,9 +508,15 @@ export function buildMorningWarmupPlaylist(opts: {
   if (track === 'rest') {
     steps = [];
   } else if ((track === 'measure-peak' || track === 'measure-baseline')
-             && FIXED_BATTERY.every((s) => !allow || allow(s.game_id))) {
-    // Fixed battery — duration is essentially always 10 min (~9 actually)
-    steps = FIXED_BATTERY.map((s) => ({ ...s }));
+             && SNAPSHOT_CORE.every((s) => !allow || allow(s.game_id))) {
+    // Замерный день = ядро-снимок (≈6 мин). Плюс хвост, если просили длиннее:
+    // замер не должен ОТМЕНЯТЬ тренировку — раньше ЧТ/ВС съедали её целиком.
+    steps = SNAPSHOT_CORE.map((s) => ({ ...s }));
+    if (duration >= 10) {
+      const tail = keepAllowed(trainingSetFor(weekday).map((x) => ({ ...x })), allow)
+        .filter((a) => !SNAPSHOT_CORE.some((c) => c.game_id === a.game_id));
+      steps.push(...pickSteps(tail, duration * 60 - sumDuration(steps)));
+    }
   } else {
     /**
      * ⚠️ УРЕЗАННУЮ БАТАРЕЮ НЕ ЗАПУСКАЕМ — лучше обычная тренировка.
@@ -494,30 +526,40 @@ export function buildMorningWarmupPlaylist(opts: {
      * ряд сравнения молча: цифра есть, а сравнивать её не с чем. Поэтому в
      * такой день профиль получает тренировочный трек.
      */
-    // Training — adjust by duration. If profile has custom playlist for this weekday, use it.
-    const allSteps = (profilePlaylists && profilePlaylists[weekday]) || trainingSetFor(weekday);
+    /**
+     * 🔴 ЗАРЯДКА = ЯДРО + ХВОСТ (bed1249e). Каждый день впереди идёт ядро-снимок
+     * в неизменной конфигурации — оно и есть быстрый замер; хвост — тренировка
+     * дня, меняется как угодно. Кнопка «5 минут» отдаёт ядро целиком (≈6 мин):
+     * половина снимка — не снимок, тот же довод, что у прежней батареи ЧТ/ВС.
+     * Профилю без пяти игр ядра (урезанный каталог) ядро не ставим вовсе —
+     * запись «замера» из трёх игр испортила бы ряд сравнения молча.
+     */
+    const coreOk = SNAPSHOT_CORE.every((c) => !allow || allow(c.game_id));
+    const core = coreOk ? SNAPSHOT_CORE.map((c) => ({ ...c })) : [];
+    // Хвост не повторяет игры ядра: вторник нёс flanker/sdmt/rotation — с ядром
+    // человек играл бы их дважды за утро. Домен ядром уже тренирован.
+    const rawSteps = (profilePlaylists && profilePlaylists[weekday]) || trainingSetFor(weekday);
+    const allSteps = coreOk ? rawSteps.filter((a) => !SNAPSHOT_CORE.some((c) => c.game_id === a.game_id)) : rawSteps;
     const targetSec = duration * 60;
     if (duration === 5) {
-      steps = pickSteps(allSteps, targetSec);
+      steps = coreOk ? core : pickSteps(allSteps, targetSec);
     } else if (duration === 10) {
-      // 10-min: include all base steps + 1-2 cooldown.
-      // For CPT_DAYS: replace cooldown with CPT-4min (sustained attention finale).
-      steps = [...allSteps];
-      const remaining = targetSec - sumDuration(steps);
-      if (CPT_DAYS.has(weekday) && remaining >= CPT_STEP.est_duration_sec - 30) {
-        steps.push(CPT_STEP);
-      } else {
-        steps.push(...pickCooldown(weekday, remaining));
+      // Ядро + хвост по остатку. CPT-финал 10-минутки жил на свободных ~360 с;
+      // с ядром их нет — финал остаётся привилегией 15-минутки.
+      steps = [...core, ...pickSteps(allSteps, targetSec - sumDuration(core))];
+      if (!coreOk) {
+        const remaining = targetSec - sumDuration(steps);
+        if (CPT_DAYS.has(weekday) && remaining >= CPT_STEP.est_duration_sec - 30) steps.push(CPT_STEP);
+        else steps.push(...pickCooldown(weekday, remaining));
       }
     } else {
-      // 15-min: all base + cooldown + CPT (if attention/logic day)
-      steps = [...allSteps];
-      const remainingFor = (s: PlaylistStep[]) => targetSec - sumDuration(s);
-      if (CPT_DAYS.has(weekday)) {
+      // 15-min: ядро + вся тренировка дня + CPT-финал (день внимания/логики) + добор.
+      steps = [...core, ...allSteps];
+      const remainingFor = (st: PlaylistStep[]) => targetSec - sumDuration(st);
+      if (CPT_DAYS.has(weekday) && remainingFor(steps) >= CPT_STEP.est_duration_sec - 30) {
         steps.push(CPT_STEP);
       }
-      const cooldownExtras = pickCooldown(weekday, remainingFor(steps));
-      steps.push(...cooldownExtras);
+      steps.push(...pickCooldown(weekday, remainingFor(steps)));
     }
   }
 

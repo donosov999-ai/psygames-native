@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.245.0',
+    date: '2026-08-27',
+    ru: [
+      'Маджонг: с 10-го уровня каждый третий — «скрытые лица»: под накрытыми плитками «?», планировать приходится под неизвестность',
+      'Зарядка: впереди каждый день идёт ядро-снимок из 5 игр в неизменной постановке — утренняя зарядка теперь сама и есть быстрый замер',
+      'Полная оценка профиля ужата с 19 до 16 минут: внимание-тест вдвое короче (спад виден ко второй минуте), шарик — без пустых минут',
+    ],
+    en: [
+      'Mahjong: from level 10 every third level has hidden faces — “?” under covered tiles, so you plan under uncertainty',
+      'Warm-up: a 5-game snapshot core now leads every day in a fixed setup — your morning warm-up doubles as a quick measurement',
+      'Full assessment trimmed from 19 to 16 minutes: the attention test is half as long (the decline shows by minute two), the balloon task loses its idle minutes',
+    ],
+  },
+  {
     version: '1.244.0',
     date: '2026-08-27',
     ru: [

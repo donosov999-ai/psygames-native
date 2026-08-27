@@ -61,6 +61,25 @@ export function mahjongLevel(L: number): MahjongLevelCfg {
   return { layers: 5, pairs: Math.min(FULL_SET_PAIRS, 66 + (n - 22)), cols: 12, shuffles: 1 };
 }
 
+/**
+ * СКРЫТАЯ ИНФОРМАЦИЯ — КАЖДЫЙ ТРЕТИЙ УРОВЕНЬ С ДЕСЯТОГО (задача ec15d176, §20).
+ *
+ * Почему каждый третий, а не «с N навсегда»: шестая разность §18.8 — «цена
+ * неопределённости» — считается сравнением полного и скрытого режимов на
+ * СОСЕДНИХ уровнях одной сессии. Тот же график, что у goods-sort (HIDDEN_FROM=16,
+ * каждый третий) — обе игры дают разность одним способом.
+ *
+ * Почему с десятого: скрытие имеет вес с четырёх слоёв (9–14), но на девятом
+ * показывается правило четырёх слоёв, а правило на уровне может быть только одно
+ * (activeLevelRule берёт последнее подошедшее). Десятый — первый уровень глубокой
+ * доски со свободным окном под правило.
+ */
+export const MAHJONG_HIDDEN_FROM = 10;
+
+export function mahjongHidden(L: number): boolean {
+  return L >= MAHJONG_HIDDEN_FROM && (L - MAHJONG_HIDDEN_FROM) % 3 === 0;
+}
+
 /** Кончились ли перетасовки. -1 (без лимита) не кончается никогда. */
 export function shufflesLeft(budget: ShuffleBudget, used: number): number {
   return budget < 0 ? -1 : Math.max(0, budget - used);

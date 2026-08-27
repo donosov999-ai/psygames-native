@@ -1,4 +1,4 @@
-/* psygames-mahjong-board · VER 1 · 22.08.2026 */
+/* psygames-mahjong-board · VER 2 · 27.08.2026 */
 /**
  * ЯДРО ДОСКИ МАДЖОНГА: что такое плитка, когда она свободна и сколько пар можно
  * снять ПРЯМО СЕЙЧАС.
@@ -15,6 +15,23 @@ export interface Tile { id: number; x: number; y: number; layer: number; symbol:
 /** «Перекрывает ли» позиция верхнего слоя позицию нижнего (тайл 2×2 в полуклетках). */
 export function overlaps(a: { x: number; y: number }, b: { x: number; y: number }): boolean {
   return Math.abs(a.x - b.x) < 2 && Math.abs(a.y - b.y) < 2;
+}
+
+/**
+ * НАКРЫТА ЛИ ПЛИТКА СВЕРХУ — половина (а) правила свободы, отдельным именем.
+ *
+ * 🔴 Режим «скрытая информация» (задача ec15d176, §20 плана слияния): на скрытых
+ * уровнях лицо плитки видно только когда СВЕРХУ никто не лежит. Зажатость с боков
+ * лицо не прячет — соседние лица в жизни видны. Логика нарочно та же, что пункт
+ * (а) в `isFree`: разойдутся — «?» будет стоять на нажимаемой плитке.
+ */
+export function coveredFromAbove(tiles: Tile[], alive: boolean[], i: number): boolean {
+  const t = tiles[i];
+  for (let j = 0; j < tiles.length; j++) {
+    if (!alive[j] || j === i) continue;
+    if (tiles[j].layer > t.layer && overlaps(tiles[j], t)) return true;
+  }
+  return false;
 }
 
 /** Свободен ли тайл i среди ОСТАВШИХСЯ: (а) сверху нет перекрывающего, (б) слева ИЛИ справа открыто. */

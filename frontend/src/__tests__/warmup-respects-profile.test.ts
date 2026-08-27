@@ -17,7 +17,7 @@
  * появилась бы ровно в том дне, который не посмотрели руками.
  */
 import { PROFILES, isGameAllowed, ProfileDef } from '@/src/constants/profiles';
-import {
+import { SNAPSHOT_CORE,
   buildMorningWarmupPlaylist,
   buildEveningWarmupPlaylist,
   buildFixedPlaylist,
@@ -94,9 +94,11 @@ describe('зарядка собирается из игр профиля', () =>
   });
 
   /**
-   * Урезанный замер хуже отсутствующего: FIXED_BATTERY существует ради «тот же
-   * набор всегда», и если часть игр профилю недоступна, сравнивать результат
-   * будет не с чем. В такой день профиль обязан получить тренировку.
+   * Урезанный замер хуже отсутствующего: ядро SNAPSHOT_CORE существует ради «тот
+   * же набор всегда», и если часть его игр профилю недоступна, сравнивать
+   * результат будет не с чем. В такой день профиль обязан получить тренировку.
+   * 27.08.2026 (bed1249e): батарею из шести заменило ядро из пяти — размер
+   * берём из живой константы: полнота = «ровно всё ядро», а не магическая шестёрка.
    */
   it('замер либо полный, либо его нет — половинчатого не бывает', () => {
     const bad: string[] = [];
@@ -107,7 +109,9 @@ describe('зарядка собирается из игр профиля', () =>
         });
         if (!meta.track.startsWith('measure')) continue;
         const baseline = meta.steps.filter((s) => s.is_fixed_baseline).length;
-        if (baseline > 0 && baseline < 6) bad.push(`${p.id}/день ${wd}: замер из ${baseline} игр вместо 6`);
+        if (baseline > 0 && baseline < SNAPSHOT_CORE.length) {
+          bad.push(`${p.id}/день ${wd}: замер из ${baseline} игр вместо ${SNAPSHOT_CORE.length}`);
+        }
       }
     }
     expect(bad).toEqual([]);
