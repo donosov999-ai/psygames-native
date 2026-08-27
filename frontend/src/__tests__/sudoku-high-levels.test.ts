@@ -206,12 +206,36 @@ declare function require(id: string): any;
 describe('рубеж стоит на пути', () => {
   const fs = require('fs');
   const path = require('path');
+  /**
+   * 🔴 ПРОВЕРЯЕМ СВОЙСТВО, А НЕ БУКВЫ. Прежняя редакция сверяла три подстроки
+   * дословно — `grade: eased.grade` и `const gen = eased.gen;`. 27.08.2026 в
+   * запасной путь добавили вторую доводку (`digToFloor`, подъём слишком лёгкой
+   * доски), выражения естественно изменились, и гейт покраснел на ИСПРАВНОМ коде.
+   * Гейт, краснеющий от того, что рядом появилась новая правильная строка, ловит
+   * не дефект, а форму записи.
+   * Свойство, которое здесь и надо держать: доска из запасного пути обязана пройти
+   * `easeToCeiling` (гарантия «берётся логикой»), а всё, что добавили после,
+   * обязано уважать потолок.
+   */
   it('🔴 запасной путь пропускает доску через доводку', () => {
     const src: string = fs.readFileSync(path.resolve(__dirname, '../services/sudoku-grade.ts'), 'utf8');
     const tail = src.slice(src.indexOf('const fbUntil'));
     expect(tail).toMatch(/const eased = easeToCeiling\(/);
-    expect(tail).toMatch(/grade: eased\.grade/);
-    expect(tail).toMatch(/const gen = eased\.gen;/);
+    /**
+     * 🔴 ПРОВЕРЯЕМ ИМЕННО ПРИСВОЕНИЕ `gen`, А НЕ НАЛИЧИЕ СЛОВА `eased` ГДЕ-ТО РЯДОМ.
+     * Первая редакция этой проверки искала `eased.gen` и `eased.grade` по всему
+     * хвосту — и мутация «вернуть доску МИМО доводки» её НЕ УКУСИЛА: слова остались
+     * в соседней строке, где выбирается лучшая из двух оценок. Проверка, которой
+     * достаточно упоминания, проверяет присутствие текста, а не поведение кода.
+     */
+    const присвоение = /const gen = ([^;]+);/.exec(tail);
+    expect(присвоение).not.toBeNull();
+    expect(`присвоение gen: ${присвоение?.[1]}`).toMatch(/eased\.gen|поднято\.gen/);
+    expect(`присвоение gen: ${присвоение?.[1]}`).not.toMatch(/\bfb\b/);
+    // Если после доводки есть ещё один шаг, он обязан знать про потолок `max`.
+    if (/digToFloor\(/.test(tail)) {
+      expect(tail).toMatch(/digToFloor\([^)]*\bmax\b/);
+    }
   });
 });
 
