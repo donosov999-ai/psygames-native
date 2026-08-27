@@ -27,6 +27,8 @@
  *      (`'abcdefgh'[c]` и `8 - r` — так экран подписывает клетки в `renderBoard`),
  *      а рядом доказывается, что тождественный перевод эту сверку роняет.
  */
+import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   BOARD_SIDE,
   BOARD_SQUARES,
@@ -306,5 +308,163 @@ describe('партия вслепую: доска не перевёрнута п
     expect(pieces.filter((p) => !p.white).length).toBe(16);
     // Идентификаторы уникальны — по ним экран двигает фишки вслепую.
     expect(new Set(pieces.map((p) => p.id)).size).toBe(pieces.length);
+  });
+});
+
+/* ──────────────────────────────────────────────────────────────────────────────
+ * И ТЕПЕРЬ САМОЕ ГЛАВНОЕ: ЧТО ЭТИМ ПОЛЬЗУЕТСЯ ЭКРАН.
+ *
+ * 🔴 ВСЁ ВЫШЕ ПРОВЕРЯЕТ ЯДРО, А ОШИБКА ЖИВЁТ В ПРОВОДКЕ. Верни кто-нибудь в
+ * `startGame` строку `generatePosition(p.pieces)` — и каждая проба выше останется
+ * ЗЕЛЁНОЙ: `puzzlePosition` по-прежнему отдаёт позиции корпуса, просто её больше
+ * никто не зовёт. Поэтому расстановка читается с ОТРИСОВАННОГО ДЕРЕВА живого
+ * экрана: доска обходится по подписям клеток, из знаков собирается запись FEN и
+ * ищется в корпусе. Проверять надо то место, где ошибка случается.
+ * ────────────────────────────────────────────────────────────────────────────── */
+
+declare function require(m: string): any;
+
+const TestRenderer = require('react-test-renderer');
+
+jest.setTimeout(120000);
+
+/** Параметры маршрута: `wu=1` запускает партию сразу, `level` задаёт ступень. */
+let mockParams: Record<string, string> = {};
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: () => {}, replace: () => {}, back: () => {} }),
+  useLocalSearchParams: () => mockParams,
+  router: { canGoBack: () => false, back: () => {}, replace: () => {} },
+}));
+
+jest.mock('@/src/services/api', () => ({
+  ...jest.requireActual('@/src/services/api'),
+  saveSession: async (s: any) => s,
+}));
+
+/** Каркас GameShell спрашивает безопасные поля — без метрик он падает на монтаже. */
+const METRICS = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } };
+/** ⚠️ Только внешние совпадения: TouchableOpacity отдаёт второй узел с теми же пропами. */
+const OUTER = { deep: false };
+
+/** Знак → буква FEN. Тот же набор, которым доска и рисует фигуры. */
+const GLYPH_TO_FEN: Record<string, string> = {
+  '♔': 'K', '♕': 'Q', '♖': 'R', '♗': 'B', '♘': 'N', '♙': 'P',
+  '♚': 'k', '♛': 'q', '♜': 'r', '♝': 'b', '♞': 'n', '♟': 'p',
+};
+
+function textsIn(node: any): string[] {
+  const out: string[] = [];
+  const walk = (n: any) => {
+    if (n === null || n === undefined || typeof n === 'boolean') return;
+    if (typeof n === 'string') { out.push(n); return; }
+    if (typeof n === 'number') { out.push(String(n)); return; }
+    if (Array.isArray(n)) { n.forEach(walk); return; }
+    if (n.children) (n.children as any[]).forEach(walk);
+  };
+  walk(node);
+  return out;
+}
+
+async function settle() {
+  await TestRenderer.act(async () => { for (let i = 0; i < 30; i += 1) await Promise.resolve(); });
+}
+
+async function mountPuzzle(level: number) {
+  mockParams = { wu: '1', level: String(level) };
+  await AsyncStorage.clear();
+  const { ThemeProvider } = require('@/src/contexts/ThemeContext');
+  const { LanguageProvider } = require('@/src/contexts/LanguageContext');
+  const { ProfileProvider } = require('@/src/contexts/ProfileContext');
+  const { SafeAreaProvider } = require('react-native-safe-area-context');
+  const Screen = require('@/app/games/chess-blind').default;
+  let r: any;
+  await TestRenderer.act(async () => {
+    r = TestRenderer.create(
+      React.createElement(SafeAreaProvider, { initialMetrics: METRICS },
+        React.createElement(ProfileProvider, null,
+          React.createElement(ThemeProvider, null,
+            React.createElement(LanguageProvider, null, React.createElement(Screen))))),
+    );
+  });
+  await settle();
+  return r;
+}
+
+const SQUARE_LABEL = /^[a-h][1-8]$/;
+
+/**
+ * Расстановка так, как её ВИДИТ человек: поле → буква FEN.
+ *
+ * ⚠️ ЗНАК БЕРЁТСЯ ТОЛЬКО ИЗ ФИГУРНЫХ СИМВОЛОВ. В клетках левого столбца и нижней
+ * строки экран рисует ещё и координаты («1», «a»), а сама фигура рисуется девятью
+ * копиями знака (восемь — обводка, девятая — заливка). Отсюда и отбор по набору
+ * знаков, и `Set`: иначе в расстановку попали бы подписи, а фигуры — по девять раз.
+ */
+function screenLayout(r: any): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const cell of r.root.findAll(
+    (n: any) => SQUARE_LABEL.test(String(n.props?.accessibilityLabel ?? '')),
+    OUTER,
+  )) {
+    const glyphs = Array.from(new Set(textsIn(cell))).filter((s) => GLYPH_TO_FEN[s]);
+    if (glyphs.length === 1) out.set(String(cell.props.accessibilityLabel), GLYPH_TO_FEN[glyphs[0]]);
+    else if (glyphs.length > 1) out.set(String(cell.props.accessibilityLabel), '?');
+  }
+  return out;
+}
+
+/** Расстановочное поле FEN из прочитанного с экрана. Сравнивать — только посимвольно. */
+function layoutToBoardFen(layout: Map<string, string>): string {
+  const rows: string[] = [];
+  for (let rank = BOARD_SIDE; rank >= 1; rank -= 1) {
+    let row = '';
+    let gap = 0;
+    for (let file = 0; file < BOARD_SIDE; file += 1) {
+      const letter = layout.get(`${'abcdefgh'[file]}${rank}`);
+      if (!letter) { gap += 1; continue; }
+      if (gap > 0) { row += String(gap); gap = 0; }
+      row += letter;
+    }
+    if (gap > 0) row += String(gap);
+    rows.push(row);
+  }
+  return rows.join('/');
+}
+
+describe('партия вслепую: корпусом пользуется САМ ЭКРАН', () => {
+  beforeEach(() => { jest.useFakeTimers(); });
+  afterEach(() => { jest.useRealTimers(); });
+
+  it('🔴 расстановка, нарисованная на доске, НАЙДЕНА В КОРПУСЕ — на всех ступенях', async () => {
+    // Ступени взяты по одной из каждой полосы лесенки: 1 — четыре фигуры без
+    // слепых ходов, 5 — двенадцать, 8 — квиз «что стоит», 13 — квиз «розыск».
+    for (const level of [1, 5, 8, 13]) {
+      const r = await mountPuzzle(level);
+      const layout = screenLayout(r);
+
+      // Сперва — что смотреть есть на что: доска нарисована целиком и фигуры на ней есть.
+      expect(r.root.findAll(
+        (n: any) => SQUARE_LABEL.test(String(n.props?.accessibilityLabel ?? '')),
+        OUTER,
+      )).toHaveLength(BOARD_SQUARES);
+      expect(layout.size).toBeGreaterThan(0);
+      expect([...layout.values()]).not.toContain('?');   // в клетке ровно одна фигура
+
+      // Фигур на экране столько, сколько объявлено ступенью.
+      const band = puzzlePiecesBand(puzzleLevelParams(level).pieces);
+      expect(layout.size).toBeGreaterThanOrEqual(band.min);
+      expect(layout.size).toBeLessThanOrEqual(band.max);
+
+      // И главное: это ЖИВАЯ позиция из заготовленного корпуса, а не собранная сейчас.
+      const drawn = layoutToBoardFen(layout);
+      expect(CORPUS_BOARDS.has(drawn)).toBe(true);
+
+      // Оба короля на месте — читаем с экрана, а не из данных экрана.
+      const letters = [...layout.values()];
+      expect(letters.filter((l) => l === 'K')).toHaveLength(1);
+      expect(letters.filter((l) => l === 'k')).toHaveLength(1);
+
+      await TestRenderer.act(async () => { r.unmount(); });
+    }
   });
 });

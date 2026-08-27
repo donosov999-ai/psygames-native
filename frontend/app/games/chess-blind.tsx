@@ -1,4 +1,4 @@
-/* psygames-game-chess-blind · VER 4 · 27.08.2026 */
+/* psygames-game-chess-blind · VER 5 · 27.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -42,6 +42,7 @@ import {
   blockInterlude,
   blockKeyAt,
   blockTitle,
+  coreIndex,
   currentQuestion,
   getChessBlindStrings,
   isLightSquare,
@@ -890,6 +891,11 @@ export default function ChessBlindGame() {
               return (
                 <TouchableOpacity
                   accessibilityRole="button"
+                  // Имя поля вслух. Читалке экрана иначе достаются 64 безымянные
+                  // кнопки, а на «розыске» нажать нужное поле вслепую нельзя вовсе.
+                  // Той же подписью проба читает расстановку с ОТРИСОВАННОГО дерева,
+                  // а не из внутренних данных экрана.
+                  accessibilityLabel={squareName(coreIndex(sq))}
                   key={c}
                   activeOpacity={0.8}
                   onPress={() => (isPick ? selectQuestionAt(sq) : answerLocate(sq))}
@@ -942,7 +948,8 @@ export default function ChessBlindGame() {
         <View key={row} style={{ flexDirection: 'row' }}>
           {Array.from({ length: BOARD_SIDE }).map((_, col) => {
             // Наш индекс считается СНИЗУ ВВЕРХ (0 = a1), а рисуем сверху вниз.
-            const index = (BOARD_SIDE - 1 - row) * BOARD_SIDE + col;
+            // Переворот берётся у ядра: своя копия формулы здесь была третьей.
+            const index = coreIndex(row * BOARD_SIDE + col);
             const piece = position.squares[index];
             const light = isLightSquare(index);
             return (
