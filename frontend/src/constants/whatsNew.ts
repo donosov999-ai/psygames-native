@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.243.1',
+    date: '2026-08-27',
+    ru: [
+      'Судоку: сложность больше не проседает на стыках вариантов — обещание уровня не бывает ниже предыдущего',
+      'Судоку: джигсо стал вершиной лестницы (54–57), термо-клетки — перед ним; описания правил обновлены на всех языках',
+    ],
+    en: [
+      'Sudoku: difficulty no longer dips at variant seams — a level never promises less than the one before',
+      'Sudoku: jigsaw is now the summit (54–57) with thermo-cages before it; rule descriptions updated in every language',
+    ],
+  },
+  {
     version: '1.243.0',
     date: '2026-08-27',
     ru: [

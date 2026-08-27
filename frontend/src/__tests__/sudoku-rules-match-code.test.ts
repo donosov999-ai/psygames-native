@@ -65,9 +65,12 @@ const LOCALES = ['de', 'es', 'pt', 'fr', 'it', 'zh', 'ja', 'ko', 'hi', 'ar'];
 describe('описание судоку не расходится с кодом', () => {
   const ladder = firstLevelOfEachVariant();
 
-  it('лестница в коде: Кропки на L34, кривые блоки только на L50', () => {
+  it('лестница в коде: Кропки на L34, джигсо — вершина на L54', () => {
+    // 27.08.2026: jigsaw и thermocage поменяны местами (порядок по потолкам,
+    // задача 25a92d61) — якоря обновлены вместе с текстами всех 12 локалей.
     expect(ladder.get('kropki')).toBe(34);
-    expect(ladder.get('jigsaw')).toBe(50);
+    expect(ladder.get('thermocage')).toBe(50);
+    expect(ladder.get('jigsaw')).toBe(54);
     expect(ladder.size).toBeGreaterThanOrEqual(11);
   });
 

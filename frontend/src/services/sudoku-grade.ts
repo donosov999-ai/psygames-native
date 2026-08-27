@@ -692,6 +692,36 @@ export function targetTier(level: number): { min: number; max: number } {
   return { min: Math.min(band.min, ceiling), max: band.max };
 }
 
+
+/**
+ * 🔴 МОНОТОННОЕ ОБЕЩАНИЕ УРОВНЯ — лекарство от «пилы на стыках» (25a92d61).
+ *
+ * Жалоба Дениса 23.08: «на 40 уровне сэндвич оказался проще, чем на 30».
+ * Причина в устройстве: внутри каждого варианта полоса растёт 3..4 → 6..6
+ * (bandPos) — и это ЖИВАЯ ОСЬ, на ней держатся прореживание сэндвич-подсказок
+ * и рост внутри блока, — но на СТЫКЕ вариантов позиция сбрасывается, и уровень
+ * 38 обещал меньше 37-го.
+ *
+ * Пила НЕ тронута: ломать её значило снести согласованную систему из семи мест
+ * (первая попытка 27.08 ровно так и покраснела семью сьютами). Вместо этого
+ * ОБЕЩАНИЕ уровня — покомпонентный running-max эффективных полос всех уровней
+ * до текущего: полоса не может стать ниже уже обещанной. Внутри блока рост
+ * живёт (running-max его пропускает), спад на стыке гасится.
+ *
+ * ⚠️ Работает только потому, что хвост лестницы согласован по потолкам
+ * (jigsaw — вершина): вариант с потолком НИЖЕ уже обещанного дал бы пустую
+ * полосу. Сторожат sudoku-ladder-monotonic (обещания) и sudoku-tier-reachable
+ * (пол ≤ потолок).
+ */
+export function monotonicBandForLevel(level: number): { min: number; max: number } {
+  let band = { min: 0, max: 0 };
+  for (let lv = 1; lv <= Math.max(1, level); lv++) {
+    const eff = effectiveBand(levelConfig(lv).variant as Variant, targetTier(lv));
+    band = { min: Math.max(band.min, eff.min), max: Math.max(band.max, eff.max) };
+  }
+  return band;
+}
+
 /**
  * Доля показываемых меток (чётность / точки кропки) внутри фазы варианта.
  * Метка — это подарок игроку, поэтому к концу фазы подарков меньше.
@@ -1225,7 +1255,9 @@ export function logicalBuilder(
   step: () => { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean };
   enough: (r: { grade: Grade; fellBack: boolean }) => boolean;
 } {
-  const { min, max } = effectiveBand(variant, opts.tier ?? targetTier(level));
+  const { min, max } = opts.tier
+    ? effectiveBand(variant, opts.tier)
+    : monotonicBandForLevel(level);
   const dist = (t: number) => (t < min ? min - t : t > max ? t - max : 0);
   const perStep = Math.max(400, Math.round((opts.budgetMs ?? 2200) / 2));
   /**
@@ -1343,7 +1375,9 @@ export function generateLogical(
    * ⚠️ Полосу принимаем ГОТОВОЙ, а не считаем здесь по названию дороги: знание о
    * дорогах живёт в одном файле, и градатор не должен обрастать вторым его экземпляром.
    */
-  const { min, max } = effectiveBand(variant, opts.tier ?? targetTier(level));
+  const { min, max } = opts.tier
+    ? effectiveBand(variant, opts.tier)          // дорога даёт свою полосу — только вариантный клэмп
+    : monotonicBandForLevel(level);              // лестница обещает не меньше, чем уровнем раньше
   const dist = (t: number) => (t < min ? min - t : t > max ? t - max : 0);
 
   if (LOGIC_VARIANTS.includes(variant)) {

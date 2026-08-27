@@ -42,7 +42,7 @@ const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf8') as s
 const N = 9, BR = 3, BC = 3;
 
 /**
- * Одна доска ThermoCage тем же путём, каким её получает игрок на уровне 54.
+ * Одна доска ThermoCage тем же путём, каким её получает игрок на уровне 50.
  *
  * ⚠️ Берём доску, ПРИШЕДШУЮ ОТ ЛОГИКИ (`fellBack === false`). У generateLogical есть
  * запасной путь через перебор с проверкой единственности: доска оттуда честная, но
@@ -50,7 +50,7 @@ const N = 9, BR = 3, BC = 3;
  * 20.08.2026: запасной путь не сработал ни разу, поэтому три неудачи подряд — это
  * регресс, а не невезение, и гейт обязан на них покраснеть.
  */
-function board(level = 54) {
+function board(level = 50) {   // 27.08: термоклетка переехала на 50–53 (джигсо — вершина)
   const cfg = levelConfig(level);
   expect(cfg.variant).toBe('thermocage');
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -59,7 +59,7 @@ function board(level = 54) {
     expect(gen.cages).toBeTruthy();
     if (!fellBack) return gen;
   }
-  throw new Error('L54: логический путь не дал доску за три захода');
+  throw new Error('L50: логический путь не дал доску за три захода');
 }
 
 /**
