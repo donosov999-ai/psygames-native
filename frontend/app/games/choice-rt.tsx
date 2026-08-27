@@ -1,4 +1,4 @@
-/* psygames-game-choice-rt · VER 1 · 19.08.2026 */
+/* psygames-game-choice-rt · VER 2 · 28.08.2026 */
 /**
  * Choice RT — время реакции выбора (стрелки).
  *
@@ -37,7 +37,8 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LeaderboardModal from '@/src/components/LeaderboardModal';
-import { countsForRecord, submitScore } from '@/src/services/leaderboard';
+import { countsForRecord } from '@/src/services/leaderboard';
+import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmark';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
@@ -89,6 +90,7 @@ export default function ChoiceRtGame() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const record = useRecordBenchmark('choice_rt');
   const [clearedPassed, setClearedPassed] = useState(true);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
@@ -219,7 +221,10 @@ export default function ChoiceRtGame() {
     // среднее попадают ТОЛЬКО верные ответы — без гейта выгодно жать наугад и ронять
     // сомнительные пробы в тайм-аут (см. LEADERBOARD_GAMES.choice_rt).
     if (countsForRecord('choice_rt', { isPreset, level: levelRef.current, hits: h, trials: totalTrialsRef.current })) {
-      submitScore('choice_rt', Math.round(meanRt)).catch(() => {});   // тихо — лидерборд необязателен
+      // Рекорд-строка на итог + отправка — одним хуком (офлайн-фолбэк внутри).
+      record.report(Math.round(meanRt));
+    } else {
+      record.reset();
     }
   };
 
@@ -404,12 +409,13 @@ export default function ChoiceRtGame() {
         />
       )}
       {phase === 'cleared' && (
-        <LevelCleared gameId="choice_rt" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+        <LevelCleared gameId="choice_rt" level={levelRef.current} recordLine={record.benchmark ? recordLineFor('choice_rt', record.benchmark, t) : undefined} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed} gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && (
         <GameResult
+          recordLine={record.benchmark ? recordLineFor('choice_rt', record.benchmark, t) : undefined}
           score={Math.max(0, Math.round(hits * 100 - errors * 50 - meanRt * 0.1))}
           time={meanRt / 1000} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}

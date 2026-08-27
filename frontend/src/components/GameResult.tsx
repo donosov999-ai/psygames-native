@@ -24,6 +24,9 @@ interface GameResultProps {
   shareText?: string;   // v1.116.0: если передан — показать кнопку «Поделиться» с этим текстом
   sparkline?: { history: number[]; current: number; lowerIsBetter?: boolean };   // v1.116.0: спарклайн последних сессий
   comparisonLine?: string;   // свой итог · лучший среди игроков / личный рекорд при офлайне
+  /** Рекорд-строка лидерборда (useRecordBenchmark) — отдельным слотом: comparisonLine
+   *  у части игр занят другим смыслом (трата способности), а рекорд им не конкурент. */
+  recordLine?: string;
   /**
    * ПОКАЗАТЕЛИ СВОЕЙ ИГРЫ — необязательный второй ряд под временем и счётом.
    *
@@ -52,6 +55,7 @@ export default function GameResult({
   shareText,
   sparkline,
   comparisonLine,
+  recordLine,
   metrics,
   metricsNote,
 }: GameResultProps) {
@@ -187,6 +191,13 @@ export default function GameResult({
             {metricsNote.map((line) => (
               <Text key={line} style={[styles.metricsNoteText, { color: fgSoft }]}>{line}</Text>
             ))}
+          </View>
+        )}
+
+        {recordLine && (
+          <View style={styles.comparisonBadge}>
+            <Ionicons name="trophy-outline" size={18} color={fg} />
+            <Text style={[styles.comparisonText, { color: fg }]}>{recordLine}</Text>
           </View>
         )}
 

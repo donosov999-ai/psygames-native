@@ -1,4 +1,4 @@
-/* psygames-game-trail-making · VER 1 · 19.08.2026 */
+/* psygames-game-trail-making · VER 2 · 28.08.2026 */
 /**
  * Trail Making Test (TMT) — соединяй узлы по порядку.
  *
@@ -30,7 +30,8 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LeaderboardModal from '@/src/components/LeaderboardModal';
-import { countsForRecord, submitScore } from '@/src/services/leaderboard';
+import { countsForRecord } from '@/src/services/leaderboard';
+import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmark';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
@@ -178,6 +179,7 @@ export default function TrailMakingGame() {
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const record = useRecordBenchmark('trail_making');
   const [clearedPassed, setClearedPassed] = useState(true);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   // mode/count как state — только для пресетов зарядки (init из URL-params);
@@ -307,7 +309,10 @@ export default function TrailMakingGame() {
     // уровень задаёт и режим A/B, и число узлов, а неверный тап хода не блокирует —
     // без гейта «0 ошибок» время выигрывалось бы наугад (см. LEADERBOARD_GAMES.trail_making).
     if (countsForRecord('trail_making', { isPreset, level: levelRef.current, errors: e })) {
-      submitScore('trail_making', finalTime).catch(() => {});   // тихо — лидерборд необязателен
+      // Рекорд-строка на итог + отправка — одним хуком (офлайн-фолбэк внутри).
+      record.report(finalTime);
+    } else {
+      record.reset();
     }
   };
 
@@ -467,6 +472,7 @@ export default function TrailMakingGame() {
         overlay={phase === 'cleared' ? (
           <LevelCleared
           variant="overlay" gameId="trail_making" level={levelRef.current}
+          recordLine={record.benchmark ? recordLineFor('trail_making', record.benchmark, t) : undefined}
           passed={clearedPassed}
           stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           gradient={GRADIENT} language={language} colors={colors}
@@ -582,6 +588,7 @@ export default function TrailMakingGame() {
 
       {phase === 'result' && (
         <GameResult
+          recordLine={record.benchmark ? recordLineFor('trail_making', record.benchmark, t) : undefined}
           score={Math.max(0, Math.round(1000 - elapsedTime * 5 - errors * 30))}
           time={elapsedTime}
           errors={errors}

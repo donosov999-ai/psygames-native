@@ -176,7 +176,13 @@ describe('лидерборд: у каждого ключа есть игра, к
   const screens = gameScreens();
 
   it.each(ALL_IDS)('%s отправляется хотя бы одним экраном', (id) => {
-    const senders = screens.filter((s) => s.src.includes(`submitScore('${id}'`)).map((s) => s.file);
+    // 28.08.2026: отправка живёт двумя путями — прямой submitScore (schulte,
+    // n-back: своя обвязка с историей) и общий хук useRecordBenchmark, который
+    // шлёт внутри report(). Хук без вызова report — мёртвый импорт, поэтому
+    // второй путь засчитывается только вместе с ним.
+    const senders = screens.filter((s) =>
+      s.src.includes(`submitScore('${id}'`)
+      || (s.src.includes(`useRecordBenchmark('${id}')`) && s.src.includes('record.report('))).map((s) => s.file);
     expect(senders.length).toBeGreaterThan(0);
   });
 
@@ -201,7 +207,8 @@ describe('лидерборд: у каждого ключа есть игра, к
   it('экран, который шлёт рекорд, спрашивает countsForRecord', () => {
     const bad: string[] = [];
     for (const { file, src } of screens) {
-      if (src.includes('submitScore(') && !src.includes('countsForRecord(')) bad.push(file);
+      const sends = src.includes('submitScore(') || src.includes('record.report(');
+      if (sends && !src.includes('countsForRecord(')) bad.push(file);
     }
     expect(bad).toEqual([]);
   });
