@@ -1,5 +1,6 @@
-/* psygames-pause-practices-game · VER 1 · 26.08.2026 */
+/* psygames-pause-practices-game · VER 2 · 27.08.2026 */
 import React from 'react';
+import PracticeVisual, { hasPracticeVisual } from './PracticeVisual';
 import {
   AppState,
   Platform,
@@ -364,15 +365,60 @@ function SessionScreen({
       </View>
       <Text style={[styles.clock, { color: theme.text }]}>{formatClock(session.plan.durationMs - frame.elapsedMs)}</Text>
       <View accessibilityLiveRegion="polite" style={styles.cueGrid}>
-        {frame.cues.map((cue) => (
+        {frame.cues.map((cue) => {
+          /**
+           * ⚠️ Длительность шага и число фаз НЕ лежат в `GuideCue` — их берём из
+           * программы, ровно как это делает будильник (`currentProgramStep`).
+           * Добавлять поля в общее ядро ради вида нельзя: оно делится с отдельным
+           * приложением и обязано оставаться платформенно чистым.
+           */
+          const шаги = getPracticeProgram(cue.setId, cue.programId).steps;
+          const шаг = шаги.find((st) => st.id === cue.stepId);
+          return (
           <View key={`${cue.setId}-${cue.programId}-${cue.stepId}`} style={[styles.cueCard, { borderColor: theme.border, backgroundColor: theme.surface }]}>
+            {/**
+              * 🔴 РАСКЛАДКА ПЕРЕНЕСЕНА ИЗ БУДИЛЬНИКА (`renderSoloVisualization`).
+              * Было: название набора · значок · заголовок шага · текст · тонкая
+              * полоска внизу. Время при этом жило ОТДЕЛЬНО от картинки — одни часы
+              * на всю сессию сверху, и сколько осталось ЭТОМУ шагу, было не видно.
+              * Стало как в будильнике: строка набора, затем заголовок шага и рядом
+              * СЧЁТ СЕКУНД этого шага, под ними подсказка, и только потом картинка —
+              * уже с таймером-рамкой вокруг неё.
+              */}
             <Text style={[styles.cueSet, { color: theme.secondary }]}>{text(getPracticeSet(cue.setId).title, locale)}</Text>
-            {renderGuide ? <View style={styles.guideSlot}>{renderGuide(cue)}</View> : <View accessibilityElementsHidden style={[styles.guidePlaceholder, { backgroundColor: theme.surfaceMuted }]}><Text style={styles.guideGlyph}>{cue.motion === 'breath' ? (cue.leaderShape === 'square' ? '□' : cue.leaderShape === 'triangle' ? '△' : '◯') : cue.motion === 'eyes' ? '◉' : cue.motion === 'voice' ? '♪' : '↗'}</Text></View>}
-            <Text accessibilityRole="header" style={[styles.cueTitle, { color: theme.text }]}>{cue.title}</Text>
+            <View style={styles.cueHeadRow}>
+              <Text accessibilityRole="header" style={[styles.cueTitle, styles.cueTitleInline, { color: theme.text }]}>{cue.title}</Text>
+              <Text style={[styles.cueSeconds, { color: theme.primary }]}>
+                {Math.max(1, Math.ceil(((шаг?.durationMs ?? 1000) * (1 - cue.progress)) / 1000))}
+                <Text style={[styles.cueSecondsUnit, { color: theme.textSecondary }]}>{locale === 'ru' ? ' сек' : ' sec'}</Text>
+              </Text>
+            </View>
             <Text style={[styles.cueText, { color: theme.textSecondary }]}>{cue.cue}</Text>
-            <View style={[styles.cueProgress, { backgroundColor: theme.border }]}><View style={[styles.cueProgressFill, { backgroundColor: theme.primary, width: `${Math.min(100, cue.progress * 100)}%` }]} /></View>
+            {/**
+              * 🔴 ЗДЕСЬ СТОЯЛ ОДИН ЗНАЧОК ВМЕСТО КАРТИНКИ.
+              * Заглушка рисовала ◯ □ △ ◉ ♪ ↗ — по символу на вид движения. При этом
+              * в «Умном будильнике», который делит с приложением ТО ЖЕ ЯДРО практик,
+              * у каждого набора давно своя картинка: тело с подсвеченной зоной,
+              * снимки поз, фигура дыхания. Перенесены 27.08.2026 в `PracticeVisual`.
+              * Значок оставлен запасным путём: набор без своей картинки не должен
+              * оставлять пустую дыру.
+              */}
+            {renderGuide
+              ? <View style={styles.guideSlot}>{renderGuide(cue)}</View>
+              : hasPracticeVisual(cue.setId)
+                ? (
+                  <PracticeVisual
+                    cue={{ setId: cue.setId, programId: cue.programId, stepId: cue.stepId, progress: cue.progress }}
+                    theme={{ line: theme.textSecondary, zone: theme.border, active: theme.primary, surface: theme.surface }}
+                    timing={{ phases: шаги.length, phaseIndex: Math.max(0, шаги.findIndex((st) => st.id === cue.stepId)) }}
+                  />
+                )
+                : <View accessibilityElementsHidden style={[styles.guidePlaceholder, { backgroundColor: theme.surfaceMuted }]}><Text style={styles.guideGlyph}>{cue.motion === 'breath' ? (cue.leaderShape === 'square' ? '□' : cue.leaderShape === 'triangle' ? '△' : '◯') : cue.motion === 'eyes' ? '◉' : cue.motion === 'voice' ? '♪' : '↗'}</Text></View>}
+            {/* Полоска прогресса шага убрана: её работу теперь делает рамка вокруг
+                картинки, а две шкалы одного и того же спорят друг с другом. */}
           </View>
-        ))}
+          );
+        })}
       </View>
       <Text style={[styles.safetyFooter, { color: theme.textSecondary }]}>{text(WARNING_TEXT['general-stop'], locale)}</Text>
     </ScrollView>
@@ -600,6 +646,10 @@ const styles = StyleSheet.create({
   cueGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   cueCard: { minWidth: 260, flex: 1, borderWidth: 1, borderRadius: 22, padding: 18, gap: 10, alignItems: 'center' },
   cueSet: { fontSize: 11, lineHeight: 15, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.6 },
+  cueHeadRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 },
+  cueTitleInline: { flex: 1 },
+  cueSeconds: { fontSize: 22, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  cueSecondsUnit: { fontSize: 13, fontWeight: '600' },
   guideSlot: { width: '100%', minHeight: 100, alignItems: 'center', justifyContent: 'center' },
   guidePlaceholder: { width: 104, height: 104, borderRadius: 52, alignItems: 'center', justifyContent: 'center' },
   guideGlyph: { fontSize: 42, color: '#426b5a' },
