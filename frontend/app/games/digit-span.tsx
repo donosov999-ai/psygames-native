@@ -428,8 +428,17 @@ export default function DigitSpanGame() {
             game_type: 'digit_span',
             score: updatedMax * 10,
             time_seconds: finalTime,
-            difficulty: direction,
-            mode: `start${seqLen}`,
+            /**
+             * 🔴 ПАРТИЯ БАТАРЕИ ОБЯЗАНА ЗАПИСАТЬСЯ ПОД МЕТКАМИ ШАГА. Шаг оценки
+             * предписывает difficulty 'medium' + mode 'forward' (assessment.ts, там же
+             * sessionFitsStep сверяет оба поля дословно), а игра писала difficulty=
+             * НАПРАВЛЕНИЕ ('forward') и mode='start4' — ни одно поле не совпадало, и
+             * домен wm_verbal ВСЕГДА получал молчаливый z=0 вместо замера. Свободная
+             * партия пишет как раньше; направление и стартовая длина не теряются —
+             * они в details (direction, finalLength) с первого дня.
+             */
+            difficulty: isPreset ? str('diff', 'medium') : direction,
+            mode: isPreset ? dirRef.current : `start${seqLen}`,
             errors: updatedErrors,
             details: {
               level: levelRef.current, maxSpan: updatedMax, correctRounds: updatedCorrect, finalLength: seqLen,

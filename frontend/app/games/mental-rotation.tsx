@@ -367,6 +367,19 @@ function shadeColor(hex: string, percent: number): string {
 
 // ─── component ────────────────────────────────────────────────────────────
 
+/**
+ * 🔴 ШАГ ЗАРЯДКИ/ОЦЕНКИ ИГРАЕТ ФИКСИРОВАННЫЙ ПРЕСЕТ, А НЕ ЛИЧНЫЙ УРОВЕНЬ.
+ * Было `lvl.level` и в пресете: у игрока 1-го уровня оценка состояла из одних
+ * поворотов малых углов, у прокачанного — из проекций/развёрток и хиральных
+ * ловушек (planTaskKinds/buildTask растут уровнем), а наклон RT-по-углу обеих
+ * партий сравнивался с ОДНОЙ нормой (angle_response_slope 8±4, assessment.ts).
+ * Паттерн — flanker.tsx:144: тир шага → середина полосы своей difficulty-раскладки
+ * (≤5 easy · ≤10 medium · ≥11 hard); партия запишется с difficulty шага
+ * (medium=8 → 'medium'), и sessionFitsStep её опознает. Число проб задаёт шаг
+ * (assessment: 5).
+ */
+export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
+
 export default function MentalRotationGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -378,7 +391,7 @@ export default function MentalRotationGame() {
   const reduceMotion = useReducedMotion();
 
   const lvl = usePersistentLevel('mental_rotation');
-  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
@@ -434,10 +447,13 @@ export default function MentalRotationGame() {
   }, [reviewing, frames, reduceMotion]);
 
   const startGame = () => {
-    levelRef.current = lvl.level;
+    // личная игра → уровень рулит; пресет (зарядка/оценка) → фикс-уровень тира.
+    // Паттерн flanker.tsx:144; см. PRESET_LEVEL_BY_DIFF выше.
+    const effLevel = isPreset ? (PRESET_LEVEL_BY_DIFF[str('diff', 'medium')] ?? 8) : lvl.level;
+    levelRef.current = effLevel;
     setRecords([]); setRound(1);
-    planRef.current = planTaskKinds(lvl.level, trials, Math.random);
-    setTask(buildTask(planRef.current[0] ?? 'rotation', lvl.level, Math.random));
+    planRef.current = planTaskKinds(effLevel, trials, Math.random);
+    setTask(buildTask(planRef.current[0] ?? 'rotation', effLevel, Math.random));
     setFeedback(null);
     setReviewStep(0);
     setPhase('playing');

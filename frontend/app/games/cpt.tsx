@@ -156,6 +156,27 @@ export function trialsThatFit(level: number): number {
   return Math.floor((p.durationSec * 1000) / (p.isiMs * 2));
 }
 
+/**
+ * 🔴 ШАГ ЗАРЯДКИ/ОЦЕНКИ ИГРАЕТ ФИКСИРОВАННЫЙ ПРЕСЕТ, А НЕ ЛИЧНЫЙ УРОВЕНЬ.
+ * Было `levelParams(lvl.level)` и в пресете: игрок 1-го уровня сдавал замер на
+ * X-CPT c ISI 1500мс, игрок 15-го — на AX с ISI 500мс и половиной похожих на X
+ * дистракторов, а норма (rt_variability 0.20±0.08, assessment.ts) одна на всех.
+ * Паттерн — flanker.tsx:144: тир шага → середина полосы своей difficulty-раскладки
+ * (≤5 easy=X · ≤10 medium=AX · ≥11 hard). medium=8: AX, ISI 980мс — партия
+ * запишется с difficulty 'medium', как предписывает шаг батареи.
+ *
+ * Длительность — отдельная ручка шага: оба пресета в проекте объявляют mode
+ * '4min' (ASSESSMENT_PLAYLIST и CPT_STEP в warmup.ts), а levelParams всегда даёт
+ * 90с. presetDurationSec честно разбирает '<N>min'; незнакомый режим → 90с
+ * уровня, а НЕ тихий NaN. При ISI 980мс в 4 минуты влезает ~122 пробы против
+ * ~45 за 90с — CV-RT по сотне откликов, а не по горстке.
+ */
+export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
+export function presetDurationSec(modeParam: string, fallbackSec: number): number {
+  const m = /^(\d+)min$/.exec(modeParam);
+  return m ? parseInt(m[1], 10) * 60 : fallbackSec;
+}
+
 // В AX-режиме A — это подсказка, а не наполнитель: случайная A из общего банка
 // заводила бы незапланированную пару и ломала долю целей, поэтому её исключаем.
 const LETTERS_FILLER = LETTERS_NON_X.filter((l) => l !== 'A');
@@ -206,7 +227,7 @@ export default function CPTGame() {
   const stimFont = stimSide * 0.6;                          // символ ~60% окна (было 120px в боксе 240px)
 
   const lvl = usePersistentLevel('cpt');
-  const { isPreset, autostart, isCalm } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
+  const { isPreset, autostart, str, isCalm } = useGamePreset();   // зарядка передаёт ?wu=1 → intro/config пропускаем
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера LevelCleared
@@ -241,6 +262,10 @@ export default function CPTGame() {
   const isiRef = useRef(1500);
   const modeRef = useRef<'X' | 'AX'>('X');
   const durationSecRef = useRef(90);
+  // mode-строка шага пресета ('4min'): в пресете партия ЗАПИСЫВАЕТСЯ под ней —
+  // sessionFitsStep в assessment.ts сверяет session.mode со step.mode дословно,
+  // `lvl8` там не опознался бы и домен внимания молча получал бы z=0.
+  const presetModeRef = useRef('');
   const prevLetterRef = useRef('');
 
   const clearAllTimers = () => {
@@ -338,11 +363,15 @@ export default function CPTGame() {
   };
 
   const startGame = () => {
-    const p = levelParams(lvl.level);
-    levelRef.current = lvl.level;
+    // личная игра → уровень рулит; пресет (зарядка/оценка) → фикс-уровень тира +
+    // длительность из mode-параметра шага ('4min' → 240с). Паттерн flanker.tsx:144.
+    const effLevel = isPreset ? (PRESET_LEVEL_BY_DIFF[str('diff', 'medium')] ?? 8) : lvl.level;
+    const p = levelParams(effLevel);
+    levelRef.current = effLevel;
+    presetModeRef.current = isPreset ? str('mode', '') : '';
     isiRef.current = p.isiMs;
     modeRef.current = p.mode;
-    durationSecRef.current = p.durationSec;
+    durationSecRef.current = isPreset ? presetDurationSec(presetModeRef.current, p.durationSec) : p.durationSec;
     prevLetterRef.current = '';
     stoppedRef.current = false;
     trialsRef.current = [];
@@ -351,7 +380,7 @@ export default function CPTGame() {
     setFeedback(null);
     setLetterVisible(false);
     setCurrentLetter('');
-    setRemaining(p.durationSec);
+    setRemaining(durationSecRef.current);   // пресет может удлинить партию ('4min'), не p.durationSec
     setPhase('playing');
     startTimeRef.current = gameNow();
     remainingTimerRef.current = setInterval(() => {
@@ -471,7 +500,8 @@ export default function CPTGame() {
         score: Math.max(0, Math.round(totalHits * 5 - totalCommissions * 20 - totalOmissions * 10)),
         time_seconds: totalTime,
         difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
-        mode: `lvl${levelRef.current}`,
+        // пресет пишет mode шага ('4min') — иначе sessionFitsStep не сопоставит партию батарее
+        mode: isPreset && presetModeRef.current ? presetModeRef.current : `lvl${levelRef.current}`,
         errors: totalOmissions + totalCommissions,
         details: {
           level: levelRef.current,

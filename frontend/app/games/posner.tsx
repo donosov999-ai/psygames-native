@@ -97,6 +97,18 @@ export function levelParams(level: number): { trials: number; windowMs: number; 
 }
 
 /**
+ * 🔴 ШАГ ЗАРЯДКИ/ОЦЕНКИ ИГРАЕТ ФИКСИРОВАННЫЙ ПРЕСЕТ, А НЕ ЛИЧНЫЙ УРОВЕНЬ.
+ * Было `levelParams(lvl.level)` и в пресете: игрок 1-го уровня сдавал оценку с
+ * окном 2200мс и SOA 150-250мс, игрок 15-го — с окном 900мс и SOA 80-700мс, а
+ * z-скор обеих партий считался против ОДНОЙ нормы (validity_effect 50±30,
+ * assessment.ts). Паттерн — flanker.tsx:144: тир зарядки → середина полосы
+ * своей difficulty-раскладки (≤5 easy · ≤10 medium · ≥11 hard). medium=8:
+ * окно 1535мс, SOA 115-481мс — и партия запишется с difficulty 'medium', как
+ * предписывает шаг батареи (sessionFitsStep в assessment.ts).
+ */
+export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
+
+/**
  * Проба уровня. Уровень стоит в подписи НАМЕРЕННО, хотя доли типов подсказок от
  * него не зависят: гейт спрашивает игру по уровням и считает долю информативных
  * подсказок по реально сгенерированным пробам, а не по строчке в исходнике.
@@ -120,7 +132,7 @@ export default function PosnerGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset, autostart, isCalm } = useGamePreset();
+  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('posner');
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
@@ -208,13 +220,16 @@ export default function PosnerGame() {
   };
 
   const startGame = () => {
-    const p = levelParams(lvl.level);
-    levelRef.current = lvl.level;
+    // личная игра → уровень рулит; пресет (зарядка/оценка) → фикс-уровень тира,
+    // число проб задаёт шаг (assessment: 15). Паттерн flanker.tsx:144.
+    const effLevel = isPreset ? (PRESET_LEVEL_BY_DIFF[str('diff', 'medium')] ?? 8) : lvl.level;
+    const p = levelParams(effLevel);
+    levelRef.current = effLevel;
     windowMsRef.current = p.windowMs;
     soaMinRef.current = p.soaMinMs;
     soaMaxRef.current = p.soaMaxMs;
-    totalTrialsRef.current = p.trials;
-    setTotalTrials(p.trials);
+    totalTrialsRef.current = isPreset ? num('trials', p.trials) : p.trials;
+    setTotalTrials(totalTrialsRef.current);
     hitsRef.current = 0; errorsRef.current = 0;
     rtsRef.current = { valid: [], invalid: [], neutral: [] };
     roundRef.current = 1;

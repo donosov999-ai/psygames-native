@@ -1078,6 +1078,139 @@ export function digToFloor(
   return { gen: { ...gen, puzzle }, grade, dug };
 }
 
+
+/**
+ * ПОДЪЁМ СТУПЕНИ СНЯТИЕМ ПОДСКАЗОК ВАРИАНТА — приём Тэтхэма №2 (задача dd715b0d).
+ *
+ * 🔴 ОТКУДА. TATHAM_ANALYSIS.md §6.2 — «универсальная петля», найденная у него
+ * в СЕМИ файлах дословно (pearl.c:1393 · signpost.c:782 · unequal.c:1136 ·
+ * magnets.c:1669 · slant.c:1193 · filling.c:1217 · unruly.c:1416):
+ * взять подсказку → убрать → перерешать → решается? оставить убранной : вернуть.
+ *
+ * 🔴 ЗАЧЕМ НАМ. Недолёт до пола полосы у thermo/sandwich (замер 27.08: thermo
+ * L45 в полосу 5..6 попадает 4-6 досок из 20, тиры застревают на 3-4) не
+ * лечится копанием КЛЕТОК — их digToFloor уже снял до предела. Лишние сведения
+ * несут ПОДСКАЗКИ ВАРИАНТА: термометры и сэндвич-числа. Их до сих пор никто не
+ * снимал направленно: сэндвич прореживался ФИКСИРОВАННОЙ долей (thinSandwich,
+ * SANDWICH_KEEP — доля назначена, а не выведена), термометры не снимались вовсе.
+ *
+ * ⚠️ Первый порт приёма №1 (пере-жеребьёвка решётки) ОТКАЧЕН по микрозамеру:
+ * решётка джигсо стоит 6 мс при копке 99 — «экономия» вышла −19%. Дорогая часть
+ * у нас — оценка, и выигрывает не пере-стройка, а НАПРАВЛЕННОЕ снятие сведений.
+ *
+ * Обе детали §6.2, без которых приём вырождается, соблюдены:
+ * 1) перерешиваем НА ЗАДАННОЙ СТУПЕНИ — принимаем только solved && tier ≤ max;
+ * 2) «якоря не снимать» — не роняем ступень (tier ≥ прежней) и не снимаем
+ *    последнюю подсказку линии: у сэндвича держим ≥1 видимую на доску, у термо
+ *    не снимаем последний термометр — без них вариант перестаёт быть собой.
+ */
+export function liftByClueRemoval(
+  gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant,
+  min: number, max: number, deadline?: number,
+): { gen: GeneratedPuzzle; grade: Grade; removed: number } {
+  let grade = gradeOf(gen, N, BR, BC, variant);
+  if (!grade.solved || grade.tier >= min) return { gen, grade, removed: 0 };
+
+  type Кандидат = { снять: (g: GeneratedPuzzle) => GeneratedPuzzle; осталось: () => number };
+  const кандидаты: Кандидат[] = [];
+
+  if (variant === 'sandwich' && gen.sandwich) {
+    const видимых = () =>
+      (gen.sandwich as { rows: number[]; cols: number[] }).rows.filter((v) => v >= 0).length +
+      (gen.sandwich as { rows: number[]; cols: number[] }).cols.filter((v) => v >= 0).length;
+    for (const сторона of ['rows', 'cols'] as const) {
+      const линия = (gen.sandwich as Record<string, number[]>)[сторона];
+      линия.forEach((зн, i) => {
+        if (зн < 0) return;
+        кандидаты.push({
+          осталось: видимых,
+          снять: (g) => {
+            const sw = { rows: [...(g.sandwich as { rows: number[]; cols: number[] }).rows], cols: [...(g.sandwich as { rows: number[]; cols: number[] }).cols] };
+            (sw as Record<string, number[]>)[сторона] = [...(sw as Record<string, number[]>)[сторона]];
+            (sw as Record<string, number[]>)[сторона][i] = -1;
+            return { ...g, sandwich: sw };
+          },
+        });
+      });
+    }
+  }
+
+  if ((variant === 'thermo' || variant === 'thermocage') && gen.thermo) {
+    // Термометры собираются обходом карты prev/next: колба — клетка без prev.
+    const карта = gen.thermo;
+    const пути: [number, number][][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const у = карта[r]?.[c];
+      if (!у || у.prev) continue;
+      const путь: [number, number][] = [];
+      let тек: [number, number] | null = [r, c];
+      while (тек) {
+        путь.push(тек);
+        const зв: { prev: [number, number] | null; next: [number, number] | null } | null | undefined = карта[тек[0]]?.[тек[1]];
+        тек = зв?.next ?? null;
+      }
+      if (путь.length > 1) пути.push(путь);
+    }
+    const живых = () => {
+      let n = 0;
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (gen.thermo?.[r]?.[c] && !gen.thermo[r][c]?.prev) n++;
+      return n;
+    };
+    for (const путь of пути) {
+      кандидаты.push({
+        осталось: живых,
+        снять: (g) => {
+          const т = (g.thermo as ThermoPN).map((row) => row.map((x) => (x ? { ...x } : x)));
+          for (const [r, c] of путь) т[r][c] = null;
+          return { ...g, thermo: т };
+        },
+      });
+    }
+  }
+
+  if (variant === 'thermocage' && gen.cages) {
+    /**
+     * Клетки-суммы — вторая фигура thermocage, и по замеру именно её избыток
+     * держал тройки: со снятием одних термометров попадание было 7/20, суммы
+     * никто не трогал. Снятие клетки = убрать её группу из карты: cageOf → −1,
+     * запись в sum/anchor/cells остаётся, но помечается пустой группой.
+     */
+    const карта = gen.cages;
+    const живыхКлеток = () => карта.cells.filter((группа) => группа.length > 0).length;
+    карта.cells.forEach((группа, id) => {
+      if (группа.length === 0) return;
+      кандидаты.push({
+        осталось: живыхКлеток,
+        снять: (g) => {
+          const c = g.cages as CageMap;
+          const cageOf = c.cageOf.map((row) => [...row]);
+          for (const [r, q] of c.cells[id]) cageOf[r][q] = -1;
+          const cells = c.cells.map((гр, j) => (j === id ? [] : гр)) as CageMap['cells'];
+          return { ...g, cages: { ...c, cageOf, cells } };
+        },
+      });
+    });
+  }
+
+  if (кандидаты.length === 0) return { gen, grade, removed: 0 };
+
+  let removed = 0;
+  for (const канд of shuffle(кандидаты)) {
+    if (deadline !== undefined && Date.now() > deadline) break;
+    if (канд.осталось() <= 1) continue;   // якорь: последнюю подсказку не снимаем
+    const проба = канд.снять(gen);
+    const пробная = gradeOf(проба, N, BR, BC, variant);
+    // Тот же тройной откат, что в digToFloor: несолв, пробитый потолок и
+    // ПОНИЖЕНИЕ ступени возвращают подсказку на место.
+    if (!пробная.solved || пробная.tier > max || пробная.tier < grade.tier) continue;
+    gen = проба;
+    grade = пробная;
+    removed += 1;
+    if (grade.tier >= min) break;
+  }
+  return { gen, grade, removed };
+}
+
 export function logicalBuilder(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
   opts: { budgetMs?: number; tier?: { min: number; max: number } } = {},
@@ -1086,7 +1219,7 @@ export function logicalBuilder(
   step: () => { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean };
   enough: (r: { grade: Grade; fellBack: boolean }) => boolean;
 } {
-  const { min, max } = opts.tier ?? targetTier(level);
+  const { min, max } = effectiveBand(variant, opts.tier ?? targetTier(level));
   const dist = (t: number) => (t < min ? min - t : t > max ? t - max : 0);
   const perStep = Math.max(400, Math.round((opts.budgetMs ?? 2200) / 2));
   /**
@@ -1149,6 +1282,40 @@ export function thinSandwich(
 /** Доля показанных сэндвич-подсказок по месту в полосе: дальше — меньше подарков. */
 const SANDWICH_KEEP = [1, 0.78, 0.56, 0.34];
 
+
+/**
+ * 🔴 ВАРИАНТНЫЙ ПОТОЛОК СТУПЕНИ — починка «объявленный пол недостижим»
+ * (задача 01a3b47a). Полоса сложности была ОДНА на все варианты, а достижимая
+ * глубина техник у вариантов разная: термо-подсказки сами закрывают дорогие
+ * пути рассуждения.
+ *
+ * ЗАМЕР 27.08.2026, свободный прогон по 30/15 досок БЕЗ полосы (бюджет 1100 мс):
+ *   thermo:     тир 2×17 · 3×7 · 4×4 · 5×2 · ШЕСТЁРОК НОЛЬ
+ *   thermocage: тир 2×6 · 3×2 · 4×6 · 5×1 — шестёрок тоже ноль
+ *   jigsaw:     3×22 · 4×5 · 6×2 — шестёрка бывает, потолок не нужен
+ * И контрольный прогон с реалистичной полосой: thermo L45 цель 4..5 →
+ * попадание 17/20 при 169 мс/доска (на нереальной 5..6 было 3/20 и 961 мс).
+ *
+ * Потолок «6» для thermo/thermocage — не сложность, а лотерея с пустым барабаном:
+ * генератор жёг бюджет и отдавал что попало. Клэмп ниже честнее и в 5,7 раза
+ * дешевле. Прогрессию внутри вариантов дальше ведёт ось плотности подсказок
+ * (`markerDensity`), а не недостижимая ступень.
+ */
+const VARIANT_TIER_CAP: Partial<Record<Variant, number>> = { thermo: 5, thermocage: 5 };
+
+/**
+ * Эффективная полоса = запрошенная, клэмпнутая вариантным потолком. Один
+ * источник для generateLogical и logicalBuilder — чтобы клэмп нельзя было
+ * забыть в одном из двух (первая редакция ровно так и попала: клэмп лёг в
+ * builder, а generateLogical остался со старой полосой, и в тирах мелькали
+ * «невозможные» шестёрки thermo).
+ */
+export function effectiveBand(variant: Variant, band: { min: number; max: number }): { min: number; max: number } {
+  const cap = VARIANT_TIER_CAP[variant];
+  if (cap === undefined) return band;
+  return { min: Math.min(band.min, Math.max(1, cap - 1)), max: Math.min(band.max, cap) };
+}
+
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
   opts: { budgetMs?: number; tier?: { min: number; max: number } } = {},
@@ -1162,7 +1329,7 @@ export function generateLogical(
    * ⚠️ Полосу принимаем ГОТОВОЙ, а не считаем здесь по названию дороги: знание о
    * дорогах живёт в одном файле, и градатор не должен обрастать вторым его экземпляром.
    */
-  const { min, max } = opts.tier ?? targetTier(level);
+  const { min, max } = effectiveBand(variant, opts.tier ?? targetTier(level));
   const dist = (t: number) => (t < min ? min - t : t > max ? t - max : 0);
 
   if (LOGIC_VARIANTS.includes(variant)) {
@@ -1181,10 +1348,20 @@ export function generateLogical(
        * заново — шестая попытка стоила бы дороже и вышла бы такой же случайной.
        */
       const поднято = digToFloor(best.gen, N, BR, BC, variant, min, max, until);
-      if (поднято.grade.tier > best.grade.tier) {
-        return { gen: поднято.gen, grade: поднято.grade, dug: best.dug + поднято.dug, fellBack: false };
+      let итог = поднято.grade.tier > best.grade.tier
+        ? { gen: поднято.gen, grade: поднято.grade, dug: best.dug + поднято.dug }
+        : { gen: best.gen, grade: best.grade, dug: best.dug };
+      /**
+       * Клетки выкопаны до предела, а пола нет — снимаем ПОДСКАЗКИ ВАРИАНТА
+       * (термометры, сэндвич-числа): приём Тэтхэма №2, разбор в шапке
+       * `liftByClueRemoval`. Именно этот недолёт держал thermo L45 на 4-6
+       * попаданиях из 20 при полосе 5..6.
+       */
+      if (итог.grade.tier < min) {
+        const снятие = liftByClueRemoval(итог.gen, N, BR, BC, variant, min, max, until);
+        if (снятие.grade.tier > итог.grade.tier) итог = { gen: снятие.gen, grade: снятие.grade, dug: итог.dug };
       }
-      return { ...best, fellBack: false };
+      return { ...итог, fellBack: false };
     }
   }
 
@@ -1239,8 +1416,13 @@ export function generateLogical(
    * тут же вернуть подсказки и опустить ступень обратно.
    */
   const поднято = digToFloor(eased.gen, N, BR, BC, variant, min, max, fbUntil);
-  const gen = поднято.grade.tier > eased.grade.tier ? поднято.gen : eased.gen;
-  const итогГрейд = поднято.grade.tier > eased.grade.tier ? поднято.grade : eased.grade;
+  let gen = поднято.grade.tier > eased.grade.tier ? поднято.gen : eased.gen;
+  let итогГрейд = поднято.grade.tier > eased.grade.tier ? поднято.grade : eased.grade;
+  // Запасной путь добирает пол тем же снятием подсказок варианта (см. шапку lift).
+  if (итогГрейд.solved && итогГрейд.tier < min) {
+    const снятие = liftByClueRemoval(gen, N, BR, BC, variant, min, max, fbUntil);
+    if (снятие.grade.tier > итогГрейд.tier) { gen = снятие.gen; итогГрейд = снятие.grade; }
+  }
   let left = 0;
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (gen.puzzle[r][c] === 0) left++;
   return { gen, grade: итогГрейд, dug: left, fellBack: true };

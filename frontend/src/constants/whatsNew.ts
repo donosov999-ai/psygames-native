@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.243.0',
+    date: '2026-08-27',
+    ru: [
+      'Сортировка товаров: с 16-го уровня приходит скрытая информация — под верхними товарами «?», планировать приходится вслепую и пересматривать план по ходу',
+      'Судоку: термо-варианты получили честные полосы сложности (недостижимые ступени убраны замером), джигсо и термо-клетки чаще попадают в свою полосу',
+      'Оценка: починены пять метрик (переключение, шар, узор, цифровой ряд, символы) и все игры батареи стартуют в фиксированной конфигурации — сравнение с нормами снова осмысленно',
+    ],
+    en: [
+      'Goods sorting: from level 16 hidden information arrives — “?” under top items, so you plan blind and revise as you reveal',
+      'Sudoku: thermo variants got honest difficulty bands (unreachable tiers removed by measurement), jigsaw and thermo-cages hit their band more often',
+      'Assessment: five metrics fixed (switching, balloon, pattern, digit span, symbols) and every battery game starts in a fixed configuration — norm comparison is meaningful again',
+    ],
+  },
+  {
     version: '1.242.5',
     date: '2026-08-27',
     ru: [

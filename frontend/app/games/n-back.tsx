@@ -99,6 +99,20 @@ function levelParams(level: number): { N: number; modality: Modality; showMs: nu
   const dl = level - 8; return { N: Math.min(6, 1 + dl), modality: 'dual', showMs: 700, gapMs: 1100 };   // L9=2-back dual → растёт до 6
 }
 
+/**
+ * 🔴 ШАГ БАТАРЕИ ГОВОРИТ mode: '2-back' — А ИГРА ЕГО НЕ ЧИТАЛА.
+ * Пресет брал N из num('nLevel', 1), но nLevel через URL передают только шаги
+ * с settings (profiles.ts); ASSESSMENT_PLAYLIST и FIXED_BATTERY (warmup.ts:189)
+ * объявляют '2-back' полем mode — и оценка МОЛЧА игралась как 1-back, а её
+ * d′ сравнивался с нормой двухбэка (1.5±0.8, assessment.ts). Замер: '2-back'
+ * в шаге → nLevel=1 в партии. Разбираем mode-строку; приоритет: mode-параметр →
+ * settings.nLevel → 1. Сторожит assessment-metrics.test.ts.
+ */
+export function nFromModeParam(modeParam: string): number | null {
+  const m = /^(\d+)-back$/.exec(modeParam);
+  return m ? Math.max(1, parseInt(m[1], 10)) : null;
+}
+
 // Джиттер паузы между стимулами (±15%, потолок 200мс) — иначе интервал предсказуем
 // и можно жать «в ритм» не распознавая стимул (паттерн Audio-N-back/4skinSkywalker).
 function jitteredGap(baseMs: number): number {
@@ -134,7 +148,7 @@ export default function NBackGame() {
   const [resultBenchmark, setResultBenchmark] = useState<{ own: number; best: number; source: 'players' | 'personal' } | null>(null);
   // Справка правил уровня (в зарядке-пресете не показываем — там свой поток)
   const levelRules = useLevelRules('n_back', lvl.level, NB_RULES, phase === 'playing' && !isPreset);
-  const [nLevel, setNLevel] = useState(() => num('nLevel', 1));
+  const [nLevel, setNLevel] = useState(() => nFromModeParam(str('mode', '')) ?? num('nLevel', 1));
   const [trials, setTrials] = useState(() => num('trials', 20));
   /** Заготовленные блоки: зрительный и слуховой. Строятся в `startGame`. */
   const seqRef = useRef<ReturnType<typeof buildNbackSequence> | null>(null);
@@ -357,13 +371,22 @@ export default function NBackGame() {
         game_type: 'n_back',
         score: hits * 10 - falseAlarms * 5 + (modality === 'dual' ? aHits * 10 - aFalseAlarms * 5 : 0),
         time_seconds: finalTime,
-        difficulty: `${nLevel}-back`,
-        mode: `${trials}t-${modality}`,
+        /**
+         * Пресет пишет метки ШАГА: difficulty 'medium'/'easy' (diff-параметр) и
+         * mode '2-back'. sessionFitsStep в assessment.ts сверяет оба поля дословно,
+         * а свободный формат (`'2-back'`/`'15t-single'`) не совпадал ни с одним
+         * шагом — партия батареи молча выпадала из оценки (домен → z=0).
+         * Сами N/пробы/модальность не теряются: они всегда в details ниже.
+         */
+        difficulty: isPreset ? str('diff', 'medium') : `${nLevel}-back`,
+        mode: isPreset ? `${nLevel}-back` : `${trials}t-${modality}`,
         errors: misses + falseAlarms + (modality === 'dual' ? aMisses + aFalseAlarms : 0),
         details: {
           // Резерв прогресса: getMaxLevelFromSessions восстановит уровень отсюда,
           // если локальный ключ потерян (переустановка, сброс профиля).
           level: levelRef.current,
+          n: nLevel,
+          n_trials: trials,
           hits, misses, falseAlarms, correctRejections, accuracy,
           d_prime: dPrime,
           hit_rate: Number(visualSignal.hitRate.toFixed(3)),
