@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 12 · 28.08.2026 */
+/* psygames-game-sudoku · VER 13 · 28.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -876,6 +876,19 @@ export default function SudokuGame() {
   // там человек явно запустил свежий раунд, и startGame сам выбросит старую партию.
   useResumeBoot<SudokuResume>(GAME_ID, RESUME_V, (saved) => {
     if (!saved || !Array.isArray(saved.grid) || !saved.grid.length) return;
+    /**
+     * 🔴 СНИМОК МИНИ-ЛЕСТНИЦЫ ЖИВЁТ ЗА СВОЕЙ КАРТОЧКОЙ. Валентина 28.08 (через
+     * Дениса): «всё ещё неравенства запускаются» — незаконченная партия
+     * towers/unequal поднималась при входе в ОБЫЧНУЮ судоку и утаскивала туда
+     * каждый заход. Теперь side-снимок поднимает только вход через свою карточку
+     * (?mode= совпал), обычный вход его НЕ трогает и НЕ стирает — партия ждёт
+     * своего входа; и наоборот, вход в мини-режим не поднимает levels-снимок.
+     */
+    const routeM = routeParams.mode;
+    const sideSnapshot = saved.mode === 'towers' || saved.mode === 'unequal';
+    const sideEntry = routeM === 'towers' || routeM === 'unequal';
+    if (sideSnapshot !== sideEntry) return;
+    if (sideSnapshot && routeM !== saved.mode) return;
     applyResume(saved);
   }, autostart);
 
