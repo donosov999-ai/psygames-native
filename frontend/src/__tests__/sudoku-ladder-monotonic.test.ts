@@ -21,7 +21,7 @@
 import { effectiveBand, monotonicBandForLevel, targetTier } from '../services/sudoku-grade';
 import { levelConfig } from '../services/sudoku-core';
 
-const LAST_LEVEL = 57;
+const LAST_LEVEL = 80;
 
 describe('лестница судоку монотонна по обещаниям', () => {
   it('🔴 пила жива как ось: СЫРЫЕ полосы спадают на стыках — иначе running-max был бы мёртвым кодом', () => {

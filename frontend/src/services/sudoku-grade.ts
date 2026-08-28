@@ -762,7 +762,13 @@ export function targetTier(level: number): { min: number; max: number } {
   if (lv <= 21) return { min: 3, max: 3 };   // связанные кандидаты
   if (lv <= 29) return { min: 3, max: 4 };   // голые пары/тройки
   if (lv <= 37) return { min: 4, max: 5 };   // скрытые пары
-  // 38+: четыре ступени внутри каждой полосы варианта — 3..4, 4..5, 5..6, 6..6.
+  /**
+   * 58+ — пояса банка (классика, правка 28.08): сложность там задаёт SE-полоса
+   * лестницы банка, а не полоса техник; рамка держится плоской вершиной, чтобы
+   * пила четвёрок не рисовала ложное «сложность упала» между уровнями поясов.
+   */
+  if (lv >= 58) return { min: 6, max: 6 };
+  // 38–57: четыре ступени внутри каждой полосы варианта — 3..4, 4..5, 5..6, 6..6.
   const band = [{ min: 3, max: 4 }, { min: 4, max: 5 }, { min: 5, max: 6 }, { min: 6, max: 6 }][bandPos(lv)] as { min: number; max: number };
   const ceiling = VARIANT_TIER_CEILING[levelConfig(lv).variant as Variant];
   if (ceiling === undefined) return band;
