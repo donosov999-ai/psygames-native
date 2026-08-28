@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.253.0',
+    date: '2026-08-28',
+    ru: [
+      'Подбор игр для новичка — идея Валентины: три вопроса (настроение, время, склонность) — и приложение показывает три игры «под тебя» и твой профиль. Спасибо, Валентина!',
+    ],
+    en: [
+      'Game picker for newcomers — Valentina’s idea: three questions (mood, time, taste) and the app shows three games picked for you plus your profile. Thank you, Valentina!',
+    ],
+  },
+  {
     version: '1.252.1',
     date: '2026-08-28',
     ru: [

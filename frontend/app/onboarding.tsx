@@ -18,12 +18,13 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
-import { PUBLIC_GAME_COUNT } from '@/src/constants/profiles';
+import { PUBLIC_GAME_COUNT, PROFILES } from '@/src/constants/profiles';
 import { getTodayChallenge, challengeToParams, setPendingChallenge } from '@/src/services/daily-challenge';
 import { requestReminderPermission, applyReminders, saveReminderSettings, DEFAULT_REMINDERS } from '@/src/services/reminders';
 import { gameThumb } from '@/src/constants/gameThumbs';
 import { a11yDecor } from '@/src/services/a11y';
 import { getOnboardingGames, hasPickedOnboarding, markOnboardingPicked } from '@/src/services/onboarding';
+import { pickGames, type PickerAnswers } from '@/src/services/gamePicker';
 
 // Играбельные игры = всё, кроме карточек-хабов (внутри них скрытые подигры).
 // Список хабов выводится из каталога: раньше он был выписан здесь поимённо и при
@@ -44,6 +45,13 @@ interface Slide {
   kind?: 'notifications' | 'final';
 }
 
+/** Три вопроса подбора: ось ответа + ключи текста вопроса и трёх вариантов. */
+const QUIZ: { axis: keyof PickerAnswers; qKey: string; opts: [string, string, string] }[] = [
+  { axis: 'mood', qKey: 'onbQuizMood', opts: ['onbQuizMood0', 'onbQuizMood1', 'onbQuizMood2'] },
+  { axis: 'time', qKey: 'onbQuizTime', opts: ['onbQuizTime0', 'onbQuizTime1', 'onbQuizTime2'] },
+  { axis: 'taste', qKey: 'onbQuizTaste', opts: ['label_words', 'onbQuizTaste1', 'onbQuizTaste2'] },
+];
+
 const SLIDES: Slide[] = [
   { emoji: '🧠', gradient: ['#7c3aed', '#ec4899'], titleKey: 'onbSlideWelcomeTitle', bodyKey: 'onbSlideWelcomeBody' },
   { emoji: '⚡', gradient: ['#fbbf24', '#f59e0b'], titleKey: 'onbSlideWarmupTitle', bodyKey: 'onbSlideWarmupBody' },
@@ -63,8 +71,14 @@ const SLIDES: Slide[] = [
 ];
 
 export default function OnboardingScreen() {
-  // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
+  // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time
+  // флаг) и живёт ОБЁРТКОЙ: ранний return до хуков ломал правило rules-of-hooks для
+  // всего файла — шестнадцать ошибок висели в долге храповика с самого появления гейта.
   if (isWebDemo()) return <Redirect href="/" />;
+  return <OnboardingInner />;
+}
+
+function OnboardingInner() {
   const router = useRouter();
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -79,6 +93,19 @@ export default function OnboardingScreen() {
     : params.tutorial === '1';
   const [pickerReady, setPickerReady] = useState(tutorialMode);
   const pickerGames = useMemo(() => getOnboardingGames(), []);
+  /**
+   * ТЕСТ-ПОДБОР (идея Валентины 1cd2d132, одобрено Денисом 28.08): три вопроса —
+   * настроение / время / склонность — и три игры «под себя» вместо слепого выбора
+   * из каталога. Ответы копятся частично; скоринг — чистый сервис gamePicker
+   * (гоняется тестом по всем 27 сочетаниям), экран только рисует.
+   */
+  const [quiz, setQuiz] = useState<Partial<PickerAnswers>>({});
+  const quizDone = quiz.mood !== undefined && quiz.time !== undefined && quiz.taste !== undefined;
+  const recommended = useMemo(
+    () => (quizDone ? pickGames(quiz as PickerAnswers) : null),
+    [quiz, quizDone],
+  );
+  const recProfile = recommended ? PROFILES.find((p) => p.id === recommended.profileId) : null;
 
   useEffect(() => {
     if (tutorialMode) { setPickerReady(true); return; }
@@ -162,6 +189,36 @@ export default function OnboardingScreen() {
     router.replace('/' as any);
   };
 
+  /** Одна карточка игры — и для ручного выбора, и для результатов подбора. */
+  const renderGameCard = (game: (typeof pickerGames)[number]) => {
+    const thumb = gameThumb(game.id);
+    return (
+      <TouchableOpacity
+        key={game.id}
+        accessibilityRole="button"
+        accessibilityLabel={`${t(game.nameKey)}. ${t(game.skillKey)}`}
+        activeOpacity={0.84}
+        disabled={busy}
+        onPress={() => chooseGame(game)}
+        style={styles.pickerCard}
+      >
+        <LinearGradient colors={game.gradient as [string, string]} style={styles.pickerGradient}>
+          {thumb && <Image {...a11yDecor} source={thumb} resizeMode="cover" style={styles.pickerThumb} />}
+          <View style={styles.pickerShade} pointerEvents="none" />
+          <View style={styles.pickerIcon}>
+            <Ionicons name={game.icon as any} size={25} color="#fff" />
+          </View>
+          <View style={styles.pickerCopy}>
+            <Text style={styles.pickerGameName} numberOfLines={1}>{t(game.nameKey)}</Text>
+            <Text style={styles.pickerSkill} numberOfLines={1}>{t(game.skillKey)}</Text>
+            <Text style={styles.pickerDesc} numberOfLines={2}>{t(game.descKey)}</Text>
+          </View>
+          <Ionicons name={isRTLLang(language) ? 'chevron-back' : 'chevron-forward'} size={25} color="#fff" />
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  };
+
   const isNotif = slide.kind === 'notifications';
   const isFinal = slide.kind === 'final';
   const mainLabel = isNotif
@@ -192,36 +249,51 @@ export default function OnboardingScreen() {
             <Text style={[styles.pickerBody, { color: colors.textSecondary }]}>{t('onbPickGameBody')}</Text>
           </View>
 
-          <View style={styles.pickerCards}>
-            {pickerGames.map((game) => {
-              const thumb = gameThumb(game.id);
-              return (
-                <TouchableOpacity
-                  key={game.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${t(game.nameKey)}. ${t(game.skillKey)}`}
-                  activeOpacity={0.84}
-                  disabled={busy}
-                  onPress={() => chooseGame(game)}
-                  style={styles.pickerCard}
-                >
-                  <LinearGradient colors={game.gradient as [string, string]} style={styles.pickerGradient}>
-                    {thumb && <Image {...a11yDecor} source={thumb} resizeMode="cover" style={styles.pickerThumb} />}
-                    <View style={styles.pickerShade} pointerEvents="none" />
-                    <View style={styles.pickerIcon}>
-                      <Ionicons name={game.icon as any} size={25} color="#fff" />
-                    </View>
-                    <View style={styles.pickerCopy}>
-                      <Text style={styles.pickerGameName} numberOfLines={1}>{t(game.nameKey)}</Text>
-                      <Text style={styles.pickerSkill} numberOfLines={1}>{t(game.skillKey)}</Text>
-                      <Text style={styles.pickerDesc} numberOfLines={2}>{t(game.descKey)}</Text>
-                    </View>
-                    <Ionicons name={isRTLLang(language) ? 'chevron-back' : 'chevron-forward'} size={25} color="#fff" />
-                  </LinearGradient>
-                </TouchableOpacity>
-              );
-            })}
+          {/* Тест-подбор: три вопроса → три игры «под себя». Ручной выбор ниже никуда
+              не делся — подбор помогает, а не запирает. */}
+          <View style={[styles.quizBox, { borderColor: colors.border, backgroundColor: colors.surface }]} testID="onb-quiz">
+            <Text style={[styles.quizTitle, { color: colors.text }]}>🎯 {t('onbQuizTitle')}</Text>
+            {QUIZ.map(({ axis, qKey, opts }) => (
+              <View key={axis}>
+                <Text style={[styles.quizQ, { color: colors.textSecondary }]}>{t(qKey)}</Text>
+                <View style={styles.quizPills}>
+                  {opts.map((optKey, i) => {
+                    const on = quiz[axis] === i;
+                    return (
+                      <TouchableOpacity
+                        key={optKey}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: on }}
+                        testID={`onb-quiz-${axis}-${i}`}
+                        disabled={busy}
+                        onPress={() => setQuiz((q) => ({ ...q, [axis]: i as 0 | 1 | 2 }))}
+                        style={[styles.quizPill, {
+                          backgroundColor: on ? '#7c3aed' : colors.background,
+                          borderColor: on ? '#7c3aed' : colors.border,
+                        }]}
+                      >
+                        <Text style={[styles.quizPillText, { color: on ? '#fff' : colors.text }]}>{t(optKey)}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            ))}
+            {recommended && (
+              <>
+                <Text style={[styles.quizYours, { color: colors.text }]}>{t('onbQuizYours')}</Text>
+                <View style={styles.pickerCards}>{recommended.games.map(renderGameCard)}</View>
+                {recProfile && (
+                  <Text style={[styles.quizProfile, { color: colors.textSecondary }]}>
+                    {t('onbQuizProfile').replace('{p}', `${recProfile.emoji} ${recProfile.display_name}`)}
+                  </Text>
+                )}
+              </>
+            )}
           </View>
+
+          <Text style={[styles.quizOr, { color: colors.textSecondary }]}>{t('onbQuizOr')}</Text>
+          <View style={styles.pickerCards}>{pickerGames.map(renderGameCard)}</View>
 
           <Text style={[styles.pickerHint, { color: colors.textSecondary }]}>{t('onbPickGameHint')}</Text>
           <TouchableOpacity
@@ -316,6 +388,17 @@ const styles = StyleSheet.create({
   pickerSkill: { color: 'rgba(255,255,255,0.92)', fontSize: 12, fontWeight: '800' },
   pickerDesc: { color: 'rgba(255,255,255,0.86)', fontSize: 12, lineHeight: 16 },
   pickerHint: { fontSize: 12, lineHeight: 17, textAlign: 'center', paddingHorizontal: 20 },
+  // Тест-подбор: рамка своя, чтобы блок читался одним предметом, а не примесью к списку.
+  quizBox: { borderWidth: 1, borderRadius: 19, padding: 14, gap: 8 },
+  quizTitle: { fontSize: 17, fontWeight: '900', textAlign: 'center', marginBottom: 2 },
+  quizQ: { fontSize: 13, fontWeight: '700', marginBottom: 6 },
+  quizPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: 6 },
+  // Порог 44 маршрутного прохода tap-target-audit; выше не тянем — пилюль девять.
+  quizPill: { minHeight: 44, borderRadius: 12, borderWidth: 1, paddingHorizontal: 13, alignItems: 'center', justifyContent: 'center' },
+  quizPillText: { fontSize: 13.5, fontWeight: '700' },
+  quizYours: { fontSize: 15, fontWeight: '900', textAlign: 'center', marginTop: 6 },
+  quizProfile: { fontSize: 12.5, textAlign: 'center' },
+  quizOr: { fontSize: 12.5, fontWeight: '700', textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5 },
   pickerSkip: { minHeight: 48, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   pickerSkipText: { fontSize: 15, fontWeight: '800' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12 },
