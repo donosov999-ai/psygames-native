@@ -88,6 +88,8 @@ const translations: Translations = {
   fractalOpened: { ru: 'Открыто', en: 'Opened' },
   fractalToUnlock: { ru: 'до открытия', en: 'to unlock' },
   fractalFeedHint: { ru: 'Подсвеченная клетка в центре — та самая цифра, которая уйдёт в корневую сетку', en: 'The highlighted centre cell is the digit that will move up into the root grid' },
+  fractalLinkHint: { ru: 'подсвеченная клетка корня: реши эту сетку — её цифра встанет туда. Коснись клетки ещё раз, чтобы открыть сетку', en: 'the highlighted root cell: solve this grid and its digit lands there. Tap the cell again to open the grid' },
+  fractalLinkHintDone: { ru: 'эта сетка уже отдала свою цифру в подсвеченную клетку. Коснись клетки ещё раз, чтобы открыть сетку', en: 'this grid has already sent its digit into the highlighted cell. Tap the cell again to open the grid' },
   fractalPortal: { ru: 'Портал', en: 'Portal' },
   fractalPortals: { ru: 'Порталы', en: 'Portals' },
   fractalPortalGo: { ru: 'В сетку', en: 'Go to grid' },

@@ -528,6 +528,8 @@ const t: Record<string, string> = {
   "fractalOpened": "已开启",
   "fractalToUnlock": "距开启",
   "fractalFeedHint": "高亮的中心格，就是将要填入根盘面的那个数字",
+  "fractalLinkHint": "高亮的根格：解开这张网格，它的数字就会落到那里。再点一次该格即可打开网格",
+  "fractalLinkHintDone": "这张网格已把它的数字送进了高亮的格子。再点一次该格即可打开网格",
   "fractalPortal": "传送门",
   "fractalPortals": "传送门",
   "fractalPortalGo": "前往盘面",

@@ -531,6 +531,8 @@ const t: Record<string, string> = {
   "fractalOpened": "खुले",
   "fractalToUnlock": "खुलने तक",
   "fractalFeedHint": "हाइलाइट की गई मध्य कोशिका वही अंक है जो मूल ग्रिड में जाएगा",
+  "fractalLinkHint": "जड़ की हाइलाइट की गई कोठरी: इस ग्रिड को हल करो — इसका अंक वहीं बैठेगा। ग्रिड खोलने के लिए कोठरी को फिर छुओ",
+  "fractalLinkHintDone": "इस ग्रिड ने अपना अंक हाइलाइट की गई कोठरी में पहले ही भेज दिया है। ग्रिड खोलने के लिए कोठरी को फिर छुओ",
   "fractalPortal": "पोर्टल",
   "fractalPortals": "पोर्टल",
   "fractalPortalGo": "ग्रिड पर जाएँ",

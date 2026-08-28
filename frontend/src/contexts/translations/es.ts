@@ -528,6 +528,8 @@ const t: Record<string, string> = {
   "fractalOpened": "Abiertas",
   "fractalToUnlock": "para desbloquear",
   "fractalFeedHint": "La casilla central resaltada es el dígito que subirá a la cuadrícula raíz",
+  "fractalLinkHint": "la celda resaltada de la raíz: resuelve esta cuadrícula y su cifra caerá ahí. Toca la celda otra vez para abrir la cuadrícula",
+  "fractalLinkHintDone": "esta cuadrícula ya entregó su cifra a la celda resaltada. Toca la celda otra vez para abrir la cuadrícula",
   "fractalPortal": "Portal",
   "fractalPortals": "Portales",
   "fractalPortalGo": "Ir a la cuadrícula",

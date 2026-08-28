@@ -205,6 +205,24 @@ describe('страж выхода — поведение', () => {
     expect(h.log.filter((x) => x === 'exit')).toHaveLength(1);
   });
 
+  it('🔴 внутриэкранный выход НЕ хоронит кнопку: защёлка отпускается (фрактал, карта⇄сетка)', () => {
+    // Карта и дочерняя сетка фрактала — один GameShell без перемонтирования.
+    // «Назад» из сетки (терять нечего) дёргал exit → left=true навсегда, и
+    // «назад» с карты умирал молча: Валя 21.08 «через раз», Денис 28.08
+    // «не выйти из упражнения». Защёлка обязана отпуститься сама.
+    jest.useFakeTimers();
+    try {
+      const h = harness(false);
+      h.guard.requestExit();               // «назад» из сетки: exit = setPhase('map'), экран жив
+      expect(h.log).toEqual(['exit']);
+      jest.advanceTimersByTime(700);       // > LEFT_RELEASE_MS
+      h.arm();                             // на карте есть что терять
+      h.guard.requestExit();               // «назад» с карты обязан спросить, а не съесться защёлкой
+      expect(h.log).toContain('ask');
+      expect(h.guard.asking).toBe(true);
+    } finally { jest.useRealTimers(); }
+  });
+
   it('🔴 экран снесли мимо кнопки «назад» → партия всё равно дописана', () => {
     // Ровно этот путь и есть частый: переход зарядки, убийство приложения системой.
     const h = harness(true);

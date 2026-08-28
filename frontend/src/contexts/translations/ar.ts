@@ -23,6 +23,8 @@ const t: Record<string, string> = {
   "fractalOpened": "مفتوحة",
   "fractalToUnlock": "حتى الفتح",
   "fractalFeedHint": "الخانة الوسطى المميّزة هي الرقم الذي سينتقل إلى الشبكة الجذر",
+  "fractalLinkHint": "خلية الجذر المميّزة: حُلّ هذه الشبكة ليستقر رقمها هناك. المس الخلية مرة أخرى لفتح الشبكة",
+  "fractalLinkHintDone": "أرسلت هذه الشبكة رقمها بالفعل إلى الخلية المميّزة. المس الخلية مرة أخرى لفتح الشبكة",
   "fractalPortal": "بوّابة",
   "fractalPortals": "بوّابات",
   "fractalPortalGo": "إلى الشبكة",

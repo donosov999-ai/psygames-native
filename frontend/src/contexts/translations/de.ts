@@ -528,6 +528,8 @@ const t: Record<string, string> = {
   "fractalOpened": "Geöffnet",
   "fractalToUnlock": "bis zum Freischalten",
   "fractalFeedHint": "Die hervorgehobene Mittelzelle ist die Ziffer, die ins Wurzelgitter wandert",
+  "fractalLinkHint": "die markierte Wurzelzelle: löse dieses Gitter, und seine Ziffer landet dort. Tippe die Zelle erneut an, um das Gitter zu öffnen",
+  "fractalLinkHintDone": "dieses Gitter hat seine Ziffer bereits in die markierte Zelle geschickt. Tippe die Zelle erneut an, um das Gitter zu öffnen",
   "fractalPortal": "Portal",
   "fractalPortals": "Portale",
   "fractalPortalGo": "Zu Gitter",

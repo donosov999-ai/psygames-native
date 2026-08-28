@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 9 · 28.08.2026 */
+/* psygames-game-sudoku · VER 10 · 28.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -423,6 +423,15 @@ export default function SudokuGame() {
    */
   const [sideSteps, setSideSteps] = useState<Record<SideMode, number>>({ towers: 1, unequal: 1 });
   const [sideStepsLoaded, setSideStepsLoaded] = useState(false);   // ?mode= из хаба ждёт загрузки счётчиков
+  /**
+   * 🔴 ПРОЙДЕННАЯ ступень мини-лестницы — ДЛЯ ЭКРАНА ИТОГА. К моменту рендера итога
+   * `level` уже сдвинут на следующую ступень (setLevel(nextStep) в завершении), и
+   * карточка «Ступень N пройдена» с живым `level` врала бы на единицу. Снимаем число
+   * ДО сдвига. Заодно это ключ к багу Дениса 28.08: у towers/unequal/killer итога не
+   * было ВООБЩЕ — фаза result рисовалась только для free и levels, три режима после
+   * победы показывали пустой экран (скрин: шапка «Судоку» и белое поле).
+   */
+  const [sideDoneLevel, setSideDoneLevel] = useState(1);
   /**
    * Достигнутый ПОТОЛОК — отдельно от того, на чём сейчас играем.
    *
@@ -1026,6 +1035,10 @@ export default function SudokuGame() {
       }
       // Мини-лестницы режимов: продвигаем СВОЙ счётчик (максимум — переигровка не
       // срезает), в пределах длины лестницы.
+      if (mode === 'towers' || mode === 'unequal') {
+        // Пройденную ступень запоминаем ДО сдвига level — её покажет экран итога.
+        setSideDoneLevel(level);
+      }
       if ((mode === 'towers' || mode === 'unequal') && pidDone) {
         const nextStep = Math.min(sideStepCount(mode), Math.max(sideSteps[mode], level + 1));
         setSideSteps((prev) => ({ ...prev, [mode]: nextStep }));
@@ -2100,11 +2113,38 @@ export default function SudokuGame() {
           </TouchableOpacity>
         </View>
       )}
-      {phase === 'result' && mode === 'free' && (
+      {/* 🔴 У КАЖДОГО РЕЖИМА ОБЯЗАН БЫТЬ ЭКРАН ИТОГА. Killer/towers/unequal ставили
+          фазу result, у которой рендера для них не было, — после победы человек
+          смотрел в пустой экран (Денис, 28.08, скрин с «Судоку» и белым полем).
+          Гейт: sudoku-result-coverage.test.ts. */}
+      {phase === 'result' && (mode === 'free' || mode === 'killer') && (
         <GameResult score={Math.max(0, Math.round(2000 - errors * 50 - elapsedTime * 2))}
           time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
+      )}
+      {phase === 'result' && (mode === 'towers' || mode === 'unequal') && (
+        <View style={styles.overWrap}>
+          <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
+            <Text style={styles.overEmoji}>🎉</Text>
+            <Text style={[styles.overTitle, { color: colors.text }]}>{t('levelDone').replace('{n}', String(sideDoneLevel))}</Text>
+            <Text style={[styles.overSub, { color: colors.textSecondary }]}>
+              {t('timeErrorsLine').replace('{t}', elapsedTime.toFixed(1)).replace('{n}', String(errors))}
+            </Text>
+            {/* `level` уже сдвинут завершением на следующую ступень (или упёрся в
+                потолок лестницы — тогда кнопка честно переигрывает верхнюю). */}
+            <TouchableOpacity
+              accessibilityRole="button" style={styles.startBtn} onPress={() => startGame(level)}>
+              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                <Text style={styles.startBtnText}>{`${t('level')} ${level} →`}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button" onPress={() => setPhase('config')} style={{ marginTop: 10 }}>
+              <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('sudokuMenu')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       )}
       {phase === 'result' && mode === 'levels' && (
         <View style={styles.overWrap}>
