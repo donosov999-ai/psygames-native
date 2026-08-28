@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.254.1',
+    date: '2026-08-28',
+    ru: [
+      'Починено: судоку могла открыться «небоскрёбами Ур.45/8» — уровень обычной лестницы протекал в мини-лестницу. Спасибо Валентине за мгновенный сигнал!',
+    ],
+    en: [
+      'Fixed: sudoku could open as “skyscrapers Lv.45/8” — the main ladder level leaked into the mini-ladder. Thanks to Valentina for the instant report!',
+    ],
+  },
+  {
     version: '1.254.0',
     date: '2026-08-28',
     ru: [

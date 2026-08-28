@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 10 · 28.08.2026 */
+/* psygames-game-sudoku · VER 11 · 28.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -79,6 +79,7 @@ import {
   roadLevelConfig, roadTier, sudokuLevelKey, sudokuRoadKey, type RoadLevels,
 } from '@/src/services/sudoku-roads';
 import { clearGameContextHelp, publishGameContextHelp } from '@/src/services/gameContextHelp';
+import { publishFeedbackGameState } from '@/src/services/feedbackGameState';
 import { gameNow } from '@/src/services/gamePause';
 import {
   emptySudokuCellColors,
@@ -415,6 +416,15 @@ export default function SudokuGame() {
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(() => (str('diff', 'medium') as 'easy' | 'medium' | 'hard'));
   const [size, setSize] = useState<6 | 9>(6);   // C2: явный размер поля (свободный режим)
   const [mode, setMode] = useState<'levels' | 'free' | 'killer' | SideMode>('levels');   // уровни (дефолт) / свободно / killer / небоскрёбы / неравенства
+  /**
+   * 🔴 Свежий режим для АСИНХРОННЫХ колбэков входа. Баг Валентины 28.08 («это не 45
+   * уровень!!!», «небоскрёбы · Ур.45/8»): загрузка дорог и вход из хаба с ?mode=
+   * гонялись — чей промис резолвился вторым, тот и записывал level. Дороги ставили
+   * 45 ПОВЕРХ ступени мини-лестницы towers (их всего 8). Эффект дорог обязан
+   * проверять режим НА МОМЕНТ ответа хранилища, а не на момент подписки.
+   */
+  const modeRef = useRef<'levels' | 'free' | 'killer' | SideMode>('levels');
+  useEffect(() => { modeRef.current = mode; }, [mode]);
   const [level, setLevel] = useState(1);
   /**
    * СТУПЕНИ МИНИ-ЛЕСТНИЦ режимов towers/unequal — счётчики отдельные от основной
@@ -456,6 +466,15 @@ export default function SudokuGame() {
    */
   const [roadLevels, setRoadLevels] = useState<RoadLevels>({});
   const [variant, setVariant] = useState<Variant>('none');   // активный вариант-правило текущей партии
+  /**
+   * Живое состояние — в канал репортов (feedbackGameState): режим, уровень партии,
+   * дорога, вариант, фаза. Именно этих полей не хватило в разборе
+   * «небоскрёбы · Ур.45/8» — в отзыве был только уровень-прогресс из хранилища.
+   */
+  useEffect(() => {
+    publishFeedbackGameState({ mode, level, road, variant, phase });
+    return () => publishFeedbackGameState(null);
+  }, [mode, level, road, variant, phase]);
   const [regions, setRegions] = useState<number[][] | null>(null);   // jigsaw: карта регионов текущей партии
   const [cages, setCages] = useState<number[][] | null>(null);       // killer: cageId каждой клетки
   const [cageSums, setCageSums] = useState<number[]>([]);            // killer: сумма каждой cage
@@ -573,8 +592,11 @@ export default function SudokuGame() {
       const reached = effectiveRoadLevel(levels, chosen);
       setRoadLevels(levels);
       setRoad(chosen);
-      setLevel(reached);   // заход в игру — всегда с достигнутого на ЭТОЙ дороге
       setBest(reached);
+      // Заход — с достигнутого на дороге, НО только если человек всё ещё в режиме
+      // уровней: вход из хаба мог уже переключить в мини-лестницу (towers/unequal),
+      // и уровень дороги там — чужое число (см. modeRef выше, баг «Ур.45/8»).
+      if (modeRef.current === 'levels') setLevel(reached);
     }).catch(() => {});
     // Ступени мини-лестниц режимов — свои счётчики, дороги их не касаются.
     AsyncStorage.multiGet([`psygames_sudoku_towers_step_${pid}`, `psygames_sudoku_unequal_step_${pid}`]).then((pairs) => {
@@ -686,7 +708,10 @@ export default function SudokuGame() {
       // Мини-лестницы режимов: сборщик той же формы, что logicalBuilder, — те же
       // кадры «идёт сборка». Башни собираются мгновенно, неравенства — заходами.
       if (mode === 'towers' || mode === 'unequal') {
-        const builder = sideModeBuilder(mode, lvlOverride ?? level);
+        // Страховка от любых будущих утечек: ступень не бывает выше своей лестницы.
+        const step = Math.min(sideStepCount(mode), Math.max(1, lvlOverride ?? level));
+        if (step !== (lvlOverride ?? level)) setLevel(step);
+        const builder = sideModeBuilder(mode, step);
         setBuild({ step: 1, steps: builder.steps, slow: false });
         setPhase('building');
         const genSide = ++buildRef.current;
@@ -811,7 +836,10 @@ export default function SudokuGame() {
 
   /** Поднять партию из снимка — доска оживает ровно такой, какой её оставили. */
   const applyResume = (s: SudokuResume) => {
-    setMode(s.mode); setLevel(s.level); setDifficulty(s.difficulty); setSize(s.size);
+    setMode(s.mode);
+    // Снимок мог быть записан с протёкшим уровнем (баг «Ур.45/8») — зажимаем лестницей.
+    setLevel((s.mode === 'towers' || s.mode === 'unequal') ? Math.min(sideStepCount(s.mode), Math.max(1, s.level)) : s.level);
+    setDifficulty(s.difficulty); setSize(s.size);
     // Дорогу поднимаем ИЗ СНИМКА, а не из выбранной сейчас: доска перед человеком
     // сгенерирована под ту дорогу, на которой он её бросил, и дорешать её обязан тот
     // же лимит подсказок. Записать партию не на ту лестницу — та же беда.
@@ -1845,9 +1873,9 @@ export default function SudokuGame() {
             }]}
           >
             {digitMode === 'plain'
-              ? <Text style={{ fontSize: 30, fontWeight: '800', color: colors.text }}>{n}</Text>
+              ? <Text style={{ fontSize: 24, fontWeight: '800', color: colors.text }}>{n}</Text>
               : <Image source={DIGIT_IMG[n]} accessibilityLabel={String(n)}
-              style={{ width: 46, height: 46 }} resizeMode="contain" />}
+              style={{ width: 40, height: 40 }} resizeMode="contain" />}
           </TouchableOpacity>
         ))}
         <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yErase')}
@@ -2217,7 +2245,9 @@ const styles = StyleSheet.create({
   edgeClue: { alignItems: 'center', justifyContent: 'center', marginHorizontal: 2, marginVertical: 2, paddingVertical: 2, borderRadius: 5 },
   edgeClueText: { fontSize: 11, fontWeight: '700' },
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr' },
-  numBtn: { width: 64, height: 64, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  // 50, не 64: капсулы «снизу слишком широкие» (Денис по скрину Валентины 28.08) —
+  // на 6×6 семь клавиш не влезали в ряд телефона и переносились вразнобой.
+  numBtn: { width: 50, height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   numText: { color: '#FFF', fontSize: 26, fontWeight: '800' },
   // alignItems:'stretch' — иначе ряд кнопок сжимается по содержимому и вылезает
   // за экран: на 375px первая капсула уезжала за левый край и обрезалась.
