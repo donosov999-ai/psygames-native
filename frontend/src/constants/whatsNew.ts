@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.250.0',
+    date: '2026-08-28',
+    ru: [
+      'Фрактальная судоку — по репортам Вали: панель цифр всегда под рукой (больше не листать вниз), решённая нижняя сетка показывает свою цифру на карте, правила переписаны по шагам',
+      'Правила сэндвича — заново и проще, плюс подсказка «нажми на число у края»; пример в справке по центру',
+      'Каталог помнит, где ты был: возврат из игры больше не выкидывает наверх списка',
+    ],
+    en: [
+      'Fractal sudoku — from Valya’s reports: the digit pad is always at hand (no more scrolling down), a solved lower grid shows its digit on the map, rules rewritten step by step',
+      'Sandwich rules — rewritten simpler, plus a hint “tap an edge number”; the help example is centered',
+      'The catalog remembers where you were: returning from a game no longer throws you to the top',
+    ],
+  },
+  {
     version: '1.249.0',
     date: '2026-08-28',
     ru: [

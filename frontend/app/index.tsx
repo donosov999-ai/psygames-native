@@ -88,12 +88,16 @@ const HERO_EYE = ['#43cea2', '#185a9d'];
 const ON_EYE = onGradientText(HERO_EYE[0], HERO_EYE[1]);
 const ON_EYE_SOFT = onGradientTextMuted(ON_EYE);
 
+
+/** Позиция каталога между пересозданиями главной (см. комментарий у ScrollView). */
+let savedHomeScrollY = 0;
 export default function HomeScreen() {
   if (IS_WEB_DEMO) return <DemoLanding />;
   return <FullHome />;
 }
 
 function FullHome() {
+  const homeScrollRef = React.useRef<ScrollView>(null);
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -725,9 +729,24 @@ function FullHome() {
       <ProfileSwitcherModal visible={switcherOpen} onClose={() => setSwitcherOpen(false)} />
 
       <ScrollView
+        ref={homeScrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.gamesContainer}
         showsVerticalScrollIndicator={false}
+        /**
+         * ПАМЯТЬ ПРОКРУТКИ КАТАЛОГА. Репорт Вали 22.08 (корректурка): «назад
+         * выкидывает в основное меню, а не в меню упражнений — на два шага назад».
+         * Разбор: при возврате кнопкой каталог живёт в стеке и позиция цела; а вот
+         * подъём незаконченной партии заходит НАПРЯМУЮ на экран игры, истории нет,
+         * back делает replace('/') — и человек оказывается на ВЕРХУ каталога, вдали
+         * от своего раздела. Позиция хранится в переменной модуля: ей не нужно
+         * переживать перезапуск, только пересоздание главной в том же процессе.
+         */
+        scrollEventThrottle={250}
+        onScroll={(e) => { savedHomeScrollY = e.nativeEvent.contentOffset.y; }}
+        onContentSizeChange={() => {
+          if (savedHomeScrollY > 0) homeScrollRef.current?.scrollTo({ y: savedHomeScrollY, animated: false });
+        }}
       >
         {resumeGame && (
           <TouchableOpacity

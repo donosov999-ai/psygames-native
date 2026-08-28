@@ -1,4 +1,4 @@
-/* psygames-game-sudoku-fractal · VER 1 · 19.08.2026 */
+/* psygames-game-sudoku-fractal · VER 2 · 28.08.2026 */
 /**
  * Фрактальная судоку — сетка, вложенная сама в себя.
  *
@@ -805,6 +805,20 @@ export default function FractalSudokuScreen() {
         confirmExit={liveGame && hist.canUndo}
         resumable
         onSaveBeforeExit={saveBeforeExit}
+        /**
+         * Панель цифр — В ЛИПКОМ НИЗУ, а не в конце прокрутки. Репорты Вали 21.08
+         * и 23.08 (двумя заходами!): «чтобы поставить цифру, каждый раз листать
+         * экран вниз». На высокой карте панель жила под полем — каждый ход стоил
+         * скролла туда-обратно. Слот `toolbar` каркаса и означает «ответ игрока
+         * на текущее задание» — панель принадлежит ему по смыслу.
+         */
+        toolbar={!rootDone ? (
+          <View>
+            {toolbar('root')}
+            {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
+            {renderPad(placeRootDigit)}
+          </View>
+        ) : undefined}
       >
         <View style={styles.mapWrap}>
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('fractalRoot')}</Text>
@@ -866,11 +880,19 @@ export default function FractalSudokuScreen() {
               // Портал видно ещё с карты: иначе человек заходит в сетку, упирается в
               // неразрешимую доску и не понимает, что она в паре с соседней.
               const link = puzzle ? portalOf(puzzle.portals ?? [], i) : null;
+              /**
+               * Цифра, которую эта сетка отдала наверх. Репорт Вали 21.08: «на
+               * верхней сетке цифра должна быть видна, а ты забываешь, где какая».
+               * Решённая плитка показывала «✓» — факт без содержания; теперь она
+               * показывает СВОЮ цифру, и держать её в голове больше не надо.
+               */
+              const fed = puzzle ? puzzle.root.solution[puzzle.children[i].feedsCell[0]][puzzle.children[i].feedsCell[1]] : 0;
               return (
                 <TouchableOpacity
                   key={i}
                   accessibilityRole="button"
                   accessibilityLabel={`${t('fractalChildN')} ${i + 1} · ${t(fractalTechniqueKey(tier) as never)}`
+                    + (done && fed ? ` · ${fed}` : '')
                     + (link ? ` · ${t('fractalPortal')} ${link.other + 1}` : '')}
                   testID={`fractal-tile-${i}`}
                   onPress={() => { setOpenChild(i); setSelected(null); setPhase('child'); }}
@@ -881,7 +903,7 @@ export default function FractalSudokuScreen() {
                 >
                   <View style={styles.tileHead}>
                     <Text style={{ fontSize: 20, fontWeight: '800', color: done ? '#FFF' : colors.text }}>
-                      {done ? '✓' : i + 1}
+                      {done && fed ? `${fed} ✓` : done ? '✓' : i + 1}
                     </Text>
                     {/* ⚠️ Ступень НАСТОЯЩАЯ, а не объявленная уровнем. С 21-го уровня часть
                         сеток берётся из библиотеки заготовок, часть копается на месте, и
@@ -916,14 +938,9 @@ export default function FractalSudokuScreen() {
             Правильное условие одно: корень ещё не сошёлся — значит поле живое.
           */}
           {!rootDone && (
-            <>
-              <Text style={[styles.feedHint, { color: colors.textSecondary, marginTop: 14 }]}>
-                {t('fractalRoot')} {rootFilled}/{rootMine}
-              </Text>
-              {toolbar('root')}
-              {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
-              {renderPad(placeRootDigit)}
-            </>
+            <Text style={[styles.feedHint, { color: colors.textSecondary, marginTop: 14 }]}>
+              {t('fractalRoot')} {rootFilled}/{rootMine}
+            </Text>
           )}
         </View>
       </GameShell>
@@ -985,6 +1002,14 @@ export default function FractalSudokuScreen() {
       onBack={() => { setOpenChild(null); setSelected(null); setPhase('map'); }}
       headerActions={actions}
       confirmExit={false}
+      // Панель цифр в липком низу — как на карте (репорт Вали про скролл к цифрам).
+      toolbar={(
+        <View>
+          {toolbar(openChild)}
+          {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
+          {renderPad(placeDigit)}
+        </View>
+      )}
       stats={
         <View style={styles.miniWrap}>
           {miniMap(openChild)}
@@ -1098,9 +1123,6 @@ export default function FractalSudokuScreen() {
           </>
         )}
 
-        {toolbar(openChild)}
-        {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
-        {renderPad(placeDigit)}
       </View>
     </GameShell>
   );
