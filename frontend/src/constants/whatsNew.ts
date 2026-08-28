@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.252.0',
+    date: '2026-08-28',
+    ru: [
+      'Новая игра «Фрактал: Бездна» — судоку, вложенная в судоку до трёх слоёв. Проваливайся по пунктирным клеткам до дна, решай — цифры всплывают наверх. Три объёма партии: от Разведки (десяток сеток) до Бездны (~2900 вложенных пазлов, марафон на недели)',
+      'Вход — с экрана Фрактальной судоку или из раздела судоку. Партия сохраняется сама: возвращайся в любой момент',
+    ],
+    en: [
+      'New game “Fractal: The Abyss” — a sudoku nested in a sudoku up to three layers deep. Dive through the dashed cells to the bottom, solve — digits float up. Three game sizes: from Scouting (a dozen grids) to The Abyss (~2900 nested puzzles, a weeks-long marathon)',
+      'Enter from the Fractal Sudoku screen or the sudoku section. The game saves itself: come back anytime',
+    ],
+  },
+  {
     version: '1.251.2',
     date: '2026-08-28',
     ru: [

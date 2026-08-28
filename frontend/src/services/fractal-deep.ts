@@ -1,4 +1,4 @@
-/* psygames-fractal-deep · VER 1 · 28.08.2026 */
+/* psygames-fractal-deep · VER 2 · 28.08.2026 */
 /**
  * ФРАКТАЛ «ИХ МАСШТАБА» — дерево судоку глубиной в несколько слоёв.
  *
@@ -229,4 +229,66 @@ export function countDeep(seed: string, cfg: DeepCfg): DeepCount {
 /** Полоса банка для глубокой партии — той же лестницей, что у классики. */
 export function deepRatingForLevel(level: number, shift = 0): number {
   return bankRatingForLevel(level, shift);
+}
+
+// ─────────────────────────── партия: всплытие цифр ───────────────────────────
+
+/** Наигранное по тронутым узлам: путь → доска руки (0 = пусто). */
+export type DeepPlayed = Record<DeepPath, number[][]>;
+/** Доступ к узлам — кэширует вызывающий (экран держит Map). */
+export type NodeAt = (p: DeepPath) => DeepNode;
+
+/**
+ * 🔴 ЦИФРЫ СНИЗУ НЕ ХРАНЯТСЯ — ОНИ ВЫЧИСЛЯЮТСЯ. Значение кормимой клетки — это
+ * вопрос «дорешан ли её ребёнок до порога», заданный прямо в момент чтения.
+ * Так отмена хода в ребёнке, роняющая его ниже порога, сама забирает цифру из
+ * родителя: второй бухгалтерии, которая могла бы разъехаться, просто нет.
+ * (Ровно та ошибка, за которую фрактал-босс расплачивался с отменой 19.08.)
+ */
+
+/** Сколько СВОИХ клеток узла закрыто верно: подсказки и кормимые не в счёт. */
+export function deepOwnSolved(node: DeepNode, grid: number[][] | undefined): number {
+  if (!grid) return 0;
+  const feed = new Set(node.feedCells.map(([r, c]) => `${r},${c}`));
+  let n = 0;
+  for (let r = 0; r < DEEP_N; r++) for (let c = 0; c < DEEP_N; c++) {
+    if (node.puzzle[r]![c] !== 0 || feed.has(`${r},${c}`)) continue;
+    if (grid[r]?.[c] === node.solution[r]![c]) n++;
+  }
+  return n;
+}
+
+/** Закрытых клеток узла всего: свои руки + всплывшие от детей. */
+export function deepNodeProgress(nodeAt: NodeAt, played: DeepPlayed, p: DeepPath): number {
+  const node = nodeAt(p);
+  let n = deepOwnSolved(node, played[p]);
+  for (const [r, c] of node.feedCells) if (deepNodeDone(nodeAt, played, childPath(p, r, c))) n++;
+  return n;
+}
+
+/** Узел отдал цифру наверх: закрыто не меньше порога. */
+export function deepNodeDone(nodeAt: NodeAt, played: DeepPlayed, p: DeepPath): boolean {
+  return deepNodeProgress(nodeAt, played, p) >= nodeAt(p).unlockCells;
+}
+
+/** Видимое значение клетки: подсказка → рука → всплывшая снизу цифра. */
+export function deepValueAt(nodeAt: NodeAt, played: DeepPlayed, p: DeepPath, r: number, c: number): number {
+  const node = nodeAt(p);
+  const given = node.puzzle[r]![c]!;
+  if (given !== 0) return given;
+  const hand = played[p]?.[r]?.[c] ?? 0;
+  if (hand !== 0) return hand;
+  if (node.feedCells.some(([fr, fc]) => fr === r && fc === c) && deepNodeDone(nodeAt, played, childPath(p, r, c))) {
+    return node.solution[r]![c]!;
+  }
+  return 0;
+}
+
+/** Корень собран верно и целиком — победа партии. */
+export function deepRootComplete(nodeAt: NodeAt, played: DeepPlayed): boolean {
+  const root = nodeAt('');
+  for (let r = 0; r < DEEP_N; r++) for (let c = 0; c < DEEP_N; c++) {
+    if (deepValueAt(nodeAt, played, '', r, c) !== root.solution[r]![c]) return false;
+  }
+  return true;
 }

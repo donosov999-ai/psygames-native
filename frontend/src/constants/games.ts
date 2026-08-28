@@ -533,6 +533,22 @@ export const GAMES: GameConfig[] = [
     mergedInto: 'sudoku_group',
     sessionType: 'sudoku_fractal',   // id через дефис, а партия пишется через подчёркивание
   },
+  // Бездна — марафонская форма фрактала («их масштаб», Денис 28.08): дерево
+  // глубиной до трёх слоёв, тысячи вложенных сеток. Живёт в групп-карте судоку
+  // рядом с фракталом-«боссом»; вход есть и с его экрана настройки.
+  {
+    id: 'sudoku-fractal-deep',
+    nameKey: 'deepTitle',
+    descKey: 'deepDesc',
+    skillKey: 'skillLogic',
+    gradient: ['#312e63', '#5b4d9e'],
+    icon: 'layers',
+    route: '/games/sudoku-fractal-deep',
+    category: 'logic',
+    hideFromMenu: true,
+    mergedInto: 'sudoku_group',
+    sessionType: 'sudoku_fractal_deep',   // id через дефис, а партия пишется через подчёркивание
+  },
   {
     id: 'anagrams',
     nameKey: 'anagrams',
