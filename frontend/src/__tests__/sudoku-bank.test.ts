@@ -39,7 +39,7 @@ const fs = require('fs');
 const path = require('path');
 
 /** Последний уровень игры — тот же, что сторожит гейт уровней. */
-const LAST_LEVEL = 57;
+const LAST_LEVEL = 80;
 const LEVELS = Array.from({ length: LAST_LEVEL }, (_, i) => i + 1);
 
 /** Дороги отдают банку сдвиг по ступени лестницы: −1 полегче, 0 обычная, +1 пожёстче. */
@@ -367,8 +367,9 @@ describe('банк: варианты не тронуты', () => {
   it('в банке только классика — все уровни с правилом варианта идут мимо него', () => {
     const classic = LEVELS.filter((lv) => levelConfig(lv).variant === 'none' && levelConfig(lv).N === 9);
     const variants = LEVELS.filter((lv) => levelConfig(lv).variant !== 'none');
-    // Сегодняшняя лестница: классика 9×9 — это уровни 5–8, остальное под правилом.
-    expect(classic).toEqual([5, 6, 7, 8]);
+    // Лестница 28.08: классика 9×9 — уровни 5–8 (вход) и 58–80 (пояса ALS/цепей из
+    // банка, где сложность растёт рейтингом доски); 9–57 — под правилами вариантов.
+    expect(classic).toEqual([5, 6, 7, 8, ...Array.from({ length: 23 }, (_, i) => 58 + i)]);
     expect(variants.length).toBe(49);
   });
 

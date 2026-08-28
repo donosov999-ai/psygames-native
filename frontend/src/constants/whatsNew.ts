@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.255.0',
+    date: '2026-08-28',
+    ru: [
+      'Лестница судоку выросла с 57 до 80 уровней: пояс ALS (58–65), пояс цепей (66–79) и «доска-легенда» на вершине — настоящие экстремальные доски с честными подписями пояса',
+    ],
+    en: [
+      'The sudoku ladder grew from 57 to 80 levels: the ALS belt (58–65), the chains belt (66–79) and the “legend board” at the top — genuinely extreme boards with honest belt labels',
+    ],
+  },
+  {
     version: '1.254.1',
     date: '2026-08-28',
     ru: [

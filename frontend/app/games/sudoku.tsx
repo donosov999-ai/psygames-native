@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 11 · 28.08.2026 */
+/* psygames-game-sudoku · VER 12 · 28.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -295,7 +295,9 @@ const GAME_ID = 'sudoku';
  * а реестр вех «потерял» судоку. Литерал остаётся на своём месте, наружу идёт ссылка.
  */
 export const SUDOKU_GAME_ID = GAME_ID;
-const SUDOKU_LAST_LEVEL = 57;   // 54–57 — ThermoCage: термометр и клетки-суммы на одной доске
+// 58–80 — пояса ALS и цепей из СВОЕГО банка (замер 28.08: полные полосы 6.3–7.4 и 7.8
+// уже лежат в boards.json по 40 досок) — расширение без единой новой доски. 80 — «доска-легенда».
+const SUDOKU_LAST_LEVEL = 80;   // 54–57 — ThermoCage; 58–65 пояс ALS; 66–79 пояс цепей; 80 — легенда
 const SUDOKU_TIER_KEYS: Record<SudokuDifficultyTier, string> = {
   beginner: 'sudokuTierBeginner',
   easy: 'sudokuTierEasy',
@@ -1502,6 +1504,13 @@ export default function SudokuGame() {
         {boardTier !== null && (
           <Text style={[styles.statText, { color: colors.textSecondary }]}>
             {t(fractalTechniqueKey(boardTier) as never)}
+          </Text>
+        )}
+        {/* Выше 57-го наш оценщик молчит (его лестница кончается на голой тройке) —
+            подпись даёт ПОЯС уровня: ALS (58–65), цепи (66–79), легенда (80). */}
+        {boardTier === null && mode === 'levels' && level >= 58 && (
+          <Text style={[styles.statText, { color: colors.textSecondary }]}>
+            {t(level >= 80 ? 'sudokuBeltLegend' : level >= 66 ? 'sudokuBeltChains' : 'sudokuBeltAls')}
           </Text>
         )}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('errors')} {formatErrorCount(failure, errors)}</Text>
