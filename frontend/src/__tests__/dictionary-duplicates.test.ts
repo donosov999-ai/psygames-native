@@ -127,7 +127,7 @@ const ALLOWED: Record<string, string> = {
   'cosName_title_cyberbrain + levelTitle10':
     '[СМЫСЛ] «Кибермозг». Заработанное звание уровня против покупного титула в магазине.',
   'cosName_title_grandmaster + levelTitle6': '[СМЫСЛ] «Гроссмейстер». См. cosName_title_cyberbrain.',
-  'cosName_title_legend + levelTitle9': '[СМЫСЛ] «Легенда». См. cosName_title_cyberbrain.',
+  'cosName_title_legend + leagueLegend + levelTitle9': '[СМЫСЛ] «Легенда»: титул-косметика, саянская фаза лиги (28.08) и титул уровня — три разных носителя одного слова. См. cosName_title_cyberbrain.',
   'digitsLabel + scriptDigits':
     '[ДОЛГ] «Цифры». Вызовы в app/games/sudoku.tsx и app/games/proofreading.tsx — оба файла заняты.',
   'frameSpark + leagueSpark + petStage1':
