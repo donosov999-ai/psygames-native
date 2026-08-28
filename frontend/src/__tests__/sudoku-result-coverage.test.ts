@@ -53,6 +53,14 @@ describe('судоку — покрытие экрана итога', () => {
     expect(sudoku).toMatch(/s\.mode === 'towers' \|\| s\.mode === 'unequal'\) \? Math\.min\(sideStepCount\(s\.mode\)/);
   });
 
+  it('🔴 снимок мини-лестницы поднимается только за своей карточкой (Валентина: «всё ещё неравенства»)', () => {
+    // Вход в обычную судоку не поднимает и не стирает towers/unequal-партию;
+    // вход в мини-режим не поднимает чужой levels-снимок.
+    expect(sudoku).toContain("const sideSnapshot = saved.mode === 'towers' || saved.mode === 'unequal';");
+    expect(sudoku).toContain('if (sideSnapshot !== sideEntry) return;');
+    expect(sudoku).toContain('if (sideSnapshot && routeM !== saved.mode) return;');
+  });
+
   it('итог мини-лестницы называет ПРОЙДЕННУЮ ступень, а не сдвинутый level', () => {
     // level сдвигается на следующую ступень ещё в завершении — карточка обязана
     // читать снятое ДО сдвига число, иначе врёт на единицу.

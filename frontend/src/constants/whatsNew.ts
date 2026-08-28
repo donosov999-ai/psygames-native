@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.255.1',
+    date: '2026-08-28',
+    ru: [
+      'Починено: обычная судоку больше не утаскивает в незаконченные «Небоскрёбы»/«Неравенства» — их партии ждут за своими карточками. Спасибо Валентине за настойчивость!',
+    ],
+    en: [
+      'Fixed: regular sudoku no longer drags you into unfinished Towers/Futoshiki — their games wait behind their own cards. Thanks to Valentina for persisting!',
+    ],
+  },
+  {
     version: '1.255.0',
     date: '2026-08-28',
     ru: [
