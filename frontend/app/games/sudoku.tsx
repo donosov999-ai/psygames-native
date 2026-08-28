@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 8 · 28.08.2026 */
+/* psygames-game-sudoku · VER 9 · 28.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -275,7 +275,8 @@ const rhStyles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '900' },
   base: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
   rule: { fontSize: 15, fontWeight: '700', textAlign: 'center', lineHeight: 21 },
-  gridWrap: { marginVertical: 6, borderWidth: 1, borderColor: 'rgba(127,127,213,0.5)' },
+  // Пример-сетка по центру карточки: слева она читалась как съехавшая (репорт NZT-48 22.08).
+  gridWrap: { marginVertical: 6, borderWidth: 1, borderColor: 'rgba(127,127,213,0.5)', alignSelf: 'center' },
   caption: { fontSize: 13, textAlign: 'center', lineHeight: 19 },
   reportLink: { marginTop: 8, paddingVertical: 6, alignSelf: 'center' },
   reportText: { fontSize: 13, textDecorationLine: 'underline' },
