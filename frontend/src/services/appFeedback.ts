@@ -260,6 +260,7 @@ function withTimeout<T>(p: PromiseLike<T>, ms: number, onTimeout: T): Promise<T>
 }
 
 import { gameVersionLabel } from '@/src/constants/gameVersions';
+import { readFeedbackGameState } from '@/src/services/feedbackGameState';
 
 const INSERT_MS = 12000;
 
@@ -379,6 +380,12 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
       audio_path,
       context: {
         ...(args.context ?? {}),
+        /**
+         * Живое состояние экрана (режим/уровень партии/размер/вариант) — публикует
+         * сама игра (feedbackGameState). Бага «Ур.45/8» разбиралась по скрину,
+         * потому что режим в репорте отсутствовал вовсе.
+         */
+        ...(readFeedbackGameState() ? { game_state: readFeedbackGameState() } : {}),
         viewport: detectViewport(),
         /**
          * 🔴 СЕТЕВОЙ СЛЕД. Жалоба «работает только с впн» пришла ТРИ РАЗА —
