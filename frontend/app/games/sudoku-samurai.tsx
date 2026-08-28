@@ -1,4 +1,4 @@
-/* psygames-game-sudoku-samurai · VER 5 · 28.08.2026 */
+/* psygames-game-sudoku-samurai · VER 6 · 28.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -1065,6 +1065,8 @@ interface SamuraiMove { r: number; c: number; from: number; to: number }
  */
 interface SamuraiResume {
   level: number;
+  /** Веха мега-босса, породившая партию (null — обычная). Опционально: старые снимки без поля живут. */
+  megaboss?: number | null;
   solution: Cell[][];
   grid: Cell[][];
   given: boolean[][];
@@ -1091,7 +1093,15 @@ export default function SamuraiSudokuGame() {
    * (details.megaboss_from) — сама доска и правила самурая не трогаются:
    * он и есть испытание.
    */
-  const megabossFrom = Number((useLocalSearchParams<{ megaboss?: string }>().megaboss) ?? '') || null;
+  const megabossRoute = Number((useLocalSearchParams<{ megaboss?: string }>().megaboss) ?? '') || null;
+  /**
+   * 🔴 Метка — свойство ПАРТИИ, а не входа (класс «Ур.45/8», закрыт 28.08 вечером):
+   * пока она жила голым route-параметром, поднятая снимком ОБЫЧНАЯ партия на
+   * мега-входе получала чужой бейдж и чужую запись details.megaboss_from, а
+   * мега-партия, поднятая обычным входом, теряла метку. Теперь метка ездит в
+   * снимке (поле опциональное — старые записи читаются без bump RESUME_V).
+   */
+  const [megabossFrom, setMegabossFrom] = useState<number | null>(megabossRoute);
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   // Голый useWindowDimensions в веб-сборке (а Android у нас WebView) отдаёт 0 на первом
@@ -1205,6 +1215,7 @@ export default function SamuraiSudokuGame() {
    * доски. Это единственная причина, по которой отсчёт стоит именно здесь, внизу.
    */
   const startGame = () => {
+    setMegabossFrom(megabossRoute);   // свежая партия: метка — по входу
     // Новая партия заменяет незаконченную: старую доску продолжать уже нечем.
     const pidStart = profile?.id;
     if (pidStart) clearResume(GAME_ID, pidStart).catch(() => {});
@@ -1253,6 +1264,7 @@ export default function SamuraiSudokuGame() {
   const snapshot = (): SamuraiResume => ({
     level: levelRef.current,
     solution, grid, given, marks,
+    megaboss: megabossFrom,
     errors, hintUses,
     elapsed: elapsedTime,
     history: hist.serialize(),
@@ -1269,6 +1281,7 @@ export default function SamuraiSudokuGame() {
     // обновления приложения. Битая маска нарисовала бы несуществующие цифры, чужой формат
     // уронил бы экран — потерять пометки не страшно, уронить партию страшно.
     setMarks(normalizePencilMarks(sv.marks, SIZE));
+    setMegabossFrom(sv.megaboss ?? null);
     setPencil(false);
     setErrors(sv.errors);
     setHintUses(sv.hintUses);
@@ -1294,6 +1307,9 @@ export default function SamuraiSudokuGame() {
     if (buildRef.current > 0) return;
     if (!saved || !Array.isArray(saved.grid) || saved.grid.length !== SIZE) return;
     if (!Array.isArray(saved.solution) || saved.solution.length !== SIZE) return;
+    // Мега-вход с вехи ждёт СВОЮ битву: чужой (обычный или другой вехи) снимок не
+    // поднимаем. Обычный вход поднимает любой — мега-партия вернётся со своим бейджем.
+    if (megabossRoute && (saved.megaboss ?? null) !== megabossRoute) return;
     applyResume(saved);
   }, autostart);
 
