@@ -107,7 +107,7 @@ export async function setPetName(name: string): Promise<void> {
 
 /** Кормление: раз в день, стоит токенов. Питомец «семейный», сытость общая,
  *  но платит активный профиль — его токены, его решение. */
-export const PET_FEED_COST = 10;
+export const PET_FEED_COST = 40;
 const FED_KEY = 'psygames_pet_fed';
 const dayStamp = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
 export async function getFedToday(): Promise<boolean> {

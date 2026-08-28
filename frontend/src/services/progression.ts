@@ -19,7 +19,9 @@
  * получились бы две одинаковые лестницы под разными именами.
  */
 
-export type LeagueId = 'seed' | 'spark' | 'focus' | 'flow' | 'edge' | 'peak';
+export type LeagueId =
+  | 'seed' | 'spark' | 'focus' | 'flow' | 'edge' | 'peak'
+  | 'super' | 'ultra' | 'legend' | 'limit';
 
 export interface League {
   id: LeagueId;
@@ -30,18 +32,27 @@ export interface League {
 }
 
 /**
- * Шесть ступеней. Пороги подобраны от реального темпа: одна зарядка даёт порядка
- * 60-120 очков, то есть «Искра» — это примерно раз в неделю, а «Поток» — почти каждый день.
- * Специально НЕ экспоненциальные: цель — показать разницу между «иногда» и «регулярно»,
- * а не растянуть лестницу до бесконечности.
+ * Десять ступеней в двух поясах. Нижние шесть подобраны от реального темпа: одна
+ * зарядка даёт порядка 60-120 очков, «Искра» — раз в неделю, «Поток» — почти каждый
+ * день; они НЕ экспоненциальные, чтобы показать разницу «иногда/регулярно».
+ *
+ * 🔴 ВЕРХНИЕ ЧЕТЫРЕ ФАЗЫ — «саянские» (Денис 28.08): замер показал, что ядро-игрок
+ * пробивает старый потолок в 14 раз (Валентина: 126 488 очков за 30 дней при
+ * «Вершине» с 9 000) и лестница переставала что-либо мерить. Фазы растут
+ * ЭКСПОНЕНЦИАЛЬНО нарочно — это пояс для тех, кому обычные ступени уже малы;
+ * с рангами ×3 внутри каждой движение видно и там.
  */
 export const LEAGUES: readonly League[] = [
-  { id: 'seed',  from: 0,    nameKey: 'leagueSeed' },
-  { id: 'spark', from: 400,  nameKey: 'leagueSpark' },
-  { id: 'focus', from: 1200, nameKey: 'leagueFocus' },
-  { id: 'flow',  from: 2600, nameKey: 'leagueFlow' },
-  { id: 'edge',  from: 5000, nameKey: 'leagueEdge' },
-  { id: 'peak',  from: 9000, nameKey: 'leaguePeak' },
+  { id: 'seed',   from: 0,      nameKey: 'leagueSeed' },
+  { id: 'spark',  from: 400,    nameKey: 'leagueSpark' },
+  { id: 'focus',  from: 1200,   nameKey: 'leagueFocus' },
+  { id: 'flow',   from: 2600,   nameKey: 'leagueFlow' },
+  { id: 'edge',   from: 5000,   nameKey: 'leagueEdge' },
+  { id: 'peak',   from: 9000,   nameKey: 'leaguePeak' },
+  { id: 'super',  from: 15000,  nameKey: 'leagueSuper' },
+  { id: 'ultra',  from: 40000,  nameKey: 'leagueUltra' },
+  { id: 'legend', from: 100000, nameKey: 'leagueLegend' },
+  { id: 'limit',  from: 250000, nameKey: 'leagueLimit' },
 ];
 
 /** Сколько рангов внутри одной лиги. Ранг — дробление, чтобы движение было видно каждый день. */
@@ -101,6 +112,11 @@ export const FRAMES: readonly Frame[] = [
   { id: 'current', nameKey: 'frameCurrent', league: 'flow' },
   { id: 'blade',   nameKey: 'frameBlade',   league: 'edge' },
   { id: 'summit',  nameKey: 'frameSummit',  league: 'peak' },
+  // Трофеи саянских фаз — по одному на форму, как и у нижнего пояса.
+  { id: 'surge',    nameKey: 'frameSurge',    league: 'super' },
+  { id: 'aurora',   nameKey: 'frameAurora',   league: 'ultra' },
+  { id: 'crown',    nameKey: 'frameCrown',    league: 'legend' },
+  { id: 'infinity', nameKey: 'frameInfinity', league: 'limit' },
 ];
 
 /** Какие рамки заработаны при таком темпе. */

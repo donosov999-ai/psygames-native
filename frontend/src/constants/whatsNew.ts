@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.254.0',
+    date: '2026-08-28',
+    ru: [
+      'Лиги выросли вдвое в высоту: над «Вершиной» — четыре новые фазы (Супер, Ультра, Легенда, Предел) с рангами внутри и своими трофеями. Отдельный поклон Валентине — её темп сломал старую лестницу',
+      'Жетоны снова имеют вес: способности и косметика подорожали, а в магазине появилась престиж-полка для самых упорных (Оникс, Комета, Бриллиант, Бесконечный)',
+    ],
+    en: [
+      'Leagues doubled in height: above Peak there are four new phases (Super, Ultra, Legend, Limit) with ranks inside and their own trophies. A special bow to Valentina — her pace broke the old ladder',
+      'Tokens matter again: abilities and cosmetics cost more, and the shop gained a prestige shelf for the most devoted (Onyx, Comet, Diamond, Infinite)',
+    ],
+  },
+  {
     version: '1.253.1',
     date: '2026-08-28',
     ru: [

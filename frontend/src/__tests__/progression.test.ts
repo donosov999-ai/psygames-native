@@ -89,7 +89,7 @@ describe('рамки-трофеи', () => {
 
   it('копятся, а не заменяют друг друга — трофей нельзя отобрать', () => {
     const mid = earnedFrames(2600);
-    const top = earnedFrames(9000);
+    const top = earnedFrames(LEAGUES[LEAGUES.length - 1]!.from);
     expect(mid.length).toBeGreaterThan(1);
     expect(top.length).toBe(FRAMES.length);
     for (const f of mid) expect(top.map((x) => x.id)).toContain(f.id);
