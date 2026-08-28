@@ -176,8 +176,10 @@ export default function GameHelpOverlay() {
         >
           <View style={[styles.coachArrow, rtl ? { marginLeft: 16 } : { marginRight: 16 }, { borderBottomColor: accent }]} />
           <View style={[styles.coachBubble, { backgroundColor: accent }]}>
-            {/* тап по тексту = сразу открыть справку, не заставляя целиться в «?» */}
-            <TouchableOpacity activeOpacity={0.85} onPress={openHelp} accessibilityRole="button">
+            {/* тап по тексту = сразу открыть справку, не заставляя целиться в «?».
+                Обе кнопки держат порог 44 (tap-target-audit, проход по маршрутам):
+                облачко ловилось гейтом на schulte — текст был 40, «Понятно» 25. */}
+            <TouchableOpacity activeOpacity={0.85} onPress={openHelp} accessibilityRole="button" style={styles.coachTextBtn}>
               <Text style={[styles.coachText, { color: accentFg }]}>{t('helpCoachText')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setCoach(false)} style={styles.coachOk} accessibilityRole="button">
@@ -311,8 +313,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
+  coachTextBtn: { minHeight: 44, justifyContent: 'center' },
   coachText: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  coachOk: { alignSelf: 'flex-end', marginTop: 8, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 10 },
+  coachOk: { alignSelf: 'flex-end', marginTop: 4, minHeight: 44, paddingHorizontal: 14, borderRadius: 10, justifyContent: 'center' },
   coachOkText: { fontSize: 13, fontWeight: '800' },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center', padding: 18 },
   sheet: { width: '100%', maxWidth: 520, maxHeight: '82%', borderRadius: 20, borderWidth: 1, padding: 20 },
