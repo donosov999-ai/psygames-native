@@ -52,7 +52,7 @@ import { conflictsInChild } from '@/src/services/fractal-sudoku';
 import {
   DEEP_N, childPath, parentOf, depthOf,
   materializeNode, materializePick, countDeep,
-  deepOwnSolved, deepNodeProgress, deepNodeDone, deepValueAt, deepRootComplete,
+  deepNodeProgress, deepNodeDone, deepValueAt, deepRootComplete,
   type DeepCfg, type DeepNode, type DeepPath, type DeepPick,
 } from '@/src/services/fractal-deep';
 
@@ -117,10 +117,19 @@ export default function FractalDeepScreen() {
 
   const startRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  /** Кэш материализованных узлов: полная партия сюда не помещается — и не должна. */
-  const nodesRef = useRef(new Map<DeepPath, DeepNode>());
-  /** Кэш дешёвых picks для призраков нетронутых детей (без решения — даром). */
-  const picksRef = useRef(new Map<DeepPath, DeepPick>());
+  /**
+   * Кэш материализованных узлов и дешёвых picks (призраки нетронутых детей).
+   * useMemo, а не ref: кэш читается В РЕНДЕРЕ (правило react-hooks/refs запрещает
+   * там ref.current), а пересоздаётся сам при смене зерна или пресета — узлы
+   * детерминированы от (зерно, путь), так что одинаковое зерно = валидный кэш.
+   */
+  const cache = React.useMemo(
+    () => ({ nodes: new Map<DeepPath, DeepNode>(), picks: new Map<DeepPath, DeepPick>() }),
+    // Зерно и пресет — КЛЮЧ СБРОСА кэша, а не «использованные значения»: одно зерно =
+    // те же узлы, смена зерна обязана дать пустые карты.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [seed, preset],
+  );
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
   useEffect(() => {
@@ -131,28 +140,27 @@ export default function FractalDeepScreen() {
   const cfg = cfgOf(preset);
 
   /** Материализовать узел (с решением) — через кэш и цепочку кормящих цифр. */
-  const nodeAt = useCallback((p: DeepPath): DeepNode => {
-    const hit = nodesRef.current.get(p);
+  const nodeAt = useCallback(function nodeAtFn(p: DeepPath): DeepNode {
+    const hit = cache.nodes.get(p);
     if (hit) return hit;
     const par = parentOf(p);
-    const digit = par === null ? 0 : nodeAt(par.parent).solution[par.cell[0]]![par.cell[1]]!;
+    const digit = par === null ? 0 : nodeAtFn(par.parent).solution[par.cell[0]]![par.cell[1]]!;
     const node = materializeNode(seed, p, cfg, digit);
-    nodesRef.current.set(p, node);
+    cache.nodes.set(p, node);
     return node;
-  }, [seed, preset]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [seed, preset, cache]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const pickAt = (p: DeepPath): DeepPick => {
-    const hit = picksRef.current.get(p);
+    const hit = cache.picks.get(p);
     if (hit) return hit;
     const pick = materializePick(seed, p, cfg);
-    picksRef.current.set(p, pick);
+    cache.picks.set(p, pick);
     return pick;
   };
 
   // Вся арифметика всплытия — в движке (fractal-deep.ts), под юнит-тестами.
   const nodeDone = useCallback((p: DeepPath): boolean => deepNodeDone(nodeAt, grids, p), [grids, nodeAt]);
   const valueAt = useCallback((p: DeepPath, r: number, c: number): number => deepValueAt(nodeAt, grids, p, r, c), [grids, nodeAt]);
-  const rootComplete = useCallback((): boolean => deepRootComplete(nodeAt, grids), [grids, nodeAt]);
 
   const runTimer = (from: number) => {
     startRef.current = gameNow() - Math.max(0, from) * 1000;
@@ -166,8 +174,6 @@ export default function FractalDeepScreen() {
     // Зерно — от профиля и часа старта: та же партия у того же человека не
     // повторяется, а снимок хранит зерно и переживает что угодно.
     const s = `${pid ?? 'guest'}|${Math.floor(gameNow() / 1000)}`;
-    nodesRef.current.clear();
-    picksRef.current.clear();
     setSeed(s);
     setPath('');
     setGrids({});
@@ -216,11 +222,13 @@ export default function FractalDeepScreen() {
       else sndPlace();
     }
     hist.push({ path, r, c, prev });
-    setGrids((prevG) => {
-      const g = (prevG[path] ?? Array.from({ length: DEEP_N }, () => Array(DEEP_N).fill(0))).map((row) => [...row]);
-      g[r]![c] = n;
-      return { ...prevG, [path]: g };
-    });
+    // Свежие доски считаем руками, а не из setState-колбэка: победа проверяется
+    // прямо в ходе (как у фрактала-босса), эффект с синхронным setState запрещён.
+    const g = (grids[path] ?? Array.from({ length: DEEP_N }, () => Array(DEEP_N).fill(0))).map((row) => [...row]);
+    g[r]![c] = n;
+    const next = { ...grids, [path]: g };
+    setGrids(next);
+    if (deepRootComplete(nodeAt, next)) void finish(true);
   };
 
   const undo = () => {
@@ -245,12 +253,6 @@ export default function FractalDeepScreen() {
     setSelected(null);
   };
 
-  // Победа проверяется от наигранного: дорешал корень — партия закончилась.
-  useEffect(() => {
-    if (phase !== 'play' || seed === '') return;
-    if (rootComplete()) void finish(true);
-  }, [grids]);   // eslint-disable-line react-hooks/exhaustive-deps
-
   useGameKeyboard({
     ...digitKeys((n) => { if (selected) place(selected.r, selected.c, n); }),
     Escape: () => setSelected(null),
@@ -259,8 +261,6 @@ export default function FractalDeepScreen() {
   // ───────────────────── незаконченная партия ─────────────────────
   const snapshot = (): DeepResume => ({ preset, seed, path, grids, errors, elapsed, history: hist.serialize() });
   const applyResume = (s: DeepResume) => {
-    nodesRef.current.clear();
-    picksRef.current.clear();
     setPreset(s.preset);
     setSeed(s.seed);
     setPath(s.path ?? '');
@@ -293,7 +293,7 @@ export default function FractalDeepScreen() {
     const l = liveRef.current;
     if (l.ok && l.pid) saveResume(GAME_ID, l.pid, RESUME_V, l.snap()).catch(() => {});
   };
-  useEffect(() => () => { saveBeforeExit(); }, []);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => { saveBeforeExit(); }, []);
 
   // ───────────────────── экраны ─────────────────────
 
