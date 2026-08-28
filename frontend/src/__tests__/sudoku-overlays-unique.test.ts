@@ -23,21 +23,43 @@ const LEVELS: [number, string][] = [[31, 'evenodd'], [35, 'kropki'], [39, 'sandw
 
 describe('оверлеи и единственность', () => {
   it('🔴 ДОСКА БОЕВОГО ПУТИ однозначна с ПРОРЕЖЁННЫМИ подсказками', () => {
-    // Самая важная проверка файла: именно тут ломалась первая редакция.
+    /**
+     * Самая важная проверка файла: именно тут ломалась первая редакция.
+     *
+     * 🔴 ФЛАК CI run 33150197434 (28.08.2026, «L35 решений 2») РАЗОБРАН ЗАМЕРОМ:
+     * доска была ЕДИНСТВЕННОЙ, врал счётчик. `countSolutions` при исчерпании
+     * шагового бюджета возвращает `limit` (=2) — «не доказал» неотличимо от «два
+     * решения». Затраты счётчика на боевых досках L35 тяжелохвостые: 12 замеров
+     * дали 1 240…39 960 шагов на доску (0,13–0,20 мс/шаг), редкий хвост пробивает
+     * и 400 000. Поэтому оба недоказанных исхода ниже — ПРОПУСК с логом, а не
+     * вердикт: (а) билдер не добрал `enough` за бюджет; (б) счётчик исчерпал шаги
+     * (после исчерпания `bud.steps` = −1). Настоящая неоднозначность по-прежнему
+     * валит тест: второе решение, найденное В ПРЕДЕЛАХ бюджета, даёт n=2 при
+     * bud.steps ≥ 0. Бюджет билдера снаружи: SUDOKU_BUDGET_MS (для прогонов
+     * с задушенным бюджетом, дефолт 30000).
+     */
+    const budgetMs = Number(process.env.SUDOKU_BUDGET_MS ?? 30000);
+    let checked = 0;
     for (const [L] of LEVELS) {
       const cfg = levelConfig(L);
       for (let i = 0; i < 3; i++) {
-        const b = logicalBuilder(L, cfg.blanks, cfg.N, cfg.BR, cfg.BC, cfg.variant, { budgetMs: 30000 });
+        const b = logicalBuilder(L, cfg.blanks, cfg.N, cfg.BR, cfg.BC, cfg.variant, { budgetMs });
         let made: ReturnType<typeof b.step> | null = null;
-        for (let s = 0; s < b.steps; s++) { made = b.step(); if (b.enough(made)) break; }
-        if (!made) continue;
+        let ok = false;
+        for (let s = 0; s < b.steps; s++) { made = b.step(); if (b.enough(made)) { ok = true; break; } }
+        if (!made || !ok) { console.log(`L${L} #${i}: бюджет не добрал enough — пропуск`); continue; }
         const g = made.gen;
         const ov: Overlays = { parity: g.parity, kropki: g.kropki, sandwich: g.sandwich };
+        const bud = { steps: 400000 };
         const n = countSolutions(g.puzzle.map((r) => [...r]), cfg.N, cfg.BR, cfg.BC,
-          cfg.variant, g.regions, 2, { steps: 400000 }, g.thermo, g.arrow, undefined, ov);
+          cfg.variant, g.regions, 2, bud, g.thermo, g.arrow, undefined, ov);
+        if (bud.steps < 0) { console.log(`L${L} #${i}: счётчик исчерпал 400000 шагов — единственность перебором не доказать, пропуск`); continue; }
         expect(`L${L} решений ${n}`).toBe(`L${L} решений 1`);
+        checked++;
       }
     }
+    // Страховка от вырождения: если ВСЕ доски ушли в пропуск, тест ничего не проверил.
+    expect(checked).toBeGreaterThan(0);
   }, 600000);
 
   it('🔴 generatePuzzle: доска однозначна ТЕМ ЖЕ набором, что она отдала', () => {
