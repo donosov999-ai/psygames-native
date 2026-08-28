@@ -528,6 +528,8 @@ const t: Record<string, string> = {
   "fractalOpened": "Abertas",
   "fractalToUnlock": "para desbloquear",
   "fractalFeedHint": "A célula central destacada é o dígito que subirá para a grade raiz",
+  "fractalLinkHint": "a célula raiz destacada: resolva esta grade e o dígito dela cairá ali. Toque na célula de novo para abrir a grade",
+  "fractalLinkHintDone": "esta grade já entregou o dígito dela à célula destacada. Toque na célula de novo para abrir a grade",
   "fractalPortal": "Portal",
   "fractalPortals": "Portais",
   "fractalPortalGo": "Ir para a grade",

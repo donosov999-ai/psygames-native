@@ -23,6 +23,8 @@ const t: Record<string, string> = {
   "fractalOpened": "解放",
   "fractalToUnlock": "解放まで",
   "fractalFeedHint": "強調された中央のマスが、親の盤面へ上がる数字です",
+  "fractalLinkHint": "ハイライトされたルートのマス：このグリッドを解けば、その数字がそこに入ります。マスをもう一度タップするとグリッドが開きます",
+  "fractalLinkHintDone": "このグリッドはすでに数字をハイライトされたマスに送りました。マスをもう一度タップするとグリッドが開きます",
   "fractalPortal": "ポータル",
   "fractalPortals": "ポータル",
   "fractalPortalGo": "盤面へ移動",

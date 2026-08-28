@@ -1,4 +1,4 @@
-/* psygames-game-sudoku-fractal · VER 2 · 28.08.2026 */
+/* psygames-game-sudoku-fractal · VER 3 · 28.08.2026 */
 /**
  * Фрактальная судоку — сетка, вложенная сама в себя.
  *
@@ -126,8 +126,12 @@ function blendHex(base: string, over: string, k: number): string {
   } catch { return base; }
 }
 
-/** Клетки корня, которые приходят снизу: руками их не трогают. */
-const FED_KEYS = new Set(Array.from({ length: 9 }, (_, i) => rootCellForChild(i).join(',')));
+/**
+ * Клетки корня, которые приходят снизу: руками их не трогают. Ключ «r,c» → номер
+ * дочерней сетки, которая эту клетку кормит. Номер нужен рендеру: связь
+ * «клетка ⇄ нижняя сетка» с 28.08 показывается прямо на карте, а не держится в голове.
+ */
+const FED_CHILD = new Map<string, number>(Array.from({ length: 9 }, (_, i) => [rootCellForChild(i).join(','), i]));
 
 type Phase = 'config' | 'map' | 'child' | 'result';
 
@@ -200,6 +204,14 @@ export default function FractalSudokuScreen() {
   const [openChild, setOpenChild] = useState<number | null>(null);
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
   const [rootSel, setRootSel] = useState<{ r: number; c: number } | null>(null);
+  /**
+   * Выбранная связь «кормящая клетка ⇄ нижняя сетка» (просьба Дениса 28.08: по карте
+   * не видно, какая нижняя сетка что кормит). Первое касание кормящей клетки или её
+   * плитки подсвечивает ПАРУ и меняет подсказку под полем; второе касание клетки
+   * открывает саму сетку — как в референсе Fractal Sudoku, где пунктирная клетка и
+   * есть вход во вложенный пазл. Не сохраняется в снимок партии: это внимание, не ход.
+   */
+  const [linkSel, setLinkSel] = useState<number | null>(null);
   const [errors, setErrors] = useState(0);
   /**
    * Клетка, которую задача ещё не определяет. Не ошибка — неопределённость, и
@@ -262,6 +274,7 @@ export default function FractalSudokuScreen() {
     setOpenChild(null);
     setSelected(null);
     setRootSel(null);
+    setLinkSel(null);
     setMarks(freshMarks());
     setPaint(freshPaint());
     setTool('digit');
@@ -482,7 +495,7 @@ export default function FractalSudokuScreen() {
     ArrowDown: () => moveRootSel(1, 0),
     ArrowLeft: () => moveRootSel(0, -1),
     ArrowRight: () => moveRootSel(0, 1),
-    Escape: () => setRootSel(null),
+    Escape: () => { setRootSel(null); setLinkSel(null); },
   }, phase === 'map' && openChild === null);
 
   // ─────────────────────────── незаконченная партия ───────────────────────────
@@ -520,6 +533,7 @@ export default function FractalSudokuScreen() {
     setOpenChild(null);
     setSelected(null);
     setRootSel(null);
+    setLinkSel(null);
     setWon(false);
     hist.restore(s.history);
     // Таймер продолжаем с НАКОПЛЕННОГО: настенные часы между сессиями ушли вперёд, и от
@@ -792,6 +806,40 @@ export default function FractalSudokuScreen() {
     </View>
   );
 
+  /**
+   * ПРИЗРАК ДОЧЕРНЕЙ СЕТКИ внутри кормящей клетки — живой снимок её 9×9. Метод подачи
+   * из референса Fractal Sudoku (Денис, 28.08): видно, что ПОД клеткой идёт вложенная
+   * судоку и как она продвигается. Точка = клетка дочерней: яркая — поставил человек,
+   * тусклая — подсказка задания, пусто — ещё не решена. Это разом и подсказка
+   * прогресса, и отличительный интерфейс вложенной клетки — без единой надписи.
+   */
+  const ghost = (i: number, cellSize: number) => {
+    const g = play.children[i]?.grid;
+    const given = puzzle?.children[i]?.puzzle;
+    // Точка подстраивается под клетку: на узком экране клетка меньше 34 и жёсткие
+    // 3px вылезали бы за рамку. Меньше 1px точку web всё равно не нарисует.
+    const dot = Math.max(1, Math.floor((cellSize - 6) / N));
+    if (!g || !given || dot < 2) return null;
+    return (
+      <View pointerEvents="none" style={styles.ghostWrap}>
+        <View style={{ width: dot * N, height: dot * N, flexDirection: 'row', flexWrap: 'wrap' }}>
+          {g.flatMap((row, rr) => row.map((vv, cc) => (
+            <View
+              key={rr * N + cc}
+              style={{
+                width: dot, height: dot,
+                backgroundColor: vv === 0 ? 'transparent'
+                  : given[rr][cc] !== 0
+                    ? (isDark ? 'rgba(163,153,224,0.45)' : 'rgba(91,77,158,0.30)')
+                    : GRADIENT[1],
+              }}
+            />
+          )))}
+        </View>
+      </View>
+    );
+  };
+
   // ── КАРТА: корень крупно + плитки дочерних ──
   if (phase === 'map' || openChild === null) {
     const cell = Math.min(34, Math.floor((Math.min(width, 520) - 48) / N));
@@ -826,7 +874,8 @@ export default function FractalSudokuScreen() {
             {play.rootGrid.map((row, r) => (
               <View key={r} style={styles.row}>
                 {row.map((v, c) => {
-                  const fromChild = FED_KEYS.has(`${r},${c}`);
+                  const fedChild = FED_CHILD.get(`${r},${c}`);   // номер кормящей сетки или undefined
+                  const linked = fedChild !== undefined && linkSel === fedChild;
                   const given = (puzzle?.root.puzzle[r]?.[c] ?? 0) !== 0;
                   const mine = !!puzzle && rootEditable(puzzle.root.puzzle, r, c);   // клетка человека
                   const isSel = rootSel?.r === r && rootSel?.c === c;
@@ -835,22 +884,65 @@ export default function FractalSudokuScreen() {
                     <TouchableOpacity
                       key={c}
                       accessibilityRole="button"
-                      accessibilityLabel={`${r + 1}·${c + 1}`}
+                      accessibilityLabel={fedChild !== undefined
+                        ? `${r + 1}·${c + 1} · ${t('fractalChildN')} ${fedChild + 1}`
+                        : `${r + 1}·${c + 1}`}
                       testID={`fractal-root-${r}-${c}`}
                       // ⚠️ В режиме цвета кликабельна ЛЮБАЯ клетка, включая подсказки
                       // задания: цепочку рассуждений ведут и по ним, а не только по пустым.
-                      disabled={!mine && tool !== 'paint'}
-                      onPress={() => { if (tool === 'paint') painting(null, r, c); else setRootSel({ r, c }); }}
+                      // Кормящая клетка кликабельна ВСЕГДА: касание показывает её пару.
+                      disabled={!mine && fedChild === undefined && tool !== 'paint'}
+                      onPress={() => {
+                        if (tool === 'paint') { painting(null, r, c); return; }
+                        if (fedChild !== undefined) {
+                          // Первое касание — подсветить пару «клетка ⇄ сетка», второе —
+                          // нырнуть в сетку (в референсе вложенная клетка и есть вход).
+                          if (linkSel === fedChild) { setOpenChild(fedChild); setSelected(null); setPhase('child'); }
+                          else { setLinkSel(fedChild); setRootSel(null); }
+                          return;
+                        }
+                        setLinkSel(null);
+                        setRootSel({ r, c });
+                      }}
                       style={[styles.cell, {
                         width: cell, height: cell,
                         backgroundColor: isSel ? GRADIENT[1]
+                          : linked ? blendHex(colors.surface, GRADIENT[1], isDark ? 0.42 : 0.28)
                           : cellSkin('root', r, c,
-                            fromChild && v === 0 ? (isDark ? '#3a3358' : '#ece9f7') : colors.surface),
+                            fedChild !== undefined && v === 0 ? (isDark ? '#3a3358' : '#ece9f7') : colors.surface),
                         borderRightWidth: (c + 1) % 3 === 0 ? 2 : 0.5,
                         borderBottomWidth: (r + 1) % 3 === 0 ? 2 : 0.5,
                         borderColor: colors.text,
                       }]}
                     >
+                      {/* Вложенная клетка — как в референсе: пунктирная рамка, номер
+                          сетки в углу и призрак-миниатюра того, что под ней идёт.
+                          Рамка становится сплошной, когда цифра уже пришла снизу. */}
+                      {fedChild !== undefined && (
+                        <>
+                          <View
+                            pointerEvents="none"
+                            testID={`fractal-fed-ring-${fedChild}`}
+                            style={[styles.fedRing, {
+                              borderColor: linked ? GRADIENT[1] : isDark ? '#6f66a8' : '#a89fdb',
+                              borderStyle: v === 0 ? 'dashed' : 'solid',
+                              borderWidth: linked ? 2 : 1,
+                              opacity: v === 0 || linked ? 1 : 0.45,
+                            }]}
+                          />
+                          <Text
+                            pointerEvents="none"
+                            style={[styles.fedTag, {
+                              color: linked ? GRADIENT[1] : isDark ? '#8d84c2' : '#7f76b8',
+                              fontSize: Math.max(7, cell * 0.24),
+                              opacity: v === 0 || linked ? 1 : 0.6,
+                            }]}
+                          >
+                            {fedChild + 1}
+                          </Text>
+                          {v === 0 && ghost(fedChild, cell)}
+                        </>
+                      )}
                       {renderMarks('root', r, c, cell, v)}
                       <Text style={{
                         fontSize: cell * 0.5,
@@ -865,6 +957,19 @@ export default function FractalSudokuScreen() {
               </View>
             ))}
           </View>
+
+          {/* Подсказка меняется от касания: у выбранной пары она называет связь словами.
+              Живая область — чтец экрана услышит смену без повторного фокуса. */}
+          {linkSel !== null && (
+            <Text
+              style={[styles.feedHint, { color: GRADIENT[1], fontWeight: '600', marginTop: 8 }]}
+              accessibilityLiveRegion="polite"
+              testID="fractal-link-hint"
+            >
+              {/* Решённая сетка «реши её» уже не просит — подсказка честно меняется. */}
+              {`${t('fractalChildN')} ${linkSel + 1} ⇄ ${t(play.children[linkSel]?.done ? 'fractalLinkHintDone' : 'fractalLinkHint')}`}
+            </Text>
+          )}
 
           <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 18 }]}>
             {t('fractalChildren')}
@@ -895,10 +1000,13 @@ export default function FractalSudokuScreen() {
                     + (done && fed ? ` · ${fed}` : '')
                     + (link ? ` · ${t('fractalPortal')} ${link.other + 1}` : '')}
                   testID={`fractal-tile-${i}`}
-                  onPress={() => { setOpenChild(i); setSelected(null); setPhase('child'); }}
+                  // Плитка запоминает себя как выбранную связь: вернёшься из сетки —
+                  // её клетка в корне подсвечена, и видно, куда пришла (или придёт) цифра.
+                  onPress={() => { setLinkSel(i); setOpenChild(i); setSelected(null); setPhase('child'); }}
                   style={[styles.tile, {
                     backgroundColor: done ? GRADIENT[0] : colors.surface,
-                    borderColor: done ? GRADIENT[0] : colors.border,
+                    borderColor: linkSel === i ? GRADIENT[1] : done ? GRADIENT[0] : colors.border,
+                    borderWidth: linkSel === i ? 2 : 1,
                   }]}
                 >
                   <View style={styles.tileHead}>
@@ -1189,6 +1297,15 @@ const styles = StyleSheet.create({
   },
   // Кольцо портала: не заливка, а обводка — цифра в клетке обязана остаться читаемой.
   portalRing: { position: 'absolute', top: 2, left: 2, right: 2, bottom: 2, borderRadius: 999, borderWidth: 2 },
+  // Рамка вложенной клетки — квадратная и пунктирная, нарочно НЕ как круглое кольцо
+  // портала: это два разных свойства доски, и рисоваться они обязаны по-разному.
+  fedRing: { position: 'absolute', top: 1.5, left: 1.5, right: 1.5, bottom: 1.5, borderRadius: 3 },
+  fedTag: { position: 'absolute', top: -0.5, left: 2.5, fontWeight: '800' },
+  // Призрак дочерней сетки: слой на всю клетку, миниатюра 9×9 отцентрована в нём.
+  ghostWrap: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    alignItems: 'center', justifyContent: 'center',
+  },
   portalTag: { position: 'absolute', top: -1, right: 2, fontWeight: '800' },
   // Тот же порог 48, что у остальных кнопок «на поле»: под ней лежит доска, и промах
   // мимо перехода поставит цифру не туда (scripts/tap-target-audit.mjs).

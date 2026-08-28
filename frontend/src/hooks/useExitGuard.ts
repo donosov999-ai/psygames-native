@@ -70,9 +70,22 @@ export interface ExitGuardCore {
  *  · уходим ровно один раз — двойное нажатие по «Выйти» не должно давать
  *    вторую навигацию (на вебе это уводило бы на два экрана назад).
  */
+/**
+ * 🔴 Через сколько защёлка «уже ушли» отпускается сама. Обычный выход сносит
+ * экран, и защёлка умирает вместе с ним. Но «выход» бывает ВНУТРИЭКРАННЫМ:
+ * карта и дочерняя сетка фрактала — один GameShell в одной позиции дерева,
+ * React его не перемонтирует, и вечная защёлка после «назад» из сетки хоронила
+ * кнопку «назад» карты насовсем (Валя 21.08 «работает через раз», Денис 28.08
+ * «не выйти из упражнения» — requestExit умирал на `if (left) return`).
+ * Двойное нажатие «Выйти» защёлка гасит по-прежнему: вторая навигация успевает
+ * только в первые сотни миллисекунд, дольше вопрос просто не живёт.
+ */
+const LEFT_RELEASE_MS = 600;
+
 export function createExitGuard(deps: ExitGuardDeps): ExitGuardCore {
   let asking = false;
   let left = false;
+  let leftTimer: ReturnType<typeof setTimeout> | null = null;
 
   const show = (v: boolean) => {
     if (asking === v) return;
@@ -80,12 +93,20 @@ export function createExitGuard(deps: ExitGuardDeps): ExitGuardCore {
     deps.setAsking(v);
   };
 
+  /** Уйти ровно один раз — и не навсегда: экран мог остаться жив (см. LEFT_RELEASE_MS). */
+  const leaveOnce = () => {
+    left = true;
+    if (leftTimer) clearTimeout(leftTimer);
+    leftTimer = setTimeout(() => { left = false; }, LEFT_RELEASE_MS);
+    deps.exit();
+  };
+
   return {
     get asking() { return asking; },
 
     requestExit() {
       if (left) return;
-      if (!deps.isArmed()) { left = true; deps.exit(); return; }
+      if (!deps.isArmed()) { leaveOnce(); return; }
       deps.save?.();
       show(true);
     },
@@ -94,8 +115,7 @@ export function createExitGuard(deps: ExitGuardDeps): ExitGuardCore {
       if (left) return;
       deps.save?.();
       show(false);
-      left = true;
-      deps.exit();
+      leaveOnce();
     },
 
     stay() { show(false); },

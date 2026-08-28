@@ -23,6 +23,8 @@ const t: Record<string, string> = {
   "fractalOpened": "Ouvertes",
   "fractalToUnlock": "pour débloquer",
   "fractalFeedHint": "La case centrale mise en évidence est le chiffre qui montera dans la grille racine",
+  "fractalLinkHint": "la case racine surlignée : résous cette grille et son chiffre s'y placera. Touche à nouveau la case pour ouvrir la grille",
+  "fractalLinkHintDone": "cette grille a déjà envoyé son chiffre dans la case surlignée. Touche à nouveau la case pour ouvrir la grille",
   "fractalPortal": "Portail",
   "fractalPortals": "Portails",
   "fractalPortalGo": "Aller à la grille",

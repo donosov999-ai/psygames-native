@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.251.0',
+    date: '2026-08-28',
+    ru: [
+      'Починено: небоскрёбы, неравенства и killer после победы показывали пустой экран — теперь у каждого режима есть экран итога',
+      'Починено: во фрактальной судоку «назад» переставал работать после захода в нижнюю сетку — из игры было не выйти',
+      'Фрактальная судоку: карта стала интерактивной — коснись клетки с номером, и подсветится её нижняя сетка (и наоборот), второе касание открывает сетку',
+      'В клетках корня теперь живут «призраки» — миниатюры вложенных сеток: видно, что под клеткой идёт своя судоку и как она продвигается',
+    ],
+    en: [
+      'Fixed: skyscrapers, inequalities and killer showed a blank screen after winning — every mode now has a result screen',
+      'Fixed: in fractal sudoku the back button stopped working after visiting a lower grid — you could not leave the game',
+      'Fractal sudoku: the map is now interactive — tap a numbered cell and its lower grid lights up (and vice versa), a second tap opens the grid',
+      'Root cells now hold “ghosts” — live miniatures of the nested grids: you can see a sudoku going on beneath the cell and how far it got',
+    ],
+  },
+  {
     version: '1.250.0',
     date: '2026-08-28',
     ru: [

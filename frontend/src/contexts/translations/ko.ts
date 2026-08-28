@@ -23,6 +23,8 @@ const t: Record<string, string> = {
   "fractalOpened": "열림",
   "fractalToUnlock": "해제까지",
   "fractalFeedHint": "강조된 가운데 칸이 루트 격자로 올라갈 숫자입니다",
+  "fractalLinkHint": "강조된 루트 칸: 이 그리드를 풀면 그 숫자가 그 칸에 들어갑니다. 칸을 한 번 더 누르면 그리드가 열립니다",
+  "fractalLinkHintDone": "이 그리드는 이미 숫자를 강조된 칸에 보냈습니다. 칸을 한 번 더 누르면 그리드가 열립니다",
   "fractalPortal": "포털",
   "fractalPortals": "포털",
   "fractalPortalGo": "격자로 이동",

@@ -23,6 +23,8 @@ const t: Record<string, string> = {
   "fractalOpened": "Aperte",
   "fractalToUnlock": "per sbloccare",
   "fractalFeedHint": "La casella centrale evidenziata è la cifra che salirà nella griglia radice",
+  "fractalLinkHint": "la cella radice evidenziata: risolvi questa griglia e la sua cifra finirà lì. Tocca di nuovo la cella per aprire la griglia",
+  "fractalLinkHintDone": "questa griglia ha già consegnato la sua cifra alla cella evidenziata. Tocca di nuovo la cella per aprire la griglia",
   "fractalPortal": "Portale",
   "fractalPortals": "Portali",
   "fractalPortalGo": "Vai alla griglia",
