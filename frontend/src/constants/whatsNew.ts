@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.255.2',
+    date: '2026-08-28',
+    ru: [
+      'Закрыт весь класс «игра открылась не тем, чем ждал»: незаконченные партии теперь всегда сверяются со входом — у самурая метка мега-босса стала свойством партии, а не двери',
+    ],
+    en: [
+      'Closed the whole “game opened as something else” class: unfinished games now always match the entry — the samurai mega-boss badge belongs to the match, not the door',
+    ],
+  },
+  {
     version: '1.255.1',
     date: '2026-08-28',
     ru: [
