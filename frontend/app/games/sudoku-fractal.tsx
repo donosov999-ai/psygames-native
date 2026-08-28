@@ -46,6 +46,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -595,6 +596,22 @@ export default function FractalSudokuScreen() {
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={[styles.cardText, { color: colors.text }]}>{t('fractalHowTo')}</Text>
           </View>
+
+          {/* Дверь в «их масштаб» (Денис 28.08): глубокий фрактал — отдельный
+              марафонский режим со своим экраном; этот, «боссовый», остаётся как есть. */}
+          <TouchableOpacity
+            accessibilityRole="button"
+            testID="fractal-deep-link"
+            onPress={() => router.push('/games/sudoku-fractal-deep' as never)}
+            style={[styles.card, { backgroundColor: colors.surface, borderColor: GRADIENT[0], flexDirection: 'row', alignItems: 'center', gap: 10 }]}
+          >
+            <Ionicons name="layers" size={22} color={GRADIENT[1]} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.cardText, { color: colors.text, fontWeight: '800' }]}>{t('deepTitle')}</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('deepEntryHint')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
 
           {/* ⚠️ Правило показываем ТОЛЬКО там, где порталы есть. На первой ступени их нет,
               и рассказ про механику, которой на доске не будет, — это не обучение, а шум. */}

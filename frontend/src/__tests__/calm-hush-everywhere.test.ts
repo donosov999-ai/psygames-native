@@ -55,7 +55,7 @@ const NOT_A_GAME: Record<string, string> = {
  * Оставшиеся двое в вечерние наборы не входят: до них дойдёт очередь, но
  * человеку они сегодня не мешают.
  */
-const DEBT = ['sudoku-fractal.tsx', 'sudoku-samurai.tsx'];
+const DEBT = ['sudoku-fractal.tsx', 'sudoku-fractal-deep.tsx', 'sudoku-samurai.tsx'];
 
 describe('слой звука знает про тихий шаг', () => {
   afterEach(() => setCalmHush(false));

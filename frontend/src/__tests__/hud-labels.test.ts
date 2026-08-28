@@ -192,6 +192,7 @@ const BUSY: Record<string, { max: number; why: string }> = {
   'sudoku.tsx': { max: 3, why: 'секундомер, остаток подсказок и счётчик переделок — значками без слова' },
   'sudoku-samurai.tsx': { max: 1, why: 'секундомер без слова' },
   'sudoku-fractal.tsx': { max: 3, why: 'счётчик ошибок значком ✗' },
+  'sudoku-fractal-deep.tsx': { max: 3, why: 'порог узла дробью, ошибки значком ✗, время m:ss' },
   'mahjong.tsx': { max: 4, why: 'очки, собранные пары и ошибки — иконка вместо слова' },
   'picture-pairs.tsx': { max: 4, why: 'весь ряд бейджей без label + счётчик над полем' },
   'goods-sort.tsx': { max: 3, why: 'очки, ходы, остаток товаров и запас подсказок без слова' },

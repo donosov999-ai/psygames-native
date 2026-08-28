@@ -177,6 +177,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillLogic",
     "introKey": "fractalTitleIntroDesc"
   },
+  "/games/sudoku-fractal-deep": {
+    "nameKey": "deepTitle",
+    "skillKey": "skillLogic",
+    "introKey": "sudokuFractalDeepIntroDesc"
+  },
   "/games/anagrams": {
     "nameKey": "anagrams",
     "skillKey": "skillVerbal",

@@ -191,8 +191,8 @@ describe('подъём партии — только через общий ху�
     expect(forgetful).toEqual([]);
   });
 
-  it('и таких экранов девять — счёт держим, чтобы гейт не опустел молча', () => {
+  it('и таких экранов десять — счёт держим, чтобы гейт не опустел молча', () => {
     const withBoot = games.filter((f: string) => /\buseResumeBoot\s*[<(]/.test(code(f)));
-    expect(withBoot.length).toBe(9);
+    expect(withBoot.length).toBe(10);
   });
 });

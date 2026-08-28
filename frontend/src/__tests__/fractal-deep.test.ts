@@ -13,7 +13,8 @@
  */
 import {
   childPath, parentOf, depthOf, materializeNode, materializeChain, countDeep,
-  DEEP_FEED_CELL, DEEP_N, type DeepCfg,
+  deepNodeDone, deepNodeProgress, deepValueAt, deepRootComplete,
+  DEEP_FEED_CELL, DEEP_N, type DeepCfg, type DeepNode, type DeepPath, type DeepPlayed,
 } from '@/src/services/fractal-deep';
 
 const CFG: DeepCfg = { depth: 3, rating: 1.2, feedCount: 'all', unlockShare: 0.5 };
@@ -101,6 +102,90 @@ describe('глубокий фрактал — движок', () => {
     expect(root.unlockCells).toBe(Math.ceil(root.blanks * CFG.unlockShare));
     expect(root.unlockCells).toBeGreaterThanOrEqual(1);
     expect(root.unlockCells).toBeLessThanOrEqual(root.blanks);
+  });
+
+  it('🔴 всплытие: дорешал ребёнка — цифра видна в родителе; откатил — ушла сама', () => {
+    const cfg: DeepCfg = { depth: 2, rating: 1.2, feedCount: 9, unlockShare: 0.24 };
+    const cache = new Map<DeepPath, DeepNode>();
+    const nodeAt = (p: DeepPath): DeepNode => {
+      const hit = cache.get(p);
+      if (hit) return hit;
+      const par = parentOf(p);
+      const digit = par === null ? 0 : nodeAt(par.parent).solution[par.cell[0]]![par.cell[1]]!;
+      const node = materializeNode(SEED, p, cfg, digit);
+      cache.set(p, node);
+      return node;
+    };
+    const root = nodeAt('');
+    const [fr, fc] = root.feedCells[0]!;
+    const leafPath = childPath('', fr, fc);
+    const leaf = nodeAt(leafPath);
+
+    // Пустая партия: кормимая клетка пуста, ребёнок не отдал.
+    const played: DeepPlayed = {};
+    expect(deepValueAt(nodeAt, played, '', fr, fc)).toBe(0);
+    expect(deepNodeDone(nodeAt, played, leafPath)).toBe(false);
+
+    // Заполняем СВОИ клетки листа верно до порога — ровно unlockCells штук.
+    const grid = Array.from({ length: DEEP_N }, () => Array(DEEP_N).fill(0));
+    let put = 0;
+    outer: for (let r = 0; r < DEEP_N; r++) for (let c = 0; c < DEEP_N; c++) {
+      if (leaf.puzzle[r]![c] !== 0) continue;
+      grid[r]![c] = leaf.solution[r]![c]!;
+      if (++put >= leaf.unlockCells) break outer;
+    }
+    played[leafPath] = grid;
+    expect(deepNodeDone(nodeAt, played, leafPath)).toBe(true);
+    // Цифра в родителе — и это ЕГО решение этой клетки (правило центра уже сверено выше).
+    expect(deepValueAt(nodeAt, played, '', fr, fc)).toBe(root.solution[fr]![fc]);
+    expect(deepNodeProgress(nodeAt, played, '')).toBe(1);
+
+    // Отмена: сняли одну верную клетку — ребёнок упал ниже порога, цифра ушла из родителя САМА.
+    outer2: for (let r = 0; r < DEEP_N; r++) for (let c = 0; c < DEEP_N; c++) {
+      if (grid[r]![c] !== 0) { grid[r]![c] = 0; break outer2; }
+    }
+    expect(deepNodeDone(nodeAt, played, leafPath)).toBe(false);
+    expect(deepValueAt(nodeAt, played, '', fr, fc)).toBe(0);
+  });
+
+  it('🔴 победа: корень собран руками + всеми всплывшими цифрами', () => {
+    const cfg: DeepCfg = { depth: 2, rating: 1.2, feedCount: 9, unlockShare: 0.24 };
+    const cache = new Map<DeepPath, DeepNode>();
+    const nodeAt = (p: DeepPath): DeepNode => {
+      const hit = cache.get(p);
+      if (hit) return hit;
+      const par = parentOf(p);
+      const digit = par === null ? 0 : nodeAt(par.parent).solution[par.cell[0]]![par.cell[1]]!;
+      const node = materializeNode(SEED, p, cfg, digit);
+      cache.set(p, node);
+      return node;
+    };
+    const root = nodeAt('');
+    const played: DeepPlayed = {};
+    const feed = new Set(root.feedCells.map(([r, c]) => `${r},${c}`));
+
+    // Руки: все СВОИ клетки корня из решения.
+    const rootGrid = Array.from({ length: DEEP_N }, () => Array(DEEP_N).fill(0));
+    for (let r = 0; r < DEEP_N; r++) for (let c = 0; c < DEEP_N; c++) {
+      if (root.puzzle[r]![c] === 0 && !feed.has(`${r},${c}`)) rootGrid[r]![c] = root.solution[r]![c]!;
+    }
+    played[''] = rootGrid;
+    expect(deepRootComplete(nodeAt, played)).toBe(false);   // дети ещё молчат
+
+    // Каждый ребёнок — до порога.
+    for (const [r, c] of root.feedCells) {
+      const p = childPath('', r, c);
+      const leaf = nodeAt(p);
+      const g = Array.from({ length: DEEP_N }, () => Array(DEEP_N).fill(0));
+      let put = 0;
+      outer: for (let rr = 0; rr < DEEP_N; rr++) for (let cc = 0; cc < DEEP_N; cc++) {
+        if (leaf.puzzle[rr]![cc] !== 0) continue;
+        g[rr]![cc] = leaf.solution[rr]![cc]!;
+        if (++put >= leaf.unlockCells) break outer;
+      }
+      played[p] = g;
+    }
+    expect(deepRootComplete(nodeAt, played)).toBe(true);
   });
 
   it('🔴 счёт дерева сходится с деревом и даёт настоящий масштаб', () => {

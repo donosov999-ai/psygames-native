@@ -133,6 +133,7 @@ const ALREADY: Record<string, string> = {
   'stroop-emotional.tsx': "t('stroop2Hint')",
   'stroop.tsx': "t('stroopHintInk')",
   'sudoku-fractal.tsx': "t('fractalFeedHint')",
+  'sudoku-fractal-deep.tsx': "t('deepDiveHint')",
   'switching-task.tsx': "t('judgeCue')",
   'targets.tsx': "t('hint_targets_tap_if')",
   'tower-london.tsx': "t('towerHint')",
