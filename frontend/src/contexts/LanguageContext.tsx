@@ -1522,12 +1522,13 @@ const translations: Translations = {
   petTrainingsDone:    { ru: 'Тренировок: {n}', en: 'Trainings: {n}' },
   petUntilNextStage:   { ru: 'до стадии «{stage}» ещё {n}', en: '{n} more to reach “{stage}”' },
   petUntilNextLevel:   { ru: 'до нового уровня ещё {n}', en: '{n} more to the next level' },
-  fixedByYourReport:     { ru: 'Починили по твоим репортам', en: 'Fixed from your reports' },
+  // ⚠️ Публичный тон (Денис 28.08): в текстах для игрока — «отзывы», не «репорты».
+  fixedByYourReport:     { ru: 'Починили по твоим отзывам', en: 'Fixed from your reports' },
   // Благодарность стоит ПЕРВОЙ строкой блока. Раньше она была последней — и на
   // телефоне уезжала за край экрана: человек видел свою цитату и сухое «сделали
   // то-то», а «спасибо» не видел вообще (скрин от Вали, v1.170).
   thanksForReports:      { ru: 'Благодарим за твои сообщения — вот что мы по ним сделали', en: 'Thank you for your messages — here is what we did about them' },
-  andMoreFixed: { ru: '…и ещё {n} по твоим прошлым репортам', en: '…and {n} more from your earlier reports' },
+  andMoreFixed: { ru: '…и ещё {n} по твоим прошлым отзывам', en: '…and {n} more from your earlier reports' },
   voiceRecord:     { ru: '🎤 Записать голосом', en: '🎤 Record a voice note' },
   voiceStop:       { ru: 'Стоп', en: 'Stop' },
   voiceAttached:   { ru: 'Запись прикреплена', en: 'Voice note attached' },
