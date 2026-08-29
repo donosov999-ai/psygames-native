@@ -330,6 +330,9 @@ export default function RMETGame() {
     const doneRun = runs.level;
     runs.reach(doneRun + 1);
     try {
+      // passed отсутствует НАМЕРЕННО (задача e53f4958, группа «провала нет по
+      // устройству»): RMET — замерный тест: результат это точность, порога «провала» нет.
+      // Поле «всегда true» не несёт бита и портит статистику долей — не врём им.
       await saveSession({
         game_type: 'rmet',
         score: finalHits * 50,

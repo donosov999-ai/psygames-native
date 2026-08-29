@@ -251,6 +251,9 @@ export default function BreathingGame() {
     const doneRun = runs.level;
     runs.reach(doneRun + 1);
     try {
+      // passed отсутствует НАМЕРЕННО (задача e53f4958, группа «провала нет по
+      // устройству»): дыхательная практика: доводится до конца или прерывается.
+      // Поле «всегда true» не несёт бита и портит статистику долей — не врём им.
       await saveSession({
         game_type: 'breathing',
         score: Math.round(totalDur),

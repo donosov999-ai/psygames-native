@@ -114,6 +114,9 @@ export default function IowaGame() {
     const doneRun = runs.level;
     runs.reach(doneRun + 1);
     try {
+      // passed отсутствует НАМЕРЕННО (задача e53f4958, группа «провала нет по
+      // устройству»): IGT — замерный тест решений: результат это банк, а не «прошёл/нет».
+      // Поле «всегда true» не несёт бита и портит статистику долей — не врём им.
       await saveSession({
         game_type: 'iowa',
         score: Math.max(0, finalBank),

@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.6.0',
+    date: '2026-08-29',
+    ru: [
+      'Мишени: после трёх поражений подряд уровень честно опускается на ступень — как в остальных играх с лестницей. Подняться обратно быстрее, чем застрять на непосильном',
+    ],
+    en: [
+      'Targets: after three defeats in a row the level honestly steps down — like other ladder games. Climbing back is faster than being stuck above your head',
+    ],
+  },
+  {
     version: '2.5.0',
     date: '2026-08-29',
     ru: [

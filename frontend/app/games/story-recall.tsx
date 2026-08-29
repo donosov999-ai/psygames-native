@@ -361,6 +361,9 @@ export default function StoryRecallGame() {
     const doneLevel = lvl.level;
     if (doneLevel < STORY_MAX_LEVEL) lvl.reach(doneLevel + 1);
     try {
+      // passed отсутствует НАМЕРЕННО (задача e53f4958, группа «провала нет по
+      // устройству»): пересказ доводят до конца, уровень засчитан завершением.
+      // Поле «всегда true» не несёт бита и портит статистику долей — не врём им.
       await saveSession({
         game_type: 'story_recall',
         score: Math.round((recall1Hits + hits) * 50),
