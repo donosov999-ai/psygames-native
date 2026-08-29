@@ -12,6 +12,9 @@ import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import {
+  CAGE_ACCENTS, blendHex, thermoThick, thermoColor, thermoSegment, thermoBulb, cageSumFontSize,
+} from '@/src/services/sudoku-overlay';
 import GlassButton from '@/src/components/GlassButton';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
 import BossRound, { BossType } from '@/src/components/BossRound';
@@ -44,15 +47,8 @@ const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const CELL_COLORS = ['#8B5CF6', '#0EA5E9', '#22C55E', '#F59E0B', '#EC4899'] as const;
 // Okabe–Ito: отдельная палитра для режима дальтонизма, а не перестановка тех же цветов.
 const CELL_COLORS_CB = ['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7'] as const;
-// Непрозрачная подсветка: смешать base (фон темы) с over (акцент). Полупрозрачный цвет поверх
-// чёрного gridArea (colors.text) давал «чёрные» диагональные клетки в тёмной теме — баг.
-function blendHex(base: string, over: string, t: number): string {
-  const b = base.replace('#', ''), o = over.replace('#', '');
-  if (b.length !== 6 || o.length !== 6) return over;
-  const ch = (s: string, i: number) => parseInt(s.slice(i, i + 2), 16);
-  const mix = (i: number) => Math.round(ch(b, i) * (1 - t) + ch(o, i) * t).toString(16).padStart(2, '0');
-  return '#' + mix(0) + mix(2) + mix(4);
-}
+// blendHex, краски групп и геометрия термометра — в src/services/sudoku-overlay.ts:
+// один рисунок на классику и на Бездну (см. шапку модуля, §7е п.71).
 // Рисованные цифры — набор под активный профиль (см. src/constants/digitThemes.ts).
 const SUDOKU_BENEFITS = [
   { icon: 'extension-puzzle-outline', textKey: 'benefitSudoku1' },
@@ -121,7 +117,6 @@ export function sudokuVisibleMarks(mask: number, value: number, N: number): numb
 // цифры не сливались.
 const DIGIT_TINT = ['#e8564f', '#ef8f27', '#e7c229', '#4fb455', '#2fa3a8', '#3f7fd5', '#7f5ad5', '#c94fa8', '#8a6f4f'] as const;
 
-const CAGE_ACCENTS = ['#7f7fd5', '#86a8e7', '#d58a7f', '#7fd5a8', '#d5c97f', '#b07fd5'] as const;
 
 /**
  * СТРОКА-ОБЪЯСНЕНИЕ НАД ДОСКОЙ — три строки текста ФИКСИРОВАННОЙ высоты.
@@ -1762,20 +1757,14 @@ export default function SudokuGame() {
             >
               {(variant === 'thermo' || variant === 'thermocage' || variant === 'thermoknight') && thermo && thermo[r][c] && (() => {
                 const pn = thermo[r][c]!;
-                const thick = Math.max(3, Math.round(cellSize * 0.16));
-                const col = blendHex(colors.surface, GRADIENT[0], 0.5);
-                const seg = (cell: [number, number]) => {
-                  const dr = cell[0] - r, dc = cell[1] - c;
-                  if (dc === 1) return { left: cellSize / 2, top: cellSize / 2 - thick / 2, width: cellSize / 2, height: thick };
-                  if (dc === -1) return { left: 0, top: cellSize / 2 - thick / 2, width: cellSize / 2, height: thick };
-                  if (dr === 1) return { top: cellSize / 2, left: cellSize / 2 - thick / 2, width: thick, height: cellSize / 2 };
-                  return { top: 0, left: cellSize / 2 - thick / 2, width: thick, height: cellSize / 2 };
-                };
+                const thick = thermoThick(cellSize);
+                const col = thermoColor(colors.surface, GRADIENT[0]);
+                const seg = (cell: [number, number]) => thermoSegment(r, c, cell, cellSize, thick);
                 return (
                   <>
                     {pn.prev && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.prev) }} />}
                     {pn.next && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.next) }} />}
-                    {!pn.prev && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', width: cellSize * 0.42, height: cellSize * 0.42, borderRadius: cellSize * 0.21, left: cellSize / 2 - cellSize * 0.21, top: cellSize / 2 - cellSize * 0.21 }} />}
+                    {!pn.prev && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...thermoBulb(cellSize) }} />}
                   </>
                 );
               })()}
@@ -1846,7 +1835,7 @@ export default function SudokuGame() {
               {/* Сумма — в углу клетки, колба термометра — по центру: на одной клетке
                   обе разметки не спорят за место. */}
               {cageAt(r, c) >= 0 && cageAnchors[cageAt(r, c)] === r * N + c && (
-                <Text style={{ position: 'absolute', top: 1, left: 2, fontSize: Math.max(8, Math.round(cellSize * 0.27)), fontWeight: '800', color: colors.text }}>{cageSums[cageAt(r, c)]}</Text>
+                <Text style={{ position: 'absolute', top: 1, left: 2, fontSize: cageSumFontSize(cellSize), fontWeight: '800', color: colors.text }}>{cageSums[cageAt(r, c)]}</Text>
               )}
               {/* В «чётное/нечётное» клетка залита меткой-кружком/квадратом, и
                   декоративная цифра-картинка поверх тонировки читается как

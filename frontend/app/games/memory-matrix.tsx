@@ -233,6 +233,7 @@ export default function MemoryMatrixGame() {
           setElapsedTime(finalTime);
           const passed = !isPreset && fErrors <= 1;
           if (passed) lvl.reach(levelRef.current + 1);   // чистый прогон → +уровень
+          else if (!isPreset) lvl.fail();               // и обратно: три провала подряд → −1 уровень
           if (isPreset) {
             setPhase('result');                          // пресет/свободный режим — экран статистики
           } else {

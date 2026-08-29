@@ -153,6 +153,7 @@ export default function MathSprintGame() {
     sndTimerEnd();   // SND-T: «время вышло»
     const passed = !isPreset && correct >= 12;
     if (passed) lvl.reach(lvl.level + 1);   // ≥12 верных → +уровень
+    else if (!isPreset) lvl.fail();          // и обратно: три провала подряд → −1 уровень
     try {
       await saveSession({
         passed,

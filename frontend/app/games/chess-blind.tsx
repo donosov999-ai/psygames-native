@@ -773,6 +773,7 @@ export default function ChessBlindGame() {
     const levelPassed = fErrors <= 1;
     const passed = !isPreset && levelPassed;
     if (passed) lvl.reach(levelRef.current + 1);
+    else if (!isPreset) lvl.fail();   // симметрия лестницы: три провала подряд → −1 уровень
     saveSession({
       passed,
       game_type: 'chess_blind',

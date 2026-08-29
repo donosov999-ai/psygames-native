@@ -36,7 +36,10 @@
  * позволяет считать размеры дерева (blanks, кормимые) БЕЗ решения досок — счёт
  * партии из тысяч пазлов стоит десятки миллисекунд, а не минуты (см. countDeep).
  */
-import { type Cell, solve } from '@/src/services/sudoku-core';
+import {
+  type Cell, type CageMap, type ThermoPN, type Variant,
+  solve, countSolutions, thermoFromSolution, generateThermoCages,
+} from '@/src/services/sudoku-core';
 import { makeRng, normalizeSeed } from '@/src/services/seed';
 import {
   BANK_N, BANK_BR, BANK_BC, bankPool, bankRatingForLevel,
@@ -63,6 +66,25 @@ export interface DeepCfg {
   feedCount: number | 'all';
   /** Доля дырок узла, которую надо закрыть, чтобы он отдал цифру наверх (0..1]. */
   unlockShare: number;
+  /**
+   * ПРИПРАВА ЛИСТЬЕВ (§7е пп.56–57): термометры и клетки-суммы на нижнем слое.
+   * Выключено — Бездна из чистой классики, как была. Включено — каждый лист по
+   * жребию зерна получает термометр либо термометр с суммами, и за это у него
+   * выкапываются лишние подсказки (см. spiceLeaf).
+   */
+  spice?: boolean;
+}
+
+/** Чем приправлен лист: ничем, термометрами, термометрами с клетками-суммами. */
+export type DeepSpice = 'none' | 'thermo' | 'thermocage';
+
+/** Приправа узла: правило + фигуры, согласованные с его решением. */
+export interface DeepSeasoning {
+  spice: DeepSpice;
+  thermo?: ThermoPN;
+  cages?: CageMap;
+  /** Сколько подсказок выкопано сверх банковских — цена приправы. */
+  dug: number;
 }
 
 /** Узел без решения — для счёта и карточек. Решение считается отдельно (12 мс). */
@@ -77,8 +99,8 @@ export interface DeepPick {
   rating: number;
 }
 
-/** Полный узел: то же плюс решение (для партии). */
-export interface DeepNode extends DeepPick {
+/** Полный узел: то же плюс решение (для партии) и приправа листа. */
+export interface DeepNode extends DeepPick, DeepSeasoning {
   solution: Cell[][];
 }
 
@@ -148,6 +170,72 @@ export function materializePick(seed: string, path: DeepPath, cfg: DeepCfg): Dee
 }
 
 /**
+ * ПРИПРАВА ЛИСТА — термометры и клетки-суммы поверх банковской доски (§7е пп.56–57).
+ *
+ * 🔴 ЧЕГО ЭТО НЕ ДЕЛАЕТ. Не рисует фигуру вслепую и не ищет под неё доску: фигура
+ * кладётся ПО ГОТОВОМУ РЕШЕНИЮ (`thermoFromSolution`, `generateThermoCages`) — тот
+ * же порядок, которым лечили секундную сборку классики 23.08 (2 443 мс → 0,078 мс).
+ * Решение по построению удовлетворяет и термометру, и суммам, поэтому противоречий
+ * между правилами взяться неоткуда.
+ *
+ * 🔴 ПОЧЕМУ ПРИПРАВА ОБЯЗАНА ЧТО-ТО ОТНИМАТЬ. Термометр и суммы — это ДОПОЛНИТЕЛЬНЫЕ
+ * подсказки: доска банка с ними становится не сложнее, а легче, и «вариант» вырождается
+ * в украшение. Поэтому за приправу платят подсказками: копаем цифры из доски, пока
+ * решение остаётся ЕДИНСТВЕННЫМ уже с учётом нового правила (`countSolutions` с
+ * термометром и суммами). Единственность проверяется, а не предполагается.
+ *
+ * 🔴 ТОЛЬКО ЛИСТЬЯ. Выше листа часть клеток кормится снизу (`feedCells`) и руками не
+ * заполняется: термометр, проходящий через такую клетку, требовал бы от человека
+ * сравнить с цифрой, которой ещё нет. Лист — обычная судоку, там приправа честна.
+ *
+ * Жребий приправы — от зерна и пути, как всё в Бездне: узел, материализованный
+ * заново после перезапуска, обязан прийти с тем же узором.
+ */
+export function spiceLeaf(
+  seed: string,
+  path: DeepPath,
+  puzzle: Cell[][],
+  solution: Cell[][],
+  maxDig = 6,
+): DeepSeasoning {
+  const rng = makeRng(`fractal-deep-spice|${normalizeSeed(seed)}|${path}`);
+  const roll = rng();
+  const spice: DeepSpice = roll < 0.34 ? 'none' : roll < 0.67 ? 'thermo' : 'thermocage';
+  if (spice === 'none') return { spice, dug: 0 };
+
+  const thermo = thermoFromSolution(solution, DEEP_N, rng);
+  const cages = spice === 'thermocage' ? generateThermoCages(solution, DEEP_N, rng) : undefined;
+  const variant: Variant = spice === 'thermocage' ? 'thermocage' : 'thermo';
+
+  // Термометр мог не сложиться (короткие пути) — тогда приправлять нечем.
+  let hasThermo = false;
+  for (let r = 0; r < DEEP_N && !hasThermo; r++) for (let c = 0; c < DEEP_N; c++) if (thermo[r]![c]) { hasThermo = true; break; }
+  if (!hasThermo) return { spice: 'none', dug: 0 };
+
+  const givens: [number, number][] = [];
+  for (let r = 0; r < DEEP_N; r++) for (let c = 0; c < DEEP_N; c++) if (puzzle[r]![c] !== 0) givens.push([r, c]);
+  for (let i = givens.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [givens[i], givens[j]] = [givens[j]!, givens[i]!];
+  }
+
+  let dug = 0;
+  for (const [r, c] of givens) {
+    if (dug >= maxDig) break;
+    const keep = puzzle[r]![c]!;
+    puzzle[r]![c] = 0 as Cell;
+    const probe = puzzle.map((row) => [...row]);
+    const unique = countSolutions(
+      probe, DEEP_N, BANK_BR, BANK_BC, variant, undefined, 2, { steps: 20000 },
+      thermo, undefined, cages,
+    ) === 1;
+    if (unique) dug++;
+    else puzzle[r]![c] = keep;
+  }
+  return { spice, thermo, cages, dug };
+}
+
+/**
  * Полный узел. `feedDigit` — цифра родительской клетки (0 у корня): центр решения
  * обязан равняться ей, что достигается обменом двух цифр во всей доске. Обмен —
  * биекция на цифрах, поэтому валидность, единственность и рейтинг сохраняются.
@@ -172,7 +260,14 @@ export function materializeNode(seed: string, path: DeepPath, cfg: DeepCfg, feed
       swap(pick.puzzle);
     }
   }
-  return { ...pick, solution };
+  // Приправа — только листу (у него нет кормимых клеток) и только когда её просили.
+  const seasoning: DeepSeasoning = cfg.spice && pick.feedCells.length === 0
+    ? spiceLeaf(seed, path, pick.puzzle, solution)
+    : { spice: 'none', dug: 0 };
+  // Выкопанные цифры меняют число дырок — иначе порог открытия считался бы по старому.
+  let blanks = 0;
+  for (let r = 0; r < DEEP_N; r++) for (let c = 0; c < DEEP_N; c++) if (pick.puzzle[r]![c] === 0) blanks++;
+  return { ...pick, blanks, solution, ...seasoning };
 }
 
 /**

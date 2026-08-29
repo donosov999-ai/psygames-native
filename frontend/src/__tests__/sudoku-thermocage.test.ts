@@ -409,7 +409,11 @@ describe('ThermoCage: правило видно человеку и нарисо
     // Подпись суммы рисуется по этому же признаку — и только у клеток внутри группы.
     expect(src).toContain('{cageAt(r, c) >= 0 && cageAnchors[cageAt(r, c)] === r * N + c && (');
     // Сумма — в углу клетки, колба термометра — по центру: разметки не спорят за место.
-    expect(src).toContain("position: 'absolute', top: 1, left: 2, fontSize: Math.max(8, Math.round(cellSize * 0.27))");
+    // ⚠️ Проверяется СМЫСЛ, а не формула размера: 29.08.2026 геометрия уехала в общий
+    // модуль sudoku-overlay (один рисунок на классику и Бездну), и гейт, зашитый на
+    // литерал «Math.round(cellSize * 0.27)», покраснел на честном рефакторинге.
+    expect(src).toContain("position: 'absolute', top: 1, left: 2, fontSize: cageSumFontSize(cellSize)");
+    expect(src).toContain('...thermoBulb(cellSize)');
     // Группы берутся из генератора, а НЕ нарезаются экраном заново (см. проверку ниже).
     expect(src).toContain('else if (cg) { setCages(cg.cageOf); setCageSums(cg.sum); setCageAnchors(cg.anchor); }');
   });

@@ -477,6 +477,7 @@ export default function MentalRotationGame() {
       setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
     } else {
       if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
+      else lvl.fail();                              // не прошёл: три раза подряд → −1 уровень
       setClearedPassed(passed);
       setPhase('cleared');   // непрерывный поток: провал → тот же уровень ещё раз, без тупика
     }
