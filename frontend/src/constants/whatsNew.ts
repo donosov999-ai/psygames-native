@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.8.0',
+    date: '2026-08-29',
+    ru: [
+      '«Глаза и дыхание» запоминает твой формат: режим, длительность, обстановку, подсказку и выбранные практики — настроил один раз, дальше страница открывается твоей конфигурацией',
+    ],
+    en: [
+      '“Eyes & breathing” remembers your format: mode, duration, context, guidance and chosen practices — set it once and the page opens with your configuration',
+    ],
+  },
+  {
     version: '2.7.1',
     date: '2026-08-29',
     ru: [

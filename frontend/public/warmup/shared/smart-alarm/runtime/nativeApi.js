@@ -147,3 +147,40 @@ class BrowserAlarmBridge {
 export function createNativeAlarmBridge() {
     return globalThis.__TAURI__?.core?.invoke ? new TauriAlarmBridge() : new BrowserAlarmBridge();
 }
+/**
+ * ПЕРЕВОДЧИК МОСТ → ПРОДУКТ. Единственное место, где имена платформенных фактов
+ * (Android-термины моста) становятся именами обещаний продукта (core-модель).
+ *
+ * 🔴 До 28.08.2026 перевода не было ВООБЩЕ, и слой примирения (reconcileSchedules /
+ * deriveDeliveryMode) не был подключён к продукту: 3 из 6 полей расходились
+ * именами, наивная подводка молча дала бы undefined в каждом третьем поле —
+ * и deriveDeliveryMode уверенно ответил бы 'unavailable' при живой платформе.
+ *
+ * Карта (слева мост, справа продукт):
+ *   exactAlarm        → exactScheduling        — 1:1, точная постановка;
+ *   fullScreenIntent  → lockScreenPresentation — 1:1, показ поверх лок-скрина;
+ *   scheduler         → nativeFailSafe         — ⚠️ НЕ 1:1 по имени, но честно по
+ *     устройству ТЕКУЩЕГО моста: сторож остановки (armWatchdog) живёт в том же
+ *     потоке-планировщике (desktop.rs), отдельного факта проба не сообщает.
+ *     Если сторож отделится от планировщика — эта строка станет ложью: тогда
+ *     расширять пробу, а не подгонять перевод.
+ *   userSessionRequired в продукт не переносится: его смысл уже выражен платформой
+ *     (web/desktop → 'in-app-simulation' в deriveDeliveryMode).
+ */
+export function toCapabilityReport(native, probedAtMs) {
+    const platform = native.platform === 'macos' || native.platform === 'windows' || native.platform === 'linux'
+        ? 'desktop'
+        : native.platform;
+    return {
+        platform,
+        exactScheduling: native.exactAlarm,
+        notifications: native.notifications,
+        lockScreenPresentation: native.fullScreenIntent,
+        continuousAudio: native.continuousAudio,
+        nativeFailSafe: native.scheduler,
+        rebootRestore: native.rebootRestore,
+        selfTest: native.selfTest,
+        probedAtMs,
+        notes: native.notes,
+    };
+}
