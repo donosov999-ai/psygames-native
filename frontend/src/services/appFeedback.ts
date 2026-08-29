@@ -187,14 +187,24 @@ export async function captureScreenshot(): Promise<Blob | null> {
   try {
     if (typeof document === 'undefined' || !document.body) return null;
     const html2canvas = (await import('html2canvas')).default;
-    const canvas = await html2canvas(document.body, {
+    /**
+     * 🔴 ГОНКА С ТАЙМАУТОМ 7 с — грабля соседнего конвейера (багфикс, 29.08):
+     * html2canvas на Safari/некоторых WebView зависает НАВСЕГДА, try/catch
+     * зависание не ловит, и отправка отзыва встаёт колом. Проиграл гонку —
+     * репорт уходит без скрина, что лучше, чем не уходит вовсе.
+     */
+    const canvas = await Promise.race([
+      html2canvas(document.body, {
       logging: false,
       useCORS: true,
       // scale 1 — скрин лёгкий (не ретина): для «где непонятно» хватает,
       // а 12 тестировщиков не зальют лишние мегабайты.
       scale: 1,
       backgroundColor: null,
-    });
+      }),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 7000)),
+    ]);
+    if (!canvas) return null;   // зависший захват — уходим без скрина
     return await new Promise<Blob | null>((resolve) =>
       canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.75)
     );

@@ -99,14 +99,23 @@ type BuiltBoard = {
 };
 const built = new Map<number, BuiltBoard>();
 
-function buildAt(level: number) {
+/** Бюджет снаружи (рецепт 2731e0b6): на CI 4000 мс не добирали enough — доска-недодел
+ * давала недетерминированные вердикты (срез тега 1.253.1). Боевой недобор — красный,
+ * задушенный (SUDOKU_BUDGET_MS < дефолта) — null и пропуск кейса. */
+const FIXTURE_BUDGET_MS = Number(process.env.SUDOKU_BUDGET_MS ?? 30000);
+
+function buildAt(level: number): BuiltBoard | null {
   const cached = built.get(level);
   if (cached) return cached;
   const cfg = levelConfig(level);
-  const b = logicalBuilder(level, cfg.blanks, cfg.N, cfg.BR, cfg.BC, cfg.variant, { budgetMs: 4000 });
+  const b = logicalBuilder(level, cfg.blanks, cfg.N, cfg.BR, cfg.BC, cfg.variant, { budgetMs: FIXTURE_BUDGET_MS });
   let made: ReturnType<typeof b.step> | null = null;
-  for (let s = 0; s < b.steps; s++) { made = b.step(); if (b.enough(made)) break; }
-  if (!made) throw new Error(`уровень ${level}: сборщик не отдал доску`);
+  let ok = false;
+  for (let s = 0; s < b.steps; s++) { made = b.step(); if (b.enough(made)) { ok = true; break; } }
+  if (!made || !ok) {
+    if (FIXTURE_BUDGET_MS < 30000) return null;   // задушенный прогон — пропуск, не вердикт
+    throw new Error(`уровень ${level}: сборщик не добрал enough на боевом бюджете`);
+  }
   const out: BuiltBoard = { cfg, gen: made.gen };
   built.set(level, out);
   return out;
@@ -122,7 +131,9 @@ describe('геометрические варианты: у выданной д�
       expect(levelConfig(lv).variant).toBe(want);
     }
     // Пустая геометрия превратила бы проверку в проверку обычной судоку.
-    const { cfg, gen } = buildAt(57);   // 27.08: джигсо переехал на вершину
+    const fx = buildAt(57);   // 27.08: джигсо переехал на вершину
+    if (!fx) { console.log('бюджет: фикстура L57 не добрана — пропуск'); return; }
+    const { cfg, gen } = fx;
     expect(cfg.variant).toBe('jigsaw');
     expect(gen.regions).toBeTruthy();
   }, 120000);
@@ -131,7 +142,9 @@ describe('геометрические варианты: у выданной д�
     // Без этой пробы «решение одно» могло бы означать «перебор сломан и всегда
     // возвращает единицу». Берём выданную доску и убираем ещё одну подсказку —
     // почти всегда это порождает второе решение; если нет, пробуем следующую.
-    const { cfg, gen } = buildAt(53);
+    const fx = buildAt(53);
+    if (!fx) { console.log('бюджет: фикстура L53 не добрана — пропуск'); return; }
+    const { cfg, gen } = fx;
     let sawTwo = false;
     for (let r = 0; r < cfg.N && !sawTwo; r++) for (let c = 0; c < cfg.N && !sawTwo; c++) {
       if (gen.puzzle[r][c] === 0) continue;
@@ -143,7 +156,9 @@ describe('геометрические варианты: у выданной д�
   }, 300000);
 
   it.each(CASES)('🔴 L%i (%s): решение ровно одно', (level, _variant) => {
-    const { cfg, gen } = buildAt(level as number);
+    const fx = buildAt(level as number);
+    if (!fx) { console.log(`бюджет: фикстура L${level} не добрана — пропуск`); return; }
+    const { cfg, gen } = fx;
     const n = countOwn(gen.puzzle, cfg.N, cfg.BR, cfg.BC, cfg.variant, gen.regions, gen.thermo, gen.arrow, gen.cages, 2);
     expect(n).toBe(1);
   }, 300000);
@@ -153,7 +168,9 @@ describe('геометрические варианты: у выданной д�
     // но НЕ ТО, с которым игра сверяет ходы игрока.
     const bad: string[] = [];
     for (const [level] of CASES) {
-      const { cfg, gen } = buildAt(level as number);
+      const fx2 = buildAt(level as number);
+      if (!fx2) { console.log(`бюджет: фикстура L${level} не добрана — пропуск`); continue; }
+      const { cfg, gen } = fx2;
       for (let r = 0; r < cfg.N; r++) for (let c = 0; c < cfg.N; c++) {
         const given = gen.puzzle[r][c];
         if (given !== 0 && given !== gen.solution[r][c]) bad.push(`L${level} (${r},${c}): подсказка ${given} против решения ${gen.solution[r][c]}`);
