@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '1.256.0',
+    date: '2026-08-28',
+    ru: [
+      'Окно диалогов: в отзывах появилась вкладка «Диалог» — вся переписка с разработчиком как в мессенджере: твои сообщения, наши ответы и починки с версией. Спасибо NZT-48 — он спросил «а где окно диалогов?» раньше, чем мы его построили',
+    ],
+    en: [
+      'Dialog window: the feedback sheet gained a “Dialog” tab — your whole conversation with the developer like a messenger: your messages, our replies and fixes with versions. Thanks to NZT-48 — he asked “where is the dialog window?” before we built it',
+    ],
+  },
+  {
     version: '1.255.2',
     date: '2026-08-28',
     ru: [
