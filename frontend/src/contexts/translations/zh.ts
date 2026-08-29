@@ -2092,6 +2092,10 @@ const t: Record<string, string> = {
   "friendsRemoveMutual": "要和 {name} 断开连接吗？连接是双向的：你也会从他的圈子里消失。",
   "friendsRemoveConfirm": "断开连接",
   "friendsRemoveFailed": "没能断开连接——服务器没有回应。连接保持原样。",
+  "deepSpice": "深渊调味",
+  "deepSpiceDesc": "最底层将出现温度计与和值笼，同时提示数字变少",
+  "deepSpiceRuleThermo": "温度计：从球端起数字递增，每一格都比前一格大",
+  "deepSpiceRuleCage": "数字从球端递增；彩色笼内之和等于提示且不重复",
   // >>> SCREEN_STRINGS
 };
 export default t;

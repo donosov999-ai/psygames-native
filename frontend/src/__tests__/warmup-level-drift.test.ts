@@ -344,8 +344,39 @@ function callSites(src: string, needle: string): Site[] {
   }
   return out;
 }
+/**
+ * 🔴 ЭКРАН, КОТОРЫЙ ЗАРЯДКОЙ НЕ ЗАПУСКАЕТСЯ, ПРОВЕРЯТЬ НЕ НА ЧЕМ.
+ *
+ * Шагом зарядки игра становится, только если ЧИТАЕТ пресет: зарядка передаёт его
+ * параметром маршрута, и экран обязан этот параметр разобрать. Экран, в котором
+ * слова `isPreset` нет вовсе, в набор попасть не может — для него разбор
+ * достижимости «при isPreset = true» подставляет условие, которого в коде нет, и
+ * получает ложное «роняет».
+ *
+ * Замер 29.08.2026, на котором это вскрылось: в `sudoku-fractal.tsx` появился
+ * честный `lvl.fail()` (симметрия лестницы, задача e53f4958) — гейт назвал экран
+ * новым долгом. Проверка носителей: `isPreset` в файле 0 упоминаний, маршрут
+ * `/games/sudoku-fractal` не встречается ни в одном плейлисте профилей, в
+ * `warmup.ts` его нет. То есть шага зарядки у фрактала не бывает, и падение
+ * было чистой ложью разбора.
+ *
+ * ⚠️ Признак берётся ИЗ КОДА обоих носителей, а не из списка-исключения: появится
+ * у фрактала пресет — гейт снова начнёт его проверять сам.
+ */
+const PLAYLIST_SOURCES = ['src/constants/profiles.ts', 'src/services/warmup.ts']
+  .map((rel) => fs.readFileSync(path.join(DIR, '..', '..', rel), 'utf8') as string)
+  .join('\n');
+
+const reachableFromWarmup = (file: string, src: string): boolean => {
+  if (src.includes('isPreset')) return true;
+  const route = `/games/${file.replace(/\.tsx$/, '')}`;
+  return PLAYLIST_SOURCES.includes(`'${route}'`);
+};
+
 /** Роняет ли экран уровень в шаге зарядки. */
-const demotesInWarmup = (src: string): boolean => callSites(src, 'lvl.fail()').some((c) => c.warm);
+const demotesInWarmup = (src: string, file = ''): boolean =>
+  (file === '' || reachableFromWarmup(file, src))
+  && callSites(src, 'lvl.fail()').some((c) => c.warm);
 
 // ────────────────────────────────────────────────────────────────────────────────────
 
@@ -457,13 +488,13 @@ describe('кто ещё роняет уровень в зарядке', () => {
   });
 
   it('🔴 круг таких экранов не растёт', () => {
-    const now = FILES.filter((f) => demotesInWarmup(read(f))).sort();
+    const now = FILES.filter((f) => demotesInWarmup(read(f), f)).sort();
     const added = now.filter((f) => DEMOTES_IN_WARMUP.indexOf(f) < 0);
     expect(added).toEqual([]);
   });
 
   it('в списке долга нет записей про экраны, которые уже починили', () => {
-    const now = FILES.filter((f) => demotesInWarmup(read(f)));
+    const now = FILES.filter((f) => demotesInWarmup(read(f), f));
     const stale = DEMOTES_IN_WARMUP.filter((f) => now.indexOf(f) < 0)
       .map((f) => `${f}: уровень в зарядке уже не роняется — убрать из списка`);
     expect(stale).toEqual([]);

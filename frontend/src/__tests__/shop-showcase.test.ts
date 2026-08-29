@@ -29,13 +29,13 @@ describe('витрина тем: каждый товар указывает на
     }
   });
 
-  it('theme: все 11 ключей движка тем покрыты, каждый value даёт арт', () => {
+  it('theme: все 12 ключей движка тем покрыты, каждый value даёт арт', () => {
     const items = byType('theme');
     expect(items.map((c) => c.value).sort()).toEqual([...THEME_KEYS].sort());
     for (const c of items) expect(themeArtByKey(c.value)).toBeDefined();
   });
 
-  it('background: ровно те 9 профилей, у которых фон существует', () => {
+  it('background: ровно те 10 профилей, у которых фон существует', () => {
     const items = byType('background');
     expect(items.map((c) => c.value).sort()).toEqual(Object.keys(PROFILE_BACKGROUNDS).sort());
   });
@@ -56,7 +56,7 @@ describe('витрина тем: каждый товар указывает на
 
   it('цены: новые позиции не дешевле 750 и не ломают престиж-потолок', () => {
     const fresh = COSMETICS.filter((c) => ['digits', 'theme', 'background', 'badge'].includes(c.type));
-    expect(fresh.length).toBe(4 + 11 + 9 + 12);
+    expect(fresh.length).toBe(4 + 12 + 10 + 12);
     for (const c of fresh) expect(c.cost).toBeGreaterThanOrEqual(750);
     const dearest = Math.max(...COSMETICS.map((c) => c.cost));
     for (const c of fresh) expect(c.cost).toBeLessThan(dearest);   // престиж-полка остаётся вершиной

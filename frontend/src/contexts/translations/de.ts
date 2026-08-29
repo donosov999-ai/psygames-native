@@ -2092,6 +2092,10 @@ const t: Record<string, string> = {
   "friendsRemoveMutual": "Verbindung zu {name} lösen? Sie gilt für beide: Du verschwindest auch aus seinem Kreis.",
   "friendsRemoveConfirm": "Verbindung lösen",
   "friendsRemoveFailed": "Die Verbindung ließ sich nicht lösen — der Server hat nicht geantwortet. Sie ist unverändert geblieben.",
+  "deepSpice": "Würze der Tiefe",
+  "deepSpiceDesc": "Die unterste Ebene bekommt Thermometer und Summenkäfige, dafür weniger vorgegebene Ziffern",
+  "deepSpiceRuleThermo": "Thermometer: Ab der Kugel wachsen die Ziffern — jede folgende ist größer",
+  "deepSpiceRuleCage": "Ziffern wachsen ab der Kugel; ein farbiger Käfig ergibt seine Summe, ohne Wiederholung",
   // >>> SCREEN_STRINGS
 };
 export default t;

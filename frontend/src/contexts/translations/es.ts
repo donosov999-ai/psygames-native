@@ -2092,6 +2092,10 @@ const t: Record<string, string> = {
   "friendsRemoveMutual": "¿Romper el vínculo con {name}? El vínculo es mutuo: también desaparecerás de su círculo.",
   "friendsRemoveConfirm": "Romper el vínculo",
   "friendsRemoveFailed": "No se pudo romper el vínculo: el servidor no respondió. Sigue igual que antes.",
+  "deepSpice": "Sazón de la profundidad",
+  "deepSpiceDesc": "La capa inferior recibe termómetros y jaulas de suma, y menos cifras dadas",
+  "deepSpiceRuleThermo": "Termómetro: desde el bulbo las cifras crecen — cada siguiente es mayor",
+  "deepSpiceRuleCage": "Las cifras crecen desde el bulbo; una jaula de color suma su pista sin repetir",
   // >>> SCREEN_STRINGS
 };
 export default t;
