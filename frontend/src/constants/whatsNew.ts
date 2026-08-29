@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.12.0',
+    date: '2026-08-29',
+    ru: [
+      '«Глаза и дыхание» заговорила на 12 языках: планировщик, каталог и экран практики — на языке приложения, названия всех наборов переведены. Подсказки шагов пока по-английски там, где перевод ещё едет',
+    ],
+    en: [
+      '“Eyes & breathing” now speaks 12 languages: the planner, catalog and practice screen follow the app language, all set names are translated. Step cues stay in English where translation is still on its way',
+    ],
+  },
+  {
     version: '2.11.0',
     date: '2026-08-29',
     ru: [

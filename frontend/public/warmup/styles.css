@@ -1391,6 +1391,14 @@ h3 {
 }
 .start-summary:empty { display: none; }
 
+/* Р1: нырок капсулы при чтении каталога (класс ставит скролл-слушатель). */
+#panel-recharge .plan-actions { transition: transform 260ms ease, opacity 260ms ease; }
+body.cta-drop #panel-recharge .plan-actions {
+  transform: translate(-50%, calc(100% + 34px));
+  opacity: 0;
+  pointer-events: none;
+}
+
 .plan-privacy {
   margin: 14px 2px 0;
   font-size: 13px;

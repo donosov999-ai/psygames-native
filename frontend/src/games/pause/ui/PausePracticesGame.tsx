@@ -112,7 +112,7 @@ function PriorExperienceGate({
   theme: PausePracticesTheme;
 }) {
   if (requiredProgramIds.length === 0) return null;
-  const strings = PAUSE_STRINGS[locale];
+  const strings = (PAUSE_STRINGS[locale as 'ru' | 'en'] ?? PAUSE_STRINGS.en);
   return (
     <View style={[styles.warningCard, { borderColor: theme.border, backgroundColor: theme.surface }]}>
       <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.text }]}>{strings.experiencedOnly}</Text>
@@ -148,7 +148,7 @@ function contextLabel(context: PlanRequest['context'], locale: PauseLocale): str
     'desk-visible': { ru: 'Обычная пауза за столом', en: 'Desk break' },
     home: { ru: 'Дома', en: 'At home' },
   } as const;
-  return labels[context][locale];
+  return labels[context][locale as 'ru' | 'en'] ?? labels[context].en;
 }
 
 function guideLabel(guideMode: PlanRequest['guideMode'], locale: PauseLocale): string {
@@ -157,7 +157,7 @@ function guideLabel(guideMode: PlanRequest['guideMode'], locale: PauseLocale): s
     audio: { ru: 'Звуковые подсказки', en: 'Audio guidance' },
     both: { ru: 'Звук + экран', en: 'Audio + visual' },
   } as const;
-  return labels[guideMode][locale];
+  return labels[guideMode][locale as 'ru' | 'en'] ?? labels[guideMode].en;
 }
 
 function ActionButton({
@@ -221,21 +221,21 @@ function WarningGate({
   if (warningIds.length === 0) return null;
   return (
     <View style={[styles.warningCard, { borderColor: theme.border, backgroundColor: theme.surface }]}>
-      <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.text }]}>{PAUSE_STRINGS[locale].warnings}</Text>
+      <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.text }]}>{(PAUSE_STRINGS[locale as 'ru' | 'en'] ?? PAUSE_STRINGS.en).warnings}</Text>
       {warningIds.map((warningId) => (
         <Text key={warningId} style={[styles.warningText, { color: theme.textSecondary }]}>• {text(WARNING_TEXT[warningId], locale)}</Text>
       ))}
       <Pressable
         accessibilityRole="checkbox"
         accessibilityState={{ checked: acknowledged }}
-        accessibilityLabel={PAUSE_STRINGS[locale].acknowledge}
+        accessibilityLabel={(PAUSE_STRINGS[locale as 'ru' | 'en'] ?? PAUSE_STRINGS.en).acknowledge}
         onPress={onToggle}
         style={({ pressed }) => [styles.checkboxRow, pressed && styles.pressed]}
       >
         <View style={[styles.checkbox, { borderColor: theme.primary, backgroundColor: acknowledged ? theme.primary : theme.surface }]}>
           {acknowledged ? <Text style={styles.checkmark}>✓</Text> : null}
         </View>
-        <Text style={[styles.checkboxLabel, { color: theme.text }]}>{PAUSE_STRINGS[locale].acknowledge}</Text>
+        <Text style={[styles.checkboxLabel, { color: theme.text }]}>{(PAUSE_STRINGS[locale as 'ru' | 'en'] ?? PAUSE_STRINGS.en).acknowledge}</Text>
       </Pressable>
     </View>
   );
@@ -267,7 +267,7 @@ function SetupScreen({
   error: string | null;
 }) {
   const { locale } = request;
-  const strings = PAUSE_STRINGS[locale];
+  const strings = (PAUSE_STRINGS[locale as 'ru' | 'en'] ?? PAUSE_STRINGS.en);
   return (
     <ScrollView style={[styles.root, { backgroundColor: theme.background }]} contentContainerStyle={styles.content}>
       <View style={[styles.hero, { backgroundColor: theme.primary }]}>
@@ -331,7 +331,7 @@ function SessionScreen({
   onExit?: () => void;
 }) {
   const { locale } = session.plan;
-  const strings = PAUSE_STRINGS[locale];
+  const strings = (PAUSE_STRINGS[locale as 'ru' | 'en'] ?? PAUSE_STRINGS.en);
   if (session.phase === 'paused') {
     return (
       <View style={[styles.root, styles.centered, { backgroundColor: theme.background }]}>
@@ -438,7 +438,7 @@ function ResultScreen({
   onRestart: () => void;
   onExit?: () => void;
 }) {
-  const strings = PAUSE_STRINGS[locale];
+  const strings = (PAUSE_STRINGS[locale as 'ru' | 'en'] ?? PAUSE_STRINGS.en);
   return (
     <ScrollView style={[styles.root, { backgroundColor: theme.background }]} contentContainerStyle={styles.content}>
       <View style={[styles.hero, { backgroundColor: theme.success }]}>

@@ -57,12 +57,9 @@
   function принятьНастройки() {
     var тема = параметры.get('theme');
     if (тема) document.documentElement.dataset.theme = тема;
-    var язык = параметры.get('lang');
-    if (язык) {
-      var кнопка = document.getElementById('language-toggle');
-      // Переключатель двухпозиционный: жмём, только если язык не тот.
-      if (кнопка && (document.documentElement.lang || '').slice(0, 2) !== язык.slice(0, 2)) кнопка.click();
-    }
+    // Р2 (29.08): язык страница берёт из ?lang сама (12 кодов, фолбэк en в t()).
+    // Прежний клик по RU/EN-переключателю здесь ПЕРЕБИВАЛ бы de/hi/… обратно
+    // в en — убран. Кнопка остаётся ручной парой ru↔en для полного вида.
   }
 
   function отправить(сообщение) {
