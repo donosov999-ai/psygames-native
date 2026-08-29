@@ -1126,6 +1126,74 @@ export function getVisualGuideFrame(cue: GuideCue, mode: VisualLeaderMode): Visu
   };
 }
 
+/**
+ * Р3 (29.08.2026): «Пропустить шаг» — перескок к ближайшей границе шага.
+ * Целевая точка — наименьший endMs таймлайна, строго больший текущего elapsed
+ * (при параллельных дорожках это конец БЛИЖАЙШЕГО из идущих шагов — остальные
+ * продолжаются, их не выкидываем). Границ впереди нет — сессия завершается.
+ * Чистая функция: paused остаётся paused, running получает свежий якорь.
+ */
+export function skipToNextStepBoundary(session: PracticeSession, nowMs: number): PracticeSession {
+  if (session.phase !== 'running' && session.phase !== 'paused') return session;
+  const elapsed = elapsedPracticeTime(session, session.phase === 'running' ? nowMs : undefined);
+  let target = session.plan.durationMs;
+  for (const step of session.plan.timeline) {
+    if (step.endMs > elapsed && step.endMs < target) target = step.endMs;
+  }
+  if (target >= session.plan.durationMs) {
+    return { ...session, phase: 'completed', elapsedMs: session.plan.durationMs, runningSinceMs: null,
+      result: session.result ?? {
+        planId: session.plan.id, durationMs: session.plan.durationMs,
+        completedSetIds: [...new Set(session.plan.selections.map((sel) => sel.setId))],
+        completion: 1, adherence: 1, interruptedCount: session.interruptedCount,
+      } };
+  }
+  return session.phase === 'running'
+    ? { ...session, elapsedMs: target, runningSinceMs: nowMs }
+    : { ...session, elapsedMs: target };
+}
+
+/**
+ * Р3: «+30 сек» — продление ИДУЩИХ шагов сдвигом хвоста. Каждому шагу, чей
+ * конец впереди, конец сдвигается на extraMs; шагам, ещё не начавшимся, —
+ * и начало. Пики внимания и блоки сдвигаются той же меркой, поэтому проверка
+ * коллизий пиков остаётся истинной (равномерный сдвиг пересечений не создаёт).
+ */
+export function extendCurrentStep(session: PracticeSession, nowMs: number, extraMs: number): PracticeSession {
+  if (extraMs <= 0 || (session.phase !== 'running' && session.phase !== 'paused')) return session;
+  const elapsed = elapsedPracticeTime(session, session.phase === 'running' ? nowMs : undefined);
+  const shiftPoint = (v: number | null): number | null => (v === null ? null : (v > elapsed ? v + extraMs : v));
+  const timeline = session.plan.timeline.map((step) => ({
+    ...step,
+    startMs: step.startMs > elapsed ? step.startMs + extraMs : step.startMs,
+    endMs: step.endMs > elapsed ? step.endMs + extraMs : step.endMs,
+    attentionPeakStartMs: shiftPoint(step.attentionPeakStartMs),
+    attentionPeakEndMs: shiftPoint(step.attentionPeakEndMs),
+  }));
+  const blocks = session.plan.blocks.map((block) => ({
+    ...block,
+    startMs: block.startMs > elapsed ? block.startMs + extraMs : block.startMs,
+    endMs: block.endMs > elapsed ? block.endMs + extraMs : block.endMs,
+  }));
+  const plan: PracticePlan = { ...session.plan, durationMs: session.plan.durationMs + extraMs, timeline, blocks };
+  return session.phase === 'running'
+    ? { ...session, plan, elapsedMs: elapsed, runningSinceMs: nowMs }
+    : { ...session, plan };
+}
+
+/**
+ * Р5: позиция «сегмент X из Y» для таймера. Сегменты — уникальные границы
+ * endMs таймлайна (у параллельного плана дорожек больше, чем «шагов на экране» —
+ * человеку показываются смены картины, а это ровно границы).
+ */
+export function segmentPosition(plan: PracticePlan, elapsedMs: number): { index: number; total: number } {
+  const ends = [...new Set(plan.timeline.map((step) => step.endMs))].sort((a, b) => a - b);
+  if (ends.length === 0) return { index: 1, total: 1 };
+  let index = ends.findIndex((end) => elapsedMs < end);
+  if (index === -1) index = ends.length - 1;
+  return { index: index + 1, total: ends.length };
+}
+
 export function getSessionFrame(session: PracticeSession, nowMs?: number): ActiveFrame {
   return getActiveFrame(session.plan, elapsedPracticeTime(session, nowMs));
 }

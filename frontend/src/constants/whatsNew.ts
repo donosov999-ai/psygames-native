@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.11.0',
+    date: '2026-08-29',
+    ru: [
+      'Практика «Глаза и дыхание» стала управляемой: «Пропустить» и «+30 сек» рядом с паузой, в таймере — номер шага «2/36 · 1:36», кнопка старта ныряет при чтении каталога и не закрывает карточки, а на итоге видно, какие практики пройдены',
+    ],
+    en: [
+      'The “Eyes & breathing” practice is now steerable: “Skip” and “+30 sec” next to pause, the timer shows step position “2/36 · 1:36”, the start button dives away while you read the catalog, and the result lists which practices you completed',
+    ],
+  },
+  {
     version: '2.10.0',
     date: '2026-08-29',
     ru: [
