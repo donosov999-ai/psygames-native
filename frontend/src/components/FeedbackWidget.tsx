@@ -42,6 +42,7 @@ import {
 } from '@/src/services/appFeedback';
 import { isRTLLang } from '@/src/services/rtl';
 import { a11yModal } from '@/src/services/a11y';
+import { getMyDialog, type DialogBubble } from '@/src/services/feedbackDialog';
 import { staleWebViewMajor, canRecord, startRecording, shouldWarnSilent, SILENCE_PEAK, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
 import { holdGame } from '@/src/services/gamePause';
 
@@ -61,6 +62,19 @@ export default function FeedbackWidget() {
   const rtl = isRTLLang(language);
 
   const [open, setOpen] = React.useState(false);
+  /**
+   * ДИАЛОГ С РАЗРАБОТЧИКОМ (репорт NZT-48 «а где окно диалогов?», расшифровка
+   * Дениса 28.08): вкладка-лента «мои сообщения ⇄ ответы», как в мессенджере.
+   * Ответы — dev_reply (просто ответ) и fix_note с версией (ответ-починка).
+   */
+  const [tab, setTab] = React.useState<'form' | 'dialog'>('form');
+  const [dialog, setDialog] = React.useState<DialogBubble[] | null>(null);
+  React.useEffect(() => {
+    if (!open || tab !== 'dialog') return;
+    let alive = true;
+    getMyDialog().then((d) => { if (alive) setDialog(d); }).catch(() => { if (alive) setDialog([]); });
+    return () => { alive = false; };
+  }, [open, tab]);
 
   /**
    * ПЕРЕТАСКИВАНИЕ КНОПКИ. Просьба тестировщика 17.07.2026: «Кнопку чата для
@@ -470,6 +484,59 @@ export default function FeedbackWidget() {
                 </TouchableOpacity>
               </View>
 
+              {/* Две вкладки: написать / диалог. Диалог — то самое «окно диалогов». */}
+              <View style={styles.tabRow}>
+                {([['form', 'feedbackTabWrite'], ['dialog', 'feedbackTabDialog']] as const).map(([id, key]) => (
+                  <TouchableOpacity
+                    key={id}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: tab === id }}
+                    testID={`fb-tab-${id}`}
+                    onPress={() => setTab(id)}
+                    style={[styles.tabBtn, {
+                      backgroundColor: tab === id ? colors.primary : 'transparent',
+                      borderColor: tab === id ? colors.primary : colors.border,
+                    }]}
+                  >
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: tab === id ? '#fff' : colors.text }}>{t(key)}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {tab === 'dialog' && (
+                <View style={styles.dialogWrap} testID="fb-dialog">
+                  {dialog === null && <Text style={{ color: colors.textSecondary, textAlign: 'center', padding: 16 }}>…</Text>}
+                  {dialog !== null && dialog.length === 0 && (
+                    <Text style={{ color: colors.textSecondary, textAlign: 'center', padding: 16, lineHeight: 20 }}>{t('dialogEmpty')}</Text>
+                  )}
+                  {dialog !== null && dialog.map((b) => (
+                    <View key={b.key} style={[styles.bubble, b.who === 'me'
+                      ? { alignSelf: 'flex-end', backgroundColor: colors.primary }
+                      : { alignSelf: 'flex-start', backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border }]}
+                    >
+                      {b.fixedIn && (
+                        <Text style={[styles.bubbleBadge, { color: b.who === 'me' ? 'rgba(255,255,255,0.85)' : colors.primary }]}>
+                          ✅ {t('dialogFixedIn').replace('{v}', b.fixedIn)}
+                        </Text>
+                      )}
+                      <Text style={{ fontSize: 13.5, lineHeight: 19, color: b.who === 'me' ? '#fff' : colors.text }}>
+                        {b.text || `🎤 ${t('dialogVoiceNote')}`}
+                      </Text>
+                      <Text style={[styles.bubbleAt, { color: b.who === 'me' ? 'rgba(255,255,255,0.7)' : colors.textSecondary }]}>
+                        {(b.at || '').slice(0, 16).replace('T', ' ')}
+                      </Text>
+                    </View>
+                  ))}
+                  <TouchableOpacity accessibilityRole="button" onPress={() => setTab('form')}
+                    style={[styles.dialogWriteBtn, { borderColor: colors.primary }]}>
+                    <Ionicons name="create-outline" size={16} color={colors.primary} />
+                    <Text style={{ fontSize: 13.5, fontWeight: '700', color: colors.primary }}>{t('feedbackTabWrite')}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {tab === 'form' && (<>
+
               {sent ? (
                 <View style={styles.thanks}>
                   <Text style={{ fontSize: 44 }}>{outcome?.audioLost ? '⚠️' : '🙏'}</Text>
@@ -710,6 +777,7 @@ export default function FeedbackWidget() {
                   )}
                 </>
               )}
+              </>)}
             </ScrollView>
           </View>
         </View>
@@ -719,6 +787,17 @@ export default function FeedbackWidget() {
 }
 
 const styles = StyleSheet.create({
+  // Вкладки «написать/диалог» и лента-мессенджер (окно диалогов, NZT-48)
+  tabRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  tabBtn: { flex: 1, minHeight: 44, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  dialogWrap: { gap: 8, paddingBottom: 8 },
+  bubble: { maxWidth: '86%', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8, gap: 3 },
+  bubbleBadge: { fontSize: 11.5, fontWeight: '800' },
+  bubbleAt: { fontSize: 10.5 },
+  dialogWriteBtn: {
+    flexDirection: 'row', gap: 6, alignSelf: 'center', alignItems: 'center', justifyContent: 'center',
+    minHeight: 44, paddingHorizontal: 16, borderRadius: 11, borderWidth: 1, marginTop: 6,
+  },
   // Слева (в RTL — справа, сторона задаётся в рендере) и ПОДНЯТА над нижними CTA
   // («Справка»/«Начать» на интро-экранах игр — проверено вживую: на bottom+16
   // кнопка налезала на «Справку»). «?»-оверлей висит с противоположной стороны

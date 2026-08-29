@@ -1775,6 +1775,11 @@ const translations: Translations = {
   // FeedbackWidget
   feedbackSendFailed: { ru: 'Не удалось отправить. Проверь интернет и попробуй ещё раз.', en: 'Failed to send. Check your connection and try again.' },
   feedbackFabLabel: { ru: 'Сообщить о проблеме', en: 'Send feedback' },
+  feedbackTabWrite: { ru: 'Написать', en: 'Write' },
+  feedbackTabDialog: { ru: 'Диалог', en: 'Dialog' },
+  dialogEmpty: { ru: 'Здесь появится переписка: твои сообщения и наши ответы. Напиши первым!', en: 'Your messages and our replies will appear here. Write first!' },
+  dialogFixedIn: { ru: 'Починено в {v}', en: 'Fixed in {v}' },
+  dialogVoiceNote: { ru: 'Голосовое сообщение', en: 'Voice message' },
   feedbackTitle: { ru: '💬 Что не так?', en: '💬 What’s wrong?' },
   feedbackThanks: { ru: 'Спасибо! Отправлено.', en: 'Thanks! Sent.' },
   // Исход отправки словами: «спасибо» одинаково выглядело и когда запись дошла,
