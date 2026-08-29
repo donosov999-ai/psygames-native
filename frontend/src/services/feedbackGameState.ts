@@ -10,10 +10,21 @@
  * момент отправки отзыва, и никакой перерисовки от этого не требуется.
  */
 
+import { pushCrumb } from '@/src/services/crumbs';
+
 let state: Record<string, unknown> | null = null;
 
 /** Экран публикует своё состояние; null — при уходе с экрана. */
 export function publishFeedbackGameState(next: Record<string, unknown> | null): void {
+  // Каждая публикация — шаг траектории для репорта (крошки, контракт §3.1):
+  // компактный ярлык из говорящих полей, без дампа всего состояния.
+  if (next) {
+    const label = ['mode', 'level', 'road', 'variant', 'phase']
+      .map((k) => (next[k] !== undefined && next[k] !== null ? `${k}:${next[k]}` : null))
+      .filter(Boolean).join(' ');
+    if (label) pushCrumb(label);
+  }
+
   state = next;
 }
 

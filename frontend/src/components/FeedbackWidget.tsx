@@ -15,6 +15,7 @@
  * шторка, а не экран, на который жалуется тестировщик.
  */
 import { textOn } from '@/src/services/onGradientText';
+import { pushCrumb } from '@/src/services/crumbs';
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
@@ -58,6 +59,8 @@ export default function FeedbackWidget() {
   const { t, language } = useLanguage();
   const { profile } = useProfile();
   const pathname = usePathname() || '';
+  // Крошка навигации: каждый экран — шаг траектории репорта (steps, §3.1).
+  React.useEffect(() => { if (pathname) pushCrumb(`screen ${pathname}`); }, [pathname]);
   // RTL: кнопка зеркалится к правому краю (а «?»-справка уходит влево) — не конфликтуем
   const rtl = isRTLLang(language);
 
