@@ -434,7 +434,8 @@ const styles = StyleSheet.create({
   groupNote: { fontSize: 12, lineHeight: 17 },
   cardNote: { fontSize: 11.5, fontWeight: '700', marginTop: 3, lineHeight: 15 },
   durRow: { flexDirection: 'row', gap: 6, marginTop: 7 },
-  durChip: { minHeight: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  // 44 — минимум попадания пальцем (тап-таргет гейт поймал 34 на v2.7.0 и был прав)
+  durChip: { minHeight: 44, paddingHorizontal: 14, borderRadius: 22, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   stepsList: { marginTop: 7, gap: 2 },
   stepLine: { fontSize: 11.5, lineHeight: 15.5 },
   bar: { flexDirection: 'row', gap: 10, paddingHorizontal: 14, paddingTop: 10, borderTopWidth: 1 },
