@@ -56,8 +56,16 @@ export class IntlTimeZoneResolver {
     }
     resolveLocal(request) {
         const exact = this.findMatches(request);
+        /**
+         * Д11 ревью 27.08.2026: параметр overlap был МЁРТВЫМ — объявлен в
+         * контракте, прокинут из расписания, и не читался ни разу: при осеннем
+         * повторе часа всегда брался ранний матч. Теперь политика читается:
+         * 'earlier' — первый, иначе — последний. Модель пока допускает только
+         * 'earlier' (model.ts), но движок больше не игнорирует контракт.
+         */
+        const выбрать = (matches) => (request.overlap === 'earlier' ? matches[0] : matches[matches.length - 1]) ?? null;
         if (exact.length > 0)
-            return exact[0] ?? null;
+            return выбрать(exact);
         if (request.gap !== 'next-valid')
             return null;
         // DST gaps are normally one hour. The wider bound also handles historic
@@ -66,16 +74,37 @@ export class IntlTimeZoneResolver {
             const shifted = shiftedLocal(request, minute);
             const matches = this.findMatches(shifted);
             if (matches.length > 0)
-                return matches[0] ?? null;
+                return выбрать(matches);
         }
         return null;
     }
+    /**
+     * Д10 ревью 27.08.2026: было — линейный перебор 2161 смещения (±18 часов по
+     * минуте), formatToParts на каждом; в DST-дыре resolveLocal повторяет это до
+     * 180 раз — до ~389 000 вызовов на одно вычисление, в UI-потоке.
+     *
+     * Стало — схождение по фактическому смещению зоны (2 шага Ньютона по сути:
+     * off(t) читается из самой зоны) плюс узкое окно ±2 часа шагом 15 минут
+     * вокруг сошедшегося кандидата — оно и ловит второй матч осеннего повтора
+     * (переходы бывают 30/45-минутные, шаг 15 покрывает). Вызовов toLocal:
+     * ~19 вместо 2161 на запрос. Семантика та же: ВСЕ совпадения, по возрастанию.
+     */
     findMatches(request) {
         const wanted = request;
         const approximate = Date.UTC(request.year, request.month - 1, request.day, request.hour, request.minute);
+        const смещение = (t) => {
+            const л = this.toLocal(t, request.timeZone);
+            return Date.UTC(л.year, л.month - 1, л.day, л.hour, л.minute) - t;
+        };
+        const якорь1 = approximate - смещение(approximate);
+        const якорь2 = approximate - смещение(якорь1);
+        const кандидаты = new Set();
+        for (const якорь of [якорь1, якорь2]) {
+            for (let м = -120; м <= 120; м += 15)
+                кандидаты.add(якорь + м * 60_000);
+        }
         const matches = [];
-        for (let offsetMinutes = -18 * 60; offsetMinutes <= 18 * 60; offsetMinutes += 1) {
-            const candidate = approximate + offsetMinutes * 60_000;
+        for (const candidate of кандидаты) {
             if (candidate < 0)
                 continue;
             if (compareLocal(this.toLocal(candidate, request.timeZone), wanted) === 0)

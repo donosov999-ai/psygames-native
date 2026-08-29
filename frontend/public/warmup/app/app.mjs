@@ -11,7 +11,9 @@ import {
   pressSchulteCell,
 } from '../shared/smart-alarm/app/challenges.js';
 import { translate } from '../shared/smart-alarm/app/i18n.js';
-import { createNativeAlarmBridge } from '../shared/smart-alarm/runtime/nativeApi.js';
+import { createNativeAlarmBridge, toCapabilityReport } from '../shared/smart-alarm/runtime/nativeApi.js';
+import { deriveDeliveryMode } from '../shared/smart-alarm/core/model.js';
+import { reconcileSchedules } from '../shared/smart-alarm/core/reconcile.js';
 import {
   PRACTICE_CATALOG,
   WARNING_TEXT,
@@ -122,6 +124,9 @@ const copy = {
     reasonTotalTimeCap: 'Достигнут общий лимит сигнала', reasonEscape: 'Безопасный выход', reasonSnooze: 'Отложено',
     reasonAdapterError: 'Ошибка системного адаптера', reasonClockError: 'Ошибка часов', reasonDispose: 'Сессия закрыта',
     reasonCollision: 'Совпадающий сигнал пропущен', selfTest: 'Проверка на устройстве', notRun: 'НЕ ПРОВЕРЕНО',
+    deliveryMode: 'Режим доставки', mode_real_alarm: 'настоящий будильник', mode_notification_only: 'только уведомления',
+    mode_in_app_simulation: 'симуляция в приложении', mode_unavailable: 'недоступно',
+    reconcileDrift: 'Расхождение расписаний: план и платформа разошлись',
     notApplicable: 'Не применяется', verified: 'Проверено', capabilityFailed: 'Проверка не пройдена',
     localSession: 'Текущая локальная сессия', settingsOpened: 'Системные настройки не открыты на этой платформе', affectedSets: 'Затронутые наборы',
     appVersion: 'Версия приложения {version}', blockVersion: 'Версия блока {version}',
@@ -183,6 +188,9 @@ const copy = {
     reasonTotalTimeCap: 'Total alert cap reached', reasonEscape: 'Safe exit', reasonSnooze: 'Snoozed',
     reasonAdapterError: 'System adapter error', reasonClockError: 'Clock error', reasonDispose: 'Session closed',
     reasonCollision: 'Overlapping alert skipped', selfTest: 'On-device check', notRun: 'NOT TESTED',
+    deliveryMode: 'Delivery mode', mode_real_alarm: 'real alarm', mode_notification_only: 'notifications only',
+    mode_in_app_simulation: 'in-app simulation', mode_unavailable: 'unavailable',
+    reconcileDrift: 'Schedule drift: plan and platform disagree',
     notApplicable: 'Not applicable', verified: 'Verified', capabilityFailed: 'Check failed',
     localSession: 'Current local session', settingsOpened: 'System settings were not opened on this platform', affectedSets: 'Affected sets',
     appVersion: 'App version {version}', blockVersion: 'Block version {version}',
@@ -195,6 +203,10 @@ const state = {
   tab: 'alarms',
   alarms: [],
   capabilities: null,
+  /** Продуктовый отчёт (имена core-модели) и режим доставки — из переводчика toCapabilityReport. */
+  capabilityReport: null,
+  deliveryMode: null,
+  reconcileIssues: [],
   activeAlarm: null,
   challenge: null,
   choiceTimer: null,
@@ -514,10 +526,19 @@ function renderCapabilities() {
     const good = value === 'available' || value === 'passed';
     return `<div class="capability-row"><span>${escapeHtml(t(label))}</span><strong class="capability-state ${good ? 'is-good' : ''}">${escapeHtml(capabilityLabel(value))}</strong></div>`;
   }).join('');
-  const notes = (capabilities.notes ?? []).length
-    ? `<ul class="capability-notes">${capabilities.notes.map((note) => `<li>${escapeHtml(note)}</li>`).join('')}</ul>`
+  /**
+   * Режим доставки — СЛОВАМИ ПРОДУКТА, из deriveDeliveryMode, а не из сырых
+   * платформенных полей: человек читает «симуляция в приложении», а не решает
+   * ребус из шести технических строк. Предупреждения примирения — тем же списком.
+   */
+  const modeRow = state.deliveryMode
+    ? `<div class="capability-row"><span>${escapeHtml(t('deliveryMode'))}</span><strong class="capability-state ${state.deliveryMode === 'real-alarm' ? 'is-good' : ''}">${escapeHtml(t(`mode_${state.deliveryMode.replaceAll('-', '_')}`))}</strong></div>`
     : '';
-  $('#capability-list').innerHTML = rows + notes;
+  const issueNotes = (state.reconcileIssues ?? []).map((issue) => `<li>⚠️ ${escapeHtml(issue)}</li>`).join('');
+  const notes = (capabilities.notes ?? []).length || issueNotes
+    ? `<ul class="capability-notes">${issueNotes}${(capabilities.notes ?? []).map((note) => `<li>${escapeHtml(note)}</li>`).join('')}</ul>`
+    : '';
+  $('#capability-list').innerHTML = modeRow + rows + notes;
 }
 
 async function probeCapabilities() {
@@ -526,6 +547,15 @@ async function probeCapabilities() {
   } catch (error) {
     state.capabilities = { platform: 'unknown', scheduler: 'unknown', exactAlarm: 'unknown', notifications: 'unknown', fullScreenIntent: 'unknown', continuousAudio: 'unknown', rebootRestore: 'unknown', selfTest: 'failed', userSessionRequired: true, notes: [String(error)] };
   }
+  /**
+   * Продуктовый слой (D2, 28.08.2026): мостовые факты переводятся в отчёт
+   * core-модели ОДНИМ местом (toCapabilityReport — там же карта имён), режим
+   * доставки выводится deriveDeliveryMode и показывается словами продукта.
+   * До этого слой примирения не был подключён вовсе, а 3 из 6 полей
+   * расходились именами — наивная подводка отвечала бы 'unavailable' всегда.
+   */
+  state.capabilityReport = toCapabilityReport(state.capabilities, Date.now());
+  state.deliveryMode = deriveDeliveryMode(state.capabilityReport);
   renderCapabilities();
 }
 
@@ -943,6 +973,9 @@ function renderPlan() {
   const preview = $('#plan-preview');
   const gates = $('#safety-gates');
   if (!preview || !gates) return;
+  // Память планировщика: каждая мутация формата кончается renderPlan — здесь
+  // одна точка записи вместо девяти по слушателям (идемпотентно и дёшево).
+  saveRechargePrefs();
   const selections = selectedPracticeItems();
   const warnings = getRequiredWarnings(selections);
   const experience = getRequiredPriorExperience(selections);
@@ -1002,6 +1035,90 @@ function togglePractice(setId) {
   state.recharge.priorExperienceConfirmed = false;
   renderCatalog();
   renderPlan();
+}
+
+/**
+ * ПАМЯТЬ ПЛАНИРОВЩИКА (просьба Дениса 29.08.2026: «надо чтобы запоминала выбор»).
+ *
+ * Формат сессии — режим, длительность, обстановка, подсказка, тумблеры и сам
+ * выбор практик — переживает перезапуск: человек настроил один раз, дальше
+ * страница открывается ЕГО конфигурацией, а не заводской.
+ *
+ * 🔴 ВАЛИДАЦИЯ — ПО ЖИВОМУ DOM, А НЕ ВТОРЫМ СПИСКОМ ЗНАЧЕНИЙ. Допустимые
+ * режимы/длительности/обстановки уже перечислены кнопками и <option> в
+ * index.html; дублировать их массивом в коде — значит разойтись при первом же
+ * новом пункте. Сохранённое значение принимается, только если такой пункт
+ * существует на странице сейчас; иначе остаётся дефолт.
+ *
+ * ⚠️ НЕ сохраняются warningsAcknowledged / priorExperienceConfirmed: галочки
+ * безопасности человек ставит на каждый заход — код их не проставляет (тот же
+ * принцип, по которому их сбрасывает смена выбора).
+ *
+ * ⚠️ Выбор практик фильтруется каталогом и статусом: исчезнувший набор или
+ * экспериментальная программа при выключенном тумблере молча заменяются
+ * дефолтом набора — заблокированный «выбор» хуже отсутствия памяти.
+ */
+const RECHARGE_PREFS_KEY = 'smart_alarm_recharge_prefs_v1';
+
+function saveRechargePrefs() {
+  try {
+    const r = state.recharge;
+    localStorage.setItem(RECHARGE_PREFS_KEY, JSON.stringify({
+      mode: r.mode,
+      durationMs: r.durationMs,
+      context: r.context,
+      guideMode: r.guideMode,
+      mastery: r.mastery,
+      allowExperimental: r.allowExperimental,
+      selected: [...r.selected],
+    }));
+  } catch { /* нет хранилища (приватный режим, WebView без quota) — живём без памяти */ }
+}
+
+function applyRechargePrefs() {
+  let raw = null;
+  try { raw = localStorage.getItem(RECHARGE_PREFS_KEY); } catch { return; }
+  if (!raw) return;
+  let saved;
+  try { saved = JSON.parse(raw); } catch { return; }
+  if (!saved || typeof saved !== 'object') return;
+  const r = state.recharge;
+  const hasOption = (id, value) => [...(document.getElementById(id)?.options ?? [])].some((o) => o.value === String(value));
+  if ($$('[data-plan-mode]').some((b) => b.dataset.planMode === saved.mode)) r.mode = saved.mode;
+  if (hasOption('plan-duration', saved.durationMs)) r.durationMs = Number(saved.durationMs);
+  if (hasOption('plan-context', saved.context)) r.context = saved.context;
+  if (hasOption('plan-guide', saved.guideMode)) r.guideMode = saved.guideMode;
+  if (typeof saved.mastery === 'boolean') r.mastery = saved.mastery;
+  if (typeof saved.allowExperimental === 'boolean') r.allowExperimental = saved.allowExperimental;
+  if (Array.isArray(saved.selected)) {
+    const next = new Map();
+    for (const pair of saved.selected) {
+      if (!Array.isArray(pair) || pair.length !== 2) continue;
+      const [setId, programId] = pair;
+      const set = getPracticeSet(setId);
+      if (!set) continue;
+      const known = set.programs.some((prog) => prog.id === programId);
+      const wanted = known ? programId : set.defaultProgramId;
+      const finalProgram = (getPracticeStatus(setId, wanted) === 'experimental' && !r.allowExperimental)
+        ? set.defaultProgramId
+        : wanted;
+      next.set(setId, finalProgram);
+    }
+    if (next.size > 0) r.selected = next;
+  }
+  if (r.mode === 'solo' && r.selected.size > 1) {
+    const first = r.selected.entries().next().value;
+    r.selected = first ? new Map([first]) : new Map();
+  }
+  enforceBaselineBreathing();
+  $$('[data-plan-mode]').forEach((button) => button.classList.toggle('is-active', button.dataset.planMode === r.mode));
+  const setValue = (id, value) => { const el = document.getElementById(id); if (el) el.value = String(value); };
+  setValue('plan-duration', r.durationMs);
+  setValue('plan-context', r.context);
+  setValue('plan-guide', r.guideMode);
+  const setChecked = (id, on) => { const el = document.getElementById(id); if (el) el.checked = on; };
+  setChecked('mastery-toggle', r.mastery);
+  setChecked('experimental-toggle', r.allowExperimental);
 }
 
 function setPlanMode(mode) {
@@ -2065,6 +2182,7 @@ async function bootSafety() {
 async function boot() {
   bindEvents();
   renderWeekdays();
+  applyRechargePrefs();   // память планировщика — ДО первого рендера, иначе кадр заводских настроек
   renderCatalog();
   renderPlan();
   renderHistory();
@@ -2080,7 +2198,56 @@ async function boot() {
   if (павшие.length > 0) {
     toast(`Часть данных не загрузилась (${павшие.length} из 3). Будильники продолжают работать.`);
   }
+  await coldReconcile();
   applyLocale();
+}
+
+/**
+ * ХОЛОДНОЕ ПРИМИРЕНИЕ (D2, 28.08.2026) — reconcileSchedules подключён к продукту.
+ *
+ * ⚠️ ЧЕСТНО ПРО DESKTOP: у текущего моста desired и observed происходят из ОДНОГО
+ * источника (list() отдаёт canonical_definitions — хранилище, по которому и тикает
+ * планировщик desktop.rs:311). Осиротевших расписок здесь не бывает ПО УСТРОЙСТВУ,
+ * поэтому непустой список действий — не «работа по расписанию», а ДЕТЕКТОР
+ * невозможного состояния: рассинхрон формы данных между слоями. Его не чиним
+ * молча — показываем. Исполнение действий обретёт смысл на Android, где расписки
+ * платформы — отдельная от хранилища сущность.
+ *
+ * issues от примирения (деградация Android, iOS-контракт) — в карточку статуса.
+ */
+async function coldReconcile() {
+  if (!state.capabilityReport) return;
+  try {
+    const listed = await bridge.list();
+    const desired = state.alarms
+      .filter((model) => model.envelope?.spec?.enabled !== false && model.definition)
+      .map((model) => ({
+        occurrence: {
+          alarmId: model.definition.alarmId,
+          occurrenceId: model.definition.occurrenceId,
+          scheduledForMs: model.definition.triggerAtMs,
+        },
+      }));
+    const mode = state.deliveryMode;
+    const observed = listed
+      .filter((definition) => definition.enabled !== false)
+      .map((definition) => ({
+        alarmId: definition.alarmId,
+        occurrenceId: definition.occurrenceId,
+        scheduledForMs: definition.triggerAtMs,
+        mode,
+        status: 'scheduled',
+      }));
+    const result = reconcileSchedules(desired, observed, state.capabilityReport);
+    state.reconcileIssues = result.issues;
+    if (result.actions.length > 0) {
+      console.warn('reconcile drift', result.actions);
+      state.reconcileIssues = [...result.issues, t('reconcileDrift')];
+    }
+    renderCapabilities();
+  } catch (error) {
+    console.warn('coldReconcile failed', error);
+  }
 }
 
 /**
