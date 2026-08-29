@@ -13,15 +13,16 @@
  * промахнуться молча: не так записали ключ, добавили профиль другим синтаксисом.
  * Здесь берутся ЖИВЫЕ карты приложения — и расхождение двух путей всплывает.
  */
-declare const __dirname: string;
-declare function require(m: string): any;
-const fs = require('fs');
-const path = require('path');
 import { PROFILES } from '@/src/constants/profiles';
 import { PROFILE_BACKGROUNDS } from '@/src/constants/profileBackgrounds';
 import { PROFILE_BADGES } from '@/src/constants/profileBadges';
 import { logoForProfile, logoPlateFor, LOGO_VARIANTS } from '@/src/constants/profileLogos';
 import { PROFILE_THEME_SPEC, themeArtFor, THEME_KEYS } from '@/src/constants/profileThemes';
+
+declare const __dirname: string;
+declare function require(m: string): any;
+const fs = require('fs');
+const path = require('path');
 
 const FRONT = path.join(__dirname, '..', '..');
 const spec = JSON.parse(fs.readFileSync(path.join(FRONT, 'src/constants/profileThemes.json'), 'utf8'));
