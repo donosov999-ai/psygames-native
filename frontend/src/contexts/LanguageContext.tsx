@@ -1838,6 +1838,8 @@ const translations: Translations = {
   cosDesc_badge_generic: { ru: 'Значок другого профиля в твоём чипе на главной', en: 'Another profile’s badge on your home chip' },
   digitsLockedShop: { ru: 'Этот набор цифр продаётся в магазине', en: 'This digit set is sold in the shop' },
   voiceRecordingNative: { ru: 'Идёт запись микрофоном устройства (без индикатора уровня)', en: 'Recording with the device microphone (no level meter here)' },
+  pencilMode: { ru: 'Карандаш: пометки-кандидаты', en: 'Pencil: candidate marks' },
+  deepPortalHint: { ru: 'Портал: здесь стоит та же цифра, что в клетке {cell} соседней доски этого слоя', en: 'Portal: this cell holds the same digit as cell {cell} of a sibling board on this layer' },
   a11yCatDigits: { ru: 'Категория: наборы цифр', en: 'Category: digit sets' },
   a11yCatTheme: { ru: 'Категория: темы карты', en: 'Category: map themes' },
   a11yCatBackground: { ru: 'Категория: фоны', en: 'Category: backgrounds' },

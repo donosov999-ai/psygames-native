@@ -53,8 +53,14 @@ import {
   DEEP_N, childPath, parentOf, depthOf,
   materializeNode, materializePick, countDeep,
   deepNodeProgress, deepNodeDone, deepValueAt, deepRootComplete,
-  type DeepCfg, type DeepNode, type DeepPath, type DeepPick,
+  deepPortalsFor, portalOfLeaf,
+  type DeepCfg, type DeepNode, type DeepPath, type DeepPick, type DeepPortal,
 } from '@/src/services/fractal-deep';
+
+/** Узел на экране: движковый + портальная сторона листа (X5). */
+type ScreenNode = DeepNode & {
+  portal?: { cell: [number, number]; drop: [number, number]; partnerPath: DeepPath; partnerCell: [number, number]; digit: number };
+};
 
 const GRADIENT = ['#312e63', '#5b4d9e'];
 const GAME_ID = 'sudoku_fractal_deep';
@@ -89,6 +95,8 @@ interface DeepResume {
   seed: string;
   path: DeepPath;
   grids: Record<DeepPath, number[][]>;
+  /** Пометки карандаша; поле опциональное — снимки до X5 живут без него (RESUME_V не бампался). */
+  marks?: Record<DeepPath, number[][]>;
   errors: number;
   elapsed: number;
   history: ReturnType<ReturnType<typeof useMoveHistory<DeepMove>>['serialize']>;
@@ -106,6 +114,12 @@ export default function FractalDeepScreen() {
   const [path, setPath] = useState<DeepPath>('');
   /** Наигранное по ТРОННУТЫМ узлам: путь → доска (0 = пусто). Ключ снимка партии. */
   const [grids, setGrids] = useState<Record<DeepPath, number[][]>>({});
+  /**
+   * Карандаш (X5): пометки-кандидаты по тронутым узлам, битмаской на клетку
+   * (бит n-1 = цифра n). Той же формы, что grids — снимок хранит только тронутое.
+   */
+  const [marks, setMarks] = useState<Record<DeepPath, number[][]>>({});
+  const [pencilOn, setPencilOn] = useState(false);
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
   const [errors, setErrors] = useState(0);
   const [elapsed, setElapsed] = useState(0);
@@ -113,7 +127,7 @@ export default function FractalDeepScreen() {
   // Лента ходов — ОБЩИМ хуком (undo-honesty): один список по всем узлам дерева.
   const hist = useMoveHistory<DeepMove>();
   /** Счёт партии для карточки настройки: пазлов всего по слоям. */
-  const [sizes, setSizes] = useState<Record<PresetKey, number | null>>({ scout: null, trek: null, abyss: null });
+  const [sizes, setSizes] = useState<Record<PresetKey, number[] | null>>({ scout: null, trek: null, abyss: null });
 
   const startRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -124,7 +138,7 @@ export default function FractalDeepScreen() {
    * детерминированы от (зерно, путь), так что одинаковое зерно = валидный кэш.
    */
   const cache = React.useMemo(
-    () => ({ nodes: new Map<DeepPath, DeepNode>(), picks: new Map<DeepPath, DeepPick>() }),
+    () => ({ nodes: new Map<DeepPath, ScreenNode>(), picks: new Map<DeepPath, DeepPick>(), portals: new Map<DeepPath, DeepPortal[]>() }),
     // Зерно и пресет — КЛЮЧ СБРОСА кэша, а не «использованные значения»: одно зерно =
     // те же узлы, смена зерна обязана дать пустые карты.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,13 +153,35 @@ export default function FractalDeepScreen() {
 
   const cfg = cfgOf(preset);
 
-  /** Материализовать узел (с решением) — через кэш и цепочку кормящих цифр. */
-  const nodeAt = useCallback(function nodeAtFn(p: DeepPath): DeepNode {
+  /** Материализовать узел (с решением) — через кэш и цепочку кормящих цифр.
+   *  Листу применяется его сторона портала (X5): дроп-подсказка снимается,
+   *  blanks/порог пересчитываются — вся остальная арифметика видит уже
+   *  дропнутую доску и согласована бесплатно. */
+  const nodeAt = useCallback(function nodeAtFn(p: DeepPath): ScreenNode {
     const hit = cache.nodes.get(p);
     if (hit) return hit;
     const par = parentOf(p);
-    const digit = par === null ? 0 : nodeAtFn(par.parent).solution[par.cell[0]]![par.cell[1]]!;
-    const node = materializeNode(seed, p, cfg, digit);
+    const parentNode = par === null ? null : nodeAtFn(par.parent);
+    const digit = parentNode === null ? 0 : parentNode.solution[par!.cell[0]]![par!.cell[1]]!;
+    let node: ScreenNode = materializeNode(seed, p, cfg, digit);
+    if (par !== null && parentNode !== null && depthOf(p) === cfg.depth - 1) {
+      let plan = cache.portals.get(par.parent);
+      if (!plan) {
+        plan = deepPortalsFor(seed, par.parent, cfg, parentNode.solution);
+        cache.portals.set(par.parent, plan);
+      }
+      const side = portalOfLeaf(plan, p);
+      if (side) {
+        const puzzle = node.puzzle.map((row) => [...row]);
+        puzzle[side.drop[0]]![side.drop[1]] = 0;
+        const blanks = node.blanks + 1;
+        node = {
+          ...node, puzzle, blanks,
+          unlockCells: Math.max(1, Math.min(blanks, Math.ceil(blanks * cfg.unlockShare))),
+          portal: side,
+        };
+      }
+    }
     cache.nodes.set(p, node);
     return node;
   }, [seed, preset, cache]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -177,6 +213,8 @@ export default function FractalDeepScreen() {
     setSeed(s);
     setPath('');
     setGrids({});
+    setMarks({});
+    setPencilOn(false);
     setSelected(null);
     setErrors(0);
     setElapsed(0);
@@ -206,9 +244,24 @@ export default function FractalDeepScreen() {
     } catch (e) { console.error(e); }
   }, [grids, errors, elapsed, preset, nodeDone]);   // eslint-disable-line react-hooks/exhaustive-deps
 
+  /** Пометка карандашом: тоггл бита цифры. По занятой рукой клетке не работает. */
+  const pencil = (r: number, c: number, n: number) => {
+    const node = nodeAt(path);
+    if (node.puzzle[r]![c] !== 0) return;
+    if (node.feedCells.some(([fr, fc]) => fr === r && fc === c)) return;
+    if ((grids[path]?.[r]?.[c] ?? 0) !== 0) return;
+    setMarks((prev) => {
+      const m = (prev[path] ?? Array.from({ length: DEEP_N }, () => Array(DEEP_N).fill(0))).map((row) => [...row]);
+      m[r]![c] = n === 0 ? 0 : (m[r]![c]! ^ (1 << (n - 1)));
+      return { ...prev, [path]: m };
+    });
+    sndPlace();
+  };
+
   /** Поставить/стереть цифру рукой. Кормимые и подсказки не принимают руку. */
   const place = (r: number, c: number, n: number) => {
     if (phase !== 'play') return;
+    if (pencilOn) { pencil(r, c, n); return; }
     const node = nodeAt(path);
     if (node.puzzle[r]![c] !== 0) return;
     if (node.feedCells.some(([fr, fc]) => fr === r && fc === c)) return;
@@ -218,7 +271,13 @@ export default function FractalDeepScreen() {
       const g = grids[path] ?? Array.from({ length: DEEP_N }, () => Array(DEEP_N).fill(0));
       // Ошибка — только доказуемая: цифра уже стоит в строке/столбце/блоке.
       const visible = g.map((row, rr) => row.map((v, cc) => valueAt(path, rr, cc) || v));
-      if (conflictsInChild(visible, r, c, n)) { sndWrong(); setErrors((e) => e + 1); }
+      // Портал (X5): клетки пары держат ОДНУ цифру — рука против уже стоящей руки
+      // партнёра ловится как доказуемая ошибка, тем же счётом, что конфликт в доске.
+      const pt = node.portal;
+      const portalClash = !!pt && pt.cell[0] === r && pt.cell[1] === c
+        && (grids[pt.partnerPath]?.[pt.partnerCell[0]]?.[pt.partnerCell[1]] ?? 0) !== 0
+        && (grids[pt.partnerPath]![pt.partnerCell[0]]![pt.partnerCell[1]]) !== n;
+      if (conflictsInChild(visible, r, c, n) || portalClash) { sndWrong(); setErrors((e) => e + 1); }
       else sndPlace();
     }
     hist.push({ path, r, c, prev });
@@ -228,6 +287,14 @@ export default function FractalDeepScreen() {
     g[r]![c] = n;
     const next = { ...grids, [path]: g };
     setGrids(next);
+    // Рука закрыла клетку — карандашные следы под ней больше не о чём.
+    if (n !== 0 && (marks[path]?.[r]?.[c] ?? 0) !== 0) {
+      setMarks((prev) => {
+        const m = (prev[path] ?? Array.from({ length: DEEP_N }, () => Array(DEEP_N).fill(0))).map((row) => [...row]);
+        m[r]![c] = 0;
+        return { ...prev, [path]: m };
+      });
+    }
     if (deepRootComplete(nodeAt, next)) void finish(true);
   };
 
@@ -259,12 +326,13 @@ export default function FractalDeepScreen() {
   }, phase === 'play');
 
   // ───────────────────── незаконченная партия ─────────────────────
-  const snapshot = (): DeepResume => ({ preset, seed, path, grids, errors, elapsed, history: hist.serialize() });
+  const snapshot = (): DeepResume => ({ preset, seed, path, grids, marks, errors, elapsed, history: hist.serialize() });
   const applyResume = (s: DeepResume) => {
     setPreset(s.preset);
     setSeed(s.seed);
     setPath(s.path ?? '');
     setGrids(s.grids ?? {});
+    setMarks(s.marks ?? {});
     setErrors(s.errors ?? 0);
     hist.restore(s.history);
     setWon(false);
@@ -285,7 +353,7 @@ export default function FractalDeepScreen() {
     const snap = snapshot();
     const tm = setTimeout(() => { saveResume(GAME_ID, pid, RESUME_V, snap).catch(() => {}); }, 500);
     return () => clearTimeout(tm);
-  }, [grids, path, errors, liveGame]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [grids, marks, path, errors, liveGame]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const liveRef = useRef<{ ok: boolean; pid?: string; snap: () => DeepResume }>({ ok: false, snap: () => ({} as DeepResume) });
   useEffect(() => { liveRef.current = { ok: liveGame, pid: profile?.id, snap: snapshot }; });
@@ -324,8 +392,8 @@ export default function FractalDeepScreen() {
                   // Размер партии считается лениво и один раз: полоса+глубина+охват
                   // не меняются, а счёт «Бездны» — ~50 обращений к банку, не мгновение.
                   if (sizes[p.key] === null) {
-                    const total = countDeep('size-preview', cfgOf(p.key)).total;
-                    setSizes((prev) => ({ ...prev, [p.key]: total }));
+                    const { byDepth } = countDeep('size-preview', cfgOf(p.key));
+                    setSizes((prev) => ({ ...prev, [p.key]: byDepth }));
                   }
                 }}
                 style={[styles.presetCard, {
@@ -337,8 +405,26 @@ export default function FractalDeepScreen() {
                 <Text style={[styles.presetName, { color: colors.text }]}>{t(`deepPreset_${p.key}` as never)}</Text>
                 <Text style={[styles.presetDesc, { color: colors.textSecondary }]}>
                   {t(`deepPresetDesc_${p.key}` as never)}
-                  {sizes[p.key] !== null ? `  ·  ${t('deepPuzzles')}: ~${sizes[p.key]}` : ''}
+                  {sizes[p.key] !== null ? `  ·  ${t('deepPuzzles')}: ~${sizes[p.key]!.reduce((x, y) => x + y, 0)}` : ''}
                 </Text>
+                {/* Каталожное превью (X5): дерево слоями — сколько пазлов прячется на
+                    каждой глубине. Полоса лог-шкалой: 81 линейно раздавил бы единицу. */}
+                {sizes[p.key] !== null && (
+                  <View style={styles.layerPreview}>
+                    {sizes[p.key]!.map((n, d) => (
+                      <View key={d} style={styles.layerRow}>
+                        <Text style={[styles.layerLabel, { color: colors.textSecondary }]}>L{d + 1}</Text>
+                        <View style={[styles.layerBarTrack, { backgroundColor: colors.border }]}>
+                          <View style={[styles.layerBarFill, {
+                            backgroundColor: on ? GRADIENT[1] : colors.textSecondary,
+                            width: `${Math.max(8, Math.round(100 * Math.log10(1 + n) / Math.log10(1 + Math.max(...sizes[p.key]!))))}%`,
+                          }]} />
+                        </View>
+                        <Text style={[styles.layerCount, { color: colors.text }]}>~{n}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
               </TouchableOpacity>
             );
           })}
@@ -435,6 +521,19 @@ export default function FractalDeepScreen() {
         <View style={styles.headerActionsRow}>
           <TouchableOpacity
             accessibilityRole="button"
+            accessibilityLabel={t('pencilMode')}
+            accessibilityState={{ selected: pencilOn }}
+            testID="deep-pencil"
+            onPress={() => setPencilOn((v) => !v)}
+            style={[styles.undoBtn, {
+              backgroundColor: pencilOn ? GRADIENT[1] : colors.surface,
+              borderColor: pencilOn ? GRADIENT[1] : colors.border,
+            }]}
+          >
+            <Ionicons name="pencil" size={16} color={pencilOn ? '#FFF' : colors.text} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
             accessibilityLabel={t('btn_undo')}
             testID="deep-undo"
             onPress={undo}
@@ -481,6 +580,7 @@ export default function FractalDeepScreen() {
                 const given = node.puzzle[r]![c] !== 0;
                 const isFeed = feedSet.has(`${r},${c}`);
                 const isSel = selected?.r === r && selected?.c === c;
+                const isPortal = node.portal?.cell[0] === r && node.portal?.cell[1] === c;
                 const hand = grids[path]?.[r]?.[c] ?? 0;
                 const wrong = !given && hand !== 0 && hand !== node.solution[r]![c];
                 return (
@@ -510,13 +610,36 @@ export default function FractalDeepScreen() {
                         {v === 0 && ghost(childPath(path, r, c), cell)}
                       </>
                     )}
-                    <Text style={{
-                      fontSize: cell * 0.5,
-                      fontWeight: given ? '800' : '600',
-                      color: isSel ? '#FFF' : wrong ? '#b91c1c' : colors.text,
-                    }}>
-                      {v !== 0 ? v : ''}
-                    </Text>
+                    {/* Портал (X5): циановое кольцо — эта клетка держит ту же цифру,
+                        что помеченная клетка соседней доски. Кольцо гаснет с рукой. */}
+                    {isPortal && (
+                      <View pointerEvents="none" style={[styles.fedRing, {
+                        borderColor: '#22d3ee',
+                        borderStyle: hand === 0 ? 'dashed' : 'solid',
+                        opacity: hand === 0 ? 1 : 0.45,
+                        borderWidth: 1.5,
+                      }]} />
+                    )}
+                    {v === 0 && !isFeed && (marks[path]?.[r]?.[c] ?? 0) !== 0 ? (
+                      <View pointerEvents="none" style={styles.marksWrap}>
+                        {Array.from({ length: DEEP_N }, (_, i) => i + 1).map((d) => (
+                          <Text key={d} style={[styles.markDigit, {
+                            fontSize: Math.max(7, cell * 0.24),
+                            width: cell / 3.2,
+                            color: isSel ? '#FFF' : colors.textSecondary,
+                            opacity: ((marks[path]![r]![c]! >> (d - 1)) & 1) ? 1 : 0,
+                          }]}>{d}</Text>
+                        ))}
+                      </View>
+                    ) : (
+                      <Text style={{
+                        fontSize: cell * 0.5,
+                        fontWeight: given ? '800' : '600',
+                        color: isSel ? '#FFF' : wrong ? '#b91c1c' : colors.text,
+                      }}>
+                        {v !== 0 ? v : ''}
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -524,7 +647,9 @@ export default function FractalDeepScreen() {
           ))}
         </View>
         <Text style={[styles.hint, { color: colors.textSecondary }]}>
-          {node.feedCells.length > 0 ? t('deepDiveHint') : t('deepLeafHint')}
+          {selected && node.portal && node.portal.cell[0] === selected.r && node.portal.cell[1] === selected.c
+            ? t('deepPortalHint').replace('{cell}', `(${node.portal.partnerCell[0] + 1}·${node.portal.partnerCell[1] + 1})`)
+            : node.feedCells.length > 0 ? t('deepDiveHint') : t('deepLeafHint')}
         </Text>
       </View>
     </GameShell>
@@ -541,6 +666,12 @@ const styles = StyleSheet.create({
   presetCard: { borderRadius: 14, padding: 14, gap: 4 },
   presetName: { fontSize: 16, fontWeight: '800' },
   presetDesc: { fontSize: 12.5, lineHeight: 18 },
+  layerPreview: { gap: 3, marginTop: 6 },
+  layerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  layerLabel: { fontSize: 10.5, fontWeight: '800', width: 20 },
+  layerBarTrack: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden' },
+  layerBarFill: { height: '100%', borderRadius: 3 },
+  layerCount: { fontSize: 10.5, fontWeight: '700', minWidth: 34, textAlign: 'right' },
 
   playWrap: { alignItems: 'center', paddingTop: 4, paddingBottom: 150, gap: 8 },
   crumbs: { flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -558,6 +689,8 @@ const styles = StyleSheet.create({
   fedRing: { position: 'absolute', top: 1.5, left: 1.5, right: 1.5, bottom: 1.5, borderRadius: 3, borderWidth: 1 },
   ghostWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   hint: { fontSize: 12, textAlign: 'center', paddingHorizontal: 24 },
+  marksWrap: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 1 },
+  markDigit: { textAlign: 'center', fontWeight: '700', lineHeight: 11 },
 
   pad: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, justifyContent: 'center', maxWidth: 280 },
   key: { width: 48, height: 48, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },

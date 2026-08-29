@@ -1654,6 +1654,8 @@ const t: Record<string, string> = {
   "cosDesc_badge_generic": "在你的主页芯片上显示其他档案的徽章",
   "digitsLockedShop": "该数字套装在商店有售",
   "voiceRecordingNative": "正在使用设备麦克风录音（无音量指示）",
+  "pencilMode": "铅笔：候选标记",
+  "deepPortalHint": "传送门：此格与本层相邻棋盘的 {cell} 格数字相同",
   "a11yCatDigits": "类别：数字套装",
   "a11yCatTheme": "类别：地图主题",
   "a11yCatBackground": "类别：背景",

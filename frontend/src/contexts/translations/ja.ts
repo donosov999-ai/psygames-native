@@ -947,6 +947,8 @@ const t: Record<string, string> = {
   "cosDesc_badge_generic": "ホームチップに別プロフィールのバッジを表示",
   "digitsLockedShop": "この数字セットはショップで販売中",
   "voiceRecordingNative": "端末のマイクで録音中（レベル表示はありません）",
+  "pencilMode": "鉛筆：候補メモ",
+  "deepPortalHint": "ポータル：このマスは同じ層の隣のボードのマス {cell} と同じ数字を持ちます",
   "a11yCatDigits": "カテゴリ: 数字セット",
   "a11yCatTheme": "カテゴリ: マップテーマ",
   "a11yCatBackground": "カテゴリ: 背景",

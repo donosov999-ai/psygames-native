@@ -1650,6 +1650,8 @@ const t: Record<string, string> = {
   "cosDesc_badge_generic": "شارة ملف آخر على شريحتك الرئيسية",
   "digitsLockedShop": "طقم الأرقام هذا يُباع في المتجر",
   "voiceRecordingNative": "يجري التسجيل بميكروفون الجهاز (بدون مؤشر مستوى)",
+  "pencilMode": "قلم: علامات المرشحين",
+  "deepPortalHint": "بوابة: هذه الخلية تحمل نفس رقم الخلية {cell} في لوحة مجاورة من هذه الطبقة",
   "a11yCatDigits": "الفئة: أطقم أرقام",
   "a11yCatTheme": "الفئة: سمات الخريطة",
   "a11yCatBackground": "الفئة: خلفيات",

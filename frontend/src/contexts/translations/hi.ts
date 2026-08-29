@@ -1657,6 +1657,8 @@ const t: Record<string, string> = {
   "cosDesc_badge_generic": "आपकी होम चिप पर किसी और प्रोफ़ाइल का बैज",
   "digitsLockedShop": "यह अंक सेट दुकान में बिकता है",
   "voiceRecordingNative": "डिवाइस के माइक्रोफ़ोन से रिकॉर्डिंग जारी है (लेवल संकेतक के बिना)",
+  "pencilMode": "पेंसिल: उम्मीदवार निशान",
+  "deepPortalHint": "पोर्टल: इस कोठरी में वही अंक है जो इस परत के पड़ोसी बोर्ड की कोठरी {cell} में है",
   "a11yCatDigits": "श्रेणी: अंक सेट",
   "a11yCatTheme": "श्रेणी: मानचित्र थीम",
   "a11yCatBackground": "श्रेणी: पृष्ठभूमि",

@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.4.0',
+    date: '2026-08-29',
+    ru: [
+      'Бездна прокачана: карандаш для пометок-кандидатов, схема слоёв на выборе похода (видно, сколько пазлов прячется на каждой глубине) и порталы — пары досок одного слоя, связанные общей цифрой: вывод существует только между ними',
+    ],
+    en: [
+      'The Abyss powered up: a pencil for candidate marks, a layer map on trek selection (see how many puzzles hide at each depth) and portals — sibling boards linked by a shared digit: the deduction exists only between them',
+    ],
+  },
+  {
     version: '2.3.0',
     date: '2026-08-29',
     ru: [

@@ -1649,6 +1649,8 @@ const t: Record<string, string> = {
   "cosDesc_badge_generic": "홈 칩에 다른 프로필의 배지를 표시",
   "digitsLockedShop": "이 숫자 세트는 상점에서 판매합니다",
   "voiceRecordingNative": "기기 마이크로 녹음 중 (레벨 표시 없음)",
+  "pencilMode": "연필: 후보 메모",
+  "deepPortalHint": "포털: 이 칸은 같은 층 이웃 보드의 {cell} 칸과 같은 숫자를 가집니다",
   "a11yCatDigits": "카테고리: 숫자 세트",
   "a11yCatTheme": "카테고리: 맵 테마",
   "a11yCatBackground": "카테고리: 배경",
