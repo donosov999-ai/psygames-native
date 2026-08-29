@@ -83,6 +83,20 @@ describe('приправа Бездны: за неё платят подсказ
     }
     expect(compared).toBeGreaterThan(0);
   });
+
+  it('🔴 порог открытия пересчитан ПОСЛЕ раскопки, а не по додырочному числу', () => {
+    let checked = 0;
+    for (let i = 0; i < 10 && checked < 4; i++) {
+      for (const leaf of leavesOf(`unlock-${i}`, CFG, 2)) {
+        if (leaf.spice === 'none') continue;
+        const blanks = leaf.puzzle.flat().filter((v) => v === 0).length;
+        expect(`дырок ${leaf.blanks}`).toBe(`дырок ${blanks}`);
+        expect(leaf.unlockCells).toBe(Math.max(1, Math.min(blanks, Math.ceil(blanks * CFG.unlockShare))));
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
 });
 
 describe('приправа Бездны: доска остаётся честной', () => {
