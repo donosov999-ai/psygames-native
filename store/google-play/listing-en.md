@@ -52,7 +52,7 @@ ATTENTION AND FOCUS
 Improve concentration with Schulte tables, Spot the Difference, Posner and Flanker tasks. Practise staying on task despite interruptions.
 
 LOGIC AND PUZZLES
-Solve brain puzzles: Sudoku with 12 rule variants, Tower of Hanoi, Tower of London, SET and anagrams. Plan several moves ahead.
+Solve brain puzzles: Sudoku with 15 rule variants, Tower of Hanoi, Tower of London, SET and anagrams. Plan several moves ahead.
 
 THINKING SPEED AND REACTION
 Train reaction time, mental math and cognitive control with Stroop, Go/No-Go, timed arithmetic and Trail Making.

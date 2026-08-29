@@ -57,7 +57,7 @@ ATTENTION AND FOCUS
 Schulte tables, Spot the Difference, Posner and Flanker tasks. Practise staying on task despite interruptions — the exact skill an open inbox eats.
 
 LOGIC AND PUZZLES
-Sudoku with 12 rule variants, Tower of Hanoi, Tower of London, SET and anagrams. Plan several moves ahead.
+Sudoku with 15 rule variants, Tower of Hanoi, Tower of London, SET and anagrams. Plan several moves ahead.
 
 THINKING SPEED AND REACTION
 Stroop, Go/No-Go, timed arithmetic and Trail Making — reaction time, mental math and cognitive control.
@@ -118,7 +118,7 @@ Install and play. Progress is stored on your device. Optional anonymous cloud sy
 64 exercises for memory, attention, logic and speed
 Full-screen Schulte tables, matrices and Sudoku
 Levels that adapt: rise when you nail it, wait when you miss
-Sudoku with 12 rule variants
+Sudoku with 15 rule variants
 N-back, Stroop, Corsi, Trail Making and 50 more validated tasks
 Warm-up in one button: morning, daytime, evening, night
 12 profiles: languages, kids, 50+, focus, reaction, founders

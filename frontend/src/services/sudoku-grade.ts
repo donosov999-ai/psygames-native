@@ -100,7 +100,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
     }
   }
   // Диагонали и зоны Windoku — тоже полноценные зоны: игрок ими пользуется, значит и решатель должен.
-  if (variant === 'diagonal') {
+  if (variant === 'diagonal' || variant === 'killerdiag') {
     units.push(Array.from({ length: N }, (_, i) => [i, i] as [number, number]));
     units.push(Array.from({ length: N }, (_, i) => [i, N - 1 - i] as [number, number]));
   } else if (variant === 'hyper') {
@@ -207,7 +207,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     // ── Термометр: вдоль пути от колбы значения строго растут. Отсюда границы —
     // на i-й позиции значение не меньше i+1 и не больше N-(длина-1-i), — и попарная
     // сверка с соседями по пути. isValid знал только про уже заполненных соседей.
-    if (variant === 'thermo' && thermo) {
+    if ((variant === 'thermo' || variant === 'thermoknight') && thermo) {
       for (let pass = 0; pass < 4; pass++) {
         let changed = false;
         for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
@@ -358,7 +358,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     // допустимые пары позиций (1,9) и оставляем единице и девятке только те клетки,
     // где хоть одна пара сходится по границам суммы. Правило раньше решателю не было
     // известно вовсе — оттого сэндвич и оценивался пессимистично.
-    if (variant === 'sandwich' && sandwich && N === 9) {
+    if ((variant === 'sandwich' || variant === 'sandparity') && sandwich && N === 9) {
       let usedSandwich = false;
       const line = (idx: number, byRow: boolean) => Array.from({ length: N }, (_, k) => (byRow ? [idx, k] : [k, idx]) as [number, number]);
       for (const byRow of [true, false]) {
@@ -644,6 +644,7 @@ function combos(arr: number[], k: number): number[][] {
  */
 export function bandPos(level: number): number {
   const lv = Math.max(1, level);
+  if (lv >= 81) return (lv - 81) % 4;   // комбо-пояс: четвёрки стартуют с 81 (81/85/89), а не с 38+4k
   return lv < 38 ? 0 : (lv - 38) % 4;
 }
 
@@ -737,6 +738,12 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
    */
   jigsaw: 6, thermocage: 5,
   /**
+   * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
+   * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
+   * (sandparity 7/15, killerdiag 8/15 на верхних уровнях). Потолок 5.
+   */
+  sandparity: 5, thermoknight: 5, killerdiag: 5,
+  /**
    * ⚠️ ДВА ВАРИАНТА ВНЕ ОСНОВНОЙ ЛЕСТНИЦЫ — живут мини-лестницами режимов
    * (services/sudoku-modes). Потолок 4 < вершины лестницы 6, поэтому после
    * джигсо им места нет: running-max обещаний потребовал бы недостижимого.
@@ -767,6 +774,14 @@ export function targetTier(level: number): { min: number; max: number } {
    * лестницы банка, а не полоса техник; рамка держится плоской вершиной, чтобы
    * пила четвёрок не рисовала ложное «сложность упала» между уровнями поясов.
    */
+  if (lv >= 81) {
+    // Комбо-пояс (X4): полоса растёт внутри четвёрки, потолок — по замеру пары
+    // (VARIANT_TIER_CEILING ниже; scripts/measure/combo-tiers.mjs).
+    const band = [{ min: 4, max: 5 }, { min: 4, max: 5 }, { min: 5, max: 6 }, { min: 5, max: 6 }][bandPos(lv)] as { min: number; max: number };   // {6,6} недостижим: шестёрка 0–1/15 по замеру
+    const ceiling = VARIANT_TIER_CEILING[levelConfig(lv).variant as Variant];
+    if (ceiling === undefined) return band;
+    return { min: Math.min(band.min, ceiling), max: band.max };
+  }
   if (lv >= 58) return { min: 6, max: 6 };
   // 38–57: четыре ступени внутри каждой полосы варианта — 3..4, 4..5, 5..6, 6..6.
   const band = [{ min: 3, max: 4 }, { min: 4, max: 5 }, { min: 5, max: 6 }, { min: 6, max: 6 }][bandPos(lv)] as { min: number; max: number };
@@ -813,6 +828,11 @@ export function monotonicBandForLevel(level: number): { min: number; max: number
  */
 export function markerDensity(level: number, variant: Variant): number {
   if (variant === 'evenodd') return [0.40, 0.34, 0.28, 0.22][Math.min(3, Math.max(0, level - 30))];
+  // Комбо-пояс: чётность у sandparity сразу скупее, чем у одиночного evenodd —
+  // вторая ось (сэндвич) добирает информацию, и щедрые метки роняли бы ступень.
+  // Индекс — позиция в четвёрке (bandPos), а не жёсткий уровень: пара уже
+  // переезжала внутри пояса по замеру, и жёсткое «−81» тихо съехало бы.
+  if (variant === 'sandparity') return [0.26, 0.22, 0.18, 0.14][bandPos(level)] as number;
   if (variant === 'kropki') return [0.32, 0.28, 0.24, 0.20][Math.min(3, Math.max(0, level - 34))];
   /**
    * Неравенства: 144 грани на доске, поэтому доли мелкие. Ключи — ступени
@@ -842,7 +862,7 @@ export function thinMarkers<T extends { parity?: number[][]; kropki?: { h: numbe
 ): T {
   const dens = markerDensity(level, variant);
   if (dens >= 1) return gen;
-  if (variant === 'evenodd' && gen.parity) {
+  if ((variant === 'evenodd' || variant === 'sandparity') && gen.parity) {
     const marked: [number, number][] = [];
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (gen.parity[r][c] !== 0) marked.push([r, c]);
     // 0.55 — та доля, что уже проставлена в ядре; здесь снимаем лишнее до целевой
@@ -924,7 +944,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1002,7 +1022,7 @@ function digByLogic(
   const max = tierMax ?? targetTier(level).max;
   const dens = markerDensity(level, variant);
 
-  const parity = variant === 'evenodd' ? Array.from({ length: N }, () => Array(N).fill(0)) : undefined;
+  const parity = (variant === 'evenodd' || variant === 'sandparity') ? Array.from({ length: N }, () => Array(N).fill(0)) : undefined;
   let kropki = base.kropki;
   if (variant === 'kropki' && kropki) kropki = thinMarkers({ kropki }, level, variant, N).kropki;
   // Сэндвич-подсказки прореживаем ДО копания: доска обязана проверяться ровно той
@@ -1254,7 +1274,7 @@ export function liftByClueRemoval(
   type Кандидат = { снять: (g: GeneratedPuzzle) => GeneratedPuzzle; осталось: () => number };
   const кандидаты: Кандидат[] = [];
 
-  if (variant === 'sandwich' && gen.sandwich) {
+  if ((variant === 'sandwich' || variant === 'sandparity') && gen.sandwich) {
     const видимых = () =>
       (gen.sandwich as { rows: number[]; cols: number[] }).rows.filter((v) => v >= 0).length +
       (gen.sandwich as { rows: number[]; cols: number[] }).cols.filter((v) => v >= 0).length;
@@ -1275,7 +1295,7 @@ export function liftByClueRemoval(
     }
   }
 
-  if ((variant === 'thermo' || variant === 'thermocage') && gen.thermo) {
+  if ((variant === 'thermo' || variant === 'thermocage' || variant === 'thermoknight') && gen.thermo) {
     // Термометры собираются обходом карты prev/next: колба — клетка без prev.
     const карта = gen.thermo;
     const пути: [number, number][][] = [];
@@ -1308,7 +1328,7 @@ export function liftByClueRemoval(
     }
   }
 
-  if (variant === 'thermocage' && gen.cages) {
+  if ((variant === 'thermocage' || variant === 'killerdiag') && gen.cages) {
     /**
      * Клетки-суммы — вторая фигура thermocage, и по замеру именно её избыток
      * держал тройки: со снятием одних термометров попадание было 7/20, суммы
@@ -1408,7 +1428,7 @@ export function logicalBuilder(
 export function thinSandwich(
   sw: { rows: number[]; cols: number[] } | undefined, level: number, variant: Variant,
 ): { rows: number[]; cols: number[] } | undefined {
-  if (!sw || variant !== 'sandwich') return sw;
+  if (!sw || (variant !== 'sandwich' && variant !== 'sandparity')) return sw;
   const keep = SANDWICH_KEEP[bandPos(level)] as number;
   if (keep >= 1) return sw;
   const hide = (line: number[]): number[] => {

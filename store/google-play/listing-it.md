@@ -42,7 +42,7 @@ ATTENZIONE E CONCENTRAZIONE
 Migliora la concentrazione con tabelle di Schulte, trova le differenze, compiti di Posner e Flanker. Resta sull'attività tra notifiche, rumore e interruzioni.
 
 LOGICA E ROMPICAPI
-Risolvi giochi di logica: Sudoku con 12 varianti di regole, Torre di Hanoi, Torre di Londra, SET e anagrammi. Pianifica più mosse prima della risposta ovvia.
+Risolvi giochi di logica: Sudoku con 15 varianti di regole, Torre di Hanoi, Torre di Londra, SET e anagrammi. Pianifica più mosse prima della risposta ovvia.
 
 VELOCITÀ DI PENSIERO E REAZIONE
 Allena riflessi, calcolo mentale e controllo cognitivo con Stroop, Go/No-Go, operazioni a tempo e Trail Making. Rispondi più velocemente senza perdere precisione.

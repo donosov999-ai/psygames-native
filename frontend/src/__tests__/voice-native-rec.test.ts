@@ -18,7 +18,7 @@ const FRESH_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 8; wv) AppleWebKit/537.3
 
 // m4a-заглушка: содержимое не декодируется тестом, важен только путь байтов.
 const FAKE_BYTES = Uint8Array.from([0, 0, 0, 24, 0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32]);
-const FAKE_B64 = Buffer.from(FAKE_BYTES).toString('base64');
+const FAKE_B64 = btoa(String.fromCharCode(...FAKE_BYTES));
 
 function setUA(ua: string) {
   Object.defineProperty(navigator, 'userAgent', { value: ua, configurable: true });

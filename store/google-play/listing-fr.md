@@ -42,7 +42,7 @@ ATTENTION ET CONCENTRATION
 Travaillez la concentration avec les tables de Schulte, le jeu des différences, Posner et Flanker, malgré les interruptions.
 
 LOGIQUE ET CASSE-TÊTES
-Résolvez Sudoku avec 12 variantes, tours de Hanoï, tour de Londres, SET et anagrammes. Apprenez à prévoir plusieurs coups.
+Résolvez Sudoku avec 15 variantes, tours de Hanoï, tour de Londres, SET et anagrammes. Apprenez à prévoir plusieurs coups.
 
 VITESSE DE RÉFLEXION ET RÉACTION
 Entraînez réflexes, calcul mental et contrôle avec Stroop, Go/No-Go, calcul chronométré et Trail Making.

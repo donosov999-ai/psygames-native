@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.3.0',
+    date: '2026-08-29',
+    ru: [
+      'Судоку выросло до 92 уровня: комбо-пояс! Два правила на одной доске разом — термометры + ход коня (81–84), сэндвич + чёт/нечет (85–88), клетки-суммы + диагонали (89–92). Каждая пара знакома по одиночным уровням — теперь они складываются',
+    ],
+    en: [
+      'Sudoku grows to level 92: the combo belt! Two rules on one board at once — thermometers + knight’s move (81–84), sandwich + parity (85–88), cages + diagonals (89–92). Each pair is familiar from single levels — now they stack',
+    ],
+  },
+  {
     version: '2.2.0',
     date: '2026-08-29',
     ru: [

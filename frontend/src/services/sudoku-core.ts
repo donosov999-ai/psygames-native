@@ -10,7 +10,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag';
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -40,6 +40,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
   sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow', thermocage: 'Thermocage',
   unequal: 'Unequal',
   towers: 'Towers',
+  sandparity: 'Sandparity', thermoknight: 'Thermoknight', killerdiag: 'Killerdiag',
 };
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
@@ -250,7 +251,21 @@ export function levelConfig(level: number): LevelCfg {
    * цепи → доска-легенда). Замер 28.08: полные полосы (по 40 досок) в банке уже
    * лежат — расширение не потребовало ни одной новой доски.
    */
-  // lv >= 58 — variant остаётся 'none': пояс банка.
+  // lv >= 58 — variant остаётся 'none': пояс банка (58–80).
+  /**
+   * 🔴 КОМБО-ПОЯС 81–92 (X4, задача 154dfceb, путь референса «Термоклетка»):
+   * выше банка сложность снова растёт ПРАВИЛОМ, но теперь — СЛОЖЕНИЕМ двух осей.
+   * Обе оси каждой пары игроку знакомы по одиночным уровням. Порядок пар — по
+   * замеру достижимой ступени (scripts/measure/combo-tiers.mjs), как джигсо/
+   * термоклетка: сложнее — выше.
+   */
+  // Порядок пар — ЗАМЕРЕН 29.08 (по 15 боевых досок, 0 фолбэков; combo-tiers.measure):
+  //   thermoknight верх: ступени 3×7 4×4 5×3 6×1 (медиана 4) — слабейший, идёт первым
+  //   sandparity верх:   4×7 5×7 6×1 (медиана 5)
+  //   killerdiag верх:   3×2 4×5 5×8 (медиана 5, самая плотная пятёрка) — вершина
+  else if (lv >= 81 && lv <= 84) variant = 'thermoknight';
+  else if (lv >= 85 && lv <= 88) variant = 'sandparity';
+  else if (lv >= 89) variant = 'killerdiag';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -654,11 +669,22 @@ export function isValid(grid: Cell[][], r: number, c: number, val: number, N: nu
     const br = Math.floor(r / BR) * BR, bc = Math.floor(c / BC) * BC;
     for (let i = 0; i < BR; i++) for (let j = 0; j < BC; j++) if (grid[br + i][bc + j] === val) return false;
   }
-  if (variant === 'diagonal') {
+  if (variant === 'diagonal' || variant === 'killerdiag') {
     if (r === c) { for (let i = 0; i < N; i++) if (grid[i][i] === val) return false; }                 // главная диагональ
     if (r + c === N - 1) { for (let i = 0; i < N; i++) if (grid[i][N - 1 - i] === val) return false; }  // побочная
   } else if (variant === 'antiknight') {
     for (const [dr, dc] of KNIGHT) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
+  } else if (variant === 'thermoknight') {
+    // Комбо (X4, задача 154dfceb): ход коня И термометр РАЗОМ — ветка самодостаточна,
+    // потому что else-if цепочка отдала бы ход одному правилу из двух (грабля thermocage).
+    for (const [dr, dc] of KNIGHT) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
+    if (thermo) {
+      const pn = thermo[r][c];
+      if (pn) {
+        if (pn.prev) { const pv = grid[pn.prev[0]][pn.prev[1]]; if (pv !== 0 && val <= pv) return false; }
+        if (pn.next) { const nv = grid[pn.next[0]][pn.next[1]]; if (nv !== 0 && val >= nv) return false; }
+      }
+    }
   } else if (variant === 'hyper') {
     const h = inHyper(r, c); if (h) { const [hr, hc] = h; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (grid[hr + i][hc + j] === val) return false; }
   } else if (variant === 'nonconsec') {
@@ -772,10 +798,19 @@ export interface Overlays {
 
 /** Полные оверлеи из решения — до прореживания. */
 export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant): Overlays {
-  if (variant === 'evenodd') {
+  if (variant === 'evenodd' || variant === 'sandparity') {
     const parity = Array.from({ length: N }, () => Array(N).fill(0));
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) parity[r][c] = sol[r][c] % 2 === 0 ? 1 : 2;
-    return { parity };
+    if (variant === 'evenodd') return { parity };
+    // Комбо (X4): чёт/нечет + сэндвич-суммы разом — обе оси оверлейные, isValid не нужен.
+    const between = (line: number[]) => {
+      const i1 = line.indexOf(1), i9 = line.indexOf(9);
+      if (i1 < 0 || i9 < 0) return 0;
+      const [a, b] = i1 < i9 ? [i1, i9] : [i9, i1];
+      let t = 0; for (let k = a + 1; k < b; k++) t += line[k];
+      return t;
+    };
+    return { parity, sandwich: { rows: sol.map((row) => between(row)), cols: Array.from({ length: N }, (_, c) => between(sol.map((row) => row[c]))) } };
   }
   if (variant === 'kropki') {
     const dot = (a: number, b: number) => (Math.max(a, b) === 2 * Math.min(a, b) ? 2 : Math.abs(a - b) === 1 ? 1 : 0);
@@ -909,7 +944,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -966,6 +1001,16 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
     solve(sol, N, BR, BC, 'none');
     thermo = thermoFromSolution(sol, N);
     cages = generateThermoCages(sol, N);
+  } else if (variant === 'thermoknight') {
+    // Комбо: решение уважает коня СРАЗУ (иначе термометр из решения, где конь
+    // нарушен, дал бы доску без решения), термометры — из этого решения.
+    solve(sol, N, BR, BC, 'antiknight');
+    thermo = thermoFromSolution(sol, N);
+  } else if (variant === 'killerdiag') {
+    // Комбо: решение уважает диагонали, клетки-суммы островами из него же
+    // (generateThermoCages — несмотря на имя, она про острова, а не про термометр).
+    solve(sol, N, BR, BC, 'diagonal');
+    cages = generateThermoCages(sol, N);
   } else if (variant === 'arrow') {
     solve(sol, N, BR, BC, 'none');
     arrow = arrowFromSolution(sol, N);
@@ -985,7 +1030,10 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
    */
   const ov = thin ? thin(overlaysFromSolution(sol, N, variant)) : overlaysFromSolution(sol, N, variant);
   const positions = shuffle(Array.from({ length: N * N }, (_, i) => i));
-  const effVariant = (variant === 'jigsaw' && !regions) || (variant === 'thermo' && !thermo) || (variant === 'arrow' && !arrow) || (variant === 'thermocage' && !cages) ? 'none' : variant;   // фолбэк генерации → чекаем как классику
+  const effVariant = (variant === 'jigsaw' && !regions) || (variant === 'thermo' && !thermo) || (variant === 'arrow' && !arrow) || (variant === 'thermocage' && !cages) ? 'none'
+    : (variant === 'thermoknight' && !thermo) ? 'antiknight'                      // комбо теряет ось → живёт оставшейся
+    : (variant === 'killerdiag' && !cages) ? 'diagonal'
+    : variant;   // фолбэк генерации → чекаем как классику
   if (UNIQUE_CHECKED.includes(effVariant)) {
     // v1.111.0 — dig-with-uniqueness: выкалываем клетку только если решение остаётся
     // ЕДИНСТВЕННЫМ (иначе честный игрок мог поставить цифру второго решения и получить
@@ -1000,7 +1048,7 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
       const r = Math.floor(p / N), c = p % N;
       const keep = puzzle[r][c];
       puzzle[r][c] = 0;
-      if (countSolutions(puzzle, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, effVariant === 'thermocage' ? cages : undefined, ov) !== 1) puzzle[r][c] = keep;
+      if (countSolutions(puzzle, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, (effVariant === 'thermocage' || effVariant === 'killerdiag') ? cages : undefined, ov) !== 1) puzzle[r][c] = keep;
       else dug++;
     }
   } else {

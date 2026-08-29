@@ -1560,7 +1560,7 @@ export default function SudokuGame() {
             подпись даёт ПОЯС уровня: ALS (58–65), цепи (66–79), легенда (80). */}
         {boardTier === null && mode === 'levels' && level >= 58 && (
           <Text style={[styles.statText, { color: colors.textSecondary }]}>
-            {t(level >= 80 ? 'sudokuBeltLegend' : level >= 66 ? 'sudokuBeltChains' : 'sudokuBeltAls')}
+            {t(level >= 81 ? 'sudokuBeltCombo' : level >= 80 ? 'sudokuBeltLegend' : level >= 66 ? 'sudokuBeltChains' : 'sudokuBeltAls')}
           </Text>
         )}
         <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('errors')} {formatErrorCount(failure, errors)}</Text>
@@ -1659,7 +1659,7 @@ export default function SudokuGame() {
             ))}
           </View>
         )}
-        {variant === 'sandwich' && sandwich && (
+        {(variant === 'sandwich' || variant === 'sandparity') && sandwich && (
           <View style={{ flexDirection: 'row', marginLeft: clueGutter, marginBottom: 2 }}>
             {sandwich.cols.map((s, c) => (
               // Число у края — не часть доски, а подсказка про неё, и по нему можно
@@ -1689,7 +1689,7 @@ export default function SudokuGame() {
               ))}
             </View>
           )}
-          {variant === 'sandwich' && sandwich && (
+          {(variant === 'sandwich' || variant === 'sandparity') && sandwich && (
             <View style={{ width: clueGutter }}>
               {sandwich.rows.map((s, r) => (
                 <TouchableOpacity
@@ -1716,8 +1716,8 @@ export default function SudokuGame() {
           // Есть ли под цифрой рисунок варианта: кружок, колба, заливка клетки.
           // Если да — цифру рисуем текстом, иначе картинка выцветает на тонировке.
           const hasDecorBehind = !!(
-            (variant === 'evenodd' && parityMarks && parityMarks[r][c] !== 0)
-            || ((variant === 'thermo' || variant === 'thermocage') && thermo && thermo[r][c])
+            ((variant === 'evenodd' || variant === 'sandparity') && parityMarks && parityMarks[r][c] !== 0)
+            || ((variant === 'thermo' || variant === 'thermocage' || variant === 'thermoknight') && thermo && thermo[r][c])
             || (variant === 'arrow' && arrow && arrow[r][c])
             || (variant === 'kropki' && kropki && (
                  (c < N - 1 && kropki.h[r][c] !== 0) || (c > 0 && kropki.h[r][c - 1] !== 0)
@@ -1760,7 +1760,7 @@ export default function SudokuGame() {
                 },
               ]}
             >
-              {(variant === 'thermo' || variant === 'thermocage') && thermo && thermo[r][c] && (() => {
+              {(variant === 'thermo' || variant === 'thermocage' || variant === 'thermoknight') && thermo && thermo[r][c] && (() => {
                 const pn = thermo[r][c]!;
                 const thick = Math.max(3, Math.round(cellSize * 0.16));
                 const col = blendHex(colors.surface, GRADIENT[0], 0.5);
@@ -1818,7 +1818,7 @@ export default function SudokuGame() {
                   #5b4fd1) она клала сверху светлое пятно от colors.surface — белая цифра на
                   нём исчезала. Правка v1.175 сменила начертание цифры, но базу заливки не
                   трогала, поэтому ничего и не изменилось. */}
-              {variant === 'evenodd' && parityMarks && parityMarks[r][c] !== 0 && (
+              {(variant === 'evenodd' || variant === 'sandparity') && parityMarks && parityMarks[r][c] !== 0 && (
                 <View style={{ position: 'absolute', width: cellSize * 0.6, height: cellSize * 0.6, borderRadius: parityMarks[r][c] === 2 ? cellSize * 0.3 : Math.max(3, Math.round(cellSize * 0.1)), backgroundColor: blendHex(bg, GRADIENT[1], 0.20), borderWidth: 1, borderColor: blendHex(bg, GRADIENT[1], 0.45) }} />
               )}
               {variant === 'kropki' && kropki && c < N - 1 && kropki.h[r][c] !== 0 && (
@@ -1877,7 +1877,7 @@ export default function SudokuGame() {
         }))}
         {/* Одна цельная линия через всю доску (не по клеткам — границы клеток резали её на
             сегменты). Серый пунктир, ненавязчивый — согласовано с Денисом 2026-07-01. */}
-        {variant === 'diagonal' && (
+        {(variant === 'diagonal' || variant === 'killerdiag') && (
           <Svg width={cellSize * N} height={cellSize * N} style={{ position: 'absolute', top: 0, left: 0 }} pointerEvents="none">
             <Line x1={0} y1={0} x2={cellSize * N} y2={cellSize * N}
               stroke={colors.textSecondary} strokeWidth={1.5} strokeDasharray="7,6" opacity={0.6} />

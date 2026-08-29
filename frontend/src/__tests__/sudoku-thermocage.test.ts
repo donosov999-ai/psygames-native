@@ -403,7 +403,7 @@ describe('ThermoCage: правило видно человеку и нарисо
   it('экран включает обе разметки для thermocage — цепочку и суммы', () => {
     const src = read('app/games/sudoku.tsx');
     // Цепочка: блок отрисовки термометра обязан срабатывать и на комбинированном варианте.
-    expect(src).toContain("{(variant === 'thermo' || variant === 'thermocage') && thermo && thermo[r][c]");
+    expect(src).toContain("{(variant === 'thermo' || variant === 'thermocage' || variant === 'thermoknight') && thermo && thermo[r][c]");
     // Суммы: общий признак вместо `mode === 'killer'`, иначе разметка была бы только у killer.
     expect(src).toContain("const showCages = !!cages && (mode === 'killer' || variant === 'thermocage');");
     // Подпись суммы рисуется по этому же признаку — и только у клеток внутри группы.
