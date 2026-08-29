@@ -61,21 +61,28 @@ export default function WarmupBridge() {
     if (next) router.replace({ pathname: next.game_route, params: stepToParams(next, meta?.slot) } as any);
   };
 
+  /**
+   * З5 (29.08.2026): прежний skip читал warmup из ЗАМКНУТОГО рендера через
+   * setTimeout(50) — состояние в нём отставало от skipCurrent(), и на границе
+   * последнего шага рождалась вторая навигация поверх той, что делает сам
+   * advanceToNext. Теперь мост только просит пропуск и помечает себя ожидающим;
+   * навигацию делает эффект ниже — по СВЕЖЕМУ currentStep из контекста.
+   */
+  const skipWaitRef = useRef(false);
   const skip = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
+    skipWaitRef.current = true;
     warmup.skipCurrent();
-    // next will navigate via context (advance increments idx; but we already advanced)
-    // We were just on the bridge for "current" — calling skip moves to next-next.
-    // Simpler: just navigate to whatever the new currentStep is after skip.
-    setTimeout(() => {
-      if (warmup.meta && warmup.currentIdx + 1 < warmup.meta.steps.length) {
-        const ns = warmup.meta.steps[warmup.currentIdx + 1];
-        router.replace({ pathname: ns.game_route, params: stepToParams(ns, meta?.slot) } as any);
-      } else {
-        router.replace('/warmup-complete' as any);
-      }
-    }, 50);
   };
+  useEffect(() => {
+    if (!skipWaitRef.current) return;
+    skipWaitRef.current = false;
+    navFiredRef.current = true;   // отсчёт больше не должен стрелять своей навигацией
+    if (warmup.currentStep) {
+      router.replace({ pathname: warmup.currentStep.game_route, params: stepToParams(warmup.currentStep, meta?.slot) } as any);
+    }
+    // Шагов не осталось — advanceToNext уже увёл на /warmup-complete сам.
+  }, [warmup.currentIdx]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const stop = async () => {
     if (intervalRef.current) clearInterval(intervalRef.current);

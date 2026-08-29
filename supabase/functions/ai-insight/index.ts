@@ -2,16 +2,50 @@
 // assessment (раз в 3 мес, 12-доменный профиль), daily_verdict (карточка «Мозг
 // сегодня» после зарядки), weekly_digest (недельный обзор на /statistics).
 //
-// Секрет ANTHROPIC_API_KEY задаётся ОТДЕЛЬНО (supabase secrets set) — Денис
-// заводит ключ сам на console.anthropic.com, я его никогда не вижу и не храню.
-// Без ключа функция отвечает 503 {error:'not_configured'} — клиент тихо
-// показывает свой rule-based fallback (brainTodayVerdict/buildRecommendations),
-// экран никогда не ломается из-за отсутствующего/невалидного ключа.
+// З7 (29.08.2026, решение Дениса): ключ — OPENROUTER, не Anthropic. Секрет
+// OPENROUTER_API_KEY задаётся supabase secrets set; это ДОЧЕРНИЙ runtime-ключ
+// «psygames-ai-insight» (лимит $5), срезанный с генерального через Provisioning
+// API — абьюз упирается в лимит ключа, а не в общий счёт. Без ключа функция
+// отвечает 503 {error:'not_configured'} — клиент тихо показывает rule-based
+// fallback (brainTodayVerdict/buildRecommendations), экран не ломается.
+//
+// Модель — дешёвая мультиязычная, с fallback-цепочкой OpenRouter (поле models):
+// упал первый провайдер — запрос уходит следующему, а не в ошибку.
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-const MODEL = "claude-haiku-4-5-20251001";
+const MODELS = ["google/gemini-2.5-flash-lite", "anthropic/claude-haiku-4.5"];
+
+/**
+ * Ключ: env → private.app_secrets. Env-путь оставлен на будущее (supabase
+ * secrets set), но у нас нет access-token для CLI, поэтому боевой путь — чтение
+ * из приватной таблицы сервис-ролью (SUPABASE_* переменные встроены в env
+ * каждой edge-функции автоматически). Схема private закрыта от anon/authenticated,
+ * ключ дочерний с лимитом $5 — радиус утечки ограничен по построению.
+ * Кэш на жизнь инстанса: секрет не дёргается из БД на каждый вердикт.
+ */
+let cachedKey: string | null | undefined;
+async function getOpenrouterKey(): Promise<string | null> {
+  if (cachedKey !== undefined) return cachedKey;
+  const env = Deno.env.get("OPENROUTER_API_KEY");
+  if (env) { cachedKey = env; return env; }
+  try {
+    const url = Deno.env.get("SUPABASE_URL");
+    const svc = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!url || !svc) { cachedKey = null; return null; }
+    // Схема private не проброшена в PostgREST (и не должна быть) — читаем через
+    // RPC-обёртку public.get_app_secret, у которой EXECUTE только у service_role.
+    const r = await fetch(`${url}/rest/v1/rpc/get_app_secret`, {
+      method: "POST",
+      headers: { apikey: svc, authorization: `Bearer ${svc}`, "content-type": "application/json" },
+      body: JSON.stringify({ p_name: "OPENROUTER_API_KEY" }),
+    });
+    if (!r.ok) { cachedKey = null; return null; }
+    const v = await r.json();
+    cachedKey = typeof v === "string" && v ? v : null;
+    return cachedKey;
+  } catch { cachedKey = null; return null; }
+}
 const MAX_PAYLOAD_BYTES = 6000;   // анти-абьюз: не даём раздувать промпт/счёт
 
 const CORS = {
@@ -61,7 +95,8 @@ function userPrompt(kind: string, payload: unknown): string {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
-  if (!ANTHROPIC_KEY) return json({ error: "not_configured" }, 503);
+  const OPENROUTER_KEY = await getOpenrouterKey();
+  if (!OPENROUTER_KEY) return json({ error: "not_configured" }, 503);
 
   const raw = await req.text();
   if (raw.length > MAX_PAYLOAD_BYTES) return json({ error: "payload_too_large" }, 413);
@@ -77,14 +112,23 @@ Deno.serve(async (req: Request) => {
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 20000);
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
+    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-      headers: { "content-type": "application/json", "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01" },
+      headers: {
+        "content-type": "application/json",
+        "authorization": `Bearer ${OPENROUTER_KEY}`,
+        // Атрибуция запросов в кабинете OpenRouter — по ним видно, чей расход.
+        "HTTP-Referer": "https://psygames.app",
+        "X-Title": "PsyGames ai-insight",
+      },
       body: JSON.stringify({
-        model: MODEL,
+        model: MODELS[0],
+        models: MODELS,
         max_tokens: 350,
-        system: systemPrompt(lang, tone),
-        messages: [{ role: "user", content: userPrompt(kind, body.payload) }],
+        messages: [
+          { role: "system", content: systemPrompt(lang, tone) },
+          { role: "user", content: userPrompt(kind, body.payload) },
+        ],
       }),
       signal: ctrl.signal,
     });
@@ -94,7 +138,7 @@ Deno.serve(async (req: Request) => {
       return json({ error: "upstream_error", detail: errText.slice(0, 300) }, 502);
     }
     const data = await r.json();
-    const message = data?.content?.[0]?.text;
+    const message = data?.choices?.[0]?.message?.content;
     if (typeof message !== "string" || !message.trim()) return json({ error: "empty_response" }, 502);
     return json({ message: message.trim() });
   } catch (e) {

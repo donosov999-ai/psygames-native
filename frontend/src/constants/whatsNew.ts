@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.7.0',
+    date: '2026-08-29',
+    ru: [
+      'Зарядка прокачана: выбор длины 5/10/15 минут вернулся (и запоминается), недельная сетка тренировок снова работает — ядро-снимок теперь по ПН/ЧТ/ВС, в остальные утра тренировка дня',
+      'На карточке набора виден полный состав игр до старта, «Мозг сегодня» честно сравнивает снимок со снимком, а застрявшую игру можно пропустить кнопкой в шапке',
+      'ИИ-разбор «Мозг сегодня» ожил — после зарядки текст теперь пишет ИИ по твоим цифрам',
+    ],
+    en: [
+      'Warm-up powered up: the 5/10/15-minute choice is back (and remembered), the weekly training grid works again — the snapshot core now runs Mon/Thu/Sun, other mornings are the day’s training',
+      'The set card shows the full game list before you start, “Brain today” honestly compares snapshot to snapshot, and a stuck game can be skipped from the header',
+      'The AI “Brain today” write-up is live — after a warm-up the text is now written by AI from your numbers',
+    ],
+  },
+  {
     version: '2.6.0',
     date: '2026-08-29',
     ru: [
