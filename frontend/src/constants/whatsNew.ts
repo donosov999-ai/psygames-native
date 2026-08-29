@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.10.0',
+    date: '2026-08-29',
+    ru: [
+      'На экране практики «Глаза и дыхание» — крупный таймер до конца урока прямо у заголовка; в режиме погружения он не исчезает, а лишь приглушается. И блоки планировщика выровнены по верху',
+    ],
+    en: [
+      'The practice screen of “Eyes & breathing” got a large end-of-lesson timer right by the title; in immersive mode it dims instead of vanishing. Planner blocks are top-aligned',
+    ],
+  },
+  {
     version: '2.9.0',
     date: '2026-08-29',
     ru: [

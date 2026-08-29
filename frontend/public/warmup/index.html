@@ -408,12 +408,15 @@
             <p class="eyebrow" data-i18n="morningRecharge">Утренняя зарядка</p>
             <h2 id="practice-title">—</h2>
           </div>
+          <!-- Просьба Дениса 29.08 (скрин): «сколько осталось до конца урока» —
+               крупно и сверху. Часы жили мелкой правой строкой ПОД баром (13px,
+               text-muted) и во встройке на светлой теме были невидимы. -->
+          <div class="practice-clock" id="practice-clock" role="timer" aria-label="До конца">0:00</div>
           <button class="icon-button" id="practice-exit" type="button" aria-label="Закрыть">×</button>
         </header>
         <div class="practice-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <span id="practice-progress-bar"></span>
         </div>
-        <div class="practice-clock" id="practice-clock">0:00</div>
         <div class="practice-cues" id="practice-cues" aria-live="polite"></div>
         <p class="practice-safety" data-i18n="generalStop">Остановитесь при боли, головокружении, онемении или выраженном дискомфорте.</p>
         <footer class="practice-actions">
