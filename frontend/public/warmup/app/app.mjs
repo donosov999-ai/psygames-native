@@ -33,6 +33,9 @@ import {
   text as catalogText,
   tickPracticeSession,
   validatePlanRequest,
+  skipToNextStepBoundary,
+  extendCurrentStep,
+  segmentPosition,
 } from '../shared/pause-practices/core/engine.js';
 import {
   VERSION_MANIFEST,
@@ -76,6 +79,7 @@ const copy = {
     modeHintParallel: 'Две практики одновременно: дыхание держит ритм, глаза работают.',
     modeHintRoute: 'Готовый маршрут: наборы идут друг за другом одной сессией.',
     summaryMin: 'мин',
+    skipStepBtn: 'Пропустить', extend30: '+30 сек',
     parallel: 'Параллельно', route: 'Маршрут', duration: 'Длительность', context: 'Контекст', guide: 'Подсказка',
     home: 'Дома', desk: 'За столом', discreet: 'Незаметно', both: 'Экран + звук', visual: 'Только экран', audio: 'Только звук',
     masteryTitle: 'Освоено отдельно', masteryCopy: 'Подтверждаю минимум три самостоятельных завершения выбранных наборов',
@@ -154,6 +158,7 @@ const copy = {
     modeHintParallel: 'Two practices at once: breathing keeps the rhythm while the eyes work.',
     modeHintRoute: 'A ready route: sets follow one another in a single session.',
     summaryMin: 'min',
+    skipStepBtn: 'Skip step', extend30: '+30 sec',
     both: 'Screen + sound', visual: 'Screen only', audio: 'Sound only', masteryTitle: 'Mastered solo',
     masteryCopy: 'I confirm at least three solo completions for each selected set', experimentalTitle: 'Experimental sets',
     experimentalCopy: 'Enable local candidates without product claims', searchCatalog: 'Search catalog', fullCatalog: 'Full catalog',
@@ -205,6 +210,16 @@ const copy = {
     localSession: 'Current local session', settingsOpened: 'System settings were not opened on this platform', affectedSets: 'Affected sets',
     appVersion: 'App version {version}', blockVersion: 'Block version {version}',
   },
+  de: {"planner": "Planer", "sessionFormat": "Sitzungsformat", "mode": "Modus", "solo": "Einzeln", "parallel": "Parallel", "route": "Route", "duration": "Dauer", "context": "Kontext", "guide": "Hinweise", "home": "Zu Hause", "desk": "Am Tisch", "discreet": "Unauffällig", "both": "Bildschirm + Ton", "visual": "Nur Bildschirm", "audio": "Nur Ton", "masteryTitle": "Einzeln gemeistert", "masteryCopy": "Ich bestätige mindestens drei eigenständige Abschlüsse der gewählten Sets", "experimentalTitle": "Experimentelle Sets", "experimentalCopy": "Lokale Kandidaten ohne Produktversprechen einschalten", "searchCatalog": "Katalog durchsuchen", "fullCatalog": "Voller Katalog", "choosePractices": "Praktiken wählen", "program": "Programm", "startRecharge": "Aufladung starten", "completionPrivacy": "Gespeichert werden nur Abschluss und Zeit — ohne medizinische Bewertung.", "pause": "Pause", "resume": "Weiter", "finishWithoutRecord": "Ohne Eintrag beenden", "skipStepBtn": "Überspringen", "extend30": "+30 Sek", "dur1": "1 Min", "dur2": "2 Min", "dur5": "5 Min", "dur8": "8 Min", "modeHintSolo": "Eine Praxis auf einmal — tiefer, ohne Eile.", "modeHintParallel": "Zwei Praktiken zugleich: der Atem hält den Rhythmus, die Augen arbeiten.", "modeHintRoute": "Fertige Route: Sets folgen einander in einer Sitzung.", "summaryMin": "Min", "morningRecharge": "Morgenaufladung", "generalStop": "Bei Schmerz, Schwindel, Taubheit oder starkem Unbehagen aufhören.", "startBlocked": "Hinweise der Engine beheben", "showRequired": "Zeigen, was fehlt", "engineCheck": "Engine-Prüfung", "planReady": "Plan wird vorbereitet", "selectionsOne": "Ausgewählt: 1", "selectionsMany": "Ausgewählt: {count}", "catalogItems": "{count} Sets"},
+  es: {"planner": "Planificador", "sessionFormat": "Formato de sesión", "mode": "Modo", "solo": "Individual", "parallel": "En paralelo", "route": "Ruta", "duration": "Duración", "context": "Contexto", "guide": "Guía", "home": "En casa", "desk": "En el escritorio", "discreet": "Discreto", "both": "Pantalla + sonido", "visual": "Solo pantalla", "audio": "Solo sonido", "masteryTitle": "Dominado a solas", "masteryCopy": "Confirmo al menos tres finalizaciones individuales de los sets elegidos", "experimentalTitle": "Sets experimentales", "experimentalCopy": "Activar candidatos locales sin promesas de producto", "searchCatalog": "Buscar en el catálogo", "fullCatalog": "Catálogo completo", "choosePractices": "Elige las prácticas", "program": "Programa", "startRecharge": "Iniciar recarga", "completionPrivacy": "Solo se guardan la finalización y el tiempo — sin evaluación médica.", "pause": "Pausa", "resume": "Continuar", "finishWithoutRecord": "Salir sin registrar", "skipStepBtn": "Saltar", "extend30": "+30 s", "dur1": "1 min", "dur2": "2 min", "dur5": "5 min", "dur8": "8 min", "modeHintSolo": "Una práctica a la vez: más profunda y sin prisa.", "modeHintParallel": "Dos prácticas a la vez: la respiración marca el ritmo, los ojos trabajan.", "modeHintRoute": "Ruta lista: los sets se suceden en una sola sesión.", "summaryMin": "min", "morningRecharge": "Recarga matutina", "generalStop": "Detente ante dolor, mareo, entumecimiento o malestar marcado.", "startBlocked": "Resuelve los avisos del motor", "showRequired": "Mostrar lo requerido", "engineCheck": "Comprobación del motor", "planReady": "Preparando el plan", "selectionsOne": "Elegido: 1", "selectionsMany": "Elegidos: {count}", "catalogItems": "{count} sets"},
+  fr: {"planner": "Planificateur", "sessionFormat": "Format de séance", "mode": "Mode", "solo": "Séparément", "parallel": "En parallèle", "route": "Parcours", "duration": "Durée", "context": "Contexte", "guide": "Guidage", "home": "À la maison", "desk": "Au bureau", "discreet": "Discret", "both": "Écran + son", "visual": "Écran seul", "audio": "Son seul", "masteryTitle": "Maîtrisé seul", "masteryCopy": "Je confirme au moins trois séances complètes en solo des sets choisis", "experimentalTitle": "Sets expérimentaux", "experimentalCopy": "Activer les candidats locaux sans promesses produit", "searchCatalog": "Rechercher le catalogue", "fullCatalog": "Catalogue complet", "choosePractices": "Choisissez les pratiques", "program": "Programme", "startRecharge": "Lancer la recharge", "completionPrivacy": "Seuls l’achèvement et la durée sont enregistrés — sans évaluation médicale.", "pause": "Pause", "resume": "Reprendre", "finishWithoutRecord": "Quitter sans enregistrer", "skipStepBtn": "Passer", "extend30": "+30 s", "dur1": "1 min", "dur2": "2 min", "dur5": "5 min", "dur8": "8 min", "modeHintSolo": "Une pratique à la fois — plus profond, sans hâte.", "modeHintParallel": "Deux pratiques à la fois : la respiration tient le rythme, les yeux travaillent.", "modeHintRoute": "Parcours prêt : les sets se suivent en une séance.", "summaryMin": "min", "morningRecharge": "Recharge du matin", "generalStop": "Arrêtez en cas de douleur, vertige, engourdissement ou gêne marquée.", "startBlocked": "Corrigez les alertes du moteur", "showRequired": "Montrer le requis", "engineCheck": "Contrôle du moteur", "planReady": "Préparation du plan", "selectionsOne": "Choisi : 1", "selectionsMany": "Choisis : {count}", "catalogItems": "{count} sets"},
+  it: {"planner": "Pianificatore", "sessionFormat": "Formato della sessione", "mode": "Modalità", "solo": "Da solo", "parallel": "In parallelo", "route": "Percorso", "duration": "Durata", "context": "Contesto", "guide": "Guida", "home": "A casa", "desk": "Alla scrivania", "discreet": "Discreto", "both": "Schermo + suono", "visual": "Solo schermo", "audio": "Solo suono", "masteryTitle": "Padroneggiato da solo", "masteryCopy": "Confermo almeno tre completamenti in autonomia dei set scelti", "experimentalTitle": "Set sperimentali", "experimentalCopy": "Attiva i candidati locali senza promesse di prodotto", "searchCatalog": "Cerca nel catalogo", "fullCatalog": "Catalogo completo", "choosePractices": "Scegli le pratiche", "program": "Programma", "startRecharge": "Avvia la ricarica", "completionPrivacy": "Si salvano solo completamento e tempo — senza valutazione medica.", "pause": "Pausa", "resume": "Riprendi", "finishWithoutRecord": "Esci senza registrare", "skipStepBtn": "Salta", "extend30": "+30 s", "dur1": "1 min", "dur2": "2 min", "dur5": "5 min", "dur8": "8 min", "modeHintSolo": "Una pratica alla volta — più profonda, senza fretta.", "modeHintParallel": "Due pratiche insieme: il respiro tiene il ritmo, gli occhi lavorano.", "modeHintRoute": "Percorso pronto: i set si susseguono in una sessione.", "summaryMin": "min", "morningRecharge": "Ricarica mattutina", "generalStop": "Fermati in caso di dolore, vertigini, intorpidimento o forte disagio.", "startBlocked": "Risolvi gli avvisi del motore", "showRequired": "Mostra il necessario", "engineCheck": "Verifica del motore", "planReady": "Preparazione del piano", "selectionsOne": "Scelto: 1", "selectionsMany": "Scelti: {count}", "catalogItems": "{count} set"},
+  pt: {"planner": "Planejador", "sessionFormat": "Formato da sessão", "mode": "Modo", "solo": "Separado", "parallel": "Em paralelo", "route": "Rota", "duration": "Duração", "context": "Contexto", "guide": "Orientação", "home": "Em casa", "desk": "Na mesa", "discreet": "Discreto", "both": "Tela + som", "visual": "Só tela", "audio": "Só som", "masteryTitle": "Dominado sozinho", "masteryCopy": "Confirmo pelo menos três conclusões individuais dos sets escolhidos", "experimentalTitle": "Sets experimentais", "experimentalCopy": "Ativar candidatos locais sem promessas de produto", "searchCatalog": "Buscar no catálogo", "fullCatalog": "Catálogo completo", "choosePractices": "Escolha as práticas", "program": "Programa", "startRecharge": "Iniciar recarga", "completionPrivacy": "Só a conclusão e o tempo são gravados — sem avaliação médica.", "pause": "Pausa", "resume": "Continuar", "finishWithoutRecord": "Sair sem registrar", "skipStepBtn": "Pular", "extend30": "+30 s", "dur1": "1 min", "dur2": "2 min", "dur5": "5 min", "dur8": "8 min", "modeHintSolo": "Uma prática por vez — mais profunda, sem pressa.", "modeHintParallel": "Duas práticas ao mesmo tempo: a respiração dá o ritmo, os olhos trabalham.", "modeHintRoute": "Rota pronta: os sets se seguem em uma sessão.", "summaryMin": "min", "morningRecharge": "Recarga matinal", "generalStop": "Pare em caso de dor, tontura, dormência ou desconforto acentuado.", "startBlocked": "Resolva os avisos do motor", "showRequired": "Mostrar o necessário", "engineCheck": "Verificação do motor", "planReady": "Preparando o plano", "selectionsOne": "Escolhido: 1", "selectionsMany": "Escolhidos: {count}", "catalogItems": "{count} sets"},
+  ar: {"planner": "المخطِّط", "sessionFormat": "صيغة الجلسة", "mode": "الوضع", "solo": "منفردًا", "parallel": "بالتوازي", "route": "مسار", "duration": "المدة", "context": "السياق", "guide": "الإرشاد", "home": "في المنزل", "desk": "على المكتب", "discreet": "بتكتم", "both": "شاشة + صوت", "visual": "شاشة فقط", "audio": "صوت فقط", "masteryTitle": "أتقنته منفردًا", "masteryCopy": "أؤكد إتمام ثلاث جلسات مستقلة على الأقل للمجموعات المختارة", "experimentalTitle": "مجموعات تجريبية", "experimentalCopy": "تفعيل مرشحين محليين دون وعود المنتج", "searchCatalog": "ابحث في الكتالوج", "fullCatalog": "الكتالوج الكامل", "choosePractices": "اختر التمارين", "program": "البرنامج", "startRecharge": "ابدأ الشحن", "completionPrivacy": "يُحفظ الإتمام والوقت فقط — دون تقييم طبي.", "pause": "إيقاف مؤقت", "resume": "متابعة", "finishWithoutRecord": "خروج دون تسجيل", "skipStepBtn": "تخطٍّ", "extend30": "+30 ث", "dur1": "دقيقة", "dur2": "دقيقتان", "dur5": "5 دقائق", "dur8": "8 دقائق", "modeHintSolo": "تمرين واحد في كل مرة — أعمق وبلا استعجال.", "modeHintParallel": "تمرينان معًا: التنفس يضبط الإيقاع والعينان تعملان.", "modeHintRoute": "مسار جاهز: تتوالى المجموعات في جلسة واحدة.", "summaryMin": "د", "morningRecharge": "شحن الصباح", "generalStop": "توقّف عند الألم أو الدوار أو التنميل أو الانزعاج الشديد.", "startBlocked": "عالج ملاحظات المحرك", "showRequired": "أظهر المطلوب", "engineCheck": "فحص المحرك", "planReady": "يجري إعداد الخطة", "selectionsOne": "المختار: 1", "selectionsMany": "المختار: {count}", "catalogItems": "{count} مجموعات"},
+  hi: {"planner": "योजनाकार", "sessionFormat": "सत्र प्रारूप", "mode": "मोड", "solo": "अलग-अलग", "parallel": "समानांतर", "route": "मार्ग", "duration": "अवधि", "context": "संदर्भ", "guide": "संकेत", "home": "घर पर", "desk": "मेज़ पर", "discreet": "अनदेखे", "both": "स्क्रीन + ध्वनि", "visual": "केवल स्क्रीन", "audio": "केवल ध्वनि", "masteryTitle": "अकेले सिद्ध", "masteryCopy": "चुने सेटों के कम से कम तीन स्वतंत्र समापन की पुष्टि करता/करती हूँ", "experimentalTitle": "प्रायोगिक सेट", "experimentalCopy": "उत्पाद-वादों के बिना स्थानीय उम्मीदवार चालू करें", "searchCatalog": "कैटलॉग में खोजें", "fullCatalog": "पूरा कैटलॉग", "choosePractices": "अभ्यास चुनें", "program": "कार्यक्रम", "startRecharge": "रिचार्ज शुरू करें", "completionPrivacy": "केवल समापन और समय सहेजे जाते हैं — बिना चिकित्सीय आकलन।", "pause": "विराम", "resume": "जारी रखें", "finishWithoutRecord": "बिना रिकॉर्ड निकलें", "skipStepBtn": "छोड़ें", "extend30": "+30 से", "dur1": "1 मि", "dur2": "2 मि", "dur5": "5 मि", "dur8": "8 मि", "modeHintSolo": "एक समय में एक अभ्यास — गहरा, बिना जल्दी।", "modeHintParallel": "दो अभ्यास साथ: साँस लय रखती है, आँखें काम करती हैं।", "modeHintRoute": "तैयार मार्ग: सेट एक सत्र में एक के बाद एक चलते हैं।", "summaryMin": "मि", "morningRecharge": "सुबह का रिचार्ज", "generalStop": "दर्द, चक्कर, सुन्नता या तीव्र असुविधा पर रुकें।", "startBlocked": "इंजन की चेतावनियाँ सुलझाएँ", "showRequired": "आवश्यक दिखाएँ", "engineCheck": "इंजन जाँच", "planReady": "योजना तैयार हो रही है", "selectionsOne": "चुना: 1", "selectionsMany": "चुने: {count}", "catalogItems": "{count} सेट"},
+  ja: {"planner": "プランナー", "sessionFormat": "セッション形式", "mode": "モード", "solo": "単独", "parallel": "並行", "route": "ルート", "duration": "時間", "context": "状況", "guide": "ガイド", "home": "自宅で", "desk": "デスクで", "discreet": "目立たずに", "both": "画面 + 音", "visual": "画面のみ", "audio": "音のみ", "masteryTitle": "単独で習得済み", "masteryCopy": "選んだセットをそれぞれ3回以上単独で完了したことを確認します", "experimentalTitle": "実験的セット", "experimentalCopy": "製品保証なしのローカル候補を有効化", "searchCatalog": "カタログを検索", "fullCatalog": "全カタログ", "choosePractices": "プラクティスを選ぶ", "program": "プログラム", "startRecharge": "リチャージ開始", "completionPrivacy": "保存されるのは完了と時間のみ — 医療評価はありません。", "pause": "一時停止", "resume": "再開", "finishWithoutRecord": "記録せず終了", "skipStepBtn": "スキップ", "extend30": "+30秒", "dur1": "1分", "dur2": "2分", "dur5": "5分", "dur8": "8分", "modeHintSolo": "一度に一つの練習 — 深く、急がずに。", "modeHintParallel": "二つ同時に：呼吸がリズムを保ち、目が働きます。", "modeHintRoute": "既成ルート：セットが1セッションで順に続きます。", "summaryMin": "分", "morningRecharge": "朝のリチャージ", "generalStop": "痛み・めまい・しびれ・強い不快感があれば中止してください。", "startBlocked": "エンジンの指摘を解決", "showRequired": "必要事項を表示", "engineCheck": "エンジン確認", "planReady": "プラン準備中", "selectionsOne": "選択: 1", "selectionsMany": "選択: {count}", "catalogItems": "{count} セット"},
+  ko: {"planner": "플래너", "sessionFormat": "세션 형식", "mode": "모드", "solo": "단독", "parallel": "병행", "route": "루트", "duration": "길이", "context": "상황", "guide": "안내", "home": "집에서", "desk": "책상에서", "discreet": "티 나지 않게", "both": "화면 + 소리", "visual": "화면만", "audio": "소리만", "masteryTitle": "단독 숙달", "masteryCopy": "선택한 세트를 각각 3회 이상 단독 완료했음을 확인합니다", "experimentalTitle": "실험 세트", "experimentalCopy": "제품 보증 없는 로컬 후보 켜기", "searchCatalog": "카탈로그 검색", "fullCatalog": "전체 카탈로그", "choosePractices": "프랙티스 선택", "program": "프로그램", "startRecharge": "리차지 시작", "completionPrivacy": "완료와 시간만 저장됩니다 — 의료 평가는 없습니다.", "pause": "일시정지", "resume": "계속", "finishWithoutRecord": "기록 없이 나가기", "skipStepBtn": "건너뛰기", "extend30": "+30초", "dur1": "1분", "dur2": "2분", "dur5": "5분", "dur8": "8분", "modeHintSolo": "한 번에 하나의 연습 — 더 깊게, 서두르지 않고.", "modeHintParallel": "두 연습을 동시에: 호흡이 리듬을 잡고 눈이 일합니다.", "modeHintRoute": "준비된 루트: 세트가 한 세션에서 이어집니다.", "summaryMin": "분", "morningRecharge": "아침 리차지", "generalStop": "통증·어지러움·저림·심한 불편 시 중단하세요.", "startBlocked": "엔진 지적을 해결하세요", "showRequired": "필요한 것 보기", "engineCheck": "엔진 점검", "planReady": "플랜 준비 중", "selectionsOne": "선택: 1", "selectionsMany": "선택: {count}", "catalogItems": "{count}개 세트"},
+  zh: {"planner": "规划器", "sessionFormat": "会话形式", "mode": "模式", "solo": "单独", "parallel": "并行", "route": "路线", "duration": "时长", "context": "情境", "guide": "提示", "home": "在家", "desk": "在桌前", "discreet": "不引人注意", "both": "屏幕 + 声音", "visual": "仅屏幕", "audio": "仅声音", "masteryTitle": "已单独掌握", "masteryCopy": "我确认所选套组各已单独完成至少三次", "experimentalTitle": "实验套组", "experimentalCopy": "启用无产品承诺的本地候选", "searchCatalog": "搜索目录", "fullCatalog": "完整目录", "choosePractices": "选择练习", "program": "程序", "startRecharge": "开始充能", "completionPrivacy": "仅保存完成与时长——不含医疗评估。", "pause": "暂停", "resume": "继续", "finishWithoutRecord": "退出不记录", "skipStepBtn": "跳过", "extend30": "+30秒", "dur1": "1分钟", "dur2": "2分钟", "dur5": "5分钟", "dur8": "8分钟", "modeHintSolo": "一次一个练习——更深入、不匆忙。", "modeHintParallel": "两个练习同时进行：呼吸把握节奏，眼睛在工作。", "modeHintRoute": "现成路线：套组在一次会话中依次进行。", "summaryMin": "分", "morningRecharge": "晨间充能", "generalStop": "如有疼痛、眩晕、麻木或明显不适请停止。", "startBlocked": "请先解决引擎提示", "showRequired": "显示所需事项", "engineCheck": "引擎检查", "planReady": "正在准备计划", "selectionsOne": "已选：1", "selectionsMany": "已选：{count}", "catalogItems": "{count} 个套组"}
 };
 
 const state = {
@@ -227,6 +242,12 @@ const state = {
   practiceTimer: null,
   practiceVisual: { eyeKey: null, eyePosition: null },
   nativeUnsubscribe: null,
+  // Р4 (29.08.2026): вечерний calm приходит от хоста (?calm=1). Аудио-плеера в
+  // странице сегодня НЕТ (ToneGuide описывает план, воспроизведения нет) — флаг
+  // проложен, чтобы будущий звуковой слой родился уже с уважением к вечеру.
+  hostMuted: new URLSearchParams(location.search).get('calm') === '1',
+  // Р2: язык от хоста — начальная локаль страницы (фолбэк словарей — в t()).
+  // Переключатель RU/EN остаётся ручной парой; ?lang задаёт старт.
   recharge: {
     mode: 'charge',
     durationMs: 120_000,
@@ -244,6 +265,12 @@ const state = {
 
 function enforceBaselineBreathing() {
   if (state.recharge.mode !== 'solo') state.recharge.selected.set('breathing', 'box');
+}
+
+{
+  const wanted = new URLSearchParams(location.search).get('lang');
+  const KNOWN = ['ru', 'en', 'de', 'es', 'fr', 'it', 'pt', 'ar', 'hi', 'ja', 'ko', 'zh'];
+  if (wanted && KNOWN.includes(wanted)) state.locale = wanted;
 }
 
 const rawBridge = createNativeAlarmBridge();
@@ -268,7 +295,10 @@ const bridge = new Proxy(rawBridge, {
 });
 
 function t(key, replacements = {}) {
-  let value = copy[state.locale]?.[key];
+  // Р2: локаль страницы — любой из 12 кодов psygames; словарь-надстройка может
+  // нести ЧАСТЬ ключей, остальное честно говорит по-английски (en), затем
+  // системным translate, и только затем ключом.
+  let value = copy[state.locale]?.[key] ?? copy.en?.[key];
   if (value === undefined) {
     try { value = translate(state.locale, key); } catch { value = key; }
   }
@@ -2010,7 +2040,9 @@ function renderPractice() {
   $('#practice-title').textContent = session.plan.mode === 'solo'
     ? t('soloPractice')
     : t('parallelPractice', { count: session.plan.selections.length });
-  $('#practice-clock').textContent = formatDuration(session.plan.durationMs - frame.elapsedMs);
+  // Р5: «2/6 · 1:36» — какой это кусок урока и сколько до конца всего.
+  const seg = segmentPosition(session.plan, frame.elapsedMs);
+  $('#practice-clock').textContent = `${seg.index}/${seg.total} · ${formatDuration(session.plan.durationMs - frame.elapsedMs)}`;
   $('#practice-progress-bar').style.width = `${Math.round(frame.progress * 100)}%`;
   $('.practice-progress').setAttribute('aria-valuenow', String(Math.round(frame.progress * 100)));
   const practiceCues = $('#practice-cues');
@@ -2026,6 +2058,25 @@ function renderPractice() {
     if (practiceCues.isConnected && !$('#practice-layer').hidden) positionBreathingComposition(practiceCues);
   });
   $('#practice-pause').textContent = session.phase === 'paused' ? t('resume') : t('pause');
+  const skipBtn = document.getElementById('practice-skip');
+  if (skipBtn) skipBtn.disabled = session.phase === 'completed';
+}
+
+/** Р3: пропустить текущий шаг — перескок к ближайшей границе таймлайна. */
+function skipPracticeStep() {
+  if (!state.practice) return;
+  const now = Math.max(0, Math.round(performance.now()));
+  state.practice = skipToNextStepBoundary(state.practice, now);
+  if (state.practice.phase === 'completed') { finishPractice(); return; }
+  renderPractice();
+}
+
+/** Р3: «+30 сек» — продлить идущие шаги сдвигом хвоста. */
+function extendPracticeStep() {
+  if (!state.practice) return;
+  const now = Math.max(0, Math.round(performance.now()));
+  state.practice = extendCurrentStep(state.practice, now, 30_000);
+  renderPractice();
 }
 
 function togglePracticePause() {
@@ -2198,6 +2249,8 @@ function bindEvents() {
   });
   $('#start-practice').addEventListener('click', startPractice);
   $('#practice-pause').addEventListener('click', togglePracticePause);
+  $('#practice-skip')?.addEventListener('click', skipPracticeStep);
+  $('#practice-extend')?.addEventListener('click', extendPracticeStep);
   $('#practice-stop').addEventListener('click', exitPractice);
   $('#practice-exit').addEventListener('click', exitPractice);
 }
@@ -2332,5 +2385,24 @@ window.addEventListener('unhandledrejection', (event) => {
 window.addEventListener('error', (event) => {
   показатьОтказЗапуска(event.error ?? event.message);
 });
+
+/**
+ * Р1 (29.08.2026): капсула CTA не должна лежать на карточках, которые человек
+ * читает. При прокрутке ВНИЗ (читает каталог) капсула ныряет за край; вверх
+ * или остановка на 700 мс — возвращается. Порог 12px гасит дрожь тачпада.
+ */
+(() => {
+  let lastY = window.scrollY;
+  let idleTimer = null;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    const dy = y - lastY;
+    lastY = y;
+    if (Math.abs(dy) < 12) return;
+    document.body.classList.toggle('cta-drop', dy > 0);
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => document.body.classList.remove('cta-drop'), 700);
+  }, { passive: true });
+})();
 
 void boot();

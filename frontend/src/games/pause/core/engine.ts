@@ -1,5 +1,11 @@
 /* psygames-pause-engine · VER 1 · 26.08.2026 */
-export type PauseLocale = 'ru' | 'en';
+/**
+ * Р2 (29.08.2026): двенадцать языков psygames. Полный перевод обязателен только
+ * для ru/en (исторический контракт LocalizedText); остальные — надстройка с
+ * фолбэком на en в text(). Так 156 шагов переводятся ПОЭТАПНО, а не «всё или
+ * ничего»: непереведённое честно говорит по-английски, не ключом и не пустотой.
+ */
+export type PauseLocale = 'ru' | 'en' | 'de' | 'es' | 'fr' | 'it' | 'pt' | 'ar' | 'hi' | 'ja' | 'ko' | 'zh';
 
 export type PracticeSetId =
   | 'breathing'
@@ -39,6 +45,16 @@ export type WarningId =
 export interface LocalizedText {
   readonly ru: string;
   readonly en: string;
+  readonly de?: string;
+  readonly es?: string;
+  readonly fr?: string;
+  readonly it?: string;
+  readonly pt?: string;
+  readonly ar?: string;
+  readonly hi?: string;
+  readonly ja?: string;
+  readonly ko?: string;
+  readonly zh?: string;
 }
 
 export interface PracticeStep {
@@ -364,11 +380,11 @@ const tonguePosture = p('tongue-posture', 'Положение языка у нё
 
 export const PRACTICE_CATALOG: readonly PracticeSet[] = [
   {
-    id: 'breathing', title: l('Дыхание', 'Breathing'), summary: l('Управляемые варианты и спокойное наблюдение дыхания.', 'Guided variations and calm breath awareness.'),
+    id: 'breathing', title: { ...l('Дыхание', 'Breathing'), de: 'Atmung', es: 'Respiración', fr: 'Respiration', it: 'Respirazione', pt: 'Respiração', ar: 'التنفس', hi: 'श्वास', ja: '呼吸', ko: '호흡', zh: '呼吸' }, summary: l('Управляемые варианты и спокойное наблюдение дыхания.', 'Guided variations and calm breath awareness.'),
     status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'breath', programs: breathingPrograms, defaultProgramId: 'coherent',
   },
   {
-    id: 'eye-gym', title: l('Гимнастика для глаз', 'Eye gym'), summary: l('Движения, фокусировка и отдых без боли.', 'Movement, focus and rest without pain.'),
+    id: 'eye-gym', title: { ...l('Гимнастика для глаз', 'Eye gym'), de: 'Augengymnastik', es: 'Gimnasia ocular', fr: 'Gymnastique des yeux', it: 'Ginnastica oculare', pt: 'Ginástica ocular', ar: 'تمارين العين', hi: 'नेत्र व्यायाम', ja: '眼のトレーニング', ko: '눈 체조', zh: '眼保健操' }, summary: l('Движения, фокусировка и отдых без боли.', 'Movement, focus and rest without pain.'),
     status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'eyes', warningIds: ['general-stop'],
     programs: [
       eyeFull,
@@ -380,12 +396,12 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
     ], defaultProgramId: 'desk',
   },
   {
-    id: 'face-speech', title: l('Лицо, голос и артикуляция', 'Face, voice and articulation'), summary: l('Одна вариация за раз: лицо, голос, артикуляция или положение языка.', 'Choose one variation at a time: face, voice, articulation, or tongue posture.'),
+    id: 'face-speech', title: { ...l('Лицо, голос и артикуляция', 'Face, voice and articulation'), de: 'Gesicht, Stimme, Artikulation', es: 'Cara, voz y articulación', fr: 'Visage, voix et articulation', it: 'Viso, voce e articolazione', pt: 'Rosto, voz e articulação', ar: 'الوجه والصوت والنطق', hi: 'चेहरा, आवाज़ और उच्चारण', ja: '顔・声・発音', ko: '얼굴·목소리·발음', zh: '面部、嗓音与发音' }, summary: l('Одна вариация за раз: лицо, голос, артикуляция или положение языка.', 'Choose one variation at a time: face, voice, articulation, or tongue posture.'),
     status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'face', warningIds: ['general-stop'],
     programs: [faceFull, voiceWarmup, articulationGym, tonguePosture], defaultProgramId: 'full',
   },
   {
-    id: 'relaxation', title: l('Расслабление', 'Relaxation'), summary: l('Одна вариация за раз: мышечная релаксация, сканирование тела или аутогенная пауза.', 'Choose one variation at a time: muscle relaxation, body scan, or autogenic pause.'),
+    id: 'relaxation', title: { ...l('Расслабление', 'Relaxation'), de: 'Entspannung', es: 'Relajación', fr: 'Relaxation', it: 'Rilassamento', pt: 'Relaxamento', ar: 'الاسترخاء', hi: 'विश्राम', ja: 'リラクゼーション', ko: '이완', zh: '放松' }, summary: l('Одна вариация за раз: мышечная релаксация, сканирование тела или аутогенная пауза.', 'Choose one variation at a time: muscle relaxation, body scan, or autogenic pause.'),
     status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'attention', programs: [
       p('pmr-groups', 'Мышечная релаксация · группы', 'Muscle relaxation · groups', 'Умеренно напрягать и полностью расслаблять группы мышц.', 'Tense muscle groups moderately, then release fully.', [
         s('hands', 'Кисти', 'Hands', 'Сожмите кисти умеренно, затем полностью отпустите.', 'Tense the hands moderately, then release fully.', 10_000, 'peak', 'tension'),
@@ -412,7 +428,7 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
     ], defaultProgramId: 'pmr-groups',
   },
   {
-    id: 'pelvic-floor', title: l('Кегель / тазовое дно', 'Kegel / pelvic floor'), summary: l('Короткие, длинные и смешанные сокращения без участия живота и ягодиц.', 'Short, long, and mixed squeezes without engaging the abdomen or glutes.'),
+    id: 'pelvic-floor', title: { ...l('Кегель / тазовое дно', 'Kegel / pelvic floor'), de: 'Kegel / Beckenboden', es: 'Kegel / suelo pélvico', fr: 'Kegel / plancher pelvien', it: 'Kegel / pavimento pelvico', pt: 'Kegel / assoalho pélvico', ar: 'كيجل / قاع الحوض', hi: 'कीगल / पेल्विक फ़्लोर', ja: 'ケーゲル／骨盤底', ko: '케겔/골반저', zh: '凯格尔／盆底' }, summary: l('Короткие, длинные и смешанные сокращения без участия живота и ягодиц.', 'Short, long, and mixed squeezes without engaging the abdomen or glutes.'),
     status: 'approved', defaultEnabled: false, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'pelvic', warningIds: ['pelvic-floor'], programs: [
       p('balanced', 'Смешанная последовательность', 'Mixed sequence', 'Короткие и длинные сокращения без задержки дыхания и натуживания.', 'Short and long squeezes without breath holding or straining.', [
         s('long-squeeze', 'Плавное сокращение', 'Long squeeze', 'Мягко сократите мышцы, продолжая дышать; живот и ягодицы остаются расслабленными.', 'Squeeze gently while continuing to breathe; keep the abdomen and glutes relaxed.', 5_000, 'peak', 'tension'),
@@ -435,7 +451,7 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
     ], defaultProgramId: 'balanced',
   },
   {
-    id: 'mobility', title: l('Подвижность суставов', 'Joint mobility'), summary: l('Одна зона за раз: шея и плечи, грудной отдел, голеностоп или кисти.', 'Choose one area at a time: neck and shoulders, thoracic spine, ankles, or wrists.'),
+    id: 'mobility', title: { ...l('Подвижность суставов', 'Joint mobility'), de: 'Gelenkmobilität', es: 'Movilidad articular', fr: 'Mobilité articulaire', it: 'Mobilità articolare', pt: 'Mobilidade articular', ar: 'مرونة المفاصل', hi: 'जोड़ों की गतिशीलता', ja: '関節モビリティ', ko: '관절 가동성', zh: '关节灵活性' }, summary: l('Одна зона за раз: шея и плечи, грудной отдел, голеностоп или кисти.', 'Choose one area at a time: neck and shoulders, thoracic spine, ankles, or wrists.'),
     status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'motor', warningIds: ['general-stop'], programs: [
       p('neck-shoulders', 'Шея и плечи', 'Neck and shoulders', 'Медленно и только в комфортном диапазоне.', 'Slowly and only within a comfortable range.', [
         s('shoulder-rolls', 'Круги плечами', 'Shoulder rolls', 'Сделайте медленные круги плечами.', 'Roll the shoulders slowly.', 10_000, 'peak', 'stretch'),
@@ -463,7 +479,7 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
     ], defaultProgramId: 'neck-shoulders',
   },
   {
-    id: 'postures', title: l('Позы', 'Postures'), summary: l('Одна выбранная поза за раз: всадник, сапожник, лотос или стойка столбом.', 'Choose one posture at a time: horse, cobbler, lotus, or standing post.'),
+    id: 'postures', title: { ...l('Позы', 'Postures'), de: 'Haltungen', es: 'Posturas', fr: 'Postures', it: 'Posture', pt: 'Posturas', ar: 'الوضعيات', hi: 'आसन', ja: '姿勢', ko: '자세', zh: '体式' }, summary: l('Одна выбранная поза за раз: всадник, сапожник, лотос или стойка столбом.', 'Choose one posture at a time: horse, cobbler, lotus, or standing post.'),
     status: 'extension', defaultEnabled: false, contexts: ['home'], parallelClass: 'motor', warningIds: ['yoga-load'], programs: [
       p('horse-shallow', 'Всадник · неглубоко', 'Horse · shallow', 'Устойчивая неглубокая стойка без работы до отказа.', 'A stable shallow stance without training to failure.', [
         s('horse-setup', 'Положение', 'Set up', 'Поставьте стопы устойчиво и слегка согните колени.', 'Place feet steadily and bend the knees slightly.', 12_000, 'peak', 'tension'),
@@ -488,7 +504,7 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
     ], defaultProgramId: 'horse-shallow',
   },
   {
-    id: 'isometrics', title: l('Изометрические сокращения', 'Isometric contractions'), summary: l('Одна вариация за раз: ягодицы или мягкая общая изометрия.', 'Choose one variation at a time: glutes or gentle general isometrics.'),
+    id: 'isometrics', title: { ...l('Изометрические сокращения', 'Isometric contractions'), de: 'Isometrie', es: 'Isometría', fr: 'Isométrie', it: 'Isometria', pt: 'Isometria', ar: 'تمارين متساوية القياس', hi: 'आइसोमेट्रिक', ja: 'アイソメトリクス', ko: '등척성 운동', zh: '等长训练' }, summary: l('Одна вариация за раз: ягодицы или мягкая общая изометрия.', 'Choose one variation at a time: glutes or gentle general isometrics.'),
     status: 'extension', defaultEnabled: false, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'motor', warningIds: ['general-stop'], programs: [
       p('glute-seated', 'Ягодицы · сидя', 'Glutes · seated', 'Умеренное сокращение и полное расслабление без задержки дыхания.', 'A moderate squeeze and full release without breath holding.', [
         s('squeeze', 'Сокращение', 'Squeeze', 'Умеренно сократите ягодицы и продолжайте дышать.', 'Squeeze the glutes moderately and keep breathing.', 5_000, 'peak', 'tension'),
@@ -503,7 +519,7 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
     ], defaultProgramId: 'glute-seated',
   },
   {
-    id: 'abdomen', title: l('Живот', 'Abdomen'), summary: l('Одна вариация за раз: базовые уровни, прогрессия или знакомые агнисара, вакуум и наули.', 'One variation at a time: foundations, progression, or familiar agnisara, vacuum, and nauli.'),
+    id: 'abdomen', title: { ...l('Живот', 'Abdomen'), de: 'Bauch', es: 'Abdomen', fr: 'Abdomen', it: 'Addome', pt: 'Abdômen', ar: 'البطن', hi: 'उदर', ja: '腹部', ko: '복부', zh: '腹部' }, summary: l('Одна вариация за раз: базовые уровни, прогрессия или знакомые агнисара, вакуум и наули.', 'One variation at a time: foundations, progression, or familiar agnisara, vacuum, and nauli.'),
     status: 'extension', defaultEnabled: false, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'motor', warningIds: ['general-stop'], programs: [
       p('foundation-progression', 'Базовая прогрессия · 1→2', 'Foundation progression · 1→2', 'Последовательно: мягкая активация на выдохе, затем удержание при обычном дыхании.', 'Sequential foundations: gentle exhale engagement, then a hold with normal breathing.', [
         s('foundation-exhale', 'Уровень 1 · выдох', 'Level 1 · exhale', 'На выдохе слегка подтяните низ живота.', 'Gently engage the lower abdomen on exhale.', 6_000, 'peak', 'tension'),
@@ -542,7 +558,7 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
     ], defaultProgramId: 'foundation-progression',
   },
   {
-    id: 'feldenkrais', title: l('Осознанное движение', 'Awareness through movement'), summary: l('Очень небольшие движения с вниманием к различиям, только отдельно.', 'Very small movements with attention to differences, solo only.'),
+    id: 'feldenkrais', title: { ...l('Осознанное движение', 'Awareness through movement'), de: 'Feldenkrais', es: 'Feldenkrais', fr: 'Feldenkrais', it: 'Feldenkrais', pt: 'Feldenkrais', ar: 'فيلدنكرايس', hi: 'फेल्डेनक्राइस', ja: 'フェルデンクライス', ko: '펠든크라이스', zh: '费登奎斯' }, summary: l('Очень небольшие движения с вниманием к различиям, только отдельно.', 'Very small movements with attention to differences, solo only.'),
     status: 'extension', defaultEnabled: false, contexts: ['desk-visible', 'home'], parallelClass: 'attention', warningIds: ['general-stop'], programs: [p('seated-observation', 'Сидя · мягкое исследование', 'Seated gentle exploration', 'Оригинальная короткая последовательность в духе принципов Фельденкрайза, без лечебных обещаний.', 'An original short sequence informed by Feldenkrais principles, with no treatment claim.', [
       s('settle', 'Исходное положение', 'Settle', 'Сядьте с опорой и отметьте, как вес распределён сейчас.', 'Sit with support and notice how your weight is distributed now.', 12_000, 'peak', 'still'),
       s('small-turn', 'Малый поворот', 'Small turn', 'Очень немного поверните голову в одну сторону и вернитесь; не ищите максимальную амплитуду.', 'Turn the head a very small amount to one side and return; do not seek maximum range.', 14_000, 'peak', 'stretch'),
@@ -615,7 +631,7 @@ export const PAUSE_STRINGS = {
 } as const;
 
 export function text(value: LocalizedText, locale: PauseLocale): string {
-  return value[locale];
+  return value[locale] ?? value.en;
 }
 
 export function getPracticeSet(setId: PracticeSetId): PracticeSet {

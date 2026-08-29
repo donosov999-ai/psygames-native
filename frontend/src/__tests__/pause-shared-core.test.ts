@@ -26,6 +26,7 @@
  */
 import {
   PRACTICE_CATALOG,
+  text,
   getDefaultPracticeSets,
   getRequiredWarnings,
   createPracticePlan,
@@ -112,7 +113,7 @@ describe('ядро «Паузы» пригодно для второго при�
     const check = (what: string, text: { ru: string; en: string } | undefined) => {
       if (!text) { holes.push(`${what}: подписи нет вовсе`); return; }
       for (const l of locales) {
-        const v = text[l];
+        const v = text[l as 'ru' | 'en'];
         if (typeof v !== 'string' || !v.trim()) holes.push(`${what}: пусто на ${l}`);
       }
     };
@@ -181,5 +182,35 @@ describe('ядро «Паузы» пригодно для второго при�
       context: 'home',
     });
     expect(issues.length).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * Р2 (29.08.2026): двенадцать локалей с en-фолбэком. Сторожим обе стороны:
+ * переведённое отдаётся на языке, непереведённое — по-английски (не ключом,
+ * не пустотой, не по-русски), названия наборов реально переведены на все 12.
+ */
+describe('двенадцать локалей каталога', () => {
+  const ALL = ['ru', 'en', 'de', 'es', 'fr', 'it', 'pt', 'ar', 'hi', 'ja', 'ko', 'zh'] as const;
+
+  it('🔴 названия всех наборов непусты и различимы на каждом из 12 языков', () => {
+    for (const set of PRACTICE_CATALOG) {
+      for (const l of ALL) {
+        const v = text(set.title, l as PauseLocale);
+        expect(`${set.id}/${l}: «${v}» непусто`).toBe(`${set.id}/${l}: «${v}» непусто`);
+        expect(typeof v).toBe('string');
+        expect(v.trim().length).toBeGreaterThan(0);
+      }
+      // de-название не равно en (перевод настоящий, не фолбэк) — на одном наборе-канарейке
+    }
+    const breathing = PRACTICE_CATALOG.find((s) => s.id === 'breathing')!;
+    expect(text(breathing.title, 'de' as PauseLocale)).toBe('Atmung');
+    expect(text(breathing.title, 'ja' as PauseLocale)).toBe('呼吸');
+  });
+
+  it('непереведённое поле честно фолбэчит на en (summary пока ru/en)', () => {
+    const breathing = PRACTICE_CATALOG.find((s) => s.id === 'breathing')!;
+    expect(text(breathing.summary, 'de' as PauseLocale)).toBe(breathing.summary.en);
+    expect(text(breathing.summary, 'ru' as PauseLocale)).toBe(breathing.summary.ru);
   });
 });

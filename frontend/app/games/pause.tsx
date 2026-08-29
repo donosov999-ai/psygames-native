@@ -70,8 +70,15 @@ export default function PauseGame() {
   const { autostart, str, isCalm } = useGamePreset();
   useCalmHush(isCalm);
 
-  const locale: PauseLocale = language === 'ru' ? 'ru' : 'en';
-  const tr = useCallback((pair: { ru: string; en: string }) => pair[locale], [locale]);
+  /**
+   * Р2 (29.08.2026): язык уходит странице ЦЕЛИКОМ (12 кодов). Ядро и страница
+   * фолбэчат непереведённое на en сами — резать здесь до ru/en значило бы
+   * лишить немца немецких названий, которые уже переведены.
+   */
+  const KNOWN: readonly PauseLocale[] = ['ru', 'en', 'de', 'es', 'fr', 'it', 'pt', 'ar', 'hi', 'ja', 'ko', 'zh'];
+  const locale: PauseLocale = (KNOWN as readonly string[]).includes(language) ? (language as PauseLocale) : 'en';
+  // Локальные ru/en-пары этого экрана: не-ru языки получают en (сам экран тонкий).
+  const tr = useCallback((pair: { ru: string; en: string }) => (locale === 'ru' ? pair.ru : pair.en), [locale]);
 
   const [phase, setPhase] = useState<Phase>('config');
   const [context] = useState<PracticeContext>(() => (str('context', 'desk-visible') as PracticeContext));
