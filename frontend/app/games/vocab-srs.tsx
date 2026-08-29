@@ -182,6 +182,9 @@ export default function VocabSrsGame() {
     const doneRun = runs.level;
     runs.reach(doneRun + 1);
     try {
+      // passed отсутствует НАМЕРЕННО (задача e53f4958, группа «провала нет по
+      // устройству»): SRS-повторение: карточки пересматриваются, а не сдаются на оценку.
+      // Поле «всегда true» не несёт бита и портит статистику долей — не врём им.
       await saveSession({
         game_type: 'vocab_srs',
         score: correctCount,

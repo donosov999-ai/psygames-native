@@ -176,6 +176,9 @@ export default function EyeGymGame() {
     // В свободном режиме уровень не трогаем — там человек сам выбрал настройки.
     if (byLevel && doneLevel < EYE_GYM_MAX_LEVEL) lvl.reach(doneLevel + 1);
     try {
+      // passed отсутствует НАМЕРЕННО (задача e53f4958, группа «провала нет по
+      // устройству»): зарядка для глаз: доводится до конца или прерывается.
+      // Поле «всегда true» не несёт бита и портит статистику долей — не врём им.
       await saveSession({
         game_type: 'eye_gym',
         score: Math.round(totalDur),

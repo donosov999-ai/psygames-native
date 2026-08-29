@@ -468,6 +468,10 @@ export default function TargetsGame() {
     gameOverRef.current = true;
     clearAllTimers();
     if (secondLivesRef.current > 0 && !usedLifeRef.current) { setDeathOffer(true); return; }
+    // Понижение лестницы (задача e53f4958): смерть — провал уровня; гистерезис
+    // «-1 после 3 подряд» живёт в хуке, здесь только факт. Пресет и замороженная
+    // купленной жизнью лестница провал не пишут — как и lvl.reach выше.
+    if (!isPreset && !ladderFrozenRef.current) lvl.fail();
     schedule(endGame, 500);
   };
 
