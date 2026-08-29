@@ -912,12 +912,15 @@ h3 {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+/* П4: сетка была под узкие select (150px-колонки) — чип-группы в них ломались
+   на три строки. Теперь колонки авто-широкие и переносятся рядами целиком. */
 .planner-controls {
-  display: grid;
-  grid-template-columns: minmax(280px, 1.4fr) repeat(3, minmax(150px, 0.6fr));
-  gap: 14px;
-  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  align-items: flex-end;
 }
+.planner-controls > .segmented-field { flex: 0 1 auto; min-width: 0; }
 
 .segmented-field,
 .weekday-fieldset {
@@ -1354,21 +1357,62 @@ h3 {
   padding-bottom: 170px;
 }
 
+/* П1 (чек-лист 29.08): широкая полоса на 860px с privacy-текстом ложилась
+   поверх карточек каталога (скрин Дениса — прятала «Дыхание»). Теперь это
+   компактная капсула по ширине содержимого; privacy-текст ушёл в поток
+   (.plan-privacy), сводка выбора живёт в самой кнопке (.start-summary). */
 #panel-recharge .plan-actions {
   position: fixed;
   z-index: 75;
   right: auto;
   bottom: 22px;
   left: 50%;
-  width: min(calc(100vw - 40px), 860px);
+  width: max-content;
+  max-width: calc(100vw - 40px);
   margin: 0;
-  padding: 12px 14px;
+  padding: 8px;
   border: 1px solid var(--border-strong);
-  border-radius: 20px;
+  border-radius: 999px;
   background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
   transform: translateX(-50%);
   backdrop-filter: blur(20px) saturate(145%);
+}
+
+.start-summary {
+  padding-left: 10px;
+  font-weight: 600;
+  font-size: 0.86em;
+  opacity: 0.85;
+  border-left: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  margin-left: 10px;
+}
+.start-summary:empty { display: none; }
+
+.plan-privacy {
+  margin: 14px 2px 0;
+  font-size: 13px;
+  color: var(--text-soft, var(--text-secondary, #8a8f9c));
+}
+
+/* П7: одна строка о выбранном режиме — «Маршрут» без неё не читался. */
+.mode-hint {
+  margin: 8px 2px 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-soft, var(--text-secondary, #8a8f9c));
+}
+
+/* П4: чипы вместо системных select — крупные цели, все варианты видны. */
+.segmented--chips { flex-wrap: wrap; }
+.segmented--chips button { min-height: 44px; padding: 10px 16px; }
+
+/* П2 (будильник): служебная сноска каталога — глиф с пояснением в title. */
+.catalog-note--info {
+  font-size: 15px;
+  line-height: 1;
+  cursor: help;
+  opacity: 0.7;
 }
 
 #start-practice[data-blocked="true"]:not(:disabled) {

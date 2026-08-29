@@ -112,3 +112,13 @@ html.is-embedded[data-theme='light'] [data-focus-set] {
 html.is-embedded:not([data-theme='light']) [data-focus-set] {
   --visual-accent: #30d158;
 }
+
+
+/* ── П2+П3 (чек-лист 29.08): во встройке psygames свой заголовок уже есть
+   («Глаза и дыхание» в шапке GameShell) — хиро страницы и служебный жаргон
+   здесь лишние. В самом будильнике всё остаётся: это его дев-грань. ── */
+body.is-embedded #panel-recharge .page-heading { display: none; }   /* П3: «Соберите утреннюю зарядку» + лид + «10 наборов» */
+body.is-embedded .engine-badge { display: none; }                    /* П2: Pure engine */
+body.is-embedded .catalog-note { display: none; }                    /* П2: «Загружено из pause-practices core» / ⓘ */
+body.is-embedded .app-version { display: none; }                     /* П2: v0.1.0-local */
+body.is-embedded .planner-card { margin-top: 4px; }

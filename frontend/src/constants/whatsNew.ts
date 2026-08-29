@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.9.0',
+    date: '2026-08-29',
+    ru: [
+      '«Глаза и дыхание» причёсана: длительность/контекст/подсказка — крупными кнопками по-русски, кнопка старта — компактная капсула со сводкой «что запускаю» и больше не ложится на карточки, у режима «Маршрут» появилось пояснение, служебные надписи убраны',
+    ],
+    en: [
+      '“Eyes & breathing” polished: duration/context/guidance are large localized chips, the start button is a compact capsule with a summary and no longer covers the cards, the “Route” mode got an explanation, service labels removed',
+    ],
+  },
+  {
     version: '2.8.0',
     date: '2026-08-29',
     ru: [
