@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.13.1',
+    date: '2026-08-30',
+    ru: [
+      'Приправа Бездны: узел теперь отдаёт цифру наверх ровно на объявленной доле решённого. Раньше порог считался до того, как приправа выкапывала лишние подсказки, и узел открывался чуть раньше обещанного',
+    ],
+    en: [
+      'Spice of the Abyss: a node now floats its digit up at exactly the share it promises. The threshold used to be computed before the spice dug out extra givens, so nodes opened a little early',
+    ],
+  },
+  {
     version: '2.13.0',
     date: '2026-08-30',
     ru: [
