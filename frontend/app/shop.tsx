@@ -12,6 +12,11 @@ import { isRTLLang } from '@/src/services/rtl';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getTokens, spendTokens, checkInStreakRepairable, repairCheckInStreak } from '@/src/services/tokens';
 import { peekWager, placeWager, WagerState, WAGER_STAKE, WAGER_PRIZE, WAGER_DAYS } from '@/src/services/wager';
+import { digitsForStyle, defaultStyleForProfile } from '@/src/constants/digitThemes';
+import { themeArtByKey } from '@/src/constants/profileThemes';
+import { PROFILE_BACKGROUNDS } from '@/src/constants/profileBackgrounds';
+import { PROFILE_BADGES } from '@/src/constants/profileBadges';
+import { PROFILES } from '@/src/constants/profiles';
 import {
   ABILITIES, Ability, AbilityCounts, buyAbility, getAbilityCounts, useAbility,
 } from '@/src/services/abilities';
@@ -248,12 +253,26 @@ export default function ShopScreen() {
           <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
             <Text style={{ fontSize: 20 }}>{c.value === 'bow' ? '🎀' : c.value === 'party_hat' ? '🥳' : c.value === 'bow_tie' ? '🎩' : '👓'}</Text>
           </View>
+        ) : c.type === 'digits' ? (
+          <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+            <Image {...a11yDecor} source={digitsForStyle(c.value as any)[5]} style={{ width: 34, height: 34 }} resizeMode="contain" />
+          </View>
+        ) : c.type === 'theme' ? (
+          <Image {...a11yDecor} source={themeArtByKey(c.value)} style={[styles.swatch, { backgroundColor: colors.background }]} resizeMode="cover" />
+        ) : c.type === 'background' ? (
+          <Image {...a11yDecor} source={PROFILE_BACKGROUNDS[c.value]} style={[styles.swatch, { backgroundColor: colors.background }]} resizeMode="cover" />
+        ) : c.type === 'badge' ? (
+          <Image {...a11yDecor} source={PROFILE_BADGES[c.value]} style={[styles.swatch, { backgroundColor: colors.background }]} resizeMode="cover" />
         ) : (
           <View style={[styles.swatch, { backgroundColor: c.value }]} />
         )}
         {/* minWidth:0 — при крупном шрифте блок с текстом ужимается, а не выдавливает кнопку Купить/Надеть за край */}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{t(c.nameKey)}</Text>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>
+            {(c.type === 'theme' || c.type === 'background' || c.type === 'badge')
+              ? (PROFILES.find((p) => p.id === c.value)?.display_name ?? t(c.nameKey))
+              : t(c.nameKey)}
+          </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 16 }}>{t(c.descKey)}</Text>
           <Text style={{ color: owned ? colors.textSecondary : colors.text, fontSize: 13, fontWeight: '700', marginTop: 3 }}>
             {owned ? t('ownedBadge') : `${c.cost} ⭐`}
@@ -301,6 +320,7 @@ export default function ShopScreen() {
           [null, 'apps', 'a11yCatAll'], ['ability', 'flash', 'a11yCatAbility'],
           ['accent', 'color-palette', 'a11yCatAccent'], ['sound', 'musical-notes', 'a11yCatSound'],
           ['frame', 'scan', 'a11yCatFrame'], ['title', 'pricetag', 'a11yCatTitle'], ['avatar', 'person', 'a11yCatAvatar'], ['pet', 'paw', 'a11yCatPet'],
+          ['digits', 'calculator', 'a11yCatDigits'], ['theme', 'map', 'a11yCatTheme'], ['background', 'image', 'a11yCatBackground'], ['badge', 'ribbon', 'a11yCatBadge'],
         ] as const).map(([c, icon, labelKey]) => {
           const on = cat === c;
           return (
@@ -376,6 +396,8 @@ export default function ShopScreen() {
         {([
           ['accent', 'shopAccentSection'], ['sound', 'shopSoundSection'], ['frame', 'shopFrameSection'],
           ['title', 'shopTitleSection'], ['avatar', 'shopAvatarSection'], ['pet', 'shopPetSection'],
+          ['digits', 'shopDigitsSection'], ['theme', 'shopThemeSection'],
+          ['background', 'shopBackgroundSection'], ['badge', 'shopBadgeSection'],
         ] as const).filter(([type]) => !cat || cat === type).map(([type, sectionKey], i) => (
           <React.Fragment key={type}>
             {/* Первая косметическая секция прижата к верху, только если над ней ничего
@@ -383,7 +405,13 @@ export default function ShopScreen() {
             <Text style={[styles.section, { color: colors.textSecondary, marginTop: i === 0 && cat && cat !== 'ability' ? 0 : 20 }]}>
               {t(sectionKey)}
             </Text>
-            {COSMETICS.filter((c) => c.type === type).map(renderItem)}
+            {COSMETICS.filter((c) => c.type === type)
+              /* Свой дефолтный арт профиля не продаётся — он и так применяется бесплатно. */
+              .filter((c) => !(
+                ((c.type === 'theme' || c.type === 'background' || c.type === 'badge') && c.value === profile?.id) ||
+                (c.type === 'digits' && c.value === defaultStyleForProfile(profile?.id))
+              ))
+              .map(renderItem)}
           </React.Fragment>
         ))}
 

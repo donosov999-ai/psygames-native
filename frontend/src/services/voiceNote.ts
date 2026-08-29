@@ -246,6 +246,8 @@ export interface Recorder {
   stop: () => Promise<VoiceNote | null>;
   /** Бросить запись и отпустить микрофон, ничего не возвращая. */
   cancel: () => void;
+  /** Запись идёт нативно за мостом: уровня нет, полоску не рисовать (иначе она врёт «тишина»). */
+  native?: true;
 }
 
 /** Как часто пересчитываем уровень для живой полоски. */
@@ -255,7 +257,8 @@ const LEVEL_MS = 100;
 export type MicSource =
   /** Сырой: обработка выключена. */                       'raw'
   /** Обработанный: как просит браузер по умолчанию. */   | 'processed'
-  /** Сырой, но проверить его не вышло — нечем мерить. */ | 'raw-unprobed';
+  /** Сырой, но проверить его не вышло — нечем мерить. */ | 'raw-unprobed'
+  /** Нативный MediaRecorder за мостом — обход мёртвого стека записи WebView. */ | 'native';
 
 /**
  * 🔴 ПОЧЕМУ МЫ ПРОСИМ СЫРОЙ МИКРОФОН, А НЕ ОБЫЧНЫЙ.
@@ -315,6 +318,10 @@ const PROCESSED_AUDIO: MediaStreamConstraints = { audio: true };
 interface PsyNativeBridge {
   micState?: () => string;
   requestMic?: () => void;
+  /** Нативная запись (задача 06790750): есть только в сборках со свежим патчем. */
+  startRec?: () => string;
+  stopRec?: () => string;
+  cancelRec?: () => void;
 }
 
 /** Сколько ждём ответа человека на системный диалог, прежде чем идти дальше. */
@@ -367,11 +374,107 @@ async function openMic(): Promise<OpenMic> {
   }
 }
 
+/**
+ * НАТИВНАЯ ЗАПИСЬ ЗА МОСТОМ (задача 06790750) — обход мёртвого стека WebView.
+ *
+ * Диагноз саги немых голосовых (28.08.2026): на устаревшем Android System WebView
+ * (Chrome<100) `getUserMedia` отдаёт поток, дорожка не muted, а PCM — нули. Обе
+ * прошлые починки (runtime-запрос, ранняя привязка моста) стек записи WebView
+ * обойти не могут по построению. Здесь микрофон пишет НАТИВНЫЙ MediaRecorder
+ * (AAC/m4a 16 кГц моно) по ту сторону моста, файл возвращается base64.
+ *
+ * ⚠️ Уровень-индикатор недоступен: звук не проходит через WebAudio. Пишем
+ * `measured: false` честно — предупреждение о тишине по пику не сработает,
+ * и это правильнее, чем врать нулевым пиком про живую запись.
+ */
+function startNativeRecording(
+  n: Required<Pick<PsyNativeBridge, 'startRec' | 'stopRec'>> & PsyNativeBridge,
+  onTick?: (sec: number, level: number) => void,
+  onAutoStop?: () => void,
+): Recorder | null {
+  let st = '';
+  try { st = n.startRec(); } catch { return null; }
+  if (st !== 'ok') return null;                        // мост не смог — обычный путь
+  const startedAt = Date.now();
+  let endedAt = 0;
+  let ceiling = false;
+  let settled = false;
+
+  let settle: ((v: VoiceNote | null) => void) | null = null;
+  const done = new Promise<VoiceNote | null>((res) => { settle = res; });
+
+  const finish = (cancelled: boolean) => {
+    if (settled) return;
+    settled = true;
+    if (!endedAt) endedAt = Date.now();
+    clearInterval(timer);
+    const give = settle;
+    settle = null;
+    if (cancelled) {
+      try { n.cancelRec?.(); } catch { /* мост умер — записи всё равно конец */ }
+      give?.(null);
+      return;
+    }
+    let b64 = '';
+    try { b64 = n.stopRec(); } catch { b64 = ''; }
+    if (!b64 || b64.startsWith('error')) { give?.(null); return; }
+    let blob: Blob | null = null;
+    try {
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      blob = new Blob([bytes], { type: 'audio/mp4' });
+    } catch { blob = null; }
+    if (!blob || !blob.size) { give?.(null); return; }
+    give?.({
+      blob,
+      seconds: Math.min(MAX_RECORD_SEC, Math.max(1, Math.round((endedAt - startedAt) / 1000))),
+      mime: 'audio/mp4',
+      peak: 0,
+      measured: false,                                  // мерить нечем — см. шапку
+      track: null,
+      source: 'native',
+      micGate: 'granted',                               // startRec не стартует без разрешения
+      access: null,
+    });
+  };
+
+  const timer = setInterval(() => {
+    const sec = Math.floor((Date.now() - startedAt) / 1000);
+    onTick?.(sec, 0);
+    if (sec >= MAX_RECORD_SEC) {
+      ceiling = true;
+      finish(false);
+      if (ceiling) onAutoStop?.();
+    }
+  }, 500);
+
+  return {
+    native: true,
+    stop: () => { finish(false); return done; },
+    cancel: () => { finish(true); },
+  };
+}
+
 export async function startRecording(
   onTick?: (sec: number, level: number) => void,
   onAutoStop?: () => void,
 ): Promise<Recorder> {
   const micGate = await ensureMicPermission();
+
+  /**
+   * Старый WebView + мост с записью → нативный путь. Порог тот же, что у
+   * подсказки staleWebViewMajor: на живых стеках (Chrome 100+) WebView пишет
+   * сам и даёт уровень-индикатор — нативный обход там только отнял бы замер.
+   */
+  const nb = bridge();
+  if (staleWebViewMajor() !== null
+      && typeof nb?.startRec === 'function' && typeof nb?.stopRec === 'function'
+      && micGate === 'granted') {
+    const nat = startNativeRecording(nb as any, onTick, onAutoStop);
+    if (nat) return nat;
+  }
+
   const mic = await openMic();
   const { stream } = mic;
 

@@ -24,7 +24,7 @@ import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { profileBackground } from '@/src/constants/profileBackgrounds';
 import { logoForProfile, logoPlateFor } from '@/src/constants/profileLogos';
-import { getEquippedFrameColor, getEquippedTitle, getEquippedAvatarKey } from '@/src/services/cosmetics';
+import { getEquippedValue, getEquippedFrameColor, getEquippedTitle, getEquippedAvatarKey } from '@/src/services/cosmetics';
 import { avatarImage } from '@/src/constants/avatars';
 import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
 import { wagerTick } from '@/src/services/wager';
@@ -104,7 +104,10 @@ function FullHome() {
   const router = useRouter();
   const warmup = useWarmup();
   const { profile, ready: profileReady } = useProfile();
-  const profileBg = profileBackground(profile?.id);
+  // Витрина тем: надетые чужой фон/значок перекрывают профильные (Т5).
+  const [bgOverride, setBgOverride] = useState<string | null>(null);
+  const [badgeOverride, setBadgeOverride] = useState<string | null>(null);
+  const profileBg = (bgOverride ? profileBackground(bgOverride) : undefined) ?? profileBackground(profile?.id);
   /**
    * Плашка под вордмарком — по САМОМУ ЗНАКУ, а не по теме. Раньше здесь стоял
    * `colors.surface + 'CC'`: на тёмной теме тёмная плашка под тёмным лого, и
@@ -285,6 +288,8 @@ function FullHome() {
       else if (wg.kind === 'lost') { setWagerToast({ kind: 'lost', amount: wg.stake }); setTimeout(() => setWagerToast(null), 3200); }
       if (ci.isNew && ci.awarded > 0) { setStreakToast(ci.awarded); sndStreak(); setTimeout(() => setStreakToast(null), 2600); }
       setChallengeStreak(await loadChallengeStreak(profile.id));   // ежедневный вызов — стрик обновляем на фокусе
+      setBgOverride(await getEquippedValue(profile.id, 'background'));
+      setBadgeOverride(await getEquippedValue(profile.id, 'badge'));
       const v = await getTokens(profile.id);
       if (prevTokensRef.current !== null && v > prevTokensRef.current) sndToken();   // звон когда очки выросли
       const lv = levelInfo(v).level;
@@ -642,8 +647,8 @@ function FullHome() {
           >
             {avatarKey && avatarImage(avatarKey) ? (
               <Image source={avatarImage(avatarKey)} style={{ width: 20, height: 20, borderRadius: 6 }} />
-            ) : profileBadge(profile.id) ? (
-              <Image source={profileBadge(profile.id)} style={{ width: 20, height: 20, borderRadius: 6 }} />
+            ) : profileBadge(badgeOverride ?? profile.id) ? (
+              <Image source={profileBadge(badgeOverride ?? profile.id)} style={{ width: 20, height: 20, borderRadius: 6 }} />
             ) : (
               <Text style={{ fontSize: 14 }}>{profile.emoji}</Text>
             )}

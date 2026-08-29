@@ -813,7 +813,7 @@ jobs:
           import sys, re
           p = sys.argv[1]
           s = open(p).read()
-          if 'psyRequestMic' in s:
+          if 'psyStartRec' in s:
               print('mic bridge already present'); sys.exit(0)
 
           bridge = (
@@ -827,11 +827,65 @@ jobs:
               '    try { requestPermissions(arrayOf(android.Manifest.permission.RECORD_AUDIO), 4711) }\n'
               '    catch (e: Throwable) {}\n'
               '  }\n'
+              '\n  // ── Нативная запись (задача 06790750): обход мёртвого стека записи\n'
+              '  // устаревшего WebView (Chrome<100 пишет PCM-нули при живом getUserMedia).\n'
+              '  // Пишет системный MediaRecorder в кэш, stopRec отдаёт файл base64\n'
+              '  // (≤3 мин AAC 32 кбит/с ≈ 720 КБ — в пределах addJavascriptInterface).\n'
+              '  private var psyRec: android.media.MediaRecorder? = null\n'
+              '  private var psyRecPath: String? = null\n'
+              '\n  private fun psyStartRec(): String {\n'
+              '    if (!psyMicGranted()) return "denied"\n'
+              '    try { psyRec?.release() } catch (e: Throwable) {}\n'
+              '    psyRec = null\n'
+              '    return try {\n'
+              '      val f = java.io.File(cacheDir, "psy_voice.m4a")\n'
+              '      val r = android.media.MediaRecorder()\n'
+              '      r.setAudioSource(android.media.MediaRecorder.AudioSource.MIC)\n'
+              '      r.setOutputFormat(android.media.MediaRecorder.OutputFormat.MPEG_4)\n'
+              '      r.setAudioEncoder(android.media.MediaRecorder.AudioEncoder.AAC)\n'
+              '      r.setAudioSamplingRate(16000)\n'
+              '      r.setAudioChannels(1)\n'
+              '      r.setAudioEncodingBitRate(32000)\n'
+              '      r.setOutputFile(f.absolutePath)\n'
+              '      r.prepare(); r.start()\n'
+              '      psyRec = r; psyRecPath = f.absolutePath\n'
+              '      "ok"\n'
+              '    } catch (e: Throwable) { "error:" + (e.message ?: "start") }\n'
+              '  }\n'
+              '\n  private fun psyStopRec(): String {\n'
+              '    val r = psyRec ?: return "error:not_recording"\n'
+              '    psyRec = null\n'
+              '    return try {\n'
+              '      r.stop(); r.release()\n'
+              '      val path = psyRecPath ?: return "error:no_file"\n'
+              '      val f = java.io.File(path)\n'
+              '      val bytes = f.readBytes()\n'
+              '      try { f.delete() } catch (e: Throwable) {}\n'
+              '      if (bytes.isEmpty()) "error:empty"\n'
+              '      else android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)\n'
+              '    } catch (e: Throwable) {\n'
+              '      try { r.release() } catch (t: Throwable) {}\n'
+              '      "error:" + (e.message ?: "stop")\n'
+              '    }\n'
+              '  }\n'
+              '\n  private fun psyCancelRec() {\n'
+              '    val r = psyRec\n'
+              '    psyRec = null\n'
+              '    try { r?.stop() } catch (e: Throwable) {}\n'
+              '    try { r?.release() } catch (e: Throwable) {}\n'
+              '    try { psyRecPath?.let { java.io.File(it).delete() } } catch (e: Throwable) {}\n'
+              '  }\n'
               '\n  inner class PsyNativeBridge {\n'
               '    @android.webkit.JavascriptInterface\n'
               '    fun micState(): String = if (psyMicGranted()) "granted" else "denied"\n'
               '    @android.webkit.JavascriptInterface\n'
               '    fun requestMic() { runOnUiThread { psyRequestMic() } }\n'
+              '    @android.webkit.JavascriptInterface\n'
+              '    fun startRec(): String = psyStartRec()\n'
+              '    @android.webkit.JavascriptInterface\n'
+              '    fun stopRec(): String = psyStopRec()\n'
+              '    @android.webkit.JavascriptInterface\n'
+              '    fun cancelRec() { psyCancelRec() }\n'
               '  }\n'
               '\n  private fun psyInstallMicBridge() {\n'
               '    val wv = findWebView(findViewById(android.R.id.content)) ?: return\n'
@@ -876,7 +930,7 @@ jobs:
           print(f'мост привязан в {points} местах (ранняя привязка обязательна: интерфейс действует со следующей загрузки)')
 
           # Проверяем ВЫЗОВ (строка целиком), а не имя: имя есть и в объявлении.
-          if not re.search(r'\n\s*psyInstallMicBridge\(\)\n', s) or 'PsyNativeBridge' not in s:
+          if not re.search(r'\n\s*psyInstallMicBridge\(\)\n', s) or 'PsyNativeBridge' not in s or 'psyStartRec' not in s:
               print('ERROR: mic bridge patch failed to apply'); sys.exit(1)
           open(p, 'w').write(s)
           print('MainActivity patched: mic permission bridge')

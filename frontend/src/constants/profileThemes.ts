@@ -1,4 +1,4 @@
-/* psygames-profile-themes · VER 1 · 28.08.2026 */
+/* psygames-profile-themes · VER 2 · 29.08.2026 */
 /**
  * ТЕМАТИЧЕСКИЙ АРТ ПРОФИЛЕЙ — потребительская сторона движка тем (c4fc6173).
  *
@@ -38,3 +38,8 @@ const THEME_ART: Record<string, number> = {
 export function themeArtFor(profileId: string | undefined | null): number {
   return THEME_ART[profileId ?? ''] ?? THEME_ART.free;
 }
+
+// Витрина тем (Т4 экономики): темы продаются кросс-профильно, магазину нужны
+// список ключей и арт по ключу — независимо от того, чей профиль активен.
+export const THEME_KEYS = Object.keys(THEME_ART);
+export function themeArtByKey(key: string): number | undefined { return THEME_ART[key]; }

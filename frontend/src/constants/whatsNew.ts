@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.2.0',
+    date: '2026-08-29',
+    ru: [
+      'Витрина тем в магазине: наборы рисованных цифр судоку, 11 тем карты уровней, фоны главной и значки профилей — теперь можно купить оформление любого профиля за ⭐ и носить в своём. Свой стиль остаётся бесплатным',
+      'Голосовые на старых устройствах: если системный WebView устарел и записывал тишину, теперь запись идёт микрофоном устройства напрямую — голос доезжает',
+    ],
+    en: [
+      'Theme showcase in the shop: hand-drawn sudoku digit sets, 11 level-map themes, home backgrounds and profile badges — you can now buy any profile’s look for ⭐ and wear it in yours. Your own style stays free',
+      'Voice notes on older devices: if the system WebView is outdated and used to record silence, recording now goes straight through the device microphone — your voice gets through',
+    ],
+  },
+  {
     version: '2.1.0',
     date: '2026-08-29',
     ru: [

@@ -24,6 +24,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { digitsForStyle, defaultStyleForProfile, DIGIT_STYLES } from '@/src/constants/digitThemes';
+import { COSMETICS, getUnlocked, getEquippedValue, equipCosmetic } from '@/src/services/cosmetics';
 import type { DigitStyle } from '@/src/constants/digitThemes';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
@@ -378,6 +379,35 @@ export default function SudokuGame() {
   const { profile } = useProfile();
   const insets = useSafeAreaInsets();   // v1.150: sticky-футер над системной навигацией
   const [digitStyle, setDigitStyle] = useState<DigitStyle>(() => defaultStyleForProfile(profile?.id));
+  // Витрина цифр (Т4): купленные наборы. Свой профильный и candy бесплатны; выбор
+  // купленного набора надевается (equip) и переживает перезапуск экрана.
+  const [unlockedDigits, setUnlockedDigits] = useState<string[]>([]);
+  const [digitShopHint, setDigitShopHint] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const pid = profile?.id;
+    if (!pid) return;
+    (async () => {
+      const un = await getUnlocked(pid);
+      const styles = COSMETICS.filter((c) => c.type === 'digits' && un.includes(c.id)).map((c) => c.value);
+      const eq = await getEquippedValue(pid, 'digits');
+      if (!alive) return;
+      setUnlockedDigits(styles);
+      if (eq) setDigitStyle(eq as DigitStyle);
+    })();
+    return () => { alive = false; };
+  }, [profile?.id]);
+  const digitStyleFree = (st: DigitStyle) => st === 'candy' || st === defaultStyleForProfile(profile?.id);
+  const digitStyleOwned = (st: DigitStyle) => digitStyleFree(st) || unlockedDigits.includes(st);
+  const pickDigitStyle = (st: DigitStyle) => {
+    if (!digitStyleOwned(st)) { setDigitShopHint(true); return; }
+    setDigitShopHint(false);
+    setDigitStyle(st);
+    const pid = profile?.id;
+    const item = COSMETICS.find((c) => c.type === 'digits' && c.value === st);
+    // Свой/candy надевать не нужно — они и так дефолт; купленный запоминаем.
+    if (pid && item && !digitStyleFree(st)) equipCosmetic(pid, 'digits', item.id);
+  };
   const DIGIT_IMG = digitsForStyle(digitStyle);
   // Тип цифр: 'plain' = обычный чёткий текст (дефолт — ровный размер, по центру, без тени), 'drawn' = рисованные наборы.
   const [digitMode, setDigitMode] = useState<'plain' | 'drawn'>('plain');
@@ -1431,16 +1461,23 @@ export default function SudokuGame() {
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('digitStyle')}</Text>
           <View style={styles.optionButtons}>
             {DIGIT_STYLES.map((st, si) => (
-              <TouchableOpacity key={st} onPress={() => setDigitStyle(st)}
+              <TouchableOpacity key={st} onPress={() => pickDigitStyle(st)}
                 accessibilityRole="button" accessibilityLabel={`${t('a11yDigitStyle')} ${si + 1}`}
-                accessibilityState={{ selected: digitStyle === st }}
+                accessibilityState={{ selected: digitStyle === st, disabled: !digitStyleOwned(st) }}
                 style={[styles.modeButton, { paddingVertical: 6, paddingHorizontal: 10 }, digitStyle === st
                   ? { backgroundColor: GRADIENT[0], borderWidth: 2, borderColor: GRADIENT[0] }
                   : { backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border }]}>
-                <Image source={digitsForStyle(st)[5]} style={{ width: 30, height: 30 }} resizeMode="contain" />
+                <Image source={digitsForStyle(st)[5]} style={{ width: 30, height: 30, opacity: digitStyleOwned(st) ? 1 : 0.35 }} resizeMode="contain" />
+                {!digitStyleOwned(st) && (
+                  <Ionicons name="lock-closed" size={12} color={colors.textSecondary}
+                    style={{ position: 'absolute', right: 2, bottom: 2 }} />
+                )}
               </TouchableOpacity>
             ))}
           </View>
+          {digitShopHint && (
+            <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 6 }}>{t('digitsLockedShop')}</Text>
+          )}
         </View>
       )}
     </ScrollView>

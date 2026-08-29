@@ -314,7 +314,10 @@ describe('интерфейс показывает уровень и не отп�
     const src = widget();
     expect(src).toContain('styles.levelTrack');
     // Висит на состоянии записи и на живом уровне, а не на константе.
-    expect(src).toMatch(/\{rec && \(\s*<View[\s\S]{0,400}levelTrack/);
+    // v2.3: запись за нативным мостом уровня не имеет — полоска рисуется в
+    // WebView-пути (`!rec.native`), а нативный путь честно говорит «без индикатора».
+    expect(src).toMatch(/\{rec && !rec\.native && \(\s*<View[\s\S]{0,400}levelTrack/);
+    expect(src).toMatch(/rec\?\.native[\s\S]{0,400}voiceRecordingNative/);
     expect(src).toMatch(/width: `\$\{[^`]*lvl\.level/);
   });
 
