@@ -1654,6 +1654,8 @@ const t: Record<string, string> = {
   "cosDesc_badge_generic": "Abzeichen eines anderen Profils auf deinem Chip",
   "digitsLockedShop": "Dieses Ziffernset gibt es im Shop",
   "voiceRecordingNative": "Aufnahme über das Gerätemikrofon (ohne Pegelanzeige)",
+  "pencilMode": "Bleistift: Kandidaten-Notizen",
+  "deepPortalHint": "Portal: Diese Zelle trägt dieselbe Ziffer wie Zelle {cell} eines Nachbarbretts dieser Ebene",
   "a11yCatDigits": "Kategorie: Ziffernsets",
   "a11yCatTheme": "Kategorie: Kartenthemen",
   "a11yCatBackground": "Kategorie: Hintergründe",

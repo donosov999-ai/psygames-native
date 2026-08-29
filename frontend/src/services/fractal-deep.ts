@@ -44,6 +44,8 @@ import {
 
 export const DEEP_N = BANK_N;
 /** Центр доски — клетка, чья цифра решения уходит в родителя (правило референса). */
+import { countSolutionsFast } from '@/src/services/fractal-sudoku';
+
 export const DEEP_FEED_CELL: readonly [number, number] = [4, 4];
 
 /** Путь узла: '' — корень, 'r,c' — под клеткой корня, 'r,c/r,c' — слоем ниже. */
@@ -190,6 +192,150 @@ export function materializeChain(seed: string, path: DeepPath, cfg: DeepCfg): De
     chain.push(materializeNode(seed, cur, cfg, digit));
   }
   return chain;
+}
+
+// ─────────────────────────── порталы в глубине (X5) ───────────────────────────
+
+/**
+ * ПОРТАЛ БЕЗДНЫ — стык двух ЛИСТЬЕВ-СИБЛИНГОВ, перенос босс-приёма (fractal-sudoku,
+ * FractalPortal) на ленивое дерево. Что переносит портал — НЕ ЦИФРУ, А ОГРАНИЧЕНИЕ:
+ * обе стороны ДОВЫКОЛОТЫ (по одной подсказке банковской доски снято — dropCell) так,
+ * что каждая порознь неоднозначна, а пересечение кандидатов портальной клетки даёт
+ * вывод, которого нет ни в одной доске по отдельности.
+ *
+ * 🔴 ЧЕСТНОСТЬ ПАРЫ — КРИТЕРИЙ БОССА, НЕ ДОПУЩЕНИЕ: порознь countSolutions ≥ 2 у
+ * обеих, вместе Σ_v sol(A|a=v)·sol(B|b=v) == 1. Пара берётся только при ровно 1 —
+ * иначе доска с полным правом имела бы второе решение (класс бага «L30 evenodd»).
+ *
+ * 🔴 ПЛАН СТРОИТСЯ ОТ РЕШЕНИЯ РОДИТЕЛЯ. Кормящий своп цифр (centre↔feedDigit)
+ * у листьев РАЗНЫЙ: цифра, общая до свопов, после них расходится. Поэтому
+ * кандидаты сравниваются по УЖЕ свопнутым решениям (materializeNode с feedDigit
+ * из решения родителя) — общая цифра портала совпадает у обеих сторон по
+ * построению. Детерминизм: план = f(seed, путь родителя, cfg) при
+ * детерминированном родителе.
+ *
+ * ⚠️ БЮДЖЕТ ПРОБ, ТИХАЯ ДЕГРАДАЦИЯ. Не нашлась честная пара за бюджет — у пары
+ * порталов нет, партия живёт как раньше (тот же контракт, что фолбэки генератора).
+ */
+export interface DeepPortal {
+  /** Пути двух листьев-сиблингов. */
+  aPath: DeepPath;
+  bPath: DeepPath;
+  /** Портальные клетки (пустые в обеих досках): общая цифра решений. */
+  aCell: [number, number];
+  bCell: [number, number];
+  /** Снятая подсказка на каждой стороне — добавленная дырка неоднозначности. */
+  aDrop: [number, number];
+  bDrop: [number, number];
+  /** Общая цифра (после кормящих свопов) — для гейтов и подсветки ошибки. */
+  digit: number;
+}
+
+const flatOf = (g: Cell[][], drop?: [number, number]): Int8Array => {
+  const f = new Int8Array(DEEP_N * DEEP_N);
+  for (let r = 0; r < DEEP_N; r++) for (let c = 0; c < DEEP_N; c++) f[r * DEEP_N + c] = g[r]![c]!;
+  if (drop) f[drop[0] * DEEP_N + drop[1]] = 0;
+  return f;
+};
+
+/** Решений доски при закреплённой цифре в клетке (для суммы по цифрам портала). */
+function solutionsWith(flat: Int8Array, cell: [number, number], v: number, limit: number): number {
+  const f = Int8Array.from(flat);
+  f[cell[0] * DEEP_N + cell[1]] = v;
+  return countSolutionsFast(f, limit);
+}
+
+const PORTAL_PAIRS_PER_PARENT = 2;
+const PORTAL_TRY_BUDGET = 36;   // проб (дроп×клетка) на пару; босс находит пары за десятки
+
+/**
+ * План порталов родителя предпоследнего слоя. Пары — из его feed-детей (там листья).
+ * Возвращает найденные честные порталы (может быть пусто — бюджет).
+ */
+export function deepPortalsFor(seed: string, parentPath: DeepPath, cfg: DeepCfg, parentSolution: Cell[][]): DeepPortal[] {
+  if (depthOf(parentPath) !== cfg.depth - 2) return [];   // порталы живут только на листьях
+  const parent = materializePick(seed, parentPath, cfg);
+  const feeds = parent.feedCells;
+  if (feeds.length < 2) return [];
+  const rng = makeRng(`fractal-deep-portal|${normalizeSeed(seed)}|${parentPath}`);
+  const order = [...feeds];
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [order[i], order[j]] = [order[j]!, order[i]!]; }
+
+  const portals: DeepPortal[] = [];
+  const used = new Set<string>();
+  for (let k = 0; k + 1 < order.length && portals.length < PORTAL_PAIRS_PER_PARENT; k += 2) {
+    const [ar, ac] = order[k]!;
+    const [br, bc] = order[k + 1]!;
+    const aPath = childPath(parentPath, ar, ac);
+    const bPath = childPath(parentPath, br, bc);
+    if (used.has(aPath) || used.has(bPath)) continue;
+    const A = materializeNode(seed, aPath, cfg, parentSolution[ar]![ac]!);
+    const B = materializeNode(seed, bPath, cfg, parentSolution[br]![bc]!);
+
+    // Кандидаты: подсказки для дропа и пустые клетки-порталы, своим rng — детерминировано.
+    const givens = (n: DeepNode): [number, number][] => {
+      const out: [number, number][] = [];
+      for (let r = 0; r < DEEP_N; r++) for (let c = 0; c < DEEP_N; c++) if (n.puzzle[r]![c] !== 0) out.push([r, c]);
+      return out;
+    };
+    const holes = (n: DeepNode): [number, number][] => {
+      const out: [number, number][] = [];
+      for (let r = 0; r < DEEP_N; r++) for (let c = 0; c < DEEP_N; c++) if (n.puzzle[r]![c] === 0) out.push([r, c]);
+      return out;
+    };
+    const shuffleRng = <T,>(arr: T[]): T[] => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j]!, a[i]!]; }
+      return a;
+    };
+    const aDrops = shuffleRng(givens(A));
+    const bDrops = shuffleRng(givens(B));
+    const aHoles = shuffleRng(holes(A));
+    const bHoles = shuffleRng(holes(B));
+
+    let found: DeepPortal | null = null;
+    let tries = 0;
+    outer:
+    for (const aDrop of aDrops) {
+      const aFlat = flatOf(A.puzzle, aDrop);
+      if (countSolutionsFast(aFlat, 2) < 2) continue;   // дроп не раскрыл доску — дальше
+      for (const bDrop of bDrops) {
+        if (++tries > PORTAL_TRY_BUDGET) break outer;
+        const bFlat = flatOf(B.puzzle, bDrop);
+        if (countSolutionsFast(bFlat, 2) < 2) continue;
+        // Портальные клетки: общая цифра решений, и пересечение обязано дать ровно 1.
+        for (const aCell of aHoles.slice(0, 8)) {
+          const digit = A.solution[aCell[0]]![aCell[1]]!;
+          const bCell = bHoles.find(([r, c]) => B.solution[r]![c] === digit
+            && !(r === bDrop[0] && c === bDrop[1]));
+          if (!bCell) continue;
+          if (aCell[0] === aDrop[0] && aCell[1] === aDrop[1]) continue;
+          let joint = 0;
+          for (let v = 1; v <= DEEP_N && joint <= 1; v++) {
+            const na = solutionsWith(aFlat, aCell, v, 2);
+            if (na === 0) continue;
+            const nb = solutionsWith(bFlat, bCell, v, 2);
+            joint += Math.min(2, na) * Math.min(2, nb);
+          }
+          if (joint === 1) {
+            found = { aPath, bPath, aCell, bCell, aDrop, bDrop, digit };
+            break outer;
+          }
+        }
+      }
+    }
+    if (found) { portals.push(found); used.add(aPath); used.add(bPath); }
+  }
+  return portals;
+}
+
+/** Портал листа из плана его родителя (или null). Сторона: своя клетка/дроп первыми. */
+export function portalOfLeaf(portals: DeepPortal[], leaf: DeepPath): { cell: [number, number]; drop: [number, number]; partnerPath: DeepPath; partnerCell: [number, number]; digit: number } | null {
+  for (const p of portals) {
+    if (p.aPath === leaf) return { cell: p.aCell, drop: p.aDrop, partnerPath: p.bPath, partnerCell: p.bCell, digit: p.digit };
+    if (p.bPath === leaf) return { cell: p.bCell, drop: p.bDrop, partnerPath: p.aPath, partnerCell: p.aCell, digit: p.digit };
+  }
+  return null;
 }
 
 // ─────────────────────────── размер партии ───────────────────────────

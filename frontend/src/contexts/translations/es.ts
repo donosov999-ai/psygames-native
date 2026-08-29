@@ -1654,6 +1654,8 @@ const t: Record<string, string> = {
   "cosDesc_badge_generic": "Insignia de otro perfil en tu chip de inicio",
   "digitsLockedShop": "Este set de dígitos se vende en la tienda",
   "voiceRecordingNative": "Grabando con el micrófono del dispositivo (sin indicador de nivel)",
+  "pencilMode": "Lápiz: notas de candidatos",
+  "deepPortalHint": "Portal: esta celda lleva el mismo dígito que la celda {cell} de un tablero vecino de esta capa",
   "a11yCatDigits": "Categoría: sets de dígitos",
   "a11yCatTheme": "Categoría: temas del mapa",
   "a11yCatBackground": "Categoría: fondos",
