@@ -2088,6 +2088,10 @@ const t: Record<string, string> = {
   "friendsRemoveMutual": "أتقطع صلتك بـ {name}؟ الصلة متبادلة: ستختفي من دائرته أيضًا.",
   "friendsRemoveConfirm": "اقطع الصلة",
   "friendsRemoveFailed": "تعذّر قطع الصلة — الخادم لم يُجب. بقيت كما كانت.",
+  "deepSpice": "توابل العمق",
+  "deepSpiceDesc": "تظهر في الطبقة السفلى موازين حرارة وأقفاص مجموع، وتقلّ الأرقام المعطاة",
+  "deepSpiceRuleThermo": "ميزان الحرارة: تكبر الأرقام انطلاقًا من المستودع — كل تالٍ أكبر من سابقه",
+  "deepSpiceRuleCage": "تكبر الأرقام من المستودع؛ ومجموع القفص الملوّن يساوي دليله بلا تكرار",
   // >>> SCREEN_STRINGS
 };
 export default t;

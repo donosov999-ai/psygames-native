@@ -2087,6 +2087,10 @@ const t: Record<string, string> = {
   "friendsRemoveMutual": "Spezzare il legame con {name}? Il legame è reciproco: sparirai anche dalla sua cerchia.",
   "friendsRemoveConfirm": "Spezza il legame",
   "friendsRemoveFailed": "Non è stato possibile spezzare il legame — il server non ha risposto. È rimasto com’era.",
+  "deepSpice": "Spezia della profondità",
+  "deepSpiceDesc": "Lo strato più basso riceve termometri e gabbie-somma, e meno cifre date",
+  "deepSpiceRuleThermo": "Termometro: dal bulbo le cifre crescono — ognuna maggiore della precedente",
+  "deepSpiceRuleCage": "Le cifre crescono dal bulbo; una gabbia colorata dà la sua somma senza ripetizioni",
   // >>> SCREEN_STRINGS
 };
 export default t;

@@ -2086,6 +2086,10 @@ const t: Record<string, string> = {
   "friendsRemoveMutual": "{name} とのつながりを切りますか？つながりは相互です。相手の輪からもあなたが消えます。",
   "friendsRemoveConfirm": "つながりを切る",
   "friendsRemoveFailed": "つながりを切れませんでした——サーバーが応答しません。つながりはそのままです。",
+  "deepSpice": "深層のスパイス",
+  "deepSpiceDesc": "最下層に温度計と合計ケージが現れ、そのぶんヒントの数字は減ります",
+  "deepSpiceRuleThermo": "温度計：球から数字が大きくなる——次のマスは必ず前より大きい",
+  "deepSpiceRuleCage": "球から数字が増加。色付きケージは示された合計になり、重複なし",
   // >>> SCREEN_STRINGS
 };
 export default t;

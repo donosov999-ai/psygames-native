@@ -2095,6 +2095,10 @@ const t: Record<string, string> = {
   "friendsRemoveMutual": "{name} से जुड़ाव तोड़ें? जुड़ाव दोनों तरफ़ का है: आप उनके घेरे से भी हट जाएँगे।",
   "friendsRemoveConfirm": "जुड़ाव तोड़ें",
   "friendsRemoveFailed": "जुड़ाव नहीं टूट पाया — सर्वर ने जवाब नहीं दिया। वह जैसा था वैसा ही है।",
+  "deepSpice": "गहराई का मसाला",
+  "deepSpiceDesc": "सबसे निचली परत पर थर्मामीटर और योग-पिंजरे आएँगे, और दिए गए अंक कम हो जाएँगे",
+  "deepSpiceRuleThermo": "थर्मामीटर: बल्ब से अंक बढ़ते हैं — हर अगला पिछले से बड़ा",
+  "deepSpiceRuleCage": "बल्ब से अंक बढ़ते हैं; रंगीन पिंजरे का योग दिए अंक के बराबर, बिना दोहराव",
   // >>> SCREEN_STRINGS
 };
 export default t;

@@ -22,8 +22,10 @@
  * ⚠️ Блок «нарочно испорченного» в конце: если проверки не краснеют на подделке,
  * это не проверки. Без него «сумма сходится» зеленело бы и на доске без сумм.
  */
-import fs from 'fs';
-import path from 'path';
+declare const __dirname: string;
+declare function require(m: string): any;
+const fs = require('fs');
+const path = require('path');
 import {
   DEEP_N, childPath, materializeNode, spiceLeaf, type DeepCfg,
 } from '@/src/services/fractal-deep';

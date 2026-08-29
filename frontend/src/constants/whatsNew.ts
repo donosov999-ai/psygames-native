@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.13.0',
+    date: '2026-08-30',
+    ru: [
+      'Лестница уровней стала двусторонней ещё в десяти тренажёрах: раньше они умели только повышать, и после серии неудач человек упирался в уровень, который ему не даётся. Теперь третий провал подряд мягко опускает на ступень ниже — переигровка пройденного при этом не наказывается',
+      'У «Фрактала: Бездна» появилась приправа глубины: на нижнем слое включаются термометры и клетки-суммы, а подсказок становится меньше — решение остаётся единственным, это проверяется на каждой доске',
+      'У профиля «Языки / Полиглот» теперь свои фон главной и стиль карты уровней — он был единственным без них. Заодно четыре темы карт, которые выглядели почти одинаково, разведены по-настоящему',
+    ],
+    en: [
+      'Ten more trainers got a two-way ladder: they used to only go up, so after a losing streak you were stuck on a level that was too hard. Now a third loss in a row gently steps you down — replaying a cleared level is never punished',
+      '“Fractal: The Abyss” gained the spice of the deep: the bottom layer switches on thermometers and sum cages while giving fewer digits — the solution stays unique, and that is verified on every board',
+      'The “Languages / Polyglot” profile finally has its own home background and level-map style — it was the only one without them. Four map themes that looked nearly identical are now actually different',
+    ],
+  },
+  {
     version: '2.12.0',
     date: '2026-08-29',
     ru: [

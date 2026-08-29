@@ -32,6 +32,7 @@ const THEME_ART: Record<string, number> = {
   execs: require('../../assets/images/level-map-themes/execs.webp'),
   students: require('../../assets/images/level-map-themes/students.webp'),
   women: require('../../assets/images/level-map-themes/women.webp'),
+  polyglot: require('../../assets/images/level-map-themes/polyglot.webp'),
 };
 
 /** Арт темы профиля; неизвестный или служебный профиль получает нейтральный free. */

@@ -111,7 +111,8 @@ export const COSMETICS: Cosmetic[] = [
   { id: 'theme_execs',     type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'execs' },
   { id: 'theme_students',  type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'students' },
   { id: 'theme_women',     type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'women' },
-  // BACKGROUND — фоны главной (profileBackgrounds.ts, 9). Лесенка, чтобы полка не была плоской.
+  { id: 'theme_polyglot',  type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'polyglot' },
+  // BACKGROUND — фоны главной (profileBackgrounds.ts, 10). Лесенка, чтобы полка не была плоской.
   { id: 'bg_kids',      type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 900,  value: 'kids' },
   { id: 'bg_students',  type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1050, value: 'students' },
   { id: 'bg_seniors',   type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1050, value: 'seniors' },
@@ -121,6 +122,7 @@ export const COSMETICS: Cosmetic[] = [
   { id: 'bg_chess',     type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1500, value: 'chess' },
   { id: 'bg_nzt48',     type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1650, value: 'nzt48' },
   { id: 'bg_execs',     type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1800, value: 'execs' },
+  { id: 'bg_polyglot',  type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1200, value: 'polyglot' },
   // BADGE — значки профиля в чипе главной (profileBadges.ts, 12)
   { id: 'badge_free',      type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 900,  value: 'free' },
   { id: 'badge_kids',      type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 900,  value: 'kids' },

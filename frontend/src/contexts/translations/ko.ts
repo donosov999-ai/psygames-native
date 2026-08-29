@@ -2087,6 +2087,10 @@ const t: Record<string, string> = {
   "friendsRemoveMutual": "{name} 님과의 연결을 끊을까요? 연결은 서로 걸려 있어서, 상대의 서클에서도 내가 사라집니다.",
   "friendsRemoveConfirm": "연결 끊기",
   "friendsRemoveFailed": "연결을 끊지 못했습니다 — 서버가 응답하지 않았어요. 연결은 그대로입니다.",
+  "deepSpice": "심연의 양념",
+  "deepSpiceDesc": "맨 아래 층에 온도계와 합계 케이지가 생기고, 주어진 숫자는 줄어듭니다",
+  "deepSpiceRuleThermo": "온도계: 구에서 시작해 숫자가 커집니다 — 다음 칸은 항상 더 큽니다",
+  "deepSpiceRuleCage": "구에서 숫자가 커지고, 색 케이지는 표시된 합이 되며 중복이 없습니다",
   // >>> SCREEN_STRINGS
 };
 export default t;

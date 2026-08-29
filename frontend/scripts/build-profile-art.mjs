@@ -97,13 +97,55 @@ let total = 0;
 for (const [profile, t] of Object.entries(spec.themes)) {
   // seed фиксирован: у стохастических рецептов (brightness-noise) результат
   // обязан быть воспроизводимым — иначе каждый прогон меняет байты в git.
-  const outSurface = applyImageEffect(base, { id: t.effect, seed: 7 });
+  // Параметры рецепта (`params`) — то, чем один и тот же фильтр даёт РАЗНЫЕ темы.
+  // Без них тем ровно столько, сколько рецептов, и двенадцатому профилю достаётся
+  // единственный оставшийся — а он оказался самым тяжёлым (зерно, 225 КБ).
+  const outSurface = applyImageEffect(base, { id: t.effect, seed: 7, parameters: t.params });
   const file = join(outDir, `${profile}.webp`);
   await sharp(Buffer.from(outSurface.data.buffer, 0, outSurface.data.length), {
     raw: { width: outSurface.width, height: outSurface.height, channels: 4 },
   }).webp({ quality: 62 }).toFile(file);
   const kb = Math.round(readFileSync(file).length / 1024);
   total += kb;
-  console.log(`  ${profile.padEnd(10)} ${t.effect.padEnd(16)} ${kb} КБ`);
+  const tune = t.params ? ' ' + JSON.stringify(t.params) : '';
+  console.log(`  ${profile.padEnd(10)} ${(t.effect + tune).padEnd(28)} ${kb} КБ`);
 }
 console.log(`итого: ${Object.keys(spec.themes).length} тем, ${total} КБ`);
+
+/**
+ * 🔴 ТЕМЫ ОБЯЗАНЫ РАЗЛИЧАТЬСЯ, И ЭТО ПРОВЕРЯЕТСЯ ЧИСЛОМ, А НЕ ВЕРОЙ.
+ * Замер 29.08.2026: четыре темы из двенадцати оказались почти одинаковыми —
+ * drivers↔students 2,5 из 255, free↔drivers 3,1, free↔students 3,2,
+ * free↔seniors 3,4. Рецепты РАЗНЫЕ (color-planes, sharpen, water-colour, blur),
+ * а на этом арте все четыре давали один и тот же мягкий луг. То есть «двенадцать
+ * тем» было отчасти выдумкой, и заметить это можно только сравнив картинки.
+ *
+ * ⚠️ ПОРОГ — ПОЛ, А НЕ ВЕРДИКТ. Большое число не значит «красиво», малое не всегда
+ * значит «одинаково»: execs и polyglot отличаются на 13,6, но это металл против
+ * гравюры — разные материи. Поэтому здесь ловятся только клоны, а вид проверяется
+ * глазами по листу тем.
+ */
+const MIN_DIFF = 4;
+const thumbs = new Map();
+for (const profile of Object.keys(spec.themes)) {
+  thumbs.set(profile, await sharp(join(outDir, `${profile}.webp`)).resize(120, 68).raw().toBuffer());
+}
+const clones = [];
+const ids = [...thumbs.keys()];
+for (let i = 0; i < ids.length; i++) {
+  for (let j = i + 1; j < ids.length; j++) {
+    const a = thumbs.get(ids[i]);
+    const b = thumbs.get(ids[j]);
+    let sum = 0;
+    for (let k = 0; k < a.length; k++) sum += Math.abs(a[k] - b[k]);
+    const diff = sum / a.length;
+    if (diff < MIN_DIFF) clones.push(`${ids[i]} ↔ ${ids[j]}: ${diff.toFixed(1)} из 255`);
+  }
+}
+if (clones.length) {
+  console.error(`\n🔴 темы неразличимы (порог ${MIN_DIFF}):`);
+  for (const c of clones) console.error('  · ' + c);
+  console.error('  Лечится параметрами рецепта (`params` в profileThemes.json), а не новым фильтром.');
+  process.exit(1);
+}
+console.log(`различимость: все ${(ids.length * (ids.length - 1)) / 2} пар выше порога ${MIN_DIFF}`);
