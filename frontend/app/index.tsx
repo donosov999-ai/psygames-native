@@ -27,6 +27,7 @@ import { logoForProfile, logoPlateFor } from '@/src/constants/profileLogos';
 import { getEquippedFrameColor, getEquippedTitle, getEquippedAvatarKey } from '@/src/services/cosmetics';
 import { avatarImage } from '@/src/constants/avatars';
 import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
+import { wagerTick } from '@/src/services/wager';
 import { getTodayChallenge, challengeToParams, loadChallengeStreak, setPendingChallenge, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
 import { useAllLevelStars } from '@/src/hooks/useAllLevelStars';
 import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic, getMusicEnabled } from '@/src/services/feedback';
@@ -273,10 +274,15 @@ function FullHome() {
   useFocusEffect(useCallback(() => { setSlotNow(currentSlot()); }, []));
   const prevTokensRef = useRef<number | null>(null);
   const prevLevelRef = useRef<number | null>(null);
+  const [wagerToast, setWagerToast] = useState<{ kind: 'won' | 'lost'; amount: number } | null>(null);
   useFocusEffect(useCallback(() => {
     if (!profile?.id) return;
     (async () => {
       const ci = await dailyCheckIn(profile.id);   // T2: отметка дня + бонус токенов (раз в сутки)
+      // Ставка «всё или ничего»: свой счёт дней рядом с чек-ином (щит её не спасает).
+      const wg = await wagerTick(profile.id);
+      if (wg.kind === 'won') { setWagerToast({ kind: 'won', amount: wg.prize }); sndToken(); setTimeout(() => setWagerToast(null), 3200); }
+      else if (wg.kind === 'lost') { setWagerToast({ kind: 'lost', amount: wg.stake }); setTimeout(() => setWagerToast(null), 3200); }
       if (ci.isNew && ci.awarded > 0) { setStreakToast(ci.awarded); sndStreak(); setTimeout(() => setStreakToast(null), 2600); }
       setChallengeStreak(await loadChallengeStreak(profile.id));   // ежедневный вызов — стрик обновляем на фокусе
       const v = await getTokens(profile.id);
@@ -480,6 +486,17 @@ function FullHome() {
           <View style={{ backgroundColor: '#ef4444', paddingHorizontal: 18, paddingVertical: 9, borderRadius: 100, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Text style={{ fontSize: 16 }}>🎁</Text>
             <Text style={{ color: textOn('#ef4444'), fontWeight: '800', fontSize: 14 }}>+{streakToast} ⭐</Text>
+          </View>
+        </View>
+      )}
+      {/* Тост ставки: ниже стрик-тоста (top 122), чтобы при одновременном показе не перекрывались. */}
+      {wagerToast !== null && (
+        <View style={{ position: 'absolute', top: 122, left: 0, right: 0, alignItems: 'center', zIndex: 150 }} pointerEvents="none">
+          <View style={{ backgroundColor: wagerToast.kind === 'won' ? '#22c55e' : '#475569', paddingHorizontal: 18, paddingVertical: 9, borderRadius: 100, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={{ fontSize: 16 }}>{wagerToast.kind === 'won' ? '🏆' : '💸'}</Text>
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>
+              {t(wagerToast.kind === 'won' ? 'wagerWonToast' : 'wagerLostToast').replace('{n}', String(wagerToast.amount))}
+            </Text>
           </View>
         </View>
       )}

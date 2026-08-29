@@ -11,6 +11,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getTokens, spendTokens, checkInStreakRepairable, repairCheckInStreak } from '@/src/services/tokens';
+import { peekWager, placeWager, WagerState, WAGER_STAKE, WAGER_PRIZE, WAGER_DAYS } from '@/src/services/wager';
 import {
   ABILITIES, Ability, AbilityCounts, buyAbility, getAbilityCounts, useAbility,
 } from '@/src/services/abilities';
@@ -65,6 +66,7 @@ export default function ShopScreen() {
   // Что произошло с последней покупкой/тратой. ⚠️ Молча списывать нельзя: очки уходят,
   // а на экране меняется только число в углу — этого мало, чтобы понять, что случилось.
   const [note, setNote] = useState<string | null>(null);
+  const [wager, setWager] = useState<WagerState>({ kind: 'none' });   // ставка «всё или ничего»
 
   const reload = useCallback(async () => {
     const pid = profile?.id;
@@ -75,6 +77,7 @@ export default function ShopScreen() {
     setSoundPackState(await getSoundPack());
     setPetAcc(await getPetAccessory());
     setAbilities(await getAbilityCounts(pid));
+    setWager(await peekWager(pid));
   }, [profile?.id]);
 
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
@@ -161,6 +164,17 @@ export default function ShopScreen() {
    * `{count > 0 && <Text>…</Text>}` выглядит в исходнике живой, а на экране её нет
    * ровно у того, кто ещё ничего не купил, — то есть у всех, кому она и нужна.
    */
+  const placeWagerNow = async () => {
+    const pid = profile?.id;
+    if (!pid) return;
+    const ok = await placeWager(pid);
+    if (ok) {
+      sndCorrect();
+      setNote(`${t('wagerTitle')}: −${WAGER_STAKE} ⭐ · ${t('wagerDay').replace('{d}', '1').replace('{t}', String(WAGER_DAYS))}`);
+    }
+    await reload();
+  };
+
   const renderAbility = (a: Ability) => {
     const have = abilities[a.id] ?? 0;
     const usable = a.id === 'streak_shield';   // единственная, что применяется здесь; остальные тратятся в партии
@@ -318,6 +332,44 @@ export default function ShopScreen() {
             <Text style={[styles.hint, { color: colors.textSecondary, marginTop: 4, marginBottom: 6 }]}>
               {t('shopAbilityHint')}
             </Text>
+
+            {/* СТАВКА «ВСЁ ИЛИ НИЧЕГО» — недельный риск-контракт (С3 экономики).
+                Сгоревшая ставка показывается словами один раз (peek честно отдаёт lost),
+                дальше карточка возвращается к предложению новой. */}
+            <View style={[styles.row, { backgroundColor: colors.surface, borderColor: wager.kind === 'active' ? colors.primary : colors.border, borderWidth: wager.kind === 'active' ? 2 : 1 }]}>
+              <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+                <Ionicons name="flame" size={22} color={wager.kind === 'active' ? '#f59e0b' : colors.primary} />
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{t('wagerTitle')}</Text>
+                {wager.kind === 'active' ? (
+                  <>
+                    <Text style={{ color: colors.text, fontSize: 13, fontWeight: '700', marginTop: 3 }}>
+                      {t('wagerDay').replace('{d}', String(wager.daysDone)).replace('{t}', String(wager.daysTotal))} · +{wager.prize} ⭐
+                    </Text>
+                    <Text style={{ color: colors.textSecondary, fontSize: 15, marginTop: 3, letterSpacing: 2 }}>
+                      {'●'.repeat(wager.daysDone)}{'○'.repeat(Math.max(0, wager.daysTotal - wager.daysDone))}
+                    </Text>
+                  </>
+                ) : (
+                  <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 16 }}>
+                    {wager.kind === 'lost' ? t('wagerLostMsg') + ' ' : ''}
+                    {t('wagerDesc').replace('{stake}', String(WAGER_STAKE)).replace('{prize}', String(WAGER_PRIZE))}
+                  </Text>
+                )}
+              </View>
+              {wager.kind !== 'active' ? (
+                <View style={{ gap: 6, flexShrink: 0 }}>
+                  <TouchableOpacity
+                    accessibilityRole="button" onPress={placeWagerNow} disabled={balance < WAGER_STAKE}
+                    style={[styles.btn, { backgroundColor: balance >= WAGER_STAKE ? colors.primary : colors.border, opacity: balance >= WAGER_STAKE ? 1 : 0.6 }]}>
+                    <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>
+                      {balance >= WAGER_STAKE ? t('wagerPlace').replace('{n}', String(WAGER_STAKE)) : t('needMoreTokens')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+            </View>
           </>
         ) : null}
 

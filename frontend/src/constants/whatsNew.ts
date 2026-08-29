@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.1.0',
+    date: '2026-08-29',
+    ru: [
+      'Ставка «Всё или ничего» в магазине: поставь 300 ⭐ и заходи 7 дней подряд — заберёшь 600. Пропустишь день — ставка сгорит, и Щит серии её не спасёт. Для тех, кому наград уже некуда девать',
+    ],
+    en: [
+      '“All or Nothing” wager in the shop: stake 300 ⭐ and check in 7 days in a row to take 600. Miss a day and the stake burns — the Streak Shield won\'t save it. For those with nowhere left to spend rewards',
+    ],
+  },
+  {
     version: '2.0.0',
     date: '2026-08-28',
     ru: [
