@@ -16,13 +16,13 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
-    version: '1.256.1',
+    version: '2.0.0',
     date: '2026-08-28',
     ru: [
-      'Окно диалогов: в отзывах появилась вкладка «Диалог» — вся переписка с разработчиком как в мессенджере: твои сообщения, наши ответы и починки с версией. Спасибо NZT-48 — он спросил «а где окно диалогов?» раньше, чем мы его построили',
+      'PsyGames 2.0! Окно диалогов: в отзывах появилась вкладка «Диалог» — вся переписка с разработчиком как в мессенджере: твои сообщения, наши ответы и починки с версией. Спасибо NZT-48 — он спросил «а где окно диалогов?» раньше, чем мы его построили',
     ],
     en: [
-      'Dialog window: the feedback sheet gained a “Dialog” tab — your whole conversation with the developer like a messenger: your messages, our replies and fixes with versions. Thanks to NZT-48 — he asked “where is the dialog window?” before we built it',
+      'PsyGames 2.0! Dialog window: the feedback sheet gained a “Dialog” tab — your whole conversation with the developer like a messenger: your messages, our replies and fixes with versions. Thanks to NZT-48 — he asked “where is the dialog window?” before we built it',
     ],
   },
   {
