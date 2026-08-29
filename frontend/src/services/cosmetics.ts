@@ -5,7 +5,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { translateFor } from '@/src/contexts/LanguageContext';
 
-export type CosmeticType = 'accent' | 'sound' | 'frame' | 'title' | 'avatar' | 'pet';
+export type CosmeticType = 'accent' | 'sound' | 'frame' | 'title' | 'avatar' | 'pet' | 'digits' | 'theme' | 'background' | 'badge';
 
 export interface Cosmetic {
   id: string;
@@ -89,6 +89,51 @@ export const COSMETICS: Cosmetic[] = [
   { id: 'avatar_phoenix',   type: 'avatar', nameKey: 'cosName_avatar_phoenix',   descKey: 'cosDesc_avatar_generic', cost: 1500, value: 'avatar_phoenix' },
   { id: 'avatar_robot',     type: 'avatar', nameKey: 'cosName_avatar_robot',     descKey: 'cosDesc_avatar_generic', cost: 1500, value: 'avatar_robot' },
   { id: 'avatar_brain',     type: 'avatar', nameKey: 'cosName_avatar_brain',     descKey: 'cosDesc_avatar_brain',   cost: 1800, value: 'avatar_brain' },
+  // ─── ВИТРИНА ТЕМ (Т4+Т5 экономики, задача eddd19b9). Профильное оформление
+  //     продаётся КРОСС-ПРОФИЛЬНО: свой арт у профиля бесплатен (дефолт), чужой
+  //     покупается. Позиция «своего» арта скрывается фильтром в магазине.
+  //     value = ключ реестра арта; имя theme/background/badge — display_name
+  //     профиля в момент рендера (nameKey generic-запас). ───
+  // DIGITS — наборы рисованных цифр судоку (digitThemes.ts; candy — общий дефолт, бесплатен)
+  { id: 'digits_rainbow', type: 'digits', nameKey: 'cosName_digits_rainbow', descKey: 'cosDesc_digits_generic', cost: 1500, value: 'rainbow' },
+  { id: 'digits_pastel',  type: 'digits', nameKey: 'cosName_digits_pastel',  descKey: 'cosDesc_digits_generic', cost: 1500, value: 'pastel' },
+  { id: 'digits_neon',    type: 'digits', nameKey: 'cosName_digits_neon',    descKey: 'cosDesc_digits_generic', cost: 1500, value: 'neon' },
+  { id: 'digits_elegant', type: 'digits', nameKey: 'cosName_digits_elegant', descKey: 'cosDesc_digits_generic', cost: 1500, value: 'elegant' },
+  // THEME — 11 тем движка (подложка карты уровней, profileThemes.ts)
+  { id: 'theme_odv999',    type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'odv999' },
+  { id: 'theme_chess',     type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'chess' },
+  { id: 'theme_kids',      type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'kids' },
+  { id: 'theme_vasilyeva', type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'vasilyeva' },
+  { id: 'theme_nzt48',     type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'nzt48' },
+  { id: 'theme_free',      type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'free' },
+  { id: 'theme_drivers',   type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'drivers' },
+  { id: 'theme_seniors',   type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'seniors' },
+  { id: 'theme_execs',     type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'execs' },
+  { id: 'theme_students',  type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'students' },
+  { id: 'theme_women',     type: 'theme', nameKey: 'cosName_profile_item', descKey: 'cosDesc_theme_generic', cost: 2400, value: 'women' },
+  // BACKGROUND — фоны главной (profileBackgrounds.ts, 9). Лесенка, чтобы полка не была плоской.
+  { id: 'bg_kids',      type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 900,  value: 'kids' },
+  { id: 'bg_students',  type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1050, value: 'students' },
+  { id: 'bg_seniors',   type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1050, value: 'seniors' },
+  { id: 'bg_women',     type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1200, value: 'women' },
+  { id: 'bg_drivers',   type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1350, value: 'drivers' },
+  { id: 'bg_vasilyeva', type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1350, value: 'vasilyeva' },
+  { id: 'bg_chess',     type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1500, value: 'chess' },
+  { id: 'bg_nzt48',     type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1650, value: 'nzt48' },
+  { id: 'bg_execs',     type: 'background', nameKey: 'cosName_profile_item', descKey: 'cosDesc_background_generic', cost: 1800, value: 'execs' },
+  // BADGE — значки профиля в чипе главной (profileBadges.ts, 12)
+  { id: 'badge_free',      type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 900,  value: 'free' },
+  { id: 'badge_kids',      type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 900,  value: 'kids' },
+  { id: 'badge_students',  type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 1050, value: 'students' },
+  { id: 'badge_seniors',   type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 1050, value: 'seniors' },
+  { id: 'badge_women',     type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 1200, value: 'women' },
+  { id: 'badge_drivers',   type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 1200, value: 'drivers' },
+  { id: 'badge_vasilyeva', type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 1350, value: 'vasilyeva' },
+  { id: 'badge_polyglot',  type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 1350, value: 'polyglot' },
+  { id: 'badge_chess',     type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 1500, value: 'chess' },
+  { id: 'badge_nzt48',     type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 1650, value: 'nzt48' },
+  { id: 'badge_execs',     type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 1650, value: 'execs' },
+  { id: 'badge_odv999',    type: 'badge', nameKey: 'cosName_profile_item', descKey: 'cosDesc_badge_generic', cost: 1800, value: 'odv999' },
 ];
 
 const uKey = (pid: string) => `psygames_cosmetics_unlocked_${pid}`;
@@ -148,6 +193,16 @@ export async function getEquippedTitle(profileId: string, lang: string): Promise
   const c = COSMETICS.find((x) => x.id === id && x.type === 'title');
   if (!c) return null;
   return `${c.value} ${translateFor(lang, c.nameKey)}`;
+}
+
+// Value надетой вещи данного типа, или null (= дефолт профиля). Для профильных
+// типов витрины (digits/theme/background/badge) — единственная точка чтения.
+export async function getEquippedValue(profileId: string, type: CosmeticType): Promise<string | null> {
+  const eq = await getEquipped(profileId);
+  const id = eq[type];
+  if (!id) return null;
+  const c = COSMETICS.find((x) => x.id === id && x.type === type);
+  return c ? c.value : null;
 }
 
 // Ключ надетого аватара (для AVATAR_IMAGES в constants/avatars.ts), или null если не надет.

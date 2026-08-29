@@ -9,7 +9,8 @@ import { formatBestTime, getLevelBestTimes, showsBestTime, LevelTimes } from '@/
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { hasBoss, isBossLevel } from '@/src/constants/bosses';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
-import { themeArtFor } from '@/src/constants/profileThemes';
+import { themeArtFor, themeArtByKey } from '@/src/constants/profileThemes';
+import { getEquippedValue } from '@/src/services/cosmetics';
 
 /**
  * LevelProgressMap — ТРОПИНКА уровней: цепочка нейронов вдоль аксона, на текущем
@@ -216,6 +217,15 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel, bestL
   const cap = ladderCap(maxLevel, currentLevel, bestLevel);
   const { t } = useLanguage();   // язык из контекста; проп language остался в Props для совместимости
   const { profile } = useProfile();
+  // Витрина тем: купленная и надетая чужая тема перекрывает профильную (Т4).
+  const [themeOverride, setThemeOverride] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    // Без профиля override и так не читается ниже (?? профильный арт) — синхронный сброс не нужен.
+    if (profile?.id) getEquippedValue(profile.id, 'theme').then((v) => { if (alive) setThemeOverride(v); });
+    else Promise.resolve().then(() => { if (alive) setThemeOverride(null); });
+    return () => { alive = false; };
+  }, [profile?.id]);
   const [stars, setStars] = useState<StarsMap>({});
   const [times, setTimes] = useState<LevelTimes>({});
   const [skin, setSkin] = useState<PetSkin>('cat');
@@ -395,7 +405,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel, bestL
               поверх как раньше. resizeMode cover — арт вертикальный (720×1222), а
               полоса карты горизонтальная. Декорация: от чтения экрана скрыта. */}
           <Image
-            source={themeArtFor(profile?.id)}
+            source={(themeOverride ? themeArtByKey(themeOverride) : undefined) ?? themeArtFor(profile?.id)}
             style={{ position: 'absolute', left: 0, top: 0, width: totalW, height: H, opacity: 0.16, borderRadius: 10 }}
             resizeMode="cover"
             accessible={false}

@@ -641,7 +641,7 @@ export default function FeedbackWidget() {
                           одного устройства уехали немыми, а человек об этом не узнал.
                           Ширина с запасом ×140: обычная речь даёт пик 0.3–0.7, и без
                           усиления полоска еле шевелилась бы. */}
-                      {rec && (
+                      {rec && !rec.native && (
                         <View
                           accessibilityRole="progressbar"
                           accessibilityLabel={t('voiceLevelLabel')}
@@ -659,7 +659,14 @@ export default function FeedbackWidget() {
                           она мигала бы «слышим / не слышим» в паузах между словами.
                           Про тишину говорим не сразу — первые секунды человек ещё
                           подносит телефон и молчит. */}
-                      {rec && (lvl.peak >= SILENCE_PEAK || lvl.sec >= 3) && (
+                      {/* Нативная запись за мостом: уровня физически нет — говорим
+                          «идёт запись» вместо полоски, которая показала бы ложную тишину. */}
+                      {rec?.native && (
+                        <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: '700' }}>
+                          {t('voiceRecordingNative')}
+                        </Text>
+                      )}
+                      {rec && !rec.native && (lvl.peak >= SILENCE_PEAK || lvl.sec >= 3) && (
                         <Text style={{
                           color: lvl.peak >= SILENCE_PEAK ? '#22c55e' : '#b45309',
                           fontSize: 12, fontWeight: '700',
