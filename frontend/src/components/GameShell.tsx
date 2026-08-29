@@ -41,11 +41,13 @@
  * она смонтирована глобально в _layout и иначе перекрывает крайнюю кнопку.
  */
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceEventEmitter } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceEventEmitter, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { useWarmupSafe } from '@/src/contexts/WarmupContext';
+import { GAMES } from '@/src/constants/games';
 import { isRTLLang } from '@/src/services/rtl';
 import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
@@ -180,6 +182,29 @@ export default function GameShell({
   // v1.160: пока открыт отзыв — игра на паузе (репорт Вали «писала отзыв, пауза
   // не наступила, и теперь не понимаю, что за игра»). Оверлей ловит тапы, чтобы
   // не проиграть вслепую, и возвращает контекст после закрытия окна.
+  /**
+   * З5 (29.08.2026): страховка от застревания в зарядке. Переход к следующему
+   * шагу живёт на слушателе saveSession — игра, упавшая ДО записи сессии,
+   * подвешивала комплекс без пути вперёд (только выход домой с потерей серии).
+   * Кнопка в шапке видна ровно во время зарядки и пропускает шаг с ПОДТВЕРЖДЕНИЕМ
+   * и именем игры — класс Валиного «что значит 1 игра была пропущена» (v1.166):
+   * безымянный skip читается как «пропустить ожидание».
+   */
+  const wu = useWarmupSafe();
+  const wuStep = wu?.active ? wu.currentStep : null;
+  const wuSkip = () => {
+    if (!wu || !wuStep) return;
+    const g = GAMES.find((x) => x.id === wuStep.game_id);
+    Alert.alert(
+      t('skipStep'),
+      `${t('skipGameNamed')} ${g ? t(g.nameKey) : wuStep.game_id}?`,
+      [
+        { text: t('btn_cancel'), style: 'cancel' },
+        { text: t('skipStep'), style: 'destructive', onPress: () => wu.skipCurrent() },
+      ],
+    );
+  };
+
   const [paused, setPaused] = React.useState(isGameHeld());
   React.useEffect(() => onGameHold((v) => {
     setPaused(v);
@@ -305,9 +330,20 @@ export default function GameShell({
         <View
           style={[
             styles.headerRight,
-            headerRight ? (rtl ? { marginLeft: HELP_FAB_GUTTER } : { marginRight: HELP_FAB_GUTTER }) : null,
+            (headerRight || wuStep) ? (rtl ? { marginLeft: HELP_FAB_GUTTER } : { marginRight: HELP_FAB_GUTTER }) : null,
           ]}
         >
+          {wuStep ? (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={t('skipStep')}
+              testID="warmup-skip-step"
+              onPress={wuSkip}
+              style={styles.wuSkipBtn}
+            >
+              <Ionicons name="play-skip-forward" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          ) : null}
           {headerRight}
         </View>
       </View>
@@ -407,6 +443,7 @@ export default function GameShell({
 }
 
 const styles = StyleSheet.create({
+  wuSkipBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   root: { flex: 1 },
   // Слой итога. Своего фона нет: затемнение рисует сама карточка — так она решает,
   // насколько глушить доску, а каркас не навязывает.

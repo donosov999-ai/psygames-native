@@ -1,4 +1,5 @@
 import GradientSurface from '@/src/components/GradientSurface';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { textOn, onGradientText, onGradientTextMuted, innerScrim } from '@/src/services/onGradientText';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -118,6 +119,13 @@ function FullHome() {
   const eveningMeta = buildEveningWarmupPlaylist({ weekday: getCurrentWeekday(), profileEvening: profile.evening_playlist });   // вечер: ротация по дню (или профильный фикс)
   const { width: winWidth } = useWindowDimensions();
   const [duration, setDuration] = useState<5 | 10 | 15>(5);
+  // З1: длительность выбирается в пикере и запоминается — превью на главной
+  // обязано считаться той же цифрой, иначе карточка обещает не тот набор.
+  useFocusEffect(useCallback(() => {
+    AsyncStorage.getItem('psygames_warmup_duration')
+      .then((v: string | null) => { const n = Number(v); setDuration(n === 10 || n === 15 ? (n as 10 | 15) : 5); })
+      .catch(() => {});
+  }, []));
   const [history, setHistory] = useState<WarmupHistoryEntry[]>([]);
   const [streak, setStreak] = useState(0);
 

@@ -60,3 +60,4 @@ PSYGAMES_MERGE_PLAN.md
 frontend/.report-media/
 # Локальная раздача собранного веба, 40 МБ, пересобирается из исходников.
 frontend/dist_serve/
+supabase/.temp/

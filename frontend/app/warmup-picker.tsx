@@ -36,6 +36,8 @@ import { getAssessmentStatus } from '@/src/services/assessment';
 import { SERIES_KEYS, SeriesKey, seriesPlaylist, seriesProfileFlag, seriesKind, seriesBlockCount, seriesGameId, launchPlanFor } from '@/src/services/warmupEntries';
 import { a11yBtn, a11yModal } from '@/src/services/a11y';
 import { goBackOrHome } from '@/src/utils/nav';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GAMES } from '@/src/constants/games';
 
 const ORDER: WarmupSlot[] = ['morning', 'day', 'evening', 'night'];
 
@@ -94,6 +96,23 @@ export default function WarmupPicker() {
   // Предвыбор по часам. Считаем ОДИН раз при открытии: если человек сидит на
   // экране в 17:59, переключать выбор у него под пальцем нельзя.
   const [picked, setPickedRaw] = React.useState<PickKey>(() => currentSlot());
+  /**
+   * З1 (29.08.2026): выбор длительности утра вернулся. Селектор 5/10/15 пропал
+   * при схлопывании карточек в одну кнопку (setDuration остался без вызовов), и
+   * кнопка всегда запускала 5 минут — а при 5 утро выдаёт только ядро-снимок,
+   * то есть недельная сетка тренировок была недостижима из приложения.
+   * Выбор запоминается: завтра зарядка стартует той же длины без лишнего тапа.
+   */
+  const [mDur, setMDur] = React.useState<5 | 10 | 15>(5);
+  React.useEffect(() => {
+    AsyncStorage.getItem('psygames_warmup_duration')
+      .then((v) => { const n = Number(v); if (n === 10 || n === 15) setMDur(n as 10 | 15); })
+      .catch(() => {});
+  }, []);
+  const pickDur = (d: 5 | 10 | 15) => {
+    setMDur(d);
+    AsyncStorage.setItem('psygames_warmup_duration', String(d)).catch(() => {});
+  };
   const [helpOpen, setHelpOpen] = React.useState(false);
   // Состояние серий приехало сюда вместе с карточками с главной.
   const [finCooldown, setFinCooldown] = React.useState<{ ready: boolean; daysLeft: number }>({ ready: true, daysLeft: 0 });
@@ -133,7 +152,7 @@ export default function WarmupPicker() {
       case 'evening': {
         const morning = profile.morning_playlist?.length
           ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, (g: string) => isGameAllowed(profile, g))
-          : buildMorningWarmupPlaylist({ duration: 5, weekday: wd, profilePlaylists: profile.custom_playlists, allow: (g: string) => isGameAllowed(profile, g) });
+          : buildMorningWarmupPlaylist({ duration: 15, weekday: wd, profilePlaylists: profile.custom_playlists, allow: (g: string) => isGameAllowed(profile, g) });
         return buildEveningWarmupPlaylist({
           weekday: wd,
           excludeGameIds: morning.steps.map((s) => s.game_id),
@@ -147,9 +166,9 @@ export default function WarmupPicker() {
       default:
         return profile.morning_playlist?.length
           ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, (g: string) => isGameAllowed(profile, g))
-          : buildMorningWarmupPlaylist({ duration: 5, weekday: wd, profilePlaylists: profile.custom_playlists, allow: (g: string) => isGameAllowed(profile, g) });
+          : buildMorningWarmupPlaylist({ duration: mDur, weekday: wd, profilePlaylists: profile.custom_playlists, allow: (g: string) => isGameAllowed(profile, g) });
     }
-  }, [wd, profile]);
+  }, [wd, profile, mDur]);
 
   // Пустой набор — не выбор. Среда у нас день отдыха, и утренний плейлист в этот
   // день пуст; предвыбранное по часам «Утро» показывало бы «0 игр», а «Начать»
@@ -198,7 +217,7 @@ export default function WarmupPicker() {
       case 'day':     warmup.startDay(); break;
       case 'night':   warmup.startNight(); break;
       case 'evening': warmup.startEvening(); break;
-      default:        warmup.startWarmup(5); break;
+      default:        warmup.startWarmup(mDur); break;
     }
   };
 
@@ -270,6 +289,44 @@ export default function WarmupPicker() {
             <Text style={[styles.cardNote, { color: TINT[slot][1] }]}>
               {slot === 'assessment' && assessDays !== null ? `${t('seriesFixedNote')} · ${assessDays}${t('unitDayShort')}` : t('seriesFixedNote')}
             </Text>
+          )}
+          {/* З1: длительность утра — чипы прямо на карточке. Фикс-набору профиля
+              длительность не управляется, там чипов нет. */}
+          {slot === 'morning' && on && !profile.morning_playlist?.length && (
+            <View style={styles.durRow}>
+              {([5, 10, 15] as const).map((d) => (
+                <TouchableOpacity
+                  key={d}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: mDur === d }}
+                  accessibilityLabel={`${d} ${t('unitMin')}`}
+                  onPress={() => pickDur(d)}
+                  style={[styles.durChip, {
+                    backgroundColor: mDur === d ? TINT.morning[0] : 'transparent',
+                    borderColor: mDur === d ? TINT.morning[0] : colors.border,
+                  }]}
+                >
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: mDur === d ? '#fff' : colors.text }}>
+                    {d} {t('unitMin')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+          {/* З6: состав набора виден ДО старта. Только на выбранной карточке —
+              иначе экран превращается в четыре простыни. Серии блоков без списка:
+              их ведёт сама игра. */}
+          {on && !off && !(series && seriesKind(slot as SeriesKey) === 'blocks') && meta.steps.length > 0 && (
+            <View style={styles.stepsList}>
+              {meta.steps.map((st: { game_id: string; est_duration_sec: number }, i: number) => {
+                const g = GAMES.find((x) => x.id === st.game_id);
+                return (
+                  <Text key={`${st.game_id}-${i}`} style={[styles.stepLine, { color: colors.textSecondary }]} numberOfLines={1}>
+                    {i + 1}. {g ? t(g.nameKey) : st.game_id} · ~{Math.max(1, Math.round(st.est_duration_sec / 60))} {t('unitMin')}
+                  </Text>
+                );
+              })}
+            </View>
           )}
         </View>
         {on && <Ionicons name="checkmark-circle" size={22} color={TINT[slot][0]} />}
@@ -376,6 +433,10 @@ const styles = StyleSheet.create({
   groupTitle: { fontSize: 15, fontWeight: '700' },
   groupNote: { fontSize: 12, lineHeight: 17 },
   cardNote: { fontSize: 11.5, fontWeight: '700', marginTop: 3, lineHeight: 15 },
+  durRow: { flexDirection: 'row', gap: 6, marginTop: 7 },
+  durChip: { minHeight: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  stepsList: { marginTop: 7, gap: 2 },
+  stepLine: { fontSize: 11.5, lineHeight: 15.5 },
   bar: { flexDirection: 'row', gap: 10, paddingHorizontal: 14, paddingTop: 10, borderTopWidth: 1 },
   helpBtn: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 13, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1 },
   helpText: { fontSize: 14, fontWeight: '700' },

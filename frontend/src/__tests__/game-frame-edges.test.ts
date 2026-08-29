@@ -112,8 +112,11 @@ describe('слот шапки не под глобальной справкой'
   });
 
   it('🔴 непустой слот отодвинут от края, и в RTL — в другую сторону', () => {
+    // З5 (29.08.2026): «непустой» теперь включает и страховочную кнопку пропуска
+    // шага зарядки (wuStep) — она живёт в том же слоте и так же не должна
+    // прятаться под глобальной справкой.
     expect(SHELL).toMatch(
-      /headerRight \? \(rtl \? \{ marginLeft: HELP_FAB_GUTTER \} : \{ marginRight: HELP_FAB_GUTTER \}\) : null/,
+      /\(headerRight \|\| wuStep\) \? \(rtl \? \{ marginLeft: HELP_FAB_GUTTER \} : \{ marginRight: HELP_FAB_GUTTER \}\) : null/,
     );
   });
 
@@ -122,7 +125,7 @@ describe('слот шапки не под глобальной справкой'
    * центрированный заголовок на всех экранах ради одной Шульте.
    */
   it('пустой слот остаётся без отступа', () => {
-    expect(SHELL).toMatch(/headerRight \? \([^)]*\) : null/);
+    expect(SHELL).toMatch(/\(headerRight \|\| wuStep\) \? \([^)]*\) : null/);
   });
 
   /**

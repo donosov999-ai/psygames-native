@@ -8,7 +8,7 @@
  * «ядро всегда ОДНО И ТО ЖЕ»: сборка двух разных дней даёт байт-в-байт
  * одинаковую голову плейлиста.
  */
-import { SNAPSHOT_CORE, buildMorningWarmupPlaylist, type Weekday } from '@/src/services/warmup';
+import { SNAPSHOT_CORE, CORE_DAYS, buildMorningWarmupPlaylist, trainingSetFor, type Weekday } from '@/src/services/warmup';
 
 describe('ядро-снимок зарядки', () => {
   it('пять доменов, каждый шаг полностью определён и помечен замерным', () => {
@@ -29,9 +29,18 @@ describe('ядро-снимок зарядки', () => {
     expect(`${total} с = ${(total / 60).toFixed(1)} мин`).toBe('380 с = 6.3 мин');
   });
 
-  it('🔴 два разных дня начинаются ОДНИМ И ТЕМ ЖЕ ядром — конфигурация неизменна', () => {
+  /**
+   * З2 (29.08.2026, решение Дениса по чек-листу зарядок): ядро идёт НЕ каждый
+   * день — только ПН/ЧТ/ВС. Ежедневный снимок надоедал и портил сравнимость
+   * (тренировался сам тест), а тренировочная сетка недели была недостижима.
+   */
+  it('дни ядра — ровно ПН/ЧТ/ВС', () => {
+    expect([...CORE_DAYS].sort()).toEqual([0, 1, 4]);
+  });
+
+  it('🔴 ядровые дни начинаются ОДНИМ И ТЕМ ЖЕ ядром — конфигурация неизменна', () => {
     const heads: string[] = [];
-    for (const wd of [1, 2, 3, 5, 6] as Weekday[]) {   // тренировочные дни
+    for (const wd of [...CORE_DAYS] as Weekday[]) {
       const meta = buildMorningWarmupPlaylist({ duration: 10, weekday: wd });
       const head = meta.steps.slice(0, SNAPSHOT_CORE.length);
       heads.push(JSON.stringify(head.map((s) => [s.game_id, s.difficulty, s.mode ?? null, s.trials ?? null])));
@@ -39,6 +48,19 @@ describe('ядро-снимок зарядки', () => {
     expect(new Set(heads).size).toBe(1);
     // И это ядро — именно SNAPSHOT_CORE, а не случайно совпавшие головы.
     expect(heads[0]).toBe(JSON.stringify(SNAPSHOT_CORE.map((s) => [s.game_id, s.difficulty, s.mode ?? null, s.trials ?? null])));
+  });
+
+  it('🔴 неядровый день — тренировка дня, сетка недели достижима с кнопки (З1+З2)', () => {
+    for (const wd of [2, 3, 5, 6] as Weekday[]) {
+      const meta = buildMorningWarmupPlaylist({ duration: 5, weekday: wd });
+      const ids = meta.steps.map((s) => s.game_id);
+      // Ядра нет…
+      expect(`день ${wd}: baseline=${meta.steps.some((s) => s.is_fixed_baseline)}`).toBe(`день ${wd}: baseline=false`);
+      // …а шаги — из сетки ЭТОГО дня (духа недели: ВТ фокус, СР память, …).
+      const daySet = new Set(trainingSetFor(wd).map((s) => s.game_id));
+      for (const id of ids) expect(`день ${wd}: ${id} из сетки ${daySet.has(id)}`).toBe(`день ${wd}: ${id} из сетки true`);
+      expect(ids.length).toBeGreaterThan(0);
+    }
   });
 
   it('замерные дни (ЧТ/ВС) несут то же ядро — канон замера один', () => {
@@ -51,7 +73,7 @@ describe('ядро-снимок зарядки', () => {
   });
 
   it('хвост не повторяет игры ядра — иначе flanker игрался бы дважды за утро', () => {
-    for (const wd of [0, 1, 2, 3, 4, 5, 6] as Weekday[]) {
+    for (const wd of [...CORE_DAYS] as Weekday[]) {
       const meta = buildMorningWarmupPlaylist({ duration: 15, weekday: wd });
       const tail = meta.steps.slice(SNAPSHOT_CORE.length);
       const dup = tail.filter((s) => SNAPSHOT_CORE.some((c) => c.game_id === s.game_id)).map((s) => s.game_id);
@@ -59,8 +81,8 @@ describe('ядро-снимок зарядки', () => {
     }
   });
 
-  it('кнопка «5 минут» отдаёт ядро ЦЕЛИКОМ — половина снимка не снимок', () => {
-    const meta = buildMorningWarmupPlaylist({ duration: 5, weekday: 2 });
+  it('кнопка «5 минут» в ядровый день отдаёт ядро ЦЕЛИКОМ — половина снимка не снимок', () => {
+    const meta = buildMorningWarmupPlaylist({ duration: 5, weekday: 1 });
     expect(meta.steps.slice(0, SNAPSHOT_CORE.length).map((s) => s.game_id))
       .toEqual(SNAPSHOT_CORE.map((s) => s.game_id));
   });

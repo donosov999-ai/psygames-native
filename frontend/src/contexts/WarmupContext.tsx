@@ -117,7 +117,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     // утро сегодня → дедуп: вечер не повторяет утренние игры (утро≠вечер)
     const morning = profile.morning_playlist && profile.morning_playlist.length > 0
       ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, allow)
-      : buildMorningWarmupPlaylist({ duration: 5, weekday: wd, profilePlaylists: profile.custom_playlists, allow });
+      : buildMorningWarmupPlaylist({ duration: 15, weekday: wd, profilePlaylists: profile.custom_playlists, allow });
     const meta = buildEveningWarmupPlaylist({ weekday: wd, excludeGameIds: morning.steps.map((s) => s.game_id), profileEvening: profile.evening_playlist, allow });
     const warmupId = genUUID();
     setState({
@@ -229,6 +229,22 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const stopWarmup = useCallback(async (completed = false) => {
     if (state.meta) {
       const totalScore = state.results.reduce((a, b) => a + (b.score || 0), 0);
+      /**
+       * З3: очки ядра — только когда ядро сыграно ЦЕЛИКОМ и по порядку.
+       * Ядро всегда впереди набора; сверяем первые k результатов с первыми k
+       * шагами поимённо. Скип любого ядрового шага (результата нет → имена
+       * съезжают) честно оставляет поле пустым: половина снимка — не снимок.
+       * ⚠️ По одним именам без is_fixed_baseline нельзя: flanker живёт и в ядре,
+       * и в ПТ-тренировке — тренировочный счёт попал бы в ряд замера.
+       */
+      const coreSteps = state.meta.steps.filter((st) => st.is_fixed_baseline);
+      const k = coreSteps.length;
+      const coreOrdered = k > 0 && state.meta.steps.slice(0, k).every((st) => st.is_fixed_baseline);
+      const corePlayed = coreOrdered && state.results.length >= k
+        && state.results.slice(0, k).every((r, i) => r.game_type === state.meta!.steps[i].game_id);
+      const coreScore = corePlayed
+        ? state.results.slice(0, k).reduce((a, b) => a + (b.score || 0), 0)
+        : undefined;
       const entry: WarmupHistoryEntry = {
         date: todayDateKey(),
         weekday: state.meta.weekday,
@@ -238,6 +254,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
         completed,
         steps_done: state.results.length,
         steps_total: state.meta.steps.length,
+        ...(coreScore !== undefined ? { core_score: coreScore } : {}),
       };
       await saveWarmupHistory(entry);
     }
@@ -325,4 +342,9 @@ export function useWarmup(): WarmupCtx {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error('useWarmup must be inside WarmupProvider');
   return ctx;
+}
+
+/** Как useWarmup, но вне провайдера возвращает null (для глобальных компонентов вроде GameShell). */
+export function useWarmupSafe(): WarmupCtx | null {
+  return useContext(Ctx);
 }

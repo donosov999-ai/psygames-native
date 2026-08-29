@@ -141,7 +141,7 @@ const WEEKDAY_NAMES = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
  * не случайный: набор дня осмысленный (понедельник мягче, пятница нагруженнее),
  * и «вчерашняя тренировка» ближе по смыслу, чем набор с другого конца недели.
  */
-function trainingSetFor(weekday: Weekday): PlaylistStep[] {
+export function trainingSetFor(weekday: Weekday): PlaylistStep[] {
   for (let i = 0; i < 7; i++) {
     const d = (((weekday - i) % 7) + 7) % 7 as Weekday;
     const set = TRAINING_BY_WEEKDAY[d];
@@ -203,6 +203,16 @@ const keepAllowed = (steps: PlaylistStep[], allow?: AllowFn): PlaylistStep[] => 
  * запрещает само ТЗ (часть 5: короткая проба даёт шум). Если по часам снимок
  * не влезет в желаемое — решение «что резать: пробы или домен» за Денисом.
  */
+/**
+ * З2 (29.08.2026, чек-лист зарядок): ядро-снимок идёт НЕ каждый день.
+ * Ежедневный замер надоедает («каждое утро одни и те же 5 игр») и портит
+ * сравнимость — тренируется сам тест. ПН — тренировочный день с ядром впереди
+ * (свежая неделя, честная точка), ЧТ/ВС — замерные дни (peak/baseline), там
+ * ядро обязательно по построению. Остальные утра — чистая тренировка дня:
+ * сетка TRAINING_BY_WEEKDAY снова достижима.
+ */
+export const CORE_DAYS: ReadonlySet<Weekday> = new Set<Weekday>([1, 4, 0]);
+
 export const SNAPSHOT_CORE: PlaylistStep[] = [
   { game_id: 'corsi',           game_route: '/games/corsi',           difficulty: 'medium', mode: 'forward', est_duration_sec: 60, is_fixed_baseline: true },
   { game_id: 'sdmt',            game_route: '/games/sdmt',            difficulty: 'medium', mode: '60s',     est_duration_sec: 70, is_fixed_baseline: true },
@@ -534,7 +544,7 @@ export function buildMorningWarmupPlaylist(opts: {
      * Профилю без пяти игр ядра (урезанный каталог) ядро не ставим вовсе —
      * запись «замера» из трёх игр испортила бы ряд сравнения молча.
      */
-    const coreOk = SNAPSHOT_CORE.every((c) => !allow || allow(c.game_id));
+    const coreOk = CORE_DAYS.has(weekday) && SNAPSHOT_CORE.every((c) => !allow || allow(c.game_id));
     const core = coreOk ? SNAPSHOT_CORE.map((c) => ({ ...c })) : [];
     // Хвост не повторяет игры ядра: вторник нёс flanker/sdmt/rotation — с ядром
     // человек играл бы их дважды за утро. Домен ядром уже тренирован.
@@ -720,6 +730,14 @@ export interface WarmupHistoryEntry {
   completed: boolean;      // finished all steps vs aborted
   steps_done: number;
   steps_total: number;
+  /**
+   * З3: сумма очков по шагам ядра-снимка (is_fixed_baseline), когда ядро сыграно
+   * ЦЕЛИКОМ и по порядку. Вердикт «Мозг сегодня» сравнивает ЭТО поле, а не
+   * total_score: составы зарядок разные (5 и 10 минут, с ядром и без), и
+   * сравнение полных сумм означало бы «мозг просел» при «зарядка была короче».
+   * Отсутствует у старых записей и у зарядок без ядра.
+   */
+  core_score?: number;
 }
 
 /**
@@ -953,15 +971,22 @@ export function brainTodayVerdict(history: WarmupHistoryEntry[], lang: string = 
   delta_pct: number;
   message: string;
 } | null {
-  const completed = history.filter((h) => h.completed);
-  if (completed.length < 5) return null;        // need baseline
-  const last = completed[completed.length - 1];
-  const prev = completed.slice(-11, -1);        // 10 before last
+  /**
+   * З3 (29.08.2026): сравниваем ТОЛЬКО ядро с ядром. total_score зарядок
+   * несравним по построению — состав и длительность плавают (5/10/15 минут,
+   * тренировка дня без ядра). Вердикт молчит, пока не накопится база из
+   * ядровых записей, — честнее, чем дельта, означающая «сегодня было короче».
+   */
+  const cored = history.filter((h) => h.completed && (h.core_score ?? 0) > 0);
+  if (cored.length < 4) return null;            // сегодняшняя + ≥3 базы
+  const last = cored[cored.length - 1];
+  if (last.date !== todayDateKey()) return null; // сегодня ядра не было — сравнивать нечего
+  const prev = cored.slice(-11, -1);
   if (prev.length < 3) return null;
-  const sorted = [...prev.map((h) => h.total_score)].sort((a, b) => a - b);
+  const sorted = [...prev.map((h) => h.core_score!)].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
   if (median === 0) return null;
-  const delta = ((last.total_score - median) / median) * 100;
+  const delta = ((last.core_score! - median) / median) * 100;
   // Тексты вердикта — в словаре LanguageContext (brainDelta*, все 12 языков, {d} = ±NN).
   // Сервис вне React-дерева → translateFor(lang, key).
   const d = `${delta >= 0 ? '+' : ''}${delta.toFixed(0)}`;
