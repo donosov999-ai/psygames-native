@@ -264,10 +264,12 @@ export function materializeNode(seed: string, path: DeepPath, cfg: DeepCfg, feed
   const seasoning: DeepSeasoning = cfg.spice && pick.feedCells.length === 0
     ? spiceLeaf(seed, path, pick.puzzle, solution)
     : { spice: 'none', dug: 0 };
-  // Выкопанные цифры меняют число дырок — иначе порог открытия считался бы по старому.
+  // Выкопанные цифры меняют число дырок — значит и порог открытия. Считать его по
+  // додырочному числу значило бы открывать узел раньше объявленной доли.
   let blanks = 0;
   for (let r = 0; r < DEEP_N; r++) for (let c = 0; c < DEEP_N; c++) if (pick.puzzle[r]![c] === 0) blanks++;
-  return { ...pick, blanks, solution, ...seasoning };
+  const unlockCells = Math.max(1, Math.min(blanks, Math.ceil(blanks * cfg.unlockShare)));
+  return { ...pick, blanks, unlockCells, solution, ...seasoning };
 }
 
 /**
