@@ -16,6 +16,7 @@
  * платформу и экран. Ни имени, ни почты, ни личных данных.
  */
 import { Platform } from 'react-native';
+import { readCrumbs, readConsoleErrors } from '@/src/services/crumbs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSupabase, supabaseNetInfo, altSupabase, altBaseName } from '@/src/services/supabase';
 
@@ -396,6 +397,14 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
          * потому что режим в репорте отсутствовал вовсе.
          */
         ...(readFeedbackGameState() ? { game_state: readFeedbackGameState() } : {}),
+        /**
+         * Траектория и консоль (контракт §3.1, приём багфикс-чата): 20 последних
+         * шагов (экраны + game_state-ярлыки) и 10 последних console.error. «Ур.45/8»
+         * разбирался час без пути до бага — крошки дают путь, ошибки — то, что
+         * в живом WebView никто никогда не увидит.
+         */
+        steps: readCrumbs(),
+        console_errors: readConsoleErrors(),
         viewport: detectViewport(),
         /**
          * 🔴 СЕТЕВОЙ СЛЕД. Жалоба «работает только с впн» пришла ТРИ РАЗА —

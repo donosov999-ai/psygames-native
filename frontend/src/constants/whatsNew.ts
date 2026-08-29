@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.5.0',
+    date: '2026-08-29',
+    ru: [
+      'Отчёты о проблемах стали зорче: каждый теперь несёт последние 20 шагов по приложению и 10 ошибок консоли — починки будут находить причину быстрее',
+    ],
+    en: [
+      'Problem reports got sharper: each now carries your last 20 in-app steps and 10 console errors — fixes will find the cause faster',
+    ],
+  },
+  {
     version: '2.4.0',
     date: '2026-08-29',
     ru: [

@@ -1,4 +1,5 @@
 import React from 'react';
+import { hookConsoleErrors } from '@/src/services/crumbs';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,6 +30,9 @@ import { repairWarmupHistoryOnce, loadWarmupHistory } from '@/src/services/warmu
 import { grantWarmupCompensationOnce } from '@/src/services/tokens';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getSessions } from '@/src/services/api';
+
+// Крошки репорта (§3.1): консоль-ошибки ловятся с первого кадра приложения.
+hookConsoleErrors();
 
 /** Тап по локальному напоминанию → запуск комплекса (натив-only). */
 function NotificationTapHandler() {
