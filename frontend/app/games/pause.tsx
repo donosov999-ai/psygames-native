@@ -45,6 +45,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import {
   PRACTICE_CATALOG,
+  text as catalogText,
   getDefaultPracticeSets,
   type PauseLocale,
   type PlanMode,
@@ -237,10 +238,17 @@ export default function PauseGame() {
         { label: tr({ ru: 'Минут', en: 'Minutes' }), value: String(last ? Math.round(last.durationMs / 60_000) : 0), icon: 'time-outline' },
         { label: tr({ ru: 'Наборов', en: 'Sets' }), value: String(last ? last.completedSetIds.length : 0), icon: 'body-outline' },
       ]}
-      metricsNote={[tr({
-        ru: 'Сохраняются только завершение и время — без оценок.',
-        en: 'Only completion and time are recorded — no scoring.',
-      })]}
+      metricsNote={[
+        /* Р7 (29.08): ЧТО именно пройдено — имена практик, не только счёт. */
+        ...(last ? last.completedSetIds
+          .map((id) => PRACTICE_CATALOG.find((set) => set.id === id))
+          .filter((set): set is NonNullable<typeof set> => Boolean(set))
+          .map((set) => `✓ ${catalogText(set.title, locale)}`) : []),
+        tr({
+          ru: 'Сохраняются только завершение и время — без оценок.',
+          en: 'Only completion and time are recorded — no scoring.',
+        }),
+      ]}
       onPlayAgain={() => { setLast(null); setStarted(false); setPhase('config'); }}
       onGoHome={() => goBackOrHome()}
     />
