@@ -42,7 +42,7 @@ ATENCIÓN Y CONCENTRACIÓN
 Practica el enfoque con tablas de Schulte, encuentra las diferencias, la tarea de Posner y Flanker. Mantén la concentración entre mensajes, ruido e interrupciones.
 
 LÓGICA Y ROMPECABEZAS
-Resuelve juegos de lógica: Sudoku con 12 variantes de reglas, Torres de Hanói, Torre de Londres, SET y anagramas. Piensa varios movimientos antes de la respuesta más evidente.
+Resuelve juegos de lógica: Sudoku con 15 variantes de reglas, Torres de Hanói, Torre de Londres, SET y anagramas. Piensa varios movimientos antes de la respuesta más evidente.
 
 RAPIDEZ MENTAL Y REACCIÓN
 Entrena reflejos, cálculo mental y control cognitivo con Stroop, Go/No-Go, operaciones contrarreloj y Trail Making. Decide más rápido sin sacrificar precisión.

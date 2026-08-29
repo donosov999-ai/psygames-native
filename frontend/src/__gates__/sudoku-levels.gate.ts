@@ -30,7 +30,7 @@ import { generateLogical, gradePuzzle, TECHNIQUE_TIER } from '@/src/services/sud
  * своим решателем. Четыре последних уровня игры не проверяла ни одна сборка, и
  * именно там нашлись доски, которые логикой не берутся вовсе. Проверяем до конца.
  */
-const LAST_LEVEL = 80;
+const LAST_LEVEL = 92;   // 81–92 — комбо-пояс (X4): проверяются той же сборкой, что и все
 const LEVELS = Array.from({ length: LAST_LEVEL }, (_, i) => i + 1);
 
 describe('гейт: все уровни судоку решаемы и решение единственно', () => {
