@@ -71,6 +71,11 @@ const copy = {
     safetyNoScore: 'Ошибки не превращаются в оценку здоровья', afterWake: 'После пробуждения',
     rechargeTitle: 'Соберите утреннюю зарядку', rechargeLead: 'Чистый планировщик PsyGames сам проверяет предупреждения, опыт и допустимые параллельные сочетания.',
     planner: 'Планировщик', sessionFormat: 'Формат сессии', pureEngine: 'Pure engine', mode: 'Режим', solo: 'Отдельно',
+    dur1: '1 мин', dur2: '2 мин', dur5: '5 мин', dur8: '8 мин',
+    modeHintSolo: 'Одна практика за раз — глубже и без спешки.',
+    modeHintParallel: 'Две практики одновременно: дыхание держит ритм, глаза работают.',
+    modeHintRoute: 'Готовый маршрут: наборы идут друг за другом одной сессией.',
+    summaryMin: 'мин',
     parallel: 'Параллельно', route: 'Маршрут', duration: 'Длительность', context: 'Контекст', guide: 'Подсказка',
     home: 'Дома', desk: 'За столом', discreet: 'Незаметно', both: 'Экран + звук', visual: 'Только экран', audio: 'Только звук',
     masteryTitle: 'Освоено отдельно', masteryCopy: 'Подтверждаю минимум три самостоятельных завершения выбранных наборов',
@@ -144,6 +149,11 @@ const copy = {
     rechargeLead: 'The PsyGames pure planner checks warnings, prior experience, and allowed parallel combinations.',
     planner: 'Planner', sessionFormat: 'Session format', pureEngine: 'Pure engine', mode: 'Mode', solo: 'Solo', parallel: 'Parallel', route: 'Route',
     duration: 'Duration', context: 'Context', guide: 'Guidance', home: 'At home', desk: 'At a desk', discreet: 'Discreet',
+    dur1: '1 min', dur2: '2 min', dur5: '5 min', dur8: '8 min',
+    modeHintSolo: 'One practice at a time — deeper, unhurried.',
+    modeHintParallel: 'Two practices at once: breathing keeps the rhythm while the eyes work.',
+    modeHintRoute: 'A ready route: sets follow one another in a single session.',
+    summaryMin: 'min',
     both: 'Screen + sound', visual: 'Screen only', audio: 'Sound only', masteryTitle: 'Mastered solo',
     masteryCopy: 'I confirm at least three solo completions for each selected set', experimentalTitle: 'Experimental sets',
     experimentalCopy: 'Enable local candidates without product claims', searchCatalog: 'Search catalog', fullCatalog: 'Full catalog',
@@ -299,6 +309,8 @@ function applyLocale() {
   $$('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
   $$('[data-i18n-option]').forEach((node) => { node.textContent = t(node.dataset.i18nOption); });
   $$('[data-i18n-placeholder]').forEach((node) => { node.placeholder = t(node.dataset.i18nPlaceholder); });
+  $$('[data-i18n-title]').forEach((node) => { const w = t(node.dataset.i18nTitle); node.title = w; node.setAttribute('aria-label', w); });
+  renderModeHint();
   $('#language-label').textContent = state.locale === 'ru' ? 'EN' : 'RU';
   $('#theme-toggle').ariaLabel = state.locale === 'ru' ? 'Сменить тему' : 'Switch theme';
   const appVersion = $('#app-version');
@@ -1012,6 +1024,14 @@ function renderPlan() {
   start.dataset.blocked = plan ? 'false' : 'true';
   start.setAttribute('aria-disabled', String(selections.length === 0));
   if (startLabel) startLabel.textContent = plan || selections.length === 0 ? t('startRecharge') : t('showRequired');
+  // П5: сводка прямо в кнопке — «что запускаю» видно без поиска глазами по углам.
+  const summary = document.getElementById('start-summary');
+  if (summary) {
+    const mins = Math.max(1, Math.round(state.recharge.durationMs / 60000));
+    summary.textContent = selections.length > 0
+      ? `${selections.length} · ${mins} ${t('summaryMin')}`
+      : '';
+  }
   start.title = plan ? '' : t('startBlocked');
 }
 
@@ -1060,6 +1080,13 @@ function togglePractice(setId) {
  */
 const RECHARGE_PREFS_KEY = 'smart_alarm_recharge_prefs_v1';
 
+/** Подсветить чип со значением value в группе id (П4: группы-радио на кнопках). */
+function setChipActive(id, value) {
+  const box = document.getElementById(id);
+  if (!box) return;
+  [...box.querySelectorAll('button[data-value]')].forEach((b) => b.classList.toggle('is-active', b.dataset.value === String(value)));
+}
+
 function saveRechargePrefs() {
   try {
     const r = state.recharge;
@@ -1083,7 +1110,7 @@ function applyRechargePrefs() {
   try { saved = JSON.parse(raw); } catch { return; }
   if (!saved || typeof saved !== 'object') return;
   const r = state.recharge;
-  const hasOption = (id, value) => [...(document.getElementById(id)?.options ?? [])].some((o) => o.value === String(value));
+  const hasOption = (id, value) => [...(document.getElementById(id)?.querySelectorAll('button[data-value]') ?? [])].some((b) => b.dataset.value === String(value));
   if ($$('[data-plan-mode]').some((b) => b.dataset.planMode === saved.mode)) r.mode = saved.mode;
   if (hasOption('plan-duration', saved.durationMs)) r.durationMs = Number(saved.durationMs);
   if (hasOption('plan-context', saved.context)) r.context = saved.context;
@@ -1112,13 +1139,23 @@ function applyRechargePrefs() {
   }
   enforceBaselineBreathing();
   $$('[data-plan-mode]').forEach((button) => button.classList.toggle('is-active', button.dataset.planMode === r.mode));
-  const setValue = (id, value) => { const el = document.getElementById(id); if (el) el.value = String(value); };
-  setValue('plan-duration', r.durationMs);
-  setValue('plan-context', r.context);
-  setValue('plan-guide', r.guideMode);
+  setChipActive('plan-duration', r.durationMs);
+  setChipActive('plan-context', r.context);
+  setChipActive('plan-guide', r.guideMode);
+  renderModeHint();
   const setChecked = (id, on) => { const el = document.getElementById(id); if (el) el.checked = on; };
   setChecked('mastery-toggle', r.mastery);
   setChecked('experimental-toggle', r.allowExperimental);
+}
+
+/** П7: строка-пояснение выбранного режима — «Маршрут» без неё не читался. */
+function renderModeHint() {
+  const el = document.getElementById('mode-hint');
+  if (!el) return;
+  const key = state.recharge.mode === 'solo' ? 'modeHintSolo'
+    : state.recharge.mode === 'parallel' ? 'modeHintParallel'
+      : 'modeHintRoute';
+  el.textContent = t(key);
 }
 
 function setPlanMode(mode) {
@@ -1129,6 +1166,7 @@ function setPlanMode(mode) {
   }
   enforceBaselineBreathing();
   $$('[data-plan-mode]').forEach((button) => button.classList.toggle('is-active', button.dataset.planMode === mode));
+  renderModeHint();
   renderCatalog();
   renderPlan();
 }
@@ -2103,9 +2141,22 @@ function bindEvents() {
   $('#continue-recharge').addEventListener('click', openRechargeFromOffer);
   $('#dismiss-recharge').addEventListener('click', () => { clearOfferTimer(); $('#recharge-offer').hidden = true; });
   $('#catalog-search').addEventListener('input', (event) => { state.recharge.search = event.target.value; renderCatalog(); });
-  $('#plan-duration').addEventListener('change', (event) => { state.recharge.durationMs = Number(event.target.value); renderPlan(); });
-  $('#plan-context').addEventListener('change', (event) => { state.recharge.context = event.target.value; renderPlan(); });
-  $('#plan-guide').addEventListener('change', (event) => { state.recharge.guideMode = event.target.value; renderPlan(); });
+  // П4: длительность/контекст/подсказка — чипы (как режим), не системные select:
+  // крупные цели 44px, все варианты видны разом, один язык интерфейса.
+  const bindChips = (id, apply) => {
+    const box = document.getElementById(id);
+    if (!box) return;
+    box.addEventListener('click', (event) => {
+      const btn = event.target.closest('button[data-value]');
+      if (!btn || !box.contains(btn)) return;
+      apply(btn.dataset.value);
+      setChipActive(id, btn.dataset.value);
+      renderPlan();
+    });
+  };
+  bindChips('plan-duration', (v) => { state.recharge.durationMs = Number(v); });
+  bindChips('plan-context', (v) => { state.recharge.context = v; });
+  bindChips('plan-guide', (v) => { state.recharge.guideMode = v; });
   $('#mastery-toggle').addEventListener('change', (event) => { state.recharge.mastery = event.target.checked; renderPlan(); });
   $('#experimental-toggle').addEventListener('change', (event) => {
     state.recharge.allowExperimental = event.target.checked;
@@ -2183,6 +2234,7 @@ async function boot() {
   bindEvents();
   renderWeekdays();
   applyRechargePrefs();   // память планировщика — ДО первого рендера, иначе кадр заводских настроек
+  renderModeHint();       // П7: подпись режима и на заводских настройках
   renderCatalog();
   renderPlan();
   renderHistory();
