@@ -918,7 +918,9 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 14px 22px;
-  align-items: flex-end;
+  /* По верху (скрин Дениса 29.08): «Длительность» в две строки и хинт под
+     «Режимом» рвали линию — легенды групп теперь на одной высоте. */
+  align-items: flex-start;
 }
 .planner-controls > .segmented-field { flex: 0 1 auto; min-width: 0; }
 
@@ -1915,12 +1917,20 @@ body.is-practice-running #main-content {
   transition: width 220ms linear;
 }
 
+/* Таймер сессии — в шапке, крупно (просьба Дениса 29.08: «видно сколько
+   осталось до конца урока»). Основной цвет текста, не muted: во встройке
+   psygames muted будильника на светлой теме растворялся. */
 .practice-clock {
-  color: var(--text-muted);
-  font-size: 13px;
+  margin-left: auto;
+  margin-right: 14px;
+  color: var(--text);
+  font-size: clamp(22px, 4.6vw, 30px);
+  line-height: 1;
   font-variant-numeric: tabular-nums;
   font-weight: 850;
+  letter-spacing: 0.02em;
   text-align: right;
+  align-self: center;
 }
 
 .practice-cues {
@@ -3370,12 +3380,34 @@ body.is-practice-running #main-content {
  * Они не нужны каждую секунду и возвращаются на любое движение. */
 body.is-practice-immersive .practice-header,
 body.is-practice-immersive .practice-progress,
-body.is-practice-immersive .practice-clock,
 body.is-practice-immersive .practice-safety {
   opacity: 0;
   pointer-events: none;
   transition: opacity 420ms ease;
 }
+
+/* Часы в погружении НЕ гаснут в ноль (просьба Дениса): остаток до конца урока
+   виден всегда — приглушённо, чтобы не спорить с фигурой. Шапка прячется, а
+   часы — её ребёнок, поэтому им отдельный слой видимости. */
+body.is-practice-immersive .practice-header { opacity: 1; }
+/* ⚠️ Часы — тоже div внутри шапки: селектор «> div» гасил и их (поймано
+   живым замером: правило 0.45 стояло, computed был 0). Исключаем адресно. */
+body.is-practice-immersive .practice-header > div:not(.practice-clock),
+body.is-practice-immersive .practice-header .icon-button {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 420ms ease;
+}
+body.is-practice-immersive .practice-clock {
+  opacity: 0.45;
+  transition: opacity 420ms ease;
+}
+body.is-practice-immersive .practice-header:focus-within > div:not(.practice-clock),
+body.is-practice-immersive .practice-header:hover > div:not(.practice-clock),
+body.is-practice-immersive .practice-header:hover .icon-button,
+body.is-practice-immersive .practice-header:focus-within .icon-button { opacity: 1; pointer-events: auto; }
+body.is-practice-immersive .practice-header:hover .practice-clock,
+body.is-practice-immersive .practice-header:focus-within .practice-clock { opacity: 1; }
 
 /* 🔴 УПРАВЛЕНИЕ ОСТАЁТСЯ ЖИВЫМ. «Пауза» и «Выйти без записи» приглушаются, но
  * НЕ теряют кликабельность: `pointer-events` остаётся `auto`.
