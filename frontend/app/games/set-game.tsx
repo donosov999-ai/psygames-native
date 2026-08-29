@@ -618,6 +618,7 @@ export default function SetGame() {
             setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
           } else {
             if (passed) lvl.reach(levelRef.current + 1);   // серия почти без ошибок → +уровень
+            else lvl.fail();                                // и обратно: три провала подряд → −1 уровень
             if (passed && levelRef.current % BOSS_EVERY === 0) {
               // веха: уровень засчитан (reach выше), прерываемся коротким боссом → потом баннер cleared
               setClearedPassed(true);

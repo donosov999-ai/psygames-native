@@ -297,6 +297,8 @@ export default function FractalSudokuScreen() {
     setPhase('result');
     // Уровень засчитан только за ВЫИГРАННУЮ партию: здесь можно и не собрать.
     if (win && playedLevel >= lvl.level && lvl.level < FRACTAL_MAX_LEVEL) lvl.reach(lvl.level + 1);
+    // Провал считаем только на СВОЁМ уровне: партия на пройденном — переигровка, за неё не наказываем.
+    else if (!win && playedLevel >= lvl.level) lvl.fail();
     try {
       await saveSession({
         passed: win,

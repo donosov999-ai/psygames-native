@@ -255,6 +255,7 @@ export default function PseudowordEchoGame() {
     const e = errorsRef.current;
     const passed = e <= 1;
     if (passed && !isPreset) lvl.reach(levelRef.current + 1);
+    if (!passed && !isPreset) lvl.fail();   // симметрия лестницы: три провала подряд → −1 уровень
     if (isPreset) {
       setPhase(passed ? 'cleared' : 'result');
     } else {

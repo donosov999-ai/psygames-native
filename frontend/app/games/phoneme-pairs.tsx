@@ -272,6 +272,7 @@ export default function PhonemePairsGame() {
       setPhase(passed ? 'cleared' : 'result');
     } else {
       if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();   // симметрия лестницы: три провала подряд → −1 уровень
       setClearedPassed(passed);
       setPhase('cleared');
     }

@@ -50,6 +50,9 @@ import { sndPlace, sndWrong } from '@/src/services/feedback';
 import { gameNow } from '@/src/services/gamePause';
 import { conflictsInChild } from '@/src/services/fractal-sudoku';
 import {
+  cageTint, cageSumFontSize, thermoThick, thermoColor, thermoSegment, thermoBulb,
+} from '@/src/services/sudoku-overlay';
+import {
   DEEP_N, childPath, parentOf, depthOf,
   materializeNode, materializePick, countDeep,
   deepNodeProgress, deepNodeDone, deepValueAt, deepRootComplete,
@@ -80,9 +83,9 @@ const PRESETS = [
 
 type PresetKey = (typeof PRESETS)[number]['key'];
 
-const cfgOf = (key: PresetKey): DeepCfg => {
+const cfgOf = (key: PresetKey, spice = false): DeepCfg => {
   const p = PRESETS.find((x) => x.key === key)!;
-  return { depth: p.depth, feedCount: p.feedCount, rating: p.rating, unlockShare: p.unlockShare };
+  return { depth: p.depth, feedCount: p.feedCount, rating: p.rating, unlockShare: p.unlockShare, spice };
 };
 
 type Phase = 'config' | 'play' | 'result';
@@ -92,6 +95,9 @@ interface DeepMove { path: DeepPath; r: number; c: number; prev: number }
 
 interface DeepResume {
   preset: PresetKey;
+  /** Приправа листьев. Без неё продолжение собрало бы доску БЕЗ выкопанных цифр —
+   *  и рука человека встала бы на клетки, которых в новой доске нет пустыми. */
+  spice?: boolean;
   seed: string;
   path: DeepPath;
   grids: Record<DeepPath, number[][]>;
@@ -110,6 +116,12 @@ export default function FractalDeepScreen() {
 
   const [phase, setPhase] = useState<Phase>('config');
   const [preset, setPreset] = useState<PresetKey>('scout');
+  /**
+   * ПРИПРАВА (§7е пп.56–57): термометры и клетки-суммы на нижнем слое. Отдельный
+   * тумблер, а не свойство пресета: объём партии и её правила — разные решения,
+   * и мешать их в одну карточку значит заставить выбирать вслепую.
+   */
+  const [spice, setSpice] = useState(false);
   const [seed, setSeed] = useState('');
   const [path, setPath] = useState<DeepPath>('');
   /** Наигранное по ТРОННУТЫМ узлам: путь → доска (0 = пусто). Ключ снимка партии. */
@@ -151,7 +163,7 @@ export default function FractalDeepScreen() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   }, [phase]);
 
-  const cfg = cfgOf(preset);
+  const cfg = cfgOf(preset, spice);
 
   /** Материализовать узел (с решением) — через кэш и цепочку кормящих цифр.
    *  Листу применяется его сторона портала (X5): дроп-подсказка снимается,
@@ -184,7 +196,7 @@ export default function FractalDeepScreen() {
     }
     cache.nodes.set(p, node);
     return node;
-  }, [seed, preset, cache]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [seed, preset, spice, cache]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const pickAt = (p: DeepPath): DeepPick => {
     const hit = cache.picks.get(p);
@@ -326,9 +338,10 @@ export default function FractalDeepScreen() {
   }, phase === 'play');
 
   // ───────────────────── незаконченная партия ─────────────────────
-  const snapshot = (): DeepResume => ({ preset, seed, path, grids, marks, errors, elapsed, history: hist.serialize() });
+  const snapshot = (): DeepResume => ({ preset, spice, seed, path, grids, marks, errors, elapsed, history: hist.serialize() });
   const applyResume = (s: DeepResume) => {
     setPreset(s.preset);
+    setSpice(s.spice ?? false);   // снимки до приправы её не несут — это чистая классика
     setSeed(s.seed);
     setPath(s.path ?? '');
     setGrids(s.grids ?? {});
@@ -429,6 +442,35 @@ export default function FractalDeepScreen() {
             );
           })}
 
+          {/* Приправа листьев: правило, а не объём — потому отдельной строкой под пресетами. */}
+          <TouchableOpacity
+            accessibilityRole="switch"
+            accessibilityState={{ checked: spice }}
+            accessibilityLabel={t('deepSpice')}
+            testID="deep-spice-toggle"
+            onPress={() => setSpice((v) => !v)}
+            style={[styles.spiceRow, {
+              backgroundColor: colors.surface,
+              borderColor: spice ? GRADIENT[1] : colors.border,
+              borderWidth: spice ? 2 : 1,
+            }]}
+          >
+            <Ionicons
+              name={spice ? 'thermometer' : 'thermometer-outline'}
+              size={20}
+              color={spice ? GRADIENT[1] : colors.textSecondary}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.presetName, { color: colors.text }]}>{t('deepSpice')}</Text>
+              <Text style={[styles.presetDesc, { color: colors.textSecondary }]}>{t('deepSpiceDesc')}</Text>
+            </View>
+            <Ionicons
+              name={spice ? 'checkmark-circle' : 'ellipse-outline'}
+              size={22}
+              color={spice ? GRADIENT[1] : colors.border}
+            />
+          </TouchableOpacity>
+
           <GlassButton label={t('start')} tone="accent" onPress={start} style={{ marginTop: 4 }} />
         </ScrollView>
       </GameShell>
@@ -455,6 +497,12 @@ export default function FractalDeepScreen() {
   const depth = depthOf(path);
   const cell = Math.min(42, Math.floor((Math.min(width, 520) - 48) / DEEP_N));
   const feedSet = new Set(node.feedCells.map(([r, c]) => `${r},${c}`));
+  // Приправа листа (§7е пп.56–57): рисунок берётся из общего модуля, чтобы термометр
+  // Бездны и термометр классики были ОДНОЙ фигурой, а не двумя похожими.
+  const thermoMap = node.spice !== 'none' ? node.thermo : undefined;
+  const cageMap = node.spice === 'thermocage' ? node.cages : undefined;
+  const thermoThickPx = thermoThick(cell);
+  const thermoPaint = thermoColor(colors.surface, GRADIENT[1]);
   const got = deepNodeProgress(nodeAt, grids, path);
 
   /** Призрак ребёнка: тронутый — живой (рука ярко), нетронутый — подсказки pick даром. */
@@ -594,12 +642,34 @@ export default function FractalDeepScreen() {
                     style={[styles.cell, {
                       width: cell, height: cell,
                       backgroundColor: isSel ? GRADIENT[1]
-                        : isFeed && v === 0 ? (isDark ? '#3a3358' : '#ece9f7') : colors.surface,
+                        : isFeed && v === 0 ? (isDark ? '#3a3358' : '#ece9f7')
+                        : (cageMap && cageTint(colors.surface, cageMap.cageOf[r]![c]!)) || colors.surface,
                       borderRightWidth: (c + 1) % 3 === 0 ? 2 : 0.5,
                       borderBottomWidth: (r + 1) % 3 === 0 ? 2 : 0.5,
                       borderColor: colors.text,
                     }]}
                   >
+                    {/* Термометр: трубка от колбы вверх по возрастанию цифр. */}
+                    {thermoMap?.[r]?.[c] && (() => {
+                      const pn = thermoMap[r]![c]!;
+                      const paint = { position: 'absolute' as const, backgroundColor: thermoPaint, pointerEvents: 'none' as const };
+                      return (
+                        <>
+                          {pn.prev && <View style={{ ...paint, ...thermoSegment(r, c, pn.prev, cell, thermoThickPx) }} />}
+                          {pn.next && <View style={{ ...paint, ...thermoSegment(r, c, pn.next, cell, thermoThickPx) }} />}
+                          {!pn.prev && <View style={{ ...paint, ...thermoBulb(cell) }} />}
+                        </>
+                      );
+                    })()}
+                    {/* Сумма группы — в углу якорной клетки, как в классике. */}
+                    {cageMap && cageMap.cageOf[r]![c]! >= 0
+                      && cageMap.anchor[cageMap.cageOf[r]![c]!] === r * DEEP_N + c && (
+                      <Text pointerEvents="none" style={{
+                        position: 'absolute', top: 1, left: 2,
+                        fontSize: cageSumFontSize(cell), fontWeight: '800',
+                        color: isSel ? '#FFF' : colors.text,
+                      }}>{cageMap.sum[cageMap.cageOf[r]![c]!]}</Text>
+                    )}
                     {isFeed && (
                       <>
                         <View pointerEvents="none" style={[styles.fedRing, {
@@ -649,6 +719,8 @@ export default function FractalDeepScreen() {
         <Text style={[styles.hint, { color: colors.textSecondary }]}>
           {selected && node.portal && node.portal.cell[0] === selected.r && node.portal.cell[1] === selected.c
             ? t('deepPortalHint').replace('{cell}', `(${node.portal.partnerCell[0] + 1}·${node.portal.partnerCell[1] + 1})`)
+            : node.spice === 'thermocage' ? t('deepSpiceRuleCage')
+            : node.spice === 'thermo' ? t('deepSpiceRuleThermo')
             : node.feedCells.length > 0 ? t('deepDiveHint') : t('deepLeafHint')}
         </Text>
       </View>
@@ -658,6 +730,7 @@ export default function FractalDeepScreen() {
 
 const styles = StyleSheet.create({
   configWrap: { padding: 16, gap: 12 },
+  spiceRow: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 14, padding: 14, minHeight: 44 },
   hero: { borderRadius: 18, padding: 22, alignItems: 'center', gap: 6 },
   heroTitle: { color: '#FFF', fontSize: 22, fontWeight: '800' },
   heroSub: { color: 'rgba(255,255,255,0.9)', fontSize: 13, textAlign: 'center' },

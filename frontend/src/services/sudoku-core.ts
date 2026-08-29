@@ -51,7 +51,14 @@ export function variantRule(v: Variant, lang: string): string {
   return translateFor(lang, 'sudokuRule' + VARIANT_KEY_SUFFIX[v]);
 }
 
-export function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+/**
+ * ⚠️ `rnd` — не украшение. Бездна материализует доску ИЗ СИДА И ПУТИ каждый раз
+ * заново (перезапуск приложения, возврат по крошкам), поэтому украшения доски —
+ * термометры и клетки-суммы — обязаны выпадать теми же. `Math.random()` дал бы
+ * человеку другой узор на той же доске, а с ним и другую партию.
+ * Классические вызовы ничего не передают и работают как раньше.
+ */
+export function shuffle<T>(arr: T[], rnd: () => number = Math.random): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 // Jigsaw: 9 связных регионов по 9 клеток. Region-growing «расти меньший растущий», рестарт при тупике.
 export function generateRegions(N: number): number[][] {
@@ -117,14 +124,14 @@ export function cageMapFrom(cageOf: number[][], sum: number[], anchor: number[],
 }
 
 // Разбиение решения на cages: связные группы 2–4 клеток с РАЗНЫМИ цифрами (правило Killer) + сумма каждой.
-export function generateCages(sol: Cell[][], N: number): CageMap {
+export function generateCages(sol: Cell[][], N: number, rnd: () => number = Math.random): CageMap {
   const cageOf: number[][] = Array.from({ length: N }, () => Array(N).fill(-1));
   const sum: number[] = [], anchor: number[] = [];
   let cid = 0;
-  for (const start of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
+  for (const start of shuffle(Array.from({ length: N * N }, (_, i) => i), rnd)) {
     const sr = Math.floor(start / N), sc = start % N;
     if (cageOf[sr][sc] !== -1) continue;
-    const target = 2 + Math.floor(Math.random() * 3);   // 2..4 клетки
+    const target = 2 + Math.floor(rnd() * 3);   // 2..4 клетки
     const cells: [number, number][] = [[sr, sc]];
     const digits = new Set<number>([sol[sr][sc]]);
     cageOf[sr][sc] = cid;
@@ -132,7 +139,7 @@ export function generateCages(sol: Cell[][], N: number): CageMap {
       const fr: [number, number][] = [];
       for (const [r, c] of cells) for (const [dr, dc] of ORTHO) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && cageOf[nr][nc] === -1 && !digits.has(sol[nr][nc])) fr.push([nr, nc]); }
       if (!fr.length) break;
-      const [nr, nc] = fr[Math.floor(Math.random() * fr.length)];
+      const [nr, nc] = fr[Math.floor(rnd() * fr.length)];
       cageOf[nr][nc] = cid; cells.push([nr, nc]); digits.add(sol[nr][nc]);
     }
     cid++;
@@ -143,7 +150,7 @@ export function generateCages(sol: Cell[][], N: number): CageMap {
     const cells = cellsOf(id);
     if (cells.length !== 1) continue;
     const [r, c] = cells[0], d = sol[r][c];
-    for (const [dr, dc] of shuffle(ORTHO.map((x) => x))) {
+    for (const [dr, dc] of shuffle(ORTHO.map((x) => x), rnd)) {
       const nr = r + dr, nc = c + dc; if (nr < 0 || nr >= N || nc < 0 || nc >= N) continue;
       const nid = cageOf[nr][nc]; if (nid === id) continue;
       const tgt = cellsOf(nid);
@@ -175,11 +182,11 @@ export function generateCages(sol: Cell[][], N: number): CageMap {
  * решение удовлетворяет и суммам, и термометру одновременно, и противоречия на
  * пересечении двух правил взяться неоткуда.
  */
-export function generateThermoCages(sol: Cell[][], N: number): CageMap {
+export function generateThermoCages(sol: Cell[][], N: number, rnd: () => number = Math.random): CageMap {
   let best: CageMap | null = null;
   let bestCells = -1;
   for (let attempt = 0; attempt < 8; attempt++) {
-    const full = generateCages(sol, N);
+    const full = generateCages(sol, N, rnd);
     const ids: number[] = [];
     for (let id = 0; id < full.cells.length; id++) if (full.cells[id] && full.cells[id].length >= 2) ids.push(id);
     // соседство групп по стороне
@@ -194,7 +201,7 @@ export function generateThermoCages(sol: Cell[][], N: number): CageMap {
     }
     const keep: number[] = [];
     let covered = 0;
-    for (const id of shuffle(ids)) {
+    for (const id of shuffle(ids, rnd)) {
       if (keep.some((k) => adj.get(id)!.has(k))) continue;
       keep.push(id); covered += full.cells[id].length;
     }
@@ -405,15 +412,15 @@ export function generateArrow(N: number): ArrowMap {
  * рост регионов может упереться в тупик, и тогда честнее откатиться на старый способ,
  * чем отдать доску с дырявым разбиением.
  */
-export function thermoFromSolution(sol: Cell[][], N: number): ThermoPN {
+export function thermoFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
   const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
   const paths: [number, number][][] = [];
   for (let attempt = 0; attempt < 40 && paths.length < 6; attempt++) {
     const starts: [number, number][] = [];
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c]) starts.push([r, c]);
     if (!starts.length) break;
-    const [sr, sc] = starts[Math.floor(Math.random() * starts.length)];
-    const len = 3 + Math.floor(Math.random() * 3);   // 3..5, как было
+    const [sr, sc] = starts[Math.floor(rnd() * starts.length)];
+    const len = 3 + Math.floor(rnd() * 3);   // 3..5, как было
     const path: [number, number][] = [[sr, sc]]; let cr = sr, cc = sc;
     for (let s = 1; s < len; s++) {
       // ЕДИНСТВЕННОЕ отличие от прежнего обхода: сосед обязан нести цифру БОЛЬШЕ текущей.
@@ -422,7 +429,7 @@ export function thermoFromSolution(sol: Cell[][], N: number): ThermoPN {
           && !path.some(([pr, pc]) => pr === nr && pc === nc)
           && sol[nr][nc] > sol[cr][cc]);
       if (!nb.length) break;
-      const [nr, nc] = nb[Math.floor(Math.random() * nb.length)];
+      const [nr, nc] = nb[Math.floor(rnd() * nb.length)];
       path.push([nr, nc]); cr = nr; cc = nc;
     }
     if (path.length >= 3) { paths.push(path); for (const [r, c] of path) used[r][c] = true; }
