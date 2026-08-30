@@ -4,6 +4,7 @@ import {
   sndTap as _sfxTap, sndCorrect as _sfxCorrect, sndWrong as _sfxError,
   vibrate, hapticEnabledNow,
 } from '@/src/services/feedback';
+import { emitGameEvent } from '@/src/services/gameEvents';
 
 /**
  * Хаптик-обёртки: вибрация + звук одним вызовом.
@@ -43,6 +44,16 @@ export function hapticMedium() {
 /** Успех: два коротких — на ощупь отличается от ошибки. */
 export function hapticSuccess() {
   _sfxCorrect();
+  /**
+   * 🔴 ОТСЮДА ОТВЕТ ИГРЫ ПРИХОДИТ В КАРКАС БЕСПЛАТНО.
+   *
+   * `hapticSuccess` уже стоит в 33 играх на верном ходу — значит серия в шапке
+   * и реакция питомца достаются им без единой правки. `silent: true`, потому
+   * что звук здесь уже сыгран строкой выше: без признака игрок услышал бы его
+   * дважды (эту ошибку я и допустил, добавив `sndCorrect()` рядом с хаптиком
+   * в четырёх играх семейства — исправлено там же).
+   */
+  emitGameEvent({ kind: 'good', silent: true });
   if (Platform.OS === 'web') { vibrate([14, 60, 14]); return; }
   native(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));
 }
@@ -50,6 +61,7 @@ export function hapticSuccess() {
 /** Ошибка: одно длинное. */
 export function hapticError() {
   _sfxError();
+  emitGameEvent({ kind: 'bad', silent: true });
   if (Platform.OS === 'web') { vibrate(90); return; }
   native(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error));
 }

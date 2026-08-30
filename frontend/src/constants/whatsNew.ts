@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.20.0',
+    date: '2026-08-30',
+    ru: [
+      'Игра теперь отвечает на ход: звук, серия подряд в шапке и реакция питомца пришли в десятки тренажёров, где раньше верное действие проходило молча',
+      'Итог партии появляется по частям — сначала звёзды, потом числа, потом кнопки, — а не вываливается одним кадром',
+      'Зарядка: кнопки под практикой собраны в ряд по центру, картинка больше не схлопывается в полосу',
+    ],
+    en: [
+      'Games now answer your move: sound, a running streak in the header and the pet reacting arrived in dozens of exercises where a correct action used to pass in silence',
+      'The result screen arrives in parts — stars, then numbers, then buttons — instead of landing all at once',
+      'Warm-up: the buttons under the practice are gathered in a centred row, and the picture no longer collapses into a strip',
+    ],
+  },
+  {
     version: '2.19.0',
     date: '2026-08-30',
     ru: [
