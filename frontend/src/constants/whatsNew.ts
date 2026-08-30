@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.21.0',
+    date: '2026-08-30',
+    ru: [
+      'Игра стала хвалить за серию: с третьего верного хода подряд у места действия всплывает слово, и оно растёт вместе с серией — «Точно!», «Отлично!», «Великолепно!»',
+    ],
+    en: [
+      'Games now praise a streak: from the third correct move in a row a word pops up where you acted, growing with the streak — “Nice!”, “Great!”, “Superb!”',
+    ],
+  },
+  {
     version: '2.20.0',
     date: '2026-08-30',
     ru: [
