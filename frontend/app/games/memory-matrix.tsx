@@ -320,7 +320,9 @@ export default function MemoryMatrixGame() {
   const cellSize = Math.min(
     (width - 32 - (gridSize - 1) * CELL_GAP) / gridSize,
     (availH - (gridSize - 1) * CELL_GAP) / gridSize,
-    168
+    // Потолок 220 (было 168, до того 110): на телефоне его не достать по ширине,
+    // а большому окну он единственное, что мешает полю дышать.
+    220
   );
 
   /**
@@ -624,7 +626,16 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   // колонка внутри поля GameShell: подсказка + сетка (само центрирование делает каркас)
-  fieldCol: { alignItems: 'center', gap: 14 },
+  /**
+   * 🔴 `flex: 1` — НЕ КОСМЕТИКА, А ПРИЧИНА МЕЛКОГО ПОЛЯ.
+   *
+   * Без него колонка сжималась по СОДЕРЖИМОМУ, а размер клетки считался от
+   * высоты этой самой колонки (`onLayout`) — замкнутый круг: клетки мелкие →
+   * колонка низкая → клетки остаются мелкими. На большом окне сетка 4×4 выходила
+   * по 50 px при тысяче свободных пикселей под ней (Денис 30.08.2026: «на ПК
+   * очень мелко получилось»).
+   */
+  fieldCol: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', gap: 14 },
   // 4 счётчика при крупном шрифте не влезали в ряд и уезжали за край → переносим
   statsRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
   statText: { fontSize: 15, fontWeight: '700' },

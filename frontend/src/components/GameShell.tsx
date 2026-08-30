@@ -368,7 +368,7 @@ export default function GameShell({
         */}
       {(stats || pet !== undefined) ? (
         <View style={styles.statsRow}>
-          {pet !== undefined ? <GamePet mood={pet} size={38} /> : null}
+          {pet !== undefined ? <GamePet mood={pet} size={44} /> : null}
           <View style={styles.statsFlex}>{stats}</View>
         </View>
       ) : null}
