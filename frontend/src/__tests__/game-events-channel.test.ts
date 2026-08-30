@@ -69,6 +69,20 @@ describe('канал событий партии', () => {
     expect(bad).toEqual([]);
   });
 
+  it('🔴 слово похвалы приходит с ТРЕТЬЕГО верного хода, а не с каждого', () => {
+    /**
+     * На каждый ход слово превращается в шум: доказательная база даёт этому и
+     * цифру — ОЖИДАЕМАЯ похвала подрывает мотивацию так же, как деньги
+     * (d = −0,40), неожиданная безвредна. Поэтому порог по серии и три ступени.
+     */
+    const shell = fs.readFileSync(path.join(__dirname, '..', 'components', 'GameShell.tsx'), 'utf8');
+    expect(/praise_perfect/.test(shell)).toBe(true);
+    expect(/praise_great/.test(shell)).toBe(true);
+    expect(/praise_good/.test(shell)).toBe(true);
+    // Порог: слово не показывается, пока серия короче трёх.
+    expect(/n >= 3 \? t\('praise_good'\) : null/.test(shell)).toBe(true);
+  });
+
   it('есть что проверять: хаптик реально стоит в играх', () => {
     const withHaptic = list().filter((f) => /haptic(Success|Error)\(/.test(src(f)));
     // Меньше двадцати — значит правка развалила связь, и канал молчит почти везде.

@@ -330,6 +330,13 @@ export default function GameShell({
    * ей не место: эффект пересоздавался бы постоянно, отписываясь и подписываясь
    * заново по кадру. Держим в ссылке, а подписка читает свежее значение.
    */
+  /**
+   * Размер игрового поля: слово похвалы показывается У МЕСТА действия, когда
+   * игра прислала координаты, и над полем по центру, когда не прислала —
+   * а прислать их сегодня умеют единицы. Без запасного места слово молчало бы
+   * в тридцати трёх играх, где событие приходит из хаптика без координат.
+   */
+  const [fieldBox, setFieldBox] = React.useState({ w: 0, h: 0 });
   const spawnRef = React.useRef(spawn);
   // Запись в ссылку — в эффекте, а не в теле: писать в ref во время рендера
   // нельзя, и линтер это ловит правилом `react-hooks/refs`.
@@ -355,10 +362,28 @@ export default function GameShell({
     // Прибавку показываем там, где она случилась. Без координат всплывашки нет:
     // «+50» посреди пустого экрана не связывается ни с каким действием.
     if (e.value && e.at) spawnRef.current(e.at.x, e.at.y, `+${e.value}`);
+    /**
+     * 🔴 СЛОВО ПОХВАЛЫ — С ТРЕТЬЕГО ВЕРНОГО ХОДА, А НЕ С КАЖДОГО.
+     *
+     * На каждый ход оно превращается в шум и обесценивается к третьему разу;
+     * доказательная база §12.1 карты геймификации даёт этому и цифру:
+     * ОЖИДАЕМАЯ похвала подрывает мотивацию так же, как деньги (d = −0,40), а
+     * неожиданная безвредна. Поэтому порог по серии и три ступени: слово
+     * приходит тогда, когда игрок его не ждёт, и растёт вместе с серией.
+     */
+    if (kind === 'good') {
+      const n = streakRef.current;
+      const word = n >= 7 ? t('praise_perfect') : n >= 4 ? t('praise_great') : n >= 3 ? t('praise_good') : null;
+      if (word) {
+        const x = e.at ? e.at.x : Math.max(0, fieldBox.w / 2 - 40);
+        const y = e.at ? e.at.y - 26 : Math.max(0, fieldBox.h * 0.16);
+        spawnRef.current(x, y, word, n >= 7 ? '#fbbf24' : '#34d399');
+      }
+    }
     // Настроение живёт до следующего события: сбрасываем сразу, чтобы два
     // одинаковых подряд дали ДВЕ реакции, а не одну слипшуюся.
     setTimeout(() => setAutoMood('idle'), 40);
-  }), []);
+  }), [t, fieldBox.w, fieldBox.h]);
 
 
   const field = scrollableField ? (
@@ -372,7 +397,13 @@ export default function GameShell({
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.field, toolbar ? null : { paddingBottom: bottomSafe }]}>
+    <View
+      style={[styles.field, toolbar ? null : { paddingBottom: bottomSafe }]}
+      onLayout={(ev) => {
+        const { width: w, height: h } = ev.nativeEvent.layout;
+        setFieldBox((prev) => (Math.abs(prev.w - w) > 8 || Math.abs(prev.h - h) > 8 ? { w, h } : prev));
+      }}
+    >
       {children}
       <ScorePopupLayer popups={popups} />
     </View>
