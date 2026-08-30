@@ -65,12 +65,21 @@ export default function GamePet({ mood = 'idle', size = 46 }: { mood?: PetMood; 
     let alive = true;
     getPetSkin().then((s) => { if (alive) setSkin(s); }).catch(() => {});
     getPetVisible().then((v) => { if (alive) setVisible(v); }).catch(() => {});
-    // Настройку могли переключить, пока игра открыта.
+    /**
+     * Настройку могли переключить, пока игра открыта.
+     *
+     * ⚠️ Проверяем САМ МЕТОД, а не только наличие `window`. Питомец теперь стоит
+     * в шапке ВСЕХ игр, то есть монтируется в каждом тесте экрана, а там `window`
+     * существует, но без `addEventListener` — проверка «typeof window !==
+     * undefined» пропускала вызов и роняла 45 тестов сразу. На нативной сборке
+     * бывает ровно то же самое.
+     */
+    const canListen = typeof window !== 'undefined' && typeof window.addEventListener === 'function';
     const onVis = (e: Event) => setVisible(Boolean((e as CustomEvent).detail));
-    if (typeof window !== 'undefined') window.addEventListener(PET_VISIBLE_EVENT, onVis as EventListener);
+    if (canListen) window.addEventListener(PET_VISIBLE_EVENT, onVis as EventListener);
     return () => {
       alive = false;
-      if (typeof window !== 'undefined') window.removeEventListener(PET_VISIBLE_EVENT, onVis as EventListener);
+      if (canListen) window.removeEventListener(PET_VISIBLE_EVENT, onVis as EventListener);
     };
   }, []);
 

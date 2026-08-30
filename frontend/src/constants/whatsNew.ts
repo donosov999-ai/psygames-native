@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.19.0',
+    date: '2026-08-30',
+    ru: [
+      'Питомец переехал в шапку ВСЕХ тренажёров, и верхняя панель стала одинаковой везде — раньше она выглядела по-своему почти в каждой игре',
+    ],
+    en: [
+      'The pet now sits in the header of EVERY exercise, and the top bar looks the same everywhere — it used to differ in almost every game',
+    ],
+  },
+  {
     version: '2.18.0',
     date: '2026-08-30',
     ru: [
