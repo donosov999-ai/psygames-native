@@ -1128,6 +1128,23 @@ export function goalMet(cells: number[][], goal: Goal): boolean {
   return cells.every((c) => c.length === 0);
 }
 
+/**
+ * 🔴 ХОДЫ КОНЧИЛИСЬ И ЦЕЛЬ НЕ ВЗЯТА — ПАРТИЯ ПРОИГРАНА.
+ *
+ * Отдельная функция, а не строчка внутри обработчика, ровно потому, что до
+ * 30.08.2026 такой строчки не было НИГДЕ: провал по ходам проверялся только у
+ * того, кто доску уже собрал, а исчерпавший лимит играл дальше без конца
+ * (замер: 160 ходов при лимите 23 — лимит с 9-го уровня обещала справка).
+ *
+ * `moves >= limit`, а не `>`: лимит 23 значит «двадцать три хода можно», и
+ * после двадцать третьего ходов больше нет. Собрал ровно на последнем —
+ * победа, поэтому цель проверяется прежде провала.
+ */
+export function movesExhausted(moves: number, moveLimit: number, cells: number[][], goal: Goal): boolean {
+  if (moveLimit <= 0 || moves < moveLimit) return false;
+  return !goalMet(cells, goal);
+}
+
 /** Сколько из цели сделано — для бейджа в шапке. Для 'all'/'moves' считает бейдж товаров. */
 export function goalProgress(cells: number[][], goal: Goal): { done: number; total: number } | null {
   if (goal.kind === 'pick') {
@@ -2298,7 +2315,19 @@ export default function GoodsSortGame() {
     if (live) applyResume(live);
   }, autostart);
 
-  const advanceLevel = () => {
+  /**
+   * Ходы кончились? Зовётся ПОСЛЕ инкремента счётчика в каждом месте, где ход
+   * тратится (обычный ход и перемешивание — оба списывают). Возвращает true,
+   * когда партия закончена провалом, чтобы вызывающий не делал вид, что игра
+   * продолжается.
+   */
+  const outOfMoves = (board: number[][]): boolean => {
+    if (!movesExhausted(movesRef.current, moveLimitRef.current, board, goalRef.current)) return false;
+    setTimeout(() => advanceLevel(true), 350);
+    return true;
+  };
+
+  const advanceLevel = (failedByMoves = false) => {
     /**
      * Уровень закончился — пройден или провален, доска в обоих случаях будет
      * новой. Незаконченную партию выбрасываем здесь же, иначе возвращение
@@ -2307,8 +2336,19 @@ export default function GoodsSortGame() {
     const pidDone = profile?.id;
     if (pidDone) clearResume(GS_GAME_ID, pidDone).catch(() => {});
     const moveLimit = moveLimitRef.current;
-    if (moveLimit > 0 && movesRef.current > moveLimit) {
-      // Превысил лимит ходов — уровень не засчитан.
+    /**
+     * 🔴 ЛИМИТ СРАБАТЫВАЕТ В МОМЕНТ, КОГДА ХОДЫ КОНЧИЛИСЬ, А НЕ КОГДА ДОСКА СОБРАНА.
+     *
+     * До 30.08.2026 `advanceLevel` звался из ОДНОГО места — по достижении цели.
+     * Значит эта ветка проверяла лимит только у того, кто уже собрал доску, а тот,
+     * кто ходы исчерпал и не собрал, продолжал играть бесконечно: замер дал 160
+     * ходов при лимите 23. Справка обещала лимит с девятого уровня — механики не
+     * существовало. Теперь вызов приходит и из хода, и из перемешивания, с
+     * `failedByMoves`, потому что на последнем разрешённом ходу `movesRef.current`
+     * ЕЩЁ РАВЕН лимиту, а не больше него.
+     */
+    if (moveLimit > 0 && (failedByMoves || movesRef.current > moveLimit)) {
+      // Ходы кончились, цель не достигнута — уровень не засчитан.
       // ⚠️ В ЗАРЯДКЕ ПЕРЕЗАПУСКАТЬ НЕЛЬЗЯ. Сессия при провале не сохраняется, а зарядка
       // двигается именно по сохранённой сессии — значит человек застрял бы на этом шаге
       // навсегда, переигрывая один уровень. Поэтому в зарядке провал ЗАВЕРШАЕТ шаг:
@@ -2594,6 +2634,7 @@ export default function GoodsSortGame() {
      * смысл цели: играть адресно, а не выметать всё подряд.
      */
     if (goalMet(ns, goalRef.current)) setTimeout(advanceLevel, 350);
+    else outOfMoves(ns);
   };
 
   const handleItemTap = (cellI: number, idx: number) => {
@@ -2949,6 +2990,10 @@ export default function GoodsSortGame() {
      */
     if (hiddenHere) setCovered(new Set(hideDeepSpots(ns)));
     setCells(ns); setSel(null); hapticTap();
+    // Перемешивание списывает ход наравне с обычным — значит им тоже можно
+    // израсходовать последний. Проверка здесь, а не выше: считать надо по
+    // ГОТОВОЙ доске, иначе цель будет проверена по раскладу, которого уже нет.
+    outOfMoves(ns);
   };
 
   // ── вёрстка ──────────────────────────────────────────────────────────
@@ -3379,7 +3424,25 @@ export default function GoodsSortGame() {
             <View style={styles.statsRow}>
               <HudBadge icon="pricetag" label={t('goodsLevel')} value={level} colors={['#fbbf24', '#d97706']} tint="#3f2b00" />
               <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
-              <HudBadge icon="swap-horizontal" value={(() => { const ml = moveLimitRef.current; return ml > 0 ? `${moves}/${ml}` : String(moves); })()} colors={['#94a3b8', '#475569']} />
+              {/**
+                * Счётчик ходов ПРЕДУПРЕЖДАЕТ, а не сообщает задним числом. Серым он
+                * читается как справка «сделано столько-то», и лимит наступал молча:
+                * человек узнавал о нём в тот момент, когда партия уже кончилась.
+                * Последняя треть — янтарь, последние три хода — красный.
+                */}
+              {(() => {
+                const ml = moveLimitRef.current;
+                const left = ml > 0 ? Math.max(0, ml - moves) : null;
+                const hot = left !== null && (left <= 3 || left <= ml * 0.2);
+                const warm = left !== null && !hot && left <= ml * 0.35;
+                return (
+                  <HudBadge
+                    icon="swap-horizontal"
+                    value={ml > 0 ? `${moves}/${ml}` : String(moves)}
+                    colors={hot ? ['#f87171', '#b91c1c'] : warm ? ['#fbbf24', '#b45309'] : ['#94a3b8', '#475569']}
+                  />
+                );
+              })()}
               <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
               {/* Прогресс цели показываем только для 'pick'/'free': у 'all' его
                   и так видно по счётчику товаров, у 'moves' — по счётчику ходов. */}
