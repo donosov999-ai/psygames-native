@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.18.0',
+    date: '2026-08-30',
+    ru: [
+      'Поле «Матрицы памяти» больше не жмётся в уголок: клетки выросли примерно вдвое и занимают экран целиком',
+      'Питомец в шапке сел в рамку-медальон, и рамка меняет цвет вместе с его настроением — видно даже краем глаза',
+    ],
+    en: [
+      'The Memory Matrix board no longer huddles in a corner: cells roughly doubled and now fill the screen',
+      'The header pet moved into a medallion frame whose colour follows its mood — visible from the corner of your eye',
+    ],
+  },
+  {
     version: '2.17.1',
     date: '2026-08-30',
     ru: [

@@ -37,7 +37,20 @@ export type PetMood =
 /** Сколько держится реакция, прежде чем питомец вернётся в покой. */
 const HOLD_MS: Record<Exclude<PetMood, 'idle'>, number> = { good: 700, bad: 900, win: 1600 };
 
-export default function GamePet({ mood = 'idle', size = 34 }: { mood?: PetMood; size?: number }) {
+/**
+ * Рамка вокруг питомца — по паре «обводка → фон» на каждое настроение.
+ * У эталона жанра маскот сидит в рамке-медальоне, и она же меняет цвет: это
+ * второй канал ответа, который виден даже боковым зрением, когда сам спрайт
+ * мелкий (Денис 30.08.2026: «питомца в рамку и типа тетрайдер»).
+ */
+const FRAME: Record<PetMood, { ring: string; fill: string }> = {
+  idle: { ring: '#a78bfa', fill: 'rgba(167,139,250,0.14)' },
+  good: { ring: '#34d399', fill: 'rgba(52,211,153,0.20)' },
+  bad:  { ring: '#94a3b8', fill: 'rgba(148,163,184,0.16)' },
+  win:  { ring: '#fbbf24', fill: 'rgba(251,191,36,0.24)' },
+};
+
+export default function GamePet({ mood = 'idle', size = 46 }: { mood?: PetMood; size?: number }) {
   const reduced = useReducedMotion();
   const [skin, setSkin] = useState<'cat' | 'robot' | 'constellation'>('cat');
   const [visible, setVisible] = useState(true);
@@ -84,12 +97,23 @@ export default function GamePet({ mood = 'idle', size = 34 }: { mood?: PetMood; 
     // Питомец — не кнопка и не сообщение: скринридер его пропускает, состояние
     // партии он получает от самих клеток и счётчиков.
     <Animated.View
-      style={[styles.box, { width: size, height: size, transform: [{ scale: pop }] }]}
+      style={[styles.box, { transform: [{ scale: pop }] }]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       pointerEvents="none"
     >
-      <View style={styles.inner}>
+      <View
+        style={[
+          styles.frame,
+          {
+            width: size + 14, height: size + 14,
+            borderRadius: (size + 14) / 3,
+            borderColor: FRAME[shown].ring,
+            backgroundColor: FRAME[shown].fill,
+            shadowColor: FRAME[shown].ring,
+          },
+        ]}
+      >
         <PetSprite state={state} size={size} skin={skin} />
       </View>
     </Animated.View>
@@ -97,6 +121,11 @@ export default function GamePet({ mood = 'idle', size = 34 }: { mood?: PetMood; 
 }
 
 const styles = StyleSheet.create({
-  box: { alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
-  inner: { alignItems: 'center', justifyContent: 'center' },
+  box: { alignItems: 'center', justifyContent: 'center' },
+  // Медальон: обводка цветом настроения + мягкое свечение того же цвета.
+  frame: {
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, overflow: 'hidden',
+    shadowOpacity: 0.4, shadowRadius: 6, shadowOffset: { width: 0, height: 0 }, elevation: 4,
+  },
 });
