@@ -45,6 +45,9 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceE
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import GamePet, { type PetMood } from '@/src/components/pet/GamePet';
+import { onGameEvent, type GameEventKind } from '@/src/services/gameEvents';
+import { sndCorrect, sndWrong, sndMatch, sndLose } from '@/src/services/feedback';
+import { HudBadge, useScorePopups, ScorePopupLayer } from '@/src/components/juice';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmupSafe } from '@/src/contexts/WarmupContext';
@@ -298,6 +301,66 @@ export default function GameShell({
    */
   const bottomSafe = insets.bottom;
 
+  /**
+   * 🔴 ОТВЕТ ИГРЫ ЖИВЁТ В КАРКАСЕ, А НЕ В КАЖДОЙ ИГРЕ.
+   *
+   * Решение Дениса 30.08.2026: раскатать по общему каркасу звук на действие,
+   * серию и реакцию питомца. Замер до правки: звук на верный ход звали 12 игр
+   * из 74 — в остальных шестидесяти попадание молчало.
+   *
+   * Игра говорит одну строку (`gameGood()` из `services/gameEvents`), а каркас
+   * делает всё остальное: звучит, ведёт серию, меняет лицо питомца. Новая игра
+   * получает это бесплатно, если сообщила о ходе.
+   *
+   * ⚠️ Проп `pet` НЕ отменяется: игра, которая уже управляет настроением сама
+   * («Матрица памяти»), продолжает это делать, и её значение сильнее канала.
+   */
+  const [autoMood, setAutoMood] = React.useState<PetMood>('idle');
+  const [streak, setStreak] = React.useState(0);
+  const streakRef = React.useRef(0);
+  /**
+   * Всплывашка «+N» У МЕСТА действия — тоже из канала. Компонент был написан
+   * давно, но пользовались им три игры из семидесяти четырёх: подключённый к
+   * общему каналу, он достаётся любой игре, которая сказала, сколько начислила
+   * и где (`gameGood(50, { x, y })`).
+   */
+  const { popups, spawn } = useScorePopups();
+  /**
+   * `spawn` — новая функция на каждом рендере, поэтому в зависимостях подписки
+   * ей не место: эффект пересоздавался бы постоянно, отписываясь и подписываясь
+   * заново по кадру. Держим в ссылке, а подписка читает свежее значение.
+   */
+  const spawnRef = React.useRef(spawn);
+  // Запись в ссылку — в эффекте, а не в теле: писать в ref во время рендера
+  // нельзя, и линтер это ловит правилом `react-hooks/refs`.
+  React.useEffect(() => { spawnRef.current = spawn; }, [spawn]);
+
+  React.useEffect(() => onGameEvent((e) => {
+    const kind: GameEventKind = e.kind;
+    if (kind === 'good') {
+      streakRef.current += 1; setStreak(streakRef.current);
+      if (!e.silent) sndCorrect();
+      setAutoMood('good');
+    } else if (kind === 'bad') {
+      streakRef.current = 0; setStreak(0);
+      if (!e.silent) sndWrong();
+      setAutoMood('bad');
+    } else if (kind === 'win') {
+      if (!e.silent) sndMatch();
+      setAutoMood('win');
+    } else {
+      if (!e.silent) sndLose();
+      setAutoMood('bad');
+    }
+    // Прибавку показываем там, где она случилась. Без координат всплывашки нет:
+    // «+50» посреди пустого экрана не связывается ни с каким действием.
+    if (e.value && e.at) spawnRef.current(e.at.x, e.at.y, `+${e.value}`);
+    // Настроение живёт до следующего события: сбрасываем сразу, чтобы два
+    // одинаковых подряд дали ДВЕ реакции, а не одну слипшуюся.
+    setTimeout(() => setAutoMood('idle'), 40);
+  }), []);
+
+
   const field = scrollableField ? (
     <ScrollView
       ref={fieldScrollRef}
@@ -309,7 +372,10 @@ export default function GameShell({
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.field, toolbar ? null : { paddingBottom: bottomSafe }]}>{children}</View>
+    <View style={[styles.field, toolbar ? null : { paddingBottom: bottomSafe }]}>
+      {children}
+      <ScorePopupLayer popups={popups} />
+    </View>
   );
 
   return (
@@ -390,8 +456,18 @@ export default function GameShell({
           * во всех играх, а перевод самих счётчиков на бейджи идёт своим ходом,
           * игра за игрой, ничего не ломая.
           */}
-        <View style={[styles.statsPlate, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <GamePet mood={pet ?? 'idle'} size={44} />
+        <View style={[
+          styles.statsPlate,
+          // Игре нечего показать в счётчиках (зарядка, дыхание) — плашка сжимается
+          // по питомцу и не тянет пустую полосу во всю ширину, отбирая место у поля.
+          stats ? null : styles.statsPlateBare,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}>
+          <GamePet mood={pet ?? autoMood} size={44} />
+          {/* Серия показывается с двойки: единица — это ещё не серия, а один ход. */}
+          {pet === undefined && streak >= 2 ? (
+            <HudBadge icon="flame" label={t('hud_streak')} value={streak} colors={['#fb923c', '#c2410c']} pop />
+          ) : null}
           <View style={styles.statsFlex}>{stats}</View>
         </View>
       </View>
@@ -538,6 +614,7 @@ const styles = StyleSheet.create({
     borderRadius: 18, borderWidth: StyleSheet.hairlineWidth,
   },
   statsFlex: { flex: 1, minWidth: 0 },
+  statsPlateBare: { alignSelf: 'flex-start' },
   // Разделитель снизу отделяет действия от игрового поля: без него ряд кнопок
   // читается как часть поля, и в судоку его принимали за первую строку доски.
   headerActions: { paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth },

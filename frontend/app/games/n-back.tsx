@@ -27,7 +27,6 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { FlashCell, hapticSuccess, hapticError } from '@/src/components/juice';
-import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import { type PetMood } from '@/src/components/pet/GamePet';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -310,8 +309,8 @@ export default function NBackGame() {
     answeredRef.current = true;
     const stimulus = history[currentIdx];
     const target = history[currentIdx - nLevel];
-    if (stimulus === target) { statsRef.current.hits++; setHits((h) => h + 1); hapticSuccess(); sndCorrect(); petSay('good'); }
-    else { statsRef.current.falseAlarms++; setFalseAlarms((f) => f + 1); hapticError(); sndWrong(); petSay('bad'); }
+    if (stimulus === target) { statsRef.current.hits++; setHits((h) => h + 1); hapticSuccess(); petSay('good'); }
+    else { statsRef.current.falseAlarms++; setFalseAlarms((f) => f + 1); hapticError(); petSay('bad'); }
   };
 
   const handleAudioMatchPress = () => {
@@ -319,8 +318,8 @@ export default function NBackGame() {
     aAnsweredRef.current = true;
     const stimulus = audioHistory[currentIdx];
     const target = audioHistory[currentIdx - nLevel];
-    if (stimulus === target) { statsRef.current.aHits++; setAHits((h) => h + 1); hapticSuccess(); sndCorrect(); petSay('good'); }
-    else { statsRef.current.aFalseAlarms++; setAFalseAlarms((f) => f + 1); hapticError(); sndWrong(); petSay('bad'); }
+    if (stimulus === target) { statsRef.current.aHits++; setAHits((h) => h + 1); hapticSuccess(); petSay('good'); }
+    else { statsRef.current.aFalseAlarms++; setAFalseAlarms((f) => f + 1); hapticError(); petSay('bad'); }
   };
 
   const finishGame = async (vHist: number[], aHist: string[]) => {

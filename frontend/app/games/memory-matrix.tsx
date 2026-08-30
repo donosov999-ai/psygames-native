@@ -19,7 +19,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { FlashCell, type FlashState, HudBadge, hapticSuccess, hapticError } from '@/src/components/juice';
 import { type PetMood } from '@/src/components/pet/GamePet';
-import { sndCorrect, sndWrong, sndMatch, sndStreak } from '@/src/services/feedback';
+import { sndMatch, sndStreak } from '@/src/services/feedback';
 import { getBestStreak, bumpBestStreak } from '@/src/services/streak';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -223,7 +223,7 @@ export default function MemoryMatrixGame() {
     if (isHit) {
       setHits((h) => h + 1);
       setScore((s) => s + 10);
-      setPetMood('good'); sndCorrect(); hapticSuccess();
+      setPetMood('good'); hapticSuccess();   // звук внутри hapticSuccess — второй вызов дал бы «динь» дважды
       streakRef.current += 1;
       setStreak(streakRef.current);
       // Рекорд празднуем в момент, когда он побит, а не в конце партии:
@@ -236,7 +236,7 @@ export default function MemoryMatrixGame() {
     } else {
       setErrors((e) => e + 1);
       setScore((s) => Math.max(0, s - 5));
-      setPetMood('bad'); sndWrong(); hapticError();
+      setPetMood('bad'); hapticError();
       streakRef.current = 0; setStreak(0);   // серия рвётся на первой же ошибке
     }
     // Настроение живёт до следующего события: сбрасываем сразу, чтобы два
