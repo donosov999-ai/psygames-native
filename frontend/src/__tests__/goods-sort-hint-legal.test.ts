@@ -88,7 +88,9 @@ describe('сортировка товаров: подсказка', () => {
     const path = require('path');
     const src: string = fs.readFileSync(path.resolve(__dirname, '../../app/games/goods-sort.tsx'), 'utf8');
     const body = src.slice(src.indexOf('const showHint'), src.indexOf('const reshuffle'));
-    expect(body).toMatch(/hintMove\(makeBoard\(cells, capsFor\(level, cells\.length\)\)\)/);
+    // 30.08.2026: ёмкости берутся через `capsForBoard(level, cells)` — длина ответа
+    // равна длине доски по построению (боевой краш «ниш 9, ёмкостей 7»).
+    expect(body).toMatch(/hintMove\(makeBoard\(cells, capsForBoard\(level, cells\)\)\)/);
     expect(body).toMatch(/canPlaceInto\(found\.fromCell, found\.toCell\)/);
     // и найденный ход берётся ИМЕННО у решателя, а старая формула — только запасной путь
     expect(body).toMatch(/const found = fromSolver \?\? findHint\(/);

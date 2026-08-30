@@ -128,6 +128,26 @@ const GOOD_SPRITES = [
   require('../../assets/images/goods/good29.webp'),  // похожие: сметана
   require('../../assets/images/goods/good30.webp'),  // похожие: сливки
   require('../../assets/images/goods/good31.webp'),  // похожие: простокваша
+  /**
+   * ДВЕНАДЦАТЬ НОВЫХ ЗВЕРЯТ (30.08.2026, просьба Дениса: «Валя не любит лисят»).
+   * Лиса (good22) из пулов ВЫВЕДЕНА, но файл и индекс оставлены на месте:
+   * индексы — это идентификаторы товара в снимке незаконченной партии, и
+   * сдвиг ряда превратил бы чужие сохранённые доски в кашу из других предметов.
+   * Отрисованы одной сеткой 4×3 (kie, 12 кредитов, лист в _orig/), нарезаны и
+   * обрезаны по границе непрозрачного — как остальные спрайты набора.
+   */
+  require('../../assets/images/goods/good32.webp'), // слонёнок
+  require('../../assets/images/goods/good33.webp'), // котёнок
+  require('../../assets/images/goods/good34.webp'), // корги
+  require('../../assets/images/goods/good35.webp'), // панда
+  require('../../assets/images/goods/good36.webp'), // совёнок
+  require('../../assets/images/goods/good37.webp'), // тигрёнок
+  require('../../assets/images/goods/good38.webp'), // осьминожек
+  require('../../assets/images/goods/good39.webp'), // ленивец
+  require('../../assets/images/goods/good40.webp'), // ёжик
+  require('../../assets/images/goods/good41.webp'), // китёнок
+  require('../../assets/images/goods/good42.webp'), // лягушонок
+  require('../../assets/images/goods/good43.webp'), // динозаврик
 ];
 
 /**
@@ -143,14 +163,20 @@ const GOOD_SPRITES = [
  * суть набора (см. разбор ниже).
  */
 const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: number[]; preview: number[]; alike?: true }[] = [
-  { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
-    preview: [0, 9, 14, 23, 6, 21] },                      // по одному из каждой темы: напиток · еда · игрушка · молочка · фрукт · игрушка
+  { key: 'mix', ru: 'Микс', en: 'Mix', icon: 'apps', pool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43],
+    preview: [0, 9, 14, 23, 6, 32] },                      // по одному из каждой темы: напиток · еда · игрушка · молочка · фрукт · зверёк
   { key: 'food', ru: 'Еда', en: 'Food', icon: 'fast-food', pool: [6, 7, 8, 9, 10, 11],
     preview: [6, 9, 10, 7, 8, 11] },                       // банан · чипсы · хлеб · яблоко · шоколад · паста
   { key: 'drinks', ru: 'Напитки', en: 'Drinks', icon: 'wine', pool: [0, 1, 4, 12, 13, 2, 5, 3],
     preview: [0, 4, 13, 1, 12, 5] },                       // кола · сок · коктейль · лимонад · виноград · йогурт
-  { key: 'toys', ru: 'Игрушки', en: 'Toys', icon: 'happy', pool: [14, 15, 16, 17, 18, 19, 20, 21, 22],
-    preview: [14, 15, 21, 17, 18, 22] },                   // мишка · кактус · пингвин · зайка · цыплёнок · лиса
+  /**
+   * 🔴 ЛИСА (22) ВЫВЕДЕНА ИЗ НАБОРА 30.08.2026 по просьбе Дениса: «Валя не любит
+   * лисят». Индекс и файл оставлены на месте — они лежат в снимках незаконченных
+   * партий, и сдвиг ряда подменил бы человеку предметы на его же доске.
+   * Взамен пришли двенадцать новых зверят отдельным набором «Зверята» ниже.
+   */
+  { key: 'toys', ru: 'Игрушки', en: 'Toys', icon: 'happy', pool: [14, 15, 16, 17, 18, 19, 20, 21],
+    preview: [14, 15, 21, 17, 18, 16] },                   // мишка · кактус · пингвин · зайка · цыплёнок · цветок
   /**
    * 🔴 НАМЕРЕННО ПОХОЖИЕ ТОВАРЫ. Разбор жанра: перцептивная близость —
    * единственная механика, которая превращает задачу из «НАЙТИ» в «РАЗЛИЧИТЬ».
@@ -164,6 +190,15 @@ const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: number[
    */
   { key: 'dairy', ru: 'Молочное', en: 'Dairy', icon: 'water', pool: [23, 24, 25, 26, 27, 28, 29, 30, 31],
     preview: [23, 24, 25, 26, 27, 28], alike: true },      // витрина ЧЕСТНО пугает: шесть почти одинаковых бутылок
+  /**
+   * ЗВЕРЯТА — двенадцать плюшевых, отрисованных одной сеткой 4×3 (30.08.2026).
+   * Отдельный набор, а не расширение «Игрушек»: порог открытия ВЫВОДИТСЯ из
+   * размера пула, и вливание двенадцати видов в «Игрушки» отодвинуло бы детский
+   * набор с десятого уровня на двадцатый. Здесь же широкий пул уместен — набор
+   * и задуман как «поздний, богатый».
+   */
+  { key: 'pets', ru: 'Зверята', en: 'Critters', icon: 'paw', pool: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43],
+    preview: [32, 41, 38, 35, 43, 40] },                   // слонёнок · китёнок · осьминожек · панда · динозаврик · ёжик
 ];
 
 /* ───────────────── когда набор ОТКРЫВАЕТСЯ (вывод, а не назначение) ─────────────────
@@ -326,8 +361,15 @@ export function setRows<T>(items: T[], cols: number = SET_COLS): (T | null)[][] 
 // Названия товаров для скринридера. Держим локально ru/en (как pieceName в
 // chess-blind) вместо 23 ключей × 12 языков: игроку важно РАЗЛИЧАТЬ товары,
 // а не читать их на родном — при другом языке падаем на английский.
-const GOOD_NAMES_RU = ['кола','лимонад','кефир','молоко','сок','йогурт','банан','яблоко','шоколад','чипсы','хлеб','зубная паста','виноградный сок','клубничный коктейль','мишка','кактус','цветок','зайка','цыплёнок','коала','растение','пингвин','лиса'];
-const GOOD_NAMES_EN = ['cola','lemonade','kefir','milk','juice','yogurt','banana','apple','chocolate','chips','bread','toothpaste','grape juice','strawberry shake','teddy bear','cactus','flower','bunny','chick','koala','plant','penguin','fox'];
+/**
+ * ⚠️ РЯД ИМЁН ОБЯЗАН ПОКРЫВАТЬ ВЕСЬ РЯД СПРАЙТОВ. `goodName` берёт имя по
+ * остатку от длины: пока имён было 23 на 32 спрайта, молочные бутылки
+ * назывались «колой» и «лимонадом» — цель уровня «собери три X» и озвучка
+ * для незрячих говорили не тот предмет. Дополнено 30.08.2026 вместе с новыми
+ * зверятами: имён столько же, сколько картинок.
+ */
+const GOOD_NAMES_RU = ['кола','лимонад','кефир','молоко','сок','йогурт','банан','яблоко','шоколад','чипсы','хлеб','зубная паста','виноградный сок','клубничный коктейль','мишка','кактус','цветок','зайка','цыплёнок','коала','растение','пингвин','лиса','молоко синее','молоко бледное','кефир в бутылке','ряженка','питьевой йогурт','топлёное молоко','сметана','сливки','простокваша','слонёнок','котёнок','корги','панда','совёнок','тигрёнок','осьминожек','ленивец','ёжик','китёнок','лягушонок','динозаврик'];
+const GOOD_NAMES_EN = ['cola','lemonade','kefir','milk','juice','yogurt','banana','apple','chocolate','chips','bread','toothpaste','grape juice','strawberry shake','teddy bear','cactus','flower','bunny','chick','koala','plant','penguin','fox','blue milk','pale milk','bottled kefir','ryazhenka','drinking yogurt','baked milk','sour cream','cream','soured milk','baby elephant','kitten','corgi puppy','panda','owlet','tiger cub','octopus','sloth','hedgehog','baby whale','frog','baby dinosaur'];
 const goodName = (type: number, ru: boolean) =>
   (ru ? GOOD_NAMES_RU : GOOD_NAMES_EN)[type % GOOD_NAMES_EN.length];
 
@@ -672,6 +714,25 @@ export function capsFor(L: number, slots: number): number[] {
     caps[big] = CAP_MAX;
   }
   return caps;
+}
+
+/**
+ * 🔴 ЁМКОСТИ БЕРУТСЯ ОТ ЖИВОЙ ДОСКИ, А НЕ ОТ ЧИСЛА, ЛЕЖАЩЕГО РЯДОМ.
+ *
+ * Боевой краш 30.08.2026 у Дениса, v2.13.1: «доска собрана неверно: ниш 9,
+ * ёмкостей 7». Экран считал ёмкости как `capsFor(level, gridRef.current.slots)`
+ * и пересчитывал их по смене `cols`/`rows`. Но число ниш задаёт МАСКА ФОРМЫ, а
+ * не размер сетки: замер по 60 уровням дал 55 переходов (десктоп) и 33
+ * (телефон), где сетка та же, а ниш другое число. L6→L7 — ровно 3×3 и 7→9:
+ * доска приезжала на девять ниш, ёмкости оставались на семь, и `makeBoard`
+ * честно ронял игру.
+ *
+ * Здесь длина ответа равна длине доски ПО ПОСТРОЕНИЮ. Это и есть лечение: не
+ * «добавить slots в зависимости» (следующий такой ref сломает снова), а брать
+ * число ниш оттуда, где оно правда — из самой доски.
+ */
+export function capsForBoard(L: number, cells: readonly unknown[][]): number[] {
+  return capsFor(L, cells.length);
 }
 
 export function strictPlacement(L: number): boolean {
@@ -2375,7 +2436,9 @@ export default function GoodsSortGame() {
   /** Идёт ли режим скрытой информации (§20). Тоже одно место — по образцу strict. */
   const hiddenHere = hiddenInfo(level);
   /** Ёмкости ниш этого уровня. Одинаковые до 18-го, дальше вперемешку. */
-  const caps = useMemo(() => capsFor(level, gridRef.current.slots), [level, gridDim.cols, gridDim.rows]);
+  // Ёмкости — от живой доски (см. capsForBoard): маска формы меняет число ниш
+  // при неизменной сетке, и зависимость от cols/rows этого не видит.
+  const caps = useMemo(() => capsForBoard(level, cells), [level, cells.length]);
   const capOf = (i: number) => caps[i] ?? CAP;
 
   /**
@@ -2389,7 +2452,7 @@ export default function GoodsSortGame() {
    */
   const deadEnd = useMemo(() => {
     if (cells.length === 0) return false;
-    const board = makeBoard(cells, caps.slice(0, cells.length));
+    const board = makeBoard(cells, caps);
     return isDeadEnd(board, cells.map((_, i) => cellUsable(i)), strict);
   }, [cells, caps, obstacles, strict, frozen]);
   /** Есть ли на этом уровне разные ёмкости — от этого зависит показ насечек. */
@@ -2751,7 +2814,7 @@ export default function GoodsSortGame() {
      * функцию, которая решает, случится ли перекладывание. Так «подсказка, которую
      * игра отвергает» невозможна по построению, а не по надежде.
      */
-    const solved = hintMove(makeBoard(cells, capsFor(level, cells.length)));
+    const solved = hintMove(makeBoard(cells, capsForBoard(level, cells)));
     const fromSolver: HintMove | null = solved && cellUsable(solved.from) && cellUsable(solved.to)
       && canPlaceInto(solved.from, solved.to)
       ? { fromCell: solved.from, fromIdx: (cells[solved.from]?.length ?? 1) - 1, toCell: solved.to }
