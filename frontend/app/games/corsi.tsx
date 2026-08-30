@@ -23,14 +23,13 @@ import { countsForRecord } from '@/src/services/leaderboard';
 import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmark';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
-import { FlashCell } from '@/src/components/juice';
+import { FlashCell, hapticSuccess, hapticError } from '@/src/components/juice';
 import { type PetMood } from '@/src/components/pet/GamePet';
 import { sndWrong as sndCorsiWrong, sndMatch as sndCorsiRight } from '@/src/services/feedback';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
-import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getAbilityCount, useAbility } from '@/src/services/abilities';
@@ -382,9 +381,6 @@ export default function CorsiGame() {
           const lit = phase === 'show' && showIdx === i;
           const tapped = userSeq.includes(i);
           const lastTapped = userSeq[userSeq.length - 1] === i;
-          const fbColor = feedback === 'right' && lastTapped ? '#22c55e' :
-                          feedback === 'wrong' && lastTapped ? '#f43f5e' :
-                          null;
           return (
             // Та же клетка, что в матрице, N-back и размахе — только посаженная
             // на свободные координаты доски Корси, а не в сетку.

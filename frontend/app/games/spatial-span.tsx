@@ -334,8 +334,6 @@ export default function SpatialSpanGame() {
         const lit = phase === 'show' && showIdx === i;
         const tapped = userSeq.includes(i);
         const lastTapped = userSeq[userSeq.length - 1] === i;
-        const fbColor = feedback === 'right' && lastTapped ? '#22c55e' :
-                        feedback === 'wrong' && lastTapped ? '#f43f5e' : null;
         return (
           // Клетка семейства «сетка со вспышкой» — одна на четыре игры.
           <FlashCell key={i}

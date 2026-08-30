@@ -26,7 +26,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
-import { FlashCell } from '@/src/components/juice';
+import { FlashCell, hapticSuccess, hapticError } from '@/src/components/juice';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import { type PetMood } from '@/src/components/pet/GamePet';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -37,7 +37,6 @@ import LeaderboardModal from '@/src/components/LeaderboardModal';
 import { countsForRecord, fetchBest, getPersonalBest, submitScore } from '@/src/services/leaderboard';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getSessionHistory, recordSessionScore } from '@/src/services/sessionHistory';
-import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
 import {
   accuracyPercent,
