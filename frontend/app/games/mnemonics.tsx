@@ -127,6 +127,24 @@ export default function MnemonicsGame() {
     let ic = itemCount;
     if (!isPreset && useLevel) { ic = levelParams(lvl.level).itemCount; levelRef.current = lvl.level; useLevelRef.current = true; setItemCount(ic); }
     else useLevelRef.current = false;
+    /**
+     * 🔴 ПРОГРАММА НЕ ДАЁТ ЗАДАНИЕ ВЫШЕ ДОСТИГНУТОГО УРОВНЯ.
+     *
+     * Денис 30.08.2026 из зарядки: «запускается на большом уровне, который ещё
+     * не освоен — сразу для запоминания 20 слов». Так и было: в программах
+     * профилей у мнемоники стоит `itemCount: 20`, и пресет применялся как есть,
+     * мимо лесенки уровней (`levelParams`: L1 = 5 слов, L11 = 15).
+     *
+     * Теперь пресет — ПОТОЛОК ЖЕЛАНИЯ, а не приказ: берём не больше, чем
+     * «достигнутый уровень плюс шаг вперёд». Шаг нужен, чтобы программа всё же
+     * подтягивала, а не топталась на месте. Дошедшему до верха лесенки
+     * (L11+) отдаём пресет целиком — он его уже тянет.
+     */
+    if (isPreset && lvl.loaded) {
+      const cap = levelParams(lvl.level).itemCount + 2;
+      const capped = lvl.level >= 11 ? ic : Math.min(ic, cap);
+      if (capped !== ic) { ic = capped; setItemCount(ic); }
+    }
     const newItems = generateItems(ic);
     setItems(newItems);
     setSelectedOrder([]);
