@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.16.0',
+    date: '2026-08-30',
+    ru: [
+      'Лимит ходов в «Сортировке товаров» теперь и правда заканчивает уровень: раньше можно было ходить сколько угодно, а счётчик в шапке предупреждает цветом, когда ходы на исходе',
+    ],
+    en: [
+      'The move limit in Goods Sort now actually ends the level — before, you could keep playing forever — and the counter warns you by colour when moves are running out',
+    ],
+  },
+  {
     version: '2.15.0',
     date: '2026-08-30',
     ru: [
