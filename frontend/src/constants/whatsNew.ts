@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.14.0',
+    date: '2026-08-30',
+    ru: [
+      'Сортировка товаров больше не падает при переходе на новый уровень. Ошибка «доска собрана неверно» приходила там, где форма полки меняла число ниш, а размер сетки оставался прежним',
+      'Двенадцать новых плюшевых зверят отдельным набором «Зверята»: слонёнок, котёнок, корги, панда, совёнок, тигрёнок, осьминожек, ленивец, ёжик, китёнок, лягушонок и динозаврик',
+      'Лисёнок из наборов убран — по просьбе из отзыва',
+    ],
+    en: [
+      'Goods Sort no longer crashes when a new level starts. The “board assembled wrong” error appeared where the shelf shape changed the number of slots while the grid size stayed the same',
+      'Twelve new plush critters in their own “Critters” set: baby elephant, kitten, corgi puppy, panda, owlet, tiger cub, octopus, sloth, hedgehog, baby whale, frog and baby dinosaur',
+      'The fox is out of the sets — as asked in a report',
+    ],
+  },
+  {
     version: '2.13.1',
     date: '2026-08-30',
     ru: [

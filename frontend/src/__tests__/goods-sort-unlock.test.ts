@@ -50,9 +50,9 @@ const NARROW = [true, false];
 
 describe('порог выведен из числа видов в пуле, а не назначен', () => {
   it('есть что проверять — наборы и их пулы прочитаны', () => {
-    expect(GOOD_SETS_KEYS.length).toBe(5);
+    expect(GOOD_SETS_KEYS.length).toBe(6);
     expect(GOOD_SETS_KEYS.map((k) => `${k}:${GOOD_SET_POOL_SIZE(k)}`))
-      .toEqual(['mix:32', 'food:6', 'drinks:8', 'toys:9', 'dairy:9']);
+      .toEqual(['mix:43', 'food:6', 'drinks:8', 'toys:8', 'dairy:9', 'pets:12']);
   });
 
   /**
@@ -61,7 +61,7 @@ describe('порог выведен из числа видов в пуле, а �
    * раньше — ещё нет. Назначь порог числом «от балды» — любая из двух половин
    * покраснеет, потому что она считается из размера пула, а не из порога.
    */
-  it.each(['food', 'drinks', 'toys', 'dairy'])('порог набора %s зажат размером его пула с обеих сторон', (key) => {
+  it.each(['food', 'drinks', 'toys', 'dairy', 'pets'])('порог набора %s зажат размером его пула с обеих сторон', (key) => {
     const P = GOOD_SET_POOL_SIZE(key);
     const L = setUnlockLevel(key);
     expect(`${key}: пул ${P}, порог ${L}, бюджет на пороге ${typeBudget(L)}, на уровень раньше ${typeBudget(L - 1)}`)
@@ -69,14 +69,16 @@ describe('порог выведен из числа видов в пуле, а �
   });
 
   it('порог каждого набора совпадает с чистым выводом poolBitesAt(размер пула)', () => {
-    const got = ['food', 'drinks', 'toys', 'dairy'].map((k) => `${k}:${setUnlockLevel(k)}`);
-    const want = ['food', 'drinks', 'toys', 'dairy'].map((k) => `${k}:${poolBitesAt(GOOD_SET_POOL_SIZE(k))}`);
+    const got = ['food', 'drinks', 'toys', 'dairy', 'pets'].map((k) => `${k}:${setUnlockLevel(k)}`);
+    const want = ['food', 'drinks', 'toys', 'dairy', 'pets'].map((k) => `${k}:${poolBitesAt(GOOD_SET_POOL_SIZE(k))}`);
     expect(got).toEqual(want);
   });
 
   it('пороги — те самые, что дал замер', () => {
     expect(GOOD_SETS_KEYS.map((k) => `${k}:${setUnlockLevel(k)}`))
-      .toEqual(['mix:1', 'food:6', 'drinks:10', 'toys:12', 'dairy:12']);
+      // 30.08.2026: лиса выведена из «Игрушек» (пул 9→8, порог 12→10), заведён
+      // набор «Зверята» из двенадцати новых — самый широкий после «Микса».
+      .toEqual(['mix:1', 'food:6', 'drinks:10', 'toys:10', 'dairy:12', 'pets:18']);
   });
 
   it('шире пул — позже порог, и никаких совпадений «случайно»', () => {
@@ -104,7 +106,7 @@ describe('до порога набор ничем не отличается, п�
    * min(потолок, бюджет) — ровно то же, что у самого широкого набора. Это верно
    * при ЛЮБОЙ форме доски и на любом экране, потому и проверяем оба.
    */
-  it.each(['food', 'drinks', 'toys', 'dairy'])('%s до своего порога даёт то же число видов, что «Микс»', (key) => {
+  it.each(['food', 'drinks', 'toys', 'dairy', 'pets'])('%s до своего порога даёт то же число видов, что «Микс»', (key) => {
     const P = GOOD_SET_POOL_SIZE(key);
     const bad: string[] = [];
     for (const narrow of NARROW) {
@@ -141,18 +143,19 @@ describe('до порога набор ничем не отличается, п�
 // ─────────────────────── что можно выбрать ───────────────────────
 
 describe('выбрать можно только открытое', () => {
-  it.each(['food', 'drinks', 'toys', 'dairy'])('%s закрыт на уровень раньше порога и открыт на пороге', (key) => {
+  it.each(['food', 'drinks', 'toys', 'dairy', 'pets'])('%s закрыт на уровень раньше порога и открыт на пороге', (key) => {
     const L = setUnlockLevel(key);
     expect(`${key}: ур.${L - 1} ${setAvailable(key, L - 1)}, ур.${L} ${setAvailable(key, L)}`)
       .toBe(`${key}: ур.${L - 1} false, ур.${L} true`);
   });
 
   it('на первом уровне закрыты все тематические наборы', () => {
-    expect(GOOD_SETS_KEYS.filter((k) => !setAvailable(k, 1))).toEqual(['food', 'drinks', 'toys', 'dairy']);
+    expect(GOOD_SETS_KEYS.filter((k) => !setAvailable(k, 1))).toEqual(['food', 'drinks', 'toys', 'dairy', 'pets']);
   });
 
-  it('на двенадцатом открыто всё', () => {
-    expect(GOOD_SETS_KEYS.filter((k) => !setAvailable(k, 12))).toEqual([]);
+  it('на двенадцатом открыто всё, кроме «Зверят» — они самые широкие', () => {
+    expect(GOOD_SETS_KEYS.filter((k) => !setAvailable(k, 12))).toEqual(['pets']);
+    expect(GOOD_SETS_KEYS.filter((k) => !setAvailable(k, setUnlockLevel('pets')))).toEqual([]);
   });
 
   it('карточки идут по возрастанию порога — открытое сверху, замки ниже', () => {
@@ -165,10 +168,11 @@ describe('выбрать можно только открытое', () => {
 
 describe('уже начатая партия закрытым набором не обрывается', () => {
   it('набор поднятой партии доступен, даже если по нынешнему потолку он закрыт', () => {
-    // Сохранился на 12-м «Игрушками», три провала опустили потолок до 11-го.
-    expect(setAvailable('toys', 11)).toBe(false);
-    expect(setAvailable('toys', 11, 'toys')).toBe(true);
-    expect(setAvailable('toys', 3, 'toys')).toBe(true);
+    // Сохранился «Зверятами» на их пороге, три провала опустили потолок ниже.
+    const L = setUnlockLevel('pets');
+    expect(setAvailable('pets', L - 1)).toBe(false);
+    expect(setAvailable('pets', L - 1, 'pets')).toBe(true);
+    expect(setAvailable('pets', 3, 'pets')).toBe(true);
   });
 
   it('поблажка распространяется ТОЛЬКО на свой набор, а не открывает соседей', () => {
