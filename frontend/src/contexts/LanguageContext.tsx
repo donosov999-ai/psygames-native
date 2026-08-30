@@ -1486,6 +1486,12 @@ const translations: Translations = {
   a11ySelected:    { ru: 'выбрано', en: 'selected' },
   a11yFound:       { ru: 'найдено', en: 'found' },
   a11yCell:        { ru: 'Ячейка', en: 'Cell' },
+  // Состояния клетки в играх семейства «сетка со вспышкой» (матрица, N-back,
+  // Корси, размах): без них скринридер называл только координаты, и незрячему
+  // было неизвестно, горит клетка или уже отвечена.
+  a11yLit:         { ru: 'горит', en: 'lit' },
+  a11yCorrect:     { ru: 'верно', en: 'correct' },
+  a11yMissed:      { ru: 'пропущена', en: 'missed' },
   a11yRow:         { ru: 'Строка', en: 'Row' },
   a11yCol:         { ru: 'Колонка', en: 'Column' },
   a11yRefresh:     { ru: 'Обновить', en: 'Refresh' },
@@ -2521,6 +2527,9 @@ const translations: Translations = {
   hud_card: { ru: 'Карта', en: 'Card' },
   hud_moves: { ru: 'Ходов', en: 'Moves' },
   hud_streak: { ru: 'Серия', en: 'Streak' },
+  // Личный рекорд серии — самореферентная цель вместо абсолютного счёта
+  // (решение Дениса 30.08.2026, обоснование в `services/streak.ts`).
+  hud_best: { ru: 'Рекорд', en: 'Best' },
   hud_repeats: { ru: 'Повторов', en: 'Repeats' },
   hud_words: { ru: 'Слов', en: 'Words' },
   hud_solved: { ru: 'Решено', en: 'Solved' },

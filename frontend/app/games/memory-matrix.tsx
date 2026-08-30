@@ -17,6 +17,10 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { FlashCell, type FlashState, HudBadge, hapticSuccess, hapticError } from '@/src/components/juice';
+import { type PetMood } from '@/src/components/pet/GamePet';
+import { sndCorrect, sndWrong, sndMatch, sndStreak } from '@/src/services/feedback';
+import { getBestStreak, bumpBestStreak } from '@/src/services/streak';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -102,6 +106,23 @@ export default function MemoryMatrixGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [feedbackMsg, setFeedbackMsg] = useState('');
+  /**
+   * Настроение питомца в шапке. Выставляется в момент СОБЫТИЯ, а не по фазе:
+   * питомец обязан отвечать на действие раньше, чем игрок посмотрит на счёт
+   * (§30.6 карты геймификации). Возврат в покой — забота `GamePet`.
+   */
+  const [petMood, setPetMood] = useState<PetMood>('idle');
+  /**
+   * Серия подряд и личный рекорд — вместо очков и счётчика ошибок в шапке
+   * (решение Дениса 30.08.2026, обоснование — в шапке `services/streak.ts`).
+   * `streakRef` нужен потому, что рекорд сверяется в том же обработчике, где
+   * серия растёт: состояние туда ещё не доехало бы.
+   */
+  const [streak, setStreak] = useState(0);
+  const streakRef = useRef(0);
+  const [bestStreak, setBestStreak] = useState<number | null>(null);
+  const [beatBest, setBeatBest] = useState(false);   // рекорд побит в этой партии
+  useEffect(() => { getBestStreak('memory_matrix').then(setBestStreak).catch(() => {}); }, []);
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата уровня для <LevelCleared passed>
   const totalRounds = 10;
   const levelRef = useRef(1);
@@ -173,6 +194,8 @@ export default function MemoryMatrixGame() {
     seriesCountRef.current = isPreset ? 1 : p.seriesCount;
     if (!isPreset) setGridSize(g);
     setHits(0); setErrors(0); setScore(0); setRound(1);
+    // Серия живёт ровно партию: перенесённая через старт, она обесценивает рекорд.
+    streakRef.current = 0; setStreak(0); setBeatBest(false);
     setStartTime(gameNow());
     newRound(g, 1);   // g явно — setGridSize асинхронен
   };
@@ -200,10 +223,25 @@ export default function MemoryMatrixGame() {
     if (isHit) {
       setHits((h) => h + 1);
       setScore((s) => s + 10);
+      setPetMood('good'); sndCorrect(); hapticSuccess();
+      streakRef.current += 1;
+      setStreak(streakRef.current);
+      // Рекорд празднуем в момент, когда он побит, а не в конце партии:
+      // «побил себя» — единственное событие, ради которого счётчик и стоит.
+      if (bestStreak === null || streakRef.current > bestStreak) {
+        setBestStreak(streakRef.current);
+        if (!beatBest && (bestStreak ?? 0) > 0) { setBeatBest(true); sndStreak(); }
+      }
+      bumpBestStreak('memory_matrix', streakRef.current).catch(() => {});
     } else {
       setErrors((e) => e + 1);
       setScore((s) => Math.max(0, s - 5));
+      setPetMood('bad'); sndWrong(); hapticError();
+      streakRef.current = 0; setStreak(0);   // серия рвётся на первой же ошибке
     }
+    // Настроение живёт до следующего события: сбрасываем сразу, чтобы два
+    // одинаковых подряд («верно, верно») дали ДВЕ реакции, а не одну.
+    setTimeout(() => setPetMood('idle'), 40);
     // Финальные значения для saveSession: замыкание score/hits/errors не учитывает ТЕКУЩИЙ тап
     // (setState функциональный, но сохранение ниже читает старое замыкание) → считаем явно.
     const fHits = hits + (isHit ? 1 : 0);
@@ -225,6 +263,7 @@ export default function MemoryMatrixGame() {
     const wrongPicked = !isHit;
     if (allFound || wrongPicked) {
       setFeedbackMsg(allFound && !wrongPicked ? t('matrixGood') : t('matrixMissed'));
+      if (allFound && !wrongPicked) { setPetMood('win'); sndMatch(); }
       phaseRef.current = 'feedback';   // синхронно (useEffect-синк ленивый): хвост свайпа не должен кликать после конца раунда
       setPhase('feedback');
       setTimeout(async () => {
@@ -263,13 +302,43 @@ export default function MemoryMatrixGame() {
     }
   };
 
-  // v1.29.1 (мобайл): full-width сетка — зажим 420px + потолок 70 делали её мелкой по центру.
-  // Высотный лимит (хедер+статус ≈ 280) держит ландшафт/десктоп; 110 — потолок больших окон.
+  /**
+   * 🔴 ВЫСОТУ ПОД ПОЛЕ МЕРЯЕМ, А НЕ УГАДЫВАЕМ (приём из `goods-sort`).
+   *
+   * Было: `height - 280`, где 280 — зашитый запас на шапку и счётчики, плюс
+   * потолок клетки 110 px. На десктопе это давало сетку в четверть окна: Денис
+   * 30.08.2026 — «скучная и не красивая», и первое, что бросалось в глаза, —
+   * поле размером с почтовую марку посреди белого поля.
+   *
+   * Теперь делим ту высоту, которую контейнер РЕАЛЬНО дал (`onLayout`), а
+   * потолок поднят до 168: на телефоне его и так не достать по ширине, а на
+   * большом окне он единственное, что мешало полю дышать. До первого замера
+   * держим прежнюю оценку — ровно один кадр.
+   */
+  const [fieldH, setFieldH] = useState(0);
+  const availH = Math.max(160, fieldH ? fieldH - 44 : height - 280);   // 44 — подпись над полем
   const cellSize = Math.min(
     (width - 32 - (gridSize - 1) * CELL_GAP) / gridSize,
-    (height - 280 - (gridSize - 1) * CELL_GAP) / gridSize,
-    110
+    (availH - (gridSize - 1) * CELL_GAP) / gridSize,
+    168
   );
+
+  /**
+   * Подпись клетки для скринридера: координаты И состояние.
+   * До 30.08.2026 говорилось только «строка 2, колонка 3» — то есть незрячий
+   * слышал разметку поля, но не саму игру: горит клетка или уже отвечена,
+   * было неизвестно.
+   */
+  const cellLabel = (i: number, st: FlashState) => {
+    const where = `${t('a11yRow')} ${Math.floor(i / gridSize) + 1}, ${t('a11yCol')} ${(i % gridSize) + 1}`;
+    const what =
+      st === 'lit' || st === 'lit2' ? t('a11yLit') :
+      st === 'correct' ? t('a11yCorrect') :
+      st === 'wrong' ? t('a11yWrong') :
+      st === 'missed' ? t('a11yMissed') :
+      st === 'picked' ? t('a11ySelected') : t('a11yEmpty');
+    return `${where}, ${what}`;
+  };
 
   // ── Свайп-выбор: ведёшь палец по полю — клетки под ним отмечаются (как выделение фото в галерее) ──
   const measureGrid = () => {
@@ -411,16 +480,37 @@ export default function MemoryMatrixGame() {
       <GameShell
         title={t('memoryMatrix')}
         onBack={() => goBackOrHome()}
+        pet={petMood}
         stats={
+          /**
+           * Счётчики бейджами, а не строкой текста: питомец и цифры стоят в
+           * одной плашке, как в эталоне жанра, и читаются одним взглядом.
+           * `pop` дёргает бейдж при изменении — прибавка видна, даже если
+           * игрок смотрел на поле.
+           *
+           * ⚠️ Ошибки показываем ПРИГЛУШЁННО и без красного, пока их нет:
+           * в тренажёре с подстройкой сложности ошибки — норма (15–25 % по
+           * построению), и постоянный красный счётчик наказывает за то, чего
+           * требует обучение (§12.4 карты геймификации).
+           */
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalRounds}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('score')} {score}</Text>
+            <HudBadge icon="repeat" label={t('round')} value={`${round}/${totalRounds}`} colors={['#a78bfa', '#7c3aed']} />
+            <HudBadge icon="checkmark-circle" label={t('hud_correct')} value={hits} colors={['#34d399', '#059669']} pop />
+            <HudBadge icon="flame" label={t('hud_streak')} value={streak} colors={['#fb923c', '#c2410c']} pop />
+            <HudBadge icon="trophy" label={t('hud_best')} value={bestStreak ?? '—'}
+              colors={beatBest ? ['#fbbf24', '#d97706'] : ['#cbd5e1', '#94a3b8']}
+              tint={beatBest ? '#3f2b00' : undefined} pop />
           </View>
         }
       >
-        <View style={styles.fieldCol}>
+        <View
+          style={styles.fieldCol}
+          onLayout={(e) => {
+            const h = Math.round(e.nativeEvent.layout.height);
+            // Только заметное изменение: дрожание в пиксель гоняло бы размер каждый кадр.
+            setFieldH((prev) => (Math.abs(prev - h) > 8 ? h : prev));
+          }}
+        >
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
             {phase === 'showing'
               ? (seriesCountRef.current === 2 && matrixMode === 'static'
@@ -447,28 +537,32 @@ export default function MemoryMatrixGame() {
                 : (activeIdx === i);
               const targetHas = two ? (inputSeries === 1 ? inSeries2 : inSeries1) : inSeries1;   // целевая серия ввода
               const isPicked = pickedCells.has(i);
-              let bg = colors.surface;
-              let border = colors.textSecondary;   // заметная рамка (было colors.border — бледная, поля не видно на светлой теме)
-              if (phase === 'showing' && showLit) bg = showingSeries === 2 ? SERIES2_COLOR : SERIES1_COLOR;
-              else if (phase === 'input' && isPicked) bg = targetHas ? '#22c55e' : '#f43f5e';
+              /**
+               * Состояние клетки — одно слово, а не подбор цвета на месте.
+               * Цвета, объём, загорание и значок для дальтоников живут в
+               * `FlashCell`, общей на четыре игры семейства (см. её шапку).
+               */
+              let st: FlashState = 'idle';
+              if (phase === 'showing' && showLit) st = showingSeries === 2 ? 'lit2' : 'lit';
+              else if (phase === 'input' && isPicked) st = targetHas ? 'correct' : 'wrong';
               else if (phase === 'feedback') {
                 const inAny = inSeries1 || inSeries2;
-                if (inAny && !isPicked) bg = '#fbbf24';
-                else if (inAny && isPicked) bg = '#22c55e';
-                else if (!inAny && isPicked) bg = '#f43f5e';
+                if (inAny && !isPicked) st = 'missed';
+                else if (inAny && isPicked) st = 'correct';
+                else if (!inAny && isPicked) st = 'wrong';
               }
               return (
-                <TouchableOpacity
+                <FlashCell
                   key={i}
-                  activeOpacity={0.7}
+                  size={cellSize}
+                  state={st}
                   onPress={() => handleCellPress(i)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${t('a11yRow')} ${Math.floor(i / gridSize) + 1}, ${t('a11yCol')} ${(i % gridSize) + 1}`}
-                  accessibilityState={{ selected: isPicked }}
-                  style={[
-                    styles.cell,
-                    { width: cellSize, height: cellSize, backgroundColor: bg, borderColor: border, borderWidth: 2 },
-                  ]}
+                  litColor={SERIES1_COLOR}
+                  lit2Color={SERIES2_COLOR}
+                  idleColor={colors.surface}
+                  borderColor={colors.textSecondary}
+                  a11yLabel={cellLabel(i, st)}
+                  a11yState={{ selected: isPicked }}
                 />
               );
             })}
@@ -532,7 +626,7 @@ const styles = StyleSheet.create({
   // колонка внутри поля GameShell: подсказка + сетка (само центрирование делает каркас)
   fieldCol: { alignItems: 'center', gap: 14 },
   // 4 счётчика при крупном шрифте не влезали в ряд и уезжали за край → переносим
-  statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center', flexWrap: 'wrap' },
+  statsRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
   statText: { fontSize: 15, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', minHeight: 18 },
   gridArea: { flexDirection: 'row', flexWrap: 'wrap', gap: CELL_GAP, justifyContent: 'flex-start' },

@@ -44,6 +44,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceEventEmitter, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import GamePet, { type PetMood } from '@/src/components/pet/GamePet';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmupSafe } from '@/src/contexts/WarmupContext';
@@ -110,6 +111,12 @@ export interface GameShellProps {
    * влезали в ряд (`flexWrap` + отступ под кнопку фидбека) и занимали ДВЕ
    * строки нижней полосы — 180 px, отобранных у доски.
    */
+  /**
+   * Питомец в шапке — реакция игры на действие (см. `GamePet`).
+   * Игра передаёт настроение словом ('good' / 'bad' / 'win'), спрайт, скин,
+   * возврат в покой и щадящий режим — забота компонента, а не 72 экранов.
+   */
+  pet?: PetMood;
   headerActions?: React.ReactNode;
   /**
    * 🔴 ОТВЕТ игрока — прибит к низу экрана. Опционально: у игр, где отвечают
@@ -170,7 +177,7 @@ export interface GameShellProps {
 }
 
 export default function GameShell({
-  title, onBack, stats, headerActions, toolbar, headerRight, scrollableField, overlay,
+  title, onBack, stats, headerActions, toolbar, headerRight, scrollableField, overlay, pet,
   confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
   const { colors } = useTheme();
@@ -348,7 +355,23 @@ export default function GameShell({
         </View>
       </View>
 
-      {stats ? <View style={styles.stats}>{stats}</View> : null}
+      {/**
+        * 🔴 ПИТОМЕЦ СТОИТ В ОДНОМ РЯДУ СО СЧЁТЧИКАМИ, А НЕ У ЗАГОЛОВКА.
+        *
+        * Решение Дениса 30.08.2026: «надо чтобы он там как в тулбаре был рядом
+        * с полезными кнопками-действиями». У эталона жанра маскот и есть левый
+        * край той же плашки, где таймер, уровень и счёт: игрок смотрит на счёт
+        * и видит реакцию, не переводя взгляд.
+        *
+        * Первая редакция ставила его между «назад» и заголовком — это верхняя
+        * строка навигации, куда игрок во время партии не смотрит вовсе.
+        */}
+      {(stats || pet !== undefined) ? (
+        <View style={styles.statsRow}>
+          {pet !== undefined ? <GamePet mood={pet} size={38} /> : null}
+          <View style={styles.statsFlex}>{stats}</View>
+        </View>
+      ) : null}
 
       {/* testID — якорь для живого аудита слотов (`scripts/slot-audit.mjs`):
           он ходит по собранному приложению и смотрит, в КАКОЙ из двух зон
@@ -483,6 +506,10 @@ const styles = StyleSheet.create({
   headerBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   headerRight: { width: 44, alignItems: 'flex-end', flexShrink: 0 },
   stats: { paddingHorizontal: 16, paddingBottom: 6 },
+  // Питомец слева, счётчики занимают остаток: строка не разъезжается, когда
+  // питомца нет (игра не передала `pet`) или он выключен в настройках.
+  statsRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 6, gap: 8 },
+  statsFlex: { flex: 1, minWidth: 0 },
   // Разделитель снизу отделяет действия от игрового поля: без него ряд кнопок
   // читается как часть поля, и в судоку его принимали за первую строку доски.
   headerActions: { paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth },

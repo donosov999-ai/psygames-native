@@ -17,6 +17,9 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { FlashCell } from '@/src/components/juice';
+import { sndWrong, sndMatch } from '@/src/services/feedback';
+import { type PetMood } from '@/src/components/pet/GamePet';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { levelOutcome } from '@/src/services/levelOutcome';
@@ -119,6 +122,9 @@ export default function SpatialSpanGame() {
   const [seq, setSeq] = useState<number[]>([]);
   const [showIdx, setShowIdx] = useState(-1);
   const [userSeq, setUserSeq] = useState<number[]>([]);
+  /** Настроение питомца в шапке — реакция на ход (§30.6 карты геймификации). */
+  const [petMood, setPetMood] = useState<PetMood>('idle');
+  const petSay = (m: PetMood) => { setPetMood(m); setTimeout(() => setPetMood('idle'), 40); };
   const [span, setSpan] = useState(0);
   const [errorsAtLen, setErrorsAtLen] = useState(0);
   const [totalErrors, setTotalErrors] = useState(0);
@@ -248,6 +254,7 @@ export default function SpatialSpanGame() {
     setUserSeq(next);
     if (next[next.length - 1] !== expected[next.length - 1]) {
       setFeedback('wrong');
+      petSay('bad'); sndWrong();
       const ne = errorsAtLen + 1;
       const te = totalErrors + 1;
       setErrorsAtLen(ne); setTotalErrors(te);
@@ -259,6 +266,7 @@ export default function SpatialSpanGame() {
     }
     if (next.length === expected.length) {
       setFeedback('right');
+      petSay('win'); sndMatch();
       const newSpan = Math.max(span, seq.length);
       setSpan(newSpan);
       setErrorsAtLen(0);
@@ -329,17 +337,22 @@ export default function SpatialSpanGame() {
         const fbColor = feedback === 'right' && lastTapped ? '#22c55e' :
                         feedback === 'wrong' && lastTapped ? '#f43f5e' : null;
         return (
-          <TouchableOpacity key={i}
+          // Клетка семейства «сетка со вспышкой» — одна на четыре игры.
+          <FlashCell key={i}
+            size={cellSize}
+            state={
+              feedback === 'right' && lastTapped ? 'correct' :
+              feedback === 'wrong' && lastTapped ? 'wrong' :
+              lit ? 'lit' : tapped ? 'picked' : 'idle'
+            }
             disabled={phase !== 'recall' || feedback !== null}
             onPress={() => handleTap(i)}
-            accessibilityRole="button"
-            accessibilityLabel={`${t('a11yRow')} ${Math.floor(i / gridSize) + 1}, ${t('a11yCol')} ${(i % gridSize) + 1}`}
-            accessibilityState={{ selected: tapped, disabled: phase !== 'recall' || feedback !== null }}
-            style={{
-              width: cellSize, height: cellSize, borderRadius: 8,
-              backgroundColor: fbColor || (lit ? '#fbbf24' : tapped ? GRADIENT[1] : colors.surface),
-              borderWidth: 2, borderColor: lit ? '#FFF' : colors.border,
-            }}
+            litColor="#fbbf24"
+            idleColor={colors.surface}
+            borderColor={colors.border}
+            a11yLabel={`${t('a11yRow')} ${Math.floor(i / gridSize) + 1}, ${t('a11yCol')} ${(i % gridSize) + 1}, ${
+              lit ? t('a11yLit') : tapped ? t('a11ySelected') : t('a11yEmpty')}`}
+            a11yState={{ selected: tapped, disabled: phase !== 'recall' || feedback !== null }}
           />
         );
       })}
@@ -354,6 +367,7 @@ export default function SpatialSpanGame() {
         <GameShell
           title={t('spatialSpan')}
           onBack={() => goBackOrHome()}
+          pet={petMood}
           stats={
             <View style={styles.statsRow}>
               <Text style={[styles.statText, { color: colors.text }]}>{t('hud_span')} {span} · {t('label_level_short')}{lvl.level}</Text>
