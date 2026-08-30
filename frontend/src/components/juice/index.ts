@@ -5,6 +5,8 @@ export { default as JuicyPressable } from './JuicyPressable';
 export { default as JuicyButton } from './JuicyButton';
 export { default as TileFace } from './TileFace';
 export { default as FlipCard } from './FlipCard';
+export { default as FlashCell } from './FlashCell';
+export type { FlashState } from './FlashCell';
 export { useScorePopups, ScorePopupLayer } from './ScorePopups';
 export type { Popup } from './ScorePopups';
 export { hapticTap, hapticMedium, hapticSuccess, hapticError } from './haptics';

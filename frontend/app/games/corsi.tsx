@@ -23,6 +23,9 @@ import { countsForRecord } from '@/src/services/leaderboard';
 import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmark';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { FlashCell } from '@/src/components/juice';
+import { type PetMood } from '@/src/components/pet/GamePet';
+import { sndWrong as sndCorsiWrong, sndMatch as sndCorsiRight } from '@/src/services/feedback';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -147,6 +150,9 @@ export default function CorsiGame() {
   const [span, setSpan] = useState(0);            // longest correct sequence
   const [errors, setErrors] = useState(0);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
+  /** Настроение питомца в шапке — реакция на ход (§30.6 карты геймификации). */
+  const [petMood, setPetMood] = useState<PetMood>('idle');
+  const petSay = (mo: PetMood) => { setPetMood(mo); setTimeout(() => setPetMood('idle'), 40); };
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);   // память итога для баннера LevelCleared (passed/«почти»)
@@ -266,7 +272,7 @@ export default function CorsiGame() {
     setUserSeq(next);
     if (next[next.length - 1] !== expected[next.length - 1]) {
       // wrong — fail
-      setFeedback('wrong');
+      setFeedback('wrong'); petSay('bad'); sndCorsiWrong();
       hapticError();
       const newErrors = errors + 1;
       setErrors(newErrors);
@@ -278,7 +284,7 @@ export default function CorsiGame() {
     }
     if (next.length === expected.length) {
       // success — increase span
-      setFeedback('right');
+      setFeedback('right'); petSay('win'); sndCorsiRight();
       hapticSuccess();
       const newSpan = Math.max(span, seq.length);
       setSpan(newSpan);
@@ -380,18 +386,26 @@ export default function CorsiGame() {
                           feedback === 'wrong' && lastTapped ? '#f43f5e' :
                           null;
           return (
-            <TouchableOpacity key={i}
+            // Та же клетка, что в матрице, N-back и размахе — только посаженная
+            // на свободные координаты доски Корси, а не в сетку.
+            <FlashCell key={i}
+              size={block}
+              state={
+                feedback === 'right' && lastTapped ? 'correct' :
+                feedback === 'wrong' && lastTapped ? 'wrong' :
+                lit ? 'lit' : tapped ? 'picked' : 'idle'
+              }
               disabled={phase !== 'recall' || feedback !== null}
               onPress={() => handleTap(i)}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('a11yCell')} ${i + 1}`}
-              accessibilityState={{ selected: tapped, disabled: phase !== 'recall' || feedback !== null }}
+              litColor={GRADIENT[1]}
+              idleColor="#444"
+              borderColor="rgba(255,255,255,0.18)"
+              a11yLabel={`${t('a11yCell')} ${i + 1}, ${lit ? t('a11yLit') : tapped ? t('a11ySelected') : t('a11yEmpty')}`}
+              a11yState={{ selected: tapped, disabled: phase !== 'recall' || feedback !== null }}
               style={{
                 position: 'absolute',
-                left: p.x * boardScale - block / 2, top: p.y * boardScale - block / 2,
-                width: block, height: block, borderRadius: 8,
-                backgroundColor: fbColor || (lit ? GRADIENT[1] : tapped ? GRADIENT[0] : '#444'),
-                borderWidth: 2, borderColor: lit ? '#fff' : 'transparent',
+                left: p.x * boardScale - block / 2,
+                top: p.y * boardScale - block / 2,
               }}
             />
           );
@@ -407,6 +421,7 @@ export default function CorsiGame() {
         <GameShell
           title={t('corsi')}
           onBack={() => goBackOrHome()}
+          pet={petMood}
           stats={
             <View style={styles.statsRow}>
               <Text style={[styles.statText, { color: colors.text }]}>{t('hud_span')} {span}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>

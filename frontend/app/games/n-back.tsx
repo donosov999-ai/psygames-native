@@ -26,6 +26,9 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { FlashCell } from '@/src/components/juice';
+import { sndCorrect, sndWrong } from '@/src/services/feedback';
+import { type PetMood } from '@/src/components/pet/GamePet';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -126,7 +129,14 @@ export default function NBackGame() {
   // v1.29.3 (мобайл): сетка 3×3 была фикс 240×240 — мелкая по центру. Теперь тянется
   // на ~80% ширины (потолок 132px/ячейка для планшетов), но не выше доступной высоты.
   const { width, height } = useWindowDimensions();
-  const nbGridSide = Math.min(width - 48, height - 360, 420);
+  /**
+   * 🔴 Тот же дефект, что был в «Матрице памяти» и в сортировке: зашитый запас
+   * `height - 360` и потолок 420 давали поле в четверть окна на десктопе.
+   * Запас уменьшен до реального (шапка + счётчики + подпись + кнопка ≈ 300),
+   * потолок поднят: на телефоне его не достать по ширине, а большому окну он
+   * единственное, что мешал.
+   */
+  const nbGridSide = Math.min(width - 48, height - 300, 560);
   const nbCell = (nbGridSide - 2 * 6) / 3; // 3 ячейки, 2 зазора по 6
   const router = useRouter();
 
@@ -165,6 +175,9 @@ export default function NBackGame() {
   const [waitingResponse, setWaitingResponse] = useState(false);
   // Visual stream stats
   const [hits, setHits] = useState(0);
+  /** Настроение питомца в шапке — ответ на нажатие «совпадение» (§30.6). */
+  const [petMood, setPetMood] = useState<PetMood>('idle');
+  const petSay = (m: PetMood) => { setPetMood(m); setTimeout(() => setPetMood('idle'), 40); };
   const [misses, setMisses] = useState(0);
   const [falseAlarms, setFalseAlarms] = useState(0);
   const [correctRejections, setCorrectRejections] = useState(0);
@@ -298,8 +311,8 @@ export default function NBackGame() {
     answeredRef.current = true;
     const stimulus = history[currentIdx];
     const target = history[currentIdx - nLevel];
-    if (stimulus === target) { statsRef.current.hits++; setHits((h) => h + 1); hapticSuccess(); }
-    else { statsRef.current.falseAlarms++; setFalseAlarms((f) => f + 1); hapticError(); }
+    if (stimulus === target) { statsRef.current.hits++; setHits((h) => h + 1); hapticSuccess(); sndCorrect(); petSay('good'); }
+    else { statsRef.current.falseAlarms++; setFalseAlarms((f) => f + 1); hapticError(); sndWrong(); petSay('bad'); }
   };
 
   const handleAudioMatchPress = () => {
@@ -307,8 +320,8 @@ export default function NBackGame() {
     aAnsweredRef.current = true;
     const stimulus = audioHistory[currentIdx];
     const target = audioHistory[currentIdx - nLevel];
-    if (stimulus === target) { statsRef.current.aHits++; setAHits((h) => h + 1); hapticSuccess(); }
-    else { statsRef.current.aFalseAlarms++; setAFalseAlarms((f) => f + 1); hapticError(); }
+    if (stimulus === target) { statsRef.current.aHits++; setAHits((h) => h + 1); hapticSuccess(); sndCorrect(); petSay('good'); }
+    else { statsRef.current.aFalseAlarms++; setAFalseAlarms((f) => f + 1); hapticError(); sndWrong(); petSay('bad'); }
   };
 
   const finishGame = async (vHist: number[], aHist: string[]) => {
@@ -529,6 +542,7 @@ export default function NBackGame() {
         <GameShell
           title={t('nBack')}
           onBack={() => goBackOrHome()}
+          pet={petMood}
           stats={
             <View style={styles.statsRow}>
               <Text style={[styles.statText, { color: colors.text }]}>{nLevel}-back · {t('round')} {currentIdx + 1}/{trials}</Text>
@@ -576,17 +590,15 @@ export default function NBackGame() {
           <View style={styles.fieldCol}>
             <View style={[styles.grid3x3, { width: nbGridSide, height: nbGridSide }]}>
               {Array.from({ length: 9 }).map((_, i) => (
-                <View
+                // Клетка общая на четыре игры семейства «сетка со вспышкой»:
+                // объём, загорание и значки для дальтоников живут в `FlashCell`.
+                <FlashCell
                   key={i}
-                  style={[
-                    styles.gridCell,
-                    {
-                      width: nbCell,
-                      height: nbCell,
-                      backgroundColor: activeCell === i && showWindow ? GRADIENT[0] : colors.surface,
-                      borderColor: colors.border,
-                    },
-                  ]}
+                  size={nbCell}
+                  state={activeCell === i && showWindow ? 'lit' : 'idle'}
+                  litColor={GRADIENT[0]}
+                  idleColor={colors.surface}
+                  borderColor={colors.border}
                 />
               ))}
             </View>

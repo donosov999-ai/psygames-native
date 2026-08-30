@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.17.0',
+    date: '2026-08-30',
+    ru: [
+      'Четыре игры с сеткой — «Матрица памяти», N-back, «Блоки Корси», «Пространственный размах» — стали живыми: клетки объёмные и загораются, у ответа есть значок, а не только цвет, поле выросло на весь экран',
+      'В шапке появился питомец: он радуется верному ходу и грустит на ошибке. Вместо очков и счётчика ошибок — серия подряд и ваш личный рекорд',
+    ],
+    en: [
+      'Four grid games — Memory Matrix, N-back, Corsi Blocks and Spatial Span — came alive: cells have depth and light up, answers carry a shape and not just a colour, and the board finally fills the screen',
+      'A pet joined the header: it cheers a correct move and sulks on a miss. Points and the error counter gave way to your current streak and personal best',
+    ],
+  },
+  {
     version: '2.16.0',
     date: '2026-08-30',
     ru: [
