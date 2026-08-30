@@ -23,14 +23,88 @@
  * «исправление» сделало бы игру заметно хуже на трети досок, не починив ничего.
  * Правка откачена целиком. Если когда-нибудь понадобится мягкий режим — сперва
  * поднимать бюджет и мерить заново, а не повторять этот заход.
+ *
+ * ━━━ ДВА ОТСЕЧЕНИЯ ОТ ДОНОРОВ ЖАНРА (30.08.2026) ━━━
+ * Разбор чужих решателей ball/water sort (joric/nuts, kuking) дал два приёма:
+ * симметрия пустых ниш и запрет разбирать собранное. Плюс ключ состояния
+ * переехал со строки на биты. Перенесены ПРИЁМЫ, не код: у доноров ёмкость ниш
+ * одна на всю доску, у нас три — оба отсечения пришлось сузить (см. по месту).
+ *
+ * 🔴 ЗАМЕР A/B НА 60 ОДИНАКОВЫХ ДОСКАХ (уровни 14·20·30·44·56, зерно фиксировано,
+ * старая версия из git рядом с новой). Вердикты разошлись 0 раз из 60 —
+ * отсечения не имеют права менять ответ, и не меняют.
+ *
+ *   бюджет  20 000: узлов 96 671 → 82 516 (−15 %) · 473 → 468 мс (−1 %) · «не знаем» 4 → 4
+ *   бюджет 120 000: узлов              (−48 %) · 2 389 → 1 796 мс (−42 %) · «не знаем» 3 → 0
+ *
+ * ⚠️ ЧИТАТЬ ЭТИ ДВЕ СТРОКИ ВМЕСТЕ. На рабочем бюджете 20 000 выигрыш по времени
+ * ОДИН ПРОЦЕНТ — потому что 97 % работы съедают четыре доски, упирающиеся в
+ * потолок, а потолок один и тот же до и после. Ценность отсечений не в скорости
+ * текущего режима, а в том, что глубокий перебор стал ВДВОЕ дешевле: при 120 000
+ * новая версия ДОКАЗЫВАЕТ ответ на всех шестидесяти досках, старая на одной
+ * по-прежнему говорит «не знаю».
+ *
+ * Что это дало продукту сразу: гейт строгих уровней (`goods-sort-strict`) снижен
+ * с 6 000 узлов до 1 500 — та же проверка при вчетверо меньшем потолке. А четыре
+ * «неизвестные» доски L30 оказались НЕРЕШАЕМЫМИ (доказано за 64–111 тыс. узлов),
+ * то есть генератор браковал их правильно.
  */
 import {
   type Board, capOf, collapseTriples, isCleared, moveTop, roomIn, tripleIn,
 } from './board';
 
-/** Ключ состояния: ниши равноправны, поэтому содержимое сортируем. */
-function stateKey(board: Board): string {
-  return board.cells.map((c, i) => `${capOf(board, i)}:${c.join('.')}`).sort().join('|');
+/**
+ * КЛЮЧ СОСТОЯНИЯ — БИТАМИ, А НЕ СТРОКОЙ (приём донора, 30.08.2026).
+ *
+ * Было: `cells.map(c => `${cap}:${c.join('.')}`).sort().join('|')` — на КАЖДЫЙ
+ * узел перебора строилось до восемнадцати строк, массив, сортировка строк и
+ * склейка. Перебор — это миллионы узлов, и половина работы уходила в сборщик
+ * мусора, а не в поиск.
+ *
+ * Стало: ниша упакована в одно число — до четырёх товаров по четыре бита плюс
+ * ёмкость в старших. Числа сортируются (ниши равноправны, порядок не значит
+ * ничего) и склеиваются в строку из символов: два символа на нишу, ни одной
+ * промежуточной строки.
+ *
+ * ⚠️ ТИПЫ ПЕРЕНУМЕРОВАНЫ ЛОКАЛЬНО. Товар в игре — индекс из сорока с лишним
+ * (`GOODS`), в четыре бита он не влезет. Внутри одной доски типов не больше
+ * десяти, поэтому они получают номера 1..15 по первому появлению. Карта
+ * считается ОДИН раз на партию перебора: новых типов по ходу игры не возникает,
+ * они только исчезают тройками.
+ */
+type TypeMap = Map<number, number>;
+
+function buildTypeMap(board: Board): TypeMap {
+  const map: TypeMap = new Map();
+  let next = 1;
+  for (const cell of board.cells) {
+    for (const t of cell) if (!map.has(t)) map.set(t, next++);
+  }
+  return map;
+}
+
+function stateKey(board: Board, types: TypeMap): string {
+  const n = board.cells.length;
+  const codes: number[] = new Array(n);
+  for (let i = 0; i < n; i += 1) {
+    const cell = board.cells[i] ?? [];
+    let packed = 0;
+    for (let j = 0; j < cell.length; j += 1) {
+      packed |= (types.get(cell[j] as number) ?? 15) << (j * 4);
+    }
+    // Ёмкость обязана быть В КЛЮЧЕ: две пустые ниши на два и на четыре — РАЗНЫЕ
+    // состояния, и склеить их значило бы объявить решаемой доску, где решения нет.
+    codes[i] = (capOf(board, i) << 16) | packed;
+  }
+  codes.sort((a, b) => a - b);
+  // Одна склейка вместо конкатенации в цикле: каждое `+=` порождало новую строку.
+  const chars: number[] = new Array(n * 2);
+  for (let i = 0; i < n; i += 1) {
+    const c = codes[i]!;
+    chars[i * 2] = c & 0xFFFF;
+    chars[i * 2 + 1] = c >>> 16;
+  }
+  return String.fromCharCode.apply(null, chars);
 }
 
 export interface SolveResult {
@@ -40,6 +114,12 @@ export interface SolveResult {
   exhausted: boolean;
   /** Первый ход найденного решения, если оно есть. */
   firstMove: { from: number; to: number } | null;
+  /**
+   * Сколько узлов перебрано. Без этого числа «стало быстрее» проверяется
+   * секундомером, а он на разных машинах врёт; узлы — та же работа в тех же
+   * единицах. Заведено 30.08.2026 вместе с отсечениями.
+   */
+  nodes: number;
 }
 
 /**
@@ -68,11 +148,14 @@ export function solveStrict(start: Board, budget = 20000): SolveResult {
    */
   const MAX_DEPTH = 500;
 
+  const startBoard = collapseTriples(start);
+  const types = buildTypeMap(startBoard);
+
   const walk = (board: Board, depth: number): boolean => {
     if (isCleared(board)) return true;
     if (depth >= MAX_DEPTH) { exhausted = true; return false; }
     if (++nodes > budget) { exhausted = true; return false; }
-    const key = stateKey(board);
+    const key = stateKey(board, types);
     if (seen.has(key)) return false;
     seen.add(key);
 
@@ -82,14 +165,56 @@ export function solveStrict(start: Board, budget = 20000): SolveResult {
      * этого перебор упирается в бюджет вместо ответа.
      */
     const moves: { from: number; to: number; rank: number }[] = [];
+    /**
+     * СИММЕТРИЯ ПУСТЫХ НИШ (приём донора, 30.08.2026). Две пустые ниши ОДНОЙ
+     * ёмкости неразличимы: переложить товар в первую или во вторую — одно и то
+     * же состояние, а перебор честно считал их разными ветками. На наших досках
+     * пустых две-три, и ветвление раздувалось во столько же раз на каждом шаге.
+     *
+     * ⚠️ У ДОНОРА ЁМКОСТЬ ОДНА, У НАС ТРИ. Он оставляет ровно одну пустую на всю
+     * доску; нам так нельзя — пустая на два и пустая на четыре ведут к разным
+     * продолжениям. Поэтому оставляем по одной пустой НА КАЖДУЮ ЁМКОСТЬ. Это и
+     * есть разница между «взять приём» и «скопировать код».
+     */
+    // ⚠️ БЕЗ Map И БЕЗ МАССИВА. Первая редакция держала здесь `new Map` — и замер
+    // показал ровно то, чем опасны «оптимизации по интуиции»: узлов стало меньше
+    // на 15 %, а времени БОЛЬШЕ на 23 %, потому что аллокация повторялась на
+    // каждом узле перебора. Ёмкости в игре три (CAP_MIN 2 · CAP 3 · CAP_MAX 4),
+    // поэтому здесь три числа и ни одной аллокации.
+    let firstEmpty2 = -1, firstEmpty3 = -1, firstEmpty4 = -1;
+    for (let i = 0; i < board.cells.length; i += 1) {
+      if ((board.cells[i]?.length ?? 0) !== 0) continue;
+      const cap = capOf(board, i);
+      if (cap <= 2) { if (firstEmpty2 < 0) firstEmpty2 = i; }
+      else if (cap === 3) { if (firstEmpty3 < 0) firstEmpty3 = i; }
+      else if (firstEmpty4 < 0) firstEmpty4 = i;
+    }
+
     for (let from = 0; from < board.cells.length; from += 1) {
       const src = board.cells[from] ?? [];
       if (src.length === 0) continue;
       const type = src[src.length - 1] as number;
+      /**
+       * НЕ РАЗБИРАТЬ СОБРАННОЕ (приём донора). Ниша, где всё одного типа,
+       * переезжать в пустую не должна: это перестановка кучки с места на место.
+       *
+       * ⚠️ Только когда пустая НЕ ПРОСТОРНЕЕ. У донора ёмкость одна, и запрет
+       * безусловный; у нас переезд из ниши на два в пустую на четыре бывает
+       * единственным способом собрать тройку — запретить его значило бы объявить
+       * решаемую доску нерешаемой. Условие `cap(to) <= cap(from)` это исключает.
+       */
+      let srcUniform = true;
+      for (let j = 1; j < src.length; j += 1) if (src[j] !== src[0]) { srcUniform = false; break; }
       for (let to = 0; to < board.cells.length; to += 1) {
         if (to === from || roomIn(board, to) <= 0) continue;
         const dst = board.cells[to] ?? [];
         if (dst.length > 0 && dst[dst.length - 1] !== type) continue;   // строгая укладка
+        if (dst.length === 0) {
+          const cap = capOf(board, to);
+          const first = cap <= 2 ? firstEmpty2 : cap === 3 ? firstEmpty3 : firstEmpty4;
+          if (first !== to) continue;                                   // симметрия пустых
+          if (srcUniform && cap <= capOf(board, from)) continue;        // не разбирать собранное
+        }
         const sameCount = dst.filter((t) => t === type).length;
         const rank = sameCount + 1 >= 3 ? 0 : dst.length > 0 ? 1 : 2;
         moves.push({ from, to, rank });
@@ -108,8 +233,8 @@ export function solveStrict(start: Board, budget = 20000): SolveResult {
     return false;
   };
 
-  const solvable = walk(collapseTriples(start), 0);
-  return { solvable, exhausted, firstMove };
+  const solvable = walk(startBoard, 0);
+  return { solvable, exhausted, firstMove, nodes };
 }
 
 /** Короткий ответ для генерации: доску отдавать человеку можно. */

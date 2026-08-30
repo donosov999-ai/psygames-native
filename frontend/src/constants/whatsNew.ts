@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.15.0',
+    date: '2026-08-30',
+    ru: [
+      'Решатель сортировки товаров стал вдвое дешевле на глубоком переборе: подсказка и проверка «доска ещё разбирается» отвечают увереннее там, где раньше сдавались',
+    ],
+    en: [
+      'The Goods Sort solver got twice as cheap on deep search: hints and the “this board is still solvable” check now answer where they used to give up',
+    ],
+  },
+  {
     version: '2.14.0',
     date: '2026-08-30',
     ru: [
