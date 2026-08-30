@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, View, StyleSheet, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
@@ -84,7 +84,11 @@ export default function FlashCell({
   a11yLabel, a11yState, style,
 }: Props) {
   const reduced = useReducedMotion();
-  const pop = useRef(new Animated.Value(1)).current;
+  // ⚠️ `useState`, а не `useRef(...).current`: чтение `.current` в теле
+  // компонента — обращение к рефу во время рендера, и линтер справедливо на
+  // это ругается. Ленивый инициализатор даёт то же самое (значение создаётся
+  // один раз) и не растит долг линта.
+  const [pop] = useState(() => new Animated.Value(1));
   const prev = useRef<FlashState>(state);
 
   useEffect(() => {

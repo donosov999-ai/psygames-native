@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
 import PetSprite from './PetSprite';
 import { getPetSkin, getPetVisible, PET_VISIBLE_EVENT } from '@/src/services/pet';
@@ -42,7 +42,11 @@ export default function GamePet({ mood = 'idle', size = 34 }: { mood?: PetMood; 
   const [skin, setSkin] = useState<'cat' | 'robot' | 'constellation'>('cat');
   const [visible, setVisible] = useState(true);
   const [shown, setShown] = useState<PetMood>('idle');
-  const pop = useRef(new Animated.Value(1)).current;
+  // ⚠️ `useState`, а не `useRef(...).current`: чтение `.current` в теле
+  // компонента — обращение к рефу во время рендера, и линтер справедливо на
+  // это ругается. Ленивый инициализатор даёт то же самое (значение создаётся
+  // один раз) и не растит долг линта.
+  const [pop] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     let alive = true;
