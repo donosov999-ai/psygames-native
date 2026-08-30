@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.22.0',
+    date: '2026-08-30',
+    ru: [
+      'Зарядка: кнопка «Пропустить упражнение» наконец работает — раньше она нажималась и не делала ничего',
+      'Зарядка больше не выдаёт задание выше вашего уровня: программа подтягивает на шаг вперёд, а не бросает сразу на двадцать слов',
+      'Практика для глаз развернулась на весь экран — точка ходит широко, а не в узкой полосе',
+    ],
+    en: [
+      'Warm-up: the “skip exercise” button finally works — it used to press and do nothing',
+      'The warm-up no longer hands you a task above your level: the programme pulls you one step ahead instead of dropping twenty words at once',
+      'The eye practice now fills the screen — the dot travels wide instead of along a narrow strip',
+    ],
+  },
+  {
     version: '2.21.0',
     date: '2026-08-30',
     ru: [

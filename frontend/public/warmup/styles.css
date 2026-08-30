@@ -1718,7 +1718,14 @@ body.is-practice-running #main-content {
   width: 100vw;
   height: 100dvh;
   min-height: 0;
-  grid-template-rows: auto 7px auto minmax(0, 1fr) auto auto;
+  /* 🔴 ПЯТЬ СТРОК ПОД ПЯТЬ ДЕТЕЙ, И РАСТЯГИВАЕТСЯ СЦЕНА.
+     Было шесть: `auto 7px auto minmax(0,1fr) auto auto` — при пяти фактических
+     детях (шапка · полоса · сцена · предупреждение · кнопки) третья строка
+     `auto` доставалась СЦЕНЕ, а весь свободный остаток — подписи про боль.
+     Отсюда «шарик летает в узкой горизонтальной трубке» (Денис 30.08.2026):
+     сцена жила по содержимому, то есть по своему нижнему пределу, а под ней
+     пустовало полтораста точек. Замер живьём: детей 5, строк 6. */
+  grid-template-rows: auto 7px minmax(0, 1fr) auto auto;
   gap: 8px;
   padding: clamp(10px, 1.2vw, 18px);
   overflow: hidden;

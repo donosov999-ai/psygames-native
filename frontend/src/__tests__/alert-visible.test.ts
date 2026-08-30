@@ -28,9 +28,6 @@ const mockPlatform: { OS: string } = require('react-native').Platform;
 
 import { Alert, alertText, actionButton, cancelButton, confirmText } from '@/src/services/alert';
 
-const code = (rel: string): string => (readFileSync(join(__dirname, '..', rel), 'utf8') as string)
-  .replace(/\/\*[\s\S]*?\*\//g, ' ')
-  .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
 
 let alerts: string[];
 let confirms: string[];
@@ -136,23 +133,49 @@ describe('разбор кнопок', () => {
  * комментариями: в шапках про эту ловушку написано словами.
  */
 describe('никто не берёт пустой Alert', () => {
-  const SCREENS = ['../app/settings.tsx', '../app/whats-new.tsx', 'components/ProfileSwitcherModal.tsx'];
+  /**
+   * 🔴 ПРОВЕРЯЕМ ВСЕ ФАЙЛЫ, А НЕ ТРИ ПО СПИСКУ.
+   *
+   * Первая редакция держала `SCREENS` из трёх путей — и мимо неё спокойно
+   * прошёл `GameShell`: он брал `Alert` из react-native, поэтому кнопка
+   * «пропустить упражнение» в зарядке нажималась и НЕ ДЕЛАЛА НИЧЕГО. Денис
+   * 30.08.2026: «нет кнопки пропустить… она не срабатывает при нажатии».
+   *
+   * Ручной список ловит ровно тех, кого в него внесли, — то есть уже известных.
+   * Проверка по свойству ловит следующего.
+   */
+  const { readdirSync, statSync } = require('fs');
+  const ROOT = join(__dirname, '..', '..');
+  const walk = (dir: string, acc: string[] = []): string[] => {
+    for (const name of readdirSync(dir)) {
+      if (name === 'node_modules' || name === '__tests__' || name.startsWith('.')) continue;
+      const full = join(dir, name);
+      if (statSync(full).isDirectory()) walk(full, acc);
+      else if (/\.tsx?$/.test(name)) acc.push(full);
+    }
+    return acc;
+  };
+  const ALL = [...walk(join(ROOT, 'app')), ...walk(join(ROOT, 'src'))]
+    .filter((f: string) => !f.endsWith(join('services', 'alert.ts')));
 
-  it('есть что проверять', () => {
-    for (const f of SCREENS) expect(code(f).length).toBeGreaterThan(500);
+  it('есть что проверять: файлов много', () => {
+    expect(ALL.length).toBeGreaterThan(100);
   });
 
-  it('🔴 Alert берётся из своего сервиса, а не из react-native', () => {
-    const guilty = SCREENS.filter((f) => {
-      const c = code(f);
+  it('🔴 НИ ОДИН файл не берёт Alert из react-native', () => {
+    const guilty = ALL.filter((f: string) => {
+      const c = readFileSync(f, 'utf8');
       const rn = c.match(/import \{([^}]*)\} from 'react-native';/);
       return !!rn && /\bAlert\b/.test(rn[1]);
-    });
+    }).map((f: string) => f.slice(ROOT.length + 1));
     expect(guilty).toEqual([]);
   });
 
-  it('🔴 и при этом Alert у них действительно есть', () => {
-    const missing = SCREENS.filter((f) => !/from '@\/src\/services\/alert'/.test(code(f)));
+  it('🔴 кто зовёт Alert.alert — берёт его из своего сервиса', () => {
+    const missing = ALL.filter((f: string) => {
+      const c = readFileSync(f, 'utf8');
+      return /Alert\.alert\(/.test(c) && !/from '@\/src\/services\/alert'/.test(c);
+    }).map((f: string) => f.slice(ROOT.length + 1));
     expect(missing).toEqual([]);
   });
 });

@@ -41,7 +41,7 @@
  * она смонтирована глобально в _layout и иначе перекрывает крайнюю кнопку.
  */
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceEventEmitter, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import GamePet, { type PetMood } from '@/src/components/pet/GamePet';
@@ -202,18 +202,22 @@ export default function GameShell({
    */
   const wu = useWarmupSafe();
   const wuStep = wu?.active ? wu.currentStep : null;
-  const wuSkip = () => {
-    if (!wu || !wuStep) return;
-    const g = GAMES.find((x) => x.id === wuStep.game_id);
-    Alert.alert(
-      t('skipStep'),
-      `${t('skipGameNamed')} ${g ? t(g.nameKey) : wuStep.game_id}?`,
-      [
-        { text: t('btn_cancel'), style: 'cancel' },
-        { text: t('skipStep'), style: 'destructive', onPress: () => wu.skipCurrent() },
-      ],
-    );
-  };
+  /**
+   * 🔴 `Alert.alert` ЗДЕСЬ НЕ РАБОТАЛ ВООБЩЕ.
+   *
+   * Денис 30.08.2026: «нет кнопки пропустить упражнение… она не срабатывает при
+   * нажатии». Кнопка была и нажималась — но `Alert.alert` из react-native не
+   * реализован на web, а наши Mac и Android — это WebView (та же грабля, что с
+   * вибрацией в `juice/haptics.ts`: для RN наша Android-сборка есть `web`).
+   * Значит вопрос не появлялся, шаг не пропускался, и человек оставался запертым
+   * в упражнении, которое не хочет делать.
+   *
+   * Спрашиваем своей карточкой — ровно той же, что подтверждает выход: она
+   * рисуется в дереве и работает на всех трёх платформах.
+   */
+  const [askSkip, setAskSkip] = React.useState(false);
+  const wuSkip = () => { if (wu && wuStep) setAskSkip(true); };
+  const wuSkipConfirm = () => { setAskSkip(false); wu?.skipCurrent(); };
 
   const [paused, setPaused] = React.useState(isGameHeld());
   React.useEffect(() => onGameHold((v) => {
@@ -583,6 +587,38 @@ export default function GameShell({
         Пауза здесь и не нужна: вопрос сам и есть накладка, и он объясняет, что
         происходит, лучше, чем «Пауза — пишется отзыв».
       */}
+      {askSkip && (
+        <View style={styles.exitOverlay} pointerEvents="auto">
+          <View style={[styles.exitCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text accessibilityRole="header" testID="skip-step-title" style={[styles.exitTitle, { color: colors.text }]}>
+              {t('skipStep')}
+            </Text>
+            <Text testID="skip-step-body" style={[styles.exitBody, { color: colors.textSecondary }]}>
+              {`${t('skipGameNamed')} ${wuStep ? (GAMES.find((x) => x.id === wuStep.game_id) ? t(GAMES.find((x) => x.id === wuStep.game_id)!.nameKey) : wuStep.game_id) : ''}?`}
+            </Text>
+            {/* Безопасный ответ первым и залитым — как в вопросе о выходе. */}
+            <View style={styles.exitButtons}>
+              <TouchableOpacity
+                testID="skip-step-stay"
+                accessibilityRole="button"
+                onPress={() => setAskSkip(false)}
+                style={[styles.exitBtn, { backgroundColor: colors.primary }]}
+              >
+                <Text style={[styles.exitBtnText, { color: '#fff' }]}>{t('btn_cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="skip-step-confirm"
+                accessibilityRole="button"
+                onPress={wuSkipConfirm}
+                style={[styles.exitBtn, styles.exitBtnGhost, { borderColor: colors.border }]}
+              >
+                <Text style={[styles.exitBtnText, { color: colors.text }]}>{t('skipStep')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
       {paused && !exitGuard.asking && (
         <View style={styles.pauseOverlay} pointerEvents="auto">
           <View style={[styles.pauseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
