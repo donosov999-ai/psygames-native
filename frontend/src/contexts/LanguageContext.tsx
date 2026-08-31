@@ -1480,6 +1480,14 @@ const translations: Translations = {
   a11yDown:        { ru: 'Вниз', en: 'Down' },
   a11yDigitStyle:  { ru: 'Стиль цифр', en: 'Digit style' },
   a11yShelf:       { ru: 'Полка', en: 'Shelf' },
+  /**
+   * Препятствия для скринридера. Замок, цепь и лёд нарисованы поверх ниши —
+   * зрячий видит их сразу, незрячему до 31.08.2026 не сообщалось НИЧЕГО:
+   * подпись говорила только «Полка 6: пусто», и человек пытался туда положить.
+   */
+  a11yShelfBlocked: { ru: 'заперта', en: 'locked' },
+  a11yShelfOpensIn: { ru: 'откроется через', en: 'opens in' },
+  a11yShelfFrozen:  { ru: 'примёрзла', en: 'frozen' },
   a11yPeg:         { ru: 'Стержень', en: 'Peg' },
   a11yBalls:       { ru: 'шариков', en: 'balls' },
   a11yEmpty:       { ru: 'пусто', en: 'empty' },
