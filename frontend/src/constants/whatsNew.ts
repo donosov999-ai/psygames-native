@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.23.0',
+    date: '2026-08-31',
+    ru: [
+      'Сортировка товаров: набор «Микс» больше не завален почти одинаковыми молочными бутылками — их девять уехали в «Молочное», где различать оттенки и есть смысл игры',
+      'Незрячим: полка теперь называет своё состояние — «заперта», «откроется через 3 хода», «примёрзла», — а не только товары на ней',
+    ],
+    en: [
+      'Goods Sort: the Mix set is no longer crowded with near-identical milk bottles — nine of them moved to Dairy, where telling shades apart is the point',
+      'Screen reader: a shelf now announces its state — “locked”, “opens in 3 moves”, “frozen” — instead of only the goods on it',
+    ],
+  },
+  {
     version: '2.22.1',
     date: '2026-08-30',
     ru: [
