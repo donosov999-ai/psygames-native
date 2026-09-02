@@ -15,6 +15,21 @@ export interface WhatsNewEntry {
 }
 
 export const WHATS_NEW: WhatsNewEntry[] = [
+    version: '2.26.0',
+    date: '2026-09-02',
+    ru: [
+      'В «Сортировке товаров» шкаф занимает поле целиком — раньше треть экрана уходила в пустоту',
+      'Особенности уровня (примёрзший ряд, строгая укладка, скрытый товар) стали значками в шапке вместо строки текста',
+      'Появилось правило «Скрытая информация»: с шестнадцатого уровня часть товара прячется под «?», и теперь игра об этом предупреждает',
+      'Набор «Зверята» назывался служебным кодом — исправлено на всех двенадцати языках',
+    ],
+    en: [
+      'In Goods Sort the cabinet now fills the field — a third of the screen used to go to empty space',
+      'Level quirks (frozen row, strict placement, hidden goods) became header icons instead of a line of text',
+      'New rule “Hidden information”: from level sixteen some goods hide behind a “?”, and the game now says so',
+      'The “Critters” set was showing an internal code as its name — fixed in all twelve languages',
+    ],
+  },
   {
     version: '2.25.1',
     date: '2026-09-02',
