@@ -1,4 +1,4 @@
-name: Build native bundles (macOS arm + Windows + Android)
+name: Build native bundles (macOS + Windows + Android + Linux + iOS)
 
 on:
   push:
@@ -424,6 +424,157 @@ jobs:
             src-tauri/target/aarch64-apple-darwin/release/bundle/macos/PsyGames.app.tar.gz.sig
           retention-days: 30
         continue-on-error: true
+
+  # ─── iOS (симулятор, без подписи) ──────────────────────────────────────
+  # Решение Дениса 02.09.2026: «переходи к сборке для айфона… делай на все
+  # платформы сразу».
+  #
+  # ⚠️ ЧТО ЭТА СБОРКА ЕСТЬ И ЧЕГО В НЕЙ НЕТ. Подписанная сборка для устройства и
+  # App Store требует Apple Developer Program ($99/год) и трёх секретов, которых
+  # в репозитории пока нет: сертификата, provisioning profile и ключа App Store
+  # Connect (Issuer ID + Key ID + .p8). Порядок получения обратный расхожему
+  # страху: ключи выдаются СРАЗУ после регистрации аккаунта, проверка приложения
+  # бывает только при загрузке сборки в TestFlight.
+  #
+  # До появления ключей собираем под СИМУЛЯТОР без подписи. Это отвечает на
+  # единственный вопрос, на который можно ответить сейчас: собирается ли
+  # приложение под iOS вообще. Артефакт ставится в симулятор Xcode, в App Store
+  # не годится.
+  ios-sim:
+    name: iOS (симулятор, без подписи)
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    timeout-minutes: 45
+    # ⚠️ Не роняет выпуск: пока нет ключей, эта сборка — разведка, а не поставка.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Rust + iOS targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios-sim,aarch64-apple-ios
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0" --locked --force
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web for Tauri (baseUrl="")
+        working-directory: frontend
+        run: |
+          cp app.json app.json.bak
+          sed -i '' 's|"baseUrl": "/psygames-web"|"baseUrl": ""|' app.json
+          npx expo export -p web
+          mv app.json.bak app.json
+
+      - name: Move dist into src-tauri
+        run: |
+          rm -rf src-tauri/dist
+          mv frontend/dist src-tauri/dist
+
+      - name: Initialize Tauri iOS project
+        working-directory: src-tauri
+        run: cargo tauri ios init
+
+      - name: Build for simulator (unsigned)
+        working-directory: src-tauri
+        run: cargo tauri ios build --target aarch64-sim --debug
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: PsyGames-ios-simulator
+          path: src-tauri/gen/apple/build/**/*.app
+          retention-days: 14
+        continue-on-error: true
+
+  # ─── Linux x86_64 ──────────────────────────────────────────────────────
+  # Решение Дениса 02.09.2026: «с этого момента делать на все платформы сразу —
+  # андроид, айфон, мак, вин, линукс». Linux добавлен первым из двух: он не
+  # требует ни сертификатов, ни платного аккаунта — только системных библиотек
+  # WebKit, которые ставятся в самом job.
+  linux-x64:
+    name: Linux x86_64 (.AppImage + .deb)
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      # ⚠️ 22.04, а не 24.04: Tauri 2 на Linux собирается против webkit2gtk-4.1,
+      # которого в 24.04 нет под тем же именем пакета. Смена раннера на новее
+      # ломает сборку молча — на этапе линковки, а не на установке.
+      - name: System deps (WebKit + GTK)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libgtk-3-dev
+
+      - name: Cache Cargo target
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            src-tauri/target/
+          key: linux-cargo-${{ hashFiles('src-tauri/Cargo.toml') }}
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0" --locked --force
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web for Tauri (baseUrl="")
+        working-directory: frontend
+        run: |
+          cp app.json app.json.bak
+          sed -i 's|"baseUrl": "/psygames-web"|"baseUrl": ""|' app.json
+          npx expo export -p web
+          mv app.json.bak app.json
+
+      - name: Move dist into src-tauri
+        run: |
+          rm -rf src-tauri/dist
+          mv frontend/dist src-tauri/dist
+
+      - name: Build bundles
+        working-directory: src-tauri
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+        run: cargo tauri build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: PsyGames-linux-x64
+          path: |
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/deb/*.deb
+          retention-days: 30
 
   # ─── Windows x86_64 ────────────────────────────────────────────────────
   windows-x64:
