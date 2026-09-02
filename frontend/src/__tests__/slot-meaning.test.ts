@@ -223,12 +223,24 @@ const BOTTOM_IS_EMPTY: Record<string, string> = {
  * Значение — сколько кнопок должно быть нарисовано (это же число сверяет живой
  * аудит `scripts/slot-audit.mjs`, чтобы «написано» не сошло за «показывается»).
  */
+/**
+ * 🔴 СЛУЖЕБНЫЕ ДЕЙСТВИЯ, ЖИВУЩИЕ ВНИЗУ (`bottom="actions"`).
+ *
+ * Заведено 02.09.2026 вместе с переключателем нижней полосы. Проверка НЕ снята,
+ * а перенаправлена: живой аудит `scripts/slot-audit.mjs` теперь ждёт эти кнопки
+ * в нижней зоне, а не в шапке. Просто убрать игру из реестра значило бы
+ * перестать следить за ней вовсе — и «перенёс, но не нарисовалось» прошло бы
+ * незамеченным ровно так же, как раньше.
+ */
+const AUX_IN_BOTTOM: Record<string, number> = {
+  'goods-sort.tsx': 3,      // отмена + подсказка + перемешать: ответ здесь дают пальцем по полю
+};
+
 const AUX_IN_HEADER: Record<string, number> = {
   'anagrams.tsx': 1,        // подсказка (только при включённом тумблере)
   'breathing.tsx': 1,       // СТОП
   'cpt.tsx': 1,             // СТОП
   'dots-connect.tsx': 1,    // показать решение (снимает партию с зачёта)
-  'goods-sort.tsx': 3,      // отмена + подсказка + перемешать
   'hanoi.tsx': 1,           // отмена
   'mahjong.tsx': 2,         // отмена + перемешать
   'pattern.tsx': 1,         // подсказка (три ступени)
@@ -341,7 +353,7 @@ describe('смысл слотов каркаса', () => {
   });
 
   it('в реестре нет записей про исчезнувшие файлы', () => {
-    const ghosts = [...Object.keys(BOTTOM_IS_ANSWER), ...Object.keys(BOTTOM_IS_EMPTY), ...Object.keys(AUX_IN_HEADER),
+    const ghosts = [...Object.keys(BOTTOM_IS_ANSWER), ...Object.keys(BOTTOM_IS_EMPTY), ...Object.keys(AUX_IN_HEADER), ...Object.keys(AUX_IN_BOTTOM),
       ...Object.keys(DEBT), ...Object.keys(OWN_AUX_BUTTONS), ...Object.keys(DRAFT_EDIT_OK)]
       .filter((f) => !SHELL_GAMES.includes(f));
     expect([...new Set(ghosts)]).toEqual([]);

@@ -60,6 +60,9 @@ async function registry() {
   };
   const expected = {};
   for (const m of block('AUX_IN_HEADER').matchAll(/'([\w-]+)\.tsx':\s*(\d+)/g)) expected['/games/' + m[1]] = Number(m[2]);
+  // Игры, объявившие `bottom="actions"`: те же кнопки, но ждём их ВНИЗУ.
+  const expectedBottom = {};
+  for (const m of block('AUX_IN_BOTTOM').matchAll(/'([\w-]+)\.tsx':\s*(\d+)/g)) expectedBottom['/games/' + m[1]] = Number(m[2]);
 
   const auxKeys = [...block('AUX_KEYS').matchAll(/^\s{2}(\w+):\s*'/gm)].map((m) => m[1]);
   const debt = [...block('DEBT').matchAll(/'([\w-]+)\.tsx':/g)].map((m) => '/games/' + m[1]);
@@ -70,7 +73,7 @@ async function registry() {
     draftOk['/games/' + m[1]] = [...m[2].matchAll(/^\s{4}(\w+):/gm)].map((x) => x[1]);
   }
   if (!Object.keys(expected).length || !auxKeys.length) throw new Error('реестр разобран в пустоту — проверь формат');
-  return { expected, auxKeys, debt, draftOk };
+  return { expected, expectedBottom, auxKeys, debt, draftOk };
 }
 
 /**
@@ -220,7 +223,7 @@ const READ_SLOTS = () => {
 };
 
 async function main() {
-  const { expected: AUX_EXPECTED, auxKeys, debt: DEBT, draftOk: DRAFT_OK } = await registry();
+  const { expected: AUX_EXPECTED, expectedBottom: AUX_EXPECTED_BOTTOM, auxKeys, debt: DEBT, draftOk: DRAFT_OK } = await registry();
   const LABELS = await auxLabels(auxKeys);
   const HUB_ROUTES = await hubRoutes();
   let routes = (await gameRoutes()).filter((r) => !HUB_ROUTES.has(r));
@@ -370,6 +373,13 @@ async function main() {
     if (!r) continue;                                  // не зашли — об этом уже сказано выше
     const drawn = r.aux.filter((a) => a.inHeader && a.visible).length;
     if (drawn < want) dead.push(`${route}: в шапке нарисовано ${drawn} служебных кнопок, реестр обещает ${want}`);
+  }
+  // 2б) То же для игр, объявивших `bottom="actions"`: кнопки ждём ВНИЗУ.
+  for (const [route, want] of Object.entries(AUX_EXPECTED_BOTTOM)) {
+    const r = entered.find((x) => x.route === route);
+    if (!r) continue;
+    const drawn = r.aux.filter((a) => a.visible && !a.inHeader).length;
+    if (drawn < want) dead.push(`${route}: внизу нарисовано ${drawn} служебных кнопок, реестр обещает ${want}`);
   }
   if (dead.length) {
     console.log(`\n🔴 ПЕРЕНОС ВЫШЕЛ МЁРТВЫМ — написано, но не показывается:`);
