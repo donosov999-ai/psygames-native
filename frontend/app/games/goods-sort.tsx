@@ -13,6 +13,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell, { type HudItem, type ModItem } from '@/src/components/GameShell';
 import { minMoves } from '@/src/services/goodsSortMinMoves';
+import Cracks from '@/src/components/juice/Cracks';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -2296,6 +2297,17 @@ export default function GoodsSortGame() {
    */
   const exactMinRef = useRef<number | null>(null);
   /**
+   * 🔴 РАЗБОР СЦЕНЫ: ПОЛКИ РАЗЪЕЗЖАЮТСЯ, КОГДА УРОВЕНЬ ВЗЯТ (пункт 2.6 карты дорог).
+   *
+   * У эталона жанра партия заканчивается физически: сцена разбирается, полки уходят
+   * за экран — и только потом приходит итог. У нас карточка итога появлялась поверх
+   * неподвижной доски, и конец партии читался как «всплыло окно», а не как событие.
+   *
+   * ⚠️ Щадящий режим и вечерний набор пропускают разъезд: движение — украшение, а
+   * итог — содержание. `settle` уже умеет обе проверки (см. `juice/motion`).
+   */
+  const scatter = useRef(new Animated.Value(0)).current;
+  /**
    * Замеры §20.4 — в ref, а не в состоянии: рендеру они не нужны, а нужны
    * обработчику хода В МОМЕНТ события — к концу уровня «когда был первый ход»
    * уже не восстановить. lastMove — служебная память для ловли возврата (тот
@@ -2512,6 +2524,7 @@ export default function GoodsSortGame() {
      * Бюджет держим маленьким — на трудных досках проще честно не знать.
      */
     exactMinRef.current = null;
+    scatter.setValue(0);   // новая доска приезжает собранной, а не разъехавшейся
     const доскаДляРасчёта = built.map((c) => [...c]);
     const capsДляРасчёта = capsForBoard(L, built);
     setTimeout(() => {
@@ -2826,7 +2839,17 @@ export default function GoodsSortGame() {
     // на экране. Она же решает, запускать ли следующий уровень: своего таймера
     // здесь больше нет, он спорил с таймером зарядки (репорт Вали на v1.193.0
     // «Сортировка товаров выдаёт второй уровень и вылетает в вечерней зарядке»).
-    setLevelBanner(done);
+    /**
+     * Сцена разбирается ПЕРЕД итогом: ряды разъезжаются в стороны и уходят за край,
+     * и только потом приходит карточка. Задержка ровно на длительность разъезда —
+     * дольше человек ждёт пустой экран, короче не успевает увидеть.
+     */
+    if (reduced) {
+      setLevelBanner(done);
+    } else {
+      Animated.timing(scatter, { toValue: 1, duration: 420, easing: Easing.in(Easing.cubic), useNativeDriver: true }).start();
+      setTimeout(() => setLevelBanner(done), 380);
+    }
   };
 
   // Переместить КОНКРЕТНЫЙ товар (fromCell, fromIdx) в toCell, если там есть место; затем собрать тройки.
@@ -3658,6 +3681,19 @@ export default function GoodsSortGame() {
           borderColor: hint?.toCell === i ? '#38bdf8'
             : aimed ? '#f97316' : canDrop ? '#fbbf24' : close ? '#22c55e' : 'transparent',
           borderWidth: hint?.toCell === i ? 4 : aimed ? 4 : canDrop || close ? 3 : 0,
+          /**
+           * 🔴 СВЕЧЕНИЕ, А НЕ ТОЛЬКО РАМКА (пункт 1.7 карты дорог).
+           *
+           * У эталона жанра нужное место светится, и это видно боковым зрением —
+           * рамка требует смотреть прямо на неё. Разница заметнее всего на подсказке:
+           * человек её попросил, то есть уже не понимает, куда смотреть.
+           *
+           * ⚠️ Свечение НЕ добавляет нового смысла: у него тот же цвет, что у рамки.
+           * Иначе оно стало бы вторым каналом, который надо расшифровывать.
+           */
+          ...(hint?.toCell === i || aimed
+            ? { shadowColor: hint?.toCell === i ? '#38bdf8' : '#f97316', shadowOpacity: 0.85, shadowRadius: 12, shadowOffset: { width: 0, height: 0 }, elevation: 10 }
+            : null),
         }, shakeStyle(i)]}>
         {/*
           🔴 СКОЛЬКО ВЛЕЗЕТ — ДОЛЖНО БЫТЬ ВИДНО ДО ХОДА.
@@ -3774,12 +3810,24 @@ export default function GoodsSortGame() {
             <Ionicons name="lock-closed" size={Math.min(26, itemSize)} color="#f8e3c4" />
           </View>
         )}
-        {obstacles[i]?.kind === 'locked' && (
-          <View pointerEvents="none" style={styles.obstacle}>
-            <Ionicons name="time" size={Math.min(22, itemSize)} color="#f8e3c4" />
-            <Text style={styles.obstacleNum}>{(obstacles[i] as { movesLeft: number }).movesLeft}</Text>
-          </View>
-        )}
+        {obstacles[i]?.kind === 'locked' && (() => {
+          const осталось = (obstacles[i] as { movesLeft: number }).movesLeft;
+          /**
+           * Трещины растут по мере отсчёта (пункт 1.8). Полного числа ходов замок
+           * не помнит — берём отсчёт от пяти: столько стоит замок в планах уровня,
+           * а если досталось больше, первые ходы просто не дают трещин.
+           */
+          const разрушено = Math.max(0, Math.min(1, (5 - осталось) / 5));
+          return (
+            <>
+              <View pointerEvents="none" style={styles.obstacle}>
+                <Ionicons name="time" size={Math.min(22, itemSize)} color="#f8e3c4" />
+                <Text style={styles.obstacleNum}>{осталось}</Text>
+              </View>
+              <Cracks size={Math.min(cellW, nicheH)} progress={разрушено} cellKey={i} />
+            </>
+          );
+        })()}
         {frozen && rowOfCell(i) === frozen.row && (
           <View pointerEvents="none" style={[styles.obstacle, styles.frost]}>
             <Ionicons name="snow" size={Math.min(22, itemSize)} color="#e8f6ff" />
@@ -4061,7 +4109,23 @@ export default function GoodsSortGame() {
             <LinearGradient colors={['#f6e3c6', '#e0b98a']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
               style={[styles.cabinet, { width: boardW }]}>
               {Array.from({ length: gridDim.rows }).map((_, row) => (
-                <View key={row} style={styles.shelfRow}>
+                /**
+                 * Ряд уезжает в свою сторону: чётные влево, нечётные вправо — так
+                 * доска раскрывается, а не сползает одним куском. Сдвиг считаем от
+                 * ширины поля, чтобы на любом экране ряды ушли ЗА край, а не
+                 * остановились посередине.
+                 */
+                <Animated.View
+                  key={row}
+                  style={[styles.shelfRow, {
+                    opacity: scatter.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
+                    transform: [{
+                      translateX: scatter.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, (row % 2 === 0 ? -1 : 1) * (boardW + 60)],
+                      }),
+                    }],
+                  }]}>
                   {Array.from({ length: gridDim.cols }).map((_, col) => {
                     const pos = row * gridDim.cols + col;
                     /**
@@ -4090,7 +4154,7 @@ export default function GoodsSortGame() {
                     for (let k = 0; k < pos; k++) if (mask[k]) idx++;
                     return renderCell(idx);
                   })}
-                </View>
+                </Animated.View>
               ))}
             </LinearGradient>
             </View>
