@@ -93,7 +93,12 @@ def главное() -> None:
     p = argparse.ArgumentParser()
     p.add_argument('--csr', required=True, help='файл запроса на сертификат')
     p.add_argument('--out-cert', required=True, help='куда записать сертификат (DER)')
-    p.add_argument('--bundle', default='com.psygames.app')
+    # Значение по умолчанию — из конфига приложения: зашитая строка однажды уже
+    # разошлась с ним (`com.psygames.app` против `com.odv999.psygames`), и профиль
+    # создавался не для того приложения.
+    конфиг = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src-tauri', 'tauri.conf.json')
+    свой = json.load(open(конфиг, encoding='utf-8'))['identifier'] if os.path.exists(конфиг) else None
+    p.add_argument('--bundle', default=свой)
     p.add_argument('--profile-name', default='PsyGames App Store')
     a = p.parse_args()
 

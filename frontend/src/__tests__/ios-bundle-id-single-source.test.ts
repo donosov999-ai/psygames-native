@@ -1,0 +1,85 @@
+/**
+ * 🔴 ИДЕНТИФИКАТОР ПРИЛОЖЕНИЯ — В ОДНОМ МЕСТЕ.
+ *
+ * Конвейер iOS падал 02.09.2026 на самом последнем шаге: «exportArchive
+ * "PsyGames.app" requires a provisioning profile». Профиль был — но для ЧУЖОГО
+ * идентификатора: скрипты подписи держали зашитое `com.psygames.app`, тогда как
+ * приложение зовётся `com.odv999.psygames` (`src-tauri/tauri.conf.json`).
+ *
+ * ⚠️ Коварство в том, что создание профиля при этом ПРОХОДИЛО успешно: такой
+ * bundleId в аккаунте тоже заведён. Ошибка вылезала через десять минут сборки, и
+ * сообщение о ней про идентификатор не говорит ни слова.
+ *
+ * Гейт держит правило: зашитых копий идентификатора в скриптах и в конвейере нет,
+ * а если где-то он всё же написан буквой — он совпадает с конфигом.
+ */
+declare const __dirname: string;
+declare function require(id: string): any;
+
+const fs = require('fs');
+const path = require('path');
+const ROOT = path.join(__dirname, '../../..');
+
+function читать(rel: string): string {
+  const p = path.join(ROOT, rel);
+  return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '';
+}
+
+describe('идентификатор iOS-приложения не разъезжается', () => {
+  const конфиг = JSON.parse(читать('src-tauri/tauri.conf.json') || '{}');
+  const свой: string = конфиг.identifier ?? '';
+
+  const ФАЙЛЫ = [
+    'scripts/ios-signing-setup.sh',
+    'scripts/ios-provision.py',
+    '.github/workflows/build.yml',
+  ];
+
+  it('есть что проверять: идентификатор в конфиге задан', () => {
+    expect(`идентификатор: ${/^[a-z0-9.]+$/i.test(свой) && свой.includes('.')}`)
+      .toBe('идентификатор: true');
+  });
+
+  it('🔴 нигде не написан ЧУЖОЙ идентификатор нашего приложения', () => {
+    /**
+     * ⚠️ ИЩЕМ СВОЁ, А НЕ ВСЁ ПОХОЖЕЕ. Первая редакция ловила любую строку вида
+     * `com.a.b` — и покраснела на `com.google.android` (законные пакеты Android)
+     * и на объяснении дефекта в комментарии. Ложная тревога здесь дороже пропуска:
+     * гейт про идентификатор, который краснеет на чужих пакетах, перестают читать.
+     *
+     * Признак «наш»: в идентификаторе есть слово из имени приложения. Комментарии
+     * пропускаем — там дефект как раз описан словами, и это правильно.
+     */
+    const слово = (свой.split('.').pop() || 'psygames').toLowerCase();
+    const чужие: string[] = [];
+    for (const f of ФАЙЛЫ) {
+      for (const line of читать(f).split('\n')) {
+        const код = line.replace(/^\s*(#|\/\/)/, '');
+        if (код !== line) continue;                       // строка-комментарий
+        for (const m of код.matchAll(/\b([a-z0-9]+(?:\.[a-z0-9]+){2,})\b/gi)) {
+          const id = m[1];
+          if (!id.toLowerCase().includes(слово)) continue; // не про нас
+          if (id === свой) continue;
+          /**
+           * Имена ФАЙЛОВ похожи на идентификаторы (`PsyGames.app.tar.gz`), но
+           * идентификатор пишется в нижнем регистре — этого признака достаточно.
+           *
+           * ⚠️ Список расширений здесь стоять НЕ ДОЛЖЕН. Первая редакция исключала
+           * `.app` ради `PsyGames.app.tar.gz` — и вместе с ним переставала видеть
+           * `com.psygames.app`, то есть ровно тот неверный идентификатор, ради
+           * которого гейт и написан. Поймано проверкой мутацией: подсунул старое
+           * значение обратно, гейт остался зелёным.
+           */
+          if (id !== id.toLowerCase()) continue;
+          чужие.push(`${f} → ${id}`);
+        }
+      }
+    }
+    expect(чужие).toEqual([]);
+  });
+
+  it('🔴 скрипты берут идентификатор из конфига, а не из зашитой строки', () => {
+    expect(читать('scripts/ios-signing-setup.sh')).toContain('tauri.conf.json');
+    expect(читать('scripts/ios-provision.py')).toContain('tauri.conf.json');
+  });
+});
