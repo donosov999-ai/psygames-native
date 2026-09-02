@@ -64,14 +64,29 @@ def токен() -> str:
 
 
 def запрос(tok: str, method: str, path: str, body=None) -> dict:
+    """
+    Вызов App Store Connect API.
+
+    🔴 ОТВЕТ БЫВАЕТ ПУСТЫМ, И ЭТО НЕ ОШИБКА. На `DELETE` Apple отвечает 204 без
+    тела. Первая редакция звала `json.loads` безусловно и падала на пустой строке:
+    `JSONDecodeError: Expecting value: line 1 column 1`.
+
+    Дефект прятался за состоянием аккаунта: пока профиля с нужным именем НЕ
+    существовало, ветка удаления не выполнялась вовсе — скрипт прошёл живой прогон
+    02.09.2026 и был признан рабочим. На следующей же сборке профиль уже был, и
+    джоба iOS упала на ровном месте. Поэтому: пустое тело → пустой словарь.
+    """
     r = urllib.request.Request(f'{BASE}{path}',
                                data=json.dumps(body).encode() if body else None, method=method)
     r.add_header('Authorization', f'Bearer {tok}')
     r.add_header('Content-Type', 'application/json')
     try:
-        return json.loads(urllib.request.urlopen(r, timeout=90).read())
+        сырое = urllib.request.urlopen(r, timeout=90).read()
     except urllib.error.HTTPError as e:
         sys.exit(f'{method} {path} → {e.code}: {e.read().decode()[:400]}')
+    if not сырое.strip():
+        return {}
+    return json.loads(сырое)
 
 
 def главное() -> None:
@@ -90,6 +105,25 @@ def главное() -> None:
     #    ключа нет, поэтому там всегда создаётся новый — а старые чистит `--prune`.
     сертификаты = запрос(tok, 'GET', '/certificates?limit=200')['data']
     свои = [c for c in сертификаты if c['attributes']['certificateType'] == 'DISTRIBUTION']
+
+    """
+    🔴 СТАРЫЕ СЕРТИФИКАТЫ ОТЗЫВАЕМ, ИНАЧЕ УПРЁМСЯ В ЛИМИТ АККАУНТА.
+
+    В CI приватного ключа от прошлого сертификата нет, поэтому каждый прогон
+    создаёт новый. Apple держит лимит на число действующих сертификатов
+    распространения (обычно два-три), и через пару сборок создание начнёт
+    отвечать отказом — причём на шаге, до которого доходит только релиз.
+
+    Держим НЕ БОЛЬШЕ `KEEP` штук: перед созданием отзываем самые старые, оставляя
+    место под новый. Отзыв безопасен: подписанные ранее сборки продолжают работать,
+    сертификат нужен только в момент подписи.
+    """
+    KEEP = 1
+    if len(свои) >= KEEP:
+        старые = sorted(свои, key=lambda c: c['attributes'].get('expirationDate', ''))[:len(свои) - KEEP + 1]
+        for c in старые:
+            запрос(tok, 'DELETE', f"/certificates/{c['id']}")
+            print(f"отозван старый сертификат: {c['attributes'].get('displayName', c['id'])}")
 
     csr = open(a.csr, encoding='utf-8').read()
     новый = запрос(tok, 'POST', '/certificates', {'data': {
