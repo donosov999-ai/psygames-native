@@ -727,12 +727,12 @@ export default function DigitSpanGame() {
                 </Text>
               ) : lastFeedback === 'right' ? (
                 // крупный шрифт: подпись «верно, уровень выше» выдавливала иконку за край → ряд переносится
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' }}>
                   <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
                   <Text style={{ color: '#22c55e', fontSize: 18, fontWeight: '800', flexShrink: 1, minWidth: 0, textAlign: 'center' }}>{t('msg_correct_level_up')}</Text>
                 </View>
               ) : (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' }}>
                   <Ionicons name="close-circle" size={28} color="#f43f5e" />
                   <Text style={{ color: '#f43f5e', fontSize: 16, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }}>
                     {t('label_was')}: {expectedDigits(sequence, direction).join('')}
@@ -800,7 +800,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   modeButton: { minWidth: 48, minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   // Заглушка «почему сейчас без голоса» — жёлтая плашка, как в «Слуховом охвате»:
@@ -814,7 +814,7 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 18, alignSelf: 'stretch' },
-  statsRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' },
+  statsRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', maxWidth: '100%' },
   statText: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
   // фикс 200×200 обрезал цифру при крупном системном шрифте (140px × масштаб) → min + рост по контенту
   digitArea: { minWidth: 200, minHeight: 200, justifyContent: 'center', alignItems: 'center' },

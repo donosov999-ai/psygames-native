@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
@@ -642,9 +642,9 @@ const styles = StyleSheet.create({
    */
   fieldCol: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', gap: 14 },
   // 4 счётчика при крупном шрифте не влезали в ряд и уезжали за край → переносим
-  statsRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
+  statsRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap', maxWidth: '100%' },
   statText: { fontSize: 15, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', minHeight: 18 },
-  gridArea: { flexDirection: 'row', flexWrap: 'wrap', gap: CELL_GAP, justifyContent: 'flex-start' },
+  gridArea: { flexDirection: 'row', flexWrap: 'wrap', gap: CELL_GAP, justifyContent: 'flex-start', maxWidth: '100%' },
   cell: { borderRadius: 8, borderWidth: 1 },
 });

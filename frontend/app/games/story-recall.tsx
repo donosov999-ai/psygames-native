@@ -582,11 +582,11 @@ const styles = StyleSheet.create({
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   // игровое поле внутри каркаса: колонка на всю ширину, содержимое центрировано
   fieldCol: { width: '100%', maxWidth: 540, alignSelf: 'center', alignItems: 'center', gap: 18 },
-  statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },  // крупный шрифт: статы переносятся, а не уезжают за край
+  statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },  // крупный шрифт: статы переносятся, а не уезжают за край
   statText: { fontSize: 14, fontWeight: '700' },
   storyBox: { padding: 18, borderRadius: 14, maxHeight: 360 },
   storyText: { fontSize: 17, lineHeight: 26 },
-  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
   mathBox: { padding: 24, borderRadius: 12, marginTop: 4 },
   // RTL-пин: «a − b = ?» в RTL-bidi перестраивается — математика всегда LTR
   mathText: { fontSize: 36, fontWeight: '900', writingDirection: 'ltr' },

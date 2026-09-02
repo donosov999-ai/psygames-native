@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 12 },
   actionsRow: { flexDirection: 'row', gap: 10, flex: 1, maxWidth: 360 },
-  statsRow: { flexDirection: 'row', gap: 24, flexWrap: 'wrap', justifyContent: 'center' },  // крупный шрифт: 4 стата переносятся, а не уезжают за край
+  statsRow: { flexDirection: 'row', gap: 24, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },  // крупный шрифт: 4 стата переносятся, а не уезжают за край
   statText: { fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center' },
   hintBanner: {
@@ -634,10 +634,10 @@ const styles = StyleSheet.create({
   hintBannerEmoji: { fontSize: 20, flexShrink: 0 },  // иконка рядом с текстом не сжимается
   hintBannerText: { fontSize: 14, fontWeight: '600', flex: 1, minWidth: 0 },  // крупный шрифт: текст переносится внутри баннера, а не распирает его
   // RTL-пин: слоты собираемого слова (ru/en) заполняются слева направо — иначе слово читается задом наперёд
-  pickedRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap', writingDirection: 'ltr' },
+  pickedRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap', writingDirection: 'ltr', maxWidth: '100%' },
   pickedSlot: { width: 44, height: 54, borderRadius: 8, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   pickedLetter: { fontSize: 22, fontWeight: '700' },
-  lettersRow: { flexDirection: 'row', gap: 10, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 360 },
+  lettersRow: { flexDirection: 'row', gap: 10, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 360, width: '100%' },
   letterBtn: { width: 56, height: 56, borderRadius: 16, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 3, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   tileShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '46%', backgroundColor: 'rgba(255,255,255,0.28)' },
   letterText: { fontSize: 24, fontWeight: '800' },

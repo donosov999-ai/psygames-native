@@ -44,10 +44,17 @@ const args = Object.fromEntries(
 );
 const BASE = args.base ?? 'http://localhost:8099';
 const LIMIT = args.limit ? Number(args.limit) : Infinity;
-const MODE = args.mode ?? 'all';               // all | routes | field
+const MODE = args.mode ?? 'all';               // all | routes | field | header
 const ONLY = args.only ? args.only.split(',').map((s) => s.trim()) : null;
 const MIN = 44;                                 // порог первого прохода
 const MIN_FIELD = 48;                           // порог на поле
+/**
+ * Ширина узкого телефона для третьего прохода. 360 — это Galaxy A/M, самый
+ * массовый Android в наших странах, и самый узкий экран, который встречается
+ * в живых отчётах. Мерить на 390 бесполезно: шапка вылезала именно там, где
+ * места меньше.
+ */
+const NARROW_W = 360;
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 
@@ -312,13 +319,13 @@ function printDebtTable(findings, debt, visited) {
   }
 }
 
-function reportDebt({ news, grown, stale }, label) {
+function reportDebt({ news, grown, stale }, label, fmt = (s) => `${String(s.w).padStart(3)}×${String(s.h).padStart(3)}  ${s.label}`) {
   let bad = 0;
   if (news.length) {
     console.log(`\n🔴 НОВОЕ: ${label} там, где долга не записано:`);
     for (const f of news) {
       console.log(`    ${f.route} — ${f.small.length} шт.`);
-      for (const s of f.small.slice(0, 6)) console.log(`        ${String(s.w).padStart(3)}×${String(s.h).padStart(3)}  ${s.label}`);
+      for (const s of f.small.slice(0, 6)) console.log(`        ${fmt(s)}`);
     }
     bad = 1;
   }
@@ -414,6 +421,127 @@ async function auditEmbeddedField(page, route, spec) {
   return { route, label: 'start-practice (в кадре)', small };
 }
 
+/**
+ * ЗАМЕР ТРЕТЬЕГО ПРОХОДА — что вылезло за правый край на узком экране.
+ *
+ * 🔴 ЗАЧЕМ ОН ПОЯВИЛСЯ. Два отчёта Дениса за 02.09.2026 на одну и ту же болезнь:
+ * «поехали кнопки верх тулбара» и «с меню пиздец сверху». На кадрах счёт упирался
+ * в край экрана, «Правила» были срезаны до «Правил...», в маджонге бейджи ушли во
+ * второй ряд и подвинули поле. Ни один из двух существовавших проходов этого не
+ * видел: оба меряют РАЗМЕР элемента, а тут размер правильный — не хватает места.
+ *
+ * ⚠️ И это не первое возвращение. Шапку уже чинили: заголовок переводили на общий
+ * каркас, бейджам поднимали высоту. Дефект возвращался, потому что проверялся
+ * глазами на одном телефоне. Замер на узком экране закрывает именно этот путь.
+ *
+ * ЧТО СЧИТАЕМ НАРУШЕНИЕМ. Только верхнюю четверть экрана: ниже живут игровые поля,
+ * где горизонтальная лента — законный приём (та же лестница уровней). Элемент
+ * виноват, если его правый край дальше окна больше чем на 2 пикселя, или левый
+ * левее нуля на столько же. Двойка — на округление браузером дробных координат.
+ */
+const MEASURE_OVERFLOW = () => {
+  const out = [];
+  const W = window.innerWidth;
+  const зона = window.innerHeight * 0.25;
+  for (const el of document.querySelectorAll('[role="button"], button, [tabindex], div, span, text')) {
+    const r = el.getBoundingClientRect();
+    if (r.width < 4 || r.height < 4) continue;
+    if (r.top > зона) continue;                       // не шапка
+    const st = getComputedStyle(el);
+    if (st.visibility === 'hidden' || st.opacity === '0' || st.display === 'none') continue;
+    if (st.position === 'fixed' && r.top < 0) continue;
+    const выход = Math.max(Math.round(r.right - W), Math.round(-r.left));
+    if (выход <= 2) continue;
+    // Внешний виноватый достаточно назвать один раз: потомок вылез вместе с ним.
+    if (el.parentElement) {
+      const rp = el.parentElement.getBoundingClientRect();
+      if (rp.right - W > 2 || -rp.left > 2) continue;
+    }
+    out.push({
+      label: (el.getAttribute('aria-label') || el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 44) || '(без подписи)',
+      out: выход,
+      w: Math.round(r.width),
+    });
+  }
+  // Прокрутка вбок — отдельный признак: она бывает и без единого виноватого элемента.
+  const scroll = Math.round(document.documentElement.scrollWidth - W);
+  if (scroll > 2) out.push({ label: '(страница прокручивается вбок)', out: scroll, w: W });
+  return out;
+};
+
+/**
+ * ДОЛГ ПО ШАПКЕ на 02.09.2026, ширина 360. Пусто — и это значение по умолчанию:
+ * шапка обязана влезать всегда. Запись сюда — признание, что где-то она не влезает
+ * по физике, и такую запись нужно защищать так же, как записи выше.
+ */
+const HEADER_DEBT = {};
+
+/** ПРОХОД 3 — шапка на узком экране: что вылезло за край. */
+async function auditHeader(page, routes) {
+  /**
+   * ⚠️ СУЖАЕМ ТУ ЖЕ ВКЛАДКУ, А НЕ ОТКРЫВАЕМ НОВУЮ.
+   *
+   * Первая редакция открывала свою страницу — и не зашла НИ В ОДНУ игру из пяти,
+   * отчитавшись «✅ шапка влезает». Новая вкладка приходит без пройденного
+   * онбординга: приложение показывает «Выбери первую игру», кнопки входа на
+   * экране нет, и все пять маршрутов легли в «экран не сменился». Онбординг
+   * проходится в `main` один раз и живёт в этой странице.
+   */
+  const прежний = page.viewportSize();
+  await page.setViewportSize({ width: NARROW_W, height: 780 });
+
+  const results = [];
+  const пропущены = [];
+  for (const route of routes) {
+    if (HUB_ROUTES[route]) continue;
+    /**
+     * Экран, чьё поле живёт во встроенной странице, здесь пропускаем НАЗВАВ ЕГО.
+     * Его вёрстку задаёт другой документ со своими правилами, и мерить её этим
+     * проходом — мерить не то. Молча не пропускаем: «не проверено» обязано быть
+     * видно, иначе гейт снова окажется зелёным вслепую.
+     */
+    if (EMBEDDED_FIELD[route]) { пропущены.push(`${route}: ${EMBEDDED_FIELD[route].reason}`); continue; }
+    const rendered = await open(page, route);
+    if (!rendered) { results.push({ route, failed: 'экран не отрисовался' }); continue; }
+    await dismissCoach(page);
+    const start = await pressStart(page);
+    if (!start || !start.entered) { results.push({ route, failed: start ? 'экран не сменился' : 'кнопка входа не найдена' }); continue; }
+    const small = await page.evaluate(MEASURE_OVERFLOW);
+    results.push({ route, label: start.label, small });
+  }
+  if (прежний) await page.setViewportSize(прежний);
+
+  const blind = results.filter((r) => r.failed);
+  const entered = results.filter((r) => r.small);
+  const withSmall = entered.filter((r) => r.small.length);
+  console.log(`\n── Проход 3: шапка на узком экране (${NARROW_W} px). Зашли в ${entered.length} игр из ${routes.length}.`);
+  for (const п of пропущены) console.log(`    пропущено — ${п}`);
+
+  let bad = 0;
+  /**
+   * 🔴 НЕ ЗАШЛИ — ЗНАЧИТ КРАСНЫЙ, А НЕ ПРЕДУПРЕЖДЕНИЕ.
+   *
+   * Первый же прогон 02.09.2026 зашёл в ноль игр из пяти и напечатал «✅ шапка
+   * влезает». Это хуже отсутствия проверки: сборка зелёная, человек уверен, что
+   * шапка проверена, а не проверено ничего. Соседний проход по полю падает в
+   * таком случае — и этот обязан.
+   */
+  if (blind.length) {
+    console.log(`\n🔴 Не удалось зайти в ${blind.length} игр — шапка у них НЕ ПРОВЕРЕНА:`);
+    for (const b of blind) console.log(`    ${b.route}: ${b.failed}`);
+    bad = 1;
+  }
+  if (!entered.length) {
+    console.log('\n🔴 Не зашли ни в одну игру: проверять было нечего, зелёным это быть не может.');
+    bad = 1;
+  }
+  const checkable = routes.filter((r) => entered.some((e) => e.route === r));
+  bad |= reportDebt(checkAgainstDebt(withSmall, HEADER_DEBT, checkable), 'шапка вылезает за край',
+    (x) => `+${String(x.out).padStart(3)} px за край  ${x.label}`);
+  if (!bad) console.log(`✅ Шапка влезает в ${NARROW_W} px во всех проверенных играх.`);
+  return bad;
+}
+
 /** ПРОХОД 2 — на поле: жмём «Начать» и меряем то, по чему стучат всю партию. */
 async function auditField(page, routes) {
   const results = [];
@@ -503,6 +631,7 @@ async function main() {
   let bad = 0;
   if (MODE === 'all' || MODE === 'routes') bad |= await auditRoutes(page, routes);
   if (MODE === 'all' || MODE === 'field') bad |= await auditField(page, games);
+  if (MODE === 'all' || MODE === 'header') bad |= await auditHeader(page, games);
 
   await browser.close();
   if (bad) process.exitCode = 1;

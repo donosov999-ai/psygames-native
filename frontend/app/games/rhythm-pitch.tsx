@@ -68,7 +68,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
-import GameShell from '@/src/components/GameShell';
+import GameShell, { PAD_H } from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
@@ -408,7 +408,8 @@ const styles = StyleSheet.create({
    * исходную ширину: растянутый элемент занимает
    * `ширина_родителя − 32 − (−16) − (−16)` и начинается с `16 + (−16) = 0`.
    */
-  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -16 },
+  // Поле во всю ширину: гасим боковой отступ каркаса ЕГО ЖЕ числом (см. PAD_H).
+  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -PAD_H },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   back: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   title: { color: ON_GRAD.color, fontSize: 20, fontWeight: '800' },

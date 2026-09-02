@@ -74,7 +74,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
-import GameShell from '@/src/components/GameShell';
+import GameShell, { PAD_H } from '@/src/components/GameShell';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -445,7 +445,8 @@ const styles = StyleSheet.create({
    * поля дают ровно исходную ширину: растянутый элемент занимает
    * `ширина_родителя − 32 − (−16) − (−16)` и начинается с `16 + (−16) = 0`.
    */
-  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -16 },
+  // Поле во всю ширину: гасим боковой отступ каркаса ЕГО ЖЕ числом (см. PAD_H).
+  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -PAD_H },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 8, paddingVertical: 6 },
   // 48×48 — норма Material и ровно то, что стоит на 63 играх из 64. У «Прикидки»
   // здесь padding 4 при иконке 24, то есть 32×34, и это записано в долг аудита

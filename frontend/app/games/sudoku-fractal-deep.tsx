@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
   fedRing: { position: 'absolute', top: 1.5, left: 1.5, right: 1.5, bottom: 1.5, borderRadius: 3, borderWidth: 1 },
   ghostWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   hint: { fontSize: 12, textAlign: 'center', paddingHorizontal: 24 },
-  marksWrap: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 1 },
+  marksWrap: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 1, maxWidth: '100%' },
   markDigit: { textAlign: 'center', fontWeight: '700', lineHeight: 11 },
 
   pad: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, justifyContent: 'center', maxWidth: 280 },

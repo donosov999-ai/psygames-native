@@ -119,6 +119,25 @@ export function continueAfterCalibration(session: RhythmPitchSession): RhythmPit
   return { ...session, phase: 'ready' };
 }
 
+/**
+ * 🔴 ПРОЙТИ БЕЗ КАЛИБРОВКИ. Отчёт тестировщика 02.09.2026 по этому упражнению:
+ * «ни хера что-то в приложении вообще не понимаю».
+ *
+ * На кадре видно тупик. Экран говорит «нажимайте „Тап“ вместе с сигналами», но
+ * кнопки «Тап» на нём нет — она появляется только ВО ВРЕМЯ четырёх сигналов и
+ * встаёт на место кнопки «Запустить калибровку», то есть подменяется прямо под
+ * пальцем. Не набрал два попадания — красная надпись и заход по кругу. Выхода
+ * из этого круга не было ВООБЩЕ: без калибровки упражнение не начиналось.
+ *
+ * Замер задержки — уточнение, а не условие игры: без него счёт по ритму просто
+ * менее точен (поправка ноль), а упражнение работает. Держать человека на
+ * служебном экране ради точности измерения — цена, которой оно не стоит.
+ */
+export function skipCalibration(session: RhythmPitchSession): RhythmPitchSession {
+  if (session.phase !== 'calibration' || session.calibrationPlaying) return session;
+  return { ...session, phase: 'ready', calibrationOffsetMs: 0, calibrationComplete: false };
+}
+
 export function markAudioUnavailable(
   session: RhythmPitchSession,
   message: string,

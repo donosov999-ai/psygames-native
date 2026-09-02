@@ -13,6 +13,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell, { type HudItem, type ModItem } from '@/src/components/GameShell';
 import { minMoves } from '@/src/services/goodsSortMinMoves';
+import { dropPoint } from '@/src/services/dragDrop';
 import Cracks from '@/src/components/juice/Cracks';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -3116,6 +3117,10 @@ export default function GoodsSortGame() {
    * описана в hanoi.tsx.
    */
   const dragRef = useRef<{ cell: number; idx: number; type: number } | null>(null);
+  /** Последняя точка пальца: событие отпускания координат не несёт (см. onPanResponderRelease). */
+  const lastPointRef = useRef<{ x: number; y: number } | null>(null);
+  /** Подсвеченная ниша — зеркало состояния, чтобы не перерисовывать доску на каждое движение. */
+  const hoverRef = useRef<number | null>(null);
   const liveRef = useRef({
     geom: { cols: 3, rows: 3, cellW: 0, nicheH: 0, pad: 9, gap: 9, boardW: 0 } as BoardGeom,
     itemSize: 0, overlap: 0, mask: [] as boolean[], cells: [] as number[][],
@@ -3180,22 +3185,59 @@ export default function GoodsSortGame() {
         setHover(cell);
         setSel(null);   // перетаскивание — свой режим, старый тап-выбор сбрасываем
         dragPos.setValue({ x: pageX, y: pageY });
+        lastPointRef.current = { x: pageX, y: pageY };
+        hoverRef.current = cell;
         hapticTap();
       },
 
       onPanResponderMove: (e) => {
         if (!dragRef.current) return;
         const { pageX, pageY } = e.nativeEvent;
+        lastPointRef.current = { x: pageX, y: pageY };
         dragPos.setValue({ x: pageX, y: pageY });
-        setHover(nicheAt(pageX, pageY));
+        /**
+         * 🔴 ПОДСВЕТКУ ПЕРЕРИСОВЫВАЕМ ТОЛЬКО КОГДА ОНА МЕНЯЕТСЯ.
+         *
+         * Денис 02.09.2026: «драг энд дроп тоже лагает в сорт геймс». Здесь стоял
+         * безусловный `setHover(...)` — то есть НА КАЖДОЕ движение пальца шло
+         * обновление состояния экрана, а с ним перерисовка всей доски: до 14 ниш,
+         * в каждой стопка картинок товаров. Палец за секунду даёт шестьдесят
+         * событий, значит шестьдесят полных перерисовок в секунду поверх анимации
+         * призрака — отсюда рывки.
+         *
+         * Ниша под пальцем меняется в разы реже, чем приходят события. Сравнение с
+         * прошлым значением убирает лишние перерисовки, ничего не меняя на вид.
+         */
+        const n = nicheAt(pageX, pageY);
+        if (n !== hoverRef.current) { hoverRef.current = n; setHover(n); }
       },
 
       onPanResponderRelease: (e) => {
         const held = dragRef.current;
         dragRef.current = null;
-        setDrag(null); setHover(null);
+        setDrag(null); setHover(null); hoverRef.current = null;
         if (!held) return;
-        const target = nicheAt(e.nativeEvent.pageX, e.nativeEvent.pageY);
+        /**
+         * 🔴 КУДА ПОЛОЖИЛИ — БЕРЁМ ИЗ ПОСЛЕДНЕГО ДВИЖЕНИЯ, А НЕ ИЗ СОБЫТИЯ ОТПУСКАНИЯ.
+         *
+         * Денис 02.09.2026: «тащишь, если не кликнул товар — он вроде тащится, но
+         * не ставится». Товар поднимался (значит захват отрабатывал), а ход не
+         * происходил — то есть падало именно определение ниши на отпускании.
+         *
+         * Причина: событие отпускания (`touchend`/`mouseup`) списка касаний уже не
+         * несёт — палец снят. React Native подставляет координаты не везде
+         * одинаково: на вебе в `pageX/pageY` приходит ноль. Ноль — это точка за
+         * пределами шкафа, `nicheAt` честно отвечает «мимо доски», и ход молча не
+         * делается. Через тап то же самое работало, потому что тап не ходит этой
+         * веткой вовсе — оттого дефект и выглядел как «перетаскивание не работает,
+         * а нажатие работает».
+         *
+         * Последняя точка движения — то место, где палец был за миг до отрыва, то
+         * есть ровно то, куда целился человек. Событие отпускания остаётся
+         * запасным: если жест был совсем без движения, точка возьмётся из него.
+         */
+        const точка = dropPoint(e.nativeEvent, lastPointRef.current);
+        const target = точка ? nicheAt(точка.x, точка.y) : null;
         // Мимо доски или в ту же нишу — товар просто возвращается, ход НЕ тратится.
         if (target === null || target === held.cell) return;
         /**
@@ -3208,7 +3250,7 @@ export default function GoodsSortGame() {
         liveRef.current.move(held.cell, held.idx, target);
       },
 
-      onPanResponderTerminate: () => { dragRef.current = null; setDrag(null); setHover(null); },
+      onPanResponderTerminate: () => { dragRef.current = null; setDrag(null); setHover(null); hoverRef.current = null; },
     }),
   ).current;
 
@@ -3710,11 +3752,13 @@ export default function GoodsSortGame() {
             ))}
           </View>
         )}
-        {/* Вспышка на сборе тройки: белая пелена, которая гаснет. Рисуется поверх
-            уже опустевшей ниши, поэтому объясняет, ЧТО именно исчезло и откуда. */}
+        {/* Свечение на сборе тройки: тёплая золотая волна, которая гаснет. Рисуется
+            поверх уже опустевшей ниши, поэтому объясняет, ЧТО именно исчезло и откуда.
+            Было белым в 85 % непрозрачности — Денис 02.09.2026: «полка мигает белым,
+            когда 3 сходятся»; на тёмном шкафу это читалось как сбой отрисовки. */}
         {flashCells.includes(i) && (
           <Animated.View pointerEvents="none"
-            style={[styles.flash, { opacity: flash.interpolate({ inputRange: [0, 1], outputRange: [0, 0.85] }) }]} />
+            style={[styles.flash, { opacity: flash.interpolate({ inputRange: [0, 1], outputRange: [0, 0.42] }) }]} />
         )}
         {/* Полка и товары — соседние кнопки, а не button внутри button.
             На web вложенные TouchableOpacity давали hydration-error и могли
@@ -4145,7 +4189,14 @@ export default function GoodsSortGame() {
                      */
                     if (!mask[pos]) {
                       return (
-                        <View key={`gap-${pos}`} style={[styles.plank, { width: cellW, height: nicheH }]} />
+                        <LinearGradient key={`gap-${pos}`}
+                          colors={['#e9cda6', '#d3a878']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+                          style={[styles.plank, { width: cellW, height: nicheH }]}>
+                          {/* Две линии волокна на четверти высоты — ровно столько, чтобы
+                              дерево читалось деревом и не начало спорить с товарами. */}
+                          <View pointerEvents="none" style={[styles.plankGrain, { top: nicheH * 0.28 }]} />
+                          <View pointerEvents="none" style={[styles.plankGrain, { top: nicheH * 0.66 }]} />
+                        </LinearGradient>
                       );
                     }
                     // Ячейки нумеруются по СУЩЕСТВУЮЩИМ нишам: генератор не знает
@@ -4308,7 +4359,7 @@ const styles = StyleSheet.create({
    */
   setThumbLocked: { opacity: 0.45 },
   fieldCol: { flex: 1, alignSelf: 'stretch', justifyContent: 'center', gap: 8, alignItems: 'center' },
-  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   hintText: { fontSize: 12, textAlign: 'center' },
   // ⚠️ Осиротело после разводки слотов: все три служебные кнопки уехали в шапку (GameAuxAction).
   // Больше никем не берутся четыре записи — shuffleBtn и shuffleText здесь, undoBtn и
@@ -4369,15 +4420,40 @@ const styles = StyleSheet.create({
    * доска в глубине шкафа не может быть светлее его лицевой рамы. Блик сверху и
    * тень снизу дают ту же толщину, что у полок между нишами.
    */
-  plank: {
-    backgroundColor: '#d8b083',
-    borderRadius: 8,
-    borderTopWidth: 2, borderTopColor: 'rgba(255,255,255,0.38)',
-    borderBottomWidth: 3, borderBottomColor: 'rgba(122,80,38,0.30)',
+  /**
+   * 🔴 ДОСКА ФЛЮШЕМ, БЕЗ СКРУГЛЕНИЯ. Денис 02.09.2026: «шкаф сделаешь нормальным,
+   * его отображение».
+   *
+   * Скруглённые углы и подложка своим цветом превращали сплошной участок шкафа в
+   * отдельную ПЛИТКУ — на кадре она читается как незаполненное место, хотя по
+   * замыслу это цельное дерево. Прошлая правка («не дырка, а доска») вернула
+   * заливку, но форму оставила карточной, и половина дефекта осталась: шкаф
+   * выглядел собранным из квадратиков, часть которых забыли нарисовать.
+   *
+   * Убираем радиус — доска стыкуется с соседями встык, как доска и должна.
+   * Заливку отдаём градиенту (`plankFill` ниже): плоский цвет рядом с объёмными
+   * нишами сам по себе выглядит дырой, сколько его ни подбирай.
+   */
+  plank: { overflow: 'hidden' },
+  /** Тонкая линия волокна: без неё сплошная доска остаётся пятном, а не деревом. */
+  plankGrain: {
+    position: 'absolute', left: '12%', right: '12%', height: 1,
+    backgroundColor: 'rgba(122,80,38,0.13)',
   },
   /** Слой препятствия: затемнение на всю нишу плюс значок по центру. */
-  /** Пелена вспышки: белая, потому что гасит цвет полки, а не спорит с ним. */
-  flash: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#ffffff', borderRadius: 8, zIndex: 4 },
+  /**
+   * 🔴 СВЕЧЕНИЕ ЗОЛОТОМ, А НЕ БЕЛАЯ ВСПЫШКА. Денис 02.09.2026: «в сорт геймс полка
+   * мигает белым когда 3 сходятся».
+   *
+   * Белая пелена на 85 % непрозрачности гасила всю нишу разом — на тёмном ореховом
+   * шкафу это читается как сбой отрисовки, а не как награда: глаз видит дырку в
+   * доске. Плюс она била по глазам в вечернем режиме, ради которого весь набор
+   * приглушён.
+   *
+   * Тёплое золото того же семейства, что и остальные награды (серия, звёзды), и
+   * вдвое слабее: событие видно, а доска остаётся доской.
+   */
+  flash: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#ffd76a', borderRadius: 8, zIndex: 4 },
   /**
    * Форма — как у бейджей рядом (таблетка), а не отдельная квадратная кнопка:
    * при нехватке ширины строка переносится, и одинокий квадрат во второй
@@ -4392,7 +4468,7 @@ const styles = StyleSheet.create({
   slots: { position: 'absolute', left: 0, right: 0, bottom: 3, flexDirection: 'row', justifyContent: 'center', gap: 3, zIndex: 3 },
   slotMark: { width: 7, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.30)' },
   slotTaken: { backgroundColor: 'rgba(255,236,190,0.85)' },
-  goalLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap', paddingHorizontal: 12, marginBottom: 2 },
+  goalLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap', paddingHorizontal: 12, marginBottom: 2, maxWidth: '100%' },
   goalText: { fontSize: 13, fontWeight: '700' },
   goalGood: { backgroundColor: 'rgba(217,119,6,0.14)', borderRadius: 6, paddingHorizontal: 3, paddingVertical: 1 },
   goalMark: { position: 'absolute', top: 3, right: 3, zIndex: 3 },

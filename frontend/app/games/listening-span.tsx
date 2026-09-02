@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionHint: { fontSize: 13, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   langButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16 },
   langButtonText: { fontSize: 13, fontWeight: '600' },
   voiceWarn: {
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 18 },
-  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 13, fontWeight: '700' },
   listenBox: {
     width: 220, height: 220, borderRadius: 24, borderWidth: 3,
@@ -488,9 +488,9 @@ const styles = StyleSheet.create({
   listenCounter: { fontSize: 14, fontWeight: '600' },
   dotsRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
   dot: { width: 12, height: 12, borderRadius: 6 },
-  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
   recallTitle: { fontSize: 22, fontWeight: '800' },
-  wordGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', maxWidth: 480 },
+  wordGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', maxWidth: 480, width: '100%' },
   wordChip: {
     paddingVertical: 14, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1,
     minWidth: 96, alignItems: 'center',

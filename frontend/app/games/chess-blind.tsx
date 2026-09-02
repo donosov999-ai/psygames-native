@@ -1369,7 +1369,7 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 12 },   // hint + таймер-бар + доска внутри поля каркаса
-  statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center', flexWrap: 'wrap' },
+  statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center', flexWrap: 'wrap', maxWidth: '100%' },
   statText: { fontSize: 15, fontWeight: '700' },
   hintText: { fontSize: 14, textAlign: 'center', minHeight: 20, fontWeight: '600' },
   barTrack: { height: 6, borderRadius: 3, overflow: 'hidden' },
@@ -1377,7 +1377,7 @@ const styles = StyleSheet.create({
   coord: { position: 'absolute', fontSize: 8, fontWeight: '700' },
   glyphLayer: { position: 'absolute', left: 0, right: 0, top: 0, textAlign: 'center' },
   hlOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderWidth: 3, borderRadius: 4 },
-  optionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+  optionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: '100%' },
   optBtn: { width: 64, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   // ── серия из трёх блоков ──
   seriesGlyph: { textAlign: 'center', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 3 },

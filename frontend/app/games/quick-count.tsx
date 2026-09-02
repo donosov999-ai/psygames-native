@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   hintText: { fontSize: 13, textAlign: 'center' },
   field: { borderRadius: 16, position: 'relative', overflow: 'hidden' },
   dot: { position: 'absolute' },
-  choiceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 380 },
+  choiceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 380, width: '100%' },
   choiceBtn: { width: 52, height: 52, borderRadius: 16, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
   choiceText: { fontSize: 18, fontWeight: '700' },
 });

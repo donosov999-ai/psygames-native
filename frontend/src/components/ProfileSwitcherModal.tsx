@@ -161,7 +161,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
               </Text>
 
               {/* Grid */}
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start' }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start', maxWidth: '100%' }}>
                 {allProfiles.filter(isSwitchable).map((p) => {
                   const active = p.id === profile.id;
                   const accessible = isAccessible(p.id);
@@ -392,7 +392,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   </Text>
                 )}
 
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16, maxWidth: '100%' }}>
                   {detailProfile.session_minutes && (
                     <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
                       <Text style={{ fontSize: 11, color: colors.text }}>⏱ {language === 'ru' ? detailProfile.session_minutes : detailProfile.session_minutes.replace('мин', 'min')}</Text>

@@ -230,10 +230,32 @@ function NumberLine({
             { left: `${estimatePercent * 100}%`, backgroundColor: theme.primary },
           ]}
         />
+        {/*
+          🔴 ВЫБРАННОЕ ЧИСЛО — НАД РУЧКОЙ, А НЕ ПОД ДОРОЖКОЙ.
+          Отчёт Дениса 02.09.2026: «когда пальцем двигаем ползунок, цифра
+          получается спрятана под пальцем, то есть мы не видим цифру, которую
+          выбираем; цифру нужно поднять над ползунком».
+          Он прав по устройству руки: палец лежит НА ручке и закрывает всё, что
+          ниже и вокруг неё, — а число стояло отдельной строкой под дорожкой,
+          ровно в тени кисти. Пузырь над ручкой в тень не попадает: кисть уходит
+          вниз от точки касания.
+          Пузырь едет вместе с ручкой, потому что игра про попадание в точку:
+          число у левого края экрана пришлось бы соотносить с ручкой глазами.
+        */}
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={[styles.estimateBubble, {
+            left: `${estimatePercent * 100}%`,
+            backgroundColor: theme.primary,
+          }]}
+        >
+          <Text style={styles.estimateBubbleText} numberOfLines={1}>
+            {formatNumber(estimate, locale)}
+          </Text>
+        </View>
       </View>
-      <Text style={[styles.currentEstimate, { color: theme.text }]}>
-        {formatNumber(estimate, locale)}
-      </Text>
     </View>
   );
 }
@@ -530,7 +552,7 @@ const styles = StyleSheet.create({
   actionButtonText: { fontSize: 15, fontWeight: '800', textAlign: 'center' },
   pressed: { opacity: 0.75 },
   disabled: { opacity: 0.45 },
-  pauseCard: { maxWidth: 520 },
+  pauseCard: { maxWidth: 520, width: '100%' },
   topRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   gameTitle: { fontSize: 22, fontWeight: '900' },
   round: { fontSize: 13, fontWeight: '700', marginTop: 2 },
@@ -538,19 +560,31 @@ const styles = StyleSheet.create({
   expressionCard: { width: '100%', borderRadius: 24, borderWidth: 1, paddingVertical: 26, paddingHorizontal: 16, alignItems: 'center', gap: 8 },
   prompt: { fontSize: 14, fontWeight: '600', textAlign: 'center' },
   expression: { fontSize: 34, lineHeight: 44, fontWeight: '900', textAlign: 'center', writingDirection: 'ltr' },
-  numberLineBlock: { width: '100%', paddingTop: 16, paddingBottom: 4 },
+  // Отступ сверху 46, а не 16: над дорожкой теперь стоит пузырь с числом.
+  numberLineBlock: { width: '100%', paddingTop: 46, paddingBottom: 4 },
   trackTouchTarget: { width: '100%', minHeight: 88, justifyContent: 'flex-start', position: 'relative', borderRadius: 12 },
   track: { position: 'absolute', top: 27, left: 0, right: 0, height: 6, borderRadius: 3 },
   tick: { position: 'absolute', top: 18, width: 2, height: 24, transform: [{ translateX: -1 }] },
   tickLabel: { position: 'absolute', top: 48, width: 62, marginLeft: -31, textAlign: 'center', fontSize: 11, fontVariant: ['tabular-nums'] },
   estimateMarker: { position: 'absolute', top: 9, width: 28, height: 42, borderRadius: 14, transform: [{ translateX: -14 }], borderWidth: 4, borderColor: '#ffffff' },
   answerMarker: { position: 'absolute', top: 17, width: 12, height: 28, borderRadius: 6, transform: [{ translateX: -6 }] },
-  currentEstimate: { textAlign: 'center', fontSize: 24, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  /**
+   * Пузырь с выбранным числом. Ширина минимальная и центрируется сдвигом на
+   * половину: точное значение ширины заранее неизвестно (число от «0» до
+   * «12 500»), а привязка левым краем увела бы пузырь в сторону от ручки.
+   */
+  estimateBubble: {
+    position: 'absolute', top: -34, minWidth: 56, marginLeft: -28,
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 4,
+  },
+  estimateBubbleText: { color: '#fff', fontSize: 20, fontWeight: '900', fontVariant: ['tabular-nums'] },
   feedbackCard: { width: '100%', borderRadius: 20, borderWidth: 1, padding: 16, gap: 8 },
   feedbackRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   feedbackLabel: { flex: 1, fontSize: 14 },
   feedbackValue: { fontSize: 18, fontWeight: '900', fontVariant: ['tabular-nums'] },
-  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
+  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   metric: { minWidth: 140, flexGrow: 1, flexBasis: '45%', padding: 12, alignItems: 'center', gap: 4 },
   metricValue: { fontSize: 24, fontWeight: '900', textAlign: 'center' },
   metricLabel: { fontSize: 12, fontWeight: '600', textAlign: 'center' },

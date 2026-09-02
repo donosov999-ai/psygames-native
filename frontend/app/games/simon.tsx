@@ -472,14 +472,14 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 18 },
-  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   stimBox: {
     width: 360, maxWidth: '100%', height: 140, borderRadius: 16,
@@ -488,5 +488,5 @@ const styles = StyleSheet.create({
   },
   choiceBtn: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
   // RTL-пин: раскладка кнопок лево/право не зеркалится в ar (web: writingDirection → CSS direction)
-  toolbarLtr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', writingDirection: 'ltr' },
+  toolbarLtr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', writingDirection: 'ltr', maxWidth: '100%' },
 });

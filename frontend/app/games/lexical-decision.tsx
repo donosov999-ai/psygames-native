@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 14, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 16 },
   optionLabel: { fontSize: 16, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  optionButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10, maxWidth: '100%' },
   sizeButton: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 18, paddingVertical: 12, borderRadius: 16, minWidth: 56, alignItems: 'center' },
   sizeButtonText: { fontSize: 15, fontWeight: '600' },
   startButton: { marginTop: 10 },

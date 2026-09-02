@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   modeButton: { minWidth: 48, minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
@@ -452,15 +452,15 @@ const styles = StyleSheet.create({
   statText: { fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320 },
   // RTL-пин: числовой ряд с «?» в конце — порядок прогрессии всегда слева направо
-  sequenceArea: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap', writingDirection: 'ltr' },
+  sequenceArea: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap', writingDirection: 'ltr', maxWidth: '100%' },
   // жёсткие 64×64 резали длинные члены ряда («посмотри и скажи»: 111221) — при крупном
   // системном шрифте обрезало даже 3-значные. min* + паддинг: клетка растёт под текст, ряд переносится
   seqCell: { minWidth: 64, minHeight: 64, paddingHorizontal: 8, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
   seqText: { fontSize: 24, fontWeight: '800' },
-  optionsArea: { flexDirection: 'row', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 360 },
+  optionsArea: { flexDirection: 'row', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 360, width: '100%' },
   optBtn: { paddingVertical: 18, paddingHorizontal: 24, borderRadius: 16, minWidth: 80, alignItems: 'center' },
   optText: { color: '#FFF', fontSize: 22, fontWeight: '800' },
-  hintBox: { padding: 12, borderRadius: 10, borderWidth: 1.5, maxWidth: 340, alignItems: 'center' },
+  hintBox: { padding: 12, borderRadius: 10, borderWidth: 1.5, maxWidth: 340, alignItems: 'center', width: '100%' },
   // ⚠️ Осиротело после разводки слотов: кнопка подсказки уехала в шапку
   // (GameAuxAction). Стиль ниже больше никем не берётся; оставлен намеренно —
   // удаление чужого кода в этом проекте только с разрешения.
