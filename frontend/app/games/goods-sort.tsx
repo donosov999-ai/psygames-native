@@ -11,7 +11,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
-import GameShell, { type HudItem } from '@/src/components/GameShell';
+import GameShell, { type HudItem, type ModItem } from '@/src/components/GameShell';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -23,7 +23,7 @@ import { sndCombo, sndPlace, sndMatch, sndWrong } from '@/src/services/feedback'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useMoveHistory, MoveStackData } from '@/src/hooks/useMoveHistory';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
-import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule, levelRuleText } from '@/src/components/LevelRules';
 import { a11yDecor } from '@/src/services/a11y';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { gameNow } from '@/src/services/gamePause';
@@ -41,7 +41,7 @@ import { useResumeBoot } from '@/src/hooks/useResumeBoot';
  * ⚠️ Переставите таблицу — переставьте и `fromLevel`, иначе человек получит
  * объяснение механики, которой на его уровне ещё нет.
  */
-const GS_RULES: LevelRule[] = [
+export const GS_RULES: LevelRule[] = [
   {
     key: 'goalpick', fromLevel: 5,
     ru: { title: 'Цель: собрать названные', rule: 'Теперь у уровня бывает своя цель, и она написана над шкафом. «Собрать тройки» — значит убрать именно те товары, что показаны картинками; остальное можно оставить на полках.', example: 'Пример: 🚩 Собрать тройки: молоко, кола. Собрал обе — уровень пройден, даже если кефир ещё стоит.' },
@@ -85,6 +85,17 @@ const GS_RULES: LevelRule[] = [
    * ввели бы молча. Гейт это поймал.
    */
   { key: 'strict', fromLevel: 14 },
+  /**
+   * Скрытая информация (L16+). Тексты — только в словаре на двенадцати языках
+   * (`lr_goods_sort_hidden_*`): инлайн ru/en в LevelRule помечен устаревшим и
+   * знает ровно два языка из двенадцати.
+   *
+   * До 02.09.2026 механика шла МОЛЧА: с шестнадцатого уровня часть товара
+   * пряталась под «?», а правила про это не было ни одного — игрок узнавал о
+   * ней, натыкаясь. Долг был записан комментарием у `hiddenInfo` и ждал, пока
+   * освободится словарь.
+   */
+  { key: 'hidden', fromLevel: 16 },   // = HIDDEN_FROM; равенство сторожит гейт goods-sort-hidden-rule
 ];
 
 const GRADIENT = ['#f7971e', '#ffd200'];
@@ -795,28 +806,95 @@ export const HIDDEN_FROM = 16;
  * Первый реальный отвод — L25: кандидат ритма, но цель moves. Проверка
  * исполняется, а не украшает (мутация «убери отвод» краснит гейт на L25).
  *
- * ⚠️ ДОЛГ ВНЕ ЭТОГО ФАЙЛА: правило уровня (LevelRule key 'hidden', fromLevel
- * HIDDEN_FROM) требует словаря на 12 языках — ключи lr_goods_sort_hidden_title
- * / _rule / _example в LanguageContext.tsx, иначе гейт level-rules-i18n красный.
- * Словарь занят другой правкой; до внесения ключей механика объясняет себя
- * знаком «?» на самих товарах. Готовые ru/en для словаря:
- *   title:   «Скрытая информация» / “Hidden information”
- *   rule:    «Что в глубине ниши — не видно: там стоит „?“. Товар открывается,
- *            когда перед ним никого не останется. Минимума ходов у такого
- *            уровня нет, счёт ходов ни с чем не сравнивается — вскрывай,
- *            узнавай и перестраивай план.» / “What sits deep in a niche is
- *            unknown — it shows as ‘?’. A good opens up once nothing stands in
- *            front of it. No move minimum exists here, so the move count is not
- *            judged — uncover, learn, replan.”
- *   example: «Пример: в нише „?“ и кола. Убрал колу — „?“ открылся: там кефир.»
- *            / “Example: a niche holds ‘?’ and a cola. Move the cola and the
- *            ‘?’ opens: it was kefir.”
- * Вместе с ключами добавить в GS_RULES запись { key: 'hidden', fromLevel:
- * HIDDEN_FROM } и в rulesHere — фильтр по hiddenInfo(level), как у 'strict'.
+ * Правило уровня заведено 02.09.2026 (LevelRule key 'hidden'), тексты — в словаре
+ * на двенадцати языках (`lr_goods_sort_hidden_*`). До этого механика шла молча:
+ * с шестнадцатого уровня часть товара пряталась под «?», а объяснения не было ни
+ * одного — игрок узнавал о ней, натыкаясь.
  */
 export function hiddenInfo(L: number): boolean {
   if (L < HIDDEN_FROM || (L - HIDDEN_FROM) % 3 !== 0) return false;
   return goalPlan(L).kind !== 'moves';
+}
+
+/**
+ * 🔴 КАКИЕ ПРАВИЛА ДЕЙСТВУЮТ НА ЭТОМ УРОВНЕ.
+ *
+ * Две механики включаются НЕ подряд: «строгая укладка» и «скрытая информация»
+ * идут прореженным ритмом (см. `strictPlacement` и `hiddenInfo`), поэтому мало
+ * сравнить номер уровня с `fromLevel` — иначе игра пообещала бы правило там,
+ * где механики нет, а значок в шапке горел бы вхолостую.
+ *
+ * Функция экспортируется РАДИ ГЕЙТА: проверять надо сам отбор, а не наличие
+ * нужных слов в исходнике. `goods-sort-hidden-rule.test.ts` гоняет её по
+ * уровням и сверяет с самими механиками.
+ */
+/**
+ * 🔴 РАСКЛАДКА ШКАФА — ОДНА ФОРМУЛА НА ИГРУ И НА ГЕЙТ.
+ *
+ * До 02.09.2026 арифметика жила в теле компонента, а гейт `goods-sort-fit`
+ * ПОВТОРЯЛ её у себя. Формулы разъехались молча: у гейта осталось `width - 24`,
+ * потолок товара 112 и рама 7, у игры уже были `width - 20`, потолок 148 и
+ * рама 9. Тест при этом зеленел — он честно проверял формулу, которой в игре
+ * нет. Ровно так же незаметно разъезжается любая величина, продублированная
+ * «для проверки».
+ *
+ * Теперь считает одна функция, а гейт зовёт ЕЁ. Разойтись стало нечему.
+ *
+ * ЧТО ЧЕМ ОГРАНИЧЕНО:
+ * · товар — шириной (`capWide` штук в ряд) И высотой (rows рядов на экран);
+ * · ниша — высотой товара снизу и доступной высотой сверху;
+ * · шкаф — суммой рядов; лишняя высота уходит ВНУТРЬ ниш, а не остаётся
+ *   воздухом вокруг (замер 02.09: было 414 из 629 доступных).
+ */
+export interface GsLayout {
+  boardW: number; cellW: number; itemSize: number; itemH: number;
+  nicheH: number; shelfH: number;
+}
+
+export function gsLayout(
+  width: number, availH: number, cols: number, rows: number, capWide = 3,
+): GsLayout {
+  const CELL_GAP = 2;         // зазор между товарами внутри ниши (styles.cellRow)
+  const ITEM_ASPECT = 0.6;    // ширина/высота, снято с самих спрайтов
+  const SHELF_GAP = 9, HINT_H = 44, SHELF_PAD = 9;
+
+  const boardW = Math.min(width - 20, 1200);
+  const cellW = Math.floor((boardW - SHELF_PAD * 2 - SHELF_GAP * (cols - 1)) / cols);
+
+  /**
+   * 🔴 ВЫСОТА ОДНОЙ НИШИ ВЫВОДИТСЯ ИЗ ПОЛЯ, А НЕ ИЗ ТОВАРА.
+   *
+   * Прежний расчёт шёл наоборот: сначала товар по «availH / rows − 14», потом
+   * ниша не меньше «товар + 8». Обе величины по отдельности выглядели разумно,
+   * а вместе давали шкаф ВЫШЕ ПОЛЯ: замер гейта на десктопе 1280×800 — короб
+   * 465 при поле 440, то есть нижний ряд под обрез. Ровно на этот обрез и был
+   * репорт «половина банок обрезана» (18.08.2026); тогда починили ширину, а
+   * высота осталась с той же болезнью и просто ждала своего экрана.
+   *
+   * Теперь порядок обратный и замкнутый: сколько высоты у ниши — столько и
+   * товару, а не наоборот. Шкаф не может перерасти поле по построению.
+   */
+  const perRow = Math.floor((availH - HINT_H - SHELF_GAP * (rows - 1) - SHELF_PAD * 2 - 9) / rows);
+  const fitsInCell = Math.floor((cellW - CELL_GAP * (capWide - 1)) / capWide);
+  const fitsInRow = Math.floor((perRow - 8) * ITEM_ASPECT);
+  const itemSize = Math.max(18, Math.min(148, fitsInCell, fitsInRow));
+  const itemH = Math.round(itemSize / ITEM_ASPECT);
+
+  // Избыток высоты уходит ВНУТРЬ ниши (товар стоит на доске, над ним видна
+  // задняя стенка), но не выше `perRow` — иначе короб снова перерастёт поле.
+  const nicheH = Math.max(itemH + 8, Math.min(Math.round(itemH * 2.2), perRow));
+  // Высота всего короба: ряды + зазоры между ними + рама сверху/снизу + торец.
+  const shelfH = nicheH * rows + SHELF_GAP * (rows - 1) + SHELF_PAD * 2 + 9;
+
+  return { boardW, cellW, itemSize, itemH, nicheH, shelfH };
+}
+
+export function gsRulesForLevel(L: number): LevelRule[] {
+  return GS_RULES.filter((r) => {
+    if (r.key === 'strict') return strictPlacement(L);
+    if (r.key === 'hidden') return hiddenInfo(L);
+    return true;
+  });
 }
 
 /**
@@ -2100,11 +2178,35 @@ export default function GoodsSortGame() {
    * по обычным правилам. Ни один гейт этого не видел — все проверяли, что
    * правило существует и переведено, а не что оно ПРАВДА на этом уровне.
    */
-  const rulesHere = useMemo(
-    () => (strictPlacement(level) ? GS_RULES : GS_RULES.filter((r) => r.key !== 'strict')),
-    [level],
-  );
+  const rulesHere = useMemo(() => gsRulesForLevel(level), [level]);
   const levelRules = useLevelRules('goods_sort', level, rulesHere, phase === 'playing' && !isPreset);
+
+  /**
+   * 🔴 МОДИФИКАТОРЫ УРОВНЯ — ЗНАЧКАМИ, А НЕ СТРОКОЙ СЛОВ.
+   *
+   * «Примёрзший ряд», «Строгая укладка» и «Скрытая информация» занимали в шапке
+   * целую текстовую строку. На кадре Вали 01.09.2026 эта строка стоит четвёртой
+   * сверху — а всё, что она сообщает, умещается в кружок со снежинкой.
+   *
+   * ⚠️ ПОДПИСЬ БЕРЁМ ИЗ СЛОВАРЯ ТЕМ ЖЕ ВЫЗОВОМ, ЧТО И ОКНО ПРАВИЛ. Название
+   * модификатора живёт в одном месте: значок в шапке и карточка правила не могут
+   * разъехаться, и обе умеют двенадцать языков, а не два.
+   */
+  const modsHere = useMemo<ModItem[]>(() => {
+    const ICON: Record<string, { icon: keyof typeof Ionicons.glyphMap; tone: ModItem['tone'] }> = {
+      frozen: { icon: 'snow', tone: 'accent' },
+      strict: { icon: 'albums', tone: 'warn' },
+      hidden: { icon: 'help-circle', tone: 'neutral' },
+    };
+    return rulesHere
+      .filter((r) => ICON[r.key] && level >= r.fromLevel)
+      .map((r) => ({
+        key: r.key,
+        icon: ICON[r.key].icon,
+        label: levelRuleText(language, GS_GAME_ID, r).title,
+        tone: ICON[r.key].tone,
+      }));
+  }, [rulesHere, level, language]);
 
   const loadLevel = (L: number) => {
     const cfg = levelCfg(L, poolRef.current.length, narrowRef.current);
@@ -3022,8 +3124,13 @@ export default function GoodsSortGame() {
    * коробки, а ряды по высоте за ним не поспевают. 1200 — вдвое больше высоты
    * типового окна, дальше пропорция ниши ломается.
    */
-  const boardW = Math.min(width - 20, 1200);
-  const cellW = Math.floor((boardW - 9 * 2 - 9 * (gridDim.cols - 1)) / gridDim.cols);   // cols ячеек-полок в ряд
+  // Замер поля вместо зашитого запаса: сколько контейнер реально дал (см. ниже).
+  const [fieldH, setFieldH] = useState(0);
+  // Числа раскладки — из `gsLayout`: одна формула на игру и на гейт (см. её комментарий).
+  const capWideHere = Math.max(...caps, CAP);
+  const LAY = gsLayout(width, Math.max(180, fieldH || height - 360), gridDim.cols, gridDim.rows, capWideHere);
+  const boardW = LAY.boardW;
+  const cellW = LAY.cellW;
   // Размер товара ограничен И шириной (cols в ряд), И доступной высотой (rows полок) — тянемся по высоте экрана.
   /**
    * 🔴 ВЫСОТУ ПОД ПОЛКИ МЕРЯЕМ, А НЕ УГАДЫВАЕМ.
@@ -3038,7 +3145,6 @@ export default function GoodsSortGame() {
    * Замер честнее любой константы: сколько места контейнер реально дал,
    * столько и делим. До первого onLayout держим прежнюю оценку — один кадр.
    */
-  const [fieldH, setFieldH] = useState(0);
   const availH = Math.max(180, fieldH || height - 360);
   /**
    * 🔴 РАЗМЕР ТОВАРА ПОДЧИНЯЕТСЯ ЯЧЕЙКЕ, А НЕ НАОБОРОТ.
@@ -3063,7 +3169,6 @@ export default function GoodsSortGame() {
    * он честнее константы, — но резало по ширине, и без картинки я этого знать
    * не мог. Отсюда правило: пока скриншот из отчёта нечитаем, диагноз — догадка.
    */
-  const CELL_GAP = 2;                        // зазор между товарами в ячейке (styles.cellRow)
   /**
    * 🔴 ТОВАР УЗКИЙ, А ХОЛСТ КВАДРАТНЫЙ — И В ЭТОМ ТЕРЯЛАСЬ ПОЛОВИНА РАЗМЕРА.
    *
@@ -3078,19 +3183,13 @@ export default function GoodsSortGame() {
    * самих рисунков: ширина прежняя (три в ряд по-прежнему влезают), высота
    * в 1.7 раза больше. Товар растёт в площади вдвое, ничего не переезжая.
    */
-  const ITEM_ASPECT = 0.6;                   // ширина/высота, снято с самих спрайтов
   /**
    * ⚠️ РАЗМЕР ТОВАРА СЧИТАЕМ ПО САМОЙ ВМЕСТИТЕЛЬНОЙ НИШЕ УРОВНЯ, а не по CAP.
    * Со смешанной ёмкостью на доске есть ниши на четыре, и товар, посчитанный
    * под три, в них не поместится — четвёртый уедет за край.
    */
-  const capWide = Math.max(...caps, CAP);
-  const fitsInCell = Math.floor((cellW - CELL_GAP * (capWide - 1)) / capWide);
-  const fitsInRow = Math.floor((availH / gridDim.rows - 14) * ITEM_ASPECT);
-  // Потолок 148, а не 112: на большом окне товар упирался в него раньше, чем в
-  // ширину ниши, и оставался мелким при свободном месте вокруг.
-  const itemSize = Math.max(18, Math.min(148, fitsInCell, fitsInRow));
-  const itemH = Math.round(itemSize / ITEM_ASPECT);
+  const itemSize = LAY.itemSize;
+  const itemH = LAY.itemH;
   /**
    * 🔴 ШКАФ ЗАНИМАЕТ ВСЁ ПОЛЕ, А НЕ ТРЕТЬ ЭКРАНА.
    *
@@ -3105,9 +3204,24 @@ export default function GoodsSortGame() {
    */
   const SHELF_GAP = 9, HINT_H = 44, SHELF_PAD = 9;
   const shelfOuter = Math.floor((availH - HINT_H - SHELF_GAP * (gridDim.rows - 1)) / gridDim.rows);
-  // Ниша выше товара примерно на четверть — столько воздуха над предметом в
-  // эталоне. Вдвое выше = пустая коробка, экран заполняется НЕ этим, а рядами.
-  const nicheH = Math.max(itemH + 8, Math.min(Math.round(itemH * 1.25), shelfOuter - SHELF_PAD * 2 - 7));
+  /**
+   * 🔴 ВЫСОТА НИШИ — ЗАНЯТЬ ДОСТУПНОЕ, А НЕ ДЕРЖАТЬ ЧЕТВЕРТЬ ВОЗДУХА.
+   *
+   * Замер живьём 02.09.2026 (psy-games.pro/play, окно 604×817): поле отдаёт
+   * шкафу 629 px, шкаф занимает 414 — 215 px пустоты сверху и снизу. Причина —
+   * потолок в этой самой строке: ниша не могла стать выше 1,25 × товара, и весь
+   * избыток высоты оставался ВОКРУГ шкафа комками.
+   *
+   * ⚠️ Растить сам товар вместо ниши нельзя: его размер держит ШИРИНА — три
+   * штуки в ряд (3 × 59 = 177 при нише 182, впритык). Проверено замером: поля
+   * в спрайтах ни при чём, непрозрачная часть занимает 96–98 % картинки.
+   *
+   * Поэтому избыток уходит ВНУТРЬ ниши: товар стоит на доске, над ним видна
+   * задняя стенка — ровно так устроен эталон, где над предметами есть воздух.
+   * Потолок 1,9 оставлен, чтобы на очень высоком экране ниша не стала колодцем,
+   * а нижняя граница (товар + 8) держит случай, когда высоты наоборот мало.
+   */
+  const nicheH = Math.max(itemH + 8, Math.min(Math.round(itemH * 1.9), shelfOuter - SHELF_PAD * 2 - 7));
 
   /**
    * Снимок партии для жеста. PanResponder создан один раз и замкнул первый
@@ -3481,6 +3595,19 @@ export default function GoodsSortGame() {
            * поэтому рефлекс «низ — это мой ответ» тут не за что зацепиться.
            */
           bottom="actions"
+          /**
+           * 🔴 МОДИФИКАТОРЫ УРОВНЯ — ЗНАЧКАМИ, А НЕ СТРОКОЙ ТЕКСТА.
+           *
+           * Раньше «Примёрзший ряд», «Строгая укладка» и «Скрытый товар»
+           * занимали в шапке целую строку словами. На кадре Вали 01.09.2026 эта
+           * строка стоит четвёртой сверху — а всё, что она сообщает, умещается
+           * в один кружок со снежинкой.
+           *
+           * Слово никуда не делось: оно в подписи для скринридера и в кнопке
+           * правил уровня, которая стоит рядом со служебными. Значок отвечает
+           * на вопрос «что тут необычного», подробности — по нажатию.
+           */
+          mods={modsHere}
           /**
            * 🔴 ЧЕТЫРЕ СЧЁТЧИКА ВМЕСТО ШЕСТИ — И ЭТО ДАННЫЕ, А НЕ ВЁРСТКА.
            *

@@ -22,7 +22,7 @@ declare function require(m: string): any;
 
 import { levelCfg, generate, strictPlacement, placementOk, solvableStrict,
   dealBoard,
-  capsFor,
+  capsFor, gsRulesForLevel,
 } from '@/app/games/goods-sort';
 
 const POOL = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -145,22 +145,40 @@ describe('правило на экране совпадает с уровнем'
   const path = require('path');
   const SRC = fs.readFileSync(path.join(__dirname, '../../app/games/goods-sort.tsx'), 'utf8') as string;
 
+  /**
+   * ⚠️ ПРОВЕРЯЕМ ОТБОР, А НЕ ЕГО ЗАПИСЬ. Прежняя редакция искала в исходнике
+   * дословное `strictPlacement(level) ? GS_RULES : GS_RULES.filter(...)` и
+   * покраснела 02.09.2026 на правке, которая ничего не сломала: отбор вынесли
+   * в `gsRulesForLevel`, чтобы к нему обращались и экран, и гейты. Регулярка по
+   * коду ломается от любого переписывания — поведение не ломается.
+   */
   it('список правил собирается под уровень, а не берётся целиком', () => {
-    expect(SRC).toMatch(/strictPlacement\(level\)\s*\?\s*GS_RULES\s*:\s*GS_RULES\.filter/);
+    const строгий: number[] = [];
+    const нестрогий: number[] = [];
+    for (let L = 14; L <= 60; L++) (strictPlacement(L) ? строгий : нестрогий).push(L);
+    expect(строгий.length).toBeGreaterThan(3);
+    expect(нестрогий.length).toBeGreaterThan(20);     // таких уровней большинство
     expect(SRC).toMatch(/useLevelRules\('goods_sort', level, rulesHere/);
   });
 
   /**
-   * Смысловая половина: на уровнях, где правила нет, оно и не должно
-   * подбираться. Считаем так же, как экран, и сверяем с самим правилом.
+   * Смысловая половина: на уровнях, где механики нет, правило не подбирается.
+   *
+   * ⚠️ Прежняя редакция этого НЕ проверяла: она отбирала уровни по
+   * `!strictPlacement(L)` и затем утверждала `strictPlacement(L) === false` —
+   * то есть повторяла собственный отбор. Такой тест зелен при любой поломке
+   * отбора правил, потому что до правил он вовсе не доходит.
    */
   it('на нестрогих уровнях правило строгой укладки не подходит', () => {
     const off: number[] = [];
     for (let L = 14; L <= 60; L++) if (!strictPlacement(L)) off.push(L);
-    expect(off.length).toBeGreaterThan(20);           // таких уровней большинство
+    expect(off.length).toBeGreaterThan(20);
     for (const L of off.slice(0, 10)) {
-      // Экран отфильтровывает правило — значит активным станет предыдущее.
-      expect(strictPlacement(L)).toBe(false);
+      expect(gsRulesForLevel(L).map((r) => r.key)).not.toContain('strict');
+    }
+    // И обратная сторона: там, где механика есть, правило в списке.
+    for (let L = 14; L <= 60; L++) {
+      if (strictPlacement(L)) { expect(gsRulesForLevel(L).map((r) => r.key)).toContain('strict'); break; }
     }
   });
 });

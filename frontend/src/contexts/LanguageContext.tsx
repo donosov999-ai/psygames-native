@@ -2450,6 +2450,7 @@ const translations: Translations = {
   goodsSet_drinks: { ru: 'Напитки', en: 'Drinks' },
   goodsSet_food: { ru: 'Еда', en: 'Food' },
   goodsSet_toys: { ru: 'Игрушки', en: 'Toys' },
+  goodsSet_pets: { ru: 'Зверята', en: 'Critters' },
   goodsSet_dairy: { ru: 'Молочное', en: 'Dairy' },
   goodsSet_mix: { ru: 'Микс', en: 'Mix' },
   // Пометка на «Молочном»: набор намеренно собран из неразличимых бутылок, и
@@ -2599,6 +2600,9 @@ const translations: Translations = {
   lr_goods_sort_locked_title: { ru: 'Замок по ходам', en: 'Timed lock' },
   lr_goods_sort_locked_rule: { ru: 'Ниша с часами откроется сама через столько ходов, сколько показывает счётчик. Ждать не обязательно — просто считай её занятой, пока идёт отсчёт.', en: 'A niche with a clock opens by itself after as many moves as the counter shows. No need to wait for it — just treat it as taken while it counts down.' },
   lr_goods_sort_locked_example: { ru: 'Пример: ⏱ 5 — откроется через пять твоих ходов. Каждый ход счётчик убывает.', en: 'Example: ⏱ 5 — opens in five of your moves. Every move takes one off.' },
+  lr_goods_sort_hidden_title: { ru: 'Скрытая информация', en: 'Hidden information' },
+  lr_goods_sort_hidden_rule: { ru: 'Что в глубине ниши — не видно: там стоит «?». Товар открывается, когда перед ним никого не останется. Минимума ходов у такого уровня нет, счёт ходов ни с чем не сравнивается — вскрывай, узнавай и перестраивай план.', en: 'What sits deep in a niche is unknown — it shows as “?”. A good opens up once nothing stands in front of it. No move minimum exists here, so the move count is not judged — uncover, learn, replan.' },
+  lr_goods_sort_hidden_example: { ru: 'Пример: в нише «?» и кола. Убрал колу — «?» открылся: там кефир.', en: 'Example: a niche holds “?” and a cola. Move the cola and the “?” opens: it was kefir.' },
   lr_goods_sort_frozen_title: { ru: 'Примёрзший ряд', en: 'Frozen row' },
   lr_goods_sort_frozen_rule: { ru: 'Синий ряд не работает: ни взять, ни положить. Оттает, когда ты соберёшь тройку того товара, что примёрз — он показан снежинкой.', en: 'A blue row is out of action — nothing in, nothing out. It thaws when you clear a triple of the frozen good, shown by the snowflake.' },
   lr_goods_sort_frozen_example: { ru: 'Пример: ❄ ряд внизу примёрз на соке. Собери тройку сока где угодно — ряд оттает.', en: 'Example: ❄ the bottom row is frozen on juice. Clear a triple of juice anywhere and it thaws.' },
