@@ -27,13 +27,65 @@ function кодовыеСтроки(src: string): { n: number; text: string }[] 
     .filter(({ text }) => !/^\s*#/.test(text) && text.trim().length > 0);
 }
 
+/**
+ * 🔴 БОЛЬШЕ ВСЕГО BASH ЛЕЖИТ НЕ В `.sh`, А В `run:` КОНВЕЙЕРА — И ГЕЙТ ТУДА НЕ СМОТРЕЛ.
+ *
+ * Проверка родилась после падения `ios-signing-setup.sh` и охватывала только файлы
+ * с расширением `.sh`. 02.09.2026 я, дописывая повтор сборки Android, написал
+ * `for заход in 1 2 3` прямо в `build.yml` — то есть повторил тот же дефект в
+ * ЕДИНСТВЕННОМ месте, куда гейт не заглядывает. Он честно позеленел.
+ *
+ * Правило про bash, а не про расширение файла. Блоки `run:` из workflow читаем так
+ * же, как скрипты.
+ */
+function строкиRun(yml: string): { n: number; text: string }[] {
+  const out: { n: number; text: string }[] = [];
+  const lines = yml.split('\n');
+  let вRun = false;
+  let отступ = 0;
+  lines.forEach((text, i) => {
+    const m = /^(\s*)(- )?run:\s*\|?\s*$/.exec(text);
+    if (m) { вRun = true; отступ = m[1].length; return; }
+    if (/^\s*(- )?run:\s*\S/.test(text)) { out.push({ n: i + 1, text }); вRun = false; return; }
+    if (!вRun) return;
+    if (text.trim() && (text.length - text.trimStart().length) <= отступ) { вRun = false; return; }
+    if (text.trim() && !/^\s*#/.test(text)) out.push({ n: i + 1, text });
+  });
+  return out;
+}
+
 describe('shell-скрипты переживают bash', () => {
   const файлы: string[] = fs.existsSync(СКРИПТЫ)
     ? fs.readdirSync(СКРИПТЫ).filter((f: string) => f.endsWith('.sh'))
     : [];
+  const WORKFLOWS = path.join(__dirname, '../../../.github/workflows');
+  const конвейеры: string[] = fs.existsSync(WORKFLOWS)
+    ? fs.readdirSync(WORKFLOWS).filter((f: string) => f.endsWith('.yml') || f.endsWith('.yaml'))
+    : [];
 
   it('есть что проверять: shell-скрипты в проекте есть', () => {
     expect(файлы.length).toBeGreaterThan(0);
+  });
+
+  it('есть что проверять: блоки run: в конвейере читаются', () => {
+    const всего = конвейеры.reduce(
+      (n, f) => n + строкиRun(fs.readFileSync(path.join(WORKFLOWS, f), 'utf8') as string).length, 0);
+    expect(`строк run: ${всего > 100}`).toBe('строк run: true');
+  });
+
+  it('🔴 ни одного имени переменной кириллицей в блоках run: конвейера', () => {
+    const плохо: string[] = [];
+    for (const f of конвейеры) {
+      const yml = fs.readFileSync(path.join(WORKFLOWS, f), 'utf8') as string;
+      for (const { n, text } of строкиRun(yml)) {
+        if (/(^|\s|\$\{?)[A-Za-z_]*[А-Яа-яЁё][A-Za-z_А-Яа-яЁё0-9]*\s*=/.test(text)
+            || /\$\{?[А-Яа-яЁё]/.test(text)
+            || /\bfor\s+[А-Яа-яЁё]/.test(text)) {
+          плохо.push(`${f}:${n} — ${text.trim().slice(0, 60)}`);
+        }
+      }
+    }
+    expect(плохо).toEqual([]);
   });
 
   it('🔴 ни одного имени переменной кириллицей', () => {
@@ -43,7 +95,9 @@ describe('shell-скрипты переживают bash', () => {
       for (const { n, text } of кодовыеСтроки(src)) {
         // присваивание: ИМЯ=… либо ${ИМЯ} / $ИМЯ с кириллицей в имени
         if (/(^|\s|\$\{?)[A-Za-z_]*[А-Яа-яЁё][A-Za-z_А-Яа-яЁё0-9]*\s*=/.test(text)
-            || /\$\{?[А-Яа-яЁё]/.test(text)) {
+            || /\$\{?[А-Яа-яЁё]/.test(text)
+            // `for имя in …` — тоже имя переменной, и bash ломается так же
+            || /\bfor\s+[А-Яа-яЁё]/.test(text)) {
           плохо.push(`${f}:${n} — ${text.trim().slice(0, 60)}`);
         }
       }

@@ -1357,7 +1357,18 @@ jobs:
           # --aab вместе с --apk: отдельный ./gradlew bundleRelease НЕ работает —
           # gradle-таск rustBuild*Release требует живого tauri CLI (WebSocket IPC),
           # он есть только внутри cargo tauri android build (падение v1.120.3).
-          cargo tauri android build --apk --aab
+          # 🔴 ПОВТОР НА СРЫВ ЗЕРКАЛА. 02.09.2026 сборка легла на
+          #   Could not GET '…kotlin-stdlib-2.0.21.pom'. Received status code 429
+          # — Maven Central ограничил частоту, и это не наш дефект. Но цена у него
+          # наша: на теге это блокирует выкладку сразу в Google Play, и лечится
+          # только повторным релизом. Три захода с паузой; если и они не помогли —
+          # падаем честно, значит дело не в частоте.
+          for attempt in 1 2 3; do
+            if cargo tauri android build --apk --aab; then break; fi
+            if [ "$attempt" = 3 ]; then echo "::error title=Android::сборка не удалась и с третьего захода"; exit 1; fi
+            echo "::warning title=Android::заход $attempt не удался — пауза 60 с и повтор (обычно это 429 от зеркала)"
+            sleep 60
+          done
 
       # v1.190.0: после включения shrinkResources артефакт надо проверить руками —
       # веб-смоук APK не трогает, а ресурс, найденный по имени в рантайме, исчезает молча.
