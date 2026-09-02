@@ -48,6 +48,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
+import { hudTime } from '@/src/services/hudTime';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -863,7 +864,7 @@ export default function FractalSudokuScreen() {
   const hud: HudItem[] = [
     { key: 'opened', icon: 'grid', label: t('fractalOpened'), value: `${openedCount}/9`, tone: 'accent', pop: true },
     { key: 'err', icon: 'close-circle', label: t('errors'), value: errors, tone: 'bad' },
-    { key: 'time', icon: 'time', label: t('time'), value: `${elapsed.toFixed(0)}${t('secShort')}` },
+    { key: 'time', icon: 'time', label: t('time'), value: hudTime(elapsed, t('secShort')) },
   ];
 
   /**

@@ -490,6 +490,34 @@ const MEASURE_OVERFLOW = () => {
    */
   const вниз = Math.round(document.documentElement.scrollHeight - window.innerHeight);
   if (вниз > 2) out.push({ label: '(экран длиннее окна — низ не достать пальцем)', out: вниз, w: W });
+  /**
+   * 🔴 И СПРЯТАННОЕ ОБРЕЗАНИЕМ — ТОЖЕ ДЕФЕКТ, ПРИЧЁМ ХУЖЕ ВЫЛЕЗШЕГО.
+   *
+   * Проверка выше ловит то, что ВЫЛЕЗЛО за край. Но у переполнения есть второй
+   * исход: `overflow: hidden` — и тогда лишнее не вылезает, а ПРОПАДАЕТ. Замер
+   * молчит, а человек не видит цифр.
+   *
+   * Так и случилось: в v2.34.2 плашке счётчиков поставили обрезание «последней
+   * защитой», в судоку шесть счётчиков перестали помещаться, и отчёт пришёл в тот
+   * же день — «табло, не видно цифры, не видно сверху». Гейт при этом показывал
+   * ноль нарушений на 360 px.
+   *
+   * Признак: у элемента содержимое шире его же видимой области (`scrollWidth`
+   * больше `clientWidth`) при включённом обрезании. Порог 4 px — на дробные
+   * координаты и границы.
+   */
+  for (const el of document.querySelectorAll('div, span')) {
+    const r = el.getBoundingClientRect();
+    if (r.width < 20 || r.top > зона) continue;
+    const st = getComputedStyle(el);
+    if (st.overflowX !== 'hidden' && st.overflow !== 'hidden') continue;
+    const спрятано = el.scrollWidth - el.clientWidth;
+    if (спрятано <= 4) continue;
+    out.push({
+      label: `(обрезано: спрятано ${спрятано} px) ${(el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 30)}`,
+      out: спрятано, w: Math.round(r.width),
+    });
+  }
   return out;
 };
 

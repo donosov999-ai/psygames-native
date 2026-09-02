@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackOrHome } from '@/src/utils/nav';
+import { hudTime } from '@/src/services/hudTime';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -1786,7 +1787,7 @@ export default function SamuraiSudokuGame() {
         hud={[
           { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: levelRef.current, tone: 'accent' as const },
           { key: 'err', icon: 'close-circle', label: t('errors'), value: `${errors}/${maxErrors}`, tone: 'bad' as const },
-          { key: 'time', icon: 'time', label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+          { key: 'time', icon: 'time', label: t('time'), value: hudTime(elapsedTime, t('secShort')) },
         ]}
         stats={statsEl}
         // Как в обычной судоку: действия наверху, цифры внизу. Расхождение между

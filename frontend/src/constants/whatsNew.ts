@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.34.3',
+    date: '2026-09-03',
+    ru: [
+      'Счётчики в шапке больше не прячутся и не прыгают: вместо слов — значки, время короткое (4:55 вместо 295.3с)',
+      'Нажми на любой счётчик — всплывёт, что это за число',
+    ],
+    en: [
+      'Header counters no longer hide or jump: icons instead of words, short time (4:55 instead of 295.3s)',
+      'Tap any counter to see what the number means',
+    ],
+  },
+  {
     version: '2.34.2',
     date: '2026-09-02',
     ru: [

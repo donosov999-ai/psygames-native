@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { Animated, View, Text, StyleSheet, ViewStyle, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
@@ -12,12 +12,31 @@ interface Props {
   tint?: string;               // цвет текста/иконки
   pop?: boolean;               // дёрнуть масштаб при изменении value
   style?: ViewStyle;
+  /**
+   * Пояснение по тапу: что это за счётчик. Решение Дениса 03.09.2026 — «сделать
+   * по тапу по иконке, чтобы всплывало, что за окно и за цифры».
+   *
+   * Нужно ровно потому, что слово с пилюли убрано ради места: значок экономит
+   * ширину, но первый раз его надо прочитать. Подсказка возвращает слово в тот
+   * момент, когда оно требуется, и не занимает места, пока не требуется.
+   */
+  hint?: string;
 }
 
 // Объёмный бейдж-пилюля для HUD (уровень/таймер/счёт/цель):
 // градиент-грань + верхний блик + тень = глубина. Не сухой текст.
-export default function HudBadge({ icon, label, value, colors = ['#3b82f6', '#1d4ed8'], tint = '#fff', pop, style }: Props) {
+export default function HudBadge({ icon, label, value, colors = ['#3b82f6', '#1d4ed8'], tint = '#fff', pop, style, hint }: Props) {
   const reduced = useReducedMotion();
+  // Пояснение: своё, если дали, иначе слово с пилюли — оно как раз и уехало в значок.
+  const подпись = hint ?? label;
+  const [открыто, setОткрыто] = React.useState(false);
+  // Закрываем сами: подсказка — не режим, а взгляд. Держать её до второго тапа
+  // значит заставить человека убирать за собой.
+  useEffect(() => {
+    if (!открыто) return undefined;
+    const t = setTimeout(() => setОткрыто(false), 2600);
+    return () => clearTimeout(t);
+  }, [открыто]);
   const scale = useRef(new Animated.Value(1)).current;
   const first = useRef(true);
   useEffect(() => {
@@ -37,18 +56,57 @@ export default function HudBadge({ icon, label, value, colors = ['#3b82f6', '#1d
     ]).start();
   }, [value, pop, reduced, scale]);
   return (
-    <Animated.View style={[styles.shadow, { transform: [{ scale }] }, style]}>
-      <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.pill}>
-        <View style={styles.highlight} pointerEvents="none" />
-        {icon ? <Ionicons name={icon} size={15} color={tint} style={{ marginRight: 5 }} /> : null}
-        {label ? <Text numberOfLines={1} style={[styles.label, { color: tint }]}>{label} </Text> : null}
-        <Text numberOfLines={1} style={[styles.value, { color: tint }]}>{value}</Text>
-      </LinearGradient>
+    /**
+     * 🔴 ЕСТЬ ЗНАЧОК — СЛОВО НЕ ПИШЕМ. Решение Дениса 03.09.2026: «сократить слова
+     * или заменить на иконки, если речь про верхний тулбар».
+     *
+     * Так шапка перестаёт спорить сама с собой. Замер по кадру из отчёта: в судоку
+     * шесть счётчиков — уровень, ошибки, серия, время, подсказки, — и со словами
+     * они занимают вдвое больше места, чем даёт экран 360. Слово при этом ничего
+     * не сообщает, чего не сообщает значок рядом с числом: часы и «295 с» читаются
+     * как время без подписи «Время».
+     *
+     * ⚠️ Слово НЕ ПРОПАДАЕТ, оно уходит в подпись для скринридера: там оно и было
+     * единственным носителем смысла. Поэтому это не «убрали текст», а «перенесли
+     * в тот слой, где он нужен».
+     */
+    <Animated.View
+      accessible
+      accessibilityLabel={label ? `${label}: ${value}` : String(value)}
+      accessibilityHint={подпись}
+      style={[styles.shadow, { transform: [{ scale }] }, style]}
+    >
+      <Pressable
+        onPress={подпись ? () => setОткрыто((v) => !v) : undefined}
+        // Без пояснения пилюля остаётся неинтерактивной: ложная кнопка, которая
+        // ничего не делает, хуже её отсутствия.
+        accessibilityRole={подпись ? 'button' : undefined}
+        hitSlop={6}
+      >
+        <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.pill}>
+          <View style={styles.highlight} pointerEvents="none" />
+          {icon ? <Ionicons name={icon} size={14} color={tint} style={{ marginRight: 4 }} /> : null}
+          {!icon && label ? <Text numberOfLines={1} style={[styles.label, { color: tint }]}>{label} </Text> : null}
+          <Text numberOfLines={1} style={[styles.value, { color: tint }]}>{value}</Text>
+        </LinearGradient>
+      </Pressable>
+      {открыто && подпись ? (
+        <View pointerEvents="none" style={styles.tip}>
+          <Text style={styles.tipText} numberOfLines={2}>{подпись}</Text>
+        </View>
+      ) : null}
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  /** Пузырь-пояснение висит НАД пилюлей, поэтому у обёртки своя система координат. */
+  tip: {
+    position: 'absolute', top: '100%', marginTop: 4, left: 0, minWidth: 90, maxWidth: 190,
+    paddingHorizontal: 9, paddingVertical: 6, borderRadius: 10,
+    backgroundColor: 'rgba(17,24,39,0.94)', zIndex: 50,
+  },
+  tipText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   shadow: { flexShrink: 1, minWidth: 0, borderRadius: 16, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 4, shadowOffset: { width: 0, height: 3 }, elevation: 4 },
   /**
    * 🔴 БЕЙДЖ УЖИМАЕТСЯ, А НЕ ВЫТАЛКИВАЕТ СОСЕДЕЙ ЗА КРАЙ.
@@ -65,12 +123,14 @@ const styles = StyleSheet.create({
    */
   pill: {
     flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 7, paddingHorizontal: 13,
+    // Отступы ужаты 13→9 и 7→5 вместе с отказом от слова: пилюля со значком и
+    // числом должна быть размером с то, что в ней есть, а не с бывшую подпись.
+    paddingVertical: 5, paddingHorizontal: 9,
     borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
     overflow: 'hidden',
     flexShrink: 1, minWidth: 0,
   },
   highlight: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%', backgroundColor: 'rgba(255,255,255,0.16)' },
   label: { fontSize: 12, fontWeight: '700', opacity: 0.85 },
-  value: { fontSize: 15, fontWeight: '900' },
+  value: { fontSize: 14, fontWeight: '900' },
 });
