@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   card: { width: '100%', borderRadius: 24, padding: 32, alignItems: 'center' },
   // Над доской карточка у́же и компактнее: на телефоне 32 точки полей с каждой
   // стороны съедали поле целиком, и накладка переставала быть накладкой.
-  cardOverlay: { maxWidth: 340, padding: 22, borderRadius: 20 },
+  cardOverlay: { maxWidth: 340, padding: 22, borderRadius: 20, width: '100%' },
   emoji: { fontSize: 56 },
   title: { fontSize: 26, fontWeight: '800', marginTop: 12, marginBottom: 16, textAlign: 'center' },
   stars: { flexDirection: 'row', gap: 8, marginBottom: 16 },

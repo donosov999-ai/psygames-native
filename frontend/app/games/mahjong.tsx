@@ -32,6 +32,7 @@ import {saveResume, clearResume} from '@/src/services/resume';
 import { availablePairs, blockersOf, coveredFromAbove, isFree, tilePlacement, type Tile } from '@/src/games/mahjong/board';
 import { buildPositions, silhouetteForLevel, type SilhouetteKey } from '@/src/games/mahjong/silhouettes';
 import { layoutForLevel } from '@/src/games/mahjong/layouts';
+import { mahjongExtent } from '@/src/games/mahjong/extent';
 import { dealSolvable, type Place } from '@/src/games/mahjong/vendor/solvable';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 
@@ -690,8 +691,39 @@ export default function MahjongGame() {
 
   // ── вёрстка пирамиды ─────────────────────────────────────────────────
   // Габариты поля в полуклетках → размер тайла под ширину экрана.
-  const maxHalfX = tiles.reduce((m, t) => Math.max(m, t.x + 2), 2);
-  const maxHalfY = tiles.reduce((m, t) => Math.max(m, t.y + 2), 2);
+  /**
+   * 🔴 ГАБАРИТЫ ПОЛЯ — ПОСТОЯННАЯ УРОВНЯ, А НЕ МАКСИМУМ ПО ОСТАВШИМСЯ ПЛИТКАМ.
+   *
+   * Денис 02.09.2026: «маджонг кривит ряды, скачут при выделении двух одинаковых;
+   * вроде чинил — опять скачет». Чинил соседнюю половину той же болезни: 26.08
+   * так же прыгал ПОДЪЁМ слоёв (`maxLayer`), и он стал постоянной уровня. А
+   * ширина с высотой остались считаться по живым плиткам — и болезнь вернулась
+   * с другой стороны.
+   *
+   * Механизм. Здесь стояло `tiles.reduce(max(t.x + 2))`, то есть край по ТЕКУЩИМ
+   * плиткам. Снятая пара физически уходит из массива (`filter` в обработчике
+   * совпадения). Если она стояла с краю — `maxHalfX` падает, из него считается
+   * `half` (размер полуклетки), а из `half` — размер плитки, зазор слоёв и
+   * координаты ВСЕХ плиток разом. Человек снял пару у края, и доска поехала:
+   * ряды разъезжаются, плитки меняют размер. На узких раскладках заметнее, потому
+   * что `half` там упирается в пол 10 и прыгает крупными ступенями.
+   *
+   * Лечение — брать край из раскладки уровня, а не из выживших. Раскладка
+   * детерминирована номером уровня (`layoutForLevel` кэширует по нему, `buildPositions`
+   * чистая), поэтому цифра одна и та же на всём уровне и при подъёме сохранённой
+   * партии. Плитки всегда подмножество этих мест: `generateDeal` раздаёт символы
+   * ровно по ним.
+   *
+   * ⚠️ Подстраховки «а вдруг раздача вылезла за предсказанные места» здесь нет
+   * намеренно. Такая защёлка была написана первой и добавила девять придирок
+   * линта («ref во время отрисовки»), а защищала от невозможного: `generateDeal`
+   * расставляет символы РОВНО по местам раскладки, значит плитки — всегда её
+   * подмножество. Это не рассуждение на словах: `mahjongExtent.test.ts` сверяет
+   * предсказание с фактическим краем трёх раздач на каждом из сорока уровней.
+   */
+  const край = React.useMemo(() => mahjongExtent(level), [level]);
+  const maxHalfX = край.x;
+  const maxHalfY = край.y;
   const boardW = Math.min(width - 36, 460);   // 24→36: поле GameShell имеет paddingHorizontal 16×2
   /**
    * ⚠️ ДЕЛИМ НА ШИРИНУ ВМЕСТЕ СО СДВИГОМ СЛОЁВ, А НИЖНИЙ ПОЛ — 10, А НЕ 14.
@@ -966,7 +998,7 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   fieldCol: { alignItems: 'center', gap: 8 },   // hint + контейнер слоёв плиток внутри поля каркаса
-  statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap' },
+  statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap', maxWidth: '100%' },
   hintText: { fontSize: 12, textAlign: 'center' },
   hintStuck: { fontSize: 13, fontWeight: '700' },   // доска встала — строка обязана быть заметнее обычной подсказки
   tile: {

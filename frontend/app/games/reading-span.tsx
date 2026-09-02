@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
@@ -407,13 +407,13 @@ const styles = StyleSheet.create({
   // игровое поле внутри каркаса: колонка на всю ширину, содержимое центрировано
   fieldCol: { width: '100%', maxWidth: 540, alignSelf: 'center', alignItems: 'center', gap: 18 },
   // flexWrap — три счётчика при крупном шрифте переносятся, а не уезжают за край
-  statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
-  sentenceBox: { padding: 22, borderRadius: 16, gap: 16, maxWidth: 480, alignItems: 'center', alignSelf: 'center' },
+  sentenceBox: { padding: 22, borderRadius: 16, gap: 16, maxWidth: 480, alignItems: 'center', alignSelf: 'center', width: '100%' },
   sentenceText: { fontSize: 20, fontWeight: '600', textAlign: 'center', lineHeight: 28 },
   lastWordHint: { fontSize: 14, fontWeight: '600' },
   lastWordBold: { fontWeight: '900', fontSize: 16 },
-  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, alignSelf: 'center' },
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, alignSelf: 'center', width: '100%' },
   // ГЛАВНЫЙ ФИКС репорта: ряд был без ограничения ширины (playArea alignItems:'center'),
   // при системном крупном шрифте кнопки росли и уезжали за край экрана.
   // flexWrap — не влезли в строку → переносятся вниз; maxWidth+alignSelf — ряд знает свою ширину.

@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   modeButton: { minWidth: 48, minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 16 },
   modeButtonText: { fontSize: 12, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
   classicBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, borderWidth: 1.5, paddingVertical: 12, alignItems: 'center', marginTop: 6 },
   classicBtnText: { fontSize: 14, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 18 },
-  statsRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 13, fontWeight: '700' },
   balloonArea: { width: 280, height: 280, justifyContent: 'center', alignItems: 'center' },
   balloonString: { position: 'absolute', width: 2, height: 34, backgroundColor: 'rgba(120,120,120,0.55)', borderRadius: 1 },  // нитка из-под узелка

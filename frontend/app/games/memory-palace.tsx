@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   reviewTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center' },
   reviewLegend: { flexDirection: 'row', justifyContent: 'center', gap: 18 },
   reviewLegendText: { fontSize: 13, fontWeight: '700' },
-  reviewGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  reviewGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, maxWidth: '100%' },
   reviewRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
   reviewRowFull: { width: '100%' },
   reviewRowHalf: { flexGrow: 1, flexBasis: '46%' },

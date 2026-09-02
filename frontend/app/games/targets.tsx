@@ -902,7 +902,7 @@ const styles = StyleSheet.create({
   },
   modeButtonText: { fontSize: 15, fontWeight: '600' },
   modeHint: { fontSize: 12, textAlign: 'center' },
-  levelButtons: { flexDirection: 'row', flexWrap: 'wrap' },
+  levelButtons: { flexDirection: 'row', flexWrap: 'wrap', maxWidth: '100%' },
   levelButton: {
     width: 44,
     height: 48,
@@ -1015,7 +1015,7 @@ const styles = StyleSheet.create({
   lifeWalletLine: { fontSize: 12, lineHeight: 1.5 * 12, textAlign: 'center', marginTop: 6 },
   lifeOffer: { marginTop: 12, borderRadius: 16, borderWidth: 1.5, padding: 14, gap: 4 },
   lifeOfferTitle: { fontSize: 15, lineHeight: 1.4 * 15, fontWeight: '800', textAlign: 'center' },
-  lifeOfferRow: { flexDirection: 'row', gap: 10, marginTop: 10, justifyContent: 'center', flexWrap: 'wrap' },
+  lifeOfferRow: { flexDirection: 'row', gap: 10, marginTop: 10, justifyContent: 'center', flexWrap: 'wrap', maxWidth: '100%' },
   // minHeight 48 — единый минимум зоны нажатия по приложению (tap-target-audit).
   lifeOfferBtn: { minHeight: 48, paddingHorizontal: 18, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
   lifeOfferBtnText: { fontSize: 14, fontWeight: '800' },

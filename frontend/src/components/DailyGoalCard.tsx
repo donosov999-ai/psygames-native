@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   ask: { fontSize: 15, fontWeight: '700', marginTop: 2 },
   hint: { fontSize: 12, fontWeight: '600', lineHeight: 16 },
   input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, fontSize: 14, minHeight: 42 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   primary: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 16, borderRadius: 10 },
   primaryText: { fontSize: 14, fontWeight: '800' },
   ghost: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 10, borderWidth: 1 },

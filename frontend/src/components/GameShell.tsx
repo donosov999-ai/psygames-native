@@ -496,6 +496,34 @@ export default function GameShell({
   }), [t, fieldBox.w, fieldBox.h]);
 
 
+  /**
+   * 🔴 ПОД ПАЛЬЦЕМ ЭКРАН НЕ ЕЗДИТ.
+   *
+   * Четыре отчёта за 02.09.2026 об одном и том же, в четырёх разных играх:
+   *   dots-connect: «окно ездит, когда начинаешь их соединять; экран должен быть
+   *                  фиксированный во время игры»;
+   *   one-line:      «когда соединяешь — экран вверх-вниз скачет»;
+   *   math-slider:   «картинку можно пальцем двигать вверх-вниз, гуляет на сантиметр»;
+   *   goods-sort:    «драг-энд-дроп лагает».
+   *
+   * Причина у всех одна и не в играх. Приложение на телефоне и на столе — это
+   * веб-сборка внутри окна (Tauri), то есть БРАУЗЕР. Пока страница длиннее окна,
+   * любое протаскивание пальцем по полю браузер считает прокруткой: он двигает
+   * страницу, а игра в это время ведёт свой жест. Отсюда и «ездит», и «лагает» —
+   * два толкования одного касания.
+   *
+   * `touchAction: 'none'` снимает у браузера право толковать касание как жест
+   * прокрутки на этом узле; `overscrollBehavior: 'none'` убирает оттяжку у краёв
+   * (резинка), из-за которой поле дёргалось даже когда прокручивать нечего.
+   *
+   * ⚠️ ТОЛЬКО ВОКРУГ ПОЛЯ, А НЕ НА ВЕСЬ ЭКРАН. Игры со списками (слова, длинные
+   * правила) прокруткой пользуются законно — им каркас даёт `scrollableField`, и
+   * та ветка ниже этот запрет не получает. Запрет на весь документ сломал бы их.
+   */
+  const безПрокрутки = Platform.OS === 'web'
+    ? ({ touchAction: 'none', overscrollBehavior: 'none' } as unknown as Record<string, string>)
+    : null;
+
   const field = scrollableField ? (
     <ScrollView
       ref={fieldScrollRef}
@@ -508,7 +536,7 @@ export default function GameShell({
     </ScrollView>
   ) : (
     <View
-      style={[styles.field, toolbar ? null : { paddingBottom: bottomSafe }]}
+      style={[styles.field, toolbar ? null : { paddingBottom: bottomSafe }, безПрокрутки]}
       onLayout={(ev) => {
         const { width: w, height: h } = ev.nativeEvent.layout;
         setFieldBox((prev) => (Math.abs(prev.w - w) > 8 || Math.abs(prev.h - h) > 8 ? { w, h } : prev));
@@ -840,7 +868,17 @@ export default function GameShell({
  * ⚠️ Кнопок это НЕ касается: 48×48 — норма нажатия, её держит отдельный гейт
  * `scripts/tap-target-audit.mjs`. Ужимаем воздух между блоками, а не сами блоки.
  */
-const PAD_H = 10;   // боковой отступ полос (было 12…16 вразнобой)
+/**
+ * Боковой отступ полос каркаса (было 12…16 вразнобой).
+ *
+ * 🔴 ЭКСПОРТИРУЕТСЯ НАРОЧНО. Шесть игр-модулей растягивают поле во всю ширину и
+ * гасят этот отступ отрицательным полем. Все шесть держали своё число — минус
+ * 16, — а здесь стоит 10: перелёт на 6 с каждой стороны, из-за чего страница
+ * ехала вбок. Замер браузером 02.09.2026 на 360 px нашёл ровно эти шесть игр,
+ * ровно по +6 px. Число, повторённое в семи местах, разъезжается — теперь оно
+ * одно.
+ */
+export const PAD_H = 10;
 const PAD_V = 5;    // вертикальный зазор между полосами (было 6…10)
 
 const styles = StyleSheet.create({
@@ -887,13 +925,24 @@ const styles = StyleSheet.create({
   // Питомец слева, счётчики занимают остаток: строка не разъезжается, когда
   // питомца нет (игра не передала `pet`) или он выключен в настройках.
   statsOuter: { paddingHorizontal: PAD_H, paddingBottom: PAD_V },
+  /**
+   * 🔴 ПЛАШКА НЕ ШИРЕ ЭКРАНА. Два отчёта 02.09.2026 («поехали кнопки верх тулбара»,
+   * «с меню пиздец сверху»): счётчики растягивали плашку за край телефона, и вместе
+   * с ней уезжала кнопка правил. В маджонге бейджей пять — там строка вылезала на
+   * треть ширины.
+   *
+   * `flexWrap` переносит лишнее на вторую строку, `maxWidth: '100%'` не даёт всей
+   * плашке стать шире родителя, а `overflow: hidden` — последняя защита от
+   * содержимого, которое всё-таки не ужалось.
+   */
   statsPlate: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 8, paddingVertical: 3,
     borderRadius: 16, borderWidth: StyleSheet.hairlineWidth,
+    flexWrap: 'wrap', maxWidth: '100%', overflow: 'hidden',
   },
   statsFlex: { flex: 1, minWidth: 0 },
-  hudRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  hudRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', maxWidth: '100%' },
   // Модификатор — кружок со значком: занимает вчетверо меньше пилюли со словом.
   modDot: {
     width: 26, height: 26, borderRadius: 13, borderWidth: 1.5,

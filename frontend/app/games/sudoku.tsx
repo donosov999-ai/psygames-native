@@ -2218,7 +2218,7 @@ export default function SudokuGame() {
         <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 14, zIndex: 40 }]}>
           <Text style={{ fontSize: 44 }}>⚔️</Text>
           <Text style={{ fontSize: 24, fontWeight: '800', color: colors.text, textAlign: 'center' }}>{t('megaBossTitle')}</Text>
-          <Text style={{ fontSize: 14.5, lineHeight: 21, color: colors.textSecondary, textAlign: 'center', maxWidth: 420 }}>{t('megaBossOffer')}</Text>
+          <Text style={{ fontSize: 14.5, lineHeight: 21, color: colors.textSecondary, textAlign: 'center', maxWidth: 420, width: '100%' }}>{t('megaBossOffer')}</Text>
           <TouchableOpacity accessibilityRole="button" style={styles.startBtn} onPress={() => { setPhase('config'); router.push(`/games/sudoku-samurai?megaboss=${level}` as never); }}>
             <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
               <Text style={styles.startBtnText}>{t('megaBossGo')}</Text>
@@ -2301,7 +2301,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   // Отступ слева — под плавающую кнопку отзыва: она смонтирована глобально и висит
@@ -2318,9 +2318,9 @@ const styles = StyleSheet.create({
   toolbarCol: { flex: 1, alignItems: 'center', gap: 8 },           // portrait: numPad+hint колонкой в тулбаре каркаса
   numPadLand: { maxWidth: 56 * 3 },                                // 3 столбца цифр справа
   // до 4 счётчиков (уровень/жизни/время/правила) при крупном шрифте не влезали в ряд → перенос
-  statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
-  gridArea: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 2, borderRadius: 4, position: 'relative' },
+  gridArea: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 2, borderRadius: 4, position: 'relative', maxWidth: '100%' },
   cell: { justifyContent: 'center', alignItems: 'center' },
   cellText: { fontSize: 28, fontWeight: '600' },
   // RTL-пин: цифровой ряд 1..9 не зеркалится (конвенция цифровых клавиатур в RTL-локалях)
@@ -2332,7 +2332,7 @@ const styles = StyleSheet.create({
   boardHint: { height: BOARD_HINT_TEXT_H, fontSize: 12, lineHeight: 15, fontWeight: '600', textAlign: 'center', marginBottom: 6 },
   edgeClue: { alignItems: 'center', justifyContent: 'center', marginHorizontal: 2, marginVertical: 2, paddingVertical: 2, borderRadius: 5 },
   edgeClueText: { fontSize: 11, fontWeight: '700' },
-  numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr' },
+  numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr', maxWidth: '100%' },
   // 50, не 64: капсулы «снизу слишком широкие» (Денис по скрину Валентины 28.08) —
   // на 6×6 семь клавиш не влезали в ряд телефона и переносились вразнобой.
   numBtn: { width: 50, height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },

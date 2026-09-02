@@ -28,6 +28,7 @@ import {
   completeAudioRoundPlayback,
   completeCalibrationPlayback,
   continueAfterCalibration,
+  skipCalibration,
   createRhythmPitchSession,
   disposeRhythmPitchSession,
   getPitchDirectionLabel,
@@ -547,14 +548,30 @@ function RhythmPitchSessionView({
             <ActionButton label={strings.quieter} theme={theme} secondary disabled={session.calibrationPlaying} onPress={() => applySession((current) => setCalibrationVolume(current, current.volume - 0.1))} />
             <ActionButton label={strings.louder} theme={theme} secondary disabled={session.calibrationPlaying} onPress={() => applySession((current) => setCalibrationVolume(current, current.volume + 0.1))} />
           </View>
+          {/*
+            🔴 «ТАП» ВИДЕН ЗАРАНЕЕ И НЕ ПОДМЕНЯЕТ СОБОЙ КНОПКУ ЗАПУСКА.
+            Отчёт 02.09.2026: «ни хера вообще не понимаю». Здесь стояло
+            «либо запуск, либо тап» — одна кнопка на одном месте. Человек читал
+            «нажимайте „Тап“ вместе с сигналами», не находил на экране никакого
+            «Тапа», жал запуск — и кнопка менялась под пальцем в тот момент,
+            когда уже пошли сигналы. Успеть сообразить нельзя: цель появляется
+            одновременно с тем, по чему надо попадать.
+            Теперь мишень стоит на экране всегда — до запуска погашенная, с
+            подписью, куда бить. Пока она погашена, видно и то, что от неё
+            хотят, и то, что сейчас она не работает.
+          */}
           {!session.calibrationPlaying ? (
             <ActionButton label={strings.playCalibration} theme={theme} onPress={runCalibration} />
           ) : (
-            <>
-              <Text accessibilityLiveRegion="polite" style={[styles.listening, { color: theme.primary }]}>{strings.calibrationPlaying}</Text>
-              <ActionButton label={strings.calibrationTap} theme={theme} onPress={() => applySession((current) => recordCalibrationTap(current, now()))} />
-            </>
+            <Text accessibilityLiveRegion="polite" style={[styles.listening, { color: theme.primary }]}>{strings.calibrationPlaying}</Text>
           )}
+          <ActionButton
+            label={strings.calibrationTap}
+            theme={theme}
+            disabled={!session.calibrationPlaying}
+            onPress={() => applySession((current) => recordCalibrationTap(current, now()))}
+          />
+          <Text style={[styles.body, { color: theme.textSecondary }]}>{strings.calibrationTapHint}</Text>
           {session.calibrationComplete ? (
             <View style={styles.calibrationResult}>
               <Text style={[styles.body, { color: theme.text }]}>{interpolateRhythmPitch(strings.calibrationReady, { samples: session.calibrationSamples })}</Text>
@@ -565,9 +582,15 @@ function RhythmPitchSessionView({
           {!session.calibrationPlaying
             && session.calibrationExpectedTimes.length > 0
             && !session.calibrationComplete ? (
-              <Text accessibilityLiveRegion="polite" style={[styles.body, { color: theme.warning }]}>
-                {strings.calibrationNeedTaps}
-              </Text>
+              <View style={styles.calibrationResult}>
+                <Text accessibilityLiveRegion="polite" style={[styles.body, { color: theme.warning }]}>
+                  {strings.calibrationNeedTaps}
+                </Text>
+                {/* Выход из круга: без замера упражнение работает, поправка просто ноль.
+                    До этой правки не набравший два попадания не мог начать игру ВООБЩЕ. */}
+                <ActionButton label={strings.calibrationSkip} theme={theme} secondary
+                  onPress={() => applySession(skipCalibration)} />
+              </View>
             ) : null}
         </View>
         <ActionButton label={strings.pause} theme={theme} secondary onPress={stopAndPause} />
@@ -701,7 +724,7 @@ const styles = StyleSheet.create({
   listeningCard: { width: '100%', maxWidth: 520, borderWidth: 1, borderRadius: 28, padding: 32, alignItems: 'center', gap: 16 },
   speaker: { fontSize: 74, lineHeight: 84 },
   progress: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
-  metrics: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
+  metrics: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   metric: { minWidth: 125, flexGrow: 1, alignItems: 'center', gap: 4 },
   metricValue: { fontSize: 24, fontWeight: '800' },
   metricLabel: { fontSize: 13, textAlign: 'center' },

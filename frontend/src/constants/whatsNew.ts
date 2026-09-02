@@ -16,6 +16,32 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.34.0',
+    date: '2026-09-02',
+    ru: [
+      'Экран больше не ездит под пальцем: в играх, где нужно вести линию или тащить предмет, страница пыталась прокручиваться одновременно с ходом',
+      'Верхняя и нижняя панели перестали вылезать за край на узких телефонах — счёт, «Правила» и «Перемешать» больше не срезаются',
+      'Маджонг: ряды не прыгают при снятии пары у края доски',
+      'Сортировка товаров: перетаскивание доводит ход до конца, а полка при сборке тройки светится золотом вместо белой вспышки',
+      'Шкаф выглядит цельным: сплошные участки стали деревом, а не пустыми плитками',
+      '«Прикидка на числовой прямой»: выбранное число подняли над ползунком — раньше его закрывал палец',
+      '«Ритм и высота»: кнопку «Тап» видно заранее, а без замера задержки теперь можно просто начать игру',
+      '«Одна линия»: фигуры перестали быть вариациями одного четырёхугольника',
+      'Новая иконка приложения на всех пяти платформах',
+    ],
+    en: [
+      'The screen no longer scrolls under your finger while you drag or draw a line',
+      'Top and bottom bars stopped running off the edge on narrow phones',
+      'Mahjong: rows no longer jump when you clear a pair at the edge of the board',
+      'Goods sort: dragging now completes the move, and a matched shelf glows gold instead of flashing white',
+      'The cabinet looks solid: filled sections are wood now, not blank tiles',
+      'Number-line estimation: the chosen value moved above the slider, out from under your finger',
+      'Rhythm and pitch: the Tap button is visible up front, and you can start without the latency check',
+      'One line: figures are no longer variations of a single quadrilateral',
+      'New app icon on all five platforms',
+    ],
+  },
+  {
     version: '2.33.0',
     date: '2026-09-02',
     ru: [

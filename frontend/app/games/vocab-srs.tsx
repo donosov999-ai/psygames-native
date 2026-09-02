@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
   infoText: { fontSize: 14, flex: 1 },
   optionCard: { padding: 16, borderRadius: 16 },
   optionLabel: { fontSize: 16, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  optionButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10, maxWidth: '100%' },
   sizeButton: { minHeight: 48, justifyContent: 'center',
     paddingHorizontal: 18,
     paddingVertical: 12,
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
   },
   promptWord: { fontSize: 34, fontWeight: '800', textAlign: 'center' },
   // Варианты ответов в тулбаре каркаса: сетка 2×N на всю ширину ряда
-  toolbarOptions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  toolbarOptions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 10, maxWidth: '100%' },
   toolbarOptionBtn: { flexGrow: 1, flexBasis: '45%' },
   answerButton: {
     borderRadius: 16,

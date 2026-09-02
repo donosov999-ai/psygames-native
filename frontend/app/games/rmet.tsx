@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
   eyeImg: { width: '100%', aspectRatio: 1.5, borderRadius: 14, backgroundColor: '#000' },
   eyeEmoji: { fontSize: 96 },
   eyeHint: { fontSize: 13, fontStyle: 'italic', textAlign: 'center' },
-  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
   // Ограничены той же шириной, что и фото глаз (fieldCol). Репорт 11.08 с экрана
   // 1888 точек: «надо бы сделать не на всю ширину экрана, а то глаза разбегаются».
   // Фото было ограничено 480, а кнопки ответов — ничем, и на широком экране они

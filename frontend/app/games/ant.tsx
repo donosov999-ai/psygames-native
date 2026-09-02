@@ -466,18 +466,25 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   statsCol: { alignItems: 'center', gap: 4 },
-  statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   networkRow: { flexDirection: 'row', gap: 18 },
   netText: { fontSize: 12, fontWeight: '700' },
   statText: { fontSize: 13, fontWeight: '700' },
-  stimBox: { width: 380, height: 220, borderRadius: 14, borderWidth: 2, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
+  /**
+   * 🔴 ШИРИНА С ПОТОЛКОМ, А НЕ ЖЁСТКИЕ 380. Замер браузером 02.09.2026 на экране
+   * 360 px: поле стимула вылезало за край на 10 px и тянуло за собой всю
+   * страницу вбок — а прокрутка вбок под пальцем ломает сам жест игры.
+   * `width: '100%'` с потолком 380 значит «как раньше на широком, по месту на
+   * узком»: разметка внутри и так центрируется, ужиматься ей есть куда.
+   */
+  stimBox: { width: '100%', maxWidth: 380, height: 220, borderRadius: 14, borderWidth: 2, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
   row: { height: 50, justifyContent: 'center', alignItems: 'center' },
   cueDot: { color: '#fbbf24', fontSize: 36, fontWeight: '900' },
   // RTL-пин: стрелочный стимул и кнопки лево/право не зеркалятся в ar (web: writingDirection → CSS direction)

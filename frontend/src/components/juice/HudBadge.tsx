@@ -41,16 +41,35 @@ export default function HudBadge({ icon, label, value, colors = ['#3b82f6', '#1d
       <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.pill}>
         <View style={styles.highlight} pointerEvents="none" />
         {icon ? <Ionicons name={icon} size={15} color={tint} style={{ marginRight: 5 }} /> : null}
-        {label ? <Text style={[styles.label, { color: tint }]}>{label} </Text> : null}
-        <Text style={[styles.value, { color: tint }]}>{value}</Text>
+        {label ? <Text numberOfLines={1} style={[styles.label, { color: tint }]}>{label} </Text> : null}
+        <Text numberOfLines={1} style={[styles.value, { color: tint }]}>{value}</Text>
       </LinearGradient>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  shadow: { borderRadius: 16, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 4, shadowOffset: { width: 0, height: 3 }, elevation: 4 },
-  pill: { flexDirection: 'row', alignItems: 'center', paddingVertical: 7, paddingHorizontal: 13, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)', overflow: 'hidden' },
+  shadow: { flexShrink: 1, minWidth: 0, borderRadius: 16, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 4, shadowOffset: { width: 0, height: 3 }, elevation: 4 },
+  /**
+   * 🔴 БЕЙДЖ УЖИМАЕТСЯ, А НЕ ВЫТАЛКИВАЕТ СОСЕДЕЙ ЗА КРАЙ.
+   *
+   * Два отчёта от 02.09.2026 на v2.32.0: «поехали кнопки верх тулбара» и «с меню
+   * пиздец сверху». На кадрах видно: «Счёт 472» упирается в правый край, кнопка
+   * «Правила» наполовину за экраном, а в маджонге пять бейджей растянули плашку
+   * шире телефона.
+   *
+   * Причина — у пилюли не было ни `flexShrink`, ни ограничения ширины: она всегда
+   * занимала столько, сколько просит текст, и вся строка вылезала за экран.
+   * `minWidth: 0` обязателен вместе с `flexShrink`: без него потомок с текстом не
+   * даёт себя сжать (правило флексбокса, из-за которого «просто flexShrink» не работает).
+   */
+  pill: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingVertical: 7, paddingHorizontal: 13,
+    borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
+    overflow: 'hidden',
+    flexShrink: 1, minWidth: 0,
+  },
   highlight: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%', backgroundColor: 'rgba(255,255,255,0.16)' },
   label: { fontSize: 12, fontWeight: '700', opacity: 0.85 },
   value: { fontSize: 15, fontWeight: '900' },

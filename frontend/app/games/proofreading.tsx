@@ -1614,7 +1614,7 @@ const styles = StyleSheet.create({
   infoText: { fontSize: 14, flex: 1 },
   optionCard: { padding: 16, borderRadius: 16 },
   optionLabel: { fontSize: 16, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', flexWrap: 'wrap', maxWidth: '100%' },
   sizeButton: {
     paddingHorizontal: 20,
     paddingVertical: 14,

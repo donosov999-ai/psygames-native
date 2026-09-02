@@ -390,12 +390,12 @@ const styles = StyleSheet.create({
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
-  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   stimBox: { width: 360, maxWidth: '100%', height: 120, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
   // RTL-пин (writingDirection → CSS direction на web, на нативе no-op): направленный
   // стимул и раскладка кнопок лево/право не зеркалятся в ar
   arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 4, writingDirection: 'ltr' },
-  toolbarLtr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', writingDirection: 'ltr' },
+  toolbarLtr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', writingDirection: 'ltr', maxWidth: '100%' },
   choiceBtn: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
 });

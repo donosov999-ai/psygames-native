@@ -1911,14 +1911,14 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   toolbarCol: { flex: 1, alignItems: 'center', gap: 8 },   // numPad+hint колонкой в тулбаре каркаса
-  statsRow: { flexDirection: 'row', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   zoomBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, borderWidth: 1 },
   zoomScroll: { flex: 1, alignSelf: 'stretch' },
   // RTL-пин: цифровой ряд 1..9 не зеркалится (конвенция цифровых клавиатур в RTL-локалях)
-  numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr' },
+  numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr', maxWidth: '100%' },
   numBtn: { width: 46, height: 48, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  headerActionsRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' },
+  headerActionsRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   hintBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16 },
   hintBtnText: { color: '#000', fontSize: 13, fontWeight: '700' },
   pencilHint: { fontSize: 11, fontWeight: '600', textAlign: 'center', paddingHorizontal: 12 },

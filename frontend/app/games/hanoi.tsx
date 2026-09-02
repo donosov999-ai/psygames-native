@@ -734,7 +734,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   optionHint: { fontSize: 12, marginTop: 4 },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   // Поле каркаса центрирует контент; stretch — чтобы стержни распределялись по всей ширине
   fieldCol: { alignSelf: 'stretch', gap: 10 },
-  statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 18, flexWrap: 'wrap' },
+  statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 18, flexWrap: 'wrap', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   // ЗАЧЕМ: без flex:1 блок стержней сжимается по своему контенту, и playArea(justifyContent:center)
   // ставит башню в вертикальный ЦЕНТР экрана, а не прибивает к низу с пустым провалом сверху.

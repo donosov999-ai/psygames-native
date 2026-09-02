@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 14, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 16 },
   optionLabel: { fontSize: 16, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  optionButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10, maxWidth: '100%' },
   sizeButton: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 18, paddingVertical: 12, borderRadius: 16, minWidth: 56, alignItems: 'center' },
   sizeButtonText: { fontSize: 15, fontWeight: '600' },
   startButton: { marginTop: 10 },
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   promptPhrase: { fontSize: 24, fontWeight: '700', textAlign: 'center', lineHeight: 34 },
   hint: { fontSize: 13, textAlign: 'center', marginBottom: 14 },
   // Варианты ответов в тулбаре каркаса: сетка 2×N на всю ширину ряда
-  toolbarOptions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  toolbarOptions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 10, maxWidth: '100%' },
   toolbarOptionBtn: { flexGrow: 1, flexBasis: '45%' },
   answerButton: {
     borderRadius: 16,
