@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.30.1',
+    date: '2026-09-02',
+    ru: [
+      'Технический выпуск: те же правки, что и в 2.30.0 — предыдущий тег не дособрался',
+    ],
+    en: [
+      'Maintenance release: the same changes as 2.30.0 — the previous tag did not finish building',
+    ],
+  },
+  {
     version: '2.30.0',
     date: '2026-09-02',
     ru: [
