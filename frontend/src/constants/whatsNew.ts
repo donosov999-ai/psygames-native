@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.34.2',
+    date: '2026-09-02',
+    ru: [
+      'Техническая версия: приложение выходит на iPhone — на пользователя ничего не влияет',
+    ],
+    en: [
+      'Technical release: the iPhone build now ships — nothing changes for you',
+    ],
+  },
+  {
     version: '2.34.1',
     date: '2026-09-02',
     ru: [
