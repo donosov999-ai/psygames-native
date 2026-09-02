@@ -26,8 +26,24 @@ function читать(rel: string): string {
 }
 
 describe('идентификатор iOS-приложения не разъезжается', () => {
-  const конфиг = JSON.parse(читать('src-tauri/tauri.conf.json') || '{}');
-  const свой: string = конфиг.identifier ?? '';
+  /**
+   * 🔴 ИСТОЧНИК — КОНФИГ iOS, А НЕ БАЗОВЫЙ.
+   *
+   * У проекта три конфига: базовый описывает ДЕСКТОП (`com.odv999.psygames`), а
+   * `tauri.ios.conf.json` и `tauri.android.conf.json` переопределяют идентификатор
+   * на `com.psygames.app` — тот, что заведён в аккаунте Apple, к которому привязана
+   * карточка App Store Connect и под которым приложение лежит в Google Play.
+   *
+   * ⚠️ Эта строчка — след ошибки. Увидев в скриптах подписи зашитое
+   * `com.psygames.app`, я счёл его расхождением с базовым конфигом и «починил» на
+   * базовый. Сборка ответила честно: «bundleId com.odv999.psygames не найден в
+   * аккаунте». Зашитое значение было ВЕРНЫМ — не хватало источника, а не значения.
+   * Прежде чем чинить расхождение, надо выяснить, какая сторона права: здесь для
+   * этого хватало одного запроса к списку bundleId аккаунта.
+   */
+  const база = JSON.parse(читать('src-tauri/tauri.conf.json') || '{}');
+  const iosConf = JSON.parse(читать('src-tauri/tauri.ios.conf.json') || '{}');
+  const свой: string = iosConf.identifier || база.identifier || '';
 
   const ФАЙЛЫ = [
     'scripts/ios-signing-setup.sh',
@@ -50,7 +66,14 @@ describe('идентификатор iOS-приложения не разъез�
      * Признак «наш»: в идентификаторе есть слово из имени приложения. Комментарии
      * пропускаем — там дефект как раз описан словами, и это правильно.
      */
-    const слово = (свой.split('.').pop() || 'psygames').toLowerCase();
+    /**
+     * ⚠️ ОПОЗНАЁМ ПО ИМЕНИ ПРОДУКТА, А НЕ ПО ПОСЛЕДНЕМУ СЕГМЕНТУ. Последний сегмент
+     * здесь — `app`: слово настолько общее, что гейт покраснел на `www.apple.com`,
+     * `app.json.bak` и прочем. Самый длинный сегмент идентификатора — это и есть
+     * имя продукта (`psygames`), и оно есть в обоих вариантах: и в верном
+     * `com.psygames.app`, и в неверном `com.odv999.psygames`.
+     */
+    const слово = свой.split('.').sort((a, b) => b.length - a.length)[0]?.toLowerCase() || 'psygames';
     const чужие: string[] = [];
     for (const f of ФАЙЛЫ) {
       for (const line of читать(f).split('\n')) {
@@ -79,7 +102,7 @@ describe('идентификатор iOS-приложения не разъез�
   });
 
   it('🔴 скрипты берут идентификатор из конфига, а не из зашитой строки', () => {
-    expect(читать('scripts/ios-signing-setup.sh')).toContain('tauri.conf.json');
-    expect(читать('scripts/ios-provision.py')).toContain('tauri.conf.json');
+    expect(читать('scripts/ios-signing-setup.sh')).toContain('tauri.ios.conf.json');
+    expect(читать('scripts/ios-provision.py')).toContain('tauri.ios.conf.json');
   });
 });

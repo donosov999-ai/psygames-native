@@ -24,18 +24,30 @@ set -euo pipefail
 : "${APPLE_API_ISSUER:?нужен APPLE_API_ISSUER}"
 : "${APPLE_TEAM_ID:?нужен APPLE_TEAM_ID}"
 KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD:-psygames-ci}"
-# 🔴 ИДЕНТИФИКАТОР — ИЗ КОНФИГА ПРИЛОЖЕНИЯ, А НЕ ИЗ ЗАШИТОГО ЗНАЧЕНИЯ.
+# 🔴 ИДЕНТИФИКАТОР — ИЗ КОНФИГА iOS, А НЕ ИЗ ЗАШИТОГО ЗНАЧЕНИЯ И НЕ ИЗ БАЗОВОГО.
 #
-# Здесь стояло `com.psygames.app`, а приложение зовётся `com.odv999.psygames`
-# (`src-tauri/tauri.conf.json`). CI переменную не задавал, значит профиль всё это
-# время создавался для ЧУЖОГО идентификатора — и создавался успешно, потому что
-# такой bundleId в аккаунте тоже заведён. Ошибка вылезала только в самом конце,
-# на экспорте: «exportArchive "PsyGames.app" requires a provisioning profile» —
-# профиль есть, но не тот, и сообщение об этом не говорит.
+# У проекта ТРИ конфига: базовый `tauri.conf.json` (десктоп, `com.odv999.psygames`)
+# и платформенные `tauri.ios.conf.json` / `tauri.android.conf.json`, которые оба
+# переопределяют идентификатор на `com.psygames.app`. Именно он заведён в аккаунте
+# Apple, к нему привязана карточка App Store Connect 6779208225 и под ним же
+# приложение опубликовано в Google Play.
 #
-# Берём из конфига: у идентификатора должен быть один источник. Гейт
-# `ios-bundle-id-single-source` следит, чтобы зашитых копий не появилось снова.
-BUNDLE_ID="${BUNDLE_ID:-$(python3 -c "import json,sys;print(json.load(open('$(dirname "$0")/../src-tauri/tauri.conf.json'))['identifier'])")}"
+# ⚠️ ЗДЕСЬ БЫЛА МОЯ ЖЕ ОШИБКА. Увидев зашитое `com.psygames.app`, я счёл его
+# расхождением с базовым конфигом и «починил», начав читать базовый. Сборка тут же
+# упала честно: «bundleId com.odv999.psygames не найден в аккаунте». Зашитое
+# значение было ВЕРНЫМ — не хватало только источника, а не значения. Урок: прежде
+# чем чинить расхождение, выяснить, какая из двух сторон права; здесь для этого
+# хватало одного запроса к списку bundleId.
+BUNDLE_ID="${BUNDLE_ID:-$(python3 -c "
+import json, os
+корень = os.path.join('$(dirname "$0")', '..', 'src-tauri')
+ios = os.path.join(корень, 'tauri.ios.conf.json')
+база = os.path.join(корень, 'tauri.conf.json')
+ид = None
+if os.path.exists(ios):
+    ид = json.load(open(ios, encoding='utf-8')).get('identifier')
+print(ид or json.load(open(база, encoding='utf-8'))['identifier'])
+")}"
 # ⚠️ ИМЕНА ПЕРЕМЕННЫХ — ТОЛЬКО ЛАТИНИЦЕЙ.
 # На маке (zsh) кириллическое имя работает, а в CI (bash) даёт
 # «РАБОЧАЯ=/Users/runner/work/_temp: No such file or directory» — bash не считает
