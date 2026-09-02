@@ -498,19 +498,19 @@ jobs:
           retention-days: 14
         continue-on-error: true
 
-  # ─── iOS: настоящая сборка и TestFlight ────────────────────────────────
-  # Включается САМА, как только в секретах репозитория появятся ключи Apple.
-  # Пока их нет — job пропускается, и сборка остаётся зелёной: платный аккаунт
-  # это решение Дениса, а не условие работы остальных платформ.
+  # ─── iOS: подписанная сборка и TestFlight ──────────────────────────────
+  # 🔴 ПОДПИСЬ ЧЕРЕЗ КЛЮЧ App Store Connect API, А НЕ ЧЕРЕЗ .p12.
   #
-  # ЧТО ПОЛОЖИТЬ В СЕКРЕТЫ (Settings → Secrets and variables → Actions):
-  #   APPLE_CERTIFICATE          — .p12 сертификата распространения, в base64
-  #   APPLE_CERTIFICATE_PASSWORD — пароль от .p12
-  #   APPLE_SIGNING_IDENTITY     — «Apple Distribution: Имя (TEAMID)»
-  #   APPLE_TEAM_ID              — десятизначный Team ID
-  #   APPLE_ID                   — почта аккаунта разработчика
-  #   APPLE_APP_PASSWORD         — пароль приложения (appleid.apple.com → Sign-In and Security)
-  #   APPLE_API_ISSUER / APPLE_API_KEY_ID / APPLE_API_KEY — ключ App Store Connect (альтернатива паре ID+пароль)
+  # Классический путь (сертификат распространения в base64 + пароль + связка ключей)
+  # требует, чтобы кто-то раз в год экспортировал .p12 из Keychain и не перепутал тип
+  # сертификата. Ключ API решает то же самое одним файлом: `-allowProvisioningUpdates`
+  # заставляет Xcode САМ создать сертификат и профиль под этим ключом.
+  #
+  # Проверено локально 02.09.2026: без ключа xcodebuild отвечает «No Accounts: Add a
+  # new account in Accounts settings» — то есть путь без него на чистой машине не
+  # работает вовсе, а именно чистой машиной раннер и является.
+  #
+  # Секреты: APPLE_API_KEY (.p8 целиком), APPLE_API_KEY_ID, APPLE_API_ISSUER, APPLE_TEAM_ID.
   ios-release:
     name: iOS (подписанная сборка → TestFlight)
     if: startsWith(github.ref, 'refs/tags/v')
@@ -519,14 +519,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Есть ли ключи Apple
+      - name: Есть ли ключ Apple
         id: keys
         run: |
-          if [ -n "${{ secrets.APPLE_CERTIFICATE }}" ] && [ -n "${{ secrets.APPLE_TEAM_ID }}" ]; then
+          if [ -n "${{ secrets.APPLE_API_KEY }}" ] && [ -n "${{ secrets.APPLE_TEAM_ID }}" ]; then
             echo "ready=yes" >> "$GITHUB_OUTPUT"
           else
             echo "ready=no" >> "$GITHUB_OUTPUT"
-            echo "::notice title=iOS::Ключей Apple нет — подписанная сборка пропущена. Симуляторная собрана отдельным job."
+            echo "::notice title=iOS::Ключа Apple нет — подписанная сборка пропущена."
           fi
 
       - name: Setup Node
@@ -543,9 +543,11 @@ jobs:
         with:
           targets: aarch64-apple-ios
 
-      - name: Install Tauri CLI
+      - name: Install Tauri CLI + CocoaPods
         if: steps.keys.outputs.ready == 'yes'
-        run: cargo install tauri-cli --version "^2.0" --locked --force
+        run: |
+          cargo install tauri-cli --version "^2.0" --locked --force
+          brew install cocoapods
 
       - name: Install frontend deps
         if: steps.keys.outputs.ready == 'yes'
@@ -567,55 +569,106 @@ jobs:
           rm -rf src-tauri/dist
           mv frontend/dist src-tauri/dist
 
-      # Сертификат кладём во ВРЕМЕННУЮ связку ключей и удаляем её в конце job:
-      # оставленная связка живёт на раннере до конца его жизни, а это чужой ключ.
-      - name: Import signing certificate
+      # Ключ кладём туда, где его ищет xcodebuild, и стираем в конце job при любом исходе.
+      - name: Разложить ключ API
         if: steps.keys.outputs.ready == 'yes'
         env:
-          CERT: ${{ secrets.APPLE_CERTIFICATE }}
-          CERT_PASS: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEY: ${{ secrets.APPLE_API_KEY }}
+          KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
         run: |
-          echo "$CERT" | base64 --decode > /tmp/cert.p12
-          security create-keychain -p runner build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p runner build.keychain
-          security import /tmp/cert.p12 -k build.keychain -P "$CERT_PASS" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k runner build.keychain
-          rm -f /tmp/cert.p12
+          mkdir -p ~/private_keys
+          printf '%s' "$KEY" > ~/private_keys/AuthKey_${KEY_ID}.p8
+          chmod 600 ~/private_keys/AuthKey_${KEY_ID}.p8
 
       - name: Init iOS project
         if: steps.keys.outputs.ready == 'yes'
         working-directory: src-tauri
         run: cargo tauri ios init
 
-      - name: Build signed .ipa
+      # 🔴 ПАТЧ ПРОЕКТА ОБЯЗАТЕЛЕН И ИМЕННО ЗДЕСЬ: `gen/` лежит в .gitignore и
+      # генерируется заново каждой сборкой, поэтому правки живут только так.
+      # Что чинится и почему — в шапке самого скрипта; всё проверено живьём
+      # 02.09.2026 по пути до успешной валидации Apple.
+      - name: Патч проекта (подпись, линковка, iOS 15)
         if: steps.keys.outputs.ready == 'yes'
-        working-directory: src-tauri
         env:
-          APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        run: cargo tauri ios build --export-method app-store-connect
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          brew install xcodegen
+          python3 scripts/ios-project-patch.py --team "$TEAM" --profile "PsyGames App Store"
+
+      # Сертификат распространения и профиль App Store — через API. Автоподпись
+      # Xcode тут не работает: она делает DEVELOPMENT-профиль, которому нужны
+      # зарегистрированные устройства («Your team has no devices…»).
+      - name: Сертификат и профиль
+        if: steps.keys.outputs.ready == 'yes'
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          KEYCHAIN_PASSWORD: ${{ github.run_id }}
+        run: bash scripts/ios-signing-setup.sh
+
+      - name: Archive
+        if: steps.keys.outputs.ready == 'yes'
+        working-directory: src-tauri/gen/apple
+        run: |
+          xcodebuild -project psygames.xcodeproj -scheme psygames_iOS \
+            -configuration release -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/PsyGames.xcarchive" archive
+
+      # ⚠️ Экспортируем СВОИМ plist: тот, что кладёт tauri, не содержит
+      # provisioningProfiles, и xcodebuild отвечает «requires a provisioning profile».
+      - name: Export .ipa
+        if: steps.keys.outputs.ready == 'yes'
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$TEAM</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Apple Distribution</string>
+            <key>provisioningProfiles</key><dict>
+              <key>com.psygames.app</key><string>PsyGames App Store</string>
+            </dict>
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/PsyGames.xcarchive" \
+            -exportPath "$RUNNER_TEMP/ipa" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
 
       - name: Upload to TestFlight
         if: steps.keys.outputs.ready == 'yes'
         env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
-          IPA=$(find src-tauri/gen/apple/build -name '*.ipa' | head -1)
+          IPA=$(find "$RUNNER_TEMP/ipa" -name '*.ipa' | head -1)
           if [ -z "$IPA" ]; then echo "::error title=iOS::.ipa не найден"; exit 1; fi
-          xcrun altool --upload-app -f "$IPA" -t ios -u "$APPLE_ID" -p "$APPLE_APP_PASSWORD"
+          # ⚠️ Сначала ВАЛИДАЦИЯ. Она ловит структурные ошибки бандла (код 90171 —
+          # «Invalid bundle structure», на нём мы стояли трижды 02.09.2026) до того,
+          # как сборка займёт очередь обработки у Apple: отказ после загрузки виден
+          # только через письмо и полчаса ожидания.
+          xcrun altool --validate-app -f "$IPA" -t ios --apiKey "$KEY_ID" --apiIssuer "$ISSUER"
+          xcrun altool --upload-app -f "$IPA" -t ios \
+            --apiKey "$KEY_ID" --apiIssuer "$ISSUER"
 
-      - name: Clean keychain
+      - name: Стереть ключ
         if: always() && steps.keys.outputs.ready == 'yes'
-        run: security delete-keychain build.keychain || true
+        run: rm -rf ~/private_keys
 
       - name: Upload artifact
         if: steps.keys.outputs.ready == 'yes'
         uses: actions/upload-artifact@v7
         with:
           name: PsyGames-ios-ipa
-          path: src-tauri/gen/apple/build/**/*.ipa
+          path: ${{ runner.temp }}/ipa/*.ipa
           retention-days: 14
         continue-on-error: true
 
