@@ -48,6 +48,7 @@ describe('идентификатор iOS-приложения не разъез�
   const ФАЙЛЫ = [
     'scripts/ios-signing-setup.sh',
     'scripts/ios-provision.py',
+    'scripts/ios-bundle-id.py',
     '.github/workflows/build.yml',
   ];
 
@@ -76,7 +77,19 @@ describe('идентификатор iOS-приложения не разъез�
     const слово = свой.split('.').sort((a, b) => b.length - a.length)[0]?.toLowerCase() || 'psygames';
     const чужие: string[] = [];
     for (const f of ФАЙЛЫ) {
+      /**
+       * ⚠️ ДОКУМЕНТИРУЮЩАЯ СТРОКА — ТОЖЕ ОБЪЯСНЕНИЕ, А НЕ КОД. Гейт пропускал
+       * `#`-комментарии, но не тройные кавычки Python — и покраснел на шапке
+       * `ios-bundle-id.py`, где история ошибки описана с обоими идентификаторами.
+       * Заставлять документацию врать ради зелёного гейта нельзя: тогда следующий
+       * читатель не узнает, ПОЧЕМУ источник один.
+       */
+      let вДокстроке = false;
       for (const line of читать(f).split('\n')) {
+        const тройных = (line.split('"""').length - 1);
+        const былаДокстрока = вДокстроке;
+        if (тройных % 2 === 1) вДокстроке = !вДокстроке;
+        if (былаДокстрока || вДокстроке) continue;
         const код = line.replace(/^\s*(#|\/\/)/, '');
         if (код !== line) continue;                       // строка-комментарий
         for (const m of код.matchAll(/\b([a-z0-9]+(?:\.[a-z0-9]+){2,})\b/gi)) {
@@ -102,7 +115,9 @@ describe('идентификатор iOS-приложения не разъез�
   });
 
   it('🔴 скрипты берут идентификатор из конфига, а не из зашитой строки', () => {
-    expect(читать('scripts/ios-signing-setup.sh')).toContain('tauri.ios.conf.json');
-    expect(читать('scripts/ios-provision.py')).toContain('tauri.ios.conf.json');
+    // Оба зовут ОДИН источник — `ios-bundle-id.py`; копии логики нет.
+    expect(читать('scripts/ios-signing-setup.sh')).toContain('ios-bundle-id.py');
+    expect(читать('scripts/ios-provision.py')).toContain('ios-bundle-id.py');
+    expect(читать('scripts/ios-bundle-id.py')).toContain('tauri.ios.conf.json');
   });
 });
