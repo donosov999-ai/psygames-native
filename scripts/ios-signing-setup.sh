@@ -24,7 +24,18 @@ set -euo pipefail
 : "${APPLE_API_ISSUER:?нужен APPLE_API_ISSUER}"
 : "${APPLE_TEAM_ID:?нужен APPLE_TEAM_ID}"
 KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD:-psygames-ci}"
-BUNDLE_ID="${BUNDLE_ID:-com.psygames.app}"
+# 🔴 ИДЕНТИФИКАТОР — ИЗ КОНФИГА ПРИЛОЖЕНИЯ, А НЕ ИЗ ЗАШИТОГО ЗНАЧЕНИЯ.
+#
+# Здесь стояло `com.psygames.app`, а приложение зовётся `com.odv999.psygames`
+# (`src-tauri/tauri.conf.json`). CI переменную не задавал, значит профиль всё это
+# время создавался для ЧУЖОГО идентификатора — и создавался успешно, потому что
+# такой bundleId в аккаунте тоже заведён. Ошибка вылезала только в самом конце,
+# на экспорте: «exportArchive "PsyGames.app" requires a provisioning profile» —
+# профиль есть, но не тот, и сообщение об этом не говорит.
+#
+# Берём из конфига: у идентификатора должен быть один источник. Гейт
+# `ios-bundle-id-single-source` следит, чтобы зашитых копий не появилось снова.
+BUNDLE_ID="${BUNDLE_ID:-$(python3 -c "import json,sys;print(json.load(open('$(dirname "$0")/../src-tauri/tauri.conf.json'))['identifier'])")}"
 # ⚠️ ИМЕНА ПЕРЕМЕННЫХ — ТОЛЬКО ЛАТИНИЦЕЙ.
 # На маке (zsh) кириллическое имя работает, а в CI (bash) даёт
 # «РАБОЧАЯ=/Users/runner/work/_temp: No such file or directory» — bash не считает
