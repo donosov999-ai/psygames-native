@@ -1558,19 +1558,17 @@ export default function SudokuGame() {
             {t(level >= 81 ? 'sudokuBeltCombo' : level >= 80 ? 'sudokuBeltLegend' : level >= 66 ? 'sudokuBeltChains' : 'sudokuBeltAls')}
           </Text>
         )}
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('errors')} {formatErrorCount(failure, errors)}</Text>
+        {null}
         {/* ⚠️ Вечером и ночью секундомера НЕТ. Вечерний набор задуман как
             успокоение перед сном, и репорт тестировщицы дословно об этом: «это
             же вечерняя зарядка, а зачем добавили время, когда есть время
             хочется сразу торопиться». Маджонг так уже делал, судоку — нет. */}
-        {!isCalm && (
-          <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
-        )}
+        {null}
         {/* Счётчик переделок переехал сюда из ряда действий: он показатель, а не кнопка,
             и там отбирал ширину у трёх капсул, из-за чего первая уезжала за край экрана. */}
         {/* Остаток подсказок и число переделок — показатели, а не подписи на кнопках:
             в капсулу они не помещались и резали слово «Подсказка» до «Подск…». */}
-        <Text style={[styles.statText, { color: colors.textSecondary }]}>💡 {hintMax - hintUses}</Text>
+        {null}
         {backtrackCount > 0 && (
           <Text style={[styles.statText, { color: colors.textSecondary }]}>↻ {backtrackCount}</Text>
         )}
@@ -2050,6 +2048,23 @@ export default function SudokuGame() {
         confirmExit={liveGame && touched}
         resumable
         onSaveBeforeExit={saveBeforeExit}
+        /**
+         * Счётчики данными (см. `HudItem`): вид одинаков со всеми играми.
+         *
+         * ⚠️ ОШИБКИ ЗДЕСЬ ОСТАЮТСЯ, и это не противоречит §12.4. В судоку ошибка —
+         * не «норма обучения», а РАСХОД ЛИМИТА: на трёх партия кончается. Это
+         * состояние партии, как патроны, и прятать его нельзя.
+         * ⚠️ Вечером и ночью секундомера НЕТ: вечерний набор задуман как успокоение
+         * перед сном, и репорт тестировщицы дословно об этом — «зачем добавили
+         * время, когда есть время, хочется сразу торопиться».
+         */
+        hud={[
+          ...(mode === 'levels' ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: level, tone: 'accent' as const }] : []),
+          ...((mode === 'towers' || mode === 'unequal') ? [{ key: 'lvl', icon: 'flag' as const, label: variantLabel(mode, language), value: `${level}/${sideStepCount(mode)}`, tone: 'accent' as const }] : []),
+          { key: 'err', icon: 'close-circle', label: t('errors'), value: formatErrorCount(failure, errors), tone: 'bad' as const },
+          ...(!isCalm ? [{ key: 'time', icon: 'time' as const, label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` }] : []),
+          { key: 'hint', icon: 'bulb' as const, label: t('btn_hint'), value: hintMax - hintUses, tone: 'good' as const },
+        ]}
         stats={statsEl}
         // ПОРТРЕТ: подсказка, отмена и цвет уезжают наверх, внизу остаются только цифры.
         // Раньше низ держал два ряда управления подряд — клавиатуру и действия под ней;
