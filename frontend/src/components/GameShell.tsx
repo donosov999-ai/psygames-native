@@ -46,6 +46,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import GamePet, { type PetMood } from '@/src/components/pet/GamePet';
 import { onGameEvent, type GameEventKind } from '@/src/services/gameEvents';
+
 import { sndCorrect, sndWrong, sndMatch, sndLose } from '@/src/services/feedback';
 import { HudBadge, useScorePopups, ScorePopupLayer } from '@/src/components/juice';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -56,6 +57,51 @@ import { isRTLLang } from '@/src/services/rtl';
 import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
+
+/** Один счётчик в шапке: что показать и каким тоном. */
+export interface HudItem {
+  key: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  /** Слово из словаря — видно на экране и читается скринридером. */
+  label: string;
+  value: string | number;
+  /** Смысл, а не цвет: каркас сам решит, каким цветом это показать. */
+  tone?: 'neutral' | 'accent' | 'good' | 'warn' | 'bad';
+  /** Дёрнуть при изменении — для того, что растёт по ходу партии. */
+  pop?: boolean;
+}
+
+/** Значок-модификатор уровня: показывается без слова, слово — в подписи. */
+export interface ModItem {
+  key: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  tone?: 'neutral' | 'accent' | 'good' | 'warn' | 'bad';
+}
+
+/**
+ * 🔴 ЧЕТЫРЕ СЧЁТЧИКА — ПОТОЛОК, И ОН ЗДЕСЬ, А НЕ В ИГРАХ.
+ *
+ * У сортировки их было семь: уровень, звёзды, ходы, серия, товары, цель,
+ * режим — они ломали строку на второй ряд и съедали поле. Пятый и дальше
+ * каркас не рисует: место в шапке дороже, чем полнота отчёта, а подробности
+ * человек смотрит на экране статистики.
+ */
+const HUD_MAX = 4;
+
+/**
+ * Тон — это СМЫСЛ, а не цвет: игра говорит «плохо», каркас решает, каким
+ * красным. Один набор на все игры, поэтому перекрасить приложение — правка
+ * здесь, а не поиск шестнадцатеричных кодов по 72 экранам.
+ */
+const TONE: Record<NonNullable<HudItem['tone']>, [string, string]> = {
+  neutral: ['#cbd5e1', '#64748b'],
+  accent:  ['#fbbf24', '#d97706'],
+  good:    ['#34d399', '#059669'],
+  warn:    ['#fb923c', '#c2410c'],
+  bad:     ['#fb7185', '#e11d48'],
+};
+
 
 /** Ширина зоны, которую занимает плавающая кнопка фидбека снизу (LTR — слева, RTL — справа). */
 const FAB_GUTTER = 66;
@@ -69,6 +115,51 @@ const HELP_FAB_GUTTER = 60;
 
 export interface GameShellProps {
   /** Заголовок игры (уже переведённый). */
+  /**
+   * 🔴 КАРКАС ПРИНИМАЕТ ДАННЫЕ, А НЕ ВЁРСТКУ — ЧТОБЫ ВИД МЕНЯЛСЯ В ОДНОМ МЕСТЕ.
+   *
+   * Решение Дениса 02.09.2026: «перестраивай каркас так, чтобы потом он легко
+   * менялся и модернизировался, нижний тоже заложи».
+   *
+   * ЧТО БЫЛО. Игра передавала `stats` готовой вёрсткой: сама выбирала бейджи,
+   * порядок, цвета и сколько их. Поэтому «ужать шапку во всех играх» означало
+   * править 72 файла, а правило «не больше четырёх счётчиков» вообще негде было
+   * применить. Репорт Вали 01.09.2026 со скриншотом: у сортировки семь
+   * счётчиков в два ряда, поле сжато до трети экрана.
+   *
+   * КАК СТАЛО. Игра отдаёт СПИСОК: что показать и каким тоном. Каркас решает,
+   * как это выглядит, сколько влезает и что делать с лишним. Поменять вид всех
+   * игр — правка здесь, а не обход экранов.
+   *
+   * ⚠️ `stats` НЕ отменён: 72 игры передают вёрстку, и переводить их разом
+   * значит менять всё сразу без возможности откатить по одной. Пока переданы
+   * оба — выигрывает `hud`.
+   */
+  hud?: HudItem[];
+  /**
+   * Значки-модификаторы уровня: примёрзший ряд, скрытая информация, строгая
+   * укладка. Показываются рядом со счётчиками БЕЗ слов — слово живёт в
+   * подписи для скринридера и во всплывающей подсказке при появлении.
+   */
+  mods?: ModItem[];
+  /**
+   * 🔴 ЧЕМУ ПРИНАДЛЕЖИТ НИЖНЯЯ ПОЛОСА.
+   *
+   * Прежнее правило (аудит 43 игр, 19.08.2026) звучало жёстко: низ = ОТВЕТ
+   * игрока, служебное всегда наверх. Довод остаётся в силе: в 17 играх внизу
+   * действительно ответ, и человек, натренированный «Фланкером», бьёт туда же
+   * в маджонге — а там «Перемешать», которого три на уровень.
+   *
+   * НО правило запрещало лишнее. У эталона жанра служебные кнопки внизу и не
+   * мешают никому, потому что в его игре ОТВЕТ ДАЁТСЯ ТАПОМ ПО ПОЛЮ — нижняя
+   * полоса свободна. То же у нас в сортировке, судоку, маджонге, ханое.
+   *
+   * Поэтому правило уточнено: низ принадлежит ОТВЕТУ; там, где ответа кнопками
+   * нет, низ отдаётся служебному. Смешения в одной игре по-прежнему не бывает —
+   * это и был смысл запрета. Явное объявление вместо угадывания по наличию
+   * пропа: игра говорит, что у неё внизу.
+   */
+  bottom?: 'answer' | 'actions';
   title: string;
   /** Кнопка «назад». */
   onBack: () => void;
@@ -180,7 +271,7 @@ export interface GameShellProps {
 }
 
 export default function GameShell({
-  title, onBack, stats, headerActions, toolbar, headerRight, scrollableField, overlay, pet,
+  title, onBack, stats, hud, mods, bottom, headerActions, toolbar, headerRight, scrollableField, overlay, pet,
   confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
   const { colors } = useTheme();
@@ -480,6 +571,12 @@ export default function GameShell({
         * Спрятать его целиком может только игрок — настройкой «показывать
         * питомца», которую читает сам `GamePet`.
         */}
+      {/**
+        * Полоса состояния: маскот, счётчики, значки модификаторов.
+        * Рисуется из ДАННЫХ (`hud`/`mods`), если игра их дала, иначе — прежней
+        * вёрсткой из `stats`. Так перевод 72 игр идёт по одной, а вид у всех
+        * меняется отсюда.
+        */}
       <View style={styles.statsOuter}>
         {/**
           * Единая ПЛАШКА тулбара: у эталона жанра маскот и все счётчики сидят в
@@ -498,12 +595,39 @@ export default function GameShell({
           stats ? null : styles.statsPlateBare,
           { backgroundColor: colors.surface, borderColor: colors.border },
         ]}>
-          <GamePet mood={pet ?? autoMood} size={44} />
+          <GamePet mood={pet ?? autoMood} size={34} />
           {/* Серия показывается с двойки: единица — это ещё не серия, а один ход. */}
           {pet === undefined && streak >= 2 ? (
             <HudBadge icon="flame" label={t('hud_streak')} value={streak} colors={['#fb923c', '#c2410c']} pop />
           ) : null}
-          <View style={styles.statsFlex}>{stats}</View>
+          <View style={styles.statsFlex}>
+            {hud && hud.length ? (
+              <View style={styles.hudRow}>
+                {hud.slice(0, HUD_MAX).map((it) => (
+                  <HudBadge
+                    key={it.key}
+                    icon={it.icon}
+                    label={it.label}
+                    value={it.value}
+                    colors={TONE[it.tone ?? 'neutral']}
+                    tint={it.tone === 'accent' ? '#3f2b00' : undefined}
+                    pop={it.pop}
+                  />
+                ))}
+                {/* Модификаторы — значком без слова: слово в подписи для
+                    скринридера, иначе строка снова разъедется на два ряда. */}
+                {mods?.map((m) => (
+                  <View
+                    key={m.key}
+                    accessibilityLabel={m.label}
+                    style={[styles.modDot, { borderColor: TONE[m.tone ?? 'neutral'][1] }]}
+                  >
+                    <Ionicons name={m.icon} size={15} color={TONE[m.tone ?? 'neutral'][1]} />
+                  </View>
+                ))}
+              </View>
+            ) : stats}
+          </View>
         </View>
       </View>
 
@@ -512,11 +636,48 @@ export default function GameShell({
           реально нарисована служебная кнопка. Проверка «написано ли» в
           исходнике такое не ловит: в SET бейдж был написан, переведён на 12
           языков, покрыт гейтом — и не показывался ни разу. */}
-      {headerActions ? (
+      {/**
+        * 🔴 ПЕРЕКЛЮЧАТЕЛЬ НИЖНЕЙ ПОЛОСЫ ЗАЛОЖЕН, НО НЕ ВКЛЮЧЁН НИ У КОГО.
+        *
+        * Решение Дениса 02.09.2026: «нижний тоже заложи». Игра, объявившая
+        * `bottom="actions"`, отдаёт свои служебные кнопки ВНИЗ — туда, где они
+        * у эталона жанра. Одна строка в игре, а не переезд вёрстки.
+        *
+        * ⚠️ ВКЛЮЧАТЬ ПО ОДНОЙ И ВМЕСТЕ С РЕЕСТРОМ. Правило «низ = ответ игрока»
+        * защищено гейтом `slot-meaning.test.ts`, где у каждой игры записано,
+        * что у неё внизу и почему. Переключить игру, не обновив её строку в
+        * реестре, — значит сломать проверку, которая ловит настоящую беду:
+        * человек, натренированный «Фланкером» бить по низу, попадает в
+        * «Перемешать», которого три на уровень.
+        *
+        * Уточнение правила: низ принадлежит ОТВЕТУ; там, где ответ даётся
+        * тапом по полю (сортировка, судоку, маджонг, ханой), низ свободен и
+        * достаётся служебному. Смешения в ОДНОЙ игре по-прежнему нет.
+        */}
+      {headerActions && bottom !== 'actions' ? (
         <View testID="game-header-actions" style={[styles.headerActions, { borderBottomColor: colors.border }]}>{headerActions}</View>
       ) : null}
 
       {field}
+
+      {headerActions && bottom === 'actions' ? (
+        <View
+          testID="game-bottom-actions"
+          style={[
+            styles.toolbar,
+            {
+              borderTopColor: colors.border,
+              backgroundColor: colors.background,
+              paddingBottom: Math.max(insets.bottom, 10),
+              ...(rtl
+                ? { paddingRight: FAB_GUTTER, paddingLeft: PAD_H }
+                : { paddingLeft: FAB_GUTTER, paddingRight: PAD_H }),
+            },
+          ]}
+        >
+          {headerActions}
+        </View>
+      ) : null}
 
       {toolbar ? (
         <View
@@ -631,6 +792,27 @@ export default function GameShell({
   );
 }
 
+/**
+ * 🔴 ЕДИНЫЕ ОТСТУПЫ КАРКАСА — ОДИН НАБОР ЧИСЕЛ НА ВСЕ 72 ИГРЫ.
+ *
+ * Репорт Вали 01.09.2026 со скриншотами: «ужасно товары мелкие, ни хрена не
+ * видно, при этом текст сверху очень крупно» и «поле судоку и цифры опять не
+ * входят на весь экран». На кадрах видно причину: три полосы каркаса — шапка,
+ * счётчики, действия — каждая со СВОИМИ отступами, и вместе они съедали больше
+ * половины экрана. Цифры 7-8-9 в судоку уезжали под нижний край, отчего
+ * читались как «не работают».
+ *
+ * Решение Дениса 02.09.2026: «ужать пустоты, не убирая полезные блоки», «ширину
+ * тоже», «каркас ужимать, чтобы везде одинаково». Поэтому отступы вынесены в
+ * два числа и применяются ко всем полосам разом: подвинуть их — значит подвинуть
+ * во всех играх сразу, а не в одной.
+ *
+ * ⚠️ Кнопок это НЕ касается: 48×48 — норма нажатия, её держит отдельный гейт
+ * `scripts/tap-target-audit.mjs`. Ужимаем воздух между блоками, а не сами блоки.
+ */
+const PAD_H = 10;   // боковой отступ полос (было 12…16 вразнобой)
+const PAD_V = 5;    // вертикальный зазор между полосами (было 6…10)
+
 const styles = StyleSheet.create({
   wuSkipBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   root: { flex: 1 },
@@ -662,34 +844,40 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    gap: 6,
+    paddingHorizontal: PAD_H,
+    paddingVertical: PAD_V,
   },
   // flexShrink+minWidth: при системном крупном шрифте длинный заголовок
   // ужимается, а не выталкивает кнопку «назад» за край (репорт «кнопка уехала»).
   title: { flex: 1, minWidth: 0, fontSize: 18, fontWeight: '800', textAlign: 'center' },
   headerBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   headerRight: { width: 44, alignItems: 'flex-end', flexShrink: 0 },
-  stats: { paddingHorizontal: 16, paddingBottom: 6 },
+  stats: { paddingHorizontal: PAD_H, paddingBottom: PAD_V },
   // Питомец слева, счётчики занимают остаток: строка не разъезжается, когда
   // питомца нет (игра не передала `pet`) или он выключен в настройках.
-  statsOuter: { paddingHorizontal: 12, paddingBottom: 6 },
+  statsOuter: { paddingHorizontal: PAD_H, paddingBottom: PAD_V },
   statsPlate: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingHorizontal: 10, paddingVertical: 6,
-    borderRadius: 18, borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: 16, borderWidth: StyleSheet.hairlineWidth,
   },
   statsFlex: { flex: 1, minWidth: 0 },
+  hudRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  // Модификатор — кружок со значком: занимает вчетверо меньше пилюли со словом.
+  modDot: {
+    width: 26, height: 26, borderRadius: 13, borderWidth: 1.5,
+    alignItems: 'center', justifyContent: 'center',
+  },
   statsPlateBare: { alignSelf: 'flex-start' },
   // Разделитель снизу отделяет действия от игрового поля: без него ряд кнопок
   // читается как часть поля, и в судоку его принимали за первую строку доски.
-  headerActions: { paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth },
+  headerActions: { paddingHorizontal: PAD_H, paddingBottom: PAD_V, borderBottomWidth: StyleSheet.hairlineWidth },
   // Поле забирает всё свободное место и центрирует содержимое — единое
   // поведение для всех игр вместо разнобоя.
-  field: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 },
+  field: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: PAD_H },
   fieldScroll: { flex: 1 },
-  fieldScrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 8 },
+  fieldScrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: PAD_H, paddingVertical: PAD_V },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',

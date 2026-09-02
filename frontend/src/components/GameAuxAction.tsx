@@ -96,7 +96,13 @@ export function GameAuxBar({ children }: { children: React.ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap' },
+  /**
+   * Зазор 6, а не 8: при переносе на вторую строку каждая лишняя пара точек
+   * между кнопками отнимается у поля дважды — по горизонтали и по вертикали.
+   * Сами кнопки не трогаем: 48×48 держит гейт нажатий (репорт Вали 01.09.2026
+   * «цифры 7-8-9 не работают» — они уезжали под нижний край экрана).
+   */
+  bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, rowGap: 6, flexWrap: 'wrap' },
   // 48×48 — норма Material для того, по чему стучат в игре (тот же порог, что
   // у `scripts/tap-target-audit.mjs` во втором проходе). Радиус 999 = пилюля:
   // служебное не должно выглядеть как кнопка ответа, а те у нас прямоугольные.
