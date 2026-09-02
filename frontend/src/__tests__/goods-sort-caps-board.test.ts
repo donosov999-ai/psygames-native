@@ -39,8 +39,16 @@ describe('ёмкости ниш и доска — одной длины', () => 
         prev = cfg;
       }
     }
-    // Если это перестанет быть правдой, гейт ниже зеленеет вслепую.
-    expect(same.length).toBeGreaterThan(20);
+    /**
+     * Если это перестанет быть правдой, гейт ниже зеленеет вслепую.
+     *
+     * ⚠️ Порог снижен с 20 до 4 намеренно, 02.09.2026: форма теперь выбирается
+     * по объёму (`targetSlots`), а не циклом, поэтому соседние уровни ЧАЩЕ имеют
+     * одинаковое число ниш — меняется рисунок, а не объём. Это и было целью
+     * правки (корреляция сложности −0,06 → 0,71). Смены объёма остались на
+     * ступенях кривой, их и хватает, чтобы проверка не была слепой.
+     */
+    expect(same.length).toBeGreaterThanOrEqual(4);
   });
 
   it('🔴 на каждом уровне ёмкости совпадают с раздачей, и доска собирается', () => {
@@ -60,14 +68,25 @@ describe('ёмкости ниш и доска — одной длины', () => 
   });
 
   it('🔴 переход между уровнями: ёмкости прошлого уровня не годятся новой доске', () => {
-    // Ровно тот случай, который ронял игру: L6→L7 на десктопе, сетка та же.
-    const prev = dealBoard(6, POOL, false);
-    const next = dealBoard(7, POOL, false);
+    /**
+     * Случай, который ронял игру: соседние уровни при ТОЙ ЖЕ сетке, но разном
+     * числе ниш. Пара ищется, а не зашита: до 02.09.2026 это была L6→L7, а после
+     * перехода на кривую объёма ступени сдвинулись, и зашитая пара стала ложью.
+     */
+    let A = 0;
+    for (let L = 2; L <= 59; L++) {
+      const a = levelCfg(L, POOL.length, false), b = levelCfg(L + 1, POOL.length, false);
+      if (a.cols === b.cols && a.rows === b.rows && a.slots !== b.slots) { A = L; break; }
+    }
+    expect(`нашлась пара соседних уровней с разным числом ниш: ${A > 0}`)
+      .toBe('нашлась пара соседних уровней с разным числом ниш: true');
+    const prev = dealBoard(A, POOL, false);
+    const next = dealBoard(A + 1, POOL, false);
     expect(prev.cfg.cols).toBe(next.cfg.cols);
     expect(prev.cfg.rows).toBe(next.cfg.rows);
     expect(prev.cells.length).not.toBe(next.cells.length);
     // Старая формула (число ниш «откуда-то со стороны») роняет доску...
-    expect(() => makeBoard(next.cells, capsFor(7, prev.cells.length))).toThrow(/доска собрана неверно/);
+    expect(() => makeBoard(next.cells, capsFor(A + 1, prev.cells.length))).toThrow(/доска собрана неверно/);
     // ...новая — не может уронить в принципе.
     expect(() => makeBoard(next.cells, capsForBoard(7, next.cells))).not.toThrow();
   });

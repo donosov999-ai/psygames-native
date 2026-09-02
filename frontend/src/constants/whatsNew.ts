@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.28.0',
+    date: '2026-09-02',
+    ru: [
+      'В «Сортировке товаров» сложность наконец растёт вместе с уровнем: раньше шестнадцатый мог оказаться легче первого',
+      'Новые правила вводятся не подряд, а по одному раз в несколько уровней — первые двадцать проходятся спокойно',
+      'Досок стало больше: одна и та же фигура не повторяется несколько уровней подряд',
+      'Плюс всё из 2.27.0: разгон счёта от серии, итог уровня по частям, потолок сложности в программах, товары внахлёст',
+    ],
+    en: [
+      'In Goods Sort difficulty finally grows with the level: level sixteen could previously be easier than level one',
+      'New rules now arrive one at a time every few levels — the first twenty play calmly',
+      'More boards: the same shape no longer repeats for several levels in a row',
+      'Plus everything from 2.27.0: streak-based score, staged level summary, difficulty cap in programmes, overlapping goods',
+    ],
+  },
+  {
     version: '2.27.0',
     date: '2026-09-02',
     ru: [
