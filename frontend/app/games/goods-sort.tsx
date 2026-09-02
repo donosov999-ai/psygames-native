@@ -11,14 +11,14 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
-import GameShell from '@/src/components/GameShell';
+import GameShell, { type HudItem } from '@/src/components/GameShell';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
+import { JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
 import { sndCombo, sndPlace, sndMatch, sndWrong } from '@/src/services/feedback';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useMoveHistory, MoveStackData } from '@/src/hooks/useMoveHistory';
@@ -3438,7 +3438,6 @@ export default function GoodsSortGame() {
   // действия (отмена/подсказка/перемешать) — в шапке; модалка правил уровня поверх
   // каркаса (паттерн digit-span)
   if (phase === 'playing') {
-    const remaining = cells.reduce((s, c) => s + c.length, 0);
     return (
       <View style={{ flex: 1 }}>
         <GameShell
@@ -3454,42 +3453,58 @@ export default function GoodsSortGame() {
           confirmExit={armed}
           resumable
           onSaveBeforeExit={saveParty}
-          stats={
-            <View style={styles.statsRow}>
-              <HudBadge icon="pricetag" label={t('goodsLevel')} value={level} colors={['#fbbf24', '#d97706']} tint="#3f2b00" />
-              <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
-              {/**
-                * Счётчик ходов ПРЕДУПРЕЖДАЕТ, а не сообщает задним числом. Серым он
-                * читается как справка «сделано столько-то», и лимит наступал молча:
-                * человек узнавал о нём в тот момент, когда партия уже кончилась.
-                * Последняя треть — янтарь, последние три хода — красный.
-                */}
-              {(() => {
-                const ml = moveLimitRef.current;
-                const left = ml > 0 ? Math.max(0, ml - moves) : null;
-                const hot = left !== null && (left <= 3 || left <= ml * 0.2);
-                const warm = left !== null && !hot && left <= ml * 0.35;
-                return (
-                  <HudBadge
-                    icon="swap-horizontal"
-                    value={ml > 0 ? `${moves}/${ml}` : String(moves)}
-                    colors={hot ? ['#f87171', '#b91c1c'] : warm ? ['#fbbf24', '#b45309'] : ['#94a3b8', '#475569']}
-                  />
-                );
-              })()}
-              <HudBadge icon="cube" value={remaining} colors={['#60a5fa', '#2563eb']} />
-              {/* Прогресс цели показываем только для 'pick'/'free': у 'all' его
-                  и так видно по счётчику товаров, у 'moves' — по счётчику ходов. */}
-              {(() => {
-                const gp = goalProgress(cells, goal);
-                return gp ? (
-                  <HudBadge icon="flag" label={t('goalLabel')} value={`${gp.done}/${gp.total}`}
-                    colors={['#fb923c', '#c2410c']} tint="#3f2b00" />
-                ) : null;
-              })()}
-              {!isPreset && <LevelRuleBadge lr={levelRules} color="#d97706" ru={language === 'ru'} />}
-            </View>
-          }
+          /**
+           * 🔴 СЛУЖЕБНЫЕ КНОПКИ ВНИЗУ: ОТВЕТ ЗДЕСЬ ДАЮТ ПАЛЬЦЕМ ПО ПОЛЮ.
+           *
+           * Правило каркаса «низ = ответ игрока» уточнено 02.09.2026: низ
+           * принадлежит ответу, а там, где ответа кнопками нет, он достаётся
+           * служебному. В сортировке отвечают перетаскиванием товара, нижняя
+           * полоса пустовала — и три кнопки жили сверху, отнимая у поля целую
+           * строку (репорт Вали 01.09.2026: «товары мелкие, текст сверху очень
+           * крупно»).
+           *
+           * Смешения в одной игре не возникает: ответа-кнопок здесь нет вовсе,
+           * поэтому рефлекс «низ — это мой ответ» тут не за что зацепиться.
+           */
+          bottom="actions"
+          /**
+           * 🔴 ЧЕТЫРЕ СЧЁТЧИКА ВМЕСТО ШЕСТИ — И ЭТО ДАННЫЕ, А НЕ ВЁРСТКА.
+           *
+           * Репорт Вали 01.09.2026: «ужасно товары мелкие, при этом текст сверху
+           * очень крупно». На кадре шесть бейджей ломались во второй ряд, и поле
+           * оставалось на трети экрана.
+           *
+           * Что убрано и почему:
+           * · счётчик ОСТАВШИХСЯ ТОВАРОВ — он дублирует само поле: сколько их,
+           *   видно глазами, а цифра занимает место, которое нужно товарам;
+           * · бейдж правила уровня уехал к служебным кнопкам: он их родня —
+           *   открывает справку, а не сообщает число.
+           *
+           * Что осталось: уровень · счёт · ходы (только когда есть лимит) · цель
+           * (только когда она измерима). Больше четырёх каркас и не покажет.
+           */
+          hud={(() => {
+            const ml = moveLimitRef.current;
+            const left = ml > 0 ? Math.max(0, ml - moves) : null;
+            const hot = left !== null && (left <= 3 || left <= ml * 0.2);
+            const warm = left !== null && !hot && left <= ml * 0.35;
+            const gp = goalProgress(cells, goal);
+            const items: HudItem[] = [
+              { key: 'level', icon: 'pricetag', label: t('goodsLevel'), value: level, tone: 'accent' },
+              { key: 'score', icon: 'star', label: t('score'), value: score, tone: 'good', pop: true },
+            ];
+            // Ходы показываем ТОЛЬКО там, где есть лимит: без лимита это
+            // справка «сделано столько-то», ради которой место не тратят.
+            if (ml > 0) items.push({
+              key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'),
+              value: `${moves}/${ml}`, tone: hot ? 'bad' : warm ? 'warn' : 'neutral',
+            });
+            if (gp) items.push({
+              key: 'goal', icon: 'flag', label: t('goalLabel'),
+              value: `${gp.done}/${gp.total}`, tone: 'warn',
+            });
+            return items;
+          })()}
           /*
             🔴 ВСЕ ТРИ СЛУЖЕБНЫЕ КНОПКИ СОБРАНЫ В ОДНО МЕСТО. Отмена и подсказка
             и раньше стояли в шапке — но ВНУТРИ строки счётчиков, вперемешку с
@@ -3517,6 +3532,10 @@ export default function GoodsSortGame() {
                 icon="shuffle" tint="#d97706" label={t('shuffleBtn')} count={shuffles}
                 disabled={shuffles <= 0} onPress={reshuffle}
               />
+              {/* Правило уровня переехало из строки счётчиков сюда: оно
+                  открывает справку, то есть родня служебным кнопкам, а не
+                  число среди чисел. */}
+              {!isPreset && <LevelRuleBadge lr={levelRules} color="#d97706" ru={language === 'ru'} />}
             </GameAuxBar>
           }
         >

@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.24.0',
+    date: '2026-09-02',
+    ru: [
+      'Шапка стала ниже и уже во всех тренажёрах: отступы теперь одни на все игры, поле получило место обратно',
+      'В «Сортировке товаров» четыре счётчика вместо шести, а отмена, подсказка и перемешать переехали вниз — под большой палец',
+    ],
+    en: [
+      'The header got shorter and narrower across every exercise: spacing is now shared by all games, and the board got its room back',
+      'Goods Sort shows four counters instead of six, and undo, hint and shuffle moved to the bottom — within thumb reach',
+    ],
+  },
+  {
     version: '2.23.0',
     date: '2026-08-31',
     ru: [
