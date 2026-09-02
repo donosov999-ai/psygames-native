@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.25.0',
+    date: '2026-09-02',
+    ru: [
+      'В «Сортировке товаров» шкаф стал шире, а товары крупнее — особенно заметно на большом экране',
+      'Приложение теперь собирается и для Linux, а для iPhone появилась пробная сборка под симулятор',
+    ],
+    en: [
+      'In Goods Sort the cabinet got wider and the goods bigger — most noticeable on a large screen',
+      'The app now builds for Linux too, and an iPhone simulator build joined the pipeline',
+    ],
+  },
+  {
     version: '2.24.0',
     date: '2026-09-02',
     ru: [
