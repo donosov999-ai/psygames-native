@@ -39,8 +39,7 @@ import {
   restoreGoodsParty,
   type GoodsLiveParty,
   type GoodsResume,
-  type HiddenRunStats,
-} from '@/app/games/goods-sort';
+  type HiddenRunStats, REF_PER_TYPE } from '@/app/games/goods-sort';
 
 /**
  * Ход, как его делает moveItem: изъять (from, idx) → положить в to спереди →
@@ -206,9 +205,18 @@ describe('§20.4 — details сессии', () => {
     expect(d.plan_revisions).toBe(0);               // счётчик — законный ноль
   });
 
-  it('эталон ходов один на звёзды и на запись: лимит, а без него types × 3', () => {
-    expect(moveReference({ moveLimit: 18, types: 5 })).toBe(18);
-    expect(moveReference({ moveLimit: 0, types: 5 })).toBe(15);
+  /**
+   * ⚠️ Множитель откалиброван 02.09.2026 и больше не равен трём: замер поиском A*
+   * показал, что прикидка `types × 3` завышала реальный минимум на треть устойчиво
+   * (доля 0,68–0,80 по девяти уровням), из-за чего три звезды были недостижимы на
+   * 95 % досок. Гейт проверяет СВЯЗЬ (эталон один на звёзды и на запись), а само
+   * число берёт из игры — иначе он бы просто закреплял прежнюю ошибку.
+   */
+  it('эталон ходов один на звёзды и на запись: лимит, а без него — по числу видов', () => {
+    expect(moveReference({ moveLimit: 18, types: 5 })).toBe(18);      // лимит уровня главнее
+    expect(moveReference({ moveLimit: 0, types: 5 })).toBe(Math.round(5 * REF_PER_TYPE));
+    // И эталон растёт вместе с числом видов, а не стоит на месте.
+    expect(moveReference({ moveLimit: 0, types: 8 })).toBeGreaterThan(moveReference({ moveLimit: 0, types: 5 }));
   });
 });
 
