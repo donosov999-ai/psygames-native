@@ -93,11 +93,17 @@ def главное() -> None:
     p = argparse.ArgumentParser()
     p.add_argument('--csr', required=True, help='файл запроса на сертификат')
     p.add_argument('--out-cert', required=True, help='куда записать сертификат (DER)')
-    # Значение по умолчанию — из конфига приложения: зашитая строка однажды уже
-    # разошлась с ним (`com.psygames.app` против `com.odv999.psygames`), и профиль
-    # создавался не для того приложения.
-    конфиг = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src-tauri', 'tauri.conf.json')
-    свой = json.load(open(конфиг, encoding='utf-8'))['identifier'] if os.path.exists(конфиг) else None
+    # Значение по умолчанию — из конфига iOS, а не из базового: базовый описывает
+    # десктоп (`com.odv999.psygames`), а iOS и Android переопределяют идентификатор
+    # на `com.psygames.app` — тот, что заведён в аккаунте Apple и опубликован в Play.
+    корень = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src-tauri')
+    ios = os.path.join(корень, 'tauri.ios.conf.json')
+    база = os.path.join(корень, 'tauri.conf.json')
+    свой = None
+    if os.path.exists(ios):
+        свой = json.load(open(ios, encoding='utf-8')).get('identifier')
+    if not свой and os.path.exists(база):
+        свой = json.load(open(база, encoding='utf-8')).get('identifier')
     p.add_argument('--bundle', default=свой)
     p.add_argument('--profile-name', default='PsyGames App Store')
     a = p.parse_args()
