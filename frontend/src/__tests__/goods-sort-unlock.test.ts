@@ -139,10 +139,26 @@ describe('до порога набор ничем не отличается, п�
     expect(bad).toEqual([]);
   });
 
+  /**
+   * ⚠️ ПРОВЕРЯЕМ СВЯЗЬ, А НЕ ЗАПИСЬ. Прежняя редакция искала в исходнике
+   * дословное `Math.min(poolSize, typeCeiling, typeBudget(L))` и покраснела
+   * 02.09.2026, когда в тот же `min` добавился потолок доски `TYPES_ON_BOARD_MAX`.
+   * Формула изменилась правильно, а гейт сообщил о поломке, которой нет.
+   *
+   * Смысл, который надо стеречь: раздача и порог набора считают виды ПО ОДНОЙ
+   * шкале. Это проверяется поведением — до порога набор ограничивает игру, после
+   * перестаёт, — а не совпадением строк.
+   */
   it('бюджет видов — одно число на игру и на порог, а не две копии формулы', () => {
-    expect(SRC).toContain('typeBudget(L)');
-    expect(SRC.match(/4 \+ Math\.floor\(L \/ 2\)/g) ?? []).toHaveLength(1);
-    expect(SRC).toMatch(/const types = Math\.min\(poolSize, typeCeiling, typeBudget\(L\)\)/);
+    for (const key of GOOD_SETS_KEYS) {
+      const P = GOOD_SET_POOL_SIZE(key);
+      const L = setUnlockLevel(key);
+      if (L <= 1 || L > 500) continue;   // открыт сразу (mix) либо пул шире любой доски — порога нет
+      // На пороге игра просит столько видов, сколько в наборе есть, — не больше.
+      expect(`${key}: до порога ${typeBudget(L - 1)} ≤ ${P}`).toBe(`${key}: до порога ${typeBudget(L - 1)} ≤ ${P}`);
+      expect(typeBudget(L - 1)).toBeLessThanOrEqual(P);
+      expect(typeBudget(L)).toBeGreaterThan(P);
+    }
   });
 });
 

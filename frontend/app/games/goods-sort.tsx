@@ -48,32 +48,32 @@ export const GS_RULES: LevelRule[] = [
     en: { title: 'Goal: gather the named', rule: 'Levels now carry their own goal, written above the cabinet. “Gather triples” means clearing exactly the goods shown — the rest may stay on the shelves.', example: 'Example: 🚩 Gather triples of: milk, cola. Clear both and the level is done, even with kefir still there.' },
   },
   {
-    key: 'blocked', fromLevel: 6,
+    key: 'blocked', fromLevel: 8,
     ru: { title: 'Запертая ниша', rule: 'Ниша с замком закрыта: класть в неё нельзя. Откроется сама, когда рядом соберётся тройка — освобождай соседей.', example: 'Пример: 🔒 в углу. Собери тройку в соседней нише — замок спадёт.' },
     en: { title: 'Locked niche', rule: 'A niche with a padlock is shut — nothing goes in. It opens by itself once a triple clears next to it, so free the neighbours.', example: 'Example: 🔒 in the corner. Clear a triple in the adjacent niche and the lock falls off.' },
   },
   {
-    key: 'goalfree', fromLevel: 7,
+    key: 'goalfree', fromLevel: 12,
     ru: { title: 'Цель: освободить ниши', rule: 'Ниши с флажком должны опустеть — выложи из них всё. Что лежит в остальных, для этой цели неважно.', example: 'Пример: 🚩 два флажка. Опустошил обе ниши — уровень пройден.' },
     en: { title: 'Goal: free the niches', rule: 'Flagged niches must end up empty — move everything out of them. Whatever sits elsewhere does not matter for this goal.', example: 'Example: 🚩 two flags. Empty both niches and the level is done.' },
   },
   {
-    key: 'covered', fromLevel: 8,
+    key: 'covered', fromLevel: 14,
     ru: { title: 'Накрытый товар', rule: 'Тёмный силуэт — товар, который не видно. Он всегда лежит НЕ первым: сними тот, что перед ним, и узнаешь, что это.', example: 'Пример: за колой чёрный силуэт. Убрал колу — стало видно кефир.' },
     en: { title: 'Covered good', rule: 'A dark silhouette is a good you cannot see yet. It is never the front one: take the item in front of it and you will find out what it is.', example: 'Example: a black shape behind the cola. Move the cola and kefir appears.' },
   },
   {
-    key: 'movelimit', fromLevel: 9,
+    key: 'movelimit', fromLevel: 18,
     ru: { title: 'Лимит ходов', rule: 'Теперь на уровень даётся ограниченное число перестановок — трать ходы с умом. Превысил лимит — уровень заново. Счётчик ходов в шапке: сделано/лимит.', example: 'Пример: ⇄ 12/18 — сделано 12 ходов из 18. С каждым уровнем лимит жмёт сильнее.' },
     en: { title: 'Move limit', rule: 'Each level now allows a limited number of moves — spend them wisely. Exceed the limit and the level restarts. The header counter shows used/limit.', example: 'Example: ⇄ 12/18 — 12 of 18 moves used. The limit tightens every level.' },
   },
   {
-    key: 'locked', fromLevel: 10,
+    key: 'locked', fromLevel: 22,
     ru: { title: 'Замок по ходам', rule: 'Ниша с часами откроется сама через столько ходов, сколько показывает счётчик. Ждать не обязательно — просто считай её занятой, пока идёт отсчёт.', example: 'Пример: ⏱ 5 — откроется через пять твоих ходов. Каждый ход счётчик убывает.' },
     en: { title: 'Timed lock', rule: 'A niche with a clock opens by itself after as many moves as the counter shows. No need to wait for it — just treat it as taken while it counts down.', example: 'Example: ⏱ 5 — opens in five of your moves. Every move takes one off.' },
   },
   {
-    key: 'frozen', fromLevel: 12,
+    key: 'frozen', fromLevel: 26,
     ru: { title: 'Примёрзший ряд', rule: 'Синий ряд не работает: ни взять, ни положить. Оттает, когда ты соберёшь тройку того товара, что примёрз — он показан снежинкой.', example: 'Пример: ❄ ряд внизу примёрз на соке. Собери тройку сока где угодно — ряд оттает.' },
     en: { title: 'Frozen row', rule: 'A blue row is out of action — nothing in, nothing out. It thaws when you clear a triple of the frozen good, shown by the snowflake.', example: 'Example: ❄ the bottom row is frozen on juice. Clear a triple of juice anywhere and it thaws.' },
   },
@@ -84,7 +84,7 @@ export const GS_RULES: LevelRule[] = [
    * видел бы объяснение про заморозку вместо нового правила — то есть механику
    * ввели бы молча. Гейт это поймал.
    */
-  { key: 'strict', fromLevel: 14 },
+  { key: 'strict', fromLevel: 30 },
   /**
    * Скрытая информация (L16+). Тексты — только в словаре на двенадцати языках
    * (`lr_goods_sort_hidden_*`): инлайн ru/en в LevelRule помечен устаревшим и
@@ -95,7 +95,7 @@ export const GS_RULES: LevelRule[] = [
    * ней, натыкаясь. Долг был записан комментарием у `hiddenInfo` и ждал, пока
    * освободится словарь.
    */
-  { key: 'hidden', fromLevel: 16 },   // = HIDDEN_FROM; равенство сторожит гейт goods-sort-hidden-rule
+  { key: 'hidden', fromLevel: 34 },   // = HIDDEN_FROM; равенство сторожит гейт goods-sort-hidden-rule
 ];
 
 const GRADIENT = ['#f7971e', '#ffd200'];
@@ -257,6 +257,25 @@ export const GOOD_SETS: { key: string; ru: string; en: string; icon: any; pool: 
  * Разъедутся — порог перестанет совпадать с тем, где набор правда меняется.
  */
 export function typeBudget(L: number): number { return 4 + Math.floor(L / 2); }
+
+/**
+ * 🔴 СКОЛЬКО ВИДОВ ВЛЕЗЕТ НА ДОСКУ — ЭТО НЕ ТО ЖЕ, ЧТО «СКОЛЬКО ПОЗВОЛЯЕТ УРОВЕНЬ».
+ *
+ * Симуляция игрока средней силы (02.09.2026, 12 партий на уровень) на доске 4×4:
+ * с двадцать четвёртого уровня видов выходило 14 при шестнадцати нишах — партия
+ * не проходилась ВООБЩЕ, доля провалов 100 % пять уровней подряд. Это уже не
+ * трудность, а стена: манёвра нет, любой ход ведёт в тупик.
+ *
+ * ⚠️ Я СНАЧАЛА ПОСТАВИЛ ЭТОТ ПОТОЛОК В `typeBudget` — И СЛОМАЛ ДРУГОЕ. По той же
+ * функции считается ПОРОГ ОТКРЫТИЯ НАБОРА (`poolBitesAt`): «набор открывается,
+ * когда уровень начинает требовать больше видов, чем в нём есть». С потолком 11
+ * наборы шире одиннадцати видов не открывались никогда — «Зверята» (12 видов)
+ * получили порог 1000. Гейт порогов поймал это в тот же прогон.
+ *
+ * Отсюда разделение: `typeBudget` — ШКАЛА ПРОГРЕССА (растёт без предела, по ней
+ * считаются пороги наборов), а этот потолок — свойство КОНКРЕТНОЙ ДОСКИ.
+ */
+export const TYPES_ON_BOARD_MAX = 11;
 
 /** Первый уровень, на котором пул из `poolSize` видов начинает УПИРАТЬСЯ в игру. */
 export function poolBitesAt(poolSize: number): number {
@@ -488,7 +507,7 @@ import {
   canPlace, makeBoard,
   tripleIn as coreTripleIn, removeTriple as coreRemoveTriple,
 } from '@/src/games/goods-sort/core/board';
-import { solvableStrict as coreSolvable, isDeadEnd, hintMove } from '@/src/games/goods-sort/core/solver';
+import { solvableStrict as coreSolvable, solveStrict as coreSolve, isDeadEnd, hintMove } from '@/src/games/goods-sort/core/solver';
 
 const CAP = 3;     // вместимость ячейки — 3 товара ВИДИМЫ (суть оригинала)
 
@@ -541,15 +560,31 @@ function gridFor(L: number, narrow = false): { cols: number; rows: number } {
  */
 type Shape = string[];
 
-const SHAPES: Record<string, Shape[]> = {
+export const SHAPES: Record<string, Shape[]> = {
+  /**
+   * ⚠️ ФОРМ ОДНОГО ОБЪЁМА ДОЛЖНО БЫТЬ НЕСКОЛЬКО.
+   *
+   * С 02.09.2026 форма выбирается по объёму (`targetSlots`), а не циклом — и
+   * стало видно, что на восемь ниш в наборе 3×3 приходилась РОВНО ОДНА фигура:
+   * пять уровней подряд человек видел одну и ту же доску. Гейт разнообразия
+   * поймал это сразу (49 разных уровней за 60 вместо 55).
+   *
+   * Поэтому у каждого ходового объёма теперь по несколько рисунков: вырезана
+   * другая клетка — другая доска, та же сложность.
+   */
   '3x3': [
     ['###', '###', '###'],          // полная
+    ['.##', '###', '###'],          // 8: вырезан верхний левый
+    ['###', '###', '##.'],          // 8: вырезан нижний правый
+    ['###', '##.', '###'],          // 8: вырезан бок в середине
     ['#.#', '###', '#.#'],          // песочные часы
     ['###', '#.#', '###'],          // рамка
     ['##.', '###', '.##'],          // зигзаг (7 ниш: на 5 играть нечем — поймал гейт)
   ],
   '3x4': [
     ['###', '###', '###', '###'],
+    ['.##', '###', '###', '##.'],   // 10: срезаны противоположные углы
+    ['##.', '###', '###', '.##'],   // 10: зеркальный срез
     ['.#.', '###', '###', '.#.'],   // крест
     ['###', '#.#', '#.#', '###'],   // рамка
     ['#..', '##.', '.##', '..#'],   // лесенка
@@ -569,6 +604,10 @@ const SHAPES: Record<string, Shape[]> = {
   ],
   '3x6': [
     ['###', '###', '###', '###', '###', '###'],
+    ['#.#', '###', '###', '###', '###', '#.#'],   // 16: вырезы по краям
+    ['###', '#.#', '###', '###', '#.#', '###'],   // 16: вырезы внутри
+    ['#.#', '###', '#.#', '###', '#.#', '###'],   // 15: разрежённые ряды
+    ['##.', '###', '.##', '##.', '###', '.##'],   // 12: лесенка вниз
     ['.#.', '###', '###', '###', '###', '.#.'],
     ['###', '#.#', '###', '#.#', '###', '#.#'],
     ['#..', '##.', '###', '###', '.##', '..#'],
@@ -583,12 +622,19 @@ const SHAPES: Record<string, Shape[]> = {
   ],
   '4x3': [
     ['####', '####', '####'],
+    ['.###', '####', '###.'],       // 10: срезаны противоположные углы
+    ['####', '#..#', '####'],       // 10: пустая сердцевина
+    ['###.', '####', '.###'],       // 10: зеркальный срез
     ['.##.', '####', '.##.'],
     ['####', '#..#', '####'],
     ['#..#', '####', '#..#'],
   ],
   '4x4': [
     ['####', '####', '####', '####'],
+    ['.###', '####', '####', '###.'],   // 14: срезаны углы по диагонали
+    ['####', '.###', '###.', '####'],   // 14: сдвинутые окна
+    ['####', '####', '#..#', '####'],   // 14: вырез в нижней трети
+    ['#..#', '####', '####', '####'],   // 14: вырез в верхней
     ['.##.', '####', '####', '.##.'],
     ['####', '#..#', '#..#', '####'],
     ['#...', '##..', '.##.', '...#'],
@@ -601,18 +647,89 @@ const SHAPES: Record<string, Shape[]> = {
  * человек должен понять правило на простой фигуре, а не разбираться сразу с
  * дыркой посередине.
  */
-function shapeFor(L: number, cols: number, rows: number): boolean[] {
+/**
+ * 🔴 СКОЛЬКО НИШ ДОЛЖНО БЫТЬ НА УРОВНЕ — КРИВАЯ, А НЕ ПОБОЧНЫЙ ЭФФЕКТ ФОРМЫ.
+ *
+ * Замер 02.09.2026 (симуляция игрока средней силы, 12 партий на уровень, 40
+ * уровней): корреляция номера уровня со средним числом ходов **−0,063** — то есть
+ * связи нет вовсе. Причина оказалась не в «пиле генератора вообще», а вот здесь:
+ * форма доски выбиралась ЦИКЛОМ `((L−3) × 7) % длина`, а формы в списке содержат
+ * от 6 до 16 ниш. Число типов товара считается от числа ниш — значит вместе с
+ * формой скакала и вся трудность:
+ *
+ *   L17 — 4 типа, 6 ниш (легче первого уровня!)
+ *   L18 — 13 типов, 16 ниш (стена)
+ *
+ * Соседние уровни отличались втрое. Форма обязана менять РИСУНОК, а не ОБЪЁМ:
+ * «крест» и «рамка» на двенадцати нишах — разные картинки одной сложности.
+ *
+ * Кривая пологая и с плато: §12 карты геймификации требует держать успешность
+ * 0,75–0,85, а не «чем дальше, тем больше». Потолок 16 — размер доски 4×4.
+ */
+export function targetSlots(L: number): number {
+  if (L <= 2) return 9;          // знакомство: полная доска 3×3
+  if (L <= 7) return 8;          // первые фигуры — тем же объёмом, меняется только рисунок
+  if (L <= 11) return 10;        // доска 4×3: чуть просторнее
+  if (L <= 16) return 12;        // 4×4 с вырезами
+  /**
+   * 🔴 СТРОГИЙ УРОВЕНЬ — МЕНЬШЕ ДОСКА, А НЕ БОЛЬШЕ.
+   *
+   * Правило «класть только к такому же или в пустую» меняет само дерево решений,
+   * и на большой доске оно даёт две беды разом: играть тяжелее, чем задумано, и
+   * РЕШАЕМОСТЬ СТАНОВИТСЯ НЕДОКАЗУЕМОЙ — перебор не влезает в бюджет (замер
+   * 02.09.2026: на четырнадцати нишах 13 досок из 60 упирались в потолок, а при
+   * бюджете 400 000 доказательство занимало до двух секунд на доску).
+   *
+   * Канон рынка говорит то же самое словами Royal Match: трудный уровень — это
+   * «меньше сущностей, но глубже». Поэтому на строгих уровнях доска на ступень
+   * меньше: и играется честнее, и решаемость подтверждается дёшево.
+   */
+  if (strictPlacement(L)) return 12;
+  /**
+   * ⚠️ ПОТОЛОК 14, А НЕ 16. Полная доска — ровно ОДИН рисунок, и цель «шестнадцать
+   * ниш» означала бы, что с двадцать пятого уровня человек видит одну и ту же
+   * фигуру всегда. Четырнадцать — самый богатый объём: четыре разных рисунка на
+   * 4×4 и семь на 3×6, то есть доска продолжает меняться и на плато.
+   */
+  return 14;
+}
+
+export function shapeFor(L: number, cols: number, rows: number): boolean[] {
   const list = SHAPES[`${cols}x${rows}`];
   if (!list || !list.length) return Array(cols * rows).fill(true);
   /**
-   * ⚠️ ШАГ ОБЯЗАН БЫТЬ ВЗАИМНО ПРОСТ С ДЛИНОЙ СПИСКА, иначе часть форм не
-   * используется НИКОГДА. Я на этом споткнулся: поставил шаг 3 при списке из
-   * 12 форм — gcd(3,12)=3, обходилась ровно треть, и разных уровней стало
-   * МЕНЬШЕ (23 вместо 25), хотя форм я добавил вдвое. Списки у нас длиной
-   * 5, 10 и 12; 7 взаимно прост со всеми тремя.
+   * 🔴 СНАЧАЛА ОБЪЁМ, ПОТОМ РИСУНОК.
+   *
+   * Из списка берём формы, чьё число ниш ближе всего к кривой `targetSlots`, и
+   * уже СРЕДИ НИХ выбираем циклом — так рисунок продолжает меняться от уровня к
+   * уровню, а трудность идёт по кривой, а не пилой.
+   *
+   * ⚠️ ШАГ ЦИКЛА ОБЯЗАН БЫТЬ ВЗАИМНО ПРОСТ С ДЛИНОЙ СПИСКА, иначе часть форм не
+   * используется НИКОГДА. Я на этом споткнулся: поставил шаг 3 при списке из 12
+   * форм — gcd(3,12)=3, обходилась ровно треть, и разных уровней стало МЕНЬШЕ
+   * (23 вместо 25), хотя форм я добавил вдвое. Семёрка взаимно проста с длинами
+   * наших списков (4, 5, 10, 12) и с любой длиной подсписка, кроме кратной семи.
    */
-  const idx = L <= 2 ? 0 : ((L - 3) * 7) % list.length;
-  const shape = list[idx];
+  const цель = targetSlots(L);
+  const объём = (sh: Shape) => sh.reduce((n, line) => n + (line.match(/#/g)?.length ?? 0), 0);
+  const лучший = Math.min(...list.map((sh) => Math.abs(объём(sh) - цель)));
+  const годные = list.filter((sh) => Math.abs(объём(sh) - цель) === лучший);
+  /**
+   * ⚠️ ШАГ ВЫБИРАЕТСЯ ПОД ДЛИНУ ПОДСПИСКА, А НЕ ЗАШИТ СЕМЁРКОЙ.
+   *
+   * Раньше шаг 7 подбирался под длины ПОЛНЫХ списков (4, 5, 10, 12) — со всеми
+   * взаимно прост. Теперь выбор идёт среди форм ОДНОГО ОБЪЁМА, и длина такого
+   * подсписка любая: стоило добавить формы, как в 3×3 их стало ровно семь, и
+   * шаг 7 обходил одну-единственную фигуру — пять уровней подряд одна доска.
+   * Гейт поймал это в тот же прогон.
+   *
+   * Берём первый шаг, взаимно простой с длиной: тогда цикл обходит ВСЕ формы
+   * подсписка, какой бы длины он ни оказался.
+   */
+  const нод = (a: number, b: number): number => (b === 0 ? a : нод(b, a % b));
+  const шаг = [7, 5, 3, 2, 1].find((k) => нод(k, годные.length) === 1) ?? 1;
+  const idx = L <= 2 ? 0 : ((L - 3) * шаг) % годные.length;
+  const shape = годные[idx];
   const mask: boolean[] = [];
   for (let r = 0; r < rows; r++) {
     const line = shape[r] ?? '#'.repeat(cols);
@@ -761,7 +878,7 @@ export function capsForBoard(L: number, cells: readonly unknown[][]): number[] {
 
 export function strictPlacement(L: number): boolean {
   // С 14-го, через два уровня на третий: успевает и надоесть не успевает.
-  return L >= 14 && (L - 14) % 3 === 0;
+  return L >= 30 && (L - 30) % 3 === 0;
 }
 
 /* ───────────────── СКРЫТАЯ ИНФОРМАЦИЯ — шестая механика (§20 плана слияния) ─────────────────
@@ -788,7 +905,7 @@ export function strictPlacement(L: number): boolean {
  * укладкой (14) и смешанной ёмкостью (18): верх лесенки и так вводит по новой
  * механике раз в два уровня, режим встаёт в свой свободный такт.
  */
-export const HIDDEN_FROM = 16;
+export const HIDDEN_FROM = 34;
 
 /**
  * Идёт ли на уровне режим скрытой информации. Включение — по уровню, как у
@@ -1116,6 +1233,29 @@ export const removeTriple = coreRemoveTriple;
 export function solvableStrict(start: number[][], caps?: number[], budget = 20000): boolean {
   const board = makeBoard(start, caps ?? start.map(() => CAP));
   return coreSolvable(board, budget);
+}
+
+/**
+ * 🔴 «БЮДЖЕТ КОНЧИЛСЯ» — ЭТО НЕ «НЕРЕШАЕМО».
+ *
+ * Раздача бракует доску, если решатель не подтвердил решаемость строгой укладкой.
+ * Пока доски были мелкими (6–8 ниш), перебор всегда доходил до дна и ответ был
+ * настоящим. 02.09.2026 доски выросли до 12–14 ниш (кривая `targetSlots`), и на
+ * тринадцати досках из шестидесяти перебор стал упираться в бюджет — а `false`
+ * от исчерпания неотличим от `false` «доказано нерешаемо».
+ *
+ * Что из этого выходило: доску браковали, пересобирали — и снова упирались в
+ * бюджет, до восьми раз подряд по ~90 мс. Полсекунды подвисания на старте
+ * уровня, после которых всё равно принималась последняя доска.
+ *
+ * ⚠️ Проверено отдельным прогоном: при бюджете 400 000 такие доски решаются
+ * (6 из 6 на L21…L37). То есть они хорошие, просто дорогие для доказательства.
+ * Поэтому бракуем ТОЛЬКО доказанную нерешаемость, а исчерпание пропускаем.
+ */
+export function provenUnsolvable(start: number[][], caps?: number[], budget = 20000): boolean {
+  const board = makeBoard(start, caps ?? start.map(() => CAP));
+  const r = coreSolve(board, budget);
+  return !r.solvable && !r.exhausted;
 }
 
 /** Сколько раз за уровень можно перемешать. Не спасение от тупика — тупика нет. */
@@ -1471,9 +1611,32 @@ export function itemAtX(
   return Math.min(count - 1, Math.max(0, i));
 }
 
+/**
+ * 🔴 ПРЕПЯТСТВИЕ НЕ ПОЯВЛЯЕТСЯ РАНЬШЕ СВОЕГО ПРАВИЛА.
+ *
+ * План берётся из цикла, а цикл ничего не знает про график ввода механик — и
+ * стоит сдвинуть `fromLevel`, как накрытый товар или замок вылезают на уровне,
+ * где игрок про них ещё не читал. Раньше это сходилось СЛУЧАЙНО: и правила, и
+ * цикл были расписаны на подряд идущие уровни 6…12.
+ *
+ * 02.09.2026 график растянут по канону рынка (новая механика раз в ~10 уровней,
+ * L1–20 проходятся с первой попытки), и совпадение рассыпалось. Поэтому план
+ * теперь ФИЛЬТРУЕТСЯ порогами из `GS_RULES`: пока правило не введено, его
+ * механика вычёркивается, а не «объясняется задним числом».
+ */
+function ruleFrom(key: string): number {
+  return GS_RULES.find((r) => r.key === key)?.fromLevel ?? 1;
+}
+
 function obstaclePlan(L: number): ObstaclePlan {
-  if (L < 6) return NO_OBSTACLES;
-  return OBSTACLE_PLANS[(L - 6) % OBSTACLE_PLANS.length];
+  if (L < ruleFrom('blocked')) return NO_OBSTACLES;
+  const raw = OBSTACLE_PLANS[(L - ruleFrom('blocked')) % OBSTACLE_PLANS.length];
+  return {
+    blocked: raw.blocked,
+    locked: L >= ruleFrom('locked') ? raw.locked : 0,
+    covered: L >= ruleFrom('covered') ? raw.covered : 0,
+    frozenRow: L >= ruleFrom('frozen') ? raw.frozenRow : false,
+  };
 }
 
 /**
@@ -1512,7 +1675,7 @@ export function dealBoard(L: number, pool: number[], narrow = false): {
    * доску, забракованную первой.
    */
   const dealtWrong = (b: number[][]): boolean =>
-    b.some((cell) => tripleIn(cell) !== null) || (strictPlacement(L) && !solvableStrict(b, caps));
+    b.some((cell) => tripleIn(cell) !== null) || (strictPlacement(L) && provenUnsolvable(b, caps));
   let cells = generate(pool, cfg.types, cfg.spares + shut, cfg.slots, caps);
   for (let tries = 0; tries < 8 && dealtWrong(cells); tries++) {
     cells = generate(pool, cfg.types, cfg.spares + shut, cfg.slots, caps);
@@ -1533,7 +1696,7 @@ export function levelCfg(L: number, poolSize: number, narrow = false) {
   // иначе фигура с дырками получит столько же товаров, сколько полный прямоугольник.
   const slots = mask.filter(Boolean).length;
   const typeCeiling = slots - 2 - obstaclePlan(L).blocked - obstaclePlan(L).locked;                                 // ≥2 пустых ячейки → всегда решаемо
-  const types = Math.min(poolSize, typeCeiling, typeBudget(L));   // 4 → растёт, выше 7 на больших досках
+  const types = Math.min(poolSize, typeCeiling, typeBudget(L), TYPES_ON_BOARD_MAX);   // 4 → растёт; потолок доски — см. TYPES_ON_BOARD_MAX
   // ⚠️ `typeBudget` — то же число, по которому считается порог открытия набора
   // (см. poolBitesAt). Развести их значит открыть набор не там, где он меняется.
   // ⚠️ ПУСТЫЕ ЯЧЕЙКИ — ДОЛЕЙ ДОСКИ, А НЕ АБСОЛЮТНЫМ ЧИСЛОМ.
@@ -1550,7 +1713,14 @@ export function levelCfg(L: number, poolSize: number, narrow = false) {
    */
   const shut = obst.blocked + obst.locked;
   const usable = slots - shut;
-  let spares = Math.max(2, Math.ceil(usable * 0.34) - Math.floor((L - 1) / 4));
+  /**
+   * ⚠️ ПОЛ ЗАПАСА — ТРИ, А НЕ ДВА. Симуляция 02.09.2026: при двух свободных
+   * нишах и десяти типах жадный игрок не решал ни одной партии из двенадцати.
+   * Две ниши дают ровно один манёвр — переложить и вернуть; три уже позволяют
+   * разобрать завал. На маленькой доске (6–8 ниш) запас всё равно ограничен
+   * сверху числом свободных мест, поэтому пол не ломает ранние уровни.
+   */
+  let spares = Math.max(3, Math.ceil(usable * 0.34) - Math.floor((L - 1) / 4));
   spares = Math.max(2, Math.min(spares, usable - types));
   /**
    * ЛИМИТ ХОДОВ — ТОЛЬКО ТАМ, ГДЕ ОН ЦЕЛЬ.

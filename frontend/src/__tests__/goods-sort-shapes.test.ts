@@ -17,6 +17,8 @@
  * Здесь это проверяется прямо: все формы должны быть достижимы.
  */
 declare const __dirname: string;
+import { SHAPES, shapeFor, levelCfg } from '../../app/games/goods-sort';
+
 declare function require(m: string): any;
 const { readFileSync } = require('fs');
 const { join } = require('path');
@@ -34,15 +36,27 @@ function shapes(): Record<string, string[][]> {
   return out;
 }
 
-const SH = shapes();
-const STEP = Number((src.match(/\(\(L - 3\) \* (\d+)\)/) || [])[1]);
+/**
+ * ⚠️ ТАБЛИЦА БЕРЁТСЯ ИМПОРТОМ, А НЕ РАЗБОРОМ ИСХОДНИКА.
+ *
+ * Прежняя редакция вычитывала и формы, и ШАГ ЦИКЛА регуляркой по файлу. 02.09.2026
+ * шаг перестал быть числом в коде (он подбирается под длину подсписка форм одного
+ * объёма) — регулярка вернула NaN, и половина проверок посыпалась не потому, что
+ * что-то сломалось, а потому что тест читал не то. Это третий такой гейт за день;
+ * лечение везде одно: звать саму игру.
+ */
+const SH = SHAPES as unknown as Record<string, string[][]>;
 const gridFor = (L: number): [number, number] => (L <= 7 ? [3, 4] : L <= 11 ? [3, 5] : [3, 6]);
-const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
 
 describe('формы доски', () => {
   it('таблица форм прочитана', () => {
     expect(Object.keys(SH).length).toBeGreaterThanOrEqual(4);
-    expect(STEP).toBeGreaterThan(0);
+    // Каждый размер доски даёт хотя бы несколько рисунков — иначе выбор по объёму
+    // упирается в единственную фигуру (ровно этим болел набор 3×3 на восемь ниш).
+    for (const [size, list] of Object.entries(SH)) {
+      expect(`${size}: ${list.length} форм`).toBe(`${size}: ${list.length} форм`);
+      expect(list.length).toBeGreaterThanOrEqual(4);
+    }
   });
 
   it('каждая форма прямоугольна и не пустая', () => {
@@ -61,13 +75,31 @@ describe('формы доски', () => {
     expect(bad).toEqual([]);
   });
 
-  /** Шаг не взаимно прост с длиной — часть форм не увидит никто и никогда. */
-  it('все формы достижимы: шаг взаимно прост с длиной каждого списка', () => {
+  /**
+   * 🔴 ЧЕЛОВЕК НЕ ВИДИТ ОДНУ И ТУ ЖЕ ДОСКУ ПЯТЬ УРОВНЕЙ ПОДРЯД.
+   *
+   * Проверяем ПОВЕДЕНИЕМ: сколько разных масок выдаёт игра на отрезке уровней.
+   * Прежняя редакция сверяла шаг цикла с длиной списка — арифметика верная, но
+   * она молчала о главном: после перехода на выбор формы по объёму (02.09.2026)
+   * список сузился до форм одного объёма, и на восьми нишах в 3×3 была ровно
+   * ОДНА фигура. Шаг при этом оставался взаимно простым, гейт — зелёным.
+   */
+  it('🔴 на любом отрезке в шесть уровней доска меняется', () => {
     const bad: string[] = [];
-    for (const [size, list] of Object.entries(SH)) {
-      if (gcd(STEP, list.length) !== 1) {
-        bad.push(`${size}: шаг ${STEP} и длина ${list.length}, обойдётся лишь ${list.length / gcd(STEP, list.length)} форм`);
-      }
+    for (let L = 3; L <= 54; L++) {
+      const [cols, rows] = gridFor(L);
+      /**
+       * ⚠️ Считаем только отрезки, целиком лежащие в одном размере доски. Обрывок
+       * перед сменой сетки (например, один уровень 3×5 перед переходом на 3×6)
+       * даёт единственный вид по построению — и первая редакция теста жаловалась
+       * на него, хотя человек в этот момент как раз получает НОВУЮ доску.
+       */
+      const целиком = Array.from({ length: 6 }, (_, k) => gridFor(L + k))
+        .every(([c2, r2]) => c2 === cols && r2 === rows);
+      if (!целиком) continue;
+      const виды = new Set<string>();
+      for (let k = 0; k < 6; k++) виды.add(shapeFor(L + k, cols, rows).map((b) => (b ? 1 : 0)).join(''));
+      if (виды.size < 2) bad.push(`L${L}…L${L + 5}: одна и та же доска`);
     }
     expect(bad).toEqual([]);
   });
@@ -79,18 +111,13 @@ describe('формы доски', () => {
    */
   it('каждый уровень с 1 по 60 решаем', () => {
     const bad: string[] = [];
-    const POOL = 24, CAP = 3;
+    const POOL = 24;
     for (let L = 1; L <= 60; L++) {
-      const [cols, rows] = gridFor(L);
-      const list = SH[`${cols}x${rows}`];
-      const sh = list[L <= 2 ? 0 : ((L - 3) * STEP) % list.length];
-      const slots = sh.join('').split('').filter((c) => c === '#').length;
-      const types = Math.min(POOL, slots - 2, 4 + Math.floor(L / 2));
-      let spares = Math.max(2, Math.ceil(slots * 0.34) - Math.floor((L - 1) / 4));
-      spares = Math.max(2, Math.min(spares, slots - types));
-      if (spares < 2) bad.push(`L${L}: свободных ${spares}`);
-      if (slots - spares < types) bad.push(`L${L}: ёмкости на ${types} типов не хватает`);
-      if (types * CAP > (slots - spares) * CAP) bad.push(`L${L}: товары не влезают`);
+      // ⚠️ Конфиг берём У ИГРЫ: своя копия формул расходилась с ней трижды за день.
+      const cfg = levelCfg(L, POOL, true);
+      const slots = cfg.mask.filter(Boolean).length;
+      if (cfg.spares < 2) bad.push(`L${L}: свободных ${cfg.spares}`);
+      if (slots - cfg.spares < cfg.types) bad.push(`L${L}: ёмкости на ${cfg.types} типов не хватает`);
     }
     expect(bad).toEqual([]);
   });
@@ -105,16 +132,8 @@ describe('формы доски', () => {
     const seen = new Set<string>();
     const POOL = 24;
     for (let L = 1; L <= 60; L++) {
-      const [cols, rows] = gridFor(L);
-      const list = SH[`${cols}x${rows}`];
-      const sh = list[L <= 2 ? 0 : ((L - 3) * STEP) % list.length];
-      const slots = sh.join('').split('').filter((c) => c === '#').length;
-      const types = Math.min(POOL, slots - 2, 4 + Math.floor(L / 2));
-      let spares = Math.max(2, Math.ceil(slots * 0.34) - Math.floor((L - 1) / 4));
-      spares = Math.max(2, Math.min(spares, slots - types));
-      const over = Math.max(0, L - 8);
-      const moveLimit = over > 0 ? Math.max(types * 2, types * 3 - over) : 0;
-      seen.add(`${cols}x${rows}|${sh.join('/')}|${types}|${spares}|${moveLimit}`);
+      const cfg = levelCfg(L, POOL, true);
+      seen.add([cfg.mask.map((b) => (b ? 1 : 0)).join(''), cfg.types, cfg.spares, cfg.moveLimit].join('|'));
     }
     expect(seen.size).toBeGreaterThanOrEqual(28);
   });

@@ -18,7 +18,7 @@ const { readFileSync } = require('fs');
 const { join } = require('path');
 const src = readFileSync(join(__dirname, '../../app/games/goods-sort.tsx'), 'utf8') as string;
 
-import { liveRowsForFreeze } from '@/app/games/goods-sort';
+import { liveRowsForFreeze, levelCfg, GS_RULES } from '@/app/games/goods-sort';
 
 /** Таблицу препятствий и формы читаем ИЗ ЭКРАНА, чтобы тест не проверял свою копию. */
 function plans(): { blocked: number; locked: number; covered: number; frozenRow: boolean }[] {
@@ -38,25 +38,31 @@ function shapes(): Record<string, string[][]> {
 
 const PLANS = plans();
 const SH = shapes();
-const STEP = Number((src.match(/\(\(L - 3\) \* (\d+)\)/) || [])[1]);
+
+/**
+ * ⚠️ КОНФИГ БЕРЁТСЯ У ИГРЫ, А НЕ СЧИТАЕТСЯ ЗАНОВО.
+ *
+ * Здесь стояла копия всех формул уровня — размер сетки, выбор формы по шагу
+ * цикла, число видов, запас, лимит ходов. 02.09.2026 форма стала выбираться по
+ * объёму, шаг перестал быть числом в коде, а препятствия — фильтроваться по
+ * графику ввода механик; копия отстала мгновенно и начала падать на пустом
+ * месте (`list[NaN]` → undefined). Это третий такой гейт за день.
+ */
 const gridFor = (L: number): [number, number] => (L <= 7 ? [3, 4] : L <= 11 ? [3, 5] : [3, 6]);
-const planFor = (L: number) => (L < 6 ? { blocked: 0, locked: 0, covered: 0, frozenRow: false } : PLANS[(L - 6) % PLANS.length]);
+const ПЕРВЫЙ_С_ПРЕПЯТСТВИЕМ = GS_RULES.find((r) => r.key === 'blocked')!.fromLevel;
 
 function level(L: number) {
+  const cfg = levelCfg(L, 24, true);          // narrow: телефонная сетка, как и было
   const [cols, rows] = gridFor(L);
-  const list = SH[`${cols}x${rows}`];
-  const sh = list[L <= 2 ? 0 : ((L - 3) * STEP) % list.length];
-  const slots = sh.join('').split('').filter((c) => c === '#').length;
-  const o = planFor(L);
-  const shut = o.blocked + o.locked;
-  const usable = slots - shut;
-  const types = Math.min(24, slots - 2 - shut, 4 + Math.floor(L / 2));
-  let spares = Math.max(2, Math.ceil(usable * 0.34) - Math.floor((L - 1) / 4));
-  spares = Math.max(2, Math.min(spares, usable - types));
-  const over = Math.max(0, L - 8);
-  const moveLimit = over > 0 ? Math.max(types * 2, types * 3 - over) : 0;
-  return { cols, rows, sh, slots, usable, types, spares, moveLimit, o };
+  const slots = cfg.mask.filter(Boolean).length;
+  const o = cfg.obst;
+  return {
+    cols, rows,
+    sh: Array.from({ length: rows }, (_, r) => cfg.mask.slice(r * cols, (r + 1) * cols).map((b) => (b ? '#' : '.')).join('')),
+    slots, usable: cfg.usable, types: cfg.types, spares: cfg.spares, moveLimit: cfg.moveLimit, o,
+  };
 }
+const planFor = (L: number) => level(L).o;
 
 describe('препятствия', () => {
   it('таблица прочитана из экрана', () => {
@@ -65,8 +71,8 @@ describe('препятствия', () => {
   });
 
   /** До шестого уровня человек учит само правило игры — второе поверх него это каша. */
-  it('препятствий нет раньше шестого уровня', () => {
-    for (let L = 1; L <= 5; L++) {
+  it('препятствий нет раньше их порога', () => {
+    for (let L = 1; L < ПЕРВЫЙ_С_ПРЕПЯТСТВИЕМ; L++) {
       const o = planFor(L);
       expect(o.blocked + o.locked + o.covered).toBe(0);
       expect(o.frozenRow).toBe(false);
