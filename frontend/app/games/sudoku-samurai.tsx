@@ -1684,9 +1684,6 @@ export default function SamuraiSudokuGame() {
     const marksWritten = countPencilMarks(marks);
     const statsEl = (
       <View style={styles.statsRow}>
-        <Text style={[styles.statText, { color: GRADIENT[0] }]}>{t('label_level_short')}{levelRef.current}</Text>
-        <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('errorsOfMax').replace('{n}', String(errors)).replace('{max}', String(maxErrors))}</Text>
-        <Text style={[styles.statText, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
         <TouchableOpacity
           accessibilityRole="button" onPress={() => setZoom((z) => (z === 'fit' ? 'zoom' : 'fit'))} style={[styles.zoomBtn, { borderColor: colors.border }]}>
           <Ionicons name={zoom === 'fit' ? 'search' : 'contract'} size={15} color={colors.text} />
@@ -1783,6 +1780,17 @@ export default function SamuraiSudokuGame() {
       <GameShell
         title={t('samuraiTitle')}
         onBack={() => goBackOrHome()}
+        /**
+         * Счётчики данными (см. `HudItem`). Ошибки остаются: у самурая, как и у
+         * обычной судоку, это РАСХОД ЛИМИТА (на `maxErrors` партия кончается), а
+         * не «норма обучения» — прятать состояние партии нельзя (§12.4 про другое).
+         * Кнопка масштаба остаётся в `stats`: это действие, а не счётчик.
+         */
+        hud={[
+          { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: levelRef.current, tone: 'accent' as const },
+          { key: 'err', icon: 'close-circle', label: t('errors'), value: `${errors}/${maxErrors}`, tone: 'bad' as const },
+          { key: 'time', icon: 'time', label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+        ]}
         stats={statsEl}
         // Как в обычной судоку: действия наверху, цифры внизу. Расхождение между
         // играми одного семейства человек читает как поломку, а не как замысел.

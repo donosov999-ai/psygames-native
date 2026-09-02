@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.30.0',
+    date: '2026-09-02',
+    ru: [
+      'Судоку и «Самурай» получили ту же шапку, что и остальные игры: уровень, ошибки, время и подсказки — плашками, а не строкой',
+    ],
+    en: [
+      'Sudoku and Samurai now share the same header as every other game: level, mistakes, time and hints as badges rather than a text line',
+    ],
+  },
+  {
     version: '2.29.0',
     date: '2026-09-02',
     ru: [
