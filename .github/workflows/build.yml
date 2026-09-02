@@ -517,7 +517,12 @@ jobs:
   # Секреты: APPLE_API_KEY (.p8 целиком), APPLE_API_KEY_ID, APPLE_API_ISSUER, APPLE_TEAM_ID.
   ios-release:
     name: iOS (подписанная сборка → TestFlight)
-    if: startsWith(github.ref, 'refs/tags/v')
+    # 🔴 РУЧНОЙ ЗАПУСК БЕЗ ВЫКЛАДКИ. До 02.09.2026 джоба шла ТОЛЬКО по тегу,
+    # и каждая проверка конвейера сжигала версию: три подряд неудачи — три патч-тега
+    # с пустыми изменениями. Теперь её можно запустить руками (workflow_dispatch) и
+    # увидеть, собирается ли .ipa; шаг выгрузки при этом пропускается — публикует
+    # по-прежнему только тег.
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
@@ -613,47 +618,43 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ github.run_id }}
         run: bash scripts/ios-signing-setup.sh
 
-      - name: Archive
-        if: steps.keys.outputs.ready == 'yes'
-        working-directory: src-tauri/gen/apple
-        run: |
-          xcodebuild -project psygames.xcodeproj -scheme psygames_iOS \
-            -configuration release -destination 'generic/platform=iOS' \
-            -archivePath "$RUNNER_TEMP/PsyGames.xcarchive" archive
-
-      # ⚠️ Экспортируем СВОИМ plist: тот, что кладёт tauri, не содержит
-      # provisioningProfiles, и xcodebuild отвечает «requires a provisioning profile».
-      - name: Export .ipa
+      # 🔴 СОБИРАЕТ TAURI, А НЕ ГОЛЫЙ XCODEBUILD — И ЭТО НЕ ВКУСОВЩИНА.
+      #
+      # Здесь стоял прямой `xcodebuild archive`. Он не может работать НИКОГДА:
+      # фаза «Build Rust Code» внутри проекта зовёт `cargo tauri ios xcode-script`,
+      # а тот безусловно идёт за настройками к веб-сокет-серверу, который поднимает
+      # сам `cargo tauri ios build`. Без него скрипт падает:
+      #   panicked at tauri-cli/src/mobile/mod.rs:386
+      #   failed to read missing addr file …com.odv999.psygames-server-addr
+      # Сверено по исходнику двух версий CLI (2.11.2 и 2.11.4) — вызов `read_options`
+      # стоит в `xcode_script.rs` без всяких условий, то есть от профиля не зависит.
+      #
+      # ⚠️ ПОЧЕМУ ЭТО ПРОШЛО ЖИВОЙ ПРОГОН 02.09 И ВСЁ РАВНО БЫЛО СЛОМАНО. На маке
+      # я перед этим собирал через `cargo tauri ios build`, сервер поднимался, файл
+      # адреса оставался в /tmp — и следующий ручной `xcodebuild` находил готовое.
+      # То есть «проверено живьём» покрыло путь, которого в чистой машине нет.
+      # Урок ровно тот же, что с сертификатом днём раньше: зелёный прогон на СВОЕЙ
+      # машине не доказывает работоспособность на чистой.
+      #
+      # `--export-method app-store-connect` заставляет tauri собрать и экспортировать
+      # .ipa для App Store своими руками; подпись и профиль берутся из проекта, куда
+      # их кладёт `ios-project-patch.py`.
+      - name: Сборка .ipa (tauri ведёт xcodebuild сам)
         if: steps.keys.outputs.ready == 'yes'
         env:
-          TEAM: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0"><dict>
-            <key>method</key><string>app-store-connect</string>
-            <key>teamID</key><string>$TEAM</string>
-            <key>signingStyle</key><string>manual</string>
-            <key>signingCertificate</key><string>Apple Distribution</string>
-            <key>provisioningProfiles</key><dict>
-              <key>com.psygames.app</key><string>PsyGames App Store</string>
-            </dict>
-            <key>uploadSymbols</key><true/>
-          </dict></plist>
-          PLIST
-          xcodebuild -exportArchive \
-            -archivePath "$RUNNER_TEMP/PsyGames.xcarchive" \
-            -exportPath "$RUNNER_TEMP/ipa" \
-            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
+          APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          CI: 'true'
+        run: cargo tauri ios build --export-method app-store-connect
 
       - name: Upload to TestFlight
-        if: steps.keys.outputs.ready == 'yes'
+        if: steps.keys.outputs.ready == 'yes' && startsWith(github.ref, 'refs/tags/v')
         env:
           KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
-          IPA=$(find "$RUNNER_TEMP/ipa" -name '*.ipa' | head -1)
+          # tauri кладёт .ipa под src-tauri/gen/apple/build/<арх>/; ищем по всему
+          # дереву сборки, чтобы не зависеть от имени архитектуры.
+          IPA=$(find src-tauri/gen/apple/build "$RUNNER_TEMP" -name '*.ipa' 2>/dev/null | head -1)
           if [ -z "$IPA" ]; then echo "::error title=iOS::.ipa не найден"; exit 1; fi
           # ⚠️ Сначала ВАЛИДАЦИЯ. Она ловит структурные ошибки бандла (код 90171 —
           # «Invalid bundle structure», на нём мы стояли трижды 02.09.2026) до того,
@@ -672,7 +673,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: PsyGames-ios-ipa
-          path: ${{ runner.temp }}/ipa/*.ipa
+          # Путь изменился вместе со способом сборки: .ipa кладёт tauri в дерево
+          # проекта, а не xcodebuild в RUNNER_TEMP.
+          path: src-tauri/gen/apple/build/**/*.ipa
           retention-days: 14
         continue-on-error: true
 
