@@ -26,6 +26,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
@@ -390,7 +391,22 @@ export default function SchulteGame() {
       generateGrid(p.gridSize, p.contentMode, p.direction);
     } else {
       useLevelRef.current = false;
-      generateGrid();   // свободный режим / пресет — ручной выбор
+      if (isPreset) {
+        /**
+         * ⚠️ Пресет — потолок желания (см. `presetCap`). В программах стоит
+         * `size: 6`, то есть таблица 6×6 — 36 чисел; лесенка на первых уровнях
+         * даёт 3×3 и 4×4. Разница не в «чуть труднее», а в разы по времени.
+         */
+        const размер = capPresetByLevel({
+          want: gridSize,
+          atLevel: levelParams(lvl.level).gridSize,
+          atTop: levelParams(lvl.level).gridSize >= 7,
+        });
+        setGridSize(размер);
+        generateGrid(размер, contentMode, direction);
+      } else {
+        generateGrid();   // свободный режим — ручной выбор
+      }
     }
     setCurrentIndex(0);
     setErrors(0);

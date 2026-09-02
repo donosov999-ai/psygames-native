@@ -27,6 +27,44 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const key = (gameId: string) => `psygames.bestStreak.${gameId}`;
 
+/**
+ * 🔴 ЛИЧНЫЙ РЕКОРД ПО ЛЮБОЙ МЕРЕ, А НЕ ТОЛЬКО ПО СЕРИИ.
+ *
+ * Играм на размах (Корси, пространственный размах, n-back) серия подряд говорит
+ * мало: там своя мера — до какой длины ряда человек дошёл. Мера у каждой игры
+ * своя, а СМЫСЛ один: «побил себя». Поэтому хранилище общее, а имя меры входит
+ * в ключ — `psygames.best.<мера>.<игра>`.
+ *
+ * ⚠️ Ключ серии (`psygames.bestStreak.<игра>`) оставлен прежним: под ним уже
+ * лежат рекорды игроков, и смена имени тихо обнулила бы их достижения.
+ */
+const bestKey = (gameId: string, metric: string) => `psygames.best.${metric}.${gameId}`;
+
+/** Личный рекорд по мере; null — рекорда ещё нет. */
+export async function getPersonalBest(gameId: string, metric: string): Promise<number | null> {
+  try {
+    const raw = await AsyncStorage.getItem(bestKey(gameId, metric));
+    if (raw === null) return null;
+    const v = Number(raw);
+    return Number.isFinite(v) && v > 0 ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Записать, если побит. `true` — рекорд ОБНОВЛЁН (повод отпраздновать). */
+export async function bumpPersonalBest(gameId: string, metric: string, value: number): Promise<boolean> {
+  if (!Number.isFinite(value) || value <= 0) return false;
+  try {
+    const prev = await getPersonalBest(gameId, metric);
+    if (prev !== null && prev >= value) return false;
+    await AsyncStorage.setItem(bestKey(gameId, metric), String(Math.floor(value)));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Лучшая серия игрока в этой игре; null — рекорда ещё нет. */
 export async function getBestStreak(gameId: string): Promise<number | null> {
   try {

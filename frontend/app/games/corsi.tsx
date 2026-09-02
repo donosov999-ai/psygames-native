@@ -27,6 +27,8 @@ import { FlashCell, hapticSuccess, hapticError } from '@/src/components/juice';
 import { type PetMood } from '@/src/components/pet/GamePet';
 import { sndWrong as sndCorsiWrong, sndMatch as sndCorsiRight } from '@/src/services/feedback';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { getPersonalBest, bumpPersonalBest } from '@/src/services/streak';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -147,6 +149,13 @@ export default function CorsiGame() {
   const [showIdx, setShowIdx] = useState(-1);     // currently lit during show phase
   const [userSeq, setUserSeq] = useState<number[]>([]);
   const [span, setSpan] = useState(0);            // longest correct sequence
+  /**
+   * Личный рекорд размаха — самореферентная цель. При подстройке сложности
+   * абсолютный счёт мало что значит (это про выданную ступень), а «дошёл дальше,
+   * чем в прошлый раз» осмысленно на любой ступени (см. `services/streak`).
+   */
+  const [bestSpan, setBestSpan] = useState<number | null>(null);
+  useEffect(() => { getPersonalBest('corsi', 'span').then(setBestSpan).catch(() => {}); }, []);
   const [errors, setErrors] = useState(0);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   /** Настроение питомца в шапке — реакция на ход (§30.6 карты геймификации). */
@@ -182,7 +191,9 @@ export default function CorsiGame() {
     setBossWon(null);
     let startSpan: number;
     if (isPreset) {
-      startSpan = num('startLen', 3);
+      // ⚠️ Пресет — потолок желания (см. `presetCap`): программа просит ряд из
+      // четырёх, а игрок освоил три. Верх лесенки — восемь.
+      startSpan = capPresetByLevel({ want: num('startLen', 3), atLevel: p.startSpan, atTop: p.startSpan >= 8 });
       tickMsRef.current = 800; flashMsRef.current = 500;
       modeRef.current = mode;
     } else {
@@ -287,6 +298,9 @@ export default function CorsiGame() {
       hapticSuccess();
       const newSpan = Math.max(span, seq.length);
       setSpan(newSpan);
+      // Рекорд обновляем по ходу: «дошёл дальше, чем когда-либо» должно быть
+      // видно в тот момент, когда это случилось, а не на экране итога.
+      bumpPersonalBest('corsi', 'span', newSpan).then((ok) => { if (ok) setBestSpan(newSpan); }).catch(() => {});
       fbTimerRef.current = setTimeout(() => {
         if (seq.length >= 9) finish(newSpan, errors);
         else showSequence(seq.length + 1);
@@ -418,20 +432,27 @@ export default function CorsiGame() {
           title={t('corsi')}
           onBack={() => goBackOrHome()}
           pet={petMood}
-          stats={
+          /**
+           * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+           * играх семейства «сетка со вспышкой», и правка вида приходит везде разом.
+           *
+           * ⚠️ Ошибок в шапке нет намеренно: при подстройке сложности ошибки —
+           * норма по построению, и красный счётчик наказывает за то, чего требует
+           * обучение (§12.4). Вместо них — рекорд размаха: цель сам-с-собой.
+           */
+          hud={[
+            { key: 'span', icon: 'resize', label: t('hud_span'), value: span, tone: 'accent' as const },
+            phase === 'show'
+              ? { key: 'len', icon: 'eye' as const, label: t('lengthLabel'), value: seq.length }
+              : { key: 'entered', icon: 'hand-left' as const, label: t('hud_entered'), value: `${userSeq.length}/${seq.length}`, pop: true },
+            ...(bestSpan ? [{ key: 'best', icon: 'trophy' as const, label: t('hud_best'), value: bestSpan, tone: 'warn' as const }] : []),
+            ...(!isPreset ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: lvl.level }] : []),
+          ]}
+          stats={!isPreset ? (
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('hud_span')} {span}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-              {phase === 'show' ? (
-                <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('lengthLabel')} {seq.length}</Text>
-              ) : (
-                <>
-                  <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('hud_entered')} {userSeq.length}/{seq.length}</Text>
-                  <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-                </>
-              )}
-              {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+              <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
             </View>
-          }
+          ) : undefined}
         >
           <View style={styles.fieldCol}>
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>

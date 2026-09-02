@@ -29,6 +29,8 @@ import GameShell from '@/src/components/GameShell';
 import { FlashCell, hapticSuccess, hapticError } from '@/src/components/juice';
 import { type PetMood } from '@/src/components/pet/GamePet';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { getBestStreak, bumpBestStreak } from '@/src/services/streak';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
@@ -173,6 +175,14 @@ export default function NBackGame() {
   const [waitingResponse, setWaitingResponse] = useState(false);
   // Visual stream stats
   const [hits, setHits] = useState(0);
+  /**
+   * Личный рекорд серии — самореферентная цель вместо абсолютного счёта.
+   * При адаптивной сложности «сколько очков» значит мало: это про выданную
+   * ступень. «Побил себя» осмысленно на любой ступени (см. `services/streak`).
+   */
+  const [bestStreak, setBestStreak] = useState<number | null>(null);
+  const streakRef = useRef(0);
+  useEffect(() => { getBestStreak('n_back').then(setBestStreak).catch(() => {}); }, []);
   /** Настроение питомца в шапке — ответ на нажатие «совпадение» (§30.6). */
   const [petMood, setPetMood] = useState<PetMood>('idle');
   const petSay = (m: PetMood) => { setPetMood(m); setTimeout(() => setPetMood('idle'), 40); };
@@ -181,9 +191,6 @@ export default function NBackGame() {
   const [correctRejections, setCorrectRejections] = useState(0);
   // Audio stream stats (only used in dual mode)
   const [aHits, setAHits] = useState(0);
-  const [aMisses, setAMisses] = useState(0);
-  const [aFalseAlarms, setAFalseAlarms] = useState(0);
-  const [aCorrectRejections, setACorrectRejections] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const trialTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -219,10 +226,11 @@ export default function NBackGame() {
       setModality(ttsBlock === null ? p.modality : 'single');
     }
     setHits(0); setMisses(0); setFalseAlarms(0); setCorrectRejections(0);
+    streakRef.current = 0;
     setBossWon(null);
     setResultBenchmark(null);
     setReadout(null);   // числа прошлой партии не должны висеть поверх новой
-    setAHits(0); setAMisses(0); setAFalseAlarms(0); setACorrectRejections(0);
+    setAHits(0);
     statsRef.current = { hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0, aHits: 0, aMisses: 0, aFalseAlarms: 0, aCorrectRejections: 0 };
     setHistory([]); setAudioHistory([]); setCurrentIdx(-1); setActiveCell(null); setActiveLetter('');
     setPhase('playing');
@@ -239,7 +247,14 @@ export default function NBackGame() {
      * на этом же месте уже спотыкались с таймером на 600 мс. Здесь нужна
      * величина ЭТОЙ партии, а не та, что успела примениться.
      */
-    const nForBlock = isPreset ? nLevel : levelParams(lvl.level).N;
+    /**
+     * ⚠️ Пресет — потолок желания (см. `presetCap`). В программах стоит
+     * `nLevel: 2`, и человеку с первого уровня (1-back) выдавали сразу два:
+     * n-back — самая крутая лесенка в наборе, каждый шаг вдвое тяжелее.
+     */
+    const nForBlock = isPreset
+      ? capPresetByLevel({ want: nLevel, atLevel: levelParams(lvl.level).N, atTop: lvl.level >= 14 })
+      : levelParams(lvl.level).N;
     seqRef.current = buildNbackSequence(trials, nForBlock, 9, Math.random);
     audioSeqRef.current = buildNbackSequence(trials, nForBlock, AUDIO_LETTERS.length, Math.random);
     setTimeout(() => runTrial([], [], -1), 600);
@@ -295,8 +310,11 @@ export default function NBackGame() {
           }
           if (modality === 'dual' && !aAnsweredRef.current) {
             const isMatch = aStim === aHist[newIdx - nLevel];
-            if (isMatch) { statsRef.current.aMisses++; setAMisses((m) => m + 1); }
-            else { statsRef.current.aCorrectRejections++; setACorrectRejections((c) => c + 1); }
+            // ⚠️ Только в `statsRef`: эти числа уходят в итог партии, но не
+            // показываются по ходу — состояние React без читателя гоняло бы
+            // перерисовку всего экрана на каждой пробе впустую.
+            if (isMatch) statsRef.current.aMisses++;
+            else statsRef.current.aCorrectRejections++;
           }
         }
         runTrial(newVHist, newAHist, newIdx);
@@ -309,8 +327,16 @@ export default function NBackGame() {
     answeredRef.current = true;
     const stimulus = history[currentIdx];
     const target = history[currentIdx - nLevel];
-    if (stimulus === target) { statsRef.current.hits++; setHits((h) => h + 1); hapticSuccess(); petSay('good'); }
-    else { statsRef.current.falseAlarms++; setFalseAlarms((f) => f + 1); hapticError(); petSay('bad'); }
+    if (stimulus === target) {
+      statsRef.current.hits++; setHits((h) => h + 1); hapticSuccess(); petSay('good');
+      // Серия ведётся здесь же: рекорд обновляется по ходу, а не в конце партии —
+      // «побил себя» должно быть видно в тот момент, когда это случилось.
+      streakRef.current += 1;
+      bumpBestStreak('n_back', streakRef.current).then((ok) => { if (ok) setBestStreak(streakRef.current); }).catch(() => {});
+    } else {
+      statsRef.current.falseAlarms++; setFalseAlarms((f) => f + 1); hapticError(); petSay('bad');
+      streakRef.current = 0;
+    }
   };
 
   const handleAudioMatchPress = () => {
@@ -319,7 +345,7 @@ export default function NBackGame() {
     const stimulus = audioHistory[currentIdx];
     const target = audioHistory[currentIdx - nLevel];
     if (stimulus === target) { statsRef.current.aHits++; setAHits((h) => h + 1); hapticSuccess(); petSay('good'); }
-    else { statsRef.current.aFalseAlarms++; setAFalseAlarms((f) => f + 1); hapticError(); petSay('bad'); }
+    else { statsRef.current.aFalseAlarms++; hapticError(); petSay('bad'); }
   };
 
   const finishGame = async (vHist: number[], aHist: string[]) => {
@@ -541,14 +567,33 @@ export default function NBackGame() {
           title={t('nBack')}
           onBack={() => goBackOrHome()}
           pet={petMood}
-          stats={
+          /**
+           * Счётчики ДАННЫМИ, а не вёрсткой: каркас рисует их одинаково во всех
+           * играх, и правка вида приходит сразу везде (см. `HudItem`).
+           *
+           * ⚠️ ОШИБКИ УБРАНЫ ИЗ ШАПКИ СОЗНАТЕЛЬНО. В тренажёре с подстройкой
+           * сложности ошибки — норма по построению (целевая успешность 0,75–0,85),
+           * и постоянный красный счётчик наказывает ровно за то, чего требует
+           * обучение (§12.4 карты геймификации). Вместо них — рекорд: цель, с
+           * которой человек соревнуется сам с собой.
+           */
+          hud={[
+            { key: 'n', icon: 'layers', label: 'N', value: nLevel, tone: 'accent' as const },
+            { key: 'round', icon: 'repeat', label: t('round'), value: `${currentIdx + 1}/${trials}` },
+            /**
+             * В дуальном режиме попаданий ДВА ряда — зрительный и слуховой, и
+             * показывать только первый значит врать: игрок видит «3», отвечая
+             * верно шесть раз. Складываем, как складывается и его работа.
+             */
+            { key: 'hits', icon: 'checkmark-circle', label: t('hud_correct'),
+              value: modality === 'dual' ? hits + aHits : hits, tone: 'good' as const, pop: true },
+            ...(bestStreak ? [{ key: 'best', icon: 'trophy' as const, label: t('hud_best'), value: bestStreak, tone: 'warn' as const }] : []),
+          ]}
+          stats={!isPreset ? (
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{nLevel}-back · {t('round')} {currentIdx + 1}/{trials}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('hud_correct')} {hits}</Text>
-              <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>{t('hud_errors')} {misses + falseAlarms}</Text>
-              {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+              <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
             </View>
-          }
+          ) : undefined}
           toolbar={
             <View style={modality === 'dual' ? styles.dualBtnRow : undefined}>
               <TouchableOpacity

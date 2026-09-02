@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import GradientSurface from '@/src/components/GradientSurface';
 import { onGradientText, onGradientTextMuted, accentOn, AA_LARGE } from '@/src/services/onGradientText';
 import { Ionicons } from '@expo/vector-icons';
-import { useReducedMotion } from '@/src/hooks/useReducedMotion';
+import Act from '@/src/components/juice/Act';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { sndWin } from '@/src/services/feedback';
@@ -43,38 +43,6 @@ interface GameResultProps {
   metrics?: { label: string; value: string; icon?: string }[];
   /** Строки-пояснения под рядом: что показатель значит и как его читать. */
   metricsNote?: string[];
-}
-
-/**
- * 🔴 ФИНАЛ ПРИХОДИТ АКТАМИ, А НЕ ОДНИМ КАДРОМ.
- *
- * Решение Дениса 30.08.2026 по разбору эталона жанра: там итог уровня — пять
- * экранов подряд (похвала → название игры → звёзды и сундук → множитель →
- * награда), и каждая порция ощущается отдельно. У нас всё появлялось разом:
- * трофей, звёзды, четыре числа, заработок и кнопки — глазу не за что зацепиться,
- * читать нечего, рука тянется к «дальше».
- *
- * Здесь сделана дешёвая половина приёма: тот же экран, но блоки ВЪЕЗЖАЮТ по
- * очереди — звёзды, потом числа, потом заработок, потом кнопки. Порядок задаёт
- * смысл: сначала оценка, потом подробности, потом действие.
- *
- * ⚠️ Щадящий режим показывает всё сразу: последовательность — украшение, а
- * содержимое итога — нет. Ждать анимацию, чтобы увидеть свой счёт, недопустимо.
- * ⚠️ Кнопки — последний акт, но задержка у них меньше полусекунды: человек,
- * который хочет уйти немедленно, не должен ловить уезжающую цель.
- */
-function Act({ at, children }: { at: number; children: React.ReactNode }) {
-  const reduced = useReducedMotion();
-  const [a] = useState(() => new Animated.Value(reduced ? 1 : 0));
-  useEffect(() => {
-    if (reduced) { a.setValue(1); return; }
-    const t = setTimeout(() => {
-      Animated.timing(a, { toValue: 1, duration: 260, useNativeDriver: true }).start();
-    }, at);
-    return () => clearTimeout(t);
-  }, [a, at, reduced]);
-  const translateY = a.interpolate({ inputRange: [0, 1], outputRange: [10, 0] });
-  return <Animated.View style={{ opacity: a, transform: [{ translateY }] }}>{children}</Animated.View>;
 }
 
 export default function GameResult({

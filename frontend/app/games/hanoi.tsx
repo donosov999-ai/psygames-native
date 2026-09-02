@@ -22,6 +22,7 @@ import GameShell from '@/src/components/GameShell';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -183,7 +184,15 @@ export default function HanoiGame() {
   const startGame = () => {
     // Новая партия заменяет незаконченную: прежнюю башню продолжать уже нечем.
     if (profile?.id) clearResume(GAME_ID, profile.id).catch(() => {});
-    const p = isPreset ? { discs, pegs: 3 } : levelParams(lvl.level);   // уровень рулит: диски + число стержней
+    /**
+     * ⚠️ ПРЕСЕТ — ПОТОЛОК ЖЕЛАНИЯ, А НЕ ПРИКАЗ (см. `presetCap`). В программах
+     * профилей у ханоя стоит `discs: 5`, и новичок с первого уровня (три диска)
+     * получал башню на пять — 31 ход вместо семи. Тот же класс дефекта, что
+     * поймал Денис на «20 словах» мнемоники 30.08.2026.
+     */
+    const p = isPreset
+      ? { discs: capPresetByLevel({ want: discs, atLevel: levelParams(lvl.level).discs, atTop: lvl.level >= 15 }), pegs: 3 }
+      : levelParams(lvl.level);   // уровень рулит: диски + число стержней
     const d = p.discs;
     levelRef.current = lvl.level;
     if (!isPreset) setDiscs(d);

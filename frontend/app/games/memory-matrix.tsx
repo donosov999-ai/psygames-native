@@ -22,6 +22,7 @@ import { type PetMood } from '@/src/components/pet/GamePet';
 import { sndMatch, sndStreak } from '@/src/services/feedback';
 import { getBestStreak, bumpBestStreak } from '@/src/services/streak';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -187,7 +188,11 @@ export default function MemoryMatrixGame() {
   const startGame = () => {
     // уровень рулит: сетка → число вспышек → скорость показа
     const p = levelParams(lvl.level);
-    const g = isPreset ? gridSize : p.gridSize;
+    // ⚠️ Пресет — потолок желания (см. `presetCap`): программа просит сетку 4×4,
+    // а игрок на первом уровне освоил 3×3. Верх лесенки — шестой размер.
+    const g = isPreset
+      ? capPresetByLevel({ want: gridSize, atLevel: p.gridSize, atTop: p.gridSize >= 6 })
+      : p.gridSize;
     levelRef.current = lvl.level;
     baseFlashesRef.current = isPreset ? 3 : p.baseFlashes;
     flashMsRef.current = isPreset ? 1500 : p.flashMs;

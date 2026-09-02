@@ -25,6 +25,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -230,8 +231,11 @@ export default function TrailMakingGame() {
     let m: Mode;
     let c: number;
     if (isPreset) {
-      // Пресет зарядки: ручные параметры из URL, без порога и без reach/fail
-      m = mode; c = count;
+      // Пресет зарядки: ручные параметры из URL, без порога и без reach/fail.
+      // ⚠️ Число узлов — не больше освоенного плюс шаг (см. `presetCap`).
+      m = mode;
+      c = capPresetByLevel({ want: count, atLevel: levelParams(lvl.level).count, atTop: lvl.level >= 14 });
+      setCount(c);
       timeLimitRef.current = 0;
     } else {
       const p = levelParams(lvl.level);

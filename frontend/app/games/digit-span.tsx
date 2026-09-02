@@ -18,6 +18,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -302,7 +303,11 @@ export default function DigitSpanGame() {
      */
     setRoundCounts(countsForRecord('digit_span', { isPreset, level: effLevel })
       && deliveryRef.current === 'screen' && !practiceRef.current);
-    const startLen = isPreset ? seqLen : p.startLen;
+    // ⚠️ Пресет — потолок желания (см. `presetCap`): программа просит ряд из
+    // четырёх цифр, а игрок мог освоить только три. Верх лесенки — девять.
+    const startLen = isPreset
+      ? capPresetByLevel({ want: seqLen, atLevel: p.startLen, atTop: p.startLen >= 9 })
+      : p.startLen;
     setCorrectRounds(0); setMaxSpan(0); setRound(1); setErrors(0);
     errorsAtLenRef.current = 0;   // новая партия — счёт ошибок на длине с нуля
     setStartTime(gameNow());

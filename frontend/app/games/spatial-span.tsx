@@ -22,6 +22,7 @@ import { sndWrong, sndMatch } from '@/src/services/feedback';
 import { type PetMood } from '@/src/components/pet/GamePet';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { getPersonalBest, bumpPersonalBest } from '@/src/services/streak';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
@@ -126,6 +127,13 @@ export default function SpatialSpanGame() {
   const [petMood, setPetMood] = useState<PetMood>('idle');
   const petSay = (m: PetMood) => { setPetMood(m); setTimeout(() => setPetMood('idle'), 40); };
   const [span, setSpan] = useState(0);
+  /**
+   * Личный рекорд размаха — самореферентная цель. При подстройке сложности
+   * абсолютный счёт мало что значит (это про выданную ступень), а «дошёл дальше,
+   * чем в прошлый раз» осмысленно на любой ступени (см. `services/streak`).
+   */
+  const [bestSpan, setBestSpan] = useState<number | null>(null);
+  useEffect(() => { getPersonalBest('spatial_span', 'span').then(setBestSpan).catch(() => {}); }, []);
   const [errorsAtLen, setErrorsAtLen] = useState(0);
   const [totalErrors, setTotalErrors] = useState(0);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
@@ -269,6 +277,9 @@ export default function SpatialSpanGame() {
       petSay('win'); sndMatch();
       const newSpan = Math.max(span, seq.length);
       setSpan(newSpan);
+      // Рекорд обновляем по ходу: «дошёл дальше, чем когда-либо» должно быть
+      // видно в тот момент, когда это случилось, а не на экране итога.
+      bumpPersonalBest('spatial_span', 'span', newSpan).then((ok) => { if (ok) setBestSpan(newSpan); }).catch(() => {});
       setErrorsAtLen(0);
       fbTimerRef.current = setTimeout(() => {
         if (seq.length >= cellCount) finish(newSpan, totalErrors);
@@ -366,15 +377,17 @@ export default function SpatialSpanGame() {
           title={t('spatialSpan')}
           onBack={() => goBackOrHome()}
           pet={petMood}
+          /** Счётчики данными — как у остальных игр семейства (см. `HudItem`). */
+          hud={[
+            { key: 'span', icon: 'resize', label: t('hud_span'), value: span, tone: 'accent' as const },
+            phase === 'show'
+              ? { key: 'len', icon: 'eye' as const, label: t('lengthLabel'), value: seq.length }
+              : { key: 'entered', icon: 'hand-left' as const, label: t('hud_entered'), value: `${userSeq.length}/${seq.length}`, pop: true },
+            ...(bestSpan ? [{ key: 'best', icon: 'trophy' as const, label: t('hud_best'), value: bestSpan, tone: 'warn' as const }] : []),
+            { key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: lvl.level },
+          ]}
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('hud_span')} {span} · {t('label_level_short')}{lvl.level}</Text>
-              {phase === 'show' ? (
-                <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('lengthLabel')} {seq.length}</Text>
-              ) : (
-                <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('hud_entered')} {userSeq.length}/{seq.length}</Text>
-              )}
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {totalErrors}</Text>
               <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
             </View>
           }

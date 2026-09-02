@@ -20,6 +20,7 @@ import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
@@ -271,7 +272,17 @@ export default function PicturePairsGame() {
       scoreRef.current = 0; setScore(0); setLevel(startLvl); setLevelBanner(null);
       loadLevel(startLvl);
     } else {
-      startRound(pairsCount, 2, photoMemoryMode, photoMemoryMode ? previewMs : 0);   // одиночный — всегда пары
+      /**
+       * ⚠️ Пресет — потолок желания (см. `presetCap`). В программах профилей стоит
+       * `pairsCount: 10`, а лесенка на первом уровне даёт четыре: новичку из
+       * зарядки выпадало поле в два с половиной раза больше освоенного.
+       */
+      const пар = capPresetByLevel({
+        want: pairsCount,
+        atLevel: levelCfg(lvl.loaded ? lvl.level : 1).pairs,
+        atTop: lvl.level >= 9,
+      });
+      startRound(пар, 2, photoMemoryMode, photoMemoryMode ? previewMs : 0);   // одиночный — всегда пары
     }
   };
 

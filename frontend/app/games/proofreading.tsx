@@ -22,6 +22,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -352,8 +353,17 @@ export default function ProofreadingGame() {
       targetTotalRef.current = puzzle.words.length;
       foundRef.current = 0;
     } else if (isPreset) {
-      // Пресет зарядки: размеры из warmup-параметров, без лимита времени (как раньше)
-      r = rows; c = cols;
+      /**
+       * Пресет зарядки: размеры из warmup-параметров, без лимита времени.
+       *
+       * ⚠️ Но не выше освоенного больше чем на шаг (см. `presetCap`): в программах
+       * стоит поле 12×10, а лесенка на первом уровне даёт 8×8 — вчетверо меньше
+       * знаков, и на пресете новичок получал стену вместо пробы.
+       */
+      const пл = levelParams(lvl.level);
+      r = capPresetByLevel({ want: rows, atLevel: пл.rows, atTop: пл.rows >= 16 });
+      c = capPresetByLevel({ want: cols, atLevel: пл.cols, atTop: пл.cols >= 12 });
+      setRows(r); setCols(c);
       timeLimitRef.current = 0;
       minFoundPctRef.current = 1;
     } else {

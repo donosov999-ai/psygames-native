@@ -849,6 +849,14 @@ export function hiddenInfo(L: number): boolean {
 export interface GsLayout {
   boardW: number; cellW: number; itemSize: number; itemH: number;
   nicheH: number; shelfH: number;
+  /** Доля перекрытия соседних товаров в нише: 0 — встык, 0,3 — как на полке. */
+  overlap: number;
+  /**
+   * Сколько занимает полный ряд товаров ВНУТРИ ниши, с учётом нахлёста.
+   * Считается здесь, а не у вызывающего: гейт вписывания однажды уже проверял
+   * собственную копию формулы вместо игры (см. `goods-sort-fit`).
+   */
+  rowW: number;
 }
 
 export function gsLayout(
@@ -875,7 +883,31 @@ export function gsLayout(
    * товару, а не наоборот. Шкаф не может перерасти поле по построению.
    */
   const perRow = Math.floor((availH - HINT_H - SHELF_GAP * (rows - 1) - SHELF_PAD * 2 - 9) / rows);
-  const fitsInCell = Math.floor((cellW - CELL_GAP * (capWide - 1)) / capWide);
+  /**
+   * 🔴 ТОВАРЫ СТОЯТ ВНАХЛЁСТ, КАК НА НАСТОЯЩЕЙ ПОЛКЕ.
+   *
+   * Замер 02.09.2026 на iPhone Pro Max (430 px): ниша 124 px, три товара встык
+   * по 40 px. Товар был ограничен НЕ высотой и не спрайтом (непрозрачная часть
+   * занимает 96–98 % картинки — проверено), а простой арифметикой «три в ряд».
+   * Отсюда репорт Вали «ужасно товары мелкие»: на телефоне иначе и не выходило.
+   *
+   * У эталона жанра предметы на полке перекрываются — потому и крупные. Товар в
+   * магазине и стоит внахлёст: заднее видно из-за переднего, а не рядом с ним.
+   *
+   * Арифметика: ряд занимает `item × (1 + (n − 1) × (1 − OVERLAP))`, значит при
+   * трёх штуках и нахлёсте 0,3 делитель 2,4 вместо 3 — товар крупнее на четверть
+   * ЛИНЕЙНО и в полтора раза по площади, при той же нише.
+   *
+   * ⚠️ ПОЧЕМУ 0,3, А НЕ БОЛЬШЕ. Перекрытое надо УЗНАВАТЬ: у молочных бутылок
+   * разница в этикетке (§7.3), и накрыв половину, мы вернули бы дефект «шесть
+   * одинаковых силуэтов». Треть скрывает бок и оставляет и верх, и этикетку.
+   * ⚠️ И перекрытый товар остаётся НАЖИМАЕМЫМ: видимая доля 0,7 × item всё равно
+   * шире, чем товар был до нахлёста (0,7 × 50 = 35 против 40 — почти столько же),
+   * а передний виден целиком. Это сторожит `tap-target-audit`.
+   */
+  const OVERLAP = 0.3;
+  const рядДелитель = 1 + (capWide - 1) * (1 - OVERLAP);
+  const fitsInCell = Math.floor((cellW - CELL_GAP * (capWide - 1)) / рядДелитель);
   const fitsInRow = Math.floor((perRow - 8) * ITEM_ASPECT);
   const itemSize = Math.max(18, Math.min(148, fitsInCell, fitsInRow));
   const itemH = Math.round(itemSize / ITEM_ASPECT);
@@ -886,7 +918,10 @@ export function gsLayout(
   // Высота всего короба: ряды + зазоры между ними + рама сверху/снизу + торец.
   const shelfH = nicheH * rows + SHELF_GAP * (rows - 1) + SHELF_PAD * 2 + 9;
 
-  return { boardW, cellW, itemSize, itemH, nicheH, shelfH };
+  const шагРяда = itemSize * (1 - OVERLAP) + CELL_GAP;
+  const rowW = Math.round(itemSize + (capWide - 1) * шагРяда);
+
+  return { boardW, cellW, itemSize, itemH, nicheH, shelfH, overlap: OVERLAP, rowW };
 }
 
 export function gsRulesForLevel(L: number): LevelRule[] {
@@ -1413,12 +1448,26 @@ export function nicheRect(i: number, g: BoardGeom, mask: boolean[]): { x: number
  * разойдутся по возможностям.
  */
 export function itemAtX(
-  xInCell: number, count: number, cellW: number, itemSize: number, gap = 2,
+  xInCell: number, count: number, cellW: number, itemSize: number, gap = 2, overlap = 0,
 ): number | null {
   if (count <= 0) return null;
-  const rowW = count * itemSize + (count - 1) * gap;
+  /**
+   * 🔴 ШАГ РЯДА УЧИТЫВАЕТ НАХЛЁСТ (02.09.2026).
+   *
+   * Товары стоят внахлёст (`OVERLAP` в `gsLayout`), значит соседний начинается
+   * не через «товар + зазор», а через `товар × (1 − нахлёст) + зазор`. Оставь
+   * здесь прежний шаг — и палец на третьем товаре считался бы вторым: ошибка
+   * росла бы к правому краю ниши, то есть жест «почти работал», а промахивался
+   * тем сильнее, чем дальше товар. Такое ловится только замером, не глазами.
+   *
+   * ⚠️ ПЕРЕКРЫТУЮ ЧАСТЬ ОТДАЁМ ПЕРЕДНЕМУ. Товар слева нарисован ПОВЕРХ правого
+   * (убывающий `zIndex`), и палец обязан брать то, что человек видит. Поэтому
+   * граница между соседями проходит по началу следующего, а не по его середине.
+   */
+  const шаг = itemSize * (1 - overlap) + gap;
+  const rowW = itemSize + (count - 1) * шаг;
   const left = (cellW - rowW) / 2;
-  const i = Math.floor((xInCell - left) / (itemSize + gap));
+  const i = Math.floor((xInCell - left) / шаг);
   return Math.min(count - 1, Math.max(0, i));
 }
 
@@ -2807,7 +2856,7 @@ export default function GoodsSortGame() {
   const dragRef = useRef<{ cell: number; idx: number; type: number } | null>(null);
   const liveRef = useRef({
     geom: { cols: 3, rows: 3, cellW: 0, nicheH: 0, pad: 9, gap: 9, boardW: 0 } as BoardGeom,
-    itemSize: 0, mask: [] as boolean[], cells: [] as number[][],
+    itemSize: 0, overlap: 0, mask: [] as boolean[], cells: [] as number[][],
     covered: new Set<string>(),
     usable: (_i: number): boolean => false,
     live: false,
@@ -2861,7 +2910,7 @@ export default function GoodsSortGame() {
         // ничем не кончится, хуже, чем не начать: товар «поднимется» и упадёт назад.
         if (!stack.length || !L.usable(cell)) return;
         const xInCell = pageX - boardBox.current.x - (nicheRect(cell, L.geom, L.mask)?.x ?? 0);
-        const idx = itemAtX(xInCell, stack.length, L.geom.cellW, L.itemSize);
+        const idx = itemAtX(xInCell, stack.length, L.geom.cellW, L.itemSize, 2, L.overlap);
         if (idx === null) return;
         const held = { cell, idx, type: stack[idx] };
         dragRef.current = held;
@@ -3190,6 +3239,7 @@ export default function GoodsSortGame() {
    */
   const itemSize = LAY.itemSize;
   const itemH = LAY.itemH;
+  const overlap = LAY.overlap;   // товары стоят внахлёст — см. `gsLayout`
   /**
    * 🔴 ШКАФ ЗАНИМАЕТ ВСЁ ПОЛЕ, А НЕ ТРЕТЬ ЭКРАНА.
    *
@@ -3235,7 +3285,7 @@ export default function GoodsSortGame() {
    */
   liveRef.current = {
     geom: { cols: gridDim.cols, rows: gridDim.rows, cellW, nicheH, pad: SHELF_PAD, gap: SHELF_GAP, boardW },
-    itemSize, mask, cells,
+    itemSize, overlap, mask, cells,
     covered,
     usable: cellUsable,
     // Жест обязан звать СВЕЖИЙ moveItem: старый замкнул прошлую доску и переложил бы
@@ -3407,7 +3457,26 @@ export default function GoodsSortGame() {
                 accessibilityRole="button"
                 accessibilityLabel={`${spokenGood(i, s, tp)}, ${t('a11yShelf')} ${i + 1}`}
                 accessibilityState={{ selected }}
-                style={[styles.itemSlot, { width: itemSize, height: itemH }, selected && styles.itemSel, hinted && styles.itemHint, inHand && { opacity: 0.2 }, arriving && { opacity: 0 }]}>
+                style={[styles.itemSlot, {
+                  width: itemSize, height: itemH,
+                  /**
+                   * 🔴 ВНАХЛЁСТ, А НЕ ВСТЫК — И ПЕРЕДНИЙ ПОВЕРХ ЗАДНЕГО.
+                   *
+                   * Отрицательный отступ сдвигает каждый следующий товар под
+                   * предыдущий; за счёт этого товар помещается КРУПНЕЕ (см.
+                   * `OVERLAP` в `gsLayout`). Порядок наложения обязателен: без
+                   * убывающего `zIndex` следующий товар накрывал бы предыдущий,
+                   * и получилась бы полка, растущая «из экрана к зрителю» —
+                   * читается как ошибка отрисовки, а не как глубина.
+                   *
+                   * ⚠️ Выбранный и подсказанный поднимаются НАД всеми: их рамку
+                   * нельзя прятать под соседним товаром, иначе подсветка теряется
+                   * ровно в тот момент, когда она нужна.
+                   */
+                  marginLeft: s === 0 ? 0 : -Math.round(itemSize * overlap),
+                  zIndex: (selected || hinted) ? 20 : Math.max(1, 10 - s),
+                },
+                selected && styles.itemSel, hinted && styles.itemHint, inHand && { opacity: 0.2 }, arriving && { opacity: 0 }]}>
                 {covered.has(`${i}:${s}`) ? (
                   hiddenHere ? (
                     /**

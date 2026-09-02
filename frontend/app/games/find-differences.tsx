@@ -29,6 +29,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -306,8 +307,11 @@ export default function FindDifferencesGame() {
   const startGame = () => {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
-    // На пресете зарядки уважаем diffCount из настроек шага (см. profiles.ts)
-    diffCountRef.current = isPreset ? num('diffCount', p.diffCount) : p.diffCount;
+    // На пресете зарядки уважаем diffCount из настроек шага (см. profiles.ts),
+    // но не выше освоенного больше чем на одно отличие (см. `presetCap`).
+    diffCountRef.current = isPreset
+      ? capPresetByLevel({ want: num('diffCount', p.diffCount), atLevel: p.diffCount, atTop: false })
+      : p.diffCount;
     objectCountRef.current = p.objectCount;
     roundTimeRef.current = p.roundTimeSec;
     roundsRef.current = p.rounds;

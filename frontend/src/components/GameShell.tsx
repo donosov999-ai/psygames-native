@@ -46,6 +46,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import GamePet, { type PetMood } from '@/src/components/pet/GamePet';
 import { onGameEvent, type GameEventKind } from '@/src/services/gameEvents';
+import { streakMultiplier, scoreWithStreak } from '@/src/services/scoring';
 
 import { sndCorrect, sndWrong, sndMatch, sndLose } from '@/src/services/feedback';
 import { HudBadge, useScorePopups, ScorePopupLayer } from '@/src/components/juice';
@@ -454,9 +455,23 @@ export default function GameShell({
       if (!e.silent) sndLose();
       setAutoMood('bad');
     }
-    // Прибавку показываем там, где она случилась. Без координат всплывашки нет:
-    // «+50» посреди пустого экрана не связывается ни с каким действием.
-    if (e.value && e.at) spawnRef.current(e.at.x, e.at.y, `+${e.value}`);
+    /**
+     * Прибавку показываем там, где она случилась. Без координат всплывашки нет:
+     * «+50» посреди пустого экрана не связывается ни с каким действием.
+     *
+     * 🔴 РАЗГОН ОТ СЕРИИ ПРИМЕНЯЕТСЯ ЗДЕСЬ — ОДИН РАЗ НА ВСЕ ИГРЫ. Каркас уже
+     * ведёт серию, значит он же и знает множитель; игре остаётся сообщить
+     * базовую прибавку. Множитель показан рядом («×2»), иначе игрок видит
+     * выросшее число и не понимает, за что: невидимая награда не учит.
+     *
+     * ⚠️ Разгон трогает ОЧКИ ПАРТИИ, а не валюту (§12.2 карты геймификации).
+     */
+    if (e.value && e.at) {
+      const mult = streakMultiplier(streakRef.current);
+      const shown = scoreWithStreak(e.value, streakRef.current);
+      spawnRef.current(e.at.x, e.at.y, mult > 1 ? `+${shown} ×${mult}` : `+${shown}`,
+        mult >= 2 ? '#fbbf24' : undefined);
+    }
     /**
      * 🔴 СЛОВО ПОХВАЛЫ — С ТРЕТЬЕГО ВЕРНОГО ХОДА, А НЕ С КАЖДОГО.
      *

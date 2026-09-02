@@ -47,6 +47,7 @@ import { saveSession } from '@/src/services/api';
 import { gameNow } from '@/src/services/gamePause';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import GameShell from '@/src/components/GameShell';
@@ -109,8 +110,14 @@ export default function FacesNamesScreen() {
    */
   const [doneLevel, setDoneLevel] = React.useState(1);
 
-  // Уровень из адреса (шаг зарядки, вызов дня) важнее сохранённого.
-  const level = num('level', lvl.level);
+  /**
+   * Уровень из адреса (шаг зарядки, вызов дня) важнее сохранённого.
+   *
+   * ⚠️ Но не выше освоенного больше чем на шаг (см. `presetCap`): в программах
+   * профилей у лиц и имён стоит `level: 12`, и человеку с первого уровня
+   * выдавали двенадцатый — двенадцать лиц вместо трёх.
+   */
+  const level = capPresetByLevel({ want: num('level', lvl.level), atLevel: lvl.level, atTop: false });
 
   /**
    * Зерно фиксируем на уровень, а не на каждый заход: перезапуск того же уровня
