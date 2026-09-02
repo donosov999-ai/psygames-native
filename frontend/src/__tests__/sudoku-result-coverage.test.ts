@@ -47,7 +47,15 @@ describe('судоку — покрытие экрана итога', () => {
     // Гонка входа: загрузка дорог и ?mode= из хаба резолвятся в любом порядке.
     // Дороги пишут level ТОЛЬКО в режиме уровней (по свежему modeRef), а сборка
     // side-доски зажимает ступень своей лестницей от любых будущих утечек.
-    expect(sudoku).toContain("if (modeRef.current === 'levels') setLevel(reached);");
+    /**
+     * ⚠️ Условие расширено 02.09.2026, и это не ослабление, а усиление: к проверке
+     * режима добавилась защита поднятой из снимка партии (`!resumedRef.current`) —
+     * второй случай того же класса, когда номер уровня и доска расходились
+     * («46-й, а всё ещё термометр»). Дословная строка покраснела на правке,
+     * которая закрывает ту же дыру с другой стороны.
+     */
+    expect(sudoku).toMatch(/modeRef\.current === 'levels'[^)]*\) setLevel\(reached\);/);
+    expect(sudoku).toContain('!resumedRef.current');
     expect(sudoku).toContain('const step = Math.min(sideStepCount(mode), Math.max(1, lvlOverride ?? level));');
     // и подъём снимка зажимает чужое число
     expect(sudoku).toMatch(/s\.mode === 'towers' \|\| s\.mode === 'unequal'\) \? Math\.min\(sideStepCount\(s\.mode\)/);

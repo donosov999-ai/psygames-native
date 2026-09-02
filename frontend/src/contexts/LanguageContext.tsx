@@ -114,6 +114,7 @@ const translations: Translations = {
   fractalPortals: { ru: 'Порталы', en: 'Portals' },
   fractalPortalGo: { ru: 'В сетку', en: 'Go to grid' },
   fractalPortalHint: { ru: 'Клетка с кольцом — одна и та же в двух сетках сразу. Порознь ни одна из них цифру не выдаёт: сузьте кандидатов здесь, сузьте там — ответ даст пересечение.', en: 'A ringed cell is one and the same cell in two grids at once. Neither grid names its digit alone: narrow the candidates here, narrow them there, and the answer is what both allow.' },
+  fractalRedDigit: { ru: 'Красная цифра — ошибка: такая уже стоит в этой строке, столбце или квадрате. Она остаётся на доске, чтобы было видно, что исправить.', en: 'A red digit is a mistake: the same one already stands in this row, column or box. It stays on the board so you can see what to fix.' },
   fractalUndecided: { ru: 'Здесь задача пока не определена: цифра не нарушает ни одного правила, но и не выводится. Это не ошибка — сначала разрешите портал.', en: 'This cell is not decided yet: the digit breaks no rule, but it does not follow either. That is not a mistake — resolve the portal first.' },
   fractalPortalRule: { ru: 'С шестого уровня появляются порталы: пара клеток из РАЗНЫХ нижних сеток — на деле одна клетка. Ни одна из двух сеток не решается сама по себе; цифру даёт только то, что обе про неё допускают. Это вывод, которого нет ни в одном из пазлов по отдельности.', en: 'From level six portals appear: a pair of cells in DIFFERENT lower grids is really one cell. Neither of the two grids can be solved on its own; the digit comes only from what both of them allow. That is an inference neither puzzle holds by itself.' },
   ctaStart: { ru: 'СТАРТ', en: 'START' },
@@ -2244,7 +2245,14 @@ const translations: Translations = {
   sudokuRuleSandwich: { ru: "Найди в ряду 1 и 9. Сложи цифры, зажатые МЕЖДУ ними, — это и есть число у края. Сами 1 и 9 не считаются. Ноль у края значит, что 1 и 9 стоят вплотную. Нажми на число у края — объясню именно его.", en: "Find the 1 and the 9 in the line. Add up the digits squeezed BETWEEN them — that is the edge number. The 1 and 9 themselves do not count. A zero means the 1 and 9 sit side by side. Tap an edge number and I will explain that exact one." },
   sudokuWhyNotLocal: { ru: 'Эта цифра не спорит с соседями напрямую — но в этой клетке стоит другая. Смотри строку, столбец и квадрат целиком.', en: 'This digit does not clash with its neighbours directly — but another one belongs here. Look at the whole row, column and box.' },
   sudokuRuleThermo: { ru: 'Вдоль термометра цифры строго растут от колбы.', en: 'Digits strictly increase along each thermometer from the bulb.' },
-  sudokuRuleArrow: { ru: 'Цифры вдоль стрелки в сумме равны числу в кружке.', en: 'Digits along the arrow sum to the number in the circle.' },
+  /**
+   * ⚠️ Про ПОВТОР сказано прямо, и вот почему. Сообщение из чата обратной связи
+   * 01.09.2026 (уровень 48, стрелки): «единица повторяется два раза — в чём ошибка
+   * или это нормально? До этого десятки попыток, и ни разу не было, чтобы цифра
+   * повторялась». Правило было верным, но неполным: человек достроил недостающее
+   * из опыта других вариантов — и решил, что видит поломку.
+   */
+  sudokuRuleArrow: { ru: 'Цифры вдоль стрелки в сумме равны числу в кружке. Повторяться они могут: стрелка складывает, но не запрещает одинаковые цифры — запрет остаётся только внутри строки, столбца и квадрата.', en: 'Digits along the arrow sum to the number in the circle. They may repeat: an arrow adds up, it does not forbid equal digits — the ban still applies only within a row, column and box.' },
   sudokuRuleThermocage: { ru: 'Два правила разом: вдоль термометра цифры строго растут от колбы, а в цветной группе они дают сумму из угла и не повторяются.', en: 'Two rules at once: digits strictly increase along each thermometer from the bulb, and inside a tinted cage they add up to its corner number without repeating.' },
   sudokuRuleTowers: { ru: 'Цифра — высота здания. Число у края говорит, сколько зданий видно с этой стороны: здание видно, если оно выше всех перед ним.', en: 'Each digit is a building height. An edge number says how many buildings are visible from that side: a building is visible when it is taller than everything before it.' },
   sudokuRuleUnequal: { ru: 'Знак между клетками сравнивает цифры: остриё указывает на меньшую. Знаки складываются в цепочки — цепочка говорит о клетках больше, чем один знак.', en: 'A sign between two cells compares their digits: the point aims at the smaller one. Signs join into chains — a chain tells you more than a single pair.' },

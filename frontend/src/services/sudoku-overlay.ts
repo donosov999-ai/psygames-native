@@ -51,14 +51,36 @@ export interface OverlayRect { left?: number; top?: number; width: number; heigh
  * Отрезок трубки от центра клетки (r,c) к соседу. Половина клетки — чтобы два
  * соседних отрезка встык давали непрерывную трубку без шва.
  */
+/**
+ * 🔴 СЕГМЕНТ НЕ ДОХОДИТ ДО КРАЯ КЛЕТКИ — ИНАЧЕ ОН СТИРАЕТ СЕТКУ.
+ *
+ * Отчёты Вали 31.08.2026, дважды: «границы между числами гуляют, то появляются, то
+ * исчезли», «вот опять границы стёрлись где цифры 6». На её скриншоте (уровень 45,
+ * термометры) видно точно: линия термометра идёт поверх границы клетки и разрывает
+ * её — причём даже толстую границу блока. Выше и ниже линии граница есть, в месте
+ * прохода её нет. Отсюда и «гуляют»: границы целы везде, кроме термометров.
+ *
+ * Линия рисуется абсолютным блоком ВНУТРИ клетки и доходила ровно до её края, то
+ * есть накрывала собой пограничный пиксель (на плотном экране — почти три).
+ *
+ * Оставляем зазор `SEAM`: линия обрывается на волос раньше границы. Термометр от
+ * этого не рвётся — глаз соединяет две половинки через тонкую линию сетки, ровно как
+ * в бумажных сборниках, — а сетка остаётся целой.
+ *
+ * ⚠️ Зазор в ПИКСЕЛЯХ, а не в долях клетки: он должен покрывать границу (0,5–2 px)
+ * независимо от размера доски. На 6×6 доля дала бы дыру, на телефоне 9×9 — ничего.
+ */
+const SEAM = 1.5;
+
 export function thermoSegment(
   r: number, c: number, neighbour: readonly [number, number], cellSize: number, thick: number,
 ): OverlayRect {
   const dr = neighbour[0] - r, dc = neighbour[1] - c;
-  if (dc === 1) return { left: cellSize / 2, top: cellSize / 2 - thick / 2, width: cellSize / 2, height: thick };
-  if (dc === -1) return { left: 0, top: cellSize / 2 - thick / 2, width: cellSize / 2, height: thick };
-  if (dr === 1) return { top: cellSize / 2, left: cellSize / 2 - thick / 2, width: thick, height: cellSize / 2 };
-  return { top: 0, left: cellSize / 2 - thick / 2, width: thick, height: cellSize / 2 };
+  const arm = Math.max(1, cellSize / 2 - SEAM);   // от центра клетки до зазора у границы
+  if (dc === 1) return { left: cellSize / 2, top: cellSize / 2 - thick / 2, width: arm, height: thick };
+  if (dc === -1) return { left: SEAM, top: cellSize / 2 - thick / 2, width: arm, height: thick };
+  if (dr === 1) return { top: cellSize / 2, left: cellSize / 2 - thick / 2, width: thick, height: arm };
+  return { top: SEAM, left: cellSize / 2 - thick / 2, width: thick, height: arm };
 }
 
 /** Колба — начало термометра: круг в центре клетки, у которой нет предыдущей. */
