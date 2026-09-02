@@ -477,15 +477,20 @@ export default function BARTGame() {
       <GameShell
         title={t('bart')}
         onBack={() => goBackOrHome()}
-        stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('label_balloon')} {round}/{totalBalloons}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_bank')} {bank}¢</Text>
-            <Text style={[styles.statText, { color: '#fbbf24' }]}>{t('hud_atRisk')} {pending}¢</Text>
-            <Text style={[styles.statText, { color: '#ef4444' }]}>{t('hud_pops')} {popCount}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('hud_avgPumps')} {adjAvg}</Text>
-          </View>
-        }
+        /**
+         * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+         * играх, и правка вида приходит сразу везде.
+         *
+         * ⚠️ Счётчика ошибок здесь нет намеренно: при подстройке сложности ошибки —
+         * норма по построению, и красный счётчик наказывает ровно за то, чего
+         * требует обучение (§12.4 карты геймификации).
+         */
+        hud={[
+          { key: 'label_balloon', icon: 'ellipse', label: t('label_balloon'), value: `${round}/${totalBalloons}` },
+          { key: 'hud_bank', icon: 'ellipse', label: t('hud_bank'), value: `${bank}¢` },
+          { key: 'hud_atRisk', icon: 'ellipse', label: t('hud_atRisk'), value: `${pending}¢` },
+          { key: 'hud_pops', icon: 'ellipse', label: t('hud_pops'), value: popCount },
+        ]}
         toolbar={
           <View style={styles.actionsRow}>
             <TouchableOpacity

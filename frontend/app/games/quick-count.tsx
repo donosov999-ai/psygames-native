@@ -227,13 +227,21 @@ export default function QuickCountGame() {
       <GameShell
         title={t('quickCount')}
         onBack={() => goBackOrHome()}
+        /**
+         * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+         * играх, и правка вида приходит сразу везде.
+         *
+         * ⚠️ Счётчика ошибок здесь нет намеренно: при подстройке сложности ошибки —
+         * норма по построению, и красный счётчик наказывает ровно за то, чего
+         * требует обучение (§12.4 карты геймификации).
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${trial + 1}/${TRIALS_PER_ROUND}` },
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correct, tone: 'good' as const },
+        ]}
         stats={
           phase === 'answer' ? (
-            <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {trial + 1}/{TRIALS_PER_ROUND}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('hud_correct')} {correct}</Text>
-              <Text style={[styles.statText, { color: colors.error || '#f43f5e' }]}>{t('hud_errors')} {wrong}</Text>
-            </View>
+            <View style={styles.statsRow} />
           ) : undefined
         }
         toolbar={

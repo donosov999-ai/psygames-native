@@ -436,19 +436,18 @@ export default function StoryRecallGame() {
         title={t('story')}
         onBack={() => goBackOrHome()}
         scrollableField
-        stats={
-          phase === 'reading' ? (
-            <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text, fontSize: 20 }]}>{t('storyReadPhase')} · {t('timeLeftLabel')} {readRemaining}{t('secShort')}</Text>
-            </View>
-          ) : isDistractor ? (
-            <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>
-                {phase === 'distractor1' ? t('storyDistractor1') : t('storyDistractor2')} · {t('timeLeftLabel')} {distractorRemaining}{t('secShort')}
-              </Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {distractorScore}</Text>
-            </View>
-          ) : undefined
+        /**
+         * Счётчики данными (см. `HudItem`). У пересказа три фазы, и в каждой в
+         * шапке своё: при чтении — сколько осталось на текст, в отвлечении —
+         * остаток и набранное, при самом пересказе шапка пуста (там думают).
+         */
+        hud={
+          phase === 'reading' ? [
+            { key: 'phase', icon: 'book', label: t('storyReadPhase'), value: `${readRemaining}${t('secShort')}`, tone: 'accent' as const },
+          ] : isDistractor ? [
+            { key: 'phase', icon: 'time', label: phase === 'distractor1' ? t('storyDistractor1') : t('storyDistractor2'), value: `${distractorRemaining}${t('secShort')}`, tone: distractorRemaining <= 5 ? 'warn' as const : 'accent' as const },
+            { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: distractorScore, tone: 'good' as const, pop: true },
+          ] : []
         }
         toolbar={
           isDistractor ? (

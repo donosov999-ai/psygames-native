@@ -658,21 +658,27 @@ export default function DigitSpanGame() {
         <GameShell
           title={t('digitSpan')}
           onBack={() => goBackOrHome()}
+          /**
+           * Счётчики данными (см. `HudItem`).
+           *
+           * ОХВАТ И РЕКОРД ВИДНЫ ПО ХОДУ ПАРТИИ, А НЕ НА ЭКРАНЕ ИТОГА. Спан — это и
+           * есть результат «Цифрового ряда», и человек, идущий по длинам, обязан
+           * видеть, где он сейчас и докуда доходил раньше: иначе «дальше или
+           * хватит» решается вслепую. Рекорд — тот же источник, что у таблицы
+           * лидеров (`getPersonalBest`).
+           */
+          hud={[
+            phase === 'showing'
+              ? { key: 'len', icon: 'eye' as const, label: t('memorize'), value: seqLen, tone: 'accent' as const }
+              : { key: 'len', icon: 'resize' as const, label: t('lengthLabel'), value: seqLen, tone: 'accent' as const },
+            { key: 'round', icon: 'repeat', label: t('round'), value: round },
+            { key: 'span', icon: 'trending-up', label: t('hud_span'), value: maxSpan, tone: 'good' as const, pop: true },
+            { key: 'best', icon: 'trophy', label: t('personalBest'), value: shownRecord === null ? '—' : shownRecord, tone: 'warn' as const },
+          ]}
           stats={
             <View style={styles.statsRow}>
-              {phase === 'showing' ? (
-                <Text style={[styles.statText, { color: colors.textSecondary }]}>{t('memorize')} ({seqLen})</Text>
-              ) : (
-                <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                  {t('lengthLabel')}: {seqLen} · {t('round')} {round}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}
-                </Text>
-              )}
-              {/* ОХВАТ И РЕКОРД ВИДНО ПО ХОДУ ПАРТИИ, А НЕ НА ЭКРАНЕ ИТОГА.
-                  Спан — это и есть результат «Цифрового ряда», и человек, идущий
-                  по длинам, обязан видеть, где он сейчас и докуда доходил раньше:
-                  иначе «дальше или хватит» решается вслепую. Рекорд — тот же
-                  источник, что у таблицы лидеров (getPersonalBest). */}
-              <Text testID="ds-span-record" style={[styles.statText, { color: colors.text }]}>
+              {/* Строка для теста режимов: он читает охват и рекорд по testID. */}
+              <Text testID="ds-span-record" style={[styles.statText, { color: colors.textSecondary, fontSize: 11 }]}>
                 {t('hud_span')} {maxSpan} · {t('personalBest')} {shownRecord === null ? '—' : shownRecord}
               </Text>
               {!isPreset && phase === 'input' && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}

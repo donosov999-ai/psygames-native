@@ -473,22 +473,16 @@ export default function InhibitionGame() {
       <GameShell
         title={t('inhibition')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
-        stats={
-          currentKind === 'gng' ? (
-            <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits + correctRej}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {misses + falseAlarms}</Text>
-            </View>
-          ) : (
-            <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-              <Text style={[styles.statText, { color: '#3b82f6' }]}>{t('hud_held')} {correctRej}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {misses + falseAlarms}</Text>
-            </View>
-          )
-        }
+        /**
+         * Счётчики данными (см. `HudItem`). «Удержался» показываем наравне с
+         * «верно»: в задаче на торможение НЕ нажать — такое же достижение, как
+         * нажать вовремя, и без этого счётчика половина работы невидима.
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}` },
+          { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const, pop: true },
+          { key: 'held', icon: 'hand-left', label: t('hud_held'), value: correctRej, tone: 'accent' as const },
+        ]}
       >
         {currentKind === 'gng' ? renderGngField() : renderSsField()}
       </GameShell>

@@ -628,12 +628,14 @@ export default function MentalRotationGame() {
         <GameShell
           title={t('mentalRotation')}
           onBack={() => goBackOrHome()}
+          /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
+          hud={[
+            { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}`, pop: true },
+            { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+            { key: 'time', icon: 'time', label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+          ]}
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}</Text>
-              <Text style={[styles.statText, { color: OK_COLOR }]}>{t('hud_correct')} {hits}</Text>
-              <Text style={[styles.statText, { color: BAD_COLOR }]}>{t('hud_errors')} {errors}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
               {!isPreset && <LevelRuleBadge lr={levelRules} color={colors.primary} ru={language === 'ru'} />}
             </View>
           }

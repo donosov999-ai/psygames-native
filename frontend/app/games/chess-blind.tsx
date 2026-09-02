@@ -1016,17 +1016,15 @@ export default function ChessBlindGame() {
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
         }
+        /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
+        hud={[
+          { key: 'q', icon: 'help-circle', label: t('chessQuestionShort'), value: `${Math.min(state.step + 1, state.questions.length)}/${state.questions.length}`, pop: true },
+          { key: 'time', icon: 'time', label: t('time'), value: `${Math.floor(seriesTime)}${t('secShort')}` },
+        ]}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>
-              {`${t('chessQuestionShort')} ${Math.min(state.step + 1, state.questions.length)}/${state.questions.length}`}
-            </Text>
-            <Text style={[styles.statText, { color: colors.text }]}>
-              {`${t('time')} ${Math.floor(seriesTime)}${t('secShort')}`}
-            </Text>
-            <Text style={[styles.statText, { color: state.errors > 0 ? '#f43f5e' : colors.text }]}>
-              {`${t('hud_errors')} ${state.errors}`}
-            </Text>
+            {/* Правило уровня — объяснение механики, а не счётчик: остаётся в шапке. */}
+            <LevelRuleBadge lr={levelRules} color={colors.primary} ru={language === 'ru'} />
           </View>
         }
         toolbar={asking ? (
@@ -1113,21 +1111,17 @@ export default function ChessBlindGame() {
     <GameShell
       title={t('chessBlind')}
       onBack={() => goBackOrHome()}
-      stats={
-        <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{t('label_level_short')}{levelRef.current}</Text>
-          <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-          <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-          {phase === 'quiz' && (
-            <Text style={[styles.statText, { color: colors.text }]}>
-              {/* ⚠️ Отвечать можно вразнобой, поэтому счётчик показывает ПРОГРЕСС
-                   (сколько закрыто), а не номер выбранной клетки: с номером он прыгал
-                   бы 1/3 → 3/3 → 2/3 при тапе по другой клетке и читался как ошибка. */}
-              {t('chessQuestionShort')} {answeredTick}/{prm.questions}
-            </Text>
-          )}
-        </View>
-      }
+      /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
+      hud={[
+        { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: levelRef.current },
+        { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const, pop: true },
+        /**
+         * ⚠️ Отвечать можно вразнобой, поэтому счётчик показывает ПРОГРЕСС
+         * (сколько закрыто), а не номер выбранной клетки: с номером он прыгал бы
+         * 1/3 → 3/3 → 2/3 при тапе по другой клетке и читался как ошибка.
+         */
+        ...(phase === 'quiz' ? [{ key: 'q', icon: 'help-circle' as const, label: t('chessQuestionShort'), value: `${answeredTick}/${prm.questions}`, tone: 'accent' as const }] : []),
+      ]}
       toolbar={
         phase === 'quiz' && prm.quizType === 'pick' && currentQ ? (
           <View style={[styles.optionsWrap, { width: boardSize }]}>

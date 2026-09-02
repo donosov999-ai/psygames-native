@@ -295,16 +295,27 @@ export default function MathSprintGame() {
           title={t('mathSprint')}
           onBack={() => goBackOrHome()}
           scrollableField
-          stats={
+          /**
+           * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+           * играх, и правка вида приходит сразу везде.
+           *
+           * ⚠️ Ошибок в шапке нет намеренно: при подстройке сложности они норма по
+           * построению, и красный счётчик наказывает ровно за то, чего требует
+           * обучение (§12.4 карты геймификации). Серия показывается с трёх — раньше
+           * это не серия, а совпадение.
+           */
+          hud={[
+            { key: 'time', icon: 'time', label: t('timeLeftLabel'), value: `${timeLeft.toFixed(1)}${t('secShort')}`, tone: timeLeft <= 5 ? 'warn' as const : 'neutral' as const },
+            { key: 'score', icon: 'star', label: t('score'), value: score, tone: 'accent' as const, pop: true },
+            { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correct, tone: 'good' as const },
+            ...(streak >= 3 ? [{ key: 'streak', icon: 'flame' as const, label: t('hud_streak'), value: streak, tone: 'warn' as const }]
+              : !isPreset ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: lvl.level }] : []),
+          ]}
+          stats={!isPreset ? (
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('timeLeftLabel')} {timeLeft.toFixed(1)}{t('secShort')}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('score')} {score}</Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {correct}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-              {streak >= 3 && <Text style={[styles.statText, { color: '#fbbf24' }]}>{t('hud_streak')} {streak}</Text>}
-              {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
+              <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
             </View>
-          }
+          ) : undefined}
           toolbar={
             <TouchableOpacity
               accessibilityRole="button" onPress={submit} style={[styles.submitBtn, { backgroundColor: GRADIENT[0] }]}>

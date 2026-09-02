@@ -28,7 +28,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
 import { SEMANTIC_DISTRACTORS } from '@/src/data/semantic-distractors';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
 

@@ -807,6 +807,17 @@ export default function SetGame() {
           confirmExit={armed}
           resumable
           onSaveBeforeExit={saveParty}
+        /**
+         * Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4).
+         * Остаток времени на расклад остаётся в `stats` отдельной плашкой: по нему
+         * начисляется ✗, а по ✗ решается проход уровня.
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}`, pop: true },
+          { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+          { key: 'time', icon: 'time', label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+          ...(!isPreset ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: lvl.level }] : []),
+        ]}
           stats={
             <View style={styles.statsRow}>
               {/* Остаток на ТЕКУЩИЙ расклад. Бейдж-пилюля, а не ещё одна серая
@@ -821,10 +832,6 @@ export default function SetGame() {
                   pop={dealLeft <= 5}
                 />
               )}
-              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
               {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
             </View>
           }

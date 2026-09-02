@@ -269,12 +269,24 @@ export default function ReadingSpanGame() {
         title={t('readingSpan')}
         onBack={() => goBackOrHome()}
         scrollableField
+        /**
+         * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+         * играх, и правка вида приходит сразу везде.
+         *
+         * ⚠️ Счётчика ошибок здесь нет намеренно: при подстройке сложности ошибки —
+         * норма по построению, и красный счётчик наказывает ровно за то, чего
+         * требует обучение (§12.4 карты геймификации).
+         */
+        hud={[
+          { key: 'hud_step', icon: 'ellipse', label: t('hud_step'), value: `${stepIdx + 1}/${seq.length}` },
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: judgeHits, tone: 'good' as const },
+          { key: 'time', icon: 'ellipse', label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+        ]}
         stats={
           phase === 'playing' ? (
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('hud_step')} {stepIdx + 1}/{seq.length}</Text>
-              <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('hud_correct')} {judgeHits}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
+              {/* Правило уровня — объяснение механики, а не счётчик: остаётся в шапке. */}
+              <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
             </View>
           ) : undefined
         }

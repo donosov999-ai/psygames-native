@@ -334,12 +334,15 @@ export default function ListeningSpanGame() {
         title={t('listeningSpan')}
         onBack={() => goBackOrHome()}
         scrollableField={phase === 'recall'}
+        /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
+        hud={[
+          { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: levelRef.current },
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${ROUNDS}`, pop: true },
+        ]}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>
-              {t('label_level_short')}{levelRef.current} · {t('round')} {round}/{ROUNDS}
-            </Text>
-            {phase === 'recall' && <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>}
+            {/* Правило уровня — объяснение механики, а не счётчик: остаётся в шапке. */}
+            <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
           </View>
         }
       >

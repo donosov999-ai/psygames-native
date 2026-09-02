@@ -491,14 +491,14 @@ export default function FindDifferencesGame() {
       <GameShell
         title={t('findDiff')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalRounds}` },
+          { key: 'found', icon: 'search', label: t('label_found'), value: `${foundIdx.size}/${diffIdx.length}`, tone: 'good' as const, pop: true },
+          ...(!isCalm ? [{ key: 'left', icon: 'time' as const, label: t('timeLeftLabel'), value: `${Math.ceil(timeLeft)}${t('secShort')}`, tone: timeLeft <= 5 ? 'warn' as const : 'neutral' as const }] : []),
+        ]}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalRounds}</Text>
-            {!isCalm && (
-              <Text style={[styles.statText, { color: timeLeft <= 5 ? '#f43f5e' : colors.text }]}>{t('timeLeftLabel')} {timeLeft}{t('secShort')}</Text>
-            )}
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('label_found')} {foundIdx.size}/{diffIdx.length}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
           </View>
         }
       >

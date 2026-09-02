@@ -556,13 +556,20 @@ export default function HanoiGame() {
           />
         </GameAuxBar>
       }
+      /**
+       * Счётчики данными (см. `HudItem`).
+       *
+       * ⚠️ Ходы показаны как «сделано / минимум»: это и есть задача башни —
+       * уложиться в оптимум, а не просто дойти. Счётчик ошибок убран: в ханое
+       * «ошибка» — это запрещённый ход, о котором и так говорит подсветка.
+       */
+      hud={[
+        { key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'), value: `${moves}/${optimal(discs)}`, tone: moves > optimal(discs) ? 'warn' as const : 'good' as const, pop: true },
+        { key: 'time', icon: 'time', label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+        ...(!isPreset ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: lvl.level }] : []),
+      ]}
       stats={
         <View style={styles.statsRow}>
-          <Text style={[styles.statText, { color: colors.text }]}>{t('hud_moves')} {moves} / {optimal(discs)}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-          {/* 🔴 Тревожный цвет только когда есть о чём тревожиться. «Ошибок 0»
-              красным — это упрёк за отсутствие ошибок. */}
-          <Text style={[styles.statText, { color: errors > 0 ? '#f43f5e' : colors.textSecondary }]}>{t('hud_errors')} {errors}</Text>
-          <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
           {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />}
         </View>
       }

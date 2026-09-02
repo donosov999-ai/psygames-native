@@ -207,14 +207,20 @@ export default function IowaGame() {
       <GameShell
         title={t('iowa')}
         onBack={() => goBackOrHome()}
-        stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('hud_card')} {round}/{trials}</Text>
-            <Text style={[styles.statText, { color: bank >= 2000 ? '#22c55e' : '#ef4444', fontSize: 16 }]}>{t('hud_bank')} ${bank}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_goodDecks')} {advCount}</Text>
-            <Text style={[styles.statText, { color: '#ef4444' }]}>{t('hud_badDecks')} {disCount}</Text>
-          </View>
-        }
+        /**
+         * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+         * играх, и правка вида приходит сразу везде.
+         *
+         * ⚠️ Счётчика ошибок здесь нет намеренно: при подстройке сложности ошибки —
+         * норма по построению, и красный счётчик наказывает ровно за то, чего
+         * требует обучение (§12.4 карты геймификации).
+         */
+        hud={[
+          { key: 'hud_card', icon: 'ellipse', label: t('hud_card'), value: `${round}/${trials}` },
+          { key: 'hud_bank', icon: 'ellipse', label: t('hud_bank'), value: `$${bank}` },
+          { key: 'hud_goodDecks', icon: 'ellipse', label: t('hud_goodDecks'), value: advCount },
+          { key: 'hud_badDecks', icon: 'ellipse', label: t('hud_badDecks'), value: disCount },
+        ]}
         toolbar={
           <View style={styles.deckRow}>
             {(['A','B','C','D'] as Deck[]).map((d) => (

@@ -245,19 +245,18 @@ export default function OSpanGame() {
           title={t('ospan')}
           onBack={() => goBackOrHome()}
           scrollableField={phase === 'recall'}
+          /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
+          hud={phase === 'recall' ? [] : [
+            { key: 'step', icon: 'footsteps', label: t('hud_step'), value: `${stepIdx + 1}/${setSize}`, pop: true },
+            { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: lvl.level },
+            ...(phase === 'eq' ? [{ key: 'correct', icon: 'checkmark-circle' as const, label: t('hud_correct'), value: mathHits, tone: 'good' as const }] : []),
+          ]}
           stats={
-            phase === 'recall' ? undefined : (
+            phase === 'eq' ? (
               <View style={styles.statsRow}>
-                <Text style={[styles.statText, { color: colors.text }]}>{t('hud_step')} {stepIdx + 1}/{setSize} · {t('label_level_short')}{lvl.level}</Text>
-                {phase === 'eq' && (
-                  <>
-                    <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {mathHits}</Text>
-                    <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {mathErrors}</Text>
-                    <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
-                  </>
-                )}
+                <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
               </View>
-            )
+            ) : undefined
           }
           toolbar={
             phase === 'eq' ? (

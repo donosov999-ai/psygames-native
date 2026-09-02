@@ -473,14 +473,14 @@ export default function AnagramGame() {
       <GameShell
         title={t('anagrams')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}`, pop: true },
+          { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+          ...(wordSec > 0 ? [{ key: 'left', icon: 'time' as const, label: t('timeLeftLabel'), value: `${Math.ceil(wordLeft)}${t('secShort')}`, tone: wordLeft <= 10 ? 'warn' as const : 'neutral' as const }] : []),
+        ]}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-            {wordSec > 0 && (
-              <Text style={[styles.statText, { color: wordLeft <= 10 ? '#f43f5e' : colors.text }]}>{t('timeLeftLabel')} {wordLeft}{t('secShort')}</Text>
-            )}
           </View>
         }
         /* 💡 Подсказка ушла НАВЕРХ, к остальному служебному: она открывает
