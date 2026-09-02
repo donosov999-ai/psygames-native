@@ -364,14 +364,20 @@ export default function TowerLondonGame() {
             />
           </GameAuxBar>
         }
-        stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_solved')} {solved}</Text>
-            <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('hud_moves')} {moves}/{puzzle.minMoves}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
-          </View>
-        }
+        /**
+         * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+         * играх, и правка вида приходит сразу везде.
+         *
+         * ⚠️ Счётчика ошибок здесь нет намеренно: при подстройке сложности ошибки —
+         * норма по построению, и красный счётчик наказывает ровно за то, чего
+         * требует обучение (§12.4 карты геймификации).
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}`, pop: true },
+          { key: 'hud_solved', icon: 'checkmark-circle', label: t('hud_solved'), value: solved, tone: 'good' as const },
+          { key: 'hud_moves', icon: 'swap-horizontal', label: t('hud_moves'), value: `${moves}/${puzzle.minMoves}` },
+          { key: 'time', icon: 'ellipse', label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+        ]}
       >
         <View style={styles.fieldCol}>
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('goalState')}</Text>

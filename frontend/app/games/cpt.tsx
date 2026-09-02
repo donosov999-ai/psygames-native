@@ -577,15 +577,21 @@ export default function CPTGame() {
         <GameShell
           title={t('cpt')}
           onBack={() => { stoppedRef.current = true; clearAllTimers(); goBackOrHome(); }}
+          /**
+           * Счётчики данными (см. `HudItem`).
+           *
+           * ⚠️ Из четырёх прежних чисел оставлены три: пропуски и ложные нажатия
+           * убраны из шапки. В пробе на устойчивое внимание и то, и другое —
+           * рабочий материал упражнения; висящий по ходу счётчик промахов
+           * наказывает ровно за то, чем измеряется задача (§12.4).
+           */
+          hud={[
+            { key: 'time', icon: 'time', label: t('timeLeftLabel'), value: `${mins}:${secs.toString().padStart(2, '0')}`, tone: 'accent' as const },
+            { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const, pop: true },
+            { key: 'trials', icon: 'repeat', label: t('hud_trials'), value: trialIdx },
+          ]}
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: GRADIENT[1], fontSize: 18 }]}>
-                {t('timeLeftLabel')} {mins}:{secs.toString().padStart(2, '0')}
-              </Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_missed')} {omissions}</Text>
-              <Text style={[styles.statText, { color: '#fbbf24' }]}>{t('hud_false')} {commissions}</Text>
-              <Text style={[styles.statText, { color: colors.textSecondary }]}>{t('hud_trials')} {trialIdx}</Text>
               <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
             </View>
           }

@@ -293,16 +293,13 @@ export default function FlankerGame() {
       <GameShell
         title={t('flanker')}
         onBack={() => goBackOrHome()}
-        stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>
-              {t('round')} {round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}
-            </Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('reaction')} {meanRtAll}{t('msShort')}</Text>
-          </View>
-        }
+        /** Счётчики данными: одинаковый вид во всех играх (см. `HudItem`). */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}`, pop: true },
+          { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+          { key: 'rt', icon: 'flash', label: t('reaction'), value: `${meanRtAll}${t('msShort')}`, tone: 'accent' as const },
+          ...(!isPreset ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: lvl.level }] : []),
+        ]}
         toolbar={
           /* RTL-пин: кнопка ← обязана быть физически СЛЕВА (S-R совместимость), иначе в ar психометрика рушится */
           <View style={styles.toolbarLtr}>

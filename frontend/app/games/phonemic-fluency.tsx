@@ -306,10 +306,17 @@ export default function PhonemicFluencyGame() {
       <GameShell
         title={t('phonemic')}
         onBack={() => goBackOrHome()}
+        /**
+         * Счётчики данными (см. `HudItem`). Буква-стимул остаётся в `stats`: это
+         * не счётчик, а само задание, и рисуется оно крупной плашкой.
+         */
+        hud={[
+          { key: 'left', icon: 'time', label: t('timeLeftLabel'), value: `${remaining}${t('secShort')}`, tone: remaining <= 10 ? 'warn' as const : 'accent' as const },
+          { key: 'words', icon: 'text', label: t('hud_words'), value: validCount, tone: 'good' as const, pop: true },
+        ]}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text, fontSize: 24 }]}>{t('timeLeftLabel')} {remaining}{t('secShort')}</Text>
-            <Text style={[styles.statText, { color: '#22c55e', fontSize: 24 }]}>{t('hud_words')} {validCount}</Text>
+            {null}
             <View style={[styles.letterBox, { borderColor: GRADIENT[0] }]}>
               {/* Подпись к стимулу: без неё в шапке просто висит большая буква */}
               <Text style={[styles.letterCap, { color: colors.textSecondary }]}>{t('hud_letter')}</Text>

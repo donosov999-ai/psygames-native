@@ -365,17 +365,15 @@ export default function NumberBondsGame() {
       <GameShell
         title={t('numberBonds')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}`, pop: true },
+          { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+          ...(!isPreset ? [{ key: 'left', icon: 'time' as const, label: t('timeLeftLabel'), value: `${Math.ceil(roundLeft)}${t('secShort')}`, tone: roundLeft <= 5 ? 'warn' as const : 'neutral' as const }] : []),
+        ]}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-            {!isPreset && (
-              <Text style={[styles.statText, { color: roundLeft <= 5 ? '#f43f5e' : colors.text }]}>
-                {t('timeLeftLabel')} {Math.ceil(roundLeft)}{t('secShort')}
-              </Text>
-            )}
-            <Text style={[styles.statText, { color: colors.textSecondary }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
+            {null}
           </View>
         }
         toolbar={

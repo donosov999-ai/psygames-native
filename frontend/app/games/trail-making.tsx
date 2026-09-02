@@ -484,14 +484,20 @@ export default function TrailMakingGame() {
         ) : null}
         title={t('trailMaking')}
         onBack={() => goBackOrHome()}
+        /**
+         * Счётчики данными (см. `HudItem`). Время показано с лимитом рядом
+         * («12.3/40 c»), когда лимит есть: иначе цифра ни с чем не сравнивается,
+         * а по ней решается прохождение уровня.
+         */
+        hud={[
+          { key: 'point', icon: 'locate', label: t('hud_point'), value: `${currentIdx}/${nodes.length}`, tone: 'good' as const, pop: true },
+          { key: 'time', icon: 'time', label: t('time'),
+            value: `${elapsedTime.toFixed(1)}${timeLimit > 0 ? `/${timeLimit}` : ''}${t('secShort')}`,
+            tone: timeLimit > 0 && elapsedTime > timeLimit ? 'warn' as const : 'neutral' as const },
+        ]}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('hud_point')} {currentIdx}/{nodes.length}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
             {/* Лимит времени уровня виден игроку; просрочил — таймер краснеет */}
-            <Text style={[styles.statText, { color: timeLimit > 0 && elapsedTime > timeLimit ? '#f43f5e' : colors.text }]}>
-              {t('time')} {elapsedTime.toFixed(1)}{timeLimit > 0 ? `/${timeLimit}` : ''}{t('secShort')}
-            </Text>
           </View>
         }
       >

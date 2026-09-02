@@ -344,14 +344,22 @@ export default function ANTGame() {
       <GameShell
         title={t('ant')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        /**
+         * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+         * играх, и правка вида приходит сразу везде.
+         *
+         * ⚠️ Счётчика ошибок здесь нет намеренно: при подстройке сложности ошибки —
+         * норма по построению, и красный счётчик наказывает ровно за то, чего
+         * требует обучение (§12.4 карты геймификации).
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}` },
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+          { key: 'reaction', icon: 'flash', label: t('reaction'), value: `${m.meanRt}${t('msShort')}`, tone: 'accent' as const },
+        ]}
         stats={
           <View style={styles.statsCol}>
-            <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('reaction')} {m.meanRt}{t('msShort')}</Text>
-            </View>
+            <View style={styles.statsRow} />
             <View style={[styles.networkRow]}>
               <Text style={[styles.netText, { color: '#22c55e' }]}>{t('hud_netAlerting')} {m.alerting}{t('msShort')}</Text>
               <Text style={[styles.netText, { color: '#fbbf24' }]}>{t('hud_netOrienting')} {m.orienting}{t('msShort')}</Text>

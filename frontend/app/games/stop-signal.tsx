@@ -473,15 +473,20 @@ export default function StopSignalGame() {
       <GameShell
         title={t('stopSignal')}
         onBack={() => { clearTimers(); goBackOrHome(); }}
-        stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-            <Text style={[styles.statText, { color: '#3b82f6' }]}>{t('hud_held')} {correctStops}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('reaction')} {meanRt}{t('msShort')}</Text>
-          </View>
-        }
+        /**
+         * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+         * играх, и правка вида приходит сразу везде.
+         *
+         * ⚠️ Счётчика ошибок здесь нет намеренно: при подстройке сложности ошибки —
+         * норма по построению, и красный счётчик наказывает ровно за то, чего
+         * требует обучение (§12.4 карты геймификации).
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}` },
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+          { key: 'hud_held', icon: 'ellipse', label: t('hud_held'), value: correctStops },
+          { key: 'reaction', icon: 'flash', label: t('reaction'), value: `${meanRt}${t('msShort')}`, tone: 'accent' as const },
+        ]}
         toolbar={
           <TouchableOpacity
             accessibilityRole="button" activeOpacity={0.7} onPress={onPressGo}

@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.29.0',
+    date: '2026-09-02',
+    ru: [
+      'Счётчики в шапке стали одинаковыми во всех играх: те же плашки, тот же вид — раньше каждая игра рисовала их по-своему',
+      'Счётчик ошибок убран из шапки: в тренажёре с подстройкой сложности ошибки — часть работы, а не провинность',
+      'Где было что показать — добавлены серия, рекорд и остаток времени',
+    ],
+    en: [
+      'Header counters now look the same in every game — each game used to draw them its own way',
+      'The error counter is gone from the header: in an adaptive trainer mistakes are part of the work, not a failing',
+      'Where there was something to show, streaks, personal bests and time left were added',
+    ],
+  },
+  {
     version: '2.28.0',
     date: '2026-09-02',
     ru: [

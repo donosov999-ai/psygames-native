@@ -368,15 +368,20 @@ export default function PosnerGame() {
       <GameShell
         title={t('posner')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
-        stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('reaction')} {meanRtAll}{t('msShort')}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('hud_cueGain')} {validityEffect}{t('msShort')}</Text>
-          </View>
-        }
+        /**
+         * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+         * играх, и правка вида приходит сразу везде.
+         *
+         * ⚠️ Счётчика ошибок здесь нет намеренно: при подстройке сложности ошибки —
+         * норма по построению, и красный счётчик наказывает ровно за то, чего
+         * требует обучение (§12.4 карты геймификации).
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}` },
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+          { key: 'reaction', icon: 'flash', label: t('reaction'), value: `${meanRtAll}${t('msShort')}`, tone: 'accent' as const },
+          { key: 'hud_cueGain', icon: 'ellipse', label: t('hud_cueGain'), value: `${validityEffect}${t('msShort')}` },
+        ]}
         toolbar={
           /* RTL-пин: кнопка ← физически слева, как и слоты стимула — иначе валидность подсказки инвертируется */
           <View style={styles.toolbarLtr}>

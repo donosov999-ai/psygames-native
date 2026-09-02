@@ -26,7 +26,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
-import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#4facfe', '#00f2fe'];

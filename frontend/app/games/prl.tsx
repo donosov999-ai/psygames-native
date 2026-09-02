@@ -498,19 +498,18 @@ export default function PRLGame() {
       <GameShell
         title={t('prl')}
         onBack={() => { respondLockRef.current = true; goBackOrHome(); }}
+        /**
+         * Счётчики данными (см. `HudItem`). Банк и число разворотов — это и есть
+         * суть задачи на обучение с подкреплением, поэтому они в шапке; «сколько
+         * подряд в текущем блоке» ушло — оно подсказывает момент разворота.
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${trialIdx}/${totalTrials}` },
+          { key: 'bank', icon: 'cash', label: t('hud_bank'), value: `${bank}¢`, tone: bank >= 100 ? 'good' as const : 'warn' as const, pop: true },
+          { key: 'rev', icon: 'swap-horizontal', label: t('hud_reversals'), value: blockIndexRef.current, tone: 'accent' as const },
+        ]}
         stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {trialIdx}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: bank >= 100 ? '#22c55e' : '#f43f5e', fontSize: 18 }]}>
-              {t('hud_bank')} {bank}¢
-            </Text>
-            <Text style={[styles.statText, { color: GRADIENT[1] }]}>
-              {t('hud_reversals')} {blockIndexRef.current}
-            </Text>
-            <Text style={[styles.statText, { color: colors.textSecondary }]}>
-              {t('hud_inBlock')} {revealCount}
-            </Text>
-          </View>
+          <View style={styles.statsRow} />
         }
         toolbar={
           <View style={styles.toolbarCol}>

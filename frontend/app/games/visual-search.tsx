@@ -390,15 +390,15 @@ export default function VisualSearchGame() {
         <GameShell
           title={t('visualSearch')}
           onBack={() => goBackOrHome()}
+          /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
+          hud={[
+            { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}`, pop: true },
+            { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+            ...(targetCount > 1 ? [{ key: 'found', icon: 'search' as const, label: t('label_found'), value: `${foundCount}/${targetCount}`, tone: 'accent' as const }] : []),
+            ...(!isPreset ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: lvl.level }] : []),
+          ]}
           stats={
             <View style={styles.statsRow}>
-              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}{!isPreset ? ` · ${t('label_level_short')}${lvl.level}` : ''}</Text>
-              <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-              <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-              {targetCount > 1 && (
-                <Text style={[styles.statText, { color: '#3b82f6' }]}>{t('label_found')} {foundCount}/{targetCount}</Text>
-              )}
-              <Text style={[styles.statText, { color: colors.primary }]}>{t('time')} {Math.max(0, (now - stimAt) / 1000).toFixed(1)}{t('secShort')}</Text>
               {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
             </View>
           }

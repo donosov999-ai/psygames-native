@@ -356,14 +356,12 @@ export default function ChoiceRtGame() {
       <GameShell
         title={t('choiceRt')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
-        stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('reaction')} {meanRt}{t('msShort')}</Text>
-          </View>
-        }
+        /** Счётчики данными: одинаковый вид во всех играх (см. `HudItem`). */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}`, pop: true },
+          { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+          { key: 'rt', icon: 'flash', label: t('reaction'), value: `${meanRt}${t('msShort')}`, tone: 'accent' as const },
+        ]}
         toolbar={renderPad()}
       >
         <View style={[styles.stimulusBox, {

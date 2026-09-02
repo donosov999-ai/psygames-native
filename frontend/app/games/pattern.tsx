@@ -326,13 +326,18 @@ export default function PatternGame() {
         ) : null}
         title={t('pattern')}
         onBack={() => goBackOrHome()}
-        stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-          </View>
-        }
+        /**
+         * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+         * играх, и правка вида приходит сразу везде.
+         *
+         * ⚠️ Счётчика ошибок здесь нет намеренно: при подстройке сложности ошибки —
+         * норма по построению, и красный счётчик наказывает ровно за то, чего
+         * требует обучение (§12.4 карты геймификации).
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}` },
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+        ]}
         /*
           🔴 КНОПКА ПОДСКАЗКИ УЕХАЛА ИЗ ПОЛЯ В ШАПКУ. Стояла она последней в
           центрированной колонке — то есть ВПЛОТНУЮ НАД полосой ответов, и

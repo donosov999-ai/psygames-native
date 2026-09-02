@@ -386,13 +386,16 @@ export default function PseudowordEchoGame() {
       <GameShell
         title={t('pseudowordEcho')}
         onBack={() => goBackOrHome()}
+        /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${rounds.length}`, pop: true },
+          { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+          { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: levelRef.current },
+        ]}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>
-              {t('round')} {idx + 1}/{rounds.length} · {t('label_level_short')}{levelRef.current}
-            </Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
+            {/* Правило уровня — объяснение механики, а не счётчик: остаётся в шапке. */}
+            <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
           </View>
         }
       >

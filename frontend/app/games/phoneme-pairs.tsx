@@ -392,13 +392,18 @@ export default function PhonemePairsGame() {
       <GameShell
         title={t('phonemePairsShort')}
         onBack={() => goBackOrHome()}
-        stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {idx + 1}/{total} · {t('label_level_short')}{levelRef.current}</Text>
-            {!p.blind && <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>}
-            {!p.blind && <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>}
-          </View>
-        }
+        /**
+         * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
+         * играх, и правка вида приходит сразу везде.
+         *
+         * ⚠️ Счётчика ошибок здесь нет намеренно: при подстройке сложности ошибки —
+         * норма по построению, и красный счётчик наказывает ровно за то, чего
+         * требует обучение (§12.4 карты геймификации).
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${total} · ${t('label_level_short')}${levelRef.current}` },
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
+        ]}
         /*
           🔴 «Ещё раз» УЕХАЛО ИЗ НИЖНЕЙ ПОЛОСЫ, и здесь смешение было самым
           наглядным: две кнопки-ответа и повтор звука стояли ОДНОЙ КОЛОНКОЙ,

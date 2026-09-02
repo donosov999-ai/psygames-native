@@ -331,13 +331,14 @@ export default function GoNoGoGame() {
       <GameShell
         title={t('goNoGo')}
         onBack={() => { stoppedRef.current = true; clearAllTimers(); goBackOrHome(); }}
-        stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits + correctRej}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {misses + falseAlarms}</Text>
-          </View>
-        }
+        /**
+         * Счётчики данными. ⚠️ Ошибок в шапке нет: в пробе на торможение промах —
+         * рабочий материал упражнения, а не провинность (§12.4).
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}`, pop: true },
+          { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits + correctRej, tone: 'good' as const },
+        ]}
       >
         <View style={styles.fieldCol}>
           <TouchableOpacity

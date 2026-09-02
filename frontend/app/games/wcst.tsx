@@ -468,21 +468,30 @@ export default function WcstGame() {
       <GameShell
         title={t('wcst')}
         onBack={() => goBackOrHome()}
+        /**
+         * Счётчики данными (см. `HudItem`). «Повторы» остаются: в задаче на смену
+         * правила упорство в старом правиле — главная измеряемая величина, а не
+         * ошибка в бытовом смысле.
+         */
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}` },
+          { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const, pop: true },
+          { key: 'persev', icon: 'refresh-circle', label: t('hud_repeats'), value: perseverative, tone: 'accent' as const },
+          /**
+           * Серия и порог смены правила — вместе. Порог живой (классика 10, по
+           * уровням 9 → …), и статичное число в справке разъезжалось с кодом:
+           * репорт Вали v1.169 «в справке каждые 6 карточек, а сменилось иначе».
+           */
+          { key: 'streak', icon: 'flame', label: t('hud_streak'), value: `${streak}/${ruleStreakRef.current}`, tone: 'warn' as const },
+        ]}
         stats={
           <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{totalTrials}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>{t('hud_correct')} {hits}</Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-            <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('hud_repeats')} {perseverative}</Text>
+            {null}
             {/* v1.169 (репорт Вали «в справке каждые 6 карточек, а сменилось после 10»):
                 числа «6» в справке давно нет, но взамен там «после серии верных подряд» —
                 верно и бесполезно. Порог живой: классика 10, по уровням 9 → 3. Поэтому
                 показываем ТЕКУЩИЙ прямо в счётчиках: серия и сколько до смены правила.
                 Статичное число в тексте всё равно разъехалось бы с кодом. */}
-            <Text style={[styles.statText, { color: colors.textSecondary }]}>
-              {t('hud_streak')} {streak}/{ruleStreakRef.current}
-            </Text>
-            <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
           </View>
         }
         toolbar={

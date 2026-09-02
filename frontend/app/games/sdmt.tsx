@@ -285,14 +285,13 @@ export default function SdmtGame() {
       <GameShell
         title={t('sdmt')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
+        hud={[
+          { key: 'time', icon: 'time', label: t('timeLeftLabel'), value: `${remaining}${t('secShort')}`, tone: remaining <= 10 ? 'warn' as const : 'accent' as const },
+          { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: targetHits > 0 ? `${hits}/${targetHits}` : hits, tone: 'good' as const, pop: true },
+        ]}
         stats={
-          <View style={styles.statsRow}>
-            <Text style={[styles.statText, { color: GRADIENT[1] }]}>{t('timeLeftLabel')} {remaining}{t('secShort')}</Text>
-            <Text style={[styles.statText, { color: '#22c55e' }]}>
-              {t('hud_correct')} {hits}{targetHits > 0 ? `/${targetHits}` : ''}
-            </Text>
-            <Text style={[styles.statText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-          </View>
+          <View style={styles.statsRow} />
         }
         toolbar={
           <View style={[styles.padGrid, { width: sdmtPad * 3 + 16 }]}>
