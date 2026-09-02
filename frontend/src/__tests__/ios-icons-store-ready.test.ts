@@ -21,13 +21,17 @@ const fs = require('fs');
 const path = require('path');
 const ДИР = path.join(__dirname, '../../../src-tauri/icons/ios');
 
-/** Читаем PNG заголовком: 25-й байт IHDR — тип цвета (6 и 4 несут альфу). */
+/**
+ * Читаем PNG заголовком: 25-й байт IHDR — тип цвета (6 и 4 несут альфу).
+ * ⚠️ Тип `any`, а не `Buffer`: в tsconfig тестов нет типов node, и `Buffer`
+ * не объявлен — проверка от этого не меняется, а сборка типов остаётся чистой.
+ */
 function цветовойТип(файл: string): number {
-  const b = fs.readFileSync(файл) as Buffer;
+  const b = fs.readFileSync(файл);
   return b[25];
 }
 function размер(файл: string): [number, number] {
-  const b = fs.readFileSync(файл) as Buffer;
+  const b = fs.readFileSync(файл);
   return [b.readUInt32BE(16), b.readUInt32BE(20)];
 }
 

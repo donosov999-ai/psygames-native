@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.32.0',
+    date: '2026-09-02',
+    ru: [
+      'В «Сортировке товаров» три звезды наконец можно получить: раньше высшая оценка была недостижима почти на всех уровнях — порог стоял ниже, чем доска решается в принципе',
+      'Оценка стала честной: сколько ходов нужно на самом деле, игра теперь считает поиском, а не прикидкой',
+    ],
+    en: [
+      'In Goods Sort three stars are finally reachable: the top grade used to be impossible on almost every level — the threshold sat below what the board can be solved in',
+      'The grade is honest now: the number of moves a board really needs is computed by search rather than guessed',
+    ],
+  },
+  {
     version: '2.31.0',
     date: '2026-09-02',
     ru: [

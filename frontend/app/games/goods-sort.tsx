@@ -12,6 +12,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell, { type HudItem, type ModItem } from '@/src/components/GameShell';
+import { minMoves } from '@/src/services/goodsSortMinMoves';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -1116,7 +1117,48 @@ export function revealUncovered(covered: Iterable<string>, cells: number[][]): s
  * (тот же расчёт, из которого лимит потом и строится).
  */
 export function moveReference(cfg: { moveLimit: number; types: number }): number {
-  return cfg.moveLimit > 0 ? cfg.moveLimit : cfg.types * 3;
+  return cfg.moveLimit > 0 ? cfg.moveLimit : Math.round(cfg.types * REF_PER_TYPE);
+}
+
+/**
+ * 🔴 СКОЛЬКО ХОДОВ НА ВИД ТОВАРА — ЗАМЕР, А НЕ ПРИКИДКА (пункт 6.5, 02.09.2026).
+ *
+ * Было `types × 3` из рассуждения «каждой тройке до трёх перекладываний». Замер
+ * поиском A* с допустимой эвристикой (`services/goodsSortMinMoves`) на девяти
+ * уровнях, по шесть досок каждый:
+ *
+ *   L1: минимум 8,3 при оценке 12 (доля 0,69) · L4: 13,6 при 18 (0,76)
+ *   L8: 15,0 при 21 (0,71) · L11: 12,2 при 18 (0,68) · среднее по девяти — 0,732
+ *
+ * То есть прикидка завышала эталон на треть, и завышала устойчиво.
+ *
+ * 🔴 ЧЕМ ЭТО ОБЕРНУЛОСЬ. Порог трёх звёзд стоял «ходов ≤ 0,6 × эталон», то есть
+ * 1,8 × types. Реальный минимум — 2,1–2,3 × types. **Высшая оценка была недостижима
+ * на 95 % досок** (замер: 21 из 22). Игрок не мог получить три звезды, сколь угодно
+ * хорошо играя, — и никакой формулой этого не видно, только перебором.
+ *
+ * ⚠️ Точный минимум на лету НЕ считается: тот же замер показал 6–10 секунд и
+ * 40 000 узлов уже с пятнадцатого уровня. Поэтому эталон — калиброванная оценка,
+ * а точное число берётся, когда фоновый расчёт успел (см. `starsFor`).
+ */
+export const REF_PER_TYPE = 2.2;
+
+/**
+ * 🔴 ЗВЁЗДЫ ПО ХОДАМ — ОДНА ФОРМУЛА НА ИГРУ И НА ГЕЙТ.
+ *
+ * Пороги считаются от ЭТАЛОНА (точного минимума этой доски, если фоновый расчёт
+ * успел, иначе калиброванной оценки), а не от доли «сколько не жалко»:
+ *   до +15 % сверх минимума — три звезды · до +60 % — две · дальше — одна.
+ *
+ * ⚠️ Вынесено наружу именно ради гейта. Проверка, которая ПОВТОРЯЕТ формулу у себя,
+ * ничего не стоит: два числа из одного рассуждения согласуются по определению.
+ * `goods-sort-stars-reachable` зовёт эту функцию и сверяет её вердикт с минимумом,
+ * найденным поиском, — то есть с игрой, а не с самой собой.
+ */
+export function starsForMoves(moves: number, reference: number): 1 | 2 | 3 {
+  if (moves <= Math.ceil(reference * 1.15)) return 3;
+  if (moves <= Math.ceil(reference * 1.6)) return 2;
+  return 1;
 }
 
 /**
@@ -2241,6 +2283,19 @@ export default function GoodsSortGame() {
   const [elapsed, setElapsed] = useState(0);
   const scoreRef = useRef(0); const movesRef = useRef(0);
   /**
+   * 🔴 ТОЧНЫЙ МИНИМУМ ХОДОВ ЭТОЙ ДОСКИ — СЧИТАЕТСЯ В ФОНЕ, НЕ ДЕРЖИТ ПАРТИЮ.
+   *
+   * Замер 02.09.2026: поиск A* находит минимум за 20 мс на первом уровне, но уже с
+   * пятнадцатого упирается в бюджет через 6–10 секунд. Считать при раздаче нельзя —
+   * человек смотрел бы на пустой экран; отказаться совсем тоже нельзя — от эталона
+   * зависят звёзды.
+   *
+   * Поэтому расчёт уходит в фон сразу после раздачи: партия начинается мгновенно, а
+   * к её концу (звёзды считаются на итоге) число обычно уже есть. Не успел или не
+   * уложился в бюджет — `null`, и звёзды берут калиброванную оценку.
+   */
+  const exactMinRef = useRef<number | null>(null);
+  /**
    * Замеры §20.4 — в ref, а не в состоянии: рендеру они не нужны, а нужны
    * обработчику хода В МОМЕНТ события — к концу уровня «когда был первый ход»
    * уже не восстановить. lastMove — служебная память для ловли возврата (тот
@@ -2451,6 +2506,20 @@ export default function GoodsSortGame() {
     const deal = dealBoard(L, poolRef.current, narrowRef.current);
     const built = deal.cells;
     setCells(built);
+    /**
+     * Фоновый расчёт точного минимума для ЭТОЙ доски (см. `exactMinRef`).
+     * ⚠️ `setTimeout(0)` обязателен: без него поиск съел бы первый кадр партии.
+     * Бюджет держим маленьким — на трудных досках проще честно не знать.
+     */
+    exactMinRef.current = null;
+    const доскаДляРасчёта = built.map((c) => [...c]);
+    const capsДляРасчёта = capsForBoard(L, built);
+    setTimeout(() => {
+      try {
+        const r = minMoves(доскаДляРасчёта, capsДляРасчёта, 12000);
+        if (r.moves !== null) exactMinRef.current = r.moves;
+      } catch { /* расчёт — удобство, а не условие партии */ }
+    }, 0);
     const obs = deal.obstacles;
     setObstacles(obs);
 
@@ -3528,9 +3597,20 @@ export default function GoodsSortGame() {
      */
     if (hiddenInfo(L)) return 3;
     const cfg = levelCfg(L, poolRef.current.length, narrowRef.current);
-    // Эталон — общий с moves_over_min в записи сессии (moveReference).
-    const reference = moveReference(cfg);
-    return moves <= reference * 0.6 ? 3 : 2;
+    /**
+     * 🔴 ПОРОГИ СЧИТАЮТСЯ ОТ МИНИМУМА, А НЕ ОТ ДОЛИ ЭТАЛОНА.
+     *
+     * Было «три звезды за ходов ≤ 0,6 × эталон». Замер 02.09.2026 поиском A*:
+     * такой порог ниже реального минимума, и высшая оценка была **недостижима на
+     * 95 % досок** (21 из 22) — сколько угодно хорошая игра давала две звезды.
+     *
+     * Теперь эталон — это сам минимум (точный, если фоновый расчёт успел, иначе
+     * калиброванный по замеру), а звёзды меряют, насколько игрок к нему близок:
+     *   до +15 % сверх минимума — три · до +60 % — две · дальше — одна.
+     * Эти доли и есть «сыграл почти идеально / хорошо / прошёл».
+     */
+    const точный = exactMinRef.current;
+    return starsForMoves(moves, точный ?? moveReference(cfg));
   };
 
   /**
