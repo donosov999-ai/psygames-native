@@ -74,6 +74,23 @@ def патч(team: str, profile: str, min_ios: str) -> None:
         s = s.replace('        ENABLE_BITCODE: false',
                       '        OTHER_LDFLAGS: $(inherited) -lapp\n        ENABLE_BITCODE: false', 1)
 
+    # 4. Экспортное шифрование — ответ в Info.plist, а не руками в кабинете.
+    #
+    # 🔴 БЕЗ ЭТОГО СБОРКА ДОХОДИТ ДО APPLE И ВСТАЁТ. Проверено на v2.34.2: .ipa
+    # загрузился, состояние VALID — а тестировщикам не ушёл, потому что у сборки
+    # `MISSING_EXPORT_COMPLIANCE`. Apple ждёт ответа на вопрос «использует ли
+    # приложение шифрование сверх стандартного», и до ответа держит сборку.
+    #
+    # Ответ «нет» здесь фактический, а не удобный: приложение ходит по HTTPS и
+    # своей криптографии не содержит — это ровно тот случай, под который написано
+    # исключение Apple. Ключ в Info.plist снимает вопрос НАВСЕГДА: иначе на каждую
+    # сборку кто-то должен заходить в кабинет и нажимать.
+    if 'ITSAppUsesNonExemptEncryption' not in s:
+        якорь = '        LSRequiresIPhoneOS: true'
+        if якорь not in s:
+            sys.exit('шаблон проекта изменился: не нашёл блок Info.plist')
+        s = s.replace(якорь, '        ITSAppUsesNonExemptEncryption: false\n' + якорь, 1)
+
     yml.write_text(s, encoding='utf-8')
     print('project.yml пропатчен: ручная подпись, iOS', min_ios, ', очистка бандла')
 
@@ -82,7 +99,8 @@ def патч(team: str, profile: str, min_ios: str) -> None:
     pbx = (ПРОЕКТ / 'psygames.xcodeproj' / 'project.pbxproj').read_text(encoding='utf-8')
     for что, где in (('CODE_SIGN_STYLE = Manual', 'ручная подпись'),
                      (profile, 'профиль'),
-                     ('-lapp', 'линковка библиотеки флагом')):
+                     ('-lapp', 'линковка библиотеки флагом'),
+                     ('ITSAppUsesNonExemptEncryption', 'ответ про экспортное шифрование')):
         if что not in pbx:
             sys.exit(f'после генерации в проекте нет: {где} ({что})')
     print('проект пересобран, все три правки на месте ✅')
