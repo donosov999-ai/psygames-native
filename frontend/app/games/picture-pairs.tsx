@@ -17,6 +17,7 @@ import { useLevelGate } from '@/src/hooks/useLevelGate';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -29,7 +30,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import {saveResume, clearResume} from '@/src/services/resume';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import { SPRITE_COUNT, pairSpritesForProfile, pairBackForProfile } from '@/src/constants/pairThemes';
-import { FlipCard, HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
+import {FlipCard, HudBadge, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 
@@ -457,6 +458,7 @@ export default function PicturePairsGame() {
   const renderConfig = () => {
     const c = levelCfg(level);
     return (
+    <>
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="heart" size={48} color={ON_GRAD.color} />
@@ -558,10 +560,10 @@ export default function PicturePairsGame() {
         />
       )}
 
-      <JuicyButton
-        label={mode === 'game' ? t('playLevelN').replace('{n}', String(level)) : t('start')}
-        icon="play" colors={GRADIENT as [string, string]} onPress={startGame} style={{ marginTop: 8 }} />
     </ScrollView>
+    {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
+    <GameSetupBar label={mode === 'game' ? t('playLevelN').replace('{n}', String(level)) : t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
+    </>
     );
   };
 
@@ -688,7 +690,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
-  configContainer: { padding: 16, gap: 14 },
+  configContainer: { padding: 16, gap: 14 , paddingBottom: SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },

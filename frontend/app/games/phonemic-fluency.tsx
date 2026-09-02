@@ -40,6 +40,7 @@ import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import {
@@ -225,8 +226,17 @@ export default function PhonemicFluencyGame() {
 
   // ─── render ──────────────────────────────────────────────────────────
 
+  /**
+   * 🔴 НАСТРОЙКА В ПРОКРУТКЕ, КНОПКА — В ПРИБИТОЙ ПОЛОСЕ.
+   *
+   * Замер браузером 02.09.2026 на экране 360×780: «Начать» стояла на отметке 884,
+   * то есть НИЖЕ окна, а прокрутки у экрана не было вовсе — просто `View`. На
+   * узком телефоне игру нельзя было запустить в принципе: не «неудобно мотать»,
+   * а не дотянуться.
+   */
   const renderConfig = () => (
-    <View style={styles.configContainer}>
+    <>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="chatbubbles" size={48} color={ON_GRAD.color} />
         <Text style={styles.configTitle}>{t('phonemic')}</Text>
@@ -288,13 +298,10 @@ export default function PhonemicFluencyGame() {
         language={language}
         countsRuns
       />
-      <TouchableOpacity
-        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
+    </ScrollView>
+    <GameSetupBar label={t('start')} onStart={startGame}
+      colors={GRADIENT as [string, string]} tint={ON_GRAD.color} />
+    </>
   );
 
   const validCount = words.filter(w => w.valid).length;
@@ -404,7 +411,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
-  configContainer: { padding: 16, gap: 14 },
+  configContainer: { padding: 16, gap: 14 , paddingBottom: SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },

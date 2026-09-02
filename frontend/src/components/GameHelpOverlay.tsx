@@ -155,7 +155,7 @@ export default function GameHelpOverlay() {
         accessibilityRole="button"
         onPress={openHelp}
         activeOpacity={0.85}
-        style={[styles.fabWrap, rtl ? { left: 10 } : { right: 10 }, { top: insets.top + 10 }]}
+        style={[styles.fabWrap, rtl ? { left: 4 } : { right: 4 }, { top: insets.top + 10 }]}
       >
         <View style={[styles.fabCircle, { backgroundColor: accent }]}>
           <Ionicons name="help-circle" size={26} color={accentFg} />
@@ -264,7 +264,16 @@ const styles = StyleSheet.create({
   // Сторона (right/left) задаётся в рендере по направлению письма (RTL-зеркало)
   fabWrap: {
     position: 'absolute',
-    width: 50,
+    /**
+     * 🔴 ШИРИНА ПО ПОДПИСИ, А НЕ ПО КРУЖКУ. На двух кадрах Дениса от 02.09.2026
+     * подпись срезана до «Правил…»: обёртка была 50 px по размеру кружка, а
+     * слово «Правила» жирным десятым кеглем с отступами занимает больше — и
+     * вылезало за правый край экрана, где его резало.
+     * Кружок остаётся по центру обёртки, поэтому визуально он лишь чуть
+     * отодвинулся от края; отступ заголовка в каркасе (HELP_FAB_GUTTER) поднят
+     * на ту же величину, чтобы название игры не наехало.
+     */
+    width: 64,
     alignItems: 'center',
     zIndex: 100,
     ...(Platform.OS === 'web' ? { cursor: 'pointer' } as any : {}),

@@ -18,13 +18,14 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
-import { HudBadge, JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
+import {HudBadge, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -805,6 +806,7 @@ export default function MahjongGame() {
   const renderConfig = () => {
     const p = levelParams(level);
     return (
+      <>
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
         <GradientSurface colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
           <Ionicons name="grid" size={48} color={ON_GRAD.color} />
@@ -837,10 +839,10 @@ export default function MahjongGame() {
           language={language}
         />
 
-        <JuicyButton
-          label={t('playLevelBtn').replace('{n}', String(level))}
-          icon="play" colors={GRADIENT as [string, string]} tint="#04341f" onPress={startGame} style={{ marginTop: 8 }} />
       </ScrollView>
+      <GameSetupBar label={t('playLevelBtn').replace('{n}', String(level))} onStart={startGame}
+        colors={GRADIENT as [string, string]} tint="#04341f" />
+      </>
     );
   };
 
@@ -991,7 +993,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
-  configContainer: { padding: 16, gap: 14 },
+  configContainer: { padding: 16, gap: 14, paddingBottom: 16 + SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700' },
   configDesc: { fontSize: 13, textAlign: 'center' },

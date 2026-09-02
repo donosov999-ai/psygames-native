@@ -19,6 +19,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -255,6 +256,7 @@ export default function SemanticSortGame() {
   };
 
   const renderConfig = () => (
+    <>
     <ScrollView style={styles.configScroll} showsVerticalScrollIndicator={false}>
       <View style={styles.configContainer}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
@@ -310,15 +312,10 @@ export default function SemanticSortGame() {
           </View>
         </View>
 
-        <TouchableOpacity
-          accessibilityRole="button" style={styles.startButton} onPress={() => { void startGame(); }}>
-          <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
-            <Ionicons name="play" size={24} color={ON_GRAD.color} />
-            <Text style={[styles.startButtonText, { color: ON_GRAD.color }]}>{t('start')}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
       </View>
     </ScrollView>
+    <GameSetupBar label={t('start')} onStart={() => { void startGame(); }} colors={GRADIENT as [string, string]} tint={ON_GRAD.color} />
+    </>
   );
 
   // playing-фаза — на едином каркасе GameShell (слово в скролл-поле, категории-ответы прибиты к низу)
@@ -432,7 +429,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '700' },
   placeholder: { width: 44 },
   configScroll: { flex: 1 },
-  configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 },
+  configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 20, alignItems: 'center', marginBottom: 8 },
   configTitle: { fontSize: 24, fontWeight: '700' },
   configDesc: { fontSize: 14, textAlign: 'center' },

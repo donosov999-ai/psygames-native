@@ -58,6 +58,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { FRACTAL_MAX_LEVEL, fractalLevel, fractalTechniqueKey } from '@/src/services/fractalLevels';
 import GlassButton from '@/src/components/GlassButton';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGameKeyboard, digitKeys } from '@/src/hooks/useGameKeyboard';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
@@ -612,7 +613,17 @@ export default function FractalSudokuScreen() {
   if (phase === 'config') {
     return (
       <GameShell title={t('fractalTitle')} onBack={() => goBackOrHome()}>
-        <ScrollView contentContainerStyle={styles.configWrap} showsVerticalScrollIndicator={false}>
+        <>
+        {/*
+          🔴 ШИРИНА ОТ РОДИТЕЛЯ, А НЕ ПО СОДЕРЖИМОМУ.
+          Поле каркаса центрирует детей (`alignItems: 'center'`), поэтому ребёнок
+          без явной ширины меряется по содержимому. Внутри — карта уровней с
+          горизонтальной лентой, и она задавала ширину всей прокрутке: замер
+          02.09.2026 на экране 360 px дал 422, то есть страница ехала вбок на 31.
+          `alignSelf: 'stretch'` возвращает прокрутке ширину родителя, лента
+          прокручивается внутри, как и задумано.
+        */}
+        <ScrollView style={{ alignSelf: 'stretch' }} contentContainerStyle={styles.configWrap} showsVerticalScrollIndicator={false}>
           <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
             <Ionicons name="git-network" size={44} color="#FFF" />
             <Text style={styles.heroTitle}>{t('fractalTitle')}</Text>
@@ -654,8 +665,9 @@ export default function FractalSudokuScreen() {
             colors={colors}
             language={language}
           />
-          <GlassButton label={t('start')} tone="accent" onPress={start} style={{ marginTop: 4 }} />
         </ScrollView>
+        <GameSetupBar label={t('start')} onStart={start} />
+        </>
       </GameShell>
     );
   }
@@ -1294,7 +1306,7 @@ export default function FractalSudokuScreen() {
 }
 
 const styles = StyleSheet.create({
-  configWrap: { padding: 16, gap: 12 },
+  configWrap: { padding: 16, gap: 12 , paddingBottom: SETUP_BAR_SPACE },
   hero: { borderRadius: 18, padding: 22, alignItems: 'center', gap: 6 },
   heroTitle: { color: '#FFF', fontSize: 22, fontWeight: '800' },
   heroSub: { color: 'rgba(255,255,255,0.9)', fontSize: 13, textAlign: 'center' },

@@ -104,17 +104,41 @@ const built = new Map<number, BuiltBoard>();
  * задушенный (SUDOKU_BUDGET_MS < дефолта) — null и пропуск кейса. */
 const FIXTURE_BUDGET_MS = Number(process.env.SUDOKU_BUDGET_MS ?? 30000);
 
-function buildAt(level: number): BuiltBoard | null {
-  const cached = built.get(level);
-  if (cached) return cached;
+/**
+ * 🔴 «НЕ УСПЕЛ» И «СЛОМАНО» — РАЗНЫЕ ВЕЩИ, И РАЗЛИЧАЕТ ИХ ПОВТОР С БОЛЬШИМ БЮДЖЕТОМ.
+ *
+ * Бюджет здесь измеряется НАСТЕННЫМИ ЧАСАМИ, а не работой. Значит на занятой
+ * машине за те же 30 секунд успевается меньше, и сборщик не добирает — при том,
+ * что с ним всё в порядке. Поймано 02.09.2026: полный прогон краснел, когда рядом
+ * шёл браузерный аудит, и тут же зеленел в одиночку.
+ *
+ * Ложное срабатывание стоит дороже пропущенного дефекта: гейт, который краснеет
+ * на исправном коде, перестают читать, и вместе с придуманной поломкой он
+ * пропускает настоящую. Поэтому при недоборе даём ВТОРОЙ заход с тройным
+ * бюджетом: настоящая поломка (сборщик встал, доска не собирается) не пройдёт и
+ * его, а просто загруженная машина — пройдёт. Второй заход печатается: замедление
+ * должно быть видно, а не молча проглочено.
+ */
+function собрать(level: number, budgetMs: number) {
   const cfg = levelConfig(level);
-  const b = logicalBuilder(level, cfg.blanks, cfg.N, cfg.BR, cfg.BC, cfg.variant, { budgetMs: FIXTURE_BUDGET_MS });
+  const b = logicalBuilder(level, cfg.blanks, cfg.N, cfg.BR, cfg.BC, cfg.variant, { budgetMs });
   let made: ReturnType<typeof b.step> | null = null;
   let ok = false;
   for (let s = 0; s < b.steps; s++) { made = b.step(); if (b.enough(made)) { ok = true; break; } }
+  return { cfg, made, ok };
+}
+
+function buildAt(level: number): BuiltBoard | null {
+  const cached = built.get(level);
+  if (cached) return cached;
+  let { cfg, made, ok } = собрать(level, FIXTURE_BUDGET_MS);
+  if (!ok && FIXTURE_BUDGET_MS >= 30000) {
+    console.log(`уровень ${level}: не добрал за ${FIXTURE_BUDGET_MS} мс — второй заход с тройным бюджетом`);
+    ({ cfg, made, ok } = собрать(level, FIXTURE_BUDGET_MS * 3));
+  }
   if (!made || !ok) {
     if (FIXTURE_BUDGET_MS < 30000) return null;   // задушенный прогон — пропуск, не вердикт
-    throw new Error(`уровень ${level}: сборщик не добрал enough на боевом бюджете`);
+    throw new Error(`уровень ${level}: сборщик не добрал enough даже на тройном бюджете`);
   }
   const out: BuiltBoard = { cfg, gen: made.gen };
   built.set(level, out);

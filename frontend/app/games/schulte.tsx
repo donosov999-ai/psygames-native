@@ -23,6 +23,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { getUnlockedLevels, getNextLockedLevel, formatUnlockHint } from '@/src/services/level-unlocks';
 import { LEVELS_BY_GAME } from '@/src/constants/level-progression';
 import GameResult from '@/src/components/GameResult';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -764,6 +765,7 @@ export default function SchulteGame() {
   // кнопка «Старт» уходила за viewport, не достать. Schulte имеет 4+ optionCard
   // (Тип/Направление/Цвет/Размер) + hero + кнопка → больше чем 720px высоты часто.
   const renderConfig = () => (
+    <>
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <GradientSurface
         colors={GRADIENT as [string, string]}
@@ -1169,20 +1171,10 @@ export default function SchulteGame() {
       </View>
       )}
 
-      <TouchableOpacity
-        accessibilityRole="button" style={[styles.startButton, !isPreset && { marginTop: 8 }]} onPress={() => startGame(false)}>
-        <GradientSurface
-          colors={GRADIENT as [string, string]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.startButtonGradient}
-        >
-          <Ionicons name="play" size={24} color={ON_GRAD.color} />
-          <Text style={styles.startButtonText}>{!isPreset ? t('freePlay') : t('start')}</Text>
-        </GradientSurface>
-      </TouchableOpacity>
       </>)}
     </ScrollView>
+    <GameSetupBar label={!isPreset ? t('freePlay') : t('start')} onStart={() => startGame(false)} colors={GRADIENT as [string, string]} tint={ON_GRAD.color} />
+    </>
   );
 
   // playing-фаза — на едином каркасе GameShell (кнопочная миграция: сетка вписана в экран,
@@ -1574,6 +1566,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 20,
     marginBottom: 16,
+    paddingBottom: SETUP_BAR_SPACE,
   },
   configCard: {
     padding: 24,

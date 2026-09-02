@@ -29,6 +29,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -248,6 +249,7 @@ export default function LexicalDecisionGame() {
   const renderConfig = () => {
     const p = levelParams(lvl.level);
     return (
+      <>
       <ScrollView style={styles.configScroll} showsVerticalScrollIndicator={false}>
         <View style={styles.configContainer}>
           <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
@@ -308,15 +310,11 @@ export default function LexicalDecisionGame() {
             )}
           </View>
 
-          <TouchableOpacity
-            accessibilityRole="button" style={styles.startButton} onPress={startGame}>
-            <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
-              <Ionicons name="play" size={24} color={ON_GRAD.color} />
-              <Text style={[styles.startButtonText, { color: ON_GRAD.color }]}>{t('start')}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
         </View>
       </ScrollView>
+      {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
+      <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
+      </>
     );
   };
 
@@ -433,7 +431,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }, // крупный шрифт: заголовок ужимается и не выдавливает спейсер/кнопку за край
   placeholder: { width: 44 },
   configScroll: { flex: 1 },
-  configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 },
+  configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 20, alignItems: 'center', marginBottom: 8 },
   configTitle: { fontSize: 24, fontWeight: '700' },
   configDesc: { fontSize: 14, textAlign: 'center' },
