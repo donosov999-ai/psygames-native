@@ -494,6 +494,25 @@ export default function SudokuGame() {
   const [roadLevels, setRoadLevels] = useState<RoadLevels>({});
   const [variant, setVariant] = useState<Variant>('none');   // активный вариант-правило текущей партии
   /**
+   * 🔴 ПАРТИЯ ПОДНЯТА ИЗ СНИМКА — НОМЕР УРОВНЯ БОЛЬШЕ НИКТО НЕ ТРОГАЕТ.
+   *
+   * Отчёты Вали 31.08.2026, дважды: «с 46 уровня начинаются стрелки, а у меня всё
+   * ещё термометр». Лестница исправна (42–45 термометр, 46–49 стрелки) — расходились
+   * ДОСКА и ПОДПИСЬ. В телеметрии видно посекундно:
+   *   06:02:59  level:45 variant:thermo   ← поднята незаконченная партия 45-го
+   *   06:02:59  level:46 variant:thermo   ← и тут же номер стал 46
+   *
+   * Причина: достигнутый уровень читается из хранилища асинхронно, и его `setLevel`
+   * прилетает ПОСЛЕ восстановления партии, перетирая её номер. Доска остаётся с
+   * сорок пятого, а в шапке уже сорок шестой — человек видит термометр там, где
+   * правила обещали стрелки, и совершенно справедливо считает это поломкой.
+   *
+   * ⚠️ Тот же класс, что «баг Ур.45/8» (см. ниже по файлу): номер уровня и доска
+   * живут в разных состояниях, и любое асинхронное «догоняющее» присваивание их
+   * рассинхронизирует.
+   */
+  const resumedRef = useRef(false);
+  /**
    * Живое состояние — в канал репортов (feedbackGameState): режим, уровень партии,
    * дорога, вариант, фаза. Именно этих полей не хватило в разборе
    * «небоскрёбы · Ур.45/8» — в отзыве был только уровень-прогресс из хранилища.
@@ -623,7 +642,9 @@ export default function SudokuGame() {
       // Заход — с достигнутого на дороге, НО только если человек всё ещё в режиме
       // уровней: вход из хаба мог уже переключить в мини-лестницу (towers/unequal),
       // и уровень дороги там — чужое число (см. modeRef выше, баг «Ур.45/8»).
-      if (modeRef.current === 'levels') setLevel(reached);
+      // ⚠️ НЕ перетираем уровень поднятой партии: доска перед человеком собрана под
+      // СВОЙ уровень, и подпись обязана совпадать с ней, а не с достигнутым.
+      if (modeRef.current === 'levels' && !resumedRef.current) setLevel(reached);
     }).catch(() => {});
     // Ступени мини-лестниц режимов — свои счётчики, дороги их не касаются.
     AsyncStorage.multiGet([`psygames_sudoku_towers_step_${pid}`, `psygames_sudoku_unequal_step_${pid}`]).then((pairs) => {
@@ -677,7 +698,9 @@ export default function SudokuGame() {
   };
 
   const startGame = (lvlOverride?: number) => {
-    // Новая партия заменяет незаконченную: старую доску продолжать уже нечем.
+    // Новая партия заменяет незаконченную: старую доску продолжать уже нечем,
+    // и защита номера уровня снимается — дальше он снова свободен.
+    resumedRef.current = false;
     const pidStart = profile?.id;
     if (pidStart) clearResume(GAME_ID, pidStart).catch(() => {});
     hist.reset();
@@ -863,6 +886,7 @@ export default function SudokuGame() {
 
   /** Поднять партию из снимка — доска оживает ровно такой, какой её оставили. */
   const applyResume = (s: SudokuResume) => {
+    resumedRef.current = true;   // дальше номер уровня берётся ТОЛЬКО из снимка
     setMode(s.mode);
     // Снимок мог быть записан с протёкшим уровнем (баг «Ур.45/8») — зажимаем лестницей.
     setLevel((s.mode === 'towers' || s.mode === 'unequal') ? Math.min(sideStepCount(s.mode), Math.max(1, s.level)) : s.level);
@@ -1770,13 +1794,14 @@ export default function SudokuGame() {
                 const m = arrow[r][c]!;
                 const thick = Math.max(2, Math.round(cellSize * 0.07));
                 const col = blendHex(colors.surface, GRADIENT[1], 0.55);
-                const seg = (cell: [number, number]) => {
-                  const dr = cell[0] - r, dc = cell[1] - c;
-                  if (dc === 1) return { left: cellSize / 2, top: cellSize / 2 - thick / 2, width: cellSize / 2, height: thick };
-                  if (dc === -1) return { left: 0, top: cellSize / 2 - thick / 2, width: cellSize / 2, height: thick };
-                  if (dr === 1) return { top: cellSize / 2, left: cellSize / 2 - thick / 2, width: thick, height: cellSize / 2 };
-                  return { top: 0, left: cellSize / 2 - thick / 2, width: thick, height: cellSize / 2 };
-                };
+                /**
+                 * ⚠️ Стрелка рисуется ТОЙ ЖЕ формулой, что термометр, — значит и
+                 * болела бы так же: линия, доведённая до края клетки, накрывает
+                 * границу и рвёт сетку (отчёты Вали 31.08 про «границы гуляют»).
+                 * Зовём общий `thermoSegment`: зазор у границы теперь один на оба
+                 * правила, и разъехаться им негде.
+                 */
+                const seg = (cell: [number, number]) => thermoSegment(r, c, cell, cellSize, thick);
                 const hs = Math.max(3, Math.round(cellSize * 0.13));
                 const head = () => {
                   if (m.isCircle || m.next || !m.prev) return null;

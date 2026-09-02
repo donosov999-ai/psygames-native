@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.31.0',
+    date: '2026-09-02',
+    ru: [
+      'Судоку: номер уровня и доска больше не расходятся — на 46-м уровне правда начинаются стрелки, а не остаётся термометр',
+      'Термометры и стрелки перестали затирать границы клеток — сетка видна везде',
+      'Во фрактальной судоку счётчик ошибок подписан словом, а при первой ошибке игра объясняет, что значит красная цифра',
+      'В правиле стрелок сказано прямо: цифры на стрелке могут повторяться',
+    ],
+    en: [
+      'Sudoku: the level number and the board no longer disagree — level 46 really starts the arrows instead of keeping thermometers',
+      'Thermometers and arrows no longer erase cell borders — the grid stays visible everywhere',
+      'In fractal sudoku the mistake counter now has a word, and the first mistake explains what a red digit means',
+      'The arrow rule now says it plainly: digits along an arrow may repeat',
+    ],
+  },
+  {
     version: '2.30.1',
     date: '2026-09-02',
     ru: [

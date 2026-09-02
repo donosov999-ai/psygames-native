@@ -52,7 +52,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
-import GameShell from '@/src/components/GameShell';
+import GameShell, { type HudItem } from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -215,6 +215,22 @@ export default function FractalSudokuScreen() {
   const [linkSel, setLinkSel] = useState<number | null>(null);
   const [errors, setErrors] = useState(0);
   /**
+   * 🔴 ПЕРВАЯ ОШИБКА ОБЪЯСНЯЕТСЯ СЛОВАМИ, А НЕ ТОЛЬКО ЦВЕТОМ.
+   *
+   * Два сообщения из чата обратной связи 28.08.2026 с этого самого экрана: «Что за
+   * красные цифры???» и «Зачем 5, почему они появились???» — на кадрах уже двенадцать
+   * ошибок. Красный цвет ничего не объясняет тому, кто его видит впервые: человек
+   * решил, что цифры появились сами.
+   *
+   * Рядом уже есть образец: ход, который НЕ ошибка, игра честно объясняет плашкой
+   * (`fractalUndecided`). Ошибка молчала — теперь говорит тем же способом.
+   *
+   * ⚠️ Один раз за партию: повтор на каждой ошибке превратился бы в упрёк, а ошибки
+   * в тренажёре — рабочий материал (§12.4 карты геймификации).
+   */
+  const [redHint, setRedHint] = useState(false);
+  const redHintShownRef = useRef(false);
+  /**
    * Клетка, которую задача ещё не определяет. Не ошибка — неопределённость, и
    * говорить о ней надо словами: цвет тут соврал бы про правило.
    */
@@ -271,6 +287,7 @@ export default function FractalSudokuScreen() {
     setPuzzle(p);
     setPlay(startPlayState(p));
     setErrors(0);
+    redHintShownRef.current = false; setRedHint(false);
     setElapsed(0);
     setOpenChild(null);
     setSelected(null);
@@ -406,7 +423,14 @@ export default function FractalSudokuScreen() {
         ? !right
         : conflictsInChild(play.children[child].grid, r, c, n);
       if (right) sndPlace();
-      else if (provable) { sndWrong(); setErrors((e) => e + 1); }
+      else if (provable) {
+        sndWrong(); setErrors((e) => e + 1);
+        if (!redHintShownRef.current) {
+          redHintShownRef.current = true;
+          setRedHint(true);
+          setTimeout(() => setRedHint(false), 7000);   // прочитать успевают, мешать не успевает
+        }
+      }
       else {
         // Не ошибка: задача здесь ещё не определена. Говорим об этом прямо.
         sndPlace();
@@ -813,13 +837,22 @@ export default function FractalSudokuScreen() {
     }
   }
 
-  const stats = (
-    <View style={styles.stats}>
-      <Text style={[styles.stat, { color: GRADIENT[1] }]}>{t('fractalOpened')} {openedCount}/9</Text>
-      <Text style={[styles.stat, { color: '#f43f5e' }]}>✗{errors}</Text>
-      <Text style={[styles.stat, { color: colors.text }]}>{elapsed.toFixed(0)}{t('secShort')}</Text>
-    </View>
-  );
+  /**
+   * 🔴 СЧЁТЧИК ОШИБОК ПОДПИСАН СЛОВОМ, А НЕ ЗНАЧКОМ «✗».
+   *
+   * Два сообщения из чата обратной связи 28.08.2026: «Что за красные цифры???» и
+   * «Зачем 5, почему они появились???». На обоих кадрах — этот экран, и в шапке
+   * стоит «✗12»: двенадцать ошибок, о которых человек не догадывается, потому что
+   * ни значок, ни красный цвет цифры нигде не названы.
+   *
+   * Крестик экономит место, но объясняет только тому, кто уже знает. Слово стоит
+   * тех же пикселей в бейдже и снимает вопрос целиком.
+   */
+  const hud: HudItem[] = [
+    { key: 'opened', icon: 'grid', label: t('fractalOpened'), value: `${openedCount}/9`, tone: 'accent', pop: true },
+    { key: 'err', icon: 'close-circle', label: t('errors'), value: errors, tone: 'bad' },
+    { key: 'time', icon: 'time', label: t('time'), value: `${elapsed.toFixed(0)}${t('secShort')}` },
+  ];
 
   /**
    * ПРИЗРАК ДОЧЕРНЕЙ СЕТКИ внутри кормящей клетки — живой снимок её 9×9. Метод подачи
@@ -864,7 +897,7 @@ export default function FractalSudokuScreen() {
       <GameShell
         title={t('fractalTitle')}
         onBack={() => goBackOrHome()}
-        stats={stats}
+        hud={hud}
         headerActions={actions}
         scrollableField
         confirmExit={liveGame && hist.canUndo}
@@ -1133,6 +1166,12 @@ export default function FractalSudokuScreen() {
         <View>
           {paintPalette}
           {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
+          {/* Первая ошибка партии: объясняем красный цвет словами (см. `redHint`). */}
+          {redHint && (
+            <Text style={[styles.feedHint, { color: '#f43f5e' }]} accessibilityLiveRegion="polite">
+              {t('fractalRedDigit')}
+            </Text>
+          )}
           {renderPad(placeDigit)}
         </View>
       )}
