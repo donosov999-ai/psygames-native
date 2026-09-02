@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.33.0',
+    date: '2026-09-02',
+    ru: [
+      'Приложение вышло на iPhone: с этой версии сборка идёт сразу на пять платформ — Android, iPhone, Mac, Windows и Linux',
+      'В «Сортировке товаров» замок покрывается трещинами по мере отсчёта — видно, что он вот-вот откроется',
+      'Подсказка теперь светится, а не просто обведена рамкой — её видно боковым зрением',
+      'Уровень заканчивается разбором сцены: полки разъезжаются, и только потом приходит итог',
+    ],
+    en: [
+      'The app is on iPhone now: from this version every release builds for five platforms at once — Android, iPhone, Mac, Windows and Linux',
+      'In Goods Sort the timed lock cracks as it counts down — you can see it is about to open',
+      'A hint now glows instead of just being outlined — visible from the corner of your eye',
+      'A cleared level takes the scene apart: the shelves slide away, and only then the summary arrives',
+    ],
+  },
+  {
     version: '2.32.0',
     date: '2026-09-02',
     ru: [

@@ -7,9 +7,10 @@
 проверяется ДО отправки, а сами тексты живут в `APP_STORE_FILLS` — то есть в
 репозитории, рядом с приложением, и не теряются между попытками.
 
-⚠️ СЕКРЕТЫ ЗДЕСЬ НЕ ЖИВУТ. Ключ `.p8`, Key ID и Issuer ID читаются из
-`~/.sdt_secrets/apple_appstore.json` — по канону хранилища секретов. В код,
-в git и в вывод скрипта они не попадают.
+⚠️ СЕКРЕТЫ ЗДЕСЬ НЕ ЖИВУТ. Ключ `.p8`, Key ID и Issuer ID читаются из файла
+`apple_appstore.json` в локальном хранилище секретов: каталог задаётся переменной
+`SECRETS_DIR`. В код, в git и в вывод скрипта они не попадают — и сам путь тоже,
+репозиторий публичный.
 
 ⚠️ ЧТО API НЕ УМЕЕТ. App Privacy, Content Rights и часть Age Rating заполняются
 только через веб-интерфейс — их список остаётся в `APP_STORE_FIELDS.md`.
@@ -30,7 +31,7 @@ try:
 except ImportError:
     sys.exit('нужен pyjwt: pip3 install --break-system-packages pyjwt cryptography')
 
-СЕКРЕТ = os.path.expanduser('~/.sdt_secrets/apple_appstore.json')
+СЕКРЕТ = os.path.join(os.environ.get('SECRETS_DIR', os.path.expanduser('~/.config/psygames')), 'apple_appstore.json')
 BASE = 'https://api.appstoreconnect.apple.com/v1'
 ЛОКАЛЬ = 'ru'
 

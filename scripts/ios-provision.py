@@ -16,7 +16,8 @@ identities found», а подпись падает без внятной при�
 `ios-signing-setup.sh` — здесь только API.
 
 Секреты берутся из переменных окружения (в CI — из секретов репозитория), а на
-машине разработчика — из `~/.sdt_secrets/apple_appstore.json`.
+машине разработчика — из файла `apple_appstore.json` в локальном хранилище,
+каталог которого задаётся переменной `SECRETS_DIR`.
 """
 import argparse
 import base64
@@ -45,9 +46,10 @@ def доступ() -> tuple[str, str, str]:
             sys.exit(f'ключ не найден: {путь}')
         return open(путь, encoding='utf-8').read(), key_id, issuer
 
-    файл = os.path.expanduser('~/.sdt_secrets/apple_appstore.json')
+    каталог = os.environ.get('SECRETS_DIR', os.path.expanduser('~/.config/psygames'))
+    файл = os.path.join(каталог, 'apple_appstore.json')
     if not os.path.exists(файл):
-        sys.exit('нет ни переменных окружения, ни ~/.sdt_secrets/apple_appstore.json')
+        sys.exit('нет ни переменных окружения, ни файла apple_appstore.json в хранилище секретов')
     d = json.load(open(файл, encoding='utf-8'))
     return open(os.path.expanduser(d['key_file']), encoding='utf-8').read(), d['key_id'], d['issuer_id']
 
