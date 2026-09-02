@@ -566,7 +566,11 @@ async function auditHeader(page, routes) {
       const наПоле = await page.evaluate(() => Boolean(
         document.querySelector('[data-testid="game-aux"]')
         || document.querySelector('[data-testid="game-toolbar"]')
-        || document.querySelector('[data-testid="game-bottom-actions"]'),
+        || document.querySelector('[data-testid="game-bottom-actions"]')
+        // ⚠️ И шапка со служебными: судоку кладёт подсказку именно туда
+        // (`headerActions`), а не в ряд `game-aux`. Без этой строки судоку
+        // оставалась единственной непроверенной игрой.
+        || document.querySelector('[data-testid="game-header-actions"]'),
       ));
       if (!наПоле) {
         results.push({ route, failed: start ? 'экран не сменился' : 'кнопка входа не найдена' });
