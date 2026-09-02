@@ -24,6 +24,7 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { saveResume, clearResume } from '@/src/services/resume';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import BoardBuilding, { runSteps, nextFrame, type BuildStatus } from '@/src/components/BoardBuilding';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { TECHNIQUE_TIER, type Technique } from '@/src/services/sudoku-grade';
 import { buildSolution, GRID_ORIGINS, isSolved as samuraiSolved } from '@/src/services/samurai';
 import {
@@ -1545,6 +1546,7 @@ export default function SamuraiSudokuGame() {
   const cellSize = cellSizeFor(width, zoom);
 
   const renderConfig = () => (
+    <>
     <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.configContainer}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
         <Text style={{ fontSize: 44 }}>🎴</Text>
@@ -1570,14 +1572,9 @@ export default function SamuraiSudokuGame() {
         </Text>
       </View>
       {/* testID — чтобы гейт жал ИМЕННО эту кнопку, а не угадывал её среди узлов тропинки. */}
-      <TouchableOpacity
-        testID="samurai-start"
-        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('playLevelN').replace('{n}', String(lvl.level))}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
     </ScrollView>
+    <GameSetupBar testID="samurai-start" label={t('playLevelN').replace('{n}', String(lvl.level))} onStart={startGame} colors={GRADIENT as [string, string]} />
+    </>
   );
 
   // Одна клетка поля. Дырки (вне всех сеток) рисуем прозрачными — так видна фигура-крест из 5 сеток.
@@ -1901,7 +1898,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
-  configContainer: { padding: 16, gap: 14 },
+  configContainer: { padding: 16, gap: 14 , paddingBottom: SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
   configDesc: { fontSize: 13, color: '#FFF', opacity: 0.9, textAlign: 'center' },

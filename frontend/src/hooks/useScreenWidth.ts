@@ -26,9 +26,31 @@ import { useWindowDimensions } from 'react-native';
 /** Ширина обычного телефона — на тот единственный кадр, когда настоящая ещё не известна. */
 export const FALLBACK_SCREEN_W = 390;
 
+/**
+ * 🔴 ЗАПАСНОЕ ЗНАЧЕНИЕ — НЕ КОНСТАНТА, ЕСЛИ НАСТОЯЩУЮ ШИРИНУ МОЖНО СПРОСИТЬ.
+ *
+ * Хук писался под ноль на первом кадре и подставлял 390 «на один кадр». Но
+ * `resize` при обычной загрузке не приходит — об этом сказано в шапке выше, — и
+ * 390 остаётся насовсем. На телефоне уже 360 (Galaxy A/M — самый массовый Android
+ * у нас) это значит: каждый, кто считает от ширины окна, считает от чужих 390.
+ *
+ * Замер 02.09.2026 на 360 px: экран настройки фрактальной судоку ехал вбок ровно
+ * на 31 px. Разбор по цепочке: карточка карты уровней брала `maxWidth: winW` = 390,
+ * прибавлялись отступы контейнера 16+16 → 422 при доступных 340. Число 422 и
+ * привело к причине: 390 + 32, то есть в вёрстке сидело запасное значение.
+ *
+ * В вебе (а Android и iOS у нас WebView) настоящая ширина известна ВСЕГДА —
+ * `window.innerWidth`. Спрашиваем её вместо константы; константа остаётся для
+ * платформ, где `window` нет.
+ */
+function запаснаяШирина(): number {
+  if (typeof window !== 'undefined' && window.innerWidth > 0) return window.innerWidth;
+  return FALLBACK_SCREEN_W;
+}
+
 export function useScreenWidth(): number {
   const { width } = useWindowDimensions();
-  return width > 0 ? width : FALLBACK_SCREEN_W;
+  return width > 0 ? width : запаснаяШирина();
 }
 
 /** Высота обычного телефона — парная к `FALLBACK_SCREEN_W`. */
@@ -48,8 +70,11 @@ export const FALLBACK_SCREEN_H = 844;
  */
 export function useScreenSize(): { w: number; h: number } {
   const { width, height } = useWindowDimensions();
+  // Та же поправка, что и у ширины: настоящий размер спрашиваем у окна, а
+  // константы держим для платформ без `window`.
   return {
-    w: width > 0 ? width : FALLBACK_SCREEN_W,
-    h: height > 0 ? height : FALLBACK_SCREEN_H,
+    w: width > 0 ? width : запаснаяШирина(),
+    h: height > 0 ? height
+      : (typeof window !== 'undefined' && window.innerHeight > 0 ? window.innerHeight : FALLBACK_SCREEN_H),
   };
 }

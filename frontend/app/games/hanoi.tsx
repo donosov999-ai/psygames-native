@@ -19,6 +19,7 @@ import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmar
 import LeaderboardModal from '@/src/components/LeaderboardModal';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -500,6 +501,7 @@ export default function HanoiGame() {
   const discStep = (discMaxW - discBaseW) / Math.max(discs - 1, 1);
 
   const renderConfig = () => (
+    <>
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <GradientSurface colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="extension-puzzle" size={48} color={ON_GRAD.color} />
@@ -525,13 +527,10 @@ export default function HanoiGame() {
         colors={colors}
         language={language}
       />
-      <TouchableOpacity
-        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-        <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
-        </GradientSurface>
-      </TouchableOpacity>
     </ScrollView>
+    {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
+    <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
+    </>
   );
 
   // Единый каркас GameShell: статы — в props каркаса, отмена — в прибитом тулбаре.
@@ -728,7 +727,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
-  configContainer: { padding: 16, gap: 14 },
+  configContainer: { padding: 16, gap: 14 , paddingBottom: SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
   configDesc: { fontSize: 13, color: ON_GRAD_SOFT, textAlign: 'center' },

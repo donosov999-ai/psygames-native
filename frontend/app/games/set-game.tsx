@@ -17,6 +17,7 @@ import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -715,6 +716,7 @@ export default function SetGame() {
   // ЗАЧЕМ ScrollView: раскрытый «Пример» удлиняет конфиг — на малых экранах кнопка
   // «Старт» уезжала бы за край (паттерн конфига-скролла как в mnemonics/schulte).
   const renderConfig = () => (
+    <>
     <ScrollView showsVerticalScrollIndicator={false}>
     <View style={styles.configContainer}>
       <GradientSurface colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
@@ -769,14 +771,13 @@ export default function SetGame() {
           ))}
         </View>
       </View>
-      <TouchableOpacity
-        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-        <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={[styles.startBtnText, { color: ON_GRAD.color }]}>{t('start')}</Text>
-        </GradientSurface>
-      </TouchableOpacity>
     </View>
     </ScrollView>
+    {/* Прибитая полоса: «Начать» видно сразу. Отчёт Дениса 02.09.2026 пришёл
+        именно с этого экрана — он длинный, и кнопка лежала ниже окна. */}
+    <GameSetupBar label={t('start')} onStart={startGame}
+      colors={GRADIENT as [string, string]} tint={ON_GRAD.color} />
+    </>
   );
 
   // игровая фаза — на едином каркасе GameShell; модалка правил уровня — поверх (паттерн digit-span)
@@ -932,7 +933,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
-  configContainer: { padding: 16, gap: 14 },
+  configContainer: { padding: 16, gap: 14 , paddingBottom: SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700' },
   configDesc: { fontSize: 13, textAlign: 'center' },

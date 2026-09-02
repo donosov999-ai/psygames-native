@@ -19,6 +19,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -241,6 +242,7 @@ export default function MnemonicsGame() {
   const itemHeight = mode === 'numbers' ? 100 : 90;
 
   const renderConfig = () => (
+    <>
     <ScrollView style={styles.configScroll} showsVerticalScrollIndicator={false}>
       <View style={styles.configContainer}>
         <LinearGradient
@@ -351,20 +353,10 @@ export default function MnemonicsGame() {
             </LinearGradient>
           </TouchableOpacity>
         )}
-        <TouchableOpacity
-          accessibilityRole="button" style={styles.startButton} onPress={() => startGame(false)}>
-          <LinearGradient
-            colors={GRADIENT as [string, string]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.startButtonGradient}
-          >
-            <Ionicons name="play" size={24} color={ON_GRAD.color} />
-            <Text style={styles.startButtonText}>{!isPreset ? t('freePlay') : t('start')}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
       </View>
     </ScrollView>
+    <GameSetupBar label={t('start')} onStart={() => startGame(false)} colors={GRADIENT as [string, string]} />
+    </>
   );
 
   // memorize-фаза — на едином каркасе GameShell (поле в ScrollView, «Проверить» прибита к низу)
@@ -561,7 +553,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }, // крупный шрифт: заголовок ужимается и не выдавливает спейсер/кнопку за край
   placeholder: { width: 44 },
   configScroll: { flex: 1 },
-  configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 },
+  configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: {
     padding: 24,
     borderRadius: 20,

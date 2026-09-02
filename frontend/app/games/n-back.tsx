@@ -26,6 +26,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { FlashCell, hapticSuccess, hapticError } from '@/src/components/juice';
 import { type PetMood } from '@/src/components/pet/GamePet';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -467,6 +468,7 @@ export default function NBackGame() {
 
   const renderConfig = () => (
     <View style={{ flex: 1 }}>
+      <>
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="analytics" size={48} color={ON_GRAD.color} />
@@ -548,13 +550,10 @@ export default function NBackGame() {
         </View>
       </View>
     </ScrollView>
+      {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
+      <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
+      </>
       <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
-      <TouchableOpacity
-        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-        <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{t('start')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
       </View>
     </View>
   );
@@ -763,7 +762,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
-  configContainer: { padding: 16, gap: 14 },
+  configContainer: { padding: 16, gap: 14 , paddingBottom: SETUP_BAR_SPACE },
   // Прибитый низ настроек: кнопка «начать» всегда на экране, над системной навигацией.
   // Раньше она была последней в прокрутке — на невысоком экране до неё приходилось
   // доскроллить, а решение «во что играю» оказывалось в двух разных местах.

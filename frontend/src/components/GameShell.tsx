@@ -112,7 +112,7 @@ const FAB_GUTTER = 66;
  * (styles.fabWrap в GameHelpOverlay), 10 — её отступ от края экрана. Сторона
  * зеркалится вместе с ней: LTR — справа, RTL — слева.
  */
-const HELP_FAB_GUTTER = 60;
+const HELP_FAB_GUTTER = 68;   // 60→68 = обёртка 64 + отступ 4: расширена под подпись «Правила»
 
 export interface GameShellProps {
   /** Заголовок игры (уже переведённый). */

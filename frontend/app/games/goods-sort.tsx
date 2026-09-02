@@ -12,6 +12,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell, { type HudItem, type ModItem } from '@/src/components/GameShell';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { minMoves } from '@/src/services/goodsSortMinMoves';
 import { dropPoint } from '@/src/services/dragDrop';
 import Cracks from '@/src/components/juice/Cracks';
@@ -21,7 +22,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { JuicyButton, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
+import {ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess } from '@/src/components/juice';
 import { sndCombo, sndPlace, sndMatch, sndWrong } from '@/src/services/feedback';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useMoveHistory, MoveStackData } from '@/src/hooks/useMoveHistory';
@@ -3891,6 +3892,7 @@ export default function GoodsSortGame() {
   const reachedLevel = Math.max(lvl.best, level);
 
   const renderConfig = () => (
+    <>
     <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
         <Ionicons name="basket" size={48} color="#3f2b00" />
@@ -3969,8 +3971,12 @@ export default function GoodsSortGame() {
         language={language}
       />
 
-      <JuicyButton label={t('start')} icon="play" colors={GRADIENT as [string, string]} tint="#3f2b00" onPress={startGame} style={{ marginTop: 8 }} />
     </ScrollView>
+    {/* Полоса прибита книзу: «Начать» видно сразу, без прокрутки до конца.
+        Отчёт Дениса 02.09.2026 — «не мотать экран вниз, чтобы запустить». */}
+    <GameSetupBar label={t('start')} onStart={startGame}
+      colors={GRADIENT as [string, string]} tint="#3f2b00" />
+    </>
   );
 
   // игровая фаза — на едином каркасе GameShell: HUD-бейджи в статс-строке, служебные
@@ -4324,7 +4330,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
-  configContainer: { padding: 16, gap: 14 },
+  configContainer: { padding: 16, gap: 14, paddingBottom: 16 + SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configTitle: { fontSize: 22, fontWeight: '700', color: '#3f2b00' },
   configDesc: { fontSize: 13, color: '#3f2b00', opacity: 0.85, textAlign: 'center' },

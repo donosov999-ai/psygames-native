@@ -27,6 +27,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       '«Прикидка на числовой прямой»: выбранное число подняли над ползунком — раньше его закрывал палец',
       '«Ритм и высота»: кнопку «Тап» видно заранее, а без замера задержки теперь можно просто начать игру',
       '«Одна линия»: фигуры перестали быть вариациями одного четырёхугольника',
+      'Кнопка «Начать» теперь всегда внизу экрана — не нужно каждый раз мотать настройку до конца',
       'Новая иконка приложения на всех пяти платформах',
     ],
     en: [
@@ -38,6 +39,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Number-line estimation: the chosen value moved above the slider, out from under your finger',
       'Rhythm and pitch: the Tap button is visible up front, and you can start without the latency check',
       'One line: figures are no longer variations of a single quadrilateral',
+      'The Start button now sits at the bottom of the screen — no more scrolling to the end every time',
       'New app icon on all five platforms',
     ],
   },

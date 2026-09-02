@@ -29,6 +29,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
@@ -291,6 +292,7 @@ export default function WordPairsGame() {
   };
 
   const renderConfig = () => (
+    <>
     <ScrollView contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient
         colors={GRADIENT as [string, string]}
@@ -388,19 +390,9 @@ export default function WordPairsGame() {
         )}
       </View>
 
-      <TouchableOpacity
-        accessibilityRole="button" style={styles.startButton} onPress={startGame}>
-        <LinearGradient
-          colors={GRADIENT as [string, string]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.startButtonGradient}
-        >
-          <Ionicons name="play" size={24} color={ON_GRAD.color} />
-          <Text style={styles.startButtonText}>{t('start')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
     </ScrollView>
+    <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
+    </>
   );
 
   // memorize-фаза — на едином каркасе GameShell (список пар в скролл-поле, «Проверить» прибита к низу)
@@ -610,7 +602,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 18, fontWeight: '700', flexShrink: 1, minWidth: 0 },  // крупный шрифт: заголовок ужимается между «назад» и спейсером
   placeholder: { width: 44 },
-  configContainer: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: 20 },
+  configContainer: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: {
     padding: 24,
     borderRadius: 20,

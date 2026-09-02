@@ -15,6 +15,7 @@ import { saveSession } from '@/src/services/api';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -1198,6 +1199,7 @@ export default function ChessBlindGame() {
       t(p.quizType === 'pick' ? 'chessCfgQuizPick' : 'chessCfgQuizLocate'),
     ];
     return (
+      <>
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.configCard}>
           <Text style={styles.configGlyph}>♞</Text>
@@ -1216,12 +1218,6 @@ export default function ChessBlindGame() {
             {descBits.join(' · ')}
           </Text>
         </View>
-        <TouchableOpacity
-          accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
-          <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-            <Text style={styles.startBtnText}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
         {/* СЕРИЯ ИЗ ТРЁХ БЛОКОВ. Под кнопкой — с какой полосы она начнётся и какие
             уровни у блоков сейчас: иначе старт с минимума читается как откат. */}
         {!isPreset && (
@@ -1237,6 +1233,9 @@ export default function ChessBlindGame() {
           </View>
         )}
       </ScrollView>
+      {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
+      <GameSetupBar label={t('lvlTargetBtn').replace('{n}', String(lvl.level))} onStart={startGame} colors={GRADIENT as [string, string]} />
+      </>
     );
   };
 
@@ -1358,7 +1357,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
-  configContainer: { padding: 16, gap: 14 },
+  configContainer: { padding: 16, gap: 14 , paddingBottom: SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8 },
   configGlyph: { fontSize: 48, color: ON_GRAD.color },
   configTitle: { fontSize: 22, fontWeight: '700', color: ON_GRAD.color },
