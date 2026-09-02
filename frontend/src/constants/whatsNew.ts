@@ -15,6 +15,35 @@ export interface WhatsNewEntry {
 }
 
 export const WHATS_NEW: WhatsNewEntry[] = [
+  {
+    version: '2.27.0',
+    date: '2026-09-02',
+    ru: [
+      'Счёт разгоняется от серии: чем длиннее цепочка верных ходов, тем дороже каждый следующий — множитель виден рядом с прибавкой',
+      'Итог уровня приходит по частям — звёзды, серия, награда, рекорд — а не одним кадром',
+      'Программы тренировок больше не выдают задание выше освоенного: 14 игр давали новичку сразу трудный уровень',
+      'В «Сортировке товаров» товары стоят внахлёст, как на настоящей полке, и стали заметно крупнее',
+      'В N-back, «Блоках Корси» и «Пространственном размахе» появился личный рекорд',
+    ],
+    en: [
+      'Score now accelerates with your streak: the longer the chain of correct moves, the more each next one is worth — the multiplier shows next to the gain',
+      'The level summary arrives in parts — stars, streak, reward, record — instead of one flat frame',
+      'Training programmes no longer hand out tasks above your level: 14 games used to drop beginners straight into hard settings',
+      'In Goods Sort the items now overlap like on a real shelf, and became noticeably larger',
+      'N-back, Corsi Blocks and Spatial Span now track your personal best',
+    ],
+  },
+  {
+    version: '2.26.1',
+    date: '2026-09-02',
+    ru: [
+      'Технический выпуск: те же правки, что и в 2.26.0 — предыдущий тег не дособрался',
+    ],
+    en: [
+      'Maintenance release: the same changes as 2.26.0 — the previous tag did not finish building',
+    ],
+  },
+  {
     version: '2.26.0',
     date: '2026-09-02',
     ru: [

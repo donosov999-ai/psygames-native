@@ -12,6 +12,7 @@ import { getCleanRun } from '@/src/services/cleanRun';
 import { freshEarn, onEarn, earnReasonKey, EarnEntry } from '@/src/services/earn';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import Act from '@/src/components/juice/Act';
 import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
 import { announce } from '@/src/services/a11y';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
@@ -107,6 +108,22 @@ interface Props {
    */
   variant?: 'overlay' | 'screen';
 }
+
+/**
+ * 🔴 РАСПИСАНИЕ АКТОВ ЭКРАНА УРОВНЯ — И ПОЧЕМУ ОНО ПЛОТНЕЕ, ЧЕМ У ФИНАЛА.
+ *
+ * Тот же приём, что на экране конца партии (`GameResult`), но окно короче:
+ * баннер уровня живёт `autoMs` ≈ 2,2 с и сам запускает следующий уровень. Если
+ * растянуть акты как в финале (до 760 мс), на чтение останется меньше секунды —
+ * человек увидит въезжающие блоки и сразу их потерю.
+ *
+ * Порядок задаёт смысл: сначала оценка (звёзды), потом чем эта партия была
+ * особенной (серия чистых, заработок), потом сравнение с собой и другими.
+ *
+ * ⚠️ Сумма последнего акта и длительности въезда (260 мс) обязана оставлять
+ * запас до `autoMs`; это сторожит гейт `level-cleared-acts`.
+ */
+const ACT = { stars: 120, run: 220, earn: 320, record: 420, compare: 500 } as const;
 
 export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, recordLine, onContinue, onStop, stopKind = 'config', variant = 'screen' }: Props) {
   const { t, language } = useLanguage();
@@ -304,24 +321,28 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
           {t(passed ? 'levelDone' : 'levelAlmost').replace('{n}', String(level))}
         </Text>
         {passed && (
-          <View style={styles.stars}>
-            {[1, 2, 3].map((i) => (
-              <Ionicons key={i} name={i <= stars ? 'star' : 'star-outline'} size={36} color={i <= stars ? goldIcon : fgSoft} />
-            ))}
-          </View>
+          <Act at={ACT.stars}>
+            <View style={styles.stars}>
+              {[1, 2, 3].map((i) => (
+                <Ionicons key={i} name={i <= stars ? 'star' : 'star-outline'} size={36} color={i <= stars ? goldIcon : fgSoft} />
+              ))}
+            </View>
+          </Act>
         )}
         {passed && cleanRun >= 2 && (
-          <View style={[styles.runBadge, { backgroundColor: scrim }]}>
-            <Text style={[styles.runText, { color: gold }]}>
-              {t('cleanRunBadge').replace('{n}', String(cleanRun))}
-            </Text>
-          </View>
+          <Act at={ACT.run}>
+            <View style={[styles.runBadge, { backgroundColor: scrim }]}>
+              <Text style={[styles.runText, { color: gold }]}>
+                {t('cleanRunBadge').replace('{n}', String(cleanRun))}
+              </Text>
+            </View>
+          </Act>
         )}
         {/* Начислено за эту партию. Плашка отдельно от 🔥-серии: серия — это счётчик,
             а деньги — это деньги, и раньше их складывали в одну строку, отчего
             выглядело, будто платят за серию. Платят за партию, серия лишь показатель. */}
         {(earn?.total ?? 0) > 0 && (
-          <View style={[styles.earnBadge, { backgroundColor: scrim }]}>
+          <Act at={ACT.earn}><View style={[styles.earnBadge, { backgroundColor: scrim }]}>
             <Text style={[styles.earnText, { color: fg }]}>+{earn?.total} ⭐</Text>
             {(earn?.multiplier ?? 1) > 1 && (
               <View style={styles.earnMult}>
@@ -331,19 +352,23 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             {earn && earnReasonKey(earn.reason) && (
               <Text style={[styles.earnWhy, { color: fgSoft }]} numberOfLines={1}>{t(earnReasonKey(earn.reason) as string)}</Text>
             )}
-          </View>
+          </View></Act>
         )}
         {recordLine && !compact && (
-          <View style={[styles.comparisonBadge, { backgroundColor: scrim }]}>
-            <Ionicons name="trophy-outline" size={17} color={fg} />
-            <Text style={[styles.comparisonText, { color: fg }]}>{recordLine}</Text>
-          </View>
+          <Act at={ACT.record}>
+            <View style={[styles.comparisonBadge, { backgroundColor: scrim }]}>
+              <Ionicons name="trophy-outline" size={17} color={fg} />
+              <Text style={[styles.comparisonText, { color: fg }]}>{recordLine}</Text>
+            </View>
+          </Act>
         )}
         {comparisonLine && !compact && (
-          <View style={[styles.comparisonBadge, { backgroundColor: scrim }]}>
-            <Ionicons name="people-outline" size={17} color={fg} />
-            <Text style={[styles.comparisonText, { color: fg }]}>{comparisonLine}</Text>
-          </View>
+          <Act at={ACT.compare}>
+            <View style={[styles.comparisonBadge, { backgroundColor: scrim }]}>
+              <Ionicons name="people-outline" size={17} color={fg} />
+              <Text style={[styles.comparisonText, { color: fg }]}>{comparisonLine}</Text>
+            </View>
+          </Act>
         )}
         {/* Web-demo: авто-старта следующего уровня нет — строку «Запускаю уровень N+1» не показываем */}
         {!IS_WEB_DEMO && (

@@ -23,6 +23,7 @@ import GameShell from '@/src/components/GameShell';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -177,7 +178,9 @@ export default function WordPairsGame() {
       setPairCount(count);
       setMemorizeLimitSec(Math.round(limitMs / 1000));
     } else {
-      count = pairCount;
+      // ⚠️ Пресет — потолок желания (см. `presetCap`): в программах стоит 15 пар,
+      // а лесенка на первом уровне даёт заметно меньше.
+      count = capPresetByLevel({ want: pairCount, atLevel: levelParams(lvl.level).pairCount, atTop: lvl.level >= 15 });
       setMemorizeLimitSec(0);
     }
     const newPairs = await generatePairs(count);

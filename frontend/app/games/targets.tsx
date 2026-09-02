@@ -21,6 +21,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -284,7 +285,11 @@ export default function TargetsGame() {
     clearAllTimers();                   // «Играть снова» не должно наследовать таймер прошлой партии
     stoppedRef.current = false;
     roundLiveRef.current = false;
-    const startLvl = isPreset ? level : Math.max(level, lvl.level);   // старт с сохранённого уровня
+    // ⚠️ Пресет — потолок желания (см. `presetCap`): в программах стоит `level: 3`,
+    // и новичку выдавали третий уровень вместо первого.
+    const startLvl = isPreset
+      ? capPresetByLevel({ want: level, atLevel: lvl.loaded ? lvl.level : 1, atTop: false })
+      : Math.max(level, lvl.level);   // старт с сохранённого уровня
     if (!isPreset) setLevel(startLvl);
     scoreRef.current = 0;
     setScore(0);

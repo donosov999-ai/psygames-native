@@ -33,6 +33,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
@@ -251,11 +252,15 @@ export default function AnagramGame() {
   const startGame = () => {
     if (isPreset) {
       // пресет из зарядки: ручная длина из URL-параметров, без лимита времени; reach/fail не трогаем
+      // ⚠️ Пресет — потолок желания (см. `presetCap`): программа просит слова из
+      // шести букв, а лесенка на первых уровнях даёт короче.
       levelRef.current = lvl.level;
-      lengthRef.current = length;
+      const capped = capPresetByLevel({ want: length, atLevel: levelParams(lvl.level).length, atTop: lvl.level >= 15 });
+      lengthRef.current = capped as typeof length;
       trialsRef.current = 10;
       wordSecRef.current = 0;
       setTotalTrials(10);
+      setLength(capped as typeof length);
       setWordSec(0);
     } else {
       const p = levelParams(lvl.level);

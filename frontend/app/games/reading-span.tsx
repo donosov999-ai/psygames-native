@@ -21,6 +21,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
@@ -156,7 +157,12 @@ export default function ReadingSpanGame() {
 
   const startGame = async () => {
     // уровень рулит размером набора (число слов держать = реальная нагрузка памяти; растёт без жёсткого потолка)
-    const sz = isPreset ? setSize : Math.min(SENTENCES.length, 2 + lvl.level);   // L1=3, дальше +1/уровень
+    // ⚠️ Пресет — потолок желания (см. `presetCap`): программа просит набор из
+    // четырёх, а лесенка на первом уровне даёт три.
+    const поЛесенке = Math.min(SENTENCES.length, 2 + lvl.level);                  // L1=3, дальше +1/уровень
+    const sz = isPreset
+      ? capPresetByLevel({ want: setSize, atLevel: поЛесенке, atTop: поЛесенке >= SENTENCES.length })
+      : поЛесенке;
     levelRef.current = lvl.level;
     if (!isPreset) setSetSize(sz);
     /**

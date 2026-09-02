@@ -35,11 +35,15 @@ const WIDTHS = [320, 360, 386, 414, 430, 768, 1024];
 const GRIDS = [{ cols: 3, rows: 3 }, { cols: 3, rows: 4 }, { cols: 3, rows: 5 },
                { cols: 4, rows: 3 }, { cols: 4, rows: 4 }];
 
-/** Тонкая обёртка над формулой игры: добавляет только ширину ряда товаров. */
+/**
+ * Тонкая обёртка над формулой игры. `rowWidth` берётся ИЗ НЕЁ ЖЕ: 02.09.2026
+ * товары поставили внахлёст, и своя формула ширины ряда в тесте сразу же дала
+ * ложное «не влезает» на 25 сочетаниях — она считала по-старому, встык.
+ */
 function layout(width: number, cols: number, rows: number, height = 800) {
   const availH = Math.max(180, height - 360);
   const l = gsLayout(width, availH, cols, rows, CAP);
-  return { ...l, availH, rowWidth: l.itemSize * CAP + CELL_GAP * (CAP - 1) };
+  return { ...l, availH, rowWidth: l.rowW };
 }
 
 describe('сортировка товаров: раскладка', () => {
