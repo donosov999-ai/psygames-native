@@ -1,5 +1,6 @@
 /* psygames-game-mahjong · VER 3 · 27.08.2026 */
 import GradientSurface from '@/src/components/GradientSurface';
+import { hudTime } from '@/src/services/hudTime';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -880,7 +881,7 @@ export default function MahjongGame() {
             в сессию, просто не давит на глаза.
           */}
           {!isCalm && (
-            <HudBadge icon="time" value={`${elapsed.toFixed(1)}${t('secShort')}`} colors={['#60a5fa', '#2563eb']} />
+            <HudBadge icon="time" value={hudTime(elapsed, t('secShort'))} colors={['#60a5fa', '#2563eb']} />
           )}
           {!isPreset && <LevelRuleBadge lr={levelRules} color="#0d9488" ru={language === 'ru'} />}
         </View>

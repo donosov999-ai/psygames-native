@@ -1,5 +1,6 @@
 /* psygames-game-set-game · VER 1 · 19.08.2026 */
 import GradientSurface from '@/src/components/GradientSurface';
+import { hudTime } from '@/src/services/hudTime';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
@@ -816,7 +817,7 @@ export default function SetGame() {
         hud={[
           { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}`, pop: true },
           { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
-          { key: 'time', icon: 'time', label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+          { key: 'time', icon: 'time', label: t('time'), value: hudTime(elapsedTime, t('secShort')) },
           ...(!isPreset ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: lvl.level }] : []),
         ]}
           stats={

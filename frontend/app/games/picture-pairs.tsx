@@ -7,6 +7,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
+import { hudTime } from '@/src/services/hudTime';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
@@ -597,7 +598,7 @@ export default function PicturePairsGame() {
               )}
               <HudBadge icon="checkmark-done" value={`${matched}/${pairsCount}`} colors={['#34d399', '#059669']} pop />
               <HudBadge icon="swap-horizontal" value={moves} colors={['#fb7185', '#e11d48']} />
-              <HudBadge icon="time" value={`${elapsedTime.toFixed(1)}${t('secShort')}`} colors={['#60a5fa', '#2563eb']} />
+              <HudBadge icon="time" value={hudTime(elapsedTime, t('secShort'))} colors={['#60a5fa', '#2563eb']} />
               {mode === 'game' && !isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
             </View>
           )}

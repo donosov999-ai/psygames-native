@@ -7,6 +7,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
+import { hudTime } from '@/src/services/hudTime';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
@@ -564,7 +565,7 @@ export default function HanoiGame() {
        */
       hud={[
         { key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'), value: `${moves}/${optimal(discs)}`, tone: moves > optimal(discs) ? 'warn' as const : 'good' as const, pop: true },
-        { key: 'time', icon: 'time', label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+        { key: 'time', icon: 'time', label: t('time'), value: hudTime(elapsedTime, t('secShort')) },
         ...(!isPreset ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: lvl.level }] : []),
       ]}
       stats={

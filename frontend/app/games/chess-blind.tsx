@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackOrHome } from '@/src/utils/nav';
+import { hudTime } from '@/src/services/hudTime';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
@@ -1020,7 +1021,7 @@ export default function ChessBlindGame() {
         /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
         hud={[
           { key: 'q', icon: 'help-circle', label: t('chessQuestionShort'), value: `${Math.min(state.step + 1, state.questions.length)}/${state.questions.length}`, pop: true },
-          { key: 'time', icon: 'time', label: t('time'), value: `${Math.floor(seriesTime)}${t('secShort')}` },
+          { key: 'time', icon: 'time', label: t('time'), value: hudTime(seriesTime, t('secShort')) },
         ]}
         stats={
           <View style={styles.statsRow}>

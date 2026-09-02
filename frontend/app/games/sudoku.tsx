@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, S
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
+import { hudTime } from '@/src/services/hudTime';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
@@ -2087,7 +2088,7 @@ export default function SudokuGame() {
           ...(mode === 'levels' ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: level, tone: 'accent' as const }] : []),
           ...((mode === 'towers' || mode === 'unequal') ? [{ key: 'lvl', icon: 'flag' as const, label: variantLabel(mode, language), value: `${level}/${sideStepCount(mode)}`, tone: 'accent' as const }] : []),
           { key: 'err', icon: 'close-circle', label: t('errors'), value: formatErrorCount(failure, errors), tone: 'bad' as const },
-          ...(!isCalm ? [{ key: 'time', icon: 'time' as const, label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` }] : []),
+          ...(!isCalm ? [{ key: 'time', icon: 'time' as const, label: t('time'), value: hudTime(elapsedTime, t('secShort')) }] : []),
           { key: 'hint', icon: 'bulb' as const, label: t('btn_hint'), value: hintMax - hintUses, tone: 'good' as const },
         ]}
         stats={statsEl}
