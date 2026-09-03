@@ -1203,6 +1203,7 @@ const t: Record<string, string> = {
   "ladderLockedShort": "लेव. {n}",
   "chestToNext": "नई मूर्ति के लिए ⭐{n} और · {have}/{all} इकट्ठी",
   "chestFull": "संग्रह पूरा",
+  "volumeLabel": "ध्वनि स्तर",
   "wheelSpin": "चक्र घुमाएँ",
   "wheelWon": "×{m} — {n} ⭐ और",
   "collectionTitle": "संग्रह",

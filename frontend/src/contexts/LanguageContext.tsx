@@ -557,6 +557,8 @@ const translations: Translations = {
    */
   chestToNext: { ru: 'Ещё ⭐{n} — и новая фигурка · собрано {have}/{all}', en: '⭐{n} more for a new figure · {have}/{all} collected' },
   chestFull: { ru: 'Коллекция собрана целиком', en: 'Collection complete' },
+  /** Громкость (задача fe7f2020): тумблер отвечает «звучать ли», ползунок — «насколько». */
+  volumeLabel: { ru: 'Громкость', en: 'Volume' },
   /** Колесо множителя после уровня (задача ac44fc2d, пункт 5). Рекламы в нём нет. */
   wheelSpin:  { ru: 'Крутить колесо', en: 'Spin the wheel' },
   wheelWon:   { ru: '×{m} — ещё {n} ⭐', en: '×{m} — {n} ⭐ more' },

@@ -9,6 +9,7 @@ import { useRouter, Redirect } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
+import { VolumeSlider } from '@/src/components/VolumeSlider';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
@@ -18,6 +19,7 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getSoundEnabled, getHapticEnabled, setSoundEnabled, setHapticEnabled,
+  getVolume, setVolume,
   getMusicEnabled, setMusicEnabled,
 } from '@/src/services/feedback';
 import { getDevChatVisible, setDevChatVisible } from '@/src/services/appFeedback';
@@ -96,6 +98,7 @@ export default function SettingsScreen() {
     }
   };
   const [soundOn, setSoundOn] = React.useState(true);
+  const [громкость, setГромкость] = React.useState(80);
   const [hapticOn, setHapticOn] = React.useState(true);
   const [musicOn, setMusicOnState] = React.useState(false);
   const [devChatOn, setDevChatOn] = React.useState(true);   // v1.125: кнопка «Чат с разработчиками»
@@ -104,6 +107,7 @@ export default function SettingsScreen() {
   React.useEffect(() => {
     (async () => {
       setSoundOn(await getSoundEnabled());
+      setГромкость(await getVolume());
       setHapticOn(await getHapticEnabled());
       setMusicOnState(await getMusicEnabled());
       setDevChatOn(await getDevChatVisible());
@@ -685,6 +689,21 @@ export default function SettingsScreen() {
           </View>
           <Switch accessibilityLabel={t('label_sound')} value={soundOn} onValueChange={toggleSound} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
+        {/*
+          🔴 ГРОМКОСТЬ ПОКАЗЫВАЕТСЯ ТОЛЬКО ПРИ ВКЛЮЧЁННОМ ЗВУКЕ (задача fe7f2020).
+          Ползунок под выключенным тумблером — это две ручки на одно молчание, и
+          человек справедливо решит, что одна из них сломана. Тумблер отвечает
+          «звучать ли», громкость — «насколько»; вторая имеет смысл после первой.
+        */}
+        {soundOn && (
+          <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
+            <VolumeSlider
+              label={t('volumeLabel')}
+              value={громкость}
+              onChange={(v) => { setГромкость(v); void setVolume(v); }}
+            />
+          </View>
+        )}
         {/* Music (S1) — мягкая фоновая музыка меню, opt-in */}
         <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
           <View style={styles.settingInfo}>

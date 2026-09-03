@@ -332,6 +332,7 @@ const t: Record<string, string> = {
   "ladderLockedShort": "Liv. {n}",
   "chestToNext": "Ancora ⭐{n} per una nuova figurina · {have}/{all} raccolte",
   "chestFull": "Collezione completa",
+  "volumeLabel": "Volume",
   "wheelSpin": "Gira la ruota",
   "wheelWon": "×{m} — {n} ⭐ in più",
   "collectionTitle": "Collezione",

@@ -332,6 +332,7 @@ const t: Record<string, string> = {
   "ladderLockedShort": "Lv {n}",
   "chestToNext": "⭐{n} 더 모으면 새 피규어 · {have}/{all} 수집",
   "chestFull": "컬렉션 완성",
+  "volumeLabel": "볼륨",
   "wheelSpin": "룰렛 돌리기",
   "wheelWon": "×{m} — {n} ⭐ 추가",
   "collectionTitle": "컬렉션",
