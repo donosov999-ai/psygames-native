@@ -1938,6 +1938,7 @@ const t: Record<string, string> = {
   "chessHintBlindMoves": "기물이 보이지 않게 움직여요",
   "chessHintHidden": "기물이 숨겨졌어요…",
   "chessHintWhatSquare": "강조된 칸에 무엇이 있나요?",
+  "chessHintWhatSquareAt": "이 칸에 무엇이 있나요 ",
   "chessHintWhereIs": "{piece} {glyph} 어디에 있나요? 칸을 누르세요",
   "chessCfgPieces": "개 기물",
   "chessCfgExpose": "표시",

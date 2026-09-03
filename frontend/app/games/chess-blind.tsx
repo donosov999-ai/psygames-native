@@ -1175,7 +1175,23 @@ export default function ChessBlindGame() {
                 ? `${t('chessHintBlindMoves')}: ${moveNum}/${prm.moves}`
                 : t('chessHintHidden'))
             : prm.quizType === 'pick'
-            ? t('chessHintWhatSquare')
+            /**
+             * 🔴 КЛЕТКА НАЗВАНА В САМОМ ВОПРОСЕ, А НЕ ТОЛЬКО ПОДСВЕЧЕНА.
+             *
+             * Отчёт Дениса 03.09.2026 со скриншотом (`9e1e38f3`): «не могу выбрать
+             * фигуру на доске которую хочу вспомнить сейчас». Замер по его кадру:
+             * на клетках с фишками НОЛЬ синих точек — рамка-подсветка до экрана не
+             * дошла, хотя в коде она есть и проба на текущей сборке её находит
+             * (`chess-blind-pick-highlight`). Воспроизвести путь, где она пропадает,
+             * я не смог.
+             *
+             * Поэтому вопрос перестаёт ЗАВИСЕТЬ от подсветки: имя поля написано
+             * словами. Даже если рамка не нарисуется, человек знает, про какую
+             * клетку спрашивают, — а это ровно то, чего он не мог понять.
+             */
+            ? (currentQ
+                ? `${t('chessHintWhatSquareAt')}${squareName(coreIndex(currentQ.sq))}?`
+                : t('chessHintWhatSquare'))
             : currentQ
             ? t('chessHintWhereIs').replace('{piece}', pieceName(currentQ.answer, t)).replace('{glyph}', glyphOf(currentQ.answer))
             : ''}

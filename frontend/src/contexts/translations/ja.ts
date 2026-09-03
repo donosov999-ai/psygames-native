@@ -1937,6 +1937,7 @@ const t: Record<string, string> = {
   "chessHintBlindMoves": "見えないまま駒が動く",
   "chessHintHidden": "駒は隠れています…",
   "chessHintWhatSquare": "光っているマスに何がある？",
+  "chessHintWhatSquareAt": "このマスにあるのは ",
   "chessHintWhereIs": "{piece} {glyph} はどこ？ マスをタップ",
   "chessCfgPieces": "個の駒",
   "chessCfgExpose": "表示",

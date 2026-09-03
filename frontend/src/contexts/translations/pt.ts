@@ -1943,6 +1943,7 @@ const t: Record<string, string> = {
   "chessHintBlindMoves": "As peças se movem às cegas",
   "chessHintHidden": "As peças estão ocultas…",
   "chessHintWhatSquare": "O que está na casa destacada?",
+  "chessHintWhatSquareAt": "O que está na casa ",
   "chessHintWhereIs": "Procure: {piece} {glyph} — toque na casa",
   "chessCfgPieces": "peças",
   "chessCfgExpose": "exibição",

@@ -1946,6 +1946,7 @@ const t: Record<string, string> = {
   "chessHintBlindMoves": "मोहरे बिना दिखे चल रहे हैं",
   "chessHintHidden": "मोहरे छिपे हैं…",
   "chessHintWhatSquare": "चमकते वर्ग पर क्या है?",
+  "chessHintWhatSquareAt": "इस खाने पर क्या है ",
   "chessHintWhereIs": "{piece} {glyph} कहाँ है? वर्ग पर टैप करें",
   "chessCfgPieces": "मोहरे",
   "chessCfgExpose": "दिखाना",

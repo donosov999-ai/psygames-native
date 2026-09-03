@@ -1943,6 +1943,7 @@ const t: Record<string, string> = {
   "chessHintBlindMoves": "盲棋走子",
   "chessHintHidden": "棋子已隐藏……",
   "chessHintWhatSquare": "高亮格上是什么棋子？",
+  "chessHintWhatSquareAt": "这个格子上是什么 ",
   "chessHintWhereIs": "{piece} {glyph} 在哪？点那一格",
   "chessCfgPieces": "个棋子",
   "chessCfgExpose": "展示",

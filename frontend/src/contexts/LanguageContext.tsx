@@ -2799,6 +2799,13 @@ const translations: Translations = {
   chessHintBlindMoves: { ru: 'Фигуры ходят вслепую', en: 'Blind moves' },
   chessHintHidden: { ru: 'Фигуры скрыты…', en: 'Pieces are hidden…' },
   chessHintWhatSquare: { ru: 'Что стоит на подсвеченной клетке?', en: 'What is on the highlighted square?' },
+  /**
+   * Вопрос с ИМЕНЕМ поля. Подсветка остаётся, но вопрос на неё больше не
+   * опирается: на скриншоте Дениса 03.09.2026 рамки не было ни одной, и понять,
+   * про какую клетку спрашивают, было нельзя. Поле дописывается кодом сразу за
+   * строкой, поэтому она кончается пробелом.
+   */
+  chessHintWhatSquareAt: { ru: 'Что стоит на клетке ', en: 'What is on square ' },
   chessHintWhereIs: { ru: 'Где {piece} {glyph}? Тапни клетку', en: 'Where is the {piece} {glyph}? Tap the square' },
   chessCfgPieces: { ru: 'фигур', en: 'pieces' },
   chessCfgExpose: { ru: 'показ', en: 'expose' },
