@@ -85,6 +85,25 @@ import { useTrackerLoop } from './useTrackerLoop';
  * раунда в щадящем режиме тоже нельзя: тогда уровень засчитывался бы за меньшую
  * нагрузку, чем всем остальным.
  */
+/**
+ * Шаг щадящего режима. 🔴 БОЛЬШЕ СДЕЛАТЬ НЕЛЬЗЯ, И ЭТО ЗАМЕРЕНО.
+ *
+ * Отчёт 02.09.2026: «нихуя не двигается после нажатия кнопки». Замер браузером
+ * (уровень 1, поле 390 px): нажатие сдвигает объекты на 5–8 px — около 2 % ширины.
+ * Счётчик шагов при этом честно растёт, и со стороны это «кнопка нажимается, а
+ * ничего не происходит». Человек прав.
+ *
+ * ⚠️ ПЕРВАЯ ПРАВКА БЫЛА НЕВЕРНОЙ, И ЕЁ ОСТАНОВИЛ СВОЙ ЖЕ ТЕСТ. Я поднял шаг до
+ * 900 мс — и «за один шаг объект не уезжает дальше своего радиуса» покраснел:
+ * сдвиг 0,2235 против радиуса 0,068. Правило не придирка: объект, перепрыгнувший
+ * себя, нельзя сопоставить с прежним, и слежение становится невозможным — то есть
+ * лекарство убивало саму игру. Потолок по этому правилу ≈ 274 мс, нынешние 250
+ * уже почти в нём.
+ *
+ * Значит лечить надо не величину шага, а ВИДИМОСТЬ шага: после каждого нажатия
+ * рисуется след — бледный контур там, где объект был. Движение становится видно
+ * без анимации, что и требуется щадящему режиму.
+ */
 export const REDUCED_STEP_MS = 250;
 
 export interface ObjectTrackerTheme {
@@ -372,6 +391,45 @@ function ObjectTrackerRound({
 
   const fieldSize = Math.min(FIELD_MAX, Math.max(240, screenWidth - FIELD_PAD * 2));
   const targetIds = React.useMemo(() => new Set(session.round.targetIds), [session.round.targetIds]);
+  /**
+   * 🔴 СЛЕД ПРЕЖНЕГО ПОЛОЖЕНИЯ — ЕДИНСТВЕННЫЙ СПОСОБ ПОКАЗАТЬ ШАГ В ЩАДЯЩЕМ РЕЖИМЕ.
+   *
+   * Отчёт 02.09.2026: «нихуя не двигается после нажатия кнопки». Замер: нажатие
+   * сдвигает объекты на 5–8 px из 390 — около двух процентов поля.
+   *
+   * Шаг нельзя сделать крупнее (см. REDUCED_STEP_MS: объект, перепрыгнувший свой
+   * радиус, перестаёт опознаваться, и следить становится не за чем). Анимацию
+   * нельзя по определению режима. Остаётся показать, ОТКУДА объект пришёл:
+   * бледный контур на прежнем месте. Глаз ловит пару «был — стал» вместо того,
+   * чтобы искать смещение на два процента.
+   *
+   * ⚠️ СНИМОК ПОДСТРАИВАЕТСЯ ПРЯМО В ОТРИСОВКЕ, А НЕ В ЭФФЕКТЕ. Две предыдущие
+   * редакции линтер отбил по делу: чтение ref в теле компонента («значение не
+   * участвует в согласовании») и setState внутри эффекта («каскадные отрисовки»).
+   * Здесь принятый приём React для состояния, зависящего от изменившихся входных
+   * данных: сравнить с прошлым и обновить сразу — React перерисует до коммита,
+   * лишнего кадра не будет.
+   */
+  const [снимок, setСнимок] = React.useState<{
+    мир: typeof session.world;
+    прежние: { id: string; x: number; y: number }[];
+  }>({ мир: session.world, прежние: [] });
+  if (снимок.мир !== session.world) {
+    setСнимок({
+      мир: session.world,
+      прежние: снимок.мир.objects.map((o) => ({ id: o.id, x: o.x, y: o.y })),
+    });
+  }
+  const следы = React.useMemo(() => {
+    if (!session.config.reducedMotion || session.phase !== 'moving') return [];
+    const было = new Map(снимок.прежние.map((с) => [с.id, с]));
+    return session.world.objects
+      .filter((o) => {
+        const b = было.get(o.id);
+        return b && (Math.abs(b.x - o.x) > 0.001 || Math.abs(b.y - o.y) > 0.001);
+      })
+      .map((o) => было.get(o.id)!);
+  }, [снимок.прежние, session.world, session.phase, session.config.reducedMotion]);
   const selectedIds = React.useMemo(() => new Set(session.selectedIds), [session.selectedIds]);
 
   const totalSteps = Math.ceil(session.round.durationMs / REDUCED_STEP_MS);
@@ -422,6 +480,24 @@ function ObjectTrackerRound({
           borderColor: theme.border,
         }]}
       >
+        {следы.map((след) => {
+          const d = Math.max(48, fieldSize * session.round.objectRadius * 2);
+          return (
+            <View
+              key={`след-${след.id}`}
+              pointerEvents="none"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              style={{
+                position: 'absolute',
+                width: d, height: d, borderRadius: d / 2,
+                left: Math.min(fieldSize - d, Math.max(0, след.x * fieldSize - d / 2)),
+                top: Math.min(fieldSize - d, Math.max(0, след.y * fieldSize - d / 2)),
+                borderWidth: 2, borderColor: gameGradient[0], opacity: 0.28,
+              }}
+            />
+          );
+        })}
         {session.world.objects.map((object, index) => (
           <TrackerObject
             key={object.id}

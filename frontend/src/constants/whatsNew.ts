@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.34.4',
+    date: '2026-09-03',
+    ru: [
+      'Судоку: границы клеток перестали пропадать и «гулять» — теперь линия ровно в один пиксель, а границы блоков ещё и другого цвета',
+      '«Поворот фигур»: варианты ответа встали по центру экрана, а после ошибки до кнопки «дальше» можно дотянуться',
+      '«Слежение за объектом»: в щадящем режиме после каждого шага виден след — откуда объект пришёл',
+      '«Доска в уме»: фигуры крупнее',
+      '«Соедини цепочку»: на поле написано, что линии могут пересекаться',
+      'Фрактальная судоку: объяснение красной цифры показывается каждый раз, а не один раз за партию',
+    ],
+    en: [
+      'Sudoku: cell borders stopped vanishing and wandering — the line is exactly one pixel now, and block borders differ in colour too',
+      'Mental rotation: the answer options are centred, and the “next” button is reachable after a mistake',
+      'Object tracking: in reduced-motion mode each step now leaves a trail showing where the object came from',
+      'Blindfold board: bigger pieces',
+      'Trail making: the field now says lines may cross',
+      'Fractal sudoku: the red-digit explanation shows every time, not once per game',
+    ],
+  },
+  {
     version: '2.34.3',
     date: '2026-09-03',
     ru: [

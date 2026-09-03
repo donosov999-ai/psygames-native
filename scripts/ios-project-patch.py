@@ -99,11 +99,23 @@ def патч(team: str, profile: str, min_ios: str) -> None:
     pbx = (ПРОЕКТ / 'psygames.xcodeproj' / 'project.pbxproj').read_text(encoding='utf-8')
     for что, где in (('CODE_SIGN_STYLE = Manual', 'ручная подпись'),
                      (profile, 'профиль'),
-                     ('-lapp', 'линковка библиотеки флагом'),
-                     ('ITSAppUsesNonExemptEncryption', 'ответ про экспортное шифрование')):
+                     ('-lapp', 'линковка библиотеки флагом')):
         if что not in pbx:
             sys.exit(f'после генерации в проекте нет: {где} ({что})')
-    print('проект пересобран, все три правки на месте ✅')
+
+    """
+    ⚠️ ОТВЕТ ПРО ШИФРОВАНИЕ ИЩЕМ В Info.plist, А НЕ В project.pbxproj.
+    Первая редакция проверяла его вместе с остальными тремя — в pbxproj, — и
+    честно уронила сборку v2.34.3: xcodegen раскладывает свойства из блока `info`
+    не в проект, а в ОТДЕЛЬНЫЙ файл Info.plist. Проверка была права по сути
+    («ключа нет там, где я смотрю») и неверна по адресу.
+    """
+    плист = ПРОЕКТ / 'psygames_iOS' / 'Info.plist'
+    if not плист.exists():
+        sys.exit(f'после генерации нет {плист} — некуда класть ответ про шифрование')
+    if 'ITSAppUsesNonExemptEncryption' not in плист.read_text(encoding='utf-8'):
+        sys.exit('в Info.plist нет ответа про экспортное шифрование — сборка встанет у Apple')
+    print('проект пересобран, все правки на месте ✅')
 
 
 if __name__ == '__main__':

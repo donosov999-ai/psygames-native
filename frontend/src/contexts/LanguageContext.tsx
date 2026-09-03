@@ -515,6 +515,13 @@ const translations: Translations = {
   eyeDoneTitle: { ru: 'Глаза отдохнули', en: 'Eyes refreshed' },
   eyeDoneSub: { ru: 'Полезно повторять каждые 1–2 часа за экраном', en: 'Worth repeating every 1–2 hours of screen time' },
   secShort: { ru: 'с', en: 's' },
+  /**
+   * Отчёт 02.09.2026 по «Соедини цепочку»: «линии могут пересекаться или нет? там
+   * же какие-то вроде правила». Правило есть и оно простое — пересекаться можно,
+   * важен ПОРЯДОК, — но на поле его не было, а в справку за ним не идут посреди
+   * партии. Показываем один раз, до первого касания.
+   */
+  trailCrossOk: { ru: 'Линии могут пересекаться — важен порядок и скорость', en: 'Lines may cross — order and speed are what count' },
 
   // Sudoku
   sudoku: { ru: 'Судоку', en: 'Sudoku' },

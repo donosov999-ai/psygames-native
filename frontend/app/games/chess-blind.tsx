@@ -908,8 +908,15 @@ export default function ChessBlindGame() {
                   {c === 0 && <Text style={[styles.coord, { top: 1, left: 2, color: coordColor }]}>{8 - r}</Text>}
                   {r === 7 && <Text style={[styles.coord, { bottom: 1, right: 2, color: coordColor }]}>{'abcdefgh'[c]}</Text>}
                   {p && (showPieces ? (
-                    // крупнее (0.82 клетки) + контурные белые / залитые чёрные с обводкой
-                    <PieceGlyph combo={p} boxW={cellSize} boxH={cellSize} fontSize={Math.round(cellSize * 0.82)} />
+                    // 🔴 ФИГУРА КРУПНЕЕ: 0.82 → 0.96 клетки. Два отчёта 02.09.2026:
+                    // «ни хуя фигуры непонятно, хуёво отрисовать» и «картинки на
+                    // доске можно покрупнее сделать». Unicode-глиф шахматной фигуры
+                    // несёт заметные внутренние поля: при кегле 0.82 сама фигура
+                    // занимает около двух третей ширины клетки — на телефоне это
+                    // тридцать пикселей вместе с обводкой, и форма читается плохо.
+                    // Контурные белые против залитых чёрных при таком размере тоже
+                    // различаются хуже, чем задумано.
+                    <PieceGlyph combo={p} boxW={cellSize} boxH={cellSize} fontSize={Math.round(cellSize * 0.96)} />
                   ) : (
                     // фишка-маска: цвет СТОРОНЫ сохраняется, тип скрыт
                     <View
@@ -971,7 +978,7 @@ export default function ChessBlindGame() {
                 {piece ? (
                   <Text
                     style={[styles.seriesGlyph, {
-                      fontSize: Math.round(cellSize * 0.78),
+                      fontSize: Math.round(cellSize * 0.9),
                       lineHeight: cellSize,
                       color: piece.color === 'w' ? '#f8fafc' : '#111827',
                       textShadowColor: piece.color === 'w' ? '#0f172a' : '#f8fafc',
