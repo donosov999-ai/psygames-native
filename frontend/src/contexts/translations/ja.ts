@@ -332,6 +332,7 @@ const t: Record<string, string> = {
   "ladderLockedShort": "Lv {n}",
   "chestToNext": "あと ⭐{n} で新しい置物 · {have}/{all} 収集",
   "chestFull": "コレクション完成",
+  "volumeLabel": "音量",
   "wheelSpin": "ホイールを回す",
   "wheelWon": "×{m} — さらに {n} ⭐",
   "collectionTitle": "コレクション",

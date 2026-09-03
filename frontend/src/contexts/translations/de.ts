@@ -1200,6 +1200,7 @@ const t: Record<string, string> = {
   "ladderLockedShort": "Lv {n}",
   "chestToNext": "Noch ⭐{n} bis zur nächsten Figur · {have}/{all} gesammelt",
   "chestFull": "Sammlung vollständig",
+  "volumeLabel": "Lautstärke",
   "wheelSpin": "Rad drehen",
   "wheelWon": "×{m} — {n} ⭐ mehr",
   "collectionTitle": "Sammlung",

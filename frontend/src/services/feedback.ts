@@ -17,8 +17,20 @@ const SOUND_KEY = 'psygames_sound_enabled';
 const HAPTIC_KEY = 'psygames_haptic_enabled';
 const MUSIC_KEY = 'psygames_music_on';   // S1: фоновая музыка меню (OPT-IN, дефолт off)
 const SOUNDPACK_KEY = 'psygames_sound_pack';   // SND-P: звук-пак (форма волны), глобально
+const VOLUME_KEY = 'psygames_volume';          // громкость 0…100 (задача fe7f2020)
 
 let _soundEnabled = true;     // дефолт ON; loadPrefs перезапишет из хранилища
+/**
+ * 🔴 ГРОМКОСТЬ ОТДЕЛЬНО ОТ ТУМБЛЕРА (задача fe7f2020).
+ *
+ * Тумблер отвечает на «звучать ли», громкость — на «насколько». Свести их в одно
+ * нельзя: ползунок в нуле и выключенный звук выглядят одинаково, но означают разное
+ * — из нуля человек ждёт, что звук вернётся движением пальца, а из выключенного
+ * тумблера ждёт, что вернётся тумблером. Разойдутся — и «у меня пропал звук».
+ *
+ * Хранится 0…100 (человеческая шкала настройки), в звук уходит долей.
+ */
+let _volume = 80;             // 80 = прежняя константа MASTER_GAIN 0.8, поведение не меняется
 let _hapticEnabled = true;
 let _musicOn = false;         // S1: музыка OPT-IN (дефолт off)
 let _soundPack: string | null = null;   // SND-P: 'square'|'triangle'|'sawtooth', null=sine (дефолт)
@@ -36,6 +48,8 @@ async function loadPrefs() {
     _musicOn = m === 'true';
     const sp = await AsyncStorage.getItem(SOUNDPACK_KEY);
     _soundPack = sp || null;
+    const vol = await AsyncStorage.getItem(VOLUME_KEY);
+    _volume = vol === null ? 80 : clampVolume(Number(vol));
   } catch { /* оставляем дефолты ON */ }
   _prefsLoaded = true;
 }
@@ -86,6 +100,18 @@ export async function setMusicEnabled(v: boolean) {
   if (v) startMusic(); else stopMusic();
 }
 // SND-P: глобальный звук-пак (форма волны игровых звуков). null = дефолтный sine.
+/** Громкость 0…100. Ноль — тишина, но тумблер при этом остаётся включённым. */
+export async function getVolume(): Promise<number> { await loadPrefs(); return _volume; }
+export async function setVolume(v: number) {
+  _volume = clampVolume(v);
+  try { await AsyncStorage.setItem(VOLUME_KEY, String(_volume)); } catch {}
+}
+/** Ноль и мусор на входе не должны рвать звук: 0…100, целое. */
+export function clampVolume(v: number): number {
+  if (!Number.isFinite(v)) return 80;
+  return Math.max(0, Math.min(100, Math.round(v)));
+}
+
 export async function getSoundPack(): Promise<string | null> { await loadPrefs(); return _soundPack; }
 export async function setSoundPack(wave: string | null) {
   _soundPack = wave || null;
@@ -123,7 +149,13 @@ if (typeof window !== 'undefined' && (window as any).addEventListener) {
   ['pointerdown', 'keydown', 'touchend'].forEach((e) => (window as any).addEventListener(e, _unlock, { passive: true }));
 }
 
-const MASTER_GAIN = 0.8;   // R: общее смягчение громкости (приятнее/ровнее). Слайдер громкости V — отдельной задачей.
+/**
+ * Общая громкость долей. Была константой 0.8 — теперь её задаёт человек ползунком,
+ * и 80 по умолчанию оставлено НАРОЧНО: у того, кто ничего не трогал, звук ровно
+ * такой же, как был. Молчаливая смена громкости при обновлении читалась бы как
+ * поломка.
+ */
+export function masterGain(): number { return clampVolume(_volume) / 100; }
 function beep(frequency: number, duration_ms: number, volume: number = 0.1) {
   const ctx = getAudioCtx();
   if (!ctx) return;
@@ -139,7 +171,7 @@ function beep(frequency: number, duration_ms: number, volume: number = 0.1) {
     osc.frequency.value = frequency * (Number.isFinite(pitchMult) && pitchMult > 0 ? pitchMult : 1);
     const t0 = ctx.currentTime;
     const dur = Math.max(0.05, duration_ms / 1000);
-    const v = Math.max(0.0001, volume * MASTER_GAIN);
+    const v = Math.max(0.0001, volume * masterGain());
     // R-ребаланс: мягкая атака (0→v за 12 мс) убирает щелчок/резкость; плавный экспон. спад в конце.
     gain.gain.setValueAtTime(0.0001, t0);
     gain.gain.exponentialRampToValueAtTime(v, t0 + 0.012);
@@ -243,7 +275,7 @@ function glide(from: number, to: number, ms: number, volume: number) {
     const dur = Math.max(0.08, ms / 1000);
     osc.frequency.setValueAtTime(from * k, t0);
     osc.frequency.exponentialRampToValueAtTime(to * k, t0 + dur);
-    const v = Math.max(0.0001, volume * MASTER_GAIN);
+    const v = Math.max(0.0001, volume * masterGain());
     gain.gain.setValueAtTime(0.0001, t0);
     gain.gain.exponentialRampToValueAtTime(v, t0 + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
