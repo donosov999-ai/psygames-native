@@ -44,7 +44,8 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import GamePet, { type PetMood } from '@/src/components/pet/GamePet';
+import { type PetMood } from '@/src/components/pet/GamePet';
+import { setGameMood } from '@/src/services/petMood';
 import { onGameEvent, type GameEventKind } from '@/src/services/gameEvents';
 import { streakMultiplier, scoreWithStreak } from '@/src/services/scoring';
 import { bumpBestStreak } from '@/src/services/streak';
@@ -413,6 +414,13 @@ export default function GameShell({
    * («Матрица памяти»), продолжает это делать, и её значение сильнее канала.
    */
   const [autoMood, setAutoMood] = React.useState<PetMood>('idle');
+  /**
+   * Настроение уезжает в общий канал: питомца рисует `GameHelpOverlay`, а он в
+   * другом поддереве — пропом не передать. Без этого переезд был бы тихой потерей
+   * ответа на действие (см. `petMood.ts`).
+   */
+  React.useEffect(() => { setGameMood(pet ?? autoMood); }, [pet, autoMood]);
+  React.useEffect(() => () => setGameMood('idle'), []);   // ушли с экрана — покой
   const [streak, setStreak] = React.useState(0);
   /**
    * Под каким именем писать рекорд комбо. Берём из заголовка экрана: `GameShell`
@@ -660,7 +668,12 @@ export default function GameShell({
           stats ? null : styles.statsPlateBare,
           { backgroundColor: colors.surface, borderColor: colors.border },
         ]}>
-          <GamePet mood={pet ?? autoMood} size={34} />
+          {/*
+            ⚠️ ПИТОМЦА ЗДЕСЬ БОЛЬШЕ НЕТ. Он переехал к кнопке справки
+            (`GameHelpOverlay`), потому что плашка счётчиков есть не на всех экранах
+            и перестраивается по ходу партии — из-за этого он «переезжал» (жалоба
+            Дениса 03.09.2026). Угол справки одинаков на каждом экране игры.
+          */}
           {/* Серия показывается с двойки: единица — это ещё не серия, а один ход. */}
           {pet === undefined && streak >= 2 ? (
             <HudBadge icon="flame" label={t('hud_streak')} value={streak} colors={['#fb923c', '#c2410c']} pop />

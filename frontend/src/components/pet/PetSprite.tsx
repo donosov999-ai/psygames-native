@@ -225,6 +225,25 @@ export function petAnchor(skin: PetSkin, state: PetState, frame: number, at: Anc
   return list[((frame % list.length) + list.length) % list.length][at];
 }
 
+/**
+ * ЦЕНТР ГОЛОВЫ ЗА ВСЁ СОСТОЯНИЕ — среднее по кадрам, а не точка одного кадра.
+ *
+ * Нужен для крупного плана в медальоне шапки (`GamePet`). Брать кадр 0 было бы
+ * проще, но в ходьбе голова заметно гуляет между кадрами: окно ловило бы её то по
+ * центру, то краем, и морда «дышала» бы вбок на каждом шаге. Среднее ставит окно
+ * посередине этого движения — голова остаётся в кадре целиком всю анимацию.
+ *
+ * Проценты 0..100 внутри кадра, как и сами якоря.
+ */
+export function petHeadCenter(skin: PetSkin, state: PetState): { x: number; y: number } {
+  const есть = petResolveState(skin, state);
+  const list = FRAME_ANCHORS[skin][есть] ?? FRAME_ANCHORS[skin].idle!;
+  const n = list.length || 1;
+  let x = 0, y = 0;
+  for (const f of list) { x += f.eyes.x; y += f.eyes.y; }
+  return { x: x / n, y: y / n };
+}
+
 /** Куда крепится каждый ТИП аксессуара и какой стороной садится на точку. */
 const ACCESSORY_MOUNT: Record<PetAccessory, { at: AnchorName; edge: 'bottom' | 'center' | 'top' }> = {
   party_hat: { at: 'head_top', edge: 'bottom' },   // колпак нижней кромкой на макушку
