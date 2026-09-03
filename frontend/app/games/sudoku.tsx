@@ -14,7 +14,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import {
-  CAGE_ACCENTS, blendHex, cellBackground, thermoThick, thermoColor, thermoSegment, thermoBulb, cageSumFontSize,
+  blendHex, cellBackground, thermoThick, thermoColor, thermoSegment, thermoBulb, cageSumFontSize,
 } from '@/src/services/sudoku-overlay';
 import GlassButton from '@/src/components/GlassButton';
 import { useLadderLock } from '@/src/contexts/PlayerLevelContext';
