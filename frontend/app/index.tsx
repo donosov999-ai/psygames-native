@@ -847,10 +847,20 @@ function FullHome() {
           ⚠️ Собранное показываем числом X/12 рядом: без него после первой фигурки
           полоска снова уезжает в начало, и прогресс выглядит потерянным.
         */}
-        <View
-          accessibilityLabel={сундук.next
+        {/*
+          🔴 СУНДУК НАЖИМАЕТСЯ И ВЕДЁТ В ВИТРИНУ (задача 6e564484, шаг 2).
+          Он говорил «собрано 3 из 12», а посмотреть на эти три было негде: цель
+          оставалась числом. У эталона она предметная — двенадцать силуэтов на
+          полках. Теперь карточка — вход в место, а не строка в ленте.
+        */}
+        <TouchableOpacity
+          accessibilityRole="button"
+          testID="chest-card"
+          activeOpacity={0.85}
+          onPress={() => router.push('/collection' as any)}
+          accessibilityLabel={`${сундук.next
             ? t('chestToNext').replace('{n}', String(сундук.left)).replace('{have}', String(сундук.have)).replace('{all}', String(FIGURES.length))
-            : t('chestFull')}
+            : t('chestFull')} — ${t('collectionOpen')}`}
           style={[styles.chestCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
         >
           <Text style={styles.chestFace}>{сундук.next ? сундук.next.face : '🏆'}</Text>
@@ -864,7 +874,8 @@ function FullHome() {
               <View style={[styles.chestFill, { backgroundColor: colors.primary, width: `${Math.round(сундук.ratio * 100)}%` }]} />
             </View>
           </View>
-        </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
         {resumeGame && (
           <TouchableOpacity
             accessibilityRole="button"

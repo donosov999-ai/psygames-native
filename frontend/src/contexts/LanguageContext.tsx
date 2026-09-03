@@ -557,6 +557,28 @@ const translations: Translations = {
    */
   chestToNext: { ru: 'Ещё ⭐{n} — и новая фигурка · собрано {have}/{all}', en: '⭐{n} more for a new figure · {have}/{all} collected' },
   chestFull: { ru: 'Коллекция собрана целиком', en: 'Collection complete' },
+  /**
+   * ВИТРИНА КОЛЛЕКЦИИ (задача 6e564484, шаг 2). Сундук говорил «собрано 3 из 12»,
+   * а посмотреть на эти три было негде: цель числовая, а не предметная. Двенадцать
+   * имён — чтобы у пустой полки было имя того, что на ней появится: силуэт без
+   * названия не тянет, он просто дырка.
+   */
+  collectionTitle:  { ru: 'Коллекция', en: 'Collection' },
+  collectionSub:    { ru: 'Собрано {have} из {all} · ⭐{earned} за всё время', en: '{have} of {all} collected · ⭐{earned} all time' },
+  collectionLocked: { ru: 'Откроется на ⭐{n}', en: 'Opens at ⭐{n}' },
+  collectionOpen:   { ru: 'Открыть коллекцию', en: 'Open collection' },
+  figAcorn:        { ru: 'Жёлудь', en: 'Acorn' },
+  figPebble:    { ru: 'Камешек',     en: 'Pebble' },
+  figShell:     { ru: 'Ракушка',     en: 'Shell' },
+  figFeather:   { ru: 'Пёрышко',     en: 'Feather' },
+  figLantern:   { ru: 'Фонарик',     en: 'Lantern' },
+  figKey:       { ru: 'Ключик',      en: 'Key' },
+  figAnchor:       { ru: 'Якорь', en: 'Anchor' },
+  figHourglass: { ru: 'Песочные часы', en: 'Hourglass' },
+  figCrystal:   { ru: 'Кристалл',    en: 'Crystal' },
+  figHedgehog:     { ru: 'Ёжик', en: 'Hedgehog' },
+  figMoon:      { ru: 'Луна',        en: 'Moon' },
+  figLighthouse:   { ru: 'Маяк', en: 'Lighthouse' },
   trailCrossOk: { ru: 'Линии могут пересекаться — важен порядок и скорость', en: 'Lines may cross — order and speed are what count' },
 
   // Sudoku
