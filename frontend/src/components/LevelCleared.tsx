@@ -11,6 +11,7 @@ import { saveLevelStars } from '@/src/services/levelStars';
 import { getCleanRun } from '@/src/services/cleanRun';
 import { freshEarn, onEarn, earnReasonKey, EarnEntry } from '@/src/services/earn';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { getTokens } from '@/src/services/tokens';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import Act from '@/src/components/juice/Act';
 import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
@@ -167,6 +168,8 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
    * через мгновение.
    */
   const [earn, setEarn] = useState<EarnEntry | null>(() => freshEarn());
+  /** Итог копилки после начисления: связь партии с метой, см. блок начисления ниже. */
+  const [баланс, setБаланс] = useState<number | null>(null);
   useEffect(() => onEarn(setEarn), []);
   /**
    * ⚠️ РЕЖИМ ЧИТАЕМ ЗДЕСЬ, А НЕ В КАЖДОЙ ИГРЕ. Этот экран показывают 49 игр; если
@@ -217,6 +220,13 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
     // персиста (звёзды/хинт/серии). Показываем CTA-блок, игрок решает сам.
     if (IS_WEB_DEMO) return;
     if (passed && gameId && profile?.id) saveLevelStars(gameId, profile.id, level, stars);   // лучшие звёзды за уровень
+    /**
+     * Итог копилки — спрашиваем у кошелька, а не считаем здесь. Начисление уже
+     * произошло (журнал `earn.ts`), и складывать «баланс + начисленное» на экране
+     * значило бы завести второе правило награды рядом с настоящим: разойдутся при
+     * первой же правке множителей, причём молча.
+     */
+    if (profile?.id) void getTokens(profile.id).then(setБаланс).catch(() => {});
     // Одноразовый хинт «уровни идут по порядку»: при ПЕРВОМ чистом прохождении любого уровня
     // показываем подпись и сразу ставим глобальный флаг (больше не покажем на всё приложение).
     if (passed) {
@@ -344,6 +354,21 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
         {(earn?.total ?? 0) > 0 && (
           <Act at={ACT.earn}><View style={[styles.earnBadge, { backgroundColor: scrim }]}>
             <Text style={[styles.earnText, { color: fg }]}>+{earn?.total} ⭐</Text>
+            {/*
+              🔴 КУДА ЭТО УШЛО. Задача 6e564484, шаг 1 («довести звезду от места
+              сборки до счётчика — буквально траекторией и фигурально связью»).
+              Карточка показывала «+25 ⭐» и на этом обрывалась: сколько стало —
+              человек узнавал, только вернувшись на главный экран, то есть связь
+              «партия → копилка» рвалась ровно там, где её надо чувствовать.
+              Теперь тут же видно итог: было → стало. Число берётся из кошелька
+              ПОСЛЕ начисления, а не складывается здесь заново: правило награды
+              одно и живёт в earn.ts.
+            */}
+            {баланс !== null && (
+              <Text style={[styles.earnWhy, { color: fg, opacity: 0.95 }]} numberOfLines={1}>
+                {`→ ${баланс} ⭐`}
+              </Text>
+            )}
             {(earn?.multiplier ?? 1) > 1 && (
               <View style={styles.earnMult}>
                 <Text style={styles.earnMultText}>×{earn?.multiplier}</Text>

@@ -47,6 +47,7 @@ import { Ionicons } from '@expo/vector-icons';
 import GamePet, { type PetMood } from '@/src/components/pet/GamePet';
 import { onGameEvent, type GameEventKind } from '@/src/services/gameEvents';
 import { streakMultiplier, scoreWithStreak } from '@/src/services/scoring';
+import { bumpBestStreak } from '@/src/services/streak';
 
 import { sndCorrect, sndWrong, sndMatch, sndLose } from '@/src/services/feedback';
 import { HudBadge, useScorePopups, ScorePopupLayer } from '@/src/components/juice';
@@ -413,6 +414,14 @@ export default function GameShell({
    */
   const [autoMood, setAutoMood] = React.useState<PetMood>('idle');
   const [streak, setStreak] = React.useState(0);
+  /**
+   * Под каким именем писать рекорд комбо. Берём из заголовка экрана: `GameShell`
+   * не знает идентификатора игры, а заводить новый обязательный проп ради одного
+   * рекорда значило бы править семьдесят экранов. Заголовок стабилен и уникален —
+   * этого хватает, а расхождение с каталогом здесь ничем не грозит: ключ виден
+   * только внутри хранилища рекордов.
+   */
+  const лучшийКлюч = React.useMemo(() => (title ? `combo:${title}` : ''), [title]);
   const streakRef = React.useRef(0);
   /**
    * Всплывашка «+N» У МЕСТА действия — тоже из канала. Компонент был написан
@@ -442,6 +451,19 @@ export default function GameShell({
     const kind: GameEventKind = e.kind;
     if (kind === 'good') {
       streakRef.current += 1; setStreak(streakRef.current);
+      /**
+       * 🔴 КОМБО — ХРАНИМЫЙ РЕКОРД, А НЕ ЭФФЕКТ ВНУТРИ ПАРТИИ. Задача ac44fc2d,
+       * дополнение 30.08.2026 по кадрам эталона: у них в профиле игрока плитка
+       * «Топ-комбо 17» рядом со звёздами и победной серией. То есть счётчик серии
+       * нужен в ДВУХ местах — в шапке во время партии и в статистике как личный
+       * рекорд. У нас он жил только в шапке и умирал вместе с партией.
+       *
+       * Пишем на КАЖДОМ росте, а не в конце: партию бросают, сворачивают, теряют
+       * по разряду батареи, и рекорд, записываемый «в конце», не записывается
+       * ровно в тех партиях, где он был лучшим. Хранилище само отбрасывает
+       * значения ниже прежнего.
+       */
+      if (лучшийКлюч) void bumpBestStreak(лучшийКлюч, streakRef.current).catch(() => {});
       if (!e.silent) sndCorrect();
       setAutoMood('good');
     } else if (kind === 'bad') {
