@@ -14,7 +14,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import {
-  CAGE_ACCENTS, blendHex, thermoThick, thermoColor, thermoSegment, thermoBulb, cageSumFontSize,
+  CAGE_ACCENTS, blendHex, cellBackground, thermoThick, thermoColor, thermoSegment, thermoBulb, cageSumFontSize,
 } from '@/src/services/sudoku-overlay';
 import GlassButton from '@/src/components/GlassButton';
 import { useLadderLock } from '@/src/contexts/PlayerLevelContext';
@@ -1745,17 +1745,22 @@ export default function SudokuGame() {
                  || (r < N - 1 && kropki.v[r][c] !== 0) || (r > 0 && kropki.v[r - 1][c] !== 0)))
             || cageAt(r, c) >= 0
           );
-          let bg = cageAt(r, c) >= 0 ? blendHex(colors.surface, CAGE_ACCENTS[cageAt(r, c) % CAGE_ACCENTS.length], 0.16) : colors.surface;
-          if (markColor >= 0 && markColor < paintPalette.length) {
-            bg = blendHex(bg, paintPalette[markColor], isDark ? 0.34 : 0.24);
-          }
-          if (wrongVal) bg = isSel ? '#ef4444' : '#fecaca';  // ошибка: яркий красный если выделена, светло-красный иначе
-          // v1.152: фон выделения затемнён #7f7fd5→#5b4fd1. Была светлая лаванда,
-          // на ней БЕЛАЯ цифра (line ~652) не читалась (репорт Вали L30 «введённая
-          // цифра светлая, не видно», контраст ~2.9:1). Теперь ~6:1, тема-независимо.
-          else if (isSel) bg = '#5b4fd1';
-          else if (sameVal) bg = markColor >= 0 ? blendHex(bg, GRADIENT[0], 0.10) : colors.card;
-          else if (sameRow) bg = markColor >= 0 ? blendHex(bg, GRADIENT[0], 0.08) : colors.card;
+          /**
+           * Фон клетки считает `cellBackground` из sudoku-overlay — там же лежит и
+           * разбор дефекта «группы пляшут» (отчёт Вали 04.09). Здесь нарочно НЕ
+           * повторяем порядок слоёв: он один раз описан и один раз проверен тестом
+           * `sudoku-cell-bg.test.ts`. Второй экран судоку (фрактал) берёт оттуда же.
+           */
+          const bg = cellBackground({
+            surface: colors.surface,
+            isDark,
+            cageId: cageAt(r, c),
+            markColor: markColor >= 0 && markColor < paintPalette.length ? paintPalette[markColor]! : null,
+            isSel,
+            sameVal: !!sameVal,
+            sameLine: !!sameRow,
+            wrongVal,
+          });
           // v1.113.0: заливку доп. зон убрали — её перебивала подсветка строки/столбца выделения
           // (Валя: «то голубые то нет»). Зоны теперь рамкой поверх сетки (см. SVG ниже, как диагональ).
           // ДИАГОНАЛЬ: не заливаем фон и не рисуем по клеткам (границы клеток резали линию на

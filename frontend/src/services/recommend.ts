@@ -132,11 +132,12 @@ export const RECO_STARTERS: readonly string[] = [
 ];
 
 /** Почему упражнение попало в блок. */
-export type RecoReason = 'comeback' | 'growth' | 'branch' | 'fresh' | 'calm' | 'start';
+export type RecoReason = 'comeback' | 'growth' | 'branch' | 'fresh' | 'calm' | 'start' | 'weakspot';
 
 /** Ключ словаря для подписи каждого основания. */
 export const RECO_REASON_KEY: Readonly<Record<RecoReason, string>> = {
   comeback: 'recoWhyComeback',
+  weakspot: 'recoWhyWeakspot',
   growth:   'recoWhyGrowth',
   branch:   'recoWhyBranch',
   fresh:    'recoWhyFresh',
@@ -167,6 +168,19 @@ export interface RecoInput {
   now?: Date;
   /** Подмена реестра свежего — для гейтов; в приложении не передаётся. */
   freshIds?: readonly string[];
+  /**
+   * 🔴 УПРАЖНЕНИЕ САМОГО СЛАБОГО ДОМЕНА ПО ПОСЛЕДНЕЙ ОЦЕНКЕ (ТЗ ade9a298, этап 3).
+   *
+   * Пять прежних оснований опираются на ИСТОРИЮ ПАРТИЙ: давно не играли, здесь растёте,
+   * ветке достаётся меньше. Ни одно из них не знает, где человек СЛАБЕЕ ВСЕГО — это
+   * знает только оценка (12 доменов, z-оценки, `assessment.ts`). Без неё блок советует
+   * по посещаемости, а не по пользе.
+   *
+   * ⚠️ Приходит готовым идентификатором игры, а не самим результатом оценки: отбор
+   * рекомендаций не должен ходить в хранилище — он чистая функция, и на этом держатся
+   * его пробы. Нет оценки — поле пустое, и основание просто не участвует.
+   */
+  weakestGameId?: string | null;
 }
 
 /** Начало сегодняшних суток по местным часам — та же нарезка, что у календаря серии. */
@@ -223,6 +237,17 @@ export function recommendToday(input: RecoInput): RecoPick[] {
   const hubs = new Set(RECO_GROUP_HUBS);
   const pool = filterAllowedGames(profile).filter((g) => !g.hideFromMenu && !hubs.has(g.id));
   const byId = new Map<string, GameConfig>(pool.map((g) => [g.id, g]));
+  /**
+   * 🔴 ХАБ ДОПУСКАЕТСЯ ТОЛЬКО КАК «СЛАБЕЙШИЙ ДОМЕН». Хабы исключены из пула выше по
+   * веской причине: у них счётчик партий вечно ноль, и подпись «этой ветке достаётся
+   * меньше всего» не гасла бы никогда. Но у основания `weakspot` доказательство берётся
+   * НЕ из счётчика, а из оценки — там ноль партий ничего не портит. А без этого совет
+   * просто не появлялся: три игры оценки из двенадцати спрятаны именно в хабы
+   * (digit_span и corsi — «span_group», flanker — «attention_conflict»).
+   */
+  const byIdWithHubs = new Map<string, GameConfig>(
+    filterAllowedGames(profile).filter((g) => !g.hideFromMenu).map((g) => [g.id, g]),
+  );
   if (pool.length === 0) return [];
 
   // ── 2. ДАННЫЕ ЧЕЛОВЕКА, ОТСЕЧЁННЫЕ НА НАЧАЛО СУТОК ────────────────────────────
@@ -252,7 +277,9 @@ export function recommendToday(input: RecoInput): RecoPick[] {
   const tie = (a: string, b: string) => (order.get(a) ?? 0) - (order.get(b) ?? 0);
 
   const okEvening = (id: string): boolean => {
-    const g = byId.get(id);
+    // ⚠️ Карточку ищем в каталоге С ХАБАМИ: слабейший домен может вести на развилку,
+    // а её в `byId` нет — и вечерняя проверка молча отвергала бы совет как «нет такой».
+    const g = byIdWithHubs.get(id) ?? byId.get(id);
     return !!g && (!evening || !RECO_EVENING_BANNED.includes(g.category));
   };
 
@@ -379,12 +406,22 @@ export function recommendToday(input: RecoInput): RecoPick[] {
     ? [...RECO_STARTERS.filter((id) => byId.has(id)), ...branch]
     : [];
 
+  /**
+   * Слабейший домен: одна игра, и только если она разрешена профилю и в неё сегодня
+   * ещё не играли. Проверять «давно ли» не нужно — основание не про давность.
+   */
+  const weakspot: string[] = input.weakestGameId && byIdWithHubs.has(input.weakestGameId)
+    ? [input.weakestGameId]
+    : [];
+
   // ── 4. СБОРКА ─────────────────────────────────────────────────────────────────
   // По одному основанию на карточку, в фиксированном порядке — чтобы блок не оказался
   // тремя «ветке достаётся меньше» подряд. Что не добрали — добираем тем же порядком.
   const sources: { reason: RecoReason; ids: string[] }[] = start.length > 0
     ? [{ reason: 'start', ids: start }]
     : [
+      // Слабейший домен — первым: он про пользу, остальные про посещаемость.
+      { reason: 'weakspot', ids: weakspot },
       { reason: 'comeback', ids: comeback },
       { reason: 'growth',   ids: growth },
       { reason: 'fresh',    ids: fresh },
@@ -398,7 +435,8 @@ export function recommendToday(input: RecoInput): RecoPick[] {
   const limit = Math.max(0, RECO_COUNT - calmSlot);
 
   const add = (id: string, reason: RecoReason): boolean => {
-    if (taken.has(id) || !byId.has(id) || !okEvening(id)) return false;
+    const виден = reason === 'weakspot' ? byIdWithHubs.has(id) : byId.has(id);
+    if (taken.has(id) || !виден || !okEvening(id)) return false;
     taken.add(id);
     picks.push({
       gameId: id,

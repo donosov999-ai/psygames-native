@@ -54,6 +54,7 @@ import DemoLanding from '@/src/components/DemoLanding';
 import { listResumable, resolveResumableGame } from '@/src/services/resume';
 import { shouldOpenOnboardingPicker } from '@/src/services/onboarding';
 import { recoCards, recoParams } from '@/src/services/recommend';
+import { weakestDomainGame } from '@/src/services/assessment';
 import { getSessions, GameSession } from '@/src/services/api';
 import { todayEarnings, TodaySummary, DAY_STREAK_FOR_MULT } from '@/src/services/earn';
 import DailyGoalCard from '@/src/components/DailyGoalCard';
@@ -267,9 +268,16 @@ function FullHome() {
   }, [profile.id]));
   // Профиль отдаём целиком: отбор сам режет каталог по allowed_games. Передавать сюда
   // готовый список игр нельзя — так протекал дневной перерыв (см. шапку recommend.ts).
+  /**
+   * Слабейший домен по последней оценке. Читается один раз за монтирование: оценка
+   * меняется раз в три месяца, а не между кадрами. Нет оценки — `null`, и основание
+   * «здесь пока слабее всего» просто не участвует в отборе.
+   */
+  const [слабейший, setСлабейший] = useState<string | null>(null);
+  useEffect(() => { void weakestDomainGame().then((w) => setСлабейший(w?.gameId ?? null)).catch(() => {}); }, []);
   const reco = useMemo(
-    () => recoCards({ profile, sessions, now: new Date(recoAt) }),
-    [profile, sessions, recoAt],
+    () => recoCards({ profile, sessions, now: new Date(recoAt), weakestGameId: слабейший }),
+    [profile, sessions, recoAt, слабейший],
   );
   const todayChallenge = useMemo(() => getTodayChallenge(), []);   // ротация игр — детерминировано по дате
   // Градиент вызова дня меняется вместе с игрой — цвет текста считаем от него же.
