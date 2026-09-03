@@ -1197,6 +1197,7 @@ const t: Record<string, string> = {
   "ladderStreakMap": "连胜地图",
   "ladderNext": "再{n}关解锁：{what}",
   "ladderLockedAt": "等级 {n} 解锁",
+  "ladderLockedShort": "{n} 级",
   "chestToNext": "再得 ⭐{n} 即可获得新摆件 · 已收集 {have}/{all}",
   "chestFull": "收藏已集齐",
   "btn_rules": "规则",

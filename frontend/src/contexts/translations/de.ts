@@ -1197,6 +1197,7 @@ const t: Record<string, string> = {
   "ladderStreakMap": "Serienkarte",
   "ladderNext": "Noch {n} — dann öffnet sich: {what}",
   "ladderLockedAt": "Ab Level {n} verfügbar",
+  "ladderLockedShort": "Lv {n}",
   "chestToNext": "Noch ⭐{n} bis zur nächsten Figur · {have}/{all} gesammelt",
   "chestFull": "Sammlung vollständig",
   "btn_rules": "Regeln",

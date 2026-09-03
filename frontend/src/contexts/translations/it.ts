@@ -329,6 +329,7 @@ const t: Record<string, string> = {
   "ladderStreakMap": "Mappa della serie",
   "ladderNext": "Ancora {n} e si sblocca: {what}",
   "ladderLockedAt": "Si sblocca al livello {n}",
+  "ladderLockedShort": "Liv. {n}",
   "chestToNext": "Ancora ⭐{n} per una nuova figurina · {have}/{all} raccolte",
   "chestFull": "Collezione completa",
   "sudoku": "Sudoku",
