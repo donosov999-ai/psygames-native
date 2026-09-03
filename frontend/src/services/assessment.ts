@@ -24,6 +24,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GAMES } from '@/src/constants/games';
 import { type PlaylistStep, localDateKey } from '@/src/services/warmup';
 import type { GameSession } from '@/src/services/api';
 
@@ -297,4 +298,44 @@ export async function getAssessmentStatus(): Promise<{ hasAssessment: boolean; d
   const lastTime = new Date(last.date).getTime();
   const daysSince = Math.floor((Date.now() - lastTime) / (24 * 60 * 60 * 1000));
   return { hasAssessment: true, daysSince, lastDate: last.date };
+}
+
+/**
+ * УПРАЖНЕНИЕ САМОГО СЛАБОГО ДОМЕНА ПО ПОСЛЕДНЕЙ ОЦЕНКЕ (ТЗ ade9a298, этап 3).
+ *
+ * ЗАЧЕМ. Блок «Рекомендуем сегодня» опирался на историю партий: давно не играли, здесь
+ * растёте, ветке достаётся меньше. Ни одно из этих оснований не знает, где человек
+ * СЛАБЕЕ ВСЕГО, — это знает только оценка. Отсюда одна строка: домен с наименьшей
+ * z-оценкой → игра, которой он меряется.
+ *
+ * ⚠️ ВОЗВРАЩАЕМ `null`, КОГДА ОЦЕНКИ НЕТ, а не «первый домен списка». Оценку проходят
+ * не все и не сразу; выдуманная слабость — это ложь в подписи, которую человек прочтёт
+ * первой («здесь пока слабее всего» о том, чего мы не мерили).
+ *
+ * ⚠️ ТОЛЬКО ДЕЙСТВИТЕЛЬНО СЛАБОЕ. Порог тот же, что у `weak` в самой оценке (z < −0.5):
+ * у человека с ровным профилем «самый слабый» домен всё равно найдётся арифметически,
+ * но слабым он не является, и советовать по нему нечего.
+ */
+export async function weakestDomainGame(): Promise<{ domain: Domain; gameId: string; z: number } | null> {
+  const history = await loadAssessmentHistory();
+  const last = history[history.length - 1];
+  if (!last || !Array.isArray(last.scores) || last.scores.length === 0) return null;
+  let худший: DomainScore | null = null;
+  for (const s of last.scores) {
+    if (!Number.isFinite(s.z_score)) continue;
+    if (!худший || s.z_score < худший.z_score) худший = s;
+  }
+  if (!худший || худший.z_score >= -0.5) return null;
+  const info = DOMAINS.find((d) => d.id === худший!.domain);
+  if (!info) return null;
+  /**
+   * 🔴 СОВЕТУЕМ ТО, ЧТО ЧЕЛОВЕК МОЖЕТ ОТКРЫТЬ. Три игры из двенадцати, которыми меряет
+   * оценка, спрятаны из каталога и живут внутри развилок: `digit_span` и `corsi` — в
+   * «span_group», `flanker` — в «attention_conflict». Замер 03.09.2026: рекомендация
+   * по слабейшему домену молча не появлялась вовсе, потому что отбор берёт только
+   * видимые карточки. Ведём на развилку — вход в неё и есть путь к самой игре.
+   */
+  const карточка = GAMES.find((g) => g.id === info.game_id);
+  const видимая = карточка?.hideFromMenu && карточка.mergedInto ? карточка.mergedInto : info.game_id;
+  return { domain: худший.domain, gameId: видимая, z: худший.z_score };
 }

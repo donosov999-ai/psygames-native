@@ -2059,6 +2059,7 @@ const t: Record<string, string> = {
   "recoDoneToday": "今天已练",
   "recoWhyComeback": "很久没玩了",
   "recoWhyGrowth": "这里你在进步",
+  "recoWhyWeakspot": "目前这里最弱",
   "recoWhyBranch": "这个分支练得最少",
   "recoWhyFresh": "应用新增",
   "recoWhyCalm": "适合晚上 — 不用赶",

@@ -1617,6 +1617,7 @@ const translations: Translations = {
   recoDoneToday:    { ru: 'Сегодня сыграно', en: 'Played today' },
   recoWhyComeback:  { ru: 'Давно не играли', en: 'Not played in a while' },
   recoWhyGrowth:    { ru: 'Здесь вы растёте', en: 'You are growing here' },
+  recoWhyWeakspot: { ru: 'здесь пока слабее всего', en: 'your weakest spot right now' },
   recoWhyBranch:    { ru: 'Этой ветке достаётся меньше всего', en: 'This branch gets the least practice' },
   recoWhyFresh:     { ru: 'Новое в приложении', en: 'New in the app' },
   recoWhyCalm:      { ru: 'Под вечер — без гонки', en: 'For the evening — no rush' },

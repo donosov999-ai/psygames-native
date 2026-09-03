@@ -2059,6 +2059,7 @@ const t: Record<string, string> = {
   "recoDoneToday": "Jogado hoje",
   "recoWhyComeback": "Faz tempo que você não joga",
   "recoWhyGrowth": "Aqui você está crescendo",
+  "recoWhyWeakspot": "aqui você está mais fraco por enquanto",
   "recoWhyBranch": "Este ramo é o menos praticado",
   "recoWhyFresh": "Novo no app",
   "recoWhyCalm": "Para a noite — sem pressa",

@@ -2053,6 +2053,7 @@ const t: Record<string, string> = {
   "recoDoneToday": "今日プレイ済み",
   "recoWhyComeback": "しばらく遊んでいません",
   "recoWhyGrowth": "ここが伸びています",
+  "recoWhyWeakspot": "今いちばん弱いところ",
   "recoWhyBranch": "この分野の練習が最も少ない",
   "recoWhyFresh": "アプリの新着",
   "recoWhyCalm": "夜向け — 急がずに",

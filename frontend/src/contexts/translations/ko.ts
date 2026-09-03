@@ -2054,6 +2054,7 @@ const t: Record<string, string> = {
   "recoDoneToday": "오늘 완료",
   "recoWhyComeback": "오랫동안 하지 않았어요",
   "recoWhyGrowth": "여기서 성장하고 있어요",
+  "recoWhyWeakspot": "지금 가장 약한 부분",
   "recoWhyBranch": "이 분야가 가장 적게 연습됐어요",
   "recoWhyFresh": "앱의 새 기능",
   "recoWhyCalm": "저녁용 — 서두르지 않기",
