@@ -98,6 +98,14 @@ function иконки(r: any): string[] {
     .map((n: any) => n.props.name);
 }
 
+/**
+ * ⚠️ ЯВНЫЙ ЗАПАС ВРЕМЕНИ. Проба рисует настоящий экран судоку и под общей нагрузкой
+ * укладывается в 7 секунд при умолчании jest в 5 — 03.09.2026 она уронила полный
+ * прогон, а отдельным запуском проходила за 1,3 с. Гейт, краснеющий по жребию, стоит
+ * выпуска: ровно этим в тот же день обошлась проба судоку про доливку.
+ */
+const ЗАПАС_МС = 30_000;
+
 describe('лестница замков на экране судоку', () => {
   it('🔴 новичок: на подсказке замок и условие открытия', async () => {
     const r = await монтировать(0);
@@ -111,7 +119,7 @@ describe('лестница замков на экране судоку', () => {
       .map((n: any) => n.props.accessibilityLabel).join(' | ');
     expect(подписи).toMatch(/Unlocks at level 2|Откроется на уровне 2/);
     await TestRenderer.act(async () => { r.unmount(); });
-  });
+  }, ЗАПАС_МС);
 
   it('🔴 опытный игрок: подсказка обычная, замка нет', async () => {
     const r = await монтировать(10);
@@ -122,12 +130,12 @@ describe('лестница замков на экране судоку', () => {
     expect(иконки(r)).not.toContain('lock-closed');
     expect(тексты(r.toJSON()).join(' ')).not.toMatch(/level 2|уровне 2/);
     await TestRenderer.act(async () => { r.unmount(); });
-  });
+  }, ЗАПАС_МС);
 
   it('уровень неизвестен — замка нет: экран не мигает запертым на первом кадре', async () => {
     const r = await монтировать(null);
     expect(иконки(r)).toContain('bulb');
     expect(иконки(r)).not.toContain('lock-closed');
     await TestRenderer.act(async () => { r.unmount(); });
-  });
+  }, ЗАПАС_МС);
 });

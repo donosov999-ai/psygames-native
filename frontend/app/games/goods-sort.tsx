@@ -4082,8 +4082,8 @@ export default function GoodsSortGame() {
             const warm = left !== null && !hot && left <= ml * 0.35;
             const gp = goalProgress(cells, goal);
             const items: HudItem[] = [
-              { key: 'level', icon: 'pricetag', label: t('goodsLevel'), value: level, tone: 'accent' },
-              { key: 'score', icon: 'star', label: t('score'), value: score, tone: 'good', pop: true },
+              { key: 'level', icon: 'pricetag', label: t('goodsLevel'), value: level },
+              { key: 'score', icon: 'star', label: t('score'), value: score, pop: true },
             ];
             // Ходы показываем ТОЛЬКО там, где есть лимит: без лимита это
             // справка «сделано столько-то», ради которой место не тратят.

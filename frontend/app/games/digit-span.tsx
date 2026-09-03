@@ -668,10 +668,10 @@ export default function DigitSpanGame() {
            */
           hud={[
             phase === 'showing'
-              ? { key: 'len', icon: 'eye' as const, label: t('memorize'), value: seqLen, tone: 'accent' as const }
-              : { key: 'len', icon: 'resize' as const, label: t('lengthLabel'), value: seqLen, tone: 'accent' as const },
+              ? { key: 'len', icon: 'eye' as const, label: t('memorize'), value: seqLen }
+              : { key: 'len', icon: 'resize' as const, label: t('lengthLabel'), value: seqLen },
             { key: 'round', icon: 'repeat', label: t('round'), value: round },
-            { key: 'span', icon: 'trending-up', label: t('hud_span'), value: maxSpan, tone: 'good' as const, pop: true },
+            { key: 'span', icon: 'trending-up', label: t('hud_span'), value: maxSpan, pop: true },
             { key: 'best', icon: 'trophy', label: t('personalBest'), value: shownRecord === null ? '—' : shownRecord, tone: 'warn' as const },
           ]}
           stats={

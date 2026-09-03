@@ -27,6 +27,8 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { nextUnanswered } from '@/src/games/chess-blind/core/blocks';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { SvgXml } from 'react-native-svg';
+import { CHESS_PIECE_SVG } from '@/src/games/chess-blind/core/pieces';
 import { readChessAssist, writeChessAssist, CHESS_ASSIST_DEFAULT, type ChessAssist } from '@/src/games/chess-blind/core/assist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -100,6 +102,14 @@ import {
  * вместе с ней, и разности блоков серии не называются «оценкой мозга»: T₂ − T₁ —
  * цена ОДНОГО правила в ЭТОЙ партии на ЭТОЙ позиции, и ничего сверх того.
  */
+
+/**
+ * ЦВЕТ КЛЕТОК. Было тёмное дерево (#9c7a5b / #6b4f3a) — на нём чёрная фигура
+ * сливалась с полем, и её приходилось обводить светлым. Классическая пара lichess
+ * светлее и контрастнее: чёрная фигура читается на обеих клетках без обводки.
+ */
+const BOARD_LIGHT = '#f0d9b5';
+const BOARD_DARK = '#b58863';
 
 const GRADIENT = ['#334155', '#0f172a'];   // шахматный тёмный
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -175,47 +185,48 @@ const GLYPH_WHITE: Record<PieceType, string> = { K: '♔', Q: '♕', R: '♖', B
 const GLYPH_BLACK: Record<PieceType, string> = { K: '♚', Q: '♛', R: '♜', B: '♝', N: '♞', P: '♟' };
 const glyphOf = (c: Combo): string => (c.white ? GLYPH_WHITE : GLYPH_BLACK)[c.type];
 
-// Сдвиги для 8-направленной обводки (по кругу вокруг символа).
-const OUTLINE_OFFSETS: ReadonlyArray<readonly [number, number]> = [
-  [-1, -1], [0, -1], [1, -1],
-  [-1, 0],           [1, 0],
-  [-1, 1],  [0, 1],  [1, 1],
-];
 
-// Глиф фигуры с многонаправленной ОБВОДКОЙ. В RN нет text-stroke, поэтому тем же
-// символом рисуем 8 копий цветом обводки со сдвигом по кругу, а сверху — символ
-// заливки. Белые: светлая заливка + тёмная обводка; чёрные: тёмная заливка +
-// светлая обводка → фигура контрастна и на светлых, и на тёмных клетках доски.
-// Работает одинаково на web (Tauri-WebView) и native, без нетипизированного CSS.
-function PieceGlyph({ combo, boxW, boxH, fontSize, onLight }: {
-  combo: Combo; boxW: number; boxH: number; fontSize: number;
-  /** Глиф стоит на СВЕТЛОЙ подложке. Тогда контраст задаёт подложка, а не сторона
-   *  фигуры: иначе белая фигура со светлой заливкой на светлой плашке исчезает. */
-  onLight?: boolean;
-}) {
-  const glyph = glyphOf(combo);
-  const fill = onLight === undefined ? (combo.white ? '#f8fafc' : '#111827') : (onLight ? '#0f172a' : '#f8fafc');
-  const stroke = onLight === undefined ? (combo.white ? '#0f172a' : '#f8fafc') : (onLight ? '#f8fafc' : '#0f172a');
-  const o = Math.max(1.4, Math.round(fontSize * 0.055));   // толщина обводки ∝ размеру
+// ⚠️ 03.09.2026 ОБВОДКА ИЗ ВОСЬМИ КОПИЙ ТЕКСТА УБРАНА ВМЕСТЕ С ГЛИФАМИ. Она нужна
+// была шрифтовому знаку: в RN нет text-stroke, и контраст на светлой и тёмной клетке
+// добирался восемью сдвинутыми копиями. У картинки набора Cburnett контур нарисован
+// в самой фигуре, и подпорка стала лишней.
+/**
+ * ФИГУРА КАРТИНКОЙ. Набор Cburnett (BSD-3, Викисклад) — разбор в шапке
+ * `src/games/chess-blind/core/pieces.ts`.
+ *
+ * 🔴 ПОЧЕМУ НЕ ШРИФТ. Просьба Дениса 03.09.2026: «найди нормальную доску и нормальные
+ * фигуры, убогие эти». Шрифтовой знак ♞ система на iOS подменяет своим «пластиковым»
+ * глифом, и на доске он выглядит игрушкой; ни толщину линии, ни пропорции у него не
+ * поправить. У картинки контур и заливка заданы самим рисунком, поэтому обводка из
+ * восьми копий текста больше не нужна.
+ */
+function PieceImage({ combo, size, glyph }: { combo: Combo; size: number; glyph?: string }) {
+  /* ⚠️ Ядро доски зовёт типы строчными ('n'), а корпус задач — прописными ('N').
+     Ключ набора один, поэтому приводим к прописной здесь, а не в двух местах вызова. */
+  const xml = CHESS_PIECE_SVG[(combo.white ? 'W' : 'B') + String(combo.type).toUpperCase()];
+  if (!xml) return null;
+  /**
+   * ⚠️ ФИГУРА НАЗЫВАЕТ СЕБЯ В ДЕРЕВЕ. До картинок её опознавали по тексту глифа
+   * внутри клетки — на этом держатся пробы, которые сверяют нарисованную
+   * расстановку с корпусом и проверяют, что во всех трёх блоках позиция ОДНА.
+   * У картинки текста нет, поэтому опознавательный знак задан явно: `testID`
+   * машине, человеческая подпись — скринридеру.
+   */
+  /**
+   * 🔴 ОПОЗНАВАТЕЛЬНЫЙ ЗНАК БЕРЁТСЯ У ЗОВУЩЕГО, А НЕ СЧИТАЕТСЯ ЗДЕСЬ. В этом файле
+   * уже записано, почему: «фигура рисуется одним знаком ИЗ ЯДРА (`pieceGlyph`), а не
+   * своим набором глифов экрана: иначе на доске стояло бы одно, а вопрос спрашивал бы
+   * про другое». Свой `glyphOf` я тут и подставил — и проба «вопрос спрашивает про ту
+   * же доску» немедленно покраснела. Теперь знак приходит оттуда же, откуда фигура.
+   */
+  const знак = glyph ?? glyphOf(combo);
   return (
-    <View pointerEvents="none" style={{ width: boxW, height: boxH }}>
-      {OUTLINE_OFFSETS.map(([dx, dy], i) => (
-        <Text
-          key={i}
-          style={[styles.glyphLayer, {
-            height: boxH, lineHeight: boxH, fontSize, color: stroke,
-            transform: [{ translateX: dx * o }, { translateY: dy * o }],
-          }]}
-        >
-          {glyph}
-        </Text>
-      ))}
-      <Text style={[styles.glyphLayer, { height: boxH, lineHeight: boxH, fontSize, color: fill }]}>
-        {glyph}
-      </Text>
+    <View testID={`piece:${знак}`} accessibilityLabel={знак}>
+      <SvgXml xml={xml} width={size} height={size} />
     </View>
   );
 }
+
 // Название фигуры — ОДНИМ ключом на цвет+фигуру, а не сборкой «цвет» + «фигура».
 // В половине языков прилагательное согласуется с родом («белая ладья», но «белый конь»,
 // la torre blanca / el caballo blanco) — из двух кусков это не склеить.
@@ -898,7 +909,7 @@ export default function ChessBlindGame() {
             {Array.from({ length: 8 }).map((_, c) => {
               const sq = r * 8 + c;
               const isLight = (r + c) % 2 === 0;
-              const bg = isLight ? '#9c7a5b' : '#6b4f3a';
+              const bg = isLight ? BOARD_LIGHT : BOARD_DARK;
               const coordColor = isLight ? '#5d4433' : '#c9b29a';
               let hl: string | null = null;
               if (moveHl && (moveHl.from === sq || moveHl.to === sq)) hl = '#fbbf24';
@@ -921,8 +932,10 @@ export default function ChessBlindGame() {
                   disabled={!(phase === 'quiz' && (prm.quizType === 'locate' || (isPick && pendingSqs.has(sq))))}
                   style={{ width: cellSize, height: cellSize, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
                 >
-                  {c === 0 && <Text style={[styles.coord, { top: 1, left: 2, color: coordColor }]}>{8 - r}</Text>}
-                  {r === 7 && <Text style={[styles.coord, { bottom: 1, right: 2, color: coordColor }]}>{'abcdefgh'[c]}</Text>}
+                  {/* Мелкие подписи в углах клеток — только когда крайние выключены:
+                      иначе одно и то же написано дважды. */}
+                  {!assist.coords && c === 0 && <Text style={[styles.coord, { top: 1, left: 2, color: coordColor }]}>{8 - r}</Text>}
+                  {!assist.coords && r === 7 && <Text style={[styles.coord, { bottom: 1, right: 2, color: coordColor }]}>{'abcdefgh'[c]}</Text>}
                   {p && (showPieces ? (
                     // 🔴 ФИГУРА КРУПНЕЕ: 0.82 → 0.96 клетки. Два отчёта 02.09.2026:
                     // «ни хуя фигуры непонятно, хуёво отрисовать» и «картинки на
@@ -932,7 +945,10 @@ export default function ChessBlindGame() {
                     // тридцать пикселей вместе с обводкой, и форма читается плохо.
                     // Контурные белые против залитых чёрных при таком размере тоже
                     // различаются хуже, чем задумано.
-                    <PieceGlyph combo={p} boxW={cellSize} boxH={cellSize} fontSize={Math.round(cellSize * 0.96)} />
+                    // 03.09.2026: картинка вместо шрифтового знака — форма и толщина
+                    // линии заданы рисунком, поэтому «крупнее» больше не упирается в
+                    // внутренние поля глифа.
+                    <PieceImage combo={p} glyph={glyphOf(p)} size={Math.round(cellSize * 0.86)} />
                   ) : (
                     // фишка-маска: цвет СТОРОНЫ сохраняется, тип скрыт
                     <View
@@ -1020,7 +1036,7 @@ export default function ChessBlindGame() {
                 key={col}
                 accessible
                 accessibilityLabel={squareName(index)}
-                style={{ width: cellSize, height: cellSize, backgroundColor: isLightSquare(index) ? '#9c7a5b' : '#6b4f3a' }}
+                style={{ width: cellSize, height: cellSize, backgroundColor: isLightSquare(index) ? BOARD_LIGHT : BOARD_DARK }}
               />
             );
           })}
@@ -1048,22 +1064,17 @@ export default function ChessBlindGame() {
                 style={{
                   width: cellSize,
                   height: cellSize,
-                  backgroundColor: light ? '#9c7a5b' : '#6b4f3a',
+                  backgroundColor: light ? BOARD_LIGHT : BOARD_DARK,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
                 {piece ? (
-                  <Text
-                    style={[styles.seriesGlyph, {
-                      fontSize: Math.round(cellSize * 0.9),
-                      lineHeight: cellSize,
-                      color: piece.color === 'w' ? '#f8fafc' : '#111827',
-                      textShadowColor: piece.color === 'w' ? '#0f172a' : '#f8fafc',
-                    }]}
-                  >
-                    {pieceGlyph(piece)}
-                  </Text>
+                  <PieceImage
+                    combo={{ type: piece.type as PieceType, white: piece.color === 'w' }}
+                    glyph={pieceGlyph(piece)}
+                    size={Math.round(cellSize * 0.86)}
+                  />
                 ) : null}
               </View>
             );
@@ -1239,7 +1250,7 @@ export default function ChessBlindGame() {
                     },
                   ]}
                 >
-                  <PieceGlyph combo={opt} boxW={60} boxH={48} fontSize={40} onLight={opt.white} />
+                  <PieceImage combo={opt} size={44} />
                 </TouchableOpacity>
               );
             })}
@@ -1284,7 +1295,14 @@ export default function ChessBlindGame() {
           </View>
         )}
 
-        {renderBoard()}
+        {/* Крайние подписи полей — те же, что в серии: одно правило на обе доски. */}
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignSelf: 'center' }}>
+          {assist.coords ? renderCoords('ranks') : null}
+          <View>
+            {renderBoard()}
+            {assist.coords ? renderCoords('files') : null}
+          </View>
+        </View>
       </View>
     </GameShell>
   );
@@ -1334,7 +1352,7 @@ export default function ChessBlindGame() {
             accessibilityRole="switch"
             accessibilityState={{ checked: assist.board }}
             onPress={() => переключить('board')}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingVertical: 10 }}
           >
             <Ionicons name={assist.board ? 'checkbox' : 'square-outline'} size={22} color={GRADIENT[0]} />
             <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{t('chessAssistBoard')}</Text>
@@ -1343,7 +1361,7 @@ export default function ChessBlindGame() {
             accessibilityRole="switch"
             accessibilityState={{ checked: assist.coords }}
             onPress={() => переключить('coords')}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingVertical: 10 }}
           >
             <Ionicons name={assist.coords ? 'checkbox' : 'square-outline'} size={22} color={GRADIENT[0]} />
             <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{t('chessAssistCoords')}</Text>

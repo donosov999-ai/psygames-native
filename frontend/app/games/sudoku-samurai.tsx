@@ -1785,7 +1785,7 @@ export default function SamuraiSudokuGame() {
          * Кнопка масштаба остаётся в `stats`: это действие, а не счётчик.
          */
         hud={[
-          { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: levelRef.current, tone: 'accent' as const },
+          { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: levelRef.current },
           { key: 'err', icon: 'close-circle', label: t('errors'), value: `${errors}/${maxErrors}`, tone: 'bad' as const },
           { key: 'time', icon: 'time', label: t('time'), value: hudTime(elapsedTime, t('secShort')) },
         ]}

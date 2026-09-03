@@ -97,6 +97,39 @@ const HUD_MAX = 4;
  * красным. Один набор на все игры, поэтому перекрасить приложение — правка
  * здесь, а не поиск шестнадцатеричных кодов по 72 экранам.
  */
+/**
+ * 🔴 ОДИН И ТОТ ЖЕ СЧЁТЧИК — ОДНОГО ЦВЕТА ВО ВСЕХ УПРАЖНЕНИЯХ.
+ *
+ * Просьба Дениса 03.09.2026: «расцветка ошибок, левел и прочее, и бонусов в верхнем
+ * тулбаре должна быть единой во всех упражнениях тоже». Так и не было: тон выбирала
+ * каждая игра сама, и один ключ красился по-разному. Замер того же дня по 46 ключам
+ * счётчиков во всех играх — семь ключей разъехались:
+ *   correct  good ×16 / neutral ×1      lvl   neutral ×12 / accent ×2
+ *   len      accent ×2 / neutral ×2     span  accent ×2 / good ×1
+ *   err      bad ×2 / neutral ×1        streak warn ×1 / neutral ×1
+ *   score    accent ×1 / good ×1
+ * Человек читает шапку боковым зрением: если «ошибки» в одной игре красные, а в
+ * соседней серые, взгляд каждый раз ищет заново.
+ *
+ * КАНОН НИЖЕ СИЛЬНЕЕ ТОГО, ЧТО ПЕРЕДАЛА ИГРА. Иначе разнобой вернётся с первым же
+ * новым экраном: автор укажет свой тон, и никто этого не заметит. Тон, переданный
+ * игрой, остаётся в силе для ключей ВНЕ канона — там единого смысла и нет.
+ * Гейт `hud-tone-canon` держит обе половины: и что канон покрывает общие ключи, и
+ * что игры не передают тон, спорящий с ним.
+ */
+const TONE_BY_KEY: Record<string, NonNullable<HudItem['tone']>> = {
+  // Ход партии — нейтральные: они не хорошие и не плохие, а просто счёт.
+  round: 'neutral', time: 'neutral', left: 'neutral', moves: 'neutral', found: 'neutral',
+  len: 'neutral', lvl: 'neutral', level: 'neutral', hud_bank: 'neutral', reaction: 'neutral',
+  rt: 'neutral', entered: 'neutral',
+  // Достижения — зелёные.
+  correct: 'good', hud_correct: 'good',
+  // Ошибки — красные, всегда и везде.
+  err: 'bad', errors: 'bad', mistakes: 'bad',
+  // Награда и рекорд — тёплые: очки, серия, лучший результат.
+  score: 'accent', span: 'accent', streak: 'warn', best: 'warn',
+};
+
 const TONE: Record<NonNullable<HudItem['tone']>, [string, string]> = {
   neutral: ['#cbd5e1', '#64748b'],
   accent:  ['#fbbf24', '#d97706'],
@@ -729,8 +762,8 @@ export default function GameShell({
                     icon={it.icon}
                     label={it.label}
                     value={it.value}
-                    colors={TONE[it.tone ?? 'neutral']}
-                    tint={it.tone === 'accent' ? '#3f2b00' : undefined}
+                    colors={TONE[TONE_BY_KEY[it.key] ?? it.tone ?? 'neutral']}
+                    tint={(TONE_BY_KEY[it.key] ?? it.tone) === 'accent' ? '#3f2b00' : undefined}
                     pop={it.pop}
                   />
                 ))}
