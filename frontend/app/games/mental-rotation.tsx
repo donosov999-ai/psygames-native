@@ -669,7 +669,40 @@ export default function MentalRotationGame() {
               {!isPreset && <LevelRuleBadge lr={levelRules} color={colors.primary} ru={language === 'ru'} />}
             </View>
           }
+          /**
+           * 🔴 ПОСЛЕ ПРОМАХА НИЖНИЙ РЯД ОТДАЁТ МЕСТО КНОПКЕ «ДАЛЬШЕ».
+           *
+           * Отчёты 02.09 и 03.09.2026: «ошибка — и дальше играть невозможно», «должно
+           * переходить к следующей фигуре, а не переходит». Игра действительно вставала.
+           *
+           * ПРИЧИНА, а не симптом: кнопка «дальше» лежала ВНУТРИ поля, под развёрнутым
+           * разбором (подсказка + лента кадров поворота + подпись шага). На телефоне
+           * она уезжала ниже экрана, а поле каркаса с 2.34.0 не отдаёт касание
+           * прокрутке — дотянуться пальцем стало нечем. Единственный выход из разбора
+           * оказался за краем экрана, и со стороны это ровно «подвисло».
+           *
+           * ⚠️ ПОЧЕМУ НЕ АВТОПЕРЕХОД ПО ТАЙМЕРУ, как просили. Разбор существует, чтобы
+           * его ЧИТАЛИ: лента показывает, как эталон поворачивается по шагам. Таймер
+           * либо торопит того, кто читает, либо задерживает того, кто уже понял. Кнопка
+           * в закреплённом ряду решает обе беды: она физически не может уехать за край,
+           * и нажимают её тогда, когда готовы.
+           *
+           * Варианты в разборе всё равно отключены (`disabled={feedback !== null}`),
+           * так что место под ними ничем не занято.
+           */
           toolbar={
+            reviewing ? (
+              <View style={styles.optionsRow}>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  testID="mr-next"
+                  onPress={() => advance(records)}
+                  style={[styles.nextBtnWide, { borderColor: colors.primary, backgroundColor: colors.card }]}
+                >
+                  <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>{strings.reviewNext}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
             <View style={styles.optionsRow}>
               {task.options.map((opt, i) => (
                 <TouchableOpacity
@@ -692,6 +725,7 @@ export default function MentalRotationGame() {
                 </TouchableOpacity>
               ))}
             </View>
+            )
           }
         >
           <View style={styles.fieldCol}>
@@ -756,13 +790,6 @@ export default function MentalRotationGame() {
                     })}
                   </Text>
                 )}
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  onPress={() => advance(records)}
-                  style={[styles.nextBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
-                >
-                  <Text style={{ color: colors.text, fontWeight: '700' }}>{strings.reviewNext}</Text>
-                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -845,5 +872,7 @@ const styles = StyleSheet.create({
   frameRow: { flexDirection: 'row', gap: 6, alignItems: 'center', paddingHorizontal: 2 },
   frameBox: { borderWidth: 2, borderRadius: 8, padding: 2 },
   reviewStepText: { fontSize: 12, fontWeight: '700' },
+  /** Кнопка выхода из разбора в закреплённом ряду: во всю ширину, палец не мимо. */
+  nextBtnWide: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 12, borderWidth: 2 },
   nextBtn: { minHeight: 40, justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
 });
