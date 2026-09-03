@@ -31,6 +31,7 @@ import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
 import { wagerTick } from '@/src/services/wager';
 import { getTodayChallenge, challengeToParams, loadChallengeStreak, setPendingChallenge, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
 import { useAllLevelStars } from '@/src/hooks/useAllLevelStars';
+import { playerLevel, nextLock, levelsToNextLock } from '@/src/services/featureLadder';
 import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic, getMusicEnabled } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
@@ -392,6 +393,24 @@ function FullHome() {
   // «⭐ X/15» на карточках — сводка пройденных уровней (пишет LevelCleared), multiGet на фокусе
   const visibleGameIds = useMemo(() => visibleGames.map((g) => g.id), [visibleGames]);
   const levelStarsSummary = useAllLevelStars(profile?.id, visibleGameIds);
+
+  /**
+   * 🔴 БЛИЖАЙШАЯ ДВЕРЬ ВПЕРЕДИ. Задача b96bfc4b, видимая половина второй лестницы.
+   *
+   * Замер эталона: девять замков на первых шестидесяти уровнях, между пятым и
+   * десятым — четыре. Смысл не в самих приёмах, а в том, что впереди ВСЕГДА видно,
+   * что откроется следующим, и это не стоит денег.
+   *
+   * У нас лестница была одна и открывалась деньгами: бесплатный игрок видел ровно
+   * то, что получил на старте, и повода вернуться завтра у него не было.
+   *
+   * ⚠️ Уровень считаем по ПРОЙДЕННОМУ во всех играх (см. playerLevel), а не по
+   * времени в приложении: иначе замок открывается за то, что человек оставил экран
+   * включённым.
+   */
+  const уровеньИгрока = useMemo(() => playerLevel(levelStarsSummary), [levelStarsSummary]);
+  const ближайшийЗамок = useMemo(() => nextLock(уровеньИгрока), [уровеньИгрока]);
+  const доЗамка = useMemo(() => levelsToNextLock(уровеньИгрока), [уровеньИгрока]);
 
   // Preview the playlist for current weekday
   const todayPreview = useMemo(() => {
@@ -778,6 +797,27 @@ function FullHome() {
           if (savedHomeScrollY > 0) homeScrollRef.current?.scrollTo({ y: savedHomeScrollY, animated: false });
         }}
       >
+        {/*
+          Ближайшая дверь. Стоит ПЕРЕД «продолжить игру»: это не действие, а
+          обещание, и читается оно до того, как рука ушла в игру. Пропадает само,
+          когда открыто всё, — строка «поздравляем, дальше ничего нет» хуже её
+          отсутствия.
+        */}
+        {ближайшийЗамок && доЗамка !== null && (
+          <View
+            accessibilityLabel={t('ladderNext')
+              .replace('{n}', String(доЗамка))
+              .replace('{what}', t(ближайшийЗамок.titleKey))}
+            style={[styles.ladderCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          >
+            <Ionicons name="lock-closed" size={16} color={colors.textSecondary} />
+            <Text style={[styles.ladderText, { color: colors.textSecondary }]} numberOfLines={2}>
+              {t('ladderNext')
+                .replace('{n}', String(доЗамка))
+                .replace('{what}', t(ближайшийЗамок.titleKey))}
+            </Text>
+          </View>
+        )}
         {resumeGame && (
           <TouchableOpacity
             accessibilityRole="button"
@@ -1146,6 +1186,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
+  /** Ближайшая дверь второй лестницы: подсказка о том, что откроется по уровню. */
+  ladderCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingHorizontal: 14, paddingVertical: 10,
+    borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, marginBottom: 10,
+  },
+  ladderText: { fontSize: 13, fontWeight: '600', flexShrink: 1, minWidth: 0 },
   resumeCard: {
     minHeight: 68,
     marginBottom: 14,

@@ -521,6 +521,19 @@ const translations: Translations = {
    * важен ПОРЯДОК, — но на поле его не было, а в справку за ним не идут посреди
    * партии. Показываем один раз, до первого касания.
    */
+  /**
+   * Вторая лестница (задача b96bfc4b): что открывается по уровню игрока.
+   * Названия приёмов и строка «ближайшая дверь» — их видно ДО открытия, в этом
+   * и смысл замка: впереди всегда есть куда идти, и это не стоит денег.
+   */
+  ladderHint: { ru: 'Подсказка в играх', en: 'In-game hints' },
+  ladderUndo: { ru: 'Отмена хода', en: 'Undo a move' },
+  ladderRoundStats: { ru: 'Разбор партии', en: 'Round breakdown' },
+  ladderPetSkins: { ru: 'Наряды питомца', en: 'Pet outfits' },
+  ladderEvening: { ru: 'Вечерний режим', en: 'Evening mode' },
+  ladderRecords: { ru: 'Экран рекордов', en: 'Records screen' },
+  ladderStreakMap: { ru: 'Карта серии', en: 'Streak map' },
+  ladderNext: { ru: 'Ещё {n} — и откроется: {what}', en: '{n} more to unlock: {what}' },
   trailCrossOk: { ru: 'Линии могут пересекаться — важен порядок и скорость', en: 'Lines may cross — order and speed are what count' },
 
   // Sudoku
