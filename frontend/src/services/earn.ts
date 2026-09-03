@@ -56,6 +56,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { GoalOutcome } from '@/src/services/dailyGoal';
 import { addTokens, tokenDelta, TOKEN_DELTA_CAP } from '@/src/services/tokens';
+import { addEarned } from '@/src/services/collection';
 
 /** Единственный множитель в приложении. */
 export const MULTIPLIER = 2;
@@ -336,7 +337,12 @@ export async function recordRound(input: RecordInput): Promise<Earned> {
     store[profileId] = { entries: nextEntries, days: days.filter((d) => keepDayMarks.has(d)) };
     await AsyncStorage.setItem(KEY, JSON.stringify(store));
 
-    if (earned.total > 0) await addTokens(profileId, earned.total);
+    if (earned.total > 0) {
+      await addTokens(profileId, earned.total);
+      // Сундук считает ЗАРАБОТАННОЕ за всё время, а не остаток на счету:
+      // иначе покупка в магазине двигала бы долгую цель назад (collection.ts).
+      await addEarned(profileId, earned.total);
+    }
     lastEarn = entry;
     listeners.forEach((cb) => { try { cb(entry); } catch { /* слушатель не ломает начисление */ } });
     return earned;
