@@ -329,6 +329,7 @@ const t: Record<string, string> = {
   "ladderStreakMap": "連続記録マップ",
   "ladderNext": "あと{n}で開放：{what}",
   "ladderLockedAt": "レベル {n} で解放",
+  "ladderLockedShort": "Lv {n}",
   "chestToNext": "あと ⭐{n} で新しい置物 · {have}/{all} 収集",
   "chestFull": "コレクション完成",
   "sudoku": "数独",

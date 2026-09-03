@@ -329,6 +329,7 @@ const t: Record<string, string> = {
   "ladderStreakMap": "خريطة السلسلة",
   "ladderNext": "{n} إضافية ليُفتح: {what}",
   "ladderLockedAt": "يُفتح في المستوى {n}",
+  "ladderLockedShort": "م {n}",
   "chestToNext": "‏⭐{n} أخرى لتمثال جديد · تم جمع {have}/{all}",
   "chestFull": "اكتملت المجموعة",
   "sudoku": "سودوكو",

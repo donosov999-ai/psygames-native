@@ -1200,6 +1200,7 @@ const t: Record<string, string> = {
   "ladderStreakMap": "शृंखला का नक्शा",
   "ladderNext": "{n} और — फिर खुलेगा: {what}",
   "ladderLockedAt": "लेवल {n} पर खुलेगा",
+  "ladderLockedShort": "लेव. {n}",
   "chestToNext": "नई मूर्ति के लिए ⭐{n} और · {have}/{all} इकट्ठी",
   "chestFull": "संग्रह पूरा",
   "btn_rules": "नियम",

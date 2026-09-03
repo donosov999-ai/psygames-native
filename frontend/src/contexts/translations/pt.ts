@@ -1197,6 +1197,7 @@ const t: Record<string, string> = {
   "ladderStreakMap": "Mapa da sequência",
   "ladderNext": "Mais {n} para desbloquear: {what}",
   "ladderLockedAt": "Desbloqueia no nível {n}",
+  "ladderLockedShort": "Nív. {n}",
   "chestToNext": "Mais ⭐{n} para uma nova figura · {have}/{all} reunidas",
   "chestFull": "Coleção completa",
   "btn_rules": "Regras",

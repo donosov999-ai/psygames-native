@@ -329,6 +329,7 @@ const t: Record<string, string> = {
   "ladderStreakMap": "연속 기록 지도",
   "ladderNext": "{n}개 더 하면 열려요: {what}",
   "ladderLockedAt": "레벨 {n}에서 열림",
+  "ladderLockedShort": "Lv {n}",
   "chestToNext": "⭐{n} 더 모으면 새 피규어 · {have}/{all} 수집",
   "chestFull": "컬렉션 완성",
   "sudoku": "스도쿠",

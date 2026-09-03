@@ -2021,7 +2021,10 @@ export default function SudokuGame() {
         grow
         tone="warn"
         icon={подсказкаЗаперта ? 'lock-closed' : 'bulb'}
-        label={подсказкаЗаперта ? t('ladderLockedAt').replace('{n}', String(порогПодсказки)) : t('btn_hint')}
+        // На кнопке — КОРОТКАЯ форма «Ур. 2»: полная фраза вылезала за край на 27 px
+        // (браузерный гейт, 360 px) и обрезалась. Полная остаётся в подписи ниже.
+        label={подсказкаЗаперта ? t('ladderLockedShort').replace('{n}', String(порогПодсказки)) : t('btn_hint')}
+        accessibilityLabel={подсказкаЗаперта ? t('ladderLockedAt').replace('{n}', String(порогПодсказки)) : undefined}
         onPress={подсказкаЗаперта ? () => {} : handleHint}
         disabled={подсказкаЗаперта || !selected || hintUses >= hintMax}
       />
