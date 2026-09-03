@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, Redirect, router } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
+import { useLadderLock } from '@/src/contexts/PlayerLevelContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -88,7 +89,24 @@ export default function PetScreen() {
     }, [language, profile?.id]),
   );
 
-  const pickSkin = (s: PetSkinChoice) => { setSkinChoice(s); setPetSkin(s).catch(() => {}); };
+  /**
+   * НАРЯДЫ ПИТОМЦА — ступень лестницы замков (b96bfc4b, ур. 8).
+   *
+   * 🔴 БАЗОВЫЙ СКИН НЕ ЗАПИРАЕТСЯ. Питомцу нужен хоть какой-то вид: запри все
+   * четыре — и экран останется без кота, а замок превратится в поломку. Награда
+   * здесь именно НАРЯДЫ, то есть всё сверх обычного вида.
+   *
+   * Запертая карточка не прячется: игрок должен видеть, что наряды существуют, —
+   * иначе на восьмом уровне они появятся как из ниоткуда, и ступень не сработает.
+   */
+  const { заперт: нарядыЗаперты, порог: порогНарядов } = useLadderLock('petSkins');
+  const [сказали, setСказали] = React.useState<PetSkinChoice | null>(null);
+  const БАЗОВЫЙ: PetSkinChoice = 'cat';
+
+  const pickSkin = (s: PetSkinChoice) => {
+    if (нарядыЗаперты && s !== БАЗОВЫЙ) { setСказали((v: PetSkinChoice | null) => (v === s ? null : s)); return; }
+    setSkinChoice(s); setPetSkin(s).catch(() => {});
+  };
 
   const saveName = () => {
     setEditingName(false);
@@ -247,21 +265,32 @@ export default function PetScreen() {
         >
           {(['cat', 'robot', 'constellation', 'auto'] as PetSkinChoice[]).map((s) => {
             const on = skinChoice === s;
+            const заперт = нарядыЗаперты && s !== БАЗОВЫЙ;
             const thumbSkin: PetSkin = s === 'auto' ? resolvePetSkin('auto', stage) : s;
+            const подпись = t(s === 'cat' ? 'petSkinCat' : s === 'robot' ? 'petSkinRobot' : s === 'constellation' ? 'petSkinConstellation' : 'petSkinAuto');
             return (
               <TouchableOpacity
                 accessibilityRole="button"
                 key={s}
-                style={[styles.skinCard, { backgroundColor: colors.surface, borderColor: on ? '#8a68f5' : colors.border, borderWidth: on ? 2 : 1 }]}
+                accessibilityLabel={заперт
+                  ? `${подпись} — ${t('ladderLockedAt').replace('{n}', String(порогНарядов))}`
+                  : подпись}
+                accessibilityState={{ disabled: заперт, selected: on }}
+                style={[styles.skinCard, { backgroundColor: colors.surface, borderColor: on ? '#8a68f5' : colors.border, borderWidth: on ? 2 : 1, opacity: заперт ? 0.5 : 1 }]}
                 onPress={() => pickSkin(s)}
                 activeOpacity={0.75}
               >
                 <Image {...a11yDecor} source={petFrame(thumbSkin, 'idle', 0)} style={styles.skinThumb} resizeMode="contain" />
-                {s === 'auto' && (
+                {заперт && (
+                  <Ionicons name="lock-closed" size={13} color={colors.textSecondary} style={styles.autoBadge} />
+                )}
+                {!заперт && s === 'auto' && (
                   <Ionicons name="sparkles" size={13} color={on ? '#8a68f5' : colors.textSecondary} style={styles.autoBadge} />
                 )}
-                <Text style={[styles.skinLabel, { color: on ? '#8a68f5' : colors.textSecondary }]}>
-                  {t(s === 'cat' ? 'petSkinCat' : s === 'robot' ? 'petSkinRobot' : s === 'constellation' ? 'petSkinConstellation' : 'petSkinAuto')}
+                <Text style={[styles.skinLabel, { color: on ? '#8a68f5' : colors.textSecondary }]} numberOfLines={1}>
+                  {сказали === s && порогНарядов !== null
+                    ? t('ladderLockedAt').replace('{n}', String(порогНарядов))
+                    : подпись}
                 </Text>
               </TouchableOpacity>
             );
