@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.3',
+    date: '2026-09-03',
+    ru: [
+      'Питомец на своём экране снова виден: портрет схлопывался в ноль и его не было вовсе',
+      'Облики питомца теперь обновляются сами — без ожидания новой версии приложения',
+      '«Пропущенное слово»: фраз стало 40 на язык вместо 16, и подряд они больше не повторяются',
+    ],
+    en: [
+      'The pet is visible on its own screen again: the portrait collapsed to zero and simply was not there',
+      'Pet looks now update on their own — no waiting for a new app version',
+      'Missing Word: 40 phrases per language instead of 16, and no more repeats in a row',
+    ],
+  },
+  {
     version: '2.37.2',
     date: '2026-09-03',
     ru: [
