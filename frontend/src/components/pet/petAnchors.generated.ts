@@ -18,7 +18,7 @@ export interface AnchorXY { x: number; y: number }
 export type AnchorName = 'head_top' | 'eyes' | 'neck';
 export type FrameAnchors = Record<AnchorName, AnchorXY>;
 
-export const FRAME_ANCHORS: Record<PetSkin, Record<PetState, FrameAnchors[]>> = {
+export const FRAME_ANCHORS: Record<PetSkin, Partial<Record<PetState, FrameAnchors[]>>> = {
   // cat: глубина глаз внутри головы 22.36% (медиана по 12 из 20 кадров,
   // остальные — с закрытыми глазами, там правило «самая тёмная строка» неприменимо).
   cat: {

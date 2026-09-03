@@ -141,7 +141,14 @@ export default function WalkingPet() {
     const id = setTimeout(async () => {
       if (!alive || !(await consumeRecentRecord())) return;
       if (!alive) return;
-      setSprite('jump');
+      /**
+       * ПРАЗДНИК РЕКОРДА — состояние `celebrate` (задача 00218752). Своих кадров у
+       * него пока нет ни в одном паке, и `PetSprite` сам подставляет `jump`. Но
+       * НАЗЫВАЕТСЯ событие теперь правильно: появятся кадры — праздник заиграет
+       * сам, без правки этого файла. Раньше «подключить за час» означало найти три
+       * таких места и не забыть ни одного.
+       */
+      setSprite('celebrate');
       setBubble({ text: pickRecordLine(langRef.current).text });
       setTimeout(() => { if (alive) { setSprite('idle'); setBubble(null); } }, 5000);
     }, 1300);

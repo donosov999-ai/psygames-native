@@ -225,7 +225,7 @@ describe('якоря аксессуаров питомца', () => {
     for (const skin of SKINS) for (const st of STATES) for (let f = 0; f < FRAMES; f++) {
       const want = recompute(skin, st, f);
       for (const nm of ANCHORS) {
-        const have = FRAME_ANCHORS[skin][st][f][nm];
+        const have = FRAME_ANCHORS[skin][st]![f][nm];
         const dx = Math.abs(have.x - want[nm].x), dy = Math.abs(have.y - want[nm].y);
         if (dx > TOL || dy > TOL) {
           off.push(`${skin}/${st}${f}/${nm}: в таблице (${have.x}, ${have.y}), пересчёт (${want[nm].x.toFixed(2)}, ${want[nm].y.toFixed(2)})`);
@@ -296,7 +296,7 @@ describe('якоря аксессуаров питомца', () => {
   it('порядок точек в каждом кадре: макушка выше глаз, глаза выше шеи', () => {
     const wrong: string[] = [];
     for (const skin of SKINS) for (const st of STATES) for (let f = 0; f < FRAMES; f++) {
-      const a = FRAME_ANCHORS[skin][st][f];
+      const a = FRAME_ANCHORS[skin][st]![f];
       if (!(a.head_top.y < a.eyes.y && a.eyes.y < a.neck.y)) {
         wrong.push(`${skin}/${st}${f}: макушка ${a.head_top.y}, глаза ${a.eyes.y}, шея ${a.neck.y}`);
       }
