@@ -540,6 +540,13 @@ const translations: Translations = {
    * быть виден, иначе это не лестница, а просто отсутствие.
    */
   ladderLockedAt: { ru: 'Откроется на уровне {n}', en: 'Unlocks at level {n}' },
+  /**
+   * Сундук — долгая цель (задача 6e564484, шаг 3). Строка называет ОСТАТОК до
+   * следующей фигурки, а не общий путь: «ещё 30» зовёт доиграть, «120 из 17000»
+   * отговаривает начинать.
+   */
+  chestToNext: { ru: 'Ещё ⭐{n} — и новая фигурка · собрано {have}/{all}', en: '⭐{n} more for a new figure · {have}/{all} collected' },
+  chestFull: { ru: 'Коллекция собрана целиком', en: 'Collection complete' },
   trailCrossOk: { ru: 'Линии могут пересекаться — важен порядок и скорость', en: 'Lines may cross — order and speed are what count' },
 
   // Sudoku

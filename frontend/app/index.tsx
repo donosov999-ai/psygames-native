@@ -32,6 +32,7 @@ import { wagerTick } from '@/src/services/wager';
 import { getTodayChallenge, challengeToParams, loadChallengeStreak, setPendingChallenge, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
 import { useAllLevelStars } from '@/src/hooks/useAllLevelStars';
 import { playerLevel, nextLock, levelsToNextLock } from '@/src/services/featureLadder';
+import { chestState, earnedTotal, FIGURES } from '@/src/services/collection';
 import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic, getMusicEnabled } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
@@ -410,6 +411,27 @@ function FullHome() {
    */
   const уровеньИгрока = useMemo(() => playerLevel(levelStarsSummary), [levelStarsSummary]);
   const ближайшийЗамок = useMemo(() => nextLock(уровеньИгрока), [уровеньИгрока]);
+
+  /**
+   * ДОЛГАЯ ЦЕЛЬ (задача 6e564484, шаг 3). Мета-слой у нас богаче эталона по
+   * составу, но ни лига, ни ранг, ни титул не отвечают на вопрос «к чему я иду»:
+   * «ранг вырастет» — это не предмет. Сундук отвечает предметно, и потому он
+   * виден на главной ВСЕГДА, а не открывается отдельным экраном.
+   *
+   * ⚠️ Считается ЗАРАБОТАННОЕ за всё время, а не остаток на счету: иначе покупка
+   * в магазине двигала бы цель назад (см. collection.ts).
+   */
+  const [заработано, setЗаработано] = useState(0);
+  useFocusEffect(useCallback(() => {
+    let жив = true;
+    (async () => {
+      if (!profile?.id) { if (жив) setЗаработано(0); return; }
+      const n = await earnedTotal(profile.id).catch(() => 0);
+      if (жив) setЗаработано(n);
+    })();
+    return () => { жив = false; };
+  }, [profile?.id]));
+  const сундук = useMemo(() => chestState(заработано), [заработано]);
   const доЗамка = useMemo(() => levelsToNextLock(уровеньИгрока), [уровеньИгрока]);
 
   // Preview the playlist for current weekday
@@ -818,6 +840,31 @@ function FullHome() {
             </Text>
           </View>
         )}
+        {/*
+          СУНДУК — единственное место, где видно, КУДА игрок идёт вдолгую. Полоска
+          показывает текущую ступень, а не весь путь: «⭐120 из 17000» читается как
+          недостижимое, «⭐120 из 150» — как «ещё одна партия».
+          ⚠️ Собранное показываем числом X/12 рядом: без него после первой фигурки
+          полоска снова уезжает в начало, и прогресс выглядит потерянным.
+        */}
+        <View
+          accessibilityLabel={сундук.next
+            ? t('chestToNext').replace('{n}', String(сундук.left)).replace('{have}', String(сундук.have)).replace('{all}', String(FIGURES.length))
+            : t('chestFull')}
+          style={[styles.chestCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        >
+          <Text style={styles.chestFace}>{сундук.next ? сундук.next.face : '🏆'}</Text>
+          <View style={styles.chestBody}>
+            <Text style={[styles.chestText, { color: colors.textSecondary }]} numberOfLines={2}>
+              {сундук.next
+                ? t('chestToNext').replace('{n}', String(сундук.left)).replace('{have}', String(сундук.have)).replace('{all}', String(FIGURES.length))
+                : t('chestFull')}
+            </Text>
+            <View style={[styles.chestTrack, { backgroundColor: colors.border }]}>
+              <View style={[styles.chestFill, { backgroundColor: colors.primary, width: `${Math.round(сундук.ratio * 100)}%` }]} />
+            </View>
+          </View>
+        </View>
         {resumeGame && (
           <TouchableOpacity
             accessibilityRole="button"
@@ -1193,6 +1240,18 @@ const styles = StyleSheet.create({
     borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, marginBottom: 10,
   },
   ladderText: { fontSize: 13, fontWeight: '600', flexShrink: 1, minWidth: 0 },
+  chestCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingHorizontal: 14, paddingVertical: 10,
+    borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, marginBottom: 12,
+  },
+  chestFace: { fontSize: 22 },
+  // flexShrink + minWidth: 0 обязательны — без них строка не даёт себя сжать и
+  // карточка вылезает за край на 360 px (та же грабля, что в служебных рядах).
+  chestBody: { flex: 1, minWidth: 0, gap: 6 },
+  chestText: { fontSize: 13, fontWeight: '600', flexShrink: 1, minWidth: 0 },
+  chestTrack: { height: 5, borderRadius: 3, overflow: 'hidden', width: '100%' },
+  chestFill: { height: '100%', borderRadius: 3 },
   resumeCard: {
     minHeight: 68,
     marginBottom: 14,
