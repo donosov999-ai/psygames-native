@@ -2,7 +2,7 @@ import { textOn, onSolidText, onGradientTextMuted } from '@/src/services/onGradi
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Platform, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { usePathname } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -53,10 +53,12 @@ const PROSE_KEYS = ['about', 'benefit', 'history', 'creator', 'methods', 'durati
  * единица позволяет гейту `pet-next-to-help` нарисовать угол и посмотреть порядок,
  * не поднимая весь оверлей с роутером и картой справки.
  */
-export function HelpCornerRow({ rtl, mood, top, label, helpLabel, accent, accentFg, onPress }: {
+export function HelpCornerRow({ rtl, mood, top, label, helpLabel, accent, accentFg, onPress, onPetPress, petLabel }: {
   rtl: boolean; mood: PetMood; top: number; label: string; helpLabel: string;
   accent: string; accentFg: string; onPress: () => void;
+  onPetPress?: () => void; petLabel?: string;
 }) {
+  const openPet = onPetPress ?? (() => {});
   return (
     <View
       testID="help-corner-row"
@@ -76,7 +78,23 @@ export function HelpCornerRow({ rtl, mood, top, label, helpLabel, accent, accent
         * оказалась не в слоях: сборка для симулятора два дня вшивала веб от 2 сентября
         * (разобрано в scripts/sim-run.sh VER 4).
         */}
-      <GamePet mood={mood} size={38} />
+      {/**
+        * 🔴 ПО НАЖАТИЮ — ЭКРАН ПИТОМЦА, И ТАК НА КАЖДОМ ЭКРАНЕ ИГРЫ. Просьба Дениса
+        * 03.09.2026: «по клику в тулбаре надо разворачивать окно маскота, всегда».
+        * Медальон был картинкой без обработчика: на него жали и ничего не
+        * происходило. Теперь это кнопка, и ведёт она туда же, куда мини-аватар на
+        * главной, — на /pet.
+        */}
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={petLabel ?? 'pet'}
+        testID="pet-open"
+        activeOpacity={0.85}
+        onPress={openPet}
+        style={styles.petBtn}
+      >
+        <GamePet mood={mood} size={38} />
+      </TouchableOpacity>
       {/* Кнопка = кружок «?» + подпись словом. Голая иконка не читалась как справка. */}
       <TouchableOpacity
         accessibilityLabel={helpLabel}
@@ -99,6 +117,7 @@ export function HelpCornerRow({ rtl, mood, top, label, helpLabel, accent, accent
 
 export default function GameHelpOverlay() {
   const mood = useGameMood();
+  const router = useRouter();
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const insets = useSafeAreaInsets();
@@ -226,7 +245,8 @@ export default function GameHelpOverlay() {
         (дословная жалоба). Угол справки одинаков на каждом экране игры.
       */}
       <HelpCornerRow rtl={rtl} mood={mood} top={insets.top + 10} label={t('btn_rules')}
-        helpLabel={helpLabel} accent={accent} accentFg={accentFg} onPress={openHelp} />
+        helpLabel={helpLabel} accent={accent} accentFg={accentFg} onPress={openHelp}
+        petLabel={t('petSynapse')} onPetPress={() => router.push('/pet' as any)} />
 
       {coach ? (
         <View
@@ -366,6 +386,7 @@ const styles = StyleSheet.create({
   },
   // Сторона и выравнивание — в рендере (RTL-зеркало вместе с «?»-кнопкой)
   /** Ряд «питомец + справка» в углу: один абсолютный слой вместо двух. */
+  petBtn: { alignItems: 'center', justifyContent: 'center' },
   cornerRow: { position: 'absolute', zIndex: 100, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   /** Кнопка внутри ряда: своё позиционирование ей больше не нужно. */
   fabInRow: { alignItems: 'center' },

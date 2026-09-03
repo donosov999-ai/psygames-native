@@ -17,7 +17,7 @@
  * обязан увидеть в файле ровно то же, что видит TypeScript, — и шаг с ним обязан стоять
  * в сборке.
  */
-import { LEADERBOARD_GAMES, LeaderboardGameId } from '@/src/services/leaderboard';
+import { LEVEL_BOARD_MIN, LEVEL_BOARD_MAX, LEADERBOARD_GAMES, LeaderboardGameId } from '@/src/services/leaderboard';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -44,6 +44,14 @@ describe('сверка правил рекордов с базой', () => {
       min: LEADERBOARD_GAMES[id].min,
       max: LEADERBOARD_GAMES[id].max,
     }]));
+    /**
+     * ⚠️ 03.09.2026 К ДОСКАМ ВЕЛИЧИНЫ ДОБАВИЛАСЬ ОБЩАЯ ДОСКА УРОВНЕЙ. Она объявлена не
+     * строкой в LEADERBOARD_GAMES, а парой констант (LEVEL_BOARD_MIN/MAX) и одной
+     * веткой на сервере по форме имени `<игра>_level` — иначе в таблице стояли бы
+     * семьдесят три одинаковые строки. Гейт читает её отдельно и печатает под ключом
+     * `*_level`; здесь ожидание дополнено тем же.
+     */
+    expected['*_level'] = { better: 'more', direction: 'desc', min: LEVEL_BOARD_MIN, max: LEVEL_BOARD_MAX } as never;
 
     expect(JSON.parse(out)).toEqual(expected);
   });

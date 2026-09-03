@@ -43,11 +43,17 @@ const HOLD_MS: Record<Exclude<PetMood, 'idle'>, number> = { good: 700, bad: 900,
  * второй канал ответа, который виден даже боковым зрением, когда сам спрайт
  * мелкий (Денис 30.08.2026: «питомца в рамку и типа тетрайдер»).
  */
+/**
+ * 🔴 ПОДЛОЖКА НЕПРОЗРАЧНАЯ. Денис 03.09.2026: «маскот просвечивает». Так и было:
+ * заливка стояла полупрозрачной (rgba …,0.14), а у спрайта своя альфа — сквозь
+ * питомца просвечивал фон шапки, и на пёстром фоне он читался как наклейка с дыркой.
+ * Те же цвета, но сплошные: тон остался, прозрачности нет.
+ */
 const FRAME: Record<PetMood, { ring: string; fill: string }> = {
-  idle: { ring: '#a78bfa', fill: 'rgba(167,139,250,0.14)' },
-  good: { ring: '#34d399', fill: 'rgba(52,211,153,0.20)' },
-  bad:  { ring: '#94a3b8', fill: 'rgba(148,163,184,0.16)' },
-  win:  { ring: '#fbbf24', fill: 'rgba(251,191,36,0.24)' },
+  idle: { ring: '#a78bfa', fill: '#f1ecfe' },
+  good: { ring: '#34d399', fill: '#e6faf3' },
+  bad:  { ring: '#94a3b8', fill: '#eef1f5' },
+  win:  { ring: '#fbbf24', fill: '#fef6e2' },
 };
 
 /**
@@ -62,6 +68,12 @@ const FRAME: Record<PetMood, { ring: string; fill: string }> = {
  * же прежней просьбы («в два раза минимум»), и в окно входит голова целиком.
  */
 const ЗУМ = 2;
+
+/** Сдвиг увеличенного кадра: не правее нуля и не левее, чем нужно для полного покрытия. */
+function зажать(сдвиг: number, size: number): number {
+  const минимум = -(size * ЗУМ - size);   // дальше — за спрайтом откроется пустота
+  return Math.max(минимум, Math.min(0, сдвиг));
+}
 
 export default function GamePet({ mood = 'idle', size = 46 }: { mood?: PetMood; size?: number }) {
   const reduced = useReducedMotion();
@@ -159,11 +171,19 @@ export default function GamePet({ mood = 'idle', size = 46 }: { mood?: PetMood; 
           — ровно та беда, из-за которой якоря и заводились (бабочка на пузе).
         */}
         <View pointerEvents="none" style={{ width: size, height: size, overflow: 'hidden', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
+          {/**
+            * 🔴 СДВИГ ЗАЖАТ ГРАНИЦАМИ КАДРА. Денис: «вырезан криво походу». Так и
+            * было: смещение считалось от якоря глаз без ограничения, и когда голова
+            * стоит близко к краю кадра, окно медальона выходило ЗА спрайт — в углу
+            * появлялась пустота, и вырез читался как кривой. Зажимаем сдвиг так,
+            * чтобы увеличенный кадр всегда накрывал окно целиком: край спрайта
+            * прижимается к краю окна, а не оставляет щель.
+            */}
           <View style={{
             width: size * ЗУМ,
             height: size * ЗУМ,
-            marginLeft: -(petHeadCenter(skin, state).x / 100) * size * ЗУМ + size / 2,
-            marginTop: -(petHeadCenter(skin, state).y / 100) * size * ЗУМ + size / 2,
+            marginLeft: зажать(-(petHeadCenter(skin, state).x / 100) * size * ЗУМ + size / 2, size),
+            marginTop: зажать(-(petHeadCenter(skin, state).y / 100) * size * ЗУМ + size / 2, size),
           }}>
             <PetSprite state={state} size={size * ЗУМ} skin={skin} />
           </View>

@@ -60,6 +60,12 @@ export default function DailyGoalCard({
   state, goalText, outcome, reward, roundsToday, colors, t, onSave, onDismiss, onOutcome,
 }: Props) {
   const [draft, setDraft] = useState('');
+  /**
+   * Развёрнута ли форма цели. Свёрнутая — одна строка (см. комментарий у разметки).
+   * ⚠️ Объявлено ЗДЕСЬ, до раннего `return null` при state === 'hidden': хук после
+   * выхода вызывается не в каждом рендере, и правило порядка хуков это ловит.
+   */
+  const [развернуто, setРазвернуто] = useState(false);
   // Хук объявлен ДО выхода: ранний return выше сломал бы порядок хуков при смене состояния.
   if (state === 'hidden') return null;
 
@@ -78,9 +84,6 @@ export default function DailyGoalCard({
       <Ionicons name="close" size={17} color={colors.textSecondary} />
     </TouchableOpacity>
   );
-
-  /** Развёрнута ли форма цели. Свёрнутая — одна строка, см. комментарий ниже. */
-  const [развернуто, setРазвернуто] = React.useState(false);
 
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
