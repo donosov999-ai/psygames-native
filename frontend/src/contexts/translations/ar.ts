@@ -1939,6 +1939,7 @@ const t: Record<string, string> = {
   "chessHintBlindMoves": "القطع تتحرك دون رؤية",
   "chessHintHidden": "القطع مخفية…",
   "chessHintWhatSquare": "ما الذي على المربع المضيء؟",
+  "chessHintWhatSquareAt": "ما الموجود في المربع ",
   "chessHintWhereIs": "أين {piece} {glyph}؟ اضغط المربع",
   "chessCfgPieces": "قطع",
   "chessCfgExpose": "عرض",
