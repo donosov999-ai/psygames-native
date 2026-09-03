@@ -5,6 +5,8 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { petFrame, petAnchor, petHasState, petResolveState, type PetState } from '@/src/components/pet/PetSprite';
 
+declare const __dirname: string;
+
 /**
  * 🔴 ПРАЗДНИК И КОРМЛЕНИЕ НАЗЫВАЮТСЯ СВОИМИ ИМЕНАМИ (задача 00218752).
  *
