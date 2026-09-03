@@ -273,6 +273,54 @@ export interface GameShellProps {
   children: React.ReactNode;
 }
 
+/**
+ * ПРАВЫЙ УГОЛ ШАПКИ: кнопки самой игры, затем питомец — вплотную к плавающей «?».
+ *
+ * 🔴 ВЫНЕСЕН ОТДЕЛЬНО, ПОТОМУ ЧТО ЛОМАЛСЯ ДВАЖДЫ ЗА ОДИН ДЕНЬ.
+ *   · 2.37.0 — питомец пропал с экрана: отступ под плавающую справку слот получал
+ *     только при `headerRight || wuStep`, питомец в это условие не попал, слот
+ *     встал ровно под кнопку «?» и она его накрыла. Код рисовался, экран пустой.
+ *   · 2.37.1 — питомец был, но не там: он шёл ПЕРВЫМ в ряду, и между ним и справкой
+ *     вставала кнопка игры. Замер на 360 px в «Шульте»: питомец 184, чужая иконка
+ *     246, справка 312. Просьба была «чтобы они рядом шли».
+ *
+ * Оба раза дефект виден только в НАРИСОВАННОМ дереве, поэтому единица отдельная:
+ * гейт `pet-next-to-help` рисует её и смотрит порядок и отступ, а не исходник.
+ *
+ * ⚠️ Отступ безусловный: слот пустым не бывает — питомец в нём есть всегда.
+ */
+export function HeaderRightSlot({ rtl, mood, headerRight, wuStep, wuSkip, skipLabel, iconColor }: {
+  rtl: boolean;
+  mood: PetMood;
+  headerRight?: React.ReactNode;
+  wuStep?: boolean;
+  wuSkip?: () => void;
+  skipLabel: string;
+  iconColor: string;
+}) {
+  return (
+    <View
+      testID="game-header-right"
+      style={[styles.headerRightWide, rtl ? { marginLeft: HELP_FAB_GUTTER } : { marginRight: HELP_FAB_GUTTER }]}
+    >
+      {headerRight}
+      {wuStep ? (
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={skipLabel}
+          testID="warmup-skip-step"
+          onPress={wuSkip}
+          style={styles.wuSkipBtn}
+        >
+          <Ionicons name="play-skip-forward" size={18} color={iconColor} />
+        </TouchableOpacity>
+      ) : null}
+      {/* Питомец ПОСЛЕДНИЙ — значит правее всех, у самого отступа под «?». */}
+      <GamePet mood={mood} size={30} />
+    </View>
+  );
+}
+
 export default function GameShell({
   title, onBack, stats, hud, mods, bottom, headerActions, toolbar, headerRight, scrollableField, overlay, pet,
   confirmExit, resumable, onSaveBeforeExit, children,
@@ -596,58 +644,18 @@ export default function GameShell({
         >
           {title}
         </Text>
-        {/* Правый слот фиксированной ширины — держит заголовок по центру.
-            Отступ под плавающую справку кладём ТОЛЬКО когда в слоте что-то есть:
-            пустому слоту разъезжаться незачем, а заголовок центрируется по нему. */}
-        {/*
-          🔴 ПИТОМЕЦ ЖИВЁТ В ПРАВОМ УГЛУ ШАПКИ — И БОЛЬШЕ НИГДЕ.
-          Предложение Дениса 03.09.2026: «верхний правый угол сделать рядом морду
-          питомца, чтобы они рядом шли… и в выборе настроек, и в самой игре».
-
-          ЗАЧЕМ. Он сидел в плашке счётчиков — а плашки нет на экранах настройки, и
-          она перестраивается по ходу партии: счётчики переносятся на второй ряд, и
-          питомец уезжает по высоте. Дословно: «он переезжает у нас туда во всех
-          местах». Шапка каркаса одинакова на КАЖДОМ экране игры, включая настройку.
-
-          ⚠️ СНАЧАЛА Я ПОСТАВИЛ ЕГО В ОВЕРЛЕЙ СПРАВКИ — рядом с самой кнопкой «?».
-          Он не появился ни разу, хотя код был в бандле: проба показала, что дерево
-          того оверлея на экране настройки почти пустое, справка приходит другим
-          путём. Здесь — элемент, который заведомо рисуется, и виден он в том же
-          правом углу.
-        */}
-        <View
-          style={[
-            styles.headerRightWide,
-            /**
-             * 🔴 ОТСТУП ПОД ПЛАВАЮЩУЮ СПРАВКУ — ТЕПЕРЬ ВСЕГДА, А НЕ «КОГДА В СЛОТЕ
-             * ЧТО-ТО ЕСТЬ».
-             *
-             * Отчёт Дениса 03.09.2026 по 2.37.0: питомец пропал с экрана совсем —
-             * ни слева в плашке, ни справа у «?». Причина: слот получал отступ под
-             * кнопку справки только при `headerRight || wuStep`, а питомец в это
-             * условие не попал. Слот встал вплотную к краю, ровно под плавающую
-             * кнопку, и она его накрыла — код рисовался, на экране пусто.
-             *
-             * Слот больше не бывает пустым: питомец в нём есть всегда. Значит и
-             * условие не нужно — оно осталось от времени, когда слот пустовал.
-             */
-            rtl ? { marginLeft: HELP_FAB_GUTTER } : { marginRight: HELP_FAB_GUTTER },
-          ]}
-        >
-          <GamePet mood={pet ?? autoMood} size={30} />
-          {wuStep ? (
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel={t('skipStep')}
-              testID="warmup-skip-step"
-              onPress={wuSkip}
-              style={styles.wuSkipBtn}
-            >
-              <Ionicons name="play-skip-forward" size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
-          ) : null}
-          {headerRight}
-        </View>
+        {/* Правый угол шапки — вынесен отдельным компонентом ниже: он ломался
+            дважды подряд (пропал под справкой, встал не рядом с ней), и проверять
+            его надо НАРИСОВАННЫМ, а для этого он должен быть отдельной единицей. */}
+        <HeaderRightSlot
+          rtl={rtl}
+          mood={pet ?? autoMood}
+          headerRight={headerRight}
+          wuStep={!!wuStep}
+          wuSkip={wuSkip}
+          skipLabel={t('skipStep')}
+          iconColor={colors.textSecondary}
+        />
       </View>
 
       {/**

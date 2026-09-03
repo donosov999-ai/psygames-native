@@ -454,6 +454,65 @@ async function auditEmbeddedField(page, route, spec) {
  * виноват, если его правый край дальше окна больше чем на 2 пикселя, или левый
  * левее нуля на столько же. Двойка — на округление браузером дробных координат.
  */
+/**
+ * 🔴 ОБРЕЗАНИЕ ОБРЕЗАНИЮ РОЗНЬ: ОКНО В КАРТИНКУ — НЕ ДЕФЕКТ.
+ *
+ * Проверка «спрятано обрезанием» родилась на плашке счётчиков: overflow:hidden
+ * съел шесть цифр в судоку, гейт молчал, отчёт пришёл в тот же день. Но 03.09.2026
+ * она же покрасила выпуск v2.37.1 на 27 играх, и покрасила ЗРЯ: спрятанные 29 px —
+ * это питомец в шапке. Его окно 30×30 показывает морду спрайта шириной 90 px, и
+ * обрезание там — сама задача («в окошке голова торчит», формулировка Дениса).
+ * Всё, что «спрятано», нарисовано нарочно и никому не нужно целиком.
+ *
+ * Разделяем по ПОТЕРЕ СМЫСЛА, а не по наличию обрезания:
+ *   · внутри есть текст — читать его человек должен целиком, обрезали → дефект;
+ *   · внутри есть кнопка, вылезающая из окна, — по ней стучат, дефект;
+ *   · ни того, ни другого (окно в картинку) — нарочный кадр, не дефект.
+ *
+ * ⚠️ Дыры «обрезали иконку-кнопку» тут нет: у вылезшей кнопки собственный
+ * прямоугольник обрезанием не меняется, и второе условие её ловит.
+ */
+function ставитьПредикатОбрезания(page) {
+  return page.addInitScript(() => {
+    window.__клипТеряетСмысл = function (el) {
+      if ((el.innerText || '').trim()) return true;
+      const w = el.getBoundingClientRect();
+      for (const b of el.querySelectorAll('[role="button"], button, [tabindex]')) {
+        const r = b.getBoundingClientRect();
+        if (r.width < 4 || r.height < 4) continue;
+        if (r.right > w.right + 2 || r.left < w.left - 2) return true;
+      }
+      return false;
+    };
+  });
+}
+
+/**
+ * Самопроверка предиката на подставных узлах: гейт, который перестал ловить свой
+ * же исходный дефект, обязан сказать об этом сам, а не молча зеленеть.
+ */
+async function selfTestClipPredicate(page) {
+  const r = await page.evaluate(() => {
+    const mk = (html) => { const d = document.createElement('div');
+      d.style.cssText = 'position:fixed;left:0;top:0;width:30px;height:30px;overflow:hidden;z-index:-1';
+      d.innerHTML = html; document.body.appendChild(d); return d; };
+    const текст = mk('<span style="display:inline-block;width:200px">1234567890 ещё цифры</span>');
+    const картинка = mk('<div style="width:90px;height:90px;background:#000"></div>');
+    const кнопка = mk('<div role="button" style="position:absolute;left:20px;width:60px;height:20px"></div>');
+    const res = { текст: window.__клипТеряетСмысл(текст), картинка: window.__клипТеряетСмысл(картинка),
+      кнопка: window.__клипТеряетСмысл(кнопка) };
+    [текст, картинка, кнопка].forEach((n) => n.remove());
+    return res;
+  });
+  const беды = [];
+  if (!r.текст) беды.push('обрезанный ТЕКСТ больше не считается дефектом — вернулась беда плашки счётчиков');
+  if (!r.кнопка) беды.push('обрезанная КНОПКА больше не считается дефектом');
+  if (r.картинка) беды.push('окно в картинку снова считается дефектом — красить будет питомца');
+  if (беды.length) { console.log('\n🔴 Самопроверка обрезания провалена:'); for (const b of беды) console.log('    ' + b); return 1; }
+  console.log('   самопроверка обрезания: текст ✓ кнопка ✓ окно-картинка ✓');
+  return 0;
+}
+
 const MEASURE_OVERFLOW = () => {
   const out = [];
   const W = window.innerWidth;
@@ -526,6 +585,7 @@ const MEASURE_OVERFLOW = () => {
     if (st.overflowX !== 'hidden' && st.overflow !== 'hidden') continue;
     const спрятано = el.scrollWidth - el.clientWidth;
     if (спрятано <= 4) continue;
+    if (!window.__клипТеряетСмысл(el)) continue;
     out.push({
       label: `(обрезано: спрятано ${спрятано} px) ${(el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 30)}`,
       out: спрятано, w: Math.round(r.width),
@@ -724,6 +784,7 @@ async function main() {
   const browser = await chromium.launch();
   // Размер телефона: на нём кнопки самые тесные, и именно там промахиваются.
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+  await ставитьПредикатОбрезания(page);
 
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => {
@@ -742,6 +803,7 @@ async function main() {
   }
 
   let bad = 0;
+  bad |= await selfTestClipPredicate(page);
   if (MODE === 'all' || MODE === 'routes') bad |= await auditRoutes(page, routes);
   if (MODE === 'all' || MODE === 'field') bad |= await auditField(page, games);
   if (MODE === 'all' || MODE === 'header') bad |= await auditHeader(page, games);

@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.2',
+    date: '2026-09-03',
+    ru: [
+      'Питомец встал вплотную к кнопке правил — раньше между ними вклинивалась кнопка самой игры',
+    ],
+    en: [
+      'The pet now sits right next to the rules button — a game button used to wedge between them',
+    ],
+  },
+  {
     version: '2.37.1',
     date: '2026-09-03',
     ru: [
