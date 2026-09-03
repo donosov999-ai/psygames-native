@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.6',
+    date: '2026-09-03',
+    ru: [
+      'Рекорд теперь у каждого упражнения: на итоге видно свой лучший уровень и лучший среди игроков',
+      'Питомец перестал просвечивать, морда больше не обрезается криво',
+      'Нажатие на питомца в углу открывает его экран — с любого экрана игры',
+      '«Цель дня» спрашивает одной строкой: форма разворачивается, когда её открывают',
+    ],
+    en: [
+      'Every exercise now has a record: the result screen shows your best level and the best among players',
+      'The pet is no longer see-through, and its face is not cropped off-centre',
+      'Tapping the pet in the corner opens its screen from any game screen',
+      'Day goal asks in one line: the form expands when you open it',
+    ],
+  },
+  {
     version: '2.37.5',
     date: '2026-09-03',
     ru: [

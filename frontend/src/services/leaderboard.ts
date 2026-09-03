@@ -337,3 +337,78 @@ export async function fetchBest(gameId: LeaderboardGameId): Promise<number | nul
     return null;
   }
 }
+
+/* ─────────────────────────── ДОСКА «ЛУЧШИЙ УРОВЕНЬ» ─────────────────────────── */
+/**
+ * 🔴 РЕКОРД У КАЖДОЙ ИГРЫ, А НЕ У ДЕВЯТИ (ТЗ ade9a298, этап 2).
+ *
+ * ЗАЧЕМ. Строку «свой лучший · лучший среди игроков» видели шесть игр из семидесяти
+ * трёх — там, где измеряемая величина подобрана вручную (время Шульте, N в n-back,
+ * длина ряда). У остальных сравнивать было нечего, и итог партии молчал.
+ *
+ * ЧТО СРАВНИВАЕМ. Достигнутый УРОВЕНЬ лестницы. Он есть у каждой игры, считается
+ * одинаково и не зависит от настроек партии: лестница детерминирована, поэтому
+ * «двенадцатый уровень» у двух игроков — одно и то же достижение. Это единственная
+ * величина, общая для всех семидесяти трёх, и потому единственная честная.
+ *
+ * ⚠️ ЭТО ОТДЕЛЬНАЯ ДОСКА, А НЕ РАСШИРЕНИЕ ПРЕЖНИХ. У девяти настроенных досок
+ * сравнивается ВЕЛИЧИНА партии (секунды, длина ряда) в строго заданной конфигурации —
+ * подменять её уровнем значило бы обнулить смысл тех замеров. Идентификатор поэтому
+ * свой: `<игра>_level`, и в старые таблицы он не попадает.
+ *
+ * ⚠️ ШАГ ЗАРЯДКИ И ПРЕСЕТ НЕ ЗАСЧИТЫВАЮТСЯ. В них параметры диктует плейлист, а не
+ * лестница, — та же причина, по которой они отсечены у настроенных досок.
+ */
+export const LEVEL_BOARD_MIN = 1;
+/** Потолок правдоподобия: самая длинная лестница проекта — судоку, 92 уровня. */
+export const LEVEL_BOARD_MAX = 200;
+
+/** Идентификатор доски уровней. Отдельный от досок величины — см. выше. */
+export function levelBoardId(gameId: string): string {
+  return `${gameId}_level`;
+}
+
+/** Личный рекорд уровня — тот же ключ-хранилище, что у досок величины. */
+async function readLevelBestLocal(boardId: string): Promise<number | null> {
+  try {
+    const raw = await AsyncStorage.getItem(`${PERSONAL_BEST_KEY}_${boardId}`);
+    const n = raw === null ? NaN : Number(raw);
+    return Number.isFinite(n) ? n : null;
+  } catch { return null; }
+}
+
+async function rememberLevelBestLocal(boardId: string, level: number): Promise<void> {
+  try {
+    const было = await readLevelBestLocal(boardId);
+    if (было === null || level > было) await AsyncStorage.setItem(`${PERSONAL_BEST_KEY}_${boardId}`, String(level));
+  } catch { /* рекорд — удобство, а не данные партии */ }
+}
+
+/**
+ * Отправить достигнутый уровень. Сначала локально — без сети результат не теряется;
+ * потом на сервер, и его ответ ничего не решает: строку человек увидит в любом случае.
+ */
+export async function submitLevelRecord(gameId: string, level: number): Promise<void> {
+  if (!Number.isFinite(level) || level < LEVEL_BOARD_MIN || level > LEVEL_BOARD_MAX) return;
+  const boardId = levelBoardId(gameId);
+  await rememberLevelBestLocal(boardId, level);
+  try {
+    const playerId = await getPlayerId();
+    await getSupabase().rpc('psygames_submit_score', { p_game_id: boardId, p_player_id: playerId, p_score: level });
+  } catch { /* нет сети — личный рекорд уже записан */ }
+}
+
+/** Свой лучший уровень и лучший среди игроков. `best` = null, если сети нет. */
+export async function readLevelBenchmark(gameId: string): Promise<{ own: number | null; best: number | null }> {
+  const boardId = levelBoardId(gameId);
+  const own = await readLevelBestLocal(boardId);
+  let best: number | null = null;
+  try {
+    const { data, error } = await getSupabase().rpc('psygames_leaderboard_top', { p_game_id: boardId, p_limit: 1 });
+    if (!error && Array.isArray(data) && data.length) {
+      const n = Number(data[0]?.score);
+      best = Number.isFinite(n) ? n : null;
+    }
+  } catch { /* офлайн — покажем личный */ }
+  return { own, best };
+}

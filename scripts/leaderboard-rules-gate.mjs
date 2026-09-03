@@ -80,6 +80,23 @@ function readCodeRules() {
     rules.set(game, { better, direction: better === 'less' ? 'asc' : 'desc', min: Number(min), max: Number(max) });
   }
   if (rules.size === 0) die(`в ${SOURCE} не разобрана ни одна игра`, 'Сверять с базой нечего — это отказ гейта, а не зелёный свет.');
+  /**
+   * 🔴 ОБЩАЯ ДОСКА «ЛУЧШИЙ УРОВЕНЬ» ОБЪЯВЛЕНА НЕ В ТАБЛИЦЕ, А КОНСТАНТАМИ.
+   *
+   * Девять досок сравнивают величину партии, и у каждой своя строка в
+   * LEADERBOARD_GAMES. Уровень лестницы есть у ВСЕХ игр и не зависит от настроек,
+   * поэтому вместо семидесяти трёх одинаковых строк в коде стоят две константы, а на
+   * сервере — одна ветка по форме имени. Сверять их всё равно надо: разъедутся —
+   * уровень выше границы отвалится как implausible_score, и человек молча не увидит
+   * своего рекорда.
+   */
+  const min = src.match(/export const LEVEL_BOARD_MIN = (\d+);/)?.[1];
+  const max = src.match(/export const LEVEL_BOARD_MAX = (\d+);/)?.[1];
+  if (min === undefined || max === undefined) {
+    die(`в ${SOURCE} не нашлись границы общей доски уровней`,
+      'Ожидаются LEVEL_BOARD_MIN и LEVEL_BOARD_MAX — это тот же договор с сервером, что и у остальных досок.');
+  }
+  rules.set(LEVEL_BOARD_KEY, { better: 'more', direction: 'desc', min: Number(min), max: Number(max) });
   return rules;
 }
 
@@ -89,11 +106,28 @@ function readCodeRules() {
  * любая другая строка означает, что тело переписали, и разбирать его этим способом
  * больше нельзя.
  */
+/** Ключ общей доски уровней в разобранных правилах — не игра, а правило по форме имени. */
+const LEVEL_BOARD_KEY = '*_level';
+
 function parseDbRules(text) {
   const rules = new Map();
   let pending = null;
   for (const line of text.split('\n')) {
     if (!line.trim()) continue;
+    /**
+     * 🔴 ОБЩАЯ ДОСКА «ЛУЧШИЙ УРОВЕНЬ» — ОДНА ВЕТКА НА ВСЕ ИГРЫ (ТЗ ade9a298, этап 2).
+     *
+     * Девять досок сравнивают ВЕЛИЧИНУ партии, и у каждой своя ветка с именем игры.
+     * Уровень лестницы есть у всех семидесяти трёх, считается одинаково и не зависит
+     * от настроек — поэтому у него ветка по ФОРМЕ имени (`<игра>_level`), а не список.
+     * Разбирать её как игру нельзя: имени игры в ней нет. Заводим под особым ключом и
+     * сверяем с константами клиента отдельно.
+     */
+    if (/p_game_id ~ '\^\[a-z0-9_\]\{[\d,]+\}_level\$'/.test(line)) {
+      if (pending) die('в теле функции ветка без правил', `«${pending}» объявлена, но v_direction/v_min/v_max за ней не идут.`);
+      pending = LEVEL_BOARD_KEY;
+      continue;
+    }
     const game = line.match(/p_game_id = '([a-z0-9_]+)'/)?.[1];
     if (game) {
       if (pending) die('в теле функции ветка без правил', `«${pending}» объявлена, но v_direction/v_min/v_max за ней не идут.`);

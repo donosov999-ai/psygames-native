@@ -19,6 +19,7 @@ import Act from '@/src/components/juice/Act';
 import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
 import { announce } from '@/src/services/a11y';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
+import { submitLevelRecord, readLevelBenchmark } from '@/src/services/leaderboard';
 import { hasBoss, isBossLevel } from '@/src/constants/bosses';
 import LevelInterlude from '@/src/components/LevelInterlude';
 
@@ -220,6 +221,21 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
    * проверке в браузере. В зарядке кнопок тоже нет, но там дальше распоряжается
    * зарядка — она уводит на следующее упражнение сама, и тупика не возникает.
    */
+  /**
+   * 🔴 РЕКОРД УРОВНЯ — У КАЖДОЙ ИГРЫ, А НЕ У ДЕВЯТИ (ТЗ ade9a298, этап 2).
+   *
+   * Строку «свой лучший · лучший среди игроков» показывали шесть игр из семидесяти
+   * трёх: только там, где сравниваемая ВЕЛИЧИНА подобрана вручную (секунды Шульте,
+   * N в n-back). У остальных итог партии молчал.
+   *
+   * Здесь сравнивается достигнутый УРОВЕНЬ: он есть у каждой игры, считается
+   * одинаково и от настроек партии не зависит. Отправка и чтение — в ОБЩЕЙ обвязке
+   * итога, а не по экранам: иначе следующая игра снова про рекорд не узнает.
+   *
+   * ⚠️ Своя строка игры сильнее: у настроенных досок величина точнее уровня, и
+   * подменять её значило бы обнулить их замеры.
+   */
+  const [уровеньРекорд, setУровеньРекорд] = useState<{ own: number | null; best: number | null } | null>(null);
   const boss = passed && !!gameId && hasBoss(gameId) && isBossLevel(level);
   const compact = variant === 'overlay' && passed && !boss && (chainNext || gameMode === 'warmup');
 
@@ -234,6 +250,14 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
     // персиста (звёзды/хинт/серии). Показываем CTA-блок, игрок решает сам.
     if (IS_WEB_DEMO) return;
     if (passed && gameId && profile?.id) saveLevelStars(gameId, profile.id, level, stars);   // лучшие звёзды за уровень
+    /* Рекорд уровня: сначала пишем локально (внутри submitLevelRecord), потом читаем
+       строку. Нет сети — покажется личный лучший, и это не ошибка, а штатный режим. */
+    if (passed && gameId && !recordLine) {
+      void submitLevelRecord(gameId, level)
+        .then(() => readLevelBenchmark(gameId))
+        .then(setУровеньРекорд)
+        .catch(() => {});
+    }
     /**
      * Итог копилки — спрашиваем у кошелька, а не считаем здесь. Начисление уже
      * произошло (журнал `earn.ts`), и складывать «баланс + начисленное» на экране
@@ -393,6 +417,17 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             )}
           </View></Act>
         )}
+        {/* Строка рекорда уровня — когда игра не дала свою. */}
+        {!recordLine && !compact && уровеньРекорд?.own ? (
+          <Act at={ACT.record}>
+            <View style={[styles.comparisonBadge, { backgroundColor: scrim }]}>
+              <Ionicons name="trophy-outline" size={17} color={fg} />
+              <Text style={[styles.comparisonText, { color: fg }]}>
+                {`${t('level')} ${уровеньРекорд.own} · ${t(уровеньРекорд.best && уровеньРекорд.best > уровеньРекорд.own ? 'bestAmongPlayers' : 'personalBest')}: ${уровеньРекорд.best ?? уровеньРекорд.own}`}
+              </Text>
+            </View>
+          </Act>
+        ) : null}
         {recordLine && !compact && (
           <Act at={ACT.record}>
             <View style={[styles.comparisonBadge, { backgroundColor: scrim }]}>
