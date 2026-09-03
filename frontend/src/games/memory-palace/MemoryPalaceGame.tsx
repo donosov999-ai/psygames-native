@@ -188,6 +188,7 @@ function ItemChoice({
   theme,
   selected,
   used,
+  compact,
   onPress,
 }: {
   item: PalaceItem;
@@ -195,6 +196,19 @@ function ItemChoice({
   theme: MemoryPalaceTheme;
   selected?: boolean;
   used?: boolean;
+  /**
+   * 🔴 КОМПАКТНЫЙ ВИД ДЛЯ ФАЗЫ РАЗМЕЩЕНИЯ (задача 9421ebcb).
+   *
+   * Отчёт NZT-48 02.09.2026: «плюсы надо бегать вверх-вниз, чтобы что-то с чем-то
+   * совместить, по сути между двумя страницами бегаешь целую игру». Сопоставление
+   * требует видеть ОБА блока — предметы и места, — а полная плитка 112×108 при
+   * шести предметах даёт две строки под 230 точек, и дворец уезжает за экран.
+   *
+   * Компактная плитка — 76×76 без подписи под картинкой: имя уходит в подпись для
+   * скринридера, где оно и было единственным носителем смысла. Ряд становится
+   * одной строкой, и оба блока помещаются вместе.
+   */
+  compact?: boolean;
   onPress: () => void;
 }) {
   const [focused, setFocused] = React.useState(false);
@@ -226,7 +240,7 @@ function ItemChoice({
       disabled={used}
       onPress={onPress}
       style={({ pressed }) => [
-        styles.itemChoice,
+        compact ? styles.itemChoiceCompact : styles.itemChoice,
         { backgroundColor: theme.surface, borderColor: selected ? theme.primary : theme.border },
         selected && styles.selectedChoice,
         used && styles.usedChoice,
@@ -239,9 +253,11 @@ function ItemChoice({
         } as any),
       ]}
     >
-      <ItemAsset item={item} />
-      <Text style={[styles.itemLabel, { color: theme.text }]}>{label}</Text>
-      {used ? <Text style={[styles.usedNote, { color: theme.textSecondary }]}>{usedNote}</Text> : null}
+      <ItemAsset item={item} size={compact ? 34 : 42} />
+      {/* В компактном виде подписи нет: имя уже в `accessibilityLabel`, а место
+          на экране нужнее — ради него компакт и заводился. */}
+      {compact ? null : <Text style={[styles.itemLabel, { color: theme.text }]}>{label}</Text>}
+      {used && !compact ? <Text style={[styles.usedNote, { color: theme.textSecondary }]}>{usedNote}</Text> : null}
     </Pressable>
   );
 }
@@ -600,6 +616,16 @@ function MemoryPalaceSessionView({
         <ActionButton label={strings.pause} theme={theme} secondary onPress={() => applySession((current) => pauseMemoryPalaceSession(current, now()))} />
       </View>
 
+      {/*
+        🔴 СМЫСЛ ИГРЫ — ДО МЕХАНИКИ И ДО ПЕРВОГО ДЕЙСТВИЯ (задача 9421ebcb).
+        Отчёт NZT-48: «нихуя не понятно ни по смыслу игры». Подписи фаз объясняли,
+        КАК нажимать, и ни одна — ЗАЧЕМ. Строка стоит на маршруте и размещении, то
+        есть там, где человек ещё не начал, и пропадает в изучении и на опросе:
+        к тому моменту она уже прочитана и только отнимает высоту.
+      */}
+      {(session.phase === 'route' || session.phase === 'place') ? (
+        <Text style={[styles.purpose, { color: theme.text }]}>{strings.purpose}</Text>
+      ) : null}
       <Text style={[styles.body, { color: theme.textSecondary }]}>
         {session.phase === 'route'
           ? strings.routeBody
@@ -617,6 +643,7 @@ function MemoryPalaceSessionView({
                 item={item}
                 locale={locale}
                 theme={theme}
+                compact
                 selected={session.selectedPlacementItemId === item.id}
                 onPress={() => applySession((current) => selectPlacementItem(current, item.id))}
               />
@@ -732,6 +759,14 @@ const styles = StyleSheet.create({
   placedLabel: { fontSize: 12, textAlign: 'center' },
   emptyLabel: { fontSize: 12, fontStyle: 'italic' },
   itemGrid: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10 },
+  /**
+   * Компакт: 76×76 — палец попадает (норма 48 с запасом), а ряд из шести встаёт
+   * в одну строку на экране 360 (6 × 76 + зазоры ≈ 500 → перенос в две плотные
+   * строки по 190 точек вместо 230 у полного вида и всё равно короче).
+   */
+  /** Строка смысла: заметнее механики, но не заголовок — она читается один раз. */
+  purpose: { fontSize: 14, fontWeight: '700', textAlign: 'center', lineHeight: 19 },
+  itemChoiceCompact: { width: 76, height: 76, borderWidth: 1, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   itemChoice: { minWidth: 112, minHeight: 108, maxWidth: 180, flexBasis: 125, flexGrow: 1, borderWidth: 1, borderRadius: 16, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 9 },
   selectedChoice: { borderWidth: 3 },
   // Израсходованная плитка гасится, но не до нечитаемости: теперь на ней есть

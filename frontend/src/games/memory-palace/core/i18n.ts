@@ -40,6 +40,15 @@ export interface MemoryPalaceStrings {
   recallRule: string;
   start: string;
   routeTitle: string;
+  /**
+   * 🔴 ЗАЧЕМ ВООБЩЕ ЭТА ИГРА — ОДНОЙ СТРОКОЙ, ДО ПЕРВОГО ДЕЙСТВИЯ (задача 9421ebcb).
+   *
+   * Отчёт NZT-48 02.09.2026: «нихуя не понятно ни по смыслу игры». Все подписи фаз
+   * объясняли МЕХАНИКУ («выберите предмет, затем место») и ни одна — зачем это
+   * делают. Человек нажимал правильные кнопки, не понимая, к чему они ведут, и
+   * бросал. В справку посреди партии не идут.
+   */
+  purpose: string;
   routeBody: string;
   routeCount: string;
   locusA11y: string;
@@ -99,6 +108,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '3. Проверка: называйте предмет для каждого места — сперва вперёд, потом назад.',
     start: 'Начать маршрут',
     routeTitle: 'Маршрут',
+    purpose: 'Приём «дворец памяти»: разложите предметы по местам, а потом вспомните их ПО МЕСТАМ — так запоминается длинный список.',
     routeBody: 'Пройдите места по номерам. Порядок постоянный, обход работает и с Tab/Enter.',
     routeCount: '{count} мест',
     locusA11y: 'Место {order}: {name}',
@@ -155,6 +165,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '3. Recall: choose the item for each locus forward, then in reverse.',
     start: 'Start route',
     routeTitle: 'Route',
+    purpose: 'The memory palace technique: place the items along a route, then recall them BY PLACE — that is how a long list sticks.',
     routeBody: 'Follow the numbered loci. The order is fixed and available with Tab and Enter.',
     routeCount: '{count} loci',
     locusA11y: 'Locus {order}: {name}',
@@ -211,6 +222,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '3. Prueba: di qué objeto había en cada lugar, primero hacia delante y luego hacia atrás.',
     start: 'Empezar el recorrido',
     routeTitle: 'Recorrido',
+    purpose: 'La técnica del palacio de la memoria: coloca los objetos a lo largo de un recorrido y luego recuérdalos POR LUGAR — así se fija una lista larga.',
     routeBody: 'Recorre los lugares por su número. El orden es fijo y también funciona con Tab y Enter.',
     routeCount: '{count} lugares',
     locusA11y: 'Lugar {order}: {name}',
@@ -267,6 +279,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '3. Abruf: nenne für jeden Ort den Gegenstand — erst vorwärts, dann rückwärts.',
     start: 'Route starten',
     routeTitle: 'Route',
+    purpose: 'Die Gedächtnispalast-Technik: Lege die Gegenstände entlang einer Route ab und rufe sie dann NACH ORT ab — so bleibt eine lange Liste haften.',
     routeBody: 'Geh die Orte der Reihe nach ab. Die Reihenfolge ist fest und läuft auch mit Tab und Enter.',
     routeCount: '{count} Orte',
     locusA11y: 'Ort {order}: {name}',
@@ -323,6 +336,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '三、回想：说出每个地方放的是什么——先正着走，再倒着走。',
     start: '开始走路线',
     routeTitle: '路线',
+    purpose: '记忆宫殿法：把物品沿路线摆放，之后按位置回忆——长清单就是这样记住的。',
     routeBody: '按编号把各处走一遍。次序是固定的，用 Tab 和回车也能走。',
     routeCount: '{count} 处地方',
     locusA11y: '第 {order} 处：{name}',
@@ -379,6 +393,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '3. जाँच: हर जगह के लिए चीज़ बताएँ — पहले सीधे, फिर उलटे।',
     start: 'रास्ता शुरू करें',
     routeTitle: 'रास्ता',
+    purpose: 'स्मृति महल तकनीक: वस्तुओं को रास्ते पर रखें, फिर उन्हें स्थान से याद करें — लंबी सूची ऐसे ही टिकती है।',
     routeBody: 'जगहों को उनके नंबरों से घूम लें। क्रम तय है, Tab और Enter से भी चलता है।',
     routeCount: '{count} जगहें',
     locusA11y: 'जगह {order}: {name}',
@@ -435,6 +450,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '3. Checagem: diga o objeto de cada lugar — primeiro na ordem, depois de trás para a frente.',
     start: 'Começar o trajeto',
     routeTitle: 'Trajeto',
+    purpose: 'A técnica do palácio da memória: coloque os objetos ao longo de um percurso e depois lembre-os POR LUGAR — é assim que uma lista longa fica.',
     routeBody: 'Percorra os lugares pelos números. A ordem é fixa e também funciona com Tab e Enter.',
     routeCount: '{count} lugares',
     locusA11y: 'Lugar {order}: {name}',
@@ -491,6 +507,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '3. Restitution : nommez l’objet de chaque lieu, à l’endroit puis à l’envers.',
     start: 'Lancer le parcours',
     routeTitle: 'Parcours',
+    purpose: 'La technique du palais de mémoire : placez les objets le long d’un parcours, puis rappelez-les PAR LIEU — c’est ainsi qu’une longue liste tient.',
     routeBody: 'Parcourez les lieux dans l’ordre des numéros. L’ordre est fixe et fonctionne aussi avec Tab et Entrée.',
     routeCount: '{count} lieux',
     locusA11y: 'Lieu {order} : {name}',
@@ -547,6 +564,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '3. Richiamo: di’ quale oggetto stava in ogni luogo, prima in avanti e poi a ritroso.',
     start: 'Inizia il percorso',
     routeTitle: 'Percorso',
+    purpose: 'La tecnica del palazzo della memoria: disponi gli oggetti lungo un percorso e poi richiamali PER LUOGO — così una lista lunga resta.',
     routeBody: 'Passa i luoghi seguendo i numeri. L’ordine è fisso e funziona anche con Tab e Invio.',
     routeCount: '{count} luoghi',
     locusA11y: 'Luogo {order}: {name}',
@@ -603,6 +621,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '三、確認：それぞれの場所の品物を答えます。まず順に、次に逆順に。',
     start: '道すじをはじめる',
     routeTitle: '道すじ',
+    purpose: '記憶の宮殿：道順に沿って物を置き、あとは場所から思い出す——長いリストはこうして残ります。',
     routeBody: '番号どおりに場所をたどります。順番は決まっていて、TabとEnterでもたどれます。',
     routeCount: '場所 {count} か所',
     locusA11y: '{order} 番目の場所：{name}',
@@ -659,6 +678,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '3. 확인: 자리마다 무엇이 있었는지 말하세요. 먼저 앞으로, 그다음 거꾸로.',
     start: '길 시작하기',
     routeTitle: '길',
+    purpose: '기억의 궁전 기법: 경로를 따라 물건을 놓고, 나중에 장소로 떠올리세요 — 긴 목록은 이렇게 남습니다.',
     routeBody: '번호를 따라 자리를 돌아보세요. 순서는 고정이고 Tab과 Enter로도 됩니다.',
     routeCount: '자리 {count}곳',
     locusA11y: '{order}번째 자리: {name}',
@@ -715,6 +735,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     recallRule: '٣. الاسترجاع: سمِّ الشيء في كل موضع، بالترتيب أولاً ثم بالعكس.',
     start: 'ابدأ المسار',
     routeTitle: 'المسار',
+    purpose: 'أسلوب قصر الذاكرة: ضع الأشياء على طول مسار، ثم استرجعها حسب المكان — هكذا تثبت قائمة طويلة.',
     routeBody: 'مُرّ على المواضع حسب أرقامها. الترتيب ثابت ويعمل أيضاً بـ Tab وEnter.',
     routeCount: '{count} مواضع',
     locusA11y: 'الموضع {order}: {name}',
