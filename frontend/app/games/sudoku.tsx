@@ -2128,7 +2128,7 @@ export default function SudokuGame() {
          * время, когда есть время, хочется сразу торопиться».
          */
         hud={[
-          ...(mode === 'levels' ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: level, tone: 'accent' as const }] : []),
+          ...(mode === 'levels' ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: level }] : []),
           ...((mode === 'towers' || mode === 'unequal') ? [{ key: 'lvl', icon: 'flag' as const, label: variantLabel(mode, language), value: `${level}/${sideStepCount(mode)}`, tone: 'accent' as const }] : []),
           { key: 'err', icon: 'close-circle', label: t('errors'), value: formatErrorCount(failure, errors), tone: 'bad' as const },
           ...(!isCalm ? [{ key: 'time', icon: 'time' as const, label: t('time'), value: hudTime(elapsedTime, t('secShort')) }] : []),

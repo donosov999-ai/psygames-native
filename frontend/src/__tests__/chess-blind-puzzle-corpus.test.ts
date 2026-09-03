@@ -406,7 +406,17 @@ function screenLayout(r: any): Map<string, string> {
     (n: any) => SQUARE_LABEL.test(String(n.props?.accessibilityLabel ?? '')),
     OUTER,
   )) {
-    const glyphs = Array.from(new Set(textsIn(cell))).filter((s) => GLYPH_TO_FEN[s]);
+    /**
+     * ⚠️ 03.09.2026 ФИГУРА СТАЛА КАРТИНКОЙ. Раньше в клетке лежал знак юникода и
+     * хватало текста; теперь рисуется SVG набора Cburnett (просьба Дениса «найди
+     * нормальные фигуры»), а опознавательный знак задан явно — `testID` вида
+     * `piece:♞`. Проверяемое свойство не изменилось: расстановка читается С ЭКРАНА
+     * и сверяется с корпусом посимвольно.
+     */
+    const поTestID = cell
+      .findAll((n: any) => typeof n.props?.testID === 'string' && n.props.testID.startsWith('piece:'), { deep: true })
+      .map((n: any) => String(n.props.testID).slice('piece:'.length));
+    const glyphs = Array.from(new Set([...поTestID, ...textsIn(cell)])).filter((s) => GLYPH_TO_FEN[s]);
     if (glyphs.length === 1) out.set(String(cell.props.accessibilityLabel), GLYPH_TO_FEN[glyphs[0]]);
     else if (glyphs.length > 1) out.set(String(cell.props.accessibilityLabel), '?');
   }

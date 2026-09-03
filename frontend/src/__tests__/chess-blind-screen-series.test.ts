@@ -143,10 +143,20 @@ function boardCells(r: any): any[] {
 }
 
 /** Расстановка так, как её видит человек: поле → фигурный знак (пусто = ''). */
+/**
+ * ⚠️ 03.09.2026 ФИГУРУ ОПОЗНАЁМ ПО `testID`, А НЕ ПО ТЕКСТУ. Раньше в клетке лежал
+ * знак юникода ♞ и хватало текста; теперь фигура — картинка (набор Cburnett, просьба
+ * Дениса «найди нормальные фигуры»). Опознавательный знак у неё задан явно —
+ * `piece:♞`, — и проверяемое свойство не изменилось: в клетке ровно одна фигура и
+ * расстановка та же самая.
+ */
 function layout(r: any): Record<string, string> {
   const out: Record<string, string> = {};
   for (const cell of boardCells(r)) {
-    out[String(cell.props.accessibilityLabel)] = Array.from(new Set(textsIn(cell))).join('');
+    const знаки = cell.findAll((n: any) => typeof n.props?.testID === 'string' && n.props.testID.startsWith('piece:'), { deep: true })
+      .map((n: any) => String(n.props.testID).slice('piece:'.length));
+    const текст = Array.from(new Set(textsIn(cell))).join('');
+    out[String(cell.props.accessibilityLabel)] = Array.from(new Set(знаки)).join('') || текст;
   }
   return out;
 }

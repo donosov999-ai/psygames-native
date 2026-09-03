@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.5',
+    date: '2026-09-03',
+    ru: [
+      '«Доска в уме»: настоящие шахматные фигуры вместо символов шрифта и светлая классическая доска',
+      'Подписи полей a–h и 1–8 теперь по краям доски, а не мелким шрифтом в углах клеток',
+      'Счётчики в шапке одного цвета во всех упражнениях: ошибки красные, верные зелёные, очки и серия тёплые',
+    ],
+    en: [
+      'Blind Board: real chess pieces instead of font symbols, and a light classic board',
+      'a–h and 1–8 labels now run along the edges of the board instead of tiny corner marks',
+      'Header counters share one colour scheme across all exercises: errors red, correct green, points and streak warm',
+    ],
+  },
+  {
     version: '2.37.4',
     date: '2026-09-03',
     ru: [
