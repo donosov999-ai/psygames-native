@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.0',
+    date: '2026-09-03',
+    ru: [
+      'Питомец переехал к кнопке правил и больше не кочует по экрану — он на одном месте и в настройке игры, и в самой игре',
+      'В значке видно морду крупным планом: раньше фигурка целиком давала голову размером с пятнышко',
+      'Верхний ряд счётчиков перестал дёргаться — цифры больше не меняют ширину пилюли',
+      'Громкость звука теперь ползунком, а не только включить-выключить',
+    ],
+    en: [
+      'The pet moved next to the rules button and stopped wandering — same spot in game setup and in the game itself',
+      'Its badge now shows a close-up of the face: the full figure made the head a tiny dot',
+      'The counter row stopped jumping — digits no longer change the pill width',
+      'Sound volume is a slider now, not just on/off',
+    ],
+  },
+  {
     version: '2.36.0',
     date: '2026-09-03',
     ru: [
