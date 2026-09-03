@@ -21,6 +21,8 @@ import { FRAME_ANCHORS } from './petAnchors.generated';
  * Состояния питомца. Первые пять есть кадрами во ВСЕХ скинах; `celebrate` и `eat`
  * — заявленные (задача 00218752), кадров под них пока нет ни в одном паке.
  */
+import { channelPack, onChannelChange, type ChannelState } from '@/src/services/mascotChannel';
+
 export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep' | 'celebrate' | 'eat';
 
 /** Состояния, которые обязаны быть в каждом скине. Остальные — по наличию. */
@@ -162,11 +164,60 @@ const CONSTELLATION: Partial<Record<PetState, any[]>> & Record<PetStateBase, any
 
 const SKINS: Record<PetSkin, Partial<Record<PetState, any[]>> & Record<PetStateBase, any[]>> = { cat: CAT, robot: ROBOT, constellation: CONSTELLATION };
 
+/**
+ * ОБЛИК ИЗ КАНАЛА, ЕСЛИ ОН ПРИЕХАЛ ЦЕЛИКОМ.
+ *
+ * Вшитые кадры выше НЕ убраны и убраны не будут, пока переключение не проверено
+ * живьём на всех трёх обликах и всех пяти состояниях (правило Дениса: без спроса
+ * не удаляем даже мусор). Канал — первый источник, бандл — запасной.
+ */
+function изКанала(skin: PetSkin, state: PetState): ChannelState | undefined {
+  return channelPack(skin)?.states[petResolveState(skin, state)];
+}
+
+/** Подписка на приезд облика: пришёл — перерисовываемся, не пришёл — рисуем вшитое. */
+function useChannel(): number {
+  const [n, setN] = React.useState(0);
+  React.useEffect(() => onChannelChange(() => setN((x) => x + 1)), []);
+  return n;
+}
+
 /** Один кадр скина (для превью выбора и мини-аватара шапки). */
 export function petFrame(skin: PetSkin, state: PetState = 'idle', frame = 0) {
   const есть = petResolveState(skin, state);
   const набор = SKINS[skin][есть] ?? SKINS[skin].idle;
   return набор[frame % набор.length];
+}
+
+/**
+ * ОДИН НЕПОДВИЖНЫЙ КАДР — из того же источника, что и живой питомец.
+ *
+ * 🔴 ЗАЧЕМ ОТДЕЛЬНЫЙ КОМПОНЕНТ, А НЕ `petFrame` В <Image>. Замер 03.09.2026 на
+ * экране /pet: живой питомец уже рисовался кадрами канала, а превьюшки обликов
+ * рядом — вшитыми, потому что `petFrame` умеет отдать только ресурс сборки.
+ * Съёмка у канала своя, и рядом это читается как «на витрине один кот, в игре
+ * другой». Здесь источник выбирается тот же самый, что у `PetSprite`.
+ */
+export function PetStill({ skin, state = 'idle', frame = 0, size }: {
+  skin: PetSkin; state?: PetState; frame?: number; size: number;
+}) {
+  useChannel();
+  const кан = изКанала(skin, state);
+  if (кан) {
+    const i = ((frame % кан.frames) + кан.frames) % кан.frames;
+    return (
+      <View style={{ width: size, height: size, overflow: 'hidden' }}>
+        <Image
+          {...a11yDecor}
+          source={{ uri: кан.strip }}
+          style={{ position: 'absolute', top: 0, left: -i * size, width: size * кан.frames, height: size }}
+          resizeMode="stretch"
+          fadeDuration={0}
+        />
+      </View>
+    );
+  }
+  return <Image {...a11yDecor} source={petFrame(skin, state, frame)} style={{ width: size, height: size }} resizeMode="contain" />;
 }
 
 /** Кадровая частота по состоянию: шаг бодрый, сон медленный. */
@@ -219,6 +270,17 @@ const SKIN_SCALE: Record<PetSkin, number> = { cat: 1.0, robot: 0.896, constellat
  * чужого кадра» нельзя было даже случайно: состояние и номер кадра обязательны.
  */
 export function petAnchor(skin: PetSkin, state: PetState, frame: number, at: AnchorName) {
+  /**
+   * 🔴 ЯКОРЬ БЕРЁТСЯ ОТТУДА ЖЕ, ОТКУДА КАДР. У канала своя съёмка: тот же
+   * персонаж, но другие позы и другое число кадров. Нарисовать картинку канала и
+   * посадить на неё вещь по замеру вшитых кадров — это ровно жалоба Вали
+   * 19.08.2026 («бабочка то на пузе, то на хвосте»), только заново.
+   */
+  const кан = изКанала(skin, state);
+  if (кан) {
+    const a = кан.anchors[((frame % кан.frames) + кан.frames) % кан.frames];
+    if (a) return a[at];
+  }
   // Якоря лежат по РАЗРЕШЁННОМУ состоянию: у `celebrate`/`eat` своих кадров нет,
   // значит и якорей нет — берём те же, что у состояния-замены.
   const list = FRAME_ANCHORS[skin][petResolveState(skin, state)] ?? FRAME_ANCHORS[skin].idle!;
@@ -236,6 +298,12 @@ export function petAnchor(skin: PetSkin, state: PetState, frame: number, at: Anc
  * Проценты 0..100 внутри кадра, как и сами якоря.
  */
 export function petHeadCenter(skin: PetSkin, state: PetState): { x: number; y: number } {
+  const кан = изКанала(skin, state);
+  if (кан) {
+    let x = 0, y = 0;
+    for (const f of кан.anchors) { x += f.eyes.x; y += f.eyes.y; }
+    return { x: x / кан.anchors.length, y: y / кан.anchors.length };
+  }
   const есть = petResolveState(skin, state);
   const list = FRAME_ANCHORS[skin][есть] ?? FRAME_ANCHORS[skin].idle!;
   const n = list.length || 1;
@@ -352,8 +420,14 @@ function AccessoryOverlay({ kind, size, skin, state, frame }: {
 export default function PetSprite({ state, size = 56, skin = 'cat', accessory = null }: {
   state: PetState; size?: number; skin?: PetSkin; accessory?: PetAccessory | null;
 }) {
+  useChannel();                                   // приехал облик канала — перерисуемся
+  const кан = изКанала(skin, state);
     // Кадры берём по РАЗРЕШЁННОМУ состоянию: у `celebrate`/`eat` своих пока нет.
   const frames = SKINS[skin][petResolveState(skin, state)] ?? SKINS[skin].idle;
+  /** Сколько кадров листать: у канала своя длина съёмки, у бандла своя. */
+  const кадров = кан ? кан.frames : frames.length;
+  /** Темп: канал сообщает свой fps, у вшитых кадров темп задан по состоянию. */
+  const тактМс = кан ? Math.round(1000 / Math.max(1, кан.fps)) : FRAME_MS[state];
   const [frame, setFrame] = React.useState(0);
   const reduced = useReducedMotion();
   React.useEffect(() => {
@@ -374,9 +448,9 @@ export default function PetSprite({ state, size = 56, skin = 'cat', accessory = 
      * исчезает только фоновое шевеление.
      */
     if (reduced) return;
-    const t = setInterval(() => setFrame((f) => (f + 1) % frames.length), FRAME_MS[state]);
+    const t = setInterval(() => setFrame((f) => (f + 1) % кадров), тактМс);
     return () => clearInterval(t);
-  }, [state, skin, frames.length, reduced]);
+  }, [state, skin, кадров, тактМс, reduced]);
 
   /**
    * Все кадры лежат стопкой, анимация — переключение видимости.
@@ -392,7 +466,30 @@ export default function PetSprite({ state, size = 56, skin = 'cat', accessory = 
    */
   // Один индекс на всё: картинки показывают ЭТОТ кадр, аксессуар берёт якорь
   // ЭТОГО ЖЕ кадра. Две разные формулы здесь и разъехались бы молча.
-  const shown = ((frame % frames.length) + frames.length) % frames.length;
+  const shown = ((frame % кадров) + кадров) % кадров;
+
+  /**
+   * ОБЛИК КАНАЛА — ОДИН ЛИСТ, СДВИГАЕМЫЙ В ОКНЕ.
+   *
+   * Кадры там лежат горизонтальной полосой (`walk-strip.png`, имя историческое и
+   * одинаковое у всех состояний). Растягиваем лист на `size × кадров` и двигаем
+   * влево на текущий кадр в окне шириной `size` — грузится ОДНА картинка, а не
+   * стопка, и «мигания при смене source» здесь нет по устройству.
+   */
+  if (кан) {
+    return (
+      <View style={{ width: size, height: size, overflow: 'hidden' }}>
+        <Image
+          {...a11yDecor}
+          source={{ uri: кан.strip }}
+          style={{ position: 'absolute', top: 0, left: -shown * size, width: size * кан.frames, height: size }}
+          resizeMode="stretch"
+          fadeDuration={0}
+        />
+        {accessory && <AccessoryOverlay kind={accessory} size={size} skin={skin} state={state} frame={shown} />}
+      </View>
+    );
+  }
 
   return (
     <View style={{ width: size, height: size }}>
