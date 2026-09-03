@@ -1165,7 +1165,7 @@ export default function ProofreadingGame() {
         <GameAuxBar>
           <GameAuxAction
             icon="bulb-outline" tint="#0d9488"
-            label={t('btn_hint')} count={fwHintsLeft}
+            ladder="hint" label={t('btn_hint')} count={fwHintsLeft}
             disabled={fwHintsLeft === 0} onPress={fwTakeHint}
           />
         </GameAuxBar>
@@ -1335,7 +1335,7 @@ export default function ProofreadingGame() {
           <GameAuxBar>
             <GameAuxAction
               icon="bulb-outline" tint="#0d9488"
-              label={t('btn_hint')} count={serHintsLeft}
+              ladder="hint" label={t('btn_hint')} count={serHintsLeft}
               disabled={serHintsLeft === 0} onPress={serTakeHint}
             />
           </GameAuxBar>

@@ -358,7 +358,7 @@ export default function TowerLondonGame() {
           <GameAuxBar>
             <GameAuxAction
               icon="arrow-undo"
-              label={t('btn_undo')}
+              ladder="undo" label={t('btn_undo')}
               disabled={!moveHistory.canUndo || feedback !== null}
               onPress={handleUndo}
             />

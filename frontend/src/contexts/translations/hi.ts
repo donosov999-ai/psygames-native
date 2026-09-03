@@ -1199,6 +1199,7 @@ const t: Record<string, string> = {
   "ladderRecords": "रिकॉर्ड स्क्रीन",
   "ladderStreakMap": "शृंखला का नक्शा",
   "ladderNext": "{n} और — फिर खुलेगा: {what}",
+  "ladderLockedAt": "लेवल {n} पर खुलेगा",
   "btn_rules": "नियम",
   "msShort": "ms",
   "shuffleBtn": "फेंटें",

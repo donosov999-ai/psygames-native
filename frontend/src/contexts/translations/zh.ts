@@ -1196,6 +1196,7 @@ const t: Record<string, string> = {
   "ladderRecords": "纪录页面",
   "ladderStreakMap": "连胜地图",
   "ladderNext": "再{n}关解锁：{what}",
+  "ladderLockedAt": "等级 {n} 解锁",
   "btn_rules": "规则",
   "msShort": "毫秒",
   "shuffleBtn": "洗牌",

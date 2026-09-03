@@ -913,7 +913,7 @@ export default function MahjongGame() {
           <GameAuxBar>
             <GameAuxAction
               icon="arrow-undo" tint="#d97706"
-              label={t('btn_undo')} count={undoLeft}
+              ladder="undo" label={t('btn_undo')} count={undoLeft}
               disabled={!canUndo} onPress={undoMove}
             />
             <GameAuxAction

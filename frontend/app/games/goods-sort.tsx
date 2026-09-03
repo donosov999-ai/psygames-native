@@ -4078,12 +4078,12 @@ export default function GoodsSortGame() {
           headerActions={
             <GameAuxBar>
               <GameAuxAction
-                icon="arrow-undo" tint="#d97706" label={t('btn_undo')}
+                icon="arrow-undo" tint="#d97706" ladder="undo" label={t('btn_undo')}
                 disabled={!history.canUndo} onPress={undoMove}
               />
               {/* Остаток подсказок на кнопке: цена видна ДО нажатия, а не после. */}
               <GameAuxAction
-                icon="bulb" tint="#0284c7" label={t('btn_hint')} count={hints}
+                icon="bulb" tint="#0284c7" ladder="hint" label={t('btn_hint')} count={hints}
                 disabled={hints <= 0} onPress={showHint}
               />
               <GameAuxAction
