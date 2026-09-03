@@ -1853,6 +1853,12 @@ const translations: Translations = {
   todayEarnedTitle: { ru: 'Заработано за сегодня', en: 'Earned so far today' },
   todayEmptyHint: { ru: 'Партий сегодня ещё не было. Сыграй — здесь появится, что и сколько принесло.', en: 'No rounds today yet. Play one — this is where you’ll see what it earned.' },
   todayRoundsLabel: { ru: 'партий: {n}', en: 'rounds: {n}' },
+  chessAssistTitle: { ru: 'Подсказки', en: 'Assists' },
+  chessAssistBoard: { ru: 'Показывать пустую доску во время вопросов', en: 'Show an empty board during questions' },
+  chessAssistCoords: { ru: 'Подписи полей по краям (a–h, 1–8)', en: 'Coordinate labels along the edges (a–h, 1–8)' },
+  chessAssistNote: { ru: 'С доской это уже не работа в уме: цвет и место поля видно глазами. Включайте, пока учитесь ориентироваться.', en: 'With the board this is no longer mental work: colour and position are visible. Use it while you are still learning the coordinates.' },
+  todayMore: { ru: 'и ещё {n} — весь список в статистике', en: 'and {n} more — full list in statistics' },
+  practicesTitle: { ru: 'Практики дня', en: 'Practices of the day' },
   todayStreakNote: { ru: 'Серия {n} дней подряд — за партию вдвое', en: '{n} days in a row — double per round' },
 
   // GameResult / ResultSparkline

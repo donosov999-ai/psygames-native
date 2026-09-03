@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.4',
+    date: '2026-09-03',
+    ru: [
+      'Питомец теперь на каждом экране игры — и в настройке, и в партии, рядом с кнопкой правил',
+      '«Доска в уме»: можно включить пустую доску и подписи полей a–h, 1–8, пока учитесь ориентироваться',
+      'Блок «Сегодня» больше не растёт без предела: три игры и переход в статистику по нажатию',
+      'У ряда с зарядкой и практиками появился заголовок',
+    ],
+    en: [
+      'The pet is now on every game screen — setup and play alike, next to the rules button',
+      'Blind Board: you can turn on an empty board and a–h, 1–8 labels while you learn the coordinates',
+      'The Today block no longer grows without limit: three games and a tap to open statistics',
+      'The warm-up and practices row got a heading',
+    ],
+  },
+  {
     version: '2.37.3',
     date: '2026-09-03',
     ru: [

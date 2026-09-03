@@ -44,7 +44,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import GamePet, { type PetMood } from '@/src/components/pet/GamePet';
+import { type PetMood } from '@/src/components/pet/GamePet';
 import { setGameMood } from '@/src/services/petMood';
 import { onGameEvent, type GameEventKind } from '@/src/services/gameEvents';
 import { streakMultiplier, scoreWithStreak } from '@/src/services/scoring';
@@ -316,7 +316,11 @@ export function HeaderRightSlot({ rtl, mood, headerRight, wuStep, wuSkip, skipLa
         </TouchableOpacity>
       ) : null}
       {/* Питомец ПОСЛЕДНИЙ — значит правее всех, у самого отступа под «?». */}
-      <GamePet mood={mood} size={30} />
+      {/* ⚠️ ПИТОМЦА ЗДЕСЬ БОЛЬШЕ НЕТ — он переехал в сквозной слой справки
+          (`GameHelpOverlay`). Причина в кадре Дениса 03.09.2026: на экране настройки
+          «Доски в уме» шапку рисует сама игра, а не этот каркас, и питомца там не
+          было. Слой справки монтируется в корневом макете и виден на КАЖДОМ экране с
+          правилами. Отступ под плавающую кнопку остаётся: она никуда не делась. */}
     </View>
   );
 }
