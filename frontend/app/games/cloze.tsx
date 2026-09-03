@@ -37,6 +37,8 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
 import { CLOZE_PHRASES } from '@/src/constants/clozePhrases';
 import { gameNow } from '@/src/services/gamePause';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
 
 const GRADIENT = ['#f59e0b', '#ef4444'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -162,17 +164,43 @@ export default function ClozeGame() {
     armDeadline();
   };
 
-  const startGame = () => {
+  const { profile } = useProfile();
+
+  const startGame = async () => {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
     timeLimitRef.current = isPreset ? 0 : p.timeLimitMs;
     const roundsCount = isPreset ? presetRounds : p.rounds;
 
-    const phrases = [...(CLOZE_PHRASES[tgt] ?? [])];
-    for (let i = phrases.length - 1; i > 0; i--) {
+    /**
+     * 🔴 СНАЧАЛА НЕВИДАННОЕ — И ЭТО СТАЛО ВОЗМОЖНЫМ ТОЛЬКО СЕЙЧАС.
+     *
+     * Раньше здесь стояла простая перетасовка всего корпуса. Гейт word-pool-supply
+     * прямо писал, почему запас «невиданного» тут не завести: фраз было РОВНО 16 на
+     * язык, а формула уровня просит `min(16, 5 + level)` — с одиннадцатого уровня
+     * партия забирала корпус целиком, и отбирать было не из чего.
+     *
+     * Замер 03.09.2026 (10 сессий подряд, ru): при 16 фразах уже виденных 73% на
+     * первом уровне, 85% на шестом, 90% на одиннадцатом. Корпус доведён до 40 фраз
+     * на каждый из семи языков — те же 10 сессий дают 48% / 65% / 75%, и партия
+     * даже на потолке берёт меньше половины корпуса. Вот теперь запас имеет смысл:
+     * первый честный круг — две с половиной партии по 16, а не ноль.
+     *
+     * ⚠️ Ключ — ТЕКСТ фразы, а не номер: номер переезжает при любой правке корпуса,
+     * и человек получил бы «уже виденным» то, чего не видел (урок freshPool).
+     */
+    const все = [...(CLOZE_PHRASES[tgt] ?? [])];
+    const виденные = await readSeen('cloze_phrases_' + tgt, profile?.id);
+    const свежие = pickFreshFrom(все, roundsCount, виденные, (f) => f.text, Math.random);
+    await writeSeen('cloze_phrases_' + tgt, profile?.id, свежие.seen);
+    /* Добор хвостом: фраза с неизвестным answerEn ниже пропускается, и без запаса
+       раундов вышло бы меньше заказанного. */
+    const остальные = все.filter((f) => !свежие.picked.includes(f));
+    for (let i = остальные.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [phrases[i], phrases[j]] = [phrases[j], phrases[i]];
+      [остальные[i], остальные[j]] = [остальные[j], остальные[i]];
     }
+    const phrases = [...свежие.picked, ...остальные];
     const newRounds: Round[] = [];
     for (const p2 of phrases) {
       if (newRounds.length >= roundsCount) break;
