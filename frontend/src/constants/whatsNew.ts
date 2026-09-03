@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.36.0',
+    date: '2026-09-03',
+    ru: [
+      'Коллекция: сундук теперь открывается — двенадцать полок, у каждой имя и цена. Видно, что уже собрано и что впереди',
+      'После взятого уровня можно крутить колесо: ×1.5, ×2 или ×3 к заработанным звёздам. Рекламы в нём нет',
+      '«Сортировка товаров» появилась в стартовом наборе, и товары стали крупнее: одна ниша на четыре больше не ужимает весь шкаф',
+      '«Доска в уме»: вопрос называет клетку прямо — «что стоит на g8?», а не «на подсвеченной»',
+      'С экрана выбора первой игры теперь есть выход, и служебные кнопки в играх перестали вылезать за край',
+    ],
+    en: [
+      'Collection: the chest opens now — twelve shelves, each with a name and a price. You see what you have and what is ahead',
+      'After a cleared level you can spin the wheel: ×1.5, ×2 or ×3 on the stars you earned. No ads in it',
+      'Goods Sort joined the starter set, and the goods got bigger: one four-slot niche no longer shrinks the whole shelf',
+      'Board in Mind: the question names the square — “what is on g8?” instead of “on the highlighted square”',
+      'The first-game picker now has a way out, and in-game buttons stopped running off the edge',
+    ],
+  },
+  {
     version: '2.35.0',
     date: '2026-09-03',
     ru: [
