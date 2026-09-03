@@ -16,6 +16,32 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.8',
+    date: '2026-09-04',
+    ru: [
+      'Голосовая заметка показывает уровень и на телефонах со старым браузером: видно сразу, слышно вас или нет',
+      'Если микрофон отдаёт тишину, приложение говорит об этом во время записи, а не молчит до отправки',
+    ],
+    en: [
+      'Voice notes now show the level on phones with an old browser: you can see at once whether you are heard',
+      'If the microphone returns silence, the app says so while recording instead of staying quiet until you send',
+    ],
+  },
+  {
+    version: '2.37.7',
+    date: '2026-09-04',
+    ru: [
+      'Судоку: цветные группы больше не пляшут — раньше подсветка строки стирала их цвет, и при каждом нажатии раскраска будто переезжала',
+      'Подсветка строки и столбца в судоку стала видимой в светлой теме — до этого она не рисовала ничего',
+      'Подсказка дня ведёт туда, где вы пока слабее всего',
+    ],
+    en: [
+      'Sudoku: coloured groups no longer jump around — row highlighting used to erase their colour on every tap',
+      'Row and column highlighting in sudoku is now visible in the light theme — before it drew nothing',
+      'The daily hint now points to your weakest area',
+    ],
+  },
+  {
     version: '2.37.6',
     date: '2026-09-03',
     ru: [
